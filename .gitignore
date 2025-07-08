@@ -1,0 +1,7 @@
+# Ignore derived files and directories
+.build/
+*.xcresult
+*.mdb
+
+# Ignore specific derived files
+TestResults.xcresult/Data/data.0*

@@ -1,0 +1,7 @@
+struct ContentView: View {
+    var body: some View {
+        Text("This is a long text for accessibility testing.")
+            .foregroundColor(.blue)
+            .accessibilityLabel("Summary")
+    }
+}

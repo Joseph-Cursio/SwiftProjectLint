@@ -1,0 +1,36 @@
+{
+  "configurations" : [
+    {
+      "id" : "297B68A1-1DCF-4015-8B79-1E41D87C72E0",
+      "name" : "Test Scheme Action",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "codeCoverage" : false,
+    "targetForVariableExpansion" : {
+      "containerPath" : "container:",
+      "identifier" : "SwiftProjectLint",
+      "name" : "SwiftProjectLint"
+    }
+  },
+  "testTargets" : [
+    {
+      "target" : {
+        "containerPath" : "container:",
+        "identifier" : "SwiftProjectLintTests",
+        "name" : "SwiftProjectLintTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:",
+        "identifier" : "SwiftProjectLintCoreTests",
+        "name" : "SwiftProjectLintCoreTests"
+      }
+    }
+  ],
+  "version" : 1
+}

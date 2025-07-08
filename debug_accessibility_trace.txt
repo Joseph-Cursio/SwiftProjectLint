@@ -1,0 +1,14 @@
+Command line invocation:
+    "/Applications/Developer Apps/Xcode.app/Contents/Developer/usr/bin/xcodebuild" test -project SwiftProjectLint.xcodeproj -scheme SwiftProjectLint -destination platform=macOS -testPlan SwiftProjectLint "-only-testing:AccessibilityVisitorTests/testTextWithAccessibilityAndUnrelatedModifiers"
+
+Resolve Package Graph
+
+
+Resolved source packages:
+  swift-syntax: https://github.com/swiftlang/swift-syntax.git @ 601.0.1
+
+--- xcodebuild: WARNING: Using the first of multiple matching destinations:
+{ platform:macOS, arch:arm64, id:00008122-001979C214A3001C, name:My Mac }
+{ platform:macOS, arch:x86_64, id:00008122-001979C214A3001C, name:My Mac }
+2025-07-05 09:01:19.659 xcodebuild[30723:7435698] Writing error result bundle to /var/folders/7k/crlp33kj68x50bb82sqty84r0000gn/T/ResultBundle_2025-05-07_09-01-0019.xcresult
+xcodebuild: error: Failed to build project SwiftProjectLint with scheme SwiftProjectLint.: Tests in the target “AccessibilityVisitorTests” can’t be run because “AccessibilityVisitorTests” isn’t a member of the specified test plan or scheme.

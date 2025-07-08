@@ -1,0 +1,105 @@
+{
+  "" : {
+    "const-values" : "/Users/josephcursio/xcode_projects/SwiftProjectLint/build/SwiftProjectLint.build/Release/SwiftProjectLintCore.build/Objects-normal/x86_64/SwiftProjectLintCore-master.swiftconstvalues",
+    "dependencies" : "/Users/josephcursio/xcode_projects/SwiftProjectLint/build/SwiftProjectLint.build/Release/SwiftProjectLintCore.build/Objects-normal/x86_64/SwiftProjectLintCore-master.d",
+    "diagnostics" : "/Users/josephcursio/xcode_projects/SwiftProjectLint/build/SwiftProjectLint.build/Release/SwiftProjectLintCore.build/Objects-normal/x86_64/SwiftProjectLintCore-master.dia",
+    "emit-module-dependencies" : "/Users/josephcursio/xcode_projects/SwiftProjectLint/build/SwiftProjectLint.build/Release/SwiftProjectLintCore.build/Objects-normal/x86_64/SwiftProjectLintCore-master-emit-module.d",
+    "emit-module-diagnostics" : "/Users/josephcursio/xcode_projects/SwiftProjectLint/build/SwiftProjectLint.build/Release/SwiftProjectLintCore.build/Objects-normal/x86_64/SwiftProjectLintCore-master-emit-module.dia",
+    "swift-dependencies" : "/Users/josephcursio/xcode_projects/SwiftProjectLint/build/SwiftProjectLint.build/Release/SwiftProjectLintCore.build/Objects-normal/x86_64/SwiftProjectLintCore-master.swiftdeps"
+  },
+  "/Users/josephcursio/xcode_projects/SwiftProjectLint/SwiftProjectLintCore/SwiftProjectLintCore.swift" : {
+    "index-unit-output-path" : "/SwiftProjectLint.build/Release/SwiftProjectLintCore.build/Objects-normal/x86_64/SwiftProjectLintCore-8286b3f3e7c2b199ab15e9acdb9b9f65.o",
+    "llvm-bc" : "/Users/josephcursio/xcode_projects/SwiftProjectLint/build/SwiftProjectLint.build/Release/SwiftProjectLintCore.build/Objects-normal/x86_64/SwiftProjectLintCore-8286b3f3e7c2b199ab15e9acdb9b9f65.bc",
+    "object" : "/Users/josephcursio/xcode_projects/SwiftProjectLint/build/SwiftProjectLint.build/Release/SwiftProjectLintCore.build/Objects-normal/x86_64/SwiftProjectLintCore-8286b3f3e7c2b199ab15e9acdb9b9f65.o"
+  },
+  "/Users/josephcursio/xcode_projects/SwiftProjectLint/SwiftProjectLintCore/SwiftProjectLintCore/AccessibilityVisitor.swift" : {
+    "index-unit-output-path" : "/SwiftProjectLint.build/Release/SwiftProjectLintCore.build/Objects-normal/x86_64/AccessibilityVisitor.o",
+    "llvm-bc" : "/Users/josephcursio/xcode_projects/SwiftProjectLint/build/SwiftProjectLint.build/Release/SwiftProjectLintCore.build/Objects-normal/x86_64/AccessibilityVisitor.bc",
+    "object" : "/Users/josephcursio/xcode_projects/SwiftProjectLint/build/SwiftProjectLint.build/Release/SwiftProjectLintCore.build/Objects-normal/x86_64/AccessibilityVisitor.o"
+  },
+  "/Users/josephcursio/xcode_projects/SwiftProjectLint/SwiftProjectLintCore/SwiftProjectLintCore/AdvancedAnalyzer.swift" : {
+    "index-unit-output-path" : "/SwiftProjectLint.build/Release/SwiftProjectLintCore.build/Objects-normal/x86_64/AdvancedAnalyzer.o",
+    "llvm-bc" : "/Users/josephcursio/xcode_projects/SwiftProjectLint/build/SwiftProjectLint.build/Release/SwiftProjectLintCore.build/Objects-normal/x86_64/AdvancedAnalyzer.bc",
+    "object" : "/Users/josephcursio/xcode_projects/SwiftProjectLint/build/SwiftProjectLint.build/Release/SwiftProjectLintCore.build/Objects-normal/x86_64/AdvancedAnalyzer.o"
+  },
+  "/Users/josephcursio/xcode_projects/SwiftProjectLint/SwiftProjectLintCore/SwiftProjectLintCore/ArchitectureVisitor.swift" : {
+    "index-unit-output-path" : "/SwiftProjectLint.build/Release/SwiftProjectLintCore.build/Objects-normal/x86_64/ArchitectureVisitor.o",
+    "llvm-bc" : "/Users/josephcursio/xcode_projects/SwiftProjectLint/build/SwiftProjectLint.build/Release/SwiftProjectLintCore.build/Objects-normal/x86_64/ArchitectureVisitor.bc",
+    "object" : "/Users/josephcursio/xcode_projects/SwiftProjectLint/build/SwiftProjectLint.build/Release/SwiftProjectLintCore.build/Objects-normal/x86_64/ArchitectureVisitor.o"
+  },
+  "/Users/josephcursio/xcode_projects/SwiftProjectLint/SwiftProjectLintCore/SwiftProjectLintCore/CodeQualityVisitor.swift" : {
+    "index-unit-output-path" : "/SwiftProjectLint.build/Release/SwiftProjectLintCore.build/Objects-normal/x86_64/CodeQualityVisitor.o",
+    "llvm-bc" : "/Users/josephcursio/xcode_projects/SwiftProjectLint/build/SwiftProjectLint.build/Release/SwiftProjectLintCore.build/Objects-normal/x86_64/CodeQualityVisitor.bc",
+    "object" : "/Users/josephcursio/xcode_projects/SwiftProjectLint/build/SwiftProjectLint.build/Release/SwiftProjectLintCore.build/Objects-normal/x86_64/CodeQualityVisitor.o"
+  },
+  "/Users/josephcursio/xcode_projects/SwiftProjectLint/SwiftProjectLintCore/SwiftProjectLintCore/DebugLogger.swift" : {
+    "index-unit-output-path" : "/SwiftProjectLint.build/Release/SwiftProjectLintCore.build/Objects-normal/x86_64/DebugLogger.o",
+    "llvm-bc" : "/Users/josephcursio/xcode_projects/SwiftProjectLint/build/SwiftProjectLint.build/Release/SwiftProjectLintCore.build/Objects-normal/x86_64/DebugLogger.bc",
+    "object" : "/Users/josephcursio/xcode_projects/SwiftProjectLint/build/SwiftProjectLint.build/Release/SwiftProjectLintCore.build/Objects-normal/x86_64/DebugLogger.o"
+  },
+  "/Users/josephcursio/xcode_projects/SwiftProjectLint/SwiftProjectLintCore/SwiftProjectLintCore/DetectionPattern.swift" : {
+    "index-unit-output-path" : "/SwiftProjectLint.build/Release/SwiftProjectLintCore.build/Objects-normal/x86_64/DetectionPattern.o",
+    "llvm-bc" : "/Users/josephcursio/xcode_projects/SwiftProjectLint/build/SwiftProjectLint.build/Release/SwiftProjectLintCore.build/Objects-normal/x86_64/DetectionPattern.bc",
+    "object" : "/Users/josephcursio/xcode_projects/SwiftProjectLint/build/SwiftProjectLint.build/Release/SwiftProjectLintCore.build/Objects-normal/x86_64/DetectionPattern.o"
+  },
+  "/Users/josephcursio/xcode_projects/SwiftProjectLint/SwiftProjectLintCore/SwiftProjectLintCore/ForEachSelfIDVisitor.swift" : {
+    "index-unit-output-path" : "/SwiftProjectLint.build/Release/SwiftProjectLintCore.build/Objects-normal/x86_64/ForEachSelfIDVisitor.o",
+    "llvm-bc" : "/Users/josephcursio/xcode_projects/SwiftProjectLint/build/SwiftProjectLint.build/Release/SwiftProjectLintCore.build/Objects-normal/x86_64/ForEachSelfIDVisitor.bc",
+    "object" : "/Users/josephcursio/xcode_projects/SwiftProjectLint/build/SwiftProjectLint.build/Release/SwiftProjectLintCore.build/Objects-normal/x86_64/ForEachSelfIDVisitor.o"
+  },
+  "/Users/josephcursio/xcode_projects/SwiftProjectLint/SwiftProjectLintCore/SwiftProjectLintCore/MemoryManagementVisitor.swift" : {
+    "index-unit-output-path" : "/SwiftProjectLint.build/Release/SwiftProjectLintCore.build/Objects-normal/x86_64/MemoryManagementVisitor.o",
+    "llvm-bc" : "/Users/josephcursio/xcode_projects/SwiftProjectLint/build/SwiftProjectLint.build/Release/SwiftProjectLintCore.build/Objects-normal/x86_64/MemoryManagementVisitor.bc",
+    "object" : "/Users/josephcursio/xcode_projects/SwiftProjectLint/build/SwiftProjectLint.build/Release/SwiftProjectLintCore.build/Objects-normal/x86_64/MemoryManagementVisitor.o"
+  },
+  "/Users/josephcursio/xcode_projects/SwiftProjectLint/SwiftProjectLintCore/SwiftProjectLintCore/NetworkingVisitor.swift" : {
+    "index-unit-output-path" : "/SwiftProjectLint.build/Release/SwiftProjectLintCore.build/Objects-normal/x86_64/NetworkingVisitor.o",
+    "llvm-bc" : "/Users/josephcursio/xcode_projects/SwiftProjectLint/build/SwiftProjectLint.build/Release/SwiftProjectLintCore.build/Objects-normal/x86_64/NetworkingVisitor.bc",
+    "object" : "/Users/josephcursio/xcode_projects/SwiftProjectLint/build/SwiftProjectLint.build/Release/SwiftProjectLintCore.build/Objects-normal/x86_64/NetworkingVisitor.o"
+  },
+  "/Users/josephcursio/xcode_projects/SwiftProjectLint/SwiftProjectLintCore/SwiftProjectLintCore/PerformanceVisitor.swift" : {
+    "index-unit-output-path" : "/SwiftProjectLint.build/Release/SwiftProjectLintCore.build/Objects-normal/x86_64/PerformanceVisitor.o",
+    "llvm-bc" : "/Users/josephcursio/xcode_projects/SwiftProjectLint/build/SwiftProjectLint.build/Release/SwiftProjectLintCore.build/Objects-normal/x86_64/PerformanceVisitor.bc",
+    "object" : "/Users/josephcursio/xcode_projects/SwiftProjectLint/build/SwiftProjectLint.build/Release/SwiftProjectLintCore.build/Objects-normal/x86_64/PerformanceVisitor.o"
+  },
+  "/Users/josephcursio/xcode_projects/SwiftProjectLint/SwiftProjectLintCore/SwiftProjectLintCore/ProjectLinter.swift" : {
+    "index-unit-output-path" : "/SwiftProjectLint.build/Release/SwiftProjectLintCore.build/Objects-normal/x86_64/ProjectLinter.o",
+    "llvm-bc" : "/Users/josephcursio/xcode_projects/SwiftProjectLint/build/SwiftProjectLint.build/Release/SwiftProjectLintCore.build/Objects-normal/x86_64/ProjectLinter.bc",
+    "object" : "/Users/josephcursio/xcode_projects/SwiftProjectLint/build/SwiftProjectLint.build/Release/SwiftProjectLintCore.build/Objects-normal/x86_64/ProjectLinter.o"
+  },
+  "/Users/josephcursio/xcode_projects/SwiftProjectLint/SwiftProjectLintCore/SwiftProjectLintCore/SecurityVisitor.swift" : {
+    "index-unit-output-path" : "/SwiftProjectLint.build/Release/SwiftProjectLintCore.build/Objects-normal/x86_64/SecurityVisitor.o",
+    "llvm-bc" : "/Users/josephcursio/xcode_projects/SwiftProjectLint/build/SwiftProjectLint.build/Release/SwiftProjectLintCore.build/Objects-normal/x86_64/SecurityVisitor.bc",
+    "object" : "/Users/josephcursio/xcode_projects/SwiftProjectLint/build/SwiftProjectLint.build/Release/SwiftProjectLintCore.build/Objects-normal/x86_64/SecurityVisitor.o"
+  },
+  "/Users/josephcursio/xcode_projects/SwiftProjectLint/SwiftProjectLintCore/SwiftProjectLintCore/StateVariableVisitor.swift" : {
+    "index-unit-output-path" : "/SwiftProjectLint.build/Release/SwiftProjectLintCore.build/Objects-normal/x86_64/StateVariableVisitor.o",
+    "llvm-bc" : "/Users/josephcursio/xcode_projects/SwiftProjectLint/build/SwiftProjectLint.build/Release/SwiftProjectLintCore.build/Objects-normal/x86_64/StateVariableVisitor.bc",
+    "object" : "/Users/josephcursio/xcode_projects/SwiftProjectLint/build/SwiftProjectLint.build/Release/SwiftProjectLintCore.build/Objects-normal/x86_64/StateVariableVisitor.o"
+  },
+  "/Users/josephcursio/xcode_projects/SwiftProjectLint/SwiftProjectLintCore/SwiftProjectLintCore/SwiftSyntaxPatternDetector.swift" : {
+    "index-unit-output-path" : "/SwiftProjectLint.build/Release/SwiftProjectLintCore.build/Objects-normal/x86_64/SwiftSyntaxPatternDetector.o",
+    "llvm-bc" : "/Users/josephcursio/xcode_projects/SwiftProjectLint/build/SwiftProjectLint.build/Release/SwiftProjectLintCore.build/Objects-normal/x86_64/SwiftSyntaxPatternDetector.bc",
+    "object" : "/Users/josephcursio/xcode_projects/SwiftProjectLint/build/SwiftProjectLint.build/Release/SwiftProjectLintCore.build/Objects-normal/x86_64/SwiftSyntaxPatternDetector.o"
+  },
+  "/Users/josephcursio/xcode_projects/SwiftProjectLint/SwiftProjectLintCore/SwiftProjectLintCore/SwiftSyntaxPatternRegistry.swift" : {
+    "index-unit-output-path" : "/SwiftProjectLint.build/Release/SwiftProjectLintCore.build/Objects-normal/x86_64/SwiftSyntaxPatternRegistry.o",
+    "llvm-bc" : "/Users/josephcursio/xcode_projects/SwiftProjectLint/build/SwiftProjectLint.build/Release/SwiftProjectLintCore.build/Objects-normal/x86_64/SwiftSyntaxPatternRegistry.bc",
+    "object" : "/Users/josephcursio/xcode_projects/SwiftProjectLint/build/SwiftProjectLint.build/Release/SwiftProjectLintCore.build/Objects-normal/x86_64/SwiftSyntaxPatternRegistry.o"
+  },
+  "/Users/josephcursio/xcode_projects/SwiftProjectLint/SwiftProjectLintCore/SwiftProjectLintCore/SwiftUIManagementVisitor.swift" : {
+    "index-unit-output-path" : "/SwiftProjectLint.build/Release/SwiftProjectLintCore.build/Objects-normal/x86_64/SwiftUIManagementVisitor.o",
+    "llvm-bc" : "/Users/josephcursio/xcode_projects/SwiftProjectLint/build/SwiftProjectLint.build/Release/SwiftProjectLintCore.build/Objects-normal/x86_64/SwiftUIManagementVisitor.bc",
+    "object" : "/Users/josephcursio/xcode_projects/SwiftProjectLint/build/SwiftProjectLint.build/Release/SwiftProjectLintCore.build/Objects-normal/x86_64/SwiftUIManagementVisitor.o"
+  },
+  "/Users/josephcursio/xcode_projects/SwiftProjectLint/SwiftProjectLintCore/SwiftProjectLintCore/UIVisitor.swift" : {
+    "index-unit-output-path" : "/SwiftProjectLint.build/Release/SwiftProjectLintCore.build/Objects-normal/x86_64/UIVisitor.o",
+    "llvm-bc" : "/Users/josephcursio/xcode_projects/SwiftProjectLint/build/SwiftProjectLint.build/Release/SwiftProjectLintCore.build/Objects-normal/x86_64/UIVisitor.bc",
+    "object" : "/Users/josephcursio/xcode_projects/SwiftProjectLint/build/SwiftProjectLint.build/Release/SwiftProjectLintCore.build/Objects-normal/x86_64/UIVisitor.o"
+  },
+  "/Users/josephcursio/xcode_projects/SwiftProjectLint/SwiftProjectLintCore/SwiftProjectLintCore/ViewRelationshipVisitor.swift" : {
+    "index-unit-output-path" : "/SwiftProjectLint.build/Release/SwiftProjectLintCore.build/Objects-normal/x86_64/ViewRelationshipVisitor.o",
+    "llvm-bc" : "/Users/josephcursio/xcode_projects/SwiftProjectLint/build/SwiftProjectLint.build/Release/SwiftProjectLintCore.build/Objects-normal/x86_64/ViewRelationshipVisitor.bc",
+    "object" : "/Users/josephcursio/xcode_projects/SwiftProjectLint/build/SwiftProjectLint.build/Release/SwiftProjectLintCore.build/Objects-normal/x86_64/ViewRelationshipVisitor.o"
+  }
+}

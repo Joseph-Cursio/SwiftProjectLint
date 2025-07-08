@@ -1,0 +1,15 @@
+{
+  "" : {
+    "const-values" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax509.build/Objects-normal/arm64/SwiftSyntax509-master.swiftconstvalues",
+    "dependencies" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax509.build/Objects-normal/arm64/SwiftSyntax509-master.d",
+    "diagnostics" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax509.build/Objects-normal/arm64/SwiftSyntax509-master.dia",
+    "emit-module-dependencies" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax509.build/Objects-normal/arm64/SwiftSyntax509-master-emit-module.d",
+    "emit-module-diagnostics" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax509.build/Objects-normal/arm64/SwiftSyntax509-master-emit-module.dia",
+    "swift-dependencies" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax509.build/Objects-normal/arm64/SwiftSyntax509-master.swiftdeps"
+  },
+  "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/Sources/VersionMarkerModules/SwiftSyntax509/Empty.swift" : {
+    "index-unit-output-path" : "/swift-syntax.build/Release/SwiftSyntax509.build/Objects-normal/arm64/Empty.o",
+    "llvm-bc" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax509.build/Objects-normal/arm64/Empty.bc",
+    "object" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax509.build/Objects-normal/arm64/Empty.o"
+  }
+}

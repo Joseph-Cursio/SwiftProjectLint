@@ -1,0 +1,22 @@
+{
+    "configurations": [
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:SwiftProjectLint}",
+            "name": "Debug SwiftProjectLint",
+            "program": "${workspaceFolder:SwiftProjectLint}/.build/debug/SwiftProjectLint",
+            "preLaunchTask": "swift: Build Debug SwiftProjectLint"
+        },
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:SwiftProjectLint}",
+            "name": "Release SwiftProjectLint",
+            "program": "${workspaceFolder:SwiftProjectLint}/.build/release/SwiftProjectLint",
+            "preLaunchTask": "swift: Build Release SwiftProjectLint"
+        }
+    ]
+}

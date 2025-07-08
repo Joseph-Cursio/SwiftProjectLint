@@ -1,0 +1,10 @@
+# Xcode derived and build files
+DerivedData/
+build/
+*.xcworkspace/
+*.xcuserstate
+*.xcuserdata/
+*.xcarchive/
+
+# CocoaPods
+Pods/

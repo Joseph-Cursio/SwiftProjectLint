@@ -1,0 +1,31 @@
+{
+  "configurations" : [
+    {
+      "id" : "FC123AD0-2623-462B-BDE4-425A2E35B05B",
+      "name" : "Configuration 1",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "testTimeoutsEnabled" : true
+  },
+  "testTargets" : [
+    {
+      "target" : {
+        "containerPath" : "container:",
+        "identifier" : "SwiftProjectLintTests",
+        "name" : "SwiftProjectLintTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:",
+        "identifier" : "SwiftProjectLintCoreTests",
+        "name" : "SwiftProjectLintCoreTests"
+      }
+    }
+  ],
+  "version" : 1
+}

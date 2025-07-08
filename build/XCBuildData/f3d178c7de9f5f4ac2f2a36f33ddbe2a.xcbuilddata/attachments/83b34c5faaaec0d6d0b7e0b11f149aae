@@ -1,0 +1,370 @@
+{
+  "" : {
+    "const-values" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/SwiftSyntax-master.swiftconstvalues",
+    "dependencies" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/SwiftSyntax-master.d",
+    "diagnostics" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/SwiftSyntax-master.dia",
+    "emit-module-dependencies" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/SwiftSyntax-master-emit-module.d",
+    "emit-module-diagnostics" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/SwiftSyntax-master-emit-module.dia",
+    "swift-dependencies" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/SwiftSyntax-master.swiftdeps"
+  },
+  "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/Sources/SwiftSyntax/AbsolutePosition.swift" : {
+    "index-unit-output-path" : "/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/AbsolutePosition.o",
+    "llvm-bc" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/AbsolutePosition.bc",
+    "object" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/AbsolutePosition.o"
+  },
+  "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/Sources/SwiftSyntax/AbsoluteRawSyntax.swift" : {
+    "index-unit-output-path" : "/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/AbsoluteRawSyntax.o",
+    "llvm-bc" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/AbsoluteRawSyntax.bc",
+    "object" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/AbsoluteRawSyntax.o"
+  },
+  "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/Sources/SwiftSyntax/AbsoluteSyntaxInfo.swift" : {
+    "index-unit-output-path" : "/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/AbsoluteSyntaxInfo.o",
+    "llvm-bc" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/AbsoluteSyntaxInfo.bc",
+    "object" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/AbsoluteSyntaxInfo.o"
+  },
+  "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/Sources/SwiftSyntax/Assert.swift" : {
+    "index-unit-output-path" : "/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/Assert.o",
+    "llvm-bc" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/Assert.bc",
+    "object" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/Assert.o"
+  },
+  "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/Sources/SwiftSyntax/BumpPtrAllocator.swift" : {
+    "index-unit-output-path" : "/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/BumpPtrAllocator.o",
+    "llvm-bc" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/BumpPtrAllocator.bc",
+    "object" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/BumpPtrAllocator.o"
+  },
+  "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/Sources/SwiftSyntax/CommonAncestor.swift" : {
+    "index-unit-output-path" : "/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/CommonAncestor.o",
+    "llvm-bc" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/CommonAncestor.bc",
+    "object" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/CommonAncestor.o"
+  },
+  "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/Sources/SwiftSyntax/Convenience.swift" : {
+    "index-unit-output-path" : "/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/Convenience.o",
+    "llvm-bc" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/Convenience.bc",
+    "object" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/Convenience.o"
+  },
+  "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/Sources/SwiftSyntax/CustomTraits.swift" : {
+    "index-unit-output-path" : "/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/CustomTraits.o",
+    "llvm-bc" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/CustomTraits.bc",
+    "object" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/CustomTraits.o"
+  },
+  "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/Sources/SwiftSyntax/EditorPlaceholder.swift" : {
+    "index-unit-output-path" : "/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/EditorPlaceholder.o",
+    "llvm-bc" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/EditorPlaceholder.bc",
+    "object" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/EditorPlaceholder.o"
+  },
+  "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/Sources/SwiftSyntax/Identifier.swift" : {
+    "index-unit-output-path" : "/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/Identifier.o",
+    "llvm-bc" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/Identifier.bc",
+    "object" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/Identifier.o"
+  },
+  "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/Sources/SwiftSyntax/MemoryLayout.swift" : {
+    "index-unit-output-path" : "/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/MemoryLayout.o",
+    "llvm-bc" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/MemoryLayout.bc",
+    "object" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/MemoryLayout.o"
+  },
+  "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/Sources/SwiftSyntax/MissingNodeInitializers.swift" : {
+    "index-unit-output-path" : "/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/MissingNodeInitializers.o",
+    "llvm-bc" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/MissingNodeInitializers.bc",
+    "object" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/MissingNodeInitializers.o"
+  },
+  "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/Sources/SwiftSyntax/Raw/RawSyntax.swift" : {
+    "index-unit-output-path" : "/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/RawSyntax.o",
+    "llvm-bc" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/RawSyntax.bc",
+    "object" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/RawSyntax.o"
+  },
+  "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/Sources/SwiftSyntax/Raw/RawSyntaxLayoutView.swift" : {
+    "index-unit-output-path" : "/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/RawSyntaxLayoutView.o",
+    "llvm-bc" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/RawSyntaxLayoutView.bc",
+    "object" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/RawSyntaxLayoutView.o"
+  },
+  "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/Sources/SwiftSyntax/Raw/RawSyntaxNodeProtocol.swift" : {
+    "index-unit-output-path" : "/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/RawSyntaxNodeProtocol.o",
+    "llvm-bc" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/RawSyntaxNodeProtocol.bc",
+    "object" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/RawSyntaxNodeProtocol.o"
+  },
+  "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/Sources/SwiftSyntax/Raw/RawSyntaxTokenView.swift" : {
+    "index-unit-output-path" : "/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/RawSyntaxTokenView.o",
+    "llvm-bc" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/RawSyntaxTokenView.bc",
+    "object" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/RawSyntaxTokenView.o"
+  },
+  "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/Sources/SwiftSyntax/SourceEdit.swift" : {
+    "index-unit-output-path" : "/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/SourceEdit.o",
+    "llvm-bc" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/SourceEdit.bc",
+    "object" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/SourceEdit.o"
+  },
+  "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/Sources/SwiftSyntax/SourceLength.swift" : {
+    "index-unit-output-path" : "/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/SourceLength.o",
+    "llvm-bc" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/SourceLength.bc",
+    "object" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/SourceLength.o"
+  },
+  "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/Sources/SwiftSyntax/SourceLocation.swift" : {
+    "index-unit-output-path" : "/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/SourceLocation.o",
+    "llvm-bc" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/SourceLocation.bc",
+    "object" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/SourceLocation.o"
+  },
+  "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/Sources/SwiftSyntax/SourcePresence.swift" : {
+    "index-unit-output-path" : "/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/SourcePresence.o",
+    "llvm-bc" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/SourcePresence.bc",
+    "object" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/SourcePresence.o"
+  },
+  "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/Sources/SwiftSyntax/SwiftSyntaxCompatibility.swift" : {
+    "index-unit-output-path" : "/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/SwiftSyntaxCompatibility.o",
+    "llvm-bc" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/SwiftSyntaxCompatibility.bc",
+    "object" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/SwiftSyntaxCompatibility.o"
+  },
+  "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/Sources/SwiftSyntax/Syntax.swift" : {
+    "index-unit-output-path" : "/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/Syntax.o",
+    "llvm-bc" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/Syntax.bc",
+    "object" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/Syntax.o"
+  },
+  "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/Sources/SwiftSyntax/SyntaxArena.swift" : {
+    "index-unit-output-path" : "/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/SyntaxArena.o",
+    "llvm-bc" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/SyntaxArena.bc",
+    "object" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/SyntaxArena.o"
+  },
+  "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/Sources/SwiftSyntax/SyntaxArenaAllocatedBuffer.swift" : {
+    "index-unit-output-path" : "/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/SyntaxArenaAllocatedBuffer.o",
+    "llvm-bc" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/SyntaxArenaAllocatedBuffer.bc",
+    "object" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/SyntaxArenaAllocatedBuffer.o"
+  },
+  "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/Sources/SwiftSyntax/SyntaxChildren.swift" : {
+    "index-unit-output-path" : "/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/SyntaxChildren.o",
+    "llvm-bc" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/SyntaxChildren.bc",
+    "object" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/SyntaxChildren.o"
+  },
+  "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/Sources/SwiftSyntax/SyntaxCollection.swift" : {
+    "index-unit-output-path" : "/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/SyntaxCollection.o",
+    "llvm-bc" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/SyntaxCollection.bc",
+    "object" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/SyntaxCollection.o"
+  },
+  "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/Sources/SwiftSyntax/SyntaxHashable.swift" : {
+    "index-unit-output-path" : "/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/SyntaxHashable.o",
+    "llvm-bc" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/SyntaxHashable.bc",
+    "object" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/SyntaxHashable.o"
+  },
+  "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/Sources/SwiftSyntax/SyntaxIdentifier.swift" : {
+    "index-unit-output-path" : "/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/SyntaxIdentifier.o",
+    "llvm-bc" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/SyntaxIdentifier.bc",
+    "object" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/SyntaxIdentifier.o"
+  },
+  "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/Sources/SwiftSyntax/SyntaxNodeFactory.swift" : {
+    "index-unit-output-path" : "/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/SyntaxNodeFactory.o",
+    "llvm-bc" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/SyntaxNodeFactory.bc",
+    "object" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/SyntaxNodeFactory.o"
+  },
+  "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/Sources/SwiftSyntax/SyntaxNodeStructure.swift" : {
+    "index-unit-output-path" : "/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/SyntaxNodeStructure.o",
+    "llvm-bc" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/SyntaxNodeStructure.bc",
+    "object" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/SyntaxNodeStructure.o"
+  },
+  "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/Sources/SwiftSyntax/SyntaxProtocol.swift" : {
+    "index-unit-output-path" : "/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/SyntaxProtocol.o",
+    "llvm-bc" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/SyntaxProtocol.bc",
+    "object" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/SyntaxProtocol.o"
+  },
+  "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/Sources/SwiftSyntax/SyntaxText.swift" : {
+    "index-unit-output-path" : "/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/SyntaxText.o",
+    "llvm-bc" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/SyntaxText.bc",
+    "object" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/SyntaxText.o"
+  },
+  "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/Sources/SwiftSyntax/SyntaxTreeViewMode.swift" : {
+    "index-unit-output-path" : "/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/SyntaxTreeViewMode.o",
+    "llvm-bc" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/SyntaxTreeViewMode.bc",
+    "object" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/SyntaxTreeViewMode.o"
+  },
+  "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/Sources/SwiftSyntax/TokenDiagnostic.swift" : {
+    "index-unit-output-path" : "/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/TokenDiagnostic.o",
+    "llvm-bc" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/TokenDiagnostic.bc",
+    "object" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/TokenDiagnostic.o"
+  },
+  "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/Sources/SwiftSyntax/TokenSequence.swift" : {
+    "index-unit-output-path" : "/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/TokenSequence.o",
+    "llvm-bc" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/TokenSequence.bc",
+    "object" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/TokenSequence.o"
+  },
+  "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/Sources/SwiftSyntax/TokenSyntax.swift" : {
+    "index-unit-output-path" : "/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/TokenSyntax.o",
+    "llvm-bc" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/TokenSyntax.bc",
+    "object" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/TokenSyntax.o"
+  },
+  "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/Sources/SwiftSyntax/Trivia.swift" : {
+    "index-unit-output-path" : "/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/Trivia.o",
+    "llvm-bc" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/Trivia.bc",
+    "object" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/Trivia.o"
+  },
+  "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/Sources/SwiftSyntax/Utils.swift" : {
+    "index-unit-output-path" : "/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/Utils.o",
+    "llvm-bc" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/Utils.bc",
+    "object" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/Utils.o"
+  },
+  "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/Sources/SwiftSyntax/generated/ChildNameForKeyPath.swift" : {
+    "index-unit-output-path" : "/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/ChildNameForKeyPath.o",
+    "llvm-bc" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/ChildNameForKeyPath.bc",
+    "object" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/ChildNameForKeyPath.o"
+  },
+  "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/Sources/SwiftSyntax/generated/Keyword.swift" : {
+    "index-unit-output-path" : "/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/Keyword.o",
+    "llvm-bc" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/Keyword.bc",
+    "object" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/Keyword.o"
+  },
+  "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/Sources/SwiftSyntax/generated/RenamedChildrenCompatibility.swift" : {
+    "index-unit-output-path" : "/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/RenamedChildrenCompatibility.o",
+    "llvm-bc" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/RenamedChildrenCompatibility.bc",
+    "object" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/RenamedChildrenCompatibility.o"
+  },
+  "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/Sources/SwiftSyntax/generated/RenamedNodesCompatibility.swift" : {
+    "index-unit-output-path" : "/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/RenamedNodesCompatibility.o",
+    "llvm-bc" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/RenamedNodesCompatibility.bc",
+    "object" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/RenamedNodesCompatibility.o"
+  },
+  "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/Sources/SwiftSyntax/generated/SyntaxAnyVisitor.swift" : {
+    "index-unit-output-path" : "/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/SyntaxAnyVisitor.o",
+    "llvm-bc" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/SyntaxAnyVisitor.bc",
+    "object" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/SyntaxAnyVisitor.o"
+  },
+  "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/Sources/SwiftSyntax/generated/SyntaxBaseNodes.swift" : {
+    "index-unit-output-path" : "/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/SyntaxBaseNodes.o",
+    "llvm-bc" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/SyntaxBaseNodes.bc",
+    "object" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/SyntaxBaseNodes.o"
+  },
+  "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/Sources/SwiftSyntax/generated/SyntaxCollections.swift" : {
+    "index-unit-output-path" : "/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/SyntaxCollections.o",
+    "llvm-bc" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/SyntaxCollections.bc",
+    "object" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/SyntaxCollections.o"
+  },
+  "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/Sources/SwiftSyntax/generated/SyntaxEnum.swift" : {
+    "index-unit-output-path" : "/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/SyntaxEnum.o",
+    "llvm-bc" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/SyntaxEnum.bc",
+    "object" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/SyntaxEnum.o"
+  },
+  "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/Sources/SwiftSyntax/generated/SyntaxKind.swift" : {
+    "index-unit-output-path" : "/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/SyntaxKind.o",
+    "llvm-bc" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/SyntaxKind.bc",
+    "object" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/SyntaxKind.o"
+  },
+  "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/Sources/SwiftSyntax/generated/SyntaxRewriter.swift" : {
+    "index-unit-output-path" : "/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/SyntaxRewriter.o",
+    "llvm-bc" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/SyntaxRewriter.bc",
+    "object" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/SyntaxRewriter.o"
+  },
+  "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/Sources/SwiftSyntax/generated/SyntaxTraits.swift" : {
+    "index-unit-output-path" : "/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/SyntaxTraits.o",
+    "llvm-bc" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/SyntaxTraits.bc",
+    "object" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/SyntaxTraits.o"
+  },
+  "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/Sources/SwiftSyntax/generated/SyntaxVisitor.swift" : {
+    "index-unit-output-path" : "/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/SyntaxVisitor.o",
+    "llvm-bc" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/SyntaxVisitor.bc",
+    "object" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/SyntaxVisitor.o"
+  },
+  "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/Sources/SwiftSyntax/generated/TokenKind.swift" : {
+    "index-unit-output-path" : "/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/TokenKind.o",
+    "llvm-bc" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/TokenKind.bc",
+    "object" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/TokenKind.o"
+  },
+  "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/Sources/SwiftSyntax/generated/Tokens.swift" : {
+    "index-unit-output-path" : "/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/Tokens.o",
+    "llvm-bc" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/Tokens.bc",
+    "object" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/Tokens.o"
+  },
+  "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/Sources/SwiftSyntax/generated/TriviaPieces.swift" : {
+    "index-unit-output-path" : "/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/TriviaPieces.o",
+    "llvm-bc" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/TriviaPieces.bc",
+    "object" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/TriviaPieces.o"
+  },
+  "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/Sources/SwiftSyntax/generated/raw/RawSyntaxNodesAB.swift" : {
+    "index-unit-output-path" : "/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/RawSyntaxNodesAB.o",
+    "llvm-bc" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/RawSyntaxNodesAB.bc",
+    "object" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/RawSyntaxNodesAB.o"
+  },
+  "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/Sources/SwiftSyntax/generated/raw/RawSyntaxNodesC.swift" : {
+    "index-unit-output-path" : "/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/RawSyntaxNodesC.o",
+    "llvm-bc" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/RawSyntaxNodesC.bc",
+    "object" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/RawSyntaxNodesC.o"
+  },
+  "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/Sources/SwiftSyntax/generated/raw/RawSyntaxNodesD.swift" : {
+    "index-unit-output-path" : "/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/RawSyntaxNodesD.o",
+    "llvm-bc" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/RawSyntaxNodesD.bc",
+    "object" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/RawSyntaxNodesD.o"
+  },
+  "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/Sources/SwiftSyntax/generated/raw/RawSyntaxNodesEF.swift" : {
+    "index-unit-output-path" : "/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/RawSyntaxNodesEF.o",
+    "llvm-bc" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/RawSyntaxNodesEF.bc",
+    "object" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/RawSyntaxNodesEF.o"
+  },
+  "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/Sources/SwiftSyntax/generated/raw/RawSyntaxNodesGHI.swift" : {
+    "index-unit-output-path" : "/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/RawSyntaxNodesGHI.o",
+    "llvm-bc" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/RawSyntaxNodesGHI.bc",
+    "object" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/RawSyntaxNodesGHI.o"
+  },
+  "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/Sources/SwiftSyntax/generated/raw/RawSyntaxNodesJKLMN.swift" : {
+    "index-unit-output-path" : "/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/RawSyntaxNodesJKLMN.o",
+    "llvm-bc" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/RawSyntaxNodesJKLMN.bc",
+    "object" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/RawSyntaxNodesJKLMN.o"
+  },
+  "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/Sources/SwiftSyntax/generated/raw/RawSyntaxNodesOP.swift" : {
+    "index-unit-output-path" : "/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/RawSyntaxNodesOP.o",
+    "llvm-bc" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/RawSyntaxNodesOP.bc",
+    "object" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/RawSyntaxNodesOP.o"
+  },
+  "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/Sources/SwiftSyntax/generated/raw/RawSyntaxNodesQRS.swift" : {
+    "index-unit-output-path" : "/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/RawSyntaxNodesQRS.o",
+    "llvm-bc" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/RawSyntaxNodesQRS.bc",
+    "object" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/RawSyntaxNodesQRS.o"
+  },
+  "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/Sources/SwiftSyntax/generated/raw/RawSyntaxNodesTUVWXYZ.swift" : {
+    "index-unit-output-path" : "/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/RawSyntaxNodesTUVWXYZ.o",
+    "llvm-bc" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/RawSyntaxNodesTUVWXYZ.bc",
+    "object" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/RawSyntaxNodesTUVWXYZ.o"
+  },
+  "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/Sources/SwiftSyntax/generated/raw/RawSyntaxValidation.swift" : {
+    "index-unit-output-path" : "/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/RawSyntaxValidation.o",
+    "llvm-bc" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/RawSyntaxValidation.bc",
+    "object" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/RawSyntaxValidation.o"
+  },
+  "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/Sources/SwiftSyntax/generated/syntaxNodes/SyntaxNodesAB.swift" : {
+    "index-unit-output-path" : "/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/SyntaxNodesAB.o",
+    "llvm-bc" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/SyntaxNodesAB.bc",
+    "object" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/SyntaxNodesAB.o"
+  },
+  "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/Sources/SwiftSyntax/generated/syntaxNodes/SyntaxNodesC.swift" : {
+    "index-unit-output-path" : "/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/SyntaxNodesC.o",
+    "llvm-bc" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/SyntaxNodesC.bc",
+    "object" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/SyntaxNodesC.o"
+  },
+  "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/Sources/SwiftSyntax/generated/syntaxNodes/SyntaxNodesD.swift" : {
+    "index-unit-output-path" : "/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/SyntaxNodesD.o",
+    "llvm-bc" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/SyntaxNodesD.bc",
+    "object" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/SyntaxNodesD.o"
+  },
+  "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/Sources/SwiftSyntax/generated/syntaxNodes/SyntaxNodesEF.swift" : {
+    "index-unit-output-path" : "/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/SyntaxNodesEF.o",
+    "llvm-bc" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/SyntaxNodesEF.bc",
+    "object" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/SyntaxNodesEF.o"
+  },
+  "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/Sources/SwiftSyntax/generated/syntaxNodes/SyntaxNodesGHI.swift" : {
+    "index-unit-output-path" : "/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/SyntaxNodesGHI.o",
+    "llvm-bc" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/SyntaxNodesGHI.bc",
+    "object" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/SyntaxNodesGHI.o"
+  },
+  "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/Sources/SwiftSyntax/generated/syntaxNodes/SyntaxNodesJKLMN.swift" : {
+    "index-unit-output-path" : "/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/SyntaxNodesJKLMN.o",
+    "llvm-bc" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/SyntaxNodesJKLMN.bc",
+    "object" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/SyntaxNodesJKLMN.o"
+  },
+  "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/Sources/SwiftSyntax/generated/syntaxNodes/SyntaxNodesOP.swift" : {
+    "index-unit-output-path" : "/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/SyntaxNodesOP.o",
+    "llvm-bc" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/SyntaxNodesOP.bc",
+    "object" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/SyntaxNodesOP.o"
+  },
+  "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/Sources/SwiftSyntax/generated/syntaxNodes/SyntaxNodesQRS.swift" : {
+    "index-unit-output-path" : "/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/SyntaxNodesQRS.o",
+    "llvm-bc" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/SyntaxNodesQRS.bc",
+    "object" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/SyntaxNodesQRS.o"
+  },
+  "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/Sources/SwiftSyntax/generated/syntaxNodes/SyntaxNodesTUVWXYZ.swift" : {
+    "index-unit-output-path" : "/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/SyntaxNodesTUVWXYZ.o",
+    "llvm-bc" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/SyntaxNodesTUVWXYZ.bc",
+    "object" : "/Users/josephcursio/Library/Developer/Xcode/DerivedData/SwiftProjectLint-acbaxkmfoywtorcusrkrhsqzfdas/SourcePackages/checkouts/swift-syntax/build/swift-syntax.build/Release/SwiftSyntax.build/Objects-normal/x86_64/SyntaxNodesTUVWXYZ.o"
+  }
+}
