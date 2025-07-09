@@ -117,9 +117,10 @@ class ArchitectureVisitor: BasePatternVisitor {
     private func countStateVariables(_ node: VariableDeclSyntax) {
         for binding in node.bindings {
             if binding.pattern.as(IdentifierPatternSyntax.self) != nil {
-                let propertyWrapper = extractPropertyWrapper(from: node)
-                if propertyWrapper.hasPrefix("@State") || propertyWrapper.hasPrefix("@StateObject") {
-                    stateVariableCount += 1
+                if let propertyWrapper = extractPropertyWrapper(from: node) {
+                    if propertyWrapper == .state || propertyWrapper == .stateObject {
+                        stateVariableCount += 1
+                    }
                 }
             }
         }
@@ -129,7 +130,7 @@ class ArchitectureVisitor: BasePatternVisitor {
         for binding in node.bindings {
             if binding.pattern.as(IdentifierPatternSyntax.self) != nil {
                 let propertyWrapper = extractPropertyWrapper(from: node)
-                if propertyWrapper == "@StateObject" {
+                if propertyWrapper == .stateObject {
                     // Check if it's being created inline
                     if let initializer = binding.initializer {
                         let initText = initializer.value.description.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -203,14 +204,15 @@ class ArchitectureVisitor: BasePatternVisitor {
         return false
     }
     
-    private func extractPropertyWrapper(from node: VariableDeclSyntax) -> String {
+    private func extractPropertyWrapper(from node: VariableDeclSyntax) -> PropertyWrapper? {
         for attribute in node.attributes {
             if let attributeSyntax = attribute.as(AttributeSyntax.self),
-               let attributeName = attributeSyntax.attributeName.as(IdentifierTypeSyntax.self) {
-                return "@\(attributeName.name.text)"
+               let attributeName = attributeSyntax.attributeName.as(IdentifierTypeSyntax.self),
+               let wrapper = PropertyWrapper(rawValue: attributeName.name.text) {
+                return wrapper
             }
         }
-        return ""
+        return nil
     }
     
     private func extractTypeAnnotation(from binding: PatternBindingSyntax) -> String {

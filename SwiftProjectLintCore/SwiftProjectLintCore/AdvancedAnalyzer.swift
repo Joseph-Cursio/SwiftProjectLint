@@ -2,7 +2,6 @@ import Foundation
 import SwiftParser
 import SwiftSyntax
 
-
 // MARK: - Advanced Analysis Models
 
 /// Represents a hierarchical or navigational relationship between two SwiftUI views detected during analysis.
@@ -420,7 +419,7 @@ class AdvancedAnalyzer {
         
         // Detect missing @StateObject usage
         for stateVar in stateVariables {
-            if stateVar.propertyWrapper == "@ObservedObject" && isRootView(stateVar.viewName) {
+            if stateVar.propertyWrapper == PropertyWrapper.observedObject && isRootView(stateVar.viewName) {
                 let issue = ArchitectureIssue(
                     type: .missingStateObject,
                     severity: .warning,

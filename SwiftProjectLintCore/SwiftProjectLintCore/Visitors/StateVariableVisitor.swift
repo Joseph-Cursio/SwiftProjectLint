@@ -19,35 +19,7 @@ import SwiftSyntax
 
 // MARK: - Property Wrapper Enum
 
-enum PropertyWrapper: String {
-    case state = "State"
-    case stateObject = "StateObject"
-    case observedObject = "ObservedObject"
-    case environmentObject = "EnvironmentObject"
-    case binding = "Binding"
-    case environment = "Environment"
-    case focusState = "FocusState"
-    case gestureState = "GestureState"
-    case scaledMetric = "ScaledMetric"
-    case namespace = "Namespace"
-    case fetchRequest = "FetchRequest"
-    case sectionedFetchRequest = "SectionedFetchRequest"
-    case query = "Query"
-    case appStorage = "AppStorage"
-    case sceneStorage = "SceneStorage"
-    case uiApplicationDelegateAdaptor = "UIApplicationDelegateAdaptor"
-    case wkExtensionDelegateAdaptor = "WKExtensionDelegateAdaptor"
-    case nsApplicationDelegateAdaptor = "NSApplicationDelegateAdaptor"
-    case focusedBinding = "FocusedBinding"
-    case focusedValue = "FocusedValue"
-    case accessibilityFocusState = "AccessibilityFocusState"
-}
-
-extension PropertyWrapper {
-    var fullRepresentation: String {
-        return "@\(self.rawValue)"
-    }
-}
+// (PropertyWrapper enum and extension removed; now in PropertyWrapper.swift)
 
 class StateVariableVisitor: SyntaxVisitor {
     private let viewName: String
@@ -90,9 +62,7 @@ class StateVariableVisitor: SyntaxVisitor {
                 let variableName = pattern.identifier.text
                 
                 // Check for property wrappers
-                let propertyWrapper = extractPropertyWrapper(from: node.attributes)
-                
-                if !propertyWrapper.isEmpty {
+                if let propertyWrapper = extractPropertyWrapper(from: node.attributes) {
                     // Use the new type inference logic
                     let typeString = extractTypeString(from: binding.typeAnnotation, initializer: binding.initializer)
                     let lineNumber = calculateLineNumber(for: node.positionAfterSkippingLeadingTrivia)
@@ -122,23 +92,18 @@ class StateVariableVisitor: SyntaxVisitor {
     // MARK: - Private Helper Methods
     
     /// Extracts property wrapper information from variable attributes
-    private func extractPropertyWrapper(from attributes: AttributeListSyntax?) -> String {
-        guard let attributes = attributes else { return "" }
+    private func extractPropertyWrapper(from attributes: AttributeListSyntax?) -> PropertyWrapper? {
+        guard let attributes = attributes else { return nil }
         
         for attribute in attributes {
             if let attributeSyntax = attribute.as(AttributeSyntax.self),
-               let attributeName = attributeSyntax.attributeName.as(IdentifierTypeSyntax.self)?.name.text {
-                return mapPropertyWrapperName(attributeName)
+               let attributeName = attributeSyntax.attributeName.as(IdentifierTypeSyntax.self)?.name.text,
+               let wrapper = PropertyWrapper(rawValue: attributeName) {
+                return wrapper
             }
         }
         
-        return ""
-    }
-    
-    /// Maps SwiftUI property wrapper names to their full representation
-    private func mapPropertyWrapperName(_ name: String) -> String {
-        guard let wrapper = PropertyWrapper(rawValue: name) else { return "" }
-        return wrapper.fullRepresentation
+        return nil
     }
     
     /// Extracts and formats type information from type annotations or infers from initializer
@@ -240,28 +205,28 @@ class StateVariableVisitor: SyntaxVisitor {
     }
     
     /// Validates property wrapper usage and returns any issues
-    private func validatePropertyWrapperUsage(propertyWrapper: String, typeString: String, variableName: String) -> [String] {
+    private func validatePropertyWrapperUsage(propertyWrapper: PropertyWrapper, typeString: String, variableName: String) -> [String] {
         var issues: [String] = []
         
         // Check for common anti-patterns
         switch propertyWrapper {
-        case "@State":
+        case .state:
             if typeString.contains("ObservableObject") || typeString.contains("class") {
                 issues.append("Consider using @StateObject instead of @State for ObservableObject types")
             }
-        case "@StateObject":
+        case .stateObject:
             if !typeString.contains("ObservableObject") && !typeString.contains("class") {
                 issues.append("@StateObject should only be used with ObservableObject types")
             }
-        case "@ObservedObject":
+        case .observedObject:
             if !typeString.contains("ObservableObject") && !typeString.contains("class") {
                 issues.append("@ObservedObject should only be used with ObservableObject types")
             }
-        case "@Binding":
+        case .binding:
             if !typeString.contains("Binding<") && !typeString.hasPrefix("Binding") {
                 issues.append("@Binding should be used with Binding types")
             }
-        case "@Environment":
+        case .environment:
             if typeString.contains("ObservableObject") {
                 issues.append("Consider using @EnvironmentObject instead of @Environment for ObservableObject types")
             }
@@ -288,8 +253,8 @@ class StateVariableVisitor: SyntaxVisitor {
     // MARK: - Public Helper Methods
     
     /// Returns a summary of detected state variables grouped by property wrapper
-    public func getStateVariableSummary() -> [String: Int] {
-        var summary: [String: Int] = [:]
+    public func getStateVariableSummary() -> [PropertyWrapper: Int] {
+        var summary: [PropertyWrapper: Int] = [:]
         
         for stateVar in stateVariables {
             summary[stateVar.propertyWrapper, default: 0] += 1
@@ -299,7 +264,7 @@ class StateVariableVisitor: SyntaxVisitor {
     }
     
     /// Returns state variables filtered by property wrapper type
-    public func getStateVariables(withPropertyWrapper wrapper: String) -> [StateVariable] {
+    public func getStateVariables(withPropertyWrapper wrapper: PropertyWrapper) -> [StateVariable] {
         return stateVariables.filter { $0.propertyWrapper == wrapper }
     }
     
@@ -308,8 +273,8 @@ class StateVariableVisitor: SyntaxVisitor {
         return stateVariables.filter { stateVar in
             // Look for ObservableObject types that might be shared across views
             // @StateObject and @ObservedObject are typically used with ObservableObject types
-            let isStateOrObserved = stateVar.propertyWrapper == "@StateObject" || 
-                                  stateVar.propertyWrapper == "@ObservedObject"
+            let isStateOrObserved = stateVar.propertyWrapper == .stateObject || 
+                                  stateVar.propertyWrapper == .observedObject
             
             // For @StateObject and @ObservedObject, we assume they are ObservableObject types
             // since that's the intended use case for these property wrappers
@@ -317,3 +282,4 @@ class StateVariableVisitor: SyntaxVisitor {
         }
     }
 }
+

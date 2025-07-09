@@ -2,6 +2,7 @@ import Testing
 import Foundation
 import SwiftSyntax
 import SwiftParser
+import XCTest
 @testable import SwiftProjectLintCore
 
 struct StateVariableVisitorTests {
@@ -29,8 +30,8 @@ struct StateVariableVisitorTests {
         let isShowingSheet = stateVariables.first { $0.name == "isShowingSheet" }
         if isShowingSheet == nil {
             #expect(false, "isShowingSheet not found. Available variables: \(stateVariables.map { $0.name })")
-        } else if isShowingSheet?.propertyWrapper != "@State" {
-            #expect(false, "isShowingSheet wrapper mismatch. Expected: '@State', Actual: '\(isShowingSheet?.propertyWrapper ?? "nil")'")
+        } else if isShowingSheet?.propertyWrapper != PropertyWrapper.state {
+            #expect(false, "isShowingSheet wrapper mismatch. Expected: '@State', Actual: '\(isShowingSheet?.propertyWrapper ?? .unknown)'")
         } else if isShowingSheet?.type != "Bool" {
             #expect(false, "isShowingSheet type mismatch. Expected: 'Bool', Actual: '\(isShowingSheet?.type ?? "nil")'")
         }
@@ -38,8 +39,8 @@ struct StateVariableVisitorTests {
         let counter = stateVariables.first { $0.name == "counter" }
         if counter == nil {
             #expect(false, "counter not found. Available variables: \(stateVariables.map { $0.name })")
-        } else if counter?.propertyWrapper != "@State" {
-            #expect(false, "counter wrapper mismatch. Expected: '@State', Actual: '\(counter?.propertyWrapper ?? "nil")'")
+        } else if counter?.propertyWrapper != PropertyWrapper.state {
+            #expect(false, "counter wrapper mismatch. Expected: '@State', Actual: '\(counter?.propertyWrapper ?? .unknown)'")
         } else if counter?.type != "Int" {
             #expect(false, "counter type mismatch. Expected: 'Int', Actual: '\(counter?.type ?? "nil")'")
         }
@@ -60,7 +61,7 @@ struct StateVariableVisitorTests {
         
         #expect(stateVariables.count == 1)
         #expect(stateVariables[0].name == "viewModel")
-        #expect(stateVariables[0].propertyWrapper == "@StateObject")
+        #expect(stateVariables[0].propertyWrapper == PropertyWrapper.stateObject)
         #expect(stateVariables[0].type == "ContentViewModel")
     }
     
@@ -79,7 +80,7 @@ struct StateVariableVisitorTests {
         
         #expect(stateVariables.count == 1)
         #expect(stateVariables[0].name == "dataManager")
-        #expect(stateVariables[0].propertyWrapper == "@ObservedObject")
+        #expect(stateVariables[0].propertyWrapper == PropertyWrapper.observedObject)
         #expect(stateVariables[0].type == "DataManager")
     }
     
@@ -98,7 +99,7 @@ struct StateVariableVisitorTests {
         
         #expect(stateVariables.count == 1)
         #expect(stateVariables[0].name == "appState")
-        #expect(stateVariables[0].propertyWrapper == "@EnvironmentObject")
+        #expect(stateVariables[0].propertyWrapper == PropertyWrapper.environmentObject)
         #expect(stateVariables[0].type == "AppState")
     }
     
@@ -117,7 +118,7 @@ struct StateVariableVisitorTests {
         
         #expect(stateVariables.count == 1)
         #expect(stateVariables[0].name == "isPresented")
-        #expect(stateVariables[0].propertyWrapper == "@Binding")
+        #expect(stateVariables[0].propertyWrapper == PropertyWrapper.binding)
         #expect(stateVariables[0].type == "Bool")
     }
     
@@ -139,11 +140,11 @@ struct StateVariableVisitorTests {
         
         let colorScheme = stateVariables.first { $0.name == "colorScheme" }
         #expect(colorScheme != nil)
-        #expect(colorScheme?.propertyWrapper == "@Environment")
+        #expect(colorScheme?.propertyWrapper == PropertyWrapper.environment)
         
         let locale = stateVariables.first { $0.name == "locale" }
         #expect(locale != nil)
-        #expect(locale?.propertyWrapper == "@Environment")
+        #expect(locale?.propertyWrapper == PropertyWrapper.environment)
     }
     
     @Test func testFocusStateDetection() async throws {
@@ -164,12 +165,12 @@ struct StateVariableVisitorTests {
         
         let isFocused = stateVariables.first { $0.name == "isFocused" }
         #expect(isFocused != nil)
-        #expect(isFocused?.propertyWrapper == "@FocusState")
+        #expect(isFocused?.propertyWrapper == PropertyWrapper.focusState)
         #expect(isFocused?.type == "Bool")
         
         let focusedField = stateVariables.first { $0.name == "focusedField" }
         #expect(focusedField != nil)
-        #expect(focusedField?.propertyWrapper == "@FocusState")
+        #expect(focusedField?.propertyWrapper == PropertyWrapper.focusState)
         #expect(focusedField?.type == "Field?")
     }
     
@@ -191,12 +192,12 @@ struct StateVariableVisitorTests {
         
         let dragOffset = stateVariables.first { $0.name == "dragOffset" }
         #expect(dragOffset != nil)
-        #expect(dragOffset?.propertyWrapper == "@GestureState")
+        #expect(dragOffset?.propertyWrapper == PropertyWrapper.gestureState)
         #expect(dragOffset?.type == "CGSize")
         
         let isPressed = stateVariables.first { $0.name == "isPressed" }
         #expect(isPressed != nil)
-        #expect(isPressed?.propertyWrapper == "@GestureState")
+        #expect(isPressed?.propertyWrapper == PropertyWrapper.gestureState)
         #expect(isPressed?.type == "Bool")
     }
     
@@ -215,7 +216,7 @@ struct StateVariableVisitorTests {
         
         #expect(stateVariables.count == 1)
         #expect(stateVariables[0].name == "animation")
-        #expect(stateVariables[0].propertyWrapper == "@Namespace")
+        #expect(stateVariables[0].propertyWrapper == PropertyWrapper.namespace)
     }
     
     @Test func testAppStorageDetection() async throws {
@@ -236,12 +237,12 @@ struct StateVariableVisitorTests {
         
         let username = stateVariables.first { $0.name == "username" }
         #expect(username != nil)
-        #expect(username?.propertyWrapper == "@AppStorage")
+        #expect(username?.propertyWrapper == PropertyWrapper.appStorage)
         #expect(username?.type == "String")
         
         let isFirstLaunch = stateVariables.first { $0.name == "isFirstLaunch" }
         #expect(isFirstLaunch != nil)
-        #expect(isFirstLaunch?.propertyWrapper == "@AppStorage")
+        #expect(isFirstLaunch?.propertyWrapper == PropertyWrapper.appStorage)
         #expect(isFirstLaunch?.type == "Bool")
     }
     
@@ -263,7 +264,7 @@ struct StateVariableVisitorTests {
         
         #expect(stateVariables.count == 1)
         #expect(stateVariables[0].name == "items")
-        #expect(stateVariables[0].propertyWrapper == "@FetchRequest")
+        #expect(stateVariables[0].propertyWrapper == PropertyWrapper.fetchRequest)
     }
     
     @Test func testMultiplePropertyWrappers() async throws {
@@ -291,10 +292,10 @@ struct StateVariableVisitorTests {
         #expect(stateVariables.count == 10)
         
         let wrappers = Set(stateVariables.map { $0.propertyWrapper })
-        let expectedWrappers: Set<String> = [
-            "@State", "@StateObject", "@ObservedObject", "@EnvironmentObject",
-            "@Binding", "@Environment", "@FocusState", "@GestureState",
-            "@Namespace", "@AppStorage"
+        let expectedWrappers: Set<PropertyWrapper> = [
+            PropertyWrapper.state, PropertyWrapper.stateObject, PropertyWrapper.observedObject, PropertyWrapper.environmentObject,
+            PropertyWrapper.binding, PropertyWrapper.environment, PropertyWrapper.focusState, PropertyWrapper.gestureState,
+            PropertyWrapper.namespace, PropertyWrapper.appStorage
         ]
         
         #expect(wrappers == expectedWrappers)
@@ -318,10 +319,10 @@ struct StateVariableVisitorTests {
         let visitor = await createVisitor(from: sourceCode, viewName: "ContentView")
         let summary = visitor.getStateVariableSummary()
         
-        #expect(summary["@State"] == 2)
-        #expect(summary["@StateObject"] == 1)
-        #expect(summary["@ObservedObject"] == 1)
-        #expect(summary["@EnvironmentObject"] == 1)
+        #expect(summary[PropertyWrapper.state] == 2)
+        #expect(summary[PropertyWrapper.stateObject] == 1)
+        #expect(summary[PropertyWrapper.observedObject] == 1)
+        #expect(summary[PropertyWrapper.environmentObject] == 1)
     }
     
     @Test func testFilterByPropertyWrapper() async throws {
@@ -338,7 +339,7 @@ struct StateVariableVisitorTests {
         """
         
         let visitor = await createVisitor(from: sourceCode, viewName: "ContentView")
-        let stateVariables = visitor.getStateVariables(withPropertyWrapper: "@State")
+        let stateVariables = visitor.getStateVariables(withPropertyWrapper: PropertyWrapper.state)
         
         #expect(stateVariables.count == 1)
         #expect(stateVariables[0].name == "counter")

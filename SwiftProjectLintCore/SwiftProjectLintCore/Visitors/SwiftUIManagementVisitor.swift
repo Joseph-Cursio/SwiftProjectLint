@@ -141,7 +141,7 @@ class SwiftUIManagementVisitor: BasePatternVisitor {
             guard let pattern = binding.pattern.as(IdentifierPatternSyntax.self) else { continue }
             
             let variableName = pattern.identifier.text
-            let propertyWrapper = extractPropertyWrapper(from: node)
+            guard let propertyWrapper = extractPropertyWrapper(from: node) else { continue }
             let typeAnnotation = extractTypeAnnotation(from: binding)
             let hasInitialValue = binding.initializer != nil
             
@@ -173,7 +173,7 @@ class SwiftUIManagementVisitor: BasePatternVisitor {
     // MARK: - Pattern Detection Methods
     
     private func checkForMissingStateObject(_ stateVar: StateVariableInfo, node: VariableDeclSyntax) {
-        guard stateVar.propertyWrapper == "@ObservedObject" else { return }
+        guard stateVar.propertyWrapper == .stateObject else { return }
         
         // Check if this looks like it should be @StateObject
         let typeName = stateVar.type
@@ -205,7 +205,7 @@ class SwiftUIManagementVisitor: BasePatternVisitor {
     
     private func checkForUninitializedState(_ stateVar: StateVariableInfo, node: VariableDeclSyntax) {
         // Check if @State variable has an initial value
-        if stateVar.propertyWrapper == "@State" {
+        if stateVar.propertyWrapper == .state {
             let hasInitialValue = node.bindings.contains { binding in
                 binding.initializer != nil
             }
@@ -236,7 +236,7 @@ class SwiftUIManagementVisitor: BasePatternVisitor {
     private func checkForUnusedState(_ stateVar: StateVariableInfo, node: VariableDeclSyntax) {
         // This would require more sophisticated analysis to determine if a state variable is actually used
         // For now, we'll implement a basic check
-        if stateVar.propertyWrapper == "@State" && stateVar.hasInitialValue {
+        if stateVar.propertyWrapper == .state && stateVar.hasInitialValue {
             // Check if the variable is referenced in the view body
             // This is a simplified check - in practice, you'd need to analyze the entire view body
         }
@@ -313,14 +313,15 @@ class SwiftUIManagementVisitor: BasePatternVisitor {
         return false
     }
     
-    private func extractPropertyWrapper(from node: VariableDeclSyntax) -> String {
+    private func extractPropertyWrapper(from node: VariableDeclSyntax) -> PropertyWrapper? {
         for attribute in node.attributes {
             if let attributeSyntax = attribute.as(AttributeSyntax.self),
-               let attributeName = attributeSyntax.attributeName.as(IdentifierTypeSyntax.self) {
-                return "@\(attributeName.name.text)"
+               let attributeName = attributeSyntax.attributeName.as(IdentifierTypeSyntax.self),
+               let wrapper = PropertyWrapper(rawValue: attributeName.name.text) {
+                return wrapper
             }
         }
-        return ""
+        return nil
     }
     
     private func extractTypeAnnotation(from binding: PatternBindingSyntax) -> String {
@@ -334,8 +335,8 @@ class SwiftUIManagementVisitor: BasePatternVisitor {
         var count = 0
         for member in node.memberBlock.members {
             if let variableDecl = member.decl.as(VariableDeclSyntax.self) {
-                let propertyWrapper = extractPropertyWrapper(from: variableDecl)
-                if propertyWrapper.hasPrefix("@State") || propertyWrapper.hasPrefix("@StateObject") {
+                guard let propertyWrapper = extractPropertyWrapper(from: variableDecl) else { continue }
+                if propertyWrapper == .state || propertyWrapper == .stateObject {
                     count += variableDecl.bindings.count
                 }
             }
@@ -387,7 +388,7 @@ class SwiftUIManagementVisitor: BasePatternVisitor {
 struct StateVariableInfo {
     let name: String
     let type: String
-    let propertyWrapper: String
+    let propertyWrapper: PropertyWrapper
     let viewName: String
     let filePath: String
     let lineNumber: Int

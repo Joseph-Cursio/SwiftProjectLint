@@ -3,29 +3,6 @@ import SwiftUI
 
 // MARK: - Models
 
-/// Represents a state-related property declared within a SwiftUI view.
-///
-/// `StateVariable` encapsulates information about a property that uses a SwiftUI property wrapper
-/// such as `@State`, `@StateObject`, `@ObservedObject`, or `@EnvironmentObject`. This structure is
-/// used for static analysis of SwiftUI projects to track how state is managed and propagated across views.
-///
-/// - Parameters:
-///   - name: The name of the state variable as declared in the source code.
-///   - type: The declared type of the state variable (e.g., `Bool`, `String`, `MyModel`, etc.).
-///   - filePath: The absolute or relative path to the file where the state variable is declared.
-///   - lineNumber: The 1-based line number in the file where the state variable appears.
-///   - viewName: The name of the containing SwiftUI view (typically the struct name, inferred from the file name).
-///   - propertyWrapper: The property wrapper used (e.g., `@State`, `@StateObject`, `@ObservedObject`, or `@EnvironmentObject`).
-///
-struct StateVariable {
-    let name: String
-    let type: String
-    let filePath: String
-    let lineNumber: Int
-    let viewName: String
-    let propertyWrapper: String // @State, @StateObject, etc.
-}
-
 /// Represents a lint issue detected during static analysis of the project.
 ///
 /// `LintIssue` describes a specific problem, warning, or suggestion found in the codebase. It includes the severity of the issue,
@@ -394,12 +371,16 @@ public class ProjectLinter {
     /// - Parameter line: A single line of Swift source code, typically representing a property declaration.
     /// - Returns: A string representing the property wrapper used in the line (e.g., `"@State"`), or `"Unknown"`
     ///            if no recognized wrapper is present.
-    private func extractPropertyWrapper(from line: String) -> String {
-        if line.contains("@State") { return "@State" }
-        if line.contains("@StateObject") { return "@StateObject" }
-        if line.contains("@ObservedObject") { return "@ObservedObject" }
-        if line.contains("@EnvironmentObject") { return "@EnvironmentObject" }
-        return "Unknown"
+    private func extractPropertyWrapper(from line: String) -> PropertyWrapper {
+        let wrappers: [PropertyWrapper] = [
+            .state, .stateObject, .observedObject, .environmentObject, .binding, .environment, .focusState, .gestureState, .scaledMetric, .namespace, .fetchRequest, .sectionedFetchRequest, .query, .appStorage, .sceneStorage, .uiApplicationDelegateAdaptor, .wkExtensionDelegateAdaptor, .nsApplicationDelegateAdaptor, .focusedBinding, .focusedValue, .accessibilityFocusState
+        ]
+        for wrapper in wrappers {
+            if line.contains("@\(wrapper.rawValue)") {
+                return wrapper
+            }
+        }
+        return .unknown
     }
     
     /// Extracts the name of a SwiftUI view from a given file path.

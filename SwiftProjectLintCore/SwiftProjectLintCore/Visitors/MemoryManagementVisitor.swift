@@ -36,11 +36,23 @@ class MemoryManagementVisitor: BasePatternVisitor {
         super.init(patternCategory: patternCategory)
     }
     
-    required override init(viewMode: SyntaxTreeViewMode) {
+    required init(viewMode: SyntaxTreeViewMode) {
         self.config = .default
         super.init(viewMode: viewMode)
     }
     
+    /// Helper to extract property wrapper as PropertyWrapper enum
+    private func extractPropertyWrapper(from node: VariableDeclSyntax) -> PropertyWrapper? {
+        for attribute in node.attributes {
+            if let attributeSyntax = attribute.as(AttributeSyntax.self),
+               let attributeName = attributeSyntax.attributeName.as(IdentifierTypeSyntax.self),
+               let wrapper = PropertyWrapper(rawValue: attributeName.name.text) {
+                return wrapper
+            }
+        }
+        return nil
+    }
+
     override func visit(_ node: VariableDeclSyntax) -> SyntaxVisitorContinueKind {
         DebugLogger.logVisitor(.memoryManagement, "Visiting variable declaration")
         // Check for potential retain cycles and large objects in state
@@ -53,20 +65,11 @@ class MemoryManagementVisitor: BasePatternVisitor {
     /// Pattern: @StateObject var name: Type = Type()
     private func checkForRetainCycles(_ node: VariableDeclSyntax) {
         guard config.detectRetainCycles else { return }
+        guard let propertyWrapper = extractPropertyWrapper(from: node), propertyWrapper == .stateObject else { return }
         
         for binding in node.bindings {
             guard let pattern = binding.pattern.as(IdentifierPatternSyntax.self),
                   let initializer = binding.initializer else { continue }
-            
-            // Check if this is a @StateObject declaration
-            let hasStateObjectAttribute = node.attributes.contains { attribute in
-                if let attributeName = attribute.as(AttributeSyntax.self)?.attributeName.as(IdentifierTypeSyntax.self) {
-                    return attributeName.name.text == "StateObject"
-                }
-                return false
-            }
-            
-            guard hasStateObjectAttribute else { continue }
             
             // Check if the initializer creates an instance of the same type
             if let functionCall = initializer.value.as(FunctionCallExprSyntax.self),
@@ -99,29 +102,16 @@ class MemoryManagementVisitor: BasePatternVisitor {
     /// Pattern: @State var name: [Type] = [
     private func checkForLargeObjectsInState(_ node: VariableDeclSyntax) {
         guard config.detectLargeObjects else { return }
-        
+        guard let propertyWrapper = extractPropertyWrapper(from: node), propertyWrapper == .state else { return }
         for binding in node.bindings {
             guard let pattern = binding.pattern.as(IdentifierPatternSyntax.self),
                   let initializer = binding.initializer else { continue }
-            
-            // Check if this is a @State declaration
-            let hasStateAttribute = node.attributes.contains { attribute in
-                if let attributeName = attribute.as(AttributeSyntax.self)?.attributeName.as(IdentifierTypeSyntax.self) {
-                    return attributeName.name.text == "State"
-                }
-                return false
-            }
-            
-            guard hasStateAttribute else { continue }
-            
             // Check if the type is an array
             if let typeAnnotation = binding.typeAnnotation,
                let arrayType = typeAnnotation.type.as(ArrayTypeSyntax.self) {
-                
                 // Check if the initializer is an array literal
                 if let arrayLiteral = initializer.value.as(ArrayExprSyntax.self) {
                     let elementCount = arrayLiteral.elements.count
-                    
                     if elementCount > config.maxArraySize {
                         addIssue(
                             severity: .info,
