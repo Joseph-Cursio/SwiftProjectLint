@@ -67,7 +67,7 @@ struct ContentView: View {
     private func convertToDetectionPatterns(_ syntaxPatterns: [SyntaxPattern]) -> [DetectionPattern] {
         return syntaxPatterns.map { syntaxPattern in
             DetectionPattern(
-                name: syntaxPattern.name.rawValue,
+                name: syntaxPattern.name,
                 severity: syntaxPattern.severity,
                 message: syntaxPattern.messageTemplate,
                 suggestion: syntaxPattern.suggestion,
@@ -273,10 +273,7 @@ struct ContentView: View {
         for category in PatternCategory.allCases {
             let patternsInCategory = patternRegistry.getPatterns(for: category)
             let enabledPatternsInCategory = patternsInCategory.filter { pattern in
-                if let ruleIdentifier = RuleIdentifier(rawValue: pattern.name.rawValue) {
-                    return enabledRuleNames.contains(ruleIdentifier)
-                }
-                return false
+                enabledRuleNames.contains(pattern.name)
             }
             
             if !enabledPatternsInCategory.isEmpty {
@@ -446,6 +443,9 @@ struct ContentView: View {
                         ruleName: .nestedNavigationView
                     )
                 ])
+            case .other:
+                // No demo issues for the "other" category (system-level errors)
+                break
             }
         }
         
@@ -493,11 +493,7 @@ struct RuleSelectionDialog: View {
     private var allRuleNames: Set<RuleIdentifier> {
         var names = Set<RuleIdentifier>()
         for group in allPatternsByCategory {
-            for pattern in group.patterns {
-                if let ruleIdentifier = RuleIdentifier(rawValue: pattern.name) {
-                    names.insert(ruleIdentifier)
-                }
-            }
+            names.formUnion(group.patterns.map { $0.name })
         }
         return names
     }
@@ -514,24 +510,22 @@ struct RuleSelectionDialog: View {
                     Section(header: Text(group.display)) {
                         // Show patterns from the passed data
                         ForEach(group.patterns, id: \.name) { pattern in
-                            if let ruleIdentifier = RuleIdentifier(rawValue: pattern.name) {
-                                Toggle(isOn: Binding(
-                                    get: { enabledRuleNames.contains(ruleIdentifier) },
-                                    set: { isOn in
-                                        if isOn {
-                                            enabledRuleNames.insert(ruleIdentifier)
-                                        } else {
-                                            enabledRuleNames.remove(ruleIdentifier)
-                                        }
+                            Toggle(isOn: Binding(
+                                get: { enabledRuleNames.contains(pattern.name) },
+                                set: { isOn in
+                                    if isOn {
+                                        enabledRuleNames.insert(pattern.name)
+                                    } else {
+                                        enabledRuleNames.remove(pattern.name)
                                     }
-                                )) {
-                                    VStack(alignment: .leading, spacing: 2) {
-                                        Text(pattern.name)
-                                            .fontWeight(.medium)
-                                        Text(pattern.suggestion)
-                                            .font(.caption)
-                                            .foregroundColor(.secondary)
-                                    }
+                                }
+                            )) {
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(pattern.name.rawValue)
+                                        .fontWeight(.medium)
+                                    Text(pattern.suggestion)
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
                                 }
                             }
                         }

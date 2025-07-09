@@ -100,6 +100,10 @@ public class SwiftSyntaxPatternRegistry {
             registerArchitecturePatterns()
         case .uiPatterns:
             registerUIPatterns()
+        case .other:
+            // No patterns to register for the "other" category
+            // This category is used for system-level errors like fileParsingError
+            break
         }
     }
     
