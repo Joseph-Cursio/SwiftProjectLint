@@ -258,7 +258,6 @@ public class ProjectLinter {
             return issues
         }
         
-        // Use SwiftSyntax for state variable extraction instead of regex
         let extractedStateVariables = extractStateVariables(from: content, filePath: path)
         stateVariables.append(contentsOf: extractedStateVariables)
         

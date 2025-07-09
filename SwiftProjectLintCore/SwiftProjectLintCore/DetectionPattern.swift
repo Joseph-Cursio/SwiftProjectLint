@@ -98,7 +98,6 @@ public enum PatternCategory: CaseIterable {
 /// Each detection pattern is associated with a category, severity level, user-facing message, and suggestion.
 ///
 /// Detection patterns are used by the UI to display available patterns and their configuration.
-/// The actual detection is performed by SwiftSyntax-based visitors, not regex patterns.
 ///
 /// - Parameters:
 ///   - name: The display name of the pattern (used for reporting).
