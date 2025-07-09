@@ -9,7 +9,7 @@ A comprehensive SwiftUI project analyzer that detects architectural issues, perf
 - **Cross-File Analysis**: Identifies issues spanning multiple files and view relationships
 - **View Hierarchy Mapping**: Builds complete view relationship graphs
 - **Pattern-Based Detection**: 50+ patterns across 9 categories for comprehensive code analysis
-- **Type-Safe Detection**: Enum-based pattern detection for improved accuracy and maintainability
+- **Type-Safe Detection**: Enum-based pattern detection for improved accuracy and maintainability (rules/categories; property wrapper/view type logic is still being migrated)
 
 ### Detection Categories
 
@@ -303,22 +303,35 @@ The project includes comprehensive test coverage:
 ## 📊 Current Status
 
 ### Architecture Improvements
-- **SwiftSyntax Migration**: Successfully migrated from regex to SwiftSyntax for core analysis
-- **Type-Safe Detection**: Implemented enum-based pattern detection for improved accuracy
+- **SwiftSyntax Migration**: 99% migrated from regex to SwiftSyntax for core analysis (see [__remove_regex.md](./__remove_regex.md) for remaining work)
+- **Type-Safe Detection**: Enum-based pattern detection for rules/categories; property wrapper/view type logic is still partly string-based (see [__string_comparison.md](./__string_comparison.md))
 - **Visitor Pattern**: Comprehensive SwiftSyntax visitor hierarchy for precise analysis
 - **Modular Design**: Clear separation between UI and core analysis logic
 
 ### Ongoing Refactoring
 - **Regex Removal**: Final phase of eliminating remaining regex usage (see [__remove_regex.md](./__remove_regex.md))
 - **String Comparison Refactoring**: Replacing hard-wired strings with type-safe enums (see [__string_comparison.md](./__string_comparison.md))
-- **Performance Optimization**: Implementing AST caching and incremental analysis
-- **Code Organization**: Breaking down large files and improving maintainability
+- **Performance Optimization**: AST caching and incremental analysis not yet implemented
+- **Code Organization**: Several files remain very large and need splitting (see [__refactor.md](./__refactor.md))
 
 ### Technical Debt
 - **Large File Sizes**: Several files exceed 500-700 lines and need refactoring
 - **Mixed Responsibilities**: Some classes combine UI, business logic, and file operations
 - **Synchronous Operations**: File and analysis operations need async/await conversion
 - **Test Coverage**: Core logic needs more comprehensive integration tests
+- **Error Handling**: Inconsistent use of Result types and error propagation
+
+## 🚧 Current Limitations & Roadmap
+
+- **Regex Removal**: One active regex usage remains in `ProjectLinter.swift` (`extractStateVariable`). The `DetectionPattern` struct and UI still reference a `regex` field. See [__remove_regex.md](./__remove_regex.md) for the plan and status.
+- **String Comparison Refactoring**: Property wrapper, view type, and AST node logic still use string comparisons in many places. See [__string_comparison.md](./__string_comparison.md) for the migration plan.
+- **Large Files**: Files like `SwiftUIManagementVisitor.swift`, `SwiftSyntaxPatternDetector.swift`, `ContentView.swift`, and others remain very large and need to be split for maintainability. See [__refactor.md](./__refactor.md) for recommendations.
+- **Async/Await & Performance**: Async/await is only partially implemented. AST caching and incremental analysis are not yet present.
+- **Error Handling**: Not all operations use Result types or custom error enums; error propagation is inconsistent.
+- **Testing**: While unit test coverage is strong, more integration and performance tests are needed.
+- **Documentation**: API documentation and configuration examples are basic and need expansion.
+
+For a detailed roadmap and actionable steps, see [__refactor.md](./__refactor.md).
 
 ## 🤝 Contributing
 

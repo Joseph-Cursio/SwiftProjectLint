@@ -40,7 +40,7 @@ class SecurityVisitor: BasePatternVisitor {
                             filePath: currentFilePath,
                             lineNumber: getLineNumber(for: Syntax(node)),
                             suggestion: "Use environment variables or secure key storage",
-                            ruleName: currentPattern?.name
+                            ruleName: nil
                         )
                     }
                 }
@@ -63,7 +63,7 @@ class SecurityVisitor: BasePatternVisitor {
                             filePath: currentFilePath,
                             lineNumber: getLineNumber(for: Syntax(node)),
                             suggestion: "Use URLComponents for safe URL construction",
-                            ruleName: currentPattern?.name
+                            ruleName: nil
                         )
                     }
                 }

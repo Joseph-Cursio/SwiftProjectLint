@@ -121,7 +121,7 @@ class SwiftUIManagementVisitor: BasePatternVisitor {
                     filePath: currentFilePath,
                     lineNumber: getLineNumber(for: node),
                     suggestion: "Extract business logic into an ObservableObject ViewModel",
-                    ruleName: currentPattern?.name
+                    ruleName: nil
                 )
             }
         }

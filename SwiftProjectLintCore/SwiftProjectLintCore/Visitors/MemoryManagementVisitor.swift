@@ -87,7 +87,7 @@ class MemoryManagementVisitor: BasePatternVisitor {
                             filePath: currentFilePath ?? "unknown",
                             lineNumber: getLineNumber(for: Syntax(node)),
                             suggestion: "Review object lifecycle and consider weak references or proper cleanup",
-                            ruleName: currentPattern?.name
+                            ruleName: nil
                         )
                     }
                 }
@@ -129,7 +129,7 @@ class MemoryManagementVisitor: BasePatternVisitor {
                             filePath: currentFilePath ?? "unknown",
                             lineNumber: getLineNumber(for: Syntax(node)),
                             suggestion: "Consider using @StateObject with ObservableObject for large data or pagination",
-                            ruleName: currentPattern?.name
+                            ruleName: nil
                         )
                     }
                 }

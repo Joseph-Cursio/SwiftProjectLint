@@ -29,7 +29,7 @@ class ForEachSelfIDVisitor: BasePatternVisitor {
                     if let memberAccess = argument.expression.as(MemberAccessExprSyntax.self),
                        memberAccess.declName.baseName.text == "self" {
                         addIssue(
-                            severity: .warning,
+                            severity: IssueSeverity.warning,
                             message: "Using \\.self as id in ForEach can cause performance issues",
                             filePath: currentFilePath,
                             lineNumber: getLineNumber(for: Syntax(node)),

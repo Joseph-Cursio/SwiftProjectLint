@@ -36,7 +36,7 @@ struct StateVariable {
 ///   - message: A human-readable description of the detected issue.
 ///   - locations: One or more locations (file path and line number) where the issue was detected.
 ///   - suggestion: An optional fix or recommendation to resolve the issue, or `nil` if no suggestion is provided.
-///   - ruleName: The name of the rule that generated this issue.
+///   - ruleName: The identifier of the rule that generated this issue.
 ///
 /// - Note: This struct supports multiple locations for a single issue. For backward compatibility, single-location
 ///         initializers and computed properties are provided.
@@ -50,7 +50,7 @@ public struct LintIssue: Identifiable {
     /// This supports issues that span multiple files or lines.
     public let locations: [(filePath: String, lineNumber: Int)]
     public let suggestion: String?
-    public let ruleName: String
+    public let ruleName: RuleIdentifier
     
     /// Returns the file path of the first location, or an empty string if no locations exist.
     public var filePath: String {
@@ -69,8 +69,8 @@ public struct LintIssue: Identifiable {
     ///   - message: The message describing the issue.
     ///   - locations: An array of file path and line number tuples where the issue occurs.
     ///   - suggestion: An optional suggestion for fixing the issue.
-    ///   - ruleName: The rule name that generated this issue.
-    public init(severity: IssueSeverity, message: String, locations: [(filePath: String, lineNumber: Int)], suggestion: String?, ruleName: String) {
+    ///   - ruleName: The identifier of the rule that generated this issue.
+    public init(severity: IssueSeverity, message: String, locations: [(filePath: String, lineNumber: Int)], suggestion: String?, ruleName: RuleIdentifier) {
         self.severity = severity
         self.message = message
         self.locations = locations
@@ -87,8 +87,8 @@ public struct LintIssue: Identifiable {
     ///   - filePath: The file path where the issue occurs.
     ///   - lineNumber: The line number where the issue occurs.
     ///   - suggestion: An optional suggestion for fixing the issue.
-    ///   - ruleName: The rule name that generated this issue.
-    public init(severity: IssueSeverity, message: String, filePath: String, lineNumber: Int, suggestion: String?, ruleName: String) {
+    ///   - ruleName: The identifier of the rule that generated this issue.
+    public init(severity: IssueSeverity, message: String, filePath: String, lineNumber: Int, suggestion: String?, ruleName: RuleIdentifier) {
         self.severity = severity
         self.message = message
         self.locations = [(filePath, lineNumber)]
@@ -108,7 +108,7 @@ public struct LintIssue: Identifiable {
 ///   - info: Provides informational messages or suggestions for improving code quality or consistency.
 ///
 /// - SeeAlso: `LintIssue`
-public enum IssueSeverity {
+public enum IssueSeverity: String, Codable {
     case error
     case warning
     case info

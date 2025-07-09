@@ -4,20 +4,17 @@ import Foundation
 
 /// Enum representing all available lint rules in the system.
 /// This provides type-safe rule identification and eliminates string matching issues.
-public enum RuleIdentifier: String, CaseIterable {
+public enum RuleIdentifier: String, CaseIterable, Codable {
     // State Management Rules
     case relatedDuplicateStateVariable = "Related Duplicate State Variable"
     case unrelatedDuplicateStateVariable = "Unrelated Duplicate State Variable"
     case missingStateObject = "Missing StateObject"
-    case uninitializedState = "Uninitialized State"
     case unusedStateVariable = "Unused State Variable"
     case fatView = "Fat View"
     
     // Performance Rules
-    case expensiveOperationsInBody = "Expensive Operations in Body"
     case forEachWithoutID = "ForEach Without ID"
     case largeViewBody = "Large View Body"
-    case forEachSelfAsID = "ForEach .self as ID"
     case unnecessaryViewUpdate = "Unnecessary View Update"
     
     // Architecture Rules
@@ -25,9 +22,7 @@ public enum RuleIdentifier: String, CaseIterable {
     case missingDependencyInjection = "Missing Dependency Injection"
     
     // Code Quality Rules
-    case magicNumbers = "Magic Numbers"
     case hardcodedStrings = "Hardcoded Strings"
-    case longFunctions = "Long Functions"
     case missingDocumentation = "Missing Documentation"
     
     // Security Rules
@@ -35,8 +30,6 @@ public enum RuleIdentifier: String, CaseIterable {
     case unsafeURL = "Unsafe URL"
     
     // Accessibility Rules
-    case imageMissingAccessibility = "Image Missing Accessibility"
-    case buttonMissingAccessibility = "Button Missing Accessibility"
     case inaccessibleColorUsage = "Inaccessible Color Usage"
     
     // Memory Management Rules
@@ -45,42 +38,29 @@ public enum RuleIdentifier: String, CaseIterable {
     
     // Networking Rules
     case missingErrorHandling = "Missing Error Handling"
-    case synchronousNetworking = "Synchronous Networking"
     
     // UI Pattern Rules
-    case nestedNavigation = "Nested Navigation"
     case missingPreview = "Missing Preview"
     case inconsistentStyling = "Inconsistent Styling"
-    case forEachWithoutID_UI = "ForEach Without ID (UI)"
     case basicErrorHandling = "Basic Error Handling"
+    
+    // Add missing cases for pattern registrations
+    case uninitializedStateVariable = "Uninitialized State Variable"                // state
+    case expensiveOperationInViewBody = "Expensive Operation in View Body"          // performance
+    case forEachSelfID = "ForEach Self ID"
+    case magicNumber = "Magic Number"
+    case longFunction = "Long Function"
+    case missingAccessibilityLabel = "Missing Accessibility Label"
+    case missingAccessibilityHint = "Missing Accessibility Hint"
+    case nestedNavigationView = "Nested Navigation View"
+    case forEachWithSelfID = "ForEach With Self ID"
+    case forEachWithoutIDUI = "ForEach Without ID UI"
+    case synchronousNetworkCall = "Synchronous Network Call"
+    case fileParsingError = "File Parsing Error"
     
     /// Returns the display name for the rule
     var displayName: String {
         return rawValue
-    }
-    
-    /// Returns the category this rule belongs to
-    var category: PatternCategory {
-        switch self {
-        case .relatedDuplicateStateVariable, .unrelatedDuplicateStateVariable, .missingStateObject, .uninitializedState, .unusedStateVariable, .fatView:
-            return .stateManagement
-        case .expensiveOperationsInBody, .forEachWithoutID, .largeViewBody, .forEachSelfAsID, .unnecessaryViewUpdate:
-            return .performance
-        case .fatViewDetection, .missingDependencyInjection:
-            return .architecture
-        case .magicNumbers, .hardcodedStrings, .longFunctions, .missingDocumentation:
-            return .codeQuality
-        case .hardcodedSecret, .unsafeURL:
-            return .security
-        case .imageMissingAccessibility, .buttonMissingAccessibility, .inaccessibleColorUsage:
-            return .accessibility
-        case .potentialRetainCycle, .largeObjectInState:
-            return .memoryManagement
-        case .missingErrorHandling, .synchronousNetworking:
-            return .networking
-        case .nestedNavigation, .missingPreview, .inconsistentStyling, .forEachWithoutID_UI, .basicErrorHandling:
-            return .uiPatterns
-        }
     }
 }
 

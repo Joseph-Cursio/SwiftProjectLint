@@ -22,7 +22,7 @@ struct NetworkingVisitorTests {
             filePath: "test.swift",
             lineNumber: 1,
             suggestion: "Test suggestion",
-            ruleName: "Test Rule"
+            ruleName: .missingErrorHandling
         )
         visitor.detectedIssues.append(issue)
         

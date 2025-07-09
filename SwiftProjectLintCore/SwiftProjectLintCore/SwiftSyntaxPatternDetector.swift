@@ -42,7 +42,7 @@ public protocol PatternVisitor: SyntaxVisitor {
 ///   - suggestion: A recommended action or fix to resolve the detected issue.
 ///   - description: A detailed description of what this pattern detects.
 public struct SyntaxPattern {
-    public let name: String
+    public let name: RuleIdentifier
     public let visitor: PatternVisitor.Type
     public let severity: IssueSeverity
     public let category: PatternCategory
@@ -53,7 +53,7 @@ public struct SyntaxPattern {
     /// Creates a new syntax pattern with the specified parameters.
     ///
     /// - Parameters:
-    ///   - name: The display name of the pattern.
+    ///   - name: The rule identifier of the pattern.
     ///   - visitor: The visitor type responsible for detection.
     ///   - severity: The severity level of detected issues.
     ///   - category: The pattern category.
@@ -61,7 +61,7 @@ public struct SyntaxPattern {
     ///   - suggestion: The suggested fix or improvement.
     ///   - description: A detailed description of the pattern.
     public init(
-        name: String,
+        name: RuleIdentifier,
         visitor: PatternVisitor.Type,
         severity: IssueSeverity,
         category: PatternCategory,
@@ -257,7 +257,7 @@ public class SwiftSyntaxPatternDetector {
         // Get specific patterns by name
         let allPatterns = registry.getAllPatterns()
         let requestedPatterns = allPatterns.filter { pattern in
-            patternNames.contains(pattern.name)
+            patternNames.contains(pattern.name.rawValue)
         }
         
         for pattern in requestedPatterns {
@@ -328,7 +328,7 @@ public class SwiftSyntaxPatternDetector {
                         filePath: filePath,
                         lineNumber: 1,
                         suggestion: "Check file permissions and syntax",
-                        ruleName: "File Parsing Error"
+                        ruleName: .fileParsingError
                     )
                 )
             }
@@ -413,7 +413,7 @@ public class SwiftSyntaxPatternDetector {
                         filePath: filePath,
                         lineNumber: 1,
                         suggestion: "Check file permissions and syntax",
-                        ruleName: "File Parsing Error"
+                        ruleName: .fileParsingError
                     )
                 )
             }
@@ -422,7 +422,7 @@ public class SwiftSyntaxPatternDetector {
         // Get specific patterns by name
         let allPatterns = registry.getAllPatterns()
         let requestedPatterns = allPatterns.filter { pattern in
-            patternNames.contains(pattern.name)
+            patternNames.contains(pattern.name.rawValue)
         }
         
         print("DEBUG: Found \(requestedPatterns.count) requested patterns")
@@ -432,7 +432,7 @@ public class SwiftSyntaxPatternDetector {
         
         // Apply analysis for each visitor type
         for pattern in requestedPatterns {
-            print("DEBUG: Processing pattern: \(pattern.name) with visitor: \(pattern.visitor)")
+            print("DEBUG: Processing pattern: \(pattern.name.rawValue) with visitor: \(pattern.visitor)")
             if let crossFileVisitorType = pattern.visitor as? CrossFilePatternVisitor.Type {
                 print("DEBUG: Creating cross-file visitor for pattern: \(pattern.name)")
                 let visitor = crossFileVisitorType.init(fileCache: fileCache)
@@ -566,7 +566,7 @@ class BasePatternVisitor: SyntaxVisitor, PatternVisitor {
         filePath: String,
         lineNumber: Int,
         suggestion: String? = nil,
-        ruleName: String? = nil
+        ruleName: RuleIdentifier? = nil
     ) {
         let issue = LintIssue(
             severity: severity,
@@ -574,7 +574,7 @@ class BasePatternVisitor: SyntaxVisitor, PatternVisitor {
             filePath: filePath,
             lineNumber: lineNumber,
             suggestion: suggestion,
-            ruleName: ruleName ?? currentPattern?.name ?? "Unknown Rule"
+            ruleName: .fileParsingError
         )
         detectedIssues.append(issue)
     }
@@ -598,7 +598,7 @@ class BasePatternVisitor: SyntaxVisitor, PatternVisitor {
                 filePath: filePath,
                 lineNumber: lineNumber,
                 suggestion: "Review the code",
-                ruleName: "Unknown Rule"
+                ruleName: .fileParsingError
             )
             return
         }

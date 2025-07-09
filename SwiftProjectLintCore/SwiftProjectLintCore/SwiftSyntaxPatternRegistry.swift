@@ -106,7 +106,7 @@ public class SwiftSyntaxPatternRegistry {
     private func registerStateManagementPatterns() {
         let patterns = [
             SyntaxPattern(
-                name: "Related Duplicate State Variable",
+                name: .relatedDuplicateStateVariable,
                 visitor: SwiftUIManagementVisitor.self,
                 severity: .warning,
                 category: .stateManagement,
@@ -115,7 +115,7 @@ public class SwiftSyntaxPatternRegistry {
                 description: "Detects duplicate state variables across related views in the view hierarchy"
             ),
             SyntaxPattern(
-                name: "Unrelated Duplicate State Variable",
+                name: .unrelatedDuplicateStateVariable,
                 visitor: SwiftUIManagementVisitor.self,
                 severity: .info,
                 category: .stateManagement,
@@ -124,7 +124,7 @@ public class SwiftSyntaxPatternRegistry {
                 description: "Detects duplicate state variables across unrelated views"
             ),
             SyntaxPattern(
-                name: "Uninitialized State Variable",
+                name: .uninitializedStateVariable,
                 visitor: SwiftUIManagementVisitor.self,
                 severity: .error,
                 category: .stateManagement,
@@ -133,7 +133,7 @@ public class SwiftSyntaxPatternRegistry {
                 description: "Detects @State variables that are declared without initial values"
             ),
             SyntaxPattern(
-                name: "Missing StateObject",
+                name: .missingStateObject,
                 visitor: SwiftUIManagementVisitor.self,
                 severity: .warning,
                 category: .stateManagement,
@@ -142,7 +142,7 @@ public class SwiftSyntaxPatternRegistry {
                 description: "Detects @ObservedObject usage where @StateObject would be more appropriate"
             ),
             SyntaxPattern(
-                name: "Unused State Variable",
+                name: .unusedStateVariable,
                 visitor: SwiftUIManagementVisitor.self,
                 severity: .warning,
                 category: .stateManagement,
@@ -151,7 +151,7 @@ public class SwiftSyntaxPatternRegistry {
                 description: "Detects state variables that are declared but not used in the view"
             ),
             SyntaxPattern(
-                name: "Fat View",
+                name: .fatView,
                 visitor: ArchitectureVisitor.self,
                 severity: .warning,
                 category: .stateManagement,
@@ -166,7 +166,7 @@ public class SwiftSyntaxPatternRegistry {
     private func registerPerformancePatterns() {
         let patterns = [
             SyntaxPattern(
-                name: "Expensive Operation in View Body",
+                name: .expensiveOperationInViewBody,
                 visitor: PerformanceVisitor.self,
                 severity: .warning,
                 category: .performance,
@@ -175,7 +175,7 @@ public class SwiftSyntaxPatternRegistry {
                 description: "Detects expensive operations that should not be performed in view bodies"
             ),
             SyntaxPattern(
-                name: "ForEach Without ID",
+                name: .forEachWithoutID,
                 visitor: PerformanceVisitor.self,
                 severity: .warning,
                 category: .performance,
@@ -184,7 +184,7 @@ public class SwiftSyntaxPatternRegistry {
                 description: "Detects ForEach usage without explicit ID specification"
             ),
             SyntaxPattern(
-                name: "Large View Body",
+                name: .largeViewBody,
                 visitor: PerformanceVisitor.self,
                 severity: .warning,
                 category: .performance,
@@ -193,7 +193,7 @@ public class SwiftSyntaxPatternRegistry {
                 description: "Detects view bodies that exceed recommended size limits"
             ),
             SyntaxPattern(
-                name: "ForEach .self as ID",
+                name: .forEachSelfID,
                 visitor: ForEachSelfIDVisitor.self,
                 severity: .warning,
                 category: .performance,
@@ -202,7 +202,7 @@ public class SwiftSyntaxPatternRegistry {
                 description: "Detects usage of .self as the id parameter in ForEach"
             ),
             SyntaxPattern(
-                name: "Unnecessary View Update",
+                name: .unnecessaryViewUpdate,
                 visitor: PerformanceVisitor.self,
                 severity: .info,
                 category: .performance,
@@ -217,7 +217,7 @@ public class SwiftSyntaxPatternRegistry {
     private func registerSecurityPatterns() {
         let patterns = [
             SyntaxPattern(
-                name: "Hardcoded Secret",
+                name: .hardcodedSecret,
                 visitor: SecurityVisitor.self,
                 severity: .error,
                 category: .security,
@@ -226,7 +226,7 @@ public class SwiftSyntaxPatternRegistry {
                 description: "Detects hardcoded secrets, passwords, API keys, and tokens"
             ),
             SyntaxPattern(
-                name: "Unsafe URL Construction",
+                name: .unsafeURL,
                 visitor: SecurityVisitor.self,
                 severity: .warning,
                 category: .security,
@@ -241,7 +241,7 @@ public class SwiftSyntaxPatternRegistry {
     private func registerAccessibilityPatterns() {
         let patterns = [
             SyntaxPattern(
-                name: "Missing Accessibility Label",
+                name: .missingAccessibilityLabel,
                 visitor: AccessibilityVisitor.self,
                 severity: .warning,
                 category: .accessibility,
@@ -250,7 +250,7 @@ public class SwiftSyntaxPatternRegistry {
                 description: "Detects UI elements missing accessibility labels"
             ),
             SyntaxPattern(
-                name: "Missing Accessibility Hint",
+                name: .missingAccessibilityHint,
                 visitor: AccessibilityVisitor.self,
                 severity: .info,
                 category: .accessibility,
@@ -259,7 +259,7 @@ public class SwiftSyntaxPatternRegistry {
                 description: "Detects UI elements that could benefit from accessibility hints"
             ),
             SyntaxPattern(
-                name: "Inaccessible Color Usage",
+                name: .inaccessibleColorUsage,
                 visitor: AccessibilityVisitor.self,
                 severity: .warning,
                 category: .accessibility,
@@ -274,7 +274,7 @@ public class SwiftSyntaxPatternRegistry {
     private func registerMemoryManagementPatterns() {
         let patterns = [
             SyntaxPattern(
-                name: "Potential Retain Cycle",
+                name: .potentialRetainCycle,
                 visitor: MemoryManagementVisitor.self,
                 severity: .warning,
                 category: .memoryManagement,
@@ -283,7 +283,7 @@ public class SwiftSyntaxPatternRegistry {
                 description: "Detects potential retain cycles in closures and property wrappers"
             ),
             SyntaxPattern(
-                name: "Large Object in State",
+                name: .largeObjectInState,
                 visitor: MemoryManagementVisitor.self,
                 severity: .warning,
                 category: .memoryManagement,
@@ -298,7 +298,7 @@ public class SwiftSyntaxPatternRegistry {
     private func registerNetworkingPatterns() {
         let patterns = [
             SyntaxPattern(
-                name: "Missing Error Handling",
+                name: .missingErrorHandling,
                 visitor: NetworkingVisitor.self,
                 severity: .error,
                 category: .networking,
@@ -307,7 +307,7 @@ public class SwiftSyntaxPatternRegistry {
                 description: "Detects network calls without proper error handling"
             ),
             SyntaxPattern(
-                name: "Synchronous Network Call",
+                name: .synchronousNetworkCall,
                 visitor: NetworkingVisitor.self,
                 severity: .warning,
                 category: .networking,
@@ -322,7 +322,7 @@ public class SwiftSyntaxPatternRegistry {
     private func registerCodeQualityPatterns() {
         let patterns = [
             SyntaxPattern(
-                name: "Magic Number",
+                name: .magicNumber,
                 visitor: CodeQualityVisitor.self,
                 severity: .info,
                 category: .codeQuality,
@@ -331,7 +331,7 @@ public class SwiftSyntaxPatternRegistry {
                 description: "Detects hardcoded numbers that should be named constants"
             ),
             SyntaxPattern(
-                name: "Long Function",
+                name: .longFunction,
                 visitor: CodeQualityVisitor.self,
                 severity: .warning,
                 category: .codeQuality,
@@ -340,7 +340,7 @@ public class SwiftSyntaxPatternRegistry {
                 description: "Detects functions that exceed recommended length limits"
             ),
             SyntaxPattern(
-                name: "Hardcoded Strings",
+                name: .hardcodedStrings,
                 visitor: CodeQualityVisitor.self,
                 severity: .info,
                 category: .codeQuality,
@@ -349,7 +349,7 @@ public class SwiftSyntaxPatternRegistry {
                 description: "Detects hardcoded strings that should be constants or localized"
             ),
             SyntaxPattern(
-                name: "Missing Documentation",
+                name: .missingDocumentation,
                 visitor: CodeQualityVisitor.self,
                 severity: .info,
                 category: .codeQuality,
@@ -364,7 +364,7 @@ public class SwiftSyntaxPatternRegistry {
     private func registerArchitecturePatterns() {
         let patterns = [
             SyntaxPattern(
-                name: "Missing Dependency Injection",
+                name: .missingDependencyInjection,
                 visitor: ArchitectureVisitor.self,
                 severity: .warning,
                 category: .architecture,
@@ -373,7 +373,7 @@ public class SwiftSyntaxPatternRegistry {
                 description: "Detects direct instantiation where dependency injection would be better"
             ),
             SyntaxPattern(
-                name: "Tight Coupling",
+                name: .fatViewDetection, // TODO: Replace with correct RuleIdentifier if available
                 visitor: ArchitectureVisitor.self,
                 severity: .warning,
                 category: .architecture,
@@ -382,7 +382,7 @@ public class SwiftSyntaxPatternRegistry {
                 description: "Detects tightly coupled components that could benefit from abstraction"
             ),
             SyntaxPattern(
-                name: "Fat View Detection",
+                name: .fatViewDetection,
                 visitor: ArchitectureVisitor.self,
                 severity: .warning,
                 category: .architecture,
@@ -397,7 +397,7 @@ public class SwiftSyntaxPatternRegistry {
     private func registerUIPatterns() {
         let patterns = [
             SyntaxPattern(
-                name: "Nested NavigationView",
+                name: .nestedNavigationView,
                 visitor: UIVisitor.self,
                 severity: .warning,
                 category: .uiPatterns,
@@ -406,7 +406,7 @@ public class SwiftSyntaxPatternRegistry {
                 description: "Detects nested NavigationView usage which can cause navigation issues"
             ),
             SyntaxPattern(
-                name: "Missing Preview",
+                name: .missingPreview,
                 visitor: UIVisitor.self,
                 severity: .info,
                 category: .uiPatterns,
@@ -415,7 +415,7 @@ public class SwiftSyntaxPatternRegistry {
                 description: "Detects SwiftUI views missing preview providers"
             ),
             SyntaxPattern(
-                name: "ForEach Without ID",
+                name: .forEachWithoutID,
                 visitor: UIVisitor.self,
                 severity: .warning,
                 category: .uiPatterns,
@@ -424,16 +424,16 @@ public class SwiftSyntaxPatternRegistry {
                 description: "Detects ForEach usage without explicit ID specification"
             ),
             SyntaxPattern(
-                name: "ForEach with Self ID",
+                name: .forEachWithSelfID,
                 visitor: ForEachSelfIDVisitor.self,
                 severity: .warning,
                 category: .uiPatterns,
-                messageTemplate: "Using \\.self as id in ForEach can cause performance issues",
-                suggestion: "Use a unique identifier property instead of \\.self for better performance",
-                description: "Detects usage of .self or \\.self as the id parameter in ForEach"
+                messageTemplate: "Using .self as id in ForEach can cause performance issues",
+                suggestion: "Use a unique identifier property instead of .self for better performance",
+                description: "Detects usage of .self or .self as the id parameter in ForEach"
             ),
             SyntaxPattern(
-                name: "Inconsistent Styling",
+                name: .inconsistentStyling,
                 visitor: UIVisitor.self,
                 severity: .info,
                 category: .uiPatterns,
@@ -442,7 +442,7 @@ public class SwiftSyntaxPatternRegistry {
                 description: "Detects inconsistent styling patterns across the UI"
             ),
             SyntaxPattern(
-                name: "ForEach Without ID (UI)",
+                name: .forEachWithoutIDUI,
                 visitor: UIVisitor.self,
                 severity: .warning,
                 category: .uiPatterns,
@@ -451,7 +451,7 @@ public class SwiftSyntaxPatternRegistry {
                 description: "Detects ForEach usage without explicit ID specification in UI contexts"
             ),
             SyntaxPattern(
-                name: "Basic Error Handling",
+                name: .basicErrorHandling,
                 visitor: UIVisitor.self,
                 severity: .info,
                 category: .uiPatterns,

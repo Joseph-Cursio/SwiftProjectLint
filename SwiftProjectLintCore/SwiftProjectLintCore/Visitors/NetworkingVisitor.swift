@@ -38,7 +38,7 @@ class NetworkingVisitor: BasePatternVisitor {
                         filePath: currentFilePath ?? "unknown",
                         lineNumber: lineNumber(for: node),
                         suggestion: "Use async/await or URLSession for asynchronous networking",
-                        ruleName: currentPattern?.name
+                        ruleName: nil
                     )
                     break
                 }
@@ -99,7 +99,7 @@ class NetworkingVisitor: BasePatternVisitor {
                                         filePath: currentFilePath ?? "unknown",
                                         lineNumber: lineNumber(for: node),
                                         suggestion: "Add error handling to the completion closure",
-                                        ruleName: currentPattern?.name
+                                        ruleName: nil
                                     )
                                     DebugLogger.logIssue("Appending missing error handling issue at line \(lineNumber(for: node))")
                                     return .skipChildren
@@ -127,7 +127,7 @@ class NetworkingVisitor: BasePatternVisitor {
                             filePath: currentFilePath ?? "unknown",
                             lineNumber: lineNumber(for: node),
                             suggestion: "Add error handling to the completion closure",
-                            ruleName: currentPattern?.name
+                            ruleName: nil
                         )
                         DebugLogger.logIssue("Appending missing error handling issue at line \(lineNumber(for: node))")
                     }

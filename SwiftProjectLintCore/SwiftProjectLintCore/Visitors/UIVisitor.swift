@@ -67,12 +67,12 @@ class UIVisitor: BasePatternVisitor {
         if let calledExpr = node.calledExpression.as(DeclReferenceExprSyntax.self), calledExpr.baseName.text == "NavigationView" {
             if navigationStack.contains(currentViewName) {
                 addIssue(
-                    severity: .warning,
+                    severity: IssueSeverity.warning,
                     message: "Nested NavigationView detected, this can cause issues",
                     filePath: currentFilePath,
                     lineNumber: getLineNumber(for: Syntax(node)),
                     suggestion: "Use NavigationStack or NavigationSplitView instead",
-                    ruleName: currentPattern?.name
+                    ruleName: nil
                 )
             }
             navigationStack.append(currentViewName)
@@ -85,12 +85,12 @@ class UIVisitor: BasePatternVisitor {
             }
             if !hasID {
                 addIssue(
-                    severity: .warning,
+                    severity: IssueSeverity.warning,
                     message: "ForEach without explicit ID can cause performance issues",
                     filePath: currentFilePath,
                     lineNumber: getLineNumber(for: Syntax(node)),
                     suggestion: "Provide a unique identifier using the id parameter",
-                    ruleName: currentPattern?.name
+                    ruleName: nil
                 )
             }
         }
@@ -104,12 +104,12 @@ class UIVisitor: BasePatternVisitor {
             
             if stylingModifiers.count > 1 {
                 addIssue(
-                    severity: .info,
+                    severity: IssueSeverity.info,
                     message: "Consider using consistent text styling",
                     filePath: currentFilePath,
                     lineNumber: getLineNumber(for: Syntax(node)),
                     suggestion: "Create reusable text styles or use a design system",
-                    ruleName: currentPattern?.name
+                    ruleName: nil
                 )
             }
         }
@@ -129,12 +129,12 @@ class UIVisitor: BasePatternVisitor {
             // Skip preview detection for test files
             if !currentFilePath.contains("test.swift") && !currentFilePath.contains("Test") && !currentFilePath.contains("Tests") {
                 addIssue(
-                    severity: .info,
+                    severity: IssueSeverity.info,
                     message: "View '\(currentViewName)' missing preview provider",
                     filePath: currentFilePath,
                     lineNumber: getLineNumber(for: Syntax(node)),
                     suggestion: "Add #Preview for easier development and testing",
-                    ruleName: currentPattern?.name
+                    ruleName: nil
                 )
             }
         }
@@ -156,12 +156,12 @@ class UIVisitor: BasePatternVisitor {
                             print("🔍 hasErrorHandling: \(hasErrorHandling), hasProperUI: \(hasProperUI)")
                             if hasErrorHandling && !hasProperUI {
                                 addIssue(
-                                    severity: .info,
+                                    severity: IssueSeverity.info,
                                     message: "Consider using proper error handling UI patterns",
                                     filePath: currentFilePath,
                                     lineNumber: getLineNumber(for: Syntax(node)),
                                     suggestion: "Use alerts, sheets, or dedicated error views for better UX",
-                                    ruleName: currentPattern?.name
+                                    ruleName: nil
                                 )
                             }
                             analyzed = true
@@ -178,12 +178,12 @@ class UIVisitor: BasePatternVisitor {
                         print("🔍 hasErrorHandling: \(hasErrorHandling), hasProperUI: \(hasProperUI)")
                         if hasErrorHandling && !hasProperUI {
                             addIssue(
-                                severity: .info,
+                                severity: IssueSeverity.info,
                                 message: "Consider using proper error handling UI patterns",
                                 filePath: currentFilePath,
                                 lineNumber: getLineNumber(for: Syntax(node)),
                                 suggestion: "Use alerts, sheets, or dedicated error views for better UX",
-                                ruleName: currentPattern?.name
+                                ruleName: nil
                             )
                         }
                         analyzed = true
@@ -198,12 +198,12 @@ class UIVisitor: BasePatternVisitor {
                     print("🔍 hasErrorHandling: \(hasErrorHandling), hasProperUI: \(hasProperUI)")
                     if hasErrorHandling && !hasProperUI {
                         addIssue(
-                            severity: .info,
+                            severity: IssueSeverity.info,
                             message: "Consider using proper error handling UI patterns",
                             filePath: currentFilePath,
                             lineNumber: getLineNumber(for: Syntax(node)),
                             suggestion: "Use alerts, sheets, or dedicated error views for better UX",
-                            ruleName: currentPattern?.name
+                            ruleName: nil
                         )
                     }
                 }
@@ -229,12 +229,12 @@ class UIVisitor: BasePatternVisitor {
         
         if hasErrorHandling && !hasProperUI {
             addIssue(
-                severity: .info,
+                severity: IssueSeverity.info,
                 message: "Consider using proper error handling UI patterns",
                 filePath: currentFilePath,
                 lineNumber: getLineNumber(for: Syntax(node)),
                 suggestion: "Use alerts, sheets, or dedicated error views for better UX",
-                ruleName: currentPattern?.name
+                ruleName: nil
             )
         }
     }

@@ -70,7 +70,7 @@ struct ContentView: View {
     private func convertToDetectionPatterns(_ syntaxPatterns: [SyntaxPattern]) -> [DetectionPattern] {
         return syntaxPatterns.map { syntaxPattern in
             DetectionPattern(
-                name: syntaxPattern.name,
+                name: syntaxPattern.name.rawValue,
                 regex: "", // Not used for SwiftSyntax patterns
                 severity: syntaxPattern.severity,
                 message: syntaxPattern.messageTemplate,
@@ -275,7 +275,7 @@ struct ContentView: View {
         for category in PatternCategory.allCases {
             let patternsInCategory = patternRegistry.getPatterns(for: category)
             let enabledPatternsInCategory = patternsInCategory.filter { pattern in
-                enabledRuleNames.contains(pattern.name)
+                enabledRuleNames.contains(pattern.name.rawValue)
             }
             
             if !enabledPatternsInCategory.isEmpty {
@@ -302,7 +302,7 @@ struct ContentView: View {
         
         // Filter issues based on their ruleName and the enabled rules
         return issues.filter { issue in
-            return enabledRuleNames.contains(issue.ruleName)
+            return enabledRuleNames.contains(issue.ruleName.rawValue)
         }
     }
     
@@ -330,7 +330,7 @@ struct ContentView: View {
                         filePath: "ExampleViews/ParentView.swift",
                         lineNumber: 5,
                         suggestion: "Create a shared ObservableObject for 'isLoading' and inject it via .environmentObject() at the root level.",
-                        ruleName: "Related Duplicate State Variable"
+                        ruleName: .relatedDuplicateStateVariable
                     ),
                     LintIssue(
                         severity: .info,
@@ -338,7 +338,7 @@ struct ContentView: View {
                         filePath: "ExampleViews/UserView.swift",
                         lineNumber: 8,
                         suggestion: "Consider if these variables represent the same concept and should be shared via a common ObservableObject.",
-                        ruleName: "Unrelated Duplicate State Variable"
+                        ruleName: .unrelatedDuplicateStateVariable
                     )
                 ])
                 
@@ -350,7 +350,7 @@ struct ContentView: View {
                         filePath: "ExampleViews/ListView.swift",
                         lineNumber: 12,
                         suggestion: "Add explicit id parameter to ForEach for better performance and stability.",
-                        ruleName: "ForEach Without ID"
+                        ruleName: .forEachWithoutID
                     ),
                     LintIssue(
                         severity: .warning,
@@ -358,7 +358,7 @@ struct ContentView: View {
                         filePath: "ExampleViews/ComplexView.swift",
                         lineNumber: 25,
                         suggestion: "Break down large view into smaller, focused components.",
-                        ruleName: "Large View Body"
+                        ruleName: .largeViewBody
                     )
                 ])
                 
@@ -370,7 +370,7 @@ struct ContentView: View {
                         filePath: "ExampleViews/BusinessView.swift",
                         lineNumber: 15,
                         suggestion: "Extract business logic into a dedicated ViewModel class.",
-                        ruleName: "Missing MVVM Pattern"
+                        ruleName: .fatViewDetection
                     )
                 ])
                 
@@ -382,7 +382,7 @@ struct ContentView: View {
                         filePath: "ExampleViews/ConfigView.swift",
                         lineNumber: 7,
                         suggestion: "Define constants for magic numbers to improve code readability.",
-                        ruleName: "Magic Number"
+                        ruleName: .magicNumber
                     )
                 ])
                 
@@ -394,7 +394,7 @@ struct ContentView: View {
                         filePath: "ExampleViews/NetworkView.swift",
                         lineNumber: 10,
                         suggestion: "Move sensitive data to secure configuration files or environment variables.",
-                        ruleName: "Hardcoded Secret"
+                        ruleName: .hardcodedSecret
                     )
                 ])
                 
@@ -406,7 +406,7 @@ struct ContentView: View {
                         filePath: "ExampleViews/ImageView.swift",
                         lineNumber: 8,
                         suggestion: "Add accessibilityLabel to improve screen reader support.",
-                        ruleName: "Missing Accessibility Label"
+                        ruleName: .missingAccessibilityLabel
                     )
                 ])
                 
@@ -418,7 +418,7 @@ struct ContentView: View {
                         filePath: "ExampleViews/ClosureView.swift",
                         lineNumber: 14,
                         suggestion: "Use weak self in closures to prevent retain cycles.",
-                        ruleName: "Potential Retain Cycle"
+                        ruleName: .potentialRetainCycle
                     )
                 ])
                 
@@ -430,7 +430,7 @@ struct ContentView: View {
                         filePath: "ExampleViews/NetworkView.swift",
                         lineNumber: 22,
                         suggestion: "Add proper error handling to network requests.",
-                        ruleName: "Missing Error Handling"
+                        ruleName: .missingErrorHandling
                     )
                 ])
                 
@@ -442,7 +442,7 @@ struct ContentView: View {
                         filePath: "ExampleViews/NavigationView.swift",
                         lineNumber: 5,
                         suggestion: "Use NavigationStack or NavigationSplitView instead of nested NavigationView.",
-                        ruleName: "Nested NavigationView"
+                        ruleName: .nestedNavigationView
                     )
                 ])
             }

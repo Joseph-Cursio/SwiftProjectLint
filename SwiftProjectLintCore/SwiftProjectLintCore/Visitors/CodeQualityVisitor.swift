@@ -93,12 +93,12 @@ class CodeQualityVisitor: BasePatternVisitor {
         // Check function length when leaving the function
         if isInFunction && currentFunctionLength > configuration.maxFunctionLength {
             addIssue(
-                severity: .warning,
+                severity: IssueSeverity.warning,
                 message: "Function '\(currentFunctionName)' is quite long (\(currentFunctionLength) characters), consider breaking it down into smaller functions",
                 filePath: currentFilePath,
                 lineNumber: functionStartLine,
                 suggestion: "Break down long functions into smaller, more focused functions for better maintainability",
-                ruleName: currentPattern?.name
+                ruleName: nil
             )
         }
         // Reset function tracking
@@ -116,23 +116,23 @@ class CodeQualityVisitor: BasePatternVisitor {
                     let value = Int(intLiteral.literal.text) ?? 0
                     if value >= configuration.magicNumberThreshold {
                         addIssue(
-                            severity: .info,
+                            severity: IssueSeverity.info,
                             message: "Consider extracting magic number \(value) into a named constant",
                             filePath: currentFilePath,
                             lineNumber: getLineNumber(for: Syntax(initializer)),
                             suggestion: "Create constants for UI values to improve maintainability",
-                            ruleName: currentPattern?.name
+                            ruleName: nil
                         )
                     }
                 } else if let floatLiteral = initializer.value.as(FloatLiteralExprSyntax.self) {
                     if let value = Double(floatLiteral.literal.text), value >= Double(configuration.magicNumberThreshold) {
                         addIssue(
-                            severity: .info,
+                            severity: IssueSeverity.info,
                             message: "Consider extracting magic number \(value) into a named constant",
                             filePath: currentFilePath,
                             lineNumber: getLineNumber(for: Syntax(initializer)),
                             suggestion: "Create constants for UI values to improve maintainability",
-                            ruleName: currentPattern?.name
+                            ruleName: nil
                         )
                     }
                 }
@@ -148,23 +148,23 @@ class CodeQualityVisitor: BasePatternVisitor {
                 let value = Int(intLiteral.literal.text) ?? 0
                 if value >= configuration.magicNumberThreshold {
                     addIssue(
-                        severity: .info,
+                        severity: IssueSeverity.info,
                         message: "Consider extracting magic number \(value) into a named constant",
                         filePath: currentFilePath,
                         lineNumber: getLineNumber(for: Syntax(argument)),
                         suggestion: "Create constants for UI values to improve maintainability",
-                        ruleName: currentPattern?.name
+                        ruleName: nil
                     )
                 }
             } else if let floatLiteral = argument.expression.as(FloatLiteralExprSyntax.self) {
                 if let value = Double(floatLiteral.literal.text), value >= Double(configuration.magicNumberThreshold) {
                     addIssue(
-                        severity: .info,
+                        severity: IssueSeverity.info,
                         message: "Consider extracting magic number \(value) into a named constant",
                         filePath: currentFilePath,
                         lineNumber: getLineNumber(for: Syntax(argument)),
                         suggestion: "Create constants for UI values to improve maintainability",
-                        ruleName: currentPattern?.name
+                        ruleName: nil
                     )
                 }
             }
@@ -187,12 +187,12 @@ class CodeQualityVisitor: BasePatternVisitor {
                 let shouldSkip = skipPatterns.contains { cleanString.contains($0) }
                 if !shouldSkip {
                     addIssue(
-                        severity: .info,
+                        severity: IssueSeverity.info,
                         message: "Consider using localized strings instead of hardcoded text: \"\(cleanString)\"",
                         filePath: currentFilePath,
                         lineNumber: getLineNumber(for: Syntax(node)),
                         suggestion: "Move strings to Localizable.strings for internationalization",
-                        ruleName: currentPattern?.name
+                        ruleName: nil
                     )
                 }
             }
@@ -226,12 +226,12 @@ class CodeQualityVisitor: BasePatternVisitor {
         
         if !hasDocumentation {
             addIssue(
-                severity: .info,
+                severity: IssueSeverity.info,
                 message: "Consider adding documentation for '\(name)'",
                 filePath: currentFilePath,
                 lineNumber: getLineNumber(for: node),
                 suggestion: "Add /// documentation comments for public APIs",
-                ruleName: currentPattern?.name
+                ruleName: nil
             )
         }
     }

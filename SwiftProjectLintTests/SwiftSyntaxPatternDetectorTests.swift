@@ -50,7 +50,7 @@ struct SwiftSyntaxPatternDetectorTests {
             // If no patterns were registered, manually register some test patterns
             let testPatterns = [
                 SyntaxPattern(
-                    name: "Test Uninitialized State",
+                    name: .uninitializedStateVariable,
                     visitor: SwiftUIManagementVisitor.self,
                     severity: .error,
                     category: .stateManagement,
@@ -59,7 +59,7 @@ struct SwiftSyntaxPatternDetectorTests {
                     description: "Test pattern for uninitialized state detection"
                 ),
                 SyntaxPattern(
-                    name: "Test Missing StateObject",
+                    name: .missingStateObject,
                     visitor: SwiftUIManagementVisitor.self,
                     severity: .warning,
                     category: .stateManagement,
@@ -79,7 +79,7 @@ struct SwiftSyntaxPatternDetectorTests {
         if finalPatterns.isEmpty {
             // Last resort: add a basic pattern to ensure tests can run
             let basicPattern = SyntaxPattern(
-                name: "Basic Test Pattern",
+                name: .fatView,
                 visitor: SwiftUIManagementVisitor.self,
                 severity: .info,
                 category: .stateManagement,
@@ -99,7 +99,7 @@ struct SwiftSyntaxPatternDetectorTests {
         
         // Given
         let pattern = SyntaxPattern(
-            name: "Test Pattern",
+            name: .fatView,
             visitor: SwiftUIManagementVisitor.self,
             severity: .warning,
             category: .stateManagement,
@@ -114,7 +114,7 @@ struct SwiftSyntaxPatternDetectorTests {
         // Then
         let patterns = visitorRegistry.getAllPatterns()
         #expect(patterns.count == 1)
-        #expect(patterns.first?.name == "Test Pattern")
+        #expect(patterns.first?.name == .fatView)
         
         let visitors = visitorRegistry.getVisitors(for: .stateManagement)
         #expect(visitors.count == 1)
@@ -128,7 +128,7 @@ struct SwiftSyntaxPatternDetectorTests {
         // Given
         let patterns = [
             SyntaxPattern(
-                name: "Pattern 1",
+                name: .fatView,
                 visitor: SwiftUIManagementVisitor.self,
                 severity: .warning,
                 category: .stateManagement,
@@ -137,7 +137,7 @@ struct SwiftSyntaxPatternDetectorTests {
                 description: "Description 1"
             ),
             SyntaxPattern(
-                name: "Pattern 2",
+                name: .uninitializedStateVariable,
                 visitor: SwiftUIManagementVisitor.self,
                 severity: .error,
                 category: .stateManagement,
@@ -173,7 +173,7 @@ struct SwiftSyntaxPatternDetectorTests {
         
         // Given
         let pattern = SyntaxPattern(
-            name: "Test Pattern",
+            name: .fatView,
             visitor: SwiftUIManagementVisitor.self,
             severity: .warning,
             category: .stateManagement,
@@ -363,7 +363,7 @@ struct SwiftSyntaxPatternDetectorTests {
         
         // Register a test pattern
         let pattern = SyntaxPattern(
-            name: "Test Pattern",
+            name: .fatView,
             visitor: SwiftUIManagementVisitor.self,
             severity: .error,
             category: .stateManagement,
@@ -390,13 +390,13 @@ struct SwiftSyntaxPatternDetectorTests {
         // The exact count may vary based on registry initialization, so we check for presence of specific issues
         
         // Check that our custom pattern is among the issues
-        let customPatternIssues = issues.filter { $0.ruleName == "Test Pattern" }
+        let customPatternIssues = issues.filter { $0.ruleName == .fatView }
         print("Custom pattern issues count: \(customPatternIssues.count)")
         #expect(customPatternIssues.count >= 1)
         #expect(customPatternIssues.first?.severity == .error)
         
         // Check that uninitialized state is detected (from default patterns)
-        let uninitializedIssues = issues.filter { $0.message.contains("must have an initial value") }
+        let uninitializedIssues = issues.filter { $0.ruleName == .uninitializedStateVariable }
         print("Uninitialized state issues count: \(uninitializedIssues.count)")
         #expect(uninitializedIssues.count >= 1)
         

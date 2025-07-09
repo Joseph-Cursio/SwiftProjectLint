@@ -63,7 +63,7 @@ class PerformanceVisitor: BasePatternVisitor {
                             filePath: currentFilePath,
                             lineNumber: getLineNumber(for: Syntax(node)),
                             suggestion: "Extract complex UI into separate view components",
-                            ruleName: currentPattern?.name
+                            ruleName: nil
                         )
                     }
                     isInViewBody = false
@@ -97,7 +97,7 @@ class PerformanceVisitor: BasePatternVisitor {
                         filePath: currentFilePath,
                         lineNumber: getLineNumber(for: Syntax(node)),
                         suggestion: "Move expensive computation outside the view body or use memoization",
-                        ruleName: currentPattern?.name
+                        ruleName: nil
                     )
                 }
             }
@@ -122,7 +122,7 @@ class PerformanceVisitor: BasePatternVisitor {
                     filePath: currentFilePath,
                     lineNumber: getLineNumber(for: Syntax(node)),
                     suggestion: "Provide a unique and stable 'id' for ForEach collections",
-                    ruleName: currentPattern?.name
+                    ruleName: nil
                 )
             }
         }
@@ -169,7 +169,7 @@ class PerformanceVisitor: BasePatternVisitor {
                 filePath: currentFilePath,
                 lineNumber: getLineNumber(for: Syntax(node)),
                 suggestion: "Extract complex UI into separate view components",
-                ruleName: currentPattern?.name
+                ruleName: nil
             )
         }
         isInViewBody = false
@@ -184,7 +184,7 @@ class PerformanceVisitor: BasePatternVisitor {
                 filePath: currentFilePath,
                 lineNumber: getLineNumber(for: Syntax(node)),
                 suggestion: "Extract complex UI into separate view components",
-                ruleName: currentPattern?.name
+                ruleName: nil
             )
         }
         isInViewBody = false
@@ -291,7 +291,7 @@ class PerformanceVisitor: BasePatternVisitor {
                     filePath: currentFilePath,
                     lineNumber: getLineNumber(for: Syntax(node)),
                     suggestion: "Break up large view bodies into smaller subviews",
-                    ruleName: currentPattern?.name
+                    ruleName: nil
                 )
             }
         }
@@ -306,7 +306,7 @@ class PerformanceVisitor: BasePatternVisitor {
                     filePath: currentFilePath,
                     lineNumber: info.assignmentLine ?? info.declaredAtLine,
                     suggestion: "Avoid updating state variables that don't affect the UI",
-                    ruleName: currentPattern?.name
+                    ruleName: nil
                 )
             }
         }
@@ -333,7 +333,7 @@ class PerformanceVisitor: BasePatternVisitor {
                                 filePath: currentFilePath,
                                 lineNumber: getLineNumber(for: Syntax(node)),
                                 suggestion: "Use a unique identifier property instead of .self for better performance",
-                                ruleName: currentPattern?.name
+                                ruleName: nil
                             )
                         }
                     }
@@ -358,7 +358,7 @@ class PerformanceVisitor: BasePatternVisitor {
                             filePath: currentFilePath,
                             lineNumber: getLineNumber(for: Syntax(node)),
                             suggestion: "Use a unique identifier property instead of \\.self for better performance",
-                            ruleName: currentPattern?.name
+                            ruleName: nil
                         )
                     }
                 }
