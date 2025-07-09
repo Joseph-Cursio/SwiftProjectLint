@@ -90,10 +90,10 @@ struct ContentView: View {
     init() {
         print("DEBUG: ContentView initialized")
         // Load enabled rules from UserDefaults or set default
-        if let saved = UserDefaults.standard.array(forKey: userDefaultsKey) as? [String], !saved.isEmpty {
-            // Convert string array to Set<RuleIdentifier>
-            let ruleIdentifiers = saved.compactMap { RuleIdentifier(rawValue: $0) }
-            _enabledRuleNames = State(initialValue: Set(ruleIdentifiers))
+        if let data = UserDefaults.standard.data(forKey: userDefaultsKey),
+           let saved = try? JSONDecoder().decode(Set<RuleIdentifier>.self, from: data),
+           !saved.isEmpty {
+            _enabledRuleNames = State(initialValue: saved)
         } else {
             // Only enable 'Related Duplicate State Variable' by default
             _enabledRuleNames = State(initialValue: [.relatedDuplicateStateVariable])
@@ -206,7 +206,9 @@ struct ContentView: View {
     
     /// Save enabled rules to UserDefaults
     private func saveEnabledRules() {
-        UserDefaults.standard.set(Array(enabledRuleNames.map { $0.rawValue }), forKey: userDefaultsKey)
+        if let data = try? JSONEncoder().encode(enabledRuleNames) {
+            UserDefaults.standard.set(data, forKey: userDefaultsKey)
+        }
     }
     
     /// Opens the directory picker to select a project folder

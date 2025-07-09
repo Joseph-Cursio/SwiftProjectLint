@@ -324,7 +324,7 @@ struct FullScreenResultsView: View {
             filePath: "/path/to/ParentView.swift",
             lineNumber: 15,
             suggestion: "Move 'isLoading' to a shared ObservableObject or use @EnvironmentObject for state sharing.",
-            ruleName: RuleIdentifier(rawValue: "Related Duplicate State Variable")!
+            ruleName: .relatedDuplicateStateVariable
         ),
         LintIssue(
             severity: .error,
@@ -332,7 +332,7 @@ struct FullScreenResultsView: View {
             filePath: "/path/to/ChildView.swift",
             lineNumber: 22,
             suggestion: "Use @StateObject instead of @ObservedObject for properties that should be owned by this view.",
-            ruleName: RuleIdentifier(rawValue: "Missing StateObject")!
+            ruleName: .missingStateObject
         )
     ]
     

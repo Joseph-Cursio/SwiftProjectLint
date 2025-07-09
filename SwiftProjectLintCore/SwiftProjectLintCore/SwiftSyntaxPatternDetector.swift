@@ -201,22 +201,22 @@ public class SwiftSyntaxPatternDetector {
     /// - Parameters:
     ///   - sourceCode: The Swift source code to analyze.
     ///   - filePath: The file path for the source code (used for issue reporting).
-    ///   - patternNames: Array of specific pattern names to analyze.
+    ///   - ruleIdentifiers: Array of specific rule identifiers to analyze.
     /// - Returns: An array of detected lint issues.
     func detectPatterns(
         in sourceCode: String,
         filePath: String,
-        patternNames: [String]
+        ruleIdentifiers: [RuleIdentifier]
     ) -> [LintIssue] {
         let sourceFile = Parser.parse(source: sourceCode)
         fileCache[filePath] = sourceFile
         let converter = SourceLocationConverter(fileName: filePath, tree: sourceFile)
         var allIssues: [LintIssue] = []
         
-        // Get specific patterns by name
+        // Get specific patterns by rule identifier
         let allPatterns = registry.getAllPatterns()
         let requestedPatterns = allPatterns.filter { pattern in
-            patternNames.contains(pattern.name.rawValue)
+            ruleIdentifiers.contains(pattern.name)
         }
         
         for pattern in requestedPatterns {
@@ -248,13 +248,13 @@ public class SwiftSyntaxPatternDetector {
         return detectCrossFilePatterns(projectFiles: swiftFiles, categories: categories)
     }
     
-    /// Detects patterns in the given project path using specific pattern names.
+    /// Detects patterns in the given project path using specific rule identifiers.
     public func detectPatterns(
         in projectPath: String,
-        patternNames: [String]
+        ruleIdentifiers: [RuleIdentifier]
     ) -> [LintIssue] {
         let swiftFiles = findSwiftFiles(in: projectPath)
-        return detectCrossFilePatterns(projectFiles: swiftFiles, patternNames: patternNames)
+        return detectCrossFilePatterns(projectFiles: swiftFiles, ruleIdentifiers: ruleIdentifiers)
     }
     
     /// Detects patterns across multiple Swift files with cross-file analysis capabilities.
@@ -341,21 +341,21 @@ public class SwiftSyntaxPatternDetector {
         return allIssues
     }
     
-    /// Detects patterns across multiple Swift files using specific pattern names.
+    /// Detects patterns across multiple Swift files using specific rule identifiers.
     ///
     /// This method analyzes multiple files and can detect patterns that span
     /// across files, such as duplicate state variables or architectural issues.
-    /// It only runs the specific patterns requested by name.
+    /// It only runs the specific patterns requested by rule identifier.
     ///
     /// - Parameters:
     ///   - projectFiles: Array of file paths to analyze.
-    ///   - patternNames: Array of specific pattern names to analyze.
+    ///   - ruleIdentifiers: Array of specific rule identifiers to analyze.
     /// - Returns: An array of detected lint issues.
     func detectCrossFilePatterns(
         projectFiles: [String],
-        patternNames: [String]
+        ruleIdentifiers: [RuleIdentifier]
     ) -> [LintIssue] {
-        print("DEBUG: detectCrossFilePatterns (patternNames) called with \(projectFiles.count) files, patterns: \(patternNames)")
+        print("DEBUG: detectCrossFilePatterns (ruleIdentifiers) called with \(projectFiles.count) files, rules: \(ruleIdentifiers.map { $0.rawValue })")
         var allIssues: [LintIssue] = []
         
         // First, parse all files and cache them
@@ -378,16 +378,16 @@ public class SwiftSyntaxPatternDetector {
             }
         }
         
-        // Get specific patterns by name
+        // Get specific patterns by rule identifier
         let allPatterns = registry.getAllPatterns()
         let requestedPatterns = allPatterns.filter { pattern in
-            patternNames.contains(pattern.name.rawValue)
+            ruleIdentifiers.contains(pattern.name)
         }
         
         print("DEBUG: Found \(requestedPatterns.count) requested patterns")
         
-        // Group patterns by their name (String) instead of visitor type
-        let patternsByName = Dictionary(grouping: requestedPatterns) { $0.name }
+        // Group patterns by their rule identifier instead of visitor type
+        let patternsByRule = Dictionary(grouping: requestedPatterns) { $0.name }
         
         // Apply analysis for each visitor type
         for pattern in requestedPatterns {

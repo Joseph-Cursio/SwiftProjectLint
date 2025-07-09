@@ -130,12 +130,12 @@ public class ProjectLinter {
     /// - Parameters:
     ///   - path: The root directory path of the SwiftUI project to analyze.
     ///   - categories: Optional array of pattern categories to analyze. If nil, analyzes all categories.
-    ///   - patternNames: Optional array of specific pattern names to analyze. If provided, overrides categories.
+    ///   - ruleIdentifiers: Optional array of specific rule identifiers to analyze. If provided, overrides categories.
     /// - Returns: An array of `LintIssue` objects describing all detected issues, warnings, or suggestions throughout the project.
-    @MainActor public func analyzeProject(at path: String, categories: [PatternCategory]? = nil, patternNames: [String]? = nil) -> [LintIssue] {
+    @MainActor public func analyzeProject(at path: String, categories: [PatternCategory]? = nil, ruleIdentifiers: [RuleIdentifier]? = nil) -> [LintIssue] {
         print("DEBUG: analyzeProject called with path: '\(path)'")
         print("DEBUG: categories: \(categories?.map { String(describing: $0) } ?? ["all"])")
-        print("DEBUG: patternNames: \(patternNames ?? [])")
+        print("DEBUG: ruleIdentifiers: \(ruleIdentifiers?.map { $0.rawValue } ?? [])")
         
         var issues: [LintIssue] = []
         projectFiles = findSwiftFiles(in: path)
@@ -143,7 +143,7 @@ public class ProjectLinter {
         print("DEBUG: Found \(projectFiles.count) project files for analysis")
         
         for filePath in projectFiles {
-            let fileIssues = analyzeSwiftFile(at: filePath, categories: categories, patternNames: patternNames)
+            let fileIssues = analyzeSwiftFile(at: filePath, categories: categories, ruleIdentifiers: ruleIdentifiers)
             issues.append(contentsOf: fileIssues)
         }
         
@@ -154,8 +154,8 @@ public class ProjectLinter {
         // Run cross-file pattern detection using SwiftSyntax, respecting enabled patterns or categories
         let swiftSyntaxDetector = detector ?? SwiftSyntaxPatternDetector()
         let crossFilePatternIssues: [LintIssue]
-        if let patternNames = patternNames {
-            crossFilePatternIssues = swiftSyntaxDetector.detectCrossFilePatterns(projectFiles: projectFiles, patternNames: patternNames)
+        if let ruleIdentifiers = ruleIdentifiers {
+            crossFilePatternIssues = swiftSyntaxDetector.detectCrossFilePatterns(projectFiles: projectFiles, ruleIdentifiers: ruleIdentifiers)
         } else {
             crossFilePatternIssues = swiftSyntaxDetector.detectCrossFilePatterns(projectFiles: projectFiles, categories: categories)
         }
@@ -246,13 +246,13 @@ public class ProjectLinter {
     /// - Parameters:
     ///   - path: The full filesystem path to the Swift source file to be analyzed.
     ///   - categories: Optional array of pattern categories to analyze. If nil, analyzes all categories.
-    ///   - patternNames: Optional array of specific pattern names to analyze. If provided, overrides categories.
+    ///   - ruleIdentifiers: Optional array of specific rule identifiers to analyze. If provided, overrides categories.
     /// - Returns: An array of `LintIssue` objects describing all code issues, warnings, or suggestions detected
     ///            within the file.
     ///
     /// - Note: This method uses SwiftSyntax for accurate parsing and can handle complex property declarations,
     ///         multiline statements, and edge cases that regex-based parsing could not.
-    @MainActor private func analyzeSwiftFile(at path: String, categories: [PatternCategory]? = nil, patternNames: [String]? = nil) -> [LintIssue] {
+    @MainActor private func analyzeSwiftFile(at path: String, categories: [PatternCategory]? = nil, ruleIdentifiers: [RuleIdentifier]? = nil) -> [LintIssue] {
         var issues: [LintIssue] = []
         guard let content = try? String(contentsOfFile: path, encoding: .utf8) else {
             return issues
@@ -263,8 +263,8 @@ public class ProjectLinter {
         
         // Use SwiftSyntaxPatternDetector for comprehensive analysis, respecting enabled patterns or categories
         let swiftSyntaxDetector = detector ?? SwiftSyntaxPatternDetector()
-        if let patternNames = patternNames {
-            issues.append(contentsOf: swiftSyntaxDetector.detectPatterns(in: content, filePath: path, patternNames: patternNames))
+        if let ruleIdentifiers = ruleIdentifiers {
+            issues.append(contentsOf: swiftSyntaxDetector.detectPatterns(in: content, filePath: path, ruleIdentifiers: ruleIdentifiers))
         } else {
             issues.append(contentsOf: swiftSyntaxDetector.detectPatterns(in: content, filePath: path, categories: categories))
         }
