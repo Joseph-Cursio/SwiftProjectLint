@@ -1,10 +1,14 @@
 # Ignore derived files and directories
 .build/
-*.xcresult
+build/
 *.mdb
 
-# Ignore specific derived files
-TestResults.xcresult/Data/data.0*
+# Ignore system files
+.DS_Store
+
+# Ignore test result files
+*.xcresult
+test_results/
 
 # Ignore debug output files
-debug/
+debug_output/

@@ -8,7 +8,7 @@ public struct DebugLogger {
     /// Returns the path to the debug directory, creating it if necessary
     public static func debugDirectory() -> String {
         let projectRootPath = FileManager.default.currentDirectoryPath
-        let debugDirectory = projectRootPath + "/debug"
+        let debugDirectory = projectRootPath + "/debug_output"
         
         // Ensure debug directory exists
         do {
