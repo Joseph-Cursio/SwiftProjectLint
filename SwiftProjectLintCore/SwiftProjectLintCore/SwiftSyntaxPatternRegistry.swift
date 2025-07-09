@@ -36,16 +36,9 @@ public class SwiftSyntaxPatternRegistry {
     public func initialize() {
         guard !isInitialized else { return }
         
-        // Register patterns for each category
-        registerStateManagementPatterns()
-        registerPerformancePatterns()
-        registerSecurityPatterns()
-        registerAccessibilityPatterns()
-        registerMemoryManagementPatterns()
-        registerNetworkingPatterns()
-        registerCodeQualityPatterns()
-        registerArchitecturePatterns()
-        registerUIPatterns()
+        for category in PatternCategory.allCases {
+            registerPatterns(for: category)
+        }
         
         isInitialized = true
     }
@@ -86,6 +79,29 @@ public class SwiftSyntaxPatternRegistry {
     }
     
     // MARK: - Private Pattern Registration Methods
+    
+    private func registerPatterns(for category: PatternCategory) {
+        switch category {
+        case .stateManagement:
+            registerStateManagementPatterns()
+        case .performance:
+            registerPerformancePatterns()
+        case .security:
+            registerSecurityPatterns()
+        case .accessibility:
+            registerAccessibilityPatterns()
+        case .memoryManagement:
+            registerMemoryManagementPatterns()
+        case .networking:
+            registerNetworkingPatterns()
+        case .codeQuality:
+            registerCodeQualityPatterns()
+        case .architecture:
+            registerArchitecturePatterns()
+        case .uiPatterns:
+            registerUIPatterns()
+        }
+    }
     
     private func registerStateManagementPatterns() {
         let patterns = [
