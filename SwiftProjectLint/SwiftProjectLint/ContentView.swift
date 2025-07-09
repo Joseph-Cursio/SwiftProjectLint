@@ -30,7 +30,7 @@ struct ContentView: View {
     @State private var isAnalyzing: Bool = false
     @State private var lintIssues: [LintIssue] = []
     @State private var showRuleSelector: Bool = false
-    @State private var enabledRuleNames: Set<String> = []
+    @State private var enabledRuleNames: Set<RuleIdentifier> = []
     @State private var showingDirectoryPicker: Bool = false
     
     private let userDefaultsKey = "enabledLintRules"
@@ -91,10 +91,12 @@ struct ContentView: View {
         print("DEBUG: ContentView initialized")
         // Load enabled rules from UserDefaults or set default
         if let saved = UserDefaults.standard.array(forKey: userDefaultsKey) as? [String], !saved.isEmpty {
-            _enabledRuleNames = State(initialValue: Set(saved))
+            // Convert string array to Set<RuleIdentifier>
+            let ruleIdentifiers = saved.compactMap { RuleIdentifier(rawValue: $0) }
+            _enabledRuleNames = State(initialValue: Set(ruleIdentifiers))
         } else {
             // Only enable 'Related Duplicate State Variable' by default
-            _enabledRuleNames = State(initialValue: ["Related Duplicate State Variable"])
+            _enabledRuleNames = State(initialValue: [.relatedDuplicateStateVariable])
         }
     }
 
@@ -204,7 +206,7 @@ struct ContentView: View {
     
     /// Save enabled rules to UserDefaults
     private func saveEnabledRules() {
-        UserDefaults.standard.set(Array(enabledRuleNames), forKey: userDefaultsKey)
+        UserDefaults.standard.set(Array(enabledRuleNames.map { $0.rawValue }), forKey: userDefaultsKey)
     }
     
     /// Opens the directory picker to select a project folder
@@ -271,7 +273,10 @@ struct ContentView: View {
         for category in PatternCategory.allCases {
             let patternsInCategory = patternRegistry.getPatterns(for: category)
             let enabledPatternsInCategory = patternsInCategory.filter { pattern in
-                enabledRuleNames.contains(pattern.name.rawValue)
+                if let ruleIdentifier = RuleIdentifier(rawValue: pattern.name.rawValue) {
+                    return enabledRuleNames.contains(ruleIdentifier)
+                }
+                return false
             }
             
             if !enabledPatternsInCategory.isEmpty {
@@ -298,7 +303,7 @@ struct ContentView: View {
         
         // Filter issues based on their ruleName and the enabled rules
         return issues.filter { issue in
-            return enabledRuleNames.contains(issue.ruleName.rawValue)
+            return enabledRuleNames.contains(issue.ruleName)
         }
     }
     
@@ -480,22 +485,26 @@ struct ContentView: View {
 /// enabled rule names can be persisted as appropriate (such as to UserDefaults).
 struct RuleSelectionDialog: View {
     let allPatternsByCategory: [(category: PatternCategory, display: String, patterns: [DetectionPattern], useSwiftSyntax: Bool)]
-    @Binding var enabledRuleNames: Set<String>
+    @Binding var enabledRuleNames: Set<RuleIdentifier>
     var onSave: () -> Void
     @Environment(\.dismiss) private var dismiss
     
     // Helper: All rule names from the passed patterns
-    private var allRuleNames: Set<String> {
-        var names = Set<String>()
+    private var allRuleNames: Set<RuleIdentifier> {
+        var names = Set<RuleIdentifier>()
         for group in allPatternsByCategory {
-            names.formUnion(group.patterns.map { $0.name })
+            for pattern in group.patterns {
+                if let ruleIdentifier = RuleIdentifier(rawValue: pattern.name) {
+                    names.insert(ruleIdentifier)
+                }
+            }
         }
         return names
     }
     
     // Helper: Default rule name
-    private var defaultRuleName: String? {
-        return "Uninitialized State Variable" // First pattern from state management
+    private var defaultRuleName: RuleIdentifier? {
+        return .relatedDuplicateStateVariable // Default pattern from state management
     }
     
     var body: some View {
@@ -505,22 +514,24 @@ struct RuleSelectionDialog: View {
                     Section(header: Text(group.display)) {
                         // Show patterns from the passed data
                         ForEach(group.patterns, id: \.name) { pattern in
-                            Toggle(isOn: Binding(
-                                get: { enabledRuleNames.contains(pattern.name) },
-                                set: { isOn in
-                                    if isOn {
-                                        enabledRuleNames.insert(pattern.name)
-                                    } else {
-                                        enabledRuleNames.remove(pattern.name)
+                            if let ruleIdentifier = RuleIdentifier(rawValue: pattern.name) {
+                                Toggle(isOn: Binding(
+                                    get: { enabledRuleNames.contains(ruleIdentifier) },
+                                    set: { isOn in
+                                        if isOn {
+                                            enabledRuleNames.insert(ruleIdentifier)
+                                        } else {
+                                            enabledRuleNames.remove(ruleIdentifier)
+                                        }
                                     }
-                                }
-                            )) {
-                                VStack(alignment: .leading, spacing: 2) {
-                                    Text(pattern.name)
-                                        .fontWeight(.medium)
-                                    Text(pattern.suggestion)
-                                        .font(.caption)
-                                        .foregroundColor(.secondary)
+                                )) {
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text(pattern.name)
+                                            .fontWeight(.medium)
+                                        Text(pattern.suggestion)
+                                            .font(.caption)
+                                            .foregroundColor(.secondary)
+                                    }
                                 }
                             }
                         }
