@@ -16,6 +16,39 @@ import SwiftSyntax
 /// - `@GestureState` - For gesture state
 /// - `@ScaledMetric` - For dynamic type scaling
 /// - `@Namespace` - For matched geometry effects
+
+// MARK: - Property Wrapper Enum
+
+enum PropertyWrapper: String {
+    case state = "State"
+    case stateObject = "StateObject"
+    case observedObject = "ObservedObject"
+    case environmentObject = "EnvironmentObject"
+    case binding = "Binding"
+    case environment = "Environment"
+    case focusState = "FocusState"
+    case gestureState = "GestureState"
+    case scaledMetric = "ScaledMetric"
+    case namespace = "Namespace"
+    case fetchRequest = "FetchRequest"
+    case sectionedFetchRequest = "SectionedFetchRequest"
+    case query = "Query"
+    case appStorage = "AppStorage"
+    case sceneStorage = "SceneStorage"
+    case uiApplicationDelegateAdaptor = "UIApplicationDelegateAdaptor"
+    case wkExtensionDelegateAdaptor = "WKExtensionDelegateAdaptor"
+    case nsApplicationDelegateAdaptor = "NSApplicationDelegateAdaptor"
+    case focusedBinding = "FocusedBinding"
+    case focusedValue = "FocusedValue"
+    case accessibilityFocusState = "AccessibilityFocusState"
+}
+
+extension PropertyWrapper {
+    var fullRepresentation: String {
+        return "@\(self.rawValue)"
+    }
+}
+
 class StateVariableVisitor: SyntaxVisitor {
     private let viewName: String
     private let filePath: String
@@ -103,52 +136,8 @@ class StateVariableVisitor: SyntaxVisitor {
     
     /// Maps SwiftUI property wrapper names to their full representation
     private func mapPropertyWrapperName(_ name: String) -> String {
-        switch name {
-        case "State":
-            return "@State"
-        case "StateObject":
-            return "@StateObject"
-        case "ObservedObject":
-            return "@ObservedObject"
-        case "EnvironmentObject":
-            return "@EnvironmentObject"
-        case "Binding":
-            return "@Binding"
-        case "Environment":
-            return "@Environment"
-        case "FocusState":
-            return "@FocusState"
-        case "GestureState":
-            return "@GestureState"
-        case "ScaledMetric":
-            return "@ScaledMetric"
-        case "Namespace":
-            return "@Namespace"
-        case "FetchRequest":
-            return "@FetchRequest"
-        case "SectionedFetchRequest":
-            return "@SectionedFetchRequest"
-        case "Query":
-            return "@Query"
-        case "AppStorage":
-            return "@AppStorage"
-        case "SceneStorage":
-            return "@SceneStorage"
-        case "UIApplicationDelegateAdaptor":
-            return "@UIApplicationDelegateAdaptor"
-        case "WKExtensionDelegateAdaptor":
-            return "@WKExtensionDelegateAdaptor"
-        case "NSApplicationDelegateAdaptor":
-            return "@NSApplicationDelegateAdaptor"
-        case "FocusedBinding":
-            return "@FocusedBinding"
-        case "FocusedValue":
-            return "@FocusedValue"
-        case "AccessibilityFocusState":
-            return "@AccessibilityFocusState"
-        default:
-            return ""
-        }
+        guard let wrapper = PropertyWrapper(rawValue: name) else { return "" }
+        return wrapper.fullRepresentation
     }
     
     /// Extracts and formats type information from type annotations or infers from initializer
