@@ -837,25 +837,18 @@ final class AccessibilityVisitorTests: XCTestCase {
         let sourceFile = Parser.parse(source: sourceCode)
         DebugLogger.log("Successfully parsed source code")
         
-        // Write the AST structure to a file for debugging in the project root
+        // Write the AST structure to a file for debugging in the debug subdirectory
         let astDescription = sourceFile.description
         DebugLogger.logAST(astDescription)
         
-        let projectRootPath = FileManager.default.currentDirectoryPath
-        let astFilePath = URL(fileURLWithPath: projectRootPath).appendingPathComponent("debug_ast.txt")
+        let debugDirectory = DebugLogger.debugDirectory()
+        let astFilePath = URL(fileURLWithPath: debugDirectory).appendingPathComponent("debug_ast.txt")
+        
         do {
             try astDescription.write(to: astFilePath, atomically: true, encoding: .utf8)
             DebugLogger.log("AST written to: \(astFilePath.path)")
         } catch {
-            DebugLogger.log("Failed to write AST to project root: \(error)")
-        }
-        // Also try writing to /tmp
-        let tmpFilePath = URL(fileURLWithPath: "/tmp/debug_ast.txt")
-        do {
-            try astDescription.write(to: tmpFilePath, atomically: true, encoding: .utf8)
-            DebugLogger.log("AST written to: \(tmpFilePath.path)")
-        } catch {
-            DebugLogger.log("Failed to write AST to /tmp: \(error)")
+            DebugLogger.log("Failed to write AST to debug directory: \(error)")
         }
         DebugLogger.log("Finished AST write attempts")
         customVisitor.walk(sourceFile)

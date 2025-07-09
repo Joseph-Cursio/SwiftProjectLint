@@ -5,3 +5,6 @@
 
 # Ignore specific derived files
 TestResults.xcresult/Data/data.0*
+
+# Ignore debug output files
+debug/

@@ -11,10 +11,11 @@ struct ViewRelationshipVisitorTests {
     private func writeDebugLog(_ message: String, testName: String) {
         let logMessage = "[\(testName)] \(message)\n"
         
-        // Try multiple locations that should be writable
+        // Try multiple locations that should be writable, prioritizing the debug subdirectory
+        let debugDirectory = DebugLogger.debugDirectory()
         let possiblePaths = [
+            debugDirectory + "/ViewRelationshipVisitorTests_debug.log",
             NSTemporaryDirectory() + "ViewRelationshipVisitorTests_debug.log",
-            FileManager.default.currentDirectoryPath + "/ViewRelationshipVisitorTests_debug.log",
             "/tmp/ViewRelationshipVisitorTests_debug.log"
         ]
         

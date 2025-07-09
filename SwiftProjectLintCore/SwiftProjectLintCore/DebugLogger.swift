@@ -5,6 +5,21 @@ import Foundation
 public struct DebugLogger {
     public static let isEnabled = true
     
+    /// Returns the path to the debug directory, creating it if necessary
+    public static func debugDirectory() -> String {
+        let projectRootPath = FileManager.default.currentDirectoryPath
+        let debugDirectory = projectRootPath + "/debug"
+        
+        // Ensure debug directory exists
+        do {
+            try FileManager.default.createDirectory(atPath: debugDirectory, withIntermediateDirectories: true, attributes: nil)
+        } catch {
+            print("DEBUG: Failed to create debug directory: \(error)")
+        }
+        
+        return debugDirectory
+    }
+    
     /// Log a debug message with file, function, and line information
     public static func log(_ message: String, file: String = #file, function: String = #function, line: Int = #line) {
         guard isEnabled else { return }
