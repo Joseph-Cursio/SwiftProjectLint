@@ -83,6 +83,7 @@ class StateVariableVisitor: SyntaxVisitor {
     }
     
     override func visit(_ node: VariableDeclSyntax) -> SyntaxVisitorContinueKind {
+        DebugLogger.logVisitor(.stateVariable, "Visiting variable declaration")
         // Check if this variable declaration has property wrappers
         for binding in node.bindings {
             if let pattern = binding.pattern.as(IdentifierPatternSyntax.self) {

@@ -22,7 +22,7 @@ class ArchitectureVisitor: BasePatternVisitor {
         super.init(viewMode: .sourceAccurate)
     }
     
-    required override init(viewMode: SyntaxTreeViewMode) {
+    required init(viewMode: SyntaxTreeViewMode) {
         super.init(viewMode: viewMode)
     }
     
@@ -32,6 +32,7 @@ class ArchitectureVisitor: BasePatternVisitor {
     }
 
     override func visit(_ node: StructDeclSyntax) -> SyntaxVisitorContinueKind {
+        DebugLogger.logVisitor(.architecture, "Visiting struct: \(node.name.text)")
         // Check if this is a SwiftUI view
         if isSwiftUIView(node) {
             currentViewName = node.name.text

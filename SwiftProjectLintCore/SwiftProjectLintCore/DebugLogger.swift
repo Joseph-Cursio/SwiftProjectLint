@@ -21,10 +21,10 @@ public struct DebugLogger {
     }
     
     /// Log visitor-specific information
-    public static func logVisitor(_ visitorName: String, _ message: String, file: String = #file, function: String = #function, line: Int = #line) {
+    public static func logVisitor(_ visitor: VisitorType, _ message: String, file: String = #file, function: String = #function, line: Int = #line) {
         guard isEnabled else { return }
         let fileName = URL(fileURLWithPath: file).lastPathComponent
-        print("DEBUG [\(fileName):\(line)] \(visitorName).\(function): \(message)")
+        print("DEBUG [\(fileName):\(line)] \(visitor.rawValue).\(function): \(message)")
     }
     
     /// Log issue detection
@@ -54,3 +54,21 @@ public struct DebugLogger {
     public static func logNode(_ nodeType: String, _ details: String = "", file: String = #file, function: String = #function, line: Int = #line) {}
 }
 #endif 
+
+// MARK: - VisitorType Enum
+
+public enum VisitorType: String {
+    case performance = "PerformanceVisitor"
+    case viewRelationship = "ViewRelationshipVisitor"
+    case ui = "UIVisitor"
+    case stateVariable = "StateVariableVisitor"
+    case memoryManagement = "MemoryManagementVisitor"
+    case architecture = "ArchitectureVisitor"
+    case codeQuality = "CodeQualityVisitor"
+    case security = "SecurityVisitor"
+    case accessibility = "AccessibilityVisitor"
+    case networking = "NetworkingVisitor"
+    case forEachSelfID = "ForEachSelfIDVisitor"
+    case swiftUIManagement = "SwiftUIManagementVisitor"
+    // Add any others as needed
+} 

@@ -129,6 +129,11 @@ class ViewRelationshipVisitor: SyntaxVisitor {
         return .visitChildren
     }
     
+    override func visit(_ node: StructDeclSyntax) -> SyntaxVisitorContinueKind {
+        DebugLogger.logVisitor(.viewRelationship, "Visiting struct: \(node.name.text)")
+        return .visitChildren
+    }
+    
     // MARK: - Helpers
     
     private func extractViewFromClosure(_ expr: ExprSyntax, relationshipType: RelationshipType, node: Syntax) {

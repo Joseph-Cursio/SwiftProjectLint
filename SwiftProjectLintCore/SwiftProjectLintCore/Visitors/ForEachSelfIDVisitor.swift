@@ -9,7 +9,7 @@ class ForEachSelfIDVisitor: BasePatternVisitor {
         super.init(patternCategory: patternCategory)
     }
 
-    required override init(viewMode: SyntaxTreeViewMode) {
+    required init(viewMode: SyntaxTreeViewMode) {
         super.init(viewMode: viewMode)
     }
 
@@ -19,6 +19,7 @@ class ForEachSelfIDVisitor: BasePatternVisitor {
     }
 
     override func visit(_ node: FunctionCallExprSyntax) -> SyntaxVisitorContinueKind {
+        DebugLogger.logVisitor(.forEachSelfID, "Visiting FunctionCallExprSyntax")
         // Check if this is a ForEach call
         if let calledExpr = node.calledExpression.as(DeclReferenceExprSyntax.self),
            calledExpr.baseName.text == "ForEach" {

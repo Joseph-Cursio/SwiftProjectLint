@@ -42,6 +42,7 @@ class MemoryManagementVisitor: BasePatternVisitor {
     }
     
     override func visit(_ node: VariableDeclSyntax) -> SyntaxVisitorContinueKind {
+        DebugLogger.logVisitor(.memoryManagement, "Visiting variable declaration")
         // Check for potential retain cycles and large objects in state
         checkForRetainCycles(node)
         checkForLargeObjectsInState(node)
