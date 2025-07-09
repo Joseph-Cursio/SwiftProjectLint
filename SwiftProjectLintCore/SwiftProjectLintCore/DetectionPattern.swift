@@ -102,22 +102,19 @@ public enum PatternCategory: CaseIterable {
 ///
 /// - Parameters:
 ///   - name: The display name of the pattern (used for reporting).
-///   - regex: Not used in SwiftSyntax-based detection (kept for compatibility).
 ///   - severity: The level of importance of the detected issue (e.g., info, warning, error).
 ///   - message: A user-facing message template.
 ///   - suggestion: A recommended action or fix to resolve the detected issue.
 ///   - category: The logical category of the pattern (such as code quality, performance, or security).
 public struct DetectionPattern {
     public let name: String
-    public let regex: String // Not used in SwiftSyntax-based detection
     public let severity: IssueSeverity
     public let message: String
     public let suggestion: String
     public let category: PatternCategory
     
-    public init(name: String, regex: String, severity: IssueSeverity, message: String, suggestion: String, category: PatternCategory) {
+    public init(name: String, severity: IssueSeverity, message: String, suggestion: String, category: PatternCategory) {
         self.name = name
-        self.regex = regex
         self.severity = severity
         self.message = message
         self.suggestion = suggestion

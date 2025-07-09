@@ -24,9 +24,6 @@ import UniformTypeIdentifiers
 /// - Real-time analysis with progress indicators
 /// - Expandable results with detailed issue information
 /// - Persistent rule preferences across app launches
-///
-/// The view uses a hybrid approach where State Management patterns use SwiftSyntax
-/// for better accuracy, while other categories continue to use regex for broad coverage.
 struct ContentView: View {
     @EnvironmentObject var systemComponents: SystemComponents
     @State private var selectedDirectory: String = ""
@@ -71,7 +68,6 @@ struct ContentView: View {
         return syntaxPatterns.map { syntaxPattern in
             DetectionPattern(
                 name: syntaxPattern.name.rawValue,
-                regex: "", // Not used for SwiftSyntax patterns
                 severity: syntaxPattern.severity,
                 message: syntaxPattern.messageTemplate,
                 suggestion: syntaxPattern.suggestion,

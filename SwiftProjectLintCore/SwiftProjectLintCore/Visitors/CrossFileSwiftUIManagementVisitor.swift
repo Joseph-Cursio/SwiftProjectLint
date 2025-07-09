@@ -1,0 +1,36 @@
+//
+//  CrossFileSwiftUIManagementVisitor.swift
+//  SwiftProjectLint
+//
+//  Created by Joseph Cursio on 7/9/25.
+//
+import SwiftSyntax
+
+// MARK: - Cross-File SwiftUI Management Visitor
+
+/// A cross-file version of SwiftUIManagementVisitor that can analyze patterns across multiple files.
+class CrossFileSwiftUIManagementVisitor: SwiftUIManagementVisitor, CrossFilePatternVisitor {
+    let fileCache: [String: SourceFileSyntax]
+    private var parentChildRelationships: [String: Set<String>] = [:] // parent -> children (direct containment)
+    private var navigationRelationships: [String: Set<String>] = [:] // parent -> children (navigation)
+    private var modalRelationships: [String: Set<String>] = [:] // parent -> children (modal presentations)
+    
+    required init(fileCache: [String: SourceFileSyntax]) {
+        self.fileCache = fileCache
+        super.init(patternCategory: .stateManagement)
+        print("DEBUG: CrossFileSwiftUIManagementVisitor initialized with \(fileCache.count) files")
+    }
+    
+    required init(patternCategory: PatternCategory) {
+        self.fileCache = [:]
+        super.init(viewMode: .sourceAccurate)
+    }
+    
+    required init(viewMode: SyntaxTreeViewMode) {
+        self.fileCache = [:]
+        super.init(viewMode: viewMode)
+    }
+    
+    override func finalizeAnalysis() {
+    }
+}

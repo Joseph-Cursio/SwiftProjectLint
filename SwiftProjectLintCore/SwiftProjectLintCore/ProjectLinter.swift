@@ -1,4 +1,5 @@
 import Foundation
+import SwiftParser
 import SwiftUI
 
 // MARK: - Models
@@ -74,22 +75,7 @@ public struct LintIssue: Identifiable {
     }
 }
 
-/// Represents the severity level of a lint issue detected by the linter.
-///
-/// Use `error` for serious problems that may cause project malfunction, `warning` for potential problems or code style issues,
-/// and `info` for suggestions or informational notes that do not require immediate attention.
-///
-/// - Cases:
-///   - error: Indicates a critical issue that should be fixed to ensure correct project behavior.
-///   - warning: Indicates a potential issue or code style concern that may not break the project but is recommended to address.
-///   - info: Provides informational messages or suggestions for improving code quality or consistency.
-///
-/// - SeeAlso: `LintIssue`
-public enum IssueSeverity: String, Codable {
-    case error
-    case warning
-    case info
-}
+
 
 /// Represents the hierarchical relationship and structure of a SwiftUI view within a project.
 ///
@@ -123,9 +109,6 @@ struct ViewHierarchy {
 /// 
 /// - Important: Uses basic file and string matching operations. For comprehensive static analysis, 
 /// integrating with a Swift parser is recommended.
-/// 
-/// - Note: The linter currently performs basic view hierarchy extraction and relies on simple regex 
-/// patterns for detecting state variables. Extend methods to increase accuracy and coverage.
 /// 
 /// ## Usage Example
 /// ```swift
@@ -267,23 +250,17 @@ public class ProjectLinter {
     /// - Returns: An array of `LintIssue` objects describing all code issues, warnings, or suggestions detected
     ///            within the file.
     ///
-    /// - Note: This method uses basic regular expressions and line-based parsing, so it may not recognize all valid Swift syntax
-    ///         or handle edge cases (such as multiline property declarations or complex type signatures).
-    ///         For comprehensive and robust analysis, integration with a Swift syntax parser is recommended.
-    private func analyzeSwiftFile(at path: String, categories: [PatternCategory]? = nil, patternNames: [String]? = nil) -> [LintIssue] {
+    /// - Note: This method uses SwiftSyntax for accurate parsing and can handle complex property declarations,
+    ///         multiline statements, and edge cases that regex-based parsing could not.
+    @MainActor private func analyzeSwiftFile(at path: String, categories: [PatternCategory]? = nil, patternNames: [String]? = nil) -> [LintIssue] {
         var issues: [LintIssue] = []
         guard let content = try? String(contentsOfFile: path, encoding: .utf8) else {
             return issues
         }
         
-        // jdc: this is evidently the regex pattern version 
-        let lines = content.components(separatedBy: .newlines)
-        for (index, line) in lines.enumerated() {
-            let trimmedLine = line.trimmingCharacters(in: .whitespaces)
-            if let stateVar = extractStateVariable(from: trimmedLine, filePath: path, lineNumber: index + 1) {
-                stateVariables.append(stateVar)
-            }
-        }
+        // Use SwiftSyntax for state variable extraction instead of regex
+        let extractedStateVariables = extractStateVariables(from: content, filePath: path)
+        stateVariables.append(contentsOf: extractedStateVariables)
         
         // Use SwiftSyntaxPatternDetector for comprehensive analysis, respecting enabled patterns or categories
         let swiftSyntaxDetector = detector ?? SwiftSyntaxPatternDetector()
@@ -295,93 +272,31 @@ public class ProjectLinter {
         return issues
     }
     
-    /// Attempts to extract a `StateVariable` instance from a line of Swift code, if the line declares a property using a recognized SwiftUI property wrapper.
+    /// Extracts state variables from Swift source code using SwiftSyntax parsing.
     ///
-    /// This method scans the given line of source code for declarations of properties using the `@State`, `@StateObject`, `@ObservedObject`, or `@EnvironmentObject` property wrappers. If a matching declaration is found, it parses out the variable's name and type and constructs a corresponding `StateVariable` model, capturing the context of the declaration (file path, line number, view name, and property wrapper).
-    ///
-    /// - Parameters:
-    ///   - line: The line of Swift code to analyze (typically a single trimmed line representing a property declaration).
-    ///   - filePath: The full path of the source file containing the line.
-    ///   - lineNumber: The 1-based line number of the line within the file.
-    /// - Returns: A `StateVariable` if a property with a recognized property wrapper is found in the line; otherwise, `nil`.
-    ///
-    /// - Note: Extraction is based on simple regular expressions and may not capture all edge cases or complex property declarations. For more robust analysis, a Swift syntax parser is recommended.
-    private func extractStateVariable(from line: String, filePath: String, lineNumber: Int) -> StateVariable? {
-        // Basic regex patterns for state variables
-        let statePatterns = [
-            "@State\\s+var\\s+(\\w+)\\s*:\\s*(\\w+)",
-            "@StateObject\\s+var\\s+(\\w+)\\s*:\\s*(\\w+)",
-            "@ObservedObject\\s+var\\s+(\\w+)\\s*:\\s*(\\w+)",
-            "@EnvironmentObject\\s+var\\s+(\\w+)\\s*:\\s*(\\w+)"
-        ]
-        
-        for pattern in statePatterns {
-            if let regex = try? NSRegularExpression(pattern: pattern, options: []),
-               let match = regex.firstMatch(in: line, options: [], range: NSRange(location: 0, length: line.count)) {
-                
-                let nameRange = match.range(at: 1)
-                let typeRange = match.range(at: 2)
-                
-                if let name = extractString(from: line, range: nameRange),
-                   let type = extractString(from: line, range: typeRange) {
-                    
-                    let propertyWrapper = extractPropertyWrapper(from: line)
-                    let viewName = extractViewName(from: filePath) // Simplified
-                    
-                    return StateVariable(
-                        name: name,
-                        type: type,
-                        filePath: filePath,
-                        lineNumber: lineNumber,
-                        viewName: viewName,
-                        propertyWrapper: propertyWrapper
-                    )
-                }
-            }
-        }
-        
-        return nil
-    }
-    
-    /// Extracts a substring from the given line of text using the provided `NSRange`.
-    ///
-    /// This method returns the substring of `line` that corresponds to the specified `range`.
-    /// If the range is not valid (i.e., `NSNotFound`), the method returns `nil`.
+    /// This method parses the entire Swift file to detect state property declarations
+    /// utilizing common SwiftUI property wrappers: @State, @StateObject, @ObservedObject, and @EnvironmentObject.
     ///
     /// - Parameters:
-    ///   - line: The string from which to extract a substring.
-    ///   - range: The `NSRange` specifying the start location and length of the substring to extract.
-    /// - Returns: The substring corresponding to the `range` within `line`, or `nil` if the range is invalid.
-    ///
-    /// - Note: This method assumes that the range is valid within the bounds of `line`.
-    ///         If the range exceeds the length of the string or is not found, `nil` is returned.
-    private func extractString(from line: String, range: NSRange) -> String? {
-        guard range.location != NSNotFound else { return nil }
-        let startIndex = line.index(line.startIndex, offsetBy: range.location)
-        let endIndex = line.index(startIndex, offsetBy: range.length)
-        return String(line[startIndex..<endIndex])
+    ///   - sourceCode: The Swift source code to analyze.
+    ///   - filePath: The full file path of the Swift file to analyze.
+    /// - Returns: An array of StateVariable instances representing all state variables found in the file.
+    @MainActor private func extractStateVariables(from sourceCode: String, filePath: String) -> [StateVariable] {
+        do {
+            let sourceFile = Parser.parse(source: sourceCode)
+            let viewName = extractViewName(from: filePath)
+            let visitor = StateVariableVisitor(viewName: viewName, filePath: filePath, sourceContents: sourceCode)
+            visitor.walk(sourceFile)
+            return visitor.stateVariables
+        } catch {
+            print("Error parsing Swift file: \(error)")
+            return []
+        }
     }
     
-    /// Extracts the property wrapper annotation (such as `@State`, `@StateObject`, `@ObservedObject`, or `@EnvironmentObject`)
-    /// from a line of Swift code.
-    ///
-    /// This method scans the provided line of text for known SwiftUI state property wrappers and returns the first one found.
-    /// If none of the recognized property wrappers are present, it returns `"Unknown"`.
-    ///
-    /// - Parameter line: A single line of Swift source code, typically representing a property declaration.
-    /// - Returns: A string representing the property wrapper used in the line (e.g., `"@State"`), or `"Unknown"`
-    ///            if no recognized wrapper is present.
-    private func extractPropertyWrapper(from line: String) -> PropertyWrapper {
-        let wrappers: [PropertyWrapper] = [
-            .state, .stateObject, .observedObject, .environmentObject, .binding, .environment, .focusState, .gestureState, .scaledMetric, .namespace, .fetchRequest, .sectionedFetchRequest, .query, .appStorage, .sceneStorage, .uiApplicationDelegateAdaptor, .wkExtensionDelegateAdaptor, .nsApplicationDelegateAdaptor, .focusedBinding, .focusedValue, .accessibilityFocusState
-        ]
-        for wrapper in wrappers {
-            if line.contains("@\(wrapper.rawValue)") {
-                return wrapper
-            }
-        }
-        return .unknown
-    }
+    // Note: extractStateVariable method removed - replaced with SwiftSyntax-based extractStateVariables
+    
+    // Note: extractString and extractPropertyWrapper methods removed - no longer needed with SwiftSyntax
     
     /// Extracts the name of a SwiftUI view from a given file path.
     ///
