@@ -1,14 +1,43 @@
-# Ignore derived files and directories
-.build/
+# Xcode derived and build files
+DerivedData/
 build/
-*.mdb
+*.xcworkspace/
+*.xcuserstate
+*.xcuserdata/
+*.xcarchive/
+*.xcsettings
+*.xcscmblueprint
+*.xccheckout
+*.moved-aside
+*.xcplugindata/
+*.xcresult/
+*.pcm
+*.dSYM/
+*.app/
+*.ipa
+*.tmp
+*.swp
+*.lock
+*.crash
 
-# Ignore system files
+# Swift Package Manager
+.swiftpm/
+.package/
+.build/
+Package.resolved
+
+# CocoaPods and Carthage
+Pods/
+Carthage/
+Carthage.build/
+
+# System files
 .DS_Store
 
-# Ignore test result files
-*.xcresult
+# Test results
 test_results/
-
-# Ignore debug output files
 debug_output/
+
+# Ignore specific derived files
+TestResults.xcresult/Data/data.0*
+*.mdb
