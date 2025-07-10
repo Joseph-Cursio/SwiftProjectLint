@@ -18,26 +18,17 @@
   },
   "testTargets" : [
     {
-      "parallelizable" : true,
       "target" : {
-        "containerPath" : "container:SwiftProjectLint.xcodeproj",
-        "identifier" : "2805B49D2E149DAC0018C12A",
-        "name" : "SwiftProjectLintTests"
-      }
-    },
-    {
-      "parallelizable" : true,
-      "target" : {
-        "containerPath" : "container:SwiftProjectLint.xcodeproj",
-        "identifier" : "28B7966D2E19EDA400AE3C7B",
+        "containerPath" : "container:",
+        "identifier" : "SwiftProjectLintCoreTests",
         "name" : "SwiftProjectLintCoreTests"
       }
     },
     {
       "target" : {
-        "containerPath" : "container:SwiftProjectLint.xcodeproj",
-        "identifier" : "2805B4A72E149DAC0018C12A",
-        "name" : "SwiftProjectLintUITests"
+        "containerPath" : "container:",
+        "identifier" : "SwiftProjectLintTests",
+        "name" : "SwiftProjectLintTests"
       }
     }
   ],

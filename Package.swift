@@ -17,7 +17,8 @@ let package = Package(
         ),
     ],
     dependencies: [
-        .package(url: "https://github.com/apple/swift-syntax.git", exact: "601.0.1")
+        .package(url: "https://github.com/apple/swift-syntax.git", exact: "601.0.1"),
+        .package(url: "https://github.com/nalexn/ViewInspector.git", from: "0.9.5")
     ],
     targets: [
         .target(
@@ -35,12 +36,12 @@ let package = Package(
         ),
         .testTarget(
             name: "SwiftProjectLintCoreTests",
-            dependencies: ["SwiftProjectLintCore"],
+            dependencies: ["SwiftProjectLintCore", "ViewInspector"],
             path: "SwiftProjectLintCoreTests"
         ),
         .testTarget(
             name: "SwiftProjectLintTests",
-            dependencies: ["SwiftProjectLintCore", "SwiftProjectLint"],
+            dependencies: ["SwiftProjectLintCore", "SwiftProjectLint", "ViewInspector"],
             path: "SwiftProjectLintTests"
         ),
         // UI tests are configured in Xcode project and should be run through Xcode

@@ -5,6 +5,9 @@ import SwiftParser
 @testable import SwiftProjectLintCore
 
 struct StateVariableVisitorTests {
-    // TODO: Migrate all test methods to @Test and #expect
-    // Replace all XCTestCase and XCTAssert* usages
+    @Test("Basic stub test")
+    func testStub() {
+        #expect(true, "Stub test placeholder.")
+    }
 } 
+

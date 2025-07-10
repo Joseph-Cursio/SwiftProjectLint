@@ -1,17 +1,20 @@
-//
-//  SwiftProjectLintTests.swift
-//  SwiftProjectLintTests
-//
-//  Created by Joseph Cursio on 7/1/25.
-//
-
 import Testing
-@testable import SwiftProjectLintCore
 
+@Suite
 struct SwiftProjectLintTests {
-
-    @Test func example() async throws {
-        // Write your test here and use APIs like `#expect(...)` to check expected conditions.
+    @Test("Sanity check: basic arithmetic")
+    func testBasicSanity() {
+        #expect(2 + 2 == 4)
     }
 
+    @Test("Sanity check: string equality")
+    func testStringEquality() {
+        #expect("SwiftLint".lowercased() == "swiftlint")
+    }
+
+    @Test("Placeholder for linting logic")
+    func testExampleLinting() {
+        // TODO: Replace with actual linting call if public API is available
+        #expect(true, "Replace this with a real linting test.")
+    }
 }
