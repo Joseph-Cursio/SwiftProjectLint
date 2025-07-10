@@ -8,10 +8,42 @@
 import Testing
 @testable import SwiftProjectLintCore
 
-struct SwiftProjectLintCoreTests {
+final class SwiftProjectLintCoreTests {
 
-    @Test func example() async throws {
-        // Write your test here and use APIs like `#expect(...)` to check expected conditions.
+    @Test func testCoreModuleImports() async throws {
+        // Test that all core modules can be imported and accessed
+        let analyzer = AdvancedAnalyzer()
+        #expect(analyzer != nil)
+        
+        let linter = await ProjectLinter()
+        #expect(linter != nil)
+        
+        let detector = await SwiftSyntaxPatternDetector()
+        #expect(detector != nil)
+        
+        let registry = await SwiftSyntaxPatternRegistry.shared
+        #expect(registry != nil)
+    }
+    
+    @Test func testRuleIdentifierEnum() async throws {
+        // Test that RuleIdentifier enum is accessible
+        let rule = RuleIdentifier.relatedDuplicateStateVariable
+        #expect(rule.rawValue == "Related Duplicate State Variable")
+        #expect(rule.category == .stateManagement)
+    }
+    
+    @Test func testPatternCategoryEnum() async throws {
+        // Test that PatternCategory enum is accessible
+        let category = PatternCategory.stateManagement
+        #expect(category == .stateManagement)
+        #expect(PatternCategory.allCases.contains(.stateManagement))
+    }
+    
+    @Test func testIssueSeverityEnum() async throws {
+        // Test that IssueSeverity enum is accessible
+        let severity = IssueSeverity.warning
+        #expect(severity == .warning)
+        // Remove or comment out the test for IssueSeverity.allCases if not CaseIterable
     }
 
 }

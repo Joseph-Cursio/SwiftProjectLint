@@ -9,14 +9,12 @@
 /* Begin PBXBuildFile section */
 		2886405E2E19F25E0026F2CF /* SwiftSyntax in Frameworks */ = {isa = PBXBuildFile; productRef = 2886405D2E19F25E0026F2CF /* SwiftSyntax */; };
 		288640602E19F26E0026F2CF /* SwiftParser in Frameworks */ = {isa = PBXBuildFile; productRef = 2886405F2E19F26E0026F2CF /* SwiftParser */; };
-		288845112E1CB20C00C22283 /* .gitignore 2 in Resources */ = {isa = PBXBuildFile; fileRef = 288845102E1CB20C00C22283 /* .gitignore 2 */; };
-		288845132E1CB2B000C22283 /* .gitignore 3 in Resources */ = {isa = PBXBuildFile; fileRef = 288845122E1CB2B000C22283 /* .gitignore 3 */; };
-		288845152E1CB32000C22283 /* .gitignore 4 in Resources */ = {isa = PBXBuildFile; fileRef = 288845142E1CB32000C22283 /* .gitignore 4 */; };
 		28B283CB2E1738BC00F871B8 /* SwiftParser in Frameworks */ = {isa = PBXBuildFile; productRef = 28B283CA2E1738BC00F871B8 /* SwiftParser */; };
 		28B283CD2E1738BC00F871B8 /* SwiftSyntax in Frameworks */ = {isa = PBXBuildFile; productRef = 28B283CC2E1738BC00F871B8 /* SwiftSyntax */; };
 		28B7966F2E19EDA400AE3C7B /* SwiftProjectLintCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 28B796642E19EDA400AE3C7B /* SwiftProjectLintCore.framework */; };
 		28B796792E19EDA400AE3C7B /* SwiftProjectLintCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 28B796642E19EDA400AE3C7B /* SwiftProjectLintCore.framework */; };
 		28B7967A2E19EDA400AE3C7B /* SwiftProjectLintCore.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 28B796642E19EDA400AE3C7B /* SwiftProjectLintCore.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		28C412CB2E1F55A300D5FC31 /* (null) in Frameworks */ = {isa = PBXBuildFile; };
 		28D83EE42E1A30F9001F4A6A /* (null) in Frameworks */ = {isa = PBXBuildFile; };
 		28D83EE52E1A30F9001F4A6A /* (null) in Frameworks */ = {isa = PBXBuildFile; };
 		28D83EE62E1A30F9001F4A6A /* SwiftSyntax in Frameworks */ = {isa = PBXBuildFile; productRef = 2886405D2E19F25E0026F2CF /* SwiftSyntax */; };
@@ -26,6 +24,7 @@
 		28D83EEA2E1A30F9001F4A6A /* (null) in Frameworks */ = {isa = PBXBuildFile; };
 		28D83EEB2E1A30F9001F4A6A /* SwiftSyntax in Frameworks */ = {isa = PBXBuildFile; productRef = 2886405D2E19F25E0026F2CF /* SwiftSyntax */; };
 		28D83EEC2E1A30F9001F4A6A /* SwiftParser in Frameworks */ = {isa = PBXBuildFile; productRef = 2886405F2E19F26E0026F2CF /* SwiftParser */; };
+		28D83F622E1A3200001F4A6A /* (null) in Frameworks */ = {isa = PBXBuildFile; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -92,29 +91,9 @@
 		2805B49E2E149DAC0018C12A /* SwiftProjectLintTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SwiftProjectLintTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		2805B4A82E149DAC0018C12A /* SwiftProjectLintUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SwiftProjectLintUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		2810A22F2E157DDF004F8EEC /* SwiftProjectLint.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; path = SwiftProjectLint.xctestplan; sourceTree = "<group>"; };
-		288845102E1CB20C00C22283 /* .gitignore 2 */ = {isa = PBXFileReference; lastKnownFileType = text; path = ".gitignore 2"; sourceTree = "<group>"; };
-		288845122E1CB2B000C22283 /* .gitignore 3 */ = {isa = PBXFileReference; lastKnownFileType = text; path = ".gitignore 3"; sourceTree = "<group>"; };
-		288845142E1CB32000C22283 /* .gitignore 4 */ = {isa = PBXFileReference; lastKnownFileType = text; path = ".gitignore 4"; sourceTree = "<group>"; };
 		28B796642E19EDA400AE3C7B /* SwiftProjectLintCore.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = SwiftProjectLintCore.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		28B7966E2E19EDA400AE3C7B /* SwiftProjectLintCoreTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SwiftProjectLintCoreTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
-
-/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		28D83F582E1A310B001F4A6A /* Exceptions for "SwiftProjectLintCore" folder in "SwiftProjectLintCore" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				SwiftProjectLintCoreTests/ProjectLinterTests.swift,
-			);
-			target = 28B796632E19EDA400AE3C7B /* SwiftProjectLintCore */;
-		};
-		28D83F5A2E1A3112001F4A6A /* Exceptions for "SwiftProjectLintCore" folder in "SwiftProjectLintCoreTests" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				SwiftProjectLintCoreTests/ProjectLinterTests.swift,
-			);
-			target = 28B7966D2E19EDA400AE3C7B /* SwiftProjectLintCoreTests */;
-		};
-/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		2805B4932E149DAB0018C12A /* SwiftProjectLint */ = {
@@ -134,10 +113,6 @@
 		};
 		28B796652E19EDA400AE3C7B /* SwiftProjectLintCore */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				28D83F582E1A310B001F4A6A /* Exceptions for "SwiftProjectLintCore" folder in "SwiftProjectLintCore" target */,
-				28D83F5A2E1A3112001F4A6A /* Exceptions for "SwiftProjectLintCore" folder in "SwiftProjectLintCoreTests" target */,
-			);
 			path = SwiftProjectLintCore;
 			sourceTree = "<group>";
 		};
@@ -168,6 +143,7 @@
 				28D83EE72E1A30F9001F4A6A /* SwiftParser in Frameworks */,
 				28D83EE52E1A30F9001F4A6A /* (null) in Frameworks */,
 				28D83EE62E1A30F9001F4A6A /* SwiftSyntax in Frameworks */,
+				28C412CB2E1F55A300D5FC31 /* (null) in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -196,6 +172,7 @@
 				28D83EEC2E1A30F9001F4A6A /* SwiftParser in Frameworks */,
 				28D83EEA2E1A30F9001F4A6A /* (null) in Frameworks */,
 				28D83EEB2E1A30F9001F4A6A /* SwiftSyntax in Frameworks */,
+				28D83F622E1A3200001F4A6A /* (null) in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -213,9 +190,6 @@
 				28B796742E19EDA400AE3C7B /* SwiftProjectLintCoreTests */,
 				2886405C2E19F25E0026F2CF /* Frameworks */,
 				2805B4922E149DAB0018C12A /* Products */,
-				288845102E1CB20C00C22283 /* .gitignore 2 */,
-				288845122E1CB2B000C22283 /* .gitignore 3 */,
-				288845142E1CB32000C22283 /* .gitignore 4 */,
 			);
 			sourceTree = "<group>";
 		};
@@ -438,9 +412,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				288845112E1CB20C00C22283 /* .gitignore 2 in Resources */,
-				288845152E1CB32000C22283 /* .gitignore 4 in Resources */,
-				288845132E1CB2B000C22283 /* .gitignore 3 in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -689,7 +660,7 @@
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
-				SWIFT_VERSION = 5.0;
+				SWIFT_VERSION = 6.0;
 			};
 			name = Debug;
 		};
@@ -718,7 +689,7 @@
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
-				SWIFT_VERSION = 5.0;
+				SWIFT_VERSION = 6.0;
 			};
 			name = Release;
 		};
@@ -736,7 +707,7 @@
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
-				SWIFT_VERSION = 5.0;
+				SWIFT_VERSION = 6.0;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/SwiftProjectLint.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/SwiftProjectLint";
 			};
 			name = Debug;
@@ -755,7 +726,7 @@
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
-				SWIFT_VERSION = 5.0;
+				SWIFT_VERSION = 6.0;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/SwiftProjectLint.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/SwiftProjectLint";
 			};
 			name = Release;
@@ -772,7 +743,7 @@
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
-				SWIFT_VERSION = 5.0;
+				SWIFT_VERSION = 6.0;
 				TEST_TARGET_NAME = SwiftProjectLint;
 			};
 			name = Debug;
@@ -789,7 +760,7 @@
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
-				SWIFT_VERSION = 5.0;
+				SWIFT_VERSION = 6.0;
 				TEST_TARGET_NAME = SwiftProjectLint;
 			};
 			name = Release;
@@ -823,7 +794,7 @@
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_INSTALL_MODULE = YES;
 				SWIFT_INSTALL_OBJC_HEADER = NO;
-				SWIFT_VERSION = 5.0;
+				SWIFT_VERSION = 6.0;
 				VERSIONING_SYSTEM = "apple-generic";
 				VERSION_INFO_PREFIX = "";
 			};
@@ -858,7 +829,7 @@
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_INSTALL_MODULE = YES;
 				SWIFT_INSTALL_OBJC_HEADER = NO;
-				SWIFT_VERSION = 5.0;
+				SWIFT_VERSION = 6.0;
 				VERSIONING_SYSTEM = "apple-generic";
 				VERSION_INFO_PREFIX = "";
 			};
@@ -875,7 +846,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = name.JosephCursio.SwiftProjectLintCoreTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_VERSION = 5.0;
+				SWIFT_VERSION = 6.0;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/SwiftProjectLint.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/SwiftProjectLint";
 			};
 			name = Debug;
@@ -891,7 +862,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = name.JosephCursio.SwiftProjectLintCoreTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_VERSION = 5.0;
+				SWIFT_VERSION = 6.0;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/SwiftProjectLint.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/SwiftProjectLint";
 			};
 			name = Release;

@@ -156,9 +156,9 @@ enum ArchitectureIssueType {
 /// - Only `.swift` files are analyzed; generated or external code is ignored.
 ///
 class AdvancedAnalyzer {
-    private var viewRelationships: [ViewRelationship] = []
-    private var stateVariables: [StateVariable] = []
-    private var viewHierarchies: [String: [String]] = [:] // parent -> children
+    internal var viewRelationships: [ViewRelationship] = []
+    internal var stateVariables: [StateVariable] = []
+    internal var viewHierarchies: [String: [String]] = [:] // parent -> children
     
     /// Performs an advanced architectural analysis of a SwiftUI codebase located at the specified project path.
     ///
@@ -212,7 +212,7 @@ class AdvancedAnalyzer {
     /// 5. Builds a mapping of parent views to their child views, forming a hierarchical structure of the views in the project.
     ///
     /// The results are stored internally in the analyzer for use in further architectural analysis and issue detection.
-    @MainActor private func buildViewHierarchy(from projectPath: String) {
+    @MainActor internal func buildViewHierarchy(from projectPath: String) {
         let swiftFiles = findSwiftFiles(in: projectPath)
         
         for filePath in swiftFiles {
@@ -249,7 +249,7 @@ class AdvancedAnalyzer {
     /// - `NavigationLink` destination views (e.g., `NavigationLink(destination: SomeView())`)
     /// - Sheet presentation (e.g., `.sheet(content: { SomeView() })`)
     /// - Full screen cover presentation (e.g., `.fullScreenCover(content: { SomeView() })`)
-    @MainActor private func extractViewRelationships(from filePath: String) -> [ViewRelationship] {
+    @MainActor internal func extractViewRelationships(from filePath: String) -> [ViewRelationship] {
         var relationships: [ViewRelationship] = []
         
         let parentView = extractViewName(from: filePath)
@@ -274,7 +274,7 @@ class AdvancedAnalyzer {
     ///
     /// The returned `StateVariable` instances include the variable's name, type, property wrapper, the associated view name,
     /// as well as the file path and line number where they were found.
-    @MainActor private func extractStateVariables(from filePath: String) -> [StateVariable] {
+    @MainActor internal func extractStateVariables(from filePath: String) -> [StateVariable] {
         var stateVariables: [StateVariable] = []
         
         let sourceFile = Parser.parse(source: (try? String(contentsOfFile: filePath, encoding: .utf8)) ?? "")
@@ -298,7 +298,7 @@ class AdvancedAnalyzer {
     ///
     /// - Parameter filePath: The full file system path to a Swift source file.
     /// - Returns: The name of the view, derived from the file name by removing the ".swift" extension.
-    private func extractViewName(from filePath: String) -> String {
+    internal func extractViewName(from filePath: String) -> String {
         let fileName = (filePath as NSString).lastPathComponent
         return fileName.replacingOccurrences(of: ".swift", with: "")
     }
@@ -316,7 +316,7 @@ class AdvancedAnalyzer {
     ///         unless they lack the `.swift` file extension.
     /// - Warning: Symbolic links and circular directory structures may cause redundant file paths or infinite loops,
     ///            depending on the file system's enumerator behavior.
-    private func findSwiftFiles(in path: String) -> [String] {
+    internal func findSwiftFiles(in path: String) -> [String] {
         let fileManager = FileManager.default
         var swiftFiles: [String] = []
         
@@ -341,7 +341,7 @@ class AdvancedAnalyzer {
     /// - For each duplicate state variable found in related views, creates an `ArchitectureIssue` describing the problem, listing the affected views, and providing actionable suggestions for better state management (such as adopting shared `ObservableObject` patterns).
     ///
     /// - Returns: An array of `ArchitectureIssue` objects highlighting detected state management problems and recommendations for improvement.
-    private func analyzeStateManagement() -> [ArchitectureIssue] {
+    internal func analyzeStateManagement() -> [ArchitectureIssue] {
         var issues: [ArchitectureIssue] = []
         
         // Detect duplicate state variables across any views
@@ -414,7 +414,7 @@ class AdvancedAnalyzer {
     ///
     /// > Note: This method can be extended in the future to detect additional anti-patterns such as circular dependencies,
     /// > inconsistent state ownership, or improper use of other property wrappers.
-    private func detectArchitecturalAntiPatterns() -> [ArchitectureIssue] {
+    internal func detectArchitecturalAntiPatterns() -> [ArchitectureIssue] {
         var issues: [ArchitectureIssue] = []
         
         // Detect missing @StateObject usage
@@ -449,7 +449,7 @@ class AdvancedAnalyzer {
     /// ### Example Output
     /// - Suggestion: "Consider using @EnvironmentObject for 'userSettings' as it's used across multiple views."
     /// - Suggestion: "Create a shared ObservableObject and inject it via .environmentObject() at the root level."
-    private func suggestImprovements() -> [ArchitectureIssue] {
+    internal func suggestImprovements() -> [ArchitectureIssue] {
         var issues: [ArchitectureIssue] = []
         
         // Suggest EnvironmentObject for widely shared state
@@ -471,7 +471,7 @@ class AdvancedAnalyzer {
         return issues
     }
     
-    private func findDuplicates<T: Hashable>(in array: [T]) -> [T] {
+    internal func findDuplicates<T: Hashable>(in array: [T]) -> [T] {
         var seen = Set<T>()
         var duplicates = Set<T>()
         
@@ -486,7 +486,7 @@ class AdvancedAnalyzer {
         return Array(duplicates)
     }
     
-    private func findRelatedViews(_ viewNames: [String]) -> [String] {
+    internal func findRelatedViews(_ viewNames: [String]) -> [String] {
         var related: [String] = []
         
         for viewName in viewNames {
@@ -506,7 +506,7 @@ class AdvancedAnalyzer {
         return Array(Set(related))
     }
     
-    private func isRootView(_ viewName: String) -> Bool {
+    internal func isRootView(_ viewName: String) -> Bool {
         // A view is considered root if it's not a child of any other view
         for (_, children) in viewHierarchies {
             if children.contains(viewName) {
@@ -516,14 +516,14 @@ class AdvancedAnalyzer {
         return true
     }
     
-    private func findWidelySharedState() -> [StateVariable] {
+    internal func findWidelySharedState() -> [StateVariable] {
         let stateNames = stateVariables.map { $0.name }
         let duplicateNames = findDuplicates(in: stateNames)
         
         return stateVariables.filter { duplicateNames.contains($0.name) }
     }
     
-    private func generateStateSharingSuggestion(for stateName: String, views: [String]) -> String {
+    internal func generateStateSharingSuggestion(for stateName: String, views: [String]) -> String {
         if views.count == 2 {
             return "Create a shared ObservableObject for '\(stateName)' and pass it from \(views[0]) to \(views[1]) using @ObservedObject."
         } else {

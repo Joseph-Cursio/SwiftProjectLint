@@ -20,7 +20,7 @@ import SwiftUI
 ///         initializers and computed properties are provided.
 ///
 /// - SeeAlso: `IssueSeverity`
-public struct LintIssue: Identifiable {
+public struct LintIssue: Identifiable, Sendable {
     public let id: UUID = UUID()
     public let severity: IssueSeverity
     public let message: String
@@ -118,6 +118,7 @@ struct ViewHierarchy {
 ///     print(issue.message)
 /// }
 /// ```
+@MainActor
 public class ProjectLinter {
     private var projectFiles: [String] = []
     private var stateVariables: [StateVariable] = []
@@ -132,7 +133,7 @@ public class ProjectLinter {
     ///   - categories: Optional array of pattern categories to analyze. If nil, analyzes all categories.
     ///   - ruleIdentifiers: Optional array of specific rule identifiers to analyze. If provided, overrides categories.
     /// - Returns: An array of `LintIssue` objects describing all detected issues, warnings, or suggestions throughout the project.
-    @MainActor public func analyzeProject(at path: String, categories: [PatternCategory]? = nil, ruleIdentifiers: [RuleIdentifier]? = nil) -> [LintIssue] {
+    public func analyzeProject(at path: String, categories: [PatternCategory]? = nil, ruleIdentifiers: [RuleIdentifier]? = nil) -> [LintIssue] {
         print("DEBUG: analyzeProject called with path: '\(path)'")
         print("DEBUG: categories: \(categories?.map { String(describing: $0) } ?? ["all"])")
         print("DEBUG: ruleIdentifiers: \(ruleIdentifiers?.map { $0.rawValue } ?? [])")
@@ -252,7 +253,7 @@ public class ProjectLinter {
     ///
     /// - Note: This method uses SwiftSyntax for accurate parsing and can handle complex property declarations,
     ///         multiline statements, and edge cases that regex-based parsing could not.
-    @MainActor private func analyzeSwiftFile(at path: String, categories: [PatternCategory]? = nil, ruleIdentifiers: [RuleIdentifier]? = nil) -> [LintIssue] {
+    private func analyzeSwiftFile(at path: String, categories: [PatternCategory]? = nil, ruleIdentifiers: [RuleIdentifier]? = nil) -> [LintIssue] {
         var issues: [LintIssue] = []
         guard let content = try? String(contentsOfFile: path, encoding: .utf8) else {
             return issues
@@ -367,3 +368,4 @@ public class ProjectLinter {
         self.detector = detector
     }
 }
+

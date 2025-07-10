@@ -14,6 +14,7 @@ import Combine
 ///     `currentUser` and `isLoading` accordingly when the operation completes.
 ///
 /// `UserManager` is intended to be used with SwiftUI views as a source of truth for user data.
+@MainActor
 class UserManager: ObservableObject {
     @Published var currentUser: User?
     @Published var isLoading = false
@@ -22,8 +23,10 @@ class UserManager: ObservableObject {
         isLoading = true
         // Simulate network call
         DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-            self.currentUser = User(name: "John Doe", email: "john@example.com")
-            self.isLoading = false
+            Task { @MainActor in
+                self.currentUser = User(name: "John Doe", email: "john@example.com")
+                self.isLoading = false
+            }
         }
     }
 }

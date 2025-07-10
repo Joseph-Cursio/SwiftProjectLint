@@ -49,6 +49,7 @@ public struct SyntaxPattern {
 /// dynamic pattern registration and category-based visitor retrieval.
 ///
 /// - Note: This registry is designed to be thread-safe and supports concurrent access.
+@MainActor
 public class PatternVisitorRegistry {
     public static let shared = PatternVisitorRegistry()
     
@@ -140,6 +141,7 @@ public class PatternVisitorRegistry {
 
 /// The detector supports cross-file analysis and can detect patterns that span multiple files,
 /// such as duplicate state variables across different views.
+@MainActor
 public class SwiftSyntaxPatternDetector {
     private let registry: PatternVisitorRegistry
     private var fileCache: [String: SourceFileSyntax] = [:]

@@ -58,6 +58,7 @@ struct SwiftProjectLintApp: App {
 
 /// ObservableObject that holds the pattern detection system components.
 /// This replaces the singleton pattern with dependency injection.
+@MainActor
 class SystemComponents: ObservableObject {
     private(set) var visitorRegistry: PatternVisitorRegistry!
     private(set) var patternRegistry: SwiftSyntaxPatternRegistry!

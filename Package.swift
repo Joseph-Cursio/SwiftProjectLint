@@ -1,4 +1,4 @@
-// swift-tools-version:5.9
+// swift-tools-version:6.0
 import PackageDescription
 
 let package = Package(
@@ -40,7 +40,7 @@ let package = Package(
         ),
         .testTarget(
             name: "SwiftProjectLintTests",
-            dependencies: ["SwiftProjectLintCore"],
+            dependencies: ["SwiftProjectLintCore", "SwiftProjectLint"],
             path: "SwiftProjectLintTests"
         ),
         // UI tests are configured in Xcode project and should be run through Xcode

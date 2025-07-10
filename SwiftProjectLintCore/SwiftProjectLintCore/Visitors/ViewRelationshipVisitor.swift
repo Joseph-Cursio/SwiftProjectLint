@@ -130,7 +130,10 @@ class ViewRelationshipVisitor: SyntaxVisitor {
     }
     
     override func visit(_ node: StructDeclSyntax) -> SyntaxVisitorContinueKind {
-        DebugLogger.logVisitor(.viewRelationship, "Visiting struct: \(node.name.text)")
+        let structName = node.name.text
+        Task { @MainActor in
+            DebugLogger.logVisitor(.viewRelationship, "Visiting struct: \(structName)")
+        }
         return .visitChildren
     }
     

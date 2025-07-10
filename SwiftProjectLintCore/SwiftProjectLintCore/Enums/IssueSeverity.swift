@@ -17,7 +17,7 @@
 ///   - info: Provides informational messages or suggestions for improving code quality or consistency.
 ///
 /// - SeeAlso: `LintIssue`
-public enum IssueSeverity: String, Codable {
+public enum IssueSeverity: String, Codable, Sendable {
     case error
     case warning
     case info

@@ -2,8 +2,9 @@ import Foundation
 
 #if DEBUG
 /// Shared debug logger for SwiftProjectLint - only compiled in DEBUG builds
-public struct DebugLogger {
+@MainActor public struct DebugLogger {
     public static let isEnabled = true
+    public static var outputHandler: (String) -> Void = { print($0) }
     
     /// Returns the path to the debug directory, creating it if necessary
     public static func debugDirectory() -> String {
@@ -14,7 +15,7 @@ public struct DebugLogger {
         do {
             try FileManager.default.createDirectory(atPath: debugDirectory, withIntermediateDirectories: true, attributes: nil)
         } catch {
-            print("DEBUG: Failed to create debug directory: \(error)")
+            outputHandler("DEBUG: Failed to create debug directory: \(error)")
         }
         
         return debugDirectory
@@ -24,29 +25,31 @@ public struct DebugLogger {
     public static func log(_ message: String, file: String = #file, function: String = #function, line: Int = #line) {
         guard isEnabled else { return }
         let fileName = URL(fileURLWithPath: file).lastPathComponent
-        print("DEBUG [\(fileName):\(line)] \(function): \(message)")
+        outputHandler("DEBUG [\(fileName):\(line)] \(function): \(message)")
     }
     
     /// Log AST structure for debugging
     public static func logAST(_ ast: String, file: String = #file, function: String = #function, line: Int = #line) {
         guard isEnabled else { return }
         let fileName = URL(fileURLWithPath: file).lastPathComponent
-        print("DEBUG [\(fileName):\(line)] \(function): AST Structure:")
-        print(ast)
+        outputHandler("DEBUG [\(fileName):\(line)] \(function): AST Structure:")
+        ast.split(separator: "\n").forEach { line in
+            outputHandler(String(line))
+        }
     }
     
     /// Log visitor-specific information
     public static func logVisitor(_ visitor: VisitorType, _ message: String, file: String = #file, function: String = #function, line: Int = #line) {
         guard isEnabled else { return }
         let fileName = URL(fileURLWithPath: file).lastPathComponent
-        print("DEBUG [\(fileName):\(line)] \(visitor.rawValue).\(function): \(message)")
+        outputHandler("DEBUG [\(fileName):\(line)] \(visitor.rawValue).\(function): \(message)")
     }
     
     /// Log issue detection
     public static func logIssue(_ issue: String, file: String = #file, function: String = #function, line: Int = #line) {
         guard isEnabled else { return }
         let fileName = URL(fileURLWithPath: file).lastPathComponent
-        print("DEBUG [\(fileName):\(line)] \(function): ISSUE DETECTED: \(issue)")
+        outputHandler("DEBUG [\(fileName):\(line)] \(function): ISSUE DETECTED: \(issue)")
     }
     
     /// Log syntax node traversal
@@ -54,7 +57,7 @@ public struct DebugLogger {
         guard isEnabled else { return }
         let fileName = URL(fileURLWithPath: file).lastPathComponent
         let detailsText = details.isEmpty ? "" : " - \(details)"
-        print("DEBUG [\(fileName):\(line)] \(function): Visiting \(nodeType)\(detailsText)")
+        outputHandler("DEBUG [\(fileName):\(line)] \(function): Visiting \(nodeType)\(detailsText)")
     }
 }
 #else
@@ -87,3 +90,4 @@ public enum VisitorType: String {
     case swiftUIManagement = "SwiftUIManagementVisitor"
     // Add any others as needed
 } 
+

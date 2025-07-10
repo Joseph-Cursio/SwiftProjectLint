@@ -237,28 +237,26 @@ struct ContentView: View {
         
         // Simulate analysis delay
         DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-            Task { @MainActor in
-                var allIssues: [LintIssue] = []
-                
-                // Determine which categories have enabled rules
-                let enabledCategories = getEnabledCategories()
-                
-                // Only use ProjectLinter for analysis
-                if !enabledCategories.isEmpty {
-                    let linter = ProjectLinter()
-                    let crossFileIssues = linter.analyzeProject(at: path, categories: enabledCategories)
-                    allIssues.append(contentsOf: crossFileIssues)
-                }
-                
-                self.lintIssues = allIssues
-                
-                // If no real issues found, show demo issues for enabled rules only
-                if self.lintIssues.isEmpty {
-                    self.lintIssues = createDemoIssues()
-                }
-                
-                self.isAnalyzing = false
+            var allIssues: [LintIssue] = []
+            
+            // Determine which categories have enabled rules
+            let enabledCategories = getEnabledCategories()
+            
+            // Only use ProjectLinter for analysis
+            if !enabledCategories.isEmpty {
+                let linter = ProjectLinter()
+                let crossFileIssues = linter.analyzeProject(at: path, categories: enabledCategories)
+                allIssues.append(contentsOf: crossFileIssues)
             }
+            
+            self.lintIssues = allIssues
+            
+            // If no real issues found, show demo issues for enabled rules only
+            if self.lintIssues.isEmpty {
+                self.lintIssues = createDemoIssues()
+            }
+            
+            self.isAnalyzing = false
         }
     }
     

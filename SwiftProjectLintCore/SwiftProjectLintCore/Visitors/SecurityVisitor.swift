@@ -24,7 +24,10 @@ class SecurityVisitor: BasePatternVisitor {
     }
     
     override func visit(_ node: VariableDeclSyntax) -> SyntaxVisitorContinueKind {
-        DebugLogger.logVisitor(.security, "Visiting variable declaration")
+        let message = "Visiting variable declaration"
+        Task { @MainActor in
+            DebugLogger.logVisitor(.security, message)
+        }
         for binding in node.bindings {
             if let pattern = binding.pattern.as(IdentifierPatternSyntax.self) {
                 let variableName = pattern.identifier.text
@@ -72,3 +75,4 @@ class SecurityVisitor: BasePatternVisitor {
         return .visitChildren
     }
 } 
+

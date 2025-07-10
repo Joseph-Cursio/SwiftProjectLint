@@ -4,7 +4,7 @@ import Foundation
 
 /// Enum representing all available lint rules in the system.
 /// This provides type-safe rule identification and eliminates string matching issues.
-public enum RuleIdentifier: String, CaseIterable, Codable {
+public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
     // State Management Rules
     case relatedDuplicateStateVariable = "Related Duplicate State Variable"
     case unrelatedDuplicateStateVariable = "Unrelated Duplicate State Variable"
@@ -168,3 +168,4 @@ public struct DetectionPattern {
         self.category = category
     }
 } 
+

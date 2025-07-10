@@ -31,13 +31,13 @@ class AccessibilityVisitor: BasePatternVisitor {
     }
     
     /// The configuration for this visitor.
-    private let config: Configuration
+    internal let config: Configuration
     
     /// The current file path.
-    private var currentFilePath: String?
+    internal var currentFilePath: String?
     
     /// Track Images that are part of Buttons to avoid duplicate issues
-    private var imagesInButtons: Set<Syntax> = []
+    internal var imagesInButtons: Set<Syntax> = []
     
     // MARK: - Initializers
     
@@ -74,20 +74,28 @@ class AccessibilityVisitor: BasePatternVisitor {
     // MARK: - Syntax Visitor Methods
     
     override func visit(_ node: FunctionCallExprSyntax) -> SyntaxVisitorContinueKind {
-        DebugLogger.logNode("FunctionCallExpr", "name: \(node.calledExpression.description.trimmingCharacters(in: .whitespaces))")
+        Task { @MainActor in
+            DebugLogger.logNode("FunctionCallExpr", "name: \(node.calledExpression.description.trimmingCharacters(in: .whitespaces))")
+        }
         
         // Check if this is a Button, Image, or Text
         if let calledExpression = node.calledExpression.as(DeclReferenceExprSyntax.self) {
             let functionName = calledExpression.baseName.text
             
             if functionName == "Button" {
-                DebugLogger.logVisitor(.accessibility, "Found Button initialization")
+                Task { @MainActor in
+                    DebugLogger.logVisitor(.accessibility, "Found Button initialization")
+                }
                 checkButtonAccessibility(node)
             } else if functionName == "Image" {
-                DebugLogger.logVisitor(.accessibility, "Found Image initialization")
+                Task { @MainActor in
+                    DebugLogger.logVisitor(.accessibility, "Found Image initialization")
+                }
                 checkImageAccessibility(node)
             } else if functionName == "Text" {
-                DebugLogger.logVisitor(.accessibility, "Found Text initialization")
+                Task { @MainActor in
+                    DebugLogger.logVisitor(.accessibility, "Found Text initialization")
+                }
                 checkTextAccessibility(node)
             }
         }
@@ -96,7 +104,9 @@ class AccessibilityVisitor: BasePatternVisitor {
     }
     
     override func visit(_ node: MemberAccessExprSyntax) -> SyntaxVisitorContinueKind {
-        DebugLogger.logNode("MemberAccessExpr", "name: \(node.declName.baseName.text)")
+        Task { @MainActor in
+            DebugLogger.logNode("MemberAccessExpr", "name: \(node.declName.baseName.text)")
+        }
         
         // Check for color usage
         checkInaccessibleColorUsage(node)
@@ -171,7 +181,9 @@ class AccessibilityVisitor: BasePatternVisitor {
     }
     
     private func checkTextAccessibility(_ node: FunctionCallExprSyntax) {
-        DebugLogger.logVisitor(.accessibility, "checkTextAccessibility called")
+        Task { @MainActor in
+            DebugLogger.logVisitor(.accessibility, "checkTextAccessibility called")
+        }
         
         // Check if the text is long enough to warrant accessibility features
         if let argument = node.arguments.first,
@@ -182,28 +194,39 @@ class AccessibilityVisitor: BasePatternVisitor {
                 }
                 return nil
             }.joined()
-            
-            DebugLogger.logVisitor(.accessibility, "Checking text: '\(text)' with length \(text.count), threshold: \(config.minTextLengthForHint)")
+            let threshold = config.minTextLengthForHint
+            Task { @MainActor in
+                DebugLogger.logVisitor(.accessibility, "Checking text: '\(text)' with length \(text.count), threshold: \(threshold)")
+            }
             
             if isLongText(text) {
-                DebugLogger.logVisitor(.accessibility, "Text is long, checking for accessibility modifier")
+                Task { @MainActor in
+                    DebugLogger.logVisitor(.accessibility, "Text is long, checking for accessibility modifier")
+                }
                 
                 // Check if there's an accessibility modifier in the expression tree
                 if hasAccessibilityModifierInExpressionTree(node, "accessibilityLabel") ||
                    hasAccessibilityModifierInExpressionTree(node, "accessibilityHint") ||
                    hasAccessibilityModifierInExpressionTree(node, "accessibilityValue") {
-                    DebugLogger.logVisitor(.accessibility, "Text has accessibility modifier, skipping")
+                    Task { @MainActor in
+                        DebugLogger.logVisitor(.accessibility, "Text has accessibility modifier, skipping")
+                    }
                     return
                 }
                 
-                DebugLogger.logIssue("Long text without accessibility features")
+                Task { @MainActor in
+                    DebugLogger.logIssue("Long text without accessibility features")
+                }
+                let filePath = currentFilePath ?? "unknown"
+                let lineNumber = getLineNumber(for: Syntax(node))
+                let ruleName = currentPattern?.name
                 addIssue(
                     severity: .info,
                     message: "Long text content may benefit from accessibility features",
-                    filePath: currentFilePath ?? "unknown",
-                    lineNumber: getLineNumber(for: Syntax(node)),
+                    filePath: filePath,
+                    lineNumber: lineNumber,
                     suggestion: "Add .accessibilityLabel(), .accessibilityHint(), or .accessibilityValue() to improve accessibility.",
-                    ruleName: currentPattern?.name
+                    ruleName: ruleName
                 )
             }
         }
@@ -312,10 +335,15 @@ class AccessibilityVisitor: BasePatternVisitor {
     }
     
     private func isLongText(_ text: String) -> Bool {
-        DebugLogger.logVisitor(.accessibility, "isLongText called with \(text.count) characters")
-        DebugLogger.logVisitor(.accessibility, "isLongText - checking text: '\(text)' with length \(text.count), threshold: \(config.minTextLengthForHint)")
-        let result = text.count > config.minTextLengthForHint
-        DebugLogger.logVisitor(.accessibility, "isLongText - returning \(result) for long text")
+        let threshold = config.minTextLengthForHint
+        Task { @MainActor in
+            DebugLogger.logVisitor(.accessibility, "isLongText called with \(text.count) characters")
+            DebugLogger.logVisitor(.accessibility, "isLongText - checking text: '\(text)' with length \(text.count), threshold: \(threshold)")
+        }
+        let result = text.count > threshold
+        Task { @MainActor in
+            DebugLogger.logVisitor(.accessibility, "isLongText - returning \(result) for long text")
+        }
         return result
     }
     

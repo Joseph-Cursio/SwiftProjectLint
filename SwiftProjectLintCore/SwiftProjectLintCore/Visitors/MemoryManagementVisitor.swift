@@ -21,7 +21,7 @@ class MemoryManagementVisitor: BasePatternVisitor {
         )
     }
     
-    private let config: Configuration
+    internal let config: Configuration
     
     /// The current file path.
     private var currentFilePath: String?
@@ -42,7 +42,7 @@ class MemoryManagementVisitor: BasePatternVisitor {
     }
     
     /// Helper to extract property wrapper as PropertyWrapper enum
-    private func extractPropertyWrapper(from node: VariableDeclSyntax) -> PropertyWrapper? {
+    internal func extractPropertyWrapper(from node: VariableDeclSyntax) -> PropertyWrapper? {
         for attribute in node.attributes {
             if let attributeSyntax = attribute.as(AttributeSyntax.self),
                let attributeName = attributeSyntax.attributeName.as(IdentifierTypeSyntax.self),
@@ -54,7 +54,9 @@ class MemoryManagementVisitor: BasePatternVisitor {
     }
 
     override func visit(_ node: VariableDeclSyntax) -> SyntaxVisitorContinueKind {
-        DebugLogger.logVisitor(.memoryManagement, "Visiting variable declaration")
+        Task { @MainActor in
+            DebugLogger.logVisitor(.memoryManagement, "Visiting variable declaration")
+        }
         // Check for potential retain cycles and large objects in state
         checkForRetainCycles(node)
         checkForLargeObjectsInState(node)
@@ -63,7 +65,7 @@ class MemoryManagementVisitor: BasePatternVisitor {
     
     /// Checks for potential retain cycles in @StateObject declarations.
     /// Pattern: @StateObject var name: Type = Type()
-    private func checkForRetainCycles(_ node: VariableDeclSyntax) {
+    internal func checkForRetainCycles(_ node: VariableDeclSyntax) {
         guard config.detectRetainCycles else { return }
         guard let propertyWrapper = extractPropertyWrapper(from: node), propertyWrapper == .stateObject else { return }
         
@@ -100,7 +102,7 @@ class MemoryManagementVisitor: BasePatternVisitor {
     
     /// Checks for large objects (arrays) in @State declarations.
     /// Pattern: @State var name: [Type] = [
-    private func checkForLargeObjectsInState(_ node: VariableDeclSyntax) {
+    internal func checkForLargeObjectsInState(_ node: VariableDeclSyntax) {
         guard config.detectLargeObjects else { return }
         guard let propertyWrapper = extractPropertyWrapper(from: node), propertyWrapper == .state else { return }
         for binding in node.bindings {

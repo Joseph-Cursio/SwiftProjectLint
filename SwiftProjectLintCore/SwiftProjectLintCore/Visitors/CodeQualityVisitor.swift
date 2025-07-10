@@ -40,8 +40,11 @@ class CodeQualityVisitor: BasePatternVisitor {
     }
     
     override func visit(_ node: StructDeclSyntax) -> SyntaxVisitorContinueKind {
-        DebugLogger.logVisitor(.codeQuality, "Visiting struct: \(node.name.text)")
-        currentStructName = node.name.text
+        let structName = node.name.text
+        Task { @MainActor in
+            DebugLogger.logVisitor(.codeQuality, "Visiting struct: \(structName)")
+        }
+        currentStructName = structName
         
         // Check for missing documentation on public structs
         if node.modifiers.contains(where: { $0.name.text == "public" }) {

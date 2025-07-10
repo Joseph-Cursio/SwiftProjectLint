@@ -234,10 +234,12 @@ Detects parent-child relationships through:
 
 ### Type-Safe Pattern Detection
 The project uses enum-based pattern detection for improved accuracy:
+- **RuleIdentifier enum**: Type-safe rule identification and category mapping
 - **PropertyWrapper enum**: Type-safe property wrapper detection
 - **SwiftUIViewType enum**: Type-safe view type identification
 - **ASTNodeType enum**: Type-safe AST node analysis
 - **RelationshipType enum**: Type-safe relationship mapping
+- **PatternCategory enum**: Type-safe pattern categorization
 
 ## 🎯 Best Practices
 
@@ -267,8 +269,16 @@ The project uses enum-based pattern detection for improved accuracy:
 
 ## 🔮 Future Enhancements
 
+### ✅ Recently Completed
+- **String-Based Rule Identification**: ✅ **COMPLETED** - Replaced hardcoded `RuleIdentifier(rawValue:)` calls with direct enum cases
+- **UserDefaults Storage**: ✅ **COMPLETED** - Migrated from string arrays to JSON-encoded enum storage for type safety
+- **Pattern Detection Methods**: ✅ **COMPLETED** - Updated SwiftSyntaxPatternDetector to use `[RuleIdentifier]` instead of `[String]` parameters
+
+### 🔄 In Progress
 - **Complete Regex Removal**: Final migration from regex to SwiftSyntax (see [__remove_regex.md](./__remove_regex.md))
-- **String Comparison Refactoring**: Replace hard-wired strings with type-safe enums (see [__string_comparison.md](./__string_comparison.md))
+- **Property Wrapper/String Logic**: Replace remaining hard-wired strings with type-safe enums (see [__string_comparison.md](./__string_comparison.md))
+
+### 📋 Planned Features
 - **Enhanced Navigation Detection**: Context-aware nested navigation analysis (see [NestedNavigationDetection_PRD.md](./NestedNavigationDetection_PRD.md))
 - **Xcode Extension**: Integrate with Xcode for real-time analysis
 - **Custom Rules Engine**: Allow teams to define project-specific rules
@@ -304,13 +314,19 @@ The project includes comprehensive test coverage:
 
 ### Architecture Improvements
 - **SwiftSyntax Migration**: 99% migrated from regex to SwiftSyntax for core analysis (see [__remove_regex.md](./__remove_regex.md) for remaining work)
-- **Type-Safe Detection**: Enum-based pattern detection for rules/categories; property wrapper/view type logic is still partly string-based (see [__string_comparison.md](./__string_comparison.md))
+- **Type-Safe Detection**: ✅ **COMPLETED** - Enum-based pattern detection fully implemented for rules/categories with RuleIdentifier enum
 - **Visitor Pattern**: Comprehensive SwiftSyntax visitor hierarchy for precise analysis
 - **Modular Design**: Clear separation between UI and core analysis logic
 
+### Completed Refactoring ✅
+- **String-Based Rule Identification**: ✅ **COMPLETED** - Replaced hardcoded `RuleIdentifier(rawValue:)` calls with direct enum cases
+- **UserDefaults Storage**: ✅ **COMPLETED** - Migrated from string arrays to JSON-encoded enum storage for type safety
+- **Pattern Detection Methods**: ✅ **COMPLETED** - Updated SwiftSyntaxPatternDetector to use `[RuleIdentifier]` instead of `[String]` parameters
+- **ProjectLinter Integration**: ✅ **COMPLETED** - Updated analyzeProject methods to use enum-based rule identification
+
 ### Ongoing Refactoring
 - **Regex Removal**: Final phase of eliminating remaining regex usage (see [__remove_regex.md](./__remove_regex.md))
-- **String Comparison Refactoring**: Replacing hard-wired strings with type-safe enums (see [__string_comparison.md](./__string_comparison.md))
+- **Property Wrapper/String Logic**: Property wrapper and view type logic still partly string-based (see [__string_comparison.md](./__string_comparison.md))
 - **Performance Optimization**: AST caching and incremental analysis not yet implemented
 - **Code Organization**: Several files remain very large and need splitting (see [__refactor.md](./__refactor.md))
 
@@ -323,9 +339,18 @@ The project includes comprehensive test coverage:
 
 ## 🚧 Current Limitations & Roadmap
 
+### ✅ Recently Completed
+- **String-Based Rule Identification**: ✅ **COMPLETED** - All hardcoded `RuleIdentifier(rawValue:)` calls replaced with direct enum cases
+- **UserDefaults Storage**: ✅ **COMPLETED** - Migrated from string arrays to JSON-encoded enum storage for type safety
+- **Pattern Detection Methods**: ✅ **COMPLETED** - Updated SwiftSyntaxPatternDetector to use `[RuleIdentifier]` instead of `[String]` parameters
+- **ProjectLinter Integration**: ✅ **COMPLETED** - Updated analyzeProject methods to use enum-based rule identification
+
+### 🔄 Ongoing Work
 - **Regex Removal**: One active regex usage remains in `ProjectLinter.swift` (`extractStateVariable`). The `DetectionPattern` struct and UI still reference a `regex` field. See [__remove_regex.md](./__remove_regex.md) for the plan and status.
-- **String Comparison Refactoring**: Property wrapper, view type, and AST node logic still use string comparisons in many places. See [__string_comparison.md](./__string_comparison.md) for the migration plan.
+- **Property Wrapper/String Logic**: Property wrapper, view type, and AST node logic still use string comparisons in many places. See [__string_comparison.md](./__string_comparison.md) for the migration plan.
 - **Large Files**: Files like `SwiftUIManagementVisitor.swift`, `SwiftSyntaxPatternDetector.swift`, `ContentView.swift`, and others remain very large and need to be split for maintainability. See [__refactor.md](./__refactor.md) for recommendations.
+
+### 📋 Future Work
 - **Async/Await & Performance**: Async/await is only partially implemented. AST caching and incremental analysis are not yet present.
 - **Error Handling**: Not all operations use Result types or custom error enums; error propagation is inconsistent.
 - **Testing**: While unit test coverage is strong, more integration and performance tests are needed.
@@ -337,14 +362,23 @@ For a detailed roadmap and actionable steps, see [__refactor.md](./__refactor.md
 
 This project demonstrates advanced SwiftUI project analysis techniques. Contributions are welcome for:
 
+### ✅ Recently Completed
+- **String-Based Rule Identification**: ✅ **COMPLETED** - All hardcoded `RuleIdentifier(rawValue:)` calls replaced with direct enum cases
+- **UserDefaults Storage**: ✅ **COMPLETED** - Migrated from string arrays to JSON-encoded enum storage for type safety
+- **Pattern Detection Methods**: ✅ **COMPLETED** - Updated SwiftSyntaxPatternDetector to use `[RuleIdentifier]` instead of `[String]` parameters
+
+### 🔄 Current Priorities
+- **Regex Removal**: Complete the final migration from regex to SwiftSyntax
+- **Property Wrapper/String Logic**: Replace remaining string comparisons with type-safe enums
+- **Large File Refactoring**: Split large files for better maintainability
+
+### 📋 General Contributions
 - Enhanced pattern detection
 - Additional architectural rules
 - Performance optimizations
 - UI improvements
 - Documentation
-- SwiftSyntax migration completion
 - New visitor implementations
-- Refactoring large files
 - Improving test coverage
 
 ## 📄 License

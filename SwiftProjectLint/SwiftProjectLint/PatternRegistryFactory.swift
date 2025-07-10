@@ -32,6 +32,7 @@ import SwiftProjectLintCore
 ///
 /// These methods help in creating different configurations of pattern detection systems,  making it easier to test and integrate various components in a modular manner.
 ///
+@MainActor
 public class PatternRegistryFactory {
     
     /// Creates a new pattern visitor registry instance.

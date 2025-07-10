@@ -70,10 +70,13 @@ class SwiftUIManagementVisitor: BasePatternVisitor {
     }
     
     override func visit(_ node: StructDeclSyntax) -> SyntaxVisitorContinueKind {
-        DebugLogger.logVisitor(.swiftUIManagement, "Visiting struct: \(node.name.text)")
+        let structName = node.name.text
+        Task { @MainActor in
+            DebugLogger.logVisitor(.swiftUIManagement, "Visiting struct: \(structName)")
+        }
         // Check if this is a SwiftUI view
         if isSwiftUIView(node) {
-            let viewName = node.name.text
+            let viewName = structName
             currentViewName = viewName
             
             // Analyze the view structure
