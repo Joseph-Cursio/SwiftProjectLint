@@ -1,3 +1,13 @@
+//
+//  RuleIdentifier.swift
+//  SwiftProjectLint
+//
+//  Created by joe cursio on 7/14/25.
+//
+import Foundation
+import SwiftParser
+import SwiftSyntax
+
 /// Enum representing all available lint rules in the system.
 /// This provides type-safe rule identification and eliminates string matching issues.
 public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {

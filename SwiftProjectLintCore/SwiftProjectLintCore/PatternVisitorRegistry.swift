@@ -1,3 +1,13 @@
+//
+//  PatternVisitorRegistry.swift
+//  SwiftProjectLint
+//
+//  Created by joe cursio on 7/14/25.
+//
+import Foundation
+import SwiftParser
+import SwiftSyntax
+
 /// Registry for managing SwiftSyntax-based pattern visitors and their configurations.
 ///
 /// `PatternVisitorRegistry` provides a centralized way to register, retrieve, and
@@ -6,7 +16,7 @@
 ///
 /// - Note: This registry is designed to be thread-safe and supports concurrent access.
 @MainActor
-public class PatternVisitorRegistry {
+public class PatternVisitorRegistry: PatternVisitorRegistryProtocol {
     public static let shared = PatternVisitorRegistry()
     
     private var patterns: [SyntaxPattern] = []
@@ -18,7 +28,7 @@ public class PatternVisitorRegistry {
     /// Registers a new syntax pattern with the registry.
     ///
     /// - Parameter pattern: The syntax pattern to register.
-    func register(pattern: SyntaxPattern) {
+    public func register(pattern: SyntaxPattern) {
         queue.sync(flags: .barrier) {
             self.patterns.append(pattern)
             if self.visitorsByCategory[pattern.category] == nil {
@@ -31,7 +41,7 @@ public class PatternVisitorRegistry {
     /// Registers multiple syntax patterns at once.
     ///
     /// - Parameter patterns: An array of syntax patterns to register.
-    func register(patterns: [SyntaxPattern]) {
+    public func register(patterns: [SyntaxPattern]) {
         queue.sync(flags: .barrier) {
             for pattern in patterns {
                 self.patterns.append(pattern)
@@ -47,7 +57,7 @@ public class PatternVisitorRegistry {
     ///
     /// - Parameter category: The pattern category to retrieve visitors for.
     /// - Returns: An array of visitor types for the specified category.
-    func getVisitors(for category: PatternCategory) -> [PatternVisitor.Type] {
+    public func getVisitors(for category: PatternCategory) -> [PatternVisitor.Type] {
         return queue.sync {
             let visitors = visitorsByCategory[category] ?? []
             print("DEBUG: Registry.getVisitors(for: \(category)) returning \(visitors.count) visitors")
@@ -68,7 +78,7 @@ public class PatternVisitorRegistry {
     /// Retrieves all registered syntax patterns.
     ///
     /// - Returns: An array of all registered syntax patterns.
-    func getAllPatterns() -> [SyntaxPattern] {
+    public func getAllPatterns() -> [SyntaxPattern] {
         return queue.sync {
             return patterns
         }
@@ -85,7 +95,7 @@ public class PatternVisitorRegistry {
     }
     
     /// Clears all registered patterns and visitors.
-    func clear() {
+    public func clear() {
         queue.sync(flags: .barrier) {
             self.patterns.removeAll()
             self.visitorsByCategory.removeAll()

@@ -2,103 +2,6 @@ import Foundation
 import SwiftParser
 import SwiftUI
 
-// MARK: - Models
-
-/// Represents a lint issue detected during static analysis of the project.
-///
-/// `LintIssue` describes a specific problem, warning, or suggestion found in the codebase. It includes the severity of the issue,
-/// a descriptive message, and one or more locations where the issue occurs, as well as an optional suggestion for remediation.
-///
-/// - Parameters:
-///   - severity: The severity of the issue (e.g., `.error`, `.warning`, `.info`). See `IssueSeverity`.
-///   - message: A human-readable description of the detected issue.
-///   - locations: One or more locations (file path and line number) where the issue was detected.
-///   - suggestion: An optional fix or recommendation to resolve the issue, or `nil` if no suggestion is provided.
-///   - ruleName: The identifier of the rule that generated this issue.
-///
-/// - Note: This struct supports multiple locations for a single issue. For backward compatibility, single-location
-///         initializers and computed properties are provided.
-///
-/// - SeeAlso: `IssueSeverity`
-public struct LintIssue: Identifiable, Sendable {
-    public let id: UUID = UUID()
-    public let severity: IssueSeverity
-    public let message: String
-    /// The locations (file path and line number pairs) where the issue occurs.
-    /// This supports issues that span multiple files or lines.
-    public let locations: [(filePath: String, lineNumber: Int)]
-    public let suggestion: String?
-    public let ruleName: RuleIdentifier
-    
-    /// Returns the file path of the first location, or an empty string if no locations exist.
-    public var filePath: String {
-        return locations.first?.filePath ?? ""
-    }
-    
-    /// Returns the line number of the first location, or 0 if no locations exist.
-    public var lineNumber: Int {
-        return locations.first?.lineNumber ?? 0
-    }
-    
-    /// Initializes a lint issue with multiple locations.
-    ///
-    /// - Parameters:
-    ///   - severity: The severity of the issue.
-    ///   - message: The message describing the issue.
-    ///   - locations: An array of file path and line number tuples where the issue occurs.
-    ///   - suggestion: An optional suggestion for fixing the issue.
-    ///   - ruleName: The identifier of the rule that generated this issue.
-    public init(severity: IssueSeverity, message: String, locations: [(filePath: String, lineNumber: Int)], suggestion: String?, ruleName: RuleIdentifier) {
-        self.severity = severity
-        self.message = message
-        self.locations = locations
-        self.suggestion = suggestion
-        self.ruleName = ruleName
-    }
-    
-    /// Initializes a lint issue with a single location.
-    /// For backward compatibility, this initializer populates the `locations` array with one element.
-    ///
-    /// - Parameters:
-    ///   - severity: The severity of the issue.
-    ///   - message: The message describing the issue.
-    ///   - filePath: The file path where the issue occurs.
-    ///   - lineNumber: The line number where the issue occurs.
-    ///   - suggestion: An optional suggestion for fixing the issue.
-    ///   - ruleName: The identifier of the rule that generated this issue.
-    public init(severity: IssueSeverity, message: String, filePath: String, lineNumber: Int, suggestion: String?, ruleName: RuleIdentifier) {
-        self.severity = severity
-        self.message = message
-        self.locations = [(filePath, lineNumber)]
-        self.suggestion = suggestion
-        self.ruleName = ruleName
-    }
-}
-
-
-
-/// Represents the hierarchical relationship and structure of a SwiftUI view within a project.
-///
-/// `ViewHierarchy` contains information about a specific view, including its name, its parent view (if any),
-/// its direct child views, and a list of state variables declared within that view. This structure is useful for
-/// analyzing and visualizing the component relationships in SwiftUI projects, as well as for detecting patterns and potential
-/// issues related to state management and view composition.
-///
-/// - Parameters:
-///   - viewName: The name of the SwiftUI view (typically the struct name).
-///   - parentView: The name of the parent view, if one exists; otherwise `nil`.
-///   - childViews: An array of names of direct child views included in this view's body.
-///   - stateVariables: A list of `StateVariable` instances declared within this view.
-///
-/// - SeeAlso: `StateVariable`
-struct ViewHierarchy {
-    let viewName: String
-    let parentView: String?
-    let childViews: [String]
-    let stateVariables: [StateVariable]
-}
-
-// MARK: - Project Linter
 
 /// A class responsible for linting SwiftUI projects by analyzing project files, extracting state variables, 
 /// building view hierarchies, and detecting various lint issues and patterns across the codebase.
@@ -123,7 +26,8 @@ public class ProjectLinter {
     private var projectFiles: [String] = []
     private var stateVariables: [StateVariable] = []
     private var viewHierarchies: [ViewHierarchy] = []
-    private var detector: SwiftSyntaxPatternDetector?
+    private var SingleFileDetector: SwiftSyntaxPatternDetector?
+    private var CrossFileDetector: CrossFileAnalysisEngine?
     
     /// Analyzes a SwiftUI project at the specified file system path, performing static analysis to detect state variable usage,
     /// build view hierarchies, and report lint issues and code patterns across all Swift source files in the project.
@@ -153,12 +57,12 @@ public class ProjectLinter {
         issues.append(contentsOf: crossFileIssues)
         
         // Run cross-file pattern detection using SwiftSyntax, respecting enabled patterns or categories
-        let swiftSyntaxDetector = detector ?? SwiftSyntaxPatternDetector()
+        let crossFileDetector = CrossFileDetector ?? CrossFileAnalysisEngine()
         let crossFilePatternIssues: [LintIssue]
         if let ruleIdentifiers = ruleIdentifiers {
-            crossFilePatternIssues = swiftSyntaxDetector.detectCrossFilePatterns(projectFiles: projectFiles, ruleIdentifiers: ruleIdentifiers)
+            crossFilePatternIssues = crossFileDetector.detectCrossFilePatterns(projectFiles: projectFiles, ruleIdentifiers: ruleIdentifiers)
         } else {
-            crossFilePatternIssues = swiftSyntaxDetector.detectCrossFilePatterns(projectFiles: projectFiles, categories: categories)
+            crossFilePatternIssues = crossFileDetector.detectCrossFilePatterns(projectFiles: projectFiles, categories: categories)
         }
         issues.append(contentsOf: crossFilePatternIssues)
         
@@ -263,7 +167,7 @@ public class ProjectLinter {
         stateVariables.append(contentsOf: extractedStateVariables)
         
         // Use SwiftSyntaxPatternDetector for comprehensive analysis, respecting enabled patterns or categories
-        let swiftSyntaxDetector = detector ?? SwiftSyntaxPatternDetector()
+        let swiftSyntaxDetector = SingleFileDetector ?? SwiftSyntaxPatternDetector()
         if let ruleIdentifiers = ruleIdentifiers {
             issues.append(contentsOf: swiftSyntaxDetector.detectPatterns(in: content, filePath: path, ruleIdentifiers: ruleIdentifiers))
         } else {
@@ -365,7 +269,7 @@ public class ProjectLinter {
     ///
     /// - Parameter detector: The configured SwiftSyntaxPatternDetector to use.
     public func setDetector(_ detector: SwiftSyntaxPatternDetector) {
-        self.detector = detector
+        self.SingleFileDetector = detector
     }
 }
 

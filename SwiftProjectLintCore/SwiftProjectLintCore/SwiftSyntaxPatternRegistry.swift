@@ -1,9 +1,6 @@
 import Foundation
 import SwiftSyntax
 
-/// Note: The `UIVisitor` is declared in the same module, so no explicit import is necessary.
-/// This file uses `UIVisitor` directly, assuming it is part of the same module and target.
-
 /// Registry for managing SwiftSyntax-based pattern detection and registration.
 ///
 /// `SwiftSyntaxPatternRegistry` provides a centralized way to register, retrieve, and
@@ -12,7 +9,7 @@ import SwiftSyntax
 ///
 /// - Note: This registry supports both singleton access via `shared` and dependency injection.
 @MainActor
-public class SwiftSyntaxPatternRegistry {
+public class SwiftSyntaxPatternRegistry: SwiftSyntaxPatternRegistryProtocol {
     
     /// Shared singleton instance for global access.
     public static let shared = SwiftSyntaxPatternRegistry()

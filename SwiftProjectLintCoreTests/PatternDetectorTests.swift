@@ -62,7 +62,7 @@ final class PatternDetectorTests {
     }
     
     @Test func testDetectPatternsInProject() async throws {
-        let detector = SwiftSyntaxPatternDetector()
+        let detector = CrossFileAnalysisEngine()
         
         // Create a temporary test project structure
         let tempDir = FileManager.default.temporaryDirectory
@@ -78,7 +78,7 @@ final class PatternDetectorTests {
     }
     
     @Test func testCrossFilePatternDetection() async throws {
-        let detector = SwiftSyntaxPatternDetector()
+        let detector = CrossFileAnalysisEngine()
         
         let projectFiles = [
             "/test/View1.swift",
