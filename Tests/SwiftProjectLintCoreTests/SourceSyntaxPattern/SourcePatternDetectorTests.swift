@@ -2,7 +2,7 @@ import Testing
 import Foundation
 @testable import SwiftProjectLintCore
 
-/// Comprehensive Characterization Tests for SwiftSyntaxPatternDetector
+/// Comprehensive Characterization Tests for SourcePatternDetector
 ///
 /// These tests document and verify the current behavior of the pattern detector,
 /// helping to catch regressions and understand how the system actually works.
@@ -16,15 +16,15 @@ import Foundation
 /// - Error handling and edge cases
 
 @MainActor
-final class PatternDetectorTests {
+final class SourcePatternDetectorTests {
     
     @Test func testPatternDetectorInitialization() async throws {
-        let detector = SwiftSyntaxPatternDetector()
+        let detector = SourcePatternDetector()
         #expect(detector != nil)
     }
     
     @Test func testDetectPatternsInSourceCode() async throws {
-        let detector = SwiftSyntaxPatternDetector()
+        let detector = SourcePatternDetector()
         let sourceCode = """
         import SwiftUI
         
@@ -52,7 +52,7 @@ final class PatternDetectorTests {
     }
     
     @Test func testDetectPatternsWithSpecificRules() async throws {
-        let detector = SwiftSyntaxPatternDetector()
+        let detector = SourcePatternDetector()
         let sourceCode = """
         import SwiftUI
         
@@ -107,8 +107,8 @@ final class PatternDetectorTests {
     }
     
     @Test func testPatternRegistryIntegration() async throws {
-        let detector = SwiftSyntaxPatternDetector()
-        let registry = SwiftSyntaxPatternRegistry.shared
+        let detector = SourcePatternDetector()
+        let registry = SourcePatternRegistry.shared
         
         #expect(registry != nil)
         // #expect(detector.registry != nil) // This line was removed as per the edit hint.
@@ -117,7 +117,7 @@ final class PatternDetectorTests {
     // MARK: - Error Handling and Edge Cases
     
     @Test func characterizeVeryLargeSourceFile() async throws {
-        let detector = SwiftSyntaxPatternDetector()
+        let detector = SourcePatternDetector()
         
         // Generate a large SwiftUI file
         var largeFileContent = """
@@ -153,7 +153,7 @@ final class PatternDetectorTests {
     }
     
     @Test func characterizeFilePathVariations() async throws {
-        let detector = SwiftSyntaxPatternDetector()
+        let detector = SourcePatternDetector()
         let testCode = """
         import SwiftUI
         struct PathTestView: View {

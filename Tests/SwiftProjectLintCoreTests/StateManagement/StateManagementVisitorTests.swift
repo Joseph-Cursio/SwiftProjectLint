@@ -19,18 +19,18 @@ struct StateManagementVisitorTests {
     /// Creates isolated instances for tests that need complete isolation
     @MainActor static func createIsolatedInstances() -> (
         PatternVisitorRegistry,
-        SwiftSyntaxPatternRegistry,
-        SwiftSyntaxPatternDetector
+        SourcePatternRegistry,
+        SourcePatternDetector
     ) {
         return TestRegistryManager.createIsolatedInstances()
     }
     
     /// Uses shared registry with specific patterns for focused testing
-    static func setupTestWithSpecificPatterns(_ patterns: [SyntaxPattern]) -> SwiftSyntaxPatternDetector {
+    static func setupTestWithSpecificPatterns(_ patterns: [SyntaxPattern]) -> SourcePatternDetector {
         return TestRegistryManager.getDetectorWithPatterns(patterns)
     }
     
-    static func clearTestState(detector: SwiftSyntaxPatternDetector?) {
+    static func clearTestState(detector: SourcePatternDetector?) {
         detector?.clearCache()
     }
     

@@ -15,7 +15,7 @@ import UniformTypeIdentifiers
 /// featuring a clean, modern design with project selection, rule configuration,
 /// and comprehensive linting results display.
 ///
-/// The view delegates linting to a `ProjectLinter` instance and patterns defined in `SwiftSyntaxPatternRegistry`.
+/// The view delegates linting to a `ProjectLinter` instance and patterns defined in `SourcePatternRegistry`.
 /// It uses SwiftSyntax-based pattern detection for improved accuracy across all categories.
 ///
 /// Key Features:

@@ -27,7 +27,7 @@ final class CrossFileAnalysisClaimsTests {
     // MARK: - Cross-File Analysis Claims Investigation
     
     @Test func characterizeCrossFileAnalysisClaimsVsReality() async throws {
-        let detector = SwiftSyntaxPatternDetector()
+        let detector = SourcePatternDetector()
         
         // Create two files with identical state variables (potential duplicates)
         let parentViewContent = """
@@ -103,7 +103,7 @@ final class CrossFileAnalysisClaimsTests {
     }
     
     @Test func characterizeFileCacheCapabilities() async throws {
-        let detector = SwiftSyntaxPatternDetector()
+        let detector = SourcePatternDetector()
         
         // Test if file cache can hold multiple files simultaneously
         let view1 = """

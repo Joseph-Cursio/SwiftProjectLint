@@ -3,7 +3,7 @@ import SwiftParser
 import SwiftSyntax
 
 @MainActor
-public class SwiftSyntaxPatternDetector: SwiftSyntaxPatternDetectorProtocol {
+public class SourcePatternDetector: SourcePatternDetectorProtocol {
     private let registry: PatternVisitorRegistry
     private var fileCache: [String: SourceFileSyntax] = [:]
     

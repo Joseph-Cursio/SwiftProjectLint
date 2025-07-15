@@ -9,7 +9,7 @@ import Testing
 import Foundation
 @testable import SwiftProjectLintCore
 
-/// Comprehensive Characterization Tests for SwiftSyntaxPatternDetector
+/// Comprehensive Characterization Tests for SourcePatternDetector
 ///
 /// These tests document and verify the current behavior of the pattern detector,
 /// helping to catch regressions and understand how the system actually works.
@@ -23,12 +23,12 @@ import Foundation
 /// - Error handling and edge cases
 
 @MainActor
-final class SwiftSyntaxPatternBasicIOTests {
+final class SourcePatternBasicIOTests {
     
     // MARK: - Basic Input/Output Characterization
     
     @Test func characterizeEmptySourceBehavior() async throws {
-        let detector = SwiftSyntaxPatternDetector()
+        let detector = SourcePatternDetector()
         let issues = detector.detectPatterns(in: "", filePath: "/empty.swift")
         
         // Document current behavior with empty source
@@ -36,7 +36,7 @@ final class SwiftSyntaxPatternBasicIOTests {
     }
     
     @Test func testInvalidSwiftCode() async throws {
-        let detector = SwiftSyntaxPatternDetector()
+        let detector = SourcePatternDetector()
         let invalidCode = "This is not valid Swift code {"
         
         let issues = detector.detectPatterns(
@@ -48,7 +48,7 @@ final class SwiftSyntaxPatternBasicIOTests {
     }
     
     @Test func characterizeWhitespaceOnlySource() async throws {
-        let detector = SwiftSyntaxPatternDetector()
+        let detector = SourcePatternDetector()
         let whitespaceCode = "   \n\n  \t  \n   "
         let issues = detector.detectPatterns(in: whitespaceCode, filePath: "/whitespace.swift")
 
@@ -56,7 +56,7 @@ final class SwiftSyntaxPatternBasicIOTests {
     }
     
     @Test func characterizeInvalidSyntaxHandling() async throws {
-        let detector = SwiftSyntaxPatternDetector()
+        let detector = SourcePatternDetector()
         let invalidCode = """
         struct InvalidView {
             missing body and syntax errors
@@ -71,7 +71,7 @@ final class SwiftSyntaxPatternBasicIOTests {
     }
     
     @Test func characterizeMinimalValidSwiftUI() async throws {
-        let detector = SwiftSyntaxPatternDetector()
+        let detector = SourcePatternDetector()
         let minimalView = """
         import SwiftUI
         
@@ -88,7 +88,7 @@ final class SwiftSyntaxPatternBasicIOTests {
     }
     
     @Test func characterizeComplexStateVariables() async throws {
-        let detector = SwiftSyntaxPatternDetector()
+        let detector = SourcePatternDetector()
         let complexView = """
         import SwiftUI
         

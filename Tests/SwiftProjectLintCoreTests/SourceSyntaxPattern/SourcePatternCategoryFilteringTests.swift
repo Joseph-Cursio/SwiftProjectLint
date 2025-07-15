@@ -9,7 +9,7 @@ import Testing
 import Foundation
 @testable import SwiftProjectLintCore
 
-/// Comprehensive Characterization Tests for SwiftSyntaxPatternDetector
+/// Comprehensive Characterization Tests for SourcePatternDetector
 ///
 /// These tests document and verify the current behavior of the pattern detector,
 /// helping to catch regressions and understand how the system actually works.
@@ -23,12 +23,12 @@ import Foundation
 /// - Error handling and edge cases
 
 @MainActor
-final class SwiftSyntaxPatternCategoryFilteringTests {
+final class SourcePatternCategoryFilteringTests {
     
     // MARK: - Category Filtering Characterization
     
     @Test func characterizeStateManagementCategoryFiltering() async throws {
-        let detector = SwiftSyntaxPatternDetector()
+        let detector = SourcePatternDetector()
         let stateCode = """
         import SwiftUI
         
@@ -77,7 +77,7 @@ final class SwiftSyntaxPatternCategoryFilteringTests {
     }
     
     @Test func characterizePerformanceCategoryFiltering() async throws {
-        let detector = SwiftSyntaxPatternDetector()
+        let detector = SourcePatternDetector()
         let performanceCode = """
         import SwiftUI
         
@@ -118,7 +118,7 @@ final class SwiftSyntaxPatternCategoryFilteringTests {
     }
     
     @Test func characterizeMultipleCategoryFiltering() async throws {
-        let detector = SwiftSyntaxPatternDetector()
+        let detector = SourcePatternDetector()
         let multiCategoryCode = """
         import SwiftUI
         

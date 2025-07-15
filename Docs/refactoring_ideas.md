@@ -5,7 +5,7 @@ This document collects actionable and strategic ideas for future refactoring to 
 ---
 
 ## 1. Code Organization & Structure
-- **Split Large Files:** Break up files like `ContentView.swift`, `SwiftUIManagementVisitor.swift`, and `SwiftSyntaxPatternDetector.swift` into smaller, focused components.
+- **Split Large Files:** Break up files like `ContentView.swift`, `SwiftUIManagementVisitor.swift`, and `SourcePatternDetector.swift` into smaller, focused components.
 - **Consistent Category Folders:** Ensure all source and test files are grouped by feature/category (e.g., `StateManagement/`, `Performance/`, etc.).
 - **Remove Dead Code:** Identify and remove unused classes, functions, and legacy code paths.
 - **Centralize Shared Utilities:** Move common utilities to a shared location to avoid duplication.

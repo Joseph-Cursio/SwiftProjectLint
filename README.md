@@ -64,8 +64,8 @@ A comprehensive SwiftUI project analyzer that detects architectural issues, perf
 
 1. **ProjectLinter**: File analysis and state variable extraction using SwiftSyntax
 2. **AdvancedAnalyzer**: Sophisticated architectural analysis using SwiftSyntax
-3. **SwiftSyntaxPatternDetector**: AST-based pattern detection using SwiftSyntax
-4. **SwiftSyntaxPatternRegistry**: Centralized pattern registration and management
+3. **SourcePatternDetector**: AST-based pattern detection using SwiftSyntax
+4. **SourcePatternRegistry**: Centralized pattern registration and management
 5. **ContentView**: Main SwiftUI interface with rule selection and analysis
 6. **LintResultsView**: Results display with expandable issue details
 
@@ -113,13 +113,13 @@ let architectureIssues = analyzer.analyzeArchitecture(projectPath: "/path/to/you
 
 ### SwiftSyntax Analysis
 ```swift
-let swiftSyntaxDetector = SwiftSyntaxPatternDetector()
+let swiftSyntaxDetector = SourcePatternDetector()
 let astIssues = swiftSyntaxDetector.detectPatterns(in: sourceCode, filePath: filePath)
 ```
 
 ### Pattern-Based Detection
 ```swift
-let detector = SwiftSyntaxPatternDetector()
+let detector = SourcePatternDetector()
 let patternIssues = detector.detectPatterns(in: fileContent, filePath: filePath)
 ```
 
@@ -178,9 +178,9 @@ The app includes a rule selection interface where you can enable/disable specifi
 
 ```swift
 // Access patterns by category
-SwiftSyntaxPatternRegistry.shared.getPatterns(for: .stateManagement)
-SwiftSyntaxPatternRegistry.shared.getPatterns(for: .performance)
-SwiftSyntaxPatternRegistry.shared.getPatterns(for: .architecture)
+SourcePatternRegistry.shared.getPatterns(for: .stateManagement)
+SourcePatternRegistry.shared.getPatterns(for: .performance)
+SourcePatternRegistry.shared.getPatterns(for: .architecture)
 // ... and 6 more categories
 ```
 
@@ -197,7 +197,7 @@ let pattern = SyntaxPattern(
     description: "Detailed description"
 )
 
-SwiftSyntaxPatternRegistry.shared.register(pattern: pattern)
+SourcePatternRegistry.shared.register(pattern: pattern)
 ```
 
 ### Severity Levels
@@ -272,7 +272,7 @@ The project uses enum-based pattern detection for improved accuracy:
 ### ✅ Recently Completed
 - **String-Based Rule Identification**: ✅ **COMPLETED** - Replaced hardcoded `RuleIdentifier(rawValue:)` calls with direct enum cases
 - **UserDefaults Storage**: ✅ **COMPLETED** - Migrated from string arrays to JSON-encoded enum storage for type safety
-- **Pattern Detection Methods**: ✅ **COMPLETED** - Updated SwiftSyntaxPatternDetector to use `[RuleIdentifier]` instead of `[String]` parameters
+- **Pattern Detection Methods**: ✅ **COMPLETED** - Updated SourcePatternDetector to use `[RuleIdentifier]` instead of `[String]` parameters
 
 ### 🔄 In Progress
 - **Property Wrapper/String Logic**: Replace remaining hard-wired strings with type-safe enums (see [__string_comparison.md](./__string_comparison.md))
@@ -306,7 +306,7 @@ The project includes comprehensive test coverage:
 - **NetworkingVisitorTests**: Networking anti-pattern validation
 - **UIVisitorTests**: UI pattern analysis including navigation
 - **ViewRelationshipVisitorTests**: View hierarchy mapping
-- **SwiftSyntaxPatternDetectorTests**: AST-based pattern detection
+- **SourcePatternDetectorTests**: AST-based pattern detection
 - **StateVariableVisitorTests**: State variable extraction and analysis
 
 ## 📊 Current Status
@@ -319,7 +319,7 @@ The project includes comprehensive test coverage:
 ### Completed Refactoring ✅
 - **String-Based Rule Identification**: ✅ **COMPLETED** - Replaced hardcoded `RuleIdentifier(rawValue:)` calls with direct enum cases
 - **UserDefaults Storage**: ✅ **COMPLETED** - Migrated from string arrays to JSON-encoded enum storage for type safety
-- **Pattern Detection Methods**: ✅ **COMPLETED** - Updated SwiftSyntaxPatternDetector to use `[RuleIdentifier]` instead of `[String]` parameters
+- **Pattern Detection Methods**: ✅ **COMPLETED** - Updated SourcePatternDetector to use `[RuleIdentifier]` instead of `[String]` parameters
 - **ProjectLinter Integration**: ✅ **COMPLETED** - Updated analyzeProject methods to use enum-based rule identification
 
 ### Ongoing Refactoring
@@ -339,12 +339,12 @@ The project includes comprehensive test coverage:
 ### ✅ Recently Completed
 - **String-Based Rule Identification**: ✅ **COMPLETED** - All hardcoded `RuleIdentifier(rawValue:)` calls replaced with direct enum cases
 - **UserDefaults Storage**: ✅ **COMPLETED** - Migrated from string arrays to JSON-encoded enum storage for type safety
-- **Pattern Detection Methods**: ✅ **COMPLETED** - Updated SwiftSyntaxPatternDetector to use `[RuleIdentifier]` instead of `[String]` parameters
+- **Pattern Detection Methods**: ✅ **COMPLETED** - Updated SourcePatternDetector to use `[RuleIdentifier]` instead of `[String]` parameters
 - **ProjectLinter Integration**: ✅ **COMPLETED** - Updated analyzeProject methods to use enum-based rule identification
 
 ### 🔄 Ongoing Work
 - **Property Wrapper/String Logic**: Property wrapper, view type, and AST node logic still use string comparisons in many places. See [__string_comparison.md](./__string_comparison.md) for the migration plan.
-- **Large Files**: Files like `SwiftUIManagementVisitor.swift`, `SwiftSyntaxPatternDetector.swift`, `ContentView.swift`, and others remain very large and need to be split for maintainability. See [__refactor.md](./__refactor.md) for recommendations.
+- **Large Files**: Files like `SwiftUIManagementVisitor.swift`, `SourcePatternDetector.swift`, `ContentView.swift`, and others remain very large and need to be split for maintainability. See [__refactor.md](./__refactor.md) for recommendations.
 
 ### 📋 Future Work
 - **Async/Await & Performance**: Async/await is only partially implemented. AST caching and incremental analysis are not yet present.
@@ -361,7 +361,7 @@ This project demonstrates advanced SwiftUI project analysis techniques. Contribu
 ### ✅ Recently Completed
 - **String-Based Rule Identification**: ✅ **COMPLETED** - All hardcoded `RuleIdentifier(rawValue:)` calls replaced with direct enum cases
 - **UserDefaults Storage**: ✅ **COMPLETED** - Migrated from string arrays to JSON-encoded enum storage for type safety
-- **Pattern Detection Methods**: ✅ **COMPLETED** - Updated SwiftSyntaxPatternDetector to use `[RuleIdentifier]` instead of `[String]` parameters
+- **Pattern Detection Methods**: ✅ **COMPLETED** - Updated SourcePatternDetector to use `[RuleIdentifier]` instead of `[String]` parameters
 
 ### 🔄 Current Priorities
 - **Property Wrapper/String Logic**: Replace remaining string comparisons with type-safe enums

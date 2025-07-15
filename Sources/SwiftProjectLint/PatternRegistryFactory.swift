@@ -15,16 +15,16 @@ import SwiftProjectLintCore
 ///• Creates a new instance of PatternVisitorRegistry. This registry is used to store and manage different pattern detection rules or visitors.
 ///
 /// 2. createPatternRegistry(visitorRegistry: PatternVisitorRegistry? = nil):
-///• Creates a new instance of SwiftSyntaxPatternRegistry. This registry is responsible for managing patterns specific to Swift syntax. If a visitor registry is provided, it uses that one; otherwise, it creates its own.
+///• Creates a new instance of SourcePatternRegistry. This registry is responsible for managing patterns specific to Swift syntax. If a visitor registry is provided, it uses that one; otherwise, it creates its own.
 ///
 /// 3. createPatternDetector(registry: PatternVisitorRegistry? = nil):
-/// • Creates a new instance of SwiftSyntaxPatternDetector. This detector uses the pattern registry to detect patterns in Swift code. If a visitor registry is provided, it uses that one; otherwise, it creates its own.
+/// • Creates a new instance of SourcePatternDetector. This detector uses the pattern registry to detect patterns in Swift code. If a visitor registry is provided, it uses that one; otherwise, it creates its own.
 ///
 /// 4. createConfiguredSystem():
 /// • Creates a fully configured system by initializing all components needed for pattern detection:
 ///     • A PatternVisitorRegistry
-///     • A SwiftSyntaxPatternRegistry initialized with patterns
-///     • A SwiftSyntaxPatternDetector
+///     • A SourcePatternRegistry initialized with patterns
+///     • A SourcePatternDetector
 /// • Returns a tuple containing all these components.
 ///
 /// 5. createTestSystem():
@@ -45,33 +45,33 @@ public class PatternRegistryFactory {
     /// Creates a new SwiftSyntax pattern registry instance.
     ///
     /// - Parameter visitorRegistry: The visitor registry to use. If nil, creates a new one.
-    /// - Returns: A fresh instance of SwiftSyntaxPatternRegistry.
-    public static func createPatternRegistry(visitorRegistry: PatternVisitorRegistry? = nil) -> SwiftSyntaxPatternRegistry {
+    /// - Returns: A fresh instance of SourcePatternRegistry.
+    public static func createPatternRegistry(visitorRegistry: PatternVisitorRegistry? = nil) -> SourcePatternRegistry {
         let registry = visitorRegistry ?? createVisitorRegistry()
-        return SwiftSyntaxPatternRegistry(visitorRegistry: registry)
+        return SourcePatternRegistry(visitorRegistry: registry)
     }
     
     /// Creates a new SwiftSyntax pattern detector instance.
     ///
     /// - Parameter registry: The pattern registry to use. If nil, creates a new one.
-    /// - Returns: A fresh instance of SwiftSyntaxPatternDetector.
-    public static func createPatternDetector(registry: PatternVisitorRegistry? = nil) -> SwiftSyntaxPatternDetector {
+    /// - Returns: A fresh instance of SourcePatternDetector.
+    public static func createPatternDetector(registry: PatternVisitorRegistry? = nil) -> SourcePatternDetector {
         let visitorRegistry = registry ?? createVisitorRegistry()
-        return SwiftSyntaxPatternDetector(registry: visitorRegistry)
+        return SourcePatternDetector(registry: visitorRegistry)
     }
     
     /// Creates a fully configured pattern registry system.
     ///
     /// This method creates and initializes all components needed for pattern detection:
     /// - A PatternVisitorRegistry
-    /// - A SwiftSyntaxPatternRegistry (initialized with patterns)
-    /// - A SwiftSyntaxPatternDetector
+    /// - A SourcePatternRegistry (initialized with patterns)
+    /// - A SourcePatternDetector
     ///
     /// - Returns: A tuple containing all configured components.
     public static func createConfiguredSystem() -> (
         visitorRegistry: PatternVisitorRegistry,
-        patternRegistry: SwiftSyntaxPatternRegistry,
-        detector: SwiftSyntaxPatternDetector
+        patternRegistry: SourcePatternRegistry,
+        detector: SourcePatternDetector
     ) {
         let visitorRegistry = createVisitorRegistry()
         let patternRegistry = createPatternRegistry(visitorRegistry: visitorRegistry)
@@ -88,8 +88,8 @@ public class PatternRegistryFactory {
     /// - Returns: A tuple containing all test components.
     public static func createTestSystem() -> (
         visitorRegistry: PatternVisitorRegistry,
-        patternRegistry: SwiftSyntaxPatternRegistry,
-        detector: SwiftSyntaxPatternDetector
+        patternRegistry: SourcePatternRegistry,
+        detector: SourcePatternDetector
     ) {
         let visitorRegistry = createVisitorRegistry()
         let patternRegistry = createPatternRegistry(visitorRegistry: visitorRegistry)

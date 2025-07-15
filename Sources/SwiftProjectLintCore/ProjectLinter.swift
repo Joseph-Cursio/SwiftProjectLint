@@ -26,7 +26,7 @@ public class ProjectLinter {
     private var projectFiles: [String] = []
     private var stateVariables: [StateVariable] = []
     private var viewHierarchies: [ViewHierarchy] = []
-    private var SingleFileDetector: SwiftSyntaxPatternDetector?
+    private var SingleFileDetector: SourcePatternDetector?
     private var CrossFileDetector: CrossFileAnalysisEngine?
     
     /// Analyzes a SwiftUI project at the specified file system path, performing static analysis to detect state variable usage,
@@ -145,7 +145,7 @@ public class ProjectLinter {
     /// 2. Iterates through each line of the file, attempting to extract property declarations that use
     ///    SwiftUI state-related property wrappers such as `@State`, `@StateObject`, `@ObservedObject`, or `@EnvironmentObject`.
     ///    Any detected state variable is appended to the internal `stateVariables` collection.
-    /// 3. Performs additional pattern-based lint analysis using the `SwiftSyntaxPatternDetector`, appending any issues detected.
+    /// 3. Performs additional pattern-based lint analysis using the `SourcePatternDetector`, appending any issues detected.
     /// 4. Returns an array of `LintIssue` objects representing all issues found within the file.
     ///
     /// - Parameters:
@@ -166,8 +166,8 @@ public class ProjectLinter {
         let extractedStateVariables = extractStateVariables(from: content, filePath: path)
         stateVariables.append(contentsOf: extractedStateVariables)
         
-        // Use SwiftSyntaxPatternDetector for comprehensive analysis, respecting enabled patterns or categories
-        let swiftSyntaxDetector = SingleFileDetector ?? SwiftSyntaxPatternDetector()
+        // Use SourcePatternDetector for comprehensive analysis, respecting enabled patterns or categories
+        let swiftSyntaxDetector = SingleFileDetector ?? SourcePatternDetector()
         if let ruleIdentifiers = ruleIdentifiers {
             issues.append(contentsOf: swiftSyntaxDetector.detectPatterns(in: content, filePath: path, ruleIdentifiers: ruleIdentifiers))
         } else {
@@ -267,8 +267,8 @@ public class ProjectLinter {
     /// Sets the SwiftSyntax pattern detector to use for analysis.
     /// This allows the ProjectLinter to use a configured detector with registered patterns.
     ///
-    /// - Parameter detector: The configured SwiftSyntaxPatternDetector to use.
-    public func setDetector(_ detector: SwiftSyntaxPatternDetector) {
+    /// - Parameter detector: The configured SourcePatternDetector to use.
+    public func setDetector(_ detector: SourcePatternDetector) {
         self.SingleFileDetector = detector
     }
 }

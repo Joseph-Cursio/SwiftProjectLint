@@ -61,8 +61,8 @@ struct SwiftProjectLintApp: App {
 @MainActor
 class SystemComponents: ObservableObject {
     private(set) var visitorRegistry: PatternVisitorRegistry!
-    private(set) var patternRegistry: SwiftSyntaxPatternRegistry!
-    private(set) var detector: SwiftSyntaxPatternDetector!
+    private(set) var patternRegistry: SourcePatternRegistry!
+    private(set) var detector: SourcePatternDetector!
     
     func initialize() {
         print("DEBUG: SystemComponents.initialize() called")

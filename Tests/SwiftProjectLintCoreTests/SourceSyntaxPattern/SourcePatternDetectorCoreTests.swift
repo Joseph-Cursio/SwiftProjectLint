@@ -10,27 +10,26 @@ import SwiftSyntax
 import Testing
 @testable import SwiftProjectLintCore
 
-@Suite("SwiftSyntaxPatternDetectorCoreTests")
 @MainActor
-struct SwiftSyntaxPatternDetectorCoreTests {
+struct SourcePatternDetectorCoreTests {
     
     // MARK: - Test Helper Methods
     
     /// Creates isolated instances for tests that need complete isolation
     @MainActor static func createIsolatedInstances() -> (
         PatternVisitorRegistry,
-        SwiftSyntaxPatternRegistry,
-        SwiftSyntaxPatternDetector
+        SourcePatternRegistry,
+        SourcePatternDetector
     ) {
         return TestRegistryManager.createIsolatedInstances()
     }
     
     /// Uses shared registry with specific patterns for focused testing
-    static func setupTestWithSpecificPatterns(_ patterns: [SyntaxPattern]) -> SwiftSyntaxPatternDetector {
+    static func setupTestWithSpecificPatterns(_ patterns: [SyntaxPattern]) -> SourcePatternDetector {
         return TestRegistryManager.getDetectorWithPatterns(patterns)
     }
     
-    static func clearTestState(detector: SwiftSyntaxPatternDetector?) {
+    static func clearTestState(detector: SourcePatternDetector?) {
         detector?.clearCache()
     }
     
@@ -59,10 +58,10 @@ struct SwiftSyntaxPatternDetectorCoreTests {
         }
         
         // Log slow test execution
-        TestRegistryManager.logSlowTest("testSwiftSyntaxPatternDetectorSingleFile", duration: duration)
+        TestRegistryManager.logSlowTest("testSourcePatternDetectorSingleFile", duration: duration)
         
         // Debug: Print all detected issues
-        print("=== DEBUG: testSwiftSyntaxPatternDetectorSingleFile ===")
+        print("=== DEBUG: testSourcPatternDetectorSingleFile ===")
         print("Total issues detected: \(issues.count)")
         print("Execution time: \(duration.formatted())")
         for (index, issue) in issues.enumerated() {
@@ -123,14 +122,7 @@ struct SwiftSyntaxPatternDetectorCoreTests {
                 .detectPatterns(in: file2, filePath: "ChildView.swift")
         }
         
-        // Log slow test execution
-        TestRegistryManager.logSlowTest("testSwiftSyntaxPatternDetectorCrossFile", duration: duration1 + duration2)
-        
-        print("Cross-file test execution times:")
-        print("  ParentView.swift: \(duration1.formatted())")
-        print("  ChildView.swift: \(duration2.formatted())")
-        print("  Total: \((duration1 + duration2).formatted())")
-        
+       
         // Then - Both files should be processed independently
         #expect(issues1.count >= 0)
         #expect(issues2.count >= 0)

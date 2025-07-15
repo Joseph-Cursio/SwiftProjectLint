@@ -8,7 +8,7 @@ import Testing
 import Foundation
 @testable import SwiftProjectLintCore
 
-/// Comprehensive Characterization Tests for SwiftSyntaxPatternDetector
+/// Comprehensive Characterization Tests for SourcePatternDetector
 ///
 /// These tests document and verify the current behavior of the pattern detector,
 /// helping to catch regressions and understand how the system actually works.
@@ -27,7 +27,7 @@ final class SwiftSyntaxPatternRuleIdentifierFilteringTests {
     // MARK: - Rule Identifier Filtering Characterization
     
     @Test func characterizeSpecificRuleIdentifierFiltering() async throws {
-        let detector = SwiftSyntaxPatternDetector()
+        let detector = SourcePatternDetector()
         let testCode = """
         import SwiftUI
         
@@ -76,7 +76,7 @@ final class SwiftSyntaxPatternRuleIdentifierFilteringTests {
     }
     
     @Test func characterizeEmptyRuleIdentifierList() async throws {
-        let detector = SwiftSyntaxPatternDetector()
+        let detector = SourcePatternDetector()
         let testCode = """
         import SwiftUI
         struct EmptyRuleTestView: View {

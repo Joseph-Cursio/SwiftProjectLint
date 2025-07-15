@@ -10,17 +10,16 @@ import SwiftSyntax
 import Testing
 @testable import SwiftProjectLintCore
 
-@Suite("PatternRegistryTests")
 @MainActor
-struct PatternRegistryTests {
+struct SourcePatternRegistryTests {
     
     // MARK: - Test Helper Methods
     
     /// Creates isolated instances for tests that need complete isolation
     @MainActor static func createIsolatedInstances() -> (
         PatternVisitorRegistry,
-        SwiftSyntaxPatternRegistry,
-        SwiftSyntaxPatternDetector
+        SourcePatternRegistry,
+        SourcePatternDetector
     ) {
         return TestRegistryManager.createIsolatedInstances()
     }

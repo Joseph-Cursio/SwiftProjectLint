@@ -5,7 +5,7 @@ import SwiftSyntax
 
 @MainActor
 final class PatternConfigurationTests: XCTestCase {
-    class MockPatternRegistry: SwiftSyntaxPatternRegistryProtocol {
+    class MockPatternRegistry: SourcePatternRegistryProtocol {
         var patterns: [PatternCategory: [SyntaxPattern]] = [:]
         func getPatterns(for category: PatternCategory) -> [SyntaxPattern] {
             return patterns[category] ?? []

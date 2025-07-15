@@ -4,7 +4,7 @@ import Foundation
 /// Each pattern registrar is responsible for registering patterns for a specific category.
 protocol PatternRegistrarProtocol {
     /// The registry that owns this registrar.
-    var registry: SwiftSyntaxPatternRegistry { get }
+    var registry: SourcePatternRegistry { get }
     
     /// Registers patterns for the specific category.
     func registerPatterns()
@@ -14,7 +14,7 @@ protocol PatternRegistrarProtocol {
 @MainActor
 protocol PatternRegistrarWithVisitorRegistryProtocol {
     /// The registry that owns this registrar.
-    var registry: SwiftSyntaxPatternRegistry { get }
+    var registry: SourcePatternRegistry { get }
     
     /// The visitor registry for pattern registration.
     var visitorRegistry: PatternVisitorRegistryProtocol { get }

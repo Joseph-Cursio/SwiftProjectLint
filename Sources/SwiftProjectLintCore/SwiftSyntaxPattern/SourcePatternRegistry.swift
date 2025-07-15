@@ -3,16 +3,16 @@ import SwiftSyntax
 
 /// Registry for managing SwiftSyntax-based pattern detection and registration.
 ///
-/// `SwiftSyntaxPatternRegistry` provides a centralized way to register, retrieve, and
+/// `SourcePatternRegistry` provides a centralized way to register, retrieve, and
 /// manage SwiftSyntax-based patterns for code analysis. It works in conjunction with
 /// `PatternVisitorRegistry` to provide a complete pattern management system.
 ///
 /// - Note: This registry supports both singleton access via `shared` and dependency injection.
 @MainActor
-public class SwiftSyntaxPatternRegistry: SwiftSyntaxPatternRegistryProtocol {
+public class SourcePatternRegistry: SourcePatternRegistryProtocol {
     
     /// Shared singleton instance for global access.
-    public static let shared = SwiftSyntaxPatternRegistry()
+    public static let shared = SourcePatternRegistry()
     
     /// The underlying visitor registry that manages pattern visitors.
     private let visitorRegistry: PatternVisitorRegistry

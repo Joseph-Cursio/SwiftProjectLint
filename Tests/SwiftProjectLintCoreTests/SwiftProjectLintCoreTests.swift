@@ -18,10 +18,10 @@ final class SwiftProjectLintCoreTests {
         let linter = await ProjectLinter()
         #expect(linter != nil)
         
-        let detector = await SwiftSyntaxPatternDetector()
+        let detector = await SourcePatternDetector()
         #expect(detector != nil)
         
-        let registry = await SwiftSyntaxPatternRegistry.shared
+        let registry = await SourcePatternRegistry.shared
         #expect(registry != nil)
     }
     

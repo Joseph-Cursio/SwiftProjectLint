@@ -1,12 +1,12 @@
 //
-//  SwiftSyntaxPatternRegistryProtocol.swift
+//  SourcePatternRegistryProtocol.swift
 //  SwiftProjectLint
 //
 //  Created by joe cursio on 7/14/25.
 //
 /// Protocol for SwiftSyntax pattern registry operations
 @MainActor
-public protocol SwiftSyntaxPatternRegistryProtocol {
+public protocol SourcePatternRegistryProtocol {
     func initialize()
     func getPatterns(for category: PatternCategory) -> [SyntaxPattern]
     func getAllPatterns() -> [SyntaxPattern]

@@ -21,7 +21,7 @@ struct PatternConfiguration {
     ///
     /// - Parameter patternRegistry: The pattern registry to extract patterns from.
     /// - Returns: An array of tuples grouping all detection patterns by category, display string, their definitions, and whether they use SwiftSyntax.
-    static func allPatternsByCategory(from patternRegistry: SwiftSyntaxPatternRegistryProtocol?) -> [(category: PatternCategory, display: String, patterns: [DetectionPattern], useSwiftSyntax: Bool)] {
+    static func allPatternsByCategory(from patternRegistry: SourcePatternRegistryProtocol?) -> [(category: PatternCategory, display: String, patterns: [DetectionPattern], useSwiftSyntax: Bool)] {
         guard let patternRegistry = patternRegistry else {
             assertionFailure("PatternRegistry is nil. This usually means the environment object was not injected properly.")
             #if DEBUG
@@ -66,7 +66,7 @@ struct PatternConfiguration {
     ///   - patternRegistry: The pattern registry to check against.
     ///   - enabledRuleNames: Set of currently enabled rule identifiers.
     /// - Returns: An array of PatternCategory values that have at least one enabled rule.
-    static func getEnabledCategories(patternRegistry: SwiftSyntaxPatternRegistryProtocol?, enabledRuleNames: Set<RuleIdentifier>) -> [PatternCategory] {
+    static func getEnabledCategories(patternRegistry: SourcePatternRegistryProtocol?, enabledRuleNames: Set<RuleIdentifier>) -> [PatternCategory] {
         guard let patternRegistry = patternRegistry else {
             return []
         }

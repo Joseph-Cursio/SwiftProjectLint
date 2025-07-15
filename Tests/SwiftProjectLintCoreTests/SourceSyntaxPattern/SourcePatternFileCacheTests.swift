@@ -8,7 +8,7 @@ import Testing
 import Foundation
 @testable import SwiftProjectLintCore
 
-/// Comprehensive Characterization Tests for SwiftSyntaxPatternDetector
+/// Comprehensive Characterization Tests for SourcePatternDetector
 ///
 /// These tests document and verify the current behavior of the pattern detector,
 /// helping to catch regressions and understand how the system actually works.
@@ -22,11 +22,11 @@ import Foundation
 /// - Error handling and edge cases
 
 @MainActor
-final class SwiftSyntaxPatternFileCacheTests {
+final class SourcePatternFileCacheTests {
     // MARK: - File Cache Characterization
     
     @Test func characterizeFileCacheBasicBehavior() async throws {
-        let detector = SwiftSyntaxPatternDetector()
+        let detector = SourcePatternDetector()
         
         let file1Content = """
         import SwiftUI
@@ -60,7 +60,7 @@ final class SwiftSyntaxPatternFileCacheTests {
     }
     
     @Test func characterizeCacheClearingBehavior() async throws {
-        let detector = SwiftSyntaxPatternDetector()
+        let detector = SourcePatternDetector()
         
         let testContent = """
         import SwiftUI
