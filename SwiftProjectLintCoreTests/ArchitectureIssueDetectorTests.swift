@@ -1,0 +1,2 @@
+// This file has been split into multiple smaller test files for maintainability.
+// See: ArchitectureFatViewTests.swift, ArchitectureDependencyInjectionTests.swift, ArchitectureCircularDependencyTests.swift, ArchitectureDeepHierarchyTests.swift, ArchitectureDataFlowTests.swift, ArchitectureEnvironmentObjectTests.swift, ArchitectureMultipleIssuesTests.swift, ArchitectureValidArchitectureTests.swift, ArchitecturePerformanceTests.swift, ArchitectureEdgeCaseTests.swift 

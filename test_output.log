@@ -1,0 +1,2205 @@
+Test Suite 'All tests' started at 2025-07-14 21:19:04.986.
+Test Suite 'SwiftProjectLintPackageTests.xctest' started at 2025-07-14 21:19:04.987.
+Test Suite 'DemoIssueGeneratorTests' started at 2025-07-14 21:19:04.987.
+Test Case '-[SwiftProjectLintTests.DemoIssueGeneratorTests test_createDemoIssues_emptyForOtherCategory]' started.
+Test Case '-[SwiftProjectLintTests.DemoIssueGeneratorTests test_createDemoIssues_emptyForOtherCategory]' passed (0.001 seconds).
+Test Case '-[SwiftProjectLintTests.DemoIssueGeneratorTests test_createDemoIssues_includesExpectedCategories]' started.
+Test Case '-[SwiftProjectLintTests.DemoIssueGeneratorTests test_createDemoIssues_includesExpectedCategories]' passed (0.001 seconds).
+Test Suite 'DemoIssueGeneratorTests' passed at 2025-07-14 21:19:04.989.
+	 Executed 2 tests, with 0 failures (0 unexpected) in 0.001 (0.002) seconds
+Test Suite 'PatternConfigurationTests' started at 2025-07-14 21:19:04.989.
+Test Case '-[SwiftProjectLintTests.PatternConfigurationTests test_allPatternsByCategory_returnsExpectedGroups]' started.
+Test Case '-[SwiftProjectLintTests.PatternConfigurationTests test_allPatternsByCategory_returnsExpectedGroups]' passed (0.001 seconds).
+Test Case '-[SwiftProjectLintTests.PatternConfigurationTests test_convertToDetectionPatterns_mapsFieldsCorrectly]' started.
+Test Case '-[SwiftProjectLintTests.PatternConfigurationTests test_convertToDetectionPatterns_mapsFieldsCorrectly]' passed (0.000 seconds).
+Test Case '-[SwiftProjectLintTests.PatternConfigurationTests test_filterIssuesByEnabledRules_filtersCorrectly]' started.
+Test Case '-[SwiftProjectLintTests.PatternConfigurationTests test_filterIssuesByEnabledRules_filtersCorrectly]' passed (0.000 seconds).
+Test Case '-[SwiftProjectLintTests.PatternConfigurationTests test_getEnabledCategories_returnsCorrectCategories]' started.
+Test Case '-[SwiftProjectLintTests.PatternConfigurationTests test_getEnabledCategories_returnsCorrectCategories]' passed (0.000 seconds).
+Test Suite 'PatternConfigurationTests' passed at 2025-07-14 21:19:04.991.
+	 Executed 4 tests, with 0 failures (0 unexpected) in 0.002 (0.002) seconds
+Test Suite 'SwiftProjectLintPackageTests.xctest' passed at 2025-07-14 21:19:04.991.
+	 Executed 6 tests, with 0 failures (0 unexpected) in 0.003 (0.004) seconds
+Test Suite 'All tests' passed at 2025-07-14 21:19:04.991.
+	 Executed 6 tests, with 0 failures (0 unexpected) in 0.003 (0.005) seconds
+◇ Test run started.
+↳ Testing Library Version: 1080
+↳ Target Platform: arm64e-apple-macos14.0
+◇ Suite "AccessibilityTextColorTests" started.
+◇ Suite AccessibilityConfigurationStrictTests started.
+◇ Suite "CodeQualityLongFunctionTests" started.
+◇ Suite ContentViewResultsTests started.
+◇ Suite AccessibilityConfigurationSimpleTextTests started.
+◇ Suite LintResultsViewTests started.
+◇ Suite LintResultsViewCharacterizationTests started.
+◇ Suite PatternRegistryFactoryTests started.
+◇ Suite ArchitectureFatViewTests started.
+◇ Suite "ViewRelationshipNavigationTests" started.
+◇ Suite RuleSelectionDialogTests started.
+◇ Suite ContentViewActionsTests started.
+◇ Suite ArchitectureDependencyInjectionTests started.
+◇ Suite CrossFileAnalysisEnginePerformanceTests started.
+◇ Suite SwiftProjectLintTests started.
+◇ Suite ContentViewHeaderTests started.
+◇ Suite "StateManagementVisitorTests" started.
+◇ Suite ContentViewTests started.
+◇ Suite NetworkingVisitorTests started.
+◇ Suite ContentViewProgressTests started.
+◇ Suite ArchitectureCircularDependencyTests started.
+◇ Suite "SwiftSyntaxPatternDetectorPerformanceTests" started.
+◇ Suite StateAnalysisEnginePropertyWrapperTests started.
+◇ Suite ArchitectureDeepHierarchyTests started.
+◇ Suite StateAnalysisEnginePerformanceTests started.
+◇ Suite FileAnalysisUtilsViewNameTests started.
+◇ Suite AdvancedAnalyzerTests started.
+◇ Suite "UIVisitorPreviewTests" started.
+◇ Suite StateAnalysisEngineComplexHierarchyTests started.
+◇ Suite SecurityVisitorTests started.
+◇ Suite "UIVisitorStylingTests" started.
+◇ Suite ArchitectureMultipleIssuesTests started.
+◇ Suite StateAnalysisEngineEdgeCaseTests started.
+◇ Suite StateVariableVisitorTests started.
+◇ Suite CrossFileAnalysisEngineCategoryRuleTests started.
+◇ Suite "UIVisitorForEachTests" started.
+◇ Suite ProjectLinterTests started.
+◇ Suite "CodeQualityMagicNumberTests" started.
+◇ Suite CrossFileAnalysisEngineDuplicateStateTests started.
+◇ Suite FileAnalysisUtilsFindSwiftFilesTests started.
+◇ Suite AccessibilityDebugTests started.
+◇ Suite AccessibilityConfigurationEdgeCaseTests started.
+◇ Suite "SwiftSyntaxPatternDetectorCoreTests" started.
+◇ Suite "PatternRegistryTests" started.
+◇ Suite "ViewRelationshipBasicDetectionTests" started.
+◇ Suite ArchitectureEnvironmentObjectTests started.
+◇ Suite StateAnalysisEngineUninitializedStateTests started.
+◇ Suite "UIVisitorErrorHandlingTests" started.
+◇ Suite DebugLoggerTests started.
+◇ Suite ButtonAccessibilityTests started.
+◇ Suite "SwiftSyntaxPatternDetectorArchitectureTests" started.
+◇ Suite "MemoryManagementConfigurationTests" started.
+◇ Suite "CodeQualityIntegrationTests" started.
+◇ Suite "AccessibilityImageTests" started.
+◇ Suite ArchitecturePerformanceTests started.
+◇ Suite ArchitectureDataFlowTests started.
+◇ Suite "CodeQualityDocumentationTests" started.
+◇ Suite ArchitectureValidArchitectureTests started.
+◇ Suite "UIVisitorNavigationTests" started.
+◇ Suite ArchitectureEdgeCaseTests started.
+◇ Suite PatternDetectorTests started.
+◇ Suite StateAnalysisEngineSuggestionTests started.
+◇ Suite "AccessibilityComplexViewTests" started.
+◇ Suite StateAnalysisEngineMissingStateObjectTests started.
+◇ Suite "MemoryManagementLargeObjectTests" started.
+◇ Suite StateAnalysisEngineDuplicateStateTests started.
+◇ Suite DetectionPatternTests started.
+◇ Suite "CodeQualityHardcodedStringTests" started.
+◇ Suite CrossFileAnalysisEngineInitializationTests started.
+◇ Suite "MemoryManagementRetainCycleTests" started.
+◇ Suite SwiftProjectLintCoreTests started.
+◇ Suite CrossFileAnalysisEngineArchitectureIssueTests started.
+◇ Suite CrossFileAnalysisEngineProjectEdgeCaseTests started.
+◇ Suite "ViewRelationshipAlertTests" started.
+◇ Test testLongFunctionDetection() started.
+◇ Test testShortTextNoAccessibilityWarning() started.
+◇ Test testStrictFunctionLengthDetectionCharacterization() started.
+◇ Test testInaccessibleColorUsage() started.
+◇ Test testLongTextMissingAccessibility() started.
+◇ Test testTextWithAccessibilityFeatures() started.
+◇ Test testMultipleColorUsage() started.
+◇ Test testEmptyIssuesList() started.
+◇ Test testShortFunctionNoDetection() started.
+◇ Test testResultsNotShownWhenAnalyzing() started.
+◇ Test testIssueMessageAndSuggestion() started.
+◇ Test testIssueSeverityFiltering() started.
+◇ Test testFunctionLengthDetectionCharacterization() started.
+◇ Test testResultsNotShownWhenNoIssues() started.
+◇ Test "Basic stub test" started.
+◇ Test testSimpleTextDetectionInView() started.
+◇ Test testLintResultsViewInitialization() started.
+◇ Test testSimpleTextDetection() started.
+◇ Test testIssueRuleNameMapping() started.
+◇ Test testResultsShownWhenIssuesAndNotAnalyzing() started.
+◇ Test testDetectArchitecturalAntiPatternsWithMultipleIssues_MissingDI() started.
+◇ Test testIssueFileAndLineNumber() started.
+◇ Test testDetectCrossFilePatternsPerformance() started.
+◇ Test testOriginalTextWithLowerThreshold() started.
+◇ Test testActionsWithoutSelectedDirectory() started.
+◇ Test testIssueRowsAndFullScreenButton() started.
+◇ Test testDetectArchitecturalAntiPatternsWithMissingDependencyInjection() started.
+◇ Test testActionsWithSelectedDirectory() started.
+◇ Test testSummarySectionAndCounts() started.
+◇ Test "Placeholder for linting logic" started.
+◇ Test stateManagementVisitorUninitializedState() started.
+◇ Test testDialogStructureAndActions() started.
+◇ Test stateManagementVisitorValidState() started.
+◇ Test "Sanity check: string equality" started.
+◇ Test testStrictConfiguration() started.
+◇ Test testHeaderStructureAndContent() started.
+◇ Test testNavigationLinkDetection() started.
+◇ Test testDetectArchitecturalAntiPatternsWithFatView() started.
+◇ Test testCustomConfigurationWithLongerText() started.
+◇ Test testDetectsSynchronousNetworking() started.
+◇ Test stateManagementVisitorMissingStateObject() started.
+◇ Test testDoesNotDetectWhenErrorHandled() started.
+◇ Test testSimpleSheetDebug() started.
+◇ Test stateManagementVisitorFatView() started.
+◇ Test "Sanity check: basic arithmetic" started.
+◇ Test testDetectArchitecturalAntiPatternsWithMultipleIssues_FatView() started.
+◇ Test testDetectsMissingErrorHandlingInDataTask() started.
+◇ Test testCustomConfiguration() started.
+◇ Test testRuleSelectionDialogSheetAppears() started.
+◇ Test testMultipleRelationships() started.
+◇ Test testProgressWhenNotAnalyzing() started.
+◇ Test performanceVisitorForEachWithID() started.
+◇ Test testVisitorInitialization() started.
+◇ Test testPopoverDetection() started.
+◇ Test testProgressWhenAnalyzing() started.
+◇ Test testExtractViewNameWithMultipleExtensions() started.
+◇ Test performanceVisitorForEachWithoutID() started.
+◇ Test testSheetPresentationDetection() started.
+◇ Test testManualIssueCreation() started.
+◇ Test testExtractViewNameWithSpecialCharacters() started.
+◇ Test testStateAnalysisEnginePerformance() started.
+◇ Test testStateAnalysisEngineWithLargeHierarchy() started.
+◇ Test testExtractViewNameWithSpaces() started.
+◇ Test testExtractViewNameWithValidPath() started.
+◇ Test testDetectArchitecturalAntiPatternsWithCircularDependencies() started.
+◇ Test testExtractViewNameWithComplexPath() started.
+◇ Test testExtractViewNameWithNoExtension() started.
+◇ Test testExtractViewNameWithEmptyPath() started.
+◇ Test testDetectArchitecturalAntiPatternsWithDeepHierarchy() started.
+◇ Test testAnalyzeStateManagementWithComplexHierarchy() started.
+◇ Test testDetectsInconsistentTextStyling() started.
+◇ Test testAnalyzeStateManagementWithDifferentPropertyWrappers() started.
+◇ Test testDetectArchitecturalAntiPatternsWithMultipleIssues() started.
+◇ Test testFindDuplicatesReturnsCorrectDuplicates() started.
+◇ Test testDoesNotDetectWhenPreviewExists() started.
+◇ Test testUnsafeURLConstruction() started.
+◇ Test testDoesNotDetectSingleStylingModifier() started.
+◇ Test testGenerateStateSharingSuggestionForManyViews() started.
+◇ Test testExtractViewNameRemovesSwiftExtension() started.
+◇ Test testRelationshipTypeAndViewRelationship() started.
+◇ Test testFindRelatedViewsDetectsHierarchy() started.
+◇ Test testExtractViewNameWithNestedPath() started.
+◇ Test testDetectsMissingPreview() started.
+◇ Test testDetectsPreviewStruct() started.
+◇ Test testAnalyzeStateManagementWithUnrelatedDuplicateStateVariables() started.
+◇ Test testAnalyzeStateManagementWithSingleStateVariable() started.
+◇ Test "Basic stub test" started.
+◇ Test testIsRootViewReturnsTrueForRoot() started.
+◇ Test testDetectCrossFilePatternsWithRules() started.
+◇ Test testHardcodedSecretDetection() started.
+◇ Test testAnalyzeStateManagementWithEmptyStateVariables() started.
+◇ Test testDetectsForEachWithoutID() started.
+◇ Test testDoesNotDetectForEachWithExplicitID() started.
+◇ Test testDetectCrossFilePatternsWithAllCategories() started.
+◇ Test testFullScreenCoverDetection() started.
+◇ Test testAnalyzeProjectWithAllCategories() started.
+◇ Test testDetectCrossFilePatternsWithCategories() started.
+◇ Test testContentViewStructure() started.
+◇ Test testGenerateStateSharingSuggestionForTwoViews() started.
+◇ Test testMagicNumberThreshold() started.
+◇ Test testAnalyzeProjectWithSpecificRules() started.
+◇ Test testMagicNumberDetectionInPadding() started.
+◇ Test testAnalyzeProjectWithSpecificCategories() started.
+◇ Test testStrictMagicNumberDetectionCharacterization() started.
+◇ Test testAnalyzeProjectWithInvalidPath() started.
+◇ Test testAnalyzeProjectWithEmptyProject() started.
+◇ Test testAnalyzeProjectWithComplexProject() started.
+◇ Test testMagicNumberDetectionInVariableInitialization() started.
+◇ Test testAnalyzeProjectWithValidPath() started.
+◇ Test testDirectContainsTextMethod() started.
+◇ Test testTextWithoutModifier() started.
+◇ Test testVisitorVisitMethod() started.
+◇ Test testMagicNumberDetectionInFrame() started.
+◇ Test testDebugButtonAST() started.
+◇ Test testDifferentTextWithSameLength() started.
+◇ Test testVisitorIsCalled() started.
+◇ Test patternVisitorRegistryMultiplePatterns() started.
+◇ Test testDetectCrossFilePatternsWithDuplicateStateVariables() started.
+◇ Test testAnalyzeProjectWithAllRules() started.
+◇ Test testFindSwiftFilesWithNonSwiftFiles() started.
+◇ Test testFindSwiftFilesWithEmptyDirectory() started.
+◇ Test testMagicNumberDetectionCharacterization() started.
+◇ Test testFindSwiftFilesWithFileInsteadOfDirectory() started.
+◇ Test patternVisitorRegistryClear() started.
+◇ Test testFindSwiftFilesWithHiddenFiles() started.
+◇ Test testFindSwiftFilesWithLargeProject() started.
+◇ Test testTextWithAccessibilityAndUnrelatedModifiers() started.
+◇ Test testFindSwiftFilesWithInvalidDirectory() started.
+◇ Test patternVisitorRegistryRegistration() started.
+◇ Test testDirectChildViewDetection() started.
+◇ Test swiftSyntaxPatternDetectorCrossFile() started.
+◇ Test swiftSyntaxPatternDetectorSingleFile() started.
+◇ Test testLineNumberCalculation() started.
+◇ Test testDebugButtonTextDetection() started.
+◇ Test testBasicDetection() started.
+◇ Test testDetectArchitecturalAntiPatternsWithMissingEnvironmentObjects() started.
+◇ Test testFindSwiftFilesWithSpecialCharacters() started.
+◇ Test testVerySimpleDetection() started.
+◇ Test testDetectsBasicErrorHandling() started.
+◇ Test testFindSwiftFilesWithNestedStructure() started.
+◇ Test testDetectArchitecturalAntiPatternsWithMultipleIssues_MissingEnvironment() started.
+◇ Test testDoesNotDetectProperErrorHandling() started.
+◇ Test testFindSwiftFilesWithValidDirectory() started.
+◇ Test testLogASTPrintsAST() started.
+◇ Test testAnalyzeStateManagementWithUninitializedState() started.
+◇ Test testLogVisitorPrintsVisitorMessage() started.
+◇ Test testButtonWithTextMissingHint() started.
+◇ Test testComplexViewWithMultipleIssues() started.
+◇ Test testIsEnabledFlag() started.
+◇ Test testButtonWithTextWithAccessibilityHint() started.
+◇ Test testResetClearsState() started.
+◇ Test testButtonWithImageWithAccessibilityLabel() started.
+◇ Test testLogPrintsMessage() started.
+◇ Test testProjectLinterInitialization() started.
+◇ Test testLogIssuePrintsIssue() started.
+◇ Test architectureVisitorValidArchitecture() started.
+◇ Test testComplexViewWithMultipleIssues() started.
+◇ Test testButtonWithTextOnly() started.
+◇ Test architectureVisitorCircularDependencies() started.
+◇ Test testLogNodePrintsNode() started.
+◇ Test testButtonWithImageMissingLabel() started.
+◇ Test testCustomConfigurationForRetainCycles() started.
+◇ Test testCustomConfigurationForLargeObjects() started.
+◇ Test testEdgeCaseCharacterization() started.
+◇ Test testMultipleCodeQualityIssues() started.
+◇ Test testConfigurationStrict() started.
+◇ Test architectureVisitorFatView() started.
+◇ Test testConfigurationCharacterization() started.
+◇ Test architectureVisitorMissingDependencyInjection() started.
+◇ Test testPrivateAPIsNoDetection() started.
+◇ Test architectureVisitorMissingProtocols() started.
+◇ Test testDocumentedAPIsNoDetection() started.
+◇ Test testResetClearsDetectedIssues() started.
+◇ Test testDoesNotDetectSingleNavigationView() started.
+◇ Test testDebugDirectoryCreatesAndReturnsPath() started.
+◇ Test testAnalyzeProjectPerformance() started.
+◇ Test testDetectArchitecturalAntiPatternsWithInconsistentDataFlow() started.
+◇ Test testImageWithAccessibilityLabel() started.
+◇ Test testDetectsNestedNavigationView() started.
+◇ Test testStrictDocumentationDetectionCharacterization() started.
+◇ Test testDetectArchitecturalAntiPatternsWithValidArchitecture() started.
+◇ Test testCrossFilePatternDetection() started.
+◇ Test testDetectPatternsInSourceCode() started.
+◇ Test testDetectPatternsWithSpecificRules() started.
+◇ Test testDetectArchitecturalAntiPatternsWithEmptyInput() started.
+◇ Test testMissingDocumentationDetection() started.
+◇ Test testImageMissingLabel() started.
+◇ Test testDetectArchitecturalAntiPatternsWithEdgeCases() started.
+◇ Test testDetectPatternsInProject() started.
+◇ Test testDetectsModernNavigationAlternatives() started.
+◇ Test testArchitectureIssueDetectorPerformance() started.
+◇ Test testInvalidSwiftCode() started.
+◇ Test testEmptySourceCode() started.
+◇ Test testViewWithNoAccessibilityIssues() started.
+◇ Test testPatternDetectorInitialization() started.
+◇ Test testEmptyView() started.
+◇ Test testSuggestImprovementsWithEmptyStateVariables() started.
+◇ Test testDoesNotDetectLargeArrayWithoutState() started.
+◇ Test testConfigurationDefault() started.
+◇ Test testComplexViewWithMultipleAccessibilityIssues() started.
+◇ Test testSuggestImprovementsWithMultipleStateVariables() started.
+◇ Test testDoesNotDetectNonArrayInState() started.
+◇ Test testPatternRegistryIntegration() started.
+◇ Test testAnalyzeStateManagementWithDuplicateStateVariables() started.
+◇ Test testDetectsLargeArrayInState() started.
+◇ Test testPatternCategoryAllCases() started.
+◇ Test testAnalyzeStateManagementWithUnrelatedDuplicateStateVariables() started.
+◇ Test testStrictHardcodedStringDetectionCharacterization() started.
+◇ Test testHardcodedStringDetection() started.
+◇ Test testRuleIdentifierCodable() started.
+◇ Test testRuleIdentifierAllCasesContainsAll() started.
+◇ Test testDetectionPatternInitAndProperties() started.
+◇ Test testSuggestImprovementsWithSharedState() started.
+◇ Test testCrossFileAnalysisEngineInitialization() started.
+◇ Test testDoesNotDetectSmallArrayInState() started.
+◇ Test testAnalyzeStateManagementWithComplexHierarchy() started.
+◇ Test testDocumentationDetectionCharacterization() started.
+◇ Test testHardcodedStringSkipPatterns() started.
+◇ Test testAnalyzeStateManagementWithMissingStateObject() started.
+◇ Test testHardcodedStringDetectionCharacterization() started.
+◇ Test testRuleIdentifierCategoryMapping() started.
+◇ Test testDetectsPotentialRetainCycle() started.
+◇ Test testRuleIdentifierRawValueAndDisplayName() started.
+◇ Test testDoesNotDetectRetainCycleWhenTypesDiffer() started.
+◇ Test testDoesNotDetectRetainCycleWithoutStateObject() started.
+◇ Test testDetectsMultipleRetainCycles() started.
+◇ Test testIssueSeverityEnum() started.
+◇ Test testRuleIdentifierEnum() started.
+◇ Test testDoesNotDetectRetainCycleWithoutInitializer() started.
+◇ Test testCoreModuleImports() started.
+◇ Test testDetectCrossFilePatternsWithMixedValidInvalidFiles() started.
+◇ Test testDetectCrossFilePatternsWithInvalidFiles() started.
+◇ Test testDetectCrossFilePatternsWithArchitectureIssues() started.
+◇ Test testPatternCategoryEnum() started.
+◇ Test testDetectCrossFilePatternsWithEmptyProject() started.
+◇ Test testDetectCrossFilePatternsWithSingleFile() started.
+🔍 Testing source code:
+let url = URL(string: "https://example.com")!
+let data = try Data(contentsOf: url)
+---
+🔍 Testing source code:
+let url = URL(string: "https://example.com")!
+URLSession.shared.dataTask(with: url) { data, response, _ in
+    // No error handling
+}.resume()
+---
+◇ Test testAlertDetection() started.
+◇ Test testSimpleAlertDetection() started.
+🔍 Parsed syntax tree:
+let url = URL(string: "https://example.com")!
+let data = try Data(contentsOf: url)
+---
+🔍 Parsed syntax tree:
+let url = URL(string: "https://example.com")!
+URLSession.shared.dataTask(with: url) { data, response, _ in
+    // No error handling
+}.resume()
+---
+🔍 Detected issues: 1
+  Issue 1:
+    Message: 'Synchronous networking can block the UI thread'
+    Severity: error
+    Line: 2
+    Suggestion: 'Use async/await or URLSession for asynchronous networking'
+---
+🔍 Detected issues: 1
+  Issue 1:
+    Message: 'Network request missing error handling'
+    Severity: warning
+    Line: 2
+    Suggestion: 'Add error handling to the completion closure'
+---
+🔍 binding type: PatternBindingSyntax, description: body: some View {
+        Text("Hello World")
+    }
+🔍 Fallback analyzing binding description for error handling: body: some View {
+        Text("Hello World")
+    }
+🔍 hasErrorHandling: false, hasProperUI: false
+🔍 Collected modifiers for Text: []
+🔍 binding type: PatternBindingSyntax, description: body: some View {
+        Text("Hello World")
+            .font(.title)
+    }
+🔍 Fallback analyzing binding description for error handling: body: some View {
+        Text("Hello World")
+            .font(.title)
+    }
+🔍 hasErrorHandling: false, hasProperUI: false
+🔍 Collected modifiers for Text: ["font"]
+🔍 binding type: PatternBindingSyntax, description: body: some View {
+        Text("Hello World")
+            .font(.title)
+            .foregroundColor(.blue)
+    }
+🔍 Fallback analyzing binding description for error handling: body: some View {
+        Text("Hello World")
+            .font(.title)
+            .foregroundColor(.blue)
+    }
+🔍 binding type: PatternBindingSyntax, description: body: some View {
+        Text("Hello World")
+    }
+🔍 hasErrorHandling: false, hasProperUI: false
+🔍 Fallback analyzing binding description for error handling: body: some View {
+        Text("Hello World")
+    }
+🔍 hasErrorHandling: false, hasProperUI: false
+🔍 Collected modifiers for Text: []
+🔍 Collected modifiers for Text: ["foregroundColor", "font"]
+🔍 binding type: PatternBindingSyntax, description: body: some View {
+        Text("Hello World")
+    }
+🔍 Fallback analyzing binding description for error handling: body: some View {
+        Text("Hello World")
+    }
+🔍 hasErrorHandling: false, hasProperUI: false
+🔍 Collected modifiers for Text: []
+🔍 binding type: PatternBindingSyntax, description: previews: some View {
+        ContentView()
+    }
+2025-07-14 21:19:05.065 swiftpm-testing-helper[6349:12905838] [DEBUG] Function 'shortFunction' length: 31 (threshold: 200)
+2025-07-14 21:19:05.066 swiftpm-testing-helper[6349:12905839] [DEBUG] Function 'veryLongFunction' length: 654 (threshold: 200)
+🔍 binding type: PatternBindingSyntax, description: items = ["A", "B", "C"]
+🔍 binding type: PatternBindingSyntax, description: body: some View {
+        ForEach(items) { item in
+            Text(item)
+        }
+    }
+🔍 Fallback analyzing binding description for error handling: body: some View {
+        ForEach(items) { item in
+            Text(item)
+        }
+    }
+🔍 hasErrorHandling: false, hasProperUI: false
+🔍 Collected modifiers for Text: []
+🔍 binding type: PatternBindingSyntax, description: items = [Item(id: "1"), Item(id: "2")]
+🔍 binding type: PatternBindingSyntax, description: body: some View {
+        ForEach(items, id: \.id) { item in
+            Text(item.id)
+        }
+    }
+🔍 Fallback analyzing binding description for error handling: body: some View {
+        ForEach(items, id: \.id) { item in
+            Text(item.id)
+        }
+    }
+🔍 hasErrorHandling: false, hasProperUI: false
+🔍 binding type: PatternBindingSyntax, description: error: String?
+🔍 binding type: PatternBindingSyntax, description: body: some View {
+        if let error = error {
+            Text("Error: \(error)")
+        } else {
+            Text("Success")
+        }
+    }
+🔍 Fallback analyzing binding description for error handling: body: some View {
+        if let error = error {
+            Text("Error: \(error)")
+        } else {
+            Text("Success")
+        }
+    }
+🔍 hasErrorHandling: true, hasProperUI: false
+🔍 Collected modifiers for Text: []
+🔍 Collected modifiers for Text: []
+🔍 Collected modifiers for Text: []
+🔍 binding type: PatternBindingSyntax, description: body: some View {
+        NavigationView {
+            NavigationView {
+                Text("Nested")
+            }
+        }
+    }
+🔍 binding type: PatternBindingSyntax, description: id: String
+🔍 Fallback analyzing binding description for error handling: body: some View {
+        NavigationView {
+            NavigationView {
+                Text("Nested")
+            }
+        }
+    }
+🔍 hasErrorHandling: false, hasProperUI: false
+🔍 Collected modifiers for Text: []
+🔍 binding type: PatternBindingSyntax, description: error: String?
+🔍 binding type: PatternBindingSyntax, description: showAlert = false
+🔍 binding type: PatternBindingSyntax, description: body: some View {
+        Text("Content")
+            .alert("Error", isPresented: $showAlert) {
+                Button("OK") { }
+            } message: {
+                if let error = error {
+                    Text(error)
+                }
+            }
+    }
+🔍 Fallback analyzing binding description for error handling: body: some View {
+        Text("Content")
+            .alert("Error", isPresented: $showAlert) {
+                Button("OK") { }
+            } message: {
+                if let error = error {
+                    Text(error)
+                }
+            }
+    }
+🔍 hasErrorHandling: true, hasProperUI: true
+🔍 Collected modifiers for Text: ["alert"]
+🔍 Collected modifiers for Text: ["alert"]
+2025-07-14 21:19:05.074 swiftpm-testing-helper[6349:12905836] [DEBUG] Function 'longFunction' length: 455 (threshold: 200)
+2025-07-14 21:19:05.075 swiftpm-testing-helper[6349:12905842] [DEBUG] Function 'longFunction' length: 455 (threshold: 200)
+🔍 binding type: PatternBindingSyntax, description: error: String?
+🔍 binding type: PatternBindingSyntax, description: items = ["A", "B", "C"]
+🔍 binding type: PatternBindingSyntax, description: body: some View {
+        NavigationView {
+            VStack {
+                NavigationView {
+                    ForEach(items, id: \.self) { item in
+                        Text(item)
+                            .font(.title)
+                            .foregroundColor(.blue)
+                    }
+                }
+                
+                if let error = error {
+                    Text("Error: \(error)")
+                }
+            }
+        }
+    }
+🔍 Fallback analyzing binding description for error handling: body: some View {
+        NavigationView {
+            VStack {
+                NavigationView {
+                    ForEach(items, id: \.self) { item in
+                        Text(item)
+                            .font(.title)
+                            .foregroundColor(.blue)
+                    }
+                }
+                
+                if let error = error {
+                    Text("Error: \(error)")
+                }
+            }
+        }
+    }
+🔍 hasErrorHandling: true, hasProperUI: false
+🔍 Collected modifiers for Text: ["font", "foregroundColor"]
+🔍 Collected modifiers for Text: []
+2025-07-14 21:19:05.076 swiftpm-testing-helper[6349:12905836] [DEBUG] Function 'privateFunction' length: 47 (threshold: 200)
+2025-07-14 21:19:05.076 swiftpm-testing-helper[6349:12905839] [DEBUG] Function 'longFunction' length: 455 (threshold: 150)
+🔍 Testing nested navigation detection...
+🔍 binding type: PatternBindingSyntax, description: body: some View {
+        NavigationView {
+            Text("Single Navigation")
+        }
+    }
+🔍 Fallback analyzing binding description for error handling: body: some View {
+        NavigationView {
+            Text("Single Navigation")
+        }
+    }
+🔍 hasErrorHandling: false, hasProperUI: false
+🔍 Collected modifiers for Text: []
+2025-07-14 21:19:05.077 swiftpm-testing-helper[6349:12905835] [DEBUG] Function 'publicFunction' length: 36 (threshold: 200)
+✘ Test testConfigurationCharacterization() recorded an issue at CodeQualityIntegrationTests.swift:149:9: Expectation failed: (visitor.detectedIssues.count → 6) == 5
+↳ // Then
+✘ Test testConfigurationCharacterization() recorded an issue at CodeQualityIntegrationTests.swift:165:9: Expectation failed: (documentationIssues.count → 2) == 1
+🔍 binding type: PatternBindingSyntax, description: body: some View {
+        NavigationView {
+            VStack {
+                NavigationView {
+                    Text("Nested Navigation")
+                }
+            }
+        }
+    }
+🔍 Fallback analyzing binding description for error handling: body: some View {
+        NavigationView {
+            VStack {
+                NavigationView {
+                    Text("Nested Navigation")
+                }
+            }
+        }
+    }
+🔍 hasErrorHandling: false, hasProperUI: false
+🔍 Collected modifiers for Text: []
+🔍 Detected issues: 1
+  Issue 1: Nested NavigationView detected, this can cause issues
+🔍 binding type: PatternBindingSyntax, description: body: some View {
+        NavigationStack {
+            Text("Modern Navigation")
+        }
+    }
+🔍 Fallback analyzing binding description for error handling: body: some View {
+        NavigationStack {
+            Text("Modern Navigation")
+        }
+    }
+🔍 hasErrorHandling: false, hasProperUI: false
+🔍 Collected modifiers for Text: []
+✘ Test testStrictHardcodedStringDetectionCharacterization() recorded an issue at CodeQualityHardcodedStringTests.swift:139:9: Expectation failed: (visitor.detectedIssues.count → 2) == 1
+↳ // Then
+✘ Test testStrictHardcodedStringDetectionCharacterization() recorded an issue at CodeQualityHardcodedStringTests.swift:142:9: Expectation failed: (hardcodedIssues.count → 2) == 1
+2025-07-14 21:19:05.081 swiftpm-testing-helper[6349:12905841] [DEBUG] Function 'publicFunction' length: 35 (threshold: 200)
+2025-07-14 21:19:05.081 swiftpm-testing-helper[6349:12905841] [DEBUG] Function 'anotherPublicFunction' length: 35 (threshold: 200)
+✔ Test testStrictFunctionLengthDetectionCharacterization() passed after 0.024 seconds.
+✔ Test testFunctionLengthDetectionCharacterization() passed after 0.024 seconds.
+✔ Test testIssueMessageAndSuggestion() passed after 0.024 seconds.
+✔ Test "Basic stub test" passed after 0.024 seconds.
+✔ Test testIssueFileAndLineNumber() passed after 0.024 seconds.
+✔ Test "Placeholder for linting logic" passed after 0.024 seconds.
+✔ Test "Sanity check: string equality" passed after 0.024 seconds.
+✔ Test "Sanity check: basic arithmetic" passed after 0.024 seconds.
+✔ Test testDetectsSynchronousNetworking() passed after 0.025 seconds.
+✔ Test testSimpleSheetDebug() passed after 0.025 seconds.
+✔ Test testVisitorInitialization() passed after 0.025 seconds.
+✔ Test testDoesNotDetectWhenErrorHandled() passed after 0.025 seconds.
+✔ Test testManualIssueCreation() passed after 0.025 seconds.
+✔ Test testDetectsMissingErrorHandlingInDataTask() passed after 0.025 seconds.
+✔ Test testNavigationLinkDetection() passed after 0.025 seconds.
+✔ Test testFindDuplicatesReturnsCorrectDuplicates() passed after 0.025 seconds.
+✔ Test testMultipleRelationships() passed after 0.025 seconds.
+✔ Test testDoesNotDetectWhenPreviewExists() passed after 0.025 seconds.
+✔ Test testExtractViewNameRemovesSwiftExtension() passed after 0.025 seconds.
+✔ Test testPopoverDetection() passed after 0.025 seconds.
+✔ Test testDoesNotDetectSingleStylingModifier() passed after 0.025 seconds.
+✔ Test "Basic stub test" passed after 0.025 seconds.
+✔ Test testDetectsMissingPreview() passed after 0.025 seconds.
+✔ Test testDetectsInconsistentTextStyling() passed after 0.025 seconds.
+✔ Test testShortFunctionNoDetection() passed after 0.026 seconds.
+✔ Test testDetectsPreviewStruct() passed after 0.025 seconds.
+✔ Test testSheetPresentationDetection() passed after 0.025 seconds.
+✔ Test testLongFunctionDetection() passed after 0.026 seconds.
+✔ Test testStrictMagicNumberDetectionCharacterization() passed after 0.024 seconds.
+✔ Test testMagicNumberThreshold() passed after 0.025 seconds.
+✔ Test testMagicNumberDetectionInPadding() passed after 0.025 seconds.
+✔ Test testMagicNumberDetectionCharacterization() passed after 0.024 seconds.
+✔ Test testDetectsForEachWithoutID() passed after 0.025 seconds.
+✔ Test testMagicNumberDetectionInFrame() passed after 0.024 seconds.
+✔ Test testFullScreenCoverDetection() passed after 0.025 seconds.
+✔ Test testMagicNumberDetectionInVariableInitialization() passed after 0.025 seconds.
+✔ Test testDirectChildViewDetection() passed after 0.024 seconds.
+✔ Test testLineNumberCalculation() passed after 0.024 seconds.
+✔ Test testBasicDetection() passed after 0.024 seconds.
+✔ Test testDetectsBasicErrorHandling() passed after 0.024 seconds.
+✔ Test testVerySimpleDetection() passed after 0.024 seconds.
+✔ Test testDoesNotDetectForEachWithExplicitID() passed after 0.025 seconds.
+✔ Test testResetClearsState() passed after 0.024 seconds.
+✔ Test testDoesNotDetectProperErrorHandling() passed after 0.024 seconds.
+✔ Test testCustomConfigurationForRetainCycles() passed after 0.024 seconds.
+✔ Test testConfigurationStrict() passed after 0.024 seconds.
+✔ Test testEdgeCaseCharacterization() passed after 0.024 seconds.
+✔ Test testCustomConfigurationForLargeObjects() passed after 0.024 seconds.
+✔ Test testComplexViewWithMultipleIssues() passed after 0.024 seconds.
+✔ Test testMultipleCodeQualityIssues() passed after 0.024 seconds.
+✔ Test testPrivateAPIsNoDetection() passed after 0.024 seconds.
+✔ Test testDocumentedAPIsNoDetection() passed after 0.024 seconds.
+✔ Test testStrictDocumentationDetectionCharacterization() passed after 0.024 seconds.
+✔ Test testResetClearsDetectedIssues() passed after 0.024 seconds.
+✘ Test testConfigurationCharacterization() failed after 0.024 seconds with 2 issues.
+✔ Test testDoesNotDetectSingleNavigationView() passed after 0.024 seconds.
+✔ Test testDetectsNestedNavigationView() passed after 0.024 seconds.
+✔ Test testConfigurationDefault() passed after 0.024 seconds.
+✔ Test testDetectsModernNavigationAlternatives() passed after 0.024 seconds.
+✔ Test testHardcodedSecretDetection() passed after 0.025 seconds.
+✔ Test testPatternCategoryAllCases() passed after 0.023 seconds.
+✔ Test testUnsafeURLConstruction() passed after 0.025 seconds.
+✘ Test testStrictHardcodedStringDetectionCharacterization() failed after 0.023 seconds with 2 issues.
+✔ Test testDoesNotDetectNonArrayInState() passed after 0.023 seconds.
+✔ Test testRuleIdentifierCodable() passed after 0.023 seconds.
+✔ Test testDetectionPatternInitAndProperties() passed after 0.023 seconds.
+✔ Test testRuleIdentifierAllCasesContainsAll() passed after 0.023 seconds.
+✔ Test testDocumentationDetectionCharacterization() passed after 0.023 seconds.
+✔ Test testDoesNotDetectSmallArrayInState() passed after 0.023 seconds.
+✔ Test testHardcodedStringDetection() passed after 0.023 seconds.
+✔ Test testRuleIdentifierCategoryMapping() passed after 0.023 seconds.
+✔ Test testComplexViewWithMultipleIssues() passed after 0.024 seconds.
+✔ Test testRuleIdentifierRawValueAndDisplayName() passed after 0.023 seconds.
+✔ Test testMissingDocumentationDetection() passed after 0.024 seconds.
+✔ Test testEmptyIssuesList() passed after 0.026 seconds.
+✔ Test testHardcodedStringDetectionCharacterization() passed after 0.023 seconds.
+✔ Test testIssueSeverityFiltering() passed after 0.026 seconds.
+✔ Test testDoesNotDetectRetainCycleWhenTypesDiffer() passed after 0.023 seconds.
+✔ Test testIssueSeverityEnum() passed after 0.023 seconds.
+✔ Test testRuleIdentifierEnum() passed after 0.023 seconds.
+✔ Test testDoesNotDetectRetainCycleWithoutStateObject() passed after 0.023 seconds.
+✔ Test testIssueRuleNameMapping() passed after 0.026 seconds.
+✔ Test testLintResultsViewInitialization() passed after 0.026 seconds.
+✔ Test testPatternCategoryEnum() passed after 0.023 seconds.
+✔ Test testDetectsLargeArrayInState() passed after 0.024 seconds.
+✔ Test testDetectsPotentialRetainCycle() passed after 0.023 seconds.
+✔ Test testHardcodedStringSkipPatterns() passed after 0.023 seconds.
+✔ Test testAlertDetection() passed after 0.022 seconds.
+✔ Suite PatternRegistryFactoryTests passed after 0.028 seconds.
+✔ Suite "CodeQualityLongFunctionTests" passed after 0.028 seconds.
+✔ Suite SwiftProjectLintTests passed after 0.028 seconds.
+✔ Test testDetectsMultipleRetainCycles() passed after 0.023 seconds.
+✔ Suite NetworkingVisitorTests passed after 0.028 seconds.
+✔ Suite "UIVisitorStylingTests" passed after 0.028 seconds.
+✔ Suite StateVariableVisitorTests passed after 0.027 seconds.
+✔ Suite "UIVisitorPreviewTests" passed after 0.027 seconds.
+✔ Suite "ViewRelationshipNavigationTests" passed after 0.028 seconds.
+✔ Suite "UIVisitorForEachTests" passed after 0.028 seconds.
+✔ Suite "ViewRelationshipBasicDetectionTests" passed after 0.027 seconds.
+✘ Suite "CodeQualityIntegrationTests" failed after 0.027 seconds with 2 issues.
+✔ Suite "MemoryManagementConfigurationTests" passed after 0.027 seconds.
+✔ Suite "CodeQualityDocumentationTests" passed after 0.027 seconds.
+✔ Suite "UIVisitorNavigationTests" passed after 0.027 seconds.
+✔ Suite "CodeQualityMagicNumberTests" passed after 0.028 seconds.
+✔ Suite SecurityVisitorTests passed after 0.028 seconds.
+✔ Suite LintResultsViewTests passed after 0.028 seconds.
+✔ Test testDoesNotDetectRetainCycleWithoutInitializer() passed after 0.023 seconds.
+✘ Suite "CodeQualityHardcodedStringTests" failed after 0.027 seconds with 2 issues.
+✔ Suite DetectionPatternTests passed after 0.027 seconds.
+✔ Suite "UIVisitorErrorHandlingTests" passed after 0.028 seconds.
+✔ Suite "MemoryManagementRetainCycleTests" passed after 0.027 seconds.
+✔ Test testSimpleAlertDetection() passed after 0.023 seconds.
+✔ Suite "ViewRelationshipAlertTests" passed after 0.027 seconds.
+✔ Test testDoesNotDetectLargeArrayWithoutState() passed after 0.025 seconds.
+✔ Suite "MemoryManagementLargeObjectTests" passed after 0.028 seconds.
+✔ Test testIssueRowsAndFullScreenButton() passed after 0.046 seconds.
+[RuleSelectionDialogTests] WARNING: 'Select Lint Rules' navigation title not found in Text views.
+✘ Test testDialogStructureAndActions() recorded an issue at RuleSelectionDialogTests.swift:11:6: Caught error: view(RuleSelectionDialog.self).navigationView().vStack() found List<Swift.Never, SwiftUI.ForEach<Swift.Array<(category: SwiftProjectLintCore.PatternCategory, display: Swift.String, patterns: Swift.Array<SwiftProjectLintCore.DetectionPattern>, useSwiftSyntax: Swift.Bool)>, SwiftProjectLintCore.PatternCategory, SwiftUI.Section<SwiftUI.Text, SwiftUI.ForEach<Swift.Array<SwiftProjectLintCore.DetectionPattern>, SwiftProjectLintCore.RuleIdentifier, SwiftUI.Toggle<SwiftUI.VStack<SwiftUI.TupleView<(SwiftUI.Text, SwiftUI.Text)>>>>, SwiftUI.EmptyView>>> instead of VStack
+✘ Test testDialogStructureAndActions() failed after 0.057 seconds with 1 issue.
+✘ Suite RuleSelectionDialogTests failed after 0.058 seconds with 1 issue.
+✔ Test testSummarySectionAndCounts() passed after 0.067 seconds.
+✔ Suite LintResultsViewCharacterizationTests passed after 0.068 seconds.
+✔ Test testRuleSelectionDialogSheetAppears() passed after 0.067 seconds.
+DEBUG [ViewRelationshipVisitor.swift:135] ViewRelationshipVisitor.visit(_:): Visiting struct: ContentView
+DEBUG [ViewRelationshipVisitor.swift:135] ViewRelationshipVisitor.visit(_:): Visiting struct: ContentView
+DEBUG [CodeQualityVisitor.swift:45] CodeQualityVisitor.visit(_:): Visiting struct: TestView
+DEBUG [CodeQualityVisitor.swift:45] CodeQualityVisitor.visit(_:): Visiting struct: TestView
+DEBUG [NetworkingVisitor.swift:26] visit(_:): Visiting FunctionCallExpr - description: URL(string: "https://example.com")
+DEBUG [NetworkingVisitor.swift:26] visit(_:): Visiting FunctionCallExpr - description: URL(string: "https://example.com")
+DEBUG [NetworkingVisitor.swift:26] visit(_:): Visiting FunctionCallExpr - description: URL(string: "https://example.com")
+DEBUG [NetworkingVisitor.swift:26] visit(_:): Visiting FunctionCallExpr - description: Data(contentsOf: url)
+DEBUG [NetworkingVisitor.swift:26] visit(_:): Visiting FunctionCallExpr - description: 
+URLSession.shared.dataTask(with: url) { data, response, error in
+    if let error = error {
+        print(error)
+    }
+}.resume()
+DEBUG [NetworkingVisitor.swift:33] NetworkingVisitor.visit(_:): Called expression: Data
+DEBUG [NetworkingVisitor.swift:59] NetworkingVisitor.visit(_:): Member access: 
+URLSession.shared.dataTask(with: url) { data, response, error in
+    if let error = error {
+        print(error)
+    }
+}.resume
+DEBUG [NetworkingVisitor.swift:60] NetworkingVisitor.visit(_:): Member name: resume
+DEBUG [NetworkingVisitor.swift:61] NetworkingVisitor.visit(_:): Full member access: 
+URLSession.shared.dataTask(with: url) { data, response, error in
+    if let error = error {
+        print(error)
+    }
+}.resume
+DEBUG [NetworkingVisitor.swift:37] NetworkingVisitor.visit(_:): Argument label: contentsOf value: url
+DEBUG [NetworkingVisitor.swift:41] NetworkingVisitor.visit(_:): hasContentsOf: true
+DEBUG [NetworkingVisitor.swift:26] visit(_:): Visiting FunctionCallExpr - description: 
+URLSession.shared.dataTask(with: url) { data, response, error in
+    if let error = error {
+        print(error)
+    }
+}
+DEBUG [NetworkingVisitor.swift:59] NetworkingVisitor.visit(_:): Member access: 
+URLSession.shared.dataTask
+DEBUG [NetworkingVisitor.swift:60] NetworkingVisitor.visit(_:): Member name: dataTask
+DEBUG [NetworkingVisitor.swift:61] NetworkingVisitor.visit(_:): Full member access: 
+URLSession.shared.dataTask
+DEBUG [NetworkingVisitor.swift:66] NetworkingVisitor.visit(_:): Found dataTask member access
+DEBUG [NetworkingVisitor.swift:67] NetworkingVisitor.visit(_:): Trailing closure exists: true
+DEBUG [NetworkingVisitor.swift:68] NetworkingVisitor.visit(_:): Function call structure: 
+URLSession.shared.dataTask(with: url) { data, response, error in
+    if let error = error {
+        print(error)
+    }
+}
+DEBUG [NetworkingVisitor.swift:76] NetworkingVisitor.visit(_:): Found trailing closure
+DEBUG [NetworkingVisitor.swift:77] NetworkingVisitor.visit(_:): Closure signature: data, response, error in
+DEBUG [NetworkingVisitor.swift:78] NetworkingVisitor.visit(_:): Closure body: 
+    if let error = error {
+        print(error)
+    }
+DEBUG [NetworkingVisitor.swift:84] NetworkingVisitor.visit(_:): Found closure signature
+DEBUG [NetworkingVisitor.swift:151] NetworkingVisitor.visit(_:): Found error handling in body
+DEBUG [NetworkingVisitor.swift:26] visit(_:): Visiting FunctionCallExpr - description: 
+URLSession.shared.dataTask(with: url) { data, response, _ in
+    // No error handling
+}.resume()
+DEBUG [NetworkingVisitor.swift:59] NetworkingVisitor.visit(_:): Member access: 
+URLSession.shared.dataTask(with: url) { data, response, _ in
+    // No error handling
+}.resume
+DEBUG [NetworkingVisitor.swift:60] NetworkingVisitor.visit(_:): Member name: resume
+DEBUG [NetworkingVisitor.swift:61] NetworkingVisitor.visit(_:): Full member access: 
+URLSession.shared.dataTask(with: url) { data, response, _ in
+    // No error handling
+}.resume
+DEBUG [NetworkingVisitor.swift:26] visit(_:): Visiting FunctionCallExpr - description: 
+URLSession.shared.dataTask(with: url) { data, response, _ in
+    // No error handling
+}
+DEBUG [NetworkingVisitor.swift:59] NetworkingVisitor.visit(_:): Member access: 
+URLSession.shared.dataTask
+DEBUG [NetworkingVisitor.swift:60] NetworkingVisitor.visit(_:): Member name: dataTask
+DEBUG [NetworkingVisitor.swift:61] NetworkingVisitor.visit(_:): Full member access: 
+URLSession.shared.dataTask
+DEBUG [NetworkingVisitor.swift:66] NetworkingVisitor.visit(_:): Found dataTask member access
+DEBUG [NetworkingVisitor.swift:67] NetworkingVisitor.visit(_:): Trailing closure exists: true
+DEBUG [NetworkingVisitor.swift:68] NetworkingVisitor.visit(_:): Function call structure: 
+URLSession.shared.dataTask(with: url) { data, response, _ in
+    // No error handling
+}
+DEBUG [NetworkingVisitor.swift:76] NetworkingVisitor.visit(_:): Found trailing closure
+DEBUG [NetworkingVisitor.swift:77] NetworkingVisitor.visit(_:): Closure signature: data, response, _ in
+DEBUG [NetworkingVisitor.swift:78] NetworkingVisitor.visit(_:): Closure body: 
+DEBUG [NetworkingVisitor.swift:84] NetworkingVisitor.visit(_:): Found closure signature
+DEBUG [NetworkingVisitor.swift:26] visit(_:): Visiting FunctionCallExpr - description: 
+        print(error)
+DEBUG [NetworkingVisitor.swift:171] visit(_:): ISSUE DETECTED: Appending missing error handling issue at line 2
+DEBUG [ViewRelationshipVisitor.swift:135] ViewRelationshipVisitor.visit(_:): Visiting struct: ContentView
+✔ Test testGenerateStateSharingSuggestionForManyViews() passed after 0.076 seconds.
+✔ Test testRelationshipTypeAndViewRelationship() passed after 0.078 seconds.
+✔ Test testFindRelatedViewsDetectsHierarchy() passed after 0.081 seconds.
+DEBUG [ViewRelationshipVisitor.swift:135] ViewRelationshipVisitor.visit(_:): Visiting struct: ContentView
+✔ Test testIsRootViewReturnsTrueForRoot() passed after 0.083 seconds.
+DEBUG [SecurityVisitor.swift:29] SecurityVisitor.visit(_:): Visiting variable declaration
+DEBUG [SecurityVisitor.swift:29] SecurityVisitor.visit(_:): Visiting variable declaration
+DEBUG: SystemComponents.initialize() called
+DEBUG: Pattern registry created, checking patterns...
+DEBUG: Total patterns registered: 34
+DEBUG: Category stateManagement has 6 patterns
+DEBUG: Category performance has 5 patterns
+DEBUG: Category architecture has 3 patterns
+DEBUG: Category codeQuality has 4 patterns
+DEBUG: Category security has 2 patterns
+DEBUG: Category accessibility has 3 patterns
+DEBUG: Category memoryManagement has 2 patterns
+DEBUG: Category networking has 2 patterns
+DEBUG: Category uiPatterns has 7 patterns
+DEBUG: Category other has 0 patterns
+DEBUG: SystemComponents initialization complete
+DEBUG: ContentView initialized
+✔ Test testContentViewStructure() passed after 0.102 seconds.
+✔ Suite ContentViewTests passed after 0.104 seconds.
+✔ Test testGenerateStateSharingSuggestionForTwoViews() passed after 0.105 seconds.
+✔ Suite AdvancedAnalyzerTests passed after 0.107 seconds.
+DEBUG [ViewRelationshipVisitor.swift:135] ViewRelationshipVisitor.visit(_:): Visiting struct: ContentView
+DEBUG [CodeQualityVisitor.swift:45] CodeQualityVisitor.visit(_:): Visiting struct: TestView
+DEBUG [CodeQualityVisitor.swift:45] CodeQualityVisitor.visit(_:): Visiting struct: TestView
+DEBUG: Registry.getVisitors(for: stateManagement) returning 2 visitors
+DEBUG: Available categories in registry: [SwiftProjectLintCore.PatternCategory.stateManagement]
+DEBUG: Registry.getVisitors(for: stateManagement) returning 0 visitors
+DEBUG: Available categories in registry: []
+✔ Test patternVisitorRegistryMultiplePatterns() passed after 0.105 seconds.
+DEBUG: Registry.getVisitors(for: stateManagement) returning 1 visitors
+✔ Test patternVisitorRegistryClear() passed after 0.105 seconds.
+DEBUG: Available categories in registry: [SwiftProjectLintCore.PatternCategory.stateManagement]
+✔ Test patternVisitorRegistryRegistration() passed after 0.105 seconds.
+DEBUG [ViewRelationshipVisitor.swift:135] ViewRelationshipVisitor.visit(_:): Visiting struct: ContentView
+✔ Suite "PatternRegistryTests" passed after 0.107 seconds.
+DEBUG [CodeQualityVisitor.swift:45] CodeQualityVisitor.visit(_:): Visiting struct: TestView
+DEBUG [CodeQualityVisitor.swift:45] CodeQualityVisitor.visit(_:): Visiting struct: TestView
+DEBUG [ViewRelationshipVisitor.swift:135] ViewRelationshipVisitor.visit(_:): Visiting struct: ContentView
+DEBUG [ViewRelationshipVisitor.swift:135] ViewRelationshipVisitor.visit(_:): Visiting struct: ContentView
+✔ Test testLogASTPrintsAST() passed after 0.105 seconds.
+✔ Test testLogVisitorPrintsVisitorMessage() passed after 0.105 seconds.
+DEBUG [ViewRelationshipVisitor.swift:135] ViewRelationshipVisitor.visit(_:): Visiting struct: ContentView
+✔ Test testIsEnabledFlag() passed after 0.105 seconds.
+DEBUG [ViewRelationshipVisitor.swift:135] ViewRelationshipVisitor.visit(_:): Visiting struct: ContentView
+✔ Test testLogPrintsMessage() passed after 0.105 seconds.
+✔ Test testLogIssuePrintsIssue() passed after 0.105 seconds.
+✔ Test architectureVisitorCircularDependencies() passed after 0.105 seconds.
+DEBUG [MemoryManagementVisitor.swift:58] MemoryManagementVisitor.visit(_:): Visiting variable declaration
+✔ Test testLogNodePrintsNode() passed after 0.105 seconds.
+DEBUG [MemoryManagementVisitor.swift:58] MemoryManagementVisitor.visit(_:): Visiting variable declaration
+DEBUG [CodeQualityVisitor.swift:45] CodeQualityVisitor.visit(_:): Visiting struct: TestView
+DEBUG [MemoryManagementVisitor.swift:58] MemoryManagementVisitor.visit(_:): Visiting variable declaration
+DEBUG [MemoryManagementVisitor.swift:58] MemoryManagementVisitor.visit(_:): Visiting variable declaration
+DEBUG [CodeQualityVisitor.swift:45] CodeQualityVisitor.visit(_:): Visiting struct: TestView
+✔ Test architectureVisitorMissingProtocols() passed after 0.106 seconds.
+DEBUG [CodeQualityVisitor.swift:45] CodeQualityVisitor.visit(_:): Visiting struct: TestView
+DEBUG [CodeQualityVisitor.swift:45] CodeQualityVisitor.visit(_:): Visiting struct: TestView
+✔ Test testDebugDirectoryCreatesAndReturnsPath() passed after 0.106 seconds.
+DEBUG [CodeQualityVisitor.swift:45] CodeQualityVisitor.visit(_:): Visiting struct: TestView
+✔ Suite DebugLoggerTests passed after 0.109 seconds.
+DEBUG [MemoryManagementVisitor.swift:58] MemoryManagementVisitor.visit(_:): Visiting variable declaration
+DEBUG [MemoryManagementVisitor.swift:58] MemoryManagementVisitor.visit(_:): Visiting variable declaration
+DEBUG [SecurityVisitor.swift:29] SecurityVisitor.visit(_:): Visiting variable declaration
+DEBUG [SecurityVisitor.swift:29] SecurityVisitor.visit(_:): Visiting variable declaration
+DEBUG [SecurityVisitor.swift:29] SecurityVisitor.visit(_:): Visiting variable declaration
+DEBUG [SecurityVisitor.swift:29] SecurityVisitor.visit(_:): Visiting variable declaration
+DEBUG [SecurityVisitor.swift:29] SecurityVisitor.visit(_:): Visiting variable declaration
+DEBUG [SecurityVisitor.swift:29] SecurityVisitor.visit(_:): Visiting variable declaration
+DEBUG [SecurityVisitor.swift:29] SecurityVisitor.visit(_:): Visiting variable declaration
+DEBUG [SecurityVisitor.swift:29] SecurityVisitor.visit(_:): Visiting variable declaration
+DEBUG [CodeQualityVisitor.swift:45] CodeQualityVisitor.visit(_:): Visiting struct: TestView
+DEBUG [MemoryManagementVisitor.swift:58] MemoryManagementVisitor.visit(_:): Visiting variable declaration
+DEBUG [MemoryManagementVisitor.swift:58] MemoryManagementVisitor.visit(_:): Visiting variable declaration
+DEBUG [MemoryManagementVisitor.swift:58] MemoryManagementVisitor.visit(_:): Visiting variable declaration
+DEBUG [MemoryManagementVisitor.swift:58] MemoryManagementVisitor.visit(_:): Visiting variable declaration
+DEBUG [CodeQualityVisitor.swift:45] CodeQualityVisitor.visit(_:): Visiting struct: TestView
+DEBUG [MemoryManagementVisitor.swift:58] MemoryManagementVisitor.visit(_:): Visiting variable declaration
+DEBUG [MemoryManagementVisitor.swift:58] MemoryManagementVisitor.visit(_:): Visiting variable declaration
+DEBUG [CodeQualityVisitor.swift:45] CodeQualityVisitor.visit(_:): Visiting struct: TestView
+DEBUG [MemoryManagementVisitor.swift:58] MemoryManagementVisitor.visit(_:): Visiting variable declaration
+DEBUG [CodeQualityVisitor.swift:45] CodeQualityVisitor.visit(_:): Visiting struct: TestView
+DEBUG [MemoryManagementVisitor.swift:58] MemoryManagementVisitor.visit(_:): Visiting variable declaration
+DEBUG [MemoryManagementVisitor.swift:58] MemoryManagementVisitor.visit(_:): Visiting variable declaration
+DEBUG [MemoryManagementVisitor.swift:58] MemoryManagementVisitor.visit(_:): Visiting variable declaration
+DEBUG [MemoryManagementVisitor.swift:58] MemoryManagementVisitor.visit(_:): Visiting variable declaration
+DEBUG [MemoryManagementVisitor.swift:58] MemoryManagementVisitor.visit(_:): Visiting variable declaration
+✔ Test testDetectArchitecturalAntiPatternsWithMultipleIssues_MissingDI() passed after 0.109 seconds.
+✔ Test testDetectCrossFilePatternsPerformance() passed after 0.112 seconds.
+✔ Suite CrossFileAnalysisEnginePerformanceTests passed after 0.113 seconds.
+DEBUG [MemoryManagementVisitor.swift:58] MemoryManagementVisitor.visit(_:): Visiting variable declaration
+DEBUG [MemoryManagementVisitor.swift:58] MemoryManagementVisitor.visit(_:): Visiting variable declaration
+DEBUG [MemoryManagementVisitor.swift:58] MemoryManagementVisitor.visit(_:): Visiting variable declaration
+DEBUG [MemoryManagementVisitor.swift:58] MemoryManagementVisitor.visit(_:): Visiting variable declaration
+DEBUG [MemoryManagementVisitor.swift:58] MemoryManagementVisitor.visit(_:): Visiting variable declaration
+DEBUG [MemoryManagementVisitor.swift:58] MemoryManagementVisitor.visit(_:): Visiting variable declaration
+DEBUG [CodeQualityVisitor.swift:45] CodeQualityVisitor.visit(_:): Visiting struct: TestView
+DEBUG [MemoryManagementVisitor.swift:58] MemoryManagementVisitor.visit(_:): Visiting variable declaration
+DEBUG [ViewRelationshipVisitor.swift:135] ViewRelationshipVisitor.visit(_:): Visiting struct: ContentView
+DEBUG [MemoryManagementVisitor.swift:58] MemoryManagementVisitor.visit(_:): Visiting variable declaration
+DEBUG [MemoryManagementVisitor.swift:58] MemoryManagementVisitor.visit(_:): Visiting variable declaration
+DEBUG [ViewRelationshipVisitor.swift:135] ViewRelationshipVisitor.visit(_:): Visiting struct: ContentView
+DEBUG [MemoryManagementVisitor.swift:58] MemoryManagementVisitor.visit(_:): Visiting variable declaration
+✔ Test testDetectArchitecturalAntiPatternsWithMissingDependencyInjection() passed after 0.115 seconds.
+✔ Suite ArchitectureDependencyInjectionTests passed after 0.117 seconds.
+✔ Test testDetectArchitecturalAntiPatternsWithFatView() passed after 0.119 seconds.
+✔ Test testDetectArchitecturalAntiPatternsWithMultipleIssues_FatView() passed after 0.125 seconds.
+✔ Suite ArchitectureFatViewTests passed after 0.127 seconds.
+✔ Test testExtractViewNameWithMultipleExtensions() passed after 0.130 seconds.
+✔ Test testExtractViewNameWithSpecialCharacters() passed after 0.132 seconds.
+✔ Test testExtractViewNameWithComplexPath() passed after 0.132 seconds.
+✔ Test testDetectArchitecturalAntiPatternsWithCircularDependencies() passed after 0.132 seconds.
+✔ Test testExtractViewNameWithSpaces() passed after 0.132 seconds.
+✔ Test testStateAnalysisEnginePerformance() passed after 0.132 seconds.
+✔ Test testExtractViewNameWithEmptyPath() passed after 0.132 seconds.
+✔ Test testExtractViewNameWithNoExtension() passed after 0.132 seconds.
+✔ Test testExtractViewNameWithValidPath() passed after 0.132 seconds.
+✔ Test testAnalyzeStateManagementWithComplexHierarchy() passed after 0.132 seconds.
+✔ Test testStateAnalysisEngineWithLargeHierarchy() passed after 0.132 seconds.
+✔ Test testAnalyzeStateManagementWithDifferentPropertyWrappers() passed after 0.132 seconds.
+✔ Test testDetectArchitecturalAntiPatternsWithDeepHierarchy() passed after 0.132 seconds.
+✔ Suite StateAnalysisEngineComplexHierarchyTests passed after 0.134 seconds.
+✔ Suite StateAnalysisEnginePerformanceTests passed after 0.134 seconds.
+DEBUG [ViewRelationshipVisitor.swift:135] ViewRelationshipVisitor.visit(_:): Visiting struct: ContentView
+✔ Suite ArchitectureDeepHierarchyTests passed after 0.134 seconds.
+✔ Test testDetectArchitecturalAntiPatternsWithMultipleIssues() passed after 0.132 seconds.
+✔ Suite StateAnalysisEnginePropertyWrapperTests passed after 0.134 seconds.
+✔ Suite ArchitectureCircularDependencyTests passed after 0.134 seconds.
+✔ Suite ArchitectureMultipleIssuesTests passed after 0.134 seconds.
+DEBUG [StateVariableVisitor.swift:59] StateVariableVisitor.visit(_:): Visiting variable declaration
+DEBUG [StateVariableVisitor.swift:59] StateVariableVisitor.visit(_:): Visiting variable declaration
+DEBUG [StateVariableVisitor.swift:59] StateVariableVisitor.visit(_:): Visiting variable declaration
+DEBUG [ViewRelationshipVisitor.swift:135] ViewRelationshipVisitor.visit(_:): Visiting struct: TestParent
+DEBUG [ViewRelationshipVisitor.swift:135] ViewRelationshipVisitor.visit(_:): Visiting struct: TestChild
+DEBUG [StateVariableVisitor.swift:59] StateVariableVisitor.visit(_:): Visiting variable declaration
+DEBUG [StateVariableVisitor.swift:59] StateVariableVisitor.visit(_:): Visiting variable declaration
+DEBUG [ViewRelationshipVisitor.swift:135] ViewRelationshipVisitor.visit(_:): Visiting struct: TestParent
+DEBUG [ViewRelationshipVisitor.swift:135] ViewRelationshipVisitor.visit(_:): Visiting struct: TestChild
+DEBUG [StateVariableVisitor.swift:59] StateVariableVisitor.visit(_:): Visiting variable declaration
+DEBUG [StateVariableVisitor.swift:59] StateVariableVisitor.visit(_:): Visiting variable declaration
+DEBUG [ViewRelationshipVisitor.swift:135] ViewRelationshipVisitor.visit(_:): Visiting struct: TestParent
+DEBUG [ViewRelationshipVisitor.swift:135] ViewRelationshipVisitor.visit(_:): Visiting struct: TestChild
+DEBUG [StateVariableVisitor.swift:59] StateVariableVisitor.visit(_:): Visiting variable declaration
+DEBUG [StateVariableVisitor.swift:59] StateVariableVisitor.visit(_:): Visiting variable declaration
+DEBUG [ViewRelationshipVisitor.swift:135] ViewRelationshipVisitor.visit(_:): Visiting struct: TestParent
+✔ Test testAnalyzeStateManagementWithSingleStateVariable() passed after 0.133 seconds.
+DEBUG [ViewRelationshipVisitor.swift:135] ViewRelationshipVisitor.visit(_:): Visiting struct: TestChild
+DEBUG [StateVariableVisitor.swift:59] StateVariableVisitor.visit(_:): Visiting variable declaration
+✔ Test testExtractViewNameWithNestedPath() passed after 0.133 seconds.
+✔ Test testAnalyzeStateManagementWithUnrelatedDuplicateStateVariables() passed after 0.133 seconds.
+DEBUG [StateVariableVisitor.swift:59] StateVariableVisitor.visit(_:): Visiting variable declaration
+✔ Test testDetectCrossFilePatternsWithAllCategories() passed after 0.133 seconds.
+✔ Test testDetectCrossFilePatternsWithRules() passed after 0.133 seconds.
+✔ Test testAnalyzeStateManagementWithEmptyStateVariables() passed after 0.133 seconds.
+✔ Suite FileAnalysisUtilsViewNameTests passed after 0.135 seconds.
+✔ Suite StateAnalysisEngineEdgeCaseTests passed after 0.135 seconds.
+DEBUG: analyzeProject called with path: '/var/folders/7k/crlp33kj68x50bb82sqty84r0000gn/T/ComplexTestProject'
+DEBUG: categories: ["stateManagement", "accessibility", "performance", "architecture", "codeQuality", "security", "memoryManagement", "networking", "uiPatterns"]
+DEBUG: ruleIdentifiers: []
+DEBUG: findSwiftFiles called with path: '/var/folders/7k/crlp33kj68x50bb82sqty84r0000gn/T/ComplexTestProject'
+DEBUG: Path exists check: true
+DEBUG: Is directory check: true, isDirectory: true
+DEBUG: Directory contents (first 10): ["DetailView.swift", "SettingsView.swift", "ContentView.swift"]
+DEBUG: Creating enumerator...
+DEBUG: Enumerator created successfully
+DEBUG: Found Swift file: '/var/folders/7k/crlp33kj68x50bb82sqty84r0000gn/T/ComplexTestProject/DetailView.swift'
+DEBUG: Found Swift file: '/var/folders/7k/crlp33kj68x50bb82sqty84r0000gn/T/ComplexTestProject/SettingsView.swift'
+DEBUG: Found Swift file: '/var/folders/7k/crlp33kj68x50bb82sqty84r0000gn/T/ComplexTestProject/ContentView.swift'
+DEBUG: Enumerated 3 total files
+DEBUG: All files found: ["DetailView.swift", "SettingsView.swift", "ContentView.swift"]
+DEBUG: findSwiftFiles returning 3 Swift files
+DEBUG: Found 3 project files for analysis
+DEBUG: detectCrossFilePatterns called with 3 files
+DEBUG: Getting visitors for categories: [SwiftProjectLintCore.PatternCategory.stateManagement, SwiftProjectLintCore.PatternCategory.accessibility, SwiftProjectLintCore.PatternCategory.performance, SwiftProjectLintCore.PatternCategory.architecture, SwiftProjectLintCore.PatternCategory.codeQuality, SwiftProjectLintCore.PatternCategory.security, SwiftProjectLintCore.PatternCategory.memoryManagement, SwiftProjectLintCore.PatternCategory.networking, SwiftProjectLintCore.PatternCategory.uiPatterns]
+DEBUG: Registry.getVisitors(for: stateManagement) returning 0 visitors
+DEBUG: Available categories in registry: []
+DEBUG: Category stateManagement has 0 visitors: []
+DEBUG: Registry.getVisitors(for: accessibility) returning 0 visitors
+DEBUG: Available categories in registry: []
+DEBUG: Category accessibility has 0 visitors: []
+DEBUG: Registry.getVisitors(for: performance) returning 0 visitors
+DEBUG: Available categories in registry: []
+DEBUG: Category performance has 0 visitors: []
+DEBUG: Registry.getVisitors(for: architecture) returning 0 visitors
+DEBUG: Available categories in registry: []
+DEBUG: Category architecture has 0 visitors: []
+DEBUG: Registry.getVisitors(for: codeQuality) returning 0 visitors
+DEBUG: Available categories in registry: []
+DEBUG: Category codeQuality has 0 visitors: []
+DEBUG: Registry.getVisitors(for: security) returning 0 visitors
+DEBUG: Available categories in registry: []
+DEBUG: Category security has 0 visitors: []
+DEBUG: Registry.getVisitors(for: memoryManagement) returning 0 visitors
+DEBUG: Available categories in registry: []
+DEBUG: Category memoryManagement has 0 visitors: []
+DEBUG: Registry.getVisitors(for: networking) returning 0 visitors
+DEBUG: Available categories in registry: []
+DEBUG: Category networking has 0 visitors: []
+DEBUG: Registry.getVisitors(for: uiPatterns) returning 0 visitors
+DEBUG: Available categories in registry: []
+DEBUG: Category uiPatterns has 0 visitors: []
+DEBUG: Total visitors from categories: 0
+DEBUG: Total visitors found: 0
+DEBUG: Visitor types: []
+DEBUG: Found 0 cross-file visitors
+DEBUG: analyzeProject returning 0 total issues
+DEBUG: Found 0 issues with all categories
+DEBUG: Detected categories: []
+✔ Test testDetectCrossFilePatternsWithCategories() passed after 0.146 seconds.
+DEBUG [ViewRelationshipVisitor.swift:135] ViewRelationshipVisitor.visit(_:): Visiting struct: TestParent
+✔ Test testAnalyzeProjectWithAllCategories() passed after 0.146 seconds.
+✔ Suite CrossFileAnalysisEngineCategoryRuleTests passed after 0.148 seconds.
+DEBUG [ViewRelationshipVisitor.swift:135] ViewRelationshipVisitor.visit(_:): Visiting struct: TestChild
+DEBUG [StateVariableVisitor.swift:59] StateVariableVisitor.visit(_:): Visiting variable declaration
+DEBUG [StateVariableVisitor.swift:59] StateVariableVisitor.visit(_:): Visiting variable declaration
+DEBUG: analyzeProject called with path: '/var/folders/7k/crlp33kj68x50bb82sqty84r0000gn/T/TestProject'
+DEBUG: categories: ["all"]
+DEBUG: ruleIdentifiers: ["Related Duplicate State Variable", "Missing Accessibility Label"]
+DEBUG: findSwiftFiles called with path: '/var/folders/7k/crlp33kj68x50bb82sqty84r0000gn/T/TestProject'
+DEBUG: Path exists check: true
+DEBUG: Is directory check: true, isDirectory: true
+DEBUG: Directory contents (first 10): ["ContentView.swift"]
+DEBUG: Creating enumerator...
+DEBUG: Enumerator created successfully
+DEBUG: Found Swift file: '/var/folders/7k/crlp33kj68x50bb82sqty84r0000gn/T/TestProject/ContentView.swift'
+DEBUG: Enumerated 1 total files
+DEBUG: All files found: ["ContentView.swift"]
+DEBUG: findSwiftFiles returning 1 Swift files
+DEBUG: Found 1 project files for analysis
+DEBUG: detectCrossFilePatterns (ruleIdentifiers) called with 1 files, rules: ["Related Duplicate State Variable", "Missing Accessibility Label"]
+DEBUG: Found 0 requested patterns
+DEBUG: analyzeProject returning 0 total issues
+DEBUG: Found 0 issues with specific rules
+✔ Test testAnalyzeProjectWithSpecificRules() passed after 0.150 seconds.
+DEBUG: analyzeProject called with path: '/var/folders/7k/crlp33kj68x50bb82sqty84r0000gn/T/TestProject'
+DEBUG: categories: ["stateManagement", "accessibility"]
+DEBUG: ruleIdentifiers: []
+DEBUG: findSwiftFiles called with path: '/var/folders/7k/crlp33kj68x50bb82sqty84r0000gn/T/TestProject'
+DEBUG: Path exists check: true
+DEBUG: Is directory check: true, isDirectory: true
+DEBUG: Directory contents (first 10): ["ContentView.swift"]
+DEBUG: Creating enumerator...
+DEBUG: Enumerator created successfully
+DEBUG: Found Swift file: '/var/folders/7k/crlp33kj68x50bb82sqty84r0000gn/T/TestProject/ContentView.swift'
+DEBUG: Enumerated 1 total files
+DEBUG: All files found: ["ContentView.swift"]
+DEBUG: findSwiftFiles returning 1 Swift files
+DEBUG: Found 1 project files for analysis
+DEBUG: detectCrossFilePatterns called with 1 files
+DEBUG: Getting visitors for categories: [SwiftProjectLintCore.PatternCategory.stateManagement, SwiftProjectLintCore.PatternCategory.accessibility]
+DEBUG: Registry.getVisitors(for: stateManagement) returning 0 visitors
+DEBUG: Available categories in registry: []
+DEBUG: Category stateManagement has 0 visitors: []
+DEBUG: Registry.getVisitors(for: accessibility) returning 0 visitors
+DEBUG: Available categories in registry: []
+DEBUG: Category accessibility has 0 visitors: []
+DEBUG: Total visitors from categories: 0
+DEBUG: Total visitors found: 0
+DEBUG: Visitor types: []
+DEBUG: Found 0 cross-file visitors
+DEBUG: analyzeProject returning 0 total issues
+DEBUG: Found 0 issues with specific categories
+DEBUG: analyzeProject called with path: '/nonexistent/path/to/project'
+DEBUG: categories: ["all"]
+DEBUG: ruleIdentifiers: []
+DEBUG: findSwiftFiles called with path: '/nonexistent/path/to/project'
+DEBUG: Path exists check: false
+DEBUG: Path does not exist: '/nonexistent/path/to/project'
+DEBUG: Found 0 project files for analysis
+DEBUG: detectCrossFilePatterns called with 0 files
+✔ Test testAnalyzeProjectWithSpecificCategories() passed after 0.154 seconds.
+DEBUG: All visitors: 0
+DEBUG: Total visitors found: 0
+DEBUG: Visitor types: []
+DEBUG: Found 0 cross-file visitors
+DEBUG: analyzeProject returning 0 total issues
+DEBUG: Found 0 issues in invalid project
+✔ Test testAnalyzeProjectWithInvalidPath() passed after 0.154 seconds.
+DEBUG: analyzeProject called with path: '/var/folders/7k/crlp33kj68x50bb82sqty84r0000gn/T/EmptyTestProject'
+DEBUG: categories: ["all"]
+DEBUG: ruleIdentifiers: []
+DEBUG: findSwiftFiles called with path: '/var/folders/7k/crlp33kj68x50bb82sqty84r0000gn/T/EmptyTestProject'
+DEBUG: Path exists check: true
+DEBUG: Is directory check: true, isDirectory: true
+DEBUG: Directory contents (first 10): []
+DEBUG: Creating enumerator...
+DEBUG: Enumerator created successfully
+DEBUG: Enumerated 0 total files
+DEBUG: All files found: []
+DEBUG: findSwiftFiles returning 0 Swift files
+DEBUG: Found 0 project files for analysis
+DEBUG: detectCrossFilePatterns called with 0 files
+DEBUG: All visitors: 0
+DEBUG: Total visitors found: 0
+DEBUG: Visitor types: []
+DEBUG: Found 0 cross-file visitors
+DEBUG: analyzeProject returning 0 total issues
+DEBUG: Found 0 issues in empty project
+✔ Test testAnalyzeProjectWithEmptyProject() passed after 0.154 seconds.
+DEBUG: analyzeProject called with path: '/var/folders/7k/crlp33kj68x50bb82sqty84r0000gn/T/ComplexTestProject'
+DEBUG: categories: ["all"]
+DEBUG: ruleIdentifiers: []
+DEBUG: findSwiftFiles called with path: '/var/folders/7k/crlp33kj68x50bb82sqty84r0000gn/T/ComplexTestProject'
+DEBUG: Path exists check: true
+DEBUG: Is directory check: true, isDirectory: true
+DEBUG: Directory contents (first 10): ["DetailView.swift", "SettingsView.swift", "ContentView.swift"]
+DEBUG: Creating enumerator...
+DEBUG: Enumerator created successfully
+DEBUG: Found Swift file: '/var/folders/7k/crlp33kj68x50bb82sqty84r0000gn/T/ComplexTestProject/DetailView.swift'
+DEBUG: Found Swift file: '/var/folders/7k/crlp33kj68x50bb82sqty84r0000gn/T/ComplexTestProject/SettingsView.swift'
+DEBUG: Found Swift file: '/var/folders/7k/crlp33kj68x50bb82sqty84r0000gn/T/ComplexTestProject/ContentView.swift'
+DEBUG: Enumerated 3 total files
+DEBUG: All files found: ["DetailView.swift", "SettingsView.swift", "ContentView.swift"]
+DEBUG: findSwiftFiles returning 3 Swift files
+DEBUG: Found 3 project files for analysis
+DEBUG: detectCrossFilePatterns called with 3 files
+DEBUG: All visitors: 0
+DEBUG: Total visitors found: 0
+DEBUG: Visitor types: []
+DEBUG: Found 0 cross-file visitors
+DEBUG: analyzeProject returning 0 total issues
+DEBUG: Found 0 issues in complex project
+DEBUG: Detected issue categories: []
+✔ Test testAnalyzeProjectWithComplexProject() passed after 0.168 seconds.
+DEBUG: analyzeProject called with path: '/var/folders/7k/crlp33kj68x50bb82sqty84r0000gn/T/TestProject'
+DEBUG: categories: ["all"]
+DEBUG: ruleIdentifiers: []
+DEBUG: findSwiftFiles called with path: '/var/folders/7k/crlp33kj68x50bb82sqty84r0000gn/T/TestProject'
+DEBUG: Path exists check: true
+DEBUG: Is directory check: true, isDirectory: true
+DEBUG: Directory contents (first 10): ["ContentView.swift"]
+DEBUG: Creating enumerator...
+DEBUG: Enumerator created successfully
+DEBUG: Found Swift file: '/var/folders/7k/crlp33kj68x50bb82sqty84r0000gn/T/TestProject/ContentView.swift'
+DEBUG: Enumerated 1 total files
+DEBUG: All files found: ["ContentView.swift"]
+DEBUG: findSwiftFiles returning 1 Swift files
+DEBUG: Found 1 project files for analysis
+DEBUG: detectCrossFilePatterns called with 1 files
+DEBUG: All visitors: 0
+DEBUG: Total visitors found: 0
+DEBUG: Visitor types: []
+DEBUG: Found 0 cross-file visitors
+DEBUG: analyzeProject returning 0 total issues
+DEBUG: Found 0 issues in valid project
+✔ Test testAnalyzeProjectWithValidPath() passed after 0.172 seconds.
+✔ Test testDetectCrossFilePatternsWithDuplicateStateVariables() passed after 0.172 seconds.
+✔ Suite CrossFileAnalysisEngineDuplicateStateTests passed after 0.175 seconds.
+DEBUG: analyzeProject called with path: '/var/folders/7k/crlp33kj68x50bb82sqty84r0000gn/T/ComplexTestProject'
+DEBUG: categories: ["all"]
+DEBUG: ruleIdentifiers: ["Related Duplicate State Variable", "Unrelated Duplicate State Variable", "Uninitialized State Variable", "Missing StateObject", "Unused State Variable", "Fat View", "Expensive Operation in View Body", "ForEach Without ID", "Large View Body", "ForEach Self ID", "Unnecessary View Update", "Missing Dependency Injection", "Fat View Detection", "Magic Number", "Long Function", "Hardcoded Strings", "Missing Documentation", "Hardcoded Secret", "Unsafe URL", "Missing Accessibility Label", "Missing Accessibility Hint", "Inaccessible Color Usage", "Potential Retain Cycle", "Large Object in State", "Missing Error Handling", "Synchronous Network Call", "Nested Navigation View", "Missing Preview", "ForEach With Self ID", "ForEach Without ID UI", "Inconsistent Styling", "Basic Error Handling", "File Parsing Error"]
+DEBUG: findSwiftFiles called with path: '/var/folders/7k/crlp33kj68x50bb82sqty84r0000gn/T/ComplexTestProject'
+DEBUG: Path exists check: true
+DEBUG: Is directory check: true, isDirectory: true
+DEBUG: Directory contents (first 10): ["DetailView.swift", "SettingsView.swift", "ContentView.swift"]
+DEBUG: Creating enumerator...
+DEBUG: Enumerator created successfully
+DEBUG: Found Swift file: '/var/folders/7k/crlp33kj68x50bb82sqty84r0000gn/T/ComplexTestProject/DetailView.swift'
+DEBUG: Found Swift file: '/var/folders/7k/crlp33kj68x50bb82sqty84r0000gn/T/ComplexTestProject/SettingsView.swift'
+DEBUG: Found Swift file: '/var/folders/7k/crlp33kj68x50bb82sqty84r0000gn/T/ComplexTestProject/ContentView.swift'
+DEBUG: Enumerated 3 total files
+DEBUG: All files found: ["DetailView.swift", "SettingsView.swift", "ContentView.swift"]
+DEBUG: findSwiftFiles returning 3 Swift files
+DEBUG: Found 3 project files for analysis
+DEBUG: detectCrossFilePatterns (ruleIdentifiers) called with 3 files, rules: ["Related Duplicate State Variable", "Unrelated Duplicate State Variable", "Uninitialized State Variable", "Missing StateObject", "Unused State Variable", "Fat View", "Expensive Operation in View Body", "ForEach Without ID", "Large View Body", "ForEach Self ID", "Unnecessary View Update", "Missing Dependency Injection", "Fat View Detection", "Magic Number", "Long Function", "Hardcoded Strings", "Missing Documentation", "Hardcoded Secret", "Unsafe URL", "Missing Accessibility Label", "Missing Accessibility Hint", "Inaccessible Color Usage", "Potential Retain Cycle", "Large Object in State", "Missing Error Handling", "Synchronous Network Call", "Nested Navigation View", "Missing Preview", "ForEach With Self ID", "ForEach Without ID UI", "Inconsistent Styling", "Basic Error Handling", "File Parsing Error"]
+DEBUG: Found 0 requested patterns
+DEBUG: analyzeProject returning 0 total issues
+DEBUG: Found 0 issues with all rules
+DEBUG: Detected rules: []
+✔ Test testFindSwiftFilesWithEmptyDirectory() passed after 0.184 seconds.
+✔ Test testAnalyzeProjectWithAllRules() passed after 0.184 seconds.
+✔ Test testFindSwiftFilesWithLargeProject() passed after 0.184 seconds.
+✔ Test testFindSwiftFilesWithNonSwiftFiles() passed after 0.184 seconds.
+✔ Test testFindSwiftFilesWithInvalidDirectory() passed after 0.184 seconds.
+✔ Test testFindSwiftFilesWithFileInsteadOfDirectory() passed after 0.184 seconds.
+✔ Test testFindSwiftFilesWithHiddenFiles() passed after 0.184 seconds.
+🔍 binding type: PatternBindingSyntax, description: isLoading = false
+🔍 binding type: PatternBindingSyntax, description: body: some View {
+        ChildView()
+    }
+🔍 Fallback analyzing binding description for error handling: body: some View {
+        ChildView()
+    }
+🔍 hasErrorHandling: false, hasProperUI: false
+🔍 binding type: PatternBindingSyntax, description: isLoading = false
+🔍 binding type: PatternBindingSyntax, description: body: some View {
+        ChildView()
+    }
+🔍 Fallback analyzing binding description for error handling: body: some View {
+        ChildView()
+    }
+🔍 hasErrorHandling: false, hasProperUI: false
+🔍 binding type: PatternBindingSyntax, description: isLoading = false
+🔍 binding type: PatternBindingSyntax, description: body: some View {
+        ChildView()
+    }
+🔍 Fallback analyzing binding description for error handling: body: some View {
+        ChildView()
+    }
+🔍 hasErrorHandling: false, hasProperUI: false
+🔍 binding type: PatternBindingSyntax, description: isLoading = false
+🔍 binding type: PatternBindingSyntax, description: body: some View {
+        ChildView()
+    }
+🔍 Fallback analyzing binding description for error handling: body: some View {
+        ChildView()
+    }
+🔍 hasErrorHandling: false, hasProperUI: false
+🔍 binding type: PatternBindingSyntax, description: isLoading = false
+🔍 binding type: PatternBindingSyntax, description: body: some View {
+        ChildView()
+    }
+🔍 Fallback analyzing binding description for error handling: body: some View {
+        ChildView()
+    }
+🔍 hasErrorHandling: false, hasProperUI: false
+🔍 binding type: PatternBindingSyntax, description: isLoading = false
+🔍 binding type: PatternBindingSyntax, description: body: some View {
+        ChildView()
+    }
+🔍 Fallback analyzing binding description for error handling: body: some View {
+        ChildView()
+    }
+🔍 hasErrorHandling: false, hasProperUI: false
+🔍 binding type: PatternBindingSyntax, description: isLoading: Bool
+🔍 binding type: PatternBindingSyntax, description: body: some View {
+        Text("Hello")
+    }
+🔍 Fallback analyzing binding description for error handling: body: some View {
+        Text("Hello")
+    }
+🔍 hasErrorHandling: false, hasProperUI: false
+🔍 Collected modifiers for Text: []
+🔍 binding type: PatternBindingSyntax, description: isLoading: Bool
+🔍 binding type: PatternBindingSyntax, description: body: some View {
+        Text("Hello")
+    }
+🔍 Fallback analyzing binding description for error handling: body: some View {
+        Text("Hello")
+    }
+🔍 hasErrorHandling: false, hasProperUI: false
+🔍 Collected modifiers for Text: []
+🔍 binding type: PatternBindingSyntax, description: isLoading: Bool
+🔍 binding type: PatternBindingSyntax, description: body: some View {
+        Text("Hello")
+    }
+🔍 Fallback analyzing binding description for error handling: body: some View {
+        Text("Hello")
+    }
+🔍 hasErrorHandling: false, hasProperUI: false
+🔍 Collected modifiers for Text: []
+🔍 binding type: PatternBindingSyntax, description: isLoading: Bool
+🔍 binding type: PatternBindingSyntax, description: body: some View {
+        Text("Hello")
+    }
+🔍 Fallback analyzing binding description for error handling: body: some View {
+        Text("Hello")
+    }
+🔍 hasErrorHandling: false, hasProperUI: false
+🔍 Collected modifiers for Text: []
+🔍 binding type: PatternBindingSyntax, description: isLoading: Bool
+🔍 binding type: PatternBindingSyntax, description: body: some View {
+        Text("Hello")
+    }
+🔍 Fallback analyzing binding description for error handling: body: some View {
+        Text("Hello")
+    }
+🔍 hasErrorHandling: false, hasProperUI: false
+🔍 Collected modifiers for Text: []
+🔍 binding type: PatternBindingSyntax, description: isLoading: Bool
+🔍 binding type: PatternBindingSyntax, description: body: some View {
+        Text("Hello")
+    }
+🔍 Fallback analyzing binding description for error handling: body: some View {
+        Text("Hello")
+    }
+🔍 hasErrorHandling: false, hasProperUI: false
+🔍 Collected modifiers for Text: []
+✔ Test testDetectArchitecturalAntiPatternsWithMissingEnvironmentObjects() passed after 0.193 seconds.
+✔ Test testFindSwiftFilesWithSpecialCharacters() passed after 0.193 seconds.
+✔ Test testDetectArchitecturalAntiPatternsWithMultipleIssues_MissingEnvironment() passed after 0.193 seconds.
+✔ Test testAnalyzeStateManagementWithUninitializedState() passed after 0.193 seconds.
+✔ Suite StateAnalysisEngineUninitializedStateTests passed after 0.196 seconds.
+✔ Suite ArchitectureEnvironmentObjectTests passed after 0.196 seconds.
+✔ Test testFindSwiftFilesWithValidDirectory() passed after 0.193 seconds.
+✔ Test testFindSwiftFilesWithNestedStructure() passed after 0.193 seconds.
+✔ Test testProjectLinterInitialization() passed after 0.193 seconds.
+✔ Suite FileAnalysisUtilsFindSwiftFilesTests passed after 0.196 seconds.
+DEBUG [ArchitectureVisitor.swift:37] ArchitectureVisitor.visit(_:): Visiting struct: TestView
+DEBUG: analyzeProject called with path: '/var/folders/7k/crlp33kj68x50bb82sqty84r0000gn/T/ComplexTestProject'
+DEBUG: categories: ["all"]
+DEBUG: ruleIdentifiers: []
+DEBUG: findSwiftFiles called with path: '/var/folders/7k/crlp33kj68x50bb82sqty84r0000gn/T/ComplexTestProject'
+DEBUG: Path exists check: true
+DEBUG: Is directory check: true, isDirectory: true
+DEBUG: Directory contents (first 10): ["DetailView.swift", "SettingsView.swift", "ContentView.swift"]
+DEBUG: Creating enumerator...
+DEBUG: Enumerator created successfully
+DEBUG: Found Swift file: '/var/folders/7k/crlp33kj68x50bb82sqty84r0000gn/T/ComplexTestProject/DetailView.swift'
+DEBUG: Found Swift file: '/var/folders/7k/crlp33kj68x50bb82sqty84r0000gn/T/ComplexTestProject/SettingsView.swift'
+DEBUG: Found Swift file: '/var/folders/7k/crlp33kj68x50bb82sqty84r0000gn/T/ComplexTestProject/ContentView.swift'
+DEBUG: Enumerated 3 total files
+DEBUG: All files found: ["DetailView.swift", "SettingsView.swift", "ContentView.swift"]
+DEBUG: findSwiftFiles returning 3 Swift files
+DEBUG: Found 3 project files for analysis
+DEBUG: detectCrossFilePatterns called with 3 files
+DEBUG: All visitors: 0
+DEBUG: Total visitors found: 0
+DEBUG: Visitor types: []
+DEBUG: Found 0 cross-file visitors
+DEBUG: analyzeProject returning 0 total issues
+DEBUG: Analysis took 0.011044979095458984 seconds
+DEBUG: detectCrossFilePatterns (ruleIdentifiers) called with 2 files, rules: ["Related Duplicate State Variable"]
+✔ Test testAnalyzeProjectPerformance() passed after 0.210 seconds.
+✔ Test testDetectArchitecturalAntiPatternsWithInconsistentDataFlow() passed after 0.210 seconds.
+✔ Suite ArchitectureDataFlowTests passed after 0.213 seconds.
+✔ Suite ProjectLinterTests passed after 0.214 seconds.
+DEBUG: Found 0 requested patterns
+✔ Test testCrossFilePatternDetection() passed after 0.212 seconds.
+✔ Test testDetectPatternsInSourceCode() passed after 0.213 seconds.
+✔ Test testDetectPatternsWithSpecificRules() passed after 0.213 seconds.
+✔ Test testDetectArchitecturalAntiPatternsWithEmptyInput() passed after 0.213 seconds.
+✔ Test testArchitectureIssueDetectorPerformance() passed after 0.213 seconds.
+✔ Suite ArchitecturePerformanceTests passed after 0.217 seconds.
+DEBUG: detectCrossFilePatterns (ruleIdentifiers) called with 1 files, rules: ["Related Duplicate State Variable"]
+DEBUG: Found 0 requested patterns
+✔ Test testDetectPatternsInProject() passed after 0.214 seconds.
+✔ Test testDetectArchitecturalAntiPatternsWithValidArchitecture() passed after 0.215 seconds.
+✔ Suite ArchitectureValidArchitectureTests passed after 0.218 seconds.
+✔ Test testInvalidSwiftCode() passed after 0.215 seconds.
+✔ Test testEmptySourceCode() passed after 0.215 seconds.
+✔ Test testSuggestImprovementsWithMultipleStateVariables() passed after 0.215 seconds.
+✔ Test testSuggestImprovementsWithEmptyStateVariables() passed after 0.215 seconds.
+✔ Test testPatternRegistryIntegration() passed after 0.215 seconds.
+✔ Test testAnalyzeStateManagementWithDuplicateStateVariables() passed after 0.215 seconds.
+✔ Test testCrossFileAnalysisEngineInitialization() passed after 0.214 seconds.
+✔ Test testAnalyzeStateManagementWithMissingStateObject() passed after 0.214 seconds.
+✔ Suite CrossFileAnalysisEngineInitializationTests passed after 0.218 seconds.
+✔ Suite StateAnalysisEngineMissingStateObjectTests passed after 0.218 seconds.
+✔ Test testAnalyzeStateManagementWithUnrelatedDuplicateStateVariables() passed after 0.215 seconds.
+✔ Test testSuggestImprovementsWithSharedState() passed after 0.215 seconds.
+✔ Test testPatternDetectorInitialization() passed after 0.215 seconds.
+✔ Suite StateAnalysisEngineSuggestionTests passed after 0.218 seconds.
+✔ Test testAnalyzeStateManagementWithComplexHierarchy() passed after 0.215 seconds.
+✔ Suite PatternDetectorTests passed after 0.218 seconds.
+✔ Suite StateAnalysisEngineDuplicateStateTests passed after 0.218 seconds.
+✔ Test testResultsNotShownWhenAnalyzing() passed after 0.222 seconds.
+DEBUG [AccessibilityTextColorTests.swift:42] testLongTextMissingAccessibility(): Detected issues count: 1
+DEBUG [AccessibilityTextColorTests.swift:44] testLongTextMissingAccessibility(): Issue 0: Long text content may benefit from accessibility features
+✔ Test testResultsNotShownWhenNoIssues() passed after 0.223 seconds.
+DEBUG [AccessibilityVisitor.swift:103] visit(_:): Visiting FunctionCallExpr - name: 
+        Text
+DEBUG [AccessibilityVisitor.swift:122] AccessibilityVisitor.visit(_:): Found Text initialization
+DEBUG [TextAccessibilityChecker.swift:16] AccessibilityVisitor.checkAccessibility(_:): checkTextAccessibility called
+DEBUG [TextAccessibilityChecker.swift:30] AccessibilityVisitor.checkAccessibility(_:): Checking text: 'Hello World' with length 11, threshold: 5
+DEBUG [TextAccessibilityChecker.swift:73] AccessibilityVisitor.isLongText(_:): isLongText called with 11 characters
+DEBUG [TextAccessibilityChecker.swift:74] AccessibilityVisitor.isLongText(_:): isLongText - checking text: 'Hello World' with length 11, threshold: 5
+DEBUG [TextAccessibilityChecker.swift:78] AccessibilityVisitor.isLongText(_:): isLongText - returning true for long text
+DEBUG [TextAccessibilityChecker.swift:35] AccessibilityVisitor.checkAccessibility(_:): Text is long, checking for accessibility modifier
+DEBUG [TextAccessibilityChecker.swift:49] checkAccessibility(_:): ISSUE DETECTED: Long text without accessibility features
+✔ Test testSimpleTextDetectionInView() passed after 0.223 seconds.
+DEBUG [AccessibilityVisitor.swift:103] visit(_:): Visiting FunctionCallExpr - name: Text
+DEBUG [AccessibilityVisitor.swift:122] AccessibilityVisitor.visit(_:): Found Text initialization
+DEBUG [TextAccessibilityChecker.swift:16] AccessibilityVisitor.checkAccessibility(_:): checkTextAccessibility called
+DEBUG [TextAccessibilityChecker.swift:30] AccessibilityVisitor.checkAccessibility(_:): Checking text: 'Hello World' with length 11, threshold: 5
+DEBUG [TextAccessibilityChecker.swift:73] AccessibilityVisitor.isLongText(_:): isLongText called with 11 characters
+DEBUG [TextAccessibilityChecker.swift:74] AccessibilityVisitor.isLongText(_:): isLongText - checking text: 'Hello World' with length 11, threshold: 5
+DEBUG [TextAccessibilityChecker.swift:78] AccessibilityVisitor.isLongText(_:): isLongText - returning true for long text
+DEBUG [TextAccessibilityChecker.swift:35] AccessibilityVisitor.checkAccessibility(_:): Text is long, checking for accessibility modifier
+DEBUG [TextAccessibilityChecker.swift:49] checkAccessibility(_:): ISSUE DETECTED: Long text without accessibility features
+✔ Test testSimpleTextDetection() passed after 0.223 seconds.
+✔ Test testDetectCrossFilePatternsWithInvalidFiles() passed after 0.220 seconds.
+✔ Test testDetectCrossFilePatternsWithMixedValidInvalidFiles() passed after 0.220 seconds.
+DEBUG [AccessibilityVisitor.swift:103] visit(_:): Visiting FunctionCallExpr - name: 
+        Text
+DEBUG [AccessibilityVisitor.swift:122] AccessibilityVisitor.visit(_:): Found Text initialization
+✔ Test testResultsShownWhenIssuesAndNotAnalyzing() passed after 0.223 seconds.
+DEBUG [TextAccessibilityChecker.swift:16] AccessibilityVisitor.checkAccessibility(_:): checkTextAccessibility called
+✔ Suite ContentViewResultsTests passed after 0.225 seconds.
+DEBUG [TextAccessibilityChecker.swift:30] AccessibilityVisitor.checkAccessibility(_:): Checking text: 'This is a medium length text' with length 28, threshold: 10
+DEBUG [TextAccessibilityChecker.swift:73] AccessibilityVisitor.isLongText(_:): isLongText called with 28 characters
+DEBUG [TextAccessibilityChecker.swift:74] AccessibilityVisitor.isLongText(_:): isLongText - checking text: 'This is a medium length text' with length 28, threshold: 10
+DEBUG [TextAccessibilityChecker.swift:78] AccessibilityVisitor.isLongText(_:): isLongText - returning true for long text
+DEBUG [TextAccessibilityChecker.swift:35] AccessibilityVisitor.checkAccessibility(_:): Text is long, checking for accessibility modifier
+DEBUG [TextAccessibilityChecker.swift:49] checkAccessibility(_:): ISSUE DETECTED: Long text without accessibility features
+✔ Test testDetectCrossFilePatternsWithArchitectureIssues() passed after 0.220 seconds.
+✔ Test testOriginalTextWithLowerThreshold() passed after 0.223 seconds.
+✔ Test testDetectCrossFilePatternsWithEmptyProject() passed after 0.220 seconds.
+DEBUG [SwiftUIManagementVisitor.swift:75] SwiftUIManagementVisitor.visit(_:): Visiting struct: TestView
+✔ Suite CrossFileAnalysisEngineArchitectureIssueTests passed after 0.224 seconds.
+✔ Suite AccessibilityConfigurationSimpleTextTests passed after 0.225 seconds.
+DEBUG [SwiftUIManagementVisitor.swift:75] SwiftUIManagementVisitor.visit(_:): Visiting struct: TestView
+✔ Test testDetectCrossFilePatternsWithSingleFile() passed after 0.220 seconds.
+✔ Test testActionsWithoutSelectedDirectory() passed after 0.223 seconds.
+✔ Test testDetectArchitecturalAntiPatternsWithEdgeCases() passed after 0.221 seconds.
+DEBUG [SwiftUIManagementVisitor.swift:75] SwiftUIManagementVisitor.visit(_:): Visiting struct: TestView
+DEBUG [SwiftUIManagementVisitor.swift:75] SwiftUIManagementVisitor.visit(_:): Visiting struct: TestView
+✔ Suite CrossFileAnalysisEngineProjectEdgeCaseTests passed after 0.224 seconds.
+✔ Suite ArchitectureEdgeCaseTests passed after 0.224 seconds.
+DEBUG [SwiftUIManagementVisitor.swift:75] SwiftUIManagementVisitor.visit(_:): Visiting struct: TestView
+DEBUG [ArchitectureVisitor.swift:37] ArchitectureVisitor.visit(_:): Visiting struct: TestView
+✔ Test stateManagementVisitorUninitializedState() passed after 0.223 seconds.
+✔ Test testActionsWithSelectedDirectory() passed after 0.223 seconds.
+DEBUG [AccessibilityVisitor.swift:103] visit(_:): Visiting FunctionCallExpr - name: 
+        Text
+✔ Suite ContentViewActionsTests passed after 0.225 seconds.
+DEBUG [AccessibilityVisitor.swift:122] AccessibilityVisitor.visit(_:): Found Text initialization
+DEBUG [TextAccessibilityChecker.swift:16] AccessibilityVisitor.checkAccessibility(_:): checkTextAccessibility called
+DEBUG [TextAccessibilityChecker.swift:30] AccessibilityVisitor.checkAccessibility(_:): Checking text: 'Short text' with length 10, threshold: 5
+DEBUG [TextAccessibilityChecker.swift:73] AccessibilityVisitor.isLongText(_:): isLongText called with 10 characters
+DEBUG [TextAccessibilityChecker.swift:74] AccessibilityVisitor.isLongText(_:): isLongText - checking text: 'Short text' with length 10, threshold: 5
+DEBUG [TextAccessibilityChecker.swift:78] AccessibilityVisitor.isLongText(_:): isLongText - returning true for long text
+DEBUG [TextAccessibilityChecker.swift:35] AccessibilityVisitor.checkAccessibility(_:): Text is long, checking for accessibility modifier
+DEBUG [TextAccessibilityChecker.swift:49] checkAccessibility(_:): ISSUE DETECTED: Long text without accessibility features
+✔ Test testStrictConfiguration() passed after 0.223 seconds.
+DEBUG [SwiftUIManagementVisitor.swift:75] SwiftUIManagementVisitor.visit(_:): Visiting struct: TestView
+DEBUG [SwiftUIManagementVisitor.swift:75] SwiftUIManagementVisitor.visit(_:): Visiting struct: TestView
+DEBUG [SwiftUIManagementVisitor.swift:75] SwiftUIManagementVisitor.visit(_:): Visiting struct: TestView
+DEBUG [SwiftUIManagementVisitor.swift:75] SwiftUIManagementVisitor.visit(_:): Visiting struct: TestView
+DEBUG [SwiftUIManagementVisitor.swift:75] SwiftUIManagementVisitor.visit(_:): Visiting struct: TestView
+DEBUG [ArchitectureVisitor.swift:37] ArchitectureVisitor.visit(_:): Visiting struct: TestView
+✔ Test stateManagementVisitorValidState() passed after 0.224 seconds.
+DEBUG [AccessibilityVisitor.swift:103] visit(_:): Visiting FunctionCallExpr - name: 
+        Text
+DEBUG [AccessibilityVisitor.swift:122] AccessibilityVisitor.visit(_:): Found Text initialization
+DEBUG [TextAccessibilityChecker.swift:16] AccessibilityVisitor.checkAccessibility(_:): checkTextAccessibility called
+DEBUG [TextAccessibilityChecker.swift:30] AccessibilityVisitor.checkAccessibility(_:): Checking text: 'This is a very long text that should definitely be detected as long text content' with length 80, threshold: 20
+DEBUG [TextAccessibilityChecker.swift:73] AccessibilityVisitor.isLongText(_:): isLongText called with 80 characters
+DEBUG [TextAccessibilityChecker.swift:74] AccessibilityVisitor.isLongText(_:): isLongText - checking text: 'This is a very long text that should definitely be detected as long text content' with length 80, threshold: 20
+DEBUG [TextAccessibilityChecker.swift:78] AccessibilityVisitor.isLongText(_:): isLongText - returning true for long text
+DEBUG [TextAccessibilityChecker.swift:35] AccessibilityVisitor.checkAccessibility(_:): Text is long, checking for accessibility modifier
+DEBUG [TextAccessibilityChecker.swift:49] checkAccessibility(_:): ISSUE DETECTED: Long text without accessibility features
+✔ Test testHeaderStructureAndContent() passed after 0.224 seconds.
+DEBUG [SwiftUIManagementVisitor.swift:75] SwiftUIManagementVisitor.visit(_:): Visiting struct: TestView
+✔ Test testCustomConfigurationWithLongerText() passed after 0.224 seconds.
+DEBUG [SwiftUIManagementVisitor.swift:75] SwiftUIManagementVisitor.visit(_:): Visiting struct: TestView
+✔ Suite ContentViewHeaderTests passed after 0.225 seconds.
+DEBUG [SwiftUIManagementVisitor.swift:75] SwiftUIManagementVisitor.visit(_:): Visiting struct: TestView
+DEBUG [SwiftUIManagementVisitor.swift:75] SwiftUIManagementVisitor.visit(_:): Visiting struct: TestView
+DEBUG [SwiftUIManagementVisitor.swift:75] SwiftUIManagementVisitor.visit(_:): Visiting struct: TestView
+DEBUG [ArchitectureVisitor.swift:37] ArchitectureVisitor.visit(_:): Visiting struct: TestView
+✔ Test stateManagementVisitorFatView() passed after 0.224 seconds.
+DEBUG [SwiftUIManagementVisitor.swift:75] SwiftUIManagementVisitor.visit(_:): Visiting struct: TestView
+DEBUG [SwiftUIManagementVisitor.swift:75] SwiftUIManagementVisitor.visit(_:): Visiting struct: TestView
+DEBUG [SwiftUIManagementVisitor.swift:75] SwiftUIManagementVisitor.visit(_:): Visiting struct: TestView
+DEBUG [SwiftUIManagementVisitor.swift:75] SwiftUIManagementVisitor.visit(_:): Visiting struct: TestView
+DEBUG [SwiftUIManagementVisitor.swift:75] SwiftUIManagementVisitor.visit(_:): Visiting struct: TestView
+DEBUG [ArchitectureVisitor.swift:37] ArchitectureVisitor.visit(_:): Visiting struct: TestView
+✔ Test stateManagementVisitorMissingStateObject() passed after 0.224 seconds.
+DEBUG [AccessibilityVisitor.swift:103] visit(_:): Visiting FunctionCallExpr - name: 
+        Text
+DEBUG [AccessibilityVisitor.swift:122] AccessibilityVisitor.visit(_:): Found Text initialization
+✔ Suite "StateManagementVisitorTests" passed after 0.226 seconds.
+DEBUG [TextAccessibilityChecker.swift:16] AccessibilityVisitor.checkAccessibility(_:): checkTextAccessibility called
+DEBUG [TextAccessibilityChecker.swift:30] AccessibilityVisitor.checkAccessibility(_:): Checking text: 'This is a medium length text' with length 28, threshold: 20
+DEBUG [TextAccessibilityChecker.swift:73] AccessibilityVisitor.isLongText(_:): isLongText called with 28 characters
+DEBUG [TextAccessibilityChecker.swift:74] AccessibilityVisitor.isLongText(_:): isLongText - checking text: 'This is a medium length text' with length 28, threshold: 20
+DEBUG [TextAccessibilityChecker.swift:78] AccessibilityVisitor.isLongText(_:): isLongText - returning true for long text
+DEBUG [TextAccessibilityChecker.swift:35] AccessibilityVisitor.checkAccessibility(_:): Text is long, checking for accessibility modifier
+DEBUG [TextAccessibilityChecker.swift:49] checkAccessibility(_:): ISSUE DETECTED: Long text without accessibility features
+DEBUG [PerformanceVisitor.swift:43] PerformanceVisitor.visit(_:): Visiting SwiftUI view: TestView
+✔ Test testCustomConfiguration() passed after 0.224 seconds.
+✔ Test testProgressWhenNotAnalyzing() passed after 0.224 seconds.
+DEBUG [PerformanceVisitor.swift:43] PerformanceVisitor.visit(_:): Visiting SwiftUI view: TestView
+DEBUG [PerformanceVisitor.swift:43] PerformanceVisitor.visit(_:): Visiting SwiftUI view: TestView
+✔ Suite AccessibilityConfigurationStrictTests passed after 0.226 seconds.
+DEBUG [ForEachSelfIDVisitor.swift:23] ForEachSelfIDVisitor.visit(_:): Visiting FunctionCallExprSyntax
+DEBUG [ForEachSelfIDVisitor.swift:23] ForEachSelfIDVisitor.visit(_:): Visiting FunctionCallExprSyntax
+DEBUG [ForEachSelfIDVisitor.swift:23] ForEachSelfIDVisitor.visit(_:): Visiting FunctionCallExprSyntax
+DEBUG [PerformanceVisitor.swift:43] PerformanceVisitor.visit(_:): Visiting SwiftUI view: TestView
+DEBUG [PerformanceVisitor.swift:43] PerformanceVisitor.visit(_:): Visiting SwiftUI view: TestView
+✔ Test performanceVisitorForEachWithID() passed after 0.224 seconds.
+✔ Test testProgressWhenAnalyzing() passed after 0.224 seconds.
+DEBUG [PerformanceVisitor.swift:43] PerformanceVisitor.visit(_:): Visiting SwiftUI view: TestView
+✔ Suite ContentViewProgressTests passed after 0.226 seconds.
+DEBUG [PerformanceVisitor.swift:43] PerformanceVisitor.visit(_:): Visiting SwiftUI view: TestView
+DEBUG [ForEachSelfIDVisitor.swift:23] ForEachSelfIDVisitor.visit(_:): Visiting FunctionCallExprSyntax
+DEBUG [ForEachSelfIDVisitor.swift:23] ForEachSelfIDVisitor.visit(_:): Visiting FunctionCallExprSyntax
+DEBUG [ForEachSelfIDVisitor.swift:23] ForEachSelfIDVisitor.visit(_:): Visiting FunctionCallExprSyntax
+DEBUG [PerformanceVisitor.swift:43] PerformanceVisitor.visit(_:): Visiting SwiftUI view: TestView
+✔ Test performanceVisitorForEachWithoutID() passed after 0.224 seconds.
+DEBUG [StateVariableVisitor.swift:59] StateVariableVisitor.visit(_:): Visiting variable declaration
+✔ Suite "SwiftSyntaxPatternDetectorPerformanceTests" passed after 0.226 seconds.
+DEBUG [StateVariableVisitor.swift:59] StateVariableVisitor.visit(_:): Visiting variable declaration
+DEBUG [StateVariableVisitor.swift:59] StateVariableVisitor.visit(_:): Visiting variable declaration
+DEBUG [StateVariableVisitor.swift:59] StateVariableVisitor.visit(_:): Visiting variable declaration
+DEBUG [StateVariableVisitor.swift:59] StateVariableVisitor.visit(_:): Visiting variable declaration
+DEBUG [StateVariableVisitor.swift:59] StateVariableVisitor.visit(_:): Visiting variable declaration
+DEBUG [StateVariableVisitor.swift:59] StateVariableVisitor.visit(_:): Visiting variable declaration
+DEBUG [StateVariableVisitor.swift:59] StateVariableVisitor.visit(_:): Visiting variable declaration
+DEBUG [StateVariableVisitor.swift:59] StateVariableVisitor.visit(_:): Visiting variable declaration
+DEBUG [StateVariableVisitor.swift:59] StateVariableVisitor.visit(_:): Visiting variable declaration
+DEBUG [StateVariableVisitor.swift:59] StateVariableVisitor.visit(_:): Visiting variable declaration
+DEBUG [StateVariableVisitor.swift:59] StateVariableVisitor.visit(_:): Visiting variable declaration
+DEBUG [StateVariableVisitor.swift:59] StateVariableVisitor.visit(_:): Visiting variable declaration
+DEBUG [StateVariableVisitor.swift:59] StateVariableVisitor.visit(_:): Visiting variable declaration
+DEBUG [StateVariableVisitor.swift:59] StateVariableVisitor.visit(_:): Visiting variable declaration
+DEBUG [StateVariableVisitor.swift:59] StateVariableVisitor.visit(_:): Visiting variable declaration
+DEBUG [StateVariableVisitor.swift:59] StateVariableVisitor.visit(_:): Visiting variable declaration
+DEBUG [StateVariableVisitor.swift:59] StateVariableVisitor.visit(_:): Visiting variable declaration
+DEBUG [StateVariableVisitor.swift:59] StateVariableVisitor.visit(_:): Visiting variable declaration
+DEBUG [StateVariableVisitor.swift:59] StateVariableVisitor.visit(_:): Visiting variable declaration
+DEBUG [StateVariableVisitor.swift:59] StateVariableVisitor.visit(_:): Visiting variable declaration
+DEBUG [StateVariableVisitor.swift:59] StateVariableVisitor.visit(_:): Visiting variable declaration
+DEBUG [StateVariableVisitor.swift:59] StateVariableVisitor.visit(_:): Visiting variable declaration
+DEBUG [StateVariableVisitor.swift:59] StateVariableVisitor.visit(_:): Visiting variable declaration
+DEBUG [StateVariableVisitor.swift:59] StateVariableVisitor.visit(_:): Visiting variable declaration
+DEBUG: About to walk source file
+DEBUG: Finished walking source file
+DEBUG: Detected issues count: 1
+DEBUG [AccessibilityVisitor.swift:103] visit(_:): Visiting FunctionCallExpr - name: 
+        Text
+DEBUG [AccessibilityVisitor.swift:122] AccessibilityVisitor.visit(_:): Found Text initialization
+DEBUG [TextAccessibilityChecker.swift:16] AccessibilityVisitor.checkAccessibility(_:): checkTextAccessibility called
+DEBUG [TextAccessibilityChecker.swift:30] AccessibilityVisitor.checkAccessibility(_:): Checking text: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ' with length 26, threshold: 10
+DEBUG [TextAccessibilityChecker.swift:73] AccessibilityVisitor.isLongText(_:): isLongText called with 26 characters
+DEBUG [TextAccessibilityChecker.swift:74] AccessibilityVisitor.isLongText(_:): isLongText - checking text: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ' with length 26, threshold: 10
+DEBUG [TextAccessibilityChecker.swift:78] AccessibilityVisitor.isLongText(_:): isLongText - returning true for long text
+DEBUG [TextAccessibilityChecker.swift:35] AccessibilityVisitor.checkAccessibility(_:): Text is long, checking for accessibility modifier
+DEBUG [TextAccessibilityChecker.swift:49] checkAccessibility(_:): ISSUE DETECTED: Long text without accessibility features
+✔ Test testTextWithoutModifier() passed after 0.226 seconds.
+DEBUG: AST structure:
+struct ContentView: View {
+    var body: some View {
+        Button {
+            // action
+        } label: {
+            Text("Submit Form")
+        }
+    }
+}
+DEBUG [AccessibilityVisitor.swift:103] visit(_:): Visiting FunctionCallExpr - name: 
+        Text
+DEBUG [AccessibilityVisitor.swift:122] AccessibilityVisitor.visit(_:): Found Text initialization
+DEBUG [TextAccessibilityChecker.swift:16] AccessibilityVisitor.checkAccessibility(_:): checkTextAccessibility called
+DEBUG [TextAccessibilityChecker.swift:30] AccessibilityVisitor.checkAccessibility(_:): Checking text: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ' with length 26, threshold: 10
+DEBUG [TextAccessibilityChecker.swift:73] AccessibilityVisitor.isLongText(_:): isLongText called with 26 characters
+DEBUG [TextAccessibilityChecker.swift:74] AccessibilityVisitor.isLongText(_:): isLongText - checking text: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ' with length 26, threshold: 10
+DEBUG [TextAccessibilityChecker.swift:78] AccessibilityVisitor.isLongText(_:): isLongText - returning true for long text
+DEBUG [TextAccessibilityChecker.swift:35] AccessibilityVisitor.checkAccessibility(_:): Text is long, checking for accessibility modifier
+DEBUG [TextAccessibilityChecker.swift:49] checkAccessibility(_:): ISSUE DETECTED: Long text without accessibility features
+✔ Test testDifferentTextWithSameLength() passed after 0.226 seconds.
+✔ Suite AccessibilityConfigurationEdgeCaseTests passed after 0.228 seconds.
+DEBUG: About to walk source file
+DEBUG: Finished walking source file
+DEBUG: Detected issues count: 0
+DEBUG [StateVariableVisitor.swift:59] StateVariableVisitor.visit(_:): Visiting variable declaration
+DEBUG [StateVariableVisitor.swift:59] StateVariableVisitor.visit(_:): Visiting variable declaration
+DEBUG [StateVariableVisitor.swift:59] StateVariableVisitor.visit(_:): Visiting variable declaration
+DEBUG [StateVariableVisitor.swift:59] StateVariableVisitor.visit(_:): Visiting variable declaration
+DEBUG [StateVariableVisitor.swift:59] StateVariableVisitor.visit(_:): Visiting variable declaration
+DEBUG [StateVariableVisitor.swift:59] StateVariableVisitor.visit(_:): Visiting variable declaration
+DEBUG [StateVariableVisitor.swift:59] StateVariableVisitor.visit(_:): Visiting variable declaration
+DEBUG [StateVariableVisitor.swift:59] StateVariableVisitor.visit(_:): Visiting variable declaration
+DEBUG [AccessibilityDebugTests.swift:165] testTextWithAccessibilityAndUnrelatedModifiers(): Test starting
+DEBUG [AccessibilityDebugTests.swift:179] testTextWithAccessibilityAndUnrelatedModifiers(): About to parse source code
+DEBUG [AccessibilityDebugTests.swift:182] testTextWithAccessibilityAndUnrelatedModifiers(): Successfully parsed source code
+DEBUG [AccessibilityDebugTests.swift:186] testTextWithAccessibilityAndUnrelatedModifiers(): AST Structure:
+struct ContentView: View {
+    var body: some View {
+        Text("This is a long text for accessibility testing.")
+            .foregroundColor(.blue)
+            .accessibilityLabel("Summary")
+    }
+}
+DEBUG [AccessibilityDebugTests.swift:193] testTextWithAccessibilityAndUnrelatedModifiers(): AST written to: /Users/josephcursio/xcode_projects/SwiftProjectLint/debug_output/debug_ast.txt
+DEBUG [AccessibilityDebugTests.swift:197] testTextWithAccessibilityAndUnrelatedModifiers(): Finished AST write attempts
+DEBUG [AccessibilityDebugTests.swift:200] testTextWithAccessibilityAndUnrelatedModifiers(): Detected issues count: 0
+DEBUG [SwiftUIManagementVisitor.swift:75] SwiftUIManagementVisitor.visit(_:): Visiting struct: ParentView
+DEBUG [SwiftUIManagementVisitor.swift:75] SwiftUIManagementVisitor.visit(_:): Visiting struct: ParentView
+DEBUG [SwiftUIManagementVisitor.swift:75] SwiftUIManagementVisitor.visit(_:): Visiting struct: ParentView
+DEBUG [SwiftUIManagementVisitor.swift:75] SwiftUIManagementVisitor.visit(_:): Visiting struct: ParentView
+DEBUG [SwiftUIManagementVisitor.swift:75] SwiftUIManagementVisitor.visit(_:): Visiting struct: ParentView
+DEBUG [ArchitectureVisitor.swift:37] ArchitectureVisitor.visit(_:): Visiting struct: ParentView
+DEBUG [PerformanceVisitor.swift:43] PerformanceVisitor.visit(_:): Visiting SwiftUI view: ParentView
+DEBUG [PerformanceVisitor.swift:43] PerformanceVisitor.visit(_:): Visiting SwiftUI view: ParentView
+DEBUG [PerformanceVisitor.swift:43] PerformanceVisitor.visit(_:): Visiting SwiftUI view: ParentView
+DEBUG [ForEachSelfIDVisitor.swift:23] ForEachSelfIDVisitor.visit(_:): Visiting FunctionCallExprSyntax
+DEBUG [PerformanceVisitor.swift:43] PerformanceVisitor.visit(_:): Visiting SwiftUI view: ParentView
+DEBUG [ArchitectureVisitor.swift:37] ArchitectureVisitor.visit(_:): Visiting struct: ParentView
+DEBUG [ArchitectureVisitor.swift:37] ArchitectureVisitor.visit(_:): Visiting struct: ParentView
+DEBUG [ArchitectureVisitor.swift:37] ArchitectureVisitor.visit(_:): Visiting struct: ParentView
+DEBUG [CodeQualityVisitor.swift:45] CodeQualityVisitor.visit(_:): Visiting struct: ParentView
+DEBUG [CodeQualityVisitor.swift:45] CodeQualityVisitor.visit(_:): Visiting struct: ParentView
+DEBUG [CodeQualityVisitor.swift:45] CodeQualityVisitor.visit(_:): Visiting struct: ParentView
+DEBUG [CodeQualityVisitor.swift:45] CodeQualityVisitor.visit(_:): Visiting struct: ParentView
+DEBUG [SecurityVisitor.swift:29] SecurityVisitor.visit(_:): Visiting variable declaration
+DEBUG [SecurityVisitor.swift:29] SecurityVisitor.visit(_:): Visiting variable declaration
+DEBUG [SecurityVisitor.swift:29] SecurityVisitor.visit(_:): Visiting variable declaration
+DEBUG [SecurityVisitor.swift:29] SecurityVisitor.visit(_:): Visiting variable declaration
+DEBUG [AccessibilityVisitor.swift:103] visit(_:): Visiting FunctionCallExpr - name: 
+        ChildView
+DEBUG [AccessibilityVisitor.swift:103] visit(_:): Visiting FunctionCallExpr - name: 
+        ChildView
+DEBUG [AccessibilityVisitor.swift:103] visit(_:): Visiting FunctionCallExpr - name: 
+        ChildView
+DEBUG [MemoryManagementVisitor.swift:58] MemoryManagementVisitor.visit(_:): Visiting variable declaration
+DEBUG [MemoryManagementVisitor.swift:58] MemoryManagementVisitor.visit(_:): Visiting variable declaration
+DEBUG [MemoryManagementVisitor.swift:58] MemoryManagementVisitor.visit(_:): Visiting variable declaration
+DEBUG [MemoryManagementVisitor.swift:58] MemoryManagementVisitor.visit(_:): Visiting variable declaration
+DEBUG [NetworkingVisitor.swift:26] visit(_:): Visiting FunctionCallExpr - description: 
+        ChildView()
+DEBUG [NetworkingVisitor.swift:26] visit(_:): Visiting FunctionCallExpr - description: 
+        ChildView()
+DEBUG [ForEachSelfIDVisitor.swift:23] ForEachSelfIDVisitor.visit(_:): Visiting FunctionCallExprSyntax
+DEBUG [SwiftUIManagementVisitor.swift:75] SwiftUIManagementVisitor.visit(_:): Visiting struct: TestView
+DEBUG [SwiftUIManagementVisitor.swift:75] SwiftUIManagementVisitor.visit(_:): Visiting struct: TestView
+DEBUG [SwiftUIManagementVisitor.swift:75] SwiftUIManagementVisitor.visit(_:): Visiting struct: TestView
+DEBUG [SwiftUIManagementVisitor.swift:75] SwiftUIManagementVisitor.visit(_:): Visiting struct: TestView
+DEBUG [SwiftUIManagementVisitor.swift:75] SwiftUIManagementVisitor.visit(_:): Visiting struct: TestView
+DEBUG [ArchitectureVisitor.swift:37] ArchitectureVisitor.visit(_:): Visiting struct: TestView
+DEBUG [PerformanceVisitor.swift:43] PerformanceVisitor.visit(_:): Visiting SwiftUI view: TestView
+DEBUG [PerformanceVisitor.swift:43] PerformanceVisitor.visit(_:): Visiting SwiftUI view: TestView
+DEBUG [PerformanceVisitor.swift:43] PerformanceVisitor.visit(_:): Visiting SwiftUI view: TestView
+DEBUG [ForEachSelfIDVisitor.swift:23] ForEachSelfIDVisitor.visit(_:): Visiting FunctionCallExprSyntax
+DEBUG [PerformanceVisitor.swift:43] PerformanceVisitor.visit(_:): Visiting SwiftUI view: TestView
+DEBUG [ArchitectureVisitor.swift:37] ArchitectureVisitor.visit(_:): Visiting struct: TestView
+DEBUG [ArchitectureVisitor.swift:37] ArchitectureVisitor.visit(_:): Visiting struct: TestView
+DEBUG [ArchitectureVisitor.swift:37] ArchitectureVisitor.visit(_:): Visiting struct: TestView
+DEBUG [CodeQualityVisitor.swift:45] CodeQualityVisitor.visit(_:): Visiting struct: TestView
+DEBUG [CodeQualityVisitor.swift:45] CodeQualityVisitor.visit(_:): Visiting struct: TestView
+DEBUG [CodeQualityVisitor.swift:45] CodeQualityVisitor.visit(_:): Visiting struct: TestView
+DEBUG [CodeQualityVisitor.swift:45] CodeQualityVisitor.visit(_:): Visiting struct: TestView
+DEBUG [SecurityVisitor.swift:29] SecurityVisitor.visit(_:): Visiting variable declaration
+DEBUG [SecurityVisitor.swift:29] SecurityVisitor.visit(_:): Visiting variable declaration
+DEBUG [SecurityVisitor.swift:29] SecurityVisitor.visit(_:): Visiting variable declaration
+DEBUG [SecurityVisitor.swift:29] SecurityVisitor.visit(_:): Visiting variable declaration
+DEBUG [AccessibilityVisitor.swift:103] visit(_:): Visiting FunctionCallExpr - name: 
+        Text
+DEBUG [AccessibilityVisitor.swift:122] AccessibilityVisitor.visit(_:): Found Text initialization
+DEBUG [TextAccessibilityChecker.swift:16] AccessibilityVisitor.checkAccessibility(_:): checkTextAccessibility called
+DEBUG [TextAccessibilityChecker.swift:30] AccessibilityVisitor.checkAccessibility(_:): Checking text: 'Hello' with length 5, threshold: 50
+DEBUG [TextAccessibilityChecker.swift:73] AccessibilityVisitor.isLongText(_:): isLongText called with 5 characters
+DEBUG [TextAccessibilityChecker.swift:74] AccessibilityVisitor.isLongText(_:): isLongText - checking text: 'Hello' with length 5, threshold: 50
+DEBUG [TextAccessibilityChecker.swift:78] AccessibilityVisitor.isLongText(_:): isLongText - returning false for long text
+DEBUG [AccessibilityVisitor.swift:103] visit(_:): Visiting FunctionCallExpr - name: 
+        Text
+DEBUG [AccessibilityVisitor.swift:122] AccessibilityVisitor.visit(_:): Found Text initialization
+DEBUG [TextAccessibilityChecker.swift:16] AccessibilityVisitor.checkAccessibility(_:): checkTextAccessibility called
+DEBUG [TextAccessibilityChecker.swift:30] AccessibilityVisitor.checkAccessibility(_:): Checking text: 'Hello' with length 5, threshold: 50
+DEBUG [TextAccessibilityChecker.swift:73] AccessibilityVisitor.isLongText(_:): isLongText called with 5 characters
+DEBUG [TextAccessibilityChecker.swift:74] AccessibilityVisitor.isLongText(_:): isLongText - checking text: 'Hello' with length 5, threshold: 50
+DEBUG [TextAccessibilityChecker.swift:78] AccessibilityVisitor.isLongText(_:): isLongText - returning false for long text
+DEBUG [AccessibilityVisitor.swift:103] visit(_:): Visiting FunctionCallExpr - name: 
+        Text
+DEBUG [AccessibilityVisitor.swift:122] AccessibilityVisitor.visit(_:): Found Text initialization
+DEBUG [TextAccessibilityChecker.swift:16] AccessibilityVisitor.checkAccessibility(_:): checkTextAccessibility called
+DEBUG [TextAccessibilityChecker.swift:30] AccessibilityVisitor.checkAccessibility(_:): Checking text: 'Hello' with length 5, threshold: 50
+DEBUG [TextAccessibilityChecker.swift:73] AccessibilityVisitor.isLongText(_:): isLongText called with 5 characters
+DEBUG [TextAccessibilityChecker.swift:74] AccessibilityVisitor.isLongText(_:): isLongText - checking text: 'Hello' with length 5, threshold: 50
+DEBUG [TextAccessibilityChecker.swift:78] AccessibilityVisitor.isLongText(_:): isLongText - returning false for long text
+DEBUG [MemoryManagementVisitor.swift:58] MemoryManagementVisitor.visit(_:): Visiting variable declaration
+DEBUG [MemoryManagementVisitor.swift:58] MemoryManagementVisitor.visit(_:): Visiting variable declaration
+DEBUG [MemoryManagementVisitor.swift:58] MemoryManagementVisitor.visit(_:): Visiting variable declaration
+DEBUG [MemoryManagementVisitor.swift:58] MemoryManagementVisitor.visit(_:): Visiting variable declaration
+DEBUG [NetworkingVisitor.swift:26] visit(_:): Visiting FunctionCallExpr - description: 
+        Text("Hello")
+DEBUG [NetworkingVisitor.swift:26] visit(_:): Visiting FunctionCallExpr - description: 
+        Text("Hello")
+DEBUG [ForEachSelfIDVisitor.swift:23] ForEachSelfIDVisitor.visit(_:): Visiting FunctionCallExprSyntax
+=== DEBUG: testSwiftSyntaxPatternDetectorSingleFile ===
+Total issues detected: 5
+Execution time: 0:00:00
+Issue 1:
+  Message: 'Duplicate state variable 'isLoading' found in related views: {viewNames}'
+  Severity: warning
+  Rule: 'relatedDuplicateStateVariable'
+Issue 2:
+  Message: 'Duplicate state variable 'isLoading' found in unrelated views: {viewNames}'
+  Severity: info
+  Rule: 'unrelatedDuplicateStateVariable'
+Issue 3:
+  Message: 'State variable 'isLoading' must have an initial value'
+  Severity: error
+  Rule: 'uninitializedStateVariable'
+Issue 4:
+  Message: 'Consider using @StateObject for 'isLoading''
+  Severity: warning
+  Rule: 'missingStateObject'
+Issue 5:
+  Message: 'State variable 'isLoading' is declared but never used'
+  Severity: warning
+  Rule: 'unusedStateVariable'
+Uninitialized state issues count: 1
+✔ Test swiftSyntaxPatternDetectorSingleFile() passed after 0.230 seconds.
+DEBUG: About to walk source file
+DEBUG: Finished walking source file
+DEBUG: Detected issues count: 1
+DEBUG [ArchitectureVisitor.swift:37] ArchitectureVisitor.visit(_:): Visiting struct: TestView
+DEBUG [ArchitectureVisitor.swift:37] ArchitectureVisitor.visit(_:): Visiting struct: TestView
+DEBUG [ArchitectureVisitor.swift:37] ArchitectureVisitor.visit(_:): Visiting struct: TestView
+✔ Test architectureVisitorValidArchitecture() passed after 0.233 seconds.
+DEBUG [ArchitectureVisitor.swift:37] ArchitectureVisitor.visit(_:): Visiting struct: TestView
+DEBUG [ArchitectureVisitor.swift:37] ArchitectureVisitor.visit(_:): Visiting struct: TestView
+DEBUG [ArchitectureVisitor.swift:37] ArchitectureVisitor.visit(_:): Visiting struct: TestView
+DEBUG [ArchitectureVisitor.swift:37] ArchitectureVisitor.visit(_:): Visiting struct: TestView
+✔ Test architectureVisitorFatView() passed after 0.235 seconds.
+DEBUG [ArchitectureVisitor.swift:37] ArchitectureVisitor.visit(_:): Visiting struct: TestView
+DEBUG [ArchitectureVisitor.swift:37] ArchitectureVisitor.visit(_:): Visiting struct: TestView
+DEBUG [StateVariableVisitor.swift:59] StateVariableVisitor.visit(_:): Visiting variable declaration
+✔ Test architectureVisitorMissingDependencyInjection() passed after 0.235 seconds.
+DEBUG [StateVariableVisitor.swift:59] StateVariableVisitor.visit(_:): Visiting variable declaration
+✔ Suite "SwiftSyntaxPatternDetectorArchitectureTests" passed after 0.238 seconds.
+DEBUG [StateVariableVisitor.swift:59] StateVariableVisitor.visit(_:): Visiting variable declaration
+DEBUG [StateVariableVisitor.swift:59] StateVariableVisitor.visit(_:): Visiting variable declaration
+DEBUG [StateVariableVisitor.swift:59] StateVariableVisitor.visit(_:): Visiting variable declaration
+DEBUG [StateVariableVisitor.swift:59] StateVariableVisitor.visit(_:): Visiting variable declaration
+DEBUG [StateVariableVisitor.swift:59] StateVariableVisitor.visit(_:): Visiting variable declaration
+DEBUG [StateVariableVisitor.swift:59] StateVariableVisitor.visit(_:): Visiting variable declaration
+DEBUG [AccessibilityComplexViewTests.swift:62] testComplexViewWithMultipleAccessibilityIssues(): Detected issues count: 5
+DEBUG [AccessibilityComplexViewTests.swift:64] testComplexViewWithMultipleAccessibilityIssues(): Issue 0: Button with image missing accessibility label
+DEBUG [AccessibilityComplexViewTests.swift:64] testComplexViewWithMultipleAccessibilityIssues(): Issue 1: Consider adding accessibility hint to button with text
+DEBUG [AccessibilityComplexViewTests.swift:64] testComplexViewWithMultipleAccessibilityIssues(): Issue 2: Long text content may benefit from accessibility features
+DEBUG [AccessibilityComplexViewTests.swift:64] testComplexViewWithMultipleAccessibilityIssues(): Issue 3: Image missing accessibility label
+DEBUG [AccessibilityComplexViewTests.swift:64] testComplexViewWithMultipleAccessibilityIssues(): Issue 4: Consider accessibility when using color-based information
+DEBUG [AccessibilityVisitor.swift:103] visit(_:): Visiting FunctionCallExpr - name: 
+        Text
+DEBUG [AccessibilityVisitor.swift:122] AccessibilityVisitor.visit(_:): Found Text initialization
+DEBUG [TextAccessibilityChecker.swift:16] AccessibilityVisitor.checkAccessibility(_:): checkTextAccessibility called
+DEBUG [TextAccessibilityChecker.swift:30] AccessibilityVisitor.checkAccessibility(_:): Checking text: 'Hello' with length 5, threshold: 50
+DEBUG [TextAccessibilityChecker.swift:73] AccessibilityVisitor.isLongText(_:): isLongText called with 5 characters
+DEBUG [TextAccessibilityChecker.swift:74] AccessibilityVisitor.isLongText(_:): isLongText - checking text: 'Hello' with length 5, threshold: 50
+DEBUG [TextAccessibilityChecker.swift:78] AccessibilityVisitor.isLongText(_:): isLongText - returning false for long text
+✔ Test testShortTextNoAccessibilityWarning() passed after 0.245 seconds.
+DEBUG [AccessibilityVisitor.swift:103] visit(_:): Visiting FunctionCallExpr - name: 
+        Text("Status")
+            .foregroundColor
+DEBUG [AccessibilityVisitor.swift:133] visit(_:): Visiting MemberAccessExpr - name: foregroundColor
+DEBUG [AccessibilityVisitor.swift:103] visit(_:): Visiting FunctionCallExpr - name: 
+        Text
+DEBUG [AccessibilityVisitor.swift:122] AccessibilityVisitor.visit(_:): Found Text initialization
+DEBUG [TextAccessibilityChecker.swift:16] AccessibilityVisitor.checkAccessibility(_:): checkTextAccessibility called
+DEBUG [TextAccessibilityChecker.swift:30] AccessibilityVisitor.checkAccessibility(_:): Checking text: 'Status' with length 6, threshold: 50
+DEBUG [TextAccessibilityChecker.swift:73] AccessibilityVisitor.isLongText(_:): isLongText called with 6 characters
+DEBUG [TextAccessibilityChecker.swift:74] AccessibilityVisitor.isLongText(_:): isLongText - checking text: 'Status' with length 6, threshold: 50
+DEBUG [TextAccessibilityChecker.swift:78] AccessibilityVisitor.isLongText(_:): isLongText - returning false for long text
+DEBUG [AccessibilityVisitor.swift:133] visit(_:): Visiting MemberAccessExpr - name: red
+DEBUG [AccessibilityVisitor.swift:103] visit(_:): Visiting FunctionCallExpr - name: 
+        Text("This is a very long text that should have accessibility features")
+            .accessibilityLabel("Important information")
+            .accessibilityHint
+✔ Test testInaccessibleColorUsage() passed after 0.245 seconds.
+DEBUG [AccessibilityVisitor.swift:133] visit(_:): Visiting MemberAccessExpr - name: accessibilityHint
+DEBUG [AccessibilityVisitor.swift:103] visit(_:): Visiting FunctionCallExpr - name: 
+        Text("This is a very long text that should have accessibility features")
+            .accessibilityLabel
+DEBUG [AccessibilityVisitor.swift:133] visit(_:): Visiting MemberAccessExpr - name: accessibilityLabel
+DEBUG [AccessibilityVisitor.swift:103] visit(_:): Visiting FunctionCallExpr - name: 
+        Text
+DEBUG [AccessibilityVisitor.swift:122] AccessibilityVisitor.visit(_:): Found Text initialization
+DEBUG [TextAccessibilityChecker.swift:16] AccessibilityVisitor.checkAccessibility(_:): checkTextAccessibility called
+DEBUG [TextAccessibilityChecker.swift:30] AccessibilityVisitor.checkAccessibility(_:): Checking text: 'This is a very long text that should have accessibility features' with length 64, threshold: 50
+DEBUG [TextAccessibilityChecker.swift:73] AccessibilityVisitor.isLongText(_:): isLongText called with 64 characters
+DEBUG [TextAccessibilityChecker.swift:74] AccessibilityVisitor.isLongText(_:): isLongText - checking text: 'This is a very long text that should have accessibility features' with length 64, threshold: 50
+DEBUG [TextAccessibilityChecker.swift:78] AccessibilityVisitor.isLongText(_:): isLongText - returning true for long text
+DEBUG [TextAccessibilityChecker.swift:35] AccessibilityVisitor.checkAccessibility(_:): Text is long, checking for accessibility modifier
+DEBUG [TextAccessibilityChecker.swift:43] AccessibilityVisitor.checkAccessibility(_:): Text has accessibility modifier, skipping
+✔ Test testTextWithAccessibilityFeatures() passed after 0.245 seconds.
+DEBUG [AccessibilityVisitor.swift:103] visit(_:): Visiting FunctionCallExpr - name: 
+        VStack
+DEBUG [AccessibilityVisitor.swift:103] visit(_:): Visiting FunctionCallExpr - name: 
+            Text("Success")
+                .foregroundColor
+DEBUG [AccessibilityVisitor.swift:133] visit(_:): Visiting MemberAccessExpr - name: foregroundColor
+DEBUG [AccessibilityVisitor.swift:103] visit(_:): Visiting FunctionCallExpr - name: 
+            Text
+DEBUG [AccessibilityVisitor.swift:122] AccessibilityVisitor.visit(_:): Found Text initialization
+DEBUG [TextAccessibilityChecker.swift:16] AccessibilityVisitor.checkAccessibility(_:): checkTextAccessibility called
+DEBUG [TextAccessibilityChecker.swift:30] AccessibilityVisitor.checkAccessibility(_:): Checking text: 'Success' with length 7, threshold: 50
+DEBUG [TextAccessibilityChecker.swift:73] AccessibilityVisitor.isLongText(_:): isLongText called with 7 characters
+DEBUG [TextAccessibilityChecker.swift:74] AccessibilityVisitor.isLongText(_:): isLongText - checking text: 'Success' with length 7, threshold: 50
+DEBUG [TextAccessibilityChecker.swift:78] AccessibilityVisitor.isLongText(_:): isLongText - returning false for long text
+DEBUG [AccessibilityVisitor.swift:133] visit(_:): Visiting MemberAccessExpr - name: green
+DEBUG [AccessibilityVisitor.swift:103] visit(_:): Visiting FunctionCallExpr - name: 
+            Text("Warning")
+                .foregroundColor
+DEBUG [AccessibilityVisitor.swift:133] visit(_:): Visiting MemberAccessExpr - name: foregroundColor
+DEBUG [AccessibilityVisitor.swift:103] visit(_:): Visiting FunctionCallExpr - name: 
+            Text
+DEBUG [AccessibilityVisitor.swift:122] AccessibilityVisitor.visit(_:): Found Text initialization
+DEBUG [TextAccessibilityChecker.swift:16] AccessibilityVisitor.checkAccessibility(_:): checkTextAccessibility called
+DEBUG [TextAccessibilityChecker.swift:30] AccessibilityVisitor.checkAccessibility(_:): Checking text: 'Warning' with length 7, threshold: 50
+DEBUG [TextAccessibilityChecker.swift:73] AccessibilityVisitor.isLongText(_:): isLongText called with 7 characters
+DEBUG [TextAccessibilityChecker.swift:74] AccessibilityVisitor.isLongText(_:): isLongText - checking text: 'Warning' with length 7, threshold: 50
+DEBUG [TextAccessibilityChecker.swift:78] AccessibilityVisitor.isLongText(_:): isLongText - returning false for long text
+DEBUG [AccessibilityVisitor.swift:133] visit(_:): Visiting MemberAccessExpr - name: yellow
+DEBUG [AccessibilityVisitor.swift:103] visit(_:): Visiting FunctionCallExpr - name: 
+            Text("Error")
+                .foregroundColor
+DEBUG [AccessibilityVisitor.swift:133] visit(_:): Visiting MemberAccessExpr - name: foregroundColor
+DEBUG [AccessibilityVisitor.swift:103] visit(_:): Visiting FunctionCallExpr - name: 
+            Text
+DEBUG [AccessibilityVisitor.swift:122] AccessibilityVisitor.visit(_:): Found Text initialization
+DEBUG [TextAccessibilityChecker.swift:16] AccessibilityVisitor.checkAccessibility(_:): checkTextAccessibility called
+DEBUG [TextAccessibilityChecker.swift:30] AccessibilityVisitor.checkAccessibility(_:): Checking text: 'Error' with length 5, threshold: 50
+DEBUG [TextAccessibilityChecker.swift:73] AccessibilityVisitor.isLongText(_:): isLongText called with 5 characters
+DEBUG [TextAccessibilityChecker.swift:74] AccessibilityVisitor.isLongText(_:): isLongText - checking text: 'Error' with length 5, threshold: 50
+DEBUG [TextAccessibilityChecker.swift:78] AccessibilityVisitor.isLongText(_:): isLongText - returning false for long text
+DEBUG [AccessibilityVisitor.swift:133] visit(_:): Visiting MemberAccessExpr - name: red
+DEBUG [AccessibilityVisitor.swift:103] visit(_:): Visiting FunctionCallExpr - name: 
+        Text
+✔ Test testMultipleColorUsage() passed after 0.246 seconds.
+DEBUG [AccessibilityVisitor.swift:122] AccessibilityVisitor.visit(_:): Found Text initialization
+DEBUG [TextAccessibilityChecker.swift:16] AccessibilityVisitor.checkAccessibility(_:): checkTextAccessibility called
+DEBUG [TextAccessibilityChecker.swift:30] AccessibilityVisitor.checkAccessibility(_:): Checking text: 'This is a very long text that should have accessibility features for better screen reader support and user experience' with length 117, threshold: 50
+DEBUG [TextAccessibilityChecker.swift:73] AccessibilityVisitor.isLongText(_:): isLongText called with 117 characters
+DEBUG [TextAccessibilityChecker.swift:74] AccessibilityVisitor.isLongText(_:): isLongText - checking text: 'This is a very long text that should have accessibility features for better screen reader support and user experience' with length 117, threshold: 50
+DEBUG [TextAccessibilityChecker.swift:78] AccessibilityVisitor.isLongText(_:): isLongText - returning true for long text
+DEBUG [TextAccessibilityChecker.swift:35] AccessibilityVisitor.checkAccessibility(_:): Text is long, checking for accessibility modifier
+DEBUG [TextAccessibilityChecker.swift:49] checkAccessibility(_:): ISSUE DETECTED: Long text without accessibility features
+✔ Test testLongTextMissingAccessibility() passed after 0.246 seconds.
+✔ Suite "AccessibilityTextColorTests" passed after 0.247 seconds.
+DEBUG [AccessibilityVisitor.swift:103] visit(_:): Visiting FunctionCallExpr - name: Button
+DEBUG [AccessibilityVisitor.swift:112] AccessibilityVisitor.visit(_:): Found Button initialization
+DEBUG [AccessibilityVisitor.swift:103] visit(_:): Visiting FunctionCallExpr - name: 
+    Text
+DEBUG [AccessibilityVisitor.swift:122] AccessibilityVisitor.visit(_:): Found Text initialization
+DEBUG [TextAccessibilityChecker.swift:16] AccessibilityVisitor.checkAccessibility(_:): checkTextAccessibility called
+DEBUG [TextAccessibilityChecker.swift:30] AccessibilityVisitor.checkAccessibility(_:): Checking text: 'Submit' with length 6, threshold: 50
+DEBUG [TextAccessibilityChecker.swift:73] AccessibilityVisitor.isLongText(_:): isLongText called with 6 characters
+DEBUG [TextAccessibilityChecker.swift:74] AccessibilityVisitor.isLongText(_:): isLongText - checking text: 'Submit' with length 6, threshold: 50
+DEBUG [TextAccessibilityChecker.swift:78] AccessibilityVisitor.isLongText(_:): isLongText - returning false for long text
+DEBUG [AccessibilityVisitor.swift:103] visit(_:): Visiting FunctionCallExpr - name: 
+        Button
+✔ Test testDirectContainsTextMethod() passed after 0.245 seconds.
+DEBUG [AccessibilityVisitor.swift:112] AccessibilityVisitor.visit(_:): Found Button initialization
+DEBUG [AccessibilityVisitor.swift:103] visit(_:): Visiting FunctionCallExpr - name: 
+            Text
+DEBUG [AccessibilityVisitor.swift:122] AccessibilityVisitor.visit(_:): Found Text initialization
+DEBUG [TextAccessibilityChecker.swift:16] AccessibilityVisitor.checkAccessibility(_:): checkTextAccessibility called
+DEBUG [TextAccessibilityChecker.swift:30] AccessibilityVisitor.checkAccessibility(_:): Checking text: 'Submit Form' with length 11, threshold: 50
+DEBUG [TextAccessibilityChecker.swift:73] AccessibilityVisitor.isLongText(_:): isLongText called with 11 characters
+DEBUG [TextAccessibilityChecker.swift:74] AccessibilityVisitor.isLongText(_:): isLongText - checking text: 'Submit Form' with length 11, threshold: 50
+DEBUG [TextAccessibilityChecker.swift:78] AccessibilityVisitor.isLongText(_:): isLongText - returning false for long text
+DEBUG [AccessibilityVisitor.swift:103] visit(_:): Visiting FunctionCallExpr - name: 
+        Text
+✔ Test testVisitorVisitMethod() passed after 0.245 seconds.
+✔ Test testDebugButtonAST() passed after 0.245 seconds.
+DEBUG [AccessibilityVisitor.swift:122] AccessibilityVisitor.visit(_:): Found Text initialization
+DEBUG [TextAccessibilityChecker.swift:16] AccessibilityVisitor.checkAccessibility(_:): checkTextAccessibility called
+DEBUG [TextAccessibilityChecker.swift:30] AccessibilityVisitor.checkAccessibility(_:): Checking text: 'Hello' with length 5, threshold: 50
+DEBUG [TextAccessibilityChecker.swift:73] AccessibilityVisitor.isLongText(_:): isLongText called with 5 characters
+DEBUG [TextAccessibilityChecker.swift:74] AccessibilityVisitor.isLongText(_:): isLongText - checking text: 'Hello' with length 5, threshold: 50
+DEBUG [TextAccessibilityChecker.swift:78] AccessibilityVisitor.isLongText(_:): isLongText - returning false for long text
+✔ Test testVisitorIsCalled() passed after 0.245 seconds.
+DEBUG [AccessibilityVisitor.swift:103] visit(_:): Visiting FunctionCallExpr - name: 
+        Text("This is a long text for accessibility testing.")
+            .foregroundColor(.blue)
+            .accessibilityLabel
+DEBUG [AccessibilityVisitor.swift:133] visit(_:): Visiting MemberAccessExpr - name: accessibilityLabel
+DEBUG [AccessibilityVisitor.swift:103] visit(_:): Visiting FunctionCallExpr - name: 
+        Text("This is a long text for accessibility testing.")
+            .foregroundColor
+DEBUG [AccessibilityVisitor.swift:133] visit(_:): Visiting MemberAccessExpr - name: foregroundColor
+DEBUG [AccessibilityVisitor.swift:103] visit(_:): Visiting FunctionCallExpr - name: 
+        Text
+DEBUG [AccessibilityVisitor.swift:122] AccessibilityVisitor.visit(_:): Found Text initialization
+DEBUG [TextAccessibilityChecker.swift:16] AccessibilityVisitor.checkAccessibility(_:): checkTextAccessibility called
+DEBUG [TextAccessibilityChecker.swift:30] AccessibilityVisitor.checkAccessibility(_:): Checking text: 'This is a long text for accessibility testing.' with length 46, threshold: 10
+DEBUG [TextAccessibilityChecker.swift:73] AccessibilityVisitor.isLongText(_:): isLongText called with 46 characters
+DEBUG [TextAccessibilityChecker.swift:74] AccessibilityVisitor.isLongText(_:): isLongText - checking text: 'This is a long text for accessibility testing.' with length 46, threshold: 10
+DEBUG [TextAccessibilityChecker.swift:78] AccessibilityVisitor.isLongText(_:): isLongText - returning true for long text
+DEBUG [TextAccessibilityChecker.swift:35] AccessibilityVisitor.checkAccessibility(_:): Text is long, checking for accessibility modifier
+DEBUG [TextAccessibilityChecker.swift:43] AccessibilityVisitor.checkAccessibility(_:): Text has accessibility modifier, skipping
+DEBUG [AccessibilityVisitor.swift:133] visit(_:): Visiting MemberAccessExpr - name: blue
+✔ Test testTextWithAccessibilityAndUnrelatedModifiers() passed after 0.245 seconds.
+🔍 binding type: PatternBindingSyntax, description: isLoading = false
+🔍 binding type: PatternBindingSyntax, description: body: some View {
+        Text("Hello")
+    }
+🔍 Fallback analyzing binding description for error handling: body: some View {
+        Text("Hello")
+    }
+🔍 hasErrorHandling: false, hasProperUI: false
+🔍 Collected modifiers for Text: []
+🔍 binding type: PatternBindingSyntax, description: isLoading = false
+🔍 binding type: PatternBindingSyntax, description: body: some View {
+        Text("Hello")
+    }
+🔍 Fallback analyzing binding description for error handling: body: some View {
+        Text("Hello")
+    }
+🔍 hasErrorHandling: false, hasProperUI: false
+🔍 Collected modifiers for Text: []
+🔍 binding type: PatternBindingSyntax, description: isLoading = false
+🔍 binding type: PatternBindingSyntax, description: body: some View {
+        Text("Hello")
+    }
+🔍 Fallback analyzing binding description for error handling: body: some View {
+        Text("Hello")
+    }
+🔍 hasErrorHandling: false, hasProperUI: false
+🔍 Collected modifiers for Text: []
+🔍 binding type: PatternBindingSyntax, description: isLoading = false
+🔍 binding type: PatternBindingSyntax, description: body: some View {
+        Text("Hello")
+    }
+🔍 Fallback analyzing binding description for error handling: body: some View {
+        Text("Hello")
+    }
+🔍 hasErrorHandling: false, hasProperUI: false
+🔍 Collected modifiers for Text: []
+🔍 binding type: PatternBindingSyntax, description: isLoading = false
+🔍 binding type: PatternBindingSyntax, description: body: some View {
+        Text("Hello")
+    }
+🔍 Fallback analyzing binding description for error handling: body: some View {
+        Text("Hello")
+    }
+🔍 hasErrorHandling: false, hasProperUI: false
+🔍 Collected modifiers for Text: []
+🔍 binding type: PatternBindingSyntax, description: isLoading = false
+🔍 binding type: PatternBindingSyntax, description: body: some View {
+        Text("Hello")
+    }
+🔍 Fallback analyzing binding description for error handling: body: some View {
+        Text("Hello")
+    }
+🔍 hasErrorHandling: false, hasProperUI: false
+🔍 Collected modifiers for Text: []
+DEBUG [AccessibilityVisitor.swift:103] visit(_:): Visiting FunctionCallExpr - name: 
+        Button
+DEBUG [AccessibilityVisitor.swift:112] AccessibilityVisitor.visit(_:): Found Button initialization
+DEBUG [AccessibilityVisitor.swift:103] visit(_:): Visiting FunctionCallExpr - name: 
+            Text
+DEBUG [AccessibilityVisitor.swift:122] AccessibilityVisitor.visit(_:): Found Text initialization
+DEBUG [TextAccessibilityChecker.swift:16] AccessibilityVisitor.checkAccessibility(_:): checkTextAccessibility called
+DEBUG [TextAccessibilityChecker.swift:30] AccessibilityVisitor.checkAccessibility(_:): Checking text: 'Submit Form' with length 11, threshold: 50
+DEBUG [TextAccessibilityChecker.swift:73] AccessibilityVisitor.isLongText(_:): isLongText called with 11 characters
+DEBUG [TextAccessibilityChecker.swift:74] AccessibilityVisitor.isLongText(_:): isLongText - checking text: 'Submit Form' with length 11, threshold: 50
+DEBUG [TextAccessibilityChecker.swift:78] AccessibilityVisitor.isLongText(_:): isLongText - returning false for long text
+DEBUG [AccessibilityVisitor.swift:103] visit(_:): Visiting FunctionCallExpr - name: 
+        Button
+DEBUG [AccessibilityVisitor.swift:112] AccessibilityVisitor.visit(_:): Found Button initialization
+✔ Test testDebugButtonTextDetection() passed after 0.251 seconds.
+DEBUG [AccessibilityVisitor.swift:103] visit(_:): Visiting FunctionCallExpr - name: 
+            Text
+DEBUG [AccessibilityVisitor.swift:122] AccessibilityVisitor.visit(_:): Found Text initialization
+✔ Suite AccessibilityDebugTests passed after 0.254 seconds.
+DEBUG [TextAccessibilityChecker.swift:16] AccessibilityVisitor.checkAccessibility(_:): checkTextAccessibility called
+DEBUG [TextAccessibilityChecker.swift:30] AccessibilityVisitor.checkAccessibility(_:): Checking text: 'Submit Form' with length 11, threshold: 50
+DEBUG [TextAccessibilityChecker.swift:73] AccessibilityVisitor.isLongText(_:): isLongText called with 11 characters
+DEBUG [TextAccessibilityChecker.swift:74] AccessibilityVisitor.isLongText(_:): isLongText - checking text: 'Submit Form' with length 11, threshold: 50
+DEBUG [TextAccessibilityChecker.swift:78] AccessibilityVisitor.isLongText(_:): isLongText - returning false for long text
+DEBUG [AccessibilityVisitor.swift:103] visit(_:): Visiting FunctionCallExpr - name: 
+        Button {
+            // action
+        } label: {
+            Text("Submit Form")
+        }
+        .accessibilityHint
+✔ Test testButtonWithTextMissingHint() passed after 0.251 seconds.
+DEBUG [AccessibilityVisitor.swift:133] visit(_:): Visiting MemberAccessExpr - name: accessibilityHint
+DEBUG [AccessibilityVisitor.swift:103] visit(_:): Visiting FunctionCallExpr - name: 
+        Button
+DEBUG [AccessibilityVisitor.swift:112] AccessibilityVisitor.visit(_:): Found Button initialization
+DEBUG [AccessibilityVisitor.swift:103] visit(_:): Visiting FunctionCallExpr - name: 
+            Text
+DEBUG [AccessibilityVisitor.swift:122] AccessibilityVisitor.visit(_:): Found Text initialization
+DEBUG [TextAccessibilityChecker.swift:16] AccessibilityVisitor.checkAccessibility(_:): checkTextAccessibility called
+DEBUG [TextAccessibilityChecker.swift:30] AccessibilityVisitor.checkAccessibility(_:): Checking text: 'Submit Form' with length 11, threshold: 50
+DEBUG [TextAccessibilityChecker.swift:73] AccessibilityVisitor.isLongText(_:): isLongText called with 11 characters
+DEBUG [TextAccessibilityChecker.swift:74] AccessibilityVisitor.isLongText(_:): isLongText - checking text: 'Submit Form' with length 11, threshold: 50
+DEBUG [TextAccessibilityChecker.swift:78] AccessibilityVisitor.isLongText(_:): isLongText - returning false for long text
+✔ Test testButtonWithTextWithAccessibilityHint() passed after 0.251 seconds.
+DEBUG [AccessibilityVisitor.swift:103] visit(_:): Visiting FunctionCallExpr - name: 
+        Button {
+            // action
+        } label: {
+            Image("icon")
+        }
+        .accessibilityLabel
+DEBUG [AccessibilityVisitor.swift:133] visit(_:): Visiting MemberAccessExpr - name: accessibilityLabel
+DEBUG [AccessibilityVisitor.swift:103] visit(_:): Visiting FunctionCallExpr - name: 
+        Button
+DEBUG [AccessibilityVisitor.swift:112] AccessibilityVisitor.visit(_:): Found Button initialization
+DEBUG [AccessibilityVisitor.swift:103] visit(_:): Visiting FunctionCallExpr - name: 
+            Image
+DEBUG [AccessibilityVisitor.swift:117] AccessibilityVisitor.visit(_:): Found Image initialization
+DEBUG [AccessibilityVisitor.swift:103] visit(_:): Visiting FunctionCallExpr - name: 
+        Button
+✔ Test testButtonWithImageWithAccessibilityLabel() passed after 0.251 seconds.
+DEBUG [AccessibilityVisitor.swift:112] AccessibilityVisitor.visit(_:): Found Button initialization
+DEBUG [AccessibilityVisitor.swift:103] visit(_:): Visiting FunctionCallExpr - name: 
+        Button
+✔ Test testButtonWithTextOnly() passed after 0.251 seconds.
+DEBUG [AccessibilityVisitor.swift:112] AccessibilityVisitor.visit(_:): Found Button initialization
+DEBUG [AccessibilityVisitor.swift:103] visit(_:): Visiting FunctionCallExpr - name: 
+            Image
+DEBUG [AccessibilityVisitor.swift:117] AccessibilityVisitor.visit(_:): Found Image initialization
+✔ Test testButtonWithImageMissingLabel() passed after 0.251 seconds.
+DEBUG [AccessibilityVisitor.swift:103] visit(_:): Visiting FunctionCallExpr - name: 
+        Image("profile")
+            .resizable()
+            .frame(width: 100, height: 100)
+            .accessibilityLabel
+✔ Suite ButtonAccessibilityTests passed after 0.254 seconds.
+DEBUG [AccessibilityVisitor.swift:133] visit(_:): Visiting MemberAccessExpr - name: accessibilityLabel
+DEBUG [AccessibilityVisitor.swift:103] visit(_:): Visiting FunctionCallExpr - name: 
+        Image("profile")
+            .resizable()
+            .frame
+DEBUG [AccessibilityVisitor.swift:133] visit(_:): Visiting MemberAccessExpr - name: frame
+DEBUG [AccessibilityVisitor.swift:103] visit(_:): Visiting FunctionCallExpr - name: 
+        Image("profile")
+            .resizable
+DEBUG [AccessibilityVisitor.swift:133] visit(_:): Visiting MemberAccessExpr - name: resizable
+DEBUG [AccessibilityVisitor.swift:103] visit(_:): Visiting FunctionCallExpr - name: 
+        Image
+DEBUG [AccessibilityVisitor.swift:117] AccessibilityVisitor.visit(_:): Found Image initialization
+✔ Test testImageWithAccessibilityLabel() passed after 0.251 seconds.
+DEBUG [AccessibilityVisitor.swift:103] visit(_:): Visiting FunctionCallExpr - name: 
+        Image("profile")
+            .resizable()
+            .frame
+DEBUG [AccessibilityVisitor.swift:133] visit(_:): Visiting MemberAccessExpr - name: frame
+DEBUG [AccessibilityVisitor.swift:103] visit(_:): Visiting FunctionCallExpr - name: 
+        Image("profile")
+            .resizable
+DEBUG [AccessibilityVisitor.swift:133] visit(_:): Visiting MemberAccessExpr - name: resizable
+DEBUG [AccessibilityVisitor.swift:103] visit(_:): Visiting FunctionCallExpr - name: 
+        Image
+DEBUG [AccessibilityVisitor.swift:117] AccessibilityVisitor.visit(_:): Found Image initialization
+DEBUG [AccessibilityVisitor.swift:103] visit(_:): Visiting FunctionCallExpr - name: 
+        VStack
+✔ Test testImageMissingLabel() passed after 0.251 seconds.
+DEBUG [AccessibilityVisitor.swift:103] visit(_:): Visiting FunctionCallExpr - name: 
+            Button("Click me") {
+                // action
+            }
+            .accessibilityHint
+✔ Suite "AccessibilityImageTests" passed after 0.255 seconds.
+DEBUG [AccessibilityVisitor.swift:133] visit(_:): Visiting MemberAccessExpr - name: accessibilityHint
+DEBUG [AccessibilityVisitor.swift:103] visit(_:): Visiting FunctionCallExpr - name: 
+            Button
+DEBUG [AccessibilityVisitor.swift:112] AccessibilityVisitor.visit(_:): Found Button initialization
+DEBUG [AccessibilityVisitor.swift:103] visit(_:): Visiting FunctionCallExpr - name: 
+            
+            Image("icon")
+                .accessibilityLabel
+DEBUG [AccessibilityVisitor.swift:133] visit(_:): Visiting MemberAccessExpr - name: accessibilityLabel
+DEBUG [AccessibilityVisitor.swift:103] visit(_:): Visiting FunctionCallExpr - name: 
+            
+            Image
+DEBUG [AccessibilityVisitor.swift:117] AccessibilityVisitor.visit(_:): Found Image initialization
+DEBUG [AccessibilityVisitor.swift:103] visit(_:): Visiting FunctionCallExpr - name: 
+            
+            Text
+DEBUG [AccessibilityVisitor.swift:122] AccessibilityVisitor.visit(_:): Found Text initialization
+DEBUG [TextAccessibilityChecker.swift:16] AccessibilityVisitor.checkAccessibility(_:): checkTextAccessibility called
+DEBUG [TextAccessibilityChecker.swift:30] AccessibilityVisitor.checkAccessibility(_:): Checking text: 'Short text' with length 10, threshold: 50
+DEBUG [TextAccessibilityChecker.swift:73] AccessibilityVisitor.isLongText(_:): isLongText called with 10 characters
+DEBUG [TextAccessibilityChecker.swift:74] AccessibilityVisitor.isLongText(_:): isLongText - checking text: 'Short text' with length 10, threshold: 50
+DEBUG [TextAccessibilityChecker.swift:78] AccessibilityVisitor.isLongText(_:): isLongText - returning false for long text
+DEBUG [AccessibilityVisitor.swift:103] visit(_:): Visiting FunctionCallExpr - name: 
+        EmptyView
+✔ Test testViewWithNoAccessibilityIssues() passed after 0.252 seconds.
+✔ Test testEmptyView() passed after 0.252 seconds.
+DEBUG [AccessibilityVisitor.swift:103] visit(_:): Visiting FunctionCallExpr - name: 
+        VStack
+DEBUG [AccessibilityVisitor.swift:103] visit(_:): Visiting FunctionCallExpr - name: 
+            Button
+DEBUG [AccessibilityVisitor.swift:112] AccessibilityVisitor.visit(_:): Found Button initialization
+DEBUG [AccessibilityVisitor.swift:103] visit(_:): Visiting FunctionCallExpr - name: 
+                Image
+DEBUG [AccessibilityVisitor.swift:117] AccessibilityVisitor.visit(_:): Found Image initialization
+DEBUG [AccessibilityVisitor.swift:103] visit(_:): Visiting FunctionCallExpr - name: 
+            
+            Button
+DEBUG [AccessibilityVisitor.swift:112] AccessibilityVisitor.visit(_:): Found Button initialization
+DEBUG [AccessibilityVisitor.swift:103] visit(_:): Visiting FunctionCallExpr - name: 
+                Text
+DEBUG [AccessibilityVisitor.swift:122] AccessibilityVisitor.visit(_:): Found Text initialization
+DEBUG [TextAccessibilityChecker.swift:16] AccessibilityVisitor.checkAccessibility(_:): checkTextAccessibility called
+DEBUG [TextAccessibilityChecker.swift:30] AccessibilityVisitor.checkAccessibility(_:): Checking text: 'Submit a very long form with many fields and complex validation' with length 63, threshold: 50
+DEBUG [TextAccessibilityChecker.swift:73] AccessibilityVisitor.isLongText(_:): isLongText called with 63 characters
+DEBUG [TextAccessibilityChecker.swift:74] AccessibilityVisitor.isLongText(_:): isLongText - checking text: 'Submit a very long form with many fields and complex validation' with length 63, threshold: 50
+DEBUG [TextAccessibilityChecker.swift:78] AccessibilityVisitor.isLongText(_:): isLongText - returning true for long text
+DEBUG [TextAccessibilityChecker.swift:35] AccessibilityVisitor.checkAccessibility(_:): Text is long, checking for accessibility modifier
+DEBUG [TextAccessibilityChecker.swift:49] checkAccessibility(_:): ISSUE DETECTED: Long text without accessibility features
+DEBUG [AccessibilityVisitor.swift:103] visit(_:): Visiting FunctionCallExpr - name: 
+            
+            Image("logo")
+                .resizable()
+                .frame
+DEBUG [AccessibilityVisitor.swift:133] visit(_:): Visiting MemberAccessExpr - name: frame
+DEBUG [AccessibilityVisitor.swift:103] visit(_:): Visiting FunctionCallExpr - name: 
+            
+            Image("logo")
+                .resizable
+DEBUG [AccessibilityVisitor.swift:133] visit(_:): Visiting MemberAccessExpr - name: resizable
+DEBUG [AccessibilityVisitor.swift:103] visit(_:): Visiting FunctionCallExpr - name: 
+            
+            Image
+DEBUG [AccessibilityVisitor.swift:117] AccessibilityVisitor.visit(_:): Found Image initialization
+DEBUG [AccessibilityVisitor.swift:103] visit(_:): Visiting FunctionCallExpr - name: 
+            
+            Text("Status: Active")
+                .foregroundColor
+DEBUG [AccessibilityVisitor.swift:133] visit(_:): Visiting MemberAccessExpr - name: foregroundColor
+DEBUG [AccessibilityVisitor.swift:103] visit(_:): Visiting FunctionCallExpr - name: 
+            
+            Text
+DEBUG [AccessibilityVisitor.swift:122] AccessibilityVisitor.visit(_:): Found Text initialization
+DEBUG [TextAccessibilityChecker.swift:16] AccessibilityVisitor.checkAccessibility(_:): checkTextAccessibility called
+DEBUG [TextAccessibilityChecker.swift:30] AccessibilityVisitor.checkAccessibility(_:): Checking text: 'Status: Active' with length 14, threshold: 50
+DEBUG [TextAccessibilityChecker.swift:73] AccessibilityVisitor.isLongText(_:): isLongText called with 14 characters
+DEBUG [TextAccessibilityChecker.swift:74] AccessibilityVisitor.isLongText(_:): isLongText - checking text: 'Status: Active' with length 14, threshold: 50
+DEBUG [TextAccessibilityChecker.swift:78] AccessibilityVisitor.isLongText(_:): isLongText - returning false for long text
+DEBUG [AccessibilityVisitor.swift:133] visit(_:): Visiting MemberAccessExpr - name: green
+✔ Test testComplexViewWithMultipleAccessibilityIssues() passed after 0.252 seconds.
+DEBUG [SwiftUIManagementVisitor.swift:75] SwiftUIManagementVisitor.visit(_:): Visiting struct: ChildView
+✔ Test testCoreModuleImports() passed after 0.252 seconds.
+✔ Suite "AccessibilityComplexViewTests" passed after 0.256 seconds.
+✔ Suite SwiftProjectLintCoreTests passed after 0.256 seconds.
+DEBUG [SwiftUIManagementVisitor.swift:75] SwiftUIManagementVisitor.visit(_:): Visiting struct: ChildView
+DEBUG [SwiftUIManagementVisitor.swift:75] SwiftUIManagementVisitor.visit(_:): Visiting struct: ChildView
+DEBUG [SwiftUIManagementVisitor.swift:75] SwiftUIManagementVisitor.visit(_:): Visiting struct: ChildView
+DEBUG [SwiftUIManagementVisitor.swift:75] SwiftUIManagementVisitor.visit(_:): Visiting struct: ChildView
+DEBUG [ArchitectureVisitor.swift:37] ArchitectureVisitor.visit(_:): Visiting struct: ChildView
+DEBUG [PerformanceVisitor.swift:43] PerformanceVisitor.visit(_:): Visiting SwiftUI view: ChildView
+DEBUG [PerformanceVisitor.swift:43] PerformanceVisitor.visit(_:): Visiting SwiftUI view: ChildView
+DEBUG [PerformanceVisitor.swift:43] PerformanceVisitor.visit(_:): Visiting SwiftUI view: ChildView
+DEBUG [ForEachSelfIDVisitor.swift:23] ForEachSelfIDVisitor.visit(_:): Visiting FunctionCallExprSyntax
+DEBUG [PerformanceVisitor.swift:43] PerformanceVisitor.visit(_:): Visiting SwiftUI view: ChildView
+DEBUG [ArchitectureVisitor.swift:37] ArchitectureVisitor.visit(_:): Visiting struct: ChildView
+DEBUG [ArchitectureVisitor.swift:37] ArchitectureVisitor.visit(_:): Visiting struct: ChildView
+DEBUG [ArchitectureVisitor.swift:37] ArchitectureVisitor.visit(_:): Visiting struct: ChildView
+DEBUG [CodeQualityVisitor.swift:45] CodeQualityVisitor.visit(_:): Visiting struct: ChildView
+DEBUG [CodeQualityVisitor.swift:45] CodeQualityVisitor.visit(_:): Visiting struct: ChildView
+DEBUG [CodeQualityVisitor.swift:45] CodeQualityVisitor.visit(_:): Visiting struct: ChildView
+DEBUG [CodeQualityVisitor.swift:45] CodeQualityVisitor.visit(_:): Visiting struct: ChildView
+DEBUG [SecurityVisitor.swift:29] SecurityVisitor.visit(_:): Visiting variable declaration
+DEBUG [SecurityVisitor.swift:29] SecurityVisitor.visit(_:): Visiting variable declaration
+DEBUG [SecurityVisitor.swift:29] SecurityVisitor.visit(_:): Visiting variable declaration
+DEBUG [SecurityVisitor.swift:29] SecurityVisitor.visit(_:): Visiting variable declaration
+DEBUG [AccessibilityVisitor.swift:103] visit(_:): Visiting FunctionCallExpr - name: 
+        Text
+DEBUG [AccessibilityVisitor.swift:122] AccessibilityVisitor.visit(_:): Found Text initialization
+DEBUG [TextAccessibilityChecker.swift:16] AccessibilityVisitor.checkAccessibility(_:): checkTextAccessibility called
+DEBUG [TextAccessibilityChecker.swift:30] AccessibilityVisitor.checkAccessibility(_:): Checking text: 'Hello' with length 5, threshold: 50
+DEBUG [TextAccessibilityChecker.swift:73] AccessibilityVisitor.isLongText(_:): isLongText called with 5 characters
+DEBUG [TextAccessibilityChecker.swift:74] AccessibilityVisitor.isLongText(_:): isLongText - checking text: 'Hello' with length 5, threshold: 50
+DEBUG [TextAccessibilityChecker.swift:78] AccessibilityVisitor.isLongText(_:): isLongText - returning false for long text
+DEBUG [AccessibilityVisitor.swift:103] visit(_:): Visiting FunctionCallExpr - name: 
+        Text
+DEBUG [AccessibilityVisitor.swift:122] AccessibilityVisitor.visit(_:): Found Text initialization
+DEBUG [TextAccessibilityChecker.swift:16] AccessibilityVisitor.checkAccessibility(_:): checkTextAccessibility called
+DEBUG [TextAccessibilityChecker.swift:30] AccessibilityVisitor.checkAccessibility(_:): Checking text: 'Hello' with length 5, threshold: 50
+DEBUG [TextAccessibilityChecker.swift:73] AccessibilityVisitor.isLongText(_:): isLongText called with 5 characters
+DEBUG [TextAccessibilityChecker.swift:74] AccessibilityVisitor.isLongText(_:): isLongText - checking text: 'Hello' with length 5, threshold: 50
+DEBUG [TextAccessibilityChecker.swift:78] AccessibilityVisitor.isLongText(_:): isLongText - returning false for long text
+DEBUG [AccessibilityVisitor.swift:103] visit(_:): Visiting FunctionCallExpr - name: 
+        Text
+DEBUG [AccessibilityVisitor.swift:122] AccessibilityVisitor.visit(_:): Found Text initialization
+DEBUG [TextAccessibilityChecker.swift:16] AccessibilityVisitor.checkAccessibility(_:): checkTextAccessibility called
+DEBUG [TextAccessibilityChecker.swift:30] AccessibilityVisitor.checkAccessibility(_:): Checking text: 'Hello' with length 5, threshold: 50
+DEBUG [TextAccessibilityChecker.swift:73] AccessibilityVisitor.isLongText(_:): isLongText called with 5 characters
+DEBUG [TextAccessibilityChecker.swift:74] AccessibilityVisitor.isLongText(_:): isLongText - checking text: 'Hello' with length 5, threshold: 50
+DEBUG [TextAccessibilityChecker.swift:78] AccessibilityVisitor.isLongText(_:): isLongText - returning false for long text
+DEBUG [MemoryManagementVisitor.swift:58] MemoryManagementVisitor.visit(_:): Visiting variable declaration
+DEBUG [MemoryManagementVisitor.swift:58] MemoryManagementVisitor.visit(_:): Visiting variable declaration
+DEBUG [MemoryManagementVisitor.swift:58] MemoryManagementVisitor.visit(_:): Visiting variable declaration
+DEBUG [MemoryManagementVisitor.swift:58] MemoryManagementVisitor.visit(_:): Visiting variable declaration
+DEBUG [NetworkingVisitor.swift:26] visit(_:): Visiting FunctionCallExpr - description: 
+        Text("Hello")
+DEBUG [NetworkingVisitor.swift:26] visit(_:): Visiting FunctionCallExpr - description: 
+        Text("Hello")
+DEBUG [ForEachSelfIDVisitor.swift:23] ForEachSelfIDVisitor.visit(_:): Visiting FunctionCallExprSyntax
+Cross-file test execution times:
+  ParentView.swift: 0:00:00
+  ChildView.swift: 0:00:00
+  Total: 0:00:00
+✔ Test swiftSyntaxPatternDetectorCrossFile() passed after 0.255 seconds.
+✔ Suite "SwiftSyntaxPatternDetectorCoreTests" passed after 0.257 seconds.
+✘ Test run with 238 tests in 74 suites failed after 0.258 seconds with 5 issues.

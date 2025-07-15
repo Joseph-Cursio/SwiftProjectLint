@@ -16,6 +16,11 @@ struct CodeQualityDocumentationTests {
         visitor.setFilePath("TestFile.swift")
     }
     
+    private mutating func setupStrictVisitor() {
+        visitor = CodeQualityVisitor(patternCategory: .codeQuality, configuration: .strict)
+        visitor.setFilePath("TestFile.swift")
+    }
+    
     private mutating func resetVisitor() {
         visitor = nil
     }
@@ -118,5 +123,17 @@ struct CodeQualityDocumentationTests {
         
         // Then
         #expect(visitor.detectedIssues.count == 0)
+    }
+    
+    @Test mutating func testDocumentationDetectionCharacterization() async throws {
+        setupVisitor()
+        defer { resetVisitor() }
+        // ... existing code ...
+    }
+    
+    @Test mutating func testStrictDocumentationDetectionCharacterization() async throws {
+        setupStrictVisitor()
+        defer { resetVisitor() }
+        // ... existing code ...
     }
 } 

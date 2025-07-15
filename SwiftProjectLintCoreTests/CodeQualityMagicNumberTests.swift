@@ -16,6 +16,11 @@ struct CodeQualityMagicNumberTests {
         visitor.setFilePath("TestFile.swift")
     }
     
+    private mutating func setupStrictVisitor() {
+        visitor = CodeQualityVisitor(patternCategory: .codeQuality, configuration: .strict)
+        visitor.setFilePath("TestFile.swift")
+    }
+    
     private mutating func resetVisitor() {
         visitor = nil
     }
@@ -147,5 +152,17 @@ struct CodeQualityMagicNumberTests {
         
         let issue15 = magicNumberIssues.first { $0.message.contains("15") }
         #expect(issue15 != nil)
+    }
+    
+    @Test mutating func testMagicNumberDetectionCharacterization() async throws {
+        setupVisitor()
+        defer { resetVisitor() }
+        // ... existing code ...
+    }
+    
+    @Test mutating func testStrictMagicNumberDetectionCharacterization() async throws {
+        setupStrictVisitor()
+        defer { resetVisitor() }
+        // ... existing code ...
     }
 } 

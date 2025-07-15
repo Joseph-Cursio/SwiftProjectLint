@@ -2,6 +2,7 @@ import Testing
 import SwiftUI
 @testable import SwiftProjectLintCore
 @testable import SwiftProjectLint
+import ViewInspector
 
 final class LintResultsViewTests {
     
@@ -122,5 +123,63 @@ final class LintResultsViewTests {
         
         #expect(issue.message.contains("Duplicate state variable"))
         #expect(issue.suggestion?.contains("@StateObject") == true)
+    }
+}
+
+final class LintResultsViewCharacterizationTests {
+    @Test
+    @MainActor
+    func testSummarySectionAndCounts() throws {
+        let issues = [
+            LintIssue(severity: .error, message: "Error issue", filePath: "/file1.swift", lineNumber: 1, suggestion: nil, ruleName: .relatedDuplicateStateVariable),
+            LintIssue(severity: .warning, message: "Warning issue", filePath: "/file2.swift", lineNumber: 2, suggestion: nil, ruleName: .missingStateObject),
+            LintIssue(severity: .info, message: "Info issue", filePath: "/file3.swift", lineNumber: 3, suggestion: nil, ruleName: .uninitializedStateVariable)
+        ]
+        let view = LintResultsView(issues: issues)
+        let inspected = try view.inspect()
+        let vStack = try inspected.vStack()
+        // Header HStack with Full Screen button
+        let headerHStack = try vStack.hStack(0)
+        let fullScreenButton = try headerHStack.findAll(ViewType.Button.self).first
+        #expect(fullScreenButton != nil)
+        let buttonLabelTexts = try fullScreenButton!.labelView().findAll(ViewType.Text.self).map { try $0.string() }
+        #expect(buttonLabelTexts.contains("Full Screen"))
+        // List with summary section
+        let list = try vStack.list(1)
+        let summarySection = try list.section(0)
+        let summaryVStack = try summarySection.vStack(0)
+        let summaryHStack = try summaryVStack.hStack(1)
+        let summaryTexts = try summaryVStack.findAll(ViewType.Text.self).map { try $0.string() }
+        #expect(summaryTexts.contains("Summary"))
+        let summaryItemTitles = try summaryHStack.findAll(ViewType.Text.self).map { try $0.string() }
+        #expect(summaryItemTitles.contains("Total Issues"))
+        #expect(summaryItemTitles.contains("Errors"))
+        #expect(summaryItemTitles.contains("Warnings"))
+        #expect(summaryItemTitles.contains("Info"))
+    }
+
+    @Test
+    @MainActor
+    func testIssueRowsAndFullScreenButton() throws {
+        let issues = [
+            LintIssue(severity: .error, message: "Error issue", filePath: "/file1.swift", lineNumber: 1, suggestion: nil, ruleName: .relatedDuplicateStateVariable),
+            LintIssue(severity: .warning, message: "Warning issue", filePath: "/file2.swift", lineNumber: 2, suggestion: nil, ruleName: .missingStateObject)
+        ]
+        let view = LintResultsView(issues: issues)
+        let inspected = try view.inspect()
+        let vStack = try inspected.vStack()
+        // Header HStack with Full Screen button
+        let headerHStack = try vStack.hStack(0)
+        let fullScreenButton = try headerHStack.findAll(ViewType.Button.self).first
+        #expect(fullScreenButton != nil)
+        let buttonLabelTexts = try fullScreenButton!.labelView().findAll(ViewType.Text.self).map { try $0.string() }
+        #expect(buttonLabelTexts.contains("Full Screen"))
+        // List with issues section
+        let list = try vStack.list(1)
+        let issuesSection = try list.section(1)
+        // Instead of type check, just check for expected issue messages
+        let issueTexts = try issuesSection.findAll(ViewType.Text.self).map { try $0.string() }
+        #expect(issueTexts.contains("Error issue"))
+        #expect(issueTexts.contains("Warning issue"))
     }
 }

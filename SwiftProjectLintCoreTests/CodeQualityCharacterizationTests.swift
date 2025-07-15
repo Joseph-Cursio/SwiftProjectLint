@@ -1,0 +1,2 @@
+// This file has been split into multiple smaller test files for maintainability.
+// See: CodeQualityDocumentationTests.swift, CodeQualityLongFunctionTests.swift, CodeQualityMagicNumberTests.swift, CodeQualityHardcodedStringTests.swift, CodeQualityIntegrationTests.swift 

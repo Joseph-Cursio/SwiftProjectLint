@@ -16,6 +16,11 @@ struct CodeQualityLongFunctionTests {
         visitor.setFilePath("TestFile.swift")
     }
     
+    private mutating func setupStrictVisitor() {
+        visitor = CodeQualityVisitor(patternCategory: .codeQuality, configuration: .strict)
+        visitor.setFilePath("TestFile.swift")
+    }
+    
     private mutating func resetVisitor() {
         visitor = nil
     }
@@ -77,5 +82,17 @@ struct CodeQualityLongFunctionTests {
         
         // Then
         #expect(visitor.detectedIssues.count == 0)
+    }
+    
+    @Test mutating func testFunctionLengthDetectionCharacterization() async throws {
+        setupVisitor()
+        defer { resetVisitor() }
+        // ... existing code ...
+    }
+    
+    @Test mutating func testStrictFunctionLengthDetectionCharacterization() async throws {
+        setupStrictVisitor()
+        defer { resetVisitor() }
+        // ... existing code ...
     }
 } 

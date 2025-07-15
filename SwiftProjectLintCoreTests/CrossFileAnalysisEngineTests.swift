@@ -1,0 +1,2 @@
+// This file has been split into multiple smaller test files for maintainability.
+// See: CrossFileAnalysisEngineInitializationTests.swift, CrossFileAnalysisEngineCategoryRuleTests.swift, CrossFileAnalysisEngineProjectEdgeCaseTests.swift, CrossFileAnalysisEngineDuplicateStateTests.swift, CrossFileAnalysisEngineArchitectureIssueTests.swift, CrossFileAnalysisEnginePerformanceTests.swift, CrossFileAnalysisEngineTestUtils.swift 

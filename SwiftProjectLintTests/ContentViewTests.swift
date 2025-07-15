@@ -32,4 +32,36 @@ struct ContentViewTests {
         #expect((try? texts[1].string()) == "Two")
         #expect((try? texts[2].string()) == "Three")
     }
+
+    @Test
+    @MainActor
+    func testContentViewStructure() throws {
+        let systemComponents = SystemComponents()
+        systemComponents.initialize()
+        let view = ContentView().environmentObject(systemComponents)
+        let inspected = try view.inspect()
+        // NavigationView
+        #expect(try inspected.find(ViewType.NavigationView.self) != nil)
+        // VStack
+        let vStack = try inspected.navigationView().vStack()
+        // Header
+        #expect(try vStack.find(ContentViewHeader.self) != nil)
+        // Actions
+        #expect(try vStack.find(ContentViewActions.self) != nil)
+        // Progress
+        #expect(try vStack.find(ContentViewProgress.self) != nil)
+        // Results
+        #expect(try vStack.find(ContentViewResults.self) != nil)
+        // Navigation title: check for the title text somewhere in the view
+        let allTexts = try inspected.findAll(ViewType.Text.self).map { try? $0.string() }
+        #expect(allTexts.contains("Swift Project Linter"))
+    }
+
+    @Test
+    @MainActor
+    func testRuleSelectionDialogSheetAppears() throws {
+        // ViewInspector does not currently support direct sheet state inspection in Swift Testing.
+        // Placeholder for future support or workaround.
+        // e.g. #expect(try inspected.sheet().find(RuleSelectionDialog.self) != nil)
+    }
 }
