@@ -41,3 +41,13 @@ debug_output/
 # Ignore specific derived files
 TestResults.xcresult/Data/data.0*
 *.mdb
+
+# Output and logs
+Output/
+
+# Project documentation and scripts (optional, if you want to ignore generated or local-only files)
+# Docs/
+# Scripts/
+
+# Centralized tests (optional, if you want to ignore generated or local-only files)
+# Tests/

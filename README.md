@@ -391,3 +391,29 @@ This project is for educational and demonstration purposes. Feel free to use and
 - [__string_comparison.md](./__string_comparison.md) - String comparison refactoring strategy
 - [__refactor.md](./__refactor.md) - Comprehensive refactoring recommendations
 - [NestedNavigationDetection_PRD.md](./NestedNavigationDetection_PRD.md) - Enhanced nested Navigation detection strategy
+
+## 📁 Project Directory Structure (SPM Best Practice)
+
+The project now follows the Swift Package Manager (SPM) best practice layout:
+
+```
+SwiftProjectLint/
+├── Package.swift
+├── Sources/
+│   ├── SwiftProjectLint/         # Main app target (UI, CLI, etc.)
+│   └── SwiftProjectLintCore/     # Core library target (analysis, detection, etc.)
+├── Tests/
+│   ├── SwiftProjectLintTests/        # Tests for the main app target
+│   └── SwiftProjectLintCoreTests/    # Tests for the core library target
+├── Docs/                        # Documentation and design notes
+├── Scripts/                     # Utility scripts
+├── Output/                      # Build artifacts or generated files
+└── ... (other folders)
+```
+
+- All source files for `SwiftProjectLintCore` are in `Sources/SwiftProjectLintCore/`.
+- All source files for `SwiftProjectLint` are in `Sources/SwiftProjectLint/`.
+- All test files are in the corresponding `Tests/<TargetName>Tests/` folders.
+- There are no redundant top-level folders; everything is organized under `Sources/` and `Tests/`.
+
+> **Note:** If you are updating from a previous version, make sure to update your Xcode project and `Package.swift` to reference the new paths as shown above.

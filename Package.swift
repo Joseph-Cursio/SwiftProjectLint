@@ -27,28 +27,28 @@ let package = Package(
                 .product(name: "SwiftSyntax", package: "swift-syntax"),
                 .product(name: "SwiftParser", package: "swift-syntax")
             ],
-            path: "SwiftProjectLintCore/SwiftProjectLintCore"
+            path: "Sources/SwiftProjectLintCore"
         ),
         .executableTarget(
             name: "SwiftProjectLint",
             dependencies: ["SwiftProjectLintCore"],
-            path: "SwiftProjectLint/SwiftProjectLint"
+            path: "Sources/SwiftProjectLint"
         ),
         .testTarget(
             name: "SwiftProjectLintCoreTests",
             dependencies: ["SwiftProjectLintCore", "ViewInspector"],
-            path: "SwiftProjectLintCoreTests"
+            path: "Tests/SwiftProjectLintCoreTests"
         ),
         .testTarget(
             name: "SwiftProjectLintTests",
             dependencies: ["SwiftProjectLintCore", "SwiftProjectLint", "ViewInspector"],
-            path: "SwiftProjectLintTests"
+            path: "Tests/SwiftProjectLintTests"
         ),
         // UI tests are configured in Xcode project and should be run through Xcode
         // .testTarget(
         //     name: "SwiftProjectLintUITests",
         //     dependencies: ["SwiftProjectLint"],
-        //     path: "SwiftProjectLintUITests"
+        //     path: "Tests/SwiftProjectLintUITests"
         // ),
     ]
 ) 
