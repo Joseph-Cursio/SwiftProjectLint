@@ -1,5 +1,5 @@
 //
-//  SwiftSyntaxPatternFileCacheTests.swift
+//  SourcePatternFileCacheTests.swift
 //  SwiftProjectLint
 //
 //  Created by Joseph Cursio on 7/15/25.

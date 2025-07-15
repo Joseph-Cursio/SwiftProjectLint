@@ -2,19 +2,6 @@ import Testing
 import Foundation
 @testable import SwiftProjectLintCore
 
-/// Comprehensive Characterization Tests for SourcePatternDetector
-///
-/// These tests document and verify the current behavior of the pattern detector,
-/// helping to catch regressions and understand how the system actually works.
-///
-/// Key areas of characterization:
-/// - Basic input/output behavior
-/// - Category filtering
-/// - File cache management
-/// - Cross-file analysis claims vs reality
-/// - Rule identifier filtering
-/// - Error handling and edge cases
-
 @MainActor
 final class SourcePatternDetectorTests {
     

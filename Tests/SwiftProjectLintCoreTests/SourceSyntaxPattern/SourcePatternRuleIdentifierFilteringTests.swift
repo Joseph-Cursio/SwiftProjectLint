@@ -1,5 +1,5 @@
 //
-//  SwiftSYntaxPatternRuleIdentifierFilteringTests.swift
+//  SourcePatternRuleIdentifierFilteringTests.swift
 //  SwiftProjectLint
 //
 //  Created by Joseph Cursio on 7/15/25.
@@ -22,7 +22,7 @@ import Foundation
 /// - Error handling and edge cases
 
 @MainActor
-final class SwiftSyntaxPatternRuleIdentifierFilteringTests {
+final class SourcePatternRuleIdentifierFilteringTests {
 
     // MARK: - Rule Identifier Filtering Characterization
     

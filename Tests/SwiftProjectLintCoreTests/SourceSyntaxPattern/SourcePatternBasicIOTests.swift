@@ -1,5 +1,5 @@
 //
-//  SwiftSyntaxPatternBasicIOTests.swift
+//  SourcePatternBasicIOTests.swift
 //  SwiftProjectLint
 //
 //  Created by Joseph Cursio on 7/15/25.
