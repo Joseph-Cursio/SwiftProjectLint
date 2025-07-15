@@ -156,7 +156,7 @@ public class ProjectLinter {
     ///            within the file.
     ///
     /// - Note: This method uses SwiftSyntax for accurate parsing and can handle complex property declarations,
-    ///         multiline statements, and edge cases that regex-based parsing could not.
+    ///         multiline statements, and edge cases.
     private func analyzeSwiftFile(at path: String, categories: [PatternCategory]? = nil, ruleIdentifiers: [RuleIdentifier]? = nil) -> [LintIssue] {
         var issues: [LintIssue] = []
         guard let content = try? String(contentsOfFile: path, encoding: .utf8) else {

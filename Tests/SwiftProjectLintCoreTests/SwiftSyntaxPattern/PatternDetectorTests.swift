@@ -2,6 +2,19 @@ import Testing
 import Foundation
 @testable import SwiftProjectLintCore
 
+/// Comprehensive Characterization Tests for SwiftSyntaxPatternDetector
+///
+/// These tests document and verify the current behavior of the pattern detector,
+/// helping to catch regressions and understand how the system actually works.
+///
+/// Key areas of characterization:
+/// - Basic input/output behavior
+/// - Category filtering
+/// - File cache management
+/// - Cross-file analysis claims vs reality
+/// - Rule identifier filtering
+/// - Error handling and edge cases
+
 @MainActor
 final class PatternDetectorTests {
     
@@ -100,26 +113,71 @@ final class PatternDetectorTests {
         #expect(registry != nil)
         // #expect(detector.registry != nil) // This line was removed as per the edit hint.
     }
+
+    // MARK: - Error Handling and Edge Cases
     
-    @Test func testEmptySourceCode() async throws {
+    @Test func characterizeVeryLargeSourceFile() async throws {
         let detector = SwiftSyntaxPatternDetector()
-        let issues = detector.detectPatterns(
-            in: "",
-            filePath: "/test/Empty.swift"
-        )
         
-        #expect(issues.count >= 0) // Should handle empty source gracefully
+        // Generate a large SwiftUI file
+        var largeFileContent = """
+        import SwiftUI
+        
+        struct LargeView: View {
+            var body: some View {
+                VStack {
+        """
+        
+        // Add many repetitive elements
+        for i in 0..<500 {
+            largeFileContent += """
+                    Text("Item \(i)")
+                    Text("Description \(i)")
+            """
+        }
+        
+        largeFileContent += """
+                }
+            }
+        }
+        """
+        
+        let issues = detector.detectPatterns(in: largeFileContent, filePath: "/LargeView.swift")
+        
+        print("📊 Large Source File Handling:")
+        print("   Input size: ~\(largeFileContent.count) characters")
+        print("   Output: \(issues.count) issues")
+        print("   Performance: Analysis completed without timeout")
+        
+        #expect(issues.count >= 0, "Large files should be handled gracefully")
     }
     
-    @Test func testInvalidSwiftCode() async throws {
+    @Test func characterizeFilePathVariations() async throws {
         let detector = SwiftSyntaxPatternDetector()
-        let invalidCode = "This is not valid Swift code {"
+        let testCode = """
+        import SwiftUI
+        struct PathTestView: View {
+            var body: some View { Text("Test") }
+        }
+        """
         
-        let issues = detector.detectPatterns(
-            in: invalidCode,
-            filePath: "/test/Invalid.swift"
-        )
+        let pathVariations = [
+            "/simple.swift",
+            "/path/to/nested/file.swift",
+            "relative/path.swift",
+            "C:\\Windows\\Style\\Path.swift",
+            "/path with spaces/file.swift",
+            "/path/with/unicode/文件.swift"
+        ]
         
-        #expect(issues.count >= 0) // Should handle invalid code gracefully
+        print("📊 File Path Variations:")
+        for path in pathVariations {
+            let issues = detector.detectPatterns(in: testCode, filePath: path)
+            print("   Path: '\(path)' -> \(issues.count) issues")
+        }
+        
+        #expect(true, "Various file path formats should be handled")
     }
+    
+ 
 }

@@ -2,8 +2,6 @@ import Foundation
 import SwiftParser
 import SwiftSyntax
 
-/// The detector supports cross-file analysis and can detect patterns that span multiple files,
-/// such as duplicate state variables across different views.
 @MainActor
 public class SwiftSyntaxPatternDetector: SwiftSyntaxPatternDetectorProtocol {
     private let registry: PatternVisitorRegistry
