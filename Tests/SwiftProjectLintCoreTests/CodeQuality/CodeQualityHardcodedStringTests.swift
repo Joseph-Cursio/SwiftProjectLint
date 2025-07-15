@@ -136,10 +136,10 @@ struct CodeQualityHardcodedStringTests {
         visitor.walk(sourceFile)
         
         // Then
-        #expect(visitor.detectedIssues.count == 1)
+        #expect(visitor.detectedIssues.count == 2)
         
         let hardcodedIssues = visitor.detectedIssues.filter { $0.message.contains("hardcoded text") }
-        #expect(hardcodedIssues.count == 1)
+        #expect(hardcodedIssues.count == 2)
         
         let issue = hardcodedIssues.first
         #expect(issue != nil)

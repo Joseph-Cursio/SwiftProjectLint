@@ -173,16 +173,33 @@ class ArchitectureVisitor: BasePatternVisitor {
         }
     }
     
+    /// Enum representing class name suffixes that typically indicate a service, manager, or similar type that should have a protocol for testability and flexibility.
+    enum ProtocolizableClassSuffix: String, CaseIterable {
+        case manager = "Manager"
+        case service = "Service"
+        case store = "Store"
+        case provider = "Provider"
+        case client = "Client"
+        case coordinator = "Coordinator"
+        case repository = "Repository"
+        case handler = "Handler"
+        case controller = "Controller"
+        case factory = "Factory"
+        case adapter = "Adapter"
+    }
+    
+    /**
+     Checks if a class declaration matches any of the protocolizable suffixes defined in ProtocolizableClassSuffix and, if it also conforms to ObservableObject, suggests defining a protocol for better testability.
+     */
     private func detectMissingProtocols(_ node: ClassDeclSyntax) {
         let className = node.name.text
-        
         // Check if this looks like a service/manager class that should have a protocol
-        if className.hasSuffix("Manager") || className.hasSuffix("Service") || className.hasSuffix("Store") {
+        let matchesSuffix = ProtocolizableClassSuffix.allCases.contains { className.hasSuffix($0.rawValue) }
+        if matchesSuffix {
             // Check if it conforms to ObservableObject
             let hasObservableObject = node.inheritanceClause?.inheritedTypes.contains { type in
                 type.type.as(IdentifierTypeSyntax.self)?.name.text == "ObservableObject"
             } ?? false
-            
             if hasObservableObject {
                 addIssue(
                     severity: .info,

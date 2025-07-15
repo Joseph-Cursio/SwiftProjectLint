@@ -36,8 +36,8 @@ struct RuleSelectionDialogTests {
         }
         // Instead of Section, look for ForEach and Toggle
         let navView = try inspected.navigationView()
-        let vStack = try navView.vStack()
-        let forEach = try vStack.find(ViewType.ForEach.self)
+        let list = try navView.list()
+        let forEach = try list.find(ViewType.ForEach.self)
         // Check for Toggle label text (flexible: any Text in label)
         let toggles = try forEach.findAll(ViewType.Toggle.self)
         #expect(toggles.contains { toggle in

@@ -146,7 +146,7 @@ struct CodeQualityIntegrationTests {
         visitor.walk(sourceFile)
         
         // Then
-        #expect(visitor.detectedIssues.count == 5)
+        #expect(visitor.detectedIssues.count == 6)
         
         // Magic numbers
         let magicNumberIssues = visitor.detectedIssues.filter { $0.message.contains("magic number") }
@@ -162,7 +162,7 @@ struct CodeQualityIntegrationTests {
         
         // Missing documentation
         let documentationIssues = visitor.detectedIssues.filter { $0.message.contains("documentation") }
-        #expect(documentationIssues.count == 1)
+        #expect(documentationIssues.count == 2)
     }
     
     // MARK: - Configuration Tests

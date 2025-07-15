@@ -15,7 +15,9 @@ public struct FileAnalysisUtils {
     /// - Parameter filePath: The full file system path to a Swift source file.
     /// - Returns: The name of the view, derived from the file name by removing the ".swift" extension.
     public static func extractBasename(from filePath: String) -> String {
-        let fileName = (filePath as NSString).lastPathComponent
+        // Normalize Windows paths to use forward slashes
+        let normalizedPath = filePath.replacingOccurrences(of: "\\", with: "/")
+        let fileName = (normalizedPath as NSString).lastPathComponent
         return fileName.replacingOccurrences(of: ".swift", with: "")
     }
     

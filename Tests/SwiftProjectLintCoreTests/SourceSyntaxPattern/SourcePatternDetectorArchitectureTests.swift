@@ -143,29 +143,26 @@ struct SourcePatternDetectorArchitectureTests {
     
     @Test
     static func architectureVisitorMissingProtocols() async throws {
-        // Given
-        let sourceCode = """
-        class UserManager: ObservableObject {
-            @Published var userName = ""
-            @Published var userEmail = ""
+        // NOTE: The ProtocolizableClassSuffix enum in ArchitectureVisitor is the source of truth for protocol-detectable suffixes.
+        for suffix in ArchitectureVisitor.ProtocolizableClassSuffix.allCases {
+            let className = "Test\(suffix.rawValue)"
+            let sourceCode = """
+            class \(className): ObservableObject {
+                @Published var userName = ""
+                @Published var userEmail = ""
+            }
+            """
+            var visitor = ArchitectureVisitor(patternCategory: .architecture)
+            visitor.setFilePath("\(className).swift")
+            let sourceFile = Parser.parse(source: sourceCode)
+            visitor.walk(sourceFile)
+            #expect(visitor.detectedIssues.count == 1, "Expected 1 protocol issue for class suffix \(suffix.rawValue)")
+            let protocolIssue = visitor.detectedIssues.first
+            try #require(protocolIssue)
+            #expect(protocolIssue?.message.contains(className) == true, "Issue message should mention class name \(className)")
+            #expect(protocolIssue?.message.contains("protocol") == true, "Issue message should mention 'protocol'")
+            #expect(protocolIssue?.severity == .info, "Issue severity should be .info")
         }
-        """
-        
-        var visitor = ArchitectureVisitor(patternCategory: .architecture)
-        visitor.setFilePath("UserManager.swift")
-        
-        // When
-        let sourceFile = Parser.parse(source: sourceCode)
-        visitor.walk(sourceFile)
-        
-        // Then
-        #expect(visitor.detectedIssues.count == 1)
-        
-        let protocolIssue = visitor.detectedIssues.first
-        try #require(protocolIssue)
-        #expect(protocolIssue?.message.contains("UserManager") == true)
-        #expect(protocolIssue?.message.contains("protocol") == true)
-        #expect(protocolIssue?.severity == .info)
     }
     
     @Test
