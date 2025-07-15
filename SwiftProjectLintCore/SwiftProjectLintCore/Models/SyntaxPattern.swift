@@ -7,7 +7,7 @@
 
 public struct SyntaxPattern {
     public let name: RuleIdentifier
-    public let visitor: PatternVisitor.Type
+    public let visitor: PatternVisitorProtocol.Type
     public let severity: IssueSeverity
     public let category: PatternCategory
     public let messageTemplate: String
@@ -26,7 +26,7 @@ public struct SyntaxPattern {
     ///   - description: A detailed description of the pattern.
     public init(
         name: RuleIdentifier,
-        visitor: PatternVisitor.Type,
+        visitor: PatternVisitorProtocol.Type,
         severity: IssueSeverity,
         category: PatternCategory,
         messageTemplate: String,

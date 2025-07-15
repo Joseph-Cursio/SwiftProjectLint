@@ -10,10 +10,10 @@ import SwiftSyntax
 
 /// Protocol for pattern visitors that support cross-file analysis.
 ///
-/// `CrossFilePatternVisitor` extends `PatternVisitor` to support analysis
+/// `CrossFilePatternVisitorProtocol` extends `PatternVisitorProtocol` to support analysis
 /// that spans multiple files, such as duplicate detection or architectural
 /// pattern analysis.
-protocol CrossFilePatternVisitor: PatternVisitor {
+protocol CrossFilePatternVisitorProtocol: PatternVisitorProtocol {
     /// The cached source files for cross-file analysis.
     var fileCache: [String: SourceFileSyntax] { get }
     

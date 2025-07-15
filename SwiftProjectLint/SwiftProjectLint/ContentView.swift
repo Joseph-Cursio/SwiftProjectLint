@@ -35,45 +35,11 @@ struct ContentView: View {
     
     private let userDefaultsKey = "enabledLintRules"
     
-    // MARK: - Pattern Configuration
+    // MARK: - Computed Properties
     
     /// Pattern configuration that uses SwiftSyntax for all categories.
-    /// This computed property dynamically pulls patterns from the registry to ensure
-    /// the UI always reflects the actual registry state.
     private var allPatternsByCategory: [(category: PatternCategory, display: String, patterns: [DetectionPattern], useSwiftSyntax: Bool)] {
-        guard let patternRegistry = systemComponents.patternRegistry else {
-            assertionFailure("SystemComponents.patternRegistry is nil. This usually means the environment object was not injected. Make sure to use .environmentObject(SystemComponents()) in previews and all entry points.")
-            #if DEBUG
-            return [(category: .stateManagement, display: "State Management", patterns: [], useSwiftSyntax: true)]
-            #else
-            return []
-            #endif
-        }
-        
-        return [
-            (.stateManagement, "State Management", convertToDetectionPatterns(patternRegistry.getPatterns(for: .stateManagement)), true),
-            (.performance, "Performance", convertToDetectionPatterns(patternRegistry.getPatterns(for: .performance)), true),
-            (.architecture, "Architecture", convertToDetectionPatterns(patternRegistry.getPatterns(for: .architecture)), true),
-            (.codeQuality, "Code Quality", convertToDetectionPatterns(patternRegistry.getPatterns(for: .codeQuality)), true),
-            (.security, "Security", convertToDetectionPatterns(patternRegistry.getPatterns(for: .security)), true),
-            (.accessibility, "Accessibility", convertToDetectionPatterns(patternRegistry.getPatterns(for: .accessibility)), true),
-            (.memoryManagement, "Memory Management", convertToDetectionPatterns(patternRegistry.getPatterns(for: .memoryManagement)), true),
-            (.networking, "Networking", convertToDetectionPatterns(patternRegistry.getPatterns(for: .networking)), true),
-            (.uiPatterns, "UI Patterns", convertToDetectionPatterns(patternRegistry.getPatterns(for: .uiPatterns)), true)
-        ]
-    }
-    
-    /// Converts SwiftSyntax patterns to DetectionPatterns for UI compatibility
-    private func convertToDetectionPatterns(_ syntaxPatterns: [SyntaxPattern]) -> [DetectionPattern] {
-        return syntaxPatterns.map { syntaxPattern in
-            DetectionPattern(
-                name: syntaxPattern.name,
-                severity: syntaxPattern.severity,
-                message: syntaxPattern.messageTemplate,
-                suggestion: syntaxPattern.suggestion,
-                category: syntaxPattern.category
-            )
-        }
+        PatternConfiguration.allPatternsByCategory(from: systemComponents.patternRegistry)
     }
     
     // MARK: - Init
@@ -104,81 +70,21 @@ struct ContentView: View {
         NavigationView {
             VStack(spacing: 20) {
                 // Header
-                VStack(spacing: 8) {
-                    Image(systemName: "checkmark.shield")
-                        .font(.system(size: 60))
-                        .foregroundColor(.blue)
-                        .accessibilityHidden(true)
-                    
-                    Text("Swift Project Linter")
-                        .font(.largeTitle)
-                        .fontWeight(.bold)
-                        .accessibilityLabel("Swift Project Linter")
-                        .accessibilityIdentifier("mainTitleLabel")
-                    
-                    Text("Detect cross-file issues and architectural problems")
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
-                        .multilineTextAlignment(.center)
-                        .accessibilityLabel("Detect cross-file issues and architectural problems")
-                        .accessibilityIdentifier("mainDescriptionLabel")
-                }
-                .padding(.bottom, 20)
+                ContentViewHeader()
                 
-                VStack(spacing: 16) {
-                    Button("Select Rules") {
-                        showRuleSelector = true
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .accessibilityLabel("Select Rules")
-                    .accessibilityIdentifier("selectRulesButton")
-                    
-                    if selectedDirectory.isEmpty {
-                        Button("Run Project Analysis by Selecting a Folder...") {
-                            selectDirectory()
-                        }
-                        .buttonStyle(.bordered)
-                        .accessibilityLabel("Run Project Analysis by Selecting a Folder...")
-                        .accessibilityIdentifier("mainActionButton")
-                    } else {
-                        Button("Analyze \(URL(fileURLWithPath: selectedDirectory).lastPathComponent)") {
-                            analyzeProject()
-                        }
-                        .buttonStyle(.borderedProminent)
-                        .accessibilityLabel("Analyze \(URL(fileURLWithPath: selectedDirectory).lastPathComponent)")
-                        .accessibilityIdentifier("mainActionButton")
-                    }
-                }
+                // Action Buttons
+                ContentViewActions(
+                    selectedDirectory: selectedDirectory,
+                    onSelectRules: { showRuleSelector = true },
+                    onSelectDirectory: selectDirectory,
+                    onAnalyzeProject: analyzeProject
+                )
                 
                 // Analysis Progress
-                if isAnalyzing {
-                    VStack(spacing: 8) {
-                        ProgressView()
-                            .scaleEffect(1.2)
-                        Text("Analyzing project...")
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
-                    }
-                    .padding(.vertical, 20)
-                }
+                ContentViewProgress(isAnalyzing: isAnalyzing)
                 
                 // Results
-                if !lintIssues.isEmpty && !isAnalyzing {
-                    VStack(spacing: 12) {
-                        HStack {
-                            Text("Analysis Results")
-                                .font(.headline)
-                            Spacer()
-                            Text("\(lintIssues.count) issues found")
-                                .font(.subheadline)
-                                .foregroundColor(.secondary)
-                        }
-                        
-                        LintResultsView(issues: lintIssues)
-                            .frame(maxHeight: 400)
-                    }
-                    .padding(.horizontal, 40)
-                }
+                ContentViewResults(lintIssues: lintIssues, isAnalyzing: isAnalyzing)
                 
                 Spacer()
             }
@@ -264,24 +170,10 @@ struct ContentView: View {
     ///
     /// - Returns: An array of PatternCategory values that have at least one enabled rule.
     private func getEnabledCategories() -> [PatternCategory] {
-        guard let patternRegistry = systemComponents.patternRegistry else {
-            return []
-        }
-        
-        var enabledCategories: Set<PatternCategory> = []
-        
-        for category in PatternCategory.allCases {
-            let patternsInCategory = patternRegistry.getPatterns(for: category)
-            let enabledPatternsInCategory = patternsInCategory.filter { pattern in
-                enabledRuleNames.contains(pattern.name)
-            }
-            
-            if !enabledPatternsInCategory.isEmpty {
-                enabledCategories.insert(category)
-            }
-        }
-        
-        return Array(enabledCategories)
+        PatternConfiguration.getEnabledCategories(
+            patternRegistry: systemComponents.patternRegistry,
+            enabledRuleNames: enabledRuleNames
+        )
     }
     
     /// Filters lint issues to only include those from enabled rules using registry mapping.
@@ -293,15 +185,7 @@ struct ContentView: View {
     /// - Parameter issues: The array of all detected issues.
     /// - Returns: An array containing only issues from enabled rules.
     private func filterIssuesByEnabledRules(_ issues: [LintIssue]) -> [LintIssue] {
-        // If no rules are enabled, return no issues
-        if enabledRuleNames.isEmpty {
-            return []
-        }
-        
-        // Filter issues based on their ruleName and the enabled rules
-        return issues.filter { issue in
-            return enabledRuleNames.contains(issue.ruleName)
-        }
+        PatternConfiguration.filterIssuesByEnabledRules(issues, enabledRuleNames: enabledRuleNames)
     }
     
     /// Creates a set of demo lint issues for illustration purposes.
@@ -312,144 +196,8 @@ struct ContentView: View {
     ///
     /// - Returns: An array of demo `LintIssue` objects for enabled rules only.
     private func createDemoIssues() -> [LintIssue] {
-        var demoIssues: [LintIssue] = []
-        
-        // Get enabled categories
         let enabledCategories = getEnabledCategories()
-        
-        // Create demo issues based on enabled categories
-        for category in enabledCategories {
-            switch category {
-            case .stateManagement:
-                demoIssues.append(contentsOf: [
-                    LintIssue(
-                        severity: .warning,
-                        message: "Related Duplicate State Variable: 'isLoading' found in ParentView and ChildView",
-                        filePath: "ExampleViews/ParentView.swift",
-                        lineNumber: 5,
-                        suggestion: "Create a shared ObservableObject for 'isLoading' and inject it via .environmentObject() at the root level.",
-                        ruleName: .relatedDuplicateStateVariable
-                    ),
-                    LintIssue(
-                        severity: .info,
-                        message: "Unrelated Duplicate State Variable: 'userName' found in separate views",
-                        filePath: "ExampleViews/UserView.swift",
-                        lineNumber: 8,
-                        suggestion: "Consider if these variables represent the same concept and should be shared via a common ObservableObject.",
-                        ruleName: .unrelatedDuplicateStateVariable
-                    )
-                ])
-                
-            case .performance:
-                demoIssues.append(contentsOf: [
-                    LintIssue(
-                        severity: .warning,
-                        message: "ForEach Without ID: Using array without explicit identifier",
-                        filePath: "ExampleViews/ListView.swift",
-                        lineNumber: 12,
-                        suggestion: "Add explicit id parameter to ForEach for better performance and stability.",
-                        ruleName: .forEachWithoutID
-                    ),
-                    LintIssue(
-                        severity: .warning,
-                        message: "Large View Body: View contains 50+ lines of code",
-                        filePath: "ExampleViews/ComplexView.swift",
-                        lineNumber: 25,
-                        suggestion: "Break down large view into smaller, focused components.",
-                        ruleName: .largeViewBody
-                    )
-                ])
-                
-            case .architecture:
-                demoIssues.append(contentsOf: [
-                    LintIssue(
-                        severity: .warning,
-                        message: "Missing MVVM Pattern: View contains business logic",
-                        filePath: "ExampleViews/BusinessView.swift",
-                        lineNumber: 15,
-                        suggestion: "Extract business logic into a dedicated ViewModel class.",
-                        ruleName: .fatViewDetection
-                    )
-                ])
-                
-            case .codeQuality:
-                demoIssues.append(contentsOf: [
-                    LintIssue(
-                        severity: .info,
-                        message: "Magic Number: Using hardcoded value '42'",
-                        filePath: "ExampleViews/ConfigView.swift",
-                        lineNumber: 7,
-                        suggestion: "Define constants for magic numbers to improve code readability.",
-                        ruleName: .magicNumber
-                    )
-                ])
-                
-            case .security:
-                demoIssues.append(contentsOf: [
-                    LintIssue(
-                        severity: .error,
-                        message: "Hardcoded Secret: API key found in source code",
-                        filePath: "ExampleViews/NetworkView.swift",
-                        lineNumber: 10,
-                        suggestion: "Move sensitive data to secure configuration files or environment variables.",
-                        ruleName: .hardcodedSecret
-                    )
-                ])
-                
-            case .accessibility:
-                demoIssues.append(contentsOf: [
-                    LintIssue(
-                        severity: .warning,
-                        message: "Missing Accessibility Label: Image without accessibility description",
-                        filePath: "ExampleViews/ImageView.swift",
-                        lineNumber: 8,
-                        suggestion: "Add accessibilityLabel to improve screen reader support.",
-                        ruleName: .missingAccessibilityLabel
-                    )
-                ])
-                
-            case .memoryManagement:
-                demoIssues.append(contentsOf: [
-                    LintIssue(
-                        severity: .warning,
-                        message: "Potential Retain Cycle: Strong reference in closure",
-                        filePath: "ExampleViews/ClosureView.swift",
-                        lineNumber: 14,
-                        suggestion: "Use weak self in closures to prevent retain cycles.",
-                        ruleName: .potentialRetainCycle
-                    )
-                ])
-                
-            case .networking:
-                demoIssues.append(contentsOf: [
-                    LintIssue(
-                        severity: .error,
-                        message: "Missing Error Handling: Network request without error handling",
-                        filePath: "ExampleViews/NetworkView.swift",
-                        lineNumber: 22,
-                        suggestion: "Add proper error handling to network requests.",
-                        ruleName: .missingErrorHandling
-                    )
-                ])
-                
-            case .uiPatterns:
-                demoIssues.append(contentsOf: [
-                    LintIssue(
-                        severity: .warning,
-                        message: "Nested NavigationView: Multiple NavigationView instances detected",
-                        filePath: "ExampleViews/NavigationView.swift",
-                        lineNumber: 5,
-                        suggestion: "Use NavigationStack or NavigationSplitView instead of nested NavigationView.",
-                        ruleName: .nestedNavigationView
-                    )
-                ])
-            case .other:
-                // No demo issues for the "other" category (system-level errors)
-                break
-            }
-        }
-        
-        return demoIssues
+        return DemoIssueGenerator.createDemoIssues(for: enabledCategories)
     }
 }
 
@@ -457,107 +205,4 @@ struct ContentView: View {
     let systemComponents = SystemComponents()
     systemComponents.initialize()
     return ContentView().environmentObject(systemComponents)
-}
-
-// MARK: - Rule Selection Dialog
-
-/// A modal SwiftUI view for selecting which lint rules are enabled in the project linter.
-///
-/// `RuleSelectionDialog` presents all available SwiftSyntax-based lint detection patterns, grouped by category, as a list of toggles
-/// allowing the user to customize which rules are active during analysis. All patterns use SwiftSyntax for improved accuracy.
-///
-/// Features:
-/// - Displays rules grouped by logical categories (e.g., State Management, Performance).
-/// - Each rule can be individually enabled or disabled via a toggle.
-/// - Bulk actions for selecting all or resetting to defaults.
-/// - Shows each rule's name and a brief description.
-/// - Integration with SwiftUI navigation and toolbar system for a familiar dialog experience.
-/// - All patterns use SwiftSyntax for improved accuracy and comprehensive analysis.
-///
-/// Properties:
-/// - `allPatternsByCategory`: An array of tuples grouping all detection patterns by category, display string, their definitions, and whether they use SwiftSyntax.
-/// - `enabledRuleNames`: A binding to the set of currently enabled rule names; updates are reflected live in the UI.
-/// - `onSave`: A closure called when the user taps Save, allowing the parent view to persist changes.
-/// - `dismiss`: An environment value for dismissing the modal dialog.
-///
-/// Usage:
-/// Present this view as a sheet or modal when the user wants to customize active lint rules. On save, the updated list of
-/// enabled rule names can be persisted as appropriate (such as to UserDefaults).
-struct RuleSelectionDialog: View {
-    let allPatternsByCategory: [(category: PatternCategory, display: String, patterns: [DetectionPattern], useSwiftSyntax: Bool)]
-    @Binding var enabledRuleNames: Set<RuleIdentifier>
-    var onSave: () -> Void
-    @Environment(\.dismiss) private var dismiss
-    
-    // Helper: All rule names from the passed patterns
-    private var allRuleNames: Set<RuleIdentifier> {
-        var names = Set<RuleIdentifier>()
-        for group in allPatternsByCategory {
-            names.formUnion(group.patterns.map { $0.name })
-        }
-        return names
-    }
-    
-    // Helper: Default rule name
-    private var defaultRuleName: RuleIdentifier? {
-        return .relatedDuplicateStateVariable // Default pattern from state management
-    }
-    
-    var body: some View {
-        NavigationView {
-            List {
-                ForEach(allPatternsByCategory, id: \.category) { group in
-                    Section(header: Text(group.display)) {
-                        // Show patterns from the passed data
-                        ForEach(group.patterns, id: \.name) { pattern in
-                            Toggle(isOn: Binding(
-                                get: { enabledRuleNames.contains(pattern.name) },
-                                set: { isOn in
-                                    if isOn {
-                                        enabledRuleNames.insert(pattern.name)
-                                    } else {
-                                        enabledRuleNames.remove(pattern.name)
-                                    }
-                                }
-                            )) {
-                                VStack(alignment: .leading, spacing: 2) {
-                                    Text(pattern.name.rawValue)
-                                        .fontWeight(.medium)
-                                    Text(pattern.suggestion)
-                                        .font(.caption)
-                                        .foregroundColor(.secondary)
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            .navigationTitle("Select Lint Rules")
-            .toolbar {
-                ToolbarItemGroup(placement: .automatic) {
-                    Button("Select All") {
-                        enabledRuleNames = allRuleNames
-                    }
-                    Spacer()
-                    Button("Reset to Default") {
-                        if let defaultName = defaultRuleName {
-                            enabledRuleNames = [defaultName]
-                        } else {
-                            enabledRuleNames = []
-                        }
-                    }
-                };
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
-                };
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Save") {
-                        onSave()
-                        dismiss()
-                    }
-                }
-            }
-        }
-        .frame(minWidth: 400, minHeight: 500)
-    }
 }

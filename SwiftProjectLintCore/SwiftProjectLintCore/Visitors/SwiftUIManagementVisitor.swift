@@ -44,7 +44,7 @@ class SwiftUIManagementVisitor: BasePatternVisitor {
     // MARK: - Properties
     
     private let config: Configuration
-    internal var stateVariables: [StateVariableInfo] = []
+    private var stateVariables: [StateVariableInfo] = []
     private var currentViewName: String = ""
     private var currentFilePath: String = ""
     private var viewDeclarations: [ViewDeclaration] = []

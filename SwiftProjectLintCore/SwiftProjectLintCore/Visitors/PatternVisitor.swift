@@ -8,13 +8,13 @@ import SwiftSyntax
 
 /// Protocol defining the interface for SwiftSyntax-based pattern visitors.
 ///
-/// `PatternVisitor` provides a standardized way to implement pattern detection
+/// `PatternVisitorProtocol` provides a standardized way to implement pattern detection
 /// using SwiftSyntax AST traversal. Each visitor is responsible for detecting
 /// specific patterns within the Swift code and generating appropriate lint issues.
 ///
 /// - Note: All pattern visitors should conform to this protocol and implement
 ///         the required methods for AST traversal and issue detection.
-public protocol PatternVisitor: SyntaxVisitor {
+public protocol PatternVisitorProtocol: SyntaxVisitor {
     /// The collection of lint issues detected by this visitor during AST traversal.
     var detectedIssues: [LintIssue] { get }
     

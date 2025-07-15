@@ -6,11 +6,11 @@
 //
 import SwiftSyntax
 
-/// Base implementation of `PatternVisitor` providing common functionality.
+/// Base implementation of `PatternVisitorProtocol` providing common functionality.
 ///
 /// `BasePatternVisitor` provides a foundation for implementing specific pattern
 /// visitors with common utilities and helper methods for AST analysis.
-class BasePatternVisitor: SyntaxVisitor, PatternVisitor {
+class BasePatternVisitor: SyntaxVisitor, PatternVisitorProtocol {
     var detectedIssues: [LintIssue] = []
     let patternCategory: PatternCategory
     var sourceLocationConverter: SourceLocationConverter?

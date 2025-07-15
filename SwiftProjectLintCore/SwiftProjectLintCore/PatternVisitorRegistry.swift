@@ -20,7 +20,7 @@ public class PatternVisitorRegistry: PatternVisitorRegistryProtocol {
     public static let shared = PatternVisitorRegistry()
     
     private var patterns: [SyntaxPattern] = []
-    private var visitorsByCategory: [PatternCategory: [PatternVisitor.Type]] = [:]
+    private var visitorsByCategory: [PatternCategory: [PatternVisitorProtocol.Type]] = [:]
     private let queue = DispatchQueue(label: "PatternVisitorRegistry", attributes: .concurrent)
     
     public init() {}
@@ -57,7 +57,7 @@ public class PatternVisitorRegistry: PatternVisitorRegistryProtocol {
     ///
     /// - Parameter category: The pattern category to retrieve visitors for.
     /// - Returns: An array of visitor types for the specified category.
-    public func getVisitors(for category: PatternCategory) -> [PatternVisitor.Type] {
+    public func getVisitors(for category: PatternCategory) -> [PatternVisitorProtocol.Type] {
         return queue.sync {
             let visitors = visitorsByCategory[category] ?? []
             print("DEBUG: Registry.getVisitors(for: \(category)) returning \(visitors.count) visitors")
@@ -69,7 +69,7 @@ public class PatternVisitorRegistry: PatternVisitorRegistryProtocol {
     /// Retrieves all registered visitor types.
     ///
     /// - Returns: An array of all registered visitor types.
-    func getAllVisitors() -> [PatternVisitor.Type] {
+    func getAllVisitors() -> [PatternVisitorProtocol.Type] {
         return queue.sync {
             return patterns.map { $0.visitor }
         }

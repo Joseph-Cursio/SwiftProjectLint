@@ -9,7 +9,7 @@ import SwiftSyntax
 // MARK: - Cross-File SwiftUI Management Visitor
 
 /// A cross-file version of SwiftUIManagementVisitor that can analyze patterns across multiple files.
-class CrossFileSwiftUIManagementVisitor: SwiftUIManagementVisitor, CrossFilePatternVisitor {
+class CrossFileSwiftUIManagementVisitor: SwiftUIManagementVisitor, CrossFilePatternVisitorProtocol {
     let fileCache: [String: SourceFileSyntax]
     private var parentChildRelationships: [String: Set<String>] = [:] // parent -> children (direct containment)
     private var navigationRelationships: [String: Set<String>] = [:] // parent -> children (navigation)

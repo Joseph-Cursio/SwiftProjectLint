@@ -66,7 +66,7 @@ public class CrossFileAnalysisEngine {
         
         let crossFileVisitors = visitors.filter { visitorType in
             // Check if visitor supports cross-file analysis
-            let isCrossFile = visitorType is CrossFilePatternVisitor.Type
+            let isCrossFile = visitorType is CrossFilePatternVisitorProtocol.Type
             print("DEBUG: Checking visitor \(visitorType): isCrossFile = \(isCrossFile)")
             return isCrossFile
         }
@@ -76,7 +76,7 @@ public class CrossFileAnalysisEngine {
         // Apply cross-file analysis
         for visitorType in crossFileVisitors {
             print("DEBUG: Creating cross-file visitor: \(visitorType)")
-            if let crossFileVisitor = visitorType as? CrossFilePatternVisitor.Type {
+            if let crossFileVisitor = visitorType as? CrossFilePatternVisitorProtocol.Type {
                 let visitor = crossFileVisitor.init(fileCache: fileCache)
                 
                 // Set the pattern for the visitor if it's a BasePatternVisitor
@@ -96,7 +96,7 @@ public class CrossFileAnalysisEngine {
                 }
                 
                 // Call finalizeAnalysis for cross-file visitors
-                if let crossFileVisitor = visitor as? CrossFilePatternVisitor {
+                if let crossFileVisitor = visitor as? CrossFilePatternVisitorProtocol {
                     crossFileVisitor.finalizeAnalysis()
                 }
                 
@@ -158,7 +158,7 @@ public class CrossFileAnalysisEngine {
         // Apply analysis for each visitor type
         for pattern in requestedPatterns {
             print("DEBUG: Processing pattern: \(pattern.name.rawValue) with visitor: \(pattern.visitor)")
-            if let crossFileVisitorType = pattern.visitor as? CrossFilePatternVisitor.Type {
+            if let crossFileVisitorType = pattern.visitor as? CrossFilePatternVisitorProtocol.Type {
                 print("DEBUG: Creating cross-file visitor for pattern: \(pattern.name)")
                 let visitor = crossFileVisitorType.init(fileCache: fileCache)
                 if let baseVisitor = visitor as? BasePatternVisitor {
@@ -169,7 +169,7 @@ public class CrossFileAnalysisEngine {
                 }
                 
                 // Call finalizeAnalysis for cross-file visitors
-                if let crossFileVisitor = visitor as? CrossFilePatternVisitor {
+                if let crossFileVisitor = visitor as? CrossFilePatternVisitorProtocol {
                     crossFileVisitor.finalizeAnalysis()
                 }
                 
@@ -199,7 +199,7 @@ public class CrossFileAnalysisEngine {
 
     // MARK: - Private Methods
     
-    private func getVisitorsForCategories(_ categories: [PatternCategory]?) -> [PatternVisitor.Type] {
+    private func getVisitorsForCategories(_ categories: [PatternCategory]?) -> [PatternVisitorProtocol.Type] {
         if let categories = categories {
             print("DEBUG: Getting visitors for categories: \(categories)")
             let visitors = categories.flatMap { category in

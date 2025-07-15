@@ -42,7 +42,7 @@ class MemoryManagementVisitor: BasePatternVisitor {
     }
     
     /// Helper to extract property wrapper as PropertyWrapper enum
-    internal func extractPropertyWrapper(from node: VariableDeclSyntax) -> PropertyWrapper? {
+    private func extractPropertyWrapper(from node: VariableDeclSyntax) -> PropertyWrapper? {
         for attribute in node.attributes {
             if let attributeSyntax = attribute.as(AttributeSyntax.self),
                let attributeName = attributeSyntax.attributeName.as(IdentifierTypeSyntax.self),
@@ -65,7 +65,7 @@ class MemoryManagementVisitor: BasePatternVisitor {
     
     /// Checks for potential retain cycles in @StateObject declarations.
     /// Pattern: @StateObject var name: Type = Type()
-    internal func checkForRetainCycles(_ node: VariableDeclSyntax) {
+    private func checkForRetainCycles(_ node: VariableDeclSyntax) {
         guard config.detectRetainCycles else { return }
         guard let propertyWrapper = extractPropertyWrapper(from: node), propertyWrapper == .stateObject else { return }
         
@@ -102,7 +102,7 @@ class MemoryManagementVisitor: BasePatternVisitor {
     
     /// Checks for large objects (arrays) in @State declarations.
     /// Pattern: @State var name: [Type] = [
-    internal func checkForLargeObjectsInState(_ node: VariableDeclSyntax) {
+    private func checkForLargeObjectsInState(_ node: VariableDeclSyntax) {
         guard config.detectLargeObjects else { return }
         guard let propertyWrapper = extractPropertyWrapper(from: node), propertyWrapper == .state else { return }
         for binding in node.bindings {

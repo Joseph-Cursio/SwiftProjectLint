@@ -82,7 +82,7 @@ public class ProjectLinter {
     ///
     /// - Note: Hidden files and directories are included in the search. The search is case-sensitive and will only
     ///         locate files ending in `.swift`.
-    internal func findSwiftFiles(in path: String) -> [String] {
+    private func findSwiftFiles(in path: String) -> [String] {
         print("DEBUG: findSwiftFiles called with path: '\(path)'")
         
         let fileManager = FileManager.default

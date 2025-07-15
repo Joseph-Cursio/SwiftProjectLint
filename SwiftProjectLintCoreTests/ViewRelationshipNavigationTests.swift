@@ -4,7 +4,8 @@ import SwiftParser
 import SwiftSyntax
 @testable import SwiftProjectLintCore
 
-struct ViewRelationshipVisitorTests {
+@Suite("ViewRelationshipNavigationTests")
+struct ViewRelationshipNavigationTests {
     
     // MARK: - Debug Logging Helper
     
@@ -14,9 +15,9 @@ struct ViewRelationshipVisitorTests {
         // Try multiple locations that should be writable, prioritizing the debug subdirectory
         let debugDirectory = DebugLogger.debugDirectory()
         let possiblePaths = [
-            debugDirectory + "/ViewRelationshipVisitorTests_debug.log",
-            NSTemporaryDirectory() + "ViewRelationshipVisitorTests_debug.log",
-            "/tmp/ViewRelationshipVisitorTests_debug.log"
+            debugDirectory + "/ViewRelationshipNavigationTests_debug.log",
+            NSTemporaryDirectory() + "ViewRelationshipNavigationTests_debug.log",
+            "/tmp/ViewRelationshipNavigationTests_debug.log"
         ]
         
         for logPath in possiblePaths {
@@ -63,68 +64,8 @@ struct ViewRelationshipVisitorTests {
         return visitor.relationships
     }
 
-    // MARK: - Tests
+    // MARK: - Navigation & Presentation Tests
 
-    @Test func testVerySimpleDetection() async throws {
-        let sourceCode = """
-        struct ContentView: View {
-            var body: some View {
-                Text("Hello")
-            }
-        }
-        """
-        
-        let relationships = extractRelationships(from: sourceCode, parentView: "ContentView")
-        
-        // Text is a system view, so it should NOT be detected as a direct child
-        #expect(relationships.count == 0)
-    }
-    
-    @Test func testBasicDetection() async throws {
-        let sourceCode = """
-        struct ContentView: View {
-            var body: some View {
-                VStack {
-                    Text("Hello")
-                    Button("Click me") {
-                        // action
-                    }
-                }
-            }
-        }
-        """
-        
-        let relationships = extractRelationships(from: sourceCode, parentView: "ContentView")
-        
-        // Text and Button are system views, so they should NOT be detected as direct children
-        #expect(relationships.count == 0)
-    }
-    
-    @Test func testDirectChildViewDetection() async throws {
-        let sourceCode = """
-        struct ContentView: View {
-            var body: some View {
-                VStack {
-                    RoundView()
-                    Text("Hello")
-                }
-            }
-        }
-        """
-        
-        let relationships = extractRelationships(from: sourceCode, parentView: "ContentView")
-        logRelationships(relationships, testName: "testDirectChildViewDetection")
-        
-        // Debug output removed for production
-        
-        // Only RoundView (custom view) should be detected as direct child
-        // Text is a system view and should be ignored
-        #expect(relationships.count == 1, "Expected 1 relationship, got \(relationships.count)")
-        #expect(relationships[0].childView == "RoundView")
-        #expect(relationships[0].relationshipType == .directChild)
-        #expect(relationships[0].parentView == "ContentView")
-    }
-    
     @Test func testNavigationLinkDetection() async throws {
         let sourceCode = """
         struct ContentView: View {
@@ -259,74 +200,6 @@ struct ViewRelationshipVisitorTests {
         #expect(navigation?.childView == "DetailView", "Expected DetailView as navigationDestination")
         #expect(sheet != nil, "Expected sheet relationship")
         #expect(sheet?.childView == "SheetView", "Expected SheetView as sheet")
-    }
-    
-    @Test func testAlertDetection() async throws {
-        let sourceCode = """
-        struct ContentView: View {
-            @State private var showingAlert = false
-            
-            var body: some View {
-                Button("Show Alert") {
-                    showingAlert = true
-                }
-                .alert("Title", isPresented: $showingAlert) {
-                    AlertView()
-                }
-            }
-        }
-        """
-        
-        let relationships = extractRelationships(from: sourceCode, parentView: "ContentView")
-        logRelationships(relationships, testName: "testAlertDetection")
-        
-        #expect(relationships.count == 1)
-        
-        // Button is a system view, so it should NOT be detected as directChild
-        // Only AlertView should be detected as alert
-        let alertRelationship = relationships.first { $0.childView == "AlertView" && $0.relationshipType == .alert }
-        #expect(alertRelationship != nil)
-        #expect(alertRelationship?.parentView == "ContentView")
-    }
-    
-    @Test func testSimpleAlertDetection() async throws {
-        let sourceCode = """
-        struct ContentView: View {
-            @State private var showingAlert = false
-            
-            var body: some View {
-                Text("Hello")
-                .alert("Title", isPresented: $showingAlert) {
-                    AlertView()
-                }
-            }
-        }
-        """
-        
-        let relationships = extractRelationships(from: sourceCode, parentView: "ContentView")
-        logRelationships(relationships, testName: "testSimpleAlertDetection")
-        
-        #expect(relationships.count == 1)
-        
-        // Text is a system view, so it should NOT be detected as directChild
-        // Only AlertView should be detected as alert
-        let alertRelationship = relationships.first { $0.childView == "AlertView" && $0.relationshipType == .alert }
-        #expect(alertRelationship != nil)
-    }
-    
-    @Test func testLineNumberCalculation() async throws {
-        let sourceCode = """
-        struct ContentView: View {
-            var body: some View {
-                CustomView("Hello")
-            }
-        }
-        """
-        
-        let relationships = extractRelationships(from: sourceCode, parentView: "ContentView")
-        
-        #expect(relationships.count == 1)
-        #expect(relationships[0].lineNumber == 3) // CustomView("Hello") is on line 3
     }
     
     @Test func testSimpleSheetDebug() async throws {

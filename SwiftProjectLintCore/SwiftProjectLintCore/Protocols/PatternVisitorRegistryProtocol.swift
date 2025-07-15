@@ -9,7 +9,7 @@
 public protocol PatternVisitorRegistryProtocol {
     func register(pattern: SyntaxPattern)
     func register(patterns: [SyntaxPattern])
-    func getVisitors(for category: PatternCategory) -> [PatternVisitor.Type]
+    func getVisitors(for category: PatternCategory) -> [PatternVisitorProtocol.Type]
     func getAllPatterns() -> [SyntaxPattern]
     func clear()
 }
