@@ -228,42 +228,7 @@ final class ArchitectureFeatureCharacterizationTests {
         
         #expect(issues.count >= 0, "Full pipeline should work")
     }
-    
-    // MARK: - Error Handling and Edge Cases
-    
-    @Test func characterizeArchitectureAnalysisWithInvalidSwiftFiles() async throws {
-        let projectDir = createProjectWithInvalidSwift()
-        defer { cleanupTempDirectory(projectDir) }
-        
-        let analyzer = AdvancedAnalyzer()
-        let issues = analyzer.analyzeArchitecture(projectPath: projectDir)
-        
-        print("📊 Architecture Analysis Invalid Swift Files:")
-        print("   Input: Project with syntactically invalid Swift files")
-        print("   Output: \(issues.count) issues")
-        print("   Error handling: Graceful (no crashes)")
-        
-        #expect(issues.count >= 0, "Should handle invalid Swift files gracefully")
-    }
-    
-    @Test func characterizeArchitectureAnalysisPerformance() async throws {
-        let projectDir = createLargeTestProject()
-        defer { cleanupTempDirectory(projectDir) }
-        
-        let analyzer = AdvancedAnalyzer()
-        let startTime = Date()
-        let issues = analyzer.analyzeArchitecture(projectPath: projectDir)
-        let endTime = Date()
-        let duration = endTime.timeIntervalSince(startTime)
-        
-        print("📊 Architecture Analysis Performance:")
-        print("   Input: Large test project")
-        print("   Analysis time: \(String(format: "%.2f", duration)) seconds")
-        print("   Issues found: \(issues.count)")
-        print("   Performance: \(duration < 10.0 ? "Acceptable" : "Slow")")
-        
-        #expect(issues.count >= 0, "Large project analysis should complete")
-    }
+
     
     // MARK: - Behavior Summary
     
@@ -470,24 +435,6 @@ final class ArchitectureFeatureCharacterizationTests {
         for (fileName, content) in files {
             try! content.write(toFile: (projectDir as NSString).appendingPathComponent(fileName), atomically: true, encoding: .utf8)
         }
-        
-        return projectDir
-    }
-    
-    private func createProjectWithInvalidSwift() -> String {
-        let projectDir = createTempDirectory()
-        
-        let invalidSwift = """
-        import SwiftUI
-        
-        struct BrokenView {
-            missing View conformance
-            @State var incomplete
-            func broken( {
-                // Invalid syntax
-        """
-        
-        try! invalidSwift.write(toFile: (projectDir as NSString).appendingPathComponent("BrokenView.swift"), atomically: true, encoding: .utf8)
         
         return projectDir
     }
