@@ -112,12 +112,12 @@ struct SourcePatternDetectorCoreTests {
         """
         
         // When - Measure performance for cross-file analysis
-        let (issues1, duration1) = await TestRegistryManager.measureExecutionTime {
+        let (issues1, _) = await TestRegistryManager.measureExecutionTime {
             await detector
                 .detectPatterns(in: file1, filePath: "ParentView.swift")
         }
         
-        let (issues2, duration2) = await TestRegistryManager.measureExecutionTime {
+        let (issues2, _) = await TestRegistryManager.measureExecutionTime {
             await detector
                 .detectPatterns(in: file2, filePath: "ChildView.swift")
         }

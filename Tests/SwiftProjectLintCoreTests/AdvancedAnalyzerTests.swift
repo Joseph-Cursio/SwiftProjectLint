@@ -33,7 +33,7 @@ final class AdvancedAnalyzerTests {
         let testProjectPath = createTestProject()
         defer { cleanupTestProject() }
         
-        let issues = await analyzer.analyzeArchitecture(projectPath: testProjectPath)
+        let issues = analyzer.analyzeArchitecture(projectPath: testProjectPath)
         
         // The analyzer should detect view relationships through its public interface
         #expect(issues.count >= 0) // At minimum, it should complete without errors
@@ -47,7 +47,7 @@ final class AdvancedAnalyzerTests {
         let testProjectPath = createTestProject()
         defer { cleanupTestProject() }
         
-        let issues = await analyzer.analyzeArchitecture(projectPath: testProjectPath)
+        let issues = analyzer.analyzeArchitecture(projectPath: testProjectPath)
         
         // The analyzer should detect view relationships through its public interface
         #expect(issues.count >= 0) // At minimum, it should complete without errors
@@ -61,7 +61,7 @@ final class AdvancedAnalyzerTests {
         let testProjectPath = createTestProject()
         defer { cleanupTestProject() }
         
-        let issues = await analyzer.analyzeArchitecture(projectPath: testProjectPath)
+        let issues = analyzer.analyzeArchitecture(projectPath: testProjectPath)
         
         // The analyzer should detect view relationships through its public interface
         #expect(issues.count >= 0) // At minimum, it should complete without errors
@@ -75,7 +75,7 @@ final class AdvancedAnalyzerTests {
         let testProjectPath = createTestProject()
         defer { cleanupTestProject() }
         
-        let issues = await analyzer.analyzeArchitecture(projectPath: testProjectPath)
+        let issues = analyzer.analyzeArchitecture(projectPath: testProjectPath)
         
         // The analyzer should detect view relationships through its public interface
         #expect(issues.count >= 0) // At minimum, it should complete without errors
@@ -88,7 +88,7 @@ final class AdvancedAnalyzerTests {
         let testProjectPath = createTestProject()
         defer { cleanupTestProject() }
         
-        let issues = await analyzer.analyzeArchitecture(projectPath: testProjectPath)
+        let issues = analyzer.analyzeArchitecture(projectPath: testProjectPath)
         
         // Test the public methods that should work after analysis
         let relationshipType = analyzer.relationshipType(between: "TestParent", and: "TestChild")

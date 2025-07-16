@@ -13,7 +13,6 @@ class AccessibilityConfigurationSimpleTextTests {
         let sourceCode = """
         Text("Hello World")
         """
-        let testText = "Hello World"
         let sourceFile = Parser.parse(source: sourceCode)
         customVisitor.walk(sourceFile)
         #expect(customVisitor.detectedIssues.count == 1)
@@ -32,7 +31,6 @@ class AccessibilityConfigurationSimpleTextTests {
             }
         }
         """
-        let testText = "Hello World"
         let sourceFile = Parser.parse(source: sourceCode)
         customVisitor.walk(sourceFile)
         #expect(customVisitor.detectedIssues.count == 1)
@@ -51,7 +49,6 @@ class AccessibilityConfigurationSimpleTextTests {
             }
         }
         """
-        let testText = "This is a medium length text"
         let sourceFile = Parser.parse(source: sourceCode)
         customVisitor.walk(sourceFile)
         #expect(customVisitor.detectedIssues.count == 1)
