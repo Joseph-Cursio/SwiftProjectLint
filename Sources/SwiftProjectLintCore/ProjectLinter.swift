@@ -2,7 +2,6 @@ import Foundation
 import SwiftParser
 import SwiftUI
 
-
 /// A class responsible for linting SwiftUI projects by analyzing project files, extracting state variables, 
 /// building view hierarchies, and detecting various lint issues and patterns across the codebase.
 /// 
@@ -23,7 +22,7 @@ import SwiftUI
 /// ```
 @MainActor
 public class ProjectLinter {
-    private var projectFiles: [String] = []
+    private var projectFiles: [ProjectFile] = []
     private var stateVariables: [StateVariable] = []
     private var viewHierarchies: [ViewHierarchy] = []
     private var SingleFileDetector: SourcePatternDetector?
@@ -43,12 +42,16 @@ public class ProjectLinter {
         print("DEBUG: ruleIdentifiers: \(ruleIdentifiers?.map { $0.rawValue } ?? [])")
         
         var issues: [LintIssue] = []
-        projectFiles = findSwiftFiles(in: path)
+        let filePaths = findSwiftFiles(in: path)
+        projectFiles = filePaths.compactMap { filePath in
+            guard let content = try? String(contentsOfFile: filePath) else { return nil }
+            return ProjectFile(name: (filePath as NSString).lastPathComponent, content: content)
+        }
         
         print("DEBUG: Found \(projectFiles.count) project files for analysis")
         
-        for filePath in projectFiles {
-            let fileIssues = analyzeSwiftFile(at: filePath, categories: categories, ruleIdentifiers: ruleIdentifiers)
+        for file in projectFiles {
+            let fileIssues = analyzeSwiftFile(name: file.name, content: file.content, categories: categories, ruleIdentifiers: ruleIdentifiers)
             issues.append(contentsOf: fileIssues)
         }
         
@@ -157,21 +160,15 @@ public class ProjectLinter {
     ///
     /// - Note: This method uses SwiftSyntax for accurate parsing and can handle complex property declarations,
     ///         multiline statements, and edge cases.
-    private func analyzeSwiftFile(at path: String, categories: [PatternCategory]? = nil, ruleIdentifiers: [RuleIdentifier]? = nil) -> [LintIssue] {
+    private func analyzeSwiftFile(name: String, content: String, categories: [PatternCategory]? = nil, ruleIdentifiers: [RuleIdentifier]? = nil) -> [LintIssue] {
         var issues: [LintIssue] = []
-        guard let content = try? String(contentsOfFile: path, encoding: .utf8) else {
-            return issues
-        }
-        
-        let extractedStateVariables = extractStateVariables(from: content, filePath: path)
+        let extractedStateVariables = extractStateVariables(from: content, filePath: name)
         stateVariables.append(contentsOf: extractedStateVariables)
-        
-        // Use SourcePatternDetector for comprehensive analysis, respecting enabled patterns or categories
         let swiftSyntaxDetector = SingleFileDetector ?? SourcePatternDetector()
         if let ruleIdentifiers = ruleIdentifiers {
-            issues.append(contentsOf: swiftSyntaxDetector.detectPatterns(in: content, filePath: path, ruleIdentifiers: ruleIdentifiers))
+            issues.append(contentsOf: swiftSyntaxDetector.detectPatterns(in: content, filePath: name, ruleIdentifiers: ruleIdentifiers))
         } else {
-            issues.append(contentsOf: swiftSyntaxDetector.detectPatterns(in: content, filePath: path, categories: categories))
+            issues.append(contentsOf: swiftSyntaxDetector.detectPatterns(in: content, filePath: name, categories: categories))
         }
         return issues
     }

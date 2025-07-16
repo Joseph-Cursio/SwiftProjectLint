@@ -101,9 +101,9 @@ final class FileAnalysisUtilsFindSwiftFilesTests {
             let content = """
             import SwiftUI
             
-            struct \(FileAnalysisUtils.extractBasename(from: filePath)): View {
+            struct \(FileAnalysisUtils.extractSwiftBasename(from: filePath)): View {
                 var body: some View {
-                    Text("Hello from \(FileAnalysisUtils.extractBasename(from: filePath))")
+                    Text("Hello from \(FileAnalysisUtils.extractSwiftBasename(from: filePath))")
                 }
             }
             """

@@ -5,13 +5,13 @@ import Foundation
 final class AdvancedAnalyzerTests {
     
     @Test func testExtractViewNameRemovesSwiftExtension() async throws {
-        let name = FileAnalysisUtils.extractBasename(from: "/Users/test/ContentView.swift")
+        let name = FileAnalysisUtils.extractSwiftBasename(from: "/Users/test/ContentView.swift")
         #expect(name == "ContentView")
         
-        let name2 = FileAnalysisUtils.extractBasename(from: "MyView.swift")
+        let name2 = FileAnalysisUtils.extractSwiftBasename(from: "MyView.swift")
         #expect(name2 == "MyView")
         
-        let name3 = FileAnalysisUtils.extractBasename(from: "/foo/bar/BazView.swift")
+        let name3 = FileAnalysisUtils.extractSwiftBasename(from: "/foo/bar/BazView.swift")
         #expect(name3 == "BazView")
     }
     

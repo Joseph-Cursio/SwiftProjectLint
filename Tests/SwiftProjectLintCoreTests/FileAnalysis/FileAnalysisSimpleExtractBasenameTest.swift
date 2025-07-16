@@ -11,7 +11,7 @@ final class SimpleExtractBasenameTest {
         let justFilename = "HomeView.swift"
 
         // Act: Extract the view name using the utility function
-        let filenameResult = FileAnalysisUtils.extractBasename(from: justFilename)
+        let filenameResult = FileAnalysisUtils.extractSwiftBasename(from: justFilename)
 
         // Assert: Verify the function correctly extracts the basename
         #expect(filenameResult == "HomeView")
@@ -22,7 +22,7 @@ final class SimpleExtractBasenameTest {
         let filePath = "/Users/developer/MyProject/Views/ContentView.swift"
         
         // Act: Extract the view name using the utility function
-        let result = FileAnalysisUtils.extractBasename(from: filePath)
+        let result = FileAnalysisUtils.extractSwiftBasename(from: filePath)
         
         // Assert: Verify the function correctly extracts the basename
         #expect(result == "ContentView")
@@ -36,13 +36,13 @@ final class SimpleExtractBasenameTest {
         let windowsPath = "C:\\Projects\\SwiftUI\\DetailView.swift"
 
         // Act: Extract the view name using the utility function
-        let windowsResult = FileAnalysisUtils.extractBasename(from: windowsPath)
+        let windowsResult = FileAnalysisUtils.extractSwiftBasename(from: windowsPath)
 
         // Assert: Verify the function correctly extracts the basename
         #expect(windowsResult == "DetailView")
  
         let justFilename = "HomeView.swift"
-        let filenameResult = FileAnalysisUtils.extractBasename(from: justFilename)
+        let filenameResult = FileAnalysisUtils.extractSwiftBasename(from: justFilename)
         #expect(filenameResult == "HomeView")
     }
 }

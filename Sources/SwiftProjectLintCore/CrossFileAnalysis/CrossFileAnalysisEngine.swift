@@ -29,30 +29,29 @@ public class CrossFileAnalysisEngine {
     /// across files, such as duplicate state variables or architectural issues.
     ///
     /// - Parameters:
-    ///   - projectFiles: Array of file paths to analyze.
+    ///   - projectFiles: Array of ProjectFile to analyze.
     ///   - categories: Optional array of pattern categories to analyze.
     /// - Returns: An array of detected lint issues.
     func detectCrossFilePatterns(
-        projectFiles: [String],
+        projectFiles: [ProjectFile],
         categories: [PatternCategory]? = nil
     ) -> [LintIssue] {
         print("DEBUG: detectCrossFilePatterns called with \(projectFiles.count) files")
         var allIssues: [LintIssue] = []
-        
-        // First, parse all files and cache them
-        for filePath in projectFiles {
+        fileCache = [:]
+        // Parse all files and cache them
+        for file in projectFiles {
             do {
-                let sourceCode = try String(contentsOfFile: filePath)
-                let sourceFile = Parser.parse(source: sourceCode)
-                fileCache[filePath] = sourceFile
+                let sourceFile = Parser.parse(source: file.content)
+                fileCache[file.name] = sourceFile
             } catch {
                 allIssues.append(
                     LintIssue(
                         severity: .error,
-                        message: "Failed to read or parse file: \(error.localizedDescription)",
-                        filePath: filePath,
+                        message: "Failed to parse file: \(error.localizedDescription)",
+                        filePath: file.name,
                         lineNumber: 1,
-                        suggestion: "Check file permissions and syntax",
+                        suggestion: "Check file syntax",
                         ruleName: .fileParsingError
                     )
                 )
@@ -114,30 +113,28 @@ public class CrossFileAnalysisEngine {
     /// It only runs the specific patterns requested by rule identifier.
     ///
     /// - Parameters:
-    ///   - projectFiles: Array of file paths to analyze.
+    ///   - projectFiles: Array of ProjectFile to analyze.
     ///   - ruleIdentifiers: Array of specific rule identifiers to analyze.
     /// - Returns: An array of detected lint issues.
     func detectCrossFilePatterns(
-        projectFiles: [String],
+        projectFiles: [ProjectFile],
         ruleIdentifiers: [RuleIdentifier]
     ) -> [LintIssue] {
         print("DEBUG: detectCrossFilePatterns (ruleIdentifiers) called with \(projectFiles.count) files, rules: \(ruleIdentifiers.map { $0.rawValue })")
         var allIssues: [LintIssue] = []
-        
-        // First, parse all files and cache them
-        for filePath in projectFiles {
+        fileCache = [:]
+        for file in projectFiles {
             do {
-                let sourceCode = try String(contentsOfFile: filePath)
-                let sourceFile = Parser.parse(source: sourceCode)
-                fileCache[filePath] = sourceFile
+                let sourceFile = Parser.parse(source: file.content)
+                fileCache[file.name] = sourceFile
             } catch {
                 allIssues.append(
                     LintIssue(
                         severity: .error,
-                        message: "Failed to read or parse file: \(error.localizedDescription)",
-                        filePath: filePath,
+                        message: "Failed to parse file: \(error.localizedDescription)",
+                        filePath: file.name,
                         lineNumber: 1,
-                        suggestion: "Check file permissions and syntax",
+                        suggestion: "Check file syntax",
                         ruleName: .fileParsingError
                     )
                 )
@@ -185,7 +182,11 @@ public class CrossFileAnalysisEngine {
         categories: [PatternCategory]? = nil
     ) -> [LintIssue] {
         let swiftFiles = findSwiftFiles(in: projectPath)
-        return detectCrossFilePatterns(projectFiles: swiftFiles, categories: categories)
+        let projectFiles = swiftFiles.compactMap { filePath -> ProjectFile? in
+            guard let content = try? String(contentsOfFile: filePath) else { return nil }
+            return ProjectFile(name: (filePath as NSString).lastPathComponent, content: content)
+        }
+        return detectCrossFilePatterns(projectFiles: projectFiles, categories: categories)
     }
     
     /// Detects patterns in the given project path using specific rule identifiers.
@@ -194,7 +195,11 @@ public class CrossFileAnalysisEngine {
         ruleIdentifiers: [RuleIdentifier]
     ) -> [LintIssue] {
         let swiftFiles = findSwiftFiles(in: projectPath)
-        return detectCrossFilePatterns(projectFiles: swiftFiles, ruleIdentifiers: ruleIdentifiers)
+        let projectFiles = swiftFiles.compactMap { filePath -> ProjectFile? in
+            guard let content = try? String(contentsOfFile: filePath) else { return nil }
+            return ProjectFile(name: (filePath as NSString).lastPathComponent, content: content)
+        }
+        return detectCrossFilePatterns(projectFiles: projectFiles, ruleIdentifiers: ruleIdentifiers)
     }
 
     // MARK: - Private Methods

@@ -5,27 +5,43 @@ import Foundation
 @MainActor
 final class FileAnalysisUtilsBasenameTests {
     @Test func testExtractBasenameWithValidPath() async throws {
-        // ... existing code ...
+        let path = "/Users/test/Documents/file.swift"
+        let result = FileAnalysisUtils.extractSwiftBasename(from: path)
+        #expect(result == "file")
     }
     @Test func testExtractBasenameWithNestedPath() async throws {
-        // ... existing code ...
+        let path = "/a/b/c/d/e.swift"
+        let result = FileAnalysisUtils.extractSwiftBasename(from: path)
+        #expect(result == "e")
     }
     @Test func testExtractBasenameWithComplexPath() async throws {
-        // ... existing code ...
+        let path = "/tmp/complex.name.with.dots.swift"
+        let result = FileAnalysisUtils.extractSwiftBasename(from: path)
+        #expect(result == "complex.name.with.dots")
     }
     @Test func testExtractBasenameWithSpaces() async throws {
-        // ... existing code ...
+        let path = "/Users/test/My File.swift"
+        let result = FileAnalysisUtils.extractSwiftBasename(from: path)
+        #expect(result == "My File")
     }
     @Test func testExtractbasenameWithSpecialCharacters() async throws {
-        // ... existing code ...
+        let path = "/tmp/!@#$%^&*().swift"
+        let result = FileAnalysisUtils.extractSwiftBasename(from: path)
+        #expect(result == "!@#$%^&*()")
     }
     @Test func testExtractBasenameWithMultipleExtensions() async throws {
-        // ... existing code ...
+        let path = "/archive/file.tar.gz"
+        let result = FileAnalysisUtils.extractSwiftBasename(from: path)
+        #expect(result == "file.tar.gz")
     }
     @Test func testExtractBasenameWithNoExtension() async throws {
-        // ... existing code ...
+        let path = "/Users/test/filename"
+        let result = FileAnalysisUtils.extractSwiftBasename(from: path)
+        #expect(result == "filename")
     }
     @Test func testExtractBasenameWithEmptyPath() async throws {
-        // ... existing code ...
+        let path = ""
+        let result = FileAnalysisUtils.extractSwiftBasename(from: path)
+        #expect(result == "")
     }
-} 
+}

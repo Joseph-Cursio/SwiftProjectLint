@@ -81,8 +81,8 @@ final class SourcePatternDetectorTests {
         let detector = CrossFileAnalysisEngine()
         
         let projectFiles = [
-            "/test/View1.swift",
-            "/test/View2.swift"
+            ProjectFile(name: "View1.swift", content: "struct View1: View { var body: some View { Text(\"A\") } }"),
+            ProjectFile(name: "View2.swift", content: "struct View2: View { var body: some View { Text(\"B\") } }")
         ]
         
         let issues = detector.detectCrossFilePatterns(

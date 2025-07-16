@@ -144,7 +144,7 @@ class AdvancedAnalyzer {
     @MainActor private func extractViewRelationships(from filePath: String) -> [ViewRelationship] {
         var relationships: [ViewRelationship] = []
         
-        let parentView = FileAnalysisUtils.extractBasename(from: filePath)
+        let parentView = FileAnalysisUtils.extractSwiftBasename(from: filePath)
         let sourceContents = (try? String(contentsOfFile: filePath, encoding: .utf8)) ?? ""
         let sourceFile = Parser.parse(source: sourceContents)
         let sourceLocationConverter = SourceLocationConverter(fileName: filePath, tree: sourceFile)
@@ -171,7 +171,7 @@ class AdvancedAnalyzer {
         
         let sourceFile = Parser.parse(source: (try? String(contentsOfFile: filePath, encoding: .utf8)) ?? "")
         
-        let viewName = FileAnalysisUtils.extractBasename(from: filePath)
+        let viewName = FileAnalysisUtils.extractSwiftBasename(from: filePath)
         let sourceContents = (try? String(contentsOfFile: filePath, encoding: .utf8)) ?? ""
         let visitor = StateVariableVisitor(viewName: viewName, filePath: filePath, sourceContents: sourceContents)
         visitor.walk(sourceFile)
