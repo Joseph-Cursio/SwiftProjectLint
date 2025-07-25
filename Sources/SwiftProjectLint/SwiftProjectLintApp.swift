@@ -28,12 +28,9 @@ struct SwiftProjectLintApp: App {
     init() {
         if CommandLine.arguments.contains("--reset-userdefaults") {
             if let appDomain = Bundle.main.bundleIdentifier {
-                do {
-                    UserDefaults.standard.removePersistentDomain(forName: appDomain)
-                } catch {
-                    // Log but don't fail - persona warnings are expected in UI test environment
-                    print("Note: UserDefaults reset may show INVALID_PERSONA warnings - this is normal in test environments")
-                }
+                UserDefaults.standard.removePersistentDomain(forName: appDomain)
+                // Note: UserDefaults reset may show INVALID_PERSONA warnings - this is normal in test environments
+                print("Note: UserDefaults reset may show INVALID_PERSONA warnings - this is normal in test environments")
             }
         }
     }

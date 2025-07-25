@@ -152,7 +152,7 @@ struct SourcePatternDetectorArchitectureTests {
                 @Published var userEmail = ""
             }
             """
-            var visitor = ArchitectureVisitor(patternCategory: .architecture)
+            let visitor = ArchitectureVisitor(patternCategory: .architecture)
             visitor.setFilePath("\(className).swift")
             let sourceFile = Parser.parse(source: sourceCode)
             visitor.walk(sourceFile)

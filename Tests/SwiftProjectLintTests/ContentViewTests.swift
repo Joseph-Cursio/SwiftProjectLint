@@ -41,17 +41,17 @@ struct ContentViewTests {
         let view = ContentView().environmentObject(systemComponents)
         let inspected = try view.inspect()
         // NavigationView
-        #expect(try inspected.find(ViewType.NavigationView.self) != nil)
+        #expect(try { let _ = try inspected.find(ViewType.NavigationView.self); return true }())
         // VStack
         let vStack = try inspected.navigationView().vStack()
         // Header
-        #expect(try vStack.find(ContentViewHeader.self) != nil)
+        #expect(try { let _ = try vStack.find(ContentViewHeader.self); return true }())
         // Actions
-        #expect(try vStack.find(ContentViewActions.self) != nil)
+        #expect(try { let _ = try vStack.find(ContentViewActions.self); return true }())
         // Progress
-        #expect(try vStack.find(ContentViewProgress.self) != nil)
+        #expect(try { let _ = try vStack.find(ContentViewProgress.self); return true }())
         // Results
-        #expect(try vStack.find(ContentViewResults.self) != nil)
+        #expect(try { let _ = try vStack.find(ContentViewResults.self); return true }())
         // Navigation title: check for the title text somewhere in the view
         let allTexts = try inspected.findAll(ViewType.Text.self).map { try? $0.string() }
         #expect(allTexts.contains("Swift Project Linter"))

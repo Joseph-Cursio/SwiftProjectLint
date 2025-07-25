@@ -20,11 +20,19 @@ Direct instantiation refers to the practice of creating concrete instances of de
 ## 5. Visitor Logic
 - In the relevant visitor (e.g., `ArchitectureVisitor`), traverse variable/property declarations
 - If the type is a concrete class and the initializer is a direct call, emit an `ArchitectureIssue` of type `.directInstantiation`
+- **Constructor Parameter Analysis:**  
+  Detect direct instantiation in initializer parameter defaults (e.g., `init(service: Service = MyService())`).  
+  This means also visiting function and initializer parameter lists and checking for default values that are direct instantiations of concrete types.
 - Example pseudocode:
   ```swift
   if let variableDecl = node as? VariableDeclSyntax,
      variableDecl.type.isConcreteClass,
      variableDecl.initializer.isDirectInit {
+      // Emit issue
+  }
+
+  if let parameter = node as? FunctionParameterSyntax,
+     parameter.defaultValue.isDirectInitOfConcreteClass {
       // Emit issue
   }
   ```
@@ -34,8 +42,9 @@ Direct instantiation refers to the practice of creating concrete instances of de
 
 ## 7. Testing
 - Add test cases with direct instantiation and with dependency injection
+- Add test cases for direct instantiation in initializer parameter defaults
 - Ensure only the former is flagged
 
 ## 8. References
-- [Swift Dependency Injection](https://www.swiftbysundell.com/articles/dependency-injection-in-swift/)
-- [SOLID Principles in Swift](https://www.avanderlee.com/swift/solid-principles/) 
+- [Swift Dependency Injection](https://www.swiftbysundell.com/articles/dependency-injection-in-swift/) Swift by Sundell
+- [SOLID Principles in Swift](https://www.avanderlee.com/swift/solid-principles/) Avander Lee (hidden behind paywall?)

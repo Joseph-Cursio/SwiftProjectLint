@@ -1,19 +1,15 @@
 import SwiftUI
 import SwiftProjectLintCore
 
-/// A SwiftUI view that displays a list of lint issues found in a project.
+/// A container view that manages state and presentation for lint results.
 ///
-/// `LintResultsView` presents each lint issue in a list, allowing users to
-/// expand each item for more details and suggestions. It is designed to be
-/// used in a navigation context and provides a clear overview of project
-/// linting results.
+/// `LintResultsContainerView` owns the state for presenting the full screen results,
+/// including the "Full Screen" button and sheet presentation. It renders the
+/// stateless `LintResultsView` internally, which displays the lint issues list and summary.
 ///
 /// - Parameters:
 ///   - issues: An array of `LintIssue` objects representing the issues to display.
-///
-/// The view uses `LintIssueRow` for each list entry, enabling details and
-/// suggestions to be viewed via an expandable interface.
-struct LintResultsView: View {
+struct LintResultsContainerView: View {
     let issues: [LintIssue]
     @State private var showingFullScreen = false
     
@@ -41,61 +37,81 @@ struct LintResultsView: View {
             .padding(.horizontal, 8)
             .padding(.vertical, 4)
             
-            // Results list - make it expand to fill available space
-            List {
-                // Summary section
-                Section {
-                    VStack(alignment: .leading, spacing: 8) {
-                        HStack {
-                            Text("Summary")
-                                .font(.headline)
-                            Spacer()
-                        }
-                        
-                        HStack(spacing: 16) {
-                            SummaryItem(
-                                title: "Total Issues",
-                                value: "\(issues.count)",
-                                color: .primary
-                            )
-                            SummaryItem(
-                                title: "Errors",
-                                value: "\(issues.filter { $0.severity == .error }.count)",
-                                color: .red
-                            )
-                            SummaryItem(
-                                title: "Warnings",
-                                value: "\(issues.filter { $0.severity == .warning }.count)",
-                                color: .orange
-                            )
-                            SummaryItem(
-                                title: "Info",
-                                value: "\(issues.filter { $0.severity == .info }.count)",
-                                color: .blue
-                            )
-                        }
-                    }
-                    .padding(.vertical, 8)
-                }
-                
-                // Issues section
-                Section {
-                    ForEach(issues.indices, id: \.self) { idx in
-                        LintIssueRow(issue: issues[idx])
-                        if idx != issues.count - 1 {
-                            Divider()
-                        }
-                    }
-                }
-            }
-            .listStyle(PlainListStyle())
-            .frame(minHeight: 200, maxHeight: .infinity)
-            .layoutPriority(1)
+            // Stateless lint results view
+            LintResultsView(issues: issues)
         }
-        .frame(maxHeight: .infinity)
         .sheet(isPresented: $showingFullScreen) {
             FullScreenResultsView(issues: issues)
         }
+        .frame(maxHeight: .infinity)
+    }
+}
+
+/// A SwiftUI view that displays a list of lint issues found in a project.
+///
+/// `LintResultsView` presents each lint issue in a list, allowing users to
+/// expand each item for more details and suggestions. It is designed to be
+/// used in a navigation context and provides a clear overview of project
+/// linting results.
+///
+/// - Parameters:
+///   - issues: An array of `LintIssue` objects representing the issues to display.
+///
+/// The view uses `LintIssueRow` for each list entry, enabling details and
+/// suggestions to be viewed via an expandable interface.
+struct LintResultsView: View {
+    let issues: [LintIssue]
+    
+    var body: some View {
+        List {
+            // Summary section
+            Section {
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack {
+                        Text("Summary")
+                            .font(.headline)
+                        Spacer()
+                    }
+                    
+                    HStack(spacing: 16) {
+                        SummaryItem(
+                            title: "Total Issues",
+                            value: "\(issues.count)",
+                            color: .primary
+                        )
+                        SummaryItem(
+                            title: "Errors",
+                            value: "\(issues.filter { $0.severity == .error }.count)",
+                            color: .red
+                        )
+                        SummaryItem(
+                            title: "Warnings",
+                            value: "\(issues.filter { $0.severity == .warning }.count)",
+                            color: .orange
+                        )
+                        SummaryItem(
+                            title: "Info",
+                            value: "\(issues.filter { $0.severity == .info }.count)",
+                            color: .blue
+                        )
+                    }
+                }
+                .padding(.vertical, 8)
+            }
+            
+            // Issues section
+            Section {
+                ForEach(issues.indices, id: \.self) { idx in
+                    LintIssueRow(issue: issues[idx])
+                    if idx != issues.count - 1 {
+                        Divider()
+                    }
+                }
+            }
+        }
+        .listStyle(PlainListStyle())
+        .frame(minHeight: 200, maxHeight: .infinity)
+        .layoutPriority(1)
     }
 }
 
@@ -336,5 +352,5 @@ struct FullScreenResultsView: View {
         )
     ]
     
-    LintResultsView(issues: sampleIssues)
+    LintResultsContainerView(issues: sampleIssues)
 }

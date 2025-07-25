@@ -23,11 +23,53 @@ Concrete type usage refers to declaring dependencies, properties, or parameters 
 
 **Summary:** Excluding value types keeps the rule focused on architectural risks from reference types, aligns with Swift best practices, and reduces noise from false positives.
 
-## 4. Model Changes
+---
+
+## 4. Suggestions for Improving Detection
+
+### 4.1 Handle Typealiases and Nested Types
+- Detect when a typealias points to a concrete class (e.g., `typealias Foo = MyService`) and flag usages of `Foo`.
+- Consider nested types (e.g., `Outer.InnerClass`) and ensure detection works for them.
+
+### 4.2 Support for Generics
+- Detect cases where a generic parameter is constrained to a concrete type (e.g., `T: MyService`).
+- Exclude generic parameters constrained to protocols.
+
+### 4.3 Configurable Exclusions
+- Allow configuration for which value types or classes to exclude (e.g., allow `URL`, `Date`, or custom types).
+- Support project-specific whitelists/blacklists.
+
+### 4.4 Detect Implicit Usages
+- Flag cases where a concrete type is used as a default value or in type inference (e.g., `let foo = MyService()`).
+
+### 4.5 Better Protocol Detection
+- Improve protocol detection by checking for the `protocol` keyword in the type declaration, not just by naming convention (e.g., not all protocols end with `Protocol`).
+
+### 4.6 Constructor Injection
+- Detect concrete type usage in initializer injection patterns, not just property or parameter declarations.
+
+### 4.7 Reporting Improvements
+- Provide more context in the lint report, such as the enclosing type and function, to make issues easier to fix.
+- Suggest protocol alternatives if available.
+
+### 4.8 SwiftUI and Combine Awareness
+- Exclude or handle special cases for SwiftUI views and Combine publishers, which often use concrete types by design.
+
+### 4.9 False Positive Reduction
+- Exclude test targets or files with `@testable import` where concrete types are often used intentionally.
+
+### 4.10 Documentation and Quick Fixes
+- Link to documentation or provide quick-fix suggestions in the lint output.
+
+---
+
+## 5. Model Changes
 - Add a new case to `ArchitectureIssueType`: `case concreteTypeUsage`
 - Optionally, add a new `RuleIdentifier` for concrete type usage
 
-## 5. Visitor Logic
+---
+
+## 6. Visitor Logic
 - In the relevant visitor, traverse function parameters, property declarations, and initializers
 - If the type is a concrete class, emit an `ArchitectureIssue` of type `.concreteTypeUsage`
 - Example pseudocode:
@@ -37,14 +79,29 @@ Concrete type usage refers to declaring dependencies, properties, or parameters 
       // Emit issue
   }
   ```
+- **Implementation Details:**
+  - Use SwiftSyntax to traverse the AST.
+  - For each `VariableDeclSyntax`, `FunctionParameterSyntax`, and `InitializerDeclSyntax`, extract the type.
+  - Check if the type refers to a class (not a protocol, struct, or enum).
+  - Cross-reference with a list of known protocols and value types.
+  - Optionally, resolve typealiases to their underlying types.
+  - Allow configuration for excluded types.
 
-## 6. Pattern Registration
+---
+
+## 7. Pattern Registration
 - Register a new `SyntaxPattern` for concrete type usage in `ArchitecturePatternRegistrar`
 
-## 7. Testing
+---
+
+## 8. Testing
 - Add test cases with concrete type usage and protocol-based usage
 - Ensure only the former is flagged
 
-## 8. References
-- [Swift Protocol-Oriented Programming](https://www.swiftbysundell.com/articles/protocol-oriented-programming-in-swift/)
-- [SOLID Principles in Swift](https://www.avanderlee.com/swift/solid-principles/) 
+---
+
+## 9. References
+- [Swift Protocol-Oriented Programming](https://www.swiftbysundell.com/articles/protocol-oriented-programming-in-swift/) Swift by Sundell
+- [SOLID Principles in Swift](https://www.avanderlee.com/swift/solid-principles/) Avander Lee (hidden by paywall?)
+
+---

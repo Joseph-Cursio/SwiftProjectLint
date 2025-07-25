@@ -30,7 +30,16 @@ struct ContentView: View {
     @State private var isAnalyzing: Bool = false
     @State private var lintIssues: [LintIssue] = []
     @State private var showRuleSelector: Bool = false
-    @State private var enabledRuleNames: Set<RuleIdentifier> = []
+    @State private var enabledRuleNames: Set<RuleIdentifier> = {
+        let userDefaultsKey = "enabledLintRules"
+        if let data = UserDefaults.standard.data(forKey: userDefaultsKey),
+           let saved = try? JSONDecoder().decode(Set<RuleIdentifier>.self, from: data),
+           !saved.isEmpty {
+            return saved
+        } else {
+            return [.relatedDuplicateStateVariable]
+        }
+    }()
     @State private var showingDirectoryPicker: Bool = false
     
     private let userDefaultsKey = "enabledLintRules"
@@ -42,30 +51,6 @@ struct ContentView: View {
         PatternConfiguration.allPatternsByCategory(from: systemComponents.patternRegistry)
     }
     
-    // MARK: - Init
-    /// Initializes a new instance of `ContentView`, configuring the initial set of enabled lint rule names.
-    ///
-    /// This initializer attempts to load a previously saved set of enabled lint rule names from `UserDefaults`
-    /// using the key defined by `userDefaultsKey`. If a non-empty set of rule names is found, it is used to
-    /// initialize the `enabledRuleNames` state property. If no saved rules are present, the initializer defaults
-    /// to enabling only the "Related Duplicate State Variable" rule. This ensures that the linter is always initialized 
-    /// with at least one enabled rule, providing a reasonable default for first-time users or fresh launches.
-    ///
-    /// - Note: The rule names are persisted across app launches via `UserDefaults`.
-    /// - Note: INVALID_PERSONA warnings may appear during UI tests due to sandboxing - this is normal behavior.
-    init() {
-        print("DEBUG: ContentView initialized")
-        // Load enabled rules from UserDefaults or set default
-        if let data = UserDefaults.standard.data(forKey: userDefaultsKey),
-           let saved = try? JSONDecoder().decode(Set<RuleIdentifier>.self, from: data),
-           !saved.isEmpty {
-            _enabledRuleNames = State(initialValue: saved)
-        } else {
-            // Only enable 'Related Duplicate State Variable' by default
-            _enabledRuleNames = State(initialValue: [.relatedDuplicateStateVariable])
-        }
-    }
-
     var body: some View {
         NavigationView {
             VStack(spacing: 20) {
@@ -199,10 +184,34 @@ struct ContentView: View {
         let enabledCategories = getEnabledCategories()
         return DemoIssueGenerator.createDemoIssues(for: enabledCategories)
     }
+    
+    /// A static factory for testing purposes that hosts ContentView with a proper @StateObject environment.
+    /// Use this in tests to avoid State warnings.
+    ///
+    /// Do NOT instantiate ContentView() directly outside a View hierarchy (including in tests or previews).
+    /// Always use ContentViewPreviewHost to avoid @State access warnings.
+    static func testHostView() -> some View {
+        ContentViewPreviewHost()
+    }
+}
+
+// All @State usage must occur inside a proper View hierarchy to prevent State warnings in previews/tests.
+// The ContentViewPreviewHost struct below correctly hosts ContentView inside a View with @StateObject,
+// ensuring no runtime warnings occur due to improper @State usage.
+//
+// Direct use of @State outside of a View or without a proper hierarchy will trigger runtime warnings.
+
+// Always use ContentViewPreviewHost() for previews and tests to avoid @State access warnings. Never use ContentView() directly.
+struct ContentViewPreviewHost: View {
+    @StateObject private var systemComponents = SystemComponents()
+    var body: some View {
+        ContentView()
+            .environmentObject(systemComponents)
+            .onAppear { systemComponents.initialize() }
+    }
 }
 
 #Preview {
-    let systemComponents = SystemComponents()
-    systemComponents.initialize()
-    return ContentView().environmentObject(systemComponents)
+    // Use the preview host to avoid @State warnings.
+    ContentViewPreviewHost()
 }

@@ -33,7 +33,6 @@ class AccessibilityConfigurationStrictTests {
             }
         }
         """
-        let testText = "This is a medium length text"
         let sourceFile = Parser.parse(source: sourceCode)
         customVisitor.walk(sourceFile)
         #expect(customVisitor.detectedIssues.count == 1)
@@ -52,7 +51,6 @@ class AccessibilityConfigurationStrictTests {
             }
         }
         """
-        let testText = "This is a very long text that should definitely be detected as long text content"
         let sourceFile = Parser.parse(source: sourceCode)
         customVisitor.walk(sourceFile)
         #expect(customVisitor.detectedIssues.count == 1)

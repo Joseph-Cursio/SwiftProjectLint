@@ -137,25 +137,15 @@ final class LintResultsViewCharacterizationTests {
         ]
         let view = LintResultsView(issues: issues)
         let inspected = try view.inspect()
-        let vStack = try inspected.vStack()
-        // Header HStack with Full Screen button
-        let headerHStack = try vStack.hStack(0)
-        let fullScreenButton = try headerHStack.findAll(ViewType.Button.self).first
-        #expect(fullScreenButton != nil)
-        let buttonLabelTexts = try fullScreenButton!.labelView().findAll(ViewType.Text.self).map { try $0.string() }
-        #expect(buttonLabelTexts.contains("Full Screen"))
-        // List with summary section
-        let list = try vStack.list(1)
+
+        let list = try inspected.find(ViewType.List.self)
         let summarySection = try list.section(0)
-        let summaryVStack = try summarySection.vStack(0)
-        let summaryHStack = try summaryVStack.hStack(1)
-        let summaryTexts = try summaryVStack.findAll(ViewType.Text.self).map { try $0.string() }
+        let summaryTexts = try summarySection.findAll(ViewType.Text.self).map { try $0.string() }
         #expect(summaryTexts.contains("Summary"))
-        let summaryItemTitles = try summaryHStack.findAll(ViewType.Text.self).map { try $0.string() }
-        #expect(summaryItemTitles.contains("Total Issues"))
-        #expect(summaryItemTitles.contains("Errors"))
-        #expect(summaryItemTitles.contains("Warnings"))
-        #expect(summaryItemTitles.contains("Info"))
+        #expect(summaryTexts.contains("Total Issues"))
+        #expect(summaryTexts.contains("Errors"))
+        #expect(summaryTexts.contains("Warnings"))
+        #expect(summaryTexts.contains("Info"))
     }
 
     @Test
@@ -167,17 +157,9 @@ final class LintResultsViewCharacterizationTests {
         ]
         let view = LintResultsView(issues: issues)
         let inspected = try view.inspect()
-        let vStack = try inspected.vStack()
-        // Header HStack with Full Screen button
-        let headerHStack = try vStack.hStack(0)
-        let fullScreenButton = try headerHStack.findAll(ViewType.Button.self).first
-        #expect(fullScreenButton != nil)
-        let buttonLabelTexts = try fullScreenButton!.labelView().findAll(ViewType.Text.self).map { try $0.string() }
-        #expect(buttonLabelTexts.contains("Full Screen"))
-        // List with issues section
-        let list = try vStack.list(1)
+
+        let list = try inspected.find(ViewType.List.self)
         let issuesSection = try list.section(1)
-        // Instead of type check, just check for expected issue messages
         let issueTexts = try issuesSection.findAll(ViewType.Text.self).map { try $0.string() }
         #expect(issueTexts.contains("Error issue"))
         #expect(issueTexts.contains("Warning issue"))

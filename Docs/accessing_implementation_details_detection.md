@@ -36,6 +36,46 @@ Accessing implementation details refers to a component using internal or private
 - Add test cases where a component accesses another's internal/private members, and where it uses only the public interface
 - Ensure only the former is flagged
 
-## 8. References
-- [Encapsulation in Swift](https://www.swiftbysundell.com/articles/access-control-in-swift/)
-- [Swift Access Control](https://docs.swift.org/swift-book/documentation/the-swift-programming-language/accesscontrol/) 
+## 8. Checklist for Improving Detection
+
+- [ ] **Integrate SwiftSyntax with Symbol Resolution**
+  - [ ] Investigate using SwiftSyntax and/or SourceKit-LSP for AST and symbol information.
+  - [ ] Implement logic to resolve member visibility and type boundaries.
+
+- [ ] **Enhance Protocol Conformance Awareness**
+  - [ ] Update visitor logic to check if accessed members are part of a protocol interface.
+  - [ ] Only flag access if the member is not part of the protocol.
+
+- [ ] **Add Module Boundary Checks**
+  - [ ] Ensure detection distinguishes between same-module and cross-module access.
+  - [ ] Only flag cross-type, cross-module access to non-public members.
+
+- [ ] **Reduce False Positives**
+  - [ ] Ignore member accesses within extensions of the same type.
+  - [ ] Allow test targets to access internal members if `@testable import` is used.
+
+- [ ] **Make Rule Configurable**
+  - [ ] Allow users to configure which access levels (`private`, `internal`) to flag.
+
+- [ ] **Improve Issue Reporting**
+  - [ ] Include accessed member name, declared access level, and source/target type in issue messages.
+
+- [ ] **Expand and Refine Testing**
+  - [ ] Add tests for:
+    - [ ] Access via protocol-typed variables.
+    - [ ] Access to `fileprivate` members.
+    - [ ] Access in nested types and extensions.
+    - [ ] Cross-module and same-module scenarios.
+
+- [ ] **Update Documentation**
+  - [ ] Document new detection logic and configuration options.
+  - [ ] Provide examples and rationale for each improvement.
+
+- [ ] **Refactor and Register Patterns**
+  - [ ] Enhance the relevant visitor (e.g., `ArchitectureVisitor`).
+  - [ ] Update `ArchitectureIssueType` and `ArchitecturePatternRegistrar` as needed.
+
+## 9. References
+- [Code Encapsulation in Swift](https://www.swiftbysundell.com/articles/code-encapsulation-in-swift/) Swift by Sundell
+- [Access Control](https://www.swiftbysundell.com/basics/access-control/) Swift by Sundell
+- [Swift Access Control](https://docs.swift.org/swift-book/documentation/the-swift-programming-language/accesscontrol/) from Swift documentation
