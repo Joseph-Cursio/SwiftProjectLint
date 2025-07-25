@@ -7,7 +7,7 @@ This document outlines actionable and strategic refactoring ideas to improve the
 ## 1. Code Organization & Structure
 
 - **Decompose Large Files:**  
-  - Identify files exceeding 300–400 lines (e.g., `ContentView.swift`, `SwiftUIManagementVisitor.swift`, `SourcePatternDetector.swift`).
+  - Identify files exceeding 300–400 lines (e.g., `SwiftUIManagementVisitor.swift`, `SourcePatternDetector.swift`).
   - Split by responsibility: UI logic, data models, and helpers should reside in separate files.
   - Use subfolders (e.g., `Views/`, `Helpers/`, `Visitors/`) for logical grouping.
 

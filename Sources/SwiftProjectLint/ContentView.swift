@@ -142,11 +142,6 @@ struct ContentView: View {
             
             self.lintIssues = allIssues
             
-            // If no real issues found, show demo issues for enabled rules only
-            if self.lintIssues.isEmpty {
-                self.lintIssues = createDemoIssues()
-            }
-            
             self.isAnalyzing = false
         }
     }
@@ -171,18 +166,6 @@ struct ContentView: View {
     /// - Returns: An array containing only issues from enabled rules.
     private func filterIssuesByEnabledRules(_ issues: [LintIssue]) -> [LintIssue] {
         PatternConfiguration.filterIssuesByEnabledRules(issues, enabledRuleNames: enabledRuleNames)
-    }
-    
-    /// Creates a set of demo lint issues for illustration purposes.
-    ///
-    /// This function generates demo `LintIssue` objects based on the currently enabled rules,
-    /// simulating typical linter findings for the selected categories. Each demo issue includes
-    /// severity, a message, file path, line number, and a suggested fix.
-    ///
-    /// - Returns: An array of demo `LintIssue` objects for enabled rules only.
-    private func createDemoIssues() -> [LintIssue] {
-        let enabledCategories = getEnabledCategories()
-        return DemoIssueGenerator.createDemoIssues(for: enabledCategories)
     }
     
     /// A static factory for testing purposes that hosts ContentView with a proper @StateObject environment.
