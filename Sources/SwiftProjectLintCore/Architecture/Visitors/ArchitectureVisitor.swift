@@ -17,15 +17,15 @@ class ArchitectureVisitor: BasePatternVisitor {
     private var stateObjectType: String = ""
     // Store all import module names
     private var importModules: [String] = []
-    
+
     required init(patternCategory: PatternCategory) {
         super.init(viewMode: .sourceAccurate)
     }
-    
+
     required init(viewMode: SyntaxTreeViewMode) {
         super.init(viewMode: viewMode)
     }
-    
+
     /// Sets the current file path for issue reporting.
     override func setFilePath(_ filePath: String) {
         self.currentFilePath = filePath
@@ -51,30 +51,30 @@ class ArchitectureVisitor: BasePatternVisitor {
         detectMissingDependencyInjection(node)
         return .visitChildren
     }
-    
+
     override func visit(_ node: VariableDeclSyntax) -> SyntaxVisitorContinueKind {
         // Count state variables for fat view detection
         countStateVariables(node)
-        
+
         // Check for StateObject creation patterns
         detectStateObjectCreation(node)
-        
+
         return .visitChildren
     }
-    
+
     override func visit(_ node: ImportDeclSyntax) -> SyntaxVisitorContinueKind {
         // Collect import module names for later analysis
         let importedModule = node.path.description.trimmingCharacters(in: .whitespaces)
         importModules.append(importedModule)
         return .visitChildren
     }
-    
+
     override func visit(_ node: ClassDeclSyntax) -> SyntaxVisitorContinueKind {
         // Check for missing protocols
         detectMissingProtocols(node)
         return .visitChildren
     }
-    
+
     override func visitPost(_ node: StructDeclSyntax) {
         // Check for fat view pattern after processing the entire struct
         if isSwiftUIView(node) && stateVariableCount > 5 {
@@ -87,7 +87,7 @@ class ArchitectureVisitor: BasePatternVisitor {
                 ruleName: currentPattern?.name
             )
         }
-        
+
         // Check for missing dependency injection
         if hasStateObjectCreation && !stateObjectType.isEmpty {
             addIssue(
@@ -99,7 +99,7 @@ class ArchitectureVisitor: BasePatternVisitor {
                 ruleName: currentPattern?.name
             )
         }
-        
+
         // Check for circular dependencies now that we know the view name
         for importedModule in importModules {
             if importedModule == currentViewName {
@@ -114,9 +114,9 @@ class ArchitectureVisitor: BasePatternVisitor {
             }
         }
     }
-    
+
     // MARK: - Detection Methods
-    
+
     private func countStateVariables(_ node: VariableDeclSyntax) {
         for binding in node.bindings {
             if binding.pattern.as(IdentifierPatternSyntax.self) != nil {
@@ -128,7 +128,7 @@ class ArchitectureVisitor: BasePatternVisitor {
             }
         }
     }
-    
+
     private func detectStateObjectCreation(_ node: VariableDeclSyntax) {
         for binding in node.bindings {
             if binding.pattern.as(IdentifierPatternSyntax.self) != nil {
@@ -154,7 +154,7 @@ class ArchitectureVisitor: BasePatternVisitor {
             }
         }
     }
-    
+
     private func detectMissingDependencyInjection(_ node: InitializerDeclSyntax) {
         // Check if the initializer has parameters (dependency injection)
         if node.signature.parameterClause.parameters.isEmpty {
@@ -172,7 +172,7 @@ class ArchitectureVisitor: BasePatternVisitor {
             }
         }
     }
-    
+
     /// Enum representing class name suffixes that typically indicate a service, manager, or similar type that should have a protocol for testability and flexibility.
     enum ProtocolizableClassSuffix: String, CaseIterable {
         case manager = "Manager"
@@ -187,7 +187,7 @@ class ArchitectureVisitor: BasePatternVisitor {
         case factory = "Factory"
         case adapter = "Adapter"
     }
-    
+
     /**
      Checks if a class declaration matches any of the protocolizable suffixes defined in ProtocolizableClassSuffix and, if it also conforms to ObservableObject, suggests defining a protocol for better testability.
      */
@@ -212,9 +212,9 @@ class ArchitectureVisitor: BasePatternVisitor {
             }
         }
     }
-    
+
     // MARK: - Helper Methods
-    
+
     private func isSwiftUIView(_ node: StructDeclSyntax) -> Bool {
         for inheritance in node.inheritanceClause?.inheritedTypes ?? [] {
             if inheritance.type.as(IdentifierTypeSyntax.self)?.name.text == "View" {
@@ -223,7 +223,7 @@ class ArchitectureVisitor: BasePatternVisitor {
         }
         return false
     }
-    
+
     private func extractPropertyWrapper(from node: VariableDeclSyntax) -> PropertyWrapper? {
         for attribute in node.attributes {
             if let attributeSyntax = attribute.as(AttributeSyntax.self),
@@ -234,18 +234,18 @@ class ArchitectureVisitor: BasePatternVisitor {
         }
         return nil
     }
-    
+
     private func extractTypeAnnotation(from binding: PatternBindingSyntax) -> String {
         if let typeAnnotation = binding.typeAnnotation {
             return typeAnnotation.type.description.trimmingCharacters(in: .whitespaces)
         }
         return ""
     }
-    
+
     override func getLineNumber(for node: Syntax) -> Int {
         guard let converter = sourceLocationConverter else { return 1 }
         let position = node.positionAfterSkippingLeadingTrivia
         let location = converter.location(for: position)
         return location.line ?? 1
     }
-} 
+}

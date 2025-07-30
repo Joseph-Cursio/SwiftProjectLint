@@ -4,18 +4,18 @@ import SwiftSyntax
 /// Checks accessibility issues specific to Text elements in SwiftUI.
 /// This checker analyzes text elements for missing accessibility features when they contain long content.
 class TextAccessibilityChecker: AccessibilityCheckerProtocol {
-    
+
     let visitor: AccessibilityVisitor
-    
+
     init(visitor: AccessibilityVisitor) {
         self.visitor = visitor
     }
-    
+
     func checkAccessibility(_ node: FunctionCallExprSyntax) {
         Task { @MainActor in
             DebugLogger.logVisitor(.accessibility, "checkTextAccessibility called")
         }
-        
+
         // Check if the text is long enough to warrant accessibility features
         if let argument = node.arguments.first,
            let stringLiteral = argument.expression.as(StringLiteralExprSyntax.self) {
@@ -29,12 +29,12 @@ class TextAccessibilityChecker: AccessibilityCheckerProtocol {
             Task { @MainActor in
                 DebugLogger.logVisitor(.accessibility, "Checking text: '\(text)' with length \(text.count), threshold: \(threshold)")
             }
-            
+
             if isLongText(text) {
                 Task { @MainActor in
                     DebugLogger.logVisitor(.accessibility, "Text is long, checking for accessibility modifier")
                 }
-                
+
                 // Check if there's an accessibility modifier in the expression tree
                 if AccessibilityTreeTraverser.hasAccessibilityModifier(in: node, modifierName: "accessibilityLabel") ||
                    AccessibilityTreeTraverser.hasAccessibilityModifier(in: node, modifierName: "accessibilityHint") ||
@@ -44,7 +44,7 @@ class TextAccessibilityChecker: AccessibilityCheckerProtocol {
                     }
                     return
                 }
-                
+
                 Task { @MainActor in
                     DebugLogger.logIssue("Long text without accessibility features")
                 }
@@ -62,7 +62,7 @@ class TextAccessibilityChecker: AccessibilityCheckerProtocol {
             }
         }
     }
-    
+
     /// Determines if the given text is considered "long" based on the configuration threshold.
     ///
     /// - Parameter text: The text to check.
@@ -79,4 +79,4 @@ class TextAccessibilityChecker: AccessibilityCheckerProtocol {
         }
         return result
     }
-} 
+}

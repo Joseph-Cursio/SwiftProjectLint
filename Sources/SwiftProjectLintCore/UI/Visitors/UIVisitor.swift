@@ -11,19 +11,19 @@ class UIVisitor: BasePatternVisitor {
     private var navigationStack: [String] = []
     private var detectedPreviews: Set<String> = []
     private var stylingModifiers: [String: Set<String>] = [:]
-    
+
     required init(patternCategory: PatternCategory) {
         super.init(patternCategory: patternCategory)
     }
-    
+
     required override init(viewMode: SyntaxTreeViewMode) {
         super.init(viewMode: viewMode)
     }
-    
+
     override func setFilePath(_ filePath: String) {
         self.currentFilePath = filePath
     }
-    
+
     override func visit(_ node: StructDeclSyntax) -> SyntaxVisitorContinueKind {
         let viewName = node.name.text
         currentViewName = viewName
@@ -39,7 +39,7 @@ class UIVisitor: BasePatternVisitor {
         stylingModifiers[currentViewName] = []
         return .visitChildren
     }
-    
+
     override func visit(_ node: MacroExpansionExprSyntax) -> SyntaxVisitorContinueKind {
         // #Preview macro
         if node.macroName.text == "Preview" {
@@ -97,11 +97,11 @@ class UIVisitor: BasePatternVisitor {
         // Detect inconsistent styling
         if let calledExpr = node.calledExpression.as(DeclReferenceExprSyntax.self), calledExpr.baseName.text == "Text" {
             let modifiers = collectStylingModifiers(node)
-            
+
             // Only add styling modifiers that are actually styling-related
             let stylingModifierNames = ["font", "foregroundColor", "background", "padding", "cornerRadius", "shadow", "border"]
             let stylingModifiers = modifiers.filter { stylingModifierNames.contains($0) }
-            
+
             if stylingModifiers.count > 1 {
                 addIssue(
                     severity: IssueSeverity.info,
@@ -115,14 +115,14 @@ class UIVisitor: BasePatternVisitor {
         }
         return .visitChildren
     }
-    
+
     override func visitPost(_ node: FunctionCallExprSyntax) {
         // Pop navigation stack if exiting NavigationView
         if let calledExpr = node.calledExpression.as(DeclReferenceExprSyntax.self), calledExpr.baseName.text == "NavigationView" {
             _ = navigationStack.popLast()
         }
     }
-    
+
     override func visitPost(_ node: StructDeclSyntax) {
         // Check for missing preview for this view
         if isSwiftUIView(node) && !detectedPreviews.contains(currentViewName) {
@@ -139,7 +139,7 @@ class UIVisitor: BasePatternVisitor {
             }
         }
     }
-    
+
     override func visit(_ node: VariableDeclSyntax) -> SyntaxVisitorContinueKind {
         // Look for computed property named 'body'
         for binding in node.bindings {
@@ -211,22 +211,22 @@ class UIVisitor: BasePatternVisitor {
         }
         return .visitChildren
     }
-    
+
     // --- Helper Logic ---
 
     private func analyzeBodyForBasicErrorHandling(_ node: FunctionDeclSyntax) {
         guard let body = node.body else { return }
         let bodyText = body.description
-        
+
         // Debug logging
         print("🔍 Analyzing body for error handling: \(bodyText)")
-        
+
         // Check if there's basic error handling without proper UI patterns
         let hasErrorHandling = bodyText.contains("if let error") || bodyText.contains("Text(\"Error")
         let hasProperUI = bodyText.contains(".alert(") || bodyText.contains(".sheet(") || bodyText.contains("Alert(")
-        
+
         print("🔍 hasErrorHandling: \(hasErrorHandling), hasProperUI: \(hasProperUI)")
-        
+
         if hasErrorHandling && !hasProperUI {
             addIssue(
                 severity: IssueSeverity.info,
@@ -243,7 +243,7 @@ class UIVisitor: BasePatternVisitor {
         // Collect styling modifiers applied to this Text call
         var modifiers: Set<String> = []
         var current = node.parent
-        
+
         while let parent = current {
             if let memberAccess = parent.as(MemberAccessExprSyntax.self) {
                 modifiers.insert(memberAccess.declName.baseName.text)
@@ -254,13 +254,13 @@ class UIVisitor: BasePatternVisitor {
             }
             current = parent.parent
         }
-        
+
         // Debug logging
         print("🔍 Collected modifiers for Text: \(Array(modifiers))")
-        
+
         return Array(modifiers)
     }
-    
+
     private func isSwiftUIView(_ node: StructDeclSyntax) -> Bool {
         for inheritance in node.inheritanceClause?.inheritedTypes ?? [] {
             if inheritance.type.as(IdentifierTypeSyntax.self)?.name.text == "View" {

@@ -179,16 +179,14 @@ class AdvancedAnalyzer {
 
         return stateVariables
     }
-    
-   
+
     // Public: Get the relationship type between two views, if any
     public func relationshipType(between parent: String, and child: String) -> RelationshipType? {
         return viewRelationships.first(where: { $0.parentView == parent && $0.childView == child })?.relationshipType
     }
-    
+
     // Public: Get the full ViewRelationship between two views, if any
     public func viewRelationship(between parent: String, and child: String) -> ViewRelationship? {
         return viewRelationships.first(where: { $0.parentView == parent && $0.childView == child })
     }
 }
-

@@ -27,25 +27,25 @@ class StateVariableVisitor: SyntaxVisitor {
     private let sourceContents: String
     private let config: VisitorConfig
     var stateVariables: [StateVariable] = []
-    
+
     // Cache for line number calculations to improve performance
     private var lineNumberCache: [AbsolutePosition: Int] = [:]
-    
+
     struct VisitorConfig {
         let strictTypeChecking: Bool
         let logUnknownTypes: Bool
-        
+
         static let `default` = VisitorConfig(
             strictTypeChecking: false,
             logUnknownTypes: true
         )
-        
+
         static let strict = VisitorConfig(
             strictTypeChecking: true,
             logUnknownTypes: true
         )
     }
-    
+
     @MainActor init(viewName: String, filePath: String, sourceContents: String, config: VisitorConfig = .default) {
         self.viewName = viewName
         self.filePath = filePath
@@ -53,7 +53,7 @@ class StateVariableVisitor: SyntaxVisitor {
         self.config = config
         super.init(viewMode: .sourceAccurate)
     }
-    
+
     override func visit(_ node: VariableDeclSyntax) -> SyntaxVisitorContinueKind {
         Task { @MainActor in
             DebugLogger.logVisitor(.stateVariable, "Visiting variable declaration")
@@ -62,20 +62,20 @@ class StateVariableVisitor: SyntaxVisitor {
         for binding in node.bindings {
             if let pattern = binding.pattern.as(IdentifierPatternSyntax.self) {
                 let variableName = pattern.identifier.text
-                
+
                 // Check for property wrappers
                 if let propertyWrapper = extractPropertyWrapper(from: node.attributes) {
                     // Use the new type inference logic
                     let typeString = extractTypeString(from: binding.typeAnnotation, initializer: binding.initializer)
                     let lineNumber = calculateLineNumber(for: node.positionAfterSkippingLeadingTrivia)
-                    
+
                     // Validate property wrapper usage
                     _ = validatePropertyWrapperUsage(
                         propertyWrapper: propertyWrapper,
                         typeString: typeString,
                         variableName: variableName
                     )
-                    
+
                     stateVariables.append(StateVariable(
                         name: variableName,
                         type: typeString,
@@ -87,16 +87,16 @@ class StateVariableVisitor: SyntaxVisitor {
                 }
             }
         }
-        
+
         return .visitChildren
     }
-    
+
     // MARK: - Private Helper Methods
-    
+
     /// Extracts property wrapper information from variable attributes
     private func extractPropertyWrapper(from attributes: AttributeListSyntax?) -> PropertyWrapper? {
         guard let attributes = attributes else { return nil }
-        
+
         for attribute in attributes {
             if let attributeSyntax = attribute.as(AttributeSyntax.self),
                let attributeName = attributeSyntax.attributeName.as(IdentifierTypeSyntax.self)?.name.text,
@@ -104,16 +104,16 @@ class StateVariableVisitor: SyntaxVisitor {
                 return wrapper
             }
         }
-        
+
         return nil
     }
-    
+
     /// Extracts and formats type information from type annotations or infers from initializer
     private func extractTypeString(from typeAnnotation: TypeAnnotationSyntax?, initializer: InitializerClauseSyntax?) -> String {
         if let typeAnnotation = typeAnnotation {
             // Convert the type syntax to a string representation
             let typeString = typeAnnotation.type.description.trimmingCharacters(in: .whitespaces)
-            
+
             // Clean up common type patterns for better readability
             return cleanTypeString(typeString)
         }
@@ -165,51 +165,51 @@ class StateVariableVisitor: SyntaxVisitor {
                 } else if text.contains("Font.") {
                     return "Font"
                 }
-                
+
                 // Handle unknown type patterns based on configuration
                 if config.logUnknownTypes {
                     print("⚠️  Unknown type pattern in initializer: '\(text)' (kind: \(value.kind)) at \(filePath)")
                 }
-                
+
                 if config.strictTypeChecking {
                     fatalError("Failed to infer type for initializer: '\(text)' (kind: \(value.kind)) at \(filePath)")
                 }
-                
+
                 return "Unknown"
             }
         }
-        
+
         // No type annotation or initializer found
         if config.logUnknownTypes {
             print("⚠️  No type annotation or initializer found for variable at \(filePath)")
         }
-        
+
         if config.strictTypeChecking {
             fatalError("No type annotation or initializer found for variable at \(filePath)")
         }
-        
+
         return "Unknown"
     }
-    
+
     /// Cleans up type strings for better readability
     private func cleanTypeString(_ typeString: String) -> String {
         var cleaned = typeString
-        
+
         // Remove unnecessary whitespace around angle brackets
         cleaned = cleaned.replacingOccurrences(of: " < ", with: "<")
         cleaned = cleaned.replacingOccurrences(of: " >", with: ">")
-        
+
         // Simplify common type patterns
         cleaned = cleaned.replacingOccurrences(of: "some View", with: "View")
         cleaned = cleaned.replacingOccurrences(of: "some ", with: "")
-        
+
         return cleaned
     }
-    
+
     /// Validates property wrapper usage and returns any issues
     private func validatePropertyWrapperUsage(propertyWrapper: PropertyWrapper, typeString: String, variableName: String) -> [String] {
         var issues: [String] = []
-        
+
         // Check for common anti-patterns
         switch propertyWrapper {
         case .state:
@@ -235,53 +235,52 @@ class StateVariableVisitor: SyntaxVisitor {
         default:
             break
         }
-        
+
         return issues
     }
-    
+
     /// Calculates line number for a given position with caching for performance
     private func calculateLineNumber(for position: AbsolutePosition) -> Int {
         if let cached = lineNumberCache[position] {
             return cached
         }
-        
+
         let offset = position.utf8Offset
         let prefix = String(sourceContents.prefix(offset))
         let lineNumber = prefix.components(separatedBy: .newlines).count
         lineNumberCache[position] = lineNumber
         return lineNumber
     }
-    
+
     // MARK: - Public Helper Methods
-    
+
     /// Returns a summary of detected state variables grouped by property wrapper
     public func getStateVariableSummary() -> [PropertyWrapper: Int] {
         var summary: [PropertyWrapper: Int] = [:]
-        
+
         for stateVar in stateVariables {
             summary[stateVar.propertyWrapper, default: 0] += 1
         }
-        
+
         return summary
     }
-    
+
     /// Returns state variables filtered by property wrapper type
     public func getStateVariables(withPropertyWrapper wrapper: PropertyWrapper) -> [StateVariable] {
         return stateVariables.filter { $0.propertyWrapper == wrapper }
     }
-    
+
     /// Returns state variables that might benefit from being converted to @EnvironmentObject
     public func getPotentialEnvironmentObjectCandidates() -> [StateVariable] {
         return stateVariables.filter { stateVar in
             // Look for ObservableObject types that might be shared across views
             // @StateObject and @ObservedObject are typically used with ObservableObject types
-            let isStateOrObserved = stateVar.propertyWrapper == .stateObject || 
+            let isStateOrObserved = stateVar.propertyWrapper == .stateObject ||
                                   stateVar.propertyWrapper == .observedObject
-            
+
             // For @StateObject and @ObservedObject, we assume they are ObservableObject types
             // since that's the intended use case for these property wrappers
             return isStateOrObserved
         }
     }
 }
-

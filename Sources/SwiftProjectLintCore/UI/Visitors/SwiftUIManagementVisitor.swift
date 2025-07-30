@@ -24,15 +24,15 @@ import SwiftSyntax
 /// let issues = visitor.detectedIssues
 /// ```
 class SwiftUIManagementVisitor: BasePatternVisitor {
-    
+
     // MARK: - Configuration
-    
+
     struct Configuration {
         let enableCrossFileAnalysis: Bool
         let maxStateVariables: Int
         let checkForDuplicates: Bool
         let checkForUnused: Bool
-        
+
         static let `default` = Configuration(
             enableCrossFileAnalysis: true,
             maxStateVariables: 5,
@@ -40,35 +40,35 @@ class SwiftUIManagementVisitor: BasePatternVisitor {
             checkForUnused: true
         )
     }
-    
+
     // MARK: - Properties
-    
+
     private let config: Configuration
     private var stateVariables: [StateVariableInfo] = []
     private var currentViewName: String = ""
     private var currentFilePath: String = ""
     private var viewDeclarations: [ViewDeclaration] = []
-    
+
     // MARK: - Initialization
-    
+
     required init(patternCategory: PatternCategory) {
         self.config = .default
         super.init(viewMode: .sourceAccurate)
     }
-    
+
     required init(viewMode: SyntaxTreeViewMode) {
         self.config = .default
         super.init(viewMode: viewMode)
     }
-    
+
     // MARK: - Syntax Visitor Methods
-    
+
     override func visit(_ node: SourceFileSyntax) -> SyntaxVisitorContinueKind {
         // Extract file path from the node if possible
         // For now, we'll need to set this externally
         return .visitChildren
     }
-    
+
     override func visit(_ node: StructDeclSyntax) -> SyntaxVisitorContinueKind {
         let structName = node.name.text
         Task { @MainActor in
@@ -78,20 +78,20 @@ class SwiftUIManagementVisitor: BasePatternVisitor {
         if isSwiftUIView(node) {
             let viewName = structName
             currentViewName = viewName
-            
+
             // Analyze the view structure
             analyzeViewStructure(node)
         }
-        
+
         return .visitChildren
     }
-    
+
     override func visit(_ node: VariableDeclSyntax) -> SyntaxVisitorContinueKind {
         // Analyze variable declarations for state management patterns
         analyzeVariableDeclaration(node)
         return .visitChildren
     }
-    
+
     override func visit(_ node: FunctionDeclSyntax) -> SyntaxVisitorContinueKind {
         // Check for unused state variables in functions
         if config.checkForUnused {
@@ -99,12 +99,12 @@ class SwiftUIManagementVisitor: BasePatternVisitor {
         }
         return .visitChildren
     }
-    
+
     // MARK: - Analysis Methods
-    
+
     private func analyzeViewStructure(_ node: StructDeclSyntax) {
         let stateCount = countStateVariables(in: node)
-        
+
         // Check for fat view pattern
         if stateCount > config.maxStateVariables {
             // Try to use pattern template first, fallback to hardcoded message
@@ -128,7 +128,7 @@ class SwiftUIManagementVisitor: BasePatternVisitor {
                 )
             }
         }
-        
+
         // Store view declaration for cross-file analysis
         let viewDeclaration = ViewDeclaration(
             name: currentViewName,
@@ -138,16 +138,16 @@ class SwiftUIManagementVisitor: BasePatternVisitor {
         )
         viewDeclarations.append(viewDeclaration)
     }
-    
+
     private func analyzeVariableDeclaration(_ node: VariableDeclSyntax) {
         for binding in node.bindings {
             guard let pattern = binding.pattern.as(IdentifierPatternSyntax.self) else { continue }
-            
+
             let variableName = pattern.identifier.text
             guard let propertyWrapper = extractPropertyWrapper(from: node) else { continue }
             let typeAnnotation = extractTypeAnnotation(from: binding)
             let hasInitialValue = binding.initializer != nil
-            
+
             // Create state variable info
             let stateVar = StateVariableInfo(
                 name: variableName,
@@ -158,9 +158,9 @@ class SwiftUIManagementVisitor: BasePatternVisitor {
                 lineNumber: getLineNumber(for: node),
                 hasInitialValue: hasInitialValue
             )
-            
+
             stateVariables.append(stateVar)
-            
+
             // Check for specific patterns
             checkForMissingStateObject(stateVar, node: node)
             checkForUninitializedState(stateVar, node: node)
@@ -172,19 +172,19 @@ class SwiftUIManagementVisitor: BasePatternVisitor {
         // This would analyze function bodies to check if state variables are used
         // Implementation would traverse the function body and check for variable usage
     }
-    
+
     // MARK: - Pattern Detection Methods
-    
+
     private func checkForMissingStateObject(_ stateVar: StateVariableInfo, node: VariableDeclSyntax) {
         guard stateVar.propertyWrapper == .stateObject else { return }
-        
+
         // Check if this looks like it should be @StateObject
         let typeName = stateVar.type
-        if typeName.hasSuffix("Manager") || 
-           typeName.hasSuffix("Service") || 
-           typeName.hasSuffix("Store") || 
+        if typeName.hasSuffix("Manager") ||
+           typeName.hasSuffix("Service") ||
+           typeName.hasSuffix("Store") ||
            typeName.hasSuffix("ViewModel") {
-            
+
             // Try to use pattern template first, fallback to hardcoded message
             if currentPattern != nil {
                 addIssueWithTemplate(
@@ -205,14 +205,14 @@ class SwiftUIManagementVisitor: BasePatternVisitor {
             }
         }
     }
-    
+
     private func checkForUninitializedState(_ stateVar: StateVariableInfo, node: VariableDeclSyntax) {
         // Check if @State variable has an initial value
         if stateVar.propertyWrapper == .state {
             let hasInitialValue = node.bindings.contains { binding in
                 binding.initializer != nil
             }
-            
+
             if !hasInitialValue {
                 // Try to use pattern template first, fallback to hardcoded message
                 if currentPattern != nil {
@@ -235,7 +235,7 @@ class SwiftUIManagementVisitor: BasePatternVisitor {
             }
         }
     }
-    
+
     private func checkForUnusedState(_ stateVar: StateVariableInfo, node: VariableDeclSyntax) {
         // This would require more sophisticated analysis to determine if a state variable is actually used
         // For now, we'll implement a basic check
@@ -244,20 +244,20 @@ class SwiftUIManagementVisitor: BasePatternVisitor {
             // This is a simplified check - in practice, you'd need to analyze the entire view body
         }
     }
-    
+
     // MARK: - Cross-File Analysis
-    
+
     func performCrossFileAnalysis() {
         guard config.checkForDuplicates else { return }
-        
+
         // Group state variables by name
         let groupedByName = Dictionary(grouping: stateVariables) { $0.name }
-        
+
         for (variableName, variables) in groupedByName {
             if variables.count > 1 {
                 // Check if these are in related views
                 let relatedViews = findRelatedViews(for: variables)
-                
+
                 if !relatedViews.isEmpty {
                     addDuplicateStateIssue(
                         variableName: variableName,
@@ -268,13 +268,13 @@ class SwiftUIManagementVisitor: BasePatternVisitor {
             }
         }
     }
-    
+
     func findRelatedViews(for variables: [StateVariableInfo]) -> [String] {
         // For single-file analysis, we'll consider all views as potentially related
         // since we don't have cross-file relationship information
         return Array(Set(variables.map { $0.viewName }))
     }
-    
+
     private func addDuplicateStateIssue(
         variableName: String,
         variables: [StateVariableInfo],
@@ -282,7 +282,7 @@ class SwiftUIManagementVisitor: BasePatternVisitor {
     ) {
         let viewNames = relatedViews.joined(separator: ", ")
         let firstVariable = variables.first!
-        
+
         // Try to use pattern template first, fallback to hardcoded message
         if currentPattern != nil {
             addIssueWithTemplate(
@@ -303,16 +303,16 @@ class SwiftUIManagementVisitor: BasePatternVisitor {
             )
         }
     }
-    
+
     // MARK: - Public Interface
-    
+
     /// Sets the current file path for issue reporting.
     ///
     /// - Parameter filePath: The file path to set.
     override func setFilePath(_ filePath: String) {
         self.currentFilePath = filePath
     }
-    
+
     /// Performs cross-file analysis after all files have been processed.
     func finalizeAnalysis() {
         performCrossFileAnalysis()

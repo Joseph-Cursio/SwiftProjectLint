@@ -60,55 +60,55 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
     case forEachWithoutIDUI = "ForEach Without ID UI"
     case inconsistentStyling = "Inconsistent Styling"
     case basicErrorHandling = "Basic Error Handling"
-    
+
     // Other/System Rules
     case fileParsingError = "File Parsing Error"
-    
+
     /// Returns the category this rule belongs to
     var category: PatternCategory {
         switch self {
         // State Management Rules
         case .relatedDuplicateStateVariable, .unrelatedDuplicateStateVariable, .uninitializedStateVariable, .missingStateObject, .unusedStateVariable, .fatView:
             return .stateManagement
-            
-        // Performance Rules
+
+            // Performance Rules
         case .expensiveOperationInViewBody, .forEachWithoutID, .largeViewBody, .forEachSelfID, .unnecessaryViewUpdate:
             return .performance
-            
-        // Architecture Rules
+
+            // Architecture Rules
         case .missingDependencyInjection, .fatViewDetection:
             return .architecture
-            
-        // Code Quality Rules
+
+            // Code Quality Rules
         case .magicNumber, .longFunction, .hardcodedStrings, .missingDocumentation:
             return .codeQuality
-            
-        // Security Rules
+
+            // Security Rules
         case .hardcodedSecret, .unsafeURL:
             return .security
-            
-        // Accessibility Rules
+
+            // Accessibility Rules
         case .missingAccessibilityLabel, .missingAccessibilityHint, .inaccessibleColorUsage:
             return .accessibility
-            
-        // Memory Management Rules
+
+            // Memory Management Rules
         case .potentialRetainCycle, .largeObjectInState:
             return .memoryManagement
-            
-        // Networking Rules
+
+            // Networking Rules
         case .missingErrorHandling, .synchronousNetworkCall:
             return .networking
-            
-        // UI Pattern Rules
+
+            // UI Pattern Rules
         case .nestedNavigationView, .missingPreview, .forEachWithSelfID, .forEachWithoutIDUI, .inconsistentStyling, .basicErrorHandling:
             return .uiPatterns
-            
-        // Other/System Rules
+
+            // Other/System Rules
         case .fileParsingError:
             return .other
         }
     }
-    
+
     /// Returns the display name for the rule
     var displayName: String {
         return rawValue

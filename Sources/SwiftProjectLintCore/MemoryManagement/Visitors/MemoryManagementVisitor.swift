@@ -4,7 +4,7 @@ import SwiftParser
 /// A visitor that analyzes Swift code for memory management issues using SwiftSyntax AST.
 /// Detects patterns such as potential retain cycles and large objects in state.
 class MemoryManagementVisitor: BasePatternVisitor {
-    
+
     /// Configuration for memory management pattern detection.
     struct Configuration {
         /// Maximum number of elements in an array before considering it "large"
@@ -13,34 +13,34 @@ class MemoryManagementVisitor: BasePatternVisitor {
         let detectRetainCycles: Bool
         /// Whether to detect large objects in state
         let detectLargeObjects: Bool
-        
+
         static let `default` = Configuration(
             maxArraySize: 100,
             detectRetainCycles: true,
             detectLargeObjects: true
         )
     }
-    
+
     internal let config: Configuration
-    
+
     /// The current file path.
     private var currentFilePath: String?
-    
+
     init(config: Configuration = .default) {
         self.config = config
         super.init(patternCategory: .memoryManagement)
     }
-    
+
     required init(patternCategory: PatternCategory) {
         self.config = .default
         super.init(patternCategory: patternCategory)
     }
-    
+
     required init(viewMode: SyntaxTreeViewMode) {
         self.config = .default
         super.init(viewMode: viewMode)
     }
-    
+
     /// Helper to extract property wrapper as PropertyWrapper enum
     private func extractPropertyWrapper(from node: VariableDeclSyntax) -> PropertyWrapper? {
         for attribute in node.attributes {
@@ -62,28 +62,28 @@ class MemoryManagementVisitor: BasePatternVisitor {
         checkForLargeObjectsInState(node)
         return .visitChildren
     }
-    
+
     /// Checks for potential retain cycles in @StateObject declarations.
     /// Pattern: @StateObject var name: Type = Type()
     private func checkForRetainCycles(_ node: VariableDeclSyntax) {
         guard config.detectRetainCycles else { return }
         guard let propertyWrapper = extractPropertyWrapper(from: node), propertyWrapper == .stateObject else { return }
-        
+
         for binding in node.bindings {
             guard let pattern = binding.pattern.as(IdentifierPatternSyntax.self),
                   let initializer = binding.initializer else { continue }
-            
+
             // Check if the initializer creates an instance of the same type
             if let functionCall = initializer.value.as(FunctionCallExprSyntax.self),
                let calledExpression = functionCall.calledExpression.as(DeclReferenceExprSyntax.self) {
-                
+
                 // Get the variable type from the binding
                 if let typeAnnotation = binding.typeAnnotation,
                    let type = typeAnnotation.type.as(IdentifierTypeSyntax.self) {
-                    
+
                     let variableType = type.name.text
                     let initializerType = calledExpression.baseName.text
-                    
+
                     // Check if the initializer type matches the variable type
                     if variableType == initializerType {
                         addIssue(
@@ -99,7 +99,7 @@ class MemoryManagementVisitor: BasePatternVisitor {
             }
         }
     }
-    
+
     /// Checks for large objects (arrays) in @State declarations.
     /// Pattern: @State var name: [Type] = [
     private func checkForLargeObjectsInState(_ node: VariableDeclSyntax) {
@@ -128,4 +128,4 @@ class MemoryManagementVisitor: BasePatternVisitor {
             }
         }
     }
-} 
+}

@@ -4,15 +4,15 @@ import Foundation
 /// This registrar handles patterns for magic numbers, long functions, hardcoded strings, and documentation.
 @MainActor
 class CodeQualityPatternRegistrar: PatternRegistrarWithVisitorRegistryProtocol {
-    
+
     let registry: SourcePatternRegistry
     let visitorRegistry: PatternVisitorRegistryProtocol
-    
+
     init(registry: SourcePatternRegistry, visitorRegistry: PatternVisitorRegistryProtocol) {
         self.registry = registry
         self.visitorRegistry = visitorRegistry
     }
-    
+
     func registerPatterns() {
         let patterns = [
             SyntaxPattern(
@@ -54,4 +54,4 @@ class CodeQualityPatternRegistrar: PatternRegistrarWithVisitorRegistryProtocol {
         ]
         registry.register(patterns: patterns)
     }
-} 
+}
