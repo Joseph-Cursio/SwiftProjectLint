@@ -1,9 +1,9 @@
-import XCTest
+import Testing
 @testable import SwiftProjectLint
 import SwiftProjectLintCore
 
-final class DemoIssueGeneratorTests: XCTestCase {
-    func test_createDemoIssues_includesExpectedCategories() {
+struct DemoIssueGeneratorTests {
+    @Test func test_createDemoIssues_includesExpectedCategories() {
         let categories: [PatternCategory] = [
             .stateManagement, .performance, .architecture, .codeQuality, .security, .accessibility, .memoryManagement, .networking, .uiPatterns
         ]
@@ -22,12 +22,12 @@ final class DemoIssueGeneratorTests: XCTestCase {
         ]
         let actualRuleNames = Set(issues.map { $0.ruleName })
         for rule in expectedRuleNames {
-            XCTAssertTrue(actualRuleNames.contains(rule), "Expected rule \(rule) in demo issues")
+            #expect(actualRuleNames.contains(rule), "Expected rule \(rule) in demo issues")
         }
     }
     
-    func test_createDemoIssues_emptyForOtherCategory() {
+    @Test func test_createDemoIssues_emptyForOtherCategory() {
         let issues = DemoIssueGenerator.createDemoIssues(for: [.other])
-        XCTAssertTrue(issues.isEmpty)
+        #expect(issues.isEmpty)
     }
 } 

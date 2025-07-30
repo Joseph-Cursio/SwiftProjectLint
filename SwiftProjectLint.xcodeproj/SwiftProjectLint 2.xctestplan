@@ -1,0 +1,33 @@
+{
+  "configurations" : [
+    {
+      "id" : "DEFAULT",
+      "name" : "Default",
+      "options" : {
+        "targetForVariableExpansion" : "SwiftProjectLint"
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "testRepetitionMode" : "run-once",
+    "maximumTestRepetitions" : 1,
+    "retryTestsOnFailure" : false,
+    "gatherCoverageData" : false,
+    "coverageTargets" : [],
+    "diagnosticsOptions" : [ ],
+    "executionTimeAllowance" : 0
+  },
+  "testTargets" : [
+    {
+      "target" : "SwiftProjectLintCoreTests",
+      "enabledTests" : [ ],
+      "disabledTests" : [ ]
+    },
+    {
+      "target" : "SwiftProjectLintUITests",
+      "enabledTests" : [ ],
+      "disabledTests" : [ ]
+    }
+  ],
+  "version" : 2
+}

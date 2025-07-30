@@ -1,0 +1,36 @@
+{
+  "configurations" : [
+    {
+      "id" : "DEFAULT",
+      "name" : "Default",
+      "options" : {
+        "testRepetitionMode" : "run-once",
+        "maximumTestRepetitions" : 1,
+        "retryTestsOnFailure" : false,
+        "randomExecutionOrder" : false,
+        "gatherCoverageData" : true,
+        "codeCoverageTargets" : [
+          "SwiftProjectLint",
+          "SwiftProjectLintCore"
+        ]
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "testRepetitionMode" : "run-once",
+    "maximumTestRepetitions" : 1,
+    "retryTestsOnFailure" : false,
+    "randomExecutionOrder" : false,
+    "gatherCoverageData" : true,
+    "codeCoverageTargets" : [
+      "SwiftProjectLint",
+      "SwiftProjectLintCore"
+    ]
+  },
+  "testTargets" : [
+    {
+      "target" : "SwiftProjectLintCoreTests"
+    }
+  ],
+  "version" : 1
+}

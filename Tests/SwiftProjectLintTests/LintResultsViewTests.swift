@@ -165,3 +165,4 @@ final class LintResultsViewCharacterizationTests {
         #expect(issueTexts.contains("Warning issue"))
     }
 }
+

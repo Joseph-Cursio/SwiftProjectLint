@@ -41,22 +41,22 @@ struct ContentView: View {
         }
     }()
     @State private var showingDirectoryPicker: Bool = false
-    
+
     private let userDefaultsKey = "enabledLintRules"
-    
+
     // MARK: - Computed Properties
-    
+
     /// Pattern configuration that uses SwiftSyntax for all categories.
     private var allPatternsByCategory: [(category: PatternCategory, display: String, patterns: [DetectionPattern], useSwiftSyntax: Bool)] {
         PatternConfiguration.allPatternsByCategory(from: systemComponents.patternRegistry)
     }
-    
+
     var body: some View {
         NavigationView {
             VStack(spacing: 20) {
                 // Header
                 ContentViewHeader()
-                
+
                 // Action Buttons
                 ContentViewActions(
                     selectedDirectory: selectedDirectory,
@@ -64,13 +64,13 @@ struct ContentView: View {
                     onSelectDirectory: selectDirectory,
                     onAnalyzeProject: analyzeProject
                 )
-                
+
                 // Analysis Progress
                 ContentViewProgress(isAnalyzing: isAnalyzing)
-                
+
                 // Results
                 ContentViewResults(lintIssues: lintIssues, isAnalyzing: isAnalyzing)
-                
+
                 Spacer()
             }
             .frame(minWidth: 600, minHeight: 400)
@@ -94,25 +94,25 @@ struct ContentView: View {
             }
         }
     }
-    
+
     /// Save enabled rules to UserDefaults
     private func saveEnabledRules() {
         if let data = try? JSONEncoder().encode(enabledRuleNames) {
             UserDefaults.standard.set(data, forKey: userDefaultsKey)
         }
     }
-    
+
     /// Opens the directory picker to select a project folder
     private func selectDirectory() {
         showingDirectoryPicker = true
     }
-    
+
     /// Analyzes the selected project directory
     private func analyzeProject() {
         guard !selectedDirectory.isEmpty else { return }
         runLinter(at: selectedDirectory)
     }
-    
+
     /// Runs the project linter analysis at the given directory path.
     ///
     /// This function uses SwiftSyntax-based pattern detection and properly filters results
@@ -125,27 +125,27 @@ struct ContentView: View {
     /// Finally, it sets `isAnalyzing` back to `false`.
     private func runLinter(at path: String) {
         isAnalyzing = true
-        
+
         // Simulate analysis delay
         DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
             var allIssues: [LintIssue] = []
-            
+
             // Determine which categories have enabled rules
             let enabledCategories = getEnabledCategories()
-            
+
             // Only use ProjectLinter for analysis
             if !enabledCategories.isEmpty {
                 let linter = ProjectLinter()
                 let crossFileIssues = linter.analyzeProject(at: path, categories: enabledCategories)
                 allIssues.append(contentsOf: crossFileIssues)
             }
-            
+
             self.lintIssues = allIssues
-            
+
             self.isAnalyzing = false
         }
     }
-    
+
     /// Determines which pattern categories have enabled rules.
     ///
     /// - Returns: An array of PatternCategory values that have at least one enabled rule.
@@ -155,7 +155,7 @@ struct ContentView: View {
             enabledRuleNames: enabledRuleNames
         )
     }
-    
+
     /// Filters lint issues to only include those from enabled rules using registry mapping.
     ///
     /// This function uses the registry to determine which categories are enabled based on
@@ -167,7 +167,7 @@ struct ContentView: View {
     private func filterIssuesByEnabledRules(_ issues: [LintIssue]) -> [LintIssue] {
         PatternConfiguration.filterIssuesByEnabledRules(issues, enabledRuleNames: enabledRuleNames)
     }
-    
+
     /// A static factory for testing purposes that hosts ContentView with a proper @StateObject environment.
     /// Use this in tests to avoid State warnings.
     ///

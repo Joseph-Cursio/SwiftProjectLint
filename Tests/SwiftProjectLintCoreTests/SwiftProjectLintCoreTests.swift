@@ -8,7 +8,7 @@
 import Testing
 @testable import SwiftProjectLintCore
 
-final class SwiftProjectLintCoreTests {
+@Suite struct SwiftProjectLintCoreTests {
 
     @Test func testCoreModuleImports() async throws {
         // Test that all core modules can be imported and accessed

@@ -18,53 +18,53 @@ class CodeQualityVisitor: BasePatternVisitor {
     private var isInFunction: Bool = false
     private var functionStartLine: Int = 0
     private let configuration: Configuration
-    
+
     init(patternCategory: PatternCategory, configuration: Configuration = .default) {
         self.configuration = configuration
         super.init(viewMode: .sourceAccurate)
     }
-    
+
     required init(patternCategory: PatternCategory) {
         self.configuration = .default
         super.init(viewMode: .sourceAccurate)
     }
-    
+
     required init(viewMode: SyntaxTreeViewMode) {
         self.configuration = .default
         super.init(viewMode: viewMode)
     }
-    
+
     /// Sets the current file path for issue reporting.
     override func setFilePath(_ filePath: String) {
         self.currentFilePath = filePath
     }
-    
+
     override func visit(_ node: StructDeclSyntax) -> SyntaxVisitorContinueKind {
         let structName = node.name.text
         Task { @MainActor in
             DebugLogger.logVisitor(.codeQuality, "Visiting struct: \(structName)")
         }
         currentStructName = structName
-        
+
         // Check for missing documentation on public structs
         if node.modifiers.contains(where: { $0.name.text == "public" }) {
             checkMissingDocumentation(for: Syntax(node), name: currentStructName)
         }
-        
+
         return .visitChildren
     }
-    
+
     override func visit(_ node: ClassDeclSyntax) -> SyntaxVisitorContinueKind {
         currentStructName = node.name.text
-        
+
         // Check for missing documentation on public classes
         if node.modifiers.contains(where: { $0.name.text == "public" }) {
             checkMissingDocumentation(for: Syntax(node), name: currentStructName)
         }
-        
+
         return .visitChildren
     }
-    
+
     override func visit(_ node: FunctionDeclSyntax) -> SyntaxVisitorContinueKind {
         currentFunctionName = node.name.text
         isInFunction = true
@@ -89,7 +89,7 @@ class CodeQualityVisitor: BasePatternVisitor {
         }
         return .visitChildren
     }
-    
+
     override func visitPost(_ node: FunctionDeclSyntax) {
         // Debug print for function length (using NSLog)
         NSLog("[DEBUG] Function '%@' length: %d (threshold: %d)", currentFunctionName, currentFunctionLength, configuration.maxFunctionLength)
@@ -109,7 +109,7 @@ class CodeQualityVisitor: BasePatternVisitor {
         currentFunctionLength = 0
         currentFunctionName = ""
     }
-    
+
     override func visit(_ node: VariableDeclSyntax) -> SyntaxVisitorContinueKind {
         // Check for magic numbers in UI-related properties
         for binding in node.bindings {
@@ -143,7 +143,7 @@ class CodeQualityVisitor: BasePatternVisitor {
         }
         return .visitChildren
     }
-    
+
     override func visit(_ node: FunctionCallExprSyntax) -> SyntaxVisitorContinueKind {
         // Check for magic numbers in function call arguments
         for argument in node.arguments {
@@ -174,7 +174,7 @@ class CodeQualityVisitor: BasePatternVisitor {
         }
         return .visitChildren
     }
-    
+
     override func visit(_ node: StringLiteralExprSyntax) -> SyntaxVisitorContinueKind {
         // Check for hardcoded strings that should be localized
         // Only consider string literals with a single segment (no interpolation)
@@ -202,22 +202,22 @@ class CodeQualityVisitor: BasePatternVisitor {
         }
         return .visitChildren
     }
-    
+
     override func visit(_ node: MemberAccessExprSyntax) -> SyntaxVisitorContinueKind {
         // Track if we're in a view body
         if node.declName.baseName.text == "body" {
             isInViewBody = true
         }
-        
+
         return .visitChildren
     }
-    
+
     // MARK: - Private Detection Methods
-    
+
     private func checkMissingDocumentation(for node: Syntax, name: String) {
         // Check if the node has documentation comments
         let leadingTrivia = node.leadingTrivia
-        
+
         let hasDocumentation = leadingTrivia.contains { piece in
             switch piece {
             case .docLineComment, .docBlockComment:
@@ -226,7 +226,7 @@ class CodeQualityVisitor: BasePatternVisitor {
                 return false
             }
         }
-        
+
         if !hasDocumentation {
             addIssue(
                 severity: IssueSeverity.info,
@@ -249,14 +249,14 @@ extension CodeQualityVisitor {
         let minStringLengthForLocalization: Int
         let magicNumberThreshold: Int
         let checkPublicAPIsOnly: Bool
-        
+
         static let `default` = Configuration(
             maxFunctionLength: 200,
             minStringLengthForLocalization: 10,
             magicNumberThreshold: 10,
             checkPublicAPIsOnly: true
         )
-        
+
         static let strict = Configuration(
             maxFunctionLength: 150,
             minStringLengthForLocalization: 5,
@@ -264,4 +264,4 @@ extension CodeQualityVisitor {
             checkPublicAPIsOnly: false
         )
     }
-} 
+}

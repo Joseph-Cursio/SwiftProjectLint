@@ -1,0 +1,25 @@
+{
+  "configurations" : [
+    {
+      "id" : "2A803B5F-C02F-4CA5-AD80-1281AB291DC9",
+      "name" : "Test Scheme Action",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "performanceAntipatternCheckerEnabled" : true
+  },
+  "testTargets" : [
+    {
+      "parallelizable" : true,
+      "target" : {
+        "containerPath" : "container:SwiftProjectLint.xcodeproj",
+        "identifier" : "28B7966D2E19EDA400AE3C7B",
+        "name" : "SwiftProjectLintCoreTests"
+      }
+    }
+  ],
+  "version" : 1
+}

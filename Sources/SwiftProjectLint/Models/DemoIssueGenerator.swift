@@ -25,48 +25,48 @@ struct DemoIssueGenerator {
     /// - Returns: An array of demo `LintIssue` objects for enabled rules only.
     static func createDemoIssues(for enabledCategories: [PatternCategory]) -> [LintIssue] {
         var demoIssues: [LintIssue] = []
-        
+
         // Create demo issues based on enabled categories
         for category in enabledCategories {
             switch category {
             case .stateManagement:
                 demoIssues.append(contentsOf: createStateManagementDemoIssues())
-                
+
             case .performance:
                 demoIssues.append(contentsOf: createPerformanceDemoIssues())
-                
+
             case .architecture:
                 demoIssues.append(contentsOf: createArchitectureDemoIssues())
-                
+
             case .codeQuality:
                 demoIssues.append(contentsOf: createCodeQualityDemoIssues())
-                
+
             case .security:
                 demoIssues.append(contentsOf: createSecurityDemoIssues())
-                
+
             case .accessibility:
                 demoIssues.append(contentsOf: createAccessibilityDemoIssues())
-                
+
             case .memoryManagement:
                 demoIssues.append(contentsOf: createMemoryManagementDemoIssues())
-                
+
             case .networking:
                 demoIssues.append(contentsOf: createNetworkingDemoIssues())
-                
+
             case .uiPatterns:
                 demoIssues.append(contentsOf: createUIPatternsDemoIssues())
-                
+
             case .other:
                 // No demo issues for the "other" category (system-level errors)
                 break
             }
         }
-        
+
         return demoIssues
     }
-    
+
     // MARK: - Private Demo Issue Creation Methods
-    
+
     private static func createStateManagementDemoIssues() -> [LintIssue] {
         return [
             LintIssue(
@@ -87,7 +87,7 @@ struct DemoIssueGenerator {
             )
         ]
     }
-    
+
     private static func createPerformanceDemoIssues() -> [LintIssue] {
         return [
             LintIssue(
@@ -108,7 +108,7 @@ struct DemoIssueGenerator {
             )
         ]
     }
-    
+
     private static func createArchitectureDemoIssues() -> [LintIssue] {
         return [
             LintIssue(
@@ -121,7 +121,7 @@ struct DemoIssueGenerator {
             )
         ]
     }
-    
+
     private static func createCodeQualityDemoIssues() -> [LintIssue] {
         return [
             LintIssue(
@@ -134,7 +134,7 @@ struct DemoIssueGenerator {
             )
         ]
     }
-    
+
     private static func createSecurityDemoIssues() -> [LintIssue] {
         return [
             LintIssue(
@@ -147,7 +147,7 @@ struct DemoIssueGenerator {
             )
         ]
     }
-    
+
     private static func createAccessibilityDemoIssues() -> [LintIssue] {
         return [
             LintIssue(
@@ -160,7 +160,7 @@ struct DemoIssueGenerator {
             )
         ]
     }
-    
+
     private static func createMemoryManagementDemoIssues() -> [LintIssue] {
         return [
             LintIssue(
@@ -173,7 +173,7 @@ struct DemoIssueGenerator {
             )
         ]
     }
-    
+
     private static func createNetworkingDemoIssues() -> [LintIssue] {
         return [
             LintIssue(
@@ -186,7 +186,7 @@ struct DemoIssueGenerator {
             )
         ]
     }
-    
+
     private static func createUIPatternsDemoIssues() -> [LintIssue] {
         return [
             LintIssue(
@@ -199,4 +199,4 @@ struct DemoIssueGenerator {
             )
         ]
     }
-} 
+}

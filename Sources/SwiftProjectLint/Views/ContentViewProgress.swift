@@ -13,7 +13,7 @@ import SwiftUI
 /// It's only shown when the `isAnalyzing` state is true.
 struct ContentViewProgress: View {
     let isAnalyzing: Bool
-    
+
     var body: some View {
         if isAnalyzing {
             VStack(spacing: 8) {
@@ -35,4 +35,4 @@ struct ContentViewProgress: View {
         ContentViewProgress(isAnalyzing: true)
     }
     .padding()
-} 
+}

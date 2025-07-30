@@ -5,16 +5,13 @@
 //  Created by Joseph Cursio on 7/1/25.
 //
 
-import XCTest
+import Testing
 
-class SwiftProjectLintUITests: XCTestCase {
-    // TODO: Add UI test methods using XCTestCase
+struct SwiftProjectLintUITests {
+    // UI automation is not yet supported in Swift Testing.
+    // You can add logic tests here using @Test if needed.
     // Example:
-    // func testExample() throws {
-    //     // UI tests must launch the application that they test.
-    //     let app = XCUIApplication()
-    //     app.launch()
-    //     
-    //     // Use XCTAssert and related functions to verify your tests produce the correct results.
+    // @Test func testExample() {
+    //     #expect(true)
     // }
 }

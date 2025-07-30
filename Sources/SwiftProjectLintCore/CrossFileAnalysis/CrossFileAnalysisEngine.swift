@@ -12,10 +12,10 @@ import SwiftSyntax
 /// such as duplicate state variables across different views.
 @MainActor
 public class CrossFileAnalysisEngine {
-    
+
     private let registry: PatternVisitorRegistry
     private var fileCache: [String: SourceFileSyntax] = [:]
-    
+
     /// Initializes a new SwiftSyntax pattern detector.
     ///
     /// - Parameter registry: The pattern visitor registry to use. Defaults to the shared registry.
@@ -57,55 +57,55 @@ public class CrossFileAnalysisEngine {
                 )
             }
         }
-        
+
         // Get visitors that support cross-file analysis
         let visitors = getVisitorsForCategories(categories)
         print("DEBUG: Total visitors found: \(visitors.count)")
         print("DEBUG: Visitor types: \(visitors.map { String(describing: $0) })")
-        
+
         let crossFileVisitors = visitors.filter { visitorType in
             // Check if visitor supports cross-file analysis
             let isCrossFile = visitorType is CrossFilePatternVisitorProtocol.Type
             print("DEBUG: Checking visitor \(visitorType): isCrossFile = \(isCrossFile)")
             return isCrossFile
         }
-        
+
         print("DEBUG: Found \(crossFileVisitors.count) cross-file visitors")
-        
+
         // Apply cross-file analysis
         for visitorType in crossFileVisitors {
             print("DEBUG: Creating cross-file visitor: \(visitorType)")
             if let crossFileVisitor = visitorType as? CrossFilePatternVisitorProtocol.Type {
                 let visitor = crossFileVisitor.init(fileCache: fileCache)
-                
+
                 // Set the pattern for the visitor if it's a BasePatternVisitor
                 if let baseVisitor = visitor as? BasePatternVisitor {
                     // Find the pattern that uses this visitor type
                     let patterns = categories != nil ?
                     categories!.flatMap { registry.getPatterns(for: $0) } :
                     registry.getAllPatterns()
-                    
+
                     if let pattern = patterns.first(where: { $0.visitor == visitorType }) {
                         baseVisitor.setPattern(pattern)
                     }
                 }
-                
+
                 for (_, sourceFile) in fileCache {
                     visitor.walk(sourceFile)
                 }
-                
+
                 // Call finalizeAnalysis for cross-file visitors
                 if let crossFileVisitor = visitor as? CrossFilePatternVisitorProtocol {
                     crossFileVisitor.finalizeAnalysis()
                 }
-                
+
                 allIssues.append(contentsOf: visitor.detectedIssues)
             }
         }
-        
+
         return allIssues
     }
-    
+
     /// Detects patterns across multiple Swift files using specific rule identifiers.
     ///
     /// This method analyzes multiple files and can detect patterns that span
@@ -140,18 +140,18 @@ public class CrossFileAnalysisEngine {
                 )
             }
         }
-        
+
         // Get specific patterns by rule identifier
         let allPatterns = registry.getAllPatterns()
         let requestedPatterns = allPatterns.filter { pattern in
             ruleIdentifiers.contains(pattern.name)
         }
-        
+
         print("DEBUG: Found \(requestedPatterns.count) requested patterns")
-        
+
         // Group patterns by their rule identifier instead of visitor type
         let patternsByRule = Dictionary(grouping: requestedPatterns) { $0.name }
-        
+
         // Apply analysis for each visitor type
         for pattern in requestedPatterns {
             print("DEBUG: Processing pattern: \(pattern.name.rawValue) with visitor: \(pattern.visitor)")
@@ -164,16 +164,16 @@ public class CrossFileAnalysisEngine {
                 for (_, sourceFile) in fileCache {
                     visitor.walk(sourceFile)
                 }
-                
+
                 // Call finalizeAnalysis for cross-file visitors
                 if let crossFileVisitor = visitor as? CrossFilePatternVisitorProtocol {
                     crossFileVisitor.finalizeAnalysis()
                 }
-                
+
                 allIssues.append(contentsOf: visitor.detectedIssues)
             }
         }
-        
+
         return allIssues
     }
     /// Detects patterns in the given project path and categories.
@@ -188,7 +188,7 @@ public class CrossFileAnalysisEngine {
         }
         return detectCrossFilePatterns(projectFiles: projectFiles, categories: categories)
     }
-    
+
     /// Detects patterns in the given project path using specific rule identifiers.
     public func detectPatterns(
         in projectPath: String,
@@ -203,7 +203,7 @@ public class CrossFileAnalysisEngine {
     }
 
     // MARK: - Private Methods
-    
+
     private func getVisitorsForCategories(_ categories: [PatternCategory]?) -> [PatternVisitorProtocol.Type] {
         if let categories = categories {
             print("DEBUG: Getting visitors for categories: \(categories)")
@@ -220,7 +220,7 @@ public class CrossFileAnalysisEngine {
             return allVisitors
         }
     }
-    
+
     /// Recursively finds all Swift files in a directory.
     ///
     /// - Parameter path: The directory path to search.
@@ -228,17 +228,17 @@ public class CrossFileAnalysisEngine {
     private func findSwiftFiles(in path: String) -> [String] {
         let fileManager = FileManager.default
         var swiftFiles: [String] = []
-        
+
         guard let enumerator = fileManager.enumerator(atPath: path) else {
             return swiftFiles
         }
-        
+
         while let filePath = enumerator.nextObject() as? String {
             if filePath.hasSuffix(".swift") {
                 swiftFiles.append((path as NSString).appendingPathComponent(filePath))
             }
         }
-        
+
         return swiftFiles
     }
 }

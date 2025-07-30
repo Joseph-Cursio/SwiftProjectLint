@@ -34,14 +34,14 @@ import SwiftProjectLintCore
 ///
 @MainActor
 public class PatternRegistryFactory {
-    
+
     /// Creates a new pattern visitor registry instance.
     ///
     /// - Returns: A fresh instance of PatternVisitorRegistry.
     public static func createVisitorRegistry() -> PatternVisitorRegistry {
         return PatternVisitorRegistry()
     }
-    
+
     /// Creates a new SwiftSyntax pattern registry instance.
     ///
     /// - Parameter visitorRegistry: The visitor registry to use. If nil, creates a new one.
@@ -50,7 +50,7 @@ public class PatternRegistryFactory {
         let registry = visitorRegistry ?? createVisitorRegistry()
         return SourcePatternRegistry(visitorRegistry: registry)
     }
-    
+
     /// Creates a new SwiftSyntax pattern detector instance.
     ///
     /// - Parameter registry: The pattern registry to use. If nil, creates a new one.
@@ -59,7 +59,7 @@ public class PatternRegistryFactory {
         let visitorRegistry = registry ?? createVisitorRegistry()
         return SourcePatternDetector(registry: visitorRegistry)
     }
-    
+
     /// Creates a fully configured pattern registry system.
     ///
     /// This method creates and initializes all components needed for pattern detection:
@@ -77,10 +77,10 @@ public class PatternRegistryFactory {
         let patternRegistry = createPatternRegistry(visitorRegistry: visitorRegistry)
         patternRegistry.initialize()
         let detector = createPatternDetector(registry: visitorRegistry)
-        
+
         return (visitorRegistry, patternRegistry, detector)
     }
-    
+
     /// Creates a test-ready pattern registry system.
     ///
     /// This method creates a clean system suitable for testing, with no pre-registered patterns.
@@ -94,7 +94,7 @@ public class PatternRegistryFactory {
         let visitorRegistry = createVisitorRegistry()
         let patternRegistry = createPatternRegistry(visitorRegistry: visitorRegistry)
         let detector = createPatternDetector(registry: visitorRegistry)
-        
+
         return (visitorRegistry, patternRegistry, detector)
     }
 }

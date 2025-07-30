@@ -51,7 +51,7 @@ class AdvancedAnalyzer {
     private var viewRelationships: [ViewRelationship] = []
     private var stateVariables: [StateVariable] = []
     private var viewHierarchies: [String: [String]] = [:] // parent -> children
-    
+
     /// Performs an advanced architectural analysis of a SwiftUI codebase located at the specified project path.
     ///
     /// This method initiates a comprehensive static analysis of the project's Swift source files to uncover view hierarchies, analyze state management patterns, and detect architectural issues or anti-patterns. It is intended to help developers improve the maintainability, structure, and data flow of their SwiftUI applications.
@@ -76,22 +76,22 @@ class AdvancedAnalyzer {
     /// - Warning: This method is not thread-safe; use from a single thread at a time.
     @MainActor func analyzeArchitecture(projectPath: String) -> [ArchitectureIssue] {
         var issues: [ArchitectureIssue] = []
-        
+
         // 1. Build view hierarchy
         buildViewHierarchy(from: projectPath)
-        
+
         // 2. Analyze state management patterns
         issues.append(contentsOf: StateAnalysisEngine.analyzeStateManagement(stateVariables: stateVariables, viewHierarchies: viewHierarchies))
-        
+
         // 3. Detect architectural anti-patterns
         issues.append(contentsOf: ArchitectureIssueDetector.detectArchitecturalAntiPatterns(stateVariables: stateVariables, viewHierarchies: viewHierarchies))
-        
+
         // 4. Suggest improvements
         issues.append(contentsOf: StateAnalysisEngine.suggestImprovements(stateVariables: stateVariables))
-        
+
         return issues
     }
-    
+
     /// Builds the internal representation of the view hierarchy and extracts state variables from the Swift source files within the given project directory.
     ///
     /// - Parameter projectPath: The file system path to the root of the Swift project to be analyzed.
@@ -106,17 +106,17 @@ class AdvancedAnalyzer {
     /// The results are stored internally in the analyzer for use in further architectural analysis and issue detection.
     @MainActor private func buildViewHierarchy(from projectPath: String) {
         let swiftFiles = FileAnalysisUtils.findSwiftFiles(in: projectPath)
-        
+
         for filePath in swiftFiles {
             // Extract view relationships using SwiftSyntax
             let relationships = extractViewRelationships(from: filePath)
             viewRelationships.append(contentsOf: relationships)
-            
+
             // Extract state variables using SwiftSyntax
             let stateVars = extractStateVariables(from: filePath)
             stateVariables.append(contentsOf: stateVars)
         }
-        
+
         // Build hierarchy map
         for relationship in viewRelationships {
             if viewHierarchies[relationship.parentView] == nil {
@@ -125,7 +125,7 @@ class AdvancedAnalyzer {
             viewHierarchies[relationship.parentView]?.append(relationship.childView)
         }
     }
-    
+
     /// Extracts view relationships from a Swift source file using SwiftSyntax parsing.
     ///
     /// This method parses the entire Swift file to detect view instantiation patterns and relationships
@@ -143,7 +143,7 @@ class AdvancedAnalyzer {
     /// - Full screen cover presentation (e.g., `.fullScreenCover(content: { SomeView() })`)
     @MainActor private func extractViewRelationships(from filePath: String) -> [ViewRelationship] {
         var relationships: [ViewRelationship] = []
-        
+
         let parentView = FileAnalysisUtils.extractSwiftBasename(from: filePath)
         let sourceContents = (try? String(contentsOfFile: filePath, encoding: .utf8)) ?? ""
         let sourceFile = Parser.parse(source: sourceContents)
@@ -151,10 +151,10 @@ class AdvancedAnalyzer {
         let visitor = ViewRelationshipVisitor(parentView: parentView, filePath: filePath, sourceContents: sourceContents, sourceLocationConverter: sourceLocationConverter)
         visitor.walk(sourceFile)
         relationships.append(contentsOf: visitor.relationships)
-        
+
         return relationships
     }
-    
+
     /// Extracts state variables from a Swift source file using SwiftSyntax parsing.
     ///
     /// This method parses the entire Swift file to detect state property declarations
@@ -168,30 +168,19 @@ class AdvancedAnalyzer {
     /// as well as the file path and line number where they were found.
     @MainActor private func extractStateVariables(from filePath: String) -> [StateVariable] {
         var stateVariables: [StateVariable] = []
-        
+
         let sourceFile = Parser.parse(source: (try? String(contentsOfFile: filePath, encoding: .utf8)) ?? "")
-        
+
         let viewName = FileAnalysisUtils.extractSwiftBasename(from: filePath)
         let sourceContents = (try? String(contentsOfFile: filePath, encoding: .utf8)) ?? ""
         let visitor = StateVariableVisitor(viewName: viewName, filePath: filePath, sourceContents: sourceContents)
         visitor.walk(sourceFile)
         stateVariables.append(contentsOf: visitor.stateVariables)
-        
+
         return stateVariables
     }
     
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
+   
     // Public: Get the relationship type between two views, if any
     public func relationshipType(between parent: String, and child: String) -> RelationshipType? {
         return viewRelationships.first(where: { $0.parentView == parent && $0.childView == child })?.relationshipType
@@ -202,6 +191,4 @@ class AdvancedAnalyzer {
         return viewRelationships.first(where: { $0.parentView == parent && $0.childView == child })
     }
 }
-
-
 

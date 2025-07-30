@@ -21,10 +21,10 @@ import SwiftProjectLintCore
 /// - SeeAlso: `ContentView`
 @main
 struct SwiftProjectLintApp: App {
-    
+
     // Global system components - these will be injected into views that need them
     @StateObject private var systemComponents = SystemComponents()
-    
+
     init() {
         if CommandLine.arguments.contains("--reset-userdefaults") {
             if let appDomain = Bundle.main.bundleIdentifier {
@@ -34,7 +34,7 @@ struct SwiftProjectLintApp: App {
             }
         }
     }
-    
+
     var body: some Scene {
         WindowGroup {
             ContentView()
@@ -52,7 +52,6 @@ struct SwiftProjectLintApp: App {
     }
 }
 
-
 /// ObservableObject that holds the pattern detection system components.
 /// This replaces the singleton pattern with dependency injection.
 @MainActor
@@ -60,21 +59,21 @@ class SystemComponents: ObservableObject {
     private(set) var visitorRegistry: PatternVisitorRegistry!
     private(set) var patternRegistry: SourcePatternRegistry!
     private(set) var detector: SourcePatternDetector!
-    
+
     func initialize() {
         print("DEBUG: SystemComponents.initialize() called")
         let (visitorRegistry, patternRegistry, detector) = PatternRegistryFactory.createConfiguredSystem()
         print("DEBUG: Pattern registry created, checking patterns...")
-        
+
         // Check if patterns were registered
         let allPatterns = patternRegistry.getAllPatterns()
         print("DEBUG: Total patterns registered: \(allPatterns.count)")
-        
+
         for category in PatternCategory.allCases {
             let patterns = patternRegistry.getPatterns(for: category)
             print("DEBUG: Category \(category) has \(patterns.count) patterns")
         }
-        
+
         self.visitorRegistry = visitorRegistry
         self.patternRegistry = patternRegistry
         self.detector = detector

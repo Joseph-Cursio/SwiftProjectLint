@@ -5,16 +5,13 @@
 //  Created by Joseph Cursio on 7/1/25.
 //
 
-import XCTest
+import Testing
 
-class SwiftProjectLintUITestsLaunchTests: XCTestCase {
-    // TODO: Add UI launch test methods using XCTestCase
+struct SwiftProjectLintUITestsLaunchTests {
+    // UI automation is not yet supported in Swift Testing.
+    // You can add launch performance or logic tests here using @Test if needed.
     // Example:
-    // func testLaunchPerformance() throws {
-    //     if #available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *) {
-    //         measure(metrics: [XCTApplicationLaunchMetric()]) {
-    //             XCUIApplication().launch()
-    //         }
-    //     }
+    // @Test func testLaunchPerformance() {
+    //     #expect(true)
     // }
 }

@@ -2,7 +2,7 @@ import Testing
 import Foundation
 @testable import SwiftProjectLintCore
 
-final class DebugLoggerTests {
+@Suite struct DebugLoggerTests {
     
     @Test @MainActor func testIsEnabledFlag() async throws {
         #if DEBUG

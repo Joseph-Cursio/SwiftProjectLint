@@ -304,49 +304,6 @@ class SwiftUIManagementVisitor: BasePatternVisitor {
         }
     }
     
-    // MARK: - Helper Methods
-    
-    private func isSwiftUIView(_ node: StructDeclSyntax) -> Bool {
-        // Check if the struct conforms to View protocol
-        for inheritance in node.inheritanceClause?.inheritedTypes ?? [] {
-            if inheritance.type.as(IdentifierTypeSyntax.self)?.name.text == "View" {
-                return true
-            }
-        }
-        return false
-    }
-    
-    private func extractPropertyWrapper(from node: VariableDeclSyntax) -> PropertyWrapper? {
-        for attribute in node.attributes {
-            if let attributeSyntax = attribute.as(AttributeSyntax.self),
-               let attributeName = attributeSyntax.attributeName.as(IdentifierTypeSyntax.self),
-               let wrapper = PropertyWrapper(rawValue: attributeName.name.text) {
-                return wrapper
-            }
-        }
-        return nil
-    }
-    
-    private func extractTypeAnnotation(from binding: PatternBindingSyntax) -> String {
-        if let typeAnnotation = binding.typeAnnotation {
-            return typeAnnotation.type.description.trimmingCharacters(in: .whitespaces)
-        }
-        return ""
-    }
-    
-    private func countStateVariables(in node: StructDeclSyntax) -> Int {
-        var count = 0
-        for member in node.memberBlock.members {
-            if let variableDecl = member.decl.as(VariableDeclSyntax.self) {
-                guard let propertyWrapper = extractPropertyWrapper(from: variableDecl) else { continue }
-                if propertyWrapper == .state || propertyWrapper == .stateObject {
-                    count += variableDecl.bindings.count
-                }
-            }
-        }
-        return count
-    }
-    
     // MARK: - Public Interface
     
     /// Sets the current file path for issue reporting.
@@ -359,29 +316,6 @@ class SwiftUIManagementVisitor: BasePatternVisitor {
     /// Performs cross-file analysis after all files have been processed.
     func finalizeAnalysis() {
         performCrossFileAnalysis()
-    }
-    
-    // MARK: - Helper Methods
-    
-    override func getLineNumber(for node: Syntax) -> Int {
-        guard let converter = sourceLocationConverter else { return 1 }
-        let position = node.positionAfterSkippingLeadingTrivia
-        let location = converter.location(for: position)
-        return location.line
-    }
-    
-    func getLineNumber(for node: StructDeclSyntax) -> Int {
-        guard let converter = sourceLocationConverter else { return 1 }
-        let position = node.positionAfterSkippingLeadingTrivia
-        let location = converter.location(for: position)
-        return location.line
-    }
-    
-    func getLineNumber(for node: VariableDeclSyntax) -> Int {
-        guard let converter = sourceLocationConverter else { return 1 }
-        let position = node.positionAfterSkippingLeadingTrivia
-        let location = converter.location(for: position)
-        return location.line
     }
 }
 

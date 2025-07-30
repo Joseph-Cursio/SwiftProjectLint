@@ -16,7 +16,7 @@ struct ContentViewActions: View {
     let onSelectRules: () -> Void
     let onSelectDirectory: () -> Void
     let onAnalyzeProject: () -> Void
-    
+
     var body: some View {
         VStack(spacing: 16) {
             Button("Select Rules") {
@@ -25,7 +25,7 @@ struct ContentViewActions: View {
             .buttonStyle(.borderedProminent)
             .accessibilityLabel("Select Rules")
             .accessibilityIdentifier("selectRulesButton")
-            
+
             if selectedDirectory.isEmpty {
                 Button("Run Project Analysis by Selecting a Folder...") {
                     onSelectDirectory()
@@ -53,9 +53,9 @@ struct ContentViewActions: View {
             onSelectDirectory: {},
             onAnalyzeProject: {}
         )
-        
+
         Divider()
-        
+
         ContentViewActions(
             selectedDirectory: "/Users/test/MyProject",
             onSelectRules: {},
@@ -64,4 +64,4 @@ struct ContentViewActions: View {
         )
     }
     .padding()
-} 
+}

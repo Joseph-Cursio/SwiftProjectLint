@@ -35,7 +35,7 @@ struct RuleSelectionDialog: View {
     @Binding var enabledRuleNames: Set<RuleIdentifier>
     var onSave: () -> Void
     @Environment(\.dismiss) private var dismiss
-    
+
     // Helper: All rule names from the passed patterns
     private var allRuleNames: Set<RuleIdentifier> {
         var names = Set<RuleIdentifier>()
@@ -44,12 +44,12 @@ struct RuleSelectionDialog: View {
         }
         return names
     }
-    
+
     // Helper: Default rule name
     private var defaultRuleName: RuleIdentifier? {
         return .relatedDuplicateStateVariable // Default pattern from state management
     }
-    
+
     var body: some View {
         NavigationView {
             List {
@@ -93,10 +93,10 @@ struct RuleSelectionDialog: View {
                             enabledRuleNames = []
                         }
                     }
-                };
+                }
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") { dismiss() }
-                };
+                }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Save") {
                         onSave()
@@ -121,10 +121,10 @@ struct RuleSelectionDialog: View {
             )
         ], true)
     ]
-    
+
     return RuleSelectionDialog(
         allPatternsByCategory: demoPatterns,
         enabledRuleNames: .constant([.relatedDuplicateStateVariable]),
         onSave: {}
     )
-} 
+}

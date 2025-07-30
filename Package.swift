@@ -17,7 +17,7 @@ let package = Package(
         ),
     ],
     dependencies: [
-        .package(url: "https://github.com/apple/swift-syntax.git", exact: "601.0.1"),
+        .package(url: "https://github.com/apple/swift-syntax.git", exact: "601.0.0"),
         .package(url: "https://github.com/nalexn/ViewInspector.git", from: "0.9.5")
     ],
     targets: [

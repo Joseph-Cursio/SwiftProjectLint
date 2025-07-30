@@ -1,5 +1,4 @@
 import Testing
-import XCTest
 import Foundation
 @testable import SwiftProjectLintCore
 

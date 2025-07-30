@@ -14,7 +14,7 @@ import SwiftProjectLintCore
 /// and organizing patterns by category for display in the user interface.
 @MainActor
 struct PatternConfiguration {
-    
+
     /// Pattern configuration that uses SwiftSyntax for all categories.
     /// This computed property dynamically pulls patterns from the registry to ensure
     /// the UI always reflects the actual registry state.
@@ -30,7 +30,7 @@ struct PatternConfiguration {
             return []
             #endif
         }
-        
+
         return [
             (.stateManagement, "State Management", convertToDetectionPatterns(patternRegistry.getPatterns(for: .stateManagement)), true),
             (.performance, "Performance", convertToDetectionPatterns(patternRegistry.getPatterns(for: .performance)), true),
@@ -43,7 +43,7 @@ struct PatternConfiguration {
             (.uiPatterns, "UI Patterns", convertToDetectionPatterns(patternRegistry.getPatterns(for: .uiPatterns)), true)
         ]
     }
-    
+
     /// Converts SwiftSyntax patterns to DetectionPatterns for UI compatibility.
     ///
     /// - Parameter syntaxPatterns: Array of SwiftSyntax patterns to convert.
@@ -59,7 +59,7 @@ struct PatternConfiguration {
             )
         }
     }
-    
+
     /// Determines which pattern categories have enabled rules.
     ///
     /// - Parameters:
@@ -70,23 +70,23 @@ struct PatternConfiguration {
         guard let patternRegistry = patternRegistry else {
             return []
         }
-        
+
         var enabledCategories: Set<PatternCategory> = []
-        
+
         for category in PatternCategory.allCases {
             let patternsInCategory = patternRegistry.getPatterns(for: category)
             let enabledPatternsInCategory = patternsInCategory.filter { pattern in
                 enabledRuleNames.contains(pattern.name)
             }
-            
+
             if !enabledPatternsInCategory.isEmpty {
                 enabledCategories.insert(category)
             }
         }
-        
+
         return Array(enabledCategories)
     }
-    
+
     /// Filters lint issues to only include those from enabled rules using registry mapping.
     ///
     /// This function uses the registry to determine which categories are enabled based on
@@ -102,10 +102,10 @@ struct PatternConfiguration {
         if enabledRuleNames.isEmpty {
             return []
         }
-        
+
         // Filter issues based on their ruleName and the enabled rules
         return issues.filter { issue in
             return enabledRuleNames.contains(issue.ruleName)
         }
     }
-} 
+}

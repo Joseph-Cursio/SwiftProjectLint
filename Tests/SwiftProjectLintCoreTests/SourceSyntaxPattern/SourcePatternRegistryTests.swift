@@ -133,3 +133,4 @@ struct SourcePatternRegistryTests {
         testVisitorRegistry.clear()
     }
 } 
+

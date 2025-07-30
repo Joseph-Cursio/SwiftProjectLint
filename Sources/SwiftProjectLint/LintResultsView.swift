@@ -12,7 +12,7 @@ import SwiftProjectLintCore
 struct LintResultsContainerView: View {
     let issues: [LintIssue]
     @State private var showingFullScreen = false
-    
+
     var body: some View {
         VStack(spacing: 0) {
             // Header with expand button
@@ -36,7 +36,7 @@ struct LintResultsContainerView: View {
             }
             .padding(.horizontal, 8)
             .padding(.vertical, 4)
-            
+
             // Stateless lint results view
             LintResultsView(issues: issues)
         }
@@ -61,7 +61,7 @@ struct LintResultsContainerView: View {
 /// suggestions to be viewed via an expandable interface.
 struct LintResultsView: View {
     let issues: [LintIssue]
-    
+
     var body: some View {
         List {
             // Summary section
@@ -72,7 +72,7 @@ struct LintResultsView: View {
                             .font(.headline)
                         Spacer()
                     }
-                    
+
                     HStack(spacing: 16) {
                         SummaryItem(
                             title: "Total Issues",
@@ -98,7 +98,7 @@ struct LintResultsView: View {
                 }
                 .padding(.vertical, 8)
             }
-            
+
             // Issues section
             Section {
                 ForEach(issues.indices, id: \.self) { idx in
@@ -129,7 +129,7 @@ struct LintResultsView: View {
 struct LintIssueRow: View {
     let issue: LintIssue
     @State private var isExpanded = false
-    
+
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
@@ -157,9 +157,9 @@ struct LintIssueRow: View {
                         }
                     }
                 }
-                
+
                 Spacer()
-                
+
                 Button(action: {
                     withAnimation(.easeInOut(duration: 0.2)) {
                         isExpanded.toggle()
@@ -169,7 +169,7 @@ struct LintIssueRow: View {
                         .foregroundColor(.blue)
                 }
             }
-            
+
             if isExpanded {
                 ScrollView(.vertical, showsIndicators: true) {
                     VStack(alignment: .leading, spacing: 12) {
@@ -217,13 +217,13 @@ struct LintIssueRow: View {
         }
         .padding(.vertical, 4)
     }
-    
+
     private var severityIcon: some View {
         Image(systemName: severityIconName)
             .foregroundColor(severityColor)
             .font(.title2)
     }
-    
+
     private var severityIconName: String {
         switch issue.severity {
         case .error:
@@ -234,7 +234,7 @@ struct LintIssueRow: View {
             return "info.circle.fill"
         }
     }
-    
+
     private var severityColor: Color {
         switch issue.severity {
         case .error:
@@ -252,7 +252,7 @@ struct SummaryItem: View {
     let title: String
     let value: String
     let color: Color
-    
+
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
             Text(title)
@@ -271,7 +271,7 @@ struct SummaryItem: View {
 struct FullScreenResultsView: View {
     let issues: [LintIssue]
     @Environment(\.dismiss) private var dismiss
-    
+
     var body: some View {
         NavigationView {
             List {
@@ -283,7 +283,7 @@ struct FullScreenResultsView: View {
                                 .font(.headline)
                             Spacer()
                         }
-                        
+
                         HStack(spacing: 16) {
                             SummaryItem(
                                 title: "Total Issues",
@@ -309,7 +309,7 @@ struct FullScreenResultsView: View {
                     }
                     .padding(.vertical, 8)
                 }
-                
+
                 // Issues section
                 Section {
                     ForEach(issues.indices, id: \.self) { idx in
@@ -351,6 +351,6 @@ struct FullScreenResultsView: View {
             ruleName: .missingStateObject
         )
     ]
-    
+
     LintResultsContainerView(issues: sampleIssues)
 }

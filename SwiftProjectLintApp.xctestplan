@@ -1,0 +1,38 @@
+{
+  "configurations" : [
+    {
+      "id" : "9B6FB25E-7EA0-427F-8C8C-CE7264D6C9AD",
+      "name" : "Configuration 1",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "testTimeoutsEnabled" : true
+  },
+  "testTargets" : [
+    {
+      "target" : {
+        "containerPath" : "container:SwiftProjectLint.xcodeproj",
+        "identifier" : "28B7966D2E19EDA400AE3C7B",
+        "name" : "SwiftProjectLintCoreTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:SwiftProjectLint.xcodeproj",
+        "identifier" : "2805B4A72E149DAC0018C12A",
+        "name" : "SwiftProjectLintUITests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:SwiftProjectLint.xcodeproj",
+        "identifier" : "2805B49D2E149DAC0018C12A",
+        "name" : "SwiftProjectLintTests"
+      }
+    }
+  ],
+  "version" : 1
+}

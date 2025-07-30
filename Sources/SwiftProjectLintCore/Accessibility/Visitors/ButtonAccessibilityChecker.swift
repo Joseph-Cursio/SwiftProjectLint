@@ -5,18 +5,18 @@ import SwiftSyntax
 /// This checker analyzes buttons for missing accessibility labels when they contain images
 /// and missing accessibility hints when they contain text.
 class ButtonAccessibilityChecker: AccessibilityCheckerProtocol {
-    
+
     let visitor: AccessibilityVisitor
-    
+
     init(visitor: AccessibilityVisitor) {
         self.visitor = visitor
     }
-    
+
     func checkAccessibility(_ node: FunctionCallExprSyntax) {
         // Track Images found in this Button
         let imagesInThisButton = AccessibilityTreeTraverser.findImages(in: Syntax(node))
         visitor.addImagesInButtons(imagesInThisButton)
-        
+
         // Check if button contains an Image
         if containsImage(node) {
             if !AccessibilityTreeTraverser.hasAccessibilityModifier(in: node, modifierName: "accessibilityLabel") {
@@ -30,7 +30,7 @@ class ButtonAccessibilityChecker: AccessibilityCheckerProtocol {
                 )
             }
         }
-        
+
         // Check if button contains Text
         if containsText(node) {
             if !AccessibilityTreeTraverser.hasAccessibilityModifier(in: node, modifierName: "accessibilityHint") {
@@ -45,14 +45,14 @@ class ButtonAccessibilityChecker: AccessibilityCheckerProtocol {
             }
         }
     }
-    
+
     /// Checks if the function call contains an Image element
     private func containsImage(_ node: FunctionCallExprSyntax) -> Bool {
         // Search recursively through the entire Button node
         if AccessibilityTreeTraverser.containsImage(in: Syntax(node)) {
             return true
         }
-        
+
         // Check arguments for Image
         for argument in node.arguments {
             // Check if the argument expression is a function call to Image
@@ -68,17 +68,17 @@ class ButtonAccessibilityChecker: AccessibilityCheckerProtocol {
                 }
             }
         }
-        
+
         // Check trailing closure for Image
         if let trailingClosure = node.trailingClosure {
             if containsImageInClosure(trailingClosure) {
                 return true
             }
         }
-        
+
         return false
     }
-    
+
     /// Checks if a closure contains an Image element
     private func containsImageInClosure(_ closure: ClosureExprSyntax) -> Bool {
         for statement in closure.statements {
@@ -88,14 +88,14 @@ class ButtonAccessibilityChecker: AccessibilityCheckerProtocol {
         }
         return false
     }
-    
+
     /// Checks if the function call contains a Text element
     private func containsText(_ node: FunctionCallExprSyntax) -> Bool {
         // Search recursively through the entire Button node
         if AccessibilityTreeTraverser.containsText(in: Syntax(node)) {
             return true
         }
-        
+
         // Check arguments for Text
         for argument in node.arguments {
             if let functionCall = argument.expression.as(FunctionCallExprSyntax.self),
@@ -104,17 +104,17 @@ class ButtonAccessibilityChecker: AccessibilityCheckerProtocol {
                 return true
             }
         }
-        
+
         // Check trailing closure for Text
         if let trailingClosure = node.trailingClosure {
             if containsTextInClosure(trailingClosure) {
                 return true
             }
         }
-        
+
         return false
     }
-    
+
     /// Checks if a closure contains a Text element
     private func containsTextInClosure(_ closure: ClosureExprSyntax) -> Bool {
         for statement in closure.statements {
@@ -124,4 +124,4 @@ class ButtonAccessibilityChecker: AccessibilityCheckerProtocol {
         }
         return false
     }
-} 
+}

@@ -15,7 +15,7 @@ import SwiftProjectLintCore
 struct ContentViewResults: View {
     let lintIssues: [LintIssue]
     let isAnalyzing: Bool
-    
+
     var body: some View {
         if !lintIssues.isEmpty && !isAnalyzing {
             VStack(spacing: 12) {
@@ -27,7 +27,7 @@ struct ContentViewResults: View {
                         .font(.subheadline)
                         .foregroundColor(.secondary)
                 }
-                
+
                 LintResultsView(issues: lintIssues)
                     .frame(maxHeight: 400)
             }
@@ -47,7 +47,7 @@ struct ContentViewResults: View {
             ruleName: .relatedDuplicateStateVariable
         )
     ]
-    
+
     VStack {
         ContentViewResults(lintIssues: [], isAnalyzing: false)
         Divider()
@@ -56,4 +56,4 @@ struct ContentViewResults: View {
         ContentViewResults(lintIssues: demoIssues, isAnalyzing: true)
     }
     .padding()
-} 
+}

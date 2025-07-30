@@ -4,7 +4,7 @@ import SwiftSyntax
 import SwiftParser
 @testable import SwiftProjectLintCore
 
-struct StateVariableVisitorTests {
+@Suite struct StateVariableVisitorTests {
     @Test("Basic stub test")
     func testStub() {
         #expect(true, "Stub test placeholder.")
