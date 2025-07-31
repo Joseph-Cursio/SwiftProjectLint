@@ -5,7 +5,7 @@ import Foundation
 /// This class provides methods to detect common SwiftUI architectural issues such as
 /// misuse of property wrappers, missing state objects, and other anti-patterns.
 public class ArchitectureIssueDetector {
-    
+
     /// Detects architectural anti-patterns related to state management in the analyzed SwiftUI codebase.
     ///
     /// This method examines the previously extracted state variables to identify common SwiftUI architectural issues,
@@ -26,7 +26,7 @@ public class ArchitectureIssueDetector {
     /// > inconsistent state ownership, or improper use of other property wrappers.
     public static func detectArchitecturalAntiPatterns(stateVariables: [StateVariable], viewHierarchies: [String: [String]]) -> [ArchitectureIssue] {
         var issues: [ArchitectureIssue] = []
-        
+
         // Detect missing @StateObject usage
         for stateVar in stateVariables {
             if stateVar.propertyWrapper == PropertyWrapper.observedObject && isRootView(stateVar.viewName, in: viewHierarchies) {
@@ -42,12 +42,12 @@ public class ArchitectureIssueDetector {
                 issues.append(issue)
             }
         }
-        
+
         return issues
     }
-    
+
     // MARK: - Private Helper Methods
-    
+
     private static func isRootView(_ viewName: String, in viewHierarchies: [String: [String]]) -> Bool {
         // A view is considered root if it's not a child of any other view
         for (_, children) in viewHierarchies {
@@ -57,4 +57,4 @@ public class ArchitectureIssueDetector {
         }
         return true
     }
-} 
+}

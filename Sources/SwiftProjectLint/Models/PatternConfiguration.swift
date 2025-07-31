@@ -20,27 +20,84 @@ struct PatternConfiguration {
     /// the UI always reflects the actual registry state.
     ///
     /// - Parameter patternRegistry: The pattern registry to extract patterns from.
-    /// - Returns: An array of tuples grouping all detection patterns by category, display string, their definitions, and whether they use SwiftSyntax.
-    static func allPatternsByCategory(from patternRegistry: SourcePatternRegistryProtocol?) -> [(category: PatternCategory, display: String, patterns: [DetectionPattern], useSwiftSyntax: Bool)] {
+    /// - Returns: An array of tuples grouping all detection patterns by category, display string,
+    /// their definitions, and whether they use SwiftSyntax.
+    static func allPatternsByCategory(
+        from patternRegistry: SourcePatternRegistryProtocol?
+    ) -> [(category: PatternCategory, display: String, patterns: [DetectionPattern], useSwiftSyntax: Bool)] {
         guard let patternRegistry = patternRegistry else {
-            assertionFailure("PatternRegistry is nil. This usually means the environment object was not injected properly.")
+            assertionFailure(
+                "PatternRegistry is nil. This usually means the environment object was not injected properly."
+            )
             #if DEBUG
-            return [(category: .stateManagement, display: "State Management", patterns: [], useSwiftSyntax: true)]
+            return [
+                (
+                    category: .stateManagement,
+                    display: "State Management",
+                    patterns: [],
+                    useSwiftSyntax: true
+                )
+            ]
             #else
             return []
             #endif
         }
 
         return [
-            (.stateManagement, "State Management", convertToDetectionPatterns(patternRegistry.getPatterns(for: .stateManagement)), true),
-            (.performance, "Performance", convertToDetectionPatterns(patternRegistry.getPatterns(for: .performance)), true),
-            (.architecture, "Architecture", convertToDetectionPatterns(patternRegistry.getPatterns(for: .architecture)), true),
-            (.codeQuality, "Code Quality", convertToDetectionPatterns(patternRegistry.getPatterns(for: .codeQuality)), true),
-            (.security, "Security", convertToDetectionPatterns(patternRegistry.getPatterns(for: .security)), true),
-            (.accessibility, "Accessibility", convertToDetectionPatterns(patternRegistry.getPatterns(for: .accessibility)), true),
-            (.memoryManagement, "Memory Management", convertToDetectionPatterns(patternRegistry.getPatterns(for: .memoryManagement)), true),
-            (.networking, "Networking", convertToDetectionPatterns(patternRegistry.getPatterns(for: .networking)), true),
-            (.uiPatterns, "UI Patterns", convertToDetectionPatterns(patternRegistry.getPatterns(for: .uiPatterns)), true)
+            (
+                .stateManagement,
+                "State Management",
+                convertToDetectionPatterns(patternRegistry.getPatterns(for: .stateManagement)),
+                true
+            ),
+            (
+                .performance,
+                "Performance",
+                convertToDetectionPatterns(patternRegistry.getPatterns(for: .performance)),
+                true
+            ),
+            (
+                .architecture,
+                "Architecture",
+                convertToDetectionPatterns(patternRegistry.getPatterns(for: .architecture)),
+                true
+            ),
+            (
+                .codeQuality,
+                "Code Quality",
+                convertToDetectionPatterns(patternRegistry.getPatterns(for: .codeQuality)),
+                true
+            ),
+            (
+                .security,
+                "Security",
+                convertToDetectionPatterns(patternRegistry.getPatterns(for: .security)),
+                true
+            ),
+            (
+                .accessibility,
+                "Accessibility",
+                convertToDetectionPatterns(patternRegistry.getPatterns(for: .accessibility)),
+                true
+            ),
+            (
+                .memoryManagement,
+                "Memory Management",
+                convertToDetectionPatterns(patternRegistry.getPatterns(for: .memoryManagement)),
+                true
+            ),
+            (
+                .networking,
+                "Networking",
+                convertToDetectionPatterns(patternRegistry.getPatterns(for: .networking)),
+                true
+            ),
+            (
+                .uiPatterns,
+                "UI Patterns",
+                convertToDetectionPatterns(patternRegistry.getPatterns(for: .uiPatterns)),
+                true
+            )
         ]
     }
 
@@ -66,7 +123,10 @@ struct PatternConfiguration {
     ///   - patternRegistry: The pattern registry to check against.
     ///   - enabledRuleNames: Set of currently enabled rule identifiers.
     /// - Returns: An array of PatternCategory values that have at least one enabled rule.
-    static func getEnabledCategories(patternRegistry: SourcePatternRegistryProtocol?, enabledRuleNames: Set<RuleIdentifier>) -> [PatternCategory] {
+    static func getEnabledCategories(
+        patternRegistry: SourcePatternRegistryProtocol?,
+        enabledRuleNames: Set<RuleIdentifier>
+    ) -> [PatternCategory] {
         guard let patternRegistry = patternRegistry else {
             return []
         }
@@ -97,7 +157,10 @@ struct PatternConfiguration {
     ///   - issues: The array of all detected issues.
     ///   - enabledRuleNames: Set of currently enabled rule identifiers.
     /// - Returns: An array containing only issues from enabled rules.
-    static func filterIssuesByEnabledRules(_ issues: [LintIssue], enabledRuleNames: Set<RuleIdentifier>) -> [LintIssue] {
+    static func filterIssuesByEnabledRules(
+        _ issues: [LintIssue],
+        enabledRuleNames: Set<RuleIdentifier>
+    ) -> [LintIssue] {
         // If no rules are enabled, return no issues
         if enabledRuleNames.isEmpty {
             return []
@@ -109,3 +172,4 @@ struct PatternConfiguration {
         }
     }
 }
+

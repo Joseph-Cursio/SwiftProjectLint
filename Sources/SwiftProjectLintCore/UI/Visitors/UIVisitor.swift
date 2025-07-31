@@ -28,8 +28,12 @@ class UIVisitor: BasePatternVisitor {
         let viewName = node.name.text
         currentViewName = viewName
         // Detect preview providers (old)
-        if node.inheritanceClause?.inheritedTypes.contains(where: { $0.type.description.contains("PreviewProvider") }) == true {
-            detectedPreviews.insert(viewName.replacingOccurrences(of: "_Previews", with: ""))
+        if node.inheritanceClause?.inheritedTypes.contains(where: { 
+            $0.type.description.contains("PreviewProvider") 
+        }) == true {
+            detectedPreviews.insert(
+                viewName.replacingOccurrences(of: "_Previews", with: "")
+            )
         }
         // Detect #Preview macro (modern)
         if node.attributes.contains(where: { $0.description.contains("#Preview") }) {
@@ -64,7 +68,8 @@ class UIVisitor: BasePatternVisitor {
 
     override func visit(_ node: FunctionCallExprSyntax) -> SyntaxVisitorContinueKind {
         // Detect NavigationView nesting
-        if let calledExpr = node.calledExpression.as(DeclReferenceExprSyntax.self), calledExpr.baseName.text == "NavigationView" {
+        if let calledExpr = node.calledExpression.as(DeclReferenceExprSyntax.self),
+           calledExpr.baseName.text == "NavigationView" {
             if navigationStack.contains(currentViewName) {
                 addIssue(
                     severity: IssueSeverity.warning,
@@ -78,10 +83,13 @@ class UIVisitor: BasePatternVisitor {
             navigationStack.append(currentViewName)
         }
         // Detect ForEach without ID (UI perspective)
-        if let calledExpr = node.calledExpression.as(DeclReferenceExprSyntax.self), calledExpr.baseName.text == "ForEach" {
+        if let calledExpr = node.calledExpression.as(DeclReferenceExprSyntax.self),
+           calledExpr.baseName.text == "ForEach" {
             var hasID = false
             for argument in node.arguments {
-                if argument.label?.text == "id" { hasID = true }
+                if argument.label?.text == "id" { 
+                    hasID = true 
+                }
             }
             if !hasID {
                 addIssue(
@@ -95,11 +103,15 @@ class UIVisitor: BasePatternVisitor {
             }
         }
         // Detect inconsistent styling
-        if let calledExpr = node.calledExpression.as(DeclReferenceExprSyntax.self), calledExpr.baseName.text == "Text" {
+        if let calledExpr = node.calledExpression.as(DeclReferenceExprSyntax.self),
+           calledExpr.baseName.text == "Text" {
             let modifiers = collectStylingModifiers(node)
 
             // Only add styling modifiers that are actually styling-related
-            let stylingModifierNames = ["font", "foregroundColor", "background", "padding", "cornerRadius", "shadow", "border"]
+            let stylingModifierNames = [
+                "font", "foregroundColor", "background", "padding",
+                "cornerRadius", "shadow", "border"
+            ]
             let stylingModifiers = modifiers.filter { stylingModifierNames.contains($0) }
 
             if stylingModifiers.count > 1 {
@@ -118,7 +130,8 @@ class UIVisitor: BasePatternVisitor {
 
     override func visitPost(_ node: FunctionCallExprSyntax) {
         // Pop navigation stack if exiting NavigationView
-        if let calledExpr = node.calledExpression.as(DeclReferenceExprSyntax.self), calledExpr.baseName.text == "NavigationView" {
+        if let calledExpr = node.calledExpression.as(DeclReferenceExprSyntax.self),
+           calledExpr.baseName.text == "NavigationView" {
             _ = navigationStack.popLast()
         }
     }
@@ -127,7 +140,9 @@ class UIVisitor: BasePatternVisitor {
         // Check for missing preview for this view
         if isSwiftUIView(node) && !detectedPreviews.contains(currentViewName) {
             // Skip preview detection for test files
-            if !currentFilePath.contains("test.swift") && !currentFilePath.contains("Test") && !currentFilePath.contains("Tests") {
+            if !currentFilePath.contains("test.swift")
+                && !currentFilePath.contains("Test")
+                && !currentFilePath.contains("Tests") {
                 addIssue(
                     severity: IssueSeverity.info,
                     message: "View '\(currentViewName)' missing preview provider",
@@ -143,16 +158,27 @@ class UIVisitor: BasePatternVisitor {
     override func visit(_ node: VariableDeclSyntax) -> SyntaxVisitorContinueKind {
         // Look for computed property named 'body'
         for binding in node.bindings {
-            print("🔍 binding type: \(type(of: binding)), description: \(binding.description)")
-            if let identifier = binding.pattern.as(IdentifierPatternSyntax.self), identifier.identifier.text == "body" {
+            print(
+                "🔍 binding type: \(type(of: binding)), " +
+                "description: \(binding.description)"
+            )
+            if let identifier = binding.pattern.as(IdentifierPatternSyntax.self),
+               identifier.identifier.text == "body" {
                 var analyzed = false
                 if let accessorBlock = binding.accessorBlock {
                     for child in accessorBlock.accessors.children(viewMode: .all) {
-                        if let accessor = child.as(AccessorDeclSyntax.self), let body = accessor.body {
+                        if let accessor = child.as(AccessorDeclSyntax.self),
+                           let body = accessor.body {
                             let bodyText = body.description
-                            print("🔍 Analyzing computed property body for error handling: \(bodyText)")
-                            let hasErrorHandling = bodyText.contains("if let error") || bodyText.contains("Text(\"Error")
-                            let hasProperUI = bodyText.contains(".alert(") || bodyText.contains(".sheet(") || bodyText.contains("Alert(")
+                            print(
+                                "🔍 Analyzing computed property body for error handling: " +
+                                "\(bodyText)"
+                            )
+                            let hasErrorHandling = bodyText.contains("if let error") ||
+                                bodyText.contains("Text(\"Error")
+                            let hasProperUI = bodyText.contains(".alert(") ||
+                                bodyText.contains(".sheet(") ||
+                                bodyText.contains("Alert(")
                             print("🔍 hasErrorHandling: \(hasErrorHandling), hasProperUI: \(hasProperUI)")
                             if hasErrorHandling && !hasProperUI {
                                 addIssue(
@@ -169,12 +195,21 @@ class UIVisitor: BasePatternVisitor {
                     }
                 }
                 if let initializer = binding.initializer {
-                    print("🔍 initializer.value type: \(type(of: initializer.value)), description: \(initializer.value.description)")
+                    print(
+                        "🔍 initializer.value type: \(type(of: initializer.value)), " +
+                        "description: \(initializer.value.description)"
+                    )
                     if let value = initializer.value.as(CodeBlockSyntax.self) {
                         let bodyText = value.description
-                        print("🔍 Analyzing computed property body for error handling: \(bodyText)")
-                        let hasErrorHandling = bodyText.contains("if let error") || bodyText.contains("Text(\"Error")
-                        let hasProperUI = bodyText.contains(".alert(") || bodyText.contains(".sheet(") || bodyText.contains("Alert(")
+                        print(
+                            "🔍 Analyzing computed property body for error handling: " +
+                            "\(bodyText)"
+                        )
+                        let hasErrorHandling = bodyText.contains("if let error") ||
+                            bodyText.contains("Text(\"Error")
+                        let hasProperUI = bodyText.contains(".alert(") ||
+                            bodyText.contains(".sheet(") ||
+                            bodyText.contains("Alert(")
                         print("🔍 hasErrorHandling: \(hasErrorHandling), hasProperUI: \(hasProperUI)")
                         if hasErrorHandling && !hasProperUI {
                             addIssue(
@@ -192,9 +227,15 @@ class UIVisitor: BasePatternVisitor {
                 // Always analyze the binding's description as a fallback
                 if !analyzed {
                     let bodyText = binding.description
-                    print("🔍 Fallback analyzing binding description for error handling: \(bodyText)")
-                    let hasErrorHandling = bodyText.contains("if let error") || bodyText.contains("Text(\"Error")
-                    let hasProperUI = bodyText.contains(".alert(") || bodyText.contains(".sheet(") || bodyText.contains("Alert(")
+                    print(
+                        "🔍 Fallback analyzing binding description for error handling: " +
+                        "\(bodyText)"
+                    )
+                    let hasErrorHandling = bodyText.contains("if let error") ||
+                        bodyText.contains("Text(\"Error")
+                    let hasProperUI = bodyText.contains(".alert(") ||
+                        bodyText.contains(".sheet(") ||
+                        bodyText.contains("Alert(")
                     print("🔍 hasErrorHandling: \(hasErrorHandling), hasProperUI: \(hasProperUI)")
                     if hasErrorHandling && !hasProperUI {
                         addIssue(
@@ -222,8 +263,11 @@ class UIVisitor: BasePatternVisitor {
         print("🔍 Analyzing body for error handling: \(bodyText)")
 
         // Check if there's basic error handling without proper UI patterns
-        let hasErrorHandling = bodyText.contains("if let error") || bodyText.contains("Text(\"Error")
-        let hasProperUI = bodyText.contains(".alert(") || bodyText.contains(".sheet(") || bodyText.contains("Alert(")
+        let hasErrorHandling = bodyText.contains("if let error") ||
+            bodyText.contains("Text(\"Error")
+        let hasProperUI = bodyText.contains(".alert(") ||
+            bodyText.contains(".sheet(") ||
+            bodyText.contains("Alert(")
 
         print("🔍 hasErrorHandling: \(hasErrorHandling), hasProperUI: \(hasProperUI)")
 

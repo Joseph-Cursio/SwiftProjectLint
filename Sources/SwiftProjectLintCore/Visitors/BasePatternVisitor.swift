@@ -14,26 +14,26 @@ class BasePatternVisitor: SyntaxVisitor, PatternVisitorProtocol {
     var detectedIssues: [LintIssue] = []
     let patternCategory: PatternCategory
     var sourceLocationConverter: SourceLocationConverter?
-    
+
     // Pattern information for message template support
     var currentPattern: SyntaxPattern?
-    
+
     required init(patternCategory: PatternCategory) {
         self.patternCategory = patternCategory
         super.init(viewMode: .sourceAccurate)
     }
-    
+
     func reset() {
         detectedIssues.removeAll()
     }
-    
+
     /// Sets the current pattern for message template support.
     ///
     /// - Parameter pattern: The pattern to use for message templates.
     func setPattern(_ pattern: SyntaxPattern) {
         self.currentPattern = pattern
     }
-    
+
     /// Adds a detected issue to the visitor's issue collection.
     ///
     /// - Parameters:
@@ -61,7 +61,7 @@ class BasePatternVisitor: SyntaxVisitor, PatternVisitorProtocol {
         )
         detectedIssues.append(issue)
     }
-    
+
     /// Adds a detected issue using the pattern's message template.
     ///
     /// - Parameters:
@@ -85,10 +85,10 @@ class BasePatternVisitor: SyntaxVisitor, PatternVisitorProtocol {
             )
             return
         }
-        
+
         let message = substituteVariables(in: pattern.messageTemplate, with: variables)
         let suggestion = substituteVariables(in: pattern.suggestion, with: variables)
-        
+
         let issue = LintIssue(
             severity: pattern.severity,
             message: message,
@@ -99,7 +99,7 @@ class BasePatternVisitor: SyntaxVisitor, PatternVisitorProtocol {
         )
         detectedIssues.append(issue)
     }
-    
+
     /// Substitutes variables in a template string.
     ///
     /// - Parameters:
@@ -108,15 +108,15 @@ class BasePatternVisitor: SyntaxVisitor, PatternVisitorProtocol {
     /// - Returns: The template string with variables substituted.
     private func substituteVariables(in template: String, with variables: [String: String]) -> String {
         var result = template
-        
+
         for (key, value) in variables {
             let placeholder = "{\(key)}"
             result = result.replacingOccurrences(of: placeholder, with: value)
         }
-        
+
         return result
     }
-    
+
     /// Gets the line number for a syntax node.
     ///
     /// - Parameter node: The syntax node to get the line number for.
@@ -127,7 +127,7 @@ class BasePatternVisitor: SyntaxVisitor, PatternVisitorProtocol {
         let location = converter.location(for: position)
         return location.line ?? 1
     }
-    
+
     /// Gets the file path for a syntax node.
     ///
     /// - Parameter node: The syntax node to get the file path for.
@@ -137,20 +137,20 @@ class BasePatternVisitor: SyntaxVisitor, PatternVisitorProtocol {
         // For now, we'll need to pass this information through the visitor
         return "unknown"
     }
-    
+
     required override init(viewMode: SyntaxTreeViewMode) {
         self.patternCategory = .stateManagement // Default, subclasses should override if needed
         super.init(viewMode: viewMode)
     }
-    
+
     func setSourceLocationConverter(_ converter: SourceLocationConverter) {
         self.sourceLocationConverter = converter
     }
-    
+
     /// Sets the current file path for issue reporting.
     ///
     /// - Parameter filePath: The file path to set.
     func setFilePath(_ filePath: String) {
         // This is a base implementation - subclasses can override if needed
     }
-} 
+}

@@ -30,29 +30,29 @@ class ViewRelationshipVisitor: SyntaxVisitor {
     private let systemViews: Set<String> = [
         // Basic display views
         "Text", "Image", "Spacer", "Divider", "EmptyView", "Label",
-        
+
         // Interactive views
         "Button", "Toggle", "Slider", "Stepper", "Picker", "DatePicker", "ColorPicker",
         "TextField", "SecureField",
-        
+
         // Layout views
         "LazyVStack", "LazyHStack", "LazyZStack", "Grid", "Table", "OutlineGroup", "DisclosureGroup",
-        
+
         // Display views
         "ProgressView", "Gauge", "Chart", "Canvas", "TimelineView",
-        
+
         // Navigation & presentation
         "NavigationView", "TabView", "VideoPlayer", "Map"
     ]
-    
+
     // Track context to avoid detecting views in wrong contexts
     private var isInContainer = false
     private var isInPresentationModifier = false
     private var isInNavigationLink = false
-    
+
     // Cache for line number calculations to improve performance
     private var lineNumberCache: [AbsolutePosition: Int] = [:]
-    
+
     init(parentView: String, filePath: String, sourceContents: String, sourceLocationConverter: SourceLocationConverter) {
         self.parentView = parentView
         self.filePath = filePath
@@ -60,13 +60,13 @@ class ViewRelationshipVisitor: SyntaxVisitor {
         self.sourceLocationConverter = sourceLocationConverter
         super.init(viewMode: .sourceAccurate)
     }
-    
+
     override func visit(_ node: FunctionCallExprSyntax) -> SyntaxVisitorContinueKind {
         // Handle NavigationLink
         if let called = node.calledExpression.as(DeclReferenceExprSyntax.self), called.baseName.text == "NavigationLink" {
             let wasInNavigationLink = isInNavigationLink
             isInNavigationLink = true
-            
+
             if let destArg = node.arguments.first(where: { $0.label?.text == "destination" }),
                let destCall = destArg.expression.as(FunctionCallExprSyntax.self) {
                 if let destName = extractViewName(from: destCall) {
@@ -74,7 +74,7 @@ class ViewRelationshipVisitor: SyntaxVisitor {
                     detectedSpecialViews.insert(destName)
                 }
             }
-            
+
             // Visit children to handle the content closure
             let result = super.visit(node)
             isInNavigationLink = wasInNavigationLink
@@ -86,7 +86,7 @@ class ViewRelationshipVisitor: SyntaxVisitor {
             // Set flag to indicate we're inside a container
             let wasInContainer = isInContainer
             isInContainer = true
-            
+ 
             // Visit children normally - they will be detected as direct children
             let result = super.visit(node)
             isInContainer = wasInContainer
@@ -99,7 +99,7 @@ class ViewRelationshipVisitor: SyntaxVisitor {
             if let relType = relationshipType(for: modifier) {
                 let wasInPresentationModifier = isInPresentationModifier
                 isInPresentationModifier = true
-                
+
                 // Labeled closure argument (e.g., content: { ... })
                 if let contentArg = node.arguments.first(where: { $0.label?.text == "content" }) {
                     extractViewFromClosure(contentArg.expression, relationshipType: relType, node: Syntax(node))
@@ -108,7 +108,7 @@ class ViewRelationshipVisitor: SyntaxVisitor {
                 else if let trailing = node.trailingClosure {
                     extractViewFromClosure(ExprSyntax(trailing), relationshipType: relType, node: Syntax(node))
                 }
-                
+ 
                 let result = super.visit(node)
                 isInPresentationModifier = wasInPresentationModifier
                 return result
@@ -128,7 +128,7 @@ class ViewRelationshipVisitor: SyntaxVisitor {
         }
         return .visitChildren
     }
-    
+
     override func visit(_ node: StructDeclSyntax) -> SyntaxVisitorContinueKind {
         let structName = node.name.text
         Task { @MainActor in
@@ -136,9 +136,9 @@ class ViewRelationshipVisitor: SyntaxVisitor {
         }
         return .visitChildren
     }
-    
+
     // MARK: - Helpers
-    
+
     private func extractViewFromClosure(_ expr: ExprSyntax, relationshipType: RelationshipType, node: Syntax) {
         if let closure = expr.as(ClosureExprSyntax.self) {
             // Find all custom views in the closure, not just the first one
@@ -149,7 +149,7 @@ class ViewRelationshipVisitor: SyntaxVisitor {
             }
         }
     }
-    
+
     // Find all custom view names recursively in a list of statements
     private func findAllCustomViews(in statements: CodeBlockItemListSyntax) -> [String] {
         var customViews: [String] = []
@@ -163,7 +163,7 @@ class ViewRelationshipVisitor: SyntaxVisitor {
     // Recursively find all custom view names in a syntax node
     private func findAllCustomViews(in expr: Syntax) -> [String] {
         var customViews: [String] = []
-        
+
         if let call = expr.as(FunctionCallExprSyntax.self) {
             if let called = call.calledExpression.as(DeclReferenceExprSyntax.self) {
                 let viewName = called.baseName.text
@@ -209,10 +209,10 @@ class ViewRelationshipVisitor: SyntaxVisitor {
                 customViews.append(contentsOf: views)
             }
         }
-        
+
         return customViews
     }
-    
+
     private func extractViewName(from call: FunctionCallExprSyntax) -> String? {
         if let id = call.calledExpression.as(DeclReferenceExprSyntax.self) {
             return id.baseName.text
@@ -222,7 +222,7 @@ class ViewRelationshipVisitor: SyntaxVisitor {
         }
         return nil
     }
-    
+
     private func addRelationship(childView: String, relationshipType: RelationshipType, node: Syntax) {
         let lineNumber = getLineNumber(for: node)
         let relationship = ViewRelationship(
@@ -234,13 +234,13 @@ class ViewRelationshipVisitor: SyntaxVisitor {
         )
         relationships.append(relationship)
     }
-    
+
     private func getLineNumber(for node: Syntax) -> Int {
         let pos = node.positionAfterSkippingLeadingTrivia
         let loc = sourceLocationConverter.location(for: pos)
         return loc.line ?? 0
     }
-    
+
     private func relationshipType(for modifier: String) -> RelationshipType? {
         switch modifier {
         case "sheet": return .sheet
@@ -250,13 +250,13 @@ class ViewRelationshipVisitor: SyntaxVisitor {
         default: return nil
         }
     }
-    
+
     /// Calculates line number for a given position with caching for performance
     private func calculateLineNumber(for position: AbsolutePosition) -> Int {
         if let cached = lineNumberCache[position] {
             return cached
         }
-        
+
         let offset = position.utf8Offset
         let prefix = String(sourceContents.prefix(offset))
         let lineNumber = prefix.components(separatedBy: .newlines).count

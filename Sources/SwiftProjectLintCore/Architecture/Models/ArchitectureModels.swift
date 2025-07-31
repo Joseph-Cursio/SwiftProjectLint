@@ -15,7 +15,8 @@ import Foundation
 /// - Parameters:
 ///   - parentView: The name of the view that contains, presents, or navigates to the child view.
 ///   - childView: The name of the view being contained, presented, or navigated to.
-///   - relationshipType: The manner in which the parent and child are connected (e.g., direct child, navigation, sheet, etc.).
+///   - relationshipType: The manner in which the parent and child are connected
+///     (e.g., direct child, navigation, sheet, etc.).
 ///   - lineNumber: The line number in the source file where the relationship is present.
 ///   - filePath: The file system path of the source file containing the relationship.
 ///
@@ -36,7 +37,13 @@ public struct ViewRelationship {
     public let lineNumber: Int
     public let filePath: String
     
-    public init(parentView: String, childView: String, relationshipType: RelationshipType, lineNumber: Int, filePath: String) {
+    public init(
+        parentView: String,
+        childView: String,
+        relationshipType: RelationshipType,
+        lineNumber: Int,
+        filePath: String
+    ) {
         self.parentView = parentView
         self.childView = childView
         self.relationshipType = relationshipType
@@ -57,12 +64,17 @@ public enum RelationshipType {
 
 /// Represents an architectural issue detected during analysis of a SwiftUI codebase.
 ///
-/// `ArchitectureIssue` describes a specific problem, suboptimal pattern, or improvement opportunity found in the architecture of SwiftUI views and their state management. Each instance includes the type and severity of the issue, a human-readable message, the set of affected views, a suggested action to resolve or improve, and the precise source location (file and line number).
+/// `ArchitectureIssue` describes a specific problem, suboptimal pattern, or improvement opportunity found in the
+/// architecture of SwiftUI views and their state management. Each instance includes the type and severity of the issue,
+/// a human-readable message, the set of affected views, a suggested action to resolve or improve, and the precise
+/// source location (file and line number).
 ///
-/// Use this structure to present actionable feedback to developers, enabling them to improve state sharing, data flow consistency, property wrapper usage, and overall project architecture.
+/// Use this structure to present actionable feedback to developers, enabling them to improve state sharing, data flow
+/// consistency, property wrapper usage, and overall project architecture.
 ///
 /// - Parameters:
-///   - type: The kind of architecture issue detected (e.g., duplicate state, missing state object, inefficient state sharing, etc.).
+///   - type: The kind of architecture issue detected
+///     (e.g., duplicate state, missing state object, inefficient state sharing, etc.).
 ///   - severity: The seriousness of the issue (e.g., info, warning, error).
 ///   - message: A descriptive message explaining the nature of the problem or recommendation.
 ///   - affectedViews: The list of view names impacted by this issue.
@@ -91,7 +103,15 @@ public struct ArchitectureIssue {
     public let filePath: String
     public let lineNumber: Int
     
-    public init(type: ArchitectureIssueType, severity: IssueSeverity, message: String, affectedViews: [String], suggestion: String, filePath: String, lineNumber: Int) {
+    public init(
+        type: ArchitectureIssueType,
+        severity: IssueSeverity,
+        message: String,
+        affectedViews: [String],
+        suggestion: String,
+        filePath: String,
+        lineNumber: Int
+    ) {
         self.type = type
         self.severity = severity
         self.message = message
@@ -109,12 +129,18 @@ public struct ArchitectureIssue {
 /// helping to classify and prioritize issues for developers.
 ///
 /// - Cases:
-///   - `duplicateState`: The same state variable is declared in multiple related views, leading to duplication and potential inconsistency.
-///   - `missingStateObject`: A root view managing an observable object is using the `@ObservedObject` property wrapper instead of `@StateObject`, risking improper initialization or lifecycle management.
-///   - `inefficientStateSharing`: State is passed inefficiently, such as being manually propagated through many layers, rather than being injected or centralized.
-///   - `circularDependency`: The view hierarchy contains circular references, which can lead to data flow problems or runtime issues.
-///   - `missingEnvironmentObject`: A state variable that should be injected via `@EnvironmentObject` is either missing or not properly injected, resulting in inconsistent or incomplete data flow.
-///   - `inconsistentDataFlow`: State or data is shared between views in an inconsistent or error-prone manner, such as mixing different property wrappers or using ad hoc patterns.
+///   - `duplicateState`: The same state variable is declared in multiple related views, leading to duplication and
+///     potential inconsistency.
+///   - `missingStateObject`: A root view managing an observable object is using the `@ObservedObject` property wrapper
+///     instead of `@StateObject`, risking improper initialization or lifecycle management.
+///   - `inefficientStateSharing`: State is passed inefficiently, such as being manually propagated through many layers,
+///     rather than being injected or centralized.
+///   - `circularDependency`: The view hierarchy contains circular references, which can lead to data flow problems or
+///     runtime issues.
+///   - `missingEnvironmentObject`: A state variable that should be injected via `@EnvironmentObject` is either missing
+///     or not properly injected, resulting in inconsistent or incomplete data flow.
+///   - `inconsistentDataFlow`: State or data is shared between views in an inconsistent or error-prone manner, such as
+///     mixing different property wrappers or using ad hoc patterns.
 ///
 /// Use this type to classify detected problems and to guide actionable suggestions for codebase improvement.
 public enum ArchitectureIssueType {

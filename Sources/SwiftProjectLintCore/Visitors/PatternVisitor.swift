@@ -17,14 +17,14 @@ import SwiftSyntax
 public protocol PatternVisitorProtocol: SyntaxVisitor {
     /// The collection of lint issues detected by this visitor during AST traversal.
     var detectedIssues: [LintIssue] { get }
-    
+
     /// Resets the visitor's internal state, clearing any detected issues.
     /// This method should be called before reusing a visitor instance.
     func reset()
-    
+
     /// The category of patterns this visitor is responsible for detecting.
     var patternCategory: PatternCategory { get }
-    
+
     /// Required initializer for dynamic instantiation.
     init(viewMode: SyntaxTreeViewMode)
 }

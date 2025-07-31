@@ -47,7 +47,10 @@ struct ContentView: View {
     // MARK: - Computed Properties
 
     /// Pattern configuration that uses SwiftSyntax for all categories.
-    private var allPatternsByCategory: [(category: PatternCategory, display: String, patterns: [DetectionPattern], useSwiftSyntax: Bool)] {
+    private var allPatternsByCategory: [(category: PatternCategory,
+                                         display: String,
+                                         patterns: [DetectionPattern],
+                                         useSwiftSyntax: Bool)] {
         PatternConfiguration.allPatternsByCategory(from: systemComponents.patternRegistry)
     }
 
@@ -184,7 +187,8 @@ struct ContentView: View {
 //
 // Direct use of @State outside of a View or without a proper hierarchy will trigger runtime warnings.
 
-// Always use ContentViewPreviewHost() for previews and tests to avoid @State access warnings. Never use ContentView() directly.
+// Always use ContentViewPreviewHost() for previews and tests to avoid @State
+// access warnings. Never use ContentView() directly.
 struct ContentViewPreviewHost: View {
     @StateObject private var systemComponents = SystemComponents()
     var body: some View {

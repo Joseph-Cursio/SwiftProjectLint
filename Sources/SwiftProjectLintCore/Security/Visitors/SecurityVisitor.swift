@@ -9,20 +9,20 @@ import SwiftSyntax
 /// - Unsafe URL construction with string interpolation
 class SecurityVisitor: BasePatternVisitor {
     private var currentFilePath: String = ""
-    
+
     required init(patternCategory: PatternCategory) {
         super.init(patternCategory: patternCategory)
     }
-    
+
     required init(viewMode: SyntaxTreeViewMode) {
         super.init(viewMode: viewMode)
     }
-    
+
     /// Sets the current file path for issue reporting.
     override func setFilePath(_ filePath: String) {
         self.currentFilePath = filePath
     }
-    
+
     override func visit(_ node: VariableDeclSyntax) -> SyntaxVisitorContinueKind {
         let message = "Visiting variable declaration"
         Task { @MainActor in
@@ -31,7 +31,7 @@ class SecurityVisitor: BasePatternVisitor {
         for binding in node.bindings {
             if let pattern = binding.pattern.as(IdentifierPatternSyntax.self) {
                 let variableName = pattern.identifier.text
-                
+
                 // Check for hardcoded secrets
                 let secretKeywords = ["apiKey", "secret", "password", "token", "key"]
                 if secretKeywords.contains(where: { variableName.localizedCaseInsensitiveContains($0) }) {
@@ -51,7 +51,7 @@ class SecurityVisitor: BasePatternVisitor {
         }
         return .visitChildren
     }
-    
+
     override func visit(_ node: FunctionCallExprSyntax) -> SyntaxVisitorContinueKind {
         // Check for unsafe URL construction
         if let calledExpr = node.calledExpression.as(DeclReferenceExprSyntax.self),
@@ -74,5 +74,4 @@ class SecurityVisitor: BasePatternVisitor {
         }
         return .visitChildren
     }
-} 
-
+}

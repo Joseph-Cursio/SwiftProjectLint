@@ -18,13 +18,13 @@ import SwiftSyntax
 @MainActor
 public class PatternVisitorRegistry: PatternVisitorRegistryProtocol {
     public static let shared = PatternVisitorRegistry()
-    
+
     private var patterns: [SyntaxPattern] = []
     private var visitorsByCategory: [PatternCategory: [PatternVisitorProtocol.Type]] = [:]
     private let queue = DispatchQueue(label: "PatternVisitorRegistry", attributes: .concurrent)
-    
+
     public init() {}
-    
+
     /// Registers a new syntax pattern with the registry.
     ///
     /// - Parameter pattern: The syntax pattern to register.
@@ -37,7 +37,7 @@ public class PatternVisitorRegistry: PatternVisitorRegistryProtocol {
             self.visitorsByCategory[pattern.category]?.append(pattern.visitor)
         }
     }
-    
+
     /// Registers multiple syntax patterns at once.
     ///
     /// - Parameter patterns: An array of syntax patterns to register.
@@ -52,7 +52,7 @@ public class PatternVisitorRegistry: PatternVisitorRegistryProtocol {
             }
         }
     }
-    
+
     /// Retrieves all visitor types for a specific pattern category.
     ///
     /// - Parameter category: The pattern category to retrieve visitors for.
@@ -65,7 +65,7 @@ public class PatternVisitorRegistry: PatternVisitorRegistryProtocol {
             return visitors
         }
     }
-    
+
     /// Retrieves all registered visitor types.
     ///
     /// - Returns: An array of all registered visitor types.
@@ -74,7 +74,7 @@ public class PatternVisitorRegistry: PatternVisitorRegistryProtocol {
             return patterns.map { $0.visitor }
         }
     }
-    
+
     /// Retrieves all registered syntax patterns.
     ///
     /// - Returns: An array of all registered syntax patterns.
@@ -83,7 +83,7 @@ public class PatternVisitorRegistry: PatternVisitorRegistryProtocol {
             return patterns
         }
     }
-    
+
     /// Retrieves syntax patterns for a specific category.
     ///
     /// - Parameter category: The pattern category to retrieve patterns for.
@@ -93,7 +93,7 @@ public class PatternVisitorRegistry: PatternVisitorRegistryProtocol {
             return patterns.filter { $0.category == category }
         }
     }
-    
+
     /// Clears all registered patterns and visitors.
     public func clear() {
         queue.sync(flags: .barrier) {

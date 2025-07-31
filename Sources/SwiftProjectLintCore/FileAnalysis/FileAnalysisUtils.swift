@@ -5,7 +5,7 @@ import Foundation
 /// This struct provides helper methods for finding Swift files, extracting view names,
 /// and other file-related operations used during architectural analysis.
 public struct FileAnalysisUtils {
-    
+
     /// Extracts the view name from a given Swift file path.
     ///
     /// This method takes a file path string (e.g., "/Users/project/MyView.swift") and returns the base file name
@@ -20,7 +20,7 @@ public struct FileAnalysisUtils {
         let fileName = (normalizedPath as NSString).lastPathComponent
         return fileName.replacingOccurrences(of: ".swift", with: "")
     }
-    
+
     /// Recursively searches the specified directory for Swift source files.
     ///
     /// This method traverses the directory tree rooted at the given `path`, returning the full file paths of all files
@@ -37,17 +37,17 @@ public struct FileAnalysisUtils {
     public static func findSwiftFiles(in path: String) -> [String] {
         let fileManager = FileManager.default
         var swiftFiles: [String] = []
-        
+
         guard let enumerator = fileManager.enumerator(atPath: path) else {
             return swiftFiles
         }
-        
+
         while let filePath = enumerator.nextObject() as? String {
             if filePath.hasSuffix(".swift") {
                 swiftFiles.append((path as NSString).appendingPathComponent(filePath))
             }
         }
-        
+
         return swiftFiles
     }
-} 
+}

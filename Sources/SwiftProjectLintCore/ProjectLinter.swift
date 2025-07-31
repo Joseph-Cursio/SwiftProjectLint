@@ -179,9 +179,11 @@ public class ProjectLinter {
     /// This method performs the following steps:
     /// 1. Reads the contents of the specified Swift file at the given path.
     /// 2. Iterates through each line of the file, attempting to extract property declarations that use
-    ///    SwiftUI state-related property wrappers such as `@State`, `@StateObject`, `@ObservedObject`, or `@EnvironmentObject`.
+    ///    SwiftUI state-related property wrappers such as `@State`, `@StateObject`,
+    ///    `@ObservedObject`, or `@EnvironmentObject`.
     ///    Any detected state variable is appended to the internal `stateVariables` collection.
-    /// 3. Performs additional pattern-based lint analysis using the `SourcePatternDetector`, appending any issues detected.
+    /// 3. Performs additional pattern-based lint analysis using the `SourcePatternDetector`,
+    ///   appending any issues detected.
     /// 4. Returns an array of `LintIssue` objects representing all issues found within the file.
     ///
     /// - Parameters:
@@ -278,15 +280,17 @@ public class ProjectLinter {
 
     /// Constructs the view hierarchy for all SwiftUI views detected in the project.
     ///
-    /// This method analyzes the collected `stateVariables` to group state properties by their corresponding views.
-    /// For each unique view (identified by its name), it creates a `ViewHierarchy` instance that includes the view's name,
-    /// its declared state variables, and placeholder values for `parentView` and `childViews` (which are not currently analyzed
-    /// in detail). The resulting hierarchies are stored in the `viewHierarchies` array for later cross-file analysis and
+    /// This method analyzes the collected `stateVariables` to group state properties by their
+    /// corresponding views. For each unique view (identified by its name), it creates a `ViewHierarchy`
+    /// instance that includes the view's name, its declared state variables, and placeholder values for
+    /// `parentView` and `childViews` (which are not currently analyzed in detail). The resulting
+    /// hierarchies are stored in the `viewHierarchies` array for later cross-file analysis and
     /// reporting.
     ///
-    /// - Note: The current implementation only establishes a flat hierarchy based on state variable grouping and does not
-    ///         determine actual parent-child relationships between views. Future enhancements may analyze the contents of
-    ///         view bodies to detect nested view compositions and improve hierarchy accuracy.
+    /// - Note: The current implementation only establishes a flat hierarchy based on state variable grouping and
+    ///         does not determine actual parent-child relationships between views. Future enhancements may
+    ///         analyze the contents of view bodies to detect nested view compositions and improve
+    ///         hierarchy accuracy.
     ///
     /// - SeeAlso: `ViewHierarchy`, `stateVariables`
     private func buildViewHierarchy() {
@@ -309,7 +313,8 @@ public class ProjectLinter {
     }
 
     /// Detects lint issues that span multiple Swift files, specifically targeting state variable declarations
-    /// that appear with the same name across different views (potentially causing source-of-truth or state propagation problems).
+    /// that appear with the same name across different views (potentially causing source-of-truth or
+    /// state propagation problems).
     ///
     /// - Parameters:
     ///   - categories: Optional array of pattern categories to analyze. If nil, analyzes all categories.

@@ -6,14 +6,14 @@ import SwiftSyntax
 public class SourcePatternDetector: SourcePatternDetectorProtocol {
     private let registry: PatternVisitorRegistry
     private var fileCache: [String: SourceFileSyntax] = [:]
-    
+
     /// Initializes a new SwiftSyntax pattern detector.
     ///
     /// - Parameter registry: The pattern visitor registry to use. Defaults to the shared registry.
     public init(registry: PatternVisitorRegistry = .shared) {
         self.registry = registry
     }
-    
+
     /// Detects patterns in a single Swift source file using SwiftSyntax analysis.
     ///
     /// - Parameters:
@@ -32,10 +32,10 @@ public class SourcePatternDetector: SourcePatternDetectorProtocol {
         var allIssues: [LintIssue] = []
         
         // Get patterns and create visitors with proper initialization
-        let patterns = categories != nil ? 
-            categories!.flatMap { registry.getPatterns(for: $0) } : 
-            registry.getAllPatterns()
-        
+        let patterns = categories != nil ?
+        categories!.flatMap { registry.getPatterns(for: $0) } :
+        registry.getAllPatterns()
+
         for pattern in patterns {
             // Create visitor with proper initialization
             if let visitorType = pattern.visitor as? BasePatternVisitor.Type {
@@ -52,10 +52,10 @@ public class SourcePatternDetector: SourcePatternDetectorProtocol {
                 allIssues.append(contentsOf: visitor.detectedIssues)
             }
         }
-        
+
         return allIssues
     }
-    
+
     /// Detects specific patterns in the given source code.
     ///
     /// This method parses the source code into an AST and applies only the
@@ -75,13 +75,13 @@ public class SourcePatternDetector: SourcePatternDetectorProtocol {
         fileCache[filePath] = sourceFile
         let converter = SourceLocationConverter(fileName: filePath, tree: sourceFile)
         var allIssues: [LintIssue] = []
-        
+
         // Get specific patterns by rule identifier
         let allPatterns = registry.getAllPatterns()
         let requestedPatterns = allPatterns.filter { pattern in
             ruleIdentifiers.contains(pattern.name)
         }
-        
+
         for pattern in requestedPatterns {
             // Create visitor with proper initialization
             if let visitorType = pattern.visitor as? BasePatternVisitor.Type {
@@ -98,10 +98,10 @@ public class SourcePatternDetector: SourcePatternDetectorProtocol {
                 allIssues.append(contentsOf: visitor.detectedIssues)
             }
         }
-        
+
         return allIssues
     }
-    
+
     /// Clears the internal file cache to free memory.
     public func clearCache() {
         fileCache.removeAll()

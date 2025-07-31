@@ -4,15 +4,15 @@ import Foundation
 /// This registrar handles patterns for error handling, async operations, and network safety.
 @MainActor
 class NetworkingPatternRegistrar: PatternRegistrarWithVisitorRegistryProtocol {
-    
+
     let registry: SourcePatternRegistry
     let visitorRegistry: PatternVisitorRegistryProtocol
-    
+
     init(registry: SourcePatternRegistry, visitorRegistry: PatternVisitorRegistryProtocol) {
         self.registry = registry
         self.visitorRegistry = visitorRegistry
     }
-    
+
     func registerPatterns() {
         let patterns = [
             SyntaxPattern(
@@ -36,4 +36,4 @@ class NetworkingPatternRegistrar: PatternRegistrarWithVisitorRegistryProtocol {
         ]
         registry.register(patterns: patterns)
     }
-} 
+}

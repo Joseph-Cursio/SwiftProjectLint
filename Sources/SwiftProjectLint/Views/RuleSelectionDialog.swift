@@ -10,8 +10,9 @@ import SwiftProjectLintCore
 
 /// A modal SwiftUI view for selecting which lint rules are enabled in the project linter.
 ///
-/// `RuleSelectionDialog` presents all available SwiftSyntax-based lint detection patterns, grouped by category, as a list of toggles
-/// allowing the user to customize which rules are active during analysis. All patterns use SwiftSyntax for improved accuracy.
+/// `RuleSelectionDialog` presents all available SwiftSyntax-based lint detection patterns, grouped by category,
+/// as a list of toggles allowing the user to customize which rules are active during analysis.
+/// All patterns use SwiftSyntax for improved accuracy.
 ///
 /// Features:
 /// - Displays rules grouped by logical categories (e.g., State Management, Performance).
@@ -22,16 +23,24 @@ import SwiftProjectLintCore
 /// - All patterns use SwiftSyntax for improved accuracy and comprehensive analysis.
 ///
 /// Properties:
-/// - `allPatternsByCategory`: An array of tuples grouping all detection patterns by category, display string, their definitions, and whether they use SwiftSyntax.
+/// - `allPatternsByCategory`: An array of tuples grouping all detection patterns by category, display string,
+///   their definitions, and whether they use SwiftSyntax.
 /// - `enabledRuleNames`: A binding to the set of currently enabled rule names; updates are reflected live in the UI.
 /// - `onSave`: A closure called when the user taps Save, allowing the parent view to persist changes.
 /// - `dismiss`: An environment value for dismissing the modal dialog.
 ///
 /// Usage:
-/// Present this view as a sheet or modal when the user wants to customize active lint rules. On save, the updated list of
-/// enabled rule names can be persisted as appropriate (such as to UserDefaults).
+/// Present this view as a sheet or modal when the user wants to customize active lint rules.
+/// On save, the updated list of enabled rule names can be persisted as appropriate (such as to UserDefaults).
 struct RuleSelectionDialog: View {
-    let allPatternsByCategory: [(category: PatternCategory, display: String, patterns: [DetectionPattern], useSwiftSyntax: Bool)]
+    let allPatternsByCategory: [
+        (
+            category: PatternCategory,
+            display: String,
+            patterns: [DetectionPattern],
+            useSwiftSyntax: Bool
+        )
+    ]
     @Binding var enabledRuleNames: Set<RuleIdentifier>
     var onSave: () -> Void
     @Environment(\.dismiss) private var dismiss
@@ -57,16 +66,20 @@ struct RuleSelectionDialog: View {
                     Section(header: Text(group.display)) {
                         // Show patterns from the passed data
                         ForEach(group.patterns, id: \.name) { pattern in
-                            Toggle(isOn: Binding(
-                                get: { enabledRuleNames.contains(pattern.name) },
-                                set: { isOn in
-                                    if isOn {
-                                        enabledRuleNames.insert(pattern.name)
-                                    } else {
-                                        enabledRuleNames.remove(pattern.name)
+                            Toggle(
+                                isOn: Binding(
+                                    get: {
+                                        enabledRuleNames.contains(pattern.name)
+                                    },
+                                    set: { isOn in
+                                        if isOn {
+                                            enabledRuleNames.insert(pattern.name)
+                                        } else {
+                                            enabledRuleNames.remove(pattern.name)
+                                        }
                                     }
-                                }
-                            )) {
+                                )
+                            ) {
                                 VStack(alignment: .leading, spacing: 2) {
                                     Text(pattern.name.rawValue)
                                         .fontWeight(.medium)
@@ -82,20 +95,28 @@ struct RuleSelectionDialog: View {
             .navigationTitle("Select Lint Rules")
             .toolbar {
                 ToolbarItemGroup(placement: .automatic) {
-                    Button("Select All") {
-                        enabledRuleNames = allRuleNames
-                    }
-                    Spacer()
-                    Button("Reset to Default") {
-                        if let defaultName = defaultRuleName {
-                            enabledRuleNames = [defaultName]
-                        } else {
-                            enabledRuleNames = []
+                    Button(
+                        "Select All",
+                        action: {
+                            enabledRuleNames = allRuleNames
                         }
-                    }
+                    )
+                    Spacer()
+                    Button(
+                        "Reset to Default",
+                        action: {
+                            if let defaultName = defaultRuleName {
+                                enabledRuleNames = [defaultName]
+                            } else {
+                                enabledRuleNames = []
+                            }
+                        }
+                    )
                 }
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
+                    Button("Cancel") {
+                        dismiss()
+                    }
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Save") {
@@ -110,16 +131,28 @@ struct RuleSelectionDialog: View {
 }
 
 #Preview {
-    let demoPatterns: [(category: PatternCategory, display: String, patterns: [DetectionPattern], useSwiftSyntax: Bool)] = [
-        (.stateManagement, "State Management", [
-            DetectionPattern(
-                name: .relatedDuplicateStateVariable,
-                severity: .warning,
-                message: "Related Duplicate State Variable",
-                suggestion: "Create a shared ObservableObject for state variables",
-                category: .stateManagement
-            )
-        ], true)
+    let demoPatterns: [
+        (
+            category: PatternCategory,
+            display: String,
+            patterns: [DetectionPattern],
+            useSwiftSyntax: Bool
+        )
+    ] = [
+        (
+            .stateManagement,
+            "State Management",
+            [
+                DetectionPattern(
+                    name: .relatedDuplicateStateVariable,
+                    severity: .warning,
+                    message: "Related Duplicate State Variable",
+                    suggestion: "Create a shared ObservableObject for state variables",
+                    category: .stateManagement
+                )
+            ],
+            true
+        )
     ]
 
     return RuleSelectionDialog(

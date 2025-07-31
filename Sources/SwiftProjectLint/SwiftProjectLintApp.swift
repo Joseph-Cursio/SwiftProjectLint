@@ -30,7 +30,10 @@ struct SwiftProjectLintApp: App {
             if let appDomain = Bundle.main.bundleIdentifier {
                 UserDefaults.standard.removePersistentDomain(forName: appDomain)
                 // Note: UserDefaults reset may show INVALID_PERSONA warnings - this is normal in test environments
-                print("Note: UserDefaults reset may show INVALID_PERSONA warnings - this is normal in test environments")
+                print(
+                    "Note: UserDefaults reset may show INVALID_PERSONA " +
+                    "warnings - this is normal in test environments"
+                )
             }
         }
     }
