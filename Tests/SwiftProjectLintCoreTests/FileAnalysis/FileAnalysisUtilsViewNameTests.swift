@@ -4,28 +4,28 @@ import Foundation
 
 @MainActor
 final class FileAnalysisUtilsViewNameTests {
-    @Test func testExtractViewNameWithValidPath() async throws {
+    @Test func testExtractViewNameWithValidPath() throws {
         // ... existing code ...
     }
-    @Test func testExtractViewNameWithNestedPath() async throws {
+    @Test func testExtractViewNameWithNestedPath() throws {
         // ... existing code ...
     }
-    @Test func testExtractViewNameWithComplexPath() async throws {
+    @Test func testExtractViewNameWithComplexPath() throws {
         // ... existing code ...
     }
-    @Test func testExtractViewNameWithSpaces() async throws {
+    @Test func testExtractViewNameWithSpaces() throws {
         // ... existing code ...
     }
-    @Test func testExtractViewNameWithSpecialCharacters() async throws {
+    @Test func testExtractViewNameWithSpecialCharacters() throws {
         // ... existing code ...
     }
-    @Test func testExtractViewNameWithMultipleExtensions() async throws {
+    @Test func testExtractViewNameWithMultipleExtensions() throws {
         // ... existing code ...
     }
-    @Test func testExtractViewNameWithNoExtension() async throws {
+    @Test func testExtractViewNameWithNoExtension() throws {
         // ... existing code ...
     }
-    @Test func testExtractViewNameWithEmptyPath() async throws {
+    @Test func testExtractViewNameWithEmptyPath() throws {
         // ... existing code ...
     }
 } 

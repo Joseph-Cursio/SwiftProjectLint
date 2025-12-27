@@ -6,7 +6,7 @@ import ViewInspector
 
 final class LintResultsViewTests {
     
-    @Test func testLintResultsViewInitialization() async throws {
+    @Test func testLintResultsViewInitialization() throws {
         await MainActor.run {
             let sampleIssues = [
                 LintIssue(
@@ -25,7 +25,7 @@ final class LintResultsViewTests {
         }
     }
     
-    @Test func testEmptyIssuesList() async throws {
+    @Test func testEmptyIssuesList() throws {
         await MainActor.run {
             _ = LintResultsView(issues: [])
             // Just verify it can be created without crashing
@@ -33,7 +33,7 @@ final class LintResultsViewTests {
         }
     }
     
-    @Test func testIssueSeverityFiltering() async throws {
+    @Test func testIssueSeverityFiltering() throws {
         await MainActor.run {
             let issues = [
                 LintIssue(
@@ -76,7 +76,7 @@ final class LintResultsViewTests {
         }
     }
     
-    @Test func testIssueRuleNameMapping() async throws {
+    @Test func testIssueRuleNameMapping() throws {
         await MainActor.run {
             let issues = [
                 LintIssue(
@@ -97,7 +97,7 @@ final class LintResultsViewTests {
         }
     }
     
-    @Test func testIssueFileAndLineNumber() async throws {
+    @Test func testIssueFileAndLineNumber() throws {
         let issue = LintIssue(
             severity: .warning,
             message: "Test issue",
@@ -111,7 +111,7 @@ final class LintResultsViewTests {
         #expect(issue.lineNumber == 42)
     }
     
-    @Test func testIssueMessageAndSuggestion() async throws {
+    @Test func testIssueMessageAndSuggestion() throws {
         let issue = LintIssue(
             severity: .warning,
             message: "Duplicate state variable found",

@@ -28,7 +28,7 @@ struct SourcePatternRegistryTests {
     
     @Test
     @MainActor
-    static func patternVisitorRegistryRegistration() async throws {
+    static func patternVisitorRegistryRegistration() throws {
         let (testVisitorRegistry, _, _) = createIsolatedInstances()
         
         // Given
@@ -59,7 +59,7 @@ struct SourcePatternRegistryTests {
     
     @Test
     @MainActor
-    static func patternVisitorRegistryMultiplePatterns() async throws {
+    static func patternVisitorRegistryMultiplePatterns() throws {
         let (testVisitorRegistry, _, _) = createIsolatedInstances()
         
         // Given
@@ -108,7 +108,7 @@ struct SourcePatternRegistryTests {
     
     @Test
     @MainActor
-    static func patternVisitorRegistryClear() async throws {
+    static func patternVisitorRegistryClear() throws {
         let (testVisitorRegistry, _, _) = createIsolatedInstances()
         
         // Given
@@ -127,8 +127,8 @@ struct SourcePatternRegistryTests {
         testVisitorRegistry.clear()
         
         // Then
-        #expect(testVisitorRegistry.getAllPatterns().count == 0)
-        #expect(testVisitorRegistry.getVisitors(for: .stateManagement).count == 0)
+        #expect(testVisitorRegistry.getAllPatterns().isEmpty)
+        #expect(testVisitorRegistry.getVisitors(for: .stateManagement).isEmpty)
         
         testVisitorRegistry.clear()
     }

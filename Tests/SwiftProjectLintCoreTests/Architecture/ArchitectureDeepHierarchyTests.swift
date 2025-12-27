@@ -4,7 +4,7 @@ import Foundation
 
 @MainActor
 final class ArchitectureDeepHierarchyTests {
-    @Test func testDetectArchitecturalAntiPatternsWithDeepHierarchy() async throws {
+    @Test func testDetectArchitecturalAntiPatternsWithDeepHierarchy() throws {
         // ... existing code ...
     }
 } 

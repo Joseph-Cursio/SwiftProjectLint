@@ -4,13 +4,13 @@ import Foundation
 
 final class DetectionPatternTests {
     
-    @Test func testRuleIdentifierRawValueAndDisplayName() async throws {
+    @Test func testRuleIdentifierRawValueAndDisplayName() throws {
         let rule = RuleIdentifier.magicNumber
         #expect(rule.rawValue == "Magic Number")
         #expect(rule.displayName == "Magic Number")
     }
     
-    @Test func testRuleIdentifierCategoryMapping() async throws {
+    @Test func testRuleIdentifierCategoryMapping() throws {
         #expect(RuleIdentifier.relatedDuplicateStateVariable.category == .stateManagement)
         #expect(RuleIdentifier.expensiveOperationInViewBody.category == .performance)
         #expect(RuleIdentifier.missingDependencyInjection.category == .architecture)
@@ -23,20 +23,20 @@ final class DetectionPatternTests {
         #expect(RuleIdentifier.fileParsingError.category == .other)
     }
     
-    @Test func testRuleIdentifierCodable() async throws {
+    @Test func testRuleIdentifierCodable() throws {
         let rule: RuleIdentifier = .longFunction
         let data = try JSONEncoder().encode(rule)
         let decoded = try JSONDecoder().decode(RuleIdentifier.self, from: data)
         #expect(rule == decoded)
     }
     
-    @Test func testRuleIdentifierAllCasesContainsAll() async throws {
+    @Test func testRuleIdentifierAllCasesContainsAll() throws {
         // Just check that all cases are present and unique
         let allCases = Set(RuleIdentifier.allCases.map { $0.rawValue })
         #expect(allCases.count == RuleIdentifier.allCases.count)
     }
     
-    @Test func testPatternCategoryAllCases() async throws {
+    @Test func testPatternCategoryAllCases() throws {
         let all = PatternCategory.allCases
         #expect(all.contains(.stateManagement))
         #expect(all.contains(.performance))
@@ -50,7 +50,7 @@ final class DetectionPatternTests {
         #expect(all.contains(.other))
     }
     
-    @Test func testDetectionPatternInitAndProperties() async throws {
+    @Test func testDetectionPatternInitAndProperties() throws {
         let pattern = DetectionPattern(
             name: .magicNumber,
             severity: .warning,

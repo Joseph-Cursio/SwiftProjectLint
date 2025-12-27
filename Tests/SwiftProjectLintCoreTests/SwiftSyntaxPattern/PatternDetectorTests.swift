@@ -5,12 +5,12 @@ import Foundation
 @MainActor
 final class PatternDetectorTests {
     
-    @Test func testPatternDetectorInitialization() async throws {
+    @Test func testPatternDetectorInitialization() throws {
         let detector = SwiftSyntaxPatternDetector()
         #expect(detector != nil)
     }
     
-    @Test func testDetectPatternsInSourceCode() async throws {
+    @Test func testDetectPatternsInSourceCode() throws {
         let detector = SwiftSyntaxPatternDetector()
         let sourceCode = """
         import SwiftUI
@@ -38,7 +38,7 @@ final class PatternDetectorTests {
         #expect(issues.count >= 0) // Should not crash
     }
     
-    @Test func testDetectPatternsWithSpecificRules() async throws {
+    @Test func testDetectPatternsWithSpecificRules() throws {
         let detector = SwiftSyntaxPatternDetector()
         let sourceCode = """
         import SwiftUI
@@ -61,7 +61,7 @@ final class PatternDetectorTests {
         #expect(issues.count >= 0) // Should not crash
     }
     
-    @Test func testDetectPatternsInProject() async throws {
+    @Test func testDetectPatternsInProject() throws {
         let detector = CrossFileAnalysisEngine()
         
         // Create a temporary test project structure
@@ -77,7 +77,7 @@ final class PatternDetectorTests {
         #expect(issues.count >= 0) // Should not crash, even with empty project
     }
     
-    @Test func testCrossFilePatternDetection() async throws {
+    @Test func testCrossFilePatternDetection() throws {
         let detector = CrossFileAnalysisEngine()
         
         let projectFiles = [
@@ -93,7 +93,7 @@ final class PatternDetectorTests {
         #expect(issues.count >= 0) // Should not crash
     }
     
-    @Test func testPatternRegistryIntegration() async throws {
+    @Test func testPatternRegistryIntegration() throws {
         let detector = SwiftSyntaxPatternDetector()
         let registry = SwiftSyntaxPatternRegistry.shared
         
@@ -101,7 +101,7 @@ final class PatternDetectorTests {
         // #expect(detector.registry != nil) // This line was removed as per the edit hint.
     }
     
-    @Test func testEmptySourceCode() async throws {
+    @Test func testEmptySourceCode() throws {
         let detector = SwiftSyntaxPatternDetector()
         let issues = detector.detectPatterns(
             in: "",
@@ -111,7 +111,7 @@ final class PatternDetectorTests {
         #expect(issues.count >= 0) // Should handle empty source gracefully
     }
     
-    @Test func testInvalidSwiftCode() async throws {
+    @Test func testInvalidSwiftCode() throws {
         let detector = SwiftSyntaxPatternDetector()
         let invalidCode = "This is not valid Swift code {"
         

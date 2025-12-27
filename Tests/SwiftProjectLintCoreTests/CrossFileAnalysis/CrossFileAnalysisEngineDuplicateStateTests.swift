@@ -4,7 +4,7 @@ import Foundation
 
 @MainActor
 final class CrossFileAnalysisEngineDuplicateStateTests {
-    @Test func testDetectCrossFilePatternsWithDuplicateStateVariables() async throws {
+    @Test func testDetectCrossFilePatternsWithDuplicateStateVariables() throws {
         // ... existing code ...
     }
 } 

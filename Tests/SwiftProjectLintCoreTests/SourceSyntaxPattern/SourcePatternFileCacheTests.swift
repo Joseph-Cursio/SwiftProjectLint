@@ -25,7 +25,7 @@ import Foundation
 final class SourcePatternFileCacheTests {
     // MARK: - File Cache Characterization
     
-    @Test func characterizeFileCacheBasicBehavior() async throws {
+    @Test func characterizeFileCacheBasicBehavior() throws {
         let detector = SourcePatternDetector()
         
         let file1Content = """
@@ -59,7 +59,7 @@ final class SourcePatternFileCacheTests {
         #expect(issues2.count >= 0, "Second file should analyze successfully")
     }
     
-    @Test func characterizeCacheClearingBehavior() async throws {
+    @Test func characterizeCacheClearingBehavior() throws {
         let detector = SourcePatternDetector()
         
         let testContent = """

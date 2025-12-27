@@ -94,7 +94,9 @@ struct NetworkingIssuesView: View {
             
             // Security Issue: More hardcoded secrets
             let databasePassword = "super_secret_password_123"
-            let jwtToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+            let jwtToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9." +
+                "eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ." +
+                "SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
             
             Spacer()
         }

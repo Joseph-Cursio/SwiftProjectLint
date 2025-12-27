@@ -4,13 +4,13 @@ import Foundation
 
 @MainActor
 final class CrossFileAnalysisEngineCategoryRuleTests {
-    @Test func testDetectCrossFilePatternsWithCategories() async throws {
+    @Test func testDetectCrossFilePatternsWithCategories() throws {
         // ... existing code ...
     }
-    @Test func testDetectCrossFilePatternsWithRules() async throws {
+    @Test func testDetectCrossFilePatternsWithRules() throws {
         // ... existing code ...
     }
-    @Test func testDetectCrossFilePatternsWithAllCategories() async throws {
+    @Test func testDetectCrossFilePatternsWithAllCategories() throws {
         // ... existing code ...
     }
 } 

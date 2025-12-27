@@ -27,7 +27,7 @@ final class SourcePatternCategoryFilteringTests {
     
     // MARK: - Category Filtering Characterization
     
-    @Test func characterizeStateManagementCategoryFiltering() async throws {
+    @Test func characterizeStateManagementCategoryFiltering() throws {
         let detector = SourcePatternDetector()
         let stateCode = """
         import SwiftUI
@@ -76,7 +76,7 @@ final class SourcePatternCategoryFilteringTests {
         #expect(allIssues.count >= stateIssues.count, "All categories should include at least state issues")
     }
     
-    @Test func characterizePerformanceCategoryFiltering() async throws {
+    @Test func characterizePerformanceCategoryFiltering() throws {
         let detector = SourcePatternDetector()
         let performanceCode = """
         import SwiftUI
@@ -117,7 +117,7 @@ final class SourcePatternCategoryFilteringTests {
         #expect(performanceIssues.count >= 0, "Performance category filtering should work")
     }
     
-    @Test func characterizeMultipleCategoryFiltering() async throws {
+    @Test func characterizeMultipleCategoryFiltering() throws {
         let detector = SourcePatternDetector()
         let multiCategoryCode = """
         import SwiftUI

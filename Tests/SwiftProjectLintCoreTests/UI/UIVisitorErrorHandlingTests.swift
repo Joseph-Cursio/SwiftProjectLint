@@ -7,7 +7,7 @@ import SwiftParser
 @Suite("UIVisitorErrorHandlingTests")
 struct UIVisitorErrorHandlingTests {
     
-    @Test func testDetectsBasicErrorHandling() async throws {
+    @Test func testDetectsBasicErrorHandling() throws {
         let visitor = UIVisitor(patternCategory: PatternCategory.uiPatterns)
         visitor.setFilePath("test.swift")
         visitor.reset()
@@ -42,7 +42,7 @@ struct UIVisitorErrorHandlingTests {
         }
     }
     
-    @Test func testDoesNotDetectProperErrorHandling() async throws {
+    @Test func testDoesNotDetectProperErrorHandling() throws {
         let visitor = UIVisitor(patternCategory: PatternCategory.uiPatterns)
         visitor.setFilePath("test.swift")
         visitor.reset()
@@ -70,10 +70,10 @@ struct UIVisitorErrorHandlingTests {
         let issues = visitor.detectedIssues
         
         // Should not detect any issues (preview detection skipped for test files)
-        #expect(issues.count == 0)
+        #expect(issues.isEmpty)
     }
     
-    @Test func testComplexViewWithMultipleIssues() async throws {
+    @Test func testComplexViewWithMultipleIssues() throws {
         let visitor = UIVisitor(patternCategory: PatternCategory.uiPatterns)
         visitor.setFilePath("test.swift")
         visitor.reset()
@@ -121,7 +121,7 @@ struct UIVisitorErrorHandlingTests {
         #expect(messages.contains("Consider using proper error handling UI patterns"))
     }
     
-    @Test func testResetClearsState() async throws {
+    @Test func testResetClearsState() throws {
         let visitor = UIVisitor(patternCategory: PatternCategory.uiPatterns)
         visitor.setFilePath("test.swift")
         visitor.reset()
@@ -146,6 +146,6 @@ struct UIVisitorErrorHandlingTests {
         
         visitor.reset()
         
-        #expect(visitor.detectedIssues.count == 0)
+        #expect(visitor.detectedIssues.isEmpty)
     }
 } 

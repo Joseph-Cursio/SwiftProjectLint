@@ -7,7 +7,7 @@ import SwiftParser
 @Suite("UIVisitorNavigationTests")
 struct UIVisitorNavigationTests {
     
-    @Test func testDetectsNestedNavigationView() async throws {
+    @Test func testDetectsNestedNavigationView() throws {
         let visitor = UIVisitor(patternCategory: PatternCategory.uiPatterns)
         visitor.setFilePath("test.swift")
         visitor.reset()
@@ -48,7 +48,7 @@ struct UIVisitorNavigationTests {
         }
     }
     
-    @Test func testDoesNotDetectSingleNavigationView() async throws {
+    @Test func testDoesNotDetectSingleNavigationView() throws {
         let visitor = UIVisitor(patternCategory: PatternCategory.uiPatterns)
         visitor.setFilePath("test.swift")
         visitor.reset()
@@ -68,10 +68,10 @@ struct UIVisitorNavigationTests {
         let issues = visitor.detectedIssues
         
         // Should not detect any issues (preview detection skipped for test files)
-        #expect(issues.count == 0)
+        #expect(issues.isEmpty)
     }
     
-    @Test func testDetectsModernNavigationAlternatives() async throws {
+    @Test func testDetectsModernNavigationAlternatives() throws {
         let visitor = UIVisitor(patternCategory: PatternCategory.uiPatterns)
         visitor.setFilePath("test.swift")
         visitor.reset()
@@ -91,6 +91,6 @@ struct UIVisitorNavigationTests {
         let issues = visitor.detectedIssues
         
         // Should not detect any issues (preview detection skipped for test files)
-        #expect(issues.count == 0)
+        #expect(issues.isEmpty)
     }
 } 

@@ -4,7 +4,7 @@ import Foundation
 
 @MainActor
 final class CrossFileAnalysisEnginePerformanceTests {
-    @Test func testDetectCrossFilePatternsPerformance() async throws {
+    @Test func testDetectCrossFilePatternsPerformance() throws {
         // ... existing code ...
     }
 } 

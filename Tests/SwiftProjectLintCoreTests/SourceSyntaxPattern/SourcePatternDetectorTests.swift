@@ -5,12 +5,12 @@ import Foundation
 @MainActor
 final class SourcePatternDetectorTests {
     
-    @Test func testPatternDetectorInitialization() async throws {
+    @Test func testPatternDetectorInitialization() throws {
         let detector = SourcePatternDetector()
         #expect(detector != nil)
     }
     
-    @Test func testDetectPatternsInSourceCode() async throws {
+    @Test func testDetectPatternsInSourceCode() throws {
         let detector = SourcePatternDetector()
         let sourceCode = """
         import SwiftUI
@@ -38,7 +38,7 @@ final class SourcePatternDetectorTests {
         #expect(issues.count >= 0) // Should not crash
     }
     
-    @Test func testDetectPatternsWithSpecificRules() async throws {
+    @Test func testDetectPatternsWithSpecificRules() throws {
         let detector = SourcePatternDetector()
         let sourceCode = """
         import SwiftUI
@@ -61,7 +61,7 @@ final class SourcePatternDetectorTests {
         #expect(issues.count >= 0) // Should not crash
     }
     
-    @Test func testDetectPatternsInProject() async throws {
+    @Test func testDetectPatternsInProject() throws {
         let detector = CrossFileAnalysisEngine()
         
         // Create a temporary test project structure
@@ -77,7 +77,7 @@ final class SourcePatternDetectorTests {
         #expect(issues.count >= 0) // Should not crash, even with empty project
     }
     
-    @Test func testCrossFilePatternDetection() async throws {
+    @Test func testCrossFilePatternDetection() throws {
         let detector = CrossFileAnalysisEngine()
         
         let projectFiles = [
@@ -93,7 +93,7 @@ final class SourcePatternDetectorTests {
         #expect(issues.count >= 0) // Should not crash
     }
     
-    @Test func testPatternRegistryIntegration() async throws {
+    @Test func testPatternRegistryIntegration() throws {
         let detector = SourcePatternDetector()
         let registry = SourcePatternRegistry.shared
         
@@ -103,7 +103,7 @@ final class SourcePatternDetectorTests {
 
     // MARK: - Error Handling and Edge Cases
     
-    @Test func characterizeVeryLargeSourceFile() async throws {
+    @Test func characterizeVeryLargeSourceFile() throws {
         let detector = SourcePatternDetector()
         
         // Generate a large SwiftUI file
@@ -116,10 +116,10 @@ final class SourcePatternDetectorTests {
         """
         
         // Add many repetitive elements
-        for i in 0..<500 {
+        for index in 0..<500 {
             largeFileContent += """
-                    Text("Item \(i)")
-                    Text("Description \(i)")
+                    Text("Item \(index)")
+                    Text("Description \(index)")
             """
         }
         
@@ -139,7 +139,7 @@ final class SourcePatternDetectorTests {
         #expect(issues.count >= 0, "Large files should be handled gracefully")
     }
     
-    @Test func characterizeFilePathVariations() async throws {
+    @Test func characterizeFilePathVariations() throws {
         let detector = SourcePatternDetector()
         let testCode = """
         import SwiftUI

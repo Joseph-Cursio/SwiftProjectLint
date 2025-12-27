@@ -25,8 +25,8 @@ public class ProjectLinter {
     private var projectFiles: [ProjectFile] = []
     private var stateVariables: [StateVariable] = []
     private var viewHierarchies: [ViewHierarchy] = []
-    private var SingleFileDetector: SourcePatternDetector?
-    private var CrossFileDetector: CrossFileAnalysisEngine?
+    private var singleFileDetector: SourcePatternDetector?
+    private var crossFileDetector: CrossFileAnalysisEngine?
 
     /// Analyzes a SwiftUI project at the specified file system path, performing static analysis to detect state variable usage,
     /// build view hierarchies, and report lint issues and code patterns across all Swift source files in the project.
@@ -78,7 +78,7 @@ public class ProjectLinter {
         issues.append(contentsOf: crossFileIssues)
 
         // Run cross-file pattern detection using SwiftSyntax, respecting enabled patterns or categories
-        let crossFileDetector = CrossFileDetector ?? CrossFileAnalysisEngine()
+        let crossFileDetector = self.crossFileDetector ?? CrossFileAnalysisEngine()
         let crossFilePatternIssues: [LintIssue]
         if let ruleIdentifiers = ruleIdentifiers {
             crossFilePatternIssues = crossFileDetector.detectCrossFilePatterns(
@@ -207,7 +207,7 @@ public class ProjectLinter {
             filePath: name
         )
         stateVariables.append(contentsOf: extractedStateVariables)
-        let swiftSyntaxDetector = SingleFileDetector ?? SourcePatternDetector()
+        let swiftSyntaxDetector = singleFileDetector ?? SourcePatternDetector()
         if let ruleIdentifiers = ruleIdentifiers {
             issues.append(
                 contentsOf: swiftSyntaxDetector.detectPatterns(
@@ -335,6 +335,6 @@ public class ProjectLinter {
     ///
     /// - Parameter detector: The configured SourcePatternDetector to use.
     public func setDetector(_ detector: SourcePatternDetector) {
-        self.SingleFileDetector = detector
+        self.singleFileDetector = detector
     }
 }

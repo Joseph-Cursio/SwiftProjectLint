@@ -4,7 +4,7 @@ import Foundation
 
 @MainActor
 final class ArchitectureCircularDependencyTests {
-    @Test func testDetectArchitecturalAntiPatternsWithCircularDependencies() async throws {
+    @Test func testDetectArchitecturalAntiPatternsWithCircularDependencies() throws {
         // ... existing code ...
     }
 } 

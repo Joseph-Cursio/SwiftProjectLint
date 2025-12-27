@@ -102,7 +102,7 @@ class AccessibilityComplexViewTests {
         visitor.walk(sourceFile)
         
         // Then
-        #expect(visitor.detectedIssues.count == 0)
+        #expect(visitor.detectedIssues.isEmpty)
     }
     
     @Test func testViewWithNoAccessibilityIssues() {
@@ -133,6 +133,6 @@ class AccessibilityComplexViewTests {
         visitor.walk(sourceFile)
         
         // Then
-        #expect(visitor.detectedIssues.count == 0)
+        #expect(visitor.detectedIssues.isEmpty)
     }
 } 

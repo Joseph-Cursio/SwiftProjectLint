@@ -4,10 +4,10 @@ import Foundation
 
 @MainActor
 final class ArchitectureEdgeCaseTests {
-    @Test func testDetectArchitecturalAntiPatternsWithEdgeCases() async throws {
+    @Test func testDetectArchitecturalAntiPatternsWithEdgeCases() throws {
         // ... existing code ...
     }
-    @Test func testDetectArchitecturalAntiPatternsWithEmptyInput() async throws {
+    @Test func testDetectArchitecturalAntiPatternsWithEmptyInput() throws {
         // ... existing code ...
     }
 } 

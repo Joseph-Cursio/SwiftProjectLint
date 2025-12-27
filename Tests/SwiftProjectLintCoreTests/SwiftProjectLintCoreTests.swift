@@ -10,7 +10,7 @@ import Testing
 
 @Suite struct SwiftProjectLintCoreTests {
 
-    @Test func testCoreModuleImports() async throws {
+    @Test func testCoreModuleImports() throws {
         // Test that all core modules can be imported and accessed
         let analyzer = AdvancedAnalyzer()
         #expect(analyzer != nil)
@@ -25,21 +25,21 @@ import Testing
         #expect(registry != nil)
     }
     
-    @Test func testRuleIdentifierEnum() async throws {
+    @Test func testRuleIdentifierEnum() throws {
         // Test that RuleIdentifier enum is accessible
         let rule = RuleIdentifier.relatedDuplicateStateVariable
         #expect(rule.rawValue == "Related Duplicate State Variable")
         #expect(rule.category == .stateManagement)
     }
     
-    @Test func testPatternCategoryEnum() async throws {
+    @Test func testPatternCategoryEnum() throws {
         // Test that PatternCategory enum is accessible
         let category = PatternCategory.stateManagement
         #expect(category == .stateManagement)
         #expect(PatternCategory.allCases.contains(.stateManagement))
     }
     
-    @Test func testIssueSeverityEnum() async throws {
+    @Test func testIssueSeverityEnum() throws {
         // Test that IssueSeverity enum is accessible
         let severity = IssueSeverity.warning
         #expect(severity == .warning)

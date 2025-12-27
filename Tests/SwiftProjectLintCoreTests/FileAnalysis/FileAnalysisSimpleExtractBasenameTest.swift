@@ -5,7 +5,7 @@ import Foundation
 @MainActor
 final class SimpleExtractBasenameTest {
     
-    @Test func testExtractBasenameNoPath() async throws {
+    @Test func testExtractBasenameNoPath() throws {
         // Arrange: Set up a typical file path
         let justFilename = "HomeView.swift"
 
@@ -16,7 +16,7 @@ final class SimpleExtractBasenameTest {
         #expect(filenameResult == "HomeView")
     }
 
-    @Test func testExtractBasenameWithPath() async throws {
+    @Test func testExtractBasenameWithPath() throws {
         // Arrange: Set up a typical file path
         let filePath = "/Users/developer/MyProject/Views/ContentView.swift"
         
@@ -29,7 +29,7 @@ final class SimpleExtractBasenameTest {
     }
 
     // jdc: I never checked for Windows pathname formats, by CoPilot added this test...
-    @Test func testExtractWindowsBasenamePath() async throws {
+    @Test func testExtractWindowsBasenamePath() throws {
         
         // Arrange: Set up a typical file path
         let windowsPath = "C:\\Projects\\SwiftUI\\DetailView.swift"

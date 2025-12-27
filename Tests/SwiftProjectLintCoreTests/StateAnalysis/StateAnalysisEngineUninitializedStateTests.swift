@@ -4,7 +4,7 @@ import Foundation
 
 @MainActor
 final class StateAnalysisEngineUninitializedStateTests {
-    @Test func testAnalyzeStateManagementWithUninitializedState() async throws {
+    @Test func testAnalyzeStateManagementWithUninitializedState() throws {
         // ... existing code ...
     }
 } 

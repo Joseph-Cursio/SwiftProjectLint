@@ -4,7 +4,7 @@ import Foundation
 
 @MainActor
 final class StateAnalysisEnginePropertyWrapperTests {
-    @Test func testAnalyzeStateManagementWithDifferentPropertyWrappers() async throws {
+    @Test func testAnalyzeStateManagementWithDifferentPropertyWrappers() throws {
         // ... existing code ...
     }
 } 

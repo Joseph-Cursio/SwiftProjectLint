@@ -18,7 +18,7 @@ struct SwiftSyntaxPatternDetectorPerformanceTests {
     
     @Test
     @MainActor
-    static func performanceVisitorForEachWithoutID() async throws {
+    static func performanceVisitorForEachWithoutID() throws {
         let detector = TestRegistryManager.getSharedDetector()
         
         // Given
@@ -62,7 +62,7 @@ struct SwiftSyntaxPatternDetectorPerformanceTests {
     
     @Test
     @MainActor
-    static func performanceVisitorForEachWithID() async throws {
+    static func performanceVisitorForEachWithID() throws {
         let detector = TestRegistryManager.getSharedDetector()
         
         // Given

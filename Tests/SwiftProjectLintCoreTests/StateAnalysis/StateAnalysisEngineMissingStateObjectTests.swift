@@ -4,7 +4,7 @@ import Foundation
 
 @MainActor
 final class StateAnalysisEngineMissingStateObjectTests {
-    @Test func testAnalyzeStateManagementWithMissingStateObject() async throws {
+    @Test func testAnalyzeStateManagementWithMissingStateObject() throws {
         // ... existing code ...
     }
 } 

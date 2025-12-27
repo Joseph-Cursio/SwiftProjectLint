@@ -8,12 +8,12 @@ final class ProjectLinterTests {
     private var tempDirectory: String!
     private var testProjectPath: String!
     
-    @Test func testProjectLinterInitialization() async throws {
+    @Test func testProjectLinterInitialization() throws {
         let linter = ProjectLinter()
         #expect(linter != nil) // ProjectLinter should be created successfully
     }
     
-    @Test func testAnalyzeProjectWithValidPath() async throws {
+    @Test func testAnalyzeProjectWithValidPath() throws {
         setupTestProject()
         let linter = ProjectLinter()
         
@@ -23,7 +23,7 @@ final class ProjectLinterTests {
         print("DEBUG: Found \(issues.count) issues in valid project")
     }
     
-    @Test func testAnalyzeProjectWithInvalidPath() async throws {
+    @Test func testAnalyzeProjectWithInvalidPath() throws {
         let linter = ProjectLinter()
         let invalidPath = "/nonexistent/path/to/project"
         
@@ -33,7 +33,7 @@ final class ProjectLinterTests {
         print("DEBUG: Found \(issues.count) issues in invalid project")
     }
     
-    @Test func testAnalyzeProjectWithSpecificCategories() async throws {
+    @Test func testAnalyzeProjectWithSpecificCategories() throws {
         setupTestProject()
         let linter = ProjectLinter()
         
@@ -52,7 +52,7 @@ final class ProjectLinterTests {
         }
     }
     
-    @Test func testAnalyzeProjectWithSpecificRules() async throws {
+    @Test func testAnalyzeProjectWithSpecificRules() throws {
         setupTestProject()
         let linter = ProjectLinter()
         
@@ -70,7 +70,7 @@ final class ProjectLinterTests {
         }
     }
     
-    @Test func testAnalyzeProjectWithEmptyProject() async throws {
+    @Test func testAnalyzeProjectWithEmptyProject() throws {
         setupEmptyTestProject()
         let linter = ProjectLinter()
         
@@ -80,7 +80,7 @@ final class ProjectLinterTests {
         print("DEBUG: Found \(issues.count) issues in empty project")
     }
     
-    @Test func testAnalyzeProjectWithComplexProject() async throws {
+    @Test func testAnalyzeProjectWithComplexProject() throws {
         setupComplexTestProject()
         let linter = ProjectLinter()
         
@@ -95,7 +95,7 @@ final class ProjectLinterTests {
         #expect(issueTypes.count >= 0) // Current system may not detect issues in test files
     }
     
-    @Test func testAnalyzeProjectPerformance() async throws {
+    @Test func testAnalyzeProjectPerformance() throws {
         setupComplexTestProject()
         let linter = ProjectLinter()
         
@@ -110,7 +110,7 @@ final class ProjectLinterTests {
         #expect(issues.count >= 0)
     }
     
-    @Test func testAnalyzeProjectWithAllCategories() async throws {
+    @Test func testAnalyzeProjectWithAllCategories() throws {
         setupComplexTestProject()
         let linter = ProjectLinter()
         
@@ -130,7 +130,7 @@ final class ProjectLinterTests {
         #expect(detectedCategories.count >= 0) // Current system may not detect issues in test files
     }
     
-    @Test func testAnalyzeProjectWithAllRules() async throws {
+    @Test func testAnalyzeProjectWithAllRules() throws {
         setupComplexTestProject()
         let linter = ProjectLinter()
         

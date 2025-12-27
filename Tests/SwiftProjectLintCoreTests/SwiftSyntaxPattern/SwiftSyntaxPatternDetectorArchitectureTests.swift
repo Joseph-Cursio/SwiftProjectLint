@@ -18,7 +18,7 @@ struct SwiftSyntaxPatternDetectorArchitectureTests {
     
     @Test
     @MainActor
-    static func architectureVisitorFatView() async throws {
+    static func architectureVisitorFatView() throws {
         let detector = TestRegistryManager.getSharedDetector()
         
         // Given
@@ -64,7 +64,7 @@ struct SwiftSyntaxPatternDetectorArchitectureTests {
     
     @Test
     @MainActor
-    static func architectureVisitorMissingDependencyInjection() async throws {
+    static func architectureVisitorMissingDependencyInjection() throws {
         let detector = TestRegistryManager.getSharedDetector()
         
         // Given
@@ -104,7 +104,7 @@ struct SwiftSyntaxPatternDetectorArchitectureTests {
     
     @Test
     @MainActor
-    static func architectureVisitorValidArchitecture() async throws {
+    static func architectureVisitorValidArchitecture() throws {
         let detector = TestRegistryManager.getSharedDetector()
         
         // Given
@@ -143,7 +143,7 @@ struct SwiftSyntaxPatternDetectorArchitectureTests {
     }
     
     @Test
-    static func architectureVisitorMissingProtocols() async throws {
+    static func architectureVisitorMissingProtocols() throws {
         // Given
         let sourceCode = """
         class UserManager: ObservableObject {
@@ -170,7 +170,7 @@ struct SwiftSyntaxPatternDetectorArchitectureTests {
     }
     
     @Test
-    static func architectureVisitorCircularDependencies() async throws {
+    static func architectureVisitorCircularDependencies() throws {
         // Given
         let sourceCode = """
         import TestView

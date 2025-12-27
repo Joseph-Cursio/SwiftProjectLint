@@ -4,7 +4,7 @@ import Foundation
 
 @Suite struct DebugLoggerTests {
     
-    @Test @MainActor func testIsEnabledFlag() async throws {
+    @Test @MainActor func testIsEnabledFlag() throws {
         #if DEBUG
         #expect(DebugLogger.isEnabled)
         #else
@@ -13,13 +13,13 @@ import Foundation
     }
     
     #if DEBUG
-    @Test @MainActor func testDebugDirectoryCreatesAndReturnsPath() async throws {
+    @Test @MainActor func testDebugDirectoryCreatesAndReturnsPath() throws {
         let debugDir = DebugLogger.debugDirectory()
         #expect(debugDir.hasSuffix("/debug_output"))
         #expect(FileManager.default.fileExists(atPath: debugDir, isDirectory: nil))
     }
     
-    @Test @MainActor func testLogPrintsMessage() async throws {
+    @Test @MainActor func testLogPrintsMessage() throws {
         var logs: [String] = []
         let originalOutputHandler = DebugLogger.outputHandler
         DebugLogger.outputHandler = { logs.append($0) }
@@ -31,7 +31,7 @@ import Foundation
         #expect(output.contains("DEBUG [TestFile.swift:42] testFunc: Test message"))
     }
     
-    @Test @MainActor func testLogASTPrintsAST() async throws {
+    @Test @MainActor func testLogASTPrintsAST() throws {
         var logs: [String] = []
         let originalOutputHandler = DebugLogger.outputHandler
         DebugLogger.outputHandler = { logs.append($0) }
@@ -46,7 +46,7 @@ import Foundation
         #expect(output.contains("AST_STRING"))
     }
     
-    @Test @MainActor func testLogVisitorPrintsVisitorMessage() async throws {
+    @Test @MainActor func testLogVisitorPrintsVisitorMessage() throws {
         var logs: [String] = []
         let originalOutputHandler = DebugLogger.outputHandler
         DebugLogger.outputHandler = { logs.append($0) }
@@ -60,7 +60,7 @@ import Foundation
         #expect(output.contains("Visitor message"))
     }
     
-    @Test @MainActor func testLogIssuePrintsIssue() async throws {
+    @Test @MainActor func testLogIssuePrintsIssue() throws {
         var logs: [String] = []
         let originalOutputHandler = DebugLogger.outputHandler
         DebugLogger.outputHandler = { logs.append($0) }
@@ -74,7 +74,7 @@ import Foundation
         #expect(output.contains("ISSUE DETECTED: ISSUE!"))
     }
     
-    @Test @MainActor func testLogNodePrintsNode() async throws {
+    @Test @MainActor func testLogNodePrintsNode() throws {
         var logs: [String] = []
         let originalOutputHandler = DebugLogger.outputHandler
         DebugLogger.outputHandler = { logs.append($0) }
@@ -88,7 +88,7 @@ import Foundation
         #expect(output.contains("Visiting IfExpr - details here"))
     }
     #else
-    @Test func testReleaseLoggerDoesNothing() async throws {
+    @Test func testReleaseLoggerDoesNothing() throws {
         // All log methods should be no-ops and not crash
         DebugLogger.log("msg")
         DebugLogger.logAST("ast")

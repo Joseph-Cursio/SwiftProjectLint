@@ -8,7 +8,7 @@ import SwiftParser
 struct MemoryManagementRetainCycleTests {
     var visitor: MemoryManagementVisitor { MemoryManagementVisitor() }
 
-    @Test func testDetectsPotentialRetainCycle() async throws {
+    @Test func testDetectsPotentialRetainCycle() throws {
         let sourceCode = """
         struct ContentView: View {
             @StateObject var viewModel: ContentViewModel = ContentViewModel()
@@ -25,7 +25,7 @@ struct MemoryManagementRetainCycleTests {
         #expect(issue.suggestion?.contains("Review object lifecycle") == true)
     }
 
-    @Test func testDoesNotDetectRetainCycleWhenTypesDiffer() async throws {
+    @Test func testDoesNotDetectRetainCycleWhenTypesDiffer() throws {
         let sourceCode = """
         struct ContentView: View {
             @StateObject var viewModel: ContentViewModel = DifferentViewModel()
@@ -35,10 +35,10 @@ struct MemoryManagementRetainCycleTests {
         let sourceFile = Parser.parse(source: sourceCode)
         let visitor = self.visitor
         visitor.walk(sourceFile)
-        #expect(visitor.detectedIssues.count == 0)
+        #expect(visitor.detectedIssues.isEmpty)
     }
 
-    @Test func testDoesNotDetectRetainCycleWithoutStateObject() async throws {
+    @Test func testDoesNotDetectRetainCycleWithoutStateObject() throws {
         let sourceCode = """
         struct ContentView: View {
             @State var viewModel: ContentViewModel = ContentViewModel()
@@ -48,10 +48,10 @@ struct MemoryManagementRetainCycleTests {
         let sourceFile = Parser.parse(source: sourceCode)
         let visitor = self.visitor
         visitor.walk(sourceFile)
-        #expect(visitor.detectedIssues.count == 0)
+        #expect(visitor.detectedIssues.isEmpty)
     }
 
-    @Test func testDoesNotDetectRetainCycleWithoutInitializer() async throws {
+    @Test func testDoesNotDetectRetainCycleWithoutInitializer() throws {
         let sourceCode = """
         struct ContentView: View {
             @StateObject var viewModel: ContentViewModel
@@ -61,10 +61,10 @@ struct MemoryManagementRetainCycleTests {
         let sourceFile = Parser.parse(source: sourceCode)
         let visitor = self.visitor
         visitor.walk(sourceFile)
-        #expect(visitor.detectedIssues.count == 0)
+        #expect(visitor.detectedIssues.isEmpty)
     }
 
-    @Test func testDetectsMultipleRetainCycles() async throws {
+    @Test func testDetectsMultipleRetainCycles() throws {
         let sourceCode = """
         struct ContentView: View {
             @StateObject var viewModel1: ViewModel1 = ViewModel1()

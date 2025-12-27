@@ -4,7 +4,7 @@ import Foundation
 
 @MainActor
 final class ArchitectureDataFlowTests {
-    @Test func testDetectArchitecturalAntiPatternsWithInconsistentDataFlow() async throws {
+    @Test func testDetectArchitecturalAntiPatternsWithInconsistentDataFlow() throws {
         // ... existing code ...
     }
 } 

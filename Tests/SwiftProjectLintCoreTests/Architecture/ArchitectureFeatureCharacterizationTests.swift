@@ -20,11 +20,11 @@ final class ArchitectureFeatureCharacterizationTests {
     
     // MARK: - AdvancedAnalyzer Basic Behavior Characterization
     
-    @Test func characterizeAdvancedAnalyzerWithEmptyProject() async throws {
+    @Test func characterizeAdvancedAnalyzerWithEmptyProject() throws {
         let analyzer = AdvancedAnalyzer()
         
         // Create a temporary empty directory
-        let tempDir = createTempDirectory()
+        let tempDir = try createTempDirectory()
         defer { cleanupTempDirectory(tempDir) }
         
         let issues = analyzer.analyzeArchitecture(projectPath: tempDir)
@@ -37,7 +37,7 @@ final class ArchitectureFeatureCharacterizationTests {
         #expect(issues.isEmpty, "Empty project should produce no architecture issues")
     }
     
-    @Test func characterizeAdvancedAnalyzerWithNonExistentPath() async throws {
+    @Test func characterizeAdvancedAnalyzerWithNonExistentPath() throws {
         let analyzer = AdvancedAnalyzer()
         let nonExistentPath = "/this/path/does/not/exist/anywhere"
         
@@ -51,11 +51,11 @@ final class ArchitectureFeatureCharacterizationTests {
         #expect(issues.isEmpty, "Non-existent path should produce no issues")
     }
     
-    @Test func characterizeAdvancedAnalyzerWithSimpleProject() async throws {
+    @Test func characterizeAdvancedAnalyzerWithSimpleProject() throws {
         let analyzer = AdvancedAnalyzer()
         
         // Create a simple test project
-        let projectDir = createSimpleTestProject()
+        let projectDir = try createSimpleTestProject()
         defer { cleanupTempDirectory(projectDir) }
         
         let issues = analyzer.analyzeArchitecture(projectPath: projectDir)
@@ -79,11 +79,11 @@ final class ArchitectureFeatureCharacterizationTests {
         #expect(issues.count >= 0, "Simple project analysis should work")
     }
     
-    @Test func characterizeAdvancedAnalyzerWithDuplicateStateProject() async throws {
+    @Test func characterizeAdvancedAnalyzerWithDuplicateStateProject() throws {
         let analyzer = AdvancedAnalyzer()
         
         // Create a project with duplicate state variables
-        let projectDir = createDuplicateStateProject()
+        let projectDir = try createDuplicateStateProject()
         defer { cleanupTempDirectory(projectDir) }
         
         let issues = analyzer.analyzeArchitecture(projectPath: projectDir)
@@ -106,7 +106,7 @@ final class ArchitectureFeatureCharacterizationTests {
     
     // MARK: - ArchitectureIssue Model Characterization
     
-    @Test func characterizeArchitectureIssueCreation() async throws {
+    @Test func characterizeArchitectureIssueCreation() throws {
         let issue = ArchitectureIssue(
             type: .duplicateState,
             severity: .warning,
@@ -130,7 +130,7 @@ final class ArchitectureFeatureCharacterizationTests {
         #expect(issue.affectedViews.count == 2)
     }
     
-    @Test func characterizeArchitectureIssueTypes() async throws {
+    @Test func characterizeArchitectureIssueTypes() throws {
         let issueTypes: [ArchitectureIssueType] = [
             .duplicateState,
             .missingStateObject,
@@ -151,7 +151,7 @@ final class ArchitectureFeatureCharacterizationTests {
     
     // MARK: - ViewRelationship Model Characterization
     
-    @Test func characterizeViewRelationshipCreation() async throws {
+    @Test func characterizeViewRelationshipCreation() throws {
         let relationship = ViewRelationship(
             parentView: "ParentView",
             childView: "ChildView",
@@ -171,7 +171,7 @@ final class ArchitectureFeatureCharacterizationTests {
         #expect(relationship.relationshipType == .directChild)
     }
     
-    @Test func characterizeRelationshipTypes() async throws {
+    @Test func characterizeRelationshipTypes() throws {
         let relationshipTypes: [RelationshipType] = [
             .directChild,
             .navigationDestination,
@@ -195,9 +195,9 @@ final class ArchitectureFeatureCharacterizationTests {
     
     // MARK: - Integration Tests: Full Architecture Analysis Pipeline
     
-    @Test func characterizeFullArchitectureAnalysisPipeline() async throws {
+    @Test func characterizeFullArchitectureAnalysisPipeline() throws {
         // Create a comprehensive test project
-        let projectDir = createComprehensiveTestProject()
+        let projectDir = try createComprehensiveTestProject()
         defer { cleanupTempDirectory(projectDir) }
         
         let analyzer = AdvancedAnalyzer()
@@ -232,7 +232,7 @@ final class ArchitectureFeatureCharacterizationTests {
     
     // MARK: - Behavior Summary
     
-    @Test func generateArchitectureBehaviorSummary() async throws {
+    @Test func generateArchitectureBehaviorSummary() throws {
         print("📋 Architecture Feature Behavior Summary:")
         print("   ✅ AdvancedAnalyzer: Project-level analysis works")
         print("   ✅ ArchitectureIssue: Proper issue modeling")
@@ -250,9 +250,9 @@ final class ArchitectureFeatureCharacterizationTests {
     
     // MARK: - Helper Methods for Creating Test Projects
     
-    private func createTempDirectory() -> String {
+    private func createTempDirectory() throws -> String {
         let tempDir = NSTemporaryDirectory() + "ArchitectureTest_" + UUID().uuidString
-        try! FileManager.default.createDirectory(atPath: tempDir, withIntermediateDirectories: true)
+        try FileManager.default.createDirectory(atPath: tempDir, withIntermediateDirectories: true)
         return tempDir
     }
     
@@ -260,8 +260,8 @@ final class ArchitectureFeatureCharacterizationTests {
         try? FileManager.default.removeItem(atPath: path)
     }
     
-    private func createSimpleTestProject() -> String {
-        let projectDir = createTempDirectory()
+    private func createSimpleTestProject() throws -> String {
+        let projectDir = try createTempDirectory()
         
         // Create simple SwiftUI files
         let contentView = """
@@ -293,14 +293,14 @@ final class ArchitectureFeatureCharacterizationTests {
         }
         """
         
-        try! contentView.write(toFile: (projectDir as NSString).appendingPathComponent("ContentView.swift"), atomically: true, encoding: .utf8)
-        try! detailView.write(toFile: (projectDir as NSString).appendingPathComponent("DetailView.swift"), atomically: true, encoding: .utf8)
+        try contentView.write(toFile: (projectDir as NSString).appendingPathComponent("ContentView.swift"), atomically: true, encoding: .utf8)
+        try detailView.write(toFile: (projectDir as NSString).appendingPathComponent("DetailView.swift"), atomically: true, encoding: .utf8)
         
         return projectDir
     }
     
-    private func createDuplicateStateProject() -> String {
-        let projectDir = createTempDirectory()
+    private func createDuplicateStateProject() throws -> String {
+        let projectDir = try createTempDirectory()
         
         let parentView = """
         import SwiftUI
@@ -333,14 +333,14 @@ final class ArchitectureFeatureCharacterizationTests {
         }
         """
         
-        try! parentView.write(toFile: (projectDir as NSString).appendingPathComponent("ParentView.swift"), atomically: true, encoding: .utf8)
-        try! childView.write(toFile: (projectDir as NSString).appendingPathComponent("ChildView.swift"), atomically: true, encoding: .utf8)
+        try parentView.write(toFile: (projectDir as NSString).appendingPathComponent("ParentView.swift"), atomically: true, encoding: .utf8)
+        try childView.write(toFile: (projectDir as NSString).appendingPathComponent("ChildView.swift"), atomically: true, encoding: .utf8)
         
         return projectDir
     }
     
-    private func createComprehensiveTestProject() -> String {
-        let projectDir = createTempDirectory()
+    private func createComprehensiveTestProject() throws -> String {
+        let projectDir = try createTempDirectory()
         
         // Create multiple views with various patterns
         let files = [
@@ -433,27 +433,27 @@ final class ArchitectureFeatureCharacterizationTests {
         ]
         
         for (fileName, content) in files {
-            try! content.write(toFile: (projectDir as NSString).appendingPathComponent(fileName), atomically: true, encoding: .utf8)
+            try content.write(toFile: (projectDir as NSString).appendingPathComponent(fileName), atomically: true, encoding: .utf8)
         }
         
         return projectDir
     }
     
-    private func createLargeTestProject() -> String {
-        let projectDir = createTempDirectory()
+    private func createLargeTestProject() throws -> String {
+        let projectDir = try createTempDirectory()
         
         // Create many files to test performance
-        for i in 0..<50 {
+        for index in 0..<50 {
             let viewContent = """
             import SwiftUI
             
-            struct TestView\(i): View {
-                @State private var data\(i): String = ""
+            struct TestView\(index): View {
+                @State private var data\(index): String = ""
                 @State private var isLoading: Bool = false
                 
                 var body: some View {
                     VStack {
-                        Text("View \(i)")
+                        Text("View \(index)")
                         if isLoading {
                             ProgressView()
                         }
@@ -462,7 +462,7 @@ final class ArchitectureFeatureCharacterizationTests {
             }
             """
             
-            try! viewContent.write(toFile: (projectDir as NSString).appendingPathComponent("TestView\(i).swift"), atomically: true, encoding: .utf8)
+            try viewContent.write(toFile: (projectDir as NSString).appendingPathComponent("TestView\(index).swift"), atomically: true, encoding: .utf8)
         }
         
         return projectDir

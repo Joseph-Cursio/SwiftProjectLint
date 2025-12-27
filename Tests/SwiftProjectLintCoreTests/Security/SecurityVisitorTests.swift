@@ -6,7 +6,7 @@ import SwiftSyntax
 
 struct SecurityVisitorTests {
     
-    @Test func testHardcodedSecretDetection() async throws {
+    @Test func testHardcodedSecretDetection() throws {
         let sourceCode = """
         let apiKey = "12345"
         let secret = "topsecret"
@@ -25,7 +25,7 @@ struct SecurityVisitorTests {
         #expect(issues.allSatisfy { $0.suggestion?.contains("secure key storage") ?? false })
     }
     
-    @Test func testUnsafeURLConstruction() async throws {
+    @Test func testUnsafeURLConstruction() throws {
         let sourceCode = """
         let token = "abc123"
         let userId = "user456"

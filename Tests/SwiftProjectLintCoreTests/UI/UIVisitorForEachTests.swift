@@ -7,7 +7,7 @@ import SwiftParser
 @Suite("UIVisitorForEachTests")
 struct UIVisitorForEachTests {
     
-    @Test func testDetectsForEachWithoutID() async throws {
+    @Test func testDetectsForEachWithoutID() throws {
         let visitor = UIVisitor(patternCategory: PatternCategory.uiPatterns)
         visitor.setFilePath("test.swift")
         visitor.reset()
@@ -40,7 +40,7 @@ struct UIVisitorForEachTests {
         }
     }
     
-    @Test func testDoesNotDetectForEachWithExplicitID() async throws {
+    @Test func testDoesNotDetectForEachWithExplicitID() throws {
         let visitor = UIVisitor(patternCategory: PatternCategory.uiPatterns)
         visitor.setFilePath("test.swift")
         visitor.reset()
@@ -66,6 +66,6 @@ struct UIVisitorForEachTests {
         let issues = visitor.detectedIssues
         
         // Should not detect any issues (preview detection skipped for test files)
-        #expect(issues.count == 0)
+        #expect(issues.isEmpty)
     }
 } 

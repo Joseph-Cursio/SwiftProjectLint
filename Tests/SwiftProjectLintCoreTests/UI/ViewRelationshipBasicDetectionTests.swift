@@ -66,7 +66,7 @@ struct ViewRelationshipBasicDetectionTests {
 
     // MARK: - Basic Detection Tests
 
-    @Test func testVerySimpleDetection() async throws {
+    @Test func testVerySimpleDetection() throws {
         let sourceCode = """
         struct ContentView: View {
             var body: some View {
@@ -78,10 +78,10 @@ struct ViewRelationshipBasicDetectionTests {
         let relationships = extractRelationships(from: sourceCode, parentView: "ContentView")
         
         // Text is a system view, so it should NOT be detected as a direct child
-        #expect(relationships.count == 0)
+        #expect(relationships.isEmpty)
     }
     
-    @Test func testBasicDetection() async throws {
+    @Test func testBasicDetection() throws {
         let sourceCode = """
         struct ContentView: View {
             var body: some View {
@@ -98,10 +98,10 @@ struct ViewRelationshipBasicDetectionTests {
         let relationships = extractRelationships(from: sourceCode, parentView: "ContentView")
         
         // Text and Button are system views, so they should NOT be detected as direct children
-        #expect(relationships.count == 0)
+        #expect(relationships.isEmpty)
     }
     
-    @Test func testDirectChildViewDetection() async throws {
+    @Test func testDirectChildViewDetection() throws {
         let sourceCode = """
         struct ContentView: View {
             var body: some View {
@@ -126,7 +126,7 @@ struct ViewRelationshipBasicDetectionTests {
         #expect(relationships[0].parentView == "ContentView")
     }
     
-    @Test func testLineNumberCalculation() async throws {
+    @Test func testLineNumberCalculation() throws {
         let sourceCode = """
         struct ContentView: View {
             var body: some View {

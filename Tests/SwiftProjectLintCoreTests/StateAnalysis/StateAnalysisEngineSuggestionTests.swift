@@ -4,13 +4,13 @@ import Foundation
 
 @MainActor
 final class StateAnalysisEngineSuggestionTests {
-    @Test func testSuggestImprovementsWithEmptyStateVariables() async throws {
+    @Test func testSuggestImprovementsWithEmptyStateVariables() throws {
         // ... existing code ...
     }
-    @Test func testSuggestImprovementsWithMultipleStateVariables() async throws {
+    @Test func testSuggestImprovementsWithMultipleStateVariables() throws {
         // ... existing code ...
     }
-    @Test func testSuggestImprovementsWithSharedState() async throws {
+    @Test func testSuggestImprovementsWithSharedState() throws {
         // ... existing code ...
     }
 } 

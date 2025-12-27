@@ -4,16 +4,16 @@ import Foundation
 
 @MainActor
 final class CrossFileAnalysisEngineProjectEdgeCaseTests {
-    @Test func testDetectCrossFilePatternsWithEmptyProject() async throws {
+    @Test func testDetectCrossFilePatternsWithEmptyProject() throws {
         // ... existing code ...
     }
-    @Test func testDetectCrossFilePatternsWithSingleFile() async throws {
+    @Test func testDetectCrossFilePatternsWithSingleFile() throws {
         // ... existing code ...
     }
-    @Test func testDetectCrossFilePatternsWithInvalidFiles() async throws {
+    @Test func testDetectCrossFilePatternsWithInvalidFiles() throws {
         // ... existing code ...
     }
-    @Test func testDetectCrossFilePatternsWithMixedValidInvalidFiles() async throws {
+    @Test func testDetectCrossFilePatternsWithMixedValidInvalidFiles() throws {
         // ... existing code ...
     }
 } 

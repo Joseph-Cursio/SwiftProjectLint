@@ -69,7 +69,7 @@ class AccessibilityTextColorTests {
         visitor.walk(sourceFile)
         
         // Then
-        #expect(visitor.detectedIssues.count == 0)
+        #expect(visitor.detectedIssues.isEmpty)
     }
     
     @Test func testTextWithAccessibilityFeatures() {
@@ -92,7 +92,7 @@ class AccessibilityTextColorTests {
         visitor.walk(sourceFile)
         
         // Then
-        #expect(visitor.detectedIssues.count == 0)
+        #expect(visitor.detectedIssues.isEmpty)
     }
     
     // MARK: - Color Accessibility Tests

@@ -4,10 +4,10 @@ import Foundation
 
 @MainActor
 final class StateAnalysisEnginePerformanceTests {
-    @Test func testStateAnalysisEnginePerformance() async throws {
+    @Test func testStateAnalysisEnginePerformance() throws {
         // ... existing code ...
     }
-    @Test func testStateAnalysisEngineWithLargeHierarchy() async throws {
+    @Test func testStateAnalysisEngineWithLargeHierarchy() throws {
         // ... existing code ...
     }
 } 

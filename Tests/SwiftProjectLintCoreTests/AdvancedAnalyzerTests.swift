@@ -4,7 +4,7 @@ import Foundation
 
 final class AdvancedAnalyzerTests {
     
-    @Test func testExtractViewNameRemovesSwiftExtension() async throws {
+    @Test func testExtractViewNameRemovesSwiftExtension() throws {
         let name = FileAnalysisUtils.extractViewName(from: "/Users/test/ContentView.swift")
         #expect(name == "ContentView")
         
@@ -15,7 +15,7 @@ final class AdvancedAnalyzerTests {
         #expect(name3 == "BazView")
     }
     
-    @Test func testFindDuplicatesReturnsCorrectDuplicates() async throws {
+    @Test func testFindDuplicatesReturnsCorrectDuplicates() throws {
         let input = ["a", "b", "c", "a", "d", "b"]
         let result = Set(input.filter { item in input.filter { $0 == item }.count > 1 })
         
@@ -25,7 +25,7 @@ final class AdvancedAnalyzerTests {
         #expect(!result.contains("d"))
     }
     
-    @Test @MainActor func testFindRelatedViewsDetectsHierarchy() async throws {
+    @Test @MainActor func testFindRelatedViewsDetectsHierarchy() throws {
         // Test through the public interface by creating actual view relationships
         let analyzer = AdvancedAnalyzer()
         
@@ -39,7 +39,7 @@ final class AdvancedAnalyzerTests {
         #expect(issues.count >= 0) // At minimum, it should complete without errors
     }
     
-    @Test @MainActor func testIsRootViewReturnsTrueForRoot() async throws {
+    @Test @MainActor func testIsRootViewReturnsTrueForRoot() throws {
         // Test through the public interface by creating actual view relationships
         let analyzer = AdvancedAnalyzer()
         
@@ -53,7 +53,7 @@ final class AdvancedAnalyzerTests {
         #expect(issues.count >= 0) // At minimum, it should complete without errors
     }
     
-    @Test @MainActor func testGenerateStateSharingSuggestionForTwoViews() async throws {
+    @Test @MainActor func testGenerateStateSharingSuggestionForTwoViews() throws {
         // Test through the public interface by creating actual view relationships
         let analyzer = AdvancedAnalyzer()
         
@@ -67,7 +67,7 @@ final class AdvancedAnalyzerTests {
         #expect(issues.count >= 0) // At minimum, it should complete without errors
     }
     
-    @Test @MainActor func testGenerateStateSharingSuggestionForManyViews() async throws {
+    @Test @MainActor func testGenerateStateSharingSuggestionForManyViews() throws {
         // Test through the public interface by creating actual view relationships
         let analyzer = AdvancedAnalyzer()
         
@@ -81,7 +81,7 @@ final class AdvancedAnalyzerTests {
         #expect(issues.count >= 0) // At minimum, it should complete without errors
     }
     
-    @Test @MainActor func testRelationshipTypeAndViewRelationship() async throws {
+    @Test @MainActor func testRelationshipTypeAndViewRelationship() throws {
         let analyzer = AdvancedAnalyzer()
         
         // Test through the public interface by creating actual view relationships

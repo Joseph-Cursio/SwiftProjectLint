@@ -4,7 +4,7 @@ import Foundation
 
 @MainActor
 final class StateAnalysisEngineComplexHierarchyTests {
-    @Test func testAnalyzeStateManagementWithComplexHierarchy() async throws {
+    @Test func testAnalyzeStateManagementWithComplexHierarchy() throws {
         // ... existing code ...
     }
 } 

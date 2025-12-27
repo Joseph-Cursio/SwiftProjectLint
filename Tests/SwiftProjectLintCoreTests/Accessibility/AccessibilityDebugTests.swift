@@ -203,6 +203,6 @@ class AccessibilityDebugTests {
         }
         // Then
         // Should NOT detect an accessibility issue because .accessibilityLabel is present
-        #expect(customVisitor.detectedIssues.count == 0)
+        #expect(customVisitor.detectedIssues.isEmpty)
     }
 } 

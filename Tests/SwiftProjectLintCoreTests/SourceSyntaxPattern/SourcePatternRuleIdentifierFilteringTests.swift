@@ -26,7 +26,7 @@ final class SourcePatternRuleIdentifierFilteringTests {
 
     // MARK: - Rule Identifier Filtering Characterization
     
-    @Test func characterizeSpecificRuleIdentifierFiltering() async throws {
+    @Test func characterizeSpecificRuleIdentifierFiltering() throws {
         let detector = SourcePatternDetector()
         let testCode = """
         import SwiftUI
@@ -75,7 +75,7 @@ final class SourcePatternRuleIdentifierFilteringTests {
         #expect(specificIssues.count >= 0, "Rule identifier filtering should work")
     }
     
-    @Test func characterizeEmptyRuleIdentifierList() async throws {
+    @Test func characterizeEmptyRuleIdentifierList() throws {
         let detector = SourcePatternDetector()
         let testCode = """
         import SwiftUI

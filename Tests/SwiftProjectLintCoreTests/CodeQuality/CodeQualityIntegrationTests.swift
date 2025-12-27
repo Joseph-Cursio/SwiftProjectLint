@@ -27,7 +27,7 @@ struct CodeQualityIntegrationTests {
 
     // MARK: - Integration Tests
     
-    @Test mutating func testMultipleCodeQualityIssues() async throws {
+    @Test mutating func testMultipleCodeQualityIssues() throws {
         setupVisitor()
         defer { resetVisitor() }
         
@@ -73,7 +73,7 @@ struct CodeQualityIntegrationTests {
         #expect(documentationIssues.count == 1)
     }
     
-    @Test mutating func testEdgeCaseCharacterization() async throws {
+    @Test mutating func testEdgeCaseCharacterization() throws {
         setupVisitor()
         defer { resetVisitor() }
         
@@ -119,7 +119,7 @@ struct CodeQualityIntegrationTests {
         #expect(documentationIssues.count == 1)
     }
     
-    @Test mutating func testConfigurationCharacterization() async throws {
+    @Test mutating func testConfigurationCharacterization() throws {
         setupStrictVisitor()
         defer { resetVisitor() }
         
@@ -167,7 +167,7 @@ struct CodeQualityIntegrationTests {
     
     // MARK: - Configuration Tests
     
-    @Test func testConfigurationDefault() async throws {
+    @Test func testConfigurationDefault() throws {
         // Given
         let config = CodeQualityVisitor.Configuration.default
         
@@ -178,7 +178,7 @@ struct CodeQualityIntegrationTests {
         #expect(config.checkPublicAPIsOnly == true)
     }
     
-    @Test func testConfigurationStrict() async throws {
+    @Test func testConfigurationStrict() throws {
         // Given
         let config = CodeQualityVisitor.Configuration.strict
         

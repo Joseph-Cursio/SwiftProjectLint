@@ -30,6 +30,13 @@ opt_in_rules:
   - single_test_class         # One test class per file
   - unneeded_parentheses_in_closure_argument  # Clean closure syntax
   - vertical_parameter_alignment_on_call  # Align parameters
+  # Concurrency-related rules
+  - async_without_await                    # Detect async functions without await
+  - force_try                              # Warn about try! (can crash in concurrent contexts)
+  - incompatible_concurrency_annotation     # Detect incompatible concurrency annotations
+  - redundant_sendable                     # Detect redundant Sendable conformance
+  - unowned_variable_capture               # Warn about unowned captures in closures (risky in concurrent code)
+  - weak_delegate                          # Ensure delegates are weak (prevents retain cycles)
 
 # Rule configurations
 line_length:

@@ -4,10 +4,10 @@ import Foundation
 
 @MainActor
 final class ArchitectureDependencyInjectionTests {
-    @Test func testDetectArchitecturalAntiPatternsWithMissingDependencyInjection() async throws {
+    @Test func testDetectArchitecturalAntiPatternsWithMissingDependencyInjection() throws {
         // ... existing code ...
     }
-    @Test func testDetectArchitecturalAntiPatternsWithMultipleIssues_MissingDI() async throws {
+    @Test func testDetectArchitecturalAntiPatternsWithMultipleIssues_MissingDI() throws {
         // ... relevant code from testDetectArchitecturalAntiPatternsWithMultipleIssues ...
     }
 } 

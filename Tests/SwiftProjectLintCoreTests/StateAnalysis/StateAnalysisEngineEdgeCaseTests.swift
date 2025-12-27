@@ -4,13 +4,13 @@ import Foundation
 
 @MainActor
 final class StateAnalysisEngineEdgeCaseTests {
-    @Test func testAnalyzeStateManagementWithEmptyStateVariables() async throws {
+    @Test func testAnalyzeStateManagementWithEmptyStateVariables() throws {
         // ... existing code ...
     }
-    @Test func testAnalyzeStateManagementWithSingleStateVariable() async throws {
+    @Test func testAnalyzeStateManagementWithSingleStateVariable() throws {
         // ... existing code ...
     }
-    @Test func testAnalyzeStateManagementWithUnrelatedDuplicateStateVariables() async throws {
+    @Test func testAnalyzeStateManagementWithUnrelatedDuplicateStateVariables() throws {
         // ... existing code ...
     }
 } 

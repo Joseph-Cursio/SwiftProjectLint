@@ -4,10 +4,10 @@ import Foundation
 
 @MainActor
 final class ArchitectureFatViewTests {
-    @Test func testDetectArchitecturalAntiPatternsWithFatView() async throws {
+    @Test func testDetectArchitecturalAntiPatternsWithFatView() throws {
         // ... existing code ...
     }
-    @Test func testDetectArchitecturalAntiPatternsWithMultipleIssues_FatView() async throws {
+    @Test func testDetectArchitecturalAntiPatternsWithMultipleIssues_FatView() throws {
         // ... relevant code from testDetectArchitecturalAntiPatternsWithMultipleIssues ...
     }
 } 

@@ -7,7 +7,7 @@ import SwiftParser
 @Suite("UIVisitorStylingTests")
 struct UIVisitorStylingTests {
     
-    @Test func testDetectsInconsistentTextStyling() async throws {
+    @Test func testDetectsInconsistentTextStyling() throws {
         let visitor = UIVisitor(patternCategory: PatternCategory.uiPatterns)
         visitor.setFilePath("test.swift")
         visitor.reset()
@@ -38,7 +38,7 @@ struct UIVisitorStylingTests {
         }
     }
     
-    @Test func testDoesNotDetectSingleStylingModifier() async throws {
+    @Test func testDoesNotDetectSingleStylingModifier() throws {
         let visitor = UIVisitor(patternCategory: PatternCategory.uiPatterns)
         visitor.setFilePath("test.swift")
         visitor.reset()
@@ -57,6 +57,6 @@ struct UIVisitorStylingTests {
         let issues = visitor.detectedIssues
         
         // Should not detect any issues (preview detection skipped for test files)
-        #expect(issues.count == 0)
+        #expect(issues.isEmpty)
     }
 } 

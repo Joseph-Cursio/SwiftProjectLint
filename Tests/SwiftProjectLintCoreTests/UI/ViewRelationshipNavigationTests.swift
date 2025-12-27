@@ -66,7 +66,7 @@ struct ViewRelationshipNavigationTests {
 
     // MARK: - Navigation & Presentation Tests
 
-    @Test func testNavigationLinkDetection() async throws {
+    @Test func testNavigationLinkDetection() throws {
         let sourceCode = """
         struct ContentView: View {
             var body: some View {
@@ -86,7 +86,7 @@ struct ViewRelationshipNavigationTests {
         #expect(relationships[0].parentView == "ContentView")
     }
     
-    @Test func testSheetPresentationDetection() async throws {
+    @Test func testSheetPresentationDetection() throws {
         let sourceCode = """
         struct ContentView: View {
             @State private var showingSheet = false
@@ -111,7 +111,7 @@ struct ViewRelationshipNavigationTests {
         #expect(relationships[0].parentView == "ContentView")
     }
     
-    @Test func testFullScreenCoverDetection() async throws {
+    @Test func testFullScreenCoverDetection() throws {
         let sourceCode = """
         struct ContentView: View {
             @State private var showingFullScreen = false
@@ -136,7 +136,7 @@ struct ViewRelationshipNavigationTests {
         #expect(relationships[0].parentView == "ContentView")
     }
     
-    @Test func testPopoverDetection() async throws {
+    @Test func testPopoverDetection() throws {
         let sourceCode = """
         struct ContentView: View {
             @State private var showingPopover = false
@@ -161,7 +161,7 @@ struct ViewRelationshipNavigationTests {
         #expect(relationships[0].parentView == "ContentView")
     }
     
-    @Test func testMultipleRelationships() async throws {
+    @Test func testMultipleRelationships() throws {
         let sourceCode = """
         struct ContentView: View {
             @State private var showingSheet = false
@@ -202,7 +202,7 @@ struct ViewRelationshipNavigationTests {
         #expect(sheet?.childView == "SheetView", "Expected SheetView as sheet")
     }
     
-    @Test func testSimpleSheetDebug() async throws {
+    @Test func testSimpleSheetDebug() throws {
         let sourceCode = """
         struct ContentView: View {
             var body: some View {

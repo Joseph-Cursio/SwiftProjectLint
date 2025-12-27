@@ -4,13 +4,13 @@ import Foundation
 
 @MainActor
 @Suite struct StateAnalysisEngineDuplicateStateTests {
-    @Test func testAnalyzeStateManagementWithDuplicateStateVariables() async throws {
+    @Test func testAnalyzeStateManagementWithDuplicateStateVariables() throws {
         // ... existing code ...
     }
-    @Test func testAnalyzeStateManagementWithUnrelatedDuplicateStateVariables() async throws {
+    @Test func testAnalyzeStateManagementWithUnrelatedDuplicateStateVariables() throws {
         // ... existing code ...
     }
-    @Test func testAnalyzeStateManagementWithComplexHierarchy() async throws {
+    @Test func testAnalyzeStateManagementWithComplexHierarchy() throws {
         // ... existing code ...
     }
 } 

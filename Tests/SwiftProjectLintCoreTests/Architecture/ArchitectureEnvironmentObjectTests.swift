@@ -4,10 +4,10 @@ import Foundation
 
 @MainActor
 final class ArchitectureEnvironmentObjectTests {
-    @Test func testDetectArchitecturalAntiPatternsWithMissingEnvironmentObjects() async throws {
+    @Test func testDetectArchitecturalAntiPatternsWithMissingEnvironmentObjects() throws {
         // ... existing code ...
     }
-    @Test func testDetectArchitecturalAntiPatternsWithMultipleIssues_MissingEnvironment() async throws {
+    @Test func testDetectArchitecturalAntiPatternsWithMultipleIssues_MissingEnvironment() throws {
         // ... relevant code from testDetectArchitecturalAntiPatternsWithMultipleIssues ...
     }
 } 

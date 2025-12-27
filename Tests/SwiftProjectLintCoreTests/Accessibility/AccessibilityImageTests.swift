@@ -73,6 +73,6 @@ class AccessibilityImageTests {
         visitor.walk(sourceFile)
         
         // Then
-        #expect(visitor.detectedIssues.count == 0)
+        #expect(visitor.detectedIssues.isEmpty)
     }
 } 

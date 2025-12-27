@@ -10,7 +10,7 @@ struct MemoryManagementConfigurationTests {
 
     // MARK: - Configuration Tests
 
-    @Test func testCustomConfigurationForRetainCycles() async throws {
+    @Test func testCustomConfigurationForRetainCycles() throws {
         let config = MemoryManagementVisitor.Configuration(
             maxArraySize: 100,
             detectRetainCycles: false,
@@ -26,10 +26,10 @@ struct MemoryManagementConfigurationTests {
         """
         let sourceFile = Parser.parse(source: sourceCode)
         customVisitor.walk(sourceFile)
-        #expect(customVisitor.detectedIssues.count == 0)
+        #expect(customVisitor.detectedIssues.isEmpty)
     }
 
-    @Test func testCustomConfigurationForLargeObjects() async throws {
+    @Test func testCustomConfigurationForLargeObjects() throws {
         let config = MemoryManagementVisitor.Configuration(
             maxArraySize: 5,
             detectRetainCycles: true,
@@ -52,7 +52,7 @@ struct MemoryManagementConfigurationTests {
 
     // MARK: - Complex Scenarios
 
-    @Test func testComplexViewWithMultipleIssues() async throws {
+    @Test func testComplexViewWithMultipleIssues() throws {
         let sourceCode = """
         struct ContentView: View {
             @StateObject var viewModel: ContentViewModel = ContentViewModel()
@@ -101,7 +101,7 @@ struct MemoryManagementConfigurationTests {
         #expect(largeObjectIssues.count == 1)
     }
 
-    @Test func testResetClearsDetectedIssues() async throws {
+    @Test func testResetClearsDetectedIssues() throws {
         let sourceCode = """
         struct TestView: View {
             @StateObject var viewModel: TestViewModel = TestViewModel()
@@ -115,6 +115,6 @@ struct MemoryManagementConfigurationTests {
         visitor.walk(sourceFile)
         #expect(visitor.detectedIssues.count == 1)
         visitor.reset()
-        #expect(visitor.detectedIssues.count == 0)
+        #expect(visitor.detectedIssues.isEmpty)
     }
 } 

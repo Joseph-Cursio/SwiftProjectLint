@@ -27,7 +27,7 @@ final class SourcePatternBasicIOTests {
     
     // MARK: - Basic Input/Output Characterization
     
-    @Test func characterizeEmptySourceBehavior() async throws {
+    @Test func characterizeEmptySourceBehavior() throws {
         let detector = SourcePatternDetector()
         let issues = detector.detectPatterns(in: "", filePath: "/empty.swift")
         
@@ -35,7 +35,7 @@ final class SourcePatternBasicIOTests {
         #expect(issues.isEmpty, "Empty source code should produce no issues")
     }
     
-    @Test func testInvalidSwiftCode() async throws {
+    @Test func testInvalidSwiftCode() throws {
         let detector = SourcePatternDetector()
         let invalidCode = "This is not valid Swift code {"
         
@@ -47,7 +47,7 @@ final class SourcePatternBasicIOTests {
         #expect(issues.count >= 0) // Should handle invalid code gracefully
     }
     
-    @Test func characterizeWhitespaceOnlySource() async throws {
+    @Test func characterizeWhitespaceOnlySource() throws {
         let detector = SourcePatternDetector()
         let whitespaceCode = "   \n\n  \t  \n   "
         let issues = detector.detectPatterns(in: whitespaceCode, filePath: "/whitespace.swift")
@@ -55,7 +55,7 @@ final class SourcePatternBasicIOTests {
         #expect(issues.count >= 0, "Whitespace-only source should be handled gracefully")
     }
     
-    @Test func characterizeInvalidSyntaxHandling() async throws {
+    @Test func characterizeInvalidSyntaxHandling() throws {
         let detector = SourcePatternDetector()
         let invalidCode = """
         struct InvalidView {
@@ -70,7 +70,7 @@ final class SourcePatternBasicIOTests {
         #expect(issues.count >= 0, "Should handle invalid syntax gracefully")
     }
     
-    @Test func characterizeMinimalValidSwiftUI() async throws {
+    @Test func characterizeMinimalValidSwiftUI() throws {
         let detector = SourcePatternDetector()
         let minimalView = """
         import SwiftUI
@@ -87,7 +87,7 @@ final class SourcePatternBasicIOTests {
         #expect(issues.count >= 0, "Minimal valid SwiftUI should process without errors")
     }
     
-    @Test func characterizeComplexStateVariables() async throws {
+    @Test func characterizeComplexStateVariables() throws {
         let detector = SourcePatternDetector()
         let complexView = """
         import SwiftUI

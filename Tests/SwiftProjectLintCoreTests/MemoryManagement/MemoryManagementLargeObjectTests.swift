@@ -8,7 +8,7 @@ import SwiftParser
 struct MemoryManagementLargeObjectTests {
     var visitor: MemoryManagementVisitor { MemoryManagementVisitor() }
 
-    @Test func testDetectsLargeArrayInState() async throws {
+    @Test func testDetectsLargeArrayInState() throws {
         let sourceCode = """
         struct ContentView: View {
             @State var items: [String] = [
@@ -47,7 +47,7 @@ struct MemoryManagementLargeObjectTests {
         #expect(issue.suggestion?.contains("Consider using @StateObject") == true)
     }
 
-    @Test func testDoesNotDetectSmallArrayInState() async throws {
+    @Test func testDoesNotDetectSmallArrayInState() throws {
         let sourceCode = """
         struct ContentView: View {
             @State var items: [String] = ["item1", "item2", "item3"]
@@ -57,10 +57,10 @@ struct MemoryManagementLargeObjectTests {
         let sourceFile = Parser.parse(source: sourceCode)
         let visitor = self.visitor
         visitor.walk(sourceFile)
-        #expect(visitor.detectedIssues.count == 0)
+        #expect(visitor.detectedIssues.isEmpty)
     }
 
-    @Test func testDoesNotDetectLargeArrayWithoutState() async throws {
+    @Test func testDoesNotDetectLargeArrayWithoutState() throws {
         let sourceCode = """
         struct ContentView: View {
             var items: [String] = [
@@ -92,10 +92,10 @@ struct MemoryManagementLargeObjectTests {
         let sourceFile = Parser.parse(source: sourceCode)
         let visitor = self.visitor
         visitor.walk(sourceFile)
-        #expect(visitor.detectedIssues.count == 0)
+        #expect(visitor.detectedIssues.isEmpty)
     }
 
-    @Test func testDoesNotDetectNonArrayInState() async throws {
+    @Test func testDoesNotDetectNonArrayInState() throws {
         let sourceCode = """
         struct ContentView: View {
             @State var text: String = "Hello World"
@@ -105,6 +105,6 @@ struct MemoryManagementLargeObjectTests {
         let sourceFile = Parser.parse(source: sourceCode)
         let visitor = self.visitor
         visitor.walk(sourceFile)
-        #expect(visitor.detectedIssues.count == 0)
+        #expect(visitor.detectedIssues.isEmpty)
     }
 } 

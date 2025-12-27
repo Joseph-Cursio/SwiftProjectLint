@@ -4,7 +4,7 @@ import Foundation
 
 @MainActor
 final class ArchitectureValidArchitectureTests {
-    @Test func testDetectArchitecturalAntiPatternsWithValidArchitecture() async throws {
+    @Test func testDetectArchitecturalAntiPatternsWithValidArchitecture() throws {
         // ... existing code ...
     }
 } 

@@ -27,7 +27,7 @@ struct CodeQualityHardcodedStringTests {
 
     // MARK: - Hardcoded Strings Tests
     
-    @Test mutating func testHardcodedStringDetection() async throws {
+    @Test mutating func testHardcodedStringDetection() throws {
         setupVisitor()
         defer { resetVisitor() }
         
@@ -57,7 +57,7 @@ struct CodeQualityHardcodedStringTests {
         #expect(issue?.message.contains("This is a very long hardcoded string") == true)
     }
     
-    @Test mutating func testHardcodedStringSkipPatterns() async throws {
+    @Test mutating func testHardcodedStringSkipPatterns() throws {
         setupVisitor()
         defer { resetVisitor() }
         
@@ -87,7 +87,7 @@ struct CodeQualityHardcodedStringTests {
         #expect(issue?.message.contains("user-facing message") == true)
     }
     
-    @Test mutating func testHardcodedStringDetectionCharacterization() async throws {
+    @Test mutating func testHardcodedStringDetectionCharacterization() throws {
         setupVisitor()
         defer { resetVisitor() }
         
@@ -117,7 +117,7 @@ struct CodeQualityHardcodedStringTests {
         #expect(issue?.message.contains("This is a very long hardcoded string") == true)
     }
     
-    @Test mutating func testStrictHardcodedStringDetectionCharacterization() async throws {
+    @Test mutating func testStrictHardcodedStringDetectionCharacterization() throws {
         setupStrictVisitor()
         defer { resetVisitor() }
         

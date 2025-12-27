@@ -68,7 +68,8 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
     var category: PatternCategory {
         switch self {
         // State Management Rules
-        case .relatedDuplicateStateVariable, .unrelatedDuplicateStateVariable, .uninitializedStateVariable, .missingStateObject, .unusedStateVariable, .fatView:
+        case .relatedDuplicateStateVariable, .unrelatedDuplicateStateVariable,
+             .uninitializedStateVariable, .missingStateObject, .unusedStateVariable, .fatView:
             return .stateManagement
 
             // Performance Rules

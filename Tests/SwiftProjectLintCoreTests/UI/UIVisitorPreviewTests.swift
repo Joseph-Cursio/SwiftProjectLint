@@ -7,7 +7,7 @@ import SwiftParser
 @Suite("UIVisitorPreviewTests")
 struct UIVisitorPreviewTests {
     
-    @Test func testDetectsMissingPreview() async throws {
+    @Test func testDetectsMissingPreview() throws {
         let visitor = UIVisitor(patternCategory: PatternCategory.uiPatterns)
         visitor.setFilePath("test.swift")
         visitor.reset()
@@ -32,7 +32,7 @@ struct UIVisitorPreviewTests {
         #expect(issues.first?.severity == .info)
     }
     
-    @Test func testDoesNotDetectWhenPreviewExists() async throws {
+    @Test func testDoesNotDetectWhenPreviewExists() throws {
         let visitor = UIVisitor(patternCategory: PatternCategory.uiPatterns)
         visitor.setFilePath("test.swift")
         visitor.reset()
@@ -54,10 +54,10 @@ struct UIVisitorPreviewTests {
         let issues = visitor.detectedIssues
         
         // Should not detect any issues when preview exists
-        #expect(issues.count == 0)
+        #expect(issues.isEmpty)
     }
     
-    @Test func testDetectsPreviewStruct() async throws {
+    @Test func testDetectsPreviewStruct() throws {
         let visitor = UIVisitor(patternCategory: PatternCategory.uiPatterns)
         visitor.setFilePath("test.swift")
         visitor.reset()
@@ -81,6 +81,6 @@ struct UIVisitorPreviewTests {
         let issues = visitor.detectedIssues
         
         // Should not detect any issues when preview struct exists
-        #expect(issues.count == 0)
+        #expect(issues.isEmpty)
     }
 } 

@@ -26,7 +26,7 @@ final class CrossFileAnalysisClaimsTests {
     
     // MARK: - Cross-File Analysis Claims Investigation
     
-    @Test func characterizeCrossFileAnalysisClaimsVsReality() async throws {
+    @Test func characterizeCrossFileAnalysisClaimsVsReality() throws {
         let detector = SourcePatternDetector()
         
         // Create two files with identical state variables (potential duplicates)
@@ -102,7 +102,7 @@ final class CrossFileAnalysisClaimsTests {
         #expect(childIssues.count >= 0, "Child view analysis should work")
     }
     
-    @Test func characterizeFileCacheCapabilities() async throws {
+    @Test func characterizeFileCacheCapabilities() throws {
         let detector = SourcePatternDetector()
         
         // Test if file cache can hold multiple files simultaneously

@@ -4,7 +4,7 @@ import Foundation
 
 @MainActor
 final class ArchitecturePerformanceTests {
-    @Test func testArchitectureIssueDetectorPerformance() async throws {
+    @Test func testArchitectureIssueDetectorPerformance() throws {
         // ... existing code ...
     }
 } 

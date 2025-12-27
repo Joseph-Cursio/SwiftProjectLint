@@ -127,7 +127,8 @@ struct ArchitectureIssuesView: View {
                 .cornerRadius(12)
                 
                 // Code Quality Issue: Hardcoded strings
-                Text("This is a very long hardcoded string that should be moved to a localization file for better internationalization support and maintainability.")
+                Text("This is a very long hardcoded string that should be moved to a localization file " +
+                     "for better internationalization support and maintainability.")
                     .padding()
                     .multilineTextAlignment(.center)
                 

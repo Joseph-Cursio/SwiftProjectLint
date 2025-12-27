@@ -4,31 +4,31 @@ import Foundation
 
 @MainActor
 final class FileAnalysisUtilsFindSwiftFilesTests {
-    @Test func testFindSwiftFilesWithValidDirectory() async throws {
+    @Test func testFindSwiftFilesWithValidDirectory() throws {
         // ... existing code ...
     }
-    @Test func testFindSwiftFilesWithNestedStructure() async throws {
+    @Test func testFindSwiftFilesWithNestedStructure() throws {
         // ... existing code ...
     }
-    @Test func testFindSwiftFilesWithEmptyDirectory() async throws {
+    @Test func testFindSwiftFilesWithEmptyDirectory() throws {
         // ... existing code ...
     }
-    @Test func testFindSwiftFilesWithNonSwiftFiles() async throws {
+    @Test func testFindSwiftFilesWithNonSwiftFiles() throws {
         // ... existing code ...
     }
-    @Test func testFindSwiftFilesWithInvalidDirectory() async throws {
+    @Test func testFindSwiftFilesWithInvalidDirectory() throws {
         // ... existing code ...
     }
-    @Test func testFindSwiftFilesWithFileInsteadOfDirectory() async throws {
+    @Test func testFindSwiftFilesWithFileInsteadOfDirectory() throws {
         // ... existing code ...
     }
-    @Test func testFindSwiftFilesWithHiddenFiles() async throws {
+    @Test func testFindSwiftFilesWithHiddenFiles() throws {
         // ... existing code ...
     }
-    @Test func testFindSwiftFilesWithLargeProject() async throws {
+    @Test func testFindSwiftFilesWithLargeProject() throws {
         // ... existing code ...
     }
-    @Test func testFindSwiftFilesWithSpecialCharacters() async throws {
+    @Test func testFindSwiftFilesWithSpecialCharacters() throws {
         // ... existing code ...
     }
 } 

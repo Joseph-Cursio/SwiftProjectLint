@@ -4,7 +4,7 @@ import Foundation
 
 @MainActor
 final class ArchitectureMultipleIssuesTests {
-    @Test func testDetectArchitecturalAntiPatternsWithMultipleIssues() async throws {
+    @Test func testDetectArchitecturalAntiPatternsWithMultipleIssues() throws {
         // ... existing code ...
     }
 } 

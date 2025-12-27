@@ -76,7 +76,7 @@ class ButtonAccessibilityTests {
         visitor.walk(sourceFile)
         
         // Then
-        #expect(visitor.detectedIssues.count == 0)
+        #expect(visitor.detectedIssues.isEmpty)
     }
     
     @Test func testButtonWithTextOnly() {
@@ -99,7 +99,7 @@ class ButtonAccessibilityTests {
         visitor.walk(sourceFile)
         
         // Then
-        #expect(visitor.detectedIssues.count == 0)
+        #expect(visitor.detectedIssues.isEmpty)
     }
     
     // MARK: - Button with Text Missing Hint Tests
@@ -157,6 +157,6 @@ class ButtonAccessibilityTests {
         visitor.walk(sourceFile)
         
         // Then
-        #expect(visitor.detectedIssues.count == 0)
+        #expect(visitor.detectedIssues.isEmpty)
     }
 } 

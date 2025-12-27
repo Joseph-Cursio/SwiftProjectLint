@@ -27,7 +27,7 @@ struct CodeQualityDocumentationTests {
 
     // MARK: - Missing Documentation Tests
     
-    @Test mutating func testMissingDocumentationDetection() async throws {
+    @Test mutating func testMissingDocumentationDetection() throws {
         setupVisitor()
         defer { resetVisitor() }
         
@@ -73,7 +73,7 @@ struct CodeQualityDocumentationTests {
         #expect(anotherFunctionIssue != nil)
     }
     
-    @Test mutating func testDocumentedAPIsNoDetection() async throws {
+    @Test mutating func testDocumentedAPIsNoDetection() throws {
         setupVisitor()
         defer { resetVisitor() }
         
@@ -97,10 +97,10 @@ struct CodeQualityDocumentationTests {
         visitor.walk(sourceFile)
         
         // Then
-        #expect(visitor.detectedIssues.count == 0)
+        #expect(visitor.detectedIssues.isEmpty)
     }
     
-    @Test mutating func testPrivateAPIsNoDetection() async throws {
+    @Test mutating func testPrivateAPIsNoDetection() throws {
         setupVisitor()
         defer { resetVisitor() }
         
@@ -122,16 +122,16 @@ struct CodeQualityDocumentationTests {
         visitor.walk(sourceFile)
         
         // Then
-        #expect(visitor.detectedIssues.count == 0)
+        #expect(visitor.detectedIssues.isEmpty)
     }
     
-    @Test mutating func testDocumentationDetectionCharacterization() async throws {
+    @Test mutating func testDocumentationDetectionCharacterization() throws {
         setupVisitor()
         defer { resetVisitor() }
         // ... existing code ...
     }
     
-    @Test mutating func testStrictDocumentationDetectionCharacterization() async throws {
+    @Test mutating func testStrictDocumentationDetectionCharacterization() throws {
         setupStrictVisitor()
         defer { resetVisitor() }
         // ... existing code ...

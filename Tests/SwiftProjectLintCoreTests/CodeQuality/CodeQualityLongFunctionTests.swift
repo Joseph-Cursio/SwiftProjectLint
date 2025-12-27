@@ -27,7 +27,7 @@ struct CodeQualityLongFunctionTests {
 
     // MARK: - Long Functions Tests
     
-    @Test mutating func testLongFunctionDetection() async throws {
+    @Test mutating func testLongFunctionDetection() throws {
         setupVisitor()
         defer { resetVisitor() }
         
@@ -59,7 +59,7 @@ struct CodeQualityLongFunctionTests {
         #expect(longFunctionIssues.count == 1)
     }
     
-    @Test mutating func testShortFunctionNoDetection() async throws {
+    @Test mutating func testShortFunctionNoDetection() throws {
         setupVisitor()
         defer { resetVisitor() }
         
@@ -81,16 +81,16 @@ struct CodeQualityLongFunctionTests {
         visitor.walk(sourceFile)
         
         // Then
-        #expect(visitor.detectedIssues.count == 0)
+        #expect(visitor.detectedIssues.isEmpty)
     }
     
-    @Test mutating func testFunctionLengthDetectionCharacterization() async throws {
+    @Test mutating func testFunctionLengthDetectionCharacterization() throws {
         setupVisitor()
         defer { resetVisitor() }
         // ... existing code ...
     }
     
-    @Test mutating func testStrictFunctionLengthDetectionCharacterization() async throws {
+    @Test mutating func testStrictFunctionLengthDetectionCharacterization() throws {
         setupStrictVisitor()
         defer { resetVisitor() }
         // ... existing code ...

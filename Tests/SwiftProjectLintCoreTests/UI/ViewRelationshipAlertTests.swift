@@ -66,7 +66,7 @@ struct ViewRelationshipAlertTests {
 
     // MARK: - Alert Tests
 
-    @Test func testAlertDetection() async throws {
+    @Test func testAlertDetection() throws {
         let sourceCode = """
         struct ContentView: View {
             @State private var showingAlert = false
@@ -94,7 +94,7 @@ struct ViewRelationshipAlertTests {
         #expect(alertRelationship?.parentView == "ContentView")
     }
     
-    @Test func testSimpleAlertDetection() async throws {
+    @Test func testSimpleAlertDetection() throws {
         let sourceCode = """
         struct ContentView: View {
             @State private var showingAlert = false

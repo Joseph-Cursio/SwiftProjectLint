@@ -27,7 +27,7 @@ struct CodeQualityMagicNumberTests {
 
     // MARK: - Magic Numbers Tests
     
-    @Test mutating func testMagicNumberDetectionInPadding() async throws {
+    @Test mutating func testMagicNumberDetectionInPadding() throws {
         setupVisitor()
         defer { resetVisitor() }
         
@@ -61,7 +61,7 @@ struct CodeQualityMagicNumberTests {
         #expect(issue20?.severity == .info)
     }
     
-    @Test mutating func testMagicNumberDetectionInVariableInitialization() async throws {
+    @Test mutating func testMagicNumberDetectionInVariableInitialization() throws {
         setupVisitor()
         defer { resetVisitor() }
         
@@ -94,7 +94,7 @@ struct CodeQualityMagicNumberTests {
         #expect(issue12 != nil)
     }
     
-    @Test mutating func testMagicNumberDetectionInFrame() async throws {
+    @Test mutating func testMagicNumberDetectionInFrame() throws {
         setupVisitor()
         defer { resetVisitor() }
         
@@ -125,7 +125,7 @@ struct CodeQualityMagicNumberTests {
         #expect(issue200 != nil)
     }
     
-    @Test mutating func testMagicNumberThreshold() async throws {
+    @Test mutating func testMagicNumberThreshold() throws {
         setupVisitor()
         defer { resetVisitor() }
         
@@ -154,13 +154,13 @@ struct CodeQualityMagicNumberTests {
         #expect(issue15 != nil)
     }
     
-    @Test mutating func testMagicNumberDetectionCharacterization() async throws {
+    @Test mutating func testMagicNumberDetectionCharacterization() throws {
         setupVisitor()
         defer { resetVisitor() }
         // ... existing code ...
     }
     
-    @Test mutating func testStrictMagicNumberDetectionCharacterization() async throws {
+    @Test mutating func testStrictMagicNumberDetectionCharacterization() throws {
         setupStrictVisitor()
         defer { resetVisitor() }
         // ... existing code ...
