@@ -6,21 +6,22 @@ import Foundation
 /// and generate suggestions for improving state management across SwiftUI views.
 public class StateAnalysisEngine {
 
-    /// Analyzes the extracted state variables to detect patterns and issues related to state management across the SwiftUI codebase.
+    /// Analyzes the extracted state variables to detect patterns and issues related to state management across
+    /// the SwiftUI codebase.
     ///
     /// This method performs the following checks:
     /// - Identifies duplicate state variable names across views, suggesting potential state sharing improvements.
     /// - Detects duplicate state variables that occur in views which are related (e.g., parent and child),
     ///   indicating possible inefficient or redundant state allocation.
     /// - For each duplicate state variable found in related views, creates an `ArchitectureIssue` describing the problem,
-    ///   listing the affected views, and providing actionable suggestions for better state management (such as adopting shared
-    ///   `ObservableObject` patterns).
+    ///   listing the affected views, and providing actionable suggestions for better state management (such as
+    ///   adopting shared `ObservableObject` patterns).
     ///
     /// - Parameters:
     ///   - stateVariables: Array of state variables to analyze
     ///   - viewHierarchies: Dictionary mapping parent views to their child views
-    /// - Returns: An array of `ArchitectureIssue` objects highlighting detected state management problems and recommendations
-    ///            for improvement.
+    /// - Returns: An array of `ArchitectureIssue` objects highlighting detected state management problems
+    ///            and recommendations for improvement.
     public static func analyzeStateManagement(
         stateVariables: [StateVariable],
         viewHierarchies: [String: [String]]
@@ -50,11 +51,16 @@ public class StateAnalysisEngine {
                         Relationships: \(relatedViews.joined(separator: ", "))
                         Occurrences:
                         \(duplicateStates.map {
-                            "- \($0.viewName) at \($0.filePath):\($0.lineNumber)"
+                            """
+                            - \($0.viewName) at \($0.filePath):\($0.lineNumber)
+                            """
                         }.joined(separator: "\n"))
                         """,
                         affectedViews: affectedViews,
-                        suggestion: generateStateSharingSuggestion(for: duplicateName, views: affectedViews),
+                        suggestion: generateStateSharingSuggestion(
+                            for: duplicateName,
+                            views: affectedViews
+                        ),
                         filePath: duplicateStates[0].filePath,
                         lineNumber: duplicateStates[0].lineNumber
                     )
@@ -70,12 +76,15 @@ public class StateAnalysisEngine {
                         Views are not directly related in hierarchy.
                         Occurrences:
                         \(duplicateStates.map {
-                            "- \($0.viewName) at \($0.filePath):\($0.lineNumber)"
+                            """
+                            - \($0.viewName) at \($0.filePath):\($0.lineNumber)
+                            """
                         }.joined(separator: "\n"))
                         """,
                         affectedViews: affectedViews,
                         suggestion: """
-                        Consider if these variables represent the same concept and should be shared via a common ObservableObject.
+                        Consider if these variables represent the same concept and 
+                        should be shared via a common ObservableObject.
                         """,
                         filePath: duplicateStates[0].filePath,
                         lineNumber: duplicateStates[0].lineNumber
@@ -92,8 +101,8 @@ public class StateAnalysisEngine {
     ///
     /// This method identifies state variables that are used across multiple views, which may indicate the need for a more
     /// efficient or centralized state sharing approach.
-    /// Specifically, it suggests using `@EnvironmentObject` for state variables that appear in multiple views, recommending
-    /// the use of a shared `ObservableObject` injected at the root level of the view hierarchy.
+    /// Specifically, it suggests using `@EnvironmentObject` for state variables that appear in multiple views,
+    /// recommending the use of a shared `ObservableObject` injected at the root level of the view hierarchy.
     ///
     /// - Parameters:
     ///   - stateVariables: Array of state variables to analyze
@@ -102,12 +111,15 @@ public class StateAnalysisEngine {
     ///
     /// ### When to Use
     /// - When a state variable is duplicated across multiple views, consider centralizing the state using an
-    ///   `ObservableObject` and injecting it via `.environmentObject()` to improve consistency, reduce duplication, and streamline data flow.
+    ///   `ObservableObject` and injecting it via `.environmentObject()` to improve consistency, reduce
+    ///   duplication, and streamline data flow.
     ///
     /// ### Example Output
     /// - Suggestion: "Consider using @EnvironmentObject for 'userSettings' as it's used across multiple views."
     /// - Suggestion: "Create a shared ObservableObject and inject it via .environmentObject() at the root level."
-    public static func suggestImprovements(stateVariables: [StateVariable]) -> [ArchitectureIssue] {
+    public static func suggestImprovements(
+        stateVariables: [StateVariable]
+    ) -> [ArchitectureIssue] {
         var issues: [ArchitectureIssue] = []
 
         // Suggest EnvironmentObject for widely shared state
@@ -133,7 +145,9 @@ public class StateAnalysisEngine {
 
     // MARK: - Private Helper Methods
 
-    private static func findDuplicates<T: Hashable>(in array: [T]) -> [T] {
+    private static func findDuplicates<T: Hashable>(
+        in array: [T]
+    ) -> [T] {
         var seen = Set<T>()
         var duplicates = Set<T>()
 
@@ -148,7 +162,10 @@ public class StateAnalysisEngine {
         return Array(duplicates)
     }
 
-    private static func findRelatedViews(_ viewNames: [String], in viewHierarchies: [String: [String]]) -> [String] {
+    private static func findRelatedViews(
+        _ viewNames: [String],
+        in viewHierarchies: [String: [String]]
+    ) -> [String] {
         var related: [String] = []
 
         for viewName in viewNames {
@@ -168,20 +185,25 @@ public class StateAnalysisEngine {
         return Array(Set(related))
     }
 
-    private static func findWidelySharedState(stateVariables: [StateVariable]) -> [StateVariable] {
+    private static func findWidelySharedState(
+        stateVariables: [StateVariable]
+    ) -> [StateVariable] {
         let stateNames = stateVariables.map { $0.name }
         let duplicateNames = findDuplicates(in: stateNames)
 
         return stateVariables.filter { duplicateNames.contains($0.name) }
     }
 
-    private static func generateStateSharingSuggestion(for stateName: String, views: [String]) -> String {
+    private static func generateStateSharingSuggestion(
+        for stateName: String,
+        views: [String]
+    ) -> String {
         if views.count == 2 {
-            return "Create a shared ObservableObject for '\(stateName)' and pass it from \(views[0]) to \(views[1]) using @ObservedObject."
+            return "Create a shared ObservableObject for '\(stateName)' and pass it from " +
+                "\(views[0]) to \(views[1]) using @ObservedObject."
         } else {
-            return "Create a shared ObservableObject for '\(stateName)' and inject it via .environmentObject() at the root level " +
-                "for use across \(views.count) views."
+            return "Create a shared ObservableObject for '\(stateName)' and inject it via " +
+                ".environmentObject() at the root level for use across \(views.count) views."
         }
     }
 }
-

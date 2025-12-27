@@ -246,6 +246,6 @@ class ArchitectureVisitor: BasePatternVisitor {
         guard let converter = sourceLocationConverter else { return 1 }
         let position = node.positionAfterSkippingLeadingTrivia
         let location = converter.location(for: position)
-        return location.line ?? 1
+        return location.line
     }
 }

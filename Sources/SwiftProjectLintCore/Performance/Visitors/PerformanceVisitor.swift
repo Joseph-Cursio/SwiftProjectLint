@@ -1,6 +1,5 @@
 import Foundation
 import SwiftSyntax
-import PerformanceStateVariableInfo
 
 // Helpers are now in: PerformanceDetectionHelpers.swift, PerformanceStateVariableTracking.swift, SwiftUIViewUtils.swift
 
@@ -14,12 +13,12 @@ import PerformanceStateVariableInfo
 /// - Unnecessary view updates
 class PerformanceVisitor: BasePatternVisitor {
     private var currentViewName: String = ""
-    private var currentFilePath: String = ""
+    var currentFilePath: String = ""
     private var isInViewBody: Bool = false
     private var viewBodySize: Int = 0
 
     // For tracking unnecessary view updates
-    private var stateVariables: [String: PerformanceStateVariableInfo] = [:]
+    var stateVariables: [String: PerformanceStateVariableInfo] = [:]
     
     required init(patternCategory: PatternCategory) {
         super.init(viewMode: .sourceAccurate)
@@ -223,3 +222,4 @@ class PerformanceVisitor: BasePatternVisitor {
         }
     }
 }
+

@@ -25,7 +25,6 @@
 		28D83EEB2E1A30F9001F4A6A /* SwiftSyntax in Frameworks */ = {isa = PBXBuildFile; productRef = 2886405D2E19F25E0026F2CF /* SwiftSyntax */; };
 		28D83EEC2E1A30F9001F4A6A /* SwiftParser in Frameworks */ = {isa = PBXBuildFile; productRef = 2886405F2E19F26E0026F2CF /* SwiftParser */; };
 		28D83F622E1A3200001F4A6A /* (null) in Frameworks */ = {isa = PBXBuildFile; };
-        tt684851B3BA5C4316903B214E /* AdvancedAnalyzerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C45F8123703C44CA8612FA41 /* AdvancedAnalyzerTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -91,50 +90,35 @@
 		2805B4912E149DAB0018C12A /* SwiftProjectLint.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SwiftProjectLint.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		2805B49E2E149DAC0018C12A /* SwiftProjectLintTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SwiftProjectLintTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		2805B4A82E149DAC0018C12A /* SwiftProjectLintUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SwiftProjectLintUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		280910222E342B0100FE317F /* Package.resolved */ = {isa = PBXFileReference; lastKnownFileType = text; path = Package.resolved; sourceTree = "<group>"; };
-		280910232E342B0100FE317F /* Package.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Package.swift; sourceTree = "<group>"; };
-		280910242E342B0100FE317F /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		2810A22F2E157DDF004F8EEC /* SwiftProjectLint.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; path = SwiftProjectLint.xctestplan; sourceTree = "<group>"; };
 		28B796642E19EDA400AE3C7B /* SwiftProjectLintCore.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = SwiftProjectLintCore.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		28B7966E2E19EDA400AE3C7B /* SwiftProjectLintCoreTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SwiftProjectLintCoreTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		28F3004A2E34314600BAE8D4 /* SwiftProjectLintApp.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; path = SwiftProjectLintApp.xctestplan; sourceTree = "<group>"; };
-		28F3004B2E34323400BAE8D4 /* SwiftProjectLintCoreTests.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; path = SwiftProjectLintCoreTests.xctestplan; sourceTree = "<group>"; };
-        ttC45F8123703C44CA8612FA41 /* AdvancedAnalyzerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AdvancedAnalyzerTests.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		28090FA82E342A7300FE317F /* build */ = {
+		2805B4932E149DAB0018C12A /* SwiftProjectLint */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = build;
+			path = SwiftProjectLint;
 			sourceTree = "<group>";
 		};
-		28090FA92E342AA200FE317F /* Tests */ = {
+		2805B4A12E149DAC0018C12A /* SwiftProjectLintTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = Tests;
+			path = SwiftProjectLintTests;
 			sourceTree = "<group>";
 		};
-		280910182E342AC200FE317F /* Sources */ = {
+		2805B4AB2E149DAC0018C12A /* SwiftProjectLintUITests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = Sources;
+			path = SwiftProjectLintUITests;
 			sourceTree = "<group>";
 		};
-		280910212E342ADB00FE317F /* Docs */ = {
+		28B796652E19EDA400AE3C7B /* SwiftProjectLintCore */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = Docs;
+			path = SwiftProjectLintCore;
 			sourceTree = "<group>";
 		};
-		280910262E342B2D00FE317F /* debug_output */ = {
+		28B796742E19EDA400AE3C7B /* SwiftProjectLintCoreTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = debug_output;
-			sourceTree = "<group>";
-		};
-		2809104B2E342B2D00FE317F /* Output */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = Output;
-			sourceTree = "<group>";
-		};
-		2809104E2E342B2D00FE317F /* Scripts */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = Scripts;
+			path = SwiftProjectLintCoreTests;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -198,20 +182,14 @@
 		2805B4882E149DAB0018C12A = {
 			isa = PBXGroup;
 			children = (
-				28F3004B2E34323400BAE8D4 /* SwiftProjectLintCoreTests.xctestplan */,
-				28F3004A2E34314600BAE8D4 /* SwiftProjectLintApp.xctestplan */,
-				280910262E342B2D00FE317F /* debug_output */,
-				2809104B2E342B2D00FE317F /* Output */,
-				2809104E2E342B2D00FE317F /* Scripts */,
-				280910222E342B0100FE317F /* Package.resolved */,
-				280910232E342B0100FE317F /* Package.swift */,
-				280910242E342B0100FE317F /* README.md */,
-				28090FA82E342A7300FE317F /* build */,
+				2810A22F2E157DDF004F8EEC /* SwiftProjectLint.xctestplan */,
+				2805B4932E149DAB0018C12A /* SwiftProjectLint */,
+				2805B4A12E149DAC0018C12A /* SwiftProjectLintTests */,
+				2805B4AB2E149DAC0018C12A /* SwiftProjectLintUITests */,
+				28B796652E19EDA400AE3C7B /* SwiftProjectLintCore */,
+				28B796742E19EDA400AE3C7B /* SwiftProjectLintCoreTests */,
 				2886405C2E19F25E0026F2CF /* Frameworks */,
 				2805B4922E149DAB0018C12A /* Products */,
-				28090FA92E342AA200FE317F /* Tests */,
-				280910182E342AC200FE317F /* Sources */,
-				280910212E342ADB00FE317F /* Docs */,
 			);
 			sourceTree = "<group>";
 		};
@@ -261,6 +239,9 @@
 			dependencies = (
 				28B796782E19EDA400AE3C7B /* PBXTargetDependency */,
 			);
+			fileSystemSynchronizedGroups = (
+				2805B4932E149DAB0018C12A /* SwiftProjectLint */,
+			);
 			name = SwiftProjectLint;
 			packageProductDependencies = (
 				28B283CA2E1738BC00F871B8 /* SwiftParser */,
@@ -284,6 +265,9 @@
 				28B796A82E19EEE400AE3C7B /* PBXTargetDependency */,
 				2805B4A02E149DAC0018C12A /* PBXTargetDependency */,
 			);
+			fileSystemSynchronizedGroups = (
+				2805B4A12E149DAC0018C12A /* SwiftProjectLintTests */,
+			);
 			name = SwiftProjectLintTests;
 			packageProductDependencies = (
 				2886405D2E19F25E0026F2CF /* SwiftSyntax */,
@@ -306,6 +290,9 @@
 			dependencies = (
 				2805B4AA2E149DAC0018C12A /* PBXTargetDependency */,
 			);
+			fileSystemSynchronizedGroups = (
+				2805B4AB2E149DAC0018C12A /* SwiftProjectLintUITests */,
+			);
 			name = SwiftProjectLintUITests;
 			packageProductDependencies = (
 			);
@@ -325,6 +312,9 @@
 			buildRules = (
 			);
 			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				28B796652E19EDA400AE3C7B /* SwiftProjectLintCore */,
 			);
 			name = SwiftProjectLintCore;
 			packageProductDependencies = (
@@ -348,6 +338,9 @@
 			dependencies = (
 				28B796712E19EDA400AE3C7B /* PBXTargetDependency */,
 				28B796732E19EDA400AE3C7B /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				28B796742E19EDA400AE3C7B /* SwiftProjectLintCoreTests */,
 			);
 			name = SwiftProjectLintCoreTests;
 			packageProductDependencies = (
@@ -464,7 +457,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				684851B3BA5C4316903B214E /* AdvancedAnalyzerTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

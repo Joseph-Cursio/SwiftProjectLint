@@ -125,7 +125,7 @@ class BasePatternVisitor: SyntaxVisitor, PatternVisitorProtocol {
         guard let converter = sourceLocationConverter else { return 1 }
         let position = node.positionAfterSkippingLeadingTrivia
         let location = converter.location(for: position)
-        return location.line ?? 1
+        return location.line
     }
 
     /// Gets the file path for a syntax node.

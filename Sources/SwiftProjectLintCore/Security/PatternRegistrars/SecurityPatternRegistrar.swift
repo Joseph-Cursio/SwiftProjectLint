@@ -5,10 +5,10 @@ import Foundation
 @MainActor
 class SecurityPatternRegistrar: PatternRegistrarWithVisitorRegistryProtocol {
     
-    let registry: SourcePatternRegistry
+    let registry: SwiftSyntaxPatternRegistry
     let visitorRegistry: PatternVisitorRegistryProtocol
     
-    init(registry: SourcePatternRegistry, visitorRegistry: PatternVisitorRegistryProtocol) {
+    init(registry: SwiftSyntaxPatternRegistry, visitorRegistry: PatternVisitorRegistryProtocol) {
         self.registry = registry
         self.visitorRegistry = visitorRegistry
     }

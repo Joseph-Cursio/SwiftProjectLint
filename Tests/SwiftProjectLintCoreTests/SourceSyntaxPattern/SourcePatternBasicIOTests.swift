@@ -120,3 +120,4 @@ final class SourcePatternBasicIOTests {
         
         #expect(issues.count >= 0, "Complex state variables should be analyzed")
     }}
+

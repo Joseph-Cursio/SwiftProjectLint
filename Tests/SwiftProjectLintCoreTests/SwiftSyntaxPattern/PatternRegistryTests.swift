@@ -1,0 +1,136 @@
+///
+/// NOTE ON TEST ISOLATION
+///
+/// These tests use isolated registry instances to ensure complete test isolation
+/// and avoid interference between tests.
+///
+import Foundation
+import SwiftParser
+import SwiftSyntax
+import Testing
+@testable import SwiftProjectLintCore
+
+@Suite("PatternRegistryTests")
+@MainActor
+struct PatternRegistryTests {
+    
+    // MARK: - Test Helper Methods
+    
+    /// Creates isolated instances for tests that need complete isolation
+    @MainActor static func createIsolatedInstances() -> (
+        PatternVisitorRegistry,
+        SwiftSyntaxPatternRegistry,
+        SwiftSyntaxPatternDetector
+    ) {
+        return TestRegistryManager.createIsolatedInstances()
+    }
+    
+    // MARK: - Registry Tests (Need Isolation)
+    
+    @Test
+    @MainActor
+    static func patternVisitorRegistryRegistration() async throws {
+        let (testVisitorRegistry, _, _) = createIsolatedInstances()
+        
+        // Given
+        let pattern = SyntaxPattern(
+            name: .fatView,
+            visitor: SwiftUIManagementVisitor.self,
+            severity: .warning,
+            category: .stateManagement,
+            messageTemplate: "Test message",
+            suggestion: "Test suggestion",
+            description: "Test description"
+        )
+        
+        // When
+        testVisitorRegistry.register(pattern: pattern)
+        
+        // Then
+        let patterns = testVisitorRegistry.getAllPatterns()
+        #expect(patterns.count == 1)
+        #expect(patterns.first?.name == .fatView)
+        
+        let visitors = testVisitorRegistry.getVisitors(for: .stateManagement)
+        #expect(visitors.count == 1)
+        #expect(visitors.first is SwiftUIManagementVisitor.Type)
+        
+        testVisitorRegistry.clear()
+    }
+    
+    @Test
+    @MainActor
+    static func patternVisitorRegistryMultiplePatterns() async throws {
+        let (testVisitorRegistry, _, _) = createIsolatedInstances()
+        
+        // Given
+        let patterns = [
+            SyntaxPattern(
+                name: .fatView,
+                visitor: SwiftUIManagementVisitor.self,
+                severity: .warning,
+                category: .stateManagement,
+                messageTemplate: "Message 1",
+                suggestion: "Suggestion 1",
+                description: "Description 1"
+            ),
+            SyntaxPattern(
+                name: .uninitializedStateVariable,
+                visitor: SwiftUIManagementVisitor.self,
+                severity: .error,
+                category: .stateManagement,
+                messageTemplate: "Message 2",
+                suggestion: "Suggestion 2",
+                description: "Description 2"
+            )
+        ]
+        
+        // When
+        testVisitorRegistry.register(patterns: patterns)
+        
+        // Then - Check that our specific patterns are registered
+        let allPatterns = testVisitorRegistry.getAllPatterns()
+        let ourPatterns = allPatterns.filter { pattern in
+            patterns.contains { $0.name == pattern.name }
+        }
+        #expect(ourPatterns.count == 2)
+        
+        let stateManagementPatterns = testVisitorRegistry.getPatterns(for: .stateManagement)
+        let ourStatePatterns = stateManagementPatterns.filter { pattern in
+            patterns.contains { $0.name == pattern.name }
+        }
+        #expect(ourStatePatterns.count == 2)
+        
+        let visitors = testVisitorRegistry.getVisitors(for: .stateManagement)
+        #expect(visitors.count >= 2) // At least our 2 visitors
+        
+        testVisitorRegistry.clear()
+    }
+    
+    @Test
+    @MainActor
+    static func patternVisitorRegistryClear() async throws {
+        let (testVisitorRegistry, _, _) = createIsolatedInstances()
+        
+        // Given
+        let pattern = SyntaxPattern(
+            name: .fatView,
+            visitor: SwiftUIManagementVisitor.self,
+            severity: .warning,
+            category: .stateManagement,
+            messageTemplate: "Test message",
+            suggestion: "Test suggestion",
+            description: "Test description"
+        )
+        testVisitorRegistry.register(pattern: pattern)
+        
+        // When
+        testVisitorRegistry.clear()
+        
+        // Then
+        #expect(testVisitorRegistry.getAllPatterns().count == 0)
+        #expect(testVisitorRegistry.getVisitors(for: .stateManagement).count == 0)
+        
+        testVisitorRegistry.clear()
+    }
+} 

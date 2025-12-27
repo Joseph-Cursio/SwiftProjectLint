@@ -17,6 +17,7 @@ class AccessibilityConfigurationEdgeCaseTests {
             }
         }
         """
+        let testText = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
         let sourceFile = Parser.parse(source: sourceCode)
         customVisitor.walk(sourceFile)
         #expect(customVisitor.detectedIssues.count == 1)
@@ -35,6 +36,7 @@ class AccessibilityConfigurationEdgeCaseTests {
             }
         }
         """
+        let testText = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
         let sourceFile = Parser.parse(source: sourceCode)
         customVisitor.walk(sourceFile)
         #expect(customVisitor.detectedIssues.count == 1)

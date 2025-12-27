@@ -4,15 +4,15 @@ import Foundation
 /// This registrar handles patterns for view body optimization, ForEach usage, and performance anti-patterns.
 @MainActor
 class PerformancePatternRegistrar: PatternRegistrarWithVisitorRegistryProtocol {
-    
+
     let registry: SourcePatternRegistry
     let visitorRegistry: PatternVisitorRegistryProtocol
-    
+
     init(registry: SourcePatternRegistry, visitorRegistry: PatternVisitorRegistryProtocol) {
         self.registry = registry
         self.visitorRegistry = visitorRegistry
     }
-    
+
     func registerPatterns() {
         let patterns = [
             SyntaxPattern(
@@ -63,4 +63,4 @@ class PerformancePatternRegistrar: PatternRegistrarWithVisitorRegistryProtocol {
         ]
         registry.register(patterns: patterns)
     }
-} 
+}

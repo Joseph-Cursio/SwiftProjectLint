@@ -156,13 +156,13 @@ struct CodeQualityMagicNumberTests {
     
     @Test mutating func testMagicNumberDetectionCharacterization() async throws {
         setupVisitor()
-        do { resetVisitor() }
+        defer { resetVisitor() }
         // ... existing code ...
     }
     
     @Test mutating func testStrictMagicNumberDetectionCharacterization() async throws {
         setupStrictVisitor()
-        do { resetVisitor() }
+        defer { resetVisitor() }
         // ... existing code ...
     }
 } 

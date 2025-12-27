@@ -64,16 +64,14 @@ class AccessibilityTreeTraverser {
             if let calledExpression = functionCall.calledExpression.as(
                 DeclReferenceExprSyntax.self
             ),
-                calledExpression.baseName.text == modifierName
-            {
+                calledExpression.baseName.text == modifierName {
                 return true
             }
             // Check for member access (e.g., .accessibilityLabel)
             if let memberAccess = functionCall.calledExpression.as(
                 MemberAccessExprSyntax.self
             ),
-                memberAccess.declName.baseName.text == modifierName
-            {
+                memberAccess.declName.baseName.text == modifierName {
                 return true
             }
             // Recursively check the calledExpression
@@ -138,8 +136,7 @@ class AccessibilityTreeTraverser {
             let calledExpression = functionCall.calledExpression.as(
                 DeclReferenceExprSyntax.self
             ),
-            calledExpression.baseName.text == "Image"
-        {
+            calledExpression.baseName.text == "Image" {
             images.insert(syntax)
         }
 
@@ -159,8 +156,7 @@ class AccessibilityTreeTraverser {
             let calledExpression = functionCall.calledExpression.as(
                 DeclReferenceExprSyntax.self
             ),
-            calledExpression.baseName.text == "Image"
-        {
+            calledExpression.baseName.text == "Image" {
             return true
         }
         for child in syntax.children(viewMode: .sourceAccurate) {
@@ -180,8 +176,7 @@ class AccessibilityTreeTraverser {
             let calledExpression = functionCall.calledExpression.as(
                 DeclReferenceExprSyntax.self
             ),
-            calledExpression.baseName.text == "Text"
-        {
+            calledExpression.baseName.text == "Text" {
             return true
         }
         for child in syntax.children(viewMode: .sourceAccurate) {
@@ -192,3 +187,4 @@ class AccessibilityTreeTraverser {
         return false
     }
 }
+

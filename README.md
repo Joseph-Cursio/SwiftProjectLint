@@ -64,8 +64,8 @@ A comprehensive SwiftUI project analyzer that detects architectural issues, perf
 
 1. **ProjectLinter**: File analysis and state variable extraction using SwiftSyntax
 2. **AdvancedAnalyzer**: Sophisticated architectural analysis using SwiftSyntax
-3. **SourcePatternDetector**: AST-based pattern detection using SwiftSyntax
-4. **SourcePatternRegistry**: Centralized pattern registration and management
+3. **SwiftSyntaxPatternDetector**: AST-based pattern detection using SwiftSyntax
+4. **SwiftSyntaxPatternRegistry**: Centralized pattern registration and management
 5. **ContentView**: Main SwiftUI interface with rule selection and analysis
 6. **LintResultsView**: Results display with expandable issue details
 
@@ -113,13 +113,13 @@ let architectureIssues = analyzer.analyzeArchitecture(projectPath: "/path/to/you
 
 ### SwiftSyntax Analysis
 ```swift
-let swiftSyntaxDetector = SourcePatternDetector()
+let swiftSyntaxDetector = SwiftSyntaxPatternDetector()
 let astIssues = swiftSyntaxDetector.detectPatterns(in: sourceCode, filePath: filePath)
 ```
 
 ### Pattern-Based Detection
 ```swift
-let detector = SourcePatternDetector()
+let detector = SwiftSyntaxPatternDetector()
 let patternIssues = detector.detectPatterns(in: fileContent, filePath: filePath)
 ```
 
@@ -178,9 +178,9 @@ The app includes a rule selection interface where you can enable/disable specifi
 
 ```swift
 // Access patterns by category
-SourcePatternRegistry.shared.getPatterns(for: .stateManagement)
-SourcePatternRegistry.shared.getPatterns(for: .performance)
-SourcePatternRegistry.shared.getPatterns(for: .architecture)
+SwiftSyntaxPatternRegistry.shared.getPatterns(for: .stateManagement)
+SwiftSyntaxPatternRegistry.shared.getPatterns(for: .performance)
+SwiftSyntaxPatternRegistry.shared.getPatterns(for: .architecture)
 // ... and 6 more categories
 ```
 
@@ -197,7 +197,7 @@ let pattern = SyntaxPattern(
     description: "Detailed description"
 )
 
-SourcePatternRegistry.shared.register(pattern: pattern)
+SwiftSyntaxPatternRegistry.shared.register(pattern: pattern)
 ```
 
 ### Severity Levels
@@ -272,9 +272,10 @@ The project uses enum-based pattern detection for improved accuracy:
 ### ✅ Recently Completed
 - **String-Based Rule Identification**: ✅ **COMPLETED** - Replaced hardcoded `RuleIdentifier(rawValue:)` calls with direct enum cases
 - **UserDefaults Storage**: ✅ **COMPLETED** - Migrated from string arrays to JSON-encoded enum storage for type safety
-- **Pattern Detection Methods**: ✅ **COMPLETED** - Updated SourcePatternDetector to use `[RuleIdentifier]` instead of `[String]` parameters
+- **Pattern Detection Methods**: ✅ **COMPLETED** - Updated SwiftSyntaxPatternDetector to use `[RuleIdentifier]` instead of `[String]` parameters
 
 ### 🔄 In Progress
+- **Complete Regex Removal**: Final migration from regex to SwiftSyntax (see [__remove_regex.md](./__remove_regex.md))
 - **Property Wrapper/String Logic**: Replace remaining hard-wired strings with type-safe enums (see [__string_comparison.md](./__string_comparison.md))
 
 ### 📋 Planned Features
@@ -306,12 +307,13 @@ The project includes comprehensive test coverage:
 - **NetworkingVisitorTests**: Networking anti-pattern validation
 - **UIVisitorTests**: UI pattern analysis including navigation
 - **ViewRelationshipVisitorTests**: View hierarchy mapping
-- **SourcePatternDetectorTests**: AST-based pattern detection
+- **SwiftSyntaxPatternDetectorTests**: AST-based pattern detection
 - **StateVariableVisitorTests**: State variable extraction and analysis
 
 ## 📊 Current Status
 
 ### Architecture Improvements
+- **SwiftSyntax Migration**: 99% migrated from regex to SwiftSyntax for core analysis (see [__remove_regex.md](./__remove_regex.md) for remaining work)
 - **Type-Safe Detection**: ✅ **COMPLETED** - Enum-based pattern detection fully implemented for rules/categories with RuleIdentifier enum
 - **Visitor Pattern**: Comprehensive SwiftSyntax visitor hierarchy for precise analysis
 - **Modular Design**: Clear separation between UI and core analysis logic
@@ -319,10 +321,11 @@ The project includes comprehensive test coverage:
 ### Completed Refactoring ✅
 - **String-Based Rule Identification**: ✅ **COMPLETED** - Replaced hardcoded `RuleIdentifier(rawValue:)` calls with direct enum cases
 - **UserDefaults Storage**: ✅ **COMPLETED** - Migrated from string arrays to JSON-encoded enum storage for type safety
-- **Pattern Detection Methods**: ✅ **COMPLETED** - Updated SourcePatternDetector to use `[RuleIdentifier]` instead of `[String]` parameters
+- **Pattern Detection Methods**: ✅ **COMPLETED** - Updated SwiftSyntaxPatternDetector to use `[RuleIdentifier]` instead of `[String]` parameters
 - **ProjectLinter Integration**: ✅ **COMPLETED** - Updated analyzeProject methods to use enum-based rule identification
 
 ### Ongoing Refactoring
+- **Regex Removal**: Final phase of eliminating remaining regex usage (see [__remove_regex.md](./__remove_regex.md))
 - **Property Wrapper/String Logic**: Property wrapper and view type logic still partly string-based (see [__string_comparison.md](./__string_comparison.md))
 - **Performance Optimization**: AST caching and incremental analysis not yet implemented
 - **Code Organization**: Several files remain very large and need splitting (see [__refactor.md](./__refactor.md))
@@ -339,12 +342,13 @@ The project includes comprehensive test coverage:
 ### ✅ Recently Completed
 - **String-Based Rule Identification**: ✅ **COMPLETED** - All hardcoded `RuleIdentifier(rawValue:)` calls replaced with direct enum cases
 - **UserDefaults Storage**: ✅ **COMPLETED** - Migrated from string arrays to JSON-encoded enum storage for type safety
-- **Pattern Detection Methods**: ✅ **COMPLETED** - Updated SourcePatternDetector to use `[RuleIdentifier]` instead of `[String]` parameters
+- **Pattern Detection Methods**: ✅ **COMPLETED** - Updated SwiftSyntaxPatternDetector to use `[RuleIdentifier]` instead of `[String]` parameters
 - **ProjectLinter Integration**: ✅ **COMPLETED** - Updated analyzeProject methods to use enum-based rule identification
 
 ### 🔄 Ongoing Work
+- **Regex Removal**: One active regex usage remains in `ProjectLinter.swift` (`extractStateVariable`). The `DetectionPattern` struct and UI still reference a `regex` field. See [__remove_regex.md](./__remove_regex.md) for the plan and status.
 - **Property Wrapper/String Logic**: Property wrapper, view type, and AST node logic still use string comparisons in many places. See [__string_comparison.md](./__string_comparison.md) for the migration plan.
-- **Large Files**: Files like `SwiftUIManagementVisitor.swift`, `SourcePatternDetector.swift`, `ContentView.swift`, and others remain very large and need to be split for maintainability. See [__refactor.md](./__refactor.md) for recommendations.
+- **Large Files**: Files like `SwiftUIManagementVisitor.swift`, `SwiftSyntaxPatternDetector.swift`, `ContentView.swift`, and others remain very large and need to be split for maintainability. See [__refactor.md](./__refactor.md) for recommendations.
 
 ### 📋 Future Work
 - **Async/Await & Performance**: Async/await is only partially implemented. AST caching and incremental analysis are not yet present.
@@ -361,9 +365,10 @@ This project demonstrates advanced SwiftUI project analysis techniques. Contribu
 ### ✅ Recently Completed
 - **String-Based Rule Identification**: ✅ **COMPLETED** - All hardcoded `RuleIdentifier(rawValue:)` calls replaced with direct enum cases
 - **UserDefaults Storage**: ✅ **COMPLETED** - Migrated from string arrays to JSON-encoded enum storage for type safety
-- **Pattern Detection Methods**: ✅ **COMPLETED** - Updated SourcePatternDetector to use `[RuleIdentifier]` instead of `[String]` parameters
+- **Pattern Detection Methods**: ✅ **COMPLETED** - Updated SwiftSyntaxPatternDetector to use `[RuleIdentifier]` instead of `[String]` parameters
 
 ### 🔄 Current Priorities
+- **Regex Removal**: Complete the final migration from regex to SwiftSyntax
 - **Property Wrapper/String Logic**: Replace remaining string comparisons with type-safe enums
 - **Large File Refactoring**: Split large files for better maintainability
 
@@ -382,6 +387,7 @@ This project is for educational and demonstration purposes. Feel free to use and
 
 ## 🔗 Related Documentation
 
+- [__remove_regex.md](./__remove_regex.md) - Complete regex removal plan and implementation
 - [__string_comparison.md](./__string_comparison.md) - String comparison refactoring strategy
 - [__refactor.md](./__refactor.md) - Comprehensive refactoring recommendations
 - [NestedNavigationDetection_PRD.md](./NestedNavigationDetection_PRD.md) - Enhanced nested Navigation detection strategy

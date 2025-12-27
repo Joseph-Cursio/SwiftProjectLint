@@ -127,13 +127,13 @@ struct CodeQualityDocumentationTests {
     
     @Test mutating func testDocumentationDetectionCharacterization() async throws {
         setupVisitor()
-        do { resetVisitor() }
+        defer { resetVisitor() }
         // ... existing code ...
     }
     
     @Test mutating func testStrictDocumentationDetectionCharacterization() async throws {
         setupStrictVisitor()
-        do { resetVisitor() }
+        defer { resetVisitor() }
         // ... existing code ...
     }
 } 

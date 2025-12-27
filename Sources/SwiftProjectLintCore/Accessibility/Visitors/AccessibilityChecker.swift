@@ -7,7 +7,7 @@ import SwiftSyntax
 protocol AccessibilityCheckerProtocol {
     /// The visitor that owns this checker.
     var visitor: AccessibilityVisitor { get }
-    
+
     /// Checks the accessibility of a specific element.
     /// - Parameter node: The syntax node to check.
     func checkAccessibility(_ node: FunctionCallExprSyntax)
@@ -17,7 +17,7 @@ protocol AccessibilityCheckerProtocol {
 protocol MemberAccessAccessibilityCheckerProtocol {
     /// The visitor that owns this checker.
     var visitor: AccessibilityVisitor { get }
-    
+
     /// Checks the accessibility of a member access expression.
     /// - Parameter node: The member access expression to check.
     func checkAccessibility(_ node: MemberAccessExprSyntax)
@@ -27,8 +27,8 @@ protocol MemberAccessAccessibilityCheckerProtocol {
 protocol VariableDeclAccessibilityCheckerProtocol {
     /// The visitor that owns this checker.
     var visitor: AccessibilityVisitor { get }
-    
+
     /// Checks the accessibility of a variable declaration.
     /// - Parameter node: The variable declaration to check.
     func checkAccessibility(_ node: VariableDeclSyntax)
-} 
+}

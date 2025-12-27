@@ -18,13 +18,13 @@ struct ContentViewHeader: View {
                 .font(.system(size: 60))
                 .foregroundColor(.blue)
                 .accessibilityHidden(true)
-            
+
             Text("Swift Project Linter")
                 .font(.largeTitle)
                 .fontWeight(.bold)
                 .accessibilityLabel("Swift Project Linter")
                 .accessibilityIdentifier("mainTitleLabel")
-            
+
             Text("Detect cross-file issues and architectural problems")
                 .font(.subheadline)
                 .foregroundColor(.secondary)
@@ -38,4 +38,4 @@ struct ContentViewHeader: View {
 
 #Preview {
     ContentViewHeader()
-} 
+}

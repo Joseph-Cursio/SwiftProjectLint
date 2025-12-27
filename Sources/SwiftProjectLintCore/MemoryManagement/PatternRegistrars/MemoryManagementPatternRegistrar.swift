@@ -13,6 +13,29 @@ class MemoryManagementPatternRegistrar: PatternRegistrarWithVisitorRegistryProto
         self.visitorRegistry = visitorRegistry
     }
     
+    /// Registers memory management related patterns with the source pattern registry.
+    /// This method registers patterns for detecting potential retain cycles and large objects
+    /// stored in SwiftUI state, which can lead to memory issues and performance problems.
+    ///
+    /// The registered patterns include:
+    /// - Potential retain cycle detection in closures and property wrappers
+    /// - Large object storage in @State properties that may cause inefficiency
+    ///
+    /// Each pattern is associated with the `MemoryManagementVisitor` for analysis and
+    /// provides appropriate severity levels, categories, and helpful suggestions for
+    /// addressing the detected issues.
+    ///
+    /// This method is designed to be called during the initialization of the registrar
+    /// to ensure all memory management patterns are available for code analysis.
+    ///
+    /// - Important: This method is marked with `@MainActor` and should only be called
+    ///   on the main actor context to maintain thread safety.
+    ///
+    /// - Precondition: The `registry` and `visitorRegistry` properties must be properly
+    ///   initialized before calling this method.
+    ///
+    /// - Postcondition: All registered patterns will be available for pattern matching
+    ///   and analysis by the source code analyzer.
     func registerPatterns() {
         let patterns = [
             SyntaxPattern(

@@ -1,0 +1,2 @@
+// This file has been split into multiple smaller test files for maintainability.
+// See: FileAnalysisUtilsViewNameTests.swift, FileAnalysisUtilsFindSwiftFilesTests.swift, FileAnalysisUtilsTestUtils.swift 

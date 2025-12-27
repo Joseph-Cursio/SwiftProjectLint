@@ -10,8 +10,9 @@ import SwiftUI
 
 /// Represents a lint issue detected during static analysis of the project.
 ///
-/// `LintIssue` describes a specific problem, warning, or suggestion found in the codebase. It includes the severity of the issue,
-/// a descriptive message, and one or more locations where the issue occurs, as well as an optional suggestion for remediation.
+/// `LintIssue` describes a specific problem, warning, or suggestion found in the codebase. It includes the
+/// severity of the issue, a descriptive message, and one or more locations where the issue occurs, as well as
+/// an optional suggestion for remediation.
 ///
 /// - Parameters:
 ///   - severity: The severity of the issue (e.g., `.error`, `.warning`, `.info`). See `IssueSeverity`.
@@ -33,17 +34,17 @@ public struct LintIssue: Identifiable, Sendable {
     public let locations: [(filePath: String, lineNumber: Int)]
     public let suggestion: String?
     public let ruleName: RuleIdentifier
-    
+
     /// Returns the file path of the first location, or an empty string if no locations exist.
     public var filePath: String {
         return locations.first?.filePath ?? ""
     }
-    
+
     /// Returns the line number of the first location, or 0 if no locations exist.
     public var lineNumber: Int {
         return locations.first?.lineNumber ?? 0
     }
-    
+
     /// Initializes a lint issue with multiple locations.
     ///
     /// - Parameters:
@@ -52,14 +53,16 @@ public struct LintIssue: Identifiable, Sendable {
     ///   - locations: An array of file path and line number tuples where the issue occurs.
     ///   - suggestion: An optional suggestion for fixing the issue.
     ///   - ruleName: The identifier of the rule that generated this issue.
-    public init(severity: IssueSeverity, message: String, locations: [(filePath: String, lineNumber: Int)], suggestion: String?, ruleName: RuleIdentifier) {
+    public init(severity: IssueSeverity,
+                message: String,
+                locations: [(filePath: String, lineNumber: Int)], suggestion: String?, ruleName: RuleIdentifier) {
         self.severity = severity
         self.message = message
         self.locations = locations
         self.suggestion = suggestion
         self.ruleName = ruleName
     }
-    
+
     /// Initializes a lint issue with a single location.
     /// For backward compatibility, this initializer populates the `locations` array with one element.
     ///
@@ -70,7 +73,12 @@ public struct LintIssue: Identifiable, Sendable {
     ///   - lineNumber: The line number where the issue occurs.
     ///   - suggestion: An optional suggestion for fixing the issue.
     ///   - ruleName: The identifier of the rule that generated this issue.
-    public init(severity: IssueSeverity, message: String, filePath: String, lineNumber: Int, suggestion: String?, ruleName: RuleIdentifier) {
+    public init(severity: IssueSeverity,
+                message: String,
+                filePath: String,
+                lineNumber: Int,
+                suggestion: String?,
+                ruleName: RuleIdentifier) {
         self.severity = severity
         self.message = message
         self.locations = [(filePath, lineNumber)]

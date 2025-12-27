@@ -4,10 +4,4 @@
    <FileRef
       location = "self:">
    </FileRef>
-   <FileRef
-      location = "group:SwiftProjectLint.xctestplan">
-   </FileRef>
-   <FileRef
-      location = "group:SwiftProjectLint 2.xctestplan">
-   </FileRef>
 </Workspace>

@@ -14,7 +14,7 @@ let package = Package(
         .executable(
             name: "SwiftProjectLint",
             targets: ["SwiftProjectLint"]
-        ),
+        )
     ],
     dependencies: [
         .package(url: "https://github.com/apple/swift-syntax.git", exact: "601.0.0"),
@@ -43,7 +43,7 @@ let package = Package(
             name: "SwiftProjectLintTests",
             dependencies: ["SwiftProjectLintCore", "SwiftProjectLint", "ViewInspector"],
             path: "Tests/SwiftProjectLintTests"
-        ),
+        )
         // UI tests are configured in Xcode project and should be run through Xcode
         // .testTarget(
         //     name: "SwiftProjectLintUITests",

@@ -4,13 +4,13 @@ import SwiftSyntax
 import Testing
 @testable import SwiftProjectLintCore
 
-@Suite("SourcePatternDetectorPerformanceTests")
+@Suite("SwiftSyntaxPatternDetectorPerformanceTests")
 @MainActor
-struct SourcePatternDetectorPerformanceTests {
+struct SwiftSyntaxPatternDetectorPerformanceTests {
     
     // MARK: - Test Helper Methods
     
-    static func clearTestState(detector: SourcePatternDetector?) {
+    static func clearTestState(detector: SwiftSyntaxPatternDetector?) {
         detector?.clearCache()
     }
     

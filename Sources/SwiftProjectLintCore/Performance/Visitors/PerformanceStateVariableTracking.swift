@@ -1,6 +1,5 @@
 // Handles tracking of @State variable declarations, usages, and assignments.
 import SwiftSyntax
-import PerformanceStateVariableInfo
 import Foundation
 
 extension PerformanceVisitor {
@@ -8,23 +7,22 @@ extension PerformanceVisitor {
 
     func trackStateVariableDeclaration(_ node: VariableDeclSyntax) {
         // Check if this is a @State variable
-        if let attributes = node.attributes {
-            for attribute in attributes {
-                if let attributeName = attribute.as(AttributeSyntax.self)?.attributeName.as(IdentifierTypeSyntax.self)?.name.text,
-                   attributeName == "State" {
+        let attributes = node.attributes
+        for attribute in attributes {
+            if let attributeName = attribute.as(AttributeSyntax.self)?.attributeName.as(IdentifierTypeSyntax.self)?.name.text,
+               attributeName == "State" {
 
-                    // Extract variable name
-                    for binding in node.bindings {
-                        if let pattern = binding.pattern.as(IdentifierPatternSyntax.self) {
-                            let variableName = pattern.identifier.text
-                            stateVariables[variableName] = PerformanceStateVariableInfo(
-                                name: variableName,
-                                declaredAtLine: getLineNumber(for: Syntax(node)),
-                                isUsedInViewBody: false,
-                                isAssigned: false,
-                                assignmentLine: nil
-                            )
-                        }
+                // Extract variable name
+                for binding in node.bindings {
+                    if let pattern = binding.pattern.as(IdentifierPatternSyntax.self) {
+                        let variableName = pattern.identifier.text
+                        stateVariables[variableName] = PerformanceStateVariableInfo(
+                            name: variableName,
+                            declaredAtLine: getLineNumber(for: Syntax(node)),
+                            isUsedInViewBody: false,
+                            isAssigned: false,
+                            assignmentLine: nil
+                        )
                     }
                 }
             }
@@ -35,7 +33,7 @@ extension PerformanceVisitor {
         // Check if this is a state variable being used in the view body
         if node.base?.description.trimmingCharacters(in: .whitespacesAndNewlines) == "self" {
             // This is a self.variableName usage
-            let variableName = node.name.text
+            let variableName = node.declName.baseName.text
             if let _ = stateVariables[variableName] {
                 stateVariables[variableName]?.isUsedInViewBody = true
             }
@@ -52,7 +50,7 @@ extension PerformanceVisitor {
                     let leftExpr = elements[elements.index(elements.startIndex, offsetBy: assignIndexInt - 1)]
                     if let memberAccess = leftExpr.as(MemberAccessExprSyntax.self) {
                         if memberAccess.base?.description.trimmingCharacters(in: .whitespacesAndNewlines) == "self" {
-                            let variableName = memberAccess.name.text
+                            let variableName = memberAccess.declName.baseName.text
                             if stateVariables[variableName] != nil {
                                 stateVariables[variableName]?.isAssigned = true
                                 stateVariables[variableName]?.assignmentLine = getLineNumber(for: Syntax(node))
@@ -79,3 +77,4 @@ extension PerformanceVisitor {
         }
     }
 }
+

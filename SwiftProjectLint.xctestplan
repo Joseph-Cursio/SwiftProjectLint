@@ -1,0 +1,36 @@
+{
+  "configurations" : [
+    {
+      "id" : "0DD391EB-C362-4F0D-BC85-D63191870075",
+      "name" : "Test Scheme Action",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "performanceAntipatternCheckerEnabled" : true,
+    "targetForVariableExpansion" : {
+      "containerPath" : "container:SwiftProjectLint.xcodeproj",
+      "identifier" : "2805B4902E149DAB0018C12A",
+      "name" : "SwiftProjectLint"
+    }
+  },
+  "testTargets" : [
+    {
+      "target" : {
+        "containerPath" : "container:",
+        "identifier" : "SwiftProjectLintCoreTests",
+        "name" : "SwiftProjectLintCoreTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:",
+        "identifier" : "SwiftProjectLintTests",
+        "name" : "SwiftProjectLintTests"
+      }
+    }
+  ],
+  "version" : 1
+}
