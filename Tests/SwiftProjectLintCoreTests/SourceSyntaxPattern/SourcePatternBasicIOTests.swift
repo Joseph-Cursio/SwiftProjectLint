@@ -44,7 +44,6 @@ final class SourcePatternBasicIOTests {
             filePath: "/test/Invalid.swift"
         )
         
-        #expect(issues.count >= 0) // Should handle invalid code gracefully
     }
     
     @Test func characterizeWhitespaceOnlySource() throws {
@@ -52,7 +51,6 @@ final class SourcePatternBasicIOTests {
         let whitespaceCode = "   \n\n  \t  \n   "
         let issues = detector.detectPatterns(in: whitespaceCode, filePath: "/whitespace.swift")
 
-        #expect(issues.count >= 0, "Whitespace-only source should be handled gracefully")
     }
     
     @Test func characterizeInvalidSyntaxHandling() throws {
@@ -67,7 +65,6 @@ final class SourcePatternBasicIOTests {
         let issues = detector.detectPatterns(in: invalidCode, filePath: "/invalid.swift")
         
         // The detector should handle invalid syntax without crashing
-        #expect(issues.count >= 0, "Should handle invalid syntax gracefully")
     }
     
     @Test func characterizeMinimalValidSwiftUI() throws {
@@ -84,7 +81,6 @@ final class SourcePatternBasicIOTests {
         
         let issues = detector.detectPatterns(in: minimalView, filePath: "/ContentView.swift")
         
-        #expect(issues.count >= 0, "Minimal valid SwiftUI should process without errors")
     }
     
     @Test func characterizeComplexStateVariables() throws {
@@ -118,6 +114,5 @@ final class SourcePatternBasicIOTests {
         
         let issues = detector.detectPatterns(in: complexView, filePath: "/ComplexStateView.swift")
         
-        #expect(issues.count >= 0, "Complex state variables should be analyzed")
     }}
 

@@ -47,10 +47,7 @@ struct ContentView: View {
     // MARK: - Computed Properties
 
     /// Pattern configuration that uses SwiftSyntax for all categories.
-    private var allPatternsByCategory: [(category: PatternCategory,
-                                         display: String,
-                                         patterns: [DetectionPattern],
-                                         useSwiftSyntax: Bool)] {
+    private var allPatternsByCategory: [PatternCategoryInfo] {
         PatternConfiguration.allPatternsByCategory(from: systemComponents.patternRegistry)
     }
 

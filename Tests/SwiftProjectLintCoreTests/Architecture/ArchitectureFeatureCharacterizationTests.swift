@@ -76,7 +76,6 @@ final class ArchitectureFeatureCharacterizationTests {
             print("     - \(view)")
         }
         
-        #expect(issues.count >= 0, "Simple project analysis should work")
     }
     
     @Test func characterizeAdvancedAnalyzerWithDuplicateStateProject() throws {
@@ -101,7 +100,6 @@ final class ArchitectureFeatureCharacterizationTests {
             print("       Suggestion: \(issue.suggestion)")
         }
         
-        #expect(issues.count >= 0, "Duplicate state project analysis should work")
     }
     
     // MARK: - ArchitectureIssue Model Characterization
@@ -226,7 +224,6 @@ final class ArchitectureFeatureCharacterizationTests {
             print("       Affected: \(issue.affectedViews)")
         }
         
-        #expect(issues.count >= 0, "Full pipeline should work")
     }
 
     
@@ -462,7 +459,8 @@ final class ArchitectureFeatureCharacterizationTests {
             }
             """
             
-            try viewContent.write(toFile: (projectDir as NSString).appendingPathComponent("TestView\(index).swift"), atomically: true, encoding: .utf8)
+            let filePath = (projectDir as NSString).appendingPathComponent("TestView\(index).swift")
+            try viewContent.write(toFile: filePath, atomically: true, encoding: .utf8)
         }
         
         return projectDir

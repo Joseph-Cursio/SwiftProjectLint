@@ -1,0 +1,173 @@
+warning: 'swiftprojectlint': found 1 file(s) which are unhandled; explicitly declare them as resources or exclude from the target
+    /Users/josephcursio/xcode_projects/SwiftProjectLint/Sources/SwiftProjectLint/Assets.xcassets
+[0/1] Planning build
+Building for debugging...
+[0/6] Write sources
+[1/6] Write swift-version--58304C5D6DBC2206.txt
+[3/12] Compiling SwiftProjectLintCoreTests SwiftProjectLintCoreTests.swift
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/SwiftProjectLintCoreTests.swift:17:13: warning: initialization of immutable value 'analyzer' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+15 |     @Test func testCoreModuleImports() async throws {
+16 |         // Test that all core modules can be imported and accessed
+17 |         let analyzer = AdvancedAnalyzer()
+   |             `- warning: initialization of immutable value 'analyzer' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+18 |         #expect(Bool(true)) // Analyzer created successfully
+19 |         
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/SwiftProjectLintCoreTests.swift:20:13: warning: initialization of immutable value 'linter' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+18 |         #expect(Bool(true)) // Analyzer created successfully
+19 |         
+20 |         let linter = await ProjectLinter()
+   |             `- warning: initialization of immutable value 'linter' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+21 |         #expect(Bool(true)) // Linter created successfully
+22 |         
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/SwiftProjectLintCoreTests.swift:23:13: warning: initialization of immutable value 'detector' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+21 |         #expect(Bool(true)) // Linter created successfully
+22 |         
+23 |         let detector = await SourcePatternDetector()
+   |             `- warning: initialization of immutable value 'detector' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+24 |         #expect(Bool(true)) // Detector created successfully
+25 |         
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/SwiftProjectLintCoreTests.swift:26:13: warning: initialization of immutable value 'registry' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+24 |         #expect(Bool(true)) // Detector created successfully
+25 |         
+26 |         let registry = await SourcePatternRegistry.shared
+   |             `- warning: initialization of immutable value 'registry' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+27 |         #expect(Bool(true)) // Registry accessed successfully
+28 |     }
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/SwiftProjectLintCoreTests.swift:20:22: warning: no 'async' operations occur within 'await' expression
+18 |         #expect(Bool(true)) // Analyzer created successfully
+19 |         
+20 |         let linter = await ProjectLinter()
+   |                      `- warning: no 'async' operations occur within 'await' expression
+21 |         #expect(Bool(true)) // Linter created successfully
+22 |         
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/SwiftProjectLintCoreTests.swift:23:24: warning: no 'async' operations occur within 'await' expression
+21 |         #expect(Bool(true)) // Linter created successfully
+22 |         
+23 |         let detector = await SourcePatternDetector()
+   |                        `- warning: no 'async' operations occur within 'await' expression
+24 |         #expect(Bool(true)) // Detector created successfully
+25 |         
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/SwiftProjectLintCoreTests.swift:26:24: warning: no 'async' operations occur within 'await' expression
+24 |         #expect(Bool(true)) // Detector created successfully
+25 |         
+26 |         let registry = await SourcePatternRegistry.shared
+   |                        `- warning: no 'async' operations occur within 'await' expression
+27 |         #expect(Bool(true)) // Registry accessed successfully
+28 |     }
+[4/13] Compiling SwiftProjectLintCoreTests SwiftSyntaxPatternDetectorPerformanceTests.swift
+[5/13] Compiling SwiftProjectLintCoreTests SourcePatternDetectorCoreTests.swift
+[6/13] Compiling SwiftProjectLintCoreTests PatternDetectorTests.swift
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/SwiftSyntaxPattern/PatternDetectorTests.swift:10:26: warning: comparing non-optional value of type 'SwiftSyntaxPatternDetector' to 'nil' always returns true
+  8 |     @Test func testPatternDetectorInitialization() throws {
+  9 |         let detector = SwiftSyntaxPatternDetector()
+ 10 |         #expect(detector != nil)
+    |                          `- warning: comparing non-optional value of type 'SwiftSyntaxPatternDetector' to 'nil' always returns true
+ 11 |     }
+ 12 |     
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/SwiftSyntaxPattern/PatternDetectorTests.swift:33:13: warning: initialization of immutable value 'issues' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+ 31 |         """
+ 32 |         
+ 33 |         let issues = detector.detectPatterns(
+    |             `- warning: initialization of immutable value 'issues' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+ 34 |             in: sourceCode,
+ 35 |             filePath: "/test/ContentView.swift"
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/SwiftSyntaxPattern/PatternDetectorTests.swift:54:13: warning: initialization of immutable value 'issues' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+ 52 |         """
+ 53 |         
+ 54 |         let issues = detector.detectPatterns(
+    |             `- warning: initialization of immutable value 'issues' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+ 55 |             in: sourceCode,
+ 56 |             filePath: "/test/TestView.swift",
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/SwiftSyntaxPattern/PatternDetectorTests.swift:70:13: warning: initialization of immutable value 'issues' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+ 68 |         
+ 69 |         // This test should handle the case where the project doesn't exist
+ 70 |         let issues = detector.detectPatterns(
+    |             `- warning: initialization of immutable value 'issues' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+ 71 |             in: testProjectPath.path,
+ 72 |             ruleIdentifiers: [.relatedDuplicateStateVariable]
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/SwiftSyntaxPattern/PatternDetectorTests.swift:86:27: error: cannot convert value of type '[String]' to expected argument type '[ProjectFile]'
+ 84 |         
+ 85 |         let issues = detector.detectCrossFilePatterns(
+ 86 |             projectFiles: projectFiles,
+    |                           |- error: cannot convert value of type '[String]' to expected argument type '[ProjectFile]'
+    |                           `- note: arguments to generic parameter 'Element' ('String' and 'ProjectFile') are expected to be equal
+ 87 |             ruleIdentifiers: [.relatedDuplicateStateVariable]
+ 88 |         )
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/SwiftSyntaxPattern/PatternDetectorTests.swift:96:26: warning: comparing non-optional value of type 'SwiftSyntaxPatternRegistry' to 'nil' always returns true
+ 94 |         let registry = SwiftSyntaxPatternRegistry.shared
+ 95 |         
+ 96 |         #expect(registry != nil)
+    |                          `- warning: comparing non-optional value of type 'SwiftSyntaxPatternRegistry' to 'nil' always returns true
+ 97 |         // #expect(detector.registry != nil) // This line was removed as per the edit hint.
+ 98 |     }
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/SwiftSyntaxPattern/PatternDetectorTests.swift:93:13: warning: initialization of immutable value 'detector' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+ 91 |     
+ 92 |     @Test func testPatternRegistryIntegration() throws {
+ 93 |         let detector = SwiftSyntaxPatternDetector()
+    |             `- warning: initialization of immutable value 'detector' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+ 94 |         let registry = SwiftSyntaxPatternRegistry.shared
+ 95 |         
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/SwiftSyntaxPattern/PatternDetectorTests.swift:102:13: warning: initialization of immutable value 'issues' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+100 |     @Test func testEmptySourceCode() throws {
+101 |         let detector = SwiftSyntaxPatternDetector()
+102 |         let issues = detector.detectPatterns(
+    |             `- warning: initialization of immutable value 'issues' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+103 |             in: "",
+104 |             filePath: "/test/Empty.swift"
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/SwiftSyntaxPattern/PatternDetectorTests.swift:113:13: warning: initialization of immutable value 'issues' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+111 |         let invalidCode = "This is not valid Swift code {"
+112 |         
+113 |         let issues = detector.detectPatterns(
+    |             `- warning: initialization of immutable value 'issues' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+114 |             in: invalidCode,
+115 |             filePath: "/test/Invalid.swift"
+[7/13] Compiling SwiftProjectLintCoreTests AdvancedAnalyzerTests.swift
+[8/13] Compiling SwiftProjectLintCoreTests SwiftSyntaxPatternDetectorArchitectureTests.swift
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/SwiftSyntaxPattern/SwiftSyntaxPatternDetectorArchitectureTests.swift:169:13: warning: expression of type 'LintIssue' is unused [#no-usage]
+167 |         
+168 |         let protocolIssue = visitor.detectedIssues.first
+169 |         try #require(protocolIssue)
+    |             `- warning: expression of type 'LintIssue' is unused [#no-usage]
+170 |         #expect(protocolIssue?.message.contains("UserManager") == true)
+171 |         #expect(protocolIssue?.message.contains("protocol") == true)
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/SwiftSyntaxPattern/SwiftSyntaxPatternDetectorArchitectureTests.swift:158:13: warning: variable 'visitor' was never mutated; consider changing to 'let' constant
+156 |         """
+157 |         
+158 |         var visitor = ArchitectureVisitor(patternCategory: .architecture)
+    |             `- warning: variable 'visitor' was never mutated; consider changing to 'let' constant
+159 |         visitor.setFilePath("UserManager.swift")
+160 |         
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/SwiftSyntaxPattern/SwiftSyntaxPatternDetectorArchitectureTests.swift:188:13: warning: variable 'visitor' was never mutated; consider changing to 'let' constant
+186 |         """
+187 |         
+188 |         var visitor = ArchitectureVisitor(patternCategory: .architecture)
+    |             `- warning: variable 'visitor' was never mutated; consider changing to 'let' constant
+189 |         visitor.setFilePath("TestView.swift")
+190 |         
+[9/13] Compiling SwiftProjectLintCoreTests NetworkingVisitorTests.swift
+[10/13] Compiling SwiftProjectLintCoreTests SourcePatternRegistryTests.swift
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/SourceSyntaxPattern/SourcePatternRegistryTests.swift:24:36: error: cannot convert return expression of type '(PatternVisitorRegistry, SwiftSyntaxPatternRegistry, SwiftSyntaxPatternDetector)' to return type '(PatternVisitorRegistry, SourcePatternRegistry, SourcePatternDetector)'
+ 22 |         SourcePatternDetector
+ 23 |     ) {
+ 24 |         return TestRegistryManager.createIsolatedInstances()
+    |                                    `- error: cannot convert return expression of type '(PatternVisitorRegistry, SwiftSyntaxPatternRegistry, SwiftSyntaxPatternDetector)' to return type '(PatternVisitorRegistry, SourcePatternRegistry, SourcePatternDetector)'
+ 25 |     }
+ 26 |     
+[11/13] Emitting module SwiftProjectLintCoreTests
+error: fatalError

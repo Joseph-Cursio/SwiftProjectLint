@@ -33,14 +33,7 @@ import SwiftProjectLintCore
 /// Present this view as a sheet or modal when the user wants to customize active lint rules.
 /// On save, the updated list of enabled rule names can be persisted as appropriate (such as to UserDefaults).
 struct RuleSelectionDialog: View {
-    let allPatternsByCategory: [
-        (
-            category: PatternCategory,
-            display: String,
-            patterns: [DetectionPattern],
-            useSwiftSyntax: Bool
-        )
-    ]
+    let allPatternsByCategory: [PatternCategoryInfo]
     @Binding var enabledRuleNames: Set<RuleIdentifier>
     var onSave: () -> Void
     @Environment(\.dismiss) private var dismiss
@@ -131,18 +124,11 @@ struct RuleSelectionDialog: View {
 }
 
 #Preview {
-    let demoPatterns: [
-        (
-            category: PatternCategory,
-            display: String,
-            patterns: [DetectionPattern],
-            useSwiftSyntax: Bool
-        )
-    ] = [
-        (
-            .stateManagement,
-            "State Management",
-            [
+    let demoPatterns: [PatternCategoryInfo] = [
+        PatternCategoryInfo(
+            category: .stateManagement,
+            display: "State Management",
+            patterns: [
                 DetectionPattern(
                     name: .relatedDuplicateStateVariable,
                     severity: .warning,
@@ -151,7 +137,7 @@ struct RuleSelectionDialog: View {
                     category: .stateManagement
                 )
             ],
-            true
+            useSwiftSyntax: true
         )
     ]
 

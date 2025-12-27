@@ -8,21 +8,23 @@
 import Testing
 @testable import SwiftProjectLintCore
 
-@Suite struct SwiftProjectLintCoreTests {
+@Suite
+@MainActor
+struct SwiftProjectLintCoreTests {
 
-    @Test func testCoreModuleImports() throws {
+    @Test func testCoreModuleImports() async throws {
         // Test that all core modules can be imported and accessed
-        let analyzer = AdvancedAnalyzer()
-        #expect(analyzer != nil)
+        let _ = AdvancedAnalyzer()
+        #expect(Bool(true)) // Analyzer created successfully
         
-        let linter = await ProjectLinter()
-        #expect(linter != nil)
+        let _ = ProjectLinter()
+        #expect(Bool(true)) // Linter created successfully
         
-        let detector = await SourcePatternDetector()
-        #expect(detector != nil)
+        let _ = SourcePatternDetector()
+        #expect(Bool(true)) // Detector created successfully
         
-        let registry = await SourcePatternRegistry.shared
-        #expect(registry != nil)
+        let _ = SourcePatternRegistry.shared
+        #expect(Bool(true)) // Registry accessed successfully
     }
     
     @Test func testRuleIdentifierEnum() throws {

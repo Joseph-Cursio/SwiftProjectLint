@@ -1,0 +1,1792 @@
+warning: 'swiftprojectlint': found 1 file(s) which are unhandled; explicitly declare them as resources or exclude from the target
+    /Users/josephcursio/xcode_projects/SwiftProjectLint/Sources/SwiftProjectLint/Assets.xcassets
+[0/1] Planning build
+Building for debugging...
+[0/7] Write sources
+[2/7] Write swift-version--58304C5D6DBC2206.txt
+[4/23] Compiling SwiftProjectLintCoreTests SourcePatternFileCacheTests.swift
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/SourceSyntaxPattern/SourcePatternRegistryTests.swift:24:36: error: cannot convert return expression of type '(PatternVisitorRegistry, SwiftSyntaxPatternRegistry, SwiftSyntaxPatternDetector)' to return type '(PatternVisitorRegistry, SourcePatternRegistry, SourcePatternDetector)'
+ 22 |         SourcePatternDetector
+ 23 |     ) {
+ 24 |         return TestRegistryManager.createIsolatedInstances()
+    |                                    `- error: cannot convert return expression of type '(PatternVisitorRegistry, SwiftSyntaxPatternRegistry, SwiftSyntaxPatternDetector)' to return type '(PatternVisitorRegistry, SourcePatternRegistry, SourcePatternDetector)'
+ 25 |     }
+ 26 |     
+[5/23] Compiling SwiftProjectLintCoreTests SourcePatternRegistryTests.swift
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/SourceSyntaxPattern/SourcePatternRegistryTests.swift:24:36: error: cannot convert return expression of type '(PatternVisitorRegistry, SwiftSyntaxPatternRegistry, SwiftSyntaxPatternDetector)' to return type '(PatternVisitorRegistry, SourcePatternRegistry, SourcePatternDetector)'
+ 22 |         SourcePatternDetector
+ 23 |     ) {
+ 24 |         return TestRegistryManager.createIsolatedInstances()
+    |                                    `- error: cannot convert return expression of type '(PatternVisitorRegistry, SwiftSyntaxPatternRegistry, SwiftSyntaxPatternDetector)' to return type '(PatternVisitorRegistry, SourcePatternRegistry, SourcePatternDetector)'
+ 25 |     }
+ 26 |     
+[6/23] Compiling SwiftProjectLintCoreTests PatternDetectorTests.swift
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/SwiftSyntaxPattern/PatternDetectorTests.swift:10:26: warning: comparing non-optional value of type 'SwiftSyntaxPatternDetector' to 'nil' always returns true
+  8 |     @Test func testPatternDetectorInitialization() throws {
+  9 |         let detector = SwiftSyntaxPatternDetector()
+ 10 |         #expect(detector != nil)
+    |                          `- warning: comparing non-optional value of type 'SwiftSyntaxPatternDetector' to 'nil' always returns true
+ 11 |     }
+ 12 |     
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/SwiftSyntaxPattern/PatternDetectorTests.swift:33:13: warning: initialization of immutable value 'issues' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+ 31 |         """
+ 32 |         
+ 33 |         let issues = detector.detectPatterns(
+    |             `- warning: initialization of immutable value 'issues' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+ 34 |             in: sourceCode,
+ 35 |             filePath: "/test/ContentView.swift"
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/SwiftSyntaxPattern/PatternDetectorTests.swift:54:13: warning: initialization of immutable value 'issues' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+ 52 |         """
+ 53 |         
+ 54 |         let issues = detector.detectPatterns(
+    |             `- warning: initialization of immutable value 'issues' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+ 55 |             in: sourceCode,
+ 56 |             filePath: "/test/TestView.swift",
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/SwiftSyntaxPattern/PatternDetectorTests.swift:70:13: warning: initialization of immutable value 'issues' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+ 68 |         
+ 69 |         // This test should handle the case where the project doesn't exist
+ 70 |         let issues = detector.detectPatterns(
+    |             `- warning: initialization of immutable value 'issues' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+ 71 |             in: testProjectPath.path,
+ 72 |             ruleIdentifiers: [.relatedDuplicateStateVariable]
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/SwiftSyntaxPattern/PatternDetectorTests.swift:86:27: error: cannot convert value of type '[String]' to expected argument type '[ProjectFile]'
+ 84 |         
+ 85 |         let issues = detector.detectCrossFilePatterns(
+ 86 |             projectFiles: projectFiles,
+    |                           |- error: cannot convert value of type '[String]' to expected argument type '[ProjectFile]'
+    |                           `- note: arguments to generic parameter 'Element' ('String' and 'ProjectFile') are expected to be equal
+ 87 |             ruleIdentifiers: [.relatedDuplicateStateVariable]
+ 88 |         )
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/SwiftSyntaxPattern/PatternDetectorTests.swift:96:26: warning: comparing non-optional value of type 'SwiftSyntaxPatternRegistry' to 'nil' always returns true
+ 94 |         let registry = SwiftSyntaxPatternRegistry.shared
+ 95 |         
+ 96 |         #expect(registry != nil)
+    |                          `- warning: comparing non-optional value of type 'SwiftSyntaxPatternRegistry' to 'nil' always returns true
+ 97 |         // #expect(detector.registry != nil) // This line was removed as per the edit hint.
+ 98 |     }
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/SwiftSyntaxPattern/PatternDetectorTests.swift:93:13: warning: initialization of immutable value 'detector' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+ 91 |     
+ 92 |     @Test func testPatternRegistryIntegration() throws {
+ 93 |         let detector = SwiftSyntaxPatternDetector()
+    |             `- warning: initialization of immutable value 'detector' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+ 94 |         let registry = SwiftSyntaxPatternRegistry.shared
+ 95 |         
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/SwiftSyntaxPattern/PatternDetectorTests.swift:102:13: warning: initialization of immutable value 'issues' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+100 |     @Test func testEmptySourceCode() throws {
+101 |         let detector = SwiftSyntaxPatternDetector()
+102 |         let issues = detector.detectPatterns(
+    |             `- warning: initialization of immutable value 'issues' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+103 |             in: "",
+104 |             filePath: "/test/Empty.swift"
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/SwiftSyntaxPattern/PatternDetectorTests.swift:113:13: warning: initialization of immutable value 'issues' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+111 |         let invalidCode = "This is not valid Swift code {"
+112 |         
+113 |         let issues = detector.detectPatterns(
+    |             `- warning: initialization of immutable value 'issues' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+114 |             in: invalidCode,
+115 |             filePath: "/test/Invalid.swift"
+[7/23] Compiling SwiftProjectLintCoreTests PatternRegistryTests.swift
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/SwiftSyntaxPattern/PatternDetectorTests.swift:10:26: warning: comparing non-optional value of type 'SwiftSyntaxPatternDetector' to 'nil' always returns true
+  8 |     @Test func testPatternDetectorInitialization() throws {
+  9 |         let detector = SwiftSyntaxPatternDetector()
+ 10 |         #expect(detector != nil)
+    |                          `- warning: comparing non-optional value of type 'SwiftSyntaxPatternDetector' to 'nil' always returns true
+ 11 |     }
+ 12 |     
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/SwiftSyntaxPattern/PatternDetectorTests.swift:33:13: warning: initialization of immutable value 'issues' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+ 31 |         """
+ 32 |         
+ 33 |         let issues = detector.detectPatterns(
+    |             `- warning: initialization of immutable value 'issues' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+ 34 |             in: sourceCode,
+ 35 |             filePath: "/test/ContentView.swift"
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/SwiftSyntaxPattern/PatternDetectorTests.swift:54:13: warning: initialization of immutable value 'issues' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+ 52 |         """
+ 53 |         
+ 54 |         let issues = detector.detectPatterns(
+    |             `- warning: initialization of immutable value 'issues' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+ 55 |             in: sourceCode,
+ 56 |             filePath: "/test/TestView.swift",
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/SwiftSyntaxPattern/PatternDetectorTests.swift:70:13: warning: initialization of immutable value 'issues' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+ 68 |         
+ 69 |         // This test should handle the case where the project doesn't exist
+ 70 |         let issues = detector.detectPatterns(
+    |             `- warning: initialization of immutable value 'issues' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+ 71 |             in: testProjectPath.path,
+ 72 |             ruleIdentifiers: [.relatedDuplicateStateVariable]
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/SwiftSyntaxPattern/PatternDetectorTests.swift:86:27: error: cannot convert value of type '[String]' to expected argument type '[ProjectFile]'
+ 84 |         
+ 85 |         let issues = detector.detectCrossFilePatterns(
+ 86 |             projectFiles: projectFiles,
+    |                           |- error: cannot convert value of type '[String]' to expected argument type '[ProjectFile]'
+    |                           `- note: arguments to generic parameter 'Element' ('String' and 'ProjectFile') are expected to be equal
+ 87 |             ruleIdentifiers: [.relatedDuplicateStateVariable]
+ 88 |         )
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/SwiftSyntaxPattern/PatternDetectorTests.swift:96:26: warning: comparing non-optional value of type 'SwiftSyntaxPatternRegistry' to 'nil' always returns true
+ 94 |         let registry = SwiftSyntaxPatternRegistry.shared
+ 95 |         
+ 96 |         #expect(registry != nil)
+    |                          `- warning: comparing non-optional value of type 'SwiftSyntaxPatternRegistry' to 'nil' always returns true
+ 97 |         // #expect(detector.registry != nil) // This line was removed as per the edit hint.
+ 98 |     }
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/SwiftSyntaxPattern/PatternDetectorTests.swift:93:13: warning: initialization of immutable value 'detector' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+ 91 |     
+ 92 |     @Test func testPatternRegistryIntegration() throws {
+ 93 |         let detector = SwiftSyntaxPatternDetector()
+    |             `- warning: initialization of immutable value 'detector' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+ 94 |         let registry = SwiftSyntaxPatternRegistry.shared
+ 95 |         
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/SwiftSyntaxPattern/PatternDetectorTests.swift:102:13: warning: initialization of immutable value 'issues' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+100 |     @Test func testEmptySourceCode() throws {
+101 |         let detector = SwiftSyntaxPatternDetector()
+102 |         let issues = detector.detectPatterns(
+    |             `- warning: initialization of immutable value 'issues' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+103 |             in: "",
+104 |             filePath: "/test/Empty.swift"
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/SwiftSyntaxPattern/PatternDetectorTests.swift:113:13: warning: initialization of immutable value 'issues' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+111 |         let invalidCode = "This is not valid Swift code {"
+112 |         
+113 |         let issues = detector.detectPatterns(
+    |             `- warning: initialization of immutable value 'issues' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+114 |             in: invalidCode,
+115 |             filePath: "/test/Invalid.swift"
+[8/23] Compiling SwiftProjectLintCoreTests SourcePatternRuleIdentifierFilteringTests.swift
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/SwiftProjectLintCoreTests.swift:16:26: warning: comparing non-optional value of type 'AdvancedAnalyzer' to 'nil' always returns true
+14 |         // Test that all core modules can be imported and accessed
+15 |         let analyzer = AdvancedAnalyzer()
+16 |         #expect(analyzer != nil)
+   |                          `- warning: comparing non-optional value of type 'AdvancedAnalyzer' to 'nil' always returns true
+17 |         
+18 |         let linter = await ProjectLinter()
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/SwiftProjectLintCoreTests.swift:19:24: warning: comparing non-optional value of type 'ProjectLinter' to 'nil' always returns true
+17 |         
+18 |         let linter = await ProjectLinter()
+19 |         #expect(linter != nil)
+   |                        `- warning: comparing non-optional value of type 'ProjectLinter' to 'nil' always returns true
+20 |         
+21 |         let detector = await SourcePatternDetector()
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/SwiftProjectLintCoreTests.swift:22:26: warning: comparing non-optional value of type 'SourcePatternDetector' to 'nil' always returns true
+20 |         
+21 |         let detector = await SourcePatternDetector()
+22 |         #expect(detector != nil)
+   |                          `- warning: comparing non-optional value of type 'SourcePatternDetector' to 'nil' always returns true
+23 |         
+24 |         let registry = await SourcePatternRegistry.shared
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/SwiftProjectLintCoreTests.swift:25:26: warning: comparing non-optional value of type 'SourcePatternRegistry' to 'nil' always returns true
+23 |         
+24 |         let registry = await SourcePatternRegistry.shared
+25 |         #expect(registry != nil)
+   |                          `- warning: comparing non-optional value of type 'SourcePatternRegistry' to 'nil' always returns true
+26 |     }
+27 |     
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/SwiftProjectLintCoreTests.swift:18:28: error: call to main actor-isolated initializer 'init()' in a synchronous nonisolated context [#ActorIsolatedCall]
+11 | @Suite struct SwiftProjectLintCoreTests {
+12 | 
+13 |     @Test func testCoreModuleImports() throws {
+   |                `- note: add '@MainActor' to make instance method 'testCoreModuleImports()' part of global actor 'MainActor'
+14 |         // Test that all core modules can be imported and accessed
+15 |         let analyzer = AdvancedAnalyzer()
+16 |         #expect(analyzer != nil)
+17 |         
+18 |         let linter = await ProjectLinter()
+   |                            `- error: call to main actor-isolated initializer 'init()' in a synchronous nonisolated context [#ActorIsolatedCall]
+19 |         #expect(linter != nil)
+20 |         
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Sources/SwiftProjectLintCore/ProjectLinter.swift:331:12: note: calls to initializer 'init()' from outside of its actor context are implicitly asynchronous
+329 |     }
+330 | 
+331 |     public init() {}
+    |            `- note: calls to initializer 'init()' from outside of its actor context are implicitly asynchronous
+332 | 
+333 |     /// Sets the SwiftSyntax pattern detector to use for analysis.
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/SwiftProjectLintCoreTests.swift:21:30: error: call to main actor-isolated initializer 'init(registry:)' in a synchronous nonisolated context [#ActorIsolatedCall]
+11 | @Suite struct SwiftProjectLintCoreTests {
+12 | 
+13 |     @Test func testCoreModuleImports() throws {
+   |                `- note: add '@MainActor' to make instance method 'testCoreModuleImports()' part of global actor 'MainActor'
+14 |         // Test that all core modules can be imported and accessed
+15 |         let analyzer = AdvancedAnalyzer()
+   :
+19 |         #expect(linter != nil)
+20 |         
+21 |         let detector = await SourcePatternDetector()
+   |                              `- error: call to main actor-isolated initializer 'init(registry:)' in a synchronous nonisolated context [#ActorIsolatedCall]
+22 |         #expect(detector != nil)
+23 |         
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Sources/SwiftProjectLintCore/SourceSyntaxPattern/SourcePatternDetector.swift:13:12: note: calls to initializer 'init(registry:)' from outside of its actor context are implicitly asynchronous
+ 11 |     ///
+ 12 |     /// - Parameter registry: The pattern visitor registry to use. Defaults to the shared registry.
+ 13 |     public init(registry: PatternVisitorRegistry = .shared) {
+    |            `- note: calls to initializer 'init(registry:)' from outside of its actor context are implicitly asynchronous
+ 14 |         self.registry = registry
+ 15 |     }
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/SwiftProjectLintCoreTests.swift:24:52: error: main actor-isolated class property 'shared' can not be referenced from a nonisolated context
+11 | @Suite struct SwiftProjectLintCoreTests {
+12 | 
+13 |     @Test func testCoreModuleImports() throws {
+   |                `- note: add '@MainActor' to make instance method 'testCoreModuleImports()' part of global actor 'MainActor'
+14 |         // Test that all core modules can be imported and accessed
+15 |         let analyzer = AdvancedAnalyzer()
+   :
+22 |         #expect(detector != nil)
+23 |         
+24 |         let registry = await SourcePatternRegistry.shared
+   |                                                    `- error: main actor-isolated class property 'shared' can not be referenced from a nonisolated context
+25 |         #expect(registry != nil)
+26 |     }
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Sources/SwiftProjectLintCore/SourceSyntaxPattern/SourcePatternRegistry.swift:15:23: note: class property declared here
+ 13 |     
+ 14 |     /// Shared singleton instance for global access.
+ 15 |     public static let shared = SourcePatternRegistry()
+    |                       `- note: class property declared here
+ 16 | 
+ 17 |     /// The underlying visitor registry that manages pattern visitors.
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/SwiftProjectLintCoreTests.swift:18:22: error: 'await' in a function that does not support concurrency
+11 | @Suite struct SwiftProjectLintCoreTests {
+12 | 
+13 |     @Test func testCoreModuleImports() throws {
+   |                `- note: add 'async' to function 'testCoreModuleImports()' to make it asynchronous
+14 |         // Test that all core modules can be imported and accessed
+15 |         let analyzer = AdvancedAnalyzer()
+16 |         #expect(analyzer != nil)
+17 |         
+18 |         let linter = await ProjectLinter()
+   |                      `- error: 'await' in a function that does not support concurrency
+19 |         #expect(linter != nil)
+20 |         
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/SwiftProjectLintCoreTests.swift:21:24: error: 'await' in a function that does not support concurrency
+11 | @Suite struct SwiftProjectLintCoreTests {
+12 | 
+13 |     @Test func testCoreModuleImports() throws {
+   |                `- note: add 'async' to function 'testCoreModuleImports()' to make it asynchronous
+14 |         // Test that all core modules can be imported and accessed
+15 |         let analyzer = AdvancedAnalyzer()
+   :
+19 |         #expect(linter != nil)
+20 |         
+21 |         let detector = await SourcePatternDetector()
+   |                        `- error: 'await' in a function that does not support concurrency
+22 |         #expect(detector != nil)
+23 |         
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/SwiftProjectLintCoreTests.swift:24:24: error: 'await' in a function that does not support concurrency
+11 | @Suite struct SwiftProjectLintCoreTests {
+12 | 
+13 |     @Test func testCoreModuleImports() throws {
+   |                `- note: add 'async' to function 'testCoreModuleImports()' to make it asynchronous
+14 |         // Test that all core modules can be imported and accessed
+15 |         let analyzer = AdvancedAnalyzer()
+   :
+22 |         #expect(detector != nil)
+23 |         
+24 |         let registry = await SourcePatternRegistry.shared
+   |                        `- error: 'await' in a function that does not support concurrency
+25 |         #expect(registry != nil)
+26 |     }
+
+[#ActorIsolatedCall]: <https://docs.swift.org/compiler/documentation/diagnostics/actor-isolated-call>
+[9/23] Compiling SwiftProjectLintCoreTests SwiftProjectLintCoreTests.swift
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/SwiftProjectLintCoreTests.swift:16:26: warning: comparing non-optional value of type 'AdvancedAnalyzer' to 'nil' always returns true
+14 |         // Test that all core modules can be imported and accessed
+15 |         let analyzer = AdvancedAnalyzer()
+16 |         #expect(analyzer != nil)
+   |                          `- warning: comparing non-optional value of type 'AdvancedAnalyzer' to 'nil' always returns true
+17 |         
+18 |         let linter = await ProjectLinter()
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/SwiftProjectLintCoreTests.swift:19:24: warning: comparing non-optional value of type 'ProjectLinter' to 'nil' always returns true
+17 |         
+18 |         let linter = await ProjectLinter()
+19 |         #expect(linter != nil)
+   |                        `- warning: comparing non-optional value of type 'ProjectLinter' to 'nil' always returns true
+20 |         
+21 |         let detector = await SourcePatternDetector()
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/SwiftProjectLintCoreTests.swift:22:26: warning: comparing non-optional value of type 'SourcePatternDetector' to 'nil' always returns true
+20 |         
+21 |         let detector = await SourcePatternDetector()
+22 |         #expect(detector != nil)
+   |                          `- warning: comparing non-optional value of type 'SourcePatternDetector' to 'nil' always returns true
+23 |         
+24 |         let registry = await SourcePatternRegistry.shared
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/SwiftProjectLintCoreTests.swift:25:26: warning: comparing non-optional value of type 'SourcePatternRegistry' to 'nil' always returns true
+23 |         
+24 |         let registry = await SourcePatternRegistry.shared
+25 |         #expect(registry != nil)
+   |                          `- warning: comparing non-optional value of type 'SourcePatternRegistry' to 'nil' always returns true
+26 |     }
+27 |     
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/SwiftProjectLintCoreTests.swift:18:28: error: call to main actor-isolated initializer 'init()' in a synchronous nonisolated context [#ActorIsolatedCall]
+11 | @Suite struct SwiftProjectLintCoreTests {
+12 | 
+13 |     @Test func testCoreModuleImports() throws {
+   |                `- note: add '@MainActor' to make instance method 'testCoreModuleImports()' part of global actor 'MainActor'
+14 |         // Test that all core modules can be imported and accessed
+15 |         let analyzer = AdvancedAnalyzer()
+16 |         #expect(analyzer != nil)
+17 |         
+18 |         let linter = await ProjectLinter()
+   |                            `- error: call to main actor-isolated initializer 'init()' in a synchronous nonisolated context [#ActorIsolatedCall]
+19 |         #expect(linter != nil)
+20 |         
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Sources/SwiftProjectLintCore/ProjectLinter.swift:331:12: note: calls to initializer 'init()' from outside of its actor context are implicitly asynchronous
+329 |     }
+330 | 
+331 |     public init() {}
+    |            `- note: calls to initializer 'init()' from outside of its actor context are implicitly asynchronous
+332 | 
+333 |     /// Sets the SwiftSyntax pattern detector to use for analysis.
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/SwiftProjectLintCoreTests.swift:21:30: error: call to main actor-isolated initializer 'init(registry:)' in a synchronous nonisolated context [#ActorIsolatedCall]
+11 | @Suite struct SwiftProjectLintCoreTests {
+12 | 
+13 |     @Test func testCoreModuleImports() throws {
+   |                `- note: add '@MainActor' to make instance method 'testCoreModuleImports()' part of global actor 'MainActor'
+14 |         // Test that all core modules can be imported and accessed
+15 |         let analyzer = AdvancedAnalyzer()
+   :
+19 |         #expect(linter != nil)
+20 |         
+21 |         let detector = await SourcePatternDetector()
+   |                              `- error: call to main actor-isolated initializer 'init(registry:)' in a synchronous nonisolated context [#ActorIsolatedCall]
+22 |         #expect(detector != nil)
+23 |         
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Sources/SwiftProjectLintCore/SourceSyntaxPattern/SourcePatternDetector.swift:13:12: note: calls to initializer 'init(registry:)' from outside of its actor context are implicitly asynchronous
+ 11 |     ///
+ 12 |     /// - Parameter registry: The pattern visitor registry to use. Defaults to the shared registry.
+ 13 |     public init(registry: PatternVisitorRegistry = .shared) {
+    |            `- note: calls to initializer 'init(registry:)' from outside of its actor context are implicitly asynchronous
+ 14 |         self.registry = registry
+ 15 |     }
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/SwiftProjectLintCoreTests.swift:24:52: error: main actor-isolated class property 'shared' can not be referenced from a nonisolated context
+11 | @Suite struct SwiftProjectLintCoreTests {
+12 | 
+13 |     @Test func testCoreModuleImports() throws {
+   |                `- note: add '@MainActor' to make instance method 'testCoreModuleImports()' part of global actor 'MainActor'
+14 |         // Test that all core modules can be imported and accessed
+15 |         let analyzer = AdvancedAnalyzer()
+   :
+22 |         #expect(detector != nil)
+23 |         
+24 |         let registry = await SourcePatternRegistry.shared
+   |                                                    `- error: main actor-isolated class property 'shared' can not be referenced from a nonisolated context
+25 |         #expect(registry != nil)
+26 |     }
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Sources/SwiftProjectLintCore/SourceSyntaxPattern/SourcePatternRegistry.swift:15:23: note: class property declared here
+ 13 |     
+ 14 |     /// Shared singleton instance for global access.
+ 15 |     public static let shared = SourcePatternRegistry()
+    |                       `- note: class property declared here
+ 16 | 
+ 17 |     /// The underlying visitor registry that manages pattern visitors.
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/SwiftProjectLintCoreTests.swift:18:22: error: 'await' in a function that does not support concurrency
+11 | @Suite struct SwiftProjectLintCoreTests {
+12 | 
+13 |     @Test func testCoreModuleImports() throws {
+   |                `- note: add 'async' to function 'testCoreModuleImports()' to make it asynchronous
+14 |         // Test that all core modules can be imported and accessed
+15 |         let analyzer = AdvancedAnalyzer()
+16 |         #expect(analyzer != nil)
+17 |         
+18 |         let linter = await ProjectLinter()
+   |                      `- error: 'await' in a function that does not support concurrency
+19 |         #expect(linter != nil)
+20 |         
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/SwiftProjectLintCoreTests.swift:21:24: error: 'await' in a function that does not support concurrency
+11 | @Suite struct SwiftProjectLintCoreTests {
+12 | 
+13 |     @Test func testCoreModuleImports() throws {
+   |                `- note: add 'async' to function 'testCoreModuleImports()' to make it asynchronous
+14 |         // Test that all core modules can be imported and accessed
+15 |         let analyzer = AdvancedAnalyzer()
+   :
+19 |         #expect(linter != nil)
+20 |         
+21 |         let detector = await SourcePatternDetector()
+   |                        `- error: 'await' in a function that does not support concurrency
+22 |         #expect(detector != nil)
+23 |         
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/SwiftProjectLintCoreTests.swift:24:24: error: 'await' in a function that does not support concurrency
+11 | @Suite struct SwiftProjectLintCoreTests {
+12 | 
+13 |     @Test func testCoreModuleImports() throws {
+   |                `- note: add 'async' to function 'testCoreModuleImports()' to make it asynchronous
+14 |         // Test that all core modules can be imported and accessed
+15 |         let analyzer = AdvancedAnalyzer()
+   :
+22 |         #expect(detector != nil)
+23 |         
+24 |         let registry = await SourcePatternRegistry.shared
+   |                        `- error: 'await' in a function that does not support concurrency
+25 |         #expect(registry != nil)
+26 |     }
+
+[#ActorIsolatedCall]: <https://docs.swift.org/compiler/documentation/diagnostics/actor-isolated-call>
+[10/23] Compiling SwiftProjectLintCoreTests SourcePatternDetectorCoreTests.swift
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/SourceSyntaxPattern/SourcePatternDetectorCoreTests.swift:24:36: error: cannot convert return expression of type '(PatternVisitorRegistry, SwiftSyntaxPatternRegistry, SwiftSyntaxPatternDetector)' to return type '(PatternVisitorRegistry, SourcePatternRegistry, SourcePatternDetector)'
+ 22 |         SourcePatternDetector
+ 23 |     ) {
+ 24 |         return TestRegistryManager.createIsolatedInstances()
+    |                                    `- error: cannot convert return expression of type '(PatternVisitorRegistry, SwiftSyntaxPatternRegistry, SwiftSyntaxPatternDetector)' to return type '(PatternVisitorRegistry, SourcePatternRegistry, SourcePatternDetector)'
+ 25 |     }
+ 26 |     
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/SourceSyntaxPattern/SourcePatternDetectorCoreTests.swift:29:36: error: cannot convert return expression of type 'SwiftSyntaxPatternDetector' to return type 'SourcePatternDetector'
+ 27 |     /// Uses shared registry with specific patterns for focused testing
+ 28 |     static func setupTestWithSpecificPatterns(_ patterns: [SyntaxPattern]) -> SourcePatternDetector {
+ 29 |         return TestRegistryManager.getDetectorWithPatterns(patterns)
+    |                                    `- error: cannot convert return expression of type 'SwiftSyntaxPatternDetector' to return type 'SourcePatternDetector'
+ 30 |     }
+ 31 |     
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/SourceSyntaxPattern/SourcePatternDetectorCoreTests.swift:85:34: error: cannot convert value of type 'SwiftSyntaxPatternDetector' to expected argument type 'SourcePatternDetector'
+ 83 |         #expect(issues.count >= 1)
+ 84 |         
+ 85 |         clearTestState(detector: detector)
+    |                                  `- error: cannot convert value of type 'SwiftSyntaxPatternDetector' to expected argument type 'SourcePatternDetector'
+ 86 |     }
+ 87 |     
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/SourceSyntaxPattern/SourcePatternDetectorCoreTests.swift:55:40: error: 'async' call in a function that does not support concurrency
+ 38 |     @Test
+ 39 |     @MainActor
+ 40 |     static func swiftSyntaxPatternDetectorSingleFile() throws {
+    |                 `- note: add 'async' to function 'swiftSyntaxPatternDetectorSingleFile()' to make it asynchronous
+ 41 |         let detector = TestRegistryManager.getSharedDetector()
+ 42 |         
+    :
+ 53 |         
+ 54 |         // When - Use the detector with shared registry and measure performance
+ 55 |         let (issues, duration) = await TestRegistryManager.measureExecutionTime {
+    |                                        `- error: 'async' call in a function that does not support concurrency
+ 56 |             await detector
+ 57 |                 .detectPatterns(in: sourceCode, filePath: "TestView.swift")
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/SourceSyntaxPattern/SourcePatternDetectorCoreTests.swift:128:34: error: cannot convert value of type 'SwiftSyntaxPatternDetector' to expected argument type 'SourcePatternDetector'
+126 |         // Then - Both files should be processed independently
+127 |         
+128 |         clearTestState(detector: detector)
+    |                                  `- error: cannot convert value of type 'SwiftSyntaxPatternDetector' to expected argument type 'SourcePatternDetector'
+129 |     }
+130 | } 
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/SourceSyntaxPattern/SourcePatternDetectorCoreTests.swift:115:34: error: 'async' call in a function that does not support concurrency
+ 88 |     @Test
+ 89 |     @MainActor
+ 90 |     static func swiftSyntaxPatternDetectorCrossFile() throws {
+    |                 `- note: add 'async' to function 'swiftSyntaxPatternDetectorCrossFile()' to make it asynchronous
+ 91 |         let detector = TestRegistryManager.getSharedDetector()
+ 92 |         
+    :
+113 |         
+114 |         // When - Measure performance for cross-file analysis
+115 |         let (issues1, _) = await TestRegistryManager.measureExecutionTime {
+    |                                  `- error: 'async' call in a function that does not support concurrency
+116 |             await detector
+117 |                 .detectPatterns(in: file1, filePath: "ParentView.swift")
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/SourceSyntaxPattern/SourcePatternDetectorCoreTests.swift:120:34: error: 'async' call in a function that does not support concurrency
+ 88 |     @Test
+ 89 |     @MainActor
+ 90 |     static func swiftSyntaxPatternDetectorCrossFile() throws {
+    |                 `- note: add 'async' to function 'swiftSyntaxPatternDetectorCrossFile()' to make it asynchronous
+ 91 |         let detector = TestRegistryManager.getSharedDetector()
+ 92 |         
+    :
+118 |         }
+119 |         
+120 |         let (issues2, _) = await TestRegistryManager.measureExecutionTime {
+    |                                  `- error: 'async' call in a function that does not support concurrency
+121 |             await detector
+122 |                 .detectPatterns(in: file2, filePath: "ChildView.swift")
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/SourceSyntaxPattern/SourcePatternDetectorTests.swift:10:26: warning: comparing non-optional value of type 'SourcePatternDetector' to 'nil' always returns true
+  8 |     @Test func testPatternDetectorInitialization() throws {
+  9 |         let detector = SourcePatternDetector()
+ 10 |         #expect(detector != nil)
+    |                          `- warning: comparing non-optional value of type 'SourcePatternDetector' to 'nil' always returns true
+ 11 |     }
+ 12 |     
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/SourceSyntaxPattern/SourcePatternDetectorTests.swift:33:13: warning: initialization of immutable value 'issues' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+ 31 |         """
+ 32 |         
+ 33 |         let issues = detector.detectPatterns(
+    |             `- warning: initialization of immutable value 'issues' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+ 34 |             in: sourceCode,
+ 35 |             filePath: "/test/ContentView.swift"
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/SourceSyntaxPattern/SourcePatternDetectorTests.swift:54:13: warning: initialization of immutable value 'issues' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+ 52 |         """
+ 53 |         
+ 54 |         let issues = detector.detectPatterns(
+    |             `- warning: initialization of immutable value 'issues' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+ 55 |             in: sourceCode,
+ 56 |             filePath: "/test/TestView.swift",
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/SourceSyntaxPattern/SourcePatternDetectorTests.swift:70:13: warning: initialization of immutable value 'issues' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+ 68 |         
+ 69 |         // This test should handle the case where the project doesn't exist
+ 70 |         let issues = detector.detectPatterns(
+    |             `- warning: initialization of immutable value 'issues' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+ 71 |             in: testProjectPath.path,
+ 72 |             ruleIdentifiers: [.relatedDuplicateStateVariable]
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/SourceSyntaxPattern/SourcePatternDetectorTests.swift:85:13: warning: initialization of immutable value 'issues' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+ 83 |         ]
+ 84 |         
+ 85 |         let issues = detector.detectCrossFilePatterns(
+    |             `- warning: initialization of immutable value 'issues' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+ 86 |             projectFiles: projectFiles,
+ 87 |             ruleIdentifiers: [.relatedDuplicateStateVariable]
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/SourceSyntaxPattern/SourcePatternDetectorTests.swift:96:26: warning: comparing non-optional value of type 'SourcePatternRegistry' to 'nil' always returns true
+ 94 |         let registry = SourcePatternRegistry.shared
+ 95 |         
+ 96 |         #expect(registry != nil)
+    |                          `- warning: comparing non-optional value of type 'SourcePatternRegistry' to 'nil' always returns true
+ 97 |         // #expect(detector.registry != nil) // This line was removed as per the edit hint.
+ 98 |     }
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/SourceSyntaxPattern/SourcePatternDetectorTests.swift:93:13: warning: initialization of immutable value 'detector' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+ 91 |     
+ 92 |     @Test func testPatternRegistryIntegration() throws {
+ 93 |         let detector = SourcePatternDetector()
+    |             `- warning: initialization of immutable value 'detector' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+ 94 |         let registry = SourcePatternRegistry.shared
+ 95 |         
+    :
+159 |         }
+160 |         
+161 |         #expect(true, "Various file path formats should be handled")
+    |                 `- note: '#expect(_:_:)' will always pass here; use 'Bool(true)' to silence this warning (from macro 'expect')
+162 |     }
+163 |     
+[11/23] Compiling SwiftProjectLintCoreTests SourcePatternDetectorTests.swift
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/SourceSyntaxPattern/SourcePatternDetectorCoreTests.swift:24:36: error: cannot convert return expression of type '(PatternVisitorRegistry, SwiftSyntaxPatternRegistry, SwiftSyntaxPatternDetector)' to return type '(PatternVisitorRegistry, SourcePatternRegistry, SourcePatternDetector)'
+ 22 |         SourcePatternDetector
+ 23 |     ) {
+ 24 |         return TestRegistryManager.createIsolatedInstances()
+    |                                    `- error: cannot convert return expression of type '(PatternVisitorRegistry, SwiftSyntaxPatternRegistry, SwiftSyntaxPatternDetector)' to return type '(PatternVisitorRegistry, SourcePatternRegistry, SourcePatternDetector)'
+ 25 |     }
+ 26 |     
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/SourceSyntaxPattern/SourcePatternDetectorCoreTests.swift:29:36: error: cannot convert return expression of type 'SwiftSyntaxPatternDetector' to return type 'SourcePatternDetector'
+ 27 |     /// Uses shared registry with specific patterns for focused testing
+ 28 |     static func setupTestWithSpecificPatterns(_ patterns: [SyntaxPattern]) -> SourcePatternDetector {
+ 29 |         return TestRegistryManager.getDetectorWithPatterns(patterns)
+    |                                    `- error: cannot convert return expression of type 'SwiftSyntaxPatternDetector' to return type 'SourcePatternDetector'
+ 30 |     }
+ 31 |     
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/SourceSyntaxPattern/SourcePatternDetectorCoreTests.swift:85:34: error: cannot convert value of type 'SwiftSyntaxPatternDetector' to expected argument type 'SourcePatternDetector'
+ 83 |         #expect(issues.count >= 1)
+ 84 |         
+ 85 |         clearTestState(detector: detector)
+    |                                  `- error: cannot convert value of type 'SwiftSyntaxPatternDetector' to expected argument type 'SourcePatternDetector'
+ 86 |     }
+ 87 |     
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/SourceSyntaxPattern/SourcePatternDetectorCoreTests.swift:55:40: error: 'async' call in a function that does not support concurrency
+ 38 |     @Test
+ 39 |     @MainActor
+ 40 |     static func swiftSyntaxPatternDetectorSingleFile() throws {
+    |                 `- note: add 'async' to function 'swiftSyntaxPatternDetectorSingleFile()' to make it asynchronous
+ 41 |         let detector = TestRegistryManager.getSharedDetector()
+ 42 |         
+    :
+ 53 |         
+ 54 |         // When - Use the detector with shared registry and measure performance
+ 55 |         let (issues, duration) = await TestRegistryManager.measureExecutionTime {
+    |                                        `- error: 'async' call in a function that does not support concurrency
+ 56 |             await detector
+ 57 |                 .detectPatterns(in: sourceCode, filePath: "TestView.swift")
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/SourceSyntaxPattern/SourcePatternDetectorCoreTests.swift:128:34: error: cannot convert value of type 'SwiftSyntaxPatternDetector' to expected argument type 'SourcePatternDetector'
+126 |         // Then - Both files should be processed independently
+127 |         
+128 |         clearTestState(detector: detector)
+    |                                  `- error: cannot convert value of type 'SwiftSyntaxPatternDetector' to expected argument type 'SourcePatternDetector'
+129 |     }
+130 | } 
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/SourceSyntaxPattern/SourcePatternDetectorCoreTests.swift:115:34: error: 'async' call in a function that does not support concurrency
+ 88 |     @Test
+ 89 |     @MainActor
+ 90 |     static func swiftSyntaxPatternDetectorCrossFile() throws {
+    |                 `- note: add 'async' to function 'swiftSyntaxPatternDetectorCrossFile()' to make it asynchronous
+ 91 |         let detector = TestRegistryManager.getSharedDetector()
+ 92 |         
+    :
+113 |         
+114 |         // When - Measure performance for cross-file analysis
+115 |         let (issues1, _) = await TestRegistryManager.measureExecutionTime {
+    |                                  `- error: 'async' call in a function that does not support concurrency
+116 |             await detector
+117 |                 .detectPatterns(in: file1, filePath: "ParentView.swift")
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/SourceSyntaxPattern/SourcePatternDetectorCoreTests.swift:120:34: error: 'async' call in a function that does not support concurrency
+ 88 |     @Test
+ 89 |     @MainActor
+ 90 |     static func swiftSyntaxPatternDetectorCrossFile() throws {
+    |                 `- note: add 'async' to function 'swiftSyntaxPatternDetectorCrossFile()' to make it asynchronous
+ 91 |         let detector = TestRegistryManager.getSharedDetector()
+ 92 |         
+    :
+118 |         }
+119 |         
+120 |         let (issues2, _) = await TestRegistryManager.measureExecutionTime {
+    |                                  `- error: 'async' call in a function that does not support concurrency
+121 |             await detector
+122 |                 .detectPatterns(in: file2, filePath: "ChildView.swift")
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/SourceSyntaxPattern/SourcePatternDetectorTests.swift:10:26: warning: comparing non-optional value of type 'SourcePatternDetector' to 'nil' always returns true
+  8 |     @Test func testPatternDetectorInitialization() throws {
+  9 |         let detector = SourcePatternDetector()
+ 10 |         #expect(detector != nil)
+    |                          `- warning: comparing non-optional value of type 'SourcePatternDetector' to 'nil' always returns true
+ 11 |     }
+ 12 |     
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/SourceSyntaxPattern/SourcePatternDetectorTests.swift:33:13: warning: initialization of immutable value 'issues' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+ 31 |         """
+ 32 |         
+ 33 |         let issues = detector.detectPatterns(
+    |             `- warning: initialization of immutable value 'issues' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+ 34 |             in: sourceCode,
+ 35 |             filePath: "/test/ContentView.swift"
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/SourceSyntaxPattern/SourcePatternDetectorTests.swift:54:13: warning: initialization of immutable value 'issues' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+ 52 |         """
+ 53 |         
+ 54 |         let issues = detector.detectPatterns(
+    |             `- warning: initialization of immutable value 'issues' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+ 55 |             in: sourceCode,
+ 56 |             filePath: "/test/TestView.swift",
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/SourceSyntaxPattern/SourcePatternDetectorTests.swift:70:13: warning: initialization of immutable value 'issues' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+ 68 |         
+ 69 |         // This test should handle the case where the project doesn't exist
+ 70 |         let issues = detector.detectPatterns(
+    |             `- warning: initialization of immutable value 'issues' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+ 71 |             in: testProjectPath.path,
+ 72 |             ruleIdentifiers: [.relatedDuplicateStateVariable]
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/SourceSyntaxPattern/SourcePatternDetectorTests.swift:85:13: warning: initialization of immutable value 'issues' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+ 83 |         ]
+ 84 |         
+ 85 |         let issues = detector.detectCrossFilePatterns(
+    |             `- warning: initialization of immutable value 'issues' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+ 86 |             projectFiles: projectFiles,
+ 87 |             ruleIdentifiers: [.relatedDuplicateStateVariable]
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/SourceSyntaxPattern/SourcePatternDetectorTests.swift:96:26: warning: comparing non-optional value of type 'SourcePatternRegistry' to 'nil' always returns true
+ 94 |         let registry = SourcePatternRegistry.shared
+ 95 |         
+ 96 |         #expect(registry != nil)
+    |                          `- warning: comparing non-optional value of type 'SourcePatternRegistry' to 'nil' always returns true
+ 97 |         // #expect(detector.registry != nil) // This line was removed as per the edit hint.
+ 98 |     }
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/SourceSyntaxPattern/SourcePatternDetectorTests.swift:93:13: warning: initialization of immutable value 'detector' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+ 91 |     
+ 92 |     @Test func testPatternRegistryIntegration() throws {
+ 93 |         let detector = SourcePatternDetector()
+    |             `- warning: initialization of immutable value 'detector' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+ 94 |         let registry = SourcePatternRegistry.shared
+ 95 |         
+    :
+159 |         }
+160 |         
+161 |         #expect(true, "Various file path formats should be handled")
+    |                 `- note: '#expect(_:_:)' will always pass here; use 'Bool(true)' to silence this warning (from macro 'expect')
+162 |     }
+163 |     
+[12/25] Compiling SwiftProjectLintCoreTests NetworkingVisitorTests.swift
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/Networking/NetworkingVisitorTests.swift:330:1: error: expected '}' in struct
+  5 | @testable import SwiftProjectLintCore
+  6 | 
+  7 | struct NetworkingVisitorTests {
+    |                               `- note: to match this opening '{'
+  8 |     
+  9 |     @Test func testVisitorInitialization() throws {
+    :
+328 |         }
+329 | }
+330 | 
+    | `- error: expected '}' in struct
+
+macro expansion @Test:27:24: error: cannot find '$s25SwiftProjectLintCoreTests017NetworkingVisitorE0V26testFilePathIsSetCorrectly4TestfMp_25generator10afeb5254135e24fMu_' in scope
+`- /Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/Networking/NetworkingVisitorTests.swift:329:2: note: expanded code originates here
+308 |     }
+309 |     
+310 |     @Test func testFilePathIsSetCorrectly() throws {
+    |     `- note: in expansion of macro 'Test' on instance method 'testFilePathIsSetCorrectly()' here
+311 |         let visitor = NetworkingVisitor(patternCategory: .networking)
+312 |         visitor.setFilePath("test/file.swift")
+    :
+327 |             #expect(issue.filePath == "test/file.swift")
+328 |         }
+329 | }
+    +--- macro expansion @Test -----------------------------------------
+    |25 | @available(*, deprecated, message: "This property is an implementation detail of the testing library. Do not use it directly.")
+    |26 | private static nonisolated let $s25SwiftProjectLintCoreTests017NetworkingVisitorE0V26testFilePathIsSetCorrectly4TestfMp_24accessor10afeb5254135e24fMu_: Testing.__TestContentRecordAccessor = { outValue, type, _, _ in
+    |27 |   Testing.Test.__store($s25SwiftProjectLintCoreTests017NetworkingVisitorE0V26testFilePathIsSetCorrectly4TestfMp_25generator10afeb5254135e24fMu_, into: outValue, asTypeAt: type)
+    |   |                        `- error: cannot find '$s25SwiftProjectLintCoreTests017NetworkingVisitorE0V26testFilePathIsSetCorrectly4TestfMp_25generator10afeb5254135e24fMu_' in scope
+    |28 | }
+    |29 | 
+    +-------------------------------------------------------------------
+330 | 
+
+macro expansion @Test:34:10: error: cannot find '$s25SwiftProjectLintCoreTests017NetworkingVisitorE0V26testFilePathIsSetCorrectly4TestfMp_24accessor10afeb5254135e24fMu_' in scope
+`- /Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/Networking/NetworkingVisitorTests.swift:329:2: note: expanded code originates here
+308 |     }
+309 |     
+310 |     @Test func testFilePathIsSetCorrectly() throws {
+    |     `- note: in expansion of macro 'Test' on instance method 'testFilePathIsSetCorrectly()' here
+311 |         let visitor = NetworkingVisitor(patternCategory: .networking)
+312 |         visitor.setFilePath("test/file.swift")
+    :
+327 |             #expect(issue.filePath == "test/file.swift")
+328 |         }
+329 | }
+    +--- macro expansion @Test -----------------------------------------
+    |32 |   0x74657374, /* 'test' */
+    |33 |   0,
+    |34 |   unsafe $s25SwiftProjectLintCoreTests017NetworkingVisitorE0V26testFilePathIsSetCorrectly4TestfMp_24accessor10afeb5254135e24fMu_,
+    |   |          `- error: cannot find '$s25SwiftProjectLintCoreTests017NetworkingVisitorE0V26testFilePathIsSetCorrectly4TestfMp_24accessor10afeb5254135e24fMu_' in scope
+    |35 |   0,
+    |36 |   0
+    +-------------------------------------------------------------------
+330 | 
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/Networking/NetworkingVisitorTests.swift:12:25: warning: comparing non-optional value of type 'NetworkingVisitor' to 'nil' always returns true
+ 10 |         let visitor = NetworkingVisitor(patternCategory: .networking)
+ 11 |         
+ 12 |         #expect(visitor != nil)
+    |                         `- warning: comparing non-optional value of type 'NetworkingVisitor' to 'nil' always returns true
+ 13 |         #expect(visitor.patternCategory == .networking)
+ 14 |         #expect(visitor.detectedIssues.isEmpty)
+
+macro expansion @Test:21:17: error: cannot find '$s25SwiftProjectLintCoreTests017NetworkingVisitorE0V26testFilePathIsSetCorrectly4TestfMp_17Z10afeb5254135e24fMu_' in scope
+`- /Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/Networking/NetworkingVisitorTests.swift:329:2: note: expanded code originates here
+308 |     }
+309 |     
+310 |     @Test func testFilePathIsSetCorrectly() throws {
+    |     `- note: in expansion of macro 'Test' on instance method 'testFilePathIsSetCorrectly()' here
+311 |         let visitor = NetworkingVisitor(patternCategory: .networking)
+312 |         visitor.setFilePath("test/file.swift")
+    :
+327 |             #expect(issue.filePath == "test/file.swift")
+328 |         }
+329 | }
+    +--- macro expansion @Test -----------------------------------------
+    |19 |   traits: [],sourceLocation: Testing.SourceLocation(fileID: "SwiftProjectLintCoreTests/NetworkingVisitorTests.swift", filePath: "/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/Networking/NetworkingVisitorTests.swift", line: 310, column: 6),
+    |20 |   parameters: [],
+    |21 |   testFunction: $s25SwiftProjectLintCoreTests017NetworkingVisitorE0V26testFilePathIsSetCorrectly4TestfMp_17Z10afeb5254135e24fMu_
+    |   |                 `- error: cannot find '$s25SwiftProjectLintCoreTests017NetworkingVisitorE0V26testFilePathIsSetCorrectly4TestfMp_17Z10afeb5254135e24fMu_' in scope
+    |22 | )
+    |23 | }
+    +-------------------------------------------------------------------
+330 | 
+
+macro expansion @Test:42:12: error: cannot find '$s25SwiftProjectLintCoreTests017NetworkingVisitorE0V26testFilePathIsSetCorrectly4TestfMp_33testContentRecord10afeb5254135e24fMu_' in scope
+`- /Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/Networking/NetworkingVisitorTests.swift:329:2: note: expanded code originates here
+308 |     }
+309 |     
+310 |     @Test func testFilePathIsSetCorrectly() throws {
+    |     `- note: in expansion of macro 'Test' on instance method 'testFilePathIsSetCorrectly()' here
+311 |         let visitor = NetworkingVisitor(patternCategory: .networking)
+312 |         visitor.setFilePath("test/file.swift")
+    :
+327 |             #expect(issue.filePath == "test/file.swift")
+328 |         }
+329 | }
+    +--- macro expansion @Test -----------------------------------------
+    |40 | enum $s25SwiftProjectLintCoreTests017NetworkingVisitorE0V26testFilePathIsSetCorrectly4TestfMp_20__🟡$10afeb5254135e24fMu_: Testing.__TestContentRecordContainer {
+    |41 |   nonisolated static var __testContentRecord: Testing.__TestContentRecord {
+    |42 |     unsafe $s25SwiftProjectLintCoreTests017NetworkingVisitorE0V26testFilePathIsSetCorrectly4TestfMp_33testContentRecord10afeb5254135e24fMu_
+    |   |            `- error: cannot find '$s25SwiftProjectLintCoreTests017NetworkingVisitorE0V26testFilePathIsSetCorrectly4TestfMp_33testContentRecord10afeb5254135e24fMu_' in scope
+    |43 |   }
+    |44 | }
+    +-------------------------------------------------------------------
+330 | 
+
+macro expansion @Test:42:5: warning: no unsafe operations occur within 'unsafe' expression
+`- /Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/Networking/NetworkingVisitorTests.swift:329:2: note: expanded code originates here
+308 |     }
+309 |     
+310 |     @Test func testFilePathIsSetCorrectly() throws {
+    |     `- note: in expansion of macro 'Test' on instance method 'testFilePathIsSetCorrectly()' here
+311 |         let visitor = NetworkingVisitor(patternCategory: .networking)
+312 |         visitor.setFilePath("test/file.swift")
+    :
+327 |             #expect(issue.filePath == "test/file.swift")
+328 |         }
+329 | }
+    +--- macro expansion @Test -----------------------------------------
+    |40 | enum $s25SwiftProjectLintCoreTests017NetworkingVisitorE0V26testFilePathIsSetCorrectly4TestfMp_20__🟡$10afeb5254135e24fMu_: Testing.__TestContentRecordContainer {
+    |41 |   nonisolated static var __testContentRecord: Testing.__TestContentRecord {
+    |42 |     unsafe $s25SwiftProjectLintCoreTests017NetworkingVisitorE0V26testFilePathIsSetCorrectly4TestfMp_33testContentRecord10afeb5254135e24fMu_
+    |   |     `- warning: no unsafe operations occur within 'unsafe' expression
+    |43 |   }
+    |44 | }
+    +-------------------------------------------------------------------
+330 | 
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/Performance/SwiftSyntaxPatternDetectorPerformanceTests.swift:40:40: error: 'async' call in a function that does not support concurrency
+19 |     @Test
+20 |     @MainActor
+21 |     static func performanceVisitorForEachWithoutID() throws {
+   |                 `- note: add 'async' to function 'performanceVisitorForEachWithoutID()' to make it asynchronous
+22 |         let detector = TestRegistryManager.getSharedDetector()
+23 |         
+   :
+38 |         
+39 |         // When - Use the detector with shared registry and measure performance
+40 |         let (issues, duration) = await TestRegistryManager.measureExecutionTime {
+   |                                        `- error: 'async' call in a function that does not support concurrency
+41 |             await detector.detectPatterns(
+42 |                 in: sourceCode,
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/Performance/SwiftSyntaxPatternDetectorPerformanceTests.swift:83:14: warning: immutable value 'issues' was never used; consider replacing with '_' or removing it [#no-usage]
+81 |         
+82 |         // When - Use the detector with shared registry and measure performance
+83 |         let (issues, duration) = await TestRegistryManager.measureExecutionTime {
+   |              `- warning: immutable value 'issues' was never used; consider replacing with '_' or removing it [#no-usage]
+84 |             await detector.detectPatterns(
+85 |                 in: sourceCode,
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/Performance/SwiftSyntaxPatternDetectorPerformanceTests.swift:83:40: error: 'async' call in a function that does not support concurrency
+62 |     @Test
+63 |     @MainActor
+64 |     static func performanceVisitorForEachWithID() throws {
+   |                 `- note: add 'async' to function 'performanceVisitorForEachWithID()' to make it asynchronous
+65 |         let detector = TestRegistryManager.getSharedDetector()
+66 |         
+   :
+81 |         
+82 |         // When - Use the detector with shared registry and measure performance
+83 |         let (issues, duration) = await TestRegistryManager.measureExecutionTime {
+   |                                        `- error: 'async' call in a function that does not support concurrency
+84 |             await detector.detectPatterns(
+85 |                 in: sourceCode,
+[13/25] Compiling SwiftProjectLintCoreTests SwiftSyntaxPatternDetectorPerformanceTests.swift
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/Networking/NetworkingVisitorTests.swift:330:1: error: expected '}' in struct
+  5 | @testable import SwiftProjectLintCore
+  6 | 
+  7 | struct NetworkingVisitorTests {
+    |                               `- note: to match this opening '{'
+  8 |     
+  9 |     @Test func testVisitorInitialization() throws {
+    :
+328 |         }
+329 | }
+330 | 
+    | `- error: expected '}' in struct
+
+macro expansion @Test:27:24: error: cannot find '$s25SwiftProjectLintCoreTests017NetworkingVisitorE0V26testFilePathIsSetCorrectly4TestfMp_25generator10afeb5254135e24fMu_' in scope
+`- /Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/Networking/NetworkingVisitorTests.swift:329:2: note: expanded code originates here
+308 |     }
+309 |     
+310 |     @Test func testFilePathIsSetCorrectly() throws {
+    |     `- note: in expansion of macro 'Test' on instance method 'testFilePathIsSetCorrectly()' here
+311 |         let visitor = NetworkingVisitor(patternCategory: .networking)
+312 |         visitor.setFilePath("test/file.swift")
+    :
+327 |             #expect(issue.filePath == "test/file.swift")
+328 |         }
+329 | }
+    +--- macro expansion @Test -----------------------------------------
+    |25 | @available(*, deprecated, message: "This property is an implementation detail of the testing library. Do not use it directly.")
+    |26 | private static nonisolated let $s25SwiftProjectLintCoreTests017NetworkingVisitorE0V26testFilePathIsSetCorrectly4TestfMp_24accessor10afeb5254135e24fMu_: Testing.__TestContentRecordAccessor = { outValue, type, _, _ in
+    |27 |   Testing.Test.__store($s25SwiftProjectLintCoreTests017NetworkingVisitorE0V26testFilePathIsSetCorrectly4TestfMp_25generator10afeb5254135e24fMu_, into: outValue, asTypeAt: type)
+    |   |                        `- error: cannot find '$s25SwiftProjectLintCoreTests017NetworkingVisitorE0V26testFilePathIsSetCorrectly4TestfMp_25generator10afeb5254135e24fMu_' in scope
+    |28 | }
+    |29 | 
+    +-------------------------------------------------------------------
+330 | 
+
+macro expansion @Test:34:10: error: cannot find '$s25SwiftProjectLintCoreTests017NetworkingVisitorE0V26testFilePathIsSetCorrectly4TestfMp_24accessor10afeb5254135e24fMu_' in scope
+`- /Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/Networking/NetworkingVisitorTests.swift:329:2: note: expanded code originates here
+308 |     }
+309 |     
+310 |     @Test func testFilePathIsSetCorrectly() throws {
+    |     `- note: in expansion of macro 'Test' on instance method 'testFilePathIsSetCorrectly()' here
+311 |         let visitor = NetworkingVisitor(patternCategory: .networking)
+312 |         visitor.setFilePath("test/file.swift")
+    :
+327 |             #expect(issue.filePath == "test/file.swift")
+328 |         }
+329 | }
+    +--- macro expansion @Test -----------------------------------------
+    |32 |   0x74657374, /* 'test' */
+    |33 |   0,
+    |34 |   unsafe $s25SwiftProjectLintCoreTests017NetworkingVisitorE0V26testFilePathIsSetCorrectly4TestfMp_24accessor10afeb5254135e24fMu_,
+    |   |          `- error: cannot find '$s25SwiftProjectLintCoreTests017NetworkingVisitorE0V26testFilePathIsSetCorrectly4TestfMp_24accessor10afeb5254135e24fMu_' in scope
+    |35 |   0,
+    |36 |   0
+    +-------------------------------------------------------------------
+330 | 
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/Networking/NetworkingVisitorTests.swift:12:25: warning: comparing non-optional value of type 'NetworkingVisitor' to 'nil' always returns true
+ 10 |         let visitor = NetworkingVisitor(patternCategory: .networking)
+ 11 |         
+ 12 |         #expect(visitor != nil)
+    |                         `- warning: comparing non-optional value of type 'NetworkingVisitor' to 'nil' always returns true
+ 13 |         #expect(visitor.patternCategory == .networking)
+ 14 |         #expect(visitor.detectedIssues.isEmpty)
+
+macro expansion @Test:21:17: error: cannot find '$s25SwiftProjectLintCoreTests017NetworkingVisitorE0V26testFilePathIsSetCorrectly4TestfMp_17Z10afeb5254135e24fMu_' in scope
+`- /Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/Networking/NetworkingVisitorTests.swift:329:2: note: expanded code originates here
+308 |     }
+309 |     
+310 |     @Test func testFilePathIsSetCorrectly() throws {
+    |     `- note: in expansion of macro 'Test' on instance method 'testFilePathIsSetCorrectly()' here
+311 |         let visitor = NetworkingVisitor(patternCategory: .networking)
+312 |         visitor.setFilePath("test/file.swift")
+    :
+327 |             #expect(issue.filePath == "test/file.swift")
+328 |         }
+329 | }
+    +--- macro expansion @Test -----------------------------------------
+    |19 |   traits: [],sourceLocation: Testing.SourceLocation(fileID: "SwiftProjectLintCoreTests/NetworkingVisitorTests.swift", filePath: "/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/Networking/NetworkingVisitorTests.swift", line: 310, column: 6),
+    |20 |   parameters: [],
+    |21 |   testFunction: $s25SwiftProjectLintCoreTests017NetworkingVisitorE0V26testFilePathIsSetCorrectly4TestfMp_17Z10afeb5254135e24fMu_
+    |   |                 `- error: cannot find '$s25SwiftProjectLintCoreTests017NetworkingVisitorE0V26testFilePathIsSetCorrectly4TestfMp_17Z10afeb5254135e24fMu_' in scope
+    |22 | )
+    |23 | }
+    +-------------------------------------------------------------------
+330 | 
+
+macro expansion @Test:42:12: error: cannot find '$s25SwiftProjectLintCoreTests017NetworkingVisitorE0V26testFilePathIsSetCorrectly4TestfMp_33testContentRecord10afeb5254135e24fMu_' in scope
+`- /Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/Networking/NetworkingVisitorTests.swift:329:2: note: expanded code originates here
+308 |     }
+309 |     
+310 |     @Test func testFilePathIsSetCorrectly() throws {
+    |     `- note: in expansion of macro 'Test' on instance method 'testFilePathIsSetCorrectly()' here
+311 |         let visitor = NetworkingVisitor(patternCategory: .networking)
+312 |         visitor.setFilePath("test/file.swift")
+    :
+327 |             #expect(issue.filePath == "test/file.swift")
+328 |         }
+329 | }
+    +--- macro expansion @Test -----------------------------------------
+    |40 | enum $s25SwiftProjectLintCoreTests017NetworkingVisitorE0V26testFilePathIsSetCorrectly4TestfMp_20__🟡$10afeb5254135e24fMu_: Testing.__TestContentRecordContainer {
+    |41 |   nonisolated static var __testContentRecord: Testing.__TestContentRecord {
+    |42 |     unsafe $s25SwiftProjectLintCoreTests017NetworkingVisitorE0V26testFilePathIsSetCorrectly4TestfMp_33testContentRecord10afeb5254135e24fMu_
+    |   |            `- error: cannot find '$s25SwiftProjectLintCoreTests017NetworkingVisitorE0V26testFilePathIsSetCorrectly4TestfMp_33testContentRecord10afeb5254135e24fMu_' in scope
+    |43 |   }
+    |44 | }
+    +-------------------------------------------------------------------
+330 | 
+
+macro expansion @Test:42:5: warning: no unsafe operations occur within 'unsafe' expression
+`- /Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/Networking/NetworkingVisitorTests.swift:329:2: note: expanded code originates here
+308 |     }
+309 |     
+310 |     @Test func testFilePathIsSetCorrectly() throws {
+    |     `- note: in expansion of macro 'Test' on instance method 'testFilePathIsSetCorrectly()' here
+311 |         let visitor = NetworkingVisitor(patternCategory: .networking)
+312 |         visitor.setFilePath("test/file.swift")
+    :
+327 |             #expect(issue.filePath == "test/file.swift")
+328 |         }
+329 | }
+    +--- macro expansion @Test -----------------------------------------
+    |40 | enum $s25SwiftProjectLintCoreTests017NetworkingVisitorE0V26testFilePathIsSetCorrectly4TestfMp_20__🟡$10afeb5254135e24fMu_: Testing.__TestContentRecordContainer {
+    |41 |   nonisolated static var __testContentRecord: Testing.__TestContentRecord {
+    |42 |     unsafe $s25SwiftProjectLintCoreTests017NetworkingVisitorE0V26testFilePathIsSetCorrectly4TestfMp_33testContentRecord10afeb5254135e24fMu_
+    |   |     `- warning: no unsafe operations occur within 'unsafe' expression
+    |43 |   }
+    |44 | }
+    +-------------------------------------------------------------------
+330 | 
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/Performance/SwiftSyntaxPatternDetectorPerformanceTests.swift:40:40: error: 'async' call in a function that does not support concurrency
+19 |     @Test
+20 |     @MainActor
+21 |     static func performanceVisitorForEachWithoutID() throws {
+   |                 `- note: add 'async' to function 'performanceVisitorForEachWithoutID()' to make it asynchronous
+22 |         let detector = TestRegistryManager.getSharedDetector()
+23 |         
+   :
+38 |         
+39 |         // When - Use the detector with shared registry and measure performance
+40 |         let (issues, duration) = await TestRegistryManager.measureExecutionTime {
+   |                                        `- error: 'async' call in a function that does not support concurrency
+41 |             await detector.detectPatterns(
+42 |                 in: sourceCode,
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/Performance/SwiftSyntaxPatternDetectorPerformanceTests.swift:83:14: warning: immutable value 'issues' was never used; consider replacing with '_' or removing it [#no-usage]
+81 |         
+82 |         // When - Use the detector with shared registry and measure performance
+83 |         let (issues, duration) = await TestRegistryManager.measureExecutionTime {
+   |              `- warning: immutable value 'issues' was never used; consider replacing with '_' or removing it [#no-usage]
+84 |             await detector.detectPatterns(
+85 |                 in: sourceCode,
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/Performance/SwiftSyntaxPatternDetectorPerformanceTests.swift:83:40: error: 'async' call in a function that does not support concurrency
+62 |     @Test
+63 |     @MainActor
+64 |     static func performanceVisitorForEachWithID() throws {
+   |                 `- note: add 'async' to function 'performanceVisitorForEachWithID()' to make it asynchronous
+65 |         let detector = TestRegistryManager.getSharedDetector()
+66 |         
+   :
+81 |         
+82 |         // When - Use the detector with shared registry and measure performance
+83 |         let (issues, duration) = await TestRegistryManager.measureExecutionTime {
+   |                                        `- error: 'async' call in a function that does not support concurrency
+84 |             await detector.detectPatterns(
+85 |                 in: sourceCode,
+[14/25] Compiling SwiftProjectLintTests LintResultsViewTests.swift
+[15/25] Emitting module SwiftProjectLintTests
+[16/25] Compiling SwiftProjectLintCoreTests ProjectLinterTests.swift
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/ProjectLinterTests.swift:13:24: warning: comparing non-optional value of type 'ProjectLinter' to 'nil' always returns true
+ 11 |     @Test func testProjectLinterInitialization() throws {
+ 12 |         let linter = ProjectLinter()
+ 13 |         #expect(linter != nil) // ProjectLinter should be created successfully
+    |                        `- warning: comparing non-optional value of type 'ProjectLinter' to 'nil' always returns true
+ 14 |     }
+ 15 |     
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/ProjectLinterTests.swift:96:13: warning: initialization of immutable value 'issues' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+ 94 |         
+ 95 |         let startTime = Date()
+ 96 |         let issues = linter.analyzeProject(at: testProjectPath)
+    |             `- warning: initialization of immutable value 'issues' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+ 97 |         let endTime = Date()
+ 98 |         
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/SourceSyntaxPattern/SourcePatternDetectorArchitectureTests.swift:6:17: note: '#expect(_:_:)' will always pass here; use 'Bool(true)' to silence this warning (from macro 'expect')
+4 |     @Test("Example test")
+5 |     func testExample() throws {
+6 |         #expect(true)
+  |                 `- note: '#expect(_:_:)' will always pass here; use 'Bool(true)' to silence this warning (from macro 'expect')
+7 |     }
+8 | }
+[17/25] Compiling SwiftProjectLintCoreTests SourcePatternDetectorArchitectureTests.swift
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/ProjectLinterTests.swift:13:24: warning: comparing non-optional value of type 'ProjectLinter' to 'nil' always returns true
+ 11 |     @Test func testProjectLinterInitialization() throws {
+ 12 |         let linter = ProjectLinter()
+ 13 |         #expect(linter != nil) // ProjectLinter should be created successfully
+    |                        `- warning: comparing non-optional value of type 'ProjectLinter' to 'nil' always returns true
+ 14 |     }
+ 15 |     
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/ProjectLinterTests.swift:96:13: warning: initialization of immutable value 'issues' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+ 94 |         
+ 95 |         let startTime = Date()
+ 96 |         let issues = linter.analyzeProject(at: testProjectPath)
+    |             `- warning: initialization of immutable value 'issues' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+ 97 |         let endTime = Date()
+ 98 |         
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/SourceSyntaxPattern/SourcePatternDetectorArchitectureTests.swift:6:17: note: '#expect(_:_:)' will always pass here; use 'Bool(true)' to silence this warning (from macro 'expect')
+4 |     @Test("Example test")
+5 |     func testExample() throws {
+6 |         #expect(true)
+  |                 `- note: '#expect(_:_:)' will always pass here; use 'Bool(true)' to silence this warning (from macro 'expect')
+7 |     }
+8 | }
+[18/25] Compiling SwiftProjectLintCoreTests AccessibilityTextColorTests.swift
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/AdvancedAnalyzerTests.swift:8:38: error: type 'FileAnalysisUtils' has no member 'extractViewName'
+  6 |     
+  7 |     @Test func testExtractViewNameRemovesSwiftExtension() throws {
+  8 |         let name = FileAnalysisUtils.extractViewName(from: "/Users/test/ContentView.swift")
+    |                                      `- error: type 'FileAnalysisUtils' has no member 'extractViewName'
+  9 |         #expect(name == "ContentView")
+ 10 |         
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/AdvancedAnalyzerTests.swift:11:39: error: type 'FileAnalysisUtils' has no member 'extractViewName'
+  9 |         #expect(name == "ContentView")
+ 10 |         
+ 11 |         let name2 = FileAnalysisUtils.extractViewName(from: "MyView.swift")
+    |                                       `- error: type 'FileAnalysisUtils' has no member 'extractViewName'
+ 12 |         #expect(name2 == "MyView")
+ 13 |         
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/AdvancedAnalyzerTests.swift:14:39: error: type 'FileAnalysisUtils' has no member 'extractViewName'
+ 12 |         #expect(name2 == "MyView")
+ 13 |         
+ 14 |         let name3 = FileAnalysisUtils.extractViewName(from: "/foo/bar/BazView.swift")
+    |                                       `- error: type 'FileAnalysisUtils' has no member 'extractViewName'
+ 15 |         #expect(name3 == "BazView")
+ 16 |     }
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/AdvancedAnalyzerTests.swift:36:13: warning: initialization of immutable value 'issues' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+ 34 |         defer { cleanupTestProject() }
+ 35 |         
+ 36 |         let issues = await analyzer.analyzeArchitecture(projectPath: testProjectPath)
+    |             `- warning: initialization of immutable value 'issues' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+ 37 |         
+ 38 |         // The analyzer should detect view relationships through its public interface
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/AdvancedAnalyzerTests.swift:36:22: error: 'await' in a function that does not support concurrency
+ 26 |     }
+ 27 |     
+ 28 |     @Test @MainActor func testFindRelatedViewsDetectsHierarchy() throws {
+    |                           `- note: add 'async' to function 'testFindRelatedViewsDetectsHierarchy()' to make it asynchronous
+ 29 |         // Test through the public interface by creating actual view relationships
+ 30 |         let analyzer = AdvancedAnalyzer()
+    :
+ 34 |         defer { cleanupTestProject() }
+ 35 |         
+ 36 |         let issues = await analyzer.analyzeArchitecture(projectPath: testProjectPath)
+    |                      `- error: 'await' in a function that does not support concurrency
+ 37 |         
+ 38 |         // The analyzer should detect view relationships through its public interface
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/AdvancedAnalyzerTests.swift:49:13: warning: initialization of immutable value 'issues' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+ 47 |         defer { cleanupTestProject() }
+ 48 |         
+ 49 |         let issues = await analyzer.analyzeArchitecture(projectPath: testProjectPath)
+    |             `- warning: initialization of immutable value 'issues' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+ 50 |         
+ 51 |         // The analyzer should detect view relationships through its public interface
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/AdvancedAnalyzerTests.swift:49:22: error: 'await' in a function that does not support concurrency
+ 39 |     }
+ 40 |     
+ 41 |     @Test @MainActor func testIsRootViewReturnsTrueForRoot() throws {
+    |                           `- note: add 'async' to function 'testIsRootViewReturnsTrueForRoot()' to make it asynchronous
+ 42 |         // Test through the public interface by creating actual view relationships
+ 43 |         let analyzer = AdvancedAnalyzer()
+    :
+ 47 |         defer { cleanupTestProject() }
+ 48 |         
+ 49 |         let issues = await analyzer.analyzeArchitecture(projectPath: testProjectPath)
+    |                      `- error: 'await' in a function that does not support concurrency
+ 50 |         
+ 51 |         // The analyzer should detect view relationships through its public interface
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/AdvancedAnalyzerTests.swift:62:13: warning: initialization of immutable value 'issues' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+ 60 |         defer { cleanupTestProject() }
+ 61 |         
+ 62 |         let issues = await analyzer.analyzeArchitecture(projectPath: testProjectPath)
+    |             `- warning: initialization of immutable value 'issues' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+ 63 |         
+ 64 |         // The analyzer should detect view relationships through its public interface
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/AdvancedAnalyzerTests.swift:62:22: error: 'await' in a function that does not support concurrency
+ 52 |     }
+ 53 |     
+ 54 |     @Test @MainActor func testGenerateStateSharingSuggestionForTwoViews() throws {
+    |                           `- note: add 'async' to function 'testGenerateStateSharingSuggestionForTwoViews()' to make it asynchronous
+ 55 |         // Test through the public interface by creating actual view relationships
+ 56 |         let analyzer = AdvancedAnalyzer()
+    :
+ 60 |         defer { cleanupTestProject() }
+ 61 |         
+ 62 |         let issues = await analyzer.analyzeArchitecture(projectPath: testProjectPath)
+    |                      `- error: 'await' in a function that does not support concurrency
+ 63 |         
+ 64 |         // The analyzer should detect view relationships through its public interface
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/AdvancedAnalyzerTests.swift:75:13: warning: initialization of immutable value 'issues' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+ 73 |         defer { cleanupTestProject() }
+ 74 |         
+ 75 |         let issues = await analyzer.analyzeArchitecture(projectPath: testProjectPath)
+    |             `- warning: initialization of immutable value 'issues' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+ 76 |         
+ 77 |         // The analyzer should detect view relationships through its public interface
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/AdvancedAnalyzerTests.swift:75:22: error: 'await' in a function that does not support concurrency
+ 65 |     }
+ 66 |     
+ 67 |     @Test @MainActor func testGenerateStateSharingSuggestionForManyViews() throws {
+    |                           `- note: add 'async' to function 'testGenerateStateSharingSuggestionForManyViews()' to make it asynchronous
+ 68 |         // Test through the public interface by creating actual view relationships
+ 69 |         let analyzer = AdvancedAnalyzer()
+    :
+ 73 |         defer { cleanupTestProject() }
+ 74 |         
+ 75 |         let issues = await analyzer.analyzeArchitecture(projectPath: testProjectPath)
+    |                      `- error: 'await' in a function that does not support concurrency
+ 76 |         
+ 77 |         // The analyzer should detect view relationships through its public interface
+    :
+ 92 |         
+ 93 |         // The analyzer should be able to query relationships through its public interface
+ 94 |         #expect(true) // At minimum, it should complete without errors
+    |                 `- note: '#expect(_:_:)' will always pass here; use 'Bool(true)' to silence this warning (from macro 'expect')
+ 95 |     }
+ 96 |     
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/AdvancedAnalyzerTests.swift:87:13: warning: initialization of immutable value 'issues' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+ 85 |         defer { cleanupTestProject() }
+ 86 |         
+ 87 |         let issues = await analyzer.analyzeArchitecture(projectPath: testProjectPath)
+    |             `- warning: initialization of immutable value 'issues' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+ 88 |         
+ 89 |         // Test the public methods that should work after analysis
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/AdvancedAnalyzerTests.swift:90:13: warning: initialization of immutable value 'relationshipType' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+ 88 |         
+ 89 |         // Test the public methods that should work after analysis
+ 90 |         let relationshipType = analyzer.relationshipType(between: "TestParent", and: "TestChild")
+    |             `- warning: initialization of immutable value 'relationshipType' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+ 91 |         let relationship = analyzer.viewRelationship(between: "TestParent", and: "TestChild")
+ 92 |         
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/AdvancedAnalyzerTests.swift:91:13: warning: initialization of immutable value 'relationship' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+ 89 |         // Test the public methods that should work after analysis
+ 90 |         let relationshipType = analyzer.relationshipType(between: "TestParent", and: "TestChild")
+ 91 |         let relationship = analyzer.viewRelationship(between: "TestParent", and: "TestChild")
+    |             `- warning: initialization of immutable value 'relationship' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+ 92 |         
+ 93 |         // The analyzer should be able to query relationships through its public interface
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/AdvancedAnalyzerTests.swift:87:22: error: 'await' in a function that does not support concurrency
+ 78 |     }
+ 79 |     
+ 80 |     @Test @MainActor func testRelationshipTypeAndViewRelationship() throws {
+    |                           `- note: add 'async' to function 'testRelationshipTypeAndViewRelationship()' to make it asynchronous
+ 81 |         let analyzer = AdvancedAnalyzer()
+ 82 |         
+    :
+ 85 |         defer { cleanupTestProject() }
+ 86 |         
+ 87 |         let issues = await analyzer.analyzeArchitecture(projectPath: testProjectPath)
+    |                      `- error: 'await' in a function that does not support concurrency
+ 88 |         
+ 89 |         // Test the public methods that should work after analysis
+[19/25] Compiling SwiftProjectLintCoreTests ButtonAccessibilityTests.swift
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/AdvancedAnalyzerTests.swift:8:38: error: type 'FileAnalysisUtils' has no member 'extractViewName'
+  6 |     
+  7 |     @Test func testExtractViewNameRemovesSwiftExtension() throws {
+  8 |         let name = FileAnalysisUtils.extractViewName(from: "/Users/test/ContentView.swift")
+    |                                      `- error: type 'FileAnalysisUtils' has no member 'extractViewName'
+  9 |         #expect(name == "ContentView")
+ 10 |         
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/AdvancedAnalyzerTests.swift:11:39: error: type 'FileAnalysisUtils' has no member 'extractViewName'
+  9 |         #expect(name == "ContentView")
+ 10 |         
+ 11 |         let name2 = FileAnalysisUtils.extractViewName(from: "MyView.swift")
+    |                                       `- error: type 'FileAnalysisUtils' has no member 'extractViewName'
+ 12 |         #expect(name2 == "MyView")
+ 13 |         
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/AdvancedAnalyzerTests.swift:14:39: error: type 'FileAnalysisUtils' has no member 'extractViewName'
+ 12 |         #expect(name2 == "MyView")
+ 13 |         
+ 14 |         let name3 = FileAnalysisUtils.extractViewName(from: "/foo/bar/BazView.swift")
+    |                                       `- error: type 'FileAnalysisUtils' has no member 'extractViewName'
+ 15 |         #expect(name3 == "BazView")
+ 16 |     }
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/AdvancedAnalyzerTests.swift:36:13: warning: initialization of immutable value 'issues' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+ 34 |         defer { cleanupTestProject() }
+ 35 |         
+ 36 |         let issues = await analyzer.analyzeArchitecture(projectPath: testProjectPath)
+    |             `- warning: initialization of immutable value 'issues' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+ 37 |         
+ 38 |         // The analyzer should detect view relationships through its public interface
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/AdvancedAnalyzerTests.swift:36:22: error: 'await' in a function that does not support concurrency
+ 26 |     }
+ 27 |     
+ 28 |     @Test @MainActor func testFindRelatedViewsDetectsHierarchy() throws {
+    |                           `- note: add 'async' to function 'testFindRelatedViewsDetectsHierarchy()' to make it asynchronous
+ 29 |         // Test through the public interface by creating actual view relationships
+ 30 |         let analyzer = AdvancedAnalyzer()
+    :
+ 34 |         defer { cleanupTestProject() }
+ 35 |         
+ 36 |         let issues = await analyzer.analyzeArchitecture(projectPath: testProjectPath)
+    |                      `- error: 'await' in a function that does not support concurrency
+ 37 |         
+ 38 |         // The analyzer should detect view relationships through its public interface
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/AdvancedAnalyzerTests.swift:49:13: warning: initialization of immutable value 'issues' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+ 47 |         defer { cleanupTestProject() }
+ 48 |         
+ 49 |         let issues = await analyzer.analyzeArchitecture(projectPath: testProjectPath)
+    |             `- warning: initialization of immutable value 'issues' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+ 50 |         
+ 51 |         // The analyzer should detect view relationships through its public interface
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/AdvancedAnalyzerTests.swift:49:22: error: 'await' in a function that does not support concurrency
+ 39 |     }
+ 40 |     
+ 41 |     @Test @MainActor func testIsRootViewReturnsTrueForRoot() throws {
+    |                           `- note: add 'async' to function 'testIsRootViewReturnsTrueForRoot()' to make it asynchronous
+ 42 |         // Test through the public interface by creating actual view relationships
+ 43 |         let analyzer = AdvancedAnalyzer()
+    :
+ 47 |         defer { cleanupTestProject() }
+ 48 |         
+ 49 |         let issues = await analyzer.analyzeArchitecture(projectPath: testProjectPath)
+    |                      `- error: 'await' in a function that does not support concurrency
+ 50 |         
+ 51 |         // The analyzer should detect view relationships through its public interface
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/AdvancedAnalyzerTests.swift:62:13: warning: initialization of immutable value 'issues' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+ 60 |         defer { cleanupTestProject() }
+ 61 |         
+ 62 |         let issues = await analyzer.analyzeArchitecture(projectPath: testProjectPath)
+    |             `- warning: initialization of immutable value 'issues' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+ 63 |         
+ 64 |         // The analyzer should detect view relationships through its public interface
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/AdvancedAnalyzerTests.swift:62:22: error: 'await' in a function that does not support concurrency
+ 52 |     }
+ 53 |     
+ 54 |     @Test @MainActor func testGenerateStateSharingSuggestionForTwoViews() throws {
+    |                           `- note: add 'async' to function 'testGenerateStateSharingSuggestionForTwoViews()' to make it asynchronous
+ 55 |         // Test through the public interface by creating actual view relationships
+ 56 |         let analyzer = AdvancedAnalyzer()
+    :
+ 60 |         defer { cleanupTestProject() }
+ 61 |         
+ 62 |         let issues = await analyzer.analyzeArchitecture(projectPath: testProjectPath)
+    |                      `- error: 'await' in a function that does not support concurrency
+ 63 |         
+ 64 |         // The analyzer should detect view relationships through its public interface
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/AdvancedAnalyzerTests.swift:75:13: warning: initialization of immutable value 'issues' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+ 73 |         defer { cleanupTestProject() }
+ 74 |         
+ 75 |         let issues = await analyzer.analyzeArchitecture(projectPath: testProjectPath)
+    |             `- warning: initialization of immutable value 'issues' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+ 76 |         
+ 77 |         // The analyzer should detect view relationships through its public interface
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/AdvancedAnalyzerTests.swift:75:22: error: 'await' in a function that does not support concurrency
+ 65 |     }
+ 66 |     
+ 67 |     @Test @MainActor func testGenerateStateSharingSuggestionForManyViews() throws {
+    |                           `- note: add 'async' to function 'testGenerateStateSharingSuggestionForManyViews()' to make it asynchronous
+ 68 |         // Test through the public interface by creating actual view relationships
+ 69 |         let analyzer = AdvancedAnalyzer()
+    :
+ 73 |         defer { cleanupTestProject() }
+ 74 |         
+ 75 |         let issues = await analyzer.analyzeArchitecture(projectPath: testProjectPath)
+    |                      `- error: 'await' in a function that does not support concurrency
+ 76 |         
+ 77 |         // The analyzer should detect view relationships through its public interface
+    :
+ 92 |         
+ 93 |         // The analyzer should be able to query relationships through its public interface
+ 94 |         #expect(true) // At minimum, it should complete without errors
+    |                 `- note: '#expect(_:_:)' will always pass here; use 'Bool(true)' to silence this warning (from macro 'expect')
+ 95 |     }
+ 96 |     
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/AdvancedAnalyzerTests.swift:87:13: warning: initialization of immutable value 'issues' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+ 85 |         defer { cleanupTestProject() }
+ 86 |         
+ 87 |         let issues = await analyzer.analyzeArchitecture(projectPath: testProjectPath)
+    |             `- warning: initialization of immutable value 'issues' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+ 88 |         
+ 89 |         // Test the public methods that should work after analysis
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/AdvancedAnalyzerTests.swift:90:13: warning: initialization of immutable value 'relationshipType' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+ 88 |         
+ 89 |         // Test the public methods that should work after analysis
+ 90 |         let relationshipType = analyzer.relationshipType(between: "TestParent", and: "TestChild")
+    |             `- warning: initialization of immutable value 'relationshipType' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+ 91 |         let relationship = analyzer.viewRelationship(between: "TestParent", and: "TestChild")
+ 92 |         
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/AdvancedAnalyzerTests.swift:91:13: warning: initialization of immutable value 'relationship' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+ 89 |         // Test the public methods that should work after analysis
+ 90 |         let relationshipType = analyzer.relationshipType(between: "TestParent", and: "TestChild")
+ 91 |         let relationship = analyzer.viewRelationship(between: "TestParent", and: "TestChild")
+    |             `- warning: initialization of immutable value 'relationship' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+ 92 |         
+ 93 |         // The analyzer should be able to query relationships through its public interface
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/AdvancedAnalyzerTests.swift:87:22: error: 'await' in a function that does not support concurrency
+ 78 |     }
+ 79 |     
+ 80 |     @Test @MainActor func testRelationshipTypeAndViewRelationship() throws {
+    |                           `- note: add 'async' to function 'testRelationshipTypeAndViewRelationship()' to make it asynchronous
+ 81 |         let analyzer = AdvancedAnalyzer()
+ 82 |         
+    :
+ 85 |         defer { cleanupTestProject() }
+ 86 |         
+ 87 |         let issues = await analyzer.analyzeArchitecture(projectPath: testProjectPath)
+    |                      `- error: 'await' in a function that does not support concurrency
+ 88 |         
+ 89 |         // Test the public methods that should work after analysis
+[20/25] Compiling SwiftProjectLintCoreTests AdvancedAnalyzerTests.swift
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/AdvancedAnalyzerTests.swift:8:38: error: type 'FileAnalysisUtils' has no member 'extractViewName'
+  6 |     
+  7 |     @Test func testExtractViewNameRemovesSwiftExtension() throws {
+  8 |         let name = FileAnalysisUtils.extractViewName(from: "/Users/test/ContentView.swift")
+    |                                      `- error: type 'FileAnalysisUtils' has no member 'extractViewName'
+  9 |         #expect(name == "ContentView")
+ 10 |         
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/AdvancedAnalyzerTests.swift:11:39: error: type 'FileAnalysisUtils' has no member 'extractViewName'
+  9 |         #expect(name == "ContentView")
+ 10 |         
+ 11 |         let name2 = FileAnalysisUtils.extractViewName(from: "MyView.swift")
+    |                                       `- error: type 'FileAnalysisUtils' has no member 'extractViewName'
+ 12 |         #expect(name2 == "MyView")
+ 13 |         
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/AdvancedAnalyzerTests.swift:14:39: error: type 'FileAnalysisUtils' has no member 'extractViewName'
+ 12 |         #expect(name2 == "MyView")
+ 13 |         
+ 14 |         let name3 = FileAnalysisUtils.extractViewName(from: "/foo/bar/BazView.swift")
+    |                                       `- error: type 'FileAnalysisUtils' has no member 'extractViewName'
+ 15 |         #expect(name3 == "BazView")
+ 16 |     }
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/AdvancedAnalyzerTests.swift:36:13: warning: initialization of immutable value 'issues' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+ 34 |         defer { cleanupTestProject() }
+ 35 |         
+ 36 |         let issues = await analyzer.analyzeArchitecture(projectPath: testProjectPath)
+    |             `- warning: initialization of immutable value 'issues' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+ 37 |         
+ 38 |         // The analyzer should detect view relationships through its public interface
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/AdvancedAnalyzerTests.swift:36:22: error: 'await' in a function that does not support concurrency
+ 26 |     }
+ 27 |     
+ 28 |     @Test @MainActor func testFindRelatedViewsDetectsHierarchy() throws {
+    |                           `- note: add 'async' to function 'testFindRelatedViewsDetectsHierarchy()' to make it asynchronous
+ 29 |         // Test through the public interface by creating actual view relationships
+ 30 |         let analyzer = AdvancedAnalyzer()
+    :
+ 34 |         defer { cleanupTestProject() }
+ 35 |         
+ 36 |         let issues = await analyzer.analyzeArchitecture(projectPath: testProjectPath)
+    |                      `- error: 'await' in a function that does not support concurrency
+ 37 |         
+ 38 |         // The analyzer should detect view relationships through its public interface
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/AdvancedAnalyzerTests.swift:49:13: warning: initialization of immutable value 'issues' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+ 47 |         defer { cleanupTestProject() }
+ 48 |         
+ 49 |         let issues = await analyzer.analyzeArchitecture(projectPath: testProjectPath)
+    |             `- warning: initialization of immutable value 'issues' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+ 50 |         
+ 51 |         // The analyzer should detect view relationships through its public interface
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/AdvancedAnalyzerTests.swift:49:22: error: 'await' in a function that does not support concurrency
+ 39 |     }
+ 40 |     
+ 41 |     @Test @MainActor func testIsRootViewReturnsTrueForRoot() throws {
+    |                           `- note: add 'async' to function 'testIsRootViewReturnsTrueForRoot()' to make it asynchronous
+ 42 |         // Test through the public interface by creating actual view relationships
+ 43 |         let analyzer = AdvancedAnalyzer()
+    :
+ 47 |         defer { cleanupTestProject() }
+ 48 |         
+ 49 |         let issues = await analyzer.analyzeArchitecture(projectPath: testProjectPath)
+    |                      `- error: 'await' in a function that does not support concurrency
+ 50 |         
+ 51 |         // The analyzer should detect view relationships through its public interface
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/AdvancedAnalyzerTests.swift:62:13: warning: initialization of immutable value 'issues' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+ 60 |         defer { cleanupTestProject() }
+ 61 |         
+ 62 |         let issues = await analyzer.analyzeArchitecture(projectPath: testProjectPath)
+    |             `- warning: initialization of immutable value 'issues' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+ 63 |         
+ 64 |         // The analyzer should detect view relationships through its public interface
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/AdvancedAnalyzerTests.swift:62:22: error: 'await' in a function that does not support concurrency
+ 52 |     }
+ 53 |     
+ 54 |     @Test @MainActor func testGenerateStateSharingSuggestionForTwoViews() throws {
+    |                           `- note: add 'async' to function 'testGenerateStateSharingSuggestionForTwoViews()' to make it asynchronous
+ 55 |         // Test through the public interface by creating actual view relationships
+ 56 |         let analyzer = AdvancedAnalyzer()
+    :
+ 60 |         defer { cleanupTestProject() }
+ 61 |         
+ 62 |         let issues = await analyzer.analyzeArchitecture(projectPath: testProjectPath)
+    |                      `- error: 'await' in a function that does not support concurrency
+ 63 |         
+ 64 |         // The analyzer should detect view relationships through its public interface
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/AdvancedAnalyzerTests.swift:75:13: warning: initialization of immutable value 'issues' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+ 73 |         defer { cleanupTestProject() }
+ 74 |         
+ 75 |         let issues = await analyzer.analyzeArchitecture(projectPath: testProjectPath)
+    |             `- warning: initialization of immutable value 'issues' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+ 76 |         
+ 77 |         // The analyzer should detect view relationships through its public interface
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/AdvancedAnalyzerTests.swift:75:22: error: 'await' in a function that does not support concurrency
+ 65 |     }
+ 66 |     
+ 67 |     @Test @MainActor func testGenerateStateSharingSuggestionForManyViews() throws {
+    |                           `- note: add 'async' to function 'testGenerateStateSharingSuggestionForManyViews()' to make it asynchronous
+ 68 |         // Test through the public interface by creating actual view relationships
+ 69 |         let analyzer = AdvancedAnalyzer()
+    :
+ 73 |         defer { cleanupTestProject() }
+ 74 |         
+ 75 |         let issues = await analyzer.analyzeArchitecture(projectPath: testProjectPath)
+    |                      `- error: 'await' in a function that does not support concurrency
+ 76 |         
+ 77 |         // The analyzer should detect view relationships through its public interface
+    :
+ 92 |         
+ 93 |         // The analyzer should be able to query relationships through its public interface
+ 94 |         #expect(true) // At minimum, it should complete without errors
+    |                 `- note: '#expect(_:_:)' will always pass here; use 'Bool(true)' to silence this warning (from macro 'expect')
+ 95 |     }
+ 96 |     
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/AdvancedAnalyzerTests.swift:87:13: warning: initialization of immutable value 'issues' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+ 85 |         defer { cleanupTestProject() }
+ 86 |         
+ 87 |         let issues = await analyzer.analyzeArchitecture(projectPath: testProjectPath)
+    |             `- warning: initialization of immutable value 'issues' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+ 88 |         
+ 89 |         // Test the public methods that should work after analysis
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/AdvancedAnalyzerTests.swift:90:13: warning: initialization of immutable value 'relationshipType' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+ 88 |         
+ 89 |         // Test the public methods that should work after analysis
+ 90 |         let relationshipType = analyzer.relationshipType(between: "TestParent", and: "TestChild")
+    |             `- warning: initialization of immutable value 'relationshipType' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+ 91 |         let relationship = analyzer.viewRelationship(between: "TestParent", and: "TestChild")
+ 92 |         
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/AdvancedAnalyzerTests.swift:91:13: warning: initialization of immutable value 'relationship' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+ 89 |         // Test the public methods that should work after analysis
+ 90 |         let relationshipType = analyzer.relationshipType(between: "TestParent", and: "TestChild")
+ 91 |         let relationship = analyzer.viewRelationship(between: "TestParent", and: "TestChild")
+    |             `- warning: initialization of immutable value 'relationship' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+ 92 |         
+ 93 |         // The analyzer should be able to query relationships through its public interface
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/AdvancedAnalyzerTests.swift:87:22: error: 'await' in a function that does not support concurrency
+ 78 |     }
+ 79 |     
+ 80 |     @Test @MainActor func testRelationshipTypeAndViewRelationship() throws {
+    |                           `- note: add 'async' to function 'testRelationshipTypeAndViewRelationship()' to make it asynchronous
+ 81 |         let analyzer = AdvancedAnalyzer()
+ 82 |         
+    :
+ 85 |         defer { cleanupTestProject() }
+ 86 |         
+ 87 |         let issues = await analyzer.analyzeArchitecture(projectPath: testProjectPath)
+    |                      `- error: 'await' in a function that does not support concurrency
+ 88 |         
+ 89 |         // Test the public methods that should work after analysis
+[21/25] Compiling SwiftProjectLintCoreTests SwiftSyntaxPatternDetectorArchitectureTests.swift
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/SwiftSyntaxPattern/SwiftSyntaxPatternDetectorArchitectureTests.swift:42:40: error: 'async' call in a function that does not support concurrency
+ 19 |     @Test
+ 20 |     @MainActor
+ 21 |     static func architectureVisitorFatView() throws {
+    |                 `- note: add 'async' to function 'architectureVisitorFatView()' to make it asynchronous
+ 22 |         let detector = TestRegistryManager.getSharedDetector()
+ 23 |         
+    :
+ 40 |         
+ 41 |         // When - Use the detector with shared registry and measure performance
+ 42 |         let (issues, duration) = await TestRegistryManager.measureExecutionTime {
+    |                                        `- error: 'async' call in a function that does not support concurrency
+ 43 |             await detector.detectPatterns(
+ 44 |                 in: sourceCode,
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/SwiftSyntaxPattern/SwiftSyntaxPatternDetectorArchitectureTests.swift:81:40: error: 'async' call in a function that does not support concurrency
+ 64 |     @Test
+ 65 |     @MainActor
+ 66 |     static func architectureVisitorMissingDependencyInjection() throws {
+    |                 `- note: add 'async' to function 'architectureVisitorMissingDependencyInjection()' to make it asynchronous
+ 67 |         let detector = TestRegistryManager.getSharedDetector()
+ 68 |         
+    :
+ 79 |         
+ 80 |         // When - Use the detector with shared registry and measure performance
+ 81 |         let (issues, duration) = await TestRegistryManager.measureExecutionTime {
+    |                                        `- error: 'async' call in a function that does not support concurrency
+ 82 |             await detector.detectPatterns(
+ 83 |                 in: sourceCode,
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/SwiftSyntaxPattern/SwiftSyntaxPatternDetectorArchitectureTests.swift:126:14: warning: immutable value 'issues' was never used; consider replacing with '_' or removing it [#no-usage]
+124 |         
+125 |         // When - Use the detector with shared registry and measure performance
+126 |         let (issues, duration) = await TestRegistryManager.measureExecutionTime {
+    |              `- warning: immutable value 'issues' was never used; consider replacing with '_' or removing it [#no-usage]
+127 |             await detector.detectPatterns(
+128 |                 in: sourceCode,
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/SwiftSyntaxPattern/SwiftSyntaxPatternDetectorArchitectureTests.swift:126:40: error: 'async' call in a function that does not support concurrency
+103 |     @Test
+104 |     @MainActor
+105 |     static func architectureVisitorValidArchitecture() throws {
+    |                 `- note: add 'async' to function 'architectureVisitorValidArchitecture()' to make it asynchronous
+106 |         let detector = TestRegistryManager.getSharedDetector()
+107 |         
+    :
+124 |         
+125 |         // When - Use the detector with shared registry and measure performance
+126 |         let (issues, duration) = await TestRegistryManager.measureExecutionTime {
+    |                                        `- error: 'async' call in a function that does not support concurrency
+127 |             await detector.detectPatterns(
+128 |                 in: sourceCode,
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/SwiftSyntaxPattern/SwiftSyntaxPatternDetectorArchitectureTests.swift:163:13: warning: expression of type 'LintIssue' is unused [#no-usage]
+161 |         
+162 |         let protocolIssue = visitor.detectedIssues.first
+163 |         try #require(protocolIssue)
+    |             `- warning: expression of type 'LintIssue' is unused [#no-usage]
+164 |         #expect(protocolIssue?.message.contains("UserManager") == true)
+165 |         #expect(protocolIssue?.message.contains("protocol") == true)
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/SwiftSyntaxPattern/SwiftSyntaxPatternDetectorArchitectureTests.swift:152:13: warning: variable 'visitor' was never mutated; consider changing to 'let' constant
+150 |         """
+151 |         
+152 |         var visitor = ArchitectureVisitor(patternCategory: .architecture)
+    |             `- warning: variable 'visitor' was never mutated; consider changing to 'let' constant
+153 |         visitor.setFilePath("UserManager.swift")
+154 |         
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/SwiftSyntaxPattern/SwiftSyntaxPatternDetectorArchitectureTests.swift:182:13: warning: variable 'visitor' was never mutated; consider changing to 'let' constant
+180 |         """
+181 |         
+182 |         var visitor = ArchitectureVisitor(patternCategory: .architecture)
+    |             `- warning: variable 'visitor' was never mutated; consider changing to 'let' constant
+183 |         visitor.setFilePath("TestView.swift")
+184 |         
+[22/25] Compiling SwiftProjectLintCoreTests SwiftSyntaxPatternDetectorCoreTests.swift
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/SwiftSyntaxPattern/SwiftSyntaxPatternDetectorArchitectureTests.swift:42:40: error: 'async' call in a function that does not support concurrency
+ 19 |     @Test
+ 20 |     @MainActor
+ 21 |     static func architectureVisitorFatView() throws {
+    |                 `- note: add 'async' to function 'architectureVisitorFatView()' to make it asynchronous
+ 22 |         let detector = TestRegistryManager.getSharedDetector()
+ 23 |         
+    :
+ 40 |         
+ 41 |         // When - Use the detector with shared registry and measure performance
+ 42 |         let (issues, duration) = await TestRegistryManager.measureExecutionTime {
+    |                                        `- error: 'async' call in a function that does not support concurrency
+ 43 |             await detector.detectPatterns(
+ 44 |                 in: sourceCode,
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/SwiftSyntaxPattern/SwiftSyntaxPatternDetectorArchitectureTests.swift:81:40: error: 'async' call in a function that does not support concurrency
+ 64 |     @Test
+ 65 |     @MainActor
+ 66 |     static func architectureVisitorMissingDependencyInjection() throws {
+    |                 `- note: add 'async' to function 'architectureVisitorMissingDependencyInjection()' to make it asynchronous
+ 67 |         let detector = TestRegistryManager.getSharedDetector()
+ 68 |         
+    :
+ 79 |         
+ 80 |         // When - Use the detector with shared registry and measure performance
+ 81 |         let (issues, duration) = await TestRegistryManager.measureExecutionTime {
+    |                                        `- error: 'async' call in a function that does not support concurrency
+ 82 |             await detector.detectPatterns(
+ 83 |                 in: sourceCode,
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/SwiftSyntaxPattern/SwiftSyntaxPatternDetectorArchitectureTests.swift:126:14: warning: immutable value 'issues' was never used; consider replacing with '_' or removing it [#no-usage]
+124 |         
+125 |         // When - Use the detector with shared registry and measure performance
+126 |         let (issues, duration) = await TestRegistryManager.measureExecutionTime {
+    |              `- warning: immutable value 'issues' was never used; consider replacing with '_' or removing it [#no-usage]
+127 |             await detector.detectPatterns(
+128 |                 in: sourceCode,
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/SwiftSyntaxPattern/SwiftSyntaxPatternDetectorArchitectureTests.swift:126:40: error: 'async' call in a function that does not support concurrency
+103 |     @Test
+104 |     @MainActor
+105 |     static func architectureVisitorValidArchitecture() throws {
+    |                 `- note: add 'async' to function 'architectureVisitorValidArchitecture()' to make it asynchronous
+106 |         let detector = TestRegistryManager.getSharedDetector()
+107 |         
+    :
+124 |         
+125 |         // When - Use the detector with shared registry and measure performance
+126 |         let (issues, duration) = await TestRegistryManager.measureExecutionTime {
+    |                                        `- error: 'async' call in a function that does not support concurrency
+127 |             await detector.detectPatterns(
+128 |                 in: sourceCode,
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/SwiftSyntaxPattern/SwiftSyntaxPatternDetectorArchitectureTests.swift:163:13: warning: expression of type 'LintIssue' is unused [#no-usage]
+161 |         
+162 |         let protocolIssue = visitor.detectedIssues.first
+163 |         try #require(protocolIssue)
+    |             `- warning: expression of type 'LintIssue' is unused [#no-usage]
+164 |         #expect(protocolIssue?.message.contains("UserManager") == true)
+165 |         #expect(protocolIssue?.message.contains("protocol") == true)
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/SwiftSyntaxPattern/SwiftSyntaxPatternDetectorArchitectureTests.swift:152:13: warning: variable 'visitor' was never mutated; consider changing to 'let' constant
+150 |         """
+151 |         
+152 |         var visitor = ArchitectureVisitor(patternCategory: .architecture)
+    |             `- warning: variable 'visitor' was never mutated; consider changing to 'let' constant
+153 |         visitor.setFilePath("UserManager.swift")
+154 |         
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/SwiftSyntaxPattern/SwiftSyntaxPatternDetectorArchitectureTests.swift:182:13: warning: variable 'visitor' was never mutated; consider changing to 'let' constant
+180 |         """
+181 |         
+182 |         var visitor = ArchitectureVisitor(patternCategory: .architecture)
+    |             `- warning: variable 'visitor' was never mutated; consider changing to 'let' constant
+183 |         visitor.setFilePath("TestView.swift")
+184 |         
+error: emit-module command failed with exit code 1 (use -v to see invocation)
+[23/25] Emitting module SwiftProjectLintCoreTests
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/Networking/NetworkingVisitorTests.swift:9:5: error: expected declaration
+  5 | @testable import SwiftProjectLintCore
+  6 | 
+  7 | struct NetworkingVisitorTests {
+    |        `- note: in declaration of 'NetworkingVisitorTests'
+  8 |     
+  9 |     @Test func testVisitorInitialization() throws {
+    |     `- error: expected declaration
+ 10 |         let visitor = NetworkingVisitor(patternCategory: .networking)
+ 11 |         
+
+/Users/josephcursio/xcode_projects/SwiftProjectLint/Tests/SwiftProjectLintCoreTests/Networking/NetworkingVisitorTests.swift:9:5: error: expected '}' in struct
+  5 | @testable import SwiftProjectLintCore
+  6 | 
+  7 | struct NetworkingVisitorTests {
+    |                               `- note: to match this opening '{'
+  8 |     
+  9 |     @Test func testVisitorInitialization() throws {
+    |     `- error: expected '}' in struct
+ 10 |         let visitor = NetworkingVisitor(patternCategory: .networking)
+ 11 |         
+error: fatalError

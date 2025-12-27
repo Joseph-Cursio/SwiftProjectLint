@@ -6,7 +6,7 @@ import ViewInspector
 
 final class LintResultsViewTests {
     
-    @Test func testLintResultsViewInitialization() throws {
+    @Test func testLintResultsViewInitialization() async throws {
         await MainActor.run {
             let sampleIssues = [
                 LintIssue(
@@ -25,7 +25,7 @@ final class LintResultsViewTests {
         }
     }
     
-    @Test func testEmptyIssuesList() throws {
+    @Test func testEmptyIssuesList() async throws {
         await MainActor.run {
             _ = LintResultsView(issues: [])
             // Just verify it can be created without crashing
@@ -33,7 +33,7 @@ final class LintResultsViewTests {
         }
     }
     
-    @Test func testIssueSeverityFiltering() throws {
+    @Test func testIssueSeverityFiltering() async throws {
         await MainActor.run {
             let issues = [
                 LintIssue(
@@ -76,7 +76,7 @@ final class LintResultsViewTests {
         }
     }
     
-    @Test func testIssueRuleNameMapping() throws {
+    @Test func testIssueRuleNameMapping() async throws {
         await MainActor.run {
             let issues = [
                 LintIssue(

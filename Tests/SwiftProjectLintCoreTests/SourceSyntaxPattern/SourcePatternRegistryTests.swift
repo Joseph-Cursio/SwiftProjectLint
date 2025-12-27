@@ -21,7 +21,10 @@ struct SourcePatternRegistryTests {
         SourcePatternRegistry,
         SourcePatternDetector
     ) {
-        return TestRegistryManager.createIsolatedInstances()
+        let (visitorRegistry, _, _) = TestRegistryManager.createIsolatedInstances()
+        let sourceRegistry = SourcePatternRegistry(visitorRegistry: visitorRegistry)
+        let detector = SourcePatternDetector(registry: visitorRegistry)
+        return (visitorRegistry, sourceRegistry, detector)
     }
     
     // MARK: - Registry Tests (Need Isolation)

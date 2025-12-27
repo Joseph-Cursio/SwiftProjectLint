@@ -4,10 +4,301 @@ import SwiftSyntax
 import SwiftParser
 @testable import SwiftProjectLintCore
 
-@Suite struct StateVariableVisitorTests {
-    @Test("Basic stub test")
-    func testStub() {
-        #expect(true, "Stub test placeholder.")
+@Suite
+@MainActor
+struct StateVariableVisitorTests {
+    
+    // MARK: - Type Extraction from Annotations
+    
+    @Test func testExtractTypeFromExplicitAnnotation() throws {
+        let source = """
+        struct TestView: View {
+            @State private var count: Int = 0
+            var body: some View { Text("Test") }
+        }
+        """
+        
+        let visitor = createVisitor(for: source)
+        let stateVars = visitor.stateVariables
+        
+        #expect(stateVars.count == 1)
+        #expect(stateVars.first?.type == "Int")
+        #expect(stateVars.first?.name == "count")
+    }
+    
+    @Test func testExtractTypeFromStringAnnotation() throws {
+        let source = """
+        struct TestView: View {
+            @State private var name: String = "Test"
+            var body: some View { Text("Test") }
+        }
+        """
+        
+        let visitor = createVisitor(for: source)
+        let stateVars = visitor.stateVariables
+        
+        #expect(stateVars.count == 1)
+        #expect(stateVars.first?.type == "String")
+    }
+    
+    @Test func testExtractTypeFromBoolAnnotation() throws {
+        let source = """
+        struct TestView: View {
+            @State private var isEnabled: Bool = true
+            var body: some View { Text("Test") }
+        }
+        """
+        
+        let visitor = createVisitor(for: source)
+        let stateVars = visitor.stateVariables
+        
+        #expect(stateVars.count == 1)
+        #expect(stateVars.first?.type == "Bool")
+    }
+    
+    @Test func testExtractTypeFromOptionalAnnotation() throws {
+        let source = """
+        struct TestView: View {
+            @State private var optionalValue: String? = nil
+            var body: some View { Text("Test") }
+        }
+        """
+        
+        let visitor = createVisitor(for: source)
+        let stateVars = visitor.stateVariables
+        
+        #expect(stateVars.count == 1)
+        #expect(stateVars.first?.type.contains("String") == true)
+    }
+    
+    // MARK: - Type Inference from Initializers
+    
+    @Test func testInferTypeFromBooleanLiteral() throws {
+        let source = """
+        struct TestView: View {
+            @State private var isVisible = true
+            var body: some View { Text("Test") }
+        }
+        """
+        
+        let visitor = createVisitor(for: source)
+        let stateVars = visitor.stateVariables
+        
+        #expect(stateVars.count == 1)
+        #expect(stateVars.first?.type == "Bool")
+    }
+    
+    @Test func testInferTypeFromIntegerLiteral() throws {
+        let source = """
+        struct TestView: View {
+            @State private var count = 42
+            var body: some View { Text("Test") }
+        }
+        """
+        
+        let visitor = createVisitor(for: source)
+        let stateVars = visitor.stateVariables
+        
+        #expect(stateVars.count == 1)
+        #expect(stateVars.first?.type == "Int")
+    }
+    
+    @Test func testInferTypeFromFloatLiteral() throws {
+        let source = """
+        struct TestView: View {
+            @State private var value = 3.14
+            var body: some View { Text("Test") }
+        }
+        """
+        
+        let visitor = createVisitor(for: source)
+        let stateVars = visitor.stateVariables
+        
+        #expect(stateVars.count == 1)
+        #expect(stateVars.first?.type == "Double")
+    }
+    
+    @Test func testInferTypeFromStringLiteral() throws {
+        let source = """
+        struct TestView: View {
+            @State private var text = "Hello"
+            var body: some View { Text("Test") }
+        }
+        """
+        
+        let visitor = createVisitor(for: source)
+        let stateVars = visitor.stateVariables
+        
+        #expect(stateVars.count == 1)
+        #expect(stateVars.first?.type == "String")
+    }
+    
+    @Test func testInferTypeFromArrayLiteral() throws {
+        let source = """
+        struct TestView: View {
+            @State private var items = [1, 2, 3]
+            var body: some View { Text("Test") }
+        }
+        """
+        
+        let visitor = createVisitor(for: source)
+        let stateVars = visitor.stateVariables
+        
+        #expect(stateVars.count == 1)
+        #expect(stateVars.first?.type == "Array")
+    }
+    
+    @Test func testInferTypeFromEmptyArray() throws {
+        let source = """
+        struct TestView: View {
+            @State private var items = []
+            var body: some View { Text("Test") }
+        }
+        """
+        
+        let visitor = createVisitor(for: source)
+        let stateVars = visitor.stateVariables
+        
+        #expect(stateVars.count == 1)
+        #expect(stateVars.first?.type == "Array")
+    }
+    
+    @Test func testInferTypeFromFunctionCall() throws {
+        let source = """
+        struct TestView: View {
+            @State private var manager = UserManager()
+            var body: some View { Text("Test") }
+        }
+        """
+        
+        let visitor = createVisitor(for: source)
+        let stateVars = visitor.stateVariables
+        
+        #expect(stateVars.count == 1)
+        #expect(stateVars.first?.type == "UserManager")
+    }
+    
+    @Test func testInferTypeFromCGSize() throws {
+        let source = """
+        struct TestView: View {
+            @State private var size = CGSize(width: 100, height: 200)
+            var body: some View { Text("Test") }
+        }
+        """
+        
+        let visitor = createVisitor(for: source)
+        let stateVars = visitor.stateVariables
+        
+        #expect(stateVars.count == 1)
+        #expect(stateVars.first?.type == "CGSize")
+    }
+    
+    @Test func testInferTypeFromCGPoint() throws {
+        let source = """
+        struct TestView: View {
+            @State private var point = CGPoint.zero
+            var body: some View { Text("Test") }
+        }
+        """
+        
+        let visitor = createVisitor(for: source)
+        let stateVars = visitor.stateVariables
+        
+        #expect(stateVars.count == 1)
+        #expect(stateVars.first?.type == "CGPoint")
+    }
+    
+    @Test func testInferTypeFromColor() throws {
+        let source = """
+        struct TestView: View {
+            @State private var color = Color.blue
+            var body: some View { Text("Test") }
+        }
+        """
+        
+        let visitor = createVisitor(for: source)
+        let stateVars = visitor.stateVariables
+        
+        #expect(stateVars.count == 1)
+        #expect(stateVars.first?.type == "Color")
+    }
+    
+    @Test func testInferTypeFromFont() throws {
+        let source = """
+        struct TestView: View {
+            @State private var font = Font.title
+            var body: some View { Text("Test") }
+        }
+        """
+        
+        let visitor = createVisitor(for: source)
+        let stateVars = visitor.stateVariables
+        
+        #expect(stateVars.count == 1)
+        #expect(stateVars.first?.type == "Font")
+    }
+    
+    @Test func testHandleMissingTypeAnnotationAndInitializer() throws {
+        let source = """
+        struct TestView: View {
+            @State private var value: String
+            var body: some View { Text("Test") }
+        }
+        """
+        
+        let visitor = createVisitor(for: source)
+        let stateVars = visitor.stateVariables
+        
+        #expect(stateVars.count == 1)
+        #expect(stateVars.first?.type == "String")
+    }
+    
+    @Test func testCleanTypeStringRemovesSomeKeyword() throws {
+        let source = """
+        struct TestView: View {
+            @State private var content: some View = Text("Test")
+            var body: some View { Text("Test") }
+        }
+        """
+        
+        let visitor = createVisitor(for: source)
+        let stateVars = visitor.stateVariables
+        
+        #expect(stateVars.count == 1)
+        #expect(stateVars.first?.type == "View")
+    }
+    
+    @Test func testMultipleStateVariables() throws {
+        let source = """
+        struct TestView: View {
+            @State private var count = 0
+            @State private var name = "Test"
+            @State private var isVisible = true
+            var body: some View { Text("Test") }
+        }
+        """
+        
+        let visitor = createVisitor(for: source)
+        let stateVars = visitor.stateVariables
+        
+        #expect(stateVars.count == 3)
+        #expect(stateVars.contains { $0.type == "Int" && $0.name == "count" })
+        #expect(stateVars.contains { $0.type == "String" && $0.name == "name" })
+        #expect(stateVars.contains { $0.type == "Bool" && $0.name == "isVisible" })
+    }
+    
+    // MARK: - Helper Methods
+    
+    private func createVisitor(for source: String) -> StateVariableVisitor {
+        let syntax = Parser.parse(source: source)
+        let viewName = "TestView"
+        let filePath = "/test/TestView.swift"
+        let visitor = StateVariableVisitor(
+            viewName: viewName,
+            filePath: filePath,
+            sourceContents: source
+        )
+        visitor.walk(syntax)
+        return visitor
     }
 } 
-

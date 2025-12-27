@@ -11,16 +11,21 @@ struct RuleSelectionDialogTests {
     @Test
     @MainActor
     func testDialogStructureAndActions() throws {
-        let demoPatterns: [(category: PatternCategory, display: String, patterns: [DetectionPattern], useSwiftSyntax: Bool)] = [
-            (.stateManagement, "State Management", [
-                DetectionPattern(
-                    name: .relatedDuplicateStateVariable,
-                    severity: .warning,
-                    message: "Related Duplicate State Variable",
-                    suggestion: "Create a shared ObservableObject for state variables",
-                    category: .stateManagement
-                )
-            ], true)
+        let demoPatterns: [PatternCategoryInfo] = [
+            PatternCategoryInfo(
+                category: .stateManagement,
+                display: "State Management",
+                patterns: [
+                    DetectionPattern(
+                        name: .relatedDuplicateStateVariable,
+                        severity: .warning,
+                        message: "Related Duplicate State Variable",
+                        suggestion: "Create a shared ObservableObject for state variables",
+                        category: .stateManagement
+                    )
+                ],
+                useSwiftSyntax: true
+            )
         ]
         @State var enabled: Set<RuleIdentifier> = [.relatedDuplicateStateVariable]
         let view = RuleSelectionDialog(
@@ -34,10 +39,10 @@ struct RuleSelectionDialogTests {
         if !navTitle.contains("Select Lint Rules") {
             print("[RuleSelectionDialogTests] WARNING: 'Select Lint Rules' navigation title not found in Text views.")
         }
-        // Instead of Section, look for ForEach and Toggle
+        // The view structure uses List instead of VStack
         let navView = try inspected.navigationView()
-        let vStack = try navView.vStack()
-        let forEach = try vStack.find(ViewType.ForEach.self)
+        let list = try navView.list()
+        let forEach = try list.find(ViewType.ForEach.self)
         // Check for Toggle label text (flexible: any Text in label)
         let toggles = try forEach.findAll(ViewType.Toggle.self)
         #expect(toggles.contains { toggle in

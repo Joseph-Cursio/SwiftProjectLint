@@ -72,7 +72,6 @@ final class SourcePatternRuleIdentifierFilteringTests {
         }
         
         #expect(specificIssues.count <= allIssues.count, "Specific rules should be subset of all rules")
-        #expect(specificIssues.count >= 0, "Rule identifier filtering should work")
     }
     
     @Test func characterizeEmptyRuleIdentifierList() throws {

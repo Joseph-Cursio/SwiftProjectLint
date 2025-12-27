@@ -21,24 +21,36 @@ struct SourcePatternDetectorCoreTests {
         SourcePatternRegistry,
         SourcePatternDetector
     ) {
-        return TestRegistryManager.createIsolatedInstances()
+        let (visitorRegistry, _, _) = TestRegistryManager.createIsolatedInstances()
+        let sourceRegistry = SourcePatternRegistry(visitorRegistry: visitorRegistry)
+        let detector = SourcePatternDetector(registry: visitorRegistry)
+        return (visitorRegistry, sourceRegistry, detector)
     }
     
     /// Uses shared registry with specific patterns for focused testing
     static func setupTestWithSpecificPatterns(_ patterns: [SyntaxPattern]) -> SourcePatternDetector {
-        return TestRegistryManager.getDetectorWithPatterns(patterns)
+        let visitorRegistry = TestRegistryManager.getSharedVisitorRegistry()
+        for pattern in patterns {
+            visitorRegistry.register(pattern: pattern)
+        }
+        return SourcePatternDetector(registry: visitorRegistry)
     }
     
     static func clearTestState(detector: SourcePatternDetector?) {
         detector?.clearCache()
     }
     
+    static func getSharedDetector() -> SourcePatternDetector {
+        let visitorRegistry = TestRegistryManager.getSharedVisitorRegistry()
+        return SourcePatternDetector(registry: visitorRegistry)
+    }
+    
     // MARK: - SwiftSyntax Pattern Detector Core Tests (Use Shared Registry)
     
     @Test
     @MainActor
-    static func swiftSyntaxPatternDetectorSingleFile() throws {
-        let detector = TestRegistryManager.getSharedDetector()
+    static func swiftSyntaxPatternDetectorSingleFile() async throws {
+        let detector = getSharedDetector()
         
         // Given
         let sourceCode = """
@@ -53,8 +65,7 @@ struct SourcePatternDetectorCoreTests {
         
         // When - Use the detector with shared registry and measure performance
         let (issues, duration) = await TestRegistryManager.measureExecutionTime {
-            await detector
-                .detectPatterns(in: sourceCode, filePath: "TestView.swift")
+            await detector.detectPatterns(in: sourceCode, filePath: "TestView.swift", categories: nil)
         }
         
         // Log slow test execution
@@ -75,7 +86,7 @@ struct SourcePatternDetectorCoreTests {
         // The exact count may vary based on registry initialization, so we check for presence of specific issues
         
         // Check that uninitialized state is detected (from default patterns)
-        let uninitializedIssues = issues.filter { $0.ruleName == .uninitializedStateVariable }
+        let uninitializedIssues = issues.filter { $0.ruleName == RuleIdentifier.uninitializedStateVariable }
         print("Uninitialized state issues count: \(uninitializedIssues.count)")
         #expect(uninitializedIssues.count >= 1)
         
@@ -87,8 +98,8 @@ struct SourcePatternDetectorCoreTests {
     
     @Test
     @MainActor
-    static func swiftSyntaxPatternDetectorCrossFile() throws {
-        let detector = TestRegistryManager.getSharedDetector()
+    static func swiftSyntaxPatternDetectorCrossFile() async throws {
+        let detector = getSharedDetector()
         
         // Given
         let file1 = """
@@ -112,20 +123,16 @@ struct SourcePatternDetectorCoreTests {
         """
         
         // When - Measure performance for cross-file analysis
-        let (issues1, _) = await TestRegistryManager.measureExecutionTime {
-            await detector
-                .detectPatterns(in: file1, filePath: "ParentView.swift")
+        let (_, _) = await TestRegistryManager.measureExecutionTime {
+            await detector.detectPatterns(in: file1, filePath: "ParentView.swift", categories: nil)
         }
         
-        let (issues2, _) = await TestRegistryManager.measureExecutionTime {
-            await detector
-                .detectPatterns(in: file2, filePath: "ChildView.swift")
+        let (_, _) = await TestRegistryManager.measureExecutionTime {
+            await detector.detectPatterns(in: file2, filePath: "ChildView.swift", categories: nil)
         }
         
        
         // Then - Both files should be processed independently
-        #expect(issues1.count >= 0)
-        #expect(issues2.count >= 0)
         
         clearTestState(detector: detector)
     }

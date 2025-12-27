@@ -19,7 +19,6 @@ final class ProjectLinterTests {
         
         let issues = linter.analyzeProject(at: testProjectPath)
         
-        #expect(issues.count >= 0) // Should not crash and return some issues
         print("DEBUG: Found \(issues.count) issues in valid project")
     }
     
@@ -29,7 +28,6 @@ final class ProjectLinterTests {
         
         let issues = linter.analyzeProject(at: invalidPath)
         
-        #expect(issues.count >= 0) // Should handle gracefully and not crash
         print("DEBUG: Found \(issues.count) issues in invalid project")
     }
     
@@ -42,7 +40,6 @@ final class ProjectLinterTests {
             categories: [.stateManagement, .accessibility]
         )
         
-        #expect(issues.count >= 0)
         print("DEBUG: Found \(issues.count) issues with specific categories")
         
         // Verify that issues are from the specified categories
@@ -61,7 +58,6 @@ final class ProjectLinterTests {
             ruleIdentifiers: [.relatedDuplicateStateVariable, .missingAccessibilityLabel]
         )
         
-        #expect(issues.count >= 0)
         print("DEBUG: Found \(issues.count) issues with specific rules")
         
         // Verify that issues are from the specified rules
@@ -76,7 +72,6 @@ final class ProjectLinterTests {
         
         let issues = linter.analyzeProject(at: testProjectPath)
         
-        #expect(issues.count >= 0) // Should handle empty project gracefully
         print("DEBUG: Found \(issues.count) issues in empty project")
     }
     
@@ -86,13 +81,11 @@ final class ProjectLinterTests {
         
         let issues = linter.analyzeProject(at: testProjectPath)
         
-        #expect(issues.count >= 0)
         print("DEBUG: Found \(issues.count) issues in complex project")
         
         // Verify different types of issues are detected
         let issueTypes = Set(issues.map { $0.ruleName.category })
         print("DEBUG: Detected issue categories: \(issueTypes)")
-        #expect(issueTypes.count >= 0) // Current system may not detect issues in test files
     }
     
     @Test func testAnalyzeProjectPerformance() throws {
@@ -107,7 +100,6 @@ final class ProjectLinterTests {
         print("DEBUG: Analysis took \(duration) seconds")
         
         #expect(duration < 10.0) // Should complete within reasonable time
-        #expect(issues.count >= 0)
     }
     
     @Test func testAnalyzeProjectWithAllCategories() throws {
@@ -121,13 +113,11 @@ final class ProjectLinterTests {
         
         let issues = linter.analyzeProject(at: testProjectPath, categories: allCategories)
         
-        #expect(issues.count >= 0)
         print("DEBUG: Found \(issues.count) issues with all categories")
         
         // Verify that issues span multiple categories
         let detectedCategories = Set(issues.map { $0.ruleName.category })
         print("DEBUG: Detected categories: \(detectedCategories)")
-        #expect(detectedCategories.count >= 0) // Current system may not detect issues in test files
     }
     
     @Test func testAnalyzeProjectWithAllRules() throws {
@@ -137,13 +127,11 @@ final class ProjectLinterTests {
         let allRules = RuleIdentifier.allCases
         let issues = linter.analyzeProject(at: testProjectPath, ruleIdentifiers: allRules)
         
-        #expect(issues.count >= 0)
         print("DEBUG: Found \(issues.count) issues with all rules")
         
         // Verify that different rule types are detected
         let detectedRules = Set(issues.map { $0.ruleName })
         print("DEBUG: Detected rules: \(detectedRules)")
-        #expect(detectedRules.count >= 0)
     }
     
     // MARK: - Helper Methods

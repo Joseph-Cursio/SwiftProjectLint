@@ -38,7 +38,7 @@ struct SwiftSyntaxPatternDetectorCoreTests {
     
     @Test
     @MainActor
-    static func swiftSyntaxPatternDetectorSingleFile() throws {
+    static func swiftSyntaxPatternDetectorSingleFile() async throws {
         let detector = TestRegistryManager.getSharedDetector()
         
         // Given
@@ -54,8 +54,9 @@ struct SwiftSyntaxPatternDetectorCoreTests {
         
         // When - Use the detector with shared registry and measure performance
         let (issues, duration) = await TestRegistryManager.measureExecutionTime {
-            await detector
-                .detectPatterns(in: sourceCode, filePath: "TestView.swift")
+            await MainActor.run {
+                detector.detectPatterns(in: sourceCode, filePath: "TestView.swift")
+            }
         }
         
         // Log slow test execution
@@ -76,7 +77,7 @@ struct SwiftSyntaxPatternDetectorCoreTests {
         // The exact count may vary based on registry initialization, so we check for presence of specific issues
         
         // Check that uninitialized state is detected (from default patterns)
-        let uninitializedIssues = issues.filter { $0.ruleName == .uninitializedStateVariable }
+        let uninitializedIssues = issues.filter { $0.ruleName == RuleIdentifier.uninitializedStateVariable }
         print("Uninitialized state issues count: \(uninitializedIssues.count)")
         #expect(uninitializedIssues.count >= 1)
         
@@ -88,7 +89,7 @@ struct SwiftSyntaxPatternDetectorCoreTests {
     
     @Test
     @MainActor
-    static func swiftSyntaxPatternDetectorCrossFile() throws {
+    static func swiftSyntaxPatternDetectorCrossFile() async throws {
         let detector = TestRegistryManager.getSharedDetector()
         
         // Given
@@ -113,27 +114,28 @@ struct SwiftSyntaxPatternDetectorCoreTests {
         """
         
         // When - Measure performance for cross-file analysis
-        let (issues1, duration1) = await TestRegistryManager.measureExecutionTime {
-            await detector
-                .detectPatterns(in: file1, filePath: "ParentView.swift")
+        let (_, duration1) = await TestRegistryManager.measureExecutionTime {
+            await MainActor.run {
+                detector.detectPatterns(in: file1, filePath: "ParentView.swift")
+            }
         }
         
-        let (issues2, duration2) = await TestRegistryManager.measureExecutionTime {
-            await detector
-                .detectPatterns(in: file2, filePath: "ChildView.swift")
+        let (_, duration2) = await TestRegistryManager.measureExecutionTime {
+            await MainActor.run {
+                detector.detectPatterns(in: file2, filePath: "ChildView.swift")
+            }
         }
         
         // Log slow test execution
-        TestRegistryManager.logSlowTest("testSwiftSyntaxPatternDetectorCrossFile", duration: duration1 + duration2)
+        let totalDuration: Duration = duration1 + duration2
+        TestRegistryManager.logSlowTest("testSwiftSyntaxPatternDetectorCrossFile", duration: totalDuration)
         
         print("Cross-file test execution times:")
         print("  ParentView.swift: \(duration1.formatted())")
         print("  ChildView.swift: \(duration2.formatted())")
-        print("  Total: \((duration1 + duration2).formatted())")
+        print("  Total: \(totalDuration.formatted())")
         
         // Then - Both files should be processed independently
-        #expect(issues1.count >= 0)
-        #expect(issues2.count >= 0)
         
         clearTestState(detector: detector)
     }

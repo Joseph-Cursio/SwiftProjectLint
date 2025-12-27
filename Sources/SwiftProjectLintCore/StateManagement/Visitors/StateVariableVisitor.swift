@@ -111,83 +111,134 @@ class StateVariableVisitor: SyntaxVisitor {
     /// Extracts and formats type information from type annotations or infers from initializer
     private func extractTypeString(from typeAnnotation: TypeAnnotationSyntax?, initializer: InitializerClauseSyntax?) -> String {
         if let typeAnnotation = typeAnnotation {
-            // Convert the type syntax to a string representation
-            let typeString = typeAnnotation.type.description.trimmingCharacters(in: .whitespaces)
-
-            // Clean up common type patterns for better readability
-            return cleanTypeString(typeString)
+            return extractTypeFromAnnotation(typeAnnotation)
         }
-        // Type inference from initializer
+        
         if let initializer = initializer {
-            let value = initializer.value
-            switch value.kind {
-            case .booleanLiteralExpr:
-                return "Bool"
-            case .integerLiteralExpr:
-                return "Int"
-            case .floatLiteralExpr:
-                return "Double"
-            case .stringLiteralExpr:
-                return "String"
-            case .arrayExpr:
-                return "Array"
-            case .dictionaryExpr:
-                return "Dictionary"
-            default:
-                // Try to infer from the text for common cases
-                let text = value.description.trimmingCharacters(in: .whitespacesAndNewlines)
-                if text == "true" || text == "false" {
-                    return "Bool"
-                } else if let _ = Int(text) {
-                    return "Int"
-                } else if let _ = Double(text) {
-                    return "Double"
-                } else if text.hasPrefix("\"") && text.hasSuffix("\"") {
-                    return "String"
-                } else if text.hasSuffix("()") {
-                    // Handle function calls like UserManager() -> extract UserManager
-                    let functionName = String(text.dropLast(2))
-                    return functionName
-                } else if text.hasPrefix("[") && text.hasSuffix("]") {
-                    // Handle array literals like [] -> Array
-                    return "Array"
-                } else if text.hasPrefix("CGSize(") || text.hasSuffix(".zero") {
-                    // Handle common SwiftUI types
-                    if text.contains("CGSize") {
-                        return "CGSize"
-                    } else if text.contains("CGPoint") {
-                        return "CGPoint"
-                    } else if text.contains("CGRect") {
-                        return "CGRect"
-                    }
-                } else if text.contains("Color.") {
-                    return "Color"
-                } else if text.contains("Font.") {
-                    return "Font"
-                }
-
-                // Handle unknown type patterns based on configuration
-                if config.logUnknownTypes {
-                    print("⚠️  Unknown type pattern in initializer: '\(text)' (kind: \(value.kind)) at \(filePath)")
-                }
-
-                if config.strictTypeChecking {
-                    fatalError("Failed to infer type for initializer: '\(text)' (kind: \(value.kind)) at \(filePath)")
-                }
-
-                return "Unknown"
-            }
+            return inferTypeFromInitializer(initializer)
         }
-
-        // No type annotation or initializer found
+        
+        return handleMissingType()
+    }
+    
+    /// Extracts type from type annotation
+    private func extractTypeFromAnnotation(_ typeAnnotation: TypeAnnotationSyntax) -> String {
+        let typeString = typeAnnotation.type.description.trimmingCharacters(in: .whitespaces)
+        return cleanTypeString(typeString)
+    }
+    
+    /// Infers type from initializer value
+    private func inferTypeFromInitializer(_ initializer: InitializerClauseSyntax) -> String {
+        let value = initializer.value
+        
+        // Handle known syntax kinds
+        switch value.kind {
+        case .booleanLiteralExpr:
+            return "Bool"
+        case .integerLiteralExpr:
+            return "Int"
+        case .floatLiteralExpr:
+            return "Double"
+        case .stringLiteralExpr:
+            return "String"
+        case .arrayExpr:
+            return "Array"
+        case .dictionaryExpr:
+            return "Dictionary"
+        default:
+            return inferTypeFromText(value.description)
+        }
+    }
+    
+    /// Infers type from text representation of the value
+    private func inferTypeFromText(_ text: String) -> String {
+        let trimmedText = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        
+        // Check for boolean literals
+        if trimmedText == "true" || trimmedText == "false" {
+            return "Bool"
+        }
+        
+        // Check for numeric types
+        if Int(trimmedText) != nil {
+            return "Int"
+        }
+        if Double(trimmedText) != nil {
+            return "Double"
+        }
+        
+        // Check for string literals
+        if trimmedText.hasPrefix("\"") && trimmedText.hasSuffix("\"") {
+            return "String"
+        }
+        
+        // Check for function calls
+        if trimmedText.hasSuffix("()") {
+            let functionName = String(trimmedText.dropLast(2))
+            return functionName
+        }
+        
+        // Check for array literals
+        if trimmedText.hasPrefix("[") && trimmedText.hasSuffix("]") {
+            return "Array"
+        }
+        
+        // Check for Core Graphics types
+        if let cgType = inferCGType(from: trimmedText) {
+            return cgType
+        }
+        
+        // Check for SwiftUI types
+        if trimmedText.contains("Color.") {
+            return "Color"
+        }
+        if trimmedText.contains("Font.") {
+            return "Font"
+        }
+        
+        return handleUnknownType(text: trimmedText)
+    }
+    
+    /// Infers Core Graphics types from text
+    private func inferCGType(from text: String) -> String? {
+        guard text.hasPrefix("CGSize(") || text.hasSuffix(".zero") || text.contains("CG") else {
+            return nil
+        }
+        
+        if text.contains("CGSize") {
+            return "CGSize"
+        } else if text.contains("CGPoint") {
+            return "CGPoint"
+        } else if text.contains("CGRect") {
+            return "CGRect"
+        }
+        
+        return nil
+    }
+    
+    /// Handles unknown type patterns
+    private func handleUnknownType(text: String) -> String {
+        if config.logUnknownTypes {
+            print("⚠️  Unknown type pattern in initializer: '\(text)' at \(filePath)")
+        }
+        
+        if config.strictTypeChecking {
+            fatalError("Failed to infer type for initializer: '\(text)' at \(filePath)")
+        }
+        
+        return "Unknown"
+    }
+    
+    /// Handles missing type annotation and initializer
+    private func handleMissingType() -> String {
         if config.logUnknownTypes {
             print("⚠️  No type annotation or initializer found for variable at \(filePath)")
         }
-
+        
         if config.strictTypeChecking {
             fatalError("No type annotation or initializer found for variable at \(filePath)")
         }
-
+        
         return "Unknown"
     }
 

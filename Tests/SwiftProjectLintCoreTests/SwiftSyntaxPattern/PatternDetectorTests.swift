@@ -35,7 +35,6 @@ final class PatternDetectorTests {
             filePath: "/test/ContentView.swift"
         )
         
-        #expect(issues.count >= 0) // Should not crash
     }
     
     @Test func testDetectPatternsWithSpecificRules() throws {
@@ -58,7 +57,6 @@ final class PatternDetectorTests {
             ruleIdentifiers: [.relatedDuplicateStateVariable, .missingStateObject]
         )
         
-        #expect(issues.count >= 0) // Should not crash
     }
     
     @Test func testDetectPatternsInProject() throws {
@@ -74,23 +72,31 @@ final class PatternDetectorTests {
             ruleIdentifiers: [.relatedDuplicateStateVariable]
         )
         
-        #expect(issues.count >= 0) // Should not crash, even with empty project
     }
     
     @Test func testCrossFilePatternDetection() throws {
         let detector = CrossFileAnalysisEngine()
         
         let projectFiles = [
-            "/test/View1.swift",
-            "/test/View2.swift"
+            ProjectFile(name: "View1.swift", content: """
+                struct View1: View {
+                    @State private var isLoading = false
+                    var body: some View { Text("View1") }
+                }
+                """),
+            ProjectFile(name: "View2.swift", content: """
+                struct View2: View {
+                    @State private var isLoading = false
+                    var body: some View { Text("View2") }
+                }
+                """)
         ]
         
-        let issues = detector.detectCrossFilePatterns(
+        let _ = detector.detectCrossFilePatterns(
             projectFiles: projectFiles,
             ruleIdentifiers: [.relatedDuplicateStateVariable]
         )
         
-        #expect(issues.count >= 0) // Should not crash
     }
     
     @Test func testPatternRegistryIntegration() throws {
@@ -108,7 +114,6 @@ final class PatternDetectorTests {
             filePath: "/test/Empty.swift"
         )
         
-        #expect(issues.count >= 0) // Should handle empty source gracefully
     }
     
     @Test func testInvalidSwiftCode() throws {
@@ -120,6 +125,5 @@ final class PatternDetectorTests {
             filePath: "/test/Invalid.swift"
         )
         
-        #expect(issues.count >= 0) // Should handle invalid code gracefully
     }
 }

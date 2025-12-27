@@ -18,7 +18,7 @@ struct SwiftSyntaxPatternDetectorPerformanceTests {
     
     @Test
     @MainActor
-    static func performanceVisitorForEachWithoutID() throws {
+    static func performanceVisitorForEachWithoutID() async throws {
         let detector = TestRegistryManager.getSharedDetector()
         
         // Given
@@ -51,7 +51,6 @@ struct SwiftSyntaxPatternDetectorPerformanceTests {
         // Then
         let forEachIssues = issues.filter { $0.message.contains("ForEach") }
         
-        #expect(forEachIssues.count >= 0)
         
         if let forEachIssue = forEachIssues.first {
             #expect(forEachIssue.severity == .warning)
@@ -62,7 +61,7 @@ struct SwiftSyntaxPatternDetectorPerformanceTests {
     
     @Test
     @MainActor
-    static func performanceVisitorForEachWithID() throws {
+    static func performanceVisitorForEachWithID() async throws {
         let detector = TestRegistryManager.getSharedDetector()
         
         // Given
@@ -81,19 +80,20 @@ struct SwiftSyntaxPatternDetectorPerformanceTests {
         """
         
         // When - Use the detector with shared registry and measure performance
-        let (issues, duration) = await TestRegistryManager.measureExecutionTime {
-            await detector.detectPatterns(
-                in: sourceCode,
-                filePath: "TestView.swift",
-                categories: [.performance]
-            )
+        let (_, duration) = await TestRegistryManager.measureExecutionTime {
+            await MainActor.run {
+                detector.detectPatterns(
+                    in: sourceCode,
+                    filePath: "TestView.swift",
+                    categories: [.performance]
+                )
+            }
         }
         
         // Log slow test execution
         TestRegistryManager.logSlowTest("testPerformanceVisitorForEachWithID", duration: duration)
         
         // Then - This should have no performance issues since it uses proper ID
-        #expect(issues.count >= 0)
         
         clearTestState(detector: detector)
     }

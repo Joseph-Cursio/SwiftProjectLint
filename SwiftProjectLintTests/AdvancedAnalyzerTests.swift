@@ -36,7 +36,6 @@ final class AdvancedAnalyzerTests {
         let issues = analyzer.analyzeArchitecture(projectPath: testProjectPath)
         
         // The analyzer should detect view relationships through its public interface
-        #expect(issues.count >= 0) // At minimum, it should complete without errors
     }
     
     @Test @MainActor func testIsRootViewReturnsTrueForRoot() throws {
@@ -50,7 +49,6 @@ final class AdvancedAnalyzerTests {
         let issues = analyzer.analyzeArchitecture(projectPath: testProjectPath)
         
         // The analyzer should detect view relationships through its public interface
-        #expect(issues.count >= 0) // At minimum, it should complete without errors
     }
     
     @Test @MainActor func testGenerateStateSharingSuggestionForTwoViews() throws {
@@ -64,7 +62,6 @@ final class AdvancedAnalyzerTests {
         let issues = analyzer.analyzeArchitecture(projectPath: testProjectPath)
         
         // The analyzer should detect view relationships through its public interface
-        #expect(issues.count >= 0) // At minimum, it should complete without errors
     }
     
     @Test @MainActor func testGenerateStateSharingSuggestionForManyViews() throws {
@@ -78,7 +75,6 @@ final class AdvancedAnalyzerTests {
         let issues = analyzer.analyzeArchitecture(projectPath: testProjectPath)
         
         // The analyzer should detect view relationships through its public interface
-        #expect(issues.count >= 0) // At minimum, it should complete without errors
     }
     
     @Test @MainActor func testRelationshipTypeAndViewRelationship() throws {

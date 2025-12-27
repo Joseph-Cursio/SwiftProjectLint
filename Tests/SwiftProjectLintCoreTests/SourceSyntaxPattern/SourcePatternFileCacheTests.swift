@@ -55,8 +55,6 @@ final class SourcePatternFileCacheTests {
         print("   File 2 analysis: \(issues2.count) issues")
         print("   Cache behavior: Single-file analysis per call")
         
-        #expect(issues1.count >= 0, "First file should analyze successfully")
-        #expect(issues2.count >= 0, "Second file should analyze successfully")
     }
     
     @Test func characterizeCacheClearingBehavior() throws {

@@ -35,7 +35,6 @@ final class SourcePatternDetectorTests {
             filePath: "/test/ContentView.swift"
         )
         
-        #expect(issues.count >= 0) // Should not crash
     }
     
     @Test func testDetectPatternsWithSpecificRules() throws {
@@ -58,7 +57,6 @@ final class SourcePatternDetectorTests {
             ruleIdentifiers: [.relatedDuplicateStateVariable, .missingStateObject]
         )
         
-        #expect(issues.count >= 0) // Should not crash
     }
     
     @Test func testDetectPatternsInProject() throws {
@@ -74,7 +72,6 @@ final class SourcePatternDetectorTests {
             ruleIdentifiers: [.relatedDuplicateStateVariable]
         )
         
-        #expect(issues.count >= 0) // Should not crash, even with empty project
     }
     
     @Test func testCrossFilePatternDetection() throws {
@@ -90,7 +87,6 @@ final class SourcePatternDetectorTests {
             ruleIdentifiers: [.relatedDuplicateStateVariable]
         )
         
-        #expect(issues.count >= 0) // Should not crash
     }
     
     @Test func testPatternRegistryIntegration() throws {
@@ -136,7 +132,6 @@ final class SourcePatternDetectorTests {
         print("   Output: \(issues.count) issues")
         print("   Performance: Analysis completed without timeout")
         
-        #expect(issues.count >= 0, "Large files should be handled gracefully")
     }
     
     @Test func characterizeFilePathVariations() throws {

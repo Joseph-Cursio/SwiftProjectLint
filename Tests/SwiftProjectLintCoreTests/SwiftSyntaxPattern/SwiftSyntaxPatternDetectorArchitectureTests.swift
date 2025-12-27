@@ -18,7 +18,7 @@ struct SwiftSyntaxPatternDetectorArchitectureTests {
     
     @Test
     @MainActor
-    static func architectureVisitorFatView() throws {
+    static func architectureVisitorFatView() async throws {
         let detector = TestRegistryManager.getSharedDetector()
         
         // Given
@@ -40,11 +40,13 @@ struct SwiftSyntaxPatternDetectorArchitectureTests {
         
         // When - Use the detector with shared registry and measure performance
         let (issues, duration) = await TestRegistryManager.measureExecutionTime {
-            await detector.detectPatterns(
-                in: sourceCode,
-                filePath: "TestView.swift",
-                categories: [.architecture]
-            )
+            await MainActor.run {
+                detector.detectPatterns(
+                    in: sourceCode,
+                    filePath: "TestView.swift",
+                    categories: [.architecture]
+                )
+            }
         }
         
         // Log slow test execution
@@ -53,7 +55,6 @@ struct SwiftSyntaxPatternDetectorArchitectureTests {
         // Then
         let fatViewIssues = issues.filter { $0.message.contains("state variables") }
         
-        #expect(fatViewIssues.count >= 0)
         
         if let fatViewIssue = fatViewIssues.first {
             #expect(fatViewIssue.severity == .warning)
@@ -64,7 +65,7 @@ struct SwiftSyntaxPatternDetectorArchitectureTests {
     
     @Test
     @MainActor
-    static func architectureVisitorMissingDependencyInjection() throws {
+    static func architectureVisitorMissingDependencyInjection() async throws {
         let detector = TestRegistryManager.getSharedDetector()
         
         // Given
@@ -80,11 +81,13 @@ struct SwiftSyntaxPatternDetectorArchitectureTests {
         
         // When - Use the detector with shared registry and measure performance
         let (issues, duration) = await TestRegistryManager.measureExecutionTime {
-            await detector.detectPatterns(
-                in: sourceCode,
-                filePath: "TestView.swift",
-                categories: [.architecture]
-            )
+            await MainActor.run {
+                detector.detectPatterns(
+                    in: sourceCode,
+                    filePath: "TestView.swift",
+                    categories: [.architecture]
+                )
+            }
         }
         
         // Log slow test execution
@@ -93,7 +96,6 @@ struct SwiftSyntaxPatternDetectorArchitectureTests {
         // Then
         let diIssues = issues.filter { $0.message.contains("UserManager") }
         
-        #expect(diIssues.count >= 0)
         
         if let diIssue = diIssues.first {
             #expect(diIssue.severity == .info)
@@ -104,7 +106,7 @@ struct SwiftSyntaxPatternDetectorArchitectureTests {
     
     @Test
     @MainActor
-    static func architectureVisitorValidArchitecture() throws {
+    static func architectureVisitorValidArchitecture() async throws {
         let detector = TestRegistryManager.getSharedDetector()
         
         // Given
@@ -125,19 +127,20 @@ struct SwiftSyntaxPatternDetectorArchitectureTests {
         """
         
         // When - Use the detector with shared registry and measure performance
-        let (issues, duration) = await TestRegistryManager.measureExecutionTime {
-            await detector.detectPatterns(
-                in: sourceCode,
-                filePath: "TestView.swift",
-                categories: [.architecture]
-            )
+        let (_, duration) = await TestRegistryManager.measureExecutionTime {
+            await MainActor.run {
+                detector.detectPatterns(
+                    in: sourceCode,
+                    filePath: "TestView.swift",
+                    categories: [.architecture]
+                )
+            }
         }
         
         // Log slow test execution
         TestRegistryManager.logSlowTest("testArchitectureVisitorValidArchitecture", duration: duration)
         
         // Then - This should have no architecture issues since it uses proper DI
-        #expect(issues.count >= 0)
         
         clearTestState(detector: detector)
     }

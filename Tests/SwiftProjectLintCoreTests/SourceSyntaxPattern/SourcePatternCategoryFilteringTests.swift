@@ -72,7 +72,6 @@ final class SourcePatternCategoryFilteringTests {
             print("     - \(issue.ruleName.rawValue): \(issue.message)")
         }
         
-        #expect(stateIssues.count >= 0, "State management category filtering should work")
         #expect(allIssues.count >= stateIssues.count, "All categories should include at least state issues")
     }
     
@@ -114,7 +113,6 @@ final class SourcePatternCategoryFilteringTests {
             print("     - Line \(issue.lineNumber): \(issue.ruleName.rawValue)")
         }
         
-        #expect(performanceIssues.count >= 0, "Performance category filtering should work")
     }
     
     @Test func characterizeMultipleCategoryFiltering() throws {
@@ -168,6 +166,5 @@ final class SourcePatternCategoryFilteringTests {
             print("     \(category): \(categoryIssues.count) issues")
         }
         
-        #expect(issues.count >= 0, "Multiple category filtering should work")
     }
     }

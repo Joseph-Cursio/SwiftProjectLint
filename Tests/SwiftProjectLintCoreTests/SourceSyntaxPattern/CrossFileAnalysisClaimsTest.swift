@@ -98,8 +98,6 @@ final class CrossFileAnalysisClaimsTests {
             }
         }
         
-        #expect(parentIssues.count >= 0, "Parent view analysis should work")
-        #expect(childIssues.count >= 0, "Child view analysis should work")
     }
     
     @Test func characterizeFileCacheCapabilities() throws {

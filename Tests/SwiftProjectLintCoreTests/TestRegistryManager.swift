@@ -101,8 +101,16 @@ public class TestRegistryManager {
     
     // MARK: - Performance Monitoring
     
-    /// Measure execution time of a test operation
+    /// Measure execution time of a synchronous test operation
     public static func measureExecutionTime<T: Sendable>(_ operation: @Sendable () throws -> T) async rethrows -> (T, Duration) {
+        let start = ContinuousClock.now
+        let result = try operation()
+        let end = ContinuousClock.now
+        return (result, end - start)
+    }
+    
+    /// Measure execution time of an async test operation
+    public static func measureExecutionTime<T: Sendable>(_ operation: @Sendable () async throws -> T) async rethrows -> (T, Duration) {
         let start = ContinuousClock.now
         let result = try await operation()
         let end = ContinuousClock.now

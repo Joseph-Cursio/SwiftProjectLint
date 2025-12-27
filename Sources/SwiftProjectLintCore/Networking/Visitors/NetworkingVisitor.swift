@@ -139,15 +139,17 @@ class NetworkingVisitor: BasePatternVisitor {
         
         let thirdIndex = params.index(params.startIndex, offsetBy: 2)
         let thirdParam = params[thirdIndex]
-        let thirdName = thirdParam.firstName.text
+        let thirdName = thirdParam.firstName.text.trimmingCharacters(in: .whitespaces)
+        // Also check secondName for cases where parameter might be represented differently
+        let thirdNameAlt = thirdParam.secondName?.text.trimmingCharacters(in: .whitespaces) ?? ""
         
         Task { @MainActor in
-            DebugLogger.logVisitor(.networking, "Third parameter: \(thirdName)")
+            DebugLogger.logVisitor(.networking, "Third parameter: '\(thirdName)' (alt: '\(thirdNameAlt)')")
         }
         
-        if thirdName == "error" {
+        if thirdName == "error" || thirdNameAlt == "error" {
             return checkErrorHandlingForErrorParameter(closure.statements.description)
-        } else if thirdName == "_" {
+        } else if thirdName == "_" || thirdNameAlt == "_" || thirdName.isEmpty {
             reportIgnoredErrorParameter(node: node)
             return true // Return true to prevent duplicate issue
         }
@@ -186,6 +188,9 @@ class NetworkingVisitor: BasePatternVisitor {
             || bodyText.contains("guard let error")
             || bodyText.contains("error != nil")
             || bodyText.contains("error.")
+            || bodyText.contains("error.localizedDescription")
+            || bodyText.contains("error.description")
+            || bodyText.contains("error as")
         
         Task { @MainActor in
             DebugLogger.logVisitor(

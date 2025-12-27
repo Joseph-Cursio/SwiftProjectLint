@@ -5,13 +5,13 @@ import Foundation
 final class AdvancedAnalyzerTests {
     
     @Test func testExtractViewNameRemovesSwiftExtension() throws {
-        let name = FileAnalysisUtils.extractViewName(from: "/Users/test/ContentView.swift")
+        let name = FileAnalysisUtils.extractSwiftBasename(from: "/Users/test/ContentView.swift")
         #expect(name == "ContentView")
         
-        let name2 = FileAnalysisUtils.extractViewName(from: "MyView.swift")
+        let name2 = FileAnalysisUtils.extractSwiftBasename(from: "MyView.swift")
         #expect(name2 == "MyView")
         
-        let name3 = FileAnalysisUtils.extractViewName(from: "/foo/bar/BazView.swift")
+        let name3 = FileAnalysisUtils.extractSwiftBasename(from: "/foo/bar/BazView.swift")
         #expect(name3 == "BazView")
     }
     
@@ -25,7 +25,7 @@ final class AdvancedAnalyzerTests {
         #expect(!result.contains("d"))
     }
     
-    @Test @MainActor func testFindRelatedViewsDetectsHierarchy() throws {
+    @Test @MainActor func testFindRelatedViewsDetectsHierarchy() async throws {
         // Test through the public interface by creating actual view relationships
         let analyzer = AdvancedAnalyzer()
         
@@ -33,13 +33,12 @@ final class AdvancedAnalyzerTests {
         let testProjectPath = createTestProject()
         defer { cleanupTestProject() }
         
-        let issues = await analyzer.analyzeArchitecture(projectPath: testProjectPath)
+        _ = analyzer.analyzeArchitecture(projectPath: testProjectPath)
         
         // The analyzer should detect view relationships through its public interface
-        #expect(issues.count >= 0) // At minimum, it should complete without errors
     }
     
-    @Test @MainActor func testIsRootViewReturnsTrueForRoot() throws {
+    @Test @MainActor func testIsRootViewReturnsTrueForRoot() async throws {
         // Test through the public interface by creating actual view relationships
         let analyzer = AdvancedAnalyzer()
         
@@ -47,13 +46,12 @@ final class AdvancedAnalyzerTests {
         let testProjectPath = createTestProject()
         defer { cleanupTestProject() }
         
-        let issues = await analyzer.analyzeArchitecture(projectPath: testProjectPath)
+        _ = analyzer.analyzeArchitecture(projectPath: testProjectPath)
         
         // The analyzer should detect view relationships through its public interface
-        #expect(issues.count >= 0) // At minimum, it should complete without errors
     }
     
-    @Test @MainActor func testGenerateStateSharingSuggestionForTwoViews() throws {
+    @Test @MainActor func testGenerateStateSharingSuggestionForTwoViews() async throws {
         // Test through the public interface by creating actual view relationships
         let analyzer = AdvancedAnalyzer()
         
@@ -61,13 +59,12 @@ final class AdvancedAnalyzerTests {
         let testProjectPath = createTestProject()
         defer { cleanupTestProject() }
         
-        let issues = await analyzer.analyzeArchitecture(projectPath: testProjectPath)
+        _ = analyzer.analyzeArchitecture(projectPath: testProjectPath)
         
         // The analyzer should detect view relationships through its public interface
-        #expect(issues.count >= 0) // At minimum, it should complete without errors
     }
     
-    @Test @MainActor func testGenerateStateSharingSuggestionForManyViews() throws {
+    @Test @MainActor func testGenerateStateSharingSuggestionForManyViews() async throws {
         // Test through the public interface by creating actual view relationships
         let analyzer = AdvancedAnalyzer()
         
@@ -75,27 +72,26 @@ final class AdvancedAnalyzerTests {
         let testProjectPath = createTestProject()
         defer { cleanupTestProject() }
         
-        let issues = await analyzer.analyzeArchitecture(projectPath: testProjectPath)
+        _ = analyzer.analyzeArchitecture(projectPath: testProjectPath)
         
         // The analyzer should detect view relationships through its public interface
-        #expect(issues.count >= 0) // At minimum, it should complete without errors
     }
     
-    @Test @MainActor func testRelationshipTypeAndViewRelationship() throws {
+    @Test @MainActor func testRelationshipTypeAndViewRelationship() async throws {
         let analyzer = AdvancedAnalyzer()
         
         // Test through the public interface by creating actual view relationships
         let testProjectPath = createTestProject()
         defer { cleanupTestProject() }
         
-        let issues = await analyzer.analyzeArchitecture(projectPath: testProjectPath)
+        _ = analyzer.analyzeArchitecture(projectPath: testProjectPath)
         
         // Test the public methods that should work after analysis
-        let relationshipType = analyzer.relationshipType(between: "TestParent", and: "TestChild")
-        let relationship = analyzer.viewRelationship(between: "TestParent", and: "TestChild")
+        let _ = analyzer.relationshipType(between: "TestParent", and: "TestChild")
+        let _ = analyzer.viewRelationship(between: "TestParent", and: "TestChild")
         
         // The analyzer should be able to query relationships through its public interface
-        #expect(true) // At minimum, it should complete without errors
+        #expect(Bool(true)) // At minimum, it should complete without errors
     }
     
     // MARK: - Helper Methods
