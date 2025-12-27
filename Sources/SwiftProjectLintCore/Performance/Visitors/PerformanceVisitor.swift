@@ -108,9 +108,12 @@ class PerformanceVisitor: BasePatternVisitor {
             }
         }
 
-        // Check for ForEach without ID
+        // Check for ForEach without ID or with .self as ID
         if let calledExpr = node.calledExpression.as(DeclReferenceExprSyntax.self),
            calledExpr.baseName.text == "ForEach" {
+            // First check for \.self usage in id parameter
+            detectForEachSelfID(node)
+            
             var hasExplicitID = false
 
             for argument in node.arguments {

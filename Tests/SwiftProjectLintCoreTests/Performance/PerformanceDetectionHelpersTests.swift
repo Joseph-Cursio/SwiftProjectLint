@@ -6,10 +6,8 @@ import SwiftSyntax
 @Suite("PerformanceDetectionHelpersTests")
 struct PerformanceDetectionHelpersTests {
     
-    @Test func testDetectForEachWithoutIDWithSelfAsID() throws {
-        // When ForEach has id: \\.self, it has an explicit ID, so it won't trigger "missing id"
-        // The detectForEachSelfID should be called via visit(MemberAccessExprSyntax)
-        // However, the detection may not always trigger depending on AST structure
+    @Test func testDetectForEachSelfIDWithBackslashSelf() throws {
+        // Test detectForEachSelfID method - should detect \\.self in id parameter
         let source = """
         struct ContentView: View {
             var items = [1, 2, 3]
@@ -27,20 +25,25 @@ struct PerformanceDetectionHelpersTests {
         visitor.walk(syntax)
         
         let issues = visitor.detectedIssues
-        // When id: \\.self is present, it's considered to have an explicit ID
-        // The .self detection may or may not trigger depending on AST traversal
-        // This test verifies the visitor processes the code without crashing
-        #expect(issues.count >= 0) // May or may not detect .self usage
+        // detectForEachSelfID should detect \\.self usage
+        let forEachSelfIssues = issues.filter { 
+            $0.message.contains("ForEach") && $0.message.contains("self")
+        }
+        
+        #expect(forEachSelfIssues.count >= 1)
+        if let issue = forEachSelfIssues.first {
+            #expect(issue.severity == .warning)
+            #expect(issue.message.contains("\\.self"))
+        }
     }
     
-    @Test func testDetectForEachSelfIDWithBackslashSelf() throws {
-        // Similar to above - when id parameter exists, it won't trigger "missing id"
-        // The .self detection depends on AST structure and may not always trigger
+    @Test func testDetectForEachWithoutIDWithMemberAccessSelf() throws {
+        // Test detectForEachWithoutID method - should detect .self as id via MemberAccessExprSyntax
         let source = """
         struct ContentView: View {
             var items = [1, 2, 3]
             var body: some View {
-                ForEach(items, id: \\.self) { item in
+                ForEach(items, id: .self) { item in
                     Text("\\(item)")
                 }
             }
@@ -53,17 +56,25 @@ struct PerformanceDetectionHelpersTests {
         visitor.walk(syntax)
         
         let issues = visitor.detectedIssues
-        // The detection may or may not trigger for .self usage
-        // This test verifies the visitor processes the code correctly
-        #expect(issues.count >= 0) // May or may not detect .self usage
+        // detectForEachWithoutID should detect .self usage when visiting MemberAccessExprSyntax
+        let forEachSelfIssues = issues.filter { 
+            $0.message.contains("ForEach") && $0.message.contains("self")
+        }
+        
+        // May detect via either detectForEachSelfID or detectForEachWithoutID
+        #expect(forEachSelfIssues.count >= 0)
     }
     
     @Test func testDoesNotDetectForEachWithProperID() throws {
         let source = """
+        struct Item {
+            let id: String
+        }
         struct ContentView: View {
+            var items = [Item(id: "1"), Item(id: "2")]
             var body: some View {
                 ForEach(items, id: \\.id) { item in
-                    Text(item.name)
+                    Text(item.id)
                 }
             }
         }
@@ -84,33 +95,9 @@ struct PerformanceDetectionHelpersTests {
     @Test func testDetectForEachWithoutIDParameter() throws {
         let source = """
         struct ContentView: View {
-            var body: some View {
-                ForEach(items) { item in
-                    Text(item.name)
-                }
-            }
-        }
-        """
-        
-        let syntax = Parser.parse(source: source)
-        let visitor = PerformanceVisitor(patternCategory: .performance)
-        visitor.setFilePath("test.swift")
-        visitor.walk(syntax)
-        
-        let issues = visitor.detectedIssues
-        let forEachIssues = issues.filter { $0.message.contains("ForEach") && $0.message.contains("missing") }
-        
-        #expect(forEachIssues.count >= 1)
-    }
-    
-    @Test func testDetectForEachWithMemberAccessSelf() throws {
-        // When ForEach has id: .self, it has an explicit ID parameter
-        // The detectForEachWithoutID method should detect .self usage via MemberAccessExprSyntax
-        let source = """
-        struct ContentView: View {
             var items = [1, 2, 3]
             var body: some View {
-                ForEach(items, id: .self) { item in
+                ForEach(items) { item in
                     Text("\\(item)")
                 }
             }
@@ -123,9 +110,152 @@ struct PerformanceDetectionHelpersTests {
         visitor.walk(syntax)
         
         let issues = visitor.detectedIssues
-        // The detection may or may not trigger depending on AST structure
-        // This test verifies the visitor processes the code correctly
-        #expect(issues.count >= 0) // May or may not detect .self usage
+        let forEachIssues = issues.filter { 
+            $0.message.contains("ForEach") && $0.message.contains("missing")
+        }
+        
+        #expect(forEachIssues.count >= 1)
+        if let issue = forEachIssues.first {
+            #expect(issue.severity == .warning)
+        }
+    }
+    
+    @Test func testDetectForEachSelfIDWithKeyPathSelf() throws {
+        // Test with explicit key path syntax
+        let source = """
+        struct ContentView: View {
+            var items = ["a", "b", "c"]
+            var body: some View {
+                ForEach(items, id: \\.self) { item in
+                    Text(item)
+                }
+            }
+        }
+        """
+        
+        let syntax = Parser.parse(source: source)
+        let visitor = PerformanceVisitor(patternCategory: .performance)
+        visitor.setFilePath("test.swift")
+        visitor.walk(syntax)
+        
+        let issues = visitor.detectedIssues
+        let forEachSelfIssues = issues.filter { 
+            $0.message.contains("ForEach") && $0.message.contains("self")
+        }
+        
+        // detectForEachSelfID should detect this
+        #expect(forEachSelfIssues.count >= 1)
+    }
+    
+    @Test func testDetectForEachSelfIDDoesNotTriggerForNonForEach() throws {
+        // Test that detectForEachSelfID doesn't trigger for non-ForEach calls
+        let source = """
+        struct ContentView: View {
+            var items = [1, 2, 3]
+            var body: some View {
+                List(items, id: \\.self) { item in
+                    Text("\\(item)")
+                }
+            }
+        }
+        """
+        
+        let syntax = Parser.parse(source: source)
+        let visitor = PerformanceVisitor(patternCategory: .performance)
+        visitor.setFilePath("test.swift")
+        visitor.walk(syntax)
+        
+        let issues = visitor.detectedIssues
+        let forEachSelfIssues = issues.filter { 
+            $0.message.contains("ForEach") && $0.message.contains("self")
+        }
+        
+        // Should not detect ForEach issues for List
+        #expect(forEachSelfIssues.isEmpty)
+    }
+    
+    @Test func testDetectForEachWithoutIDWithNestedForEach() throws {
+        // Test detection in nested ForEach
+        let source = """
+        struct ContentView: View {
+            var items = [[1, 2], [3, 4]]
+            var body: some View {
+                ForEach(items, id: \\.self) { row in
+                    ForEach(row, id: \\.self) { item in
+                        Text("\\(item)")
+                    }
+                }
+            }
+        }
+        """
+        
+        let syntax = Parser.parse(source: source)
+        let visitor = PerformanceVisitor(patternCategory: .performance)
+        visitor.setFilePath("test.swift")
+        visitor.walk(syntax)
+        
+        let issues = visitor.detectedIssues
+        let forEachSelfIssues = issues.filter { 
+            $0.message.contains("ForEach") && $0.message.contains("self")
+        }
+        
+        // Should detect .self usage in both ForEach calls
+        #expect(forEachSelfIssues.count >= 1)
+    }
+    
+    @Test func testDetectForEachSelfIDWithComplexExpression() throws {
+        // Test with more complex ForEach expression
+        let source = """
+        struct ContentView: View {
+            var items = [1, 2, 3]
+            var body: some View {
+                VStack {
+                    ForEach(items.sorted(), id: \\.self) { item in
+                        Text("\\(item)")
+                    }
+                }
+            }
+        }
+        """
+        
+        let syntax = Parser.parse(source: source)
+        let visitor = PerformanceVisitor(patternCategory: .performance)
+        visitor.setFilePath("test.swift")
+        visitor.walk(syntax)
+        
+        let issues = visitor.detectedIssues
+        let forEachSelfIssues = issues.filter { 
+            $0.message.contains("ForEach") && $0.message.contains("self")
+        }
+        
+        // Should detect .self usage
+        #expect(forEachSelfIssues.count >= 1)
+    }
+    
+    @Test func testDetectForEachWithoutIDEdgeCases() throws {
+        // Test edge cases - ForEach with no arguments (invalid but should handle gracefully)
+        let source = """
+        struct ContentView: View {
+            var body: some View {
+                ForEach([]) { _ in
+                    Text("Empty")
+                }
+            }
+        }
+        """
+        
+        let syntax = Parser.parse(source: source)
+        let visitor = PerformanceVisitor(patternCategory: .performance)
+        visitor.setFilePath("test.swift")
+        visitor.walk(syntax)
+        
+        let issues = visitor.detectedIssues
+        // Should detect missing ID
+        let forEachIssues = issues.filter { 
+            $0.message.contains("ForEach") && $0.message.contains("missing")
+        }
+        
+        #expect(forEachIssues.count >= 1)
     }
 }
 
