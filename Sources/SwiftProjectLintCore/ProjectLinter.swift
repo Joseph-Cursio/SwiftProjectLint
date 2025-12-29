@@ -257,10 +257,6 @@ public class ProjectLinter {
         }
     }
 
-    // Note: extractStateVariable method removed - replaced with SwiftSyntax-based extractStateVariables
-
-    // Note: extractString and extractPropertyWrapper methods removed - no longer needed with SwiftSyntax
-
     /// Extracts the name of a SwiftUI view from a given file path.
     ///
     /// This method assumes that the file name (excluding the `.swift` extension) corresponds to the

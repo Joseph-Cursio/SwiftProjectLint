@@ -273,9 +273,9 @@ The project uses enum-based pattern detection for improved accuracy:
 - **String-Based Rule Identification**: ✅ **COMPLETED** - Replaced hardcoded `RuleIdentifier(rawValue:)` calls with direct enum cases
 - **UserDefaults Storage**: ✅ **COMPLETED** - Migrated from string arrays to JSON-encoded enum storage for type safety
 - **Pattern Detection Methods**: ✅ **COMPLETED** - Updated SwiftSyntaxPatternDetector to use `[RuleIdentifier]` instead of `[String]` parameters
+- **Complete Regex Removal**: ✅ **COMPLETED** - Final migration from regex to SwiftSyntax.
 
 ### 🔄 In Progress
-- **Complete Regex Removal**: Final migration from regex to SwiftSyntax (see [__remove_regex.md](./__remove_regex.md))
 - **Property Wrapper/String Logic**: Replace remaining hard-wired strings with type-safe enums (see [__string_comparison.md](./__string_comparison.md))
 
 ### 📋 Planned Features
@@ -313,7 +313,7 @@ The project includes comprehensive test coverage:
 ## 📊 Current Status
 
 ### Architecture Improvements
-- **SwiftSyntax Migration**: 99% migrated from regex to SwiftSyntax for core analysis (see [__remove_regex.md](./__remove_regex.md) for remaining work)
+- **SwiftSyntax Migration**: ✅ **COMPLETED** - 100% migrated from regex to SwiftSyntax for core analysis.
 - **Type-Safe Detection**: ✅ **COMPLETED** - Enum-based pattern detection fully implemented for rules/categories with RuleIdentifier enum
 - **Visitor Pattern**: Comprehensive SwiftSyntax visitor hierarchy for precise analysis
 - **Modular Design**: Clear separation between UI and core analysis logic
@@ -325,7 +325,6 @@ The project includes comprehensive test coverage:
 - **ProjectLinter Integration**: ✅ **COMPLETED** - Updated analyzeProject methods to use enum-based rule identification
 
 ### Ongoing Refactoring
-- **Regex Removal**: Final phase of eliminating remaining regex usage (see [__remove_regex.md](./__remove_regex.md))
 - **Property Wrapper/String Logic**: Property wrapper and view type logic still partly string-based (see [__string_comparison.md](./__string_comparison.md))
 - **Performance Optimization**: AST caching and incremental analysis not yet implemented
 - **Code Organization**: Several files remain very large and need splitting (see [__refactor.md](./__refactor.md))
@@ -346,7 +345,6 @@ The project includes comprehensive test coverage:
 - **ProjectLinter Integration**: ✅ **COMPLETED** - Updated analyzeProject methods to use enum-based rule identification
 
 ### 🔄 Ongoing Work
-- **Regex Removal**: One active regex usage remains in `ProjectLinter.swift` (`extractStateVariable`). The `DetectionPattern` struct and UI still reference a `regex` field. See [__remove_regex.md](./__remove_regex.md) for the plan and status.
 - **Property Wrapper/String Logic**: Property wrapper, view type, and AST node logic still use string comparisons in many places. See [__string_comparison.md](./__string_comparison.md) for the migration plan.
 - **Large Files**: Files like `SwiftUIManagementVisitor.swift`, `SwiftSyntaxPatternDetector.swift`, `ContentView.swift`, and others remain very large and need to be split for maintainability. See [__refactor.md](./__refactor.md) for recommendations.
 
@@ -368,7 +366,6 @@ This project demonstrates advanced SwiftUI project analysis techniques. Contribu
 - **Pattern Detection Methods**: ✅ **COMPLETED** - Updated SwiftSyntaxPatternDetector to use `[RuleIdentifier]` instead of `[String]` parameters
 
 ### 🔄 Current Priorities
-- **Regex Removal**: Complete the final migration from regex to SwiftSyntax
 - **Property Wrapper/String Logic**: Replace remaining string comparisons with type-safe enums
 - **Large File Refactoring**: Split large files for better maintainability
 
@@ -387,7 +384,6 @@ This project is for educational and demonstration purposes. Feel free to use and
 
 ## 🔗 Related Documentation
 
-- [__remove_regex.md](./__remove_regex.md) - Complete regex removal plan and implementation
 - [__string_comparison.md](./__string_comparison.md) - String comparison refactoring strategy
 - [__refactor.md](./__refactor.md) - Comprehensive refactoring recommendations
 - [NestedNavigationDetection_PRD.md](./NestedNavigationDetection_PRD.md) - Enhanced nested Navigation detection strategy
