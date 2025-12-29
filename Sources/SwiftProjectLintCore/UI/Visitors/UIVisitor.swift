@@ -12,12 +12,8 @@ class UIVisitor: BasePatternVisitor {
     private var detectedPreviews: Set<String> = []
     private var stylingModifiers: [String: Set<String>] = [:]
 
-    required init(patternCategory: PatternCategory) {
-        super.init(patternCategory: patternCategory)
-    }
-
-    required override init(viewMode: SyntaxTreeViewMode) {
-        super.init(viewMode: viewMode)
+    required init(pattern: SyntaxPattern, viewMode: SyntaxTreeViewMode = .sourceAccurate) {
+        super.init(pattern: pattern, viewMode: viewMode)
     }
 
     override func setFilePath(_ filePath: String) {
@@ -71,14 +67,7 @@ class UIVisitor: BasePatternVisitor {
         if let calledExpr = node.calledExpression.as(DeclReferenceExprSyntax.self),
            calledExpr.baseName.text == "NavigationView" {
             if navigationStack.contains(currentViewName) {
-                addIssue(
-                    severity: IssueSeverity.warning,
-                    message: "Nested NavigationView detected, this can cause issues",
-                    filePath: currentFilePath,
-                    lineNumber: getLineNumber(for: Syntax(node)),
-                    suggestion: "Use NavigationStack or NavigationSplitView instead",
-                    ruleName: nil
-                )
+                addIssue(node: Syntax(node))
             }
             navigationStack.append(currentViewName)
         }
@@ -92,14 +81,7 @@ class UIVisitor: BasePatternVisitor {
                 }
             }
             if !hasID {
-                addIssue(
-                    severity: IssueSeverity.warning,
-                    message: "ForEach without explicit ID can cause performance issues",
-                    filePath: currentFilePath,
-                    lineNumber: getLineNumber(for: Syntax(node)),
-                    suggestion: "Provide a unique identifier using the id parameter",
-                    ruleName: nil
-                )
+                addIssue(node: Syntax(node))
             }
         }
         // Detect inconsistent styling
@@ -115,14 +97,7 @@ class UIVisitor: BasePatternVisitor {
             let stylingModifiers = modifiers.filter { stylingModifierNames.contains($0) }
 
             if stylingModifiers.count > 1 {
-                addIssue(
-                    severity: IssueSeverity.info,
-                    message: "Consider using consistent text styling",
-                    filePath: currentFilePath,
-                    lineNumber: getLineNumber(for: Syntax(node)),
-                    suggestion: "Create reusable text styles or use a design system",
-                    ruleName: nil
-                )
+                addIssue(node: Syntax(node))
             }
         }
         return .visitChildren
@@ -143,14 +118,7 @@ class UIVisitor: BasePatternVisitor {
             if !currentFilePath.contains("test.swift")
                 && !currentFilePath.contains("Test")
                 && !currentFilePath.contains("Tests") {
-                addIssue(
-                    severity: IssueSeverity.info,
-                    message: "View '\(currentViewName)' missing preview provider",
-                    filePath: currentFilePath,
-                    lineNumber: getLineNumber(for: Syntax(node)),
-                    suggestion: "Add #Preview for easier development and testing",
-                    ruleName: nil
-                )
+                addIssue(node: Syntax(node), variables: ["viewName": currentViewName])
             }
         }
     }
@@ -181,14 +149,7 @@ class UIVisitor: BasePatternVisitor {
                                 bodyText.contains("Alert(")
                             print("🔍 hasErrorHandling: \(hasErrorHandling), hasProperUI: \(hasProperUI)")
                             if hasErrorHandling && !hasProperUI {
-                                addIssue(
-                                    severity: IssueSeverity.info,
-                                    message: "Consider using proper error handling UI patterns",
-                                    filePath: currentFilePath,
-                                    lineNumber: getLineNumber(for: Syntax(node)),
-                                    suggestion: "Use alerts, sheets, or dedicated error views for better UX",
-                                    ruleName: nil
-                                )
+                                addIssue(node: Syntax(node))
                             }
                             analyzed = true
                         }
@@ -212,14 +173,7 @@ class UIVisitor: BasePatternVisitor {
                             bodyText.contains("Alert(")
                         print("🔍 hasErrorHandling: \(hasErrorHandling), hasProperUI: \(hasProperUI)")
                         if hasErrorHandling && !hasProperUI {
-                            addIssue(
-                                severity: IssueSeverity.info,
-                                message: "Consider using proper error handling UI patterns",
-                                filePath: currentFilePath,
-                                lineNumber: getLineNumber(for: Syntax(node)),
-                                suggestion: "Use alerts, sheets, or dedicated error views for better UX",
-                                ruleName: nil
-                            )
+                            addIssue(node: Syntax(node))
                         }
                         analyzed = true
                     }
@@ -238,14 +192,7 @@ class UIVisitor: BasePatternVisitor {
                         bodyText.contains("Alert(")
                     print("🔍 hasErrorHandling: \(hasErrorHandling), hasProperUI: \(hasProperUI)")
                     if hasErrorHandling && !hasProperUI {
-                        addIssue(
-                            severity: IssueSeverity.info,
-                            message: "Consider using proper error handling UI patterns",
-                            filePath: currentFilePath,
-                            lineNumber: getLineNumber(for: Syntax(node)),
-                            suggestion: "Use alerts, sheets, or dedicated error views for better UX",
-                            ruleName: nil
-                        )
+                        addIssue(node: Syntax(node))
                     }
                 }
             }
@@ -272,14 +219,7 @@ class UIVisitor: BasePatternVisitor {
         print("🔍 hasErrorHandling: \(hasErrorHandling), hasProperUI: \(hasProperUI)")
 
         if hasErrorHandling && !hasProperUI {
-            addIssue(
-                severity: IssueSeverity.info,
-                message: "Consider using proper error handling UI patterns",
-                filePath: currentFilePath,
-                lineNumber: getLineNumber(for: Syntax(node)),
-                suggestion: "Use alerts, sheets, or dedicated error views for better UX",
-                ruleName: nil
-            )
+            addIssue(node: Syntax(node))
         }
     }
 

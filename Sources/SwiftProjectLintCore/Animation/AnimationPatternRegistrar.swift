@@ -1,29 +1,31 @@
 import Foundation
 
-/// Registers patterns related to SwiftUI animation best practices.
-@MainActor
-class AnimationPatternRegistrar: PatternRegistrarWithVisitorRegistryProtocol {
+/// A registrar for all animation-related syntax patterns.
+///
+/// This struct centralizes the registration of all animation patterns by adding them
+/// to the `SourcePatternRegistry`. It ensures that all animation-related rules are
+/// consistently registered and available for use.
+struct AnimationPatternRegistrar: PatternRegistrarWithVisitorRegistryProtocol {
 
-    let registry: SourcePatternRegistry
-    let visitorRegistry: PatternVisitorRegistryProtocol
+    private let registry: SourcePatternRegistryProtocol
+    private let visitorRegistry: PatternVisitorRegistryProtocol
 
-    init(registry: SourcePatternRegistry, visitorRegistry: PatternVisitorRegistryProtocol) {
+    /// Initializes the registrar with the required registries.
+    ///
+    /// - Parameters:
+    ///   - registry: The source pattern registry to add patterns to.
+    ///   - visitorRegistry: The visitor registry for managing pattern visitors.
+    init(registry: SourcePatternRegistryProtocol, visitorRegistry: PatternVisitorRegistryProtocol) {
         self.registry = registry
         self.visitorRegistry = visitorRegistry
     }
 
+    /// Registers all animation-related patterns.
+    ///
+    /// This method is responsible for registering all animation patterns, including
+    /// the deprecated animation pattern. By centralizing registration here, we can
+
     func registerPatterns() {
-        let patterns = [
-            SyntaxPattern(
-                name: .deprecatedAnimation,
-                visitor: AnimationVisitor.self,
-                severity: .warning,
-                category: .animation,
-                messageTemplate: "Use of the deprecated `.animation()` modifier should be avoided.",
-                suggestion: "Replace the deprecated `.animation()` modifier with a value-based animation to improve performance and predictability.",
-                description: "Detects the use of the deprecated `.animation()` modifier, which can cause performance issues and unexpected behavior."
-            )
-        ]
-        registry.register(patterns: patterns)
+        registry.register(pattern: DeprecatedAnimationPatternRegistrar().pattern)
     }
 }

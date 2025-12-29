@@ -20,12 +20,8 @@ class PerformanceVisitor: BasePatternVisitor {
     // For tracking unnecessary view updates
     var stateVariables: [String: PerformanceStateVariableInfo] = [:]
     
-    required init(patternCategory: PatternCategory) {
-        super.init(viewMode: .sourceAccurate)
-    }
-
-    required override init(viewMode: SyntaxTreeViewMode) {
-        super.init(viewMode: viewMode)
+    required init(pattern: SyntaxPattern, viewMode: SyntaxTreeViewMode = .sourceAccurate) {
+        super.init(pattern: pattern, viewMode: viewMode)
     }
 
     /// Sets the current file path for issue reporting.
@@ -62,14 +58,7 @@ class PerformanceVisitor: BasePatternVisitor {
                     self.walk(accessor)
                     // After walking, check and report large body
                     if viewBodySize > 20 {
-                        addIssue(
-                            severity: .info,
-                            message: "View '\(currentViewName)' body is quite large (\(viewBodySize) statements), consider breaking it into smaller views",
-                            filePath: currentFilePath,
-                            lineNumber: getLineNumber(for: Syntax(node)),
-                            suggestion: "Extract complex UI into separate view components",
-                            ruleName: nil
-                        )
+                        addIssue(node: Syntax(node), variables: ["viewName": currentViewName, "statementCount": "\(viewBodySize)"])
                     }
                     isInViewBody = false
                     viewBodySize = 0
@@ -96,14 +85,7 @@ class PerformanceVisitor: BasePatternVisitor {
                 let expensiveOperations = ["sorted", "filter", "map", "reduce", "flatMap", "compactMap"]
 
                 if expensiveOperations.contains(functionName) {
-                    addIssue(
-                        severity: .warning,
-                        message: "Expensive operation '\(functionName)' detected in view body",
-                        filePath: currentFilePath,
-                        lineNumber: getLineNumber(for: Syntax(node)),
-                        suggestion: "Move expensive computation outside the view body or use memoization",
-                        ruleName: nil
-                    )
+                    addIssue(node: Syntax(node), variables: ["functionName": functionName])
                 }
             }
         }
@@ -124,14 +106,7 @@ class PerformanceVisitor: BasePatternVisitor {
             }
 
             if !hasExplicitID {
-                addIssue(
-                    severity: .warning,
-                    message: "ForEach is missing an explicit 'id' parameter",
-                    filePath: currentFilePath,
-                    lineNumber: getLineNumber(for: Syntax(node)),
-                    suggestion: "Provide a unique and stable 'id' for ForEach collections",
-                    ruleName: nil
-                )
+                addIssue(node: Syntax(node))
             }
         }
 
@@ -171,14 +146,7 @@ class PerformanceVisitor: BasePatternVisitor {
 
     override func visitPost(_ node: VariableDeclSyntax) {
         if isInViewBody && viewBodySize > 20 {
-            addIssue(
-                severity: .info,
-                message: "View '\(currentViewName)' body is quite large (\(viewBodySize) statements), consider breaking it into smaller views",
-                filePath: currentFilePath,
-                lineNumber: getLineNumber(for: Syntax(node)),
-                suggestion: "Extract complex UI into separate view components",
-                ruleName: nil
-            )
+            addIssue(node: Syntax(node), variables: ["viewName": currentViewName, "statementCount": "\(viewBodySize)"])
         }
         isInViewBody = false
         viewBodySize = 0
@@ -186,14 +154,7 @@ class PerformanceVisitor: BasePatternVisitor {
 
     override func visitPost(_ node: FunctionDeclSyntax) {
         if isInViewBody && viewBodySize > 20 {
-            addIssue(
-                severity: .info,
-                message: "View '\(currentViewName)' body is quite large (\(viewBodySize) statements), consider breaking it into smaller views",
-                filePath: currentFilePath,
-                lineNumber: getLineNumber(for: Syntax(node)),
-                suggestion: "Extract complex UI into separate view components",
-                ruleName: nil
-            )
+            addIssue(node: Syntax(node), variables: ["viewName": currentViewName, "statementCount": "\(viewBodySize)"])
         }
         isInViewBody = false
         viewBodySize = 0
@@ -213,14 +174,7 @@ class PerformanceVisitor: BasePatternVisitor {
             let lineCount = viewBodyText.components(separatedBy: .newlines).count
 
             if lineCount > 50 { // Threshold for large view body
-                addIssue(
-                    severity: .info,
-                    message: "View body is large (\(lineCount) lines) and may impact performance",
-                    filePath: currentFilePath,
-                    lineNumber: getLineNumber(for: Syntax(node)),
-                    suggestion: "Break up large view bodies into smaller subviews",
-                    ruleName: nil
-                )
+                addIssue(node: Syntax(node), variables: ["lineCount": "\(lineCount)"])
             }
         }
     }

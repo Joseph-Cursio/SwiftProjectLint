@@ -5,12 +5,8 @@ import SwiftSyntax
 class ForEachSelfIDVisitor: BasePatternVisitor {
     private var currentFilePath: String = ""
 
-    required init(patternCategory: PatternCategory = .performance) {
-        super.init(patternCategory: patternCategory)
-    }
-
-    required init(viewMode: SyntaxTreeViewMode) {
-        super.init(viewMode: viewMode)
+    required init(pattern: SyntaxPattern, viewMode: SyntaxTreeViewMode = .sourceAccurate) {
+        super.init(pattern: pattern, viewMode: viewMode)
     }
 
     /// Sets the current file path for issue reporting.
@@ -30,14 +26,7 @@ class ForEachSelfIDVisitor: BasePatternVisitor {
                 if argument.label?.text == "id" {
                     if let memberAccess = argument.expression.as(MemberAccessExprSyntax.self),
                        memberAccess.declName.baseName.text == "self" {
-                        addIssue(
-                            severity: IssueSeverity.warning,
-                            message: "Using \\.self as id in ForEach can cause performance issues",
-                            filePath: currentFilePath,
-                            lineNumber: getLineNumber(for: Syntax(node)),
-                            suggestion: "Use a unique identifier property instead of \\.self for better performance",
-                            ruleName: currentPattern?.name
-                        )
+                        addIssue(node: Syntax(node))
                     }
                 }
             }

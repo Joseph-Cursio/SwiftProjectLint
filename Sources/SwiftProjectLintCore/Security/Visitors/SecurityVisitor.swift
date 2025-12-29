@@ -10,12 +10,8 @@ import SwiftSyntax
 class SecurityVisitor: BasePatternVisitor {
     private var currentFilePath: String = ""
 
-    required init(patternCategory: PatternCategory) {
-        super.init(patternCategory: patternCategory)
-    }
-
-    required init(viewMode: SyntaxTreeViewMode) {
-        super.init(viewMode: viewMode)
+    required init(pattern: SyntaxPattern, viewMode: SyntaxTreeViewMode = .sourceAccurate) {
+        super.init(pattern: pattern, viewMode: viewMode)
     }
 
     /// Sets the current file path for issue reporting.
@@ -37,14 +33,7 @@ class SecurityVisitor: BasePatternVisitor {
                 if secretKeywords.contains(where: { variableName.localizedCaseInsensitiveContains($0) }) {
                     if let initializer = binding.initializer,
                        initializer.value.is(StringLiteralExprSyntax.self) {
-                        addIssue(
-                            severity: .error,
-                            message: "Hardcoded secret detected in variable '\(variableName)'",
-                            filePath: currentFilePath,
-                            lineNumber: getLineNumber(for: Syntax(node)),
-                            suggestion: "Use environment variables or secure key storage",
-                            ruleName: nil
-                        )
+                        addIssue(node: Syntax(node), variables: ["variableName": variableName])
                     }
                 }
             }
@@ -60,14 +49,7 @@ class SecurityVisitor: BasePatternVisitor {
                 if let stringLiteral = argument.expression.as(StringLiteralExprSyntax.self) {
                     let urlString = stringLiteral.description
                     if urlString.contains("\\(") || urlString.contains("+") {
-                        addIssue(
-                            severity: .warning,
-                            message: "URL construction with string interpolation may be unsafe",
-                            filePath: currentFilePath,
-                            lineNumber: getLineNumber(for: Syntax(node)),
-                            suggestion: "Use URLComponents for safe URL construction",
-                            ruleName: nil
-                        )
+                        addIssue(node: Syntax(node))
                     }
                 }
             }

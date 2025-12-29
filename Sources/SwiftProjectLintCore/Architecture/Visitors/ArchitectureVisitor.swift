@@ -18,12 +18,8 @@ class ArchitectureVisitor: BasePatternVisitor {
     // Store all import module names
     private var importModules: [String] = []
 
-    required init(patternCategory: PatternCategory) {
-        super.init(viewMode: .sourceAccurate)
-    }
-
-    required init(viewMode: SyntaxTreeViewMode) {
-        super.init(viewMode: viewMode)
+    required init(pattern: SyntaxPattern, viewMode: SyntaxTreeViewMode = .sourceAccurate) {
+        super.init(pattern: pattern, viewMode: viewMode)
     }
 
     /// Sets the current file path for issue reporting.
@@ -78,39 +74,18 @@ class ArchitectureVisitor: BasePatternVisitor {
     override func visitPost(_ node: StructDeclSyntax) {
         // Check for fat view pattern after processing the entire struct
         if isSwiftUIView(node) && stateVariableCount > 5 {
-            addIssue(
-                severity: .warning,
-                message: "View '\(currentViewName)' has \(stateVariableCount) state variables, consider MVVM pattern",
-                filePath: currentFilePath,
-                lineNumber: getLineNumber(for: Syntax(node)),
-                suggestion: "Extract business logic into an ObservableObject ViewModel",
-                ruleName: currentPattern?.name
-            )
+            addIssue(node: Syntax(node), variables: ["viewName": currentViewName, "stateVariableCount": "\(stateVariableCount)"])
         }
 
         // Check for missing dependency injection
         if hasStateObjectCreation && !stateObjectType.isEmpty {
-            addIssue(
-                severity: .info,
-                message: "Consider injecting '\(stateObjectType)' as a dependency instead of creating it",
-                filePath: currentFilePath,
-                lineNumber: getLineNumber(for: Syntax(node)),
-                suggestion: "Use dependency injection for better testability and flexibility",
-                ruleName: currentPattern?.name
-            )
+            addIssue(node: Syntax(node), variables: ["stateObjectType": stateObjectType])
         }
 
         // Check for circular dependencies now that we know the view name
         for importedModule in importModules {
             if importedModule == currentViewName {
-                addIssue(
-                    severity: .error,
-                    message: "Potential circular dependency detected with module '\(importedModule)'",
-                    filePath: currentFilePath,
-                    lineNumber: getLineNumber(for: Syntax(node)),
-                    suggestion: "Review module dependencies and consider using protocols",
-                    ruleName: currentPattern?.name
-                )
+                addIssue(node: Syntax(node), variables: ["importedModule": importedModule])
             }
         }
     }
@@ -161,14 +136,7 @@ class ArchitectureVisitor: BasePatternVisitor {
             // No parameters - might be missing dependency injection
             // This is a simplified check - in practice, you'd want to be more sophisticated
             if currentViewName.hasSuffix("View") {
-                addIssue(
-                    severity: .info,
-                    message: "View '\(currentViewName)' has no initializer parameters, consider dependency injection",
-                    filePath: currentFilePath,
-                    lineNumber: getLineNumber(for: Syntax(node)),
-                    suggestion: "Add initializer parameters for dependencies to improve testability",
-                    ruleName: currentPattern?.name
-                )
+                addIssue(node: Syntax(node), variables: ["viewName": currentViewName])
             }
         }
     }
@@ -201,14 +169,7 @@ class ArchitectureVisitor: BasePatternVisitor {
                 type.type.as(IdentifierTypeSyntax.self)?.name.text == "ObservableObject"
             } ?? false
             if hasObservableObject {
-                addIssue(
-                    severity: .info,
-                    message: "Consider defining a protocol for '\(className)' for better testability",
-                    filePath: currentFilePath,
-                    lineNumber: getLineNumber(for: Syntax(node)),
-                    suggestion: "Create a protocol and use dependency injection",
-                    ruleName: currentPattern?.name
-                )
+                addIssue(node: Syntax(node), variables: ["className": className])
             }
         }
     }

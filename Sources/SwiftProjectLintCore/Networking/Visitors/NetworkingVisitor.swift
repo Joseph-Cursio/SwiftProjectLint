@@ -7,6 +7,10 @@ class NetworkingVisitor: BasePatternVisitor {
 
     private var currentFilePath: String?
 
+    required init(pattern: SyntaxPattern, viewMode: SyntaxTreeViewMode = .sourceAccurate) {
+        super.init(pattern: pattern, viewMode: viewMode)
+    }
+
     override func setFilePath(_ filePath: String) {
         self.currentFilePath = filePath
     }
@@ -75,14 +79,7 @@ class NetworkingVisitor: BasePatternVisitor {
                     DebugLogger.logVisitor(.networking, "hasContentsOf: true")
                 }
                 
-                addIssue(
-                    severity: .error,
-                    message: "Synchronous networking can block the UI thread",
-                    filePath: currentFilePath ?? "unknown",
-                    lineNumber: lineNumber(for: node),
-                    suggestion: "Use async/await or URLSession for asynchronous networking",
-                    ruleName: nil
-                )
+                addIssue(node: Syntax(node))
                 return true
             }
         }
@@ -222,36 +219,18 @@ class NetworkingVisitor: BasePatternVisitor {
             DebugLogger.logVisitor(.networking, "Error parameter is ignored (_)")
         }
         
-        let logLine = lineNumber(for: node)
-        addIssue(
-            severity: .warning,
-            message: "Network request ignores error parameter (_)",
-            filePath: currentFilePath ?? "unknown",
-            lineNumber: logLine,
-            suggestion: "Handle the error parameter in the completion closure",
-            ruleName: nil
-        )
+        addIssue(node: Syntax(node))
         
         Task { @MainActor in
-            DebugLogger.logIssue("Appending missing error handling issue at line \(logLine)")
+            DebugLogger.logIssue("Appending missing error handling issue at line \(lineNumber(for: node))")
         }
     }
     
     private func reportMissingErrorHandling(node: FunctionCallExprSyntax) {
-        let filePath = currentFilePath ?? "unknown"
-        let line = lineNumber(for: node)
-        
-        addIssue(
-            severity: .warning,
-            message: "Network request missing error handling",
-            filePath: filePath,
-            lineNumber: line,
-            suggestion: "Add error handling to the completion closure",
-            ruleName: nil
-        )
+        addIssue(node: Syntax(node))
         
         Task { @MainActor in
-            DebugLogger.logIssue("Appending missing error handling issue at line \(line)")
+            DebugLogger.logIssue("Appending missing error handling issue at line \(lineNumber(for: node))")
         }
     }
 }
