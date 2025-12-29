@@ -22,11 +22,11 @@ public protocol PatternVisitorProtocol: SyntaxVisitor {
     /// This method should be called before reusing a visitor instance.
     func reset()
 
-    /// The category of patterns this visitor is responsible for detecting.
-    var patternCategory: PatternCategory { get }
+    /// The `SyntaxPattern` this visitor is responsible for detecting.
+    var pattern: SyntaxPattern { get }
 
-    /// Required initializer for dynamic instantiation.
-    init(viewMode: SyntaxTreeViewMode)
+    /// Initializes the visitor with a `SyntaxPattern`.
+    init(pattern: SyntaxPattern, viewMode: SyntaxTreeViewMode)
 }
 
 /// Represents a SwiftSyntax-based pattern definition for code analysis.

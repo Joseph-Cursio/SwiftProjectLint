@@ -26,19 +26,9 @@ class MemoryManagementVisitor: BasePatternVisitor {
     /// The current file path.
     private var currentFilePath: String?
 
-    init(config: Configuration = .default) {
-        self.config = config
-        super.init(patternCategory: .memoryManagement)
-    }
-
-    required init(patternCategory: PatternCategory) {
+    required init(pattern: SyntaxPattern, viewMode: SyntaxTreeViewMode = .sourceAccurate) {
         self.config = .default
-        super.init(patternCategory: patternCategory)
-    }
-
-    required init(viewMode: SyntaxTreeViewMode) {
-        self.config = .default
-        super.init(viewMode: viewMode)
+        super.init(pattern: pattern, viewMode: viewMode)
     }
 
     /// Helper to extract property wrapper as PropertyWrapper enum
@@ -86,14 +76,7 @@ class MemoryManagementVisitor: BasePatternVisitor {
 
                     // Check if the initializer type matches the variable type
                     if variableType == initializerType {
-                        addIssue(
-                            severity: .warning,
-                            message: "Potential retain cycle with '\(pattern.identifier.text)'",
-                            filePath: currentFilePath ?? "unknown",
-                            lineNumber: getLineNumber(for: Syntax(node)),
-                            suggestion: "Review object lifecycle and consider weak references or proper cleanup",
-                            ruleName: nil
-                        )
+                        addIssue(node: Syntax(node), variables: ["variableName": pattern.identifier.text])
                     }
                 }
             }
@@ -115,14 +98,7 @@ class MemoryManagementVisitor: BasePatternVisitor {
                 if let arrayLiteral = initializer.value.as(ArrayExprSyntax.self) {
                     let elementCount = arrayLiteral.elements.count
                     if elementCount > config.maxArraySize {
-                        addIssue(
-                            severity: .info,
-                            message: "Large array in @State may cause performance issues",
-                            filePath: currentFilePath ?? "unknown",
-                            lineNumber: getLineNumber(for: Syntax(node)),
-                            suggestion: "Consider using @StateObject with ObservableObject for large data or pagination",
-                            ruleName: nil
-                        )
+                        addIssue(node: Syntax(node))
                     }
                 }
             }

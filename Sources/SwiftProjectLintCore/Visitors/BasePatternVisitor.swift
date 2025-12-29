@@ -12,26 +12,16 @@ import SwiftSyntax
 /// visitors with common utilities and helper methods for AST analysis.
 class BasePatternVisitor: SyntaxVisitor, PatternVisitorProtocol {
     var detectedIssues: [LintIssue] = []
-    let patternCategory: PatternCategory
+    let pattern: SyntaxPattern
     var sourceLocationConverter: SourceLocationConverter?
 
-    // Pattern information for message template support
-    var currentPattern: SyntaxPattern?
-
-    required init(patternCategory: PatternCategory) {
-        self.patternCategory = patternCategory
-        super.init(viewMode: .sourceAccurate)
+    required init(pattern: SyntaxPattern, viewMode: SyntaxTreeViewMode = .sourceAccurate) {
+        self.pattern = pattern
+        super.init(viewMode: viewMode)
     }
 
     func reset() {
         detectedIssues.removeAll()
-    }
-
-    /// Sets the current pattern for message template support.
-    ///
-    /// - Parameter pattern: The pattern to use for message templates.
-    func setPattern(_ pattern: SyntaxPattern) {
-        self.currentPattern = pattern
     }
 
     /// Adds a detected issue to the visitor's issue collection.
@@ -44,56 +34,17 @@ class BasePatternVisitor: SyntaxVisitor, PatternVisitorProtocol {
     ///   - suggestion: Optional suggestion for fixing the issue.
     ///   - ruleName: The name of the rule that generated this issue.
     func addIssue(
-        severity: IssueSeverity,
-        message: String,
-        filePath: String,
-        lineNumber: Int,
-        suggestion: String? = nil,
-        ruleName: RuleIdentifier? = nil
-    ) {
-        let issue = LintIssue(
-            severity: severity,
-            message: message,
-            filePath: filePath,
-            lineNumber: lineNumber,
-            suggestion: suggestion,
-            ruleName: .fileParsingError
-        )
-        detectedIssues.append(issue)
-    }
-
-    /// Adds a detected issue using the pattern's message template.
-    ///
-    /// - Parameters:
-    ///   - filePath: The file path where the issue was detected.
-    ///   - lineNumber: The line number where the issue was detected.
-    ///   - variables: Variables to substitute in the message template.
-    func addIssueWithTemplate(
-        filePath: String,
-        lineNumber: Int,
+        node: Syntax,
         variables: [String: String] = [:]
     ) {
-        guard let pattern = currentPattern else {
-            // Fallback to default behavior if no pattern is set
-            addIssue(
-                severity: .warning,
-                message: "Pattern issue detected",
-                filePath: filePath,
-                lineNumber: lineNumber,
-                suggestion: "Review the code",
-                ruleName: .fileParsingError
-            )
-            return
-        }
-
         let message = substituteVariables(in: pattern.messageTemplate, with: variables)
         let suggestion = substituteVariables(in: pattern.suggestion, with: variables)
 
         let issue = LintIssue(
             severity: pattern.severity,
             message: message,
-            filePath: filePath,
-            lineNumber: lineNumber,
+            filePath: getFilePath(for: node),
+            lineNumber: getLineNumber(for: node),
             suggestion: suggestion,
             ruleName: pattern.name
         )
@@ -136,11 +87,6 @@ class BasePatternVisitor: SyntaxVisitor, PatternVisitorProtocol {
         // This would need to be implemented based on how we track file paths
         // For now, we'll need to pass this information through the visitor
         return "unknown"
-    }
-
-    required override init(viewMode: SyntaxTreeViewMode) {
-        self.patternCategory = .stateManagement // Default, subclasses should override if needed
-        super.init(viewMode: viewMode)
     }
 
     func setSourceLocationConverter(_ converter: SourceLocationConverter) {

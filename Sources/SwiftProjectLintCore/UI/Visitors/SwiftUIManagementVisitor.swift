@@ -48,22 +48,19 @@ class SwiftUIManagementVisitor: BasePatternVisitor {
     private var currentViewName: String = ""
     private var currentFilePath: String = ""
     private var viewDeclarations: [ViewDeclaration] = []
+    private var syntaxTree: SourceFileSyntax?
 
     // MARK: - Initialization
 
-    required init(patternCategory: PatternCategory) {
+    required init(pattern: SyntaxPattern, viewMode: SyntaxTreeViewMode = .sourceAccurate) {
         self.config = .default
-        super.init(viewMode: .sourceAccurate)
-    }
-
-    required init(viewMode: SyntaxTreeViewMode) {
-        self.config = .default
-        super.init(viewMode: viewMode)
+        super.init(pattern: pattern, viewMode: viewMode)
     }
 
     // MARK: - Syntax Visitor Methods
 
     override func visit(_ node: SourceFileSyntax) -> SyntaxVisitorContinueKind {
+        self.syntaxTree = node
         // Extract file path from the node if possible
         // For now, we'll need to set this externally
         return .visitChildren
@@ -107,26 +104,7 @@ class SwiftUIManagementVisitor: BasePatternVisitor {
 
         // Check for fat view pattern
         if stateCount > config.maxStateVariables {
-            // Try to use pattern template first, fallback to hardcoded message
-            if currentPattern != nil {
-                addIssueWithTemplate(
-                    filePath: currentFilePath,
-                    lineNumber: getLineNumber(for: node),
-                    variables: [
-                        "viewName": currentViewName,
-                        "stateCount": String(stateCount)
-                    ]
-                )
-            } else {
-                addIssue(
-                    severity: .warning,
-                    message: "View '\(currentViewName)' has \(stateCount) state variables, consider MVVM pattern",
-                    filePath: currentFilePath,
-                    lineNumber: getLineNumber(for: node),
-                    suggestion: "Extract business logic into an ObservableObject ViewModel",
-                    ruleName: nil
-                )
-            }
+            addIssue(node: Syntax(node), variables: ["viewName": currentViewName, "stateCount": String(stateCount)])
         }
 
         // Store view declaration for cross-file analysis
@@ -156,7 +134,8 @@ class SwiftUIManagementVisitor: BasePatternVisitor {
                 viewName: currentViewName,
                 filePath: currentFilePath,
                 lineNumber: getLineNumber(for: node),
-                hasInitialValue: hasInitialValue
+                hasInitialValue: hasInitialValue,
+                node: node // Store the node
             )
 
             stateVariables.append(stateVar)
@@ -185,24 +164,7 @@ class SwiftUIManagementVisitor: BasePatternVisitor {
            typeName.hasSuffix("Store") ||
            typeName.hasSuffix("ViewModel") {
 
-            // Try to use pattern template first, fallback to hardcoded message
-            if currentPattern != nil {
-                addIssueWithTemplate(
-                    filePath: stateVar.filePath,
-                    lineNumber: stateVar.lineNumber,
-                    variables: [
-                        "variableName": stateVar.name
-                    ]
-                )
-            } else {
-                addIssue(
-                    severity: .warning,
-                    message: "Consider using @StateObject for '\(stateVar.name)' as it appears to be owned by this view",
-                    filePath: stateVar.filePath,
-                    lineNumber: stateVar.lineNumber,
-                    suggestion: "Use @StateObject for ObservableObject properties that should be owned by this view"
-                )
-            }
+            addIssue(node: Syntax(node), variables: ["variableName": stateVar.name])
         }
     }
 
@@ -214,24 +176,7 @@ class SwiftUIManagementVisitor: BasePatternVisitor {
             }
 
             if !hasInitialValue {
-                // Try to use pattern template first, fallback to hardcoded message
-                if currentPattern != nil {
-                    addIssueWithTemplate(
-                        filePath: stateVar.filePath,
-                        lineNumber: stateVar.lineNumber,
-                        variables: [
-                            "variableName": stateVar.name
-                        ]
-                    )
-                } else {
-                    addIssue(
-                        severity: .error,
-                        message: "State variable '\(stateVar.name)' must have an initial value",
-                        filePath: stateVar.filePath,
-                        lineNumber: stateVar.lineNumber,
-                        suggestion: "Provide an initial value for the state variable"
-                    )
-                }
+                addIssue(node: Syntax(node), variables: ["variableName": stateVar.name])
             }
         }
     }
@@ -283,25 +228,7 @@ class SwiftUIManagementVisitor: BasePatternVisitor {
         let viewNames = relatedViews.joined(separator: ", ")
         let firstVariable = variables.first!
 
-        // Try to use pattern template first, fallback to hardcoded message
-        if currentPattern != nil {
-            addIssueWithTemplate(
-                filePath: firstVariable.filePath,
-                lineNumber: firstVariable.lineNumber,
-                variables: [
-                    "variableName": variableName,
-                    "viewNames": viewNames
-                ]
-            )
-        } else {
-            addIssue(
-                severity: .warning,
-                message: "Duplicate state variable '\(variableName)' found in related views: \(viewNames)",
-                filePath: firstVariable.filePath,
-                lineNumber: firstVariable.lineNumber,
-                suggestion: "Create a shared ObservableObject for '\(variableName)' and inject it via .environmentObject() at the root level."
-            )
-        }
+        addIssue(node: Syntax(firstVariable.node), variables: ["variableName": variableName, "viewNames": viewNames])
     }
 
     // MARK: - Public Interface
@@ -330,6 +257,7 @@ struct StateVariableInfo {
     let filePath: String
     let lineNumber: Int
     let hasInitialValue: Bool
+    let node: VariableDeclSyntax // Store the node
 }
 
 /// Information about a view declaration detected during analysis.
@@ -340,3 +268,72 @@ struct ViewDeclaration {
     let stateVariables: [StateVariableInfo]
 }
 
+// MARK: - Helper methods from SwiftUIManagementUtils.swift
+
+extension SwiftUIManagementVisitor {
+
+    // MARK: - Helper Methods
+
+    func isSwiftUIView(_ node: StructDeclSyntax) -> Bool {
+        guard let inheritanceClause = node.inheritanceClause else {
+            return false
+        }
+        return inheritanceClause.inheritedTypes.contains { inheritedType in
+            if let simpleType = inheritedType.type.as(IdentifierTypeSyntax.self) {
+                return simpleType.name.text == "View"
+            }
+            return false
+        }
+    }
+
+    func extractPropertyWrapper(from node: VariableDeclSyntax) -> PropertyWrapper? {
+        for attribute in node.attributes {
+            if let attributeSyntax = attribute.as(AttributeSyntax.self),
+               let attributeName = attributeSyntax.attributeName.as(IdentifierTypeSyntax.self)?.name.text,
+               let wrapper = PropertyWrapper(rawValue: attributeName) {
+                return wrapper
+            }
+        }
+        return nil
+    }
+
+    func extractTypeAnnotation(from binding: PatternBindingSyntax) -> String {
+        if let typeAnnotation = binding.typeAnnotation {
+            return typeAnnotation.type.description.trimmingCharacters(in: .whitespaces)
+        }
+        return "Unknown"
+    }
+
+    func countStateVariables(in node: StructDeclSyntax) -> Int {
+        var count = 0
+        let visitor = StateVariableCounter()
+        visitor.walk(node)
+        count = visitor.stateVariableCount
+        return count
+    }
+}
+
+class StateVariableCounter: SyntaxVisitor {
+    var stateVariableCount = 0
+
+    override func visit(_ node: VariableDeclSyntax) -> SyntaxVisitorContinueKind {
+        // Check for @State, @StateObject, etc.
+        let propertyWrappers = node.attributes.compactMap { attribute -> String? in
+            guard let attribute = attribute.as(AttributeSyntax.self),
+                  let identifier = attribute.attributeName.as(IdentifierTypeSyntax.self) else {
+                return nil
+            }
+            return identifier.name.text
+        }
+
+        if propertyWrappers.contains("State") ||
+           propertyWrappers.contains("StateObject") ||
+           propertyWrappers.contains("ObservedObject") ||
+           propertyWrappers.contains("EnvironmentObject") ||
+           propertyWrappers.contains("Binding") {
+            stateVariableCount += 1
+        }
+
+        return .skipChildren
+    }
+}

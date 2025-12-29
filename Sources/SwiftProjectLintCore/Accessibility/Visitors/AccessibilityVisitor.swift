@@ -66,21 +66,9 @@ class AccessibilityVisitor: BasePatternVisitor {
 
     // MARK: - Initializers
 
-    /// Creates a new accessibility visitor with the specified configuration.
-    /// - Parameter config: The configuration for accessibility checking.
-    init(config: Configuration = .default, viewMode: SyntaxTreeViewMode = .sourceAccurate) {
-        self.config = config
-        super.init(viewMode: viewMode)
-    }
-
-    required init(patternCategory: PatternCategory) {
+    required init(pattern: SyntaxPattern, viewMode: SyntaxTreeViewMode = .sourceAccurate) {
         self.config = .default
-        super.init(viewMode: .sourceAccurate)
-    }
-
-    required init(viewMode: SyntaxTreeViewMode) {
-        self.config = .default
-        super.init(viewMode: viewMode)
+        super.init(pattern: pattern, viewMode: viewMode)
     }
 
     override func reset() {
