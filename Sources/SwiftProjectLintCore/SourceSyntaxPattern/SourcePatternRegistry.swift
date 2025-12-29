@@ -30,7 +30,8 @@ public class SourcePatternRegistry: SourcePatternRegistryProtocol {
         .networking: NetworkingPatternRegistrar(registry: self, visitorRegistry: visitorRegistry),
         .codeQuality: CodeQualityPatternRegistrar(registry: self, visitorRegistry: visitorRegistry),
         .architecture: ArchitecturePatternRegistrar(registry: self, visitorRegistry: visitorRegistry),
-        .uiPatterns: UIPatternRegistrar(registry: self, visitorRegistry: visitorRegistry)
+        .uiPatterns: UIPatternRegistrar(registry: self, visitorRegistry: visitorRegistry),
+        .animation: AnimationPatternRegistrar(registry: self, visitorRegistry: visitorRegistry)
     ]
 
     /// Creates a new SwiftSyntax pattern registry.
@@ -94,7 +95,7 @@ public class SourcePatternRegistry: SourcePatternRegistryProtocol {
     private func registerPatterns(for category: PatternCategory) {
         switch category {
         case .stateManagement, .performance, .security, .accessibility, 
-             .memoryManagement, .networking, .codeQuality, .architecture, .uiPatterns:
+             .memoryManagement, .networking, .codeQuality, .architecture, .uiPatterns, .animation:
             if let registrar = patternRegistrars[category] {
                 registrar.registerPatterns()
             }

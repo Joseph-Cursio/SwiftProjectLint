@@ -97,6 +97,12 @@ struct PatternConfiguration {
                 display: "UI Patterns",
                 patterns: convertToDetectionPatterns(patternRegistry.getPatterns(for: .uiPatterns)),
                 useSwiftSyntax: true
+            ),
+            PatternCategoryInfo(
+                category: .animation,
+                display: "Animation",
+                patterns: convertToDetectionPatterns(patternRegistry.getPatterns(for: .animation)),
+                useSwiftSyntax: true
             )
         ]
     }

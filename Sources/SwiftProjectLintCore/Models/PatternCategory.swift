@@ -30,5 +30,6 @@ public enum PatternCategory: CaseIterable {
     case memoryManagement
     case networking
     case uiPatterns
+    case animation
     case other
 }

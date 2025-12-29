@@ -25,6 +25,7 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
     case largeViewBody = "Large View Body"
     case forEachSelfID = "ForEach Self ID"
     case unnecessaryViewUpdate = "Unnecessary View Update"
+    case deprecatedAnimation = "Deprecated Animation"
 
     // Architecture Rules
     case missingDependencyInjection = "Missing Dependency Injection"
@@ -75,6 +76,9 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
             // Performance Rules
         case .expensiveOperationInViewBody, .forEachWithoutID, .largeViewBody, .forEachSelfID, .unnecessaryViewUpdate:
             return .performance
+
+        case .deprecatedAnimation:
+            return .animation
 
             // Architecture Rules
         case .missingDependencyInjection, .fatViewDetection:
