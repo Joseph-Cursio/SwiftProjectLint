@@ -3,6 +3,12 @@ import SwiftSyntax
 /// A SwiftSyntax visitor that detects the use of the deprecated `.animation()` modifier in SwiftUI.
 class AnimationVisitor: BasePatternVisitor {
 
+    private var currentFilePath: String = ""
+
+    override func setFilePath(_ filePath: String) {
+        self.currentFilePath = filePath
+    }
+
     override func visit(_ node: FunctionCallExprSyntax) -> SyntaxVisitorContinueKind {
         // We are looking for `.animation(...)`
         guard let calledExpression = node.calledExpression.as(MemberAccessExprSyntax.self),
