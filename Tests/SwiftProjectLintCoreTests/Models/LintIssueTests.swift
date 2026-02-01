@@ -155,4 +155,3 @@ struct LintIssueTests {
         #expect(issue.message == "Test")
     }
 }
-

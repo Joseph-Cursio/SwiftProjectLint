@@ -298,4 +298,3 @@ class ViewRelationshipVisitor: SyntaxVisitor {
         return lineNumber
     }
 }
-

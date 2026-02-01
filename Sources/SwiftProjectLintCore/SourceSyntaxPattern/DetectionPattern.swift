@@ -29,4 +29,3 @@ public struct DetectionPattern {
         self.category = category
     }
 } 
-

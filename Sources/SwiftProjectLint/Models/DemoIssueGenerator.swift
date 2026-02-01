@@ -59,6 +59,9 @@ struct DemoIssueGenerator {
             case .other:
                 // No demo issues for the "other" category (system-level errors)
                 break
+
+            @unknown default:
+                break
             }
         }
 

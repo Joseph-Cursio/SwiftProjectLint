@@ -106,13 +106,7 @@ final class ArchitectureFeatureCharacterizationTests {
     
     @Test func characterizeArchitectureIssueCreation() throws {
         let issue = ArchitectureIssue(
-            type: .duplicateState,
-            severity: .warning,
-            message: "Test duplicate state issue",
-            affectedViews: ["ViewA", "ViewB"],
-            suggestion: "Create shared ObservableObject",
-            filePath: "/test/ViewA.swift",
-            lineNumber: 10
+            type: .duplicateState, severity: .warning, message: "Test duplicate state issue", affectedViews: ["ViewA", "ViewB"], suggestion: "Create shared ObservableObject", filePath: "/test/ViewA.swift", lineNumber: 10
         )
         
         print("📊 ArchitectureIssue Model:")
@@ -130,12 +124,7 @@ final class ArchitectureFeatureCharacterizationTests {
     
     @Test func characterizeArchitectureIssueTypes() throws {
         let issueTypes: [ArchitectureIssueType] = [
-            .duplicateState,
-            .missingStateObject,
-            .inefficientStateSharing,
-            .circularDependency,
-            .missingEnvironmentObject,
-            .inconsistentDataFlow
+            .duplicateState, .missingStateObject, .inefficientStateSharing, .circularDependency, .missingEnvironmentObject, .inconsistentDataFlow
         ]
         
         print("📊 ArchitectureIssueType Enumeration:")
@@ -151,11 +140,7 @@ final class ArchitectureFeatureCharacterizationTests {
     
     @Test func characterizeViewRelationshipCreation() throws {
         let relationship = ViewRelationship(
-            parentView: "ParentView",
-            childView: "ChildView",
-            relationshipType: .directChild,
-            lineNumber: 25,
-            filePath: "/test/ParentView.swift"
+            parentView: "ParentView", childView: "ChildView", relationshipType: .directChild, lineNumber: 25, filePath: "/test/ParentView.swift"
         )
         
         print("📊 ViewRelationship Model:")
@@ -171,13 +156,7 @@ final class ArchitectureFeatureCharacterizationTests {
     
     @Test func characterizeRelationshipTypes() throws {
         let relationshipTypes: [RelationshipType] = [
-            .directChild,
-            .navigationDestination,
-            .sheet,
-            .fullScreenCover,
-            .popover,
-            .alert,
-            .tabView
+            .directChild, .navigationDestination, .sheet, .fullScreenCover, .popover, .alert, .tabView
         ]
         
         print("📊 RelationshipType Enumeration:")
@@ -226,7 +205,6 @@ final class ArchitectureFeatureCharacterizationTests {
         
     }
 
-    
     // MARK: - Behavior Summary
     
     @Test func generateArchitectureBehaviorSummary() throws {
@@ -357,8 +335,7 @@ final class ArchitectureFeatureCharacterizationTests {
                     }
                 }
             }
-            """),
-            ("ContentView.swift", """
+            """), ("ContentView.swift", """
             import SwiftUI
             
             struct ContentView: View {
@@ -377,8 +354,7 @@ final class ArchitectureFeatureCharacterizationTests {
                     }
                 }
             }
-            """),
-            ("DetailView.swift", """
+            """), ("DetailView.swift", """
             import SwiftUI
             
             struct DetailView: View {
@@ -392,8 +368,7 @@ final class ArchitectureFeatureCharacterizationTests {
                         }
                 }
             }
-            """),
-            ("SettingsView.swift", """
+            """), ("SettingsView.swift", """
             import SwiftUI
             
             struct SettingsView: View {
@@ -404,8 +379,7 @@ final class ArchitectureFeatureCharacterizationTests {
                     Text("Settings")
                 }
             }
-            """),
-            ("SheetView.swift", """
+            """), ("SheetView.swift", """
             import SwiftUI
             
             struct SheetView: View {
@@ -415,8 +389,7 @@ final class ArchitectureFeatureCharacterizationTests {
                     Text("Sheet")
                 }
             }
-            """),
-            ("ModalView.swift", """
+            """), ("ModalView.swift", """
             import SwiftUI
             
             struct ModalView: View {

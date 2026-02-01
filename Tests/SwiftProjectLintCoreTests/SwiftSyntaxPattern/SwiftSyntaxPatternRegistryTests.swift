@@ -27,7 +27,7 @@ struct SwiftSyntaxPatternRegistryTests {
         
         // Should have registered patterns
         let allPatterns = registry.getAllPatterns()
-        #expect(allPatterns.count > 0)
+        #expect(!allPatterns.isEmpty)
     }
     
     @Test func testGetPatternsForCategory() {
@@ -38,9 +38,9 @@ struct SwiftSyntaxPatternRegistryTests {
         let performancePatterns = registry.getPatterns(for: .performance)
         let architecturePatterns = registry.getPatterns(for: .architecture)
         
-        #expect(statePatterns.count > 0)
-        #expect(performancePatterns.count > 0)
-        #expect(architecturePatterns.count > 0)
+        #expect(!statePatterns.isEmpty)
+        #expect(!performancePatterns.isEmpty)
+        #expect(!architecturePatterns.isEmpty)
     }
     
     @Test func testRegisterPattern() {
@@ -97,7 +97,7 @@ struct SwiftSyntaxPatternRegistryTests {
         registry.initialize()
         
         let beforeClear = registry.getAllPatterns()
-        #expect(beforeClear.count > 0)
+        #expect(!beforeClear.isEmpty)
         
         registry.clear()
         
@@ -110,11 +110,10 @@ struct SwiftSyntaxPatternRegistryTests {
         registry.initialize()
         
         let allPatterns = registry.getAllPatterns()
-        #expect(allPatterns.count > 0)
+        #expect(!allPatterns.isEmpty)
         
         // Should include patterns from multiple categories
         let categories = Set(allPatterns.map { $0.category })
         #expect(categories.count > 1)
     }
 }
-

@@ -108,7 +108,7 @@ struct PerformanceStateVariableTrackingTests {
         }
         
         // May or may not detect depending on view body analysis
-        #expect(unnecessaryIssues.count >= 0)
+        #expect(unnecessaryIssues.isEmpty)
     }
     
     @Test func testTrackStateVariableWithMultipleAssignments() throws {
@@ -271,4 +271,3 @@ struct PerformanceStateVariableTrackingTests {
         }
     }
 }
-

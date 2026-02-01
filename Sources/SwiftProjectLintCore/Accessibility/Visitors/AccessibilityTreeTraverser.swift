@@ -20,7 +20,7 @@ class AccessibilityTreeTraverser {
         "accessibilityAction",
         "accessibilityAdjustableAction",
         "accessibilityCustomAction",
-        "accessibilityRespondsToUserInteraction",
+        "accessibilityRespondsToUserInteraction"
     ]
 
     /// Checks if the given modifier exists anywhere in the modifier chain.
@@ -187,4 +187,3 @@ class AccessibilityTreeTraverser {
         return false
     }
 }
-

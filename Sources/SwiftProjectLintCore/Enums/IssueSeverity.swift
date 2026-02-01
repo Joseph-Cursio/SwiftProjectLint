@@ -5,7 +5,6 @@
 //  Created by Joseph Cursio on 7/9/25.
 //
 
-
 /// Represents the severity level of a lint issue detected by the linter.
 ///
 /// Use `error` for serious problems that may cause project malfunction, `warning` for potential problems or code style issues,

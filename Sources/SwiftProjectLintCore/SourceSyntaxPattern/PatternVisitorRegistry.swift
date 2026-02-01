@@ -15,6 +15,7 @@ import SwiftSyntax
 /// dynamic pattern registration and category-based visitor retrieval.
 ///
 /// - Note: This registry is designed to be thread-safe and supports concurrent access.
+@preconcurrency
 @MainActor
 public class PatternVisitorRegistry: PatternVisitorRegistryProtocol {
     public static let shared = PatternVisitorRegistry()

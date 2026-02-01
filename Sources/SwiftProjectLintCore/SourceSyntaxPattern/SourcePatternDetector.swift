@@ -2,6 +2,7 @@ import Foundation
 import SwiftParser
 import SwiftSyntax
 
+@preconcurrency
 @MainActor
 public class SourcePatternDetector: SourcePatternDetectorProtocol {
     private let registry: PatternVisitorRegistry

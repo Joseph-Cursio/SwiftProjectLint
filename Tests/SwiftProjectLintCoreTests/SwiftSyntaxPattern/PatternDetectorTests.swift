@@ -92,7 +92,7 @@ final class PatternDetectorTests {
                 """)
         ]
         
-        let _ = detector.detectCrossFilePatterns(
+        _ = detector.detectCrossFilePatterns(
             projectFiles: projectFiles,
             ruleIdentifiers: [.relatedDuplicateStateVariable]
         )

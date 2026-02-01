@@ -14,8 +14,7 @@ class ColorAccessibilityChecker: MemberAccessAccessibilityCheckerProtocol {
     func checkAccessibility(_ node: MemberAccessExprSyntax) {
         // Check for Color usage without accessibility features
         if let base = node.base?.as(DeclReferenceExprSyntax.self),
-            base.baseName.text == "Color"
-        {
+            base.baseName.text == "Color" {
             visitor.addIssue(
                 severity: .info,
                 message:
@@ -32,8 +31,7 @@ class ColorAccessibilityChecker: MemberAccessAccessibilityCheckerProtocol {
         if node.declName.baseName.text == "foregroundColor" {
             // Check if there are accessibility modifiers present that would make color usage acceptable
             if let parent = node.parent,
-                let functionCall = parent.as(FunctionCallExprSyntax.self)
-            {
+                let functionCall = parent.as(FunctionCallExprSyntax.self) {
                 // If there are accessibility modifiers, skip the color issue
                 if AccessibilityTreeTraverser.hasAccessibilityModifier(
                     in: functionCall,
@@ -46,8 +44,7 @@ class ColorAccessibilityChecker: MemberAccessAccessibilityCheckerProtocol {
                     || AccessibilityTreeTraverser.hasAccessibilityModifier(
                         in: functionCall,
                         modifierName: "accessibilityValue"
-                    )
-                {
+                    ) {
                     return  // Skip color issue if accessibility modifiers are present
                 }
             }

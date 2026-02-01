@@ -6,7 +6,7 @@ struct PropertyWrapperTests {
     
     @Test func testAllPropertyWrappersAreDefined() {
         let allWrappers = PropertyWrapper.allCases
-        #expect(allWrappers.count > 0)
+        #expect(!allWrappers.isEmpty)
         
         // Verify common SwiftUI property wrappers exist
         #expect(allWrappers.contains(.state))
@@ -65,4 +65,3 @@ struct PropertyWrapperTests {
         #expect(state1 != stateObject)
     }
 }
-

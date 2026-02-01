@@ -51,7 +51,6 @@ struct SwiftSyntaxPatternDetectorPerformanceTests {
         // Then
         let forEachIssues = issues.filter { $0.message.contains("ForEach") }
         
-        
         if let forEachIssue = forEachIssues.first {
             #expect(forEachIssue.severity == .warning)
         }

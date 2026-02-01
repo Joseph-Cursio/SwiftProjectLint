@@ -5,7 +5,6 @@
 //  Created by joe cursio on 7/14/25.
 //
 
-
 /// Represents logical categories of code patterns that can be detected within Swift source files.
 /// Each category groups related patterns corresponding to common concerns in SwiftUI development,
 /// architecture, or best practices:

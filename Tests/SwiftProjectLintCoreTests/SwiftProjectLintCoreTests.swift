@@ -12,18 +12,18 @@ import Testing
 @MainActor
 struct SwiftProjectLintCoreTests {
 
-    @Test func testCoreModuleImports() async throws {
+    @Test func testCoreModuleImports() throws {
         // Test that all core modules can be imported and accessed
-        let _ = AdvancedAnalyzer()
+        _ = AdvancedAnalyzer()
         #expect(Bool(true)) // Analyzer created successfully
         
-        let _ = ProjectLinter()
+        _ = ProjectLinter()
         #expect(Bool(true)) // Linter created successfully
         
-        let _ = SourcePatternDetector()
+        _ = SourcePatternDetector()
         #expect(Bool(true)) // Detector created successfully
         
-        let _ = SourcePatternRegistry.shared
+        _ = SourcePatternRegistry.shared
         #expect(Bool(true)) // Registry accessed successfully
     }
     

@@ -81,7 +81,7 @@ struct SwiftUIManagementVisitorTests {
         
         let issues = visitor.detectedIssues
         // May detect missing @StateObject if ViewModel matches pattern
-        #expect(issues.count >= 0)
+        #expect(issues.isEmpty)
     }
     
     @Test func testAnalyzeViewStructure() throws {
@@ -106,7 +106,7 @@ struct SwiftUIManagementVisitorTests {
         // Should analyze view structure - verify through detected issues or behavior
         let issues = visitor.detectedIssues
         // View should be processed without errors
-        #expect(issues.count >= 0)
+        #expect(issues.isEmpty)
     }
     
     @Test func testDetectDuplicateStateVariables() throws {
@@ -208,7 +208,7 @@ struct SwiftUIManagementVisitorTests {
         // Should analyze all variable declarations - verify through detected issues
         let issues = visitor.detectedIssues
         // May detect issues for uninitialized state or other patterns
-        #expect(issues.count >= 0)
+        #expect(issues.isEmpty)
     }
     
     @Test func testCheckForMissingStateObjectWithManager() throws {
@@ -231,7 +231,7 @@ struct SwiftUIManagementVisitorTests {
         
         let issues = visitor.detectedIssues
         // May detect missing @StateObject for Manager suffix
-        #expect(issues.count >= 0)
+        #expect(issues.isEmpty)
     }
     
     @Test func testCheckForMissingStateObjectWithService() throws {
@@ -254,7 +254,7 @@ struct SwiftUIManagementVisitorTests {
         
         let issues = visitor.detectedIssues
         // May detect missing @StateObject for Service suffix
-        #expect(issues.count >= 0)
+        #expect(issues.isEmpty)
     }
     
     @Test func testCheckForMissingStateObjectWithViewModel() throws {
@@ -277,7 +277,7 @@ struct SwiftUIManagementVisitorTests {
         
         let issues = visitor.detectedIssues
         // May detect missing @StateObject for ViewModel suffix
-        #expect(issues.count >= 0)
+        #expect(issues.isEmpty)
     }
     
     @Test func testPerformCrossFileAnalysis() throws {
@@ -334,7 +334,7 @@ struct SwiftUIManagementVisitorTests {
         visitor.finalizeAnalysis()
         let issues = visitor.detectedIssues
         // Should process both views
-        #expect(issues.count >= 0)
+        #expect(issues.isEmpty)
     }
     
     @Test func testSetFilePath() throws {
@@ -428,7 +428,6 @@ struct SwiftUIManagementVisitorTests {
         // Should process function declarations without crashing
         // Verify through detected issues
         let issues = visitor.detectedIssues
-        #expect(issues.count >= 0)
+        #expect(issues.isEmpty)
     }
 }
-

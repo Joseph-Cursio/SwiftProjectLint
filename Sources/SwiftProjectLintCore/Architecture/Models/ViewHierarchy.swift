@@ -5,7 +5,6 @@
 //  Created by joe cursio on 7/14/25.
 //
 
-
 /// Represents the hierarchical relationship and structure of a SwiftUI view within a project.
 ///
 /// `ViewHierarchy` contains information about a specific view, including its name, its parent view (if any),

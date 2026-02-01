@@ -21,7 +21,7 @@ struct ContentViewTests {
         let texts = try view.inspect().findAll(ViewType.Text.self)
         // Check for any loading-related text in the view
         let textStrings = texts.compactMap { try? $0.string() }
-        #expect(textStrings.count > 0) // View should have some text content
+        #expect(!textStrings.isEmpty) // View should have some text content
     }
 
     @Test
@@ -31,7 +31,7 @@ struct ContentViewTests {
         let view = ContentView().environmentObject(systemComponents)
         let texts = try view.inspect().findAll(ViewType.Text.self)
         let textStrings = texts.compactMap { try? $0.string() }
-        #expect(textStrings.count > 0) // View should have some text content
+        #expect(!textStrings.isEmpty) // View should have some text content
     }
 
     @Test
@@ -42,17 +42,17 @@ struct ContentViewTests {
         let view = ContentView().environmentObject(systemComponents)
         let inspected = try view.inspect()
         // NavigationView
-        #expect(try { let _ = try inspected.find(ViewType.NavigationView.self); return true }())
+        #expect(try { _ = try inspected.find(ViewType.NavigationView.self); return true }())
         // VStack
         let vStack = try inspected.navigationView().vStack()
         // Header
-        #expect(try { let _ = try vStack.find(ContentViewHeader.self); return true }())
+        #expect(try { _ = try vStack.find(ContentViewHeader.self); return true }())
         // Actions
-        #expect(try { let _ = try vStack.find(ContentViewActions.self); return true }())
+        #expect(try { _ = try vStack.find(ContentViewActions.self); return true }())
         // Progress
-        #expect(try { let _ = try vStack.find(ContentViewProgress.self); return true }())
+        #expect(try { _ = try vStack.find(ContentViewProgress.self); return true }())
         // Results
-        #expect(try { let _ = try vStack.find(ContentViewResults.self); return true }())
+        #expect(try { _ = try vStack.find(ContentViewResults.self); return true }())
         // Navigation title: check for the title text somewhere in the view
         let allTexts = try inspected.findAll(ViewType.Text.self).map { try? $0.string() }
         #expect(allTexts.contains("Swift Project Linter"))

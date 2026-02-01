@@ -4,6 +4,7 @@ import Foundation
 /// Shared test registry manager for performance optimization across all tests.
 /// This provides a centralized way to manage shared registries while maintaining
 /// test isolation where needed.
+@preconcurrency
 @MainActor
 public class TestRegistryManager {
     
@@ -102,7 +103,8 @@ public class TestRegistryManager {
     // MARK: - Performance Monitoring
     
     /// Measure execution time of a synchronous test operation
-    public static func measureExecutionTime<T: Sendable>(_ operation: @Sendable () throws -> T) async rethrows -> (T, Duration) {
+    @preconcurrency
+    public static func measureExecutionTime<T: Sendable>(_ operation: @Sendable () throws -> T) rethrows -> (T, Duration) {
         let start = ContinuousClock.now
         let result = try operation()
         let end = ContinuousClock.now
@@ -110,6 +112,7 @@ public class TestRegistryManager {
     }
     
     /// Measure execution time of an async test operation
+    @preconcurrency
     public static func measureExecutionTime<T: Sendable>(_ operation: @Sendable () async throws -> T) async rethrows -> (T, Duration) {
         let start = ContinuousClock.now
         let result = try await operation()

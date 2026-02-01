@@ -115,4 +115,3 @@ struct CrossFileSwiftUIManagementVisitorTests {
         #expect(visitor.fileCache.keys.contains("View3.swift"))
     }
 }
-

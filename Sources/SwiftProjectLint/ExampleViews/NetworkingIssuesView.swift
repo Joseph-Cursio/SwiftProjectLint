@@ -60,7 +60,7 @@ struct NetworkingIssuesView: View {
             Button("Load Data (No Error Handling)") {
                 isLoading = true
                 let url = URL(string: "https://jsonplaceholder.typicode.com/posts/1")!
-                URLSession.shared.dataTask(with: url) { data, response, error in
+                URLSession.shared.dataTask(with: url) { data, _, _ in
                     Task { @MainActor in
                         isLoading = false
                         if let data = data,

@@ -161,5 +161,4 @@ final class SourcePatternDetectorTests {
         #expect(true, "Various file path formats should be handled")
     }
     
- 
 }

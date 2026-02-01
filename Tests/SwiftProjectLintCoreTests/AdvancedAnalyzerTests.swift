@@ -25,7 +25,7 @@ final class AdvancedAnalyzerTests {
         #expect(!result.contains("d"))
     }
     
-    @Test @MainActor func testFindRelatedViewsDetectsHierarchy() async throws {
+    @Test @MainActor func testFindRelatedViewsDetectsHierarchy() throws {
         // Test through the public interface by creating actual view relationships
         let analyzer = AdvancedAnalyzer()
         
@@ -38,7 +38,7 @@ final class AdvancedAnalyzerTests {
         // The analyzer should detect view relationships through its public interface
     }
     
-    @Test @MainActor func testIsRootViewReturnsTrueForRoot() async throws {
+    @Test @MainActor func testIsRootViewReturnsTrueForRoot() throws {
         // Test through the public interface by creating actual view relationships
         let analyzer = AdvancedAnalyzer()
         
@@ -51,7 +51,7 @@ final class AdvancedAnalyzerTests {
         // The analyzer should detect view relationships through its public interface
     }
     
-    @Test @MainActor func testGenerateStateSharingSuggestionForTwoViews() async throws {
+    @Test @MainActor func testGenerateStateSharingSuggestionForTwoViews() throws {
         // Test through the public interface by creating actual view relationships
         let analyzer = AdvancedAnalyzer()
         
@@ -64,7 +64,7 @@ final class AdvancedAnalyzerTests {
         // The analyzer should detect view relationships through its public interface
     }
     
-    @Test @MainActor func testGenerateStateSharingSuggestionForManyViews() async throws {
+    @Test @MainActor func testGenerateStateSharingSuggestionForManyViews() throws {
         // Test through the public interface by creating actual view relationships
         let analyzer = AdvancedAnalyzer()
         
@@ -77,7 +77,7 @@ final class AdvancedAnalyzerTests {
         // The analyzer should detect view relationships through its public interface
     }
     
-    @Test @MainActor func testRelationshipTypeAndViewRelationship() async throws {
+    @Test @MainActor func testRelationshipTypeAndViewRelationship() throws {
         let analyzer = AdvancedAnalyzer()
         
         // Test through the public interface by creating actual view relationships
@@ -87,8 +87,8 @@ final class AdvancedAnalyzerTests {
         _ = analyzer.analyzeArchitecture(projectPath: testProjectPath)
         
         // Test the public methods that should work after analysis
-        let _ = analyzer.relationshipType(between: "TestParent", and: "TestChild")
-        let _ = analyzer.viewRelationship(between: "TestParent", and: "TestChild")
+        _ = analyzer.relationshipType(between: "TestParent", and: "TestChild")
+        _ = analyzer.viewRelationship(between: "TestParent", and: "TestChild")
         
         // The analyzer should be able to query relationships through its public interface
         #expect(Bool(true)) // At minimum, it should complete without errors

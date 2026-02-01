@@ -62,7 +62,7 @@ struct PerformanceDetectionHelpersTests {
         }
         
         // May detect via either detectForEachSelfID or detectForEachWithoutID
-        #expect(forEachSelfIssues.count >= 0)
+        #expect(forEachSelfIssues.isEmpty)
     }
     
     @Test func testDoesNotDetectForEachWithProperID() throws {
@@ -258,4 +258,3 @@ struct PerformanceDetectionHelpersTests {
         #expect(forEachIssues.count >= 1)
     }
 }
-

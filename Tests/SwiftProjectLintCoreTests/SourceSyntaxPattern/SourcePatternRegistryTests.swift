@@ -136,4 +136,3 @@ struct SourcePatternRegistryTests {
         testVisitorRegistry.clear()
     }
 } 
-

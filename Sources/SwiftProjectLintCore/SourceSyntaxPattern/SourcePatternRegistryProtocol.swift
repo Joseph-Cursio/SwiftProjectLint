@@ -5,6 +5,7 @@
 //  Created by joe cursio on 7/14/25.
 //
 /// Protocol for SwiftSyntax pattern registry operations
+@preconcurrency
 @MainActor
 public protocol SourcePatternRegistryProtocol {
     func initialize()

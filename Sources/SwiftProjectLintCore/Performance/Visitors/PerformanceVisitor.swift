@@ -179,4 +179,3 @@ class PerformanceVisitor: BasePatternVisitor {
         }
     }
 }
-

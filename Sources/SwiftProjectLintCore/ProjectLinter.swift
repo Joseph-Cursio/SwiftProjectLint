@@ -20,6 +20,7 @@ import SwiftUI
 ///     print(issue.message)
 /// }
 /// ```
+@preconcurrency
 @MainActor
 public class ProjectLinter {
     private var projectFiles: [ProjectFile] = []

@@ -131,7 +131,6 @@ struct SourcePatternDetectorCoreTests {
             await detector.detectPatterns(in: file2, filePath: "ChildView.swift", categories: nil)
         }
         
-       
         // Then - Both files should be processed independently
         
         clearTestState(detector: detector)

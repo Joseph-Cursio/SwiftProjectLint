@@ -55,7 +55,6 @@ struct SwiftSyntaxPatternDetectorArchitectureTests {
         // Then
         let fatViewIssues = issues.filter { $0.message.contains("state variables") }
         
-        
         if let fatViewIssue = fatViewIssues.first {
             #expect(fatViewIssue.severity == .warning)
         }
@@ -95,7 +94,6 @@ struct SwiftSyntaxPatternDetectorArchitectureTests {
         
         // Then
         let diIssues = issues.filter { $0.message.contains("UserManager") }
-        
         
         if let diIssue = diIssues.first {
             #expect(diIssue.severity == .info)

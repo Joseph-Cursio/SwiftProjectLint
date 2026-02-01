@@ -115,4 +115,3 @@ final class SourcePatternBasicIOTests {
         let issues = detector.detectPatterns(in: complexView, filePath: "/ComplexStateView.swift")
         
     }}
-

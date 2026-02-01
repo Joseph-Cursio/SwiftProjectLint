@@ -106,4 +106,3 @@ struct ViewNameExtractorVisitorTests {
         #expect(visitor.viewNames.contains("MyView"))
     }
 }
-
