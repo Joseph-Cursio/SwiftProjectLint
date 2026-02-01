@@ -25,6 +25,15 @@ swiftlint
 
 # Run SwiftLint with autocorrect
 swiftlint --fix
+
+# Run tests with code coverage
+swift test --enable-code-coverage
+
+# View code coverage report (after running tests with coverage)
+xcrun llvm-cov report .build/debug/SwiftProjectLintPackageTests.xctest/Contents/MacOS/SwiftProjectLintPackageTests -instr-profile .build/debug/codecov/default.profdata
+
+# Export code coverage to lcov format
+xcrun llvm-cov export .build/debug/SwiftProjectLintPackageTests.xctest/Contents/MacOS/SwiftProjectLintPackageTests -instr-profile .build/debug/codecov/default.profdata -format=lcov > coverage.lcov
 ```
 
 Note: UI tests are configured in the Xcode project and should be run through Xcode, not SPM.
