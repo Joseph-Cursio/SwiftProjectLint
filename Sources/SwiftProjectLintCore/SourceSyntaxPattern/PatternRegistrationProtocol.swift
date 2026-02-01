@@ -1,11 +1,17 @@
 import Foundation
 
+/// Protocol for simple pattern providers that just supply a pattern.
+protocol PatternRegistrar {
+    /// The syntax pattern to be registered.
+    var pattern: SyntaxPattern { get }
+}
+
 /// Protocol defining the interface for pattern registration.
 /// Each pattern registrar is responsible for registering patterns for a specific category.
 protocol PatternRegistrarProtocol {
     /// The registry that owns this registrar.
     var registry: SourcePatternRegistry { get }
-    
+
     /// Registers patterns for the specific category.
     func registerPatterns()
 }

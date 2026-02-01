@@ -38,9 +38,18 @@ struct CrossFileSwiftUIManagementVisitorTests {
         #expect(visitor.fileCache.isEmpty)
     }
     
-    @Test func testInitializationWithViewMode() {
-        let visitor = CrossFileSwiftUIManagementVisitor(viewMode: .sourceAccurate)
-        
+    @Test func testInitializationWithPattern() {
+        let pattern = SyntaxPattern(
+            name: .unknown,
+            visitor: CrossFileSwiftUIManagementVisitor.self,
+            severity: .warning,
+            category: .stateManagement,
+            messageTemplate: "",
+            suggestion: "",
+            description: ""
+        )
+        let visitor = CrossFileSwiftUIManagementVisitor(pattern: pattern)
+
         #expect(visitor.fileCache.isEmpty)
     }
     
@@ -63,22 +72,32 @@ struct CrossFileSwiftUIManagementVisitorTests {
         class TestVisitor: SyntaxVisitor, PatternVisitorProtocol {
             var visitCount = 0
             var detectedIssues: [LintIssue] = []
+            var pattern: SyntaxPattern
             static var type: VisitorType { .architecture }
-            var patternCategory: PatternCategory { .architecture }
-            
-            required override init(viewMode: SyntaxTreeViewMode = .sourceAccurate) {
+
+            required init(pattern: SyntaxPattern, viewMode: SyntaxTreeViewMode = .sourceAccurate) {
+                self.pattern = pattern
                 super.init(viewMode: viewMode)
             }
-            
-            required init(patternCategory: PatternCategory) {
-                super.init(viewMode: .sourceAccurate)
+
+            convenience init() {
+                let placeholder = SyntaxPattern(
+                    name: .unknown,
+                    visitor: TestVisitor.self,
+                    severity: .warning,
+                    category: .architecture,
+                    messageTemplate: "",
+                    suggestion: "",
+                    description: ""
+                )
+                self.init(pattern: placeholder)
             }
-            
+
             func reset() {
                 detectedIssues.removeAll()
                 visitCount = 0
             }
-            
+
             override func visit(_ node: StructDeclSyntax) -> SyntaxVisitorContinueKind {
                 visitCount += 1
                 return .visitChildren

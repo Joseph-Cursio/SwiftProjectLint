@@ -1,12 +1,18 @@
 import XCTest
 @testable import SwiftProjectLintCore
 import SwiftSyntax
+import SwiftParser
 
 final class DeprecatedAnimationVisitorTests: XCTestCase {
 
     private func makeVisitor() -> DeprecatedAnimationVisitor {
         let pattern = DeprecatedAnimationPatternRegistrar().pattern
         return DeprecatedAnimationVisitor(pattern: pattern)
+    }
+
+    private func runVisitor(_ visitor: DeprecatedAnimationVisitor, source: String) {
+        let sourceFile = Parser.parse(source: source)
+        visitor.walk(sourceFile)
     }
 
     func testDeprecatedAnimationModifier() throws {
@@ -22,11 +28,11 @@ final class DeprecatedAnimationVisitorTests: XCTestCase {
         """
 
         let visitor = makeVisitor()
-        try visitor.run(source: source)
+        runVisitor(visitor, source: source)
 
-        XCTAssertEqual(visitor.issues.count, 1)
+        XCTAssertEqual(visitor.detectedIssues.count, 1)
 
-        let issue = try XCTUnwrap(visitor.issues.first)
+        let issue = try XCTUnwrap(visitor.detectedIssues.first)
         XCTAssertEqual(issue.ruleName, .deprecatedAnimation)
         XCTAssertEqual(issue.severity, .warning)
     }
@@ -45,9 +51,9 @@ final class DeprecatedAnimationVisitorTests: XCTestCase {
         """
 
         let visitor = makeVisitor()
-        try visitor.run(source: source)
+        runVisitor(visitor, source: source)
 
-        XCTAssertTrue(visitor.issues.isEmpty)
+        XCTAssertTrue(visitor.detectedIssues.isEmpty)
     }
 
     func testBindingAnimationModifier() throws {
@@ -64,8 +70,8 @@ final class DeprecatedAnimationVisitorTests: XCTestCase {
         """
 
         let visitor = makeVisitor()
-        try visitor.run(source: source)
+        runVisitor(visitor, source: source)
 
-        XCTAssertTrue(visitor.issues.isEmpty)
+        XCTAssertTrue(visitor.detectedIssues.isEmpty)
     }
 }

@@ -168,7 +168,8 @@ struct SwiftUIManagementVisitorTests {
                 viewName: "View1",
                 filePath: "test.swift",
                 lineNumber: 2,
-                hasInitialValue: true
+                hasInitialValue: true,
+                node: nil
             ),
             StateVariableInfo(
                 name: "data",
@@ -177,7 +178,8 @@ struct SwiftUIManagementVisitorTests {
                 viewName: "View2",
                 filePath: "test.swift",
                 lineNumber: 6,
-                hasInitialValue: true
+                hasInitialValue: true,
+                node: nil
             )
         ]
         

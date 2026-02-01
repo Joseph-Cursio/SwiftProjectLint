@@ -215,22 +215,21 @@ class NetworkingVisitor: BasePatternVisitor {
     }
     
     private func reportIgnoredErrorParameter(node: FunctionCallExprSyntax) {
+        let line = lineNumber(for: node)
         Task { @MainActor in
             DebugLogger.logVisitor(.networking, "Error parameter is ignored (_)")
+            DebugLogger.logIssue("Appending missing error handling issue at line \(line)")
         }
-        
+
         addIssue(node: Syntax(node))
-        
-        Task { @MainActor in
-            DebugLogger.logIssue("Appending missing error handling issue at line \(lineNumber(for: node))")
-        }
     }
-    
+
     private func reportMissingErrorHandling(node: FunctionCallExprSyntax) {
+        let line = lineNumber(for: node)
         addIssue(node: Syntax(node))
-        
+
         Task { @MainActor in
-            DebugLogger.logIssue("Appending missing error handling issue at line \(lineNumber(for: node))")
+            DebugLogger.logIssue("Appending missing error handling issue at line \(line)")
         }
     }
 }

@@ -146,9 +146,14 @@ struct PatternConfigurationTests {
 // Dummy visitor to satisfy SyntaxPattern initializer
 private class DummyVisitor: SyntaxVisitor, PatternVisitorProtocol {
     var detectedIssues: [LintIssue] = []
+    var pattern: SyntaxPattern
     static var type: VisitorType { .architecture }
     var patternCategory: PatternCategory { .architecture }
-    required init() { super.init(viewMode: .sourceAccurate) }
-    required override init(viewMode: SyntaxTreeViewMode) { super.init(viewMode: viewMode) }
+
+    required init(pattern: SyntaxPattern, viewMode: SyntaxTreeViewMode = .sourceAccurate) {
+        self.pattern = pattern
+        super.init(viewMode: viewMode)
+    }
+
     func reset() { detectedIssues.removeAll() }
 } 

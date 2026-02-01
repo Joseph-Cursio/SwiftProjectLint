@@ -111,7 +111,7 @@ class SwiftUIManagementVisitor: BasePatternVisitor {
         let viewDeclaration = ViewDeclaration(
             name: currentViewName,
             filePath: currentFilePath,
-            lineNumber: getLineNumber(for: node),
+            lineNumber: getLineNumber(for: Syntax(node)),
             stateVariables: stateVariables.filter { $0.viewName == currentViewName }
         )
         viewDeclarations.append(viewDeclaration)
@@ -133,7 +133,7 @@ class SwiftUIManagementVisitor: BasePatternVisitor {
                 propertyWrapper: propertyWrapper,
                 viewName: currentViewName,
                 filePath: currentFilePath,
-                lineNumber: getLineNumber(for: node),
+                lineNumber: getLineNumber(for: Syntax(node)),
                 hasInitialValue: hasInitialValue,
                 node: node // Store the node
             )
@@ -226,9 +226,10 @@ class SwiftUIManagementVisitor: BasePatternVisitor {
         relatedViews: [String]
     ) {
         let viewNames = relatedViews.joined(separator: ", ")
-        let firstVariable = variables.first!
+        guard let firstVariable = variables.first,
+              let node = firstVariable.node else { return }
 
-        addIssue(node: Syntax(firstVariable.node), variables: ["variableName": variableName, "viewNames": viewNames])
+        addIssue(node: Syntax(node), variables: ["variableName": variableName, "viewNames": viewNames])
     }
 
     // MARK: - Public Interface
@@ -257,7 +258,7 @@ struct StateVariableInfo {
     let filePath: String
     let lineNumber: Int
     let hasInitialValue: Bool
-    let node: VariableDeclSyntax // Store the node
+    let node: VariableDeclSyntax? // Store the node (optional for tests)
 }
 
 /// Information about a view declaration detected during analysis.
@@ -306,7 +307,7 @@ extension SwiftUIManagementVisitor {
 
     func countStateVariables(in node: StructDeclSyntax) -> Int {
         var count = 0
-        let visitor = StateVariableCounter()
+        let visitor = StateVariableCounter(viewMode: .sourceAccurate)
         visitor.walk(node)
         count = visitor.stateVariableCount
         return count

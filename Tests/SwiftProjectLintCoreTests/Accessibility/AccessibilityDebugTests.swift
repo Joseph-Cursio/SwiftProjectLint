@@ -14,7 +14,7 @@ class AccessibilityDebugTests {
     func setUp() {
         // Initialize shared registry if not already done
         TestRegistryManager.initializeSharedRegistry()
-        visitor = AccessibilityVisitor(viewMode: .sourceAccurate)
+        visitor = AccessibilityVisitor(patternCategory: .accessibility)
     }
     
     func tearDown() {
@@ -97,7 +97,7 @@ class AccessibilityDebugTests {
         print("DEBUG: About to walk source file")
         
         // Create a simple visitor and test if visit is called
-        let testVisitor = AccessibilityVisitor(viewMode: .sourceAccurate)
+        let testVisitor = AccessibilityVisitor(patternCategory: .accessibility)
         testVisitor.walk(sourceFile)
         
         print("DEBUG: Finished walking source file")
@@ -148,7 +148,7 @@ class AccessibilityDebugTests {
         
         // When
         let sourceFile = Parser.parse(source: sourceCode)
-        let testVisitor = AccessibilityVisitor(viewMode: .sourceAccurate)
+        let testVisitor = AccessibilityVisitor(patternCategory: .accessibility)
         testVisitor.walk(sourceFile)
         
         // Then - verify that the visitor detected the expected accessibility issue

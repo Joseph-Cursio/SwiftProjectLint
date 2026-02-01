@@ -14,7 +14,7 @@ class ButtonAccessibilityTests {
     func setUp() {
         // Initialize shared registry if not already done
         TestRegistryManager.initializeSharedRegistry()
-        visitor = AccessibilityVisitor(viewMode: .sourceAccurate)
+        visitor = AccessibilityVisitor(patternCategory: .accessibility)
     }
     
     func tearDown() {

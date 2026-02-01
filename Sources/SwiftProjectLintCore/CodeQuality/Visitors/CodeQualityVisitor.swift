@@ -17,11 +17,26 @@ class CodeQualityVisitor: BasePatternVisitor {
     private var isInViewBody: Bool = false
     private var isInFunction: Bool = false
     private var functionStartLine: Int = 0
-    private let configuration: Configuration
+    private var configuration: Configuration
 
     required init(pattern: SyntaxPattern, viewMode: SyntaxTreeViewMode = .sourceAccurate) {
         self.configuration = .default
         super.init(pattern: pattern, viewMode: viewMode)
+    }
+
+    /// Convenience initializer for tests and simple usage.
+    convenience init(patternCategory: PatternCategory, configuration: Configuration = .default, viewMode: SyntaxTreeViewMode = .sourceAccurate) {
+        let placeholder = SyntaxPattern(
+            name: .unknown,
+            visitor: CodeQualityVisitor.self,
+            severity: .warning,
+            category: patternCategory,
+            messageTemplate: "",
+            suggestion: "",
+            description: ""
+        )
+        self.init(pattern: placeholder, viewMode: viewMode)
+        self.configuration = configuration
     }
 
     /// Sets the current file path for issue reporting.

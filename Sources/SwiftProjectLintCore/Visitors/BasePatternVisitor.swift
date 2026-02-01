@@ -12,12 +12,44 @@ import SwiftSyntax
 /// visitors with common utilities and helper methods for AST analysis.
 class BasePatternVisitor: SyntaxVisitor, PatternVisitorProtocol {
     var detectedIssues: [LintIssue] = []
-    let pattern: SyntaxPattern
+    var pattern: SyntaxPattern
     var sourceLocationConverter: SourceLocationConverter?
+    private var filePath: String = "unknown"
+
+    /// Placeholder pattern used for cross-file visitors that set their pattern after initialization.
+    static let placeholderPattern = SyntaxPattern(
+        name: .unknown,
+        visitor: BasePatternVisitor.self,
+        severity: .warning,
+        category: .other,
+        messageTemplate: "",
+        suggestion: "",
+        description: ""
+    )
 
     required init(pattern: SyntaxPattern, viewMode: SyntaxTreeViewMode = .sourceAccurate) {
         self.pattern = pattern
         super.init(viewMode: viewMode)
+    }
+
+    /// Convenience initializer for tests and simple usage.
+    /// Creates a visitor with a placeholder pattern for the given category.
+    convenience init(patternCategory: PatternCategory, viewMode: SyntaxTreeViewMode = .sourceAccurate) {
+        let placeholder = SyntaxPattern(
+            name: .unknown,
+            visitor: BasePatternVisitor.self,
+            severity: .warning,
+            category: patternCategory,
+            messageTemplate: "",
+            suggestion: "",
+            description: ""
+        )
+        self.init(pattern: placeholder, viewMode: viewMode)
+    }
+
+    /// Sets the pattern for this visitor. Used by cross-file analysis engines.
+    func setPattern(_ pattern: SyntaxPattern) {
+        self.pattern = pattern
     }
 
     func reset() {
@@ -84,9 +116,7 @@ class BasePatternVisitor: SyntaxVisitor, PatternVisitorProtocol {
     /// - Parameter node: The syntax node to get the file path for.
     /// - Returns: The file path where the node appears.
     func getFilePath(for node: Syntax) -> String {
-        // This would need to be implemented based on how we track file paths
-        // For now, we'll need to pass this information through the visitor
-        return "unknown"
+        return filePath
     }
 
     func setSourceLocationConverter(_ converter: SourceLocationConverter) {
@@ -97,6 +127,37 @@ class BasePatternVisitor: SyntaxVisitor, PatternVisitorProtocol {
     ///
     /// - Parameter filePath: The file path to set.
     func setFilePath(_ filePath: String) {
-        // This is a base implementation - subclasses can override if needed
+        self.filePath = filePath
+    }
+
+    /// Adds a detected issue directly with explicit parameters.
+    ///
+    /// Use this method when you need to create issues with custom messages
+    /// that don't come from the pattern template.
+    ///
+    /// - Parameters:
+    ///   - severity: The severity level of the issue.
+    ///   - message: The issue message.
+    ///   - filePath: The file path where the issue was detected.
+    ///   - lineNumber: The line number where the issue was detected.
+    ///   - suggestion: Optional suggestion for fixing the issue.
+    ///   - ruleName: The name of the rule that generated this issue.
+    func addIssue(
+        severity: IssueSeverity,
+        message: String,
+        filePath: String,
+        lineNumber: Int,
+        suggestion: String,
+        ruleName: RuleIdentifier?
+    ) {
+        let issue = LintIssue(
+            severity: severity,
+            message: message,
+            filePath: filePath,
+            lineNumber: lineNumber,
+            suggestion: suggestion,
+            ruleName: ruleName ?? pattern.name
+        )
+        detectedIssues.append(issue)
     }
 }

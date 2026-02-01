@@ -33,7 +33,7 @@ final class DeprecatedAnimationVisitor: BasePatternVisitor {
         // Ensure the function call is a member access expression (e.g., `view.animation(...)`)
         guard let calledExpression = node.calledExpression.as(MemberAccessExprSyntax.self),
               let base = calledExpression.base,
-              !base.is(endingWith: "Binding") else {
+              !base.description.hasSuffix("Binding") else {
             return .visitChildren
         }
 

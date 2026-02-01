@@ -31,7 +31,7 @@ class AccessibilityVisitor: BasePatternVisitor {
     }
 
     /// The configuration for this visitor.
-    internal let config: Configuration
+    internal var config: Configuration
 
     /// The current file path.
     private var currentFilePath: String?
@@ -40,6 +40,11 @@ class AccessibilityVisitor: BasePatternVisitor {
     private var imagesInButtons: Set<Syntax> = []
 
     // MARK: - Internal Access Methods for Checkers
+
+    /// Get the current pattern for issue reporting
+    internal var currentPattern: SyntaxPattern? {
+        return pattern
+    }
 
     /// Get the current file path for issue reporting
     internal func getCurrentFilePath() -> String? {
@@ -69,6 +74,21 @@ class AccessibilityVisitor: BasePatternVisitor {
     required init(pattern: SyntaxPattern, viewMode: SyntaxTreeViewMode = .sourceAccurate) {
         self.config = .default
         super.init(pattern: pattern, viewMode: viewMode)
+    }
+
+    /// Convenience initializer for tests with custom configuration.
+    convenience init(config: Configuration, viewMode: SyntaxTreeViewMode = .sourceAccurate) {
+        let placeholder = SyntaxPattern(
+            name: .unknown,
+            visitor: AccessibilityVisitor.self,
+            severity: .warning,
+            category: .accessibility,
+            messageTemplate: "",
+            suggestion: "",
+            description: ""
+        )
+        self.init(pattern: placeholder, viewMode: viewMode)
+        self.config = config
     }
 
     override func reset() {

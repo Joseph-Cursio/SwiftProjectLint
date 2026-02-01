@@ -7,15 +7,15 @@ import Foundation
 /// consistently registered and available for use.
 struct AnimationPatternRegistrar: PatternRegistrarWithVisitorRegistryProtocol {
 
-    private let registry: SourcePatternRegistryProtocol
-    private let visitorRegistry: PatternVisitorRegistryProtocol
+    let registry: SourcePatternRegistry
+    let visitorRegistry: PatternVisitorRegistryProtocol
 
     /// Initializes the registrar with the required registries.
     ///
     /// - Parameters:
     ///   - registry: The source pattern registry to add patterns to.
     ///   - visitorRegistry: The visitor registry for managing pattern visitors.
-    init(registry: SourcePatternRegistryProtocol, visitorRegistry: PatternVisitorRegistryProtocol) {
+    init(registry: SourcePatternRegistry, visitorRegistry: PatternVisitorRegistryProtocol) {
         self.registry = registry
         self.visitorRegistry = visitorRegistry
     }

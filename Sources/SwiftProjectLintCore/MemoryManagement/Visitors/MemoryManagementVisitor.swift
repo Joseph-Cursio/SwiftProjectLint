@@ -21,7 +21,7 @@ class MemoryManagementVisitor: BasePatternVisitor {
         )
     }
 
-    internal let config: Configuration
+    internal var config: Configuration
 
     /// The current file path.
     private var currentFilePath: String?
@@ -29,6 +29,35 @@ class MemoryManagementVisitor: BasePatternVisitor {
     required init(pattern: SyntaxPattern, viewMode: SyntaxTreeViewMode = .sourceAccurate) {
         self.config = .default
         super.init(pattern: pattern, viewMode: viewMode)
+    }
+
+    /// Convenience initializer for tests with default configuration.
+    convenience init() {
+        let placeholder = SyntaxPattern(
+            name: .unknown,
+            visitor: MemoryManagementVisitor.self,
+            severity: .warning,
+            category: .memoryManagement,
+            messageTemplate: "",
+            suggestion: "",
+            description: ""
+        )
+        self.init(pattern: placeholder)
+    }
+
+    /// Convenience initializer for tests with custom configuration.
+    convenience init(config: Configuration, viewMode: SyntaxTreeViewMode = .sourceAccurate) {
+        let placeholder = SyntaxPattern(
+            name: .unknown,
+            visitor: MemoryManagementVisitor.self,
+            severity: .warning,
+            category: .memoryManagement,
+            messageTemplate: "",
+            suggestion: "",
+            description: ""
+        )
+        self.init(pattern: placeholder, viewMode: viewMode)
+        self.config = config
     }
 
     /// Helper to extract property wrapper as PropertyWrapper enum

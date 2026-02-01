@@ -64,6 +64,7 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
 
     // Other/System Rules
     case fileParsingError = "File Parsing Error"
+    case unknown = "Unknown"
 
     /// Returns the category this rule belongs to
     var category: PatternCategory {
@@ -109,7 +110,7 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
             return .uiPatterns
 
             // Other/System Rules
-        case .fileParsingError:
+        case .fileParsingError, .unknown:
             return .other
         }
     }

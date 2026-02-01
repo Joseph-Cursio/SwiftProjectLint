@@ -42,23 +42,17 @@ public class SwiftSyntaxPatternDetector: SwiftSyntaxPatternDetectorProtocol {
         for pattern in patterns {
             // Create visitor with proper initialization
             if let visitorType = pattern.visitor as? BasePatternVisitor.Type {
-                let visitor = visitorType.init(patternCategory: pattern.category)
+                let visitor = visitorType.init(pattern: pattern)
                 visitor.setSourceLocationConverter(converter)
                 visitor.setFilePath(filePath)
-                visitor.setPattern(pattern)
-                visitor.walk(sourceFile)
-                allIssues.append(contentsOf: visitor.detectedIssues)
-            } else {
-                // Fallback for non-BasePatternVisitor types
-                let visitor = pattern.visitor.init(viewMode: .sourceAccurate)
                 visitor.walk(sourceFile)
                 allIssues.append(contentsOf: visitor.detectedIssues)
             }
         }
-        
+
         return allIssues
     }
-    
+
     /// Detects specific patterns in the given source code.
     ///
     /// This method parses the source code into an AST and applies only the
@@ -78,25 +72,19 @@ public class SwiftSyntaxPatternDetector: SwiftSyntaxPatternDetectorProtocol {
         fileCache[filePath] = sourceFile
         let converter = SourceLocationConverter(fileName: filePath, tree: sourceFile)
         var allIssues: [LintIssue] = []
-        
+
         // Get specific patterns by rule identifier
         let allPatterns = registry.getAllPatterns()
         let requestedPatterns = allPatterns.filter { pattern in
             ruleIdentifiers.contains(pattern.name)
         }
-        
+
         for pattern in requestedPatterns {
             // Create visitor with proper initialization
             if let visitorType = pattern.visitor as? BasePatternVisitor.Type {
-                let visitor = visitorType.init(patternCategory: pattern.category)
+                let visitor = visitorType.init(pattern: pattern)
                 visitor.setSourceLocationConverter(converter)
                 visitor.setFilePath(filePath)
-                visitor.setPattern(pattern)
-                visitor.walk(sourceFile)
-                allIssues.append(contentsOf: visitor.detectedIssues)
-            } else {
-                // Fallback for non-BasePatternVisitor types
-                let visitor = pattern.visitor.init(viewMode: .sourceAccurate)
                 visitor.walk(sourceFile)
                 allIssues.append(contentsOf: visitor.detectedIssues)
             }
