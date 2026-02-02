@@ -21,7 +21,10 @@ class AccessibilityConfigurationEdgeCaseTests {
         let sourceFile = Parser.parse(source: sourceCode)
         customVisitor.walk(sourceFile)
         #expect(customVisitor.detectedIssues.count == 1)
-        let issue = customVisitor.detectedIssues.first!
+        guard let issue = customVisitor.detectedIssues.first else {
+            Issue.record("Expected at least one issue")
+            return
+        }
         #expect(issue.message.contains("Long text content may benefit from accessibility features"))
     }
 
@@ -40,7 +43,10 @@ class AccessibilityConfigurationEdgeCaseTests {
         let sourceFile = Parser.parse(source: sourceCode)
         customVisitor.walk(sourceFile)
         #expect(customVisitor.detectedIssues.count == 1)
-        let issue = customVisitor.detectedIssues.first!
+        guard let issue = customVisitor.detectedIssues.first else {
+            Issue.record("Expected at least one issue")
+            return
+        }
         #expect(issue.message.contains("Long text content may benefit from accessibility features"))
     }
 } 

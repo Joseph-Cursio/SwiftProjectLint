@@ -45,7 +45,10 @@ class AccessibilityTextColorTests {
         }
         // Then
         #expect(visitor.detectedIssues.count == 1)
-        let issue = visitor.detectedIssues.first!
+        guard let issue = visitor.detectedIssues.first else {
+            Issue.record("Expected at least one issue")
+            return
+        }
         #expect(issue.severity == .info)
         #expect(issue.message.contains("Long text content may benefit from accessibility features"))
         #expect(issue.suggestion?.contains("accessibilityLabel") == true)
@@ -117,8 +120,11 @@ class AccessibilityTextColorTests {
         
         // Then
         #expect(visitor.detectedIssues.count == 1)
-        
-        let issue = visitor.detectedIssues.first!
+
+        guard let issue = visitor.detectedIssues.first else {
+            Issue.record("Expected at least one issue")
+            return
+        }
         #expect(issue.severity == .info)
         #expect(issue.message.contains("Consider accessibility when using color-based information"))
         #expect(issue.suggestion?.contains("color is not the only way") == true)

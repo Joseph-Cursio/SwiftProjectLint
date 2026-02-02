@@ -35,9 +35,12 @@ public class SwiftSyntaxPatternDetector: SwiftSyntaxPatternDetectorProtocol {
         var allIssues: [LintIssue] = []
         
         // Get patterns and create visitors with proper initialization
-        let patterns = categories != nil ? 
-            categories!.flatMap { registry.getPatterns(for: $0) } : 
-            registry.getAllPatterns()
+        let patterns: [SyntaxPattern]
+        if let categories = categories {
+            patterns = categories.flatMap { registry.getPatterns(for: $0) }
+        } else {
+            patterns = registry.getAllPatterns()
+        }
         
         for pattern in patterns {
             // Create visitor with proper initialization

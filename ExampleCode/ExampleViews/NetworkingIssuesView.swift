@@ -36,11 +36,13 @@ struct NetworkingIssuesView: View {
             
             // Security Issue: Unsafe URL construction
             let userId = "user123"
+            // swiftlint:disable:next force_unwrapping
             let unsafeURL = URL(string: "https://api.example.com/users/\(userId)/data?key=\(apiKey)")!
             
             // Networking Issue: Synchronous networking
             Button("Load Data (Synchronous)") {
                 do {
+                    // swiftlint:disable:next force_unwrapping
                     let url = URL(string: "https://jsonplaceholder.typicode.com/posts/1")!
                     let data = try Data(contentsOf: url)
                     if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
@@ -59,6 +61,7 @@ struct NetworkingIssuesView: View {
             // Networking Issue: Missing error handling
             Button("Load Data (No Error Handling)") {
                 isLoading = true
+                // swiftlint:disable:next force_unwrapping
                 let url = URL(string: "https://jsonplaceholder.typicode.com/posts/1")!
                 URLSession.shared.dataTask(with: url) { data, _, _ in
                     Task { @MainActor in

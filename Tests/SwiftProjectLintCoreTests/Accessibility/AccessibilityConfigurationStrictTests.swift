@@ -18,7 +18,10 @@ class AccessibilityConfigurationStrictTests {
         let sourceFile = Parser.parse(source: sourceCode)
         strictVisitor.walk(sourceFile)
         #expect(strictVisitor.detectedIssues.count == 1)
-        let issue = strictVisitor.detectedIssues.first!
+        guard let issue = strictVisitor.detectedIssues.first else {
+            Issue.record("Expected at least one issue")
+            return
+        }
         #expect(issue.message.contains("Long text content may benefit"))
     }
 
@@ -36,7 +39,10 @@ class AccessibilityConfigurationStrictTests {
         let sourceFile = Parser.parse(source: sourceCode)
         customVisitor.walk(sourceFile)
         #expect(customVisitor.detectedIssues.count == 1)
-        let issue = customVisitor.detectedIssues.first!
+        guard let issue = customVisitor.detectedIssues.first else {
+            Issue.record("Expected at least one issue")
+            return
+        }
         #expect(issue.message.contains("Long text content may benefit from accessibility features"))
     }
 
@@ -54,7 +60,10 @@ class AccessibilityConfigurationStrictTests {
         let sourceFile = Parser.parse(source: sourceCode)
         customVisitor.walk(sourceFile)
         #expect(customVisitor.detectedIssues.count == 1)
-        let issue = customVisitor.detectedIssues.first!
+        guard let issue = customVisitor.detectedIssues.first else {
+            Issue.record("Expected at least one issue")
+            return
+        }
         #expect(issue.message.contains("Long text content may benefit from accessibility features"))
     }
 } 

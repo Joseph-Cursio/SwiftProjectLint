@@ -82,9 +82,12 @@ public class CrossFileAnalysisEngine {
                 // Set the pattern for the visitor if it's a BasePatternVisitor
                 if let baseVisitor = visitor as? BasePatternVisitor {
                     // Find the pattern that uses this visitor type
-                    let patterns = categories != nil ?
-                    categories!.flatMap { registry.getPatterns(for: $0) } :
-                    registry.getAllPatterns()
+                    let patterns: [SyntaxPattern]
+                    if let categories = categories {
+                        patterns = categories.flatMap { registry.getPatterns(for: $0) }
+                    } else {
+                        patterns = registry.getAllPatterns()
+                    }
 
                     if let pattern = patterns.first(where: { $0.visitor == visitorType }) {
                         baseVisitor.setPattern(pattern)

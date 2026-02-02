@@ -45,8 +45,11 @@ class AccessibilityImageTests {
         
         // Then
         #expect(visitor.detectedIssues.count == 1)
-        
-        let issue = visitor.detectedIssues.first!
+
+        guard let issue = visitor.detectedIssues.first else {
+            Issue.record("Expected at least one issue")
+            return
+        }
         #expect(issue.severity == .warning)
         #expect(issue.message.contains("Image missing accessibility label"))
         #expect(issue.suggestion?.contains("accessibilityLabel") == true)

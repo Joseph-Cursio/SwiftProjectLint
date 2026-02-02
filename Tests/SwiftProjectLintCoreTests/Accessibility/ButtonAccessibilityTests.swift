@@ -46,13 +46,16 @@ class ButtonAccessibilityTests {
         
         // Then
         #expect(visitor.detectedIssues.count == 1)
-        
-        let issue = visitor.detectedIssues.first!
+
+        guard let issue = visitor.detectedIssues.first else {
+            Issue.record("Expected at least one issue")
+            return
+        }
         #expect(issue.severity == .warning)
         #expect(issue.message.contains("Button with image missing accessibility label"))
         #expect(issue.suggestion?.contains("accessibilityLabel") == true)
     }
-    
+
     @Test func testButtonWithImageWithAccessibilityLabel() {
         setUp()
         defer { tearDown() }
@@ -127,13 +130,16 @@ class ButtonAccessibilityTests {
         
         // Then
         #expect(visitor.detectedIssues.count == 1)
-        
-        let issue = visitor.detectedIssues.first!
+
+        guard let issue = visitor.detectedIssues.first else {
+            Issue.record("Expected at least one issue")
+            return
+        }
         #expect(issue.severity == .info)
         #expect(issue.message.contains("Consider adding accessibility hint"))
         #expect(issue.suggestion?.contains("accessibilityHint") == true)
     }
-    
+
     @Test func testButtonWithTextWithAccessibilityHint() {
         setUp()
         defer { tearDown() }

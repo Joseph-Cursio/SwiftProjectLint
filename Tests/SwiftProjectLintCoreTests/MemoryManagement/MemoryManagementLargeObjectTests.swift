@@ -41,7 +41,10 @@ struct MemoryManagementLargeObjectTests {
         let visitor = self.visitor
         visitor.walk(sourceFile)
         #expect(visitor.detectedIssues.count == 1)
-        let issue = visitor.detectedIssues.first!
+        guard let issue = visitor.detectedIssues.first else {
+            Issue.record("Expected at least one issue")
+            return
+        }
         #expect(issue.severity == .info)
         #expect(issue.message.contains("Large array in @State may cause performance issues"))
         #expect(issue.suggestion?.contains("Consider using @StateObject") == true)
