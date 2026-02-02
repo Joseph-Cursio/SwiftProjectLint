@@ -50,10 +50,8 @@ public class ArchitectureIssueDetector {
 
     private static func isRootView(_ viewName: String, in viewHierarchies: [String: [String]]) -> Bool {
         // A view is considered root if it's not a child of any other view
-        for (_, children) in viewHierarchies {
-            if children.contains(viewName) {
-                return false
-            }
+        for (_, children) in viewHierarchies where children.contains(viewName) {
+            return false
         }
         return true
     }

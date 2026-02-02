@@ -112,11 +112,9 @@ class PerformanceVisitor: BasePatternVisitor {
 
             var hasExplicitID = false
 
-            for argument in node.arguments {
-                if argument.label?.text == "id" {
-                    hasExplicitID = true
-                    break
-                }
+            for argument in node.arguments where argument.label?.text == "id" {
+                hasExplicitID = true
+                break
             }
 
             if !hasExplicitID {

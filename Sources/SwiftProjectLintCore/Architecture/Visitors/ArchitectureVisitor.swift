@@ -97,39 +97,33 @@ class ArchitectureVisitor: BasePatternVisitor {
         }
 
         // Check for circular dependencies now that we know the view name
-        for importedModule in importModules {
-            if importedModule == currentViewName {
-                addIssue(
-                    severity: .error,
-                    message: "Potential circular dependency detected: '\(currentViewName)' imports itself",
-                    filePath: currentFilePath,
-                    lineNumber: getLineNumber(for: Syntax(node)),
-                    suggestion: "Review module dependencies to eliminate circular references",
-                    ruleName: nil
-                )
-            }
+        for importedModule in importModules where importedModule == currentViewName {
+            addIssue(
+                severity: .error,
+                message: "Potential circular dependency detected: '\(currentViewName)' imports itself",
+                filePath: currentFilePath,
+                lineNumber: getLineNumber(for: Syntax(node)),
+                suggestion: "Review module dependencies to eliminate circular references",
+                ruleName: nil
+            )
         }
     }
 
     // MARK: - Detection Methods
 
     private func countStateVariables(_ node: VariableDeclSyntax) {
-        for binding in node.bindings {
-            if binding.pattern.as(IdentifierPatternSyntax.self) != nil {
-                if let propertyWrapper = extractPropertyWrapper(from: node) {
-                    if propertyWrapper == .state || propertyWrapper == .stateObject {
-                        stateVariableCount += 1
-                    }
-                }
+        for binding in node.bindings where binding.pattern.as(IdentifierPatternSyntax.self) != nil {
+            if let propertyWrapper = extractPropertyWrapper(from: node),
+               propertyWrapper == .state || propertyWrapper == .stateObject {
+                stateVariableCount += 1
             }
         }
     }
 
     private func detectStateObjectCreation(_ node: VariableDeclSyntax) {
-        for binding in node.bindings {
-            if binding.pattern.as(IdentifierPatternSyntax.self) != nil {
-                let propertyWrapper = extractPropertyWrapper(from: node)
-                if propertyWrapper == .stateObject {
+        for binding in node.bindings where binding.pattern.as(IdentifierPatternSyntax.self) != nil {
+            let propertyWrapper = extractPropertyWrapper(from: node)
+            if propertyWrapper == .stateObject {
                     // Check if it's being created inline
                     if let initializer = binding.initializer {
                         let initText = initializer.value.description.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -147,7 +141,6 @@ class ArchitectureVisitor: BasePatternVisitor {
                         }
                     }
                 }
-            }
         }
     }
 
@@ -212,10 +205,9 @@ class ArchitectureVisitor: BasePatternVisitor {
     // MARK: - Helper Methods
 
     private func isSwiftUIView(_ node: StructDeclSyntax) -> Bool {
-        for inheritance in node.inheritanceClause?.inheritedTypes ?? [] {
-            if inheritance.type.as(IdentifierTypeSyntax.self)?.name.text == "View" {
-                return true
-            }
+        for inheritance in node.inheritanceClause?.inheritedTypes ?? []
+            where inheritance.type.as(IdentifierTypeSyntax.self)?.name.text == "View" {
+            return true
         }
         return false
     }

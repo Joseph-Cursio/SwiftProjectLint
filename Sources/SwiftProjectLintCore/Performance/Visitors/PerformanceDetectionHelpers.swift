@@ -14,19 +14,17 @@ extension PerformanceVisitor {
                calledExpr.baseName.text == "ForEach" {
 
                 // Check if .self is used as the id parameter
-                for argument in parent.arguments {
-                    if argument.label?.text == "id" {
-                        if let memberAccess = argument.expression.as(MemberAccessExprSyntax.self),
-                           memberAccess.declName.baseName.text == "self" {
-                            addIssue(
-                                severity: .warning,
-                                message: "Using .self as id in ForEach can cause performance issues",
-                                filePath: currentFilePath,
-                                lineNumber: getLineNumber(for: Syntax(node)),
-                                suggestion: "Use a unique identifier property instead of .self for better performance",
-                                ruleName: nil
-                            )
-                        }
+                for argument in parent.arguments where argument.label?.text == "id" {
+                    if let memberAccess = argument.expression.as(MemberAccessExprSyntax.self),
+                       memberAccess.declName.baseName.text == "self" {
+                        addIssue(
+                            severity: .warning,
+                            message: "Using .self as id in ForEach can cause performance issues",
+                            filePath: currentFilePath,
+                            lineNumber: getLineNumber(for: Syntax(node)),
+                            suggestion: "Use a unique identifier property instead of .self for better performance",
+                            ruleName: nil
+                        )
                     }
                 }
             }
@@ -39,19 +37,17 @@ extension PerformanceVisitor {
            calledExpr.baseName.text == "ForEach" {
 
             // Check if \.self is used as the id parameter (not the collection)
-            for argument in node.arguments {
-                if argument.label?.text == "id" {
-                    let argumentText = argument.expression.description
-                    if argumentText.contains("\\.self") {
-                        addIssue(
-                            severity: .warning,
-                            message: "Using \\.self as id in ForEach can cause performance issues",
-                            filePath: currentFilePath,
-                            lineNumber: getLineNumber(for: Syntax(node)),
-                            suggestion: "Use a unique identifier property instead of \\.self for better performance",
-                            ruleName: nil
-                        )
-                    }
+            for argument in node.arguments where argument.label?.text == "id" {
+                let argumentText = argument.expression.description
+                if argumentText.contains("\\.self") {
+                    addIssue(
+                        severity: .warning,
+                        message: "Using \\.self as id in ForEach can cause performance issues",
+                        filePath: currentFilePath,
+                        lineNumber: getLineNumber(for: Syntax(node)),
+                        suggestion: "Use a unique identifier property instead of \\.self for better performance",
+                        ruleName: nil
+                    )
                 }
             }
         }

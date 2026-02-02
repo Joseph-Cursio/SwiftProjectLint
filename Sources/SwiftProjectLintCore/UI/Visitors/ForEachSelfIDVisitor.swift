@@ -22,12 +22,10 @@ class ForEachSelfIDVisitor: BasePatternVisitor {
         if let calledExpr = node.calledExpression.as(DeclReferenceExprSyntax.self),
            calledExpr.baseName.text == "ForEach" {
             // Check if .self or \.self is used as the id parameter
-            for argument in node.arguments {
-                if argument.label?.text == "id" {
-                    if let memberAccess = argument.expression.as(MemberAccessExprSyntax.self),
-                       memberAccess.declName.baseName.text == "self" {
-                        addIssue(node: Syntax(node))
-                    }
+            for argument in node.arguments where argument.label?.text == "id" {
+                if let memberAccess = argument.expression.as(MemberAccessExprSyntax.self),
+                   memberAccess.declName.baseName.text == "self" {
+                    addIssue(node: Syntax(node))
                 }
             }
         }

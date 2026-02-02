@@ -82,10 +82,8 @@ class UIVisitor: BasePatternVisitor {
         if let calledExpr = node.calledExpression.as(DeclReferenceExprSyntax.self),
            calledExpr.baseName.text == "ForEach" {
             var hasID = false
-            for argument in node.arguments {
-                if argument.label?.text == "id" {
-                    hasID = true
-                }
+            for argument in node.arguments where argument.label?.text == "id" {
+                hasID = true
             }
             if !hasID {
                 addIssue(
@@ -302,10 +300,9 @@ class UIVisitor: BasePatternVisitor {
     }
 
     private func isSwiftUIView(_ node: StructDeclSyntax) -> Bool {
-        for inheritance in node.inheritanceClause?.inheritedTypes ?? [] {
-            if inheritance.type.as(IdentifierTypeSyntax.self)?.name.text == "View" {
-                return true
-            }
+        for inheritance in node.inheritanceClause?.inheritedTypes ?? []
+            where inheritance.type.as(IdentifierTypeSyntax.self)?.name.text == "View" {
+            return true
         }
         return false
     }

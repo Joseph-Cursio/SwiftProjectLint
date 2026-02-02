@@ -219,18 +219,16 @@ class SwiftUIManagementVisitor: BasePatternVisitor {
         // Group state variables by name
         let groupedByName = Dictionary(grouping: stateVariables) { $0.name }
 
-        for (variableName, variables) in groupedByName {
-            if variables.count > 1 {
-                // Check if these are in related views
-                let relatedViews = findRelatedViews(for: variables)
+        for (variableName, variables) in groupedByName where variables.count > 1 {
+            // Check if these are in related views
+            let relatedViews = findRelatedViews(for: variables)
 
-                if !relatedViews.isEmpty {
-                    addDuplicateStateIssue(
-                        variableName: variableName,
-                        variables: variables,
-                        relatedViews: relatedViews
-                    )
-                }
+            if !relatedViews.isEmpty {
+                addDuplicateStateIssue(
+                    variableName: variableName,
+                    variables: variables,
+                    relatedViews: relatedViews
+                )
             }
         }
     }

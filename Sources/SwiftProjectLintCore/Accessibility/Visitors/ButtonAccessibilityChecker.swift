@@ -81,10 +81,9 @@ class ButtonAccessibilityChecker: AccessibilityCheckerProtocol {
 
     /// Checks if a closure contains an Image element
     private func containsImageInClosure(_ closure: ClosureExprSyntax) -> Bool {
-        for statement in closure.statements {
-            if AccessibilityTreeTraverser.containsImage(in: Syntax(statement.item)) {
-                return true
-            }
+        for statement in closure.statements
+            where AccessibilityTreeTraverser.containsImage(in: Syntax(statement.item)) {
+            return true
         }
         return false
     }
@@ -117,10 +116,9 @@ class ButtonAccessibilityChecker: AccessibilityCheckerProtocol {
 
     /// Checks if a closure contains a Text element
     private func containsTextInClosure(_ closure: ClosureExprSyntax) -> Bool {
-        for statement in closure.statements {
-            if AccessibilityTreeTraverser.containsText(in: Syntax(statement.item)) {
-                return true
-            }
+        for statement in closure.statements
+            where AccessibilityTreeTraverser.containsText(in: Syntax(statement.item)) {
+            return true
         }
         return false
     }

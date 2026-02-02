@@ -82,13 +82,9 @@ class AccessibilityTreeTraverser {
                 return true
             }
             // Recursively check the arguments
-            for argument in functionCall.arguments {
-                if recursiveBaseTraversal(
-                    Syntax(argument.expression),
-                    modifierName: modifierName
-                ) {
-                    return true
-                }
+            for argument in functionCall.arguments
+                where recursiveBaseTraversal(Syntax(argument.expression), modifierName: modifierName) {
+                return true
             }
             // Recursively check the trailing closure
             if let trailingClosure = functionCall.trailingClosure {
@@ -113,13 +109,9 @@ class AccessibilityTreeTraverser {
                 }
             }
         } else if let closure = syntax.as(ClosureExprSyntax.self) {
-            for statement in closure.statements {
-                if recursiveBaseTraversal(
-                    Syntax(statement.item),
-                    modifierName: modifierName
-                ) {
-                    return true
-                }
+            for statement in closure.statements
+                where recursiveBaseTraversal(Syntax(statement.item), modifierName: modifierName) {
+                return true
             }
         }
         return false
@@ -159,10 +151,8 @@ class AccessibilityTreeTraverser {
             calledExpression.baseName.text == "Image" {
             return true
         }
-        for child in syntax.children(viewMode: .sourceAccurate) {
-            if containsImage(in: child) {
-                return true
-            }
+        for child in syntax.children(viewMode: .sourceAccurate) where containsImage(in: child) {
+            return true
         }
         return false
     }
@@ -179,10 +169,8 @@ class AccessibilityTreeTraverser {
             calledExpression.baseName.text == "Text" {
             return true
         }
-        for child in syntax.children(viewMode: .sourceAccurate) {
-            if containsText(in: child) {
-                return true
-            }
+        for child in syntax.children(viewMode: .sourceAccurate) where containsText(in: child) {
+            return true
         }
         return false
     }
