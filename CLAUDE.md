@@ -34,9 +34,18 @@ xcrun llvm-cov report .build/debug/SwiftProjectLintPackageTests.xctest/Contents/
 
 # Export code coverage to lcov format
 xcrun llvm-cov export .build/debug/SwiftProjectLintPackageTests.xctest/Contents/MacOS/SwiftProjectLintPackageTests -instr-profile .build/debug/codecov/default.profdata -format=lcov > coverage.lcov
+
+# Run ViewInspector UI tests (SwiftUI view tests)
+swift test --filter SwiftProjectLintTests
+
+# Run a specific ViewInspector test
+swift test --filter "SwiftProjectLintTests.ContentViewTests"
+swift test --filter "SwiftProjectLintTests.LintResultsViewTests"
 ```
 
-Note: UI tests are configured in the Xcode project and should be run through Xcode, not SPM.
+**Note on UI Testing:**
+- **ViewInspector tests** (`Tests/SwiftProjectLintTests/`): Run via SPM with `swift test`. These test SwiftUI view structure, content, and interactions.
+- **XCUITest tests** (`Tests/SwiftProjectLintUITests/`): Run through Xcode only. These are integration tests for the full app.
 
 ## Project Architecture
 
@@ -89,12 +98,72 @@ Pattern registration uses `SwiftSyntaxPatternRegistry` (singleton) and `SourcePa
 - **SwiftSyntaxPatternDetector**: Direct AST-based pattern detection
 - **CrossFileAnalysisEngine**: Multi-file relationship analysis
 
+## UI Testing with ViewInspector
+
+The project uses [ViewInspector](https://github.com/nalexn/ViewInspector) for SwiftUI view testing. Tests are in `Tests/SwiftProjectLintTests/`.
+
+### Writing ViewInspector Tests
+
+```swift
+import Testing
+import SwiftUI
+import ViewInspector
+@testable import SwiftProjectLint
+
+@Suite
+@MainActor
+struct MyViewTests {
+    @Test
+    func testViewStructure() throws {
+        let view = MyView()
+        let inspected = try view.inspect()
+
+        // Find specific view types
+        let texts = try inspected.findAll(ViewType.Text.self)
+        let buttons = try inspected.findAll(ViewType.Button.self)
+
+        // Check text content
+        let textStrings = texts.compactMap { try? $0.string() }
+        #expect(textStrings.contains("Expected Text"))
+
+        // Find nested views
+        let vStack = try inspected.find(ViewType.VStack.self)
+        _ = try vStack.find(MyChildView.self)
+    }
+
+    @Test
+    func testWithEnvironmentObject() throws {
+        let systemComponents = SystemComponents()
+        systemComponents.initialize()
+        let view = ContentView().environmentObject(systemComponents)
+        let inspected = try view.inspect()
+        // ... assertions
+    }
+}
+```
+
+### Common ViewInspector Patterns
+
+- **Finding views**: `inspected.find(ViewType.Button.self)`, `inspected.findAll(ViewType.Text.self)`
+- **Checking text**: `try text.string()` returns the text content
+- **Navigation**: `inspected.navigationView().vStack()` to navigate hierarchy
+- **Custom views**: `try inspected.find(MyCustomView.self)`
+- **Lists/Sections**: `try list.section(0)`, `try forEach.view(MyRow.self, 0)`
+
+### Test File Locations
+
+- `Tests/SwiftProjectLintTests/ContentViewTests.swift` - Main view tests
+- `Tests/SwiftProjectLintTests/LintResultsViewTests.swift` - Results display tests
+- `Tests/SwiftProjectLintTests/RuleSelectionDialogTests.swift` - Dialog tests
+- `Tests/SwiftProjectLintTests/ContentView*Tests.swift` - Component tests
+
 ## Coding Conventions
 
 - Use `RuleIdentifier` enum cases directly (not `RuleIdentifier(rawValue:)`)
 - Pattern visitors should inherit from `BasePatternVisitor`
 - New rules need: a visitor, a pattern registrar entry, and a `RuleIdentifier` case
 - Tests are organized to mirror the source structure under `Tests/SwiftProjectLintCoreTests/`
+- UI tests use Swift Testing framework (`@Test`, `#expect`) with ViewInspector
 
 ## Known Technical Debt
 
