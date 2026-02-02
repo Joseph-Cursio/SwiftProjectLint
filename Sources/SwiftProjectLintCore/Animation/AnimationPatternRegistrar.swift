@@ -10,16 +10,6 @@ struct AnimationPatternRegistrar: PatternRegistrarWithVisitorRegistryProtocol {
     let registry: SourcePatternRegistry
     let visitorRegistry: PatternVisitorRegistryProtocol
 
-    /// Initializes the registrar with the required registries.
-    ///
-    /// - Parameters:
-    ///   - registry: The source pattern registry to add patterns to.
-    ///   - visitorRegistry: The visitor registry for managing pattern visitors.
-    init(registry: SourcePatternRegistry, visitorRegistry: PatternVisitorRegistryProtocol) {
-        self.registry = registry
-        self.visitorRegistry = visitorRegistry
-    }
-
     /// Registers all animation-related patterns.
     ///
     /// This method is responsible for registering all animation patterns, including

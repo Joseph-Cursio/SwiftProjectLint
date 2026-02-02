@@ -43,7 +43,7 @@ final class SystemComponentsTests {
         }
 
         let allPatterns = registry.getAllPatterns()
-        #expect(allPatterns.count > 0, "Registry should have patterns registered")
+        #expect(!allPatterns.isEmpty, "Registry should have patterns registered")
     }
 
     @Test
@@ -63,10 +63,10 @@ final class SystemComponentsTests {
         let archPatterns = registry.getPatterns(for: .architecture)
         let uiPatterns = registry.getPatterns(for: .uiPatterns)
 
-        #expect(statePatterns.count > 0, "Should have state management patterns")
-        #expect(perfPatterns.count > 0, "Should have performance patterns")
-        #expect(archPatterns.count > 0, "Should have architecture patterns")
-        #expect(uiPatterns.count > 0, "Should have UI patterns")
+        #expect(!statePatterns.isEmpty, "Should have state management patterns")
+        #expect(!perfPatterns.isEmpty, "Should have performance patterns")
+        #expect(!archPatterns.isEmpty, "Should have architecture patterns")
+        #expect(!uiPatterns.isEmpty, "Should have UI patterns")
     }
 
     @Test
@@ -148,7 +148,7 @@ final class SystemComponentsIntegrationTests {
 
         // View should render without crashing when given initialized components
         let texts = try inspected.findAll(ViewType.Text.self)
-        #expect(texts.count > 0)
+        #expect(!texts.isEmpty)
     }
 
     @Test
@@ -164,7 +164,7 @@ final class SystemComponentsIntegrationTests {
 
         // View should still render (graceful handling of nil registry)
         let texts = try inspected.findAll(ViewType.Text.self)
-        #expect(texts.count > 0)
+        #expect(!texts.isEmpty)
     }
 
     @Test
@@ -201,7 +201,7 @@ final class SystemComponentsIntegrationTests {
         }
 
         let securityPatterns = registry.getPatterns(for: .security)
-        #expect(securityPatterns.count > 0, "Should have security patterns")
+        #expect(!securityPatterns.isEmpty, "Should have security patterns")
     }
 
     @Test
@@ -216,7 +216,7 @@ final class SystemComponentsIntegrationTests {
         }
 
         let accessibilityPatterns = registry.getPatterns(for: .accessibility)
-        #expect(accessibilityPatterns.count > 0, "Should have accessibility patterns")
+        #expect(!accessibilityPatterns.isEmpty, "Should have accessibility patterns")
     }
 
     @Test
@@ -231,7 +231,7 @@ final class SystemComponentsIntegrationTests {
         }
 
         let memoryPatterns = registry.getPatterns(for: .memoryManagement)
-        #expect(memoryPatterns.count > 0, "Should have memory management patterns")
+        #expect(!memoryPatterns.isEmpty, "Should have memory management patterns")
     }
 
     @Test
@@ -246,7 +246,7 @@ final class SystemComponentsIntegrationTests {
         }
 
         let networkingPatterns = registry.getPatterns(for: .networking)
-        #expect(networkingPatterns.count > 0, "Should have networking patterns")
+        #expect(!networkingPatterns.isEmpty, "Should have networking patterns")
     }
 
     @Test
@@ -261,7 +261,7 @@ final class SystemComponentsIntegrationTests {
         }
 
         let animationPatterns = registry.getPatterns(for: .animation)
-        #expect(animationPatterns.count > 0, "Should have animation patterns")
+        #expect(!animationPatterns.isEmpty, "Should have animation patterns")
     }
 
     @Test
@@ -276,6 +276,6 @@ final class SystemComponentsIntegrationTests {
         }
 
         let codeQualityPatterns = registry.getPatterns(for: .codeQuality)
-        #expect(codeQualityPatterns.count > 0, "Should have code quality patterns")
+        #expect(!codeQualityPatterns.isEmpty, "Should have code quality patterns")
     }
 }
