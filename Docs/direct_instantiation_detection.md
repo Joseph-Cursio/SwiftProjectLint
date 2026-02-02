@@ -1,5 +1,9 @@
 # Detecting Direct Instantiation in SwiftProjectLintCore
 
+> **Status**: Proposal / Not Yet Implemented
+>
+> This document outlines a planned feature for detecting when code directly instantiates dependencies instead of using dependency injection.
+
 ## 1. Definition
 Direct instantiation refers to the practice of creating concrete instances of dependencies (e.g., `let model = MyModel()`) directly within a component, rather than injecting them. This can lead to tight coupling and reduced testability.
 

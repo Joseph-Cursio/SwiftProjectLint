@@ -1,5 +1,9 @@
 # Detecting Concrete Type Usage in SwiftProjectLintCore
 
+> **Status**: Proposal / Not Yet Implemented
+>
+> This document outlines a planned feature for detecting when code uses concrete types instead of protocols or abstractions.
+
 ## 1. Definition
 Concrete type usage refers to declaring dependencies, properties, or parameters as specific concrete types (e.g., `let service: MyService`) instead of protocols or abstractions (e.g., `let service: ServiceProtocol`).
 

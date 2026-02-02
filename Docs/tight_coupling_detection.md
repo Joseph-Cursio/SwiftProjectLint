@@ -1,6 +1,10 @@
 # Detecting Tight Coupling in SwiftProjectLintCore
 
-**Note:** Tight coupling detection is now split into three separate concerns:
+> **Status**: Partially Implemented
+>
+> Circular dependency detection is implemented. The three sub-concerns listed below are proposals not yet implemented.
+
+**Note:** Tight coupling detection is split into three separate concerns:
 
 1. Direct Instantiation
 2. Concrete Type Usage

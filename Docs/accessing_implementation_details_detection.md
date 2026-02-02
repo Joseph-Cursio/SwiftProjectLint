@@ -1,5 +1,9 @@
 # Detecting Accessing Implementation Details in SwiftProjectLintCore
 
+> **Status**: Proposal / Not Yet Implemented
+>
+> This document outlines a planned feature for detecting when code accesses implementation details of other components. See the checklist in Section 8 for implementation progress.
+
 ## 1. Definition
 Accessing implementation details refers to a component using internal or private members of another component, rather than interacting through its public interface or protocol. This breaks encapsulation and increases coupling.
 

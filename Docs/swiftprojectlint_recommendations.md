@@ -3,7 +3,7 @@
 ## Project Evaluation
 
 ### Strengths
-- **Comprehensive coverage**: 50+ patterns across 9 categories is excellent
+- **Comprehensive coverage**: 35+ patterns across 11 categories is excellent
 - **SwiftSyntax integration**: Moving from regex to AST-based analysis is the right approach
 - **Cross-file analysis**: This is a major differentiator from most linters
 - **View hierarchy mapping**: Brilliant for SwiftUI-specific issues
@@ -353,17 +353,17 @@ func complexBuilder() -> some View {
 
 ### New Pattern Categories
 
-Add these to your existing 9 categories:
+Add these to your existing 11 categories:
 
-10. **Animation Patterns** (5 patterns)
-11. **State Flow Patterns** (4 patterns)
-12. **Memory Patterns** (3 patterns)
-13. **Navigation Patterns** (6 patterns)
-14. **Testing Patterns** (4 patterns)
-15. **Environment Patterns** (3 patterns)
-16. **Performance Patterns** (5 patterns)
+12. **State Flow Patterns** (4 patterns)
+13. **Memory Patterns** (3 patterns)
+14. **Navigation Patterns** (6 patterns)
+15. **Testing Patterns** (4 patterns)
+16. **Environment Patterns** (3 patterns)
 17. **Compatibility Patterns** (4 patterns)
 18. **Custom Modifier Patterns** (3 patterns)
+
+*Note: Animation Patterns (category 10) is already implemented in the codebase.*
 
 ### Enhanced Analysis Features
 

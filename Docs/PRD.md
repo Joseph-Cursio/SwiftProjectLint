@@ -1,8 +1,8 @@
 # Product Requirements Document (PRD)
 ## SwiftProjectLint
 
-**Version:** 1.0  
-**Last Updated:** January 2025  
+**Version:** 1.0
+**Last Updated:** February 2026
 **Status:** Active Development
 
 ---
@@ -49,7 +49,7 @@ SwiftUI projects, especially as they grow in complexity, face several challenges
 SwiftProjectLint provides:
 
 1. **Multi-Layer Analysis**: SwiftSyntax-based AST parsing, cross-file analysis, and view hierarchy mapping
-2. **Comprehensive Pattern Detection**: 50+ patterns across 9 categories (State Management, Performance, Architecture, Code Quality, Security, Accessibility, Memory Management, Networking, UI Patterns)
+2. **Comprehensive Pattern Detection**: 35+ patterns across 11 categories (State Management, Performance, Architecture, Code Quality, Security, Accessibility, Memory Management, Networking, UI Patterns, Animation, Other)
 3. **Type-Safe Detection**: Enum-based pattern detection for improved accuracy and maintainability
 4. **Actionable Suggestions**: Each detected issue includes file location, severity, and specific fix recommendations
 5. **User-Friendly Interface**: Native macOS app with rule selection, progress indicators, and expandable results
@@ -88,18 +88,19 @@ SwiftProjectLint provides:
 ### Current Features (Implemented)
 
 #### 1. Pattern Detection Engine
-- **Requirement**: Detect 50+ patterns across 9 categories
+- **Requirement**: Detect patterns across multiple categories
 - **Status**: ✅ Implemented
 - **Patterns Include**:
-  - State Management (4 patterns): Duplicate state, missing @StateObject, unused/uninitialized state
-  - Performance (4 patterns): Expensive operations, ForEach issues, large view bodies, unnecessary updates
-  - Architecture (4 patterns): Fat views, missing DI, circular dependencies, missing abstractions
-  - Code Quality (4 patterns): Magic numbers, long functions, missing docs, naming inconsistencies
+  - State Management (6 patterns): Related/unrelated duplicate state, missing @StateObject, unused/uninitialized state, fat views
+  - Performance (5 patterns): Expensive operations, ForEach ID issues, large view bodies, unnecessary updates
+  - Animation (1 pattern): Deprecated animation usage
+  - Architecture (2 patterns): Fat view detection, missing dependency injection
+  - Code Quality (4 patterns): Magic numbers, long functions, hardcoded strings, missing docs
   - Security (2 patterns): Hardcoded secrets, unsafe URLs
-  - Accessibility (2 patterns): Missing labels, missing hints
+  - Accessibility (3 patterns): Missing labels, missing hints, inaccessible color usage
   - Memory Management (2 patterns): Retain cycles, large objects in state
   - Networking (2 patterns): Missing error handling, synchronous calls
-  - UI Patterns (3 patterns): Nested navigation, missing previews, inconsistent styling
+  - UI Patterns (6 patterns): Nested navigation, missing previews, ForEach ID issues, inconsistent styling, basic error handling
 
 #### 2. SwiftSyntax-Based Analysis
 - **Requirement**: Use SwiftSyntax for precise AST-based parsing
@@ -125,7 +126,7 @@ SwiftProjectLint provides:
 - **Status**: ✅ Implemented
 - **Features**:
   - Project directory selection via native file picker
-  - Rule selection with 9 category filters
+  - Rule selection with 11 category filters
   - Real-time analysis with progress indicators
   - Expandable results with detailed issue information
   - Severity indicators (Error, Warning, Info)
@@ -165,7 +166,7 @@ SwiftProjectLint provides:
 
 #### 1. Xcode Integration
 - **Requirement**: Real-time linting within Xcode
-- **Target**: Q2 2025
+- **Target**: Q2 2026
 - **Features**:
   - Xcode Source Editor Extension
   - Inline issue annotations in gutter
@@ -174,7 +175,7 @@ SwiftProjectLint provides:
 
 #### 2. Auto-Fix Capabilities
 - **Requirement**: Automated code fixes for common issues
-- **Target**: Q3 2025
+- **Target**: Q3 2026
 - **Features**:
   - Safe, automated refactoring using SwiftSyntax
   - Quick fixes for missing accessibility labels
@@ -183,7 +184,7 @@ SwiftProjectLint provides:
 
 #### 3. CI/CD Integration
 - **Requirement**: Run as part of automated build processes
-- **Target**: Q2 2025
+- **Target**: Q2 2026
 - **Features**:
   - GitHub Actions workflows
   - CLI mode for headless execution
@@ -193,7 +194,7 @@ SwiftProjectLint provides:
 
 #### 4. Incremental Analysis
 - **Requirement**: Faster feedback for large projects
-- **Target**: Q3 2025
+- **Target**: Q3 2026
 - **Features**:
   - File watcher for changed files only
   - AST caching between runs
@@ -203,7 +204,7 @@ SwiftProjectLint provides:
 
 #### 5. SwiftUI Preview Integration
 - **Requirement**: Show linting results in SwiftUI previews
-- **Target**: Q3 2025
+- **Target**: Q3 2026
 - **Features**:
   - Live issue overlay in SwiftUI previews
   - Immediate feedback during development
@@ -213,7 +214,7 @@ SwiftProjectLint provides:
 
 #### 6. Custom Rule Engine
 - **Requirement**: User-defined rules via configuration
-- **Target**: Q4 2025
+- **Target**: Q4 2026
 - **Features**:
   - Configuration file for custom rules
   - Plugin system for advanced rules
@@ -223,7 +224,7 @@ SwiftProjectLint provides:
 
 #### 7. Dependency Graph Visualization
 - **Requirement**: Visual representation of relationships
-- **Target**: Q4 2025
+- **Target**: Q4 2026
 - **Features**:
   - Interactive view hierarchy graphs
   - State ownership visualization
@@ -232,7 +233,7 @@ SwiftProjectLint provides:
 
 #### 8. Performance Profiling
 - **Requirement**: Detect performance bottlenecks
-- **Target**: Q1 2026
+- **Target**: Q1 2027
 - **Features**:
   - Static performance analysis
   - Historical trend tracking
@@ -241,7 +242,7 @@ SwiftProjectLint provides:
 
 #### 9. Enhanced Accessibility Analysis
 - **Requirement**: Comprehensive accessibility checking
-- **Target**: Q2 2026
+- **Target**: Q2 2027
 - **Features**:
   - Color contrast checking
   - VoiceOver simulation
@@ -250,7 +251,7 @@ SwiftProjectLint provides:
 
 #### 10. Advanced Reporting
 - **Requirement**: Generate detailed, shareable reports
-- **Target**: Q4 2025
+- **Target**: Q4 2026
 - **Features**:
   - HTML/Markdown report generation
   - Exportable issue reports
@@ -261,7 +262,7 @@ SwiftProjectLint provides:
 
 #### 11. Swift Package Plugin
 - **Requirement**: Native SPM integration
-- **Target**: Q3 2026
+- **Target**: Q3 2027
 - **Features**:
   - `swift package lint` command
   - Integration with SPM build system
@@ -269,7 +270,7 @@ SwiftProjectLint provides:
 
 #### 12. Multi-IDE Support
 - **Requirement**: Support beyond Xcode
-- **Target**: Q4 2026
+- **Target**: Q4 2027
 - **Features**:
   - VSCode extension
   - AppCode plugin
@@ -277,7 +278,7 @@ SwiftProjectLint provides:
 
 #### 13. Internationalization/Localization
 - **Requirement**: Support multiple languages
-- **Target**: Q1 2027
+- **Target**: Q1 2028
 - **Features**:
   - Localized issue messages
   - Multi-language suggestions
@@ -381,10 +382,12 @@ This section outlines the immediate next steps for refactoring, testing, and imp
 
 ### Timeline
 
-- **Week 1-2**: Refactor `ContentView` and `Lint Results View`
-- **Week 3-4**: Add unit and UI tests for uncovered modules
-- **Week 5**: Update documentation and create developer onboarding guide
-- **Week 6**: Optimize linting and analysis performance
+These are relative timelines for each implementation phase:
+
+- **Phase 1 (2 weeks)**: Refactor `ContentView` and `Lint Results View`
+- **Phase 2 (2 weeks)**: Add unit and UI tests for uncovered modules
+- **Phase 3 (1 week)**: Update documentation and create developer onboarding guide
+- **Phase 4 (1 week)**: Optimize linting and analysis performance
 
 ### Risks and Mitigation
 
@@ -569,6 +572,6 @@ SwiftProjectLint/
 
 ---
 
-**Document Owner**: Product Team  
-**Review Cycle**: Quarterly  
-**Next Review**: April 2025
+**Document Owner**: Product Team
+**Review Cycle**: Quarterly
+**Next Review**: May 2026
