@@ -104,7 +104,14 @@ class SwiftUIManagementVisitor: BasePatternVisitor {
 
         // Check for fat view pattern
         if stateCount > config.maxStateVariables {
-            addIssue(node: Syntax(node), variables: ["viewName": currentViewName, "stateCount": String(stateCount)])
+            addIssue(
+                severity: .warning,
+                message: "View '\(currentViewName)' has \(stateCount) state variables - consider using MVVM pattern",
+                filePath: currentFilePath,
+                lineNumber: getLineNumber(for: Syntax(node)),
+                suggestion: "Extract state into a ViewModel or split into smaller views",
+                ruleName: .fatView
+            )
         }
 
         // Store view declaration for cross-file analysis
@@ -164,7 +171,14 @@ class SwiftUIManagementVisitor: BasePatternVisitor {
            typeName.hasSuffix("Store") ||
            typeName.hasSuffix("ViewModel") {
 
-            addIssue(node: Syntax(node), variables: ["variableName": stateVar.name])
+            addIssue(
+                severity: .warning,
+                message: "Consider using @StateObject for '\(stateVar.name)' instead of @State",
+                filePath: currentFilePath,
+                lineNumber: getLineNumber(for: Syntax(node)),
+                suggestion: "Use @StateObject for ObservableObject instances to preserve their lifecycle",
+                ruleName: .missingStateObject
+            )
         }
     }
 
@@ -176,7 +190,14 @@ class SwiftUIManagementVisitor: BasePatternVisitor {
             }
 
             if !hasInitialValue {
-                addIssue(node: Syntax(node), variables: ["variableName": stateVar.name])
+                addIssue(
+                    severity: .error,
+                    message: "@State variable '\(stateVar.name)' must have an initial value",
+                    filePath: currentFilePath,
+                    lineNumber: getLineNumber(for: Syntax(node)),
+                    suggestion: "Provide an initial value for the @State variable",
+                    ruleName: .uninitializedStateVariable
+                )
             }
         }
     }
@@ -229,7 +250,14 @@ class SwiftUIManagementVisitor: BasePatternVisitor {
         guard let firstVariable = variables.first,
               let node = firstVariable.node else { return }
 
-        addIssue(node: Syntax(node), variables: ["variableName": variableName, "viewNames": viewNames])
+        addIssue(
+            severity: .warning,
+            message: "Duplicate state variable '\(variableName)' found in related views: \(viewNames)",
+            filePath: currentFilePath,
+            lineNumber: getLineNumber(for: Syntax(node)),
+            suggestion: "Consider lifting state to a common parent or using @Binding",
+            ruleName: .relatedDuplicateStateVariable
+        )
     }
 
     // MARK: - Public Interface

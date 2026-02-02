@@ -58,7 +58,14 @@ class PerformanceVisitor: BasePatternVisitor {
                     self.walk(accessor)
                     // After walking, check and report large body
                     if viewBodySize > 20 {
-                        addIssue(node: Syntax(node), variables: ["viewName": currentViewName, "statementCount": "\(viewBodySize)"])
+                        addIssue(
+                            severity: .warning,
+                            message: "Large view body in '\(currentViewName)' with \(viewBodySize) statements",
+                            filePath: currentFilePath,
+                            lineNumber: getLineNumber(for: Syntax(node)),
+                            suggestion: "Consider breaking down this view into smaller subviews",
+                            ruleName: .largeViewBody
+                        )
                     }
                     isInViewBody = false
                     viewBodySize = 0
@@ -85,7 +92,14 @@ class PerformanceVisitor: BasePatternVisitor {
                 let expensiveOperations = ["sorted", "filter", "map", "reduce", "flatMap", "compactMap"]
 
                 if expensiveOperations.contains(functionName) {
-                    addIssue(node: Syntax(node), variables: ["functionName": functionName])
+                    addIssue(
+                        severity: .warning,
+                        message: "Expensive operation '\(functionName)' in view body may cause performance issues",
+                        filePath: currentFilePath,
+                        lineNumber: getLineNumber(for: Syntax(node)),
+                        suggestion: "Move expensive operations outside of view body or use lazy evaluation",
+                        ruleName: .expensiveOperationInViewBody
+                    )
                 }
             }
         }
@@ -95,7 +109,7 @@ class PerformanceVisitor: BasePatternVisitor {
            calledExpr.baseName.text == "ForEach" {
             // First check for \.self usage in id parameter
             detectForEachSelfID(node)
-            
+
             var hasExplicitID = false
 
             for argument in node.arguments {
@@ -106,7 +120,14 @@ class PerformanceVisitor: BasePatternVisitor {
             }
 
             if !hasExplicitID {
-                addIssue(node: Syntax(node))
+                addIssue(
+                    severity: .warning,
+                    message: "ForEach missing explicit id parameter can cause performance issues",
+                    filePath: currentFilePath,
+                    lineNumber: getLineNumber(for: Syntax(node)),
+                    suggestion: "Add an explicit id: parameter to ForEach for better diffing performance",
+                    ruleName: .forEachWithoutID
+                )
             }
         }
 
@@ -146,7 +167,14 @@ class PerformanceVisitor: BasePatternVisitor {
 
     override func visitPost(_ node: VariableDeclSyntax) {
         if isInViewBody && viewBodySize > 20 {
-            addIssue(node: Syntax(node), variables: ["viewName": currentViewName, "statementCount": "\(viewBodySize)"])
+            addIssue(
+                severity: .warning,
+                message: "Large view body in '\(currentViewName)' with \(viewBodySize) statements",
+                filePath: currentFilePath,
+                lineNumber: getLineNumber(for: Syntax(node)),
+                suggestion: "Consider breaking down this view into smaller subviews",
+                ruleName: .largeViewBody
+            )
         }
         isInViewBody = false
         viewBodySize = 0
@@ -154,7 +182,14 @@ class PerformanceVisitor: BasePatternVisitor {
 
     override func visitPost(_ node: FunctionDeclSyntax) {
         if isInViewBody && viewBodySize > 20 {
-            addIssue(node: Syntax(node), variables: ["viewName": currentViewName, "statementCount": "\(viewBodySize)"])
+            addIssue(
+                severity: .warning,
+                message: "Large view body in '\(currentViewName)' with \(viewBodySize) statements",
+                filePath: currentFilePath,
+                lineNumber: getLineNumber(for: Syntax(node)),
+                suggestion: "Consider breaking down this view into smaller subviews",
+                ruleName: .largeViewBody
+            )
         }
         isInViewBody = false
         viewBodySize = 0
@@ -174,7 +209,14 @@ class PerformanceVisitor: BasePatternVisitor {
             let lineCount = viewBodyText.components(separatedBy: .newlines).count
 
             if lineCount > 50 { // Threshold for large view body
-                addIssue(node: Syntax(node), variables: ["lineCount": "\(lineCount)"])
+                addIssue(
+                    severity: .warning,
+                    message: "Large view '\(currentViewName)' has \(lineCount) lines",
+                    filePath: currentFilePath,
+                    lineNumber: getLineNumber(for: Syntax(node)),
+                    suggestion: "Consider breaking down this view into smaller subviews",
+                    ruleName: .largeViewBody
+                )
             }
         }
     }

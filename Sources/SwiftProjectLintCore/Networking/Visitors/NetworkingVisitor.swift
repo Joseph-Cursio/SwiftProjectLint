@@ -60,11 +60,11 @@ class NetworkingVisitor: BasePatternVisitor {
               calledExpr.baseName.text == "Data" else {
             return false
         }
-        
+
         Task { @MainActor in
             DebugLogger.logVisitor(.networking, "Called expression: Data")
         }
-        
+
         for arg in node.arguments {
             Task { @MainActor in
                 DebugLogger.logVisitor(
@@ -73,17 +73,24 @@ class NetworkingVisitor: BasePatternVisitor {
                     "value: \(arg.expression.description)"
                 )
             }
-            
+
             if arg.label?.text == "contentsOf" {
                 Task { @MainActor in
                     DebugLogger.logVisitor(.networking, "hasContentsOf: true")
                 }
-                
-                addIssue(node: Syntax(node))
+
+                addIssue(
+                    severity: .error,
+                    message: "Synchronous networking can block the UI thread",
+                    filePath: currentFilePath ?? "unknown",
+                    lineNumber: lineNumber(for: node),
+                    suggestion: "Use URLSession.dataTask for asynchronous networking",
+                    ruleName: .synchronousNetworkCall
+                )
                 return true
             }
         }
-        
+
         return false
     }
     
@@ -221,12 +228,27 @@ class NetworkingVisitor: BasePatternVisitor {
             DebugLogger.logIssue("Appending missing error handling issue at line \(line)")
         }
 
-        addIssue(node: Syntax(node))
+        addIssue(
+            severity: .warning,
+            message: "Network request ignores error parameter (_)",
+            filePath: currentFilePath ?? "unknown",
+            lineNumber: line,
+            suggestion: "Handle the error parameter instead of ignoring it",
+            ruleName: .missingErrorHandling
+        )
     }
 
     private func reportMissingErrorHandling(node: FunctionCallExprSyntax) {
         let line = lineNumber(for: node)
-        addIssue(node: Syntax(node))
+
+        addIssue(
+            severity: .warning,
+            message: "Network request missing error handling",
+            filePath: currentFilePath ?? "unknown",
+            lineNumber: line,
+            suggestion: "Add error handling to the network request callback",
+            ruleName: .missingErrorHandling
+        )
 
         Task { @MainActor in
             DebugLogger.logIssue("Appending missing error handling issue at line \(line)")

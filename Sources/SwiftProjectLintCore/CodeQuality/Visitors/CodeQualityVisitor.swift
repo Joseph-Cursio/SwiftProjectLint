@@ -100,7 +100,14 @@ class CodeQualityVisitor: BasePatternVisitor {
         NSLog("[DEBUG] Function '%@' length: %d (threshold: %d)", currentFunctionName, currentFunctionLength, configuration.maxFunctionLength)
         // Check function length when leaving the function
         if isInFunction && currentFunctionLength > configuration.maxFunctionLength {
-            addIssue(node: Syntax(node), variables: ["functionName": currentFunctionName, "functionLength": "\(currentFunctionLength)"])
+            addIssue(
+                severity: .warning,
+                message: "Function '\(currentFunctionName)' is quite long (\(currentFunctionLength) characters)",
+                filePath: currentFilePath,
+                lineNumber: functionStartLine,
+                suggestion: "Consider breaking this function into smaller, focused functions",
+                ruleName: .longFunction
+            )
         }
         // Reset function tracking
         isInFunction = false
@@ -116,11 +123,25 @@ class CodeQualityVisitor: BasePatternVisitor {
                 if let intLiteral = initializer.value.as(IntegerLiteralExprSyntax.self) {
                     let value = Int(intLiteral.literal.text) ?? 0
                     if value >= configuration.magicNumberThreshold {
-                        addIssue(node: Syntax(initializer), variables: ["value": "\(value)"])
+                        addIssue(
+                            severity: .info,
+                            message: "Consider extracting magic number \(value) to a named constant",
+                            filePath: currentFilePath,
+                            lineNumber: getLineNumber(for: Syntax(initializer)),
+                            suggestion: "Extract \(value) to a named constant for better maintainability",
+                            ruleName: .magicNumber
+                        )
                     }
                 } else if let floatLiteral = initializer.value.as(FloatLiteralExprSyntax.self) {
                     if let value = Double(floatLiteral.literal.text), value >= Double(configuration.magicNumberThreshold) {
-                        addIssue(node: Syntax(initializer), variables: ["value": "\(value)"])
+                        addIssue(
+                            severity: .info,
+                            message: "Consider extracting magic number \(value) to a named constant",
+                            filePath: currentFilePath,
+                            lineNumber: getLineNumber(for: Syntax(initializer)),
+                            suggestion: "Extract \(value) to a named constant for better maintainability",
+                            ruleName: .magicNumber
+                        )
                     }
                 }
             }
@@ -134,11 +155,25 @@ class CodeQualityVisitor: BasePatternVisitor {
             if let intLiteral = argument.expression.as(IntegerLiteralExprSyntax.self) {
                 let value = Int(intLiteral.literal.text) ?? 0
                 if value >= configuration.magicNumberThreshold {
-                    addIssue(node: Syntax(argument), variables: ["value": "\(value)"])
+                    addIssue(
+                        severity: .info,
+                        message: "Consider extracting magic number \(value) to a named constant",
+                        filePath: currentFilePath,
+                        lineNumber: getLineNumber(for: Syntax(argument)),
+                        suggestion: "Extract \(value) to a named constant for better maintainability",
+                        ruleName: .magicNumber
+                    )
                 }
             } else if let floatLiteral = argument.expression.as(FloatLiteralExprSyntax.self) {
                 if let value = Double(floatLiteral.literal.text), value >= Double(configuration.magicNumberThreshold) {
-                    addIssue(node: Syntax(argument), variables: ["value": "\(value)"])
+                    addIssue(
+                        severity: .info,
+                        message: "Consider extracting magic number \(value) to a named constant",
+                        filePath: currentFilePath,
+                        lineNumber: getLineNumber(for: Syntax(argument)),
+                        suggestion: "Extract \(value) to a named constant for better maintainability",
+                        ruleName: .magicNumber
+                    )
                 }
             }
         }
@@ -159,7 +194,14 @@ class CodeQualityVisitor: BasePatternVisitor {
                 ]
                 let shouldSkip = skipPatterns.contains { cleanString.contains($0) }
                 if !shouldSkip {
-                    addIssue(node: Syntax(node), variables: ["cleanString": cleanString])
+                    addIssue(
+                        severity: .info,
+                        message: "Consider localizing hardcoded text: \"\(cleanString)\"",
+                        filePath: currentFilePath,
+                        lineNumber: getLineNumber(for: Syntax(node)),
+                        suggestion: "Use NSLocalizedString or String(localized:) for user-facing text",
+                        ruleName: .hardcodedStrings
+                    )
                 }
             }
         }
@@ -191,7 +233,14 @@ class CodeQualityVisitor: BasePatternVisitor {
         }
 
         if !hasDocumentation {
-            addIssue(node: node, variables: ["name": name])
+            addIssue(
+                severity: .info,
+                message: "Missing documentation for '\(name)'",
+                filePath: currentFilePath,
+                lineNumber: getLineNumber(for: node),
+                suggestion: "Add documentation comments to describe the purpose and usage",
+                ruleName: .missingDocumentation
+            )
         }
     }
 }

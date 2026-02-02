@@ -105,7 +105,15 @@ class MemoryManagementVisitor: BasePatternVisitor {
 
                     // Check if the initializer type matches the variable type
                     if variableType == initializerType {
-                        addIssue(node: Syntax(node), variables: ["variableName": pattern.identifier.text])
+                        let variableName = pattern.identifier.text
+                        addIssue(
+                            severity: .warning,
+                            message: "Potential retain cycle with '\(variableName)'",
+                            filePath: currentFilePath ?? "unknown",
+                            lineNumber: getLineNumber(for: Syntax(node)),
+                            suggestion: "Review object lifecycle and consider using weak references or dependency injection",
+                            ruleName: .potentialRetainCycle
+                        )
                     }
                 }
             }
@@ -127,7 +135,14 @@ class MemoryManagementVisitor: BasePatternVisitor {
                 if let arrayLiteral = initializer.value.as(ArrayExprSyntax.self) {
                     let elementCount = arrayLiteral.elements.count
                     if elementCount > config.maxArraySize {
-                        addIssue(node: Syntax(node))
+                        addIssue(
+                            severity: .info,
+                            message: "Large array in @State may cause performance issues",
+                            filePath: currentFilePath ?? "unknown",
+                            lineNumber: getLineNumber(for: Syntax(node)),
+                            suggestion: "Consider using @StateObject with a view model to manage large collections",
+                            ruleName: .largeObjectInState
+                        )
                     }
                 }
             }

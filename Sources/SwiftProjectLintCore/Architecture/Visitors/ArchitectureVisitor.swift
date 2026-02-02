@@ -74,18 +74,39 @@ class ArchitectureVisitor: BasePatternVisitor {
     override func visitPost(_ node: StructDeclSyntax) {
         // Check for fat view pattern after processing the entire struct
         if isSwiftUIView(node) && stateVariableCount > 5 {
-            addIssue(node: Syntax(node), variables: ["viewName": currentViewName, "stateVariableCount": "\(stateVariableCount)"])
+            addIssue(
+                severity: .warning,
+                message: "View '\(currentViewName)' has \(stateVariableCount) state variables - consider using MVVM pattern",
+                filePath: currentFilePath,
+                lineNumber: getLineNumber(for: Syntax(node)),
+                suggestion: "Extract state into a ViewModel or split into smaller views",
+                ruleName: .fatViewDetection
+            )
         }
 
         // Check for missing dependency injection
         if hasStateObjectCreation && !stateObjectType.isEmpty {
-            addIssue(node: Syntax(node), variables: ["stateObjectType": stateObjectType])
+            addIssue(
+                severity: .info,
+                message: "Consider using dependency injection for '\(stateObjectType)'",
+                filePath: currentFilePath,
+                lineNumber: getLineNumber(for: Syntax(node)),
+                suggestion: "Pass \(stateObjectType) through the initializer for better testability",
+                ruleName: .missingDependencyInjection
+            )
         }
 
         // Check for circular dependencies now that we know the view name
         for importedModule in importModules {
             if importedModule == currentViewName {
-                addIssue(node: Syntax(node), variables: ["importedModule": importedModule])
+                addIssue(
+                    severity: .error,
+                    message: "Potential circular dependency detected: '\(currentViewName)' imports itself",
+                    filePath: currentFilePath,
+                    lineNumber: getLineNumber(for: Syntax(node)),
+                    suggestion: "Review module dependencies to eliminate circular references",
+                    ruleName: nil
+                )
             }
         }
     }
@@ -136,7 +157,14 @@ class ArchitectureVisitor: BasePatternVisitor {
             // No parameters - might be missing dependency injection
             // This is a simplified check - in practice, you'd want to be more sophisticated
             if currentViewName.hasSuffix("View") {
-                addIssue(node: Syntax(node), variables: ["viewName": currentViewName])
+                addIssue(
+                    severity: .info,
+                    message: "View '\(currentViewName)' has an empty initializer - consider dependency injection",
+                    filePath: currentFilePath,
+                    lineNumber: getLineNumber(for: Syntax(node)),
+                    suggestion: "Pass dependencies through the initializer for better testability",
+                    ruleName: .missingDependencyInjection
+                )
             }
         }
     }
@@ -169,7 +197,14 @@ class ArchitectureVisitor: BasePatternVisitor {
                 type.type.as(IdentifierTypeSyntax.self)?.name.text == "ObservableObject"
             } ?? false
             if hasObservableObject {
-                addIssue(node: Syntax(node), variables: ["className": className])
+                addIssue(
+                    severity: .info,
+                    message: "Consider defining a protocol for '\(className)' to improve testability",
+                    filePath: currentFilePath,
+                    lineNumber: getLineNumber(for: Syntax(node)),
+                    suggestion: "Create a protocol that \(className) conforms to for dependency injection",
+                    ruleName: nil
+                )
             }
         }
     }

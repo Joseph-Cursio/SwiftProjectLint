@@ -33,7 +33,14 @@ class SecurityVisitor: BasePatternVisitor {
                 if secretKeywords.contains(where: { variableName.localizedCaseInsensitiveContains($0) }) {
                     if let initializer = binding.initializer,
                        initializer.value.is(StringLiteralExprSyntax.self) {
-                        addIssue(node: Syntax(node), variables: ["variableName": variableName])
+                        addIssue(
+                            severity: .error,
+                            message: "Hardcoded secret detected in '\(variableName)'",
+                            filePath: currentFilePath,
+                            lineNumber: getLineNumber(for: Syntax(node)),
+                            suggestion: "Use secure key storage like Keychain or environment variables",
+                            ruleName: .hardcodedSecret
+                        )
                     }
                 }
             }
@@ -49,7 +56,14 @@ class SecurityVisitor: BasePatternVisitor {
                 if let stringLiteral = argument.expression.as(StringLiteralExprSyntax.self) {
                     let urlString = stringLiteral.description
                     if urlString.contains("\\(") || urlString.contains("+") {
-                        addIssue(node: Syntax(node))
+                        addIssue(
+                            severity: .warning,
+                            message: "Unsafe URL construction with string interpolation",
+                            filePath: currentFilePath,
+                            lineNumber: getLineNumber(for: Syntax(node)),
+                            suggestion: "Use URLComponents to build URLs safely",
+                            ruleName: .unsafeURL
+                        )
                     }
                 }
             }

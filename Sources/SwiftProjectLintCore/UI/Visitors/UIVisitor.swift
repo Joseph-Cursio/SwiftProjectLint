@@ -67,7 +67,14 @@ class UIVisitor: BasePatternVisitor {
         if let calledExpr = node.calledExpression.as(DeclReferenceExprSyntax.self),
            calledExpr.baseName.text == "NavigationView" {
             if navigationStack.contains(currentViewName) {
-                addIssue(node: Syntax(node))
+                addIssue(
+                    severity: .warning,
+                    message: "Nested NavigationView detected, this can cause issues",
+                    filePath: currentFilePath,
+                    lineNumber: getLineNumber(for: Syntax(node)),
+                    suggestion: "Use NavigationStack or remove nested NavigationView",
+                    ruleName: .nestedNavigationView
+                )
             }
             navigationStack.append(currentViewName)
         }
@@ -76,12 +83,19 @@ class UIVisitor: BasePatternVisitor {
            calledExpr.baseName.text == "ForEach" {
             var hasID = false
             for argument in node.arguments {
-                if argument.label?.text == "id" { 
-                    hasID = true 
+                if argument.label?.text == "id" {
+                    hasID = true
                 }
             }
             if !hasID {
-                addIssue(node: Syntax(node))
+                addIssue(
+                    severity: .warning,
+                    message: "ForEach without explicit ID can cause performance issues",
+                    filePath: currentFilePath,
+                    lineNumber: getLineNumber(for: Syntax(node)),
+                    suggestion: "Add an explicit id: parameter to ForEach",
+                    ruleName: .forEachWithoutIDUI
+                )
             }
         }
         // Detect inconsistent styling
@@ -97,7 +111,14 @@ class UIVisitor: BasePatternVisitor {
             let stylingModifiers = modifiers.filter { stylingModifierNames.contains($0) }
 
             if stylingModifiers.count > 1 {
-                addIssue(node: Syntax(node))
+                addIssue(
+                    severity: .info,
+                    message: "Consider using consistent text styling",
+                    filePath: currentFilePath,
+                    lineNumber: getLineNumber(for: Syntax(node)),
+                    suggestion: "Extract common styles into a ViewModifier or extension",
+                    ruleName: .inconsistentStyling
+                )
             }
         }
         return .visitChildren
@@ -118,7 +139,14 @@ class UIVisitor: BasePatternVisitor {
             if !currentFilePath.contains("test.swift")
                 && !currentFilePath.contains("Test")
                 && !currentFilePath.contains("Tests") {
-                addIssue(node: Syntax(node), variables: ["viewName": currentViewName])
+                addIssue(
+                    severity: .info,
+                    message: "View '\(currentViewName)' missing preview provider",
+                    filePath: currentFilePath,
+                    lineNumber: getLineNumber(for: Syntax(node)),
+                    suggestion: "Add a #Preview macro or PreviewProvider struct for better development experience",
+                    ruleName: .missingPreview
+                )
             }
         }
     }
@@ -149,7 +177,14 @@ class UIVisitor: BasePatternVisitor {
                                 bodyText.contains("Alert(")
                             print("🔍 hasErrorHandling: \(hasErrorHandling), hasProperUI: \(hasProperUI)")
                             if hasErrorHandling && !hasProperUI {
-                                addIssue(node: Syntax(node))
+                                addIssue(
+                                    severity: .info,
+                                    message: "Consider using proper error handling UI patterns",
+                                    filePath: currentFilePath,
+                                    lineNumber: getLineNumber(for: Syntax(node)),
+                                    suggestion: "Use .alert() or .sheet() modifiers for displaying errors",
+                                    ruleName: .basicErrorHandling
+                                )
                             }
                             analyzed = true
                         }
@@ -173,7 +208,14 @@ class UIVisitor: BasePatternVisitor {
                             bodyText.contains("Alert(")
                         print("🔍 hasErrorHandling: \(hasErrorHandling), hasProperUI: \(hasProperUI)")
                         if hasErrorHandling && !hasProperUI {
-                            addIssue(node: Syntax(node))
+                            addIssue(
+                                severity: .info,
+                                message: "Consider using proper error handling UI patterns",
+                                filePath: currentFilePath,
+                                lineNumber: getLineNumber(for: Syntax(node)),
+                                suggestion: "Use .alert() or .sheet() modifiers for displaying errors",
+                                ruleName: .basicErrorHandling
+                            )
                         }
                         analyzed = true
                     }
@@ -192,7 +234,14 @@ class UIVisitor: BasePatternVisitor {
                         bodyText.contains("Alert(")
                     print("🔍 hasErrorHandling: \(hasErrorHandling), hasProperUI: \(hasProperUI)")
                     if hasErrorHandling && !hasProperUI {
-                        addIssue(node: Syntax(node))
+                        addIssue(
+                            severity: .info,
+                            message: "Consider using proper error handling UI patterns",
+                            filePath: currentFilePath,
+                            lineNumber: getLineNumber(for: Syntax(node)),
+                            suggestion: "Use .alert() or .sheet() modifiers for displaying errors",
+                            ruleName: .basicErrorHandling
+                        )
                     }
                 }
             }
@@ -219,7 +268,14 @@ class UIVisitor: BasePatternVisitor {
         print("🔍 hasErrorHandling: \(hasErrorHandling), hasProperUI: \(hasProperUI)")
 
         if hasErrorHandling && !hasProperUI {
-            addIssue(node: Syntax(node))
+            addIssue(
+                severity: .info,
+                message: "Consider using proper error handling UI patterns",
+                filePath: currentFilePath,
+                lineNumber: getLineNumber(for: Syntax(node)),
+                suggestion: "Use .alert() or .sheet() modifiers for displaying errors",
+                ruleName: .basicErrorHandling
+            )
         }
     }
 
