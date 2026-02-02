@@ -20,7 +20,8 @@ struct DeprecatedAnimationPatternRegistrar: PatternRegistrar {
             severity: .warning,
             category: .animation,
             messageTemplate: "The `.animation()` modifier is deprecated. Use `.animation(_:value:)` instead.",
-            suggestion: "Replace the deprecated `.animation()` modifier with the value-based version to explicitly control animations.",
+            suggestion: "Replace the deprecated `.animation()` modifier with the value-based " +
+                "version to explicitly control animations.",
             description: "Detects usage of the deprecated .animation() modifier without a value parameter."
         )
     }

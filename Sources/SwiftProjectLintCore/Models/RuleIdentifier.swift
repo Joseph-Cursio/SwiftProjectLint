@@ -106,7 +106,8 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
             return .networking
 
             // UI Pattern Rules
-        case .nestedNavigationView, .missingPreview, .forEachWithSelfID, .forEachWithoutIDUI, .inconsistentStyling, .basicErrorHandling:
+        case .nestedNavigationView, .missingPreview, .forEachWithSelfID,
+             .forEachWithoutIDUI, .inconsistentStyling, .basicErrorHandling:
             return .uiPatterns
 
             // Other/System Rules

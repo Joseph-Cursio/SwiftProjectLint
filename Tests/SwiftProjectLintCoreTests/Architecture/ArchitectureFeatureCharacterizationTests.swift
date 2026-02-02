@@ -106,7 +106,13 @@ final class ArchitectureFeatureCharacterizationTests {
     
     @Test func characterizeArchitectureIssueCreation() throws {
         let issue = ArchitectureIssue(
-            type: .duplicateState, severity: .warning, message: "Test duplicate state issue", affectedViews: ["ViewA", "ViewB"], suggestion: "Create shared ObservableObject", filePath: "/test/ViewA.swift", lineNumber: 10
+            type: .duplicateState,
+            severity: .warning,
+            message: "Test duplicate state issue",
+            affectedViews: ["ViewA", "ViewB"],
+            suggestion: "Create shared ObservableObject",
+            filePath: "/test/ViewA.swift",
+            lineNumber: 10
         )
         
         print("📊 ArchitectureIssue Model:")
@@ -124,7 +130,8 @@ final class ArchitectureFeatureCharacterizationTests {
     
     @Test func characterizeArchitectureIssueTypes() throws {
         let issueTypes: [ArchitectureIssueType] = [
-            .duplicateState, .missingStateObject, .inefficientStateSharing, .circularDependency, .missingEnvironmentObject, .inconsistentDataFlow
+            .duplicateState, .missingStateObject, .inefficientStateSharing,
+            .circularDependency, .missingEnvironmentObject, .inconsistentDataFlow
         ]
         
         print("📊 ArchitectureIssueType Enumeration:")
@@ -140,7 +147,11 @@ final class ArchitectureFeatureCharacterizationTests {
     
     @Test func characterizeViewRelationshipCreation() throws {
         let relationship = ViewRelationship(
-            parentView: "ParentView", childView: "ChildView", relationshipType: .directChild, lineNumber: 25, filePath: "/test/ParentView.swift"
+            parentView: "ParentView",
+            childView: "ChildView",
+            relationshipType: .directChild,
+            lineNumber: 25,
+            filePath: "/test/ParentView.swift"
         )
         
         print("📊 ViewRelationship Model:")
@@ -268,8 +279,10 @@ final class ArchitectureFeatureCharacterizationTests {
         }
         """
         
-        try contentView.write(toFile: (projectDir as NSString).appendingPathComponent("ContentView.swift"), atomically: true, encoding: .utf8)
-        try detailView.write(toFile: (projectDir as NSString).appendingPathComponent("DetailView.swift"), atomically: true, encoding: .utf8)
+        let contentPath = (projectDir as NSString).appendingPathComponent("ContentView.swift")
+        let detailPath = (projectDir as NSString).appendingPathComponent("DetailView.swift")
+        try contentView.write(toFile: contentPath, atomically: true, encoding: .utf8)
+        try detailView.write(toFile: detailPath, atomically: true, encoding: .utf8)
         
         return projectDir
     }
@@ -308,8 +321,10 @@ final class ArchitectureFeatureCharacterizationTests {
         }
         """
         
-        try parentView.write(toFile: (projectDir as NSString).appendingPathComponent("ParentView.swift"), atomically: true, encoding: .utf8)
-        try childView.write(toFile: (projectDir as NSString).appendingPathComponent("ChildView.swift"), atomically: true, encoding: .utf8)
+        let parentPath = (projectDir as NSString).appendingPathComponent("ParentView.swift")
+        let childPath = (projectDir as NSString).appendingPathComponent("ChildView.swift")
+        try parentView.write(toFile: parentPath, atomically: true, encoding: .utf8)
+        try childView.write(toFile: childPath, atomically: true, encoding: .utf8)
         
         return projectDir
     }
@@ -403,7 +418,8 @@ final class ArchitectureFeatureCharacterizationTests {
         ]
         
         for (fileName, content) in files {
-            try content.write(toFile: (projectDir as NSString).appendingPathComponent(fileName), atomically: true, encoding: .utf8)
+            let filePath = (projectDir as NSString).appendingPathComponent(fileName)
+            try content.write(toFile: filePath, atomically: true, encoding: .utf8)
         }
         
         return projectDir
