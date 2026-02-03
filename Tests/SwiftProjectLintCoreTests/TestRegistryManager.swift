@@ -1,6 +1,13 @@
 import Foundation
 @testable import SwiftProjectLintCore
 
+/// A struct containing isolated test instances for pattern detection.
+public struct IsolatedTestInstances {
+    public let visitorRegistry: PatternVisitorRegistry
+    public let patternRegistry: SwiftSyntaxPatternRegistry
+    public let detector: SwiftSyntaxPatternDetector
+}
+
 /// Shared test registry manager for performance optimization across all tests.
 /// This provides a centralized way to manage shared registries while maintaining
 /// test isolation where needed.
@@ -54,11 +61,15 @@ public class TestRegistryManager {
     }
     
     /// Create isolated instances for tests that need complete isolation
-    public static func createIsolatedInstances() -> (PatternVisitorRegistry, SwiftSyntaxPatternRegistry, SwiftSyntaxPatternDetector) {
+    public static func createIsolatedInstances() -> IsolatedTestInstances {
         let visitorRegistry = PatternVisitorRegistry()
         let patternRegistry = SwiftSyntaxPatternRegistry(visitorRegistry: visitorRegistry)
         let detector = SwiftSyntaxPatternDetector(registry: visitorRegistry)
-        return (visitorRegistry, patternRegistry, detector)
+        return IsolatedTestInstances(
+            visitorRegistry: visitorRegistry,
+            patternRegistry: patternRegistry,
+            detector: detector
+        )
     }
     
     /// Get a detector with specific patterns for focused testing

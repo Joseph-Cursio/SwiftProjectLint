@@ -156,7 +156,7 @@ public struct DebugLogger {
 public enum VisitorType: String {
     case performance = "PerformanceVisitor"
     case viewRelationship = "ViewRelationshipVisitor"
-    case ui = "UIVisitor"
+    case uiLogger = "UIVisitor"
     case stateVariable = "StateVariableVisitor"
     case memoryManagement = "MemoryManagementVisitor"
     case architecture = "ArchitectureVisitor"

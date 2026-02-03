@@ -187,54 +187,47 @@ class ViewRelationshipVisitor: SyntaxVisitor {
 
     // Recursively find all custom view names in a syntax node
     private func findAllCustomViews(in expr: Syntax) -> [String] {
-        var customViews: [String] = []
-
         if let call = expr.as(FunctionCallExprSyntax.self) {
-            if let called = call.calledExpression.as(DeclReferenceExprSyntax.self) {
-                let viewName = called.baseName.text
-                if !containerViews.contains(viewName) && !systemViews.contains(viewName) {
-                    customViews.append(viewName)
-                } else if containerViews.contains(viewName) {
-                    // Search arguments and trailing closure for custom views
-                    for arg in call.arguments {
-                        let views = findAllCustomViews(in: Syntax(arg.expression))
-                        customViews.append(contentsOf: views)
-                    }
-                    if let trailing = call.trailingClosure {
-                        let views = findAllCustomViews(in: trailing.statements)
-                        customViews.append(contentsOf: views)
-                    }
-                }
-            } else if let member = call.calledExpression.as(MemberAccessExprSyntax.self) {
-                let viewName = member.declName.baseName.text
-                if !containerViews.contains(viewName) && !systemViews.contains(viewName) {
-                    customViews.append(viewName)
-                } else if containerViews.contains(viewName) {
-                    for arg in call.arguments {
-                        let views = findAllCustomViews(in: Syntax(arg.expression))
-                        customViews.append(contentsOf: views)
-                    }
-                    if let trailing = call.trailingClosure {
-                        let views = findAllCustomViews(in: trailing.statements)
-                        customViews.append(contentsOf: views)
-                    }
-                }
-            }
+            return findCustomViewsInCall(call)
         } else if let codeBlock = expr.as(CodeBlockSyntax.self) {
-            let views = findAllCustomViews(in: codeBlock.statements)
-            customViews.append(contentsOf: views)
+            return findAllCustomViews(in: codeBlock.statements)
         } else if let sequence = expr.as(SequenceExprSyntax.self) {
-            for element in sequence.elements {
-                let views = findAllCustomViews(in: Syntax(element))
-                customViews.append(contentsOf: views)
-            }
+            return sequence.elements.flatMap { findAllCustomViews(in: Syntax($0)) }
         } else if let tuple = expr.as(TupleExprSyntax.self) {
-            for element in tuple.elements {
-                let views = findAllCustomViews(in: Syntax(element.expression))
-                customViews.append(contentsOf: views)
-            }
+            return tuple.elements.flatMap { findAllCustomViews(in: Syntax($0.expression)) }
         }
+        return []
+    }
 
+    private func findCustomViewsInCall(_ call: FunctionCallExprSyntax) -> [String] {
+        let viewName = extractViewNameFromCalledExpression(call.calledExpression)
+        guard let name = viewName else { return [] }
+
+        if !containerViews.contains(name) && !systemViews.contains(name) {
+            return [name]
+        } else if containerViews.contains(name) {
+            return findCustomViewsInContainerArgs(call)
+        }
+        return []
+    }
+
+    private func extractViewNameFromCalledExpression(_ expr: ExprSyntax) -> String? {
+        if let called = expr.as(DeclReferenceExprSyntax.self) {
+            return called.baseName.text
+        } else if let member = expr.as(MemberAccessExprSyntax.self) {
+            return member.declName.baseName.text
+        }
+        return nil
+    }
+
+    private func findCustomViewsInContainerArgs(_ call: FunctionCallExprSyntax) -> [String] {
+        var customViews: [String] = []
+        for arg in call.arguments {
+            customViews.append(contentsOf: findAllCustomViews(in: Syntax(arg.expression)))
+        }
+        if let trailing = call.trailingClosure {
+            customViews.append(contentsOf: findAllCustomViews(in: trailing.statements))
+        }
         return customViews
     }
 

@@ -7,7 +7,7 @@ import SwiftParser
 /// Tests for PerformanceVisitor detection of expensive operations in view body
 @Suite
 @MainActor
-struct PerformanceVisitorExpensiveOperationTests {
+struct PerfVisitorExpensiveOperationTests {
 
     // MARK: - Helper Methods
 

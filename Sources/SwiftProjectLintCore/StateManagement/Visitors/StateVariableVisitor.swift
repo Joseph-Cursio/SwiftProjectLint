@@ -2,8 +2,12 @@ import Foundation
 import SwiftParser
 import SwiftSyntax
 
+// MARK: - Property Wrapper Enum
+
+// (PropertyWrapper enum and extension removed; now in PropertyWrapper.swift)
+
 /// A SwiftSyntax visitor that extracts state variables from Swift source code.
-/// 
+///
 /// This visitor analyzes SwiftUI view declarations to detect state variables using various property wrappers.
 /// It supports the following SwiftUI property wrappers:
 /// - `@State` - For simple value types
@@ -16,11 +20,6 @@ import SwiftSyntax
 /// - `@GestureState` - For gesture state
 /// - `@ScaledMetric` - For dynamic type scaling
 /// - `@Namespace` - For matched geometry effects
-
-// MARK: - Property Wrapper Enum
-
-// (PropertyWrapper enum and extension removed; now in PropertyWrapper.swift)
-
 class StateVariableVisitor: SyntaxVisitor {
     private let viewName: String
     private let filePath: String

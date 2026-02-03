@@ -3,7 +3,7 @@ import Foundation
 /// Registers patterns related to state management in SwiftUI.
 /// This registrar handles patterns for state variables, property wrappers, and state-related issues.
 @MainActor
-class StateManagementPatternRegistrar: PatternRegistrarWithVisitorRegistryProtocol {
+class StateManagementPatternRegistrar: PatternRegistrarWithVisitorProto {
     
     let registry: SourcePatternRegistry
     let visitorRegistry: PatternVisitorRegistryProtocol

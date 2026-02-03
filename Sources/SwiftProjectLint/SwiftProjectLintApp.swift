@@ -59,27 +59,27 @@ struct SwiftProjectLintApp: App {
 /// This replaces the singleton pattern with dependency injection.
 @MainActor
 class SystemComponents: ObservableObject {
-    private(set) var visitorRegistry: PatternVisitorRegistry!
-    private(set) var patternRegistry: SourcePatternRegistry!
-    private(set) var detector: SourcePatternDetector!
+    private(set) var visitorRegistry: PatternVisitorRegistry?
+    private(set) var patternRegistry: SourcePatternRegistry?
+    private(set) var detector: SourcePatternDetector?
 
     func initialize() {
         print("DEBUG: SystemComponents.initialize() called")
-        let (visitorRegistry, patternRegistry, detector) = PatternRegistryFactory.createConfiguredSystem()
+        let system = PatternRegistryFactory.createConfiguredSystem()
         print("DEBUG: Pattern registry created, checking patterns...")
 
         // Check if patterns were registered
-        let allPatterns = patternRegistry.getAllPatterns()
+        let allPatterns = system.patternRegistry.getAllPatterns()
         print("DEBUG: Total patterns registered: \(allPatterns.count)")
 
         for category in PatternCategory.allCases {
-            let patterns = patternRegistry.getPatterns(for: category)
+            let patterns = system.patternRegistry.getPatterns(for: category)
             print("DEBUG: Category \(category) has \(patterns.count) patterns")
         }
 
-        self.visitorRegistry = visitorRegistry
-        self.patternRegistry = patternRegistry
-        self.detector = detector
+        self.visitorRegistry = system.visitorRegistry
+        self.patternRegistry = system.patternRegistry
+        self.detector = system.detector
         print("DEBUG: SystemComponents initialization complete")
     }
 }

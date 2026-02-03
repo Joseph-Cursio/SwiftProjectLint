@@ -18,9 +18,9 @@ struct LintResultsContainerView: View {
             // Header with expand button
             HStack {
                 Spacer()
-                Button(action: {
+                Button {
                     showingFullScreen = true
-                }) {
+                } label: {
                     HStack(spacing: 4) {
                         Image(systemName: "arrow.up.left.and.arrow.down.right")
                         Text("Full Screen")
@@ -160,11 +160,11 @@ struct LintIssueRow: View {
 
                 Spacer()
 
-                Button(action: {
+                Button {
                     withAnimation(.easeInOut(duration: 0.2)) {
                         isExpanded.toggle()
                     }
-                }) {
+                } label: {
                     Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
                         .foregroundColor(.blue)
                 }

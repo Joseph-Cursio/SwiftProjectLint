@@ -3,7 +3,7 @@ import Foundation
 @testable import SwiftProjectLintCore
 
 @MainActor
-final class CrossFileAnalysisEngineInitializationTests {
+final class CrossFileEngineInitTests {
     @Test func testCrossFileAnalysisEngineInitialization() throws {
         // ... existing code ...
     }

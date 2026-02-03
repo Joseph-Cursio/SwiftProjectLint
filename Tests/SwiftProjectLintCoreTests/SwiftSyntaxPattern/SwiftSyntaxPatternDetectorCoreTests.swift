@@ -17,11 +17,7 @@ struct SwiftSyntaxPatternDetectorCoreTests {
     // MARK: - Test Helper Methods
     
     /// Creates isolated instances for tests that need complete isolation
-    @MainActor static func createIsolatedInstances() -> (
-        PatternVisitorRegistry,
-        SwiftSyntaxPatternRegistry,
-        SwiftSyntaxPatternDetector
-    ) {
+    @MainActor static func createIsolatedInstances() -> IsolatedTestInstances {
         return TestRegistryManager.createIsolatedInstances()
     }
     

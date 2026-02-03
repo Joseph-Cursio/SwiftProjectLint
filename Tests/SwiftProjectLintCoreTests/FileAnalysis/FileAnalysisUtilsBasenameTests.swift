@@ -42,6 +42,6 @@ final class FileAnalysisUtilsBasenameTests {
     @Test func testExtractBasenameWithEmptyPath() throws {
         let path = ""
         let result = FileAnalysisUtils.extractSwiftBasename(from: path)
-        #expect(result == "")
+        #expect(result.isEmpty)
     }
 }

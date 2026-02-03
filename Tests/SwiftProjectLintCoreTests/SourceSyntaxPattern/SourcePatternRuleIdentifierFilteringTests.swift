@@ -1,5 +1,5 @@
 //
-//  SourcePatternRuleIdentifierFilteringTests.swift
+//  SourcePatternRuleIdFilteringTests.swift
 //  SwiftProjectLint
 //
 //  Created by Joseph Cursio on 7/15/25.
@@ -22,7 +22,7 @@ import Foundation
 /// - Error handling and edge cases
 
 @MainActor
-final class SourcePatternRuleIdentifierFilteringTests {
+final class SourcePatternRuleIdFilteringTests {
 
     // MARK: - Rule Identifier Filtering Characterization
     

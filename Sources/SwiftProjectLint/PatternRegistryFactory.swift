@@ -1,6 +1,23 @@
 import Foundation
 import SwiftProjectLintCore
 
+/// A struct containing the components of a pattern detection system.
+public struct PatternDetectionSystem {
+    public let visitorRegistry: PatternVisitorRegistry
+    public let patternRegistry: SourcePatternRegistry
+    public let detector: SourcePatternDetector
+
+    public init(
+        visitorRegistry: PatternVisitorRegistry,
+        patternRegistry: SourcePatternRegistry,
+        detector: SourcePatternDetector
+    ) {
+        self.visitorRegistry = visitorRegistry
+        self.patternRegistry = patternRegistry
+        self.detector = detector
+    }
+}
+
 /// Factory for creating and configuring pattern registries.
 ///
 /// This factory replaces the singleton pattern with dependency injection,
@@ -76,34 +93,34 @@ public class PatternRegistryFactory {
     /// - A SourcePatternRegistry (initialized with patterns)
     /// - A SourcePatternDetector
     ///
-    /// - Returns: A tuple containing all configured components.
-    public static func createConfiguredSystem() -> (
-        visitorRegistry: PatternVisitorRegistry,
-        patternRegistry: SourcePatternRegistry,
-        detector: SourcePatternDetector
-    ) {
+    /// - Returns: A PatternDetectionSystem containing all configured components.
+    public static func createConfiguredSystem() -> PatternDetectionSystem {
         let visitorRegistry = createVisitorRegistry()
         let patternRegistry = createPatternRegistry(visitorRegistry: visitorRegistry)
         patternRegistry.initialize()
         let detector = createPatternDetector(registry: visitorRegistry)
 
-        return (visitorRegistry, patternRegistry, detector)
+        return PatternDetectionSystem(
+            visitorRegistry: visitorRegistry,
+            patternRegistry: patternRegistry,
+            detector: detector
+        )
     }
 
     /// Creates a test-ready pattern registry system.
     ///
     /// This method creates a clean system suitable for testing, with no pre-registered patterns.
     ///
-    /// - Returns: A tuple containing all test components.
-    public static func createTestSystem() -> (
-        visitorRegistry: PatternVisitorRegistry,
-        patternRegistry: SourcePatternRegistry,
-        detector: SourcePatternDetector
-    ) {
+    /// - Returns: A PatternDetectionSystem containing all test components.
+    public static func createTestSystem() -> PatternDetectionSystem {
         let visitorRegistry = createVisitorRegistry()
         let patternRegistry = createPatternRegistry(visitorRegistry: visitorRegistry)
         let detector = createPatternDetector(registry: visitorRegistry)
 
-        return (visitorRegistry, patternRegistry, detector)
+        return PatternDetectionSystem(
+            visitorRegistry: visitorRegistry,
+            patternRegistry: patternRegistry,
+            detector: detector
+        )
     }
 }

@@ -22,7 +22,7 @@ public class SourcePatternRegistry: SourcePatternRegistryProtocol {
     private var isInitialized = false
 
     /// Pattern registrars for each category.
-    private lazy var patternRegistrars: [PatternCategory: PatternRegistrarWithVisitorRegistryProtocol] = [
+    private lazy var patternRegistrars: [PatternCategory: PatternRegistrarWithVisitorProto] = [
         .stateManagement: StateManagementPatternRegistrar(registry: self, visitorRegistry: visitorRegistry),
         .performance: PerformancePatternRegistrar(registry: self, visitorRegistry: visitorRegistry),
         .security: SecurityPatternRegistrar(registry: self, visitorRegistry: visitorRegistry),

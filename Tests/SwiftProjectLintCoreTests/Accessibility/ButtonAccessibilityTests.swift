@@ -6,27 +6,20 @@ import SwiftParser
 
 @MainActor
 class ButtonAccessibilityTests {
-    
-    // MARK: - Test Instance Variables
-    
-    var visitor: AccessibilityVisitor!
-    
-    func setUp() {
+
+    // MARK: - Test Helper Methods
+
+    private func createVisitor() -> AccessibilityVisitor {
         // Initialize shared registry if not already done
         TestRegistryManager.initializeSharedRegistry()
-        visitor = AccessibilityVisitor(patternCategory: .accessibility)
+        return AccessibilityVisitor(patternCategory: .accessibility)
     }
-    
-    func tearDown() {
-        visitor = nil
-    }
-    
+
     // MARK: - Button with Image Missing Label Tests
-    
+
     @Test func testButtonWithImageMissingLabel() {
-        setUp()
-        defer { tearDown() }
-        
+        let visitor = createVisitor()
+
         // Given
         let sourceCode = """
         struct ContentView: View {
@@ -39,11 +32,11 @@ class ButtonAccessibilityTests {
             }
         }
         """
-        
+
         // When
         let sourceFile = Parser.parse(source: sourceCode)
         visitor.walk(sourceFile)
-        
+
         // Then
         #expect(visitor.detectedIssues.count == 1)
 
@@ -57,9 +50,8 @@ class ButtonAccessibilityTests {
     }
 
     @Test func testButtonWithImageWithAccessibilityLabel() {
-        setUp()
-        defer { tearDown() }
-        
+        let visitor = createVisitor()
+
         // Given
         let sourceCode = """
         struct ContentView: View {
@@ -73,19 +65,18 @@ class ButtonAccessibilityTests {
             }
         }
         """
-        
+
         // When
         let sourceFile = Parser.parse(source: sourceCode)
         visitor.walk(sourceFile)
-        
+
         // Then
         #expect(visitor.detectedIssues.isEmpty)
     }
-    
+
     @Test func testButtonWithTextOnly() {
-        setUp()
-        defer { tearDown() }
-        
+        let visitor = createVisitor()
+
         // Given
         let sourceCode = """
         struct ContentView: View {
@@ -96,21 +87,20 @@ class ButtonAccessibilityTests {
             }
         }
         """
-        
+
         // When
         let sourceFile = Parser.parse(source: sourceCode)
         visitor.walk(sourceFile)
-        
+
         // Then
         #expect(visitor.detectedIssues.isEmpty)
     }
-    
+
     // MARK: - Button with Text Missing Hint Tests
-    
+
     @Test func testButtonWithTextMissingHint() {
-        setUp()
-        defer { tearDown() }
-        
+        let visitor = createVisitor()
+
         // Given
         let sourceCode = """
         struct ContentView: View {
@@ -123,11 +113,11 @@ class ButtonAccessibilityTests {
             }
         }
         """
-        
+
         // When
         let sourceFile = Parser.parse(source: sourceCode)
         visitor.walk(sourceFile)
-        
+
         // Then
         #expect(visitor.detectedIssues.count == 1)
 
@@ -141,9 +131,8 @@ class ButtonAccessibilityTests {
     }
 
     @Test func testButtonWithTextWithAccessibilityHint() {
-        setUp()
-        defer { tearDown() }
-        
+        let visitor = createVisitor()
+
         // Given
         let sourceCode = """
         struct ContentView: View {
@@ -157,12 +146,12 @@ class ButtonAccessibilityTests {
             }
         }
         """
-        
+
         // When
         let sourceFile = Parser.parse(source: sourceCode)
         visitor.walk(sourceFile)
-        
+
         // Then
         #expect(visitor.detectedIssues.isEmpty)
     }
-} 
+}

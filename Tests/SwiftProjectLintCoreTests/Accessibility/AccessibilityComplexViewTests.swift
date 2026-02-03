@@ -7,27 +7,20 @@ import SwiftParser
 @Suite("AccessibilityComplexViewTests")
 @MainActor
 class AccessibilityComplexViewTests {
-    
-    // MARK: - Test Instance Variables
-    
-    var visitor: AccessibilityVisitor!
-    
-    func setUp() {
+
+    // MARK: - Test Helper Methods
+
+    private func createVisitor() -> AccessibilityVisitor {
         // Initialize shared registry if not already done
         TestRegistryManager.initializeSharedRegistry()
-        visitor = AccessibilityVisitor(patternCategory: .accessibility)
+        return AccessibilityVisitor(patternCategory: .accessibility)
     }
-    
-    func tearDown() {
-        visitor = nil
-    }
-    
+
     // MARK: - Complex View Tests
-    
+
     @Test func testComplexViewWithMultipleAccessibilityIssues() {
-        setUp()
-        defer { tearDown() }
-        
+        let visitor = createVisitor()
+
         // Given
         let sourceCode = """
         struct ContentView: View {
@@ -38,24 +31,24 @@ class AccessibilityComplexViewTests {
                     } label: {
                         Image("settings")
                     }
-                    
+
                     Button {
                         // action
                     } label: {
                         Text("Submit a very long form with many fields and complex validation")
                     }
-                    
+
                     Image("logo")
                         .resizable()
                         .frame(width: 200, height: 100)
-                    
+
                     Text("Status: Active")
                         .foregroundColor(.green)
                 }
             }
         }
         """
-        
+
         // When
         let sourceFile = Parser.parse(source: sourceCode)
         visitor.walk(sourceFile)
@@ -65,29 +58,28 @@ class AccessibilityComplexViewTests {
         }
         // Then
         #expect(visitor.detectedIssues.count == 5)
-        
+
         let buttonWithImageIssues = visitor.detectedIssues.filter { $0.message.contains("Button with image missing accessibility label") }
         #expect(buttonWithImageIssues.count == 1)
-        
+
         let buttonWithTextIssues = visitor.detectedIssues.filter { $0.message.contains("Consider adding accessibility hint") }
         #expect(buttonWithTextIssues.count == 1)
-        
+
         let imageIssues = visitor.detectedIssues.filter { $0.message.contains("Image missing accessibility label") }
         #expect(imageIssues.count == 1)
-        
+
         let textIssues = visitor.detectedIssues.filter { $0.message.contains("Long text content may benefit") }
         #expect(textIssues.count == 1)
-        
+
         let colorIssues = visitor.detectedIssues.filter { $0.message.contains("color-based information") }
         #expect(colorIssues.count == 1)
     }
-    
+
     // MARK: - Edge Cases
-    
+
     @Test func testEmptyView() {
-        setUp()
-        defer { tearDown() }
-        
+        let visitor = createVisitor()
+
         // Given
         let sourceCode = """
         struct ContentView: View {
@@ -96,19 +88,18 @@ class AccessibilityComplexViewTests {
             }
         }
         """
-        
+
         // When
         let sourceFile = Parser.parse(source: sourceCode)
         visitor.walk(sourceFile)
-        
+
         // Then
         #expect(visitor.detectedIssues.isEmpty)
     }
-    
+
     @Test func testViewWithNoAccessibilityIssues() {
-        setUp()
-        defer { tearDown() }
-        
+        let visitor = createVisitor()
+
         // Given
         let sourceCode = """
         struct ContentView: View {
@@ -118,21 +109,21 @@ class AccessibilityComplexViewTests {
                         // action
                     }
                     .accessibilityHint("Performs the main action")
-                    
+
                     Image("icon")
                         .accessibilityLabel("Application icon")
-                    
+
                     Text("Short text")
                 }
             }
         }
         """
-        
+
         // When
         let sourceFile = Parser.parse(source: sourceCode)
         visitor.walk(sourceFile)
-        
+
         // Then
         #expect(visitor.detectedIssues.isEmpty)
     }
-} 
+}

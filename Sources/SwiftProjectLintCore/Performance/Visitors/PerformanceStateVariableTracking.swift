@@ -34,7 +34,7 @@ extension PerformanceVisitor {
         if node.base?.description.trimmingCharacters(in: .whitespacesAndNewlines) == "self" {
             // This is a self.variableName usage
             let variableName = node.declName.baseName.text
-            if let _ = stateVariables[variableName] {
+            if stateVariables[variableName] != nil {
                 stateVariables[variableName]?.isUsedInViewBody = true
             }
         }

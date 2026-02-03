@@ -16,15 +16,8 @@ struct SourcePatternDetectorCoreTests {
     // MARK: - Test Helper Methods
     
     /// Creates isolated instances for tests that need complete isolation
-    @MainActor static func createIsolatedInstances() -> (
-        PatternVisitorRegistry,
-        SourcePatternRegistry,
-        SourcePatternDetector
-    ) {
-        let (visitorRegistry, _, _) = TestRegistryManager.createIsolatedInstances()
-        let sourceRegistry = SourcePatternRegistry(visitorRegistry: visitorRegistry)
-        let detector = SourcePatternDetector(registry: visitorRegistry)
-        return (visitorRegistry, sourceRegistry, detector)
+    @MainActor static func createIsolatedInstances() -> IsolatedTestInstances {
+        return TestRegistryManager.createIsolatedInstances()
     }
     
     /// Uses shared registry with specific patterns for focused testing

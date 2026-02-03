@@ -101,7 +101,7 @@ struct LintIssueTests {
         )
         
         #expect(issue.locations.isEmpty)
-        #expect(issue.filePath == "")
+        #expect(issue.filePath.isEmpty)
         #expect(issue.lineNumber == 0)
     }
     

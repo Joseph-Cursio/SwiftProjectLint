@@ -7,27 +7,20 @@ import SwiftParser
 @Suite("AccessibilityImageTests")
 @MainActor
 class AccessibilityImageTests {
-    
-    // MARK: - Test Instance Variables
-    
-    var visitor: AccessibilityVisitor!
-    
-    func setUp() {
+
+    // MARK: - Test Helper Methods
+
+    private func createVisitor() -> AccessibilityVisitor {
         // Initialize shared registry if not already done
         TestRegistryManager.initializeSharedRegistry()
-        visitor = AccessibilityVisitor(patternCategory: .accessibility)
+        return AccessibilityVisitor(patternCategory: .accessibility)
     }
-    
-    func tearDown() {
-        visitor = nil
-    }
-    
+
     // MARK: - Image Missing Label Tests
-    
+
     @Test func testImageMissingLabel() {
-        setUp()
-        defer { tearDown() }
-        
+        let visitor = createVisitor()
+
         // Given
         let sourceCode = """
         struct ContentView: View {
@@ -38,11 +31,11 @@ class AccessibilityImageTests {
             }
         }
         """
-        
+
         // When
         let sourceFile = Parser.parse(source: sourceCode)
         visitor.walk(sourceFile)
-        
+
         // Then
         #expect(visitor.detectedIssues.count == 1)
 
@@ -54,11 +47,10 @@ class AccessibilityImageTests {
         #expect(issue.message.contains("Image missing accessibility label"))
         #expect(issue.suggestion?.contains("accessibilityLabel") == true)
     }
-    
+
     @Test func testImageWithAccessibilityLabel() {
-        setUp()
-        defer { tearDown() }
-        
+        let visitor = createVisitor()
+
         // Given
         let sourceCode = """
         struct ContentView: View {
@@ -70,12 +62,12 @@ class AccessibilityImageTests {
             }
         }
         """
-        
+
         // When
         let sourceFile = Parser.parse(source: sourceCode)
         visitor.walk(sourceFile)
-        
+
         // Then
         #expect(visitor.detectedIssues.isEmpty)
     }
-} 
+}

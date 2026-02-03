@@ -3,7 +3,7 @@ import Foundation
 /// Registers patterns related to memory management in SwiftUI.
 /// This registrar handles patterns for retain cycles, large objects, and memory optimization.
 @MainActor
-class MemoryManagementPatternRegistrar: PatternRegistrarWithVisitorRegistryProtocol {
+class MemoryManagementPatternRegistrar: PatternRegistrarWithVisitorProto {
     
     let registry: SourcePatternRegistry
     let visitorRegistry: PatternVisitorRegistryProtocol

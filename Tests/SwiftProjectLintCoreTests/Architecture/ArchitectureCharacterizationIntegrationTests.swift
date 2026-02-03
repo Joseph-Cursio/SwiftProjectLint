@@ -4,7 +4,7 @@ import Foundation
 
 /// Integration and comprehensive characterization tests for architecture analysis
 @MainActor
-final class ArchitectureCharacterizationIntegrationTests {
+final class ArchCharacterizationIntegrationTests {
 
     // MARK: - Integration Tests: Full Architecture Analysis Pipeline
 

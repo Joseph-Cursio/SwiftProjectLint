@@ -3,7 +3,7 @@ import Foundation
 @testable import SwiftProjectLintCore
 
 @MainActor
-final class StateAnalysisEngineUninitializedStateTests {
+final class StateEngineUninitializedStateTests {
     @Test func testAnalyzeStateManagementWithUninitializedState() throws {
         // ... existing code ...
     }

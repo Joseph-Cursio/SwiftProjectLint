@@ -7,27 +7,20 @@ import SwiftParser
 @Suite("AccessibilityTextColorTests")
 @MainActor
 class AccessibilityTextColorTests {
-    
-    // MARK: - Test Instance Variables
-    
-    var visitor: AccessibilityVisitor!
-    
-    func setUp() {
+
+    // MARK: - Test Helper Methods
+
+    private func createVisitor() -> AccessibilityVisitor {
         // Initialize shared registry if not already done
         TestRegistryManager.initializeSharedRegistry()
-        visitor = AccessibilityVisitor(patternCategory: .accessibility)
+        return AccessibilityVisitor(patternCategory: .accessibility)
     }
-    
-    func tearDown() {
-        visitor = nil
-    }
-    
+
     // MARK: - Text Accessibility Tests
-    
+
     @Test func testLongTextMissingAccessibility() {
-        setUp()
-        defer { tearDown() }
-        
+        let visitor = createVisitor()
+
         // Given
         let sourceCode = """
         struct ContentView: View {
@@ -53,11 +46,10 @@ class AccessibilityTextColorTests {
         #expect(issue.message.contains("Long text content may benefit from accessibility features"))
         #expect(issue.suggestion?.contains("accessibilityLabel") == true)
     }
-    
+
     @Test func testShortTextNoAccessibilityWarning() {
-        setUp()
-        defer { tearDown() }
-        
+        let visitor = createVisitor()
+
         // Given
         let sourceCode = """
         struct ContentView: View {
@@ -66,19 +58,18 @@ class AccessibilityTextColorTests {
             }
         }
         """
-        
+
         // When
         let sourceFile = Parser.parse(source: sourceCode)
         visitor.walk(sourceFile)
-        
+
         // Then
         #expect(visitor.detectedIssues.isEmpty)
     }
-    
+
     @Test func testTextWithAccessibilityFeatures() {
-        setUp()
-        defer { tearDown() }
-        
+        let visitor = createVisitor()
+
         // Given
         let sourceCode = """
         struct ContentView: View {
@@ -89,21 +80,20 @@ class AccessibilityTextColorTests {
             }
         }
         """
-        
+
         // When
         let sourceFile = Parser.parse(source: sourceCode)
         visitor.walk(sourceFile)
-        
+
         // Then
         #expect(visitor.detectedIssues.isEmpty)
     }
-    
+
     // MARK: - Color Accessibility Tests
-    
+
     @Test func testInaccessibleColorUsage() {
-        setUp()
-        defer { tearDown() }
-        
+        let visitor = createVisitor()
+
         // Given
         let sourceCode = """
         struct ContentView: View {
@@ -113,11 +103,11 @@ class AccessibilityTextColorTests {
             }
         }
         """
-        
+
         // When
         let sourceFile = Parser.parse(source: sourceCode)
         visitor.walk(sourceFile)
-        
+
         // Then
         #expect(visitor.detectedIssues.count == 1)
 
@@ -129,11 +119,10 @@ class AccessibilityTextColorTests {
         #expect(issue.message.contains("Consider accessibility when using color-based information"))
         #expect(issue.suggestion?.contains("color is not the only way") == true)
     }
-    
+
     @Test func testMultipleColorUsage() {
-        setUp()
-        defer { tearDown() }
-        
+        let visitor = createVisitor()
+
         // Given
         let sourceCode = """
         struct ContentView: View {
@@ -149,15 +138,15 @@ class AccessibilityTextColorTests {
             }
         }
         """
-        
+
         // When
         let sourceFile = Parser.parse(source: sourceCode)
         visitor.walk(sourceFile)
-        
+
         // Then
         #expect(visitor.detectedIssues.count == 3)
-        
+
         let colorIssues = visitor.detectedIssues.filter { $0.message.contains("color-based information") }
         #expect(colorIssues.count == 3)
     }
-} 
+}

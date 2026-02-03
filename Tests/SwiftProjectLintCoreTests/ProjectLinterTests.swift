@@ -4,9 +4,9 @@ import Foundation
 
 @MainActor
 final class ProjectLinterTests {
-    
-    private var tempDirectory: String!
-    private var testProjectPath: String!
+
+    private var tempDirectory: String = ""
+    private var testProjectPath: String = ""
     
     @Test func testProjectLinterInitialization() throws {
         let linter = ProjectLinter()

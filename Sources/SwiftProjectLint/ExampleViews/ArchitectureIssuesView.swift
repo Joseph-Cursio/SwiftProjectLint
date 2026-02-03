@@ -136,10 +136,10 @@ struct ArchitectureIssuesView: View {
                 let apiKey = "sk-1234567890abcdef"
                 
                 // UI Issue: Missing accessibility
-                Button(action: {
+                Button {
                     showAlert = true
                     alertMessage = "Button tapped!"
-                }) {
+                } label: {
                     Image(systemName: "star.fill")
                         .foregroundColor(.yellow)
                 }

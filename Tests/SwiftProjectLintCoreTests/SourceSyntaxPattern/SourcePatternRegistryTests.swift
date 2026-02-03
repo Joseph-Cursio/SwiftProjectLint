@@ -12,28 +12,22 @@ import Testing
 
 @MainActor
 struct SourcePatternRegistryTests {
-    
+
     // MARK: - Test Helper Methods
-    
+
     /// Creates isolated instances for tests that need complete isolation
-    @MainActor static func createIsolatedInstances() -> (
-        PatternVisitorRegistry,
-        SourcePatternRegistry,
-        SourcePatternDetector
-    ) {
-        let (visitorRegistry, _, _) = TestRegistryManager.createIsolatedInstances()
-        let sourceRegistry = SourcePatternRegistry(visitorRegistry: visitorRegistry)
-        let detector = SourcePatternDetector(registry: visitorRegistry)
-        return (visitorRegistry, sourceRegistry, detector)
+    @MainActor static func createIsolatedInstances() -> IsolatedTestInstances {
+        return TestRegistryManager.createIsolatedInstances()
     }
-    
+
     // MARK: - Registry Tests (Need Isolation)
-    
+
     @Test
     @MainActor
     static func patternVisitorRegistryRegistration() throws {
-        let (testVisitorRegistry, _, _) = createIsolatedInstances()
-        
+        let instances = createIsolatedInstances()
+        let testVisitorRegistry = instances.visitorRegistry
+
         // Given
         let pattern = SyntaxPattern(
             name: .fatView,
@@ -44,27 +38,28 @@ struct SourcePatternRegistryTests {
             suggestion: "Test suggestion",
             description: "Test description"
         )
-        
+
         // When
         testVisitorRegistry.register(pattern: pattern)
-        
+
         // Then
         let patterns = testVisitorRegistry.getAllPatterns()
         #expect(patterns.count == 1)
         #expect(patterns.first?.name == .fatView)
-        
+
         let visitors = testVisitorRegistry.getVisitors(for: .stateManagement)
         #expect(visitors.count == 1)
         #expect(visitors.first is SwiftUIManagementVisitor.Type)
-        
+
         testVisitorRegistry.clear()
     }
-    
+
     @Test
     @MainActor
     static func patternVisitorRegistryMultiplePatterns() throws {
-        let (testVisitorRegistry, _, _) = createIsolatedInstances()
-        
+        let instances = createIsolatedInstances()
+        let testVisitorRegistry = instances.visitorRegistry
+
         // Given
         let patterns = [
             SyntaxPattern(
@@ -86,34 +81,35 @@ struct SourcePatternRegistryTests {
                 description: "Description 2"
             )
         ]
-        
+
         // When
         testVisitorRegistry.register(patterns: patterns)
-        
+
         // Then - Check that our specific patterns are registered
         let allPatterns = testVisitorRegistry.getAllPatterns()
         let ourPatterns = allPatterns.filter { pattern in
             patterns.contains { $0.name == pattern.name }
         }
         #expect(ourPatterns.count == 2)
-        
+
         let stateManagementPatterns = testVisitorRegistry.getPatterns(for: .stateManagement)
         let ourStatePatterns = stateManagementPatterns.filter { pattern in
             patterns.contains { $0.name == pattern.name }
         }
         #expect(ourStatePatterns.count == 2)
-        
+
         let visitors = testVisitorRegistry.getVisitors(for: .stateManagement)
         #expect(visitors.count >= 2) // At least our 2 visitors
-        
+
         testVisitorRegistry.clear()
     }
-    
+
     @Test
     @MainActor
     static func patternVisitorRegistryClear() throws {
-        let (testVisitorRegistry, _, _) = createIsolatedInstances()
-        
+        let instances = createIsolatedInstances()
+        let testVisitorRegistry = instances.visitorRegistry
+
         // Given
         let pattern = SyntaxPattern(
             name: .fatView,
@@ -125,14 +121,15 @@ struct SourcePatternRegistryTests {
             description: "Test description"
         )
         testVisitorRegistry.register(pattern: pattern)
-        
+
         // When
         testVisitorRegistry.clear()
-        
+
         // Then
-        #expect(testVisitorRegistry.getAllPatterns().isEmpty)
-        #expect(testVisitorRegistry.getVisitors(for: .stateManagement).isEmpty)
-        
-        testVisitorRegistry.clear()
+        let patterns = testVisitorRegistry.getAllPatterns()
+        #expect(patterns.isEmpty)
+
+        let visitors = testVisitorRegistry.getVisitors(for: .stateManagement)
+        #expect(visitors.isEmpty)
     }
-} 
+}

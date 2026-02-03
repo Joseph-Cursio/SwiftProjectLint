@@ -152,99 +152,58 @@ class UIVisitor: BasePatternVisitor {
     override func visit(_ node: VariableDeclSyntax) -> SyntaxVisitorContinueKind {
         // Look for computed property named 'body'
         for binding in node.bindings {
-            print(
-                "🔍 binding type: \(type(of: binding)), " +
-                "description: \(binding.description)"
-            )
-            if let identifier = binding.pattern.as(IdentifierPatternSyntax.self),
-               identifier.identifier.text == "body" {
-                var analyzed = false
-                if let accessorBlock = binding.accessorBlock {
-                    for child in accessorBlock.accessors.children(viewMode: .all) {
-                        if let accessor = child.as(AccessorDeclSyntax.self),
-                           let body = accessor.body {
-                            let bodyText = body.description
-                            print(
-                                "🔍 Analyzing computed property body for error handling: " +
-                                "\(bodyText)"
-                            )
-                            let hasErrorHandling = bodyText.contains("if let error") ||
-                                bodyText.contains("Text(\"Error")
-                            let hasProperUI = bodyText.contains(".alert(") ||
-                                bodyText.contains(".sheet(") ||
-                                bodyText.contains("Alert(")
-                            print("🔍 hasErrorHandling: \(hasErrorHandling), hasProperUI: \(hasProperUI)")
-                            if hasErrorHandling && !hasProperUI {
-                                addIssue(
-                                    severity: .info,
-                                    message: "Consider using proper error handling UI patterns",
-                                    filePath: currentFilePath,
-                                    lineNumber: getLineNumber(for: Syntax(node)),
-                                    suggestion: "Use .alert() or .sheet() modifiers for displaying errors",
-                                    ruleName: .basicErrorHandling
-                                )
-                            }
-                            analyzed = true
-                        }
-                    }
-                }
-                if let initializer = binding.initializer {
-                    print(
-                        "🔍 initializer.value type: \(type(of: initializer.value)), " +
-                        "description: \(initializer.value.description)"
-                    )
-                    if let value = initializer.value.as(CodeBlockSyntax.self) {
-                        let bodyText = value.description
-                        print(
-                            "🔍 Analyzing computed property body for error handling: " +
-                            "\(bodyText)"
-                        )
-                        let hasErrorHandling = bodyText.contains("if let error") ||
-                            bodyText.contains("Text(\"Error")
-                        let hasProperUI = bodyText.contains(".alert(") ||
-                            bodyText.contains(".sheet(") ||
-                            bodyText.contains("Alert(")
-                        print("🔍 hasErrorHandling: \(hasErrorHandling), hasProperUI: \(hasProperUI)")
-                        if hasErrorHandling && !hasProperUI {
-                            addIssue(
-                                severity: .info,
-                                message: "Consider using proper error handling UI patterns",
-                                filePath: currentFilePath,
-                                lineNumber: getLineNumber(for: Syntax(node)),
-                                suggestion: "Use .alert() or .sheet() modifiers for displaying errors",
-                                ruleName: .basicErrorHandling
-                            )
-                        }
-                        analyzed = true
-                    }
-                }
-                // Always analyze the binding's description as a fallback
-                if !analyzed {
-                    let bodyText = binding.description
-                    print(
-                        "🔍 Fallback analyzing binding description for error handling: " +
-                        "\(bodyText)"
-                    )
-                    let hasErrorHandling = bodyText.contains("if let error") ||
-                        bodyText.contains("Text(\"Error")
-                    let hasProperUI = bodyText.contains(".alert(") ||
-                        bodyText.contains(".sheet(") ||
-                        bodyText.contains("Alert(")
-                    print("🔍 hasErrorHandling: \(hasErrorHandling), hasProperUI: \(hasProperUI)")
-                    if hasErrorHandling && !hasProperUI {
-                        addIssue(
-                            severity: .info,
-                            message: "Consider using proper error handling UI patterns",
-                            filePath: currentFilePath,
-                            lineNumber: getLineNumber(for: Syntax(node)),
-                            suggestion: "Use .alert() or .sheet() modifiers for displaying errors",
-                            ruleName: .basicErrorHandling
-                        )
-                    }
-                }
-            }
+            print("🔍 binding type: \(type(of: binding)), description: \(binding.description)")
+            guard let identifier = binding.pattern.as(IdentifierPatternSyntax.self),
+                  identifier.identifier.text == "body" else { continue }
+
+            if analyzeAccessorBlock(binding.accessorBlock, for: node) { continue }
+            if analyzeInitializer(binding.initializer, for: node) { continue }
+            analyzeBindingFallback(binding, for: node)
         }
         return .visitChildren
+    }
+
+    private func analyzeAccessorBlock(_ accessorBlock: AccessorBlockSyntax?, for node: VariableDeclSyntax) -> Bool {
+        guard let accessorBlock = accessorBlock else { return false }
+        for child in accessorBlock.accessors.children(viewMode: .all) {
+            if let accessor = child.as(AccessorDeclSyntax.self), let body = accessor.body {
+                analyzeBodyTextForErrorHandling(body.description, node: node)
+                return true
+            }
+        }
+        return false
+    }
+
+    private func analyzeInitializer(_ initializer: InitializerClauseSyntax?, for node: VariableDeclSyntax) -> Bool {
+        guard let initializer = initializer else { return false }
+        print("🔍 initializer.value type: \(type(of: initializer.value)), description: \(initializer.value.description)")
+        if let value = initializer.value.as(CodeBlockSyntax.self) {
+            analyzeBodyTextForErrorHandling(value.description, node: node)
+            return true
+        }
+        return false
+    }
+
+    private func analyzeBindingFallback(_ binding: PatternBindingSyntax, for node: VariableDeclSyntax) {
+        print("🔍 Fallback analyzing binding description for error handling: \(binding.description)")
+        analyzeBodyTextForErrorHandling(binding.description, node: node)
+    }
+
+    private func analyzeBodyTextForErrorHandling(_ bodyText: String, node: VariableDeclSyntax) {
+        print("🔍 Analyzing body for error handling: \(bodyText)")
+        let hasErrorHandling = bodyText.contains("if let error") || bodyText.contains("Text(\"Error")
+        let hasProperUI = bodyText.contains(".alert(") || bodyText.contains(".sheet(") || bodyText.contains("Alert(")
+        print("🔍 hasErrorHandling: \(hasErrorHandling), hasProperUI: \(hasProperUI)")
+        if hasErrorHandling && !hasProperUI {
+            addIssue(
+                severity: .info,
+                message: "Consider using proper error handling UI patterns",
+                filePath: currentFilePath,
+                lineNumber: getLineNumber(for: Syntax(node)),
+                suggestion: "Use .alert() or .sheet() modifiers for displaying errors",
+                ruleName: .basicErrorHandling
+            )
+        }
     }
 
     // --- Helper Logic ---
