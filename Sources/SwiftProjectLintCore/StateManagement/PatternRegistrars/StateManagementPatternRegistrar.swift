@@ -21,7 +21,8 @@ class StateManagementPatternRegistrar: PatternRegistrarWithVisitorProto {
                 severity: .warning,
                 category: .stateManagement,
                 messageTemplate: "Duplicate state variable '{variableName}' found in related views: {viewNames}",
-                suggestion: "Create a shared ObservableObject for '{variableName}' and inject it via .environmentObject() at the root level.",
+                suggestion: "Create a shared ObservableObject for '{variableName}' and inject it via " +
+                            ".environmentObject() at the root level.",
                 description: "Detects duplicate state variables across related views in the view hierarchy"
             ),
             SyntaxPattern(
@@ -30,7 +31,8 @@ class StateManagementPatternRegistrar: PatternRegistrarWithVisitorProto {
                 severity: .info,
                 category: .stateManagement,
                 messageTemplate: "Duplicate state variable '{variableName}' found in unrelated views: {viewNames}",
-                suggestion: "Consider if these variables represent the same concept and should be shared via a common ObservableObject.",
+                suggestion: "Consider if these variables represent the same concept and should be shared " +
+                            "via a common ObservableObject.",
                 description: "Detects duplicate state variables across unrelated views"
             ),
             SyntaxPattern(

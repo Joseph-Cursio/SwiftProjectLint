@@ -80,7 +80,8 @@ struct DemoIssueGenerator {
                 message: "Related Duplicate State Variable: 'isLoading' found in ParentView and ChildView",
                 filePath: "ExampleViews/ParentView.swift",
                 lineNumber: 5,
-                suggestion: "Create a shared ObservableObject for 'isLoading' and inject it via .environmentObject() at the root level.",
+                suggestion: "Create a shared ObservableObject for 'isLoading' and inject it via " +
+                            ".environmentObject() at the root level.",
                 ruleName: .relatedDuplicateStateVariable
             ),
             LintIssue(
@@ -88,7 +89,8 @@ struct DemoIssueGenerator {
                 message: "Unrelated Duplicate State Variable: 'userName' found in separate views",
                 filePath: "ExampleViews/UserView.swift",
                 lineNumber: 8,
-                suggestion: "Consider if these variables represent the same concept and should be shared via a common ObservableObject.",
+                suggestion: "Consider if these variables represent the same concept and should be shared " +
+                            "via a common ObservableObject.",
                 ruleName: .unrelatedDuplicateStateVariable
             )
         ]
@@ -200,7 +202,8 @@ struct DemoIssueGenerator {
                 message: "Excessive Spring Animations: View uses 5 spring animations",
                 filePath: "ExampleViews/AnimatedView.swift",
                 lineNumber: 10,
-                suggestion: "Reduce the number of spring animations or combine them using a single withAnimation(.spring()) block.",
+                suggestion: "Reduce the number of spring animations or combine them using a single " +
+                            "withAnimation(.spring()) block.",
                 ruleName: .excessiveSpringAnimations
             )
         ]

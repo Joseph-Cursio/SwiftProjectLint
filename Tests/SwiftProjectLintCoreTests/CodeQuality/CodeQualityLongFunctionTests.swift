@@ -27,10 +27,12 @@ struct CodeQualityLongFunctionTests {
         let visitor = createVisitor()
 
         // Given
+        // swiftlint:disable line_length
         let sourceCode = """
         struct TestView: View {
             func veryLongFunction() {
-                let a = "This is a very long function that contains many lines of code and should be broken down into smaller functions for better maintainability and readability. The function is intentionally made long to test the detection mechanism."
+                let a =
+                    "This is a very long function that contains many lines of code and should be broken down into smaller functions for better maintainability and readability. The function is intentionally made long to test the detection mechanism."
                 let b = "More code here to make the function longer and trigger the detection threshold."
                 let c = "Even more code to ensure we exceed the character limit for function length detection."
                 let d = "Additional code to push the function over the 200 character threshold."
@@ -42,6 +44,7 @@ struct CodeQualityLongFunctionTests {
             }
         }
         """
+        // swiftlint:enable line_length
 
         // When
         let sourceFile = Parser.parse(source: sourceCode)

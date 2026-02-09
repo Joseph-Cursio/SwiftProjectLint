@@ -42,21 +42,8 @@ public class CrossFileAnalysisEngine {
         fileCache = [:]
         // Parse all files and cache them
         for file in projectFiles {
-            do {
-                let sourceFile = Parser.parse(source: file.content)
-                fileCache[file.name] = sourceFile
-            } catch {
-                allIssues.append(
-                    LintIssue(
-                        severity: .error,
-                        message: "Failed to parse file: \(error.localizedDescription)",
-                        filePath: file.name,
-                        lineNumber: 1,
-                        suggestion: "Check file syntax",
-                        ruleName: .fileParsingError
-                    )
-                )
-            }
+            let sourceFile = Parser.parse(source: file.content)
+            fileCache[file.name] = sourceFile
         }
 
         // Get visitors that support cross-file analysis
@@ -99,9 +86,7 @@ public class CrossFileAnalysisEngine {
                 }
 
                 // Call finalizeAnalysis for cross-file visitors
-                if let crossFileVisitor = visitor as? CrossFilePatternVisitorProtocol {
-                    crossFileVisitor.finalizeAnalysis()
-                }
+                visitor.finalizeAnalysis()
 
                 allIssues.append(contentsOf: visitor.detectedIssues)
             }
@@ -124,25 +109,13 @@ public class CrossFileAnalysisEngine {
         projectFiles: [ProjectFile],
         ruleIdentifiers: [RuleIdentifier]
     ) -> [LintIssue] {
-        print("DEBUG: detectCrossFilePatterns (ruleIdentifiers) called with \(projectFiles.count) files, rules: \(ruleIdentifiers.map { $0.rawValue })")
+        print("DEBUG: detectCrossFilePatterns (ruleIdentifiers) called " +
+              "with \(projectFiles.count) files, rules: \(ruleIdentifiers.map { $0.rawValue })")
         var allIssues: [LintIssue] = []
         fileCache = [:]
         for file in projectFiles {
-            do {
-                let sourceFile = Parser.parse(source: file.content)
-                fileCache[file.name] = sourceFile
-            } catch {
-                allIssues.append(
-                    LintIssue(
-                        severity: .error,
-                        message: "Failed to parse file: \(error.localizedDescription)",
-                        filePath: file.name,
-                        lineNumber: 1,
-                        suggestion: "Check file syntax",
-                        ruleName: .fileParsingError
-                    )
-                )
-            }
+            let sourceFile = Parser.parse(source: file.content)
+            fileCache[file.name] = sourceFile
         }
 
         // Get specific patterns by rule identifier
@@ -152,9 +125,6 @@ public class CrossFileAnalysisEngine {
         }
 
         print("DEBUG: Found \(requestedPatterns.count) requested patterns")
-
-        // Group patterns by their rule identifier instead of visitor type
-        let patternsByRule = Dictionary(grouping: requestedPatterns) { $0.name }
 
         // Apply analysis for each visitor type
         for pattern in requestedPatterns {
@@ -170,9 +140,7 @@ public class CrossFileAnalysisEngine {
                 }
 
                 // Call finalizeAnalysis for cross-file visitors
-                if let crossFileVisitor = visitor as? CrossFilePatternVisitorProtocol {
-                    crossFileVisitor.finalizeAnalysis()
-                }
+                visitor.finalizeAnalysis()
 
                 allIssues.append(contentsOf: visitor.detectedIssues)
             }
@@ -213,7 +181,9 @@ public class CrossFileAnalysisEngine {
             print("DEBUG: Getting visitors for categories: \(categories)")
             let visitors = categories.flatMap { category in
                 let categoryVisitors = registry.getVisitors(for: category)
-                print("DEBUG: Category \(category) has \(categoryVisitors.count) visitors: \(categoryVisitors.map { String(describing: $0) })")
+                print(
+                    "DEBUG: Category \(category) has \(categoryVisitors.count) visitors: " +
+                    "\(categoryVisitors.map { String(describing: $0) })")
                 return categoryVisitors
             }
             print("DEBUG: Total visitors from categories: \(visitors.count)")

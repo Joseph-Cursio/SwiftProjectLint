@@ -54,8 +54,9 @@ class PerformanceVisitor: BasePatternVisitor {
                 isInViewBody = true
                 viewBodySize = 0
                 // If this is a computed property, walk its accessor block immediately
-                if let accessor = binding.accessorBlock?.as(CodeBlockSyntax.self) {
-                    self.walk(accessor)
+                if let accessorBlock = binding.accessorBlock,
+                   case .getter(let stmts) = accessorBlock.accessors {
+                    self.walk(stmts)
                     // After walking, check and report large body
                     if viewBodySize > 20 {
                         addIssue(

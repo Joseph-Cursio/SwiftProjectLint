@@ -76,7 +76,8 @@ class ArchitectureVisitor: BasePatternVisitor {
         if isSwiftUIView(node) && stateVariableCount > 5 {
             addIssue(
                 severity: .warning,
-                message: "View '\(currentViewName)' has \(stateVariableCount) state variables - consider using MVVM pattern",
+                message: "View '\(currentViewName)' has \(stateVariableCount) state variables - " +
+                         "consider using MVVM pattern",
                 filePath: currentFilePath,
                 lineNumber: getLineNumber(for: Syntax(node)),
                 suggestion: "Extract state into a ViewModel or split into smaller views",
@@ -134,7 +135,8 @@ class ArchitectureVisitor: BasePatternVisitor {
                             if typeName.isEmpty {
                                 // Try to infer from initializer, e.g. UserManager() -> UserManager
                                 if let expr = initializer.value.as(FunctionCallExprSyntax.self) {
-                                    typeName = expr.calledExpression.description.trimmingCharacters(in: .whitespacesAndNewlines)
+                                    typeName = expr.calledExpression.description
+                                        .trimmingCharacters(in: .whitespacesAndNewlines)
                                 }
                             }
                             stateObjectType = typeName

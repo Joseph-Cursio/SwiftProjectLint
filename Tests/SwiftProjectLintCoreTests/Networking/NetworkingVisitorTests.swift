@@ -64,7 +64,10 @@ struct NetworkingVisitorTests {
         
         #expect(issues.count == 1, "Expected 1 issue, but got \(issues.count)")
         if let firstIssue = issues.first {
-            #expect(firstIssue.message == "Synchronous networking can block the UI thread", "Expected message 'Synchronous networking can block the UI thread', but got '\(firstIssue.message)'")
+            #expect(
+                firstIssue.message == "Synchronous networking can block the UI thread",
+                "Expected message 'Synchronous networking can block the UI thread', but got '\(firstIssue.message)'"
+            )
             #expect(firstIssue.severity == .error, "Expected severity .error, but got \(firstIssue.severity)")
         } else {
             #expect(Bool(false), "No issues detected")
@@ -107,7 +110,10 @@ struct NetworkingVisitorTests {
         
         #expect(issues.count == 1, "Expected 1 issue, but got \(issues.count)")
         if let firstIssue = issues.first {
-            #expect(firstIssue.message == "Network request missing error handling", "Expected message 'Network request missing error handling', but got '\(firstIssue.message)'")
+            #expect(
+                firstIssue.message == "Network request missing error handling",
+                "Expected message 'Network request missing error handling', but got '\(firstIssue.message)'"
+            )
             #expect(firstIssue.severity == .warning, "Expected severity .warning, but got \(firstIssue.severity)")
         } else {
             #expect(Bool(false), "No issues detected")

@@ -46,7 +46,8 @@ struct RuleSelectionDialogTests {
         // Check for Toggle label text (flexible: any Text in label)
         let toggles = try forEach.findAll(ViewType.Toggle.self)
         #expect(toggles.contains { toggle in
-            (try? toggle.labelView().findAll(ViewType.Text.self).contains { (try? $0.string()) == "Related Duplicate State Variable" }) == true
+            let labelTexts = try? toggle.labelView().findAll(ViewType.Text.self)
+            return (try? labelTexts?.contains { (try? $0.string()) == "Related Duplicate State Variable" }) == true
         })
         // Check for toolbar buttons by text
         let allTexts = try inspected.findAll(ViewType.Text.self).compactMap { try? $0.string() }

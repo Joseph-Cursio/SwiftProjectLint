@@ -120,7 +120,10 @@ final class AdvancedAnalyzerTests {
         
         do {
             try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
-            try testSwiftFile.write(to: tempDir.appendingPathComponent("TestViews.swift"), atomically: true, encoding: .utf8)
+            try testSwiftFile.write(
+                to: tempDir.appendingPathComponent("TestViews.swift"),
+                atomically: true, encoding: .utf8
+            )
         } catch {
             print("Failed to create test project: \(error)")
         }

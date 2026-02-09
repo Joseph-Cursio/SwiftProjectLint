@@ -5,7 +5,8 @@ import SwiftProjectLintCore
 struct DemoIssueGeneratorTests {
     @Test func test_createDemoIssues_includesExpectedCategories() {
         let categories: [PatternCategory] = [
-            .stateManagement, .performance, .architecture, .codeQuality, .security, .accessibility, .memoryManagement, .networking, .uiPatterns
+            .stateManagement, .performance, .architecture, .codeQuality, .security,
+            .accessibility, .memoryManagement, .networking, .uiPatterns
         ]
         let issues = DemoIssueGenerator.createDemoIssues(for: categories)
         // There should be at least one issue per category (except .other)

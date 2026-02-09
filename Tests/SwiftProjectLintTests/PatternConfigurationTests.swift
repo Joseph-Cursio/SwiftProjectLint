@@ -69,16 +69,28 @@ struct PatternConfigurationTests {
             description: "Detects magic numbers."
         )
         mockRegistry.patterns[.codeQuality] = [pattern]
-        let enabled = PatternConfiguration.getEnabledCategories(patternRegistry: mockRegistry, enabledRuleNames: [.magicNumber])
+        let enabled = PatternConfiguration.getEnabledCategories(
+            patternRegistry: mockRegistry,
+            enabledRuleNames: [.magicNumber]
+        )
         #expect(Set(enabled) == Set([.codeQuality]))
     }
 
     @Test func test_filterIssuesByEnabledRules_filtersCorrectly() {
         let issues = [
-            LintIssue(severity: .info, message: "A", filePath: "file.swift", lineNumber: 1, suggestion: "", ruleName: .magicNumber),
-            LintIssue(severity: .warning, message: "B", filePath: "file.swift", lineNumber: 2, suggestion: "", ruleName: .fatViewDetection)
+            LintIssue(
+                severity: .info, message: "A", filePath: "file.swift", lineNumber: 1,
+                suggestion: "", ruleName: .magicNumber
+            ),
+            LintIssue(
+                severity: .warning, message: "B", filePath: "file.swift", lineNumber: 2,
+                suggestion: "", ruleName: .fatViewDetection
+            )
         ]
-        let filtered = PatternConfiguration.filterIssuesByEnabledRules(issues, enabledRuleNames: [.magicNumber])
+        let filtered = PatternConfiguration.filterIssuesByEnabledRules(
+            issues,
+            enabledRuleNames: [.magicNumber]
+        )
         #expect(filtered.count == 1)
         #expect(filtered.first?.ruleName == RuleIdentifier.magicNumber)
     }

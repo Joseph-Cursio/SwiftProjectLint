@@ -9,7 +9,8 @@ extension PerformanceVisitor {
         // Check if this is a @State variable
         let attributes = node.attributes
         for attribute in attributes {
-            if let attributeName = attribute.as(AttributeSyntax.self)?.attributeName.as(IdentifierTypeSyntax.self)?.name.text,
+            if let attributeName = attribute.as(AttributeSyntax.self)?
+                .attributeName.as(IdentifierTypeSyntax.self)?.name.text,
                attributeName == "State" {
 
                 // Extract variable name
@@ -44,7 +45,9 @@ extension PerformanceVisitor {
         guard let parent = node.parent else { return }
         if let sequence = parent.as(SequenceExprSyntax.self) {
             let elements = sequence.elements
-            if let assignIndex = elements.firstIndex(where: { $0.as(AssignmentExprSyntax.self)?.positionAfterSkippingLeadingTrivia == node.positionAfterSkippingLeadingTrivia }) {
+            if let assignIndex = elements.firstIndex(
+                where: { $0.as(AssignmentExprSyntax.self)?.positionAfterSkippingLeadingTrivia ==
+                         node.positionAfterSkippingLeadingTrivia }) {
                 let assignIndexInt = elements.distance(from: elements.startIndex, to: assignIndex)
                 if assignIndexInt > 0 {
                     let leftExpr = elements[elements.index(elements.startIndex, offsetBy: assignIndexInt - 1)]

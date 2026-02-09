@@ -29,11 +29,13 @@ public class ArchitectureIssueDetector {
 
         // Detect missing @StateObject usage
         for stateVar in stateVariables {
-            if stateVar.propertyWrapper == PropertyWrapper.observedObject && isRootView(stateVar.viewName, in: viewHierarchies) {
+            if stateVar.propertyWrapper == PropertyWrapper.observedObject &&
+               isRootView(stateVar.viewName, in: viewHierarchies) {
                 let issue = ArchitectureIssue(
                     type: .missingStateObject,
                     severity: .warning,
-                    message: "Consider using @StateObject instead of @ObservedObject for '\(stateVar.name)' in \(stateVar.viewName)",
+                    message: "Consider using @StateObject instead of @ObservedObject for '\(stateVar.name)' " +
+                             "in \(stateVar.viewName)",
                     affectedViews: [stateVar.viewName],
                     suggestion: "Use @StateObject for ObservableObject properties that should be owned by this view.",
                     filePath: stateVar.filePath,

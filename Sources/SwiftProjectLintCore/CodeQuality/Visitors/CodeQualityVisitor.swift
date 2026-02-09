@@ -97,7 +97,9 @@ class CodeQualityVisitor: BasePatternVisitor {
 
     override func visitPost(_ node: FunctionDeclSyntax) {
         // Debug print for function length (using NSLog)
-        NSLog("[DEBUG] Function '%@' length: %d (threshold: %d)", currentFunctionName, currentFunctionLength, configuration.maxFunctionLength)
+        NSLog(
+            "[DEBUG] Function '%@' length: %d (threshold: %d)",
+            currentFunctionName, currentFunctionLength, configuration.maxFunctionLength)
         // Check function length when leaving the function
         if isInFunction && currentFunctionLength > configuration.maxFunctionLength {
             addIssue(
@@ -133,7 +135,8 @@ class CodeQualityVisitor: BasePatternVisitor {
                         )
                     }
                 } else if let floatLiteral = initializer.value.as(FloatLiteralExprSyntax.self) {
-                    if let value = Double(floatLiteral.literal.text), value >= Double(configuration.magicNumberThreshold) {
+                    if let value = Double(floatLiteral.literal.text),
+                       value >= Double(configuration.magicNumberThreshold) {
                         addIssue(
                             severity: .info,
                             message: "Consider extracting magic number \(value) to a named constant",

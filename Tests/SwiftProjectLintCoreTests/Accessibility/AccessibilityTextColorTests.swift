@@ -22,6 +22,7 @@ class AccessibilityTextColorTests {
         let visitor = createVisitor()
 
         // Given
+        // swiftlint:disable line_length
         let sourceCode = """
         struct ContentView: View {
             var body: some View {
@@ -29,6 +30,7 @@ class AccessibilityTextColorTests {
             }
         }
         """
+        // swiftlint:enable line_length
         // When
         let sourceFile = Parser.parse(source: sourceCode)
         visitor.walk(sourceFile)

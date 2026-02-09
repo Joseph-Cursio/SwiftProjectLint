@@ -108,7 +108,9 @@ class AccessibilityVisitor: BasePatternVisitor {
 
     override func visit(_ node: FunctionCallExprSyntax) -> SyntaxVisitorContinueKind {
         Task { @MainActor in
-            DebugLogger.logNode("FunctionCallExpr", "name: \(node.calledExpression.description.trimmingCharacters(in: .whitespaces))")
+            DebugLogger.logNode(
+                "FunctionCallExpr",
+                "name: \(node.calledExpression.description.trimmingCharacters(in: .whitespaces))")
         }
 
         // Check if this is a Button, Image, or Text

@@ -111,7 +111,8 @@ class MemoryManagementVisitor: BasePatternVisitor {
                             message: "Potential retain cycle with '\(variableName)'",
                             filePath: currentFilePath ?? "unknown",
                             lineNumber: getLineNumber(for: Syntax(node)),
-                            suggestion: "Review object lifecycle and consider using weak references or dependency injection",
+                            suggestion: "Review object lifecycle and consider using weak references or " +
+                                        "dependency injection",
                             ruleName: .potentialRetainCycle
                         )
                     }
@@ -126,11 +127,11 @@ class MemoryManagementVisitor: BasePatternVisitor {
         guard config.detectLargeObjects else { return }
         guard let propertyWrapper = extractPropertyWrapper(from: node), propertyWrapper == .state else { return }
         for binding in node.bindings {
-            guard let pattern = binding.pattern.as(IdentifierPatternSyntax.self),
+            guard binding.pattern.is(IdentifierPatternSyntax.self),
                   let initializer = binding.initializer else { continue }
             // Check if the type is an array
             if let typeAnnotation = binding.typeAnnotation,
-               let arrayType = typeAnnotation.type.as(ArrayTypeSyntax.self) {
+               typeAnnotation.type.is(ArrayTypeSyntax.self) {
                 // Check if the initializer is an array literal
                 if let arrayLiteral = initializer.value.as(ArrayExprSyntax.self) {
                     let elementCount = arrayLiteral.elements.count

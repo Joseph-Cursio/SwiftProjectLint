@@ -5,7 +5,7 @@
 //  Created by joe cursio on 7/14/25.
 //
 
-public struct SyntaxPattern {
+public struct SyntaxPattern: @unchecked Sendable {
     public let name: RuleIdentifier
     public let visitor: PatternVisitorProtocol.Type
     public let severity: IssueSeverity

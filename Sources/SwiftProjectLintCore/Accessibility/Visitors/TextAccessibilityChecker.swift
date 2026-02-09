@@ -27,7 +27,8 @@ class TextAccessibilityChecker: AccessibilityCheckerProtocol {
             }.joined()
             let threshold = visitor.config.minTextLengthForHint
             Task { @MainActor in
-                DebugLogger.logVisitor(.accessibility, "Checking text: '\(text)' with length \(text.count), threshold: \(threshold)")
+                DebugLogger.logVisitor(
+                    .accessibility, "Checking text: '\(text)' with length \(text.count), threshold: \(threshold)")
             }
 
             if isLongText(text) {
@@ -56,7 +57,8 @@ class TextAccessibilityChecker: AccessibilityCheckerProtocol {
                     message: "Long text content may benefit from accessibility features",
                     filePath: filePath,
                     lineNumber: lineNumber,
-                    suggestion: "Add .accessibilityLabel(), .accessibilityHint(), or .accessibilityValue() to improve accessibility.",
+                    suggestion: "Add .accessibilityLabel(), .accessibilityHint(), or .accessibilityValue() " +
+                                "to improve accessibility.",
                     ruleName: ruleName
                 )
             }
@@ -71,7 +73,9 @@ class TextAccessibilityChecker: AccessibilityCheckerProtocol {
         let threshold = visitor.config.minTextLengthForHint
         Task { @MainActor in
             DebugLogger.logVisitor(.accessibility, "isLongText called with \(text.count) characters")
-            DebugLogger.logVisitor(.accessibility, "isLongText - checking text: '\(text)' with length \(text.count), threshold: \(threshold)")
+            DebugLogger.logVisitor(
+                .accessibility,
+                "isLongText - checking text: '\(text)' with length \(text.count), threshold: \(threshold)")
         }
         let result = text.count > threshold
         Task { @MainActor in

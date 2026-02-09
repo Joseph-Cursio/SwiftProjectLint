@@ -41,10 +41,14 @@ struct SecurityVisitorTests {
         
         #expect(issues.count == 3)
         
-        let urlIssues = issues.filter { $0.message.localizedCaseInsensitiveContains("string interpolation") && $0.severity == .warning }
+        let urlIssues = issues.filter {
+            $0.message.localizedCaseInsensitiveContains("string interpolation") && $0.severity == .warning
+        }
         #expect(urlIssues.count == 2)
         
-        let secretIssues = issues.filter { $0.message.localizedCaseInsensitiveContains("hardcoded") && $0.severity == .error }
+        let secretIssues = issues.filter {
+            $0.message.localizedCaseInsensitiveContains("hardcoded") && $0.severity == .error
+        }
         #expect(secretIssues.count == 1)
     }
 } 

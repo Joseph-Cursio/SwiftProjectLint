@@ -52,7 +52,10 @@ import Foundation
         DebugLogger.outputHandler = { logs.append($0) }
         defer { DebugLogger.outputHandler = originalOutputHandler }
         
-        DebugLogger.logVisitor(.performance, "Visitor message", file: "/tmp/VisitorFile.swift", function: "visitorFunc", line: 77)
+        DebugLogger.logVisitor(
+            .performance, "Visitor message",
+            file: "/tmp/VisitorFile.swift", function: "visitorFunc", line: 77
+        )
         
         let output = logs.joined(separator: "\n")
         #expect(output.contains("VisitorFile.swift:77"))

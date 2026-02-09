@@ -36,8 +36,8 @@ struct NetworkingIssuesView: View {
             
             // Security Issue: Unsafe URL construction
             let userId = "user123"
-            // swiftlint:disable:next force_unwrapping
-            let unsafeURL = URL(string: "https://api.example.com/users/\(userId)/data?key=\(apiKey)")!
+            // swiftlint:disable:next force_unwrapping redundant_discardable_let
+            let _ = URL(string: "https://api.example.com/users/\(userId)/data?key=\(apiKey)")!
             
             // Networking Issue: Synchronous networking
             Button("Load Data (Synchronous)") {
@@ -96,8 +96,10 @@ struct NetworkingIssuesView: View {
             }
             
             // Security Issue: More hardcoded secrets
-            let databasePassword = "super_secret_password_123"
-            let jwtToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9." +
+            // swiftlint:disable:next redundant_discardable_let
+            let _ = "super_secret_password_123"
+            // swiftlint:disable:next redundant_discardable_let
+            let _ = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9." +
                 "eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ." +
                 "SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
             

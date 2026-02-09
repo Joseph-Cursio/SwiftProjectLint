@@ -133,7 +133,8 @@ struct ArchitectureIssuesView: View {
                     .multilineTextAlignment(.center)
                 
                 // Security Issue: Hardcoded secret
-                let apiKey = "sk-1234567890abcdef"
+                // swiftlint:disable:next redundant_discardable_let
+                let _ = "sk-1234567890abcdef"
                 
                 // UI Issue: Missing accessibility
                 Button {

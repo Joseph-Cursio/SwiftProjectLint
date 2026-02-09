@@ -23,7 +23,8 @@ class ImageAccessibilityChecker: AccessibilityCheckerProtocol {
                 message: "Image missing accessibility label",
                 filePath: visitor.getCurrentFilePath() ?? "unknown",
                 lineNumber: visitor.getLineNumber(for: Syntax(node)),
-                suggestion: "Add .accessibilityLabel(\"descriptive text\") to make the image accessible to screen readers",
+                suggestion: "Add .accessibilityLabel(\"descriptive text\") to make the image accessible " +
+                            "to screen readers",
                 ruleName: visitor.currentPattern?.name
             )
         }

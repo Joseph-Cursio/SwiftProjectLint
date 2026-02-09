@@ -131,9 +131,18 @@ final class LintResultsViewCharacterizationTests {
     @MainActor
     func testSummarySectionAndCounts() throws {
         let issues = [
-            LintIssue(severity: .error, message: "Error issue", filePath: "/file1.swift", lineNumber: 1, suggestion: nil, ruleName: .relatedDuplicateStateVariable),
-            LintIssue(severity: .warning, message: "Warning issue", filePath: "/file2.swift", lineNumber: 2, suggestion: nil, ruleName: .missingStateObject),
-            LintIssue(severity: .info, message: "Info issue", filePath: "/file3.swift", lineNumber: 3, suggestion: nil, ruleName: .uninitializedStateVariable)
+            LintIssue(
+                severity: .error, message: "Error issue", filePath: "/file1.swift",
+                lineNumber: 1, suggestion: nil, ruleName: .relatedDuplicateStateVariable
+            ),
+            LintIssue(
+                severity: .warning, message: "Warning issue", filePath: "/file2.swift",
+                lineNumber: 2, suggestion: nil, ruleName: .missingStateObject
+            ),
+            LintIssue(
+                severity: .info, message: "Info issue", filePath: "/file3.swift",
+                lineNumber: 3, suggestion: nil, ruleName: .uninitializedStateVariable
+            )
         ]
         let view = LintResultsView(issues: issues)
         let inspected = try view.inspect()
@@ -152,8 +161,14 @@ final class LintResultsViewCharacterizationTests {
     @MainActor
     func testIssueRowsAndFullScreenButton() throws {
         let issues = [
-            LintIssue(severity: .error, message: "Error issue", filePath: "/file1.swift", lineNumber: 1, suggestion: nil, ruleName: .relatedDuplicateStateVariable),
-            LintIssue(severity: .warning, message: "Warning issue", filePath: "/file2.swift", lineNumber: 2, suggestion: nil, ruleName: .missingStateObject)
+            LintIssue(
+                severity: .error, message: "Error issue", filePath: "/file1.swift",
+                lineNumber: 1, suggestion: nil, ruleName: .relatedDuplicateStateVariable
+            ),
+            LintIssue(
+                severity: .warning, message: "Warning issue", filePath: "/file2.swift",
+                lineNumber: 2, suggestion: nil, ruleName: .missingStateObject
+            )
         ]
         let view = LintResultsView(issues: issues)
         let inspected = try view.inspect()
@@ -169,11 +184,26 @@ final class LintResultsViewCharacterizationTests {
     @MainActor
     func testSummaryCountValues() throws {
         let issues = [
-            LintIssue(severity: .error, message: "Error 1", filePath: "/file1.swift", lineNumber: 1, suggestion: nil, ruleName: .relatedDuplicateStateVariable),
-            LintIssue(severity: .error, message: "Error 2", filePath: "/file2.swift", lineNumber: 2, suggestion: nil, ruleName: .relatedDuplicateStateVariable),
-            LintIssue(severity: .warning, message: "Warning 1", filePath: "/file3.swift", lineNumber: 3, suggestion: nil, ruleName: .missingStateObject),
-            LintIssue(severity: .info, message: "Info 1", filePath: "/file4.swift", lineNumber: 4, suggestion: nil, ruleName: .uninitializedStateVariable),
-            LintIssue(severity: .info, message: "Info 2", filePath: "/file5.swift", lineNumber: 5, suggestion: nil, ruleName: .uninitializedStateVariable)
+            LintIssue(
+                severity: .error, message: "Error 1", filePath: "/file1.swift",
+                lineNumber: 1, suggestion: nil, ruleName: .relatedDuplicateStateVariable
+            ),
+            LintIssue(
+                severity: .error, message: "Error 2", filePath: "/file2.swift",
+                lineNumber: 2, suggestion: nil, ruleName: .relatedDuplicateStateVariable
+            ),
+            LintIssue(
+                severity: .warning, message: "Warning 1", filePath: "/file3.swift",
+                lineNumber: 3, suggestion: nil, ruleName: .missingStateObject
+            ),
+            LintIssue(
+                severity: .info, message: "Info 1", filePath: "/file4.swift",
+                lineNumber: 4, suggestion: nil, ruleName: .uninitializedStateVariable
+            ),
+            LintIssue(
+                severity: .info, message: "Info 2", filePath: "/file5.swift",
+                lineNumber: 5, suggestion: nil, ruleName: .uninitializedStateVariable
+            )
         ]
         let view = LintResultsView(issues: issues)
         let inspected = try view.inspect()
@@ -323,7 +353,10 @@ final class LintResultsContainerViewTests {
     @MainActor
     func testContainerViewHasFullScreenButton() throws {
         let issues = [
-            LintIssue(severity: .warning, message: "Test issue", filePath: "/file.swift", lineNumber: 1, suggestion: nil, ruleName: .relatedDuplicateStateVariable)
+            LintIssue(
+                severity: .warning, message: "Test issue", filePath: "/file.swift",
+                lineNumber: 1, suggestion: nil, ruleName: .relatedDuplicateStateVariable
+            )
         ]
         let container = LintResultsContainerView(issues: issues)
         let inspected = try container.inspect()
@@ -336,7 +369,10 @@ final class LintResultsContainerViewTests {
     @MainActor
     func testContainerViewContainsLintResultsView() throws {
         let issues = [
-            LintIssue(severity: .error, message: "Error in container", filePath: "/file.swift", lineNumber: 5, suggestion: nil, ruleName: .missingStateObject)
+            LintIssue(
+                severity: .error, message: "Error in container", filePath: "/file.swift",
+                lineNumber: 5, suggestion: nil, ruleName: .missingStateObject
+            )
         ]
         let container = LintResultsContainerView(issues: issues)
         let inspected = try container.inspect()
@@ -351,7 +387,10 @@ final class LintResultsContainerViewTests {
     @MainActor
     func testContainerViewHasExpandIcon() throws {
         let issues = [
-            LintIssue(severity: .info, message: "Info", filePath: "/file.swift", lineNumber: 1, suggestion: nil, ruleName: .uninitializedStateVariable)
+            LintIssue(
+                severity: .info, message: "Info", filePath: "/file.swift",
+                lineNumber: 1, suggestion: nil, ruleName: .uninitializedStateVariable
+            )
         ]
         let container = LintResultsContainerView(issues: issues)
         let inspected = try container.inspect()
@@ -369,8 +408,14 @@ final class FullScreenResultsViewTests {
     @MainActor
     func testFullScreenViewDisplaysIssues() throws {
         let issues = [
-            LintIssue(severity: .error, message: "Full screen error", filePath: "/file.swift", lineNumber: 1, suggestion: nil, ruleName: .relatedDuplicateStateVariable),
-            LintIssue(severity: .warning, message: "Full screen warning", filePath: "/file2.swift", lineNumber: 2, suggestion: nil, ruleName: .missingStateObject)
+            LintIssue(
+                severity: .error, message: "Full screen error", filePath: "/file.swift",
+                lineNumber: 1, suggestion: nil, ruleName: .relatedDuplicateStateVariable
+            ),
+            LintIssue(
+                severity: .warning, message: "Full screen warning", filePath: "/file2.swift",
+                lineNumber: 2, suggestion: nil, ruleName: .missingStateObject
+            )
         ]
         let fullScreen = FullScreenResultsView(issues: issues)
         let inspected = try fullScreen.inspect()
@@ -384,7 +429,10 @@ final class FullScreenResultsViewTests {
     @MainActor
     func testFullScreenViewHasSummarySection() throws {
         let issues = [
-            LintIssue(severity: .error, message: "Error", filePath: "/file.swift", lineNumber: 1, suggestion: nil, ruleName: .relatedDuplicateStateVariable)
+            LintIssue(
+                severity: .error, message: "Error", filePath: "/file.swift",
+                lineNumber: 1, suggestion: nil, ruleName: .relatedDuplicateStateVariable
+            )
         ]
         let fullScreen = FullScreenResultsView(issues: issues)
         let inspected = try fullScreen.inspect()
@@ -401,7 +449,10 @@ final class FullScreenResultsViewTests {
     @MainActor
     func testFullScreenViewHasDoneButton() throws {
         let issues = [
-            LintIssue(severity: .info, message: "Info", filePath: "/file.swift", lineNumber: 1, suggestion: nil, ruleName: .uninitializedStateVariable)
+            LintIssue(
+                severity: .info, message: "Info", filePath: "/file.swift",
+                lineNumber: 1, suggestion: nil, ruleName: .uninitializedStateVariable
+            )
         ]
         let fullScreen = FullScreenResultsView(issues: issues)
         let inspected = try fullScreen.inspect()
@@ -429,7 +480,10 @@ final class LintResultsEdgeCaseTests {
     @Test
     @MainActor
     func testLongMessageDisplay() throws {
-        let longMessage = "This is a very long error message that spans multiple lines and contains detailed information about the lint issue that was detected in the codebase during analysis"
+        let longMessage = """
+This is a very long error message that spans multiple lines and contains detailed information \
+about the lint issue that was detected in the codebase during analysis
+"""
         let issue = LintIssue(
             severity: .error,
             message: longMessage,
@@ -468,9 +522,18 @@ final class LintResultsEdgeCaseTests {
     @MainActor
     func testAllSeverityTypes() throws {
         let issues = [
-            LintIssue(severity: .error, message: "Error type", filePath: "/e.swift", lineNumber: 1, suggestion: nil, ruleName: .relatedDuplicateStateVariable),
-            LintIssue(severity: .warning, message: "Warning type", filePath: "/w.swift", lineNumber: 2, suggestion: nil, ruleName: .missingStateObject),
-            LintIssue(severity: .info, message: "Info type", filePath: "/i.swift", lineNumber: 3, suggestion: nil, ruleName: .uninitializedStateVariable)
+            LintIssue(
+                severity: .error, message: "Error type", filePath: "/e.swift",
+                lineNumber: 1, suggestion: nil, ruleName: .relatedDuplicateStateVariable
+            ),
+            LintIssue(
+                severity: .warning, message: "Warning type", filePath: "/w.swift",
+                lineNumber: 2, suggestion: nil, ruleName: .missingStateObject
+            ),
+            LintIssue(
+                severity: .info, message: "Info type", filePath: "/i.swift",
+                lineNumber: 3, suggestion: nil, ruleName: .uninitializedStateVariable
+            )
         ]
         let view = LintResultsView(issues: issues)
         let inspected = try view.inspect()

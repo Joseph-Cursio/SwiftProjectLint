@@ -18,7 +18,10 @@ struct ContentViewResultsTests {
     @Test
     func testResultsNotShownWhenAnalyzing() throws {
         let demoIssues = [
-            LintIssue(severity: .warning, message: "Demo", filePath: "Test.swift", lineNumber: 1, suggestion: nil, ruleName: .relatedDuplicateStateVariable)
+            LintIssue(
+                severity: .warning, message: "Demo", filePath: "Test.swift", lineNumber: 1,
+                suggestion: nil, ruleName: .relatedDuplicateStateVariable
+            )
         ]
         let view = ContentViewResults(lintIssues: demoIssues, isAnalyzing: true)
         // Should render nothing
@@ -28,8 +31,14 @@ struct ContentViewResultsTests {
     @Test
     func testResultsShownWhenIssuesAndNotAnalyzing() throws {
         let demoIssues = [
-            LintIssue(severity: .warning, message: "Demo", filePath: "Test.swift", lineNumber: 1, suggestion: nil, ruleName: .relatedDuplicateStateVariable),
-            LintIssue(severity: .error, message: "Another", filePath: "Test2.swift", lineNumber: 2, suggestion: nil, ruleName: .missingStateObject)
+            LintIssue(
+                severity: .warning, message: "Demo", filePath: "Test.swift", lineNumber: 1,
+                suggestion: nil, ruleName: .relatedDuplicateStateVariable
+            ),
+            LintIssue(
+                severity: .error, message: "Another", filePath: "Test2.swift", lineNumber: 2,
+                suggestion: nil, ruleName: .missingStateObject
+            )
         ]
         let view = ContentViewResults(lintIssues: demoIssues, isAnalyzing: false)
         let inspected = try view.inspect()

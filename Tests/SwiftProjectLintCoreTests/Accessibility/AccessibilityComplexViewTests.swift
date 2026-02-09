@@ -59,10 +59,14 @@ class AccessibilityComplexViewTests {
         // Then
         #expect(visitor.detectedIssues.count == 5)
 
-        let buttonWithImageIssues = visitor.detectedIssues.filter { $0.message.contains("Button with image missing accessibility label") }
+        let buttonWithImageIssues = visitor.detectedIssues.filter {
+            $0.message.contains("Button with image missing accessibility label")
+        }
         #expect(buttonWithImageIssues.count == 1)
 
-        let buttonWithTextIssues = visitor.detectedIssues.filter { $0.message.contains("Consider adding accessibility hint") }
+        let buttonWithTextIssues = visitor.detectedIssues.filter {
+            $0.message.contains("Consider adding accessibility hint")
+        }
         #expect(buttonWithTextIssues.count == 1)
 
         let imageIssues = visitor.detectedIssues.filter { $0.message.contains("Image missing accessibility label") }

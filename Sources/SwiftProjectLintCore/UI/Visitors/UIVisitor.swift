@@ -177,8 +177,8 @@ class UIVisitor: BasePatternVisitor {
     private func analyzeInitializer(_ initializer: InitializerClauseSyntax?, for node: VariableDeclSyntax) -> Bool {
         guard let initializer = initializer else { return false }
         print("🔍 initializer.value type: \(type(of: initializer.value)), description: \(initializer.value.description)")
-        if let value = initializer.value.as(CodeBlockSyntax.self) {
-            analyzeBodyTextForErrorHandling(value.description, node: node)
+        if let closure = initializer.value.as(ClosureExprSyntax.self) {
+            analyzeBodyTextForErrorHandling(closure.statements.description, node: node)
             return true
         }
         return false

@@ -242,20 +242,15 @@ public class ProjectLinter {
         from sourceCode: String,
         filePath: String
     ) -> [StateVariable] {
-        do {
-            let sourceFile = Parser.parse(source: sourceCode)
-            let viewName = extractViewName(from: filePath)
-            let visitor = StateVariableVisitor(
-                viewName: viewName,
-                filePath: filePath,
-                sourceContents: sourceCode
-            )
-            visitor.walk(sourceFile)
-            return visitor.stateVariables
-        } catch {
-            print("Error parsing Swift file: \(error)")
-            return []
-        }
+        let sourceFile = Parser.parse(source: sourceCode)
+        let viewName = extractViewName(from: filePath)
+        let visitor = StateVariableVisitor(
+            viewName: viewName,
+            filePath: filePath,
+            sourceContents: sourceCode
+        )
+        visitor.walk(sourceFile)
+        return visitor.stateVariables
     }
 
     /// Extracts the name of a SwiftUI view from a given file path.
@@ -319,7 +314,7 @@ public class ProjectLinter {
     @MainActor private func detectCrossFileIssues(
         categories: [PatternCategory]? = nil
     ) -> [LintIssue] {
-        var issues: [LintIssue] = []
+        let issues: [LintIssue] = []
         // Note: State management cross-file issues are now handled by SwiftSyntax cross-file visitors
         // This method is kept for potential future cross-file analysis that doesn't fit the SwiftSyntax pattern model
         return issues
