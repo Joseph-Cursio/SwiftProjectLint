@@ -56,6 +56,9 @@ struct DemoIssueGenerator {
             case .uiPatterns:
                 demoIssues.append(contentsOf: createUIPatternsDemoIssues())
 
+            case .animation:
+                demoIssues.append(contentsOf: createAnimationDemoIssues())
+
             case .other:
                 // No demo issues for the "other" category (system-level errors)
                 break
@@ -186,6 +189,19 @@ struct DemoIssueGenerator {
                 lineNumber: 22,
                 suggestion: "Add proper error handling to network requests.",
                 ruleName: .missingErrorHandling
+            )
+        ]
+    }
+
+    private static func createAnimationDemoIssues() -> [LintIssue] {
+        return [
+            LintIssue(
+                severity: .warning,
+                message: "Excessive Spring Animations: View uses 5 spring animations",
+                filePath: "ExampleViews/AnimatedView.swift",
+                lineNumber: 10,
+                suggestion: "Reduce the number of spring animations or combine them using a single withAnimation(.spring()) block.",
+                ruleName: .excessiveSpringAnimations
             )
         ]
     }

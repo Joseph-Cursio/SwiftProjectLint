@@ -17,5 +17,6 @@ struct AnimationPatternRegistrar: PatternRegistrarWithVisitorProto {
 
     func registerPatterns() {
         registry.register(pattern: DeprecatedAnimationPatternRegistrar().pattern)
+        registry.register(pattern: AnimationPerformancePatternRegistrar().pattern)
     }
 }

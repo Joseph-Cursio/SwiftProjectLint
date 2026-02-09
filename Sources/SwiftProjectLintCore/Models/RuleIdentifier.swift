@@ -26,6 +26,15 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
     case forEachSelfID = "ForEach Self ID"
     case unnecessaryViewUpdate = "Unnecessary View Update"
     case deprecatedAnimation = "Deprecated Animation"
+    case animationInHighFrequencyUpdate = "Animation in High Frequency Update"
+    case excessiveSpringAnimations = "Excessive Spring Animations"
+    case longAnimationDuration = "Long Animation Duration"
+    case withAnimationInOnAppear = "withAnimation in onAppear"
+    case animationWithoutStateChange = "Animation Without State Change"
+    case conflictingAnimations = "Conflicting Animations"
+    case matchedGeometryEffectMisuse = "matchedGeometryEffect Misuse"
+    case defaultAnimationCurve = "Default Animation Curve"
+    case hardcodedAnimationValues = "Hardcoded Animation Values"
 
     // Architecture Rules
     case missingDependencyInjection = "Missing Dependency Injection"
@@ -78,7 +87,10 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
         case .expensiveOperationInViewBody, .forEachWithoutID, .largeViewBody, .forEachSelfID, .unnecessaryViewUpdate:
             return .performance
 
-        case .deprecatedAnimation:
+        case .deprecatedAnimation, .animationInHighFrequencyUpdate, .excessiveSpringAnimations,
+             .longAnimationDuration, .withAnimationInOnAppear, .animationWithoutStateChange,
+             .conflictingAnimations, .matchedGeometryEffectMisuse, .defaultAnimationCurve,
+             .hardcodedAnimationValues:
             return .animation
 
             // Architecture Rules
