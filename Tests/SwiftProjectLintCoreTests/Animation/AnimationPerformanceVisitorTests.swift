@@ -5,8 +5,10 @@ import SwiftParser
 
 final class AnimationPerformanceVisitorTests: XCTestCase {
 
-    private func makeVisitor() -> AnimationPerformanceVisitor {
-        let pattern = AnimationPerformancePatternRegistrar().pattern
+    private func makeVisitor(for rule: RuleIdentifier = .excessiveSpringAnimations) -> AnimationPerformanceVisitor {
+        let patterns = AnimationPerformancePatternRegistrar().patterns
+        // swiftlint:disable:next force_unwrapping
+        let pattern = patterns.first { $0.name == rule }!
         return AnimationPerformanceVisitor(pattern: pattern)
     }
 
@@ -162,6 +164,171 @@ final class AnimationPerformanceVisitorTests: XCTestCase {
         """
 
         let visitor = makeVisitor()
+        runVisitor(visitor, source: source)
+
+        XCTAssertTrue(visitor.detectedIssues.isEmpty)
+    }
+
+    // MARK: - Animation in High-Frequency Update
+
+    func testDetectsAnimationInOnReceiveContext() throws {
+        let source = """
+        import SwiftUI
+
+        struct TimerView: View {
+            let timer = Timer.publish(every: 1, on: .main, in: .common)
+            @State private var count = 0
+
+            var body: some View {
+                Text("\\(count)")
+                    .onReceive(timer) { _ in count += 1 }
+                    .animation(.spring(), value: count)
+            }
+        }
+        """
+
+        let visitor = makeVisitor(for: .animationInHighFrequencyUpdate)
+        runVisitor(visitor, source: source)
+
+        XCTAssertEqual(visitor.detectedIssues.count, 1)
+
+        let issue = try XCTUnwrap(visitor.detectedIssues.first)
+        XCTAssertEqual(issue.ruleName, .animationInHighFrequencyUpdate)
+        XCTAssertEqual(issue.severity, .warning)
+    }
+
+    func testDetectsAnimationInOnChangeContext() throws {
+        let source = """
+        import SwiftUI
+
+        struct ChangeView: View {
+            @State private var value = ""
+            @State private var isEditing = false
+
+            var body: some View {
+                TextField("Input", text: $value)
+                    .onChange(of: value) { isEditing = true }
+                    .animation(.easeIn, value: isEditing)
+            }
+        }
+        """
+
+        let visitor = makeVisitor(for: .animationInHighFrequencyUpdate)
+        runVisitor(visitor, source: source)
+
+        XCTAssertEqual(visitor.detectedIssues.count, 1)
+
+        let issue = try XCTUnwrap(visitor.detectedIssues.first)
+        XCTAssertEqual(issue.ruleName, .animationInHighFrequencyUpdate)
+    }
+
+    func testAllowsAnimationOutsideHighFrequencyContext() {
+        let source = """
+        import SwiftUI
+
+        struct NormalView: View {
+            @State private var isVisible = false
+
+            var body: some View {
+                Text("Hello")
+                    .opacity(isVisible ? 1 : 0)
+                    .animation(.spring(), value: isVisible)
+            }
+        }
+        """
+
+        let visitor = makeVisitor(for: .animationInHighFrequencyUpdate)
+        runVisitor(visitor, source: source)
+
+        XCTAssertTrue(visitor.detectedIssues.isEmpty)
+    }
+
+    // MARK: - Long Animation Duration
+
+    func testDetectsLongAnimationDuration() throws {
+        let source = """
+        import SwiftUI
+
+        struct SlowView: View {
+            @State private var isVisible = false
+
+            var body: some View {
+                Text("Hello")
+                    .animation(.easeIn(duration: 3.0), value: isVisible)
+            }
+        }
+        """
+
+        let visitor = makeVisitor(for: .longAnimationDuration)
+        runVisitor(visitor, source: source)
+
+        XCTAssertEqual(visitor.detectedIssues.count, 1)
+
+        let issue = try XCTUnwrap(visitor.detectedIssues.first)
+        XCTAssertEqual(issue.ruleName, .longAnimationDuration)
+        XCTAssertEqual(issue.severity, .info)
+        XCTAssertTrue(issue.message.contains("3.0"))
+    }
+
+    func testDetectsLongSpringDuration() throws {
+        let source = """
+        import SwiftUI
+
+        struct SlowSpringView: View {
+            @State private var isVisible = false
+
+            var body: some View {
+                Text("Hello")
+                    .animation(.spring(duration: 5.0), value: isVisible)
+            }
+        }
+        """
+
+        let visitor = makeVisitor(for: .longAnimationDuration)
+        runVisitor(visitor, source: source)
+
+        XCTAssertEqual(visitor.detectedIssues.count, 1)
+
+        let issue = try XCTUnwrap(visitor.detectedIssues.first)
+        XCTAssertEqual(issue.ruleName, .longAnimationDuration)
+        XCTAssertTrue(issue.message.contains("5.0"))
+    }
+
+    func testAllowsNormalAnimationDuration() {
+        let source = """
+        import SwiftUI
+
+        struct NormalView: View {
+            @State private var isVisible = false
+
+            var body: some View {
+                Text("Hello")
+                    .animation(.easeIn(duration: 0.5), value: isVisible)
+            }
+        }
+        """
+
+        let visitor = makeVisitor(for: .longAnimationDuration)
+        runVisitor(visitor, source: source)
+
+        XCTAssertTrue(visitor.detectedIssues.isEmpty)
+    }
+
+    func testAllowsExactlyTwoSecondDuration() {
+        let source = """
+        import SwiftUI
+
+        struct BoundaryView: View {
+            @State private var isVisible = false
+
+            var body: some View {
+                Text("Hello")
+                    .animation(.easeIn(duration: 2.0), value: isVisible)
+            }
+        }
+        """
+
+        let visitor = makeVisitor(for: .longAnimationDuration)
         runVisitor(visitor, source: source)
 
         XCTAssertTrue(visitor.detectedIssues.isEmpty)
