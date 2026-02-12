@@ -1,4 +1,4 @@
-// swift-tools-version:6.0
+// swift-tools-version:6.2
 import PackageDescription
 
 let package = Package(
@@ -32,7 +32,11 @@ let package = Package(
         .executableTarget(
             name: "SwiftProjectLint",
             dependencies: ["SwiftProjectLintCore"],
-            path: "Sources/SwiftProjectLint"
+            path: "Sources/SwiftProjectLint",
+            swiftSettings: [
+                .defaultIsolation(MainActor.self),
+                .enableUpcomingFeature("MemberImportVisibility")
+            ]
         ),
         .testTarget(
             name: "SwiftProjectLintCoreTests",
@@ -42,7 +46,10 @@ let package = Package(
         .testTarget(
             name: "SwiftProjectLintTests",
             dependencies: ["SwiftProjectLintCore", "SwiftProjectLint", "ViewInspector"],
-            path: "Tests/SwiftProjectLintTests"
+            path: "Tests/SwiftProjectLintTests",
+            swiftSettings: [
+                .enableUpcomingFeature("MemberImportVisibility")
+            ]
         )
         // UI tests are configured in Xcode project and should be run through Xcode
         // .testTarget(

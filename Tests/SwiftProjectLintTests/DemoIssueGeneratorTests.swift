@@ -2,6 +2,7 @@ import Testing
 @testable import SwiftProjectLint
 import SwiftProjectLintCore
 
+@MainActor
 struct DemoIssueGeneratorTests {
     @Test func test_createDemoIssues_includesExpectedCategories() {
         let categories: [PatternCategory] = [
