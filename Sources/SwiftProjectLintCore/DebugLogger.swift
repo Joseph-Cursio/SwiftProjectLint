@@ -2,7 +2,6 @@ import Foundation
 
 #if DEBUG
 /// Shared debug logger for SwiftProjectLint - only compiled in DEBUG builds
-@preconcurrency
 @MainActor public struct DebugLogger {
     public static let isEnabled = true
     public static var outputHandler: (String) -> Void = { print($0) }

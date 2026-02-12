@@ -8,7 +8,6 @@ import SwiftSyntax
 /// `PatternVisitorRegistry` to provide a complete pattern management system.
 ///
 /// - Note: This registry supports both singleton access via `shared` and dependency injection.
-@preconcurrency
 @MainActor
 public class SwiftSyntaxPatternRegistry: SwiftSyntaxPatternRegistryProtocol {
     

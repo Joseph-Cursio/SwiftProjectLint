@@ -15,7 +15,6 @@ import SwiftSyntax
 ///
 /// Thread safety is provided by `@MainActor` isolation — all access is serialized
 /// on the main actor, so no additional synchronization is needed.
-@preconcurrency
 @MainActor
 public class PatternVisitorRegistry: PatternVisitorRegistryProtocol {
     public static let shared = PatternVisitorRegistry()

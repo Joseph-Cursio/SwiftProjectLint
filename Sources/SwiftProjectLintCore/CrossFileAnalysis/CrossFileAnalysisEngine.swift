@@ -10,7 +10,6 @@ import SwiftSyntax
 
 /// The detector supports cross-file analysis and can detect patterns that span multiple files,
 /// such as duplicate state variables across different views.
-@preconcurrency
 @MainActor
 public class CrossFileAnalysisEngine {
 

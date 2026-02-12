@@ -57,7 +57,6 @@ public struct PatternDetectionSystem {
 /// These methods help in creating different configurations of pattern detection systems,  making it easier to test and
 /// integrate various components in a modular manner.
 ///
-@preconcurrency
 @MainActor
 public class PatternRegistryFactory {
 
