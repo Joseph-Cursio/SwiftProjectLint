@@ -5,6 +5,9 @@
 //  Created by joe cursio on 7/14/25.
 //
 
+// Safety: @unchecked Sendable because the only non-Sendable field is `visitor`
+// (a metatype `PatternVisitorProtocol.Type`). Metatypes are immutable and
+// inherently thread-safe — they carry no mutable state.
 public struct SyntaxPattern: @unchecked Sendable {
     public let name: RuleIdentifier
     public let visitor: PatternVisitorProtocol.Type

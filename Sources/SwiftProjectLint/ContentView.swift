@@ -83,13 +83,11 @@ struct ContentView: View {
                 )
             }
             .fileImporter(isPresented: $showingDirectoryPicker, allowedContentTypes: [.folder]) { result in
-                Task { @MainActor in
-                    switch result {
-                    case .success(let url):
-                        selectedDirectory = url.path
-                    case .failure(let error):
-                        print("Error selecting directory: \(error.localizedDescription)")
-                    }
+                switch result {
+                case .success(let url):
+                    selectedDirectory = url.path
+                case .failure(let error):
+                    print("Error selecting directory: \(error.localizedDescription)")
                 }
             }
         }
@@ -116,18 +114,18 @@ struct ContentView: View {
     /// Runs the project linter analysis at the given directory path.
     ///
     /// This function uses SwiftSyntax-based pattern detection and properly filters results
-    /// based on the user's selected rules. It sets the `isAnalyzing` state to `true` and 
-    /// simulates an analysis delay (2 seconds) using `DispatchQueue.main.asyncAfter`. 
-    /// After the delay, it creates SwiftSyntax detectors and analyzes the project directory 
-    /// specified by `path`, filtering results to only include issues from enabled rules.
-    /// The results are assigned to the `lintIssues` state variable. If no real issues are found,
-    /// it populates `lintIssues` with demo issues for illustrative purposes.
-    /// Finally, it sets `isAnalyzing` back to `false`.
+    /// based on the user's selected rules. It sets the `isAnalyzing` state to `true` and
+    /// simulates an analysis delay (2 seconds) before running analysis. It creates SwiftSyntax
+    /// detectors and analyzes the project directory specified by `path`, filtering results to
+    /// only include issues from enabled rules. The results are assigned to the `lintIssues`
+    /// state variable. Finally, it sets `isAnalyzing` back to `false`.
     private func runLinter(at path: String) {
         isAnalyzing = true
 
-        // Simulate analysis delay
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+        Task {
+            // Simulate analysis delay
+            try? await Task.sleep(for: .seconds(2))
+
             var allIssues: [LintIssue] = []
 
             // Determine which categories have enabled rules
@@ -140,9 +138,8 @@ struct ContentView: View {
                 allIssues.append(contentsOf: crossFileIssues)
             }
 
-            self.lintIssues = allIssues
-
-            self.isAnalyzing = false
+            lintIssues = allIssues
+            isAnalyzing = false
         }
     }
 
