@@ -4,11 +4,12 @@
 //
 //  Created by joe cursio on 7/14/25.
 //
+import Foundation
 import SwiftParser
 import SwiftSyntax
 
-// Safety: @unchecked Sendable because mutable state is only written during
-// initialization (before any concurrent reads) and then read-only during analysis.
+// Safety: @unchecked Sendable — all mutable state (`patterns`, `visitorsByCategory`)
+// is protected by `lock` (NSLock). Every read and write acquires the lock first.
 
 /// Registry for managing SwiftSyntax-based pattern visitors and their configurations.
 ///
@@ -20,6 +21,7 @@ import SwiftSyntax
 public final class PatternVisitorRegistry: PatternVisitorRegistryProtocol, @unchecked Sendable {
     public static let shared = PatternVisitorRegistry()
 
+    private let lock = NSLock()
     private var patterns: [SyntaxPattern] = []
     private var visitorsByCategory: [PatternCategory: [PatternVisitorProtocol.Type]] = [:]
 
@@ -29,23 +31,27 @@ public final class PatternVisitorRegistry: PatternVisitorRegistryProtocol, @unch
     ///
     /// - Parameter pattern: The syntax pattern to register.
     public func register(pattern: SyntaxPattern) {
-        patterns.append(pattern)
-        if visitorsByCategory[pattern.category] == nil {
-            visitorsByCategory[pattern.category] = []
+        lock.withLock {
+            patterns.append(pattern)
+            if visitorsByCategory[pattern.category] == nil {
+                visitorsByCategory[pattern.category] = []
+            }
+            visitorsByCategory[pattern.category]?.append(pattern.visitor)
         }
-        visitorsByCategory[pattern.category]?.append(pattern.visitor)
     }
 
     /// Registers multiple syntax patterns at once.
     ///
     /// - Parameter patterns: An array of syntax patterns to register.
     public func register(patterns: [SyntaxPattern]) {
-        for pattern in patterns {
-            self.patterns.append(pattern)
-            if visitorsByCategory[pattern.category] == nil {
-                visitorsByCategory[pattern.category] = []
+        lock.withLock {
+            for pattern in patterns {
+                self.patterns.append(pattern)
+                if visitorsByCategory[pattern.category] == nil {
+                    visitorsByCategory[pattern.category] = []
+                }
+                visitorsByCategory[pattern.category]?.append(pattern.visitor)
             }
-            visitorsByCategory[pattern.category]?.append(pattern.visitor)
         }
     }
 
@@ -54,21 +60,27 @@ public final class PatternVisitorRegistry: PatternVisitorRegistryProtocol, @unch
     /// - Parameter category: The pattern category to retrieve visitors for.
     /// - Returns: An array of visitor types for the specified category.
     public func getVisitors(for category: PatternCategory) -> [PatternVisitorProtocol.Type] {
-        visitorsByCategory[category] ?? []
+        lock.withLock {
+            visitorsByCategory[category] ?? []
+        }
     }
 
     /// Retrieves all registered visitor types.
     ///
     /// - Returns: An array of all registered visitor types.
     func getAllVisitors() -> [PatternVisitorProtocol.Type] {
-        patterns.map { $0.visitor }
+        lock.withLock {
+            patterns.map { $0.visitor }
+        }
     }
 
     /// Retrieves all registered syntax patterns.
     ///
     /// - Returns: An array of all registered syntax patterns.
     public func getAllPatterns() -> [SyntaxPattern] {
-        patterns
+        lock.withLock {
+            patterns
+        }
     }
 
     /// Retrieves syntax patterns for a specific category.
@@ -76,12 +88,16 @@ public final class PatternVisitorRegistry: PatternVisitorRegistryProtocol, @unch
     /// - Parameter category: The pattern category to retrieve patterns for.
     /// - Returns: An array of syntax patterns for the specified category.
     func getPatterns(for category: PatternCategory) -> [SyntaxPattern] {
-        patterns.filter { $0.category == category }
+        lock.withLock {
+            patterns.filter { $0.category == category }
+        }
     }
 
     /// Clears all registered patterns and visitors.
     public func clear() {
-        patterns.removeAll()
-        visitorsByCategory.removeAll()
+        lock.withLock {
+            patterns.removeAll()
+            visitorsByCategory.removeAll()
+        }
     }
 }

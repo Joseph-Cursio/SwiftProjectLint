@@ -1,8 +1,8 @@
 import Foundation
 import SwiftSyntax
 
-// Safety: @unchecked Sendable because mutable state is only written during
-// initialization (before any concurrent reads) and then read-only during analysis.
+// Safety: @unchecked Sendable — `isInitialized` is protected by `lock` (NSLock).
+// All pattern storage is delegated to `PatternVisitorRegistry` which has its own lock.
 
 /// Registry for managing SwiftSyntax-based pattern detection and registration.
 ///
@@ -18,6 +18,8 @@ public final class SourcePatternRegistry: SourcePatternRegistryProtocol, @unchec
 
     /// The underlying visitor registry that manages pattern visitors.
     private let visitorRegistry: PatternVisitorRegistry
+
+    private let lock = NSLock()
 
     /// Whether the registry has been initialized with default patterns.
     private var isInitialized = false
@@ -48,13 +50,22 @@ public final class SourcePatternRegistry: SourcePatternRegistryProtocol, @unchec
     /// This method registers all the built-in patterns for various categories
     /// including state management, performance, security, accessibility, etc.
     public func initialize() {
-        guard !isInitialized else { return }
+        // Atomically check-and-set to prevent double-initialization.
+        // Set `isInitialized` before releasing the lock so concurrent callers
+        // see it immediately. The lock is released before registering patterns
+        // because registrars call back into self.register() → visitorRegistry,
+        // which acquires its own lock (avoiding deadlock).
+        lock.lock()
+        guard !isInitialized else {
+            lock.unlock()
+            return
+        }
+        isInitialized = true
+        lock.unlock()
 
         for category in PatternCategory.allCases {
             registerPatterns(for: category)
         }
-
-        isInitialized = true
     }
 
     /// Retrieves all registered patterns for a specific category.
@@ -89,7 +100,9 @@ public final class SourcePatternRegistry: SourcePatternRegistryProtocol, @unchec
     /// Clears all registered patterns.
     public func clear() {
         visitorRegistry.clear()
-        isInitialized = false
+        lock.withLock {
+            isInitialized = false
+        }
     }
 
     // MARK: - Private Pattern Registration Methods

@@ -4,8 +4,14 @@ import Foundation
 /// Shared debug logger for SwiftProjectLint - only compiled in DEBUG builds
 public struct DebugLogger {
     public static let isEnabled = true
-    // Safety: only mutated in tests (which run serially) to capture log output.
-    nonisolated(unsafe) public static var outputHandler: (String) -> Void = { print($0) }
+    private static let _outputLock = NSLock()
+    // Safety: protected by _outputLock. All access goes through the computed
+    // `outputHandler` property which acquires the lock.
+    nonisolated(unsafe) private static var _outputHandler: (String) -> Void = { print($0) }
+    public static var outputHandler: (String) -> Void {
+        get { _outputLock.withLock { _outputHandler } }
+        set { _outputLock.withLock { _outputHandler = newValue } }
+    }
 
     /// Returns the path to the debug directory, creating it if necessary
     public static func debugDirectory() -> String {
