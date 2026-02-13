@@ -41,6 +41,7 @@ struct ContentView: View {
         }
     }()
     @State private var showingDirectoryPicker: Bool = false
+    @State private var analysisTask: Task<Void, Never>?
 
     private let userDefaultsKey = "enabledLintRules"
 
@@ -90,6 +91,9 @@ struct ContentView: View {
                     print("Error selecting directory: \(error.localizedDescription)")
                 }
             }
+            .onDisappear {
+                analysisTask?.cancel()
+            }
         }
     }
 
@@ -120,9 +124,13 @@ struct ContentView: View {
     /// only include issues from enabled rules. The results are assigned to the `lintIssues`
     /// state variable. Finally, it sets `isAnalyzing` back to `false`.
     private func runLinter(at path: String) {
+        guard !isAnalyzing else { return }
+
+        // Cancel any previous analysis before starting a new one
+        analysisTask?.cancel()
         isAnalyzing = true
 
-        Task {
+        analysisTask = Task {
             var allIssues: [LintIssue] = []
 
             // Determine which categories have enabled rules
@@ -132,6 +140,13 @@ struct ContentView: View {
             if !enabledCategories.isEmpty {
                 let linter = ProjectLinter()
                 let crossFileIssues = await linter.analyzeProject(at: path, categories: enabledCategories)
+
+                // Don't update UI state if this task was cancelled
+                guard !Task.isCancelled else {
+                    isAnalyzing = false
+                    return
+                }
+
                 allIssues.append(contentsOf: crossFileIssues)
             }
 

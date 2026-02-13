@@ -69,6 +69,7 @@ public class ProjectLinter {
         ) { group in
             for filePath in filePaths {
                 group.addTask {
+                    guard !Task.isCancelled else { return nil }
                     guard let content = try? String(contentsOfFile: filePath) else {
                         return nil
                     }
