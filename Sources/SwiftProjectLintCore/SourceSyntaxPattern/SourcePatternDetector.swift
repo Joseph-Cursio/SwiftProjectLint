@@ -2,8 +2,10 @@ import Foundation
 import SwiftParser
 import SwiftSyntax
 
-@MainActor
-public class SourcePatternDetector: SourcePatternDetectorProtocol {
+
+// Safety: @unchecked Sendable because mutable fileCache is used per-analysis
+// (populated then cleared) and not accessed concurrently.
+public final class SourcePatternDetector: SourcePatternDetectorProtocol, @unchecked Sendable {
     private let registry: PatternVisitorRegistry
     private var fileCache: [String: SourceFileSyntax] = [:]
 

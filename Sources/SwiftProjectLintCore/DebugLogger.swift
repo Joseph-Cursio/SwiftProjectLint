@@ -2,9 +2,10 @@ import Foundation
 
 #if DEBUG
 /// Shared debug logger for SwiftProjectLint - only compiled in DEBUG builds
-@MainActor public struct DebugLogger {
+public struct DebugLogger {
     public static let isEnabled = true
-    public static var outputHandler: (String) -> Void = { print($0) }
+    // Safety: only mutated in tests (which run serially) to capture log output.
+    nonisolated(unsafe) public static var outputHandler: (String) -> Void = { print($0) }
 
     /// Returns the path to the debug directory, creating it if necessary
     public static func debugDirectory() -> String {

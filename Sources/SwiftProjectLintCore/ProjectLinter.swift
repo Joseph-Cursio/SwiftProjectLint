@@ -20,7 +20,7 @@ import SwiftUI
 ///     print(issue.message)
 /// }
 /// ```
-@MainActor
+
 public class ProjectLinter {
     private var projectFiles: [ProjectFile] = []
     private var stateVariables: [StateVariable] = []
@@ -237,7 +237,7 @@ public class ProjectLinter {
     ///   - sourceCode: The Swift source code to analyze.
     ///   - filePath: The full file path of the Swift file to analyze.
     /// - Returns: An array of StateVariable instances representing all state variables found in the file.
-    @MainActor private func extractStateVariables(
+    private func extractStateVariables(
         from sourceCode: String,
         filePath: String
     ) -> [StateVariable] {
@@ -310,7 +310,7 @@ public class ProjectLinter {
     /// - Parameters:
     ///   - categories: Optional array of pattern categories to analyze. If nil, analyzes all categories.
     /// - Returns: An array of `LintIssue`
-    @MainActor private func detectCrossFileIssues(
+    private func detectCrossFileIssues(
         categories: [PatternCategory]? = nil
     ) -> [LintIssue] {
         let issues: [LintIssue] = []

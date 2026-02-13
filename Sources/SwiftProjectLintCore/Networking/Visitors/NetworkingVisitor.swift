@@ -45,12 +45,10 @@ class NetworkingVisitor: BasePatternVisitor {
     // MARK: - Helper Methods
     
     private func logFunctionCall(_ node: FunctionCallExprSyntax) {
-        Task { @MainActor in
-            DebugLogger.logNode(
-                "FunctionCallExpr",
-                "description: \(node.description)"
-            )
-        }
+        DebugLogger.logNode(
+            "FunctionCallExpr",
+            "description: \(node.description)"
+        )
     }
     
     /// Checks for synchronous Data(contentsOf:) calls and reports them as errors
@@ -61,23 +59,17 @@ class NetworkingVisitor: BasePatternVisitor {
             return false
         }
 
-        Task { @MainActor in
-            DebugLogger.logVisitor(.networking, "Called expression: Data")
-        }
+        DebugLogger.logVisitor(.networking, "Called expression: Data")
 
         for arg in node.arguments {
-            Task { @MainActor in
-                DebugLogger.logVisitor(
-                    .networking,
-                    "Argument label: \(arg.label?.text ?? "nil") " +
-                    "value: \(arg.expression.description)"
-                )
-            }
+            DebugLogger.logVisitor(
+                .networking,
+                "Argument label: \(arg.label?.text ?? "nil") " +
+                "value: \(arg.expression.description)"
+            )
 
             if arg.label?.text == "contentsOf" {
-                Task { @MainActor in
-                    DebugLogger.logVisitor(.networking, "hasContentsOf: true")
-                }
+                DebugLogger.logVisitor(.networking, "hasContentsOf: true")
 
                 addIssue(
                     severity: .error,
@@ -110,14 +102,12 @@ class NetworkingVisitor: BasePatternVisitor {
     }
     
     private func logDataTaskAccess(_ node: FunctionCallExprSyntax, _ memberAccess: MemberAccessExprSyntax) {
-        Task { @MainActor in
-            DebugLogger.logVisitor(.networking, "Member access: \(memberAccess.description)")
-            DebugLogger.logVisitor(.networking, "Member name: \(memberAccess.declName.baseName.text)")
-            DebugLogger.logVisitor(.networking, "Full member access: \(memberAccess)")
-            DebugLogger.logVisitor(.networking, "Found dataTask member access")
-            DebugLogger.logVisitor(.networking, "Trailing closure exists: \(node.trailingClosure != nil)")
-            DebugLogger.logVisitor(.networking, "Function call structure: \(node)")
-        }
+        DebugLogger.logVisitor(.networking, "Member access: \(memberAccess.description)")
+        DebugLogger.logVisitor(.networking, "Member name: \(memberAccess.declName.baseName.text)")
+        DebugLogger.logVisitor(.networking, "Full member access: \(memberAccess)")
+        DebugLogger.logVisitor(.networking, "Found dataTask member access")
+        DebugLogger.logVisitor(.networking, "Trailing closure exists: \(node.trailingClosure != nil)")
+        DebugLogger.logVisitor(.networking, "Function call structure: \(node)")
     }
     
     /// Checks if error handling exists in the closure
@@ -135,9 +125,7 @@ class NetworkingVisitor: BasePatternVisitor {
         logClosureParameters(params)
         
         guard params.count >= 3 else {
-            Task { @MainActor in
-                DebugLogger.logVisitor(.networking, "Fewer than 3 parameters in closure")
-            }
+            DebugLogger.logVisitor(.networking, "Fewer than 3 parameters in closure")
             return checkErrorHandlingInBody(closure.statements.description)
         }
         
@@ -147,9 +135,7 @@ class NetworkingVisitor: BasePatternVisitor {
         // Also check secondName for cases where parameter might be represented differently
         let thirdNameAlt = thirdParam.secondName?.text.trimmingCharacters(in: .whitespaces) ?? ""
         
-        Task { @MainActor in
-            DebugLogger.logVisitor(.networking, "Third parameter: '\(thirdName)' (alt: '\(thirdNameAlt)')")
-        }
+        DebugLogger.logVisitor(.networking, "Third parameter: '\(thirdName)' (alt: '\(thirdNameAlt)')")
         
         if thirdName == "error" || thirdNameAlt == "error" {
             return checkErrorHandlingForErrorParameter(closure.statements.description)
@@ -163,26 +149,22 @@ class NetworkingVisitor: BasePatternVisitor {
     }
     
     private func logClosureDetails(_ closure: ClosureExprSyntax) {
-        Task { @MainActor in
-            DebugLogger.logVisitor(.networking, "Found trailing closure")
-            DebugLogger.logVisitor(
-                .networking,
-                "Closure signature: \(closure.signature?.description ?? "nil")"
-            )
-            DebugLogger.logVisitor(
-                .networking,
-                "Closure body: \(closure.statements.description)"
-            )
-        }
+        DebugLogger.logVisitor(.networking, "Found trailing closure")
+        DebugLogger.logVisitor(
+            .networking,
+            "Closure signature: \(closure.signature?.description ?? "nil")"
+        )
+        DebugLogger.logVisitor(
+            .networking,
+            "Closure body: \(closure.statements.description)"
+        )
     }
     
     private func logClosureParameters(_ params: ClosureParameterListSyntax) {
-        Task { @MainActor in
-            DebugLogger.logVisitor(.networking, "Found parameter clause")
-            DebugLogger.logVisitor(.networking, "Closure parameters:")
-            for param in params {
-                DebugLogger.logVisitor(.networking, "- \(param.firstName.text)")
-            }
+        DebugLogger.logVisitor(.networking, "Found parameter clause")
+        DebugLogger.logVisitor(.networking, "Closure parameters:")
+        for param in params {
+            DebugLogger.logVisitor(.networking, "- \(param.firstName.text)")
         }
     }
     
@@ -196,12 +178,10 @@ class NetworkingVisitor: BasePatternVisitor {
             || bodyText.contains("error.description")
             || bodyText.contains("error as")
         
-        Task { @MainActor in
-            DebugLogger.logVisitor(
-                .networking,
-                hasErrorHandling ? "Found error handling in body" : "Error parameter is not handled"
-            )
-        }
+        DebugLogger.logVisitor(
+            .networking,
+            hasErrorHandling ? "Found error handling in body" : "Error parameter is not handled"
+        )
         
         return hasErrorHandling
     }
@@ -213,9 +193,7 @@ class NetworkingVisitor: BasePatternVisitor {
             || bodyText.contains("error != nil")
         
         if hasErrorHandling {
-            Task { @MainActor in
-                DebugLogger.logVisitor(.networking, "Found error handling in body")
-            }
+            DebugLogger.logVisitor(.networking, "Found error handling in body")
         }
         
         return hasErrorHandling
@@ -223,10 +201,8 @@ class NetworkingVisitor: BasePatternVisitor {
     
     private func reportIgnoredErrorParameter(node: FunctionCallExprSyntax) {
         let line = lineNumber(for: node)
-        Task { @MainActor in
-            DebugLogger.logVisitor(.networking, "Error parameter is ignored (_)")
-            DebugLogger.logIssue("Appending missing error handling issue at line \(line)")
-        }
+        DebugLogger.logVisitor(.networking, "Error parameter is ignored (_)")
+        DebugLogger.logIssue("Appending missing error handling issue at line \(line)")
 
         addIssue(
             severity: .warning,
@@ -250,8 +226,6 @@ class NetworkingVisitor: BasePatternVisitor {
             ruleName: .missingErrorHandling
         )
 
-        Task { @MainActor in
-            DebugLogger.logIssue("Appending missing error handling issue at line \(line)")
-        }
+        DebugLogger.logIssue("Appending missing error handling issue at line \(line)")
     }
 }

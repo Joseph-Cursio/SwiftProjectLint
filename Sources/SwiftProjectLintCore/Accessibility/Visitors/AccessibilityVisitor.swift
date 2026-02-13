@@ -107,30 +107,22 @@ class AccessibilityVisitor: BasePatternVisitor {
     // MARK: - Syntax Visitor Methods
 
     override func visit(_ node: FunctionCallExprSyntax) -> SyntaxVisitorContinueKind {
-        Task { @MainActor in
-            DebugLogger.logNode(
-                "FunctionCallExpr",
-                "name: \(node.calledExpression.description.trimmingCharacters(in: .whitespaces))")
-        }
+        DebugLogger.logNode(
+            "FunctionCallExpr",
+            "name: \(node.calledExpression.description.trimmingCharacters(in: .whitespaces))")
 
         // Check if this is a Button, Image, or Text
         if let calledExpression = node.calledExpression.as(DeclReferenceExprSyntax.self) {
             let functionName = calledExpression.baseName.text
 
             if functionName == "Button" {
-                Task { @MainActor in
-                    DebugLogger.logVisitor(.accessibility, "Found Button initialization")
-                }
+                DebugLogger.logVisitor(.accessibility, "Found Button initialization")
                 buttonChecker.checkAccessibility(node)
             } else if functionName == "Image" {
-                Task { @MainActor in
-                    DebugLogger.logVisitor(.accessibility, "Found Image initialization")
-                }
+                DebugLogger.logVisitor(.accessibility, "Found Image initialization")
                 imageChecker.checkAccessibility(node)
             } else if functionName == "Text" {
-                Task { @MainActor in
-                    DebugLogger.logVisitor(.accessibility, "Found Text initialization")
-                }
+                DebugLogger.logVisitor(.accessibility, "Found Text initialization")
                 textChecker.checkAccessibility(node)
             }
         }
@@ -139,9 +131,7 @@ class AccessibilityVisitor: BasePatternVisitor {
     }
 
     override func visit(_ node: MemberAccessExprSyntax) -> SyntaxVisitorContinueKind {
-        Task { @MainActor in
-            DebugLogger.logNode("MemberAccessExpr", "name: \(node.declName.baseName.text)")
-        }
+        DebugLogger.logNode("MemberAccessExpr", "name: \(node.declName.baseName.text)")
 
         // Check for color usage
         colorChecker.checkAccessibility(node)

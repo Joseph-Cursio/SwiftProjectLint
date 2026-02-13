@@ -4,8 +4,10 @@ import SwiftSyntax
 
 /// The detector supports cross-file analysis and can detect patterns that span multiple files,
 /// such as duplicate state variables across different views.
-@MainActor
-public class SwiftSyntaxPatternDetector: SwiftSyntaxPatternDetectorProtocol {
+
+// Safety: @unchecked Sendable because mutable fileCache is used per-analysis
+// (populated then cleared) and not accessed concurrently.
+public final class SwiftSyntaxPatternDetector: SwiftSyntaxPatternDetectorProtocol, @unchecked Sendable {
     private let registry: PatternVisitorRegistry
     private var fileCache: [String: SourceFileSyntax] = [:]
     

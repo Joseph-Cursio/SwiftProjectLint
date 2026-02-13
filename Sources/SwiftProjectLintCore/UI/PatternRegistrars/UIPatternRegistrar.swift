@@ -2,7 +2,7 @@ import Foundation
 
 /// Registers patterns related to UI best practices in SwiftUI.
 /// This registrar handles patterns for navigation, ForEach usage, styling, and error handling.
-@MainActor
+
 class UIPatternRegistrar: PatternRegistrarWithVisitorProto {
     
     let registry: SourcePatternRegistry

@@ -89,7 +89,7 @@ class AdvancedAnalyzer {
     /// - Note: The analysis is static and based on regular expressions; dynamic or non-standard
     /// code patterns may not be fully detected.
     /// - Warning: This method is not thread-safe; use from a single thread at a time.
-    @MainActor func analyzeArchitecture(projectPath: String) -> [ArchitectureIssue] {
+    func analyzeArchitecture(projectPath: String) -> [ArchitectureIssue] {
         var issues: [ArchitectureIssue] = []
 
         // 1. Build view hierarchy
@@ -128,7 +128,7 @@ class AdvancedAnalyzer {
     ///   in the project.
     ///
     /// The results are stored internally in the analyzer for use in further architectural analysis and issue detection.
-    @MainActor private func buildViewHierarchy(from projectPath: String) {
+    private func buildViewHierarchy(from projectPath: String) {
         let swiftFiles = FileAnalysisUtils.findSwiftFiles(in: projectPath)
 
         for filePath in swiftFiles {
@@ -165,7 +165,7 @@ class AdvancedAnalyzer {
     /// - `NavigationLink` destination views (e.g., `NavigationLink(destination: SomeView())`)
     /// - Sheet presentation (e.g., `.sheet(content: { SomeView() })`)
     /// - Full screen cover presentation (e.g., `.fullScreenCover(content: { SomeView() })`)
-    @MainActor private func extractViewRelationships(from filePath: String) -> [ViewRelationship] {
+    private func extractViewRelationships(from filePath: String) -> [ViewRelationship] {
         var relationships: [ViewRelationship] = []
 
         let parentView = FileAnalysisUtils.extractSwiftBasename(from: filePath)
@@ -194,7 +194,7 @@ class AdvancedAnalyzer {
     ///
     /// The returned `StateVariable` instances include the variable's name, type, property wrapper, the
     /// associated view name, as well as the file path and line number where they were found.
-    @MainActor private func extractStateVariables(from filePath: String) -> [StateVariable] {
+    private func extractStateVariables(from filePath: String) -> [StateVariable] {
         var stateVariables: [StateVariable] = []
 
         let sourceFile = Parser.parse(source: (try? String(contentsOfFile: filePath, encoding: .utf8)) ?? "")

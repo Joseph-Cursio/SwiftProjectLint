@@ -2,7 +2,7 @@ import Foundation
 
 /// Registers patterns related to code quality and best practices.
 /// This registrar handles patterns for magic numbers, long functions, hardcoded strings, and documentation.
-@MainActor
+
 class CodeQualityPatternRegistrar: PatternRegistrarWithVisitorProto {
 
     let registry: SourcePatternRegistry

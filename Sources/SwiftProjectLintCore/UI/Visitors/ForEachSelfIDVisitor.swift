@@ -15,9 +15,7 @@ class ForEachSelfIDVisitor: BasePatternVisitor {
     }
 
     override func visit(_ node: FunctionCallExprSyntax) -> SyntaxVisitorContinueKind {
-        Task { @MainActor in
-            DebugLogger.logVisitor(.forEachSelfID, "Visiting FunctionCallExprSyntax")
-        }
+        DebugLogger.logVisitor(.forEachSelfID, "Visiting FunctionCallExprSyntax")
         // Check if this is a ForEach call
         if let calledExpr = node.calledExpression.as(DeclReferenceExprSyntax.self),
            calledExpr.baseName.text == "ForEach" {

@@ -5,7 +5,7 @@
 //  Created by joe cursio on 7/14/25.
 //
 /// Protocol for pattern detection operations
-@MainActor
+
 public protocol SourcePatternDetectorProtocol {
     func detectPatterns(
         in sourceCode: String,

@@ -8,8 +8,10 @@ import SwiftSyntax
 /// `PatternVisitorRegistry` to provide a complete pattern management system.
 ///
 /// - Note: This registry supports both singleton access via `shared` and dependency injection.
-@MainActor
-public class SwiftSyntaxPatternRegistry: SwiftSyntaxPatternRegistryProtocol {
+
+// Safety: @unchecked Sendable because mutable state is only written during
+// initialization (before any concurrent reads) and then read-only during analysis.
+public final class SwiftSyntaxPatternRegistry: SwiftSyntaxPatternRegistryProtocol, @unchecked Sendable {
     
     /// Shared singleton instance for global access.
     public static let shared = SwiftSyntaxPatternRegistry()

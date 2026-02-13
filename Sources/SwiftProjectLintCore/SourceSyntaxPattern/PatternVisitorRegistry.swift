@@ -13,10 +13,11 @@ import SwiftSyntax
 /// manage pattern visitors for different categories of code analysis. It supports
 /// dynamic pattern registration and category-based visitor retrieval.
 ///
-/// Thread safety is provided by `@MainActor` isolation — all access is serialized
-/// on the main actor, so no additional synchronization is needed.
-@MainActor
-public class PatternVisitorRegistry: PatternVisitorRegistryProtocol {
+/// This registry is populated during app initialization and then read during analysis.
+
+// Safety: @unchecked Sendable because mutable state is only written during
+// initialization (before any concurrent reads) and then read-only during analysis.
+public final class PatternVisitorRegistry: PatternVisitorRegistryProtocol, @unchecked Sendable {
     public static let shared = PatternVisitorRegistry()
 
     private var patterns: [SyntaxPattern] = []
