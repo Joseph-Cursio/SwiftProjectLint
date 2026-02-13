@@ -19,7 +19,7 @@
 /// - `networking`: Patterns related to network operations, error handling, and asynchronous calls.
 /// - `uiPatterns`: Patterns concerning user interface structure and design conventions, such as navigation usage, previews, or styling consistency.
 /// - `other`: System-level patterns and errors that don't fit into other categories, such as file parsing errors.
-public enum PatternCategory: CaseIterable {
+public enum PatternCategory: CaseIterable, Sendable {
     case stateManagement
     case performance
     case architecture

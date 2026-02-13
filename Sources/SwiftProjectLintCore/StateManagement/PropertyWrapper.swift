@@ -1,7 +1,7 @@
 import Foundation
 
 /// Enum representing supported SwiftUI property wrappers for state management.
-public enum PropertyWrapper: String, CaseIterable {
+public enum PropertyWrapper: String, CaseIterable, Sendable {
     case state = "State"
     case stateObject = "StateObject"
     case observedObject = "ObservedObject"

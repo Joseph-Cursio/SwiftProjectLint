@@ -14,7 +14,7 @@ import Foundation
 ///   - viewName: The name of the containing SwiftUI view (typically the struct name, inferred from the file name).
 ///   - propertyWrapper: The property wrapper used (e.g., `@State`, `@StateObject`, `@ObservedObject`, or `@EnvironmentObject`).
 ///
-public struct StateVariable {
+public struct StateVariable: Sendable {
     public let name: String
     public let type: String
     public let filePath: String

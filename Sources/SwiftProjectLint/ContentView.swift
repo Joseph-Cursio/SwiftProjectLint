@@ -123,9 +123,6 @@ struct ContentView: View {
         isAnalyzing = true
 
         Task {
-            // Simulate analysis delay
-            try? await Task.sleep(for: .seconds(2))
-
             var allIssues: [LintIssue] = []
 
             // Determine which categories have enabled rules
@@ -134,7 +131,7 @@ struct ContentView: View {
             // Only use ProjectLinter for analysis
             if !enabledCategories.isEmpty {
                 let linter = ProjectLinter()
-                let crossFileIssues = linter.analyzeProject(at: path, categories: enabledCategories)
+                let crossFileIssues = await linter.analyzeProject(at: path, categories: enabledCategories)
                 allIssues.append(contentsOf: crossFileIssues)
             }
 

@@ -15,7 +15,7 @@ import SwiftUI
 /// ## Usage Example
 /// ```swift
 /// let linter = ProjectLinter()
-/// let issues = linter.analyzeProject(at: "/path/to/project")
+/// let issues = await linter.analyzeProject(at: "/path/to/project")
 /// for issue in issues {
 ///     print(issue.message)
 /// }
@@ -31,6 +31,9 @@ public class ProjectLinter {
     /// Analyzes a SwiftUI project at the specified file system path, performing static analysis to detect state variable usage,
     /// build view hierarchies, and report lint issues and code patterns across all Swift source files in the project.
     ///
+    /// Per-file analysis runs concurrently using a TaskGroup. Cross-file analysis runs sequentially
+    /// after all per-file results have been collected.
+    ///
     /// - Parameters:
     ///   - path: The root directory path of the SwiftUI project to analyze.
     ///   - categories: Optional array of pattern categories to analyze. If nil, analyzes all categories.
@@ -40,7 +43,7 @@ public class ProjectLinter {
         at path: String,
         categories: [PatternCategory]? = nil,
         ruleIdentifiers: [RuleIdentifier]? = nil
-    ) -> [LintIssue] {
+    ) async -> [LintIssue] {
         print("DEBUG: analyzeProject called with path: '\(path)'")
         print(
             "DEBUG: categories: \(categories?.map { String(describing: $0) } ?? ["all"])"
@@ -49,7 +52,6 @@ public class ProjectLinter {
             "DEBUG: ruleIdentifiers: \(ruleIdentifiers?.map { $0.rawValue } ?? [])"
         )
 
-        var issues: [LintIssue] = []
         let filePaths = findSwiftFiles(in: path)
         projectFiles = filePaths.compactMap { filePath in
             guard let content = try? String(contentsOfFile: filePath) else {
@@ -63,16 +65,59 @@ public class ProjectLinter {
 
         print("DEBUG: Found \(projectFiles.count) project files for analysis")
 
-        for file in projectFiles {
-            let fileIssues = analyzeSwiftFile(
-                name: file.name,
-                content: file.content,
-                categories: categories,
-                ruleIdentifiers: ruleIdentifiers
-            )
-            issues.append(contentsOf: fileIssues)
+        // Resolve the registry once so each task can create its own detector
+        let registry = (singleFileDetector ?? SourcePatternDetector()).registry
+
+        // Bind parameters locally so they can be safely captured by sendable closures
+        let taskCategories = categories
+        let taskRuleIdentifiers = ruleIdentifiers
+        let files = projectFiles
+
+        // Per-file analysis — embarrassingly parallel
+        let perFileResults = await withTaskGroup(
+            of: (issues: [LintIssue], stateVars: [StateVariable]).self
+        ) { group in
+            for file in files {
+                group.addTask {
+                    let detector = SourcePatternDetector(registry: registry)
+
+                    let issues: [LintIssue]
+                    if let ruleIdentifiers = taskRuleIdentifiers {
+                        issues = detector.detectPatterns(
+                            in: file.content,
+                            filePath: file.name,
+                            ruleIdentifiers: ruleIdentifiers
+                        )
+                    } else {
+                        issues = detector.detectPatterns(
+                            in: file.content,
+                            filePath: file.name,
+                            categories: taskCategories
+                        )
+                    }
+
+                    let stateVars = ProjectLinter.extractStateVariables(
+                        from: file.content,
+                        filePath: file.name
+                    )
+
+                    return (issues: issues, stateVars: stateVars)
+                }
+            }
+
+            var allIssues: [LintIssue] = []
+            var allStateVars: [StateVariable] = []
+            for await result in group {
+                allIssues.append(contentsOf: result.issues)
+                allStateVars.append(contentsOf: result.stateVars)
+            }
+            return (allIssues, allStateVars)
         }
 
+        var issues = perFileResults.0
+        stateVariables = perFileResults.1
+
+        // Sequential cross-file analysis (depends on full file set)
         buildViewHierarchy()
         let crossFileIssues = detectCrossFileIssues(categories: categories)
         issues.append(contentsOf: crossFileIssues)
@@ -174,70 +219,16 @@ public class ProjectLinter {
         return swiftFiles
     }
 
-    /// Analyzes a single Swift source file for SwiftUI state variable usage and potential code issues.
-    ///
-    /// This method performs the following steps:
-    /// 1. Reads the contents of the specified Swift file at the given path.
-    /// 2. Iterates through each line of the file, attempting to extract property declarations that use
-    ///    SwiftUI state-related property wrappers such as `@State`, `@StateObject`,
-    ///    `@ObservedObject`, or `@EnvironmentObject`.
-    ///    Any detected state variable is appended to the internal `stateVariables` collection.
-    /// 3. Performs additional pattern-based lint analysis using the `SourcePatternDetector`,
-    ///   appending any issues detected.
-    /// 4. Returns an array of `LintIssue` objects representing all issues found within the file.
-    ///
-    /// - Parameters:
-    ///   - path: The full filesystem path to the Swift source file to be analyzed.
-    ///   - categories: Optional array of pattern categories to analyze. If nil, analyzes all categories.
-    ///   - ruleIdentifiers: Optional array of specific rule identifiers to analyze. If provided, overrides categories.
-    /// - Returns: An array of `LintIssue` objects describing all code issues, warnings, or suggestions detected
-    ///            within the file.
-    ///
-    /// - Note: This method uses SwiftSyntax for accurate parsing and can handle complex property declarations,
-    ///         multiline statements, and edge cases.
-    private func analyzeSwiftFile(
-        name: String,
-        content: String,
-        categories: [PatternCategory]? = nil,
-        ruleIdentifiers: [RuleIdentifier]? = nil
-    ) -> [LintIssue] {
-        var issues: [LintIssue] = []
-        let extractedStateVariables = extractStateVariables(
-            from: content,
-            filePath: name
-        )
-        stateVariables.append(contentsOf: extractedStateVariables)
-        let swiftSyntaxDetector = singleFileDetector ?? SourcePatternDetector()
-        if let ruleIdentifiers = ruleIdentifiers {
-            issues.append(
-                contentsOf: swiftSyntaxDetector.detectPatterns(
-                    in: content,
-                    filePath: name,
-                    ruleIdentifiers: ruleIdentifiers
-                )
-            )
-        } else {
-            issues.append(
-                contentsOf: swiftSyntaxDetector.detectPatterns(
-                    in: content,
-                    filePath: name,
-                    categories: categories
-                )
-            )
-        }
-        return issues
-    }
-
     /// Extracts state variables from Swift source code using SwiftSyntax parsing.
     ///
-    /// This method parses the entire Swift file to detect state property declarations
-    /// utilizing common SwiftUI property wrappers: @State, @StateObject, @ObservedObject, and @EnvironmentObject.
+    /// This is a pure function (no dependency on instance state) so it can safely be called
+    /// from concurrent TaskGroup closures.
     ///
     /// - Parameters:
     ///   - sourceCode: The Swift source code to analyze.
     ///   - filePath: The full file path of the Swift file to analyze.
     /// - Returns: An array of StateVariable instances representing all state variables found in the file.
-    private func extractStateVariables(
+    private static func extractStateVariables(
         from sourceCode: String,
         filePath: String
     ) -> [StateVariable] {
@@ -264,7 +255,7 @@ public class ProjectLinter {
     /// - Note: This approach relies on the convention that each SwiftUI view is declared in a file
     ///         named after the view's struct. If a file contains multiple views or does not follow this
     ///         naming convention, the returned name may not accurately reflect the view's actual type name.
-    private func extractViewName(from filePath: String) -> String {
+    private static func extractViewName(from filePath: String) -> String {
         let fileName = (filePath as NSString).lastPathComponent
         return fileName.replacingOccurrences(of: ".swift", with: "")
     }
