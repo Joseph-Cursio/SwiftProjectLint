@@ -2,7 +2,6 @@ import Foundation
 import SwiftParser
 import SwiftSyntax
 
-
 // Safety: @unchecked Sendable because mutable fileCache is used per-analysis
 // (populated then cleared) and not accessed concurrently.
 public final class SourcePatternDetector: SourcePatternDetectorProtocol, @unchecked Sendable {

@@ -7,6 +7,9 @@
 import SwiftParser
 import SwiftSyntax
 
+// Safety: @unchecked Sendable because mutable state is only written during
+// initialization (before any concurrent reads) and then read-only during analysis.
+
 /// Registry for managing SwiftSyntax-based pattern visitors and their configurations.
 ///
 /// `PatternVisitorRegistry` provides a centralized way to register, retrieve, and
@@ -14,9 +17,6 @@ import SwiftSyntax
 /// dynamic pattern registration and category-based visitor retrieval.
 ///
 /// This registry is populated during app initialization and then read during analysis.
-
-// Safety: @unchecked Sendable because mutable state is only written during
-// initialization (before any concurrent reads) and then read-only during analysis.
 public final class PatternVisitorRegistry: PatternVisitorRegistryProtocol, @unchecked Sendable {
     public static let shared = PatternVisitorRegistry()
 

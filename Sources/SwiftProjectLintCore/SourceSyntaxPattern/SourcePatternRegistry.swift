@@ -1,6 +1,9 @@
 import Foundation
 import SwiftSyntax
 
+// Safety: @unchecked Sendable because mutable state is only written during
+// initialization (before any concurrent reads) and then read-only during analysis.
+
 /// Registry for managing SwiftSyntax-based pattern detection and registration.
 ///
 /// `SourcePatternRegistry` provides a centralized way to register, retrieve, and
@@ -8,9 +11,6 @@ import SwiftSyntax
 /// `PatternVisitorRegistry` to provide a complete pattern management system.
 ///
 /// - Note: This registry supports both singleton access via `shared` and dependency injection.
-
-// Safety: @unchecked Sendable because mutable state is only written during
-// initialization (before any concurrent reads) and then read-only during analysis.
 public final class SourcePatternRegistry: SourcePatternRegistryProtocol, @unchecked Sendable {
     
     /// Shared singleton instance for global access.
