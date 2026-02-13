@@ -132,12 +132,13 @@ class AdvancedAnalyzer {
         let swiftFiles = FileAnalysisUtils.findSwiftFiles(in: projectPath)
 
         for filePath in swiftFiles {
-            // Extract view relationships using SwiftSyntax
-            let relationships = extractViewRelationships(from: filePath)
+            // Read each file once and pass the content to both extraction methods
+            let sourceContents = (try? String(contentsOfFile: filePath, encoding: .utf8)) ?? ""
+
+            let relationships = extractViewRelationships(from: filePath, sourceContents: sourceContents)
             viewRelationships.append(contentsOf: relationships)
 
-            // Extract state variables using SwiftSyntax
-            let stateVars = extractStateVariables(from: filePath)
+            let stateVars = extractStateVariables(from: filePath, sourceContents: sourceContents)
             stateVariables.append(contentsOf: stateVars)
         }
 
@@ -165,11 +166,10 @@ class AdvancedAnalyzer {
     /// - `NavigationLink` destination views (e.g., `NavigationLink(destination: SomeView())`)
     /// - Sheet presentation (e.g., `.sheet(content: { SomeView() })`)
     /// - Full screen cover presentation (e.g., `.fullScreenCover(content: { SomeView() })`)
-    private func extractViewRelationships(from filePath: String) -> [ViewRelationship] {
+    private func extractViewRelationships(from filePath: String, sourceContents: String) -> [ViewRelationship] {
         var relationships: [ViewRelationship] = []
 
         let parentView = FileAnalysisUtils.extractSwiftBasename(from: filePath)
-        let sourceContents = (try? String(contentsOfFile: filePath, encoding: .utf8)) ?? ""
         let sourceFile = Parser.parse(source: sourceContents)
         let sourceLocationConverter = SourceLocationConverter(fileName: filePath, tree: sourceFile)
         let visitor = ViewRelationshipVisitor(parentView: parentView,
@@ -194,18 +194,12 @@ class AdvancedAnalyzer {
     ///
     /// The returned `StateVariable` instances include the variable's name, type, property wrapper, the
     /// associated view name, as well as the file path and line number where they were found.
-    private func extractStateVariables(from filePath: String) -> [StateVariable] {
-        var stateVariables: [StateVariable] = []
-
-        let sourceFile = Parser.parse(source: (try? String(contentsOfFile: filePath, encoding: .utf8)) ?? "")
-
+    private func extractStateVariables(from filePath: String, sourceContents: String) -> [StateVariable] {
+        let sourceFile = Parser.parse(source: sourceContents)
         let viewName = FileAnalysisUtils.extractSwiftBasename(from: filePath)
-        let sourceContents = (try? String(contentsOfFile: filePath, encoding: .utf8)) ?? ""
         let visitor = StateVariableVisitor(viewName: viewName, filePath: filePath, sourceContents: sourceContents)
         visitor.walk(sourceFile)
-        stateVariables.append(contentsOf: visitor.stateVariables)
-
-        return stateVariables
+        return visitor.stateVariables
     }
 
     // Public: Get the relationship type between two views, if any

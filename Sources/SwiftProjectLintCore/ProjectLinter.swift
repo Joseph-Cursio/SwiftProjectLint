@@ -53,17 +53,6 @@ public class ProjectLinter {
         )
 
         let filePaths = findSwiftFiles(in: path)
-        projectFiles = filePaths.compactMap { filePath in
-            guard let content = try? String(contentsOfFile: filePath) else {
-                return nil
-            }
-            return ProjectFile(
-                name: (filePath as NSString).lastPathComponent,
-                content: content
-            )
-        }
-
-        print("DEBUG: Found \(projectFiles.count) project files for analysis")
 
         // Resolve the registry once so each task can create its own detector
         let registry = (singleFileDetector ?? SourcePatternDetector()).registry
@@ -71,14 +60,23 @@ public class ProjectLinter {
         // Bind parameters locally so they can be safely captured by sendable closures
         let taskCategories = categories
         let taskRuleIdentifiers = ruleIdentifiers
-        let files = projectFiles
 
-        // Per-file analysis — embarrassingly parallel
+        // Per-file I/O and analysis — embarrassingly parallel.
+        // Each task reads its own file and runs pattern detection, keeping
+        // synchronous file I/O off the caller and spreading it across the pool.
         let perFileResults = await withTaskGroup(
-            of: (issues: [LintIssue], stateVars: [StateVariable]).self
+            of: (file: ProjectFile, issues: [LintIssue], stateVars: [StateVariable])?.self
         ) { group in
-            for file in files {
+            for filePath in filePaths {
                 group.addTask {
+                    guard let content = try? String(contentsOfFile: filePath) else {
+                        return nil
+                    }
+                    let file = ProjectFile(
+                        name: (filePath as NSString).lastPathComponent,
+                        content: content
+                    )
+
                     let detector = SourcePatternDetector(registry: registry)
 
                     let issues: [LintIssue]
@@ -101,21 +99,26 @@ public class ProjectLinter {
                         filePath: file.name
                     )
 
-                    return (issues: issues, stateVars: stateVars)
+                    return (file: file, issues: issues, stateVars: stateVars)
                 }
             }
 
+            var allFiles: [ProjectFile] = []
             var allIssues: [LintIssue] = []
             var allStateVars: [StateVariable] = []
             for await result in group {
+                guard let result else { continue }
+                allFiles.append(result.file)
                 allIssues.append(contentsOf: result.issues)
                 allStateVars.append(contentsOf: result.stateVars)
             }
-            return (allIssues, allStateVars)
+            return (allFiles, allIssues, allStateVars)
         }
 
-        var issues = perFileResults.0
-        stateVariables = perFileResults.1
+        projectFiles = perFileResults.0
+        print("DEBUG: Found \(projectFiles.count) project files for analysis")
+        var issues = perFileResults.1
+        stateVariables = perFileResults.2
 
         // Sequential cross-file analysis (depends on full file set)
         buildViewHierarchy()
