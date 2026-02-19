@@ -1,3 +1,9 @@
+# THIS IS AN EXPERIMENT IN VIBE-CODING.
+I'm letting AI do nearly all the work in generating code and tests. 
+I have tested examing rules and simulations out with a real project only a few times.
+I've never looked at what the YAML part does (or does not do).
+I allowed different AIs to hallucinate the market potential of this experiment.
+
 # Swift Project Linter
 
 A comprehensive SwiftUI project analyzer that detects architectural issues, performance problems, and code quality concerns across your entire SwiftUI project. This tool helps maintain clean architecture by identifying problems like duplicate state variables, inefficient patterns, and architectural anti-patterns using SwiftSyntax-based analysis.
