@@ -1,9 +1,10 @@
-import XCTest
+import Testing
 @testable import SwiftProjectLintCore
 import SwiftSyntax
 import SwiftParser
 
-final class AnimationPerformanceVisitorTests: XCTestCase {
+@Suite
+struct AnimationPerformanceVisitorTests {
 
     private func makeVisitor(for rule: RuleIdentifier = .excessiveSpringAnimations) -> AnimationPerformanceVisitor {
         let patterns = AnimationPerformancePatternRegistrar().patterns
@@ -19,7 +20,8 @@ final class AnimationPerformanceVisitorTests: XCTestCase {
 
     // MARK: - Excessive Spring Animations
 
-    func testDetectsExcessiveSpringAnimations() throws {
+    @Test
+    func detectsExcessiveSpringAnimations() throws {
         let source = """
         import SwiftUI
 
@@ -43,16 +45,17 @@ final class AnimationPerformanceVisitorTests: XCTestCase {
         let visitor = makeVisitor()
         runVisitor(visitor, source: source)
 
-        XCTAssertEqual(visitor.detectedIssues.count, 1)
+        #expect(visitor.detectedIssues.count == 1)
 
-        let issue = try XCTUnwrap(visitor.detectedIssues.first)
-        XCTAssertEqual(issue.ruleName, .excessiveSpringAnimations)
-        XCTAssertEqual(issue.severity, .warning)
-        XCTAssertTrue(issue.message.contains("AnimatedView"))
-        XCTAssertTrue(issue.message.contains("4"))
+        let issue = try #require(visitor.detectedIssues.first)
+        #expect(issue.ruleName == .excessiveSpringAnimations)
+        #expect(issue.severity == .warning)
+        #expect(issue.message.contains("AnimatedView"))
+        #expect(issue.message.contains("4"))
     }
 
-    func testAllowsThreeOrFewerSpringAnimations() {
+    @Test
+    func allowsThreeOrFewerSpringAnimations() {
         let source = """
         import SwiftUI
 
@@ -74,10 +77,11 @@ final class AnimationPerformanceVisitorTests: XCTestCase {
         let visitor = makeVisitor()
         runVisitor(visitor, source: source)
 
-        XCTAssertTrue(visitor.detectedIssues.isEmpty)
+        #expect(visitor.detectedIssues.isEmpty)
     }
 
-    func testCountResetsPerStruct() {
+    @Test
+    func countResetsPerStruct() {
         let source = """
         import SwiftUI
 
@@ -109,10 +113,11 @@ final class AnimationPerformanceVisitorTests: XCTestCase {
         let visitor = makeVisitor()
         runVisitor(visitor, source: source)
 
-        XCTAssertTrue(visitor.detectedIssues.isEmpty)
+        #expect(visitor.detectedIssues.isEmpty)
     }
 
-    func testDetectsSpringWithParameters() throws {
+    @Test
+    func detectsSpringWithParameters() throws {
         let source = """
         import SwiftUI
 
@@ -136,13 +141,14 @@ final class AnimationPerformanceVisitorTests: XCTestCase {
         let visitor = makeVisitor()
         runVisitor(visitor, source: source)
 
-        XCTAssertEqual(visitor.detectedIssues.count, 1)
+        #expect(visitor.detectedIssues.count == 1)
 
-        let issue = try XCTUnwrap(visitor.detectedIssues.first)
-        XCTAssertEqual(issue.ruleName, .excessiveSpringAnimations)
+        let issue = try #require(visitor.detectedIssues.first)
+        #expect(issue.ruleName == .excessiveSpringAnimations)
     }
 
-    func testIgnoresNonSpringAnimations() {
+    @Test
+    func ignoresNonSpringAnimations() {
         let source = """
         import SwiftUI
 
@@ -166,12 +172,13 @@ final class AnimationPerformanceVisitorTests: XCTestCase {
         let visitor = makeVisitor()
         runVisitor(visitor, source: source)
 
-        XCTAssertTrue(visitor.detectedIssues.isEmpty)
+        #expect(visitor.detectedIssues.isEmpty)
     }
 
     // MARK: - Animation in High-Frequency Update
 
-    func testDetectsAnimationInOnReceiveContext() throws {
+    @Test
+    func detectsAnimationInOnReceiveContext() throws {
         let source = """
         import SwiftUI
 
@@ -190,14 +197,15 @@ final class AnimationPerformanceVisitorTests: XCTestCase {
         let visitor = makeVisitor(for: .animationInHighFrequencyUpdate)
         runVisitor(visitor, source: source)
 
-        XCTAssertEqual(visitor.detectedIssues.count, 1)
+        #expect(visitor.detectedIssues.count == 1)
 
-        let issue = try XCTUnwrap(visitor.detectedIssues.first)
-        XCTAssertEqual(issue.ruleName, .animationInHighFrequencyUpdate)
-        XCTAssertEqual(issue.severity, .warning)
+        let issue = try #require(visitor.detectedIssues.first)
+        #expect(issue.ruleName == .animationInHighFrequencyUpdate)
+        #expect(issue.severity == .warning)
     }
 
-    func testDetectsAnimationInOnChangeContext() throws {
+    @Test
+    func detectsAnimationInOnChangeContext() throws {
         let source = """
         import SwiftUI
 
@@ -216,13 +224,14 @@ final class AnimationPerformanceVisitorTests: XCTestCase {
         let visitor = makeVisitor(for: .animationInHighFrequencyUpdate)
         runVisitor(visitor, source: source)
 
-        XCTAssertEqual(visitor.detectedIssues.count, 1)
+        #expect(visitor.detectedIssues.count == 1)
 
-        let issue = try XCTUnwrap(visitor.detectedIssues.first)
-        XCTAssertEqual(issue.ruleName, .animationInHighFrequencyUpdate)
+        let issue = try #require(visitor.detectedIssues.first)
+        #expect(issue.ruleName == .animationInHighFrequencyUpdate)
     }
 
-    func testAllowsAnimationOutsideHighFrequencyContext() {
+    @Test
+    func allowsAnimationOutsideHighFrequencyContext() {
         let source = """
         import SwiftUI
 
@@ -240,12 +249,13 @@ final class AnimationPerformanceVisitorTests: XCTestCase {
         let visitor = makeVisitor(for: .animationInHighFrequencyUpdate)
         runVisitor(visitor, source: source)
 
-        XCTAssertTrue(visitor.detectedIssues.isEmpty)
+        #expect(visitor.detectedIssues.isEmpty)
     }
 
     // MARK: - Long Animation Duration
 
-    func testDetectsLongAnimationDuration() throws {
+    @Test
+    func detectsLongAnimationDuration() throws {
         let source = """
         import SwiftUI
 
@@ -262,15 +272,16 @@ final class AnimationPerformanceVisitorTests: XCTestCase {
         let visitor = makeVisitor(for: .longAnimationDuration)
         runVisitor(visitor, source: source)
 
-        XCTAssertEqual(visitor.detectedIssues.count, 1)
+        #expect(visitor.detectedIssues.count == 1)
 
-        let issue = try XCTUnwrap(visitor.detectedIssues.first)
-        XCTAssertEqual(issue.ruleName, .longAnimationDuration)
-        XCTAssertEqual(issue.severity, .info)
-        XCTAssertTrue(issue.message.contains("3.0"))
+        let issue = try #require(visitor.detectedIssues.first)
+        #expect(issue.ruleName == .longAnimationDuration)
+        #expect(issue.severity == .info)
+        #expect(issue.message.contains("3.0"))
     }
 
-    func testDetectsLongSpringDuration() throws {
+    @Test
+    func detectsLongSpringDuration() throws {
         let source = """
         import SwiftUI
 
@@ -287,14 +298,15 @@ final class AnimationPerformanceVisitorTests: XCTestCase {
         let visitor = makeVisitor(for: .longAnimationDuration)
         runVisitor(visitor, source: source)
 
-        XCTAssertEqual(visitor.detectedIssues.count, 1)
+        #expect(visitor.detectedIssues.count == 1)
 
-        let issue = try XCTUnwrap(visitor.detectedIssues.first)
-        XCTAssertEqual(issue.ruleName, .longAnimationDuration)
-        XCTAssertTrue(issue.message.contains("5.0"))
+        let issue = try #require(visitor.detectedIssues.first)
+        #expect(issue.ruleName == .longAnimationDuration)
+        #expect(issue.message.contains("5.0"))
     }
 
-    func testAllowsNormalAnimationDuration() {
+    @Test
+    func allowsNormalAnimationDuration() {
         let source = """
         import SwiftUI
 
@@ -311,10 +323,11 @@ final class AnimationPerformanceVisitorTests: XCTestCase {
         let visitor = makeVisitor(for: .longAnimationDuration)
         runVisitor(visitor, source: source)
 
-        XCTAssertTrue(visitor.detectedIssues.isEmpty)
+        #expect(visitor.detectedIssues.isEmpty)
     }
 
-    func testAllowsExactlyTwoSecondDuration() {
+    @Test
+    func allowsExactlyTwoSecondDuration() {
         let source = """
         import SwiftUI
 
@@ -331,6 +344,6 @@ final class AnimationPerformanceVisitorTests: XCTestCase {
         let visitor = makeVisitor(for: .longAnimationDuration)
         runVisitor(visitor, source: source)
 
-        XCTAssertTrue(visitor.detectedIssues.isEmpty)
+        #expect(visitor.detectedIssues.isEmpty)
     }
 }

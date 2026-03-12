@@ -1,9 +1,10 @@
-import XCTest
+import Testing
 @testable import SwiftProjectLintCore
 import SwiftSyntax
 import SwiftParser
 
-final class WithAnimationVisitorTests: XCTestCase {
+@Suite
+struct WithAnimationVisitorTests {
 
     private func makeVisitor(for rule: RuleIdentifier) -> WithAnimationVisitor {
         let patterns = WithAnimationPatternRegistrar().patterns
@@ -19,7 +20,8 @@ final class WithAnimationVisitorTests: XCTestCase {
 
     // MARK: - withAnimation in onAppear
 
-    func testDetectsWithAnimationInOnAppear() throws {
+    @Test
+    func detectsWithAnimationInOnAppear() throws {
         let source = """
         import SwiftUI
 
@@ -40,14 +42,15 @@ final class WithAnimationVisitorTests: XCTestCase {
         let visitor = makeVisitor(for: .withAnimationInOnAppear)
         runVisitor(visitor, source: source)
 
-        XCTAssertEqual(visitor.detectedIssues.count, 1)
+        #expect(visitor.detectedIssues.count == 1)
 
-        let issue = try XCTUnwrap(visitor.detectedIssues.first)
-        XCTAssertEqual(issue.ruleName, .withAnimationInOnAppear)
-        XCTAssertEqual(issue.severity, .warning)
+        let issue = try #require(visitor.detectedIssues.first)
+        #expect(issue.ruleName == .withAnimationInOnAppear)
+        #expect(issue.severity == .warning)
     }
 
-    func testAllowsWithAnimationOutsideOnAppear() {
+    @Test
+    func allowsWithAnimationOutsideOnAppear() {
         let source = """
         import SwiftUI
 
@@ -67,10 +70,11 @@ final class WithAnimationVisitorTests: XCTestCase {
         let visitor = makeVisitor(for: .withAnimationInOnAppear)
         runVisitor(visitor, source: source)
 
-        XCTAssertTrue(visitor.detectedIssues.isEmpty)
+        #expect(visitor.detectedIssues.isEmpty)
     }
 
-    func testDetectsNestedWithAnimationInOnAppear() throws {
+    @Test
+    func detectsNestedWithAnimationInOnAppear() throws {
         let source = """
         import SwiftUI
 
@@ -93,15 +97,16 @@ final class WithAnimationVisitorTests: XCTestCase {
         let visitor = makeVisitor(for: .withAnimationInOnAppear)
         runVisitor(visitor, source: source)
 
-        XCTAssertEqual(visitor.detectedIssues.count, 1)
+        #expect(visitor.detectedIssues.count == 1)
 
-        let issue = try XCTUnwrap(visitor.detectedIssues.first)
-        XCTAssertEqual(issue.ruleName, .withAnimationInOnAppear)
+        let issue = try #require(visitor.detectedIssues.first)
+        #expect(issue.ruleName == .withAnimationInOnAppear)
     }
 
     // MARK: - Animation Without State Change
 
-    func testDetectsAnimationWithoutStateChange() throws {
+    @Test
+    func detectsAnimationWithoutStateChange() throws {
         let source = """
         import SwiftUI
 
@@ -119,14 +124,15 @@ final class WithAnimationVisitorTests: XCTestCase {
         let visitor = makeVisitor(for: .animationWithoutStateChange)
         runVisitor(visitor, source: source)
 
-        XCTAssertEqual(visitor.detectedIssues.count, 1)
+        #expect(visitor.detectedIssues.count == 1)
 
-        let issue = try XCTUnwrap(visitor.detectedIssues.first)
-        XCTAssertEqual(issue.ruleName, .animationWithoutStateChange)
-        XCTAssertEqual(issue.severity, .info)
+        let issue = try #require(visitor.detectedIssues.first)
+        #expect(issue.ruleName == .animationWithoutStateChange)
+        #expect(issue.severity == .info)
     }
 
-    func testDetectsEmptyWithAnimationClosure() throws {
+    @Test
+    func detectsEmptyWithAnimationClosure() throws {
         let source = """
         import SwiftUI
 
@@ -142,13 +148,14 @@ final class WithAnimationVisitorTests: XCTestCase {
         let visitor = makeVisitor(for: .animationWithoutStateChange)
         runVisitor(visitor, source: source)
 
-        XCTAssertEqual(visitor.detectedIssues.count, 1)
+        #expect(visitor.detectedIssues.count == 1)
 
-        let issue = try XCTUnwrap(visitor.detectedIssues.first)
-        XCTAssertEqual(issue.ruleName, .animationWithoutStateChange)
+        let issue = try #require(visitor.detectedIssues.first)
+        #expect(issue.ruleName == .animationWithoutStateChange)
     }
 
-    func testAllowsAnimationWithAssignment() {
+    @Test
+    func allowsAnimationWithAssignment() {
         let source = """
         import SwiftUI
 
@@ -168,10 +175,11 @@ final class WithAnimationVisitorTests: XCTestCase {
         let visitor = makeVisitor(for: .animationWithoutStateChange)
         runVisitor(visitor, source: source)
 
-        XCTAssertTrue(visitor.detectedIssues.isEmpty)
+        #expect(visitor.detectedIssues.isEmpty)
     }
 
-    func testAllowsAnimationWithToggle() {
+    @Test
+    func allowsAnimationWithToggle() {
         let source = """
         import SwiftUI
 
@@ -191,10 +199,11 @@ final class WithAnimationVisitorTests: XCTestCase {
         let visitor = makeVisitor(for: .animationWithoutStateChange)
         runVisitor(visitor, source: source)
 
-        XCTAssertTrue(visitor.detectedIssues.isEmpty)
+        #expect(visitor.detectedIssues.isEmpty)
     }
 
-    func testAllowsAnimationWithCompoundAssignment() {
+    @Test
+    func allowsAnimationWithCompoundAssignment() {
         let source = """
         import SwiftUI
 
@@ -214,10 +223,11 @@ final class WithAnimationVisitorTests: XCTestCase {
         let visitor = makeVisitor(for: .animationWithoutStateChange)
         runVisitor(visitor, source: source)
 
-        XCTAssertTrue(visitor.detectedIssues.isEmpty)
+        #expect(visitor.detectedIssues.isEmpty)
     }
 
-    func testBothRulesDetectedInSameFile() {
+    @Test
+    func bothRulesDetectedInSameFile() {
         let source = """
         import SwiftUI
 
@@ -246,13 +256,13 @@ final class WithAnimationVisitorTests: XCTestCase {
         // Test withAnimationInOnAppear
         let onAppearVisitor = makeVisitor(for: .withAnimationInOnAppear)
         runVisitor(onAppearVisitor, source: source)
-        XCTAssertEqual(onAppearVisitor.detectedIssues.count, 1)
-        XCTAssertEqual(onAppearVisitor.detectedIssues.first?.ruleName, .withAnimationInOnAppear)
+        #expect(onAppearVisitor.detectedIssues.count == 1)
+        #expect(onAppearVisitor.detectedIssues.first?.ruleName == .withAnimationInOnAppear)
 
         // Test animationWithoutStateChange
         let noStateVisitor = makeVisitor(for: .animationWithoutStateChange)
         runVisitor(noStateVisitor, source: source)
-        XCTAssertEqual(noStateVisitor.detectedIssues.count, 1)
-        XCTAssertEqual(noStateVisitor.detectedIssues.first?.ruleName, .animationWithoutStateChange)
+        #expect(noStateVisitor.detectedIssues.count == 1)
+        #expect(noStateVisitor.detectedIssues.first?.ruleName == .animationWithoutStateChange)
     }
 }

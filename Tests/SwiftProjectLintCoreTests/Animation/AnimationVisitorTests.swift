@@ -1,16 +1,18 @@
-import XCTest
+import Testing
 @testable import SwiftProjectLintCore
 import SwiftSyntax
 import SwiftParser
 
-class AnimationVisitorTests: XCTestCase {
+@Suite
+struct AnimationVisitorTests {
 
     private func makeVisitor() -> DeprecatedAnimationVisitor {
         let pattern = DeprecatedAnimationPatternRegistrar().pattern
         return DeprecatedAnimationVisitor(pattern: pattern)
     }
 
-    func testDeprecatedAnimationModifierDetection() throws {
+    @Test
+    func deprecatedAnimationModifierDetection() throws {
         let sourceCode = """
         import SwiftUI
 
@@ -30,11 +32,12 @@ class AnimationVisitorTests: XCTestCase {
         visitor.walk(sourceFile)
         let issues = visitor.detectedIssues
 
-        XCTAssertEqual(issues.count, 1)
-        XCTAssertEqual(issues.first?.ruleName, .deprecatedAnimation)
+        #expect(issues.count == 1)
+        #expect(issues.first?.ruleName == .deprecatedAnimation)
     }
 
-    func testModernAnimationModifierDoesNotTriggerIssue() throws {
+    @Test
+    func modernAnimationModifierDoesNotTriggerIssue() throws {
         let sourceCode = """
         import SwiftUI
 
@@ -54,6 +57,6 @@ class AnimationVisitorTests: XCTestCase {
         visitor.walk(sourceFile)
         let issues = visitor.detectedIssues
 
-        XCTAssertTrue(issues.isEmpty)
+        #expect(issues.isEmpty)
     }
 }

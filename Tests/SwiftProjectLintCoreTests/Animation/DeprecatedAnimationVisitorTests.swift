@@ -1,9 +1,10 @@
-import XCTest
+import Testing
 @testable import SwiftProjectLintCore
 import SwiftSyntax
 import SwiftParser
 
-final class DeprecatedAnimationVisitorTests: XCTestCase {
+@Suite
+struct DeprecatedAnimationVisitorTests {
 
     private func makeVisitor() -> DeprecatedAnimationVisitor {
         let pattern = DeprecatedAnimationPatternRegistrar().pattern
@@ -15,7 +16,8 @@ final class DeprecatedAnimationVisitorTests: XCTestCase {
         visitor.walk(sourceFile)
     }
 
-    func testDeprecatedAnimationModifier() throws {
+    @Test
+    func deprecatedAnimationModifier() throws {
         let source = """
         import SwiftUI
 
@@ -30,14 +32,15 @@ final class DeprecatedAnimationVisitorTests: XCTestCase {
         let visitor = makeVisitor()
         runVisitor(visitor, source: source)
 
-        XCTAssertEqual(visitor.detectedIssues.count, 1)
+        #expect(visitor.detectedIssues.count == 1)
 
-        let issue = try XCTUnwrap(visitor.detectedIssues.first)
-        XCTAssertEqual(issue.ruleName, .deprecatedAnimation)
-        XCTAssertEqual(issue.severity, .warning)
+        let issue = try #require(visitor.detectedIssues.first)
+        #expect(issue.ruleName == .deprecatedAnimation)
+        #expect(issue.severity == .warning)
     }
 
-    func testModernAnimationModifier() throws {
+    @Test
+    func modernAnimationModifier() throws {
         let source = """
         import SwiftUI
 
@@ -53,10 +56,11 @@ final class DeprecatedAnimationVisitorTests: XCTestCase {
         let visitor = makeVisitor()
         runVisitor(visitor, source: source)
 
-        XCTAssertTrue(visitor.detectedIssues.isEmpty)
+        #expect(visitor.detectedIssues.isEmpty)
     }
 
-    func testBindingAnimationModifier() throws {
+    @Test
+    func bindingAnimationModifier() throws {
         let source = """
         import SwiftUI
 
@@ -72,6 +76,6 @@ final class DeprecatedAnimationVisitorTests: XCTestCase {
         let visitor = makeVisitor()
         runVisitor(visitor, source: source)
 
-        XCTAssertTrue(visitor.detectedIssues.isEmpty)
+        #expect(visitor.detectedIssues.isEmpty)
     }
 }
