@@ -7,47 +7,6 @@ import SwiftSyntax
 @Suite("ViewRelationshipNavigationTests")
 struct ViewRelationshipNavigationTests {
     
-    // MARK: - Debug Logging Helper
-    
-    @MainActor private func writeDebugLog(_ message: String, testName: String) {
-        let logMessage = "[\(testName)] \(message)\n"
-        
-        // Try multiple locations that should be writable, prioritizing the debug subdirectory
-        let debugDirectory = DebugLogger.debugDirectory()
-        let possiblePaths = [
-            debugDirectory + "/ViewRelationshipNavigationTests_debug.log",
-            NSTemporaryDirectory() + "ViewRelationshipNavigationTests_debug.log",
-            "/tmp/ViewRelationshipNavigationTests_debug.log"
-        ]
-        
-        for logPath in possiblePaths {
-            if let data = logMessage.data(using: .utf8) {
-                do {
-                    if FileManager.default.fileExists(atPath: logPath) {
-                        if let fileHandle = FileHandle(forWritingAtPath: logPath) {
-                            fileHandle.seekToEndOfFile()
-                            fileHandle.write(data)
-                            fileHandle.closeFile()
-                            return // Success
-                        }
-                    } else {
-                        try data.write(to: URL(fileURLWithPath: logPath))
-                        return // Success
-                    }
-                } catch {
-                    // Continue to next path
-                    continue
-                }
-            }
-        }
-        
-        // Debug logging removed for production
-    }
-    
-    private func logRelationships(_ relationships: [ViewRelationship], testName: String) {
-        // Debug logging removed for production
-    }
-
     // MARK: - Test Helper Methods
 
     private func extractRelationships(from sourceCode: String, parentView: String) -> [ViewRelationship] {
@@ -78,8 +37,6 @@ struct ViewRelationshipNavigationTests {
         """
         
         let relationships = extractRelationships(from: sourceCode, parentView: "ContentView")
-        logRelationships(relationships, testName: "testNavigationLinkDetection")
-        
         #expect(relationships.count == 1)
         #expect(relationships[0].childView == "DetailView")
         #expect(relationships[0].relationshipType == .navigationDestination)
@@ -103,8 +60,6 @@ struct ViewRelationshipNavigationTests {
         """
         
         let relationships = extractRelationships(from: sourceCode, parentView: "ContentView")
-        logRelationships(relationships, testName: "testSheetPresentationDetection")
-        
         #expect(relationships.count == 1)
         #expect(relationships[0].childView == "SheetView")
         #expect(relationships[0].relationshipType == .sheet)
@@ -128,8 +83,6 @@ struct ViewRelationshipNavigationTests {
         """
         
         let relationships = extractRelationships(from: sourceCode, parentView: "ContentView")
-        logRelationships(relationships, testName: "testFullScreenCoverDetection")
-        
         #expect(relationships.count == 1)
         #expect(relationships[0].childView == "FullScreenView")
         #expect(relationships[0].relationshipType == .fullScreenCover)
@@ -153,8 +106,6 @@ struct ViewRelationshipNavigationTests {
         """
         
         let relationships = extractRelationships(from: sourceCode, parentView: "ContentView")
-        logRelationships(relationships, testName: "testPopoverDetection")
-        
         #expect(relationships.count == 1)
         #expect(relationships[0].childView == "PopoverView")
         #expect(relationships[0].relationshipType == .popover)
@@ -184,25 +135,17 @@ struct ViewRelationshipNavigationTests {
         """
         
         let relationships = extractRelationships(from: sourceCode, parentView: "ContentView")
-        logRelationships(relationships, testName: "testMultipleRelationships")
-        
-        // Debug output removed for production
-        
         #expect(relationships.count == 3, "Expected 3 relationships, got \(relationships.count)")
         
-        let directChild = relationships.first { $0.relationshipType == .directChild }
-        let navigation = relationships.first { $0.relationshipType == .navigationDestination }
-        let sheet = relationships.first { $0.relationshipType == .sheet }
-        
-        #expect(directChild != nil, "Expected directChild relationship")
-        #expect(directChild?.childView == "RoundView", "Expected RoundView as directChild")
-        #expect(navigation != nil, "Expected navigationDestination relationship")
-        #expect(navigation?.childView == "DetailView", "Expected DetailView as navigationDestination")
-        #expect(sheet != nil, "Expected sheet relationship")
-        #expect(sheet?.childView == "SheetView", "Expected SheetView as sheet")
+        let directChild = try #require(relationships.first { $0.relationshipType == .directChild })
+        #expect(directChild.childView == "RoundView")
+        let navigation = try #require(relationships.first { $0.relationshipType == .navigationDestination })
+        #expect(navigation.childView == "DetailView")
+        let sheet = try #require(relationships.first { $0.relationshipType == .sheet })
+        #expect(sheet.childView == "SheetView")
     }
     
-    @Test func testSimpleSheetDebug() throws {
+    @Test func testSimpleSheetDetection() throws {
         let sourceCode = """
         struct ContentView: View {
             var body: some View {
@@ -215,12 +158,9 @@ struct ViewRelationshipNavigationTests {
             }
         }
         """
-        
+
         let relationships = extractRelationships(from: sourceCode, parentView: "ContentView")
-        
-        // Debug output removed for production
-        
-        // Don't assert anything, just see what we get
-        #expect(true)
+        let sheet = try #require(relationships.first { $0.relationshipType == .sheet })
+        #expect(sheet.childView == "SheetView")
     }
 } 

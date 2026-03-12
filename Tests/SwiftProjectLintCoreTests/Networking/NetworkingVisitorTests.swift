@@ -4,6 +4,7 @@ import SwiftSyntax
 import SwiftParser
 @testable import SwiftProjectLintCore
 
+@Suite
 struct NetworkingVisitorTests {
     
     @Test func testVisitorInitialization() throws {
@@ -36,32 +37,16 @@ struct NetworkingVisitorTests {
         let url = URL(string: "https://example.com")!
         let data = try Data(contentsOf: url)
         """
-        print("🔍 Testing source code:")
-        print(source)
-        print("---")
-        
+
         let syntax = Parser.parse(source: source)
-        print("🔍 Parsed syntax tree:")
-        print(syntax.description)
-        print("---")
-        
+
         // Set up source location converter
         let converter = SourceLocationConverter(fileName: "test.swift", tree: syntax)
         visitor.setSourceLocationConverter(converter)
-        
+
         visitor.walk(syntax)
         let issues = visitor.detectedIssues
-        
-        print("🔍 Detected issues: \(issues.count)")
-        for (index, issue) in issues.enumerated() {
-            print("  Issue \(index + 1):")
-            print("    Message: '\(issue.message)'")
-            print("    Severity: \(issue.severity)")
-            print("    Line: \(issue.lineNumber)")
-            print("    Suggestion: '\(issue.suggestion ?? "nil")'")
-        }
-        print("---")
-        
+
         #expect(issues.count == 1, "Expected 1 issue, but got \(issues.count)")
         if let firstIssue = issues.first {
             #expect(
@@ -73,7 +58,7 @@ struct NetworkingVisitorTests {
             #expect(Bool(false), "No issues detected")
         }
     }
-    
+
     @Test func testDetectsMissingErrorHandlingInDataTask() throws {
         let visitor = NetworkingVisitor(patternCategory: .networking)
         let source = """
@@ -82,31 +67,15 @@ struct NetworkingVisitorTests {
             // No error handling
         }.resume()
         """
-        print("🔍 Testing source code:")
-        print(source)
-        print("---")
-        
+
         let syntax = Parser.parse(source: source)
-        print("🔍 Parsed syntax tree:")
-        print(syntax.description)
-        print("---")
-        
+
         // Set up source location converter
         let converter = SourceLocationConverter(fileName: "test.swift", tree: syntax)
         visitor.setSourceLocationConverter(converter)
-        
+
         visitor.walk(syntax)
         let issues = visitor.detectedIssues
-        
-        print("🔍 Detected issues: \(issues.count)")
-        for (index, issue) in issues.enumerated() {
-            print("  Issue \(index + 1):")
-            print("    Message: '\(issue.message)'")
-            print("    Severity: \(issue.severity)")
-            print("    Line: \(issue.lineNumber)")
-            print("    Suggestion: '\(issue.suggestion ?? "nil")'")
-        }
-        print("---")
         
         #expect(issues.count == 1, "Expected 1 issue, but got \(issues.count)")
         if let firstIssue = issues.first {

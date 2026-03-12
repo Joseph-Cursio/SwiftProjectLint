@@ -36,9 +36,7 @@ struct RuleSelectionDialogTests {
         let inspected = try view.inspect()
         // Instead of navigation title, check for the title text anywhere (allow for absence)
         let navTitle = try inspected.findAll(ViewType.Text.self).compactMap { try? $0.string() }
-        if !navTitle.contains("Select Lint Rules") {
-            print("[RuleSelectionDialogTests] WARNING: 'Select Lint Rules' navigation title not found in Text views.")
-        }
+        // navTitle may not contain "Select Lint Rules" depending on ViewInspector's navigation title handling
         // The view structure uses List instead of VStack
         let navView = try inspected.navigationView()
         let list = try navView.list()

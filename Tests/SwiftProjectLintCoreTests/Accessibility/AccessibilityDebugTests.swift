@@ -4,8 +4,9 @@ import SwiftSyntax
 import SwiftParser
 @testable import SwiftProjectLintCore
 
+@Suite
 @MainActor
-class AccessibilityDebugTests {
+struct AccessibilityDebugTests {
 
     // MARK: - Test Helper Methods
 
@@ -18,7 +19,6 @@ class AccessibilityDebugTests {
     // MARK: - Debug Tests
 
     @Test func testDebugButtonAST() {
-        // Given
         let sourceCode = """
         struct ContentView: View {
             var body: some View {
@@ -31,21 +31,14 @@ class AccessibilityDebugTests {
         }
         """
 
-        // When
         let sourceFile = Parser.parse(source: sourceCode)
-
-        // Print the AST structure to understand the Button syntax
-        print("DEBUG: AST structure:")
-        print(sourceFile.description)
-
-        // Then - just verify we can parse it
-        #expect(true)
+        // Verify parsing produces a non-empty tree
+        #expect(!sourceFile.description.isEmpty)
     }
 
     @Test func testVisitorIsCalled() {
         let visitor = createVisitor()
 
-        // Given
         let sourceCode = """
         struct ContentView: View {
             var body: some View {
@@ -54,19 +47,13 @@ class AccessibilityDebugTests {
         }
         """
 
-        // When
         let sourceFile = Parser.parse(source: sourceCode)
-        print("DEBUG: About to walk source file")
         visitor.walk(sourceFile)
-        print("DEBUG: Finished walking source file")
-        print("DEBUG: Detected issues count: \(visitor.detectedIssues.count)")
-
-        // Then - just verify the visitor was called
-        #expect(true)
+        // Visitor should complete without crashing; no accessibility issues for simple Text
+        #expect(visitor.detectedIssues.isEmpty)
     }
 
     @Test func testVisitorVisitMethod() {
-        // Given
         let sourceCode = """
         struct ContentView: View {
             var body: some View {
@@ -79,26 +66,18 @@ class AccessibilityDebugTests {
         }
         """
 
-        // When
         let sourceFile = Parser.parse(source: sourceCode)
-        print("DEBUG: About to walk source file")
 
-        // Create a simple visitor and test if visit is called
         TestRegistryManager.initializeSharedRegistry()
         let testVisitor = AccessibilityVisitor(patternCategory: .accessibility)
         testVisitor.walk(sourceFile)
-
-        print("DEBUG: Finished walking source file")
-        print("DEBUG: Detected issues count: \(testVisitor.detectedIssues.count)")
-
-        // Then - just verify the visitor was called
-        #expect(true)
+        // Visitor should detect the button accessibility hint issue
+        #expect(!testVisitor.detectedIssues.isEmpty)
     }
 
-    @Test func testDebugButtonTextDetection() {
+    @Test func testDebugButtonTextDetection() throws {
         let visitor = createVisitor()
 
-        // Given
         let sourceCode = """
         struct ContentView: View {
             var body: some View {
@@ -111,18 +90,14 @@ class AccessibilityDebugTests {
         }
         """
 
-        // When
         let sourceFile = Parser.parse(source: sourceCode)
-        print("DEBUG: About to walk source file")
         visitor.walk(sourceFile)
-        print("DEBUG: Finished walking source file")
-        print("DEBUG: Detected issues count: \(visitor.detectedIssues.count)")
-
-        // Then - just verify the visitor was called and check what it detected
-        #expect(true)
+        // Should detect accessibility hint suggestion for labeled button
+        let issue = try #require(visitor.detectedIssues.first)
+        #expect(issue.message.contains("accessibility hint"))
     }
 
-    @Test func testDirectContainsTextMethod() {
+    @Test func testDirectContainsTextMethod() throws {
         // Given
         let sourceCode = """
         Button {
@@ -144,8 +119,6 @@ class AccessibilityDebugTests {
     }
 
     @Test func testTextWithAccessibilityAndUnrelatedModifiers() {
-        DebugLogger.log("Test starting")
-        // Given
         let customConfig = AccessibilityVisitor.Configuration(minTextLengthForHint: 10)
         let customVisitor = AccessibilityVisitor(config: customConfig)
         customVisitor.reset()
@@ -158,32 +131,8 @@ class AccessibilityDebugTests {
             }
         }
         """
-        DebugLogger.log("About to parse source code")
-        // When
         let sourceFile = Parser.parse(source: sourceCode)
-        DebugLogger.log("Successfully parsed source code")
-
-        // Write the AST structure to a file for debugging in the debug subdirectory
-        let astDescription = sourceFile.description
-        DebugLogger.logAST(astDescription)
-
-        let debugDirectory = DebugLogger.debugDirectory()
-        let astFilePath = URL(fileURLWithPath: debugDirectory).appendingPathComponent("debug_ast.txt")
-
-        do {
-            try astDescription.write(to: astFilePath, atomically: true, encoding: .utf8)
-            DebugLogger.log("AST written to: \(astFilePath.path)")
-        } catch {
-            DebugLogger.log("Failed to write AST to debug directory: \(error)")
-        }
-        DebugLogger.log("Finished AST write attempts")
         customVisitor.walk(sourceFile)
-        // Debug output
-        DebugLogger.log("Detected issues count: \(customVisitor.detectedIssues.count)")
-        for (index, issue) in customVisitor.detectedIssues.enumerated() {
-            DebugLogger.log("Issue \(index): \(issue.message)")
-        }
-        // Then
         // Should NOT detect an accessibility issue because .accessibilityLabel is present
         #expect(customVisitor.detectedIssues.isEmpty)
     }

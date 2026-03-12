@@ -16,45 +16,11 @@ final class ArchCharacterizationIntegrationTests {
         let analyzer = AdvancedAnalyzer()
         let issues = analyzer.analyzeArchitecture(projectPath: projectDir)
 
-        print("📊 Full Architecture Analysis Pipeline:")
-        print("   Input: Comprehensive test project")
-        print("   Total issues found: \(issues.count)")
-
-        // Analyze issue distribution
-        let issuesByType = Dictionary(grouping: issues) { $0.type }
-        print("   Issue distribution:")
-        for (type, typeIssues) in issuesByType {
-            print("     \(type): \(typeIssues.count)")
-        }
-
-        let issuesBySeverity = Dictionary(grouping: issues) { $0.severity }
-        print("   Severity distribution:")
-        for (severity, severityIssues) in issuesBySeverity {
-            print("     \(severity): \(severityIssues.count)")
-        }
-
-        print("   Sample issues:")
-        for issue in issues.prefix(3) {
-            print("     - \(issue.type): \(issue.message)")
-            print("       Affected: \(issue.affectedViews)")
-        }
     }
 
     // MARK: - Behavior Summary
 
     @Test func generateArchitectureBehaviorSummary() throws {
-        print("📋 Architecture Feature Behavior Summary:")
-        print("   ✅ AdvancedAnalyzer: Project-level analysis works")
-        print("   ✅ ArchitectureIssue: Proper issue modeling")
-        print("   ✅ ViewRelationship: View hierarchy detection")
-        print("   ✅ StateAnalysisEngine: Duplicate state detection")
-        print("   ✅ ArchitectureIssueDetector: Anti-pattern detection")
-        print("   ✅ Error handling: Graceful with invalid inputs")
-        print("   ✅ Performance: Acceptable for reasonable project sizes")
-        print("   🎯 Primary purpose: SwiftUI architecture analysis")
-        print("   💡 Key strength: Comprehensive state management pattern analysis")
-        print("   ⚠️  Limitation: Static analysis only - dynamic patterns may be missed")
-
         #expect(true, "Architecture behavior summary generated")
     }
 

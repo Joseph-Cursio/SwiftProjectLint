@@ -4,8 +4,9 @@ import SwiftSyntax
 import SwiftParser
 @testable import SwiftProjectLintCore
 
+@Suite
 @MainActor
-class AccessibilityConfigurationStrictTests {
+struct AccessibilityConfigurationStrictTests {
     @Test func testStrictConfiguration() throws {
         let strictVisitor = AccessibilityVisitor(config: AccessibilityVisitor.Configuration(minTextLengthForHint: 5))
         let sourceCode = """

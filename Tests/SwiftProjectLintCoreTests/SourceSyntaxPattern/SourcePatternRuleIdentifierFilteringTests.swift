@@ -62,15 +62,6 @@ final class SourcePatternRuleIdFilteringTests {
         // Compare with all rules
         let allIssues = detector.detectPatterns(in: testCode, filePath: "/RuleTest.swift")
         
-        print("📊 Rule Identifier Filtering:")
-        print("   Requested rules: \(specificRules.map { $0.rawValue })")
-        print("   Specific rule issues: \(specificIssues.count)")
-        print("   All rule issues: \(allIssues.count)")
-        print("   Found rules:")
-        for issue in specificIssues {
-            print("     - \(issue.ruleName.rawValue): Line \(issue.lineNumber)")
-        }
-        
         #expect(specificIssues.count <= allIssues.count, "Specific rules should be subset of all rules")
     }
     
@@ -89,11 +80,6 @@ final class SourcePatternRuleIdFilteringTests {
             filePath: "/EmptyRuleTest.swift",
             ruleIdentifiers: []
         )
-        
-        print("📊 Empty Rule Identifier List:")
-        print("   Input: Empty rule identifier array")
-        print("   Output: \(emptyRuleIssues.count) issues")
-        print("   Behavior: \(emptyRuleIssues.isEmpty ? "No analysis performed" : "Some analysis performed")")
         
         #expect(emptyRuleIssues.isEmpty, "Empty rule list should produce no issues")
     }

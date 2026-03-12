@@ -39,8 +39,6 @@ struct CrossFileAnalysisEngineRuleIdentifierTests {
             ruleIdentifiers: [.relatedDuplicateStateVariable]
         )
 
-        // Should run without crashing; may or may not detect issues depending on registry state
-        #expect(issues.count >= 0)
     }
 
     @Test
@@ -96,8 +94,6 @@ struct CrossFileAnalysisEngineRuleIdentifierTests {
             categories: nil
         )
 
-        // Should run without crashing
-        #expect(issues.count >= 0)
     }
 
     @Test

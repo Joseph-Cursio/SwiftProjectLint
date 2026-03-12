@@ -4,9 +4,10 @@ import SwiftSyntax
 import SwiftParser
 @testable import SwiftProjectLintCore
 
+@Suite
 @MainActor
-class AccessibilityConfigurationEdgeCaseTests {
-    @Test func testDifferentTextWithSameLength() {
+struct AccessibilityConfigurationEdgeCaseTests {
+    @Test func testDifferentTextWithSameLength() throws {
         let customConfig = AccessibilityVisitor.Configuration(minTextLengthForHint: 10)
         let customVisitor = AccessibilityVisitor(config: customConfig)
         customVisitor.reset()
@@ -17,18 +18,14 @@ class AccessibilityConfigurationEdgeCaseTests {
             }
         }
         """
-        let testText = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
         let sourceFile = Parser.parse(source: sourceCode)
         customVisitor.walk(sourceFile)
         #expect(customVisitor.detectedIssues.count == 1)
-        guard let issue = customVisitor.detectedIssues.first else {
-            Issue.record("Expected at least one issue")
-            return
-        }
+        let issue = try #require(customVisitor.detectedIssues.first)
         #expect(issue.message.contains("Long text content may benefit from accessibility features"))
     }
 
-    @Test func testTextWithoutModifier() {
+    @Test func testTextWithoutModifier() throws {
         let customConfig = AccessibilityVisitor.Configuration(minTextLengthForHint: 10)
         let customVisitor = AccessibilityVisitor(config: customConfig)
         customVisitor.reset()
@@ -39,14 +36,10 @@ class AccessibilityConfigurationEdgeCaseTests {
             }
         }
         """
-        let testText = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
         let sourceFile = Parser.parse(source: sourceCode)
         customVisitor.walk(sourceFile)
         #expect(customVisitor.detectedIssues.count == 1)
-        guard let issue = customVisitor.detectedIssues.first else {
-            Issue.record("Expected at least one issue")
-            return
-        }
+        let issue = try #require(customVisitor.detectedIssues.first)
         #expect(issue.message.contains("Long text content may benefit from accessibility features"))
     }
 } 

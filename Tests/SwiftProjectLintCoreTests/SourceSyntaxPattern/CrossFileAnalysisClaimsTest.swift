@@ -71,31 +71,12 @@ final class CrossFileAnalysisClaimsTests {
         let parentIssues = detector.detectPatterns(in: parentViewContent, filePath: "/ParentView.swift")
         let childIssues = detector.detectPatterns(in: childViewContent, filePath: "/ChildView.swift")
         
-        print("📊 Cross-File Analysis Claims vs Reality:")
-        print("   Class documentation claims: 'supports cross-file analysis'")
-        print("   Method documentation: 'single Swift source file'")
-        print("   Parent view analysis: \(parentIssues.count) issues")
-        print("   Child view analysis: \(childIssues.count) issues")
-        
         // Look for any cross-file duplicate detection
         let allIssues = parentIssues + childIssues
         let duplicateRelatedIssues = allIssues.filter { issue in
             let ruleName = issue.ruleName.rawValue.lowercased()
             let message = issue.message.lowercased()
             return ruleName.contains("duplicate") || message.contains("duplicate")
-        }
-        
-        print("   Total duplicate-related issues: \(duplicateRelatedIssues.count)")
-        
-        if duplicateRelatedIssues.isEmpty {
-            print("   ❌ FINDING: NO cross-file duplicate detection")
-            print("   💡 CONCLUSION: Documentation claim appears to be MISLEADING")
-            print("   📝 REALITY: Detector only analyzes single files")
-        } else {
-            print("   ✅ FINDING: Some duplicate detection found")
-            for issue in duplicateRelatedIssues {
-                print("     - \(issue.ruleName.rawValue): \(issue.message)")
-            }
         }
         
     }
@@ -132,12 +113,6 @@ final class CrossFileAnalysisClaimsTests {
         _ = detector.detectPatterns(in: view1, filePath: "/View1.swift")
         _ = detector.detectPatterns(in: view2, filePath: "/View2.swift")
         _ = detector.detectPatterns(in: view3, filePath: "/View3.swift")
-        
-        print("📊 File Cache Capabilities:")
-        print("   Tested: Sequential analysis of 3 different files")
-        print("   Cache purpose: Single-file analysis with SourceLocationConverter")
-        print("   Cross-file capability: NOT IMPLEMENTED in this detector")
-        print("   💡 NOTE: True cross-file analysis is in CrossFileAnalysisEngine")
         
         #expect(true, "File cache should handle sequential single-file analysis")
     }

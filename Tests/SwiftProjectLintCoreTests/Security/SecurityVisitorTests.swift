@@ -4,6 +4,7 @@ import SwiftParser
 import SwiftSyntax
 @testable import SwiftProjectLintCore
 
+@Suite
 struct SecurityVisitorTests {
     
     @Test func testHardcodedSecretDetection() throws {

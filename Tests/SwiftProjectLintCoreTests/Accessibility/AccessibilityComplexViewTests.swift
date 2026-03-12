@@ -6,7 +6,7 @@ import SwiftParser
 
 @Suite("AccessibilityComplexViewTests")
 @MainActor
-class AccessibilityComplexViewTests {
+struct AccessibilityComplexViewTests {
 
     // MARK: - Test Helper Methods
 

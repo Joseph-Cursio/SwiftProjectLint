@@ -6,7 +6,7 @@ import SwiftParser
 
 @Suite("AccessibilityTextColorTests")
 @MainActor
-class AccessibilityTextColorTests {
+struct AccessibilityTextColorTests {
 
     // MARK: - Test Helper Methods
 

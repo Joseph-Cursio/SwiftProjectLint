@@ -4,8 +4,9 @@ import SwiftSyntax
 import SwiftParser
 @testable import SwiftProjectLintCore
 
+@Suite
 @MainActor
-class ButtonAccessibilityTests {
+struct ButtonAccessibilityTests {
 
     // MARK: - Test Helper Methods
 

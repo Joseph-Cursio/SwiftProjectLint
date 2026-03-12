@@ -58,23 +58,11 @@ struct SwiftSyntaxPatternDetectorCoreTests {
         // Log slow test execution
         TestRegistryManager.logSlowTest("testSwiftSyntaxPatternDetectorSingleFile", duration: duration)
         
-        // Debug: Print all detected issues
-        print("=== DEBUG: testSwiftSyntaxPatternDetectorSingleFile ===")
-        print("Total issues detected: \(issues.count)")
-        print("Execution time: \(duration.formatted())")
-        for (index, issue) in issues.enumerated() {
-            print("Issue \(index + 1):")
-            print("  Message: '\(issue.message)'")
-            print("  Severity: \(issue.severity)")
-            print("  Rule: '\(issue.ruleName)'")
-        }
-        
         // Then - With shared registry, we expect issues from default patterns
         // The exact count may vary based on registry initialization, so we check for presence of specific issues
         
         // Check that uninitialized state is detected (from default patterns)
         let uninitializedIssues = issues.filter { $0.ruleName == RuleIdentifier.uninitializedStateVariable }
-        print("Uninitialized state issues count: \(uninitializedIssues.count)")
         #expect(uninitializedIssues.count >= 1)
         
         // Overall, we should have at least some issues detected
@@ -125,11 +113,6 @@ struct SwiftSyntaxPatternDetectorCoreTests {
         // Log slow test execution
         let totalDuration: Duration = duration1 + duration2
         TestRegistryManager.logSlowTest("testSwiftSyntaxPatternDetectorCrossFile", duration: totalDuration)
-        
-        print("Cross-file test execution times:")
-        print("  ParentView.swift: \(duration1.formatted())")
-        print("  ChildView.swift: \(duration2.formatted())")
-        print("  Total: \(totalDuration.formatted())")
         
         // Then - Both files should be processed independently
         
