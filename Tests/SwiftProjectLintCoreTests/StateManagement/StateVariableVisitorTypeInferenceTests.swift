@@ -9,169 +9,38 @@ import SwiftParser
 @MainActor
 struct StateVariableVisitorTypeInferenceTests {
 
-    @Test func testInferTypeFromBooleanLiteral() throws {
-        let source = """
-        struct TestView: View {
-            @State private var isVisible = true
-            var body: some View { Text("Test") }
-        }
-        """
-
-        let visitor = createVisitor(for: source)
-        let stateVars = visitor.stateVariables
-
-        #expect(stateVars.count == 1)
-        #expect(stateVars.first?.type == "Bool")
+    struct TypeInferenceCase: CustomTestStringConvertible, Sendable {
+        let declaration: String
+        let expectedType: String
+        var testDescription: String { "\(declaration) → \(expectedType)" }
     }
 
-    @Test func testInferTypeFromIntegerLiteral() throws {
+    nonisolated static let cases: [TypeInferenceCase] = [
+        TypeInferenceCase(declaration: "@State private var isVisible = true", expectedType: "Bool"),
+        TypeInferenceCase(declaration: "@State private var count = 42", expectedType: "Int"),
+        TypeInferenceCase(declaration: "@State private var value = 3.14", expectedType: "Double"),
+        TypeInferenceCase(declaration: "@State private var text = \"Hello\"", expectedType: "String"),
+        TypeInferenceCase(declaration: "@State private var items = [1, 2, 3]", expectedType: "Array"),
+        TypeInferenceCase(declaration: "@State private var items = []", expectedType: "Array"),
+        TypeInferenceCase(declaration: "@State private var manager = UserManager()", expectedType: "UserManager"),
+        TypeInferenceCase(declaration: "@State private var size = CGSize(width: 100, height: 200)", expectedType: "CGSize"),
+        TypeInferenceCase(declaration: "@State private var point = CGPoint.zero", expectedType: "CGPoint"),
+        TypeInferenceCase(declaration: "@State private var color = Color.blue", expectedType: "Color"),
+        TypeInferenceCase(declaration: "@State private var font = Font.title", expectedType: "Font"),
+    ]
+
+    @Test(arguments: cases)
+    func infersType(from testCase: TypeInferenceCase) throws {
         let source = """
         struct TestView: View {
-            @State private var count = 42
+            \(testCase.declaration)
             var body: some View { Text("Test") }
         }
         """
 
         let visitor = createVisitor(for: source)
-        let stateVars = visitor.stateVariables
-
-        #expect(stateVars.count == 1)
-        #expect(stateVars.first?.type == "Int")
-    }
-
-    @Test func testInferTypeFromFloatLiteral() throws {
-        let source = """
-        struct TestView: View {
-            @State private var value = 3.14
-            var body: some View { Text("Test") }
-        }
-        """
-
-        let visitor = createVisitor(for: source)
-        let stateVars = visitor.stateVariables
-
-        #expect(stateVars.count == 1)
-        #expect(stateVars.first?.type == "Double")
-    }
-
-    @Test func testInferTypeFromStringLiteral() throws {
-        let source = """
-        struct TestView: View {
-            @State private var text = "Hello"
-            var body: some View { Text("Test") }
-        }
-        """
-
-        let visitor = createVisitor(for: source)
-        let stateVars = visitor.stateVariables
-
-        #expect(stateVars.count == 1)
-        #expect(stateVars.first?.type == "String")
-    }
-
-    @Test func testInferTypeFromArrayLiteral() throws {
-        let source = """
-        struct TestView: View {
-            @State private var items = [1, 2, 3]
-            var body: some View { Text("Test") }
-        }
-        """
-
-        let visitor = createVisitor(for: source)
-        let stateVars = visitor.stateVariables
-
-        #expect(stateVars.count == 1)
-        #expect(stateVars.first?.type == "Array")
-    }
-
-    @Test func testInferTypeFromEmptyArray() throws {
-        let source = """
-        struct TestView: View {
-            @State private var items = []
-            var body: some View { Text("Test") }
-        }
-        """
-
-        let visitor = createVisitor(for: source)
-        let stateVars = visitor.stateVariables
-
-        #expect(stateVars.count == 1)
-        #expect(stateVars.first?.type == "Array")
-    }
-
-    @Test func testInferTypeFromFunctionCall() throws {
-        let source = """
-        struct TestView: View {
-            @State private var manager = UserManager()
-            var body: some View { Text("Test") }
-        }
-        """
-
-        let visitor = createVisitor(for: source)
-        let stateVars = visitor.stateVariables
-
-        #expect(stateVars.count == 1)
-        #expect(stateVars.first?.type == "UserManager")
-    }
-
-    @Test func testInferTypeFromCGSize() throws {
-        let source = """
-        struct TestView: View {
-            @State private var size = CGSize(width: 100, height: 200)
-            var body: some View { Text("Test") }
-        }
-        """
-
-        let visitor = createVisitor(for: source)
-        let stateVars = visitor.stateVariables
-
-        #expect(stateVars.count == 1)
-        #expect(stateVars.first?.type == "CGSize")
-    }
-
-    @Test func testInferTypeFromCGPoint() throws {
-        let source = """
-        struct TestView: View {
-            @State private var point = CGPoint.zero
-            var body: some View { Text("Test") }
-        }
-        """
-
-        let visitor = createVisitor(for: source)
-        let stateVars = visitor.stateVariables
-
-        #expect(stateVars.count == 1)
-        #expect(stateVars.first?.type == "CGPoint")
-    }
-
-    @Test func testInferTypeFromColor() throws {
-        let source = """
-        struct TestView: View {
-            @State private var color = Color.blue
-            var body: some View { Text("Test") }
-        }
-        """
-
-        let visitor = createVisitor(for: source)
-        let stateVars = visitor.stateVariables
-
-        #expect(stateVars.count == 1)
-        #expect(stateVars.first?.type == "Color")
-    }
-
-    @Test func testInferTypeFromFont() throws {
-        let source = """
-        struct TestView: View {
-            @State private var font = Font.title
-            var body: some View { Text("Test") }
-        }
-        """
-
-        let visitor = createVisitor(for: source)
-        let stateVars = visitor.stateVariables
-
-        #expect(stateVars.count == 1)
-        #expect(stateVars.first?.type == "Font")
+        let stateVar = try #require(visitor.stateVariables.first)
+        #expect(stateVar.type == testCase.expectedType)
     }
 
     // MARK: - Helper Methods

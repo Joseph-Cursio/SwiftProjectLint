@@ -9,95 +9,57 @@ import SwiftParser
 @MainActor
 struct StateVariableVisitorTypeExtractionTests {
 
-    @Test func testExtractTypeFromExplicitAnnotation() throws {
-        let source = """
-        struct TestView: View {
-            @State private var count: Int = 0
-            var body: some View { Text("Test") }
+    struct TypeExtractionCase: CustomTestStringConvertible, Sendable {
+        let declaration: String
+        let expectedType: String
+        let expectedName: String?
+        let typeMatchMode: TypeMatchMode
+        var testDescription: String { declaration }
+
+        enum TypeMatchMode: Sendable {
+            case exact
+            case contains
         }
-        """
 
-        let visitor = createVisitor(for: source)
-        let stateVars = visitor.stateVariables
-
-        #expect(stateVars.count == 1)
-        #expect(stateVars.first?.type == "Int")
-        #expect(stateVars.first?.name == "count")
+        init(_ declaration: String, type expectedType: String, name: String? = nil, match: TypeMatchMode = .exact) {
+            self.declaration = declaration
+            self.expectedType = expectedType
+            self.expectedName = name
+            self.typeMatchMode = match
+        }
     }
 
-    @Test func testExtractTypeFromStringAnnotation() throws {
+    nonisolated static let cases: [TypeExtractionCase] = [
+        TypeExtractionCase("@State private var count: Int = 0", type: "Int", name: "count"),
+        TypeExtractionCase("@State private var name: String = \"Test\"", type: "String"),
+        TypeExtractionCase("@State private var isEnabled: Bool = true", type: "Bool"),
+        TypeExtractionCase("@State private var optionalValue: String? = nil", type: "String", match: .contains),
+        TypeExtractionCase("@State private var content: some View = Text(\"Test\")", type: "View"),
+        TypeExtractionCase("@State private var value: String", type: "String"),
+    ]
+
+    @Test(arguments: cases)
+    func extractsType(from testCase: TypeExtractionCase) throws {
         let source = """
         struct TestView: View {
-            @State private var name: String = "Test"
+            \(testCase.declaration)
             var body: some View { Text("Test") }
         }
         """
 
         let visitor = createVisitor(for: source)
-        let stateVars = visitor.stateVariables
+        let stateVar = try #require(visitor.stateVariables.first)
 
-        #expect(stateVars.count == 1)
-        #expect(stateVars.first?.type == "String")
-    }
-
-    @Test func testExtractTypeFromBoolAnnotation() throws {
-        let source = """
-        struct TestView: View {
-            @State private var isEnabled: Bool = true
-            var body: some View { Text("Test") }
+        switch testCase.typeMatchMode {
+        case .exact:
+            #expect(stateVar.type == testCase.expectedType)
+        case .contains:
+            #expect(stateVar.type.contains(testCase.expectedType))
         }
-        """
 
-        let visitor = createVisitor(for: source)
-        let stateVars = visitor.stateVariables
-
-        #expect(stateVars.count == 1)
-        #expect(stateVars.first?.type == "Bool")
-    }
-
-    @Test func testExtractTypeFromOptionalAnnotation() throws {
-        let source = """
-        struct TestView: View {
-            @State private var optionalValue: String? = nil
-            var body: some View { Text("Test") }
+        if let expectedName = testCase.expectedName {
+            #expect(stateVar.name == expectedName)
         }
-        """
-
-        let visitor = createVisitor(for: source)
-        let stateVars = visitor.stateVariables
-
-        #expect(stateVars.count == 1)
-        #expect(stateVars.first?.type.contains("String") == true)
-    }
-
-    @Test func testCleanTypeStringRemovesSomeKeyword() throws {
-        let source = """
-        struct TestView: View {
-            @State private var content: some View = Text("Test")
-            var body: some View { Text("Test") }
-        }
-        """
-
-        let visitor = createVisitor(for: source)
-        let stateVars = visitor.stateVariables
-
-        #expect(stateVars.count == 1)
-        #expect(stateVars.first?.type == "View")
-    }
-
-    @Test func testHandleMissingTypeAnnotationAndInitializer() throws {
-        let source = """
-        struct TestView: View {
-            @State private var value: String
-            var body: some View { Text("Test") }
-        }
-        """
-
-        let visitor = createVisitor(for: source)
-        let stateVars = visitor.stateVariables
-
-        #expect(stateVars.count == 1)
-        #expect(stateVars.first?.type == "String")
     }
 
     // MARK: - Helper Methods

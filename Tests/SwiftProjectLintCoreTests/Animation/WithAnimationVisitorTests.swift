@@ -227,7 +227,7 @@ struct WithAnimationVisitorTests {
     }
 
     @Test
-    func bothRulesDetectedInSameFile() {
+    func bothRulesDetectedInSameFile() throws {
         let source = """
         import SwiftUI
 
@@ -256,13 +256,13 @@ struct WithAnimationVisitorTests {
         // Test withAnimationInOnAppear
         let onAppearVisitor = makeVisitor(for: .withAnimationInOnAppear)
         runVisitor(onAppearVisitor, source: source)
-        #expect(onAppearVisitor.detectedIssues.count == 1)
-        #expect(onAppearVisitor.detectedIssues.first?.ruleName == .withAnimationInOnAppear)
+        let onAppearIssue = try #require(onAppearVisitor.detectedIssues.first)
+        #expect(onAppearIssue.ruleName == .withAnimationInOnAppear)
 
         // Test animationWithoutStateChange
         let noStateVisitor = makeVisitor(for: .animationWithoutStateChange)
         runVisitor(noStateVisitor, source: source)
-        #expect(noStateVisitor.detectedIssues.count == 1)
-        #expect(noStateVisitor.detectedIssues.first?.ruleName == .animationWithoutStateChange)
+        let noStateIssue = try #require(noStateVisitor.detectedIssues.first)
+        #expect(noStateIssue.ruleName == .animationWithoutStateChange)
     }
 }

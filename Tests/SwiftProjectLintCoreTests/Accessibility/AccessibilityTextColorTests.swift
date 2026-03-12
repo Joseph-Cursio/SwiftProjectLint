@@ -18,7 +18,7 @@ class AccessibilityTextColorTests {
 
     // MARK: - Text Accessibility Tests
 
-    @Test func testLongTextMissingAccessibility() {
+    @Test func testLongTextMissingAccessibility() throws {
         let visitor = createVisitor()
 
         // Given
@@ -40,10 +40,7 @@ class AccessibilityTextColorTests {
         }
         // Then
         #expect(visitor.detectedIssues.count == 1)
-        guard let issue = visitor.detectedIssues.first else {
-            Issue.record("Expected at least one issue")
-            return
-        }
+        let issue = try #require(visitor.detectedIssues.first)
         #expect(issue.severity == .info)
         #expect(issue.message.contains("Long text content may benefit from accessibility features"))
         #expect(issue.suggestion?.contains("accessibilityLabel") == true)
@@ -93,7 +90,7 @@ class AccessibilityTextColorTests {
 
     // MARK: - Color Accessibility Tests
 
-    @Test func testInaccessibleColorUsage() {
+    @Test func testInaccessibleColorUsage() throws {
         let visitor = createVisitor()
 
         // Given
@@ -113,10 +110,7 @@ class AccessibilityTextColorTests {
         // Then
         #expect(visitor.detectedIssues.count == 1)
 
-        guard let issue = visitor.detectedIssues.first else {
-            Issue.record("Expected at least one issue")
-            return
-        }
+        let issue = try #require(visitor.detectedIssues.first)
         #expect(issue.severity == .info)
         #expect(issue.message.contains("Consider accessibility when using color-based information"))
         #expect(issue.suggestion?.contains("color is not the only way") == true)

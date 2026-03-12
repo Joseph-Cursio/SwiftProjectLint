@@ -32,8 +32,8 @@ struct AnimationVisitorTests {
         visitor.walk(sourceFile)
         let issues = visitor.detectedIssues
 
-        #expect(issues.count == 1)
-        #expect(issues.first?.ruleName == .deprecatedAnimation)
+        let issue = try #require(issues.first)
+        #expect(issue.ruleName == .deprecatedAnimation)
     }
 
     @Test

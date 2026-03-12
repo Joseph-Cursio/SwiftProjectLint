@@ -17,7 +17,7 @@ class ButtonAccessibilityTests {
 
     // MARK: - Button with Image Missing Label Tests
 
-    @Test func testButtonWithImageMissingLabel() {
+    @Test func testButtonWithImageMissingLabel() throws {
         let visitor = createVisitor()
 
         // Given
@@ -40,10 +40,7 @@ class ButtonAccessibilityTests {
         // Then
         #expect(visitor.detectedIssues.count == 1)
 
-        guard let issue = visitor.detectedIssues.first else {
-            Issue.record("Expected at least one issue")
-            return
-        }
+        let issue = try #require(visitor.detectedIssues.first)
         #expect(issue.severity == .warning)
         #expect(issue.message.contains("Button with image missing accessibility label"))
         #expect(issue.suggestion?.contains("accessibilityLabel") == true)
@@ -98,7 +95,7 @@ class ButtonAccessibilityTests {
 
     // MARK: - Button with Text Missing Hint Tests
 
-    @Test func testButtonWithTextMissingHint() {
+    @Test func testButtonWithTextMissingHint() throws {
         let visitor = createVisitor()
 
         // Given
@@ -121,10 +118,7 @@ class ButtonAccessibilityTests {
         // Then
         #expect(visitor.detectedIssues.count == 1)
 
-        guard let issue = visitor.detectedIssues.first else {
-            Issue.record("Expected at least one issue")
-            return
-        }
+        let issue = try #require(visitor.detectedIssues.first)
         #expect(issue.severity == .info)
         #expect(issue.message.contains("Consider adding accessibility hint"))
         #expect(issue.suggestion?.contains("accessibilityHint") == true)

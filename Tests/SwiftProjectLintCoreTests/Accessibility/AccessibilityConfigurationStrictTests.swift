@@ -6,7 +6,7 @@ import SwiftParser
 
 @MainActor
 class AccessibilityConfigurationStrictTests {
-    @Test func testStrictConfiguration() {
+    @Test func testStrictConfiguration() throws {
         let strictVisitor = AccessibilityVisitor(config: AccessibilityVisitor.Configuration(minTextLengthForHint: 5))
         let sourceCode = """
         struct ContentView: View {
@@ -18,14 +18,11 @@ class AccessibilityConfigurationStrictTests {
         let sourceFile = Parser.parse(source: sourceCode)
         strictVisitor.walk(sourceFile)
         #expect(strictVisitor.detectedIssues.count == 1)
-        guard let issue = strictVisitor.detectedIssues.first else {
-            Issue.record("Expected at least one issue")
-            return
-        }
+        let issue = try #require(strictVisitor.detectedIssues.first)
         #expect(issue.message.contains("Long text content may benefit"))
     }
 
-    @Test func testCustomConfiguration() {
+    @Test func testCustomConfiguration() throws {
         let customConfig = AccessibilityVisitor.Configuration(minTextLengthForHint: 20)
         let customVisitor = AccessibilityVisitor(config: customConfig)
         customVisitor.reset()
@@ -39,14 +36,11 @@ class AccessibilityConfigurationStrictTests {
         let sourceFile = Parser.parse(source: sourceCode)
         customVisitor.walk(sourceFile)
         #expect(customVisitor.detectedIssues.count == 1)
-        guard let issue = customVisitor.detectedIssues.first else {
-            Issue.record("Expected at least one issue")
-            return
-        }
+        let issue = try #require(customVisitor.detectedIssues.first)
         #expect(issue.message.contains("Long text content may benefit from accessibility features"))
     }
 
-    @Test func testCustomConfigurationWithLongerText() {
+    @Test func testCustomConfigurationWithLongerText() throws {
         let customConfig = AccessibilityVisitor.Configuration(minTextLengthForHint: 20)
         let customVisitor = AccessibilityVisitor(config: customConfig)
         customVisitor.reset()
@@ -60,10 +54,7 @@ class AccessibilityConfigurationStrictTests {
         let sourceFile = Parser.parse(source: sourceCode)
         customVisitor.walk(sourceFile)
         #expect(customVisitor.detectedIssues.count == 1)
-        guard let issue = customVisitor.detectedIssues.first else {
-            Issue.record("Expected at least one issue")
-            return
-        }
+        let issue = try #require(customVisitor.detectedIssues.first)
         #expect(issue.message.contains("Long text content may benefit from accessibility features"))
     }
-} 
+}

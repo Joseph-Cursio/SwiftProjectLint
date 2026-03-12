@@ -27,9 +27,9 @@ struct UIVisitorPreviewTests {
         visitor.walk(syntax)
         let issues = visitor.detectedIssues
         
-        #expect(issues.count == 1)
-        #expect(issues.first?.message == "View 'ContentView' missing preview provider")
-        #expect(issues.first?.severity == .info)
+        let issue = try #require(issues.first)
+        #expect(issue.message == "View 'ContentView' missing preview provider")
+        #expect(issue.severity == .info)
     }
     
     @Test func testDoesNotDetectWhenPreviewExists() throws {

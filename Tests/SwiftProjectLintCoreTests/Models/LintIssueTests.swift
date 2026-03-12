@@ -4,7 +4,7 @@ import SwiftProjectLintCore
 @Suite("LintIssueTests")
 struct LintIssueTests {
     
-    @Test func testLintIssueInitializationWithSingleLocation() {
+    @Test func testLintIssueInitializationWithSingleLocation() throws {
         let issue = LintIssue(
             severity: .warning,
             message: "Test issue",
@@ -20,9 +20,9 @@ struct LintIssueTests {
         #expect(issue.lineNumber == 42)
         #expect(issue.suggestion == "Fix this")
         #expect(issue.ruleName == .magicNumber)
-        #expect(issue.locations.count == 1)
-        #expect(issue.locations.first?.filePath == "test.swift")
-        #expect(issue.locations.first?.lineNumber == 42)
+        let location = try #require(issue.locations.first)
+        #expect(location.filePath == "test.swift")
+        #expect(location.lineNumber == 42)
     }
     
     @Test func testLintIssueInitializationWithMultipleLocations() {

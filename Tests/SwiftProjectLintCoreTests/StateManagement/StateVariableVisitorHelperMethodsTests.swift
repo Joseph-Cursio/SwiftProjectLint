@@ -77,10 +77,8 @@ struct StateVariableVisitorHelperMethodsTests {
         """
 
         let visitor = createVisitor(for: source)
-        let stateVars = visitor.stateVariables
-
-        #expect(stateVars.count == 1)
-        #expect(stateVars.first?.type.contains("String") == true)
+        let stateVar = try #require(visitor.stateVariables.first)
+        #expect(stateVar.type.contains("String"))
     }
 
     @Test func testExtractGenericDictionaryType() throws {
@@ -92,11 +90,9 @@ struct StateVariableVisitorHelperMethodsTests {
         """
 
         let visitor = createVisitor(for: source)
-        let stateVars = visitor.stateVariables
-
-        #expect(stateVars.count == 1)
-        #expect(stateVars.first?.type.contains("String") == true)
-        #expect(stateVars.first?.type.contains("Int") == true)
+        let stateVar = try #require(visitor.stateVariables.first)
+        #expect(stateVar.type.contains("String"))
+        #expect(stateVar.type.contains("Int"))
     }
 
     @Test func testExtractOptionalGenericType() throws {
@@ -108,10 +104,8 @@ struct StateVariableVisitorHelperMethodsTests {
         """
 
         let visitor = createVisitor(for: source)
-        let stateVars = visitor.stateVariables
-
-        #expect(stateVars.count == 1)
-        #expect(stateVars.first?.type.contains("Item") == true)
+        let stateVar = try #require(visitor.stateVariables.first)
+        #expect(stateVar.type.contains("Item"))
     }
 
     // MARK: - View Name and File Path Tests
@@ -132,8 +126,9 @@ struct StateVariableVisitorHelperMethodsTests {
         )
         visitor.walk(syntax)
 
-        #expect(visitor.stateVariables.first?.viewName == "MyCustomView")
-        #expect(visitor.stateVariables.first?.filePath == "/custom/path.swift")
+        let stateVar = try #require(visitor.stateVariables.first)
+        #expect(stateVar.viewName == "MyCustomView")
+        #expect(stateVar.filePath == "/custom/path.swift")
     }
 
     @Test func testLineNumberCalculation() throws {
@@ -147,10 +142,8 @@ struct StateVariableVisitorHelperMethodsTests {
         """
 
         let visitor = createVisitor(for: source)
-        let stateVars = visitor.stateVariables
-
-        #expect(stateVars.count == 1)
-        #expect(stateVars.first?.lineNumber == 4)
+        let stateVar = try #require(visitor.stateVariables.first)
+        #expect(stateVar.lineNumber == 4)
     }
 
     // MARK: - Edge Cases
@@ -166,9 +159,7 @@ struct StateVariableVisitorHelperMethodsTests {
         """
 
         let visitor = createVisitor(for: source)
-        let stateVars = visitor.stateVariables
-
-        #expect(stateVars.isEmpty)
+        #expect(visitor.stateVariables.isEmpty)
     }
 
     @Test func testEmptyView() throws {

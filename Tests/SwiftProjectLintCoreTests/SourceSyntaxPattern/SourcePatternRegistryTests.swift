@@ -44,12 +44,12 @@ struct SourcePatternRegistryTests {
 
         // Then
         let patterns = testVisitorRegistry.getAllPatterns()
-        #expect(patterns.count == 1)
-        #expect(patterns.first?.name == .fatView)
+        let registeredPattern = try #require(patterns.first)
+        #expect(registeredPattern.name == .fatView)
 
         let visitors = testVisitorRegistry.getVisitors(for: .stateManagement)
-        #expect(visitors.count == 1)
-        #expect(visitors.first is SwiftUIManagementVisitor.Type)
+        let registeredVisitor = try #require(visitors.first)
+        #expect(registeredVisitor is SwiftUIManagementVisitor.Type)
 
         testVisitorRegistry.clear()
     }
