@@ -38,7 +38,7 @@ struct CrossFileAnalysisEngineFileSystemTests {
     // MARK: - detectPatterns(in:categories:) with real directories
 
     @Test("detectPatterns with real directory and categories filter")
-    func detectPatternsInRealDirectoryWithCategories() throws {
+    func detectPatternsInRealDirectoryWithCategories() async throws {
         let tempDir = try makeTempDir(label: "CategoriesTest")
         defer { try? FileManager.default.removeItem(at: tempDir) }
 
@@ -66,14 +66,14 @@ struct CrossFileAnalysisEngineFileSystemTests {
         let registry = makeRegistryWithCrossFileVisitor()
         let engine = CrossFileAnalysisEngine(registry: registry)
 
-        _ = engine.detectPatterns(
+        _ = await engine.detectPatterns(
             in: tempDir.path,
             categories: [.stateManagement]
         )
     }
 
     @Test("detectPatterns with real directory and nil categories")
-    func detectPatternsInRealDirectoryNilCategories() throws {
+    func detectPatternsInRealDirectoryNilCategories() async throws {
         let tempDir = try makeTempDir(label: "NilCatTest")
         defer { try? FileManager.default.removeItem(at: tempDir) }
 
@@ -91,13 +91,13 @@ struct CrossFileAnalysisEngineFileSystemTests {
         let registry = makeRegistryWithCrossFileVisitor()
         let engine = CrossFileAnalysisEngine(registry: registry)
 
-        _ = engine.detectPatterns(in: tempDir.path, categories: nil)
+        _ = await engine.detectPatterns(in: tempDir.path, categories: nil)
     }
 
     // MARK: - detectPatterns(in:ruleIdentifiers:) with real directories
 
     @Test("detectPatterns with ruleIdentifiers and real directory")
-    func detectPatternsInRealDirectoryWithRuleIdentifiers() throws {
+    func detectPatternsInRealDirectoryWithRuleIdentifiers() async throws {
         let tempDir = try makeTempDir(label: "RuleIdTest")
         defer { try? FileManager.default.removeItem(at: tempDir) }
 
@@ -115,7 +115,7 @@ struct CrossFileAnalysisEngineFileSystemTests {
         let registry = makeRegistryWithCrossFileVisitor()
         let engine = CrossFileAnalysisEngine(registry: registry)
 
-        _ = engine.detectPatterns(
+        _ = await engine.detectPatterns(
             in: tempDir.path,
             ruleIdentifiers: [.relatedDuplicateStateVariable]
         )
@@ -124,7 +124,7 @@ struct CrossFileAnalysisEngineFileSystemTests {
     // MARK: - findSwiftFiles edge cases
 
     @Test("non-Swift files are ignored by findSwiftFiles")
-    func detectPatternsIgnoresNonSwiftFiles() throws {
+    func detectPatternsIgnoresNonSwiftFiles() async throws {
         let tempDir = try makeTempDir(label: "MixedFilesTest")
         defer { try? FileManager.default.removeItem(at: tempDir) }
 
@@ -138,11 +138,11 @@ struct CrossFileAnalysisEngineFileSystemTests {
         )
 
         let engine = CrossFileAnalysisEngine()
-        _ = engine.detectPatterns(in: tempDir.path, categories: [.stateManagement])
+        _ = await engine.detectPatterns(in: tempDir.path, categories: [.stateManagement])
     }
 
     @Test("findSwiftFiles discovers files in nested subdirectories")
-    func detectPatternsFindsNestedSwiftFiles() throws {
+    func detectPatternsFindsNestedSwiftFiles() async throws {
         let tempDir = try makeTempDir(label: "NestedTest")
         let subDir = tempDir.appendingPathComponent("SubFolder")
         try FileManager.default.createDirectory(
@@ -160,22 +160,22 @@ struct CrossFileAnalysisEngineFileSystemTests {
         )
 
         let engine = CrossFileAnalysisEngine()
-        _ = engine.detectPatterns(in: tempDir.path)
+        _ = await engine.detectPatterns(in: tempDir.path)
     }
 
     @Test("empty directory produces no issues")
-    func detectPatternsInEmptyDirectory() throws {
+    func detectPatternsInEmptyDirectory() async throws {
         let tempDir = try makeTempDir(label: "EmptyDirTest")
         defer { try? FileManager.default.removeItem(at: tempDir) }
 
         let engine = CrossFileAnalysisEngine()
-        let issues = engine.detectPatterns(in: tempDir.path)
+        let issues = await engine.detectPatterns(in: tempDir.path)
 
         #expect(issues.isEmpty)
     }
 
     @Test("directory with only non-Swift files produces no issues")
-    func detectPatternsWithOnlyNonSwiftFiles() throws {
+    func detectPatternsWithOnlyNonSwiftFiles() async throws {
         let tempDir = try makeTempDir(label: "NoSwiftTest")
         defer { try? FileManager.default.removeItem(at: tempDir) }
 
@@ -189,7 +189,7 @@ struct CrossFileAnalysisEngineFileSystemTests {
         )
 
         let engine = CrossFileAnalysisEngine()
-        let issues = engine.detectPatterns(in: tempDir.path)
+        let issues = await engine.detectPatterns(in: tempDir.path)
 
         #expect(issues.isEmpty)
     }

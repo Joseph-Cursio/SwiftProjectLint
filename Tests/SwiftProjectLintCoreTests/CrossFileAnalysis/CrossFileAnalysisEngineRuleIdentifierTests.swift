@@ -120,10 +120,10 @@ struct CrossFileRuleIdentifierTests {
     }
 
     @Test
-    func detectPatternsInNonexistentPath() throws {
+    func detectPatternsInNonexistentPath() async throws {
         let engine = CrossFileAnalysisEngine()
 
-        let issues = engine.detectPatterns(
+        let issues = await engine.detectPatterns(
             in: "/nonexistent/path/that/does/not/exist"
         )
 
@@ -131,10 +131,10 @@ struct CrossFileRuleIdentifierTests {
     }
 
     @Test
-    func detectPatternsInPathWithRuleIdentifiers() throws {
+    func detectPatternsInPathWithRuleIdentifiers() async throws {
         let engine = CrossFileAnalysisEngine()
 
-        let issues = engine.detectPatterns(
+        let issues = await engine.detectPatterns(
             in: "/nonexistent/path",
             ruleIdentifiers: [.relatedDuplicateStateVariable]
         )

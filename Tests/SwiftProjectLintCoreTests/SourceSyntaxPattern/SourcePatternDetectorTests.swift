@@ -59,15 +59,15 @@ final class SourcePatternDetectorTests {
         
     }
     
-    @Test func testDetectPatternsInProject() throws {
+    @Test func testDetectPatternsInProject() async throws {
         let detector = CrossFileAnalysisEngine()
-        
+
         // Create a temporary test project structure
         let tempDir = FileManager.default.temporaryDirectory
         let testProjectPath = tempDir.appendingPathComponent("TestProject")
-        
+
         // This test should handle the case where the project doesn't exist
-        let issues = detector.detectPatterns(
+        let issues = await detector.detectPatterns(
             in: testProjectPath.path,
             ruleIdentifiers: [.relatedDuplicateStateVariable]
         )

@@ -151,12 +151,9 @@ public class CrossFileAnalysisEngine {
     public func detectPatterns(
         in projectPath: String,
         categories: [PatternCategory]? = nil
-    ) -> [LintIssue] {
-        let swiftFiles = FileAnalysisUtils.findSwiftFiles(in: projectPath)
-        let projectFiles = swiftFiles.compactMap { filePath -> ProjectFile? in
-            guard let content = try? String(contentsOfFile: filePath) else { return nil }
-            return ProjectFile(name: (filePath as NSString).lastPathComponent, content: content)
-        }
+    ) async -> [LintIssue] {
+        let swiftFiles = await FileAnalysisUtils.findSwiftFiles(in: projectPath)
+        let projectFiles = await readProjectFiles(from: swiftFiles)
         return detectCrossFilePatterns(projectFiles: projectFiles, categories: categories)
     }
 
@@ -164,13 +161,30 @@ public class CrossFileAnalysisEngine {
     public func detectPatterns(
         in projectPath: String,
         ruleIdentifiers: [RuleIdentifier]
-    ) -> [LintIssue] {
-        let swiftFiles = FileAnalysisUtils.findSwiftFiles(in: projectPath)
-        let projectFiles = swiftFiles.compactMap { filePath -> ProjectFile? in
-            guard let content = try? String(contentsOfFile: filePath) else { return nil }
-            return ProjectFile(name: (filePath as NSString).lastPathComponent, content: content)
-        }
+    ) async -> [LintIssue] {
+        let swiftFiles = await FileAnalysisUtils.findSwiftFiles(in: projectPath)
+        let projectFiles = await readProjectFiles(from: swiftFiles)
         return detectCrossFilePatterns(projectFiles: projectFiles, ruleIdentifiers: ruleIdentifiers)
+    }
+
+    /// Reads Swift files in parallel, returning ProjectFile objects.
+    private func readProjectFiles(from filePaths: [String]) async -> [ProjectFile] {
+        await withTaskGroup(of: ProjectFile?.self) { group in
+            for filePath in filePaths {
+                group.addTask {
+                    guard let content = try? String(contentsOfFile: filePath) else { return nil }
+                    return ProjectFile(
+                        name: (filePath as NSString).lastPathComponent,
+                        content: content
+                    )
+                }
+            }
+            var files: [ProjectFile] = []
+            for await file in group {
+                if let file { files.append(file) }
+            }
+            return files
+        }
     }
 
     // MARK: - Private Methods
