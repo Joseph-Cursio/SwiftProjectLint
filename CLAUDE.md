@@ -170,4 +170,4 @@ struct MyViewTests {
 Per project documentation:
 - Some property wrapper and view type detection still uses string comparisons (migration in progress)
 - Several large files need splitting (see `__refactor.md`)
-- Async/await conversion incomplete; AST caching not implemented
+- Async/await conversion complete; AST caching implemented (in-memory, per-analysis-run)
