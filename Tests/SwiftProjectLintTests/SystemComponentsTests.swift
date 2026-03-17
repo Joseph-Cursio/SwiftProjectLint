@@ -21,9 +21,9 @@ final class SystemComponentsTests {
 
     @Test
     @MainActor
-    func testSystemComponentsInitialize() throws {
+    func testSystemComponentsInitialize() async throws {
         let components = SystemComponents()
-        components.initialize()
+        await components.initialize()
 
         // After initialize(), all properties should be set
         #expect(components.patternRegistry != nil)
@@ -33,9 +33,9 @@ final class SystemComponentsTests {
 
     @Test
     @MainActor
-    func testPatternRegistryHasPatterns() throws {
+    func testPatternRegistryHasPatterns() async throws {
         let components = SystemComponents()
-        components.initialize()
+        await components.initialize()
 
         guard let registry = components.patternRegistry else {
             Issue.record("Pattern registry should not be nil after initialization")
@@ -48,9 +48,9 @@ final class SystemComponentsTests {
 
     @Test
     @MainActor
-    func testPatternRegistryHasAllCategories() throws {
+    func testPatternRegistryHasAllCategories() async throws {
         let components = SystemComponents()
-        components.initialize()
+        await components.initialize()
 
         guard let registry = components.patternRegistry else {
             Issue.record("Pattern registry should not be nil after initialization")
@@ -71,9 +71,9 @@ final class SystemComponentsTests {
 
     @Test
     @MainActor
-    func testVisitorRegistryHasVisitors() throws {
+    func testVisitorRegistryHasVisitors() async throws {
         let components = SystemComponents()
-        components.initialize()
+        await components.initialize()
 
         guard let visitorRegistry = components.visitorRegistry else {
             Issue.record("Visitor registry should not be nil after initialization")
@@ -87,9 +87,9 @@ final class SystemComponentsTests {
 
     @Test
     @MainActor
-    func testDetectorIsConfigured() throws {
+    func testDetectorIsConfigured() async throws {
         let components = SystemComponents()
-        components.initialize()
+        await components.initialize()
 
         guard let detector = components.detector else {
             Issue.record("Detector should not be nil after initialization")
@@ -103,15 +103,15 @@ final class SystemComponentsTests {
 
     @Test
     @MainActor
-    func testMultipleInitializeCalls() throws {
+    func testMultipleInitializeCalls() async throws {
         let components = SystemComponents()
 
         // First initialization
-        components.initialize()
+        await components.initialize()
         let firstRegistry = components.patternRegistry
 
         // Second initialization (should work without crashing)
-        components.initialize()
+        await components.initialize()
         let secondRegistry = components.patternRegistry
 
         // Both should be valid
@@ -137,9 +137,9 @@ final class SystemComponentsIntegrationTests {
 
     @Test
     @MainActor
-    func testContentViewWithSystemComponents() throws {
+    func testContentViewWithSystemComponents() async throws {
         let components = SystemComponents()
-        components.initialize()
+        await components.initialize()
 
         let view = ContentView()
             .environmentObject(components)
@@ -169,9 +169,9 @@ final class SystemComponentsIntegrationTests {
 
     @Test
     @MainActor
-    func testPatternCategoryCounts() throws {
+    func testPatternCategoryCounts() async throws {
         let components = SystemComponents()
-        components.initialize()
+        await components.initialize()
 
         guard let registry = components.patternRegistry else {
             Issue.record("Pattern registry should not be nil")
@@ -191,9 +191,9 @@ final class SystemComponentsIntegrationTests {
 
     @Test
     @MainActor
-    func testSecurityPatterns() throws {
+    func testSecurityPatterns() async throws {
         let components = SystemComponents()
-        components.initialize()
+        await components.initialize()
 
         guard let registry = components.patternRegistry else {
             Issue.record("Pattern registry should not be nil")
@@ -206,9 +206,9 @@ final class SystemComponentsIntegrationTests {
 
     @Test
     @MainActor
-    func testAccessibilityPatterns() throws {
+    func testAccessibilityPatterns() async throws {
         let components = SystemComponents()
-        components.initialize()
+        await components.initialize()
 
         guard let registry = components.patternRegistry else {
             Issue.record("Pattern registry should not be nil")
@@ -221,9 +221,9 @@ final class SystemComponentsIntegrationTests {
 
     @Test
     @MainActor
-    func testMemoryManagementPatterns() throws {
+    func testMemoryManagementPatterns() async throws {
         let components = SystemComponents()
-        components.initialize()
+        await components.initialize()
 
         guard let registry = components.patternRegistry else {
             Issue.record("Pattern registry should not be nil")
@@ -236,9 +236,9 @@ final class SystemComponentsIntegrationTests {
 
     @Test
     @MainActor
-    func testNetworkingPatterns() throws {
+    func testNetworkingPatterns() async throws {
         let components = SystemComponents()
-        components.initialize()
+        await components.initialize()
 
         guard let registry = components.patternRegistry else {
             Issue.record("Pattern registry should not be nil")
@@ -251,9 +251,9 @@ final class SystemComponentsIntegrationTests {
 
     @Test
     @MainActor
-    func testAnimationPatterns() throws {
+    func testAnimationPatterns() async throws {
         let components = SystemComponents()
-        components.initialize()
+        await components.initialize()
 
         guard let registry = components.patternRegistry else {
             Issue.record("Pattern registry should not be nil")
@@ -266,9 +266,9 @@ final class SystemComponentsIntegrationTests {
 
     @Test
     @MainActor
-    func testCodeQualityPatterns() throws {
+    func testCodeQualityPatterns() async throws {
         let components = SystemComponents()
-        components.initialize()
+        await components.initialize()
 
         guard let registry = components.patternRegistry else {
             Issue.record("Pattern registry should not be nil")

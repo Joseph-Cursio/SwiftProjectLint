@@ -111,9 +111,9 @@ struct ContentViewModelTests {
     }
 
     @Test("getEnabledCategories returns categories with configured registry")
-    func getEnabledCategoriesWithRegistry() {
+    func getEnabledCategoriesWithRegistry() async {
         let systemComponents = SystemComponents()
-        systemComponents.initialize()
+        await systemComponents.initialize()
         let viewModel = ContentViewModel()
         viewModel.patternRegistry = systemComponents.patternRegistry
         viewModel.enabledRuleNames = [.relatedDuplicateStateVariable]
@@ -167,9 +167,9 @@ struct ContentViewModelTests {
     }
 
     @Test("allPatternsByCategory returns categories with configured registry")
-    func allPatternsByCategoryWithRegistry() {
+    func allPatternsByCategoryWithRegistry() async {
         let systemComponents = SystemComponents()
-        systemComponents.initialize()
+        await systemComponents.initialize()
         let viewModel = ContentViewModel()
         viewModel.patternRegistry = systemComponents.patternRegistry
         let patterns = viewModel.allPatternsByCategory

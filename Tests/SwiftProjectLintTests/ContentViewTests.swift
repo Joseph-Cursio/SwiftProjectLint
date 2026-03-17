@@ -9,9 +9,9 @@ import SwiftProjectLintCore
 @MainActor
 struct ContentViewTests {
     @Test("view renders text content when environment object is provided")
-    func rendersTextContent() throws {
+    func rendersTextContent() async throws {
         let systemComponents = SystemComponents()
-        systemComponents.initialize()
+        await systemComponents.initialize()
         let view = ContentView().environmentObject(systemComponents)
         let inspected = try view.inspect()
         let texts = inspected.findAll(ViewType.Text.self)
@@ -20,9 +20,9 @@ struct ContentViewTests {
     }
 
     @Test("view contains expected child views in its VStack")
-    func contentViewStructure() throws {
+    func contentViewStructure() async throws {
         let systemComponents = SystemComponents()
-        systemComponents.initialize()
+        await systemComponents.initialize()
         let view = ContentView().environmentObject(systemComponents)
         let inspected = try view.inspect()
         // NavigationView
@@ -36,9 +36,9 @@ struct ContentViewTests {
     }
 
     @Test("view displays the app title text")
-    func displaysAppTitle() throws {
+    func displaysAppTitle() async throws {
         let systemComponents = SystemComponents()
-        systemComponents.initialize()
+        await systemComponents.initialize()
         let view = ContentView().environmentObject(systemComponents)
         let inspected = try view.inspect()
         let allTexts = inspected.findAll(ViewType.Text.self).compactMap { try? $0.string() }
@@ -46,9 +46,9 @@ struct ContentViewTests {
     }
 
     @Test("view displays the subtitle description text")
-    func displaysSubtitleDescription() throws {
+    func displaysSubtitleDescription() async throws {
         let systemComponents = SystemComponents()
-        systemComponents.initialize()
+        await systemComponents.initialize()
         let view = ContentView().environmentObject(systemComponents)
         let inspected = try view.inspect()
         let allTexts = inspected.findAll(ViewType.Text.self).compactMap { try? $0.string() }
@@ -66,9 +66,9 @@ struct ContentViewTests {
     }
 
     @Test("view shows Select Rules button")
-    func showsSelectRulesButton() throws {
+    func showsSelectRulesButton() async throws {
         let systemComponents = SystemComponents()
-        systemComponents.initialize()
+        await systemComponents.initialize()
         let view = ContentView().environmentObject(systemComponents)
         let inspected = try view.inspect()
         let buttons = inspected.findAll(ViewType.Button.self)
@@ -77,9 +77,9 @@ struct ContentViewTests {
     }
 
     @Test("view shows folder selection button initially when no directory is set")
-    func showsFolderSelectionButton() throws {
+    func showsFolderSelectionButton() async throws {
         let systemComponents = SystemComponents()
-        systemComponents.initialize()
+        await systemComponents.initialize()
         let view = ContentView().environmentObject(systemComponents)
         let inspected = try view.inspect()
         let buttons = inspected.findAll(ViewType.Button.self)

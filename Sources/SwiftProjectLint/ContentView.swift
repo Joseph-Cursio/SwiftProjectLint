@@ -99,7 +99,7 @@ struct ContentViewPreviewHost: View {
     var body: some View {
         ContentView()
             .environmentObject(systemComponents)
-            .onAppear { systemComponents.initialize() }
+            .task { await systemComponents.initialize() }
     }
 }
 

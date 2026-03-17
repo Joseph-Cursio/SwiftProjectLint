@@ -42,10 +42,10 @@ struct SwiftProjectLintApp: App {
         WindowGroup {
             ContentView()
                 .environmentObject(systemComponents)
-                .onAppear {
+                .task {
                     // Initialize system components after the view hierarchy is set up
                     if systemComponents.patternRegistry == nil {
-                        systemComponents.initialize()
+                        await systemComponents.initialize()
                     }
                 }
         }
@@ -63,8 +63,10 @@ class SystemComponents: ObservableObject {
     private(set) var patternRegistry: SourcePatternRegistry?
     private(set) var detector: SourcePatternDetector?
 
-    func initialize() {
+    func initialize() async {
         print("DEBUG: SystemComponents.initialize() called")
+        // Yield to let the UI render before doing heavy registry setup
+        await Task.yield()
         let system = PatternRegistryFactory.createConfiguredSystem()
         print("DEBUG: Pattern registry created, checking patterns...")
 
