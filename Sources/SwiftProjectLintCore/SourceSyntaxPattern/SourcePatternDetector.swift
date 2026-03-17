@@ -25,9 +25,10 @@ public final class SourcePatternDetector: SourcePatternDetectorProtocol, @unchec
     public func detectPatterns(
         in sourceCode: String,
         filePath: String,
-        categories: [PatternCategory]? = nil
+        categories: [PatternCategory]? = nil,
+        parsedAST: SourceFileSyntax? = nil
     ) -> [LintIssue] {
-        let sourceFile = Parser.parse(source: sourceCode)
+        let sourceFile = parsedAST ?? Parser.parse(source: sourceCode)
         fileCache[filePath] = sourceFile
         let converter = SourceLocationConverter(fileName: filePath, tree: sourceFile)
         var allIssues: [LintIssue] = []
@@ -67,9 +68,10 @@ public final class SourcePatternDetector: SourcePatternDetectorProtocol, @unchec
     func detectPatterns(
         in sourceCode: String,
         filePath: String,
-        ruleIdentifiers: [RuleIdentifier]
+        ruleIdentifiers: [RuleIdentifier],
+        parsedAST: SourceFileSyntax? = nil
     ) -> [LintIssue] {
-        let sourceFile = Parser.parse(source: sourceCode)
+        let sourceFile = parsedAST ?? Parser.parse(source: sourceCode)
         fileCache[filePath] = sourceFile
         let converter = SourceLocationConverter(fileName: filePath, tree: sourceFile)
         var allIssues: [LintIssue] = []
