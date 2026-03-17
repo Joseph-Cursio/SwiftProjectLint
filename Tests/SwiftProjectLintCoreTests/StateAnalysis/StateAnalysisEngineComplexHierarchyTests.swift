@@ -2,8 +2,7 @@ import Testing
 import Foundation
 @testable import SwiftProjectLintCore
 
-@MainActor
-final class StateAnalysisEngineComplexHierarchyTests {
+struct StateAnalysisEngineComplexHierarchyTests {
     @Test func testAnalyzeStateManagementWithComplexHierarchy() throws {
         // ... existing code ...
     }

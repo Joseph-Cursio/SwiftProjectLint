@@ -60,8 +60,8 @@ struct RuleSelectionDialogTests {
             onSave: {}
         )
         let inspected = try view.inspect()
-        let navView = try inspected.navigationView()
-        let list = try navView.list()
+        let navStack = try inspected.navigationStack()
+        let list = try navStack.list()
         let forEach = try list.find(ViewType.ForEach.self)
         let toggles = forEach.findAll(ViewType.Toggle.self)
         #expect(toggles.contains { toggle in

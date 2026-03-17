@@ -21,8 +21,7 @@ import Foundation
 /// - Rule identifier filtering
 /// - Error handling and edge cases
 
-@MainActor
-final class CrossFileAnalysisClaimsTests {
+struct CrossFileAnalysisClaimsTests {
     
     // MARK: - Cross-File Analysis Claims Investigation
     

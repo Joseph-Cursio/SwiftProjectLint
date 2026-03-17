@@ -5,7 +5,6 @@ import SwiftParser
 @testable import SwiftProjectLintCore
 
 @Suite
-@MainActor
 struct AccessibilityConfigurationEdgeCaseTests {
     @Test func testDifferentTextWithSameLength() throws {
         let customConfig = AccessibilityVisitor.Configuration(minTextLengthForHint: 10)

@@ -2,8 +2,7 @@ import Testing
 import Foundation
 @testable import SwiftProjectLintCore
 
-@MainActor
-final class PatternDetectorTests {
+struct PatternDetectorTests {
     
     @Test func testPatternDetectorInitialization() throws {
         let detector = SwiftSyntaxPatternDetector()

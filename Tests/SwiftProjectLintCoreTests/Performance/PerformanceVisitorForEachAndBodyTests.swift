@@ -6,7 +6,6 @@ import SwiftParser
 
 /// Tests for PerformanceVisitor ForEach and view body size detection
 @Suite
-@MainActor
 struct PerformanceVisitorForEachAndBodyTests {
 
     // MARK: - Helper Methods
@@ -231,7 +230,6 @@ struct PerformanceVisitorForEachAndBodyTests {
 // MARK: - State Variable Tracking Tests
 
 @Suite
-@MainActor
 struct PerformanceVisitorStateTrackingTests {
 
     private func createVisitor() -> PerformanceVisitor {

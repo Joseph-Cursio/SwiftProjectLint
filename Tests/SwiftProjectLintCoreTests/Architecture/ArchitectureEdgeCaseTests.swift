@@ -2,8 +2,7 @@ import Testing
 import Foundation
 @testable import SwiftProjectLintCore
 
-@MainActor
-final class ArchitectureEdgeCaseTests {
+struct ArchitectureEdgeCaseTests {
     @Test func testDetectArchitecturalAntiPatternsWithEdgeCases() throws {
         // ... existing code ...
     }

@@ -2,8 +2,7 @@ import Testing
 import Foundation
 @testable import SwiftProjectLintCore
 
-@MainActor
-final class CrossFileAnalysisEngineCategoryRuleTests {
+struct CrossFileAnalysisEngineCategoryRuleTests {
     @Test func testDetectCrossFilePatternsWithCategories() throws {
         // ... existing code ...
     }

@@ -2,8 +2,7 @@ import Testing
 import Foundation
 @testable import SwiftProjectLintCore
 
-@MainActor
-final class CrossFileEngineDuplicateStateTests {
+struct CrossFileEngineDuplicateStateTests {
     @Test func testDetectCrossFilePatternsWithDuplicateStateVariables() throws {
         // ... existing code ...
     }

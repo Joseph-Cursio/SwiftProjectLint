@@ -2,8 +2,7 @@ import Testing
 import Foundation
 @testable import SwiftProjectLintCore
 
-@MainActor
-final class StateAnalysisEngineSuggestionTests {
+struct StateAnalysisEngineSuggestionTests {
     @Test func testSuggestImprovementsWithEmptyStateVariables() throws {
         // ... existing code ...
     }

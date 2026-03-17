@@ -5,7 +5,6 @@ import SwiftParser
 @testable import SwiftProjectLintCore
 
 @Suite
-@MainActor
 struct ArchitectureDirectInstantiationTests {
 
     // MARK: - Helper

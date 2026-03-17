@@ -9,7 +9,6 @@ import Testing
 @testable import SwiftProjectLintCore
 
 @Suite
-@MainActor
 struct SwiftProjectLintCoreTests {
 
     @Test func testCoreModuleImports() throws {

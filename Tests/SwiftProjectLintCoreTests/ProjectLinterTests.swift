@@ -2,19 +2,14 @@ import Testing
 import Foundation
 @testable import SwiftProjectLintCore
 
-@MainActor
-final class ProjectLinterTests {
-
-    private var tempDirectory: String = ""
-    private var testProjectPath: String = ""
+struct ProjectLinterTests {
 
     @Test func testProjectLinterInitialization() throws {
-        let linter = ProjectLinter()
-        #expect(linter != nil) // ProjectLinter should be created successfully
+        _ = ProjectLinter() // ProjectLinter should be created successfully
     }
 
     @Test func testAnalyzeProjectWithValidPath() async throws {
-        setupTestProject()
+        let testProjectPath = makeTestProject()
         let linter = ProjectLinter()
 
         let issues = await linter.analyzeProject(at: testProjectPath)
@@ -32,7 +27,7 @@ final class ProjectLinterTests {
     }
 
     @Test func testAnalyzeProjectWithSpecificCategories() async throws {
-        setupTestProject()
+        let testProjectPath = makeTestProject()
         let linter = ProjectLinter()
 
         let issues = await linter.analyzeProject(
@@ -50,7 +45,7 @@ final class ProjectLinterTests {
     }
 
     @Test func testAnalyzeProjectWithSpecificRules() async throws {
-        setupTestProject()
+        let testProjectPath = makeTestProject()
         let linter = ProjectLinter()
 
         let issues = await linter.analyzeProject(
@@ -67,7 +62,7 @@ final class ProjectLinterTests {
     }
 
     @Test func testAnalyzeProjectWithEmptyProject() async throws {
-        setupEmptyTestProject()
+        let testProjectPath = makeEmptyTestProject()
         let linter = ProjectLinter()
 
         let issues = await linter.analyzeProject(at: testProjectPath)
@@ -76,7 +71,7 @@ final class ProjectLinterTests {
     }
 
     @Test func testAnalyzeProjectWithComplexProject() async throws {
-        setupComplexTestProject()
+        let testProjectPath = makeComplexTestProject()
         let linter = ProjectLinter()
 
         let issues = await linter.analyzeProject(at: testProjectPath)
@@ -89,11 +84,11 @@ final class ProjectLinterTests {
     }
 
     @Test func testAnalyzeProjectPerformance() async throws {
-        setupComplexTestProject()
+        let testProjectPath = makeComplexTestProject()
         let linter = ProjectLinter()
 
         let startTime = Date()
-        let issues = await linter.analyzeProject(at: testProjectPath)
+        _ = await linter.analyzeProject(at: testProjectPath)
         let endTime = Date()
 
         let duration = endTime.timeIntervalSince(startTime)
@@ -103,7 +98,7 @@ final class ProjectLinterTests {
     }
 
     @Test func testAnalyzeProjectWithAllCategories() async throws {
-        setupComplexTestProject()
+        let testProjectPath = makeComplexTestProject()
         let linter = ProjectLinter()
 
         let allCategories: [PatternCategory] = [
@@ -121,7 +116,7 @@ final class ProjectLinterTests {
     }
 
     @Test func testAnalyzeProjectWithAllRules() async throws {
-        setupComplexTestProject()
+        let testProjectPath = makeComplexTestProject()
         let linter = ProjectLinter()
 
         let allRules = RuleIdentifier.allCases
@@ -136,15 +131,11 @@ final class ProjectLinterTests {
 
     // MARK: - Helper Methods
 
-    private func setupTestProject() {
-        tempDirectory = FileManager.default.temporaryDirectory.path
-        testProjectPath = (tempDirectory as NSString).appendingPathComponent("TestProject")
-
-        // Create test project structure
-        try? FileManager.default.createDirectory(atPath: testProjectPath, withIntermediateDirectories: true)
-
-        // Create a simple SwiftUI view file
-        let contentViewPath = (testProjectPath as NSString).appendingPathComponent("ContentView.swift")
+    private func makeTestProject() -> String {
+        let tempDir = FileManager.default.temporaryDirectory.path
+        let path = (tempDir as NSString).appendingPathComponent("TestProject")
+        try? FileManager.default.createDirectory(atPath: path, withIntermediateDirectories: true)
+        let contentViewPath = (path as NSString).appendingPathComponent("ContentView.swift")
         let contentViewCode = """
         import SwiftUI
 
@@ -163,24 +154,21 @@ final class ProjectLinterTests {
         }
         """
         try? contentViewCode.write(toFile: contentViewPath, atomically: true, encoding: .utf8)
+        return path
     }
 
-    private func setupEmptyTestProject() {
-        tempDirectory = FileManager.default.temporaryDirectory.path
-        testProjectPath = (tempDirectory as NSString).appendingPathComponent("EmptyTestProject")
-
-        // Create empty project directory
-        try? FileManager.default.createDirectory(atPath: testProjectPath, withIntermediateDirectories: true)
+    private func makeEmptyTestProject() -> String {
+        let tempDir = FileManager.default.temporaryDirectory.path
+        let path = (tempDir as NSString).appendingPathComponent("EmptyTestProject")
+        try? FileManager.default.createDirectory(atPath: path, withIntermediateDirectories: true)
+        return path
     }
 
-    private func setupComplexTestProject() {
-        tempDirectory = FileManager.default.temporaryDirectory.path
-        testProjectPath = (tempDirectory as NSString).appendingPathComponent("ComplexTestProject")
+    private func makeComplexTestProject() -> String {
+        let tempDir = FileManager.default.temporaryDirectory.path
+        let path = (tempDir as NSString).appendingPathComponent("ComplexTestProject")
+        try? FileManager.default.createDirectory(atPath: path, withIntermediateDirectories: true)
 
-        // Create test project structure
-        try? FileManager.default.createDirectory(atPath: testProjectPath, withIntermediateDirectories: true)
-
-        // Create multiple SwiftUI view files with various issues
         let files = [
             ("ContentView.swift", """
             import SwiftUI
@@ -240,8 +228,9 @@ final class ProjectLinterTests {
         ]
 
         for (fileName, content) in files {
-            let filePath = (testProjectPath as NSString).appendingPathComponent(fileName)
+            let filePath = (path as NSString).appendingPathComponent(fileName)
             try? content.write(toFile: filePath, atomically: true, encoding: .utf8)
         }
+        return path
     }
 }

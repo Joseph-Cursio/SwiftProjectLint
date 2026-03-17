@@ -2,8 +2,7 @@ import Testing
 import Foundation
 @testable import SwiftProjectLintCore
 
-@MainActor
-final class ArchitectureEnvironmentObjectTests {
+struct ArchitectureEnvironmentObjectTests {
     @Test func testDetectArchitecturalAntiPatternsWithMissingEnvironmentObjects() throws {
         // ... existing code ...
     }

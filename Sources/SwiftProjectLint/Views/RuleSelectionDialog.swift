@@ -53,7 +53,7 @@ struct RuleSelectionDialog: View {
     }
 
     var body: some View {
-        NavigationView {
+        NavigationStack {
             List {
                 ForEach(allPatternsByCategory, id: \.category) { group in
                     Section(header: Text(group.display)) {
@@ -78,7 +78,7 @@ struct RuleSelectionDialog: View {
                                         .fontWeight(.medium)
                                     Text(pattern.suggestion)
                                         .font(.caption)
-                                        .foregroundColor(.secondary)
+                                        .foregroundStyle(.secondary)
                                 }
                             }
                         }

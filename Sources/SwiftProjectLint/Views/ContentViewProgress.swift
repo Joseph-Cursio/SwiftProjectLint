@@ -21,7 +21,7 @@ struct ContentViewProgress: View {
                     .scaleEffect(1.2)
                 Text("Analyzing project...")
                     .font(.subheadline)
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(.secondary)
             }
             .padding(.vertical, 20)
         }

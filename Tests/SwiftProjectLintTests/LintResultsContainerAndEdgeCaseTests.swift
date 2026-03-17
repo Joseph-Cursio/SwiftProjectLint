@@ -197,8 +197,8 @@ final class FullScreenResultsViewTests {
         let fullScreen = FullScreenResultsView(issues: issues)
         let inspected = try fullScreen.inspect()
 
-        let navView = try inspected.navigationView()
-        let list = try navView.find(ViewType.List.self)
+        let navStack = try inspected.navigationStack()
+        let list = try navStack.find(ViewType.List.self)
         let issuesSection = try list.section(1)
         let dividers = issuesSection.findAll(ViewType.Divider.self)
         // 2 issues -> 1 divider

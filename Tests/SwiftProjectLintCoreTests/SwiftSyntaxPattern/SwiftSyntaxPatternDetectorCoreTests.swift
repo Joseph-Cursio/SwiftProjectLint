@@ -11,7 +11,6 @@ import Testing
 @testable import SwiftProjectLintCore
 
 @Suite("SwiftSyntaxPatternDetectorCoreTests")
-@MainActor
 struct SwiftSyntaxPatternDetectorCoreTests {
     
     // MARK: - Test Helper Methods

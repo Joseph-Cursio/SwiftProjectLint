@@ -2,8 +2,7 @@ import Testing
 import Foundation
 @testable import SwiftProjectLintCore
 
-@MainActor
-final class CrossFileEngineArchIssueTests {
+struct CrossFileEngineArchIssueTests {
     @Test func testDetectCrossFilePatternsWithArchitectureIssues() throws {
         // ... existing code ...
     }

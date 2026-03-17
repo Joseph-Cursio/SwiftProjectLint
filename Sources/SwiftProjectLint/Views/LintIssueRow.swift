@@ -23,13 +23,13 @@ struct LintIssueRow: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(issue.message)
                         .font(.headline)
-                        .foregroundColor(.primary)
+                        .foregroundStyle(.primary)
                         .fixedSize(horizontal: true, vertical: true)
                         .lineLimit(nil)
                     if issue.locations.count == 1 {
                         Text("\(issue.locations[0].filePath):\(issue.locations[0].lineNumber)")
                             .font(.caption)
-                            .foregroundColor(.secondary)
+                            .foregroundStyle(.secondary)
                             .fixedSize(horizontal: false, vertical: true)
                     } else {
                         VStack(alignment: .leading, spacing: 2) {
@@ -37,7 +37,7 @@ struct LintIssueRow: View {
                                 let location = issue.locations[index]
                                 Text("\(location.filePath):\(location.lineNumber)")
                                     .font(.caption)
-                                    .foregroundColor(.secondary)
+                                    .foregroundStyle(.secondary)
                                     .fixedSize(horizontal: false, vertical: true)
                             }
                         }
@@ -52,7 +52,7 @@ struct LintIssueRow: View {
                     }
                 } label: {
                     Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
-                        .foregroundColor(.blue)
+                        .foregroundStyle(.blue)
                 }
             }
 
@@ -62,7 +62,7 @@ struct LintIssueRow: View {
                         // Always show the full message, with multiline support
                         Text(issue.message)
                             .font(.body)
-                            .foregroundColor(.primary)
+                            .foregroundStyle(.primary)
                             .padding(.bottom, 4)
                             .textSelection(.enabled)
                             .fixedSize(horizontal: false, vertical: true)
@@ -71,10 +71,10 @@ struct LintIssueRow: View {
                                 Text("Suggestion:")
                                     .font(.subheadline)
                                     .fontWeight(.semibold)
-                                    .foregroundColor(.blue)
+                                    .foregroundStyle(.blue)
                                 Text(suggestion)
                                     .font(.body)
-                                    .foregroundColor(.primary)
+                                    .foregroundStyle(.primary)
                                     .padding(.leading, 8)
                                     .textSelection(.enabled)
                                     .fixedSize(horizontal: false, vertical: true)
@@ -84,12 +84,12 @@ struct LintIssueRow: View {
                             Text("Locations:")
                                 .font(.caption)
                                 .fontWeight(.semibold)
-                                .foregroundColor(.secondary)
+                                .foregroundStyle(.secondary)
                             ForEach(issue.locations.indices, id: \.self) { index in
                                 let location = issue.locations[index]
                                 Text("\(location.filePath):\(location.lineNumber)")
                                     .font(.caption)
-                                    .foregroundColor(.primary)
+                                    .foregroundStyle(.primary)
                                     .fixedSize(horizontal: false, vertical: true)
                             }
                         }
@@ -106,7 +106,7 @@ struct LintIssueRow: View {
 
     private var severityIcon: some View {
         Image(systemName: severityIconName)
-            .foregroundColor(severityColor)
+            .foregroundStyle(severityColor)
             .font(.title2)
     }
 

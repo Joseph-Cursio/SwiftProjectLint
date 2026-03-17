@@ -2,8 +2,7 @@ import Testing
 import Foundation
 @testable import SwiftProjectLintCore
 
-@MainActor
-final class FileAnalysisUtilsFindSwiftFilesTests {
+struct FileAnalysisUtilsFindSwiftFilesTests {
     @Test func testFindSwiftFilesWithValidDirectory() throws {
         // ... existing code ...
     }

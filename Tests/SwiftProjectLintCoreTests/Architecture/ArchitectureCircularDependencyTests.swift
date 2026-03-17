@@ -2,8 +2,7 @@ import Testing
 import Foundation
 @testable import SwiftProjectLintCore
 
-@MainActor
-final class ArchitectureCircularDependencyTests {
+struct ArchitectureCircularDependencyTests {
     @Test func testDetectArchitecturalAntiPatternsWithCircularDependencies() throws {
         // ... existing code ...
     }

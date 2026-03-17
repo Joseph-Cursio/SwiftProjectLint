@@ -3,8 +3,7 @@ import Foundation
 @testable import SwiftProjectLintCore
 
 /// Integration and comprehensive characterization tests for architecture analysis
-@MainActor
-final class ArchCharacterizationIntegrationTests {
+struct ArchCharacterizationIntegrationTests {
 
     // MARK: - Integration Tests: Full Architecture Analysis Pipeline
 

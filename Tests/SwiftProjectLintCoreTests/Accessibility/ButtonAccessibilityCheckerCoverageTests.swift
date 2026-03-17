@@ -5,7 +5,6 @@ import SwiftParser
 @testable import SwiftProjectLintCore
 
 @Suite("ButtonAccessibilityChecker Coverage Tests")
-@MainActor
 struct ButtonAccessibilityCheckerCoverageTests {
 
     // MARK: - Test Helper Methods

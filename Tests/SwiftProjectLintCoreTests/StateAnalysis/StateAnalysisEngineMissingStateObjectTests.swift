@@ -2,8 +2,7 @@ import Testing
 import Foundation
 @testable import SwiftProjectLintCore
 
-@MainActor
-final class StateEngineMissingStateObjTests {
+struct StateEngineMissingStateObjTests {
     @Test func testAnalyzeStateManagementWithMissingStateObject() throws {
         // ... existing code ...
     }

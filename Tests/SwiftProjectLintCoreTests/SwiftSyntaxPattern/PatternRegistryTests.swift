@@ -11,7 +11,6 @@ import Testing
 @testable import SwiftProjectLintCore
 
 @Suite("PatternRegistryTests")
-@MainActor
 struct PatternRegistryTests {
 
     // MARK: - Test Helper Methods

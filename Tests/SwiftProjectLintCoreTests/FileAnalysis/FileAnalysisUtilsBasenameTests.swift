@@ -2,46 +2,18 @@ import Testing
 import Foundation
 @testable import SwiftProjectLintCore
 
-@MainActor
-final class FileAnalysisUtilsBasenameTests {
-    @Test func testExtractBasenameWithValidPath() throws {
-        let path = "/Users/test/Documents/file.swift"
-        let result = FileAnalysisUtils.extractSwiftBasename(from: path)
-        #expect(result == "file")
-    }
-    @Test func testExtractBasenameWithNestedPath() throws {
-        let path = "/a/b/c/d/e.swift"
-        let result = FileAnalysisUtils.extractSwiftBasename(from: path)
-        #expect(result == "e")
-    }
-    @Test func testExtractBasenameWithComplexPath() throws {
-        let path = "/tmp/complex.name.with.dots.swift"
-        let result = FileAnalysisUtils.extractSwiftBasename(from: path)
-        #expect(result == "complex.name.with.dots")
-    }
-    @Test func testExtractBasenameWithSpaces() throws {
-        let path = "/Users/test/My File.swift"
-        let result = FileAnalysisUtils.extractSwiftBasename(from: path)
-        #expect(result == "My File")
-    }
-    @Test func testExtractbasenameWithSpecialCharacters() throws {
-        let path = "/tmp/!@#$%^&*().swift"
-        let result = FileAnalysisUtils.extractSwiftBasename(from: path)
-        #expect(result == "!@#$%^&*()")
-    }
-    @Test func testExtractBasenameWithMultipleExtensions() throws {
-        let path = "/archive/file.tar.gz"
-        let result = FileAnalysisUtils.extractSwiftBasename(from: path)
-        #expect(result == "file.tar.gz")
-    }
-    @Test func testExtractBasenameWithNoExtension() throws {
-        let path = "/Users/test/filename"
-        let result = FileAnalysisUtils.extractSwiftBasename(from: path)
-        #expect(result == "filename")
-    }
-    @Test func testExtractBasenameWithEmptyPath() throws {
-        let path = ""
-        let result = FileAnalysisUtils.extractSwiftBasename(from: path)
-        #expect(result.isEmpty)
+struct FileAnalysisUtilsBasenameTests {
+    @Test(arguments: [
+        ("/Users/test/Documents/file.swift",  "file"),
+        ("/a/b/c/d/e.swift",                  "e"),
+        ("/tmp/complex.name.with.dots.swift",  "complex.name.with.dots"),
+        ("/Users/test/My File.swift",          "My File"),
+        ("/tmp/!@#$%^&*().swift",              "!@#$%^&*()"),
+        ("/archive/file.tar.gz",               "file.tar.gz"),
+        ("/Users/test/filename",               "filename"),
+        ("",                                   ""),
+    ])
+    func extractBasename(path: String, expected: String) {
+        #expect(FileAnalysisUtils.extractSwiftBasename(from: path) == expected)
     }
 }

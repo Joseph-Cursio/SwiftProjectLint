@@ -2,8 +2,7 @@ import Testing
 import Foundation
 @testable import SwiftProjectLintCore
 
-@MainActor
-final class FileAnalysisUtilsViewNameTests {
+struct FileAnalysisUtilsViewNameTests {
     @Test func testExtractViewNameWithValidPath() throws {
         // ... existing code ...
     }

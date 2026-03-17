@@ -3,8 +3,7 @@ import Foundation
 @testable import SwiftProjectLintCore
 
 /// Basic characterization tests for AdvancedAnalyzer and model types
-@MainActor
-final class ArchitectureCharacterizationBasicTests {
+struct ArchitectureCharacterizationBasicTests {
 
     // MARK: - AdvancedAnalyzer Basic Behavior Characterization
 

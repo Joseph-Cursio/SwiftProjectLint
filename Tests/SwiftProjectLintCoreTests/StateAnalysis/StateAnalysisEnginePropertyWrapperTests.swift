@@ -2,8 +2,7 @@ import Testing
 import Foundation
 @testable import SwiftProjectLintCore
 
-@MainActor
-final class StateAnalysisEnginePropertyWrapperTests {
+struct StateAnalysisEnginePropertyWrapperTests {
     @Test func testAnalyzeStateManagementWithDifferentPropertyWrappers() throws {
         // ... existing code ...
     }

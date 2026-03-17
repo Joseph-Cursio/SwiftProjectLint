@@ -2,8 +2,7 @@ import Testing
 import Foundation
 @testable import SwiftProjectLintCore
 
-@MainActor
-final class ArchitectureMultipleIssuesTests {
+struct ArchitectureMultipleIssuesTests {
     @Test func testDetectArchitecturalAntiPatternsWithMultipleIssues() throws {
         // ... existing code ...
     }

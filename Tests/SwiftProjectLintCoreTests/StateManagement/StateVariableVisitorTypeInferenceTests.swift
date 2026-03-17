@@ -6,7 +6,6 @@ import SwiftParser
 
 /// Tests for type inference from initializer values
 @Suite
-@MainActor
 struct StateVariableVisitorTypeInferenceTests {
 
     struct TypeInferenceCase: CustomTestStringConvertible, Sendable {

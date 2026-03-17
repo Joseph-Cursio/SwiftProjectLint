@@ -16,7 +16,7 @@ struct ContentViewHeader: View {
         VStack(spacing: 8) {
             Image(systemName: "checkmark.shield")
                 .font(.system(size: 60))
-                .foregroundColor(.blue)
+                .foregroundStyle(.blue)
                 .accessibilityHidden(true)
 
             Text("Swift Project Linter")

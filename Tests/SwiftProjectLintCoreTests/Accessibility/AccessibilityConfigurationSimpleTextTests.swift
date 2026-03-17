@@ -5,7 +5,6 @@ import SwiftParser
 @testable import SwiftProjectLintCore
 
 @Suite
-@MainActor
 struct AccessibilityConfigSimpleTextTests {
     @Test func testSimpleTextDetection() throws {
         let customConfig = AccessibilityVisitor.Configuration(minTextLengthForHint: 5)

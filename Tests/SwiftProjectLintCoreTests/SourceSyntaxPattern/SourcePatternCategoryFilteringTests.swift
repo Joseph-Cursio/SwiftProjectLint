@@ -22,8 +22,7 @@ import Foundation
 /// - Rule identifier filtering
 /// - Error handling and edge cases
 
-@MainActor
-final class SourcePatternCategoryFilteringTests {
+struct SourcePatternCategoryFilteringTests {
     
     // MARK: - Category Filtering Characterization
     

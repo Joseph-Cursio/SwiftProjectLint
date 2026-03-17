@@ -63,22 +63,20 @@ struct UIVisitorMacroPreviewTests {
         #expect(missingPreview?.severity == .info)
     }
 
-    @Test("no missing preview warning for test file paths")
-    func noMissingPreviewForTestFiles() throws {
-        let testPaths = ["SomeTest.swift", "Tests/MyView.swift", "test.swift"]
-        for path in testPaths {
-            let visitor = createVisitor(filePath: path)
-            let source = """
-            struct SomeView: View {
-                var body: some View {
-                    Text("Hello")
-                }
+    @Test("no missing preview warning for test file paths",
+          arguments: ["SomeTest.swift", "Tests/MyView.swift", "test.swift"])
+    func noMissingPreviewForTestFiles(path: String) throws {
+        let visitor = createVisitor(filePath: path)
+        let source = """
+        struct SomeView: View {
+            var body: some View {
+                Text("Hello")
             }
-            """
-            let issues = walkSource(source, visitor: visitor)
-            let missingPreview = issues.filter { $0.message.contains("missing preview") }
-            #expect(missingPreview.isEmpty, "Should not warn about missing preview for path: \(path)")
         }
+        """
+        let issues = walkSource(source, visitor: visitor)
+        let missingPreview = issues.filter { $0.message.contains("missing preview") }
+        #expect(missingPreview.isEmpty, "Should not warn about missing preview for path: \(path)")
     }
 
     @Test("non-View struct does not trigger missing preview")

@@ -5,7 +5,6 @@ import SwiftParser
 @testable import SwiftProjectLintCore
 
 @Suite("ImageAccessibilityChecker Coverage Tests")
-@MainActor
 struct ImageAccessibilityCheckerCoverageTests {
 
     // MARK: - Test Helper Methods

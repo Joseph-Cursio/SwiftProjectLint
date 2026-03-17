@@ -29,8 +29,8 @@ struct LintResultsContainerView: View {
                     .padding(.horizontal, 8)
                     .padding(.vertical, 4)
                     .background(Color.blue.opacity(0.1))
-                    .foregroundColor(.blue)
-                    .cornerRadius(6)
+                    .foregroundStyle(.blue)
+                    .clipShape(.rect(cornerRadius: 6))
                 }
                 .buttonStyle(.plain)
             }
@@ -76,7 +76,7 @@ struct LintResultsView: View {
                 }
             }
         }
-        .listStyle(PlainListStyle())
+        .listStyle(.plain)
         .frame(minHeight: 200, maxHeight: .infinity)
         .layoutPriority(1)
     }
@@ -88,7 +88,7 @@ struct FullScreenResultsView: View {
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
-        NavigationView {
+        NavigationStack {
             List {
                 IssueSummarySection(issues: issues)
 

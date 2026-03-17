@@ -2,8 +2,7 @@ import Testing
 import Foundation
 @testable import SwiftProjectLintCore
 
-@MainActor
-final class ArchitectureDependencyInjectionTests {
+struct ArchitectureDependencyInjectionTests {
     @Test func testDetectArchitecturalAntiPatternsWithMissingDependencyInjection() throws {
         // ... existing code ...
     }

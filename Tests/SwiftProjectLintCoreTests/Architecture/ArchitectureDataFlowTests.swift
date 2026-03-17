@@ -2,8 +2,7 @@ import Testing
 import Foundation
 @testable import SwiftProjectLintCore
 
-@MainActor
-final class ArchitectureDataFlowTests {
+struct ArchitectureDataFlowTests {
     @Test func testDetectArchitecturalAntiPatternsWithInconsistentDataFlow() throws {
         // ... existing code ...
     }

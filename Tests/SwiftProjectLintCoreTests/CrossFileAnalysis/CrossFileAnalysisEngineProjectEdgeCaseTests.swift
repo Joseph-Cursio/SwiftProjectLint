@@ -2,8 +2,7 @@ import Testing
 import Foundation
 @testable import SwiftProjectLintCore
 
-@MainActor
-final class CrossFileEngineEdgeCaseTests {
+struct CrossFileEngineEdgeCaseTests {
     @Test func testDetectCrossFilePatternsWithEmptyProject() throws {
         // ... existing code ...
     }

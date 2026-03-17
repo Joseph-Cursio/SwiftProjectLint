@@ -25,7 +25,7 @@ struct ContentViewResults: View {
                     Spacer()
                     Text("\(lintIssues.count) issues found")
                         .font(.subheadline)
-                        .foregroundColor(.secondary)
+                        .foregroundStyle(.secondary)
                 }
 
                 LintResultsView(issues: lintIssues)

@@ -10,11 +10,11 @@ struct SummaryItem: View {
         VStack(alignment: .leading, spacing: 2) {
             Text(title)
                 .font(.caption)
-                .foregroundColor(.secondary)
+                .foregroundStyle(.secondary)
             Text(value)
                 .font(.title2)
                 .fontWeight(.bold)
-                .foregroundColor(color)
+                .foregroundStyle(color)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }

@@ -2,8 +2,7 @@ import Testing
 import Foundation
 @testable import SwiftProjectLintCore
 
-@MainActor
-final class ArchitectureValidArchitectureTests {
+struct ArchitectureValidArchitectureTests {
     @Test func testDetectArchitecturalAntiPatternsWithValidArchitecture() throws {
         // ... existing code ...
     }

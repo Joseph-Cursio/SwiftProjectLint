@@ -21,8 +21,7 @@ import Foundation
 /// - Rule identifier filtering
 /// - Error handling and edge cases
 
-@MainActor
-final class SourcePatternRuleIdFilteringTests {
+struct SourcePatternRuleIdFilteringTests {
 
     // MARK: - Rule Identifier Filtering Characterization
     

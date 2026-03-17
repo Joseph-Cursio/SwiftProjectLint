@@ -2,8 +2,7 @@ import Testing
 import Foundation
 @testable import SwiftProjectLintCore
 
-@MainActor
-final class SimpleExtractBasenameTest {
+struct SimpleExtractBasenameTest {
     
     @Test func testExtractBasenameNoPath() throws {
         // Arrange: Set up a typical file path

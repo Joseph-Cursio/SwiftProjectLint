@@ -5,7 +5,6 @@ import SwiftParser
 @testable import SwiftProjectLintCore
 
 @Suite("AccessibilityTextColorTests")
-@MainActor
 struct AccessibilityTextColorTests {
 
     // MARK: - Test Helper Methods

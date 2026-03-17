@@ -25,10 +25,10 @@ struct ContentViewTests {
         await systemComponents.initialize()
         let view = ContentView().environmentObject(systemComponents)
         let inspected = try view.inspect()
-        // NavigationView
-        _ = try inspected.find(ViewType.NavigationView.self)
+        // NavigationStack
+        _ = try inspected.find(ViewType.NavigationStack.self)
         // VStack with child views
-        let vStack = try inspected.navigationView().vStack()
+        let vStack = try inspected.navigationStack().vStack()
         _ = try vStack.find(ContentViewHeader.self)
         _ = try vStack.find(ContentViewActions.self)
         _ = try vStack.find(ContentViewProgress.self)

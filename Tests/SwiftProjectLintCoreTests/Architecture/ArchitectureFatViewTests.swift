@@ -2,8 +2,7 @@ import Testing
 import Foundation
 @testable import SwiftProjectLintCore
 
-@MainActor
-final class ArchitectureFatViewTests {
+struct ArchitectureFatViewTests {
     @Test func testDetectArchitecturalAntiPatternsWithFatView() throws {
         // ... existing code ...
     }
