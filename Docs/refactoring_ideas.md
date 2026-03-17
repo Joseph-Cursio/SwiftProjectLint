@@ -81,17 +81,19 @@ This document outlines actionable and strategic refactoring ideas to improve the
 
 ## 6. Test Coverage
 
-- **Increase Integration Tests:**  
+**Current status (March 2026):** 678 tests across 134 suites. ContentView, ContentViewModel, LintResultsView, IssueSummarySection, LintIssueRow, SummaryItem, and RuleSelectionDialog all have ViewInspector and/or unit tests. ContentViewModel has dedicated unit tests for state, persistence, and filtering logic.
+
+- **Increase Integration Tests:**
   - Add end-to-end tests covering the full analysis pipeline, including edge cases and error conditions.
 
-- **Expand UI Testing:**  
-  - Write UI tests for rule selection, results display, error states, and user interactions.
+- **Expand UI Testing:**
+  - ~~Write UI tests for rule selection, results display, error states, and user interactions.~~ Basic coverage exists; expand to cover error states and more user interaction workflows.
 
-- **Mocking & Dependency Injection:**  
-  - Use dependency injection to enable isolated unit tests.
-  - Mock file system, network, and external dependencies for reliable, fast tests.
+- **Mocking & Dependency Injection:**
+  - ContentViewModel now supports injected `patternRegistry`, enabling isolated unit tests without full SystemComponents.
+  - Continue expanding: mock file system, network, and external dependencies for reliable, fast tests.
 
-- **Test Coverage Reporting:**  
+- **Test Coverage Reporting:**
   - Integrate code coverage tools and set minimum thresholds for PRs.
 
 ---

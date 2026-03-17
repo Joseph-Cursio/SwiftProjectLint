@@ -6,8 +6,9 @@ This document outlines targeted refactoring actions to improve maintainability, 
 
 ## 1. Code Organization & Structure
 
-- **Decompose Large Files:**  
-  - Split files like `ContentView.swift`, `SwiftUIManagementVisitor.swift`, and `SourcePatternDetector.swift` into smaller, responsibility-focused files (see [__refactor.md](../__refactor.md)).
+- **Decompose Large Files:**
+  - ~~Split `ContentView.swift` and `LintResultsView.swift`~~ **Done** (March 2026): `ContentViewModel` extracted; `IssueSummarySection`, `LintIssueRow`, `SummaryItem` moved to `Views/`.
+  - Remaining: split `SwiftUIManagementVisitor.swift` and `SourcePatternDetector.swift` into smaller files (see [__refactor.md](../__refactor.md)).
   - Use subfolders (e.g., `Views/`, `Helpers/`, `Visitors/`) for logical grouping.
 - **Consistent Category Folders:**  
   - Group source and test files by feature (e.g., `StateManagement/`, `Performance/`, `Accessibility/`).
@@ -61,14 +62,16 @@ This document outlines targeted refactoring actions to improve maintainability, 
 
 ## 6. Test Coverage
 
-- **Increase Integration Tests:**  
+**Current status (March 2026):** 678 tests across 134 suites. ContentView, ContentViewModel, LintResultsView, IssueSummarySection, LintIssueRow, SummaryItem, and RuleSelectionDialog all have ViewInspector and/or unit tests.
+
+- **Increase Integration Tests:**
   - Add end-to-end tests covering the full analysis pipeline, including edge cases and error conditions.
-- **Expand UI Testing:**  
-  - Write UI tests for rule selection, results display, error states, and user interactions.
-- **Mocking & Dependency Injection:**  
-  - Use dependency injection to enable isolated unit tests.
-  - Mock file system, network, and external dependencies for reliable, fast tests.
-- **Test Coverage Reporting:**  
+- **Expand UI Testing:**
+  - ~~Write UI tests for rule selection, results display, error states, and user interactions.~~ Basic coverage exists; expand to error states and more interaction workflows.
+- **Mocking & Dependency Injection:**
+  - ContentViewModel supports injected `patternRegistry` for isolated unit tests.
+  - Continue: mock file system, network, and external dependencies for reliable, fast tests.
+- **Test Coverage Reporting:**
   - Integrate code coverage tools and set minimum thresholds for PRs.
 
 ## 7. Documentation

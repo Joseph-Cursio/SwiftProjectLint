@@ -316,31 +316,32 @@ This section outlines the immediate next steps for refactoring, testing, and imp
 ### Proposed Actions
 
 #### 1. Refactoring
-- **ContentView Refactoring**
-  - Break down large view components into smaller, reusable components
-  - Improve state management and data flow
-  - Reduce complexity and improve testability
+- **ContentView Refactoring** — **Done** (March 2026)
+  - State and business logic extracted to `ContentViewModel` (ObservableObject)
+  - ContentView reduced to ~100 lines; view hierarchy unchanged
+  - `ContentViewModel` supports injected `patternRegistry` for testability
 
-- **Lint Results View Refactoring**
-  - Improve state management and data flow
-  - Enhance modularity and separation of concerns
-  - Optimize rendering performance
+- **Lint Results View Refactoring** — **Done** (March 2026)
+  - `IssueSummarySection` extracted to deduplicate summary code across `LintResultsView` and `FullScreenResultsView`
+  - `LintIssueRow` and `SummaryItem` extracted to dedicated files under `Views/`
+  - `LintResultsView.swift` reduced from ~357 to ~130 lines
 
 - **Dependency Injection**
-  - Replace direct instantiations with dependency injection
-  - Reduce coupling between components
-  - Improve testability and modularity
+  - `ContentViewModel` uses injected registry; `SystemComponents` pattern established
+  - Continue: replace remaining direct instantiations with dependency injection
 
 #### 2. Testing
+**Current status (March 2026):** 678 tests across 134 suites.
+
 - **Unit Tests**
-  - Focus on modules with low test coverage, such as `SwiftProjectLintCore`
-  - Add tests for edge cases in `PatternDetector` and `AdvancedAnalyzer`
+  - ContentViewModel has 17 dedicated unit tests (state, persistence, filtering, categories)
+  - Continue: add edge case tests for `PatternDetector` and `AdvancedAnalyzer`
   - Ensure comprehensive coverage of pattern detection logic
 
 - **UI Tests**
-  - Expand test scenarios in `SwiftProjectLintUITests`
-  - Validate accessibility features and edge cases
-  - Test user interactions and workflows
+  - ViewInspector tests cover ContentView, ContentViewModel, LintResultsView, IssueSummarySection, LintIssueRow, SummaryItem, ContentViewHeader, ContentViewActions, ContentViewProgress, ContentViewResults, and RuleSelectionDialog
+  - Expand: error states, full user interaction workflows, accessibility validation
+  - Expand test scenarios in `SwiftProjectLintUITests` (XCUITest)
 
 - **Test Automation**
   - Integrate test scripts like `check_test_target_files.sh` and `patch_xcode_tests.sh` into CI/CD pipelines
@@ -384,8 +385,8 @@ This section outlines the immediate next steps for refactoring, testing, and imp
 
 These are relative timelines for each implementation phase:
 
-- **Phase 1 (2 weeks)**: Refactor `ContentView` and `Lint Results View`
-- **Phase 2 (2 weeks)**: Add unit and UI tests for uncovered modules
+- ~~**Phase 1 (2 weeks)**: Refactor `ContentView` and `Lint Results View`~~ **Complete** (March 2026)
+- **Phase 2 (2 weeks)**: Add unit and UI tests for uncovered modules (in progress — 678 tests so far)
 - **Phase 3 (1 week)**: Update documentation and create developer onboarding guide
 - **Phase 4 (1 week)**: Optimize linting and analysis performance
 
