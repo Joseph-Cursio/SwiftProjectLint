@@ -66,5 +66,16 @@ class ArchitecturePatternRegistrar: PatternRegistrarWithVisitorProto {
             description: "Detects parameters and properties typed as concrete classes instead of protocols"
         )
         registry.register(patterns: [concreteTypeUsagePattern])
+
+        let accessingImplDetailsPattern = SyntaxPattern(
+            name: .accessingImplementationDetails,
+            visitor: AccessingImplementationDetailsVisitor.self,
+            severity: .warning,
+            category: .architecture,
+            messageTemplate: "Accessing implementation detail {memberName} bypasses encapsulation",
+            suggestion: "Use the public interface or protocol instead of accessing {memberName} directly",
+            description: "Detects underscore-prefixed member access and force-cast bypasses to concrete types"
+        )
+        registry.register(patterns: [accessingImplDetailsPattern])
     }
 } 

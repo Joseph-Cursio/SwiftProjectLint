@@ -152,4 +152,5 @@ public enum ArchitectureIssueType {
     case inconsistentDataFlow
     case directInstantiation
     case concreteTypeUsage
+    case accessingImplementationDetails
 }

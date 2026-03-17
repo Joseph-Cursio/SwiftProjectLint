@@ -58,6 +58,19 @@ private class ReportGenerator {
     func generate(using repository: UserRepository) { }
 }
 
+// Architecture Issue: Accessing implementation detail (underscore-prefix)
+private class SessionManager {
+    var _internalSession: URLSession = .shared
+}
+
+private class RequestBuilder {
+    private let sessionManager = SessionManager()
+    func build() -> URLRequest? {
+        let _ = sessionManager._internalSession  // accessing implementation detail
+        return nil
+    }
+}
+
 // Architecture Issue: Fat view with too many state variables
 /// `ArchitectureIssuesView` is a SwiftUI view intended to demonstrate and highlight several common architectural, code quality, and UI issues.
 /// 
