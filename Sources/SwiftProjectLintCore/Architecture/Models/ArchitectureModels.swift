@@ -151,4 +151,5 @@ public enum ArchitectureIssueType {
     case missingEnvironmentObject
     case inconsistentDataFlow
     case directInstantiation
-} 
+    case concreteTypeUsage
+}

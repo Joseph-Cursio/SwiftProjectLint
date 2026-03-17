@@ -55,5 +55,16 @@ class ArchitecturePatternRegistrar: PatternRegistrarWithVisitorProto {
             description: "Detects direct instantiation of concrete types where dependency injection would improve testability"
         )
         registry.register(patterns: [directInstantiationPattern])
+
+        let concreteTypeUsagePattern = SyntaxPattern(
+            name: .concreteTypeUsage,
+            visitor: ConcreteTypeUsageVisitor.self,
+            severity: .warning,
+            category: .architecture,
+            messageTemplate: "Concrete type {typeName} used where a protocol abstraction would improve testability",
+            suggestion: "Define a protocol for {typeName} and use it as the type annotation",
+            description: "Detects parameters and properties typed as concrete classes instead of protocols"
+        )
+        registry.register(patterns: [concreteTypeUsagePattern])
     }
 } 

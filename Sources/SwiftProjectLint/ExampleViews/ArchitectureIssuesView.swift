@@ -49,6 +49,15 @@ private class AnalyticsService {
     func track(_ event: String) { }
 }
 
+// Architecture Issue: Concrete type usage — parameter should use a protocol
+private class UserRepository {
+    func fetch() -> [User] { [] }
+}
+
+private class ReportGenerator {
+    func generate(using repository: UserRepository) { }
+}
+
 // Architecture Issue: Fat view with too many state variables
 /// `ArchitectureIssuesView` is a SwiftUI view intended to demonstrate and highlight several common architectural, code quality, and UI issues.
 /// 

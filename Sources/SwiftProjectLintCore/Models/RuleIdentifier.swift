@@ -40,6 +40,7 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
     case missingDependencyInjection = "Missing Dependency Injection"
     case fatViewDetection = "Fat View Detection"
     case directInstantiation = "Direct Instantiation"
+    case concreteTypeUsage = "Concrete Type Usage"
 
     // Code Quality Rules
     case magicNumber = "Magic Number"
@@ -98,7 +99,7 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
             return .animation
 
             // Architecture Rules
-        case .missingDependencyInjection, .fatViewDetection, .directInstantiation:
+        case .missingDependencyInjection, .fatViewDetection, .directInstantiation, .concreteTypeUsage:
             return .architecture
 
             // Code Quality Rules
