@@ -14,7 +14,12 @@ import SwiftProjectLintCore
 /// The expansion is animated for a smooth user experience.
 struct LintIssueRow: View {
     let issue: LintIssue
-    @State private var isExpanded = false
+    @State private var isExpanded: Bool
+
+    init(issue: LintIssue, isExpanded: Bool = false) {
+        self.issue = issue
+        self._isExpanded = State(initialValue: isExpanded)
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {

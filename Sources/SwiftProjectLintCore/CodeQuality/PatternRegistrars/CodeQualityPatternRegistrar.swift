@@ -77,6 +77,15 @@ class CodeQualityPatternRegistrar: PatternRegistrarWithVisitorProto {
                 messageTemplate: "Property wrapper '{wrapperName}' is not suffixed with 'Wrapper'",
                 suggestion: "Rename to '{wrapperName}Wrapper' to clarify its role as a property wrapper",
                 description: "Detects property wrappers whose names don't end with 'Wrapper' suffix"
+            ),
+            SyntaxPattern(
+                name: .expectNegation,
+                visitor: ExpectNegationVisitor.self,
+                severity: .warning,
+                category: .codeQuality,
+                messageTemplate: "#expect(!{expression}) negates inside the macro",
+                suggestion: "Use #expect({expression} == false) for better failure diagnostics",
+                description: "Detects #expect(!expr) which defeats Swift Testing's sub-expression capture"
             )
         ]
         registry.register(patterns: patterns)

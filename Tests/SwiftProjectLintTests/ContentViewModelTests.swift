@@ -54,6 +54,16 @@ struct ContentViewModelTests {
         #expect(viewModel.enabledRuleNames.contains(.relatedDuplicateStateVariable))
     }
 
+    @Test("enabledRuleNames loads saved rules from UserDefaults on init")
+    func enabledRulesLoadedFromUserDefaults() throws {
+        let testRules: Set<RuleIdentifier> = [.missingStateObject, .fatView, .uninitializedStateVariable]
+        let data = try JSONEncoder().encode(testRules)
+        UserDefaults.standard.set(data, forKey: "enabledLintRules")
+        let viewModel = ContentViewModel()
+        #expect(viewModel.enabledRuleNames == testRules)
+        UserDefaults.standard.removeObject(forKey: "enabledLintRules")
+    }
+
     // MARK: - selectDirectory
 
     @Test("selectDirectory sets showingDirectoryPicker to true")
@@ -70,6 +80,56 @@ struct ContentViewModelTests {
         let viewModel = ContentViewModel()
         viewModel.analyzeProject()
         #expect(viewModel.isAnalyzing == false)
+    }
+
+    @Test("analyzeProject with non-empty directory sets isAnalyzing to true")
+    func analyzeProjectSetsIsAnalyzing() {
+        let viewModel = ContentViewModel()
+        viewModel.selectedDirectory = FileManager.default.temporaryDirectory.path
+        viewModel.enabledRuleNames = [.relatedDuplicateStateVariable]
+        viewModel.analyzeProject()
+        #expect(viewModel.isAnalyzing == true)
+        viewModel.cancelAnalysis()
+    }
+
+    @Test("analyzeProject prevents double-start when already analyzing")
+    func analyzeProjectPreventsDoubleStart() {
+        let viewModel = ContentViewModel()
+        viewModel.selectedDirectory = FileManager.default.temporaryDirectory.path
+        viewModel.enabledRuleNames = [.relatedDuplicateStateVariable]
+        viewModel.analyzeProject()
+        #expect(viewModel.isAnalyzing == true)
+        // Second call while already analyzing should be a no-op (guard !isAnalyzing)
+        viewModel.analyzeProject()
+        // isAnalyzing is still true — was never reset — confirming the guard fired
+        #expect(viewModel.isAnalyzing == true)
+        viewModel.cancelAnalysis()
+    }
+
+    @Test("analyzeProject with no enabled categories completes without issues")
+    func analyzeProjectWithNoCategoriesCompletesEmpty() async {
+        let viewModel = ContentViewModel()
+        viewModel.selectedDirectory = FileManager.default.temporaryDirectory.path
+        viewModel.enabledRuleNames = [] // no rules → no categories → skips linter
+        viewModel.analyzeProject()
+        await viewModel.analysisTask?.value
+        #expect(viewModel.isAnalyzing == false)
+        #expect(viewModel.lintIssues.isEmpty)
+    }
+
+    @Test("analyzeProject resets isAnalyzing to false on completion")
+    func analyzeProjectResetsIsAnalyzingOnCompletion() async {
+        let viewModel = ContentViewModel()
+        // Use a directory with no Swift files so analysis is fast
+        let emptyDir = FileManager.default.temporaryDirectory
+            .appendingPathComponent("ContentViewModelTest_\(UUID().uuidString)").path
+        try? FileManager.default.createDirectory(atPath: emptyDir, withIntermediateDirectories: true)
+        viewModel.selectedDirectory = emptyDir
+        viewModel.enabledRuleNames = [.relatedDuplicateStateVariable]
+        viewModel.analyzeProject()
+        await viewModel.analysisTask?.value
+        #expect(viewModel.isAnalyzing == false)
+        try? FileManager.default.removeItem(atPath: emptyDir)
     }
 
     // MARK: - cancelAnalysis

@@ -53,6 +53,7 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
     case protocolNamingSuffix = "Protocol Naming Suffix"
     case actorNamingSuffix = "Actor Naming Suffix"
     case propertyWrapperNamingSuffix = "Property Wrapper Naming Suffix"
+    case expectNegation = "Expect Negation"
 
     // Security Rules
     case hardcodedSecret = "Hardcoded Secret"
@@ -109,7 +110,8 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
 
             // Code Quality Rules
         case .magicNumber, .longFunction, .hardcodedStrings, .missingDocumentation,
-             .protocolNamingSuffix, .actorNamingSuffix, .propertyWrapperNamingSuffix:
+             .protocolNamingSuffix, .actorNamingSuffix, .propertyWrapperNamingSuffix,
+             .expectNegation:
             return .codeQuality
 
             // Security Rules
