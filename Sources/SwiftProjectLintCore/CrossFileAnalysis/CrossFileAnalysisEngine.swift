@@ -34,15 +34,19 @@ public class CrossFileAnalysisEngine {
     /// - Returns: An array of detected lint issues.
     func detectCrossFilePatterns(
         projectFiles: [ProjectFile],
-        categories: [PatternCategory]? = nil
+        categories: [PatternCategory]? = nil,
+        preBuiltCache: [String: SourceFileSyntax]? = nil
     ) -> [LintIssue] {
         print("DEBUG: detectCrossFilePatterns called with \(projectFiles.count) files")
         var allIssues: [LintIssue] = []
-        fileCache = [:]
-        // Parse all files and cache them
-        for file in projectFiles {
-            let sourceFile = Parser.parse(source: file.content)
-            fileCache[file.name] = sourceFile
+        if let preBuiltCache {
+            fileCache = preBuiltCache
+        } else {
+            fileCache = [:]
+            for file in projectFiles {
+                let sourceFile = Parser.parse(source: file.content)
+                fileCache[file.name] = sourceFile
+            }
         }
 
         // Get visitors that support cross-file analysis
@@ -106,15 +110,20 @@ public class CrossFileAnalysisEngine {
     /// - Returns: An array of detected lint issues.
     func detectCrossFilePatterns(
         projectFiles: [ProjectFile],
-        ruleIdentifiers: [RuleIdentifier]
+        ruleIdentifiers: [RuleIdentifier],
+        preBuiltCache: [String: SourceFileSyntax]? = nil
     ) -> [LintIssue] {
         print("DEBUG: detectCrossFilePatterns (ruleIdentifiers) called " +
               "with \(projectFiles.count) files, rules: \(ruleIdentifiers.map { $0.rawValue })")
         var allIssues: [LintIssue] = []
-        fileCache = [:]
-        for file in projectFiles {
-            let sourceFile = Parser.parse(source: file.content)
-            fileCache[file.name] = sourceFile
+        if let preBuiltCache {
+            fileCache = preBuiltCache
+        } else {
+            fileCache = [:]
+            for file in projectFiles {
+                let sourceFile = Parser.parse(source: file.content)
+                fileCache[file.name] = sourceFile
+            }
         }
 
         // Get specific patterns by rule identifier
