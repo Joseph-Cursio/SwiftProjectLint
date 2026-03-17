@@ -52,7 +52,7 @@ public class ProjectLinter {
             "DEBUG: ruleIdentifiers: \(ruleIdentifiers?.map { $0.rawValue } ?? [])"
         )
 
-        let filePaths = findSwiftFiles(in: path)
+        let filePaths = await FileAnalysisUtils.findSwiftFiles(in: path)
 
         // Resolve the registry once so each task can create its own detector
         let registry = (singleFileDetector ?? SourcePatternDetector()).registry
@@ -144,83 +144,6 @@ public class ProjectLinter {
 
         print("DEBUG: analyzeProject returning \(issues.count) total issues")
         return issues
-    }
-
-    /// Recursively locates all Swift source files (`.swift` files) within a specified directory path.
-    ///
-    /// This method uses the file system to traverse the directory at the given path and any of its subdirectories,
-    /// collecting the full file paths of all files with a `.swift` extension. The resulting array of file paths
-    /// can be used for further analysis or processing.
-    ///
-    /// - Parameter path: The root directory path to begin searching for Swift files.
-    /// - Returns: An array of full file system paths (as `String`) for each `.swift` file found in the directory
-    ///            and all of its subdirectories. If the directory cannot be enumerated, the returned array will be empty.
-    ///
-    /// - Note: Hidden files and directories are included in the search. The search is case-sensitive and will only
-    ///         locate files ending in `.swift`.
-    private func findSwiftFiles(in path: String) -> [String] {
-        print("DEBUG: findSwiftFiles called with path: '\(path)'")
-
-        let fileManager = FileManager.default
-        var swiftFiles: [String] = []
-
-        // Check if path exists
-        let pathExists = fileManager.fileExists(atPath: path)
-        print("DEBUG: Path exists check: \(pathExists)")
-        guard pathExists else {
-            print("DEBUG: Path does not exist: '\(path)'")
-            return swiftFiles
-        }
-
-        // Check if path is a directory
-        var isDirectory: ObjCBool = false
-        let isDirCheck = fileManager.fileExists(
-            atPath: path,
-            isDirectory: &isDirectory
-        )
-        print(
-            "DEBUG: Is directory check: \(isDirCheck), isDirectory: \(isDirectory.boolValue)"
-        )
-        guard isDirCheck, isDirectory.boolValue else {
-            print("DEBUG: Path is not a directory: '\(path)'")
-            return swiftFiles
-        }
-
-        // Try to list contents directly first
-        do {
-            let contents = try fileManager.contentsOfDirectory(atPath: path)
-            print(
-                "DEBUG: Directory contents (first 10): \(contents.prefix(10))"
-            )
-        } catch {
-            print("DEBUG: Error listing directory contents: \(error)")
-        }
-
-        print("DEBUG: Creating enumerator...")
-        guard let enumerator = fileManager.enumerator(atPath: path) else {
-            print("DEBUG: Could not create enumerator for path: '\(path)'")
-            return swiftFiles
-        }
-        print("DEBUG: Enumerator created successfully")
-
-        var fileCount = 0
-        var allFiles: [String] = []
-        while let filePath = enumerator.nextObject() as? String {
-            fileCount += 1
-            allFiles.append(filePath)
-            if filePath.hasSuffix(".swift") {
-                let fullPath = (path as NSString).appendingPathComponent(
-                    filePath
-                )
-                swiftFiles.append(fullPath)
-                print("DEBUG: Found Swift file: '\(fullPath)'")
-            }
-        }
-        print("DEBUG: Enumerated \(fileCount) total files")
-        print("DEBUG: All files found: \(allFiles.prefix(20))")
-
-        print("DEBUG: findSwiftFiles returning \(swiftFiles.count) Swift files")
-        return swiftFiles
     }
 
     /// Extracts state variables from Swift source code using SwiftSyntax parsing.

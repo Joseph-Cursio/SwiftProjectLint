@@ -152,7 +152,7 @@ public class CrossFileAnalysisEngine {
         in projectPath: String,
         categories: [PatternCategory]? = nil
     ) -> [LintIssue] {
-        let swiftFiles = findSwiftFiles(in: projectPath)
+        let swiftFiles = FileAnalysisUtils.findSwiftFiles(in: projectPath)
         let projectFiles = swiftFiles.compactMap { filePath -> ProjectFile? in
             guard let content = try? String(contentsOfFile: filePath) else { return nil }
             return ProjectFile(name: (filePath as NSString).lastPathComponent, content: content)
@@ -165,7 +165,7 @@ public class CrossFileAnalysisEngine {
         in projectPath: String,
         ruleIdentifiers: [RuleIdentifier]
     ) -> [LintIssue] {
-        let swiftFiles = findSwiftFiles(in: projectPath)
+        let swiftFiles = FileAnalysisUtils.findSwiftFiles(in: projectPath)
         let projectFiles = swiftFiles.compactMap { filePath -> ProjectFile? in
             guard let content = try? String(contentsOfFile: filePath) else { return nil }
             return ProjectFile(name: (filePath as NSString).lastPathComponent, content: content)
@@ -194,24 +194,4 @@ public class CrossFileAnalysisEngine {
         }
     }
 
-    /// Recursively finds all Swift files in a directory.
-    ///
-    /// - Parameter path: The directory path to search.
-    /// - Returns: An array of Swift file paths.
-    private func findSwiftFiles(in path: String) -> [String] {
-        let fileManager = FileManager.default
-        var swiftFiles: [String] = []
-
-        guard let enumerator = fileManager.enumerator(atPath: path) else {
-            return swiftFiles
-        }
-
-        while let filePath = enumerator.nextObject() as? String {
-            if filePath.hasSuffix(".swift") {
-                swiftFiles.append((path as NSString).appendingPathComponent(filePath))
-            }
-        }
-
-        return swiftFiles
-    }
 }

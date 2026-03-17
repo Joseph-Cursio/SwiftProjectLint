@@ -50,4 +50,17 @@ public struct FileAnalysisUtils {
 
         return swiftFiles
     }
+
+    /// Async overload that runs file enumeration off the caller's actor.
+    ///
+    /// Use this when calling from `@MainActor` or other actor-isolated contexts
+    /// to avoid blocking the actor during file system traversal.
+    ///
+    /// - Parameter path: The root directory path in which to search for Swift files.
+    /// - Returns: An array of full file paths to `.swift` files found within the directory and its subdirectories.
+    public static func findSwiftFiles(in path: String) async -> [String] {
+        await Task.detached {
+            findSwiftFiles(in: path)
+        }.value
+    }
 }
