@@ -26,31 +26,7 @@ import UniformTypeIdentifiers
 /// - Persistent rule preferences across app launches
 struct ContentView: View {
     @EnvironmentObject var systemComponents: SystemComponents
-    @State private var selectedDirectory: String = ""
-    @State private var isAnalyzing: Bool = false
-    @State private var lintIssues: [LintIssue] = []
-    @State private var showRuleSelector: Bool = false
-    @State private var enabledRuleNames: Set<RuleIdentifier> = {
-        let userDefaultsKey = "enabledLintRules"
-        if let data = UserDefaults.standard.data(forKey: userDefaultsKey),
-           let saved = try? JSONDecoder().decode(Set<RuleIdentifier>.self, from: data),
-           !saved.isEmpty {
-            return saved
-        } else {
-            return [.relatedDuplicateStateVariable]
-        }
-    }()
-    @State private var showingDirectoryPicker: Bool = false
-    @State private var analysisTask: Task<Void, Never>?
-
-    private let userDefaultsKey = "enabledLintRules"
-
-    // MARK: - Computed Properties
-
-    /// Pattern configuration that uses SwiftSyntax for all categories.
-    private var allPatternsByCategory: [PatternCategoryInfo] {
-        PatternConfiguration.allPatternsByCategory(from: systemComponents.patternRegistry)
-    }
+    @StateObject private var viewModel = ContentViewModel()
 
     var body: some View {
         NavigationView {
@@ -60,121 +36,44 @@ struct ContentView: View {
 
                 // Action Buttons
                 ContentViewActions(
-                    selectedDirectory: selectedDirectory,
-                    onSelectRules: { showRuleSelector = true },
-                    onSelectDirectory: selectDirectory,
-                    onAnalyzeProject: analyzeProject
+                    selectedDirectory: viewModel.selectedDirectory,
+                    onSelectRules: { viewModel.showRuleSelector = true },
+                    onSelectDirectory: viewModel.selectDirectory,
+                    onAnalyzeProject: viewModel.analyzeProject
                 )
 
                 // Analysis Progress
-                ContentViewProgress(isAnalyzing: isAnalyzing)
+                ContentViewProgress(isAnalyzing: viewModel.isAnalyzing)
 
                 // Results
-                ContentViewResults(lintIssues: lintIssues, isAnalyzing: isAnalyzing)
+                ContentViewResults(lintIssues: viewModel.lintIssues, isAnalyzing: viewModel.isAnalyzing)
 
                 Spacer()
             }
             .frame(minWidth: 600, minHeight: 400)
             .navigationTitle("Project Linter")
-            .sheet(isPresented: $showRuleSelector) {
+            .sheet(isPresented: $viewModel.showRuleSelector) {
                 RuleSelectionDialog(
-                    allPatternsByCategory: allPatternsByCategory,
-                    enabledRuleNames: $enabledRuleNames,
-                    onSave: saveEnabledRules
+                    allPatternsByCategory: viewModel.allPatternsByCategory,
+                    enabledRuleNames: $viewModel.enabledRuleNames,
+                    onSave: viewModel.saveEnabledRules
                 )
             }
-            .fileImporter(isPresented: $showingDirectoryPicker, allowedContentTypes: [.folder]) { result in
+            .fileImporter(isPresented: $viewModel.showingDirectoryPicker, allowedContentTypes: [.folder]) { result in
                 switch result {
                 case .success(let url):
-                    selectedDirectory = url.path
+                    viewModel.selectedDirectory = url.path
                 case .failure(let error):
                     print("Error selecting directory: \(error.localizedDescription)")
                 }
             }
+            .onAppear {
+                viewModel.patternRegistry = systemComponents.patternRegistry
+            }
             .onDisappear {
-                analysisTask?.cancel()
+                viewModel.cancelAnalysis()
             }
         }
-    }
-
-    /// Save enabled rules to UserDefaults
-    private func saveEnabledRules() {
-        if let data = try? JSONEncoder().encode(enabledRuleNames) {
-            UserDefaults.standard.set(data, forKey: userDefaultsKey)
-        }
-    }
-
-    /// Opens the directory picker to select a project folder
-    private func selectDirectory() {
-        showingDirectoryPicker = true
-    }
-
-    /// Analyzes the selected project directory
-    private func analyzeProject() {
-        guard !selectedDirectory.isEmpty else { return }
-        runLinter(at: selectedDirectory)
-    }
-
-    /// Runs the project linter analysis at the given directory path.
-    ///
-    /// This function uses SwiftSyntax-based pattern detection and properly filters results
-    /// based on the user's selected rules. It sets the `isAnalyzing` state to `true` and
-    /// simulates an analysis delay (2 seconds) before running analysis. It creates SwiftSyntax
-    /// detectors and analyzes the project directory specified by `path`, filtering results to
-    /// only include issues from enabled rules. The results are assigned to the `lintIssues`
-    /// state variable. Finally, it sets `isAnalyzing` back to `false`.
-    private func runLinter(at path: String) {
-        guard !isAnalyzing else { return }
-
-        // Cancel any previous analysis before starting a new one
-        analysisTask?.cancel()
-        isAnalyzing = true
-
-        analysisTask = Task {
-            var allIssues: [LintIssue] = []
-
-            // Determine which categories have enabled rules
-            let enabledCategories = getEnabledCategories()
-
-            // Only use ProjectLinter for analysis
-            if !enabledCategories.isEmpty {
-                let linter = ProjectLinter()
-                let crossFileIssues = await linter.analyzeProject(at: path, categories: enabledCategories)
-
-                // Don't update UI state if this task was cancelled
-                guard !Task.isCancelled else {
-                    isAnalyzing = false
-                    return
-                }
-
-                allIssues.append(contentsOf: crossFileIssues)
-            }
-
-            lintIssues = allIssues
-            isAnalyzing = false
-        }
-    }
-
-    /// Determines which pattern categories have enabled rules.
-    ///
-    /// - Returns: An array of PatternCategory values that have at least one enabled rule.
-    private func getEnabledCategories() -> [PatternCategory] {
-        PatternConfiguration.getEnabledCategories(
-            patternRegistry: systemComponents.patternRegistry,
-            enabledRuleNames: enabledRuleNames
-        )
-    }
-
-    /// Filters lint issues to only include those from enabled rules using registry mapping.
-    ///
-    /// This function uses the registry to determine which categories are enabled based on
-    /// the user's selected rule names, then filters issues to only include those from
-    /// enabled categories. This ensures the UI always reflects the actual registry state.
-    ///
-    /// - Parameter issues: The array of all detected issues.
-    /// - Returns: An array containing only issues from enabled rules.
-    private func filterIssuesByEnabledRules(_ issues: [LintIssue]) -> [LintIssue] {
-        PatternConfiguration.filterIssuesByEnabledRules(issues, enabledRuleNames: enabledRuleNames)
     }
 
     /// A static factory for testing purposes that hosts ContentView with a proper @StateObject environment.
