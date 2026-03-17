@@ -8,14 +8,14 @@ final class ArchitectureCharacterizationBasicTests {
 
     // MARK: - AdvancedAnalyzer Basic Behavior Characterization
 
-    @Test func characterizeAdvancedAnalyzerWithEmptyProject() throws {
+    @Test func characterizeAdvancedAnalyzerWithEmptyProject() async throws {
         let analyzer = AdvancedAnalyzer()
 
         // Create a temporary empty directory
         let tempDir = try createTempDirectory()
         defer { cleanupTempDirectory(tempDir) }
 
-        let issues = analyzer.analyzeArchitecture(projectPath: tempDir)
+        let issues = await analyzer.analyzeArchitecture(projectPath: tempDir)
 
         print("📊 AdvancedAnalyzer Empty Project:")
         print("   Input: Empty project directory")
@@ -25,11 +25,11 @@ final class ArchitectureCharacterizationBasicTests {
         #expect(issues.isEmpty, "Empty project should produce no architecture issues")
     }
 
-    @Test func characterizeAdvancedAnalyzerWithNonExistentPath() throws {
+    @Test func characterizeAdvancedAnalyzerWithNonExistentPath() async throws {
         let analyzer = AdvancedAnalyzer()
         let nonExistentPath = "/this/path/does/not/exist/anywhere"
 
-        let issues = analyzer.analyzeArchitecture(projectPath: nonExistentPath)
+        let issues = await analyzer.analyzeArchitecture(projectPath: nonExistentPath)
 
         print("📊 AdvancedAnalyzer Non-Existent Path:")
         print("   Input: Non-existent directory path")
@@ -39,14 +39,14 @@ final class ArchitectureCharacterizationBasicTests {
         #expect(issues.isEmpty, "Non-existent path should produce no issues")
     }
 
-    @Test func characterizeAdvancedAnalyzerWithSimpleProject() throws {
+    @Test func characterizeAdvancedAnalyzerWithSimpleProject() async throws {
         let analyzer = AdvancedAnalyzer()
 
         // Create a simple test project
         let projectDir = try createSimpleTestProject()
         defer { cleanupTempDirectory(projectDir) }
 
-        let issues = analyzer.analyzeArchitecture(projectPath: projectDir)
+        let issues = await analyzer.analyzeArchitecture(projectPath: projectDir)
 
         print("📊 AdvancedAnalyzer Simple Project:")
         print("   Input: Project with basic SwiftUI views")
@@ -65,14 +65,14 @@ final class ArchitectureCharacterizationBasicTests {
         }
     }
 
-    @Test func characterizeAdvancedAnalyzerWithDuplicateStateProject() throws {
+    @Test func characterizeAdvancedAnalyzerWithDuplicateStateProject() async throws {
         let analyzer = AdvancedAnalyzer()
 
         // Create a project with duplicate state variables
         let projectDir = try createDuplicateStateProject()
         defer { cleanupTempDirectory(projectDir) }
 
-        let issues = analyzer.analyzeArchitecture(projectPath: projectDir)
+        let issues = await analyzer.analyzeArchitecture(projectPath: projectDir)
 
         print("📊 AdvancedAnalyzer Duplicate State Project:")
         print("   Input: Project with duplicate state variables across views")

@@ -25,7 +25,7 @@ final class AdvancedAnalyzerTests {
         #expect(!result.contains("d"))
     }
     
-    @Test @MainActor func testFindRelatedViewsDetectsHierarchy() throws {
+    @Test @MainActor func testFindRelatedViewsDetectsHierarchy() async throws {
         // Test through the public interface by creating actual view relationships
         let analyzer = AdvancedAnalyzer()
         
@@ -33,12 +33,12 @@ final class AdvancedAnalyzerTests {
         let testProjectPath = createTestProject()
         defer { cleanupTestProject() }
         
-        _ = analyzer.analyzeArchitecture(projectPath: testProjectPath)
+        _ = await analyzer.analyzeArchitecture(projectPath: testProjectPath)
         
         // The analyzer should detect view relationships through its public interface
     }
     
-    @Test @MainActor func testIsRootViewReturnsTrueForRoot() throws {
+    @Test @MainActor func testIsRootViewReturnsTrueForRoot() async throws {
         // Test through the public interface by creating actual view relationships
         let analyzer = AdvancedAnalyzer()
         
@@ -46,12 +46,12 @@ final class AdvancedAnalyzerTests {
         let testProjectPath = createTestProject()
         defer { cleanupTestProject() }
         
-        _ = analyzer.analyzeArchitecture(projectPath: testProjectPath)
+        _ = await analyzer.analyzeArchitecture(projectPath: testProjectPath)
         
         // The analyzer should detect view relationships through its public interface
     }
     
-    @Test @MainActor func testGenerateStateSharingSuggestionForTwoViews() throws {
+    @Test @MainActor func testGenerateStateSharingSuggestionForTwoViews() async throws {
         // Test through the public interface by creating actual view relationships
         let analyzer = AdvancedAnalyzer()
         
@@ -59,12 +59,12 @@ final class AdvancedAnalyzerTests {
         let testProjectPath = createTestProject()
         defer { cleanupTestProject() }
         
-        _ = analyzer.analyzeArchitecture(projectPath: testProjectPath)
+        _ = await analyzer.analyzeArchitecture(projectPath: testProjectPath)
         
         // The analyzer should detect view relationships through its public interface
     }
     
-    @Test @MainActor func testGenerateStateSharingSuggestionForManyViews() throws {
+    @Test @MainActor func testGenerateStateSharingSuggestionForManyViews() async throws {
         // Test through the public interface by creating actual view relationships
         let analyzer = AdvancedAnalyzer()
         
@@ -72,19 +72,19 @@ final class AdvancedAnalyzerTests {
         let testProjectPath = createTestProject()
         defer { cleanupTestProject() }
         
-        _ = analyzer.analyzeArchitecture(projectPath: testProjectPath)
+        _ = await analyzer.analyzeArchitecture(projectPath: testProjectPath)
         
         // The analyzer should detect view relationships through its public interface
     }
     
-    @Test @MainActor func testRelationshipTypeAndViewRelationship() throws {
+    @Test @MainActor func testRelationshipTypeAndViewRelationship() async throws {
         let analyzer = AdvancedAnalyzer()
         
         // Test through the public interface by creating actual view relationships
         let testProjectPath = createTestProject()
         defer { cleanupTestProject() }
         
-        _ = analyzer.analyzeArchitecture(projectPath: testProjectPath)
+        _ = await analyzer.analyzeArchitecture(projectPath: testProjectPath)
         
         // Test the public methods that should work after analysis
         _ = analyzer.relationshipType(between: "TestParent", and: "TestChild")

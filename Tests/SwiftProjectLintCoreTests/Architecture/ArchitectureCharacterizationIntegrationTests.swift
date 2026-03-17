@@ -8,13 +8,13 @@ final class ArchCharacterizationIntegrationTests {
 
     // MARK: - Integration Tests: Full Architecture Analysis Pipeline
 
-    @Test func characterizeFullArchitectureAnalysisPipeline() throws {
+    @Test func characterizeFullArchitectureAnalysisPipeline() async throws {
         // Create a comprehensive test project
         let projectDir = try createComprehensiveTestProject()
         defer { cleanupTempDirectory(projectDir) }
 
         let analyzer = AdvancedAnalyzer()
-        let issues = analyzer.analyzeArchitecture(projectPath: projectDir)
+        let issues = await analyzer.analyzeArchitecture(projectPath: projectDir)
 
     }
 

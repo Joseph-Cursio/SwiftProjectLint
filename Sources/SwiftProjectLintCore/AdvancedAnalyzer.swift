@@ -89,11 +89,11 @@ class AdvancedAnalyzer {
     /// - Note: The analysis is static and based on regular expressions; dynamic or non-standard
     /// code patterns may not be fully detected.
     /// - Warning: This method is not thread-safe; use from a single thread at a time.
-    func analyzeArchitecture(projectPath: String) -> [ArchitectureIssue] {
+    func analyzeArchitecture(projectPath: String) async -> [ArchitectureIssue] {
         var issues: [ArchitectureIssue] = []
 
         // 1. Build view hierarchy
-        buildViewHierarchy(from: projectPath)
+        await buildViewHierarchy(from: projectPath)
 
         // 2. Analyze state management patterns
         issues.append(contentsOf:
@@ -128,18 +128,37 @@ class AdvancedAnalyzer {
     ///   in the project.
     ///
     /// The results are stored internally in the analyzer for use in further architectural analysis and issue detection.
-    private func buildViewHierarchy(from projectPath: String) {
-        let swiftFiles = FileAnalysisUtils.findSwiftFiles(in: projectPath)
+    private func buildViewHierarchy(from projectPath: String) async {
+        let swiftFiles = await FileAnalysisUtils.findSwiftFiles(in: projectPath)
 
-        for filePath in swiftFiles {
-            // Read each file once and pass the content to both extraction methods
-            let sourceContents = (try? String(contentsOfFile: filePath, encoding: .utf8)) ?? ""
+        // Read files and extract relationships/state in parallel
+        let results = await withTaskGroup(
+            of: (relationships: [ViewRelationship], stateVars: [StateVariable])?.self
+        ) { group in
+            for filePath in swiftFiles {
+                group.addTask {
+                    guard let sourceContents = try? String(contentsOfFile: filePath, encoding: .utf8) else {
+                        return nil
+                    }
+                    let relationships = AdvancedAnalyzer.extractViewRelationships(
+                        from: filePath, sourceContents: sourceContents
+                    )
+                    let stateVars = AdvancedAnalyzer.extractStateVariables(
+                        from: filePath, sourceContents: sourceContents
+                    )
+                    return (relationships: relationships, stateVars: stateVars)
+                }
+            }
+            var allResults: [(relationships: [ViewRelationship], stateVars: [StateVariable])] = []
+            for await result in group {
+                if let result { allResults.append(result) }
+            }
+            return allResults
+        }
 
-            let relationships = extractViewRelationships(from: filePath, sourceContents: sourceContents)
-            viewRelationships.append(contentsOf: relationships)
-
-            let stateVars = extractStateVariables(from: filePath, sourceContents: sourceContents)
-            stateVariables.append(contentsOf: stateVars)
+        for result in results {
+            viewRelationships.append(contentsOf: result.relationships)
+            stateVariables.append(contentsOf: result.stateVars)
         }
 
         // Build hierarchy map
@@ -166,7 +185,7 @@ class AdvancedAnalyzer {
     /// - `NavigationLink` destination views (e.g., `NavigationLink(destination: SomeView())`)
     /// - Sheet presentation (e.g., `.sheet(content: { SomeView() })`)
     /// - Full screen cover presentation (e.g., `.fullScreenCover(content: { SomeView() })`)
-    private func extractViewRelationships(from filePath: String, sourceContents: String) -> [ViewRelationship] {
+    private static func extractViewRelationships(from filePath: String, sourceContents: String) -> [ViewRelationship] {
         var relationships: [ViewRelationship] = []
 
         let parentView = FileAnalysisUtils.extractSwiftBasename(from: filePath)
@@ -194,7 +213,7 @@ class AdvancedAnalyzer {
     ///
     /// The returned `StateVariable` instances include the variable's name, type, property wrapper, the
     /// associated view name, as well as the file path and line number where they were found.
-    private func extractStateVariables(from filePath: String, sourceContents: String) -> [StateVariable] {
+    private static func extractStateVariables(from filePath: String, sourceContents: String) -> [StateVariable] {
         let sourceFile = Parser.parse(source: sourceContents)
         let viewName = FileAnalysisUtils.extractSwiftBasename(from: filePath)
         let visitor = StateVariableVisitor(viewName: viewName, filePath: filePath, sourceContents: sourceContents)
