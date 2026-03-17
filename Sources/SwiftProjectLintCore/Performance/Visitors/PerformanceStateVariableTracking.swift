@@ -11,7 +11,7 @@ extension PerformanceVisitor {
         for attribute in attributes {
             if let attributeName = attribute.as(AttributeSyntax.self)?
                 .attributeName.as(IdentifierTypeSyntax.self)?.name.text,
-               attributeName == "State" {
+               PropertyWrapper(rawValue: attributeName) == .state {
 
                 // Extract variable name
                 for binding in node.bindings {

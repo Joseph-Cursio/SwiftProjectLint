@@ -340,11 +340,12 @@ class StateVariableCounter: SyntaxVisitor {
             return identifier.name.text
         }
 
-        if propertyWrappers.contains("State") ||
-           propertyWrappers.contains("StateObject") ||
-           propertyWrappers.contains("ObservedObject") ||
-           propertyWrappers.contains("EnvironmentObject") ||
-           propertyWrappers.contains("Binding") {
+        let wrappers = propertyWrappers.compactMap { PropertyWrapper(rawValue: $0) }
+        if wrappers.contains(.state) ||
+           wrappers.contains(.stateObject) ||
+           wrappers.contains(.observedObject) ||
+           wrappers.contains(.environmentObject) ||
+           wrappers.contains(.binding) {
             stateVariableCount += 1
         }
 
