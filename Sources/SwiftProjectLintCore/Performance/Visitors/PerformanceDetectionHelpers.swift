@@ -8,7 +8,7 @@ extension PerformanceVisitor {
     func detectForEachSelfID(_ node: FunctionCallExprSyntax) {
         // Check if this is a ForEach call
         if let calledExpr = node.calledExpression.as(DeclReferenceExprSyntax.self),
-           calledExpr.baseName.text == "ForEach" {
+           calledExpr.baseName.text == SwiftUIViewType.forEach.rawValue {
 
             // Check if \.self is used as the id parameter (not the collection)
             for argument in node.arguments where argument.label?.text == "id" {

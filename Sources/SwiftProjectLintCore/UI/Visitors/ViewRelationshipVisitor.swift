@@ -26,26 +26,8 @@ class ViewRelationshipVisitor: SyntaxVisitor {
     private let sourceContents: String
     private let sourceLocationConverter: SourceLocationConverter
     private var detectedSpecialViews: Set<String> = []
-    private let containerViews: Set<String> = [
-        "VStack", "HStack", "ZStack", "Group", "ScrollView", "List", "Section", "Form"
-    ]
-    private let systemViews: Set<String> = [
-        // Basic display views
-        "Text", "Image", "Spacer", "Divider", "EmptyView", "Label",
-
-        // Interactive views
-        "Button", "Toggle", "Slider", "Stepper", "Picker", "DatePicker", "ColorPicker",
-        "TextField", "SecureField",
-
-        // Layout views
-        "LazyVStack", "LazyHStack", "LazyZStack", "Grid", "Table", "OutlineGroup", "DisclosureGroup",
-
-        // Display views
-        "ProgressView", "Gauge", "Chart", "Canvas", "TimelineView",
-
-        // Navigation & presentation
-        "NavigationView", "TabView", "VideoPlayer", "Map"
-    ]
+    private let containerViews: Set<String> = Set(SwiftUIViewType.containerViews.map(\.rawValue))
+    private let systemViews: Set<String> = Set(SwiftUIViewType.systemViews.map(\.rawValue))
 
     // Track context to avoid detecting views in wrong contexts
     private var isInContainer = false

@@ -18,7 +18,7 @@ class ForEachSelfIDVisitor: BasePatternVisitor {
         DebugLogger.logVisitor(.forEachSelfID, "Visiting FunctionCallExprSyntax")
         // Check if this is a ForEach call
         if let calledExpr = node.calledExpression.as(DeclReferenceExprSyntax.self),
-           calledExpr.baseName.text == "ForEach" {
+           calledExpr.baseName.text == SwiftUIViewType.forEach.rawValue {
             // Check if .self or \.self is used as the id parameter
             for argument in node.arguments where argument.label?.text == "id" {
                 if let memberAccess = argument.expression.as(MemberAccessExprSyntax.self),

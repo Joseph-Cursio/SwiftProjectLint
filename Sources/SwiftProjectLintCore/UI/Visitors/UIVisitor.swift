@@ -65,7 +65,7 @@ class UIVisitor: BasePatternVisitor {
     override func visit(_ node: FunctionCallExprSyntax) -> SyntaxVisitorContinueKind {
         // Detect NavigationView nesting
         if let calledExpr = node.calledExpression.as(DeclReferenceExprSyntax.self),
-           calledExpr.baseName.text == "NavigationView" {
+           calledExpr.baseName.text == SwiftUIViewType.navigationView.rawValue {
             if navigationStack.contains(currentViewName) {
                 addIssue(
                     severity: .warning,
@@ -80,7 +80,7 @@ class UIVisitor: BasePatternVisitor {
         }
         // Detect ForEach without ID (UI perspective)
         if let calledExpr = node.calledExpression.as(DeclReferenceExprSyntax.self),
-           calledExpr.baseName.text == "ForEach" {
+           calledExpr.baseName.text == SwiftUIViewType.forEach.rawValue {
             var hasID = false
             for argument in node.arguments where argument.label?.text == "id" {
                 hasID = true
@@ -98,7 +98,7 @@ class UIVisitor: BasePatternVisitor {
         }
         // Detect inconsistent styling
         if let calledExpr = node.calledExpression.as(DeclReferenceExprSyntax.self),
-           calledExpr.baseName.text == "Text" {
+           calledExpr.baseName.text == SwiftUIViewType.text.rawValue {
             let modifiers = collectStylingModifiers(node)
 
             // Only add styling modifiers that are actually styling-related
@@ -125,7 +125,7 @@ class UIVisitor: BasePatternVisitor {
     override func visitPost(_ node: FunctionCallExprSyntax) {
         // Pop navigation stack if exiting NavigationView
         if let calledExpr = node.calledExpression.as(DeclReferenceExprSyntax.self),
-           calledExpr.baseName.text == "NavigationView" {
+           calledExpr.baseName.text == SwiftUIViewType.navigationView.rawValue {
             _ = navigationStack.popLast()
         }
     }

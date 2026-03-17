@@ -105,7 +105,7 @@ class PerformanceVisitor: BasePatternVisitor {
 
         // Check for ForEach without ID or with .self as ID
         if let calledExpr = node.calledExpression.as(DeclReferenceExprSyntax.self),
-           calledExpr.baseName.text == "ForEach" {
+           calledExpr.baseName.text == SwiftUIViewType.forEach.rawValue {
             // First check for \.self usage in id parameter
             detectForEachSelfID(node)
 
