@@ -7,7 +7,10 @@ public struct DebugLogger {
     private static let _outputLock = NSLock()
     // Safety: protected by _outputLock. All access goes through the computed
     // `outputHandler` property which acquires the lock.
-    nonisolated(unsafe) private static var _outputHandler: (String) -> Void = { print($0) }
+    nonisolated(unsafe) private static var _outputHandler: (String) -> Void = { message in
+        var stderr = FileHandle.standardError
+        stderr.write(Data((message + "\n").utf8))
+    }
     public static var outputHandler: (String) -> Void {
         get { _outputLock.withLock { _outputHandler } }
         set { _outputLock.withLock { _outputHandler = newValue } }

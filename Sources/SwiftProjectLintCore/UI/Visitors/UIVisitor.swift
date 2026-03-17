@@ -53,10 +53,7 @@ class UIVisitor: BasePatternVisitor {
     }
 
     override func visit(_ node: FunctionDeclSyntax) -> SyntaxVisitorContinueKind {
-        print("🔍 Visiting function: \(node.name.text)")
-        // Search for error handling patterns in body
         if node.name.text == "body" {
-            print("🔍 Found body function, analyzing for error handling")
             analyzeBodyForBasicErrorHandling(node)
         }
         return .visitChildren
@@ -152,7 +149,6 @@ class UIVisitor: BasePatternVisitor {
     override func visit(_ node: VariableDeclSyntax) -> SyntaxVisitorContinueKind {
         // Look for computed property named 'body'
         for binding in node.bindings {
-            print("🔍 binding type: \(type(of: binding)), description: \(binding.description)")
             guard let identifier = binding.pattern.as(IdentifierPatternSyntax.self),
                   identifier.identifier.text == "body" else { continue }
 
@@ -176,7 +172,6 @@ class UIVisitor: BasePatternVisitor {
 
     private func analyzeInitializer(_ initializer: InitializerClauseSyntax?, for node: VariableDeclSyntax) -> Bool {
         guard let initializer = initializer else { return false }
-        print("🔍 initializer.value type: \(type(of: initializer.value)), description: \(initializer.value.description)")
         if let closure = initializer.value.as(ClosureExprSyntax.self) {
             analyzeBodyTextForErrorHandling(closure.statements.description, node: node)
             return true
@@ -185,15 +180,12 @@ class UIVisitor: BasePatternVisitor {
     }
 
     private func analyzeBindingFallback(_ binding: PatternBindingSyntax, for node: VariableDeclSyntax) {
-        print("🔍 Fallback analyzing binding description for error handling: \(binding.description)")
         analyzeBodyTextForErrorHandling(binding.description, node: node)
     }
 
     private func analyzeBodyTextForErrorHandling(_ bodyText: String, node: VariableDeclSyntax) {
-        print("🔍 Analyzing body for error handling: \(bodyText)")
         let hasErrorHandling = bodyText.contains("if let error") || bodyText.contains("Text(\"Error")
         let hasProperUI = bodyText.contains(".alert(") || bodyText.contains(".sheet(") || bodyText.contains("Alert(")
-        print("🔍 hasErrorHandling: \(hasErrorHandling), hasProperUI: \(hasProperUI)")
         if hasErrorHandling && !hasProperUI {
             addIssue(
                 severity: .info,
@@ -212,17 +204,11 @@ class UIVisitor: BasePatternVisitor {
         guard let body = node.body else { return }
         let bodyText = body.description
 
-        // Debug logging
-        print("🔍 Analyzing body for error handling: \(bodyText)")
-
-        // Check if there's basic error handling without proper UI patterns
         let hasErrorHandling = bodyText.contains("if let error") ||
             bodyText.contains("Text(\"Error")
         let hasProperUI = bodyText.contains(".alert(") ||
             bodyText.contains(".sheet(") ||
             bodyText.contains("Alert(")
-
-        print("🔍 hasErrorHandling: \(hasErrorHandling), hasProperUI: \(hasProperUI)")
 
         if hasErrorHandling && !hasProperUI {
             addIssue(
@@ -251,9 +237,6 @@ class UIVisitor: BasePatternVisitor {
             }
             current = parent.parent
         }
-
-        // Debug logging
-        print("🔍 Collected modifiers for Text: \(Array(modifiers))")
 
         return Array(modifiers)
     }

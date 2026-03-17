@@ -64,24 +64,12 @@ class SystemComponents: ObservableObject {
     private(set) var detector: SourcePatternDetector?
 
     func initialize() async {
-        print("DEBUG: SystemComponents.initialize() called")
         // Yield to let the UI render before doing heavy registry setup
         await Task.yield()
         let system = PatternRegistryFactory.createConfiguredSystem()
-        print("DEBUG: Pattern registry created, checking patterns...")
-
-        // Check if patterns were registered
-        let allPatterns = system.patternRegistry.getAllPatterns()
-        print("DEBUG: Total patterns registered: \(allPatterns.count)")
-
-        for category in PatternCategory.allCases {
-            let patterns = system.patternRegistry.getPatterns(for: category)
-            print("DEBUG: Category \(category) has \(patterns.count) patterns")
-        }
 
         self.visitorRegistry = system.visitorRegistry
         self.patternRegistry = system.patternRegistry
         self.detector = system.detector
-        print("DEBUG: SystemComponents initialization complete")
     }
 }

@@ -216,7 +216,7 @@ class StateVariableVisitor: SyntaxVisitor {
     /// Handles unknown type patterns
     private func handleUnknownType(text: String) -> String {
         if config.logUnknownTypes {
-            print("⚠️  Unknown type pattern in initializer: '\(text)' at \(filePath)")
+            DebugLogger.log("Unknown type pattern in initializer: '\(text)' at \(filePath)")
         }
         
         if config.strictTypeChecking {
@@ -229,7 +229,7 @@ class StateVariableVisitor: SyntaxVisitor {
     /// Handles missing type annotation and initializer
     private func handleMissingType() -> String {
         if config.logUnknownTypes {
-            print("⚠️  No type annotation or initializer found for variable at \(filePath)")
+            DebugLogger.log("No type annotation or initializer found for variable at \(filePath)")
         }
         
         if config.strictTypeChecking {
