@@ -1,69 +1,106 @@
-import Combine
 import Testing
 import SwiftUI
 import ViewInspector
-
-class ContentViewModel: ObservableObject {
-    @Published var isLoading: Bool = false
-    @Published var items: [String] = []
-    init() { }
-}
+import SwiftProjectLintCore
 
 @testable import SwiftProjectLint
 
-@Suite
+@Suite("ContentView Tests")
 @MainActor
 struct ContentViewTests {
-    @Test
-    func testLoading() throws {
+    @Test("view renders text content when environment object is provided")
+    func rendersTextContent() throws {
         let systemComponents = SystemComponents()
         systemComponents.initialize()
         let view = ContentView().environmentObject(systemComponents)
-        let texts = try view.inspect().findAll(ViewType.Text.self)
-        // Check for any loading-related text in the view
+        let inspected = try view.inspect()
+        let texts = inspected.findAll(ViewType.Text.self)
         let textStrings = texts.compactMap { try? $0.string() }
-        #expect(!textStrings.isEmpty) // View should have some text content
+        #expect(!textStrings.isEmpty)
     }
 
-    @Test
-    func testLoadedItems() throws {
-        let systemComponents = SystemComponents()
-        systemComponents.initialize()
-        let view = ContentView().environmentObject(systemComponents)
-        let texts = try view.inspect().findAll(ViewType.Text.self)
-        let textStrings = texts.compactMap { try? $0.string() }
-        #expect(!textStrings.isEmpty) // View should have some text content
-    }
-
-    @Test
-    @MainActor
-    func testContentViewStructure() throws {
+    @Test("view contains expected child views in its VStack")
+    func contentViewStructure() throws {
         let systemComponents = SystemComponents()
         systemComponents.initialize()
         let view = ContentView().environmentObject(systemComponents)
         let inspected = try view.inspect()
         // NavigationView
-        #expect(try { _ = try inspected.find(ViewType.NavigationView.self); return true }())
-        // VStack
+        _ = try inspected.find(ViewType.NavigationView.self)
+        // VStack with child views
         let vStack = try inspected.navigationView().vStack()
-        // Header
-        #expect(try { _ = try vStack.find(ContentViewHeader.self); return true }())
-        // Actions
-        #expect(try { _ = try vStack.find(ContentViewActions.self); return true }())
-        // Progress
-        #expect(try { _ = try vStack.find(ContentViewProgress.self); return true }())
-        // Results
-        #expect(try { _ = try vStack.find(ContentViewResults.self); return true }())
-        // Navigation title: check for the title text somewhere in the view
-        let allTexts = try inspected.findAll(ViewType.Text.self).map { try? $0.string() }
+        _ = try vStack.find(ContentViewHeader.self)
+        _ = try vStack.find(ContentViewActions.self)
+        _ = try vStack.find(ContentViewProgress.self)
+        _ = try vStack.find(ContentViewResults.self)
+    }
+
+    @Test("view displays the app title text")
+    func displaysAppTitle() throws {
+        let systemComponents = SystemComponents()
+        systemComponents.initialize()
+        let view = ContentView().environmentObject(systemComponents)
+        let inspected = try view.inspect()
+        let allTexts = inspected.findAll(ViewType.Text.self).compactMap { try? $0.string() }
         #expect(allTexts.contains("Swift Project Linter"))
     }
 
-    @Test
-    @MainActor
-    func testRuleSelectionDialogSheetAppears() throws {
-        // ViewInspector does not currently support direct sheet state inspection in Swift Testing.
-        // Placeholder for future support or workaround.
-        // e.g. #expect(try inspected.sheet().find(RuleSelectionDialog.self) != nil)
+    @Test("view displays the subtitle description text")
+    func displaysSubtitleDescription() throws {
+        let systemComponents = SystemComponents()
+        systemComponents.initialize()
+        let view = ContentView().environmentObject(systemComponents)
+        let inspected = try view.inspect()
+        let allTexts = inspected.findAll(ViewType.Text.self).compactMap { try? $0.string() }
+        #expect(allTexts.contains("Detect cross-file issues and architectural problems"))
+    }
+
+    @Test("view renders without crashing with uninitialized system components")
+    func rendersWithUninitializedComponents() throws {
+        let systemComponents = SystemComponents()
+        // Deliberately NOT calling initialize()
+        let view = ContentView().environmentObject(systemComponents)
+        let inspected = try view.inspect()
+        let texts = inspected.findAll(ViewType.Text.self)
+        #expect(!texts.isEmpty)
+    }
+
+    @Test("view shows Select Rules button")
+    func showsSelectRulesButton() throws {
+        let systemComponents = SystemComponents()
+        systemComponents.initialize()
+        let view = ContentView().environmentObject(systemComponents)
+        let inspected = try view.inspect()
+        let buttons = inspected.findAll(ViewType.Button.self)
+        let buttonLabels = buttons.compactMap { try? $0.labelView().text().string() }
+        #expect(buttonLabels.contains("Select Rules"))
+    }
+
+    @Test("view shows folder selection button initially when no directory is set")
+    func showsFolderSelectionButton() throws {
+        let systemComponents = SystemComponents()
+        systemComponents.initialize()
+        let view = ContentView().environmentObject(systemComponents)
+        let inspected = try view.inspect()
+        let buttons = inspected.findAll(ViewType.Button.self)
+        let buttonLabels = buttons.compactMap { try? $0.labelView().text().string() }
+        #expect(buttonLabels.contains("Run Project Analysis by Selecting a Folder..."))
+    }
+
+    @Test("ContentViewPreviewHost creates a view with environment object")
+    func previewHostCreatesView() throws {
+        let previewHost = ContentViewPreviewHost()
+        let inspected = try previewHost.inspect()
+        // The preview host wraps a ContentView
+        _ = try inspected.find(ContentView.self)
+    }
+
+    @Test("testHostView returns a valid view")
+    func testHostViewReturnsValidView() throws {
+        let hostView = ContentView.testHostView()
+        // Should be inspectable - it returns a ContentViewPreviewHost
+        let inspected = try hostView.inspect()
+        let texts = inspected.findAll(ViewType.Text.self)
+        #expect(!texts.isEmpty)
     }
 }
