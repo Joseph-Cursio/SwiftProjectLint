@@ -41,6 +41,18 @@ swift test --filter SwiftProjectLintTests
 # Run a specific ViewInspector test
 swift test --filter "SwiftProjectLintTests.ContentViewTests"
 swift test --filter "SwiftProjectLintTests.LintResultsViewTests"
+
+# Run the CLI tool
+swift run SwiftProjectLintCLI /path/to/project
+
+# CLI with JSON output
+swift run SwiftProjectLintCLI /path/to/project --format json
+
+# CLI with specific categories and error-only threshold
+swift run SwiftProjectLintCLI /path/to/project --categories stateManagement performance --threshold error
+
+# Run CLI tests
+swift test --filter SwiftProjectLintCLITests
 ```
 
 **Note on UI Testing:**
@@ -49,10 +61,11 @@ swift test --filter "SwiftProjectLintTests.LintResultsViewTests"
 
 ## Project Architecture
 
-### Two-Target Structure
+### Three-Target Structure
 
 - **SwiftProjectLintCore** (`Sources/SwiftProjectLintCore/`): Core analysis library containing all linting logic, visitors, and pattern detection
 - **SwiftProjectLint** (`Sources/SwiftProjectLint/`): macOS app executable with SwiftUI interface
+- **SwiftProjectLintCLI** (`Sources/SwiftProjectLintCLI/`): Command-line tool for CI/CD integration with text and JSON output
 
 ### Core Analysis Pipeline
 

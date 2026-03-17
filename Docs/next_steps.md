@@ -4,18 +4,12 @@
 
 ---
 
-## Immediate / In-Progress (from PRD "Implementation Roadmap")
-
-1. **AST caching** — Complete (in-memory, per-analysis-run). Each file is parsed once and the AST is reused across pattern detection, state extraction, and cross-file analysis. On-disk caching for incremental analysis is deferred.
-2. **Test coverage** — 678 tests across 134 suites. Recent additions include ContentViewModel unit tests (17) and IssueSummarySection ViewInspector tests (5). Remaining gaps: edge cases in PatternDetector, AdvancedAnalyzer, and integration tests for the full analysis pipeline
-
----
 
 ## High Priority Future Features (PRD targets Q2-Q3 2026)
 
 6. **Xcode Source Editor Extension** — Inline annotations, quick fixes, live analysis
 7. **Auto-fix capabilities** — Automated refactoring via SwiftSyntax
-8. **CI/CD integration** — CLI mode, JSON/XML output, GitHub Actions, exit codes
+8. **CI/CD integration** — ~~CLI mode~~, ~~JSON output~~, ~~exit codes~~, XML output, GitHub Actions
 9. **Incremental analysis** — File watcher, only re-analyze changed files
 10. **SwiftUI Preview integration** — Live issue overlay
 

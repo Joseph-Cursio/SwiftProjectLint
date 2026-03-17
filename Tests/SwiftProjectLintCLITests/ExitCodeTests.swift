@@ -14,7 +14,7 @@ struct ExitCodeTests {
     func errorsReturnTwo() {
         let issues = [
             LintIssue(severity: .error, message: "err", filePath: "A.swift",
-                       lineNumber: 1, suggestion: nil, ruleName: .fatView)
+                      lineNumber: 1, suggestion: nil, ruleName: .fatView)
         ]
         #expect(ExitCodes.exitCode(for: issues, threshold: .warning) == 2)
         #expect(ExitCodes.exitCode(for: issues, threshold: .error) == 2)
@@ -25,7 +25,7 @@ struct ExitCodeTests {
     func warningsReturnOneWithWarningThreshold() {
         let issues = [
             LintIssue(severity: .warning, message: "warn", filePath: "A.swift",
-                       lineNumber: 1, suggestion: nil, ruleName: .fatView)
+                      lineNumber: 1, suggestion: nil, ruleName: .fatView)
         ]
         #expect(ExitCodes.exitCode(for: issues, threshold: .warning) == 1)
     }
@@ -34,7 +34,7 @@ struct ExitCodeTests {
     func warningsCleanWithErrorThreshold() {
         let issues = [
             LintIssue(severity: .warning, message: "warn", filePath: "A.swift",
-                       lineNumber: 1, suggestion: nil, ruleName: .fatView)
+                      lineNumber: 1, suggestion: nil, ruleName: .fatView)
         ]
         #expect(ExitCodes.exitCode(for: issues, threshold: .error) == 0)
     }
@@ -43,7 +43,7 @@ struct ExitCodeTests {
     func infoCleanWithWarningThreshold() {
         let issues = [
             LintIssue(severity: .info, message: "info", filePath: "A.swift",
-                       lineNumber: 1, suggestion: nil, ruleName: .fatView)
+                      lineNumber: 1, suggestion: nil, ruleName: .fatView)
         ]
         #expect(ExitCodes.exitCode(for: issues, threshold: .warning) == 0)
     }
@@ -52,7 +52,7 @@ struct ExitCodeTests {
     func infoTriggersWithInfoThreshold() {
         let issues = [
             LintIssue(severity: .info, message: "info", filePath: "A.swift",
-                       lineNumber: 1, suggestion: nil, ruleName: .fatView)
+                      lineNumber: 1, suggestion: nil, ruleName: .fatView)
         ]
         #expect(ExitCodes.exitCode(for: issues, threshold: .info) == 1)
     }
