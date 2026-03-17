@@ -299,7 +299,6 @@ extension SwiftUIManagementVisitor {
 
     // MARK: - Helper Methods
 
-
     func extractPropertyWrapper(from node: VariableDeclSyntax) -> PropertyWrapper? {
         for attribute in node.attributes {
             if let attributeSyntax = attribute.as(AttributeSyntax.self),

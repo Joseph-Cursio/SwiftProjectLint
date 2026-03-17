@@ -58,7 +58,7 @@ class ButtonAccessibilityChecker: AccessibilityCheckerProtocol {
             // Check if the argument expression is a function call to Image
             if let functionCall = argument.expression.as(FunctionCallExprSyntax.self),
                let calledExpression = functionCall.calledExpression.as(DeclReferenceExprSyntax.self),
-               calledExpression.baseName.text == "Image" {
+               calledExpression.baseName.text == SwiftUIViewType.image.rawValue {
                 return true
             }
             // Check if this is a label parameter with a closure (e.g., label: { Image("icon") })
@@ -99,7 +99,7 @@ class ButtonAccessibilityChecker: AccessibilityCheckerProtocol {
         for argument in node.arguments {
             if let functionCall = argument.expression.as(FunctionCallExprSyntax.self),
                let calledExpression = functionCall.calledExpression.as(DeclReferenceExprSyntax.self),
-               calledExpression.baseName.text == "Text" {
+               calledExpression.baseName.text == SwiftUIViewType.text.rawValue {
                 return true
             }
         }

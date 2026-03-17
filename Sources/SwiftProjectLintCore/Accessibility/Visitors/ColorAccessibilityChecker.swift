@@ -14,7 +14,7 @@ class ColorAccessibilityChecker: MemberAccessAccessibilityCheckerProtocol {
     func checkAccessibility(_ node: MemberAccessExprSyntax) {
         // Check for Color usage without accessibility features
         if let base = node.base?.as(DeclReferenceExprSyntax.self),
-            base.baseName.text == "Color" {
+            base.baseName.text == SwiftUIViewType.color.rawValue {
             visitor.addIssue(
                 severity: .info,
                 message:

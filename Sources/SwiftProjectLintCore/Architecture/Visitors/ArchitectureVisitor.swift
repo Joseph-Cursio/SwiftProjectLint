@@ -204,7 +204,6 @@ class ArchitectureVisitor: BasePatternVisitor {
 
     // MARK: - Helper Methods
 
-
     private func extractPropertyWrapper(from node: VariableDeclSyntax) -> PropertyWrapper? {
         for attribute in node.attributes {
             if let attributeSyntax = attribute.as(AttributeSyntax.self),

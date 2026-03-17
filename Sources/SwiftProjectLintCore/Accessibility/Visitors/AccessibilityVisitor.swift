@@ -115,13 +115,13 @@ class AccessibilityVisitor: BasePatternVisitor {
         if let calledExpression = node.calledExpression.as(DeclReferenceExprSyntax.self) {
             let functionName = calledExpression.baseName.text
 
-            if functionName == "Button" {
+            if functionName == SwiftUIViewType.button.rawValue {
                 DebugLogger.logVisitor(.accessibility, "Found Button initialization")
                 buttonChecker.checkAccessibility(node)
-            } else if functionName == "Image" {
+            } else if functionName == SwiftUIViewType.image.rawValue {
                 DebugLogger.logVisitor(.accessibility, "Found Image initialization")
                 imageChecker.checkAccessibility(node)
-            } else if functionName == "Text" {
+            } else if functionName == SwiftUIViewType.text.rawValue {
                 DebugLogger.logVisitor(.accessibility, "Found Text initialization")
                 textChecker.checkAccessibility(node)
             }

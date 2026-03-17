@@ -128,7 +128,7 @@ class AccessibilityTreeTraverser {
             let calledExpression = functionCall.calledExpression.as(
                 DeclReferenceExprSyntax.self
             ),
-            calledExpression.baseName.text == "Image" {
+            calledExpression.baseName.text == SwiftUIViewType.image.rawValue {
             images.insert(syntax)
         }
 
@@ -148,7 +148,7 @@ class AccessibilityTreeTraverser {
             let calledExpression = functionCall.calledExpression.as(
                 DeclReferenceExprSyntax.self
             ),
-            calledExpression.baseName.text == "Image" {
+            calledExpression.baseName.text == SwiftUIViewType.image.rawValue {
             return true
         }
         for child in syntax.children(viewMode: .sourceAccurate) where containsImage(in: child) {
@@ -166,7 +166,7 @@ class AccessibilityTreeTraverser {
             let calledExpression = functionCall.calledExpression.as(
                 DeclReferenceExprSyntax.self
             ),
-            calledExpression.baseName.text == "Text" {
+            calledExpression.baseName.text == SwiftUIViewType.text.rawValue {
             return true
         }
         for child in syntax.children(viewMode: .sourceAccurate) where containsText(in: child) {
