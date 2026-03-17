@@ -23,7 +23,59 @@ struct SwiftProjectLintCLI: AsyncParsableCommand {
     var categories: [String] = []
 
     mutating func run() async throws {
-        // Stub — will be implemented in next commit
-        print("Analyzing \(projectPath)...")
+        let resolvedPath = (projectPath as NSString).standardizingPath
+        let absolutePath: String
+        if resolvedPath.hasPrefix("/") {
+            absolutePath = resolvedPath
+        } else {
+            absolutePath = FileManager.default.currentDirectoryPath + "/" + resolvedPath
+        }
+
+        guard FileManager.default.fileExists(atPath: absolutePath) else {
+            throw ValidationError("Project path does not exist: \(absolutePath)")
+        }
+
+        let selectedCategories = try parseCategories()
+
+        let system = PatternRegistryFactory.createConfiguredSystem()
+        let linter = ProjectLinter()
+        linter.setDetector(system.detector)
+
+        let issues = await linter.analyzeProject(
+            at: absolutePath,
+            categories: selectedCategories
+        )
+
+        switch format {
+        case .text:
+            print(TextFormatter.format(issues: issues))
+        case .json:
+            print(JSONFormatter.format(issues: issues))
+        }
+
+        let code = ExitCodes.exitCode(for: issues, threshold: threshold)
+        if code != 0 {
+            throw ExitCode(code)
+        }
+    }
+
+    private func parseCategories() throws -> [PatternCategory]? {
+        guard !categories.isEmpty else { return nil }
+
+        let categoryMap: [String: PatternCategory] = Dictionary(
+            uniqueKeysWithValues: PatternCategory.allCases.map {
+                (String(describing: $0), $0)
+            }
+        )
+
+        var result: [PatternCategory] = []
+        for name in categories {
+            guard let category = categoryMap[name] else {
+                let valid = categoryMap.keys.sorted().joined(separator: ", ")
+                throw ValidationError("Unknown category '\(name)'. Valid categories: \(valid)")
+            }
+            result.append(category)
+        }
+        return result
     }
 }
