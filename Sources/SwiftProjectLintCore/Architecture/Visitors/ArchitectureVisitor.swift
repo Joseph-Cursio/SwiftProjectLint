@@ -187,7 +187,7 @@ class ArchitectureVisitor: BasePatternVisitor {
         if matchesSuffix {
             // Check if it conforms to ObservableObject
             let hasObservableObject = node.inheritanceClause?.inheritedTypes.contains { type in
-                type.type.as(IdentifierTypeSyntax.self)?.name.text == "ObservableObject"
+                type.type.as(IdentifierTypeSyntax.self)?.name.text == SwiftUIProtocol.observableObject.rawValue
             } ?? false
             if hasObservableObject {
                 addIssue(
@@ -204,13 +204,6 @@ class ArchitectureVisitor: BasePatternVisitor {
 
     // MARK: - Helper Methods
 
-    private func isSwiftUIView(_ node: StructDeclSyntax) -> Bool {
-        for inheritance in node.inheritanceClause?.inheritedTypes ?? []
-            where inheritance.type.as(IdentifierTypeSyntax.self)?.name.text == "View" {
-            return true
-        }
-        return false
-    }
 
     private func extractPropertyWrapper(from node: VariableDeclSyntax) -> PropertyWrapper? {
         for attribute in node.attributes {

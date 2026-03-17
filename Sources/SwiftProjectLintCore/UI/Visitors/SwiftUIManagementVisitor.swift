@@ -299,17 +299,6 @@ extension SwiftUIManagementVisitor {
 
     // MARK: - Helper Methods
 
-    func isSwiftUIView(_ node: StructDeclSyntax) -> Bool {
-        guard let inheritanceClause = node.inheritanceClause else {
-            return false
-        }
-        return inheritanceClause.inheritedTypes.contains { inheritedType in
-            if let simpleType = inheritedType.type.as(IdentifierTypeSyntax.self) {
-                return simpleType.name.text == "View"
-            }
-            return false
-        }
-    }
 
     func extractPropertyWrapper(from node: VariableDeclSyntax) -> PropertyWrapper? {
         for attribute in node.attributes {

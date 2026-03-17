@@ -6,11 +6,10 @@
 
 ## Immediate / In-Progress (from PRD "Implementation Roadmap")
 
-1. ~~**Refactoring** — ContentView and LintResultsView need to be broken into smaller components; dependency injection improvements~~ **Done** (March 2026): ContentView state/logic extracted to `ContentViewModel`; `IssueSummarySection`, `LintIssueRow`, and `SummaryItem` extracted to dedicated files; LintResultsView summary duplication removed
-2. **Type-safe detection** — Property wrapper and view type logic still partially uses string comparisons (migration in progress)
-3. **Async/await conversion** — Incomplete; file I/O, analysis operations need to move off main thread
-4. **AST caching** — Not yet implemented
-5. **Test coverage** — 678 tests across 134 suites. Recent additions include ContentViewModel unit tests (17) and IssueSummarySection ViewInspector tests (5). Remaining gaps: edge cases in PatternDetector, AdvancedAnalyzer, and integration tests for the full analysis pipeline
+1. **Type-safe detection** — Property wrapper and view type logic still partially uses string comparisons (migration in progress)
+2. **Async/await conversion** — Incomplete; file I/O, analysis operations need to move off main thread
+3. **AST caching** — Not yet implemented
+4. **Test coverage** — 678 tests across 134 suites. Recent additions include ContentViewModel unit tests (17) and IssueSummarySection ViewInspector tests (5). Remaining gaps: edge cases in PatternDetector, AdvancedAnalyzer, and integration tests for the full analysis pipeline
 
 ---
 
