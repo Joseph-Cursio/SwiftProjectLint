@@ -58,7 +58,7 @@ struct SourcePatternDetectorCoreTests {
         
         // When - Use the detector with shared registry and measure performance
         let (issues, duration) = await TestRegistryManager.measureExecutionTime {
-            await detector.detectPatterns(in: sourceCode, filePath: "TestView.swift", categories: nil)
+            detector.detectPatterns(in: sourceCode, filePath: "TestView.swift", categories: nil)
         }
         
         // Log slow test execution
@@ -105,11 +105,11 @@ struct SourcePatternDetectorCoreTests {
         
         // When - Measure performance for cross-file analysis
         let (_, _) = await TestRegistryManager.measureExecutionTime {
-            await detector.detectPatterns(in: file1, filePath: "ParentView.swift", categories: nil)
+            detector.detectPatterns(in: file1, filePath: "ParentView.swift", categories: nil)
         }
         
         let (_, _) = await TestRegistryManager.measureExecutionTime {
-            await detector.detectPatterns(in: file2, filePath: "ChildView.swift", categories: nil)
+            detector.detectPatterns(in: file2, filePath: "ChildView.swift", categories: nil)
         }
         
         // Then - Both files should be processed independently

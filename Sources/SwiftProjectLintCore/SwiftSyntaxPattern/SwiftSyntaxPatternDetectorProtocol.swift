@@ -11,7 +11,7 @@ public protocol SwiftSyntaxPatternDetectorProtocol {
         in sourceCode: String,
         filePath: String,
         categories: [PatternCategory]?
-    ) async -> [LintIssue]
+    ) -> [LintIssue]
     
     func clearCache()
 }

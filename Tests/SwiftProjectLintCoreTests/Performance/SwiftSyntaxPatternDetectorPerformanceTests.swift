@@ -38,7 +38,7 @@ struct SyntaxPatternDetectorPerfTests {
         
         // When - Use the detector with shared registry and measure performance
         let (issues, duration) = await TestRegistryManager.measureExecutionTime {
-            await detector.detectPatterns(
+            detector.detectPatterns(
                 in: sourceCode,
                 filePath: "TestView.swift",
                 categories: [.performance]
