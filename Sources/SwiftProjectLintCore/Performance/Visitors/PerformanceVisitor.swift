@@ -133,8 +133,6 @@ class PerformanceVisitor: BasePatternVisitor {
 
     override func visit(_ node: MemberAccessExprSyntax) -> SyntaxVisitorContinueKind {
         if isInViewBody {
-            // Detect ForEach without proper ID
-            detectForEachWithoutID(node)
             // Track state variable usage in view body
             trackStateVariableUsage(node)
         }

@@ -42,25 +42,13 @@ extension PerformanceVisitor {
     }
 
     func trackStateVariableAssignment(_ node: AssignmentExprSyntax) {
-        guard let parent = node.parent else { return }
-        if let sequence = parent.as(SequenceExprSyntax.self) {
-            let elements = sequence.elements
-            if let assignIndex = elements.firstIndex(
-                where: { $0.as(AssignmentExprSyntax.self)?.positionAfterSkippingLeadingTrivia ==
-                         node.positionAfterSkippingLeadingTrivia }) {
-                let assignIndexInt = elements.distance(from: elements.startIndex, to: assignIndex)
-                if assignIndexInt > 0 {
-                    let leftExpr = elements[elements.index(elements.startIndex, offsetBy: assignIndexInt - 1)]
-                    if let memberAccess = leftExpr.as(MemberAccessExprSyntax.self) {
-                        if memberAccess.base?.description.trimmingCharacters(in: .whitespacesAndNewlines) == "self" {
-                            let variableName = memberAccess.declName.baseName.text
-                            if stateVariables[variableName] != nil {
-                                stateVariables[variableName]?.isAssigned = true
-                                stateVariables[variableName]?.assignmentLine = getLineNumber(for: Syntax(node))
-                            }
-                        }
-                    }
-                }
+        guard let parent = node.parent?.as(InfixOperatorExprSyntax.self) else { return }
+        if let memberAccess = parent.leftOperand.as(MemberAccessExprSyntax.self),
+           memberAccess.base?.description.trimmingCharacters(in: .whitespacesAndNewlines) == "self" {
+            let variableName = memberAccess.declName.baseName.text
+            if stateVariables[variableName] != nil {
+                stateVariables[variableName]?.isAssigned = true
+                stateVariables[variableName]?.assignmentLine = getLineNumber(for: Syntax(node))
             }
         }
     }
