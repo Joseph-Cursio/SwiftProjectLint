@@ -6,10 +6,9 @@
 
 ## Immediate / In-Progress (from PRD "Implementation Roadmap")
 
-1. ~~**Type-safe detection**~~ — **Done.** `SwiftUIViewType` enum, `SwiftUIProtocol` enum, and shared `isSwiftUIView` helper replace all scattered string comparisons for view types, protocols, and property wrappers
-2. **Async/await conversion** — Incomplete; file I/O, analysis operations need to move off main thread
-3. **AST caching** — Not yet implemented
-4. **Test coverage** — 678 tests across 134 suites. Recent additions include ContentViewModel unit tests (17) and IssueSummarySection ViewInspector tests (5). Remaining gaps: edge cases in PatternDetector, AdvancedAnalyzer, and integration tests for the full analysis pipeline
+1. **Async/await conversion** — Complete. Detector protocols fixed (removed misleading async), findSwiftFiles consolidated with async overload, CrossFileAnalysisEngine and AdvancedAnalyzer use parallel file I/O via withTaskGroup, SystemComponents.initialize() uses .task for non-blocking startup. Deeper async decomposition of CPU-bound AST work deferred (no I/O benefit).
+2. **AST caching** — Not yet implemented
+3. **Test coverage** — 678 tests across 134 suites. Recent additions include ContentViewModel unit tests (17) and IssueSummarySection ViewInspector tests (5). Remaining gaps: edge cases in PatternDetector, AdvancedAnalyzer, and integration tests for the full analysis pipeline
 
 ---
 
@@ -57,4 +56,4 @@ The recommendations doc suggests ~10 new visitor classes and 7 new pattern categ
 
 ## Recommended Starting Point
 
-The most actionable near-term work is: async/await conversion, AST caching, and building toward a CLI mode for CI/CD — those are the foundation for the bigger features like Xcode integration and auto-fix.
+The most actionable near-term work is: AST caching and building toward a CLI mode for CI/CD — those are the foundation for the bigger features like Xcode integration and auto-fix.
