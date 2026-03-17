@@ -3,13 +3,11 @@ import Testing
 import SwiftSyntax
 import SwiftParser
 
-@Suite
 struct AnimationPerformanceVisitorTests {
 
-    private func makeVisitor(for rule: RuleIdentifier = .excessiveSpringAnimations) -> AnimationPerformanceVisitor {
+    private func makeVisitor(for rule: RuleIdentifier = .excessiveSpringAnimations) throws -> AnimationPerformanceVisitor {
         let patterns = AnimationPerformancePatternRegistrar().patterns
-        // swiftlint:disable:next force_unwrapping
-        let pattern = patterns.first { $0.name == rule }!
+        let pattern = try #require(patterns.first { $0.name == rule })
         return AnimationPerformanceVisitor(pattern: pattern)
     }
 
@@ -42,7 +40,7 @@ struct AnimationPerformanceVisitorTests {
         }
         """
 
-        let visitor = makeVisitor()
+        let visitor = try makeVisitor()
         runVisitor(visitor, source: source)
 
         #expect(visitor.detectedIssues.count == 1)
@@ -55,7 +53,7 @@ struct AnimationPerformanceVisitorTests {
     }
 
     @Test
-    func allowsThreeOrFewerSpringAnimations() {
+    func allowsThreeOrFewerSpringAnimations() throws {
         let source = """
         import SwiftUI
 
@@ -74,14 +72,14 @@ struct AnimationPerformanceVisitorTests {
         }
         """
 
-        let visitor = makeVisitor()
+        let visitor = try makeVisitor()
         runVisitor(visitor, source: source)
 
         #expect(visitor.detectedIssues.isEmpty)
     }
 
     @Test
-    func countResetsPerStruct() {
+    func countResetsPerStruct() throws {
         let source = """
         import SwiftUI
 
@@ -110,7 +108,7 @@ struct AnimationPerformanceVisitorTests {
         }
         """
 
-        let visitor = makeVisitor()
+        let visitor = try makeVisitor()
         runVisitor(visitor, source: source)
 
         #expect(visitor.detectedIssues.isEmpty)
@@ -138,7 +136,7 @@ struct AnimationPerformanceVisitorTests {
         }
         """
 
-        let visitor = makeVisitor()
+        let visitor = try makeVisitor()
         runVisitor(visitor, source: source)
 
         #expect(visitor.detectedIssues.count == 1)
@@ -148,7 +146,7 @@ struct AnimationPerformanceVisitorTests {
     }
 
     @Test
-    func ignoresNonSpringAnimations() {
+    func ignoresNonSpringAnimations() throws {
         let source = """
         import SwiftUI
 
@@ -169,7 +167,7 @@ struct AnimationPerformanceVisitorTests {
         }
         """
 
-        let visitor = makeVisitor()
+        let visitor = try makeVisitor()
         runVisitor(visitor, source: source)
 
         #expect(visitor.detectedIssues.isEmpty)
@@ -194,7 +192,7 @@ struct AnimationPerformanceVisitorTests {
         }
         """
 
-        let visitor = makeVisitor(for: .animationInHighFrequencyUpdate)
+        let visitor = try makeVisitor(for: .animationInHighFrequencyUpdate)
         runVisitor(visitor, source: source)
 
         #expect(visitor.detectedIssues.count == 1)
@@ -221,7 +219,7 @@ struct AnimationPerformanceVisitorTests {
         }
         """
 
-        let visitor = makeVisitor(for: .animationInHighFrequencyUpdate)
+        let visitor = try makeVisitor(for: .animationInHighFrequencyUpdate)
         runVisitor(visitor, source: source)
 
         #expect(visitor.detectedIssues.count == 1)
@@ -231,7 +229,7 @@ struct AnimationPerformanceVisitorTests {
     }
 
     @Test
-    func allowsAnimationOutsideHighFrequencyContext() {
+    func allowsAnimationOutsideHighFrequencyContext() throws {
         let source = """
         import SwiftUI
 
@@ -246,7 +244,7 @@ struct AnimationPerformanceVisitorTests {
         }
         """
 
-        let visitor = makeVisitor(for: .animationInHighFrequencyUpdate)
+        let visitor = try makeVisitor(for: .animationInHighFrequencyUpdate)
         runVisitor(visitor, source: source)
 
         #expect(visitor.detectedIssues.isEmpty)
@@ -269,7 +267,7 @@ struct AnimationPerformanceVisitorTests {
         }
         """
 
-        let visitor = makeVisitor(for: .longAnimationDuration)
+        let visitor = try makeVisitor(for: .longAnimationDuration)
         runVisitor(visitor, source: source)
 
         #expect(visitor.detectedIssues.count == 1)
@@ -295,7 +293,7 @@ struct AnimationPerformanceVisitorTests {
         }
         """
 
-        let visitor = makeVisitor(for: .longAnimationDuration)
+        let visitor = try makeVisitor(for: .longAnimationDuration)
         runVisitor(visitor, source: source)
 
         #expect(visitor.detectedIssues.count == 1)
@@ -306,7 +304,7 @@ struct AnimationPerformanceVisitorTests {
     }
 
     @Test
-    func allowsNormalAnimationDuration() {
+    func allowsNormalAnimationDuration() throws {
         let source = """
         import SwiftUI
 
@@ -320,14 +318,14 @@ struct AnimationPerformanceVisitorTests {
         }
         """
 
-        let visitor = makeVisitor(for: .longAnimationDuration)
+        let visitor = try makeVisitor(for: .longAnimationDuration)
         runVisitor(visitor, source: source)
 
         #expect(visitor.detectedIssues.isEmpty)
     }
 
     @Test
-    func allowsExactlyTwoSecondDuration() {
+    func allowsExactlyTwoSecondDuration() throws {
         let source = """
         import SwiftUI
 
@@ -341,7 +339,7 @@ struct AnimationPerformanceVisitorTests {
         }
         """
 
-        let visitor = makeVisitor(for: .longAnimationDuration)
+        let visitor = try makeVisitor(for: .longAnimationDuration)
         runVisitor(visitor, source: source)
 
         #expect(visitor.detectedIssues.isEmpty)

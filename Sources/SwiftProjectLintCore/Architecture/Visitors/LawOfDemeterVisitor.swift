@@ -37,7 +37,8 @@ class LawOfDemeterVisitor: BasePatternVisitor {
         let chain = "\(rootDesc).\(innerAccess.declName.baseName.text).\(node.declName.baseName.text)"
         addIssue(
             severity: .warning,
-            message: "Chain '\(chain)' violates the Law of Demeter — code knows too much about '\(rootDesc)'s internal structure",
+            message: "Chain '\(chain)' violates the Law of Demeter — " +
+                "code knows too much about '\(rootDesc)'s internal structure",
             filePath: currentFilePath,
             lineNumber: getLineNumber(for: Syntax(node)),
             suggestion: "Ask only immediate collaborators; add a method to '\(rootDesc)' that encapsulates this access",

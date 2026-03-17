@@ -459,7 +459,7 @@ final class LintIssueRowTests {
         let inspected = try row.inspect()
 
         let texts = try inspected.findAll(ViewType.Text.self).map { try $0.string() }
-        #expect(!texts.contains("Suggestion:"))
+        #expect(texts.contains("Suggestion:") == false)
     }
 
     @Test("single location displays inline file path")

@@ -29,8 +29,8 @@ struct PerformanceStateVariableTrackingTests {
         
         if let countInfo = visitor.stateVariables["count"] {
             #expect(countInfo.name == "count")
-            #expect(!countInfo.isUsedInViewBody)
-            #expect(!countInfo.isAssigned)
+            #expect(countInfo.isUsedInViewBody == false)
+            #expect(countInfo.isAssigned == false)
         }
     }
     

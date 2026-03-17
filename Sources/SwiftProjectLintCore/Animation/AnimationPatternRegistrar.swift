@@ -19,5 +19,8 @@ struct AnimationPatternRegistrar: PatternRegistrarWithVisitorProto {
         registry.register(pattern: DeprecatedAnimationPatternRegistrar().pattern)
         registry.register(patterns: AnimationPerformancePatternRegistrar().patterns)
         registry.register(patterns: WithAnimationPatternRegistrar().patterns)
+        registry.register(patterns: AnimationHierarchyPatternRegistrar().patterns)
+        registry.register(pattern: MatchedGeometryPatternRegistrar().pattern)
+        registry.register(pattern: HardcodedAnimationValuesPatternRegistrar().pattern)
     }
 }

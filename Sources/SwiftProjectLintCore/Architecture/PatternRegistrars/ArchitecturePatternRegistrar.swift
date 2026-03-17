@@ -52,7 +52,8 @@ class ArchitecturePatternRegistrar: PatternRegistrarWithVisitorProto {
             category: .architecture,
             messageTemplate: "Direct instantiation of {typeName} detected",
             suggestion: "Inject dependencies through initializers or environment objects",
-            description: "Detects direct instantiation of concrete types where dependency injection would improve testability"
+            description: "Detects direct instantiation of concrete types " +
+                "where dependency injection would improve testability"
         )
         registry.register(patterns: [directInstantiationPattern])
 

@@ -19,7 +19,7 @@ struct ContentViewModelTests {
     @Test("initial state is not analyzing")
     func initialIsAnalyzingIsFalse() {
         let viewModel = ContentViewModel()
-        #expect(!viewModel.isAnalyzing)
+        #expect(viewModel.isAnalyzing == false)
     }
 
     @Test("initial state has no lint issues")
@@ -31,13 +31,13 @@ struct ContentViewModelTests {
     @Test("initial state has rule selector hidden")
     func initialShowRuleSelectorIsFalse() {
         let viewModel = ContentViewModel()
-        #expect(!viewModel.showRuleSelector)
+        #expect(viewModel.showRuleSelector == false)
     }
 
     @Test("initial state has directory picker hidden")
     func initialShowingDirectoryPickerIsFalse() {
         let viewModel = ContentViewModel()
-        #expect(!viewModel.showingDirectoryPicker)
+        #expect(viewModel.showingDirectoryPicker == false)
     }
 
     @Test("initial state has no analysis task")
@@ -69,7 +69,7 @@ struct ContentViewModelTests {
     func analyzeProjectGuardsEmptyDirectory() {
         let viewModel = ContentViewModel()
         viewModel.analyzeProject()
-        #expect(!viewModel.isAnalyzing)
+        #expect(viewModel.isAnalyzing == false)
     }
 
     // MARK: - cancelAnalysis
@@ -118,7 +118,7 @@ struct ContentViewModelTests {
         viewModel.patternRegistry = systemComponents.patternRegistry
         viewModel.enabledRuleNames = [.relatedDuplicateStateVariable]
         let categories = viewModel.getEnabledCategories()
-        #expect(!categories.isEmpty)
+        #expect(categories.isEmpty == false)
         #expect(categories.contains(.stateManagement))
     }
 
@@ -173,6 +173,6 @@ struct ContentViewModelTests {
         let viewModel = ContentViewModel()
         viewModel.patternRegistry = systemComponents.patternRegistry
         let patterns = viewModel.allPatternsByCategory
-        #expect(!patterns.isEmpty)
+        #expect(patterns.isEmpty == false)
     }
 }

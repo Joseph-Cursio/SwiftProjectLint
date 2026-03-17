@@ -2,13 +2,13 @@ import Testing
 import Foundation
 @testable import SwiftProjectLintCore
 
-@Suite struct DebugLoggerTests {
+struct DebugLoggerTests {
     
     @Test @MainActor func testIsEnabledFlag() throws {
         #if DEBUG
         #expect(DebugLogger.isEnabled)
         #else
-        #expect(!DebugLogger.isEnabled)
+        #expect(DebugLogger.isEnabled == false)
         #endif
     }
     
@@ -98,7 +98,7 @@ import Foundation
         DebugLogger.logVisitor(.performance, "msg")
         DebugLogger.logIssue("issue")
         DebugLogger.logNode("node", "details")
-        #expect(!DebugLogger.isEnabled)
+        #expect(DebugLogger.isEnabled == false)
     }
     #endif
 }

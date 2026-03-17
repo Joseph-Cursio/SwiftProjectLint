@@ -3,13 +3,11 @@ import Testing
 import SwiftSyntax
 import SwiftParser
 
-@Suite
 struct WithAnimationVisitorTests {
 
-    private func makeVisitor(for rule: RuleIdentifier) -> WithAnimationVisitor {
+    private func makeVisitor(for rule: RuleIdentifier) throws -> WithAnimationVisitor {
         let patterns = WithAnimationPatternRegistrar().patterns
-        // swiftlint:disable:next force_unwrapping
-        let pattern = patterns.first { $0.name == rule }!
+        let pattern = try #require(patterns.first { $0.name == rule })
         return WithAnimationVisitor(pattern: pattern)
     }
 
@@ -39,7 +37,7 @@ struct WithAnimationVisitorTests {
         }
         """
 
-        let visitor = makeVisitor(for: .withAnimationInOnAppear)
+        let visitor = try makeVisitor(for: .withAnimationInOnAppear)
         runVisitor(visitor, source: source)
 
         #expect(visitor.detectedIssues.count == 1)
@@ -50,7 +48,7 @@ struct WithAnimationVisitorTests {
     }
 
     @Test
-    func allowsWithAnimationOutsideOnAppear() {
+    func allowsWithAnimationOutsideOnAppear() throws {
         let source = """
         import SwiftUI
 
@@ -67,7 +65,7 @@ struct WithAnimationVisitorTests {
         }
         """
 
-        let visitor = makeVisitor(for: .withAnimationInOnAppear)
+        let visitor = try makeVisitor(for: .withAnimationInOnAppear)
         runVisitor(visitor, source: source)
 
         #expect(visitor.detectedIssues.isEmpty)
@@ -94,7 +92,7 @@ struct WithAnimationVisitorTests {
         }
         """
 
-        let visitor = makeVisitor(for: .withAnimationInOnAppear)
+        let visitor = try makeVisitor(for: .withAnimationInOnAppear)
         runVisitor(visitor, source: source)
 
         #expect(visitor.detectedIssues.count == 1)
@@ -121,7 +119,7 @@ struct WithAnimationVisitorTests {
         }
         """
 
-        let visitor = makeVisitor(for: .animationWithoutStateChange)
+        let visitor = try makeVisitor(for: .animationWithoutStateChange)
         runVisitor(visitor, source: source)
 
         #expect(visitor.detectedIssues.count == 1)
@@ -145,7 +143,7 @@ struct WithAnimationVisitorTests {
         }
         """
 
-        let visitor = makeVisitor(for: .animationWithoutStateChange)
+        let visitor = try makeVisitor(for: .animationWithoutStateChange)
         runVisitor(visitor, source: source)
 
         #expect(visitor.detectedIssues.count == 1)
@@ -155,7 +153,7 @@ struct WithAnimationVisitorTests {
     }
 
     @Test
-    func allowsAnimationWithAssignment() {
+    func allowsAnimationWithAssignment() throws {
         let source = """
         import SwiftUI
 
@@ -172,14 +170,14 @@ struct WithAnimationVisitorTests {
         }
         """
 
-        let visitor = makeVisitor(for: .animationWithoutStateChange)
+        let visitor = try makeVisitor(for: .animationWithoutStateChange)
         runVisitor(visitor, source: source)
 
         #expect(visitor.detectedIssues.isEmpty)
     }
 
     @Test
-    func allowsAnimationWithToggle() {
+    func allowsAnimationWithToggle() throws {
         let source = """
         import SwiftUI
 
@@ -196,14 +194,14 @@ struct WithAnimationVisitorTests {
         }
         """
 
-        let visitor = makeVisitor(for: .animationWithoutStateChange)
+        let visitor = try makeVisitor(for: .animationWithoutStateChange)
         runVisitor(visitor, source: source)
 
         #expect(visitor.detectedIssues.isEmpty)
     }
 
     @Test
-    func allowsAnimationWithCompoundAssignment() {
+    func allowsAnimationWithCompoundAssignment() throws {
         let source = """
         import SwiftUI
 
@@ -220,7 +218,7 @@ struct WithAnimationVisitorTests {
         }
         """
 
-        let visitor = makeVisitor(for: .animationWithoutStateChange)
+        let visitor = try makeVisitor(for: .animationWithoutStateChange)
         runVisitor(visitor, source: source)
 
         #expect(visitor.detectedIssues.isEmpty)
@@ -254,13 +252,13 @@ struct WithAnimationVisitorTests {
         """
 
         // Test withAnimationInOnAppear
-        let onAppearVisitor = makeVisitor(for: .withAnimationInOnAppear)
+        let onAppearVisitor = try makeVisitor(for: .withAnimationInOnAppear)
         runVisitor(onAppearVisitor, source: source)
         let onAppearIssue = try #require(onAppearVisitor.detectedIssues.first)
         #expect(onAppearIssue.ruleName == .withAnimationInOnAppear)
 
         // Test animationWithoutStateChange
-        let noStateVisitor = makeVisitor(for: .animationWithoutStateChange)
+        let noStateVisitor = try makeVisitor(for: .animationWithoutStateChange)
         runVisitor(noStateVisitor, source: source)
         let noStateIssue = try #require(noStateVisitor.detectedIssues.first)
         #expect(noStateIssue.ruleName == .animationWithoutStateChange)

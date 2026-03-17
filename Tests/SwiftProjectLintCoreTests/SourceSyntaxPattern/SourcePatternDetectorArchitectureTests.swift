@@ -1,6 +1,6 @@
 import Testing
 
-@Suite struct SourcePatternDetectorArchitectureTests {
+struct SourcePatternDetectorArchitectureTests {
     @Test("Example test")
     func testExample() throws {
     }

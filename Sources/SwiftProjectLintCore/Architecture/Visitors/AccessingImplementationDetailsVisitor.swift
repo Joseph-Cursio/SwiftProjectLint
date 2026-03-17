@@ -51,7 +51,8 @@ class AccessingImplementationDetailsVisitor: BasePatternVisitor {
             let baseDesc = base.as(DeclReferenceExprSyntax.self)?.baseName.text ?? "object"
             addIssue(
                 severity: .warning,
-                message: "Accessing implementation detail '\(memberName)' on '\(baseDesc)' — prefer the public interface",
+                message: "Accessing implementation detail '\(memberName)' on '\(baseDesc)' " +
+                    "— prefer the public interface",
                 filePath: currentFilePath,
                 lineNumber: getLineNumber(for: Syntax(node)),
                 suggestion: "Expose '\(memberName)' through a protocol or public API",
@@ -64,7 +65,8 @@ class AccessingImplementationDetailsVisitor: BasePatternVisitor {
         if let castTypeName = extractForceCastTypeName(from: base) {
             addIssue(
                 severity: .warning,
-                message: "Accessing '\(memberName)' via force-cast to concrete type '\(castTypeName)' — prefer the protocol interface",
+                message: "Accessing '\(memberName)' via force-cast to concrete type '\(castTypeName)' " +
+                    "— prefer the protocol interface",
                 filePath: currentFilePath,
                 lineNumber: getLineNumber(for: Syntax(node)),
                 suggestion: "Avoid force-casting '\(castTypeName)'; add '\(memberName)' to the protocol instead",

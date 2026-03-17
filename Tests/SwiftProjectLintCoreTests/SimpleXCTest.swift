@@ -1,7 +1,7 @@
 import Testing
 @testable import SwiftProjectLintCore
 
-@Suite struct SimpleXCTest {
+struct SimpleXCTest {
 
     @Test("Basic functionality test")
     func testBasicFunctionality() throws {

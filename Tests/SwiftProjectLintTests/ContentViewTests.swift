@@ -16,7 +16,7 @@ struct ContentViewTests {
         let inspected = try view.inspect()
         let texts = inspected.findAll(ViewType.Text.self)
         let textStrings = texts.compactMap { try? $0.string() }
-        #expect(!textStrings.isEmpty)
+        #expect(textStrings.isEmpty == false)
     }
 
     @Test("view contains expected child views in its VStack")
@@ -62,7 +62,7 @@ struct ContentViewTests {
         let view = ContentView().environmentObject(systemComponents)
         let inspected = try view.inspect()
         let texts = inspected.findAll(ViewType.Text.self)
-        #expect(!texts.isEmpty)
+        #expect(texts.isEmpty == false)
     }
 
     @Test("view shows Select Rules button")
@@ -101,6 +101,6 @@ struct ContentViewTests {
         // Should be inspectable - it returns a ContentViewPreviewHost
         let inspected = try hostView.inspect()
         let texts = inspected.findAll(ViewType.Text.self)
-        #expect(!texts.isEmpty)
+        #expect(texts.isEmpty == false)
     }
 }

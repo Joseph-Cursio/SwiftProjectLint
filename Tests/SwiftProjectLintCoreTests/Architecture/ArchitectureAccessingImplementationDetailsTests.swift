@@ -6,7 +6,7 @@ import SwiftParser
 
 @Suite
 @MainActor
-struct ArchitectureAccessingImplementationDetailsTests {
+struct ArchAccessingImplDetailsTests {
 
     // MARK: - Helper
 

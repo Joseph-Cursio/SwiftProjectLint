@@ -1,6 +1,6 @@
 import Testing
 
-@Suite struct StateManagementVisitorTests {
+struct StateManagementVisitorTests {
     @Test("Example test")
     func testExample() {
     }

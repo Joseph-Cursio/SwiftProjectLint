@@ -11,6 +11,7 @@ excluded:
   - .swiftpm                  # Swift Package Manager metadata
   - xcuserdata                # Xcode user-specific data
   - .xcode                    # Xcode project files
+  - Sources/SwiftProjectLint/ExampleViews  # Intentional bad code for lint detection demos
 
 # Disable rules that are too strict for development
 disabled_rules:

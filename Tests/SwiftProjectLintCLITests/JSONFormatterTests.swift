@@ -3,7 +3,6 @@ import Testing
 import SwiftProjectLintCore
 @testable import SwiftProjectLintCLI
 
-@Suite
 struct JSONFormatterTests {
     @Test
     func producesValidJSON() throws {
@@ -51,6 +50,6 @@ struct JSONFormatterTests {
         let jsonString = JSONFormatter.format(issues: [issue])
         let data = try #require(jsonString.data(using: .utf8))
         let decoded = try JSONDecoder().decode(LintReport.self, from: data)
-        #expect(!decoded.issues[0].category.isEmpty)
+        #expect(decoded.issues[0].category.isEmpty == false)
     }
 }

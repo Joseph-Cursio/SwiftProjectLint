@@ -35,6 +35,23 @@ public struct FileAnalysisUtils {
     /// - Warning: Symbolic links and circular directory structures may cause redundant file paths or infinite loops,
     ///            depending on the file system's enumerator behavior.
     public static func findSwiftFiles(in path: String) -> [String] {
+        enumerateSwiftFiles(in: path)
+    }
+
+    /// Async overload that runs file enumeration off the caller's actor.
+    ///
+    /// `@concurrent` leaves the caller's executor so that blocking file-system
+    /// traversal does not run on `@MainActor` or any other actor-isolated caller,
+    /// while preserving task priority and task-local values (unlike `Task.detached`).
+    ///
+    /// - Parameter path: The root directory path in which to search for Swift files.
+    /// - Returns: An array of full file paths to `.swift` files found within the directory and its subdirectories.
+    @concurrent
+    public static func findSwiftFiles(in path: String) async -> [String] {
+        enumerateSwiftFiles(in: path)
+    }
+
+    private static func enumerateSwiftFiles(in path: String) -> [String] {
         let fileManager = FileManager.default
         var swiftFiles: [String] = []
 
@@ -49,18 +66,5 @@ public struct FileAnalysisUtils {
         }
 
         return swiftFiles
-    }
-
-    /// Async overload that runs file enumeration off the caller's actor.
-    ///
-    /// Use this when calling from `@MainActor` or other actor-isolated contexts
-    /// to avoid blocking the actor during file system traversal.
-    ///
-    /// - Parameter path: The root directory path in which to search for Swift files.
-    /// - Returns: An array of full file paths to `.swift` files found within the directory and its subdirectories.
-    public static func findSwiftFiles(in path: String) async -> [String] {
-        await Task.detached {
-            findSwiftFiles(in: path)
-        }.value
     }
 }
