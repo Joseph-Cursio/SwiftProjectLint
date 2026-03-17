@@ -64,40 +64,7 @@ struct LintResultsView: View {
 
     var body: some View {
         List {
-            // Summary section
-            Section {
-                VStack(alignment: .leading, spacing: 8) {
-                    HStack {
-                        Text("Summary")
-                            .font(.headline)
-                        Spacer()
-                    }
-
-                    HStack(spacing: 16) {
-                        SummaryItem(
-                            title: "Total Issues",
-                            value: "\(issues.count)",
-                            color: .primary
-                        )
-                        SummaryItem(
-                            title: "Errors",
-                            value: "\(issues.filter { $0.severity == .error }.count)",
-                            color: .red
-                        )
-                        SummaryItem(
-                            title: "Warnings",
-                            value: "\(issues.filter { $0.severity == .warning }.count)",
-                            color: .orange
-                        )
-                        SummaryItem(
-                            title: "Info",
-                            value: "\(issues.filter { $0.severity == .info }.count)",
-                            color: .blue
-                        )
-                    }
-                }
-                .padding(.vertical, 8)
-            }
+            IssueSummarySection(issues: issues)
 
             // Issues section
             Section {
@@ -275,40 +242,7 @@ struct FullScreenResultsView: View {
     var body: some View {
         NavigationView {
             List {
-                // Summary section
-                Section {
-                    VStack(alignment: .leading, spacing: 8) {
-                        HStack {
-                            Text("Summary")
-                                .font(.headline)
-                            Spacer()
-                        }
-
-                        HStack(spacing: 16) {
-                            SummaryItem(
-                                title: "Total Issues",
-                                value: "\(issues.count)",
-                                color: .primary
-                            )
-                            SummaryItem(
-                                title: "Errors",
-                                value: "\(issues.filter { $0.severity == .error }.count)",
-                                color: .red
-                            )
-                            SummaryItem(
-                                title: "Warnings",
-                                value: "\(issues.filter { $0.severity == .warning }.count)",
-                                color: .orange
-                            )
-                            SummaryItem(
-                                title: "Info",
-                                value: "\(issues.filter { $0.severity == .info }.count)",
-                                color: .blue
-                            )
-                        }
-                    }
-                    .padding(.vertical, 8)
-                }
+                IssueSummarySection(issues: issues)
 
                 // Issues section
                 Section {

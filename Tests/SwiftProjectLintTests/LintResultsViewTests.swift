@@ -142,8 +142,7 @@ final class LintResultsViewCharacterizationTests {
         let view = LintResultsView(issues: issues)
         let inspected = try view.inspect()
 
-        let list = try inspected.find(ViewType.List.self)
-        let summarySection = try list.section(0)
+        let summarySection = try inspected.find(IssueSummarySection.self)
         let summaryTexts = try summarySection.findAll(ViewType.Text.self).map { try $0.string() }
         #expect(summaryTexts.contains("Summary"))
         #expect(summaryTexts.contains("Total Issues"))
