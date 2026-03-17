@@ -37,7 +37,6 @@ public class CrossFileAnalysisEngine {
         categories: [PatternCategory]? = nil,
         preBuiltCache: [String: SourceFileSyntax]? = nil
     ) -> [LintIssue] {
-        print("DEBUG: detectCrossFilePatterns called with \(projectFiles.count) files")
         var allIssues: [LintIssue] = []
         if let preBuiltCache {
             fileCache = preBuiltCache
@@ -51,21 +50,12 @@ public class CrossFileAnalysisEngine {
 
         // Get visitors that support cross-file analysis
         let visitors = getVisitorsForCategories(categories)
-        print("DEBUG: Total visitors found: \(visitors.count)")
-        print("DEBUG: Visitor types: \(visitors.map { String(describing: $0) })")
 
         let crossFileVisitors = visitors.filter { visitorType in
-            // Check if visitor supports cross-file analysis
-            let isCrossFile = visitorType is CrossFilePatternVisitorProtocol.Type
-            print("DEBUG: Checking visitor \(visitorType): isCrossFile = \(isCrossFile)")
-            return isCrossFile
+            visitorType is CrossFilePatternVisitorProtocol.Type
         }
 
-        print("DEBUG: Found \(crossFileVisitors.count) cross-file visitors")
-
-        // Apply cross-file analysis
         for visitorType in crossFileVisitors {
-            print("DEBUG: Creating cross-file visitor: \(visitorType)")
             if let crossFileVisitor = visitorType as? CrossFilePatternVisitorProtocol.Type {
                 let visitor = crossFileVisitor.init(fileCache: fileCache)
 
@@ -113,8 +103,6 @@ public class CrossFileAnalysisEngine {
         ruleIdentifiers: [RuleIdentifier],
         preBuiltCache: [String: SourceFileSyntax]? = nil
     ) -> [LintIssue] {
-        print("DEBUG: detectCrossFilePatterns (ruleIdentifiers) called " +
-              "with \(projectFiles.count) files, rules: \(ruleIdentifiers.map { $0.rawValue })")
         var allIssues: [LintIssue] = []
         if let preBuiltCache {
             fileCache = preBuiltCache
@@ -132,13 +120,8 @@ public class CrossFileAnalysisEngine {
             ruleIdentifiers.contains(pattern.name)
         }
 
-        print("DEBUG: Found \(requestedPatterns.count) requested patterns")
-
-        // Apply analysis for each visitor type
         for pattern in requestedPatterns {
-            print("DEBUG: Processing pattern: \(pattern.name.rawValue) with visitor: \(pattern.visitor)")
             if let crossFileVisitorType = pattern.visitor as? CrossFilePatternVisitorProtocol.Type {
-                print("DEBUG: Creating cross-file visitor for pattern: \(pattern.name)")
                 let visitor = crossFileVisitorType.init(fileCache: fileCache)
                 if let baseVisitor = visitor as? BasePatternVisitor {
                     baseVisitor.setPattern(pattern)
@@ -200,20 +183,9 @@ public class CrossFileAnalysisEngine {
 
     private func getVisitorsForCategories(_ categories: [PatternCategory]?) -> [PatternVisitorProtocol.Type] {
         if let categories = categories {
-            print("DEBUG: Getting visitors for categories: \(categories)")
-            let visitors = categories.flatMap { category in
-                let categoryVisitors = registry.getVisitors(for: category)
-                print(
-                    "DEBUG: Category \(category) has \(categoryVisitors.count) visitors: " +
-                    "\(categoryVisitors.map { String(describing: $0) })")
-                return categoryVisitors
-            }
-            print("DEBUG: Total visitors from categories: \(visitors.count)")
-            return visitors
+            return categories.flatMap { registry.getVisitors(for: $0) }
         } else {
-            let allVisitors = registry.getAllVisitors()
-            print("DEBUG: All visitors: \(allVisitors.count)")
-            return allVisitors
+            return registry.getAllVisitors()
         }
     }
 

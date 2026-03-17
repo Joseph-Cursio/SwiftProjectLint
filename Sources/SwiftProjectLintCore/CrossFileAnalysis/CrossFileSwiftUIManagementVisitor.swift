@@ -18,7 +18,6 @@ class CrossFileSwiftUIManagementVisitor: SwiftUIManagementVisitor, CrossFilePatt
     required init(fileCache: [String: SourceFileSyntax]) {
         self.fileCache = fileCache
         super.init(pattern: BasePatternVisitor.placeholderPattern, viewMode: .sourceAccurate)
-        print("DEBUG: CrossFileSwiftUIManagementVisitor initialized with \(fileCache.count) files")
     }
 
     required init(pattern: SyntaxPattern, viewMode: SyntaxTreeViewMode = .sourceAccurate) {

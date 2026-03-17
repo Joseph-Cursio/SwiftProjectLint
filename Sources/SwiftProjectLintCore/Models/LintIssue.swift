@@ -5,8 +5,6 @@
 //  Created by joe cursio on 7/14/25.
 //
 import Foundation
-import SwiftParser
-import SwiftUI
 
 /// Represents a lint issue detected during static analysis of the project.
 ///

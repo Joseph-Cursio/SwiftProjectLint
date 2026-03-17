@@ -1,7 +1,6 @@
 import Foundation
 import SwiftParser
 import SwiftSyntax
-import SwiftUI
 
 /// A class responsible for linting SwiftUI projects by analyzing project files, extracting state variables,
 /// building view hierarchies, and detecting various lint issues and patterns across the codebase.
@@ -45,14 +44,6 @@ public class ProjectLinter {
         categories: [PatternCategory]? = nil,
         ruleIdentifiers: [RuleIdentifier]? = nil
     ) async -> [LintIssue] {
-        print("DEBUG: analyzeProject called with path: '\(path)'")
-        print(
-            "DEBUG: categories: \(categories?.map { String(describing: $0) } ?? ["all"])"
-        )
-        print(
-            "DEBUG: ruleIdentifiers: \(ruleIdentifiers?.map { $0.rawValue } ?? [])"
-        )
-
         let filePaths = await FileAnalysisUtils.findSwiftFiles(in: path)
 
         // Resolve the registry once so each task can create its own detector
@@ -127,7 +118,6 @@ public class ProjectLinter {
         }
 
         projectFiles = perFileResults.0
-        print("DEBUG: Found \(projectFiles.count) project files for analysis")
         var issues = perFileResults.1
         stateVariables = perFileResults.2
         let astCache = perFileResults.3
@@ -155,7 +145,6 @@ public class ProjectLinter {
         }
         issues.append(contentsOf: crossFilePatternIssues)
 
-        print("DEBUG: analyzeProject returning \(issues.count) total issues")
         return issues
     }
 
