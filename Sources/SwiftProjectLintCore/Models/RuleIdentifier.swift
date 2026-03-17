@@ -79,7 +79,7 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
     case unknown = "Unknown"
 
     /// Returns the category this rule belongs to
-    var category: PatternCategory {
+    public var category: PatternCategory {
         switch self {
         // State Management Rules
         case .relatedDuplicateStateVariable, .unrelatedDuplicateStateVariable,
