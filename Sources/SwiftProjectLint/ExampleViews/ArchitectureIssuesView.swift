@@ -44,6 +44,11 @@ struct User {
     let email: String
 }
 
+// Architecture Issue: Direct instantiation — should be injected
+private class AnalyticsService {
+    func track(_ event: String) { }
+}
+
 // Architecture Issue: Fat view with too many state variables
 /// `ArchitectureIssuesView` is a SwiftUI view intended to demonstrate and highlight several common architectural, code quality, and UI issues.
 /// 
@@ -91,6 +96,9 @@ struct ArchitectureIssuesView: View {
     
     // Architecture Issue: Missing dependency injection
     @StateObject private var userManager = UserManager()
+
+    // Architecture Issue: Direct instantiation — should be injected
+    private let analyticsService = AnalyticsService()
     
     enum SortOrder {
         case ascending, descending

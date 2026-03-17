@@ -150,4 +150,5 @@ public enum ArchitectureIssueType {
     case circularDependency
     case missingEnvironmentObject
     case inconsistentDataFlow
+    case directInstantiation
 } 

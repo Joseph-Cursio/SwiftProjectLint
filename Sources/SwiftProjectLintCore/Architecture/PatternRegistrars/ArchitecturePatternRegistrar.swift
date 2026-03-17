@@ -44,5 +44,16 @@ class ArchitecturePatternRegistrar: PatternRegistrarWithVisitorProto {
             )
         ]
         registry.register(patterns: patterns)
+
+        let directInstantiationPattern = SyntaxPattern(
+            name: .directInstantiation,
+            visitor: DirectInstantiationVisitor.self,
+            severity: .warning,
+            category: .architecture,
+            messageTemplate: "Direct instantiation of {typeName} detected",
+            suggestion: "Inject dependencies through initializers or environment objects",
+            description: "Detects direct instantiation of concrete types where dependency injection would improve testability"
+        )
+        registry.register(patterns: [directInstantiationPattern])
     }
 } 
