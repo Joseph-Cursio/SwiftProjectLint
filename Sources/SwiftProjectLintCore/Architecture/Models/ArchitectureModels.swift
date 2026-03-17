@@ -153,4 +153,6 @@ public enum ArchitectureIssueType {
     case directInstantiation
     case concreteTypeUsage
     case accessingImplementationDetails
+    case singletonUsage
+    case lawOfDemeter
 }

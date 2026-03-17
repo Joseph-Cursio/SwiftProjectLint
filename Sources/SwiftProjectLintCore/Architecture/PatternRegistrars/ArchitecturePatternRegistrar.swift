@@ -77,5 +77,27 @@ class ArchitecturePatternRegistrar: PatternRegistrarWithVisitorProto {
             description: "Detects underscore-prefixed member access and force-cast bypasses to concrete types"
         )
         registry.register(patterns: [accessingImplDetailsPattern])
+
+        let singletonPattern = SyntaxPattern(
+            name: .singletonUsage,
+            visitor: SingletonUsageVisitor.self,
+            severity: .warning,
+            category: .architecture,
+            messageTemplate: "Singleton access to {typeName} creates hard coupling",
+            suggestion: "Inject {typeName} as a dependency instead of accessing .shared",
+            description: "Detects .shared singleton access on service-like types"
+        )
+        registry.register(patterns: [singletonPattern])
+
+        let lawOfDemeterPattern = SyntaxPattern(
+            name: .lawOfDemeter,
+            visitor: LawOfDemeterVisitor.self,
+            severity: .warning,
+            category: .architecture,
+            messageTemplate: "Method chain violates the Law of Demeter",
+            suggestion: "Encapsulate the access in a direct collaborator method",
+            description: "Detects 3+ level member access chains (train wreck pattern)"
+        )
+        registry.register(patterns: [lawOfDemeterPattern])
     }
 } 
