@@ -50,6 +50,33 @@ class CodeQualityPatternRegistrar: PatternRegistrarWithVisitorProto {
                 messageTemplate: "Missing documentation for '{elementName}'",
                 suggestion: "Add documentation comments to improve code clarity",
                 description: "Detects public APIs and complex functions missing documentation"
+            ),
+            SyntaxPattern(
+                name: .protocolNamingSuffix,
+                visitor: NamingConventionVisitor.self,
+                severity: .info,
+                category: .codeQuality,
+                messageTemplate: "Protocol '{protocolName}' is not suffixed with 'Protocol'",
+                suggestion: "Rename to '{protocolName}Protocol' to improve clarity for both humans and LLMs",
+                description: "Detects protocols whose names don't end with 'Protocol' suffix"
+            ),
+            SyntaxPattern(
+                name: .actorNamingSuffix,
+                visitor: NamingConventionVisitor.self,
+                severity: .info,
+                category: .codeQuality,
+                messageTemplate: "Actor '{actorName}' is not suffixed with 'Actor'",
+                suggestion: "Rename to '{actorName}Actor' to make isolation semantics visible at usage sites",
+                description: "Detects actors whose names don't end with 'Actor' suffix"
+            ),
+            SyntaxPattern(
+                name: .propertyWrapperNamingSuffix,
+                visitor: NamingConventionVisitor.self,
+                severity: .info,
+                category: .codeQuality,
+                messageTemplate: "Property wrapper '{wrapperName}' is not suffixed with 'Wrapper'",
+                suggestion: "Rename to '{wrapperName}Wrapper' to clarify its role as a property wrapper",
+                description: "Detects property wrappers whose names don't end with 'Wrapper' suffix"
             )
         ]
         registry.register(patterns: patterns)

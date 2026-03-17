@@ -35,7 +35,7 @@ struct StateVariableVisitorTypeExtractionTests {
         TypeExtractionCase("@State private var isEnabled: Bool = true", type: "Bool"),
         TypeExtractionCase("@State private var optionalValue: String? = nil", type: "String", match: .contains),
         TypeExtractionCase("@State private var content: some View = Text(\"Test\")", type: "View"),
-        TypeExtractionCase("@State private var value: String", type: "String"),
+        TypeExtractionCase("@State private var value: String", type: "String")
     ]
 
     @Test(arguments: cases)

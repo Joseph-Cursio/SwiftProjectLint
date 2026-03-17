@@ -8,8 +8,8 @@ import SwiftSyntax
 /// - detectCrossFilePatterns(projectFiles:ruleIdentifiers:)
 /// - detectPatterns(in:categories:) with real path
 /// - getVisitorsForCategories with nil
-@Suite("CrossFileAnalysisEngineRuleIdentifierTests")
-struct CrossFileAnalysisEngineRuleIdentifierTests {
+@Suite("CrossFileRuleIdentifierTests")
+struct CrossFileRuleIdentifierTests {
 
     @Test
     func detectCrossFilePatternsWithRuleIdentifiers() throws {

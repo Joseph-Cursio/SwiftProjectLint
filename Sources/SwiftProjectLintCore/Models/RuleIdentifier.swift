@@ -45,6 +45,9 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
     case longFunction = "Long Function"
     case hardcodedStrings = "Hardcoded Strings"
     case missingDocumentation = "Missing Documentation"
+    case protocolNamingSuffix = "Protocol Naming Suffix"
+    case actorNamingSuffix = "Actor Naming Suffix"
+    case propertyWrapperNamingSuffix = "Property Wrapper Naming Suffix"
 
     // Security Rules
     case hardcodedSecret = "Hardcoded Secret"
@@ -98,7 +101,8 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
             return .architecture
 
             // Code Quality Rules
-        case .magicNumber, .longFunction, .hardcodedStrings, .missingDocumentation:
+        case .magicNumber, .longFunction, .hardcodedStrings, .missingDocumentation,
+             .protocolNamingSuffix, .actorNamingSuffix, .propertyWrapperNamingSuffix:
             return .codeQuality
 
             // Security Rules

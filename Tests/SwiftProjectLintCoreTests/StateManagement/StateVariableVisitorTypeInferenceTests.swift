@@ -23,10 +23,13 @@ struct StateVariableVisitorTypeInferenceTests {
         TypeInferenceCase(declaration: "@State private var items = [1, 2, 3]", expectedType: "Array"),
         TypeInferenceCase(declaration: "@State private var items = []", expectedType: "Array"),
         TypeInferenceCase(declaration: "@State private var manager = UserManager()", expectedType: "UserManager"),
-        TypeInferenceCase(declaration: "@State private var size = CGSize(width: 100, height: 200)", expectedType: "CGSize"),
+        TypeInferenceCase(
+            declaration: "@State private var size = CGSize(width: 100, height: 200)",
+            expectedType: "CGSize"
+        ),
         TypeInferenceCase(declaration: "@State private var point = CGPoint.zero", expectedType: "CGPoint"),
         TypeInferenceCase(declaration: "@State private var color = Color.blue", expectedType: "Color"),
-        TypeInferenceCase(declaration: "@State private var font = Font.title", expectedType: "Font"),
+        TypeInferenceCase(declaration: "@State private var font = Font.title", expectedType: "Font")
     ]
 
     @Test(arguments: cases)

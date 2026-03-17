@@ -35,7 +35,7 @@ struct StateVariableVisitorPropertyWrapperTests {
         WrapperCase("@SceneStorage(\"draft\") var draft: String = \"\"", wrapper: .sceneStorage),
         WrapperCase("@GestureState private var dragOffset = CGSize.zero", wrapper: .gestureState),
         WrapperCase("@Namespace private var animation", wrapper: .namespace),
-        WrapperCase("@ScaledMetric var size: CGFloat = 100", wrapper: .scaledMetric),
+        WrapperCase("@ScaledMetric var size: CGFloat = 100", wrapper: .scaledMetric)
     ]
 
     @Test(arguments: cases)
