@@ -1,5 +1,6 @@
 import Foundation
 import SwiftParser
+import SwiftSyntax
 import SwiftUI
 
 /// A class responsible for linting SwiftUI projects by analyzing project files, extracting state variables,
@@ -65,7 +66,8 @@ public class ProjectLinter {
         // Each task reads its own file and runs pattern detection, keeping
         // synchronous file I/O off the caller and spreading it across the pool.
         let perFileResults = await withTaskGroup(
-            of: (file: ProjectFile, issues: [LintIssue], stateVars: [StateVariable])?.self
+            of: (file: ProjectFile, issues: [LintIssue], stateVars: [StateVariable],
+                 parsedAST: SourceFileSyntax)?.self
         ) { group in
             for filePath in filePaths {
                 group.addTask {
@@ -78,6 +80,8 @@ public class ProjectLinter {
                         content: content
                     )
 
+                    // Parse once, reuse for detection and state extraction
+                    let parsedAST = Parser.parse(source: content)
                     let detector = SourcePatternDetector(registry: registry)
 
                     let issues: [LintIssue]
@@ -85,41 +89,48 @@ public class ProjectLinter {
                         issues = detector.detectPatterns(
                             in: file.content,
                             filePath: file.name,
-                            ruleIdentifiers: ruleIdentifiers
+                            ruleIdentifiers: ruleIdentifiers,
+                            parsedAST: parsedAST
                         )
                     } else {
                         issues = detector.detectPatterns(
                             in: file.content,
                             filePath: file.name,
-                            categories: taskCategories
+                            categories: taskCategories,
+                            parsedAST: parsedAST
                         )
                     }
 
                     let stateVars = ProjectLinter.extractStateVariables(
                         from: file.content,
-                        filePath: file.name
+                        filePath: file.name,
+                        parsedAST: parsedAST
                     )
 
-                    return (file: file, issues: issues, stateVars: stateVars)
+                    return (file: file, issues: issues, stateVars: stateVars,
+                            parsedAST: parsedAST)
                 }
             }
 
             var allFiles: [ProjectFile] = []
             var allIssues: [LintIssue] = []
             var allStateVars: [StateVariable] = []
+            var astCache: [String: SourceFileSyntax] = [:]
             for await result in group {
                 guard let result else { continue }
                 allFiles.append(result.file)
                 allIssues.append(contentsOf: result.issues)
                 allStateVars.append(contentsOf: result.stateVars)
+                astCache[result.file.name] = result.parsedAST
             }
-            return (allFiles, allIssues, allStateVars)
+            return (allFiles, allIssues, allStateVars, astCache)
         }
 
         projectFiles = perFileResults.0
         print("DEBUG: Found \(projectFiles.count) project files for analysis")
         var issues = perFileResults.1
         stateVariables = perFileResults.2
+        let astCache = perFileResults.3
 
         // Sequential cross-file analysis (depends on full file set)
         buildViewHierarchy()
@@ -132,12 +143,14 @@ public class ProjectLinter {
         if let ruleIdentifiers = ruleIdentifiers {
             crossFilePatternIssues = crossFileDetector.detectCrossFilePatterns(
                 projectFiles: projectFiles,
-                ruleIdentifiers: ruleIdentifiers
+                ruleIdentifiers: ruleIdentifiers,
+                preBuiltCache: astCache
             )
         } else {
             crossFilePatternIssues = crossFileDetector.detectCrossFilePatterns(
                 projectFiles: projectFiles,
-                categories: categories
+                categories: categories,
+                preBuiltCache: astCache
             )
         }
         issues.append(contentsOf: crossFilePatternIssues)
@@ -157,9 +170,10 @@ public class ProjectLinter {
     /// - Returns: An array of StateVariable instances representing all state variables found in the file.
     private static func extractStateVariables(
         from sourceCode: String,
-        filePath: String
+        filePath: String,
+        parsedAST: SourceFileSyntax? = nil
     ) -> [StateVariable] {
-        let sourceFile = Parser.parse(source: sourceCode)
+        let sourceFile = parsedAST ?? Parser.parse(source: sourceCode)
         let viewName = extractViewName(from: filePath)
         let visitor = StateVariableVisitor(
             viewName: viewName,
