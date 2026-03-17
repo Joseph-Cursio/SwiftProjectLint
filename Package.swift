@@ -52,6 +52,11 @@ let package = Package(
             ]
         ),
         .testTarget(
+            name: "SwiftProjectLintCLITests",
+            dependencies: ["SwiftProjectLintCore", "SwiftProjectLintCLI"],
+            path: "Tests/SwiftProjectLintCLITests"
+        ),
+        .testTarget(
             name: "SwiftProjectLintCoreTests",
             dependencies: ["SwiftProjectLintCore", "ViewInspector"],
             path: "Tests/SwiftProjectLintCoreTests"
