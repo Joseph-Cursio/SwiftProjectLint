@@ -140,11 +140,12 @@ class AdvancedAnalyzer {
                     guard let sourceContents = try? String(contentsOfFile: filePath, encoding: .utf8) else {
                         return nil
                     }
+                    let parsedAST = Parser.parse(source: sourceContents)
                     let relationships = AdvancedAnalyzer.extractViewRelationships(
-                        from: filePath, sourceContents: sourceContents
+                        from: filePath, sourceContents: sourceContents, parsedAST: parsedAST
                     )
                     let stateVars = AdvancedAnalyzer.extractStateVariables(
-                        from: filePath, sourceContents: sourceContents
+                        from: filePath, sourceContents: sourceContents, parsedAST: parsedAST
                     )
                     return (relationships: relationships, stateVars: stateVars)
                 }
@@ -185,11 +186,15 @@ class AdvancedAnalyzer {
     /// - `NavigationLink` destination views (e.g., `NavigationLink(destination: SomeView())`)
     /// - Sheet presentation (e.g., `.sheet(content: { SomeView() })`)
     /// - Full screen cover presentation (e.g., `.fullScreenCover(content: { SomeView() })`)
-    private static func extractViewRelationships(from filePath: String, sourceContents: String) -> [ViewRelationship] {
+    private static func extractViewRelationships(
+        from filePath: String,
+        sourceContents: String,
+        parsedAST: SourceFileSyntax? = nil
+    ) -> [ViewRelationship] {
         var relationships: [ViewRelationship] = []
 
         let parentView = FileAnalysisUtils.extractSwiftBasename(from: filePath)
-        let sourceFile = Parser.parse(source: sourceContents)
+        let sourceFile = parsedAST ?? Parser.parse(source: sourceContents)
         let sourceLocationConverter = SourceLocationConverter(fileName: filePath, tree: sourceFile)
         let visitor = ViewRelationshipVisitor(parentView: parentView,
                                               filePath: filePath,
@@ -213,8 +218,12 @@ class AdvancedAnalyzer {
     ///
     /// The returned `StateVariable` instances include the variable's name, type, property wrapper, the
     /// associated view name, as well as the file path and line number where they were found.
-    private static func extractStateVariables(from filePath: String, sourceContents: String) -> [StateVariable] {
-        let sourceFile = Parser.parse(source: sourceContents)
+    private static func extractStateVariables(
+        from filePath: String,
+        sourceContents: String,
+        parsedAST: SourceFileSyntax? = nil
+    ) -> [StateVariable] {
+        let sourceFile = parsedAST ?? Parser.parse(source: sourceContents)
         let viewName = FileAnalysisUtils.extractSwiftBasename(from: filePath)
         let visitor = StateVariableVisitor(viewName: viewName, filePath: filePath, sourceContents: sourceContents)
         visitor.walk(sourceFile)
