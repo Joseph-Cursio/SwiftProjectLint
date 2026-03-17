@@ -1,8 +1,7 @@
 import Foundation
-import SwiftProjectLintCore
 
 /// A struct containing the components of a pattern detection system.
-public struct PatternDetectionSystem {
+public struct PatternDetectionSystem: Sendable {
     public let visitorRegistry: PatternVisitorRegistry
     public let patternRegistry: SourcePatternRegistry
     public let detector: SourcePatternDetector
@@ -57,7 +56,6 @@ public struct PatternDetectionSystem {
 /// These methods help in creating different configurations of pattern detection systems,  making it easier to test and
 /// integrate various components in a modular manner.
 ///
-@preconcurrency @MainActor
 public class PatternRegistryFactory {
 
     /// Creates a new pattern visitor registry instance.
