@@ -8,35 +8,17 @@
 import SwiftUI
 import SwiftProjectLintCore
 
-/// A modal SwiftUI view for selecting which lint rules are enabled in the project linter.
+/// A two-panel dialog for selecting lint rules and browsing their documentation.
 ///
-/// `RuleSelectionDialog` presents all available SwiftSyntax-based lint detection patterns, grouped by category,
-/// as a list of toggles allowing the user to customize which rules are active during analysis.
-/// All patterns use SwiftSyntax for improved accuracy.
-///
-/// Features:
-/// - Displays rules grouped by logical categories (e.g., State Management, Performance).
-/// - Each rule can be individually enabled or disabled via a toggle.
-/// - Bulk actions for selecting all or resetting to defaults.
-/// - Shows each rule's name and a brief description.
-/// - Integration with SwiftUI navigation and toolbar system for a familiar dialog experience.
-/// - All patterns use SwiftSyntax for improved accuracy and comprehensive analysis.
-///
-/// Properties:
-/// - `allPatternsByCategory`: An array of tuples grouping all detection patterns by category, display string,
-///   their definitions, and whether they use SwiftSyntax.
-/// - `enabledRuleNames`: A binding to the set of currently enabled rule names; updates are reflected live in the UI.
-/// - `onSave`: A closure called when the user taps Save, allowing the parent view to persist changes.
-/// - `dismiss`: An environment value for dismissing the modal dialog.
-///
-/// Usage:
-/// Present this view as a sheet or modal when the user wants to customize active lint rules.
-/// On save, the updated list of enabled rule names can be persisted as appropriate (such as to UserDefaults).
+/// The left sidebar lists all available rules grouped by category with toggle controls.
+/// Selecting any rule shows its full documentation in the right detail panel.
 struct RuleSelectionDialog: View {
     let allPatternsByCategory: [PatternCategoryInfo]
     @Binding var enabledRuleNames: Set<RuleIdentifier>
     var onSave: () -> Void
     @Environment(\.dismiss) private var dismiss
+
+    @State private var selectedRule: RuleIdentifier?
 
     private func binding(for rule: RuleIdentifier) -> Binding<Bool> {
         Binding(
@@ -48,28 +30,20 @@ struct RuleSelectionDialog: View {
         )
     }
 
-    // Helper: All rule names from the passed patterns
     private var allRuleNames: Set<RuleIdentifier> {
-        var names = Set<RuleIdentifier>()
-        for group in allPatternsByCategory {
-            names.formUnion(group.patterns.map { $0.name })
-        }
-        return names
-    }
-
-    // Helper: Default rule name
-    private var defaultRuleName: RuleIdentifier? {
-        return .relatedDuplicateStateVariable // Default pattern from state management
+        Set(allPatternsByCategory.flatMap { $0.patterns.map(\.name) })
     }
 
     var body: some View {
-        NavigationStack {
-            List {
+        NavigationSplitView {
+            List(selection: $selectedRule) {
                 ForEach(allPatternsByCategory, id: \.category) { group in
-                    Section(header: Text(group.display)) {
-                        // Show patterns from the passed data
+                    Section(group.display) {
                         ForEach(group.patterns, id: \.name) { pattern in
-                            Toggle(isOn: binding(for: pattern.name)) {
+                            HStack {
+                                Toggle("", isOn: binding(for: pattern.name))
+                                    .toggleStyle(.checkbox)
+                                    .labelsHidden()
                                 VStack(alignment: .leading, spacing: 2) {
                                     Text(pattern.name.rawValue)
                                         .fontWeight(.medium)
@@ -78,45 +52,40 @@ struct RuleSelectionDialog: View {
                                         .foregroundStyle(.secondary)
                                 }
                             }
+                            .tag(pattern.name)
                         }
                     }
                 }
             }
-            .navigationTitle("Select Lint Rules")
+            .navigationSplitViewColumnWidth(min: 260, ideal: 300)
             .toolbar {
                 ToolbarItemGroup(placement: .automatic) {
-                    Button(
-                        "Select All",
-                        action: {
-                            enabledRuleNames = allRuleNames
-                        }
-                    )
+                    Button("Select All") { enabledRuleNames = allRuleNames }
                     Spacer()
-                    Button(
-                        "Reset to Default",
-                        action: {
-                            if let defaultName = defaultRuleName {
-                                enabledRuleNames = [defaultName]
-                            } else {
-                                enabledRuleNames = []
-                            }
-                        }
-                    )
+                    Button("Reset to Default") {
+                        enabledRuleNames = [.relatedDuplicateStateVariable]
+                    }
                 }
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") {
-                        dismiss()
-                    }
+                    Button("Cancel") { dismiss() }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Save") {
-                        onSave()
-                        dismiss()
-                    }
+                    Button("Save") { onSave(); dismiss() }
                 }
             }
+        } detail: {
+            if let rule = selectedRule {
+                RuleDocView(rule: rule)
+                    .navigationTitle(rule.rawValue)
+            } else {
+                ContentUnavailableView(
+                    "No Rule Selected",
+                    systemImage: "doc.text.magnifyingglass",
+                    description: Text("Select a rule from the sidebar to view its documentation.")
+                )
+            }
         }
-        .frame(minWidth: 400, minHeight: 500)
+        .frame(minWidth: 860, minHeight: 560)
     }
 }
 
@@ -131,6 +100,13 @@ struct RuleSelectionDialog: View {
                     severity: .warning,
                     message: "Related Duplicate State Variable",
                     suggestion: "Create a shared ObservableObject for state variables",
+                    category: .stateManagement
+                ),
+                DetectionPattern(
+                    name: .unusedStateVariable,
+                    severity: .warning,
+                    message: "Unused State Variable",
+                    suggestion: "Remove unused @State variables",
                     category: .stateManagement
                 )
             ],

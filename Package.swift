@@ -46,6 +46,10 @@ let package = Package(
             name: "SwiftProjectLint",
             dependencies: ["SwiftProjectLintCore"],
             path: "Sources/SwiftProjectLint",
+            resources: [
+                .process("Assets.xcassets"),
+                .process("Resources")
+            ],
             swiftSettings: [
                 .defaultIsolation(MainActor.self),
                 .enableUpcomingFeature("MemberImportVisibility")

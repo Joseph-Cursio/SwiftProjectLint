@@ -60,15 +60,8 @@ struct RuleSelectionDialogTests {
             onSave: {}
         )
         let inspected = try view.inspect()
-        let navStack = try inspected.navigationStack()
-        let list = try navStack.list()
-        let forEach = try list.find(ViewType.ForEach.self)
-        let toggles = forEach.findAll(ViewType.Toggle.self)
-        #expect(toggles.contains { toggle in
-            let labelTexts = (try? toggle.labelView())?.findAll(ViewType.Text.self)
-            return (try? labelTexts?.contains { (try? $0.string()) == "Related Duplicate State Variable" }) == true
-        })
         let allTexts = inspected.findAll(ViewType.Text.self).compactMap { try? $0.string() }
+        #expect(allTexts.contains("Related Duplicate State Variable"))
         #expect(allTexts.contains { $0 == "Select All" })
         #expect(allTexts.contains { $0 == "Reset to Default" })
         #expect(allTexts.contains { $0 == "Cancel" })
