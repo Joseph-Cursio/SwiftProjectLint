@@ -4,7 +4,7 @@ import SwiftUI
 @testable import SwiftProjectLint
 import ViewInspector
 
-final class LintResultsViewTests {
+struct LintResultsViewTests {
 
     @Test func testLintResultsViewInitialization() async throws {
         await MainActor.run {
@@ -121,7 +121,7 @@ final class LintResultsViewTests {
     }
 }
 
-final class LintResultsViewCharacterizationTests {
+struct LintResultsViewCharacterizationTests {
     @Test
     @MainActor
     func testSummarySectionAndCounts() throws {
@@ -270,7 +270,7 @@ final class LintResultsViewCharacterizationTests {
 
 // MARK: - LintIssueRow Tests
 
-final class LintIssueRowTests {
+struct LintIssueRowTests {
     @Test
     @MainActor
     func testIssueRowDisplaysMessage() throws {
@@ -602,7 +602,7 @@ final class LintIssueRowTests {
 
 // MARK: - SummaryItem Tests
 
-final class SummaryItemTests {
+struct SummaryItemTests {
     @Test
     @MainActor
     func testSummaryItemDisplaysTitleAndValue() throws {

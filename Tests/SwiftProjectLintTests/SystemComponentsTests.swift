@@ -6,7 +6,7 @@ import ViewInspector
 
 // MARK: - SystemComponents Tests
 
-final class SystemComponentsTests {
+struct SystemComponentsTests {
 
     @Test
     @MainActor
@@ -133,7 +133,7 @@ final class SystemComponentsTests {
 
 // MARK: - SystemComponents Integration Tests
 
-final class SystemComponentsIntegrationTests {
+struct SystemComponentsIntegrationTests {
 
     @Test
     @MainActor

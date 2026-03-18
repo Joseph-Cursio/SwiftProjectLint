@@ -2,7 +2,7 @@ import Testing
 import Foundation
 @testable import SwiftProjectLintCore
 
-final class DetectionPatternTests {
+struct DetectionPatternTests {
     
     @Test func testRuleIdentifierRawValueAndDisplayName() throws {
         let rule = RuleIdentifier.magicNumber

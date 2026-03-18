@@ -2,7 +2,7 @@ import Testing
 import Foundation
 @testable import SwiftProjectLintCore
 
-final class AdvancedAnalyzerTests {
+struct AdvancedAnalyzerTests {
     
     @Test func testExtractViewNameRemovesSwiftExtension() throws {
         let name = FileAnalysisUtils.extractSwiftBasename(from: "/Users/test/ContentView.swift")

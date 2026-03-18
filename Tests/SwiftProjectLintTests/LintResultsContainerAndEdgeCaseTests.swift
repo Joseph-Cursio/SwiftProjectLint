@@ -6,7 +6,7 @@ import ViewInspector
 
 // MARK: - LintResultsContainerView Tests
 
-final class LintResultsContainerViewTests {
+struct LintResultsContainerViewTests {
     @Test
     @MainActor
     func testContainerViewHasFullScreenButton() throws {
@@ -81,7 +81,7 @@ final class LintResultsContainerViewTests {
 
 // MARK: - FullScreenResultsView Tests
 
-final class FullScreenResultsViewTests {
+struct FullScreenResultsViewTests {
     @Test
     @MainActor
     func testFullScreenViewDisplaysIssues() throws {
@@ -208,7 +208,7 @@ final class FullScreenResultsViewTests {
 
 // MARK: - Edge Case Tests
 
-final class LintResultsEdgeCaseTests {
+struct LintResultsEdgeCaseTests {
     @Test
     @MainActor
     func testLongMessageDisplay() throws {
