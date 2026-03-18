@@ -46,10 +46,7 @@ struct MemoryManagementConfigurationTests {
         let sourceFile = Parser.parse(source: sourceCode)
         customVisitor.walk(sourceFile)
         #expect(customVisitor.detectedIssues.count == 1)
-        guard let issue = customVisitor.detectedIssues.first else {
-            Issue.record("Expected at least one issue")
-            return
-        }
+        let issue = try #require(customVisitor.detectedIssues.first)
         #expect(issue.message.contains("Large array in @State may cause performance issues"))
     }
 

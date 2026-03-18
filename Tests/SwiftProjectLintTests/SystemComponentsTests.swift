@@ -37,10 +37,7 @@ struct SystemComponentsTests {
         let components = SystemComponents()
         await components.initialize()
 
-        guard let registry = components.patternRegistry else {
-            Issue.record("Pattern registry should not be nil after initialization")
-            return
-        }
+        let registry = try #require(components.patternRegistry)
 
         let allPatterns = registry.getAllPatterns()
         #expect(allPatterns.isEmpty == false, "Registry should have patterns registered")
@@ -52,10 +49,7 @@ struct SystemComponentsTests {
         let components = SystemComponents()
         await components.initialize()
 
-        guard let registry = components.patternRegistry else {
-            Issue.record("Pattern registry should not be nil after initialization")
-            return
-        }
+        let registry = try #require(components.patternRegistry)
 
         // Check that major categories have patterns
         let statePatterns = registry.getPatterns(for: .stateManagement)
@@ -75,10 +69,7 @@ struct SystemComponentsTests {
         let components = SystemComponents()
         await components.initialize()
 
-        guard let visitorRegistry = components.visitorRegistry else {
-            Issue.record("Visitor registry should not be nil after initialization")
-            return
-        }
+        _ = try #require(components.visitorRegistry)
 
         // The visitor registry should have registered visitors
         // We can verify this indirectly by checking the pattern registry
@@ -91,14 +82,9 @@ struct SystemComponentsTests {
         let components = SystemComponents()
         await components.initialize()
 
-        guard let detector = components.detector else {
-            Issue.record("Detector should not be nil after initialization")
-            return
-        }
-
         // Detector should be properly configured
         // We verify it exists and is ready to use
-        #expect(detector != nil)
+        _ = try #require(components.detector)
     }
 
     @Test
@@ -173,10 +159,7 @@ struct SystemComponentsIntegrationTests {
         let components = SystemComponents()
         await components.initialize()
 
-        guard let registry = components.patternRegistry else {
-            Issue.record("Pattern registry should not be nil")
-            return
-        }
+        let registry = try #require(components.patternRegistry)
 
         // Verify expected pattern counts per category
         var totalPatterns = 0
@@ -195,10 +178,7 @@ struct SystemComponentsIntegrationTests {
         let components = SystemComponents()
         await components.initialize()
 
-        guard let registry = components.patternRegistry else {
-            Issue.record("Pattern registry should not be nil")
-            return
-        }
+        let registry = try #require(components.patternRegistry)
 
         let securityPatterns = registry.getPatterns(for: .security)
         #expect(securityPatterns.isEmpty == false, "Should have security patterns")
@@ -210,10 +190,7 @@ struct SystemComponentsIntegrationTests {
         let components = SystemComponents()
         await components.initialize()
 
-        guard let registry = components.patternRegistry else {
-            Issue.record("Pattern registry should not be nil")
-            return
-        }
+        let registry = try #require(components.patternRegistry)
 
         let accessibilityPatterns = registry.getPatterns(for: .accessibility)
         #expect(accessibilityPatterns.isEmpty == false, "Should have accessibility patterns")
@@ -225,10 +202,7 @@ struct SystemComponentsIntegrationTests {
         let components = SystemComponents()
         await components.initialize()
 
-        guard let registry = components.patternRegistry else {
-            Issue.record("Pattern registry should not be nil")
-            return
-        }
+        let registry = try #require(components.patternRegistry)
 
         let memoryPatterns = registry.getPatterns(for: .memoryManagement)
         #expect(memoryPatterns.isEmpty == false, "Should have memory management patterns")
@@ -240,10 +214,7 @@ struct SystemComponentsIntegrationTests {
         let components = SystemComponents()
         await components.initialize()
 
-        guard let registry = components.patternRegistry else {
-            Issue.record("Pattern registry should not be nil")
-            return
-        }
+        let registry = try #require(components.patternRegistry)
 
         let networkingPatterns = registry.getPatterns(for: .networking)
         #expect(networkingPatterns.isEmpty == false, "Should have networking patterns")
@@ -255,10 +226,7 @@ struct SystemComponentsIntegrationTests {
         let components = SystemComponents()
         await components.initialize()
 
-        guard let registry = components.patternRegistry else {
-            Issue.record("Pattern registry should not be nil")
-            return
-        }
+        let registry = try #require(components.patternRegistry)
 
         let animationPatterns = registry.getPatterns(for: .animation)
         #expect(animationPatterns.isEmpty == false, "Should have animation patterns")
@@ -270,10 +238,7 @@ struct SystemComponentsIntegrationTests {
         let components = SystemComponents()
         await components.initialize()
 
-        guard let registry = components.patternRegistry else {
-            Issue.record("Pattern registry should not be nil")
-            return
-        }
+        let registry = try #require(components.patternRegistry)
 
         let codeQualityPatterns = registry.getPatterns(for: .codeQuality)
         #expect(codeQualityPatterns.isEmpty == false, "Should have code quality patterns")

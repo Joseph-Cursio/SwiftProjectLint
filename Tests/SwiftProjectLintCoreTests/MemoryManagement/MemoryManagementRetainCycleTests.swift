@@ -19,10 +19,7 @@ struct MemoryManagementRetainCycleTests {
         let visitor = self.visitor
         visitor.walk(sourceFile)
         #expect(visitor.detectedIssues.count == 1)
-        guard let issue = visitor.detectedIssues.first else {
-            Issue.record("Expected at least one issue")
-            return
-        }
+        let issue = try #require(visitor.detectedIssues.first)
         #expect(issue.severity == .warning)
         #expect(issue.message.contains("Potential retain cycle with 'viewModel'"))
         #expect(issue.suggestion?.contains("Review object lifecycle") == true)
