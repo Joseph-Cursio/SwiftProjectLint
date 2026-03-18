@@ -113,7 +113,6 @@ struct SystemComponentsTests {
         // SystemComponents should be an ObservableObject
         // This test verifies the type conformance
         let _: any ObservableObject = components
-        #expect(Bool(true)) // Type check passed
     }
 }
 

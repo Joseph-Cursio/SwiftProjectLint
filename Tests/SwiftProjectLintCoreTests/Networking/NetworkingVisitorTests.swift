@@ -10,7 +10,6 @@ struct NetworkingVisitorTests {
     @Test func testVisitorInitialization() throws {
         let visitor = NetworkingVisitor(patternCategory: .networking)
 
-        #expect(Bool(true)) // Visitor created successfully
         #expect(visitor.pattern.category == .networking)
         #expect(visitor.detectedIssues.isEmpty)
     }

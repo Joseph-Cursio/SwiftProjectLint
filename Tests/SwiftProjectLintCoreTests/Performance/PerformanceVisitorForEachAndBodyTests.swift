@@ -220,10 +220,7 @@ struct PerformanceVisitorForEachAndBodyTests {
         }
         """
 
-        let issues = analyzeSource(source)
-
-        // This tests the FunctionDeclSyntax path for body
-        #expect(Bool(true)) // Visitor should process without error
+        _ = analyzeSource(source) // tests the FunctionDeclSyntax path for body
     }
 }
 
@@ -274,6 +271,5 @@ struct PerformanceVisitorStateTrackingTests {
         visitor.walk(syntax)
 
         // Should process assignment without error
-        #expect(Bool(true))
     }
 }

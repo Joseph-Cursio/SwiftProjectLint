@@ -20,14 +20,12 @@ struct LintResultsViewTests {
             ]
 
             _ = LintResultsView(issues: sampleIssues)
-            #expect(Bool(true)) // LintResultsView creation succeeded
         }
     }
 
     @Test func testEmptyIssuesList() async throws {
         await MainActor.run {
             _ = LintResultsView(issues: [])
-            #expect(Bool(true)) // LintResultsView creation succeeded
         }
     }
 
@@ -61,7 +59,6 @@ struct LintResultsViewTests {
             ]
 
             _ = LintResultsView(issues: issues)
-            #expect(Bool(true)) // LintResultsView creation succeeded
 
             let errorIssues = issues.filter { $0.severity == .error }
             let warningIssues = issues.filter { $0.severity == .warning }
@@ -87,7 +84,6 @@ struct LintResultsViewTests {
             ]
 
             _ = LintResultsView(issues: issues)
-            #expect(Bool(true)) // LintResultsView creation succeeded
             #expect(issues[0].ruleName == .relatedDuplicateStateVariable)
         }
     }

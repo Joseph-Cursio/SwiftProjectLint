@@ -91,7 +91,6 @@ struct AdvancedAnalyzerTests {
         _ = analyzer.viewRelationship(between: "TestParent", and: "TestChild")
         
         // The analyzer should be able to query relationships through its public interface
-        #expect(Bool(true)) // At minimum, it should complete without errors
     }
     
     // MARK: - Helper Methods

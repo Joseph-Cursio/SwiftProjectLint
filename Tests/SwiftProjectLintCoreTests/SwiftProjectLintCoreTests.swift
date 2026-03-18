@@ -14,16 +14,9 @@ struct SwiftProjectLintCoreTests {
     @Test func testCoreModuleImports() throws {
         // Test that all core modules can be imported and accessed
         _ = AdvancedAnalyzer()
-        #expect(Bool(true)) // Analyzer created successfully
-        
         _ = ProjectLinter()
-        #expect(Bool(true)) // Linter created successfully
-        
         _ = SourcePatternDetector()
-        #expect(Bool(true)) // Detector created successfully
-        
         _ = SourcePatternRegistry.shared
-        #expect(Bool(true)) // Registry accessed successfully
     }
     
     @Test func testRuleIdentifierEnum() throws {
