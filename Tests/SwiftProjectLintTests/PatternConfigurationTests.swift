@@ -129,7 +129,7 @@ struct PatternConfigurationTests {
         let result = PatternConfiguration.allPatternsByCategory(from: mockRegistry)
         
         for categoryInfo in result {
-            #expect(categoryInfo.useSwiftSyntax == true)
+            #expect(categoryInfo.useSwiftSyntax)
         }
     }
     
@@ -151,7 +151,7 @@ struct PatternConfigurationTests {
         #expect(info.category == .stateManagement)
         #expect(info.display == "State Management")
         #expect(info.patterns.isEmpty)
-        #expect(info.useSwiftSyntax == true)
+        #expect(info.useSwiftSyntax)
     }
 }
 

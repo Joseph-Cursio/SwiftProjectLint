@@ -266,7 +266,7 @@ struct RuleSelectionDialogTests {
         // Toggle is currently on, turn it off
         try toggles[0].tap()
 
-        #expect(enabled.contains(.relatedDuplicateStateVariable) == false)
+        #expect(!enabled.contains(.relatedDuplicateStateVariable))
     }
 
     // MARK: - Empty State

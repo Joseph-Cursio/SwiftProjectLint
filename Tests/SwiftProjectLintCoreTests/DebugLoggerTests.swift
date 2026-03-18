@@ -8,7 +8,7 @@ struct DebugLoggerTests {
         #if DEBUG
         #expect(DebugLogger.isEnabled)
         #else
-        #expect(DebugLogger.isEnabled == false)
+        #expect(!DebugLogger.isEnabled)
         #endif
     }
     
@@ -98,7 +98,7 @@ struct DebugLoggerTests {
         DebugLogger.logVisitor(.performance, "msg")
         DebugLogger.logIssue("issue")
         DebugLogger.logNode("node", "details")
-        #expect(DebugLogger.isEnabled == false)
+        #expect(!DebugLogger.isEnabled)
     }
     #endif
 }

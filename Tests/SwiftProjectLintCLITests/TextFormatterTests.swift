@@ -50,6 +50,6 @@ struct TextFormatterTests {
             ruleName: .fatView
         )
         let output = TextFormatter.format(issues: [issue])
-        #expect(output.contains("suggestion:") == false)
+        #expect(!output.contains("suggestion:"))
     }
 }

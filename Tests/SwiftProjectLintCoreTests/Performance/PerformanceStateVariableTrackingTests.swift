@@ -29,11 +29,11 @@ struct PerformanceStateVariableTrackingTests {
         
         if let countInfo = visitor.stateVariables["count"] {
             #expect(countInfo.name == "count")
-            #expect(countInfo.isUsedInViewBody == false)
-            #expect(countInfo.isAssigned == false)
+            #expect(!countInfo.isUsedInViewBody)
+            #expect(!countInfo.isAssigned)
         }
     }
-    
+
     @Test func testTrackStateVariableUsageInViewBody() throws {
         let source = """
         struct ContentView: View {
@@ -51,10 +51,10 @@ struct PerformanceStateVariableTrackingTests {
         
         // Should track that count is used in view body
         if let countInfo = visitor.stateVariables["count"] {
-            #expect(countInfo.isUsedInViewBody == true)
+            #expect(countInfo.isUsedInViewBody)
         }
     }
-    
+
     @Test func testTrackStateVariableAssignment() throws {
         let source = """
         struct ContentView: View {
@@ -160,11 +160,11 @@ struct PerformanceStateVariableTrackingTests {
         
         // Should track usage but not assignment
         if let countInfo = visitor.stateVariables["count"] {
-            #expect(countInfo.isUsedInViewBody == true)
-            #expect(countInfo.isAssigned == false)
+            #expect(countInfo.isUsedInViewBody)
+            #expect(!countInfo.isAssigned)
         }
     }
-    
+
     @Test func testTrackStateVariableAssignedAndUsed() throws {
         let source = """
         struct ContentView: View {
@@ -188,7 +188,7 @@ struct PerformanceStateVariableTrackingTests {
         // Should track both usage and assignment
         if let countInfo = visitor.stateVariables["count"] {
             // Usage detection should work reliably
-            #expect(countInfo.isUsedInViewBody == true)
+            #expect(countInfo.isUsedInViewBody)
             // Assignment detection may vary based on AST structure
             #expect(countInfo.isAssigned == true || countInfo.isAssigned == false)
         }

@@ -40,7 +40,7 @@ struct SystemComponentsTests {
         let registry = try #require(components.patternRegistry)
 
         let allPatterns = registry.getAllPatterns()
-        #expect(allPatterns.isEmpty == false, "Registry should have patterns registered")
+        #expect(!allPatterns.isEmpty, "Registry should have patterns registered")
     }
 
     @Test
@@ -57,10 +57,10 @@ struct SystemComponentsTests {
         let archPatterns = registry.getPatterns(for: .architecture)
         let uiPatterns = registry.getPatterns(for: .uiPatterns)
 
-        #expect(statePatterns.isEmpty == false, "Should have state management patterns")
-        #expect(perfPatterns.isEmpty == false, "Should have performance patterns")
-        #expect(archPatterns.isEmpty == false, "Should have architecture patterns")
-        #expect(uiPatterns.isEmpty == false, "Should have UI patterns")
+        #expect(!statePatterns.isEmpty, "Should have state management patterns")
+        #expect(!perfPatterns.isEmpty, "Should have performance patterns")
+        #expect(!archPatterns.isEmpty, "Should have architecture patterns")
+        #expect(!uiPatterns.isEmpty, "Should have UI patterns")
     }
 
     @Test
@@ -133,7 +133,7 @@ struct SystemComponentsIntegrationTests {
 
         // View should render without crashing when given initialized components
         let texts = try inspected.findAll(ViewType.Text.self)
-        #expect(texts.isEmpty == false)
+        #expect(!texts.isEmpty)
     }
 
     @Test
@@ -149,7 +149,7 @@ struct SystemComponentsIntegrationTests {
 
         // View should still render (graceful handling of nil registry)
         let texts = try inspected.findAll(ViewType.Text.self)
-        #expect(texts.isEmpty == false)
+        #expect(!texts.isEmpty)
     }
 
     @Test
@@ -180,7 +180,7 @@ struct SystemComponentsIntegrationTests {
         let registry = try #require(components.patternRegistry)
 
         let securityPatterns = registry.getPatterns(for: .security)
-        #expect(securityPatterns.isEmpty == false, "Should have security patterns")
+        #expect(!securityPatterns.isEmpty, "Should have security patterns")
     }
 
     @Test
@@ -192,7 +192,7 @@ struct SystemComponentsIntegrationTests {
         let registry = try #require(components.patternRegistry)
 
         let accessibilityPatterns = registry.getPatterns(for: .accessibility)
-        #expect(accessibilityPatterns.isEmpty == false, "Should have accessibility patterns")
+        #expect(!accessibilityPatterns.isEmpty, "Should have accessibility patterns")
     }
 
     @Test
@@ -204,7 +204,7 @@ struct SystemComponentsIntegrationTests {
         let registry = try #require(components.patternRegistry)
 
         let memoryPatterns = registry.getPatterns(for: .memoryManagement)
-        #expect(memoryPatterns.isEmpty == false, "Should have memory management patterns")
+        #expect(!memoryPatterns.isEmpty, "Should have memory management patterns")
     }
 
     @Test
@@ -216,7 +216,7 @@ struct SystemComponentsIntegrationTests {
         let registry = try #require(components.patternRegistry)
 
         let networkingPatterns = registry.getPatterns(for: .networking)
-        #expect(networkingPatterns.isEmpty == false, "Should have networking patterns")
+        #expect(!networkingPatterns.isEmpty, "Should have networking patterns")
     }
 
     @Test
@@ -228,7 +228,7 @@ struct SystemComponentsIntegrationTests {
         let registry = try #require(components.patternRegistry)
 
         let animationPatterns = registry.getPatterns(for: .animation)
-        #expect(animationPatterns.isEmpty == false, "Should have animation patterns")
+        #expect(!animationPatterns.isEmpty, "Should have animation patterns")
     }
 
     @Test
@@ -240,6 +240,6 @@ struct SystemComponentsIntegrationTests {
         let registry = try #require(components.patternRegistry)
 
         let codeQualityPatterns = registry.getPatterns(for: .codeQuality)
-        #expect(codeQualityPatterns.isEmpty == false, "Should have code quality patterns")
+        #expect(!codeQualityPatterns.isEmpty, "Should have code quality patterns")
     }
 }

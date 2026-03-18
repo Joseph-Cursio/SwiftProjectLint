@@ -53,8 +53,8 @@ struct ViewNameExtractorVisitorTests {
         
         #expect(visitor.viewNames.count == 1)
         #expect(visitor.viewNames.contains("ContentView"))
-        #expect(visitor.viewNames.contains("DataModel") == false)
-        #expect(visitor.viewNames.contains("Helper") == false)
+        #expect(!visitor.viewNames.contains("DataModel"))
+        #expect(!visitor.viewNames.contains("Helper"))
     }
     
     @Test func testHandlesEmptySource() throws {

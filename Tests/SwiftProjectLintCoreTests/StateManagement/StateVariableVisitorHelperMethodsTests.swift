@@ -62,7 +62,7 @@ struct StateVariableVisitorHelperMethodsTests {
         #expect(candidates.count == 2)
         #expect(candidates.contains { $0.propertyWrapper == .stateObject })
         #expect(candidates.contains { $0.propertyWrapper == .observedObject })
-        #expect(candidates.contains { $0.propertyWrapper == .state } == false)
+        #expect(!candidates.contains { $0.propertyWrapper == .state })
     }
 
     // MARK: - Generic Type Tests

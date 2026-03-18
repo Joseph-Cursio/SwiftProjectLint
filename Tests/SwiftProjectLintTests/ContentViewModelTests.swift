@@ -19,7 +19,7 @@ struct ContentViewModelTests {
     @Test("initial state is not analyzing")
     func initialIsAnalyzingIsFalse() {
         let viewModel = ContentViewModel()
-        #expect(viewModel.isAnalyzing == false)
+        #expect(!viewModel.isAnalyzing)
     }
 
     @Test("initial state has no lint issues")
@@ -31,13 +31,13 @@ struct ContentViewModelTests {
     @Test("initial state has rule selector hidden")
     func initialShowRuleSelectorIsFalse() {
         let viewModel = ContentViewModel()
-        #expect(viewModel.showRuleSelector == false)
+        #expect(!viewModel.showRuleSelector)
     }
 
     @Test("initial state has directory picker hidden")
     func initialShowingDirectoryPickerIsFalse() {
         let viewModel = ContentViewModel()
-        #expect(viewModel.showingDirectoryPicker == false)
+        #expect(!viewModel.showingDirectoryPicker)
     }
 
     @Test("initial state has no analysis task")
@@ -79,7 +79,7 @@ struct ContentViewModelTests {
     func analyzeProjectGuardsEmptyDirectory() {
         let viewModel = ContentViewModel()
         viewModel.analyzeProject()
-        #expect(viewModel.isAnalyzing == false)
+        #expect(!viewModel.isAnalyzing)
     }
 
     @Test("analyzeProject with non-empty directory sets isAnalyzing to true")
@@ -88,7 +88,7 @@ struct ContentViewModelTests {
         viewModel.selectedDirectory = FileManager.default.temporaryDirectory.path
         viewModel.enabledRuleNames = [.relatedDuplicateStateVariable]
         viewModel.analyzeProject()
-        #expect(viewModel.isAnalyzing == true)
+        #expect(viewModel.isAnalyzing)
         viewModel.cancelAnalysis()
     }
 
@@ -98,11 +98,11 @@ struct ContentViewModelTests {
         viewModel.selectedDirectory = FileManager.default.temporaryDirectory.path
         viewModel.enabledRuleNames = [.relatedDuplicateStateVariable]
         viewModel.analyzeProject()
-        #expect(viewModel.isAnalyzing == true)
+        #expect(viewModel.isAnalyzing)
         // Second call while already analyzing should be a no-op (guard !isAnalyzing)
         viewModel.analyzeProject()
         // isAnalyzing is still true — was never reset — confirming the guard fired
-        #expect(viewModel.isAnalyzing == true)
+        #expect(viewModel.isAnalyzing)
         viewModel.cancelAnalysis()
     }
 
@@ -178,7 +178,7 @@ struct ContentViewModelTests {
         viewModel.patternRegistry = systemComponents.patternRegistry
         viewModel.enabledRuleNames = [.relatedDuplicateStateVariable]
         let categories = viewModel.getEnabledCategories()
-        #expect(categories.isEmpty == false)
+        #expect(!categories.isEmpty)
         #expect(categories.contains(.stateManagement))
     }
 
@@ -233,6 +233,6 @@ struct ContentViewModelTests {
         let viewModel = ContentViewModel()
         viewModel.patternRegistry = systemComponents.patternRegistry
         let patterns = viewModel.allPatternsByCategory
-        #expect(patterns.isEmpty == false)
+        #expect(!patterns.isEmpty)
     }
 }

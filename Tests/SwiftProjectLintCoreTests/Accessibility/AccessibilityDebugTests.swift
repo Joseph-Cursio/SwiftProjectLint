@@ -32,7 +32,7 @@ struct AccessibilityDebugTests {
 
         let sourceFile = Parser.parse(source: sourceCode)
         // Verify parsing produces a non-empty tree
-        #expect(sourceFile.description.isEmpty == false)
+        #expect(!sourceFile.description.isEmpty)
     }
 
     @Test func testVisitorIsCalled() {
@@ -71,7 +71,7 @@ struct AccessibilityDebugTests {
         let testVisitor = AccessibilityVisitor(patternCategory: .accessibility)
         testVisitor.walk(sourceFile)
         // Visitor should detect the button accessibility hint issue
-        #expect(testVisitor.detectedIssues.isEmpty == false)
+        #expect(!testVisitor.detectedIssues.isEmpty)
     }
 
     @Test func testDebugButtonTextDetection() throws {

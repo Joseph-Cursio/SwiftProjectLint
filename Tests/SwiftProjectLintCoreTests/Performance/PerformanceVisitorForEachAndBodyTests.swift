@@ -250,7 +250,7 @@ struct PerformanceVisitorStateTrackingTests {
         visitor.walk(syntax)
 
         // State variables should be tracked
-        #expect(visitor.stateVariables.isEmpty == false) // Should track @State variables
+        #expect(!visitor.stateVariables.isEmpty) // Should track @State variables
     }
 
     @Test func testStateVariableAssignmentTracking() throws {
