@@ -1,6 +1,27 @@
 import SwiftUI
 import SwiftProjectLintCore
 
+/// Shared list body used by both `LintResultsView` and `FullScreenResultsView`.
+private struct IssueListContent: View {
+    let issues: [LintIssue]
+
+    var body: some View {
+        List {
+            IssueSummarySection(issues: issues)
+
+            Section {
+                ForEach(issues.indices, id: \.self) { idx in
+                    LintIssueRow(issue: issues[idx])
+                    if idx != issues.count - 1 {
+                        Divider()
+                    }
+                }
+            }
+        }
+        .listStyle(.plain)
+    }
+}
+
 /// A container view that manages state and presentation for lint results.
 ///
 /// `LintResultsContainerView` owns the state for presenting the full screen results,
@@ -63,22 +84,9 @@ struct LintResultsView: View {
     let issues: [LintIssue]
 
     var body: some View {
-        List {
-            IssueSummarySection(issues: issues)
-
-            // Issues section
-            Section {
-                ForEach(issues.indices, id: \.self) { idx in
-                    LintIssueRow(issue: issues[idx])
-                    if idx != issues.count - 1 {
-                        Divider()
-                    }
-                }
-            }
-        }
-        .listStyle(.plain)
-        .frame(minHeight: 200, maxHeight: .infinity)
-        .layoutPriority(1)
+        IssueListContent(issues: issues)
+            .frame(minHeight: 200, maxHeight: .infinity)
+            .layoutPriority(1)
     }
 }
 
@@ -89,20 +97,8 @@ struct FullScreenResultsView: View {
 
     var body: some View {
         NavigationStack {
-            List {
-                IssueSummarySection(issues: issues)
-
-                // Issues section
-                Section {
-                    ForEach(issues.indices, id: \.self) { idx in
-                        LintIssueRow(issue: issues[idx])
-                        if idx != issues.count - 1 {
-                            Divider()
-                        }
-                    }
-                }
-            }
-            .navigationTitle("Lint Results (\(issues.count) issues)")
+            IssueListContent(issues: issues)
+                .navigationTitle("Lint Results (\(issues.count) issues)")
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
                     Button("Done") {

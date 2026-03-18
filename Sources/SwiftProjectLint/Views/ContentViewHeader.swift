@@ -21,13 +21,13 @@ struct ContentViewHeader: View {
 
             Text("Swift Project Linter")
                 .font(.largeTitle)
-                .fontWeight(.bold)
+                .bold()
                 .accessibilityLabel("Swift Project Linter")
                 .accessibilityIdentifier("mainTitleLabel")
 
             Text("Detect cross-file issues and architectural problems")
                 .font(.subheadline)
-                .foregroundColor(.secondary)
+                .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
                 .accessibilityLabel("Detect cross-file issues and architectural problems")
                 .accessibilityIdentifier("mainDescriptionLabel")

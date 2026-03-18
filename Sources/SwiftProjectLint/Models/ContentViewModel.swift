@@ -5,7 +5,6 @@
 //  Created by Joseph Cursio on 3/16/26.
 //
 
-import Combine
 import SwiftUI
 import SwiftProjectLintCore
 
@@ -13,13 +12,14 @@ import SwiftProjectLintCore
 ///
 /// Extracted from ContentView to separate concerns: ContentView owns the view hierarchy,
 /// while ContentViewModel owns state, persistence, and analysis orchestration.
+@Observable
 @MainActor
-class ContentViewModel: ObservableObject {
-    @Published var selectedDirectory: String = ""
-    @Published var isAnalyzing: Bool = false
-    @Published var lintIssues: [LintIssue] = []
-    @Published var showRuleSelector: Bool = false
-    @Published var enabledRuleNames: Set<RuleIdentifier> = {
+class ContentViewModel {
+    var selectedDirectory: String = ""
+    var isAnalyzing: Bool = false
+    var lintIssues: [LintIssue] = []
+    var showRuleSelector: Bool = false
+    var enabledRuleNames: Set<RuleIdentifier> = {
         let userDefaultsKey = "enabledLintRules"
         if let data = UserDefaults.standard.data(forKey: userDefaultsKey),
            let saved = try? JSONDecoder().decode(Set<RuleIdentifier>.self, from: data),
@@ -29,7 +29,7 @@ class ContentViewModel: ObservableObject {
             return [.relatedDuplicateStateVariable]
         }
     }()
-    @Published var showingDirectoryPicker: Bool = false
+    var showingDirectoryPicker: Bool = false
     var analysisTask: Task<Void, Never>?
 
     /// Injected reference to the pattern registry from SystemComponents.

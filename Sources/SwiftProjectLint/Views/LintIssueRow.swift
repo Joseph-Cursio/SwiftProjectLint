@@ -59,6 +59,7 @@ struct LintIssueRow: View {
                     Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
                         .foregroundStyle(.blue)
                 }
+                .accessibilityLabel(isExpanded ? "Collapse details" : "Expand details")
             }
 
             if isExpanded {

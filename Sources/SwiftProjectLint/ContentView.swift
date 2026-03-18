@@ -25,10 +25,11 @@ import UniformTypeIdentifiers
 /// - Expandable results with detailed issue information
 /// - Persistent rule preferences across app launches
 struct ContentView: View {
-    @EnvironmentObject var systemComponents: SystemComponents
-    @StateObject private var viewModel = ContentViewModel()
+    @EnvironmentObject private var systemComponents: SystemComponents
+    @State private var viewModel = ContentViewModel()
 
     var body: some View {
+        @Bindable var viewModel = viewModel
         NavigationStack {
             VStack(spacing: 20) {
                 // Header
@@ -70,13 +71,18 @@ struct ContentView: View {
             .onAppear {
                 viewModel.patternRegistry = systemComponents.patternRegistry
             }
+            .onChange(of: systemComponents.patternRegistry != nil) { _, isReady in
+                if isReady {
+                    viewModel.patternRegistry = systemComponents.patternRegistry
+                }
+            }
             .onDisappear {
                 viewModel.cancelAnalysis()
             }
         }
     }
 
-    /// A static factory for testing purposes that hosts ContentView with a proper @StateObject environment.
+    /// A static factory for testing purposes that hosts ContentView with a proper @State environment.
     /// Use this in tests to avoid State warnings.
     ///
     /// Do NOT instantiate ContentView() directly outside a View hierarchy (including in tests or previews).
@@ -87,7 +93,7 @@ struct ContentView: View {
 }
 
 // All @State usage must occur inside a proper View hierarchy to prevent State warnings in previews/tests.
-// The ContentViewPreviewHost struct below correctly hosts ContentView inside a View with @StateObject,
+// The ContentViewPreviewHost struct below correctly hosts ContentView inside a View with @State,
 // ensuring no runtime warnings occur due to improper @State usage.
 //
 // Direct use of @State outside of a View or without a proper hierarchy will trigger runtime warnings.

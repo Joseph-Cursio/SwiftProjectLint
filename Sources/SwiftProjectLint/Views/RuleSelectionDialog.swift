@@ -38,6 +38,16 @@ struct RuleSelectionDialog: View {
     var onSave: () -> Void
     @Environment(\.dismiss) private var dismiss
 
+    private func binding(for rule: RuleIdentifier) -> Binding<Bool> {
+        Binding(
+            get: { enabledRuleNames.contains(rule) },
+            set: { isOn in
+                if isOn { enabledRuleNames.insert(rule) }
+                else { enabledRuleNames.remove(rule) }
+            }
+        )
+    }
+
     // Helper: All rule names from the passed patterns
     private var allRuleNames: Set<RuleIdentifier> {
         var names = Set<RuleIdentifier>()
@@ -59,20 +69,7 @@ struct RuleSelectionDialog: View {
                     Section(header: Text(group.display)) {
                         // Show patterns from the passed data
                         ForEach(group.patterns, id: \.name) { pattern in
-                            Toggle(
-                                isOn: Binding(
-                                    get: {
-                                        enabledRuleNames.contains(pattern.name)
-                                    },
-                                    set: { isOn in
-                                        if isOn {
-                                            enabledRuleNames.insert(pattern.name)
-                                        } else {
-                                            enabledRuleNames.remove(pattern.name)
-                                        }
-                                    }
-                                )
-                            ) {
+                            Toggle(isOn: binding(for: pattern.name)) {
                                 VStack(alignment: .leading, spacing: 2) {
                                     Text(pattern.name.rawValue)
                                         .fontWeight(.medium)
