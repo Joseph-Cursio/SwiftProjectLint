@@ -4,7 +4,6 @@ import SwiftSyntax
 import SwiftParser
 @testable import SwiftProjectLintCore
 
-@Suite("UIVisitorPreviewTests")
 struct UIVisitorPreviewTests {
     
     @Test func testDetectsMissingPreview() throws {

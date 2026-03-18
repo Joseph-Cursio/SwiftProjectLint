@@ -1,7 +1,6 @@
 import Testing
 import SwiftProjectLintCore
 
-@Suite("LintIssueTests")
 struct LintIssueTests {
     
     @Test func testLintIssueInitializationWithSingleLocation() throws {

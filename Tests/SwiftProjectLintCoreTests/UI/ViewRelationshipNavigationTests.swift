@@ -4,7 +4,6 @@ import SwiftParser
 import SwiftSyntax
 @testable import SwiftProjectLintCore
 
-@Suite("ViewRelationshipNavigationTests")
 struct ViewRelationshipNavigationTests {
     
     // MARK: - Test Helper Methods

@@ -4,7 +4,6 @@ import SwiftSyntax
 import SwiftParser
 @testable import SwiftProjectLintCore
 
-@Suite("UIVisitorErrorHandlingTests")
 struct UIVisitorErrorHandlingTests {
     
     @Test func testDetectsBasicErrorHandling() throws {

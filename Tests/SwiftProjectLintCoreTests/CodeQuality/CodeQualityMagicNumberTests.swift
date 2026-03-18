@@ -4,7 +4,6 @@ import SwiftParser
 import SwiftSyntax
 @testable import SwiftProjectLintCore
 
-@Suite("CodeQualityMagicNumberTests")
 struct CodeQualityMagicNumberTests {
 
     // MARK: - Test Helper Methods

@@ -4,7 +4,6 @@ import SwiftSyntax
 import SwiftParser
 @testable import SwiftProjectLintCore
 
-@Suite("UIVisitorForEachTests")
 struct UIVisitorForEachTests {
     
     @Test func testDetectsForEachWithoutID() throws {

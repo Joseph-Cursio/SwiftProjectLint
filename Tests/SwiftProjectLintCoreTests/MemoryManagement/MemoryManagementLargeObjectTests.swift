@@ -4,7 +4,6 @@ import SwiftSyntax
 import SwiftParser
 @testable import SwiftProjectLintCore
 
-@Suite("MemoryManagementLargeObjectTests")
 struct MemoryManagementLargeObjectTests {
     var visitor: MemoryManagementVisitor { MemoryManagementVisitor() }
 

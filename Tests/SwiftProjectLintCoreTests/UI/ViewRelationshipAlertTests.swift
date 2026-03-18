@@ -4,7 +4,6 @@ import SwiftParser
 import SwiftSyntax
 @testable import SwiftProjectLintCore
 
-@Suite("ViewRelationshipAlertTests")
 struct ViewRelationshipAlertTests {
     
     // MARK: - Debug Logging Helper

@@ -4,7 +4,6 @@ import SwiftSyntax
 import SwiftParser
 @testable import SwiftProjectLintCore
 
-@Suite("AccessibilityImageTests")
 struct AccessibilityImageTests {
 
     // MARK: - Test Helper Methods

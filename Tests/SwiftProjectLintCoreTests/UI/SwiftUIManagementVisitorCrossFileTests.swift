@@ -4,7 +4,6 @@ import SwiftSyntax
 @testable import SwiftProjectLintCore
 
 /// Tests for SwiftUIManagementVisitor cross-file analysis and state object detection
-@Suite("SwiftUIManagementVisitorCrossFileTests")
 struct SwiftUIManagementVisitorCrossFileTests {
 
     @Test func testDetectDuplicateStateVariables() throws {

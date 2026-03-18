@@ -3,7 +3,6 @@ import SwiftParser
 import SwiftSyntax
 @testable import SwiftProjectLintCore
 
-@Suite("PerformanceStateVariableTrackingTests")
 struct PerformanceStateVariableTrackingTests {
     
     @Test func testTrackStateVariableDeclaration() throws {

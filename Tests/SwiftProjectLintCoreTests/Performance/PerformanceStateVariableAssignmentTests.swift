@@ -8,7 +8,6 @@ import SwiftSyntax
 /// - checkForUnnecessaryUpdates when variable is assigned but not used in body
 /// - Non-@State variables should not be tracked
 /// - Multiple bindings in a single @State declaration
-@Suite("PerformanceStateVariableAssignmentTests")
 struct PerformanceStateVariableAssignmentTests {
 
     private func makeVisitor(source: String) -> PerformanceVisitor {

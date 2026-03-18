@@ -4,7 +4,6 @@ import SwiftSyntax
 import SwiftParser
 @testable import SwiftProjectLintCore
 
-@Suite("UIVisitorNavigationTests")
 struct UIVisitorNavigationTests {
     
     @Test func testDetectsNestedNavigationView() throws {

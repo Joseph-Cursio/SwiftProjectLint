@@ -10,7 +10,6 @@ import SwiftParser
 /// - error handling via "error as" pattern
 /// - error parameter with non-standard name
 /// - error.description access pattern
-@Suite("NetworkingVisitorEdgeCaseTests")
 struct NetworkingVisitorEdgeCaseTests {
 
     private func makeVisitor(source: String) -> (NetworkingVisitor, SourceLocationConverter) {

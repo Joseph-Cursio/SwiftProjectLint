@@ -3,7 +3,6 @@ import SwiftParser
 import SwiftSyntax
 @testable import SwiftProjectLintCore
 
-@Suite("ViewNameExtractorVisitorTests")
 struct ViewNameExtractorVisitorTests {
     
     @Test func testExtractsViewNames() throws {

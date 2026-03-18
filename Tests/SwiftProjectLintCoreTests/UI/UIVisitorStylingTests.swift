@@ -4,7 +4,6 @@ import SwiftSyntax
 import SwiftParser
 @testable import SwiftProjectLintCore
 
-@Suite("UIVisitorStylingTests")
 struct UIVisitorStylingTests {
     
     @Test func testDetectsInconsistentTextStyling() throws {

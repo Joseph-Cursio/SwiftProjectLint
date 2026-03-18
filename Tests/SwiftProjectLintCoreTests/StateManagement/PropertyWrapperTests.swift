@@ -1,7 +1,6 @@
 import Testing
 import SwiftProjectLintCore
 
-@Suite("PropertyWrapperTests")
 struct PropertyWrapperTests {
     
     @Test func testAllPropertyWrappersAreDefined() {

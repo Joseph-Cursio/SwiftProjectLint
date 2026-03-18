@@ -4,7 +4,6 @@ import Foundation
 
 /// Tests for ArchitectureIssueDetector.detectArchitecturalAntiPatterns
 /// covering the @ObservedObject-in-root-view detection and isRootView logic.
-@Suite("ArchitectureIssueDetectorTests")
 struct ArchitectureIssueDetectorTests {
 
     // MARK: - Root view detection

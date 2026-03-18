@@ -3,7 +3,6 @@ import SwiftParser
 import SwiftSyntax
 @testable import SwiftProjectLintCore
 
-@Suite("PerformanceDetectionHelpersTests")
 struct PerformanceDetectionHelpersTests {
     
     @Test func testDetectForEachSelfIDWithBackslashSelf() throws {

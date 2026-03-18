@@ -3,7 +3,6 @@ import SwiftParser
 import SwiftSyntax
 @testable import SwiftProjectLintCore
 
-@Suite("CrossFileSwiftUIManagementVisitorTests")
 struct CrossFileSwiftUIManagementVisitorTests {
     
     @Test func testInitializationWithFileCache() {

@@ -4,7 +4,6 @@ import SwiftSyntax
 @testable import SwiftProjectLintCore
 
 /// Tests for SwiftUIManagementVisitor basic detection functionality
-@Suite("SwiftUIManagementVisitorBasicTests")
 struct SwiftUIManagementVisitorBasicTests {
 
     @Test func testDetectFatView() throws {
