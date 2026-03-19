@@ -50,18 +50,16 @@ class NetworkingVisitor: BasePatternVisitor {
             return false
         }
 
-        for arg in node.arguments {
-            if arg.label?.text == "contentsOf" {
-                addIssue(
-                    severity: .error,
-                    message: "Synchronous networking can block the UI thread",
-                    filePath: currentFilePath ?? "unknown",
-                    lineNumber: lineNumber(for: node),
-                    suggestion: "Use URLSession.dataTask for asynchronous networking",
-                    ruleName: .synchronousNetworkCall
-                )
-                return true
-            }
+        for arg in node.arguments where arg.label?.text == "contentsOf" {
+            addIssue(
+                severity: .error,
+                message: "Synchronous networking can block the UI thread",
+                filePath: currentFilePath ?? "unknown",
+                lineNumber: lineNumber(for: node),
+                suggestion: "Use URLSession.dataTask for asynchronous networking",
+                ruleName: .synchronousNetworkCall
+            )
+            return true
         }
 
         return false

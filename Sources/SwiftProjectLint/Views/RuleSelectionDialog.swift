@@ -24,8 +24,11 @@ struct RuleSelectionDialog: View {
         Binding(
             get: { enabledRuleNames.contains(rule) },
             set: { isOn in
-                if isOn { enabledRuleNames.insert(rule) }
-                else { enabledRuleNames.remove(rule) }
+                if isOn {
+                    enabledRuleNames.insert(rule)
+                } else {
+                    enabledRuleNames.remove(rule)
+                }
             }
         )
     }
