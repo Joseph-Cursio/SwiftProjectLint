@@ -28,18 +28,6 @@ struct PropertyWrapperTests {
         #expect(PropertyWrapper.unknown.rawValue == "Unknown")
     }
     
-    @Test func testFullRepresentation() {
-        #expect(PropertyWrapper.state.fullRepresentation == "@State")
-        #expect(PropertyWrapper.stateObject.fullRepresentation == "@StateObject")
-        #expect(PropertyWrapper.observedObject.fullRepresentation == "@ObservedObject")
-        #expect(PropertyWrapper.environmentObject.fullRepresentation == "@EnvironmentObject")
-        #expect(PropertyWrapper.binding.fullRepresentation == "@Binding")
-        #expect(PropertyWrapper.environment.fullRepresentation == "@Environment")
-        #expect(PropertyWrapper.focusState.fullRepresentation == "@FocusState")
-        #expect(PropertyWrapper.gestureState.fullRepresentation == "@GestureState")
-        #expect(PropertyWrapper.unknown.fullRepresentation == "@Unknown")
-    }
-    
     @Test func testAllCasesCompleteness() {
         // Verify all expected property wrappers are included
         let expectedWrappers: Set<String> = [

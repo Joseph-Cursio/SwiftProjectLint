@@ -143,8 +143,4 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
         }
     }
 
-    /// Returns the display name for the rule
-    var displayName: String {
-        return rawValue
-    }
 }

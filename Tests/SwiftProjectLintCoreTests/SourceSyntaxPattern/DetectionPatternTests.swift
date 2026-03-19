@@ -7,7 +7,6 @@ struct DetectionPatternTests {
     @Test func testRuleIdentifierRawValueAndDisplayName() throws {
         let rule = RuleIdentifier.magicNumber
         #expect(rule.rawValue == "Magic Number")
-        #expect(rule.displayName == "Magic Number")
     }
     
     @Test func testRuleIdentifierCategoryMapping() throws {

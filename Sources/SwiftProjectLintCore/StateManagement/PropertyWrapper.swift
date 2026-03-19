@@ -25,10 +25,3 @@ public enum PropertyWrapper: String, CaseIterable, Sendable {
     case accessibilityFocusState = "AccessibilityFocusState"
     case unknown = "Unknown"
 }
-
-public extension PropertyWrapper {
-    /// Returns the full representation of the property wrapper (e.g., "@State").
-    var fullRepresentation: String {
-        return "@\(self.rawValue)"
-    }
-} 
