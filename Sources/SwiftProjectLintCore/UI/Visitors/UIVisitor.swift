@@ -7,7 +7,6 @@ import SwiftParser
 class UIVisitor: BasePatternVisitor {
     private var currentViewName: String = ""
     private var currentFilePath: String = ""
-    private var previewStructs: Set<String> = []
     private var navigationStack: [String] = []
     private var detectedPreviews: Set<String> = []
     private var stylingModifiers: [String: Set<String>] = [:]

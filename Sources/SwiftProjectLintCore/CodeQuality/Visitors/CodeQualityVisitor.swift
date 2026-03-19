@@ -14,7 +14,6 @@ class CodeQualityVisitor: BasePatternVisitor {
     private var currentFunctionLength: Int = 0
     private var currentStructName: String = ""
     private var currentFilePath: String = ""
-    private var isInViewBody: Bool = false
     private var isInFunction: Bool = false
     private var functionStartLine: Int = 0
     private var configuration: Configuration
@@ -205,15 +204,6 @@ class CodeQualityVisitor: BasePatternVisitor {
                 }
             }
         }
-        return .visitChildren
-    }
-
-    override func visit(_ node: MemberAccessExprSyntax) -> SyntaxVisitorContinueKind {
-        // Track if we're in a view body
-        if node.declName.baseName.text == "body" {
-            isInViewBody = true
-        }
-
         return .visitChildren
     }
 

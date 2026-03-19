@@ -3,15 +3,9 @@ import SwiftSyntax
 
 /// Visitor that detects usage of .self or \.self as the id parameter in ForEach
 class ForEachSelfIDVisitor: BasePatternVisitor {
-    private var currentFilePath: String = ""
 
     required init(pattern: SyntaxPattern, viewMode: SyntaxTreeViewMode = .sourceAccurate) {
         super.init(pattern: pattern, viewMode: viewMode)
-    }
-
-    /// Sets the current file path for issue reporting.
-    override func setFilePath(_ filePath: String) {
-        self.currentFilePath = filePath
     }
 
     override func visit(_ node: FunctionCallExprSyntax) -> SyntaxVisitorContinueKind {

@@ -28,13 +28,11 @@ class SwiftUIManagementVisitor: BasePatternVisitor {
     // MARK: - Configuration
 
     struct Configuration {
-        let enableCrossFileAnalysis: Bool
         let maxStateVariables: Int
         let checkForDuplicates: Bool
         let checkForUnused: Bool
 
         static let `default` = Configuration(
-            enableCrossFileAnalysis: true,
             maxStateVariables: 5,
             checkForDuplicates: true,
             checkForUnused: true
@@ -48,7 +46,6 @@ class SwiftUIManagementVisitor: BasePatternVisitor {
     private var currentViewName: String = ""
     private var currentFilePath: String = ""
     private var viewDeclarations: [ViewDeclaration] = []
-    private var syntaxTree: SourceFileSyntax?
 
     // MARK: - Initialization
 
@@ -58,13 +55,6 @@ class SwiftUIManagementVisitor: BasePatternVisitor {
     }
 
     // MARK: - Syntax Visitor Methods
-
-    override func visit(_ node: SourceFileSyntax) -> SyntaxVisitorContinueKind {
-        self.syntaxTree = node
-        // Extract file path from the node if possible
-        // For now, we'll need to set this externally
-        return .visitChildren
-    }
 
     override func visit(_ node: StructDeclSyntax) -> SyntaxVisitorContinueKind {
         let structName = node.name.text

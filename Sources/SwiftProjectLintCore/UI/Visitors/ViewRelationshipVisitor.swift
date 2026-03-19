@@ -34,9 +34,6 @@ class ViewRelationshipVisitor: SyntaxVisitor {
     private var isInPresentationModifier = false
     private var isInNavigationLink = false
 
-    // Cache for line number calculations to improve performance
-    private var lineNumberCache: [AbsolutePosition: Int] = [:]
-
     init(
         parentView: String,
         filePath: String,
@@ -256,16 +253,4 @@ class ViewRelationshipVisitor: SyntaxVisitor {
         }
     }
 
-    /// Calculates line number for a given position with caching for performance
-    private func calculateLineNumber(for position: AbsolutePosition) -> Int {
-        if let cached = lineNumberCache[position] {
-            return cached
-        }
-
-        let offset = position.utf8Offset
-        let prefix = String(sourceContents.prefix(offset))
-        let lineNumber = prefix.components(separatedBy: .newlines).count
-        lineNumberCache[position] = lineNumber
-        return lineNumber
-    }
 }
