@@ -51,6 +51,13 @@ public struct FileAnalysisUtils {
         enumerateSwiftFiles(in: path)
     }
 
+    /// Directories to skip during file enumeration. These are build artifacts,
+    /// dependency checkouts, and hidden directories that should never be linted.
+    private static let skippedDirectories: Set<String> = [
+        ".build", ".git", ".swiftpm", "DerivedData", "Pods",
+        ".hg", ".svn", "node_modules", "Carthage"
+    ]
+
     private static func enumerateSwiftFiles(in path: String) -> [String] {
         let fileManager = FileManager.default
         var swiftFiles: [String] = []
@@ -60,6 +67,12 @@ public struct FileAnalysisUtils {
         }
 
         while let filePath = enumerator.nextObject() as? String {
+            // Skip hidden and build directories
+            let components = filePath.components(separatedBy: "/")
+            if components.contains(where: { skippedDirectories.contains($0) }) {
+                continue
+            }
+
             if filePath.hasSuffix(".swift") {
                 swiftFiles.append((path as NSString).appendingPathComponent(filePath))
             }
