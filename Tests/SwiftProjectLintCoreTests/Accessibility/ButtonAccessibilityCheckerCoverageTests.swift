@@ -199,6 +199,60 @@ struct ButtonAccessibilityCheckerCoverageTests {
         #expect(imageIssues.isEmpty)
     }
 
+    // MARK: - Button with Label (provides accessibility automatically)
+
+    @Test("button with Label in trailing closure produces no issues")
+    func buttonWithLabelInTrailingClosure() {
+        let visitor = createVisitor()
+
+        let sourceCode = """
+        struct ContentView: View {
+            var body: some View {
+                Button(action: { doAction() }) {
+                    Label("Settings", systemImage: "gear")
+                }
+            }
+        }
+        """
+
+        let sourceFile = Parser.parse(source: sourceCode)
+        visitor.walk(sourceFile)
+
+        let buttonIssues = visitor.detectedIssues.filter {
+            $0.message.contains("Icon-only button") || $0.message.contains("accessibility hint")
+        }
+        #expect(buttonIssues.isEmpty)
+    }
+
+    @Test("button with Label icon closure produces no issues")
+    func buttonWithLabelIconClosure() {
+        let visitor = createVisitor()
+
+        let sourceCode = """
+        struct ContentView: View {
+            var body: some View {
+                Button {
+                    doAction()
+                } label: {
+                    Label {
+                        Text("Delete")
+                    } icon: {
+                        Image(systemName: "trash")
+                    }
+                }
+            }
+        }
+        """
+
+        let sourceFile = Parser.parse(source: sourceCode)
+        visitor.walk(sourceFile)
+
+        let buttonIssues = visitor.detectedIssues.filter {
+            $0.message.contains("Icon-only button") || $0.message.contains("accessibility hint")
+        }
+        #expect(buttonIssues.isEmpty)
+    }
+
     // MARK: - Multiple Buttons
 
     @Test("multiple icon-only buttons each produce their own issues")

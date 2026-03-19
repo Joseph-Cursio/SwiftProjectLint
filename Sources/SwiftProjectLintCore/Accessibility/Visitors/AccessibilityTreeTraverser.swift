@@ -140,4 +140,23 @@ class AccessibilityTreeTraverser {
         }
         return false
     }
+
+    /// Checks if a syntax tree contains a Label element.
+    /// Label provides accessibility text automatically via its title.
+    ///
+    /// - Parameter syntax: The syntax node to check.
+    /// - Returns: True if a Label element is found, false otherwise.
+    static func containsLabel(in syntax: Syntax) -> Bool {
+        if let functionCall = syntax.as(FunctionCallExprSyntax.self),
+            let calledExpression = functionCall.calledExpression.as(
+                DeclReferenceExprSyntax.self
+            ),
+            calledExpression.baseName.text == SwiftUIViewType.label.rawValue {
+            return true
+        }
+        for child in syntax.children(viewMode: .sourceAccurate) where containsLabel(in: child) {
+            return true
+        }
+        return false
+    }
 }

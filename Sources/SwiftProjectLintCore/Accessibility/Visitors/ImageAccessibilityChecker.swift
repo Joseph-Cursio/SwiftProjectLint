@@ -12,8 +12,13 @@ class ImageAccessibilityChecker: AccessibilityCheckerProtocol {
     }
 
     func checkAccessibility(_ node: FunctionCallExprSyntax) {
-        // Skip if this Image is already part of a Button
-        if visitor.isImageInButtons(Syntax(node)) {
+        // Skip if this Image is already part of a Button or Label
+        if visitor.isImageInButtons(Syntax(node)) || visitor.isImageInLabels(Syntax(node)) {
+            return
+        }
+
+        // Skip decorative images explicitly hidden from VoiceOver
+        if AccessibilityTreeTraverser.hasAccessibilityModifier(in: node, modifierName: "accessibilityHidden") {
             return
         }
 

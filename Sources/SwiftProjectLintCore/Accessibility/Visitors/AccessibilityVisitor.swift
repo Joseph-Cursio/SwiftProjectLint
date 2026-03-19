@@ -39,6 +39,9 @@ class AccessibilityVisitor: BasePatternVisitor {
     /// Track Images that are part of Buttons to avoid duplicate issues
     private var imagesInButtons: Set<Syntax> = []
 
+    /// Track Images that are part of Labels (Label provides accessibility automatically)
+    private var imagesInLabels: Set<Syntax> = []
+
     // MARK: - Internal Access Methods for Checkers
 
     /// Get the current pattern for issue reporting
@@ -59,6 +62,16 @@ class AccessibilityVisitor: BasePatternVisitor {
     /// Check if an image is already part of a button
     internal func isImageInButtons(_ image: Syntax) -> Bool {
         return imagesInButtons.contains(image)
+    }
+
+    /// Add images found in labels to avoid false positives
+    internal func addImagesInLabels(_ images: Set<Syntax>) {
+        imagesInLabels.formUnion(images)
+    }
+
+    /// Check if an image is already part of a label
+    internal func isImageInLabels(_ image: Syntax) -> Bool {
+        return imagesInLabels.contains(image)
     }
 
     // MARK: - Accessibility Checkers
@@ -94,6 +107,7 @@ class AccessibilityVisitor: BasePatternVisitor {
     override func reset() {
         super.reset()
         imagesInButtons.removeAll()
+        imagesInLabels.removeAll()
     }
 
     // MARK: - File Path Setter
@@ -112,6 +126,10 @@ class AccessibilityVisitor: BasePatternVisitor {
 
             if functionName == SwiftUIViewType.button.rawValue {
                 buttonChecker.checkAccessibility(node)
+            } else if functionName == SwiftUIViewType.label.rawValue {
+                // Label provides accessibility text automatically — skip its images
+                let imagesInThisLabel = AccessibilityTreeTraverser.findImages(in: Syntax(node))
+                addImagesInLabels(imagesInThisLabel)
             } else if functionName == SwiftUIViewType.image.rawValue {
                 imageChecker.checkAccessibility(node)
             } else if functionName == SwiftUIViewType.text.rawValue {

@@ -19,10 +19,16 @@ class ButtonAccessibilityChecker: AccessibilityCheckerProtocol {
 
         let hasImage = containsImage(node)
         let hasText = containsText(node)
+        let hasLabel = containsLabel(node)
         let hasStringTitle = AccessibilityTreeTraverser.buttonHasStringTitle(node)
         let hasAccessibilityLabel = AccessibilityTreeTraverser.hasAccessibilityModifier(
             in: node, modifierName: "accessibilityLabel"
         )
+
+        // Label() provides accessible text automatically
+        if hasLabel {
+            return
+        }
 
         if hasImage && !hasText && !hasStringTitle {
             // Icon-only button — invisible to VoiceOver without a label
@@ -125,6 +131,20 @@ class ButtonAccessibilityChecker: AccessibilityCheckerProtocol {
         for statement in closure.statements
             where AccessibilityTreeTraverser.containsText(in: Syntax(statement.item)) {
             return true
+        }
+        return false
+    }
+
+    /// Checks if the function call contains a Label element
+    private func containsLabel(_ node: FunctionCallExprSyntax) -> Bool {
+        if AccessibilityTreeTraverser.containsLabel(in: Syntax(node)) {
+            return true
+        }
+        if let trailingClosure = node.trailingClosure {
+            for statement in trailingClosure.statements
+                where AccessibilityTreeTraverser.containsLabel(in: Syntax(statement.item)) {
+                return true
+            }
         }
         return false
     }
