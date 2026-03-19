@@ -54,15 +54,14 @@ struct CodeQualityHardcodedStringTests {
     @Test func testHardcodedStringSkipPatterns() throws {
         let visitor = createVisitor()
 
-        // Given
+        // Given — URLs in Text() are skipped; strings outside SwiftUI views are not flagged
         let sourceCode = """
         struct TestView: View {
             var body: some View {
-                Text("https://example.com")  // Should skip (contains http)
-                Text("private var test")     // Should skip (contains private)
-                Text("func doSomething")     // Should skip (contains func)
+                Text("https://example.com")  // Should skip (URL)
                 Text("This is a user-facing message that should be localized")  // Should trigger
             }
+            let errorMessage = "Something went wrong, please try again"  // Not in UI — should NOT trigger
         }
         """
 
@@ -71,8 +70,6 @@ struct CodeQualityHardcodedStringTests {
         visitor.walk(sourceFile)
 
         // Then
-        #expect(visitor.detectedIssues.count == 1)
-
         let hardcodedIssues = visitor.detectedIssues.filter { $0.message.contains("hardcoded text") }
         #expect(hardcodedIssues.count == 1)
 

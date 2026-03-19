@@ -175,32 +175,75 @@ class CodeQualityVisitor: BasePatternVisitor {
         return .visitChildren
     }
 
+    /// SwiftUI initializers and modifiers whose string arguments are shown to users.
+    private static let userFacingCallNames: Set<String> = [
+        "Text", "Label", "Button", "Toggle", "Picker", "Slider",
+        "Section", "NavigationLink", "TabItem", "DisclosureGroup",
+        "navigationTitle", "navigationBarTitle",
+        "alert", "confirmationDialog",
+        "headerProminence", "badge",
+        "help", "toolbarItem"
+    ]
+
     override func visit(_ node: StringLiteralExprSyntax) -> SyntaxVisitorContinueKind {
-        // Check for hardcoded strings that should be localized
-        // Only consider string literals with a single segment (no interpolation)
+        // Only flag hardcoded strings that appear in user-facing SwiftUI contexts
+        // (Text, Label, Button title, alert, navigationTitle, etc.)
         let segments = node.segments
-        if segments.count == 1, let segment = segments.first?.as(StringSegmentSyntax.self) {
-            let cleanString = segment.content.text
-            if cleanString.count >= configuration.minStringLengthForLocalization && !cleanString.contains("\\") {
-                let skipPatterns = [
-                    "http", "https", "file://", "data:", "base64",
-                    "private", "public", "internal", "class", "struct", "enum",
-                    "func", "var", "let", "if", "else", "guard", "return"
-                ]
-                let shouldSkip = skipPatterns.contains { cleanString.contains($0) }
-                if !shouldSkip {
-                    addIssue(
-                        severity: .info,
-                        message: "Consider localizing hardcoded text: \"\(cleanString)\"",
-                        filePath: currentFilePath,
-                        lineNumber: getLineNumber(for: Syntax(node)),
-                        suggestion: "Use NSLocalizedString or String(localized:) for user-facing text",
-                        ruleName: .hardcodedStrings
-                    )
-                }
-            }
+        guard segments.count == 1,
+              let segment = segments.first?.as(StringSegmentSyntax.self) else {
+            return .visitChildren
+        }
+        let cleanString = segment.content.text
+        guard cleanString.count >= configuration.minStringLengthForLocalization,
+              !cleanString.contains("\\"),
+              isInUserFacingContext(node) else {
+            return .visitChildren
+        }
+
+        let skipPatterns = [
+            "http", "https", "file://", "data:", "base64"
+        ]
+        let shouldSkip = skipPatterns.contains { cleanString.contains($0) }
+        if !shouldSkip {
+            addIssue(
+                severity: .info,
+                message: "Consider localizing hardcoded text: \"\(cleanString)\"",
+                filePath: currentFilePath,
+                lineNumber: getLineNumber(for: Syntax(node)),
+                suggestion: "Use NSLocalizedString or String(localized:) for user-facing text",
+                ruleName: .hardcodedStrings
+            )
         }
         return .visitChildren
+    }
+
+    /// Checks whether a string literal is a direct argument to a user-facing SwiftUI call.
+    private func isInUserFacingContext(_ node: StringLiteralExprSyntax) -> Bool {
+        // Walk up to the nearest FunctionCallExprSyntax ancestor
+        var current: Syntax = Syntax(node)
+        while let parent = current.parent {
+            if let call = parent.as(FunctionCallExprSyntax.self) {
+                // Check DeclReferenceExpr: Text("hello"), Button("tap") etc.
+                if let ref = call.calledExpression.as(DeclReferenceExprSyntax.self),
+                   Self.userFacingCallNames.contains(ref.baseName.text) {
+                    return true
+                }
+                // Check MemberAccessExpr: .navigationTitle("hello"), .alert("title") etc.
+                if let member = call.calledExpression.as(MemberAccessExprSyntax.self),
+                   Self.userFacingCallNames.contains(member.declName.baseName.text) {
+                    return true
+                }
+            }
+            // Stop climbing at the enclosing declaration to avoid false positives
+            if parent.is(FunctionDeclSyntax.self)
+                || parent.is(VariableDeclSyntax.self)
+                || parent.is(StructDeclSyntax.self)
+                || parent.is(ClassDeclSyntax.self) {
+                break
+            }
+            current = parent
+        }
+        return false
     }
 
     // MARK: - Private Detection Methods

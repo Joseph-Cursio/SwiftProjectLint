@@ -38,9 +38,9 @@ class CodeQualityPatternRegistrar: PatternRegistrarWithVisitorProto {
                 visitor: CodeQualityVisitor.self,
                 severity: .info,
                 category: .codeQuality,
-                messageTemplate: "Hardcoded string detected: '{string}'",
-                suggestion: "Define a named constant or use localization for user-facing strings",
-                description: "Detects hardcoded strings that should be constants or localized"
+                messageTemplate: "Consider localizing hardcoded text in user-facing view",
+                suggestion: "Use NSLocalizedString or String(localized:) for user-facing text",
+                description: "Detects hardcoded strings in SwiftUI views (Text, Label, Button, etc.) that should be localized"
             ),
             SyntaxPattern(
                 name: .missingDocumentation,
