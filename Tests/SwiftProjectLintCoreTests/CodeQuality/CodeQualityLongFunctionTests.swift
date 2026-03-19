@@ -50,7 +50,7 @@ struct CodeQualityLongFunctionTests {
         visitor.walk(sourceFile)
 
         // Then
-        #expect(visitor.detectedIssues.count == 1) // 1 long function only
+        #expect(visitor.detectedIssues.filter { $0.ruleName == .longFunction }.count == 1)
 
         let longFunctionIssues = visitor.detectedIssues.filter { $0.message.contains("quite long") }
         #expect(longFunctionIssues.count == 1)
@@ -77,7 +77,7 @@ struct CodeQualityLongFunctionTests {
         visitor.walk(sourceFile)
 
         // Then
-        #expect(visitor.detectedIssues.isEmpty)
+        #expect(visitor.detectedIssues.filter { $0.ruleName == .longFunction }.isEmpty)
     }
 
     @Test func testFunctionLengthDetectionCharacterization() throws {

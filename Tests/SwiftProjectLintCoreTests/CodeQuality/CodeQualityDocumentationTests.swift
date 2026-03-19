@@ -49,7 +49,7 @@ struct CodeQualityDocumentationTests {
         visitor.walk(sourceFile)
 
         // Then
-        #expect(visitor.detectedIssues.count == 4)
+        #expect(visitor.detectedIssues.filter { $0.ruleName == .missingDocumentation }.count == 4)
 
         let documentationIssues = visitor.detectedIssues.filter { $0.message.contains("documentation") }
         #expect(documentationIssues.count == 4)
@@ -90,7 +90,7 @@ struct CodeQualityDocumentationTests {
         visitor.walk(sourceFile)
 
         // Then
-        #expect(visitor.detectedIssues.isEmpty)
+        #expect(visitor.detectedIssues.filter { $0.ruleName == .missingDocumentation }.isEmpty)
     }
 
     @Test func testPrivateAPIsNoDetection() throws {
@@ -114,7 +114,7 @@ struct CodeQualityDocumentationTests {
         visitor.walk(sourceFile)
 
         // Then
-        #expect(visitor.detectedIssues.isEmpty)
+        #expect(visitor.detectedIssues.filter { $0.ruleName == .missingDocumentation }.isEmpty)
     }
 
     @Test func testDocumentationDetectionCharacterization() throws {

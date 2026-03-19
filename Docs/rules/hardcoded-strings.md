@@ -10,7 +10,7 @@
 String literals that appear directly inside user-facing SwiftUI views should be localized. Hardcoded strings prevent internationalization and make content updates require code changes.
 
 ### Discussion
-This rule only fires when a hardcoded string (≥ 10 characters, no interpolation) is a direct argument to a user-facing SwiftUI call such as `Text()`, `Label()`, `Button()`, `Section()`, `.navigationTitle()`, `.alert()`, or `.confirmationDialog()`. Strings in non-UI contexts — model code, test assertions, logging, configuration — are not flagged.
+This rule only fires when a hardcoded string (no interpolation) is a direct argument to a user-facing SwiftUI call such as `Text()`, `Label()`, `Button()`, `Section()`, `.navigationTitle()`, `.alert()`, or `.confirmationDialog()`. Strings in non-UI contexts — model code, test assertions, logging, configuration — are not flagged.
 
 Strings containing URL patterns (`http`, `https`, `file://`, `data:`, `base64`) are always skipped.
 

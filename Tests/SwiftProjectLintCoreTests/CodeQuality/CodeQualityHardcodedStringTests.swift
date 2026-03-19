@@ -29,8 +29,8 @@ struct CodeQualityHardcodedStringTests {
         let sourceCode = """
         struct TestView: View {
             var body: some View {
-                Text("This is a very long hardcoded string that should be localized")
-                Text("Short")  // Should not trigger (too short)
+                Text("This is a hardcoded string that should be localized")
+                Image("icon")  // Not user-facing text — should not trigger
             }
         }
         """
@@ -40,15 +40,50 @@ struct CodeQualityHardcodedStringTests {
         visitor.walk(sourceFile)
 
         // Then
-        #expect(visitor.detectedIssues.count == 1)
-
-        let hardcodedIssues = visitor.detectedIssues.filter { $0.message.contains("hardcoded text") }
+        let hardcodedIssues = visitor.detectedIssues.filter { $0.ruleName == .hardcodedStrings }
         #expect(hardcodedIssues.count == 1)
 
         let issue = hardcodedIssues.first
         #expect(issue != nil)
         #expect(issue?.severity == .info)
-        #expect(issue?.message.contains("This is a very long hardcoded string") == true)
+        #expect(issue?.message.contains("hardcoded string") == true)
+    }
+
+    @Test func testShortStringInTextIsDetected() throws {
+        let visitor = createVisitor()
+
+        let sourceCode = """
+        struct TestView: View {
+            var body: some View {
+                Text("Save")
+            }
+        }
+        """
+
+        let sourceFile = Parser.parse(source: sourceCode)
+        visitor.walk(sourceFile)
+
+        let hardcodedIssues = visitor.detectedIssues.filter { $0.ruleName == .hardcodedStrings }
+        #expect(hardcodedIssues.count == 1)
+    }
+
+    @Test func testStringOutsideSwiftUINotDetected() throws {
+        let visitor = createVisitor()
+
+        let sourceCode = """
+        struct MyModel {
+            let name = "This is a long string not in any view"
+            func doWork() {
+                print("Processing completed successfully")
+            }
+        }
+        """
+
+        let sourceFile = Parser.parse(source: sourceCode)
+        visitor.walk(sourceFile)
+
+        let hardcodedIssues = visitor.detectedIssues.filter { $0.ruleName == .hardcodedStrings }
+        #expect(hardcodedIssues.isEmpty)
     }
 
     @Test func testHardcodedStringSkipPatterns() throws {
@@ -80,60 +115,20 @@ struct CodeQualityHardcodedStringTests {
     @Test func testHardcodedStringDetectionCharacterization() throws {
         let visitor = createVisitor()
 
-        // Given
         let sourceCode = """
         struct TestView: View {
             var body: some View {
-                Text("This is a very long hardcoded string that should be localized")
-                Text("Short")  // Should not trigger (too short)
+                Text("This is a hardcoded string that should be localized")
+                Image("icon")
             }
         }
         """
 
-        // When
         let sourceFile = Parser.parse(source: sourceCode)
         visitor.walk(sourceFile)
 
-        // Then
-        #expect(visitor.detectedIssues.count == 1)
-
-        let hardcodedIssues = visitor.detectedIssues.filter { $0.message.contains("hardcoded text") }
+        let hardcodedIssues = visitor.detectedIssues.filter { $0.ruleName == .hardcodedStrings }
         #expect(hardcodedIssues.count == 1)
-
-        let issue = hardcodedIssues.first
-        #expect(issue != nil)
-        #expect(issue?.severity == .info)
-        #expect(issue?.message.contains("This is a very long hardcoded string") == true)
-    }
-
-    @Test func testStrictHardcodedStringDetectionCharacterization() throws {
-        let visitor = createStrictVisitor()
-
-        // Given
-        let sourceCode = """
-        struct TestView: View {
-            var body: some View {
-                Text("This is a very long hardcoded string that should be localized")
-                Text("Short")  // Should not trigger (too short)
-            }
-        }
-        """
-
-        // When
-        let sourceFile = Parser.parse(source: sourceCode)
-        visitor.walk(sourceFile)
-
-        // Then
-        // May detect multiple issues (e.g., hardcoded string in Text, and potentially struct documentation)
-        #expect(visitor.detectedIssues.count >= 1)
-
-        let hardcodedIssues = visitor.detectedIssues.filter { $0.message.contains("hardcoded text") }
-        // At least one hardcoded string should be detected
-        #expect(hardcodedIssues.count >= 1)
-
-        let issue = hardcodedIssues.first
-        #expect(issue != nil)
-        #expect(issue?.severity == .info)
-        #expect(issue?.message.contains("This is a very long hardcoded string") == true)
+        #expect(hardcodedIssues.first?.severity == .info)
     }
 }

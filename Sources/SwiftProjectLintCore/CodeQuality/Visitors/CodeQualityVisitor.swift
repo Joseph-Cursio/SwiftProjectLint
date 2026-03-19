@@ -194,7 +194,7 @@ class CodeQualityVisitor: BasePatternVisitor {
             return .visitChildren
         }
         let cleanString = segment.content.text
-        guard cleanString.count >= configuration.minStringLengthForLocalization,
+        guard !cleanString.isEmpty,
               !cleanString.contains("\\"),
               isInUserFacingContext(node) else {
             return .visitChildren
@@ -280,20 +280,17 @@ extension CodeQualityVisitor {
     /// Configuration for code quality detection.
     struct Configuration {
         let maxFunctionLength: Int
-        let minStringLengthForLocalization: Int
         let magicNumberThreshold: Int
         let checkPublicAPIsOnly: Bool
 
         static let `default` = Configuration(
             maxFunctionLength: 200,
-            minStringLengthForLocalization: 10,
             magicNumberThreshold: 10,
             checkPublicAPIsOnly: true
         )
 
         static let strict = Configuration(
             maxFunctionLength: 150,
-            minStringLengthForLocalization: 5,
             magicNumberThreshold: 5,
             checkPublicAPIsOnly: false
         )

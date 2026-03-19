@@ -175,7 +175,6 @@ struct CodeQualityIntegrationTests {
 
         // Then
         #expect(config.maxFunctionLength == 200)
-        #expect(config.minStringLengthForLocalization == 10)
         #expect(config.magicNumberThreshold == 10)
         #expect(config.checkPublicAPIsOnly)
     }
@@ -186,7 +185,6 @@ struct CodeQualityIntegrationTests {
 
         // Then
         #expect(config.maxFunctionLength == 150)
-        #expect(config.minStringLengthForLocalization == 5)
         #expect(config.magicNumberThreshold == 5)
         #expect(!config.checkPublicAPIsOnly)
     }

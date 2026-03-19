@@ -41,7 +41,7 @@ struct CodeQualityMagicNumberTests {
         visitor.walk(sourceFile)
 
         // Then
-        #expect(visitor.detectedIssues.count == 2)
+        #expect(visitor.detectedIssues.filter { $0.ruleName == .magicNumber }.count == 2)
 
         let magicNumberIssues = visitor.detectedIssues.filter { $0.message.contains("magic number") }
         #expect(magicNumberIssues.count == 2)
@@ -75,7 +75,7 @@ struct CodeQualityMagicNumberTests {
         visitor.walk(sourceFile)
 
         // Then
-        #expect(visitor.detectedIssues.count == 2)
+        #expect(visitor.detectedIssues.filter { $0.ruleName == .magicNumber }.count == 2)
 
         let magicNumberIssues = visitor.detectedIssues.filter { $0.message.contains("magic number") }
         #expect(magicNumberIssues.count == 2)
@@ -105,7 +105,7 @@ struct CodeQualityMagicNumberTests {
         visitor.walk(sourceFile)
 
         // Then
-        #expect(visitor.detectedIssues.count == 2)
+        #expect(visitor.detectedIssues.filter { $0.ruleName == .magicNumber }.count == 2)
 
         let magicNumberIssues = visitor.detectedIssues.filter { $0.message.contains("magic number") }
         #expect(magicNumberIssues.count == 2)
@@ -136,7 +136,7 @@ struct CodeQualityMagicNumberTests {
         visitor.walk(sourceFile)
 
         // Then
-        #expect(visitor.detectedIssues.count == 1)
+        #expect(visitor.detectedIssues.filter { $0.ruleName == .magicNumber }.count == 1)
 
         let magicNumberIssues = visitor.detectedIssues.filter { $0.message.contains("magic number") }
         #expect(magicNumberIssues.count == 1)
