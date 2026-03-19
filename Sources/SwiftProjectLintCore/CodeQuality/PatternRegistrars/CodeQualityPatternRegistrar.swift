@@ -25,15 +25,6 @@ class CodeQualityPatternRegistrar: PatternRegistrarWithVisitorProto {
                 description: "Detects hardcoded numbers that should be named constants"
             ),
             SyntaxPattern(
-                name: .longFunction,
-                visitor: CodeQualityVisitor.self,
-                severity: .warning,
-                category: .codeQuality,
-                messageTemplate: "Function '{functionName}' is too long ({lineCount} lines)",
-                suggestion: "Break down the function into smaller, more focused functions",
-                description: "Detects functions that exceed recommended length limits"
-            ),
-            SyntaxPattern(
                 name: .hardcodedStrings,
                 visitor: CodeQualityVisitor.self,
                 severity: .info,

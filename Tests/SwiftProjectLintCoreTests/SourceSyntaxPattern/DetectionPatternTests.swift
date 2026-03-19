@@ -23,7 +23,7 @@ struct DetectionPatternTests {
     }
     
     @Test func testRuleIdentifierCodable() throws {
-        let rule: RuleIdentifier = .longFunction
+        let rule: RuleIdentifier = .magicNumber
         let data = try JSONEncoder().encode(rule)
         let decoded = try JSONDecoder().decode(RuleIdentifier.self, from: data)
         #expect(rule == decoded)

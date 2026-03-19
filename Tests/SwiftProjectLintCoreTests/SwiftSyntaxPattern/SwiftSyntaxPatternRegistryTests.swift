@@ -74,7 +74,7 @@ struct SwiftSyntaxPatternRegistryTests {
                 description: "Description 1"
             ),
             SyntaxPattern(
-                name: .longFunction,
+                name: .hardcodedStrings,
                 visitor: CodeQualityVisitor.self,
                 severity: .warning,
                 category: .codeQuality,

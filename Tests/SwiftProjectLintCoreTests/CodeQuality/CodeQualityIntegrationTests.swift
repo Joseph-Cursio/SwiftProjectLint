@@ -25,167 +25,158 @@ struct CodeQualityIntegrationTests {
     @Test func testMultipleCodeQualityIssues() throws {
         let visitor = createVisitor()
 
-        // Given
-        // swiftlint:disable line_length
         let sourceCode = """
         public struct TestView: View {
             let spacing: CGFloat = 16
 
-            func longFunction() {
-                let a =
-                    "This is a very long function that contains many lines of code and should be broken down into smaller functions for better maintainability and readability. The function is intentionally made long to test the detection mechanism."
-                let b = "More code here to make the function longer and trigger the detection threshold."
-                let c = "Even more code to ensure we exceed the character limit for function length detection."
-            }
-
             var body: some View {
-                Text("This is a very long hardcoded string that should be localized")
+                Text("This is a hardcoded string that should be localized")
                     .padding(20)
             }
         }
         """
-        // swiftlint:enable line_length
 
-        // When
         let sourceFile = Parser.parse(source: sourceCode)
         visitor.walk(sourceFile)
 
-        // Then
-        #expect(visitor.detectedIssues.count == 5)
-
-        // Magic numbers
-        let magicNumberIssues = visitor.detectedIssues.filter { $0.message.contains("magic number") }
+        let magicNumberIssues = visitor.detectedIssues.filter { $0.ruleName == .magicNumber }
         #expect(magicNumberIssues.count == 2)
 
-        // Hardcoded strings
-        let hardcodedIssues = visitor.detectedIssues.filter { $0.message.contains("hardcoded text") }
+        let hardcodedIssues = visitor.detectedIssues.filter { $0.ruleName == .hardcodedStrings }
         #expect(hardcodedIssues.count == 1)
 
-        // Long functions
-        let longFunctionIssues = visitor.detectedIssues.filter { $0.message.contains("quite long") }
-        #expect(longFunctionIssues.count == 1)
-
-        // Missing documentation
-        let documentationIssues = visitor.detectedIssues.filter { $0.message.contains("documentation") }
+        let documentationIssues = visitor.detectedIssues.filter { $0.ruleName == .missingDocumentation }
         #expect(documentationIssues.count == 1)
     }
 
     @Test func testEdgeCaseCharacterization() throws {
         let visitor = createVisitor()
 
-        // Given
-        // swiftlint:disable line_length
         let sourceCode = """
         public struct TestView: View {
             let spacing: CGFloat = 16
 
-            func longFunction() {
-                let a =
-                    "This is a very long function that contains many lines of code and should be broken down into smaller functions for better maintainability and readability. The function is intentionally made long to test the detection mechanism."
-                let b = "More code here to make the function longer and trigger the detection threshold."
-                let c = "Even more code to ensure we exceed the character limit for function length detection."
-            }
-
             var body: some View {
-                Text("This is a very long hardcoded string that should be localized")
+                Text("This is a hardcoded string that should be localized")
                     .padding(20)
             }
         }
         """
-        // swiftlint:enable line_length
 
-        // When
         let sourceFile = Parser.parse(source: sourceCode)
         visitor.walk(sourceFile)
 
-        // Then
-        #expect(visitor.detectedIssues.count == 5)
-
-        // Magic numbers
-        let magicNumberIssues = visitor.detectedIssues.filter { $0.message.contains("magic number") }
+        let magicNumberIssues = visitor.detectedIssues.filter { $0.ruleName == .magicNumber }
         #expect(magicNumberIssues.count == 2)
 
-        // Hardcoded strings
-        let hardcodedIssues = visitor.detectedIssues.filter { $0.message.contains("hardcoded text") }
+        let hardcodedIssues = visitor.detectedIssues.filter { $0.ruleName == .hardcodedStrings }
         #expect(hardcodedIssues.count == 1)
 
-        // Long functions
-        let longFunctionIssues = visitor.detectedIssues.filter { $0.message.contains("quite long") }
-        #expect(longFunctionIssues.count == 1)
-
-        // Missing documentation
-        let documentationIssues = visitor.detectedIssues.filter { $0.message.contains("documentation") }
+        let documentationIssues = visitor.detectedIssues.filter { $0.ruleName == .missingDocumentation }
         #expect(documentationIssues.count == 1)
     }
 
     @Test func testConfigurationCharacterization() throws {
         let visitor = createStrictVisitor()
 
-        // Given
-        // swiftlint:disable line_length
         let sourceCode = """
         public struct TestView: View {
             let spacing: CGFloat = 16
 
-            func longFunction() {
-                let a =
-                    "This is a very long function that contains many lines of code and should be broken down into smaller functions for better maintainability and readability. The function is intentionally made long to test the detection mechanism."
-                let b = "More code here to make the function longer and trigger the detection threshold."
-                let c = "Even more code to ensure we exceed the character limit for function length detection."
-            }
-
             var body: some View {
-                Text("This is a very long hardcoded string that should be localized")
+                Text("This is a hardcoded string that should be localized")
                     .padding(20)
             }
         }
         """
-        // swiftlint:enable line_length
 
-        // When
         let sourceFile = Parser.parse(source: sourceCode)
         visitor.walk(sourceFile)
 
-        // Then
-        // May detect more issues than expected (e.g., struct documentation + function documentation)
-        #expect(visitor.detectedIssues.count >= 5)
-
-        // Magic numbers
-        let magicNumberIssues = visitor.detectedIssues.filter { $0.message.contains("magic number") }
+        let magicNumberIssues = visitor.detectedIssues.filter { $0.ruleName == .magicNumber }
         #expect(magicNumberIssues.count >= 2)
 
-        // Hardcoded strings
-        let hardcodedIssues = visitor.detectedIssues.filter { $0.message.contains("hardcoded text") }
+        let hardcodedIssues = visitor.detectedIssues.filter { $0.ruleName == .hardcodedStrings }
         #expect(hardcodedIssues.count >= 1)
 
-        // Long functions
-        let longFunctionIssues = visitor.detectedIssues.filter { $0.message.contains("quite long") }
-        #expect(longFunctionIssues.count >= 1)
-
-        // Missing documentation (may detect both struct and function documentation)
-        let documentationIssues = visitor.detectedIssues.filter { $0.message.contains("documentation") }
+        let documentationIssues = visitor.detectedIssues.filter { $0.ruleName == .missingDocumentation }
         #expect(documentationIssues.count >= 1)
     }
 
     // MARK: - Configuration Tests
 
     @Test func testConfigurationDefault() throws {
-        // Given
         let config = CodeQualityVisitor.Configuration.default
-
-        // Then
-        #expect(config.maxFunctionLength == 200)
         #expect(config.magicNumberThreshold == 10)
         #expect(config.checkPublicAPIsOnly)
     }
 
     @Test func testConfigurationStrict() throws {
-        // Given
         let config = CodeQualityVisitor.Configuration.strict
-
-        // Then
-        #expect(config.maxFunctionLength == 150)
         #expect(config.magicNumberThreshold == 5)
         #expect(!config.checkPublicAPIsOnly)
+    }
+
+    // MARK: - Documentation Tests
+
+    @Test func testMissingDocumentationDetection() throws {
+        let visitor = createVisitor()
+
+        let sourceCode = """
+        public struct UndocumentedView: View {
+            public func doSomething() {}
+            public func doAnother() {}
+            public var body: some View {
+                EmptyView()
+            }
+            public func doThird() {}
+        }
+        """
+
+        let sourceFile = Parser.parse(source: sourceCode)
+        visitor.walk(sourceFile)
+
+        let docIssues = visitor.detectedIssues.filter { $0.ruleName == .missingDocumentation }
+        #expect(docIssues.count == 4)
+    }
+
+    @Test func testDocumentedAPIsNoDetection() throws {
+        let visitor = createVisitor()
+
+        let sourceCode = """
+        /// A documented struct
+        public struct DocumentedView: View {
+            /// Documented function
+            public func doSomething() {}
+            public var body: some View {
+                EmptyView()
+            }
+        }
+        """
+
+        let sourceFile = Parser.parse(source: sourceCode)
+        visitor.walk(sourceFile)
+
+        let docIssues = visitor.detectedIssues.filter { $0.ruleName == .missingDocumentation }
+        #expect(docIssues.isEmpty)
+    }
+
+    @Test func testPrivateAPIsNoDetection() throws {
+        let visitor = createVisitor()
+
+        let sourceCode = """
+        struct InternalView: View {
+            func doSomething() {}
+            var body: some View {
+                EmptyView()
+            }
+        }
+        """
+
+        let sourceFile = Parser.parse(source: sourceCode)
+        visitor.walk(sourceFile)
+
+        let docIssues = visitor.detectedIssues.filter { $0.ruleName == .missingDocumentation }
+        #expect(docIssues.isEmpty)
     }
 }

@@ -11,11 +11,8 @@ import SwiftSyntax
 /// - Missing documentation for public APIs
 class CodeQualityVisitor: BasePatternVisitor {
     private var currentFunctionName: String = ""
-    private var currentFunctionLength: Int = 0
     private var currentStructName: String = ""
     private var currentFilePath: String = ""
-    private var isInFunction: Bool = false
-    private var functionStartLine: Int = 0
     private var configuration: Configuration
 
     required init(pattern: SyntaxPattern, viewMode: SyntaxTreeViewMode = .sourceAccurate) {
@@ -68,14 +65,6 @@ class CodeQualityVisitor: BasePatternVisitor {
 
     override func visit(_ node: FunctionDeclSyntax) -> SyntaxVisitorContinueKind {
         currentFunctionName = node.name.text
-        isInFunction = true
-        functionStartLine = getLineNumber(for: Syntax(node))
-        // Count the main function body length in characters
-        if let body = node.body {
-            currentFunctionLength = body.description.count
-        } else {
-            currentFunctionLength = 0
-        }
         // Check for missing documentation on public functions
         if configuration.checkPublicAPIsOnly {
             let modifiers = node.modifiers
@@ -89,24 +78,6 @@ class CodeQualityVisitor: BasePatternVisitor {
             checkMissingDocumentation(for: Syntax(node), name: currentFunctionName)
         }
         return .visitChildren
-    }
-
-    override func visitPost(_ node: FunctionDeclSyntax) {
-        // Check function length when leaving the function
-        if isInFunction && currentFunctionLength > configuration.maxFunctionLength {
-            addIssue(
-                severity: .warning,
-                message: "Function '\(currentFunctionName)' is quite long (\(currentFunctionLength) characters)",
-                filePath: currentFilePath,
-                lineNumber: functionStartLine,
-                suggestion: "Consider breaking this function into smaller, focused functions",
-                ruleName: .longFunction
-            )
-        }
-        // Reset function tracking
-        isInFunction = false
-        currentFunctionLength = 0
-        currentFunctionName = ""
     }
 
     override func visit(_ node: VariableDeclSyntax) -> SyntaxVisitorContinueKind {
@@ -279,18 +250,15 @@ class CodeQualityVisitor: BasePatternVisitor {
 extension CodeQualityVisitor {
     /// Configuration for code quality detection.
     struct Configuration {
-        let maxFunctionLength: Int
         let magicNumberThreshold: Int
         let checkPublicAPIsOnly: Bool
 
         static let `default` = Configuration(
-            maxFunctionLength: 200,
             magicNumberThreshold: 10,
             checkPublicAPIsOnly: true
         )
 
         static let strict = Configuration(
-            maxFunctionLength: 150,
             magicNumberThreshold: 5,
             checkPublicAPIsOnly: false
         )
