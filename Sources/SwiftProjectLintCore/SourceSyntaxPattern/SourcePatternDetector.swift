@@ -25,37 +25,23 @@ public final class SourcePatternDetector: SourcePatternDetectorProtocol, Sendabl
         categories: [PatternCategory]? = nil,
         parsedAST: SourceFileSyntax? = nil
     ) -> [LintIssue] {
-        let sourceFile = parsedAST ?? Parser.parse(source: sourceCode)
-
-        let converter = SourceLocationConverter(fileName: filePath, tree: sourceFile)
-        var allIssues: [LintIssue] = []
-        
-        // Get patterns and create visitors with proper initialization
         let patterns: [SyntaxPattern]
         if let categories = categories {
             patterns = categories.flatMap { registry.getPatterns(for: $0) }
         } else {
             patterns = registry.getAllPatterns()
         }
-
-        for pattern in patterns {
-            // Create visitor with proper initialization
-            if let visitorType = pattern.visitor as? BasePatternVisitor.Type {
-                let visitor = visitorType.init(pattern: pattern)
-                visitor.setSourceLocationConverter(converter)
-                visitor.setFilePath(filePath)
-                visitor.walk(sourceFile)
-                allIssues.append(contentsOf: visitor.detectedIssues)
-            }
-        }
-
-        return allIssues
+        let requestedRules = Set(patterns.map(\.name))
+        return runVisitors(
+            for: patterns,
+            requestedRules: requestedRules,
+            sourceCode: sourceCode,
+            filePath: filePath,
+            parsedAST: parsedAST
+        )
     }
 
     /// Detects specific patterns in the given source code.
-    ///
-    /// This method parses the source code into an AST and applies only the
-    /// specified pattern visitors to detect issues.
     ///
     /// - Parameters:
     ///   - sourceCode: The Swift source code to analyze.
@@ -68,29 +54,65 @@ public final class SourcePatternDetector: SourcePatternDetectorProtocol, Sendabl
         ruleIdentifiers: [RuleIdentifier],
         parsedAST: SourceFileSyntax? = nil
     ) -> [LintIssue] {
-        let sourceFile = parsedAST ?? Parser.parse(source: sourceCode)
-
-        let converter = SourceLocationConverter(fileName: filePath, tree: sourceFile)
-        var allIssues: [LintIssue] = []
-
-        // Get specific patterns by rule identifier
+        let requestedRules = Set(ruleIdentifiers)
         let allPatterns = registry.getAllPatterns()
-        let requestedPatterns = allPatterns.filter { pattern in
-            ruleIdentifiers.contains(pattern.name)
+        let patterns = allPatterns.filter { requestedRules.contains($0.name) }
+        return runVisitors(
+            for: patterns,
+            requestedRules: requestedRules,
+            sourceCode: sourceCode,
+            filePath: filePath,
+            parsedAST: parsedAST
+        )
+    }
+
+    // MARK: - Private
+
+    /// Groups patterns by visitor type, runs each visitor once, and filters
+    /// the results to only include issues matching the requested rules.
+    ///
+    /// Previously, each pattern created its own visitor instance — so a visitor
+    /// registered for N patterns would walk the AST N times, producing N copies
+    /// of every issue. This method deduplicates by visitor type.
+    private func runVisitors(
+        for patterns: [SyntaxPattern],
+        requestedRules: Set<RuleIdentifier>,
+        sourceCode: String,
+        filePath: String,
+        parsedAST: SourceFileSyntax?
+    ) -> [LintIssue] {
+        let sourceFile = parsedAST ?? Parser.parse(source: sourceCode)
+        let converter = SourceLocationConverter(fileName: filePath, tree: sourceFile)
+
+        // Group patterns by visitor type so each visitor walks the AST only once.
+        // Use ObjectIdentifier on the metatype as the grouping key.
+        var visitorTypeToPatterns: [ObjectIdentifier: (type: BasePatternVisitor.Type, patterns: [SyntaxPattern])] = [:]
+        for pattern in patterns {
+            guard let visitorType = pattern.visitor as? BasePatternVisitor.Type else { continue }
+            let key = ObjectIdentifier(visitorType)
+            if visitorTypeToPatterns[key] != nil {
+                visitorTypeToPatterns[key]!.patterns.append(pattern)
+            } else {
+                visitorTypeToPatterns[key] = (type: visitorType, patterns: [pattern])
+            }
         }
 
-        for pattern in requestedPatterns {
-            // Create visitor with proper initialization
-            if let visitorType = pattern.visitor as? BasePatternVisitor.Type {
-                let visitor = visitorType.init(pattern: pattern)
-                visitor.setSourceLocationConverter(converter)
-                visitor.setFilePath(filePath)
-                visitor.walk(sourceFile)
-                allIssues.append(contentsOf: visitor.detectedIssues)
-            }
+        var allIssues: [LintIssue] = []
+
+        for (_, entry) in visitorTypeToPatterns {
+            // Initialize the visitor with the first pattern (for visitors that
+            // use the pattern's template). The visitor will report issues with
+            // specific ruleNames regardless of which pattern was used to init.
+            let visitor = entry.type.init(pattern: entry.patterns[0])
+            visitor.setSourceLocationConverter(converter)
+            visitor.setFilePath(filePath)
+            visitor.walk(sourceFile)
+
+            // Filter to only the rules that were actually requested.
+            let issues = visitor.detectedIssues.filter { requestedRules.contains($0.ruleName) }
+            allIssues.append(contentsOf: issues)
         }
 
         return allIssues
     }
-
 }
