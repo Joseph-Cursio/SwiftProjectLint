@@ -69,7 +69,6 @@ struct SourcePatternDetectorCoreTests {
         // Overall, we should have at least some issues detected
         #expect(issues.count >= 1)
         
-
     }
     
     @Test
@@ -109,6 +108,5 @@ struct SourcePatternDetectorCoreTests {
         
         // Then - Both files should be processed independently
         
-
     }
 } 

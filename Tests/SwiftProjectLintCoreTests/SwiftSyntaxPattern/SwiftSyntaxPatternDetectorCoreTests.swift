@@ -62,7 +62,6 @@ struct SwiftSyntaxPatternDetectorCoreTests {
         // Overall, we should have at least some issues detected
         #expect(issues.count >= 1)
         
-
     }
     
     @Test
@@ -110,6 +109,5 @@ struct SwiftSyntaxPatternDetectorCoreTests {
         
         // Then - Both files should be processed independently
         
-
     }
 } 

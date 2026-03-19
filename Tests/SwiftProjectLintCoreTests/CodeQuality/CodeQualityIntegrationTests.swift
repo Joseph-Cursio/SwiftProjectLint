@@ -31,7 +31,7 @@ struct CodeQualityIntegrationTests {
 
             var body: some View {
                 Text("This is a hardcoded string that should be localized")
-                    .padding(20)
+                    .padding(16)
             }
         }
         """
@@ -58,7 +58,7 @@ struct CodeQualityIntegrationTests {
 
             var body: some View {
                 Text("This is a hardcoded string that should be localized")
-                    .padding(20)
+                    .padding(16)
             }
         }
         """
@@ -85,7 +85,7 @@ struct CodeQualityIntegrationTests {
 
             var body: some View {
                 Text("This is a hardcoded string that should be localized")
-                    .padding(20)
+                    .padding(16)
             }
         }
         """

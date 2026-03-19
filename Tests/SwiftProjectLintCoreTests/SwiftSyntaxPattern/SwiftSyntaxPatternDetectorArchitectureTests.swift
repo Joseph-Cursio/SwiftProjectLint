@@ -52,7 +52,6 @@ struct SyntaxPatternDetectorArchTests {
             #expect(fatViewIssue.severity == .warning)
         }
         
-
     }
     
     @Test
@@ -92,7 +91,6 @@ struct SyntaxPatternDetectorArchTests {
             #expect(diIssue.severity == .info)
         }
         
-
     }
     
     @Test
@@ -133,7 +131,6 @@ struct SyntaxPatternDetectorArchTests {
         
         // Then - This should have no architecture issues since it uses proper DI
         
-
     }
     
     @Test

@@ -48,7 +48,6 @@ struct SyntaxPatternDetectorPerfTests {
             #expect(forEachIssue.severity == .warning)
         }
         
-
     }
     
     @Test
@@ -87,6 +86,5 @@ struct SyntaxPatternDetectorPerfTests {
         
         // Then - This should have no performance issues since it uses proper ID
         
-
     }
 } 

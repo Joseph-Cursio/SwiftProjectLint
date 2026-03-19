@@ -15,6 +15,10 @@ class CodeQualityVisitor: BasePatternVisitor {
     private var currentFilePath: String = ""
     private var configuration: Configuration
 
+    /// Collects magic number occurrences during the walk.
+    /// Only numbers that appear 2+ times are reported (single-use literals are not magic).
+    private var magicNumberOccurrences: [String: [(line: Int, message: String, suggestion: String)]] = [:]
+
     required init(pattern: SyntaxPattern, viewMode: SyntaxTreeViewMode = .sourceAccurate) {
         self.configuration = .default
         super.init(pattern: pattern, viewMode: viewMode)
@@ -81,34 +85,12 @@ class CodeQualityVisitor: BasePatternVisitor {
     }
 
     override func visit(_ node: VariableDeclSyntax) -> SyntaxVisitorContinueKind {
-        // Check for magic numbers in UI-related properties
         for binding in node.bindings {
             if let initializer = binding.initializer {
-                // Look for integer or float literals directly
                 if let intLiteral = initializer.value.as(IntegerLiteralExprSyntax.self) {
-                    let value = Int(intLiteral.literal.text) ?? 0
-                    if value >= configuration.magicNumberThreshold {
-                        addIssue(
-                            severity: .info,
-                            message: "Consider extracting magic number \(value) to a named constant",
-                            filePath: currentFilePath,
-                            lineNumber: getLineNumber(for: Syntax(initializer)),
-                            suggestion: "Extract \(value) to a named constant for better maintainability",
-                            ruleName: .magicNumber
-                        )
-                    }
+                    recordMagicNumber(intLiteral.literal.text, node: Syntax(initializer))
                 } else if let floatLiteral = initializer.value.as(FloatLiteralExprSyntax.self) {
-                    if let value = Double(floatLiteral.literal.text),
-                       value >= Double(configuration.magicNumberThreshold) {
-                        addIssue(
-                            severity: .info,
-                            message: "Consider extracting magic number \(value) to a named constant",
-                            filePath: currentFilePath,
-                            lineNumber: getLineNumber(for: Syntax(initializer)),
-                            suggestion: "Extract \(value) to a named constant for better maintainability",
-                            ruleName: .magicNumber
-                        )
-                    }
+                    recordMagicNumber(floatLiteral.literal.text, node: Syntax(initializer))
                 }
             }
         }
@@ -116,34 +98,51 @@ class CodeQualityVisitor: BasePatternVisitor {
     }
 
     override func visit(_ node: FunctionCallExprSyntax) -> SyntaxVisitorContinueKind {
-        // Check for magic numbers in function call arguments
         for argument in node.arguments {
             if let intLiteral = argument.expression.as(IntegerLiteralExprSyntax.self) {
-                let value = Int(intLiteral.literal.text) ?? 0
-                if value >= configuration.magicNumberThreshold {
-                    addIssue(
-                        severity: .info,
-                        message: "Consider extracting magic number \(value) to a named constant",
-                        filePath: currentFilePath,
-                        lineNumber: getLineNumber(for: Syntax(argument)),
-                        suggestion: "Extract \(value) to a named constant for better maintainability",
-                        ruleName: .magicNumber
-                    )
-                }
+                recordMagicNumber(intLiteral.literal.text, node: Syntax(argument))
             } else if let floatLiteral = argument.expression.as(FloatLiteralExprSyntax.self) {
-                if let value = Double(floatLiteral.literal.text), value >= Double(configuration.magicNumberThreshold) {
-                    addIssue(
-                        severity: .info,
-                        message: "Consider extracting magic number \(value) to a named constant",
-                        filePath: currentFilePath,
-                        lineNumber: getLineNumber(for: Syntax(argument)),
-                        suggestion: "Extract \(value) to a named constant for better maintainability",
-                        ruleName: .magicNumber
-                    )
-                }
+                recordMagicNumber(floatLiteral.literal.text, node: Syntax(argument))
             }
         }
         return .visitChildren
+    }
+
+    /// Records a numeric literal for later duplicate checking.
+    private func recordMagicNumber(_ literal: String, node: Syntax) {
+        let numericValue: Double
+        if let intVal = Int(literal) {
+            guard intVal >= configuration.magicNumberThreshold else { return }
+            numericValue = Double(intVal)
+        } else if let dblVal = Double(literal) {
+            guard dblVal >= Double(configuration.magicNumberThreshold) else { return }
+            numericValue = dblVal
+        } else {
+            return
+        }
+        let key = literal
+        let entry = (
+            line: getLineNumber(for: node),
+            message: "Consider extracting magic number \(literal) to a named constant",
+            suggestion: "Extract \(literal) to a named constant for better maintainability"
+        )
+        magicNumberOccurrences[key, default: []].append(entry)
+    }
+
+    /// Reports magic numbers that appear more than once in the file.
+    override func visitPost(_ node: SourceFileSyntax) {
+        for (_, occurrences) in magicNumberOccurrences where occurrences.count >= 2 {
+            for occurrence in occurrences {
+                addIssue(
+                    severity: .info,
+                    message: occurrence.message,
+                    filePath: currentFilePath,
+                    lineNumber: occurrence.line,
+                    suggestion: occurrence.suggestion,
+                    ruleName: .magicNumber
+                )
+            }
+        }
     }
 
     /// SwiftUI initializers and modifiers whose string arguments are shown to users.

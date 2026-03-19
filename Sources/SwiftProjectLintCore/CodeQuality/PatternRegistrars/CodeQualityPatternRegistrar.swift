@@ -31,7 +31,7 @@ class CodeQualityPatternRegistrar: PatternRegistrarWithVisitorProto {
                 category: .codeQuality,
                 messageTemplate: "Consider localizing hardcoded text in user-facing view",
                 suggestion: "Use NSLocalizedString or String(localized:) for user-facing text",
-                description: "Detects hardcoded strings in SwiftUI views (Text, Label, Button, etc.) that should be localized"
+                description: "Detects hardcoded strings in SwiftUI views that should be localized"
             ),
             SyntaxPattern(
                 name: .missingDocumentation,

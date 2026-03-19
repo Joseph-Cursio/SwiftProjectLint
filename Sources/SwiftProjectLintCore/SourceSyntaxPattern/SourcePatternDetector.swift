@@ -68,6 +68,15 @@ public final class SourcePatternDetector: SourcePatternDetectorProtocol, Sendabl
 
     // MARK: - Private
 
+    /// Rules that produce excessive false positives in test files.
+    /// Tests legitimately use magic numbers in assertions, instantiate types directly,
+    /// and don't need public API documentation.
+    private static let rulesSkippedInTests: Set<RuleIdentifier> = [
+        .magicNumber,
+        .missingDocumentation,
+        .directInstantiation
+    ]
+
     /// Groups patterns by visitor type, runs each visitor once, and filters
     /// the results to only include issues matching the requested rules.
     ///
@@ -83,6 +92,9 @@ public final class SourcePatternDetector: SourcePatternDetectorProtocol, Sendabl
     ) -> [LintIssue] {
         let sourceFile = parsedAST ?? Parser.parse(source: sourceCode)
         let converter = SourceLocationConverter(fileName: filePath, tree: sourceFile)
+        let isTestFile = filePath.contains("Tests")
+            || filePath.hasSuffix("Test.swift")
+            || filePath.hasSuffix("Tests.swift")
 
         // Group patterns by visitor type so each visitor walks the AST only once.
         // Use ObjectIdentifier on the metatype as the grouping key.
@@ -90,11 +102,7 @@ public final class SourcePatternDetector: SourcePatternDetectorProtocol, Sendabl
         for pattern in patterns {
             guard let visitorType = pattern.visitor as? BasePatternVisitor.Type else { continue }
             let key = ObjectIdentifier(visitorType)
-            if visitorTypeToPatterns[key] != nil {
-                visitorTypeToPatterns[key]!.patterns.append(pattern)
-            } else {
-                visitorTypeToPatterns[key] = (type: visitorType, patterns: [pattern])
-            }
+            visitorTypeToPatterns[key, default: (type: visitorType, patterns: [])].patterns.append(pattern)
         }
 
         var allIssues: [LintIssue] = []
@@ -109,7 +117,14 @@ public final class SourcePatternDetector: SourcePatternDetectorProtocol, Sendabl
             visitor.walk(sourceFile)
 
             // Filter to only the rules that were actually requested.
-            let issues = visitor.detectedIssues.filter { requestedRules.contains($0.ruleName) }
+            var issues = visitor.detectedIssues.filter { requestedRules.contains($0.ruleName) }
+
+            // Suppress noisy rules in test files — these produce false positives
+            // in test code (assertions use magic numbers, tests instantiate directly, etc.)
+            if isTestFile {
+                issues = issues.filter { !Self.rulesSkippedInTests.contains($0.ruleName) }
+            }
+
             allIssues.append(contentsOf: issues)
         }
 
