@@ -56,32 +56,4 @@ struct SourcePatternFileCacheTests {
         
     }
     
-    @Test func characterizeCacheClearingBehavior() throws {
-        let detector = SourcePatternDetector()
-        
-        let testContent = """
-        import SwiftUI
-        struct TestView: View {
-            @State var test: Bool = false
-            var body: some View { Text("Test") }
-        }
-        """
-        
-        // Analyze file
-        let issuesBefore = detector.detectPatterns(in: testContent, filePath: "/Test.swift")
-        
-        // Clear cache
-        detector.clearCache()
-        
-        // Analyze same content again
-        let issuesAfter = detector.detectPatterns(in: testContent, filePath: "/Test.swift")
-        
-        print("📊 Cache Clearing Behavior:")
-        print("   Issues before cache clear: \(issuesBefore.count)")
-        print("   Issues after cache clear: \(issuesAfter.count)")
-        print("   Cache clearing appears to work without affecting analysis")
-        
-        #expect(issuesBefore.count == issuesAfter.count, "Cache clearing should not affect analysis results")
-    }
-    
  }

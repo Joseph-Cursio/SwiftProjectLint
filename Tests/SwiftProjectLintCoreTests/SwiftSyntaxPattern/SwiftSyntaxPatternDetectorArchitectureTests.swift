@@ -7,12 +7,6 @@ import Testing
 @Suite("SyntaxPatternDetectorArchTests")
 struct SyntaxPatternDetectorArchTests {
     
-    // MARK: - Test Helper Methods
-    
-    static func clearTestState(detector: SwiftSyntaxPatternDetector?) {
-        detector?.clearCache()
-    }
-    
     // MARK: - Architecture Visitor Tests (Use Shared Registry)
     
     @Test
@@ -58,7 +52,7 @@ struct SyntaxPatternDetectorArchTests {
             #expect(fatViewIssue.severity == .warning)
         }
         
-        clearTestState(detector: detector)
+
     }
     
     @Test
@@ -98,7 +92,7 @@ struct SyntaxPatternDetectorArchTests {
             #expect(diIssue.severity == .info)
         }
         
-        clearTestState(detector: detector)
+
     }
     
     @Test
@@ -139,7 +133,7 @@ struct SyntaxPatternDetectorArchTests {
         
         // Then - This should have no architecture issues since it uses proper DI
         
-        clearTestState(detector: detector)
+
     }
     
     @Test

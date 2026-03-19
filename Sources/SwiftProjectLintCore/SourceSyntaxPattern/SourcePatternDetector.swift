@@ -2,11 +2,8 @@ import Foundation
 import SwiftParser
 import SwiftSyntax
 
-// Safety: @unchecked Sendable because mutable fileCache is used per-analysis
-// (populated then cleared) and not accessed concurrently.
-public final class SourcePatternDetector: SourcePatternDetectorProtocol, @unchecked Sendable {
+public final class SourcePatternDetector: SourcePatternDetectorProtocol, Sendable {
     public let registry: PatternVisitorRegistry
-    private var fileCache: [String: SourceFileSyntax] = [:]
 
     /// Initializes a new SwiftSyntax pattern detector.
     ///
@@ -29,7 +26,7 @@ public final class SourcePatternDetector: SourcePatternDetectorProtocol, @unchec
         parsedAST: SourceFileSyntax? = nil
     ) -> [LintIssue] {
         let sourceFile = parsedAST ?? Parser.parse(source: sourceCode)
-        fileCache[filePath] = sourceFile
+
         let converter = SourceLocationConverter(fileName: filePath, tree: sourceFile)
         var allIssues: [LintIssue] = []
         
@@ -72,7 +69,7 @@ public final class SourcePatternDetector: SourcePatternDetectorProtocol, @unchec
         parsedAST: SourceFileSyntax? = nil
     ) -> [LintIssue] {
         let sourceFile = parsedAST ?? Parser.parse(source: sourceCode)
-        fileCache[filePath] = sourceFile
+
         let converter = SourceLocationConverter(fileName: filePath, tree: sourceFile)
         var allIssues: [LintIssue] = []
 
@@ -96,9 +93,4 @@ public final class SourcePatternDetector: SourcePatternDetectorProtocol, @unchec
         return allIssues
     }
 
-    /// Clears the internal file cache to free memory.
-    public func clearCache() {
-        fileCache.removeAll()
-    }
-    
 }

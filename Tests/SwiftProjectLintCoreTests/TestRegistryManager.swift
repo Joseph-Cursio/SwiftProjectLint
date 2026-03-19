@@ -55,7 +55,7 @@ public class TestRegistryManager {
     /// Reset the shared registry to a clean state
     public static func resetSharedRegistry() {
         sharedVisitorRegistry.clear()
-        sharedDetector.clearCache()
+
         isInitialized = false
     }
     

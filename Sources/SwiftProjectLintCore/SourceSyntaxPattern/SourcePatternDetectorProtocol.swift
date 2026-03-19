@@ -15,6 +15,4 @@ public protocol SourcePatternDetectorProtocol {
         categories: [PatternCategory]?,
         parsedAST: SourceFileSyntax?
     ) -> [LintIssue]
-    
-    func clearCache()
 }

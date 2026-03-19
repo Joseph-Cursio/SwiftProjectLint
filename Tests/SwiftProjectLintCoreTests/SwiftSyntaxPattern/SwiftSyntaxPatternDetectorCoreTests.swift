@@ -24,10 +24,6 @@ struct SwiftSyntaxPatternDetectorCoreTests {
         return TestRegistryManager.getDetectorWithPatterns(patterns)
     }
     
-    static func clearTestState(detector: SwiftSyntaxPatternDetector?) {
-        detector?.clearCache()
-    }
-    
     // MARK: - SwiftSyntax Pattern Detector Core Tests (Use Shared Registry)
     
     @Test
@@ -66,7 +62,7 @@ struct SwiftSyntaxPatternDetectorCoreTests {
         // Overall, we should have at least some issues detected
         #expect(issues.count >= 1)
         
-        clearTestState(detector: detector)
+
     }
     
     @Test
@@ -114,6 +110,6 @@ struct SwiftSyntaxPatternDetectorCoreTests {
         
         // Then - Both files should be processed independently
         
-        clearTestState(detector: detector)
+
     }
 } 

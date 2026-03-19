@@ -15,6 +15,4 @@ public protocol SwiftSyntaxPatternDetectorProtocol {
         categories: [PatternCategory]?,
         parsedAST: SourceFileSyntax?
     ) -> [LintIssue]
-    
-    func clearCache()
 }

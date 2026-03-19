@@ -28,10 +28,6 @@ struct SourcePatternDetectorCoreTests {
         return SourcePatternDetector(registry: visitorRegistry)
     }
     
-    static func clearTestState(detector: SourcePatternDetector?) {
-        detector?.clearCache()
-    }
-    
     static func getSharedDetector() -> SourcePatternDetector {
         let visitorRegistry = TestRegistryManager.getSharedVisitorRegistry()
         return SourcePatternDetector(registry: visitorRegistry)
@@ -73,7 +69,7 @@ struct SourcePatternDetectorCoreTests {
         // Overall, we should have at least some issues detected
         #expect(issues.count >= 1)
         
-        clearTestState(detector: detector)
+
     }
     
     @Test
@@ -113,6 +109,6 @@ struct SourcePatternDetectorCoreTests {
         
         // Then - Both files should be processed independently
         
-        clearTestState(detector: detector)
+
     }
 } 

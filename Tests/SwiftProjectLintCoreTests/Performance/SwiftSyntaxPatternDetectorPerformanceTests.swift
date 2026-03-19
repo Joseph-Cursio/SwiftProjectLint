@@ -7,12 +7,6 @@ import Testing
 @Suite("SyntaxPatternDetectorPerfTests")
 struct SyntaxPatternDetectorPerfTests {
     
-    // MARK: - Test Helper Methods
-    
-    static func clearTestState(detector: SwiftSyntaxPatternDetector?) {
-        detector?.clearCache()
-    }
-    
     // MARK: - Performance Visitor Tests (Use Shared Registry)
     
     @Test
@@ -54,7 +48,7 @@ struct SyntaxPatternDetectorPerfTests {
             #expect(forEachIssue.severity == .warning)
         }
         
-        clearTestState(detector: detector)
+
     }
     
     @Test
@@ -93,6 +87,6 @@ struct SyntaxPatternDetectorPerfTests {
         
         // Then - This should have no performance issues since it uses proper ID
         
-        clearTestState(detector: detector)
+
     }
 } 
