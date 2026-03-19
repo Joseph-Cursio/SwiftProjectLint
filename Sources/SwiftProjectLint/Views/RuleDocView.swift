@@ -32,8 +32,8 @@ struct RuleDocView: View {
     // MARK: - Markdown blocks
 
     private enum Block {
-        case h2(String)
-        case h3(String)
+        case heading2(String)
+        case heading3(String)
         case codeBlock(String)
         case divider
         case paragraph(String)
@@ -43,41 +43,41 @@ struct RuleDocView: View {
     private func parseBlocks(_ text: String) -> [Block] {
         var blocks: [Block] = []
         let lines = text.components(separatedBy: "\n")
-        var i = 0
+        var lineIndex = 0
 
-        while i < lines.count {
-            let line = lines[i]
+        while lineIndex < lines.count {
+            let line = lines[lineIndex]
 
             // Skip back-navigation link
-            if line.hasPrefix("[←") { i += 1; continue }
+            if line.hasPrefix("[←") { lineIndex += 1; continue }
 
             // H2
             if line.hasPrefix("## ") {
-                blocks.append(.h2(String(line.dropFirst(3))))
-                i += 1; continue
+                blocks.append(.heading2(String(line.dropFirst(3))))
+                lineIndex += 1; continue
             }
 
             // H3
             if line.hasPrefix("### ") {
-                blocks.append(.h3(String(line.dropFirst(4))))
-                i += 1; continue
+                blocks.append(.heading3(String(line.dropFirst(4))))
+                lineIndex += 1; continue
             }
 
             // Divider
             if line == "---" {
                 blocks.append(.divider)
-                i += 1; continue
+                lineIndex += 1; continue
             }
 
             // Fenced code block
             if line.hasPrefix("```") {
-                i += 1
+                lineIndex += 1
                 var codeLines: [String] = []
-                while i < lines.count && !lines[i].hasPrefix("```") {
-                    codeLines.append(lines[i])
-                    i += 1
+                while lineIndex < lines.count && !lines[lineIndex].hasPrefix("```") {
+                    codeLines.append(lines[lineIndex])
+                    lineIndex += 1
                 }
-                i += 1 // consume closing ```
+                lineIndex += 1 // consume closing ```
                 blocks.append(.codeBlock(codeLines.joined(separator: "\n")))
                 continue
             }
@@ -85,20 +85,20 @@ struct RuleDocView: View {
             // Empty line
             if line.trimmingCharacters(in: .whitespaces).isEmpty {
                 blocks.append(.spacer)
-                i += 1; continue
+                lineIndex += 1; continue
             }
 
             // Paragraph — collect consecutive non-special lines
             var paragraphLines: [String] = []
-            while i < lines.count {
-                let l = lines[i]
-                if l.isEmpty
-                    || l.hasPrefix("#")
-                    || l.hasPrefix("```")
-                    || l == "---"
-                    || l.hasPrefix("[←") { break }
-                paragraphLines.append(l)
-                i += 1
+            while lineIndex < lines.count {
+                let currentLine = lines[lineIndex]
+                if currentLine.isEmpty
+                    || currentLine.hasPrefix("#")
+                    || currentLine.hasPrefix("```")
+                    || currentLine == "---"
+                    || currentLine.hasPrefix("[←") { break }
+                paragraphLines.append(currentLine)
+                lineIndex += 1
             }
             if !paragraphLines.isEmpty {
                 blocks.append(.paragraph(paragraphLines.joined(separator: "\n")))
@@ -113,14 +113,14 @@ struct RuleDocView: View {
     @ViewBuilder
     private func renderBlock(_ block: Block) -> some View {
         switch block {
-        case .h2(let text):
+        case .heading2(let text):
             Text(text)
                 .font(.title2)
                 .bold()
                 .padding(.top, 20)
                 .padding(.bottom, 6)
 
-        case .h3(let text):
+        case .heading3(let text):
             Text(text)
                 .font(.headline)
                 .padding(.top, 14)

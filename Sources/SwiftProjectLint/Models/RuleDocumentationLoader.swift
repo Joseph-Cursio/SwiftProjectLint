@@ -39,16 +39,16 @@ struct RuleDocumentationLoader {
     private static func camelCaseToKebab(_ input: String) -> String {
         var result = ""
         let chars = Array(input)
-        for i in 0..<chars.count {
-            let c = chars[i]
-            guard c.isUppercase else { result += String(c); continue }
-            let prevIsLower = i > 0 && chars[i - 1].isLowercase
-            let prevIsUpper = i > 0 && chars[i - 1].isUppercase
-            let nextIsLower = i < chars.count - 1 && chars[i + 1].isLowercase
+        for idx in 0..<chars.count {
+            let char = chars[idx]
+            guard char.isUppercase else { result += String(char); continue }
+            let prevIsLower = idx > 0 && chars[idx - 1].isLowercase
+            let prevIsUpper = idx > 0 && chars[idx - 1].isUppercase
+            let nextIsLower = idx < chars.count - 1 && chars[idx + 1].isLowercase
             if prevIsLower || (prevIsUpper && nextIsLower) {
                 result += "-"
             }
-            result += c.lowercased()
+            result += char.lowercased()
         }
         return result
     }
