@@ -92,10 +92,6 @@ class CodeQualityVisitor: BasePatternVisitor {
     }
 
     override func visitPost(_ node: FunctionDeclSyntax) {
-        // Debug print for function length (using NSLog)
-        NSLog(
-            "[DEBUG] Function '%@' length: %d (threshold: %d)",
-            currentFunctionName, currentFunctionLength, configuration.maxFunctionLength)
         // Check function length when leaving the function
         if isInFunction && currentFunctionLength > configuration.maxFunctionLength {
             addIssue(
