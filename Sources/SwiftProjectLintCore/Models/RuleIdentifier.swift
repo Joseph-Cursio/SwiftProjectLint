@@ -53,6 +53,8 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
     case actorNamingSuffix = "Actor Naming Suffix"
     case propertyWrapperNamingSuffix = "Property Wrapper Naming Suffix"
     case expectNegation = "Expect Negation"
+    case lowercasedContains = "Lowercased Contains"
+    case multipleTypesPerFile = "Multiple Types Per File"
 
     // Security Rules
     case hardcodedSecret = "Hardcoded Secret"
@@ -63,6 +65,7 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
     case missingAccessibilityHint = "Missing Accessibility Hint"
     case inaccessibleColorUsage = "Inaccessible Color Usage"
     case iconOnlyButtonMissingLabel = "Icon-Only Button Missing Label"
+    case hardcodedFontSize = "Hardcoded Font Size"
 
     // Memory Management Rules
     case potentialRetainCycle = "Potential Retain Cycle"
@@ -111,7 +114,7 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
             // Code Quality Rules
         case .magicNumber, .hardcodedStrings, .missingDocumentation,
              .protocolNamingSuffix, .actorNamingSuffix, .propertyWrapperNamingSuffix,
-             .expectNegation:
+             .expectNegation, .lowercasedContains, .multipleTypesPerFile:
             return .codeQuality
 
             // Security Rules
@@ -120,7 +123,7 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
 
             // Accessibility Rules
         case .missingAccessibilityLabel, .missingAccessibilityHint, .inaccessibleColorUsage,
-             .iconOnlyButtonMissingLabel:
+             .iconOnlyButtonMissingLabel, .hardcodedFontSize:
             return .accessibility
 
             // Memory Management Rules

@@ -31,7 +31,8 @@ class CodeQualityPatternRegistrar: PatternRegistrarWithVisitorProto {
                 category: .codeQuality,
                 messageTemplate: "Consider localizing hardcoded text in user-facing view",
                 suggestion: "Use NSLocalizedString or String(localized:) for user-facing text",
-                description: "Detects hardcoded strings in SwiftUI views that should be localized"
+                description: "Detects hardcoded strings in SwiftUI views that should be localized. " +
+                    "Skips URLs, SF Symbol names, and systemImage/systemName arguments."
             ),
             SyntaxPattern(
                 name: .missingDocumentation,
@@ -80,5 +81,7 @@ class CodeQualityPatternRegistrar: PatternRegistrarWithVisitorProto {
             )
         ]
         registry.register(patterns: patterns)
+        registry.register(pattern: LowercasedContainsPatternRegistrar().pattern)
+        registry.register(pattern: MultipleTypesPerFilePatternRegistrar().pattern)
     }
 }
