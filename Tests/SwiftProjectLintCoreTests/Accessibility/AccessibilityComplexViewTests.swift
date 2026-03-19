@@ -50,15 +50,11 @@ struct AccessibilityComplexViewTests {
         // When
         let sourceFile = Parser.parse(source: sourceCode)
         visitor.walk(sourceFile)
-        DebugLogger.log("Detected issues count: \(visitor.detectedIssues.count)")
-        for (index, issue) in visitor.detectedIssues.enumerated() {
-            DebugLogger.log("Issue \(index): \(issue.message)")
-        }
         // Then
         #expect(visitor.detectedIssues.count == 5)
 
         let buttonWithImageIssues = visitor.detectedIssues.filter {
-            $0.message.contains("Button with image missing accessibility label")
+            $0.message.contains("Icon-only button is invisible to VoiceOver")
         }
         #expect(buttonWithImageIssues.count == 1)
 

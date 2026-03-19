@@ -63,6 +63,7 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
     case missingAccessibilityLabel = "Missing Accessibility Label"
     case missingAccessibilityHint = "Missing Accessibility Hint"
     case inaccessibleColorUsage = "Inaccessible Color Usage"
+    case iconOnlyButtonMissingLabel = "Icon-Only Button Missing Label"
 
     // Memory Management Rules
     case potentialRetainCycle = "Potential Retain Cycle"
@@ -119,7 +120,8 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
             return .security
 
             // Accessibility Rules
-        case .missingAccessibilityLabel, .missingAccessibilityHint, .inaccessibleColorUsage:
+        case .missingAccessibilityLabel, .missingAccessibilityHint, .inaccessibleColorUsage,
+             .iconOnlyButtonMissingLabel:
             return .accessibility
 
             // Memory Management Rules

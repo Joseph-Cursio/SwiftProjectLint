@@ -66,10 +66,10 @@ struct ImageAccessibilityCheckerCoverageTests {
         let sourceFile = Parser.parse(source: sourceCode)
         visitor.walk(sourceFile)
 
-        // Should get a "Button with image missing accessibility label" issue
+        // Should get an "Icon-only button" issue
         // but NOT an "Image missing accessibility label" issue
         let buttonIssues = visitor.detectedIssues.filter {
-            $0.message.contains("Button with image")
+            $0.message.contains("Icon-only button")
         }
         let imageOnlyIssues = visitor.detectedIssues.filter {
             $0.message == "Image missing accessibility label"

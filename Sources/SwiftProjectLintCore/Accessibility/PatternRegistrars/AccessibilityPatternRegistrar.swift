@@ -41,6 +41,16 @@ class AccessibilityPatternRegistrar: PatternRegistrarWithVisitorProto {
                 messageTemplate: "Color usage may not be accessible for colorblind users",
                 suggestion: "Use semantic colors or add alternative indicators beyond color",
                 description: "Detects color usage that may not be accessible to colorblind users"
+            ),
+            SyntaxPattern(
+                name: .iconOnlyButtonMissingLabel,
+                visitor: AccessibilityVisitor.self,
+                severity: .warning,
+                category: .accessibility,
+                messageTemplate: "Icon-only button is invisible to VoiceOver",
+                suggestion: "Use Button(\"Label\", systemImage: \"name\", action: ...) "
+                    + "with .labelStyle(.iconOnly), or add .accessibilityLabel(\"description\")",
+                description: "Detects buttons containing only an image without an accessibility label"
             )
         ]
         registry.register(patterns: patterns)

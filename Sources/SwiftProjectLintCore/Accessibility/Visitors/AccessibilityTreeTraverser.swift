@@ -23,8 +23,27 @@ class AccessibilityTreeTraverser {
         "accessibilityRespondsToUserInteraction"
     ]
 
-    /// Checks if the given modifier exists anywhere in the modifier chain.
-    /// Uses a hybrid traversal approach: parent chain + recursive base traversal.
+    /// Checks if the given modifier exists in the SwiftUI modifier chain
+    /// attached to this node. Walks up through chained modifier calls only,
+    /// not through the entire parent tree to the source file root.
+    ///
+    /// In SwiftUI's AST, a modifier chain like:
+    /// ```swift
+    /// Button { ... }
+    ///     .accessibilityLabel("Send")
+    ///     .buttonStyle(.plain)
+    /// ```
+    /// is represented as nested FunctionCallExpr nodes:
+    /// ```
+    /// FunctionCallExpr(.buttonStyle)
+    ///   └─ MemberAccessExpr(.buttonStyle)
+    ///        └─ FunctionCallExpr(.accessibilityLabel)
+    ///             └─ MemberAccessExpr(.accessibilityLabel)
+    ///                  └─ FunctionCallExpr(Button)
+    /// ```
+    ///
+    /// From the Button node, we walk up through parent MemberAccessExpr →
+    /// FunctionCallExpr pairs, checking each modifier name.
     ///
     /// - Parameters:
     ///   - node: The function call expression to check.
@@ -38,13 +57,17 @@ class AccessibilityTreeTraverser {
             return false
         }
 
-        // Traverse up the parent chain, and at each node, do recursive base traversal
-        var current: Syntax? = Syntax(node)
-        while let syntax = current {
-            if recursiveBaseTraversal(syntax, modifierName: modifierName) {
+        // Walk up the modifier chain only.
+        // From a view/modifier call, the parent is a MemberAccessExpr (the
+        // `.modifier` part), and *its* parent is the outer FunctionCallExpr
+        // (the full `.modifier(args)` call). Repeat until we leave the chain.
+        var current: Syntax = Syntax(node)
+        while let memberAccess = current.parent?.as(MemberAccessExprSyntax.self),
+              let modifierCall = memberAccess.parent?.as(FunctionCallExprSyntax.self) {
+            if memberAccess.declName.baseName.text == modifierName {
                 return true
             }
-            current = syntax.parent
+            current = Syntax(modifierCall)
         }
         return false
     }
@@ -113,6 +136,17 @@ class AccessibilityTreeTraverser {
                 where recursiveBaseTraversal(Syntax(statement.item), modifierName: modifierName) {
                 return true
             }
+        }
+        return false
+    }
+
+    /// Checks if a Button call has a string literal as its first unlabeled argument,
+    /// which acts as the button's title (e.g., `Button("Send", systemImage: "paperplane", action: ...)`).
+    static func buttonHasStringTitle(_ node: FunctionCallExprSyntax) -> Bool {
+        if let firstArg = node.arguments.first,
+           firstArg.label == nil,
+           firstArg.expression.is(StringLiteralExprSyntax.self) {
+            return true
         }
         return false
     }

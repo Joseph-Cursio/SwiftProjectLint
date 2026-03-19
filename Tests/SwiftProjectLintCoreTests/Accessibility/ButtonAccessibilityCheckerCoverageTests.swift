@@ -16,7 +16,7 @@ struct ButtonAccessibilityCheckerCoverageTests {
 
     // MARK: - Button with Image as Direct Argument
 
-    @Test("button with image as direct argument missing label is flagged")
+    @Test("button with image as direct argument missing label is flagged as icon-only")
     func buttonWithImageAsDirectArgument() throws {
         let visitor = createVisitor()
 
@@ -32,11 +32,12 @@ struct ButtonAccessibilityCheckerCoverageTests {
         visitor.walk(sourceFile)
 
         let buttonIssues = visitor.detectedIssues.filter {
-            $0.message.contains("Button with image missing accessibility label")
+            $0.message.contains("Icon-only button")
         }
         #expect(buttonIssues.count == 1)
         let issue = try #require(buttonIssues.first)
         #expect(issue.severity == .warning)
+        #expect(issue.ruleName == .iconOnlyButtonMissingLabel)
     }
 
     // MARK: - Button with Text as Direct Argument
@@ -66,7 +67,7 @@ struct ButtonAccessibilityCheckerCoverageTests {
 
     // MARK: - Button with Image in Trailing Closure
 
-    @Test("button with image in trailing closure missing label is flagged")
+    @Test("button with image in trailing closure missing label is flagged as icon-only")
     func buttonWithImageInTrailingClosure() throws {
         let visitor = createVisitor()
 
@@ -84,7 +85,7 @@ struct ButtonAccessibilityCheckerCoverageTests {
         visitor.walk(sourceFile)
 
         let buttonIssues = visitor.detectedIssues.filter {
-            $0.message.contains("Button with image missing accessibility label")
+            $0.message.contains("Icon-only button")
         }
         #expect(buttonIssues.count == 1)
     }
@@ -140,7 +141,7 @@ struct ButtonAccessibilityCheckerCoverageTests {
 
     // MARK: - Button with Both Image and Text
 
-    @Test("button with both image and text missing both modifiers")
+    @Test("button with both image and text does not fire icon-only warning")
     func buttonWithBothImageAndText() {
         let visitor = createVisitor()
 
@@ -162,13 +163,14 @@ struct ButtonAccessibilityCheckerCoverageTests {
         let sourceFile = Parser.parse(source: sourceCode)
         visitor.walk(sourceFile)
 
-        let labelIssues = visitor.detectedIssues.filter {
-            $0.message.contains("Button with image missing accessibility label")
+        let iconOnlyIssues = visitor.detectedIssues.filter {
+            $0.message.contains("Icon-only button")
         }
+        #expect(iconOnlyIssues.isEmpty)
+
         let hintIssues = visitor.detectedIssues.filter {
             $0.message.contains("Consider adding accessibility hint")
         }
-        #expect(labelIssues.count == 1)
         #expect(hintIssues.count == 1)
     }
 
@@ -192,14 +194,14 @@ struct ButtonAccessibilityCheckerCoverageTests {
         visitor.walk(sourceFile)
 
         let imageIssues = visitor.detectedIssues.filter {
-            $0.message.contains("Button with image")
+            $0.message.contains("Icon-only button")
         }
         #expect(imageIssues.isEmpty)
     }
 
     // MARK: - Multiple Buttons
 
-    @Test("multiple buttons each produce their own issues")
+    @Test("multiple icon-only buttons each produce their own issues")
     func multipleButtonsProduceIndependentIssues() {
         let visitor = createVisitor()
 
@@ -226,7 +228,7 @@ struct ButtonAccessibilityCheckerCoverageTests {
         visitor.walk(sourceFile)
 
         let buttonIssues = visitor.detectedIssues.filter {
-            $0.message.contains("Button with image missing accessibility label")
+            $0.message.contains("Icon-only button")
         }
         #expect(buttonIssues.count == 2)
     }

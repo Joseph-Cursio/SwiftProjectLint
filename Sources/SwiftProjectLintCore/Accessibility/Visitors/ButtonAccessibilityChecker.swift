@@ -17,22 +17,28 @@ class ButtonAccessibilityChecker: AccessibilityCheckerProtocol {
         let imagesInThisButton = AccessibilityTreeTraverser.findImages(in: Syntax(node))
         visitor.addImagesInButtons(imagesInThisButton)
 
-        // Check if button contains an Image
-        if containsImage(node) {
-            if !AccessibilityTreeTraverser.hasAccessibilityModifier(in: node, modifierName: "accessibilityLabel") {
+        let hasImage = containsImage(node)
+        let hasText = containsText(node)
+        let hasStringTitle = AccessibilityTreeTraverser.buttonHasStringTitle(node)
+        let hasAccessibilityLabel = AccessibilityTreeTraverser.hasAccessibilityModifier(
+            in: node, modifierName: "accessibilityLabel"
+        )
+
+        if hasImage && !hasText && !hasStringTitle {
+            // Icon-only button — invisible to VoiceOver without a label
+            if !hasAccessibilityLabel {
                 visitor.addIssue(
                     severity: .warning,
-                    message: "Button with image missing accessibility label",
+                    message: "Icon-only button is invisible to VoiceOver",
                     filePath: visitor.getCurrentFilePath() ?? "unknown",
                     lineNumber: visitor.getLineNumber(for: Syntax(node)),
-                    suggestion: "Add .accessibilityLabel(\"description\") to provide context for screen readers",
-                    ruleName: visitor.currentPattern?.name
+                    suggestion: "Use Button(\"Label\", systemImage: \"name\", action: ...) "
+                        + "with .labelStyle(.iconOnly), or add .accessibilityLabel(\"description\")",
+                    ruleName: .iconOnlyButtonMissingLabel
                 )
             }
-        }
-
-        // Check if button contains Text
-        if containsText(node) {
+        } else if hasText {
+            // Button has a Text view — suggest a hint if missing
             if !AccessibilityTreeTraverser.hasAccessibilityModifier(in: node, modifierName: "accessibilityHint") {
                 visitor.addIssue(
                     severity: .info,
