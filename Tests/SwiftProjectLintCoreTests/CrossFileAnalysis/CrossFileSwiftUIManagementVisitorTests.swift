@@ -72,8 +72,6 @@ struct CrossFileSwiftUIManagementVisitorTests {
             var visitCount = 0
             var detectedIssues: [LintIssue] = []
             var pattern: SyntaxPattern
-            static var type: VisitorType { .architecture }
-
             required init(pattern: SyntaxPattern, viewMode: SyntaxTreeViewMode = .sourceAccurate) {
                 self.pattern = pattern
                 super.init(viewMode: viewMode)

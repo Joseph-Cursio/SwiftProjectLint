@@ -32,10 +32,6 @@ struct AccessibilityTextColorTests {
         // When
         let sourceFile = Parser.parse(source: sourceCode)
         visitor.walk(sourceFile)
-        DebugLogger.log("Detected issues count: \(visitor.detectedIssues.count)")
-        for (index, issue) in visitor.detectedIssues.enumerated() {
-            DebugLogger.log("Issue \(index): \(issue.message)")
-        }
         // Then
         #expect(visitor.detectedIssues.count == 1)
         let issue = try #require(visitor.detectedIssues.first)

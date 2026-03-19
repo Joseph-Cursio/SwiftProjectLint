@@ -20,7 +20,6 @@ class SecurityVisitor: BasePatternVisitor {
     }
 
     override func visit(_ node: VariableDeclSyntax) -> SyntaxVisitorContinueKind {
-        DebugLogger.logVisitor(.security, "Visiting variable declaration")
         for binding in node.bindings {
             if let pattern = binding.pattern.as(IdentifierPatternSyntax.self) {
                 let variableName = pattern.identifier.text

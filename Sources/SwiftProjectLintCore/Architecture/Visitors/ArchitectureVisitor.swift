@@ -29,7 +29,6 @@ class ArchitectureVisitor: BasePatternVisitor {
 
     override func visit(_ node: StructDeclSyntax) -> SyntaxVisitorContinueKind {
         let structName = node.name.text
-        DebugLogger.logVisitor(.architecture, "Visiting struct: \(structName)")
         // Check if this is a SwiftUI view
         if isSwiftUIView(node) {
             currentViewName = structName

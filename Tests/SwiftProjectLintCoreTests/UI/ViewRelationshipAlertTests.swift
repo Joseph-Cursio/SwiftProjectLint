@@ -5,47 +5,6 @@ import SwiftSyntax
 @testable import SwiftProjectLintCore
 
 struct ViewRelationshipAlertTests {
-    
-    // MARK: - Debug Logging Helper
-    
-    @MainActor private func writeDebugLog(_ message: String, testName: String) {
-        let logMessage = "[\(testName)] \(message)\n"
-        
-        // Try multiple locations that should be writable, prioritizing the debug subdirectory
-        let debugDirectory = DebugLogger.debugDirectory()
-        let possiblePaths = [
-            debugDirectory + "/ViewRelationshipAlertTests_debug.log",
-            NSTemporaryDirectory() + "ViewRelationshipAlertTests_debug.log",
-            "/tmp/ViewRelationshipAlertTests_debug.log"
-        ]
-        
-        for logPath in possiblePaths {
-            if let data = logMessage.data(using: .utf8) {
-                do {
-                    if FileManager.default.fileExists(atPath: logPath) {
-                        if let fileHandle = FileHandle(forWritingAtPath: logPath) {
-                            fileHandle.seekToEndOfFile()
-                            fileHandle.write(data)
-                            fileHandle.closeFile()
-                            return // Success
-                        }
-                    } else {
-                        try data.write(to: URL(fileURLWithPath: logPath))
-                        return // Success
-                    }
-                } catch {
-                    // Continue to next path
-                    continue
-                }
-            }
-        }
-        
-        // Debug logging removed for production
-    }
-    
-    private func logRelationships(_ relationships: [ViewRelationship], testName: String) {
-        // Debug logging removed for production
-    }
 
     // MARK: - Test Helper Methods
 
@@ -82,7 +41,7 @@ struct ViewRelationshipAlertTests {
         """
         
         let relationships = extractRelationships(from: sourceCode, parentView: "ContentView")
-        logRelationships(relationships, testName: "testAlertDetection")
+
         
         #expect(relationships.count == 1)
         
@@ -108,7 +67,7 @@ struct ViewRelationshipAlertTests {
         """
         
         let relationships = extractRelationships(from: sourceCode, parentView: "ContentView")
-        logRelationships(relationships, testName: "testSimpleAlertDetection")
+
         
         #expect(relationships.count == 1)
         

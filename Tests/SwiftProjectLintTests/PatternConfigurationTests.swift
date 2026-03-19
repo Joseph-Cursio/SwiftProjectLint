@@ -159,7 +159,6 @@ struct PatternConfigurationTests {
 private class DummyVisitor: SyntaxVisitor, PatternVisitorProtocol {
     var detectedIssues: [LintIssue] = []
     var pattern: SyntaxPattern
-    static var type: VisitorType { .architecture }
     var patternCategory: PatternCategory { .architecture }
 
     required init(pattern: SyntaxPattern, viewMode: SyntaxTreeViewMode = .sourceAccurate) {

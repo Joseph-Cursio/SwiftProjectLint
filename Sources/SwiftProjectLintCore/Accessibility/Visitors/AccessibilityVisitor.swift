@@ -107,22 +107,14 @@ class AccessibilityVisitor: BasePatternVisitor {
     // MARK: - Syntax Visitor Methods
 
     override func visit(_ node: FunctionCallExprSyntax) -> SyntaxVisitorContinueKind {
-        DebugLogger.logNode(
-            "FunctionCallExpr",
-            "name: \(node.calledExpression.description.trimmingCharacters(in: .whitespaces))")
-
-        // Check if this is a Button, Image, or Text
         if let calledExpression = node.calledExpression.as(DeclReferenceExprSyntax.self) {
             let functionName = calledExpression.baseName.text
 
             if functionName == SwiftUIViewType.button.rawValue {
-                DebugLogger.logVisitor(.accessibility, "Found Button initialization")
                 buttonChecker.checkAccessibility(node)
             } else if functionName == SwiftUIViewType.image.rawValue {
-                DebugLogger.logVisitor(.accessibility, "Found Image initialization")
                 imageChecker.checkAccessibility(node)
             } else if functionName == SwiftUIViewType.text.rawValue {
-                DebugLogger.logVisitor(.accessibility, "Found Text initialization")
                 textChecker.checkAccessibility(node)
             }
         }
@@ -131,9 +123,6 @@ class AccessibilityVisitor: BasePatternVisitor {
     }
 
     override func visit(_ node: MemberAccessExprSyntax) -> SyntaxVisitorContinueKind {
-        DebugLogger.logNode("MemberAccessExpr", "name: \(node.declName.baseName.text)")
-
-        // Check for color usage
         colorChecker.checkAccessibility(node)
 
         return .visitChildren
@@ -147,8 +136,9 @@ class AccessibilityVisitor: BasePatternVisitor {
     }
 
     override func visit(_ node: SourceFileSyntax) -> SyntaxVisitorContinueKind {
-        // Set a default file path since we can't extract it from SourceFileSyntax
-        currentFilePath = "unknown"
+        if currentFilePath == nil {
+            currentFilePath = "unknown"
+        }
         return .visitChildren
     }
 

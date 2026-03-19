@@ -32,16 +32,13 @@ class StateVariableVisitor: SyntaxVisitor {
 
     struct VisitorConfig {
         let strictTypeChecking: Bool
-        let logUnknownTypes: Bool
 
         static let `default` = VisitorConfig(
-            strictTypeChecking: false,
-            logUnknownTypes: true
+            strictTypeChecking: false
         )
 
         static let strict = VisitorConfig(
-            strictTypeChecking: true,
-            logUnknownTypes: true
+            strictTypeChecking: true
         )
     }
 
@@ -54,7 +51,6 @@ class StateVariableVisitor: SyntaxVisitor {
     }
 
     override func visit(_ node: VariableDeclSyntax) -> SyntaxVisitorContinueKind {
-        DebugLogger.logVisitor(.stateVariable, "Visiting variable declaration")
         // Check if this variable declaration has property wrappers
         for binding in node.bindings {
             if let pattern = binding.pattern.as(IdentifierPatternSyntax.self) {
@@ -215,10 +211,6 @@ class StateVariableVisitor: SyntaxVisitor {
     
     /// Handles unknown type patterns
     private func handleUnknownType(text: String) -> String {
-        if config.logUnknownTypes {
-            DebugLogger.log("Unknown type pattern in initializer: '\(text)' at \(filePath)")
-        }
-        
         if config.strictTypeChecking {
             fatalError("Failed to infer type for initializer: '\(text)' at \(filePath)")
         }
@@ -228,10 +220,6 @@ class StateVariableVisitor: SyntaxVisitor {
     
     /// Handles missing type annotation and initializer
     private func handleMissingType() -> String {
-        if config.logUnknownTypes {
-            DebugLogger.log("No type annotation or initializer found for variable at \(filePath)")
-        }
-        
         if config.strictTypeChecking {
             fatalError("No type annotation or initializer found for variable at \(filePath)")
         }

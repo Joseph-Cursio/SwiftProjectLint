@@ -26,31 +26,22 @@ class NetworkingVisitor: BasePatternVisitor {
     }
 
     override func visit(_ node: FunctionCallExprSyntax) -> SyntaxVisitorContinueKind {
-        logFunctionCall(node)
-        
         // 1. Check for synchronous Data(contentsOf:) calls
         if checkSynchronousDataCall(node) {
             return .visitChildren
         }
-        
+
         // 2. Check for URLSession.dataTask with missing error handling
         if let memberAccess = node.calledExpression.as(MemberAccessExprSyntax.self),
            memberAccess.declName.baseName.text == "dataTask" {
-            checkURLSessionDataTask(node, memberAccess)
+            checkURLSessionDataTask(node)
         }
-        
+
         return .visitChildren
     }
-    
+
     // MARK: - Helper Methods
-    
-    private func logFunctionCall(_ node: FunctionCallExprSyntax) {
-        DebugLogger.logNode(
-            "FunctionCallExpr",
-            "description: \(node.description)"
-        )
-    }
-    
+
     /// Checks for synchronous Data(contentsOf:) calls and reports them as errors
     /// - Returns: true if a synchronous Data call was found, false otherwise
     private func checkSynchronousDataCall(_ node: FunctionCallExprSyntax) -> Bool {
@@ -59,18 +50,8 @@ class NetworkingVisitor: BasePatternVisitor {
             return false
         }
 
-        DebugLogger.logVisitor(.networking, "Called expression: Data")
-
         for arg in node.arguments {
-            DebugLogger.logVisitor(
-                .networking,
-                "Argument label: \(arg.label?.text ?? "nil") " +
-                "value: \(arg.expression.description)"
-            )
-
             if arg.label?.text == "contentsOf" {
-                DebugLogger.logVisitor(.networking, "hasContentsOf: true")
-
                 addIssue(
                     severity: .error,
                     message: "Synchronous networking can block the UI thread",
@@ -85,147 +66,86 @@ class NetworkingVisitor: BasePatternVisitor {
 
         return false
     }
-    
+
     /// Checks URLSession.dataTask calls for proper error handling
-    private func checkURLSessionDataTask(_ node: FunctionCallExprSyntax, _ memberAccess: MemberAccessExprSyntax) {
-        logDataTaskAccess(node, memberAccess)
-        
+    private func checkURLSessionDataTask(_ node: FunctionCallExprSyntax) {
         guard let trailingClosure = node.trailingClosure else {
             return
         }
-        
+
         let hasErrorHandling = checkErrorHandlingInClosure(trailingClosure, node: node)
-        
+
         if !hasErrorHandling {
             reportMissingErrorHandling(node: node)
         }
     }
-    
-    private func logDataTaskAccess(_ node: FunctionCallExprSyntax, _ memberAccess: MemberAccessExprSyntax) {
-        DebugLogger.logVisitor(.networking, "Member access: \(memberAccess.description)")
-        DebugLogger.logVisitor(.networking, "Member name: \(memberAccess.declName.baseName.text)")
-        DebugLogger.logVisitor(.networking, "Full member access: \(memberAccess)")
-        DebugLogger.logVisitor(.networking, "Found dataTask member access")
-        DebugLogger.logVisitor(.networking, "Trailing closure exists: \(node.trailingClosure != nil)")
-        DebugLogger.logVisitor(.networking, "Function call structure: \(node)")
-    }
-    
+
     /// Checks if error handling exists in the closure
     /// - Returns: true if error is properly handled, false otherwise
     private func checkErrorHandlingInClosure(_ closure: ClosureExprSyntax, node: FunctionCallExprSyntax) -> Bool {
-        logClosureDetails(closure)
-        
         guard let signature = closure.signature,
               let paramClause = signature.parameterClause?.as(ClosureParameterClauseSyntax.self) else {
-            // No signature, check body for error handling patterns
             return checkErrorHandlingInBody(closure.statements.description)
         }
-        
+
         let params = paramClause.parameters
-        logClosureParameters(params)
-        
+
         guard params.count >= 3 else {
-            DebugLogger.logVisitor(.networking, "Fewer than 3 parameters in closure")
             return checkErrorHandlingInBody(closure.statements.description)
         }
-        
+
         let thirdIndex = params.index(params.startIndex, offsetBy: 2)
         let thirdParam = params[thirdIndex]
         let thirdName = thirdParam.firstName.text.trimmingCharacters(in: .whitespaces)
-        // Also check secondName for cases where parameter might be represented differently
         let thirdNameAlt = thirdParam.secondName?.text.trimmingCharacters(in: .whitespaces) ?? ""
-        
-        DebugLogger.logVisitor(.networking, "Third parameter: '\(thirdName)' (alt: '\(thirdNameAlt)')")
-        
+
         if thirdName == "error" || thirdNameAlt == "error" {
             return checkErrorHandlingForErrorParameter(closure.statements.description)
         } else if thirdName == "_" || thirdNameAlt == "_" || thirdName.isEmpty {
             reportIgnoredErrorParameter(node: node)
             return true // Return true to prevent duplicate issue
         }
-        
-        // Check body for error handling even if no error parameter
+
         return checkErrorHandlingInBody(closure.statements.description)
     }
-    
-    private func logClosureDetails(_ closure: ClosureExprSyntax) {
-        DebugLogger.logVisitor(.networking, "Found trailing closure")
-        DebugLogger.logVisitor(
-            .networking,
-            "Closure signature: \(closure.signature?.description ?? "nil")"
-        )
-        DebugLogger.logVisitor(
-            .networking,
-            "Closure body: \(closure.statements.description)"
-        )
-    }
-    
-    private func logClosureParameters(_ params: ClosureParameterListSyntax) {
-        DebugLogger.logVisitor(.networking, "Found parameter clause")
-        DebugLogger.logVisitor(.networking, "Closure parameters:")
-        for param in params {
-            DebugLogger.logVisitor(.networking, "- \(param.firstName.text)")
-        }
-    }
-    
+
     /// Checks if error parameter is handled in the closure body
     private func checkErrorHandlingForErrorParameter(_ bodyText: String) -> Bool {
-        let hasErrorHandling = bodyText.contains("if let error")
+        bodyText.contains("if let error")
             || bodyText.contains("guard let error")
             || bodyText.contains("error != nil")
             || bodyText.contains("error.")
             || bodyText.contains("error.localizedDescription")
             || bodyText.contains("error.description")
             || bodyText.contains("error as")
-        
-        DebugLogger.logVisitor(
-            .networking,
-            hasErrorHandling ? "Found error handling in body" : "Error parameter is not handled"
-        )
-        
-        return hasErrorHandling
     }
-    
+
     /// Checks if error handling exists in body text (for cases without error parameter)
     private func checkErrorHandlingInBody(_ bodyText: String) -> Bool {
-        let hasErrorHandling = bodyText.contains("if let error")
+        bodyText.contains("if let error")
             || bodyText.contains("guard let error")
             || bodyText.contains("error != nil")
-        
-        if hasErrorHandling {
-            DebugLogger.logVisitor(.networking, "Found error handling in body")
-        }
-        
-        return hasErrorHandling
     }
-    
-    private func reportIgnoredErrorParameter(node: FunctionCallExprSyntax) {
-        let line = lineNumber(for: node)
-        DebugLogger.logVisitor(.networking, "Error parameter is ignored (_)")
-        DebugLogger.logIssue("Appending missing error handling issue at line \(line)")
 
+    private func reportIgnoredErrorParameter(node: FunctionCallExprSyntax) {
         addIssue(
             severity: .warning,
             message: "Network request ignores error parameter (_)",
             filePath: currentFilePath ?? "unknown",
-            lineNumber: line,
+            lineNumber: lineNumber(for: node),
             suggestion: "Handle the error parameter instead of ignoring it",
             ruleName: .missingErrorHandling
         )
     }
 
     private func reportMissingErrorHandling(node: FunctionCallExprSyntax) {
-        let line = lineNumber(for: node)
-
         addIssue(
             severity: .warning,
             message: "Network request missing error handling",
             filePath: currentFilePath ?? "unknown",
-            lineNumber: line,
+            lineNumber: lineNumber(for: node),
             suggestion: "Add error handling to the network request callback",
             ruleName: .missingErrorHandling
         )
-
-        DebugLogger.logIssue("Appending missing error handling issue at line \(line)")
     }
 }

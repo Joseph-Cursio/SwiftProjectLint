@@ -36,8 +36,6 @@ class PerformanceVisitor: BasePatternVisitor {
             isInViewBody = false
             viewBodySize = 0
             stateVariables.removeAll() // Reset for new view
-            let viewName = currentViewName
-            DebugLogger.logVisitor(.performance, "Visiting SwiftUI view: \(viewName)")
         }
         return .visitChildren
     }

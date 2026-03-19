@@ -5,47 +5,6 @@ import SwiftSyntax
 @testable import SwiftProjectLintCore
 
 struct ViewRelationshipBasicDetectionTests {
-    
-    // MARK: - Debug Logging Helper
-    
-    @MainActor private func writeDebugLog(_ message: String, testName: String) {
-        let logMessage = "[\(testName)] \(message)\n"
-        
-        // Try multiple locations that should be writable, prioritizing the debug subdirectory
-        let debugDirectory = DebugLogger.debugDirectory()
-        let possiblePaths = [
-            debugDirectory + "/ViewRelationshipBasicDetectionTests_debug.log",
-            NSTemporaryDirectory() + "ViewRelationshipBasicDetectionTests_debug.log",
-            "/tmp/ViewRelationshipBasicDetectionTests_debug.log"
-        ]
-        
-        for logPath in possiblePaths {
-            if let data = logMessage.data(using: .utf8) {
-                do {
-                    if FileManager.default.fileExists(atPath: logPath) {
-                        if let fileHandle = FileHandle(forWritingAtPath: logPath) {
-                            fileHandle.seekToEndOfFile()
-                            fileHandle.write(data)
-                            fileHandle.closeFile()
-                            return // Success
-                        }
-                    } else {
-                        try data.write(to: URL(fileURLWithPath: logPath))
-                        return // Success
-                    }
-                } catch {
-                    // Continue to next path
-                    continue
-                }
-            }
-        }
-        
-        // Debug logging removed for production
-    }
-    
-    private func logRelationships(_ relationships: [ViewRelationship], testName: String) {
-        // Debug logging removed for production
-    }
 
     // MARK: - Test Helper Methods
 
@@ -113,7 +72,7 @@ struct ViewRelationshipBasicDetectionTests {
         """
         
         let relationships = extractRelationships(from: sourceCode, parentView: "ContentView")
-        logRelationships(relationships, testName: "testDirectChildViewDetection")
+
         
         // Debug output removed for production
         

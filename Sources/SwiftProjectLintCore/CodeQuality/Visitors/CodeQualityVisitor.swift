@@ -46,7 +46,6 @@ class CodeQualityVisitor: BasePatternVisitor {
 
     override func visit(_ node: StructDeclSyntax) -> SyntaxVisitorContinueKind {
         let structName = node.name.text
-        DebugLogger.logVisitor(.codeQuality, "Visiting struct: \(structName)")
         currentStructName = structName
 
         // Check for missing documentation on public structs
