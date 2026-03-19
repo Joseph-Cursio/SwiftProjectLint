@@ -73,9 +73,6 @@ struct ViewRelationshipBasicDetectionTests {
         
         let relationships = extractRelationships(from: sourceCode, parentView: "ContentView")
 
-        
-        // Debug output removed for production
-        
         // Only RoundView (custom view) should be detected as direct child
         // Text is a system view and should be ignored
         #expect(relationships.count == 1, "Expected 1 relationship, got \(relationships.count)")

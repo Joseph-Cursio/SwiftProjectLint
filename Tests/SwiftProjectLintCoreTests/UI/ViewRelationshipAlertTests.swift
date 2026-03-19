@@ -42,7 +42,6 @@ struct ViewRelationshipAlertTests {
         
         let relationships = extractRelationships(from: sourceCode, parentView: "ContentView")
 
-        
         #expect(relationships.count == 1)
         
         // Button is a system view, so it should NOT be detected as directChild
@@ -68,7 +67,6 @@ struct ViewRelationshipAlertTests {
         
         let relationships = extractRelationships(from: sourceCode, parentView: "ContentView")
 
-        
         #expect(relationships.count == 1)
         
         // Text is a system view, so it should NOT be detected as directChild
