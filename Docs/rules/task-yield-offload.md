@@ -14,6 +14,10 @@
 
 If the intent is to offload CPU-intensive work from the current actor, use `@concurrent` (Swift 6.2+) or `Task.detached` instead.
 
+### Scope
+- Flags `Task.yield()` calls (with no arguments) in production code
+- **Skipped in test files** — `Task.yield()` is a standard testing pattern for giving the cooperative scheduler a chance to process pending tasks before assertions. Files containing "Test" or "Tests" in their path or name are excluded automatically.
+
 ### Non-Violating Examples
 ```swift
 // Task.sleep — cooperative delay, not yield
