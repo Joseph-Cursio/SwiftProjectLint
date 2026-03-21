@@ -52,7 +52,7 @@ class ButtonAccessibilityChecker: AccessibilityCheckerProtocol {
                     filePath: visitor.getCurrentFilePath() ?? "unknown",
                     lineNumber: visitor.getLineNumber(for: Syntax(node)),
                     suggestion: "Add .accessibilityHint(\"description\") to provide additional context",
-                    ruleName: visitor.currentPattern?.name
+                    ruleName: .missingAccessibilityHint
                 )
             }
         }

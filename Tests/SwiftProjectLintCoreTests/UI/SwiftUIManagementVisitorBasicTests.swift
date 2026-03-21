@@ -225,4 +225,87 @@ struct SwiftUIManagementVisitorBasicTests {
         let issues = visitor.detectedIssues
         #expect(issues.isEmpty)
     }
+
+    @Test func testDoesNotFlagOptionalStateVariable() throws {
+        let source = """
+        struct ContentView: View {
+            @State private var errorMessage: String?
+            @State private var selection: Optional<Int>
+            var body: some View { Text("Hello") }
+        }
+        """
+
+        let syntax = Parser.parse(source: source)
+        let visitor = SwiftUIManagementVisitor(patternCategory: .stateManagement)
+        visitor.setFilePath("test.swift")
+        visitor.walk(syntax)
+
+        let uninitializedIssues = visitor.detectedIssues.filter {
+            $0.message.contains("must have an initial value")
+        }
+        #expect(uninitializedIssues.isEmpty)
+    }
+
+    @Test func testDoesNotFlagNonPrivateStateVariable() throws {
+        let source = """
+        struct RuleDetailView: View {
+            @State var viewModel: RuleDetailViewModel
+            var body: some View { Text("Hello") }
+        }
+        """
+
+        let syntax = Parser.parse(source: source)
+        let visitor = SwiftUIManagementVisitor(patternCategory: .stateManagement)
+        visitor.setFilePath("test.swift")
+        visitor.walk(syntax)
+
+        let uninitializedIssues = visitor.detectedIssues.filter {
+            $0.message.contains("must have an initial value")
+        }
+        #expect(uninitializedIssues.isEmpty)
+    }
+
+    @Test func testDoesNotFlagStateInitializedInInit() throws {
+        let source = """
+        struct MyApp: View {
+            @State private var registry: RuleRegistry
+
+            init() {
+                let reg = RuleRegistry()
+                _registry = State(initialValue: reg)
+            }
+
+            var body: some View { Text("Hello") }
+        }
+        """
+
+        let syntax = Parser.parse(source: source)
+        let visitor = SwiftUIManagementVisitor(patternCategory: .stateManagement)
+        visitor.setFilePath("test.swift")
+        visitor.walk(syntax)
+
+        let uninitializedIssues = visitor.detectedIssues.filter {
+            $0.message.contains("must have an initial value")
+        }
+        #expect(uninitializedIssues.isEmpty)
+    }
+
+    @Test func testStillFlagsPrivateNonOptionalWithoutInit() throws {
+        let source = """
+        struct ContentView: View {
+            @State private var count: Int
+            var body: some View { Text("Hello") }
+        }
+        """
+
+        let syntax = Parser.parse(source: source)
+        let visitor = SwiftUIManagementVisitor(patternCategory: .stateManagement)
+        visitor.setFilePath("test.swift")
+        visitor.walk(syntax)
+
+        let uninitializedIssues = visitor.detectedIssues.filter {
+            $0.message.contains("must have an initial value")
+        }
+        #expect(uninitializedIssues.count == 1)
+    }
 }

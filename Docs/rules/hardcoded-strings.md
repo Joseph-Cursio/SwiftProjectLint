@@ -9,15 +9,14 @@
 ### Rationale
 String literals that appear directly inside user-facing SwiftUI views should be localized. Hardcoded strings prevent internationalization and make content updates require code changes.
 
-### Discussion
-This rule only fires when a hardcoded string (no interpolation) is a direct argument to a user-facing SwiftUI call such as `Text()`, `Label()`, `Button()`, `Section()`, `.navigationTitle()`, `.alert()`, or `.confirmationDialog()`. Strings in non-UI contexts — model code, test assertions, logging, configuration — are not flagged.
-
-The following strings are automatically skipped:
-- **URL patterns** — strings containing `http`, `https`, `file://`, `data:`, or `base64`
-- **SF Symbol names** — dot-separated lowercase identifiers like `"checkmark.circle.fill"` or `"arrow.uturn.backward"`
-- **`systemImage` / `systemName` arguments** — strings passed to labeled parameters such as `systemImage:`, `systemName:`, `imageName:`, or `symbolName:`
-
-The fix is to use `String(localized: "key", defaultValue: "...")` or `NSLocalizedString("key", comment: "...")`, allowing translators to adapt the text without touching code.
+### Scope
+- Flags hardcoded string literals (no interpolation) that are direct arguments to user-facing SwiftUI calls: `Text`, `Label`, `Button`, `Toggle`, `Picker`, `Slider`, `Section`, `NavigationLink`, `TabItem`, `DisclosureGroup`, `.navigationTitle()`, `.alert()`, `.confirmationDialog()`, `.help()`, `.badge()`, and others
+- Does **not** flag strings in non-UI contexts — model code, test assertions, logging, configuration
+- Does **not** flag strings in test files (`*Tests.swift` or files under a `Tests/` directory)
+- Does **not** flag strings of 2 characters or fewer — punctuation and single-letter formatting artifacts
+- Does **not** flag URL patterns (`http`, `https`, `file://`, `data:`, `base64`)
+- Does **not** flag SF Symbol names — dot-separated lowercase identifiers like `"checkmark.circle.fill"`
+- Does **not** flag `systemImage`/`systemName`/`imageName`/`symbolName` arguments
 
 ### Non-Violating Examples
 ```swift
@@ -29,17 +28,22 @@ Text("https://api.example.com/v1/users")
 
 // SF Symbol names — skipped
 Label("Settings", systemImage: "gear")
-Button("Delete", systemImage: "trash.fill")
 Image(systemName: "checkmark.circle.fill")
 
+// Short strings — skipped
+Text("•")
+Text("OK")
+
 // Non-UI context — not flagged
-let errorMessage = "Something went wrong, please try again"
-logger.info("Processing completed successfully")
+let errorMessage = "Something went wrong"
+logger.info("Processing completed")
+
+// Test files — not flagged
+// (any file under Tests/ or ending in Tests.swift)
 ```
 
 ### Violating Examples
 ```swift
-// User-facing text hardcoded in SwiftUI views
 Text("Welcome to the app")
 
 Button("Delete this item") { delete() }

@@ -312,4 +312,104 @@ struct NetworkingVisitorTests {
             #expect(issue.filePath == "test/file.swift")
         }
     }
+
+    // MARK: - Local File URL Exclusion Tests
+
+    @Test func testDoesNotFlagDataContentsOfFileURLWithPath() throws {
+        let visitor = NetworkingVisitor(patternCategory: .networking)
+        let source = """
+        let fileURL = URL(fileURLWithPath: "/tmp/data.json")
+        let data = try Data(contentsOf: fileURL)
+        """
+        let syntax = Parser.parse(source: source)
+        let converter = SourceLocationConverter(fileName: "test.swift", tree: syntax)
+        visitor.setSourceLocationConverter(converter)
+        visitor.walk(syntax)
+
+        let syncIssues = visitor.detectedIssues.filter {
+            $0.message.contains("Synchronous networking")
+        }
+        #expect(syncIssues.isEmpty)
+    }
+
+    @Test func testDoesNotFlagDataContentsOfWithPathVariable() throws {
+        let visitor = NetworkingVisitor(patternCategory: .networking)
+        let source = """
+        let data = try Data(contentsOf: cacheFilePath)
+        """
+        let syntax = Parser.parse(source: source)
+        let converter = SourceLocationConverter(fileName: "test.swift", tree: syntax)
+        visitor.setSourceLocationConverter(converter)
+        visitor.walk(syntax)
+
+        let syncIssues = visitor.detectedIssues.filter {
+            $0.message.contains("Synchronous networking")
+        }
+        #expect(syncIssues.isEmpty)
+    }
+
+    @Test func testDoesNotFlagDataContentsOfWithAppendingPathComponent() throws {
+        let visitor = NetworkingVisitor(patternCategory: .networking)
+        let source = """
+        let data = try Data(contentsOf: directory.appendingPathComponent("rules.json"))
+        """
+        let syntax = Parser.parse(source: source)
+        let converter = SourceLocationConverter(fileName: "test.swift", tree: syntax)
+        visitor.setSourceLocationConverter(converter)
+        visitor.walk(syntax)
+
+        let syncIssues = visitor.detectedIssues.filter {
+            $0.message.contains("Synchronous networking")
+        }
+        #expect(syncIssues.isEmpty)
+    }
+
+    @Test func testDoesNotFlagDataContentsOfWithBundleURL() throws {
+        let visitor = NetworkingVisitor(patternCategory: .networking)
+        let source = """
+        let data = try Data(contentsOf: Bundle.main.url(forResource: "data", withExtension: "json")!)
+        """
+        let syntax = Parser.parse(source: source)
+        let converter = SourceLocationConverter(fileName: "test.swift", tree: syntax)
+        visitor.setSourceLocationConverter(converter)
+        visitor.walk(syntax)
+
+        let syncIssues = visitor.detectedIssues.filter {
+            $0.message.contains("Synchronous networking")
+        }
+        #expect(syncIssues.isEmpty)
+    }
+
+    @Test func testDoesNotFlagDataContentsOfWithTempURL() throws {
+        let visitor = NetworkingVisitor(patternCategory: .networking)
+        let source = """
+        let data = try Data(contentsOf: tempURL)
+        """
+        let syntax = Parser.parse(source: source)
+        let converter = SourceLocationConverter(fileName: "test.swift", tree: syntax)
+        visitor.setSourceLocationConverter(converter)
+        visitor.walk(syntax)
+
+        let syncIssues = visitor.detectedIssues.filter {
+            $0.message.contains("Synchronous networking")
+        }
+        #expect(syncIssues.isEmpty)
+    }
+
+    @Test func testStillFlagsDataContentsOfWithRemoteURL() throws {
+        let visitor = NetworkingVisitor(patternCategory: .networking)
+        let source = """
+        let url = URL(string: "https://api.example.com/data")!
+        let data = try Data(contentsOf: url)
+        """
+        let syntax = Parser.parse(source: source)
+        let converter = SourceLocationConverter(fileName: "test.swift", tree: syntax)
+        visitor.setSourceLocationConverter(converter)
+        visitor.walk(syntax)
+
+        let syncIssues = visitor.detectedIssues.filter {
+            $0.message.contains("Synchronous networking")
+        }
+        #expect(syncIssues.count == 1)
+    }
 }

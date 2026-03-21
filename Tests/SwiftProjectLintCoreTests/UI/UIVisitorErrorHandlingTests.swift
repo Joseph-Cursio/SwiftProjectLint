@@ -108,15 +108,14 @@ struct UIVisitorErrorHandlingTests {
         
         // Should detect:
         // 1. Nested NavigationView
-        // 2. Inconsistent text styling
-        // 3. Basic error handling
+        // 2. Basic error handling
+        // (Text with 2 styling modifiers is below the threshold of 4 — not flagged)
         // (ForEach has explicit ID: \\.self, so it should NOT be detected)
         // (Preview detection skipped for test files)
-        #expect(issues.count == 3)
-        
+        #expect(issues.count == 2)
+
         let messages = issues.map { $0.message }
         #expect(messages.contains("Nested NavigationView detected, this can cause issues"))
-        #expect(messages.contains("Consider using consistent text styling"))
         #expect(messages.contains("Consider using proper error handling UI patterns"))
     }
     

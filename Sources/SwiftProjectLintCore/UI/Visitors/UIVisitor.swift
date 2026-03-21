@@ -10,6 +10,8 @@ class UIVisitor: BasePatternVisitor {
     private var navigationStack: [String] = []
     private var detectedPreviews: Set<String> = []
     private var stylingModifiers: [String: Set<String>] = [:]
+    /// The first View-conforming struct in the file — only this view is checked for a missing preview.
+    private var primaryViewName: String?
 
     required init(pattern: SyntaxPattern, viewMode: SyntaxTreeViewMode = .sourceAccurate) {
         super.init(pattern: pattern, viewMode: viewMode)
@@ -22,9 +24,13 @@ class UIVisitor: BasePatternVisitor {
     override func visit(_ node: StructDeclSyntax) -> SyntaxVisitorContinueKind {
         let viewName = node.name.text
         currentViewName = viewName
+        // Track the first View struct as the primary view for preview checks
+        if primaryViewName == nil, isSwiftUIView(node) {
+            primaryViewName = viewName
+        }
         // Detect preview providers (old)
-        if node.inheritanceClause?.inheritedTypes.contains(where: { 
-            $0.type.description.contains("PreviewProvider") 
+        if node.inheritanceClause?.inheritedTypes.contains(where: {
+            $0.type.description.contains("PreviewProvider")
         }) == true {
             detectedPreviews.insert(
                 viewName.replacingOccurrences(of: "_Previews", with: "")
@@ -97,14 +103,16 @@ class UIVisitor: BasePatternVisitor {
            calledExpr.baseName.text == SwiftUIViewType.text.rawValue {
             let modifiers = collectStylingModifiers(node)
 
-            // Only add styling modifiers that are actually styling-related
-            let stylingModifierNames = [
-                "font", "foregroundColor", "background", "padding",
-                "cornerRadius", "shadow", "border"
+            // Only count visual styling modifiers — not layout (padding, cornerRadius)
+            let stylingModifierNames: Set<String> = [
+                "font", "foregroundColor", "foregroundStyle",
+                "background", "shadow", "border",
+                "bold", "italic", "underline", "strikethrough",
+                "fontWeight", "fontDesign",
             ]
             let stylingModifiers = modifiers.filter { stylingModifierNames.contains($0) }
 
-            if stylingModifiers.count > 1 {
+            if stylingModifiers.count > 3 {
                 addIssue(
                     severity: .info,
                     message: "Consider using consistent text styling",
@@ -127,15 +135,19 @@ class UIVisitor: BasePatternVisitor {
     }
 
     override func visitPost(_ node: StructDeclSyntax) {
-        // Check for missing preview for this view
-        if isSwiftUIView(node) && !detectedPreviews.contains(currentViewName) {
+        // Only check the primary (first) view in the file for missing preview.
+        // Subcomponent views in the same file are covered by the primary view's preview.
+        let viewName = node.name.text
+        if isSwiftUIView(node),
+           viewName == primaryViewName,
+           !detectedPreviews.contains(viewName) {
             // Skip preview detection for test files
             if !currentFilePath.contains("test.swift")
                 && !currentFilePath.contains("Test")
                 && !currentFilePath.contains("Tests") {
                 addIssue(
                     severity: .info,
-                    message: "View '\(currentViewName)' missing preview provider",
+                    message: "View '\(viewName)' missing preview provider",
                     filePath: currentFilePath,
                     lineNumber: getLineNumber(for: Syntax(node)),
                     suggestion: "Add a #Preview macro or PreviewProvider struct for better development experience",
@@ -222,19 +234,26 @@ class UIVisitor: BasePatternVisitor {
     }
 
     private func collectStylingModifiers(_ node: FunctionCallExprSyntax) -> [String] {
-        // Collect styling modifiers applied to this Text call
+        // Collect styling modifiers applied directly to this Text call.
+        // Walk up through the modifier chain (Text("x").font(.title).foregroundColor(.blue))
+        // but stop when we hit a closure body, code block, or container view — those modifiers
+        // belong to the enclosing view, not this Text.
         var modifiers: Set<String> = []
-        var current = node.parent
+        var current: Syntax = Syntax(node)
 
-        while let parent = current {
-            if let memberAccess = parent.as(MemberAccessExprSyntax.self) {
-                modifiers.insert(memberAccess.declName.baseName.text)
-            } else if let functionCall = parent.as(FunctionCallExprSyntax.self) {
-                if let calledExpr = functionCall.calledExpression.as(MemberAccessExprSyntax.self) {
-                    modifiers.insert(calledExpr.declName.baseName.text)
-                }
+        while let parent = current.parent {
+            // Stop at closure/code block boundaries — modifiers above here belong to a container
+            if parent.is(CodeBlockItemSyntax.self)
+                || parent.is(ClosureExprSyntax.self) {
+                break
             }
-            current = parent.parent
+
+            if let functionCall = parent.as(FunctionCallExprSyntax.self),
+               let calledExpr = functionCall.calledExpression.as(MemberAccessExprSyntax.self) {
+                modifiers.insert(calledExpr.declName.baseName.text)
+            }
+
+            current = parent
         }
 
         return Array(modifiers)

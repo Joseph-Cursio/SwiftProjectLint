@@ -9,17 +9,31 @@
 ### Rationale
 SwiftUI previews accelerate the development loop. A view without a preview requires launching the simulator to see any visual change. The Xcode canvas and `#Preview` macro make it inexpensive to add a preview, and even a minimal preview catches layout issues that unit tests cannot.
 
-### Discussion
-`UIVisitor` tracks view names (from `struct` declarations conforming to `View`) and preview declarations (from `#Preview` macro expansions and `PreviewProvider` conformances). After visiting each view struct, if no preview was detected for that view name in the file, an info-severity issue is reported. Test files (paths containing `test.swift`, `Test`, or `Tests`) are exempt because preview-less test helper views are common.
+### Scope
+- Flags the **primary view** (first `View`-conforming struct) in a file when no `#Preview` macro or `PreviewProvider` struct is found
+- Does **not** flag secondary/subcomponent views in the same file — these are covered by the primary view's preview
+- Does **not** flag views in test files (paths containing `Test`, `Tests`, or `test.swift`)
 
 ### Non-Violating Examples
 ```swift
+// Primary view with preview
 struct ContentView: View {
     var body: some View { Text("Hello") }
 }
 
 #Preview {
     ContentView()
+}
+```
+
+```swift
+// Multiple views — only primary needs a preview
+struct HealthScoreBadge: View {
+    var body: some View { Text("A") }
+}
+
+struct HealthScoreRing: View {     // not flagged — subcomponent
+    var body: some View { Text("Ring") }
 }
 ```
 

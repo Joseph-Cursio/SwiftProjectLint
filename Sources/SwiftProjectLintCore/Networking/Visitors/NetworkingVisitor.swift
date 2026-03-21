@@ -42,7 +42,8 @@ class NetworkingVisitor: BasePatternVisitor {
 
     // MARK: - Helper Methods
 
-    /// Checks for synchronous Data(contentsOf:) calls and reports them as errors
+    /// Checks for synchronous Data(contentsOf:) calls and reports them as errors.
+    /// Skips calls where the URL argument is obviously a local file path.
     /// - Returns: true if a synchronous Data call was found, false otherwise
     private func checkSynchronousDataCall(_ node: FunctionCallExprSyntax) -> Bool {
         guard let calledExpr = node.calledExpression.as(DeclReferenceExprSyntax.self),
@@ -51,6 +52,10 @@ class NetworkingVisitor: BasePatternVisitor {
         }
 
         for arg in node.arguments where arg.label?.text == "contentsOf" {
+            if isLikelyLocalURL(arg.expression) {
+                return false
+            }
+
             addIssue(
                 severity: .error,
                 message: "Synchronous networking can block the UI thread",
@@ -59,6 +64,54 @@ class NetworkingVisitor: BasePatternVisitor {
                 suggestion: "Use URLSession.dataTask for asynchronous networking",
                 ruleName: .synchronousNetworkCall
             )
+            return true
+        }
+
+        return false
+    }
+
+    /// Heuristically determines whether a URL expression refers to a local file.
+    ///
+    /// Recognizes these patterns as local:
+    /// - `URL(fileURLWithPath:)` / `URL(filePath:)`
+    /// - `url.appendingPathComponent(...)` / `url.appending(...)` chains
+    /// - `Bundle.main.url(...)` / `Bundle.main.path(...)`
+    /// - Variable names containing "file", "path", "cache", "temp", "directory", or "folder"
+    private func isLikelyLocalURL(_ expr: ExprSyntax) -> Bool {
+        let text = expr.description.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        // URL(fileURLWithPath:) or URL(filePath:)
+        if let call = expr.as(FunctionCallExprSyntax.self) {
+            let calledText = call.calledExpression.description.trimmingCharacters(in: .whitespacesAndNewlines)
+            if calledText == "URL" {
+                let labels = call.arguments.compactMap { $0.label?.text }
+                if labels.contains("fileURLWithPath") || labels.contains("filePath") {
+                    return true
+                }
+            }
+        }
+
+        // Member access chains: .appendingPathComponent, .appending(path:/.component:)
+        if let memberAccess = expr.as(FunctionCallExprSyntax.self)?.calledExpression
+            .as(MemberAccessExprSyntax.self) {
+            let member = memberAccess.declName.baseName.text
+            if member == "appendingPathComponent" || member == "appendingPathExtension" {
+                return true
+            }
+            if member == "appending" || member == "appendingPath" {
+                return true
+            }
+        }
+
+        // Bundle.main.url(...) / Bundle.main.path(...)
+        if text.contains("Bundle.main") || text.contains("Bundle(") {
+            return true
+        }
+
+        // Variable names suggesting local file paths
+        let localHints = ["file", "path", "cache", "temp", "directory", "folder", "config"]
+        let lowerText = text.lowercased()
+        for hint in localHints where lowerText.contains(hint) {
             return true
         }
 

@@ -56,6 +56,34 @@ struct UIVisitorPreviewTests {
         #expect(issues.isEmpty)
     }
     
+    @Test func testSubcomponentViewsNotFlaggedForMissingPreview() throws {
+        let visitor = UIVisitor(patternCategory: PatternCategory.uiPatterns)
+        visitor.setFilePath("HealthScoreBadge.swift")
+        visitor.reset()
+
+        let source = """
+        struct HealthScoreBadge: View {
+            var body: some View { Text("A") }
+        }
+
+        struct HealthScoreRing: View {
+            var body: some View { Text("Ring") }
+        }
+
+        struct HealthScoreIndicator: View {
+            var body: some View { Text("Indicator") }
+        }
+        """
+
+        let syntax = Parser.parse(source: source)
+        visitor.walk(syntax)
+        let previewIssues = visitor.detectedIssues.filter { $0.ruleName == .missingPreview }
+
+        // Only the primary view (HealthScoreBadge) should be flagged, not subcomponents
+        #expect(previewIssues.count == 1)
+        #expect(previewIssues.first?.message.contains("HealthScoreBadge") == true)
+    }
+
     @Test func testDetectsPreviewStruct() throws {
         let visitor = UIVisitor(patternCategory: PatternCategory.uiPatterns)
         visitor.setFilePath("test.swift")

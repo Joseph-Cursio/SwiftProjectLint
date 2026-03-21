@@ -26,6 +26,48 @@ struct SecurityVisitorTests {
         #expect(issues.allSatisfy { $0.suggestion?.contains("secure key storage") ?? false })
     }
     
+    @Test func testDoesNotFlagNonSecretKeySuffixVariables() throws {
+        let sourceCode = """
+        let onboardingKey = "com.myapp.hasCompletedOnboarding"
+        let recentWorkspacesKey = "MyApp.recentWorkspaces"
+        let sortKey = "name"
+        let cacheKey = "user_profile"
+        let primaryKey = "id"
+        """
+        let sourceFile = Parser.parse(source: sourceCode)
+        let visitor = SecurityVisitor(patternCategory: .security)
+        visitor.setFilePath("TestFile.swift")
+        visitor.walk(sourceFile)
+        let issues = visitor.detectedIssues
+
+        let secretIssues = issues.filter {
+            $0.message.contains("Hardcoded secret")
+        }
+        #expect(secretIssues.isEmpty)
+    }
+
+    @Test func testStillFlagsCompoundSecretKeyVariables() throws {
+        let sourceCode = """
+        let apiKey = "sk-12345"
+        let secretKey = "abc123"
+        let authKey = "bearer-token"
+        let privateKey = "-----BEGIN RSA-----"
+        let encryptionKey = "aes256key"
+        let clientSecret = "cs_live_xyz"
+        let credential = "user:pass"
+        """
+        let sourceFile = Parser.parse(source: sourceCode)
+        let visitor = SecurityVisitor(patternCategory: .security)
+        visitor.setFilePath("TestFile.swift")
+        visitor.walk(sourceFile)
+        let issues = visitor.detectedIssues
+
+        let secretIssues = issues.filter {
+            $0.message.contains("Hardcoded secret")
+        }
+        #expect(secretIssues.count == 7)
+    }
+
     @Test func testUnsafeURLConstruction() throws {
         let sourceCode = """
         let token = "abc123"

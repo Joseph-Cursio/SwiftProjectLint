@@ -36,7 +36,7 @@ class TextAccessibilityChecker: AccessibilityCheckerProtocol {
                     lineNumber: visitor.getLineNumber(for: Syntax(node)),
                     suggestion: "Add .accessibilityLabel(), .accessibilityHint(), or .accessibilityValue() " +
                                 "to improve accessibility.",
-                    ruleName: visitor.currentPattern?.name
+                    ruleName: .longTextAccessibility
                 )
             }
         }

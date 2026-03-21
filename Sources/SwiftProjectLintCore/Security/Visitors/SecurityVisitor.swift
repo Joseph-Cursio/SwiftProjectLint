@@ -24,8 +24,18 @@ class SecurityVisitor: BasePatternVisitor {
             if let pattern = binding.pattern.as(IdentifierPatternSyntax.self) {
                 let variableName = pattern.identifier.text
 
-                // Check for hardcoded secrets
-                let secretKeywords = ["apiKey", "secret", "password", "token", "key"]
+                // Check for hardcoded secrets.
+                // Match specific compound keywords rather than bare "key", which
+                // false-positives on UserDefaults keys, dictionary keys, sort keys, etc.
+                let secretKeywords = [
+                    "apiKey", "apiSecret",
+                    "secretKey", "secret",
+                    "password", "passwd",
+                    "token",
+                    "authKey", "privateKey", "encryptionKey", "signingKey",
+                    "clientSecret", "accessKey", "secretAccessKey",
+                    "credential",
+                ]
                 if secretKeywords.contains(where: { variableName.localizedCaseInsensitiveContains($0) }) {
                     if let initializer = binding.initializer,
                        initializer.value.is(StringLiteralExprSyntax.self) {

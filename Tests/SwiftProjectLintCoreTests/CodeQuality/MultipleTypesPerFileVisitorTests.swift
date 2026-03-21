@@ -6,9 +6,11 @@ import SwiftParser
 @Suite
 struct MultipleTypesPerFileVisitorTests {
 
-    private func makeVisitor() -> MultipleTypesPerFileVisitor {
+    private func makeVisitor(filePath: String = "test.swift") -> MultipleTypesPerFileVisitor {
         let pattern = MultipleTypesPerFilePatternRegistrar().pattern
-        return MultipleTypesPerFileVisitor(pattern: pattern)
+        let visitor = MultipleTypesPerFileVisitor(pattern: pattern)
+        visitor.setFilePath(filePath)
+        return visitor
     }
 
     private func runVisitor(_ visitor: MultipleTypesPerFileVisitor, source: String) {
@@ -16,17 +18,17 @@ struct MultipleTypesPerFileVisitorTests {
         visitor.walk(sourceFile)
     }
 
-    // MARK: - Positive Cases
+    // MARK: - Positive Cases (unrelated types → flagged)
 
     @Test
-    func detectsTwoStructs() throws {
+    func detectsTwoUnrelatedStructs() throws {
         let source = """
-        struct User {
-            let name: String
+        struct Logger {
+            let level: Int
         }
 
-        struct UserViewModel {
-            let user: User
+        struct NetworkClient {
+            let url: String
         }
         """
 
@@ -38,11 +40,11 @@ struct MultipleTypesPerFileVisitorTests {
         let issue = try #require(visitor.detectedIssues.first)
         #expect(issue.ruleName == .multipleTypesPerFile)
         #expect(issue.severity == .info)
-        #expect(issue.message.contains("UserViewModel"))
+        #expect(issue.message.contains("NetworkClient"))
     }
 
     @Test
-    func detectsThreeTypes() {
+    func detectsThreeUnrelatedTypes() {
         let source = """
         struct Alpha {}
         class Beta {}
@@ -55,27 +57,27 @@ struct MultipleTypesPerFileVisitorTests {
         #expect(visitor.detectedIssues.count == 2)
     }
 
-    @Test("Detects mixed type kinds", arguments: [
+    @Test("Detects unrelated mixed type kinds", arguments: [
         ("""
-        enum Theme {
-            case light, dark
+        enum Direction {
+            case north, south
         }
 
-        class ThemeManager {
-            var current: Theme = .light
-        }
-        """, "ThemeManager"),
-        ("""
-        struct Config {
-            let value: Int
-        }
-
-        actor NetworkActor {
+        class NetworkManager {
             func fetch() {}
         }
-        """, "NetworkActor")
+        """, "NetworkManager"),
+        ("""
+        struct Logger {
+            let level: Int
+        }
+
+        actor DatabaseActor {
+            func save() {}
+        }
+        """, "DatabaseActor"),
     ])
-    func detectsMixedTypes(source: String, expectedTypeName: String) throws {
+    func detectsUnrelatedMixedTypes(source: String, expectedTypeName: String) throws {
         let visitor = makeVisitor()
         runVisitor(visitor, source: source)
 
@@ -85,7 +87,7 @@ struct MultipleTypesPerFileVisitorTests {
         #expect(issue.message.contains(expectedTypeName))
     }
 
-    // MARK: - Negative Cases
+    // MARK: - Negative Cases (single, nested, extensions)
 
     @Test("No issue for single or nested types", arguments: [
         // Single struct
@@ -128,12 +130,118 @@ struct MultipleTypesPerFileVisitorTests {
         enum Direction {
             case north, south, east, west
         }
-        """
+        """,
     ])
     func noIssue(source: String) {
         let visitor = makeVisitor()
         runVisitor(visitor, source: source)
 
         #expect(visitor.detectedIssues.isEmpty)
+    }
+
+    // MARK: - Tightly Coupled Types (shared prefix → not flagged)
+
+    @Test
+    func skipsErrorEnumWithSharedPrefix() {
+        let source = """
+        class WorkspaceManager {
+            func load() {}
+        }
+
+        enum WorkspaceError: Error {
+            case notFound
+        }
+        """
+
+        let visitor = makeVisitor(filePath: "WorkspaceManager.swift")
+        runVisitor(visitor, source: source)
+
+        #expect(visitor.detectedIssues.isEmpty)
+    }
+
+    @Test
+    func skipsSupportingTypesWithSharedPrefix() {
+        let source = """
+        struct Rule {
+            let identifier: String
+        }
+
+        enum RuleCategory {
+            case lint, style
+        }
+
+        struct RuleParameter {
+            let name: String
+        }
+        """
+
+        let visitor = makeVisitor(filePath: "Rule.swift")
+        runVisitor(visitor, source: source)
+
+        #expect(visitor.detectedIssues.isEmpty)
+    }
+
+    @Test
+    func skipsViewSubcomponentsWithSharedPrefix() {
+        let source = """
+        struct HealthScoreBadge: View {
+            var body: some View { Text("A") }
+        }
+
+        struct HealthScoreRing: View {
+            var body: some View { Text("Ring") }
+        }
+
+        struct HealthScoreIndicator: View {
+            var body: some View { Text("Indicator") }
+        }
+        """
+
+        let visitor = makeVisitor(filePath: "HealthScoreBadge.swift")
+        runVisitor(visitor, source: source)
+
+        #expect(visitor.detectedIssues.isEmpty)
+    }
+
+    @Test
+    func skipsTypeMatchingFileNameStem() {
+        let source = """
+        struct ViolationInspectorOptions {
+            let showResolved: Bool
+        }
+
+        enum ViolationSortOption {
+            case date, severity
+        }
+        """
+
+        let visitor = makeVisitor(filePath: "ViolationInspectorViewModel+Options.swift")
+        runVisitor(visitor, source: source)
+
+        #expect(visitor.detectedIssues.isEmpty)
+    }
+
+    @Test
+    func flagsUnrelatedTypeEvenWithCoupledOnes() throws {
+        let source = """
+        class ConfigImportService {
+            func importConfig() {}
+        }
+
+        enum ConfigImportError: Error {
+            case invalid
+        }
+
+        struct UnrelatedLogger {
+            let level: Int
+        }
+        """
+
+        let visitor = makeVisitor(filePath: "ConfigImportService.swift")
+        runVisitor(visitor, source: source)
+
+        #expect(visitor.detectedIssues.count == 1)
+        let issue = try #require(visitor.detectedIssues.first)
+        #expect(issue.message.contains("UnrelatedLogger"))
     }
 }

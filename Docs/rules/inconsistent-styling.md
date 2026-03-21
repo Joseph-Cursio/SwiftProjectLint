@@ -7,38 +7,47 @@
 **Severity:** Info
 
 ### Rationale
-Applying more than one styling modifier (font, foregroundColor, background, padding, cornerRadius, shadow, border) directly to individual `Text` elements in the same view, rather than extracting them into a shared `ViewModifier` or style extension, leads to visual inconsistency as the number of styled elements grows.
+Applying many visual styling modifiers directly to individual `Text` elements — rather than extracting them into a shared `ViewModifier` or style extension — leads to visual inconsistency as the number of styled elements grows. Repeated inline styling is also harder to update when the design changes.
 
-### Discussion
-`UIVisitor` collects styling modifiers applied to each `Text` call by walking the parent expression chain. If more than one recognized styling modifier is found on a single `Text`, it reports an info issue suggesting extraction into a `ViewModifier`. This rule flags the threshold at two or more styling modifiers on a single `Text`.
+### Scope
+- Flags `Text` views with **4 or more** visual styling modifiers applied directly
+- Only counts visual styling modifiers: `font`, `foregroundColor`, `foregroundStyle`, `background`, `shadow`, `border`, `bold`, `italic`, `underline`, `strikethrough`, `fontWeight`, `fontDesign`
+- Does **not** count layout modifiers (`padding`, `cornerRadius`, `frame`, `lineLimit`) — these are structural, not visual style
+- Does **not** count behavioral modifiers (`onAppear`, `accessibilityLabel`, etc.)
+- Only counts modifiers applied directly to the `Text`, not modifiers on enclosing container views
 
 ### Non-Violating Examples
 ```swift
 // Style extracted to a ViewModifier
-struct HeadlineStyle: ViewModifier {
+struct BadgeStyle: ViewModifier {
     func body(content: Content) -> some View {
         content
-            .font(.headline)
-            .foregroundColor(.primary)
+            .font(.caption2)
+            .fontWeight(.semibold)
+            .foregroundStyle(.white)
+            .background(Capsule().fill(Color.red))
     }
 }
 
-struct MyView: View {
-    var body: some View {
-        Text("Title").modifier(HeadlineStyle())
-    }
-}
+Text("3").modifier(BadgeStyle())
+```
+
+```swift
+// 2-3 styling modifiers is normal — not flagged
+Text("Hello")
+    .font(.headline)
+    .foregroundColor(.blue)
+    .bold()
 ```
 
 ### Violating Examples
 ```swift
-struct MyView: View {
-    var body: some View {
-        Text("Title")
-            .font(.headline)
-            .foregroundColor(.blue)  // two styling modifiers inline
-    }
-}
+// 4+ visual styling modifiers inline — extract to a ViewModifier
+Text("3")
+    .font(.caption2)
+    .fontWeight(.semibold)
+    .foregroundStyle(.white)
+    .background(Capsule().fill(Color.red))
 ```
 
 ---

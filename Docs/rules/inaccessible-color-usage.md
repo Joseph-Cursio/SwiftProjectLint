@@ -7,33 +7,44 @@
 **Severity:** Info
 
 ### Rationale
-Color alone must not be used to convey information. Users with color vision deficiencies (affecting approximately 8% of males) cannot distinguish information communicated solely through hue. WCAG 2.1 Success Criterion 1.4.1 requires that color not be the only visual means of conveying information.
+Color alone must not be used to convey information. Users with color vision deficiencies (approximately 8% of males) cannot distinguish information communicated solely through hue. WCAG 2.1 Success Criterion 1.4.1 requires that color not be the only visual means of conveying information.
 
-### Discussion
-`ColorAccessibilityChecker` flags two patterns: direct `Color.xxx` member accesses (e.g., `Color.red`), and `.foregroundColor()` modifier calls without a co-located `.accessibilityLabel()`, `.accessibilityHint()`, or `.accessibilityValue()` modifier. When a foreground color is used alongside an accessibility modifier, the flag is suppressed because the developer has consciously provided alternative context. The info severity reflects that some color usage is purely decorative and does not convey information.
+### Scope
+- Flags direct `Color.xxx` member accesses (e.g., `Color.red`, `Color.green`) that could be conveying status or meaning
+- Flags `.foregroundColor()` calls without a co-located `.accessibilityLabel()`, `.accessibilityHint()`, or `.accessibilityValue()` modifier
+- Does **not** flag `.foregroundColor()` when an accessibility modifier is present on the same element
+
+The rule filters out common non-informational patterns to reduce noise:
+- **Non-informational colors**: `Color.clear`, `Color.gray`, `Color.primary`, `Color.secondary`, `Color.accentColor` — these are decorative or semantic system colors that adapt for accessibility
+- **Low-opacity background tints**: `Color.xxx.opacity(n)` where `n ≤ 0.2` — these are subtle background tints (e.g., `Color.red.opacity(0.1)` behind an error section), not primary color indicators
 
 ### Non-Violating Examples
 ```swift
-// Color with accompanying accessibility label
+// Color with accompanying accessibility context
 Circle()
     .foregroundColor(statusColor)
     .accessibilityLabel(statusDescription)
 
-// Text is already accessible — color is decorative
-Text("Success")
-    .foregroundColor(.green)
-    .accessibilityLabel("Success")
+// Non-informational colors — always skipped
+Rectangle().fill(Color.clear)
+Rectangle().fill(Color.gray.opacity(0.2))
+Circle().fill(Color.accentColor)
+
+// Low-opacity background tint — skipped
+VStack { ... }
+    .background(Color.red.opacity(0.1))
 ```
 
 ### Violating Examples
 ```swift
-// Color.red used without any alternative text/icon
-Circle()
-    .foregroundColor(Color.red)  // color alone conveys status
+// Full-strength color with no alternative indicator
+Capsule().fill(Color.red)
 
-// foregroundColor without accessibility modifier
-Text("Error occurred")
-    .foregroundColor(.red)  // color-only status indication
+// Ternary color conveying status without text/icon backup
+Rectangle().fill(isError ? Color.red : Color.green)
+
+// Higher opacity color usage
+Circle().fill(Color.red.opacity(0.5))
 ```
 
 ---

@@ -7,19 +7,31 @@
 **Severity:** Info
 
 ### Rationale
-Each type (struct, class, enum, actor) should live in its own file. This makes types easy to find by filename, keeps files focused, and reduces merge conflicts. Extensions of a type in the same file are fine — the rule only flags additional type declarations.
+Each type (struct, class, enum, actor) should live in its own file. This makes types easy to find by filename, keeps files focused, and reduces merge conflicts.
 
-### Discussion
-`MultipleTypesPerFileVisitor` counts top-level type declarations (struct, class, enum, actor) in each file. If more than one is found, every declaration after the first is flagged with a suggestion to move it to its own file.
+### Scope
+- Flags top-level type declarations (struct, class, enum, actor) when more than one appears in a file
+- Only the second and subsequent types are flagged — the first type is always allowed
+- Does **not** flag nested types — a struct containing a private helper enum is a normal pattern
+- Does **not** flag extensions — splitting a type across extensions in the same file is idiomatic Swift
+- Does **not** flag tightly-coupled companion types whose name shares a prefix with the file's primary type or the file name stem
 
-Nested types are not flagged — a struct containing a private helper enum is a normal pattern. Only declarations at the source-file level are counted. Extensions are also excluded since splitting a type's implementation across extensions in the same file is idiomatic Swift.
+### Tightly-Coupled Naming Convention
+Types that share a camelCase prefix with the primary type are considered companions and are allowed in the same file. This covers common patterns like:
+
+- **Error enums**: `WorkspaceError` in `WorkspaceManager.swift` (shared prefix "Workspace")
+- **Supporting data types**: `RuleCategory`, `RuleParameter` in `Rule.swift` (shared prefix "Rule")
+- **View subcomponents**: `HealthScoreRing`, `HealthScoreIndicator` in `HealthScoreBadge.swift` (shared prefix "HealthScore")
+
+For `+Extension` files (e.g., `ViolationInspectorViewModel+Options.swift`), the file name stem before the `+` is used for prefix matching.
+
+The minimum shared prefix is 3 characters to avoid spurious matches on short common prefixes.
 
 ### Non-Violating Examples
 ```swift
-// Single type per file — ideal
+// Single type per file
 struct UserProfile {
     let name: String
-    let email: String
 }
 
 extension UserProfile: Codable {}
@@ -28,36 +40,43 @@ extension UserProfile: Codable {}
 ```swift
 // Nested types are fine
 struct TableSection {
-    enum Style {
-        case plain
-        case grouped
-    }
-
+    enum Style { case plain, grouped }
     let style: Style
-    let rows: [Row]
+}
+```
+
+```swift
+// Companion types with shared prefix — fine
+// File: WorkspaceManager.swift
+class WorkspaceManager {
+    func load() {}
+}
+
+enum WorkspaceError: Error {
+    case notFound
 }
 ```
 
 ### Violating Examples
 ```swift
-// Two top-level types in one file
-struct User {
-    let name: String
+// Unrelated types in one file
+struct Logger {
+    let level: Int
 }
 
-struct UserViewModel {       // ← should be in UserViewModel.swift
-    let user: User
+struct NetworkClient {       // ← should be in NetworkClient.swift
+    let url: String
 }
 ```
 
 ```swift
-// Mixed type kinds
-enum Theme {
-    case light, dark
+// File: Rule.swift
+struct Rule {
+    let identifier: String
 }
 
-class ThemeManager {         // ← should be in ThemeManager.swift
-    var current: Theme = .light
+enum Severity {              // ← no shared prefix with "Rule"
+    case warning, error
 }
 ```
 

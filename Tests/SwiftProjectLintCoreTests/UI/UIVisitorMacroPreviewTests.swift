@@ -218,22 +218,24 @@ struct UIVisitorMacroPreviewTests {
 
     // MARK: - Styling Modifiers Collection
 
-    @Test("detects multiple styling modifiers including background and padding")
+    @Test("detects heavily styled Text with 4+ visual modifiers")
     func multipleStyleModifiers() throws {
         let visitor = createVisitor()
         let source = """
         struct StyledView: View {
             var body: some View {
                 Text("Hello")
-                    .padding()
-                    .background(Color.blue)
+                    .font(.headline)
+                    .foregroundColor(.blue)
+                    .background(Color.yellow)
+                    .shadow(radius: 4)
             }
         }
         """
 
         let issues = walkSource(source, visitor: visitor)
         let stylingIssues = issues.filter { $0.message.contains("consistent text styling") }
-        #expect(stylingIssues.count == 1, "Should detect inconsistent text styling with padding + background")
+        #expect(stylingIssues.count == 1, "Should detect inconsistent text styling with 4 visual modifiers")
     }
 
     @Test("no styling issue for non-styling modifiers on Text")
@@ -303,6 +305,8 @@ struct UIVisitorMacroPreviewTests {
                 Text("Styled")
                     .font(.headline)
                     .foregroundColor(.red)
+                    .bold()
+                    .background(Color.yellow)
             }
         }
         """

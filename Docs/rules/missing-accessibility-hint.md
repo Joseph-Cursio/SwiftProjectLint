@@ -7,22 +7,34 @@
 **Severity:** Info
 
 ### Rationale
-Accessibility hints provide additional context about what an interactive element does, beyond its label. For text buttons — where VoiceOver reads the label automatically — a hint answers "what happens when I activate this?" The info severity reflects that hints are strongly recommended but not mandatory for all buttons.
+Accessibility hints provide additional context about what an interactive element does, beyond its label. For text buttons — where VoiceOver reads the button text automatically — a hint answers "what happens when I activate this?" Apple's Human Interface Guidelines recommend using hints sparingly for actions whose effect isn't obvious from the label alone.
 
-### Discussion
-`ButtonAccessibilityChecker` checks buttons containing `Text` views for the presence of an `.accessibilityHint()` modifier. The check is a complementary signal to the accessibility label rule. Buttons that use `Label` views (which combine an image and text) may satisfy both rules if both a label and a hint are provided.
+### Scope
+- Flags `Button` views containing `Text` that lack an `.accessibilityHint()` modifier
+- Does **not** flag buttons that use `Label` — `Label` provides accessible text automatically
+- Does **not** flag icon-only buttons — those are covered by the [Icon-Only Button Missing Label](icon-only-button-missing-label.md) rule
+- Info severity reflects that hints are recommended but not mandatory for all buttons
 
 ### Non-Violating Examples
 ```swift
+// Button with hint
 Button("Submit") {
     submitForm()
 }
-.accessibilityHint("Submits the current form and navigates to the confirmation screen")
+.accessibilityHint("Submits the form and navigates to confirmation")
+
+// Button using Label — accessible by default
+Button {
+    deleteItem()
+} label: {
+    Label("Delete", systemImage: "trash")
+}
 ```
 
 ### Violating Examples
 ```swift
-Button("Submit") {  // text button with no accessibilityHint
+// Text button with no hint
+Button("Submit") {
     submitForm()
 }
 ```

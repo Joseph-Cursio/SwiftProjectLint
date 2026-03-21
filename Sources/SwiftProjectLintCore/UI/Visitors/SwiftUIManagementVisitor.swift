@@ -46,6 +46,7 @@ class SwiftUIManagementVisitor: BasePatternVisitor {
     private var currentViewName: String = ""
     private var currentFilePath: String = ""
     private var viewDeclarations: [ViewDeclaration] = []
+    private var currentStructNode: StructDeclSyntax?
 
     // MARK: - Initialization
 
@@ -62,6 +63,7 @@ class SwiftUIManagementVisitor: BasePatternVisitor {
         if isSwiftUIView(node) {
             let viewName = structName
             currentViewName = viewName
+            currentStructNode = node
 
             // Analyze the view structure
             analyzeViewStructure(node)
@@ -170,23 +172,48 @@ class SwiftUIManagementVisitor: BasePatternVisitor {
     }
 
     private func checkForUninitializedState(_ stateVar: StateVariableInfo, node: VariableDeclSyntax) {
-        // Check if @State variable has an initial value
-        if stateVar.propertyWrapper == .state {
-            let hasInitialValue = node.bindings.contains { binding in
-                binding.initializer != nil
-            }
+        guard stateVar.propertyWrapper == .state else { return }
 
-            if !hasInitialValue {
-                addIssue(
-                    severity: .error,
-                    message: "@State variable '\(stateVar.name)' must have an initial value",
-                    filePath: currentFilePath,
-                    lineNumber: getLineNumber(for: Syntax(node)),
-                    suggestion: "Provide an initial value for the @State variable",
-                    ruleName: .uninitializedStateVariable
-                )
-            }
+        let hasInitialValue = node.bindings.contains { binding in
+            binding.initializer != nil
         }
+        if hasInitialValue { return }
+
+        // Optional types default to nil — no initializer needed
+        let isOptional = node.bindings.contains { binding in
+            if let typeAnnotation = binding.typeAnnotation {
+                let typeText = typeAnnotation.type.description.trimmingCharacters(in: .whitespaces)
+                return typeText.hasSuffix("?") || typeText.hasPrefix("Optional<")
+            }
+            return false
+        }
+        if isOptional { return }
+
+        // Non-private @State vars can be set via memberwise init from the parent view
+        let isPrivate = node.modifiers.contains { modifier in
+            modifier.name.text == "private"
+        }
+        if !isPrivate { return }
+
+        // Check if the struct has an init() that assigns _varName = State(initialValue:)
+        if let structNode = currentStructNode {
+            let underscoreName = "_\(stateVar.name)"
+            let hasInitAssignment = structNode.memberBlock.members.contains { member in
+                guard let initDecl = member.decl.as(InitializerDeclSyntax.self),
+                      let body = initDecl.body else { return false }
+                return body.description.contains(underscoreName)
+            }
+            if hasInitAssignment { return }
+        }
+
+        addIssue(
+            severity: .error,
+            message: "@State variable '\(stateVar.name)' must have an initial value",
+            filePath: currentFilePath,
+            lineNumber: getLineNumber(for: Syntax(node)),
+            suggestion: "Provide an initial value for the @State variable",
+            ruleName: .uninitializedStateVariable
+        )
     }
 
     private func checkForUnusedState(_ stateVar: StateVariableInfo, node: VariableDeclSyntax) {
