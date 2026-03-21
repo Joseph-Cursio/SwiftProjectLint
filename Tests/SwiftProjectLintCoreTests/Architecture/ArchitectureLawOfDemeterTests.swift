@@ -121,4 +121,116 @@ struct ArchitectureLawOfDemeterTests {
         let lodIssues = issues.filter { $0.ruleName == .lawOfDemeter }
         #expect(lodIssues.isEmpty)
     }
+
+    // MARK: - Singleton / static accessor exemptions
+
+    @Test func testNoIssueForFileManagerDefaultChain() throws {
+        let source = """
+        class Setup {
+            func tempDir() -> URL {
+                return FileManager.default.temporaryDirectory.appendingPathComponent("test")
+            }
+        }
+        """
+        let issues = analyzeSource(source)
+        let lodIssues = issues.filter { $0.ruleName == .lawOfDemeter }
+        #expect(lodIssues.isEmpty)
+    }
+
+    @Test func testNoIssueForProcessInfoChain() throws {
+        let source = """
+        class Guard {
+            func isTesting() -> Bool {
+                return ProcessInfo.processInfo.arguments.contains("--testing")
+            }
+        }
+        """
+        let issues = analyzeSource(source)
+        let lodIssues = issues.filter { $0.ruleName == .lawOfDemeter }
+        #expect(lodIssues.isEmpty)
+    }
+
+    // MARK: - Nested type / enum case exemptions
+
+    @Test func testNoIssueForNestedTypeAccess() throws {
+        let source = """
+        class Validator {
+            func check() -> String {
+                return ValidationResult.ConfigField.optInRules.description
+            }
+        }
+        """
+        let issues = analyzeSource(source)
+        let lodIssues = issues.filter { $0.ruleName == .lawOfDemeter }
+        #expect(lodIssues.isEmpty)
+    }
+
+    @Test func testNoIssueForEnumAllCasesChain() throws {
+        let source = """
+        class Picker {
+            func steps() {
+                let _ = OnboardingManager.OnboardingStep.allCases.filter { $0.isRequired }
+            }
+        }
+        """
+        let issues = analyzeSource(source)
+        let lodIssues = issues.filter { $0.ruleName == .lawOfDemeter }
+        #expect(lodIssues.isEmpty)
+    }
+
+    // MARK: - Value transform exemptions
+
+    @Test func testNoIssueForRawValueCapitalizedChain() throws {
+        let source = """
+        class Formatter {
+            func label(for violation: Violation) -> String {
+                return violation.severity.rawValue.capitalized
+            }
+        }
+        """
+        let issues = analyzeSource(source)
+        let lodIssues = issues.filter { $0.ruleName == .lawOfDemeter }
+        #expect(lodIssues.isEmpty)
+    }
+
+    // MARK: - Closure parameter exemptions
+
+    @Test func testNoIssueForClosureParameterChain() throws {
+        let source = """
+        class Sorter {
+            func sort(items: [Item]) -> [Item] {
+                return items.sorted { $0.category.name.count < $1.category.name.count }
+            }
+        }
+        """
+        let issues = analyzeSource(source)
+        let lodIssues = issues.filter { $0.ruleName == .lawOfDemeter }
+        #expect(lodIssues.isEmpty)
+    }
+
+    // MARK: - Test file exemptions
+
+    @Test func testNoIssueInTestFiles() throws {
+        let source = """
+        class OwnerTests {
+            func test() { let _ = result.viewModel.searchText.isEmpty }
+        }
+        """
+        let issues = analyzeSource(source, filePath: "OwnerTests.swift")
+        let lodIssues = issues.filter { $0.ruleName == .lawOfDemeter }
+        #expect(lodIssues.isEmpty)
+    }
+
+    // MARK: - Still detects real violations
+
+    @Test func testStillDetectsRealViolationInNonTestFile() throws {
+        let source = """
+        class Owner {
+            func run() { let _ = manager.service.data.count }
+        }
+        """
+        let issues = analyzeSource(source, filePath: "Owner.swift")
+        let lodIssues = issues.filter { $0.ruleName == .lawOfDemeter }
+        #expect(lodIssues.count == 1)
+    }
 }

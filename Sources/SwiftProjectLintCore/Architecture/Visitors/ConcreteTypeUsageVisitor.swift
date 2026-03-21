@@ -6,6 +6,9 @@ import SwiftSyntax
 class ConcreteTypeUsageVisitor: BasePatternVisitor {
     private var currentFilePath: String = ""
 
+    /// Whether the current struct/class looks like a DI container.
+    private var isInsideDIContainer: Bool = false
+
     private enum ServiceSuffix: String, CaseIterable {
         case manager = "Manager"
         case service = "Service"
@@ -21,6 +24,25 @@ class ConcreteTypeUsageVisitor: BasePatternVisitor {
         case coordinator = "Coordinator"
     }
 
+    /// Foundation / system types that are concrete by design and cannot
+    /// reasonably be protocol-abstracted.
+    private static let systemConcreteTypes: Set<String> = [
+        "FileManager", "NotificationCenter", "UserDefaults",
+        "URLSession", "ProcessInfo", "Bundle",
+        "UNUserNotificationCenter", "NSWorkspace"
+    ]
+
+    /// Type-name suffixes that indicate a DI container or composition root,
+    /// where holding concrete types is the whole point.
+    private static let diContainerSuffixes = [
+        "Container", "Dependencies", "Composition", "Assembly"
+    ]
+
+    /// Type-name suffixes indicating a mock/stub/fake, which are concrete by design.
+    private static let mockSuffixes = [
+        "Mock", "Stub", "Fake", "Spy", "Dummy"
+    ]
+
     required init(pattern: SyntaxPattern, viewMode: SyntaxTreeViewMode = .sourceAccurate) {
         super.init(pattern: pattern, viewMode: viewMode)
     }
@@ -29,22 +51,46 @@ class ConcreteTypeUsageVisitor: BasePatternVisitor {
         self.currentFilePath = filePath
     }
 
+    // MARK: - Scope tracking
+
+    override func visit(_ node: StructDeclSyntax) -> SyntaxVisitorContinueKind {
+        isInsideDIContainer = Self.diContainerSuffixes.contains(where: {
+            node.name.text.hasSuffix($0)
+        })
+        return .visitChildren
+    }
+
+    override func visitPost(_ node: StructDeclSyntax) {
+        isInsideDIContainer = false
+    }
+
+    override func visit(_ node: ClassDeclSyntax) -> SyntaxVisitorContinueKind {
+        isInsideDIContainer = Self.diContainerSuffixes.contains(where: {
+            node.name.text.hasSuffix($0)
+        })
+        return .visitChildren
+    }
+
+    override func visitPost(_ node: ClassDeclSyntax) {
+        isInsideDIContainer = false
+    }
+
     // MARK: - Service-like type heuristic
 
     private func extractServiceTypeName(from type: TypeSyntax) -> String? {
         // Direct: NetworkService
-        if let id = type.as(IdentifierTypeSyntax.self) {
-            return qualifying(id.name.text)
+        if let identifier = type.as(IdentifierTypeSyntax.self) {
+            return qualifying(identifier.name.text)
         }
         // Optional: NetworkService?
         if let opt = type.as(OptionalTypeSyntax.self),
-           let id = opt.wrappedType.as(IdentifierTypeSyntax.self) {
-            return qualifying(id.name.text)
+           let identifier = opt.wrappedType.as(IdentifierTypeSyntax.self) {
+            return qualifying(identifier.name.text)
         }
         // Implicitly unwrapped: NetworkService!
         if let iuo = type.as(ImplicitlyUnwrappedOptionalTypeSyntax.self),
-           let id = iuo.wrappedType.as(IdentifierTypeSyntax.self) {
-            return qualifying(id.name.text)
+           let identifier = iuo.wrappedType.as(IdentifierTypeSyntax.self) {
+            return qualifying(identifier.name.text)
         }
         return nil
     }
@@ -57,6 +103,15 @@ class ConcreteTypeUsageVisitor: BasePatternVisitor {
               !name.hasSuffix("Type"),
               !name.hasSuffix("Interface")
         else { return nil }
+
+        // System types that are concrete by design
+        if Self.systemConcreteTypes.contains(name) { return nil }
+
+        // Mock/stub/fake types
+        if Self.mockSuffixes.contains(where: { name.hasPrefix($0) || name.contains($0) }) {
+            return nil
+        }
+
         return name
     }
 
@@ -64,7 +119,8 @@ class ConcreteTypeUsageVisitor: BasePatternVisitor {
 
     private static let propertyWrapperNames: Set<String> = [
         "State", "StateObject", "ObservedObject", "EnvironmentObject",
-        "Binding", "Published", "AppStorage", "SceneStorage"
+        "Binding", "Published", "AppStorage", "SceneStorage",
+        "Bindable", "Environment"
     ]
 
     private func hasPropertyWrapper(_ node: VariableDeclSyntax) -> Bool {
@@ -78,9 +134,29 @@ class ConcreteTypeUsageVisitor: BasePatternVisitor {
         return false
     }
 
+    // MARK: - Common exemptions
+
+    private func shouldSkipFile() -> Bool {
+        // Test files and test helpers use concrete types by necessity
+        currentFilePath.contains("Test")
+    }
+
+    private func isInsideSwiftUIView(_ node: some SyntaxProtocol) -> Bool {
+        // Walk up to find the enclosing struct and check for View conformance
+        var current: Syntax = Syntax(node)
+        while let parent = current.parent {
+            if let structDecl = parent.as(StructDeclSyntax.self) {
+                return isSwiftUIView(structDecl)
+            }
+            current = parent
+        }
+        return false
+    }
+
     // MARK: - Function/initializer parameters
 
     override func visit(_ node: FunctionParameterSyntax) -> SyntaxVisitorContinueKind {
+        if shouldSkipFile() || isInsideDIContainer { return .visitChildren }
         // Skip opaque types (some Protocol)
         if node.type.is(SomeOrAnyTypeSyntax.self) {
             return .visitChildren
@@ -88,9 +164,14 @@ class ConcreteTypeUsageVisitor: BasePatternVisitor {
         guard let typeName = extractServiceTypeName(from: node.type) else {
             return .visitChildren
         }
+        // Skip all concrete types in SwiftUI views — @Observable requires
+        // concrete types for SwiftUI's observation tracking to work
+        if isInsideSwiftUIView(node) {
+            return .visitChildren
+        }
         let paramName = node.firstName.text
         addIssue(
-            severity: .warning,
+            severity: .info,
             message: "Parameter '\(paramName)' uses concrete type '\(typeName)' — prefer a protocol abstraction",
             filePath: currentFilePath,
             lineNumber: getLineNumber(for: Syntax(node)),
@@ -103,6 +184,7 @@ class ConcreteTypeUsageVisitor: BasePatternVisitor {
     // MARK: - Stored properties with type annotations
 
     override func visit(_ node: VariableDeclSyntax) -> SyntaxVisitorContinueKind {
+        if shouldSkipFile() || isInsideDIContainer { return .visitChildren }
         // Skip if property has a reactive/injection wrapper
         if hasPropertyWrapper(node) {
             return .visitChildren
@@ -114,6 +196,11 @@ class ConcreteTypeUsageVisitor: BasePatternVisitor {
             if binding.initializer != nil { continue }
 
             guard let typeName = extractServiceTypeName(from: typeAnnotation.type) else { continue }
+            // Skip all concrete types in SwiftUI views — @Observable requires
+            // concrete types for SwiftUI's observation tracking to work
+            if isInsideSwiftUIView(node) {
+                continue
+            }
             let propName: String
             if let pattern = binding.pattern.as(IdentifierPatternSyntax.self) {
                 propName = pattern.identifier.text
@@ -121,7 +208,7 @@ class ConcreteTypeUsageVisitor: BasePatternVisitor {
                 propName = "property"
             }
             addIssue(
-                severity: .warning,
+                severity: .info,
                 message: "Property '\(propName)' declares concrete type '\(typeName)' — prefer a protocol abstraction",
                 filePath: currentFilePath,
                 lineNumber: getLineNumber(for: Syntax(node)),

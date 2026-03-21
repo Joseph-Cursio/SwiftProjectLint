@@ -11,7 +11,7 @@ struct ArchitectureConcreteTypeUsageTests {
 
     private func analyzeSource(
         _ source: String,
-        filePath: String = "TestFile.swift"
+        filePath: String = "SourceFile.swift"
     ) -> [LintIssue] {
         let visitor = ConcreteTypeUsageVisitor(patternCategory: .architecture)
         let syntax = Parser.parse(source: source)
@@ -163,5 +163,116 @@ struct ArchitectureConcreteTypeUsageTests {
         let issues = analyzeSource(source)
         let concreteIssues = issues.filter { $0.ruleName == .concreteTypeUsage }
         #expect(concreteIssues.isEmpty)
+    }
+
+    // MARK: - DI container exemption
+
+    @Test func testNoIssueInsideDIContainer() throws {
+        let source = """
+        class DependencyContainer {
+            var workspaceManager: WorkspaceManager
+            var onboardingManager: OnboardingManager
+            init(workspaceManager: WorkspaceManager, onboardingManager: OnboardingManager) {
+                self.workspaceManager = workspaceManager
+                self.onboardingManager = onboardingManager
+            }
+        }
+        """
+        let issues = analyzeSource(source)
+        let concreteIssues = issues.filter { $0.ruleName == .concreteTypeUsage }
+        #expect(concreteIssues.isEmpty)
+    }
+
+    // MARK: - System type exemption
+
+    @Test func testNoIssueForSystemTypes() throws {
+        let source = """
+        class Analyzer {
+            var fileManager: FileManager
+            init(fileManager: FileManager) { self.fileManager = fileManager }
+        }
+        """
+        let issues = analyzeSource(source)
+        let concreteIssues = issues.filter { $0.ruleName == .concreteTypeUsage }
+        #expect(concreteIssues.isEmpty)
+    }
+
+    // MARK: - Test file exemption
+
+    @Test func testNoIssueInTestFiles() throws {
+        let source = """
+        class Setup {
+            func configure(service: APIService) { }
+        }
+        """
+        let issues = analyzeSource(source, filePath: "SetupTests.swift")
+        let concreteIssues = issues.filter { $0.ruleName == .concreteTypeUsage }
+        #expect(concreteIssues.isEmpty)
+    }
+
+    // MARK: - Mock type exemption
+
+    @Test func testNoIssueForMockTypes() throws {
+        let source = """
+        class Owner {
+            var storage: MockViolationStorageForViewModel
+        }
+        """
+        let issues = analyzeSource(source)
+        let concreteIssues = issues.filter { $0.ruleName == .concreteTypeUsage }
+        #expect(concreteIssues.isEmpty)
+    }
+
+    // MARK: - SwiftUI View + ViewModel exemption
+
+    @Test func testNoIssueForViewModelInSwiftUIView() throws {
+        let source = """
+        struct RuleBrowserView: View {
+            var viewModel: RuleBrowserViewModel
+            var body: some View { Text("") }
+        }
+        """
+        let issues = analyzeSource(source)
+        let concreteIssues = issues.filter { $0.ruleName == .concreteTypeUsage }
+        #expect(concreteIssues.isEmpty)
+    }
+
+    @Test func testNoIssueForViewModelParamInSwiftUIView() throws {
+        let source = """
+        struct DetailView: View {
+            init(viewModel: RuleDetailViewModel) { }
+            var body: some View { Text("") }
+        }
+        """
+        let issues = analyzeSource(source)
+        let concreteIssues = issues.filter { $0.ruleName == .concreteTypeUsage }
+        #expect(concreteIssues.isEmpty)
+    }
+
+    @Test func testNoIssueForAnyServiceTypeInSwiftUIView() throws {
+        let source = """
+        struct OnboardingView: View {
+            var onboardingManager: OnboardingManager
+            var workspaceManager: WorkspaceManager
+            var body: some View { Text("") }
+        }
+        """
+        let issues = analyzeSource(source)
+        let concreteIssues = issues.filter { $0.ruleName == .concreteTypeUsage }
+        #expect(concreteIssues.isEmpty)
+    }
+
+    // MARK: - Still detects real violations
+
+    @Test func testStillDetectsConcreteServiceInNonView() throws {
+        let source = """
+        class Coordinator {
+            var service: APIService
+            init(service: APIService) { self.service = service }
+        }
+        """
+        let issues = analyzeSource(source, filePath: "Coordinator.swift")
+        let concreteIssues = issues.filter { $0.ruleName == .concreteTypeUsage }
+        #expect(concreteIssues.count >= 1)
     }
 }

@@ -60,7 +60,7 @@ class ArchitecturePatternRegistrar: PatternRegistrarWithVisitorProto {
         let concreteTypeUsagePattern = SyntaxPattern(
             name: .concreteTypeUsage,
             visitor: ConcreteTypeUsageVisitor.self,
-            severity: .warning,
+            severity: .info,
             category: .architecture,
             messageTemplate: "Concrete type {typeName} used where a protocol abstraction would improve testability",
             suggestion: "Define a protocol for {typeName} and use it as the type annotation",
@@ -93,7 +93,7 @@ class ArchitecturePatternRegistrar: PatternRegistrarWithVisitorProto {
         let lawOfDemeterPattern = SyntaxPattern(
             name: .lawOfDemeter,
             visitor: LawOfDemeterVisitor.self,
-            severity: .warning,
+            severity: .info,
             category: .architecture,
             messageTemplate: "Method chain violates the Law of Demeter",
             suggestion: "Encapsulate the access in a direct collaborator method",
