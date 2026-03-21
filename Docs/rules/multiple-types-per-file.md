@@ -12,6 +12,7 @@ Each type (struct, class, enum, actor) should live in its own file. This makes t
 ### Scope
 - Flags top-level type declarations (struct, class, enum, actor) when more than one appears in a file
 - Only the second and subsequent types are flagged — the first type is always allowed
+- Does **not** flag `private` or `fileprivate` types — these are intentionally scoped to the file and don't need their own file
 - Does **not** flag nested types — a struct containing a private helper enum is a normal pattern
 - Does **not** flag extensions — splitting a type across extensions in the same file is idiomatic Swift
 - Does **not** flag tightly-coupled companion types whose name shares a prefix with the file's primary type or the file name stem
@@ -54,6 +55,17 @@ class WorkspaceManager {
 
 enum WorkspaceError: Error {
     case notFound
+}
+```
+
+```swift
+// Private helper types — fine (file-scoped by design)
+struct RuleListItem: View {
+    var body: some View { Text("rule") }
+}
+
+private struct CategoryBadge: View {
+    var body: some View { Text("badge") }
 }
 ```
 
