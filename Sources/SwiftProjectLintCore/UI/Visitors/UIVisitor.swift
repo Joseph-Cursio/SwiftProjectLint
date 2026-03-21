@@ -25,7 +25,8 @@ class UIVisitor: BasePatternVisitor {
         let viewName = node.name.text
         currentViewName = viewName
         // Track the first View struct as the primary view for preview checks
-        if primaryViewName == nil, isSwiftUIView(node) {
+        // Exclude App structs — previewing the app entry point is not standard practice
+        if primaryViewName == nil, isSwiftUIViewOnly(node) {
             primaryViewName = viewName
         }
         // Detect preview providers (old)
@@ -144,7 +145,7 @@ class UIVisitor: BasePatternVisitor {
         // Only check the primary (first) view in the file for missing preview.
         // Subcomponent views in the same file are covered by the primary view's preview.
         let viewName = node.name.text
-        if isSwiftUIView(node),
+        if isSwiftUIViewOnly(node),
            viewName == primaryViewName,
            !detectedPreviews.contains(viewName) {
             // Skip preview detection for test files
