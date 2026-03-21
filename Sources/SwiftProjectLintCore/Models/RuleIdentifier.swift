@@ -63,6 +63,7 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
     case todoComment = "TODO Comment"
     case taskDetached = "Task Detached"
     case asyncLetUnused = "Async Let Unused"
+    case buttonClosureWrapping = "Button Closure Wrapping"
 
     // Modernization Rules
     case dateNow = "Date Now"
@@ -77,6 +78,7 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
     case navigationViewDeprecated = "NavigationView Deprecated"
     case observedObjectInline = "ObservedObject Inline"
     case onChangeOldAPI = "onChange Old API"
+    case legacyObservableObject = "Legacy ObservableObject"
 
     // Security Rules
     case hardcodedSecret = "Hardcoded Secret"
@@ -139,7 +141,7 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
              .protocolNamingSuffix, .actorNamingSuffix, .propertyWrapperNamingSuffix,
              .expectNegation, .lowercasedContains, .multipleTypesPerFile, .actorReentrancy,
              .forceTry, .forceUnwrap, .printStatement, .emptyCatch, .todoComment,
-             .taskDetached, .asyncLetUnused:
+             .taskDetached, .asyncLetUnused, .buttonClosureWrapping:
             return .codeQuality
 
             // Security Rules
@@ -167,7 +169,8 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
             // Modernization Rules
         case .dateNow, .dispatchMainAsync, .threadSleep, .legacyRandom, .cfAbsoluteTime,
              .legacyNotificationObserver, .completionHandlerDataTask, .taskInOnAppear,
-             .dispatchSemaphoreInAsync, .navigationViewDeprecated, .onChangeOldAPI:
+             .dispatchSemaphoreInAsync, .navigationViewDeprecated, .onChangeOldAPI,
+             .legacyObservableObject:
             return .modernization
 
             // Other/System Rules
