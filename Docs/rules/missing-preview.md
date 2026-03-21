@@ -11,6 +11,8 @@ SwiftUI previews accelerate the development loop. A view without a preview requi
 
 ### Scope
 - Flags the **primary view** (first `View`-conforming struct) in a file when no `#Preview` macro or `PreviewProvider` struct is found
+- Only flags **leaf components** — views without `@Environment`, `@EnvironmentObject`, `@Bindable`, or ViewModel-typed properties. Views with these dependencies require non-trivial mock setup, making the suggestion less actionable.
+- Does **not** flag `App`-conforming structs — app entry points are not previewable
 - Does **not** flag secondary/subcomponent views in the same file — these are covered by the primary view's preview
 - Does **not** flag views in test files (paths containing `Test`, `Tests`, or `test.swift`)
 
