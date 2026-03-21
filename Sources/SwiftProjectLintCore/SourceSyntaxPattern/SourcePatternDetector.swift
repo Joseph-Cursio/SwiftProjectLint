@@ -2,8 +2,12 @@ import Foundation
 import SwiftParser
 import SwiftSyntax
 
-public final class SourcePatternDetector: SourcePatternDetectorProtocol, Sendable {
+public final class SourcePatternDetector: SourcePatternDetectorProtocol, @unchecked Sendable {
     public let registry: PatternVisitorRegistry
+
+    /// Type names known to conform to `Identifiable` across the project.
+    /// Set by `ProjectLinter` after a pre-scan phase and passed through to visitors.
+    var knownIdentifiableTypes: Set<String> = []
 
     /// Initializes a new SwiftSyntax pattern detector.
     ///
@@ -114,6 +118,7 @@ public final class SourcePatternDetector: SourcePatternDetectorProtocol, Sendabl
             let visitor = entry.type.init(pattern: entry.patterns[0])
             visitor.setSourceLocationConverter(converter)
             visitor.setFilePath(filePath)
+            visitor.knownIdentifiableTypes = knownIdentifiableTypes
             visitor.walk(sourceFile)
 
             // Filter to only the rules that were actually requested.

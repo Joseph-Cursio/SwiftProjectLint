@@ -16,9 +16,11 @@ struct PerformanceVisitorForEachAndBodyTests {
 
     private func analyzeSource(
         _ source: String,
-        filePath: String = "TestView.swift"
+        filePath: String = "TestView.swift",
+        identifiableTypes: Set<String> = []
     ) -> [LintIssue] {
         let visitor = createVisitor()
+        visitor.knownIdentifiableTypes = identifiableTypes
         let syntax = Parser.parse(source: source)
         let converter = SourceLocationConverter(fileName: filePath, tree: syntax)
         visitor.setSourceLocationConverter(converter)
@@ -80,6 +82,79 @@ struct PerformanceVisitorForEachAndBodyTests {
         }
 
         #expect(forEachWithoutIDIssues.isEmpty)
+    }
+
+    // MARK: - ForEach Identifiable Suppression Tests
+
+    @Test func testNoIssueForForEachWithIdentifiableAllCases() throws {
+        let source = """
+        struct TestView: View {
+            var body: some View {
+                ForEach(Severity.allCases) { severity in
+                    Text(severity.displayName)
+                }
+            }
+        }
+        """
+
+        let issues = analyzeSource(source, identifiableTypes: ["Severity"])
+        let forEachIssues = issues.filter { $0.ruleName == .forEachWithoutID }
+        #expect(forEachIssues.isEmpty)
+    }
+
+    @Test func testStillFlagsForEachWithNonIdentifiableAllCases() throws {
+        let source = """
+        struct TestView: View {
+            var body: some View {
+                ForEach(MyEnum.allCases) { item in
+                    Text(item.name)
+                }
+            }
+        }
+        """
+
+        // MyEnum is NOT in the Identifiable set
+        let issues = analyzeSource(source, identifiableTypes: ["OtherType"])
+        let forEachIssues = issues.filter { $0.ruleName == .forEachWithoutID }
+        #expect(forEachIssues.count >= 1)
+    }
+
+    @Test func testNoIssueForForEachWithIdentifiableTypedArray() throws {
+        let source = """
+        struct TestView: View {
+            let items: [Item]
+
+            var body: some View {
+                ForEach(items) { item in
+                    Text(item.name)
+                }
+            }
+        }
+        """
+
+        let issues = analyzeSource(source, identifiableTypes: ["Item"])
+        let forEachIssues = issues.filter { $0.ruleName == .forEachWithoutID }
+        #expect(forEachIssues.isEmpty)
+    }
+
+    @Test func testNoIssueForForEachWithIdentifiableMemberProperty() throws {
+        let source = """
+        struct TestView: View {
+            let viewModel: ViewModel
+
+            var body: some View {
+                ForEach(viewModel.backups) { backup in
+                    Text(backup.name)
+                }
+            }
+        }
+        """
+
+        // We can't resolve the type of viewModel.backups without type info,
+        // so this should still flag (element type unknown)
+        let issues = analyzeSource(source, identifiableTypes: ["ConfigBackup"])
+        let forEachIssues = issues.filter { $0.ruleName == .forEachWithoutID }
+        #expect(forEachIssues.count >= 1)
     }
 
     // MARK: - Large View Body Tests

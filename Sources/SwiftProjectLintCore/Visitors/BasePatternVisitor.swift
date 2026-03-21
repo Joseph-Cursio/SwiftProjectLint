@@ -16,6 +16,12 @@ class BasePatternVisitor: SyntaxVisitor, PatternVisitorProtocol {
     var sourceLocationConverter: SourceLocationConverter?
     private var filePath: String = "unknown"
 
+    /// Type names known to conform to `Identifiable` across the project.
+    /// Populated by a pre-scan phase in `ProjectLinter` so that per-file
+    /// visitors can suppress false positives (e.g. ForEach without explicit `id:`
+    /// when the element type is `Identifiable`).
+    var knownIdentifiableTypes: Set<String> = []
+
     /// Placeholder pattern used for cross-file visitors that set their pattern after initialization.
     static let placeholderPattern = SyntaxPattern(
         name: .unknown,

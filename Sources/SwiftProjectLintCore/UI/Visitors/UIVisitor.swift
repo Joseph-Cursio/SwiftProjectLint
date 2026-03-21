@@ -88,14 +88,20 @@ class UIVisitor: BasePatternVisitor {
                 hasID = true
             }
             if !hasID {
-                addIssue(
-                    severity: .warning,
-                    message: "ForEach without explicit ID can cause performance issues",
-                    filePath: currentFilePath,
-                    lineNumber: getLineNumber(for: Syntax(node)),
-                    suggestion: "Add an explicit id: parameter to ForEach",
-                    ruleName: .forEachWithoutIDUI
-                )
+                // Suppress when the element type is known to be Identifiable
+                let elementType = inferForEachElementType(node)
+                let isIdentifiable = elementType.map { knownIdentifiableTypes.contains($0) } ?? false
+
+                if !isIdentifiable {
+                    addIssue(
+                        severity: .warning,
+                        message: "ForEach without explicit ID can cause performance issues",
+                        filePath: currentFilePath,
+                        lineNumber: getLineNumber(for: Syntax(node)),
+                        suggestion: "Add an explicit id: parameter to ForEach",
+                        ruleName: .forEachWithoutIDUI
+                    )
+                }
             }
         }
         // Detect inconsistent styling

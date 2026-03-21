@@ -115,14 +115,20 @@ class PerformanceVisitor: BasePatternVisitor {
             }
 
             if !hasExplicitID {
-                addIssue(
-                    severity: .warning,
-                    message: "ForEach missing explicit id parameter can cause performance issues",
-                    filePath: currentFilePath,
-                    lineNumber: getLineNumber(for: Syntax(node)),
-                    suggestion: "Add an explicit id: parameter to ForEach for better diffing performance",
-                    ruleName: .forEachWithoutID
-                )
+                // Suppress when the element type is known to be Identifiable
+                let elementType = inferForEachElementType(node)
+                let isIdentifiable = elementType.map { knownIdentifiableTypes.contains($0) } ?? false
+
+                if !isIdentifiable {
+                    addIssue(
+                        severity: .warning,
+                        message: "ForEach missing explicit id parameter can cause performance issues",
+                        filePath: currentFilePath,
+                        lineNumber: getLineNumber(for: Syntax(node)),
+                        suggestion: "Add an explicit id: parameter to ForEach for better diffing performance",
+                        ruleName: .forEachWithoutID
+                    )
+                }
             }
         }
 

@@ -45,8 +45,14 @@ public final class ProjectLinter: Sendable {
             cliRuleIdentifiers: ruleIdentifiers
         )
 
+        // Pre-scan: collect all type names that conform to Identifiable.
+        // This set is passed to per-file visitors so they can suppress
+        // false-positive "ForEach without ID" warnings for Identifiable types.
+        let identifiableTypes = Self.collectIdentifiableTypes(from: filePaths)
+
         // Resolve the registry once so each task can create its own detector
         let detector = detector ?? SourcePatternDetector()
+        detector.knownIdentifiableTypes = identifiableTypes
         let registry = detector.registry
 
         // Per-file I/O and analysis — throttled to avoid memory exhaustion on large projects.
@@ -64,7 +70,8 @@ public final class ProjectLinter: Sendable {
                     Self.analyzeFile(
                         at: filePath, registry: registry,
                         categories: effectiveRules != nil ? nil : categories,
-                        ruleIdentifiers: effectiveRules
+                        ruleIdentifiers: effectiveRules,
+                        identifiableTypes: identifiableTypes
                     )
                 }
             }
@@ -84,7 +91,8 @@ public final class ProjectLinter: Sendable {
                         Self.analyzeFile(
                             at: filePath, registry: registry,
                             categories: effectiveRules != nil ? nil : categories,
-                            ruleIdentifiers: effectiveRules
+                            ruleIdentifiers: effectiveRules,
+                            identifiableTypes: identifiableTypes
                         )
                     }
                 }
@@ -118,12 +126,30 @@ public final class ProjectLinter: Sendable {
         return configuration.applyOverrides(to: issues, projectRoot: path)
     }
 
+    /// Scans all project files and returns the set of type names that conform to `Identifiable`.
+    ///
+    /// This is a fast, read-only pre-scan that only inspects inheritance clauses.
+    /// The result is passed to per-file visitors so they can avoid false-positive
+    /// "ForEach without ID" warnings for Identifiable element types.
+    private static func collectIdentifiableTypes(from filePaths: [String]) -> Set<String> {
+        var allTypes: Set<String> = []
+        for filePath in filePaths {
+            guard let content = try? String(contentsOfFile: filePath) else { continue }
+            let syntax = Parser.parse(source: content)
+            let collector = IdentifiableTypeCollector()
+            collector.walk(syntax)
+            allTypes.formUnion(collector.identifiableTypes)
+        }
+        return allTypes
+    }
+
     /// Analyzes a single file — pure function safe for concurrent task group use.
     private static func analyzeFile(
         at filePath: String,
         registry: PatternVisitorRegistry,
         categories: [PatternCategory]?,
-        ruleIdentifiers: [RuleIdentifier]?
+        ruleIdentifiers: [RuleIdentifier]?,
+        identifiableTypes: Set<String> = []
     ) -> (file: ProjectFile, issues: [LintIssue], parsedAST: SourceFileSyntax)? {
         guard !Task.isCancelled else { return nil }
         guard let content = try? String(contentsOfFile: filePath) else { return nil }
@@ -134,6 +160,7 @@ public final class ProjectLinter: Sendable {
         )
         let parsedAST = Parser.parse(source: content)
         let det = SourcePatternDetector(registry: registry)
+        det.knownIdentifiableTypes = identifiableTypes
 
         let issues: [LintIssue]
         if let ruleIdentifiers {
