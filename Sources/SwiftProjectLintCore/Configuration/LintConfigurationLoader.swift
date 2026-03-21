@@ -50,17 +50,22 @@ public struct LintConfigurationLoader {
 
     private static func parse(yaml: [String: Any]) -> LintConfiguration {
         let disabledRules = parseRuleList(yaml["disabled_rules"])
-        let enabledOnlyRules = parseRuleList(yaml["enabled_only"])
         let excludedPaths = parseStringList(yaml["excluded_paths"])
         let ruleOverrides = parseRuleOverrides(yaml["rules"])
 
-        // Mutual exclusivity: if both are set, disabled_rules takes precedence
-        let effectiveEnabledOnly: Set<RuleIdentifier>? =
-            disabledRules.isEmpty ? enabledOnlyRules : nil
+        // enabled_only is nil when the key is absent; only set when explicitly provided
+        let enabledOnlyRules: Set<RuleIdentifier>?
+        if yaml["enabled_only"] != nil {
+            let parsed = parseRuleList(yaml["enabled_only"])
+            // Mutual exclusivity: disabled_rules takes precedence
+            enabledOnlyRules = disabledRules.isEmpty ? parsed : nil
+        } else {
+            enabledOnlyRules = nil
+        }
 
         return LintConfiguration(
             disabledRules: disabledRules,
-            enabledOnlyRules: effectiveEnabledOnly,
+            enabledOnlyRules: enabledOnlyRules,
             excludedPaths: excludedPaths,
             ruleOverrides: ruleOverrides
         )

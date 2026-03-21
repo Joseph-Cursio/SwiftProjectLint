@@ -81,15 +81,39 @@ public struct LintConfiguration: Sendable {
     }
 
     /// Filters and transforms issues based on per-rule overrides (path exclusions, severity).
-    public func applyOverrides(to issues: [LintIssue]) -> [LintIssue] {
-        issues.compactMap { issue in
+    ///
+    /// - Parameters:
+    ///   - issues: The detected lint issues.
+    ///   - projectRoot: The project root path, used to locate source files for path matching.
+    public func applyOverrides(to issues: [LintIssue], projectRoot: String? = nil) -> [LintIssue] {
+        guard !ruleOverrides.isEmpty else { return issues }
+
+        // Build a lookup from basename → full relative path for path matching.
+        // Issue file paths are basenames; excluded_paths patterns match relative paths.
+        var basenameToRelativePath: [String: String] = [:]
+        if let root = projectRoot {
+            let allFiles = FileAnalysisUtils.findSwiftFiles(in: root)
+            let prefix = root.hasSuffix("/") ? root : root + "/"
+            for fullPath in allFiles {
+                let basename = (fullPath as NSString).lastPathComponent
+                let relative = fullPath.hasPrefix(prefix)
+                    ? String(fullPath.dropFirst(prefix.count))
+                    : fullPath
+                basenameToRelativePath[basename] = relative
+            }
+        }
+
+        return issues.compactMap { issue in
             guard let override = ruleOverrides[issue.ruleName] else { return issue }
 
-            // Check per-rule path exclusions
-            let excluded = override.excludedPaths.contains { pattern in
-                issue.filePath.contains(pattern)
+            // Check per-rule path exclusions against the relative path
+            if !override.excludedPaths.isEmpty {
+                let relativePath = basenameToRelativePath[issue.filePath] ?? issue.filePath
+                let excluded = override.excludedPaths.contains { pattern in
+                    relativePath.contains(pattern)
+                }
+                if excluded { return nil }
             }
-            if excluded { return nil }
 
             // Apply severity override
             if let severity = override.severity {

@@ -126,7 +126,7 @@ public final class ProjectLinter: Sendable {
         issues.append(contentsOf: crossFilePatternIssues)
 
         // Apply per-rule overrides (severity changes, per-rule path exclusions)
-        return configuration.applyOverrides(to: issues)
+        return configuration.applyOverrides(to: issues, projectRoot: path)
     }
 
     /// Analyzes a single file — pure function safe for concurrent task group use.
