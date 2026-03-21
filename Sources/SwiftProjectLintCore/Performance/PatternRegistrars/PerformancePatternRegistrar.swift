@@ -62,5 +62,6 @@ class PerformancePatternRegistrar: PatternRegistrarWithVisitorProto {
             )
         ]
         registry.register(patterns: patterns)
+        registry.register(pattern: DispatchSemaphoreInAsyncPatternRegistrar().pattern)
     }
 }
