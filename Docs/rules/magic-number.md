@@ -14,12 +14,14 @@ An integer or float literal of 10 or greater that appears without a named consta
 - Checks both variable initializers and function call arguments
 - Does **not** flag single-use numbers — a number appearing once may be intentional
 - Does **not** flag numbers below the threshold (default: 10; strict mode: 5)
-- Does **not** flag numbers in SwiftUI layout modifier contexts — values like `.padding(16)`, `spacing: 12`, `.frame(width: 300)` are standard design tokens, not magic numbers
+- Does **not** flag numbers inside `#Preview` blocks — these are sample/mock data, not business logic
+- Does **not** flag numbers in SwiftUI design-token contexts (see exclusions below)
+- Does **not** flag positional index arguments in `sqlite3_bind_*` functions
 
-### Layout Modifiers Excluded
-Numbers passed to these modifiers and argument labels are skipped:
-- **Modifiers**: `padding`, `spacing`, `frame`, `cornerRadius`, `opacity`, `blur`, `shadow`, `offset`, `rotation`, `scaleEffect`, `lineLimit`, `lineSpacing`
-- **Argument labels**: `width`, `height`, `minWidth`, `maxWidth`, `minHeight`, `maxHeight`, `horizontal`, `vertical`, `top`, `bottom`, `leading`, `trailing`, `minimum`, `maximum`, `radius`, `lineWidth`
+### Design-Token Exclusions
+Numbers passed to these modifiers, argument labels, and constructors are skipped:
+- **Modifiers**: `padding`, `spacing`, `frame`, `cornerRadius`, `opacity`, `blur`, `shadow`, `offset`, `rotation`, `scaleEffect`, `lineLimit`, `lineSpacing`, `font`, `system`
+- **Argument labels**: `width`, `height`, `minWidth`, `maxWidth`, `minHeight`, `maxHeight`, `idealWidth`, `idealHeight`, `horizontal`, `vertical`, `top`, `bottom`, `leading`, `trailing`, `minimum`, `maximum`, `spacing`, `radius`, `lineWidth`, `size`, `weight`, `min`, `ideal`, `max`
 - **Constructors**: `GridItem`, `RoundedRectangle`, `UnevenRoundedRectangle`
 
 ### Non-Violating Examples
