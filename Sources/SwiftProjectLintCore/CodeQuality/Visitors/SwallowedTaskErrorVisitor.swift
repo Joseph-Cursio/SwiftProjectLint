@@ -24,7 +24,7 @@ final class SwallowedTaskErrorVisitor: BasePatternVisitor {
             ofType: DoStmtSyntax.self, in: closure.statements
         )
 
-        if hasBareTry && !hasDoCatch {
+        if hasBareTry && !hasDoCatch && !isTaskResultConsumed(node) {
             addIssue(
                 severity: .warning,
                 message: "Task closure uses 'try' without do/catch "
@@ -37,6 +37,50 @@ final class SwallowedTaskErrorVisitor: BasePatternVisitor {
             )
         }
         return .visitChildren
+    }
+
+    // MARK: - Task Result Consumption
+
+    /// Returns `true` when the Task's result is consumed (errors propagate to the caller).
+    ///
+    /// Matches patterns like:
+    /// - `try await Task { ... }.value`
+    /// - `Task { ... }.result`
+    /// - `let task = Task { ... }` (stored for later `.value`/`.result` access)
+    private func isTaskResultConsumed(_ node: FunctionCallExprSyntax) -> Bool {
+        guard let parent = node.parent else { return false }
+
+        // Pattern 1: Task { ... }.value  or  Task { ... }.result
+        // The parent of the FunctionCallExpr is a MemberAccessExpr
+        if let memberAccess = parent.as(MemberAccessExprSyntax.self) {
+            let member = memberAccess.declName.baseName.text
+            if member == "value" || member == "result" {
+                return true
+            }
+        }
+
+        // Pattern 2: let task = Task { ... }  (assigned to a variable)
+        if parent.is(InitializerClauseSyntax.self) {
+            return true
+        }
+
+        // Pattern 3: try await Task { ... }.value — the FunctionCallExpr may be
+        // wrapped in an AwaitExprSyntax or TryExprSyntax before the MemberAccess.
+        // Walk up through Await/Try wrappers to find a MemberAccess.
+        var current: Syntax? = parent
+        while let ancestor = current {
+            if let memberAccess = ancestor.as(MemberAccessExprSyntax.self) {
+                let member = memberAccess.declName.baseName.text
+                if member == "value" || member == "result" {
+                    return true
+                }
+            }
+            // Stop at statement boundaries
+            if ancestor.is(CodeBlockItemSyntax.self) { break }
+            current = ancestor.parent
+        }
+
+        return false
     }
 
     // MARK: - Recursive Node Search

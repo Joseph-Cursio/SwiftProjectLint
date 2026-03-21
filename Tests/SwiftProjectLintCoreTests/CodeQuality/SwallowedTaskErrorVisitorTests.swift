@@ -79,4 +79,56 @@ struct SwallowedTaskErrorVisitorTests {
         runVisitor(visitor, source: source)
         #expect(visitor.detectedIssues.isEmpty)
     }
+
+    // MARK: - Task.value / Task.result Suppression
+
+    @Test("No issue when Task .value is awaited", arguments: [
+        // try await Task { }.value
+        """
+        try await Task { @MainActor in
+            try await riskyWork()
+        }.value
+        """,
+        // let result = try await Task { }.value
+        """
+        let result = try await Task {
+            try await fetch()
+        }.value
+        """,
+        // Task { }.result
+        """
+        let result = await Task {
+            try await fetch()
+        }.result
+        """
+    ])
+    func noIssueWhenValueConsumed(source: String) {
+        let visitor = makeVisitor()
+        runVisitor(visitor, source: source)
+        #expect(visitor.detectedIssues.isEmpty)
+    }
+
+    @Test("No issue when Task is assigned to a variable")
+    func noIssueWhenTaskAssigned() {
+        let source = """
+        let task = Task {
+            try await riskyWork()
+        }
+        """
+        let visitor = makeVisitor()
+        runVisitor(visitor, source: source)
+        #expect(visitor.detectedIssues.isEmpty)
+    }
+
+    @Test("Still flags fire-and-forget Task with try")
+    func stillFlagsFireAndForget() {
+        let source = """
+        Task {
+            try await riskyWork()
+        }
+        """
+        let visitor = makeVisitor()
+        runVisitor(visitor, source: source)
+        #expect(visitor.detectedIssues.count == 1)
+    }
 }
