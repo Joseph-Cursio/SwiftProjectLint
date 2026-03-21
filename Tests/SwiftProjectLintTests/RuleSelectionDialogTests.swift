@@ -57,7 +57,10 @@ struct RuleSelectionDialogTests {
         let view = RuleSelectionDialog(
             allPatternsByCategory: demoPatterns,
             enabledRuleNames: Binding(get: { enabled }, set: { enabled = $0 }),
-            onSave: {}
+            ruleExclusions: .constant([:]),
+            configIsDirty: false,
+            onSave: {},
+            onSaveConfig: {}
         )
         let inspected = try view.inspect()
         let allTexts = inspected.findAll(ViewType.Text.self).compactMap { try? $0.string() }
@@ -85,7 +88,10 @@ struct RuleSelectionDialogTests {
         let view = RuleSelectionDialog(
             allPatternsByCategory: patterns,
             enabledRuleNames: Binding(get: { enabled }, set: { enabled = $0 }),
-            onSave: {}
+            ruleExclusions: .constant([:]),
+            configIsDirty: false,
+            onSave: {},
+            onSaveConfig: {}
         )
         let inspected = try view.inspect()
         let allTexts = inspected.findAll(ViewType.Text.self).compactMap { try? $0.string() }
@@ -121,11 +127,15 @@ struct RuleSelectionDialogTests {
         let view = RuleSelectionDialog(
             allPatternsByCategory: patterns,
             enabledRuleNames: Binding(get: { enabled }, set: { enabled = $0 }),
-            onSave: {}
+            ruleExclusions: .constant([:]),
+            configIsDirty: false,
+            onSave: {},
+            onSaveConfig: {}
         )
         let inspected = try view.inspect()
         let toggles = inspected.findAll(ViewType.Toggle.self)
-        #expect(toggles.count == 4)
+        // 4 patterns × 3 toggles each (enabled, exclude tests, exclude views)
+        #expect(toggles.count == 12)
     }
 
     // MARK: - Select All Action
@@ -145,7 +155,10 @@ struct RuleSelectionDialogTests {
         let view = RuleSelectionDialog(
             allPatternsByCategory: patterns,
             enabledRuleNames: Binding(get: { enabled }, set: { enabled = $0 }),
-            onSave: {}
+            ruleExclusions: .constant([:]),
+            configIsDirty: false,
+            onSave: {},
+            onSaveConfig: {}
         )
         let inspected = try view.inspect()
 
@@ -177,7 +190,10 @@ struct RuleSelectionDialogTests {
         let view = RuleSelectionDialog(
             allPatternsByCategory: patterns,
             enabledRuleNames: Binding(get: { enabled }, set: { enabled = $0 }),
-            onSave: {}
+            ruleExclusions: .constant([:]),
+            configIsDirty: false,
+            onSave: {},
+            onSaveConfig: {}
         )
         let inspected = try view.inspect()
 
@@ -207,7 +223,10 @@ struct RuleSelectionDialogTests {
         let view = RuleSelectionDialog(
             allPatternsByCategory: patterns,
             enabledRuleNames: Binding(get: { enabled }, set: { enabled = $0 }),
-            onSave: { saveCalled = true }
+            ruleExclusions: .constant([:]),
+            configIsDirty: false,
+            onSave: { saveCalled = true },
+            onSaveConfig: {}
         )
         let inspected = try view.inspect()
 
@@ -234,14 +253,18 @@ struct RuleSelectionDialogTests {
         let view = RuleSelectionDialog(
             allPatternsByCategory: patterns,
             enabledRuleNames: Binding(get: { enabled }, set: { enabled = $0 }),
-            onSave: {}
+            ruleExclusions: .constant([:]),
+            configIsDirty: false,
+            onSave: {},
+            onSaveConfig: {}
         )
         let inspected = try view.inspect()
 
         let toggles = inspected.findAll(ViewType.Toggle.self)
-        #expect(toggles.count == 1)
+        // 1 pattern × 3 toggles (enabled, exclude tests, exclude views)
+        #expect(toggles.count == 3)
 
-        // Toggle is currently off, turn it on
+        // First toggle is the enabled toggle — currently off, turn it on
         try toggles[0].tap()
 
         #expect(enabled.contains(.relatedDuplicateStateVariable))
@@ -258,7 +281,10 @@ struct RuleSelectionDialogTests {
         let view = RuleSelectionDialog(
             allPatternsByCategory: patterns,
             enabledRuleNames: Binding(get: { enabled }, set: { enabled = $0 }),
-            onSave: {}
+            ruleExclusions: .constant([:]),
+            configIsDirty: false,
+            onSave: {},
+            onSaveConfig: {}
         )
         let inspected = try view.inspect()
 
@@ -278,7 +304,10 @@ struct RuleSelectionDialogTests {
         let view = RuleSelectionDialog(
             allPatternsByCategory: patterns,
             enabledRuleNames: Binding(get: { enabled }, set: { enabled = $0 }),
-            onSave: {}
+            ruleExclusions: .constant([:]),
+            configIsDirty: false,
+            onSave: {},
+            onSaveConfig: {}
         )
         let inspected = try view.inspect()
 
@@ -293,7 +322,10 @@ struct RuleSelectionDialogTests {
         let view = RuleSelectionDialog(
             allPatternsByCategory: patterns,
             enabledRuleNames: Binding(get: { enabled }, set: { enabled = $0 }),
-            onSave: {}
+            ruleExclusions: .constant([:]),
+            configIsDirty: false,
+            onSave: {},
+            onSaveConfig: {}
         )
         let inspected = try view.inspect()
 
@@ -320,7 +352,10 @@ struct RuleSelectionDialogTests {
         let view = RuleSelectionDialog(
             allPatternsByCategory: patterns,
             enabledRuleNames: Binding(get: { enabled }, set: { enabled = $0 }),
-            onSave: {}
+            ruleExclusions: .constant([:]),
+            configIsDirty: false,
+            onSave: {},
+            onSaveConfig: {}
         )
         let inspected = try view.inspect()
 

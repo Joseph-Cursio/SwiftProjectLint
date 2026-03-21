@@ -8,6 +8,12 @@
 import SwiftUI
 import SwiftProjectLintCore
 
+/// Per-rule path exclusion flags for the GUI.
+struct RuleExclusions: Codable, Equatable, Sendable {
+    var excludeTests: Bool = false
+    var excludeViews: Bool = false
+}
+
 /// View model that manages state and business logic for ContentView.
 ///
 /// Extracted from ContentView to separate concerns: ContentView owns the view hierarchy,
@@ -31,6 +37,15 @@ class ContentViewModel {
     }()
     var showingDirectoryPicker: Bool = false
     var analysisTask: Task<Void, Never>?
+
+    /// Per-rule exclusion flags (Exclude Tests, Exclude *View.swift).
+    var ruleExclusions: [RuleIdentifier: RuleExclusions] = [:]
+
+    /// Whether the current GUI state differs from the loaded YAML config.
+    var configIsDirty: Bool = false
+
+    /// The configuration as loaded from the YAML file (for dirty tracking).
+    private var loadedConfig: LintConfiguration?
 
     /// Injected reference to the pattern registry from SystemComponents.
     var patternRegistry: SourcePatternRegistryProtocol?
@@ -82,6 +97,87 @@ class ContentViewModel {
         PatternConfiguration.filterIssuesByEnabledRules(issues, enabledRuleNames: enabledRuleNames)
     }
 
+    // MARK: - Configuration
+
+    /// Loads rule exclusions from a `.swiftprojectlint.yml` in the project directory.
+    func loadConfigFromProject() {
+        guard !selectedDirectory.isEmpty else { return }
+        let config = LintConfigurationLoader.load(projectRoot: selectedDirectory)
+        loadedConfig = config
+
+        // Populate ruleExclusions from the loaded config's per-rule overrides
+        var exclusions: [RuleIdentifier: RuleExclusions] = [:]
+        for (rule, override) in config.ruleOverrides {
+            var exc = RuleExclusions()
+            exc.excludeTests = override.excludedPaths.contains { $0.contains("Tests/") }
+            exc.excludeViews = override.excludedPaths.contains { $0.contains("*View.swift") }
+            exclusions[rule] = exc
+        }
+        ruleExclusions = exclusions
+        configIsDirty = false
+    }
+
+    /// Builds a `LintConfiguration` from the current GUI state.
+    func buildConfiguration() -> LintConfiguration {
+        // Compute disabled rules (all rules not in enabledRuleNames)
+        let allRules = Set(RuleIdentifier.allCases).subtracting([.unknown, .fileParsingError])
+        let disabledRules = allRules.subtracting(enabledRuleNames)
+
+        // Build per-rule overrides from exclusion checkboxes
+        var overrides: [RuleIdentifier: LintConfiguration.RuleOverride] = [:]
+        for (rule, exclusion) in ruleExclusions {
+            var paths: [String] = []
+            if exclusion.excludeTests { paths.append("Tests/") }
+            if exclusion.excludeViews { paths.append("**/*View.swift") }
+            if !paths.isEmpty {
+                overrides[rule] = LintConfiguration.RuleOverride(excludedPaths: paths)
+            }
+        }
+
+        // Preserve any severity overrides from the loaded config
+        if let loaded = loadedConfig {
+            for (rule, override) in loaded.ruleOverrides where override.severity != nil {
+                let existing = overrides[rule]
+                overrides[rule] = LintConfiguration.RuleOverride(
+                    severity: override.severity,
+                    excludedPaths: existing?.excludedPaths ?? override.excludedPaths
+                )
+            }
+        }
+
+        return LintConfiguration(
+            disabledRules: disabledRules,
+            ruleOverrides: overrides
+        )
+    }
+
+    /// Saves the current GUI state to `.swiftprojectlint.yml` in the project directory.
+    func saveConfigToProject() {
+        guard !selectedDirectory.isEmpty else { return }
+        let config = buildConfiguration()
+        let path = (selectedDirectory as NSString)
+            .appendingPathComponent(LintConfigurationLoader.defaultFileName)
+        LintConfigurationWriter.write(config, to: path)
+        loadedConfig = config
+        configIsDirty = false
+    }
+
+    /// Updates the dirty flag by comparing current state to the loaded config.
+    func updateDirtyState() {
+        let current = buildConfiguration()
+        if let loaded = loadedConfig {
+            configIsDirty = current.disabledRules != loaded.disabledRules
+                || current.ruleOverrides.keys != loaded.ruleOverrides.keys
+                || current.ruleOverrides.contains { rule, override in
+                    loaded.ruleOverrides[rule]?.excludedPaths != override.excludedPaths
+                }
+        } else {
+            // No YAML file exists — dirty if any exclusions are set
+            configIsDirty = !ruleExclusions.isEmpty
+                && ruleExclusions.values.contains { $0.excludeTests || $0.excludeViews }
+        }
+    }
+
     // MARK: - Private
 
     /// Runs the project linter analysis at the given directory path.
@@ -91,6 +187,8 @@ class ContentViewModel {
         analysisTask?.cancel()
         isAnalyzing = true
 
+        let configuration = buildConfiguration()
+
         analysisTask = Task {
             var allIssues: [LintIssue] = []
 
@@ -98,7 +196,9 @@ class ContentViewModel {
 
             if !enabledCategories.isEmpty {
                 let linter = ProjectLinter()
-                let crossFileIssues = await linter.analyzeProject(at: path, categories: enabledCategories)
+                let crossFileIssues = await linter.analyzeProject(
+                    at: path, categories: enabledCategories, configuration: configuration
+                )
 
                 guard !Task.isCancelled else {
                     isAnalyzing = false

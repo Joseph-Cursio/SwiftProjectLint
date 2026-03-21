@@ -103,6 +103,12 @@ struct PatternConfiguration {
                 display: "Animation",
                 patterns: convertToDetectionPatterns(patternRegistry.getPatterns(for: .animation)),
                 useSwiftSyntax: true
+            ),
+            PatternCategoryInfo(
+                category: .modernization,
+                display: "Modernization",
+                patterns: convertToDetectionPatterns(patternRegistry.getPatterns(for: .modernization)),
+                useSwiftSyntax: true
             )
         ]
     }

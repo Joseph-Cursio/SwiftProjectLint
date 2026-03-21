@@ -57,16 +57,23 @@ struct ContentView: View {
                 RuleSelectionDialog(
                     allPatternsByCategory: viewModel.allPatternsByCategory,
                     enabledRuleNames: $viewModel.enabledRuleNames,
-                    onSave: viewModel.saveEnabledRules
+                    ruleExclusions: $viewModel.ruleExclusions,
+                    configIsDirty: viewModel.configIsDirty,
+                    onSave: viewModel.saveEnabledRules,
+                    onSaveConfig: viewModel.saveConfigToProject
                 )
             }
             .fileImporter(isPresented: $viewModel.showingDirectoryPicker, allowedContentTypes: [.folder]) { result in
                 switch result {
                 case .success(let url):
                     viewModel.selectedDirectory = url.path
+                    viewModel.loadConfigFromProject()
                 case .failure(let error):
                     print("Error selecting directory: \(error.localizedDescription)")
                 }
+            }
+            .onChange(of: viewModel.ruleExclusions) {
+                viewModel.updateDirtyState()
             }
             .onAppear {
                 viewModel.patternRegistry = systemComponents.patternRegistry
