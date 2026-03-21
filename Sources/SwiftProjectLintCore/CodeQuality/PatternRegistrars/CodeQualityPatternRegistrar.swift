@@ -83,5 +83,6 @@ class CodeQualityPatternRegistrar: PatternRegistrarWithVisitorProto {
         registry.register(patterns: patterns)
         registry.register(pattern: LowercasedContainsPatternRegistrar().pattern)
         registry.register(pattern: MultipleTypesPerFilePatternRegistrar().pattern)
+        registry.register(pattern: ActorReentrancyPatternRegistrar().pattern)
     }
 }
