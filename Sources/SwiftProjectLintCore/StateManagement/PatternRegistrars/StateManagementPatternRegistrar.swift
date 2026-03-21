@@ -73,5 +73,6 @@ class StateManagementPatternRegistrar: PatternRegistrarWithVisitorProto {
             )
         ]
         registry.register(patterns: patterns)
+        registry.register(pattern: ObservedObjectInlinePatternRegistrar().pattern)
     }
-} 
+}
