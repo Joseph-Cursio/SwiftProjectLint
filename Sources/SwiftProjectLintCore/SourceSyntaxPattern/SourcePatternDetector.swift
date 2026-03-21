@@ -78,7 +78,8 @@ public final class SourcePatternDetector: SourcePatternDetectorProtocol, @unchec
     private static let rulesSkippedInTests: Set<RuleIdentifier> = [
         .magicNumber,
         .missingDocumentation,
-        .directInstantiation
+        .directInstantiation,
+        .taskYieldOffload
     ]
 
     /// Groups patterns by visitor type, runs each visitor once, and filters
@@ -97,6 +98,7 @@ public final class SourcePatternDetector: SourcePatternDetectorProtocol, @unchec
         let sourceFile = parsedAST ?? Parser.parse(source: sourceCode)
         let converter = SourceLocationConverter(fileName: filePath, tree: sourceFile)
         let isTestFile = filePath.contains("Tests")
+            || filePath.contains("Test")
             || filePath.hasSuffix("Test.swift")
             || filePath.hasSuffix("Tests.swift")
 
