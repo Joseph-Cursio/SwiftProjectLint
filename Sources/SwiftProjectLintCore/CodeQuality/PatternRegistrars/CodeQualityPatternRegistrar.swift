@@ -91,5 +91,6 @@ class CodeQualityPatternRegistrar: PatternRegistrarWithVisitorProto {
         registry.register(pattern: TodoCommentPatternRegistrar().pattern)
         registry.register(pattern: TaskDetachedPatternRegistrar().pattern)
         registry.register(pattern: AsyncLetUnusedPatternRegistrar().pattern)
+        registry.register(pattern: ButtonClosureWrappingPatternRegistrar().pattern)
     }
 }
