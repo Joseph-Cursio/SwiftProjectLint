@@ -1,16 +1,16 @@
 import Testing
 @testable import SwiftProjectLintCore
 
-struct SimpleXCTest {
+struct SimpleTests {
 
     @Test("Basic functionality test")
-    func testBasicFunctionality() throws {
+    func basicFunctionality() {
         // Test that we can access the core module
         _ = AdvancedAnalyzer()
     }
-    
+
     @Test("Rule identifier test")
-    func testRuleIdentifier() throws {
+    func ruleIdentifier() {
         let rule = RuleIdentifier.relatedDuplicateStateVariable
         #expect(rule.rawValue == "Related Duplicate State Variable")
         #expect(rule.category == .stateManagement)

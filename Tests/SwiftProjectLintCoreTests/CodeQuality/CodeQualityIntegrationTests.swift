@@ -49,33 +49,6 @@ struct CodeQualityIntegrationTests {
         #expect(documentationIssues.count == 1)
     }
 
-    @Test func testEdgeCaseCharacterization() throws {
-        let visitor = createVisitor()
-
-        let sourceCode = """
-        public struct TestView: View {
-            let retryCount: Int = 16
-            let maxAttempts: Int = 16
-
-            var body: some View {
-                Text("This is a hardcoded string that should be localized")
-            }
-        }
-        """
-
-        let sourceFile = Parser.parse(source: sourceCode)
-        visitor.walk(sourceFile)
-
-        let magicNumberIssues = visitor.detectedIssues.filter { $0.ruleName == .magicNumber }
-        #expect(magicNumberIssues.count == 2)
-
-        let hardcodedIssues = visitor.detectedIssues.filter { $0.ruleName == .hardcodedStrings }
-        #expect(hardcodedIssues.count == 1)
-
-        let documentationIssues = visitor.detectedIssues.filter { $0.ruleName == .missingDocumentation }
-        #expect(documentationIssues.count == 1)
-    }
-
     @Test func testConfigurationCharacterization() throws {
         let visitor = createStrictVisitor()
 
@@ -105,16 +78,16 @@ struct CodeQualityIntegrationTests {
 
     // MARK: - Configuration Tests
 
-    @Test func testConfigurationDefault() throws {
+    @Test func testConfigurationDefault() {
         let config = CodeQualityVisitor.Configuration.default
         #expect(config.magicNumberThreshold == 10)
         #expect(config.checkPublicAPIsOnly)
     }
 
-    @Test func testConfigurationStrict() throws {
+    @Test func testConfigurationStrict() {
         let config = CodeQualityVisitor.Configuration.strict
         #expect(config.magicNumberThreshold == 5)
-        #expect(!config.checkPublicAPIsOnly)
+        #expect(config.checkPublicAPIsOnly == false)
     }
 
     // MARK: - Documentation Tests

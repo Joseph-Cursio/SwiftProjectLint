@@ -3,7 +3,6 @@ import Testing
 import SwiftSyntax
 import SwiftParser
 
-@Suite
 struct MultipleTypesPerFileVisitorTests {
 
     private func makeVisitor(filePath: String = "test.swift") -> MultipleTypesPerFileVisitor {
