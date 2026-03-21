@@ -109,8 +109,9 @@ public struct LintConfiguration: Sendable {
             // Check per-rule path exclusions against the relative path
             if !override.excludedPaths.isEmpty {
                 let relativePath = basenameToRelativePath[issue.filePath] ?? issue.filePath
+                let basename = (relativePath as NSString).lastPathComponent
                 let excluded = override.excludedPaths.contains { pattern in
-                    relativePath.contains(pattern)
+                    Self.pathMatches(relativePath: relativePath, basename: basename, pattern: pattern)
                 }
                 if excluded { return nil }
             }
@@ -127,6 +128,26 @@ public struct LintConfiguration: Sendable {
             }
 
             return issue
+        }
+    }
+
+    /// Matches a file path against an exclusion pattern.
+    ///
+    /// Supports three styles:
+    /// - `**/` prefix glob: `**/*View.swift` matches any file ending in `View.swift`
+    /// - `*` glob without `**/`: matched via `fnmatch` against the relative path
+    /// - Plain string: matched via `contains` against the relative path (e.g., `Tests/`)
+    private static func pathMatches(relativePath: String, basename: String, pattern: String) -> Bool {
+        if pattern.hasPrefix("**/") {
+            // Strip **/ and match the remainder against the basename using fnmatch
+            let basenamePattern = String(pattern.dropFirst(3))
+            return fnmatch(basenamePattern, basename, 0) == 0
+        } else if pattern.contains("*") {
+            // General glob — match against the full relative path
+            return fnmatch(pattern, relativePath, 0) == 0
+        } else {
+            // Simple substring match
+            return relativePath.contains(pattern)
         }
     }
 }
