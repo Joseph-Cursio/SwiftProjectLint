@@ -107,5 +107,6 @@ class CodeQualityPatternRegistrar: PatternRegistrarWithVisitorProto {
         registry.register(pattern: CouldBePrivatePatternRegistrar().pattern)
         registry.register(pattern: PublicInAppTargetPatternRegistrar().pattern)
         registry.register(pattern: CouldBePrivateMemberPatternRegistrar().pattern)
+        registry.register(pattern: ProtocolCouldBePrivatePatternRegistrar().pattern)
     }
 }
