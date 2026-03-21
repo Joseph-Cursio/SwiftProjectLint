@@ -85,5 +85,11 @@ class CodeQualityPatternRegistrar: PatternRegistrarWithVisitorProto {
         registry.register(pattern: MultipleTypesPerFilePatternRegistrar().pattern)
         registry.register(pattern: ActorReentrancyPatternRegistrar().pattern)
         registry.register(pattern: DateNowPatternRegistrar().pattern)
+        registry.register(pattern: DispatchMainAsyncPatternRegistrar().pattern)
+        registry.register(pattern: ThreadSleepPatternRegistrar().pattern)
+        registry.register(pattern: LegacyRandomPatternRegistrar().pattern)
+        registry.register(pattern: CFAbsoluteTimePatternRegistrar().pattern)
+        registry.register(pattern: LegacyObserverPatternRegistrar().pattern)
+        registry.register(pattern: CallbackDataTaskPatternRegistrar().pattern)
     }
 }

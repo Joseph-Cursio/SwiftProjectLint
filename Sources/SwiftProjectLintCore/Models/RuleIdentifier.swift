@@ -57,6 +57,14 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
     case multipleTypesPerFile = "Multiple Types Per File"
     case actorReentrancy = "Actor Reentrancy"
     case dateNow = "Date Now"
+    case dispatchMainAsync = "Dispatch Main Async"
+    case threadSleep = "Thread Sleep"
+    case legacyRandom = "Legacy Random"
+    case cfAbsoluteTime = "CF Absolute Time"
+    case legacyNotificationObserver = "Legacy Notification Observer"
+    case completionHandlerDataTask = "Completion Handler Data Task"
+    case taskInOnAppear = "Task in onAppear"
+    case dispatchSemaphoreInAsync = "Dispatch Semaphore in Async"
 
     // Security Rules
     case hardcodedSecret = "Hardcoded Secret"
@@ -98,7 +106,8 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
             return .stateManagement
 
             // Performance Rules
-        case .expensiveOperationInViewBody, .forEachWithoutID, .largeViewBody, .forEachSelfID, .unnecessaryViewUpdate:
+        case .expensiveOperationInViewBody, .forEachWithoutID, .largeViewBody, .forEachSelfID, .unnecessaryViewUpdate,
+             .dispatchSemaphoreInAsync:
             return .performance
 
         case .deprecatedAnimation, .animationInHighFrequencyUpdate, .excessiveSpringAnimations,
@@ -116,7 +125,9 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
             // Code Quality Rules
         case .magicNumber, .hardcodedStrings, .missingDocumentation,
              .protocolNamingSuffix, .actorNamingSuffix, .propertyWrapperNamingSuffix,
-             .expectNegation, .lowercasedContains, .multipleTypesPerFile, .actorReentrancy, .dateNow:
+             .expectNegation, .lowercasedContains, .multipleTypesPerFile, .actorReentrancy, .dateNow,
+             .dispatchMainAsync, .threadSleep, .legacyRandom, .cfAbsoluteTime,
+             .legacyNotificationObserver, .completionHandlerDataTask:
             return .codeQuality
 
             // Security Rules
@@ -138,7 +149,8 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
 
             // UI Pattern Rules
         case .nestedNavigationView, .missingPreview, .forEachWithSelfID,
-             .forEachWithoutIDUI, .inconsistentStyling, .basicErrorHandling:
+             .forEachWithoutIDUI, .inconsistentStyling, .basicErrorHandling,
+             .taskInOnAppear:
             return .uiPatterns
 
             // Other/System Rules
