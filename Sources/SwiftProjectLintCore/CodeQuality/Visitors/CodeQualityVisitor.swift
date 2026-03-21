@@ -88,6 +88,9 @@ class CodeQualityVisitor: BasePatternVisitor {
     }
 
     override func visit(_ node: VariableDeclSyntax) -> SyntaxVisitorContinueKind {
+        // Skip numbers inside #Preview blocks
+        if isInsidePreviewMacro(Syntax(node)) { return .visitChildren }
+
         for binding in node.bindings {
             if let initializer = binding.initializer {
                 if let intLiteral = initializer.value.as(IntegerLiteralExprSyntax.self) {
@@ -138,6 +141,9 @@ class CodeQualityVisitor: BasePatternVisitor {
     ]
 
     override func visit(_ node: FunctionCallExprSyntax) -> SyntaxVisitorContinueKind {
+        // Skip numbers inside #Preview blocks — these are sample/mock data, not magic numbers
+        if isInsidePreviewMacro(Syntax(node)) { return .visitChildren }
+
         // Skip numeric arguments to SwiftUI layout modifiers
         let calledName: String?
         if let memberAccess = node.calledExpression.as(MemberAccessExprSyntax.self) {
@@ -179,6 +185,19 @@ class CodeQualityVisitor: BasePatternVisitor {
     }
 
     /// Records a numeric literal for later duplicate checking.
+    /// Returns true if the node is inside a `#Preview { }` macro expansion.
+    private func isInsidePreviewMacro(_ node: Syntax) -> Bool {
+        var current: Syntax? = node
+        while let ancestor = current {
+            if let macro = ancestor.as(MacroExpansionExprSyntax.self),
+               macro.macroName.text == "Preview" {
+                return true
+            }
+            current = ancestor.parent
+        }
+        return false
+    }
+
     private func recordMagicNumber(_ literal: String, node: Syntax) {
         let numericValue: Double
         if let intVal = Int(literal) {
