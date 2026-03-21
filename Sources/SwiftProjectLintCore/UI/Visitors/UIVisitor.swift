@@ -147,7 +147,8 @@ class UIVisitor: BasePatternVisitor {
         let viewName = node.name.text
         if isSwiftUIViewOnly(node),
            viewName == primaryViewName,
-           !detectedPreviews.contains(viewName) {
+           !detectedPreviews.contains(viewName),
+           !hasComplexDependencies(node) {
             // Skip preview detection for test files
             if !currentFilePath.contains("test.swift")
                 && !currentFilePath.contains("Test")
@@ -214,6 +215,41 @@ class UIVisitor: BasePatternVisitor {
                 ruleName: .basicErrorHandling
             )
         }
+    }
+
+    // --- Dependency Detection ---
+
+    /// Returns true if the view uses `@Environment`, `@EnvironmentObject`, `@Bindable`,
+    /// or has a property whose type name contains "ViewModel". Views with these
+    /// dependencies require non-trivial mock setup for previews, so the missing-preview
+    /// rule only flags leaf components without them.
+    private func hasComplexDependencies(_ node: StructDeclSyntax) -> Bool {
+        let complexWrappers: Set<String> = ["Environment", "EnvironmentObject", "Bindable"]
+
+        for member in node.memberBlock.members {
+            guard let varDecl = member.decl.as(VariableDeclSyntax.self) else { continue }
+
+            // Check property wrapper attributes
+            for attribute in varDecl.attributes {
+                guard let attr = attribute.as(AttributeSyntax.self),
+                      let attrName = attr.attributeName.as(IdentifierTypeSyntax.self)?.name.text
+                else { continue }
+                if complexWrappers.contains(attrName) {
+                    return true
+                }
+            }
+
+            // Check for ViewModel-typed properties
+            for binding in varDecl.bindings {
+                if let typeAnnotation = binding.typeAnnotation {
+                    let typeText = typeAnnotation.type.description.trimmingCharacters(in: .whitespaces)
+                    if typeText.contains("ViewModel") {
+                        return true
+                    }
+                }
+            }
+        }
+        return false
     }
 
     // --- Helper Logic ---
