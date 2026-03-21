@@ -68,6 +68,7 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
     case nonisolatedUnsafe = "Nonisolated Unsafe"
     case taskYieldOffload = "Task Yield Offload"
     case swallowedTaskError = "Swallowed Task Error"
+    case couldBePrivate = "Could Be Private"
 
     // Modernization Rules
     case dateNow = "Date Now"
@@ -147,7 +148,8 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
              .expectNegation, .lowercasedContains, .multipleTypesPerFile, .actorReentrancy,
              .forceTry, .forceUnwrap, .printStatement, .emptyCatch, .todoComment,
              .taskDetached, .asyncLetUnused, .buttonClosureWrapping,
-             .nonisolatedUnsafe, .taskYieldOffload, .swallowedTaskError:
+             .nonisolatedUnsafe, .taskYieldOffload, .swallowedTaskError,
+             .couldBePrivate:
             return .codeQuality
 
             // Security Rules

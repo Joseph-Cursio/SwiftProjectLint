@@ -74,7 +74,13 @@ public class CrossFileAnalysisEngine {
                     }
                 }
 
-                for (_, sourceFile) in fileCache {
+                for (fileName, sourceFile) in fileCache {
+                    if let baseVisitor = visitor as? BasePatternVisitor {
+                        baseVisitor.setFilePath(fileName)
+                        baseVisitor.setSourceLocationConverter(
+                            SourceLocationConverter(fileName: fileName, tree: sourceFile)
+                        )
+                    }
                     visitor.walk(sourceFile)
                 }
 
@@ -126,7 +132,13 @@ public class CrossFileAnalysisEngine {
                 if let baseVisitor = visitor as? BasePatternVisitor {
                     baseVisitor.setPattern(pattern)
                 }
-                for (_, sourceFile) in fileCache {
+                for (fileName, sourceFile) in fileCache {
+                    if let baseVisitor = visitor as? BasePatternVisitor {
+                        baseVisitor.setFilePath(fileName)
+                        baseVisitor.setSourceLocationConverter(
+                            SourceLocationConverter(fileName: fileName, tree: sourceFile)
+                        )
+                    }
                     visitor.walk(sourceFile)
                 }
 

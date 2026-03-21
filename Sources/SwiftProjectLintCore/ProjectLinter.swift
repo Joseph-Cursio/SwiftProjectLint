@@ -104,8 +104,8 @@ public final class ProjectLinter: Sendable {
         var issues = perFileResults.1
         let astCache = perFileResults.2
 
-        // Run cross-file pattern detection
-        let crossFileEngine = CrossFileAnalysisEngine()
+        // Run cross-file pattern detection (use the same registry as per-file analysis)
+        let crossFileEngine = CrossFileAnalysisEngine(registry: registry)
         let crossFilePatternIssues: [LintIssue]
         if let effectiveRules {
             crossFilePatternIssues = crossFileEngine.detectCrossFilePatterns(

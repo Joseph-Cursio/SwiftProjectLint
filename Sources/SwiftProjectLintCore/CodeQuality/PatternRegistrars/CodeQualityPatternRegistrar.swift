@@ -104,5 +104,6 @@ class CodeQualityPatternRegistrar: PatternRegistrarWithVisitorProto {
         registry.register(pattern: NonisolatedUnsafePatternRegistrar().pattern)
         registry.register(pattern: TaskYieldOffloadPatternRegistrar().pattern)
         registry.register(pattern: SwallowedTaskErrorPatternRegistrar().pattern)
+        registry.register(pattern: CouldBePrivatePatternRegistrar().pattern)
     }
 }
