@@ -54,5 +54,6 @@ class AccessibilityPatternRegistrar: PatternRegistrarWithVisitorProto {
             )
         ]
         registry.register(patterns: patterns)
+        registry.register(pattern: HardcodedFontSizePatternRegistrar().pattern)
     }
 } 
