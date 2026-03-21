@@ -64,6 +64,9 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
     case taskDetached = "Task Detached"
     case asyncLetUnused = "Async Let Unused"
     case buttonClosureWrapping = "Button Closure Wrapping"
+    case nonisolatedUnsafe = "Nonisolated Unsafe"
+    case taskYieldOffload = "Task Yield Offload"
+    case swallowedTaskError = "Swallowed Task Error"
 
     // Modernization Rules
     case dateNow = "Date Now"
@@ -141,7 +144,8 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
              .protocolNamingSuffix, .actorNamingSuffix, .propertyWrapperNamingSuffix,
              .expectNegation, .lowercasedContains, .multipleTypesPerFile, .actorReentrancy,
              .forceTry, .forceUnwrap, .printStatement, .emptyCatch, .todoComment,
-             .taskDetached, .asyncLetUnused, .buttonClosureWrapping:
+             .taskDetached, .asyncLetUnused, .buttonClosureWrapping,
+             .nonisolatedUnsafe, .taskYieldOffload, .swallowedTaskError:
             return .codeQuality
 
             // Security Rules

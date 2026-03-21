@@ -92,5 +92,8 @@ class CodeQualityPatternRegistrar: PatternRegistrarWithVisitorProto {
         registry.register(pattern: TaskDetachedPatternRegistrar().pattern)
         registry.register(pattern: AsyncLetUnusedPatternRegistrar().pattern)
         registry.register(pattern: ButtonClosureWrappingPatternRegistrar().pattern)
+        registry.register(pattern: NonisolatedUnsafePatternRegistrar().pattern)
+        registry.register(pattern: TaskYieldOffloadPatternRegistrar().pattern)
+        registry.register(pattern: SwallowedTaskErrorPatternRegistrar().pattern)
     }
 }
