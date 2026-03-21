@@ -114,6 +114,8 @@ class CodeQualityVisitor: BasePatternVisitor {
         "opacity", "blur",
         // Grid & layout
         "gridCellColumns", "columns",
+        // Typography
+        "font", "system",
         // Constructors that take layout values
         "GridItem", "Spacer", "Divider",
         "RoundedRectangle", "Circle", "Capsule",
@@ -126,6 +128,13 @@ class CodeQualityVisitor: BasePatternVisitor {
         "idealWidth", "idealHeight",
         "horizontal", "vertical", "top", "bottom", "leading", "trailing",
         "minimum", "maximum", "spacing", "radius", "lineWidth",
+        // Font and column sizing
+        "size", "weight", "min", "ideal", "max",
+    ]
+
+    /// Function name prefixes where numeric arguments are positional indices, not magic numbers.
+    private static let positionalIndexPrefixes: [String] = [
+        "sqlite3_bind_",
     ]
 
     override func visit(_ node: FunctionCallExprSyntax) -> SyntaxVisitorContinueKind {
@@ -140,6 +149,12 @@ class CodeQualityVisitor: BasePatternVisitor {
         }
 
         let isLayoutCall = calledName.map { Self.layoutModifierNames.contains($0) } ?? false
+        let isPositionalCall = calledName.map { name in
+            Self.positionalIndexPrefixes.contains { name.hasPrefix($0) }
+        } ?? false
+
+        // Skip all numeric arguments to positional-index functions (e.g. sqlite3_bind_*)
+        guard !isPositionalCall else { return .visitChildren }
 
         for argument in node.arguments {
             let isLayoutArg = isLayoutCall || (
