@@ -38,7 +38,10 @@ final class CouldBePrivateMemberVisitor: BasePatternVisitor, CrossFilePatternVis
         "body", "init", "deinit", "hash", "encode", "decode",
         "description", "debugDescription", "hashValue",
         "makeBody", "makeUIView", "updateUIView",
-        "makeNSView", "updateNSView",
+        "makeNSView", "updateNSView", "sizeThatFits",
+        // NSApplicationDelegate / UNUserNotificationCenterDelegate
+        "applicationDidFinishLaunching", "applicationShouldTerminateAfterLastWindowClosed",
+        "applicationDockMenu", "userNotificationCenter",
     ]
 
     required init(fileCache: [String: SourceFileSyntax]) {
@@ -246,7 +249,22 @@ final class CouldBePrivateMemberVisitor: BasePatternVisitor, CrossFilePatternVis
                 $0.as(AttributeSyntax.self) != nil
             }
             if hasWrapper { return }
+
+            // Skip struct stored properties without default values — they're part of
+            // the memberwise initializer and must remain accessible to callers.
+            if isStructStoredPropertyWithoutDefault(varDecl) { return }
         }
+
+        // Skip operators (==, <, etc.) — typically protocol conformance requirements
+        if let funcDecl = node.as(FunctionDeclSyntax.self) {
+            let funcName = funcDecl.name.text
+            if funcName == "==" || funcName == "<" || funcName == ">" || funcName == "hash" {
+                return
+            }
+        }
+
+        // Skip members inside already-private types — they're already inaccessible
+        if isInsidePrivateType(node) { return }
 
         declarations.append(MemberDeclaration(
             typeName: currentTypeName,
@@ -255,5 +273,45 @@ final class CouldBePrivateMemberVisitor: BasePatternVisitor, CrossFilePatternVis
             file: currentFile,
             node: node
         ))
+    }
+
+    /// Returns true if this is a stored property on a struct with no default value.
+    /// These are part of the memberwise initializer and cannot be private.
+    private func isStructStoredPropertyWithoutDefault(_ varDecl: VariableDeclSyntax) -> Bool {
+        // Must be inside a struct (check parent chain for StructDeclSyntax)
+        var current: Syntax? = Syntax(varDecl)
+        var isInStruct = false
+        while let ancestor = current {
+            if ancestor.is(StructDeclSyntax.self) { isInStruct = true; break }
+            if ancestor.is(ClassDeclSyntax.self) { break }
+            if ancestor.is(EnumDeclSyntax.self) { break }
+            current = ancestor.parent
+        }
+        guard isInStruct else { return false }
+
+        // Check if it's a stored property (no accessor block) without a default value
+        for binding in varDecl.bindings {
+            if binding.accessorBlock != nil { return false } // computed property
+            if binding.initializer != nil { return false }    // has default value
+        }
+        return true
+    }
+
+    /// Returns true if the node is inside a type that is already `private`.
+    private func isInsidePrivateType(_ node: Syntax) -> Bool {
+        var current: Syntax? = node.parent
+        while let ancestor = current {
+            if let structDecl = ancestor.as(StructDeclSyntax.self) {
+                return structDecl.modifiers.contains { $0.name.text == "private" }
+            }
+            if let classDecl = ancestor.as(ClassDeclSyntax.self) {
+                return classDecl.modifiers.contains { $0.name.text == "private" }
+            }
+            if let enumDecl = ancestor.as(EnumDeclSyntax.self) {
+                return enumDecl.modifiers.contains { $0.name.text == "private" }
+            }
+            current = ancestor.parent
+        }
+        return false
     }
 }
