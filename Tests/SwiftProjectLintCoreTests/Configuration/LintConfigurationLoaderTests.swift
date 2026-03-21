@@ -122,6 +122,72 @@ struct LintConfigurationLoaderTests {
         #expect(config.ruleOverrides[.dateNow]?.severity == .info)
     }
 
+    @Test("invalid YAML (non-dict root) returns default config")
+    func testInvalidYAMLReturnsDefault() {
+        let yaml = "- just\n- a\n- list"
+        let config = loadFromString(yaml)
+        #expect(config.disabledRules.isEmpty)
+        #expect(config.enabledOnlyRules == nil)
+        #expect(config.excludedPaths.isEmpty)
+        #expect(config.ruleOverrides.isEmpty)
+    }
+
+    @Test("completely invalid YAML returns default config")
+    func testMalformedYAMLReturnsDefault() {
+        let yaml = "{{{{not yaml at all::::"
+        let config = loadFromString(yaml)
+        #expect(config.disabledRules.isEmpty)
+        #expect(config.enabledOnlyRules == nil)
+    }
+
+    @Test("unknown severity string is treated as nil")
+    func testUnknownSeverityReturnsNil() {
+        let yaml = """
+        rules:
+          "Magic Number":
+            severity: critical
+        """
+        let config = loadFromString(yaml)
+        #expect(config.ruleOverrides[.magicNumber]?.severity == nil)
+    }
+
+    @Test("rule override with only excluded_paths and no severity")
+    func testRuleOverridePathsOnly() throws {
+        let yaml = """
+        rules:
+          "Print Statement":
+            excluded_paths:
+              - "Tests/"
+              - "Scripts/"
+        """
+        let config = loadFromString(yaml)
+        let override = try #require(config.ruleOverrides[.printStatement])
+        #expect(override.severity == nil)
+        #expect(override.excludedPaths == ["Tests/", "Scripts/"])
+    }
+
+    @Test("enabled_only without disabled_rules is parsed correctly")
+    func testEnabledOnlyAlone() throws {
+        let yaml = """
+        enabled_only:
+          - "Force Try"
+        """
+        let config = loadFromString(yaml)
+        let enabledOnly = try #require(config.enabledOnlyRules)
+        #expect(enabledOnly.count == 1)
+        #expect(enabledOnly.contains(.forceTry))
+        #expect(config.disabledRules.isEmpty)
+    }
+
+    @Test("empty disabled_rules list parses as empty set")
+    func testEmptyDisabledRules() {
+        let yaml = """
+        disabled_rules: []
+        """
+        let config = loadFromString(yaml)
+        #expect(config.disabledRules.isEmpty)
+    }
+
     // MARK: - Helpers
 
     private func loadFromString(_ yaml: String) -> LintConfiguration {
