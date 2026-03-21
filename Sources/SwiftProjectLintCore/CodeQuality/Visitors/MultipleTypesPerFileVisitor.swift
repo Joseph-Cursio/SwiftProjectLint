@@ -66,6 +66,11 @@ final class MultipleTypesPerFileVisitor: BasePatternVisitor {
             return
         }
 
+        // Skip private/fileprivate types — they're intentionally scoped to this file
+        if hasFilePrivateAccess(node) {
+            return
+        }
+
         addIssue(
             severity: .info,
             message: "Multiple top-level types in one file. "
@@ -134,6 +139,26 @@ final class MultipleTypesPerFileVisitor: BasePatternVisitor {
         return lastWordBoundary > 0
             ? String(lhsChars.prefix(lastWordBoundary))
             : String(lhsChars.prefix(matchEnd))
+    }
+
+    /// Returns true if the type declaration has `private` or `fileprivate` access.
+    private func hasFilePrivateAccess(_ node: some SyntaxProtocol) -> Bool {
+        let modifiers: DeclModifierListSyntax?
+        if let structDecl = node.as(StructDeclSyntax.self) {
+            modifiers = structDecl.modifiers
+        } else if let classDecl = node.as(ClassDeclSyntax.self) {
+            modifiers = classDecl.modifiers
+        } else if let enumDecl = node.as(EnumDeclSyntax.self) {
+            modifiers = enumDecl.modifiers
+        } else if let actorDecl = node.as(ActorDeclSyntax.self) {
+            modifiers = actorDecl.modifiers
+        } else {
+            modifiers = nil
+        }
+        guard let modifiers else { return false }
+        return modifiers.contains { modifier in
+            modifier.name.text == "private" || modifier.name.text == "fileprivate"
+        }
     }
 
     private func isTopLevel(_ node: some SyntaxProtocol) -> Bool {
