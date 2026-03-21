@@ -65,9 +65,10 @@ class SystemComponents: ObservableObject {
     private(set) var detector: SourcePatternDetector?
 
     func initialize() async {
-        // Yield to let the UI render before doing heavy registry setup
-        await Task.yield()
-        let system = PatternRegistryFactory.createConfiguredSystem()
+        // Offload heavy registry setup from the main actor
+        let system = await Task.detached(priority: .userInitiated) {
+            PatternRegistryFactory.createConfiguredSystem()
+        }.value
 
         self.visitorRegistry = system.visitorRegistry
         self.patternRegistry = system.patternRegistry

@@ -50,11 +50,11 @@ struct SwiftProjectLintCLI: AsyncParsableCommand {
 
         let system = PatternRegistryFactory.createConfiguredSystem()
         let linter = ProjectLinter()
-        linter.setDetector(system.detector)
 
         let issues = await linter.analyzeProject(
             at: absolutePath,
             categories: selectedCategories,
+            detector: system.detector,
             configuration: configuration
         )
 

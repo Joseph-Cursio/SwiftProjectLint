@@ -16,20 +16,6 @@ import SwiftSyntax
 public final class ProjectLinter: Sendable {
     public init() {}
 
-    /// Sets the SwiftSyntax pattern detector to use for analysis.
-    /// This allows the ProjectLinter to use a configured detector with registered patterns.
-    ///
-    /// - Parameter detector: The configured SourcePatternDetector to use.
-    public func setDetector(_ detector: SourcePatternDetector) {
-        // Create a new linter instance internally — but we need to keep the public API.
-        // Since this is called before analyzeProject, store via nonisolated(unsafe).
-        detectorOverride = detector
-    }
-
-    // nonisolated(unsafe) because setDetector is always called before analyzeProject,
-    // never concurrently. This preserves the existing public API.
-    nonisolated(unsafe) private var detectorOverride: SourcePatternDetector?
-
     /// Analyzes a SwiftUI project at the specified file system path.
     ///
     /// Per-file analysis runs concurrently (throttled to CPU count) using a TaskGroup.
@@ -39,11 +25,14 @@ public final class ProjectLinter: Sendable {
     ///   - path: The root directory path of the SwiftUI project to analyze.
     ///   - categories: Optional array of pattern categories to analyze. If nil, analyzes all categories.
     ///   - ruleIdentifiers: Optional array of specific rule identifiers to analyze. If provided, overrides categories.
+    ///   - detector: Optional pre-configured detector. If nil, a default detector is created.
+    ///   - configuration: YAML-based configuration for rule/path control.
     /// - Returns: An array of `LintIssue` objects describing all detected issues.
     public func analyzeProject(
         at path: String,
         categories: [PatternCategory]? = nil,
         ruleIdentifiers: [RuleIdentifier]? = nil,
+        detector: SourcePatternDetector? = nil,
         configuration: LintConfiguration = .default
     ) async -> [LintIssue] {
         let filePaths = await FileAnalysisUtils.findSwiftFiles(
@@ -57,7 +46,7 @@ public final class ProjectLinter: Sendable {
         )
 
         // Resolve the registry once so each task can create its own detector
-        let detector = detectorOverride ?? SourcePatternDetector()
+        let detector = detector ?? SourcePatternDetector()
         let registry = detector.registry
 
         // Per-file I/O and analysis — throttled to avoid memory exhaustion on large projects.

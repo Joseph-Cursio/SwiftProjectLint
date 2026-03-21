@@ -18,14 +18,13 @@ final class SwallowedTaskErrorVisitor: BasePatternVisitor {
               declRef.baseName.text == "Task",
               let closure = node.trailingClosure else { return .visitChildren }
 
-        let hasTry = containsNodeInStatements(
-            ofType: TryExprSyntax.self, in: closure.statements
-        )
+        // Check for bare `try` (not `try?` or `try!`) — only bare try loses errors
+        let hasBareTry = containsBareTry(in: closure.statements)
         let hasDoCatch = containsNodeInStatements(
             ofType: DoStmtSyntax.self, in: closure.statements
         )
 
-        if hasTry && !hasDoCatch {
+        if hasBareTry && !hasDoCatch {
             addIssue(
                 severity: .warning,
                 message: "Task closure uses 'try' without do/catch "
@@ -41,6 +40,22 @@ final class SwallowedTaskErrorVisitor: BasePatternVisitor {
     }
 
     // MARK: - Recursive Node Search
+
+    /// Checks if the statements contain a bare `try` (not `try?` or `try!`).
+    private func containsBareTry(in statements: CodeBlockItemListSyntax) -> Bool {
+        statements.contains { containsBareTryNode(in: Syntax($0)) }
+    }
+
+    private func containsBareTryNode(in syntax: Syntax) -> Bool {
+        if let tryExpr = syntax.as(TryExprSyntax.self) {
+            // Only bare `try` — questionOrExclamationMark is nil
+            if tryExpr.questionOrExclamationMark == nil { return true }
+        }
+        if syntax.is(FunctionDeclSyntax.self) { return false }
+        if syntax.is(ClosureExprSyntax.self) { return false }
+        return syntax.children(viewMode: .sourceAccurate)
+            .contains { containsBareTryNode(in: $0) }
+    }
 
     private func containsNodeInStatements<T: SyntaxProtocol>(
         ofType type: T.Type,
