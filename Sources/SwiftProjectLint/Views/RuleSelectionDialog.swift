@@ -126,10 +126,8 @@ struct RuleSelectionDialog: View {
                 }
                 ToolbarItemGroup(placement: .confirmationAction) {
                     if configIsDirty {
-                        Button("Save Config") {
-                            onSaveConfig()
-                        }
-                        .help("Save rule exclusions to .swiftprojectlint.yml")
+                        Button("Save Config", action: onSaveConfig)
+                            .help("Save rule exclusions to .swiftprojectlint.yml")
                     }
                     Button("Save") { onSave(); dismiss() }
                 }

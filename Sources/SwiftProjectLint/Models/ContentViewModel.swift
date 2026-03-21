@@ -8,12 +8,6 @@
 import SwiftUI
 import SwiftProjectLintCore
 
-/// Per-rule path exclusion flags for the GUI.
-struct RuleExclusions: Codable, Equatable, Sendable {
-    var excludeTests: Bool = false
-    var excludeViews: Bool = false
-}
-
 /// View model that manages state and business logic for ContentView.
 ///
 /// Extracted from ContentView to separate concerns: ContentView owns the view hierarchy,
