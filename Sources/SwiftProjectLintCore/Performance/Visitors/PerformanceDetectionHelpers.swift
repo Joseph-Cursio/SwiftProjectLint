@@ -20,7 +20,7 @@ extension PerformanceVisitor {
                         filePath: currentFilePath,
                         lineNumber: getLineNumber(for: Syntax(node)),
                         suggestion: "Use a unique identifier property instead of \\.self for better performance",
-                        ruleName: nil
+                        ruleName: .forEachSelfID
                     )
                 }
             }
