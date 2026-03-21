@@ -56,6 +56,15 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
     case lowercasedContains = "Lowercased Contains"
     case multipleTypesPerFile = "Multiple Types Per File"
     case actorReentrancy = "Actor Reentrancy"
+    case forceTry = "Force Try"
+    case forceUnwrap = "Force Unwrap"
+    case printStatement = "Print Statement"
+    case emptyCatch = "Empty Catch"
+    case todoComment = "TODO Comment"
+    case taskDetached = "Task Detached"
+    case asyncLetUnused = "Async Let Unused"
+
+    // Modernization Rules
     case dateNow = "Date Now"
     case dispatchMainAsync = "Dispatch Main Async"
     case threadSleep = "Thread Sleep"
@@ -65,6 +74,9 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
     case completionHandlerDataTask = "Completion Handler Data Task"
     case taskInOnAppear = "Task in onAppear"
     case dispatchSemaphoreInAsync = "Dispatch Semaphore in Async"
+    case navigationViewDeprecated = "NavigationView Deprecated"
+    case observedObjectInline = "ObservedObject Inline"
+    case onChangeOldAPI = "onChange Old API"
 
     // Security Rules
     case hardcodedSecret = "Hardcoded Secret"
@@ -102,12 +114,12 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
         switch self {
         // State Management Rules
         case .relatedDuplicateStateVariable, .unrelatedDuplicateStateVariable,
-             .uninitializedStateVariable, .missingStateObject, .unusedStateVariable, .fatView:
+             .uninitializedStateVariable, .missingStateObject, .unusedStateVariable, .fatView,
+             .observedObjectInline:
             return .stateManagement
 
             // Performance Rules
-        case .expensiveOperationInViewBody, .forEachWithoutID, .largeViewBody, .forEachSelfID, .unnecessaryViewUpdate,
-             .dispatchSemaphoreInAsync:
+        case .expensiveOperationInViewBody, .forEachWithoutID, .largeViewBody, .forEachSelfID, .unnecessaryViewUpdate:
             return .performance
 
         case .deprecatedAnimation, .animationInHighFrequencyUpdate, .excessiveSpringAnimations,
@@ -125,9 +137,9 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
             // Code Quality Rules
         case .magicNumber, .hardcodedStrings, .missingDocumentation,
              .protocolNamingSuffix, .actorNamingSuffix, .propertyWrapperNamingSuffix,
-             .expectNegation, .lowercasedContains, .multipleTypesPerFile, .actorReentrancy, .dateNow,
-             .dispatchMainAsync, .threadSleep, .legacyRandom, .cfAbsoluteTime,
-             .legacyNotificationObserver, .completionHandlerDataTask:
+             .expectNegation, .lowercasedContains, .multipleTypesPerFile, .actorReentrancy,
+             .forceTry, .forceUnwrap, .printStatement, .emptyCatch, .todoComment,
+             .taskDetached, .asyncLetUnused:
             return .codeQuality
 
             // Security Rules
@@ -149,9 +161,14 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
 
             // UI Pattern Rules
         case .nestedNavigationView, .missingPreview, .forEachWithSelfID,
-             .forEachWithoutIDUI, .inconsistentStyling, .basicErrorHandling,
-             .taskInOnAppear:
+             .forEachWithoutIDUI, .inconsistentStyling, .basicErrorHandling:
             return .uiPatterns
+
+            // Modernization Rules
+        case .dateNow, .dispatchMainAsync, .threadSleep, .legacyRandom, .cfAbsoluteTime,
+             .legacyNotificationObserver, .completionHandlerDataTask, .taskInOnAppear,
+             .dispatchSemaphoreInAsync, .navigationViewDeprecated, .onChangeOldAPI:
+            return .modernization
 
             // Other/System Rules
         case .fileParsingError, .unknown:

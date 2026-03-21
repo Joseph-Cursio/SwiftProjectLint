@@ -15,7 +15,7 @@ struct LegacyObserverPatternRegistrar: PatternRegistrar {
             name: .legacyNotificationObserver,
             visitor: LegacyNotificationObserverVisitor.self,
             severity: .info,
-            category: .codeQuality,
+            category: .modernization,
             messageTemplate: "addObserver with selector uses the target-action pattern",
             suggestion: "Use NotificationCenter.default.notifications(named:) async sequence "
                 + "for structured concurrency, or addObserver(forName:object:queue:using:) "

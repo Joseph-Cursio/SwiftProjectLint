@@ -15,7 +15,7 @@ struct CallbackDataTaskPatternRegistrar: PatternRegistrar {
             name: .completionHandlerDataTask,
             visitor: CompletionHandlerDataTaskVisitor.self,
             severity: .info,
-            category: .codeQuality,
+            category: .modernization,
             messageTemplate: "URLSession task with completion handler uses callback-based networking",
             suggestion: "Use async URLSession.data(from:) / .download(from:) / "
                 + ".upload(for:from:) instead.",

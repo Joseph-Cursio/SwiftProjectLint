@@ -15,7 +15,7 @@ struct TaskInOnAppearPatternRegistrar: PatternRegistrar {
             name: .taskInOnAppear,
             visitor: TaskInOnAppearVisitor.self,
             severity: .warning,
-            category: .uiPatterns,
+            category: .modernization,
             messageTemplate: "Task created inside .onAppear — lifecycle is not tied to the view",
             suggestion: "Use the .task { } view modifier instead — it cancels automatically "
                 + "when the view disappears.",

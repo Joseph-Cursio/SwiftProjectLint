@@ -80,6 +80,5 @@ class UIPatternRegistrar: PatternRegistrarWithVisitorProto {
             )
         ]
         registry.register(patterns: patterns)
-        registry.register(pattern: TaskInOnAppearPatternRegistrar().pattern)
     }
 }

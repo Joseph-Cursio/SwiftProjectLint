@@ -15,7 +15,7 @@ struct DispatchSemaphoreInAsyncPatternRegistrar: PatternRegistrar {
             name: .dispatchSemaphoreInAsync,
             visitor: DispatchSemaphoreInAsyncVisitor.self,
             severity: .warning,
-            category: .performance,
+            category: .modernization,
             messageTemplate: "DispatchSemaphore used inside an async context — "
                 + ".wait() blocks the cooperative thread pool",
             suggestion: "Use Swift Concurrency primitives (AsyncStream, continuation, "

@@ -14,7 +14,7 @@ struct DateNowPatternRegistrar: PatternRegistrar {
             name: .dateNow,
             visitor: DateNowVisitor.self,
             severity: .info,
-            category: .codeQuality,
+            category: .modernization,
             messageTemplate: "Use Date.now instead of Date()",
             suggestion: "Replace Date() with .now for clarity.",
             description: "Detects Date() initializer calls that can be replaced with the "

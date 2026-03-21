@@ -30,5 +30,6 @@ public enum PatternCategory: CaseIterable, Sendable {
     case networking
     case uiPatterns
     case animation
+    case modernization
     case other
 }

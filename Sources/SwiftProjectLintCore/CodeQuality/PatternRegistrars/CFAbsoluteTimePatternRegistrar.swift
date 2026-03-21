@@ -15,7 +15,7 @@ struct CFAbsoluteTimePatternRegistrar: PatternRegistrar {
             name: .cfAbsoluteTime,
             visitor: CFAbsoluteTimeVisitor.self,
             severity: .info,
-            category: .codeQuality,
+            category: .modernization,
             messageTemplate: "CFAbsoluteTimeGetCurrent() is a legacy Core Foundation API",
             suggestion: "Use ContinuousClock for timing measurements or Date.now for timestamps.",
             description: "Detects CFAbsoluteTimeGetCurrent() calls that can be replaced with "

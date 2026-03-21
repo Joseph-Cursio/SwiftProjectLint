@@ -15,7 +15,7 @@ struct LegacyRandomPatternRegistrar: PatternRegistrar {
             name: .legacyRandom,
             visitor: LegacyRandomVisitor.self,
             severity: .info,
-            category: .codeQuality,
+            category: .modernization,
             messageTemplate: "{name}() is a legacy C random function",
             suggestion: "Use Int.random(in:), Double.random(in:), or Bool.random() instead.",
             description: "Detects legacy C random functions (arc4random, arc4random_uniform, drand48) "

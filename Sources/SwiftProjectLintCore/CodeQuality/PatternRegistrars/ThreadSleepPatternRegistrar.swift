@@ -14,7 +14,7 @@ struct ThreadSleepPatternRegistrar: PatternRegistrar {
             name: .threadSleep,
             visitor: ThreadSleepVisitor.self,
             severity: .warning,
-            category: .codeQuality,
+            category: .modernization,
             messageTemplate: "Thread.sleep blocks the current thread",
             suggestion: "Use try await Task.sleep(for:) to suspend cooperatively.",
             description: "Detects Thread.sleep calls that block the current thread. "
