@@ -31,6 +31,7 @@ final class CouldBePrivateMemberVisitor: BasePatternVisitor, CrossFilePatternVis
     private var currentFile: String = ""
     private var currentTypeName: String = ""
     private var typeNestingDepth: Int = 0
+    private var functionNestingDepth: Int = 0
 
     /// Names to skip — SwiftUI framework hooks, protocol requirements, etc.
     private static let ignoredNames: Set<String> = [
@@ -106,18 +107,45 @@ final class CouldBePrivateMemberVisitor: BasePatternVisitor, CrossFilePatternVis
     // MARK: - Collect Declarations
 
     override func visit(_ node: FunctionDeclSyntax) -> SyntaxVisitorContinueKind {
-        collectMemberIfEligible(
-            name: node.name.text,
-            kind: "func",
-            modifiers: node.modifiers,
-            node: Syntax(node)
-        )
+        // Only collect as a member if we're at the type level (not nested in another function)
+        if functionNestingDepth == 0 {
+            collectMemberIfEligible(
+                name: node.name.text,
+                kind: "func",
+                modifiers: node.modifiers,
+                node: Syntax(node)
+            )
+        }
+        functionNestingDepth += 1
         return .visitChildren
     }
 
+    override func visitPost(_ node: FunctionDeclSyntax) {
+        functionNestingDepth -= 1
+    }
+
+    // Closures and computed property accessors also introduce local scope
+    override func visit(_ node: ClosureExprSyntax) -> SyntaxVisitorContinueKind {
+        functionNestingDepth += 1
+        return .visitChildren
+    }
+
+    override func visitPost(_ node: ClosureExprSyntax) {
+        functionNestingDepth -= 1
+    }
+
+    override func visit(_ node: AccessorDeclSyntax) -> SyntaxVisitorContinueKind {
+        functionNestingDepth += 1
+        return .visitChildren
+    }
+
+    override func visitPost(_ node: AccessorDeclSyntax) {
+        functionNestingDepth -= 1
+    }
+
     override func visit(_ node: VariableDeclSyntax) -> SyntaxVisitorContinueKind {
-        // Skip if inside a function body (local variables)
-        guard typeNestingDepth > 0 else { return .visitChildren }
+        // Skip if outside a type, or inside a function body (local variables)
+        guard typeNestingDepth > 0, functionNestingDepth == 0 else { return .visitChildren }
 
         let keyword = node.bindingSpecifier.text  // "var" or "let"
         for binding in node.bindings {
