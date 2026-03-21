@@ -15,7 +15,8 @@ class ForEachSelfIDVisitor: BasePatternVisitor {
             // Check if .self or \.self is used as the id parameter
             for argument in node.arguments where argument.label?.text == "id" {
                 if let memberAccess = argument.expression.as(MemberAccessExprSyntax.self),
-                   memberAccess.declName.baseName.text == "self" {
+                   memberAccess.declName.baseName.text == "self",
+                   !isForEachCollectionSafeForSelfID(node) {
                     addIssue(node: Syntax(node))
                 }
             }

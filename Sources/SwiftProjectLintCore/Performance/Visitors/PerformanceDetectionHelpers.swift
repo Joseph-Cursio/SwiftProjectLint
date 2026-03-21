@@ -13,7 +13,8 @@ extension PerformanceVisitor {
             // Check if \.self is used as the id parameter (not the collection)
             for argument in node.arguments where argument.label?.text == "id" {
                 let argumentText = argument.expression.description
-                if argumentText.contains("\\.self") {
+                if argumentText.contains("\\.self"),
+                   !isForEachCollectionSafeForSelfID(node) {
                     addIssue(
                         severity: .warning,
                         message: "Using \\.self as id in ForEach can cause performance issues",

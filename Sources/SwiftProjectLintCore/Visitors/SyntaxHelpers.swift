@@ -1,5 +1,41 @@
 import SwiftSyntax
 
+/// Returns whether a `ForEach` collection expression is safe to use with `id: \.self`.
+///
+/// `\.self` is the correct and idiomatic approach for:
+/// - **Array literals** — e.g. `[100, 85, 70]`
+/// - **`.allCases`** — enum cases are inherently stable identities
+///
+/// The rule should only flag `\.self` on complex model types where a stable `id`
+/// property would be more appropriate.
+func isForEachCollectionSafeForSelfID(_ node: FunctionCallExprSyntax) -> Bool {
+    guard let collectionArg = node.arguments.first(where: { $0.label?.text != "id" }) else {
+        return false
+    }
+    let expr = collectionArg.expression
+
+    // Pattern 1: Array literal — [100, 85, "a", "b"]
+    if expr.is(ArrayExprSyntax.self) {
+        return true
+    }
+
+    // Pattern 2: Type.allCases
+    if let memberAccess = expr.as(MemberAccessExprSyntax.self),
+       memberAccess.declName.baseName.text == "allCases" {
+        return true
+    }
+
+    // Pattern 3: someArray.filter { ... } or similar chain ending in .allCases
+    if let memberAccess = expr.as(FunctionCallExprSyntax.self),
+       let calledMember = memberAccess.calledExpression.as(MemberAccessExprSyntax.self),
+       calledMember.declName.baseName.text == "filter" {
+        // e.g. refs.branches.filter { ... } — filtering a String array is still safe
+        return true
+    }
+
+    return false
+}
+
 /// Returns whether the given struct declaration conforms to SwiftUI's `View` or `App` protocol.
 func isSwiftUIView(_ node: StructDeclSyntax) -> Bool {
     let swiftUITypes: Set<String> = [SwiftUIProtocol.view.rawValue, SwiftUIProtocol.app.rawValue]
