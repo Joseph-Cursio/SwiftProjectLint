@@ -131,4 +131,61 @@ struct CodeQualityHardcodedStringTests {
         #expect(hardcodedIssues.count == 1)
         #expect(hardcodedIssues.first?.severity == .info)
     }
+
+    @Test func testShortStringsNotDetected() throws {
+        let visitor = createVisitor()
+
+        let sourceCode = """
+        struct TestView: View {
+            var body: some View {
+                Text("•")
+                Text("OK")
+                Text("Go")
+            }
+        }
+        """
+
+        let sourceFile = Parser.parse(source: sourceCode)
+        visitor.walk(sourceFile)
+
+        let hardcodedIssues = visitor.detectedIssues.filter { $0.ruleName == .hardcodedStrings }
+        #expect(hardcodedIssues.isEmpty)
+    }
+
+    @Test func testTestFileStringsNotDetected() throws {
+        let visitor = createVisitor()
+        visitor.setFilePath("MyAppTests/ViewTests.swift")
+
+        let sourceCode = """
+        struct TestHelperView: View {
+            var body: some View {
+                Text("Hello World")
+            }
+        }
+        """
+
+        let sourceFile = Parser.parse(source: sourceCode)
+        visitor.walk(sourceFile)
+
+        let hardcodedIssues = visitor.detectedIssues.filter { $0.ruleName == .hardcodedStrings }
+        #expect(hardcodedIssues.isEmpty)
+    }
+
+    @Test func testThreeCharStringStillDetected() throws {
+        let visitor = createVisitor()
+
+        let sourceCode = """
+        struct TestView: View {
+            var body: some View {
+                Text("Yes")
+            }
+        }
+        """
+
+        let sourceFile = Parser.parse(source: sourceCode)
+        visitor.walk(sourceFile)
+
+        let hardcodedIssues = visitor.detectedIssues.filter { $0.ruleName == .hardcodedStrings }
+        #expect(hardcodedIssues.count == 1)
+    }
 }

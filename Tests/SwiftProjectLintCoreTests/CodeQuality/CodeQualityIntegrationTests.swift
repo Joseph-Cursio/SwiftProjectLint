@@ -27,11 +27,11 @@ struct CodeQualityIntegrationTests {
 
         let sourceCode = """
         public struct TestView: View {
-            let spacing: CGFloat = 16
+            let retryCount: Int = 16
+            let maxAttempts: Int = 16
 
             var body: some View {
                 Text("This is a hardcoded string that should be localized")
-                    .padding(16)
             }
         }
         """
@@ -54,11 +54,11 @@ struct CodeQualityIntegrationTests {
 
         let sourceCode = """
         public struct TestView: View {
-            let spacing: CGFloat = 16
+            let retryCount: Int = 16
+            let maxAttempts: Int = 16
 
             var body: some View {
                 Text("This is a hardcoded string that should be localized")
-                    .padding(16)
             }
         }
         """
@@ -81,11 +81,11 @@ struct CodeQualityIntegrationTests {
 
         let sourceCode = """
         public struct TestView: View {
-            let spacing: CGFloat = 16
+            let retryCount: Int = 16
+            let maxAttempts: Int = 16
 
             var body: some View {
                 Text("This is a hardcoded string that should be localized")
-                    .padding(16)
             }
         }
         """

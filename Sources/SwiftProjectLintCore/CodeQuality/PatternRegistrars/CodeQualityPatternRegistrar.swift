@@ -25,6 +25,15 @@ class CodeQualityPatternRegistrar: PatternRegistrarWithVisitorProto {
                 description: "Detects hardcoded numbers that should be named constants"
             ),
             SyntaxPattern(
+                name: .magicLayoutNumber,
+                visitor: CodeQualityVisitor.self,
+                severity: .info,
+                category: .codeQuality,
+                messageTemplate: "Magic layout number detected: {number}",
+                suggestion: "Extract layout value to a named design token",
+                description: "Detects hardcoded numbers in SwiftUI layout modifiers. Disabled by default."
+            ),
+            SyntaxPattern(
                 name: .hardcodedStrings,
                 visitor: CodeQualityVisitor.self,
                 severity: .info,

@@ -47,6 +47,7 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
 
     // Code Quality Rules
     case magicNumber = "Magic Number"
+    case magicLayoutNumber = "Magic Layout Number"
     case hardcodedStrings = "Hardcoded Strings"
     case missingDocumentation = "Missing Documentation"
     case protocolNamingSuffix = "Protocol Naming Suffix"
@@ -92,6 +93,7 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
     case missingAccessibilityHint = "Missing Accessibility Hint"
     case inaccessibleColorUsage = "Inaccessible Color Usage"
     case iconOnlyButtonMissingLabel = "Icon-Only Button Missing Label"
+    case longTextAccessibility = "Long Text Accessibility"
     case hardcodedFontSize = "Hardcoded Font Size"
 
     // Memory Management Rules
@@ -140,7 +142,7 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
             return .architecture
 
             // Code Quality Rules
-        case .magicNumber, .hardcodedStrings, .missingDocumentation,
+        case .magicNumber, .magicLayoutNumber, .hardcodedStrings, .missingDocumentation,
              .protocolNamingSuffix, .actorNamingSuffix, .propertyWrapperNamingSuffix,
              .expectNegation, .lowercasedContains, .multipleTypesPerFile, .actorReentrancy,
              .forceTry, .forceUnwrap, .printStatement, .emptyCatch, .todoComment,
@@ -154,7 +156,7 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
 
             // Accessibility Rules
         case .missingAccessibilityLabel, .missingAccessibilityHint, .inaccessibleColorUsage,
-             .iconOnlyButtonMissingLabel, .hardcodedFontSize:
+             .iconOnlyButtonMissingLabel, .longTextAccessibility, .hardcodedFontSize:
             return .accessibility
 
             // Memory Management Rules

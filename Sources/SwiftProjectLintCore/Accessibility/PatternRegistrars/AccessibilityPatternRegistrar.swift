@@ -51,6 +51,15 @@ class AccessibilityPatternRegistrar: PatternRegistrarWithVisitorProto {
                 suggestion: "Use Button(\"Label\", systemImage: \"name\", action: ...) "
                     + "with .labelStyle(.iconOnly), or add .accessibilityLabel(\"description\")",
                 description: "Detects buttons containing only an image without an accessibility label"
+            ),
+            SyntaxPattern(
+                name: .longTextAccessibility,
+                visitor: AccessibilityVisitor.self,
+                severity: .info,
+                category: .accessibility,
+                messageTemplate: "Long text content may benefit from accessibility features",
+                suggestion: "Add .accessibilityLabel(), .accessibilityHint(), or .accessibilityValue()",
+                description: "Detects long text content that could benefit from accessibility modifiers"
             )
         ]
         registry.register(patterns: patterns)

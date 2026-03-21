@@ -19,6 +19,9 @@ class CodeQualityVisitor: BasePatternVisitor {
     /// Only numbers that appear 2+ times are reported (single-use literals are not magic).
     private var magicNumberOccurrences: [String: [(line: Int, message: String, suggestion: String)]] = [:]
 
+    /// Collects layout magic number occurrences (reported under the opt-in layout rule).
+    private var layoutNumberOccurrences: [String: [(line: Int, message: String, suggestion: String)]] = [:]
+
     required init(pattern: SyntaxPattern, viewMode: SyntaxTreeViewMode = .sourceAccurate) {
         self.configuration = .default
         super.init(pattern: pattern, viewMode: viewMode)
@@ -97,12 +100,64 @@ class CodeQualityVisitor: BasePatternVisitor {
         return .visitChildren
     }
 
+    /// SwiftUI layout/geometry modifiers and constructors where numeric literals
+    /// are conventional design tokens, not magic numbers.
+    private static let layoutModifierNames: Set<String> = [
+        // Spacing & padding
+        "padding", "spacing",
+        // Frame & sizing
+        "frame", "fixedSize", "lineLimit", "lineSpacing",
+        // Shape & decoration
+        "cornerRadius", "rotation", "rotationEffect",
+        "scaleEffect", "offset", "shadow",
+        // Opacity & blur
+        "opacity", "blur",
+        // Grid & layout
+        "gridCellColumns", "columns",
+        // Constructors that take layout values
+        "GridItem", "Spacer", "Divider",
+        "RoundedRectangle", "Circle", "Capsule",
+        "UnevenRoundedRectangle",
+    ]
+
+    /// Labeled arguments that are layout/geometry values, regardless of the function name.
+    private static let layoutArgLabels: Set<String> = [
+        "width", "height", "minWidth", "maxWidth", "minHeight", "maxHeight",
+        "idealWidth", "idealHeight",
+        "horizontal", "vertical", "top", "bottom", "leading", "trailing",
+        "minimum", "maximum", "spacing", "radius", "lineWidth",
+    ]
+
     override func visit(_ node: FunctionCallExprSyntax) -> SyntaxVisitorContinueKind {
+        // Skip numeric arguments to SwiftUI layout modifiers
+        let calledName: String?
+        if let memberAccess = node.calledExpression.as(MemberAccessExprSyntax.self) {
+            calledName = memberAccess.declName.baseName.text
+        } else if let declRef = node.calledExpression.as(DeclReferenceExprSyntax.self) {
+            calledName = declRef.baseName.text
+        } else {
+            calledName = nil
+        }
+
+        let isLayoutCall = calledName.map { Self.layoutModifierNames.contains($0) } ?? false
+
         for argument in node.arguments {
+            let isLayoutArg = isLayoutCall || (
+                argument.label.map { Self.layoutArgLabels.contains($0.text) } ?? false
+            )
+
             if let intLiteral = argument.expression.as(IntegerLiteralExprSyntax.self) {
-                recordMagicNumber(intLiteral.literal.text, node: Syntax(argument))
+                if isLayoutArg {
+                    recordLayoutNumber(intLiteral.literal.text, node: Syntax(argument))
+                } else {
+                    recordMagicNumber(intLiteral.literal.text, node: Syntax(argument))
+                }
             } else if let floatLiteral = argument.expression.as(FloatLiteralExprSyntax.self) {
-                recordMagicNumber(floatLiteral.literal.text, node: Syntax(argument))
+                if isLayoutArg {
+                    recordLayoutNumber(floatLiteral.literal.text, node: Syntax(argument))
+                } else {
+                    recordMagicNumber(floatLiteral.literal.text, node: Syntax(argument))
+                }
             }
         }
         return .visitChildren
@@ -129,6 +184,28 @@ class CodeQualityVisitor: BasePatternVisitor {
         magicNumberOccurrences[key, default: []].append(entry)
     }
 
+    /// Records a layout numeric literal for later duplicate checking (opt-in rule).
+    private func recordLayoutNumber(_ literal: String, node: Syntax) {
+        let numericValue: Double
+        if let intVal = Int(literal) {
+            guard intVal >= configuration.magicNumberThreshold else { return }
+            numericValue = Double(intVal)
+        } else if let dblVal = Double(literal) {
+            guard dblVal >= Double(configuration.magicNumberThreshold) else { return }
+            numericValue = dblVal
+        } else {
+            return
+        }
+        _ = numericValue // threshold check above uses this
+        let key = literal
+        let entry = (
+            line: getLineNumber(for: node),
+            message: "Consider extracting layout value \(literal) to a named constant",
+            suggestion: "Extract \(literal) to a design token (e.g., Spacing.medium, Layout.cornerRadius)"
+        )
+        layoutNumberOccurrences[key, default: []].append(entry)
+    }
+
     /// Reports magic numbers that appear more than once in the file.
     override func visitPost(_ node: SourceFileSyntax) {
         for (_, occurrences) in magicNumberOccurrences where occurrences.count >= 2 {
@@ -140,6 +217,19 @@ class CodeQualityVisitor: BasePatternVisitor {
                     lineNumber: occurrence.line,
                     suggestion: occurrence.suggestion,
                     ruleName: .magicNumber
+                )
+            }
+        }
+
+        for (_, occurrences) in layoutNumberOccurrences where occurrences.count >= 2 {
+            for occurrence in occurrences {
+                addIssue(
+                    severity: .info,
+                    message: occurrence.message,
+                    filePath: currentFilePath,
+                    lineNumber: occurrence.line,
+                    suggestion: occurrence.suggestion,
+                    ruleName: .magicLayoutNumber
                 )
             }
         }
@@ -166,6 +256,8 @@ class CodeQualityVisitor: BasePatternVisitor {
         let cleanString = segment.content.text
         guard !cleanString.isEmpty,
               !cleanString.contains("\\"),
+              cleanString.count > 2,
+              !isTestFile(),
               isInUserFacingContext(node) else {
             return .visitChildren
         }
@@ -240,6 +332,11 @@ class CodeQualityVisitor: BasePatternVisitor {
     ]
 
     /// Checks whether a string looks like an SF Symbol name.
+    /// Returns true when the current file path looks like a test file.
+    private func isTestFile() -> Bool {
+        currentFilePath.contains("Tests") || currentFilePath.hasSuffix("Tests.swift")
+    }
+
     /// SF Symbols use dot-separated lowercase components like "checkmark.circle.fill",
     /// "arrow.uturn.backward", "1.circle.fill", etc.
     private func looksLikeSFSymbolName(_ string: String) -> Bool {

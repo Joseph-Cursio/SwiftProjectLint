@@ -29,8 +29,8 @@ struct CodeQualityMagicNumberTests {
         struct TestView: View {
             var body: some View {
                 Text("Hello")
-                    .padding(16)
-                    .frame(width: 16)
+                    .tag(16)
+                    .onAppear { process(count: 16) }
             }
         }
         """
@@ -48,10 +48,10 @@ struct CodeQualityMagicNumberTests {
 
         let sourceCode = """
         struct TestView: View {
-            let cornerRadius: CGFloat = 12.0
+            let threshold: CGFloat = 12.0
             var body: some View {
                 Text("Hello")
-                    .cornerRadius(12.0)
+                    .tag(12.0)
             }
         }
         """
@@ -73,8 +73,7 @@ struct CodeQualityMagicNumberTests {
         struct TestView: View {
             var body: some View {
                 Text("Hello")
-                    .padding(16)
-                    .frame(width: 300, height: 200)
+                    .tag(16)
             }
         }
         """
@@ -115,8 +114,8 @@ struct CodeQualityMagicNumberTests {
         struct TestView: View {
             var body: some View {
                 Text("Hello")
-                    .padding(5)
-                    .padding(5)
+                    .tag(5)
+                    .onAppear { process(count: 5) }
             }
         }
         """
@@ -136,8 +135,8 @@ struct CodeQualityMagicNumberTests {
         struct TestView: View {
             var body: some View {
                 Text("Hello")
-                    .padding(5)
-                    .padding(5)
+                    .tag(5)
+                    .onAppear { process(count: 5) }
             }
         }
         """
@@ -146,6 +145,69 @@ struct CodeQualityMagicNumberTests {
         visitor.walk(sourceFile)
 
         // 5 meets the strict threshold of 5, and it's repeated
+        let magicIssues = visitor.detectedIssues.filter { $0.ruleName == .magicNumber }
+        #expect(magicIssues.count == 2)
+    }
+
+    // MARK: - Layout Modifier Exclusion
+
+    @Test func testLayoutModifierNumbersNotDetected() throws {
+        let visitor = createVisitor()
+
+        let sourceCode = """
+        struct TestView: View {
+            var body: some View {
+                Text("Hello")
+                    .padding(16)
+                    .frame(width: 16, height: 16)
+                    .cornerRadius(16)
+                    .opacity(0.5)
+            }
+        }
+        """
+
+        let sourceFile = Parser.parse(source: sourceCode)
+        visitor.walk(sourceFile)
+
+        let magicIssues = visitor.detectedIssues.filter { $0.ruleName == .magicNumber }
+        #expect(magicIssues.isEmpty)
+    }
+
+    @Test func testLayoutArgLabelsNotDetected() throws {
+        let visitor = createVisitor()
+
+        let sourceCode = """
+        struct TestView: View {
+            var body: some View {
+                Text("Hello")
+                    .customModifier(width: 100, height: 100)
+            }
+        }
+        """
+
+        let sourceFile = Parser.parse(source: sourceCode)
+        visitor.walk(sourceFile)
+
+        let magicIssues = visitor.detectedIssues.filter { $0.ruleName == .magicNumber }
+        #expect(magicIssues.isEmpty)
+    }
+
+    @Test func testNonLayoutRepeatedNumberStillDetected() throws {
+        let visitor = createVisitor()
+
+        let sourceCode = """
+        struct TestView: View {
+            let limit = 100
+            var body: some View {
+                Text("Hello")
+                    .tag(100)
+            }
+        }
+        """
+
+        let sourceFile = Parser.parse(source: sourceCode)
+        visitor.walk(sourceFile)
+
         let magicIssues = visitor.detectedIssues.filter { $0.ruleName == .magicNumber }
         #expect(magicIssues.count == 2)
     }
@@ -161,7 +223,7 @@ struct CodeQualityMagicNumberTests {
         """
         let sourceFile = Parser.parse(source: sourceCode)
         visitor.walk(sourceFile)
-        // Single-use 16 should not fire
+        // Single-use 16 in layout context should not fire
         let magicIssues = visitor.detectedIssues.filter { $0.ruleName == .magicNumber }
         #expect(magicIssues.isEmpty)
     }

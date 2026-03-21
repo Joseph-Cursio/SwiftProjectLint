@@ -41,6 +41,11 @@ public struct LintConfiguration: Sendable {
         self.ruleOverrides = ruleOverrides
     }
 
+    /// Rules that are opt-in only — disabled unless explicitly enabled via `enabled_only`.
+    public static let optInRules: Set<RuleIdentifier> = [
+        .magicLayoutNumber,
+    ]
+
     /// Default configuration — all rules enabled, no exclusions.
     public static let `default` = LintConfiguration()
 
@@ -61,6 +66,10 @@ public struct LintConfiguration: Sendable {
         // enabled_only restricts to a specific set
         if let enabledOnly = enabledOnlyRules {
             rules = rules.intersection(enabledOnly)
+        } else {
+            // Remove opt-in rules unless explicitly kept (not in disabledRules means
+            // the user hasn't mentioned them at all — they stay off by default)
+            rules.subtract(Self.optInRules)
         }
 
         // Remove disabled rules
@@ -72,7 +81,9 @@ public struct LintConfiguration: Sendable {
         }
 
         // nil means "no filtering" — return nil if we haven't actually restricted anything
-        let allRules = Set(RuleIdentifier.allCases).subtracting([.unknown, .fileParsingError])
+        let allRules = Set(RuleIdentifier.allCases)
+            .subtracting([.unknown, .fileParsingError])
+            .subtracting(Self.optInRules)
         if rules == allRules && cliCategories == nil {
             return nil
         }
