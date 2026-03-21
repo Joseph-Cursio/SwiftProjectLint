@@ -23,7 +23,11 @@ Because SwiftSyntax has no type resolution, the rule uses a conservative strateg
 - Does **not** flag `override` members — they implement a superclass requirement
 - Does **not** flag `@objc` members — they may be invoked via selectors
 - Does **not** flag properties with property wrappers (`@State`, `@Binding`, etc.) — accessed by the SwiftUI framework
-- Does **not** flag SwiftUI framework hooks (`body`, `init`, `makeBody`, etc.)
+- Does **not** flag struct stored properties without default values — these are part of the memberwise initializer and must remain accessible to callers
+- Does **not** flag operator conformances (`==`, `<`, `>`) — typically protocol requirements
+- Does **not** flag members inside already-private types — they are already inaccessible outside the file
+- Does **not** flag local variables inside function bodies, closures, or computed property accessors
+- Does **not** flag framework delegate hooks (`body`, `init`, `makeBody`, `sizeThatFits`, `applicationDidFinishLaunching`, `userNotificationCenter`, etc.)
 - Does **not** flag members in test files
 
 ### Non-Violating Examples
