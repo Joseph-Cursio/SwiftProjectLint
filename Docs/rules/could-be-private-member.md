@@ -44,6 +44,9 @@ struct Consumer {
 }
 ```
 
+### See Also
+For more thorough access-level analysis with full type resolution, consider [Periphery](https://github.com/peripheryapp/periphery). It uses SourceKit's build index to track member references precisely, catching cases this rule misses due to name ambiguity. The tradeoff is it requires a full build step, while this rule runs instantly alongside other SwiftProjectLint checks.
+
 ### Violating Examples
 ```swift
 // File: MyView.swift
