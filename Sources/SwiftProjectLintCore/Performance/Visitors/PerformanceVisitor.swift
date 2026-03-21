@@ -207,7 +207,7 @@ class PerformanceVisitor: BasePatternVisitor {
             let viewBodyText = node.description
             let lineCount = viewBodyText.components(separatedBy: .newlines).count
 
-            if lineCount > 50 { // Threshold for large view body
+            if lineCount > 100 { // Threshold for large view body
                 addIssue(
                     severity: .warning,
                     message: "Large view '\(currentViewName)' has \(lineCount) lines",

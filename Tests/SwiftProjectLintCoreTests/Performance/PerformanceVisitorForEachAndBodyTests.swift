@@ -160,8 +160,8 @@ struct PerformanceVisitorForEachAndBodyTests {
     // MARK: - Large View Body Tests
 
     @Test func testDetectsLargeViewBody() throws {
-        // Create a view with many statements (over 50 lines to trigger detection)
-        let lines = (1...55).map { "Text(\"Line \($0)\")" }.joined(separator: "\n                    ")
+        // Create a view with many statements (over 100 lines to trigger detection)
+        let lines = (1...105).map { "Text(\"Line \($0)\")" }.joined(separator: "\n                    ")
         let source = """
         struct TestView: View {
             var body: some View {
