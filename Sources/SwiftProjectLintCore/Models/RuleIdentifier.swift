@@ -56,6 +56,7 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
     case lowercasedContains = "Lowercased Contains"
     case multipleTypesPerFile = "Multiple Types Per File"
     case actorReentrancy = "Actor Reentrancy"
+    case dateNow = "Date Now"
 
     // Security Rules
     case hardcodedSecret = "Hardcoded Secret"
@@ -115,7 +116,7 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
             // Code Quality Rules
         case .magicNumber, .hardcodedStrings, .missingDocumentation,
              .protocolNamingSuffix, .actorNamingSuffix, .propertyWrapperNamingSuffix,
-             .expectNegation, .lowercasedContains, .multipleTypesPerFile, .actorReentrancy:
+             .expectNegation, .lowercasedContains, .multipleTypesPerFile, .actorReentrancy, .dateNow:
             return .codeQuality
 
             // Security Rules
