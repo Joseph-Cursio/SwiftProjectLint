@@ -16,10 +16,10 @@ struct PrintStatementVisitorTests {
         visitor.walk(sourceFile)
     }
 
-    // MARK: - Positive Cases
+    // MARK: - Detailed Property Validation
 
     @Test
-    func testDetectsPrintCall() throws {
+    func detectsPrintCallWithFullProperties() throws {
         let source = """
         print("hello")
         """
@@ -35,32 +35,21 @@ struct PrintStatementVisitorTests {
         #expect(issue.message.contains("print()"))
     }
 
-    @Test
-    func testDetectsDebugPrintCall() throws {
-        let source = """
-        debugPrint(object)
-        """
+    // MARK: - Parameterized Positive Cases
 
+    @Test("Detects print/debugPrint call", arguments: [
+        "print(\"hello\")",
+        "debugPrint(object)",
+        "print(\"x:\", someValue)"
+    ])
+    func detectsPrintCall(source: String) {
         let visitor = makeVisitor()
         runVisitor(visitor, source: source)
-
         #expect(visitor.detectedIssues.count == 1)
     }
 
     @Test
-    func testDetectsPrintWithMultipleArguments() throws {
-        let source = """
-        print("x:", someValue)
-        """
-
-        let visitor = makeVisitor()
-        runVisitor(visitor, source: source)
-
-        #expect(visitor.detectedIssues.count == 1)
-    }
-
-    @Test
-    func testDetectsMultiplePrintCalls() throws {
+    func detectsMultiplePrintCalls() {
         let source = """
         print("start")
         debugPrint(data)
@@ -73,42 +62,16 @@ struct PrintStatementVisitorTests {
         #expect(visitor.detectedIssues.count == 3)
     }
 
-    // MARK: - Negative Cases
+    // MARK: - Parameterized Negative Cases
 
-    @Test
-    func testNoIssueForLoggerCall() {
-        let source = """
-        logger.info("hello")
-        """
-
+    @Test("No issue for non-print function calls", arguments: [
+        "logger.info(\"hello\")",
+        "textField.print()",
+        "log(\"message\")\nNSLog(\"something\")"
+    ])
+    func noIssueForNonPrintCalls(source: String) {
         let visitor = makeVisitor()
         runVisitor(visitor, source: source)
-
-        #expect(visitor.detectedIssues.isEmpty)
-    }
-
-    @Test
-    func testNoIssueForMemberAccessPrint() {
-        let source = """
-        textField.print()
-        """
-
-        let visitor = makeVisitor()
-        runVisitor(visitor, source: source)
-
-        #expect(visitor.detectedIssues.isEmpty)
-    }
-
-    @Test
-    func testNoIssueForOtherFunctions() {
-        let source = """
-        log("message")
-        NSLog("something")
-        """
-
-        let visitor = makeVisitor()
-        runVisitor(visitor, source: source)
-
         #expect(visitor.detectedIssues.isEmpty)
     }
 }

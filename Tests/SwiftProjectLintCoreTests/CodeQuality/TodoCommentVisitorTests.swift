@@ -16,10 +16,10 @@ struct TodoCommentVisitorTests {
         visitor.walk(sourceFile)
     }
 
-    // MARK: - Positive Cases
+    // MARK: - Detailed Property Validation
 
     @Test
-    func testDetectsTodoComment() throws {
+    func detectsTodoCommentWithFullProperties() throws {
         let source = """
         // TODO: fix this later
         let value = 42
@@ -36,94 +36,33 @@ struct TodoCommentVisitorTests {
         #expect(issue.message.contains("TODO"))
     }
 
-    @Test
-    func testDetectsFixmeComment() throws {
-        let source = """
-        // FIXME: broken logic here
-        func calculate() -> Int { return 0 }
-        """
+    // MARK: - Parameterized Positive Cases
 
+    @Test("Detects marker comment", arguments: [
+        ("// TODO: fix this later\nlet value = 42", "TODO"),
+        ("// FIXME: broken logic here\nfunc calculate() -> Int { return 0 }", "FIXME"),
+        ("// HACK: workaround for compiler bug\nlet hack = true", "HACK"),
+        ("/* TODO: refactor this entire module */\nstruct MyModule {}", "TODO")
+    ])
+    func detectsMarkerComment(source: String, expectedSubstring: String) throws {
         let visitor = makeVisitor()
         runVisitor(visitor, source: source)
-
         #expect(visitor.detectedIssues.count == 1)
-
         let issue = try #require(visitor.detectedIssues.first)
         #expect(issue.ruleName == .todoComment)
-        #expect(issue.message.contains("FIXME"))
+        #expect(issue.message.contains(expectedSubstring))
     }
 
-    @Test
-    func testDetectsHackComment() throws {
-        let source = """
-        // HACK: workaround for compiler bug
-        let hack = true
-        """
+    // MARK: - Parameterized Negative Cases
 
+    @Test("No issue for non-marker comment", arguments: [
+        "// This is a normal comment\nlet value = 42",
+        "let todo = \"item\"",
+        "// The todo list view shows all items\nlet items: [String] = []"
+    ])
+    func noIssueForNonMarkerComment(source: String) {
         let visitor = makeVisitor()
         runVisitor(visitor, source: source)
-
-        #expect(visitor.detectedIssues.count == 1)
-
-        let issue = try #require(visitor.detectedIssues.first)
-        #expect(issue.ruleName == .todoComment)
-        #expect(issue.message.contains("HACK"))
-    }
-
-    @Test
-    func testDetectsBlockCommentTodo() throws {
-        let source = """
-        /* TODO: refactor this entire module */
-        struct MyModule {}
-        """
-
-        let visitor = makeVisitor()
-        runVisitor(visitor, source: source)
-
-        #expect(visitor.detectedIssues.count == 1)
-
-        let issue = try #require(visitor.detectedIssues.first)
-        #expect(issue.ruleName == .todoComment)
-        #expect(issue.message.contains("TODO"))
-    }
-
-    // MARK: - Negative Cases
-
-    @Test
-    func testNoIssueForNormalComment() {
-        let source = """
-        // This is a normal comment
-        let value = 42
-        """
-
-        let visitor = makeVisitor()
-        runVisitor(visitor, source: source)
-
-        #expect(visitor.detectedIssues.isEmpty)
-    }
-
-    @Test
-    func testNoIssueForTodoInVariableName() {
-        let source = """
-        let todo = "item"
-        """
-
-        let visitor = makeVisitor()
-        runVisitor(visitor, source: source)
-
-        #expect(visitor.detectedIssues.isEmpty)
-    }
-
-    @Test
-    func testNoIssueForTodoInCommentWithoutColon() {
-        let source = """
-        // The todo list view shows all items
-        let items: [String] = []
-        """
-
-        let visitor = makeVisitor()
-        runVisitor(visitor, source: source)
-
         #expect(visitor.detectedIssues.isEmpty)
     }
 }

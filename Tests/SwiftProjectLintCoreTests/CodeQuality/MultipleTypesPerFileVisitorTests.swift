@@ -19,7 +19,7 @@ struct MultipleTypesPerFileVisitorTests {
     // MARK: - Positive Cases
 
     @Test
-    func testDetectsTwoStructs() throws {
+    func detectsTwoStructs() throws {
         let source = """
         struct User {
             let name: String
@@ -42,7 +42,7 @@ struct MultipleTypesPerFileVisitorTests {
     }
 
     @Test
-    func testDetectsThreeTypes() {
+    func detectsThreeTypes() {
         let source = """
         struct Alpha {}
         class Beta {}
@@ -55,9 +55,8 @@ struct MultipleTypesPerFileVisitorTests {
         #expect(visitor.detectedIssues.count == 2)
     }
 
-    @Test
-    func testDetectsMixedTypeKinds() throws {
-        let source = """
+    @Test("Detects mixed type kinds", arguments: [
+        ("""
         enum Theme {
             case light, dark
         }
@@ -65,20 +64,8 @@ struct MultipleTypesPerFileVisitorTests {
         class ThemeManager {
             var current: Theme = .light
         }
-        """
-
-        let visitor = makeVisitor()
-        runVisitor(visitor, source: source)
-
-        #expect(visitor.detectedIssues.count == 1)
-
-        let issue = try #require(visitor.detectedIssues.first)
-        #expect(issue.message.contains("ThemeManager"))
-    }
-
-    @Test
-    func testDetectsActorWithStruct() throws {
-        let source = """
+        """, "ThemeManager"),
+        ("""
         struct Config {
             let value: Int
         }
@@ -86,53 +73,38 @@ struct MultipleTypesPerFileVisitorTests {
         actor NetworkActor {
             func fetch() {}
         }
-        """
-
+        """, "NetworkActor")
+    ])
+    func detectsMixedTypes(source: String, expectedTypeName: String) throws {
         let visitor = makeVisitor()
         runVisitor(visitor, source: source)
 
         #expect(visitor.detectedIssues.count == 1)
 
         let issue = try #require(visitor.detectedIssues.first)
-        #expect(issue.message.contains("NetworkActor"))
+        #expect(issue.message.contains(expectedTypeName))
     }
 
     // MARK: - Negative Cases
 
-    @Test
-    func testNoIssueForSingleStruct() {
-        let source = """
+    @Test("No issue for single or nested types", arguments: [
+        // Single struct
+        """
         struct User {
             let name: String
             let email: String
         }
+        """,
+        // Type with extension
         """
-
-        let visitor = makeVisitor()
-        runVisitor(visitor, source: source)
-
-        #expect(visitor.detectedIssues.isEmpty)
-    }
-
-    @Test
-    func testNoIssueForTypeWithExtension() {
-        let source = """
         struct User {
             let name: String
         }
 
         extension User: Codable {}
+        """,
+        // Nested types
         """
-
-        let visitor = makeVisitor()
-        runVisitor(visitor, source: source)
-
-        #expect(visitor.detectedIssues.isEmpty)
-    }
-
-    @Test
-    func testNoIssueForNestedTypes() {
-        let source = """
         struct TableSection {
             enum Style {
                 case plain
@@ -146,34 +118,19 @@ struct MultipleTypesPerFileVisitorTests {
             let style: Style
             let rows: [Row]
         }
+        """,
+        // Empty file
         """
-
-        let visitor = makeVisitor()
-        runVisitor(visitor, source: source)
-
-        #expect(visitor.detectedIssues.isEmpty)
-    }
-
-    @Test
-    func testNoIssueForEmptyFile() {
-        let source = """
         import Foundation
+        """,
+        // Single enum
         """
-
-        let visitor = makeVisitor()
-        runVisitor(visitor, source: source)
-
-        #expect(visitor.detectedIssues.isEmpty)
-    }
-
-    @Test
-    func testNoIssueForSingleEnum() {
-        let source = """
         enum Direction {
             case north, south, east, west
         }
         """
-
+    ])
+    func noIssue(source: String) {
         let visitor = makeVisitor()
         runVisitor(visitor, source: source)
 

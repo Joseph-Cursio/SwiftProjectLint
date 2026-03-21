@@ -16,10 +16,10 @@ struct ButtonClosureWrappingVisitorTests {
         visitor.walk(sourceFile)
     }
 
-    // MARK: - Positive Cases
+    // MARK: - Detailed Positive Case
 
     @Test
-    func testDetectsSingleCallInTrailingClosure() throws {
+    func detectsSingleCallInTrailingClosure() throws {
         let source = """
         Button("Save") { doSomething() }
         """
@@ -35,8 +35,9 @@ struct ButtonClosureWrappingVisitorTests {
         #expect(issue.message.contains("doSomething()"))
     }
 
+    // Unique: checks suggestion property
     @Test
-    func testDetectsDismissCall() throws {
+    func detectsDismissCall() throws {
         let source = """
         Button("Cancel") { dismiss() }
         """
@@ -53,66 +54,34 @@ struct ButtonClosureWrappingVisitorTests {
 
     // MARK: - Negative Cases
 
-    @Test
-    func testNoIssueForCallWithArguments() {
-        let source = """
+    @Test("No issue for valid button patterns", arguments: [
+        // Call with arguments
+        """
         Button("Save") { doSomething(with: value) }
+        """,
+        // Member access
         """
-
-        let visitor = makeVisitor()
-        runVisitor(visitor, source: source)
-
-        #expect(visitor.detectedIssues.isEmpty)
-    }
-
-    @Test
-    func testNoIssueForMemberAccess() {
-        let source = """
         Button("Save") { viewModel.save() }
+        """,
+        // Multiple statements
         """
-
-        let visitor = makeVisitor()
-        runVisitor(visitor, source: source)
-
-        #expect(visitor.detectedIssues.isEmpty)
-    }
-
-    @Test
-    func testNoIssueForMultipleStatements() {
-        let source = """
         Button("Save") {
             first()
             second()
         }
+        """,
+        // Action parameter
         """
-
-        let visitor = makeVisitor()
-        runVisitor(visitor, source: source)
-
-        #expect(visitor.detectedIssues.isEmpty)
-    }
-
-    @Test
-    func testNoIssueForActionParameter() {
-        let source = """
         Button("Save", action: doSomething)
+        """,
+        // Label form
         """
-
-        let visitor = makeVisitor()
-        runVisitor(visitor, source: source)
-
-        #expect(visitor.detectedIssues.isEmpty)
-    }
-
-    @Test
-    func testNoIssueForLabelForm() {
-        let source = """
         Button { doSomething() } label: { Text("Save") }
         """
-
+    ])
+    func noIssue(source: String) {
         let visitor = makeVisitor()
         runVisitor(visitor, source: source)
-
         #expect(visitor.detectedIssues.isEmpty)
     }
 }

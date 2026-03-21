@@ -16,10 +16,10 @@ struct DateNowVisitorTests {
         visitor.walk(sourceFile)
     }
 
-    // MARK: - Positive Cases
+    // MARK: - Detailed Property Validation
 
     @Test
-    func testDetectsDateInit() throws {
+    func detectsDateInitWithFullProperties() throws {
         let source = """
         let now = Date()
         """
@@ -35,32 +35,21 @@ struct DateNowVisitorTests {
         #expect(issue.message.contains("Date.now"))
     }
 
-    @Test
-    func testDetectsDateInitInExpression() throws {
-        let source = """
-        let elapsed = Date().timeIntervalSince(lastRun)
-        """
+    // MARK: - Parameterized Positive Cases
 
+    @Test("Detects Date() initializer", arguments: [
+        "let now = Date()",
+        "let elapsed = Date().timeIntervalSince(lastRun)",
+        "lastRunDate = Date()"
+    ])
+    func detectsDateInit(source: String) {
         let visitor = makeVisitor()
         runVisitor(visitor, source: source)
-
         #expect(visitor.detectedIssues.count == 1)
     }
 
     @Test
-    func testDetectsDateInitInAssignment() throws {
-        let source = """
-        lastRunDate = Date()
-        """
-
-        let visitor = makeVisitor()
-        runVisitor(visitor, source: source)
-
-        #expect(visitor.detectedIssues.count == 1)
-    }
-
-    @Test
-    func testDetectsMultipleDateInits() throws {
+    func detectsMultipleDateInits() {
         let source = """
         let start = Date()
         let end = Date()
@@ -72,55 +61,17 @@ struct DateNowVisitorTests {
         #expect(visitor.detectedIssues.count == 2)
     }
 
-    // MARK: - Negative Cases
+    // MARK: - Parameterized Negative Cases
 
-    @Test
-    func testNoIssueForDateNow() {
-        let source = """
-        let now = Date.now
-        """
-
+    @Test("No issue for non-Date() code", arguments: [
+        "let now = Date.now",
+        "let date = Date(timeIntervalSince1970: 0)",
+        "let formatter = DateFormatter()\nlet url = URL(string: \"https://example.com\")",
+        "let future = Date.distantFuture\nlet past = Date.distantPast"
+    ])
+    func noIssueForNonDateInit(source: String) {
         let visitor = makeVisitor()
         runVisitor(visitor, source: source)
-
-        #expect(visitor.detectedIssues.isEmpty)
-    }
-
-    @Test
-    func testNoIssueForDateWithArguments() {
-        let source = """
-        let date = Date(timeIntervalSince1970: 0)
-        """
-
-        let visitor = makeVisitor()
-        runVisitor(visitor, source: source)
-
-        #expect(visitor.detectedIssues.isEmpty)
-    }
-
-    @Test
-    func testNoIssueForOtherInitializers() {
-        let source = """
-        let formatter = DateFormatter()
-        let url = URL(string: "https://example.com")
-        """
-
-        let visitor = makeVisitor()
-        runVisitor(visitor, source: source)
-
-        #expect(visitor.detectedIssues.isEmpty)
-    }
-
-    @Test
-    func testNoIssueForDateDistantFuture() {
-        let source = """
-        let future = Date.distantFuture
-        let past = Date.distantPast
-        """
-
-        let visitor = makeVisitor()
-        runVisitor(visitor, source: source)
-
         #expect(visitor.detectedIssues.isEmpty)
     }
 }

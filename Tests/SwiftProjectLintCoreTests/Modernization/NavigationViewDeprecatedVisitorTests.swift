@@ -19,7 +19,7 @@ struct NavigationViewDeprecatedVisitorTests {
     // MARK: - Positive Cases
 
     @Test
-    func testDetectsNavigationView() throws {
+    func detectsNavigationView() throws {
         let source = """
         NavigationView {
             Text("Hello")
@@ -38,7 +38,7 @@ struct NavigationViewDeprecatedVisitorTests {
     }
 
     @Test
-    func testDetectsNavigationViewWithMultipleChildren() throws {
+    func detectsNavigationViewWithMultipleChildren() {
         let source = """
         NavigationView {
             List {
@@ -55,7 +55,7 @@ struct NavigationViewDeprecatedVisitorTests {
     }
 
     @Test
-    func testDetectsMultipleNavigationViews() throws {
+    func detectsMultipleNavigationViews() {
         let source = """
         NavigationView {
             Text("First")
@@ -73,23 +73,15 @@ struct NavigationViewDeprecatedVisitorTests {
 
     // MARK: - Negative Cases
 
-    @Test
-    func testNoIssueForNavigationStack() {
-        let source = """
+    @Test("No issue for modern navigation APIs", arguments: [
+        // NavigationStack
+        """
         NavigationStack {
             Text("Hello")
         }
+        """,
+        // NavigationSplitView
         """
-
-        let visitor = makeVisitor()
-        runVisitor(visitor, source: source)
-
-        #expect(visitor.detectedIssues.isEmpty)
-    }
-
-    @Test
-    func testNoIssueForNavigationSplitView() {
-        let source = """
         NavigationSplitView {
             List {
                 Text("Sidebar")
@@ -97,17 +89,9 @@ struct NavigationViewDeprecatedVisitorTests {
         } detail: {
             Text("Detail")
         }
+        """,
+        // Other views
         """
-
-        let visitor = makeVisitor()
-        runVisitor(visitor, source: source)
-
-        #expect(visitor.detectedIssues.isEmpty)
-    }
-
-    @Test
-    func testNoIssueForOtherViews() {
-        let source = """
         VStack {
             Text("Hello")
         }
@@ -115,7 +99,8 @@ struct NavigationViewDeprecatedVisitorTests {
             Text("Tab 1")
         }
         """
-
+    ])
+    func noIssue(source: String) {
         let visitor = makeVisitor()
         runVisitor(visitor, source: source)
 

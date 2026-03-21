@@ -16,10 +16,10 @@ struct NonisolatedUnsafeVisitorTests {
         visitor.walk(sourceFile)
     }
 
-    // MARK: - Positive Cases
+    // MARK: - Detailed Positive Case
 
     @Test
-    func testDetectsNonisolatedUnsafeVar() throws {
+    func detectsNonisolatedUnsafeVar() throws {
         let source = """
         nonisolated(unsafe) var detectorOverride: Foo?
         """
@@ -35,56 +35,36 @@ struct NonisolatedUnsafeVisitorTests {
         #expect(issue.message.contains("nonisolated(unsafe)"))
     }
 
-    @Test
-    func testDetectsNonisolatedUnsafePrivateVar() throws {
-        let source = """
+    @Test("Detects nonisolated(unsafe) variant", arguments: [
+        """
         nonisolated(unsafe) private var cache: [String]
         """
-
+    ])
+    func detectsVariant(source: String) {
         let visitor = makeVisitor()
         runVisitor(visitor, source: source)
-
         #expect(visitor.detectedIssues.count == 1)
-
-        let issue = try #require(visitor.detectedIssues.first)
-        #expect(issue.ruleName == .nonisolatedUnsafe)
     }
 
     // MARK: - Negative Cases
 
-    @Test
-    func testNoIssueForNonisolatedWithoutUnsafe() {
-        let source = """
+    @Test("No issue for safe isolation patterns", arguments: [
+        // nonisolated without unsafe
+        """
         nonisolated var value: Int { 42 }
+        """,
+        // Plain variable
         """
-
-        let visitor = makeVisitor()
-        runVisitor(visitor, source: source)
-
-        #expect(visitor.detectedIssues.isEmpty)
-    }
-
-    @Test
-    func testNoIssueForPlainVariable() {
-        let source = """
         private var normal: Int = 0
+        """,
+        // MainActor var
         """
-
-        let visitor = makeVisitor()
-        runVisitor(visitor, source: source)
-
-        #expect(visitor.detectedIssues.isEmpty)
-    }
-
-    @Test
-    func testNoIssueForMainActorVar() {
-        let source = """
         @MainActor var value = 0
         """
-
+    ])
+    func noIssue(source: String) {
         let visitor = makeVisitor()
         runVisitor(visitor, source: source)
-
         #expect(visitor.detectedIssues.isEmpty)
     }
 }

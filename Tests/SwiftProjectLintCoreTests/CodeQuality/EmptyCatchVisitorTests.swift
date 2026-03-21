@@ -16,10 +16,10 @@ struct EmptyCatchVisitorTests {
         visitor.walk(sourceFile)
     }
 
-    // MARK: - Positive Cases
+    // MARK: - Detailed Property Validation
 
     @Test
-    func testDetectsEmptyCatch() throws {
+    func detectsEmptyCatchWithFullProperties() throws {
         let source = """
         do {
             try riskyOperation()
@@ -38,24 +38,20 @@ struct EmptyCatchVisitorTests {
         #expect(issue.message.contains("Empty catch"))
     }
 
-    @Test
-    func testDetectsEmptyCatchWithWhitespace() throws {
-        let source = """
-        do {
-            try loadData()
-        } catch {
+    // MARK: - Parameterized Positive Cases
 
-        }
-        """
-
+    @Test("Detects empty catch block", arguments: [
+        "do {\n    try riskyOperation()\n} catch {\n}",
+        "do {\n    try loadData()\n} catch {\n\n}"
+    ])
+    func detectsEmptyCatch(source: String) {
         let visitor = makeVisitor()
         runVisitor(visitor, source: source)
-
         #expect(visitor.detectedIssues.count == 1)
     }
 
     @Test
-    func testDetectsMultipleEmptyCatches() throws {
+    func detectsMultipleEmptyCatches() {
         let source = """
         do {
             try first()
@@ -73,53 +69,16 @@ struct EmptyCatchVisitorTests {
         #expect(visitor.detectedIssues.count == 2)
     }
 
-    // MARK: - Negative Cases
+    // MARK: - Parameterized Negative Cases
 
-    @Test
-    func testNoIssueForCatchWithPrint() {
-        let source = """
-        do {
-            try riskyOperation()
-        } catch {
-            print(error)
-        }
-        """
-
+    @Test("No issue for catch block with content", arguments: [
+        "do {\n    try riskyOperation()\n} catch {\n    print(error)\n}",
+        "do {\n    try riskyOperation()\n} catch {\n    logger.error(\"Failed: \\(error)\")\n}",
+        "do {\n    try riskyOperation()\n} catch {\n    throw error\n}"
+    ])
+    func noIssueForCatchWithContent(source: String) {
         let visitor = makeVisitor()
         runVisitor(visitor, source: source)
-
-        #expect(visitor.detectedIssues.isEmpty)
-    }
-
-    @Test
-    func testNoIssueForCatchWithLogger() {
-        let source = """
-        do {
-            try riskyOperation()
-        } catch {
-            logger.error("Failed: \\(error)")
-        }
-        """
-
-        let visitor = makeVisitor()
-        runVisitor(visitor, source: source)
-
-        #expect(visitor.detectedIssues.isEmpty)
-    }
-
-    @Test
-    func testNoIssueForCatchWithRethrow() {
-        let source = """
-        do {
-            try riskyOperation()
-        } catch {
-            throw error
-        }
-        """
-
-        let visitor = makeVisitor()
-        runVisitor(visitor, source: source)
-
         #expect(visitor.detectedIssues.isEmpty)
     }
 }

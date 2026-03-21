@@ -3,6 +3,7 @@ import SwiftSyntax
 import SwiftParser
 @testable import SwiftProjectLintCore
 
+@Suite
 struct ExpectNegationVisitorTests {
 
     private func makeVisitor() -> ExpectNegationVisitor {
@@ -13,9 +14,10 @@ struct ExpectNegationVisitorTests {
         visitor.walk(Parser.parse(source: source))
     }
 
-    // MARK: - Detection
+    // MARK: - Detailed Positive Case
 
-    @Test func detectsNegatedBoolVariable() throws {
+    @Test
+    func detectsNegatedBoolVariable() throws {
         let visitor = makeVisitor()
         run(visitor, source: """
         #expect(!isVisible)
@@ -28,17 +30,25 @@ struct ExpectNegationVisitorTests {
         #expect(issue.message.contains("== false"))
     }
 
-    @Test func detectsNegatedMethodCall() throws {
+    @Test("Detects negation variant", arguments: [
+        (
+            """
+            #expect(!items.isEmpty)
+            """,
+            "items.isEmpty"
+        )
+    ] as [(String, String)])
+    func detectsVariant(source: String, expected: String) throws {
         let visitor = makeVisitor()
-        run(visitor, source: """
-        #expect(!items.isEmpty)
-        """)
+        run(visitor, source: source)
         #expect(visitor.detectedIssues.count == 1)
         let issue = try #require(visitor.detectedIssues.first)
-        #expect(issue.message.contains("items.isEmpty"))
+        #expect(issue.message.contains(expected))
     }
 
-    @Test func detectsMultipleNegations() throws {
+    // Unique: validates multi-issue count
+    @Test
+    func detectsMultipleNegations() throws {
         let visitor = makeVisitor()
         run(visitor, source: """
         #expect(!a)
@@ -47,41 +57,32 @@ struct ExpectNegationVisitorTests {
         #expect(visitor.detectedIssues.count == 2)
     }
 
-    // MARK: - No false positives
+    // MARK: - Negative Cases
 
-    @Test func ignoresExpectWithEqualsFalse() throws {
-        let visitor = makeVisitor()
-        run(visitor, source: """
+    @Test("No issue for valid patterns", arguments: [
+        // expect with == false
+        """
         #expect(isVisible == false)
-        """)
-        #expect(visitor.detectedIssues.isEmpty)
-    }
-
-    @Test func ignoresExpectWithPositiveCondition() throws {
-        let visitor = makeVisitor()
-        run(visitor, source: """
+        """,
+        // Positive conditions
+        """
         #expect(isVisible)
         #expect(count == 3)
         #expect(items.isEmpty)
-        """)
-        #expect(visitor.detectedIssues.isEmpty)
-    }
-
-    @Test func ignoresRequireMacro() throws {
-        let visitor = makeVisitor()
-        run(visitor, source: """
+        """,
+        // #require macro (different macro)
+        """
         let _ = try #require(!isVisible)
-        """)
-        // #require is a different macro — visitor only targets #expect
-        #expect(visitor.detectedIssues.isEmpty)
-    }
-
-    @Test func ignoresNegationOutsideExpect() throws {
-        let visitor = makeVisitor()
-        run(visitor, source: """
+        """,
+        // Negation outside #expect
+        """
         let flag = !isVisible
         if !isLoading { }
-        """)
+        """
+    ])
+    func noIssue(source: String) {
+        let visitor = makeVisitor()
+        run(visitor, source: source)
         #expect(visitor.detectedIssues.isEmpty)
     }
 }

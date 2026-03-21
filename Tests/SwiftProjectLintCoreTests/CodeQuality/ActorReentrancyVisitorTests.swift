@@ -19,7 +19,7 @@ struct ActorReentrancyVisitorTests {
     // MARK: - Positive Cases
 
     @Test
-    func testDetectsGuardWithoutUpdate() throws {
+    func detectsGuardWithoutUpdate() throws {
         let source = """
         actor InsightsEngine {
             var lastRunDate: Date?
@@ -50,7 +50,7 @@ struct ActorReentrancyVisitorTests {
     }
 
     @Test
-    func testDetectsBooleanGuardWithoutUpdate() throws {
+    func detectsBooleanGuardWithoutUpdate() throws {
         let source = """
         actor DataLoader {
             var isLoading = false
@@ -76,7 +76,7 @@ struct ActorReentrancyVisitorTests {
     }
 
     @Test
-    func testDetectsSelfDotPropertyReference() throws {
+    func detectsSelfDotPropertyReference() throws {
         let source = """
         actor Scheduler {
             var isRunning = false
@@ -100,7 +100,7 @@ struct ActorReentrancyVisitorTests {
     }
 
     @Test
-    func testDetectsMultipleUncheckedProperties() throws {
+    func detectsMultipleUncheckedProperties() {
         let source = """
         actor Processor {
             var isActive = false
@@ -125,11 +125,11 @@ struct ActorReentrancyVisitorTests {
         #expect(!visitor.detectedIssues.isEmpty)
     }
 
-    // MARK: - Negative Cases (No Issue)
+    // MARK: - Negative Cases
 
-    @Test
-    func testNoIssueWhenPropertySetBeforeAwait() {
-        let source = """
+    @Test("No issue for valid actor code", arguments: [
+        // Property set before await
+        """
         actor DataLoader {
             var isLoading = false
 
@@ -143,17 +143,9 @@ struct ActorReentrancyVisitorTests {
 
             private func performFetch() async throws -> Data { Data() }
         }
+        """,
+        // self.property set before await
         """
-
-        let visitor = makeVisitor()
-        runVisitor(visitor, source: source)
-
-        #expect(visitor.detectedIssues.isEmpty)
-    }
-
-    @Test
-    func testNoIssueWhenSelfDotPropertySetBeforeAwait() {
-        let source = """
         actor Scheduler {
             var isRunning = false
 
@@ -166,17 +158,9 @@ struct ActorReentrancyVisitorTests {
 
             private func performWork() async throws {}
         }
+        """,
+        // Sync function (no async)
         """
-
-        let visitor = makeVisitor()
-        runVisitor(visitor, source: source)
-
-        #expect(visitor.detectedIssues.isEmpty)
-    }
-
-    @Test
-    func testNoIssueForSyncFunction() {
-        let source = """
         actor Counter {
             var count = 0
 
@@ -185,17 +169,9 @@ struct ActorReentrancyVisitorTests {
                 count += 1
             }
         }
+        """,
+        // Async function without guard
         """
-
-        let visitor = makeVisitor()
-        runVisitor(visitor, source: source)
-
-        #expect(visitor.detectedIssues.isEmpty)
-    }
-
-    @Test
-    func testNoIssueForAsyncFunctionWithoutGuard() {
-        let source = """
         actor Fetcher {
             var data: Data?
 
@@ -207,17 +183,9 @@ struct ActorReentrancyVisitorTests {
 
             private func performFetch() async throws -> Data { Data() }
         }
+        """,
+        // Class instead of actor
         """
-
-        let visitor = makeVisitor()
-        runVisitor(visitor, source: source)
-
-        #expect(visitor.detectedIssues.isEmpty)
-    }
-
-    @Test
-    func testNoIssueForClassOrStruct() {
-        let source = """
         class DataLoader {
             var isLoading = false
 
@@ -229,17 +197,9 @@ struct ActorReentrancyVisitorTests {
 
             private func performFetch() async throws -> Data { Data() }
         }
+        """,
+        // Let properties (immutable)
         """
-
-        let visitor = makeVisitor()
-        runVisitor(visitor, source: source)
-
-        #expect(visitor.detectedIssues.isEmpty)
-    }
-
-    @Test
-    func testNoIssueForLetProperties() {
-        let source = """
         actor Config {
             let threshold: Int = 10
             var data: [String] = []
@@ -251,18 +211,9 @@ struct ActorReentrancyVisitorTests {
 
             private func loadData() async throws -> [String] { [] }
         }
+        """,
+        // Computed properties
         """
-
-        let visitor = makeVisitor()
-        runVisitor(visitor, source: source)
-
-        // threshold is a let, so it shouldn't be flagged
-        #expect(visitor.detectedIssues.isEmpty)
-    }
-
-    @Test
-    func testNoIssueForComputedProperties() {
-        let source = """
         actor Monitor {
             var readings: [Double] = []
             var average: Double {
@@ -276,19 +227,9 @@ struct ActorReentrancyVisitorTests {
 
             private func recordReading() async throws {}
         }
+        """,
+        // Date set eagerly before await
         """
-
-        let visitor = makeVisitor()
-        runVisitor(visitor, source: source)
-
-        // average is computed, not stored — should not be in storedVarNames
-        // readings IS stored but is not checked in the guard condition
-        #expect(visitor.detectedIssues.isEmpty)
-    }
-
-    @Test
-    func testNoIssueWhenDateSetEagerly() {
-        let source = """
         actor InsightsEngine {
             var lastRunDate: Date?
             let minimumInterval: Duration = .seconds(60)
@@ -305,7 +246,8 @@ struct ActorReentrancyVisitorTests {
             private func runAnalysis() async throws -> [String] { [] }
         }
         """
-
+    ])
+    func noIssue(source: String) {
         let visitor = makeVisitor()
         runVisitor(visitor, source: source)
 

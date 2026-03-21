@@ -19,7 +19,7 @@ struct OnChangeOldAPIVisitorTests {
     // MARK: - Positive Cases
 
     @Test
-    func testDetectsSingleParameterOnChange() throws {
+    func detectsSingleParameterOnChange() throws {
         let source = """
         Text("Hello")
             .onChange(of: value) { newValue in
@@ -39,7 +39,7 @@ struct OnChangeOldAPIVisitorTests {
     }
 
     @Test
-    func testDetectsSingleParameterOnChangeWithShortName() throws {
+    func detectsSingleParameterOnChangeWithShortName() {
         let source = """
         Text("Count")
             .onChange(of: count) { val in
@@ -54,7 +54,7 @@ struct OnChangeOldAPIVisitorTests {
     }
 
     @Test
-    func testDetectsMultipleOldOnChange() throws {
+    func detectsMultipleOldOnChange() {
         let source = """
         Text("Hello")
             .onChange(of: value) { newValue in
@@ -73,60 +73,37 @@ struct OnChangeOldAPIVisitorTests {
 
     // MARK: - Negative Cases
 
-    @Test
-    func testNoIssueForZeroParameterOnChange() {
-        let source = """
+    @Test("No issue for non-legacy onChange usage", arguments: [
+        // Zero-parameter onChange
+        """
         Text("Hello")
             .onChange(of: value) {
                 doSomething()
             }
+        """,
+        // Two-parameter onChange
         """
-
-        let visitor = makeVisitor()
-        runVisitor(visitor, source: source)
-
-        #expect(visitor.detectedIssues.isEmpty)
-    }
-
-    @Test
-    func testNoIssueForTwoParameterOnChange() {
-        let source = """
         Text("Hello")
             .onChange(of: value) { old, new in
                 handle(old, new)
             }
+        """,
+        // onAppear (not onChange)
         """
-
-        let visitor = makeVisitor()
-        runVisitor(visitor, source: source)
-
-        #expect(visitor.detectedIssues.isEmpty)
-    }
-
-    @Test
-    func testNoIssueForOnAppear() {
-        let source = """
         Text("Hello")
             .onAppear {
                 loadData()
             }
+        """,
+        // Other modifiers
         """
-
-        let visitor = makeVisitor()
-        runVisitor(visitor, source: source)
-
-        #expect(visitor.detectedIssues.isEmpty)
-    }
-
-    @Test
-    func testNoIssueForOtherModifiers() {
-        let source = """
         Text("Hello")
             .onReceive(publisher) { value in
                 handle(value)
             }
         """
-
+    ])
+    func noIssue(source: String) {
         let visitor = makeVisitor()
         runVisitor(visitor, source: source)
 

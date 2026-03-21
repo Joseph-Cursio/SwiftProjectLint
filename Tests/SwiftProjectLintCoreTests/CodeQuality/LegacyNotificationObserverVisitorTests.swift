@@ -16,10 +16,10 @@ struct LegacyNotificationObserverVisitorTests {
         visitor.walk(sourceFile)
     }
 
-    // MARK: - Positive Cases
+    // MARK: - Detailed Positive Case
 
     @Test
-    func testDetectsAddObserverWithSelector() throws {
+    func detectsAddObserverWithSelector() throws {
         let source = """
         NotificationCenter.default.addObserver(
             self,
@@ -40,9 +40,8 @@ struct LegacyNotificationObserverVisitorTests {
         #expect(issue.message.contains("target-action"))
     }
 
-    @Test
-    func testDetectsAddObserverOnCustomCenter() throws {
-        let source = """
+    @Test("Detects legacy observer variant", arguments: [
+        """
         let center = NotificationCenter()
         center.addObserver(
             viewController,
@@ -51,18 +50,18 @@ struct LegacyNotificationObserverVisitorTests {
             object: nil
         )
         """
-
+    ])
+    func detectsVariant(source: String) {
         let visitor = makeVisitor()
         runVisitor(visitor, source: source)
-
         #expect(visitor.detectedIssues.count == 1)
     }
 
     // MARK: - Negative Cases
 
-    @Test
-    func testNoIssueForClosureBasedObserver() {
-        let source = """
+    @Test("No issue for modern observer pattern", arguments: [
+        // Closure-based observer
+        """
         NotificationCenter.default.addObserver(
             forName: .didUpdate,
             object: nil,
@@ -70,51 +69,27 @@ struct LegacyNotificationObserverVisitorTests {
         ) { notification in
             print(notification)
         }
+        """,
+        // Combine sink
         """
-
-        let visitor = makeVisitor()
-        runVisitor(visitor, source: source)
-
-        #expect(visitor.detectedIssues.isEmpty)
-    }
-
-    @Test
-    func testNoIssueForCombineSink() {
-        let source = """
         let cancellable = publisher.sink { value in
             print(value)
         }
+        """,
+        // Async notifications
         """
-
-        let visitor = makeVisitor()
-        runVisitor(visitor, source: source)
-
-        #expect(visitor.detectedIssues.isEmpty)
-    }
-
-    @Test
-    func testNoIssueForAsyncNotifications() {
-        let source = """
         for await notification in NotificationCenter.default.notifications(named: .didUpdate) {
             handle(notification)
         }
+        """,
+        // Unrelated addObserver method
         """
-
-        let visitor = makeVisitor()
-        runVisitor(visitor, source: source)
-
-        #expect(visitor.detectedIssues.isEmpty)
-    }
-
-    @Test
-    func testNoIssueForUnrelatedAddObserverMethod() {
-        let source = """
         observerList.addObserver(myObserver)
         """
-
+    ])
+    func noIssue(source: String) {
         let visitor = makeVisitor()
         runVisitor(visitor, source: source)
-
         #expect(visitor.detectedIssues.isEmpty)
     }
 }

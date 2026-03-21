@@ -16,10 +16,10 @@ struct SwallowedTaskErrorVisitorTests {
         visitor.walk(sourceFile)
     }
 
-    // MARK: - Positive Cases
+    // MARK: - Detailed Positive Case
 
     @Test
-    func testDetectsTaskWithTryNoDocatch() throws {
+    func detectsTaskWithTryNoDocatch() throws {
         let source = """
         Task {
             try await riskyWork()
@@ -37,28 +37,24 @@ struct SwallowedTaskErrorVisitorTests {
         #expect(issue.message.contains("try"))
     }
 
-    @Test
-    func testDetectsTaskWithTryLetFetch() throws {
-        let source = """
+    @Test("Detects swallowed error variant", arguments: [
+        """
         Task {
             let data = try await fetch()
         }
         """
-
+    ])
+    func detectsVariant(source: String) {
         let visitor = makeVisitor()
         runVisitor(visitor, source: source)
-
         #expect(visitor.detectedIssues.count == 1)
-
-        let issue = try #require(visitor.detectedIssues.first)
-        #expect(issue.ruleName == .swallowedTaskError)
     }
 
     // MARK: - Negative Cases
 
-    @Test
-    func testNoIssueForTaskWithDoCatch() {
-        let source = """
+    @Test("No issue for proper error handling", arguments: [
+        // Task with do-catch
+        """
         Task {
             do {
                 try await riskyWork()
@@ -66,37 +62,21 @@ struct SwallowedTaskErrorVisitorTests {
                 print(error)
             }
         }
+        """,
+        // Task without try
         """
-
-        let visitor = makeVisitor()
-        runVisitor(visitor, source: source)
-
-        #expect(visitor.detectedIssues.isEmpty)
-    }
-
-    @Test
-    func testNoIssueForTaskWithoutTry() {
-        let source = """
         Task {
             await nonThrowingWork()
         }
+        """,
+        // try outside Task
         """
-
-        let visitor = makeVisitor()
-        runVisitor(visitor, source: source)
-
-        #expect(visitor.detectedIssues.isEmpty)
-    }
-
-    @Test
-    func testNoIssueForTryOutsideTask() {
-        let source = """
         try await riskyWork()
         """
-
+    ])
+    func noIssue(source: String) {
         let visitor = makeVisitor()
         runVisitor(visitor, source: source)
-
         #expect(visitor.detectedIssues.isEmpty)
     }
 }

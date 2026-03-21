@@ -16,10 +16,10 @@ struct ForceTryVisitorTests {
         visitor.walk(sourceFile)
     }
 
-    // MARK: - Positive Cases
+    // MARK: - Detailed Property Validation
 
     @Test
-    func testDetectsForceTryDecode() throws {
+    func detectsForceTryWithFullProperties() throws {
         let source = """
         let result = try! JSONDecoder().decode(Model.self, from: data)
         """
@@ -35,20 +35,20 @@ struct ForceTryVisitorTests {
         #expect(issue.message.contains("try!"))
     }
 
-    @Test
-    func testDetectsForceTryFunctionCall() throws {
-        let source = """
-        let value = try! someFunc()
-        """
+    // MARK: - Parameterized Positive Cases
 
+    @Test("Detects force try expression", arguments: [
+        "let result = try! JSONDecoder().decode(Model.self, from: data)",
+        "let value = try! someFunc()"
+    ])
+    func detectsForceTry(source: String) {
         let visitor = makeVisitor()
         runVisitor(visitor, source: source)
-
         #expect(visitor.detectedIssues.count == 1)
     }
 
     @Test
-    func testDetectsMultipleForceTries() throws {
+    func detectsMultipleForceTries() {
         let source = """
         let first = try! loadData()
         let second = try! parseJSON()
@@ -60,45 +60,16 @@ struct ForceTryVisitorTests {
         #expect(visitor.detectedIssues.count == 2)
     }
 
-    // MARK: - Negative Cases
+    // MARK: - Parameterized Negative Cases
 
-    @Test
-    func testNoIssueForRegularTry() {
-        let source = """
-        let result = try someFunc()
-        """
-
+    @Test("No issue for safe try usage", arguments: [
+        "let result = try someFunc()",
+        "let result = try? someFunc()",
+        "do {\n    let result = try someFunc()\n} catch {\n    print(error)\n}"
+    ])
+    func noIssueForSafeTry(source: String) {
         let visitor = makeVisitor()
         runVisitor(visitor, source: source)
-
-        #expect(visitor.detectedIssues.isEmpty)
-    }
-
-    @Test
-    func testNoIssueForOptionalTry() {
-        let source = """
-        let result = try? someFunc()
-        """
-
-        let visitor = makeVisitor()
-        runVisitor(visitor, source: source)
-
-        #expect(visitor.detectedIssues.isEmpty)
-    }
-
-    @Test
-    func testNoIssueForDoCatch() {
-        let source = """
-        do {
-            let result = try someFunc()
-        } catch {
-            print(error)
-        }
-        """
-
-        let visitor = makeVisitor()
-        runVisitor(visitor, source: source)
-
         #expect(visitor.detectedIssues.isEmpty)
     }
 }

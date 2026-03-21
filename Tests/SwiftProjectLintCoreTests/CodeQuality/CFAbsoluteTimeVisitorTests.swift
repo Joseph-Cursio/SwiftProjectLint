@@ -16,10 +16,10 @@ struct CFAbsoluteTimeVisitorTests {
         visitor.walk(sourceFile)
     }
 
-    // MARK: - Positive Cases
+    // MARK: - Detailed Property Validation
 
     @Test
-    func testDetectsCFAbsoluteTimeGetCurrent() throws {
+    func detectsCFAbsoluteTimeWithFullProperties() throws {
         let source = """
         let start = CFAbsoluteTimeGetCurrent()
         """
@@ -35,8 +35,20 @@ struct CFAbsoluteTimeVisitorTests {
         #expect(issue.message.contains("CFAbsoluteTimeGetCurrent"))
     }
 
+    // MARK: - Parameterized Positive Cases
+
+    @Test("Detects CFAbsoluteTimeGetCurrent usage", arguments: [
+        "let start = CFAbsoluteTimeGetCurrent()",
+        "let elapsed = CFAbsoluteTimeGetCurrent() - startTime"
+    ])
+    func detectsCFAbsoluteTimeUsage(source: String) {
+        let visitor = makeVisitor()
+        runVisitor(visitor, source: source)
+        #expect(visitor.detectedIssues.count == 1)
+    }
+
     @Test
-    func testDetectsMultipleCalls() throws {
+    func detectsMultipleCalls() {
         let source = """
         let start = CFAbsoluteTimeGetCurrent()
         doWork()
@@ -49,54 +61,16 @@ struct CFAbsoluteTimeVisitorTests {
         #expect(visitor.detectedIssues.count == 2)
     }
 
-    @Test
-    func testDetectsInExpression() throws {
-        let source = """
-        let elapsed = CFAbsoluteTimeGetCurrent() - startTime
-        """
+    // MARK: - Parameterized Negative Cases
 
+    @Test("No issue for non-CFAbsoluteTime code", arguments: [
+        "let now = Date.now",
+        "let clock = ContinuousClock()\nlet now = clock.now",
+        "let runLoop = CFRunLoopGetCurrent()"
+    ])
+    func noIssueForNonCFAbsoluteTime(source: String) {
         let visitor = makeVisitor()
         runVisitor(visitor, source: source)
-
-        #expect(visitor.detectedIssues.count == 1)
-    }
-
-    // MARK: - Negative Cases
-
-    @Test
-    func testNoIssueForDateNow() {
-        let source = """
-        let now = Date.now
-        """
-
-        let visitor = makeVisitor()
-        runVisitor(visitor, source: source)
-
-        #expect(visitor.detectedIssues.isEmpty)
-    }
-
-    @Test
-    func testNoIssueForContinuousClock() {
-        let source = """
-        let clock = ContinuousClock()
-        let now = clock.now
-        """
-
-        let visitor = makeVisitor()
-        runVisitor(visitor, source: source)
-
-        #expect(visitor.detectedIssues.isEmpty)
-    }
-
-    @Test
-    func testNoIssueForOtherCFFunctions() {
-        let source = """
-        let runLoop = CFRunLoopGetCurrent()
-        """
-
-        let visitor = makeVisitor()
-        runVisitor(visitor, source: source)
-
         #expect(visitor.detectedIssues.isEmpty)
     }
 }

@@ -19,7 +19,7 @@ struct DispatchSemaphoreInAsyncVisitorTests {
     // MARK: - Positive Cases
 
     @Test
-    func testDetectsSemaphoreInAsyncFunction() throws {
+    func detectsSemaphoreInAsyncFunction() throws {
         let source = """
         import Foundation
 
@@ -42,9 +42,9 @@ struct DispatchSemaphoreInAsyncVisitorTests {
         #expect(issue.message.contains("DispatchSemaphore"))
     }
 
-    @Test
-    func testDetectsSemaphoreInAsyncThrowsFunction() throws {
-        let source = """
+    @Test("Detects semaphore in async context", arguments: [
+        // async throws function
+        """
         import Foundation
 
         class NetworkService {
@@ -54,20 +54,9 @@ struct DispatchSemaphoreInAsyncVisitorTests {
                 semaphore.wait()
             }
         }
+        """,
+        // async closure
         """
-
-        let visitor = makeVisitor()
-        runVisitor(visitor, source: source)
-
-        #expect(visitor.detectedIssues.count == 1)
-
-        let issue = try #require(visitor.detectedIssues.first)
-        #expect(issue.ruleName == .dispatchSemaphoreInAsync)
-    }
-
-    @Test
-    func testDetectsSemaphoreInAsyncClosure() throws {
-        let source = """
         import Foundation
 
         class Worker {
@@ -79,7 +68,8 @@ struct DispatchSemaphoreInAsyncVisitorTests {
             }
         }
         """
-
+    ])
+    func detectsSemaphoreVariant(source: String) {
         let visitor = makeVisitor()
         runVisitor(visitor, source: source)
 
@@ -88,9 +78,9 @@ struct DispatchSemaphoreInAsyncVisitorTests {
 
     // MARK: - Negative Cases
 
-    @Test
-    func testNoIssueForSemaphoreInSyncFunction() {
-        let source = """
+    @Test("No issue for semaphore in sync context", arguments: [
+        // Sync function
+        """
         import Foundation
 
         class LegacyService {
@@ -102,31 +92,15 @@ struct DispatchSemaphoreInAsyncVisitorTests {
                 semaphore.wait()
             }
         }
+        """,
+        // Top-level
         """
-
-        let visitor = makeVisitor()
-        runVisitor(visitor, source: source)
-
-        #expect(visitor.detectedIssues.isEmpty)
-    }
-
-    @Test
-    func testNoIssueForSemaphoreAtTopLevel() {
-        let source = """
         import Foundation
 
         let semaphore = DispatchSemaphore(value: 1)
+        """,
+        // Sync function nested beside async function
         """
-
-        let visitor = makeVisitor()
-        runVisitor(visitor, source: source)
-
-        #expect(visitor.detectedIssues.isEmpty)
-    }
-
-    @Test
-    func testNoIssueForSyncFunctionNestedInsideAsyncFunction() {
-        let source = """
         import Foundation
 
         class DataLoader {
@@ -139,17 +113,9 @@ struct DispatchSemaphoreInAsyncVisitorTests {
                 semaphore.wait()
             }
         }
+        """,
+        // Sync closure inside async function
         """
-
-        let visitor = makeVisitor()
-        runVisitor(visitor, source: source)
-
-        #expect(visitor.detectedIssues.isEmpty)
-    }
-
-    @Test
-    func testNoIssueForSyncClosureInsideAsyncFunction() {
-        let source = """
         import Foundation
 
         class DataLoader {
@@ -161,7 +127,8 @@ struct DispatchSemaphoreInAsyncVisitorTests {
             }
         }
         """
-
+    ])
+    func noIssue(source: String) {
         let visitor = makeVisitor()
         runVisitor(visitor, source: source)
 

@@ -19,7 +19,7 @@ struct TaskInOnAppearVisitorTests {
     // MARK: - Positive Cases
 
     @Test
-    func testDetectsTaskInsideOnAppear() throws {
+    func detectsTaskInsideOnAppear() throws {
         let source = """
         import SwiftUI
 
@@ -46,9 +46,9 @@ struct TaskInOnAppearVisitorTests {
         #expect(issue.message.contains("Task created inside .onAppear"))
     }
 
-    @Test
-    func testDetectsTaskDetachedInsideOnAppear() throws {
-        let source = """
+    @Test("Detects Task variant in onAppear", arguments: [
+        // Task.detached inside onAppear
+        """
         import SwiftUI
 
         struct MyView: View {
@@ -61,21 +61,9 @@ struct TaskInOnAppearVisitorTests {
                     }
             }
         }
+        """,
+        // onAppear with perform: argument
         """
-
-        let visitor = makeVisitor()
-        runVisitor(visitor, source: source)
-
-        #expect(visitor.detectedIssues.count == 1)
-
-        let issue = try #require(visitor.detectedIssues.first)
-        #expect(issue.ruleName == .taskInOnAppear)
-        #expect(issue.severity == .warning)
-    }
-
-    @Test
-    func testDetectsOnAppearWithPerformArgument() throws {
-        let source = """
         import SwiftUI
 
         struct MyView: View {
@@ -89,7 +77,8 @@ struct TaskInOnAppearVisitorTests {
             }
         }
         """
-
+    ])
+    func detectsVariant(source: String) {
         let visitor = makeVisitor()
         runVisitor(visitor, source: source)
 
@@ -98,9 +87,9 @@ struct TaskInOnAppearVisitorTests {
 
     // MARK: - Negative Cases
 
-    @Test
-    func testNoIssueForTaskModifier() {
-        let source = """
+    @Test("No issue for non-onAppear Task usage", arguments: [
+        // .task modifier
+        """
         import SwiftUI
 
         struct MyView: View {
@@ -111,17 +100,9 @@ struct TaskInOnAppearVisitorTests {
                     }
             }
         }
+        """,
+        // Task in button action
         """
-
-        let visitor = makeVisitor()
-        runVisitor(visitor, source: source)
-
-        #expect(visitor.detectedIssues.isEmpty)
-    }
-
-    @Test
-    func testNoIssueForTaskInButtonAction() {
-        let source = """
         import SwiftUI
 
         struct MyView: View {
@@ -133,17 +114,9 @@ struct TaskInOnAppearVisitorTests {
                 }
             }
         }
+        """,
+        // onDisappear (not onAppear)
         """
-
-        let visitor = makeVisitor()
-        runVisitor(visitor, source: source)
-
-        #expect(visitor.detectedIssues.isEmpty)
-    }
-
-    @Test
-    func testNoIssueForOnDisappear() {
-        let source = """
         import SwiftUI
 
         struct MyView: View {
@@ -154,17 +127,9 @@ struct TaskInOnAppearVisitorTests {
                     }
             }
         }
+        """,
+        // Task in separate function
         """
-
-        let visitor = makeVisitor()
-        runVisitor(visitor, source: source)
-
-        #expect(visitor.detectedIssues.isEmpty)
-    }
-
-    @Test
-    func testNoIssueForTaskInSeparateFunction() {
-        let source = """
         import SwiftUI
 
         struct MyView: View {
@@ -182,7 +147,8 @@ struct TaskInOnAppearVisitorTests {
             }
         }
         """
-
+    ])
+    func noIssue(source: String) {
         let visitor = makeVisitor()
         runVisitor(visitor, source: source)
 

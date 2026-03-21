@@ -16,10 +16,10 @@ struct DispatchMainAsyncVisitorTests {
         visitor.walk(sourceFile)
     }
 
-    // MARK: - Positive Cases
+    // MARK: - Detailed Property Validation
 
     @Test
-    func testDetectsDispatchMainAsync() throws {
+    func detectsDispatchMainAsyncWithFullProperties() throws {
         let source = """
         DispatchQueue.main.async {
             self.updateUI()
@@ -38,25 +38,22 @@ struct DispatchMainAsyncVisitorTests {
         #expect(issue.message.contains("MainActor.run"))
     }
 
-    @Test
-    func testDetectsDispatchMainSync() throws {
-        let source = """
-        DispatchQueue.main.sync {
-            self.updateUI()
-        }
-        """
+    // MARK: - Parameterized Positive Cases
 
+    @Test("Detects DispatchQueue.main usage", arguments: [
+        ("DispatchQueue.main.async {\n    self.updateUI()\n}", "async"),
+        ("DispatchQueue.main.sync {\n    self.updateUI()\n}", "sync")
+    ])
+    func detectsDispatchMainUsage(source: String, expectedSubstring: String) throws {
         let visitor = makeVisitor()
         runVisitor(visitor, source: source)
-
         #expect(visitor.detectedIssues.count == 1)
-
         let issue = try #require(visitor.detectedIssues.first)
-        #expect(issue.message.contains("sync"))
+        #expect(issue.message.contains(expectedSubstring))
     }
 
     @Test
-    func testDetectsMultipleCalls() throws {
+    func detectsMultipleCalls() {
         let source = """
         DispatchQueue.main.async { self.reload() }
         DispatchQueue.main.sync { self.flush() }
@@ -68,46 +65,16 @@ struct DispatchMainAsyncVisitorTests {
         #expect(visitor.detectedIssues.count == 2)
     }
 
-    // MARK: - Negative Cases
+    // MARK: - Parameterized Negative Cases
 
-    @Test
-    func testNoIssueForDispatchGlobalAsync() {
-        let source = """
-        DispatchQueue.global().async {
-            self.doWork()
-        }
-        """
-
+    @Test("No issue for non-main dispatch usage", arguments: [
+        "DispatchQueue.global().async {\n    self.doWork()\n}",
+        "await MainActor.run {\n    self.updateUI()\n}",
+        "let queue = DispatchQueue(label: \"com.app.worker\")\nqueue.async { self.doWork() }"
+    ])
+    func noIssueForNonMainDispatch(source: String) {
         let visitor = makeVisitor()
         runVisitor(visitor, source: source)
-
-        #expect(visitor.detectedIssues.isEmpty)
-    }
-
-    @Test
-    func testNoIssueForMainActorRun() {
-        let source = """
-        await MainActor.run {
-            self.updateUI()
-        }
-        """
-
-        let visitor = makeVisitor()
-        runVisitor(visitor, source: source)
-
-        #expect(visitor.detectedIssues.isEmpty)
-    }
-
-    @Test
-    func testNoIssueForOtherDispatchQueueUsage() {
-        let source = """
-        let queue = DispatchQueue(label: "com.app.worker")
-        queue.async { self.doWork() }
-        """
-
-        let visitor = makeVisitor()
-        runVisitor(visitor, source: source)
-
         #expect(visitor.detectedIssues.isEmpty)
     }
 }

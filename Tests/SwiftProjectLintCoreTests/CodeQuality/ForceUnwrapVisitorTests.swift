@@ -16,10 +16,10 @@ struct ForceUnwrapVisitorTests {
         visitor.walk(sourceFile)
     }
 
-    // MARK: - Positive Cases
+    // MARK: - Detailed Property Validation
 
     @Test
-    func testDetectsForceUnwrap() throws {
+    func detectsForceUnwrapWithFullProperties() throws {
         let source = """
         let value = optional!
         """
@@ -35,20 +35,20 @@ struct ForceUnwrapVisitorTests {
         #expect(issue.message.contains("Force unwrap"))
     }
 
-    @Test
-    func testDetectsChainedForceUnwrap() throws {
-        let source = """
-        let value = foo.bar!.baz
-        """
+    // MARK: - Parameterized Positive Cases
 
+    @Test("Detects force unwrap expression", arguments: [
+        "let value = optional!",
+        "let value = foo.bar!.baz"
+    ])
+    func detectsForceUnwrap(source: String) {
         let visitor = makeVisitor()
         runVisitor(visitor, source: source)
-
         #expect(visitor.detectedIssues.count == 1)
     }
 
     @Test
-    func testDetectsMultipleForceUnwraps() throws {
+    func detectsMultipleForceUnwraps() {
         let source = """
         let first = optA!
         let second = optB!
@@ -60,41 +60,16 @@ struct ForceUnwrapVisitorTests {
         #expect(visitor.detectedIssues.count == 2)
     }
 
-    // MARK: - Negative Cases
+    // MARK: - Parameterized Negative Cases
 
-    @Test
-    func testNoIssueForImplicitlyUnwrappedOptionalDeclaration() {
-        let source = """
-        let value: String! = "hello"
-        """
-
+    @Test("No issue for safe optional handling", arguments: [
+        "let value: String! = \"hello\"",
+        "let value = foo?.bar",
+        "let value = optional ?? \"default\""
+    ])
+    func noIssueForSafeOptionalHandling(source: String) {
         let visitor = makeVisitor()
         runVisitor(visitor, source: source)
-
-        #expect(visitor.detectedIssues.isEmpty)
-    }
-
-    @Test
-    func testNoIssueForOptionalChaining() {
-        let source = """
-        let value = foo?.bar
-        """
-
-        let visitor = makeVisitor()
-        runVisitor(visitor, source: source)
-
-        #expect(visitor.detectedIssues.isEmpty)
-    }
-
-    @Test
-    func testNoIssueForNilCoalescing() {
-        let source = """
-        let value = optional ?? "default"
-        """
-
-        let visitor = makeVisitor()
-        runVisitor(visitor, source: source)
-
         #expect(visitor.detectedIssues.isEmpty)
     }
 }

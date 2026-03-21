@@ -16,10 +16,10 @@ struct TaskDetachedVisitorTests {
         visitor.walk(sourceFile)
     }
 
-    // MARK: - Positive Cases
+    // MARK: - Detailed Positive Case
 
     @Test
-    func testDetectsTaskDetached() throws {
+    func detectsTaskDetached() throws {
         let source = """
         Task.detached {
             await work()
@@ -37,62 +37,42 @@ struct TaskDetachedVisitorTests {
         #expect(issue.message.contains("Task.detached"))
     }
 
-    @Test
-    func testDetectsTaskDetachedWithPriority() throws {
-        let source = """
+    @Test("Detects Task.detached variant", arguments: [
+        """
         Task.detached(priority: .background) {
             await work()
         }
         """
-
+    ])
+    func detectsVariant(source: String) {
         let visitor = makeVisitor()
         runVisitor(visitor, source: source)
-
         #expect(visitor.detectedIssues.count == 1)
-
-        let issue = try #require(visitor.detectedIssues.first)
-        #expect(issue.ruleName == .taskDetached)
     }
 
     // MARK: - Negative Cases
 
-    @Test
-    func testNoIssueForPlainTask() {
-        let source = """
+    @Test("No issue for non-detached Task usage", arguments: [
+        // Plain Task
+        """
         Task {
             await work()
         }
+        """,
+        // Task with priority
         """
-
-        let visitor = makeVisitor()
-        runVisitor(visitor, source: source)
-
-        #expect(visitor.detectedIssues.isEmpty)
-    }
-
-    @Test
-    func testNoIssueForTaskWithPriority() {
-        let source = """
         Task(priority: .high) {
             await work()
         }
+        """,
+        // Unrelated member access
         """
-
-        let visitor = makeVisitor()
-        runVisitor(visitor, source: source)
-
-        #expect(visitor.detectedIssues.isEmpty)
-    }
-
-    @Test
-    func testNoIssueForUnrelatedMemberAccess() {
-        let source = """
         let result = SomeClass.detached()
         """
-
+    ])
+    func noIssue(source: String) {
         let visitor = makeVisitor()
         runVisitor(visitor, source: source)
-
         #expect(visitor.detectedIssues.isEmpty)
     }
 }

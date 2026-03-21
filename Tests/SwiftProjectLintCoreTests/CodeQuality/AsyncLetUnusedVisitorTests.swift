@@ -16,10 +16,10 @@ struct AsyncLetUnusedVisitorTests {
         visitor.walk(sourceFile)
     }
 
-    // MARK: - Positive Cases
+    // MARK: - Detailed Positive Case
 
     @Test
-    func testDetectsAsyncLetWildcard() throws {
+    func detectsAsyncLetWildcard() throws {
         let source = """
         func example() async {
             async let _ = fetchData()
@@ -39,42 +39,26 @@ struct AsyncLetUnusedVisitorTests {
 
     // MARK: - Negative Cases
 
-    @Test
-    func testNoIssueForNamedAsyncLet() {
-        let source = """
+    @Test("No issue for proper async let usage", arguments: [
+        // Named async let
+        """
         func example() async {
             async let result = fetchData()
             _ = await result
         }
+        """,
+        // Non-async let wildcard
         """
-
-        let visitor = makeVisitor()
-        runVisitor(visitor, source: source)
-
-        #expect(visitor.detectedIssues.isEmpty)
-    }
-
-    @Test
-    func testNoIssueForNonAsyncLetWildcard() {
-        let source = """
         let _ = syncFunc()
+        """,
+        // Regular variable
         """
-
-        let visitor = makeVisitor()
-        runVisitor(visitor, source: source)
-
-        #expect(visitor.detectedIssues.isEmpty)
-    }
-
-    @Test
-    func testNoIssueForRegularVariable() {
-        let source = """
         let value = computeResult()
         """
-
+    ])
+    func noIssue(source: String) {
         let visitor = makeVisitor()
         runVisitor(visitor, source: source)
-
         #expect(visitor.detectedIssues.isEmpty)
     }
 }

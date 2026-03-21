@@ -16,10 +16,10 @@ struct TaskYieldOffloadVisitorTests {
         visitor.walk(sourceFile)
     }
 
-    // MARK: - Positive Cases
+    // MARK: - Detailed Positive Case
 
     @Test
-    func testDetectsAwaitTaskYield() throws {
+    func detectsAwaitTaskYield() throws {
         let source = """
         await Task.yield()
         """
@@ -35,56 +35,36 @@ struct TaskYieldOffloadVisitorTests {
         #expect(issue.message.contains("Task.yield()"))
     }
 
-    @Test
-    func testDetectsTaskYieldWithoutAwait() throws {
-        let source = """
+    @Test("Detects Task.yield variant", arguments: [
+        """
         Task.yield()
         """
-
+    ])
+    func detectsVariant(source: String) {
         let visitor = makeVisitor()
         runVisitor(visitor, source: source)
-
         #expect(visitor.detectedIssues.count == 1)
-
-        let issue = try #require(visitor.detectedIssues.first)
-        #expect(issue.ruleName == .taskYieldOffload)
     }
 
     // MARK: - Negative Cases
 
-    @Test
-    func testNoIssueForTaskSleep() {
-        let source = """
+    @Test("No issue for other Task methods", arguments: [
+        // Task.sleep
+        """
         await Task.sleep(for: .seconds(1))
+        """,
+        // Task.checkCancellation
         """
-
-        let visitor = makeVisitor()
-        runVisitor(visitor, source: source)
-
-        #expect(visitor.detectedIssues.isEmpty)
-    }
-
-    @Test
-    func testNoIssueForTaskCheckCancellation() {
-        let source = """
         Task.checkCancellation()
+        """,
+        // Instance task cancel
         """
-
-        let visitor = makeVisitor()
-        runVisitor(visitor, source: source)
-
-        #expect(visitor.detectedIssues.isEmpty)
-    }
-
-    @Test
-    func testNoIssueForInstanceTaskCancel() {
-        let source = """
         task.cancel()
         """
-
+    ])
+    func noIssue(source: String) {
         let visitor = makeVisitor()
         runVisitor(visitor, source: source)
-
         #expect(visitor.detectedIssues.isEmpty)
     }
 }

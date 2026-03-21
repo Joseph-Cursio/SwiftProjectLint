@@ -16,10 +16,10 @@ struct ThreadSleepVisitorTests {
         visitor.walk(sourceFile)
     }
 
-    // MARK: - Positive Cases
+    // MARK: - Detailed Property Validation
 
     @Test
-    func testDetectsThreadSleep() throws {
+    func detectsThreadSleepWithFullProperties() throws {
         let source = """
         Thread.sleep(forTimeInterval: 1.0)
         """
@@ -35,20 +35,20 @@ struct ThreadSleepVisitorTests {
         #expect(issue.message.contains("Thread.sleep"))
     }
 
-    @Test
-    func testDetectsThreadSleepUntil() throws {
-        let source = """
-        Thread.sleep(until: Date().addingTimeInterval(2.0))
-        """
+    // MARK: - Parameterized Positive Cases
 
+    @Test("Detects Thread.sleep variant", arguments: [
+        "Thread.sleep(forTimeInterval: 1.0)",
+        "Thread.sleep(until: Date().addingTimeInterval(2.0))"
+    ])
+    func detectsThreadSleepVariant(source: String) {
         let visitor = makeVisitor()
         runVisitor(visitor, source: source)
-
         #expect(visitor.detectedIssues.count == 1)
     }
 
     @Test
-    func testDetectsMultipleThreadSleeps() throws {
+    func detectsMultipleThreadSleeps() {
         let source = """
         Thread.sleep(forTimeInterval: 0.5)
         Thread.sleep(forTimeInterval: 1.0)
@@ -60,42 +60,16 @@ struct ThreadSleepVisitorTests {
         #expect(visitor.detectedIssues.count == 2)
     }
 
-    // MARK: - Negative Cases
+    // MARK: - Parameterized Negative Cases
 
-    @Test
-    func testNoIssueForTaskSleep() {
-        let source = """
-        try await Task.sleep(for: .seconds(1))
-        """
-
+    @Test("No issue for non-Thread.sleep code", arguments: [
+        "try await Task.sleep(for: .seconds(1))",
+        "let isMain = Thread.isMainThread\nlet current = Thread.current",
+        "process.sleep(duration: 5)"
+    ])
+    func noIssueForNonThreadSleep(source: String) {
         let visitor = makeVisitor()
         runVisitor(visitor, source: source)
-
-        #expect(visitor.detectedIssues.isEmpty)
-    }
-
-    @Test
-    func testNoIssueForOtherThreadMethods() {
-        let source = """
-        let isMain = Thread.isMainThread
-        let current = Thread.current
-        """
-
-        let visitor = makeVisitor()
-        runVisitor(visitor, source: source)
-
-        #expect(visitor.detectedIssues.isEmpty)
-    }
-
-    @Test
-    func testNoIssueForUnrelatedSleep() {
-        let source = """
-        process.sleep(duration: 5)
-        """
-
-        let visitor = makeVisitor()
-        runVisitor(visitor, source: source)
-
         #expect(visitor.detectedIssues.isEmpty)
     }
 }

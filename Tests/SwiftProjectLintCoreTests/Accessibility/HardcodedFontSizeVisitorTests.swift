@@ -16,8 +16,10 @@ struct HardcodedFontSizeVisitorTests {
         visitor.walk(sourceFile)
     }
 
+    // MARK: - Positive Cases
+
     @Test
-    func testDetectsLiteralIntegerSize() throws {
+    func detectsLiteralIntegerSize() throws {
         let source = """
         import SwiftUI
 
@@ -41,7 +43,7 @@ struct HardcodedFontSizeVisitorTests {
     }
 
     @Test
-    func testDetectsLiteralFloatSizeWithExtraParams() throws {
+    func detectsLiteralFloatSizeWithExtraParams() throws {
         let source = """
         import SwiftUI
 
@@ -63,9 +65,11 @@ struct HardcodedFontSizeVisitorTests {
         #expect(issue.message.contains("14.0"))
     }
 
-    @Test
-    func testNoIssueForSemanticTextStyle() {
-        let source = """
+    // MARK: - Negative Cases
+
+    @Test("No issue for dynamic or semantic fonts", arguments: [
+        // Semantic text style
+        """
         import SwiftUI
 
         struct MyView: View {
@@ -74,17 +78,9 @@ struct HardcodedFontSizeVisitorTests {
                     .font(.largeTitle)
             }
         }
+        """,
+        // Variable size
         """
-
-        let visitor = makeVisitor()
-        runVisitor(visitor, source: source)
-
-        #expect(visitor.detectedIssues.isEmpty)
-    }
-
-    @Test
-    func testNoIssueForVariableSize() {
-        let source = """
         import SwiftUI
 
         struct MyView: View {
@@ -95,17 +91,9 @@ struct HardcodedFontSizeVisitorTests {
                     .font(.system(size: fontSize))
             }
         }
+        """,
+        // Custom font
         """
-
-        let visitor = makeVisitor()
-        runVisitor(visitor, source: source)
-
-        #expect(visitor.detectedIssues.isEmpty)
-    }
-
-    @Test
-    func testNoIssueForCustomFont() {
-        let source = """
         import SwiftUI
 
         struct MyView: View {
@@ -114,17 +102,9 @@ struct HardcodedFontSizeVisitorTests {
                     .font(.custom("Avenir", size: 14))
             }
         }
+        """,
+        // System text style
         """
-
-        let visitor = makeVisitor()
-        runVisitor(visitor, source: source)
-
-        #expect(visitor.detectedIssues.isEmpty)
-    }
-
-    @Test
-    func testNoIssueForSystemTextStyle() {
-        let source = """
         import SwiftUI
 
         struct MyView: View {
@@ -134,7 +114,8 @@ struct HardcodedFontSizeVisitorTests {
             }
         }
         """
-
+    ])
+    func noIssue(source: String) {
         let visitor = makeVisitor()
         runVisitor(visitor, source: source)
 

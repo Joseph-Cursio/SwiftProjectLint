@@ -19,7 +19,7 @@ struct ObservedObjectInlineVisitorTests {
     // MARK: - Positive Cases
 
     @Test
-    func testDetectsObservedObjectWithInlineInit() throws {
+    func detectsObservedObjectWithInlineInit() throws {
         let source = """
         struct MyView: View {
             @ObservedObject var viewModel = ViewModel()
@@ -38,7 +38,7 @@ struct ObservedObjectInlineVisitorTests {
     }
 
     @Test
-    func testDetectsObservedObjectWithDifferentType() throws {
+    func detectsObservedObjectWithDifferentType() {
         let source = """
         struct SettingsView: View {
             @ObservedObject var store = DataStore()
@@ -52,7 +52,7 @@ struct ObservedObjectInlineVisitorTests {
     }
 
     @Test
-    func testDetectsMultipleInlineObservedObjects() throws {
+    func detectsMultipleInlineObservedObjects() {
         let source = """
         struct MyView: View {
             @ObservedObject var viewModel = ViewModel()
@@ -68,56 +68,33 @@ struct ObservedObjectInlineVisitorTests {
 
     // MARK: - Negative Cases
 
-    @Test
-    func testNoIssueForObservedObjectWithoutInitializer() {
-        let source = """
+    @Test("No issue for non-inline ObservedObject", arguments: [
+        // ObservedObject without initializer
+        """
         struct MyView: View {
             @ObservedObject var viewModel: ViewModel
         }
+        """,
+        // StateObject (correct for inline init)
         """
-
-        let visitor = makeVisitor()
-        runVisitor(visitor, source: source)
-
-        #expect(visitor.detectedIssues.isEmpty)
-    }
-
-    @Test
-    func testNoIssueForStateObject() {
-        let source = """
         struct MyView: View {
             @StateObject var viewModel = ViewModel()
         }
+        """,
+        // @State variable
         """
-
-        let visitor = makeVisitor()
-        runVisitor(visitor, source: source)
-
-        #expect(visitor.detectedIssues.isEmpty)
-    }
-
-    @Test
-    func testNoIssueForStateVariable() {
-        let source = """
         struct MyView: View {
             @State var count = 0
         }
+        """,
+        // Plain variable
         """
-
-        let visitor = makeVisitor()
-        runVisitor(visitor, source: source)
-
-        #expect(visitor.detectedIssues.isEmpty)
-    }
-
-    @Test
-    func testNoIssueForPlainVariable() {
-        let source = """
         struct MyView: View {
             var viewModel: ViewModel
         }
         """
-
+    ])
+    func noIssue(source: String) {
         let visitor = makeVisitor()
         runVisitor(visitor, source: source)
 

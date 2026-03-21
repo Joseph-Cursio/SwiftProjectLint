@@ -16,10 +16,10 @@ struct CompletionHandlerDataTaskVisitorTests {
         visitor.walk(sourceFile)
     }
 
-    // MARK: - Positive Cases
+    // MARK: - Detailed Positive Case
 
     @Test
-    func testDetectsDataTaskWithTrailingClosure() throws {
+    func detectsDataTaskWithTrailingClosure() throws {
         let source = """
         session.dataTask(with: url) { data, response, error in
             guard let data = data else { return }
@@ -38,102 +38,63 @@ struct CompletionHandlerDataTaskVisitorTests {
         #expect(issue.message.contains("dataTask"))
     }
 
-    @Test
-    func testDetectsDataTaskWithCompletionHandlerLabel() throws {
-        let source = """
-        URLSession.shared.dataTask(with: request, completionHandler: handler)
-        """
+    // MARK: - Parameterized Positive Cases
 
+    @Test("Detects completion handler task variant", arguments: [
+        (
+            """
+            URLSession.shared.dataTask(with: request, completionHandler: handler)
+            """,
+            "dataTask"
+        ),
+        (
+            """
+            session.downloadTask(with: url) { tempURL, response, error in
+                guard let tempURL = tempURL else { return }
+                process(tempURL)
+            }
+            """,
+            "downloadTask"
+        ),
+        (
+            """
+            session.uploadTask(with: request, from: bodyData, completionHandler: handler)
+            """,
+            "uploadTask"
+        )
+    ] as [(String, String)])
+    func detectsVariant(source: String, expected: String) throws {
         let visitor = makeVisitor()
         runVisitor(visitor, source: source)
-
         #expect(visitor.detectedIssues.count == 1)
-
         let issue = try #require(visitor.detectedIssues.first)
-        #expect(issue.message.contains("dataTask"))
-    }
-
-    @Test
-    func testDetectsDownloadTaskWithClosure() throws {
-        let source = """
-        session.downloadTask(with: url) { tempURL, response, error in
-            guard let tempURL = tempURL else { return }
-            process(tempURL)
-        }
-        """
-
-        let visitor = makeVisitor()
-        runVisitor(visitor, source: source)
-
-        #expect(visitor.detectedIssues.count == 1)
-
-        let issue = try #require(visitor.detectedIssues.first)
-        #expect(issue.message.contains("downloadTask"))
-    }
-
-    @Test
-    func testDetectsUploadTaskWithCompletionHandler() throws {
-        let source = """
-        session.uploadTask(with: request, from: bodyData, completionHandler: handler)
-        """
-
-        let visitor = makeVisitor()
-        runVisitor(visitor, source: source)
-
-        #expect(visitor.detectedIssues.count == 1)
-
-        let issue = try #require(visitor.detectedIssues.first)
-        #expect(issue.message.contains("uploadTask"))
+        #expect(issue.message.contains(expected))
     }
 
     // MARK: - Negative Cases
 
-    @Test
-    func testNoIssueForAsyncData() {
-        let source = """
-        let (data, response) = try await session.data(from: url)
+    @Test("No issue for async or unrelated code", arguments: [
+        // Async data
         """
-
-        let visitor = makeVisitor()
-        runVisitor(visitor, source: source)
-
-        #expect(visitor.detectedIssues.isEmpty)
-    }
-
-    @Test
-    func testNoIssueForDataTaskWithoutClosure() {
-        let source = """
+        let (data, response) = try await session.data(from: url)
+        """,
+        // dataTask without closure
+        """
         let task = session.dataTask(with: url)
         task.resume()
+        """,
+        // Async download
         """
-
-        let visitor = makeVisitor()
-        runVisitor(visitor, source: source)
-
-        #expect(visitor.detectedIssues.isEmpty)
-    }
-
-    @Test
-    func testNoIssueForAsyncDownload() {
-        let source = """
         let (localURL, response) = try await URLSession.shared.download(from: url)
+        """,
+        // Unrelated method
         """
-
-        let visitor = makeVisitor()
-        runVisitor(visitor, source: source)
-
-        #expect(visitor.detectedIssues.isEmpty)
-    }
-
-    @Test
-    func testNoIssueForUnrelatedMethod() {
-        let source = """
         let result = processor.dataTask(with: input)
         """
-
+    ])
+    func noIssue(source: String) {
         let visitor = makeVisitor()
         runVisitor(visitor, source: source)
-
         #expect(visitor.detectedIssues.isEmpty)
     }
 }

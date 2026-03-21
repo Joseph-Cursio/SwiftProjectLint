@@ -16,10 +16,10 @@ struct LegacyRandomVisitorTests {
         visitor.walk(sourceFile)
     }
 
-    // MARK: - Positive Cases
+    // MARK: - Detailed Property Validation
 
     @Test
-    func testDetectsArc4random() throws {
+    func detectsArc4randomWithFullProperties() throws {
         let source = """
         let value = arc4random()
         """
@@ -35,38 +35,23 @@ struct LegacyRandomVisitorTests {
         #expect(issue.message.contains("arc4random"))
     }
 
-    @Test
-    func testDetectsArc4randomUniform() throws {
-        let source = """
-        let value = arc4random_uniform(10)
-        """
+    // MARK: - Parameterized Positive Cases
 
+    @Test("Detects legacy random call", arguments: [
+        ("let value = arc4random()", "arc4random"),
+        ("let value = arc4random_uniform(10)", "arc4random_uniform"),
+        ("let value = drand48()", "drand48")
+    ])
+    func detectsLegacyRandomCall(source: String, expectedSubstring: String) throws {
         let visitor = makeVisitor()
         runVisitor(visitor, source: source)
-
         #expect(visitor.detectedIssues.count == 1)
-
         let issue = try #require(visitor.detectedIssues.first)
-        #expect(issue.message.contains("arc4random_uniform"))
+        #expect(issue.message.contains(expectedSubstring))
     }
 
     @Test
-    func testDetectsDrand48() throws {
-        let source = """
-        let value = drand48()
-        """
-
-        let visitor = makeVisitor()
-        runVisitor(visitor, source: source)
-
-        #expect(visitor.detectedIssues.count == 1)
-
-        let issue = try #require(visitor.detectedIssues.first)
-        #expect(issue.message.contains("drand48"))
-    }
-
-    @Test
-    func testDetectsMultipleLegacyRandomCalls() throws {
+    func detectsMultipleLegacyRandomCalls() {
         let source = """
         let first = arc4random()
         let second = arc4random_uniform(100)
@@ -79,41 +64,16 @@ struct LegacyRandomVisitorTests {
         #expect(visitor.detectedIssues.count == 3)
     }
 
-    // MARK: - Negative Cases
+    // MARK: - Parameterized Negative Cases
 
-    @Test
-    func testNoIssueForIntRandom() {
-        let source = """
-        let value = Int.random(in: 0..<10)
-        """
-
+    @Test("No issue for modern random API", arguments: [
+        "let value = Int.random(in: 0..<10)",
+        "let coin = Bool.random()",
+        "let value = Double.random(in: 0.0...1.0)"
+    ])
+    func noIssueForModernRandom(source: String) {
         let visitor = makeVisitor()
         runVisitor(visitor, source: source)
-
-        #expect(visitor.detectedIssues.isEmpty)
-    }
-
-    @Test
-    func testNoIssueForBoolRandom() {
-        let source = """
-        let coin = Bool.random()
-        """
-
-        let visitor = makeVisitor()
-        runVisitor(visitor, source: source)
-
-        #expect(visitor.detectedIssues.isEmpty)
-    }
-
-    @Test
-    func testNoIssueForDotRandom() {
-        let source = """
-        let value = Double.random(in: 0.0...1.0)
-        """
-
-        let visitor = makeVisitor()
-        runVisitor(visitor, source: source)
-
         #expect(visitor.detectedIssues.isEmpty)
     }
 }
