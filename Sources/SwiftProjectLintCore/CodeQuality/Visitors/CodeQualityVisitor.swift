@@ -174,6 +174,7 @@ class CodeQualityVisitor: BasePatternVisitor {
             "http", "https", "file://", "data:", "base64"
         ]
         let shouldSkip = skipPatterns.contains { cleanString.contains($0) }
+            || looksLikeSFSymbolName(cleanString)
         if !shouldSkip {
             addIssue(
                 severity: .info,
@@ -187,11 +188,23 @@ class CodeQualityVisitor: BasePatternVisitor {
         return .visitChildren
     }
 
+    /// Argument labels that take SF Symbol names or other non-localizable identifiers.
+    private static let nonLocalizableArgLabels: Set<String> = [
+        "systemImage", "systemName", "imageName", "symbolName"
+    ]
+
     /// Checks whether a string literal is a direct argument to a user-facing SwiftUI call.
     private func isInUserFacingContext(_ node: StringLiteralExprSyntax) -> Bool {
         // Walk up to the nearest FunctionCallExprSyntax ancestor
         var current: Syntax = Syntax(node)
         while let parent = current.parent {
+            // Skip strings that are SF Symbol names or other non-localizable arguments
+            if let labeledArg = parent.as(LabeledExprSyntax.self),
+               let argLabel = labeledArg.label?.text,
+               Self.nonLocalizableArgLabels.contains(argLabel) {
+                return false
+            }
+
             if let call = parent.as(FunctionCallExprSyntax.self) {
                 // Check DeclReferenceExpr: Text("hello"), Button("tap") etc.
                 if let ref = call.calledExpression.as(DeclReferenceExprSyntax.self),
@@ -214,6 +227,34 @@ class CodeQualityVisitor: BasePatternVisitor {
             current = parent
         }
         return false
+    }
+
+    /// Known SF Symbol name components that appear as dot-separated segments.
+    /// A string is considered an SF Symbol name if it contains at least one dot
+    /// and every segment matches a known symbol component pattern.
+    private static let sfSymbolModifiers: Set<String> = [
+        "fill", "circle", "square", "rectangle", "slash", "badge",
+        "trianglebadge", "shield", "seal", "app", "bubble", "plus",
+        "minus", "exclamationmark", "questionmark", "lock", "wave",
+        "rtl", "ar", "he", "hi", "ja", "ko", "th", "zh"
+    ]
+
+    /// Checks whether a string looks like an SF Symbol name.
+    /// SF Symbols use dot-separated lowercase components like "checkmark.circle.fill",
+    /// "arrow.uturn.backward", "1.circle.fill", etc.
+    private func looksLikeSFSymbolName(_ string: String) -> Bool {
+        guard string.contains("."),
+              !string.contains(" "),
+              !string.hasPrefix("."),
+              !string.hasSuffix(".") else {
+            return false
+        }
+        let parts = string.split(separator: ".")
+        guard parts.count >= 2 else { return false }
+        // Every segment must be lowercase alphanumeric (no uppercase = not a sentence)
+        return parts.allSatisfy { part in
+            !part.isEmpty && part.allSatisfy { $0.isLowercase || $0.isNumber }
+        }
     }
 
     // MARK: - Private Detection Methods

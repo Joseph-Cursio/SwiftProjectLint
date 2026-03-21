@@ -12,7 +12,10 @@ String literals that appear directly inside user-facing SwiftUI views should be 
 ### Discussion
 This rule only fires when a hardcoded string (no interpolation) is a direct argument to a user-facing SwiftUI call such as `Text()`, `Label()`, `Button()`, `Section()`, `.navigationTitle()`, `.alert()`, or `.confirmationDialog()`. Strings in non-UI contexts — model code, test assertions, logging, configuration — are not flagged.
 
-Strings containing URL patterns (`http`, `https`, `file://`, `data:`, `base64`) are always skipped.
+The following strings are automatically skipped:
+- **URL patterns** — strings containing `http`, `https`, `file://`, `data:`, or `base64`
+- **SF Symbol names** — dot-separated lowercase identifiers like `"checkmark.circle.fill"` or `"arrow.uturn.backward"`
+- **`systemImage` / `systemName` arguments** — strings passed to labeled parameters such as `systemImage:`, `systemName:`, `imageName:`, or `symbolName:`
 
 The fix is to use `String(localized: "key", defaultValue: "...")` or `NSLocalizedString("key", comment: "...")`, allowing translators to adapt the text without touching code.
 
@@ -23,6 +26,11 @@ Text(String(localized: "welcome_message"))
 
 // URL — skipped
 Text("https://api.example.com/v1/users")
+
+// SF Symbol names — skipped
+Label("Settings", systemImage: "gear")
+Button("Delete", systemImage: "trash.fill")
+Image(systemName: "checkmark.circle.fill")
 
 // Non-UI context — not flagged
 let errorMessage = "Something went wrong, please try again"
