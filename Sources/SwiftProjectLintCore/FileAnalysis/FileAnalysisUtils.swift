@@ -34,8 +34,8 @@ public struct FileAnalysisUtils {
     ///         unless they lack the `.swift` file extension.
     /// - Warning: Symbolic links and circular directory structures may cause redundant file paths or infinite loops,
     ///            depending on the file system's enumerator behavior.
-    public static func findSwiftFiles(in path: String) -> [String] {
-        enumerateSwiftFiles(in: path)
+    public static func findSwiftFiles(in path: String, excludedPaths: [String] = []) -> [String] {
+        enumerateSwiftFiles(in: path, excludedPaths: excludedPaths)
     }
 
     /// Async overload that runs file enumeration off the caller's actor.
@@ -44,11 +44,13 @@ public struct FileAnalysisUtils {
     /// traversal does not run on `@MainActor` or any other actor-isolated caller,
     /// while preserving task priority and task-local values (unlike `Task.detached`).
     ///
-    /// - Parameter path: The root directory path in which to search for Swift files.
+    /// - Parameters:
+    ///   - path: The root directory path in which to search for Swift files.
+    ///   - excludedPaths: Path patterns to exclude (matched against relative paths).
     /// - Returns: An array of full file paths to `.swift` files found within the directory and its subdirectories.
     @concurrent
-    public static func findSwiftFiles(in path: String) async -> [String] {
-        enumerateSwiftFiles(in: path)
+    public static func findSwiftFiles(in path: String, excludedPaths: [String] = []) async -> [String] {
+        enumerateSwiftFiles(in: path, excludedPaths: excludedPaths)
     }
 
     /// Directories to skip during file enumeration. These are build artifacts,
@@ -58,7 +60,7 @@ public struct FileAnalysisUtils {
         ".hg", ".svn", "node_modules", "Carthage"
     ]
 
-    private static func enumerateSwiftFiles(in path: String) -> [String] {
+    private static func enumerateSwiftFiles(in path: String, excludedPaths: [String] = []) -> [String] {
         let fileManager = FileManager.default
         var swiftFiles: [String] = []
 
@@ -70,6 +72,12 @@ public struct FileAnalysisUtils {
             // Skip hidden and build directories
             let components = filePath.components(separatedBy: "/")
             if components.contains(where: { skippedDirectories.contains($0) }) {
+                continue
+            }
+
+            // Check user-configured excluded paths
+            if !excludedPaths.isEmpty
+                && excludedPaths.contains(where: { filePath.contains($0) }) {
                 continue
             }
 

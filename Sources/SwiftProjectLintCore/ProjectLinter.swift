@@ -43,9 +43,18 @@ public final class ProjectLinter: Sendable {
     public func analyzeProject(
         at path: String,
         categories: [PatternCategory]? = nil,
-        ruleIdentifiers: [RuleIdentifier]? = nil
+        ruleIdentifiers: [RuleIdentifier]? = nil,
+        configuration: LintConfiguration = .default
     ) async -> [LintIssue] {
-        let filePaths = await FileAnalysisUtils.findSwiftFiles(in: path)
+        let filePaths = await FileAnalysisUtils.findSwiftFiles(
+            in: path, excludedPaths: configuration.excludedPaths
+        )
+
+        // Resolve effective rules from configuration + CLI overrides
+        let effectiveRules = configuration.resolveRules(
+            cliCategories: categories,
+            cliRuleIdentifiers: ruleIdentifiers
+        )
 
         // Resolve the registry once so each task can create its own detector
         let detector = detectorOverride ?? SourcePatternDetector()
@@ -65,7 +74,8 @@ public final class ProjectLinter: Sendable {
                 group.addTask {
                     Self.analyzeFile(
                         at: filePath, registry: registry,
-                        categories: categories, ruleIdentifiers: ruleIdentifiers
+                        categories: effectiveRules != nil ? nil : categories,
+                        ruleIdentifiers: effectiveRules
                     )
                 }
             }
@@ -84,7 +94,8 @@ public final class ProjectLinter: Sendable {
                     group.addTask {
                         Self.analyzeFile(
                             at: filePath, registry: registry,
-                            categories: categories, ruleIdentifiers: ruleIdentifiers
+                            categories: effectiveRules != nil ? nil : categories,
+                            ruleIdentifiers: effectiveRules
                         )
                     }
                 }
@@ -99,10 +110,10 @@ public final class ProjectLinter: Sendable {
         // Run cross-file pattern detection
         let crossFileEngine = CrossFileAnalysisEngine()
         let crossFilePatternIssues: [LintIssue]
-        if let ruleIdentifiers = ruleIdentifiers {
+        if let effectiveRules {
             crossFilePatternIssues = crossFileEngine.detectCrossFilePatterns(
                 projectFiles: projectFiles,
-                ruleIdentifiers: ruleIdentifiers,
+                ruleIdentifiers: effectiveRules,
                 preBuiltCache: astCache
             )
         } else {
@@ -114,7 +125,8 @@ public final class ProjectLinter: Sendable {
         }
         issues.append(contentsOf: crossFilePatternIssues)
 
-        return issues
+        // Apply per-rule overrides (severity changes, per-rule path exclusions)
+        return configuration.applyOverrides(to: issues)
     }
 
     /// Analyzes a single file — pure function safe for concurrent task group use.

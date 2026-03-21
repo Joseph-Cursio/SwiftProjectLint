@@ -22,6 +22,9 @@ struct SwiftProjectLintCLI: AsyncParsableCommand {
     @Option(name: .long, parsing: .upToNextOption, help: "Pattern categories to analyze (default: all).")
     var categories: [String] = []
 
+    @Option(name: .long, help: "Path to configuration file (default: .swiftprojectlint.yml in project root).")
+    var config: String?
+
     mutating func run() async throws {
         let resolvedPath = (projectPath as NSString).standardizingPath
         let absolutePath: String
@@ -37,13 +40,22 @@ struct SwiftProjectLintCLI: AsyncParsableCommand {
 
         let selectedCategories = try parseCategories()
 
+        // Load configuration from YAML file
+        let configuration: LintConfiguration
+        if let configPath = config {
+            configuration = LintConfigurationLoader.load(from: configPath)
+        } else {
+            configuration = LintConfigurationLoader.load(projectRoot: absolutePath)
+        }
+
         let system = PatternRegistryFactory.createConfiguredSystem()
         let linter = ProjectLinter()
         linter.setDetector(system.detector)
 
         let issues = await linter.analyzeProject(
             at: absolutePath,
-            categories: selectedCategories
+            categories: selectedCategories,
+            configuration: configuration
         )
 
         switch format {
