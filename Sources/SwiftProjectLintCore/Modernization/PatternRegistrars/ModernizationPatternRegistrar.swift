@@ -26,5 +26,6 @@ class ModernizationPatternRegistrar: PatternRegistrarWithVisitorProto {
         registry.register(pattern: DispatchSemaphoreInAsyncPatternRegistrar().pattern)
         registry.register(pattern: NavigationViewDeprecatedPatternRegistrar().pattern)
         registry.register(pattern: OnChangeOldAPIPatternRegistrar().pattern)
+        registry.register(pattern: LegacyObservableObjectPatternRegistrar().pattern)
     }
 }
