@@ -70,6 +70,7 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
     case swallowedTaskError = "Swallowed Task Error"
     case couldBePrivate = "Could Be Private"
     case publicInAppTarget = "Public in App Target"
+    case couldBePrivateMember = "Could Be Private Member"
 
     // Modernization Rules
     case dateNow = "Date Now"
@@ -150,7 +151,7 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
              .forceTry, .forceUnwrap, .printStatement, .emptyCatch, .todoComment,
              .taskDetached, .asyncLetUnused, .buttonClosureWrapping,
              .nonisolatedUnsafe, .taskYieldOffload, .swallowedTaskError,
-             .couldBePrivate, .publicInAppTarget:
+             .couldBePrivate, .publicInAppTarget, .couldBePrivateMember:
             return .codeQuality
 
             // Security Rules
