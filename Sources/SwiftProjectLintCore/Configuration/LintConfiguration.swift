@@ -44,6 +44,7 @@ public struct LintConfiguration: Sendable {
     /// Rules that are opt-in only — disabled unless explicitly enabled via `enabled_only`.
     public static let optInRules: Set<RuleIdentifier> = [
         .magicLayoutNumber,
+        .nonActorAgentSuffix,
     ]
 
     /// Default configuration — all rules enabled, no exclusions.

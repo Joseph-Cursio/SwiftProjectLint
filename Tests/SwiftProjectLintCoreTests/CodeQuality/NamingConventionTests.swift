@@ -107,9 +107,9 @@ struct NamingConventionTests {
             expectedCount: 0
         ),
         DetectionCase(
-            label: "regular class not flagged",
+            label: "regular class with agent-noun name fires nonActorAgentSuffix",
             sourceCode: "class Manager { var name: String = \"\" }",
-            expectedCount: 0
+            expectedCount: 1
         )
     ]
 
@@ -215,5 +215,67 @@ struct NamingConventionTests {
         let agentNameIssues = issues.filter { $0.ruleName == .actorAgentName }
         #expect(agentNameIssues.count == 3)
         #expect(agentNameIssues.allSatisfy { $0.message.contains("passive") })
+    }
+
+    // MARK: - Non-Actor Agent Suffix Tests (Rule 3, opt-in)
+
+    @Test("nonActorAgentSuffix fires for class/struct with agent-noun name")
+    func nonActorAgentSuffixFiresForAgentNounClass() {
+        let sourceCode = """
+        class DataManager { var items: [String] = [] }
+        struct FileProcessor { var path: String = "" }
+        class NetworkRouter { }
+        """
+        let issues = detectIssues(in: sourceCode)
+        let rule3Issues = issues.filter { $0.ruleName == .nonActorAgentSuffix }
+        #expect(rule3Issues.count == 3)
+        #expect(rule3Issues.allSatisfy { $0.message.contains("agent-noun") })
+    }
+
+    @Test("nonActorAgentSuffix does not fire when name ends with Agent")
+    func nonActorAgentSuffixSuppressedForAgentSuffix() {
+        let sourceCode = """
+        class DataManagerAgent { var items: [String] = [] }
+        struct FileProcessorAgent { var path: String = "" }
+        """
+        let issues = detectIssues(in: sourceCode)
+        let rule3Issues = issues.filter { $0.ruleName == .nonActorAgentSuffix }
+        #expect(rule3Issues.isEmpty)
+    }
+
+    @Test("nonActorAgentSuffix does not fire for property wrappers ending in -er")
+    func nonActorAgentSuffixSkipsPropertyWrappers() {
+        let sourceCode = """
+        @propertyWrapper struct ClampedWrapper<Value: Comparable> { var wrappedValue: Value }
+        @propertyWrapper class UserDefaultWrapper<Value> {
+            var wrappedValue: Value
+            init(wrappedValue: Value) { self.wrappedValue = wrappedValue }
+        }
+        """
+        let issues = detectIssues(in: sourceCode)
+        let rule3Issues = issues.filter { $0.ruleName == .nonActorAgentSuffix }
+        #expect(rule3Issues.isEmpty)
+    }
+
+    @Test("nonActorAgentSuffix does not fire for non-agent-noun names")
+    func nonActorAgentSuffixSkipsNonAgentNames() {
+        let sourceCode = """
+        class VectorStore { }
+        struct KnowledgeGraph { }
+        class UserSettings { }
+        """
+        let issues = detectIssues(in: sourceCode)
+        let rule3Issues = issues.filter { $0.ruleName == .nonActorAgentSuffix }
+        #expect(rule3Issues.isEmpty)
+    }
+
+    @Test("nonActorAgentSuffix suggestion mentions both actor and Agent options")
+    func nonActorAgentSuffixSuggestionMentionsBothOptions() throws {
+        let sourceCode = "class DataProcessor { }"
+        let issues = detectIssues(in: sourceCode)
+        let rule3Issue = try #require(issues.first { $0.ruleName == .nonActorAgentSuffix })
+        let suggestion = try #require(rule3Issue.suggestion)
+        #expect(suggestion.contains("actor"))
+        #expect(suggestion.contains("Agent"))
     }
 }

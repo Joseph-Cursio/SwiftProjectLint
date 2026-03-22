@@ -81,6 +81,15 @@ class CodeQualityPatternRegistrar: PatternRegistrarWithVisitorProto {
                     "Fires only when the name lacks both an agent-noun suffix (-er/-or) and the 'Actor' suffix."
             ),
             SyntaxPattern(
+                name: .nonActorAgentSuffix,
+                visitor: NamingConventionVisitor.self,
+                severity: .info,
+                category: .codeQuality,
+                messageTemplate: "'{name}' has an agent-noun name but is not a Swift actor or named 'Agent'",
+                suggestion: "Declare as 'actor {name}' for compiler isolation, or rename to '{name}Agent'",
+                description: "Opt-in: detects classes/structs with agent-noun names (-er/-or/-ar) that are neither Swift actors nor suffixed with 'Agent'."
+            ),
+            SyntaxPattern(
                 name: .propertyWrapperNamingSuffix,
                 visitor: NamingConventionVisitor.self,
                 severity: .info,

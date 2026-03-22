@@ -53,6 +53,7 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
     case protocolNamingSuffix = "Protocol Naming Suffix"
     case actorNamingSuffix = "Actor Naming Suffix"
     case actorAgentName = "Actor Agent Name"
+    case nonActorAgentSuffix = "Non-Actor Agent Suffix"
     case propertyWrapperNamingSuffix = "Property Wrapper Naming Suffix"
     case expectNegation = "Expect Negation"
     case lowercasedContains = "Lowercased Contains"
@@ -148,7 +149,7 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
 
             // Code Quality Rules
         case .magicNumber, .magicLayoutNumber, .hardcodedStrings, .missingDocumentation,
-             .protocolNamingSuffix, .actorNamingSuffix, .actorAgentName, .propertyWrapperNamingSuffix,
+             .protocolNamingSuffix, .actorNamingSuffix, .actorAgentName, .nonActorAgentSuffix, .propertyWrapperNamingSuffix,
              .expectNegation, .lowercasedContains, .multipleTypesPerFile, .actorReentrancy,
              .forceTry, .forceUnwrap, .printStatement, .emptyCatch, .todoComment,
              .taskDetached, .asyncLetUnused, .buttonClosureWrapping,

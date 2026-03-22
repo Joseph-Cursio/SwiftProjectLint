@@ -9,6 +9,7 @@ import SwiftSyntax
 /// - Protocol names should be suffixed with "Protocol"
 /// - Actor names should be suffixed with "Actor" (actorNamingSuffix)
 /// - Actor names should convey agency via an agent-noun suffix or "Actor" (actorAgentName)
+/// - Class/struct with agent-noun name should end in "Agent" if not a Swift actor (nonActorAgentSuffix, opt-in)
 /// - Property wrapper names should be suffixed with "Wrapper"
 ///
 /// These conventions improve LLM comprehension and human readability by making
@@ -81,16 +82,37 @@ class NamingConventionVisitor: BasePatternVisitor {
     }
 
     override func visit(_ node: StructDeclSyntax) -> SyntaxVisitorContinueKind {
-        checkPropertyWrapperNaming(node: node, name: node.name.text, attributes: node.attributes)
+        let name = node.name.text
+        checkPropertyWrapperNaming(node: node, name: name, attributes: node.attributes)
+        checkNonActorAgentSuffix(node: node, name: name, attributes: node.attributes)
         return .visitChildren
     }
 
     override func visit(_ node: ClassDeclSyntax) -> SyntaxVisitorContinueKind {
-        checkPropertyWrapperNaming(node: node, name: node.name.text, attributes: node.attributes)
+        let name = node.name.text
+        checkPropertyWrapperNaming(node: node, name: name, attributes: node.attributes)
+        checkNonActorAgentSuffix(node: node, name: name, attributes: node.attributes)
         return .visitChildren
     }
 
     // MARK: - Private
+
+    private func checkNonActorAgentSuffix(node: some SyntaxProtocol, name: String, attributes: AttributeListSyntax) {
+        // Property wrappers follow the Wrapper convention (which incidentally ends in -er); skip them.
+        let isPropertyWrapper = attributes.contains { element in
+            guard case .attribute(let attribute) = element else { return false }
+            return attribute.attributeName.as(IdentifierTypeSyntax.self)?.name.text == "propertyWrapper"
+        }
+        guard !isPropertyWrapper, Self.hasAgentNounSuffix(name) && !name.hasSuffix("Agent") else { return }
+        addIssue(
+            severity: .info,
+            message: "'\(name)' has an agent-noun name but is not a Swift actor or explicitly named 'Agent'",
+            filePath: currentFilePath,
+            lineNumber: getLineNumber(for: Syntax(node)),
+            suggestion: "Declare as 'actor \(name)' for compiler-enforced isolation, or rename to '\(name)Agent' to signal intentional non-isolation",
+            ruleName: .nonActorAgentSuffix
+        )
+    }
 
     private func checkPropertyWrapperNaming(node: some SyntaxProtocol, name: String, attributes: AttributeListSyntax) {
         let hasPropertyWrapper = attributes.contains { element in
