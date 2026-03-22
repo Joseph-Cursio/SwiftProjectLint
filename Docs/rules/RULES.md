@@ -1,6 +1,8 @@
 # SwiftProjectLint Rules Reference
 
-SwiftProjectLint is a static analysis tool for SwiftUI projects. It parses Swift source files using SwiftSyntax AST visitors to detect anti-patterns spanning state management, performance, animations, architecture, code quality, security, accessibility, memory management, networking, and UI patterns. This reference documents all 57 lint rules, organized by category.
+SwiftProjectLint is a static analysis tool for SwiftUI projects. It parses Swift source files using SwiftSyntax AST visitors to detect anti-patterns spanning state management, performance, animations, architecture, code quality, security, accessibility, memory management, networking, UI patterns, and modernization. This reference documents all 86 lint rules, organized by category.
+
+Rules marked **opt-in** are disabled by default and must be explicitly listed under `enabled_only` in `.swiftprojectlint.yml`.
 
 ---
 
@@ -14,6 +16,7 @@ SwiftProjectLint is a static analysis tool for SwiftUI projects. It parses Swift
 | [Missing StateObject](missing-state-object.md) | Warning |
 | [Unused State Variable](unused-state-variable.md) | Warning |
 | [Fat View](fat-view.md) | Warning |
+| [ObservedObject Inline](observed-object-inline.md) | Warning |
 
 ## Performance
 
@@ -47,23 +50,42 @@ SwiftProjectLint is a static analysis tool for SwiftUI projects. It parses Swift
 | [Missing Dependency Injection](missing-dependency-injection.md) | Info |
 | [Fat View Detection](fat-view-detection.md) | Warning |
 | [Direct Instantiation](direct-instantiation.md) | Warning |
-| [Concrete Type Usage](concrete-type-usage.md) | Warning |
+| [Concrete Type Usage](concrete-type-usage.md) | Info |
 | [Accessing Implementation Details](accessing-implementation-details.md) | Warning |
 | [Singleton Usage](singleton-usage.md) | Warning |
-| [Law of Demeter](law-of-demeter.md) | Warning |
+| [Law of Demeter](law-of-demeter.md) | Info |
 
 ## Code Quality
 
 | Rule | Severity |
 |------|----------|
 | [Magic Number](magic-number.md) | Info |
-| [Long Function](long-function.md) | Warning |
+| [Magic Layout Number](magic-layout-number.md) | Info *(opt-in)* |
 | [Hardcoded Strings](hardcoded-strings.md) | Info |
 | [Missing Documentation](missing-documentation.md) | Info |
 | [Protocol Naming Suffix](protocol-naming-suffix.md) | Info |
 | [Actor Naming Suffix](actor-naming-suffix.md) | Info |
+| [Actor Agent Name](actor-agent-name.md) | Info |
 | [Property Wrapper Naming Suffix](property-wrapper-naming-suffix.md) | Info |
 | [Expect Negation](expect-negation.md) | Warning |
+| [Lowercased Contains](lowercased-contains.md) | Warning |
+| [Multiple Types Per File](multiple-types-per-file.md) | Info |
+| [Actor Reentrancy](actor-reentrancy.md) | Warning |
+| [Force Try](force-try.md) | Warning |
+| [Force Unwrap](force-unwrap.md) | Info |
+| [Print Statement](print-statement.md) | Info |
+| [Empty Catch](empty-catch.md) | Warning |
+| [TODO Comment](todo-comment.md) | Info |
+| [Task Detached](task-detached.md) | Info |
+| [Async Let Unused](async-let-unused.md) | Warning |
+| [Button Closure Wrapping](button-closure-wrapping.md) | Info |
+| [Nonisolated Unsafe](nonisolated-unsafe.md) | Warning |
+| [Task Yield Offload](task-yield-offload.md) | Info |
+| [Swallowed Task Error](swallowed-task-error.md) | Warning |
+| [Could Be Private](could-be-private.md) | Info |
+| [Public in App Target](public-in-app-target.md) | Info |
+| [Could Be Private Member](could-be-private-member.md) | Info |
+| [Protocol Could Be Private](protocol-could-be-private.md) | Info |
 
 ## Security
 
@@ -79,6 +101,9 @@ SwiftProjectLint is a static analysis tool for SwiftUI projects. It parses Swift
 | [Missing Accessibility Label](missing-accessibility-label.md) | Warning |
 | [Missing Accessibility Hint](missing-accessibility-hint.md) | Info |
 | [Inaccessible Color Usage](inaccessible-color-usage.md) | Info |
+| [Icon-Only Button Missing Label](icon-only-button-missing-label.md) | Warning |
+| [Long Text Accessibility](long-text-accessibility.md) | Info |
+| [Hardcoded Font Size](hardcoded-font-size.md) | Warning |
 
 ## Memory Management
 
@@ -105,12 +130,22 @@ SwiftProjectLint is a static analysis tool for SwiftUI projects. It parses Swift
 | [Inconsistent Styling](inconsistent-styling.md) | Info |
 | [Basic Error Handling](basic-error-handling.md) | Info |
 
-## Other
+## Modernization
 
 | Rule | Severity |
 |------|----------|
-| [File Parsing Error](file-parsing-error.md) | Error |
-| [Unknown](unknown.md) | Warning |
+| [Date Now](date-now.md) | Info |
+| [Dispatch Main Async](dispatch-main-async.md) | Info |
+| [Thread Sleep](thread-sleep.md) | Warning |
+| [Legacy Random](legacy-random.md) | Info |
+| [CF Absolute Time](cf-absolute-time.md) | Info |
+| [Legacy Notification Observer](legacy-notification-observer.md) | Info |
+| [Completion Handler Data Task](completion-handler-data-task.md) | Info |
+| [Task in onAppear](task-in-on-appear.md) | Warning |
+| [Dispatch Semaphore in Async](dispatch-semaphore-in-async.md) | Warning |
+| [NavigationView Deprecated](navigation-view-deprecated.md) | Warning |
+| [onChange Old API](on-change-old-api.md) | Info |
+| [Legacy ObservableObject](legacy-observable-object.md) | Info |
 
 ---
 
