@@ -7,13 +7,21 @@ import SwiftSyntax
 ///
 /// Checks:
 /// - Protocol names should be suffixed with "Protocol"
-/// - Actor names should be suffixed with "Actor"
+/// - Actor names should be suffixed with "Actor" (actorNamingSuffix)
+/// - Actor names should convey agency via an agent-noun suffix or "Actor" (actorAgentName)
 /// - Property wrapper names should be suffixed with "Wrapper"
 ///
 /// These conventions improve LLM comprehension and human readability by making
 /// a type's role visible at every usage site, not just at its declaration.
 class NamingConventionVisitor: BasePatternVisitor {
     private var currentFilePath: String = ""
+
+    /// English agent-noun suffixes (-er, -or, -ar) indicating a type that performs an action.
+    /// Used by the `actorAgentName` rule to distinguish passive-sounding actor names
+    /// (e.g. `VectorStore`) from names that already convey agency (e.g. `WorkspaceIndexer`).
+    private static func hasAgentNounSuffix(_ name: String) -> Bool {
+        name.hasSuffix("er") || name.hasSuffix("or") || name.hasSuffix("ar")
+    }
 
     required init(pattern: SyntaxPattern, viewMode: SyntaxTreeViewMode = .sourceAccurate) {
         super.init(pattern: pattern, viewMode: viewMode)
@@ -43,6 +51,7 @@ class NamingConventionVisitor: BasePatternVisitor {
     override func visit(_ node: ActorDeclSyntax) -> SyntaxVisitorContinueKind {
         let actorName = node.name.text
 
+        // Rule: actorNamingSuffix — explicit "Actor" suffix required
         if !actorName.hasSuffix("Actor") {
             addIssue(
                 severity: .info,
@@ -51,6 +60,20 @@ class NamingConventionVisitor: BasePatternVisitor {
                 lineNumber: getLineNumber(for: Syntax(node)),
                 suggestion: "Rename to '\(actorName)Actor' to make isolation semantics visible at usage sites",
                 ruleName: .actorNamingSuffix
+            )
+        }
+
+        // Rule: actorAgentName — name must convey agency via an agent-noun suffix OR "Actor"
+        // Fires only on passive-sounding names (e.g. VectorStore, KnowledgeGraph) that give
+        // no signal at call sites that the type is an isolated concurrent agent.
+        if !actorName.hasSuffix("Actor") && !Self.hasAgentNounSuffix(actorName) {
+            addIssue(
+                severity: .info,
+                message: "Actor '\(actorName)' has a passive name — nothing signals it's an isolated concurrent agent",
+                filePath: currentFilePath,
+                lineNumber: getLineNumber(for: Syntax(node)),
+                suggestion: "Rename to '\(actorName)Actor', or choose an agent-noun name ending in -er or -or",
+                ruleName: .actorAgentName
             )
         }
 

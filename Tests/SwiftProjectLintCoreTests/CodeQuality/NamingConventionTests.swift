@@ -62,13 +62,23 @@ struct NamingConventionTests {
             expectedCount: 0
         ),
         DetectionCase(
-            label: "actor without suffix",
+            label: "actor without suffix (agent name) — only actorNamingSuffix fires",
             sourceCode: "actor ImageDownloader { func download() async {} }",
             expectedCount: 1
         ),
         DetectionCase(
-            label: "actor with suffix",
+            label: "actor without suffix (passive name) — both actorNamingSuffix and actorAgentName fire",
+            sourceCode: "actor VectorStore { func search() async -> [Float] { [] } }",
+            expectedCount: 2
+        ),
+        DetectionCase(
+            label: "actor with Actor suffix — no issues",
             sourceCode: "actor ImageDownloaderActor { func download() async {} }",
+            expectedCount: 0
+        ),
+        DetectionCase(
+            label: "actor with agent-noun name and Actor suffix — no issues",
+            sourceCode: "actor VectorStoreActor { func search() async -> [Float] { [] } }",
             expectedCount: 0
         ),
         DetectionCase(
@@ -160,8 +170,11 @@ struct NamingConventionTests {
         #expect(issueMessages.contains { $0.contains("Logging") })
     }
 
-    @Test("All three rules fire in same file")
-    func allThreeRulesFireInSameFile() {
+    @Test("All naming rules fire in same file")
+    func allNamingRulesFireInSameFile() {
+        // DataService: no agent suffix, no Actor suffix → actorNamingSuffix + actorAgentName (2 issues)
+        // Fetchable: no Protocol suffix → protocolNamingSuffix (1 issue)
+        // Validated: no Wrapper suffix → propertyWrapperNamingSuffix (1 issue)
         let sourceCode = """
         protocol Fetchable { func fetch() }
         actor DataService { func process() async {} }
@@ -169,11 +182,38 @@ struct NamingConventionTests {
         """
 
         let issues = detectIssues(in: sourceCode)
-        #expect(issues.count == 3)
+        #expect(issues.count == 4)
 
-        let messages = issues.map(\.message)
-        #expect(messages.contains { $0.contains("Protocol") })
-        #expect(messages.contains { $0.contains("Actor") })
-        #expect(messages.contains { $0.contains("wrapper") })
+        let ruleNames = Set(issues.compactMap(\.ruleName))
+        #expect(ruleNames.contains(.protocolNamingSuffix))
+        #expect(ruleNames.contains(.actorNamingSuffix))
+        #expect(ruleNames.contains(.actorAgentName))
+        #expect(ruleNames.contains(.propertyWrapperNamingSuffix))
+    }
+
+    @Test("actorAgentName does not fire for agent-noun actor names")
+    func actorAgentNameSuppressedForAgentNouns() {
+        let sourceCode = """
+        actor WorkspaceIndexer { func index() async {} }
+        actor ModelRouter { func route() async -> String { "" } }
+        actor SkillMigrator { func migrate() async {} }
+        """
+        let issues = detectIssues(in: sourceCode)
+        // Each fires only actorNamingSuffix, not actorAgentName
+        #expect(issues.allSatisfy { $0.ruleName == .actorNamingSuffix })
+        #expect(issues.count == 3)
+    }
+
+    @Test("actorAgentName fires for passive-sounding actor names")
+    func actorAgentNameFiresForPassiveNames() {
+        let sourceCode = """
+        actor VectorStore { }
+        actor KnowledgeGraph { }
+        actor BeadStore { }
+        """
+        let issues = detectIssues(in: sourceCode)
+        let agentNameIssues = issues.filter { $0.ruleName == .actorAgentName }
+        #expect(agentNameIssues.count == 3)
+        #expect(agentNameIssues.allSatisfy { $0.message.contains("passive") })
     }
 }

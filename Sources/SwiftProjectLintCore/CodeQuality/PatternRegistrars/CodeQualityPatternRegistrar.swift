@@ -71,6 +71,16 @@ class CodeQualityPatternRegistrar: PatternRegistrarWithVisitorProto {
                 description: "Detects actors whose names don't end with 'Actor' suffix"
             ),
             SyntaxPattern(
+                name: .actorAgentName,
+                visitor: NamingConventionVisitor.self,
+                severity: .info,
+                category: .codeQuality,
+                messageTemplate: "Actor '{actorName}' has a passive name",
+                suggestion: "Rename to convey agency: use an agent-noun name (-er/-or) or add the 'Actor' suffix",
+                description: "Detects actors with passive-sounding names that give no signal of concurrency isolation. " +
+                    "Fires only when the name lacks both an agent-noun suffix (-er/-or) and the 'Actor' suffix."
+            ),
+            SyntaxPattern(
                 name: .propertyWrapperNamingSuffix,
                 visitor: NamingConventionVisitor.self,
                 severity: .info,
