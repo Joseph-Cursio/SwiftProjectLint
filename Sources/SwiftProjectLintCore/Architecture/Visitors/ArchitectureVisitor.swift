@@ -15,6 +15,9 @@ class ArchitectureVisitor: BasePatternVisitor {
     private var stateVariableCount: Int = 0
     private var hasStateObjectCreation: Bool = false
     private var stateObjectType: String = ""
+    /// True when the current view struct receives dependencies via @Environment or @EnvironmentObject.
+    /// An empty init on such a view is correct — the environment IS the injection mechanism.
+    private var hasEnvironmentInjection: Bool = false
     // Store all import module names
     private var importModules: [String] = []
 
@@ -35,6 +38,7 @@ class ArchitectureVisitor: BasePatternVisitor {
             stateVariableCount = 0
             hasStateObjectCreation = false
             stateObjectType = ""
+            hasEnvironmentInjection = false
         }
         return .visitChildren
     }
@@ -51,6 +55,12 @@ class ArchitectureVisitor: BasePatternVisitor {
 
         // Check for StateObject creation patterns
         detectStateObjectCreation(node)
+
+        // Track environment-based injection — these ARE dependency injection
+        if let wrapper = extractPropertyWrapper(from: node),
+           wrapper == .environment || wrapper == .environmentObject {
+            hasEnvironmentInjection = true
+        }
 
         return .visitChildren
     }
@@ -105,6 +115,11 @@ class ArchitectureVisitor: BasePatternVisitor {
                 ruleName: nil
             )
         }
+
+        // Reset so sibling structs in the same file don't inherit this view's name.
+        if isSwiftUIView(node) {
+            currentViewName = ""
+        }
     }
 
     // MARK: - Detection Methods
@@ -144,21 +159,19 @@ class ArchitectureVisitor: BasePatternVisitor {
     }
 
     private func detectMissingDependencyInjection(_ node: InitializerDeclSyntax) {
-        // Check if the initializer has parameters (dependency injection)
-        if node.signature.parameterClause.parameters.isEmpty {
-            // No parameters - might be missing dependency injection
-            // This is a simplified check - in practice, you'd want to be more sophisticated
-            if currentViewName.hasSuffix("View") {
-                addIssue(
-                    severity: .info,
-                    message: "View '\(currentViewName)' has an empty initializer - consider dependency injection",
-                    filePath: currentFilePath,
-                    lineNumber: getLineNumber(for: Syntax(node)),
-                    suggestion: "Pass dependencies through the initializer for better testability",
-                    ruleName: .missingDependencyInjection
-                )
-            }
-        }
+        guard node.signature.parameterClause.parameters.isEmpty else { return }
+        guard !currentViewName.isEmpty, currentViewName.hasSuffix("View") else { return }
+        // @Environment / @EnvironmentObject are SwiftUI's built-in DI mechanism.
+        // An empty init on such a view is intentional, not a missing injection.
+        guard !hasEnvironmentInjection else { return }
+        addIssue(
+            severity: .info,
+            message: "View '\(currentViewName)' has an empty initializer - consider dependency injection",
+            filePath: currentFilePath,
+            lineNumber: getLineNumber(for: Syntax(node)),
+            suggestion: "Pass dependencies through the initializer for better testability",
+            ruleName: .missingDependencyInjection
+        )
     }
 
     /// Enum representing class name suffixes that typically indicate a service, manager, or similar type that should have a protocol for testability and flexibility.
