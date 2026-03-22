@@ -105,7 +105,11 @@ public struct LintConfiguration: Sendable {
         var basenameToRelativePath: [String: String] = [:]
         if let root = projectRoot {
             let allFiles = FileAnalysisUtils.findSwiftFiles(in: root)
-            let prefix = root.hasSuffix("/") ? root : root + "/"
+            // Resolve symlinks so the prefix matches the canonical paths returned by findSwiftFiles.
+            // FileManager.enumerator resolves symlinks in item paths (e.g. /var → /private/var on
+            // macOS), so an unresolved root prefix would fail the hasPrefix check.
+            let resolvedRoot = FileAnalysisUtils.realPath(root)
+            let prefix = resolvedRoot.hasSuffix("/") ? resolvedRoot : resolvedRoot + "/"
             for fullPath in allFiles {
                 let basename = (fullPath as NSString).lastPathComponent
                 let relative = fullPath.hasPrefix(prefix)

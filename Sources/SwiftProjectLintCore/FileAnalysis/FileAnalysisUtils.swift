@@ -1,3 +1,4 @@
+import Darwin
 import Foundation
 
 /// Utility functions for file system operations and analysis in SwiftUI projects.
@@ -64,6 +65,9 @@ public struct FileAnalysisUtils {
         let fileManager = FileManager.default
         var swiftFiles: [String] = []
         let rootURL = URL(fileURLWithPath: path, isDirectory: true)
+        // FileManager.enumerator resolves symlinks in item paths (e.g. /var → /private/var on
+        // macOS). Use realpath() to canonicalise the root so dropFirst offsets are correct.
+        let resolvedRootPath = Self.realPath(rootURL.path)
 
         guard let enumerator = fileManager.enumerator(
             at: rootURL,
@@ -76,7 +80,7 @@ public struct FileAnalysisUtils {
         for case let itemURL as URL in enumerator {
             let isDirectory = (try? itemURL.resourceValues(forKeys: [.isDirectoryKey]).isDirectory) ?? false
             // Compute the path relative to the project root for matching.
-            let relativePath = String(itemURL.path.dropFirst(rootURL.path.count + 1))
+            let relativePath = String(itemURL.path.dropFirst(resolvedRootPath.count + 1))
             let components = relativePath.components(separatedBy: "/")
 
             // If any path component is a directory we should skip, prune the
@@ -108,5 +112,13 @@ public struct FileAnalysisUtils {
         }
 
         return swiftFiles
+    }
+
+    /// Returns the canonical (symlink-resolved) path using POSIX `realpath(3)`.
+    /// Falls back to the input string if the path does not exist or resolution fails.
+    static func realPath(_ path: String) -> String {
+        var buffer = [CChar](repeating: 0, count: Int(PATH_MAX))
+        guard realpath(path, &buffer) != nil else { return path }
+        return String(cString: buffer)
     }
 }
