@@ -17,7 +17,10 @@ The Law of Demeter (also called the "principle of least knowledge") states that 
 - **Closure parameter chains** — `$0.severity.rawValue.capitalized` is idiomatic in closures
 - **Singleton / static accessor chains** — `FileManager.default.temporaryDirectory.appendingPathComponent(...)` and `ProcessInfo.processInfo.arguments.contains(...)` are standard Foundation API usage, not object coupling
 - **Nested type / enum case access** — `ValidationResult.ConfigField.optInRules.description` is type navigation, not object-graph navigation
-- **Value-transform terminals** — chains ending in `.rawValue`, `.capitalized`, `.description`, etc. are value conversions, not hidden dependencies
+- **Value-transform members** — any chain that passes through a value-converting member before reaching the violation threshold is suppressed. This covers two cases:
+  - *Intermediate transform*: a transform member appears before the minimum depth, meaning all subsequent access is on a plain value rather than an object graph. For example, `node.extendedType.description.trimmingCharacters(in:)` — `.description` converts to `String` at depth 2, so `.trimmingCharacters` is String manipulation, not hidden coupling. Same for `.trimmedDescription` (SwiftSyntax shorthand) and `.color` (enum-to-SwiftUI-Color mapping).
+  - *Terminal transform*: a transform member is the final component of a chain at exactly the minimum depth. For example, `violation.severity.rawValue.capitalized` or `chunk.lineRange.lowerBound` — `.lowerBound`/`.upperBound` extract a primitive from a standard Swift Range.
+  - Recognized transform members: `rawValue`, `hashValue`, `capitalized`, `uppercased`, `lowercased`, `description`, `debugDescription`, `trimmedDescription`, `color`, `lowerBound`, `upperBound`
 - **Test files** — XCUI chains and test setup code are inherently deep and not production architecture
 
 The fix for real violations is to add a method on the immediate collaborator that encapsulates the deeper access, so callers need only know about one level.
@@ -53,6 +56,15 @@ items.sorted { $0.category.name.count < $1.category.name.count }
 
 // Value-transform terminal — fine
 let label = violation.severity.rawValue.capitalized
+
+// Value-transform intermediate — fine (.description converts to String at depth 2)
+let name = node.extendedType.description.trimmingCharacters(in: .whitespaces)
+
+// Value-transform intermediate — fine (.color maps enum to SwiftUI Color at depth 2)
+Color.clear.background(item.severity.color.opacity(0.06))
+
+// Range value access — fine (.lowerBound/.upperBound are terminal value extracts)
+let start = chunk.lineRange.lowerBound
 ```
 
 ### Violating Examples

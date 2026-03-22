@@ -18,12 +18,19 @@ class LawOfDemeterVisitor: BasePatternVisitor {
         "default", "shared", "current", "main", "processInfo", "standard"
     ]
 
-    /// Terminal members that are value transformations rather than
-    /// object-graph navigation. Reaching `.rawValue` or `.capitalized`
-    /// does not imply the caller knows another object's internals.
+    /// Members that represent value transformations rather than object-graph
+    /// navigation. When a chain passes through one of these members, subsequent
+    /// access operates on a plain value rather than exposing internal structure.
+    ///
+    /// Examples:
+    /// - `severity.rawValue.capitalized` — rawValue converts enum to primitive
+    /// - `node.extendedType.description.trimmingCharacters` — description converts to String
+    /// - `status.color.opacity` — color maps enum to a SwiftUI Color value
+    /// - `range.lowerBound` / `range.upperBound` — standard Range value accessors
     private static let valueTransformMembers: Set<String> = [
         "rawValue", "hashValue", "capitalized", "uppercased", "lowercased",
-        "description", "debugDescription"
+        "description", "debugDescription", "trimmedDescription",
+        "color", "lowerBound", "upperBound",
     ]
 
     /// Well-known system chain prefixes that are idiomatic Foundation/system API usage.
@@ -113,8 +120,20 @@ class LawOfDemeterVisitor: BasePatternVisitor {
             return .visitChildren
         }
 
-        // Skip chains that end with a value-transform member
-        // (e.g., severity.rawValue.capitalized — not object navigation)
+        // Skip chains where a value-transform member appears before the violation
+        // threshold. Once the chain converts to a plain value (e.g. .description,
+        // .trimmedDescription, .color), the rest is value manipulation, not
+        // object-graph navigation.
+        // e.g., node.extendedType.description.trimmingCharacters — vtIndex("description") = 2 < 3
+        // e.g., status.color.opacity — vtIndex("color") = 2 < 3
+        if let vtIndex = orderedComponents.firstIndex(where: { Self.valueTransformMembers.contains($0) }),
+           vtIndex < Self.minChainDepth {
+            return .visitChildren
+        }
+
+        // Also skip chains of exactly minChainDepth whose terminal is a value-transform.
+        // e.g., violation.severity.rawValue.capitalized — terminal "capitalized" in set, depth = 3
+        // e.g., chunk.lineRange.lowerBound — terminal "lowerBound" in set, depth = 3
         if let terminal = orderedComponents.last,
            Self.valueTransformMembers.contains(terminal),
            dotCount == Self.minChainDepth {
