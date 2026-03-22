@@ -67,4 +67,80 @@ struct NonisolatedUnsafeVisitorTests {
         runVisitor(visitor, source: source)
         #expect(visitor.detectedIssues.isEmpty)
     }
+
+    // MARK: - Lock suppression
+
+    @Test("No issue when enclosing type has OSAllocatedUnfairLock")
+    func suppressedByOSAllocatedUnfairLock() {
+        let source = """
+        final class Watcher {
+            private let lock = OSAllocatedUnfairLock()
+            private nonisolated(unsafe) var handler: (() -> Void)?
+        }
+        """
+        let visitor = makeVisitor()
+        runVisitor(visitor, source: source)
+        #expect(visitor.detectedIssues.isEmpty)
+    }
+
+    @Test("No issue when enclosing type has generic OSAllocatedUnfairLock")
+    func suppressedByGenericOSAllocatedUnfairLock() {
+        let source = """
+        final class Watcher {
+            private let lock = OSAllocatedUnfairLock<()>()
+            private nonisolated(unsafe) var handler: (() -> Void)?
+        }
+        """
+        let visitor = makeVisitor()
+        runVisitor(visitor, source: source)
+        #expect(visitor.detectedIssues.isEmpty)
+    }
+
+    @Test("No issue when enclosing type has Mutex")
+    func suppressedByMutex() {
+        let source = """
+        final class Cache {
+            private let lock = Mutex<[String: Int]>([:])
+            nonisolated(unsafe) var data: [String: Int] = [:]
+        }
+        """
+        let visitor = makeVisitor()
+        runVisitor(visitor, source: source)
+        #expect(visitor.detectedIssues.isEmpty)
+    }
+
+    @Test("No issue when enclosing type has NSLock")
+    func suppressedByNSLock() {
+        let source = """
+        class Service {
+            private let lock = NSLock()
+            nonisolated(unsafe) var value: Int = 0
+        }
+        """
+        let visitor = makeVisitor()
+        runVisitor(visitor, source: source)
+        #expect(visitor.detectedIssues.isEmpty)
+    }
+
+    @Test("Issue still reported when no lock in enclosing type")
+    func notSuppressedWithoutLock() {
+        let source = """
+        final class BadActor {
+            nonisolated(unsafe) var state: Int = 0
+        }
+        """
+        let visitor = makeVisitor()
+        runVisitor(visitor, source: source)
+        #expect(visitor.detectedIssues.count == 1)
+    }
+
+    @Test("Issue still reported for top-level nonisolated(unsafe) var")
+    func notSuppressedAtTopLevel() {
+        let source = """
+        nonisolated(unsafe) var globalState: Int = 0
+        """
+        let visitor = makeVisitor()
+        runVisitor(visitor, source: source)
+        #expect(visitor.detectedIssues.count == 1)
+    }
 }
