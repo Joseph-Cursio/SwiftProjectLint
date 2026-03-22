@@ -54,7 +54,7 @@ public struct FileAnalysisUtils {
     }
 
     /// Directories to skip during file enumeration. These are build artifacts,
-    /// dependency checkouts, and hidden directories that should never be linted.
+    /// dependency checkouts, and VCS directories that should never be linted.
     private static let skippedDirectories: Set<String> = [
         ".build", ".git", ".swiftpm", "DerivedData", "Pods",
         ".hg", ".svn", "node_modules", "Carthage"
@@ -63,26 +63,47 @@ public struct FileAnalysisUtils {
     private static func enumerateSwiftFiles(in path: String, excludedPaths: [String] = []) -> [String] {
         let fileManager = FileManager.default
         var swiftFiles: [String] = []
+        let rootURL = URL(fileURLWithPath: path, isDirectory: true)
 
-        guard let enumerator = fileManager.enumerator(atPath: path) else {
+        guard let enumerator = fileManager.enumerator(
+            at: rootURL,
+            includingPropertiesForKeys: [.isDirectoryKey],
+            options: .skipsHiddenFiles
+        ) else {
             return swiftFiles
         }
 
-        while let filePath = enumerator.nextObject() as? String {
-            // Skip hidden and build directories
-            let components = filePath.components(separatedBy: "/")
+        for case let itemURL as URL in enumerator {
+            let isDirectory = (try? itemURL.resourceValues(forKeys: [.isDirectoryKey]).isDirectory) ?? false
+            // Compute the path relative to the project root for matching.
+            let relativePath = String(itemURL.path.dropFirst(rootURL.path.count + 1))
+            let components = relativePath.components(separatedBy: "/")
+
+            // If any path component is a directory we should skip, prune the
+            // entire subtree with skipDescendants() rather than filtering each
+            // file individually — this avoids walking thousands of build artefacts.
             if components.contains(where: { skippedDirectories.contains($0) }) {
+                if isDirectory { enumerator.skipDescendants() }
+                continue
+            }
+
+            // Skip directories that contain their own Package.swift — they are
+            // separate Swift packages (whether first- or third-party) and should
+            // only be linted when the tool is invoked with that directory as root.
+            if isDirectory && fileManager.fileExists(atPath: itemURL.appendingPathComponent("Package.swift").path) {
+                enumerator.skipDescendants()
                 continue
             }
 
             // Check user-configured excluded paths
             if !excludedPaths.isEmpty
-                && excludedPaths.contains(where: { filePath.contains($0) }) {
+                && excludedPaths.contains(where: { relativePath.contains($0) }) {
+                if isDirectory { enumerator.skipDescendants() }
                 continue
             }
 
-            if filePath.hasSuffix(".swift") {
-                swiftFiles.append((path as NSString).appendingPathComponent(filePath))
+            if !isDirectory && itemURL.pathExtension == "swift" {
+                swiftFiles.append(itemURL.path)
             }
         }
 
