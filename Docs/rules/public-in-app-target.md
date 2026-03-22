@@ -12,7 +12,10 @@ In an app target (as opposed to a framework or library), no declaration needs `p
 ### Discussion
 `PublicInAppTargetVisitor` scans all declarations (types, functions, properties, initializers, protocols, typealiases) for `public` or `open` access modifiers and flags each one. The fix is simply to remove the modifier — the declaration becomes `internal` by default.
 
-This rule is most useful for app targets. For framework/library targets where `public` is intentional, disable this rule via configuration.
+This rule is most useful for single-target app projects. It is automatically suppressed in two cases:
+
+- **Swift Packages** — if a `Package.swift` is detected at the project root, the rule is suppressed entirely. In a package, `public` is required for cross-target visibility between library and executable targets.
+- **Test files** — files whose path contains `Test` or `Tests` are exempt. Test targets routinely use `public` for cross-module access (e.g., `@testable import`) and mock types, so flagging them produces only noise.
 
 ### Scope
 - Flags any declaration with `public` or `open` access

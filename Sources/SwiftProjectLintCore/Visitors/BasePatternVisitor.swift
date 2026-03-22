@@ -22,6 +22,19 @@ class BasePatternVisitor: SyntaxVisitor, PatternVisitorProtocol {
     /// when the element type is `Identifiable`).
     var knownIdentifiableTypes: Set<String> = []
 
+    /// Type names known to be declared as enums across the project.
+    /// Populated by a pre-scan phase in `ProjectLinter` so that per-file
+    /// visitors can exempt enum-typed parameters and properties from rules
+    /// that only apply to class/struct service types (e.g. Concrete Type Usage).
+    var knownEnumTypes: Set<String> = []
+
+    /// Type names known to be declared as actors across the project.
+    /// Populated by a pre-scan phase in `ProjectLinter` so that per-file
+    /// visitors can exempt actor-typed parameters and properties from rules like
+    /// "Concrete Type Usage". An actor's isolation contract is load-bearing in
+    /// Swift 6 strict concurrency — protocol-abstracting it weakens that contract.
+    var knownActorTypes: Set<String> = []
+
     /// Placeholder pattern used for cross-file visitors that set their pattern after initialization.
     static let placeholderPattern = SyntaxPattern(
         name: .unknown,

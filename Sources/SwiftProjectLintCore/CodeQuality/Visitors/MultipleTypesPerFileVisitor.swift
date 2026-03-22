@@ -61,6 +61,12 @@ final class MultipleTypesPerFileVisitor: BasePatternVisitor {
             return
         }
 
+        // Skip *Types.swift files — these are intentional type-collection files that
+        // group related types by design (e.g., KGNodeTypes.swift, LSPTypes.swift)
+        if let stem = fileNameStem, stem.hasSuffix("Types") {
+            return
+        }
+
         // Skip types that share a naming relationship with the primary type or file name
         if isTightlyCoupled(name) {
             return

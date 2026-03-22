@@ -35,24 +35,59 @@ public final class ProjectLinter: Sendable {
         detector: SourcePatternDetector? = nil,
         configuration: LintConfiguration = .default
     ) async -> [LintIssue] {
-        let filePaths = await FileAnalysisUtils.findSwiftFiles(
-            in: path, excludedPaths: configuration.excludedPaths
+        // Rules that assume a single-target app don't apply to Swift Packages,
+        // where public access is required for cross-target visibility.
+        // Additionally, print() is the correct output mechanism in executable targets
+        // (CLI tools) and should not be flagged there.
+        let effectiveConfiguration: LintConfiguration
+        let isSwiftPackage = FileManager.default.fileExists(
+            atPath: (path as NSString).appendingPathComponent("Package.swift")
+        )
+        if isSwiftPackage {
+            let execPaths = ExecutableTargetDetector.executableSourcePaths(in: path)
+            var overrides = configuration.ruleOverrides
+            if !execPaths.isEmpty {
+                let existing = overrides[.printStatement]
+                overrides[.printStatement] = LintConfiguration.RuleOverride(
+                    severity: existing?.severity,
+                    excludedPaths: (existing?.excludedPaths ?? []) + execPaths
+                )
+            }
+            effectiveConfiguration = LintConfiguration(
+                disabledRules: configuration.disabledRules.union([.publicInAppTarget]),
+                enabledOnlyRules: configuration.enabledOnlyRules,
+                excludedPaths: configuration.excludedPaths,
+                ruleOverrides: overrides
+            )
+        } else {
+            effectiveConfiguration = configuration
+        }
+
+        let allFilePaths = await FileAnalysisUtils.findSwiftFiles(
+            in: path, excludedPaths: effectiveConfiguration.excludedPaths
         )
 
+        // Skip generated files — linting machine-generated code produces noise with no
+        // actionable signal. Detected by file suffix (.pb.swift, .generated.swift) or a
+        // "do not edit" header comment.
+        let filePaths = allFilePaths.filter { !Self.isGeneratedFile(at: $0) }
+
         // Resolve effective rules from configuration + CLI overrides
-        let effectiveRules = configuration.resolveRules(
+        let effectiveRules = effectiveConfiguration.resolveRules(
             cliCategories: categories,
             cliRuleIdentifiers: ruleIdentifiers
         )
 
-        // Pre-scan: collect all type names that conform to Identifiable.
-        // This set is passed to per-file visitors so they can suppress
-        // false-positive "ForEach without ID" warnings for Identifiable types.
+        // Pre-scan: collect cross-file type metadata needed by visitors.
         let identifiableTypes = Self.collectIdentifiableTypes(from: filePaths)
+        let enumTypes = Self.collectEnumTypes(from: filePaths)
+        let actorTypes = Self.collectActorTypes(from: filePaths)
 
         // Resolve the registry once so each task can create its own detector
         let detector = detector ?? SourcePatternDetector()
         detector.knownIdentifiableTypes = identifiableTypes
+        detector.knownEnumTypes = enumTypes
+        detector.knownActorTypes = actorTypes
         let registry = detector.registry
 
         // Per-file I/O and analysis — throttled to avoid memory exhaustion on large projects.
@@ -71,7 +106,9 @@ public final class ProjectLinter: Sendable {
                         at: filePath, registry: registry,
                         categories: effectiveRules != nil ? nil : categories,
                         ruleIdentifiers: effectiveRules,
-                        identifiableTypes: identifiableTypes
+                        identifiableTypes: identifiableTypes,
+                        enumTypes: enumTypes,
+                        actorTypes: actorTypes
                     )
                 }
             }
@@ -92,7 +129,9 @@ public final class ProjectLinter: Sendable {
                             at: filePath, registry: registry,
                             categories: effectiveRules != nil ? nil : categories,
                             ruleIdentifiers: effectiveRules,
-                            identifiableTypes: identifiableTypes
+                            identifiableTypes: identifiableTypes,
+                            enumTypes: enumTypes,
+                            actorTypes: actorTypes
                         )
                     }
                 }
@@ -123,7 +162,24 @@ public final class ProjectLinter: Sendable {
         issues.append(contentsOf: crossFilePatternIssues)
 
         // Apply per-rule overrides (severity changes, per-rule path exclusions)
-        return configuration.applyOverrides(to: issues, projectRoot: path)
+        return effectiveConfiguration.applyOverrides(to: issues, projectRoot: path)
+    }
+
+    /// Returns true if the file at the given path is machine-generated and should be skipped.
+    ///
+    /// Detection heuristics (any one suffices):
+    /// - File suffix: `.pb.swift` (protobuf), `.generated.swift`
+    /// - Header comment: first 5 lines contain "DO NOT EDIT" or "Code generated"
+    private static func isGeneratedFile(at filePath: String) -> Bool {
+        let name = (filePath as NSString).lastPathComponent
+        if name.hasSuffix(".pb.swift") || name.hasSuffix(".generated.swift") {
+            return true
+        }
+        guard let handle = FileHandle(forReadingAtPath: filePath),
+              let data = try? handle.read(upToCount: 512),
+              let header = String(data: data, encoding: .utf8) else { return false }
+        let firstLines = header.components(separatedBy: .newlines).prefix(5).joined(separator: "\n")
+        return firstLines.contains("DO NOT EDIT") || firstLines.contains("Code generated")
     }
 
     /// Scans all project files and returns the set of type names that conform to `Identifiable`.
@@ -143,13 +199,51 @@ public final class ProjectLinter: Sendable {
         return allTypes
     }
 
+    /// Scans all project files and returns the set of all enum type names.
+    ///
+    /// This is a fast, read-only pre-scan. The result is passed to per-file visitors
+    /// so they can exempt enum-typed parameters and properties from rules that only
+    /// apply to class/struct service types (e.g. Concrete Type Usage).
+    private static func collectEnumTypes(from filePaths: [String]) -> Set<String> {
+        var allTypes: Set<String> = []
+        for filePath in filePaths {
+            guard let content = try? String(contentsOfFile: filePath) else { continue }
+            let syntax = Parser.parse(source: content)
+            let collector = EnumTypeCollector()
+            collector.walk(syntax)
+            allTypes.formUnion(collector.enumTypes)
+        }
+        return allTypes
+    }
+
+    /// Scans all project files and returns the set of all actor type names.
+    ///
+    /// This is a fast, read-only pre-scan. The result is passed to per-file visitors
+    /// so they can exempt actor-typed parameters and properties from rules that assume
+    /// concrete types should be protocol-abstracted. In Swift 6 strict concurrency,
+    /// an actor's isolation contract is load-bearing — abstracting it via protocol
+    /// weakens that contract at every call site.
+    private static func collectActorTypes(from filePaths: [String]) -> Set<String> {
+        var allTypes: Set<String> = []
+        for filePath in filePaths {
+            guard let content = try? String(contentsOfFile: filePath) else { continue }
+            let syntax = Parser.parse(source: content)
+            let collector = ActorTypeCollector()
+            collector.walk(syntax)
+            allTypes.formUnion(collector.actorTypes)
+        }
+        return allTypes
+    }
+
     /// Analyzes a single file — pure function safe for concurrent task group use.
     private static func analyzeFile(
         at filePath: String,
         registry: PatternVisitorRegistry,
         categories: [PatternCategory]?,
         ruleIdentifiers: [RuleIdentifier]?,
-        identifiableTypes: Set<String> = []
+        identifiableTypes: Set<String> = [],
+        enumTypes: Set<String> = [],
+        actorTypes: Set<String> = []
     ) -> (file: ProjectFile, issues: [LintIssue], parsedAST: SourceFileSyntax)? {
         guard !Task.isCancelled else { return nil }
         guard let content = try? String(contentsOfFile: filePath) else { return nil }
@@ -161,6 +255,8 @@ public final class ProjectLinter: Sendable {
         let parsedAST = Parser.parse(source: content)
         let det = SourcePatternDetector(registry: registry)
         det.knownIdentifiableTypes = identifiableTypes
+        det.knownEnumTypes = enumTypes
+        det.knownActorTypes = actorTypes
 
         let issues: [LintIssue]
         if let ruleIdentifiers {

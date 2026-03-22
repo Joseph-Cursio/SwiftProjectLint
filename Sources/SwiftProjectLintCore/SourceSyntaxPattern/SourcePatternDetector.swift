@@ -9,6 +9,14 @@ public final class SourcePatternDetector: SourcePatternDetectorProtocol, @unchec
     /// Set by `ProjectLinter` after a pre-scan phase and passed through to visitors.
     var knownIdentifiableTypes: Set<String> = []
 
+    /// Type names known to be declared as enums across the project.
+    /// Set by `ProjectLinter` after a pre-scan phase and passed through to visitors.
+    var knownEnumTypes: Set<String> = []
+
+    /// Type names known to be declared as actors across the project.
+    /// Set by `ProjectLinter` after a pre-scan phase and passed through to visitors.
+    var knownActorTypes: Set<String> = []
+
     /// Initializes a new SwiftSyntax pattern detector.
     ///
     /// - Parameter registry: The pattern visitor registry to use. Defaults to the shared registry.
@@ -74,12 +82,17 @@ public final class SourcePatternDetector: SourcePatternDetectorProtocol, @unchec
 
     /// Rules that produce excessive false positives in test files.
     /// Tests legitimately use magic numbers in assertions, instantiate types directly,
-    /// and don't need public API documentation.
+    /// don't need public API documentation, use print() for diagnostic output,
+    /// require public access for cross-module test visibility, and co-locate mock
+    /// types alongside the tests that use them.
     private static let rulesSkippedInTests: Set<RuleIdentifier> = [
         .magicNumber,
         .missingDocumentation,
         .directInstantiation,
-        .taskYieldOffload
+        .taskYieldOffload,
+        .printStatement,
+        .publicInAppTarget,
+        .multipleTypesPerFile
     ]
 
     /// Groups patterns by visitor type, runs each visitor once, and filters
@@ -121,6 +134,8 @@ public final class SourcePatternDetector: SourcePatternDetectorProtocol, @unchec
             visitor.setSourceLocationConverter(converter)
             visitor.setFilePath(filePath)
             visitor.knownIdentifiableTypes = knownIdentifiableTypes
+            visitor.knownEnumTypes = knownEnumTypes
+            visitor.knownActorTypes = knownActorTypes
             visitor.walk(sourceFile)
 
             // Filter to only the rules that were actually requested.

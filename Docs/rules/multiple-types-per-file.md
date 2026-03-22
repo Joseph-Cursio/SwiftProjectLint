@@ -17,6 +17,13 @@ Each type (struct, class, enum, actor) should live in its own file. This makes t
 - Does **not** flag extensions — splitting a type across extensions in the same file is idiomatic Swift
 - Does **not** flag tightly-coupled companion types whose name shares a prefix with the file's primary type or the file name stem
 
+### Automatic Suppressions
+This rule is automatically suppressed in three cases:
+
+- **Test files** — files whose path contains `Test` or `Tests` are exempt. Co-locating mock types, test helpers, and supporting structs alongside the tests that use them is standard practice.
+- **Type collection files** — files whose name ends in `Types.swift` (e.g., `KGNodeTypes.swift`, `LSPTypes.swift`) are exempt. This is a recognised Swift convention for grouping a family of related types in a single file by design.
+- **Generated files** — files are skipped entirely if their name ends in `.pb.swift` or `.generated.swift`, or if their first five lines contain `DO NOT EDIT` or `Code generated`. Linting machine-generated code produces noise with no actionable signal.
+
 ### Tightly-Coupled Naming Convention
 Types that share a camelCase prefix with the primary type are considered companions and are allowed in the same file. This covers common patterns like:
 

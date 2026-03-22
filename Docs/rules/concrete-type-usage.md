@@ -20,6 +20,9 @@ The following patterns are exempt because they do not represent real coupling is
 - **ViewModels in SwiftUI views** — SwiftUI property wrappers (`@State`, `@ObservedObject`, `@Bindable`) require concrete types, so protocol-abstracting ViewModels in views is impractical
 - **Test files** — test code and test helpers use concrete types by necessity
 - **SwiftUI property wrapper properties** — `@State`, `@StateObject`, `@ObservedObject`, `@EnvironmentObject`, `@Binding`, `@Published`, `@AppStorage`, `@SceneStorage`, `@Bindable`, `@Environment`
+- **Enum types** — a project-wide pre-scan identifies all declared enums; enum-typed parameters and properties are exempt because enums are value types and cannot be protocol-abstracted in the same way as a service class
+- **Actor types** — a project-wide pre-scan identifies all declared actors; actor-typed parameters and properties are exempt because an actor's serial-executor isolation contract is load-bearing in Swift 6 strict concurrency. Protocol-abstracting an actor strips that contract from every call site — the caller loses the compiler-enforced `await` requirement and the guarantee of serialized access
+- **Init parameters mirroring a flagged stored property** — when a stored property is flagged, its matching initializer parameter represents the same coupling point and is suppressed to avoid duplicate reports
 
 Replacing `APIService` with `APIServiceProtocol` — or using `some NetworkProtocol` — resolves the issue.
 

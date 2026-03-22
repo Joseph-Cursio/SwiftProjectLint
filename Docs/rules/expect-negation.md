@@ -7,25 +7,35 @@
 **Severity:** Warning
 
 ### Rationale
-`#expect(!expression)` negates inside the macro. When the assertion fails, Swift Testing captures the result of the `!` operator — which is simply `false` — rather than the value of `expression` itself. This produces an unhelpful failure message with no diagnostic context.
+`#expect(!expression)` negates inside the macro. When the assertion fails, Swift Testing's expression decomposition handles unary `!` differently from binary operators like `==`: it cannot evaluate the inner sub-expression and shows it as `<not evaluated>`, giving you no diagnostic context about what went wrong.
 
-`#expect(expression == false)` captures both sides of the comparison, so the test report shows what `expression` actually evaluated to.
+`#expect(expression == false)` captures both sides of the binary comparison, so the failure message shows what `expression` actually evaluated to.
 
-### Failure Output Comparison
+This was originally observed by Paul Hudson (Hacking with Swift) and has been verified against **Swift 6.3 / Xcode 26.4 beta** — the behaviour is unchanged in the latest toolchain.
 
-With negation (poor diagnostics):
-```
-◇ Test failed
-↳ #expect(!items.isEmpty)
-  → false
+### Verified Failure Output (Swift 6.3 / Xcode 26.4 beta)
+
+Plain boolean — negation form loses the value entirely:
+```swift
+let flag = true
+#expect(!flag)
+// Expectation failed: !(flag → <not evaluated>)
+
+#expect(flag == false)
+// Expectation failed: (flag → true) == false
 ```
 
-With explicit comparison (rich diagnostics):
+Chained call — negation form produces a confusing triple-arrow chain:
+```swift
+let empty: [Int] = []
+#expect(!empty.isEmpty)
+// Expectation failed: !((empty → []).isEmpty → true → true)
+
+#expect(empty.isEmpty == false)
+// Expectation failed: (empty.isEmpty → true) == false
 ```
-◇ Test failed
-↳ #expect(items.isEmpty == false)
-  → items.isEmpty → true ≠ false
-```
+
+The `== false` form is consistently cleaner and immediately shows the actual value.
 
 ### Scope
 - Flags `#expect(!expr)` — prefix `!` negation as the first argument

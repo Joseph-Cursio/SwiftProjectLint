@@ -2,9 +2,13 @@ import SwiftSyntax
 
 /// Detects `public` or `open` declarations in app targets where `internal` suffices.
 ///
-/// In an app target (as opposed to a framework or library), no declaration needs to be
-/// `public` or `open` because there are no external consumers. Narrowing access to
-/// `internal` (the default) reduces the public interface surface.
+/// In a single-target app, no declaration needs to be `public` or `open` because there
+/// are no external consumers. Narrowing access to `internal` (the default) reduces the
+/// public interface surface.
+///
+/// This rule is automatically suppressed for Swift Package projects (identified by a
+/// `Package.swift` at the project root), where `public` is required for cross-target
+/// visibility between library and executable targets.
 final class PublicInAppTargetVisitor: BasePatternVisitor {
 
     required init(pattern: SyntaxPattern, viewMode: SyntaxTreeViewMode = .sourceAccurate) {

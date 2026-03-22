@@ -125,6 +125,108 @@ struct ActorReentrancyVisitorTests {
         #expect(!visitor.detectedIssues.isEmpty)
     }
 
+    // MARK: - False Positive Suppression
+
+    /// `guard let x = prop` where the bound name `x` is the direct receiver of the
+    /// subsequent `await` call. This is a resource guard, not a scheduling sentinel —
+    /// both concurrent callers legitimately proceed using their own captured snapshot.
+    @Test
+    func noFalsePositive_optionalBinding_boundNameIsAwaitReceiver() {
+        let source = """
+        actor Client {
+            var connection: Connection?
+
+            func notify(data: Data) async throws {
+                guard let connection = connection else {
+                    throw MCPError.notConnected
+                }
+                try await connection.send(data)
+            }
+        }
+        """
+
+        let visitor = makeVisitor()
+        runVisitor(visitor, source: source)
+
+        #expect(visitor.detectedIssues.isEmpty)
+    }
+
+    /// `guard let x = prop` where the bound name `x` is the sequence of a `for-in`
+    /// loop whose body contains `await`. The handlers are captured as a local snapshot;
+    /// concurrent dispatch is intentional.
+    @Test
+    func noFalsePositive_optionalBinding_boundNameIsForInSequenceWithAwait() {
+        let source = """
+        actor Client {
+            var notificationHandlers: [String: [Handler]] = [:]
+
+            func handleMessage(method: String, msg: Message) async {
+                guard let handlers = notificationHandlers[method] else { return }
+                for handler in handlers {
+                    try await handler(msg)
+                }
+            }
+        }
+        """
+
+        let visitor = makeVisitor()
+        runVisitor(visitor, source: source)
+
+        #expect(visitor.detectedIssues.isEmpty)
+    }
+
+    /// `guard x != nil` (expression condition) where the property `x` appears directly
+    /// as a token in the `await` expression. Same resource-guard semantics as the
+    /// optional-binding form but without introducing a bound name.
+    @Test
+    func noFalsePositive_notNilCheck_propertyAppearsInAwaitOperand() {
+        let source = """
+        actor Server {
+            var connection: Connection?
+
+            func send(data: Data) async throws {
+                guard connection != nil else {
+                    throw MCPError.notConnected
+                }
+                try await connection!.send(data)
+            }
+        }
+        """
+
+        let visitor = makeVisitor()
+        runVisitor(visitor, source: source)
+
+        #expect(visitor.detectedIssues.isEmpty)
+    }
+
+    /// Scheduling sentinel that uses an optional binding — still flagged even though
+    /// the binding form looks similar to a resource guard. The bound name `lastRun`
+    /// does not appear in the `await runAnalysis()` operand.
+    @Test
+    func stillDetects_optionalBindingSchedulingSentinel() throws {
+        let source = """
+        actor InsightsEngine {
+            var lastRunDate: Date?
+
+            func runIfDue() async throws -> [String] {
+                if let lastRun = lastRunDate {
+                    guard Date().timeIntervalSince(lastRun) > 60 else { return [] }
+                }
+                return try await runAnalysis()
+            }
+
+            private func runAnalysis() async throws -> [String] { [] }
+        }
+        """
+
+        let visitor = makeVisitor()
+        runVisitor(visitor, source: source)
+
+        #expect(visitor.detectedIssues.count == 1)
+        let issue = try #require(visitor.detectedIssues.first)
+        #expect(issue.message.contains("lastRunDate"))
+    }
+
     // MARK: - Negative Cases
 
     @Test("No issue for valid actor code", arguments: [

@@ -9,6 +9,14 @@ class ConcreteTypeUsageVisitor: BasePatternVisitor {
     /// Whether the current struct/class looks like a DI container.
     private var isInsideDIContainer: Bool = false
 
+    /// Concrete type names already flagged as stored properties in the current type scope.
+    /// Used to suppress the matching init parameter hit — the property and its init
+    /// parameter are the same coupling point and should only be reported once.
+    private var flaggedPropertyTypes: Set<String> = []
+
+    /// Whether the visitor is currently inside an initializer body.
+    private var isInsideInitializer: Bool = false
+
     private enum ServiceSuffix: String, CaseIterable {
         case manager = "Manager"
         case service = "Service"
@@ -54,25 +62,44 @@ class ConcreteTypeUsageVisitor: BasePatternVisitor {
     // MARK: - Scope tracking
 
     override func visit(_ node: StructDeclSyntax) -> SyntaxVisitorContinueKind {
-        isInsideDIContainer = Self.diContainerSuffixes.contains(where: {
-            node.name.text.hasSuffix($0)
-        })
+        isInsideDIContainer = Self.diContainerSuffixes.contains(where: { node.name.text.hasSuffix($0) })
+        flaggedPropertyTypes = []
         return .visitChildren
     }
 
     override func visitPost(_ node: StructDeclSyntax) {
         isInsideDIContainer = false
+        flaggedPropertyTypes = []
     }
 
     override func visit(_ node: ClassDeclSyntax) -> SyntaxVisitorContinueKind {
-        isInsideDIContainer = Self.diContainerSuffixes.contains(where: {
-            node.name.text.hasSuffix($0)
-        })
+        isInsideDIContainer = Self.diContainerSuffixes.contains(where: { node.name.text.hasSuffix($0) })
+        flaggedPropertyTypes = []
         return .visitChildren
     }
 
     override func visitPost(_ node: ClassDeclSyntax) {
         isInsideDIContainer = false
+        flaggedPropertyTypes = []
+    }
+
+    override func visit(_ node: ActorDeclSyntax) -> SyntaxVisitorContinueKind {
+        isInsideDIContainer = false
+        flaggedPropertyTypes = []
+        return .visitChildren
+    }
+
+    override func visitPost(_ node: ActorDeclSyntax) {
+        flaggedPropertyTypes = []
+    }
+
+    override func visit(_ node: InitializerDeclSyntax) -> SyntaxVisitorContinueKind {
+        isInsideInitializer = true
+        return .visitChildren
+    }
+
+    override func visitPost(_ node: InitializerDeclSyntax) {
+        isInsideInitializer = false
     }
 
     // MARK: - Service-like type heuristic
@@ -111,6 +138,15 @@ class ConcreteTypeUsageVisitor: BasePatternVisitor {
         if Self.mockSuffixes.contains(where: { name.hasPrefix($0) || name.contains($0) }) {
             return nil
         }
+
+        // Enum types — value types that cannot meaningfully be protocol-abstracted
+        // in the same way as a service class. Requires the project-wide enum prescan.
+        if knownEnumTypes.contains(name) { return nil }
+
+        // Actor types — their isolation contract is load-bearing in Swift 6 strict
+        // concurrency. Protocol-abstracting an actor loses the serial executor guarantee
+        // at every call site. Requires the project-wide actor prescan.
+        if knownActorTypes.contains(name) { return nil }
 
         return name
     }
@@ -169,6 +205,12 @@ class ConcreteTypeUsageVisitor: BasePatternVisitor {
         if isInsideSwiftUIView(node) {
             return .visitChildren
         }
+        // Suppress init parameters whose type was already flagged as a stored property
+        // in this type scope — the property and its init parameter are the same coupling
+        // point and should only be reported once.
+        if isInsideInitializer && flaggedPropertyTypes.contains(typeName) {
+            return .visitChildren
+        }
         let paramName = node.firstName.text
         addIssue(
             severity: .info,
@@ -207,6 +249,7 @@ class ConcreteTypeUsageVisitor: BasePatternVisitor {
             } else {
                 propName = "property"
             }
+            flaggedPropertyTypes.insert(typeName)
             addIssue(
                 severity: .info,
                 message: "Property '\(propName)' declares concrete type '\(typeName)' — prefer a protocol abstraction",
