@@ -3,47 +3,42 @@ import SwiftSyntax
 @testable import SwiftProjectLintCore
 
 struct SyntaxRegistryTests {
-    
+
+    /// Each test gets its own isolated PatternVisitorRegistry so that
+    /// testClearRemovesAllPatterns cannot race with other tests that read
+    /// from PatternVisitorRegistry.shared.
+    private func makeRegistry() -> SwiftSyntaxPatternRegistry {
+        SwiftSyntaxPatternRegistry(visitorRegistry: PatternVisitorRegistry())
+    }
+
     @Test func testSharedInstance() {
         let shared1 = SwiftSyntaxPatternRegistry.shared
         let shared2 = SwiftSyntaxPatternRegistry.shared
-        
-        // Shared instance should be the same
         #expect(shared1 === shared2)
     }
-    
+
     @Test func testInitialization() {
-        let registry = SwiftSyntaxPatternRegistry()
-        
-        // Should be able to initialize
+        let registry = makeRegistry()
         #expect(registry != nil)
     }
-    
+
     @Test func testInitializeRegistersPatterns() {
-        let registry = SwiftSyntaxPatternRegistry()
+        let registry = makeRegistry()
         registry.initialize()
-        
-        // Should have registered patterns
-        let allPatterns = registry.getAllPatterns()
-        #expect(!allPatterns.isEmpty)
+        #expect(!registry.getAllPatterns().isEmpty)
     }
 
     @Test func testGetPatternsForCategory() {
-        let registry = SwiftSyntaxPatternRegistry()
+        let registry = makeRegistry()
         registry.initialize()
-        
-        let statePatterns = registry.getPatterns(for: .stateManagement)
-        let performancePatterns = registry.getPatterns(for: .performance)
-        let architecturePatterns = registry.getPatterns(for: .architecture)
-        
-        #expect(!statePatterns.isEmpty)
-        #expect(!performancePatterns.isEmpty)
-        #expect(!architecturePatterns.isEmpty)
+
+        #expect(!registry.getPatterns(for: .stateManagement).isEmpty)
+        #expect(!registry.getPatterns(for: .performance).isEmpty)
+        #expect(!registry.getPatterns(for: .architecture).isEmpty)
     }
-    
+
     @Test func testRegisterPattern() {
-        let registry = SwiftSyntaxPatternRegistry()
-        
+        let registry = makeRegistry()
         let pattern = SyntaxPattern(
             name: .magicNumber,
             visitor: CodeQualityVisitor.self,
@@ -53,16 +48,12 @@ struct SyntaxRegistryTests {
             suggestion: "Test suggestion",
             description: "Test description"
         )
-        
         registry.register(pattern: pattern)
-        
-        let patterns = registry.getPatterns(for: .codeQuality)
-        #expect(patterns.contains { $0.name == .magicNumber })
+        #expect(registry.getPatterns(for: .codeQuality).contains { $0.name == .magicNumber })
     }
-    
+
     @Test func testRegisterMultiplePatterns() {
-        let registry = SwiftSyntaxPatternRegistry()
-        
+        let registry = makeRegistry()
         let patterns = [
             SyntaxPattern(
                 name: .magicNumber,
@@ -83,35 +74,23 @@ struct SyntaxRegistryTests {
                 description: "Description 2"
             )
         ]
-        
         registry.register(patterns: patterns)
-        
-        let codeQualityPatterns = registry.getPatterns(for: .codeQuality)
-        #expect(codeQualityPatterns.count >= 2)
+        #expect(registry.getPatterns(for: .codeQuality).count >= 2)
     }
-    
+
     @Test func testClearRemovesAllPatterns() {
-        let registry = SwiftSyntaxPatternRegistry()
+        let registry = makeRegistry()
         registry.initialize()
-        
-        let beforeClear = registry.getAllPatterns()
-        #expect(!beforeClear.isEmpty)
-        
+        #expect(!registry.getAllPatterns().isEmpty)
         registry.clear()
-        
-        let afterClear = registry.getAllPatterns()
-        #expect(afterClear.isEmpty)
+        #expect(registry.getAllPatterns().isEmpty)
     }
-    
+
     @Test func testGetAllPatterns() {
-        let registry = SwiftSyntaxPatternRegistry()
+        let registry = makeRegistry()
         registry.initialize()
-        
         let allPatterns = registry.getAllPatterns()
         #expect(!allPatterns.isEmpty)
-
-        // Should include patterns from multiple categories
-        let categories = Set(allPatterns.map { $0.category })
-        #expect(categories.count > 1)
+        #expect(Set(allPatterns.map { $0.category }).count > 1)
     }
 }
