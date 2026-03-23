@@ -122,6 +122,16 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
     case fileParsingError = "File Parsing Error"
     case unknown = "Unknown"
 
+    /// Returns the kebab-case key used in inline suppression comments.
+    ///
+    /// Example: `.forceTry` → `"force-try"` → `// swiftprojectlint:disable force-try`
+    public var suppressionKey: String {
+        rawValue
+            .components(separatedBy: .whitespaces)
+            .map { $0.lowercased() }
+            .joined(separator: "-")
+    }
+
     /// Returns the category this rule belongs to
     public var category: PatternCategory {
         switch self {

@@ -267,19 +267,20 @@ public final class ProjectLinter: Sendable {
         det.knownEnumTypes = enumTypes
         det.knownActorTypes = actorTypes
 
-        let issues: [LintIssue]
+        let rawIssues: [LintIssue]
         if let ruleIdentifiers {
-            issues = det.detectPatterns(
+            rawIssues = det.detectPatterns(
                 in: file.content, filePath: file.relativePath,
                 ruleIdentifiers: ruleIdentifiers, parsedAST: parsedAST
             )
         } else {
-            issues = det.detectPatterns(
+            rawIssues = det.detectPatterns(
                 in: file.content, filePath: file.relativePath,
                 categories: categories, parsedAST: parsedAST
             )
         }
 
+        let issues = InlineSuppressionFilter.filter(rawIssues, fileContent: content)
         return (file: file, issues: issues, parsedAST: parsedAST)
     }
 }
