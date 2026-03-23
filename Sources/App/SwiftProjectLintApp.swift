@@ -7,7 +7,7 @@
 
 import SwiftUI
 import Combine
-import SwiftProjectLintCore
+import Core
 
 /// The main entry point for the SwiftProjectLint application.
 ///

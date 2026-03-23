@@ -6,7 +6,7 @@
 //
 
 import SwiftUI
-import SwiftProjectLintCore
+import Core
 
 /// View model that manages state and business logic for ContentView.
 ///

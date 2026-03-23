@@ -2,7 +2,7 @@ import Foundation
 import SwiftParser
 import SwiftSyntax
 import Testing
-@testable import SwiftProjectLintCore
+@testable import Core
 
 @Suite("ArchitectureTests")
 struct ArchitectureTests {

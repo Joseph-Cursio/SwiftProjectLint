@@ -1,8 +1,8 @@
 import Testing
 import SwiftUI
-import SwiftProjectLintCore
+import Core
 
-@testable import SwiftProjectLint
+@testable import App
 
 @Suite("ContentViewModel Tests")
 @MainActor

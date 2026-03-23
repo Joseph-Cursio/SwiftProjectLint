@@ -1,6 +1,6 @@
 import Testing
 import Foundation
-@testable import SwiftProjectLintCore
+@testable import Core
 
 struct FileAnalysisUtilsViewNameTests {
     @Test func testExtractViewNameWithValidPath() throws {

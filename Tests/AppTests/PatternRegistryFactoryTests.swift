@@ -1,6 +1,6 @@
 import Testing
-@testable import SwiftProjectLint
-@testable import SwiftProjectLintCore
+@testable import App
+@testable import Core
 
 @Suite("PatternRegistryFactory Tests")
 @MainActor

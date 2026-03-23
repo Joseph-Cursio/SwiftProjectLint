@@ -2,7 +2,7 @@ import Testing
 import Foundation
 import SwiftSyntax
 import SwiftParser
-@testable import SwiftProjectLintCore
+@testable import Core
 
 @Suite("ViewRelationship Edge Case Tests")
 struct ViewRelationshipEdgeCaseTests {

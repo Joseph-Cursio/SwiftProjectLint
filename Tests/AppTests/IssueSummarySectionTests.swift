@@ -1,9 +1,9 @@
 import Testing
 import SwiftUI
 import ViewInspector
-import SwiftProjectLintCore
+import Core
 
-@testable import SwiftProjectLint
+@testable import App
 
 @Suite("IssueSummarySection Tests")
 @MainActor

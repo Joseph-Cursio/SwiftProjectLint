@@ -1,4 +1,4 @@
-import SwiftProjectLintCore
+import Core
 
 /// Formats lint issues as human-readable text in the style of compiler diagnostics.
 struct TextFormatter {

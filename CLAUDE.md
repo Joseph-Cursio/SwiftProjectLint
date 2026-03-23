@@ -43,13 +43,13 @@ swift test --filter "AppTests.ContentViewTests"
 swift test --filter "AppTests.LintResultsViewTests"
 
 # Run the CLI tool
-swift run SwiftProjectLintCLI /path/to/project
+swift run CLI /path/to/project
 
 # CLI with JSON output
-swift run SwiftProjectLintCLI /path/to/project --format json
+swift run CLI /path/to/project --format json
 
 # CLI with specific categories and error-only threshold
-swift run SwiftProjectLintCLI /path/to/project --categories stateManagement performance --threshold error
+swift run CLI /path/to/project --categories stateManagement performance --threshold error
 
 # Run CLI tests
 swift test --filter CLITests
@@ -63,9 +63,9 @@ swift test --filter CLITests
 
 ### Three-Target Structure
 
-- **SwiftProjectLintCore** (`Sources/SwiftProjectLintCore/`): Core analysis library containing all linting logic, visitors, and pattern detection
-- **SwiftProjectLint** (`Sources/SwiftProjectLint/`): macOS app executable with SwiftUI interface
-- **SwiftProjectLintCLI** (`Sources/SwiftProjectLintCLI/`): Command-line tool for CI/CD integration with text and JSON output
+- **Core** (`Sources/Core/`): Core analysis library containing all linting logic, visitors, and pattern detection
+- **App** (`Sources/App/`): macOS app executable with SwiftUI interface
+- **CLI** (`Sources/CLI/`): Command-line tool for CI/CD integration with text and JSON output
 
 ### Core Analysis Pipeline
 
@@ -80,7 +80,7 @@ swift test --filter CLITests
 The linting engine uses the SwiftSyntax visitor pattern. All visitors inherit from `BasePatternVisitor` which extends `SyntaxVisitor`:
 
 ```
-Sources/SwiftProjectLintCore/
+Sources/Core/
 ├── Visitors/
 │   ├── BasePatternVisitor.swift    # Base class with common utilities
 │   └── PatternVisitor.swift        # Protocol definition
@@ -121,7 +121,7 @@ The project uses [ViewInspector](https://github.com/nalexn/ViewInspector) for Sw
 import Testing
 import SwiftUI
 import ViewInspector
-@testable import SwiftProjectLint
+@testable import App
 
 @Suite
 @MainActor

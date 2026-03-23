@@ -1,5 +1,5 @@
 import Testing
-import SwiftProjectLintCore
+import Core
 
 struct PropertyWrapperTests {
     

@@ -1,6 +1,6 @@
 import Testing
-import SwiftProjectLintCore
-@testable import SwiftProjectLintCLI
+import Core
+@testable import CLI
 
 @Suite
 struct SeverityThresholdTests {

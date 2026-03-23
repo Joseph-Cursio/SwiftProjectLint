@@ -1,6 +1,6 @@
 import Testing
 import Foundation
-@testable import SwiftProjectLintCore
+@testable import Core
 
 /// Basic characterization tests for AdvancedAnalyzer and model types
 struct CharacterizationBasicTests {

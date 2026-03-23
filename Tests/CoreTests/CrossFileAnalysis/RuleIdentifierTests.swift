@@ -2,7 +2,7 @@ import Testing
 import Foundation
 import SwiftParser
 import SwiftSyntax
-@testable import SwiftProjectLintCore
+@testable import Core
 
 /// Tests for CrossFileAnalysisEngine paths not covered by existing tests:
 /// - detectCrossFilePatterns(projectFiles:ruleIdentifiers:)

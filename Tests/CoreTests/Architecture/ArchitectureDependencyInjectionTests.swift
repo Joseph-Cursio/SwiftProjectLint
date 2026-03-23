@@ -2,7 +2,7 @@ import Testing
 import Foundation
 import SwiftParser
 import SwiftSyntax
-@testable import SwiftProjectLintCore
+@testable import Core
 
 @Suite("Missing Dependency Injection")
 struct ArchitectureDependencyInjectionTests {

@@ -6,7 +6,7 @@
 //
 import Testing
 import Foundation
-@testable import SwiftProjectLintCore
+@testable import Core
 
 /// Comprehensive Characterization Tests for SourcePatternDetector
 ///

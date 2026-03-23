@@ -9,30 +9,30 @@
 			<key>orderHint</key>
 			<integer>0</integer>
 		</dict>
-		<key>SwiftProjectLint.xcscheme_^#shared#^_</key>
-		<dict>
-			<key>orderHint</key>
-			<integer>2</integer>
-		</dict>
-		<key>SwiftProjectLintCLI.xcscheme_^#shared#^_</key>
-		<dict>
-			<key>orderHint</key>
-			<integer>3</integer>
-		</dict>
-		<key>SwiftProjectLintCore.xcscheme_^#shared#^_</key>
+		<key>Core.xcscheme_^#shared#^_</key>
 		<dict>
 			<key>orderHint</key>
 			<integer>1</integer>
 		</dict>
+		<key>App.xcscheme_^#shared#^_</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>2</integer>
+		</dict>
+		<key>CLI.xcscheme_^#shared#^_</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>3</integer>
+		</dict>
 	</dict>
 	<key>SuppressBuildableAutocreation</key>
 	<dict>
-		<key>SwiftProjectLint</key>
+		<key>App</key>
 		<dict>
 			<key>primary</key>
 			<true/>
 		</dict>
-		<key>SwiftProjectLintCLI</key>
+		<key>CLI</key>
 		<dict>
 			<key>primary</key>
 			<true/>
@@ -42,7 +42,7 @@
 			<key>primary</key>
 			<true/>
 		</dict>
-		<key>SwiftProjectLintCore</key>
+		<key>Core</key>
 		<dict>
 			<key>primary</key>
 			<true/>

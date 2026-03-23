@@ -1,8 +1,8 @@
 import Testing
 import SwiftUI
 import ViewInspector
-import SwiftProjectLintCore
-@testable import SwiftProjectLint
+import Core
+@testable import App
 
 @Suite
 @MainActor

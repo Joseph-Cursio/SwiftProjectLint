@@ -16,8 +16,8 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "28B796632E19EDA400AE3C7B"
-               BuildableName = "SwiftProjectLintCore.framework"
-               BlueprintName = "SwiftProjectLintCore"
+               BuildableName = "Core.framework"
+               BlueprintName = "Core"
                ReferencedContainer = "container:SwiftProjectLint.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -59,8 +59,8 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "28B796632E19EDA400AE3C7B"
-            BuildableName = "SwiftProjectLintCore.framework"
-            BlueprintName = "SwiftProjectLintCore"
+            BuildableName = "Core.framework"
+            BlueprintName = "Core"
             ReferencedContainer = "container:SwiftProjectLint.xcodeproj">
          </BuildableReference>
       </MacroExpansion>

@@ -1,4 +1,4 @@
-import SwiftProjectLintCore
+import Core
 
 /// Determines the appropriate exit code based on detected issues and the configured threshold.
 struct ExitCodes {

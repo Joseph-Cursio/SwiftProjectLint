@@ -6,7 +6,7 @@
 //
 
 import Testing
-@testable import SwiftProjectLintCore
+@testable import Core
 
 @Suite("Core Module Tests")
 struct CoreModuleTests {

@@ -1,7 +1,7 @@
 import Testing
 import SwiftSyntax
 import SwiftParser
-@testable import SwiftProjectLintCore
+@testable import Core
 
 @Suite
 struct ExpectNegationVisitorTests {

@@ -15,9 +15,9 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "SwiftProjectLintCore"
-               BuildableName = "SwiftProjectLintCore"
-               BlueprintName = "SwiftProjectLintCore"
+               BlueprintIdentifier = "Core"
+               BuildableName = "Core"
+               BlueprintName = "Core"
                ReferencedContainer = "container:">
             </BuildableReference>
          </BuildActionEntry>
@@ -29,9 +29,9 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "SwiftProjectLint"
-               BuildableName = "SwiftProjectLint"
-               BlueprintName = "SwiftProjectLint"
+               BlueprintIdentifier = "App"
+               BuildableName = "App"
+               BlueprintName = "App"
                ReferencedContainer = "container:">
             </BuildableReference>
          </BuildActionEntry>
@@ -43,9 +43,9 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "SwiftProjectLintCLI"
-               BuildableName = "SwiftProjectLintCLI"
-               BlueprintName = "SwiftProjectLintCLI"
+               BlueprintIdentifier = "CLI"
+               BuildableName = "CLI"
+               BlueprintName = "CLI"
                ReferencedContainer = "container:">
             </BuildableReference>
          </BuildActionEntry>
@@ -109,18 +109,18 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "SwiftProjectLintCLI"
-            BuildableName = "SwiftProjectLintCLI"
-            BlueprintName = "SwiftProjectLintCLI"
+            BlueprintIdentifier = "CLI"
+            BuildableName = "CLI"
+            BlueprintName = "CLI"
             ReferencedContainer = "container:">
          </BuildableReference>
       </BuildableProductRunnable>
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "SwiftProjectLint"
-            BuildableName = "SwiftProjectLint"
-            BlueprintName = "SwiftProjectLint"
+            BlueprintIdentifier = "App"
+            BuildableName = "App"
+            BlueprintName = "App"
             ReferencedContainer = "container:">
          </BuildableReference>
       </MacroExpansion>
@@ -135,9 +135,9 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "SwiftProjectLintCLI"
-            BuildableName = "SwiftProjectLintCLI"
-            BlueprintName = "SwiftProjectLintCLI"
+            BlueprintIdentifier = "CLI"
+            BuildableName = "CLI"
+            BlueprintName = "CLI"
             ReferencedContainer = "container:">
          </BuildableReference>
       </BuildableProductRunnable>

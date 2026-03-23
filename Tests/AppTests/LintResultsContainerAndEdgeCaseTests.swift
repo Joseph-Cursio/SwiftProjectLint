@@ -1,7 +1,7 @@
 import Testing
 import SwiftUI
-@testable import SwiftProjectLintCore
-@testable import SwiftProjectLint
+@testable import Core
+@testable import App
 import ViewInspector
 
 // MARK: - LintResultsContainerView Tests

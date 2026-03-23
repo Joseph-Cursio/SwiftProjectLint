@@ -1,5 +1,5 @@
 import SwiftUI
-import SwiftProjectLintCore
+import Core
 
 /// Shared list body used by both `LintResultsView` and `FullScreenResultsView`.
 private struct IssueListContent: View {

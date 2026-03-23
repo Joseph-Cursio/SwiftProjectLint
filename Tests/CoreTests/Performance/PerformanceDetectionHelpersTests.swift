@@ -1,7 +1,7 @@
 import Testing
 import SwiftParser
 import SwiftSyntax
-@testable import SwiftProjectLintCore
+@testable import Core
 
 struct PerformanceDetectionHelpersTests {
     

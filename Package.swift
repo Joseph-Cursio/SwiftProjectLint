@@ -8,16 +8,16 @@ let package = Package(
     ],
     products: [
         .library(
-            name: "SwiftProjectLintCore",
-            targets: ["SwiftProjectLintCore"]
+            name: "Core",
+            targets: ["Core"]
         ),
         .executable(
-            name: "SwiftProjectLint",
-            targets: ["SwiftProjectLint"]
+            name: "App",
+            targets: ["App"]
         ),
         .executable(
-            name: "SwiftProjectLintCLI",
-            targets: ["SwiftProjectLintCLI"]
+            name: "CLI",
+            targets: ["CLI"]
         )
     ],
     dependencies: [
@@ -28,26 +28,26 @@ let package = Package(
     ],
     targets: [
         .target(
-            name: "SwiftProjectLintCore",
+            name: "Core",
             dependencies: [
                 .product(name: "SwiftSyntax", package: "swift-syntax"),
                 .product(name: "SwiftParser", package: "swift-syntax"),
                 .product(name: "Yams", package: "Yams")
             ],
-            path: "Sources/SwiftProjectLintCore"
+            path: "Sources/Core"
         ),
         .executableTarget(
-            name: "SwiftProjectLintCLI",
+            name: "CLI",
             dependencies: [
-                "SwiftProjectLintCore",
+                "Core",
                 .product(name: "ArgumentParser", package: "swift-argument-parser")
             ],
-            path: "Sources/SwiftProjectLintCLI"
+            path: "Sources/CLI"
         ),
         .executableTarget(
-            name: "SwiftProjectLint",
-            dependencies: ["SwiftProjectLintCore"],
-            path: "Sources/SwiftProjectLint",
+            name: "App",
+            dependencies: ["Core"],
+            path: "Sources/App",
             resources: [
                 .process("Assets.xcassets"),
                 .process("Resources")
@@ -59,17 +59,17 @@ let package = Package(
         ),
         .testTarget(
             name: "CLITests",
-            dependencies: ["SwiftProjectLintCore", "SwiftProjectLintCLI"],
+            dependencies: ["Core", "CLI"],
             path: "Tests/CLITests"
         ),
         .testTarget(
             name: "CoreTests",
-            dependencies: ["SwiftProjectLintCore"],
+            dependencies: ["Core"],
             path: "Tests/CoreTests"
         ),
         .testTarget(
             name: "AppTests",
-            dependencies: ["SwiftProjectLintCore", "SwiftProjectLint", "ViewInspector"],
+            dependencies: ["Core", "App", "ViewInspector"],
             path: "Tests/AppTests",
             swiftSettings: [
                 .enableUpcomingFeature("MemberImportVisibility")
@@ -78,8 +78,8 @@ let package = Package(
         // UI tests are configured in Xcode project and should be run through Xcode
         // .testTarget(
         //     name: "UITests",
-        //     dependencies: ["SwiftProjectLint"],
+        //     dependencies: ["App"],
         //     path: "Tests/UITests"
         // ),
     ]
-) 
+)

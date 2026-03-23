@@ -1,6 +1,6 @@
 import Testing
 import Foundation
-@testable import SwiftProjectLintCLI
+@testable import CLI
 
 @Suite
 struct CLITests {
@@ -9,7 +9,7 @@ struct CLITests {
 
     /// Runs the CLI binary with the given arguments and returns (exitCode, stdout, stderr).
     private func runCLI(arguments: [String]) throws -> (exitCode: Int32, stdout: String, stderr: String) {
-        let binary = productsDirectory.appendingPathComponent("SwiftProjectLintCLI")
+        let binary = productsDirectory.appendingPathComponent("CLI")
 
         let process = Process()
         process.executableURL = binary

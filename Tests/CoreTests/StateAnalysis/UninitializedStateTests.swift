@@ -1,6 +1,6 @@
 import Testing
 import Foundation
-@testable import SwiftProjectLintCore
+@testable import Core
 
 struct UninitializedStateTests {
     @Test func testAnalyzeStateManagementWithUninitializedState() throws {

@@ -1,6 +1,6 @@
 import Testing
 import Foundation
-@testable import SwiftProjectLintCore
+@testable import Core
 
 struct SuggestionTests {
     @Test func testSuggestImprovementsWithEmptyStateVariables() throws {

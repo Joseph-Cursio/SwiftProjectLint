@@ -1,7 +1,7 @@
 import Testing
 import SwiftParser
 import SwiftSyntax
-@testable import SwiftProjectLintCore
+@testable import Core
 
 /// Tests for uncovered paths in PerformanceStateVariableTracking:
 /// - self.variable assignment tracking via SequenceExprSyntax

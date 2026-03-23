@@ -6,7 +6,7 @@
 //
 
 import Foundation
-import SwiftProjectLintCore
+import Core
 
 /// Generates demo lint issues for illustration purposes.
 ///

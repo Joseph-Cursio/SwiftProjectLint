@@ -15,9 +15,9 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "SwiftProjectLintCore"
-               BuildableName = "SwiftProjectLintCore"
-               BlueprintName = "SwiftProjectLintCore"
+               BlueprintIdentifier = "Core"
+               BuildableName = "Core"
+               BlueprintName = "Core"
                ReferencedContainer = "container:">
             </BuildableReference>
          </BuildActionEntry>
@@ -50,9 +50,9 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "SwiftProjectLintCore"
-            BuildableName = "SwiftProjectLintCore"
-            BlueprintName = "SwiftProjectLintCore"
+            BlueprintIdentifier = "Core"
+            BuildableName = "Core"
+            BlueprintName = "Core"
             ReferencedContainer = "container:">
          </BuildableReference>
       </MacroExpansion>

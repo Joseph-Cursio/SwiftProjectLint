@@ -2,7 +2,7 @@ import Testing
 import Foundation
 import SwiftParser
 import SwiftSyntax
-@testable import SwiftProjectLintCore
+@testable import Core
 
 // MARK: - Tests targeting uncovered cross-file visitor loop paths
 

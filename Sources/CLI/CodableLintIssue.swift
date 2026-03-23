@@ -1,5 +1,5 @@
 import Foundation
-import SwiftProjectLintCore
+import Core
 
 /// A Codable-friendly location for lint issues.
 struct IssueLocation: Codable {

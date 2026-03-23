@@ -2,7 +2,7 @@ import Testing
 import Foundation
 import SwiftParser
 import SwiftSyntax
-@testable import SwiftProjectLintCore
+@testable import Core
 
 // MARK: - Tests for detectPatterns(in:) and findSwiftFiles paths
 

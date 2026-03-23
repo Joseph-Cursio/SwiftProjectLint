@@ -1,6 +1,6 @@
 import Testing
 import SwiftSyntax
-@testable import SwiftProjectLintCore
+@testable import Core
 
 struct SyntaxRegistryTests {
 

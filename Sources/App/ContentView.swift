@@ -6,7 +6,7 @@
 //
 
 import SwiftUI
-import SwiftProjectLintCore
+import Core
 import UniformTypeIdentifiers
 
 /// The main content view for the SwiftProjectLint application.

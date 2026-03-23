@@ -1,6 +1,6 @@
 import Testing
 import Foundation
-@testable import SwiftProjectLintCore
+@testable import Core
 
 /// Tests for ArchitectureIssueDetector.detectArchitecturalAntiPatterns
 /// covering the @ObservedObject-in-root-view detection and isRootView logic.

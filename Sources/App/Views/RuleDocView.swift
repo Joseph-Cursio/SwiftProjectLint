@@ -6,7 +6,7 @@
 //
 
 import SwiftUI
-import SwiftProjectLintCore
+import Core
 
 /// Renders the markdown documentation for a single lint rule.
 struct RuleDocView: View {

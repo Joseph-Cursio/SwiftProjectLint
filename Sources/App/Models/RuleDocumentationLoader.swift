@@ -6,7 +6,7 @@
 //
 
 import Foundation
-import SwiftProjectLintCore
+import Core
 
 /// Loads rule documentation markdown from the app bundle.
 struct RuleDocumentationLoader {

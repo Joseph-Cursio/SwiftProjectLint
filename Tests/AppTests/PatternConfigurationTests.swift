@@ -1,6 +1,6 @@
 import Testing
-@testable import SwiftProjectLint
-import SwiftProjectLintCore
+@testable import App
+import Core
 import SwiftSyntax
 
 @MainActor

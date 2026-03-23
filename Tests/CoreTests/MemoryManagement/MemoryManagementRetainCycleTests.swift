@@ -2,7 +2,7 @@ import Testing
 import Foundation
 import SwiftSyntax
 import SwiftParser
-@testable import SwiftProjectLintCore
+@testable import Core
 
 struct MemoryManagementRetainCycleTests {
     var visitor: MemoryManagementVisitor { MemoryManagementVisitor() }

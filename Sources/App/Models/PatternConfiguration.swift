@@ -6,7 +6,7 @@
 //
 
 import Foundation
-import SwiftProjectLintCore
+import Core
 
 /// Represents pattern category information for UI display.
 struct PatternCategoryInfo {

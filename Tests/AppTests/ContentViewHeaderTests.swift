@@ -2,7 +2,7 @@ import Testing
 import SwiftUI
 import ViewInspector
 
-@testable import SwiftProjectLint
+@testable import App
 
 @Suite
 @MainActor

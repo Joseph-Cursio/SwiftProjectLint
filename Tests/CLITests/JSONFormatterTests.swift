@@ -1,7 +1,7 @@
 import Foundation
 import Testing
-import SwiftProjectLintCore
-@testable import SwiftProjectLintCLI
+import Core
+@testable import CLI
 
 struct JSONFormatterTests {
     @Test

@@ -1,5 +1,5 @@
 import Foundation
-import SwiftProjectLintCore
+import Core
 
 /// Formats lint issues as a JSON report.
 struct JSONFormatter {

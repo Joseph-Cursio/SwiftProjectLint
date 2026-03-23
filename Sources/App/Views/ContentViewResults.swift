@@ -6,7 +6,7 @@
 //
 
 import SwiftUI
-import SwiftProjectLintCore
+import Core
 
 /// The results section of the main content view.
 ///

@@ -1,5 +1,5 @@
 import SwiftUI
-import SwiftProjectLintCore
+import Core
 
 /// A reusable summary section displaying issue counts by severity.
 ///

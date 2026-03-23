@@ -8,7 +8,7 @@ import Foundation
 import SwiftParser
 import SwiftSyntax
 import Testing
-@testable import SwiftProjectLintCore
+@testable import Core
 
 struct CoreTests {
     

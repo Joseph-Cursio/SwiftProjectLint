@@ -1,6 +1,6 @@
 import ArgumentParser
 import Foundation
-import SwiftProjectLintCore
+import Core
 
 @main
 struct SwiftProjectLintCLI: AsyncParsableCommand {

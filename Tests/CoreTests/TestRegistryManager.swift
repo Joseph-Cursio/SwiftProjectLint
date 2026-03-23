@@ -1,5 +1,5 @@
 import Foundation
-@testable import SwiftProjectLintCore
+@testable import Core
 
 /// A struct containing isolated test instances for pattern detection.
 public struct IsolatedTestInstances {

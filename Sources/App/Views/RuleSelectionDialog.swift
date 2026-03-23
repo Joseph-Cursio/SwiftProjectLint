@@ -6,7 +6,7 @@
 //
 
 import SwiftUI
-import SwiftProjectLintCore
+import Core
 
 /// A two-panel dialog for selecting lint rules and browsing their documentation.
 ///

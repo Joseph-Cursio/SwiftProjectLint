@@ -1,7 +1,7 @@
 import Testing
 import SwiftParser
 import SwiftSyntax
-@testable import SwiftProjectLintCore
+@testable import Core
 
 /// Targeted coverage tests for uncovered paths in PerformanceStateVariableTracking.swift:
 /// - `checkForUnnecessaryUpdates` issue-reporting branch (isAssigned && !isUsedInViewBody)

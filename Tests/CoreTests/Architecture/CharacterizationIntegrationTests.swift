@@ -1,6 +1,6 @@
 import Testing
 import Foundation
-@testable import SwiftProjectLintCore
+@testable import Core
 
 /// Integration and comprehensive characterization tests for architecture analysis
 struct CharacterizationIntegrationTests {
