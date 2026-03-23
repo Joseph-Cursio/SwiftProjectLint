@@ -3,7 +3,7 @@ import SwiftParser
 import SwiftSyntax
 @testable import SwiftProjectLintCore
 
-struct CrossFileSwiftUIManagementVisitorTests {
+struct SwiftUIManagementTests {
     
     @Test func testInitializationWithFileCache() {
         let source1 = "struct View1: View { var body: some View { Text(\"1\") } }"

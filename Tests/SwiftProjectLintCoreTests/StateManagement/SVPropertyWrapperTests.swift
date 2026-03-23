@@ -6,7 +6,7 @@ import SwiftParser
 
 /// Tests for different property wrapper types detection
 @Suite
-struct StateVariableVisitorPropertyWrapperTests {
+struct SVPropertyWrapperTests {
 
     struct WrapperCase: CustomTestStringConvertible, Sendable {
         let declaration: String

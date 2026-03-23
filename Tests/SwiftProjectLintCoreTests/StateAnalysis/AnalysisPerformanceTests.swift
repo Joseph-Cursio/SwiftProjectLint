@@ -2,7 +2,7 @@ import Testing
 import Foundation
 @testable import SwiftProjectLintCore
 
-struct StateAnalysisEnginePerformanceTests {
+struct AnalysisPerformanceTests {
     @Test func testStateAnalysisEnginePerformance() throws {
         // ... existing code ...
     }

@@ -3,7 +3,7 @@ import Testing
 import SwiftSyntax
 import SwiftParser
 
-struct AnimationPerformanceVisitorTests {
+struct PerformanceVisitorTests {
 
     private func makeVisitor(for rule: RuleIdentifier = .excessiveSpringAnimations) throws -> AnimationPerformanceVisitor {
         let patterns = AnimationPerformance().patterns

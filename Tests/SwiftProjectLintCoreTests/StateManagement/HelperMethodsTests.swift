@@ -6,7 +6,7 @@ import SwiftParser
 
 /// Tests for StateVariableVisitor helper methods and edge cases
 @Suite
-struct StateVariableVisitorHelperMethodsTests {
+struct HelperMethodsTests {
 
     // MARK: - Summary and Filter Methods
 

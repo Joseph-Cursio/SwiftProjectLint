@@ -6,7 +6,7 @@ import SwiftParser
 
 /// Tests for type inference from initializer values
 @Suite
-struct StateVariableVisitorTypeInferenceTests {
+struct TypeInferenceTests {
 
     struct TypeInferenceCase: CustomTestStringConvertible, Sendable {
         let declaration: String

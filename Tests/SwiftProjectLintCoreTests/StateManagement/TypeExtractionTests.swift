@@ -6,7 +6,7 @@ import SwiftParser
 
 /// Tests for type extraction from explicit type annotations
 @Suite
-struct StateVariableVisitorTypeExtractionTests {
+struct TypeExtractionTests {
 
     struct TypeExtractionCase: CustomTestStringConvertible, Sendable {
         let declaration: String

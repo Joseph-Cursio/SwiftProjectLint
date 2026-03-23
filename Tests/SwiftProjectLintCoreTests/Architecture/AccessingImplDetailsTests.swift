@@ -5,7 +5,7 @@ import SwiftParser
 @testable import SwiftProjectLintCore
 
 @Suite
-struct ArchAccessingImplDetailsTests {
+struct AccessingImplDetailsTests {
 
     // MARK: - Helper
 

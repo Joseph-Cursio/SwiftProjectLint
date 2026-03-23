@@ -2,7 +2,7 @@ import Testing
 import Foundation
 @testable import SwiftProjectLintCore
 
-struct StateAnalysisEngineDuplicateStateTests {
+struct AnalysisDuplicateStateTests {
     @Test func testAnalyzeStateManagementWithDuplicateStateVariables() throws {
         // ... existing code ...
     }

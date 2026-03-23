@@ -5,7 +5,7 @@ import Testing
 @testable import SwiftProjectLintCore
 
 @Suite("SyntaxPatternDetectorPerfTests")
-struct SyntaxPatternDetectorPerfTests {
+struct DetectorPerformanceTests {
     
     // MARK: - Performance Visitor Tests (Use Shared Registry)
     

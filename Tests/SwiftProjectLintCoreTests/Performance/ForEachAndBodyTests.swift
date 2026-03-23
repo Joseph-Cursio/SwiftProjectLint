@@ -6,7 +6,7 @@ import SwiftParser
 
 /// Tests for PerformanceVisitor ForEach and view body size detection
 @Suite
-struct PerformanceVisitorForEachAndBodyTests {
+struct ForEachAndBodyTests {
 
     // MARK: - Helper Methods
 

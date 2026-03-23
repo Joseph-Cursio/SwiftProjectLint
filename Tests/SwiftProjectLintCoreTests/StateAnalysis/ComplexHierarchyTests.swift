@@ -2,7 +2,7 @@ import Testing
 import Foundation
 @testable import SwiftProjectLintCore
 
-struct StateAnalysisEngineComplexHierarchyTests {
+struct ComplexHierarchyTests {
     @Test func testAnalyzeStateManagementWithComplexHierarchy() throws {
         // ... existing code ...
     }

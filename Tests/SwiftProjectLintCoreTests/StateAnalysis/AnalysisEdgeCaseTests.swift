@@ -2,7 +2,7 @@ import Testing
 import Foundation
 @testable import SwiftProjectLintCore
 
-struct StateAnalysisEngineEdgeCaseTests {
+struct AnalysisEdgeCaseTests {
     @Test func testAnalyzeStateManagementWithEmptyStateVariables() throws {
         // ... existing code ...
     }
