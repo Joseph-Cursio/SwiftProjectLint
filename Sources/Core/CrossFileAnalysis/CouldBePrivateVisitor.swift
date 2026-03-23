@@ -42,8 +42,8 @@ final class CouldBePrivateVisitor: BasePatternVisitor, CrossFilePatternVisitorPr
     // MARK: - Collect Declarations (top-level, internal access only)
 
     override func visit(_ node: StructDeclSyntax) -> SyntaxVisitorContinueKind {
-        // Skip App entry points — they can't be private
-        guard !isSwiftUIApp(node) else { return .visitChildren }
+        // Skip App entry points and @main types — they can't be private
+        guard !isSwiftUIApp(node), !hasMainAttribute(node.attributes) else { return .visitChildren }
         collectDeclarationIfEligible(node.name.text, modifiers: node.modifiers, node: Syntax(node))
         return .visitChildren
     }
@@ -149,6 +149,13 @@ final class CouldBePrivateVisitor: BasePatternVisitor, CrossFilePatternVisitorPr
         node.inheritanceClause?.inheritedTypes.contains { inherited in
             inherited.type.as(IdentifierTypeSyntax.self)?.name.text == "App"
         } ?? false
+    }
+
+    private func hasMainAttribute(_ attributes: AttributeListSyntax) -> Bool {
+        attributes.contains { element in
+            element.as(AttributeSyntax.self)?.attributeName
+                .as(IdentifierTypeSyntax.self)?.name.text == "main"
+        }
     }
 
     private func isTopLevel(_ node: Syntax) -> Bool {

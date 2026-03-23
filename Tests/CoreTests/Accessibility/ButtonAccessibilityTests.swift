@@ -179,7 +179,7 @@ struct ButtonAccessibilityTests {
         visitor.walk(sourceFile)
 
         let buttonIssues = visitor.detectedIssues.filter {
-            $0.message.lowercased().contains("button")
+            $0.message.localizedCaseInsensitiveContains("button")
         }
         #expect(buttonIssues.count == 1)
 

@@ -1,5 +1,21 @@
 import SwiftSyntax
 
+// MARK: - SwiftSyntax Convenience Extensions
+
+extension FunctionDeclSyntax {
+    /// Direct accessor for the parameter list, avoiding deep signature navigation.
+    var parameterList: FunctionParameterListSyntax {
+        signature.parameterClause.parameters
+    }
+}
+
+extension InitializerDeclSyntax {
+    /// Direct accessor for the parameter list, avoiding deep signature navigation.
+    var parameterList: FunctionParameterListSyntax {
+        signature.parameterClause.parameters
+    }
+}
+
 /// Returns whether a `ForEach` collection expression is safe to use with `id: \.self`.
 ///
 /// `\.self` is the correct and idiomatic approach for:
@@ -108,7 +124,7 @@ private func findArrayElementType(named varName: String, around startNode: Synta
     while let node = current {
         // Check function parameters (e.g. func foo(_ items: [Item]) { ForEach(items) ... })
         if let funcDecl = node.as(FunctionDeclSyntax.self) {
-            if let elementType = findArrayParameter(named: varName, in: funcDecl.signature.parameterClause.parameters) {
+            if let elementType = findArrayParameter(named: varName, in: funcDecl.parameterList) {
                 return elementType
             }
         }

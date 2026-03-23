@@ -27,10 +27,18 @@ class LawOfDemeterVisitor: BasePatternVisitor {
     /// - `node.extendedType.description.trimmingCharacters` — description converts to String
     /// - `status.color.opacity` — color maps enum to a SwiftUI Color value
     /// - `range.lowerBound` / `range.upperBound` — standard Range value accessors
+    /// - `memberAccess.declName.baseName.text` — SwiftSyntax token text accessor
+    /// - `node.body.statements.isEmpty` — collection membership test
     private static let valueTransformMembers: Set<String> = [
         "rawValue", "hashValue", "capitalized", "uppercased", "lowercased",
         "description", "debugDescription", "trimmedDescription",
         "color", "lowerBound", "upperBound",
+        // SwiftSyntax token accessors — reading identifier/token text is a value
+        // transformation, not object-graph navigation into internal structure.
+        "text", "baseName",
+        // Boolean terminal — testing emptiness of a collection is a scalar result,
+        // not further graph traversal (e.g., node.body.statements.isEmpty).
+        "isEmpty",
     ]
 
     /// Well-known system chain prefixes that are idiomatic Foundation/system API usage.
@@ -62,6 +70,12 @@ class LawOfDemeterVisitor: BasePatternVisitor {
         // Only report from the outermost MemberAccessExpr to avoid duplicates.
         // If our parent is also a MemberAccessExpr, we're not the outermost.
         if node.parent?.is(MemberAccessExprSyntax.self) == true {
+            return .visitChildren
+        }
+        // Skip chains that are the callee of a function call — the called method
+        // is part of the fluent interface, not additional graph traversal.
+        // e.g., structNode.memberBlock.members.contains { ... }
+        if node.parent?.is(FunctionCallExprSyntax.self) == true {
             return .visitChildren
         }
 
@@ -133,7 +147,7 @@ class LawOfDemeterVisitor: BasePatternVisitor {
 
         // Also skip chains of exactly minChainDepth whose terminal is a value-transform.
         // e.g., violation.severity.rawValue.capitalized — terminal "capitalized" in set, depth = 3
-        // e.g., chunk.lineRange.lowerBound — terminal "lowerBound" in set, depth = 3
+        // e.g., node.body.statements.isEmpty — terminal "isEmpty", depth = 3
         if let terminal = orderedComponents.last,
            Self.valueTransformMembers.contains(terminal),
            dotCount == Self.minChainDepth {

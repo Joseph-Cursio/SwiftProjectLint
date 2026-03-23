@@ -159,7 +159,7 @@ class ArchitectureVisitor: BasePatternVisitor {
     }
 
     private func detectMissingDependencyInjection(_ node: InitializerDeclSyntax) {
-        guard node.signature.parameterClause.parameters.isEmpty else { return }
+        guard node.parameterList.isEmpty else { return }
         guard !currentViewName.isEmpty, currentViewName.hasSuffix("View") else { return }
         // @Environment / @EnvironmentObject are SwiftUI's built-in DI mechanism.
         // An empty init on such a view is intentional, not a missing injection.
