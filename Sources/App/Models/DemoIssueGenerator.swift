@@ -14,67 +14,19 @@ import Core
 /// simulating typical linter findings for the selected categories. Each demo issue includes
 /// severity, a message, file path, line number, and a suggested fix.
 struct DemoIssueGenerator {
-    
+
     /// Creates a set of demo lint issues for illustration purposes.
-    ///
-    /// This function generates demo `LintIssue` objects based on the currently enabled rules,
-    /// simulating typical linter findings for the selected categories. Each demo issue includes
-    /// severity, a message, file path, line number, and a suggested fix.
     ///
     /// - Parameter enabledCategories: The pattern categories that have enabled rules.
     /// - Returns: An array of demo `LintIssue` objects for enabled rules only.
     static func createDemoIssues(for enabledCategories: [PatternCategory]) -> [LintIssue] {
-        var demoIssues: [LintIssue] = []
-
-        // Create demo issues based on enabled categories
-        for category in enabledCategories {
-            switch category {
-            case .stateManagement:
-                demoIssues.append(contentsOf: createStateManagementDemoIssues())
-
-            case .performance:
-                demoIssues.append(contentsOf: createPerformanceDemoIssues())
-
-            case .architecture:
-                demoIssues.append(contentsOf: createArchitectureDemoIssues())
-
-            case .codeQuality:
-                demoIssues.append(contentsOf: createCodeQualityDemoIssues())
-
-            case .security:
-                demoIssues.append(contentsOf: createSecurityDemoIssues())
-
-            case .accessibility:
-                demoIssues.append(contentsOf: createAccessibilityDemoIssues())
-
-            case .memoryManagement:
-                demoIssues.append(contentsOf: createMemoryManagementDemoIssues())
-
-            case .networking:
-                demoIssues.append(contentsOf: createNetworkingDemoIssues())
-
-            case .uiPatterns:
-                demoIssues.append(contentsOf: createUIPatternsDemoIssues())
-
-            case .animation:
-                demoIssues.append(contentsOf: createAnimationDemoIssues())
-
-            case .other:
-                // No demo issues for the "other" category (system-level errors)
-                break
-
-            @unknown default:
-                break
-            }
-        }
-
-        return demoIssues
+        enabledCategories.flatMap { demoIssues[$0] ?? [] }
     }
 
-    // MARK: - Private Demo Issue Creation Methods
+    // MARK: - Demo Issues Table
 
-    private static func createStateManagementDemoIssues() -> [LintIssue] {
-        return [
+    private static let demoIssues: [PatternCategory: [LintIssue]] = [
+        .stateManagement: [
             LintIssue(
                 severity: .warning,
                 message: "Related Duplicate State Variable: 'isLoading' found in ParentView and ChildView",
@@ -93,11 +45,8 @@ struct DemoIssueGenerator {
                             "via a common ObservableObject.",
                 ruleName: .unrelatedDuplicateStateVariable
             )
-        ]
-    }
-
-    private static func createPerformanceDemoIssues() -> [LintIssue] {
-        return [
+        ],
+        .performance: [
             LintIssue(
                 severity: .warning,
                 message: "ForEach Without ID: Using array without explicit identifier",
@@ -114,11 +63,8 @@ struct DemoIssueGenerator {
                 suggestion: "Break down large view into smaller, focused components.",
                 ruleName: .largeViewBody
             )
-        ]
-    }
-
-    private static func createArchitectureDemoIssues() -> [LintIssue] {
-        return [
+        ],
+        .architecture: [
             LintIssue(
                 severity: .warning,
                 message: "Missing MVVM Pattern: View contains business logic",
@@ -127,11 +73,8 @@ struct DemoIssueGenerator {
                 suggestion: "Extract business logic into a dedicated ViewModel class.",
                 ruleName: .fatViewDetection
             )
-        ]
-    }
-
-    private static func createCodeQualityDemoIssues() -> [LintIssue] {
-        return [
+        ],
+        .codeQuality: [
             LintIssue(
                 severity: .info,
                 message: "Magic Number: Using hardcoded value '42'",
@@ -140,11 +83,8 @@ struct DemoIssueGenerator {
                 suggestion: "Define constants for magic numbers to improve code readability.",
                 ruleName: .magicNumber
             )
-        ]
-    }
-
-    private static func createSecurityDemoIssues() -> [LintIssue] {
-        return [
+        ],
+        .security: [
             LintIssue(
                 severity: .error,
                 message: "Hardcoded Secret: API key found in source code",
@@ -153,11 +93,8 @@ struct DemoIssueGenerator {
                 suggestion: "Move sensitive data to secure configuration files or environment variables.",
                 ruleName: .hardcodedSecret
             )
-        ]
-    }
-
-    private static func createAccessibilityDemoIssues() -> [LintIssue] {
-        return [
+        ],
+        .accessibility: [
             LintIssue(
                 severity: .warning,
                 message: "Missing Accessibility Label: Image without accessibility description",
@@ -166,11 +103,8 @@ struct DemoIssueGenerator {
                 suggestion: "Add accessibilityLabel to improve screen reader support.",
                 ruleName: .missingAccessibilityLabel
             )
-        ]
-    }
-
-    private static func createMemoryManagementDemoIssues() -> [LintIssue] {
-        return [
+        ],
+        .memoryManagement: [
             LintIssue(
                 severity: .warning,
                 message: "Potential Retain Cycle: Strong reference in closure",
@@ -179,11 +113,8 @@ struct DemoIssueGenerator {
                 suggestion: "Use weak self in closures to prevent retain cycles.",
                 ruleName: .potentialRetainCycle
             )
-        ]
-    }
-
-    private static func createNetworkingDemoIssues() -> [LintIssue] {
-        return [
+        ],
+        .networking: [
             LintIssue(
                 severity: .error,
                 message: "Missing Error Handling: Network request without error handling",
@@ -192,11 +123,8 @@ struct DemoIssueGenerator {
                 suggestion: "Add proper error handling to network requests.",
                 ruleName: .missingErrorHandling
             )
-        ]
-    }
-
-    private static func createAnimationDemoIssues() -> [LintIssue] {
-        return [
+        ],
+        .animation: [
             LintIssue(
                 severity: .warning,
                 message: "Excessive Spring Animations: View uses 5 spring animations",
@@ -206,11 +134,8 @@ struct DemoIssueGenerator {
                             "withAnimation(.spring()) block.",
                 ruleName: .excessiveSpringAnimations
             )
-        ]
-    }
-
-    private static func createUIPatternsDemoIssues() -> [LintIssue] {
-        return [
+        ],
+        .uiPatterns: [
             LintIssue(
                 severity: .warning,
                 message: "Nested NavigationView: Multiple NavigationView instances detected",
@@ -220,5 +145,5 @@ struct DemoIssueGenerator {
                 ruleName: .nestedNavigationView
             )
         ]
-    }
+    ]
 }
