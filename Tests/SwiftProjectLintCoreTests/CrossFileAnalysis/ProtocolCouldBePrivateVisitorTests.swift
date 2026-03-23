@@ -11,7 +11,7 @@ struct ProtocolCouldBePrivateVisitorTests {
         for (name, source) in files {
             cache[name] = Parser.parse(source: source)
         }
-        let pattern = ProtocolCouldBePrivatePatternRegistrar().pattern
+        let pattern = ProtocolCouldBePrivate().pattern
         let visitor = ProtocolCouldBePrivateVisitor(fileCache: cache)
         visitor.setPattern(pattern)
 

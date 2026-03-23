@@ -6,7 +6,7 @@ import SwiftParser
 struct AnimationHierarchyVisitorTests {
 
     private func makeVisitor(for rule: RuleIdentifier) throws -> AnimationHierarchyVisitor {
-        let patterns = AnimationHierarchyPatternRegistrar().patterns
+        let patterns = AnimationHierarchy().patterns
         let pattern = try #require(patterns.first { $0.name == rule })
         return AnimationHierarchyVisitor(pattern: pattern)
     }

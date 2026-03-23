@@ -26,17 +26,17 @@ public final class SourcePatternRegistry: SourcePatternRegistryProtocol, @unchec
 
     /// Pattern registrars for each category.
     private lazy var patternRegistrars: [PatternCategory: PatternRegistrarWithVisitorProto] = [
-        .stateManagement: StateManagementPatternRegistrar(registry: self, visitorRegistry: visitorRegistry),
-        .performance: PerformancePatternRegistrar(registry: self, visitorRegistry: visitorRegistry),
-        .security: SecurityPatternRegistrar(registry: self, visitorRegistry: visitorRegistry),
-        .accessibility: AccessibilityPatternRegistrar(registry: self, visitorRegistry: visitorRegistry),
-        .memoryManagement: MemoryManagementPatternRegistrar(registry: self, visitorRegistry: visitorRegistry),
-        .networking: NetworkingPatternRegistrar(registry: self, visitorRegistry: visitorRegistry),
-        .codeQuality: CodeQualityPatternRegistrar(registry: self, visitorRegistry: visitorRegistry),
-        .architecture: ArchitecturePatternRegistrar(registry: self, visitorRegistry: visitorRegistry),
-        .uiPatterns: UIPatternRegistrar(registry: self, visitorRegistry: visitorRegistry),
-        .animation: AnimationPatternRegistrar(registry: self, visitorRegistry: visitorRegistry),
-        .modernization: ModernizationPatternRegistrar(registry: self, visitorRegistry: visitorRegistry)
+        .stateManagement: StateManagement(registry: self, visitorRegistry: visitorRegistry),
+        .performance: Performance(registry: self, visitorRegistry: visitorRegistry),
+        .security: Security(registry: self, visitorRegistry: visitorRegistry),
+        .accessibility: Accessibility(registry: self, visitorRegistry: visitorRegistry),
+        .memoryManagement: MemoryManagement(registry: self, visitorRegistry: visitorRegistry),
+        .networking: Networking(registry: self, visitorRegistry: visitorRegistry),
+        .codeQuality: CodeQuality(registry: self, visitorRegistry: visitorRegistry),
+        .architecture: Architecture(registry: self, visitorRegistry: visitorRegistry),
+        .uiPatterns: UI(registry: self, visitorRegistry: visitorRegistry),
+        .animation: Animation(registry: self, visitorRegistry: visitorRegistry),
+        .modernization: Modernization(registry: self, visitorRegistry: visitorRegistry)
     ]
 
     /// Creates a new SwiftSyntax pattern registry.

@@ -7,7 +7,7 @@ import SwiftParser
 struct SwallowedTaskErrorVisitorTests {
 
     private func makeVisitor() -> SwallowedTaskErrorVisitor {
-        let pattern = SwallowedTaskErrorPatternRegistrar().pattern
+        let pattern = SwallowedTaskError().pattern
         return SwallowedTaskErrorVisitor(pattern: pattern)
     }
 

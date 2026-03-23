@@ -7,7 +7,7 @@ import SwiftParser
 struct ActorReentrancyVisitorTests {
 
     private func makeVisitor() -> ActorReentrancyVisitor {
-        let pattern = ActorReentrancyPatternRegistrar().pattern
+        let pattern = ActorReentrancy().pattern
         return ActorReentrancyVisitor(pattern: pattern)
     }
 

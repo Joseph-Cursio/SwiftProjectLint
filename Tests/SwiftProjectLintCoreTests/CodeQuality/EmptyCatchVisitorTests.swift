@@ -7,7 +7,7 @@ import SwiftParser
 struct EmptyCatchVisitorTests {
 
     private func makeVisitor() -> EmptyCatchVisitor {
-        let pattern = EmptyCatchPatternRegistrar().pattern
+        let pattern = EmptyCatch().pattern
         return EmptyCatchVisitor(pattern: pattern)
     }
 

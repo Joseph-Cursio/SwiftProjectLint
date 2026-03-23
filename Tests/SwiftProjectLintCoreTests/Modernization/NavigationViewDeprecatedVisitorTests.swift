@@ -7,7 +7,7 @@ import SwiftParser
 struct NavigationViewDeprecatedVisitorTests {
 
     private func makeVisitor() -> NavigationViewDeprecatedVisitor {
-        let pattern = NavigationViewDeprecatedPatternRegistrar().pattern
+        let pattern = NavigationViewDeprecated().pattern
         return NavigationViewDeprecatedVisitor(pattern: pattern)
     }
 

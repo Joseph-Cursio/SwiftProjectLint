@@ -6,7 +6,7 @@ import SwiftParser
 struct MultipleTypesPerFileVisitorTests {
 
     private func makeVisitor(filePath: String = "test.swift") -> MultipleTypesPerFileVisitor {
-        let pattern = MultipleTypesPerFilePatternRegistrar().pattern
+        let pattern = MultipleTypesPerFile().pattern
         let visitor = MultipleTypesPerFileVisitor(pattern: pattern)
         visitor.setFilePath(filePath)
         return visitor

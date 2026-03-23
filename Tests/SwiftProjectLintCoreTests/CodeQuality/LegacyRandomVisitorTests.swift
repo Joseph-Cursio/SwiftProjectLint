@@ -7,7 +7,7 @@ import SwiftParser
 struct LegacyRandomVisitorTests {
 
     private func makeVisitor() -> LegacyRandomVisitor {
-        let pattern = LegacyRandomPatternRegistrar().pattern
+        let pattern = LegacyRandom().pattern
         return LegacyRandomVisitor(pattern: pattern)
     }
 

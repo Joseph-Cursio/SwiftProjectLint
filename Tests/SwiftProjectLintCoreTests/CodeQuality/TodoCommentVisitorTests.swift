@@ -7,7 +7,7 @@ import SwiftParser
 struct TodoCommentVisitorTests {
 
     private func makeVisitor() -> TodoCommentVisitor {
-        let pattern = TodoCommentPatternRegistrar().pattern
+        let pattern = TodoComment().pattern
         return TodoCommentVisitor(pattern: pattern)
     }
 

@@ -11,7 +11,7 @@ struct CouldBePrivateMemberVisitorTests {
         for (name, source) in files {
             cache[name] = Parser.parse(source: source)
         }
-        let pattern = CouldBePrivateMemberPatternRegistrar().pattern
+        let pattern = CouldBePrivateMember().pattern
         let visitor = CouldBePrivateMemberVisitor(fileCache: cache)
         visitor.setPattern(pattern)
 

@@ -7,7 +7,7 @@ import SwiftParser
 struct MatchedGeometryVisitorTests {
 
     private func makeVisitor() -> MatchedGeometryVisitor {
-        let pattern = MatchedGeometryPatternRegistrar().pattern
+        let pattern = MatchedGeometry().pattern
         return MatchedGeometryVisitor(pattern: pattern)
     }
 

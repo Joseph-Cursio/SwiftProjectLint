@@ -7,7 +7,7 @@ import SwiftParser
 struct ButtonClosureWrappingVisitorTests {
 
     private func makeVisitor() -> ButtonClosureWrappingVisitor {
-        let pattern = ButtonClosureWrappingPatternRegistrar().pattern
+        let pattern = ButtonClosureWrapping().pattern
         return ButtonClosureWrappingVisitor(pattern: pattern)
     }
 

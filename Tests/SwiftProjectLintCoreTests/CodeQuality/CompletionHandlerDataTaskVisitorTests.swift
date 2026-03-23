@@ -7,7 +7,7 @@ import SwiftParser
 struct CompletionHandlerDataTaskVisitorTests {
 
     private func makeVisitor() -> CompletionHandlerDataTaskVisitor {
-        let pattern = CallbackDataTaskPatternRegistrar().pattern
+        let pattern = CallbackDataTask().pattern
         return CompletionHandlerDataTaskVisitor(pattern: pattern)
     }
 

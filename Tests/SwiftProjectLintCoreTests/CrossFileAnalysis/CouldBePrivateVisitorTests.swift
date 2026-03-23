@@ -24,7 +24,7 @@ struct CouldBePrivateVisitorTests {
         """)
 
         let cache = ["FileA.swift": fileA, "FileB.swift": fileB]
-        let pattern = CouldBePrivatePatternRegistrar().pattern
+        let pattern = CouldBePrivate().pattern
         let visitor = CouldBePrivateVisitor(fileCache: cache)
         visitor.setPattern(pattern)
 
@@ -62,7 +62,7 @@ struct CouldBePrivateVisitorTests {
         """)
 
         let cache = ["FileA.swift": fileA, "FileB.swift": fileB]
-        let pattern = CouldBePrivatePatternRegistrar().pattern
+        let pattern = CouldBePrivate().pattern
         let visitor = CouldBePrivateVisitor(fileCache: cache)
         visitor.setPattern(pattern)
 
@@ -95,7 +95,7 @@ struct CouldBePrivateVisitorTests {
         """)
 
         let cache = ["File.swift": file]
-        let pattern = CouldBePrivatePatternRegistrar().pattern
+        let pattern = CouldBePrivate().pattern
         let visitor = CouldBePrivateVisitor(fileCache: cache)
         visitor.setPattern(pattern)
 

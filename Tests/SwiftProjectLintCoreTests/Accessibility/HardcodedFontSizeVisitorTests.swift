@@ -7,7 +7,7 @@ import SwiftParser
 struct HardcodedFontSizeVisitorTests {
 
     private func makeVisitor() -> HardcodedFontSizeVisitor {
-        let pattern = HardcodedFontSizePatternRegistrar().pattern
+        let pattern = HardcodedFontSize().pattern
         return HardcodedFontSizeVisitor(pattern: pattern)
     }
 

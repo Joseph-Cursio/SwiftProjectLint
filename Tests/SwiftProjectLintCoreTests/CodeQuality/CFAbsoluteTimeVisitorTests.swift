@@ -7,7 +7,7 @@ import SwiftParser
 struct CFAbsoluteTimeVisitorTests {
 
     private func makeVisitor() -> CFAbsoluteTimeVisitor {
-        let pattern = CFAbsoluteTimePatternRegistrar().pattern
+        let pattern = CFAbsoluteTime().pattern
         return CFAbsoluteTimeVisitor(pattern: pattern)
     }
 

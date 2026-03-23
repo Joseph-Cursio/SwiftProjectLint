@@ -7,7 +7,7 @@ import SwiftParser
 struct ThreadSleepVisitorTests {
 
     private func makeVisitor() -> ThreadSleepVisitor {
-        let pattern = ThreadSleepPatternRegistrar().pattern
+        let pattern = ThreadSleep().pattern
         return ThreadSleepVisitor(pattern: pattern)
     }
 

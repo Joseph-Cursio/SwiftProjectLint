@@ -7,7 +7,7 @@ import SwiftParser
 struct TaskDetachedVisitorTests {
 
     private func makeVisitor() -> TaskDetachedVisitor {
-        let pattern = TaskDetachedPatternRegistrar().pattern
+        let pattern = TaskDetached().pattern
         return TaskDetachedVisitor(pattern: pattern)
     }
 

@@ -7,7 +7,7 @@ import SwiftParser
 struct TaskInOnAppearVisitorTests {
 
     private func makeVisitor() -> TaskInOnAppearVisitor {
-        let pattern = TaskInOnAppearPatternRegistrar().pattern
+        let pattern = TaskInOnAppear().pattern
         return TaskInOnAppearVisitor(pattern: pattern)
     }
 

@@ -7,7 +7,7 @@ import SwiftParser
 struct DispatchSemaphoreInAsyncVisitorTests {
 
     private func makeVisitor() -> DispatchSemaphoreInAsyncVisitor {
-        let pattern = DispatchSemaphoreInAsyncPatternRegistrar().pattern
+        let pattern = DispatchSemaphoreInAsync().pattern
         return DispatchSemaphoreInAsyncVisitor(pattern: pattern)
     }
 

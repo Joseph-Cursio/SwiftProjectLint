@@ -7,7 +7,7 @@ import SwiftParser
 struct AnimationVisitorTests {
 
     private func makeVisitor() -> DeprecatedAnimationVisitor {
-        let pattern = DeprecatedAnimationPatternRegistrar().pattern
+        let pattern = DeprecatedAnimation().pattern
         return DeprecatedAnimationVisitor(pattern: pattern)
     }
 

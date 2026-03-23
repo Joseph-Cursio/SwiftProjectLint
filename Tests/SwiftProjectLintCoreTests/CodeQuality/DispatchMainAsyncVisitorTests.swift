@@ -7,7 +7,7 @@ import SwiftParser
 struct DispatchMainAsyncVisitorTests {
 
     private func makeVisitor() -> DispatchMainAsyncVisitor {
-        let pattern = DispatchMainAsyncPatternRegistrar().pattern
+        let pattern = DispatchMainAsync().pattern
         return DispatchMainAsyncVisitor(pattern: pattern)
     }
 

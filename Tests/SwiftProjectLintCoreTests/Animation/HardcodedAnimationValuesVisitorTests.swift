@@ -7,7 +7,7 @@ import SwiftParser
 struct HardcodedAnimationValuesVisitorTests {
 
     private func makeVisitor() -> HardcodedAnimationValuesVisitor {
-        let pattern = HardcodedAnimationValuesPatternRegistrar().pattern
+        let pattern = HardcodedAnimationValues().pattern
         return HardcodedAnimationValuesVisitor(pattern: pattern)
     }
 

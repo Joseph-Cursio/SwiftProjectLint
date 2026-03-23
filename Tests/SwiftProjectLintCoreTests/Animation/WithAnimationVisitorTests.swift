@@ -6,7 +6,7 @@ import SwiftParser
 struct WithAnimationVisitorTests {
 
     private func makeVisitor(for rule: RuleIdentifier) throws -> WithAnimationVisitor {
-        let patterns = WithAnimationPatternRegistrar().patterns
+        let patterns = WithAnimation().patterns
         let pattern = try #require(patterns.first { $0.name == rule })
         return WithAnimationVisitor(pattern: pattern)
     }

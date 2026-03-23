@@ -7,7 +7,7 @@ import SwiftParser
 struct TaskYieldOffloadVisitorTests {
 
     private func makeVisitor() -> TaskYieldOffloadVisitor {
-        let pattern = TaskYieldOffloadPatternRegistrar().pattern
+        let pattern = TaskYieldOffload().pattern
         return TaskYieldOffloadVisitor(pattern: pattern)
     }
 

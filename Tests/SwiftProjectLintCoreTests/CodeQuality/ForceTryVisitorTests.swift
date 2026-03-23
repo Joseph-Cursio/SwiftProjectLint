@@ -7,7 +7,7 @@ import SwiftParser
 struct ForceTryVisitorTests {
 
     private func makeVisitor() -> ForceTryVisitor {
-        let pattern = ForceTryPatternRegistrar().pattern
+        let pattern = ForceTry().pattern
         return ForceTryVisitor(pattern: pattern)
     }
 

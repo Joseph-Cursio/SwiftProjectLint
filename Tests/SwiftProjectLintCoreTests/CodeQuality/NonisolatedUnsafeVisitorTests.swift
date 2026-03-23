@@ -7,7 +7,7 @@ import SwiftParser
 struct NonisolatedUnsafeVisitorTests {
 
     private func makeVisitor() -> NonisolatedUnsafeVisitor {
-        let pattern = NonisolatedUnsafePatternRegistrar().pattern
+        let pattern = NonisolatedUnsafe().pattern
         return NonisolatedUnsafeVisitor(pattern: pattern)
     }
 

@@ -7,7 +7,7 @@ import SwiftParser
 struct OnChangeOldAPIVisitorTests {
 
     private func makeVisitor() -> OnChangeOldAPIVisitor {
-        let pattern = OnChangeOldAPIPatternRegistrar().pattern
+        let pattern = OnChangeOldAPI().pattern
         return OnChangeOldAPIVisitor(pattern: pattern)
     }
 

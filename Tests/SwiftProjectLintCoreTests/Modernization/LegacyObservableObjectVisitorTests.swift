@@ -7,7 +7,7 @@ import SwiftParser
 struct LegacyObservableObjectVisitorTests {
 
     private func makeVisitor() -> LegacyObservableObjectVisitor {
-        let pattern = LegacyObservableObjectPatternRegistrar().pattern
+        let pattern = LegacyObservableObject().pattern
         return LegacyObservableObjectVisitor(pattern: pattern)
     }
 

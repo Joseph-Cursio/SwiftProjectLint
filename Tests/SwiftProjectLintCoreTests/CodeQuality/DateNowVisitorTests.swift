@@ -7,7 +7,7 @@ import SwiftParser
 struct DateNowVisitorTests {
 
     private func makeVisitor() -> DateNowVisitor {
-        let pattern = DateNowPatternRegistrar().pattern
+        let pattern = DateNow().pattern
         return DateNowVisitor(pattern: pattern)
     }
 

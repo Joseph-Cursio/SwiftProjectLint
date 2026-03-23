@@ -7,7 +7,7 @@ import SwiftParser
 struct ForceUnwrapVisitorTests {
 
     private func makeVisitor() -> ForceUnwrapVisitor {
-        let pattern = ForceUnwrapPatternRegistrar().pattern
+        let pattern = ForceUnwrap().pattern
         return ForceUnwrapVisitor(pattern: pattern)
     }
 

@@ -7,7 +7,7 @@ import SwiftParser
 struct PrintStatementVisitorTests {
 
     private func makeVisitor() -> PrintStatementVisitor {
-        let pattern = PrintStatementPatternRegistrar().pattern
+        let pattern = PrintStatement().pattern
         return PrintStatementVisitor(pattern: pattern)
     }
 

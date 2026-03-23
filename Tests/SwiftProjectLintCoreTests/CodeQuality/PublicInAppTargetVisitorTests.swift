@@ -7,7 +7,7 @@ import SwiftParser
 struct PublicInAppTargetVisitorTests {
 
     private func analyze(_ source: String) -> [LintIssue] {
-        let pattern = PublicInAppTargetPatternRegistrar().pattern
+        let pattern = PublicInAppTarget().pattern
         let visitor = PublicInAppTargetVisitor(pattern: pattern)
         let syntax = Parser.parse(source: source)
         let converter = SourceLocationConverter(fileName: "Test.swift", tree: syntax)

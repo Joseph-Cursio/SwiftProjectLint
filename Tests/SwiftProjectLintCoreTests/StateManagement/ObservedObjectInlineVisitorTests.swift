@@ -7,7 +7,7 @@ import SwiftParser
 struct ObservedObjectInlineVisitorTests {
 
     private func makeVisitor() -> ObservedObjectInlineVisitor {
-        let pattern = ObservedObjectInlinePatternRegistrar().pattern
+        let pattern = ObservedObjectInline().pattern
         return ObservedObjectInlineVisitor(pattern: pattern)
     }
 

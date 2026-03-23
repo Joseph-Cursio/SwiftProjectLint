@@ -7,7 +7,7 @@ import SwiftParser
 struct AsyncLetUnusedVisitorTests {
 
     private func makeVisitor() -> AsyncLetUnusedVisitor {
-        let pattern = AsyncLetUnusedPatternRegistrar().pattern
+        let pattern = AsyncLetUnused().pattern
         return AsyncLetUnusedVisitor(pattern: pattern)
     }
 

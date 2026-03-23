@@ -7,7 +7,7 @@ import SwiftParser
 struct LowercasedContainsVisitorTests {
 
     private func makeVisitor() -> LowercasedContainsVisitor {
-        let pattern = LowercasedContainsPatternRegistrar().pattern
+        let pattern = LowercasedContains().pattern
         return LowercasedContainsVisitor(pattern: pattern)
     }
 
