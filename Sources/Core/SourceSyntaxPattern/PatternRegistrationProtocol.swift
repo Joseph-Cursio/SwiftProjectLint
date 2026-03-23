@@ -6,18 +6,7 @@ protocol PatternRegistrar {
     var pattern: SyntaxPattern { get }
 }
 
-/// Protocol defining the interface for pattern registration.
-/// Each pattern registrar is responsible for registering patterns for a specific category.
-protocol PatternRegistrarProtocol {
-    /// The registry that owns this registrar.
-    var registry: SourcePatternRegistry { get }
-
-    /// Registers patterns for the specific category.
-    func registerPatterns()
-}
-
 /// Protocol for pattern registration that requires access to the visitor registry.
-
 protocol PatternRegistrarWithVisitorProtocol {
     /// The registry that owns this registrar.
     var registry: SourcePatternRegistry { get }
