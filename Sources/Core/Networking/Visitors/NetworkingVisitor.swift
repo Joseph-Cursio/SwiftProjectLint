@@ -73,21 +73,27 @@ class NetworkingVisitor: BasePatternVisitor {
     /// Heuristically determines whether a URL expression refers to a local file.
     ///
     /// Recognizes these patterns as local:
-    /// - `URL(fileURLWithPath:)` / `URL(filePath:)`
+    /// - `URL(fileURLWithPath:)` / `URL(filePath:)` / any `URL(...)` except `URL(string:)`
     /// - `url.appendingPathComponent(...)` / `url.appending(...)` chains
     /// - `Bundle.main.url(...)` / `Bundle.main.path(...)`
     /// - Variable names containing "file", "path", "cache", "temp", "directory", or "folder"
+    ///
+    /// `URL(string:)` is the canonical way to construct network URLs and is treated as NOT local.
+    /// Variable names with no local or network hints default to local to avoid false positives.
     private func isLikelyLocalURL(_ expr: ExprSyntax) -> Bool {
         let text = expr.description.trimmingCharacters(in: .whitespacesAndNewlines)
 
-        // URL(fileURLWithPath:) or URL(filePath:)
+        // URL(...) initializers: only URL(string:) is a network URL constructor
         if let call = expr.as(FunctionCallExprSyntax.self) {
             let calledText = call.calledExpression.description.trimmingCharacters(in: .whitespacesAndNewlines)
             if calledText == "URL" {
                 let labels = call.arguments.compactMap { $0.label?.text }
-                if labels.contains("fileURLWithPath") || labels.contains("filePath") {
-                    return true
+                if labels.contains("string") {
+                    // URL(string:) is used for http/https URLs — not local
+                    return false
                 }
+                // URL(fileURLWithPath:), URL(filePath:), URL(resolvingBookmarkData:), etc. — local
+                return true
             }
         }
 
@@ -108,14 +114,24 @@ class NetworkingVisitor: BasePatternVisitor {
             return true
         }
 
+        let lowerText = text.lowercased()
+
         // Variable names suggesting local file paths
         let localHints = ["file", "path", "cache", "temp", "directory", "folder", "config"]
-        let lowerText = text.lowercased()
         for hint in localHints where lowerText.contains(hint) {
             return true
         }
 
-        return false
+        // Variable names with explicit network signals — flag these
+        let networkHints = ["remote", "endpoint", "api", "server", "network", "http", "web", "download", "request", "host"]
+        for hint in networkHints where lowerText.contains(hint) {
+            return false
+        }
+
+        // Ambiguous variable name (e.g. plain `url`, `manifestURL`, `coverageReport`):
+        // without data-flow analysis we can't determine the URL scheme, so default to
+        // local to avoid false positives.
+        return true
     }
 
     /// Checks URLSession.dataTask calls for proper error handling

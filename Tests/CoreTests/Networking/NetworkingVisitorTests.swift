@@ -32,8 +32,7 @@ struct NetworkingVisitorTests {
     @Test func detectsSynchronousNetworking() throws {
         let visitor = NetworkingVisitor(patternCategory: .networking)
         let source = """
-        let url = URL(string: "https://example.com")!
-        let data = try Data(contentsOf: url)
+        let data = try Data(contentsOf: URL(string: "https://example.com")!)
         """
 
         let syntax = Parser.parse(source: source)
@@ -224,10 +223,8 @@ struct NetworkingVisitorTests {
     @Test func detectsMultipleSynchronousDataCalls() throws {
         let visitor = NetworkingVisitor(patternCategory: .networking)
         let source = """
-        let url1 = URL(string: "https://example.com")!
-        let data1 = try Data(contentsOf: url1)
-        let url2 = URL(string: "https://example2.com")!
-        let data2 = try Data(contentsOf: url2)
+        let data1 = try Data(contentsOf: URL(string: "https://example.com")!)
+        let data2 = try Data(contentsOf: URL(string: "https://example2.com")!)
         """
         
         let syntax = Parser.parse(source: source)
@@ -246,9 +243,9 @@ struct NetworkingVisitorTests {
     @Test func detectsBothSynchronousDataAndMissingErrorHandling() throws {
         let visitor = NetworkingVisitor(patternCategory: .networking)
         let source = """
-        let url = URL(string: "https://example.com")!
-        let data = try Data(contentsOf: url)
-        URLSession.shared.dataTask(with: url) { data, response in
+        let remoteURL = URL(string: "https://example.com")!
+        let data = try Data(contentsOf: remoteURL)
+        URLSession.shared.dataTask(with: remoteURL) { data, response in
             // No error handling
         }.resume()
         """
@@ -271,8 +268,7 @@ struct NetworkingVisitorTests {
         visitor.setFilePath("test/file.swift")
 
         let source = """
-        let url = URL(string: "https://example.com")!
-        let data = try Data(contentsOf: url)
+        let data = try Data(contentsOf: URL(string: "https://example.com")!)
         """
 
         let syntax = Parser.parse(source: source)
@@ -371,8 +367,8 @@ struct NetworkingVisitorTests {
     @Test func stillFlagsDataContentsOfWithRemoteURL() {
         let visitor = NetworkingVisitor(patternCategory: .networking)
         let source = """
-        let url = URL(string: "https://api.example.com/data")!
-        let data = try Data(contentsOf: url)
+        let remoteURL = URL(string: "https://api.example.com/data")!
+        let data = try Data(contentsOf: remoteURL)
         """
         let syntax = Parser.parse(source: source)
         let converter = SourceLocationConverter(fileName: "test.swift", tree: syntax)
