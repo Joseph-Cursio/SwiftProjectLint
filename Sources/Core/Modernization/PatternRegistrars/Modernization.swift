@@ -4,7 +4,7 @@ import Foundation
 /// This registrar handles patterns for outdated APIs that have modern Swift replacements,
 /// including legacy C functions, GCD patterns, callback-based APIs, and deprecated SwiftUI patterns.
 
-class Modernization: PatternRegistrarWithVisitorProto {
+class Modernization: PatternRegistrarWithVisitorProtocol {
 
     let registry: SourcePatternRegistry
     let visitorRegistry: PatternVisitorRegistryProtocol

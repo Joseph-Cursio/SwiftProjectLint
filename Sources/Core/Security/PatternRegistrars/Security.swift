@@ -3,7 +3,7 @@ import Foundation
 /// Registers patterns related to security best practices in SwiftUI applications.
 /// This registrar handles patterns for secure coding, credential management, and URL safety.
 
-class Security: PatternRegistrarWithVisitorProto {
+class Security: PatternRegistrarWithVisitorProtocol {
     
     let registry: SourcePatternRegistry
     let visitorRegistry: PatternVisitorRegistryProtocol

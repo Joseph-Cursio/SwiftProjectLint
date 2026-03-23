@@ -8,6 +8,7 @@
 // Safety: @unchecked Sendable because the only non-Sendable field is `visitor`
 // (a metatype `PatternVisitorProtocol.Type`). Metatypes are immutable and
 // inherently thread-safe — they carry no mutable state.
+/// A registered lint pattern that pairs a rule identifier with its visitor, severity, and metadata.
 public struct SyntaxPattern: @unchecked Sendable {
     public let name: RuleIdentifier
     public let visitor: PatternVisitorProtocol.Type

@@ -3,7 +3,7 @@ import Foundation
 /// Registers patterns related to networking best practices in SwiftUI.
 /// This registrar handles patterns for error handling, async operations, and network safety.
 
-class Networking: PatternRegistrarWithVisitorProto {
+class Networking: PatternRegistrarWithVisitorProtocol {
 
     let registry: SourcePatternRegistry
     let visitorRegistry: PatternVisitorRegistryProtocol

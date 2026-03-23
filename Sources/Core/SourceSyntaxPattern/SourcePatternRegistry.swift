@@ -25,7 +25,7 @@ public final class SourcePatternRegistry: SourcePatternRegistryProtocol, @unchec
     private var isInitialized = false
 
     /// Pattern registrars for each category.
-    private lazy var patternRegistrars: [PatternCategory: PatternRegistrarWithVisitorProto] = [
+    private lazy var patternRegistrars: [PatternCategory: PatternRegistrarWithVisitorProtocol] = [
         .stateManagement: StateManagement(registry: self, visitorRegistry: visitorRegistry),
         .performance: Performance(registry: self, visitorRegistry: visitorRegistry),
         .security: Security(registry: self, visitorRegistry: visitorRegistry),

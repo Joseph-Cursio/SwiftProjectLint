@@ -2,6 +2,7 @@ import Foundation
 import SwiftParser
 import SwiftSyntax
 
+/// Runs registered pattern visitors against Swift source files and aggregates lint issues.
 public final class SourcePatternDetector: SourcePatternDetectorProtocol, @unchecked Sendable {
     public let registry: PatternVisitorRegistry
 

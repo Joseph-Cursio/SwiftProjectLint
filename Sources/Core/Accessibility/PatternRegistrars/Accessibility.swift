@@ -3,7 +3,7 @@ import Foundation
 /// Registers patterns related to accessibility best practices in SwiftUI.
 /// This registrar handles patterns for accessibility labels, hints, and color usage.
 
-class Accessibility: PatternRegistrarWithVisitorProto {
+class Accessibility: PatternRegistrarWithVisitorProtocol {
     
     let registry: SourcePatternRegistry
     let visitorRegistry: PatternVisitorRegistryProtocol

@@ -3,7 +3,7 @@ import Foundation
 /// Registers patterns related to performance optimization in SwiftUI.
 /// This registrar handles patterns for view body optimization, ForEach usage, and performance anti-patterns.
 
-class Performance: PatternRegistrarWithVisitorProto {
+class Performance: PatternRegistrarWithVisitorProtocol {
 
     let registry: SourcePatternRegistry
     let visitorRegistry: PatternVisitorRegistryProtocol

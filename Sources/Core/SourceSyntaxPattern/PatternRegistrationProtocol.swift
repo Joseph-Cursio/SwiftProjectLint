@@ -18,7 +18,7 @@ protocol PatternRegistrarProtocol {
 
 /// Protocol for pattern registration that requires access to the visitor registry.
 
-protocol PatternRegistrarWithVisitorProto {
+protocol PatternRegistrarWithVisitorProtocol {
     /// The registry that owns this registrar.
     var registry: SourcePatternRegistry { get }
     

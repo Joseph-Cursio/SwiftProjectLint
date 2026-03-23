@@ -3,7 +3,7 @@ import Foundation
 /// Registers patterns related to architectural best practices in SwiftUI.
 /// This registrar handles patterns for dependency injection, coupling, and architectural principles.
 
-class Architecture: PatternRegistrarWithVisitorProto {
+class Architecture: PatternRegistrarWithVisitorProtocol {
     
     let registry: SourcePatternRegistry
     let visitorRegistry: PatternVisitorRegistryProtocol
