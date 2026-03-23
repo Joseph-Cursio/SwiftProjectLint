@@ -32,7 +32,7 @@ class SwiftUIManagementVisitor: BasePatternVisitor {
         let checkForDuplicates: Bool
         let checkForUnused: Bool
 
-        static let `default` = Configuration(
+        fileprivate static let `default` = Configuration(
             maxStateVariables: 5,
             checkForDuplicates: true,
             checkForUnused: true
@@ -227,7 +227,7 @@ class SwiftUIManagementVisitor: BasePatternVisitor {
 
     // MARK: - Cross-File Analysis
 
-    func performCrossFileAnalysis() {
+    private func performCrossFileAnalysis() {
         guard config.checkForDuplicates else { return }
 
         // Group state variables by name

@@ -114,6 +114,15 @@ struct LintIssueRow: View {
         Image(systemName: severityIconName)
             .foregroundStyle(severityColor)
             .font(.title2)
+            .accessibilityLabel(severityAccessibilityLabel)
+    }
+
+    private var severityAccessibilityLabel: String {
+        switch issue.severity {
+        case .error: return "Error"
+        case .warning: return "Warning"
+        case .info: return "Info"
+        }
     }
 
     private var severityIconName: String {

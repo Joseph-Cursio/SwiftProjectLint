@@ -150,7 +150,7 @@ struct LintConfigurationTests {
         let rules = try #require(config.resolveRules(cliCategories: [.security]))
         // Only rules in both enabledOnly AND the security category
         #expect(rules.contains(.hardcodedSecret))
-        #expect(!rules.contains(.forceTry)) // forceTry is codeQuality, not security
+        #expect(rules.contains(.forceTry) == false) // forceTry is codeQuality, not security
     }
 
     // MARK: - applyOverrides with projectRoot

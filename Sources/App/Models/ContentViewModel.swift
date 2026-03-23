@@ -112,7 +112,7 @@ class ContentViewModel {
     }
 
     /// Builds a `LintConfiguration` from the current GUI state.
-    func buildConfiguration() -> LintConfiguration {
+    private func buildConfiguration() -> LintConfiguration {
         // Compute disabled rules (all rules not in enabledRuleNames)
         let allRules = Set(RuleIdentifier.allCases).subtracting([.unknown, .fileParsingError])
         let disabledRules = allRules.subtracting(enabledRuleNames)

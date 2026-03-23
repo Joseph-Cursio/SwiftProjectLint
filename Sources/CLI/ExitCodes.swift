@@ -3,11 +3,11 @@ import Core
 /// Determines the appropriate exit code based on detected issues and the configured threshold.
 struct ExitCodes {
     /// Exit code: no issues at or above the threshold severity.
-    static let clean: Int32 = 0
+    private static let clean: Int32 = 0
     /// Exit code: warnings found at or above threshold.
-    static let warnings: Int32 = 1
+    private static let warnings: Int32 = 1
     /// Exit code: errors found.
-    static let errors: Int32 = 2
+    private static let errors: Int32 = 2
 
     /// Computes the exit code for a set of lint issues given a severity threshold.
     ///

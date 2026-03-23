@@ -33,7 +33,7 @@ class StateVariableVisitor: SyntaxVisitor {
     struct VisitorConfig {
         let strictTypeChecking: Bool
 
-        static let `default` = VisitorConfig(
+        fileprivate static let `default` = VisitorConfig(
             strictTypeChecking: false
         )
 

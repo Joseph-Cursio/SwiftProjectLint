@@ -14,7 +14,7 @@ class MemoryManagementVisitor: BasePatternVisitor {
         /// Whether to detect large objects in state
         let detectLargeObjects: Bool
 
-        static let `default` = Configuration(
+        fileprivate static let `default` = Configuration(
             maxArraySize: 100,
             detectRetainCycles: true,
             detectLargeObjects: true
