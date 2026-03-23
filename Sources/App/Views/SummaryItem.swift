@@ -19,3 +19,9 @@ struct SummaryItem: View {
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
+
+#Preview {
+    SummaryItem(title: "Errors", value: "3", color: .red)
+        .padding()
+        .frame(width: 120)
+}

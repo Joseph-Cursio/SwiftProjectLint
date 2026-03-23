@@ -2,7 +2,7 @@ import SwiftUI
 import Core
 
 /// Shared list body used by both `LintResultsView` and `FullScreenResultsView`.
-private struct IssueListContent: View {
+struct IssueListContent: View {
     let issues: [LintIssue]
 
     var body: some View {
@@ -87,26 +87,6 @@ struct LintResultsView: View {
         IssueListContent(issues: issues)
             .frame(minHeight: 200, maxHeight: .infinity)
             .layoutPriority(1)
-    }
-}
-
-/// A full-screen view for displaying lint results with maximum space utilization.
-struct FullScreenResultsView: View {
-    let issues: [LintIssue]
-    @Environment(\.dismiss) private var dismiss
-
-    var body: some View {
-        NavigationStack {
-            IssueListContent(issues: issues)
-                .navigationTitle("Lint Results (\(issues.count) issues)")
-            .toolbar {
-                ToolbarItem(placement: .primaryAction) {
-                    Button("Done") {
-                        dismiss()
-                    }
-                }
-            }
-        }
     }
 }
 

@@ -147,3 +147,15 @@ struct LintIssueRow: View {
         }
     }
 }
+
+#Preview {
+    let issue = LintIssue(
+        severity: .warning,
+        message: "Large view body detected",
+        filePath: "ContentView.swift",
+        lineNumber: 42,
+        suggestion: "Extract subviews to reduce complexity.",
+        ruleName: .fatView
+    )
+    return List { LintIssueRow(issue: issue, isExpanded: true) }
+}
