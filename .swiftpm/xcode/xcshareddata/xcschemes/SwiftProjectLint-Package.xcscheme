@@ -67,9 +67,9 @@
             skipped = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "SwiftProjectLintCoreTests"
-               BuildableName = "SwiftProjectLintCoreTests"
-               BlueprintName = "SwiftProjectLintCoreTests"
+               BlueprintIdentifier = "CoreTests"
+               BuildableName = "CoreTests"
+               BlueprintName = "CoreTests"
                ReferencedContainer = "container:">
             </BuildableReference>
          </TestableReference>
@@ -77,9 +77,9 @@
             skipped = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "SwiftProjectLintTests"
-               BuildableName = "SwiftProjectLintTests"
-               BlueprintName = "SwiftProjectLintTests"
+               BlueprintIdentifier = "AppTests"
+               BuildableName = "AppTests"
+               BlueprintName = "AppTests"
                ReferencedContainer = "container:">
             </BuildableReference>
          </TestableReference>
@@ -87,9 +87,9 @@
             skipped = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "SwiftProjectLintCLITests"
-               BuildableName = "SwiftProjectLintCLITests"
-               BlueprintName = "SwiftProjectLintCLITests"
+               BlueprintIdentifier = "CLITests"
+               BuildableName = "CLITests"
+               BlueprintName = "CLITests"
                ReferencedContainer = "container:">
             </BuildableReference>
          </TestableReference>

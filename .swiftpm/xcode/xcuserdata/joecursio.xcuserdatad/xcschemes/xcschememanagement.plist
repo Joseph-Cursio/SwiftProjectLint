@@ -37,7 +37,7 @@
 			<key>primary</key>
 			<true/>
 		</dict>
-		<key>SwiftProjectLintCLITests</key>
+		<key>CLITests</key>
 		<dict>
 			<key>primary</key>
 			<true/>
@@ -47,17 +47,17 @@
 			<key>primary</key>
 			<true/>
 		</dict>
-		<key>SwiftProjectLintCoreTests</key>
+		<key>CoreTests</key>
 		<dict>
 			<key>primary</key>
 			<true/>
 		</dict>
-		<key>SwiftProjectLintTests</key>
+		<key>AppTests</key>
 		<dict>
 			<key>primary</key>
 			<true/>
 		</dict>
-		<key>SwiftProjectLintUITests</key>
+		<key>UITests</key>
 		<dict>
 			<key>primary</key>
 			<true/>

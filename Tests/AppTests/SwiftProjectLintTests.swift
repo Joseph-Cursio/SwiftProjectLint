@@ -1,7 +1,7 @@
 import Testing
 
 @Suite
-struct SwiftProjectLintTests {
+struct AppTests {
     @Test("Sanity check: basic arithmetic")
     func testBasicSanity() {
         #expect(2 + 2 == 4)

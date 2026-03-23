@@ -3,7 +3,7 @@ import Foundation
 @testable import SwiftProjectLintCLI
 
 @Suite
-struct SwiftProjectLintCLITests {
+struct CLITests {
 
     // MARK: - Helpers
 
@@ -51,7 +51,7 @@ struct SwiftProjectLintCLITests {
     /// A temporary empty directory for testing.
     private func makeTemporaryDirectory() throws -> URL {
         let dir = FileManager.default.temporaryDirectory
-            .appendingPathComponent("SwiftProjectLintCLITests-\(UUID().uuidString)")
+            .appendingPathComponent("CLITests-\(UUID().uuidString)")
         try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
         return dir
     }

@@ -19,5 +19,5 @@ check_target() {
   done
 }
 
-check_target "SwiftProjectLintTests" "SwiftProjectLintTests"
-check_target "SwiftProjectLintCoreTests" "SwiftProjectLintCoreTests"
+check_target "AppTests" "AppTests"
+check_target "CoreTests" "CoreTests"

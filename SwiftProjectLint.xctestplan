@@ -20,15 +20,15 @@
     {
       "target" : {
         "containerPath" : "container:",
-        "identifier" : "SwiftProjectLintCoreTests",
-        "name" : "SwiftProjectLintCoreTests"
+        "identifier" : "CoreTests",
+        "name" : "CoreTests"
       }
     },
     {
       "target" : {
         "containerPath" : "container:",
-        "identifier" : "SwiftProjectLintTests",
-        "name" : "SwiftProjectLintTests"
+        "identifier" : "AppTests",
+        "name" : "AppTests"
       }
     }
   ],

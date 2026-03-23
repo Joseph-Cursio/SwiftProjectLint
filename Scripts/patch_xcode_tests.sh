@@ -59,10 +59,10 @@ add_files_to_target() {
 # You must set the correct PBXSourcesBuildPhase IDs for your test targets.
 # Find these in your project.pbxproj (look for PBXSourcesBuildPhase for each test target).
 # Example IDs (replace with your actual IDs if different):
-#   SwiftProjectLintTests:    2805B49A2E149DAC0018C12A
-#   SwiftProjectLintCoreTests:28B7966A2E19EDA400AE3C7B
+#   AppTests:    2805B49A2E149DAC0018C12A
+#   CoreTests:28B7966A2E19EDA400AE3C7B
 
-add_files_to_target "SwiftProjectLintTests" "SwiftProjectLintTests" "2805B49A2E149DAC0018C12A"
-add_files_to_target "SwiftProjectLintCoreTests" "SwiftProjectLintCoreTests" "28B7966A2E19EDA400AE3C7B"
+add_files_to_target "AppTests" "AppTests" "2805B49A2E149DAC0018C12A"
+add_files_to_target "CoreTests" "CoreTests" "28B7966A2E19EDA400AE3C7B"
 
 echo "Done. Please open Xcode and verify the test files are now included in the test targets."

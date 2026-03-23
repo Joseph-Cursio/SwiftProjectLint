@@ -341,7 +341,7 @@ This section outlines the immediate next steps for refactoring, testing, and imp
 - **UI Tests**
   - ViewInspector tests cover ContentView, ContentViewModel, LintResultsView, IssueSummarySection, LintIssueRow, SummaryItem, ContentViewHeader, ContentViewActions, ContentViewProgress, ContentViewResults, and RuleSelectionDialog
   - Expand: error states, full user interaction workflows, accessibility validation
-  - Expand test scenarios in `SwiftProjectLintUITests` (XCUITest)
+  - Expand test scenarios in `UITests` (XCUITest)
 
 - **Test Automation**
   - Integrate test scripts like `check_test_target_files.sh` and `patch_xcode_tests.sh` into CI/CD pipelines
@@ -354,7 +354,7 @@ This section outlines the immediate next steps for refactoring, testing, and imp
   - Ensure consistency across documentation
 
 - **Inline Documentation**
-  - Add comments to clarify complex logic in `SwiftProjectLintCore` and `SwiftProjectLintTests`
+  - Add comments to clarify complex logic in `SwiftProjectLintCore` and `AppTests`
   - Document public APIs and key algorithms
   - Improve code readability
 

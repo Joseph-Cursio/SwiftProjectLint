@@ -16,21 +16,21 @@
       "target" : {
         "containerPath" : "container:SwiftProjectLint.xcodeproj",
         "identifier" : "28B7966D2E19EDA400AE3C7B",
-        "name" : "SwiftProjectLintCoreTests"
+        "name" : "CoreTests"
       }
     },
     {
       "target" : {
         "containerPath" : "container:SwiftProjectLint.xcodeproj",
         "identifier" : "2805B4A72E149DAC0018C12A",
-        "name" : "SwiftProjectLintUITests"
+        "name" : "UITests"
       }
     },
     {
       "target" : {
         "containerPath" : "container:SwiftProjectLint.xcodeproj",
         "identifier" : "2805B49D2E149DAC0018C12A",
-        "name" : "SwiftProjectLintTests"
+        "name" : "AppTests"
       }
     }
   ],

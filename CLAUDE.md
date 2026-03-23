@@ -12,10 +12,10 @@ swift build
 swift test
 
 # Run a specific test file
-swift test --filter SwiftProjectLintCoreTests.ArchitectureFatViewTests
+swift test --filter CoreTests.ArchitectureFatViewTests
 
 # Run a specific test method
-swift test --filter "SwiftProjectLintCoreTests.ArchitectureFatViewTests/testFatViewDetection"
+swift test --filter "CoreTests.ArchitectureFatViewTests/testFatViewDetection"
 
 # Resolve dependencies after modifying Package.swift
 swift package resolve
@@ -36,11 +36,11 @@ xcrun llvm-cov report .build/debug/SwiftProjectLintPackageTests.xctest/Contents/
 xcrun llvm-cov export .build/debug/SwiftProjectLintPackageTests.xctest/Contents/MacOS/SwiftProjectLintPackageTests -instr-profile .build/debug/codecov/default.profdata -format=lcov > coverage.lcov
 
 # Run ViewInspector UI tests (SwiftUI view tests)
-swift test --filter SwiftProjectLintTests
+swift test --filter AppTests
 
 # Run a specific ViewInspector test
-swift test --filter "SwiftProjectLintTests.ContentViewTests"
-swift test --filter "SwiftProjectLintTests.LintResultsViewTests"
+swift test --filter "AppTests.ContentViewTests"
+swift test --filter "AppTests.LintResultsViewTests"
 
 # Run the CLI tool
 swift run SwiftProjectLintCLI /path/to/project
@@ -52,12 +52,12 @@ swift run SwiftProjectLintCLI /path/to/project --format json
 swift run SwiftProjectLintCLI /path/to/project --categories stateManagement performance --threshold error
 
 # Run CLI tests
-swift test --filter SwiftProjectLintCLITests
+swift test --filter CLITests
 ```
 
 **Note on UI Testing:**
-- **ViewInspector tests** (`Tests/SwiftProjectLintTests/`): Run via SPM with `swift test`. These test SwiftUI view structure, content, and interactions.
-- **XCUITest tests** (`Tests/SwiftProjectLintUITests/`): Run through Xcode only. These are integration tests for the full app.
+- **ViewInspector tests** (`Tests/AppTests/`): Run via SPM with `swift test`. These test SwiftUI view structure, content, and interactions.
+- **XCUITest tests** (`Tests/UITests/`): Run through Xcode only. These are integration tests for the full app.
 
 ## Project Architecture
 
@@ -113,7 +113,7 @@ Pattern registration uses `SwiftSyntaxPatternRegistry` (singleton) and `SourcePa
 
 ## UI Testing with ViewInspector
 
-The project uses [ViewInspector](https://github.com/nalexn/ViewInspector) for SwiftUI view testing. Tests are in `Tests/SwiftProjectLintTests/`.
+The project uses [ViewInspector](https://github.com/nalexn/ViewInspector) for SwiftUI view testing. Tests are in `Tests/AppTests/`.
 
 ### Writing ViewInspector Tests
 
@@ -165,17 +165,17 @@ struct MyViewTests {
 
 ### Test File Locations
 
-- `Tests/SwiftProjectLintTests/ContentViewTests.swift` - Main view tests
-- `Tests/SwiftProjectLintTests/LintResultsViewTests.swift` - Results display tests
-- `Tests/SwiftProjectLintTests/RuleSelectionDialogTests.swift` - Dialog tests
-- `Tests/SwiftProjectLintTests/ContentView*Tests.swift` - Component tests
+- `Tests/AppTests/ContentViewTests.swift` - Main view tests
+- `Tests/AppTests/LintResultsViewTests.swift` - Results display tests
+- `Tests/AppTests/RuleSelectionDialogTests.swift` - Dialog tests
+- `Tests/AppTests/ContentView*Tests.swift` - Component tests
 
 ## Coding Conventions
 
 - Use `RuleIdentifier` enum cases directly (not `RuleIdentifier(rawValue:)`)
 - Pattern visitors should inherit from `BasePatternVisitor`
 - New rules need: a visitor, a pattern registrar entry, and a `RuleIdentifier` case
-- Tests are organized to mirror the source structure under `Tests/SwiftProjectLintCoreTests/`
+- Tests are organized to mirror the source structure under `Tests/CoreTests/`
 - UI tests use Swift Testing framework (`@Test`, `#expect`) with ViewInspector
 
 ## Known Technical Debt

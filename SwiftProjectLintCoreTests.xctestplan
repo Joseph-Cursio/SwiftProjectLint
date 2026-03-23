@@ -17,7 +17,7 @@
       "target" : {
         "containerPath" : "container:SwiftProjectLint.xcodeproj",
         "identifier" : "28B7966D2E19EDA400AE3C7B",
-        "name" : "SwiftProjectLintCoreTests"
+        "name" : "CoreTests"
       }
     }
   ],

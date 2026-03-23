@@ -1,6 +1,6 @@
 //
 //  SwiftProjectLintCoreTests.swift
-//  SwiftProjectLintCoreTests
+//  CoreTests
 //
 //  Created by Joseph Cursio on 7/5/25.
 //
@@ -8,8 +8,8 @@
 import Testing
 @testable import SwiftProjectLintCore
 
-@Suite
-struct SwiftProjectLintCoreTests {
+@Suite("Core Module Tests")
+struct CoreModuleTests {
 
     @Test func testCoreModuleImports() throws {
         // Test that all core modules can be imported and accessed

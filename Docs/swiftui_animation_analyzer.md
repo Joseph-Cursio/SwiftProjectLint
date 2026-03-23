@@ -391,10 +391,10 @@ struct AnimationPatternRegistrar {
 
 ### 8.1 Test File Structure
 
-Create tests under `Tests/SwiftProjectLintCoreTests/Animation/`:
+Create tests under `Tests/CoreTests/Animation/`:
 
 ```
-Tests/SwiftProjectLintCoreTests/Animation/
+Tests/CoreTests/Animation/
 ├── DeprecatedAnimationVisitorTests.swift (EXISTS)
 ├── AnimationVisitorTests.swift (EXISTS)
 ├── AnimationPerformanceVisitorTests.swift (NEW)

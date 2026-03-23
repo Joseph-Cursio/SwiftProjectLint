@@ -58,28 +58,28 @@ let package = Package(
             ]
         ),
         .testTarget(
-            name: "SwiftProjectLintCLITests",
+            name: "CLITests",
             dependencies: ["SwiftProjectLintCore", "SwiftProjectLintCLI"],
-            path: "Tests/SwiftProjectLintCLITests"
+            path: "Tests/CLITests"
         ),
         .testTarget(
-            name: "SwiftProjectLintCoreTests",
+            name: "CoreTests",
             dependencies: ["SwiftProjectLintCore"],
-            path: "Tests/SwiftProjectLintCoreTests"
+            path: "Tests/CoreTests"
         ),
         .testTarget(
-            name: "SwiftProjectLintTests",
+            name: "AppTests",
             dependencies: ["SwiftProjectLintCore", "SwiftProjectLint", "ViewInspector"],
-            path: "Tests/SwiftProjectLintTests",
+            path: "Tests/AppTests",
             swiftSettings: [
                 .enableUpcomingFeature("MemberImportVisibility")
             ]
         )
         // UI tests are configured in Xcode project and should be run through Xcode
         // .testTarget(
-        //     name: "SwiftProjectLintUITests",
+        //     name: "UITests",
         //     dependencies: ["SwiftProjectLint"],
-        //     path: "Tests/SwiftProjectLintUITests"
+        //     path: "Tests/UITests"
         // ),
     ]
 ) 

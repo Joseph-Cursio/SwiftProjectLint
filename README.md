@@ -405,8 +405,8 @@ SwiftProjectLint/
 │   ├── SwiftProjectLint/         # Main app target (UI, CLI, etc.)
 │   └── SwiftProjectLintCore/     # Core library target (analysis, detection, etc.)
 ├── Tests/
-│   ├── SwiftProjectLintTests/        # Tests for the main app target
-│   └── SwiftProjectLintCoreTests/    # Tests for the core library target
+│   ├── AppTests/        # Tests for the main app target
+│   └── CoreTests/    # Tests for the core library target
 ├── Docs/                        # Documentation and design notes
 ├── Scripts/                     # Utility scripts
 ├── Output/                      # Build artifacts or generated files

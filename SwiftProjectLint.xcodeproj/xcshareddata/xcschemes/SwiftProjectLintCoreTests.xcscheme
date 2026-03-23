@@ -14,7 +14,7 @@
       shouldUseLaunchSchemeArgsEnv = "YES">
       <TestPlans>
          <TestPlanReference
-            reference = "container:SwiftProjectLintCoreTests.xctestplan"
+            reference = "container:CoreTests.xctestplan"
             default = "YES">
          </TestPlanReference>
       </TestPlans>
@@ -25,8 +25,8 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "28B7966D2E19EDA400AE3C7B"
-               BuildableName = "SwiftProjectLintCoreTests.xctest"
-               BlueprintName = "SwiftProjectLintCoreTests"
+               BuildableName = "CoreTests.xctest"
+               BlueprintName = "CoreTests"
                ReferencedContainer = "container:SwiftProjectLint.xcodeproj">
             </BuildableReference>
          </TestableReference>

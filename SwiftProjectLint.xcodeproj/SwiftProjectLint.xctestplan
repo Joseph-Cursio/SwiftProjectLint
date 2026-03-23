@@ -29,7 +29,7 @@
   },
   "testTargets" : [
     {
-      "target" : "SwiftProjectLintCoreTests"
+      "target" : "CoreTests"
     }
   ],
   "version" : 1
