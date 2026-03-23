@@ -17,45 +17,10 @@ public struct PatternDetectionSystem: Sendable {
     }
 }
 
-/// Factory for creating and configuring pattern registries.
+/// Factory for creating pattern registry components with dependency injection.
 ///
-/// This factory replaces the singleton pattern with dependency injection,
-/// making the codebase more testable and maintainable.
-///
-/// ## Overview
-/// PatternRegistryFactory is a class that provides methods for creating and configuring different components
-/// related to pattern detection in Swift code. It follows a factory pattern, which allows for the creation of new
-/// instances of objects without exposing their instantiation logic. This design promotes loose coupling and
-/// makes the codebase more testable.
-///
-/// Here's a breakdown of what each method in PatternRegistryFactory does:
-///
-/// 1. createVisitorRegistry():
-/// • Creates a new instance of PatternVisitorRegistry. This registry is used to store and manage different
-/// pattern detection rules or visitors.
-///
-/// 2. createPatternRegistry(visitorRegistry: PatternVisitorRegistry? = nil):
-/// • Creates a new instance of SourcePatternRegistry. This registry is responsible for managing patterns specific to
-/// Swift syntax. If a visitor registry is provided, it uses that one; otherwise, it creates its own.
-///
-/// 3. createPatternDetector(registry: PatternVisitorRegistry? = nil):
-/// • Creates a new instance of SourcePatternDetector. This detector uses the pattern registry to detect patterns in Swift
-/// code. If a  visitor registry is provided, it uses that one; otherwise, it creates its own.
-///
-/// 4. createConfiguredSystem():
-/// • Creates a fully configured system by initializing all components needed for pattern detection:
-///     • A PatternVisitorRegistry
-///     • A SourcePatternRegistry initialized with patterns
-///     • A SourcePatternDetector
-/// • Returns a tuple containing all these components.
-///
-/// 5. createTestSystem():
-/// • Creates a clean system suitable for testing, with no pre-registered patterns. It returns the same components as
-/// createConfiguredSystem() but without any initial patterns.
-///
-/// These methods help in creating different configurations of pattern detection systems,  making it easier to test and
-/// integrate various components in a modular manner.
-///
+/// Prefer `createConfiguredSystem()` for production use and `createTestSystem()`
+/// for tests that need a clean slate with no pre-registered patterns.
 public class PatternRegistryFactory {
 
     /// Creates a new pattern visitor registry instance.
