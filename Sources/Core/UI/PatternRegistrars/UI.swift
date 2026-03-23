@@ -3,17 +3,8 @@ import Foundation
 /// Registers patterns related to UI best practices in SwiftUI.
 /// This registrar handles patterns for navigation, ForEach usage, styling, and error handling.
 
-class UI: PatternRegistrarWithVisitorProtocol {
-    
-    let registry: SourcePatternRegistry
-    let visitorRegistry: PatternVisitorRegistryProtocol
-    
-    init(registry: SourcePatternRegistry, visitorRegistry: PatternVisitorRegistryProtocol) {
-        self.registry = registry
-        self.visitorRegistry = visitorRegistry
-    }
-    
-    func registerPatterns() {
+class UI: BasePatternRegistrar {
+    override func registerPatterns() {
         let patterns = [
             SyntaxPattern(
                 name: .nestedNavigationView,

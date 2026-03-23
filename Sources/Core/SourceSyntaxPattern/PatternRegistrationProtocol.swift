@@ -10,10 +10,26 @@ protocol PatternRegistrar {
 protocol PatternRegistrarWithVisitorProtocol {
     /// The registry that owns this registrar.
     var registry: SourcePatternRegistry { get }
-    
+
     /// The visitor registry for pattern registration.
     var visitorRegistry: PatternVisitorRegistryProtocol { get }
-    
+
     /// Registers patterns for the specific category.
     func registerPatterns()
-} 
+}
+
+/// Base class for category-level registrars.
+///
+/// Subclasses inherit stored properties and the designated initializer, and need only
+/// override `registerPatterns()` to register their category's patterns.
+class BasePatternRegistrar: PatternRegistrarWithVisitorProtocol {
+    let registry: SourcePatternRegistry
+    let visitorRegistry: PatternVisitorRegistryProtocol
+
+    init(registry: SourcePatternRegistry, visitorRegistry: PatternVisitorRegistryProtocol) {
+        self.registry = registry
+        self.visitorRegistry = visitorRegistry
+    }
+
+    func registerPatterns() {}
+}
