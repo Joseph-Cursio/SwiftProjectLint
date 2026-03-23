@@ -302,7 +302,7 @@ struct StateVariableInfo {
 }
 
 /// Information about a view declaration detected during analysis.
-struct ViewDeclaration {
+fileprivate struct ViewDeclaration {
     let name: String
     let filePath: String
     let lineNumber: Int
@@ -342,7 +342,7 @@ extension SwiftUIManagementVisitor {
     }
 }
 
-class StateVariableCounter: SyntaxVisitor {
+fileprivate class StateVariableCounter: SyntaxVisitor {
     var stateVariableCount = 0
 
     override func visit(_ node: VariableDeclSyntax) -> SyntaxVisitorContinueKind {
