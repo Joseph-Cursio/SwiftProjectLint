@@ -8,14 +8,14 @@ struct CodeQualityHardcodedStringTests {
 
     // MARK: - Test Helper Methods
 
-    private func createVisitor() -> CodeQualityVisitor {
-        let visitor = CodeQualityVisitor(patternCategory: .codeQuality)
+    private func createVisitor() -> HardcodedStringVisitor {
+        let visitor = HardcodedStringVisitor(patternCategory: .codeQuality)
         visitor.setFilePath("TestFile.swift")
         return visitor
     }
 
-    private func createStrictVisitor() -> CodeQualityVisitor {
-        let visitor = CodeQualityVisitor(patternCategory: .codeQuality, configuration: .strict)
+    private func createStrictVisitor() -> HardcodedStringVisitor {
+        let visitor = HardcodedStringVisitor(patternCategory: .codeQuality)
         visitor.setFilePath("TestFile.swift")
         return visitor
     }

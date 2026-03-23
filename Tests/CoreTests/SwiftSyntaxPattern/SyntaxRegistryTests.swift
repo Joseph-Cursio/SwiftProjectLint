@@ -45,7 +45,7 @@ struct SyntaxRegistryTests {
         let registry = makeRegistry()
         let pattern = SyntaxPattern(
             name: .magicNumber,
-            visitor: CodeQualityVisitor.self,
+            visitor: MagicNumberVisitor.self,
             severity: .info,
             category: .codeQuality,
             messageTemplate: "Test pattern",
@@ -61,7 +61,7 @@ struct SyntaxRegistryTests {
         let patterns = [
             SyntaxPattern(
                 name: .magicNumber,
-                visitor: CodeQualityVisitor.self,
+                visitor: MagicNumberVisitor.self,
                 severity: .info,
                 category: .codeQuality,
                 messageTemplate: "Pattern 1",
@@ -70,7 +70,7 @@ struct SyntaxRegistryTests {
             ),
             SyntaxPattern(
                 name: .hardcodedStrings,
-                visitor: CodeQualityVisitor.self,
+                visitor: HardcodedStringVisitor.self,
                 severity: .warning,
                 category: .codeQuality,
                 messageTemplate: "Pattern 2",

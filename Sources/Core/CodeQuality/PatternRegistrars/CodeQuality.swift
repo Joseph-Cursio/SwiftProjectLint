@@ -8,7 +8,7 @@ class CodeQuality: BasePatternRegistrar {
         let patterns = [
             SyntaxPattern(
                 name: .magicNumber,
-                visitor: CodeQualityVisitor.self,
+                visitor: MagicNumberVisitor.self,
                 severity: .info,
                 category: .codeQuality,
                 messageTemplate: "Magic number detected: {number}",
@@ -17,7 +17,7 @@ class CodeQuality: BasePatternRegistrar {
             ),
             SyntaxPattern(
                 name: .magicLayoutNumber,
-                visitor: CodeQualityVisitor.self,
+                visitor: MagicNumberVisitor.self,
                 severity: .info,
                 category: .codeQuality,
                 messageTemplate: "Magic layout number detected: {number}",
@@ -26,7 +26,7 @@ class CodeQuality: BasePatternRegistrar {
             ),
             SyntaxPattern(
                 name: .hardcodedStrings,
-                visitor: CodeQualityVisitor.self,
+                visitor: HardcodedStringVisitor.self,
                 severity: .info,
                 category: .codeQuality,
                 messageTemplate: "Consider localizing hardcoded text in user-facing view",
@@ -36,7 +36,7 @@ class CodeQuality: BasePatternRegistrar {
             ),
             SyntaxPattern(
                 name: .missingDocumentation,
-                visitor: CodeQualityVisitor.self,
+                visitor: DocumentationVisitor.self,
                 severity: .info,
                 category: .codeQuality,
                 messageTemplate: "Missing documentation for '{elementName}'",

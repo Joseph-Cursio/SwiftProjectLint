@@ -8,14 +8,14 @@ struct CodeQualityMagicNumberTests {
 
     // MARK: - Test Helper Methods
 
-    private func createVisitor() -> CodeQualityVisitor {
-        let visitor = CodeQualityVisitor(patternCategory: .codeQuality)
+    private func createVisitor() -> MagicNumberVisitor {
+        let visitor = MagicNumberVisitor(patternCategory: .codeQuality)
         visitor.setFilePath("TestFile.swift")
         return visitor
     }
 
-    private func createStrictVisitor() -> CodeQualityVisitor {
-        let visitor = CodeQualityVisitor(patternCategory: .codeQuality, configuration: .strict)
+    private func createStrictVisitor() -> MagicNumberVisitor {
+        let visitor = MagicNumberVisitor(patternCategory: .codeQuality, configuration: .strict)
         visitor.setFilePath("TestFile.swift")
         return visitor
     }

@@ -8,23 +8,24 @@ struct CodeQualityIntegrationTests {
 
     // MARK: - Test Helper Methods
 
-    private func createVisitor() -> CodeQualityVisitor {
-        let visitor = CodeQualityVisitor(patternCategory: .codeQuality)
-        visitor.setFilePath("TestFile.swift")
-        return visitor
-    }
-
-    private func createStrictVisitor() -> CodeQualityVisitor {
-        let visitor = CodeQualityVisitor(patternCategory: .codeQuality, configuration: .strict)
-        visitor.setFilePath("TestFile.swift")
-        return visitor
+    /// Runs all three code quality visitors over the given source and returns combined issues.
+    private func detect(_ sourceCode: String, filePath: String = "TestFile.swift") -> [LintIssue] {
+        let magicVisitor = MagicNumberVisitor(patternCategory: .codeQuality)
+        magicVisitor.setFilePath(filePath)
+        let stringVisitor = HardcodedStringVisitor(patternCategory: .codeQuality)
+        stringVisitor.setFilePath(filePath)
+        let docVisitor = DocumentationVisitor(patternCategory: .codeQuality)
+        docVisitor.setFilePath(filePath)
+        let sourceFile = Parser.parse(source: sourceCode)
+        magicVisitor.walk(sourceFile)
+        stringVisitor.walk(sourceFile)
+        docVisitor.walk(sourceFile)
+        return magicVisitor.detectedIssues + stringVisitor.detectedIssues + docVisitor.detectedIssues
     }
 
     // MARK: - Integration Tests
 
     @Test func testMultipleCodeQualityIssues() throws {
-        let visitor = createVisitor()
-
         let sourceCode = """
         public struct TestView: View {
             let retryCount: Int = 16
@@ -36,21 +37,25 @@ struct CodeQualityIntegrationTests {
         }
         """
 
-        let sourceFile = Parser.parse(source: sourceCode)
-        visitor.walk(sourceFile)
+        let issues = detect(sourceCode)
 
-        let magicNumberIssues = visitor.detectedIssues.filter { $0.ruleName == .magicNumber }
+        let magicNumberIssues = issues.filter { $0.ruleName == .magicNumber }
         #expect(magicNumberIssues.count == 2)
 
-        let hardcodedIssues = visitor.detectedIssues.filter { $0.ruleName == .hardcodedStrings }
+        let hardcodedIssues = issues.filter { $0.ruleName == .hardcodedStrings }
         #expect(hardcodedIssues.count == 1)
 
-        let documentationIssues = visitor.detectedIssues.filter { $0.ruleName == .missingDocumentation }
+        let documentationIssues = issues.filter { $0.ruleName == .missingDocumentation }
         #expect(documentationIssues.count == 1)
     }
 
     @Test func testConfigurationCharacterization() throws {
-        let visitor = createStrictVisitor()
+        let magicVisitor = MagicNumberVisitor(patternCategory: .codeQuality, configuration: .strict)
+        magicVisitor.setFilePath("TestFile.swift")
+        let stringVisitor = HardcodedStringVisitor(patternCategory: .codeQuality)
+        stringVisitor.setFilePath("TestFile.swift")
+        let docVisitor = DocumentationVisitor(patternCategory: .codeQuality, configuration: .strict)
+        docVisitor.setFilePath("TestFile.swift")
 
         let sourceCode = """
         public struct TestView: View {
@@ -64,37 +69,41 @@ struct CodeQualityIntegrationTests {
         """
 
         let sourceFile = Parser.parse(source: sourceCode)
-        visitor.walk(sourceFile)
+        magicVisitor.walk(sourceFile)
+        stringVisitor.walk(sourceFile)
+        docVisitor.walk(sourceFile)
+        let issues = magicVisitor.detectedIssues + stringVisitor.detectedIssues + docVisitor.detectedIssues
 
-        let magicNumberIssues = visitor.detectedIssues.filter { $0.ruleName == .magicNumber }
-        #expect(magicNumberIssues.count >= 2)
-
-        let hardcodedIssues = visitor.detectedIssues.filter { $0.ruleName == .hardcodedStrings }
-        #expect(hardcodedIssues.count >= 1)
-
-        let documentationIssues = visitor.detectedIssues.filter { $0.ruleName == .missingDocumentation }
-        #expect(documentationIssues.count >= 1)
+        #expect(issues.filter { $0.ruleName == .magicNumber }.count >= 2)
+        #expect(issues.filter { $0.ruleName == .hardcodedStrings }.count >= 1)
+        #expect(issues.filter { $0.ruleName == .missingDocumentation }.count >= 1)
     }
 
     // MARK: - Configuration Tests
 
-    @Test func testConfigurationDefault() {
-        let config = CodeQualityVisitor.Configuration.default
+    @Test func testMagicNumberConfigurationDefault() {
+        let config = MagicNumberVisitor.Configuration.default
         #expect(config.magicNumberThreshold == 10)
+    }
+
+    @Test func testMagicNumberConfigurationStrict() {
+        let config = MagicNumberVisitor.Configuration.strict
+        #expect(config.magicNumberThreshold == 5)
+    }
+
+    @Test func testDocumentationConfigurationDefault() {
+        let config = DocumentationVisitor.Configuration.default
         #expect(config.checkPublicAPIsOnly)
     }
 
-    @Test func testConfigurationStrict() {
-        let config = CodeQualityVisitor.Configuration.strict
-        #expect(config.magicNumberThreshold == 5)
+    @Test func testDocumentationConfigurationStrict() {
+        let config = DocumentationVisitor.Configuration.strict
         #expect(config.checkPublicAPIsOnly == false)
     }
 
     // MARK: - Documentation Tests
 
     @Test func testMissingDocumentationDetection() throws {
-        let visitor = createVisitor()
-
         let sourceCode = """
         public struct UndocumentedView: View {
             public func doSomething() {}
@@ -106,16 +115,12 @@ struct CodeQualityIntegrationTests {
         }
         """
 
-        let sourceFile = Parser.parse(source: sourceCode)
-        visitor.walk(sourceFile)
-
-        let docIssues = visitor.detectedIssues.filter { $0.ruleName == .missingDocumentation }
+        let issues = detect(sourceCode)
+        let docIssues = issues.filter { $0.ruleName == .missingDocumentation }
         #expect(docIssues.count == 4)
     }
 
     @Test func testDocumentedAPIsNoDetection() throws {
-        let visitor = createVisitor()
-
         let sourceCode = """
         /// A documented struct
         public struct DocumentedView: View {
@@ -127,16 +132,12 @@ struct CodeQualityIntegrationTests {
         }
         """
 
-        let sourceFile = Parser.parse(source: sourceCode)
-        visitor.walk(sourceFile)
-
-        let docIssues = visitor.detectedIssues.filter { $0.ruleName == .missingDocumentation }
+        let issues = detect(sourceCode)
+        let docIssues = issues.filter { $0.ruleName == .missingDocumentation }
         #expect(docIssues.isEmpty)
     }
 
     @Test func testPrivateAPIsNoDetection() throws {
-        let visitor = createVisitor()
-
         let sourceCode = """
         struct InternalView: View {
             func doSomething() {}
@@ -146,10 +147,8 @@ struct CodeQualityIntegrationTests {
         }
         """
 
-        let sourceFile = Parser.parse(source: sourceCode)
-        visitor.walk(sourceFile)
-
-        let docIssues = visitor.detectedIssues.filter { $0.ruleName == .missingDocumentation }
+        let issues = detect(sourceCode)
+        let docIssues = issues.filter { $0.ruleName == .missingDocumentation }
         #expect(docIssues.isEmpty)
     }
 }
