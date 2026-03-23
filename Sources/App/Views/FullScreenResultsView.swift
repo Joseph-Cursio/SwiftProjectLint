@@ -12,9 +12,7 @@ struct FullScreenResultsView: View {
                 .navigationTitle("Lint Results (\(issues.count) issues)")
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
-                    Button("Done") {
-                        dismiss()
-                    }
+                    Button("Done") { dismiss() }
                 }
             }
         }

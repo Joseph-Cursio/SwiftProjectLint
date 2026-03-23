@@ -19,24 +19,18 @@ struct ContentViewActions: View {
 
     var body: some View {
         VStack(spacing: 16) {
-            Button("Select Rules") {
-                onSelectRules()
-            }
+            Button("Select Rules", action: onSelectRules)
             .buttonStyle(.borderedProminent)
             .accessibilityLabel("Select Rules")
             .accessibilityIdentifier("selectRulesButton")
 
             if selectedDirectory.isEmpty {
-                Button("Run Project Analysis by Selecting a Folder...") {
-                    onSelectDirectory()
-                }
+                Button("Run Project Analysis by Selecting a Folder...", action: onSelectDirectory)
                 .buttonStyle(.bordered)
                 .accessibilityLabel("Run Project Analysis by Selecting a Folder...")
                 .accessibilityIdentifier("mainActionButton")
             } else {
-                Button("Analyze \(URL(fileURLWithPath: selectedDirectory).lastPathComponent)") {
-                    onAnalyzeProject()
-                }
+                Button("Analyze \(URL(fileURLWithPath: selectedDirectory).lastPathComponent)", action: onAnalyzeProject)
                 .buttonStyle(.borderedProminent)
                 .accessibilityLabel("Analyze \(URL(fileURLWithPath: selectedDirectory).lastPathComponent)")
                 .accessibilityIdentifier("mainActionButton")
