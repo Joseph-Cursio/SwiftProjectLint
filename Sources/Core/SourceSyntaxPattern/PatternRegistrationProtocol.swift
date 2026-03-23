@@ -4,6 +4,15 @@ import Foundation
 protocol PatternRegistrar {
     /// The syntax pattern to be registered.
     var pattern: SyntaxPattern { get }
+
+    /// All patterns provided by this registrar. Defaults to `[pattern]`.
+    ///
+    /// Override this property when a registrar provides multiple patterns.
+    var patterns: [SyntaxPattern] { get }
+}
+
+extension PatternRegistrar {
+    var patterns: [SyntaxPattern] { [pattern] }
 }
 
 /// Protocol for pattern registration that requires access to the visitor registry.
