@@ -9,7 +9,7 @@ struct ColorAccessibilityCheckerCoverageTests {
 
     // MARK: - Test Helper Methods
 
-    private func createVisitor() -> AccessibilityVisitor {
+    private func makeAccessibilityVisitor() -> AccessibilityVisitor {
         TestRegistryManager.initializeSharedRegistry()
         return AccessibilityVisitor(patternCategory: .accessibility)
     }
@@ -18,7 +18,7 @@ struct ColorAccessibilityCheckerCoverageTests {
 
     @Test("detects direct Color.red usage as accessibility concern")
     func detectsDirectColorUsage() throws {
-        let visitor = createVisitor()
+        let visitor = makeAccessibilityVisitor()
 
         let sourceCode = """
         struct StatusView: View {
@@ -43,7 +43,7 @@ struct ColorAccessibilityCheckerCoverageTests {
 
     @Test("detects Color.blue direct usage")
     func detectsColorBlueUsage() throws {
-        let visitor = createVisitor()
+        let visitor = makeAccessibilityVisitor()
 
         let sourceCode = """
         struct BadgeView: View {
@@ -65,7 +65,7 @@ struct ColorAccessibilityCheckerCoverageTests {
 
     @Test("detects Color.green direct usage")
     func detectsColorGreenUsage() {
-        let visitor = createVisitor()
+        let visitor = makeAccessibilityVisitor()
 
         let sourceCode = """
         struct IndicatorView: View {
@@ -89,7 +89,7 @@ struct ColorAccessibilityCheckerCoverageTests {
 
     @Test("foregroundColor with accessibilityLabel produces no issue")
     func foregroundColorWithAccessibilityLabel() {
-        let visitor = createVisitor()
+        let visitor = makeAccessibilityVisitor()
 
         let sourceCode = """
         struct ContentView: View {
@@ -112,7 +112,7 @@ struct ColorAccessibilityCheckerCoverageTests {
 
     @Test("foregroundColor with accessibilityHint produces no issue")
     func foregroundColorWithAccessibilityHint() {
-        let visitor = createVisitor()
+        let visitor = makeAccessibilityVisitor()
 
         let sourceCode = """
         struct ContentView: View {
@@ -135,7 +135,7 @@ struct ColorAccessibilityCheckerCoverageTests {
 
     @Test("foregroundColor with accessibilityValue produces no issue")
     func foregroundColorWithAccessibilityValue() {
-        let visitor = createVisitor()
+        let visitor = makeAccessibilityVisitor()
 
         let sourceCode = """
         struct ContentView: View {
@@ -160,7 +160,7 @@ struct ColorAccessibilityCheckerCoverageTests {
 
     @Test("Color.clear is not flagged")
     func colorClearNotFlagged() {
-        let visitor = createVisitor()
+        let visitor = makeAccessibilityVisitor()
 
         let sourceCode = """
         struct ContentView: View {
@@ -181,7 +181,7 @@ struct ColorAccessibilityCheckerCoverageTests {
 
     @Test("Color.gray is not flagged")
     func colorGrayNotFlagged() {
-        let visitor = createVisitor()
+        let visitor = makeAccessibilityVisitor()
 
         let sourceCode = """
         struct ContentView: View {
@@ -202,7 +202,7 @@ struct ColorAccessibilityCheckerCoverageTests {
 
     @Test("Color.accentColor is not flagged")
     func colorAccentColorNotFlagged() {
-        let visitor = createVisitor()
+        let visitor = makeAccessibilityVisitor()
 
         let sourceCode = """
         struct ContentView: View {
@@ -223,7 +223,7 @@ struct ColorAccessibilityCheckerCoverageTests {
 
     @Test("Color.secondary is not flagged")
     func colorSecondaryNotFlagged() {
-        let visitor = createVisitor()
+        let visitor = makeAccessibilityVisitor()
 
         let sourceCode = """
         struct ContentView: View {
@@ -246,7 +246,7 @@ struct ColorAccessibilityCheckerCoverageTests {
 
     @Test("Color.red.opacity(0.1) is not flagged as background tint")
     func lowOpacityNotFlagged() {
-        let visitor = createVisitor()
+        let visitor = makeAccessibilityVisitor()
 
         let sourceCode = """
         struct ContentView: View {
@@ -267,7 +267,7 @@ struct ColorAccessibilityCheckerCoverageTests {
 
     @Test("Color.green.opacity(0.2) is not flagged at threshold boundary")
     func opacityAtThresholdNotFlagged() {
-        let visitor = createVisitor()
+        let visitor = makeAccessibilityVisitor()
 
         let sourceCode = """
         struct ContentView: View {
@@ -288,7 +288,7 @@ struct ColorAccessibilityCheckerCoverageTests {
 
     @Test("Color.red.opacity(0.5) is still flagged above threshold")
     func highOpacityStillFlagged() {
-        let visitor = createVisitor()
+        let visitor = makeAccessibilityVisitor()
 
         let sourceCode = """
         struct ContentView: View {
@@ -309,7 +309,7 @@ struct ColorAccessibilityCheckerCoverageTests {
 
     @Test("Color.red without opacity is still flagged")
     func fullOpacityStillFlagged() {
-        let visitor = createVisitor()
+        let visitor = makeAccessibilityVisitor()
 
         let sourceCode = """
         struct ContentView: View {
@@ -332,7 +332,7 @@ struct ColorAccessibilityCheckerCoverageTests {
 
     @Test("non-color member access produces no color issue")
     func nonColorMemberAccessNoIssue() {
-        let visitor = createVisitor()
+        let visitor = makeAccessibilityVisitor()
 
         let sourceCode = """
         struct ContentView: View {

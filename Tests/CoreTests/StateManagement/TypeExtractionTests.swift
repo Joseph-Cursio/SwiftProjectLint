@@ -46,7 +46,7 @@ struct TypeExtractionTests {
         }
         """
 
-        let visitor = createVisitor(for: source)
+        let visitor = makeStateVariableVisitor(for: source)
         let stateVar = try #require(visitor.stateVariables.first)
 
         switch testCase.typeMatchMode {

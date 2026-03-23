@@ -9,7 +9,7 @@ struct ImageAccessibilityCheckerCoverageTests {
 
     // MARK: - Test Helper Methods
 
-    private func createVisitor() -> AccessibilityVisitor {
+    private func makeAccessibilityVisitor() -> AccessibilityVisitor {
         TestRegistryManager.initializeSharedRegistry()
         return AccessibilityVisitor(patternCategory: .accessibility)
     }
@@ -18,7 +18,7 @@ struct ImageAccessibilityCheckerCoverageTests {
 
     @Test("image inside button is not flagged separately for missing label")
     func imageInsideButtonNotFlaggedSeparately() {
-        let visitor = createVisitor()
+        let visitor = makeAccessibilityVisitor()
 
         // The Button checker handles accessibility for images inside buttons,
         // so the Image checker should skip them via isImageInButtons.
@@ -49,7 +49,7 @@ struct ImageAccessibilityCheckerCoverageTests {
 
     @Test("image inside button without label flags the button not the image")
     func imageInsideButtonWithoutLabelFlagsButton() {
-        let visitor = createVisitor()
+        let visitor = makeAccessibilityVisitor()
 
         let sourceCode = """
         struct ContentView: View {
@@ -82,7 +82,7 @@ struct ImageAccessibilityCheckerCoverageTests {
 
     @Test("standalone image without label is flagged")
     func standaloneImageWithoutLabel() throws {
-        let visitor = createVisitor()
+        let visitor = makeAccessibilityVisitor()
 
         let sourceCode = """
         struct ContentView: View {
@@ -109,7 +109,7 @@ struct ImageAccessibilityCheckerCoverageTests {
 
     @Test("multiple standalone images without labels are each flagged")
     func multipleStandaloneImagesWithoutLabels() {
-        let visitor = createVisitor()
+        let visitor = makeAccessibilityVisitor()
 
         let sourceCode = """
         struct ContentView: View {
@@ -134,7 +134,7 @@ struct ImageAccessibilityCheckerCoverageTests {
 
     @Test("system image without label is flagged")
     func systemImageWithoutLabel() {
-        let visitor = createVisitor()
+        let visitor = makeAccessibilityVisitor()
 
         let sourceCode = """
         struct ContentView: View {
@@ -157,7 +157,7 @@ struct ImageAccessibilityCheckerCoverageTests {
 
     @Test("image with accessibilityHidden is not flagged for missing label")
     func imageWithAccessibilityHiddenNotFlagged() {
-        let visitor = createVisitor()
+        let visitor = makeAccessibilityVisitor()
 
         let sourceCode = """
         struct ContentView: View {
@@ -179,7 +179,7 @@ struct ImageAccessibilityCheckerCoverageTests {
 
     @Test("decorative image with accessibilityHidden and other modifiers is not flagged")
     func decorativeImageWithMultipleModifiers() {
-        let visitor = createVisitor()
+        let visitor = makeAccessibilityVisitor()
 
         let sourceCode = """
         struct ContentView: View {
@@ -205,7 +205,7 @@ struct ImageAccessibilityCheckerCoverageTests {
 
     @Test("image inside Label icon closure is not flagged")
     func imageInsideLabelIconClosure() {
-        let visitor = createVisitor()
+        let visitor = makeAccessibilityVisitor()
 
         let sourceCode = """
         struct ContentView: View {
@@ -230,7 +230,7 @@ struct ImageAccessibilityCheckerCoverageTests {
 
     @Test("image outside Label is still flagged")
     func imageOutsideLabelStillFlagged() {
-        let visitor = createVisitor()
+        let visitor = makeAccessibilityVisitor()
 
         let sourceCode = """
         struct ContentView: View {

@@ -9,7 +9,7 @@ struct ButtonAccessibilityTests {
 
     // MARK: - Test Helper Methods
 
-    private func createVisitor() -> AccessibilityVisitor {
+    private func makeAccessibilityVisitor() -> AccessibilityVisitor {
         // Initialize shared registry if not already done
         TestRegistryManager.initializeSharedRegistry()
         return AccessibilityVisitor(patternCategory: .accessibility)
@@ -18,7 +18,7 @@ struct ButtonAccessibilityTests {
     // MARK: - Icon-Only Button Tests
 
     @Test func testIconOnlyButtonWithSystemImageMissingLabel() throws {
-        let visitor = createVisitor()
+        let visitor = makeAccessibilityVisitor()
 
         let sourceCode = """
         struct ContentView: View {
@@ -44,7 +44,7 @@ struct ButtonAccessibilityTests {
     }
 
     @Test func testIconOnlyButtonWithLabelClosureMissingLabel() throws {
-        let visitor = createVisitor()
+        let visitor = makeAccessibilityVisitor()
 
         let sourceCode = """
         struct ContentView: View {
@@ -68,7 +68,7 @@ struct ButtonAccessibilityTests {
     }
 
     @Test func testIconOnlyButtonWithAssetImageMissingLabel() throws {
-        let visitor = createVisitor()
+        let visitor = makeAccessibilityVisitor()
 
         let sourceCode = """
         struct ContentView: View {
@@ -92,7 +92,7 @@ struct ButtonAccessibilityTests {
     }
 
     @Test func testIconOnlyButtonWithAccessibilityLabel() {
-        let visitor = createVisitor()
+        let visitor = makeAccessibilityVisitor()
 
         let sourceCode = """
         struct ContentView: View {
@@ -114,7 +114,7 @@ struct ButtonAccessibilityTests {
     }
 
     @Test func testButtonWithStringTitleAndSystemImage() {
-        let visitor = createVisitor()
+        let visitor = makeAccessibilityVisitor()
 
         let sourceCode = """
         struct ContentView: View {
@@ -134,7 +134,7 @@ struct ButtonAccessibilityTests {
     }
 
     @Test func testButtonWithImageAndText() {
-        let visitor = createVisitor()
+        let visitor = makeAccessibilityVisitor()
 
         let sourceCode = """
         struct ContentView: View {
@@ -161,7 +161,7 @@ struct ButtonAccessibilityTests {
     }
 
     @Test func testIconOnlyButtonDoesNotFireGenericRule() throws {
-        let visitor = createVisitor()
+        let visitor = makeAccessibilityVisitor()
 
         let sourceCode = """
         struct ContentView: View {
@@ -188,7 +188,7 @@ struct ButtonAccessibilityTests {
     }
 
     @Test func testButtonWithImageInNestedStack() throws {
-        let visitor = createVisitor()
+        let visitor = makeAccessibilityVisitor()
 
         let sourceCode = """
         struct ContentView: View {
@@ -216,7 +216,7 @@ struct ButtonAccessibilityTests {
     // MARK: - Button with Text Missing Hint Tests
 
     @Test func testButtonWithTextMissingHint() throws {
-        let visitor = createVisitor()
+        let visitor = makeAccessibilityVisitor()
 
         let sourceCode = """
         struct ContentView: View {
@@ -242,7 +242,7 @@ struct ButtonAccessibilityTests {
     }
 
     @Test func testButtonWithTextWithAccessibilityHint() {
-        let visitor = createVisitor()
+        let visitor = makeAccessibilityVisitor()
 
         let sourceCode = """
         struct ContentView: View {
@@ -264,7 +264,7 @@ struct ButtonAccessibilityTests {
     }
 
     @Test func testButtonWithTextOnly() {
-        let visitor = createVisitor()
+        let visitor = makeAccessibilityVisitor()
 
         let sourceCode = """
         struct ContentView: View {

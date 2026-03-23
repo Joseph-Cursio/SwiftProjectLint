@@ -9,7 +9,7 @@ struct AccessibilityDebugTests {
 
     // MARK: - Test Helper Methods
 
-    private func createVisitor() -> AccessibilityVisitor {
+    private func makeAccessibilityVisitor() -> AccessibilityVisitor {
         // Initialize shared registry if not already done
         TestRegistryManager.initializeSharedRegistry()
         return AccessibilityVisitor(patternCategory: .accessibility)
@@ -37,7 +37,7 @@ struct AccessibilityDebugTests {
     }
 
     @Test func testVisitorIsCalled() {
-        let visitor = createVisitor()
+        let visitor = makeAccessibilityVisitor()
 
         let sourceCode = """
         struct ContentView: View {
@@ -77,7 +77,7 @@ struct AccessibilityDebugTests {
     }
 
     @Test func testDebugButtonTextDetection() throws {
-        let visitor = createVisitor()
+        let visitor = makeAccessibilityVisitor()
 
         let sourceCode = """
         struct ContentView: View {

@@ -9,7 +9,7 @@ struct ButtonAccessibilityCheckerCoverageTests {
 
     // MARK: - Test Helper Methods
 
-    private func createVisitor() -> AccessibilityVisitor {
+    private func makeAccessibilityVisitor() -> AccessibilityVisitor {
         TestRegistryManager.initializeSharedRegistry()
         return AccessibilityVisitor(patternCategory: .accessibility)
     }
@@ -18,7 +18,7 @@ struct ButtonAccessibilityCheckerCoverageTests {
 
     @Test("button with image as direct argument missing label is flagged as icon-only")
     func buttonWithImageAsDirectArgument() throws {
-        let visitor = createVisitor()
+        let visitor = makeAccessibilityVisitor()
 
         let sourceCode = """
         struct ContentView: View {
@@ -44,7 +44,7 @@ struct ButtonAccessibilityCheckerCoverageTests {
 
     @Test("button with text as direct argument missing hint is flagged")
     func buttonWithTextAsDirectArgument() throws {
-        let visitor = createVisitor()
+        let visitor = makeAccessibilityVisitor()
 
         let sourceCode = """
         struct ContentView: View {
@@ -69,7 +69,7 @@ struct ButtonAccessibilityCheckerCoverageTests {
 
     @Test("button with image in trailing closure missing label is flagged as icon-only")
     func buttonWithImageInTrailingClosure() throws {
-        let visitor = createVisitor()
+        let visitor = makeAccessibilityVisitor()
 
         let sourceCode = """
         struct ContentView: View {
@@ -94,7 +94,7 @@ struct ButtonAccessibilityCheckerCoverageTests {
 
     @Test("button with text in trailing closure missing hint is flagged")
     func buttonWithTextInTrailingClosure() throws {
-        let visitor = createVisitor()
+        let visitor = makeAccessibilityVisitor()
 
         let sourceCode = """
         struct ContentView: View {
@@ -117,7 +117,7 @@ struct ButtonAccessibilityCheckerCoverageTests {
 
     @Test("button with text in trailing closure with hint produces no issue")
     func buttonWithTextInTrailingClosureWithHint() {
-        let visitor = createVisitor()
+        let visitor = makeAccessibilityVisitor()
 
         let sourceCode = """
         struct ContentView: View {
@@ -143,7 +143,7 @@ struct ButtonAccessibilityCheckerCoverageTests {
 
     @Test("button with both image and text does not fire icon-only warning")
     func buttonWithBothImageAndText() {
-        let visitor = createVisitor()
+        let visitor = makeAccessibilityVisitor()
 
         let sourceCode = """
         struct ContentView: View {
@@ -178,7 +178,7 @@ struct ButtonAccessibilityCheckerCoverageTests {
 
     @Test("button with only action and string title produces no image issue")
     func buttonWithStringTitleOnly() {
-        let visitor = createVisitor()
+        let visitor = makeAccessibilityVisitor()
 
         let sourceCode = """
         struct ContentView: View {
@@ -203,7 +203,7 @@ struct ButtonAccessibilityCheckerCoverageTests {
 
     @Test("button with Label in trailing closure produces no issues")
     func buttonWithLabelInTrailingClosure() {
-        let visitor = createVisitor()
+        let visitor = makeAccessibilityVisitor()
 
         let sourceCode = """
         struct ContentView: View {
@@ -226,7 +226,7 @@ struct ButtonAccessibilityCheckerCoverageTests {
 
     @Test("button with Label icon closure produces no issues")
     func buttonWithLabelIconClosure() {
-        let visitor = createVisitor()
+        let visitor = makeAccessibilityVisitor()
 
         let sourceCode = """
         struct ContentView: View {
@@ -257,7 +257,7 @@ struct ButtonAccessibilityCheckerCoverageTests {
 
     @Test("multiple icon-only buttons each produce their own issues")
     func multipleButtonsProduceIndependentIssues() {
-        let visitor = createVisitor()
+        let visitor = makeAccessibilityVisitor()
 
         let sourceCode = """
         struct ContentView: View {

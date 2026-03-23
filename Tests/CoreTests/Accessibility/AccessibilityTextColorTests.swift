@@ -8,7 +8,7 @@ struct AccessibilityTextColorTests {
 
     // MARK: - Test Helper Methods
 
-    private func createVisitor() -> AccessibilityVisitor {
+    private func makeAccessibilityVisitor() -> AccessibilityVisitor {
         // Initialize shared registry if not already done
         TestRegistryManager.initializeSharedRegistry()
         return AccessibilityVisitor(patternCategory: .accessibility)
@@ -17,7 +17,7 @@ struct AccessibilityTextColorTests {
     // MARK: - Text Accessibility Tests
 
     @Test func testLongTextMissingAccessibility() throws {
-        let visitor = createVisitor()
+        let visitor = makeAccessibilityVisitor()
 
         // Given
         // swiftlint:disable line_length
@@ -41,7 +41,7 @@ struct AccessibilityTextColorTests {
     }
 
     @Test func testShortTextNoAccessibilityWarning() {
-        let visitor = createVisitor()
+        let visitor = makeAccessibilityVisitor()
 
         // Given
         let sourceCode = """
@@ -61,7 +61,7 @@ struct AccessibilityTextColorTests {
     }
 
     @Test func testTextWithAccessibilityFeatures() {
-        let visitor = createVisitor()
+        let visitor = makeAccessibilityVisitor()
 
         // Given
         let sourceCode = """
@@ -85,7 +85,7 @@ struct AccessibilityTextColorTests {
     // MARK: - Color Accessibility Tests
 
     @Test func testInaccessibleColorUsage() throws {
-        let visitor = createVisitor()
+        let visitor = makeAccessibilityVisitor()
 
         // Given
         let sourceCode = """
@@ -111,7 +111,7 @@ struct AccessibilityTextColorTests {
     }
 
     @Test func testMultipleColorUsage() {
-        let visitor = createVisitor()
+        let visitor = makeAccessibilityVisitor()
 
         // Given
         let sourceCode = """

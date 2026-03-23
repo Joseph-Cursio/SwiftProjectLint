@@ -21,7 +21,7 @@ struct HelperMethodsTests {
         }
         """
 
-        let visitor = createVisitor(for: source)
+        let visitor = makeStateVariableVisitor(for: source)
         let summary = visitor.getStateVariableSummary()
 
         #expect(summary[.state] == 2)
@@ -39,7 +39,7 @@ struct HelperMethodsTests {
         }
         """
 
-        let visitor = createVisitor(for: source)
+        let visitor = makeStateVariableVisitor(for: source)
         let stateVars = visitor.getStateVariables(withPropertyWrapper: .state)
 
         #expect(stateVars.count == 2)
@@ -56,7 +56,7 @@ struct HelperMethodsTests {
         }
         """
 
-        let visitor = createVisitor(for: source)
+        let visitor = makeStateVariableVisitor(for: source)
         let candidates = visitor.getPotentialEnvironmentObjectCandidates()
 
         #expect(candidates.count == 2)
@@ -76,7 +76,7 @@ struct HelperMethodsTests {
         }
         """
 
-        let visitor = createVisitor(for: source)
+        let visitor = makeStateVariableVisitor(for: source)
         let stateVar = try #require(visitor.stateVariables.first)
         #expect(stateVar.type.contains("String"))
     }
@@ -89,7 +89,7 @@ struct HelperMethodsTests {
         }
         """
 
-        let visitor = createVisitor(for: source)
+        let visitor = makeStateVariableVisitor(for: source)
         let stateVar = try #require(visitor.stateVariables.first)
         #expect(stateVar.type.contains("String"))
         #expect(stateVar.type.contains("Int"))
@@ -103,7 +103,7 @@ struct HelperMethodsTests {
         }
         """
 
-        let visitor = createVisitor(for: source)
+        let visitor = makeStateVariableVisitor(for: source)
         let stateVar = try #require(visitor.stateVariables.first)
         #expect(stateVar.type.contains("Item"))
     }
@@ -141,7 +141,7 @@ struct HelperMethodsTests {
         }
         """
 
-        let visitor = createVisitor(for: source)
+        let visitor = makeStateVariableVisitor(for: source)
         let stateVar = try #require(visitor.stateVariables.first)
         #expect(stateVar.lineNumber == 4)
     }
@@ -158,7 +158,7 @@ struct HelperMethodsTests {
         }
         """
 
-        let visitor = createVisitor(for: source)
+        let visitor = makeStateVariableVisitor(for: source)
         #expect(visitor.stateVariables.isEmpty)
     }
 
@@ -169,7 +169,7 @@ struct HelperMethodsTests {
         }
         """
 
-        let visitor = createVisitor(for: source)
+        let visitor = makeStateVariableVisitor(for: source)
 
         #expect(visitor.stateVariables.isEmpty)
         #expect(visitor.getStateVariableSummary().isEmpty)
@@ -185,7 +185,7 @@ struct HelperMethodsTests {
         }
         """
 
-        let visitor = createVisitor(for: source)
+        let visitor = makeStateVariableVisitor(for: source)
         let stateVars = visitor.stateVariables
 
         #expect(stateVars.count == 3)
@@ -194,16 +194,4 @@ struct HelperMethodsTests {
         #expect(stateVars.contains { $0.type == "Bool" && $0.name == "isVisible" })
     }
 
-    // MARK: - Helper Methods
-
-    private func createVisitor(for source: String) -> StateVariableVisitor {
-        let syntax = Parser.parse(source: source)
-        let visitor = StateVariableVisitor(
-            viewName: "TestView",
-            filePath: "/test/TestView.swift",
-            sourceContents: source
-        )
-        visitor.walk(syntax)
-        return visitor
-    }
 }

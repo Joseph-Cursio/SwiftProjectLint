@@ -8,7 +8,7 @@ struct AccessibilityComplexViewTests {
 
     // MARK: - Test Helper Methods
 
-    private func createVisitor() -> AccessibilityVisitor {
+    private func makeAccessibilityVisitor() -> AccessibilityVisitor {
         // Initialize shared registry if not already done
         TestRegistryManager.initializeSharedRegistry()
         return AccessibilityVisitor(patternCategory: .accessibility)
@@ -17,7 +17,7 @@ struct AccessibilityComplexViewTests {
     // MARK: - Complex View Tests
 
     @Test func testComplexViewWithMultipleAccessibilityIssues() {
-        let visitor = createVisitor()
+        let visitor = makeAccessibilityVisitor()
 
         // Given
         let sourceCode = """
@@ -76,7 +76,7 @@ struct AccessibilityComplexViewTests {
     // MARK: - Edge Cases
 
     @Test func testEmptyView() {
-        let visitor = createVisitor()
+        let visitor = makeAccessibilityVisitor()
 
         // Given
         let sourceCode = """
@@ -96,7 +96,7 @@ struct AccessibilityComplexViewTests {
     }
 
     @Test func testViewWithNoAccessibilityIssues() {
-        let visitor = createVisitor()
+        let visitor = makeAccessibilityVisitor()
 
         // Given
         let sourceCode = """

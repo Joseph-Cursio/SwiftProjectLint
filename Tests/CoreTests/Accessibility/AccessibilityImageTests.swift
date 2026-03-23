@@ -8,7 +8,7 @@ struct AccessibilityImageTests {
 
     // MARK: - Test Helper Methods
 
-    private func createVisitor() -> AccessibilityVisitor {
+    private func makeAccessibilityVisitor() -> AccessibilityVisitor {
         // Initialize shared registry if not already done
         TestRegistryManager.initializeSharedRegistry()
         return AccessibilityVisitor(patternCategory: .accessibility)
@@ -17,7 +17,7 @@ struct AccessibilityImageTests {
     // MARK: - Image Missing Label Tests
 
     @Test func testImageMissingLabel() throws {
-        let visitor = createVisitor()
+        let visitor = makeAccessibilityVisitor()
 
         // Given
         let sourceCode = """
@@ -44,7 +44,7 @@ struct AccessibilityImageTests {
     }
 
     @Test func testImageWithAccessibilityLabel() {
-        let visitor = createVisitor()
+        let visitor = makeAccessibilityVisitor()
 
         // Given
         let sourceCode = """

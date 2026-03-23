@@ -46,7 +46,7 @@ struct SVPropertyWrapperTests {
         }
         """
 
-        let visitor = createVisitor(for: source)
+        let visitor = makeStateVariableVisitor(for: source)
         let stateVar = try #require(visitor.stateVariables.first)
         #expect(stateVar.propertyWrapper == testCase.expectedWrapper)
 
@@ -71,7 +71,7 @@ struct SVPropertyWrapperTests {
         }
         """
 
-        let visitor = createVisitor(for: source)
+        let visitor = makeStateVariableVisitor(for: source)
         let stateVars = visitor.stateVariables
 
         #expect(stateVars.count == 5)
