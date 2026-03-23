@@ -2,7 +2,7 @@ import Testing
 import Foundation
 @testable import SwiftProjectLintCore
 
-struct SourcePatternDetectorTests {
+struct DetectorTests {
     
     @Test func testPatternDetectorInitialization() throws {
         let detector = SourcePatternDetector()

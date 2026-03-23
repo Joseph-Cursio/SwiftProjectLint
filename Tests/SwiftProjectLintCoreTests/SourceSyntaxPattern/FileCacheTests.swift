@@ -21,7 +21,7 @@ import Foundation
 /// - Rule identifier filtering
 /// - Error handling and edge cases
 
-struct SourcePatternFileCacheTests {
+struct FileCacheTests {
     // MARK: - File Cache Characterization
     
     @Test func characterizeFileCacheBasicBehavior() throws {

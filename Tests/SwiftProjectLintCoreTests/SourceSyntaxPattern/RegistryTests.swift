@@ -10,7 +10,7 @@ import SwiftSyntax
 import Testing
 @testable import SwiftProjectLintCore
 
-struct SourcePatternRegistryTests {
+struct RegistryTests {
 
     // MARK: - Test Helper Methods
 

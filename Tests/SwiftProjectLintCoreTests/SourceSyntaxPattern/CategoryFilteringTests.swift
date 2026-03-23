@@ -22,7 +22,7 @@ import Foundation
 /// - Rule identifier filtering
 /// - Error handling and edge cases
 
-struct SourcePatternCategoryFilteringTests {
+struct CategoryFilteringTests {
     
     // MARK: - Category Filtering Characterization
     

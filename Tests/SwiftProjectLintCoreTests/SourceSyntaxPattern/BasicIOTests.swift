@@ -22,7 +22,7 @@ import Foundation
 /// - Rule identifier filtering
 /// - Error handling and edge cases
 
-struct SourcePatternBasicIOTests {
+struct BasicIOTests {
     
     // MARK: - Basic Input/Output Characterization
     

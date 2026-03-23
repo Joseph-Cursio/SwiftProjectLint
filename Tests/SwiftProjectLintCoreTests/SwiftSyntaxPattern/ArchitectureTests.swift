@@ -4,8 +4,8 @@ import SwiftSyntax
 import Testing
 @testable import SwiftProjectLintCore
 
-@Suite("SyntaxPatternDetectorArchTests")
-struct SyntaxPatternDetectorArchTests {
+@Suite("ArchitectureTests")
+struct ArchitectureTests {
     
     // MARK: - Architecture Visitor Tests (Use Shared Registry)
     

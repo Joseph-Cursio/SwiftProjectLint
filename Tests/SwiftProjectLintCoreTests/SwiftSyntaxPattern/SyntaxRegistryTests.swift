@@ -2,7 +2,7 @@ import Testing
 import SwiftSyntax
 @testable import SwiftProjectLintCore
 
-struct SwiftSyntaxPatternRegistryTests {
+struct SyntaxRegistryTests {
     
     @Test func testSharedInstance() {
         let shared1 = SwiftSyntaxPatternRegistry.shared
