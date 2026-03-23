@@ -7,19 +7,19 @@ struct SyntaxRegistryTests {
     /// Each test gets its own isolated PatternVisitorRegistry so that
     /// testClearRemovesAllPatterns cannot race with other tests that read
     /// from PatternVisitorRegistry.shared.
-    private func makeRegistry() -> SwiftSyntaxPatternRegistry {
-        SwiftSyntaxPatternRegistry(visitorRegistry: PatternVisitorRegistry())
+    private func makeRegistry() -> SourcePatternRegistry {
+        SourcePatternRegistry(visitorRegistry: PatternVisitorRegistry())
     }
 
     @Test func testSharedInstance() {
-        let shared1 = SwiftSyntaxPatternRegistry.shared
-        let shared2 = SwiftSyntaxPatternRegistry.shared
+        let shared1 = SourcePatternRegistry.shared
+        let shared2 = SourcePatternRegistry.shared
         #expect(shared1 === shared2)
     }
 
     @Test func testInitialization() {
         let registry = makeRegistry()
-        #expect(registry != nil)
+        #expect(registry.getAllPatterns().isEmpty)
     }
 
     @Test func testInitializeRegistersPatterns() {

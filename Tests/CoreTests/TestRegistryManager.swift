@@ -4,8 +4,8 @@ import Foundation
 /// A struct containing isolated test instances for pattern detection.
 public struct IsolatedTestInstances {
     public let visitorRegistry: PatternVisitorRegistry
-    public let patternRegistry: SwiftSyntaxPatternRegistry
-    public let detector: SwiftSyntaxPatternDetector
+    public let patternRegistry: SourcePatternRegistry
+    public let detector: SourcePatternDetector
 }
 
 /// Shared test registry manager for performance optimization across all tests.
@@ -20,10 +20,10 @@ public class TestRegistryManager {
     public static let sharedVisitorRegistry = PatternVisitorRegistry()
     
     /// Shared pattern registry instance for all tests
-    public static let sharedPatternRegistry = SwiftSyntaxPatternRegistry(visitorRegistry: sharedVisitorRegistry)
-    
+    public static let sharedPatternRegistry = SourcePatternRegistry(visitorRegistry: sharedVisitorRegistry)
+
     /// Shared detector instance for all tests
-    public static let sharedDetector = SwiftSyntaxPatternDetector(registry: sharedVisitorRegistry)
+    public static let sharedDetector = SourcePatternDetector(registry: sharedVisitorRegistry)
     
     // MARK: - Initialization State
     
@@ -62,50 +62,44 @@ public class TestRegistryManager {
     /// Create isolated instances for tests that need complete isolation
     public static func createIsolatedInstances() -> IsolatedTestInstances {
         let visitorRegistry = PatternVisitorRegistry()
-        let patternRegistry = SwiftSyntaxPatternRegistry(visitorRegistry: visitorRegistry)
-        let detector = SwiftSyntaxPatternDetector(registry: visitorRegistry)
+        let patternRegistry = SourcePatternRegistry(visitorRegistry: visitorRegistry)
+        let detector = SourcePatternDetector(registry: visitorRegistry)
         return IsolatedTestInstances(
             visitorRegistry: visitorRegistry,
             patternRegistry: patternRegistry,
             detector: detector
         )
     }
-    
+
     /// Get a detector with specific patterns for focused testing
-    public static func getDetectorWithPatterns(_ patterns: [SyntaxPattern]) -> SwiftSyntaxPatternDetector {
-        // Ensure shared registry is initialized
+    public static func getDetectorWithPatterns(_ patterns: [SyntaxPattern]) -> SourcePatternDetector {
         initializeSharedRegistry()
-        
-        // Add specific patterns for this test
         for pattern in patterns {
             sharedVisitorRegistry.register(pattern: pattern)
         }
-        
-        return SwiftSyntaxPatternDetector(registry: sharedVisitorRegistry)
+        return SourcePatternDetector(registry: sharedVisitorRegistry)
     }
-    
+
     /// Get a detector for specific categories
-    public static func getDetectorForCategories(_ categories: [PatternCategory]) -> SwiftSyntaxPatternDetector {
-        // Ensure shared registry is initialized
+    public static func getDetectorForCategories(_ categories: [PatternCategory]) -> SourcePatternDetector {
         initializeSharedRegistry()
-        
-        return SwiftSyntaxPatternDetector(registry: sharedVisitorRegistry)
+        return SourcePatternDetector(registry: sharedVisitorRegistry)
     }
-    
+
     /// Get the shared detector (most common use case)
-    public static func getSharedDetector() -> SwiftSyntaxPatternDetector {
+    public static func getSharedDetector() -> SourcePatternDetector {
         initializeSharedRegistry()
         return sharedDetector
     }
-    
+
     /// Get the shared visitor registry
     public static func getSharedVisitorRegistry() -> PatternVisitorRegistry {
         initializeSharedRegistry()
         return sharedVisitorRegistry
     }
-    
+
     /// Get the shared pattern registry
-    public static func getSharedPatternRegistry() -> SwiftSyntaxPatternRegistry {
+    public static func getSharedPatternRegistry() -> SourcePatternRegistry {
         initializeSharedRegistry()
         return sharedPatternRegistry
     }

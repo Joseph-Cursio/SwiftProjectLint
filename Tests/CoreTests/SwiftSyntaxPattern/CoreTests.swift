@@ -20,7 +20,7 @@ struct CoreTests {
     }
     
     /// Uses shared registry with specific patterns for focused testing
-    static func setupTestWithSpecificPatterns(_ patterns: [SyntaxPattern]) -> SwiftSyntaxPatternDetector {
+    static func setupTestWithSpecificPatterns(_ patterns: [SyntaxPattern]) -> SourcePatternDetector {
         return TestRegistryManager.getDetectorWithPatterns(patterns)
     }
     
