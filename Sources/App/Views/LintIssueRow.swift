@@ -13,6 +13,8 @@ import Core
 /// and further file details. Severity is visually indicated using a color-coded SF Symbol.
 /// The expansion is animated for a smooth user experience.
 struct LintIssueRow: View {
+    private static let expandAnimationDuration: Double = 0.2
+
     let issue: LintIssue
     @State private var isExpanded: Bool
 
@@ -52,7 +54,7 @@ struct LintIssueRow: View {
                 Spacer()
 
                 Button {
-                    withAnimation(.easeInOut(duration: 0.2)) {
+                    withAnimation(.easeInOut(duration: Self.expandAnimationDuration)) {
                         isExpanded.toggle()
                     }
                 } label: {

@@ -54,6 +54,7 @@ struct LintResultsContainerView: View {
                     .clipShape(.rect(cornerRadius: 6))
                 }
                 .buttonStyle(.plain)
+                .accessibilityHint("Opens lint results in a full screen view")
             }
             .padding(.horizontal, 8)
             .padding(.vertical, 4)
