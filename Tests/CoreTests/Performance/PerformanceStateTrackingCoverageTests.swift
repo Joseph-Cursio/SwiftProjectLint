@@ -231,7 +231,8 @@ struct PerfUsageAndForEachCoverageTests {
 
         let visitor = makeVisitor(source: source)
         if let countInfo = visitor.stateVariables["count"] {
-            #expect(!countInfo.isUsedInViewBody)
+            #expect(countInfo.isUsedInViewBody == false)
+
         }
     }
 

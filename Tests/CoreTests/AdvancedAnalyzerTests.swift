@@ -21,8 +21,10 @@ struct AdvancedAnalyzerTests {
         
         #expect(result.contains("a"))
         #expect(result.contains("b"))
-        #expect(!result.contains("c"))
-        #expect(!result.contains("d"))
+        #expect(result.contains("c") == false)
+
+        #expect(result.contains("d") == false)
+
     }
     
     @Test @MainActor func testFindRelatedViewsDetectsHierarchy() async throws {

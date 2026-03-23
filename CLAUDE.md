@@ -177,6 +177,7 @@ struct MyViewTests {
 - New rules need: a visitor, a pattern registrar entry, and a `RuleIdentifier` case
 - Tests are organized to mirror the source structure under `Tests/CoreTests/`
 - UI tests use Swift Testing framework (`@Test`, `#expect`) with ViewInspector
+- In `#expect`, avoid leading `!` — use `== false` instead: `#expect(x.isEmpty == false)` not `#expect(!x.isEmpty)`. The `!` form produces noisy failure output (`!((x → []).isEmpty → true → true)`); the `== false` form gives clean diagnostics (`(x.isEmpty → true) == false`)
 
 ## Known Technical Debt
 

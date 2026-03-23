@@ -25,16 +25,20 @@ struct SyntaxRegistryTests {
     @Test func testInitializeRegistersPatterns() {
         let registry = makeRegistry()
         registry.initialize()
-        #expect(!registry.getAllPatterns().isEmpty)
+        #expect(registry.getAllPatterns().isEmpty == false)
+
     }
 
     @Test func testGetPatternsForCategory() {
         let registry = makeRegistry()
         registry.initialize()
 
-        #expect(!registry.getPatterns(for: .stateManagement).isEmpty)
-        #expect(!registry.getPatterns(for: .performance).isEmpty)
-        #expect(!registry.getPatterns(for: .architecture).isEmpty)
+        #expect(registry.getPatterns(for: .stateManagement).isEmpty == false)
+
+        #expect(registry.getPatterns(for: .performance).isEmpty == false)
+
+        #expect(registry.getPatterns(for: .architecture).isEmpty == false)
+
     }
 
     @Test func testRegisterPattern() {
@@ -81,7 +85,8 @@ struct SyntaxRegistryTests {
     @Test func testClearRemovesAllPatterns() {
         let registry = makeRegistry()
         registry.initialize()
-        #expect(!registry.getAllPatterns().isEmpty)
+        #expect(registry.getAllPatterns().isEmpty == false)
+
         registry.clear()
         #expect(registry.getAllPatterns().isEmpty)
     }
@@ -90,7 +95,8 @@ struct SyntaxRegistryTests {
         let registry = makeRegistry()
         registry.initialize()
         let allPatterns = registry.getAllPatterns()
-        #expect(!allPatterns.isEmpty)
+        #expect(allPatterns.isEmpty == false)
+
         #expect(Set(allPatterns.map { $0.category }).count > 1)
     }
 }

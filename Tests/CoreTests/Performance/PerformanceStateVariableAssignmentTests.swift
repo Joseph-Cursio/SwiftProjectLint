@@ -73,7 +73,8 @@ struct PerformanceStateVariableAssignmentTests {
 
         let visitor = makeVisitor(source: source)
         let valueInfo = try #require(visitor.stateVariables["value"])
-        #expect(!valueInfo.isAssigned)
+        #expect(valueInfo.isAssigned == false)
+
         // No unnecessary update issue because it's not assigned
         let unnecessaryIssues = visitor.detectedIssues.filter {
             $0.message.contains("unnecessarily")
@@ -141,7 +142,8 @@ struct PerformanceStateVariableAssignmentTests {
 
         #expect(aInfo.isUsedInViewBody)
         #expect(bInfo.isUsedInViewBody)
-        #expect(!cInfo.isUsedInViewBody)
+        #expect(cInfo.isUsedInViewBody == false)
+
     }
 
     // MARK: - Line number tracking

@@ -20,8 +20,10 @@ struct LintConfigurationTests {
             disabledRules: [.magicNumber, .printStatement]
         )
         let rules = try #require(config.resolveRules())
-        #expect(!rules.contains(.magicNumber))
-        #expect(!rules.contains(.printStatement))
+        #expect(rules.contains(.magicNumber) == false)
+
+        #expect(rules.contains(.printStatement) == false)
+
         #expect(rules.contains(.forceTry))
     }
 
@@ -33,7 +35,8 @@ struct LintConfigurationTests {
         let rules = try #require(config.resolveRules())
         #expect(rules.contains(.forceTry))
         #expect(rules.contains(.forceUnwrap))
-        #expect(!rules.contains(.magicNumber))
+        #expect(rules.contains(.magicNumber) == false)
+
     }
 
     @Test
@@ -44,9 +47,11 @@ struct LintConfigurationTests {
         let rules = try #require(
             config.resolveRules(cliCategories: [.codeQuality])
         )
-        #expect(!rules.contains(.magicNumber))
+        #expect(rules.contains(.magicNumber) == false)
+
         // Rules from other categories should be excluded
-        #expect(!rules.contains(.expensiveOperationInViewBody))
+        #expect(rules.contains(.expensiveOperationInViewBody) == false)
+
         // Code quality rules (minus disabled) should remain
         #expect(rules.contains(.forceTry))
     }
@@ -131,8 +136,10 @@ struct LintConfigurationTests {
         #expect(rules.contains(.hardcodedSecret))
         #expect(rules.contains(.unsafeURL))
         // Non-security rules excluded
-        #expect(!rules.contains(.magicNumber))
-        #expect(!rules.contains(.forceTry))
+        #expect(rules.contains(.magicNumber) == false)
+
+        #expect(rules.contains(.forceTry) == false)
+
     }
 
     @Test("enabledOnly combined with cliCategories intersects both")

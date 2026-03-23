@@ -50,7 +50,8 @@ struct AccessibilityTreeTraverserTests {
             .padding()
         """
         let button = try #require(findFirstCall(named: "Button", in: source))
-        #expect(!AccessibilityTreeTraverser.hasAccessibilityModifier(in: button, modifierName: "accessibilityLabel"))
+        #expect(AccessibilityTreeTraverser.hasAccessibilityModifier(in: button, modifierName: "accessibilityLabel") == false)
+
     }
 
     @Test func hasAccessibilityModifierReturnsFalseForUnknownModifier() throws {
@@ -60,7 +61,8 @@ struct AccessibilityTreeTraverserTests {
         """
         let button = try #require(findFirstCall(named: "Button", in: source))
         // "foregroundColor" is not in the accessibility modifiers set
-        #expect(!AccessibilityTreeTraverser.hasAccessibilityModifier(in: button, modifierName: "foregroundColor"))
+        #expect(AccessibilityTreeTraverser.hasAccessibilityModifier(in: button, modifierName: "foregroundColor") == false)
+
     }
 
     @Test func hasAccessibilityModifierFindsHintInChain() throws {
@@ -80,7 +82,8 @@ struct AccessibilityTreeTraverserTests {
         Button("Tap") { action() }
         """
         let button = try #require(findFirstCall(named: "Button", in: source))
-        #expect(!AccessibilityTreeTraverser.hasAccessibilityModifier(in: button, modifierName: "accessibilityLabel"))
+        #expect(AccessibilityTreeTraverser.hasAccessibilityModifier(in: button, modifierName: "accessibilityLabel") == false)
+
     }
 
     // MARK: - buttonHasStringTitle
@@ -106,7 +109,8 @@ struct AccessibilityTreeTraverserTests {
         Button(action: { doThing() }) { Image("icon") }
         """
         let button = try #require(findFirstCall(named: "Button", in: source))
-        #expect(!AccessibilityTreeTraverser.buttonHasStringTitle(button))
+        #expect(AccessibilityTreeTraverser.buttonHasStringTitle(button) == false)
+
     }
 
     @Test func buttonHasStringTitleReturnsFalseForTrailingClosureOnly() throws {
@@ -114,7 +118,8 @@ struct AccessibilityTreeTraverserTests {
         Button { doThing() } label: { Text("hello") }
         """
         let button = try #require(findFirstCall(named: "Button", in: source))
-        #expect(!AccessibilityTreeTraverser.buttonHasStringTitle(button))
+        #expect(AccessibilityTreeTraverser.buttonHasStringTitle(button) == false)
+
     }
 
     // MARK: - findImages
@@ -167,7 +172,8 @@ struct AccessibilityTreeTraverserTests {
         HStack { Text("hello") }
         """
         let tree = Parser.parse(source: source)
-        #expect(!AccessibilityTreeTraverser.containsImage(in: Syntax(tree)))
+        #expect(AccessibilityTreeTraverser.containsImage(in: Syntax(tree)) == false)
+
     }
 
     // MARK: - containsText
@@ -185,7 +191,8 @@ struct AccessibilityTreeTraverserTests {
         VStack { Image("icon") }
         """
         let tree = Parser.parse(source: source)
-        #expect(!AccessibilityTreeTraverser.containsText(in: Syntax(tree)))
+        #expect(AccessibilityTreeTraverser.containsText(in: Syntax(tree)) == false)
+
     }
 
     @Test func containsTextFindsDeepNestedText() {

@@ -59,7 +59,8 @@ struct CouldBePrivateMemberVisitorTests {
         ])
 
         let flagged = issues.map { $0.message }
-        #expect(!flagged.contains { $0.contains("fetchData") })
+        #expect(flagged.contains { $0.contains("fetchData") } == false)
+
     }
 
     @Test func skipsAlreadyPrivateMembers() {
@@ -73,7 +74,8 @@ struct CouldBePrivateMemberVisitorTests {
         ])
 
         let flagged = issues.map { $0.message }
-        #expect(!flagged.contains { $0.contains("secretHelper") })
+        #expect(flagged.contains { $0.contains("secretHelper") } == false)
+
         #expect(flagged.contains { $0.contains("uniquePublicMethod") })
     }
 
@@ -87,7 +89,8 @@ struct CouldBePrivateMemberVisitorTests {
         ])
 
         let flagged = issues.map { $0.message }
-        #expect(!flagged.contains { $0.contains("viewDidLoad") })
+        #expect(flagged.contains { $0.contains("viewDidLoad") } == false)
+
     }
 
     @Test func skipsBodyProperty() {
@@ -113,7 +116,8 @@ struct CouldBePrivateMemberVisitorTests {
         ])
 
         let flagged = issues.map { $0.message }
-        #expect(!flagged.contains { $0.contains("counter") })
+        #expect(flagged.contains { $0.contains("counter") } == false)
+
     }
 
     @Test func flagsPropertyOnlyUsedLocally() {

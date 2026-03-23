@@ -90,7 +90,8 @@ struct CLITests {
         let result = try runCLI(arguments: [dir.path])
         #expect(result.exitCode == 0)
         // Text format produces plain text, not JSON
-        #expect(!result.stdout.contains("{"))
+        #expect(result.stdout.contains("{") == false)
+
     }
 
     // MARK: - JSON format output

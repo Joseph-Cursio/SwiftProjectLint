@@ -58,7 +58,8 @@ struct ProtocolCouldBePrivateVisitorTests {
         ])
 
         let flagged = issues.map { $0.message }
-        #expect(!flagged.contains { $0.contains("Loadable") })
+        #expect(flagged.contains { $0.contains("Loadable") } == false)
+
     }
 
     @Test func doesNotFlagProtocolUsedAsTypeAnnotation() {
@@ -76,7 +77,8 @@ struct ProtocolCouldBePrivateVisitorTests {
         ])
 
         let flagged = issues.map { $0.message }
-        #expect(!flagged.contains { $0.contains("Fetchable") })
+        #expect(flagged.contains { $0.contains("Fetchable") } == false)
+
     }
 
     @Test func skipsAlreadyPrivateProtocol() {

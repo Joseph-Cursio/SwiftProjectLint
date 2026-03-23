@@ -78,7 +78,8 @@ struct CouldBePrivateVisitorTests {
             .map { $0.message }
 
         // SharedModel is referenced in FileB — should NOT be flagged
-        #expect(!flaggedNames.contains { $0.contains("SharedModel") })
+        #expect(flaggedNames.contains { $0.contains("SharedModel") } == false)
+
     }
 
     @Test func skipsPrivateAndPublicTypes() {
@@ -110,8 +111,10 @@ struct CouldBePrivateVisitorTests {
             .filter { $0.ruleName == .couldBePrivate }
             .map { $0.message }
 
-        #expect(!flaggedNames.contains { $0.contains("AlreadyPrivate") })
-        #expect(!flaggedNames.contains { $0.contains("AlreadyPublic") })
+        #expect(flaggedNames.contains { $0.contains("AlreadyPrivate") } == false)
+
+        #expect(flaggedNames.contains { $0.contains("AlreadyPublic") } == false)
+
         // InternalType (default access, only in one file) should be flagged
         #expect(flaggedNames.contains { $0.contains("InternalType") })
     }
