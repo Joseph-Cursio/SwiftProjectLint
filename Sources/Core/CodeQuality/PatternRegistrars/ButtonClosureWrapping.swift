@@ -6,9 +6,6 @@ import Foundation
 /// should use the `action:` parameter instead.
 struct ButtonClosureWrapping: PatternRegistrar {
 
-    var patterns: [SyntaxPattern] {
-        [pattern]
-    }
 
     var pattern: SyntaxPattern {
         SyntaxPattern(

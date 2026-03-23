@@ -6,9 +6,6 @@ import Foundation
 /// or closures where it can block the cooperative thread pool and cause deadlocks.
 struct DispatchSemaphoreInAsync: PatternRegistrar {
 
-    var patterns: [SyntaxPattern] {
-        [pattern]
-    }
 
     var pattern: SyntaxPattern {
         SyntaxPattern(

@@ -2,9 +2,6 @@ import Foundation
 
 struct PublicInAppTarget: PatternRegistrar {
 
-    var patterns: [SyntaxPattern] {
-        [pattern]
-    }
 
     var pattern: SyntaxPattern {
         SyntaxPattern(

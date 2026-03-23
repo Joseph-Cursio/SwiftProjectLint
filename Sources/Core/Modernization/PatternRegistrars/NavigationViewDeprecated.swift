@@ -6,9 +6,6 @@ import Foundation
 /// with `NavigationStack` or `NavigationSplitView`.
 struct NavigationViewDeprecated: PatternRegistrar {
 
-    var patterns: [SyntaxPattern] {
-        [pattern]
-    }
 
     var pattern: SyntaxPattern {
         SyntaxPattern(

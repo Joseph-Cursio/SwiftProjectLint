@@ -6,9 +6,6 @@ import Foundation
 /// may be to offload CPU-intensive work rather than simply yield the executor.
 struct TaskYieldOffload: PatternRegistrar {
 
-    var patterns: [SyntaxPattern] {
-        [pattern]
-    }
 
     var pattern: SyntaxPattern {
         SyntaxPattern(

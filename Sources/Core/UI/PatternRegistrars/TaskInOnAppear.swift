@@ -6,9 +6,6 @@ import Foundation
 /// that should use the .task { } modifier for automatic cancellation.
 struct TaskInOnAppear: PatternRegistrar {
 
-    var patterns: [SyntaxPattern] {
-        [pattern]
-    }
 
     var pattern: SyntaxPattern {
         SyntaxPattern(

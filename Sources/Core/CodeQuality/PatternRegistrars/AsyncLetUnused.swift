@@ -6,9 +6,6 @@ import Foundation
 /// discarded result causes the task to be cancelled at scope exit.
 struct AsyncLetUnused: PatternRegistrar {
 
-    var patterns: [SyntaxPattern] {
-        [pattern]
-    }
 
     var pattern: SyntaxPattern {
         SyntaxPattern(

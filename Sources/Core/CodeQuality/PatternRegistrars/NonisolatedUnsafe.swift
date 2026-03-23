@@ -6,9 +6,6 @@ import Foundation
 /// silence data-race checking without fixing the underlying issue.
 struct NonisolatedUnsafe: PatternRegistrar {
 
-    var patterns: [SyntaxPattern] {
-        [pattern]
-    }
 
     var pattern: SyntaxPattern {
         SyntaxPattern(

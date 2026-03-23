@@ -5,9 +5,6 @@ import Foundation
 /// Provides the pattern for detecting the deprecated single-parameter `.onChange(of:)` closure.
 struct OnChangeOldAPI: PatternRegistrar {
 
-    var patterns: [SyntaxPattern] {
-        [pattern]
-    }
 
     var pattern: SyntaxPattern {
         SyntaxPattern(

@@ -6,9 +6,6 @@ import Foundation
 /// that represent unresolved technical debt.
 struct TodoComment: PatternRegistrar {
 
-    var patterns: [SyntaxPattern] {
-        [pattern]
-    }
 
     var pattern: SyntaxPattern {
         SyntaxPattern(

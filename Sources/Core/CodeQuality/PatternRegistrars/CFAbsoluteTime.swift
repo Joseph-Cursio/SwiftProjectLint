@@ -6,9 +6,6 @@ import Foundation
 /// modern Swift alternatives.
 struct CFAbsoluteTime: PatternRegistrar {
 
-    var patterns: [SyntaxPattern] {
-        [pattern]
-    }
 
     var pattern: SyntaxPattern {
         SyntaxPattern(

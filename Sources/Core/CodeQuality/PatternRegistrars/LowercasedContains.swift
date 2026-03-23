@@ -6,9 +6,6 @@ import Foundation
 /// `localizedStandardContains()` instead.
 struct LowercasedContains: PatternRegistrar {
 
-    var patterns: [SyntaxPattern] {
-        [pattern]
-    }
 
     var pattern: SyntaxPattern {
         SyntaxPattern(

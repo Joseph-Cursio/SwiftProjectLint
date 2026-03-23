@@ -2,9 +2,6 @@ import Foundation
 
 struct CouldBePrivateMember: PatternRegistrar {
 
-    var patterns: [SyntaxPattern] {
-        [pattern]
-    }
 
     var pattern: SyntaxPattern {
         SyntaxPattern(

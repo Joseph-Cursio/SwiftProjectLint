@@ -5,9 +5,6 @@ import Foundation
 /// Provides the pattern for detecting `Thread.sleep` calls that block the current thread.
 struct ThreadSleep: PatternRegistrar {
 
-    var patterns: [SyntaxPattern] {
-        [pattern]
-    }
 
     var pattern: SyntaxPattern {
         SyntaxPattern(

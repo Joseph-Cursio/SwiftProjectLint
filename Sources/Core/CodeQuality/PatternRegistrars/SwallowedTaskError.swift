@@ -6,9 +6,6 @@ import Foundation
 /// a do/catch block, causing errors to be silently lost.
 struct SwallowedTaskError: PatternRegistrar {
 
-    var patterns: [SyntaxPattern] {
-        [pattern]
-    }
 
     var pattern: SyntaxPattern {
         SyntaxPattern(

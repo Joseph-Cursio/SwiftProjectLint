@@ -5,9 +5,6 @@ import Foundation
 /// Provides the pattern for detecting `print()` and `debugPrint()` calls.
 struct PrintStatement: PatternRegistrar {
 
-    var patterns: [SyntaxPattern] {
-        [pattern]
-    }
 
     var pattern: SyntaxPattern {
         SyntaxPattern(

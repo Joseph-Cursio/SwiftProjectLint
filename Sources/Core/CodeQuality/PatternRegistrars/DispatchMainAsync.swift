@@ -6,9 +6,6 @@ import Foundation
 /// calls that can be replaced with `MainActor.run` or `@MainActor`.
 struct DispatchMainAsync: PatternRegistrar {
 
-    var patterns: [SyntaxPattern] {
-        [pattern]
-    }
 
     var pattern: SyntaxPattern {
         SyntaxPattern(

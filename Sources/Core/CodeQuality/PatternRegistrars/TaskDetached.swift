@@ -6,9 +6,6 @@ import Foundation
 /// structured concurrency.
 struct TaskDetached: PatternRegistrar {
 
-    var patterns: [SyntaxPattern] {
-        [pattern]
-    }
 
     var pattern: SyntaxPattern {
         SyntaxPattern(

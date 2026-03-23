@@ -6,9 +6,6 @@ import Foundation
 /// in a guard/if but don't update it before awaiting, creating a reentrancy window.
 struct ActorReentrancy: PatternRegistrar {
 
-    var patterns: [SyntaxPattern] {
-        [pattern]
-    }
 
     var pattern: SyntaxPattern {
         SyntaxPattern(
