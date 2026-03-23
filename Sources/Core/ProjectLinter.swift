@@ -103,7 +103,8 @@ public final class ProjectLinter: Sendable {
                 guard let filePath = iterator.next() else { break }
                 group.addTask {
                     Self.analyzeFile(
-                        at: filePath, registry: registry,
+                        at: filePath, projectRoot: path,
+                        registry: registry,
                         categories: effectiveRules != nil ? nil : categories,
                         ruleIdentifiers: effectiveRules,
                         identifiableTypes: identifiableTypes,
@@ -121,12 +122,13 @@ public final class ProjectLinter: Sendable {
                 if let result {
                     allFiles.append(result.file)
                     allIssues.append(contentsOf: result.issues)
-                    astCache[result.file.name] = result.parsedAST
+                    astCache[result.file.relativePath] = result.parsedAST
                 }
                 if let filePath = iterator.next() {
                     group.addTask {
                         Self.analyzeFile(
-                            at: filePath, registry: registry,
+                            at: filePath, projectRoot: path,
+                            registry: registry,
                             categories: effectiveRules != nil ? nil : categories,
                             ruleIdentifiers: effectiveRules,
                             identifiableTypes: identifiableTypes,
@@ -238,6 +240,7 @@ public final class ProjectLinter: Sendable {
     /// Analyzes a single file — pure function safe for concurrent task group use.
     private static func analyzeFile(
         at filePath: String,
+        projectRoot: String,
         registry: PatternVisitorRegistry,
         categories: [PatternCategory]?,
         ruleIdentifiers: [RuleIdentifier]?,
@@ -248,8 +251,14 @@ public final class ProjectLinter: Sendable {
         guard !Task.isCancelled else { return nil }
         guard let content = try? String(contentsOfFile: filePath) else { return nil }
 
+        let prefix = projectRoot.hasSuffix("/") ? projectRoot : projectRoot + "/"
+        let relativePath = filePath.hasPrefix(prefix)
+            ? String(filePath.dropFirst(prefix.count))
+            : (filePath as NSString).lastPathComponent
+
         let file = ProjectFile(
             name: (filePath as NSString).lastPathComponent,
+            relativePath: relativePath,
             content: content
         )
         let parsedAST = Parser.parse(source: content)
@@ -261,12 +270,12 @@ public final class ProjectLinter: Sendable {
         let issues: [LintIssue]
         if let ruleIdentifiers {
             issues = det.detectPatterns(
-                in: file.content, filePath: file.name,
+                in: file.content, filePath: file.relativePath,
                 ruleIdentifiers: ruleIdentifiers, parsedAST: parsedAST
             )
         } else {
             issues = det.detectPatterns(
-                in: file.content, filePath: file.name,
+                in: file.content, filePath: file.relativePath,
                 categories: categories, parsedAST: parsedAST
             )
         }

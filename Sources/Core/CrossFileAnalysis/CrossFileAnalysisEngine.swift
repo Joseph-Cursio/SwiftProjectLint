@@ -44,7 +44,7 @@ public class CrossFileAnalysisEngine {
             fileCache = [:]
             for file in projectFiles {
                 let sourceFile = Parser.parse(source: file.content)
-                fileCache[file.name] = sourceFile
+                fileCache[file.relativePath] = sourceFile
             }
         }
 
@@ -116,7 +116,7 @@ public class CrossFileAnalysisEngine {
             fileCache = [:]
             for file in projectFiles {
                 let sourceFile = Parser.parse(source: file.content)
-                fileCache[file.name] = sourceFile
+                fileCache[file.relativePath] = sourceFile
             }
         }
 
@@ -157,7 +157,7 @@ public class CrossFileAnalysisEngine {
         categories: [PatternCategory]? = nil
     ) async -> [LintIssue] {
         let swiftFiles = await FileAnalysisUtils.findSwiftFiles(in: projectPath)
-        let projectFiles = await readProjectFiles(from: swiftFiles)
+        let projectFiles = await readProjectFiles(from: swiftFiles, projectRoot: projectPath)
         return detectCrossFilePatterns(projectFiles: projectFiles, categories: categories)
     }
 
@@ -167,20 +167,22 @@ public class CrossFileAnalysisEngine {
         ruleIdentifiers: [RuleIdentifier]
     ) async -> [LintIssue] {
         let swiftFiles = await FileAnalysisUtils.findSwiftFiles(in: projectPath)
-        let projectFiles = await readProjectFiles(from: swiftFiles)
+        let projectFiles = await readProjectFiles(from: swiftFiles, projectRoot: projectPath)
         return detectCrossFilePatterns(projectFiles: projectFiles, ruleIdentifiers: ruleIdentifiers)
     }
 
-    /// Reads Swift files in parallel, returning ProjectFile objects.
-    private func readProjectFiles(from filePaths: [String]) async -> [ProjectFile] {
-        await withTaskGroup(of: ProjectFile?.self) { group in
+    /// Reads Swift files in parallel, returning ProjectFile objects with relative paths.
+    private func readProjectFiles(from filePaths: [String], projectRoot: String) async -> [ProjectFile] {
+        let prefix = projectRoot.hasSuffix("/") ? projectRoot : projectRoot + "/"
+        return await withTaskGroup(of: ProjectFile?.self) { group in
             for filePath in filePaths {
                 group.addTask {
                     guard let content = try? String(contentsOfFile: filePath) else { return nil }
-                    return ProjectFile(
-                        name: (filePath as NSString).lastPathComponent,
-                        content: content
-                    )
+                    let name = (filePath as NSString).lastPathComponent
+                    let relativePath = filePath.hasPrefix(prefix)
+                        ? String(filePath.dropFirst(prefix.count))
+                        : name
+                    return ProjectFile(name: name, relativePath: relativePath, content: content)
                 }
             }
             var files: [ProjectFile] = []
