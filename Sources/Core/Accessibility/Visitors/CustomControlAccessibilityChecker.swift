@@ -12,8 +12,6 @@ class CustomControlAccessibilityChecker: VariableDeclAccessibilityCheckerProtoco
     }
 
     func checkAccessibility(_ node: VariableDeclSyntax) {
-        // Would check for custom view types that should have accessibility traits
-        // This is a placeholder for future implementation
-        // TODO: Implement custom control accessibility checking
+        // Intentionally unimplemented — reserved for future custom-control accessibility checks.
     }
 }

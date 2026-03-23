@@ -257,7 +257,7 @@ final class ActorReentrancyVisitor: BasePatternVisitor {
                 // resource-presence checks (`x != nil`, `x.isReady`) rather than scheduling gates.
                 let refs = findPropertyReferences(in: Syntax(element), matching: names)
                 found.formUnion(refs.filter { !awaitRelatedNames.contains($0) })
-                // TODO: Residual false positive — when the property is consumed one call-stack
+                // NOTE: Residual false positive — when the property is consumed one call-stack
                 // level below (e.g. `guard connection != nil` → `await self.send(…)` where
                 // `send()` uses `connection` internally), the property name does not appear in
                 // the local await operands and is still flagged. Suppressing it would require
