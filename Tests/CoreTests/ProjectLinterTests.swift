@@ -87,9 +87,9 @@ struct ProjectLinterTests {
         let testProjectPath = makeComplexTestProject()
         let linter = ProjectLinter()
 
-        let startTime = Date()
+        let startTime = Date.now
         _ = await linter.analyzeProject(at: testProjectPath)
-        let endTime = Date()
+        let endTime = Date.now
 
         let duration = endTime.timeIntervalSince(startTime)
         print("DEBUG: Analysis took \(duration) seconds")
