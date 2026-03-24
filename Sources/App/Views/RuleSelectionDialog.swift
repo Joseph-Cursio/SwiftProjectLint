@@ -66,47 +66,11 @@ struct RuleSelectionDialog: View {
     var body: some View {
         NavigationSplitView {
             List(selection: $selectedRule) {
-                // Column headers
-                HStack(spacing: 0) {
-                    Text("Rule")
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                    Text("No Tests")
-                        .frame(width: 62)
-                        .help("Exclude test files (Tests/) from this rule")
-                    Text("No Views")
-                        .frame(width: 62)
-                        .help("Exclude *View.swift files from this rule")
-                }
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .listRowSeparator(.hidden)
-
+                ruleListHeader
                 ForEach(allPatternsByCategory, id: \.category) { group in
                     Section(group.display) {
                         ForEach(group.patterns, id: \.name) { pattern in
-                            HStack(spacing: 0) {
-                                Toggle("", isOn: enabledBinding(for: pattern.name))
-                                    .toggleStyle(.checkbox)
-                                    .labelsHidden()
-                                VStack(alignment: .leading, spacing: 2) {
-                                    Text(pattern.name.rawValue)
-                                        .fontWeight(.medium)
-                                    Text(pattern.suggestion)
-                                        .font(.caption)
-                                        .foregroundStyle(.secondary)
-                                        .lineLimit(1)
-                                }
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                Toggle("", isOn: excludeTestsBinding(for: pattern.name))
-                                    .toggleStyle(.checkbox)
-                                    .labelsHidden()
-                                    .frame(width: 62)
-                                Toggle("", isOn: excludeViewsBinding(for: pattern.name))
-                                    .toggleStyle(.checkbox)
-                                    .labelsHidden()
-                                    .frame(width: 62)
-                            }
-                            .tag(pattern.name)
+                            ruleRow(for: pattern)
                         }
                     }
                 }
@@ -146,6 +110,49 @@ struct RuleSelectionDialog: View {
         }
         .frame(minWidth: 960, minHeight: 560)
     }
+
+    private var ruleListHeader: some View {
+        HStack(spacing: 0) {
+            Text("Rule")
+                .frame(maxWidth: .infinity, alignment: .leading)
+            Text("No Tests")
+                .frame(width: 62)
+                .help("Exclude test files (Tests/) from this rule")
+            Text("No Views")
+                .frame(width: 62)
+                .help("Exclude *View.swift files from this rule")
+        }
+        .font(.caption)
+        .foregroundStyle(.secondary)
+        .listRowSeparator(.hidden)
+    }
+
+    private func ruleRow(for pattern: DetectionPattern) -> some View {
+        HStack(spacing: 0) {
+            Toggle("", isOn: enabledBinding(for: pattern.name))
+                .toggleStyle(.checkbox)
+                .labelsHidden()
+            VStack(alignment: .leading, spacing: 2) {
+                Text(pattern.name.rawValue)
+                    .fontWeight(.medium)
+                Text(pattern.suggestion)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            Toggle("", isOn: excludeTestsBinding(for: pattern.name))
+                .toggleStyle(.checkbox)
+                .labelsHidden()
+                .frame(width: 62)
+            Toggle("", isOn: excludeViewsBinding(for: pattern.name))
+                .toggleStyle(.checkbox)
+                .labelsHidden()
+                .frame(width: 62)
+        }
+        .tag(pattern.name)
+    }
+
 }
 
 #Preview {

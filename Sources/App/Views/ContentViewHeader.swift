@@ -12,10 +12,12 @@ import SwiftUI
 /// This view displays the app icon, title, and description for the SwiftProjectLint application.
 /// It provides a clean, modern design with proper accessibility support.
 struct ContentViewHeader: View {
+    @ScaledMetric private var iconSize: CGFloat = 60
+
     var body: some View {
         VStack(spacing: 8) {
             Image(systemName: "checkmark.shield")
-                .font(.system(size: 60))
+                .font(.system(size: iconSize))
                 .foregroundStyle(.blue)
                 .accessibilityHidden(true)
 

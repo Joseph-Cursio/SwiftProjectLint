@@ -12,7 +12,9 @@ class SystemComponents: ObservableObject {
     private(set) var detector: SourcePatternDetector?
 
     func initialize() async {
-        // Offload heavy registry setup from the main actor
+        // Task.detached is intentional — escapes @MainActor so registry setup
+        // doesn't block the main thread. Task { } would inherit MainActor here.
+        // swiftprojectlint:disable:next task-detached
         let system = await Task.detached(priority: .userInitiated) {
             PatternRegistryFactory.createConfiguredSystem()
         }.value

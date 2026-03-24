@@ -40,8 +40,7 @@ struct LintIssueRow: View {
                             .fixedSize(horizontal: false, vertical: true)
                     } else {
                         VStack(alignment: .leading, spacing: 2) {
-                            ForEach(issue.locations.indices, id: \.self) { index in
-                                let location = issue.locations[index]
+                            ForEach(Array(issue.locations.enumerated()), id: \.offset) { _, location in
                                 Text("\(location.filePath):\(location.lineNumber)")
                                     .font(.caption)
                                     .foregroundStyle(.secondary)
@@ -65,53 +64,64 @@ struct LintIssueRow: View {
             }
 
             if isExpanded {
-                ScrollView(.vertical, showsIndicators: true) {
-                    VStack(alignment: .leading, spacing: 12) {
-                        // Always show the full message, with multiline support
-                        Text(issue.message)
-                            .font(.body)
-                            .foregroundStyle(.primary)
-                            .padding(.bottom, 4)
-                            .textSelection(.enabled)
-                            .fixedSize(horizontal: false, vertical: true)
-                        if let suggestion = issue.suggestion {
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text("Suggestion:")
-                                    .font(.subheadline)
-                                    .fontWeight(.semibold)
-                                    .foregroundStyle(.blue)
-                                Text(suggestion)
-                                    .font(.body)
-                                    .foregroundStyle(.primary)
-                                    .padding(.leading, 8)
-                                    .textSelection(.enabled)
-                                    .fixedSize(horizontal: false, vertical: true)
-                            }
-                        }
-                        VStack(alignment: .leading, spacing: 6) {
-                            Text("Locations:")
-                                .font(.caption)
-                                .fontWeight(.semibold)
-                                .foregroundStyle(.secondary)
-                            ForEach(issue.locations.indices, id: \.self) { index in
-                                let location = issue.locations[index]
-                                Text("\(location.filePath):\(location.lineNumber)")
-                                    .font(.caption)
-                                    .foregroundStyle(.primary)
-                                    .fixedSize(horizontal: false, vertical: true)
-                            }
-                        }
-                    }
-                    .padding(.leading, 24)
-                }
-                .frame(maxHeight: .infinity)
-                .layoutPriority(1)
-                .transition(.opacity.combined(with: .move(edge: .top)))
+                ExpandedIssueContent(issue: issue)
             }
         }
         .padding(.vertical, 4)
     }
 
+}
+
+// MARK: - Subviews
+
+private struct ExpandedIssueContent: View {
+    let issue: LintIssue
+
+    var body: some View {
+        ScrollView(.vertical, showsIndicators: true) {
+            VStack(alignment: .leading, spacing: 12) {
+                Text(issue.message)
+                    .font(.body)
+                    .foregroundStyle(.primary)
+                    .padding(.bottom, 4)
+                    .textSelection(.enabled)
+                    .fixedSize(horizontal: false, vertical: true)
+                if let suggestion = issue.suggestion {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Suggestion:")
+                            .font(.subheadline)
+                            .fontWeight(.semibold)
+                            .foregroundStyle(.blue)
+                        Text(suggestion)
+                            .font(.body)
+                            .foregroundStyle(.primary)
+                            .padding(.leading, 8)
+                            .textSelection(.enabled)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                }
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("Locations:")
+                        .font(.caption)
+                        .fontWeight(.semibold)
+                        .foregroundStyle(.secondary)
+                    ForEach(Array(issue.locations.enumerated()), id: \.offset) { _, location in
+                        Text("\(location.filePath):\(location.lineNumber)")
+                            .font(.caption)
+                            .foregroundStyle(.primary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                }
+            }
+            .padding(.leading, 24)
+        }
+        .frame(maxHeight: .infinity)
+        .layoutPriority(1)
+        .transition(.opacity.combined(with: .move(edge: .top)))
+    }
+}
+
+extension LintIssueRow {
     private var severityIcon: some View {
         Image(systemName: severityIconName)
             .foregroundStyle(severityColor)
