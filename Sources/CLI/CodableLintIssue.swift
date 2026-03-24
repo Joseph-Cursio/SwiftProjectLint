@@ -2,6 +2,7 @@ import Foundation
 import Core
 
 /// A Codable-friendly location for lint issues.
+// swiftprojectlint:disable:this could-be-private
 struct IssueLocation: Codable {
     let filePath: String
     let lineNumber: Int
@@ -31,16 +32,3 @@ struct CodableLintIssue: Codable {
     }
 }
 
-/// Top-level JSON report structure.
-struct LintReport: Codable {
-    let summary: ReportSummary
-    let issues: [CodableLintIssue]
-}
-
-/// Summary counts for the JSON report.
-struct ReportSummary: Codable {
-    let totalIssues: Int
-    let errorCount: Int
-    let warningCount: Int
-    let infoCount: Int
-}
