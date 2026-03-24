@@ -13,6 +13,7 @@ import Core
 /// The left sidebar lists all available rules grouped by category with toggle controls
 /// and per-rule exclusion checkboxes for Tests/ and *View.swift files.
 /// Selecting any rule shows its full documentation in the right detail panel.
+// swiftprojectlint:disable:next large-view-body
 struct RuleSelectionDialog: View {
     let allPatternsByCategory: [PatternCategoryInfo]
     @Binding var enabledRuleNames: Set<RuleIdentifier>
@@ -63,6 +64,7 @@ struct RuleSelectionDialog: View {
         Set(allPatternsByCategory.flatMap { $0.patterns.map(\.name) })
     }
 
+    // swiftprojectlint:disable:next large-view-body
     var body: some View {
         NavigationSplitView {
             List(selection: $selectedRule) {

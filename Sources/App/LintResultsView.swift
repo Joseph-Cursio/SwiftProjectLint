@@ -10,8 +10,8 @@ struct IssueListContent: View {
             IssueSummarySection(issues: issues)
 
             Section {
-                ForEach(issues.indices, id: \.self) { idx in
-                    LintIssueRow(issue: issues[idx])
+                ForEach(Array(issues.enumerated()), id: \.offset) { idx, issue in
+                    LintIssueRow(issue: issue)
                     if idx != issues.count - 1 {
                         Divider()
                     }

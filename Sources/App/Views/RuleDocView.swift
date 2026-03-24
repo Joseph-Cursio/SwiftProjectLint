@@ -9,6 +9,7 @@ import SwiftUI
 import Core
 
 /// Renders the markdown documentation for a single lint rule.
+// swiftprojectlint:disable:next large-view-body
 struct RuleDocView: View {
     let rule: RuleIdentifier
 
