@@ -4,7 +4,7 @@ import Foundation
 ///
 /// Provides the pattern for detecting legacy C random functions like `arc4random()`,
 /// `arc4random_uniform()`, and `drand48()`.
-struct LegacyRandom: PatternRegistrar {
+struct LegacyRandom: PatternRegistrarProtocol {
 
 
     var pattern: SyntaxPattern {

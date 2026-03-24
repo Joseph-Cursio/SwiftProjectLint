@@ -93,7 +93,9 @@ extension DocumentationVisitor {
     struct Configuration {
         let checkPublicAPIsOnly: Bool
 
+        // swiftprojectlint:disable:this could-be-private-member
         static let `default` = Configuration(checkPublicAPIsOnly: true)
+        // swiftprojectlint:disable:this could-be-private-member
         static let strict = Configuration(checkPublicAPIsOnly: false)
     }
 }

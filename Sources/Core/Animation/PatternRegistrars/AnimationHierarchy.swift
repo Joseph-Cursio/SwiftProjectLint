@@ -3,7 +3,7 @@ import Foundation
 /// A registrar for animation hierarchy patterns.
 ///
 /// Provides patterns for conflicting animation modifiers and default animation curve usage.
-struct AnimationHierarchy: PatternRegistrar {
+struct AnimationHierarchy: PatternRegistrarProtocol {
 
     var patterns: [SyntaxPattern] {
         [

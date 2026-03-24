@@ -1,7 +1,7 @@
 import Foundation
 
 /// Protocol for simple pattern providers that just supply a pattern.
-protocol PatternRegistrar {
+protocol PatternRegistrarProtocol {
     /// The syntax pattern to be registered.
     var pattern: SyntaxPattern { get }
 
@@ -11,7 +11,7 @@ protocol PatternRegistrar {
     var patterns: [SyntaxPattern] { get }
 }
 
-extension PatternRegistrar {
+extension PatternRegistrarProtocol {
     var patterns: [SyntaxPattern] { [pattern] }
 }
 

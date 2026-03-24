@@ -206,7 +206,9 @@ extension MagicNumberVisitor {
     struct Configuration {
         let magicNumberThreshold: Int
 
+        // swiftprojectlint:disable:this could-be-private-member
         static let `default` = Configuration(magicNumberThreshold: 10)
+        // swiftprojectlint:disable:this could-be-private-member
         static let strict = Configuration(magicNumberThreshold: 5)
     }
 }

@@ -4,7 +4,7 @@ import Foundation
 ///
 /// Provides the pattern for detecting Task { } or Task.detached { } inside .onAppear closures
 /// that should use the .task { } modifier for automatic cancellation.
-struct TaskInOnAppear: PatternRegistrar {
+struct TaskInOnAppear: PatternRegistrarProtocol {
 
 
     var pattern: SyntaxPattern {

@@ -4,7 +4,7 @@ import Foundation
 ///
 /// Provides the pattern for detecting `async let _ = expression` where the
 /// discarded result causes the task to be cancelled at scope exit.
-struct AsyncLetUnused: PatternRegistrar {
+struct AsyncLetUnused: PatternRegistrarProtocol {
 
 
     var pattern: SyntaxPattern {

@@ -4,7 +4,7 @@ import Foundation
 ///
 /// Provides the pattern for detecting DispatchSemaphore creation inside async functions
 /// or closures where it can block the cooperative thread pool and cause deadlocks.
-struct DispatchSemaphoreInAsync: PatternRegistrar {
+struct DispatchSemaphoreInAsync: PatternRegistrarProtocol {
 
 
     var pattern: SyntaxPattern {

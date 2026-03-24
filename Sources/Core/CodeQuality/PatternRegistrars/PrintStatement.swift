@@ -3,7 +3,7 @@ import Foundation
 /// A registrar for the Print Statement pattern.
 ///
 /// Provides the pattern for detecting `print()` and `debugPrint()` calls.
-struct PrintStatement: PatternRegistrar {
+struct PrintStatement: PatternRegistrarProtocol {
 
 
     var pattern: SyntaxPattern {

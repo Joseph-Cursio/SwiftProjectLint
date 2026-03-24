@@ -5,7 +5,7 @@ import Foundation
 /// This struct defines the metadata for rules detecting anti-patterns
 /// in `withAnimation` usage, including calling it inside `onAppear`
 /// and using it without any state mutations.
-struct WithAnimation: PatternRegistrar {
+struct WithAnimation: PatternRegistrarProtocol {
 
     var patterns: [SyntaxPattern] {
         [

@@ -5,7 +5,7 @@ import Foundation
 /// This struct is responsible for defining the metadata for the deprecated animation rule
 /// and registering it with the `SourcePatternRegistry`. The pattern is designed to detect
 /// the usage of the deprecated `.animation()` modifier in SwiftUI code.
-struct DeprecatedAnimation: PatternRegistrar {
+struct DeprecatedAnimation: PatternRegistrarProtocol {
 
     /// The syntax pattern to be registered.
     ///

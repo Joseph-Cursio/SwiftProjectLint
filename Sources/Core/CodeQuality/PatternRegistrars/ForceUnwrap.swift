@@ -3,7 +3,7 @@ import Foundation
 /// A registrar for the Force Unwrap pattern.
 ///
 /// Provides the pattern for detecting force unwrap (`!`) expressions that crash on nil.
-struct ForceUnwrap: PatternRegistrar {
+struct ForceUnwrap: PatternRegistrarProtocol {
 
 
     var pattern: SyntaxPattern {

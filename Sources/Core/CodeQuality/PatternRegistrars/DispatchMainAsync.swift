@@ -4,7 +4,7 @@ import Foundation
 ///
 /// Provides the pattern for detecting `DispatchQueue.main.async` and `DispatchQueue.main.sync`
 /// calls that can be replaced with `MainActor.run` or `@MainActor`.
-struct DispatchMainAsync: PatternRegistrar {
+struct DispatchMainAsync: PatternRegistrarProtocol {
 
 
     var pattern: SyntaxPattern {

@@ -5,7 +5,7 @@ import Foundation
 /// Provides the pattern for detecting legacy Combine-based observation wrappers
 /// (`@StateObject`, `@ObservedObject`, `@EnvironmentObject`, `@Published`) that
 /// can be replaced with `@Observable`-based equivalents.
-struct LegacyObservableObject: PatternRegistrar {
+struct LegacyObservableObject: PatternRegistrarProtocol {
 
 
     var pattern: SyntaxPattern {

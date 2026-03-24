@@ -4,7 +4,7 @@ import Foundation
 ///
 /// Provides the pattern for detecting `CFAbsoluteTimeGetCurrent()` calls that should use
 /// modern Swift alternatives.
-struct CFAbsoluteTime: PatternRegistrar {
+struct CFAbsoluteTime: PatternRegistrarProtocol {
 
 
     var pattern: SyntaxPattern {

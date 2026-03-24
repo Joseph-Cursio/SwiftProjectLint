@@ -19,9 +19,7 @@ struct ExecutableTargetDetector {
         return parseExecutableTargets(from: content)
     }
 
-    /// Extracts executable target source paths from Package.swift source text.
-    /// Exposed for testing.
-    static func parseExecutableTargets(from content: String) -> [String] {
+    private static func parseExecutableTargets(from content: String) -> [String] {
         guard let markerRegex = try? NSRegularExpression(
             pattern: #"\.executableTarget\s*\("#
         ) else { return [] }

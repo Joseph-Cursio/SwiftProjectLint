@@ -3,7 +3,7 @@ import Foundation
 /// A registrar for the Date.now pattern.
 ///
 /// Provides the pattern for detecting `Date()` calls that should use `Date.now` instead.
-struct DateNow: PatternRegistrar {
+struct DateNow: PatternRegistrarProtocol {
 
 
     var pattern: SyntaxPattern {

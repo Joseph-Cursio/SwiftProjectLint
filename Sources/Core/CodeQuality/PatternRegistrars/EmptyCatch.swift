@@ -3,7 +3,7 @@ import Foundation
 /// A registrar for the Empty Catch pattern.
 ///
 /// Provides the pattern for detecting empty catch blocks that silently swallow errors.
-struct EmptyCatch: PatternRegistrar {
+struct EmptyCatch: PatternRegistrarProtocol {
 
 
     var pattern: SyntaxPattern {

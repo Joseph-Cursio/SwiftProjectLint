@@ -3,7 +3,7 @@ import Foundation
 /// A registrar for the Force Try pattern.
 ///
 /// Provides the pattern for detecting `try!` expressions that crash on error.
-struct ForceTry: PatternRegistrar {
+struct ForceTry: PatternRegistrarProtocol {
 
 
     var pattern: SyntaxPattern {

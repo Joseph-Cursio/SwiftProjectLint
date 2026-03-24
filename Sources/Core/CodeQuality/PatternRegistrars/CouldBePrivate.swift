@@ -1,6 +1,6 @@
 import Foundation
 
-struct CouldBePrivate: PatternRegistrar {
+struct CouldBePrivate: PatternRegistrarProtocol {
 
 
     var pattern: SyntaxPattern {

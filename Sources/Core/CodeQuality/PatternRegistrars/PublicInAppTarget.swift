@@ -1,6 +1,6 @@
 import Foundation
 
-struct PublicInAppTarget: PatternRegistrar {
+struct PublicInAppTarget: PatternRegistrarProtocol {
 
 
     var pattern: SyntaxPattern {

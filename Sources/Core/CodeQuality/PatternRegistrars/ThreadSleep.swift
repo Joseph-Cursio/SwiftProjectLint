@@ -3,7 +3,7 @@ import Foundation
 /// A registrar for the Thread Sleep pattern.
 ///
 /// Provides the pattern for detecting `Thread.sleep` calls that block the current thread.
-struct ThreadSleep: PatternRegistrar {
+struct ThreadSleep: PatternRegistrarProtocol {
 
 
     var pattern: SyntaxPattern {

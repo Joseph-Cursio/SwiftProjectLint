@@ -4,7 +4,7 @@ import Foundation
 ///
 /// Provides the pattern for detecting files that contain more than one top-level
 /// type declaration (struct, class, enum, actor).
-struct MultipleTypesPerFile: PatternRegistrar {
+struct MultipleTypesPerFile: PatternRegistrarProtocol {
 
 
     var pattern: SyntaxPattern {

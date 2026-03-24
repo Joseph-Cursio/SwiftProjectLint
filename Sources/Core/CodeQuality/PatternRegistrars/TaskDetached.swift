@@ -4,7 +4,7 @@ import Foundation
 ///
 /// Provides the pattern for detecting `Task.detached { }` calls that break
 /// structured concurrency.
-struct TaskDetached: PatternRegistrar {
+struct TaskDetached: PatternRegistrarProtocol {
 
 
     var pattern: SyntaxPattern {

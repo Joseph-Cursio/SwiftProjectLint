@@ -4,7 +4,7 @@ import Foundation
 ///
 /// Provides the pattern for detecting undeclared namespaces and duplicate IDs
 /// in `matchedGeometryEffect` calls.
-struct MatchedGeometry: PatternRegistrar {
+struct MatchedGeometry: PatternRegistrarProtocol {
 
 
     var pattern: SyntaxPattern {

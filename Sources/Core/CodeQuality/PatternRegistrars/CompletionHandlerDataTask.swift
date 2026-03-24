@@ -4,7 +4,7 @@ import Foundation
 ///
 /// Provides the pattern for detecting URLSession task methods with completion handlers
 /// that should use async/await equivalents instead.
-struct CallbackDataTask: PatternRegistrar {
+struct CallbackDataTask: PatternRegistrarProtocol {
 
 
     var pattern: SyntaxPattern {

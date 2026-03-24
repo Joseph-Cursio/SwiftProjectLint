@@ -3,7 +3,7 @@ import Foundation
 /// A registrar for the hardcoded animation values pattern.
 ///
 /// Provides the pattern for detecting magic number literals in animation factory calls.
-struct HardcodedAnimationValues: PatternRegistrar {
+struct HardcodedAnimationValues: PatternRegistrarProtocol {
 
 
     var pattern: SyntaxPattern {

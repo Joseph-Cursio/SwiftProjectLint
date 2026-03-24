@@ -4,7 +4,7 @@ import Foundation
 ///
 /// Provides the pattern for detecting `Task.yield()` calls where the intent
 /// may be to offload CPU-intensive work rather than simply yield the executor.
-struct TaskYieldOffload: PatternRegistrar {
+struct TaskYieldOffload: PatternRegistrarProtocol {
 
 
     var pattern: SyntaxPattern {

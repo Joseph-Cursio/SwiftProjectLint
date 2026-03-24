@@ -4,7 +4,7 @@ import Foundation
 ///
 /// Provides the pattern for detecting `nonisolated(unsafe)` annotations that
 /// silence data-race checking without fixing the underlying issue.
-struct NonisolatedUnsafe: PatternRegistrar {
+struct NonisolatedUnsafe: PatternRegistrarProtocol {
 
 
     var pattern: SyntaxPattern {

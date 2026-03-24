@@ -4,7 +4,7 @@ import Foundation
 ///
 /// Provides the pattern for detecting `NavigationView` usage that should be replaced
 /// with `NavigationStack` or `NavigationSplitView`.
-struct NavigationViewDeprecated: PatternRegistrar {
+struct NavigationViewDeprecated: PatternRegistrarProtocol {
 
 
     var pattern: SyntaxPattern {

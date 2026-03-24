@@ -4,7 +4,7 @@ import Foundation
 ///
 /// Provides the pattern for detecting literal numeric sizes in `.font(.system(size:))` calls
 /// that bypass Dynamic Type.
-struct HardcodedFontSize: PatternRegistrar {
+struct HardcodedFontSize: PatternRegistrarProtocol {
 
 
     var pattern: SyntaxPattern {

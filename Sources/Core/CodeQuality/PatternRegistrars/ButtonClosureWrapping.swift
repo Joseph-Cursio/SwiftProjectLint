@@ -4,7 +4,7 @@ import Foundation
 ///
 /// Provides the pattern for detecting `Button("Label") { singleCall() }` closures that
 /// should use the `action:` parameter instead.
-struct ButtonClosureWrapping: PatternRegistrar {
+struct ButtonClosureWrapping: PatternRegistrarProtocol {
 
 
     var pattern: SyntaxPattern {

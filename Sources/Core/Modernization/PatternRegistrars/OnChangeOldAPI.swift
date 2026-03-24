@@ -3,7 +3,7 @@ import Foundation
 /// A registrar for the onChange old API pattern.
 ///
 /// Provides the pattern for detecting the deprecated single-parameter `.onChange(of:)` closure.
-struct OnChangeOldAPI: PatternRegistrar {
+struct OnChangeOldAPI: PatternRegistrarProtocol {
 
 
     var pattern: SyntaxPattern {

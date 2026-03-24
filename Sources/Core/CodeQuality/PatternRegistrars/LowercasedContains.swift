@@ -4,7 +4,7 @@ import Foundation
 ///
 /// Provides the pattern for detecting `.lowercased().contains(...)` calls that should use
 /// `localizedStandardContains()` instead.
-struct LowercasedContains: PatternRegistrar {
+struct LowercasedContains: PatternRegistrarProtocol {
 
 
     var pattern: SyntaxPattern {

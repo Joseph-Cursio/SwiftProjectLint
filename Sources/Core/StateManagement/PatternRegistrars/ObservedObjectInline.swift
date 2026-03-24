@@ -4,7 +4,7 @@ import Foundation
 ///
 /// Provides the pattern for detecting `@ObservedObject` properties that create objects inline,
 /// which should use `@StateObject` instead.
-struct ObservedObjectInline: PatternRegistrar {
+struct ObservedObjectInline: PatternRegistrarProtocol {
 
 
     var pattern: SyntaxPattern {

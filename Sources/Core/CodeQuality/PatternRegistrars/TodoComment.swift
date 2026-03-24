@@ -4,7 +4,7 @@ import Foundation
 ///
 /// Provides the pattern for detecting TODO, FIXME, and HACK comments
 /// that represent unresolved technical debt.
-struct TodoComment: PatternRegistrar {
+struct TodoComment: PatternRegistrarProtocol {
 
 
     var pattern: SyntaxPattern {

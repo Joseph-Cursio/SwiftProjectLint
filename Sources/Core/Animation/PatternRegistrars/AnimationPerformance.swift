@@ -6,7 +6,7 @@ import Foundation
 /// and registers them with the `SourcePatternRegistry`. It provides
 /// patterns for excessive spring animations, long animation durations,
 /// and animations in high-frequency update contexts.
-struct AnimationPerformance: PatternRegistrar {
+struct AnimationPerformance: PatternRegistrarProtocol {
 
     var patterns: [SyntaxPattern] {
         [

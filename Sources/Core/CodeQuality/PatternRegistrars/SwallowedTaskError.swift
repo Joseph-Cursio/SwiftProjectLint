@@ -4,7 +4,7 @@ import Foundation
 ///
 /// Provides the pattern for detecting `Task { try ... }` closures that lack
 /// a do/catch block, causing errors to be silently lost.
-struct SwallowedTaskError: PatternRegistrar {
+struct SwallowedTaskError: PatternRegistrarProtocol {
 
 
     var pattern: SyntaxPattern {
