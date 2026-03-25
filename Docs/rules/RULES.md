@@ -1,6 +1,6 @@
 # SwiftProjectLint Rules Reference
 
-SwiftProjectLint is a static analysis tool for SwiftUI projects. It parses Swift source files using SwiftSyntax AST visitors to detect anti-patterns spanning state management, performance, animations, architecture, code quality, security, accessibility, memory management, networking, UI patterns, and modernization. This reference documents all 88 lint rules, organized by category.
+SwiftProjectLint is a static analysis tool for SwiftUI projects. It parses Swift source files using SwiftSyntax AST visitors to detect anti-patterns spanning state management, performance, animations, architecture, code quality, security, accessibility, memory management, networking, UI patterns, and modernization. This reference documents all 89 lint rules, organized by category.
 
 Rules marked **opt-in** are disabled by default and must be explicitly listed under `enabled_only` in `.swiftprojectlint.yml`.
 
@@ -70,6 +70,7 @@ Rules marked **opt-in** are disabled by default and must be explicitly listed un
 | [Property Wrapper Naming Suffix](property-wrapper-naming-suffix.md) | Info |
 | [Macro Negation](expect-negation.md) | Warning |
 | [Test Missing Require](test-missing-require.md) | Info |
+| [Test Missing Assertion](test-missing-assertion.md) | Warning |
 | [Lowercased Contains](lowercased-contains.md) | Warning |
 | [Multiple Types Per File](multiple-types-per-file.md) | Info |
 | [Actor Reentrancy](actor-reentrancy.md) | Warning |

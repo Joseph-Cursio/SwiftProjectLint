@@ -57,6 +57,7 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
     case propertyWrapperNamingSuffix = "Property Wrapper Naming Suffix"
     case macroNegation = "Macro Negation"
     case testMissingRequire = "Test Missing Require"
+    case testMissingAssertion = "Test Missing Assertion"
     case lowercasedContains = "Lowercased Contains"
     case multipleTypesPerFile = "Multiple Types Per File"
     case actorReentrancy = "Actor Reentrancy"
@@ -161,7 +162,7 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
             // Code Quality Rules
         case .magicNumber, .magicLayoutNumber, .hardcodedStrings, .missingDocumentation,
              .protocolNamingSuffix, .actorNamingSuffix, .actorAgentName, .nonActorAgentSuffix, .propertyWrapperNamingSuffix,
-             .macroNegation, .testMissingRequire, .lowercasedContains, .multipleTypesPerFile, .actorReentrancy,
+             .macroNegation, .testMissingRequire, .testMissingAssertion, .lowercasedContains, .multipleTypesPerFile, .actorReentrancy,
              .forceTry, .forceUnwrap, .printStatement, .emptyCatch, .todoComment,
              .taskDetached, .asyncLetUnused, .buttonClosureWrapping,
              .nonisolatedUnsafe, .taskYieldOffload, .swallowedTaskError,

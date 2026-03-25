@@ -119,5 +119,6 @@ class CodeQuality: BasePatternRegistrar {
         registry.register(pattern: CouldBePrivateMember().pattern)
         registry.register(pattern: ProtocolCouldBePrivate().pattern)
         registry.register(pattern: TestMissingRequire().pattern)
+        registry.register(pattern: TestMissingAssertion().pattern)
     }
 }
