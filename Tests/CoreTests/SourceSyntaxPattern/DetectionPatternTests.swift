@@ -4,13 +4,11 @@ import Foundation
 
 struct DetectionPatternTests {
     
-    // swiftprojectlint:disable Test Missing Require
     @Test func testRuleIdentifierRawValueAndDisplayName() throws {
         let rule = RuleIdentifier.magicNumber
         #expect(rule.rawValue == "Magic Number")
     }
     
-    // swiftprojectlint:disable Test Missing Require
     @Test func testRuleIdentifierCategoryMapping() throws {
         #expect(RuleIdentifier.relatedDuplicateStateVariable.category == .stateManagement)
         #expect(RuleIdentifier.expensiveOperationInViewBody.category == .performance)
@@ -24,7 +22,6 @@ struct DetectionPatternTests {
         #expect(RuleIdentifier.fileParsingError.category == .other)
     }
     
-    // swiftprojectlint:disable Test Missing Require
     @Test func testRuleIdentifierCodable() throws {
         let rule: RuleIdentifier = .magicNumber
         let data = try JSONEncoder().encode(rule)
@@ -32,14 +29,12 @@ struct DetectionPatternTests {
         #expect(rule == decoded)
     }
     
-    // swiftprojectlint:disable Test Missing Require
     @Test func testRuleIdentifierAllCasesContainsAll() throws {
         // Just check that all cases are present and unique
         let allCases = Set(RuleIdentifier.allCases.map { $0.rawValue })
         #expect(allCases.count == RuleIdentifier.allCases.count)
     }
     
-    // swiftprojectlint:disable Test Missing Require
     @Test func testPatternCategoryAllCases() throws {
         let all = PatternCategory.allCases
         #expect(all.contains(.stateManagement))
@@ -54,7 +49,6 @@ struct DetectionPatternTests {
         #expect(all.contains(.other))
     }
     
-    // swiftprojectlint:disable Test Missing Require
     @Test func testDetectionPatternInitAndProperties() throws {
         let pattern = DetectionPattern(
             name: .magicNumber,

@@ -13,7 +13,6 @@ struct IdentifiableTypeCollectorTests {
         return collector.identifiableTypes
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func testCollectsIdentifiableStruct() {
         let source = """
         struct Item: Identifiable {
@@ -25,7 +24,6 @@ struct IdentifiableTypeCollectorTests {
         #expect(types == ["Item"])
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func testCollectsIdentifiableEnum() {
         let source = """
         enum Severity: String, CaseIterable, Identifiable {
@@ -37,7 +35,6 @@ struct IdentifiableTypeCollectorTests {
         #expect(types == ["Severity"])
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func testCollectsIdentifiableClass() {
         let source = """
         class Document: Identifiable {
@@ -48,7 +45,6 @@ struct IdentifiableTypeCollectorTests {
         #expect(types == ["Document"])
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func testIgnoresNonIdentifiableTypes() {
         let source = """
         struct PlainStruct: Codable, Sendable {
@@ -62,7 +58,6 @@ struct IdentifiableTypeCollectorTests {
         #expect(types.isEmpty)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func testCollectsMultipleIdentifiableTypes() {
         let source = """
         struct ItemA: Identifiable {

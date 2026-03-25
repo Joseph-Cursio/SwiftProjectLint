@@ -7,7 +7,6 @@ import ViewInspector
 @Suite
 @MainActor
 struct ContentViewHeaderTests {
-    // swiftprojectlint:disable Test Missing Require
     @Test
     func testHeaderStructureAndContent() throws {
         let view = ContentViewHeader()

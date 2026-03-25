@@ -78,7 +78,6 @@ struct PerformanceStateVariableTrackingTests {
         #expect(countInfo.isAssigned == true || countInfo.isAssigned == false)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func testCheckForUnnecessaryUpdates() throws {
         let source = """
         struct ContentView: View {
@@ -188,7 +187,6 @@ struct PerformanceStateVariableTrackingTests {
         #expect(countInfo.isAssigned == true || countInfo.isAssigned == false)
     }
     
-    // swiftprojectlint:disable Test Missing Require
     @Test func testTrackMultipleStateVariables() throws {
         let source = """
         struct ContentView: View {
@@ -219,7 +217,6 @@ struct PerformanceStateVariableTrackingTests {
         #expect(visitor.stateVariables["isVisible"]?.isUsedInViewBody == true)
     }
     
-    // swiftprojectlint:disable Test Missing Require
     @Test func testTrackStateVariableWithNonStatePropertyWrapper() throws {
         let source = """
         struct ContentView: View {

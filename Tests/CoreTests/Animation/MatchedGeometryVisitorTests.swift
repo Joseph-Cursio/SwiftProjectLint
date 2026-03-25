@@ -40,7 +40,6 @@ struct MatchedGeometryVisitorTests {
         #expect(issue.message.contains("undeclaredNS"))
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test
     func testNoIssueForDeclaredNamespace() {
         let source = """
@@ -91,7 +90,6 @@ struct MatchedGeometryVisitorTests {
         #expect(issue.message.contains("card"))
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test
     func testNoIssueForDifferentIds() {
         let source = """

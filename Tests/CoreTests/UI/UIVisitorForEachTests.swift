@@ -44,7 +44,6 @@ struct UIVisitorForEachTests {
         #expect(forEachIssue.severity == .warning)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func testDoesNotDetectForEachWithExplicitID() throws {
         let visitor = createVisitor()
 
@@ -74,7 +73,6 @@ struct UIVisitorForEachTests {
 
     // MARK: - Identifiable Suppression Tests
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func testNoIssueForForEachWithIdentifiableAllCases() throws {
         let visitor = createVisitor(identifiableTypes: ["Status"])
 
@@ -94,7 +92,6 @@ struct UIVisitorForEachTests {
         #expect(forEachIssues.isEmpty)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func testStillFlagsNonIdentifiableType() throws {
         let visitor = createVisitor(identifiableTypes: ["OtherType"])
 
@@ -114,7 +111,6 @@ struct UIVisitorForEachTests {
         #expect(forEachIssues.count >= 1)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func testNoIssueForTypedArrayWithIdentifiableElement() throws {
         let visitor = createVisitor(identifiableTypes: ["Task"])
 

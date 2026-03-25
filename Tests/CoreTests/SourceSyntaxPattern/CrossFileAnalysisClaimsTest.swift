@@ -25,7 +25,6 @@ struct CrossFileAnalysisClaimsTests {
     
     // MARK: - Cross-File Analysis Claims Investigation
     
-    // swiftprojectlint:disable Test Missing Require
     @Test func characterizeCrossFileAnalysisClaimsVsReality() throws {
         let detector = SourcePatternDetector()
         
@@ -81,7 +80,6 @@ struct CrossFileAnalysisClaimsTests {
         
     }
     
-    // swiftprojectlint:disable Test Missing Require
     @Test func characterizeFileCacheCapabilities() throws {
         let detector = SourcePatternDetector()
         

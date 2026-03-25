@@ -5,7 +5,6 @@ import SwiftUI
 import ViewInspector
 
 struct SummaryItemTests {
-    // swiftprojectlint:disable Test Missing Require
     @Test
     @MainActor
     func testSummaryItemDisplaysTitleAndValue() throws {
@@ -17,7 +16,6 @@ struct SummaryItemTests {
         #expect(texts.contains("42"))
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test
     @MainActor
     func testSummaryItemWithZeroValue() throws {
@@ -29,7 +27,6 @@ struct SummaryItemTests {
         #expect(texts.contains("0"))
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test("summary item renders title in caption font and value in title2")
     @MainActor
     func summaryItemFontStyles() throws {

@@ -4,7 +4,6 @@ import Core
 
 @MainActor
 struct DemoIssueGeneratorTests {
-    // swiftprojectlint:disable Test Missing Require
     @Test func test_createDemoIssues_includesExpectedCategories() {
         let categories: [PatternCategory] = [
             .stateManagement, .performance, .architecture, .codeQuality, .security,
@@ -29,7 +28,6 @@ struct DemoIssueGeneratorTests {
         }
     }
     
-    // swiftprojectlint:disable Test Missing Require
     @Test func test_createDemoIssues_emptyForOtherCategory() {
         let issues = DemoIssueGenerator.createDemoIssues(for: [.other])
         #expect(issues.isEmpty)

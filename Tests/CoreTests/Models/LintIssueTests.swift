@@ -55,7 +55,6 @@ struct LintIssueTests {
         #expect(issue.lineNumber == 10)
     }
     
-    // swiftprojectlint:disable Test Missing Require
     @Test func testLintIssueWithNilSuggestion() {
         let issue = LintIssue(
             severity: .info,
@@ -69,7 +68,6 @@ struct LintIssueTests {
         #expect(issue.suggestion == nil)
     }
     
-    // swiftprojectlint:disable Test Missing Require
     @Test func testLintIssueIdentifiable() {
         let issue1 = LintIssue(
             severity: .warning,
@@ -93,7 +91,6 @@ struct LintIssueTests {
         #expect(issue1.id != issue2.id)
     }
     
-    // swiftprojectlint:disable Test Missing Require
     @Test func testLintIssueEmptyLocations() {
         let issue = LintIssue(
             severity: .warning,
@@ -108,7 +105,6 @@ struct LintIssueTests {
         #expect(issue.lineNumber == 0)
     }
     
-    // swiftprojectlint:disable Test Missing Require
     @Test func testLintIssueDifferentSeverities() {
         let error = LintIssue(
             severity: .error,
@@ -142,7 +138,6 @@ struct LintIssueTests {
         #expect(info.severity == .info)
     }
     
-    // swiftprojectlint:disable Test Missing Require
     @Test func testLintIssueSendable() {
         // Verify LintIssue conforms to Sendable
         // This test verifies compilation - if LintIssue conforms to Sendable, this will compile

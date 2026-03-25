@@ -60,7 +60,6 @@ struct TestMissingExpectVisitorTests {
         #expect(issue.message.contains("testPreconditionsOnly"))
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test
     func detectsMultipleTestsWithoutExpect() {
         let visitor = makeVisitor()
@@ -80,7 +79,6 @@ struct TestMissingExpectVisitorTests {
 
     // MARK: - Negative Cases (should not trigger)
 
-    // swiftprojectlint:disable Test Missing Require
     @Test
     func ignoresTestWithExpect() {
         let visitor = makeVisitor()
@@ -93,7 +91,6 @@ struct TestMissingExpectVisitorTests {
         #expect(visitor.detectedIssues.isEmpty)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test
     func ignoresTestWithBothMacros() {
         let visitor = makeVisitor()
@@ -107,7 +104,6 @@ struct TestMissingExpectVisitorTests {
         #expect(visitor.detectedIssues.isEmpty)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test
     func ignoresNonTestFunctions() {
         let visitor = makeVisitor()
@@ -119,7 +115,6 @@ struct TestMissingExpectVisitorTests {
         #expect(visitor.detectedIssues.isEmpty)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test
     func ignoresTestWithNestedExpect() {
         let visitor = makeVisitor()

@@ -22,7 +22,6 @@ struct ViewRelationshipAdvancedTests {
 
     // MARK: - Container Views with Nested Custom Views
 
-    // swiftprojectlint:disable Test Missing Require
     @Test("detects custom views nested inside container views")
     func customViewsInsideContainerViews() throws {
         let source = """
@@ -45,7 +44,6 @@ struct ViewRelationshipAdvancedTests {
         #expect(relationships.allSatisfy { $0.relationshipType == .directChild })
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test("skips system views inside containers")
     func systemViewsInsideContainersSkipped() throws {
         let source = """
@@ -68,7 +66,6 @@ struct ViewRelationshipAdvancedTests {
 
     // MARK: - NavigationLink Content Closure
 
-    // swiftprojectlint:disable Test Missing Require
     @Test("views inside NavigationLink content are not detected as direct children")
     func viewsInsideNavigationLinkNotDirectChild() throws {
         let source = """
@@ -87,7 +84,6 @@ struct ViewRelationshipAdvancedTests {
         #expect(navDest.first?.childView == "DetailView")
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test("NavigationLink without destination argument")
     func navigationLinkWithoutDestination() throws {
         let source = """
@@ -109,7 +105,6 @@ struct ViewRelationshipAdvancedTests {
 
     // MARK: - Presentation Modifiers with Content Label
 
-    // swiftprojectlint:disable Test Missing Require
     @Test("sheet with content labeled argument detects custom view")
     func sheetWithContentLabel() throws {
         let source = """
@@ -130,7 +125,6 @@ struct ViewRelationshipAdvancedTests {
         #expect(sheetRels.first?.childView == "SettingsView")
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test("fullScreenCover with content labeled argument")
     func fullScreenCoverWithContentLabel() throws {
         let source = """
@@ -151,7 +145,6 @@ struct ViewRelationshipAdvancedTests {
         #expect(coverRels.first?.childView == "OnboardingView")
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test("popover with content labeled argument")
     func popoverWithContentLabel() throws {
         let source = """
@@ -174,7 +167,6 @@ struct ViewRelationshipAdvancedTests {
 
     // MARK: - Multiple Custom Views in Presentation Closures
 
-    // swiftprojectlint:disable Test Missing Require
     @Test("sheet with multiple custom views in closure")
     func sheetWithMultipleViews() throws {
         let source = """
@@ -201,7 +193,6 @@ struct ViewRelationshipAdvancedTests {
 
     // MARK: - Member Access View Name Extraction
 
-    // swiftprojectlint:disable Test Missing Require
     @Test("detects view name from member access expression in NavigationLink")
     func memberAccessInNavigationDestination() throws {
         let source = """

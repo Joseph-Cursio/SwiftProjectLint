@@ -37,7 +37,6 @@ struct DateNowVisitorTests {
 
     // MARK: - Parameterized Positive Cases
 
-    // swiftprojectlint:disable Test Missing Require
     @Test("Detects Date() initializer", arguments: [
         "let now = Date()",
         "let elapsed = Date().timeIntervalSince(lastRun)",
@@ -49,7 +48,6 @@ struct DateNowVisitorTests {
         #expect(visitor.detectedIssues.count == 1)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test
     func detectsMultipleDateInits() {
         let source = """
@@ -65,7 +63,6 @@ struct DateNowVisitorTests {
 
     // MARK: - Parameterized Negative Cases
 
-    // swiftprojectlint:disable Test Missing Require
     @Test("No issue for non-Date() code", arguments: [
         "let now = Date.now",
         "let date = Date(timeIntervalSince1970: 0)",

@@ -49,7 +49,6 @@ struct DetectorPerformanceTests {
         
     }
     
-    // swiftprojectlint:disable Test Missing Require
     @Test
     @MainActor
     static func performanceVisitorForEachWithID() async throws {

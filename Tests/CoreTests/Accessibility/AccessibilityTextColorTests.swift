@@ -40,7 +40,6 @@ struct AccessibilityTextColorTests {
         #expect(issue.suggestion?.contains("accessibilityLabel") == true)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func testShortTextNoAccessibilityWarning() {
         let visitor = makeAccessibilityVisitor()
 
@@ -61,7 +60,6 @@ struct AccessibilityTextColorTests {
         #expect(visitor.detectedIssues.isEmpty)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func testTextWithAccessibilityFeatures() {
         let visitor = makeAccessibilityVisitor()
 
@@ -112,7 +110,6 @@ struct AccessibilityTextColorTests {
         #expect(issue.suggestion?.contains("color is not the only way") == true)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func testMultipleColorUsage() {
         let visitor = makeAccessibilityVisitor()
 

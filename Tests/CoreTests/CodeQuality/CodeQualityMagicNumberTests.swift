@@ -22,7 +22,6 @@ struct CodeQualityMagicNumberTests {
 
     // MARK: - Repeated Magic Numbers (should fire)
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func testRepeatedMagicNumberDetected() throws {
         let visitor = createVisitor()
 
@@ -44,7 +43,6 @@ struct CodeQualityMagicNumberTests {
         #expect(magicIssues.allSatisfy { $0.message.contains("16") })
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func testRepeatedFloatMagicNumberDetected() throws {
         let visitor = createVisitor()
 
@@ -68,7 +66,6 @@ struct CodeQualityMagicNumberTests {
 
     // MARK: - Single-use numbers (should NOT fire)
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func testSingleUseMagicNumberNotDetected() throws {
         let visitor = createVisitor()
 
@@ -88,7 +85,6 @@ struct CodeQualityMagicNumberTests {
         #expect(magicIssues.isEmpty)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func testSingleUseInVariableNotDetected() throws {
         let visitor = createVisitor()
 
@@ -111,7 +107,6 @@ struct CodeQualityMagicNumberTests {
 
     // MARK: - Threshold
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func testBelowThresholdNotDetected() throws {
         let visitor = createVisitor()
 
@@ -133,7 +128,6 @@ struct CodeQualityMagicNumberTests {
         #expect(magicIssues.isEmpty)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func testStrictThresholdDetectsSmallRepeatedNumbers() throws {
         let visitor = createStrictVisitor()
 
@@ -157,7 +151,6 @@ struct CodeQualityMagicNumberTests {
 
     // MARK: - Layout Modifier Exclusion
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func testLayoutModifierNumbersNotDetected() throws {
         let visitor = createVisitor()
 
@@ -180,7 +173,6 @@ struct CodeQualityMagicNumberTests {
         #expect(magicIssues.isEmpty)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func testLayoutArgLabelsNotDetected() throws {
         let visitor = createVisitor()
 
@@ -200,7 +192,6 @@ struct CodeQualityMagicNumberTests {
         #expect(magicIssues.isEmpty)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func testNonLayoutRepeatedNumberStillDetected() throws {
         let visitor = createVisitor()
 
@@ -223,7 +214,6 @@ struct CodeQualityMagicNumberTests {
 
     // MARK: - Characterization
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func testMagicNumberDetectionCharacterization() throws {
         let visitor = createVisitor()
         let sourceCode = """

@@ -4,7 +4,6 @@ import Foundation
 
 struct PatternDetectorTests {
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func testDetectPatternsInSourceCode() throws {
         let detector = SourcePatternDetector()
         let sourceCode = """
@@ -31,7 +30,6 @@ struct PatternDetectorTests {
         )
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func testDetectPatternsWithSpecificRules() throws {
         let detector = SourcePatternDetector()
         let sourceCode = """
@@ -53,7 +51,6 @@ struct PatternDetectorTests {
         )
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func testDetectPatternsInProject() async throws {
         let detector = CrossFileAnalysisEngine()
         let tempDir = FileManager.default.temporaryDirectory
@@ -65,7 +62,6 @@ struct PatternDetectorTests {
         )
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func testCrossFilePatternDetection() throws {
         let detector = CrossFileAnalysisEngine()
 
@@ -90,13 +86,11 @@ struct PatternDetectorTests {
         )
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func testEmptySourceCode() throws {
         let detector = SourcePatternDetector()
         _ = detector.detectPatterns(in: "", filePath: "/test/Empty.swift")
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func testInvalidSwiftCode() throws {
         let detector = SourcePatternDetector()
         _ = detector.detectPatterns(

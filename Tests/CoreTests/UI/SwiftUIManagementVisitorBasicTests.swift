@@ -6,7 +6,6 @@ import SwiftSyntax
 /// Tests for SwiftUIManagementVisitor basic detection functionality
 struct SwiftUIManagementVisitorBasicTests {
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func testDetectFatView() throws {
         // Test detection of views with too many state variables
         let source = """
@@ -37,7 +36,6 @@ struct SwiftUIManagementVisitorBasicTests {
         #expect(fatViewIssues.count >= 1)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func testDetectUninitializedState() throws {
         let source = """
         struct ContentView: View {
@@ -63,7 +61,6 @@ struct SwiftUIManagementVisitorBasicTests {
         #expect(uninitializedIssues.count >= 1)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func testDetectMissingStateObject() throws {
         let source = """
         class ViewModel: ObservableObject {
@@ -87,7 +84,6 @@ struct SwiftUIManagementVisitorBasicTests {
         #expect(issues.isEmpty)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func testAnalyzeViewStructure() throws {
         let source = """
         struct ContentView: View {
@@ -113,7 +109,6 @@ struct SwiftUIManagementVisitorBasicTests {
         #expect(issues.isEmpty)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func testAnalyzeVariableDeclaration() throws {
         let source = """
         struct ContentView: View {
@@ -156,7 +151,6 @@ struct SwiftUIManagementVisitorBasicTests {
         #expect(issue.filePath == "test/path/ContentView.swift")
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func testDoesNotDetectFatViewWithFewStateVariables() throws {
         let source = """
         struct ContentView: View {
@@ -182,7 +176,6 @@ struct SwiftUIManagementVisitorBasicTests {
         #expect(fatViewIssues.isEmpty)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func testDoesNotDetectUninitializedStateWithInitializer() throws {
         let source = """
         struct ContentView: View {
@@ -207,7 +200,6 @@ struct SwiftUIManagementVisitorBasicTests {
         #expect(uninitializedIssues.isEmpty)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func testAnalyzeFunctionForUnusedState() throws {
         // Test that analyzeFunctionForUnusedState is called (even if it's a stub)
         let source = """
@@ -233,7 +225,6 @@ struct SwiftUIManagementVisitorBasicTests {
         #expect(issues.isEmpty)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func testDoesNotFlagOptionalStateVariable() throws {
         let source = """
         struct ContentView: View {
@@ -254,7 +245,6 @@ struct SwiftUIManagementVisitorBasicTests {
         #expect(uninitializedIssues.isEmpty)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func testDoesNotFlagNonPrivateStateVariable() throws {
         let source = """
         struct RuleDetailView: View {
@@ -274,7 +264,6 @@ struct SwiftUIManagementVisitorBasicTests {
         #expect(uninitializedIssues.isEmpty)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func testDoesNotFlagStateInitializedInInit() throws {
         let source = """
         struct MyApp: View {
@@ -300,7 +289,6 @@ struct SwiftUIManagementVisitorBasicTests {
         #expect(uninitializedIssues.isEmpty)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func testStillFlagsPrivateNonOptionalWithoutInit() throws {
         let source = """
         struct ContentView: View {

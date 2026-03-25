@@ -4,7 +4,6 @@ import Foundation
 
 struct AdvancedAnalyzerTests {
     
-    // swiftprojectlint:disable Test Missing Require
     @Test func testExtractViewNameRemovesSwiftExtension() throws {
         let name = FileAnalysisUtils.extractSwiftBasename(from: "/Users/test/ContentView.swift")
         #expect(name == "ContentView")
@@ -16,7 +15,6 @@ struct AdvancedAnalyzerTests {
         #expect(name3 == "BazView")
     }
     
-    // swiftprojectlint:disable Test Missing Require
     @Test func testFindDuplicatesReturnsCorrectDuplicates() throws {
         let input = ["a", "b", "c", "a", "d", "b"]
         let result = Set(input.filter { item in input.filter { $0 == item }.count > 1 })
@@ -29,7 +27,6 @@ struct AdvancedAnalyzerTests {
 
     }
     
-    // swiftprojectlint:disable Test Missing Require
     @Test @MainActor func testFindRelatedViewsDetectsHierarchy() async throws {
         // Test through the public interface by creating actual view relationships
         let analyzer = AdvancedAnalyzer()
@@ -43,7 +40,6 @@ struct AdvancedAnalyzerTests {
         // The analyzer should detect view relationships through its public interface
     }
     
-    // swiftprojectlint:disable Test Missing Require
     @Test @MainActor func testIsRootViewReturnsTrueForRoot() async throws {
         // Test through the public interface by creating actual view relationships
         let analyzer = AdvancedAnalyzer()
@@ -57,7 +53,6 @@ struct AdvancedAnalyzerTests {
         // The analyzer should detect view relationships through its public interface
     }
     
-    // swiftprojectlint:disable Test Missing Require
     @Test @MainActor func testGenerateStateSharingSuggestionForTwoViews() async throws {
         // Test through the public interface by creating actual view relationships
         let analyzer = AdvancedAnalyzer()
@@ -71,7 +66,6 @@ struct AdvancedAnalyzerTests {
         // The analyzer should detect view relationships through its public interface
     }
     
-    // swiftprojectlint:disable Test Missing Require
     @Test @MainActor func testGenerateStateSharingSuggestionForManyViews() async throws {
         // Test through the public interface by creating actual view relationships
         let analyzer = AdvancedAnalyzer()
@@ -85,7 +79,6 @@ struct AdvancedAnalyzerTests {
         // The analyzer should detect view relationships through its public interface
     }
     
-    // swiftprojectlint:disable Test Missing Require
     @Test @MainActor func testRelationshipTypeAndViewRelationship() async throws {
         let analyzer = AdvancedAnalyzer()
         

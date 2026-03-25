@@ -26,7 +26,6 @@ struct BasicIOTests {
     
     // MARK: - Basic Input/Output Characterization
     
-    // swiftprojectlint:disable Test Missing Require
     @Test func characterizeEmptySourceBehavior() throws {
         let detector = SourcePatternDetector()
         let issues = detector.detectPatterns(in: "", filePath: "/empty.swift")
@@ -35,7 +34,6 @@ struct BasicIOTests {
         #expect(issues.isEmpty, "Empty source code should produce no issues")
     }
     
-    // swiftprojectlint:disable Test Missing Require
     @Test func testInvalidSwiftCode() throws {
         let detector = SourcePatternDetector()
         let invalidCode = "This is not valid Swift code {"
@@ -47,7 +45,6 @@ struct BasicIOTests {
         
     }
     
-    // swiftprojectlint:disable Test Missing Require
     @Test func characterizeWhitespaceOnlySource() throws {
         let detector = SourcePatternDetector()
         let whitespaceCode = "   \n\n  \t  \n   "
@@ -55,7 +52,6 @@ struct BasicIOTests {
 
     }
     
-    // swiftprojectlint:disable Test Missing Require
     @Test func characterizeInvalidSyntaxHandling() throws {
         let detector = SourcePatternDetector()
         let invalidCode = """
@@ -70,7 +66,6 @@ struct BasicIOTests {
         // The detector should handle invalid syntax without crashing
     }
     
-    // swiftprojectlint:disable Test Missing Require
     @Test func characterizeMinimalValidSwiftUI() throws {
         let detector = SourcePatternDetector()
         let minimalView = """
@@ -87,7 +82,6 @@ struct BasicIOTests {
         
     }
     
-    // swiftprojectlint:disable Test Missing Require
     @Test func characterizeComplexStateVariables() throws {
         let detector = SourcePatternDetector()
         let complexView = """

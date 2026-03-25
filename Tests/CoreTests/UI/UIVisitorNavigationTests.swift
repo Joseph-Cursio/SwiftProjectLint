@@ -6,7 +6,6 @@ import SwiftParser
 
 struct UIVisitorNavigationTests {
     
-    // swiftprojectlint:disable Test Missing Require
     @Test func testDetectsNestedNavigationView() throws {
         let visitor = UIVisitor(patternCategory: PatternCategory.uiPatterns)
         visitor.setFilePath("test.swift")
@@ -48,7 +47,6 @@ struct UIVisitorNavigationTests {
         }
     }
     
-    // swiftprojectlint:disable Test Missing Require
     @Test func testDoesNotDetectSingleNavigationView() throws {
         let visitor = UIVisitor(patternCategory: PatternCategory.uiPatterns)
         visitor.setFilePath("test.swift")
@@ -72,7 +70,6 @@ struct UIVisitorNavigationTests {
         #expect(issues.isEmpty)
     }
     
-    // swiftprojectlint:disable Test Missing Require
     @Test func testDetectsModernNavigationAlternatives() throws {
         let visitor = UIVisitor(patternCategory: PatternCategory.uiPatterns)
         visitor.setFilePath("test.swift")

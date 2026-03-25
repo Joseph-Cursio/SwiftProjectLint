@@ -11,20 +11,17 @@ struct SyntaxRegistryTests {
         SourcePatternRegistry(visitorRegistry: PatternVisitorRegistry())
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func testSharedInstance() {
         let shared1 = SourcePatternRegistry.shared
         let shared2 = SourcePatternRegistry.shared
         #expect(shared1 === shared2)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func testInitialization() {
         let registry = makeRegistry()
         #expect(registry.getAllPatterns().isEmpty)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func testInitializeRegistersPatterns() {
         let registry = makeRegistry()
         registry.initialize()
@@ -32,7 +29,6 @@ struct SyntaxRegistryTests {
 
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func testGetPatternsForCategory() {
         let registry = makeRegistry()
         registry.initialize()
@@ -45,7 +41,6 @@ struct SyntaxRegistryTests {
 
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func testRegisterPattern() {
         let registry = makeRegistry()
         let pattern = SyntaxPattern(
@@ -61,7 +56,6 @@ struct SyntaxRegistryTests {
         #expect(registry.getPatterns(for: .codeQuality).contains { $0.name == .magicNumber })
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func testRegisterMultiplePatterns() {
         let registry = makeRegistry()
         let patterns = [
@@ -88,7 +82,6 @@ struct SyntaxRegistryTests {
         #expect(registry.getPatterns(for: .codeQuality).count >= 2)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func testClearRemovesAllPatterns() {
         let registry = makeRegistry()
         registry.initialize()
@@ -98,7 +91,6 @@ struct SyntaxRegistryTests {
         #expect(registry.getAllPatterns().isEmpty)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func testGetAllPatterns() {
         let registry = makeRegistry()
         registry.initialize()

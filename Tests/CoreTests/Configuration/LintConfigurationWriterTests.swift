@@ -16,7 +16,6 @@ struct LintConfigurationWriterTests {
 
     // MARK: - Individual Sections
 
-    // swiftprojectlint:disable Test Missing Require
     @Test("writes disabled_rules section")
     func writesDisabledRules() throws {
         let config = LintConfiguration(
@@ -28,7 +27,6 @@ struct LintConfigurationWriterTests {
         #expect(content.contains("\"Print Statement\""))
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test("writes enabled_only section")
     func writesEnabledOnly() throws {
         let config = LintConfiguration(
@@ -43,7 +41,6 @@ struct LintConfigurationWriterTests {
 
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test("writes excluded_paths section")
     func writesExcludedPaths() throws {
         let config = LintConfiguration(
@@ -55,7 +52,6 @@ struct LintConfigurationWriterTests {
         #expect(content.contains("\"Generated/\""))
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test("writes per-rule severity overrides")
     func writesRuleSeverityOverride() throws {
         let config = LintConfiguration(
@@ -69,7 +65,6 @@ struct LintConfigurationWriterTests {
         #expect(content.contains("severity: info"))
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test("writes per-rule excluded_paths overrides")
     func writesRuleExcludedPathsOverride() throws {
         let config = LintConfiguration(
@@ -85,7 +80,6 @@ struct LintConfigurationWriterTests {
         #expect(content.contains("\"Scripts/\""))
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test("writes severity with all three values",
           arguments: [
               (IssueSeverity.error, "error"),
@@ -100,7 +94,6 @@ struct LintConfigurationWriterTests {
         #expect(content.contains("severity: \(expected)"))
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test("skips individual rule entry with neither severity nor excluded_paths")
     func skipsEmptyOverride() throws {
         let config = LintConfiguration(
@@ -114,7 +107,6 @@ struct LintConfigurationWriterTests {
 
     // MARK: - Combined Config
 
-    // swiftprojectlint:disable Test Missing Require
     @Test("writes combined config with multiple sections")
     func writesCombinedConfig() throws {
         let config = LintConfiguration(
@@ -131,7 +123,6 @@ struct LintConfigurationWriterTests {
         #expect(content.contains("severity: info"))
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test("writes empty config as empty string")
     func writesEmptyConfig() throws {
         let config = LintConfiguration.default
@@ -141,7 +132,6 @@ struct LintConfigurationWriterTests {
 
     // MARK: - Round-trip
 
-    // swiftprojectlint:disable Test Missing Require
     @Test("round-trip: write then load produces equivalent config for disabled_rules")
     func roundTripDisabledRules() throws {
         let original = LintConfiguration(
@@ -156,7 +146,6 @@ struct LintConfigurationWriterTests {
         #expect(loaded.disabledRules == original.disabledRules)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test("round-trip: write then load produces equivalent config for enabled_only")
     func roundTripEnabledOnly() throws {
         let original = LintConfiguration(
@@ -171,7 +160,6 @@ struct LintConfigurationWriterTests {
         #expect(loaded.enabledOnlyRules == original.enabledOnlyRules)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test("round-trip: write then load produces equivalent config for excluded_paths")
     func roundTripExcludedPaths() throws {
         let original = LintConfiguration(
@@ -186,7 +174,6 @@ struct LintConfigurationWriterTests {
         #expect(loaded.excludedPaths == original.excludedPaths)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test("round-trip: write then load preserves rule overrides")
     func roundTripRuleOverrides() throws {
         let original = LintConfiguration(
@@ -206,7 +193,6 @@ struct LintConfigurationWriterTests {
         #expect(loaded.ruleOverrides[.printStatement]?.severity == .error)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test("round-trip: full config survives write and reload")
     func roundTripFullConfig() throws {
         let original = LintConfiguration(

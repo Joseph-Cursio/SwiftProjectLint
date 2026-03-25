@@ -43,7 +43,6 @@ struct ButtonAccessibilityTests {
         #expect(issue.suggestion?.contains("labelStyle(.iconOnly)") == true)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func testIconOnlyButtonWithLabelClosureMissingLabel() throws {
         let visitor = makeAccessibilityVisitor()
 
@@ -68,7 +67,6 @@ struct ButtonAccessibilityTests {
         #expect(iconOnlyIssues.count == 1)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func testIconOnlyButtonWithAssetImageMissingLabel() throws {
         let visitor = makeAccessibilityVisitor()
 
@@ -93,7 +91,6 @@ struct ButtonAccessibilityTests {
         #expect(iconOnlyIssues.count == 1)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func testIconOnlyButtonWithAccessibilityLabel() {
         let visitor = makeAccessibilityVisitor()
 
@@ -116,7 +113,6 @@ struct ButtonAccessibilityTests {
         #expect(visitor.detectedIssues.isEmpty)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func testButtonWithStringTitleAndSystemImage() {
         let visitor = makeAccessibilityVisitor()
 
@@ -137,7 +133,6 @@ struct ButtonAccessibilityTests {
         #expect(warningIssues.isEmpty)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func testButtonWithImageAndText() {
         let visitor = makeAccessibilityVisitor()
 
@@ -192,7 +187,6 @@ struct ButtonAccessibilityTests {
         #expect(issue.ruleName == .iconOnlyButtonMissingLabel)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func testButtonWithImageInNestedStack() throws {
         let visitor = makeAccessibilityVisitor()
 
@@ -247,7 +241,6 @@ struct ButtonAccessibilityTests {
         #expect(issue.suggestion?.contains("accessibilityHint") == true)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func testButtonWithTextWithAccessibilityHint() {
         let visitor = makeAccessibilityVisitor()
 
@@ -270,7 +263,6 @@ struct ButtonAccessibilityTests {
         #expect(visitor.detectedIssues.isEmpty)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func testButtonWithTextOnly() {
         let visitor = makeAccessibilityVisitor()
 

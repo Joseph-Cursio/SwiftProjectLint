@@ -33,7 +33,6 @@ struct ArchitectureDependencyInjectionTests {
 
     // MARK: - Inline @StateObject fires
 
-    // swiftprojectlint:disable Test Missing Require
     @Test("Inline @StateObject initialization fires missing DI")
     func stateObjectInlineInitFires() {
         let source = """
@@ -50,7 +49,6 @@ struct ArchitectureDependencyInjectionTests {
 
     // MARK: - Empty init fires
 
-    // swiftprojectlint:disable Test Missing Require
     @Test("Empty init in View-suffixed struct fires missing DI")
     func emptyInitInViewFires() {
         let source = """
@@ -68,7 +66,6 @@ struct ArchitectureDependencyInjectionTests {
 
     // MARK: - @Environment suppresses empty init
 
-    // swiftprojectlint:disable Test Missing Require
     @Test("Empty init suppressed when view uses @Environment")
     func emptyInitSuppressedForEnvironment() {
         let source = """
@@ -83,7 +80,6 @@ struct ArchitectureDependencyInjectionTests {
         #expect(diIssues.isEmpty)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test("Empty init suppressed when view uses @EnvironmentObject")
     func emptyInitSuppressedForEnvironmentObject() {
         let source = """
@@ -100,7 +96,6 @@ struct ArchitectureDependencyInjectionTests {
 
     // MARK: - Sibling struct bleed fix
 
-    // swiftprojectlint:disable Test Missing Require
     @Test("Non-view sibling struct's init does not inherit preceding view name")
     func siblingStructInitNotMisattributed() {
         // SkillExportView uses @Environment (no empty init to flag),
@@ -120,7 +115,6 @@ struct ArchitectureDependencyInjectionTests {
         #expect(diIssues.isEmpty)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test("Non-view struct init after view-suffixed struct does not fire")
     func nonViewSiblingAfterViewDoesNotFire() {
         let source = """

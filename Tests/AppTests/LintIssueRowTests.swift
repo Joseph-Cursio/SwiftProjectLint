@@ -5,7 +5,6 @@ import SwiftUI
 import ViewInspector
 
 struct LintIssueRowTests {
-    // swiftprojectlint:disable Test Missing Require
     @Test
     @MainActor
     func testIssueRowDisplaysMessage() throws {
@@ -24,7 +23,6 @@ struct LintIssueRowTests {
         #expect(texts.contains("Test warning message"))
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test
     @MainActor
     func testIssueRowDisplaysFileLocation() throws {
@@ -43,7 +41,6 @@ struct LintIssueRowTests {
         #expect(texts.contains("/path/to/MyView.swift:123"))
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test
     @MainActor
     func testIssueRowHasExpandButton() throws {
@@ -62,7 +59,6 @@ struct LintIssueRowTests {
         #expect(buttons.count >= 1)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test
     @MainActor
     func testIssueRowShowsChevronIcon() throws {
@@ -81,7 +77,6 @@ struct LintIssueRowTests {
         #expect(images.count >= 1) // At least severity icon present
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test
     @MainActor
     func testIssueRowWithMultipleLocations() throws {
@@ -106,7 +101,6 @@ struct LintIssueRowTests {
         #expect(texts.contains("/path/to/View3.swift:30"))
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test("error severity row displays red xmark.circle.fill icon")
     @MainActor
     func errorSeverityIcon() throws {
@@ -127,7 +121,6 @@ struct LintIssueRowTests {
         #expect(systemNames.contains("xmark.circle.fill"))
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test("warning severity row displays orange exclamationmark icon")
     @MainActor
     func warningSeverityIcon() throws {
@@ -147,7 +140,6 @@ struct LintIssueRowTests {
         #expect(systemNames.contains("exclamationmark.triangle.fill"))
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test("info severity row displays blue info.circle.fill icon")
     @MainActor
     func infoSeverityIcon() throws {
@@ -167,7 +159,6 @@ struct LintIssueRowTests {
         #expect(systemNames.contains("info.circle.fill"))
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test("collapsed row shows chevron.down icon")
     @MainActor
     func collapsedRowShowsChevronDown() throws {
@@ -187,7 +178,6 @@ struct LintIssueRowTests {
         #expect(systemNames.contains("chevron.down"))
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test("issue with nil suggestion does not show Suggestion label when collapsed")
     @MainActor
     func noSuggestionLabelWhenNilAndCollapsed() throws {
@@ -207,7 +197,6 @@ struct LintIssueRowTests {
 
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test("single location displays inline file path")
     @MainActor
     func singleLocationInlineDisplay() throws {
@@ -228,7 +217,6 @@ struct LintIssueRowTests {
 
     // MARK: - Expanded state
 
-    // swiftprojectlint:disable Test Missing Require
     @Test("expanded row shows chevron.up icon")
     @MainActor
     func expandedRowShowsChevronUp() throws {
@@ -248,7 +236,6 @@ struct LintIssueRowTests {
         #expect(systemNames.contains("chevron.up"))
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test("expanded row shows Suggestion label when suggestion is non-nil")
     @MainActor
     func expandedRowShowsSuggestionLabel() throws {
@@ -268,7 +255,6 @@ struct LintIssueRowTests {
         #expect(texts.contains("Use a named constant"))
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test("expanded row omits Suggestion label when suggestion is nil")
     @MainActor
     func expandedRowOmitsSuggestionLabelWhenNil() throws {
@@ -288,7 +274,6 @@ struct LintIssueRowTests {
 
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test("expanded row shows Locations label")
     @MainActor
     func expandedRowShowsLocationsLabel() throws {
@@ -307,7 +292,6 @@ struct LintIssueRowTests {
         #expect(texts.contains("Locations:"))
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test("expanded row shows file location in locations section")
     @MainActor
     func expandedRowShowsFileLocationInLocationsSection() throws {
@@ -329,7 +313,6 @@ struct LintIssueRowTests {
         #expect(texts.contains("/src/MyView.swift:42"))
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test("expanded row with multiple locations shows all in locations section")
     @MainActor
     func expandedRowWithMultipleLocationsShowsAll() throws {

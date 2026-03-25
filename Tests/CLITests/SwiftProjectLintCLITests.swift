@@ -58,7 +58,6 @@ struct CLITests {
 
     // MARK: - Missing argument
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func exitWithErrorWhenNoArguments() throws {
         let result = try runCLI(arguments: [])
         #expect(result.exitCode != 0)
@@ -66,7 +65,6 @@ struct CLITests {
 
     // MARK: - Non-existent path
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func exitWithErrorForNonExistentPath() throws {
         let result = try runCLI(arguments: ["/nonexistent/path/to/project"])
         #expect(result.exitCode != 0)
@@ -75,7 +73,6 @@ struct CLITests {
 
     // MARK: - Valid empty project (no Swift files → clean exit)
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func cleanExitForEmptyProject() throws {
         let dir = try makeTemporaryDirectory()
         defer { try? FileManager.default.removeItem(at: dir) }
@@ -86,7 +83,6 @@ struct CLITests {
 
     // MARK: - Text format output
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func textFormatIsDefault() throws {
         let dir = try makeTemporaryDirectory()
         defer { try? FileManager.default.removeItem(at: dir) }
@@ -114,7 +110,6 @@ struct CLITests {
 
     // MARK: - Invalid category
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func exitWithErrorForInvalidCategory() throws {
         let dir = try makeTemporaryDirectory()
         defer { try? FileManager.default.removeItem(at: dir) }
@@ -126,7 +121,6 @@ struct CLITests {
 
     // MARK: - Valid category filter
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func validCategoryFilterRuns() throws {
         let dir = try makeTemporaryDirectory()
         defer { try? FileManager.default.removeItem(at: dir) }
@@ -137,7 +131,6 @@ struct CLITests {
 
     // MARK: - Threshold option
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func errorThresholdIgnoresWarnings() throws {
         let dir = try makeTemporaryDirectory()
         defer { try? FileManager.default.removeItem(at: dir) }
@@ -149,7 +142,6 @@ struct CLITests {
 
     // MARK: - Version flag
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func versionFlagPrintsVersion() throws {
         let result = try runCLI(arguments: ["--version"])
         #expect(result.exitCode == 0)
@@ -158,7 +150,6 @@ struct CLITests {
 
     // MARK: - Analysis of real Swift code
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func detectsIssuesInSwiftFile() throws {
         let dir = try makeTemporaryDirectory()
         defer { try? FileManager.default.removeItem(at: dir) }

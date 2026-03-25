@@ -60,7 +60,6 @@ struct TestMissingRequireVisitorTests {
         #expect(issue.message.contains("testDescriptive"))
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test
     func detectsMultipleTestsWithoutRequire() {
         let visitor = makeVisitor()
@@ -80,7 +79,6 @@ struct TestMissingRequireVisitorTests {
 
     // MARK: - Negative Cases (should not trigger)
 
-    // swiftprojectlint:disable Test Missing Require
     @Test
     func ignoresTestWithRequire() {
         let visitor = makeVisitor()
@@ -94,7 +92,6 @@ struct TestMissingRequireVisitorTests {
         #expect(visitor.detectedIssues.isEmpty)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test
     func ignoresTestWithRequireOnly() {
         let visitor = makeVisitor()
@@ -107,7 +104,6 @@ struct TestMissingRequireVisitorTests {
         #expect(visitor.detectedIssues.isEmpty)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test
     func ignoresTestWithNestedRequire() {
         let visitor = makeVisitor()
@@ -124,7 +120,6 @@ struct TestMissingRequireVisitorTests {
         #expect(visitor.detectedIssues.isEmpty)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test
     func ignoresNonTestFunctions() {
         let visitor = makeVisitor()
@@ -141,7 +136,6 @@ struct TestMissingRequireVisitorTests {
         #expect(visitor.detectedIssues.isEmpty)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test
     func ignoresRegularFunctionsWithTestInName() {
         let visitor = makeVisitor()

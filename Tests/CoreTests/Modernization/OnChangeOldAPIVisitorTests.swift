@@ -38,7 +38,6 @@ struct OnChangeOldAPIVisitorTests {
         #expect(issue.message.contains("onChange"))
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test
     func detectsSingleParameterOnChangeWithShortName() {
         let source = """
@@ -54,7 +53,6 @@ struct OnChangeOldAPIVisitorTests {
         #expect(visitor.detectedIssues.count == 1)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test
     func detectsMultipleOldOnChange() {
         let source = """
@@ -75,7 +73,6 @@ struct OnChangeOldAPIVisitorTests {
 
     // MARK: - Negative Cases
 
-    // swiftprojectlint:disable Test Missing Require
     @Test("No issue for non-legacy onChange usage", arguments: [
         // Zero-parameter onChange
         """

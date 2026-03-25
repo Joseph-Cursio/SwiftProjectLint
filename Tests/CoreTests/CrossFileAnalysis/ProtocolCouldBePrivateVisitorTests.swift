@@ -44,7 +44,6 @@ struct ProtocolCouldBePrivateVisitorTests {
         #expect(issue.message.contains("Loadable"))
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func doesNotFlagProtocolUsedAcrossFiles() {
         let issues = analyze(files: [
             "Protocol.swift": """
@@ -64,7 +63,6 @@ struct ProtocolCouldBePrivateVisitorTests {
 
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func doesNotFlagProtocolUsedAsTypeAnnotation() {
         let issues = analyze(files: [
             "Protocol.swift": """
@@ -84,7 +82,6 @@ struct ProtocolCouldBePrivateVisitorTests {
 
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func skipsAlreadyPrivateProtocol() {
         let issues = analyze(files: [
             "File.swift": """

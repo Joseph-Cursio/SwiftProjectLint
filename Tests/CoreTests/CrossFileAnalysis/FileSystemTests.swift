@@ -37,7 +37,6 @@ struct FileSystemTests {
 
     // MARK: - detectPatterns(in:categories:) with real directories
 
-    // swiftprojectlint:disable Test Missing Require
     @Test("detectPatterns with real directory and categories filter")
     func detectPatternsInRealDirectoryWithCategories() async throws {
         let tempDir = try makeTempDir(label: "CategoriesTest")
@@ -73,7 +72,6 @@ struct FileSystemTests {
         )
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test("detectPatterns with real directory and nil categories")
     func detectPatternsInRealDirectoryNilCategories() async throws {
         let tempDir = try makeTempDir(label: "NilCatTest")
@@ -98,7 +96,6 @@ struct FileSystemTests {
 
     // MARK: - detectPatterns(in:ruleIdentifiers:) with real directories
 
-    // swiftprojectlint:disable Test Missing Require
     @Test("detectPatterns with ruleIdentifiers and real directory")
     func detectPatternsInRealDirectoryWithRuleIdentifiers() async throws {
         let tempDir = try makeTempDir(label: "RuleIdTest")
@@ -126,7 +123,6 @@ struct FileSystemTests {
 
     // MARK: - findSwiftFiles edge cases
 
-    // swiftprojectlint:disable Test Missing Require
     @Test("non-Swift files are ignored by findSwiftFiles")
     func detectPatternsIgnoresNonSwiftFiles() async throws {
         let tempDir = try makeTempDir(label: "MixedFilesTest")
@@ -145,7 +141,6 @@ struct FileSystemTests {
         _ = await engine.detectPatterns(in: tempDir.path, categories: [.stateManagement])
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test("findSwiftFiles discovers files in nested subdirectories")
     func detectPatternsFindsNestedSwiftFiles() async throws {
         let tempDir = try makeTempDir(label: "NestedTest")
@@ -168,7 +163,6 @@ struct FileSystemTests {
         _ = await engine.detectPatterns(in: tempDir.path)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test("empty directory produces no issues")
     func detectPatternsInEmptyDirectory() async throws {
         let tempDir = try makeTempDir(label: "EmptyDirTest")
@@ -180,7 +174,6 @@ struct FileSystemTests {
         #expect(issues.isEmpty)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test("directory with only non-Swift files produces no issues")
     func detectPatternsWithOnlyNonSwiftFiles() async throws {
         let tempDir = try makeTempDir(label: "NoSwiftTest")

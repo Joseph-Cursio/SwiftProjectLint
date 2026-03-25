@@ -52,7 +52,6 @@ struct DispatchMainAsyncVisitorTests {
         #expect(issue.message.contains(expectedSubstring))
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test
     func detectsMultipleCalls() {
         let source = """
@@ -68,7 +67,6 @@ struct DispatchMainAsyncVisitorTests {
 
     // MARK: - Parameterized Negative Cases
 
-    // swiftprojectlint:disable Test Missing Require
     @Test("No issue for non-main dispatch usage", arguments: [
         "DispatchQueue.global().async {\n    self.doWork()\n}",
         "await MainActor.run {\n    self.updateUI()\n}",

@@ -54,7 +54,6 @@ struct LowercasedContainsVisitorTests {
     }
 
     // Unique: multi-instance in filter closure, specific count validation
-    // swiftprojectlint:disable Test Missing Require
     @Test
     func detectsInFilterClosure() throws {
         let source = """
@@ -78,7 +77,6 @@ struct LowercasedContainsVisitorTests {
 
     // MARK: - Negative Cases
 
-    // swiftprojectlint:disable Test Missing Require
     @Test("No issue for valid contains usage", arguments: [
         // Plain contains
         """

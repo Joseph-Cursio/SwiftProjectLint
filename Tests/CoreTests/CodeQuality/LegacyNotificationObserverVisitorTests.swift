@@ -40,7 +40,6 @@ struct LegacyNotificationObserverVisitorTests {
         #expect(issue.message.contains("target-action"))
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test("Detects legacy observer variant", arguments: [
         """
         let center = NotificationCenter()
@@ -60,7 +59,6 @@ struct LegacyNotificationObserverVisitorTests {
 
     // MARK: - Negative Cases
 
-    // swiftprojectlint:disable Test Missing Require
     @Test("No issue for modern observer pattern", arguments: [
         // Closure-based observer
         """

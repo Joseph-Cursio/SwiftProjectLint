@@ -58,7 +58,6 @@ struct SVPropertyWrapperTests {
         }
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test
     func multiplePropertyWrapperTypes() throws {
         let source = """

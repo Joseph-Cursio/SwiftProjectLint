@@ -4,12 +4,10 @@ import Foundation
 
 struct ProjectLinterTests {
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func testProjectLinterInitialization() throws {
         _ = ProjectLinter() // ProjectLinter should be created successfully
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func testAnalyzeProjectWithValidPath() async throws {
         let testProjectPath = makeTestProject()
         let linter = ProjectLinter()
@@ -19,7 +17,6 @@ struct ProjectLinterTests {
         print("DEBUG: Found \(issues.count) issues in valid project")
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func testAnalyzeProjectWithInvalidPath() async throws {
         let linter = ProjectLinter()
         let invalidPath = "/nonexistent/path/to/project"
@@ -29,7 +26,6 @@ struct ProjectLinterTests {
         print("DEBUG: Found \(issues.count) issues in invalid project")
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func testAnalyzeProjectWithSpecificCategories() async throws {
         let testProjectPath = makeTestProject()
         let linter = ProjectLinter()
@@ -48,7 +44,6 @@ struct ProjectLinterTests {
         }
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func testAnalyzeProjectWithSpecificRules() async throws {
         let testProjectPath = makeTestProject()
         let linter = ProjectLinter()
@@ -66,7 +61,6 @@ struct ProjectLinterTests {
         }
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func testAnalyzeProjectWithEmptyProject() async throws {
         let testProjectPath = makeEmptyTestProject()
         let linter = ProjectLinter()
@@ -76,7 +70,6 @@ struct ProjectLinterTests {
         print("DEBUG: Found \(issues.count) issues in empty project")
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func testAnalyzeProjectWithComplexProject() async throws {
         let testProjectPath = makeComplexTestProject()
         let linter = ProjectLinter()
@@ -90,7 +83,6 @@ struct ProjectLinterTests {
         print("DEBUG: Detected issue categories: \(issueTypes)")
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func testAnalyzeProjectPerformance() async throws {
         let testProjectPath = makeComplexTestProject()
         let linter = ProjectLinter()
@@ -105,7 +97,6 @@ struct ProjectLinterTests {
         #expect(duration < 10.0) // Should complete within reasonable time
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func testAnalyzeProjectWithAllCategories() async throws {
         let testProjectPath = makeComplexTestProject()
         let linter = ProjectLinter()
@@ -124,7 +115,6 @@ struct ProjectLinterTests {
         print("DEBUG: Detected categories: \(detectedCategories)")
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func testAnalyzeProjectWithAllRules() async throws {
         let testProjectPath = makeComplexTestProject()
         let linter = ProjectLinter()

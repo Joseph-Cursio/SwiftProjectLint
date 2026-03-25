@@ -37,7 +37,6 @@ struct NavigationViewDeprecatedVisitorTests {
         #expect(issue.message.contains("NavigationView"))
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test
     func detectsNavigationViewWithMultipleChildren() {
         let source = """
@@ -55,7 +54,6 @@ struct NavigationViewDeprecatedVisitorTests {
         #expect(visitor.detectedIssues.count == 1)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test
     func detectsMultipleNavigationViews() {
         let source = """
@@ -75,7 +73,6 @@ struct NavigationViewDeprecatedVisitorTests {
 
     // MARK: - Negative Cases
 
-    // swiftprojectlint:disable Test Missing Require
     @Test("No issue for modern navigation APIs", arguments: [
         // NavigationStack
         """

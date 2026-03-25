@@ -39,7 +39,6 @@ struct AsyncLetUnusedVisitorTests {
 
     // MARK: - Negative Cases
 
-    // swiftprojectlint:disable Test Missing Require
     @Test("No issue for proper async let usage", arguments: [
         // Named async let
         """

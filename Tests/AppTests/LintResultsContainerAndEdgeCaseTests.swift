@@ -7,7 +7,6 @@ import ViewInspector
 // MARK: - LintResultsContainerView Tests
 
 struct LintResultsContainerViewTests {
-    // swiftprojectlint:disable Test Missing Require
     @Test
     @MainActor
     func testContainerViewHasFullScreenButton() throws {
@@ -24,7 +23,6 @@ struct LintResultsContainerViewTests {
         #expect(texts.contains("Full Screen"))
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test
     @MainActor
     func testContainerViewContainsLintResultsView() throws {
@@ -42,7 +40,6 @@ struct LintResultsContainerViewTests {
         #expect(texts.contains("Summary"))
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test
     @MainActor
     func testContainerViewHasExpandIcon() throws {
@@ -59,7 +56,6 @@ struct LintResultsContainerViewTests {
         #expect(images.count >= 1)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test("container with empty issues still shows summary and full screen button")
     @MainActor
     func containerEmptyIssues() throws {
@@ -71,7 +67,6 @@ struct LintResultsContainerViewTests {
         #expect(texts.contains("Summary"))
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test("expand icon uses arrow.up.left.and.arrow.down.right system image")
     @MainActor
     func expandIconSystemName() throws {
@@ -87,7 +82,6 @@ struct LintResultsContainerViewTests {
 // MARK: - FullScreenResultsView Tests
 
 struct FullScreenResultsViewTests {
-    // swiftprojectlint:disable Test Missing Require
     @Test
     @MainActor
     func testFullScreenViewDisplaysIssues() throws {
@@ -109,7 +103,6 @@ struct FullScreenResultsViewTests {
         #expect(texts.contains("Full screen warning"))
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test
     @MainActor
     func testFullScreenViewHasSummarySection() throws {
@@ -130,7 +123,6 @@ struct FullScreenResultsViewTests {
         #expect(texts.contains("Info"))
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test
     @MainActor
     func testFullScreenViewHasDoneButton() throws {
@@ -148,7 +140,6 @@ struct FullScreenResultsViewTests {
         #expect(buttonLabels.contains("Done"))
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test
     @MainActor
     func testFullScreenViewWithEmptyIssues() throws {
@@ -160,7 +151,6 @@ struct FullScreenResultsViewTests {
         #expect(texts.contains("0")) // All counts should be 0
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test("full screen view summary shows correct counts for mixed severities")
     @MainActor
     func fullScreenSummaryCountsMixedSeverities() throws {
@@ -191,7 +181,6 @@ struct FullScreenResultsViewTests {
         #expect(allTexts.contains("1")) // Warnings and Info
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test("full screen view has dividers between issue rows")
     @MainActor
     func fullScreenDividers() throws {
@@ -220,7 +209,6 @@ struct FullScreenResultsViewTests {
 // MARK: - Edge Case Tests
 
 struct LintResultsEdgeCaseTests {
-    // swiftprojectlint:disable Test Missing Require
     @Test
     @MainActor
     func testLongMessageDisplay() throws {
@@ -243,7 +231,6 @@ about the lint issue that was detected in the codebase during analysis
         #expect(texts.contains(longMessage))
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test
     @MainActor
     func testIssueWithSuggestion() throws {
@@ -262,7 +249,6 @@ about the lint issue that was detected in the codebase during analysis
         #expect(texts.contains("State management issue"))
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test
     @MainActor
     func testAllSeverityTypes() throws {
@@ -289,7 +275,6 @@ about the lint issue that was detected in the codebase during analysis
         #expect(texts.contains("Info type"))
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test("issue with empty locations array uses default values")
     func emptyLocationsDefaults() throws {
         let issue = LintIssue(
@@ -303,7 +288,6 @@ about the lint issue that was detected in the codebase during analysis
         #expect(issue.lineNumber == 0)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test("issue with many locations preserves all of them")
     func manyLocationsPreserved() throws {
         let locations = (1...10).map { index in

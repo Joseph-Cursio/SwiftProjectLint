@@ -25,7 +25,6 @@ struct CodeQualityIntegrationTests {
 
     // MARK: - Integration Tests
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func testMultipleCodeQualityIssues() throws {
         let sourceCode = """
         public struct TestView: View {
@@ -50,7 +49,6 @@ struct CodeQualityIntegrationTests {
         #expect(documentationIssues.count == 1)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func testConfigurationCharacterization() throws {
         let magicVisitor = MagicNumberVisitor(patternCategory: .codeQuality, configuration: .strict)
         magicVisitor.setFilePath("TestFile.swift")
@@ -83,25 +81,21 @@ struct CodeQualityIntegrationTests {
 
     // MARK: - Configuration Tests
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func testMagicNumberConfigurationDefault() {
         let config = MagicNumberVisitor.Configuration.default
         #expect(config.magicNumberThreshold == 10)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func testMagicNumberConfigurationStrict() {
         let config = MagicNumberVisitor.Configuration.strict
         #expect(config.magicNumberThreshold == 5)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func testDocumentationConfigurationDefault() {
         let config = DocumentationVisitor.Configuration.default
         #expect(config.checkPublicAPIsOnly)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func testDocumentationConfigurationStrict() {
         let config = DocumentationVisitor.Configuration.strict
         #expect(config.checkPublicAPIsOnly == false)
@@ -109,7 +103,6 @@ struct CodeQualityIntegrationTests {
 
     // MARK: - Documentation Tests
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func testMissingDocumentationDetection() throws {
         let sourceCode = """
         public struct UndocumentedView: View {
@@ -127,7 +120,6 @@ struct CodeQualityIntegrationTests {
         #expect(docIssues.count == 4)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func testDocumentedAPIsNoDetection() throws {
         let sourceCode = """
         /// A documented struct
@@ -145,7 +137,6 @@ struct CodeQualityIntegrationTests {
         #expect(docIssues.isEmpty)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func testPrivateAPIsNoDetection() throws {
         let sourceCode = """
         struct InternalView: View {

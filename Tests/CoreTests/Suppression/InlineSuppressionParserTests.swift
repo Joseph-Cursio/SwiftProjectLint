@@ -6,7 +6,6 @@ struct InlineSuppressionParserTests {
 
     // MARK: - disable
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func testDisableSpecificRule() {
         let source = """
         let x = 42 // something
@@ -21,7 +20,6 @@ struct InlineSuppressionParserTests {
         #expect(d.line == 2)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func testDisableAllRules() {
         let source = "// swiftprojectlint:disable"
         let directives = InlineSuppressionParser.parse(fileContent: source)
@@ -30,7 +28,6 @@ struct InlineSuppressionParserTests {
         #expect(directives[0].rules.isEmpty)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func testDisableMultipleRulesOnOneLine() {
         let source = "// swiftprojectlint:disable force-try force-unwrap magic-number"
         let directives = InlineSuppressionParser.parse(fileContent: source)
@@ -40,7 +37,6 @@ struct InlineSuppressionParserTests {
 
     // MARK: - enable
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func testEnableRule() {
         let source = "// swiftprojectlint:enable force-try"
         let directives = InlineSuppressionParser.parse(fileContent: source)
@@ -51,7 +47,6 @@ struct InlineSuppressionParserTests {
 
     // MARK: - disable:next
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func testDisableNext() {
         let source = "// swiftprojectlint:disable:next force-try"
         let directives = InlineSuppressionParser.parse(fileContent: source)
@@ -63,7 +58,6 @@ struct InlineSuppressionParserTests {
 
     // MARK: - disable:this
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func testDisableThis() {
         let source = "// swiftprojectlint:disable:this force-try"
         let directives = InlineSuppressionParser.parse(fileContent: source)
@@ -74,7 +68,6 @@ struct InlineSuppressionParserTests {
 
     // MARK: - Edge cases
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func testCaseInsensitiveRuleName() {
         let source = "// swiftprojectlint:disable Force-Try"
         let directives = InlineSuppressionParser.parse(fileContent: source)
@@ -82,7 +75,6 @@ struct InlineSuppressionParserTests {
         #expect(directives[0].rules == [.forceTry])
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func testUnknownRuleNameIsIgnored() {
         let source = "// swiftprojectlint:disable not-a-real-rule"
         let directives = InlineSuppressionParser.parse(fileContent: source)
@@ -91,14 +83,12 @@ struct InlineSuppressionParserTests {
         #expect(directives[0].rules.isEmpty)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func testMalformedKeywordIsIgnored() {
         let source = "// swiftprojectlint:bogus force-try"
         let directives = InlineSuppressionParser.parse(fileContent: source)
         #expect(directives.isEmpty)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func testNoDirectivesReturnsEmpty() {
         let source = """
         struct Foo {
@@ -108,14 +98,12 @@ struct InlineSuppressionParserTests {
         #expect(InlineSuppressionParser.parse(fileContent: source).isEmpty)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func testIndentedCommentIsParsed() {
         let source = "    // swiftprojectlint:disable force-try"
         let directives = InlineSuppressionParser.parse(fileContent: source)
         #expect(directives.count == 1)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func testLineNumberIsCorrect() {
         let source = """
         line one

@@ -24,7 +24,6 @@ struct ViewRelationshipBasicDetectionTests {
 
     // MARK: - Basic Detection Tests
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func testVerySimpleDetection() throws {
         let sourceCode = """
         struct ContentView: View {
@@ -40,7 +39,6 @@ struct ViewRelationshipBasicDetectionTests {
         #expect(relationships.isEmpty)
     }
     
-    // swiftprojectlint:disable Test Missing Require
     @Test func testBasicDetection() throws {
         let sourceCode = """
         struct ContentView: View {

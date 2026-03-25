@@ -30,7 +30,6 @@ struct CoverageTests {
         return registry
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test("cross-file visitor loop executes with categories filter")
     func crossFileVisitorLoopExecutesWithCategories() {
         let registry = makeRegistryWithCrossFileVisitor()
@@ -63,7 +62,6 @@ struct CoverageTests {
         )
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test("cross-file visitor loop with nil categories uses all patterns")
     func crossFileVisitorLoopWithNilCategories() {
         let registry = makeRegistryWithCrossFileVisitor()
@@ -86,7 +84,6 @@ struct CoverageTests {
         )
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test("cross-file visitor walks all cached files")
     func crossFileVisitorWalksAllCachedFiles() {
         let registry = makeRegistryWithCrossFileVisitor()
@@ -111,7 +108,6 @@ struct CoverageTests {
         )
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test("ruleIdentifiers overload exercises cross-file visitor path")
     func ruleIdentifiersOverloadWithCrossFileVisitor() {
         let registry = makeRegistryWithCrossFileVisitor()
@@ -144,7 +140,6 @@ struct CoverageTests {
         )
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test("ruleIdentifiers with mixed cross-file and regular visitors")
     func ruleIdentifiersMixedCrossFileAndRegular() {
         let registry = makeRegistryWithCrossFileVisitor()
@@ -178,7 +173,6 @@ struct CoverageTests {
         )
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test("multiple cross-file patterns all get processed")
     func multipleCrossFilePatternsInRegistry() {
         let registry = PatternVisitorRegistry()

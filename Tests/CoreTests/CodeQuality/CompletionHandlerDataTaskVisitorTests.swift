@@ -73,7 +73,6 @@ struct CompletionHandlerDataTaskVisitorTests {
 
     // MARK: - Negative Cases
 
-    // swiftprojectlint:disable Test Missing Require
     @Test("No issue for async or unrelated code", arguments: [
         // Async data
         """

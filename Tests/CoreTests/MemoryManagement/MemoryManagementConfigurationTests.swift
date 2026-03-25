@@ -9,7 +9,6 @@ struct MemoryManagementConfigurationTests {
 
     // MARK: - Configuration Tests
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func testCustomConfigurationForRetainCycles() throws {
         let config = MemoryManagementVisitor.Configuration(
             maxArraySize: 100,
@@ -52,7 +51,6 @@ struct MemoryManagementConfigurationTests {
 
     // MARK: - Complex Scenarios
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func testComplexViewWithMultipleIssues() throws {
         let sourceCode = """
         struct ContentView: View {
@@ -102,7 +100,6 @@ struct MemoryManagementConfigurationTests {
         #expect(largeObjectIssues.count == 1)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func testResetClearsDetectedIssues() throws {
         let sourceCode = """
         struct TestView: View {

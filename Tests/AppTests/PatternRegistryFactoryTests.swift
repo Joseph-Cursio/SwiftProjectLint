@@ -6,14 +6,12 @@ import Testing
 @MainActor
 struct PatternRegistryFactoryTests {
 
-    // swiftprojectlint:disable Test Missing Require
     @Test("createVisitorRegistry returns a fresh registry instance")
     func createVisitorRegistryReturnsFreshInstance() {
         let registry = PatternRegistryFactory.createVisitorRegistry()
         #expect(registry is PatternVisitorRegistry)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test("createVisitorRegistry returns distinct instances on each call")
     func createVisitorRegistryReturnsDistinctInstances() {
         let firstRegistry = PatternRegistryFactory.createVisitorRegistry()
@@ -21,14 +19,12 @@ struct PatternRegistryFactoryTests {
         #expect(firstRegistry !== secondRegistry)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test("createPatternRegistry returns a registry without a provided visitor registry")
     func createPatternRegistryWithoutVisitorRegistry() {
         let patternRegistry = PatternRegistryFactory.createPatternRegistry()
         #expect(patternRegistry.getAllPatterns().isEmpty)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test("createPatternRegistry uses the provided visitor registry")
     func createPatternRegistryWithVisitorRegistry() {
         let visitorRegistry = PatternRegistryFactory.createVisitorRegistry()
@@ -36,14 +32,12 @@ struct PatternRegistryFactoryTests {
         #expect(patternRegistry.getAllPatterns().isEmpty)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test("createPatternDetector returns a detector without a provided registry")
     func createPatternDetectorWithoutRegistry() {
         let detector = PatternRegistryFactory.createPatternDetector()
         #expect(detector is SourcePatternDetector)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test("createPatternDetector uses the provided visitor registry")
     func createPatternDetectorWithRegistry() {
         let visitorRegistry = PatternRegistryFactory.createVisitorRegistry()
@@ -51,7 +45,6 @@ struct PatternRegistryFactoryTests {
         #expect(detector is SourcePatternDetector)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test("createConfiguredSystem returns a fully initialized system with patterns")
     func createConfiguredSystemHasPatterns() {
         let system = PatternRegistryFactory.createConfiguredSystem()
@@ -60,7 +53,6 @@ struct PatternRegistryFactoryTests {
 
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test("createConfiguredSystem registers patterns across multiple categories")
     func createConfiguredSystemCoversCategories() {
         let system = PatternRegistryFactory.createConfiguredSystem()
@@ -77,7 +69,6 @@ struct PatternRegistryFactoryTests {
         #expect(categoryCount >= 5, "Should cover at least 5 categories, got \(categoryCount)")
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test("createTestSystem returns a system with no pre-registered patterns")
     func createTestSystemHasNoPatterns() {
         let system = PatternRegistryFactory.createTestSystem()
@@ -85,7 +76,6 @@ struct PatternRegistryFactoryTests {
         #expect(allPatterns.isEmpty, "Test system should have no pre-registered patterns")
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test("createTestSystem components are distinct from createConfiguredSystem")
     func testSystemIsDistinctFromConfiguredSystem() {
         let testSystem = PatternRegistryFactory.createTestSystem()
@@ -96,7 +86,6 @@ struct PatternRegistryFactoryTests {
         #expect(testSystem.detector !== configuredSystem.detector)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test("PatternDetectionSystem stores all three components correctly")
     func patternDetectionSystemStoresComponents() {
         let visitorRegistry = PatternRegistryFactory.createVisitorRegistry()
@@ -114,7 +103,6 @@ struct PatternRegistryFactoryTests {
         #expect(system.detector === detector)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test("createConfiguredSystem detector is properly wired")
     func configuredSystemDetectorIsUsable() {
         let system = PatternRegistryFactory.createConfiguredSystem()

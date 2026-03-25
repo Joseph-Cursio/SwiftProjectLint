@@ -94,7 +94,6 @@ struct PerfUnnecessaryUpdateCoverageTests {
         #expect(issue.lineNumber == 3)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test("no warning when state var is both assigned and used in view body")
     func noWarningWhenAssignedAndUsed() throws {
         let visitor = PerformanceVisitor(patternCategory: .performance)
@@ -116,7 +115,6 @@ struct PerfUnnecessaryUpdateCoverageTests {
         #expect(unnecessaryIssues.isEmpty)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test("no warning when state var is not assigned")
     func noWarningWhenNotAssigned() throws {
         let visitor = PerformanceVisitor(patternCategory: .performance)
@@ -138,7 +136,6 @@ struct PerfUnnecessaryUpdateCoverageTests {
         #expect(unnecessaryIssues.isEmpty)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test("reports multiple unnecessary updates for multiple state vars")
     func multipleUnnecessaryUpdates() throws {
         let visitor = PerformanceVisitor(patternCategory: .performance)
@@ -220,7 +217,6 @@ struct PerfUsageAndForEachCoverageTests {
 
     // MARK: - trackStateVariableUsage: non-self member access
 
-    // swiftprojectlint:disable Test Missing Require
     @Test("does not mark state var as used for non-self member access")
     func nonSelfMemberAccessDoesNotMarkUsed() throws {
         let source = """
@@ -296,7 +292,6 @@ struct PerfUsageAndForEachCoverageTests {
 
     // MARK: - trackStateVariableDeclaration edge cases
 
-    // swiftprojectlint:disable Test Missing Require
     @Test("does not track variables without property wrappers")
     func plainVariableNotTracked() throws {
         let source = """
@@ -312,7 +307,6 @@ struct PerfUsageAndForEachCoverageTests {
         #expect(visitor.stateVariables["constant"] == nil)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test("does not track @Binding variables")
     func bindingVariableNotTracked() throws {
         let source = """
@@ -328,7 +322,6 @@ struct PerfUsageAndForEachCoverageTests {
         #expect(visitor.stateVariables["count"] != nil)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test("resets state variables when visiting a new struct")
     func stateVariablesResetForNewView() throws {
         let source = """
@@ -347,7 +340,6 @@ struct PerfUsageAndForEachCoverageTests {
         #expect(visitor.stateVariables["beta"] != nil)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test("checkForUnnecessaryUpdates is called at end of struct visit")
     func unnecessaryUpdateDetectedAtStructEnd() throws {
         let source = """
@@ -368,7 +360,6 @@ struct PerfUsageAndForEachCoverageTests {
 
     // MARK: - detectForEachWithoutID coverage
 
-    // swiftprojectlint:disable Test Missing Require
     @Test("detectForEachWithoutID skips non-self member access")
     func forEachDetectionSkipsNonSelfAccess() throws {
         let source = """
@@ -387,7 +378,6 @@ struct PerfUsageAndForEachCoverageTests {
         #expect(forEachIssues.isEmpty)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test("detectForEachSelfID detects backslash-self in nested ForEach")
     func detectsSelfIDInNestedForEach() throws {
         let source = """
@@ -410,7 +400,6 @@ struct PerfUsageAndForEachCoverageTests {
         #expect(selfIDIssues.count >= 2)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test("detectForEachSelfID does not flag ForEach with proper id keypath")
     func noFalsePositiveForProperKeypath() throws {
         let source = """
@@ -435,7 +424,6 @@ struct PerfUsageAndForEachCoverageTests {
         #expect(selfIDIssues.isEmpty)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test("detectForEachSelfID does not flag non-ForEach function calls")
     func noFalsePositiveForListWithSelfID() throws {
         let source = """

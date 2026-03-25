@@ -39,7 +39,6 @@ struct DeprecatedAnimationVisitorTests {
         #expect(issue.severity == .warning)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test
     func modernAnimationModifier() throws {
         let source = """
@@ -60,7 +59,6 @@ struct DeprecatedAnimationVisitorTests {
         #expect(visitor.detectedIssues.isEmpty)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test
     func bindingAnimationModifier() throws {
         let source = """

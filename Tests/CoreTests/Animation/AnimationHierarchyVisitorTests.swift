@@ -45,7 +45,6 @@ struct AnimationHierarchyVisitorTests {
         #expect(issue.message.contains("isVisible"))
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test
     func testNoIssueForDifferentValues() throws {
         let source = """
@@ -69,7 +68,6 @@ struct AnimationHierarchyVisitorTests {
         #expect(visitor.detectedIssues.isEmpty)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test
     func testNoIssueForDeprecatedSingleArgAnimation() throws {
         let source = """

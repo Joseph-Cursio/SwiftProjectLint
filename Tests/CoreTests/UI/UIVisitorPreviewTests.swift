@@ -31,7 +31,6 @@ struct UIVisitorPreviewTests {
         #expect(issue.severity == .info)
     }
     
-    // swiftprojectlint:disable Test Missing Require
     @Test func testDoesNotDetectWhenPreviewExists() throws {
         let visitor = UIVisitor(patternCategory: PatternCategory.uiPatterns)
         visitor.setFilePath("test.swift")
@@ -57,7 +56,6 @@ struct UIVisitorPreviewTests {
         #expect(issues.isEmpty)
     }
     
-    // swiftprojectlint:disable Test Missing Require
     @Test func testSubcomponentViewsNotFlaggedForMissingPreview() throws {
         let visitor = UIVisitor(patternCategory: PatternCategory.uiPatterns)
         visitor.setFilePath("HealthScoreBadge.swift")
@@ -86,7 +84,6 @@ struct UIVisitorPreviewTests {
         #expect(previewIssues.first?.message.contains("HealthScoreBadge") == true)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func testDetectsPreviewStruct() throws {
         let visitor = UIVisitor(patternCategory: PatternCategory.uiPatterns)
         visitor.setFilePath("test.swift")

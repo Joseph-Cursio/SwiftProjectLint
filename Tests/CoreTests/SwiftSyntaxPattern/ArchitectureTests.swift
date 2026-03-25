@@ -91,7 +91,6 @@ struct ArchitectureTests {
         
     }
     
-    // swiftprojectlint:disable Test Missing Require
     @Test
     @MainActor
     static func architectureVisitorValidArchitecture() async throws {

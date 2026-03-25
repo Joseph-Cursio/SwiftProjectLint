@@ -42,7 +42,6 @@ struct ArchitectureIssueDetectorTests {
         #expect(issue.lineNumber == 3)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test
     func doesNotFlagObservedObjectInChildView() throws {
         let stateVars = [
@@ -69,7 +68,6 @@ struct ArchitectureIssueDetectorTests {
         #expect(issues.isEmpty)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test
     func doesNotFlagStateObjectInRootView() throws {
         let stateVars = [
@@ -93,7 +91,6 @@ struct ArchitectureIssueDetectorTests {
         #expect(issues.isEmpty)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test
     func doesNotFlagStateInRootView() throws {
         let stateVars = [
@@ -117,7 +114,6 @@ struct ArchitectureIssueDetectorTests {
         #expect(issues.isEmpty)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test
     func detectsMultipleObservedObjectsInRootViews() throws {
         let stateVars = [
@@ -164,7 +160,6 @@ struct ArchitectureIssueDetectorTests {
         #expect(affectedViews.contains("RootB"))
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test
     func emptyInputReturnsNoIssues() throws {
         let issues = ArchitectureIssueDetector.detectArchitecturalAntiPatterns(
@@ -175,7 +170,6 @@ struct ArchitectureIssueDetectorTests {
         #expect(issues.isEmpty)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test
     func viewWithNoHierarchyIsRoot() throws {
         let stateVars = [

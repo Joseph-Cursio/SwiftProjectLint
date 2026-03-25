@@ -35,7 +35,6 @@ struct NonisolatedUnsafeVisitorTests {
         #expect(issue.message.contains("nonisolated(unsafe)"))
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test("Detects nonisolated(unsafe) variant", arguments: [
         """
         nonisolated(unsafe) private var cache: [String]
@@ -49,7 +48,6 @@ struct NonisolatedUnsafeVisitorTests {
 
     // MARK: - Negative Cases
 
-    // swiftprojectlint:disable Test Missing Require
     @Test("No issue for safe isolation patterns", arguments: [
         // nonisolated without unsafe
         """
@@ -72,7 +70,6 @@ struct NonisolatedUnsafeVisitorTests {
 
     // MARK: - Lock suppression
 
-    // swiftprojectlint:disable Test Missing Require
     @Test("No issue when enclosing type has OSAllocatedUnfairLock")
     func suppressedByOSAllocatedUnfairLock() {
         let source = """
@@ -86,7 +83,6 @@ struct NonisolatedUnsafeVisitorTests {
         #expect(visitor.detectedIssues.isEmpty)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test("No issue when enclosing type has generic OSAllocatedUnfairLock")
     func suppressedByGenericOSAllocatedUnfairLock() {
         let source = """
@@ -100,7 +96,6 @@ struct NonisolatedUnsafeVisitorTests {
         #expect(visitor.detectedIssues.isEmpty)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test("No issue when enclosing type has Mutex")
     func suppressedByMutex() {
         let source = """
@@ -114,7 +109,6 @@ struct NonisolatedUnsafeVisitorTests {
         #expect(visitor.detectedIssues.isEmpty)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test("No issue when enclosing type has NSLock")
     func suppressedByNSLock() {
         let source = """
@@ -128,7 +122,6 @@ struct NonisolatedUnsafeVisitorTests {
         #expect(visitor.detectedIssues.isEmpty)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test("Issue still reported when no lock in enclosing type")
     func notSuppressedWithoutLock() {
         let source = """
@@ -141,7 +134,6 @@ struct NonisolatedUnsafeVisitorTests {
         #expect(visitor.detectedIssues.count == 1)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test("Issue still reported for top-level nonisolated(unsafe) var")
     func notSuppressedAtTopLevel() {
         let source = """

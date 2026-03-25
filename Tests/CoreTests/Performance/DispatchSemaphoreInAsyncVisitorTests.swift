@@ -42,7 +42,6 @@ struct DispatchSemaphoreInAsyncVisitorTests {
         #expect(issue.message.contains("DispatchSemaphore"))
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test("Detects semaphore in async context", arguments: [
         // async throws function
         """
@@ -79,7 +78,6 @@ struct DispatchSemaphoreInAsyncVisitorTests {
 
     // MARK: - Negative Cases
 
-    // swiftprojectlint:disable Test Missing Require
     @Test("No issue for semaphore in sync context", arguments: [
         // Sync function
         """

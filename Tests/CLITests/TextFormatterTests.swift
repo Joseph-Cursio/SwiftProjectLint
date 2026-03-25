@@ -3,7 +3,6 @@ import Core
 @testable import CLI
 
 struct TextFormatterTests {
-    // swiftprojectlint:disable Test Missing Require
     @Test
     func formatsSingleIssue() {
         let issue = LintIssue(
@@ -20,7 +19,6 @@ struct TextFormatterTests {
         #expect(output.contains("Found 1 issue (1 warning)"))
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test
     func formatsMultipleSeverities() {
         let issues = [
@@ -35,14 +33,12 @@ struct TextFormatterTests {
         #expect(summary == "Found 3 issues (1 error, 1 warning, 1 info)")
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test
     func formatsEmptyIssues() {
         let output = TextFormatter.format(issues: [])
         #expect(output.contains("No issues found."))
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test
     func omitsSuggestionWhenNil() {
         let issue = LintIssue(

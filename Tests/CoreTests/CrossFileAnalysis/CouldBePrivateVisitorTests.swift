@@ -6,7 +6,6 @@ import SwiftParser
 @Suite
 struct CouldBePrivateVisitorTests {
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func detectsTypeOnlyUsedInDeclaringFile() {
         let fileA = Parser.parse(source: """
         struct HelperView: View {
@@ -48,7 +47,6 @@ struct CouldBePrivateVisitorTests {
         #expect(flaggedNames.contains { $0.contains("OtherView") })
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func doesNotFlagTypeUsedAcrossFiles() {
         let fileA = Parser.parse(source: """
         struct SharedModel {
@@ -84,7 +82,6 @@ struct CouldBePrivateVisitorTests {
 
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func skipsPrivateAndPublicTypes() {
         let file = Parser.parse(source: """
         private struct AlreadyPrivate {

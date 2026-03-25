@@ -6,7 +6,6 @@ import SwiftParser
 
 struct UIVisitorStylingTests {
     
-    // swiftprojectlint:disable Test Missing Require
     @Test func testDetectsInconsistentTextStyling() throws {
         let visitor = UIVisitor(patternCategory: PatternCategory.uiPatterns)
         visitor.setFilePath("test.swift")
@@ -40,7 +39,6 @@ struct UIVisitorStylingTests {
         }
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func testDoesNotDetectTwoOrThreeStylingModifiers() throws {
         let visitor = UIVisitor(patternCategory: PatternCategory.uiPatterns)
         visitor.setFilePath("test.swift")
@@ -65,7 +63,6 @@ struct UIVisitorStylingTests {
         #expect(issues.isEmpty)
     }
     
-    // swiftprojectlint:disable Test Missing Require
     @Test func testDoesNotDetectSingleStylingModifier() throws {
         let visitor = UIVisitor(patternCategory: PatternCategory.uiPatterns)
         visitor.setFilePath("test.swift")

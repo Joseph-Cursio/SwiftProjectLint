@@ -24,7 +24,6 @@ struct NetworkingVisitorEdgeCaseTests {
 
     // MARK: - dataTask without trailing closure
 
-    // swiftprojectlint:disable Test Missing Require
     @Test
     func dataTaskWithoutTrailingClosure() throws {
         let source = """
@@ -57,7 +56,6 @@ struct NetworkingVisitorEdgeCaseTests {
         #expect(issue.message == "Network request missing error handling")
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test
     func dataTaskWithClosureWithoutSignatureButErrorInBody() throws {
         let source = """
@@ -131,7 +129,6 @@ struct NetworkingVisitorEdgeCaseTests {
 
     // MARK: - guard let error pattern
 
-    // swiftprojectlint:disable Test Missing Require
     @Test
     func dataTaskWithGuardLetError() throws {
         let source = """
@@ -170,7 +167,6 @@ struct NetworkingVisitorEdgeCaseTests {
 
     // MARK: - Non-Data function call doesn't trigger
 
-    // swiftprojectlint:disable Test Missing Require
     @Test
     func nonDataFunctionCallIgnored() throws {
         let source = """

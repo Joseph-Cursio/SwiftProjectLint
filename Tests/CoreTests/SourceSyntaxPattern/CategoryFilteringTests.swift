@@ -26,7 +26,6 @@ struct CategoryFilteringTests {
     
     // MARK: - Category Filtering Characterization
     
-    // swiftprojectlint:disable Test Missing Require
     @Test func characterizeStateManagementCategoryFiltering() throws {
         let detector = SourcePatternDetector()
         let stateCode = """
@@ -75,7 +74,6 @@ struct CategoryFilteringTests {
         #expect(allIssues.count >= stateIssues.count, "All categories should include at least state issues")
     }
     
-    // swiftprojectlint:disable Test Missing Require
     @Test func characterizePerformanceCategoryFiltering() throws {
         let detector = SourcePatternDetector()
         let performanceCode = """
@@ -116,7 +114,6 @@ struct CategoryFilteringTests {
         
     }
     
-    // swiftprojectlint:disable Test Missing Require
     @Test func characterizeMultipleCategoryFiltering() throws {
         let detector = SourcePatternDetector()
         let multiCategoryCode = """

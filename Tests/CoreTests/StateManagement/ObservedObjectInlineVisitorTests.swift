@@ -37,7 +37,6 @@ struct ObservedObjectInlineVisitorTests {
         #expect(issue.message.contains("ObservedObject"))
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test
     func detectsObservedObjectWithDifferentType() {
         let source = """
@@ -52,7 +51,6 @@ struct ObservedObjectInlineVisitorTests {
         #expect(visitor.detectedIssues.count == 1)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test
     func detectsMultipleInlineObservedObjects() {
         let source = """
@@ -70,7 +68,6 @@ struct ObservedObjectInlineVisitorTests {
 
     // MARK: - Negative Cases
 
-    // swiftprojectlint:disable Test Missing Require
     @Test("No issue for non-inline ObservedObject", arguments: [
         // ObservedObject without initializer
         """

@@ -6,7 +6,6 @@ import SwiftParser
 
 struct NetworkingVisitorTests {
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func visitorInitialization() {
         let visitor = NetworkingVisitor(patternCategory: .networking)
 
@@ -14,7 +13,6 @@ struct NetworkingVisitorTests {
         #expect(visitor.detectedIssues.isEmpty)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func manualIssueCreation() {
         let visitor = NetworkingVisitor(patternCategory: .networking)
         let issue = LintIssue(
@@ -70,7 +68,6 @@ struct NetworkingVisitorTests {
         #expect(firstIssue.severity == .warning)
     }
     
-    // swiftprojectlint:disable Test Missing Require
     @Test func doesNotDetectWhenErrorHandled() {
         let visitor = NetworkingVisitor(patternCategory: .networking)
         let source = """
@@ -113,7 +110,6 @@ struct NetworkingVisitorTests {
         #expect(firstIssue.severity == .warning)
     }
     
-    // swiftprojectlint:disable Test Missing Require
     @Test func detectsErrorHandlingInBodyWithoutParameter() {
         let visitor = NetworkingVisitor(patternCategory: .networking)
         let source = """
@@ -153,7 +149,6 @@ struct NetworkingVisitorTests {
         #expect(firstIssue.severity == .warning)
     }
     
-    // swiftprojectlint:disable Test Missing Require
     @Test func detectsErrorHandlingWithGuardStatement() {
         let visitor = NetworkingVisitor(patternCategory: .networking)
         let source = """
@@ -171,7 +166,6 @@ struct NetworkingVisitorTests {
         #expect(issues.isEmpty)
     }
     
-    // swiftprojectlint:disable Test Missing Require
     @Test func detectsErrorHandlingWithErrorNotNilCheck() {
         let visitor = NetworkingVisitor(patternCategory: .networking)
         let source = """
@@ -190,7 +184,6 @@ struct NetworkingVisitorTests {
         #expect(issues.isEmpty)
     }
     
-    // swiftprojectlint:disable Test Missing Require
     @Test func detectsErrorHandlingWithErrorPropertyAccess() {
         let visitor = NetworkingVisitor(patternCategory: .networking)
         let source = """
@@ -213,7 +206,6 @@ struct NetworkingVisitorTests {
         #expect(issues.count <= 1) // May report missing error handling or may recognize property access
     }
     
-    // swiftprojectlint:disable Test Missing Require
     @Test func doesNotDetectDataInitializerWithoutContentsOf() {
         let visitor = NetworkingVisitor(patternCategory: .networking)
         let source = """
@@ -228,7 +220,6 @@ struct NetworkingVisitorTests {
         #expect(issues.isEmpty)
     }
     
-    // swiftprojectlint:disable Test Missing Require
     @Test func detectsMultipleSynchronousDataCalls() throws {
         let visitor = NetworkingVisitor(patternCategory: .networking)
         let source = """
@@ -292,7 +283,6 @@ struct NetworkingVisitorTests {
 
     // MARK: - Local File URL Exclusion Tests
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func doesNotFlagDataContentsOfFileURLWithPath() {
         let visitor = NetworkingVisitor(patternCategory: .networking)
         let source = """
@@ -310,7 +300,6 @@ struct NetworkingVisitorTests {
         #expect(syncIssues.isEmpty)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func doesNotFlagDataContentsOfWithPathVariable() {
         let visitor = NetworkingVisitor(patternCategory: .networking)
         let source = """
@@ -327,7 +316,6 @@ struct NetworkingVisitorTests {
         #expect(syncIssues.isEmpty)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func doesNotFlagDataContentsOfWithAppendingPathComponent() {
         let visitor = NetworkingVisitor(patternCategory: .networking)
         let source = """
@@ -344,7 +332,6 @@ struct NetworkingVisitorTests {
         #expect(syncIssues.isEmpty)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func doesNotFlagDataContentsOfWithBundleURL() {
         let visitor = NetworkingVisitor(patternCategory: .networking)
         let source = """
@@ -361,7 +348,6 @@ struct NetworkingVisitorTests {
         #expect(syncIssues.isEmpty)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func doesNotFlagDataContentsOfWithTempURL() {
         let visitor = NetworkingVisitor(patternCategory: .networking)
         let source = """
@@ -378,7 +364,6 @@ struct NetworkingVisitorTests {
         #expect(syncIssues.isEmpty)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func stillFlagsDataContentsOfWithRemoteURL() {
         let visitor = NetworkingVisitor(patternCategory: .networking)
         let source = """

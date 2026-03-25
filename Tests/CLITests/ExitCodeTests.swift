@@ -4,14 +4,12 @@ import Core
 
 @Suite
 struct ExitCodeTests {
-    // swiftprojectlint:disable Test Missing Require
     @Test
     func cleanWhenNoIssues() {
         let code = ExitCodes.exitCode(for: [], threshold: .warning)
         #expect(code == 0)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test
     func errorsReturnTwo() {
         let issues = [
@@ -23,7 +21,6 @@ struct ExitCodeTests {
         #expect(ExitCodes.exitCode(for: issues, threshold: .info) == 2)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test
     func warningsReturnOneWithWarningThreshold() {
         let issues = [
@@ -33,7 +30,6 @@ struct ExitCodeTests {
         #expect(ExitCodes.exitCode(for: issues, threshold: .warning) == 1)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test
     func warningsCleanWithErrorThreshold() {
         let issues = [
@@ -43,7 +39,6 @@ struct ExitCodeTests {
         #expect(ExitCodes.exitCode(for: issues, threshold: .error) == 0)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test
     func infoCleanWithWarningThreshold() {
         let issues = [
@@ -53,7 +48,6 @@ struct ExitCodeTests {
         #expect(ExitCodes.exitCode(for: issues, threshold: .warning) == 0)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test
     func infoTriggersWithInfoThreshold() {
         let issues = [

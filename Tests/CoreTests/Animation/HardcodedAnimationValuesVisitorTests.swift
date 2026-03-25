@@ -44,7 +44,6 @@ struct HardcodedAnimationValuesVisitorTests {
         #expect(issue.message.contains("duration"))
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test
     func testDetectsSpringParameters() throws {
         let source = """
@@ -71,7 +70,6 @@ struct HardcodedAnimationValuesVisitorTests {
         #expect(messages.contains(where: { $0.contains("dampingFraction") }))
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test
     func testNoIssueForAnimationWithNoParameters() {
         let source = """
@@ -93,7 +91,6 @@ struct HardcodedAnimationValuesVisitorTests {
         #expect(visitor.detectedIssues.isEmpty)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test
     func testNoIssueForNamedConstant() {
         let source = """

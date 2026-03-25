@@ -26,7 +26,6 @@ struct CoreTests {
     
     // MARK: - SwiftSyntax Pattern Detector Core Tests (Use Shared Registry)
     
-    // swiftprojectlint:disable Test Missing Require
     @Test
     @MainActor
     static func swiftSyntaxPatternDetectorSingleFile() async throws {
@@ -65,7 +64,6 @@ struct CoreTests {
         
     }
     
-    // swiftprojectlint:disable Test Missing Require
     @Test
     @MainActor
     static func swiftSyntaxPatternDetectorCrossFile() async throws {

@@ -7,7 +7,6 @@ struct LintConfigurationTests {
 
     // MARK: - resolveRules
 
-    // swiftprojectlint:disable Test Missing Require
     @Test
     func testDefaultConfigReturnsNil() {
         let config = LintConfiguration.default
@@ -113,7 +112,6 @@ struct LintConfigurationTests {
         #expect(firstResult.filePath == "Sources/Foo.swift")
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test
     func testNoOverridePassesThrough() {
         let config = LintConfiguration.default
@@ -200,7 +198,6 @@ struct LintConfigurationTests {
         #expect(firstResult.filePath == "Helper.swift")
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test("applyOverrides glob with plain wildcard matches relative path")
     func testApplyOverridesPlainWildcardGlob() throws {
         let tempDir = NSTemporaryDirectory() + "lint-glob-test-\(UUID().uuidString)"
@@ -230,7 +227,6 @@ struct LintConfigurationTests {
         #expect(result.isEmpty, "File in Tests/*.swift should be excluded")
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test("applyOverrides substring pattern matches relative path")
     func testApplyOverridesSubstringPattern() throws {
         let tempDir = NSTemporaryDirectory() + "lint-substr-test-\(UUID().uuidString)"
@@ -292,7 +288,6 @@ struct LintConfigurationTests {
         #expect(issue.message == "Magic number in source")
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test("applyOverrides without projectRoot uses filePath as-is for matching")
     func testApplyOverridesWithoutProjectRoot() {
         let config = LintConfiguration(

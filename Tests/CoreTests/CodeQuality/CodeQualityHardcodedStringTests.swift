@@ -48,7 +48,6 @@ struct CodeQualityHardcodedStringTests {
         #expect(issue.message.contains("hardcoded string"))
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func testShortStringInTextIsDetected() throws {
         let visitor = createVisitor()
 
@@ -67,7 +66,6 @@ struct CodeQualityHardcodedStringTests {
         #expect(hardcodedIssues.count == 1)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func testStringOutsideSwiftUINotDetected() throws {
         let visitor = createVisitor()
 
@@ -134,7 +132,6 @@ struct CodeQualityHardcodedStringTests {
         #expect(issue.severity == .info)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func testShortStringsNotDetected() throws {
         let visitor = createVisitor()
 
@@ -155,7 +152,6 @@ struct CodeQualityHardcodedStringTests {
         #expect(hardcodedIssues.isEmpty)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func testTestFileStringsNotDetected() throws {
         let visitor = createVisitor()
         visitor.setFilePath("MyAppTests/ViewTests.swift")
@@ -175,7 +171,6 @@ struct CodeQualityHardcodedStringTests {
         #expect(hardcodedIssues.isEmpty)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func testThreeCharStringStillDetected() throws {
         let visitor = createVisitor()
 

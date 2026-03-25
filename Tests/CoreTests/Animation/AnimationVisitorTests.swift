@@ -36,7 +36,6 @@ struct AnimationVisitorTests {
         #expect(issue.ruleName == .deprecatedAnimation)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test
     func modernAnimationModifierDoesNotTriggerIssue() throws {
         let sourceCode = """

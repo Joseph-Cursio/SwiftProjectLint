@@ -40,7 +40,6 @@ struct UIVisitorErrorHandlingTests {
         #expect(errorIssue.severity == .info)
     }
     
-    // swiftprojectlint:disable Test Missing Require
     @Test func testDoesNotDetectProperErrorHandling() throws {
         let visitor = UIVisitor(patternCategory: PatternCategory.uiPatterns)
         visitor.setFilePath("test.swift")
@@ -72,7 +71,6 @@ struct UIVisitorErrorHandlingTests {
         #expect(issues.isEmpty)
     }
     
-    // swiftprojectlint:disable Test Missing Require
     @Test func testComplexViewWithMultipleIssues() throws {
         let visitor = UIVisitor(patternCategory: PatternCategory.uiPatterns)
         visitor.setFilePath("test.swift")
@@ -120,7 +118,6 @@ struct UIVisitorErrorHandlingTests {
         #expect(messages.contains("Consider using proper error handling UI patterns"))
     }
     
-    // swiftprojectlint:disable Test Missing Require
     @Test func testResetClearsState() throws {
         let visitor = UIVisitor(patternCategory: PatternCategory.uiPatterns)
         visitor.setFilePath("test.swift")

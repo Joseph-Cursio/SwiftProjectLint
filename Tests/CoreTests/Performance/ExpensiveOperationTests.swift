@@ -54,7 +54,6 @@ struct ExpensiveOperationTests {
         #expect(issue.message.contains("Expensive operation"))
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func testDetectsFilterInViewBody() throws {
         let source = """
         struct TestView: View {
@@ -76,7 +75,6 @@ struct ExpensiveOperationTests {
         #expect(filterIssues.count >= 1)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func testDetectsMapInViewBody() throws {
         let source = """
         struct TestView: View {
@@ -98,7 +96,6 @@ struct ExpensiveOperationTests {
         #expect(mapIssues.count >= 1)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func testDetectsReduceInViewBody() throws {
         let source = """
         struct TestView: View {
@@ -116,7 +113,6 @@ struct ExpensiveOperationTests {
         #expect(reduceIssues.count >= 1)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func testDetectsFlatMapInViewBody() throws {
         let source = """
         struct TestView: View {
@@ -138,7 +134,6 @@ struct ExpensiveOperationTests {
         #expect(flatMapIssues.count >= 1)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func testDetectsCompactMapInViewBody() throws {
         let source = """
         struct TestView: View {
@@ -160,7 +155,6 @@ struct ExpensiveOperationTests {
         #expect(compactMapIssues.count >= 1)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func testNoExpensiveOperationOutsideViewBody() throws {
         // sorted() outside of View body should not be flagged
         let source = """
@@ -179,7 +173,6 @@ struct ExpensiveOperationTests {
         #expect(sortedIssues.isEmpty)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func testIgnoresNonSwiftUIStruct() throws {
         let source = """
         struct DataModel {

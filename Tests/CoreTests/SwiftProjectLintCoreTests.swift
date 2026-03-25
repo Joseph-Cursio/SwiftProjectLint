@@ -11,7 +11,6 @@ import Testing
 @Suite("Core Module Tests")
 struct CoreModuleTests {
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func testCoreModuleImports() throws {
         // Test that all core modules can be imported and accessed
         _ = AdvancedAnalyzer()
@@ -20,7 +19,6 @@ struct CoreModuleTests {
         _ = SourcePatternRegistry.shared
     }
     
-    // swiftprojectlint:disable Test Missing Require
     @Test func testRuleIdentifierEnum() throws {
         // Test that RuleIdentifier enum is accessible
         let rule = RuleIdentifier.relatedDuplicateStateVariable
@@ -28,7 +26,6 @@ struct CoreModuleTests {
         #expect(rule.category == .stateManagement)
     }
     
-    // swiftprojectlint:disable Test Missing Require
     @Test func testPatternCategoryEnum() throws {
         // Test that PatternCategory enum is accessible
         let category = PatternCategory.stateManagement
@@ -36,7 +33,6 @@ struct CoreModuleTests {
         #expect(PatternCategory.allCases.contains(.stateManagement))
     }
     
-    // swiftprojectlint:disable Test Missing Require
     @Test func testIssueSeverityEnum() throws {
         // Test that IssueSeverity enum is accessible
         let severity = IssueSeverity.warning

@@ -53,7 +53,6 @@ struct PatternRegistryTests {
         testVisitorRegistry.clear()
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test
     @MainActor
     static func patternVisitorRegistryMultiplePatterns() throws {
@@ -104,7 +103,6 @@ struct PatternRegistryTests {
         testVisitorRegistry.clear()
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test
     @MainActor
     static func patternVisitorRegistryClear() throws {

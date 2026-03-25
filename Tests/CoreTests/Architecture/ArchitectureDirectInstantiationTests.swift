@@ -86,7 +86,6 @@ struct ArchitectureDirectInstantiationTests {
 
     // MARK: - No issue for injected dependency
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func testNoIssueForInjectedDependency() throws {
         let source = """
         class MyViewModel {
@@ -103,7 +102,6 @@ struct ArchitectureDirectInstantiationTests {
 
     // MARK: - No issue for property wrapper instantiation
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func testNoIssueForPropertyWrapperInstantiation() throws {
         let source = """
         import SwiftUI
@@ -119,7 +117,6 @@ struct ArchitectureDirectInstantiationTests {
 
     // MARK: - No issue for non-matching types
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func testNoIssueForValueTypes() throws {
         let source = """
         class Owner {
@@ -133,7 +130,6 @@ struct ArchitectureDirectInstantiationTests {
 
     // MARK: - Multiple instantiations
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func testDetectsMultipleInstantiations() throws {
         let source = """
         class Owner {

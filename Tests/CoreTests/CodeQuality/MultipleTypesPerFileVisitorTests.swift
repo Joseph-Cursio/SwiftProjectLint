@@ -42,7 +42,6 @@ struct MultipleTypesPerFileVisitorTests {
         #expect(issue.message.contains("NetworkClient"))
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test
     func detectsThreeUnrelatedTypes() {
         let source = """
@@ -89,7 +88,6 @@ struct MultipleTypesPerFileVisitorTests {
 
     // MARK: - Negative Cases (single, nested, extensions)
 
-    // swiftprojectlint:disable Test Missing Require
     @Test("No issue for single or nested types", arguments: [
         // Single struct
         """
@@ -142,7 +140,6 @@ struct MultipleTypesPerFileVisitorTests {
 
     // MARK: - Tightly Coupled Types (shared prefix → not flagged)
 
-    // swiftprojectlint:disable Test Missing Require
     @Test
     func skipsErrorEnumWithSharedPrefix() {
         let source = """
@@ -161,7 +158,6 @@ struct MultipleTypesPerFileVisitorTests {
         #expect(visitor.detectedIssues.isEmpty)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test
     func skipsSupportingTypesWithSharedPrefix() {
         let source = """
@@ -184,7 +180,6 @@ struct MultipleTypesPerFileVisitorTests {
         #expect(visitor.detectedIssues.isEmpty)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test
     func skipsViewSubcomponentsWithSharedPrefix() {
         let source = """
@@ -207,7 +202,6 @@ struct MultipleTypesPerFileVisitorTests {
         #expect(visitor.detectedIssues.isEmpty)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test
     func skipsTypeMatchingFileNameStem() {
         let source = """

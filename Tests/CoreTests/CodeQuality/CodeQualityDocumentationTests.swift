@@ -67,7 +67,6 @@ struct CodeQualityDocumentationTests {
         _ = anotherFunctionIssue
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func testDocumentedAPIsNoDetection() throws {
         let visitor = createVisitor()
 
@@ -94,7 +93,6 @@ struct CodeQualityDocumentationTests {
         #expect(visitor.detectedIssues.filter { $0.ruleName == .missingDocumentation }.isEmpty)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func testPrivateAPIsNoDetection() throws {
         let visitor = createVisitor()
 
@@ -119,7 +117,6 @@ struct CodeQualityDocumentationTests {
         #expect(visitor.detectedIssues.filter { $0.ruleName == .missingDocumentation }.isEmpty)
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func testDocumentationDetectionCharacterization() throws {
         let visitor = createVisitor()
         // Given
@@ -135,7 +132,6 @@ struct CodeQualityDocumentationTests {
         _ = visitor.detectedIssues
     }
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func testStrictDocumentationDetectionCharacterization() throws {
         let visitor = createStrictVisitor()
         // Given

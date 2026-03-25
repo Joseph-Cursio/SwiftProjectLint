@@ -7,7 +7,6 @@ struct CharacterizationIntegrationTests {
 
     // MARK: - Integration Tests: Full Architecture Analysis Pipeline
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func characterizeFullArchitectureAnalysisPipeline() async throws {
         // Create a comprehensive test project
         let projectDir = try createComprehensiveTestProject()
@@ -20,7 +19,6 @@ struct CharacterizationIntegrationTests {
 
     // MARK: - Behavior Summary
 
-    // swiftprojectlint:disable Test Missing Require
     @Test func generateArchitectureBehaviorSummary() throws {
         #expect(true, "Architecture behavior summary generated")
     }

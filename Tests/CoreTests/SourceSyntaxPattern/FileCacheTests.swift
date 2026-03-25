@@ -24,7 +24,6 @@ import Foundation
 struct FileCacheTests {
     // MARK: - File Cache Characterization
     
-    // swiftprojectlint:disable Test Missing Require
     @Test func characterizeFileCacheBasicBehavior() throws {
         let detector = SourcePatternDetector()
         
