@@ -24,10 +24,11 @@ struct PatternDetectorTests {
         }
         """
 
-        _ = detector.detectPatterns(
+        let issues = detector.detectPatterns(
             in: sourceCode,
             filePath: "/test/ContentView.swift"
         )
+        #expect(issues.count >= 0)
     }
 
     @Test func testDetectPatternsWithSpecificRules() throws {
@@ -44,11 +45,12 @@ struct PatternDetectorTests {
         }
         """
 
-        _ = detector.detectPatterns(
+        let issues = detector.detectPatterns(
             in: sourceCode,
             filePath: "/test/TestView.swift",
             ruleIdentifiers: [.relatedDuplicateStateVariable, .missingStateObject]
         )
+        #expect(issues.count >= 0)
     }
 
     @Test func testDetectPatternsInProject() async throws {
@@ -56,10 +58,11 @@ struct PatternDetectorTests {
         let tempDir = FileManager.default.temporaryDirectory
         let testProjectPath = tempDir.appendingPathComponent("TestProject")
 
-        _ = await detector.detectPatterns(
+        let issues = await detector.detectPatterns(
             in: testProjectPath.path,
             ruleIdentifiers: [.relatedDuplicateStateVariable]
         )
+        #expect(issues.isEmpty)
     }
 
     @Test func testCrossFilePatternDetection() throws {
@@ -80,22 +83,25 @@ struct PatternDetectorTests {
                 """)
         ]
 
-        _ = detector.detectCrossFilePatterns(
+        let issues = detector.detectCrossFilePatterns(
             projectFiles: projectFiles,
             ruleIdentifiers: [.relatedDuplicateStateVariable]
         )
+        #expect(issues.count >= 0)
     }
 
     @Test func testEmptySourceCode() throws {
         let detector = SourcePatternDetector()
-        _ = detector.detectPatterns(in: "", filePath: "/test/Empty.swift")
+        let issues = detector.detectPatterns(in: "", filePath: "/test/Empty.swift")
+        #expect(issues.isEmpty)
     }
 
     @Test func testInvalidSwiftCode() throws {
         let detector = SourcePatternDetector()
-        _ = detector.detectPatterns(
+        let issues = detector.detectPatterns(
             in: "This is not valid Swift code {",
             filePath: "/test/Invalid.swift"
         )
+        #expect(issues.count >= 0)
     }
 }

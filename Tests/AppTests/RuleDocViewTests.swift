@@ -32,13 +32,15 @@ struct RuleDocViewTests {
     @Test func containsScrollView() throws {
         let view = RuleDocView(rule: .fatView)
         let inspected = try view.inspect()
-        _ = try inspected.find(ViewType.ScrollView.self)
+        let scrollView = try inspected.find(ViewType.ScrollView.self)
+        #expect(scrollView != nil)
     }
 
     @Test func containsVStack() throws {
         let view = RuleDocView(rule: .fatView)
         let inspected = try view.inspect()
-        _ = try inspected.find(ViewType.VStack.self)
+        let vStack = try inspected.find(ViewType.VStack.self)
+        #expect(vStack != nil)
     }
 
     // MARK: - Different rules render

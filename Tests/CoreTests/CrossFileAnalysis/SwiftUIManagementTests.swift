@@ -55,9 +55,10 @@ struct SwiftUIManagementTests {
     @Test func testFinalizeAnalysis() {
         let fileCache: [String: SourceFileSyntax] = [:]
         let visitor = CrossFileSwiftUIManagementVisitor(fileCache: fileCache)
-        
-        // Should not crash
+
         visitor.finalizeAnalysis()
+        // finalizeAnalysis should complete without producing issues on empty cache
+        #expect(visitor.fileCache.isEmpty)
     }
     
     @Test func testAcceptVisitor() throws {

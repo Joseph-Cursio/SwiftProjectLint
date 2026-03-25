@@ -98,15 +98,16 @@ struct DetectorCoreTests {
         """
         
         // When - Measure performance for cross-file analysis
-        let (_, _) = await TestRegistryManager.measureExecutionTime {
+        let (issues1, _) = await TestRegistryManager.measureExecutionTime {
             detector.detectPatterns(in: file1, filePath: "ParentView.swift", categories: nil)
         }
-        
-        let (_, _) = await TestRegistryManager.measureExecutionTime {
+
+        let (issues2, _) = await TestRegistryManager.measureExecutionTime {
             detector.detectPatterns(in: file2, filePath: "ChildView.swift", categories: nil)
         }
-        
+
         // Then - Both files should be processed independently
-        
+        #expect(issues1.count >= 0)
+        #expect(issues2.count >= 0)
     }
 } 

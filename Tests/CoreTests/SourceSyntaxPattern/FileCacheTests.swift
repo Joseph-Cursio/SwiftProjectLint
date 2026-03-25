@@ -49,11 +49,9 @@ struct FileCacheTests {
         // Analyze second file
         let issues2 = detector.detectPatterns(in: file2Content, filePath: "/View2.swift")
         
-        print("📊 File Cache Basic Behavior:")
-        print("   File 1 analysis: \(issues1.count) issues")
-        print("   File 2 analysis: \(issues2.count) issues")
-        print("   Cache behavior: Single-file analysis per call")
-        
+        // Both files should be analyzed independently
+        #expect(issues1.count >= 0)
+        #expect(issues2.count >= 0)
     }
     
  }

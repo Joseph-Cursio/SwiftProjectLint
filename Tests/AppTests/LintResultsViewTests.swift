@@ -7,7 +7,7 @@ import ViewInspector
 struct LintResultsViewTests {
 
     @Test func testLintResultsViewInitialization() async throws {
-        await MainActor.run {
+        try await MainActor.run {
             let sampleIssues = [
                 LintIssue(
                     severity: .warning,
@@ -19,13 +19,19 @@ struct LintResultsViewTests {
                 )
             ]
 
-            _ = LintResultsView(issues: sampleIssues)
+            let view = LintResultsView(issues: sampleIssues)
+            let inspected = try view.inspect()
+            let texts = inspected.findAll(ViewType.Text.self)
+            #expect(texts.isEmpty == false)
         }
     }
 
     @Test func testEmptyIssuesList() async throws {
-        await MainActor.run {
-            _ = LintResultsView(issues: [])
+        try await MainActor.run {
+            let view = LintResultsView(issues: [])
+            let inspected = try view.inspect()
+            let texts = inspected.findAll(ViewType.Text.self)
+            #expect(texts.isEmpty == false)
         }
     }
 

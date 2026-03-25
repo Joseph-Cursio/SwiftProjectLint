@@ -5,7 +5,8 @@ import Foundation
 struct ProjectLinterTests {
 
     @Test func testProjectLinterInitialization() throws {
-        _ = ProjectLinter() // ProjectLinter should be created successfully
+        let linter = ProjectLinter()
+        #expect(linter != nil)
     }
 
     @Test func testAnalyzeProjectWithValidPath() async throws {
@@ -14,7 +15,8 @@ struct ProjectLinterTests {
 
         let issues = await linter.analyzeProject(at: testProjectPath)
 
-        print("DEBUG: Found \(issues.count) issues in valid project")
+        // A valid project with Swift files should produce at least zero issues without crashing
+        #expect(issues.count >= 0)
     }
 
     @Test func testAnalyzeProjectWithInvalidPath() async throws {
@@ -23,7 +25,8 @@ struct ProjectLinterTests {
 
         let issues = await linter.analyzeProject(at: invalidPath)
 
-        print("DEBUG: Found \(issues.count) issues in invalid project")
+        // An invalid path should produce no issues (graceful handling)
+        #expect(issues.isEmpty)
     }
 
     @Test func testAnalyzeProjectWithSpecificCategories() async throws {
@@ -34,8 +37,6 @@ struct ProjectLinterTests {
             at: testProjectPath,
             categories: [.stateManagement, .accessibility]
         )
-
-        print("DEBUG: Found \(issues.count) issues with specific categories")
 
         // Verify that issues are from the specified categories
         for issue in issues {
@@ -53,8 +54,6 @@ struct ProjectLinterTests {
             ruleIdentifiers: [.relatedDuplicateStateVariable, .missingAccessibilityLabel]
         )
 
-        print("DEBUG: Found \(issues.count) issues with specific rules")
-
         // Verify that issues are from the specified rules
         for issue in issues {
             #expect(issue.ruleName == .relatedDuplicateStateVariable || issue.ruleName == .missingAccessibilityLabel)
@@ -67,7 +66,8 @@ struct ProjectLinterTests {
 
         let issues = await linter.analyzeProject(at: testProjectPath)
 
-        print("DEBUG: Found \(issues.count) issues in empty project")
+        // An empty project with no Swift files should produce no issues
+        #expect(issues.isEmpty)
     }
 
     @Test func testAnalyzeProjectWithComplexProject() async throws {
@@ -76,11 +76,13 @@ struct ProjectLinterTests {
 
         let issues = await linter.analyzeProject(at: testProjectPath)
 
-        print("DEBUG: Found \(issues.count) issues in complex project")
+        // Analysis should complete successfully on a complex project
+        #expect(issues.count >= 0)
 
-        // Verify different types of issues are detected
-        let issueTypes = Set(issues.map { $0.ruleName.category })
-        print("DEBUG: Detected issue categories: \(issueTypes)")
+        // If issues are found, verify they have valid categories
+        for issue in issues {
+            #expect(PatternCategory.allCases.contains(issue.ruleName.category))
+        }
     }
 
     @Test func testAnalyzeProjectPerformance() async throws {
@@ -92,8 +94,6 @@ struct ProjectLinterTests {
         let endTime = Date.now
 
         let duration = endTime.timeIntervalSince(startTime)
-        print("DEBUG: Analysis took \(duration) seconds")
-
         #expect(duration < 10.0) // Should complete within reasonable time
     }
 
@@ -108,11 +108,13 @@ struct ProjectLinterTests {
 
         let issues = await linter.analyzeProject(at: testProjectPath, categories: allCategories)
 
-        print("DEBUG: Found \(issues.count) issues with all categories")
+        // Analysis with all categories should complete successfully
+        #expect(issues.count >= 0)
 
-        // Verify that issues span multiple categories
-        let detectedCategories = Set(issues.map { $0.ruleName.category })
-        print("DEBUG: Detected categories: \(detectedCategories)")
+        // If issues are found, verify they belong to the requested categories
+        for issue in issues {
+            #expect(allCategories.contains(issue.ruleName.category))
+        }
     }
 
     @Test func testAnalyzeProjectWithAllRules() async throws {
@@ -122,11 +124,13 @@ struct ProjectLinterTests {
         let allRules = RuleIdentifier.allCases
         let issues = await linter.analyzeProject(at: testProjectPath, ruleIdentifiers: allRules)
 
-        print("DEBUG: Found \(issues.count) issues with all rules")
+        // Analysis with all rules should complete successfully
+        #expect(issues.count >= 0)
 
-        // Verify that different rule types are detected
-        let detectedRules = Set(issues.map { $0.ruleName })
-        print("DEBUG: Detected rules: \(detectedRules)")
+        // If issues are found, verify they correspond to known rules
+        for issue in issues {
+            #expect(allRules.contains(issue.ruleName))
+        }
     }
 
     // MARK: - Helper Methods

@@ -128,8 +128,8 @@ struct CodeQualityDocumentationTests {
         // When
         let sourceFile = Parser.parse(source: sourceCode)
         visitor.walk(sourceFile)
-        // Then - characterization test
-        _ = visitor.detectedIssues
+        // Then - public struct without doc comment should produce an issue
+        #expect(visitor.detectedIssues.isEmpty == false)
     }
 
     @Test func testStrictDocumentationDetectionCharacterization() throws {
@@ -143,7 +143,7 @@ struct CodeQualityDocumentationTests {
         // When
         let sourceFile = Parser.parse(source: sourceCode)
         visitor.walk(sourceFile)
-        // Then - characterization test
-        _ = visitor.detectedIssues
+        // Then - strict mode on public struct without doc comment should produce an issue
+        #expect(visitor.detectedIssues.isEmpty == false)
     }
 }

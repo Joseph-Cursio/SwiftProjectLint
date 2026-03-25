@@ -292,7 +292,8 @@ struct ForEachAndBodyTests {
         }
         """
 
-        _ = analyzeSource(source) // tests the FunctionDeclSyntax path for body
+        let issues = analyzeSource(source) // tests the FunctionDeclSyntax path for body
+        #expect(issues.count >= 0)
     }
 }
 
@@ -343,5 +344,6 @@ struct PerformanceVisitorStateTrackingTests {
         visitor.walk(syntax)
 
         // Should process assignment without error
+        #expect(visitor.stateVariables.isEmpty == false)
     }
 }

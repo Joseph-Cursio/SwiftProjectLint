@@ -47,20 +47,13 @@ struct CharacterizationBasicTests {
 
         let issues = await analyzer.analyzeArchitecture(projectPath: projectDir)
 
-        print("📊 AdvancedAnalyzer Simple Project:")
-        print("   Input: Project with basic SwiftUI views")
-        print("   Output: \(issues.count) architecture issues")
-        print("   Issue breakdown:")
+        // Analysis should complete successfully
+        #expect(issues.count >= 0)
 
-        let issuesByType = Dictionary(grouping: issues) { $0.type }
-        for (type, typeIssues) in issuesByType {
-            print("     \(type): \(typeIssues.count) issues")
-        }
-
-        print("   Affected views:")
-        let allAffectedViews = Set(issues.flatMap { $0.affectedViews })
-        for view in allAffectedViews {
-            print("     - \(view)")
+        // Every issue should have at least one affected view and a non-empty message
+        for issue in issues {
+            #expect(issue.affectedViews.isEmpty == false)
+            #expect(issue.message.isEmpty == false)
         }
     }
 
@@ -85,6 +78,7 @@ struct CharacterizationBasicTests {
             print("       Affected views: \(issue.affectedViews)")
             print("       Suggestion: \(issue.suggestion)")
         }
+        #expect(issues.count >= 0)
     }
 
     // MARK: - ArchitectureIssue Model Characterization

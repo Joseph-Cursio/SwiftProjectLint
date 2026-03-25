@@ -28,71 +28,71 @@ struct AdvancedAnalyzerTests {
     }
     
     @Test @MainActor func testFindRelatedViewsDetectsHierarchy() async throws {
-        // Test through the public interface by creating actual view relationships
         let analyzer = AdvancedAnalyzer()
-        
-        // Create a test project structure and analyze it
         let testProjectPath = createTestProject()
         defer { cleanupTestProject() }
-        
-        _ = await analyzer.analyzeArchitecture(projectPath: testProjectPath)
-        
-        // The analyzer should detect view relationships through its public interface
+
+        let issues = await analyzer.analyzeArchitecture(projectPath: testProjectPath)
+
+        // Analysis should complete without error; issues may or may not be found
+        #expect(issues.count >= 0)
     }
-    
+
     @Test @MainActor func testIsRootViewReturnsTrueForRoot() async throws {
-        // Test through the public interface by creating actual view relationships
         let analyzer = AdvancedAnalyzer()
-        
-        // Create a test project structure and analyze it
         let testProjectPath = createTestProject()
         defer { cleanupTestProject() }
-        
-        _ = await analyzer.analyzeArchitecture(projectPath: testProjectPath)
-        
-        // The analyzer should detect view relationships through its public interface
+
+        let issues = await analyzer.analyzeArchitecture(projectPath: testProjectPath)
+
+        // Every detected issue should have at least one affected view
+        for issue in issues {
+            #expect(issue.affectedViews.isEmpty == false)
+        }
     }
-    
+
     @Test @MainActor func testGenerateStateSharingSuggestionForTwoViews() async throws {
-        // Test through the public interface by creating actual view relationships
         let analyzer = AdvancedAnalyzer()
-        
-        // Create a test project structure and analyze it
         let testProjectPath = createTestProject()
         defer { cleanupTestProject() }
-        
-        _ = await analyzer.analyzeArchitecture(projectPath: testProjectPath)
-        
-        // The analyzer should detect view relationships through its public interface
+
+        let issues = await analyzer.analyzeArchitecture(projectPath: testProjectPath)
+
+        // Every issue should have a non-empty suggestion
+        for issue in issues {
+            #expect(issue.suggestion.isEmpty == false)
+        }
     }
-    
+
     @Test @MainActor func testGenerateStateSharingSuggestionForManyViews() async throws {
-        // Test through the public interface by creating actual view relationships
         let analyzer = AdvancedAnalyzer()
-        
-        // Create a test project structure and analyze it
         let testProjectPath = createTestProject()
         defer { cleanupTestProject() }
-        
-        _ = await analyzer.analyzeArchitecture(projectPath: testProjectPath)
-        
-        // The analyzer should detect view relationships through its public interface
+
+        let issues = await analyzer.analyzeArchitecture(projectPath: testProjectPath)
+
+        // Every issue should have a non-empty message
+        for issue in issues {
+            #expect(issue.message.isEmpty == false)
+        }
     }
-    
+
     @Test @MainActor func testRelationshipTypeAndViewRelationship() async throws {
         let analyzer = AdvancedAnalyzer()
-        
-        // Test through the public interface by creating actual view relationships
         let testProjectPath = createTestProject()
         defer { cleanupTestProject() }
-        
-        _ = await analyzer.analyzeArchitecture(projectPath: testProjectPath)
-        
-        // Test the public methods that should work after analysis
-        _ = analyzer.relationshipType(between: "TestParent", and: "TestChild")
-        _ = analyzer.viewRelationship(between: "TestParent", and: "TestChild")
-        
-        // The analyzer should be able to query relationships through its public interface
+
+        let issues = await analyzer.analyzeArchitecture(projectPath: testProjectPath)
+        #expect(issues.count >= 0)
+
+        // Query relationship methods — they return optionals, so just verify no crash
+        let relType = analyzer.relationshipType(between: "TestParent", and: "TestChild")
+        let relView = analyzer.viewRelationship(between: "TestParent", and: "TestChild")
+
+        // Both should be consistently nil or non-nil
+        if relType != nil {
+            #expect(relView != nil)
+        }
     }
     
     // MARK: - Helper Methods

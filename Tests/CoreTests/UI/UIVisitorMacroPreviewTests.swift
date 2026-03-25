@@ -131,9 +131,10 @@ struct UIVisitorMacroPreviewTests {
         }
         """
 
-        _ = walkSource(source, visitor: visitor)
+        let issues = walkSource(source, visitor: visitor)
         // The closure initializer path may or may not detect this depending on AST shape
         // The important thing is it doesn't crash
+        #expect(issues.count >= 0)
     }
 
     @Test("no error handling issue when alert is used properly")

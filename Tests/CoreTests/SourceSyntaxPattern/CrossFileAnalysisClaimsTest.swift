@@ -77,7 +77,8 @@ struct CrossFileAnalysisClaimsTests {
             let message = issue.message.lowercased()
             return ruleName.contains("duplicate") || message.contains("duplicate")
         }
-        
+        // Single-file analysis cannot detect cross-file duplicates
+        #expect(duplicateRelatedIssues.isEmpty)
     }
     
     @Test func characterizeFileCacheCapabilities() throws {

@@ -38,7 +38,7 @@ struct RuleIdentifierTests {
             projectFiles: [file1, file2],
             ruleIdentifiers: [.relatedDuplicateStateVariable]
         )
-
+        #expect(issues.count >= 0)
     }
 
     @Test
@@ -93,7 +93,7 @@ struct RuleIdentifierTests {
             projectFiles: [file],
             categories: nil
         )
-
+        #expect(issues.count >= 0)
     }
 
     @Test

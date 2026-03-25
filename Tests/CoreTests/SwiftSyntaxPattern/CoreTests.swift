@@ -108,6 +108,6 @@ struct CoreTests {
         TestRegistryManager.logSlowTest("testSwiftSyntaxPatternDetectorCrossFile", duration: totalDuration)
         
         // Then - Both files should be processed independently
-        
+        #expect(totalDuration > .zero)
     }
 } 

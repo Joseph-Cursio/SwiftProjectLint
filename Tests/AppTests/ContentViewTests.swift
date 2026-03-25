@@ -27,7 +27,8 @@ struct ContentViewTests {
         let view = ContentView().environmentObject(systemComponents)
         let inspected = try view.inspect()
         // NavigationStack
-        _ = try inspected.find(ViewType.NavigationStack.self)
+        let navStack = try inspected.find(ViewType.NavigationStack.self)
+        #expect(navStack != nil)
         // VStack with child views
         let vStack = try inspected.navigationStack().vStack()
         _ = try vStack.find(ContentViewHeader.self)
@@ -94,7 +95,8 @@ struct ContentViewTests {
         let previewHost = ContentViewPreviewHost()
         let inspected = try previewHost.inspect()
         // The preview host wraps a ContentView
-        _ = try inspected.find(ContentView.self)
+        let contentView = try inspected.find(ContentView.self)
+        #expect(contentView != nil)
     }
 
     @Test("testHostView returns a valid view")

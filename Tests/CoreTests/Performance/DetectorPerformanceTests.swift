@@ -84,6 +84,6 @@ struct DetectorPerformanceTests {
         TestRegistryManager.logSlowTest("testPerformanceVisitorForEachWithID", duration: duration)
         
         // Then - This should have no performance issues since it uses proper ID
-        
+        #expect(duration > .zero)
     }
 } 

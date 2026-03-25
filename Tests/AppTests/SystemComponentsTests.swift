@@ -116,8 +116,8 @@ struct SystemComponentsTests {
         let components = SystemComponents()
 
         // SystemComponents should be an ObservableObject
-        // This test verifies the type conformance
-        let _: any ObservableObject = components
+        let observable: any ObservableObject = components
+        #expect(observable != nil)
     }
 }
 

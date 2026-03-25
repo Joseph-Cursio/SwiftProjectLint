@@ -1,2 +1,0 @@
-// This file has been split into multiple smaller test files for maintainability.
-// See: StateAnalysisEngineEdgeCaseTests.swift, StateAnalysisEngineDuplicateStateTests.swift, StateAnalysisEngineMissingStateObjectTests.swift, StateAnalysisEngineUninitializedStateTests.swift, StateAnalysisEngineComplexHierarchyTests.swift, StateAnalysisEnginePropertyWrapperTests.swift, StateAnalysisEngineSuggestionTests.swift, StateAnalysisEnginePerformanceTests.swift 

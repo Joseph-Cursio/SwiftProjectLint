@@ -15,6 +15,14 @@ struct CharacterizationIntegrationTests {
         let analyzer = AdvancedAnalyzer()
         let issues = await analyzer.analyzeArchitecture(projectPath: projectDir)
 
+        // A comprehensive project with duplicate state should produce issues
+        #expect(issues.isEmpty == false)
+
+        // Verify issues have valid structure
+        for issue in issues {
+            #expect(issue.message.isEmpty == false)
+            #expect(issue.suggestion.isEmpty == false)
+        }
     }
 
     // MARK: - Behavior Summary

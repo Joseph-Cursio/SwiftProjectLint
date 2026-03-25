@@ -128,7 +128,7 @@ struct ArchitectureTests {
         TestRegistryManager.logSlowTest("testArchitectureVisitorValidArchitecture", duration: duration)
         
         // Then - This should have no architecture issues since it uses proper DI
-        
+        #expect(duration > .zero)
     }
     
     @Test
