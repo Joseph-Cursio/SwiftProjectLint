@@ -24,6 +24,7 @@ struct ViewRelationshipBasicDetectionTests {
 
     // MARK: - Basic Detection Tests
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testVerySimpleDetection() throws {
         let sourceCode = """
         struct ContentView: View {
@@ -39,6 +40,7 @@ struct ViewRelationshipBasicDetectionTests {
         #expect(relationships.isEmpty)
     }
     
+    // swiftprojectlint:disable Test Missing Require
     @Test func testBasicDetection() throws {
         let sourceCode = """
         struct ContentView: View {
@@ -76,9 +78,10 @@ struct ViewRelationshipBasicDetectionTests {
         // Only RoundView (custom view) should be detected as direct child
         // Text is a system view and should be ignored
         #expect(relationships.count == 1, "Expected 1 relationship, got \(relationships.count)")
-        #expect(relationships[0].childView == "RoundView")
-        #expect(relationships[0].relationshipType == .directChild)
-        #expect(relationships[0].parentView == "ContentView")
+        let relationship = try #require(relationships.first)
+        #expect(relationship.childView == "RoundView")
+        #expect(relationship.relationshipType == .directChild)
+        #expect(relationship.parentView == "ContentView")
     }
     
     @Test func testLineNumberCalculation() throws {
@@ -93,6 +96,7 @@ struct ViewRelationshipBasicDetectionTests {
         let relationships = extractRelationships(from: sourceCode, parentView: "ContentView")
         
         #expect(relationships.count == 1)
-        #expect(relationships[0].lineNumber == 3) // CustomView("Hello") is on line 3
+        let relationship = try #require(relationships.first)
+        #expect(relationship.lineNumber == 3) // CustomView("Hello") is on line 3
     }
 } 

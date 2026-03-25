@@ -11,6 +11,7 @@ import SwiftSyntax
 @Suite("RuleIdentifierTests")
 struct RuleIdentifierTests {
 
+    // swiftprojectlint:disable Test Missing Require
     @Test
     func detectCrossFilePatternsWithRuleIdentifiers() throws {
         let engine = CrossFileAnalysisEngine()
@@ -41,6 +42,7 @@ struct RuleIdentifierTests {
 
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test
     func detectCrossFilePatternsWithEmptyFiles() throws {
         let engine = CrossFileAnalysisEngine()
@@ -53,6 +55,7 @@ struct RuleIdentifierTests {
         #expect(issues.isEmpty)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test
     func detectCrossFilePatternsWithEmptyRuleIdentifiers() throws {
         let engine = CrossFileAnalysisEngine()
@@ -74,6 +77,7 @@ struct RuleIdentifierTests {
         #expect(issues.isEmpty)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test
     func detectCrossFilePatternsWithNilCategories() throws {
         let engine = CrossFileAnalysisEngine()
@@ -96,6 +100,7 @@ struct RuleIdentifierTests {
 
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test
     func detectCrossFilePatternsWithNonMatchingRuleIdentifier() throws {
         let engine = CrossFileAnalysisEngine()
@@ -119,6 +124,7 @@ struct RuleIdentifierTests {
         #expect(issues.isEmpty)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test
     func detectPatternsInNonexistentPath() async throws {
         let engine = CrossFileAnalysisEngine()
@@ -130,6 +136,7 @@ struct RuleIdentifierTests {
         #expect(issues.isEmpty)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test
     func detectPatternsInPathWithRuleIdentifiers() async throws {
         let engine = CrossFileAnalysisEngine()

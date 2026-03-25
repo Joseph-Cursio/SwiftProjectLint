@@ -54,6 +54,7 @@ struct ButtonClosureWrappingVisitorTests {
 
     // MARK: - Negative Cases
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("No issue for valid button patterns", arguments: [
         // Call with arguments
         """

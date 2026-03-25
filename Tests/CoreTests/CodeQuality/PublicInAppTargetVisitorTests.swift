@@ -17,22 +17,26 @@ struct PublicInAppTargetVisitorTests {
         return visitor.detectedIssues.filter { $0.ruleName == .publicInAppTarget }
     }
 
-    @Test func flagsPublicStruct() {
+    @Test func flagsPublicStruct() throws {
         let issues = analyze("public struct MyModel { let name: String }")
         #expect(issues.count == 1)
-        #expect(issues.first?.message.contains("public struct MyModel") == true)
+        let issue = try #require(issues.first)
+        #expect(issue.message.contains("public struct MyModel"))
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func flagsPublicClass() {
         let issues = analyze("public class MyService { }")
         #expect(issues.count == 1)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func flagsPublicEnum() {
         let issues = analyze("public enum Status { case active }")
         #expect(issues.count == 1)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func flagsPublicFunc() {
         let issues = analyze("""
         struct Foo {
@@ -42,6 +46,7 @@ struct PublicInAppTargetVisitorTests {
         #expect(issues.count == 1)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func flagsPublicVar() {
         let issues = analyze("""
         struct Foo {
@@ -51,12 +56,14 @@ struct PublicInAppTargetVisitorTests {
         #expect(issues.count == 1)
     }
 
-    @Test func flagsOpenClass() {
+    @Test func flagsOpenClass() throws {
         let issues = analyze("open class BaseController { }")
         #expect(issues.count == 1)
-        #expect(issues.first?.message.contains("open class") == true)
+        let issue = try #require(issues.first)
+        #expect(issue.message.contains("open class"))
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func flagsPublicInit() {
         let issues = analyze("""
         struct Foo {
@@ -66,11 +73,13 @@ struct PublicInAppTargetVisitorTests {
         #expect(issues.count == 1)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func flagsPublicProtocol() {
         let issues = analyze("public protocol Loadable { func load() }")
         #expect(issues.count == 1)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func doesNotFlagInternalOrPrivate() {
         let issues = analyze("""
         struct InternalStruct { }
@@ -81,6 +90,7 @@ struct PublicInAppTargetVisitorTests {
         #expect(issues.isEmpty)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func flagsMultiplePublicDeclarations() {
         let issues = analyze("""
         public struct ModelA { }

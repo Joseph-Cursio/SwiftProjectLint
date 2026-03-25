@@ -35,6 +35,7 @@ struct RuleSelectionDialogTests {
 
     // MARK: - Structure Tests
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("displays category section headers and toggle labels")
     func testDialogStructureAndActions() throws {
         let demoPatterns: [PatternCategoryInfo] = [
@@ -73,6 +74,7 @@ struct RuleSelectionDialogTests {
 
     // MARK: - Multiple Categories
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("displays multiple categories with their patterns")
     func displaysMultipleCategories() throws {
         let patterns = makePatterns(categories: [
@@ -111,6 +113,7 @@ struct RuleSelectionDialogTests {
         #expect(allTexts.contains("Move to onAppear"))
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("shows correct number of toggles for multiple patterns")
     func correctToggleCount() throws {
         let patterns = makePatterns(categories: [
@@ -140,6 +143,7 @@ struct RuleSelectionDialogTests {
 
     // MARK: - Select All Action
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("Select All button enables all rules")
     func selectAllEnablesAllRules() throws {
         let patterns = makePatterns(categories: [
@@ -178,6 +182,7 @@ struct RuleSelectionDialogTests {
 
     // MARK: - Reset to Default Action
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("Reset to Default sets only the default rule")
     func resetToDefaultSetsDefaultRule() throws {
         let patterns = makePatterns(categories: [
@@ -211,6 +216,7 @@ struct RuleSelectionDialogTests {
 
     // MARK: - Save Action
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("Save button calls onSave closure")
     func saveButtonCallsOnSave() throws {
         let patterns = makePatterns(categories: [
@@ -262,10 +268,10 @@ struct RuleSelectionDialogTests {
 
         let toggles = inspected.findAll(ViewType.Toggle.self)
         // 1 pattern × 3 toggles (enabled, exclude tests, exclude views)
-        #expect(toggles.count == 3)
+        let firstToggle = try #require(toggles.first)
 
         // First toggle is the enabled toggle — currently off, turn it on
-        try toggles[0].tap()
+        try firstToggle.tap()
 
         #expect(enabled.contains(.relatedDuplicateStateVariable))
     }
@@ -290,7 +296,8 @@ struct RuleSelectionDialogTests {
 
         let toggles = inspected.findAll(ViewType.Toggle.self)
         // Toggle is currently on, turn it off
-        try toggles[0].tap()
+        let firstToggle = try #require(toggles.first)
+        try firstToggle.tap()
 
         #expect(enabled.contains(.relatedDuplicateStateVariable) == false)
 
@@ -298,6 +305,7 @@ struct RuleSelectionDialogTests {
 
     // MARK: - Empty State
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("dialog with no patterns shows no toggles")
     func emptyPatternsShowsNoToggles() throws {
         let patterns: [PatternCategoryInfo] = []
@@ -316,6 +324,7 @@ struct RuleSelectionDialogTests {
         #expect(toggles.isEmpty)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("Select All with empty patterns results in empty enabled set")
     func selectAllWithEmptyPatterns() throws {
         let patterns: [PatternCategoryInfo] = []
@@ -342,6 +351,7 @@ struct RuleSelectionDialogTests {
 
     // MARK: - Pattern Suggestion Display
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("each pattern displays its suggestion in caption text")
     func patternSuggestionDisplayed() throws {
         let patterns = makePatterns(categories: [

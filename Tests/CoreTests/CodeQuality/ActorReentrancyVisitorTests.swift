@@ -99,6 +99,7 @@ struct ActorReentrancyVisitorTests {
         #expect(issue.message.contains("isRunning"))
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test
     func detectsMultipleUncheckedProperties() {
         let source = """
@@ -131,6 +132,7 @@ struct ActorReentrancyVisitorTests {
     /// `guard let x = prop` where the bound name `x` is the direct receiver of the
     /// subsequent `await` call. This is a resource guard, not a scheduling sentinel —
     /// both concurrent callers legitimately proceed using their own captured snapshot.
+    // swiftprojectlint:disable Test Missing Require
     @Test
     func noFalsePositive_optionalBinding_boundNameIsAwaitReceiver() {
         let source = """
@@ -155,6 +157,7 @@ struct ActorReentrancyVisitorTests {
     /// `guard let x = prop` where the bound name `x` is the sequence of a `for-in`
     /// loop whose body contains `await`. The handlers are captured as a local snapshot;
     /// concurrent dispatch is intentional.
+    // swiftprojectlint:disable Test Missing Require
     @Test
     func noFalsePositive_optionalBinding_boundNameIsForInSequenceWithAwait() {
         let source = """
@@ -179,6 +182,7 @@ struct ActorReentrancyVisitorTests {
     /// `guard x != nil` (expression condition) where the property `x` appears directly
     /// as a token in the `await` expression. Same resource-guard semantics as the
     /// optional-binding form but without introducing a bound name.
+    // swiftprojectlint:disable Test Missing Require
     @Test
     func noFalsePositive_notNilCheck_propertyAppearsInAwaitOperand() {
         let source = """
@@ -230,6 +234,7 @@ struct ActorReentrancyVisitorTests {
 
     // MARK: - Negative Cases
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("No issue for valid actor code", arguments: [
         // Property set before await
         """

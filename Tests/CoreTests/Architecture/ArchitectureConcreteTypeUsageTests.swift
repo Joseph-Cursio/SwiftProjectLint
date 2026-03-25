@@ -32,9 +32,9 @@ struct ArchitectureConcreteTypeUsageTests {
         """
         let issues = analyzeSource(source)
         let concreteIssues = issues.filter { $0.ruleName == .concreteTypeUsage }
-        #expect(concreteIssues.count == 1)
-        #expect(concreteIssues[0].message.contains("APIService"))
-        #expect(concreteIssues[0].message.contains("service"))
+        let issue = try #require(concreteIssues.first)
+        #expect(issue.message.contains("APIService"))
+        #expect(issue.message.contains("service"))
     }
 
     // MARK: - Initializer parameter
@@ -47,12 +47,13 @@ struct ArchitectureConcreteTypeUsageTests {
         """
         let issues = analyzeSource(source)
         let concreteIssues = issues.filter { $0.ruleName == .concreteTypeUsage }
-        #expect(concreteIssues.count == 1)
-        #expect(concreteIssues[0].message.contains("APIClient"))
+        let issue = try #require(concreteIssues.first)
+        #expect(issue.message.contains("APIClient"))
     }
 
     // MARK: - Stored property without initializer
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testDetectsConcreteTypeInStoredProperty() throws {
         let source = """
         class MyViewModel {
@@ -78,12 +79,13 @@ struct ArchitectureConcreteTypeUsageTests {
         """
         let issues = analyzeSource(source)
         let concreteIssues = issues.filter { $0.ruleName == .concreteTypeUsage }
-        #expect(concreteIssues.count == 1)
-        #expect(concreteIssues[0].message.contains("UserRepository"))
+        let issue = try #require(concreteIssues.first)
+        #expect(issue.message.contains("UserRepository"))
     }
 
     // MARK: - Protocol-named type — no issue
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testNoIssueForProtocolNamedType() throws {
         let source = """
         class Owner {
@@ -98,6 +100,7 @@ struct ArchitectureConcreteTypeUsageTests {
 
     // MARK: - Property wrapper — no issue
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testNoIssueForPropertyWrapperProperty() throws {
         let source = """
         import SwiftUI
@@ -113,6 +116,7 @@ struct ArchitectureConcreteTypeUsageTests {
 
     // MARK: - Non-matching suffix — no issue
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testNoIssueForNonServiceSuffix() throws {
         let source = """
         class Owner {
@@ -127,6 +131,7 @@ struct ArchitectureConcreteTypeUsageTests {
 
     // MARK: - Non-service value type param — no issue
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testNoIssueForValueTypeParam() throws {
         let source = """
         class Owner {
@@ -141,6 +146,7 @@ struct ArchitectureConcreteTypeUsageTests {
 
     // MARK: - Multiple concrete type usages
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testDetectsMultipleConcreteTypeUsages() throws {
         let source = """
         class Setup {
@@ -154,6 +160,7 @@ struct ArchitectureConcreteTypeUsageTests {
 
     // MARK: - Opaque some Protocol — no issue
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testNoIssueForSomeProtocol() throws {
         let source = """
         class Owner {
@@ -167,6 +174,7 @@ struct ArchitectureConcreteTypeUsageTests {
 
     // MARK: - DI container exemption
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testNoIssueInsideDIContainer() throws {
         let source = """
         class DependencyContainer {
@@ -185,6 +193,7 @@ struct ArchitectureConcreteTypeUsageTests {
 
     // MARK: - System type exemption
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testNoIssueForSystemTypes() throws {
         let source = """
         class Analyzer {
@@ -199,6 +208,7 @@ struct ArchitectureConcreteTypeUsageTests {
 
     // MARK: - Test file exemption
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testNoIssueInTestFiles() throws {
         let source = """
         class Setup {
@@ -212,6 +222,7 @@ struct ArchitectureConcreteTypeUsageTests {
 
     // MARK: - Mock type exemption
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testNoIssueForMockTypes() throws {
         let source = """
         class Owner {
@@ -225,6 +236,7 @@ struct ArchitectureConcreteTypeUsageTests {
 
     // MARK: - SwiftUI View + ViewModel exemption
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testNoIssueForViewModelInSwiftUIView() throws {
         let source = """
         struct RuleBrowserView: View {
@@ -237,6 +249,7 @@ struct ArchitectureConcreteTypeUsageTests {
         #expect(concreteIssues.isEmpty)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testNoIssueForViewModelParamInSwiftUIView() throws {
         let source = """
         struct DetailView: View {
@@ -249,6 +262,7 @@ struct ArchitectureConcreteTypeUsageTests {
         #expect(concreteIssues.isEmpty)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testNoIssueForAnyServiceTypeInSwiftUIView() throws {
         let source = """
         struct OnboardingView: View {
@@ -264,6 +278,7 @@ struct ArchitectureConcreteTypeUsageTests {
 
     // MARK: - Still detects real violations
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testStillDetectsConcreteServiceInNonView() throws {
         let source = """
         class Coordinator {

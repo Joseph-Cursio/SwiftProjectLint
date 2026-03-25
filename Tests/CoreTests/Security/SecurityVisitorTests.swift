@@ -6,6 +6,7 @@ import SwiftSyntax
 
 struct SecurityVisitorTests {
     
+    // swiftprojectlint:disable Test Missing Require
     @Test func testHardcodedSecretDetection() throws {
         let sourceCode = """
         let apiKey = "12345"
@@ -25,6 +26,7 @@ struct SecurityVisitorTests {
         #expect(issues.allSatisfy { $0.suggestion?.contains("secure key storage") ?? false })
     }
     
+    // swiftprojectlint:disable Test Missing Require
     @Test func testDoesNotFlagNonSecretKeySuffixVariables() throws {
         let sourceCode = """
         let onboardingKey = "com.myapp.hasCompletedOnboarding"
@@ -45,6 +47,7 @@ struct SecurityVisitorTests {
         #expect(secretIssues.isEmpty)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testStillFlagsCompoundSecretKeyVariables() throws {
         let sourceCode = """
         let apiKey = "sk-12345"
@@ -67,6 +70,7 @@ struct SecurityVisitorTests {
         #expect(secretIssues.count == 7)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testUnsafeURLConstruction() throws {
         let sourceCode = """
         let token = "abc123"

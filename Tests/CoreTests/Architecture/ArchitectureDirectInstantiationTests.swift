@@ -32,8 +32,8 @@ struct ArchitectureDirectInstantiationTests {
         """
         let issues = analyzeSource(source)
         let directIssues = issues.filter { $0.ruleName == .directInstantiation }
-        #expect(directIssues.count == 1)
-        #expect(directIssues[0].message.contains("NetworkService"))
+        let issue = try #require(directIssues.first)
+        #expect(issue.message.contains("NetworkService"))
     }
 
     // MARK: - Constructor default
@@ -46,8 +46,8 @@ struct ArchitectureDirectInstantiationTests {
         """
         let issues = analyzeSource(source)
         let directIssues = issues.filter { $0.ruleName == .directInstantiation }
-        #expect(directIssues.count == 1)
-        #expect(directIssues[0].message.contains("NetworkService"))
+        let issue = try #require(directIssues.first)
+        #expect(issue.message.contains("NetworkService"))
     }
 
     // MARK: - Function body
@@ -63,8 +63,8 @@ struct ArchitectureDirectInstantiationTests {
         """
         let issues = analyzeSource(source)
         let directIssues = issues.filter { $0.ruleName == .directInstantiation }
-        #expect(directIssues.count == 1)
-        #expect(directIssues[0].message.contains("NetworkService"))
+        let issue = try #require(directIssues.first)
+        #expect(issue.message.contains("NetworkService"))
     }
 
     // MARK: - Closure
@@ -80,12 +80,13 @@ struct ArchitectureDirectInstantiationTests {
         """
         let issues = analyzeSource(source)
         let directIssues = issues.filter { $0.ruleName == .directInstantiation }
-        #expect(directIssues.count == 1)
-        #expect(directIssues[0].message.contains("UserRepository"))
+        let issue = try #require(directIssues.first)
+        #expect(issue.message.contains("UserRepository"))
     }
 
     // MARK: - No issue for injected dependency
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testNoIssueForInjectedDependency() throws {
         let source = """
         class MyViewModel {
@@ -102,6 +103,7 @@ struct ArchitectureDirectInstantiationTests {
 
     // MARK: - No issue for property wrapper instantiation
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testNoIssueForPropertyWrapperInstantiation() throws {
         let source = """
         import SwiftUI
@@ -117,6 +119,7 @@ struct ArchitectureDirectInstantiationTests {
 
     // MARK: - No issue for non-matching types
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testNoIssueForValueTypes() throws {
         let source = """
         class Owner {
@@ -130,6 +133,7 @@ struct ArchitectureDirectInstantiationTests {
 
     // MARK: - Multiple instantiations
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testDetectsMultipleInstantiations() throws {
         let source = """
         class Owner {

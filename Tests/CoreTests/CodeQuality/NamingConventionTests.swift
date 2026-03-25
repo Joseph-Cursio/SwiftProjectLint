@@ -113,6 +113,7 @@ struct NamingConventionTests {
         )
     ]
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("Detects or skips based on naming suffix", arguments: detectionCases)
     func detectsNamingIssues(_ testCase: DetectionCase) {
         let issues = detectIssues(in: testCase.sourceCode)
@@ -153,6 +154,7 @@ struct NamingConventionTests {
 
     // MARK: - Multi-Declaration Tests
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("Multiple protocols with mixed naming")
     func multipleProtocolsMixedNaming() {
         let sourceCode = """
@@ -170,6 +172,7 @@ struct NamingConventionTests {
         #expect(issueMessages.contains { $0.contains("Logging") })
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("All naming rules fire in same file")
     func allNamingRulesFireInSameFile() {
         // DataService: no agent suffix, no Actor suffix → actorNamingSuffix + actorAgentName (2 issues)
@@ -191,6 +194,7 @@ struct NamingConventionTests {
         #expect(ruleNames.contains(.propertyWrapperNamingSuffix))
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("actorAgentName does not fire for agent-noun actor names")
     func actorAgentNameSuppressedForAgentNouns() {
         let sourceCode = """
@@ -204,6 +208,7 @@ struct NamingConventionTests {
         #expect(issues.count == 3)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("actorAgentName fires for passive-sounding actor names")
     func actorAgentNameFiresForPassiveNames() {
         let sourceCode = """
@@ -219,6 +224,7 @@ struct NamingConventionTests {
 
     // MARK: - Non-Actor Agent Suffix Tests (Rule 3, opt-in)
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("nonActorAgentSuffix fires for class/struct with agent-noun name")
     func nonActorAgentSuffixFiresForAgentNounClass() {
         let sourceCode = """
@@ -232,6 +238,7 @@ struct NamingConventionTests {
         #expect(rule3Issues.allSatisfy { $0.message.contains("agent-noun") })
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("nonActorAgentSuffix does not fire when name ends with Agent")
     func nonActorAgentSuffixSuppressedForAgentSuffix() {
         let sourceCode = """

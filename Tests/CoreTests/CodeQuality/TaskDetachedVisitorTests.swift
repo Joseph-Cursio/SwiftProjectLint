@@ -37,6 +37,7 @@ struct TaskDetachedVisitorTests {
         #expect(issue.message.contains("Task.detached"))
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("Detects Task.detached variant", arguments: [
         """
         Task.detached(priority: .background) {
@@ -52,6 +53,7 @@ struct TaskDetachedVisitorTests {
 
     // MARK: - Negative Cases
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("No issue for non-detached Task usage", arguments: [
         // Plain Task
         """

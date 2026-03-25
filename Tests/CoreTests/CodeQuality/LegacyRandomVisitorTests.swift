@@ -50,6 +50,7 @@ struct LegacyRandomVisitorTests {
         #expect(issue.message.contains(expectedSubstring))
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test
     func detectsMultipleLegacyRandomCalls() {
         let source = """
@@ -66,6 +67,7 @@ struct LegacyRandomVisitorTests {
 
     // MARK: - Parameterized Negative Cases
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("No issue for modern random API", arguments: [
         "let value = Int.random(in: 0..<10)",
         "let coin = Bool.random()",

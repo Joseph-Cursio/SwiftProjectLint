@@ -67,6 +67,7 @@ struct HardcodedFontSizeVisitorTests {
 
     // MARK: - Negative Cases
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("No issue for dynamic or semantic fonts", arguments: [
         // Semantic text style
         """

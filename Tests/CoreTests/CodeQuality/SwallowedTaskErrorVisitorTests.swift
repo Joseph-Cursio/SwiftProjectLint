@@ -37,6 +37,7 @@ struct SwallowedTaskErrorVisitorTests {
         #expect(issue.message.contains("try"))
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("Detects swallowed error variant", arguments: [
         """
         Task {
@@ -52,6 +53,7 @@ struct SwallowedTaskErrorVisitorTests {
 
     // MARK: - Negative Cases
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("No issue for proper error handling", arguments: [
         // Task with do-catch
         """
@@ -82,6 +84,7 @@ struct SwallowedTaskErrorVisitorTests {
 
     // MARK: - Task.value / Task.result Suppression
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("No issue when Task .value is awaited", arguments: [
         // try await Task { }.value
         """
@@ -108,6 +111,7 @@ struct SwallowedTaskErrorVisitorTests {
         #expect(visitor.detectedIssues.isEmpty)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("No issue when Task is assigned to a variable")
     func noIssueWhenTaskAssigned() {
         let source = """
@@ -120,6 +124,7 @@ struct SwallowedTaskErrorVisitorTests {
         #expect(visitor.detectedIssues.isEmpty)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("Still flags fire-and-forget Task with try")
     func stillFlagsFireAndForget() {
         let source = """

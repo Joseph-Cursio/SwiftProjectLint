@@ -48,9 +48,8 @@ struct ArchitectureTests {
         // Then
         let fatViewIssues = issues.filter { $0.message.contains("state variables") }
         
-        if let fatViewIssue = fatViewIssues.first {
-            #expect(fatViewIssue.severity == .warning)
-        }
+        let fatViewIssue = try #require(fatViewIssues.first)
+        #expect(fatViewIssue.severity == .warning)
         
     }
     
@@ -87,12 +86,12 @@ struct ArchitectureTests {
         // Then
         let diIssues = issues.filter { $0.message.contains("UserManager") }
         
-        if let diIssue = diIssues.first {
-            #expect(diIssue.severity == .info)
-        }
+        let diIssue = try #require(diIssues.first)
+        #expect(diIssue.severity == .info)
         
     }
     
+    // swiftprojectlint:disable Test Missing Require
     @Test
     @MainActor
     static func architectureVisitorValidArchitecture() async throws {

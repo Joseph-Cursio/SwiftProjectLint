@@ -3,6 +3,7 @@ import Foundation
 @testable import Core
 
 struct FileAnalysisUtilsBasenameTests {
+    // swiftprojectlint:disable Test Missing Require
     @Test(arguments: [
         ("/Users/test/Documents/file.swift", "file"),
         ("/a/b/c/d/e.swift", "e"),

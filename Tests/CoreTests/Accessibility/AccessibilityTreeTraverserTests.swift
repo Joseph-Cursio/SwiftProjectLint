@@ -124,6 +124,7 @@ struct AccessibilityTreeTraverserTests {
 
     // MARK: - findImages
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func findImagesReturnsEmptyForNoImages() {
         let source = """
         VStack { Text("hello") }
@@ -133,6 +134,7 @@ struct AccessibilityTreeTraverserTests {
         #expect(images.isEmpty)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func findImagesFindsDirectImage() {
         let source = """
         Image("icon")
@@ -142,6 +144,7 @@ struct AccessibilityTreeTraverserTests {
         #expect(images.count == 1)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func findImagesFindsMultipleNestedImages() {
         let source = """
         VStack {
@@ -159,6 +162,7 @@ struct AccessibilityTreeTraverserTests {
 
     // MARK: - containsImage
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func containsImageReturnsTrueForNestedImage() {
         let source = """
         HStack { Image(systemName: "star") }
@@ -167,6 +171,7 @@ struct AccessibilityTreeTraverserTests {
         #expect(AccessibilityTreeTraverser.containsImage(in: Syntax(tree)))
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func containsImageReturnsFalseWhenNoImage() {
         let source = """
         HStack { Text("hello") }
@@ -178,6 +183,7 @@ struct AccessibilityTreeTraverserTests {
 
     // MARK: - containsText
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func containsTextReturnsTrueForNestedText() {
         let source = """
         VStack { Text("hello") }
@@ -186,6 +192,7 @@ struct AccessibilityTreeTraverserTests {
         #expect(AccessibilityTreeTraverser.containsText(in: Syntax(tree)))
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func containsTextReturnsFalseWhenNoText() {
         let source = """
         VStack { Image("icon") }
@@ -195,6 +202,7 @@ struct AccessibilityTreeTraverserTests {
 
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func containsTextFindsDeepNestedText() {
         let source = """
         ScrollView {

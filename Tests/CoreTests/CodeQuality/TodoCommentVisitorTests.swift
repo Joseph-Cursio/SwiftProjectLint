@@ -55,6 +55,7 @@ struct TodoCommentVisitorTests {
 
     // MARK: - Parameterized Negative Cases
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("No issue for non-marker comment", arguments: [
         "// This is a normal comment\nlet value = 42",
         "let todo = \"item\"",

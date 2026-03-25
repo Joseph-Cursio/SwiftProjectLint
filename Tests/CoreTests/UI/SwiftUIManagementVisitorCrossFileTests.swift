@@ -6,6 +6,7 @@ import SwiftSyntax
 /// Tests for SwiftUIManagementVisitor cross-file analysis and state object detection
 struct SwiftUIManagementVisitorCrossFileTests {
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testDetectDuplicateStateVariables() throws {
         let source = """
         struct ParentView: View {
@@ -39,6 +40,7 @@ struct SwiftUIManagementVisitorCrossFileTests {
         #expect(duplicateIssues.count >= 1)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testFindRelatedViews() throws {
         let source = """
         struct View1: View {
@@ -87,6 +89,7 @@ struct SwiftUIManagementVisitorCrossFileTests {
         #expect(relatedViews.contains("View2"))
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testCheckForMissingStateObjectWithManager() throws {
         let source = """
         class DataManager: ObservableObject {
@@ -110,6 +113,7 @@ struct SwiftUIManagementVisitorCrossFileTests {
         #expect(issues.isEmpty)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testCheckForMissingStateObjectWithService() throws {
         let source = """
         class NetworkService: ObservableObject {
@@ -133,6 +137,7 @@ struct SwiftUIManagementVisitorCrossFileTests {
         #expect(issues.isEmpty)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testCheckForMissingStateObjectWithViewModel() throws {
         let source = """
         class MyViewModel: ObservableObject {
@@ -156,6 +161,7 @@ struct SwiftUIManagementVisitorCrossFileTests {
         #expect(issues.isEmpty)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testPerformCrossFileAnalysis() throws {
         let source = """
         struct View1: View {
@@ -189,6 +195,7 @@ struct SwiftUIManagementVisitorCrossFileTests {
         #expect(duplicateIssues.count >= 1)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testViewDeclarationsAreStored() throws {
         let source = """
         struct View1: View {

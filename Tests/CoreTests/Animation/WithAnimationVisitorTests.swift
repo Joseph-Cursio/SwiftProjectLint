@@ -47,6 +47,7 @@ struct WithAnimationVisitorTests {
         #expect(issue.severity == .warning)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test
     func allowsWithAnimationOutsideOnAppear() throws {
         let source = """
@@ -152,6 +153,7 @@ struct WithAnimationVisitorTests {
         #expect(issue.ruleName == .animationWithoutStateChange)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test
     func allowsAnimationWithAssignment() throws {
         let source = """
@@ -176,6 +178,7 @@ struct WithAnimationVisitorTests {
         #expect(visitor.detectedIssues.isEmpty)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test
     func allowsAnimationWithToggle() throws {
         let source = """
@@ -200,6 +203,7 @@ struct WithAnimationVisitorTests {
         #expect(visitor.detectedIssues.isEmpty)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test
     func allowsAnimationWithCompoundAssignment() throws {
         let source = """

@@ -22,6 +22,7 @@ struct ViewRelationshipEdgeCaseTests {
 
     // MARK: - Struct Declaration Visiting
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("visits struct declarations without issues")
     func visitsStructDeclarations() throws {
         let source = """
@@ -45,6 +46,7 @@ struct ViewRelationshipEdgeCaseTests {
 
     // MARK: - Unknown Modifier Does Not Create Relationship
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("unknown modifier does not create presentation relationship")
     func unknownModifierIgnored() throws {
         let source = """
@@ -70,6 +72,7 @@ struct ViewRelationshipEdgeCaseTests {
 
     // MARK: - Direct Child Not Detected When Already Special
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("view detected in sheet is not also detected as direct child")
     func sheetViewNotDuplicatedAsDirectChild() throws {
         let source = """
@@ -92,12 +95,14 @@ struct ViewRelationshipEdgeCaseTests {
 
     // MARK: - Empty Source and Edge Cases
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("empty source produces no relationships")
     func emptySourceNoRelationships() throws {
         let relationships = extractRelationships(from: "", parentView: "EmptyView")
         #expect(relationships.isEmpty)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("source with no views produces no relationships")
     func noViewsNoRelationships() throws {
         let source = """
@@ -109,6 +114,7 @@ struct ViewRelationshipEdgeCaseTests {
         #expect(relationships.isEmpty)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("deeply nested containers detect custom views at all levels")
     func deeplyNestedContainers() throws {
         let source = """
@@ -153,6 +159,7 @@ struct ViewRelationshipEdgeCaseTests {
         #expect(child.lineNumber > 0)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("alert relationship type is detected correctly")
     func alertRelationshipType() throws {
         let source = """
@@ -175,6 +182,7 @@ struct ViewRelationshipEdgeCaseTests {
 
     // MARK: - Multiple Direct Children
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("detects multiple custom direct children in flat layout")
     func multipleDirectChildrenFlat() throws {
         let source = """
@@ -199,6 +207,7 @@ struct ViewRelationshipEdgeCaseTests {
 
     // MARK: - List and Section Container Views
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("detects custom views inside List container")
     func customViewsInsideList() throws {
         let source = """
@@ -219,6 +228,7 @@ struct ViewRelationshipEdgeCaseTests {
         #expect(directChildren.first?.childView == "RowItem")
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("detects custom views inside Form container")
     func customViewsInsideForm() throws {
         let source = """

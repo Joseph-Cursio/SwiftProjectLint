@@ -67,6 +67,7 @@ struct ButtonAccessibilityCheckerCoverageTests {
 
     // MARK: - Button with Image in Trailing Closure
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("button with image in trailing closure missing label is flagged as icon-only")
     func buttonWithImageInTrailingClosure() throws {
         let visitor = makeAccessibilityVisitor()
@@ -92,6 +93,7 @@ struct ButtonAccessibilityCheckerCoverageTests {
 
     // MARK: - Button with Text in Trailing Closure
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("button with text in trailing closure missing hint is flagged")
     func buttonWithTextInTrailingClosure() throws {
         let visitor = makeAccessibilityVisitor()
@@ -115,6 +117,7 @@ struct ButtonAccessibilityCheckerCoverageTests {
         #expect(hintIssues.count == 1)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("button with text in trailing closure with hint produces no issue")
     func buttonWithTextInTrailingClosureWithHint() {
         let visitor = makeAccessibilityVisitor()
@@ -141,6 +144,7 @@ struct ButtonAccessibilityCheckerCoverageTests {
 
     // MARK: - Button with Both Image and Text
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("button with both image and text does not fire icon-only warning")
     func buttonWithBothImageAndText() {
         let visitor = makeAccessibilityVisitor()
@@ -176,6 +180,7 @@ struct ButtonAccessibilityCheckerCoverageTests {
 
     // MARK: - Button Without Image or Text (no issue expected)
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("button with only action and string title produces no image issue")
     func buttonWithStringTitleOnly() {
         let visitor = makeAccessibilityVisitor()
@@ -201,6 +206,7 @@ struct ButtonAccessibilityCheckerCoverageTests {
 
     // MARK: - Button with Label (provides accessibility automatically)
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("button with Label in trailing closure produces no issues")
     func buttonWithLabelInTrailingClosure() {
         let visitor = makeAccessibilityVisitor()
@@ -224,6 +230,7 @@ struct ButtonAccessibilityCheckerCoverageTests {
         #expect(buttonIssues.isEmpty)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("button with Label icon closure produces no issues")
     func buttonWithLabelIconClosure() {
         let visitor = makeAccessibilityVisitor()
@@ -255,6 +262,7 @@ struct ButtonAccessibilityCheckerCoverageTests {
 
     // MARK: - Multiple Buttons
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("multiple icon-only buttons each produce their own issues")
     func multipleButtonsProduceIndependentIssues() {
         let visitor = makeAccessibilityVisitor()

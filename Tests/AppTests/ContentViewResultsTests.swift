@@ -8,6 +8,7 @@ import Core
 @Suite
 @MainActor
 struct ContentViewResultsTests {
+    // swiftprojectlint:disable Test Missing Require
     @Test
     func testResultsNotShownWhenNoIssues() throws {
         let view = ContentViewResults(lintIssues: [], isAnalyzing: false)
@@ -15,6 +16,7 @@ struct ContentViewResultsTests {
         #expect((try? view.inspect().vStack()) == nil)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test
     func testResultsNotShownWhenAnalyzing() throws {
         let demoIssues = [
@@ -28,6 +30,7 @@ struct ContentViewResultsTests {
         #expect((try? view.inspect().vStack()) == nil)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test
     func testResultsShownWhenIssuesAndNotAnalyzing() throws {
         let demoIssues = [

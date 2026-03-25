@@ -37,6 +37,7 @@ struct ThreadSleepVisitorTests {
 
     // MARK: - Parameterized Positive Cases
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("Detects Thread.sleep variant", arguments: [
         "Thread.sleep(forTimeInterval: 1.0)",
         "Thread.sleep(until: Date().addingTimeInterval(2.0))"
@@ -47,6 +48,7 @@ struct ThreadSleepVisitorTests {
         #expect(visitor.detectedIssues.count == 1)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test
     func detectsMultipleThreadSleeps() {
         let source = """
@@ -62,6 +64,7 @@ struct ThreadSleepVisitorTests {
 
     // MARK: - Parameterized Negative Cases
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("No issue for non-Thread.sleep code", arguments: [
         "try await Task.sleep(for: .seconds(1))",
         "let isMain = Thread.isMainThread\nlet current = Thread.current",

@@ -6,6 +6,7 @@ import ViewInspector
 
 struct LintResultsViewTests {
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testLintResultsViewInitialization() async throws {
         await MainActor.run {
             let sampleIssues = [
@@ -23,12 +24,14 @@ struct LintResultsViewTests {
         }
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testEmptyIssuesList() async throws {
         await MainActor.run {
             _ = LintResultsView(issues: [])
         }
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testIssueSeverityFiltering() async throws {
         await MainActor.run {
             let issues = [
@@ -71,7 +74,7 @@ struct LintResultsViewTests {
     }
 
     @Test func testIssueRuleNameMapping() async throws {
-        await MainActor.run {
+        try await MainActor.run {
             let issues = [
                 LintIssue(
                     severity: .warning,
@@ -84,10 +87,12 @@ struct LintResultsViewTests {
             ]
 
             _ = LintResultsView(issues: issues)
-            #expect(issues[0].ruleName == .relatedDuplicateStateVariable)
+            let firstIssue = try #require(issues.first)
+            #expect(firstIssue.ruleName == .relatedDuplicateStateVariable)
         }
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testIssueFileAndLineNumber() throws {
         let issue = LintIssue(
             severity: .warning,
@@ -102,6 +107,7 @@ struct LintResultsViewTests {
         #expect(issue.lineNumber == 42)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testIssueMessageAndSuggestion() throws {
         let issue = LintIssue(
             severity: .warning,
@@ -118,6 +124,7 @@ struct LintResultsViewTests {
 }
 
 struct LintResultsViewCharacterizationTests {
+    // swiftprojectlint:disable Test Missing Require
     @Test
     @MainActor
     func testSummarySectionAndCounts() throws {
@@ -147,6 +154,7 @@ struct LintResultsViewCharacterizationTests {
         #expect(summaryTexts.contains("Info"))
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test
     @MainActor
     func testIssueRowsAndFullScreenButton() throws {
@@ -170,6 +178,7 @@ struct LintResultsViewCharacterizationTests {
         #expect(issueTexts.contains("Warning issue"))
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test
     @MainActor
     func testSummaryCountValues() throws {
@@ -204,6 +213,7 @@ struct LintResultsViewCharacterizationTests {
         #expect(allTexts.contains("1")) // Warnings
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("empty issues list shows zero counts in summary")
     @MainActor
     func emptySummaryCountsAreZero() throws {
@@ -218,6 +228,7 @@ struct LintResultsViewCharacterizationTests {
         #expect(zeroCount == 4) // Total, Errors, Warnings, Info all zero
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("issues section contains dividers between rows but not after the last")
     @MainActor
     func dividersBetweenIssueRows() throws {
@@ -245,6 +256,7 @@ struct LintResultsViewCharacterizationTests {
         #expect(dividers.count == 2)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("single issue has no dividers")
     @MainActor
     func singleIssueNoDividers() throws {

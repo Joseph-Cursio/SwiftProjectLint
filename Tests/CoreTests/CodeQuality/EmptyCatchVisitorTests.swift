@@ -40,6 +40,7 @@ struct EmptyCatchVisitorTests {
 
     // MARK: - Parameterized Positive Cases
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("Detects empty catch block", arguments: [
         "do {\n    try riskyOperation()\n} catch {\n}",
         "do {\n    try loadData()\n} catch {\n\n}"
@@ -50,6 +51,7 @@ struct EmptyCatchVisitorTests {
         #expect(visitor.detectedIssues.count == 1)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test
     func detectsMultipleEmptyCatches() {
         let source = """
@@ -71,6 +73,7 @@ struct EmptyCatchVisitorTests {
 
     // MARK: - Parameterized Negative Cases
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("No issue for catch block with content", arguments: [
         "do {\n    try riskyOperation()\n} catch {\n    print(error)\n}",
         "do {\n    try riskyOperation()\n} catch {\n    logger.error(\"Failed: \\(error)\")\n}",

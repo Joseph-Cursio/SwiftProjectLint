@@ -37,6 +37,7 @@ struct ForceTryVisitorTests {
 
     // MARK: - Parameterized Positive Cases
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("Detects force try expression", arguments: [
         "let result = try! JSONDecoder().decode(Model.self, from: data)",
         "let value = try! someFunc()"
@@ -47,6 +48,7 @@ struct ForceTryVisitorTests {
         #expect(visitor.detectedIssues.count == 1)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test
     func detectsMultipleForceTries() {
         let source = """
@@ -62,6 +64,7 @@ struct ForceTryVisitorTests {
 
     // MARK: - Parameterized Negative Cases
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("No issue for safe try usage", arguments: [
         "let result = try someFunc()",
         "let result = try? someFunc()",

@@ -37,6 +37,7 @@ struct ForceUnwrapVisitorTests {
 
     // MARK: - Parameterized Positive Cases
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("Detects force unwrap expression", arguments: [
         "let value = optional!",
         "let value = foo.bar!.baz"
@@ -47,6 +48,7 @@ struct ForceUnwrapVisitorTests {
         #expect(visitor.detectedIssues.count == 1)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test
     func detectsMultipleForceUnwraps() {
         let source = """
@@ -62,6 +64,7 @@ struct ForceUnwrapVisitorTests {
 
     // MARK: - Parameterized Negative Cases
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("No issue for safe optional handling", arguments: [
         "let value: String! = \"hello\"",
         "let value = foo?.bar",

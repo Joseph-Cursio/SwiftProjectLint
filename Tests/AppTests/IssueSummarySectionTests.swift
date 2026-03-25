@@ -9,6 +9,7 @@ import Core
 @MainActor
 struct IssueSummarySectionTests {
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("displays all summary labels")
     func displaysAllLabels() throws {
         let view = IssueSummarySection(issues: [])
@@ -21,6 +22,7 @@ struct IssueSummarySectionTests {
         #expect(texts.contains("Info"))
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("empty issues shows all zeros")
     func emptyIssuesShowsZeros() throws {
         let view = IssueSummarySection(issues: [])
@@ -30,6 +32,7 @@ struct IssueSummarySectionTests {
         #expect(zeroCount == 4) // Total, Errors, Warnings, Info
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("counts match mixed severity issues")
     func countsMixedSeverities() throws {
         let issues = [
@@ -58,6 +61,7 @@ struct IssueSummarySectionTests {
         #expect(texts.contains("1")) // Warnings and Info
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("single severity type shows correct counts")
     func singleSeverityType() throws {
         let issues = [
@@ -83,6 +87,7 @@ struct IssueSummarySectionTests {
         #expect(zeroCount == 2) // Errors and Info
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("renders four SummaryItem components")
     func rendersFourSummaryItems() throws {
         let view = IssueSummarySection(issues: [])

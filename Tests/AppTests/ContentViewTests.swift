@@ -8,6 +8,7 @@ import Core
 @Suite("ContentView Tests")
 @MainActor
 struct ContentViewTests {
+    // swiftprojectlint:disable Test Missing Require
     @Test("view renders text content when environment object is provided")
     func rendersTextContent() async throws {
         let systemComponents = SystemComponents()
@@ -20,6 +21,7 @@ struct ContentViewTests {
 
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("view contains expected child views in its VStack")
     func contentViewStructure() async throws {
         let systemComponents = SystemComponents()
@@ -36,6 +38,7 @@ struct ContentViewTests {
         _ = try vStack.find(ContentViewResults.self)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("view displays the app title text")
     func displaysAppTitle() async throws {
         let systemComponents = SystemComponents()
@@ -46,6 +49,7 @@ struct ContentViewTests {
         #expect(allTexts.contains("Swift Project Linter"))
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("view displays the subtitle description text")
     func displaysSubtitleDescription() async throws {
         let systemComponents = SystemComponents()
@@ -56,6 +60,7 @@ struct ContentViewTests {
         #expect(allTexts.contains("Detect cross-file issues and architectural problems"))
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("view renders without crashing with uninitialized system components")
     func rendersWithUninitializedComponents() throws {
         let systemComponents = SystemComponents()
@@ -67,6 +72,7 @@ struct ContentViewTests {
 
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("view shows Select Rules button")
     func showsSelectRulesButton() async throws {
         let systemComponents = SystemComponents()
@@ -78,6 +84,7 @@ struct ContentViewTests {
         #expect(buttonLabels.contains("Select Rules"))
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("view shows folder selection button initially when no directory is set")
     func showsFolderSelectionButton() async throws {
         let systemComponents = SystemComponents()
@@ -89,6 +96,7 @@ struct ContentViewTests {
         #expect(buttonLabels.contains("Run Project Analysis by Selecting a Folder..."))
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("ContentViewPreviewHost creates a view with environment object")
     func previewHostCreatesView() throws {
         let previewHost = ContentViewPreviewHost()
@@ -97,6 +105,7 @@ struct ContentViewTests {
         _ = try inspected.find(ContentView.self)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("testHostView returns a valid view")
     func testHostViewReturnsValidView() throws {
         let hostView = ContentView.testHostView()

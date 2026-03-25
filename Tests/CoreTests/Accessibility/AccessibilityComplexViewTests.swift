@@ -16,6 +16,7 @@ struct AccessibilityComplexViewTests {
 
     // MARK: - Complex View Tests
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testComplexViewWithMultipleAccessibilityIssues() {
         let visitor = makeAccessibilityVisitor()
 
@@ -75,6 +76,7 @@ struct AccessibilityComplexViewTests {
 
     // MARK: - Edge Cases
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testEmptyView() {
         let visitor = makeAccessibilityVisitor()
 
@@ -95,6 +97,7 @@ struct AccessibilityComplexViewTests {
         #expect(visitor.detectedIssues.isEmpty)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testViewWithNoAccessibilityIssues() {
         let visitor = makeAccessibilityVisitor()
 

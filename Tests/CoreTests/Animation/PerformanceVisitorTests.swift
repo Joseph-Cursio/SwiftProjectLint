@@ -52,6 +52,7 @@ struct PerformanceVisitorTests {
         #expect(issue.message.contains("4"))
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test
     func allowsThreeOrFewerSpringAnimations() throws {
         let source = """

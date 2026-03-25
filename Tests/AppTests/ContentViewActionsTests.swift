@@ -7,6 +7,7 @@ import ViewInspector
 @Suite("ContentViewActions Tests")
 @MainActor
 struct ContentViewActionsTests {
+    // swiftprojectlint:disable Test Missing Require
     @Test("shows Select Rules button and folder selection when no directory is selected")
     func actionsWithoutSelectedDirectory() throws {
         let view = ContentViewActions(
@@ -25,6 +26,7 @@ struct ContentViewActionsTests {
         #expect(try mainActionButton.labelView().text().string() == "Run Project Analysis by Selecting a Folder...")
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("shows Select Rules button and analyze button when directory is selected")
     func actionsWithSelectedDirectory() throws {
         let view = ContentViewActions(
@@ -43,6 +45,7 @@ struct ContentViewActionsTests {
         #expect(try mainActionButton.labelView().text().string() == "Analyze MyProject")
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("tapping Select Rules button invokes the onSelectRules callback")
     func selectRulesCallbackInvoked() throws {
         var callbackCalled = false
@@ -58,6 +61,7 @@ struct ContentViewActionsTests {
         #expect(callbackCalled, "onSelectRules should be called when the button is tapped")
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("tapping folder selection button invokes the onSelectDirectory callback")
     func selectDirectoryCallbackInvoked() throws {
         var callbackCalled = false
@@ -73,6 +77,7 @@ struct ContentViewActionsTests {
         #expect(callbackCalled, "onSelectDirectory should be called when the button is tapped")
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("tapping analyze button invokes the onAnalyzeProject callback")
     func analyzeProjectCallbackInvoked() throws {
         var callbackCalled = false
@@ -88,6 +93,7 @@ struct ContentViewActionsTests {
         #expect(callbackCalled, "onAnalyzeProject should be called when the button is tapped")
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("analyze button shows the last path component as the project name")
     func analyzeButtonShowsProjectName() throws {
         let view = ContentViewActions(
@@ -102,6 +108,7 @@ struct ContentViewActionsTests {
         #expect(buttonText == "Analyze AwesomeApp")
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("VStack contains exactly two buttons")
     func exactlyTwoButtons() throws {
         let view = ContentViewActions(
@@ -115,6 +122,7 @@ struct ContentViewActionsTests {
         #expect(buttons.count == 2)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("VStack contains exactly two buttons when directory is selected")
     func exactlyTwoButtonsWithDirectory() throws {
         let view = ContentViewActions(
@@ -128,6 +136,7 @@ struct ContentViewActionsTests {
         #expect(buttons.count == 2)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("accessibility identifiers are set correctly without directory")
     func accessibilityIdentifiersWithoutDirectory() throws {
         let view = ContentViewActions(
@@ -143,6 +152,7 @@ struct ContentViewActionsTests {
         #expect(identifiers.contains("mainActionButton"))
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("accessibility identifiers are set correctly with directory")
     func accessibilityIdentifiersWithDirectory() throws {
         let view = ContentViewActions(

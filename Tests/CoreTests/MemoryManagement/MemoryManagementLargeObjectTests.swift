@@ -46,6 +46,7 @@ struct MemoryManagementLargeObjectTests {
         #expect(issue.suggestion?.contains("Consider using @StateObject") == true)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testDoesNotDetectSmallArrayInState() throws {
         let sourceCode = """
         struct ContentView: View {
@@ -59,6 +60,7 @@ struct MemoryManagementLargeObjectTests {
         #expect(visitor.detectedIssues.isEmpty)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testDoesNotDetectLargeArrayWithoutState() throws {
         let sourceCode = """
         struct ContentView: View {
@@ -94,6 +96,7 @@ struct MemoryManagementLargeObjectTests {
         #expect(visitor.detectedIssues.isEmpty)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testDoesNotDetectNonArrayInState() throws {
         let sourceCode = """
         struct ContentView: View {

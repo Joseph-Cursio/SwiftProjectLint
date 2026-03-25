@@ -60,6 +60,7 @@ struct TestMissingRequireVisitorTests {
         #expect(issue.message.contains("testDescriptive"))
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test
     func detectsMultipleTestsWithoutRequire() {
         let visitor = makeVisitor()
@@ -79,6 +80,7 @@ struct TestMissingRequireVisitorTests {
 
     // MARK: - Negative Cases (should not trigger)
 
+    // swiftprojectlint:disable Test Missing Require
     @Test
     func ignoresTestWithRequire() {
         let visitor = makeVisitor()
@@ -92,6 +94,7 @@ struct TestMissingRequireVisitorTests {
         #expect(visitor.detectedIssues.isEmpty)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test
     func ignoresTestWithRequireOnly() {
         let visitor = makeVisitor()
@@ -104,6 +107,7 @@ struct TestMissingRequireVisitorTests {
         #expect(visitor.detectedIssues.isEmpty)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test
     func ignoresTestWithNestedRequire() {
         let visitor = makeVisitor()
@@ -120,6 +124,7 @@ struct TestMissingRequireVisitorTests {
         #expect(visitor.detectedIssues.isEmpty)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test
     func ignoresNonTestFunctions() {
         let visitor = makeVisitor()
@@ -136,6 +141,7 @@ struct TestMissingRequireVisitorTests {
         #expect(visitor.detectedIssues.isEmpty)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test
     func ignoresRegularFunctionsWithTestInName() {
         let visitor = makeVisitor()
@@ -150,7 +156,7 @@ struct TestMissingRequireVisitorTests {
     // MARK: - Mixed Cases
 
     @Test
-    func onlyFlagsTestsWithoutRequire() {
+    func onlyFlagsTestsWithoutRequire() throws {
         let visitor = makeVisitor()
         run(visitor, source: """
         @Test
@@ -165,7 +171,7 @@ struct TestMissingRequireVisitorTests {
         }
         """)
         #expect(visitor.detectedIssues.count == 1)
-        let issue = visitor.detectedIssues.first
-        #expect(issue?.message.contains("testWithoutRequire") == true)
+        let issue = try #require(visitor.detectedIssues.first)
+        #expect(issue.message.contains("testWithoutRequire"))
     }
 }

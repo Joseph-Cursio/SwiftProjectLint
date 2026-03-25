@@ -35,6 +35,7 @@ struct TaskYieldOffloadVisitorTests {
         #expect(issue.message.contains("Task.yield()"))
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("Detects Task.yield variant", arguments: [
         """
         Task.yield()
@@ -48,6 +49,7 @@ struct TaskYieldOffloadVisitorTests {
 
     // MARK: - Negative Cases
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("No issue for other Task methods", arguments: [
         // Task.sleep
         """

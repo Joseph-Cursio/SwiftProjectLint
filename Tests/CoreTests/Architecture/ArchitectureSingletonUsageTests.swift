@@ -32,8 +32,8 @@ struct ArchitectureSingletonUsageTests {
         """
         let issues = analyzeSource(source)
         let singletonIssues = issues.filter { $0.ruleName == .singletonUsage }
-        #expect(singletonIssues.count == 1)
-        #expect(singletonIssues[0].message.contains("DataManager"))
+        let issue = try #require(singletonIssues.first)
+        #expect(issue.message.contains("DataManager"))
     }
 
     @Test func testDetectsSingletonOnRepositoryType() throws {
@@ -44,10 +44,11 @@ struct ArchitectureSingletonUsageTests {
         """
         let issues = analyzeSource(source)
         let singletonIssues = issues.filter { $0.ruleName == .singletonUsage }
-        #expect(singletonIssues.count == 1)
-        #expect(singletonIssues[0].message.contains("UserRepository"))
+        let issue = try #require(singletonIssues.first)
+        #expect(issue.message.contains("UserRepository"))
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testDetectsMultipleSingletons() throws {
         let source = """
         class Setup {
@@ -64,6 +65,7 @@ struct ArchitectureSingletonUsageTests {
 
     // MARK: - No issue for non-service singletons
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testNoIssueForNonServiceSingleton() throws {
         let source = """
         class Connector {
@@ -75,6 +77,7 @@ struct ArchitectureSingletonUsageTests {
         #expect(singletonIssues.isEmpty)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testNoIssueForNonSharedMember() throws {
         let source = """
         class Owner {
@@ -86,6 +89,7 @@ struct ArchitectureSingletonUsageTests {
         #expect(singletonIssues.isEmpty)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testNoIssueForInstanceSharedProperty() throws {
         // base is not a DeclReferenceExprSyntax with a service-like name
         let source = """

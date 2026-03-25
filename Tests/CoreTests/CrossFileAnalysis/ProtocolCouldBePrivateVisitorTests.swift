@@ -24,7 +24,7 @@ struct ProtocolCouldBePrivateVisitorTests {
         return visitor.detectedIssues.filter { $0.ruleName == .protocolCouldBePrivate }
     }
 
-    @Test func flagsProtocolOnlyUsedInDeclaringFile() {
+    @Test func flagsProtocolOnlyUsedInDeclaringFile() throws {
         let issues = analyze(files: [
             "Service.swift": """
             protocol Loadable {
@@ -40,9 +40,11 @@ struct ProtocolCouldBePrivateVisitorTests {
         ])
 
         #expect(issues.count == 1)
-        #expect(issues.first?.message.contains("Loadable") == true)
+        let issue = try #require(issues.first)
+        #expect(issue.message.contains("Loadable"))
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func doesNotFlagProtocolUsedAcrossFiles() {
         let issues = analyze(files: [
             "Protocol.swift": """
@@ -62,6 +64,7 @@ struct ProtocolCouldBePrivateVisitorTests {
 
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func doesNotFlagProtocolUsedAsTypeAnnotation() {
         let issues = analyze(files: [
             "Protocol.swift": """
@@ -81,6 +84,7 @@ struct ProtocolCouldBePrivateVisitorTests {
 
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func skipsAlreadyPrivateProtocol() {
         let issues = analyze(files: [
             "File.swift": """

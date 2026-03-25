@@ -25,6 +25,7 @@ struct RuleIdentifierFilteringTests {
 
     // MARK: - Rule Identifier Filtering Characterization
     
+    // swiftprojectlint:disable Test Missing Require
     @Test func characterizeSpecificRuleIdentifierFiltering() throws {
         let detector = SourcePatternDetector()
         let testCode = """
@@ -64,6 +65,7 @@ struct RuleIdentifierFilteringTests {
         #expect(specificIssues.count <= allIssues.count, "Specific rules should be subset of all rules")
     }
     
+    // swiftprojectlint:disable Test Missing Require
     @Test func characterizeEmptyRuleIdentifierList() throws {
         let detector = SourcePatternDetector()
         let testCode = """

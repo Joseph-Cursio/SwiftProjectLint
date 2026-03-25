@@ -34,9 +34,9 @@ struct AccessingImplDetailsTests {
         """
         let issues = analyzeSource(source)
         let violations = issues.filter { $0.ruleName == .accessingImplementationDetails }
-        #expect(violations.count == 1)
-        #expect(violations[0].message.contains("_data"))
-        #expect(violations[0].message.contains("cache"))
+        let violation = try #require(violations.first)
+        #expect(violation.message.contains("_data"))
+        #expect(violation.message.contains("cache"))
     }
 
     @Test func testDetectsDoubleUnderscoreMember() throws {
@@ -49,10 +49,11 @@ struct AccessingImplDetailsTests {
         """
         let issues = analyzeSource(source)
         let violations = issues.filter { $0.ruleName == .accessingImplementationDetails }
-        #expect(violations.count == 1)
-        #expect(violations[0].message.contains("__storage"))
+        let violation = try #require(violations.first)
+        #expect(violation.message.contains("__storage"))
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testNoIssueForSelfUnderscoreAccess() throws {
         let source = """
         class MyClass {
@@ -65,6 +66,7 @@ struct AccessingImplDetailsTests {
         #expect(violations.isEmpty)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testNoIssueForSuperUnderscoreAccess() throws {
         let source = """
         class Base { func _setup() {} }
@@ -77,6 +79,7 @@ struct AccessingImplDetailsTests {
         #expect(violations.isEmpty)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testNoIssueForPublicMember() throws {
         let source = """
         class CacheManager { var data: [String] = [] }
@@ -90,6 +93,7 @@ struct AccessingImplDetailsTests {
         #expect(violations.isEmpty)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testNoIssueForImplicitMember() throws {
         // Implicit `.someCase` has a nil base — should not trigger
         let source = """
@@ -113,11 +117,12 @@ struct AccessingImplDetailsTests {
         """
         let issues = analyzeSource(source)
         let violations = issues.filter { $0.ruleName == .accessingImplementationDetails }
-        #expect(violations.count == 1)
-        #expect(violations.first?.message.contains("NetworkService") == true)
-        #expect(violations.first?.message.contains("connectionPool") == true)
+        let violation = try #require(violations.first)
+        #expect(violation.message.contains("NetworkService"))
+        #expect(violation.message.contains("connectionPool"))
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testNoIssueForForceCastToNonServiceType() throws {
         // UIButton does not end with a service-like suffix
         let source = """
@@ -131,6 +136,7 @@ struct AccessingImplDetailsTests {
         #expect(violations.isEmpty)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testNoIssueForOptionalCast() throws {
         // `as?` should not trigger — only `as!`
         let source = """
@@ -147,6 +153,7 @@ struct AccessingImplDetailsTests {
 
     // MARK: - Combined
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testDetectsMultipleViolations() throws {
         let source = """
         class DataStore { var _cache: [String] = [] }

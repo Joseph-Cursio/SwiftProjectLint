@@ -37,9 +37,10 @@ struct ViewRelationshipNavigationTests {
         
         let relationships = extractRelationships(from: sourceCode, parentView: "ContentView")
         #expect(relationships.count == 1)
-        #expect(relationships[0].childView == "DetailView")
-        #expect(relationships[0].relationshipType == .navigationDestination)
-        #expect(relationships[0].parentView == "ContentView")
+        let relationship = try #require(relationships.first)
+        #expect(relationship.childView == "DetailView")
+        #expect(relationship.relationshipType == .navigationDestination)
+        #expect(relationship.parentView == "ContentView")
     }
     
     @Test func testSheetPresentationDetection() throws {
@@ -60,9 +61,10 @@ struct ViewRelationshipNavigationTests {
         
         let relationships = extractRelationships(from: sourceCode, parentView: "ContentView")
         #expect(relationships.count == 1)
-        #expect(relationships[0].childView == "SheetView")
-        #expect(relationships[0].relationshipType == .sheet)
-        #expect(relationships[0].parentView == "ContentView")
+        let relationship = try #require(relationships.first)
+        #expect(relationship.childView == "SheetView")
+        #expect(relationship.relationshipType == .sheet)
+        #expect(relationship.parentView == "ContentView")
     }
     
     @Test func testFullScreenCoverDetection() throws {
@@ -83,9 +85,10 @@ struct ViewRelationshipNavigationTests {
         
         let relationships = extractRelationships(from: sourceCode, parentView: "ContentView")
         #expect(relationships.count == 1)
-        #expect(relationships[0].childView == "FullScreenView")
-        #expect(relationships[0].relationshipType == .fullScreenCover)
-        #expect(relationships[0].parentView == "ContentView")
+        let relationship = try #require(relationships.first)
+        #expect(relationship.childView == "FullScreenView")
+        #expect(relationship.relationshipType == .fullScreenCover)
+        #expect(relationship.parentView == "ContentView")
     }
     
     @Test func testPopoverDetection() throws {
@@ -106,9 +109,10 @@ struct ViewRelationshipNavigationTests {
         
         let relationships = extractRelationships(from: sourceCode, parentView: "ContentView")
         #expect(relationships.count == 1)
-        #expect(relationships[0].childView == "PopoverView")
-        #expect(relationships[0].relationshipType == .popover)
-        #expect(relationships[0].parentView == "ContentView")
+        let relationship = try #require(relationships.first)
+        #expect(relationship.childView == "PopoverView")
+        #expect(relationship.relationshipType == .popover)
+        #expect(relationship.parentView == "ContentView")
     }
     
     @Test func testMultipleRelationships() throws {

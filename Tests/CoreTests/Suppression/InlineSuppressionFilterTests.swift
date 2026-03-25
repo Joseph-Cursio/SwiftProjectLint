@@ -19,6 +19,7 @@ struct InlineSuppressionFilterTests {
 
     // MARK: - disable:this
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testDisableThisRemovesIssueOnSameLine() {
         let source = """
         // swiftprojectlint:disable:this force-try
@@ -30,6 +31,7 @@ struct InlineSuppressionFilterTests {
         #expect(result.isEmpty)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testDisableThisDoesNotAffectOtherLines() {
         let source = """
         // swiftprojectlint:disable:this force-try
@@ -42,6 +44,7 @@ struct InlineSuppressionFilterTests {
 
     // MARK: - disable:next
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testDisableNextRemovesIssueOnFollowingLine() {
         let source = """
         let x = 1
@@ -54,6 +57,7 @@ struct InlineSuppressionFilterTests {
         #expect(result.isEmpty)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testDisableNextDoesNotAffectCommentLine() {
         let source = """
         // swiftprojectlint:disable:next force-try
@@ -64,6 +68,7 @@ struct InlineSuppressionFilterTests {
         #expect(result.count == 1)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testDisableNextDoesNotAffectTwoLinesDown() {
         let source = """
         // swiftprojectlint:disable:next force-try
@@ -77,6 +82,7 @@ struct InlineSuppressionFilterTests {
 
     // MARK: - disable / enable region
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testDisableEnableRegionRemovesIssuesInRange() {
         let source = """
         let a = 1
@@ -96,6 +102,7 @@ struct InlineSuppressionFilterTests {
         #expect(result[0].lineNumber == 6)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testDisableWithoutEnableRemovesRestOfFile() {
         let source = """
         let a = 1
@@ -113,6 +120,7 @@ struct InlineSuppressionFilterTests {
 
     // MARK: - Rule isolation
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testDifferentRulesAreNotCrossContaminated() {
         let source = "// swiftprojectlint:disable:next force-try"
         let issues = [
@@ -126,6 +134,7 @@ struct InlineSuppressionFilterTests {
 
     // MARK: - Disable all rules
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testDisableAllRulesSuppressesEverything() {
         let source = """
         // swiftprojectlint:disable
@@ -140,6 +149,7 @@ struct InlineSuppressionFilterTests {
         #expect(result.isEmpty)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testEnableAllRulesAfterDisableAll() {
         let source = """
         // swiftprojectlint:disable
@@ -158,12 +168,14 @@ struct InlineSuppressionFilterTests {
 
     // MARK: - No-op cases
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testEmptyIssuesReturnsEmpty() {
         let source = "// swiftprojectlint:disable force-try"
         let result = InlineSuppressionFilter.filter([], fileContent: source)
         #expect(result.isEmpty)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testNoDirectivesReturnsAllIssues() {
         let source = """
         struct Foo {

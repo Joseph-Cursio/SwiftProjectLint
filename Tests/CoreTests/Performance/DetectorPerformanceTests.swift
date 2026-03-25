@@ -44,12 +44,12 @@ struct DetectorPerformanceTests {
         // Then
         let forEachIssues = issues.filter { $0.message.contains("ForEach") }
         
-        if let forEachIssue = forEachIssues.first {
-            #expect(forEachIssue.severity == .warning)
-        }
+        let forEachIssue = try #require(forEachIssues.first)
+        #expect(forEachIssue.severity == .warning)
         
     }
     
+    // swiftprojectlint:disable Test Missing Require
     @Test
     @MainActor
     static func performanceVisitorForEachWithID() async throws {

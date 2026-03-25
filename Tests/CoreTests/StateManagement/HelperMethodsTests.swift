@@ -10,6 +10,7 @@ struct HelperMethodsTests {
 
     // MARK: - Summary and Filter Methods
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testGetStateVariableSummary() throws {
         let source = """
         struct TestView: View {
@@ -29,6 +30,7 @@ struct HelperMethodsTests {
         #expect(summary[.binding] == 1)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testGetStateVariablesWithPropertyWrapper() throws {
         let source = """
         struct TestView: View {
@@ -46,6 +48,7 @@ struct HelperMethodsTests {
         #expect(stateVars.allSatisfy { $0.propertyWrapper == .state })
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testGetPotentialEnvironmentObjectCandidates() throws {
         let source = """
         struct TestView: View {
@@ -148,6 +151,7 @@ struct HelperMethodsTests {
 
     // MARK: - Edge Cases
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testNoPropertyWrapperVariablesIgnored() throws {
         let source = """
         struct TestView: View {
@@ -162,6 +166,7 @@ struct HelperMethodsTests {
         #expect(visitor.stateVariables.isEmpty)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testEmptyView() throws {
         let source = """
         struct TestView: View {
@@ -175,6 +180,7 @@ struct HelperMethodsTests {
         #expect(visitor.getStateVariableSummary().isEmpty)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testMultipleStateVariables() throws {
         let source = """
         struct TestView: View {

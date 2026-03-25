@@ -43,6 +43,7 @@ struct AccessibilityImageTests {
         #expect(issue.suggestion?.contains("accessibilityLabel") == true)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testImageWithAccessibilityLabel() {
         let visitor = makeAccessibilityVisitor()
 

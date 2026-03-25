@@ -51,12 +51,11 @@ struct ForEachAndBodyTests {
             $0.message.contains("ForEach") && $0.message.contains("id")
         }
 
-        #expect(forEachIssues.count >= 1)
-        if let issue = forEachIssues.first {
-            #expect(issue.ruleName == .forEachWithoutID)
-        }
+        let issue = try #require(forEachIssues.first)
+        #expect(issue.ruleName == .forEachWithoutID)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testNoIssueForForEachWithID() throws {
         let source = """
         struct TestView: View {
@@ -86,6 +85,7 @@ struct ForEachAndBodyTests {
 
     // MARK: - ForEach Identifiable Suppression Tests
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testNoIssueForForEachWithIdentifiableAllCases() throws {
         let source = """
         struct TestView: View {
@@ -102,6 +102,7 @@ struct ForEachAndBodyTests {
         #expect(forEachIssues.isEmpty)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testStillFlagsForEachWithNonIdentifiableAllCases() throws {
         let source = """
         struct TestView: View {
@@ -119,6 +120,7 @@ struct ForEachAndBodyTests {
         #expect(forEachIssues.count >= 1)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testNoIssueForForEachWithIdentifiableTypedArray() throws {
         let source = """
         struct TestView: View {
@@ -137,6 +139,7 @@ struct ForEachAndBodyTests {
         #expect(forEachIssues.isEmpty)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testNoIssueForForEachWithIdentifiableMemberProperty() throws {
         let source = """
         struct TestView: View {
@@ -159,6 +162,7 @@ struct ForEachAndBodyTests {
 
     // MARK: - Large View Body Tests
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testDetectsLargeViewBody() throws {
         // Create a view with many statements (over 100 lines to trigger detection)
         let lines = (1...105).map { "Text(\"Line \($0)\")" }.joined(separator: "\n                    ")
@@ -178,6 +182,7 @@ struct ForEachAndBodyTests {
         #expect(largeBodyIssues.count >= 1)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testNoIssueForSmallViewBody() throws {
         let source = """
         struct TestView: View {
@@ -211,13 +216,13 @@ struct ForEachAndBodyTests {
 
         let issues = analyzeSource(source, filePath: "Custom/Path/MyView.swift")
 
-        if let issue = issues.first {
-            #expect(issue.filePath == "Custom/Path/MyView.swift")
-        }
+        let issue = try #require(issues.first)
+        #expect(issue.filePath == "Custom/Path/MyView.swift")
     }
 
     // MARK: - Visitor Initialization Tests
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testVisitorInitialization() throws {
         let visitor = createVisitor()
 
@@ -225,6 +230,7 @@ struct ForEachAndBodyTests {
         #expect(visitor.pattern.category == .performance)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testVisitorReset() throws {
         let visitor = createVisitor()
 
@@ -257,6 +263,7 @@ struct ForEachAndBodyTests {
 
     // MARK: - Multiple Issues Tests
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testDetectsMultipleIssuesInSameView() throws {
         let source = """
         struct TestView: View {
@@ -280,6 +287,7 @@ struct ForEachAndBodyTests {
 
     // MARK: - Function Declaration Body Tests
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testDetectsIssuesInFunctionBody() throws {
         let source = """
         struct TestView: View {
@@ -308,6 +316,7 @@ struct PerformanceVisitorStateTrackingTests {
         return PerformanceVisitor(patternCategory: .performance)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testTracksStateVariableDeclaration() throws {
         let source = """
         struct TestView: View {
@@ -328,6 +337,7 @@ struct PerformanceVisitorStateTrackingTests {
         #expect(visitor.stateVariables.isEmpty == false) // Should track @State variables
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testStateVariableAssignmentTracking() throws {
         let source = """
         struct TestView: View {

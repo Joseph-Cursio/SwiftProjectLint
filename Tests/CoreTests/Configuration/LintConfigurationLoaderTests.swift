@@ -7,6 +7,7 @@ struct LintConfigurationLoaderTests {
 
     // MARK: - File Loading
 
+    // swiftprojectlint:disable Test Missing Require
     @Test
     func testMissingFileReturnsDefault() {
         let config = LintConfigurationLoader.load(from: "/nonexistent/path.yml")
@@ -16,6 +17,7 @@ struct LintConfigurationLoaderTests {
         #expect(config.ruleOverrides.isEmpty)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test
     func testLoadFromProjectRoot() throws {
         let tempDir = NSTemporaryDirectory() + "swiftprojectlint-test-\(UUID().uuidString)"
@@ -40,6 +42,7 @@ struct LintConfigurationLoaderTests {
 
     // MARK: - YAML Parsing
 
+    // swiftprojectlint:disable Test Missing Require
     @Test
     func testParsesDisabledRules() throws {
         let yaml = """
@@ -52,6 +55,7 @@ struct LintConfigurationLoaderTests {
         #expect(config.disabledRules.contains(.forceUnwrap))
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test
     func testParsesEnabledOnly() throws {
         let yaml = """
@@ -64,6 +68,7 @@ struct LintConfigurationLoaderTests {
         #expect(config.enabledOnlyRules?.contains(.unsafeURL) == true)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test
     func testDisabledRulesTakePrecedenceOverEnabledOnly() {
         let yaml = """
@@ -93,6 +98,7 @@ struct LintConfigurationLoaderTests {
         #expect(override.excludedPaths == ["Views/"])
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test
     func testIgnoresUnknownRuleNames() {
         let yaml = """
@@ -105,6 +111,7 @@ struct LintConfigurationLoaderTests {
         #expect(config.disabledRules.contains(.forceTry))
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test
     func testParsesSeverityValues() throws {
         let yaml = """
@@ -122,6 +129,7 @@ struct LintConfigurationLoaderTests {
         #expect(config.ruleOverrides[.dateNow]?.severity == .info)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("invalid YAML (non-dict root) returns default config")
     func testInvalidYAMLReturnsDefault() {
         let yaml = "- just\n- a\n- list"
@@ -132,6 +140,7 @@ struct LintConfigurationLoaderTests {
         #expect(config.ruleOverrides.isEmpty)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("completely invalid YAML returns default config")
     func testMalformedYAMLReturnsDefault() {
         let yaml = "{{{{not yaml at all::::"
@@ -140,6 +149,7 @@ struct LintConfigurationLoaderTests {
         #expect(config.enabledOnlyRules == nil)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("unknown severity string is treated as nil")
     func testUnknownSeverityReturnsNil() {
         let yaml = """
@@ -179,6 +189,7 @@ struct LintConfigurationLoaderTests {
         #expect(config.disabledRules.isEmpty)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("empty disabled_rules list parses as empty set")
     func testEmptyDisabledRules() {
         let yaml = """

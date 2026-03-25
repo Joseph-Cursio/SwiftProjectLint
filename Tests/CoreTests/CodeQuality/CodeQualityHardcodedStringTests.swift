@@ -43,12 +43,12 @@ struct CodeQualityHardcodedStringTests {
         let hardcodedIssues = visitor.detectedIssues.filter { $0.ruleName == .hardcodedStrings }
         #expect(hardcodedIssues.count == 1)
 
-        let issue = hardcodedIssues.first
-        #expect(issue != nil)
-        #expect(issue?.severity == .info)
-        #expect(issue?.message.contains("hardcoded string") == true)
+        let issue = try #require(hardcodedIssues.first)
+        #expect(issue.severity == .info)
+        #expect(issue.message.contains("hardcoded string"))
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testShortStringInTextIsDetected() throws {
         let visitor = createVisitor()
 
@@ -67,6 +67,7 @@ struct CodeQualityHardcodedStringTests {
         #expect(hardcodedIssues.count == 1)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testStringOutsideSwiftUINotDetected() throws {
         let visitor = createVisitor()
 
@@ -108,8 +109,8 @@ struct CodeQualityHardcodedStringTests {
         let hardcodedIssues = visitor.detectedIssues.filter { $0.message.contains("hardcoded text") }
         #expect(hardcodedIssues.count == 1)
 
-        let issue = hardcodedIssues.first
-        #expect(issue?.message.contains("user-facing message") == true)
+        let issue = try #require(hardcodedIssues.first)
+        #expect(issue.message.contains("user-facing message"))
     }
 
     @Test func testHardcodedStringDetectionCharacterization() throws {
@@ -129,9 +130,11 @@ struct CodeQualityHardcodedStringTests {
 
         let hardcodedIssues = visitor.detectedIssues.filter { $0.ruleName == .hardcodedStrings }
         #expect(hardcodedIssues.count == 1)
-        #expect(hardcodedIssues.first?.severity == .info)
+        let issue = try #require(hardcodedIssues.first)
+        #expect(issue.severity == .info)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testShortStringsNotDetected() throws {
         let visitor = createVisitor()
 
@@ -152,6 +155,7 @@ struct CodeQualityHardcodedStringTests {
         #expect(hardcodedIssues.isEmpty)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testTestFileStringsNotDetected() throws {
         let visitor = createVisitor()
         visitor.setFilePath("MyAppTests/ViewTests.swift")
@@ -171,6 +175,7 @@ struct CodeQualityHardcodedStringTests {
         #expect(hardcodedIssues.isEmpty)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testThreeCharStringStillDetected() throws {
         let visitor = createVisitor()
 

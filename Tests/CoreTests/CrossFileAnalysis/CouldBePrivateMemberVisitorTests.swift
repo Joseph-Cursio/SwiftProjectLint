@@ -24,6 +24,7 @@ struct CouldBePrivateMemberVisitorTests {
         return visitor.detectedIssues.filter { $0.ruleName == .couldBePrivateMember }
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func flagsMethodOnlyUsedInDeclaringFile() {
         let issues = analyze(files: [
             "MyView.swift": """
@@ -43,6 +44,7 @@ struct CouldBePrivateMemberVisitorTests {
         #expect(flagged.contains { $0.contains("helperMethod") })
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func doesNotFlagMethodUsedAcrossFiles() {
         let issues = analyze(files: [
             "Service.swift": """
@@ -63,6 +65,7 @@ struct CouldBePrivateMemberVisitorTests {
 
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func skipsAlreadyPrivateMembers() {
         let issues = analyze(files: [
             "MyType.swift": """
@@ -79,6 +82,7 @@ struct CouldBePrivateMemberVisitorTests {
         #expect(flagged.contains { $0.contains("uniquePublicMethod") })
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func skipsOverrides() {
         let issues = analyze(files: [
             "Child.swift": """
@@ -93,6 +97,7 @@ struct CouldBePrivateMemberVisitorTests {
 
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func skipsBodyProperty() {
         let issues = analyze(files: [
             "MyView.swift": """
@@ -105,6 +110,7 @@ struct CouldBePrivateMemberVisitorTests {
         #expect(issues.isEmpty)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func skipsPropertyWrapperProperties() {
         let issues = analyze(files: [
             "MyView.swift": """
@@ -120,6 +126,7 @@ struct CouldBePrivateMemberVisitorTests {
 
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func flagsPropertyOnlyUsedLocally() {
         let issues = analyze(files: [
             "Helper.swift": """

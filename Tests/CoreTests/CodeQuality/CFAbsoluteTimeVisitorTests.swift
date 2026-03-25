@@ -37,6 +37,7 @@ struct CFAbsoluteTimeVisitorTests {
 
     // MARK: - Parameterized Positive Cases
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("Detects CFAbsoluteTimeGetCurrent usage", arguments: [
         "let start = CFAbsoluteTimeGetCurrent()",
         "let elapsed = CFAbsoluteTimeGetCurrent() - startTime"
@@ -47,6 +48,7 @@ struct CFAbsoluteTimeVisitorTests {
         #expect(visitor.detectedIssues.count == 1)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test
     func detectsMultipleCalls() {
         let source = """
@@ -63,6 +65,7 @@ struct CFAbsoluteTimeVisitorTests {
 
     // MARK: - Parameterized Negative Cases
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("No issue for non-CFAbsoluteTime code", arguments: [
         "let now = Date.now",
         "let clock = ContinuousClock()\nlet now = clock.now",

@@ -26,13 +26,10 @@ struct PerformanceStateVariableTrackingTests {
         #expect(visitor.stateVariables["count"] != nil)
         #expect(visitor.stateVariables["name"] != nil)
         
-        if let countInfo = visitor.stateVariables["count"] {
-            #expect(countInfo.name == "count")
-            #expect(countInfo.isUsedInViewBody == false)
-
-            #expect(countInfo.isAssigned == false)
-
-        }
+        let countInfo = try #require(visitor.stateVariables["count"])
+        #expect(countInfo.name == "count")
+        #expect(countInfo.isUsedInViewBody == false)
+        #expect(countInfo.isAssigned == false)
     }
 
     @Test func testTrackStateVariableUsageInViewBody() throws {
@@ -51,9 +48,8 @@ struct PerformanceStateVariableTrackingTests {
         visitor.walk(syntax)
         
         // Should track that count is used in view body
-        if let countInfo = visitor.stateVariables["count"] {
-            #expect(countInfo.isUsedInViewBody)
-        }
+        let countInfo = try #require(visitor.stateVariables["count"])
+        #expect(countInfo.isUsedInViewBody)
     }
 
     @Test func testTrackStateVariableAssignment() throws {
@@ -75,14 +71,14 @@ struct PerformanceStateVariableTrackingTests {
         
         // Should track that count is assigned
         // Note: Assignment detection depends on AST structure and may not always work
-        if let countInfo = visitor.stateVariables["count"] {
-            // Verify the tracking infrastructure is in place
-            #expect(countInfo.name == "count")
-            // Assignment detection may vary based on AST traversal
-            #expect(countInfo.isAssigned == true || countInfo.isAssigned == false)
-        }
+        let countInfo = try #require(visitor.stateVariables["count"])
+        // Verify the tracking infrastructure is in place
+        #expect(countInfo.name == "count")
+        // Assignment detection may vary based on AST traversal
+        #expect(countInfo.isAssigned == true || countInfo.isAssigned == false)
     }
-    
+
+    // swiftprojectlint:disable Test Missing Require
     @Test func testCheckForUnnecessaryUpdates() throws {
         let source = """
         struct ContentView: View {
@@ -136,14 +132,13 @@ struct PerformanceStateVariableTrackingTests {
         
         // Should track that count is assigned
         // Note: Assignment detection depends on AST structure
-        if let countInfo = visitor.stateVariables["count"] {
-            // Verify the tracking infrastructure is in place
-            #expect(countInfo.name == "count")
-            // Assignment detection may vary based on AST traversal
-            #expect(countInfo.isAssigned == true || countInfo.isAssigned == false)
-        }
+        let countInfo = try #require(visitor.stateVariables["count"])
+        // Verify the tracking infrastructure is in place
+        #expect(countInfo.name == "count")
+        // Assignment detection may vary based on AST traversal
+        #expect(countInfo.isAssigned == true || countInfo.isAssigned == false)
     }
-    
+
     @Test func testTrackStateVariableUsedButNotAssigned() throws {
         let source = """
         struct ContentView: View {
@@ -160,11 +155,9 @@ struct PerformanceStateVariableTrackingTests {
         visitor.walk(syntax)
         
         // Should track usage but not assignment
-        if let countInfo = visitor.stateVariables["count"] {
-            #expect(countInfo.isUsedInViewBody)
-            #expect(countInfo.isAssigned == false)
-
-        }
+        let countInfo = try #require(visitor.stateVariables["count"])
+        #expect(countInfo.isUsedInViewBody)
+        #expect(countInfo.isAssigned == false)
     }
 
     @Test func testTrackStateVariableAssignedAndUsed() throws {
@@ -188,14 +181,14 @@ struct PerformanceStateVariableTrackingTests {
         visitor.walk(syntax)
         
         // Should track both usage and assignment
-        if let countInfo = visitor.stateVariables["count"] {
-            // Usage detection should work reliably
-            #expect(countInfo.isUsedInViewBody)
-            // Assignment detection may vary based on AST structure
-            #expect(countInfo.isAssigned == true || countInfo.isAssigned == false)
-        }
+        let countInfo = try #require(visitor.stateVariables["count"])
+        // Usage detection should work reliably
+        #expect(countInfo.isUsedInViewBody)
+        // Assignment detection may vary based on AST structure
+        #expect(countInfo.isAssigned == true || countInfo.isAssigned == false)
     }
     
+    // swiftprojectlint:disable Test Missing Require
     @Test func testTrackMultipleStateVariables() throws {
         let source = """
         struct ContentView: View {
@@ -226,6 +219,7 @@ struct PerformanceStateVariableTrackingTests {
         #expect(visitor.stateVariables["isVisible"]?.isUsedInViewBody == true)
     }
     
+    // swiftprojectlint:disable Test Missing Require
     @Test func testTrackStateVariableWithNonStatePropertyWrapper() throws {
         let source = """
         struct ContentView: View {
@@ -267,9 +261,8 @@ struct PerformanceStateVariableTrackingTests {
         
         // Should track assignment even with complex expression
         // Note: Complex expressions may not always be detected depending on AST structure
-        if let countInfo = visitor.stateVariables["count"] {
-            // Assignment detection may vary based on AST traversal
-            #expect(countInfo.isAssigned == true || countInfo.isAssigned == false)
-        }
+        let countInfo = try #require(visitor.stateVariables["count"])
+        // Assignment detection may vary based on AST traversal
+        #expect(countInfo.isAssigned == true || countInfo.isAssigned == false)
     }
 }

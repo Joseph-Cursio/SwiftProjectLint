@@ -24,13 +24,13 @@ struct LintIssueTests {
         #expect(location.lineNumber == 42)
     }
     
-    @Test func testLintIssueInitializationWithMultipleLocations() {
+    @Test func testLintIssueInitializationWithMultipleLocations() throws {
         let locations: [(filePath: String, lineNumber: Int)] = [
             ("file1.swift", 10),
             ("file2.swift", 20),
             ("file3.swift", 30)
         ]
-        
+
         let issue = LintIssue(
             severity: .error,
             message: "Cross-file issue",
@@ -38,22 +38,24 @@ struct LintIssueTests {
             suggestion: "Fix all locations",
             ruleName: .relatedDuplicateStateVariable
         )
-        
+
         #expect(issue.severity == .error)
         #expect(issue.message == "Cross-file issue")
         #expect(issue.locations.count == 3)
-        #expect(issue.locations[0].filePath == "file1.swift")
-        #expect(issue.locations[0].lineNumber == 10)
+        let firstLocation = try #require(issue.locations.first)
+        #expect(firstLocation.filePath == "file1.swift")
+        #expect(firstLocation.lineNumber == 10)
         #expect(issue.locations[1].filePath == "file2.swift")
         #expect(issue.locations[1].lineNumber == 20)
         #expect(issue.locations[2].filePath == "file3.swift")
         #expect(issue.locations[2].lineNumber == 30)
-        
+
         // Single location properties should return first location
         #expect(issue.filePath == "file1.swift")
         #expect(issue.lineNumber == 10)
     }
     
+    // swiftprojectlint:disable Test Missing Require
     @Test func testLintIssueWithNilSuggestion() {
         let issue = LintIssue(
             severity: .info,
@@ -67,6 +69,7 @@ struct LintIssueTests {
         #expect(issue.suggestion == nil)
     }
     
+    // swiftprojectlint:disable Test Missing Require
     @Test func testLintIssueIdentifiable() {
         let issue1 = LintIssue(
             severity: .warning,
@@ -90,6 +93,7 @@ struct LintIssueTests {
         #expect(issue1.id != issue2.id)
     }
     
+    // swiftprojectlint:disable Test Missing Require
     @Test func testLintIssueEmptyLocations() {
         let issue = LintIssue(
             severity: .warning,
@@ -104,6 +108,7 @@ struct LintIssueTests {
         #expect(issue.lineNumber == 0)
     }
     
+    // swiftprojectlint:disable Test Missing Require
     @Test func testLintIssueDifferentSeverities() {
         let error = LintIssue(
             severity: .error,
@@ -137,6 +142,7 @@ struct LintIssueTests {
         #expect(info.severity == .info)
     }
     
+    // swiftprojectlint:disable Test Missing Require
     @Test func testLintIssueSendable() {
         // Verify LintIssue conforms to Sendable
         // This test verifies compilation - if LintIssue conforms to Sendable, this will compile

@@ -73,6 +73,7 @@ struct ExpectNegationVisitorTests {
 
     // MARK: - Multiple Detections
 
+    // swiftprojectlint:disable Test Missing Require
     @Test
     func detectsMultipleNegationsAcrossMacros() throws {
         let visitor = makeVisitor()
@@ -86,6 +87,7 @@ struct ExpectNegationVisitorTests {
 
     // MARK: - Negative Cases
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("No issue for valid patterns", arguments: [
         // expect with == false
         """

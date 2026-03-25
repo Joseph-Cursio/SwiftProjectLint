@@ -24,6 +24,7 @@ struct MemoryManagementRetainCycleTests {
         #expect(issue.suggestion?.contains("Review object lifecycle") == true)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testDoesNotDetectRetainCycleWhenTypesDiffer() throws {
         let sourceCode = """
         struct ContentView: View {
@@ -37,6 +38,7 @@ struct MemoryManagementRetainCycleTests {
         #expect(visitor.detectedIssues.isEmpty)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testDoesNotDetectRetainCycleWithoutStateObject() throws {
         let sourceCode = """
         struct ContentView: View {
@@ -50,6 +52,7 @@ struct MemoryManagementRetainCycleTests {
         #expect(visitor.detectedIssues.isEmpty)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testDoesNotDetectRetainCycleWithoutInitializer() throws {
         let sourceCode = """
         struct ContentView: View {
@@ -76,7 +79,8 @@ struct MemoryManagementRetainCycleTests {
         visitor.walk(sourceFile)
         #expect(visitor.detectedIssues.count == 2)
         let issues = visitor.detectedIssues.sorted { $0.message < $1.message }
-        #expect(issues[0].message.contains("viewModel1"))
-        #expect(issues[1].message.contains("viewModel2"))
+        let firstIssue = try #require(issues.first)
+        #expect(firstIssue.message.contains("viewModel1"))
+        #expect(issues.dropFirst().first?.message.contains("viewModel2") == true)
     }
 } 

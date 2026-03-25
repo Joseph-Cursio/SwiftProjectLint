@@ -22,6 +22,7 @@ struct UIVisitorMacroPreviewTests {
 
     // MARK: - #Preview Macro with Arguments
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("detects preview via macro expansion with DeclReferenceExpr argument")
     func detectsPreviewMacroWithArgument() throws {
         // The MacroExpansionExprSyntax visit path detects previews when a
@@ -46,6 +47,7 @@ struct UIVisitorMacroPreviewTests {
         #expect(issues.isEmpty)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("missing preview detected for non-test file path")
     func missingPreviewForNonTestFile() throws {
         let visitor = createVisitor(filePath: "Sources/MyView.swift")
@@ -63,6 +65,7 @@ struct UIVisitorMacroPreviewTests {
         #expect(missingPreview?.severity == .info)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("no missing preview warning for test file paths",
           arguments: ["SomeTest.swift", "Tests/MyView.swift", "test.swift"])
     func noMissingPreviewForTestFiles(path: String) throws {
@@ -79,6 +82,7 @@ struct UIVisitorMacroPreviewTests {
         #expect(missingPreview.isEmpty, "Should not warn about missing preview for path: \(path)")
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("non-View struct does not trigger missing preview")
     func nonViewStructNoPreviewWarning() throws {
         let visitor = createVisitor(filePath: "Sources/Model.swift")
@@ -94,6 +98,7 @@ struct UIVisitorMacroPreviewTests {
 
     // MARK: - Body Computed Property Error Handling Analysis
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("detects error handling in computed body property with accessor block")
     func errorHandlingInAccessorBlock() throws {
         let visitor = createVisitor()
@@ -117,6 +122,7 @@ struct UIVisitorMacroPreviewTests {
         #expect(errorIssues.count >= 1, "Should detect basic error handling in accessor block")
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("detects error handling in body with closure initializer")
     func errorHandlingInClosureInitializer() throws {
         let visitor = createVisitor()
@@ -136,6 +142,7 @@ struct UIVisitorMacroPreviewTests {
         // The important thing is it doesn't crash
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("no error handling issue when alert is used properly")
     func noErrorHandlingWithAlert() throws {
         let visitor = createVisitor()
@@ -162,6 +169,7 @@ struct UIVisitorMacroPreviewTests {
         #expect(errorIssues.isEmpty, "Should not flag error handling when .alert() is present")
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("no error handling issue when sheet is used properly")
     func noErrorHandlingWithSheet() throws {
         let visitor = createVisitor()
@@ -190,6 +198,7 @@ struct UIVisitorMacroPreviewTests {
 
     // MARK: - NavigationView Stack Pop (visitPost)
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("navigation stack pops correctly after NavigationView exits")
     func navigationStackPopsOnExit() throws {
         let visitor = createVisitor()
@@ -218,6 +227,7 @@ struct UIVisitorMacroPreviewTests {
 
     // MARK: - Styling Modifiers Collection
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("detects heavily styled Text with 4+ visual modifiers")
     func multipleStyleModifiers() throws {
         let visitor = createVisitor()
@@ -238,6 +248,7 @@ struct UIVisitorMacroPreviewTests {
         #expect(stylingIssues.count == 1, "Should detect inconsistent text styling with 4 visual modifiers")
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("no styling issue for non-styling modifiers on Text")
     func nonStylingModifiersIgnored() throws {
         let visitor = createVisitor()

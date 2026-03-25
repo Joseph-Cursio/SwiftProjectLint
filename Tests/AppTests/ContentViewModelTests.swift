@@ -10,12 +10,14 @@ struct ContentViewModelTests {
 
     // MARK: - Initial State
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("initial state has empty selected directory")
     func initialSelectedDirectoryIsEmpty() {
         let viewModel = ContentViewModel()
         #expect(viewModel.selectedDirectory.isEmpty)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("initial state is not analyzing")
     func initialIsAnalyzingIsFalse() {
         let viewModel = ContentViewModel()
@@ -23,12 +25,14 @@ struct ContentViewModelTests {
 
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("initial state has no lint issues")
     func initialLintIssuesIsEmpty() {
         let viewModel = ContentViewModel()
         #expect(viewModel.lintIssues.isEmpty)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("initial state has rule selector hidden")
     func initialShowRuleSelectorIsFalse() {
         let viewModel = ContentViewModel()
@@ -36,6 +40,7 @@ struct ContentViewModelTests {
 
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("initial state has directory picker hidden")
     func initialShowingDirectoryPickerIsFalse() {
         let viewModel = ContentViewModel()
@@ -43,12 +48,14 @@ struct ContentViewModelTests {
 
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("initial state has no analysis task")
     func initialAnalysisTaskIsNil() {
         let viewModel = ContentViewModel()
         #expect(viewModel.analysisTask == nil)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("initial enabled rules defaults to relatedDuplicateStateVariable")
     func initialEnabledRulesDefault() {
         // Clear any saved rules to test default
@@ -57,6 +64,7 @@ struct ContentViewModelTests {
         #expect(viewModel.enabledRuleNames.contains(.relatedDuplicateStateVariable))
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("enabledRuleNames loads saved rules from UserDefaults on init")
     func enabledRulesLoadedFromUserDefaults() throws {
         let testRules: Set<RuleIdentifier> = [.missingStateObject, .fatView, .uninitializedStateVariable]
@@ -69,6 +77,7 @@ struct ContentViewModelTests {
 
     // MARK: - selectDirectory
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("selectDirectory sets showingDirectoryPicker to true")
     func selectDirectorySetsShowingPicker() {
         let viewModel = ContentViewModel()
@@ -78,6 +87,7 @@ struct ContentViewModelTests {
 
     // MARK: - analyzeProject
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("analyzeProject guards when directory is empty")
     func analyzeProjectGuardsEmptyDirectory() {
         let viewModel = ContentViewModel()
@@ -86,6 +96,7 @@ struct ContentViewModelTests {
 
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("analyzeProject with non-empty directory sets isAnalyzing to true")
     func analyzeProjectSetsIsAnalyzing() {
         let viewModel = ContentViewModel()
@@ -96,6 +107,7 @@ struct ContentViewModelTests {
         viewModel.cancelAnalysis()
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("analyzeProject prevents double-start when already analyzing")
     func analyzeProjectPreventsDoubleStart() {
         let viewModel = ContentViewModel()
@@ -110,6 +122,7 @@ struct ContentViewModelTests {
         viewModel.cancelAnalysis()
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("analyzeProject with no enabled categories completes without issues")
     func analyzeProjectWithNoCategoriesCompletesEmpty() async {
         let viewModel = ContentViewModel()
@@ -121,6 +134,7 @@ struct ContentViewModelTests {
         #expect(viewModel.lintIssues.isEmpty)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("analyzeProject resets isAnalyzing to false on completion")
     func analyzeProjectResetsIsAnalyzingOnCompletion() async {
         let viewModel = ContentViewModel()
@@ -138,6 +152,7 @@ struct ContentViewModelTests {
 
     // MARK: - cancelAnalysis
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("cancelAnalysis cancels the task")
     func cancelAnalysisCancelsTask() {
         let viewModel = ContentViewModel()
@@ -166,6 +181,7 @@ struct ContentViewModelTests {
 
     // MARK: - getEnabledCategories
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("getEnabledCategories returns empty when registry is nil")
     func getEnabledCategoriesWithNilRegistry() {
         let viewModel = ContentViewModel()
@@ -174,6 +190,7 @@ struct ContentViewModelTests {
         #expect(categories.isEmpty)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("getEnabledCategories returns categories with configured registry")
     func getEnabledCategoriesWithRegistry() async {
         let systemComponents = SystemComponents()
@@ -189,6 +206,7 @@ struct ContentViewModelTests {
 
     // MARK: - filterIssuesByEnabledRules
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("filterIssuesByEnabledRules returns empty when no rules enabled")
     func filterWithNoRulesEnabled() {
         let viewModel = ContentViewModel()
@@ -204,7 +222,7 @@ struct ContentViewModelTests {
     }
 
     @Test("filterIssuesByEnabledRules keeps only matching rules")
-    func filterKeepsMatchingRules() {
+    func filterKeepsMatchingRules() throws {
         let viewModel = ContentViewModel()
         viewModel.enabledRuleNames = [.missingStateObject]
         let issues = [
@@ -218,12 +236,13 @@ struct ContentViewModelTests {
             )
         ]
         let filtered = viewModel.filterIssuesByEnabledRules(issues)
-        #expect(filtered.count == 1)
-        #expect(filtered[0].ruleName == .missingStateObject)
+        let firstFiltered = try #require(filtered.first)
+        #expect(firstFiltered.ruleName == .missingStateObject)
     }
 
     // MARK: - allPatternsByCategory
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("allPatternsByCategory returns empty when registry is nil")
     func allPatternsByCategoryNilRegistry() {
         let viewModel = ContentViewModel()
@@ -231,6 +250,7 @@ struct ContentViewModelTests {
         #expect(viewModel.allPatternsByCategory.isEmpty)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("allPatternsByCategory returns categories with configured registry")
     func allPatternsByCategoryWithRegistry() async {
         let systemComponents = SystemComponents()

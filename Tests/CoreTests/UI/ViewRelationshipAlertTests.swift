@@ -24,6 +24,7 @@ struct ViewRelationshipAlertTests {
 
     // MARK: - Alert Tests
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testAlertDetection() throws {
         let sourceCode = """
         struct ContentView: View {
@@ -51,6 +52,7 @@ struct ViewRelationshipAlertTests {
         #expect(alertRelationship?.parentView == "ContentView")
     }
     
+    // swiftprojectlint:disable Test Missing Require
     @Test func testSimpleAlertDetection() throws {
         let sourceCode = """
         struct ContentView: View {

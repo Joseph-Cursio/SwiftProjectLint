@@ -67,6 +67,7 @@ struct LegacyObservableObjectVisitorTests {
         #expect(issue.severity == .info)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test
     func detectsMultipleLegacyAttributes() {
         let source = """
@@ -84,6 +85,7 @@ struct LegacyObservableObjectVisitorTests {
 
     // MARK: - Negative Cases
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("No issue for modern observation APIs", arguments: [
         // @State
         """

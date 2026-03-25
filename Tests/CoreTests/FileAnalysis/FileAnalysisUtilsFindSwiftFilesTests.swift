@@ -40,12 +40,14 @@ struct FileAnalysisUtilsFindSwiftFilesTests {
             let found = FileAnalysisUtils.findSwiftFiles(in: root.path)
 
             #expect(found.count == 1)
-            #expect(found.first?.hasSuffix("Main.swift") == true)
+            let firstFile = try #require(found.first)
+            #expect(firstFile.hasSuffix("Main.swift"))
         }
     }
 
     /// A subdirectory without a Package.swift is just a folder inside the
     /// current project and its Swift files must be included.
+    // swiftprojectlint:disable Test Missing Require
     @Test func includesSubdirectoryWithoutPackageSwift() throws {
         try withTempDir { root in
             try touch(root.appendingPathComponent("Sources/App/Main.swift"))
@@ -59,6 +61,7 @@ struct FileAnalysisUtilsFindSwiftFilesTests {
     }
 
     /// Files nested arbitrarily deep inside a sub-package are also excluded.
+    // swiftprojectlint:disable Test Missing Require
     @Test func skipsDeepFilesInsideEmbeddedPackage() throws {
         try withTempDir { root in
             try touch(root.appendingPathComponent("Sources/Main.swift"))
@@ -84,10 +87,12 @@ struct FileAnalysisUtilsFindSwiftFilesTests {
             let found = FileAnalysisUtils.findSwiftFiles(in: root.path)
 
             #expect(found.count == 1)
-            #expect(found.first?.hasSuffix("Main.swift") == true)
+            let firstFile = try #require(found.first)
+            #expect(firstFile.hasSuffix("Main.swift"))
         }
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func skipsPodsDirectory() throws {
         try withTempDir { root in
             try touch(root.appendingPathComponent("Sources/Main.swift"))
@@ -101,6 +106,7 @@ struct FileAnalysisUtilsFindSwiftFilesTests {
 
     // MARK: - Basic behaviour
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func returnsEmptyArrayForEmptyDirectory() throws {
         try withTempDir { root in
             let found = FileAnalysisUtils.findSwiftFiles(in: root.path)
@@ -108,6 +114,7 @@ struct FileAnalysisUtilsFindSwiftFilesTests {
         }
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func ignoresNonSwiftFiles() throws {
         try withTempDir { root in
             try touch(root.appendingPathComponent("README.md"))
@@ -120,6 +127,7 @@ struct FileAnalysisUtilsFindSwiftFilesTests {
         }
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func returnsEmptyArrayForInvalidPath() {
         let found = FileAnalysisUtils.findSwiftFiles(in: "/nonexistent/path/that/does/not/exist")
         #expect(found.isEmpty)

@@ -3,6 +3,7 @@ import Core
 
 struct PropertyWrapperTests {
     
+    // swiftprojectlint:disable Test Missing Require
     @Test func testAllPropertyWrappersAreDefined() {
         let allWrappers = PropertyWrapper.allCases
         #expect(allWrappers.isEmpty == false)
@@ -17,6 +18,7 @@ struct PropertyWrapperTests {
         #expect(allWrappers.contains(.environment))
     }
     
+    // swiftprojectlint:disable Test Missing Require
     @Test func testPropertyWrapperRawValues() {
         #expect(PropertyWrapper.state.rawValue == "State")
         #expect(PropertyWrapper.stateObject.rawValue == "StateObject")
@@ -29,6 +31,7 @@ struct PropertyWrapperTests {
         #expect(PropertyWrapper.unknown.rawValue == "Unknown")
     }
     
+    // swiftprojectlint:disable Test Missing Require
     @Test func testAllCasesCompleteness() {
         // Verify all expected property wrappers are included
         let expectedWrappers: Set<String> = [
@@ -44,6 +47,7 @@ struct PropertyWrapperTests {
         #expect(actualWrappers == expectedWrappers)
     }
     
+    // swiftprojectlint:disable Test Missing Require
     @Test func testPropertyWrapperEquality() {
         let state1 = PropertyWrapper.state
         let state2 = PropertyWrapper.state

@@ -16,6 +16,7 @@ struct ImageAccessibilityCheckerCoverageTests {
 
     // MARK: - Image Inside Button (skip path)
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("image inside button is not flagged separately for missing label")
     func imageInsideButtonNotFlaggedSeparately() {
         let visitor = makeAccessibilityVisitor()
@@ -47,6 +48,7 @@ struct ImageAccessibilityCheckerCoverageTests {
         #expect(imageIssues.isEmpty)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("image inside button without label flags the button not the image")
     func imageInsideButtonWithoutLabelFlagsButton() {
         let visitor = makeAccessibilityVisitor()
@@ -107,6 +109,7 @@ struct ImageAccessibilityCheckerCoverageTests {
         #expect(issue.suggestion?.contains("accessibilityLabel") == true)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("multiple standalone images without labels are each flagged")
     func multipleStandaloneImagesWithoutLabels() {
         let visitor = makeAccessibilityVisitor()
@@ -132,6 +135,7 @@ struct ImageAccessibilityCheckerCoverageTests {
         #expect(imageIssues.count == 3)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("system image without label is flagged")
     func systemImageWithoutLabel() {
         let visitor = makeAccessibilityVisitor()
@@ -155,6 +159,7 @@ struct ImageAccessibilityCheckerCoverageTests {
 
     // MARK: - Decorative Images with accessibilityHidden
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("image with accessibilityHidden is not flagged for missing label")
     func imageWithAccessibilityHiddenNotFlagged() {
         let visitor = makeAccessibilityVisitor()
@@ -177,6 +182,7 @@ struct ImageAccessibilityCheckerCoverageTests {
         #expect(imageIssues.isEmpty)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("decorative image with accessibilityHidden and other modifiers is not flagged")
     func decorativeImageWithMultipleModifiers() {
         let visitor = makeAccessibilityVisitor()
@@ -203,6 +209,7 @@ struct ImageAccessibilityCheckerCoverageTests {
 
     // MARK: - Images Inside Label Views
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("image inside Label icon closure is not flagged")
     func imageInsideLabelIconClosure() {
         let visitor = makeAccessibilityVisitor()
@@ -228,6 +235,7 @@ struct ImageAccessibilityCheckerCoverageTests {
         #expect(imageIssues.isEmpty)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("image outside Label is still flagged")
     func imageOutsideLabelStillFlagged() {
         let visitor = makeAccessibilityVisitor()

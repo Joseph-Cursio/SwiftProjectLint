@@ -7,6 +7,7 @@ struct CharacterizationBasicTests {
 
     // MARK: - AdvancedAnalyzer Basic Behavior Characterization
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func characterizeAdvancedAnalyzerWithEmptyProject() async throws {
         let analyzer = AdvancedAnalyzer()
 
@@ -24,6 +25,7 @@ struct CharacterizationBasicTests {
         #expect(issues.isEmpty, "Empty project should produce no architecture issues")
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func characterizeAdvancedAnalyzerWithNonExistentPath() async throws {
         let analyzer = AdvancedAnalyzer()
         let nonExistentPath = "/this/path/does/not/exist/anywhere"

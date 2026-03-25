@@ -4,11 +4,13 @@ import Foundation
 
 struct DetectorTests {
     
+    // swiftprojectlint:disable Test Missing Require
     @Test func testPatternDetectorInitialization() throws {
         let detector = SourcePatternDetector()
         #expect(detector != nil)
     }
     
+    // swiftprojectlint:disable Test Missing Require
     @Test func testDetectPatternsInSourceCode() throws {
         let detector = SourcePatternDetector()
         let sourceCode = """
@@ -36,6 +38,7 @@ struct DetectorTests {
         
     }
     
+    // swiftprojectlint:disable Test Missing Require
     @Test func testDetectPatternsWithSpecificRules() throws {
         let detector = SourcePatternDetector()
         let sourceCode = """
@@ -58,6 +61,7 @@ struct DetectorTests {
         
     }
     
+    // swiftprojectlint:disable Test Missing Require
     @Test func testDetectPatternsInProject() async throws {
         let detector = CrossFileAnalysisEngine()
 
@@ -73,6 +77,7 @@ struct DetectorTests {
         
     }
     
+    // swiftprojectlint:disable Test Missing Require
     @Test func testCrossFilePatternDetection() throws {
         let detector = CrossFileAnalysisEngine()
         
@@ -88,6 +93,7 @@ struct DetectorTests {
         
     }
     
+    // swiftprojectlint:disable Test Missing Require
     @Test func testPatternRegistryIntegration() throws {
         let detector = SourcePatternDetector()
         let registry = SourcePatternRegistry.shared
@@ -98,6 +104,7 @@ struct DetectorTests {
 
     // MARK: - Error Handling and Edge Cases
     
+    // swiftprojectlint:disable Test Missing Require
     @Test func characterizeVeryLargeSourceFile() throws {
         let detector = SourcePatternDetector()
         
@@ -133,6 +140,7 @@ struct DetectorTests {
         
     }
     
+    // swiftprojectlint:disable Test Missing Require
     @Test func characterizeFilePathVariations() throws {
         let detector = SourcePatternDetector()
         let testCode = """

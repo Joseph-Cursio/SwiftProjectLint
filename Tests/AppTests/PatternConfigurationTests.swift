@@ -16,6 +16,7 @@ struct PatternConfigurationTests {
         func register(patterns: [SyntaxPattern]) {}
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func test_allPatternsByCategory_returnsExpectedGroups() {
         let mockRegistry = MockPatternRegistry()
         let pattern = SyntaxPattern(
@@ -37,7 +38,7 @@ struct PatternConfigurationTests {
         #expect(codeQualityGroup?.useSwiftSyntax == true)
     }
 
-    @Test func test_convertToDetectionPatterns_mapsFieldsCorrectly() {
+    @Test func test_convertToDetectionPatterns_mapsFieldsCorrectly() throws {
         let syntaxPattern = SyntaxPattern(
             name: .fatViewDetection,
             visitor: DummyVisitor.self,
@@ -48,8 +49,7 @@ struct PatternConfigurationTests {
             description: "Detects fat views."
         )
         let detectionPatterns = PatternConfiguration.convertToDetectionPatterns([syntaxPattern])
-        #expect(detectionPatterns.count == 1)
-        let detection = detectionPatterns[0]
+        let detection = try #require(detectionPatterns.first)
         #expect(detection.name == RuleIdentifier.fatViewDetection)
         #expect(detection.severity == IssueSeverity.warning)
         #expect(detection.message == "Fat view")
@@ -57,6 +57,7 @@ struct PatternConfigurationTests {
         #expect(detection.category == PatternCategory.architecture)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func test_getEnabledCategories_returnsCorrectCategories() {
         let mockRegistry = MockPatternRegistry()
         let pattern = SyntaxPattern(
@@ -76,6 +77,7 @@ struct PatternConfigurationTests {
         #expect(Set(enabled) == Set([.codeQuality]))
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func test_filterIssuesByEnabledRules_filtersCorrectly() {
         let issues = [
             LintIssue(
@@ -95,6 +97,7 @@ struct PatternConfigurationTests {
         #expect(filtered.first?.ruleName == RuleIdentifier.magicNumber)
     }
     
+    // swiftprojectlint:disable Test Missing Require
     @Test func test_allPatternsByCategory_returnsAllCategories() {
         let mockRegistry = MockPatternRegistry()
         let result = PatternConfiguration.allPatternsByCategory(from: mockRegistry)
@@ -111,6 +114,7 @@ struct PatternConfigurationTests {
         #expect(categories == expectedCategories)
     }
     
+    // swiftprojectlint:disable Test Missing Require
     @Test func test_allPatternsByCategory_hasCorrectDisplayNames() {
         let mockRegistry = MockPatternRegistry()
         let result = PatternConfiguration.allPatternsByCategory(from: mockRegistry)
@@ -125,6 +129,7 @@ struct PatternConfigurationTests {
         #expect(architecture?.display == "Architecture")
     }
     
+    // swiftprojectlint:disable Test Missing Require
     @Test func test_allPatternsByCategory_allUseSwiftSyntax() {
         let mockRegistry = MockPatternRegistry()
         let result = PatternConfiguration.allPatternsByCategory(from: mockRegistry)
@@ -134,6 +139,7 @@ struct PatternConfigurationTests {
         }
     }
     
+    // swiftprojectlint:disable Test Missing Require
     @Test func test_allPatternsByCategory_handlesNilRegistry() {
         let result = PatternConfiguration.allPatternsByCategory(from: nil)
         
@@ -141,6 +147,7 @@ struct PatternConfigurationTests {
         #expect(result.isEmpty)
     }
     
+    // swiftprojectlint:disable Test Missing Require
     @Test func test_PatternCategoryInfo_properties() {
         let info = PatternCategoryInfo(
             category: .stateManagement,

@@ -84,6 +84,7 @@ struct PerformanceStateVariableAssignmentTests {
 
     // MARK: - Non-@State variables excluded
 
+    // swiftprojectlint:disable Test Missing Require
     @Test
     func doesNotTrackObservedObjectVariables() throws {
         let source = """
@@ -99,6 +100,7 @@ struct PerformanceStateVariableAssignmentTests {
         #expect(visitor.stateVariables["count"] != nil)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test
     func doesNotTrackEnvironmentVariables() throws {
         let source = """

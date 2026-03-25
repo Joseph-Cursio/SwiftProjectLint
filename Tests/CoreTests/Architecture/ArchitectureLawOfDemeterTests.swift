@@ -32,8 +32,8 @@ struct ArchitectureLawOfDemeterTests {
         """
         let issues = analyzeSource(source)
         let lodIssues = issues.filter { $0.ruleName == .lawOfDemeter }
-        #expect(lodIssues.count == 1)
-        #expect(lodIssues[0].message.contains("manager.service.data.count"))
+        let issue = try #require(lodIssues.first)
+        #expect(issue.message.contains("manager.service.data.count"))
     }
 
     @Test func testDetectsDeepChainInFunction() throws {
@@ -45,12 +45,13 @@ struct ArchitectureLawOfDemeterTests {
         """
         let issues = analyzeSource(source)
         let lodIssues = issues.filter { $0.ruleName == .lawOfDemeter }
-        #expect(lodIssues.count == 1)
-        #expect(lodIssues[0].message.contains("user.profile.address.street"))
+        let issue = try #require(lodIssues.first)
+        #expect(issue.message.contains("user.profile.address.street"))
     }
 
     // MARK: - No violations (3 levels or fewer)
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testNoIssueForThreeLevelChain() throws {
         // a.b.c is idiomatic Swift — not flagged
         let source = """
@@ -63,6 +64,7 @@ struct ArchitectureLawOfDemeterTests {
         #expect(lodIssues.isEmpty)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testNoIssueForTwoLevelChain() throws {
         let source = """
         class Owner {
@@ -74,6 +76,7 @@ struct ArchitectureLawOfDemeterTests {
         #expect(lodIssues.isEmpty)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testNoIssueForSelfChain() throws {
         let source = """
         class ViewModel {
@@ -85,6 +88,7 @@ struct ArchitectureLawOfDemeterTests {
         #expect(lodIssues.isEmpty)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testNoIssueForSuperChain() throws {
         let source = """
         class Child: Parent {
@@ -96,6 +100,7 @@ struct ArchitectureLawOfDemeterTests {
         #expect(lodIssues.isEmpty)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testFiresOnceForFiveLevelChain() throws {
         // a.b.c.d.e — should report exactly once from the outermost access
         let source = """
@@ -108,6 +113,7 @@ struct ArchitectureLawOfDemeterTests {
         #expect(lodIssues.count == 1)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testNoIssueForFunctionCallChain() throws {
         // root is a FunctionCallExpr — SwiftUI modifier chain
         let source = """
@@ -124,6 +130,7 @@ struct ArchitectureLawOfDemeterTests {
 
     // MARK: - Singleton / static accessor exemptions
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testNoIssueForFileManagerDefaultChain() throws {
         let source = """
         class Setup {
@@ -137,6 +144,7 @@ struct ArchitectureLawOfDemeterTests {
         #expect(lodIssues.isEmpty)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testNoIssueForProcessInfoChain() throws {
         let source = """
         class Guard {
@@ -152,6 +160,7 @@ struct ArchitectureLawOfDemeterTests {
 
     // MARK: - Nested type / enum case exemptions
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testNoIssueForNestedTypeAccess() throws {
         let source = """
         class Validator {
@@ -165,6 +174,7 @@ struct ArchitectureLawOfDemeterTests {
         #expect(lodIssues.isEmpty)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testNoIssueForEnumAllCasesChain() throws {
         let source = """
         class Picker {
@@ -180,6 +190,7 @@ struct ArchitectureLawOfDemeterTests {
 
     // MARK: - Value transform exemptions
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testNoIssueForRawValueCapitalizedChain() throws {
         let source = """
         class Formatter {
@@ -195,6 +206,7 @@ struct ArchitectureLawOfDemeterTests {
 
     // MARK: - Closure parameter exemptions
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testNoIssueForClosureParameterChain() throws {
         let source = """
         class Sorter {
@@ -210,6 +222,7 @@ struct ArchitectureLawOfDemeterTests {
 
     // MARK: - Test file exemptions
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testNoIssueInTestFiles() throws {
         let source = """
         class OwnerTests {
@@ -223,6 +236,7 @@ struct ArchitectureLawOfDemeterTests {
 
     // MARK: - Value-transform intermediate exemptions
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testNoIssueWhenDescriptionIsIntermediate() {
         // .description converts to String; trimmingCharacters is String manipulation, not object coupling
         let source = """
@@ -236,6 +250,7 @@ struct ArchitectureLawOfDemeterTests {
         #expect(issues.filter { $0.ruleName == .lawOfDemeter }.isEmpty)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testNoIssueWhenTrimmedDescriptionIsIntermediate() {
         // .trimmedDescription is the SwiftSyntax shorthand; .contains is String manipulation
         let source = """
@@ -249,6 +264,7 @@ struct ArchitectureLawOfDemeterTests {
         #expect(issues.filter { $0.ruleName == .lawOfDemeter }.isEmpty)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testNoIssueWhenColorIsIntermediate() {
         // .color maps enum to a SwiftUI Color value; .opacity is Color manipulation
         let source = """
@@ -263,6 +279,7 @@ struct ArchitectureLawOfDemeterTests {
         #expect(issues.filter { $0.ruleName == .lawOfDemeter }.isEmpty)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testNoIssueForLowerBoundTerminal() {
         // .lowerBound extracts a value from a Range — terminal value-transform
         let source = """
@@ -276,6 +293,7 @@ struct ArchitectureLawOfDemeterTests {
         #expect(issues.filter { $0.ruleName == .lawOfDemeter }.isEmpty)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testNoIssueForUpperBoundTerminal() {
         let source = """
         class Indexer {
@@ -290,6 +308,7 @@ struct ArchitectureLawOfDemeterTests {
 
     // MARK: - Still detects real violations
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testStillDetectsRealViolationInNonTestFile() throws {
         let source = """
         class Owner {
@@ -301,6 +320,7 @@ struct ArchitectureLawOfDemeterTests {
         #expect(lodIssues.count == 1)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testStillDetectsViolationWhenVTAppearsAtDepth() {
         // a.b.c.description — vtIndex 3, not < 3, and terminal "description" at depth 3 → suppress
         // but a.b.c.d.description — vtIndex 4, not < 3, terminal at depth 4, no terminal exemption → flag

@@ -37,6 +37,7 @@ struct PrintStatementVisitorTests {
 
     // MARK: - Parameterized Positive Cases
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("Detects print/debugPrint call", arguments: [
         "print(\"hello\")",
         "debugPrint(object)",
@@ -48,6 +49,7 @@ struct PrintStatementVisitorTests {
         #expect(visitor.detectedIssues.count == 1)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test
     func detectsMultiplePrintCalls() {
         let source = """
@@ -64,6 +66,7 @@ struct PrintStatementVisitorTests {
 
     // MARK: - Parameterized Negative Cases
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("No issue for non-print function calls", arguments: [
         "logger.info(\"hello\")",
         "textField.print()",

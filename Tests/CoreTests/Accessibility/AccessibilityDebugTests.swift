@@ -17,6 +17,7 @@ struct AccessibilityDebugTests {
 
     // MARK: - Debug Tests
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testDebugButtonAST() {
         let sourceCode = """
         struct ContentView: View {
@@ -36,6 +37,7 @@ struct AccessibilityDebugTests {
 
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testVisitorIsCalled() {
         let visitor = makeAccessibilityVisitor()
 
@@ -53,6 +55,7 @@ struct AccessibilityDebugTests {
         #expect(visitor.detectedIssues.isEmpty)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testVisitorVisitMethod() {
         let sourceCode = """
         struct ContentView: View {
@@ -98,6 +101,7 @@ struct AccessibilityDebugTests {
         #expect(issue.message.contains("accessibility hint"))
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testDirectContainsTextMethod() throws {
         // Given
         let sourceCode = """
@@ -119,6 +123,7 @@ struct AccessibilityDebugTests {
         #expect(foundHintIssue)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testTextWithAccessibilityAndUnrelatedModifiers() {
         let customConfig = AccessibilityVisitor.Configuration(minTextLengthForHint: 10)
         let customVisitor = AccessibilityVisitor(config: customConfig)

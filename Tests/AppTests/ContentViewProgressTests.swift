@@ -7,6 +7,7 @@ import ViewInspector
 @Suite
 @MainActor
 struct ContentViewProgressTests {
+    // swiftprojectlint:disable Test Missing Require
     @Test
     func testProgressWhenAnalyzing() throws {
         let view = ContentViewProgress(isAnalyzing: true)
@@ -19,6 +20,7 @@ struct ContentViewProgressTests {
         #expect(try statusText.string() == "Analyzing project...")
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test
     func testProgressWhenNotAnalyzing() throws {
         let view = ContentViewProgress(isAnalyzing: false)

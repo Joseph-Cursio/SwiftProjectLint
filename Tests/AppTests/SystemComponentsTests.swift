@@ -8,6 +8,7 @@ import ViewInspector
 
 struct SystemComponentsTests {
 
+    // swiftprojectlint:disable Test Missing Require
     @Test
     @MainActor
     func testSystemComponentsInitialState() throws {
@@ -19,6 +20,7 @@ struct SystemComponentsTests {
         #expect(components.detector == nil)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test
     @MainActor
     func testSystemComponentsInitialize() async throws {
@@ -92,6 +94,7 @@ struct SystemComponentsTests {
         _ = try #require(components.detector)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test
     @MainActor
     func testMultipleInitializeCalls() async throws {
@@ -110,6 +113,7 @@ struct SystemComponentsTests {
         #expect(secondRegistry != nil)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test
     @MainActor
     func testSystemComponentsIsObservableObject() throws {
@@ -125,6 +129,7 @@ struct SystemComponentsTests {
 
 struct SystemComponentsIntegrationTests {
 
+    // swiftprojectlint:disable Test Missing Require
     @Test
     @MainActor
     func testContentViewWithSystemComponents() async throws {
@@ -142,6 +147,7 @@ struct SystemComponentsIntegrationTests {
 
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test
     @MainActor
     func testContentViewWithUninitializedComponents() throws {

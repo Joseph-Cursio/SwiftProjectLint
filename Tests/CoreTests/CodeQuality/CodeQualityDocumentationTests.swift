@@ -54,19 +54,20 @@ struct CodeQualityDocumentationTests {
         let documentationIssues = visitor.detectedIssues.filter { $0.message.contains("documentation") }
         #expect(documentationIssues.count == 4)
 
-        let structIssue = documentationIssues.first { $0.message.contains("TestView") }
-        #expect(structIssue != nil)
+        let structIssue = try #require(documentationIssues.first { $0.message.contains("TestView") })
+        _ = structIssue
 
-        let functionIssue = documentationIssues.first { $0.message.contains("publicFunction") }
-        #expect(functionIssue != nil)
+        let functionIssue = try #require(documentationIssues.first { $0.message.contains("publicFunction") })
+        _ = functionIssue
 
-        let classIssue = documentationIssues.first { $0.message.contains("TestClass") }
-        #expect(classIssue != nil)
+        let classIssue = try #require(documentationIssues.first { $0.message.contains("TestClass") })
+        _ = classIssue
 
-        let anotherFunctionIssue = documentationIssues.first { $0.message.contains("anotherPublicFunction") }
-        #expect(anotherFunctionIssue != nil)
+        let anotherFunctionIssue = try #require(documentationIssues.first { $0.message.contains("anotherPublicFunction") })
+        _ = anotherFunctionIssue
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testDocumentedAPIsNoDetection() throws {
         let visitor = createVisitor()
 
@@ -93,6 +94,7 @@ struct CodeQualityDocumentationTests {
         #expect(visitor.detectedIssues.filter { $0.ruleName == .missingDocumentation }.isEmpty)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testPrivateAPIsNoDetection() throws {
         let visitor = createVisitor()
 
@@ -117,6 +119,7 @@ struct CodeQualityDocumentationTests {
         #expect(visitor.detectedIssues.filter { $0.ruleName == .missingDocumentation }.isEmpty)
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testDocumentationDetectionCharacterization() throws {
         let visitor = createVisitor()
         // Given
@@ -132,6 +135,7 @@ struct CodeQualityDocumentationTests {
         _ = visitor.detectedIssues
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test func testStrictDocumentationDetectionCharacterization() throws {
         let visitor = createStrictVisitor()
         // Given

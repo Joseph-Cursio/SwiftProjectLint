@@ -46,6 +46,7 @@ struct TaskInOnAppearVisitorTests {
         #expect(issue.message.contains("Task created inside .onAppear"))
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("Detects Task variant in onAppear", arguments: [
         // Task.detached inside onAppear
         """
@@ -87,6 +88,7 @@ struct TaskInOnAppearVisitorTests {
 
     // MARK: - Negative Cases
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("No issue for non-onAppear Task usage", arguments: [
         // .task modifier
         """

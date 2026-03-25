@@ -29,6 +29,7 @@ struct NetworkingVisitorTypedClosureTests {
 
     // MARK: - Typed closure with error parameter properly handled via "if let error"
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("typed closure with if-let error handling reports no issues")
     func typedClosureWithIfLetError() throws {
         let source = """
@@ -46,6 +47,7 @@ struct NetworkingVisitorTypedClosureTests {
 
     // MARK: - Typed closure with error parameter handled via "guard let error"
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("typed closure with guard-let error handling reports no issues")
     func typedClosureWithGuardLetError() throws {
         let source = """
@@ -62,6 +64,7 @@ struct NetworkingVisitorTypedClosureTests {
 
     // MARK: - Typed closure with error parameter handled via "error != nil"
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("typed closure with error-not-nil check reports no issues")
     func typedClosureWithErrorNotNilCheck() throws {
         let source = """
@@ -79,6 +82,7 @@ struct NetworkingVisitorTypedClosureTests {
 
     // MARK: - Typed closure with error parameter handled via "error." property access
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("typed closure with error dot access reports no issues")
     func typedClosureWithErrorDotAccess() throws {
         let source = """
@@ -95,6 +99,7 @@ struct NetworkingVisitorTypedClosureTests {
 
     // MARK: - Typed closure with error parameter handled via "error.description"
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("typed closure with error description access reports no issues")
     func typedClosureWithErrorDescription() throws {
         let source = """
@@ -110,6 +115,7 @@ struct NetworkingVisitorTypedClosureTests {
 
     // MARK: - Typed closure with error parameter handled via "error as" cast
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("typed closure with error-as cast reports no issues")
     func typedClosureWithErrorAsCast() throws {
         let source = """
@@ -181,6 +187,7 @@ struct NetworkingVisitorTypedClosureTests {
         #expect(issue.message == "Network request missing error handling")
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("typed closure with two parameters and error handling in body reports no issues")
     func typedClosureTwoParamsWithErrorInBody() throws {
         let source = """
@@ -214,6 +221,7 @@ struct NetworkingVisitorTypedClosureTests {
         #expect(issue.message == "Network request missing error handling")
     }
 
+    // swiftprojectlint:disable Test Missing Require
     @Test("typed closure with non-error-named third parameter and error handling in body is clean")
     func typedClosureNonErrorThirdParamWithBodyHandling() throws {
         let source = """

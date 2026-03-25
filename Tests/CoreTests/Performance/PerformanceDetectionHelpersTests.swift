@@ -29,13 +29,12 @@ struct PerformanceDetectionHelpersTests {
             $0.message.contains("ForEach") && $0.message.contains("self")
         }
         
-        #expect(forEachSelfIssues.count >= 1)
-        if let issue = forEachSelfIssues.first {
-            #expect(issue.severity == .warning)
-            #expect(issue.message.contains("\\.self"))
-        }
+        let issue = try #require(forEachSelfIssues.first)
+        #expect(issue.severity == .warning)
+        #expect(issue.message.contains("\\.self"))
     }
-    
+
+    // swiftprojectlint:disable Test Missing Require
     @Test func testDetectForEachWithoutIDWithMemberAccessSelf() throws {
         // Test detectForEachWithoutID method - should detect .self as id via MemberAccessExprSyntax
         let source = """
@@ -64,6 +63,7 @@ struct PerformanceDetectionHelpersTests {
         #expect(forEachSelfIssues.isEmpty)
     }
     
+    // swiftprojectlint:disable Test Missing Require
     @Test func testDoesNotDetectForEachWithProperID() throws {
         let source = """
         struct Item {
@@ -113,12 +113,11 @@ struct PerformanceDetectionHelpersTests {
             $0.message.contains("ForEach") && $0.message.contains("missing")
         }
         
-        #expect(forEachIssues.count >= 1)
-        if let issue = forEachIssues.first {
-            #expect(issue.severity == .warning)
-        }
+        let issue = try #require(forEachIssues.first)
+        #expect(issue.severity == .warning)
     }
-    
+
+    // swiftprojectlint:disable Test Missing Require
     @Test func testDetectForEachSelfIDWithKeyPathSelf() throws {
         // Test with explicit key path syntax
         let source = """
@@ -146,6 +145,7 @@ struct PerformanceDetectionHelpersTests {
         #expect(forEachSelfIssues.count >= 1)
     }
     
+    // swiftprojectlint:disable Test Missing Require
     @Test func testDetectForEachSelfIDDoesNotTriggerForNonForEach() throws {
         // Test that detectForEachSelfID doesn't trigger for non-ForEach calls
         let source = """
@@ -173,6 +173,7 @@ struct PerformanceDetectionHelpersTests {
         #expect(forEachSelfIssues.isEmpty)
     }
     
+    // swiftprojectlint:disable Test Missing Require
     @Test func testDetectForEachWithoutIDWithNestedForEach() throws {
         // Test detection in nested ForEach
         let source = """
@@ -202,6 +203,7 @@ struct PerformanceDetectionHelpersTests {
         #expect(forEachSelfIssues.count >= 1)
     }
     
+    // swiftprojectlint:disable Test Missing Require
     @Test func testDetectForEachSelfIDWithComplexExpression() throws {
         // Test with more complex ForEach expression
         let source = """
@@ -231,6 +233,7 @@ struct PerformanceDetectionHelpersTests {
         #expect(forEachSelfIssues.count >= 1)
     }
     
+    // swiftprojectlint:disable Test Missing Require
     @Test func testDetectForEachWithoutIDEdgeCases() throws {
         // Test edge cases - ForEach with no arguments (invalid but should handle gracefully)
         let source = """

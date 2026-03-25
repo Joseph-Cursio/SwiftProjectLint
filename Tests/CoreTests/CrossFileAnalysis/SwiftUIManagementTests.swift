@@ -5,6 +5,7 @@ import SwiftSyntax
 
 struct SwiftUIManagementTests {
     
+    // swiftprojectlint:disable Test Missing Require
     @Test func testInitializationWithFileCache() {
         let source1 = "struct View1: View { var body: some View { Text(\"1\") } }"
         let source2 = "struct View2: View { var body: some View { Text(\"2\") } }"
@@ -24,12 +25,14 @@ struct SwiftUIManagementTests {
         #expect(visitor.fileCache["View2.swift"] != nil)
     }
     
+    // swiftprojectlint:disable Test Missing Require
     @Test func testInitializationWithEmptyFileCache() {
         let visitor = CrossFileSwiftUIManagementVisitor(fileCache: [:])
         
         #expect(visitor.fileCache.isEmpty)
     }
     
+    // swiftprojectlint:disable Test Missing Require
     @Test func testInitializationWithPatternCategory() {
         // The patternCategory initializer creates an empty file cache
         let visitor = CrossFileSwiftUIManagementVisitor(patternCategory: .stateManagement)
@@ -37,6 +40,7 @@ struct SwiftUIManagementTests {
         #expect(visitor.fileCache.isEmpty)
     }
     
+    // swiftprojectlint:disable Test Missing Require
     @Test func testInitializationWithPattern() {
         let pattern = SyntaxPattern(
             name: .unknown,
@@ -52,6 +56,7 @@ struct SwiftUIManagementTests {
         #expect(visitor.fileCache.isEmpty)
     }
     
+    // swiftprojectlint:disable Test Missing Require
     @Test func testFinalizeAnalysis() {
         let fileCache: [String: SourceFileSyntax] = [:]
         let visitor = CrossFileSwiftUIManagementVisitor(fileCache: fileCache)
@@ -60,6 +65,7 @@ struct SwiftUIManagementTests {
         visitor.finalizeAnalysis()
     }
     
+    // swiftprojectlint:disable Test Missing Require
     @Test func testAcceptVisitor() throws {
         let source = "struct View1: View { var body: some View { Text(\"1\") } }"
         let file = Parser.parse(source: source)
@@ -108,6 +114,7 @@ struct SwiftUIManagementTests {
         #expect(testVisitor.visitCount >= 1)
     }
     
+    // swiftprojectlint:disable Test Missing Require
     @Test func testFileCacheIsPreserved() {
         let source1 = "struct View1: View { var body: some View { Text(\"1\") } }"
         let source2 = "struct View2: View { var body: some View { Text(\"2\") } }"
