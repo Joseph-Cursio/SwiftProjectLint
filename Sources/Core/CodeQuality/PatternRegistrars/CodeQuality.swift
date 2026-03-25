@@ -90,13 +90,13 @@ class CodeQuality: BasePatternRegistrar {
                 description: "Detects property wrappers whose names don't end with 'Wrapper' suffix"
             ),
             SyntaxPattern(
-                name: .expectNegation,
+                name: .macroNegation,
                 visitor: ExpectNegationVisitor.self,
                 severity: .warning,
                 category: .codeQuality,
-                messageTemplate: "#expect(!{expression}) negates inside the macro",
-                suggestion: "Use #expect({expression} == false) for better failure diagnostics",
-                description: "Detects #expect(!expr) which defeats Swift Testing's sub-expression capture"
+                messageTemplate: "#expect/#require(!{expression}) negates inside the macro",
+                suggestion: "Use == false instead for better failure diagnostics",
+                description: "Detects #expect(!expr) and #require(!expr) which defeat Swift Testing's sub-expression capture"
             )
         ]
         registry.register(patterns: patterns)
@@ -118,5 +118,6 @@ class CodeQuality: BasePatternRegistrar {
         registry.register(pattern: PublicInAppTarget().pattern)
         registry.register(pattern: CouldBePrivateMember().pattern)
         registry.register(pattern: ProtocolCouldBePrivate().pattern)
+        registry.register(pattern: TestMissingRequire().pattern)
     }
 }

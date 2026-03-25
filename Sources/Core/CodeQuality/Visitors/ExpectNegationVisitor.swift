@@ -1,13 +1,14 @@
 import Foundation
 import SwiftSyntax
 
-/// Detects `#expect(!expression)` in Swift Testing code.
+/// Detects `#expect(!expression)` and `#require(!expression)` in Swift Testing code.
 ///
-/// Negating inside `#expect` defeats the macro's sub-expression capture,
+/// Negating inside these macros defeats the sub-expression capture,
 /// producing a plain `false` on failure with no diagnostic context.
-/// `#expect(expression == false)` gives the same semantics with full
-/// captured values shown in the test report.
+/// `#expect(expression == false)` / `#require(expression == false)` gives
+/// the same semantics with full captured values shown in the test report.
 class ExpectNegationVisitor: BasePatternVisitor {
+    private static let targetMacros: Set<String> = ["expect", "require"]
     private var currentFilePath: String = ""
 
     required init(pattern: SyntaxPattern, viewMode: SyntaxTreeViewMode = .sourceAccurate) {
@@ -19,10 +20,10 @@ class ExpectNegationVisitor: BasePatternVisitor {
     }
 
     override func visit(_ node: MacroExpansionExprSyntax) -> SyntaxVisitorContinueKind {
-        guard node.macroName.text == "expect",
+        let macroName = node.macroName.text
+        guard Self.targetMacros.contains(macroName),
               let firstArg = node.arguments.first,
               firstArg.label == nil,
-              firstArg.expression.is(PrefixOperatorExprSyntax.self),
               let prefix = firstArg.expression.as(PrefixOperatorExprSyntax.self),
               prefix.operator.text == "!" else {
             return .visitChildren
@@ -31,12 +32,12 @@ class ExpectNegationVisitor: BasePatternVisitor {
         let negatedExpr = prefix.expression.trimmedDescription
         addIssue(
             severity: .warning,
-            message: "#expect(!\(negatedExpr)) negates inside the macro — " +
-                "use #expect(\(negatedExpr) == false) for better failure diagnostics",
+            message: "#\(macroName)(!\(negatedExpr)) negates inside the macro — " +
+                "use #\(macroName)(\(negatedExpr) == false) for better failure diagnostics",
             filePath: currentFilePath,
             lineNumber: getLineNumber(for: Syntax(node)),
-            suggestion: "Replace #expect(!\(negatedExpr)) with #expect(\(negatedExpr) == false)",
-            ruleName: .expectNegation
+            suggestion: "Replace #\(macroName)(!\(negatedExpr)) with #\(macroName)(\(negatedExpr) == false)",
+            ruleName: .macroNegation
         )
         return .visitChildren
     }

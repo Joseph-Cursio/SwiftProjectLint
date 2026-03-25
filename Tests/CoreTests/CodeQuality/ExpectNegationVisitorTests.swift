@@ -14,47 +14,74 @@ struct ExpectNegationVisitorTests {
         visitor.walk(Parser.parse(source: source))
     }
 
-    // MARK: - Detailed Positive Case
+    // MARK: - #expect Positive Cases
 
     @Test
-    func detectsNegatedBoolVariable() throws {
+    func detectsNegatedBoolInExpect() throws {
         let visitor = makeVisitor()
         run(visitor, source: """
         #expect(!isVisible)
         """)
         #expect(visitor.detectedIssues.count == 1)
         let issue = try #require(visitor.detectedIssues.first)
-        #expect(issue.ruleName == .expectNegation)
+        #expect(issue.ruleName == .macroNegation)
         #expect(issue.severity == .warning)
         #expect(issue.message.contains("isVisible"))
+        #expect(issue.message.contains("#expect"))
         #expect(issue.message.contains("== false"))
     }
 
-    @Test("Detects negation variant", arguments: [
-        (
-            """
-            #expect(!items.isEmpty)
-            """,
-            "items.isEmpty"
-        )
-    ] as [(String, String)])
-    func detectsVariant(source: String, expected: String) throws {
-        let visitor = makeVisitor()
-        run(visitor, source: source)
-        #expect(visitor.detectedIssues.count == 1)
-        let issue = try #require(visitor.detectedIssues.first)
-        #expect(issue.message.contains(expected))
-    }
-
-    // Unique: validates multi-issue count
     @Test
-    func detectsMultipleNegations() throws {
+    func detectsNegatedMemberAccessInExpect() throws {
         let visitor = makeVisitor()
         run(visitor, source: """
-        #expect(!a)
-        #expect(!b.isEmpty)
+        #expect(!items.isEmpty)
         """)
-        #expect(visitor.detectedIssues.count == 2)
+        #expect(visitor.detectedIssues.count == 1)
+        let issue = try #require(visitor.detectedIssues.first)
+        #expect(issue.message.contains("items.isEmpty"))
+    }
+
+    // MARK: - #require Positive Cases
+
+    @Test
+    func detectsNegatedBoolInRequire() throws {
+        let visitor = makeVisitor()
+        run(visitor, source: """
+        let _ = try #require(!isVisible)
+        """)
+        #expect(visitor.detectedIssues.count == 1)
+        let issue = try #require(visitor.detectedIssues.first)
+        #expect(issue.ruleName == .macroNegation)
+        #expect(issue.severity == .warning)
+        #expect(issue.message.contains("isVisible"))
+        #expect(issue.message.contains("#require"))
+        #expect(issue.message.contains("== false"))
+    }
+
+    @Test
+    func detectsNegatedMemberAccessInRequire() throws {
+        let visitor = makeVisitor()
+        run(visitor, source: """
+        let _ = try #require(!items.isEmpty)
+        """)
+        #expect(visitor.detectedIssues.count == 1)
+        let issue = try #require(visitor.detectedIssues.first)
+        #expect(issue.message.contains("items.isEmpty"))
+        #expect(issue.message.contains("#require"))
+    }
+
+    // MARK: - Multiple Detections
+
+    @Test
+    func detectsMultipleNegationsAcrossMacros() throws {
+        let visitor = makeVisitor()
+        run(visitor, source: """
+        #expect(!flagA)
+        let _ = try #require(!flagB)
+        #expect(!flagC.isEmpty)
+        """)
+        #expect(visitor.detectedIssues.count == 3)
     }
 
     // MARK: - Negative Cases
@@ -64,17 +91,21 @@ struct ExpectNegationVisitorTests {
         """
         #expect(isVisible == false)
         """,
+        // require with == false
+        """
+        let _ = try #require(isVisible == false)
+        """,
         // Positive conditions
         """
         #expect(isVisible)
         #expect(count == 3)
         #expect(items.isEmpty)
         """,
-        // #require macro (different macro)
+        // Positive require
         """
-        let _ = try #require(!isVisible)
+        let val = try #require(optionalValue)
         """,
-        // Negation outside #expect
+        // Negation outside macros
         """
         let flag = !isVisible
         if !isLoading { }
