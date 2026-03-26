@@ -7,13 +7,12 @@
 **Severity:** Warning
 
 ### Rationale
-A view body with more than 20 statements or a view struct exceeding 50 lines is difficult to comprehend and slows Xcode's type-checker. SwiftUI's type inference is applied to the entire `body` expression at once; very large bodies can cause compilation timeouts and degraded editor responsiveness.
+A view body with more than 20 statements is difficult to comprehend and slows Xcode's type-checker. SwiftUI's type inference is applied to the entire `body` expression at once; very large bodies can cause compilation timeouts and degraded editor responsiveness.
 
 ### Discussion
-`PerformanceVisitor` triggers this rule in two ways:
+`PerformanceVisitor` triggers this rule when the `body` getter contains more than 20 statements. The statement count targets the actual type-checker bottleneck — the body expression itself.
 
-1. **Statement count > 20** — counts statements inside the `body` getter. This directly affects the type-checker, which evaluates the entire body expression at once.
-2. **Line count > 100** — counts lines in the overall View struct. Views this large are difficult to navigate and typically contain logic that belongs in child views.
+Note: A related rule, **Large View Helper**, flags individual helper computed properties or methods within a View struct that exceed 50 lines. Well-factored views with many small helpers do not trigger either rule.
 
 The fix is to extract logical sub-sections of the body into dedicated child view structs. This also improves SwiftUI's incremental recomputation because smaller views have narrower dependency graphs.
 

@@ -23,6 +23,7 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
     case expensiveOperationInViewBody = "Expensive Operation in View Body"
     case forEachWithoutID = "ForEach Without ID"
     case largeViewBody = "Large View Body"
+    case largeViewHelper = "Large View Helper"
     case forEachSelfID = "ForEach Self ID"
     case unnecessaryViewUpdate = "Unnecessary View Update"
     case deprecatedAnimation = "Deprecated Animation"
@@ -145,7 +146,7 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
             return .stateManagement
 
             // Performance Rules
-        case .expensiveOperationInViewBody, .forEachWithoutID, .largeViewBody, .forEachSelfID, .unnecessaryViewUpdate:
+        case .expensiveOperationInViewBody, .forEachWithoutID, .largeViewBody, .largeViewHelper, .forEachSelfID, .unnecessaryViewUpdate:
             return .performance
 
         case .deprecatedAnimation, .animationInHighFrequencyUpdate, .excessiveSpringAnimations,

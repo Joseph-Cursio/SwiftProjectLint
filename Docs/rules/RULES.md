@@ -25,6 +25,7 @@ Rules marked **opt-in** are disabled by default and must be explicitly listed un
 | [Expensive Operation in View Body](expensive-operation-in-view-body.md) | Warning |
 | [ForEach Without ID](for-each-without-id.md) | Warning |
 | [Large View Body](large-view-body.md) | Warning |
+| [Large View Helper](large-view-helper.md) | Warning |
 | [ForEach Self ID](for-each-self-id.md) | Warning |
 | [Unnecessary View Update](unnecessary-view-update.md) | Warning |
 

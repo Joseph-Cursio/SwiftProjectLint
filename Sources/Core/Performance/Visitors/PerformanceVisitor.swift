@@ -16,6 +16,7 @@ class PerformanceVisitor: BasePatternVisitor {
     var currentFilePath: String = ""
     private var isInViewBody: Bool = false
     private var viewBodySize: Int = 0
+    private var isInViewStruct: Bool = false
 
     // For tracking unnecessary view updates
     var stateVariables: [String: PerformanceStateVariableInfo] = [:]
@@ -34,6 +35,7 @@ class PerformanceVisitor: BasePatternVisitor {
         if isSwiftUIView(node) {
             currentViewName = node.name.text
             isInViewBody = false
+            isInViewStruct = true
             viewBodySize = 0
             stateVariables.removeAll() // Reset for new view
         }
@@ -45,28 +47,34 @@ class PerformanceVisitor: BasePatternVisitor {
         trackStateVariableDeclaration(node)
 
         for binding in node.bindings {
-            if let pattern = binding.pattern.as(IdentifierPatternSyntax.self),
-               pattern.identifier.text == "body" {
-                isInViewBody = true
-                viewBodySize = 0
-                // If this is a computed property, walk its accessor block immediately
-                if let accessorBlock = binding.accessorBlock,
-                   case .getter(let stmts) = accessorBlock.accessors {
-                    self.walk(stmts)
-                    // After walking, check and report large body
-                    if viewBodySize > 20 {
-                        addIssue(
-                            severity: .warning,
-                            message: "Large view body in '\(currentViewName)' with \(viewBodySize) statements",
-                            filePath: currentFilePath,
-                            lineNumber: getLineNumber(for: Syntax(node)),
-                            suggestion: "Consider breaking down this view into smaller subviews",
-                            ruleName: .largeViewBody
-                        )
-                    }
-                    isInViewBody = false
+            if let pattern = binding.pattern.as(IdentifierPatternSyntax.self) {
+                let propertyName = pattern.identifier.text
+
+                if propertyName == "body" {
+                    isInViewBody = true
                     viewBodySize = 0
-                    return .skipChildren
+                    // If this is a computed property, walk its accessor block immediately
+                    if let accessorBlock = binding.accessorBlock,
+                       case .getter(let stmts) = accessorBlock.accessors {
+                        self.walk(stmts)
+                        // After walking, check and report large body
+                        if viewBodySize > 20 {
+                            addIssue(
+                                severity: .warning,
+                                message: "Large view body in '\(currentViewName)' with \(viewBodySize) statements",
+                                filePath: currentFilePath,
+                                lineNumber: getLineNumber(for: Syntax(node)),
+                                suggestion: "Consider breaking down this view into smaller subviews",
+                                ruleName: .largeViewBody
+                            )
+                        }
+                        isInViewBody = false
+                        viewBodySize = 0
+                        return .skipChildren
+                    }
+                } else if isInViewStruct && !isInViewBody {
+                    // Check helper computed property size
+                    checkHelperSize(node: Syntax(node), name: propertyName)
                 }
             }
         }
@@ -77,6 +85,9 @@ class PerformanceVisitor: BasePatternVisitor {
         if node.name.text == "body" {
             isInViewBody = true
             viewBodySize = 0
+        } else if isInViewStruct && !isInViewBody {
+            // Check helper method size
+            checkHelperSize(node: Syntax(node), name: node.name.text)
         }
         return .visitChildren
     }
@@ -202,21 +213,25 @@ class PerformanceVisitor: BasePatternVisitor {
         // After visiting the entire struct, check for unnecessary updates
         checkForUnnecessaryUpdates()
 
-        // Check for large view body
         if isSwiftUIView(node) {
-            let viewBodyText = node.description
-            let lineCount = viewBodyText.components(separatedBy: .newlines).count
+            isInViewStruct = false
+        }
+    }
 
-            if lineCount > 100 { // Threshold for large view body
-                addIssue(
-                    severity: .warning,
-                    message: "Large view '\(currentViewName)' has \(lineCount) lines",
-                    filePath: currentFilePath,
-                    lineNumber: getLineNumber(for: Syntax(node)),
-                    suggestion: "Consider breaking down this view into smaller subviews",
-                    ruleName: .largeViewBody
-                )
-            }
+    /// Reports a warning when a helper computed property or method in a View struct
+    /// exceeds 50 lines. Helpers this large should be extracted into child views.
+    private func checkHelperSize(node: Syntax, name: String) {
+        let helperText = node.description
+        let lineCount = helperText.components(separatedBy: .newlines).count
+        if lineCount > 50 {
+            addIssue(
+                severity: .warning,
+                message: "Helper '\(name)' in '\(currentViewName)' has \(lineCount) lines",
+                filePath: currentFilePath,
+                lineNumber: getLineNumber(for: node),
+                suggestion: "Consider extracting this helper into a dedicated child view",
+                ruleName: .largeViewHelper
+            )
         }
     }
 }

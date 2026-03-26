@@ -34,6 +34,15 @@ class Performance: BasePatternRegistrar {
                 description: "Detects view bodies that exceed recommended size limits"
             ),
             SyntaxPattern(
+                name: .largeViewHelper,
+                visitor: PerformanceVisitor.self,
+                severity: .warning,
+                category: .performance,
+                messageTemplate: "View helper exceeds 50 lines, consider extracting into a child view",
+                suggestion: "Extract large helper computed properties or methods into dedicated child views",
+                description: "Detects helper properties or methods in View structs that are too long"
+            ),
+            SyntaxPattern(
                 name: .forEachSelfID,
                 visitor: ForEachSelfIDVisitor.self,
                 severity: .warning,
