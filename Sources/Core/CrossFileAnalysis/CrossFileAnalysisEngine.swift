@@ -11,7 +11,7 @@ import SwiftSyntax
 /// The detector supports cross-file analysis and can detect patterns that span multiple files,
 /// such as duplicate state variables across different views.
 
-public class CrossFileAnalysisEngine {
+public class CrossFileAnalysisEngine: CrossFileAnalyzerProtocol {
 
     private let registry: PatternVisitorRegistry
     private var fileCache: [String: SourceFileSyntax] = [:]
@@ -32,7 +32,7 @@ public class CrossFileAnalysisEngine {
     ///   - projectFiles: Array of ProjectFile to analyze.
     ///   - categories: Optional array of pattern categories to analyze.
     /// - Returns: An array of detected lint issues.
-    func detectCrossFilePatterns(
+    public func detectCrossFilePatterns(
         projectFiles: [ProjectFile],
         categories: [PatternCategory]? = nil,
         preBuiltCache: [String: SourceFileSyntax]? = nil
@@ -104,7 +104,7 @@ public class CrossFileAnalysisEngine {
     ///   - projectFiles: Array of ProjectFile to analyze.
     ///   - ruleIdentifiers: Array of specific rule identifiers to analyze.
     /// - Returns: An array of detected lint issues.
-    func detectCrossFilePatterns(
+    public func detectCrossFilePatterns(
         projectFiles: [ProjectFile],
         ruleIdentifiers: [RuleIdentifier],
         preBuiltCache: [String: SourceFileSyntax]? = nil
