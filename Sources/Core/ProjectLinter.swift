@@ -14,7 +14,28 @@ import SwiftSyntax
 /// }
 /// ```
 public final class ProjectLinter: Sendable {
-    public init() {}
+    private let fileDiscovery: any FileDiscoveryProtocol
+    private let crossFileAnalyzerFactory: @Sendable (PatternVisitorRegistry) -> any CrossFileAnalyzerProtocol
+
+    /// Creates a linter with default production dependencies.
+    public init() {
+        self.fileDiscovery = DefaultFileDiscovery()
+        self.crossFileAnalyzerFactory = { CrossFileAnalysisEngine(registry: $0) }
+    }
+
+    /// Creates a linter with injectable dependencies for testing.
+    ///
+    /// - Parameters:
+    ///   - fileDiscovery: Strategy for finding Swift files.
+    ///   - crossFileAnalyzerFactory: Closure that creates a cross-file analyzer
+    ///     given the resolved registry.
+    @preconcurrency public init(
+        fileDiscovery: any FileDiscoveryProtocol,
+        crossFileAnalyzerFactory: @escaping @Sendable (PatternVisitorRegistry) -> any CrossFileAnalyzerProtocol
+    ) {
+        self.fileDiscovery = fileDiscovery
+        self.crossFileAnalyzerFactory = crossFileAnalyzerFactory
+    }
 
     /// Analyzes a SwiftUI project at the specified file system path.
     ///
@@ -39,7 +60,7 @@ public final class ProjectLinter: Sendable {
             for: path, base: configuration
         )
 
-        let allFilePaths = await FileAnalysisUtils.findSwiftFiles(
+        let allFilePaths = await fileDiscovery.findSwiftFiles(
             in: path, excludedPaths: effectiveConfiguration.excludedPaths
         )
 
@@ -122,7 +143,7 @@ public final class ProjectLinter: Sendable {
         let astCache = perFileResults.2
 
         // Run cross-file pattern detection (use the same registry as per-file analysis)
-        let crossFileEngine: any CrossFileAnalyzerProtocol = CrossFileAnalysisEngine(registry: registry)
+        let crossFileEngine = crossFileAnalyzerFactory(registry)
         let crossFilePatternIssues: [LintIssue]
         if let effectiveRules {
             crossFilePatternIssues = crossFileEngine.detectCrossFilePatterns(
