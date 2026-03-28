@@ -296,6 +296,48 @@ struct ContentViewModelTests {
         #expect(viewModel.lintIssues.isEmpty)
     }
 
+}
+
+// MARK: - Mock Analyzer & Configuration Tests
+
+@Suite("ContentViewModel Configuration Tests")
+@MainActor
+struct ContentViewModelConfigTests {
+
+    @Test("analysis with mock analyzer returns mock issues without filesystem")
+    func analysisWithMockAnalyzer() async {
+        let viewModel = ContentViewModel()
+        viewModel.selectedDirectory = "/fake/path"
+        viewModel.analyzer = MockProjectAnalyzer(issues: [
+            LintIssue(
+                severity: .warning,
+                message: "Mock issue",
+                filePath: "Mock.swift",
+                lineNumber: 1,
+                suggestion: nil,
+                ruleName: .forceTry
+            )
+        ])
+        viewModel.analyzeProject()
+        await viewModel.analysisTask?.value
+
+        #expect(viewModel.lintIssues.count == 1)
+        #expect(viewModel.lintIssues.first?.message == "Mock issue")
+        #expect(viewModel.isAnalyzing == false)
+    }
+
+    @Test("analysis with mock analyzer returning empty issues works")
+    func analysisWithEmptyMockAnalyzer() async {
+        let viewModel = ContentViewModel()
+        viewModel.selectedDirectory = "/fake/path"
+        viewModel.analyzer = MockProjectAnalyzer(issues: [])
+        viewModel.analyzeProject()
+        await viewModel.analysisTask?.value
+
+        #expect(viewModel.lintIssues.isEmpty)
+        #expect(viewModel.isAnalyzing == false)
+    }
+
     // MARK: - loadConfigFromProject
 
     @Test("loadConfigFromProject guards when directory is empty")
@@ -541,6 +583,14 @@ struct ContentViewModelTests {
         #expect(viewModel.configIsDirty)
     }
 
+}
+
+// MARK: - Additional ContentViewModel Tests
+
+@Suite("ContentViewModel Pattern Tests")
+@MainActor
+struct ContentViewModelPatternTests {
+
     // MARK: - allPatternsByCategory
 
     @Test("allPatternsByCategory returns empty when registry is nil")
@@ -559,5 +609,24 @@ struct ContentViewModelTests {
         let patterns = viewModel.allPatternsByCategory
         #expect(patterns.isEmpty == false)
 
+    }
+}
+
+// MARK: - Mock Analyzer
+
+/// A mock `ProjectAnalyzerProtocol` that returns predetermined issues
+/// without touching the filesystem or running real analysis.
+private struct MockProjectAnalyzer: ProjectAnalyzerProtocol {
+    let issues: [LintIssue]
+
+    func analyzeProject(
+        at path: String,
+        categories: [PatternCategory]?,
+        ruleIdentifiers: [RuleIdentifier]?,
+        detector: (any SourcePatternDetectorProtocol)?,
+        configuration: LintConfiguration
+    ) async -> [LintIssue] {
+        await Task.yield()
+        return issues
     }
 }

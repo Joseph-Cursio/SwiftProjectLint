@@ -13,7 +13,7 @@ import SwiftSyntax
 ///     print(issue.message)
 /// }
 /// ```
-public final class ProjectLinter: Sendable {
+public final class ProjectLinter: ProjectAnalyzerProtocol {
     private let fileDiscovery: any FileDiscoveryProtocol
     private let crossFileAnalyzerFactory: @Sendable (PatternVisitorRegistry) -> any CrossFileAnalyzerProtocol
 

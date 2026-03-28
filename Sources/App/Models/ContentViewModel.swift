@@ -49,6 +49,10 @@ class ContentViewModel {
     /// Injected detector with populated registry from SystemComponents.
     var detector: (any SourcePatternDetectorProtocol)?
 
+    /// The project analyzer used for linting. Defaults to `ProjectLinter`.
+    /// Inject a mock conforming to `ProjectAnalyzerProtocol` for testing.
+    var analyzer: any ProjectAnalyzerProtocol = ProjectLinter()
+
     private let userDefaultsKey = "enabledLintRules"
 
     // MARK: - Computed Properties
@@ -191,15 +195,16 @@ class ContentViewModel {
         let enabledRules = Array(enabledRuleNames)
         let scopedURL = selectedDirectoryURL
         nonisolated(unsafe) let capturedDetector = detector
+        let capturedAnalyzer = analyzer
         analysisTask = Task {
             let didAccess = scopedURL?.startAccessingSecurityScopedResource() ?? false
             defer {
                 if didAccess { scopedURL?.stopAccessingSecurityScopedResource() }
             }
 
-            let linter = ProjectLinter()
-            let issues = await linter.analyzeProject(
+            let issues = await capturedAnalyzer.analyzeProject(
                 at: path,
+                categories: nil,
                 ruleIdentifiers: enabledRules,
                 detector: capturedDetector,
                 configuration: configuration
