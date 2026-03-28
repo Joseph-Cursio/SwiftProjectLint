@@ -16,6 +16,8 @@ import Core
 @MainActor
 class ContentViewModel {
     var selectedDirectory: String = ""
+    /// The security-scoped URL from the file picker — must be retained for access.
+    var selectedDirectoryURL: URL?
     var isAnalyzing: Bool = false
     var lintIssues: [LintIssue] = []
     var showRuleSelector: Bool = false
@@ -26,7 +28,7 @@ class ContentViewModel {
            !saved.isEmpty {
             return saved
         } else {
-            return [.relatedDuplicateStateVariable]
+            return Set(RuleIdentifier.allCases)
         }
     }()
     var showingDirectoryPicker: Bool = false
@@ -43,6 +45,9 @@ class ContentViewModel {
 
     /// Injected reference to the pattern registry from SystemComponents.
     var patternRegistry: SourcePatternRegistryProtocol?
+
+    /// Injected detector with populated registry from SystemComponents.
+    var detector: SourcePatternDetector?
 
     private let userDefaultsKey = "enabledLintRules"
 
@@ -183,26 +188,28 @@ class ContentViewModel {
 
         let configuration = buildConfiguration()
 
+        let enabledRules = Array(enabledRuleNames)
+        let scopedURL = selectedDirectoryURL
         analysisTask = Task {
-            var allIssues: [LintIssue] = []
-
-            let enabledCategories = getEnabledCategories()
-
-            if !enabledCategories.isEmpty {
-                let linter = ProjectLinter()
-                let crossFileIssues = await linter.analyzeProject(
-                    at: path, categories: enabledCategories, configuration: configuration
-                )
-
-                guard !Task.isCancelled else {
-                    isAnalyzing = false
-                    return
-                }
-
-                allIssues.append(contentsOf: crossFileIssues)
+            let didAccess = scopedURL?.startAccessingSecurityScopedResource() ?? false
+            defer {
+                if didAccess { scopedURL?.stopAccessingSecurityScopedResource() }
             }
 
-            lintIssues = allIssues
+            let linter = ProjectLinter()
+            let issues = await linter.analyzeProject(
+                at: path,
+                ruleIdentifiers: enabledRules,
+                detector: detector,
+                configuration: configuration
+            )
+
+            guard !Task.isCancelled else {
+                isAnalyzing = false
+                return
+            }
+
+            lintIssues = issues
             isAnalyzing = false
         }
     }

@@ -49,12 +49,14 @@ struct ContentViewModelTests {
         #expect(viewModel.analysisTask == nil)
     }
 
-    @Test("initial enabled rules defaults to relatedDuplicateStateVariable")
+    @Test("initial enabled rules defaults to all rules")
     func initialEnabledRulesDefault() {
         // Clear any saved rules to test default
         UserDefaults.standard.removeObject(forKey: "enabledLintRules")
         let viewModel = ContentViewModel()
-        #expect(viewModel.enabledRuleNames.contains(.relatedDuplicateStateVariable))
+        let allRules = Set(RuleIdentifier.allCases)
+        #expect(viewModel.enabledRuleNames == allRules,
+                "Default should enable all rules, not a subset")
     }
 
     @Test("enabledRuleNames loads saved rules from UserDefaults on init")
@@ -220,6 +222,78 @@ struct ContentViewModelTests {
         let filtered = viewModel.filterIssuesByEnabledRules(issues)
         let firstFiltered = try #require(filtered.first)
         #expect(firstFiltered.ruleName == .missingStateObject)
+    }
+
+    // MARK: - Integration: analysis produces issues
+
+    @Test("analysis with configured detector produces issues for known-bad code")
+    func analysisProducesIssuesWithDetector() async throws {
+        // Create a temp project with a Swift file containing a known violation
+        let tempDir = FileManager.default.temporaryDirectory
+            .appendingPathComponent("ViewModelIntegration_\(UUID().uuidString)")
+        try FileManager.default.createDirectory(
+            at: tempDir, withIntermediateDirectories: true
+        )
+        defer { try? FileManager.default.removeItem(at: tempDir) }
+
+        let sourceFile = tempDir.appendingPathComponent("Example.swift")
+        try """
+        import SwiftUI
+        struct ExampleView: View {
+            var body: some View {
+                let val = try! riskyCall()
+                Text("hello")
+            }
+        }
+        """.write(to: sourceFile, atomically: true, encoding: .utf8)
+
+        let systemComponents = SystemComponents()
+        await systemComponents.initialize()
+
+        let viewModel = ContentViewModel()
+        viewModel.detector = systemComponents.detector
+        viewModel.selectedDirectory = tempDir.path
+        viewModel.enabledRuleNames = Set(RuleIdentifier.allCases)
+        viewModel.analyzeProject()
+        await viewModel.analysisTask?.value
+
+        #expect(viewModel.isAnalyzing == false)
+        #expect(viewModel.lintIssues.isEmpty == false,
+                "Analysis with a configured detector must produce issues for code with violations")
+    }
+
+    @Test("analysis without detector produces no issues (registry empty)")
+    func analysisWithoutDetectorProducesNothing() async throws {
+        let tempDir = FileManager.default.temporaryDirectory
+            .appendingPathComponent("ViewModelNoDetector_\(UUID().uuidString)")
+        try FileManager.default.createDirectory(
+            at: tempDir, withIntermediateDirectories: true
+        )
+        defer { try? FileManager.default.removeItem(at: tempDir) }
+
+        let sourceFile = tempDir.appendingPathComponent("Bad.swift")
+        try """
+        import SwiftUI
+        struct BadView: View {
+            var body: some View {
+                let val = try! riskyCall()
+                Text("hello")
+            }
+        }
+        """.write(to: sourceFile, atomically: true, encoding: .utf8)
+
+        let viewModel = ContentViewModel()
+        // Deliberately do NOT set viewModel.detector
+        viewModel.selectedDirectory = tempDir.path
+        viewModel.enabledRuleNames = Set(RuleIdentifier.allCases)
+        viewModel.analyzeProject()
+        await viewModel.analysisTask?.value
+
+        // This documents the bug: without a detector, no issues are found
+        // even for code with clear violations
+        // Without a configured detector the shared registry is empty —
+        // this documents the failure mode so it stays visible.
+        #expect(viewModel.lintIssues.isEmpty)
     }
 
     // MARK: - allPatternsByCategory

@@ -66,6 +66,8 @@ struct ContentView: View {
             .fileImporter(isPresented: $viewModel.showingDirectoryPicker, allowedContentTypes: [.folder]) { result in
                 switch result {
                 case .success(let url):
+                    // fileImporter succeeded
+                    viewModel.selectedDirectoryURL = url
                     viewModel.selectedDirectory = url.path
                     viewModel.loadConfigFromProject()
                 case .failure(let error):
@@ -77,10 +79,12 @@ struct ContentView: View {
             }
             .onAppear {
                 viewModel.patternRegistry = systemComponents.patternRegistry
+                viewModel.detector = systemComponents.detector
             }
             .onChange(of: systemComponents.patternRegistry != nil) { _, isReady in
                 if isReady {
                     viewModel.patternRegistry = systemComponents.patternRegistry
+                    viewModel.detector = systemComponents.detector
                 }
             }
             .onDisappear {

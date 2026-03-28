@@ -30,7 +30,9 @@ struct ContentViewActions: View {
                 .accessibilityLabel("Run Project Analysis by Selecting a Folder...")
                 .accessibilityIdentifier("mainActionButton")
             } else {
-                Button("Analyze \(URL(fileURLWithPath: selectedDirectory).lastPathComponent)", action: onAnalyzeProject)
+                Button("Analyze \(URL(fileURLWithPath: selectedDirectory).lastPathComponent)") {
+                    onAnalyzeProject()
+                }
                 .buttonStyle(.borderedProminent)
                 .accessibilityLabel("Analyze \(URL(fileURLWithPath: selectedDirectory).lastPathComponent)")
                 .accessibilityIdentifier("mainActionButton")
