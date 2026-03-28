@@ -72,8 +72,8 @@ public struct InlineSuppressionParser {
         let directives: [(String, SuppressionDirective.Kind)] = [
             ("disable:next", .disableNext),
             ("disable:this", .disableThis),
-            ("disable",      .disable),
-            ("enable",       .enable)
+            ("disable", .disable),
+            ("enable", .enable)
         ]
         for (keyword, kind) in directives {
             if rest == keyword {

@@ -28,7 +28,7 @@ struct PatternDetectorTests {
             in: sourceCode,
             filePath: "/test/ContentView.swift"
         )
-        #expect(issues.count >= 0)
+        #expect(issues.isEmpty)
     }
 
     @Test func testDetectPatternsWithSpecificRules() throws {
@@ -50,7 +50,7 @@ struct PatternDetectorTests {
             filePath: "/test/TestView.swift",
             ruleIdentifiers: [.relatedDuplicateStateVariable, .missingStateObject]
         )
-        #expect(issues.count >= 0)
+        #expect(issues.isEmpty)
     }
 
     @Test func testDetectPatternsInProject() async throws {
@@ -87,7 +87,7 @@ struct PatternDetectorTests {
             projectFiles: projectFiles,
             ruleIdentifiers: [.relatedDuplicateStateVariable]
         )
-        #expect(issues.count >= 0)
+        #expect(issues.isEmpty)
     }
 
     @Test func testEmptySourceCode() throws {
@@ -102,6 +102,6 @@ struct PatternDetectorTests {
             in: "This is not valid Swift code {",
             filePath: "/test/Invalid.swift"
         )
-        #expect(issues.count >= 0)
+        #expect(issues.isEmpty)
     }
 }

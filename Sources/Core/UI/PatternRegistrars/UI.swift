@@ -3,7 +3,7 @@ import Foundation
 /// Registers patterns related to UI best practices in SwiftUI.
 /// This registrar handles patterns for navigation, ForEach usage, styling, and error handling.
 
-class UI: BasePatternRegistrar {
+class UIPatterns: BasePatternRegistrar {
     override func registerPatterns() {
         let patterns = [
             SyntaxPattern(

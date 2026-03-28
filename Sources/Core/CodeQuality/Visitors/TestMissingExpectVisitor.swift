@@ -48,10 +48,9 @@ final class TestMissingExpectVisitor: BasePatternVisitor {
            macro.macroName.text == "expect" {
             return true
         }
-        for child in node.children(viewMode: .sourceAccurate) {
-            if containsExpectMacro(in: child) {
-                return true
-            }
+        for child in node.children(viewMode: .sourceAccurate)
+            where containsExpectMacro(in: child) {
+            return true
         }
         return false
     }

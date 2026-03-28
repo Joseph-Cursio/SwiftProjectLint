@@ -68,6 +68,7 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
     case printStatement = "Print Statement"
     case emptyCatch = "Empty Catch"
     case todoComment = "TODO Comment"
+    case swiftlintSuppression = "SwiftLint Suppression"
     case taskDetached = "Task Detached"
     case asyncLetUnused = "Async Let Unused"
     case buttonClosureWrapping = "Button Closure Wrapping"
@@ -146,7 +147,8 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
             return .stateManagement
 
             // Performance Rules
-        case .expensiveOperationInViewBody, .forEachWithoutID, .largeViewBody, .largeViewHelper, .forEachSelfID, .unnecessaryViewUpdate:
+        case .expensiveOperationInViewBody, .forEachWithoutID, .largeViewBody, .largeViewHelper,
+             .forEachSelfID, .unnecessaryViewUpdate:
             return .performance
 
         case .deprecatedAnimation, .animationInHighFrequencyUpdate, .excessiveSpringAnimations,
@@ -163,9 +165,11 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
 
             // Code Quality Rules
         case .magicNumber, .magicLayoutNumber, .hardcodedStrings, .missingDocumentation,
-             .protocolNamingSuffix, .actorNamingSuffix, .actorAgentName, .nonActorAgentSuffix, .propertyWrapperNamingSuffix,
-             .macroNegation, .testMissingRequire, .testMissingAssertion, .testMissingExpect, .lowercasedContains, .multipleTypesPerFile, .actorReentrancy,
-             .forceTry, .forceUnwrap, .printStatement, .emptyCatch, .todoComment,
+             .protocolNamingSuffix, .actorNamingSuffix, .actorAgentName,
+             .nonActorAgentSuffix, .propertyWrapperNamingSuffix,
+             .macroNegation, .testMissingRequire, .testMissingAssertion,
+             .testMissingExpect, .lowercasedContains, .multipleTypesPerFile, .actorReentrancy,
+             .forceTry, .forceUnwrap, .printStatement, .emptyCatch, .todoComment, .swiftlintSuppression,
              .taskDetached, .asyncLetUnused, .buttonClosureWrapping,
              .nonisolatedUnsafe, .taskYieldOffload, .swallowedTaskError,
              .couldBePrivate, .publicInAppTarget, .couldBePrivateMember,

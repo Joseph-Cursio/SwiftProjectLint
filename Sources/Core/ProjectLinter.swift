@@ -35,33 +35,9 @@ public final class ProjectLinter: Sendable {
         detector: SourcePatternDetector? = nil,
         configuration: LintConfiguration = .default
     ) async -> [LintIssue] {
-        // Rules that assume a single-target app don't apply to Swift Packages,
-        // where public access is required for cross-target visibility.
-        // Additionally, print() is the correct output mechanism in executable targets
-        // (CLI tools) and should not be flagged there.
-        let effectiveConfiguration: LintConfiguration
-        let isSwiftPackage = FileManager.default.fileExists(
-            atPath: (path as NSString).appendingPathComponent("Package.swift")
+        let effectiveConfiguration = Self.resolveConfiguration(
+            for: path, base: configuration
         )
-        if isSwiftPackage {
-            let execPaths = ExecutableTargetDetector.executableSourcePaths(in: path)
-            var overrides = configuration.ruleOverrides
-            if !execPaths.isEmpty {
-                let existing = overrides[.printStatement]
-                overrides[.printStatement] = LintConfiguration.RuleOverride(
-                    severity: existing?.severity,
-                    excludedPaths: (existing?.excludedPaths ?? []) + execPaths
-                )
-            }
-            effectiveConfiguration = LintConfiguration(
-                disabledRules: configuration.disabledRules.union([.publicInAppTarget]),
-                enabledOnlyRules: configuration.enabledOnlyRules,
-                excludedPaths: configuration.excludedPaths,
-                ruleOverrides: overrides
-            )
-        } else {
-            effectiveConfiguration = configuration
-        }
 
         let allFilePaths = await FileAnalysisUtils.findSwiftFiles(
             in: path, excludedPaths: effectiveConfiguration.excludedPaths
@@ -179,7 +155,7 @@ public final class ProjectLinter: Sendable {
         }
         guard let handle = FileHandle(forReadingAtPath: filePath),
               let data = try? handle.read(upToCount: 512),
-              let header = String(data: data, encoding: .utf8) else { return false }
+              let header = String(bytes: data, encoding: .utf8) else { return false }
         let firstLines = header.components(separatedBy: .newlines).prefix(5).joined(separator: "\n")
         return firstLines.contains("DO NOT EDIT") || firstLines.contains("Code generated")
     }
@@ -235,6 +211,34 @@ public final class ProjectLinter: Sendable {
             allTypes.formUnion(collector.actorTypes)
         }
         return allTypes
+    }
+
+    /// Adjusts configuration for Swift Packages: disables `publicInAppTarget` and
+    /// excludes executable source paths from the `printStatement` rule.
+    private static func resolveConfiguration(
+        for path: String,
+        base configuration: LintConfiguration
+    ) -> LintConfiguration {
+        let isSwiftPackage = FileManager.default.fileExists(
+            atPath: (path as NSString).appendingPathComponent("Package.swift")
+        )
+        guard isSwiftPackage else { return configuration }
+
+        let execPaths = ExecutableTargetDetector.executableSourcePaths(in: path)
+        var overrides = configuration.ruleOverrides
+        if execPaths.isEmpty == false {
+            let existing = overrides[.printStatement]
+            overrides[.printStatement] = LintConfiguration.RuleOverride(
+                severity: existing?.severity,
+                excludedPaths: (existing?.excludedPaths ?? []) + execPaths
+            )
+        }
+        return LintConfiguration(
+            disabledRules: configuration.disabledRules.union([.publicInAppTarget]),
+            enabledOnlyRules: configuration.enabledOnlyRules,
+            excludedPaths: configuration.excludedPaths,
+            ruleOverrides: overrides
+        )
     }
 
     /// Analyzes a single file — pure function safe for concurrent task group use.

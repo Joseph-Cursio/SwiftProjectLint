@@ -9,7 +9,7 @@ class ColorAccessibilityChecker: MemberAccessAccessibilityCheckerProtocol {
 
     /// Colors that are non-informational (decorative, semantic system colors).
     private static let nonInformationalColors: Set<String> = [
-        "clear", "gray", "primary", "secondary", "accentColor",
+        "clear", "gray", "primary", "secondary", "accentColor"
     ]
 
     /// Maximum opacity value considered a background tint (not a primary color indicator).

@@ -293,7 +293,10 @@ struct ForEachAndBodyTests {
         """
 
         let issues = analyzeSource(source) // tests the FunctionDeclSyntax path for body
-        #expect(issues.count >= 0)
+        // ForEach(items) without id: is correctly flagged — verify no crash and
+        // that only the expected ForEach rule fires (not a body-detection issue).
+        let nonForEachIssues = issues.filter { $0.ruleName != .forEachWithoutID }
+        #expect(nonForEachIssues.isEmpty)
     }
 }
 

@@ -63,7 +63,9 @@ struct CodeQualityDocumentationTests {
         let classIssue = try #require(documentationIssues.first { $0.message.contains("TestClass") })
         _ = classIssue
 
-        let anotherFunctionIssue = try #require(documentationIssues.first { $0.message.contains("anotherPublicFunction") })
+        let anotherFunctionIssue = try #require(
+            documentationIssues.first { $0.message.contains("anotherPublicFunction") }
+        )
         _ = anotherFunctionIssue
     }
 

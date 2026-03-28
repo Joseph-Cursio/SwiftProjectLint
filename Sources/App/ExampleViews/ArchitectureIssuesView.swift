@@ -60,13 +60,13 @@ private class ReportGenerator {
 
 // Architecture Issue: Accessing implementation detail (underscore-prefix)
 private class SessionManager {
-    var _internalSession: URLSession = .shared
+    var internalSession: URLSession = .shared
 }
 
 private class RequestBuilder {
     private let sessionManager = SessionManager()
     func build() -> URLRequest? {
-        let _ = sessionManager._internalSession  // accessing implementation detail
+        _ = sessionManager.internalSession  // accessing implementation detail
         return nil
     }
 }

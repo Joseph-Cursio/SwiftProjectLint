@@ -6,7 +6,6 @@ import Foundation
 /// with `NavigationStack` or `NavigationSplitView`.
 struct NavigationViewDeprecated: PatternRegistrarProtocol {
 
-
     var pattern: SyntaxPattern {
         SyntaxPattern(
             name: .navigationViewDeprecated,

@@ -8,12 +8,12 @@
 import SwiftUI
 import Core
 
+// swiftprojectlint:disable:next large-view-body
 /// A two-panel dialog for selecting lint rules and browsing their documentation.
 ///
 /// The left sidebar lists all available rules grouped by category with toggle controls
 /// and per-rule exclusion checkboxes for Tests/ and *View.swift files.
 /// Selecting any rule shows its full documentation in the right detail panel.
-// swiftprojectlint:disable:next large-view-body
 struct RuleSelectionDialog: View {
     let allPatternsByCategory: [PatternCategoryInfo]
     @Binding var enabledRuleNames: Set<RuleIdentifier>

@@ -6,7 +6,6 @@ import Foundation
 /// that should use modern notification observation APIs instead.
 struct LegacyObserver: PatternRegistrarProtocol {
 
-
     var pattern: SyntaxPattern {
         SyntaxPattern(
             name: .legacyNotificationObserver,

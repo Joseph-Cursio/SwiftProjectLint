@@ -6,7 +6,6 @@ import Foundation
 /// that should use async/await equivalents instead.
 struct CallbackDataTask: PatternRegistrarProtocol {
 
-
     var pattern: SyntaxPattern {
         SyntaxPattern(
             name: .completionHandlerDataTask,

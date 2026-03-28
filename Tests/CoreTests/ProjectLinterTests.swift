@@ -16,7 +16,7 @@ struct ProjectLinterTests {
         let issues = await linter.analyzeProject(at: testProjectPath)
 
         // A valid project with Swift files should produce at least zero issues without crashing
-        #expect(issues.count >= 0)
+        #expect(issues.isEmpty)
     }
 
     @Test func testAnalyzeProjectWithInvalidPath() async throws {
@@ -77,7 +77,7 @@ struct ProjectLinterTests {
         let issues = await linter.analyzeProject(at: testProjectPath)
 
         // Analysis should complete successfully on a complex project
-        #expect(issues.count >= 0)
+        #expect(issues.isEmpty)
 
         // If issues are found, verify they have valid categories
         for issue in issues {
@@ -109,7 +109,7 @@ struct ProjectLinterTests {
         let issues = await linter.analyzeProject(at: testProjectPath, categories: allCategories)
 
         // Analysis with all categories should complete successfully
-        #expect(issues.count >= 0)
+        #expect(issues.isEmpty)
 
         // If issues are found, verify they belong to the requested categories
         for issue in issues {
@@ -125,7 +125,7 @@ struct ProjectLinterTests {
         let issues = await linter.analyzeProject(at: testProjectPath, ruleIdentifiers: allRules)
 
         // Analysis with all rules should complete successfully
-        #expect(issues.count >= 0)
+        #expect(issues.isEmpty)
 
         // If issues are found, verify they correspond to known rules
         for issue in issues {

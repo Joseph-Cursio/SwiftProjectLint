@@ -48,10 +48,9 @@ final class TestMissingAssertionVisitor: BasePatternVisitor {
            Self.assertionMacros.contains(macro.macroName.text) {
             return true
         }
-        for child in node.children(viewMode: .sourceAccurate) {
-            if containsAssertionMacro(in: child) {
-                return true
-            }
+        for child in node.children(viewMode: .sourceAccurate)
+            where containsAssertionMacro(in: child) {
+            return true
         }
         return false
     }

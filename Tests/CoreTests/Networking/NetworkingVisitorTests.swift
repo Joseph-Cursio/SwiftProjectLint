@@ -281,7 +281,12 @@ struct NetworkingVisitorTests {
         #expect(issue.filePath == "test/file.swift")
     }
 
-    // MARK: - Local File URL Exclusion Tests
+}
+
+// MARK: - Local File URL Exclusion Tests
+
+@Suite
+struct NetworkingVisitorLocalFileTests {
 
     @Test func doesNotFlagDataContentsOfFileURLWithPath() {
         let visitor = NetworkingVisitor(patternCategory: .networking)

@@ -34,7 +34,7 @@ class SecurityVisitor: BasePatternVisitor {
                     "token",
                     "authKey", "privateKey", "encryptionKey", "signingKey",
                     "clientSecret", "accessKey", "secretAccessKey",
-                    "credential",
+                    "credential"
                 ]
                 if secretKeywords.contains(where: { variableName.localizedCaseInsensitiveContains($0) }) {
                     if let initializer = binding.initializer,

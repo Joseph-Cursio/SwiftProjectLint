@@ -6,7 +6,6 @@ import Foundation
 /// that bypass Dynamic Type.
 struct HardcodedFontSize: PatternRegistrarProtocol {
 
-
     var pattern: SyntaxPattern {
         SyntaxPattern(
             name: .hardcodedFontSize,

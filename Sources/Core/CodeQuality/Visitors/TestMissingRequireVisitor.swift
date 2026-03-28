@@ -49,10 +49,9 @@ final class TestMissingRequireVisitor: BasePatternVisitor {
            macro.macroName.text == "require" {
             return true
         }
-        for child in node.children(viewMode: .sourceAccurate) {
-            if containsRequireMacro(in: child) {
-                return true
-            }
+        for child in node.children(viewMode: .sourceAccurate)
+            where containsRequireMacro(in: child) {
+            return true
         }
         return false
     }

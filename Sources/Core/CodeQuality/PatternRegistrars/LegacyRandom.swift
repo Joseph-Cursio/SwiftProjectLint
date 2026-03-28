@@ -6,7 +6,6 @@ import Foundation
 /// `arc4random_uniform()`, and `drand48()`.
 struct LegacyRandom: PatternRegistrarProtocol {
 
-
     var pattern: SyntaxPattern {
         SyntaxPattern(
             name: .legacyRandom,

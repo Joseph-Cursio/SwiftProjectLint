@@ -1,8 +1,8 @@
 import Foundation
 import Core
 
-/// A Codable-friendly location for lint issues.
 // swiftprojectlint:disable:this could-be-private
+/// A Codable-friendly location for lint issues.
 struct IssueLocation: Codable {
     let filePath: String
     let lineNumber: Int
@@ -31,4 +31,3 @@ struct CodableLintIssue: Codable {
         self.category = String(describing: issue.ruleName.category)
     }
 }
-

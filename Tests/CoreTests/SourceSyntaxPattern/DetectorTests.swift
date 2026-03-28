@@ -33,7 +33,7 @@ struct DetectorTests {
             in: sourceCode,
             filePath: "/test/ContentView.swift"
         )
-        #expect(issues.count >= 0)
+        #expect(issues.isEmpty)
     }
 
     @Test func testDetectPatternsWithSpecificRules() throws {
@@ -55,7 +55,7 @@ struct DetectorTests {
             filePath: "/test/TestView.swift",
             ruleIdentifiers: [.relatedDuplicateStateVariable, .missingStateObject]
         )
-        #expect(issues.count >= 0)
+        #expect(issues.isEmpty)
     }
     
     @Test func testDetectPatternsInProject() async throws {
@@ -85,7 +85,7 @@ struct DetectorTests {
             projectFiles: projectFiles,
             ruleIdentifiers: [.relatedDuplicateStateVariable]
         )
-        #expect(issues.count >= 0)
+        #expect(issues.isEmpty)
     }
     
     @Test func testPatternRegistryIntegration() throws {
@@ -125,7 +125,7 @@ struct DetectorTests {
         """
         
         let issues = detector.detectPatterns(in: largeFileContent, filePath: "/LargeView.swift")
-        #expect(issues.count >= 0)
+        #expect(issues.isEmpty)
     }
     
     @Test func characterizeFilePathVariations() throws {

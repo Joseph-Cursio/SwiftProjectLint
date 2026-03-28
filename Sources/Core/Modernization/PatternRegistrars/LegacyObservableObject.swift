@@ -7,7 +7,6 @@ import Foundation
 /// can be replaced with `@Observable`-based equivalents.
 struct LegacyObservableObject: PatternRegistrarProtocol {
 
-
     var pattern: SyntaxPattern {
         SyntaxPattern(
             name: .legacyObservableObject,

@@ -50,8 +50,8 @@ struct FileCacheTests {
         let issues2 = detector.detectPatterns(in: file2Content, filePath: "/View2.swift")
         
         // Both files should be analyzed independently
-        #expect(issues1.count >= 0)
-        #expect(issues2.count >= 0)
+        #expect(issues1.isEmpty)
+        #expect(issues2.isEmpty)
     }
     
  }

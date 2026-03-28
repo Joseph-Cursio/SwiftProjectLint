@@ -111,7 +111,7 @@ struct CategoryFilteringTests {
         for issue in performanceIssues {
             print("     - Line \(issue.lineNumber): \(issue.ruleName.rawValue)")
         }
-        #expect(performanceIssues.count >= 0)
+        #expect(performanceIssues.isEmpty)
     }
     
     @Test func characterizeMultipleCategoryFiltering() throws {
@@ -164,6 +164,6 @@ struct CategoryFilteringTests {
         for (category, categoryIssues) in issuesByCategory {
             print("     \(category): \(categoryIssues.count) issues")
         }
-        #expect(issues.count >= 0)
+        #expect(issues.isEmpty)
     }
     }

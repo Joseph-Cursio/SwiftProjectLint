@@ -5,7 +5,6 @@ import Foundation
 /// Provides the pattern for detecting `Date()` calls that should use `Date.now` instead.
 struct DateNow: PatternRegistrarProtocol {
 
-
     var pattern: SyntaxPattern {
         SyntaxPattern(
             name: .dateNow,

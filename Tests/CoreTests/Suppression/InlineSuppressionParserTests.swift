@@ -14,10 +14,10 @@ struct InlineSuppressionParserTests {
         """
         let directives = InlineSuppressionParser.parse(fileContent: source)
         #expect(directives.count == 1)
-        let d = directives[0]
-        #expect(d.kind == .disable)
-        #expect(d.rules == [.forceTry])
-        #expect(d.line == 2)
+        let directive = directives[0]
+        #expect(directive.kind == .disable)
+        #expect(directive.rules == [.forceTry])
+        #expect(directive.line == 2)
     }
 
     @Test func testDisableAllRules() {

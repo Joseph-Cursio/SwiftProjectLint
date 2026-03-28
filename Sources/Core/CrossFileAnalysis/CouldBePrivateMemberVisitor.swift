@@ -41,7 +41,7 @@ final class CouldBePrivateMemberVisitor: BasePatternVisitor, CrossFilePatternVis
         "makeNSView", "updateNSView", "sizeThatFits",
         // NSApplicationDelegate / UNUserNotificationCenterDelegate
         "applicationDidFinishLaunching", "applicationShouldTerminateAfterLastWindowClosed",
-        "applicationDockMenu", "userNotificationCenter",
+        "applicationDockMenu", "userNotificationCenter"
     ]
 
     required init(fileCache: [String: SourceFileSyntax]) {

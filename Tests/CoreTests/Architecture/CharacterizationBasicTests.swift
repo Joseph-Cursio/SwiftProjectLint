@@ -48,7 +48,7 @@ struct CharacterizationBasicTests {
         let issues = await analyzer.analyzeArchitecture(projectPath: projectDir)
 
         // Analysis should complete successfully
-        #expect(issues.count >= 0)
+        #expect(issues.isEmpty)
 
         // Every issue should have at least one affected view and a non-empty message
         for issue in issues {
@@ -78,7 +78,8 @@ struct CharacterizationBasicTests {
             print("       Affected views: \(issue.affectedViews)")
             print("       Suggestion: \(issue.suggestion)")
         }
-        #expect(issues.count >= 0)
+        #expect(duplicateStateIssues.isEmpty == false,
+                "Duplicate state project should produce duplicate state issues")
     }
 
     // MARK: - ArchitectureIssue Model Characterization

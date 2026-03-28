@@ -47,9 +47,18 @@ struct IssueSummarySection: View {
 
 #Preview {
     let issues: [LintIssue] = [
-        LintIssue(severity: .error, message: "Error", filePath: "Foo.swift", lineNumber: 1, suggestion: nil, ruleName: .forceTry),
-        LintIssue(severity: .warning, message: "Warning", filePath: "Bar.swift", lineNumber: 2, suggestion: nil, ruleName: .emptyCatch),
-        LintIssue(severity: .info, message: "Info", filePath: "Baz.swift", lineNumber: 3, suggestion: nil, ruleName: .dateNow)
+        LintIssue(
+            severity: .error, message: "Error", filePath: "Foo.swift",
+            lineNumber: 1, suggestion: nil, ruleName: .forceTry
+        ),
+        LintIssue(
+            severity: .warning, message: "Warning", filePath: "Bar.swift",
+            lineNumber: 2, suggestion: nil, ruleName: .emptyCatch
+        ),
+        LintIssue(
+            severity: .info, message: "Info", filePath: "Baz.swift",
+            lineNumber: 3, suggestion: nil, ruleName: .dateNow
+        )
     ]
     return List { IssueSummarySection(issues: issues) }
 }

@@ -50,7 +50,11 @@ struct AccessibilityTreeTraverserTests {
             .padding()
         """
         let button = try #require(findFirstCall(named: "Button", in: source))
-        #expect(AccessibilityTreeTraverser.hasAccessibilityModifier(in: button, modifierName: "accessibilityLabel") == false)
+        #expect(
+            AccessibilityTreeTraverser.hasAccessibilityModifier(
+                in: button, modifierName: "accessibilityLabel"
+            ) == false
+        )
 
     }
 
@@ -61,7 +65,11 @@ struct AccessibilityTreeTraverserTests {
         """
         let button = try #require(findFirstCall(named: "Button", in: source))
         // "foregroundColor" is not in the accessibility modifiers set
-        #expect(AccessibilityTreeTraverser.hasAccessibilityModifier(in: button, modifierName: "foregroundColor") == false)
+        #expect(
+            AccessibilityTreeTraverser.hasAccessibilityModifier(
+                in: button, modifierName: "foregroundColor"
+            ) == false
+        )
 
     }
 
@@ -82,7 +90,11 @@ struct AccessibilityTreeTraverserTests {
         Button("Tap") { action() }
         """
         let button = try #require(findFirstCall(named: "Button", in: source))
-        #expect(AccessibilityTreeTraverser.hasAccessibilityModifier(in: button, modifierName: "accessibilityLabel") == false)
+        #expect(
+            AccessibilityTreeTraverser.hasAccessibilityModifier(
+                in: button, modifierName: "accessibilityLabel"
+            ) == false
+        )
 
     }
 

@@ -70,7 +70,7 @@ struct FileSystemTests {
             in: tempDir.path,
             categories: [.stateManagement]
         )
-        #expect(issues.count >= 0)
+        #expect(issues.isEmpty)
     }
 
     @Test("detectPatterns with real directory and nil categories")
@@ -93,7 +93,7 @@ struct FileSystemTests {
         let engine = CrossFileAnalysisEngine(registry: registry)
 
         let issues = await engine.detectPatterns(in: tempDir.path, categories: nil)
-        #expect(issues.count >= 0)
+        #expect(issues.isEmpty)
     }
 
     // MARK: - detectPatterns(in:ruleIdentifiers:) with real directories
@@ -121,7 +121,7 @@ struct FileSystemTests {
             in: tempDir.path,
             ruleIdentifiers: [.relatedDuplicateStateVariable]
         )
-        #expect(issues.count >= 0)
+        #expect(issues.isEmpty)
     }
 
     // MARK: - findSwiftFiles edge cases
@@ -142,7 +142,7 @@ struct FileSystemTests {
 
         let engine = CrossFileAnalysisEngine()
         let issues = await engine.detectPatterns(in: tempDir.path, categories: [.stateManagement])
-        #expect(issues.count >= 0)
+        #expect(issues.isEmpty)
     }
 
     @Test("findSwiftFiles discovers files in nested subdirectories")
@@ -165,7 +165,7 @@ struct FileSystemTests {
 
         let engine = CrossFileAnalysisEngine()
         let issues = await engine.detectPatterns(in: tempDir.path)
-        #expect(issues.count >= 0)
+        #expect(issues.isEmpty)
     }
 
     @Test("empty directory produces no issues")

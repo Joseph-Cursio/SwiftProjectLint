@@ -5,7 +5,6 @@ import Foundation
 /// Provides the pattern for detecting magic number literals in animation factory calls.
 struct HardcodedAnimationValues: PatternRegistrarProtocol {
 
-
     var pattern: SyntaxPattern {
         SyntaxPattern(
             name: .hardcodedAnimationValues,

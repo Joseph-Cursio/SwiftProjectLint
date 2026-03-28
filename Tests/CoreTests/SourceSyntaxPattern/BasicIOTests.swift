@@ -42,7 +42,7 @@ struct BasicIOTests {
             in: invalidCode,
             filePath: "/test/Invalid.swift"
         )
-        #expect(issues.count >= 0)
+        #expect(issues.isEmpty)
     }
     
     @Test func characterizeWhitespaceOnlySource() throws {
@@ -63,7 +63,7 @@ struct BasicIOTests {
         
         let issues = detector.detectPatterns(in: invalidCode, filePath: "/invalid.swift")
         // The detector should handle invalid syntax without crashing
-        #expect(issues.count >= 0)
+        #expect(issues.isEmpty)
     }
     
     @Test func characterizeMinimalValidSwiftUI() throws {
@@ -79,7 +79,7 @@ struct BasicIOTests {
         """
         
         let issues = detector.detectPatterns(in: minimalView, filePath: "/ContentView.swift")
-        #expect(issues.count >= 0)
+        #expect(issues.isEmpty)
     }
     
     @Test func characterizeComplexStateVariables() throws {
@@ -112,5 +112,5 @@ struct BasicIOTests {
         """
         
         let issues = detector.detectPatterns(in: complexView, filePath: "/ComplexStateView.swift")
-        #expect(issues.count >= 0)
+        #expect(issues.isEmpty)
     }}

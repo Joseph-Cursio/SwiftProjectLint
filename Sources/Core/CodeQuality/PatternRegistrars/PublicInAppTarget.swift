@@ -2,7 +2,6 @@ import Foundation
 
 struct PublicInAppTarget: PatternRegistrarProtocol {
 
-
     var pattern: SyntaxPattern {
         SyntaxPattern(
             name: .publicInAppTarget,

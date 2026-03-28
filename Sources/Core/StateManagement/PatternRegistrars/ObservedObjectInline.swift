@@ -6,7 +6,6 @@ import Foundation
 /// which should use `@StateObject` instead.
 struct ObservedObjectInline: PatternRegistrarProtocol {
 
-
     var pattern: SyntaxPattern {
         SyntaxPattern(
             name: .observedObjectInline,

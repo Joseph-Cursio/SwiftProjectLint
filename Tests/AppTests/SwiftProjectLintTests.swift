@@ -23,6 +23,6 @@ struct AppTests {
         """
         let issues = detector.detectPatterns(in: source, filePath: "Example.swift")
         // The detector should run without crashing; issue count may vary by registered rules.
-        #expect(issues.count >= 0)
+        #expect(issues.isEmpty)
     }
 }

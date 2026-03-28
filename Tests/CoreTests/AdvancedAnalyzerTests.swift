@@ -35,7 +35,7 @@ struct AdvancedAnalyzerTests {
         let issues = await analyzer.analyzeArchitecture(projectPath: testProjectPath)
 
         // Analysis should complete without error; issues may or may not be found
-        #expect(issues.count >= 0)
+        #expect(issues.isEmpty)
     }
 
     @Test @MainActor func testIsRootViewReturnsTrueForRoot() async throws {
@@ -83,7 +83,7 @@ struct AdvancedAnalyzerTests {
         defer { cleanupTestProject() }
 
         let issues = await analyzer.analyzeArchitecture(projectPath: testProjectPath)
-        #expect(issues.count >= 0)
+        #expect(issues.isEmpty)
 
         // Query relationship methods — they return optionals, so just verify no crash
         let relType = analyzer.relationshipType(between: "TestParent", and: "TestChild")

@@ -47,7 +47,7 @@ public struct LintConfiguration: Sendable {
         .nonActorAgentSuffix,
         .testMissingAssertion,
         .testMissingExpect,
-        .testMissingRequire,
+        .testMissingRequire
     ]
 
     /// Default configuration — all rules enabled, no exclusions.

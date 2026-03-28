@@ -8,8 +8,8 @@
 import SwiftUI
 import Core
 
-/// Renders the markdown documentation for a single lint rule.
 // swiftprojectlint:disable:next large-view-body
+/// Renders the markdown documentation for a single lint rule.
 struct RuleDocView: View {
     let rule: RuleIdentifier
 

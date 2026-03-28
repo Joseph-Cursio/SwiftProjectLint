@@ -115,7 +115,7 @@ class UIVisitor: BasePatternVisitor {
                 "font", "foregroundColor", "foregroundStyle",
                 "background", "shadow", "border",
                 "bold", "italic", "underline", "strikethrough",
-                "fontWeight", "fontDesign",
+                "fontWeight", "fontDesign"
             ]
             let stylingModifiers = modifiers.filter { stylingModifierNames.contains($0) }
 

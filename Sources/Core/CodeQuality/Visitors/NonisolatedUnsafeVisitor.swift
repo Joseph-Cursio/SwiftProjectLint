@@ -15,7 +15,7 @@ final class NonisolatedUnsafeVisitor: BasePatternVisitor {
         "OSAllocatedUnfairLock",
         "Mutex",
         "NSLock",
-        "NSRecursiveLock",
+        "NSRecursiveLock"
     ]
 
     required init(pattern: SyntaxPattern, viewMode: SyntaxTreeViewMode = .sourceAccurate) {

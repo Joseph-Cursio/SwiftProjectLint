@@ -5,7 +5,6 @@ import Foundation
 /// Provides the pattern for detecting force unwrap (`!`) expressions that crash on nil.
 struct ForceUnwrap: PatternRegistrarProtocol {
 
-
     var pattern: SyntaxPattern {
         SyntaxPattern(
             name: .forceUnwrap,

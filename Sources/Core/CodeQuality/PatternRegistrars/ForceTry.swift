@@ -5,7 +5,6 @@ import Foundation
 /// Provides the pattern for detecting `try!` expressions that crash on error.
 struct ForceTry: PatternRegistrarProtocol {
 
-
     var pattern: SyntaxPattern {
         SyntaxPattern(
             name: .forceTry,

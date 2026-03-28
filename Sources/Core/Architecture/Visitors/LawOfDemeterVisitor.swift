@@ -38,7 +38,7 @@ class LawOfDemeterVisitor: BasePatternVisitor {
         "text", "baseName",
         // Boolean terminal — testing emptiness of a collection is a scalar result,
         // not further graph traversal (e.g., node.body.statements.isEmpty).
-        "isEmpty",
+        "isEmpty"
     ]
 
     /// Well-known system chain prefixes that are idiomatic Foundation/system API usage.
@@ -55,7 +55,7 @@ class LawOfDemeterVisitor: BasePatternVisitor {
         ["URLSession", "shared", "data"],
         ["UserDefaults", "standard", "string"],
         ["UserDefaults", "standard", "bool"],
-        ["DispatchQueue", "main", "async"],
+        ["DispatchQueue", "main", "async"]
     ]
 
     required init(pattern: SyntaxPattern, viewMode: SyntaxTreeViewMode = .sourceAccurate) {
@@ -68,13 +68,10 @@ class LawOfDemeterVisitor: BasePatternVisitor {
 
     override func visit(_ node: MemberAccessExprSyntax) -> SyntaxVisitorContinueKind {
         // Only report from the outermost MemberAccessExpr to avoid duplicates.
-        // If our parent is also a MemberAccessExpr, we're not the outermost.
         if node.parent?.is(MemberAccessExprSyntax.self) == true {
             return .visitChildren
         }
-        // Skip chains that are the callee of a function call — the called method
-        // is part of the fluent interface, not additional graph traversal.
-        // e.g., structNode.memberBlock.members.contains { ... }
+        // Skip chains that are the callee of a function call
         if node.parent?.is(FunctionCallExprSyntax.self) == true {
             return .visitChildren
         }
@@ -87,82 +84,20 @@ class LawOfDemeterVisitor: BasePatternVisitor {
             current = member.base
         }
 
-        // current is now the root expression
         guard let root = current else { return .visitChildren }
+        guard isNonExemptRoot(root) else { return .visitChildren }
 
-        // Skip self.a.b.c — very common in ViewModels/Views
-        if let rootRef = root.as(DeclReferenceExprSyntax.self),
-           rootRef.baseName.text == "self" {
-            return .visitChildren
-        }
-        // Skip super.a.b.c
-        if root.is(SuperExprSyntax.self) { return .visitChildren }
-        // Skip function-call chains (SwiftUI modifier chains, fluent APIs)
-        if root.is(FunctionCallExprSyntax.self) { return .visitChildren }
-        // Skip closure parameter chains ($0.severity.rawValue.capitalized)
-        if root.trimmedDescription.hasPrefix("$") { return .visitChildren }
-
-        // components has the member names in reverse order; add the root
         if let rootRef = root.as(DeclReferenceExprSyntax.self) {
             components.append(rootRef.baseName.text)
         } else {
             components.append(root.trimmedDescription)
         }
 
-        // Total dots = components.count - 1 (e.g., a.b.c.d has 3 dots, 4 components)
         let dotCount = components.count - 1
         guard dotCount >= Self.minChainDepth else { return .visitChildren }
 
-        // Build the chain in reading order for exemption checks
         let orderedComponents = Array(components.reversed())
-
-        // Skip chains rooted at a capitalized name (type access / static / enum),
-        // where the second component is a known singleton accessor
-        if let rootName = orderedComponents.first,
-           rootName.first?.isUppercase == true,
-           orderedComponents.count > 1,
-           Self.singletonAccessors.contains(orderedComponents[1]) {
-            return .visitChildren
-        }
-
-        // Skip chains whose root is capitalized and that look like
-        // nested-type or enum-case access (Type.Subtype.case.property)
-        if let rootName = orderedComponents.first,
-           rootName.first?.isUppercase == true,
-           orderedComponents.count > 2,
-           orderedComponents[1].first?.isUppercase == true {
-            return .visitChildren
-        }
-
-        // Skip chains where a value-transform member appears before the violation
-        // threshold. Once the chain converts to a plain value (e.g. .description,
-        // .trimmedDescription, .color), the rest is value manipulation, not
-        // object-graph navigation.
-        // e.g., node.extendedType.description.trimmingCharacters — vtIndex("description") = 2 < 3
-        // e.g., status.color.opacity — vtIndex("color") = 2 < 3
-        if let vtIndex = orderedComponents.firstIndex(where: { Self.valueTransformMembers.contains($0) }),
-           vtIndex < Self.minChainDepth {
-            return .visitChildren
-        }
-
-        // Also skip chains of exactly minChainDepth whose terminal is a value-transform.
-        // e.g., violation.severity.rawValue.capitalized — terminal "capitalized" in set, depth = 3
-        // e.g., node.body.statements.isEmpty — terminal "isEmpty", depth = 3
-        if let terminal = orderedComponents.last,
-           Self.valueTransformMembers.contains(terminal),
-           dotCount == Self.minChainDepth {
-            return .visitChildren
-        }
-
-        // Skip well-known system API chain prefixes
-        for prefix in Self.exemptChainPrefixes where orderedComponents.count >= prefix.count {
-            if Array(orderedComponents.prefix(prefix.count)) == prefix {
-                return .visitChildren
-            }
-        }
-
-        // Skip test files — XCUI and test setup chains are inherently deep
-        if currentFilePath.contains("Tests") || currentFilePath.hasSuffix("Test.swift") {
+        guard isNonExemptChain(orderedComponents, dotCount: dotCount) else {
             return .visitChildren
         }
 
@@ -178,5 +113,58 @@ class LawOfDemeterVisitor: BasePatternVisitor {
             ruleName: .lawOfDemeter
         )
         return .visitChildren
+    }
+
+    private func isNonExemptRoot(_ root: ExprSyntax) -> Bool {
+        if let rootRef = root.as(DeclReferenceExprSyntax.self),
+           rootRef.baseName.text == "self" { return false }
+        if root.is(SuperExprSyntax.self) { return false }
+        if root.is(FunctionCallExprSyntax.self) { return false }
+        if root.trimmedDescription.hasPrefix("$") { return false }
+        return true
+    }
+
+    private func isNonExemptChain(
+        _ orderedComponents: [String], dotCount: Int
+    ) -> Bool {
+        // Skip type.singleton chains
+        if let rootName = orderedComponents.first,
+           rootName.first?.isUppercase == true,
+           orderedComponents.count > 1,
+           Self.singletonAccessors.contains(orderedComponents[1]) {
+            return false
+        }
+        // Skip nested-type / enum-case chains
+        if let rootName = orderedComponents.first,
+           rootName.first?.isUppercase == true,
+           orderedComponents.count > 2,
+           orderedComponents[1].first?.isUppercase == true {
+            return false
+        }
+        // Skip early value-transform
+        if let vtIndex = orderedComponents.firstIndex(
+            where: { Self.valueTransformMembers.contains($0) }
+        ), vtIndex < Self.minChainDepth {
+            return false
+        }
+        // Skip terminal value-transform at exact threshold
+        if let terminal = orderedComponents.last,
+           Self.valueTransformMembers.contains(terminal),
+           dotCount == Self.minChainDepth {
+            return false
+        }
+        // Skip well-known system API chain prefixes
+        for prefix in Self.exemptChainPrefixes
+            where orderedComponents.count >= prefix.count {
+            if Array(orderedComponents.prefix(prefix.count)) == prefix {
+                return false
+            }
+        }
+        // Skip test files
+        if currentFilePath.contains("Tests")
+            || currentFilePath.hasSuffix("Test.swift") {
+            return false
+        }
+        return true
     }
 }

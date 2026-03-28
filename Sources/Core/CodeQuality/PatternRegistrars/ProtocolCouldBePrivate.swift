@@ -2,7 +2,6 @@ import Foundation
 
 struct ProtocolCouldBePrivate: PatternRegistrarProtocol {
 
-
     var pattern: SyntaxPattern {
         SyntaxPattern(
             name: .protocolCouldBePrivate,

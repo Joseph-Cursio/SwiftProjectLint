@@ -59,7 +59,7 @@ private class StockView {
 
 // Tight Coupling Rule: Accessing Implementation Details — underscore prefix
 private class CacheService {
-    var _internalCache: [String: Any] = [:]
+    var internalCache: [String: Any] = [:]
 }
 
 private class CacheReader {
@@ -67,7 +67,7 @@ private class CacheReader {
 
     func read(key: String) -> Any? {
         // Tight Coupling Rule: Accessing Implementation Details
-        return cache._internalCache[key]
+        return cache.internalCache[key]
     }
 }
 
@@ -86,7 +86,11 @@ struct TightCouplingExampleView: View {
                 .multilineTextAlignment(.center)
                 .padding(.horizontal)
 
-            Text("Rules demonstrated: Singleton Usage, Law of Demeter, Direct Instantiation, Concrete Type Usage, Accessing Implementation Details")
+            Text(
+                "Rules demonstrated: Singleton Usage, Law of Demeter, "
+                + "Direct Instantiation, Concrete Type Usage, "
+                + "Accessing Implementation Details"
+            )
                 .font(.caption2)
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)

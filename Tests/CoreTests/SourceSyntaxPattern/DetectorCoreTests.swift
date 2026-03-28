@@ -106,8 +106,13 @@ struct DetectorCoreTests {
             detector.detectPatterns(in: file2, filePath: "ChildView.swift", categories: nil)
         }
 
-        // Then - Both files should be processed independently
-        #expect(issues1.count >= 0)
-        #expect(issues2.count >= 0)
+        // Then - Both files should be processed independently.
+        // Per-file detection correctly flags missingPreview and hardcodedStrings,
+        // but cross-file issues (duplicate state) require the CrossFileAnalysisEngine.
+        let crossFileRules: Set<RuleIdentifier> = [
+            .relatedDuplicateStateVariable, .unrelatedDuplicateStateVariable
+        ]
+        #expect(issues1.filter { crossFileRules.contains($0.ruleName) }.isEmpty)
+        #expect(issues2.filter { crossFileRules.contains($0.ruleName) }.isEmpty)
     }
 } 

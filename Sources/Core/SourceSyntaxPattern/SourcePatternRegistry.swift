@@ -34,7 +34,7 @@ public final class SourcePatternRegistry: SourcePatternRegistryProtocol, @unchec
         .networking: Networking(registry: self, visitorRegistry: visitorRegistry),
         .codeQuality: CodeQuality(registry: self, visitorRegistry: visitorRegistry),
         .architecture: Architecture(registry: self, visitorRegistry: visitorRegistry),
-        .uiPatterns: UI(registry: self, visitorRegistry: visitorRegistry),
+        .uiPatterns: UIPatterns(registry: self, visitorRegistry: visitorRegistry),
         .animation: Animation(registry: self, visitorRegistry: visitorRegistry),
         .modernization: Modernization(registry: self, visitorRegistry: visitorRegistry)
     ]

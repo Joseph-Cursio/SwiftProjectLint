@@ -8,11 +8,11 @@ import SwiftSyntax
 
 // MARK: - Visitable Protocol
 
+// swiftprojectlint:disable:this protocol-naming-suffix protocol-could-be-private
 /// Protocol that defines objects which can be visited by visitors.
 ///
 /// This protocol is used to ensure type safety in the visitor pattern implementation,
 /// allowing for consistent cross-file analysis and multiple visitor types.
-// swiftprojectlint:disable:this protocol-naming-suffix protocol-could-be-private
 protocol Visitable {
     /// Accepts a visitor and allows it to perform operations on this object.
     ///

@@ -34,7 +34,7 @@ final class AdvancedAnalyzerTests {
         defer { cleanupTestProject() }
         
         let issues = analyzer.analyzeArchitecture(projectPath: testProjectPath)
-        #expect(issues.count >= 0)
+        #expect(issues.isEmpty)
     }
 
     @Test @MainActor func testIsRootViewReturnsTrueForRoot() throws {
@@ -43,7 +43,7 @@ final class AdvancedAnalyzerTests {
         defer { cleanupTestProject() }
 
         let issues = analyzer.analyzeArchitecture(projectPath: testProjectPath)
-        #expect(issues.count >= 0)
+        #expect(issues.isEmpty)
     }
 
     @Test @MainActor func testGenerateStateSharingSuggestionForTwoViews() throws {
@@ -52,7 +52,7 @@ final class AdvancedAnalyzerTests {
         defer { cleanupTestProject() }
 
         let issues = analyzer.analyzeArchitecture(projectPath: testProjectPath)
-        #expect(issues.count >= 0)
+        #expect(issues.isEmpty)
     }
 
     @Test @MainActor func testGenerateStateSharingSuggestionForManyViews() throws {
@@ -61,7 +61,7 @@ final class AdvancedAnalyzerTests {
         defer { cleanupTestProject() }
 
         let issues = analyzer.analyzeArchitecture(projectPath: testProjectPath)
-        #expect(issues.count >= 0)
+        #expect(issues.isEmpty)
     }
     
     @Test @MainActor func testRelationshipTypeAndViewRelationship() throws {

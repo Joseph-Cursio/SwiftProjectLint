@@ -6,7 +6,6 @@ import Foundation
 /// in `matchedGeometryEffect` calls.
 struct MatchedGeometry: PatternRegistrarProtocol {
 
-
     var pattern: SyntaxPattern {
         SyntaxPattern(
             name: .matchedGeometryEffectMisuse,

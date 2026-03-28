@@ -6,7 +6,6 @@ import Foundation
 /// type declaration (struct, class, enum, actor).
 struct MultipleTypesPerFile: PatternRegistrarProtocol {
 
-
     var pattern: SyntaxPattern {
         SyntaxPattern(
             name: .multipleTypesPerFile,

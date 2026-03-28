@@ -5,7 +5,6 @@ import Foundation
 /// Provides the pattern for detecting empty catch blocks that silently swallow errors.
 struct EmptyCatch: PatternRegistrarProtocol {
 
-
     var pattern: SyntaxPattern {
         SyntaxPattern(
             name: .emptyCatch,

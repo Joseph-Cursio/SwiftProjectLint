@@ -123,7 +123,10 @@ class NetworkingVisitor: BasePatternVisitor {
         }
 
         // Variable names with explicit network signals — flag these
-        let networkHints = ["remote", "endpoint", "api", "server", "network", "http", "web", "download", "request", "host"]
+        let networkHints = [
+            "remote", "endpoint", "api", "server", "network",
+            "http", "web", "download", "request", "host"
+        ]
         for hint in networkHints where lowerText.contains(hint) {
             return false
         }

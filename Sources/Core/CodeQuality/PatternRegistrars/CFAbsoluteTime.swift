@@ -6,7 +6,6 @@ import Foundation
 /// modern Swift alternatives.
 struct CFAbsoluteTime: PatternRegistrarProtocol {
 
-
     var pattern: SyntaxPattern {
         SyntaxPattern(
             name: .cfAbsoluteTime,

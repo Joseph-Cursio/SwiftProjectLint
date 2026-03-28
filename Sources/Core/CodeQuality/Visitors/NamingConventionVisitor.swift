@@ -109,7 +109,8 @@ class NamingConventionVisitor: BasePatternVisitor {
             message: "'\(name)' has an agent-noun name but is not a Swift actor or explicitly named 'Agent'",
             filePath: currentFilePath,
             lineNumber: getLineNumber(for: Syntax(node)),
-            suggestion: "Declare as 'actor \(name)' for compiler-enforced isolation, or rename to '\(name)Agent' to signal intentional non-isolation",
+            suggestion: "Declare as 'actor \(name)' for compiler-enforced isolation, "
+                + "or rename to '\(name)Agent' to signal intentional non-isolation",
             ruleName: .nonActorAgentSuffix
         )
     }

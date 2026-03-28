@@ -60,7 +60,7 @@ struct CoverageTests {
             projectFiles: [fileA, fileB],
             categories: [.stateManagement]
         )
-        #expect(issues.count >= 0)
+        #expect(issues.isEmpty)
     }
 
     @Test("cross-file visitor loop with nil categories uses all patterns")
@@ -83,7 +83,7 @@ struct CoverageTests {
             projectFiles: [file],
             categories: nil
         )
-        #expect(issues.count >= 0)
+        #expect(issues.isEmpty)
     }
 
     @Test("cross-file visitor walks all cached files")
@@ -108,7 +108,7 @@ struct CoverageTests {
             projectFiles: files,
             categories: [.stateManagement]
         )
-        #expect(issues.count >= 0)
+        #expect(issues.isEmpty)
     }
 
     @Test("ruleIdentifiers overload exercises cross-file visitor path")
@@ -141,7 +141,7 @@ struct CoverageTests {
             projectFiles: [fileA, fileB],
             ruleIdentifiers: [.relatedDuplicateStateVariable]
         )
-        #expect(issues.count >= 0)
+        #expect(issues.isEmpty)
     }
 
     @Test("ruleIdentifiers with mixed cross-file and regular visitors")
@@ -175,7 +175,7 @@ struct CoverageTests {
             projectFiles: [file],
             ruleIdentifiers: [.relatedDuplicateStateVariable, .fatView]
         )
-        #expect(issues.count >= 0)
+        #expect(issues.isEmpty)
     }
 
     @Test("multiple cross-file patterns all get processed")
@@ -228,12 +228,12 @@ struct CoverageTests {
             projectFiles: [fileA, fileB],
             categories: [.stateManagement]
         )
-        #expect(catIssues.count >= 0)
+        #expect(catIssues.isEmpty)
 
         let ruleIssues = engine.detectCrossFilePatterns(
             projectFiles: [fileA, fileB],
             ruleIdentifiers: [.relatedDuplicateStateVariable, .unrelatedDuplicateStateVariable]
         )
-        #expect(ruleIssues.count >= 0)
+        #expect(ruleIssues.isEmpty)
     }
 }

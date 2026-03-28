@@ -119,6 +119,6 @@ public struct FileAnalysisUtils {
     static func realPath(_ path: String) -> String {
         var buffer = [CChar](repeating: 0, count: Int(PATH_MAX))
         guard realpath(path, &buffer) != nil else { return path }
-        return String(decoding: buffer.prefix(while: { $0 != 0 }).map(UInt8.init(bitPattern:)), as: UTF8.self)
+        return String(cString: &buffer)
     }
 }
