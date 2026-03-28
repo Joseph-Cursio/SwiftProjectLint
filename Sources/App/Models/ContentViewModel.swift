@@ -53,6 +53,10 @@ class ContentViewModel {
     /// Inject a mock conforming to `ProjectAnalyzerProtocol` for testing.
     var analyzer: any ProjectAnalyzerProtocol = ProjectLinter()
 
+    /// Configuration persistence (load/save YAML). Defaults to YAML file I/O.
+    /// Inject a mock for testing without filesystem access.
+    var configPersistence: any ConfigurationPersistenceProtocol = YAMLConfigurationPersistence()
+
     private let userDefaultsKey = "enabledLintRules"
 
     // MARK: - Computed Properties
@@ -105,7 +109,7 @@ class ContentViewModel {
     /// Loads rule exclusions from a `.swiftprojectlint.yml` in the project directory.
     func loadConfigFromProject() {
         guard !selectedDirectory.isEmpty else { return }
-        let config = LintConfigurationLoader.load(projectRoot: selectedDirectory)
+        let config = configPersistence.load(projectRoot: selectedDirectory)
         loadedConfig = config
 
         // Populate ruleExclusions from the loaded config's per-rule overrides
@@ -159,8 +163,8 @@ class ContentViewModel {
         guard !selectedDirectory.isEmpty else { return }
         let config = buildConfiguration()
         let path = (selectedDirectory as NSString)
-            .appendingPathComponent(LintConfigurationLoader.defaultFileName)
-        LintConfigurationWriter.write(config, to: path)
+            .appendingPathComponent(configPersistence.defaultFileName)
+        configPersistence.write(config, to: path)
         loadedConfig = config
         configIsDirty = false
     }
