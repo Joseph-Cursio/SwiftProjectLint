@@ -6,8 +6,8 @@ struct SimpleTests {
     @Test("Basic functionality test")
     func basicFunctionality() {
         // Test that we can access the core module
-        let analyzer = AdvancedAnalyzer()
-        #expect(analyzer != nil)
+        let linter = ProjectLinter()
+        #expect(linter != nil)
     }
 
     @Test("Rule identifier test")

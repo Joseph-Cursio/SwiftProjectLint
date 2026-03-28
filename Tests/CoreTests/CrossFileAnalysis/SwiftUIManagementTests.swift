@@ -61,54 +61,6 @@ struct SwiftUIManagementTests {
         #expect(visitor.fileCache.isEmpty)
     }
     
-    @Test func testAcceptVisitor() throws {
-        let source = "struct View1: View { var body: some View { Text(\"1\") } }"
-        let file = Parser.parse(source: source)
-        let fileCache: [String: SourceFileSyntax] = ["View1.swift": file]
-        
-        let crossFileVisitor = CrossFileSwiftUIManagementVisitor(fileCache: fileCache)
-        
-        // Create a simple visitor to test accept
-        class TestVisitor: SyntaxVisitor, PatternVisitorProtocol {
-            var visitCount = 0
-            var detectedIssues: [LintIssue] = []
-            var pattern: SyntaxPattern
-            required init(pattern: SyntaxPattern, viewMode: SyntaxTreeViewMode = .sourceAccurate) {
-                self.pattern = pattern
-                super.init(viewMode: viewMode)
-            }
-
-            convenience init() {
-                let placeholder = SyntaxPattern(
-                    name: .unknown,
-                    visitor: TestVisitor.self,
-                    severity: .warning,
-                    category: .architecture,
-                    messageTemplate: "",
-                    suggestion: "",
-                    description: ""
-                )
-                self.init(pattern: placeholder)
-            }
-
-            func reset() {
-                detectedIssues.removeAll()
-                visitCount = 0
-            }
-
-            override func visit(_ node: StructDeclSyntax) -> SyntaxVisitorContinueKind {
-                visitCount += 1
-                return .visitChildren
-            }
-        }
-        
-        let testVisitor = TestVisitor()
-        try crossFileVisitor.accept(visitor: testVisitor)
-        
-        // The accept method should walk all files in the cache
-        #expect(testVisitor.visitCount >= 1)
-    }
-    
     @Test func testFileCacheIsPreserved() {
         let source1 = "struct View1: View { var body: some View { Text(\"1\") } }"
         let source2 = "struct View2: View { var body: some View { Text(\"2\") } }"

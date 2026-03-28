@@ -25,12 +25,4 @@ class CrossFileSwiftUIManagementVisitor: SwiftUIManagementVisitor, CrossFilePatt
     override func finalizeAnalysis() {
     }
 
-    func accept<T: PatternVisitorProtocol>(visitor: T) throws {
-        // If the visitor understands this type, it can call its visit method.
-        // If not, do nothing or throw if you want strict handling.
-        // Here, just call walk on all cached source files with the visitor.
-        for (_, sourceFile) in fileCache {
-            visitor.walk(sourceFile)
-        }
-    }
 }

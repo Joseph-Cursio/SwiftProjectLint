@@ -112,12 +112,6 @@ final class CouldBePrivateVisitor: BasePatternVisitor, CrossFilePatternVisitorPr
         }
     }
 
-    func accept<T: PatternVisitorProtocol>(visitor: T) throws {
-        for (_, sourceFile) in fileCache {
-            visitor.walk(sourceFile)
-        }
-    }
-
     // MARK: - Helpers
 
     private func collectDeclarationIfEligible(

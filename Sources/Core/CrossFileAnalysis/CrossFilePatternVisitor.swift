@@ -6,20 +6,6 @@
 //
 import SwiftSyntax
 
-// MARK: - Visitable Protocol
-
-// swiftprojectlint:disable:this protocol-naming-suffix protocol-could-be-private
-/// Protocol that defines objects which can be visited by visitors.
-///
-/// This protocol is used to ensure type safety in the visitor pattern implementation,
-/// allowing for consistent cross-file analysis and multiple visitor types.
-protocol Visitable {
-    /// Accepts a visitor and allows it to perform operations on this object.
-    ///
-    /// - Parameter visitor: The visitor that will operate on this object.
-    func accept<T: PatternVisitorProtocol>(visitor: T) throws
-}
-
 // MARK: - Cross-File Pattern Visitor Protocol
 
 /// Protocol for pattern visitors that support cross-file analysis.
@@ -27,7 +13,7 @@ protocol Visitable {
 /// `CrossFilePatternVisitorProtocol` extends `PatternVisitorProtocol` to support analysis
 /// that spans multiple files, such as duplicate detection or architectural
 /// pattern analysis.
-protocol CrossFilePatternVisitorProtocol: PatternVisitorProtocol, Visitable {
+protocol CrossFilePatternVisitorProtocol: PatternVisitorProtocol {
     /// The cached source files for cross-file analysis.
     var fileCache: [String: SourceFileSyntax] { get }
     

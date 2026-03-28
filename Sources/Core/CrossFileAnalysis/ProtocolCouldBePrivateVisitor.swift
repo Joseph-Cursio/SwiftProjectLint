@@ -111,9 +111,4 @@ final class ProtocolCouldBePrivateVisitor: BasePatternVisitor, CrossFilePatternV
         }
     }
 
-    func accept<T: PatternVisitorProtocol>(visitor: T) throws {
-        for (_, sourceFile) in fileCache {
-            visitor.walk(sourceFile)
-        }
-    }
 }

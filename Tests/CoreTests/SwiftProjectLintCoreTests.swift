@@ -13,12 +13,10 @@ struct CoreModuleTests {
 
     @Test func testCoreModuleImports() throws {
         // Test that all core modules can be imported and accessed
-        let analyzer = AdvancedAnalyzer()
         let linter = ProjectLinter()
         let detector = SourcePatternDetector()
         let registry = SourcePatternRegistry.shared
 
-        #expect(analyzer != nil)
         #expect(linter != nil)
         #expect(detector != nil)
         #expect(registry != nil)
