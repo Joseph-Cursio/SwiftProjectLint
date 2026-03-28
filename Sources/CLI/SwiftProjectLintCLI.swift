@@ -58,12 +58,7 @@ struct SwiftProjectLintCLI: AsyncParsableCommand {
             configuration: configuration
         )
 
-        switch format {
-        case .text:
-            print(TextFormatter.format(issues: issues))
-        case .json:
-            print(JSONFormatter.format(issues: issues))
-        }
+        print(format.formatter.format(issues: issues))
 
         let code = ExitCodes.exitCode(for: issues, threshold: threshold)
         if code != 0 {

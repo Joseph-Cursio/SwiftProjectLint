@@ -13,7 +13,7 @@ struct TextFormatterTests {
             suggestion: "Move to a ViewModel",
             ruleName: .fatView
         )
-        let output = TextFormatter.format(issues: [issue])
+        let output = TextFormatter().format(issues: [issue])
         #expect(output.contains("MyView.swift:42: warning: [Fat View] Consider extracting this logic"))
         #expect(output.contains("  suggestion: Move to a ViewModel"))
         #expect(output.contains("Found 1 issue (1 warning)"))
@@ -29,13 +29,13 @@ struct TextFormatterTests {
             LintIssue(severity: .info, message: "note", filePath: "C.swift",
                       lineNumber: 3, suggestion: nil, ruleName: .fatView)
         ]
-        let summary = TextFormatter.summaryLine(for: issues)
+        let summary = TextFormatter().summaryLine(for: issues)
         #expect(summary == "Found 3 issues (1 error, 1 warning, 1 info)")
     }
 
     @Test
     func formatsEmptyIssues() {
-        let output = TextFormatter.format(issues: [])
+        let output = TextFormatter().format(issues: [])
         #expect(output.contains("No issues found."))
     }
 
@@ -49,7 +49,7 @@ struct TextFormatterTests {
             suggestion: nil,
             ruleName: .fatView
         )
-        let output = TextFormatter.format(issues: [issue])
+        let output = TextFormatter().format(issues: [issue])
         #expect(output.contains("suggestion:") == false)
 
     }

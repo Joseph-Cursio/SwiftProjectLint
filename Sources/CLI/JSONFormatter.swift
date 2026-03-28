@@ -2,9 +2,9 @@ import Foundation
 import Core
 
 /// Formats lint issues as a JSON report.
-struct JSONFormatter {
+struct JSONFormatter: IssueFormatterProtocol {
     /// Formats a list of lint issues as a pretty-printed JSON string.
-    static func format(issues: [LintIssue]) -> String {
+    func format(issues: [LintIssue]) -> String {
         let codableIssues = issues.map { CodableLintIssue(from: $0) }
 
         let summary = ReportSummary(

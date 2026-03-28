@@ -7,7 +7,9 @@ import SwiftSyntax
 /// provide a strong isolation contract via Swift Concurrency — protocol-abstracting
 /// an actor weakens that contract because the caller loses the actor's serial executor
 /// guarantee and the compiler can no longer enforce await requirements at the call site.
-final class ActorTypeCollector: SyntaxVisitor {
+final class ActorTypeCollector: SyntaxVisitor, TypeCollectorProtocol {
+    var collectedTypes: Set<String> { actorTypes }
+
     /// The set of actor type names found across the project.
     private(set) var actorTypes: Set<String> = []
 

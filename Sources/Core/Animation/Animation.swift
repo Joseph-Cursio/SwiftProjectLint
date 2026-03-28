@@ -8,11 +8,13 @@ import Foundation
 class Animation: BasePatternRegistrar {
 
     override func registerPatterns() {
-        registry.register(pattern: DeprecatedAnimation().pattern)
-        registry.register(patterns: AnimationPerformance().patterns)
-        registry.register(patterns: WithAnimation().patterns)
-        registry.register(patterns: AnimationHierarchy().patterns)
-        registry.register(pattern: MatchedGeometry().pattern)
-        registry.register(pattern: HardcodedAnimationValues().pattern)
+        registry.register(registrars: [
+            DeprecatedAnimation(),
+            AnimationPerformance(),
+            WithAnimation(),
+            AnimationHierarchy(),
+            MatchedGeometry(),
+            HardcodedAnimationValues()
+        ])
     }
 }

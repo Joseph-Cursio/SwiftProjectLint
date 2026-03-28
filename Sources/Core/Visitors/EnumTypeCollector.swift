@@ -7,7 +7,9 @@ import SwiftSyntax
 /// "Concrete Type Usage" from flagging enum-typed parameters or properties,
 /// since enums are value types that cannot meaningfully be protocol-abstracted
 /// in the same way as a service class.
-final class EnumTypeCollector: SyntaxVisitor {
+final class EnumTypeCollector: SyntaxVisitor, TypeCollectorProtocol {
+    var collectedTypes: Set<String> { enumTypes }
+
     /// The set of enum type names found across the project.
     private(set) var enumTypes: Set<String> = []
 

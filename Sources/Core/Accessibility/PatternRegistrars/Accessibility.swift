@@ -54,6 +54,6 @@ class Accessibility: BasePatternRegistrar {
             )
         ]
         registry.register(patterns: patterns)
-        registry.register(pattern: HardcodedFontSize().pattern)
+        registry.register(registrars: [HardcodedFontSize()])
     }
 } 

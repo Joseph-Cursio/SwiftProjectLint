@@ -14,7 +14,7 @@ struct JSONFormatterTests {
             suggestion: "Fix it",
             ruleName: .fatView
         )
-        let jsonString = JSONFormatter.format(issues: [issue])
+        let jsonString = JSONFormatter().format(issues: [issue])
         let data = try #require(jsonString.data(using: .utf8))
         let decoded = try JSONDecoder().decode(LintReport.self, from: data)
         #expect(decoded.summary.totalIssues == 1)
@@ -30,7 +30,7 @@ struct JSONFormatterTests {
 
     @Test
     func handlesEmptyIssues() throws {
-        let jsonString = JSONFormatter.format(issues: [])
+        let jsonString = JSONFormatter().format(issues: [])
         let data = try #require(jsonString.data(using: .utf8))
         let decoded = try JSONDecoder().decode(LintReport.self, from: data)
         #expect(decoded.summary.totalIssues == 0)
@@ -47,7 +47,7 @@ struct JSONFormatterTests {
             suggestion: nil,
             ruleName: .fatView
         )
-        let jsonString = JSONFormatter.format(issues: [issue])
+        let jsonString = JSONFormatter().format(issues: [issue])
         let data = try #require(jsonString.data(using: .utf8))
         let decoded = try JSONDecoder().decode(LintReport.self, from: data)
         #expect(decoded.issues[0].category.isEmpty == false)

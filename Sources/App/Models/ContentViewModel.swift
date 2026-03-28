@@ -47,7 +47,7 @@ class ContentViewModel {
     var patternRegistry: SourcePatternRegistryProtocol?
 
     /// Injected detector with populated registry from SystemComponents.
-    var detector: SourcePatternDetector?
+    var detector: (any SourcePatternDetectorProtocol)?
 
     private let userDefaultsKey = "enabledLintRules"
 
@@ -190,6 +190,7 @@ class ContentViewModel {
 
         let enabledRules = Array(enabledRuleNames)
         let scopedURL = selectedDirectoryURL
+        nonisolated(unsafe) let capturedDetector = detector
         analysisTask = Task {
             let didAccess = scopedURL?.startAccessingSecurityScopedResource() ?? false
             defer {
@@ -200,7 +201,7 @@ class ContentViewModel {
             let issues = await linter.analyzeProject(
                 at: path,
                 ruleIdentifiers: enabledRules,
-                detector: detector,
+                detector: capturedDetector,
                 configuration: configuration
             )
 

@@ -8,15 +8,15 @@ public final class SourcePatternDetector: SourcePatternDetectorProtocol, @unchec
 
     /// Type names known to conform to `Identifiable` across the project.
     /// Set by `ProjectLinter` after a pre-scan phase and passed through to visitors.
-    var knownIdentifiableTypes: Set<String> = []
+    public var knownIdentifiableTypes: Set<String> = []
 
     /// Type names known to be declared as enums across the project.
     /// Set by `ProjectLinter` after a pre-scan phase and passed through to visitors.
-    var knownEnumTypes: Set<String> = []
+    public var knownEnumTypes: Set<String> = []
 
     /// Type names known to be declared as actors across the project.
     /// Set by `ProjectLinter` after a pre-scan phase and passed through to visitors.
-    var knownActorTypes: Set<String> = []
+    public var knownActorTypes: Set<String> = []
 
     /// Initializes a new SwiftSyntax pattern detector.
     ///
@@ -61,7 +61,7 @@ public final class SourcePatternDetector: SourcePatternDetectorProtocol, @unchec
     ///   - filePath: The file path for the source code (used for issue reporting).
     ///   - ruleIdentifiers: Array of specific rule identifiers to analyze.
     /// - Returns: An array of detected lint issues.
-    func detectPatterns(
+    public func detectPatterns(
         in sourceCode: String,
         filePath: String,
         ruleIdentifiers: [RuleIdentifier],

@@ -111,27 +111,29 @@ class CodeQuality: BasePatternRegistrar {
     }
 
     private func registerDelegatedPatterns() {
-        registry.register(pattern: LowercasedContains().pattern)
-        registry.register(pattern: MultipleTypesPerFile().pattern)
-        registry.register(pattern: ActorReentrancy().pattern)
-        registry.register(pattern: ForceTry().pattern)
-        registry.register(pattern: ForceUnwrap().pattern)
-        registry.register(pattern: PrintStatement().pattern)
-        registry.register(pattern: EmptyCatch().pattern)
-        registry.register(pattern: TodoComment().pattern)
-        registry.register(pattern: TaskDetached().pattern)
-        registry.register(pattern: AsyncLetUnused().pattern)
-        registry.register(pattern: ButtonClosureWrapping().pattern)
-        registry.register(pattern: NonisolatedUnsafe().pattern)
-        registry.register(pattern: TaskYieldOffload().pattern)
-        registry.register(pattern: SwallowedTaskError().pattern)
-        registry.register(pattern: CouldBePrivate().pattern)
-        registry.register(pattern: PublicInAppTarget().pattern)
-        registry.register(pattern: CouldBePrivateMember().pattern)
-        registry.register(pattern: ProtocolCouldBePrivate().pattern)
-        registry.register(pattern: TestMissingRequire().pattern)
-        registry.register(pattern: TestMissingAssertion().pattern)
-        registry.register(pattern: TestMissingExpect().pattern)
-        registry.register(pattern: SwiftLintSuppression().pattern)
+        registry.register(registrars: [
+            LowercasedContains(),
+            MultipleTypesPerFile(),
+            ActorReentrancy(),
+            ForceTry(),
+            ForceUnwrap(),
+            PrintStatement(),
+            EmptyCatch(),
+            TodoComment(),
+            TaskDetached(),
+            AsyncLetUnused(),
+            ButtonClosureWrapping(),
+            NonisolatedUnsafe(),
+            TaskYieldOffload(),
+            SwallowedTaskError(),
+            CouldBePrivate(),
+            PublicInAppTarget(),
+            CouldBePrivateMember(),
+            ProtocolCouldBePrivate(),
+            TestMissingRequire(),
+            TestMissingAssertion(),
+            TestMissingExpect(),
+            SwiftLintSuppression()
+        ])
     }
 }

@@ -5,7 +5,9 @@ import SwiftSyntax
 ///
 /// Used as a project-wide pre-scan so that per-file visitors can suppress
 /// false-positive "ForEach without ID" warnings when the element type is Identifiable.
-final class IdentifiableTypeCollector: SyntaxVisitor {
+final class IdentifiableTypeCollector: SyntaxVisitor, TypeCollectorProtocol {
+    var collectedTypes: Set<String> { identifiableTypes }
+
     /// The set of type names found to conform to `Identifiable`.
     private(set) var identifiableTypes: Set<String> = []
 

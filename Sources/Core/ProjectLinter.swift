@@ -32,7 +32,7 @@ public final class ProjectLinter: Sendable {
         at path: String,
         categories: [PatternCategory]? = nil,
         ruleIdentifiers: [RuleIdentifier]? = nil,
-        detector: SourcePatternDetector? = nil,
+        detector: (any SourcePatternDetectorProtocol)? = nil,
         configuration: LintConfiguration = .default
     ) async -> [LintIssue] {
         let effectiveConfiguration = Self.resolveConfiguration(
@@ -55,16 +55,16 @@ public final class ProjectLinter: Sendable {
         )
 
         // Pre-scan: collect cross-file type metadata needed by visitors.
-        let identifiableTypes = Self.collectIdentifiableTypes(from: filePaths)
-        let enumTypes = Self.collectEnumTypes(from: filePaths)
-        let actorTypes = Self.collectActorTypes(from: filePaths)
+        let identifiableTypes = Self.collectTypes(IdentifiableTypeCollector.self, from: filePaths)
+        let enumTypes = Self.collectTypes(EnumTypeCollector.self, from: filePaths)
+        let actorTypes = Self.collectTypes(ActorTypeCollector.self, from: filePaths)
 
         // Resolve the registry once so each task can create its own detector
-        let detector = detector ?? SourcePatternDetector()
-        detector.knownIdentifiableTypes = identifiableTypes
-        detector.knownEnumTypes = enumTypes
-        detector.knownActorTypes = actorTypes
-        let registry = detector.registry
+        var resolvedDetector = detector ?? SourcePatternDetector()
+        resolvedDetector.knownIdentifiableTypes = identifiableTypes
+        resolvedDetector.knownEnumTypes = enumTypes
+        resolvedDetector.knownActorTypes = actorTypes
+        let registry = resolvedDetector.registry
 
         // Per-file I/O and analysis — throttled to avoid memory exhaustion on large projects.
         let maxConcurrency = max(ProcessInfo.processInfo.activeProcessorCount, 1)
@@ -160,55 +160,22 @@ public final class ProjectLinter: Sendable {
         return firstLines.contains("DO NOT EDIT") || firstLines.contains("Code generated")
     }
 
-    /// Scans all project files and returns the set of type names that conform to `Identifiable`.
+    /// Scans all project files with a `TypeCollectorProtocol`-conforming visitor
+    /// and returns the union of collected type names.
     ///
-    /// This is a fast, read-only pre-scan that only inspects inheritance clauses.
-    /// The result is passed to per-file visitors so they can avoid false-positive
-    /// "ForEach without ID" warnings for Identifiable element types.
-    private static func collectIdentifiableTypes(from filePaths: [String]) -> Set<String> {
+    /// This generic pre-scan eliminates duplication across the three collector types
+    /// (Identifiable, Enum, Actor). Each collector walks the AST once per file and
+    /// the results are merged into a single set.
+    private static func collectTypes<T: TypeCollectorProtocol>(
+        _ collectorType: T.Type, from filePaths: [String]
+    ) -> Set<String> {
         var allTypes: Set<String> = []
         for filePath in filePaths {
             guard let content = try? String(contentsOfFile: filePath) else { continue }
             let syntax = Parser.parse(source: content)
-            let collector = IdentifiableTypeCollector()
+            let collector = T()
             collector.walk(syntax)
-            allTypes.formUnion(collector.identifiableTypes)
-        }
-        return allTypes
-    }
-
-    /// Scans all project files and returns the set of all enum type names.
-    ///
-    /// This is a fast, read-only pre-scan. The result is passed to per-file visitors
-    /// so they can exempt enum-typed parameters and properties from rules that only
-    /// apply to class/struct service types (e.g. Concrete Type Usage).
-    private static func collectEnumTypes(from filePaths: [String]) -> Set<String> {
-        var allTypes: Set<String> = []
-        for filePath in filePaths {
-            guard let content = try? String(contentsOfFile: filePath) else { continue }
-            let syntax = Parser.parse(source: content)
-            let collector = EnumTypeCollector()
-            collector.walk(syntax)
-            allTypes.formUnion(collector.enumTypes)
-        }
-        return allTypes
-    }
-
-    /// Scans all project files and returns the set of all actor type names.
-    ///
-    /// This is a fast, read-only pre-scan. The result is passed to per-file visitors
-    /// so they can exempt actor-typed parameters and properties from rules that assume
-    /// concrete types should be protocol-abstracted. In Swift 6 strict concurrency,
-    /// an actor's isolation contract is load-bearing — abstracting it via protocol
-    /// weakens that contract at every call site.
-    private static func collectActorTypes(from filePaths: [String]) -> Set<String> {
-        var allTypes: Set<String> = []
-        for filePath in filePaths {
-            guard let content = try? String(contentsOfFile: filePath) else { continue }
-            let syntax = Parser.parse(source: content)
-            let collector = ActorTypeCollector()
-            collector.walk(syntax)
-            allTypes.formUnion(collector.actorTypes)
+            allTypes.formUnion(collector.collectedTypes)
         }
         return allTypes
     }

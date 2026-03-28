@@ -64,6 +64,6 @@ class StateManagement: BasePatternRegistrar {
             )
         ]
         registry.register(patterns: patterns)
-        registry.register(pattern: ObservedObjectInline().pattern)
+        registry.register(registrars: [ObservedObjectInline()])
     }
 }

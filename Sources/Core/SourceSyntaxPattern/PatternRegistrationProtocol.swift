@@ -1,8 +1,11 @@
 import Foundation
 
-/// Protocol for simple pattern providers that just supply a pattern.
-protocol PatternRegistrarProtocol {
-    /// The syntax pattern to be registered.
+/// Protocol for simple pattern providers that supply one or more patterns.
+///
+/// Conforming types declare the lint patterns they provide. The registry
+/// uses this protocol to collect and register patterns from all registrars.
+public protocol PatternRegistrarProtocol {
+    /// The primary syntax pattern provided by this registrar.
     var pattern: SyntaxPattern { get }
 
     /// All patterns provided by this registrar. Defaults to `[pattern]`.
@@ -12,7 +15,7 @@ protocol PatternRegistrarProtocol {
 }
 
 extension PatternRegistrarProtocol {
-    var patterns: [SyntaxPattern] { [pattern] }
+    public var patterns: [SyntaxPattern] { [pattern] }
 }
 
 /// Protocol for pattern registration that requires access to the visitor registry.

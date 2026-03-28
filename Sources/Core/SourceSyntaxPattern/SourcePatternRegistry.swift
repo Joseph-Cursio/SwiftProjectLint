@@ -98,6 +98,18 @@ public final class SourcePatternRegistry: SourcePatternRegistryProtocol, @unchec
         visitorRegistry.register(patterns: patterns)
     }
 
+    /// Registers all patterns provided by the given registrars.
+    ///
+    /// This is the primary registration API for category registrars. Each
+    /// `PatternRegistrarProtocol` conformer provides one or more patterns
+    /// via its `patterns` property.
+    ///
+    /// - Parameter registrars: An array of pattern registrars to register.
+    public func register(registrars: [any PatternRegistrarProtocol]) {
+        let allPatterns = registrars.flatMap(\.patterns)
+        visitorRegistry.register(patterns: allPatterns)
+    }
+
     /// Clears all registered patterns.
     public func clear() {
         visitorRegistry.clear()
