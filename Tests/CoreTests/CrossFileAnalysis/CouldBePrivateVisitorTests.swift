@@ -6,6 +6,21 @@ import SwiftParser
 @Suite
 struct CouldBePrivateVisitorTests {
 
+    private func analyze(files: [String: SourceFileSyntax]) -> [LintIssue] {
+        let pattern = CouldBePrivate().pattern
+        let visitor = CouldBePrivateVisitor(fileCache: files)
+        visitor.setPattern(pattern)
+        for (name, ast) in files {
+            visitor.setFilePath(name)
+            visitor.setSourceLocationConverter(
+                SourceLocationConverter(fileName: name, tree: ast)
+            )
+            visitor.walk(ast)
+        }
+        visitor.finalizeAnalysis()
+        return visitor.detectedIssues.filter { $0.ruleName == .couldBePrivate }
+    }
+
     @Test func detectsTypeOnlyUsedInDeclaringFile() {
         let fileA = Parser.parse(source: """
         struct HelperView: View {
@@ -81,6 +96,72 @@ struct CouldBePrivateVisitorTests {
         #expect(flaggedNames.contains { $0.contains("SharedModel") } == false)
 
     }
+
+    // MARK: - Class, Enum, Actor Declarations
+
+    @Test func flagsClassOnlyUsedInDeclaringFile() {
+        let fileA = Parser.parse(source: """
+        class InternalService {
+            func run() { }
+        }
+        """)
+        let fileB = Parser.parse(source: """
+        struct Other { }
+        """)
+
+        let issues = analyze(files: ["FileA.swift": fileA, "FileB.swift": fileB])
+        let flagged = issues.map(\.message)
+        #expect(flagged.contains { $0.contains("InternalService") })
+    }
+
+    @Test func flagsEnumOnlyUsedInDeclaringFile() {
+        let fileA = Parser.parse(source: """
+        enum Direction { case north, south }
+        """)
+        let fileB = Parser.parse(source: """
+        struct Other { }
+        """)
+
+        let issues = analyze(files: ["FileA.swift": fileA, "FileB.swift": fileB])
+        let flagged = issues.map(\.message)
+        #expect(flagged.contains { $0.contains("Direction") })
+    }
+
+    @Test func flagsActorOnlyUsedInDeclaringFile() {
+        let fileA = Parser.parse(source: """
+        actor DataStore {
+            func save() { }
+        }
+        """)
+        let fileB = Parser.parse(source: """
+        struct Other { }
+        """)
+
+        let issues = analyze(files: ["FileA.swift": fileA, "FileB.swift": fileB])
+        let flagged = issues.map(\.message)
+        #expect(flagged.contains { $0.contains("DataStore") })
+    }
+
+    // MARK: - Test File Skipping
+
+    @Test func skipsTypesInTestFiles() {
+        let testFile = Parser.parse(source: """
+        struct TestHelper {
+            func setup() { }
+        }
+        """)
+        let other = Parser.parse(source: """
+        struct Other { }
+        """)
+
+        let issues = analyze(
+            files: ["Tests/MyTests/TestHelper.swift": testFile, "Other.swift": other]
+        )
+        let flagged = issues.map(\.message)
+        #expect(flagged.contains { $0.contains("TestHelper") } == false)
+    }
+
+    // MARK: - Existing tests
 
     @Test func skipsPrivateAndPublicTypes() {
         let file = Parser.parse(source: """

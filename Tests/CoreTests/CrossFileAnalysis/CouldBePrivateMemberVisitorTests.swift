@@ -120,6 +120,143 @@ struct CouldBePrivateMemberVisitorTests {
 
     }
 
+    // MARK: - Enum and Actor Type Tracking
+
+    @Test func flagsMemberInEnum() {
+        let issues = analyze(files: [
+            "Status.swift": """
+            enum Status {
+                case active
+                func label() -> String { "active" }
+            }
+            """,
+            "Other.swift": """
+            struct Other { }
+            """
+        ])
+
+        let flagged = issues.map(\.message)
+        #expect(flagged.contains { $0.contains("label") })
+    }
+
+    @Test func flagsMemberInActor() {
+        let issues = analyze(files: [
+            "Store.swift": """
+            actor Store {
+                func reset() { }
+            }
+            """,
+            "Other.swift": """
+            struct Other { }
+            """
+        ])
+
+        let flagged = issues.map(\.message)
+        #expect(flagged.contains { $0.contains("reset") })
+    }
+
+    // MARK: - Closure and Accessor Nesting
+
+    @Test func doesNotFlagLocalFunctionInsideClosure() {
+        let issues = analyze(files: [
+            "Widget.swift": """
+            struct Widget {
+                func render() {
+                    let block = {
+                        func localHelper() { }
+                        localHelper()
+                    }
+                    block()
+                }
+            }
+            """,
+            "Other.swift": """
+            struct Other { }
+            """
+        ])
+
+        let flagged = issues.map(\.message)
+        #expect(flagged.contains { $0.contains("localHelper") } == false)
+    }
+
+    // MARK: - Skip @objc Members
+
+    @Test func skipsObjcMember() {
+        let issues = analyze(files: [
+            "Handler.swift": """
+            class Handler {
+                @objc func tapped() { }
+            }
+            """,
+            "Other.swift": """
+            struct Other { }
+            """
+        ])
+
+        let flagged = issues.map(\.message)
+        #expect(flagged.contains { $0.contains("tapped") } == false)
+    }
+
+    // MARK: - Skip Operators
+
+    @Test func skipsOperatorMethods() {
+        let issues = analyze(files: [
+            "Token.swift": """
+            struct Token {
+                static func ==(lhs: Token, rhs: Token) -> Bool { true }
+                static func <(lhs: Token, rhs: Token) -> Bool { true }
+            }
+            """,
+            "Other.swift": """
+            struct Other { }
+            """
+        ])
+
+        let flagged = issues.map(\.message)
+        #expect(flagged.contains { $0.contains("==") } == false)
+        #expect(flagged.contains { $0.contains("<") } == false)
+    }
+
+    // MARK: - Skip Members Inside Private Types
+
+    @Test func skipsMethodInsidePrivateStruct() {
+        let issues = analyze(files: [
+            "Internal.swift": """
+            private struct Internal {
+                func helper() { }
+            }
+            """,
+            "Other.swift": """
+            struct Other { }
+            """
+        ])
+
+        let flagged = issues.map(\.message)
+        #expect(flagged.contains { $0.contains("helper") } == false)
+    }
+
+    // MARK: - Struct Stored Properties Without Defaults
+
+    @Test func skipsStructStoredPropertyWithoutDefault() {
+        let issues = analyze(files: [
+            "Config.swift": """
+            struct Config {
+                var name: String
+                var count: Int
+            }
+            """,
+            "Other.swift": """
+            struct Other { }
+            """
+        ])
+
+        let flagged = issues.map(\.message)
+        #expect(flagged.contains { $0.contains("name") } == false)
+        #expect(flagged.contains { $0.contains("count") } == false)
+    }
+
+    // MARK: - Existing tests
+
     @Test func flagsPropertyOnlyUsedLocally() {
         let issues = analyze(files: [
             "Helper.swift": """
