@@ -134,8 +134,8 @@ struct RuleSelectionDialogTests {
         )
         let inspected = try view.inspect()
         let toggles = inspected.findAll(ViewType.Toggle.self)
-        // 4 patterns × 3 toggles each (enabled, exclude tests, exclude views)
-        #expect(toggles.count == 12)
+        // 4 patterns × 1 toggle each (enabled checkbox in sidebar row)
+        #expect(toggles.count == 4)
     }
 
     // MARK: - Select All Action
@@ -204,9 +204,8 @@ struct RuleSelectionDialogTests {
         }
         try resetButton?.tap()
 
-        // defaultRuleName is .relatedDuplicateStateVariable
-        #expect(enabled.count == 1)
-        #expect(enabled.contains(.relatedDuplicateStateVariable))
+        // Reset enables all rules
+        #expect(enabled == Set(RuleIdentifier.allCases))
     }
 
     // MARK: - Save Action

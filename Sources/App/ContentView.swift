@@ -53,15 +53,20 @@ struct ContentView: View {
             }
             .frame(minWidth: 600, minHeight: 400)
             .navigationTitle("Project Linter")
-            .sheet(isPresented: $viewModel.showRuleSelector) {
-                RuleSelectionDialog(
-                    allPatternsByCategory: viewModel.allPatternsByCategory,
-                    enabledRuleNames: $viewModel.enabledRuleNames,
-                    ruleExclusions: $viewModel.ruleExclusions,
-                    configIsDirty: viewModel.configIsDirty,
-                    onSave: viewModel.saveEnabledRules,
-                    onSaveConfig: viewModel.saveConfigToProject
-                )
+            .onChange(of: viewModel.showRuleSelector) { _, show in
+                if show {
+                    RuleSelectionWindowController.shared.show(
+                        config: RuleSelectionConfig(
+                            allPatternsByCategory: viewModel.allPatternsByCategory,
+                            enabledRuleNames: $viewModel.enabledRuleNames,
+                            ruleExclusions: $viewModel.ruleExclusions,
+                            configIsDirty: viewModel.configIsDirty,
+                            onSave: viewModel.saveEnabledRules,
+                            onSaveConfig: viewModel.saveConfigToProject,
+                            onDismiss: { viewModel.showRuleSelector = false }
+                        )
+                    )
+                }
             }
             .fileImporter(isPresented: $viewModel.showingDirectoryPicker, allowedContentTypes: [.folder]) { result in
                 switch result {

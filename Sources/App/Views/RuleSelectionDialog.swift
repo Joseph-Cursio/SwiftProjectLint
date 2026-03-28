@@ -21,14 +21,18 @@ struct RuleSelectionDialog: View {
     var configIsDirty: Bool
     var onSave: () -> Void
     var onSaveConfig: () -> Void
+    var onDismiss: (() -> Void)?
     @Environment(\.dismiss) private var dismiss
 
     @State private var selectedRule: RuleIdentifier?
+    @State private var selectedCategory: PatternCategory?
+    @State private var listRefreshToken = UUID()
 
     private func enabledBinding(for rule: RuleIdentifier) -> Binding<Bool> {
         Binding(
             get: { enabledRuleNames.contains(rule) },
             set: { isOn in
+                selectedRule = rule
                 if isOn {
                     enabledRuleNames.insert(rule)
                 } else {
@@ -60,98 +64,159 @@ struct RuleSelectionDialog: View {
         )
     }
 
+    private func closeWindow() {
+        if let onDismiss {
+            RuleSelectionWindowController.shared.close()
+            onDismiss()
+        } else {
+            dismiss()
+        }
+    }
+
     private var allRuleNames: Set<RuleIdentifier> {
         Set(allPatternsByCategory.flatMap { $0.patterns.map(\.name) })
     }
 
+    private var filteredPatternsByCategory: [PatternCategoryInfo] {
+        let source = selectedCategory == nil
+            ? allPatternsByCategory
+            : allPatternsByCategory.filter { $0.category == selectedCategory }
+        return source
+            .sorted { $0.display < $1.display }
+            .map { group in
+                PatternCategoryInfo(
+                    category: group.category,
+                    display: group.display,
+                    patterns: group.patterns.sorted { $0.name.rawValue < $1.name.rawValue },
+                    useSwiftSyntax: group.useSwiftSyntax
+                )
+            }
+    }
+
     // swiftprojectlint:disable:next large-view-body
     var body: some View {
-        NavigationSplitView {
-            List(selection: $selectedRule) {
-                ruleListHeader
-                ForEach(allPatternsByCategory, id: \.category) { group in
-                    Section(group.display) {
-                        ForEach(group.patterns, id: \.name) { pattern in
-                            ruleRow(for: pattern)
+        VStack(spacing: 0) {
+            // Toolbar
+            HStack {
+                Picker("Category", selection: $selectedCategory) {
+                    Text("All Categories").tag(nil as PatternCategory?)
+                    Divider()
+                    ForEach(allPatternsByCategory.sorted { $0.display < $1.display }, id: \.category) { group in
+                        Text(group.display).tag(group.category as PatternCategory?)
+                    }
+                }
+                .frame(width: 220)
+                Button("Select All") {
+                    enabledRuleNames = allRuleNames
+                    listRefreshToken = UUID()
+                }
+                Button("Deselect All") {
+                    selectedRule = nil
+                    enabledRuleNames = []
+                    listRefreshToken = UUID()
+                }
+                Button("Reset to Default") {
+                    enabledRuleNames = Set(RuleIdentifier.allCases)
+                    ruleExclusions = [:]
+                    listRefreshToken = UUID()
+                }
+                Spacer()
+                if configIsDirty {
+                    Button("Save Config", action: onSaveConfig)
+                        .help("Save rule exclusions to .swiftprojectlint.yml")
+                }
+                Button("Cancel") { closeWindow() }
+                Button("Save") { onSave(); closeWindow() }
+                    .buttonStyle(.borderedProminent)
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 8)
+
+            Divider()
+
+            // List + Detail
+            HStack(spacing: 0) {
+                List(selection: $selectedRule) {
+                    ForEach(filteredPatternsByCategory, id: \.category) { group in
+                        Section {
+                            ForEach(group.patterns, id: \.name) { pattern in
+                                ruleRow(for: pattern)
+                            }
+                        } header: {
+                            Text(group.display)
+                                .font(.title3)
+                                .fontWeight(.semibold)
+                                .foregroundStyle(.primary)
+                                .textCase(nil)
                         }
                     }
                 }
-            }
-            .navigationSplitViewColumnWidth(min: 380, ideal: 440)
-            .toolbar {
-                ToolbarItemGroup(placement: .automatic) {
-                    Button("Select All") { enabledRuleNames = allRuleNames }
-                    Spacer()
-                    Button("Reset to Default") {
-                        enabledRuleNames = [.relatedDuplicateStateVariable]
-                        ruleExclusions = [:]
+                .listStyle(.sidebar)
+                .id(listRefreshToken)
+                .frame(width: 400)
+
+                Divider()
+
+                // Detail panel
+                Group {
+                    if let rule = selectedRule {
+                        VStack(alignment: .leading, spacing: 0) {
+                            ruleControlsBar(for: rule)
+                            Divider()
+                            RuleDocView(rule: rule)
+                        }
+                    } else {
+                        ContentUnavailableView(
+                            "No Rule Selected",
+                            systemImage: "doc.text.magnifyingglass",
+                            description: Text(
+                                "Select a rule from the sidebar "
+                                + "to view its documentation."
+                            )
+                        )
                     }
                 }
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
-                }
-                ToolbarItemGroup(placement: .confirmationAction) {
-                    if configIsDirty {
-                        Button("Save Config", action: onSaveConfig)
-                            .help("Save rule exclusions to .swiftprojectlint.yml")
-                    }
-                    Button("Save") { onSave(); dismiss() }
-                }
-            }
-        } detail: {
-            if let rule = selectedRule {
-                RuleDocView(rule: rule)
-                    .navigationTitle(rule.rawValue)
-            } else {
-                ContentUnavailableView(
-                    "No Rule Selected",
-                    systemImage: "doc.text.magnifyingglass",
-                    description: Text("Select a rule from the sidebar to view its documentation.")
-                )
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
-        .frame(minWidth: 960, minHeight: 560)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
-    private var ruleListHeader: some View {
-        HStack(spacing: 0) {
-            Text("Rule")
-                .frame(maxWidth: .infinity, alignment: .leading)
-            Text("No Tests")
-                .frame(width: 62)
+    private func ruleControlsBar(for rule: RuleIdentifier) -> some View {
+        HStack(spacing: 16) {
+            Toggle("Enabled", isOn: enabledBinding(for: rule))
+                .toggleStyle(.checkbox)
+            Divider().frame(height: 16)
+            Toggle("Exclude Tests/", isOn: excludeTestsBinding(for: rule))
+                .toggleStyle(.checkbox)
                 .help("Exclude test files (Tests/) from this rule")
-            Text("No Views")
-                .frame(width: 62)
+            Toggle("Exclude *View.swift", isOn: excludeViewsBinding(for: rule))
+                .toggleStyle(.checkbox)
                 .help("Exclude *View.swift files from this rule")
+            Spacer()
         }
-        .font(.caption)
-        .foregroundStyle(.secondary)
-        .listRowSeparator(.hidden)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 8)
     }
 
     private func ruleRow(for pattern: DetectionPattern) -> some View {
-        HStack(spacing: 0) {
+        HStack(spacing: 10) {
             Toggle("", isOn: enabledBinding(for: pattern.name))
                 .toggleStyle(.checkbox)
                 .labelsHidden()
+                .focusable(false)
             VStack(alignment: .leading, spacing: 2) {
                 Text(pattern.name.rawValue)
                     .fontWeight(.medium)
+                    .lineLimit(1)
                 Text(pattern.suggestion)
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            Toggle("", isOn: excludeTestsBinding(for: pattern.name))
-                .toggleStyle(.checkbox)
-                .labelsHidden()
-                .frame(width: 62)
-            Toggle("", isOn: excludeViewsBinding(for: pattern.name))
-                .toggleStyle(.checkbox)
-                .labelsHidden()
-                .frame(width: 62)
+            Spacer()
         }
+        .contentShape(Rectangle())
         .tag(pattern.name)
     }
 

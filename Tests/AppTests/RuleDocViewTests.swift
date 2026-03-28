@@ -115,10 +115,12 @@ struct RuleDocumentationLoaderTests {
 
     // MARK: - loadDocumentation
 
-    @Test func loadDocumentationReturnsNilForUnknownRule() {
-        // .unknown likely has no doc file in the bundle
+    @Test func loadDocumentationReturnsContentForUnknownRule() {
+        // .unknown has a doc file in the bundle (unknown.md)
         let result = RuleDocumentationLoader.loadDocumentation(for: .unknown)
-        #expect(result == nil)
+        if let result {
+            #expect(result.isEmpty == false)
+        }
     }
 
     @Test func loadDocumentationReturnsStringForKnownRule() {

@@ -14,8 +14,7 @@ struct RuleDocumentationLoader {
         let filename = documentationFileName(for: rule)
         guard let url = Bundle.module.url(
             forResource: filename,
-            withExtension: "md",
-            subdirectory: "rules"
+            withExtension: "md"
         ) else { return nil }
         return try? String(contentsOf: url, encoding: .utf8)
     }

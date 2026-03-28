@@ -43,6 +43,11 @@ struct SwiftProjectLintApp: App {
             ContentView()
                 .environmentObject(systemComponents)
                 .task {
+                    // SPM-built executables launch as background processes.
+                    // Activate as a regular foreground app so keyboard input works.
+                    NSApplication.shared.setActivationPolicy(.regular)
+                    NSApplication.shared.activate(ignoringOtherApps: true)
+
                     // Initialize system components after the view hierarchy is set up
                     if systemComponents.patternRegistry == nil {
                         await systemComponents.initialize()
