@@ -57,6 +57,12 @@ class ContentViewModel {
     /// Inject a mock for testing without filesystem access.
     var configPersistence: any ConfigurationPersistenceProtocol = YAMLConfigurationPersistence()
 
+    /// Directory tree for the selected project. Populated on folder selection.
+    var directoryTree: DirectoryNode?
+
+    /// Incremented on every tree toggle to force SwiftUI refresh.
+    var treeVersion: Int = 0
+
     private let userDefaultsKey = "enabledLintRules"
 
     // MARK: - Computed Properties
@@ -122,6 +128,35 @@ class ContentViewModel {
         }
         ruleExclusions = exclusions
         configIsDirty = false
+
+        // Scan directory tree and apply loaded exclusions
+        scanDirectoryTree(excludedPaths: config.excludedPaths)
+    }
+
+    /// Scans the project directory structure and builds the check tree.
+    func scanDirectoryTree(excludedPaths: [String] = []) {
+        guard selectedDirectory.isEmpty == false else { return }
+        Task {
+            let tree = await DirectoryScanner.scan(rootPath: selectedDirectory)
+            if excludedPaths.isEmpty == false {
+                tree.applyExcludedPaths(excludedPaths)
+            }
+            directoryTree = tree
+            treeVersion += 1
+        }
+    }
+
+    /// Toggles a directory node's check state and recomputes ancestors.
+    func toggleDirectoryNode(_ node: DirectoryNode) {
+        let newState = node.checkState != .unchecked ? false : true
+        node.setChecked(newState)
+        node.recomputeAncestorStates()
+        treeVersion += 1
+    }
+
+    /// Returns excluded directory paths derived from the tree state.
+    func computeExcludedPathsFromTree() -> [String] {
+        directoryTree?.computeExcludedPaths() ?? []
     }
 
     /// Builds a `LintConfiguration` from the current GUI state.
@@ -154,6 +189,7 @@ class ContentViewModel {
 
         return LintConfiguration(
             disabledRules: disabledRules,
+            excludedPaths: computeExcludedPathsFromTree(),
             ruleOverrides: overrides
         )
     }

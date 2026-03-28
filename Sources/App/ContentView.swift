@@ -38,36 +38,38 @@ struct ContentView: View {
                 // Action Buttons
                 ContentViewActions(
                     selectedDirectory: viewModel.selectedDirectory,
-                    onSelectRules: { viewModel.showRuleSelector = true },
+                    onSelectRules: { showRuleSelectionWindow() },
                     onSelectDirectory: viewModel.selectDirectory,
                     onAnalyzeProject: viewModel.analyzeProject
                 )
+
+                // Directory Tree — expands to fill remaining space
+                if let tree = viewModel.directoryTree {
+                    DirectoryTreeView(
+                        tree: tree,
+                        projectPath: viewModel.selectedDirectory,
+                        treeVersion: viewModel.treeVersion,
+                        onToggle: viewModel.toggleDirectoryNode,
+                        onCheckAll: {
+                            tree.setChecked(true)
+                            viewModel.treeVersion += 1
+                        },
+                        onUncheckAll: {
+                            tree.setChecked(false)
+                            viewModel.treeVersion += 1
+                        }
+                    )
+                    .frame(maxHeight: .infinity)
+                }
 
                 // Analysis Progress
                 ContentViewProgress(isAnalyzing: viewModel.isAnalyzing)
 
                 // Results
                 ContentViewResults(lintIssues: viewModel.lintIssues, isAnalyzing: viewModel.isAnalyzing)
-
-                Spacer()
             }
             .frame(minWidth: 600, minHeight: 400)
             .navigationTitle("Project Linter")
-            .onChange(of: viewModel.showRuleSelector) { _, show in
-                if show {
-                    RuleSelectionWindowController.shared.show(
-                        config: RuleSelectionConfig(
-                            allPatternsByCategory: viewModel.allPatternsByCategory,
-                            enabledRuleNames: $viewModel.enabledRuleNames,
-                            ruleExclusions: $viewModel.ruleExclusions,
-                            configIsDirty: viewModel.configIsDirty,
-                            onSave: viewModel.saveEnabledRules,
-                            onSaveConfig: viewModel.saveConfigToProject,
-                            onDismiss: { viewModel.showRuleSelector = false }
-                        )
-                    )
-                }
-            }
             .fileImporter(isPresented: $viewModel.showingDirectoryPicker, allowedContentTypes: [.folder]) { result in
                 switch result {
                 case .success(let url):
@@ -96,6 +98,20 @@ struct ContentView: View {
                 viewModel.cancelAnalysis()
             }
         }
+    }
+
+    private func showRuleSelectionWindow() {
+        RuleSelectionWindowController.shared.show(
+            config: RuleSelectionConfig(
+                allPatternsByCategory: viewModel.allPatternsByCategory,
+                enabledRuleNames: $viewModel.enabledRuleNames,
+                ruleExclusions: $viewModel.ruleExclusions,
+                configIsDirty: viewModel.configIsDirty,
+                onSave: viewModel.saveEnabledRules,
+                onSaveConfig: viewModel.saveConfigToProject,
+                onDismiss: {}
+            )
+        )
     }
 
     /// A static factory for testing purposes that hosts ContentView with a proper @State environment.

@@ -56,7 +56,7 @@ public struct FileAnalysisUtils {
 
     /// Directories to skip during file enumeration. These are build artifacts,
     /// dependency checkouts, and VCS directories that should never be linted.
-    private static let skippedDirectories: Set<String> = [
+    static let skippedDirectories: Set<String> = [
         ".build", ".git", ".swiftpm", "DerivedData", "Pods",
         ".hg", ".svn", "node_modules", "Carthage"
     ]
