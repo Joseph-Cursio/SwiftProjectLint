@@ -24,6 +24,7 @@ final class RuleSelectionWindowController {
     static let shared = RuleSelectionWindowController()
 
     private var window: NSWindow?
+    private var windowDelegate: WindowCloseDelegate?
 
     func show(config: RuleSelectionConfig) {
         // Close existing window if open
@@ -53,7 +54,9 @@ final class RuleSelectionWindowController {
         newWindow.minSize = NSSize(width: 900, height: 500)
         newWindow.center()
         newWindow.isReleasedWhenClosed = false
-        newWindow.delegate = WindowCloseDelegate(onClose: config.onDismiss)
+        let delegate = WindowCloseDelegate(onClose: config.onDismiss)
+        self.windowDelegate = delegate
+        newWindow.delegate = delegate
 
         newWindow.makeKeyAndOrderFront(nil)
         self.window = newWindow
@@ -62,6 +65,7 @@ final class RuleSelectionWindowController {
     func close() {
         window?.close()
         window = nil
+        windowDelegate = nil
     }
 }
 

@@ -174,9 +174,9 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
         if name.hasSuffix(".pb.swift") || name.hasSuffix(".generated.swift") {
             return true
         }
-        guard let handle = FileHandle(forReadingAtPath: filePath),
-              let data = try? handle.read(upToCount: 512),
-              let header = String(bytes: data, encoding: .utf8) else { return false }
+        guard let handle = FileHandle(forReadingAtPath: filePath) else { return false }
+        let data = handle.readData(ofLength: 512)
+        guard let header = String(bytes: data, encoding: .utf8) else { return false }
         let firstLines = header.components(separatedBy: .newlines).prefix(5).joined(separator: "\n")
         return firstLines.contains("DO NOT EDIT") || firstLines.contains("Code generated")
     }

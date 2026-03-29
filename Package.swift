@@ -4,7 +4,8 @@ import PackageDescription
 let package = Package(
     name: "SwiftProjectLint",
     platforms: [
-        .macOS(.v14)
+        .macOS(.v26),
+        .iOS(.v26)
     ],
     products: [
         .library(

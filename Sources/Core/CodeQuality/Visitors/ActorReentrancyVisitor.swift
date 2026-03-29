@@ -144,7 +144,7 @@ final class ActorReentrancyVisitor: BasePatternVisitor {
             return // Don't recurse further into this await
         }
 
-        if let forIn = syntax.as(ForInStmtSyntax.self) {
+        if let forIn = syntax.as(ForStmtSyntax.self) {
             // If the for-in body contains an await, the sequence variable is an await operand.
             // e.g. `for handler in handlers { try await handler(msg) }` → "handlers"
             if syntaxContainsAwait(Syntax(forIn.body)) {
