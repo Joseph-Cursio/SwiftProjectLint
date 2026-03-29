@@ -69,6 +69,7 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
     case emptyCatch = "Empty Catch"
     case todoComment = "TODO Comment"
     case swiftlintSuppression = "SwiftLint Suppression"
+    case swiftprojectlintSuppression = "SwiftProjectLint Suppression"
     case taskDetached = "Task Detached"
     case asyncLetUnused = "Async Let Unused"
     case buttonClosureWrapping = "Button Closure Wrapping"
@@ -169,7 +170,8 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
              .nonActorAgentSuffix, .propertyWrapperNamingSuffix,
              .macroNegation, .testMissingRequire, .testMissingAssertion,
              .testMissingExpect, .lowercasedContains, .multipleTypesPerFile, .actorReentrancy,
-             .forceTry, .forceUnwrap, .printStatement, .emptyCatch, .todoComment, .swiftlintSuppression,
+             .forceTry, .forceUnwrap, .printStatement, .emptyCatch,
+             .todoComment, .swiftlintSuppression, .swiftprojectlintSuppression,
              .taskDetached, .asyncLetUnused, .buttonClosureWrapping,
              .nonisolatedUnsafe, .taskYieldOffload, .swallowedTaskError,
              .couldBePrivate, .publicInAppTarget, .couldBePrivateMember,

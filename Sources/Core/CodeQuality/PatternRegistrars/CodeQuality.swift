@@ -133,7 +133,8 @@ class CodeQuality: BasePatternRegistrar {
             TestMissingRequire(),
             TestMissingAssertion(),
             TestMissingExpect(),
-            SwiftLintSuppression()
+            SwiftLintSuppression(),
+            SwiftProjectLintSuppression()
         ])
     }
 }
