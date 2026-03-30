@@ -1,6 +1,6 @@
 # SwiftProjectLint Rules Reference
 
-SwiftProjectLint is a static analysis tool for SwiftUI projects. It parses Swift source files using SwiftSyntax AST visitors to detect anti-patterns spanning state management, performance, animations, architecture, code quality, security, accessibility, memory management, networking, UI patterns, and modernization. This reference documents all 90 lint rules, organized by category.
+SwiftProjectLint is a static analysis tool for SwiftUI projects. It parses Swift source files using SwiftSyntax AST visitors to detect anti-patterns spanning state management, performance, animations, architecture, code quality, security, accessibility, memory management, networking, UI patterns, and modernization. This reference documents all 97 lint rules, organized by category.
 
 Rules marked **opt-in** are disabled by default and must be explicitly listed under `enabled_only` in `.swiftprojectlint.yml`.
 
@@ -17,6 +17,7 @@ Rules marked **opt-in** are disabled by default and must be explicitly listed un
 | [Unused State Variable](unused-state-variable.md) | Warning |
 | [Fat View](fat-view.md) | Warning |
 | [ObservedObject Inline](observed-object-inline.md) | Warning |
+| [Too Many Environment Objects](too-many-environment-objects.md) | Warning |
 
 ## Performance
 
@@ -28,6 +29,8 @@ Rules marked **opt-in** are disabled by default and must be explicitly listed un
 | [Large View Helper](large-view-helper.md) | Warning |
 | [ForEach Self ID](for-each-self-id.md) | Warning |
 | [Unnecessary View Update](unnecessary-view-update.md) | Warning |
+| [ViewBuilder Complexity](view-builder-complexity.md) | Warning |
+| [Custom Modifier Performance](custom-modifier-performance.md) | Warning |
 
 ## Animation
 
@@ -55,6 +58,9 @@ Rules marked **opt-in** are disabled by default and must be explicitly listed un
 | [Accessing Implementation Details](accessing-implementation-details.md) | Warning |
 | [Singleton Usage](singleton-usage.md) | Warning |
 | [Law of Demeter](law-of-demeter.md) | Info |
+| [Fat Protocol](fat-protocol.md) | Info |
+| [Single Implementation Protocol](single-implementation-protocol.md) | Info |
+| [Mirror Protocol](mirror-protocol.md) | Info |
 
 ## Code Quality
 
@@ -134,6 +140,7 @@ Rules marked **opt-in** are disabled by default and must be explicitly listed un
 | [ForEach Without ID (UI)](for-each-without-id-ui.md) | Warning |
 | [Inconsistent Styling](inconsistent-styling.md) | Info |
 | [Basic Error Handling](basic-error-handling.md) | Info |
+| [Modifier Order Issue](modifier-order-issue.md) | Warning |
 
 ## Modernization
 
