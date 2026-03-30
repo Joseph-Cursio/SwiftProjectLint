@@ -1,6 +1,7 @@
 import Foundation
 import SwiftParser
 @testable import Core
+@testable import SwiftProjectLintRules
 
 // MARK: - Accessibility
 

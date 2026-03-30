@@ -3,6 +3,7 @@ import Foundation
 import SwiftSyntax
 import SwiftParser
 @testable import Core
+@testable import SwiftProjectLintRules
 
 /// Coverage tests for uncovered paths in StateVariableVisitor.swift:
 /// - inferTypeFromText branches: Bool text, numeric text, string literal, function call,

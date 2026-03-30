@@ -3,6 +3,7 @@ import Foundation
 import SwiftSyntax
 import SwiftParser
 @testable import Core
+@testable import SwiftProjectLintRules
 
 @Suite("ButtonAccessibilityChecker Coverage Tests")
 struct ButtonAccessibilityCheckerCoverageTests {

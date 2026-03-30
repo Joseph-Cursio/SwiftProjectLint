@@ -3,6 +3,7 @@ import SwiftParser
 import SwiftSyntax
 import Testing
 @testable import Core
+@testable import SwiftProjectLintRules
 
 @Suite("SyntaxPatternDetectorPerfTests")
 struct DetectorPerformanceTests {

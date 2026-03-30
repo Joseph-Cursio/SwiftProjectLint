@@ -3,6 +3,7 @@ import Foundation
 import SwiftParser
 import SwiftSyntax
 @testable import Core
+@testable import SwiftProjectLintRules
 
 /// Coverage tests for uncovered paths in HardcodedStringVisitor.swift:
 /// - Multi-segment string literal early return (line 56)

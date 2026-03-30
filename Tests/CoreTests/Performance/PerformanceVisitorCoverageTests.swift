@@ -2,6 +2,7 @@ import Testing
 import SwiftSyntax
 import SwiftParser
 @testable import Core
+@testable import SwiftProjectLintRules
 
 /// Coverage tests for uncovered paths in PerformanceVisitor.swift:
 /// - body computed property with getter accessing large view body (line 56, 61-73)

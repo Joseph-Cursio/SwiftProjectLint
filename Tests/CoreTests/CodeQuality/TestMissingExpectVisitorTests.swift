@@ -2,6 +2,7 @@ import Testing
 import SwiftSyntax
 import SwiftParser
 @testable import Core
+@testable import SwiftProjectLintRules
 
 @Suite
 struct TestMissingExpectVisitorTests {

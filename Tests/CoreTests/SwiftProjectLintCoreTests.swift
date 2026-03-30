@@ -7,6 +7,7 @@
 
 import Testing
 @testable import Core
+@testable import SwiftProjectLintRules
 
 @Suite("Core Module Tests")
 struct CoreModuleTests {

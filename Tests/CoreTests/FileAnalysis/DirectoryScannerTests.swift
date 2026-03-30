@@ -1,6 +1,7 @@
 import Foundation
 import Testing
 @testable import Core
+@testable import SwiftProjectLintRules
 
 // MARK: - Shared Helper
 

@@ -3,6 +3,7 @@ import Foundation
 import SwiftSyntax
 import SwiftParser
 @testable import Core
+@testable import SwiftProjectLintRules
 
 /// Tests for different property wrapper types detection
 @Suite

@@ -2,6 +2,7 @@ import Testing
 import SwiftParser
 import SwiftSyntax
 @testable import Core
+@testable import SwiftProjectLintRules
 
 /// Tests for SwiftUIManagementVisitor cross-file analysis and state object detection
 struct SwiftUIManagementVisitorCrossFileTests {

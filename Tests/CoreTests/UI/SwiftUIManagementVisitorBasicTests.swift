@@ -2,6 +2,7 @@ import Testing
 import SwiftParser
 import SwiftSyntax
 @testable import Core
+@testable import SwiftProjectLintRules
 
 /// Tests for SwiftUIManagementVisitor basic detection functionality
 struct SwiftUIManagementVisitorBasicTests {

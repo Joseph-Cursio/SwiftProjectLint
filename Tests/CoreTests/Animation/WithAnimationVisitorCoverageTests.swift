@@ -2,6 +2,7 @@ import Testing
 import SwiftSyntax
 import SwiftParser
 @testable import Core
+@testable import SwiftProjectLintRules
 
 /// Coverage tests for uncovered paths in WithAnimationVisitor.swift:
 /// - Default break case in pattern.name switch (line 32)

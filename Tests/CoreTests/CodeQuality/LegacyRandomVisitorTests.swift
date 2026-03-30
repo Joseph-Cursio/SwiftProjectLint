@@ -1,5 +1,6 @@
 import Testing
 @testable import Core
+@testable import SwiftProjectLintRules
 import SwiftSyntax
 import SwiftParser
 
