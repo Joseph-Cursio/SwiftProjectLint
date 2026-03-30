@@ -1,4 +1,5 @@
 @_exported import SwiftProjectLintConfig
+@_exported import SwiftProjectLintEngine
 @_exported import SwiftProjectLintModels
 @_exported import SwiftProjectLintRegistry
 @_exported import SwiftProjectLintRules

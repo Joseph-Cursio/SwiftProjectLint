@@ -1,3 +1,8 @@
+import SwiftProjectLintConfig
+import SwiftProjectLintModels
+import SwiftProjectLintRegistry
+import SwiftProjectLintRules
+import SwiftProjectLintVisitors
 import Foundation
 import SwiftParser
 import SwiftSyntax

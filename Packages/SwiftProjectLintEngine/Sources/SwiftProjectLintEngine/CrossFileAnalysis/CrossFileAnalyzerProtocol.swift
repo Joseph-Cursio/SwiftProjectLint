@@ -1,3 +1,8 @@
+import SwiftProjectLintConfig
+import SwiftProjectLintModels
+import SwiftProjectLintRegistry
+import SwiftProjectLintRules
+import SwiftProjectLintVisitors
 import SwiftSyntax
 
 /// Protocol for engines that detect lint issues spanning multiple files.
