@@ -1,3 +1,4 @@
+import SwiftProjectLintModels
 import Foundation
 
 /// Writes a `LintConfiguration` to a YAML file.

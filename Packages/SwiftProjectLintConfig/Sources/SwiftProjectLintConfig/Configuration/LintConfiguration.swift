@@ -1,3 +1,4 @@
+import SwiftProjectLintModels
 import Foundation
 
 /// Configuration for controlling which rules run and how they behave.

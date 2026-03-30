@@ -1,3 +1,4 @@
+import SwiftProjectLintModels
 import Foundation
 import Yams
 

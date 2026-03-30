@@ -1,3 +1,4 @@
+import SwiftProjectLintModels
 import Foundation
 
 /// Parses `Package.swift` to identify source directories belonging to executable targets.
@@ -7,13 +8,13 @@ import Foundation
 ///
 /// Handles both the default source convention (`Sources/<name>/`) and targets with
 /// an explicit `path:` parameter.
-struct ExecutableTargetDetector {
+public struct ExecutableTargetDetector {
 
     /// Returns source-relative path prefixes for all executable targets declared in
     /// `Package.swift` at the given project root.
     ///
     /// Example return value: `["Sources/swift-assist-cli/", "Sources/tool/"]`
-    static func executableSourcePaths(in projectRoot: String) -> [String] {
+    public static func executableSourcePaths(in projectRoot: String) -> [String] {
         let packagePath = (projectRoot as NSString).appendingPathComponent("Package.swift")
         guard let content = try? String(contentsOfFile: packagePath) else { return [] }
         return parseExecutableTargets(from: content)

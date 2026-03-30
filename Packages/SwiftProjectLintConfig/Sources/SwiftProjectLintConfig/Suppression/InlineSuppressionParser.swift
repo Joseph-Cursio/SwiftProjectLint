@@ -1,3 +1,4 @@
+import SwiftProjectLintModels
 import Foundation
 
 /// A parsed inline suppression directive from a Swift source comment.
