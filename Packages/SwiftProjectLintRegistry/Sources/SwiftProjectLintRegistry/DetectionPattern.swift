@@ -1,4 +1,5 @@
 import Foundation
+import SwiftProjectLintModels
 
 // MARK: - Detection Pattern (UI Compatibility)
 

@@ -6,6 +6,8 @@
 //
 import Foundation
 import SwiftParser
+import SwiftProjectLintModels
+import SwiftProjectLintVisitors
 import SwiftSyntax
 
 // Safety: @unchecked Sendable — all mutable state (`patterns`, `visitorsByCategory`)
@@ -68,7 +70,7 @@ public final class PatternVisitorRegistry: PatternVisitorRegistryProtocol, @unch
     /// Retrieves all registered visitor types.
     ///
     /// - Returns: An array of all registered visitor types.
-    func getAllVisitors() -> [PatternVisitorProtocol.Type] {
+    public func getAllVisitors() -> [PatternVisitorProtocol.Type] {
         lock.withLock {
             patterns.map { $0.visitor }
         }
@@ -87,7 +89,7 @@ public final class PatternVisitorRegistry: PatternVisitorRegistryProtocol, @unch
     ///
     /// - Parameter category: The pattern category to retrieve patterns for.
     /// - Returns: An array of syntax patterns for the specified category.
-    func getPatterns(for category: PatternCategory) -> [SyntaxPattern] {
+    public func getPatterns(for category: PatternCategory) -> [SyntaxPattern] {
         lock.withLock {
             patterns.filter { $0.category == category }
         }

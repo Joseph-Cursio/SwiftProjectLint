@@ -1,5 +1,7 @@
 import Foundation
 import SwiftParser
+import SwiftProjectLintModels
+import SwiftProjectLintVisitors
 import SwiftSyntax
 
 /// Runs registered pattern visitors against Swift source files and aggregates lint issues.

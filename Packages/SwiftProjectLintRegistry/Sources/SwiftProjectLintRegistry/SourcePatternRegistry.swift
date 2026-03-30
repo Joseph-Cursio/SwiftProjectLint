@@ -1,4 +1,6 @@
 import Foundation
+import SwiftProjectLintModels
+import SwiftProjectLintVisitors
 import SwiftSyntax
 
 // Safety: @unchecked Sendable — `isInitialized` is protected by `lock` (NSLock).
@@ -27,10 +29,9 @@ public final class SourcePatternRegistry: SourcePatternRegistryProtocol, @unchec
     /// Registered factory closures that create registrars on demand.
     /// Each factory receives the registry and visitor registry, and returns
     /// a registrar whose `registerPatterns()` will be called during initialization.
-    // Safety: both `registrarFactories` and `builtInsRegistered` are protected by `factoryLock`.
+    // Safety: `registrarFactories` is protected by `factoryLock`.
     nonisolated(unsafe) private static var registrarFactories: [(SourcePatternRegistry, PatternVisitorRegistry) -> PatternRegistrarWithVisitorProtocol] = []
     private static let factoryLock = NSLock()
-    nonisolated(unsafe) private static var builtInsRegistered = false
 
     /// Registers a factory closure that will be called during `initialize()` to
     /// create and register a category's patterns.
@@ -41,48 +42,6 @@ public final class SourcePatternRegistry: SourcePatternRegistryProtocol, @unchec
     ) {
         factoryLock.withLock {
             registrarFactories.append(factory)
-        }
-    }
-
-    /// Registers the built-in category factories. Called once before initialization.
-    private static func registerBuiltInFactories() {
-        factoryLock.withLock {
-            guard !builtInsRegistered else { return }
-            builtInsRegistered = true
-        }
-
-        registerFactory { registry, visitorRegistry in
-            StateManagement(registry: registry, visitorRegistry: visitorRegistry)
-        }
-        registerFactory { registry, visitorRegistry in
-            Performance(registry: registry, visitorRegistry: visitorRegistry)
-        }
-        registerFactory { registry, visitorRegistry in
-            Security(registry: registry, visitorRegistry: visitorRegistry)
-        }
-        registerFactory { registry, visitorRegistry in
-            Accessibility(registry: registry, visitorRegistry: visitorRegistry)
-        }
-        registerFactory { registry, visitorRegistry in
-            MemoryManagement(registry: registry, visitorRegistry: visitorRegistry)
-        }
-        registerFactory { registry, visitorRegistry in
-            Networking(registry: registry, visitorRegistry: visitorRegistry)
-        }
-        registerFactory { registry, visitorRegistry in
-            CodeQuality(registry: registry, visitorRegistry: visitorRegistry)
-        }
-        registerFactory { registry, visitorRegistry in
-            Architecture(registry: registry, visitorRegistry: visitorRegistry)
-        }
-        registerFactory { registry, visitorRegistry in
-            UIPatterns(registry: registry, visitorRegistry: visitorRegistry)
-        }
-        registerFactory { registry, visitorRegistry in
-            Animation(registry: registry, visitorRegistry: visitorRegistry)
-        }
-        registerFactory { registry, visitorRegistry in
-            Modernization(registry: registry, visitorRegistry: visitorRegistry)
         }
     }
 
@@ -111,8 +70,6 @@ public final class SourcePatternRegistry: SourcePatternRegistryProtocol, @unchec
         }
         isInitialized = true
         lock.unlock()
-
-        Self.registerBuiltInFactories()
 
         let factories = Self.factoryLock.withLock { Self.registrarFactories }
         for factory in factories {
@@ -171,10 +128,9 @@ public final class SourcePatternRegistry: SourcePatternRegistryProtocol, @unchec
     }
 
     /// Resets factory state. Used by tests to ensure a clean slate.
-    static func resetFactories() {
+    public static func resetFactories() {
         factoryLock.withLock {
             registrarFactories.removeAll()
-            builtInsRegistered = false
         }
     }
 }

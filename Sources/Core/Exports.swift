@@ -1,2 +1,3 @@
 @_exported import SwiftProjectLintModels
+@_exported import SwiftProjectLintRegistry
 @_exported import SwiftProjectLintVisitors

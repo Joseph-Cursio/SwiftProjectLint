@@ -24,6 +24,7 @@ let package = Package(
     dependencies: [
         .package(path: "Packages/SwiftProjectLintModels"),
         .package(path: "Packages/SwiftProjectLintVisitors"),
+        .package(path: "Packages/SwiftProjectLintRegistry"),
         .package(url: "https://github.com/apple/swift-syntax.git", exact: "602.0.0"),
         .package(url: "https://github.com/nalexn/ViewInspector.git", from: "0.9.5"),
         .package(url: "https://github.com/apple/swift-argument-parser.git", from: "1.3.0"),
@@ -35,6 +36,7 @@ let package = Package(
             dependencies: [
                 "SwiftProjectLintModels",
                 "SwiftProjectLintVisitors",
+                "SwiftProjectLintRegistry",
                 .product(name: "SwiftSyntax", package: "swift-syntax"),
                 .product(name: "SwiftParser", package: "swift-syntax"),
                 .product(name: "Yams", package: "Yams")

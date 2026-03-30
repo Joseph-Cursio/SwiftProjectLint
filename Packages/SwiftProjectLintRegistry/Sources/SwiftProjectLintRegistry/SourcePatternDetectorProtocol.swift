@@ -4,6 +4,8 @@
 //
 //  Created by joe cursio on 7/14/25.
 //
+import SwiftProjectLintModels
+import SwiftProjectLintVisitors
 import SwiftSyntax
 
 /// Protocol for pattern detection operations.

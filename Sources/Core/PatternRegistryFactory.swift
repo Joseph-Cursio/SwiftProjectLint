@@ -59,6 +59,7 @@ public class PatternRegistryFactory {
     public static func createConfiguredSystem() -> PatternDetectionSystem {
         let visitorRegistry = createVisitorRegistry()
         let patternRegistry = createPatternRegistry(visitorRegistry: visitorRegistry)
+        BuiltInRules.registerAll()
         patternRegistry.initialize()
         let detector = createPatternDetector(registry: visitorRegistry)
 

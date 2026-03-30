@@ -4,6 +4,9 @@
 //
 //  Created by joe cursio on 7/14/25.
 //
+import SwiftProjectLintModels
+import SwiftProjectLintVisitors
+
 /// Protocol for pattern visitor registry operations
 
 public protocol PatternVisitorRegistryProtocol {
