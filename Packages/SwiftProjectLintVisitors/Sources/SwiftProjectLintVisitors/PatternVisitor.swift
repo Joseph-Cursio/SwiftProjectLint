@@ -4,6 +4,7 @@
 //
 //  Created by Joseph Cursio on 7/9/25.
 //
+import SwiftProjectLintModels
 import SwiftSyntax
 
 /// Protocol defining the interface for SwiftSyntax-based pattern visitors.

@@ -1,17 +1,18 @@
+import SwiftProjectLintModels
 import SwiftSyntax
 
 // MARK: - SwiftSyntax Convenience Extensions
 
 extension FunctionDeclSyntax {
     /// Direct accessor for the parameter list, avoiding deep signature navigation.
-    var parameterList: FunctionParameterListSyntax {
+    public var parameterList: FunctionParameterListSyntax {
         signature.parameterClause.parameters
     }
 }
 
 extension InitializerDeclSyntax {
     /// Direct accessor for the parameter list, avoiding deep signature navigation.
-    var parameterList: FunctionParameterListSyntax {
+    public var parameterList: FunctionParameterListSyntax {
         signature.parameterClause.parameters
     }
 }
@@ -24,7 +25,7 @@ extension InitializerDeclSyntax {
 ///
 /// The rule should only flag `\.self` on complex model types where a stable `id`
 /// property would be more appropriate.
-func isForEachCollectionSafeForSelfID(_ node: FunctionCallExprSyntax) -> Bool {
+public func isForEachCollectionSafeForSelfID(_ node: FunctionCallExprSyntax) -> Bool {
     guard let collectionArg = node.arguments.first(where: { $0.label?.text != "id" }) else {
         return false
     }
@@ -53,13 +54,13 @@ func isForEachCollectionSafeForSelfID(_ node: FunctionCallExprSyntax) -> Bool {
 }
 
 /// Returns whether the given struct declaration conforms to SwiftUI's `View` or `App` protocol.
-func isSwiftUIView(_ node: StructDeclSyntax) -> Bool {
+public func isSwiftUIView(_ node: StructDeclSyntax) -> Bool {
     let swiftUITypes: Set<String> = [SwiftUIProtocol.view.rawValue, SwiftUIProtocol.app.rawValue]
     return conformsToAny(node, protocols: swiftUITypes)
 }
 
 /// Returns whether the given struct conforms to `View` (but not `App`).
-func isSwiftUIViewOnly(_ node: StructDeclSyntax) -> Bool {
+public func isSwiftUIViewOnly(_ node: StructDeclSyntax) -> Bool {
     conformsToAny(node, protocols: [SwiftUIProtocol.view.rawValue])
 }
 
@@ -81,7 +82,7 @@ private func conformsToAny(_ node: StructDeclSyntax, protocols: Set<String>) -> 
 /// - `ForEach(expr.property)` where `property` has a `[TypeName]` type annotation → `"TypeName"`
 ///
 /// Returns `nil` when the element type cannot be determined from syntax alone.
-func inferForEachElementType(_ node: FunctionCallExprSyntax) -> String? {
+public func inferForEachElementType(_ node: FunctionCallExprSyntax) -> String? {
     // The collection is the first (non-id, non-content) argument.
     guard let collectionArg = node.arguments.first(where: { $0.label?.text != "id" }) else {
         return nil

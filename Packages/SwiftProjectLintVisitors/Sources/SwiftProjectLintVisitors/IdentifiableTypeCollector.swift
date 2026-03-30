@@ -5,31 +5,31 @@ import SwiftSyntax
 ///
 /// Used as a project-wide pre-scan so that per-file visitors can suppress
 /// false-positive "ForEach without ID" warnings when the element type is Identifiable.
-final class IdentifiableTypeCollector: SyntaxVisitor, TypeCollectorProtocol {
-    var collectedTypes: Set<String> { identifiableTypes }
+public final class IdentifiableTypeCollector: SyntaxVisitor, TypeCollectorProtocol {
+    public var collectedTypes: Set<String> { identifiableTypes }
 
     /// The set of type names found to conform to `Identifiable`.
     private(set) var identifiableTypes: Set<String> = []
 
-    init() {
+    public init() {
         super.init(viewMode: .sourceAccurate)
     }
 
-    override func visit(_ node: StructDeclSyntax) -> SyntaxVisitorContinueKind {
+    override public func visit(_ node: StructDeclSyntax) -> SyntaxVisitorContinueKind {
         if conformsToIdentifiable(node.inheritanceClause) {
             identifiableTypes.insert(node.name.text)
         }
         return .visitChildren
     }
 
-    override func visit(_ node: ClassDeclSyntax) -> SyntaxVisitorContinueKind {
+    override public func visit(_ node: ClassDeclSyntax) -> SyntaxVisitorContinueKind {
         if conformsToIdentifiable(node.inheritanceClause) {
             identifiableTypes.insert(node.name.text)
         }
         return .visitChildren
     }
 
-    override func visit(_ node: EnumDeclSyntax) -> SyntaxVisitorContinueKind {
+    override public func visit(_ node: EnumDeclSyntax) -> SyntaxVisitorContinueKind {
         if conformsToIdentifiable(node.inheritanceClause) {
             identifiableTypes.insert(node.name.text)
         }

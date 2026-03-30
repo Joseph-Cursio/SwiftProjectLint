@@ -5,6 +5,8 @@
 //  Created by joe cursio on 7/14/25.
 //
 
+import SwiftProjectLintModels
+
 // Safety: @unchecked Sendable because the only non-Sendable field is `visitor`
 // (a metatype `PatternVisitorProtocol.Type`). Metatypes are immutable and
 // inherently thread-safe — they carry no mutable state.

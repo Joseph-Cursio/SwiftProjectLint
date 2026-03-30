@@ -4,6 +4,7 @@
 //
 //  Created by Joseph Cursio on 7/9/25.
 //
+import SwiftProjectLintModels
 import SwiftSyntax
 
 /// Base implementation of `PatternVisitorProtocol` providing common functionality.
@@ -71,7 +72,7 @@ open class BasePatternVisitor: SyntaxVisitor, PatternVisitorProtocol {
         self.pattern = pattern
     }
 
-    public func reset() {
+    open func reset() {
         detectedIssues.removeAll()
     }
 
@@ -123,7 +124,7 @@ open class BasePatternVisitor: SyntaxVisitor, PatternVisitorProtocol {
     ///
     /// - Parameter node: The syntax node to get the line number for.
     /// - Returns: The line number where the node appears.
-    public func getLineNumber(for node: Syntax) -> Int {
+    open func getLineNumber(for node: Syntax) -> Int {
         guard let converter = sourceLocationConverter else { return 1 }
         let position = node.positionAfterSkippingLeadingTrivia
         let location = converter.location(for: position)
@@ -138,14 +139,14 @@ open class BasePatternVisitor: SyntaxVisitor, PatternVisitorProtocol {
         return filePath
     }
 
-    public func setSourceLocationConverter(_ converter: SourceLocationConverter) {
+    open func setSourceLocationConverter(_ converter: SourceLocationConverter) {
         self.sourceLocationConverter = converter
     }
 
     /// Sets the current file path for issue reporting.
     ///
     /// - Parameter filePath: The file path to set.
-    public func setFilePath(_ filePath: String) {
+    open func setFilePath(_ filePath: String) {
         self.filePath = filePath
     }
 

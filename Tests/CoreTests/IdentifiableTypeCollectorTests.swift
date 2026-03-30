@@ -10,7 +10,7 @@ struct IdentifiableTypeCollectorTests {
         let syntax = Parser.parse(source: source)
         let collector = IdentifiableTypeCollector()
         collector.walk(syntax)
-        return collector.identifiableTypes
+        return collector.collectedTypes
     }
 
     @Test func testCollectsIdentifiableStruct() {

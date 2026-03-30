@@ -5,7 +5,7 @@ import SwiftSyntax
 /// Conforming types walk Swift ASTs and gather type names into a set.
 /// `ProjectLinter` uses this protocol to run all collectors through a single
 /// generic scan method, eliminating code duplication.
-protocol TypeCollectorProtocol: SyntaxVisitor {
+public protocol TypeCollectorProtocol: SyntaxVisitor {
     /// Creates a new collector ready to walk an AST.
     init()
 

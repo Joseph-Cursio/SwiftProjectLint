@@ -1,1 +1,2 @@
 @_exported import SwiftProjectLintModels
+@_exported import SwiftProjectLintVisitors
