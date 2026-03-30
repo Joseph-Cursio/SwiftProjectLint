@@ -65,5 +65,6 @@ class Performance: BasePatternRegistrar {
             )
         ]
         registry.register(patterns: patterns)
+        registry.register(registrars: [ViewBuilderComplexity(), CustomModifierPerformance()])
     }
 }

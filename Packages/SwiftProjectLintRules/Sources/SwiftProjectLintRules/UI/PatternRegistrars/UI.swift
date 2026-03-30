@@ -74,5 +74,6 @@ class UIPatterns: BasePatternRegistrar {
             )
         ]
         registry.register(patterns: patterns)
+        registry.register(registrars: [ModifierOrder()])
     }
 }

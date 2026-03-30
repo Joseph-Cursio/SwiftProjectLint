@@ -16,6 +16,7 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
     case missingStateObject = "Missing StateObject"
     case unusedStateVariable = "Unused State Variable"
     case fatView = "Fat View"
+    case tooManyEnvironmentObjects = "Too Many Environment Objects"
 
     // Performance Rules
     case expensiveOperationInViewBody = "Expensive Operation in View Body"
@@ -24,6 +25,8 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
     case largeViewHelper = "Large View Helper"
     case forEachSelfID = "ForEach Self ID"
     case unnecessaryViewUpdate = "Unnecessary View Update"
+    case viewBuilderComplexity = "ViewBuilder Complexity"
+    case customModifierPerformance = "Custom Modifier Performance"
     case deprecatedAnimation = "Deprecated Animation"
     case animationInHighFrequencyUpdate = "Animation in High Frequency Update"
     case excessiveSpringAnimations = "Excessive Spring Animations"
@@ -121,6 +124,7 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
     case forEachWithoutIDUI = "ForEach Without ID UI"
     case inconsistentStyling = "Inconsistent Styling"
     case basicErrorHandling = "Basic Error Handling"
+    case modifierOrderIssue = "Modifier Order Issue"
 
     // Other/System Rules
     case fileParsingError = "File Parsing Error"
@@ -142,12 +146,13 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
         // State Management Rules
         case .relatedDuplicateStateVariable, .unrelatedDuplicateStateVariable,
              .uninitializedStateVariable, .missingStateObject, .unusedStateVariable, .fatView,
-             .observedObjectInline:
+             .observedObjectInline, .tooManyEnvironmentObjects:
             return .stateManagement
 
             // Performance Rules
         case .expensiveOperationInViewBody, .forEachWithoutID, .largeViewBody, .largeViewHelper,
-             .forEachSelfID, .unnecessaryViewUpdate:
+             .forEachSelfID, .unnecessaryViewUpdate, .viewBuilderComplexity,
+             .customModifierPerformance:
             return .performance
 
         case .deprecatedAnimation, .animationInHighFrequencyUpdate, .excessiveSpringAnimations,
@@ -195,7 +200,8 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
 
             // UI Pattern Rules
         case .nestedNavigationView, .missingPreview, .forEachWithSelfID,
-             .forEachWithoutIDUI, .inconsistentStyling, .basicErrorHandling:
+             .forEachWithoutIDUI, .inconsistentStyling, .basicErrorHandling,
+             .modifierOrderIssue:
             return .uiPatterns
 
             // Modernization Rules
