@@ -94,5 +94,11 @@ class Architecture: BasePatternRegistrar {
             description: "Detects 3+ level member access chains (train wreck pattern)"
         )
         registry.register(patterns: [lawOfDemeterPattern])
+
+        registry.register(registrars: [
+            FatProtocol(),
+            SingleImplementationProtocol(),
+            MirrorProtocol()
+        ])
     }
 } 
