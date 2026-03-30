@@ -19,7 +19,7 @@ extension PatternRegistrarProtocol {
 }
 
 /// Protocol for pattern registration that requires access to the visitor registry.
-protocol PatternRegistrarWithVisitorProtocol {
+public protocol PatternRegistrarWithVisitorProtocol {
     /// The registry that owns this registrar.
     var registry: SourcePatternRegistry { get }
 
@@ -34,14 +34,14 @@ protocol PatternRegistrarWithVisitorProtocol {
 ///
 /// Subclasses inherit stored properties and the designated initializer, and need only
 /// override `registerPatterns()` to register their category's patterns.
-class BasePatternRegistrar: PatternRegistrarWithVisitorProtocol {
-    let registry: SourcePatternRegistry
-    let visitorRegistry: PatternVisitorRegistryProtocol
+open class BasePatternRegistrar: PatternRegistrarWithVisitorProtocol {
+    public let registry: SourcePatternRegistry
+    public let visitorRegistry: PatternVisitorRegistryProtocol
 
-    init(registry: SourcePatternRegistry, visitorRegistry: PatternVisitorRegistryProtocol) {
+    public init(registry: SourcePatternRegistry, visitorRegistry: PatternVisitorRegistryProtocol) {
         self.registry = registry
         self.visitorRegistry = visitorRegistry
     }
 
-    func registerPatterns() {}
+    open func registerPatterns() {}
 }

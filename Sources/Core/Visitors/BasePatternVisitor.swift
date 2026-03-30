@@ -10,33 +10,33 @@ import SwiftSyntax
 ///
 /// `BasePatternVisitor` provides a foundation for implementing specific pattern
 /// visitors with common utilities and helper methods for AST analysis.
-class BasePatternVisitor: SyntaxVisitor, PatternVisitorProtocol {
-    var detectedIssues: [LintIssue] = []
-    var pattern: SyntaxPattern
-    var sourceLocationConverter: SourceLocationConverter?
+open class BasePatternVisitor: SyntaxVisitor, PatternVisitorProtocol {
+    public var detectedIssues: [LintIssue] = []
+    public var pattern: SyntaxPattern
+    public var sourceLocationConverter: SourceLocationConverter?
     private var filePath: String = "unknown"
 
     /// Type names known to conform to `Identifiable` across the project.
     /// Populated by a pre-scan phase in `ProjectLinter` so that per-file
     /// visitors can suppress false positives (e.g. ForEach without explicit `id:`
     /// when the element type is `Identifiable`).
-    var knownIdentifiableTypes: Set<String> = []
+    public var knownIdentifiableTypes: Set<String> = []
 
     /// Type names known to be declared as enums across the project.
     /// Populated by a pre-scan phase in `ProjectLinter` so that per-file
     /// visitors can exempt enum-typed parameters and properties from rules
     /// that only apply to class/struct service types (e.g. Concrete Type Usage).
-    var knownEnumTypes: Set<String> = []
+    public var knownEnumTypes: Set<String> = []
 
     /// Type names known to be declared as actors across the project.
     /// Populated by a pre-scan phase in `ProjectLinter` so that per-file
     /// visitors can exempt actor-typed parameters and properties from rules like
     /// "Concrete Type Usage". An actor's isolation contract is load-bearing in
     /// Swift 6 strict concurrency — protocol-abstracting it weakens that contract.
-    var knownActorTypes: Set<String> = []
+    public var knownActorTypes: Set<String> = []
 
     /// Placeholder pattern used for cross-file visitors that set their pattern after initialization.
-    static let placeholderPattern = SyntaxPattern(
+    public static let placeholderPattern = SyntaxPattern(
         name: .unknown,
         visitor: BasePatternVisitor.self,
         severity: .warning,
@@ -46,14 +46,14 @@ class BasePatternVisitor: SyntaxVisitor, PatternVisitorProtocol {
         description: ""
     )
 
-    required init(pattern: SyntaxPattern, viewMode: SyntaxTreeViewMode = .sourceAccurate) {
+    public required init(pattern: SyntaxPattern, viewMode: SyntaxTreeViewMode = .sourceAccurate) {
         self.pattern = pattern
         super.init(viewMode: viewMode)
     }
 
     /// Convenience initializer for tests and simple usage.
     /// Creates a visitor with a placeholder pattern for the given category.
-    convenience init(patternCategory: PatternCategory, viewMode: SyntaxTreeViewMode = .sourceAccurate) {
+    public convenience init(patternCategory: PatternCategory, viewMode: SyntaxTreeViewMode = .sourceAccurate) {
         let placeholder = SyntaxPattern(
             name: .unknown,
             visitor: BasePatternVisitor.self,
@@ -67,11 +67,11 @@ class BasePatternVisitor: SyntaxVisitor, PatternVisitorProtocol {
     }
 
     /// Sets the pattern for this visitor. Used by cross-file analysis engines.
-    func setPattern(_ pattern: SyntaxPattern) {
+    public func setPattern(_ pattern: SyntaxPattern) {
         self.pattern = pattern
     }
 
-    func reset() {
+    public func reset() {
         detectedIssues.removeAll()
     }
 
@@ -84,7 +84,7 @@ class BasePatternVisitor: SyntaxVisitor, PatternVisitorProtocol {
     ///   - lineNumber: The line number where the issue was detected.
     ///   - suggestion: Optional suggestion for fixing the issue.
     ///   - ruleName: The name of the rule that generated this issue.
-    func addIssue(
+    public func addIssue(
         node: Syntax,
         variables: [String: String] = [:]
     ) {
@@ -123,7 +123,7 @@ class BasePatternVisitor: SyntaxVisitor, PatternVisitorProtocol {
     ///
     /// - Parameter node: The syntax node to get the line number for.
     /// - Returns: The line number where the node appears.
-    func getLineNumber(for node: Syntax) -> Int {
+    public func getLineNumber(for node: Syntax) -> Int {
         guard let converter = sourceLocationConverter else { return 1 }
         let position = node.positionAfterSkippingLeadingTrivia
         let location = converter.location(for: position)
@@ -134,18 +134,18 @@ class BasePatternVisitor: SyntaxVisitor, PatternVisitorProtocol {
     ///
     /// - Parameter node: The syntax node to get the file path for.
     /// - Returns: The file path where the node appears.
-    func getFilePath(for node: Syntax) -> String {
+    public func getFilePath(for node: Syntax) -> String {
         return filePath
     }
 
-    func setSourceLocationConverter(_ converter: SourceLocationConverter) {
+    public func setSourceLocationConverter(_ converter: SourceLocationConverter) {
         self.sourceLocationConverter = converter
     }
 
     /// Sets the current file path for issue reporting.
     ///
     /// - Parameter filePath: The file path to set.
-    func setFilePath(_ filePath: String) {
+    public func setFilePath(_ filePath: String) {
         self.filePath = filePath
     }
 
@@ -161,7 +161,7 @@ class BasePatternVisitor: SyntaxVisitor, PatternVisitorProtocol {
     ///   - lineNumber: The line number where the issue was detected.
     ///   - suggestion: Optional suggestion for fixing the issue.
     ///   - ruleName: The name of the rule that generated this issue.
-    func addIssue(
+    public func addIssue(
         severity: IssueSeverity,
         message: String,
         filePath: String,

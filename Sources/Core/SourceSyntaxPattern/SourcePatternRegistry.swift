@@ -24,20 +24,67 @@ public final class SourcePatternRegistry: SourcePatternRegistryProtocol, @unchec
     /// Whether the registry has been initialized with default patterns.
     private var isInitialized = false
 
-    /// Pattern registrars for each category.
-    private lazy var patternRegistrars: [PatternCategory: PatternRegistrarWithVisitorProtocol] = [
-        .stateManagement: StateManagement(registry: self, visitorRegistry: visitorRegistry),
-        .performance: Performance(registry: self, visitorRegistry: visitorRegistry),
-        .security: Security(registry: self, visitorRegistry: visitorRegistry),
-        .accessibility: Accessibility(registry: self, visitorRegistry: visitorRegistry),
-        .memoryManagement: MemoryManagement(registry: self, visitorRegistry: visitorRegistry),
-        .networking: Networking(registry: self, visitorRegistry: visitorRegistry),
-        .codeQuality: CodeQuality(registry: self, visitorRegistry: visitorRegistry),
-        .architecture: Architecture(registry: self, visitorRegistry: visitorRegistry),
-        .uiPatterns: UIPatterns(registry: self, visitorRegistry: visitorRegistry),
-        .animation: Animation(registry: self, visitorRegistry: visitorRegistry),
-        .modernization: Modernization(registry: self, visitorRegistry: visitorRegistry)
-    ]
+    /// Registered factory closures that create registrars on demand.
+    /// Each factory receives the registry and visitor registry, and returns
+    /// a registrar whose `registerPatterns()` will be called during initialization.
+    // Safety: both `registrarFactories` and `builtInsRegistered` are protected by `factoryLock`.
+    nonisolated(unsafe) private static var registrarFactories: [(SourcePatternRegistry, PatternVisitorRegistry) -> PatternRegistrarWithVisitorProtocol] = []
+    private static let factoryLock = NSLock()
+    nonisolated(unsafe) private static var builtInsRegistered = false
+
+    /// Registers a factory closure that will be called during `initialize()` to
+    /// create and register a category's patterns.
+    ///
+    /// Call this before `initialize()` to add custom rule categories.
+    public static func registerFactory(
+        _ factory: @escaping (SourcePatternRegistry, PatternVisitorRegistry) -> PatternRegistrarWithVisitorProtocol
+    ) {
+        factoryLock.withLock {
+            registrarFactories.append(factory)
+        }
+    }
+
+    /// Registers the built-in category factories. Called once before initialization.
+    private static func registerBuiltInFactories() {
+        factoryLock.withLock {
+            guard !builtInsRegistered else { return }
+            builtInsRegistered = true
+        }
+
+        registerFactory { registry, visitorRegistry in
+            StateManagement(registry: registry, visitorRegistry: visitorRegistry)
+        }
+        registerFactory { registry, visitorRegistry in
+            Performance(registry: registry, visitorRegistry: visitorRegistry)
+        }
+        registerFactory { registry, visitorRegistry in
+            Security(registry: registry, visitorRegistry: visitorRegistry)
+        }
+        registerFactory { registry, visitorRegistry in
+            Accessibility(registry: registry, visitorRegistry: visitorRegistry)
+        }
+        registerFactory { registry, visitorRegistry in
+            MemoryManagement(registry: registry, visitorRegistry: visitorRegistry)
+        }
+        registerFactory { registry, visitorRegistry in
+            Networking(registry: registry, visitorRegistry: visitorRegistry)
+        }
+        registerFactory { registry, visitorRegistry in
+            CodeQuality(registry: registry, visitorRegistry: visitorRegistry)
+        }
+        registerFactory { registry, visitorRegistry in
+            Architecture(registry: registry, visitorRegistry: visitorRegistry)
+        }
+        registerFactory { registry, visitorRegistry in
+            UIPatterns(registry: registry, visitorRegistry: visitorRegistry)
+        }
+        registerFactory { registry, visitorRegistry in
+            Animation(registry: registry, visitorRegistry: visitorRegistry)
+        }
+        registerFactory { registry, visitorRegistry in
+            Modernization(registry: registry, visitorRegistry: visitorRegistry)
+        }
+    }
 
     /// Creates a new SwiftSyntax pattern registry.
     ///
@@ -50,6 +97,7 @@ public final class SourcePatternRegistry: SourcePatternRegistryProtocol, @unchec
     ///
     /// This method registers all the built-in patterns for various categories
     /// including state management, performance, security, accessibility, etc.
+    /// Custom categories added via `registerFactory(_:)` are also initialized.
     public func initialize() {
         // Atomically check-and-set to prevent double-initialization.
         // Set `isInitialized` before releasing the lock so concurrent callers
@@ -64,8 +112,12 @@ public final class SourcePatternRegistry: SourcePatternRegistryProtocol, @unchec
         isInitialized = true
         lock.unlock()
 
-        for category in PatternCategory.allCases {
-            registerPatterns(for: category)
+        Self.registerBuiltInFactories()
+
+        let factories = Self.factoryLock.withLock { Self.registrarFactories }
+        for factory in factories {
+            let registrar = factory(self, visitorRegistry)
+            registrar.registerPatterns()
         }
     }
 
@@ -118,20 +170,11 @@ public final class SourcePatternRegistry: SourcePatternRegistryProtocol, @unchec
         }
     }
 
-    // MARK: - Private Pattern Registration Methods
-
-    private func registerPatterns(for category: PatternCategory) {
-        switch category {
-        case .stateManagement, .performance, .security, .accessibility,
-             .memoryManagement, .networking, .codeQuality, .architecture, .uiPatterns, .animation,
-             .modernization:
-            if let registrar = patternRegistrars[category] {
-                registrar.registerPatterns()
-            }
-        case .other:
-            // No patterns to register for the "other" category
-            // This category is used for system-level errors like fileParsingError
-            break
+    /// Resets factory state. Used by tests to ensure a clean slate.
+    static func resetFactories() {
+        factoryLock.withLock {
+            registrarFactories.removeAll()
+            builtInsRegistered = false
         }
     }
 }
