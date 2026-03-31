@@ -1,421 +1,176 @@
 # THIS IS AN EXPERIMENT IN VIBE-CODING.
-I'm letting AI do nearly all the work in generating code and tests. 
+I'm letting AI do nearly all the work in generating code and tests.
 I have tested examing rules and simulations out with a real project only a few times.
 I've never looked at what the YAML part does (or does not do).
 I allowed different AIs to hallucinate the market potential of this experiment.
 
 # Swift Project Linter
 
-A comprehensive SwiftUI project analyzer that detects architectural issues, performance problems, and code quality concerns across your entire SwiftUI project. This tool helps maintain clean architecture by identifying problems like duplicate state variables, inefficient patterns, and architectural anti-patterns using SwiftSyntax-based analysis.
+A static analysis tool for SwiftUI projects that detects architectural issues, performance problems, and code quality concerns. Parses Swift source files using SwiftSyntax AST visitors to identify anti-patterns across 97 rules in 11 categories.
 
-## 🎯 Key Features
+## Features
 
-### Multi-Layer Analysis
-- **SwiftSyntax Analysis**: Advanced architectural analysis using SwiftSyntax for precise parsing
-- **Cross-File Analysis**: Identifies issues spanning multiple files and view relationships
-- **View Hierarchy Mapping**: Builds complete view relationship graphs
-- **Pattern-Based Detection**: 50+ patterns across 9 categories for comprehensive code analysis
-- **Type-Safe Detection**: Enum-based pattern detection for improved accuracy and maintainability (rules/categories; property wrapper/view type logic is still being migrated)
+- **SwiftSyntax AST Analysis**: Precise, AST-based pattern detection — no regex
+- **Cross-File Analysis**: Detects issues spanning multiple files (duplicate state, view hierarchies)
+- **97 Lint Rules** across 11 categories
+- **Three delivery targets**: macOS app GUI, CLI for CI/CD, and a reusable Core library
+- **YAML configuration**: `.swiftprojectlint.yml` for per-project rule customization
+- **Type-safe rule system**: `RuleIdentifier` enum for all rules and categories
 
-### Detection Categories
+## Targets
 
-#### 1. **State Management (4 patterns)**
-- Duplicate state variables across related views
-- Missing @StateObject usage for ObservableObjects
-- Unused state variables
-- Uninitialized state variables
+| Target | Type | Description |
+|--------|------|-------------|
+| `Core` | Library | All analysis logic, visitors, pattern detection |
+| `App` | macOS App | SwiftUI interface with rule selection and results display |
+| `CLI` | Executable | Command-line tool for CI/CD integration |
 
-#### 2. **Performance (4 patterns)**
-- Expensive operations in view body
-- ForEach without proper ID usage
-- Large view bodies (>500 characters)
-- Unnecessary view updates
+## CLI Usage
 
-#### 3. **Architecture (4 patterns)**
-- Fat views with too many state variables
-- Missing dependency injection
-- Circular dependencies
-- Missing protocol abstractions
+```bash
+# Analyze a project (text output)
+swift run CLI /path/to/project
 
-#### 4. **Code Quality (4 patterns)**
-- Magic numbers and hardcoded values
-- Long functions and complex expressions
-- Missing documentation
-- Inconsistent naming conventions
+# JSON output for CI integration
+swift run CLI /path/to/project --format json
 
-#### 5. **Security (2 patterns)**
-- Hardcoded secrets and credentials
-- Unsafe URL construction
-
-#### 6. **Accessibility (2 patterns)**
-- Missing accessibility labels
-- Missing accessibility hints
-
-#### 7. **Memory Management (2 patterns)**
-- Potential retain cycles
-- Large objects in state
-
-#### 8. **Networking (2 patterns)**
-- Missing error handling
-- Synchronous network calls
-
-#### 9. **UI Patterns (3 patterns)**
-- Nested navigation structures
-- Missing preview providers
-- Inconsistent styling
-
-## 🏗️ Architecture
-
-### Core Components
-
-1. **ProjectLinter**: File analysis and state variable extraction using SwiftSyntax
-2. **AdvancedAnalyzer**: Sophisticated architectural analysis using SwiftSyntax
-3. **SwiftSyntaxPatternDetector**: AST-based pattern detection using SwiftSyntax
-4. **SwiftSyntaxPatternRegistry**: Centralized pattern registration and management
-5. **ContentView**: Main SwiftUI interface with rule selection and analysis
-6. **LintResultsView**: Results display with expandable issue details
-
-### SwiftSyntax Visitors
-
-The project includes specialized SwiftSyntax visitors for precise analysis:
-
-- **SwiftUIManagementVisitor**: Analyzes property wrappers and state patterns
-- **PerformanceVisitor**: Detects performance anti-patterns in view bodies
-- **ArchitectureVisitor**: Identifies architectural issues and fat views
-- **CodeQualityVisitor**: Checks code style and quality patterns
-- **SecurityVisitor**: Detects security-related issues
-- **AccessibilityVisitor**: Analyzes accessibility patterns
-- **MemoryManagementVisitor**: Identifies memory-related issues
-- **NetworkingVisitor**: Detects networking anti-patterns
-- **UIVisitor**: Analyzes UI patterns including navigation
-- **ViewRelationshipVisitor**: Maps view hierarchies and relationships
-- **StateVariableVisitor**: Extracts and analyzes state variables
-- **ForEachSelfIDVisitor**: Detects ForEach performance issues
-
-### Analysis Pipeline
-
-```
-1. File Discovery → Find all Swift files in project
-2. SwiftSyntax Analysis → Parse AST for architectural analysis
-3. Pattern Detection → Apply 50+ patterns across 9 categories
-4. View Hierarchy Building → Map parent-child relationships
-5. Cross-File Analysis → Detect duplicates and patterns
-6. Issue Generation → Create actionable suggestions
+# Filter by category and severity threshold
+swift run CLI /path/to/project --categories stateManagement performance --threshold error
 ```
 
-## 🚀 Usage
+## Rules
 
-### Basic Usage
-```swift
-let linter = ProjectLinter()
-let issues = linter.analyzeProject(at: "/path/to/your/project")
-```
+97 rules across 11 categories. See [Docs/rules/RULES.md](Docs/rules/RULES.md) for the full reference.
 
-### Advanced Analysis
-```swift
-let analyzer = AdvancedAnalyzer()
-let architectureIssues = analyzer.analyzeArchitecture(projectPath: "/path/to/your/project")
-```
+| Category | Rules |
+|----------|-------|
+| State Management | 8 |
+| Performance | 8 |
+| Animation | 10 |
+| Architecture | 10 |
+| Code Quality | 31 |
+| Security | 2 |
+| Accessibility | 6 |
+| Memory Management | 2 |
+| Networking | 2 |
+| UI Patterns | 7 |
+| Modernization | 12 |
 
-### SwiftSyntax Analysis
-```swift
-let swiftSyntaxDetector = SwiftSyntaxPatternDetector()
-let astIssues = swiftSyntaxDetector.detectPatterns(in: sourceCode, filePath: filePath)
-```
+Rules marked **opt-in** are disabled by default and must be explicitly listed under `enabled_only` in `.swiftprojectlint.yml`.
 
-### Pattern-Based Detection
-```swift
-let detector = SwiftSyntaxPatternDetector()
-let patternIssues = detector.detectPatterns(in: fileContent, filePath: filePath)
-```
+## Architecture
 
-### UI Integration
-```swift
-ContentView() // Main interface with rule selection
-LintResultsView(issues: issues) // Results display
-```
-
-## 📋 Example Issues Detected
-
-### Warning: Duplicate State
-```
-⚠️ Duplicate state variable 'isLoading' found in ParentView and ChildView
-   File: ExampleViews/ParentView.swift:5
-   Suggestion: Create a shared ObservableObject for 'isLoading' and pass it 
-   from ParentView to ChildView using @ObservedObject.
-```
-
-### Performance: Expensive Operation
-```
-⚠️ Expensive collection operations detected in view body
-   File: ExampleViews/PerformanceIssuesView.swift:23
-   Suggestion: Move expensive operations outside the view body or use @State to cache results
-```
-
-### Architecture: Fat View
-```
-⚠️ View 'ComplexView' has too many state variables, consider MVVM pattern
-   File: ExampleViews/ArchitectureIssuesView.swift:15
-   Suggestion: Extract business logic into an ObservableObject ViewModel
-```
-
-### Accessibility: Missing Label
-```
-⚠️ Button with image missing accessibility label
-   File: ExampleViews/AccessibilityIssuesView.swift:8
-   Suggestion: Add .accessibilityLabel() to make the button accessible
-```
-
-## 🎨 UI Features
-
-- **Rule Selection**: Customizable detection patterns with 9 categories
-- **Directory Selection**: Native macOS file picker for project selection
-- **Real-time Analysis**: Progress indicators during analysis
-- **Expandable Results**: Detailed issue breakdown with file locations
-- **Severity Indicators**: Color-coded icons for different issue types
-- **Persistent Settings**: Rule preferences saved across app launches
-- **SwiftSyntax Analysis**: Advanced AST-based pattern detection
-
-## 🔧 Configuration
-
-### Customizing Detection Rules
-
-The app includes a rule selection interface where you can enable/disable specific patterns:
-
-```swift
-// Access patterns by category
-SwiftSyntaxPatternRegistry.shared.getPatterns(for: .stateManagement)
-SwiftSyntaxPatternRegistry.shared.getPatterns(for: .performance)
-SwiftSyntaxPatternRegistry.shared.getPatterns(for: .architecture)
-// ... and 6 more categories
-```
-
-### Adding Custom Patterns
-
-```swift
-let pattern = SyntaxPattern(
-    name: "Custom SwiftSyntax Pattern",
-    visitor: CustomVisitor.self,
-    severity: .warning,
-    category: .stateManagement,
-    messageTemplate: "Custom message with {variableName}",
-    suggestion: "How to fix it",
-    description: "Detailed description"
-)
-
-SwiftSyntaxPatternRegistry.shared.register(pattern: pattern)
-```
-
-### Severity Levels
-
-- **Error**: Critical issues that should be fixed immediately
-- **Warning**: Issues that should be addressed but don't break functionality  
-- **Info**: Suggestions for improvement and best practices
-
-## 🛠️ Technical Implementation
-
-### SwiftSyntax Analysis
-Advanced parsing using SwiftSyntax for:
-- Precise AST traversal
-- View relationship detection
-- State variable analysis
-- Cross-file architectural patterns
-- Context-aware pattern detection
-
-### Pattern Detection
-Uses SwiftSyntax visitors to identify SwiftUI and Swift code patterns:
-- Property wrapper detection: `@State`, `@StateObject`, `@ObservedObject`, `@EnvironmentObject`
-- Performance anti-patterns: expensive operations, large view bodies
-- Architecture issues: fat views, missing dependencies
-- Code quality: magic numbers, missing documentation
-
-### View Relationship Analysis
-Detects parent-child relationships through:
-- Direct view instantiation: `ChildView()`
-- Navigation: `NavigationLink(destination: ChildView())`
-- Sheets: `.sheet(content: ChildView())`
-- Full-screen covers: `.fullScreenCover(content: ChildView())`
-- Popovers: `.popover(content: ChildView())`
-- Alerts: `.alert(content: AlertView())`
-
-### Type-Safe Pattern Detection
-The project uses enum-based pattern detection for improved accuracy:
-- **RuleIdentifier enum**: Type-safe rule identification and category mapping
-- **PropertyWrapper enum**: Type-safe property wrapper detection
-- **SwiftUIViewType enum**: Type-safe view type identification
-- **ASTNodeType enum**: Type-safe AST node analysis
-- **RelationshipType enum**: Type-safe relationship mapping
-- **PatternCategory enum**: Type-safe pattern categorization
-
-## 🎯 Best Practices
-
-### State Management
-1. **Single Source of Truth**: Each piece of state should have one owner
-2. **Proper Property Wrappers**: Use @StateObject for owned objects, @ObservedObject for passed objects
-3. **Environment Objects**: Use @EnvironmentObject for widely shared state
-4. **State Lifting**: Move shared state up the view hierarchy
-
-### Architecture Patterns
-1. **MVVM**: Separate business logic into ObservableObject classes
-2. **Dependency Injection**: Pass dependencies explicitly or via environment
-3. **View Composition**: Break complex views into smaller, focused components
-4. **State Isolation**: Keep view-specific state local, share only what's necessary
-
-### Performance Optimization
-1. **Avoid Expensive Operations**: Move collection operations outside view body
-2. **Proper ForEach IDs**: Use unique identifiers instead of .self
-3. **View Decomposition**: Break large views into smaller components
-4. **State Efficiency**: Only update state when UI changes are needed
-
-### Accessibility
-1. **Labels**: Provide accessibility labels for all interactive elements
-2. **Hints**: Add accessibility hints for complex interactions
-3. **Color Independence**: Don't rely solely on color to convey information
-4. **Semantic Structure**: Use proper semantic markup and grouping
-
-## 🔮 Future Enhancements
-
-### ✅ Recently Completed
-- **String-Based Rule Identification**: ✅ **COMPLETED** - Replaced hardcoded `RuleIdentifier(rawValue:)` calls with direct enum cases
-- **UserDefaults Storage**: ✅ **COMPLETED** - Migrated from string arrays to JSON-encoded enum storage for type safety
-- **Pattern Detection Methods**: ✅ **COMPLETED** - Updated SwiftSyntaxPatternDetector to use `[RuleIdentifier]` instead of `[String]` parameters
-- **Complete Regex Removal**: ✅ **COMPLETED** - Final migration from regex to SwiftSyntax.
-
-### 🔄 In Progress
-- **Property Wrapper/String Logic**: Replace remaining hard-wired strings with type-safe enums (see [__string_comparison.md](./__string_comparison.md))
-
-### 📋 Planned Features
-- **Enhanced Navigation Detection**: Context-aware nested navigation analysis (see [NestedNavigationDetection_PRD.md](./NestedNavigationDetection_PRD.md))
-- **Xcode Extension**: Integrate with Xcode for real-time analysis
-- **Custom Rules Engine**: Allow teams to define project-specific rules
-- **Performance Profiling**: Detect inefficient view updates and state changes
-- **Dependency Graph Visualization**: Visual representation of view relationships
-- **Auto-fix Suggestions**: Automatic code generation for common issues
-- **CI/CD Integration**: Run as part of automated build processes
-
-## 🧪 Testing
-
-The project includes comprehensive test coverage:
-- Unit tests for pattern detection
-- Integration tests for analysis pipeline
-- UI tests for user interactions
-- Example views demonstrating various issues
-- SwiftSyntax visitor tests for AST analysis
-
-### Test Categories
-- **SwiftUIManagementVisitorTests**: Property wrapper and state pattern tests
-- **PerformanceVisitorTests**: Performance anti-pattern detection
-- **ArchitectureVisitorTests**: Architectural pattern validation
-- **CodeQualityVisitorTests**: Code style and quality checks
-- **SecurityVisitorTests**: Security pattern detection
-- **AccessibilityVisitorTests**: Accessibility pattern analysis
-- **MemoryManagementVisitorTests**: Memory-related issue detection
-- **NetworkingVisitorTests**: Networking anti-pattern validation
-- **UIVisitorTests**: UI pattern analysis including navigation
-- **ViewRelationshipVisitorTests**: View hierarchy mapping
-- **SwiftSyntaxPatternDetectorTests**: AST-based pattern detection
-- **StateVariableVisitorTests**: State variable extraction and analysis
-
-## 📊 Current Status
-
-### Architecture Improvements
-- **SwiftSyntax Migration**: ✅ **COMPLETED** - 100% migrated from regex to SwiftSyntax for core analysis.
-- **Type-Safe Detection**: ✅ **COMPLETED** - Enum-based pattern detection fully implemented for rules/categories with RuleIdentifier enum
-- **Visitor Pattern**: Comprehensive SwiftSyntax visitor hierarchy for precise analysis
-- **Modular Design**: Clear separation between UI and core analysis logic
-
-### Completed Refactoring ✅
-- **String-Based Rule Identification**: ✅ **COMPLETED** - Replaced hardcoded `RuleIdentifier(rawValue:)` calls with direct enum cases
-- **UserDefaults Storage**: ✅ **COMPLETED** - Migrated from string arrays to JSON-encoded enum storage for type safety
-- **Pattern Detection Methods**: ✅ **COMPLETED** - Updated SwiftSyntaxPatternDetector to use `[RuleIdentifier]` instead of `[String]` parameters
-- **ProjectLinter Integration**: ✅ **COMPLETED** - Updated analyzeProject methods to use enum-based rule identification
-
-### Ongoing Refactoring
-- **Property Wrapper/String Logic**: Property wrapper and view type logic still partly string-based (see [__string_comparison.md](./__string_comparison.md))
-- **Performance Optimization**: AST caching and incremental analysis not yet implemented
-- **Code Organization**: Several files remain very large and need splitting (see [__refactor.md](./__refactor.md))
-
-### Technical Debt
-- **Large File Sizes**: Several files exceed 500-700 lines and need refactoring
-- **Mixed Responsibilities**: Some classes combine UI, business logic, and file operations
-- **Synchronous Operations**: File and analysis operations need async/await conversion
-- **Test Coverage**: Core logic needs more comprehensive integration tests
-- **Error Handling**: Inconsistent use of Result types and error propagation
-
-## 🚧 Current Limitations & Roadmap
-
-### ✅ Recently Completed
-- **String-Based Rule Identification**: ✅ **COMPLETED** - All hardcoded `RuleIdentifier(rawValue:)` calls replaced with direct enum cases
-- **UserDefaults Storage**: ✅ **COMPLETED** - Migrated from string arrays to JSON-encoded enum storage for type safety
-- **Pattern Detection Methods**: ✅ **COMPLETED** - Updated SwiftSyntaxPatternDetector to use `[RuleIdentifier]` instead of `[String]` parameters
-- **ProjectLinter Integration**: ✅ **COMPLETED** - Updated analyzeProject methods to use enum-based rule identification
-
-### 🔄 Ongoing Work
-- **Property Wrapper/String Logic**: Property wrapper, view type, and AST node logic still use string comparisons in many places. See [__string_comparison.md](./__string_comparison.md) for the migration plan.
-- **Large Files**: Files like `SwiftUIManagementVisitor.swift`, `SwiftSyntaxPatternDetector.swift`, `ContentView.swift`, and others remain very large and need to be split for maintainability. See [__refactor.md](./__refactor.md) for recommendations.
-
-### 📋 Future Work
-- **Async/Await & Performance**: Async/await is only partially implemented. AST caching and incremental analysis are not yet present.
-- **Error Handling**: Not all operations use Result types or custom error enums; error propagation is inconsistent.
-- **Testing**: While unit test coverage is strong, more integration and performance tests are needed.
-- **Documentation**: API documentation and configuration examples are basic and need expansion.
-
-For a detailed roadmap and actionable steps, see [__refactor.md](./__refactor.md).
-
-## 🤝 Contributing
-
-This project demonstrates advanced SwiftUI project analysis techniques. Contributions are welcome for:
-
-### ✅ Recently Completed
-- **String-Based Rule Identification**: ✅ **COMPLETED** - All hardcoded `RuleIdentifier(rawValue:)` calls replaced with direct enum cases
-- **UserDefaults Storage**: ✅ **COMPLETED** - Migrated from string arrays to JSON-encoded enum storage for type safety
-- **Pattern Detection Methods**: ✅ **COMPLETED** - Updated SwiftSyntaxPatternDetector to use `[RuleIdentifier]` instead of `[String]` parameters
-
-### 🔄 Current Priorities
-- **Property Wrapper/String Logic**: Replace remaining string comparisons with type-safe enums
-- **Large File Refactoring**: Split large files for better maintainability
-
-### 📋 General Contributions
-- Enhanced pattern detection
-- Additional architectural rules
-- Performance optimizations
-- UI improvements
-- Documentation
-- New visitor implementations
-- Improving test coverage
-
-## 📄 License
-
-This project is for educational and demonstration purposes. Feel free to use and modify for your own projects.
-
-## 🔗 Related Documentation
-
-- [__string_comparison.md](./__string_comparison.md) - String comparison refactoring strategy
-- [__refactor.md](./__refactor.md) - Comprehensive refactoring recommendations
-- [NestedNavigationDetection_PRD.md](./NestedNavigationDetection_PRD.md) - Enhanced nested Navigation detection strategy
-
-## 📁 Project Directory Structure (SPM Best Practice)
-
-The project now follows the Swift Package Manager (SPM) best practice layout:
+### Package Structure
 
 ```
 SwiftProjectLint/
 ├── Package.swift
 ├── Sources/
-│   ├── SwiftProjectLint/         # Main app target (UI, CLI, etc.)
-│   └── SwiftProjectLintCore/     # Core library target (analysis, detection, etc.)
+│   ├── Core/              # Thin umbrella re-exporting SwiftProjectLintEngine
+│   ├── App/               # macOS SwiftUI app
+│   └── CLI/               # Command-line tool
+├── Packages/              # Local SPM packages
+│   ├── SwiftProjectLintEngine/    # Analysis pipeline orchestration
+│   ├── SwiftProjectLintVisitors/  # SwiftSyntax visitor implementations
+│   ├── SwiftProjectLintRules/     # Rule definitions and registrars
+│   ├── SwiftProjectLintRegistry/  # Pattern registration
+│   ├── SwiftProjectLintModels/    # Shared types (LintIssue, RuleIdentifier, etc.)
+│   └── SwiftProjectLintConfig/    # YAML config loading
 ├── Tests/
-│   ├── AppTests/        # Tests for the main app target
-│   └── CoreTests/    # Tests for the core library target
-├── Docs/                        # Documentation and design notes
-├── Scripts/                     # Utility scripts
-├── Output/                      # Build artifacts or generated files
-└── ... (other folders)
+│   ├── CoreTests/         # Lint rule unit tests
+│   ├── AppTests/          # SwiftUI view tests (ViewInspector)
+│   └── CLITests/          # CLI integration tests
+└── Docs/rules/            # Per-rule documentation
 ```
 
-- All source files for `SwiftProjectLintCore` are in `Sources/SwiftProjectLintCore/`.
-- All source files for `SwiftProjectLint` are in `Sources/SwiftProjectLint/`.
-- All test files are in the corresponding `Tests/<TargetName>Tests/` folders.
-- There are no redundant top-level folders; everything is organized under `Sources/` and `Tests/`.
+### Analysis Pipeline
 
-> **Note:** If you are updating from a previous version, make sure to update your Xcode project and `Package.swift` to reference the new paths as shown above.
+```
+1. File Discovery       → FileAnalysisUtils finds all .swift files
+2. AST Parsing          → SwiftParser parses each file (no throws)
+3. Visitor Dispatch     → Specialized visitors traverse the AST
+4. Cross-File Analysis  → CrossFileAnalysisEngine detects multi-file issues
+5. Issue Aggregation    → Results collected as LintIssue objects
+```
+
+### Visitor Categories
+
+Visitors live in `Packages/SwiftProjectLintVisitors/` organized by category:
+
+- **State Management**: property wrapper analysis, duplicate/unused state detection
+- **Performance**: expensive view body operations, ForEach ID issues, ViewBuilder complexity
+- **Animation**: deprecated APIs, excessive springs, conflicting animations
+- **Architecture**: fat views, singleton usage, dependency injection, protocol soup
+- **Code Quality**: naming conventions, force unwrap/try, actor reentrancy, async patterns
+- **Security**: hardcoded secrets, unsafe URLs
+- **Accessibility**: missing labels/hints, color contrast, font sizes
+- **Memory Management**: retain cycles, large objects in state
+- **Networking**: missing error handling, synchronous calls
+- **UI Patterns**: nested navigation, missing previews, modifier order
+- **Modernization**: legacy APIs (DispatchQueue, NotificationCenter, ObservableObject)
+
+## Build & Test
+
+```bash
+# Build
+swift build
+
+# Run all tests
+swift test
+
+# Run a specific test suite
+swift test --filter CoreTests.ArchitectureFatViewTests
+
+# Run a specific test method
+swift test --filter "CoreTests.ArchitectureFatViewTests/testFatViewDetection"
+
+# Run with code coverage
+swift test --enable-code-coverage
+```
+
+## Configuration
+
+Create `.swiftprojectlint.yml` in your project root:
+
+```yaml
+# Disable specific rules
+disabled_rules:
+  - missing_documentation
+  - todo_comment
+
+# Or run only specific rules
+enabled_only:
+  - hardcoded_secret
+  - force_unwrap
+  - missing_accessibility_label
+
+# Exclude paths
+excluded:
+  - Pods
+  - .build
+  - Generated
+```
+
+## Severity Levels
+
+- **Error**: Critical issues (e.g., hardcoded secrets, synchronous network calls)
+- **Warning**: Issues that should be addressed (e.g., fat views, force unwrap)
+- **Info**: Style suggestions and best practices
+
+## Dependencies
+
+- [swift-syntax](https://github.com/apple/swift-syntax) `602.0.0` — AST parsing
+- [swift-argument-parser](https://github.com/apple/swift-argument-parser) `1.3.0+` — CLI
+- [ViewInspector](https://github.com/nalexn/ViewInspector) `0.9.5+` — SwiftUI view testing
+- [Yams](https://github.com/jpsim/Yams) `5.0.0+` — YAML config parsing
+
+## Related Documentation
+
+- [Docs/rules/RULES.md](Docs/rules/RULES.md) — Full rule reference (97 rules)
+- [Docs/user-guide.md](Docs/user-guide.md) — User guide
+- [Docs/architecture.md](Docs/architecture.md) — Architecture deep-dive
+- [Docs/tutorial.md](Docs/tutorial.md) — Getting started tutorial
+
+## License
+
+This project is for educational and demonstration purposes. Feel free to use and modify for your own projects.
