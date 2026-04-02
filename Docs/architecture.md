@@ -6,16 +6,44 @@ This document describes how the codebase is organized and how its major componen
 
 ## Package Structure
 
-The project is a Swift Package with three targets:
+The project is a Swift Package with three executable/library targets and six local packages:
 
 ```
-Sources/
-├── Core/      — analysis library, no UI dependencies
-├── App/       — macOS SwiftUI application
-└── CLI/       — command-line tool
+SwiftProjectLint/
+├── Sources/
+│   ├── Core/      — thin facade that re-exports all local packages
+│   ├── App/       — macOS SwiftUI application
+│   └── CLI/       — command-line tool
+│
+└── Packages/
+    ├── SwiftProjectLintModels/     — value types (no dependencies)
+    ├── SwiftProjectLintVisitors/   — base visitor infrastructure
+    ├── SwiftProjectLintRegistry/   — pattern registry and detection engine
+    ├── SwiftProjectLintConfig/     — YAML config, file discovery, suppression
+    ├── SwiftProjectLintRules/      — all lint rule implementations
+    └── SwiftProjectLintEngine/     — orchestration and cross-file analysis
 ```
 
-`Core` is the only target with external library dependencies (SwiftSyntax, SwiftParser, Yams). `App` and `CLI` both import `Core` and add their own presentation layer on top.
+`Core` contains a single `Exports.swift` that uses `@_exported import` to re-export all six local packages, so `App` and `CLI` only need to `import Core`.
+
+External dependencies: SwiftSyntax/SwiftParser (602.0.0), Yams, Swift Argument Parser, ViewInspector (test only).
+
+### Dependency Graph
+
+```
+SwiftProjectLintModels          (no dependencies)
+        ↑
+SwiftProjectLintVisitors        (+ SwiftSyntax)
+        ↑
+SwiftProjectLintRegistry        (+ SwiftSyntax)
+    ↑           ↑
+SwiftProjectLintConfig      SwiftProjectLintRules
+    (+ Yams)                    (+ SwiftSyntax)
+        ↑           ↑
+SwiftProjectLintEngine
+        ↑
+       Core  ←—  App / CLI
+```
 
 ---
 
@@ -34,69 +62,137 @@ When `ProjectLinter.analyzeProject(at:)` is called, the following stages run in 
 5. LintConfiguration        — apply per-rule severity overrides and path exclusions
 ```
 
-Steps 1–3 happen in `ProjectLinter.swift`. Steps 4–5 happen after the task group collects all per-file results.
+Steps 1-3 happen in `ProjectLinter.swift` (SwiftProjectLintEngine). Steps 4-5 happen after the task group collects all per-file results.
 
 ---
 
-## Core Directory Layout
+## Local Packages
+
+### SwiftProjectLintModels
+
+Pure value types with no external dependencies. Everything else depends on this package.
 
 ```
-Sources/Core/
-├── Models/                     — value types shared across the system
-│   ├── LintIssue.swift
-│   ├── RuleIdentifier.swift
-│   ├── PatternCategory.swift
-│   ├── SyntaxPattern.swift
-│   └── ProjectFile.swift
-│
-├── Configuration/              — YAML config loading and rule resolution
+SwiftProjectLintModels/Sources/
+├── IssueSeverity.swift
+├── LintIssue.swift
+├── PatternCategory.swift
+├── ProjectFile.swift
+├── RuleIdentifier.swift
+├── SwiftUIProtocol.swift
+└── SwiftUIViewType.swift
+```
+
+### SwiftProjectLintVisitors
+
+Base visitor infrastructure built on SwiftSyntax. Provides the `BasePatternVisitor` superclass and helper utilities used by all rule visitors.
+
+```
+SwiftProjectLintVisitors/Sources/
+├── BasePatternVisitor.swift        — base class with issue-reporting utilities
+├── PatternVisitor.swift            — protocol definition
+├── CrossFilePatternVisitor.swift   — protocol for multi-file visitors
+├── SyntaxPattern.swift             — value type linking a rule to its visitor
+├── SyntaxHelpers.swift             — shared AST traversal utilities
+├── ActorTypeCollector.swift        ─┐
+├── EnumTypeCollector.swift          │ type collectors for pre-scan phase
+├── IdentifiableTypeCollector.swift  │
+└── TypeCollectorProtocol.swift     ─┘
+```
+
+### SwiftProjectLintRegistry
+
+Decouples visitor classes from the detection engine:
+
+```
+SwiftProjectLintRegistry/Sources/
+├── SourcePatternRegistry.swift         — holds all registered SyntaxPattern values
+├── SourcePatternRegistryProtocol.swift
+├── PatternVisitorRegistry.swift        — maps SyntaxPattern → visitor type
+├── PatternVisitorRegistryProtocol.swift
+├── SourcePatternDetector.swift         — creates visitor instances and drives the walk
+├── SourcePatternDetectorProtocol.swift
+├── PatternRegistrationProtocol.swift   — PatternRegistrarProtocol, BasePatternRegistrar
+└── DetectionPattern.swift
+```
+
+### SwiftProjectLintConfig
+
+Configuration loading, file discovery, and inline suppression. Depends on Yams for YAML parsing.
+
+```
+SwiftProjectLintConfig/Sources/
+├── Configuration/
 │   ├── LintConfiguration.swift
 │   ├── LintConfigurationLoader.swift
-│   └── LintConfigurationWriter.swift
-│
-├── Suppression/                — inline comment suppression
-│   ├── InlineSuppressionParser.swift
-│   └── InlineSuppressionFilter.swift
-│
-├── FileAnalysis/               — file discovery and path utilities
-│   └── FileAnalysisUtils.swift
-│
-├── Visitors/                   — base visitor infrastructure
-│   ├── BasePatternVisitor.swift
-│   └── PatternVisitor.swift
-│
-├── SourceSyntaxPattern/        — registry and detection engine
-│   ├── SourcePatternRegistry.swift
-│   ├── PatternVisitorRegistry.swift
-│   ├── SourcePatternDetector.swift
-│   ├── PatternRegistrationProtocol.swift   ← PatternRegistrar, BasePatternRegistrar
-│   └── PatternVisitorRegistryProtocol.swift
-│
-├── PatternRegistryFactory.swift  — factory for creating configured systems
-├── ProjectLinter.swift           — top-level analysis orchestrator
-├── AdvancedAnalyzer.swift        — higher-level analysis API
-│
-├── CrossFileAnalysis/          — multi-file relationship detection
-│
-├── StateAnalysis/              — state variable collection utilities
-│
-│   (one directory per rule category)
-├── StateManagement/
+│   ├── LintConfigurationWriter.swift
+│   ├── ConfigurationPersistenceProtocol.swift
+│   └── ExecutableTargetDetector.swift
+├── FileAnalysis/
+│   ├── FileAnalysisUtils.swift
+│   ├── FileDiscoveryProtocol.swift
+│   ├── DirectoryScanner.swift
+│   └── DirectoryNode.swift
+└── Suppression/
+    ├── InlineSuppressionParser.swift
+    └── InlineSuppressionFilter.swift
+```
+
+### SwiftProjectLintRules
+
+All lint rule implementations, organized by category. Each category has a `Visitors/` folder and a `PatternRegistrars/` folder. `BuiltInRuleRegistration.swift` at the root wires all category registrars together.
+
+```
+SwiftProjectLintRules/Sources/
+├── BuiltInRuleRegistration.swift
+├── Accessibility/
+│   ├── Visitors/
+│   └── PatternRegistrars/
+├── Animation/
+│   ├── Visitors/
+│   └── PatternRegistrars/
+├── Architecture/
+│   ├── Visitors/
+│   └── PatternRegistrars/
+├── CodeQuality/
+│   ├── Visitors/
+│   └── PatternRegistrars/
+├── MemoryManagement/
+│   ├── Visitors/
+│   └── PatternRegistrars/
+├── Modernization/
+│   ├── Visitors/
+│   └── PatternRegistrars/
+├── Networking/
 │   ├── Visitors/
 │   └── PatternRegistrars/
 ├── Performance/
-├── Animation/
-├── Architecture/
-├── CodeQuality/
+│   ├── Visitors/
+│   └── PatternRegistrars/
 ├── Security/
-├── Accessibility/
-├── MemoryManagement/
-├── Networking/
-├── UI/
-└── Modernization/
+│   ├── Visitors/
+│   └── PatternRegistrars/
+├── StateManagement/
+│   ├── Visitors/
+│   └── PatternRegistrars/
+└── UI/
+    ├── Visitors/
+    └── PatternRegistrars/
 ```
 
-Each category directory follows the same layout: a `Visitors/` folder containing `SyntaxVisitor` subclasses and a `PatternRegistrars/` folder containing the objects that register those visitors with the pattern registry.
+### SwiftProjectLintEngine
+
+Top-level orchestration. Depends on all other local packages.
+
+```
+SwiftProjectLintEngine/Sources/
+├── ProjectLinter.swift             — top-level analysis orchestrator
+├── PatternRegistryFactory.swift    — factory for creating configured systems
+├── ProjectAnalyzerProtocol.swift
+└── CrossFileAnalysis/
+    ├── CrossFileAnalysisEngine.swift
+    └── CrossFileAnalyzerProtocol.swift
+```
 
 ---
 
@@ -119,14 +215,6 @@ A visitor overrides `visit(_:)` or `visitPost(_:)` for the specific syntax node 
 
 ## Pattern Registry
 
-The registry system decouples visitor classes from the detection engine:
-
-```
-PatternVisitorRegistry   — maps SyntaxPattern → visitor type
-SourcePatternRegistry    — holds all registered SyntaxPattern values
-SourcePatternDetector    — creates visitor instances and drives the walk
-```
-
 Registration happens at startup via `PatternRegistryFactory.createConfiguredSystem()`, which calls `SourcePatternRegistry.initialize()`. That in turn calls `registerPatterns()` on each category registrar.
 
 ### Category Registrars
@@ -134,21 +222,28 @@ Registration happens at startup via `PatternRegistryFactory.createConfiguredSyst
 Each category has a registrar class that inherits from `BasePatternRegistrar`:
 
 ```swift
-class CodeQualityRegistrar: BasePatternRegistrar {
+class CodeQuality: BasePatternRegistrar {
     override func registerPatterns() {
-        registry.register(pattern: MagicNumberRegistrar().pattern)
-        registry.register(pattern: HardcodedStringRegistrar().pattern)
-        // ...
+        registry.register(patterns: inlinePatterns)
+        registerDelegatedPatterns()
     }
 }
 ```
 
-Individual rule registrars conform to `PatternRegistrar` and provide a `SyntaxPattern` — a value that names the rule and its associated visitor type:
+Individual rule registrars conform to `PatternRegistrarProtocol` and provide a `SyntaxPattern` — a value that names the rule and its associated visitor type:
 
 ```swift
-struct ForceTryRegistrar: PatternRegistrar {
+struct ForceTry: PatternRegistrarProtocol {
     var pattern: SyntaxPattern {
-        SyntaxPattern(ruleIdentifier: .forceTry, visitorType: ForceTryVisitor.self)
+        SyntaxPattern(
+            name: .forceTry,
+            visitor: ForceTryVisitor.self,
+            severity: .warning,
+            category: .codeQuality,
+            messageTemplate: "...",
+            suggestion: "...",
+            description: "..."
+        )
     }
 }
 ```
@@ -201,11 +296,18 @@ Cross-file issues are appended to the per-file issues before `LintConfiguration.
 
 `Sources/App/` is a macOS SwiftUI application. It uses the same `Core` library as the CLI. Key components:
 
-- `ContentView` — main window with project path input and analysis trigger
 - `ContentViewModel` — drives analysis via `ProjectLinter`, holds observable state
 - `LintResultsView` — displays issues grouped by category and severity
+- `RuleSelectionDialog` — rule picker for enabling/disabling individual rules
+- `RuleDocView` — displays per-rule documentation
+- `SystemComponents` — app-wide shared state
 - `DemoIssueGenerator` — produces hardcoded sample issues for UI demonstration without requiring a real project
 
 ## CLI Target
 
-`Sources/CLI/SwiftProjectLintCLI.swift` — a single file using Swift Argument Parser. It parses arguments, loads configuration, calls `ProjectLinter.analyzeProject`, formats output via `TextFormatter` or `JSONFormatter`, and maps the results to an exit code via `ExitCodes`.
+`Sources/CLI/` uses Swift Argument Parser. Key files:
+
+- `SwiftProjectLintCLI.swift` — entry point, argument parsing, analysis orchestration
+- `TextFormatter.swift` / `JSONFormatter.swift` — output formatting
+- `ExitCodes.swift` — maps results to exit codes
+- `CodableLintIssue.swift` / `LintReport.swift` — JSON output models
