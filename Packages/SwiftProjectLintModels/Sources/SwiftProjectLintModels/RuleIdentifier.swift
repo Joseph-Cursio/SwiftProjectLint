@@ -84,6 +84,7 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
     case publicInAppTarget = "Public in App Target"
     case couldBePrivateMember = "Could Be Private Member"
     case protocolCouldBePrivate = "Protocol Could Be Private"
+    case variableShadowing = "Variable Shadowing"
 
     // Modernization Rules
     case dateNow = "Date Now"
@@ -182,7 +183,7 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
              .taskDetached, .asyncLetUnused, .buttonClosureWrapping,
              .nonisolatedUnsafe, .taskYieldOffload, .swallowedTaskError,
              .couldBePrivate, .publicInAppTarget, .couldBePrivateMember,
-             .protocolCouldBePrivate:
+             .protocolCouldBePrivate, .variableShadowing:
             return .codeQuality
 
             // Security Rules
