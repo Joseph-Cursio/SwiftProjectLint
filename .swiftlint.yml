@@ -4,13 +4,15 @@
 
 # Exclude common build and dependency directories
 excluded:
-  - .build                    # Swift Package Manager dependencies
+  - .build                    # Swift Package Manager build artifacts & checkouts
+  - .claude                   # Claude Code worktrees and metadata
   - Pods                      # CocoaPods dependencies
   - .git                      # Git metadata
   - DerivedData               # Xcode build artifacts
   - .swiftpm                  # Swift Package Manager metadata
   - xcuserdata                # Xcode user-specific data
   - .xcode                    # Xcode project files
+  - Packages/**/.build        # Nested package build directories
   - Sources/SwiftProjectLint/ExampleViews  # Intentional bad code for lint detection demos
 
 # Disable rules that are too strict for development
