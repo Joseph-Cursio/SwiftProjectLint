@@ -29,8 +29,10 @@ public final class SourcePatternRegistry: SourcePatternRegistryProtocol, @unchec
     /// Registered factory closures that create registrars on demand.
     /// Each factory receives the registry and visitor registry, and returns
     /// a registrar whose `registerPatterns()` will be called during initialization.
-    // Safety: `registrarFactories` is protected by `factoryLock`.
-    nonisolated(unsafe) private static var registrarFactories: [(SourcePatternRegistry, PatternVisitorRegistry) -> PatternRegistrarWithVisitorProtocol] = []
+    /// Safety: `registrarFactories` is protected by `factoryLock`.
+    nonisolated(unsafe) private static var registrarFactories: [
+        (SourcePatternRegistry, PatternVisitorRegistry) -> PatternRegistrarWithVisitorProtocol
+    ] = []
     private static let factoryLock = NSLock()
 
     /// Registers a factory closure that will be called during `initialize()` to

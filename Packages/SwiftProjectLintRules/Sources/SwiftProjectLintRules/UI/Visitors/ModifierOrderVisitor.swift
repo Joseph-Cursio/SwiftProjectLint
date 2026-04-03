@@ -99,18 +99,16 @@ class ModifierOrderVisitor: BasePatternVisitor {
             }
 
             // Check if any `after` modifier appears later in the chain
-            for idx in (beforeIndex + 1)..<chain.count {
-                if rule.after.contains(chain[idx].name) {
-                    addIssue(
-                        node: chain[beforeIndex].node,
-                        variables: [
-                            "before": rule.before,
-                            "after": chain[idx].name,
-                            "reason": rule.reason
-                        ]
-                    )
-                    break
-                }
+            for idx in (beforeIndex + 1)..<chain.count where rule.after.contains(chain[idx].name) {
+                addIssue(
+                    node: chain[beforeIndex].node,
+                    variables: [
+                        "before": rule.before,
+                        "after": chain[idx].name,
+                        "reason": rule.reason
+                    ]
+                )
+                break
             }
         }
     }
