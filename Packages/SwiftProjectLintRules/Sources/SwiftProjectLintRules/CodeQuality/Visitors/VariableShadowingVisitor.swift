@@ -6,9 +6,11 @@ import SwiftSyntax
 /// A SwiftSyntax visitor that detects variable shadowing across nested scopes.
 ///
 /// Flags inner-scope declarations that reuse a name from an outer scope,
-/// but **ignores** idiomatic Swift optional-binding patterns:
+/// but **ignores** idiomatic Swift patterns:
 /// - `if let x = x` / `if let x` (Swift 5.7+ shorthand)
 /// - `guard let x = x` / `guard let x`
+/// - `if let x = x as? T` (conditional type cast binding)
+/// - `guard let self = self` / `guard let self` (weak-to-strong self capture)
 final class VariableShadowingVisitor: BasePatternVisitor {
 
     /// Each frame maps variable names declared in that scope.
@@ -50,7 +52,7 @@ final class VariableShadowingVisitor: BasePatternVisitor {
         scopeStack.append([])
         if let identifier = node.pattern.as(IdentifierPatternSyntax.self) {
             let name = identifier.identifier.text
-            checkShadow(name: name, node: Syntax(node.pattern))
+            checkShadow(name: name, node: Syntax(node.pattern), severity: .error)
             registerInCurrentScope(name)
         }
         return .visitChildren
@@ -78,7 +80,8 @@ final class VariableShadowingVisitor: BasePatternVisitor {
                 continue
             }
 
-            checkShadow(name: name, node: Syntax(binding.pattern))
+            let severity: IssueSeverity = initializerReferences(name: name, in: binding) ? .warning : .error
+            checkShadow(name: name, node: Syntax(binding.pattern), severity: severity)
             registerInCurrentScope(name)
         }
         return .visitChildren
@@ -92,7 +95,7 @@ final class VariableShadowingVisitor: BasePatternVisitor {
         for parameter in node.signature.parameterClause.parameters {
             let name = parameter.secondName?.text ?? parameter.firstName.text
             guard name != "_" else { continue }
-            checkShadowAllFrames(name: name, node: Syntax(parameter))
+            checkShadowAllFrames(name: name, node: Syntax(parameter), severity: .error)
         }
         return .visitChildren
     }
@@ -108,14 +111,14 @@ final class VariableShadowingVisitor: BasePatternVisitor {
                 for parameter in clause.parameters {
                     let name = parameter.secondName?.text ?? parameter.firstName.text
                     guard name != "_" else { continue }
-                    checkShadow(name: name, node: Syntax(parameter))
+                    checkShadow(name: name, node: Syntax(parameter), severity: .error)
                     registerInCurrentScope(name)
                 }
             case .simpleInput(let list):
                 for parameter in list {
                     let name = parameter.name.text
                     guard name != "_" else { continue }
-                    checkShadow(name: name, node: Syntax(parameter))
+                    checkShadow(name: name, node: Syntax(parameter), severity: .error)
                     registerInCurrentScope(name)
                 }
             }
@@ -129,10 +132,10 @@ final class VariableShadowingVisitor: BasePatternVisitor {
 
     /// Check all frames including the current one. Used for function parameters
     /// which are visited before the function body's CodeBlock pushes a new scope.
-    private func checkShadowAllFrames(name: String, node: Syntax) {
+    private func checkShadowAllFrames(name: String, node: Syntax, severity: IssueSeverity) {
         for frame in scopeStack where frame.contains(name) {
             addIssue(
-                severity: .warning,
+                severity: severity,
                 message: "Variable '\(name)' shadows a declaration from an outer scope",
                 filePath: getFilePath(for: node),
                 lineNumber: getLineNumber(for: node),
@@ -143,12 +146,12 @@ final class VariableShadowingVisitor: BasePatternVisitor {
         }
     }
 
-    private func checkShadow(name: String, node: Syntax) {
+    private func checkShadow(name: String, node: Syntax, severity: IssueSeverity) {
         // Check all frames except the current (topmost) one
         let outerFrames = scopeStack.dropLast()
         for frame in outerFrames where frame.contains(name) {
             addIssue(
-                severity: .warning,
+                severity: severity,
                 message: "Variable '\(name)' shadows a declaration from an outer scope",
                 filePath: getFilePath(for: node),
                 lineNumber: getLineNumber(for: node),
@@ -156,6 +159,16 @@ final class VariableShadowingVisitor: BasePatternVisitor {
                 ruleName: .variableShadowing
             )
             return
+        }
+    }
+
+    /// Returns `true` when the binding's initializer contains a reference to `name`.
+    /// Used to distinguish ambiguous shadows (e.g. `let config = config.cleaned()`)
+    /// from clear-cut ones (e.g. `let config = 42`).
+    private func initializerReferences(name: String, in binding: PatternBindingSyntax) -> Bool {
+        guard let initializer = binding.initializer else { return false }
+        return initializer.value.tokens(viewMode: .sourceAccurate).contains { token in
+            token.tokenKind == .identifier(name)
         }
     }
 
@@ -192,6 +205,13 @@ final class VariableShadowingVisitor: BasePatternVisitor {
 
         // `if let x = x` / `guard let x = x` — initializer is a bare reference to same name
         if let declRef = initializer.value.as(DeclReferenceExprSyntax.self) {
+            return declRef.baseName.text == boundName
+        }
+
+        // `if let x = x as? T` / `guard let x = x as? T` — conditional type cast binding
+        if let asExpr = initializer.value.as(AsExprSyntax.self),
+           asExpr.questionOrExclamationMark?.tokenKind == .postfixQuestionMark,
+           let declRef = asExpr.expression.as(DeclReferenceExprSyntax.self) {
             return declRef.baseName.text == boundName
         }
 
