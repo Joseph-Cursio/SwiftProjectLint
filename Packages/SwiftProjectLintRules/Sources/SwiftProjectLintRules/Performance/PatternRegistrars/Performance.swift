@@ -50,9 +50,11 @@ class Performance: BasePatternRegistrar {
                 visitor: ForEachSelfIDVisitor.self,
                 severity: .warning,
                 category: .performance,
-                messageTemplate: "Using .self as id in ForEach can cause performance issues",
-                suggestion: "Use a unique identifier property instead of .self for better performance",
-                description: "Detects usage of .self as the id parameter in ForEach"
+                messageTemplate: "ForEach using unsafe ID keypath (.self or .hashValue)"
+                    + " can cause performance issues or incorrect view updates",
+                suggestion: "Use a stable, unique identifier like \\.id."
+                    + " Conform the element to Identifiable if possible",
+                description: "Detects .self or .hashValue as the id parameter in ForEach"
             ),
             SyntaxPattern(
                 name: .unnecessaryViewUpdate,

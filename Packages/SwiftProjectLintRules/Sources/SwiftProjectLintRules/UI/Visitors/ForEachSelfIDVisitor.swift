@@ -4,8 +4,10 @@ import SwiftProjectLintVisitors
 import Foundation
 import SwiftSyntax
 
-/// Visitor that detects usage of .self or \.self as the id parameter in ForEach
+/// Visitor that detects usage of .self, \.self, or \.hashValue as the id parameter in ForEach
 class ForEachSelfIDVisitor: BasePatternVisitor {
+
+    private static let unsafeIDNames: Set<String> = ["self", "hashValue"]
 
     required init(pattern: SyntaxPattern, viewMode: SyntaxTreeViewMode = .sourceAccurate) {
         super.init(pattern: pattern, viewMode: viewMode)
@@ -15,10 +17,10 @@ class ForEachSelfIDVisitor: BasePatternVisitor {
         // Check if this is a ForEach call
         if let calledExpr = node.calledExpression.as(DeclReferenceExprSyntax.self),
            calledExpr.baseName.text == SwiftUIViewType.forEach.rawValue {
-            // Check if .self or \.self is used as the id parameter
+            // Check if .self, \.self, or \.hashValue is used as the id parameter
             for argument in node.arguments where argument.label?.text == "id" {
                 if let memberAccess = argument.expression.as(MemberAccessExprSyntax.self),
-                   memberAccess.declName.baseName.text == "self",
+                   Self.unsafeIDNames.contains(memberAccess.declName.baseName.text),
                    !isForEachCollectionSafeForSelfID(node) {
                     addIssue(node: Syntax(node))
                 }
