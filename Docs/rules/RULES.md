@@ -1,6 +1,6 @@
 # SwiftProjectLint Rules Reference
 
-SwiftProjectLint is a static analysis tool for SwiftUI projects. It parses Swift source files using SwiftSyntax AST visitors to detect anti-patterns spanning state management, performance, animations, architecture, code quality, security, accessibility, memory management, networking, UI patterns, and modernization. This reference documents all 101 lint rules, organized by category.
+SwiftProjectLint is a static analysis tool for SwiftUI projects. It parses Swift source files using SwiftSyntax AST visitors to detect anti-patterns spanning state management, performance, animations, architecture, code quality, security, accessibility, memory management, networking, UI patterns, and modernization. This reference documents all 102 lint rules, organized by category.
 
 Rules marked **opt-in** are disabled by default and must be explicitly listed under `enabled_only` in `.swiftprojectlint.yml`.
 
@@ -98,6 +98,7 @@ Rules marked **opt-in** are disabled by default and must be explicitly listed un
 | [Could Be Private Member](could-be-private-member.md) | Info |
 | [Protocol Could Be Private](protocol-could-be-private.md) | Info |
 | [Variable Shadowing](variable-shadowing.md) | Warning |
+| [Unchecked Sendable](unchecked-sendable.md) | Warning |
 | [SwiftLint Suppression](swiftlint-suppression.md) | Warning |
 | [SwiftProjectLint Suppression](swiftprojectlint-suppression.md) | Warning |
 
