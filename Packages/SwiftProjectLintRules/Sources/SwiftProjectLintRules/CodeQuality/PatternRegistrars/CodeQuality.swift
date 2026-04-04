@@ -139,7 +139,8 @@ class CodeQuality: BasePatternRegistrar {
             SwiftLintSuppression(),
             SwiftProjectLintSuppression(),
             VariableShadowing(),
-            UncheckedSendable()
+            UncheckedSendable(),
+            StringSwitchOverEnum()
         ])
     }
 }

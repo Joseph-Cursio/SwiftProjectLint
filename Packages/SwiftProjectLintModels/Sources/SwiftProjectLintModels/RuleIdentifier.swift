@@ -86,6 +86,7 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
     case protocolCouldBePrivate = "Protocol Could Be Private"
     case variableShadowing = "Variable Shadowing"
     case uncheckedSendable = "Unchecked Sendable"
+    case stringSwitchOverEnum = "String Switch Over Enum"
     case formatterInViewBody = "Formatter In View Body"
     case mainActorMissingOnUICode = "Main Actor Missing On UI Code"
 
@@ -106,6 +107,7 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
 
     // Security Rules
     case hardcodedSecret = "Hardcoded Secret"
+    case insecureTransport = "Insecure Transport"
     case unsafeURL = "Unsafe URL"
     case userDefaultsSensitiveData = "User Defaults Sensitive Data"
 
@@ -187,11 +189,12 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
              .taskDetached, .asyncLetUnused, .buttonClosureWrapping,
              .nonisolatedUnsafe, .taskYieldOffload, .swallowedTaskError,
              .couldBePrivate, .publicInAppTarget, .couldBePrivateMember,
-             .protocolCouldBePrivate, .variableShadowing, .uncheckedSendable:
+             .protocolCouldBePrivate, .variableShadowing, .uncheckedSendable,
+             .stringSwitchOverEnum:
             return .codeQuality
 
             // Security Rules
-        case .hardcodedSecret, .unsafeURL, .userDefaultsSensitiveData:
+        case .hardcodedSecret, .insecureTransport, .unsafeURL, .userDefaultsSensitiveData:
             return .security
 
             // Accessibility Rules

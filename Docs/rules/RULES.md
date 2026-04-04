@@ -1,6 +1,6 @@
 # SwiftProjectLint Rules Reference
 
-SwiftProjectLint is a static analysis tool for SwiftUI projects. It parses Swift source files using SwiftSyntax AST visitors to detect anti-patterns spanning state management, performance, animations, architecture, code quality, security, accessibility, memory management, networking, UI patterns, and modernization. This reference documents all 105 lint rules, organized by category.
+SwiftProjectLint is a static analysis tool for SwiftUI projects. It parses Swift source files using SwiftSyntax AST visitors to detect anti-patterns spanning state management, performance, animations, architecture, code quality, security, accessibility, memory management, networking, UI patterns, and modernization. This reference documents all 106 lint rules, organized by category.
 
 Rules marked **opt-in** are disabled by default and must be explicitly listed under `enabled_only` in `.swiftprojectlint.yml`.
 
@@ -101,6 +101,7 @@ Rules marked **opt-in** are disabled by default and must be explicitly listed un
 | [Protocol Could Be Private](protocol-could-be-private.md) | Info |
 | [Variable Shadowing](variable-shadowing.md) | Warning |
 | [Unchecked Sendable](unchecked-sendable.md) | Warning |
+| [String Switch Over Enum](string-switch-over-enum.md) | Info *(opt-in)* |
 | [SwiftLint Suppression](swiftlint-suppression.md) | Warning |
 | [SwiftProjectLint Suppression](swiftprojectlint-suppression.md) | Warning |
 
@@ -109,6 +110,7 @@ Rules marked **opt-in** are disabled by default and must be explicitly listed un
 | Rule | Severity |
 |------|----------|
 | [Hardcoded Secret](hardcoded-secret.md) | Error |
+| [Insecure Transport](insecure-transport.md) | Warning |
 | [Unsafe URL](unsafe-url.md) | Warning |
 | [User Defaults Sensitive Data](user-defaults-sensitive-data.md) | Error |
 

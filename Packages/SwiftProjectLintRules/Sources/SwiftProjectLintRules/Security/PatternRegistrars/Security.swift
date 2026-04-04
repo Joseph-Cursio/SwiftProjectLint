@@ -19,6 +19,17 @@ class Security: BasePatternRegistrar {
                 description: "Detects hardcoded secrets, passwords, API keys, and tokens"
             ),
             SyntaxPattern(
+                name: .insecureTransport,
+                visitor: InsecureTransportVisitor.self,
+                severity: .warning,
+                category: .security,
+                messageTemplate: "Insecure transport detected: '{url}' — data transmitted in plaintext",
+                suggestion: "Use the secure equivalent (https, wss, sftp, ssh, mqtts, amqps, "
+                    + "rediss, ldaps). If insecure transport is required, document the reason.",
+                description: "Detects URL literals using insecure transport schemes (http, ws, ftp, "
+                    + "telnet, mqtt, amqp, redis, ldap)"
+            ),
+            SyntaxPattern(
                 name: .unsafeURL,
                 visitor: SecurityVisitor.self,
                 severity: .warning,
