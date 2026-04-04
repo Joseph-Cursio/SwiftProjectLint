@@ -3,8 +3,8 @@ import SwiftProjectLintRegistry
 import SwiftProjectLintVisitors
 import SwiftSyntax
 
-/// A SwiftSyntax visitor that detects Foundation formatter and coder types
-/// instantiated inside a SwiftUI view's `body` computed property.
+/// A SwiftSyntax visitor that detects Foundation formatter, coder, and locale
+/// types created inside a SwiftUI view's `body` computed property.
 ///
 /// Types such as `DateFormatter`, `NumberFormatter`, and `JSONDecoder` are
 /// expensive to create — they allocate internal caches and parse locale data
@@ -12,10 +12,17 @@ import SwiftSyntax
 /// every view re-render, turning per-update allocation overhead into a
 /// sustained performance cost.
 ///
+/// `Calendar.current` and `Locale.current` are lighter, but each access
+/// returns a struct copy. Inside a `ForEach` or a frequently re-rendered body
+/// these copies accumulate; using `@Environment(\.calendar)` or
+/// `@Environment(\.locale)` is both cheaper and respects Dynamic Type /
+/// locale-change notifications correctly.
+///
 /// **Detection:** Scans the getter of the `body` computed property on any
-/// `struct` conforming to `View`, looking for call expressions whose callee
-/// is a known expensive type. Only `struct`-based Views are checked (all
-/// SwiftUI Views must be structs).
+/// `struct` conforming to `View`, looking for:
+/// - Call expressions whose callee is a known expensive formatter type.
+/// - Member accesses of the form `Calendar.current` or `Locale.current`.
+/// Only `struct`-based Views are checked (all SwiftUI Views must be structs).
 ///
 /// **No suppression needed:** Foundation formatters cannot be declared as
 /// `static` stored properties inside a function body or computed property
@@ -87,10 +94,17 @@ final class FormatterInViewBodyVisitor: BasePatternVisitor {
 
     // MARK: - Nested Call Finder
 
-    /// Walks a syntax subtree collecting all calls to known expensive formatter types.
+    /// Walks a syntax subtree collecting calls to known expensive formatter types
+    /// and accesses to `Calendar.current` / `Locale.current`.
     private final class FormatterCallFinder: SyntaxVisitor {
         let formatterTypes: Set<String>
         var findings: [(typeName: String, node: Syntax)] = []
+
+        /// Static property accesses that are flagged: type name → property name.
+        private static let expensivePropertyAccesses: [String: String] = [
+            "Calendar": "current",
+            "Locale": "current"
+        ]
 
         init(formatterTypes: Set<String>) {
             self.formatterTypes = formatterTypes
@@ -101,6 +115,17 @@ final class FormatterInViewBodyVisitor: BasePatternVisitor {
             if let typeName = calledTypeName(from: node.calledExpression),
                formatterTypes.contains(typeName) {
                 findings.append((typeName: typeName, node: Syntax(node)))
+            }
+            return .visitChildren
+        }
+
+        override func visit(_ node: MemberAccessExprSyntax) -> SyntaxVisitorContinueKind {
+            if let base = node.base?.as(DeclReferenceExprSyntax.self) {
+                let typeName = base.baseName.text
+                let memberName = node.declName.baseName.text
+                if Self.expensivePropertyAccesses[typeName] == memberName {
+                    findings.append((typeName: "\(typeName).\(memberName)", node: Syntax(node)))
+                }
             }
             return .visitChildren
         }

@@ -7,14 +7,18 @@
 **Severity:** Warning
 
 ### Rationale
-Foundation formatter and coder types — `DateFormatter`, `NumberFormatter`, `JSONDecoder`, and their relatives — are expensive to initialize. They allocate internal caches, parse locale and calendar data, and register with the system on creation. When instantiated inside a SwiftUI view's `body` computed property, they are rebuilt from scratch on every render pass triggered by a state change. This makes one of the most common SwiftUI performance mistakes invisible until profiled.
+Foundation formatter and coder types — `DateFormatter`, `NumberFormatter`, `JSONDecoder`, and their relatives — are expensive to initialize. They allocate internal caches, parse locale and calendar data, and register with the system on creation. When constructed inside a SwiftUI view's `body` computed property, they are rebuilt from scratch on every render pass triggered by a state change. This makes one of the most common SwiftUI performance mistakes invisible until profiled.
+
+`Calendar.current` and `Locale.current` are lighter — they return struct copies rather than heap-allocated objects — but each access inside a `ForEach` or a frequently re-rendering body still adds unnecessary overhead. More importantly, reading them directly bypasses SwiftUI's environment system: views that use `@Environment(\.calendar)` and `@Environment(\.locale)` automatically re-render when the user changes their locale or calendar in Settings, while direct `.current` accesses do not.
 
 ### Discussion
-`FormatterInViewBodyVisitor` scans the getter of the `body` computed property on any `struct` conforming to `View`, searching for call expressions whose callee is a known expensive type.
+`FormatterInViewBodyVisitor` scans the getter of the `body` computed property on any `struct` conforming to `View`, searching for:
+- **Call expressions** whose callee is a known expensive formatter type (`DateFormatter()`, `JSONDecoder()`, etc.).
+- **Member access expressions** of the form `Calendar.current` or `Locale.current`.
 
 Because all SwiftUI Views must be structs, the visitor only inspects `StructDeclSyntax` nodes. It extracts the `body` property's accessor block and walks it with a focused inner visitor, so formatter calls in unrelated computed properties or helper methods are never flagged.
 
-No suppression logic is required: `static` stored properties can only be declared at type scope in Swift — not inside a computed property getter — so any formatter instantiation visible inside `body` is structurally guaranteed to be a per-render allocation.
+No suppression logic is required: `static` stored properties can only be declared at type scope in Swift — not inside a computed property getter — so any formatter construction visible inside `body` is structurally guaranteed to be a per-render allocation.
 
 ### Detected Types
 
@@ -29,6 +33,8 @@ No suppression logic is required: `static` stored properties can only be declare
 | `PersonNameComponentsFormatter` | Locale-aware, expensive init |
 | `JSONDecoder` | Allocates decoding strategy internals |
 | `JSONEncoder` | Allocates encoding strategy internals |
+| `Calendar.current` | Returns a struct copy; use `@Environment(\.calendar)` instead |
+| `Locale.current` | Returns a struct copy; use `@Environment(\.locale)` instead |
 
 `Date.FormatStyle` and the `.formatted()` API are **not** flagged — they are value types with negligible allocation cost and are the recommended modern API.
 
@@ -60,6 +66,16 @@ struct EventRow: View {
 struct EventRow: View {
     var body: some View {
         Text(event.date.formatted(.dateTime.month().day()))
+    }
+}
+
+// Calendar and Locale via environment — correct pattern, not flagged
+struct EventRow: View {
+    @Environment(\.calendar) var calendar
+    @Environment(\.locale) var locale
+
+    var body: some View {
+        Text(calendar.isDateInToday(event.date) ? "Today" : "Other")
     }
 }
 ```
@@ -96,6 +112,15 @@ struct StatsView: View {
             let dateFmt = DateFormatter()
             Text("...")
         }
+    }
+}
+
+// FLAGGED: Calendar.current and Locale.current in body
+struct EventRow: View {
+    var body: some View {
+        let cal = Calendar.current
+        let locale = Locale.current
+        Text(cal.isDateInToday(event.date) ? "Today" : "Other")
     }
 }
 ```
