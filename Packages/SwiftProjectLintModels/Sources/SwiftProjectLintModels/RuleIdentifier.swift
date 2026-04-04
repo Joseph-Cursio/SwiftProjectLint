@@ -86,6 +86,7 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
     case protocolCouldBePrivate = "Protocol Could Be Private"
     case variableShadowing = "Variable Shadowing"
     case uncheckedSendable = "Unchecked Sendable"
+    case formatterInViewBody = "Formatter In View Body"
 
     // Modernization Rules
     case dateNow = "Date Now"
@@ -157,7 +158,7 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
             // Performance Rules
         case .expensiveOperationInViewBody, .forEachWithoutID, .largeViewBody, .largeViewHelper,
              .forEachSelfID, .unnecessaryViewUpdate, .viewBuilderComplexity,
-             .customModifierPerformance:
+             .customModifierPerformance, .formatterInViewBody:
             return .performance
 
         case .deprecatedAnimation, .animationInHighFrequencyUpdate, .excessiveSpringAnimations,
@@ -184,7 +185,8 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
              .taskDetached, .asyncLetUnused, .buttonClosureWrapping,
              .nonisolatedUnsafe, .taskYieldOffload, .swallowedTaskError,
              .couldBePrivate, .publicInAppTarget, .couldBePrivateMember,
-             .protocolCouldBePrivate, .variableShadowing, .uncheckedSendable:
+             .protocolCouldBePrivate, .variableShadowing, .uncheckedSendable,
+             .formatterInViewBody:
             return .codeQuality
 
             // Security Rules
