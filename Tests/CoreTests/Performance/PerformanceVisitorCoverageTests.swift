@@ -50,7 +50,7 @@ struct PerformanceVisitorCoverageTests {
         let expensiveIssues = visitor.detectedIssues.filter {
             $0.ruleName == .expensiveOperationInViewBody
         }
-        #expect(expensiveIssues.count >= 1)
+        #expect(expensiveIssues.count == 1)
         if let issue = expensiveIssues.first {
             #expect(issue.message.contains("sorted"))
         }
@@ -71,7 +71,7 @@ struct PerformanceVisitorCoverageTests {
         let expensiveIssues = visitor.detectedIssues.filter {
             $0.ruleName == .expensiveOperationInViewBody
         }
-        #expect(expensiveIssues.count >= 1)
+        #expect(expensiveIssues.count == 1)
     }
 
     @Test("detects compactMap free function call in view body")
@@ -89,7 +89,7 @@ struct PerformanceVisitorCoverageTests {
         let expensiveIssues = visitor.detectedIssues.filter {
             $0.ruleName == .expensiveOperationInViewBody
         }
-        #expect(expensiveIssues.count >= 1)
+        #expect(expensiveIssues.count == 1)
     }
 
     // MARK: - Large view body via visitPost on VariableDeclSyntax (lines 180-188)
@@ -115,7 +115,7 @@ struct PerformanceVisitorCoverageTests {
         let largeBodyIssues = visitor.detectedIssues.filter {
             $0.ruleName == .largeViewBody
         }
-        #expect(largeBodyIssues.count >= 1)
+        #expect(largeBodyIssues.count == 1)
     }
 
     // MARK: - Large view body via visitPost on FunctionDeclSyntax (lines 194-203)
@@ -140,7 +140,7 @@ struct PerformanceVisitorCoverageTests {
         let largeBodyIssues = visitor.detectedIssues.filter {
             $0.ruleName == .largeViewBody
         }
-        #expect(largeBodyIssues.count >= 1)
+        #expect(largeBodyIssues.count == 1)
     }
 
     // MARK: - Helper size check (lines 89-91, 227-228)
@@ -168,7 +168,7 @@ struct PerformanceVisitorCoverageTests {
         let helperIssues = visitor.detectedIssues.filter {
             $0.ruleName == .largeViewHelper
         }
-        #expect(helperIssues.count >= 1)
+        #expect(helperIssues.count == 1)
         if let issue = helperIssues.first {
             #expect(issue.message.contains("makeContent"))
         }
@@ -197,7 +197,7 @@ struct PerformanceVisitorCoverageTests {
         let helperIssues = visitor.detectedIssues.filter {
             $0.ruleName == .largeViewHelper
         }
-        #expect(helperIssues.count >= 1)
+        #expect(helperIssues.count == 1)
         if let issue = helperIssues.first {
             #expect(issue.message.contains("contentSection"))
         }
@@ -228,7 +228,7 @@ struct PerformanceVisitorCoverageTests {
             $0.ruleName == .largeViewBody
         }
         // The getter block path should detect large view body
-        #expect(largeBodyIssues.count >= 1)
+        #expect(largeBodyIssues.count == 1)
     }
 
     // MARK: - MemberAccessExprSyntax tracking in view body (line 148)

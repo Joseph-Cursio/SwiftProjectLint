@@ -398,7 +398,27 @@ struct PerfUsageAndForEachCoverageTests {
         let selfIDIssues = visitor.detectedIssues.filter {
             $0.message.contains("\\.self") && $0.message.contains("ForEach")
         }
-        #expect(selfIDIssues.count >= 2)
+        #expect(selfIDIssues.count == 2)
+    }
+
+    @Test("detectForEachSelfID detects hashValue as unsafe ID keypath")
+    func detectsHashValueAsUnsafeID() throws {
+        let source = """
+        struct TestView: View {
+            var items: [Item] = []
+            var body: some View {
+                ForEach(items, id: \\.hashValue) { item in
+                    Text(item.name)
+                }
+            }
+        }
+        """
+
+        let visitor = makeVisitor(source: source)
+        let hashValueIssues = visitor.detectedIssues.filter {
+            $0.message.contains("hashValue")
+        }
+        #expect(hashValueIssues.count == 1)
     }
 
     @Test("detectForEachSelfID does not flag ForEach with proper id keypath")

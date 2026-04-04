@@ -23,7 +23,7 @@ struct PerformanceStateVariableTrackingTests {
         visitor.walk(syntax)
         
         // Should track both @State variables
-        #expect(visitor.stateVariables.count >= 2)
+        #expect(visitor.stateVariables.count == 2)
         #expect(visitor.stateVariables["count"] != nil)
         #expect(visitor.stateVariables["name"] != nil)
         
@@ -212,7 +212,7 @@ struct PerformanceStateVariableTrackingTests {
         visitor.walk(syntax)
         
         // Should track all three state variables
-        #expect(visitor.stateVariables.count >= 3)
+        #expect(visitor.stateVariables.count == 3)
         #expect(visitor.stateVariables["count"]?.isUsedInViewBody == true)
         #expect(visitor.stateVariables["name"]?.isUsedInViewBody == true)
         #expect(visitor.stateVariables["isVisible"]?.isUsedInViewBody == true)
@@ -235,7 +235,7 @@ struct PerformanceStateVariableTrackingTests {
         visitor.walk(syntax)
         
         // Should only track @State, not @StateObject
-        #expect(visitor.stateVariables.count >= 1)
+        #expect(visitor.stateVariables.count == 1)
         #expect(visitor.stateVariables["count"] != nil)
         #expect(visitor.stateVariables["viewModel"] == nil)
     }

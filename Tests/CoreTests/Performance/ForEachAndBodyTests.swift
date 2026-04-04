@@ -115,7 +115,7 @@ struct ForEachAndBodyTests {
         // MyEnum is NOT in the Identifiable set
         let issues = analyzeSource(source, identifiableTypes: ["OtherType"])
         let forEachIssues = issues.filter { $0.ruleName == .forEachWithoutID }
-        #expect(forEachIssues.count >= 1)
+        #expect(forEachIssues.count == 1)
     }
 
     @Test func testNoIssueForForEachWithIdentifiableTypedArray() throws {
@@ -153,7 +153,7 @@ struct ForEachAndBodyTests {
         // so this should still flag (element type unknown)
         let issues = analyzeSource(source, identifiableTypes: ["ConfigBackup"])
         let forEachIssues = issues.filter { $0.ruleName == .forEachWithoutID }
-        #expect(forEachIssues.count >= 1)
+        #expect(forEachIssues.count == 1)
     }
 
     // MARK: - Large View Body Tests
@@ -174,7 +174,7 @@ struct ForEachAndBodyTests {
         let issues = analyzeSource(source)
         let largeBodyIssues = issues.filter { $0.message.contains("Large view") }
 
-        #expect(largeBodyIssues.count >= 1)
+        #expect(largeBodyIssues.count == 1)
     }
 
     @Test func testNoIssueForSmallViewBody() throws {
@@ -273,7 +273,7 @@ struct ForEachAndBodyTests {
         let issues = analyzeSource(source)
 
         // Should detect both ForEach without ID and sorted in body
-        #expect(issues.count >= 1)
+        #expect(issues.count == 2)
     }
 
     // MARK: - Function Declaration Body Tests

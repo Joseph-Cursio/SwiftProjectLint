@@ -109,7 +109,7 @@ struct UIVisitorForEachTests {
         let syntax = Parser.parse(source: source)
         visitor.walk(syntax)
         let forEachIssues = visitor.detectedIssues.filter { $0.ruleName == .forEachWithoutIDUI }
-        #expect(forEachIssues.count >= 1)
+        #expect(forEachIssues.count == 1)
     }
 
     @Test func testNoIssueForTypedArrayWithIdentifiableElement() throws {

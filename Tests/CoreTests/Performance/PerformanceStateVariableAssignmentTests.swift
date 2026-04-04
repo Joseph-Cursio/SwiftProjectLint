@@ -134,7 +134,7 @@ struct PerformanceStateVariableAssignmentTests {
         """
 
         let visitor = makeVisitor(source: source)
-        #expect(visitor.stateVariables.count >= 3)
+        #expect(visitor.stateVariables.count == 3)
 
         // a and b are used, c is not
         let aInfo = try #require(visitor.stateVariables["a"])

@@ -73,7 +73,7 @@ struct ExpensiveOperationTests {
         let issues = analyzeSource(source)
         let filterIssues = issues.filter { $0.message.contains("filter") }
 
-        #expect(filterIssues.count >= 1)
+        #expect(filterIssues.count == 1)
     }
 
     @Test func testDetectsMapInViewBody() throws {
@@ -94,7 +94,7 @@ struct ExpensiveOperationTests {
         let issues = analyzeSource(source)
         let mapIssues = issues.filter { $0.message.contains("map") }
 
-        #expect(mapIssues.count >= 1)
+        #expect(mapIssues.count == 1)
     }
 
     @Test func testDetectsReduceInViewBody() throws {
@@ -111,7 +111,7 @@ struct ExpensiveOperationTests {
         let issues = analyzeSource(source)
         let reduceIssues = issues.filter { $0.message.contains("reduce") }
 
-        #expect(reduceIssues.count >= 1)
+        #expect(reduceIssues.count == 1)
     }
 
     @Test func testDetectsFlatMapInViewBody() throws {
@@ -132,7 +132,7 @@ struct ExpensiveOperationTests {
         let issues = analyzeSource(source)
         let flatMapIssues = issues.filter { $0.message.contains("flatMap") }
 
-        #expect(flatMapIssues.count >= 1)
+        #expect(flatMapIssues.count == 1)
     }
 
     @Test func testDetectsCompactMapInViewBody() throws {
@@ -153,7 +153,7 @@ struct ExpensiveOperationTests {
         let issues = analyzeSource(source)
         let compactMapIssues = issues.filter { $0.message.contains("compactMap") }
 
-        #expect(compactMapIssues.count >= 1)
+        #expect(compactMapIssues.count == 1)
     }
 
     @Test func testNoExpensiveOperationOutsideViewBody() throws {
