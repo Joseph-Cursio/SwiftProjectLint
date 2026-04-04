@@ -87,6 +87,7 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
     case variableShadowing = "Variable Shadowing"
     case uncheckedSendable = "Unchecked Sendable"
     case formatterInViewBody = "Formatter In View Body"
+    case mainActorMissingOnUICode = "Main Actor Missing On UI Code"
 
     // Modernization Rules
     case dateNow = "Date Now"
@@ -106,6 +107,7 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
     // Security Rules
     case hardcodedSecret = "Hardcoded Secret"
     case unsafeURL = "Unsafe URL"
+    case userDefaultsSensitiveData = "User Defaults Sensitive Data"
 
     // Accessibility Rules
     case missingAccessibilityLabel = "Missing Accessibility Label"
@@ -152,7 +154,7 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
         // State Management Rules
         case .relatedDuplicateStateVariable, .unrelatedDuplicateStateVariable,
              .uninitializedStateVariable, .missingStateObject, .unusedStateVariable, .fatView,
-             .observedObjectInline, .tooManyEnvironmentObjects:
+             .observedObjectInline, .tooManyEnvironmentObjects, .mainActorMissingOnUICode:
             return .stateManagement
 
             // Performance Rules
@@ -185,12 +187,11 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
              .taskDetached, .asyncLetUnused, .buttonClosureWrapping,
              .nonisolatedUnsafe, .taskYieldOffload, .swallowedTaskError,
              .couldBePrivate, .publicInAppTarget, .couldBePrivateMember,
-             .protocolCouldBePrivate, .variableShadowing, .uncheckedSendable,
-             .formatterInViewBody:
+             .protocolCouldBePrivate, .variableShadowing, .uncheckedSendable:
             return .codeQuality
 
             // Security Rules
-        case .hardcodedSecret, .unsafeURL:
+        case .hardcodedSecret, .unsafeURL, .userDefaultsSensitiveData:
             return .security
 
             // Accessibility Rules
