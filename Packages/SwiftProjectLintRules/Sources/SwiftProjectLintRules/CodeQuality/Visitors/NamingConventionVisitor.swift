@@ -35,19 +35,48 @@ class NamingConventionVisitor: BasePatternVisitor {
         self.currentFilePath = filePath
     }
 
+    /// Suffixes that already convey "this is a capability/contract" without needing "Protocol".
+    private static let descriptiveSuffixes = [
+        "able", "ible", "ing", "ive",         // Equatable, Collecting, Correctable, etc.
+        "Rule", "Configuration", "Provider",   // domain-role names
+        "Validator", "Reporter", "Visitor",
+        "Handler", "Delegate", "DataSource",
+        "Factory", "Builder", "Context",
+        "Comparable", "Convertible"
+    ]
+
     override func visit(_ node: ProtocolDeclSyntax) -> SyntaxVisitorContinueKind {
         let protocolName = node.name.text
 
-        if !protocolName.hasSuffix("Protocol") {
-            addIssue(
-                severity: .info,
-                message: "Protocol '\(protocolName)' is not suffixed with 'Protocol'",
-                filePath: currentFilePath,
-                lineNumber: getLineNumber(for: Syntax(node)),
-                suggestion: "Rename to '\(protocolName)Protocol' to improve clarity for both humans and LLMs",
-                ruleName: .protocolNamingSuffix
-            )
+        // Already has Protocol suffix — fine
+        if protocolName.hasSuffix("Protocol") { return .visitChildren }
+
+        // Skip test/example files
+        if currentFilePath.contains("Tests") || currentFilePath.hasSuffix("Test.swift")
+            || currentFilePath.contains("Examples") || currentFilePath.contains("Fixtures") {
+            return .visitChildren
         }
+
+        // Skip public protocols — library API, follows community convention
+        let isPublic = node.modifiers.contains {
+            $0.name.text == "public" || $0.name.text == "open"
+        }
+        if isPublic { return .visitChildren }
+
+        // Skip protocols with descriptive capability suffixes
+        if Self.descriptiveSuffixes.contains(where: { protocolName.hasSuffix($0) }) {
+            return .visitChildren
+        }
+
+        addIssue(
+            severity: .info,
+            message: "Protocol '\(protocolName)' is not suffixed with 'Protocol'",
+            filePath: currentFilePath,
+            lineNumber: getLineNumber(for: Syntax(node)),
+            suggestion: "Rename to '\(protocolName)Protocol' to improve clarity "
+                + "for both humans and LLMs",
+            ruleName: .protocolNamingSuffix
+        )
 
         return .visitChildren
     }

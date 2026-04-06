@@ -54,7 +54,7 @@ struct NamingConventionTests {
     static let detectionCases: [DetectionCase] = [
         DetectionCase(
             label: "protocol without suffix",
-            sourceCode: "protocol Requestable { func perform() async throws }",
+            sourceCode: "protocol DataStore { func save() }",
             expectedCount: 1
         ),
         DetectionCase(
@@ -129,8 +129,8 @@ struct NamingConventionTests {
     static let suggestionCases: [SuggestionCase] = [
         SuggestionCase(
             label: "protocol suggests Protocol suffix",
-            sourceCode: "protocol Fetchable { func fetch() }",
-            expectedSuggestion: "FetchableProtocol"
+            sourceCode: "protocol DataStore { func save() }",
+            expectedSuggestion: "DataStoreProtocol"
         ),
         SuggestionCase(
             label: "actor suggests Actor suffix",
@@ -164,20 +164,20 @@ struct NamingConventionTests {
         """
 
         let issues = detectIssues(in: sourceCode)
-        #expect(issues.count == 2)
+        // DataStore flagged; Logging exempt (ends in -ing)
+        #expect(issues.count == 1)
 
         let issueMessages = issues.map(\.message)
         #expect(issueMessages.contains { $0.contains("DataStore") })
-        #expect(issueMessages.contains { $0.contains("Logging") })
     }
 
     @Test("All naming rules fire in same file")
     func allNamingRulesFireInSameFile() {
         // DataService: no agent suffix, no Actor suffix → actorNamingSuffix + actorAgentName (2 issues)
-        // Fetchable: no Protocol suffix → protocolNamingSuffix (1 issue)
+        // DataSync: no Protocol suffix, no descriptive suffix → protocolNamingSuffix (1 issue)
         // Validated: no Wrapper suffix → propertyWrapperNamingSuffix (1 issue)
         let sourceCode = """
-        protocol Fetchable { func fetch() }
+        protocol DataSync { func sync() }
         actor DataService { func process() async {} }
         @propertyWrapper struct Validated<Value> { var wrappedValue: Value }
         """
