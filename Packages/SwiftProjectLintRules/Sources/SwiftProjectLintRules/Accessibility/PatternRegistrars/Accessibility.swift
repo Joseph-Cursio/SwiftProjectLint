@@ -82,6 +82,20 @@ class Accessibility: BasePatternRegistrar {
         )
         registry.register(patterns: [tapTargetPattern])
 
+        let dynamicTypePattern = SyntaxPattern(
+            name: .missingDynamicTypeSupport,
+            visitor: MissingDynamicTypeSupportVisitor.self,
+            severity: .info,
+            category: .accessibility,
+            messageTemplate: ".lineLimit(1) on dynamic text may truncate "
+                + "at larger Dynamic Type sizes",
+            suggestion: "Allow multiple lines, add .minimumScaleFactor(), "
+                + "or provide full text via .accessibilityLabel().",
+            description: "Detects .lineLimit(1) on dynamic text content "
+                + "that may truncate at larger text sizes. Disabled by default."
+        )
+        registry.register(patterns: [dynamicTypePattern])
+
         registry.register(registrars: [HardcodedFontSize()])
     }
 } 

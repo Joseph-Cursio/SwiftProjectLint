@@ -136,6 +136,7 @@ Rules marked **opt-in** are disabled by default and must be explicitly listed un
 | [Hardcoded Font Size](hardcoded-font-size.md) | Warning |
 | [onTapGesture Instead of Button](on-tap-gesture-instead-of-button.md) | Warning |
 | [Tap Target Too Small](tap-target-too-small.md) | Warning |
+| [Missing Dynamic Type Support](missing-dynamic-type-support.md) | Info *(opt-in)* |
 
 ## Memory Management
 

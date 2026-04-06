@@ -140,6 +140,7 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
     case hardcodedFontSize = "Hardcoded Font Size"
     case onTapGestureInsteadOfButton = "onTapGesture Instead of Button"
     case tapTargetTooSmall = "Tap Target Too Small"
+    case missingDynamicTypeSupport = "Missing Dynamic Type Support"
 
     // Memory Management Rules
     case potentialRetainCycle = "Potential Retain Cycle"
@@ -230,7 +231,8 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
             // Accessibility Rules
         case .missingAccessibilityLabel, .missingAccessibilityHint, .inaccessibleColorUsage,
              .iconOnlyButtonMissingLabel, .longTextAccessibility, .hardcodedFontSize,
-             .onTapGestureInsteadOfButton, .tapTargetTooSmall:
+             .onTapGestureInsteadOfButton, .tapTargetTooSmall,
+             .missingDynamicTypeSupport:
             return .accessibility
 
             // Memory Management Rules
