@@ -27,7 +27,8 @@ class Modernization: BasePatternRegistrar {
             CornerRadiusDeprecated(),
             LegacyStringFormat(),
             ScrollViewReaderDeprecated(),
-            LegacyReplacingOccurrences()
+            LegacyReplacingOccurrences(),
+            TabItemDeprecated()
         ])
     }
 }

@@ -113,6 +113,7 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
     case legacyStringFormat = "Legacy String Format"
     case scrollViewReaderDeprecated = "ScrollViewReader Deprecated"
     case legacyReplacingOccurrences = "Legacy Replacing Occurrences"
+    case tabItemDeprecated = "tabItem Deprecated"
 
     // Security Rules
     case hardcodedSecret = "Hardcoded Secret"
@@ -235,7 +236,7 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
              .dispatchSemaphoreInAsync, .navigationViewDeprecated, .onChangeOldAPI,
              .legacyObservableObject, .taskSleepNanoseconds, .foregroundColorDeprecated,
              .cornerRadiusDeprecated, .legacyStringFormat, .scrollViewReaderDeprecated,
-             .legacyReplacingOccurrences:
+             .legacyReplacingOccurrences, .tabItemDeprecated:
             return .modernization
 
             // Other/System Rules
