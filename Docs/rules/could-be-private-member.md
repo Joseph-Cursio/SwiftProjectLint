@@ -29,6 +29,8 @@ Because SwiftSyntax has no type resolution, the rule uses a conservative strateg
 - Does **not** flag local variables inside function bodies, closures, or computed property accessors
 - Does **not** flag framework delegate hooks (`body`, `init`, `makeBody`, `sizeThatFits`, `applicationDidFinishLaunching`, `userNotificationCenter`, etc.)
 - Does **not** flag members in test files
+- Does **not** flag members in example/fixture directories (`ExampleCode/`, `Fixtures/`, `Resources/`, `Examples/`, `Samples/`)
+- Does **not** flag members on types conforming to project-defined protocols — these may be protocol requirements that cannot be private
 
 ### Non-Violating Examples
 ```swift
