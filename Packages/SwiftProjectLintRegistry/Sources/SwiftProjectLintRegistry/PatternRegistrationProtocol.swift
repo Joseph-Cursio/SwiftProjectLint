@@ -26,7 +26,7 @@ public protocol PatternRegistrarWithVisitorProtocol {
     var registry: SourcePatternRegistry { get }
 
     /// The visitor registry for pattern registration.
-    var visitorRegistry: PatternVisitorRegistryProtocol { get }
+    var visitorRegistry: PatternVisitorRegistry { get }
 
     /// Registers patterns for the specific category.
     func registerPatterns()
@@ -38,9 +38,9 @@ public protocol PatternRegistrarWithVisitorProtocol {
 /// override `registerPatterns()` to register their category's patterns.
 open class BasePatternRegistrar: PatternRegistrarWithVisitorProtocol {
     public let registry: SourcePatternRegistry
-    public let visitorRegistry: PatternVisitorRegistryProtocol
+    public let visitorRegistry: PatternVisitorRegistry
 
-    public init(registry: SourcePatternRegistry, visitorRegistry: PatternVisitorRegistryProtocol) {
+    public init(registry: SourcePatternRegistry, visitorRegistry: PatternVisitorRegistry) {
         self.registry = registry
         self.visitorRegistry = visitorRegistry
     }

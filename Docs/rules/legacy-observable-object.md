@@ -16,7 +16,12 @@ Along with `@Observable`, the associated property wrappers change too:
 - `@Published` → remove entirely (properties on `@Observable` classes are tracked automatically)
 
 ### Discussion
-`LegacyObservableObjectVisitor` checks variable declarations for the four legacy attributes: `@StateObject`, `@ObservedObject`, `@EnvironmentObject`, and `@Published`. Each triggers an info-level issue with a specific suggestion for the modern replacement.
+`LegacyObservableObjectVisitor` detects two categories of legacy usage:
+
+1. **Class conformance** — `class Foo: ObservableObject`. The class declaration itself is flagged with a suggestion to apply the `@Observable` macro and remove the protocol conformance.
+2. **Legacy property wrappers** — `@StateObject`, `@ObservedObject`, `@EnvironmentObject`, and `@Published`. Each variable declaration triggers a separate issue with a specific suggestion for the modern replacement.
+
+When both are present (a class conforming to `ObservableObject` that also has `@Published` properties), each is flagged independently so every touch point is visible.
 
 This rule uses info severity because migrating to `@Observable` requires iOS 17+ and may involve broader refactoring. It is intended as a gentle nudge toward modernization rather than a hard warning.
 
@@ -66,6 +71,9 @@ class AppState {
 
 ### Violating Examples
 ```swift
+// ObservableObject conformance — migrate the class to @Observable
+class ViewModel: ObservableObject { }
+
 // @StateObject — legacy ownership wrapper
 @StateObject var viewModel = ViewModel()
 

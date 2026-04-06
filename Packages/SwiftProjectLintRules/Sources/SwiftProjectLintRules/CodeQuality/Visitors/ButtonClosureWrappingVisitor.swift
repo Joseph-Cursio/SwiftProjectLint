@@ -14,7 +14,6 @@ final class ButtonClosureWrappingVisitor: BasePatternVisitor {
     }
 
     override func visit(_ node: FunctionCallExprSyntax) -> SyntaxVisitorContinueKind {
-        guard pattern.name == .buttonClosureWrapping else { return .visitChildren }
         detectButtonClosureWrapping(node)
         return .visitChildren
     }

@@ -11,7 +11,6 @@ final class DispatchSemaphoreInAsyncVisitor: BasePatternVisitor {
     }
 
     override func visit(_ node: FunctionCallExprSyntax) -> SyntaxVisitorContinueKind {
-        guard pattern.name == .dispatchSemaphoreInAsync else { return .visitChildren }
         detectSemaphoreInAsync(node)
         return .visitChildren
     }

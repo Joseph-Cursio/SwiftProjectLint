@@ -6,7 +6,7 @@ import SwiftSyntax
 
 /// Checks accessibility issues specific to color usage in SwiftUI.
 /// This checker analyzes color usage to ensure it's not the only way information is conveyed.
-class ColorAccessibilityChecker: MemberAccessAccessibilityCheckerProtocol {
+class ColorAccessibilityChecker {
 
     let visitor: AccessibilityVisitor
 

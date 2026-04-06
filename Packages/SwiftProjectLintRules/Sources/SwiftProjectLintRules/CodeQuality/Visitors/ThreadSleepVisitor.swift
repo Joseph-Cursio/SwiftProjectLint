@@ -14,7 +14,6 @@ final class ThreadSleepVisitor: BasePatternVisitor {
     }
 
     override func visit(_ node: FunctionCallExprSyntax) -> SyntaxVisitorContinueKind {
-        guard pattern.name == .threadSleep else { return .visitChildren }
         detectThreadSleep(node)
         return .visitChildren
     }

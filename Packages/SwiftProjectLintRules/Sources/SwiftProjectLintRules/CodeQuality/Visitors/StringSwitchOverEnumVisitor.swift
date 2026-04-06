@@ -21,8 +21,6 @@ final class StringSwitchOverEnumVisitor: BasePatternVisitor {
     // MARK: - Visit
 
     override func visit(_ node: SwitchExprSyntax) -> SyntaxVisitorContinueKind {
-        guard pattern.name == .stringSwitchOverEnum else { return .visitChildren }
-
         if isRawValueSwitch(node) || isStringDescribingSwitch(node) {
             guard isInsideCodableMethod(node) == false else { return .visitChildren }
             addIssue(node: Syntax(node))

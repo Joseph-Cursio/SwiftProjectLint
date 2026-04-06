@@ -7,7 +7,7 @@ import SwiftSyntax
 /// Checks accessibility issues specific to Button elements in SwiftUI.
 /// This checker analyzes buttons for missing accessibility labels when they contain images
 /// and missing accessibility hints when they contain text.
-class ButtonAccessibilityChecker: AccessibilityCheckerProtocol {
+class ButtonAccessibilityChecker {
 
     let visitor: AccessibilityVisitor
 

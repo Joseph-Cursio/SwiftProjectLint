@@ -15,8 +15,6 @@ final class TaskYieldOffloadVisitor: BasePatternVisitor {
     }
 
     override func visit(_ node: FunctionCallExprSyntax) -> SyntaxVisitorContinueKind {
-        guard pattern.name == .taskYieldOffload else { return .visitChildren }
-
         guard let memberAccess = node.calledExpression.as(MemberAccessExprSyntax.self),
               memberAccess.declName.baseName.text == "yield",
               let base = memberAccess.base?.as(DeclReferenceExprSyntax.self),

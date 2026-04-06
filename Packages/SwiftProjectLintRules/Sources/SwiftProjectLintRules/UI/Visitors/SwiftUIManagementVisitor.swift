@@ -48,7 +48,6 @@ class SwiftUIManagementVisitor: BasePatternVisitor {
     private var stateVariables: [StateVariableInfo] = []
     private var currentViewName: String = ""
     private var currentFilePath: String = ""
-    private var viewDeclarations: [ViewDeclaration] = []
     private var currentStructNode: StructDeclSyntax?
 
     // MARK: - Initialization
@@ -106,14 +105,6 @@ class SwiftUIManagementVisitor: BasePatternVisitor {
             )
         }
 
-        // Store view declaration for cross-file analysis
-        let viewDeclaration = ViewDeclaration(
-            name: currentViewName,
-            filePath: currentFilePath,
-            lineNumber: getLineNumber(for: Syntax(node)),
-            stateVariables: stateVariables.filter { $0.viewName == currentViewName }
-        )
-        viewDeclarations.append(viewDeclaration)
     }
 
     private func analyzeVariableDeclaration(_ node: VariableDeclSyntax) {
@@ -140,9 +131,8 @@ class SwiftUIManagementVisitor: BasePatternVisitor {
             stateVariables.append(stateVar)
 
             // Check for specific patterns
-            checkForMissingStateObject(stateVar, node: node)
+            checkForMissingStateObject(stateVar)
             checkForUninitializedState(stateVar, node: node)
-            checkForUnusedState(stateVar, node: node)
         }
     }
     
@@ -153,10 +143,9 @@ class SwiftUIManagementVisitor: BasePatternVisitor {
 
     // MARK: - Pattern Detection Methods
 
-    private func checkForMissingStateObject(_ stateVar: StateVariableInfo, node: VariableDeclSyntax) {
+    private func checkForMissingStateObject(_ stateVar: StateVariableInfo) {
         guard stateVar.propertyWrapper == .stateObject else { return }
 
-        // Check if this looks like it should be @StateObject
         let typeName = stateVar.type
         if typeName.hasSuffix("Manager") ||
            typeName.hasSuffix("Service") ||
@@ -167,7 +156,7 @@ class SwiftUIManagementVisitor: BasePatternVisitor {
                 severity: .warning,
                 message: "Consider using @StateObject for '\(stateVar.name)' instead of @State",
                 filePath: currentFilePath,
-                lineNumber: getLineNumber(for: Syntax(node)),
+                lineNumber: stateVar.lineNumber,
                 suggestion: "Use @StateObject for ObservableObject instances to preserve their lifecycle",
                 ruleName: .missingStateObject
             )
@@ -217,15 +206,6 @@ class SwiftUIManagementVisitor: BasePatternVisitor {
             suggestion: "Provide an initial value for the @State variable",
             ruleName: .uninitializedStateVariable
         )
-    }
-
-    private func checkForUnusedState(_ stateVar: StateVariableInfo, node: VariableDeclSyntax) {
-        // This would require more sophisticated analysis to determine if a state variable is actually used
-        // For now, we'll implement a basic check
-        if stateVar.propertyWrapper == .state && stateVar.hasInitialValue {
-            // Check if the variable is referenced in the view body
-            // This is a simplified check - in practice, you'd need to analyze the entire view body
-        }
     }
 
     // MARK: - Cross-File Analysis
@@ -302,14 +282,6 @@ struct StateVariableInfo {
     let lineNumber: Int
     let hasInitialValue: Bool
     let node: VariableDeclSyntax? // Store the node (optional for tests)
-}
-
-/// Information about a view declaration detected during analysis.
-private struct ViewDeclaration {
-    let name: String
-    let filePath: String
-    let lineNumber: Int
-    let stateVariables: [StateVariableInfo]
 }
 
 // MARK: - Helper methods from SwiftUIManagementUtils.swift

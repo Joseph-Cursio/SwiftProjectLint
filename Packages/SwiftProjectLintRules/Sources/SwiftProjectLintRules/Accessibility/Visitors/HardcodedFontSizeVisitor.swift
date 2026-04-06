@@ -14,7 +14,6 @@ final class HardcodedFontSizeVisitor: BasePatternVisitor {
     }
 
     override func visit(_ node: FunctionCallExprSyntax) -> SyntaxVisitorContinueKind {
-        guard pattern.name == .hardcodedFontSize else { return .visitChildren }
         detectHardcodedFontSize(node)
         return .visitChildren
     }

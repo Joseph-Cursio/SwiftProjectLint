@@ -20,7 +20,6 @@ final class LegacyRandomVisitor: BasePatternVisitor {
     }
 
     override func visit(_ node: FunctionCallExprSyntax) -> SyntaxVisitorContinueKind {
-        guard pattern.name == .legacyRandom else { return .visitChildren }
         detectLegacyRandom(node)
         return .visitChildren
     }

@@ -14,8 +14,6 @@ final class ForceUnwrapVisitor: BasePatternVisitor {
     }
 
     override func visit(_ node: ForceUnwrapExprSyntax) -> SyntaxVisitorContinueKind {
-        guard pattern.name == .forceUnwrap else { return .visitChildren }
-
         addIssue(
             severity: .info,
             message: "Force unwrap (!) will crash on nil — consider using if-let, guard-let, or nil-coalescing",

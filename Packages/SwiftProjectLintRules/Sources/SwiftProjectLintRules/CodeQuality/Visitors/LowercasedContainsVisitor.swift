@@ -14,7 +14,6 @@ final class LowercasedContainsVisitor: BasePatternVisitor {
     }
 
     override func visit(_ node: FunctionCallExprSyntax) -> SyntaxVisitorContinueKind {
-        guard pattern.name == .lowercasedContains else { return .visitChildren }
         detectLowercasedContains(node)
         return .visitChildren
     }

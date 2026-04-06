@@ -14,7 +14,6 @@ final class EmptyCatchVisitor: BasePatternVisitor {
     }
 
     override func visit(_ node: CatchClauseSyntax) -> SyntaxVisitorContinueKind {
-        guard pattern.name == .emptyCatch else { return .visitChildren }
         detectEmptyCatch(node)
         return .visitChildren
     }

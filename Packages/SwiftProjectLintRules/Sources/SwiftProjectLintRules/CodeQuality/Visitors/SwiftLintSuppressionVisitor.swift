@@ -15,7 +15,6 @@ final class SwiftLintSuppressionVisitor: BasePatternVisitor {
     }
 
     override func visit(_ node: TokenSyntax) -> SyntaxVisitorContinueKind {
-        guard pattern.name == .swiftlintSuppression else { return .visitChildren }
         for piece in node.leadingTrivia {
             switch piece {
             case .lineComment(let text):

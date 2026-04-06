@@ -15,8 +15,6 @@ final class ObservedObjectInlineVisitor: BasePatternVisitor {
     }
 
     override func visit(_ node: VariableDeclSyntax) -> SyntaxVisitorContinueKind {
-        guard pattern.name == .observedObjectInline else { return .visitChildren }
-
         // Check for @ObservedObject attribute
         let hasObservedObject = node.attributes.contains { attr in
             guard let attribute = attr.as(AttributeSyntax.self),

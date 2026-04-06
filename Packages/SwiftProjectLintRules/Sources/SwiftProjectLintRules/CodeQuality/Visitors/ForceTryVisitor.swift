@@ -14,7 +14,6 @@ final class ForceTryVisitor: BasePatternVisitor {
     }
 
     override func visit(_ node: TryExprSyntax) -> SyntaxVisitorContinueKind {
-        guard pattern.name == .forceTry else { return .visitChildren }
         detectForceTry(node)
         return .visitChildren
     }

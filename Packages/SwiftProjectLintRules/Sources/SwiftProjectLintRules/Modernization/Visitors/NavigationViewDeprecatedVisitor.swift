@@ -14,7 +14,6 @@ final class NavigationViewDeprecatedVisitor: BasePatternVisitor {
     }
 
     override func visit(_ node: FunctionCallExprSyntax) -> SyntaxVisitorContinueKind {
-        guard pattern.name == .navigationViewDeprecated else { return .visitChildren }
         guard let declRef = node.calledExpression.as(DeclReferenceExprSyntax.self),
               declRef.baseName.text == "NavigationView" else { return .visitChildren }
 

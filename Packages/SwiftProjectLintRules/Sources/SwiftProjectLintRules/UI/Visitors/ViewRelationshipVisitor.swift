@@ -26,7 +26,6 @@ class ViewRelationshipVisitor: SyntaxVisitor {
     var relationships: [ViewRelationship] = []
     private let parentView: String
     private let filePath: String
-    private let sourceContents: String
     private let sourceLocationConverter: SourceLocationConverter
     private var detectedSpecialViews: Set<String> = []
     private let containerViews: Set<String> = Set(SwiftUIViewType.containerViews.map(\.rawValue))
@@ -40,12 +39,10 @@ class ViewRelationshipVisitor: SyntaxVisitor {
     init(
         parentView: String,
         filePath: String,
-        sourceContents: String,
         sourceLocationConverter: SourceLocationConverter
     ) {
         self.parentView = parentView
         self.filePath = filePath
-        self.sourceContents = sourceContents
         self.sourceLocationConverter = sourceLocationConverter
         super.init(viewMode: .sourceAccurate)
     }

@@ -15,8 +15,6 @@ final class AsyncLetUnusedVisitor: BasePatternVisitor {
     }
 
     override func visit(_ node: VariableDeclSyntax) -> SyntaxVisitorContinueKind {
-        guard pattern.name == .asyncLetUnused else { return .visitChildren }
-
         // Check for async keyword in modifiers
         let hasAsync = node.modifiers.contains { modifier in
             modifier.name.text == "async"

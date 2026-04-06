@@ -14,7 +14,6 @@ final class PrintStatementVisitor: BasePatternVisitor {
     }
 
     override func visit(_ node: FunctionCallExprSyntax) -> SyntaxVisitorContinueKind {
-        guard pattern.name == .printStatement else { return .visitChildren }
         detectPrintCall(node)
         return .visitChildren
     }

@@ -21,9 +21,26 @@ final class LegacyObservableObjectVisitor: BasePatternVisitor {
         super.init(pattern: pattern, viewMode: viewMode)
     }
 
-    override func visit(_ node: VariableDeclSyntax) -> SyntaxVisitorContinueKind {
-        guard pattern.name == .legacyObservableObject else { return .visitChildren }
+    override func visit(_ node: ClassDeclSyntax) -> SyntaxVisitorContinueKind {
+        let inheritsObservableObject = node.inheritanceClause?.inheritedTypes.contains { inherited in
+            inherited.type.as(IdentifierTypeSyntax.self)?.name.text == "ObservableObject"
+        } ?? false
 
+        if inheritsObservableObject {
+            addIssue(
+                severity: .info,
+                message: "ObservableObject is a legacy Combine-based observation protocol",
+                filePath: getFilePath(for: Syntax(node)),
+                lineNumber: getLineNumber(for: Syntax(node)),
+                suggestion: "Apply @Observable to the class and remove the ObservableObject conformance",
+                ruleName: .legacyObservableObject
+            )
+        }
+
+        return .visitChildren
+    }
+
+    override func visit(_ node: VariableDeclSyntax) -> SyntaxVisitorContinueKind {
         for attribute in node.attributes {
             guard let attr = attribute.as(AttributeSyntax.self),
                   let identifier = attr.attributeName.as(IdentifierTypeSyntax.self) else { continue }

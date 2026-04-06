@@ -11,7 +11,6 @@ final class TaskInOnAppearVisitor: BasePatternVisitor {
     }
 
     override func visit(_ node: FunctionCallExprSyntax) -> SyntaxVisitorContinueKind {
-        guard pattern.name == .taskInOnAppear else { return .visitChildren }
         detectTaskInOnAppear(node)
         return .visitChildren
     }

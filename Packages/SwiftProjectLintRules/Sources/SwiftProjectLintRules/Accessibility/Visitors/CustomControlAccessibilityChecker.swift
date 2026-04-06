@@ -6,7 +6,7 @@ import SwiftSyntax
 
 /// Checks accessibility issues specific to custom controls in SwiftUI.
 /// This checker analyzes custom view types that should have accessibility traits.
-class CustomControlAccessibilityChecker: VariableDeclAccessibilityCheckerProtocol {
+class CustomControlAccessibilityChecker {
 
     let visitor: AccessibilityVisitor
 

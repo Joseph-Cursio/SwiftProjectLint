@@ -14,7 +14,6 @@ final class LegacyNotificationObserverVisitor: BasePatternVisitor {
     }
 
     override func visit(_ node: FunctionCallExprSyntax) -> SyntaxVisitorContinueKind {
-        guard pattern.name == .legacyNotificationObserver else { return .visitChildren }
         detectLegacyNotificationObserver(node)
         return .visitChildren
     }

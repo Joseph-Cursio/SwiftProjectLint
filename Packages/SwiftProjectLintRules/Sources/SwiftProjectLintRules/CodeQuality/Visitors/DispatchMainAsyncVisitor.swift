@@ -14,7 +14,6 @@ final class DispatchMainAsyncVisitor: BasePatternVisitor {
     }
 
     override func visit(_ node: FunctionCallExprSyntax) -> SyntaxVisitorContinueKind {
-        guard pattern.name == .dispatchMainAsync else { return .visitChildren }
         detectDispatchMainAsync(node)
         return .visitChildren
     }

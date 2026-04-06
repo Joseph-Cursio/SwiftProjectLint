@@ -26,8 +26,6 @@ final class NonisolatedUnsafeVisitor: BasePatternVisitor {
     }
 
     override func visit(_ node: VariableDeclSyntax) -> SyntaxVisitorContinueKind {
-        guard pattern.name == .nonisolatedUnsafe else { return .visitChildren }
-
         let hasNonisolatedUnsafe = node.modifiers.contains { modifier in
             modifier.name.text == "nonisolated"
                 && modifier.detail?.detail.text == "unsafe"

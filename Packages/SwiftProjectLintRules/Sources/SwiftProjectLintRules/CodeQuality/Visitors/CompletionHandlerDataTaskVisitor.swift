@@ -20,7 +20,6 @@ final class CompletionHandlerDataTaskVisitor: BasePatternVisitor {
     }
 
     override func visit(_ node: FunctionCallExprSyntax) -> SyntaxVisitorContinueKind {
-        guard pattern.name == .completionHandlerDataTask else { return .visitChildren }
         detectCompletionHandlerDataTask(node)
         return .visitChildren
     }

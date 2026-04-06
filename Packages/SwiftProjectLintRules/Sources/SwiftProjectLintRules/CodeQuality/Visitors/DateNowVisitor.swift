@@ -14,7 +14,6 @@ final class DateNowVisitor: BasePatternVisitor {
     }
 
     override func visit(_ node: FunctionCallExprSyntax) -> SyntaxVisitorContinueKind {
-        guard pattern.name == .dateNow else { return .visitChildren }
         detectDateInit(node)
         return .visitChildren
     }

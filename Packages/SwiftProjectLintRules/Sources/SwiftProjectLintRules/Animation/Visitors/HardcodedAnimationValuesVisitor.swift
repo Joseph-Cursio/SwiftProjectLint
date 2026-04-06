@@ -25,7 +25,6 @@ final class HardcodedAnimationValuesVisitor: BasePatternVisitor {
     }
 
     override func visit(_ node: FunctionCallExprSyntax) -> SyntaxVisitorContinueKind {
-        guard pattern.name == .hardcodedAnimationValues else { return .visitChildren }
         detectHardcodedAnimationValues(node)
         return .visitChildren
     }

@@ -14,8 +14,6 @@ final class SwallowedTaskErrorVisitor: BasePatternVisitor {
     }
 
     override func visit(_ node: FunctionCallExprSyntax) -> SyntaxVisitorContinueKind {
-        guard pattern.name == .swallowedTaskError else { return .visitChildren }
-
         // Must be Task { } (not Task.detached)
         guard let declRef = node.calledExpression.as(DeclReferenceExprSyntax.self),
               declRef.baseName.text == "Task",

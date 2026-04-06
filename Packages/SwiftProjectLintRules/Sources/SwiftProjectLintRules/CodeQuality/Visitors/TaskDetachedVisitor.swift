@@ -15,8 +15,6 @@ final class TaskDetachedVisitor: BasePatternVisitor {
     }
 
     override func visit(_ node: FunctionCallExprSyntax) -> SyntaxVisitorContinueKind {
-        guard pattern.name == .taskDetached else { return .visitChildren }
-
         guard let memberAccess = node.calledExpression.as(MemberAccessExprSyntax.self),
               memberAccess.declName.baseName.text == "detached",
               let base = memberAccess.base?.as(DeclReferenceExprSyntax.self),

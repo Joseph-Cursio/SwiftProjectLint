@@ -16,7 +16,6 @@ struct ViewRelationshipNavigationTests {
         let visitor = ViewRelationshipVisitor(
             parentView: parentView,
             filePath: "test.swift",
-            sourceContents: sourceCode,
             sourceLocationConverter: sourceLocationConverter
         )
         visitor.walk(sourceFile)

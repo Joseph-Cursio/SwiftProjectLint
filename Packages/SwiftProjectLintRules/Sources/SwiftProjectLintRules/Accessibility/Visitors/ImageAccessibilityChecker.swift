@@ -6,7 +6,7 @@ import SwiftSyntax
 
 /// Checks accessibility issues specific to Image elements in SwiftUI.
 /// This checker analyzes images for missing accessibility labels.
-class ImageAccessibilityChecker: AccessibilityCheckerProtocol {
+class ImageAccessibilityChecker {
 
     let visitor: AccessibilityVisitor
 

@@ -40,9 +40,6 @@ class StateVariableVisitor: SyntaxVisitor {
             strictTypeChecking: false
         )
 
-        static let strict = VisitorConfig(
-            strictTypeChecking: true
-        )
     }
 
     init(viewName: String, filePath: String, sourceContents: String, config: VisitorConfig = .default) {
@@ -68,8 +65,7 @@ class StateVariableVisitor: SyntaxVisitor {
                     // Validate property wrapper usage
                     _ = validatePropertyWrapperUsage(
                         propertyWrapper: propertyWrapper,
-                        typeString: typeString,
-                        variableName: variableName
+                        typeString: typeString
                     )
 
                     stateVariables.append(StateVariable(
@@ -246,7 +242,7 @@ class StateVariableVisitor: SyntaxVisitor {
     }
 
     /// Validates property wrapper usage and returns any issues
-    private func validatePropertyWrapperUsage(propertyWrapper: PropertyWrapper, typeString: String, variableName: String) -> [String] {
+    private func validatePropertyWrapperUsage(propertyWrapper: PropertyWrapper, typeString: String) -> [String] {
         var issues: [String] = []
 
         // Check for common anti-patterns
@@ -294,7 +290,7 @@ class StateVariableVisitor: SyntaxVisitor {
     // MARK: - Public Helper Methods
 
     /// Returns a summary of detected state variables grouped by property wrapper
-    public func getStateVariableSummary() -> [PropertyWrapper: Int] {
+    func getStateVariableSummary() -> [PropertyWrapper: Int] {
         var summary: [PropertyWrapper: Int] = [:]
 
         for stateVar in stateVariables {
@@ -305,12 +301,12 @@ class StateVariableVisitor: SyntaxVisitor {
     }
 
     /// Returns state variables filtered by property wrapper type
-    public func getStateVariables(withPropertyWrapper wrapper: PropertyWrapper) -> [StateVariable] {
+    func getStateVariables(withPropertyWrapper wrapper: PropertyWrapper) -> [StateVariable] {
         return stateVariables.filter { $0.propertyWrapper == wrapper }
     }
 
     /// Returns state variables that might benefit from being converted to @EnvironmentObject
-    public func getPotentialEnvironmentObjectCandidates() -> [StateVariable] {
+    func getPotentialEnvironmentObjectCandidates() -> [StateVariable] {
         return stateVariables.filter { stateVar in
             // Look for ObservableObject types that might be shared across views
             // @StateObject and @ObservedObject are typically used with ObservableObject types

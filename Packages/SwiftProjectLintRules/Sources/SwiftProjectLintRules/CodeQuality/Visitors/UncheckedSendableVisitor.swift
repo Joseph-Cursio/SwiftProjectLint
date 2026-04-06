@@ -70,7 +70,6 @@ final class UncheckedSendableVisitor: BasePatternVisitor {
         memberBlock: MemberBlockSyntax,
         reportNode: Syntax
     ) {
-        guard pattern.name == .uncheckedSendable else { return }
         guard hasUncheckedSendable(inheritanceClause) else { return }
         guard memberBlockHasLock(memberBlock) == false else { return }
 

@@ -36,7 +36,7 @@ struct LegacyObservableObjectVisitorTests {
         }
         """, "EnvironmentObject", "@Environment"),
         ("""
-        class ViewModel: ObservableObject {
+        class ViewModel {
             @Published var count = 0
         }
         """, "Published", "remove")
@@ -51,6 +51,56 @@ struct LegacyObservableObjectVisitorTests {
         #expect(issue.ruleName == .legacyObservableObject)
         #expect(issue.message.contains(expectedAttribute))
         #expect(issue.suggestion?.contains(expectedSuggestion) == true)
+    }
+
+    @Test
+    func detectsObservableObjectConformance() throws {
+        let source = """
+        class ViewModel: ObservableObject {
+            var count = 0
+        }
+        """
+
+        let visitor = makeVisitor()
+        runVisitor(visitor, source: source)
+
+        #expect(visitor.detectedIssues.count == 1)
+        let issue = try #require(visitor.detectedIssues.first)
+        #expect(issue.ruleName == .legacyObservableObject)
+        #expect(issue.message.contains("ObservableObject"))
+        #expect(issue.suggestion?.contains("@Observable") == true)
+    }
+
+    @Test
+    func detectsObservableObjectAmongMultipleConformances() throws {
+        let source = """
+        class ViewModel: SomeProtocol, ObservableObject, AnotherProtocol {
+            var count = 0
+        }
+        """
+
+        let visitor = makeVisitor()
+        runVisitor(visitor, source: source)
+
+        #expect(visitor.detectedIssues.count == 1)
+        let issue = try #require(visitor.detectedIssues.first)
+        #expect(issue.message.contains("ObservableObject"))
+    }
+
+    @Test
+    func observableObjectConformanceAndPublishedPropertiesEachFlagSeparately() {
+        let source = """
+        class ViewModel: ObservableObject {
+            @Published var name = ""
+            @Published var count = 0
+        }
+        """
+
+        let visitor = makeVisitor()
+        runVisitor(visitor, source: source)
+
+        // 1 for the class conformance + 2 for @Published properties
+        #expect(visitor.detectedIssues.count == 3)
     }
 
     @Test
@@ -71,7 +121,7 @@ struct LegacyObservableObjectVisitorTests {
     @Test
     func detectsMultipleLegacyAttributes() {
         let source = """
-        class ViewModel: ObservableObject {
+        class ViewModel {
             @Published var name = ""
             @Published var count = 0
         }
@@ -110,6 +160,18 @@ struct LegacyObservableObjectVisitorTests {
         class AppState {
             var count = 0
             var name = ""
+        }
+        """,
+        // plain class with no ObservableObject conformance
+        """
+        class MyService: SomeProtocol {
+            var count = 0
+        }
+        """,
+        // class with no inheritance clause at all
+        """
+        class MyService {
+            var count = 0
         }
         """
     ])

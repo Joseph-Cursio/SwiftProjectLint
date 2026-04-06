@@ -40,19 +40,6 @@ public struct ViewRelationship: Sendable {
     public let lineNumber: Int
     public let filePath: String
     
-    public init(
-        parentView: String,
-        childView: String,
-        relationshipType: RelationshipType,
-        lineNumber: Int,
-        filePath: String
-    ) {
-        self.parentView = parentView
-        self.childView = childView
-        self.relationshipType = relationshipType
-        self.lineNumber = lineNumber
-        self.filePath = filePath
-    }
 }
 
 public enum RelationshipType: Sendable {

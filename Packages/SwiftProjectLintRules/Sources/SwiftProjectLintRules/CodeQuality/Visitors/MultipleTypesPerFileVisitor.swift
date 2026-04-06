@@ -32,25 +32,21 @@ final class MultipleTypesPerFileVisitor: BasePatternVisitor {
     }
 
     override func visit(_ node: StructDeclSyntax) -> SyntaxVisitorContinueKind {
-        guard pattern.name == .multipleTypesPerFile else { return .visitChildren }
         handleTypeDeclaration(node, keyword: "struct", name: node.name.text)
         return .visitChildren
     }
 
     override func visit(_ node: ClassDeclSyntax) -> SyntaxVisitorContinueKind {
-        guard pattern.name == .multipleTypesPerFile else { return .visitChildren }
         handleTypeDeclaration(node, keyword: "class", name: node.name.text)
         return .visitChildren
     }
 
     override func visit(_ node: EnumDeclSyntax) -> SyntaxVisitorContinueKind {
-        guard pattern.name == .multipleTypesPerFile else { return .visitChildren }
         handleTypeDeclaration(node, keyword: "enum", name: node.name.text)
         return .visitChildren
     }
 
     override func visit(_ node: ActorDeclSyntax) -> SyntaxVisitorContinueKind {
-        guard pattern.name == .multipleTypesPerFile else { return .visitChildren }
         handleTypeDeclaration(node, keyword: "actor", name: node.name.text)
         return .visitChildren
     }

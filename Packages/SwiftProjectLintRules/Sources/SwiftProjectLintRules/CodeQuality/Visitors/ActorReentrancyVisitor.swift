@@ -24,7 +24,6 @@ final class ActorReentrancyVisitor: BasePatternVisitor {
     }
 
     override func visit(_ node: ActorDeclSyntax) -> SyntaxVisitorContinueKind {
-        guard pattern.name == .actorReentrancy else { return .visitChildren }
         analyzeActor(node)
         return .skipChildren
     }

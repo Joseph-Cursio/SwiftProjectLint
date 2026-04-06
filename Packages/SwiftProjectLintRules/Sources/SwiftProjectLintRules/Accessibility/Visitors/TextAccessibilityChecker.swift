@@ -6,7 +6,7 @@ import SwiftSyntax
 
 /// Checks accessibility issues specific to Text elements in SwiftUI.
 /// This checker analyzes text elements for missing accessibility features when they contain long content.
-class TextAccessibilityChecker: AccessibilityCheckerProtocol {
+class TextAccessibilityChecker {
 
     let visitor: AccessibilityVisitor
 

@@ -14,7 +14,6 @@ final class OnChangeOldAPIVisitor: BasePatternVisitor {
     }
 
     override func visit(_ node: FunctionCallExprSyntax) -> SyntaxVisitorContinueKind {
-        guard pattern.name == .onChangeOldAPI else { return .visitChildren }
         guard let memberAccess = node.calledExpression.as(MemberAccessExprSyntax.self),
               memberAccess.declName.baseName.text == "onChange" else { return .visitChildren }
 

@@ -14,7 +14,6 @@ final class CFAbsoluteTimeVisitor: BasePatternVisitor {
     }
 
     override func visit(_ node: FunctionCallExprSyntax) -> SyntaxVisitorContinueKind {
-        guard pattern.name == .cfAbsoluteTime else { return .visitChildren }
         detectCFAbsoluteTime(node)
         return .visitChildren
     }

@@ -20,7 +20,7 @@ import SwiftSyntax
 /// dynamic pattern registration and category-based visitor retrieval.
 ///
 /// This registry is populated during app initialization and then read during analysis.
-public final class PatternVisitorRegistry: PatternVisitorRegistryProtocol, @unchecked Sendable {
+public final class PatternVisitorRegistry: @unchecked Sendable {
     public static let shared = PatternVisitorRegistry()
 
     private let lock = NSLock()

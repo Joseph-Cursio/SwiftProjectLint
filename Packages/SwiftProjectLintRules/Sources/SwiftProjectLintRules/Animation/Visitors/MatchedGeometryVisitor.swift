@@ -34,7 +34,6 @@ final class MatchedGeometryVisitor: BasePatternVisitor {
     }
 
     override func visit(_ node: FunctionCallExprSyntax) -> SyntaxVisitorContinueKind {
-        guard pattern.name == .matchedGeometryEffectMisuse else { return .visitChildren }
         detectMatchedGeometryEffectMisuse(node)
         return .visitChildren
     }
