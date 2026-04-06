@@ -19,6 +19,7 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
     case tooManyEnvironmentObjects = "Too Many Environment Objects"
 
     // Performance Rules
+    case anyViewUsage = "AnyView Usage"
     case expensiveOperationInViewBody = "Expensive Operation in View Body"
     case forEachWithoutID = "ForEach Without ID"
     case largeViewBody = "Large View Body"
@@ -105,6 +106,11 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
     case observedObjectInline = "ObservedObject Inline"
     case onChangeOldAPI = "onChange Old API"
     case legacyObservableObject = "Legacy ObservableObject"
+    case taskSleepNanoseconds = "Task Sleep Nanoseconds"
+    case foregroundColorDeprecated = "Foreground Color Deprecated"
+    case cornerRadiusDeprecated = "Corner Radius Deprecated"
+    case legacyStringFormat = "Legacy String Format"
+    case scrollViewReaderDeprecated = "ScrollViewReader Deprecated"
 
     // Security Rules
     case hardcodedSecret = "Hardcoded Secret"
@@ -162,8 +168,8 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
             return .stateManagement
 
             // Performance Rules
-        case .expensiveOperationInViewBody, .forEachWithoutID, .largeViewBody, .largeViewHelper,
-             .forEachSelfID, .unnecessaryViewUpdate, .viewBuilderComplexity,
+        case .anyViewUsage, .expensiveOperationInViewBody, .forEachWithoutID, .largeViewBody,
+             .largeViewHelper, .forEachSelfID, .unnecessaryViewUpdate, .viewBuilderComplexity,
              .customModifierPerformance, .formatterInViewBody:
             return .performance
 
@@ -222,7 +228,8 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
         case .dateNow, .dispatchMainAsync, .threadSleep, .legacyRandom, .cfAbsoluteTime,
              .legacyNotificationObserver, .completionHandlerDataTask, .taskInOnAppear,
              .dispatchSemaphoreInAsync, .navigationViewDeprecated, .onChangeOldAPI,
-             .legacyObservableObject:
+             .legacyObservableObject, .taskSleepNanoseconds, .foregroundColorDeprecated,
+             .cornerRadiusDeprecated, .legacyStringFormat, .scrollViewReaderDeprecated:
             return .modernization
 
             // Other/System Rules

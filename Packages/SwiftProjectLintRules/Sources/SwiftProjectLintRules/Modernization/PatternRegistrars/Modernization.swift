@@ -21,7 +21,12 @@ class Modernization: BasePatternRegistrar {
             DispatchSemaphoreInAsync(),
             NavigationViewDeprecated(),
             OnChangeOldAPI(),
-            LegacyObservableObject()
+            LegacyObservableObject(),
+            TaskSleepNanoseconds(),
+            ForegroundColorDeprecated(),
+            CornerRadiusDeprecated(),
+            LegacyStringFormat(),
+            ScrollViewReaderDeprecated()
         ])
     }
 }

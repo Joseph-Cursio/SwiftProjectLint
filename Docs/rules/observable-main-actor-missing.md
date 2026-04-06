@@ -12,6 +12,7 @@ The `@Observable` macro (Swift 5.9 / iOS 17+) synthesises observation infrastruc
 
 As Paul Hudson puts it: *"If an `@Observable` class is not `@MainActor`, fix it before continuing, then take a quiet moment to reflect."*
 
+
 Annotating an `@Observable` class `@MainActor` makes the threading contract explicit and compiler-enforced: all property mutations and view-update notifications are guaranteed to run on the main actor, eliminating races without requiring manual `DispatchQueue.main.async` calls.
 
 ### Discussion

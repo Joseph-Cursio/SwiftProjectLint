@@ -1,6 +1,6 @@
 # SwiftProjectLint Rules Reference
 
-SwiftProjectLint is a static analysis tool for SwiftUI projects. It parses Swift source files using SwiftSyntax AST visitors to detect anti-patterns spanning state management, performance, animations, architecture, code quality, security, accessibility, memory management, networking, UI patterns, and modernization. This reference documents all 107 lint rules, organized by category.
+SwiftProjectLint is a static analysis tool for SwiftUI projects. It parses Swift source files using SwiftSyntax AST visitors to detect anti-patterns spanning state management, performance, animations, architecture, code quality, security, accessibility, memory management, networking, UI patterns, and modernization. This reference documents all 113 lint rules, organized by category.
 
 Rules marked **opt-in** are disabled by default and must be explicitly listed under `enabled_only` in `.swiftprojectlint.yml`.
 
@@ -25,6 +25,7 @@ Rules marked **opt-in** are disabled by default and must be explicitly listed un
 
 | Rule | Severity |
 |------|----------|
+| [AnyView Usage](any-view-usage.md) | Warning |
 | [Expensive Operation in View Body](expensive-operation-in-view-body.md) | Warning |
 | [ForEach Without ID](for-each-without-id.md) | Warning |
 | [Large View Body](large-view-body.md) | Warning |
@@ -168,6 +169,11 @@ Rules marked **opt-in** are disabled by default and must be explicitly listed un
 | [NavigationView Deprecated](navigation-view-deprecated.md) | Warning |
 | [onChange Old API](on-change-old-api.md) | Info |
 | [Legacy ObservableObject](legacy-observable-object.md) | Info |
+| [Task Sleep Nanoseconds](task-sleep-nanoseconds.md) | Warning |
+| [Foreground Color Deprecated](foreground-color-deprecated.md) | Warning |
+| [Corner Radius Deprecated](corner-radius-deprecated.md) | Warning |
+| [Legacy String Format](legacy-string-format.md) | Info |
+| [ScrollViewReader Deprecated](scroll-view-reader-deprecated.md) | Info |
 
 ---
 
