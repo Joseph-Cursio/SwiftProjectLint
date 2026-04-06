@@ -57,6 +57,19 @@ class Accessibility: BasePatternRegistrar {
             )
         ]
         registry.register(patterns: patterns)
+
+        let onTapGesturePattern = SyntaxPattern(
+            name: .onTapGestureInsteadOfButton,
+            visitor: OnTapGestureInsteadOfButtonVisitor.self,
+            severity: .warning,
+            category: .accessibility,
+            messageTemplate: "Prefer Button over .onTapGesture for accessibility",
+            suggestion: "Replace .onTapGesture { ... } with a Button",
+            description: "Detects .onTapGesture calls that bypass button " +
+                "accessibility traits, keyboard focus, and haptic feedback"
+        )
+        registry.register(patterns: [onTapGesturePattern])
+
         registry.register(registrars: [HardcodedFontSize()])
     }
 } 

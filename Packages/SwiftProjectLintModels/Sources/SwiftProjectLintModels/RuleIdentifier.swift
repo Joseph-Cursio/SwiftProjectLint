@@ -126,6 +126,7 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
     case iconOnlyButtonMissingLabel = "Icon-Only Button Missing Label"
     case longTextAccessibility = "Long Text Accessibility"
     case hardcodedFontSize = "Hardcoded Font Size"
+    case onTapGestureInsteadOfButton = "onTapGesture Instead of Button"
 
     // Memory Management Rules
     case potentialRetainCycle = "Potential Retain Cycle"
@@ -209,7 +210,8 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
 
             // Accessibility Rules
         case .missingAccessibilityLabel, .missingAccessibilityHint, .inaccessibleColorUsage,
-             .iconOnlyButtonMissingLabel, .longTextAccessibility, .hardcodedFontSize:
+             .iconOnlyButtonMissingLabel, .longTextAccessibility, .hardcodedFontSize,
+             .onTapGestureInsteadOfButton:
             return .accessibility
 
             // Memory Management Rules
