@@ -96,6 +96,20 @@ class Accessibility: BasePatternRegistrar {
         )
         registry.register(patterns: [dynamicTypePattern])
 
+        let decorativeImagePattern = SyntaxPattern(
+            name: .decorativeImageMissingTrait,
+            visitor: DecorativeImageMissingTraitVisitor.self,
+            severity: .info,
+            category: .accessibility,
+            messageTemplate: "Decorative image may need "
+                + ".accessibilityHidden(true)",
+            suggestion: "Add .accessibilityHidden(true) if decorative, "
+                + "or .accessibilityLabel() if meaningful.",
+            description: "Detects likely decorative images without "
+                + "accessibility handling. Disabled by default."
+        )
+        registry.register(patterns: [decorativeImagePattern])
+
         registry.register(registrars: [HardcodedFontSize()])
     }
 } 
