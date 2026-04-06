@@ -42,6 +42,19 @@ class MagicNumberVisitor: BasePatternVisitor {
 
     override func setFilePath(_ filePath: String) {
         self.currentFilePath = filePath
+        // Reset per-file state
+        magicNumberOccurrences = [:]
+        layoutNumberOccurrences = [:]
+    }
+
+    /// Returns true if the current file should be skipped entirely.
+    private func shouldSkipFile() -> Bool {
+        currentFilePath.contains("Tests")
+            || currentFilePath.hasSuffix("Test.swift")
+            || currentFilePath.contains("ExampleCode")
+            || currentFilePath.contains("Fixtures")
+            || currentFilePath.contains("Examples")
+            || currentFilePath.hasSuffix("Examples.swift")
     }
 
     // MARK: - SwiftUI layout/geometry sets
@@ -78,6 +91,7 @@ class MagicNumberVisitor: BasePatternVisitor {
     // MARK: - Visits
 
     override func visit(_ node: VariableDeclSyntax) -> SyntaxVisitorContinueKind {
+        if shouldSkipFile() { return .visitChildren }
         if isInsidePreviewMacro(Syntax(node)) { return .visitChildren }
         for binding in node.bindings {
             if let initializer = binding.initializer {
@@ -92,6 +106,7 @@ class MagicNumberVisitor: BasePatternVisitor {
     }
 
     override func visit(_ node: FunctionCallExprSyntax) -> SyntaxVisitorContinueKind {
+        if shouldSkipFile() { return .visitChildren }
         if isInsidePreviewMacro(Syntax(node)) { return .visitChildren }
 
         let calledName: String?

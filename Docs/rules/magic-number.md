@@ -17,6 +17,7 @@ An integer or float literal of 10 or greater that appears without a named consta
 - Does **not** flag numbers inside `#Preview` blocks — these are sample/mock data, not business logic
 - Does **not** flag numbers in SwiftUI design-token contexts (see exclusions below)
 - Does **not** flag positional index arguments in `sqlite3_bind_*` functions
+- Does **not** flag numbers in test files, example files, or files ending in `*Examples.swift`
 
 ### Design-Token Exclusions
 Numbers passed to these modifiers, argument labels, and constructors are skipped:
