@@ -14,14 +14,16 @@ import SwiftSyntax
 /// - Closure parameters (closures create their own scope; reusing names is idiomatic)
 /// - Rebinding with transform (`let x = x.cleaned()`, `let x = transform(x)`)
 /// - Locals in methods that match stored property names (Swift uses `self.` for disambiguation)
-/// - Variables shadowing a for-loop iteration variable from an outer scope
+/// - Variables shadowing a for-loop iteration variable or for-loop body variable
+/// - `for x in x` where the iteration variable matches the sequence expression
 final class VariableShadowingVisitor: BasePatternVisitor {
 
     private enum ScopeKind {
-        case typeMember   // struct/class/enum/extension body
-        case codeBlock    // function body, if/else, do, etc.
+        case typeMember    // struct/class/enum/extension body
+        case codeBlock     // function body, if/else, do, etc.
         case closure
-        case forLoop      // for-statement scope (holds iteration variable)
+        case forLoop       // for-statement scope (holds iteration variable)
+        case forLoopBody   // code block that is the body of a for-statement
     }
 
     private struct ScopeFrame {
@@ -53,7 +55,8 @@ final class VariableShadowingVisitor: BasePatternVisitor {
     }
 
     override func visit(_ node: CodeBlockSyntax) -> SyntaxVisitorContinueKind {
-        scopeStack.append(ScopeFrame(kind: .codeBlock))
+        let kind: ScopeKind = node.parent?.is(ForStmtSyntax.self) == true ? .forLoopBody : .codeBlock
+        scopeStack.append(ScopeFrame(kind: kind))
         return .visitChildren
     }
 
@@ -77,7 +80,11 @@ final class VariableShadowingVisitor: BasePatternVisitor {
         scopeStack.append(ScopeFrame(kind: .forLoop))
         if let identifier = node.pattern.as(IdentifierPatternSyntax.self) {
             let name = identifier.identifier.text
-            checkShadow(name: name, node: Syntax(node.pattern), severity: .error)
+            // Skip shadow check when the sequence references the same name
+            // (e.g. `for environ in environ` — analogous to `if let x = x`).
+            if sequenceReferences(name: name, in: node.sequence) == false {
+                checkShadow(name: name, node: Syntax(node.pattern), severity: .error)
+            }
             registerInCurrentScope(name)
         }
         return .visitChildren
@@ -160,6 +167,8 @@ final class VariableShadowingVisitor: BasePatternVisitor {
             guard frame.kind != .typeMember else { continue }
             // Skip for-loop scopes — reusing iteration variable names is common
             guard frame.kind != .forLoop else { continue }
+            // Skip for-loop body scopes — variables are short-lived per iteration
+            guard frame.kind != .forLoopBody else { continue }
             addIssue(
                 severity: severity,
                 message: "Variable '\(name)' shadows a declaration from an outer scope",
@@ -180,6 +189,8 @@ final class VariableShadowingVisitor: BasePatternVisitor {
             guard frame.kind != .typeMember else { continue }
             // Skip for-loop scopes — reusing iteration variable names is common
             guard frame.kind != .forLoop else { continue }
+            // Skip for-loop body scopes — variables are short-lived per iteration
+            guard frame.kind != .forLoopBody else { continue }
             addIssue(
                 severity: severity,
                 message: "Variable '\(name)' shadows a declaration from an outer scope",
@@ -198,6 +209,14 @@ final class VariableShadowingVisitor: BasePatternVisitor {
     private func initializerReferences(name: String, in binding: PatternBindingSyntax) -> Bool {
         guard let initializer = binding.initializer else { return false }
         return initializer.value.tokens(viewMode: .sourceAccurate).contains { token in
+            token.tokenKind == .identifier(name)
+        }
+    }
+
+    /// Returns `true` when a for-loop's sequence expression references `name`.
+    /// Used to skip `for x in x` patterns (analogous to `if let x = x`).
+    private func sequenceReferences(name: String, in sequence: ExprSyntax) -> Bool {
+        sequence.tokens(viewMode: .sourceAccurate).contains { token in
             token.tokenKind == .identifier(name)
         }
     }

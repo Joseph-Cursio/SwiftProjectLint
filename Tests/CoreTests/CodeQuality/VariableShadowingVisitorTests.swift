@@ -404,6 +404,43 @@ struct VariableShadowingExclusionTests {
                 }
             }
             """
+        ),
+        ExclusionCase(
+            label: "variable in nested for-loop body shadows outer for-loop body variable",
+            source: """
+            func example() {
+                for major in 0..<10 {
+                    let version = makeVersion(major)
+                    use(version)
+                    for minor in 0..<10 {
+                        let version = makeVersion(major, minor)
+                        use(version)
+                    }
+                }
+            }
+            """
+        ),
+        ExclusionCase(
+            label: "for-in iterating same-name collection",
+            source: """
+            func example() {
+                var environ = ["A=1", "B=2"]
+                for environ in environ {
+                    free(environ)
+                }
+            }
+            """
+        ),
+        ExclusionCase(
+            label: "for-in iterating member of same-name variable",
+            source: """
+            func example() {
+                let items = fetchItems()
+                for items in items.batches {
+                    process(items)
+                }
+            }
+            """
         )
     ])
     func exclusion(_ testCase: ExclusionCase) {
