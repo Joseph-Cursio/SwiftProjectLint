@@ -28,7 +28,7 @@ The visitor detects these by walking up to `OptionalBindingConditionSyntax` and 
 
 **Locals matching type properties are excluded.** The visitor tracks type-member scopes (`MemberBlockSyntax`) separately from code-block scopes. Variables declared at type level (stored properties) are placed in a `typeMember` scope frame, which is skipped during shadow checks. This means `let configuration = self.configuration` inside a method body is not flagged — Swift uses `self.` for disambiguation, making this safe by design. Function and init parameters matching property names are also excluded by the same mechanism.
 
-**For-loop iteration variables are excluded from shadow checks.** Variables in a for-loop scope frame (the iteration variable itself) are skipped when checking for shadows. Reusing iteration variable names in nested loops (e.g., `for i in outer { for i in inner { } }`) is common and the inner variable naturally supersedes the outer within its scope.
+**For-loop variables are excluded from shadow checks.** Both the iteration variable (`for i in ...`) and variables declared in for-loop bodies are placed in dedicated scope frames (`forLoop` and `forLoopBody`) that are skipped during shadow checks. Reusing variable names across nested loops is common — variables in a for-loop body are inherently short-lived (re-created each iteration), so shadowing them in a nested scope is low-risk. Additionally, `for x in x` patterns (where the iteration variable matches the sequence expression) are skipped, analogous to `if let x = x`.
 
 ### Flagged (Error)
 
@@ -63,6 +63,8 @@ The visitor detects these by walking up to `OptionalBindingConditionSyntax` and 
 | Codable init locals | `init(from:) { let name = container.decode(...) }` |
 | Nested for-loop iteration variable | `for i in a { for i in b { ... } }` |
 | Variable shadowing for-loop variable | `for i in a { let i = i + 1 }` |
+| Variable in nested for-loop body | `for a in x { let v = f(a); for b in y { let v = f(b) } }` |
+| for-in iterating same-name collection | `for environ in environ { ... }` |
 
 ### Violating Examples
 
