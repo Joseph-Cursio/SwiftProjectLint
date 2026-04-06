@@ -37,6 +37,7 @@ Several common patterns look like deep chains but are not object-graph coupling.
 | KeyPath literals | `\SomeType.property.nested` — inside `KeyPathExprSyntax` |
 | Environment/navigation roots | Root is `environment`, `theme`, `settings`, `coordinator`, `navigator`, `router` |
 | Geometry/layout chains | Chain contains `frame`, `size`, `bounds`, `origin`, `width`, `height`, etc. |
+| Framework API chains | Chain passes through known framework structural members (SwiftSyntax: `signature`, `parameterClause`, `parameters`, `leadingTrivia`, etc.) |
 
 **Recognized value-transform members:** `rawValue`, `hashValue`, `capitalized`, `uppercased`, `lowercased`, `description`, `debugDescription`, `trimmedDescription`, `color`, `lowerBound`, `upperBound`, `text`, `baseName`, `isEmpty`
 

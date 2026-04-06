@@ -36,12 +36,33 @@ class LawOfDemeterVisitor: BasePatternVisitor {
         "rawValue", "hashValue", "capitalized", "uppercased", "lowercased",
         "description", "debugDescription", "trimmedDescription",
         "color", "lowerBound", "upperBound",
-        // SwiftSyntax token accessors — reading identifier/token text is a value
-        // transformation, not object-graph navigation into internal structure.
-        "text", "baseName",
-        // Boolean terminal — testing emptiness of a collection is a scalar result,
-        // not further graph traversal (e.g., node.body.statements.isEmpty).
-        "isEmpty"
+        // SwiftSyntax token/trivia accessors
+        "text", "baseName", "tokenKind",
+        // Boolean terminals — scalar results, not graph traversal
+        "isEmpty", "isNotEmpty",
+        // Trivia terminals
+        "containsComments", "isNotSingleSpaceWithoutComments",
+        "withTrailingEmptyLineRemoved", "splitBlocks",
+        // Other value terminals
+        "length", "isEmptyOrNil"
+    ]
+
+    /// SwiftSyntax structural members that form idiomatic API access chains.
+    /// Chains through these are framework API, not object-graph coupling.
+    private static let frameworkAPIMembers: Set<String> = [
+        "signature", "parameterClause", "parameters",
+        "genericArgumentClause", "arguments", "argumentNames",
+        "inheritanceClause", "inheritedTypes",
+        "memberBlock", "members", "modifiers",
+        "leadingTrivia", "trailingTrivia",
+        "returnClause", "body", "statements",
+        "bindings", "accessorBlock", "accessors",
+        "leftBrace", "rightBrace", "arrow",
+        "funcKeyword", "atSign", "attributeName",
+        "declName", "calledExpression",
+        "indentationRanges", "expected", "actual",
+        "importDecl", "inKeyword", "operator",
+        "stringView", "lines", "onlyElement"
     ]
 
     /// Members related to geometry/layout that form natural access chains.
@@ -188,6 +209,10 @@ class LawOfDemeterVisitor: BasePatternVisitor {
             if Array(orderedComponents.prefix(prefix.count)) == prefix {
                 return false
             }
+        }
+        // Skip framework API chains (SwiftSyntax, etc.)
+        if orderedComponents.contains(where: { Self.frameworkAPIMembers.contains($0) }) {
+            return false
         }
         // Skip environment/navigation roots
         if let rootName = orderedComponents.first,
