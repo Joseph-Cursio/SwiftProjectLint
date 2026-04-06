@@ -72,7 +72,8 @@ class Performance: BasePatternRegistrar {
             CustomModifierPerformance(),
             FormatterInViewBody(),
             AnyViewUsage(),
-            GeometryReaderOveruse()
+            GeometryReaderOveruse(),
+            UnboundedTaskGroup()
         ])
     }
 }

@@ -94,6 +94,7 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
     case globalActorMismatch = "Global Actor Mismatch"
     case formatterInViewBody = "Formatter In View Body"
     case geometryReaderOveruse = "GeometryReader Overuse"
+    case unboundedTaskGroup = "Unbounded Task Group"
     case mainActorMissingOnUICode = "Main Actor Missing On UI Code"
     case observableMainActorMissing = "Observable Main Actor Missing"
 
@@ -182,7 +183,7 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
         case .anyViewUsage, .expensiveOperationInViewBody, .forEachWithoutID, .largeViewBody,
              .largeViewHelper, .forEachSelfID, .unnecessaryViewUpdate, .viewBuilderComplexity,
              .customModifierPerformance, .formatterInViewBody,
-             .geometryReaderOveruse:
+             .geometryReaderOveruse, .unboundedTaskGroup:
             return .performance
 
         case .deprecatedAnimation, .animationInHighFrequencyUpdate, .excessiveSpringAnimations,
