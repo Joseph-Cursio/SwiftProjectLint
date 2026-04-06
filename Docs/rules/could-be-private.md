@@ -20,10 +20,11 @@ This is a **cross-file rule**. It requires scanning the entire project before it
 - Top-level type declarations (`struct`, `class`, `enum`, `actor`) with no explicit access modifier
 - Every reference to a type name across all files, tracked as *typeName → set of files that mention it*
 
-References are collected from three AST sites:
+References are collected from four AST sites:
 - Type annotations and inheritance clauses — `IdentifierTypeSyntax` (`:`, `as`, generic constraints, etc.)
 - Direct identifier expressions that start with an uppercase letter — `DeclReferenceExprSyntax`
 - `Type.member` patterns — the base of a `MemberAccessExprSyntax` where base is uppercase (e.g., `Severity.error` registers a reference to `Severity`)
+- `Type.self` metatype references — `MemberAccessExprSyntax` where the member is `self` (e.g., `[MyRule.self]` in a registry array)
 
 **Phase 2 — Analysis.** For each collected declaration, the rule checks whether the type name appears in any file *other than* the declaring file. If not, it reports the issue.
 
@@ -34,6 +35,8 @@ The rule flags top-level types with default (`internal`) access that are never r
 - **Explicit access modifiers** — types already marked `private`, `fileprivate`, `public`, `open`, or `internal`
 - **Nested types** — only top-level declarations are checked; types nested inside another type are out of scope
 - **Test files** — any file whose path contains `Tests/` or ends in `Test.swift`
+- **Example/fixture directories** — files in `ExampleCode/`, `Fixtures/`, `Resources/`, `Examples/`, `Samples/`
+- **Project-protocol conformers** — types conforming to a protocol defined within the project are suppressed, since they are likely used polymorphically (metatype registration, dependency injection) even if not directly referenced by name
 - **`App`-conforming structs** — the SwiftUI app entry point (`struct MyApp: App`) cannot be `private`
 - **`@main`-annotated types** — the compiler-designated entry point for a target cannot be `private`
 
