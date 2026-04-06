@@ -110,6 +110,7 @@ Rules marked **opt-in** are disabled by default and must be explicitly listed un
 | [SwiftLint Suppression](swiftlint-suppression.md) | Warning |
 | [SwiftProjectLint Suppression](swiftprojectlint-suppression.md) | Warning |
 | [Font Weight Bold](font-weight-bold.md) | Info |
+| [Global Actor Mismatch](global-actor-mismatch.md) | Warning |
 
 ## Security
 

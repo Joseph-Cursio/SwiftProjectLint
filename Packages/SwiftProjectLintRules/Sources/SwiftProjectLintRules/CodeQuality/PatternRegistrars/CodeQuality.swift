@@ -141,7 +141,8 @@ class CodeQuality: BasePatternRegistrar {
             VariableShadowing(),
             UncheckedSendable(),
             StringSwitchOverEnum(),
-            FontWeightBold()
+            FontWeightBold(),
+            GlobalActorMismatch()
         ])
     }
 }

@@ -91,6 +91,7 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
     case uncheckedSendable = "Unchecked Sendable"
     case stringSwitchOverEnum = "String Switch Over Enum"
     case fontWeightBold = "Font Weight Bold"
+    case globalActorMismatch = "Global Actor Mismatch"
     case formatterInViewBody = "Formatter In View Body"
     case geometryReaderOveruse = "GeometryReader Overuse"
     case mainActorMissingOnUICode = "Main Actor Missing On UI Code"
@@ -211,7 +212,8 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
              .nonisolatedUnsafe, .taskYieldOffload, .swallowedTaskError,
              .couldBePrivate, .publicInAppTarget, .couldBePrivateMember,
              .protocolCouldBePrivate, .variableShadowing, .uncheckedSendable,
-             .stringSwitchOverEnum, .fontWeightBold:
+             .stringSwitchOverEnum, .fontWeightBold,
+             .globalActorMismatch:
             return .codeQuality
 
             // Security Rules
