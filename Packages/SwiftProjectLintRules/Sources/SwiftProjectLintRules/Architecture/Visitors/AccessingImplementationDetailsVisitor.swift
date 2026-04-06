@@ -47,12 +47,6 @@ class AccessingImplementationDetailsVisitor: BasePatternVisitor {
                 || currentFilePath.contains("Test.swift") {
                 return .visitChildren
             }
-            // Skip tuple element access (_0, _1, _2, etc.)
-            let afterUnderscore = memberName.dropFirst()
-            if afterUnderscore.isEmpty == false,
-               afterUnderscore.first?.isNumber == true {
-                return .visitChildren
-            }
             // Skip self._member
             if let ref = base.as(DeclReferenceExprSyntax.self),
                ref.baseName.text == "self" {
