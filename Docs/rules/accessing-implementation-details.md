@@ -12,7 +12,7 @@ Two patterns indicate a caller is reaching into an object's implementation rathe
 ### Discussion
 `AccessingImplementationDetailsVisitor` detects two heuristics:
 
-1. **Underscore prefix:** A member access `obj._someProperty` where `obj` is not `self` or `super`. Underscore-prefixed names are a Swift convention for internal or implementation-detail members. `self._member` is exempt because property wrappers use underscore names for their storage. Test files are also exempt, since test code commonly accesses internals for verification.
+1. **Underscore prefix:** A member access `obj._someProperty` where `obj` is not `self`, `Self`, or `super`. Underscore-prefixed names are a Swift convention for internal or implementation-detail members. `self._member` and `Self._member` are exempt because accessing your own type's internals (including property wrapper storage and static members) is expected. Test files are also exempt, since test code commonly accesses internals for verification.
 
 2. **Force-cast bypass:** A member access whose base expression contains `as! ConcreteServiceType`, where `ConcreteServiceType` ends with a service-like suffix. Force-casting to a concrete type to access members that are not on the protocol is a clear violation of the interface contract.
 
@@ -22,6 +22,12 @@ Two patterns indicate a caller is reaching into an object's implementation rathe
 class MyClass {
     var _prop: Int = 0
     func read() -> Int { return self._prop }
+}
+
+// Accessing Self's own static underscore member
+struct Config {
+    static var _all: [Config] = []
+    static func reset() { Self._all.removeAll() }
 }
 
 // Optional cast — not flagged (only as! triggers this rule)

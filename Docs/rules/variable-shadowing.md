@@ -4,15 +4,15 @@
 
 **Identifier:** `Variable Shadowing`
 **Category:** Code Quality
-**Severity:** Error / Warning (tiered)
+**Severity:** Error
 
 ### Rationale
 When an inner scope declares a variable with the same name as one in an outer scope, the outer variable becomes inaccessible within that scope. This can cause subtle bugs, especially inside closures where the captured value may not be what the developer expects.
 
 ### Discussion
-`VariableShadowingVisitor` maintains a scope stack that tracks variable names across nested scopes. When a new declaration reuses a name from an outer scope, the rule flags it as a potential source of confusion.
+`VariableShadowingVisitor` maintains a scope stack that tracks variable names across nested scopes. Each scope frame is tagged with a kind (`typeMember`, `codeBlock`, `closure`, or `forLoop`) so the visitor can distinguish between scope types. When a new declaration reuses a name from an outer scope, the rule flags it as a potential source of confusion.
 
-The visitor pushes a new scope frame on entering `CodeBlockSyntax`, `ClosureExprSyntax`, and `ForStmtSyntax` nodes, and pops the frame on exit. Variable declarations, function parameters, closure parameters, and for-loop binding patterns are all checked against outer scope frames.
+The visitor pushes a new scope frame on entering `MemberBlockSyntax` (type bodies), `CodeBlockSyntax`, `ClosureExprSyntax`, and `ForStmtSyntax` nodes, and pops the frame on exit. Variable declarations, function parameters, and for-loop binding patterns are checked against outer scope frames. Closure parameters are registered in their scope but not checked for shadows.
 
 **Idiomatic type-narrowing patterns are excluded.** The visitor recognises several Swift patterns where shadowing is intentional and expected:
 
@@ -22,31 +22,22 @@ The visitor pushes a new scope frame on entering `CodeBlockSyntax`, `ClosureExpr
 
 The visitor detects these by walking up to `OptionalBindingConditionSyntax` and checking whether the bound name matches the initializer expression directly, via a conditional `as?` cast, or has no initializer (shorthand form).
 
-**Function parameters matching type properties are excluded.** When a function parameter has the same name as a stored property on the enclosing type (e.g., `init(name:)` on a struct with `var name`), this is standard Swift — not a shadowing bug. The visitor skips the outermost type-member scope when checking function parameters.
+**Closure parameters are excluded.** Closures create their own scope, and reusing names from an outer scope is idiomatic Swift. Patterns like `mutex.withLock { value in }`, `array.map { item in }`, and `collection.contains { record in }` intentionally shadow outer variables. Closure parameters are registered in the scope stack (so declarations inside the closure body can shadow-check against them) but the parameters themselves are never flagged.
 
-**Tiered severity.** The rule uses two severity levels:
+**Rebinding transforms are excluded.** When the initializer references the same-named outer variable — such as `let config = config.cleaned()`, `let items = items.sorted()`, or `let data = transform(data)` — the developer clearly knows about the outer variable and is intentionally deriving a new value from it. These are skipped entirely.
 
-- **Error** — Clear-cut shadowing where the inner declaration has no relationship to the outer variable. These are almost always bugs or sources of confusion (e.g., `let x = 1; if true { let x = 2 }`).
-- **Warning** — Ambiguous shadowing where the initializer references the same-named outer variable. The developer likely intended to derive a new value from the original (e.g., `let config = config.cleaned()`), but a different name would be clearer.
+**Locals matching type properties are excluded.** The visitor tracks type-member scopes (`MemberBlockSyntax`) separately from code-block scopes. Variables declared at type level (stored properties) are placed in a `typeMember` scope frame, which is skipped during shadow checks. This means `let configuration = self.configuration` inside a method body is not flagged — Swift uses `self.` for disambiguation, making this safe by design. Function and init parameters matching property names are also excluded by the same mechanism.
 
-### Flagged as Error
+**For-loop iteration variables are excluded from shadow checks.** Variables in a for-loop scope frame (the iteration variable itself) are skipped when checking for shadows. Reusing iteration variable names in nested loops (e.g., `for i in outer { for i in inner { } }`) is common and the inner variable naturally supersedes the outer within its scope.
+
+### Flagged (Error)
 
 | Context | Example |
 |---------|---------|
 | Nested block re-declaration | `let x = 1; if true { let x = 2 }` |
-| Closure re-declaration | `let x = 1; closure { let x = 2 }` |
-| Closure parameter shadow | `let x = 1; closure { (x: Int) in ... }` |
 | Nested function parameter | `let x = 1; func inner(x: Int) { ... }` |
 | For-loop variable | `let i = 0; for i in 0..<10 { ... }` |
 | Type-changing shadow | `let x = 1; if true { let x = "hello" }` |
-
-### Flagged as Warning
-
-| Context | Example |
-|---------|---------|
-| Var-to-let immutability | `var x = load(); if true { let x = x.cleaned() }` |
-| Derived value in closure | `let items = [1, 2]; closure { let items = items.sorted() }` |
-| Transform with same name | `let data = fetch(); if true { let data = transform(data) }` |
 
 ### Ignored Patterns (Not Flagged)
 
@@ -64,10 +55,17 @@ The visitor detects these by walking up to `OptionalBindingConditionSyntax` and 
 | Underscore placeholder | `let _ = foo(); if true { let _ = bar() }` |
 | Function param matching type property | `struct S { var name: String; init(name: String) { ... } }` |
 | Method param matching type property | `class C { var config: Config; func update(config: Config) { ... } }` |
+| Closure parameter | `let x = 1; items.map { x in ... }` |
+| withLock closure parameter | `mutex.withLock { value in ... }` |
+| Rebinding with transform | `let config = config.cleaned()` |
+| Rebinding with function | `let data = transform(data)` |
+| Local matching stored property | `struct S { var x: Int; func f() { let x = self.x } }` |
+| Codable init locals | `init(from:) { let name = container.decode(...) }` |
+| Nested for-loop iteration variable | `for i in a { for i in b { ... } }` |
+| Variable shadowing for-loop variable | `for i in a { let i = i + 1 }` |
 
 ### Violating Examples
 
-**Error-level** (clear-cut shadowing):
 ```swift
 func example() {
     let value = 10
@@ -77,65 +75,85 @@ func example() {
     }
 }
 
-func process() {
-    let count = items.count
-    let closure = { (count: Int) in  // error: parameter shadows outer 'count'
-        print(count)
-    }
-}
-```
-
-**Warning-level** (ambiguous — initializer references outer variable):
-```swift
-func prepare() {
-    var config = loadConfig()
-    if needsCleanup {
-        let config = config.cleaned()  // warning: derives from outer 'config'
-        apply(config)
-    }
-}
-
-func process() {
-    let data = fetchData()
-    let closure = {
-        let data = data.sorted()  // warning: derives from outer 'data'
-        print(data)
+func outer() {
+    let name = "hello"
+    func inner(name: String) {  // error: parameter shadows outer 'name'
+        print(name)
     }
 }
 ```
 
 ### Non-Violating Examples
 ```swift
+// Idiomatic optional unwrapping — not flagged
 func example() {
     let name: String? = fetchName()
-    guard let name else { return }  // idiomatic unwrap, not flagged
+    guard let name else { return }
     print(name)
 }
 
-func process() {
-    let value: Int? = compute()
-    if let value = value {  // idiomatic unwrap, not flagged
-        use(value)
-    }
-}
-
+// Conditional type cast — not flagged
 func handle(response: Any) {
     let data = response
-    if let data = data as? Data {  // conditional type cast, not flagged
+    if let data = data as? Data {
         parse(data)
     }
 }
 
+// Weak-to-strong self — not flagged
 class Controller {
     func loadData() {
         fetchAsync { [weak self] in
-            guard let self = self else { return }  // weak-to-strong self, not flagged
+            guard let self = self else { return }
             self.updateUI()
         }
     }
 }
 
-// Function parameters matching type properties — idiomatic Swift, not flagged
+// Closure parameters — not flagged
+func process() {
+    let counter = Mutex(0)
+    counter.withLock { counter in
+        counter += 1
+    }
+
+    let items = [3, 1, 2]
+    items.forEach { items in
+        print(items)
+    }
+}
+
+// Rebinding transforms — not flagged
+func prepare() {
+    var config = loadConfig()
+    if needsCleanup {
+        let config = config.cleaned()
+        apply(config)
+    }
+}
+
+// Locals matching stored properties — not flagged
+struct Runner {
+    var configuration: Configuration
+    func run() {
+        let configuration = self.configuration.withDefaults()
+        execute(configuration)
+    }
+}
+
+// Codable init locals matching properties — not flagged
+struct Location {
+    let fileID: String
+    let line: Int
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let fileID = try container.decode(String.self, forKey: .fileID)
+        let line = try container.decode(Int.self, forKey: .line)
+        self.init(fileID: fileID, line: line)
+    }
+}
+
+// Function/init parameters matching type properties — not flagged
 struct ViewModel {
     let name: String
     let count: Int
@@ -145,10 +163,12 @@ struct ViewModel {
     }
 }
 
-class Manager {
-    var configuration: Config
-    func update(configuration: Config) {  // not flagged
-        self.configuration = configuration
+// Nested for-loop iteration variables — not flagged
+func buildMatrix() {
+    for index in 0..<5 {
+        for index in 0..<3 {
+            print(index)
+        }
     }
 }
 ```
