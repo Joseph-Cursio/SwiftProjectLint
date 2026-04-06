@@ -112,7 +112,8 @@ class Architecture: BasePatternRegistrar {
             FatProtocol(),
             SingleImplementationProtocol(),
             MirrorProtocol(),
-            SwiftDataUniqueAttribute()
+            SwiftDataUniqueAttribute(),
+            GodViewModel()
         ])
     }
 } 
