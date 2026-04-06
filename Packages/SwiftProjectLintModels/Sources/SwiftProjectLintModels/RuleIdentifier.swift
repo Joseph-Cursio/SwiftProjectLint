@@ -89,6 +89,7 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
     case stringSwitchOverEnum = "String Switch Over Enum"
     case formatterInViewBody = "Formatter In View Body"
     case mainActorMissingOnUICode = "Main Actor Missing On UI Code"
+    case observableMainActorMissing = "Observable Main Actor Missing"
 
     // Modernization Rules
     case dateNow = "Date Now"
@@ -156,7 +157,8 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
         // State Management Rules
         case .relatedDuplicateStateVariable, .unrelatedDuplicateStateVariable,
              .uninitializedStateVariable, .missingStateObject, .unusedStateVariable, .fatView,
-             .observedObjectInline, .tooManyEnvironmentObjects, .mainActorMissingOnUICode:
+             .observedObjectInline, .tooManyEnvironmentObjects, .mainActorMissingOnUICode,
+             .observableMainActorMissing:
             return .stateManagement
 
             // Performance Rules

@@ -67,6 +67,11 @@ class StateManagement: BasePatternRegistrar {
             )
         ]
         registry.register(patterns: patterns)
-        registry.register(registrars: [ObservedObjectInline(), TooManyEnvironmentObjects(), MainActorMissing()])
+        registry.register(registrars: [
+            ObservedObjectInline(),
+            TooManyEnvironmentObjects(),
+            MainActorMissing(),
+            ObservableMainActorMissing()
+        ])
     }
 }

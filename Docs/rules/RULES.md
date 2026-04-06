@@ -1,6 +1,6 @@
 # SwiftProjectLint Rules Reference
 
-SwiftProjectLint is a static analysis tool for SwiftUI projects. It parses Swift source files using SwiftSyntax AST visitors to detect anti-patterns spanning state management, performance, animations, architecture, code quality, security, accessibility, memory management, networking, UI patterns, and modernization. This reference documents all 106 lint rules, organized by category.
+SwiftProjectLint is a static analysis tool for SwiftUI projects. It parses Swift source files using SwiftSyntax AST visitors to detect anti-patterns spanning state management, performance, animations, architecture, code quality, security, accessibility, memory management, networking, UI patterns, and modernization. This reference documents all 107 lint rules, organized by category.
 
 Rules marked **opt-in** are disabled by default and must be explicitly listed under `enabled_only` in `.swiftprojectlint.yml`.
 
@@ -19,6 +19,7 @@ Rules marked **opt-in** are disabled by default and must be explicitly listed un
 | [ObservedObject Inline](observed-object-inline.md) | Warning |
 | [Too Many Environment Objects](too-many-environment-objects.md) | Warning |
 | [Main Actor Missing On UI Code](main-actor-missing-on-ui-code.md) | Warning |
+| [Observable Main Actor Missing](observable-main-actor-missing.md) | Warning |
 
 ## Performance
 
