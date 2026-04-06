@@ -14,6 +14,8 @@ A protocol that is only adopted by one concrete type provides no polymorphism. U
 
 To reduce false positives, the rule applies several exemptions:
 - **Mock conformers:** If any conformer's name contains "Mock", "Fake", "Stub", or "Spy", the protocol is not flagged — the abstraction exists for testability.
+- **Test-file conformers:** Conformers in files matching `Tests/`, `Mocks/`, `Fakes/`, `Stubs/` are treated as test conformers. A protocol with 1 production conformer + 1 test conformer is suppressed.
+- **DI-intent suffixes:** Protocols ending with `Protocol`, `Providing`, `Service`, `Repository`, `DataSource`, `Client`, or `Networking` are suppressed — these names strongly imply the protocol exists for dependency injection.
 - **Public protocols:** Protocols marked `public` or `open` are skipped because they may be part of a library's public API, intended for external conformance.
 - **Test-file protocols:** Protocols declared inside test targets are skipped entirely.
 

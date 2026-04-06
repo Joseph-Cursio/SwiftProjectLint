@@ -33,6 +33,10 @@ Several common patterns look like deep chains but are not object-graph coupling.
 | Value-transform members (intermediate) | A recognized transform member appears before the violation threshold; subsequent access is on a plain value, not an object. E.g., `node.extendedType.description.trimming…` — `.description` converts to `String` at depth 2. |
 | Value-transform members (terminal, depth = 3) | The final component of a 3-dot chain is a recognized value terminal. E.g., `violation.severity.rawValue.capitalized`, `chunk.lineRange.lowerBound`, `node.body.statements.isEmpty` |
 | Test files | Any file path containing `Tests/` or ending in `Test.swift` |
+| Binding projections | `$viewModel.user.name` — projected value chains |
+| KeyPath literals | `\SomeType.property.nested` — inside `KeyPathExprSyntax` |
+| Environment/navigation roots | Root is `environment`, `theme`, `settings`, `coordinator`, `navigator`, `router` |
+| Geometry/layout chains | Chain contains `frame`, `size`, `bounds`, `origin`, `width`, `height`, etc. |
 
 **Recognized value-transform members:** `rawValue`, `hashValue`, `capitalized`, `uppercased`, `lowercased`, `description`, `debugDescription`, `trimmedDescription`, `color`, `lowerBound`, `upperBound`, `text`, `baseName`, `isEmpty`
 
