@@ -66,6 +66,7 @@ Rules marked **opt-in** are disabled by default and must be explicitly listed un
 | [Single Implementation Protocol](single-implementation-protocol.md) | Info |
 | [Mirror Protocol](mirror-protocol.md) | Info |
 | [Computed Property View](computed-property-view.md) | Warning |
+| [SwiftData Unique Attribute CloudKit](swiftdata-unique-attribute-cloudkit.md) | Warning |
 
 ## Code Quality
 

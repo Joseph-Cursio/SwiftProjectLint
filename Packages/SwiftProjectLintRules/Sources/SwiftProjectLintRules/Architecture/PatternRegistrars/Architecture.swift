@@ -111,7 +111,8 @@ class Architecture: BasePatternRegistrar {
         registry.register(registrars: [
             FatProtocol(),
             SingleImplementationProtocol(),
-            MirrorProtocol()
+            MirrorProtocol(),
+            SwiftDataUniqueAttribute()
         ])
     }
 } 

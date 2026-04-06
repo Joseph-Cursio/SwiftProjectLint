@@ -51,6 +51,7 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
     case singleImplementationProtocol = "Single Implementation Protocol"
     case mirrorProtocol = "Mirror Protocol"
     case computedPropertyView = "Computed Property View"
+    case swiftDataUniqueAttributeCloudKit = "SwiftData Unique Attribute CloudKit"
 
     // Code Quality Rules
     case magicNumber = "Magic Number"
@@ -192,7 +193,8 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
              .concreteTypeUsage, .accessingImplementationDetails,
              .singletonUsage, .lawOfDemeter, .fatProtocol,
              .singleImplementationProtocol, .mirrorProtocol,
-             .computedPropertyView:
+             .computedPropertyView,
+             .swiftDataUniqueAttributeCloudKit:
             return .architecture
 
             // Code Quality Rules
