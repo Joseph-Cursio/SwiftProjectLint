@@ -178,6 +178,7 @@ Rules marked **opt-in** are disabled by default and must be explicitly listed un
 | [ScrollViewReader Deprecated](scroll-view-reader-deprecated.md) | Info |
 | [Legacy Replacing Occurrences](legacy-replacing-occurrences.md) | Info |
 | [tabItem Deprecated](tab-item-deprecated.md) | Info |
+| [Legacy Formatter](legacy-formatter.md) | Info |
 
 ---
 
