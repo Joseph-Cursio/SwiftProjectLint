@@ -66,6 +66,18 @@ struct AccessingImplDetailsTests {
         #expect(violations.isEmpty)
     }
 
+    @Test func testNoIssueForCapitalSelfUnderscoreAccess() throws {
+        let source = """
+        struct Config {
+            static var _all: [Config] = []
+            static func reset() { Self._all.removeAll() }
+        }
+        """
+        let issues = analyzeSource(source)
+        let violations = issues.filter { $0.ruleName == .accessingImplementationDetails }
+        #expect(violations.isEmpty)
+    }
+
     @Test func testNoIssueForSuperUnderscoreAccess() throws {
         let source = """
         class Base { func _setup() {} }

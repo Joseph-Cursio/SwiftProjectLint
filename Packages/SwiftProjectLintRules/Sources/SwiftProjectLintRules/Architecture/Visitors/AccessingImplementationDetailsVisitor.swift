@@ -47,9 +47,9 @@ class AccessingImplementationDetailsVisitor: BasePatternVisitor {
             if isTestOrFixtureFile() {
                 return .visitChildren
             }
-            // Skip self._member
+            // Skip self._member and Self._member — accessing own type's internals is fine
             if let ref = base.as(DeclReferenceExprSyntax.self),
-               ref.baseName.text == "self" {
+               ref.baseName.text == "self" || ref.baseName.text == "Self" {
                 return .visitChildren
             }
             // Skip super._member
