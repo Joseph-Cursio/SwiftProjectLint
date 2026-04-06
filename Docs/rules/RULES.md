@@ -159,6 +159,7 @@ Rules marked **opt-in** are disabled by default and must be explicitly listed un
 | [Inconsistent Styling](inconsistent-styling.md) | Info |
 | [Basic Error Handling](basic-error-handling.md) | Info |
 | [Modifier Order Issue](modifier-order-issue.md) | Warning |
+| [Image Without Resizable](image-without-resizable.md) | Info |
 
 ## Modernization
 

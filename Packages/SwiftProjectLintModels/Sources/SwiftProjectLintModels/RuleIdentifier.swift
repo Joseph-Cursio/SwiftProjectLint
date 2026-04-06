@@ -154,6 +154,7 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
     case inconsistentStyling = "Inconsistent Styling"
     case basicErrorHandling = "Basic Error Handling"
     case modifierOrderIssue = "Modifier Order Issue"
+    case imageWithoutResizable = "Image Without Resizable"
 
     // Other/System Rules
     case fileParsingError = "File Parsing Error"
@@ -238,7 +239,7 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
             // UI Pattern Rules
         case .nestedNavigationView, .missingPreview, .forEachWithSelfID,
              .forEachWithoutIDUI, .inconsistentStyling, .basicErrorHandling,
-             .modifierOrderIssue:
+             .modifierOrderIssue, .imageWithoutResizable:
             return .uiPatterns
 
             // Modernization Rules
