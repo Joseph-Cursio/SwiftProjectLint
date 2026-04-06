@@ -72,7 +72,7 @@ struct LegacyStringFormatVisitorTests {
         "let s = String(describing: value)",
         "let s = String(data: data, encoding: .utf8)",
         // String(localized:) — not C-style
-        "let s = String(localized: \"hello\")",
+        "let s = String(localized: \"hello\")"
     ])
     func noIssue(source: String) {
         let visitor = makeVisitor()

@@ -76,7 +76,7 @@ struct ScrollViewReaderDeprecatedVisitorTests {
         .scrollPosition(id: $scrolledID)
         """,
         // Other view types
-        "List { Text(\"Hello\") }",
+        "List { Text(\"Hello\") }"
     ])
     func noIssue(source: String) {
         let visitor = makeVisitor()

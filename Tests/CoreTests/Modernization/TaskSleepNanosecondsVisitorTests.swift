@@ -58,7 +58,7 @@ struct TaskSleepNanosecondsVisitorTests {
         // Thread.sleep is a different rule
         "Thread.sleep(forTimeInterval: 1.0)",
         // Other Task methods
-        "Task.cancel()",
+        "Task.cancel()"
     ])
     func noIssue(source: String) {
         let visitor = makeVisitor()

@@ -67,6 +67,11 @@ class Performance: BasePatternRegistrar {
             )
         ]
         registry.register(patterns: patterns)
-        registry.register(registrars: [ViewBuilderComplexity(), CustomModifierPerformance(), FormatterInViewBody(), AnyViewUsage()])
+        registry.register(registrars: [
+            ViewBuilderComplexity(),
+            CustomModifierPerformance(),
+            FormatterInViewBody(),
+            AnyViewUsage()
+        ])
     }
 }

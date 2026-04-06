@@ -68,7 +68,7 @@ struct ForegroundColorDeprecatedVisitorTests {
     @Test("No issue for modern foregroundStyle", arguments: [
         "Text(\"Hello\").foregroundStyle(.red)",
         "Text(\"Hello\").foregroundStyle(.linearGradient(colors: [.red, .blue], startPoint: .top, endPoint: .bottom))",
-        "Text(\"Hello\").foregroundStyle(.secondary)",
+        "Text(\"Hello\").foregroundStyle(.secondary)"
     ])
     func noIssue(source: String) {
         let visitor = makeVisitor()

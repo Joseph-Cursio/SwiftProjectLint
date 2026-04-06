@@ -70,7 +70,7 @@ struct CornerRadiusDeprecatedVisitorTests {
     @Test("No issue for modern clipShape APIs", arguments: [
         "Text(\"Hello\").clipShape(.rect(cornerRadius: 10))",
         "Text(\"Hello\").clipShape(RoundedRectangle(cornerRadius: 10))",
-        "Text(\"Hello\").clipShape(Circle())",
+        "Text(\"Hello\").clipShape(Circle())"
     ])
     func noIssue(source: String) {
         let visitor = makeVisitor()
