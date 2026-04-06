@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "swift package clean",
+            "timeout": 60,
+            "statusMessage": "Cleaning Swift package build artifacts..."
+          }
+        ]
+      }
+    ]
+  }
+}
