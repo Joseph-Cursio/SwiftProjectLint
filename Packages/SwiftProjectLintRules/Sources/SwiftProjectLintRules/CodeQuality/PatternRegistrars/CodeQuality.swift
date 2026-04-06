@@ -140,7 +140,8 @@ class CodeQuality: BasePatternRegistrar {
             SwiftProjectLintSuppression(),
             VariableShadowing(),
             UncheckedSendable(),
-            StringSwitchOverEnum()
+            StringSwitchOverEnum(),
+            FontWeightBold()
         ])
     }
 }
