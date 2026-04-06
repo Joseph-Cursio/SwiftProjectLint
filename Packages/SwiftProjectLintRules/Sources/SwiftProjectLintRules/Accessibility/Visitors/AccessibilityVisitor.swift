@@ -146,6 +146,7 @@ class AccessibilityVisitor: BasePatternVisitor {
     }
 
     override func visit(_ node: MemberAccessExprSyntax) -> SyntaxVisitorContinueKind {
+        if isTestOrFixtureFile() { return .visitChildren }
         colorChecker.checkAccessibility(node)
 
         return .visitChildren
