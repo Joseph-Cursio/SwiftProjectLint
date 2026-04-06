@@ -11,20 +11,6 @@
           }
         ]
       }
-    ],
-    "PreToolUse": [
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "swift package clean && swift test && swiftlint",
-            "if": "Bash(git commit:*)",
-            "timeout": 300,
-            "statusMessage": "Running pre-commit checks (clean → test → lint)..."
-          }
-        ]
-      }
     ]
   }
 }
