@@ -35,6 +35,7 @@ Rules marked **opt-in** are disabled by default and must be explicitly listed un
 | [ViewBuilder Complexity](view-builder-complexity.md) | Warning |
 | [Custom Modifier Performance](custom-modifier-performance.md) | Warning |
 | [Formatter In View Body](formatter-in-view-body.md) | Warning |
+| [GeometryReader Overuse](geometry-reader-overuse.md) | Info *(opt-in)* |
 
 ## Animation
 

@@ -92,6 +92,7 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
     case stringSwitchOverEnum = "String Switch Over Enum"
     case fontWeightBold = "Font Weight Bold"
     case formatterInViewBody = "Formatter In View Body"
+    case geometryReaderOveruse = "GeometryReader Overuse"
     case mainActorMissingOnUICode = "Main Actor Missing On UI Code"
     case observableMainActorMissing = "Observable Main Actor Missing"
 
@@ -179,7 +180,8 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
             // Performance Rules
         case .anyViewUsage, .expensiveOperationInViewBody, .forEachWithoutID, .largeViewBody,
              .largeViewHelper, .forEachSelfID, .unnecessaryViewUpdate, .viewBuilderComplexity,
-             .customModifierPerformance, .formatterInViewBody:
+             .customModifierPerformance, .formatterInViewBody,
+             .geometryReaderOveruse:
             return .performance
 
         case .deprecatedAnimation, .animationInHighFrequencyUpdate, .excessiveSpringAnimations,
