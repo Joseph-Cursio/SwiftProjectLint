@@ -117,6 +117,7 @@ Rules marked **opt-in** are disabled by default and must be explicitly listed un
 | [Font Weight Bold](font-weight-bold.md) | Info |
 | [Global Actor Mismatch](global-actor-mismatch.md) | Warning |
 | [Nested Generic Complexity](nested-generic-complexity.md) | Info *(opt-in)* |
+| [Magic Boolean Parameter](magic-boolean-parameter.md) | Info |
 
 ## Security
 

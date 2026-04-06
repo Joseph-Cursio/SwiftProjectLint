@@ -96,6 +96,7 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
     case fontWeightBold = "Font Weight Bold"
     case globalActorMismatch = "Global Actor Mismatch"
     case nestedGenericComplexity = "Nested Generic Complexity"
+    case magicBooleanParameter = "Magic Boolean Parameter"
     case formatterInViewBody = "Formatter In View Body"
     case geometryReaderOveruse = "GeometryReader Overuse"
     case unboundedTaskGroup = "Unbounded Task Group"
@@ -229,7 +230,8 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
              .couldBePrivate, .publicInAppTarget, .couldBePrivateMember,
              .protocolCouldBePrivate, .variableShadowing, .uncheckedSendable,
              .stringSwitchOverEnum, .fontWeightBold,
-             .globalActorMismatch, .nestedGenericComplexity:
+             .globalActorMismatch, .nestedGenericComplexity,
+             .magicBooleanParameter:
             return .codeQuality
 
             // Security Rules

@@ -143,7 +143,8 @@ class CodeQuality: BasePatternRegistrar {
             StringSwitchOverEnum(),
             FontWeightBold(),
             GlobalActorMismatch(),
-            NestedGenericComplexity()
+            NestedGenericComplexity(),
+            MagicBooleanParameter()
         ])
     }
 }
