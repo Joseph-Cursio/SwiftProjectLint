@@ -36,6 +36,12 @@ final class CouldBePrivateMemberVisitor: BasePatternVisitor, CrossFilePatternVis
     private var typeNestingDepth: Int = 0
     private var functionNestingDepth: Int = 0
 
+    /// Types that conform to any protocol — members may be protocol requirements.
+    private var typesWithConformance: Set<String> = []
+
+    /// Protocol names defined in the project.
+    private var projectProtocolNames: Set<String> = []
+
     /// Names to skip — SwiftUI framework hooks, protocol requirements, etc.
     private static let ignoredNames: Set<String> = [
         "body", "init", "deinit", "hash", "encode", "decode",
@@ -64,10 +70,16 @@ final class CouldBePrivateMemberVisitor: BasePatternVisitor, CrossFilePatternVis
         currentFile = filePath
     }
 
-    // MARK: - Track Current Type
+    // MARK: - Track Current Type and Conformances
+
+    override func visit(_ node: ProtocolDeclSyntax) -> SyntaxVisitorContinueKind {
+        projectProtocolNames.insert(node.name.text)
+        return .visitChildren
+    }
 
     override func visit(_ node: StructDeclSyntax) -> SyntaxVisitorContinueKind {
         if typeNestingDepth == 0 { currentTypeName = node.name.text }
+        trackConformance(node.name.text, inheritance: node.inheritanceClause)
         typeNestingDepth += 1
         return .visitChildren
     }
@@ -79,6 +91,7 @@ final class CouldBePrivateMemberVisitor: BasePatternVisitor, CrossFilePatternVis
 
     override func visit(_ node: ClassDeclSyntax) -> SyntaxVisitorContinueKind {
         if typeNestingDepth == 0 { currentTypeName = node.name.text }
+        trackConformance(node.name.text, inheritance: node.inheritanceClause)
         typeNestingDepth += 1
         return .visitChildren
     }
@@ -90,6 +103,7 @@ final class CouldBePrivateMemberVisitor: BasePatternVisitor, CrossFilePatternVis
 
     override func visit(_ node: EnumDeclSyntax) -> SyntaxVisitorContinueKind {
         if typeNestingDepth == 0 { currentTypeName = node.name.text }
+        trackConformance(node.name.text, inheritance: node.inheritanceClause)
         typeNestingDepth += 1
         return .visitChildren
     }
@@ -101,6 +115,7 @@ final class CouldBePrivateMemberVisitor: BasePatternVisitor, CrossFilePatternVis
 
     override func visit(_ node: ActorDeclSyntax) -> SyntaxVisitorContinueKind {
         if typeNestingDepth == 0 { currentTypeName = node.name.text }
+        trackConformance(node.name.text, inheritance: node.inheritanceClause)
         typeNestingDepth += 1
         return .visitChildren
     }
@@ -185,6 +200,13 @@ final class CouldBePrivateMemberVisitor: BasePatternVisitor, CrossFilePatternVis
 
     func finalizeAnalysis() {
         for decl in declarations {
+            // Suppress members on types conforming to project-defined protocols —
+            // the member may be a protocol requirement
+            if let conformances = typeConformanceNames[decl.typeName],
+               conformances.contains(where: { projectProtocolNames.contains($0) }) {
+                continue
+            }
+
             let usageFiles = identifierUsages[decl.memberName] ?? []
             let externalFiles = usageFiles.subtracting([decl.file])
 
@@ -216,6 +238,13 @@ final class CouldBePrivateMemberVisitor: BasePatternVisitor, CrossFilePatternVis
 
         // Skip test files
         if currentFile.contains("Tests") || currentFile.hasSuffix("Test.swift") {
+            return
+        }
+
+        // Skip example/fixture directories
+        if currentFile.contains("ExampleCode") || currentFile.contains("Fixtures")
+            || currentFile.contains("Resources") || currentFile.contains("Examples")
+            || currentFile.contains("Samples") {
             return
         }
 
@@ -292,6 +321,21 @@ final class CouldBePrivateMemberVisitor: BasePatternVisitor, CrossFilePatternVis
             if binding.initializer != nil { return false }    // has default value
         }
         return true
+    }
+
+    /// Records conformance names for later filtering in finalizeAnalysis.
+    private var typeConformanceNames: [String: Set<String>] = [:]
+
+    private func trackConformance(
+        _ name: String,
+        inheritance: InheritanceClauseSyntax?
+    ) {
+        guard let inheritance else { return }
+        for inherited in inheritance.inheritedTypes {
+            if let ident = inherited.type.as(IdentifierTypeSyntax.self) {
+                typeConformanceNames[name, default: []].insert(ident.name.text)
+            }
+        }
     }
 
     /// Returns true if the node is inside a type that is already `private`.
