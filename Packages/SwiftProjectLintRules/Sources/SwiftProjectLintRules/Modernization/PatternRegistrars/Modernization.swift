@@ -32,7 +32,8 @@ class Modernization: BasePatternRegistrar {
             LegacyFormatter(),
             LegacyImageRenderer(),
             ScrollViewShowsIndicators(),
-            LegacyArrayInit()
+            LegacyArrayInit(),
+            LegacyClosureSyntax()
         ])
     }
 }

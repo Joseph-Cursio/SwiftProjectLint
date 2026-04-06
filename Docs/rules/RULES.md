@@ -197,6 +197,7 @@ Rules marked **opt-in** are disabled by default and must be explicitly listed un
 | [Legacy Image Renderer](legacy-image-renderer.md) | Info |
 | [ScrollView showsIndicators](scroll-view-shows-indicators.md) | Info |
 | [Legacy Array Init](legacy-array-init.md) | Info *(opt-in)* |
+| [Legacy Closure Syntax](legacy-closure-syntax.md) | Info *(opt-in)* |
 
 ---
 
