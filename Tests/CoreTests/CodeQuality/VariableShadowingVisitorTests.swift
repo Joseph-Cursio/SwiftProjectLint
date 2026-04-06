@@ -249,6 +249,30 @@ struct VariableShadowingExclusionTests {
                 }
             }
             """
+        ),
+        ExclusionCase(
+            label: "function parameter matching type property",
+            source: """
+            class Manager {
+                var configuration: Config
+                func update(configuration: Config) {
+                    self.configuration = configuration
+                }
+            }
+            """
+        ),
+        ExclusionCase(
+            label: "init parameter matching stored property",
+            source: """
+            struct ViewModel {
+                let name: String
+                let count: Int
+                init(name: String, count: Int) {
+                    self.name = name
+                    self.count = count
+                }
+            }
+            """
         )
     ])
     func exclusion(_ testCase: ExclusionCase) {

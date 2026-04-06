@@ -85,7 +85,10 @@ final class VariableShadowingVisitor: BasePatternVisitor {
         for parameter in node.signature.parameterClause.parameters {
             let name = parameter.secondName?.text ?? parameter.firstName.text
             guard name != "_" else { continue }
-            checkShadowAllFrames(name: name, node: Syntax(parameter), severity: .error)
+            // Only flag if shadowing a *local* variable, not a type property.
+            // Function parameters matching type property names is idiomatic Swift
+            // (e.g. init(configuration:), func process(name:)).
+            checkShadowLocalOnly(name: name, node: Syntax(parameter), severity: .error)
         }
         return .visitChildren
     }
@@ -122,6 +125,25 @@ final class VariableShadowingVisitor: BasePatternVisitor {
     /// which are visited before the function body's CodeBlock pushes a new scope.
     private func checkShadowAllFrames(name: String, node: Syntax, severity: IssueSeverity) {
         for frame in scopeStack where frame.contains(name) {
+            addIssue(
+                severity: severity,
+                message: "Variable '\(name)' shadows a declaration from an outer scope",
+                filePath: getFilePath(for: node),
+                lineNumber: getLineNumber(for: node),
+                suggestion: "Rename the inner variable to avoid confusion with the outer '\(name)'",
+                ruleName: .variableShadowing
+            )
+            return
+        }
+    }
+
+    /// Check only local scopes (depth 2+), skipping the outermost type-member
+    /// scope. Function parameters matching type property names is idiomatic Swift.
+    private func checkShadowLocalOnly(name: String, node: Syntax, severity: IssueSeverity) {
+        // Skip if only the outermost scope (type body) or global scope exists
+        guard scopeStack.count >= 2 else { return }
+        // Check frames from index 1 onward (skip index 0 = type-member scope)
+        for frame in scopeStack.dropFirst() where frame.contains(name) {
             addIssue(
                 severity: severity,
                 message: "Variable '\(name)' shadows a declaration from an outer scope",
