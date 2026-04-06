@@ -129,6 +129,7 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
     case insecureTransport = "Insecure Transport"
     case unsafeURL = "Unsafe URL"
     case userDefaultsSensitiveData = "User Defaults Sensitive Data"
+    case loggingSensitiveData = "Logging Sensitive Data"
 
     // Accessibility Rules
     case missingAccessibilityLabel = "Missing Accessibility Label"
@@ -221,7 +222,8 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
             return .codeQuality
 
             // Security Rules
-        case .hardcodedSecret, .insecureTransport, .unsafeURL, .userDefaultsSensitiveData:
+        case .hardcodedSecret, .insecureTransport, .unsafeURL, .userDefaultsSensitiveData,
+             .loggingSensitiveData:
             return .security
 
             // Accessibility Rules

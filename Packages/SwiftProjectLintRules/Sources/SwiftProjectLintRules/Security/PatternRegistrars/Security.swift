@@ -50,5 +50,18 @@ class Security: BasePatternRegistrar {
             )
         ]
         registry.register(patterns: patterns)
+
+        let loggingSensitivePattern = SyntaxPattern(
+            name: .loggingSensitiveData,
+            visitor: LoggingSensitiveDataVisitor.self,
+            severity: .warning,
+            category: .security,
+            messageTemplate: "Potentially sensitive value passed to logging function",
+            suggestion: "Remove sensitive data from logs, or use os.Logger "
+                + "with privacy: .private to redact in production.",
+            description: "Detects sensitive variable names passed to "
+                + "print, NSLog, or os.Logger calls."
+        )
+        registry.register(patterns: [loggingSensitivePattern])
     }
 } 

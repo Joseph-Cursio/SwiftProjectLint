@@ -122,6 +122,7 @@ Rules marked **opt-in** are disabled by default and must be explicitly listed un
 | [Insecure Transport](insecure-transport.md) | Warning |
 | [Unsafe URL](unsafe-url.md) | Warning |
 | [User Defaults Sensitive Data](user-defaults-sensitive-data.md) | Error |
+| [Logging Sensitive Data](logging-sensitive-data.md) | Warning |
 
 ## Accessibility
 
