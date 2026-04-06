@@ -152,20 +152,68 @@ class UIVisitor: BasePatternVisitor {
            viewName == primaryViewName,
            !detectedPreviews.contains(viewName),
            !hasComplexDependencies(node) {
-            // Skip preview detection for test files
-            if !currentFilePath.contains("test.swift")
-                && !currentFilePath.contains("Test")
-                && !currentFilePath.contains("Tests") {
-                addIssue(
-                    severity: .info,
-                    message: "View '\(viewName)' missing preview provider",
-                    filePath: currentFilePath,
-                    lineNumber: getLineNumber(for: Syntax(node)),
-                    suggestion: "Add a #Preview macro or PreviewProvider struct for better development experience",
-                    ruleName: .missingPreview
-                )
+            // Skip test files
+            if currentFilePath.contains("test.swift")
+                || currentFilePath.contains("Test")
+                || currentFilePath.contains("Tests") {
+                return
+            }
+            // Skip helper/extension files
+            if currentFilePath.hasSuffix("+Extensions.swift")
+                || currentFilePath.contains("Helper.swift") {
+                return
+            }
+            // Skip private/fileprivate views (small helper views)
+            if hasRestrictedAccess(node) { return }
+            // Skip trivial views (body < 4 source lines including braces)
+            let bodyLineCount = countBodyLines(node)
+            if bodyLineCount < 4 { return }
+
+            let severity = previewSeverity(for: node)
+            addIssue(
+                severity: severity,
+                message: "View '\(viewName)' missing preview provider",
+                filePath: currentFilePath,
+                lineNumber: getLineNumber(for: Syntax(node)),
+                suggestion: "Add a #Preview macro or PreviewProvider struct "
+                    + "for better development experience",
+                ruleName: .missingPreview
+            )
+        }
+    }
+
+    /// Returns tiered severity based on view access level.
+    private func previewSeverity(for node: StructDeclSyntax) -> IssueSeverity {
+        let hasPublicAccess = node.modifiers.contains { modifier in
+            let text = modifier.name.text
+            return text == "public" || text == "open"
+        }
+        return hasPublicAccess ? .warning : .info
+    }
+
+    /// Returns true if the view is private or fileprivate.
+    private func hasRestrictedAccess(_ node: StructDeclSyntax) -> Bool {
+        node.modifiers.contains { modifier in
+            let text = modifier.name.text
+            return text == "private" || text == "fileprivate"
+        }
+    }
+
+    /// Counts the approximate source lines of the body property.
+    private func countBodyLines(_ node: StructDeclSyntax) -> Int {
+        for member in node.memberBlock.members {
+            guard let varDecl = member.decl.as(VariableDeclSyntax.self) else { continue }
+            for binding in varDecl.bindings {
+                guard let name = binding.pattern.as(IdentifierPatternSyntax.self),
+                      name.identifier.text == "body",
+                      let accessorBlock = binding.accessorBlock else { continue }
+                let bodyText = accessorBlock.trimmedDescription
+                let lines = bodyText.split(separator: "\n", omittingEmptySubsequences: true)
+                    .filter { $0.trimmingCharacters(in: .whitespaces).isEmpty == false }
+                return lines.count
             }
         }
+        return 0
     }
 
     override func visit(_ node: VariableDeclSyntax) -> SyntaxVisitorContinueKind {

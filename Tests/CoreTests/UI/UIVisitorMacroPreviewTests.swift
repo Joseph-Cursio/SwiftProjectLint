@@ -53,7 +53,11 @@ struct UIVisitorMacroPreviewTests {
         let source = """
         struct MyView: View {
             var body: some View {
-                Text("Hello")
+                VStack {
+                    Text("Hello")
+                    Text("World")
+                    Text("Detail")
+                }
             }
         }
         """
