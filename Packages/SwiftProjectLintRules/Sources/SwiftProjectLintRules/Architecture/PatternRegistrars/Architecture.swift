@@ -102,7 +102,8 @@ class Architecture: BasePatternRegistrar {
             MirrorProtocol(),
             SwiftDataUniqueAttribute(),
             GodViewModel(),
-            ViewModelDirectDBAccess()
+            ViewModelDirectDBAccess(),
+            CircularDependency()
         ])
     }
 } 

@@ -54,6 +54,7 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
     case swiftDataUniqueAttributeCloudKit = "SwiftData Unique Attribute CloudKit"
     case godViewModel = "God View Model"
     case viewModelDirectDBAccess = "View Model Direct DB Access"
+    case circularDependency = "Circular Dependency"
 
     // Code Quality Rules
     case magicNumber = "Magic Number"
@@ -208,7 +209,7 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
              .singleImplementationProtocol, .mirrorProtocol,
              .computedPropertyView,
              .swiftDataUniqueAttributeCloudKit, .godViewModel,
-             .viewModelDirectDBAccess:
+             .viewModelDirectDBAccess, .circularDependency:
             return .architecture
 
             // Code Quality Rules
