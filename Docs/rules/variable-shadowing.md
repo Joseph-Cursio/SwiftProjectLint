@@ -22,6 +22,8 @@ The visitor pushes a new scope frame on entering `CodeBlockSyntax`, `ClosureExpr
 
 The visitor detects these by walking up to `OptionalBindingConditionSyntax` and checking whether the bound name matches the initializer expression directly, via a conditional `as?` cast, or has no initializer (shorthand form).
 
+**Function parameters matching type properties are excluded.** When a function parameter has the same name as a stored property on the enclosing type (e.g., `init(name:)` on a struct with `var name`), this is standard Swift — not a shadowing bug. The visitor skips the outermost type-member scope when checking function parameters.
+
 **Tiered severity.** The rule uses two severity levels:
 
 - **Error** — Clear-cut shadowing where the inner declaration has no relationship to the outer variable. These are almost always bugs or sources of confusion (e.g., `let x = 1; if true { let x = 2 }`).
@@ -60,6 +62,8 @@ The visitor detects these by walking up to `OptionalBindingConditionSyntax` and 
 | Shorthand weak self | `guard let self else { return }` |
 | Sibling scopes (no nesting) | `if a { let x = 1 }; if b { let x = 2 }` |
 | Underscore placeholder | `let _ = foo(); if true { let _ = bar() }` |
+| Function param matching type property | `struct S { var name: String; init(name: String) { ... } }` |
+| Method param matching type property | `class C { var config: Config; func update(config: Config) { ... } }` |
 
 ### Violating Examples
 
@@ -128,6 +132,23 @@ class Controller {
             guard let self = self else { return }  // weak-to-strong self, not flagged
             self.updateUI()
         }
+    }
+}
+
+// Function parameters matching type properties — idiomatic Swift, not flagged
+struct ViewModel {
+    let name: String
+    let count: Int
+    init(name: String, count: Int) {
+        self.name = name
+        self.count = count
+    }
+}
+
+class Manager {
+    var configuration: Config
+    func update(configuration: Config) {  // not flagged
+        self.configuration = configuration
     }
 }
 ```
