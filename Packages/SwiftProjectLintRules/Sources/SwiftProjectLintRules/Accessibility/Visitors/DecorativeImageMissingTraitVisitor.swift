@@ -22,6 +22,7 @@ final class DecorativeImageMissingTraitVisitor: BasePatternVisitor {
     }
 
     override func visit(_ node: FunctionCallExprSyntax) -> SyntaxVisitorContinueKind {
+        if isTestOrFixtureFile() { return .visitChildren }
         // Only look at Image(...) calls (not Image(systemName:))
         guard let declRef = node.calledExpression.as(DeclReferenceExprSyntax.self),
               declRef.baseName.text == "Image",

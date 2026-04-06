@@ -118,12 +118,14 @@ class AccessibilityVisitor: BasePatternVisitor {
     /// Sets the current file path.
     /// - Parameter filePath: The path to the current file.
     override func setFilePath(_ filePath: String) {
+        super.setFilePath(filePath)
         self.currentFilePath = filePath
     }
 
     // MARK: - Syntax Visitor Methods
 
     override func visit(_ node: FunctionCallExprSyntax) -> SyntaxVisitorContinueKind {
+        if isTestOrFixtureFile() { return .visitChildren }
         if let calledExpression = node.calledExpression.as(DeclReferenceExprSyntax.self) {
             let functionName = calledExpression.baseName.text
 

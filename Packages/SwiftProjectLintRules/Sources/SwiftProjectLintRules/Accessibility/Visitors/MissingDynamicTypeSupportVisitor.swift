@@ -18,6 +18,7 @@ final class MissingDynamicTypeSupportVisitor: BasePatternVisitor {
     }
 
     override func visit(_ node: FunctionCallExprSyntax) -> SyntaxVisitorContinueKind {
+        if isTestOrFixtureFile() { return .visitChildren }
         guard let memberAccess = node.calledExpression.as(MemberAccessExprSyntax.self),
               memberAccess.declName.baseName.text == "lineLimit",
               isLineLimitOne(node.arguments) else {
