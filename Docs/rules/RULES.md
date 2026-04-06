@@ -116,6 +116,7 @@ Rules marked **opt-in** are disabled by default and must be explicitly listed un
 | [SwiftProjectLint Suppression](swiftprojectlint-suppression.md) | Warning |
 | [Font Weight Bold](font-weight-bold.md) | Info |
 | [Global Actor Mismatch](global-actor-mismatch.md) | Warning |
+| [Nested Generic Complexity](nested-generic-complexity.md) | Info *(opt-in)* |
 
 ## Security
 

@@ -142,7 +142,8 @@ class CodeQuality: BasePatternRegistrar {
             UncheckedSendable(),
             StringSwitchOverEnum(),
             FontWeightBold(),
-            GlobalActorMismatch()
+            GlobalActorMismatch(),
+            NestedGenericComplexity()
         ])
     }
 }
