@@ -25,6 +25,12 @@ final class CouldBePrivateVisitor: BasePatternVisitor, CrossFilePatternVisitorPr
     /// All declared type names (to avoid flagging references to external types).
     private var declaredTypeNames: Set<String> = []
 
+    /// Protocol names declared in the project.
+    private var projectProtocolNames: Set<String> = []
+
+    /// Maps type name → set of protocol names it conforms to.
+    private var typeConformances: [String: Set<String>] = [:]
+
     required init(fileCache: [String: SourceFileSyntax]) {
         self.fileCache = fileCache
         super.init(pattern: BasePatternVisitor.placeholderPattern, viewMode: .sourceAccurate)
@@ -48,21 +54,30 @@ final class CouldBePrivateVisitor: BasePatternVisitor, CrossFilePatternVisitorPr
         // Skip App entry points and @main types — they can't be private
         guard !isSwiftUIApp(node), !hasMainAttribute(node.attributes) else { return .visitChildren }
         collectDeclarationIfEligible(node.name.text, modifiers: node.modifiers, node: Syntax(node))
+        trackProtocolConformance(node.name.text, inheritance: node.inheritanceClause)
         return .visitChildren
     }
 
     override func visit(_ node: ClassDeclSyntax) -> SyntaxVisitorContinueKind {
         collectDeclarationIfEligible(node.name.text, modifiers: node.modifiers, node: Syntax(node))
+        trackProtocolConformance(node.name.text, inheritance: node.inheritanceClause)
         return .visitChildren
     }
 
     override func visit(_ node: EnumDeclSyntax) -> SyntaxVisitorContinueKind {
         collectDeclarationIfEligible(node.name.text, modifiers: node.modifiers, node: Syntax(node))
+        trackProtocolConformance(node.name.text, inheritance: node.inheritanceClause)
         return .visitChildren
     }
 
     override func visit(_ node: ActorDeclSyntax) -> SyntaxVisitorContinueKind {
         collectDeclarationIfEligible(node.name.text, modifiers: node.modifiers, node: Syntax(node))
+        trackProtocolConformance(node.name.text, inheritance: node.inheritanceClause)
+        return .visitChildren
+    }
+
+    override func visit(_ node: ProtocolDeclSyntax) -> SyntaxVisitorContinueKind {
+        projectProtocolNames.insert(node.name.text)
         return .visitChildren
     }
 
@@ -90,6 +105,14 @@ final class CouldBePrivateVisitor: BasePatternVisitor, CrossFilePatternVisitorPr
                 references[name, default: []].insert(currentFile)
             }
         }
+        // Track Type.self metatype references (e.g., [MyRule.self])
+        if node.declName.baseName.text == "self",
+           let base = node.base?.as(DeclReferenceExprSyntax.self) {
+            let name = base.baseName.text
+            if let first = name.first, first.isUppercase {
+                references[name, default: []].insert(currentFile)
+            }
+        }
         return .visitChildren
     }
 
@@ -97,6 +120,14 @@ final class CouldBePrivateVisitor: BasePatternVisitor, CrossFilePatternVisitorPr
 
     func finalizeAnalysis() {
         for decl in declarations {
+            // Suppress types conforming to project-defined protocols —
+            // likely used polymorphically (metatype arrays, DI, etc.)
+            if let conformances = typeConformances[decl.name],
+               conformances.isEmpty == false,
+               conformances.contains(where: { projectProtocolNames.contains($0) }) {
+                continue
+            }
+
             let referencingFiles = references[decl.name] ?? []
             // Remove the declaring file — we only care about external references
             let externalFiles = referencingFiles.subtracting([decl.file])
@@ -130,6 +161,13 @@ final class CouldBePrivateVisitor: BasePatternVisitor, CrossFilePatternVisitorPr
             return
         }
 
+        // Skip example/fixture files — intentionally self-contained
+        if currentFile.contains("ExampleCode") || currentFile.contains("Fixtures")
+            || currentFile.contains("Resources") || currentFile.contains("Examples")
+            || currentFile.contains("Samples") {
+            return
+        }
+
         // Skip types that already have explicit access control
         let hasExplicitAccess = modifiers.contains { modifier in
             let text = modifier.name.text
@@ -152,6 +190,18 @@ final class CouldBePrivateVisitor: BasePatternVisitor, CrossFilePatternVisitorPr
         attributes.contains { element in
             element.as(AttributeSyntax.self)?.attributeName
                 .as(IdentifierTypeSyntax.self)?.name.text == "main"
+        }
+    }
+
+    private func trackProtocolConformance(
+        _ name: String,
+        inheritance: InheritanceClauseSyntax?
+    ) {
+        guard let inheritance else { return }
+        for inherited in inheritance.inheritedTypes {
+            if let ident = inherited.type.as(IdentifierTypeSyntax.self) {
+                typeConformances[name, default: []].insert(ident.name.text)
+            }
         }
     }
 
