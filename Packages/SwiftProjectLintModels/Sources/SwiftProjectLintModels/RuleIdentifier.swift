@@ -127,6 +127,7 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
     case legacyFormatter = "Legacy Formatter"
     case legacyImageRenderer = "Legacy Image Renderer"
     case scrollViewShowsIndicators = "ScrollView showsIndicators"
+    case legacyArrayInit = "Legacy Array Init"
 
     // Security Rules
     case hardcodedSecret = "Hardcoded Secret"
@@ -263,7 +264,7 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
              .cornerRadiusDeprecated, .legacyStringFormat, .scrollViewReaderDeprecated,
              .legacyReplacingOccurrences, .tabItemDeprecated,
              .legacyFormatter, .legacyImageRenderer,
-             .scrollViewShowsIndicators:
+             .scrollViewShowsIndicators, .legacyArrayInit:
             return .modernization
 
             // Other/System Rules
