@@ -32,6 +32,15 @@ final class SingleImplementationProtocolVisitor: BasePatternVisitor, CrossFilePa
 
     private static let mockPrefixes = ["Mock", "Fake", "Stub", "Spy"]
 
+    /// Protocol name suffixes that imply dependency injection intent.
+    private static let diSuffixes = [
+        "Protocol", "Providing", "Service", "Repository",
+        "DataSource", "Client", "Networking"
+    ]
+
+    /// Maps conforming type name → file path where it was found.
+    private var conformerFiles: [String: String] = [:]
+
     required init(fileCache: [String: SourceFileSyntax]) {
         self.fileCache = fileCache
         super.init(pattern: BasePatternVisitor.placeholderPattern, viewMode: .sourceAccurate)
@@ -119,6 +128,7 @@ final class SingleImplementationProtocolVisitor: BasePatternVisitor, CrossFilePa
         for inherited in inheritanceClause.inheritedTypes {
             if let ident = inherited.type.as(IdentifierTypeSyntax.self) {
                 conformances[ident.name.text, default: []].insert(typeName)
+                conformerFiles[typeName] = currentFile
             }
         }
     }
@@ -129,18 +139,20 @@ final class SingleImplementationProtocolVisitor: BasePatternVisitor, CrossFilePa
         for decl in declarations {
             let conformers = conformances[decl.name] ?? []
 
-            // Check if any conformer is a mock/fake/stub/spy
-            let hasMockConformer = conformers.contains { conformer in
-                Self.mockPrefixes.contains { prefix in
-                    conformer.hasPrefix(prefix) || conformer.contains(prefix)
-                }
-            }
-
-            if hasMockConformer {
+            // Suppress: protocol name implies dependency injection intent
+            if Self.diSuffixes.contains(where: { decl.name.hasSuffix($0) }) {
                 continue
             }
 
-            if conformers.isEmpty {
+            // Partition conformers into production vs test/mock
+            let (prodConformers, testConformers) = partitionConformers(conformers)
+
+            // Suppress: has mock/test conformers (DI + mocking pattern)
+            if testConformers.isEmpty == false {
+                continue
+            }
+
+            if prodConformers.isEmpty {
                 addIssue(
                     severity: .info,
                     message: "Protocol '\(decl.name)' has no conformers — "
@@ -150,8 +162,8 @@ final class SingleImplementationProtocolVisitor: BasePatternVisitor, CrossFilePa
                     suggestion: "Remove the unused protocol or add conforming types.",
                     ruleName: .singleImplementationProtocol
                 )
-            } else if conformers.count == 1 {
-                let conformer = conformers.first ?? ""
+            } else if prodConformers.count == 1 {
+                let conformer = prodConformers.first ?? ""
                 addIssue(
                     severity: .info,
                     message: "Protocol '\(decl.name)' has only one conformer "
@@ -165,5 +177,31 @@ final class SingleImplementationProtocolVisitor: BasePatternVisitor, CrossFilePa
                 )
             }
         }
+    }
+
+    /// Splits conformers into production and test/mock sets.
+    private func partitionConformers(
+        _ conformers: Set<String>
+    ) -> (production: Set<String>, test: Set<String>) {
+        var production: Set<String> = []
+        var test: Set<String> = []
+
+        for conformer in conformers {
+            let isMockName = Self.mockPrefixes.contains { prefix in
+                conformer.hasPrefix(prefix) || conformer.contains(prefix)
+            }
+            let isInTestFile = conformerFiles[conformer].map { file in
+                file.contains("Tests") || file.contains("Mocks")
+                    || file.contains("Fakes") || file.contains("Stubs")
+                    || file.hasSuffix("Test.swift")
+            } ?? false
+
+            if isMockName || isInTestFile {
+                test.insert(conformer)
+            } else {
+                production.insert(conformer)
+            }
+        }
+        return (production, test)
     }
 }

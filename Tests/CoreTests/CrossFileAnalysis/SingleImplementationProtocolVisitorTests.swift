@@ -169,4 +169,104 @@ struct SingleImplementationProtocolVisitorTests {
 
         #expect(issues.isEmpty)
     }
+
+    // MARK: - Test-aware suppression
+
+    @Test
+    func conformerInTestFileSuppresses() {
+        let issues = analyze(files: [
+            "Protocol.swift": """
+            protocol Cacheable {
+                func cache()
+            }
+            """,
+            "Impl.swift": """
+            struct DiskCache: Cacheable {
+                func cache() { }
+            }
+            """,
+            "Tests/CacheTests.swift": """
+            struct InMemoryCache: Cacheable {
+                func cache() { }
+            }
+            """
+        ])
+        // 1 prod conformer + 1 test conformer → suppressed
+        #expect(issues.isEmpty)
+    }
+
+    @Test
+    func conformerInMocksFolderSuppresses() {
+        let issues = analyze(files: [
+            "Protocol.swift": """
+            protocol Storable {
+                func store()
+            }
+            """,
+            "Impl.swift": """
+            struct RealStore: Storable {
+                func store() { }
+            }
+            """,
+            "Mocks/TestStore.swift": """
+            struct TestStore: Storable {
+                func store() { }
+            }
+            """
+        ])
+        #expect(issues.isEmpty)
+    }
+
+    // MARK: - DI suffix suppression
+
+    @Test
+    func protocolWithServiceSuffixSuppressed() {
+        let issues = analyze(files: [
+            "Protocol.swift": """
+            protocol NetworkService {
+                func fetch()
+            }
+            """,
+            "Impl.swift": """
+            struct RealNetworkService: NetworkService {
+                func fetch() { }
+            }
+            """
+        ])
+        #expect(issues.isEmpty)
+    }
+
+    @Test
+    func protocolWithRepositorySuffixSuppressed() {
+        let issues = analyze(files: [
+            "Protocol.swift": """
+            protocol UserRepository {
+                func getUser()
+            }
+            """,
+            "Impl.swift": """
+            struct SQLiteUserRepository: UserRepository {
+                func getUser() { }
+            }
+            """
+        ])
+        #expect(issues.isEmpty)
+    }
+
+    @Test
+    func protocolWithProvidingSuffixSuppressed() {
+        let issues = analyze(files: [
+            "Protocol.swift": """
+            protocol DataProviding {
+                func provide()
+            }
+            """,
+            "Impl.swift": """
+            struct LiveDataProvider: DataProviding {
+                func provide() { }
+            }
+            """
+        ])
+        #expect(issues.isEmpty)
+    }
 }
