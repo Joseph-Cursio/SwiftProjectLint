@@ -135,6 +135,7 @@ Rules marked **opt-in** are disabled by default and must be explicitly listed un
 | [Long Text Accessibility](long-text-accessibility.md) | Info |
 | [Hardcoded Font Size](hardcoded-font-size.md) | Warning |
 | [onTapGesture Instead of Button](on-tap-gesture-instead-of-button.md) | Warning |
+| [Tap Target Too Small](tap-target-too-small.md) | Warning |
 
 ## Memory Management
 

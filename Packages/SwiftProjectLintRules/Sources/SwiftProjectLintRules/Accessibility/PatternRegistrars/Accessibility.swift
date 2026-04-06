@@ -70,6 +70,18 @@ class Accessibility: BasePatternRegistrar {
         )
         registry.register(patterns: [onTapGesturePattern])
 
+        let tapTargetPattern = SyntaxPattern(
+            name: .tapTargetTooSmall,
+            visitor: TapTargetTooSmallVisitor.self,
+            severity: .warning,
+            category: .accessibility,
+            messageTemplate: "Interactive element below 44pt minimum tap target",
+            suggestion: "Increase frame to at least 44\u{00D7}44pt or add padding",
+            description: "Detects interactive elements with frame dimensions "
+                + "below the 44pt minimum tap target size."
+        )
+        registry.register(patterns: [tapTargetPattern])
+
         registry.register(registrars: [HardcodedFontSize()])
     }
 } 
