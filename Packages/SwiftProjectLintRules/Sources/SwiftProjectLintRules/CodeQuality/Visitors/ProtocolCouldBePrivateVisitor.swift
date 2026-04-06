@@ -51,7 +51,7 @@ final class ProtocolCouldBePrivateVisitor: BasePatternVisitor, CrossFilePatternV
         let name = node.name.text
 
         // Skip test files
-        if currentFile.contains("Tests") || currentFile.hasSuffix("Test.swift") {
+        if isTestOrFixtureFile() {
             return .visitChildren
         }
 

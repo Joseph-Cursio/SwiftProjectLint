@@ -64,6 +64,7 @@ class SecurityVisitor: BasePatternVisitor {
     }
 
     override func setFilePath(_ filePath: String) {
+        super.setFilePath(filePath)
         self.currentFilePath = filePath
     }
 
@@ -200,10 +201,7 @@ class SecurityVisitor: BasePatternVisitor {
     }
 
     private func isTestFile() -> Bool {
-        currentFilePath.contains("Tests")
-            || currentFilePath.contains("Mock")
-            || currentFilePath.hasSuffix("Test.swift")
-            || currentFilePath.hasSuffix("Tests.swift")
+        isTestOrFixtureFile()
     }
 
     private func looksLikeJWT(_ value: String) -> Bool {

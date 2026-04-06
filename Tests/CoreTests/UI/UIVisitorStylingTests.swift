@@ -9,7 +9,7 @@ struct UIVisitorStylingTests {
     
     @Test func testDetectsInconsistentTextStyling() throws {
         let visitor = UIVisitor(patternCategory: PatternCategory.uiPatterns)
-        visitor.setFilePath("test.swift")
+        visitor.setFilePath("Tests/SourceFile.swift")
         visitor.reset()
 
         let source = """
@@ -42,7 +42,7 @@ struct UIVisitorStylingTests {
 
     @Test func testDoesNotDetectTwoOrThreeStylingModifiers() throws {
         let visitor = UIVisitor(patternCategory: PatternCategory.uiPatterns)
-        visitor.setFilePath("test.swift")
+        visitor.setFilePath("Tests/SourceFile.swift")
         visitor.reset()
 
         let source = """
@@ -66,7 +66,7 @@ struct UIVisitorStylingTests {
     
     @Test func testDoesNotDetectSingleStylingModifier() throws {
         let visitor = UIVisitor(patternCategory: PatternCategory.uiPatterns)
-        visitor.setFilePath("test.swift")
+        visitor.setFilePath("Tests/SourceFile.swift")
         visitor.reset()
         
         let source = """

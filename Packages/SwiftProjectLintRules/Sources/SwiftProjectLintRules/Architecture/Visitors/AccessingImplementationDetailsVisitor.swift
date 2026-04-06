@@ -30,6 +30,7 @@ class AccessingImplementationDetailsVisitor: BasePatternVisitor {
     }
 
     override func setFilePath(_ filePath: String) {
+        super.setFilePath(filePath)
         self.currentFilePath = filePath
     }
 
@@ -43,8 +44,7 @@ class AccessingImplementationDetailsVisitor: BasePatternVisitor {
         // Heuristic A: underscore-prefix member on a non-self/super base
         if memberName.hasPrefix("_") {
             // Skip test files — test code commonly accesses internals
-            if currentFilePath.contains("Tests")
-                || currentFilePath.contains("Test.swift") {
+            if isTestOrFixtureFile() {
                 return .visitChildren
             }
             // Skip self._member

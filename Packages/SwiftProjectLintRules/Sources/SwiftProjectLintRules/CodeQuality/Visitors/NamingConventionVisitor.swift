@@ -32,6 +32,7 @@ class NamingConventionVisitor: BasePatternVisitor {
     }
 
     override func setFilePath(_ filePath: String) {
+        super.setFilePath(filePath)
         self.currentFilePath = filePath
     }
 
@@ -52,8 +53,7 @@ class NamingConventionVisitor: BasePatternVisitor {
         if protocolName.hasSuffix("Protocol") { return .visitChildren }
 
         // Skip test/example files
-        if currentFilePath.contains("Tests") || currentFilePath.hasSuffix("Test.swift")
-            || currentFilePath.contains("Examples") || currentFilePath.contains("Fixtures") {
+        if isTestOrFixtureFile() {
             return .visitChildren
         }
 

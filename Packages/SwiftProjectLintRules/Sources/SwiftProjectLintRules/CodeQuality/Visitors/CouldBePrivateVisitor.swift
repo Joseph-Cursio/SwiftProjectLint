@@ -156,15 +156,8 @@ final class CouldBePrivateVisitor: BasePatternVisitor, CrossFilePatternVisitorPr
         // Only flag top-level declarations
         guard isTopLevel(node) else { return }
 
-        // Skip types in test files — test structs are inherently file-scoped
-        if currentFile.contains("Tests") || currentFile.hasSuffix("Test.swift") {
-            return
-        }
-
-        // Skip example/fixture files — intentionally self-contained
-        if currentFile.contains("ExampleCode") || currentFile.contains("Fixtures")
-            || currentFile.contains("Resources") || currentFile.contains("Examples")
-            || currentFile.contains("Samples") {
+        // Skip test/example/fixture files
+        if isTestOrFixtureFile() {
             return
         }
 

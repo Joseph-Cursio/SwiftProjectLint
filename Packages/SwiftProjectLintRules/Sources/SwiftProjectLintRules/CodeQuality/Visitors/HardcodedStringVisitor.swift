@@ -30,6 +30,7 @@ class HardcodedStringVisitor: BasePatternVisitor {
     }
 
     override func setFilePath(_ filePath: String) {
+        super.setFilePath(filePath)
         self.currentFilePath = filePath
     }
 
@@ -115,7 +116,7 @@ class HardcodedStringVisitor: BasePatternVisitor {
     }
 
     private func isTestFile() -> Bool {
-        currentFilePath.contains("Tests") || currentFilePath.hasSuffix("Tests.swift")
+        isTestOrFixtureFile()
     }
 
     private func looksLikeSFSymbolName(_ string: String) -> Bool {

@@ -150,6 +150,19 @@ open class BasePatternVisitor: SyntaxVisitor, PatternVisitorProtocol {
         self.filePath = filePath
     }
 
+    /// Returns `true` if the current file path indicates a test, example,
+    /// fixture, mock, or sample file that should generally be excluded from
+    /// lint rules.
+    public func isTestOrFixtureFile() -> Bool {
+        filePath.contains("Tests") || filePath.hasSuffix("Test.swift")
+            || filePath.hasSuffix("Tests.swift")
+            || filePath.contains("ExampleCode") || filePath.contains("Fixtures")
+            || filePath.contains("Examples") || filePath.contains("Samples")
+            || filePath.hasSuffix("Examples.swift")
+            || filePath.contains("Mock") || filePath.contains("Mocks")
+            || filePath.contains("Fakes") || filePath.contains("Stubs")
+    }
+
     /// Adds a detected issue directly with explicit parameters.
     ///
     /// Use this method when you need to create issues with custom messages

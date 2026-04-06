@@ -9,7 +9,7 @@ struct UIVisitorErrorHandlingTests {
     
     @Test func testDetectsBasicErrorHandling() throws {
         let visitor = UIVisitor(patternCategory: PatternCategory.uiPatterns)
-        visitor.setFilePath("test.swift")
+        visitor.setFilePath("Tests/SourceFile.swift")
         visitor.reset()
         
         let source = """
@@ -43,7 +43,7 @@ struct UIVisitorErrorHandlingTests {
     
     @Test func testDoesNotDetectProperErrorHandling() throws {
         let visitor = UIVisitor(patternCategory: PatternCategory.uiPatterns)
-        visitor.setFilePath("test.swift")
+        visitor.setFilePath("Tests/SourceFile.swift")
         visitor.reset()
         
         let source = """
@@ -74,7 +74,7 @@ struct UIVisitorErrorHandlingTests {
     
     @Test func testComplexViewWithMultipleIssues() throws {
         let visitor = UIVisitor(patternCategory: PatternCategory.uiPatterns)
-        visitor.setFilePath("test.swift")
+        visitor.setFilePath("Tests/SourceFile.swift")
         visitor.reset()
         
         let source = """
@@ -121,7 +121,7 @@ struct UIVisitorErrorHandlingTests {
     
     @Test func testResetClearsState() throws {
         let visitor = UIVisitor(patternCategory: PatternCategory.uiPatterns)
-        visitor.setFilePath("test.swift")
+        visitor.setFilePath("Tests/SourceFile.swift")
         visitor.reset()
         
         let source = """

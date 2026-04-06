@@ -9,7 +9,7 @@ struct UIVisitorNavigationTests {
     
     @Test func testDetectsNestedNavigationView() throws {
         let visitor = UIVisitor(patternCategory: PatternCategory.uiPatterns)
-        visitor.setFilePath("test.swift")
+        visitor.setFilePath("Tests/SourceFile.swift")
         visitor.reset()
         
         let source = """
@@ -50,7 +50,7 @@ struct UIVisitorNavigationTests {
     
     @Test func testDoesNotDetectSingleNavigationView() throws {
         let visitor = UIVisitor(patternCategory: PatternCategory.uiPatterns)
-        visitor.setFilePath("test.swift")
+        visitor.setFilePath("Tests/SourceFile.swift")
         visitor.reset()
         
         let source = """
@@ -73,7 +73,7 @@ struct UIVisitorNavigationTests {
     
     @Test func testDetectsModernNavigationAlternatives() throws {
         let visitor = UIVisitor(patternCategory: PatternCategory.uiPatterns)
-        visitor.setFilePath("test.swift")
+        visitor.setFilePath("Tests/SourceFile.swift")
         visitor.reset()
         
         let source = """

@@ -100,6 +100,7 @@ class LawOfDemeterVisitor: BasePatternVisitor {
     }
 
     override func setFilePath(_ filePath: String) {
+        super.setFilePath(filePath)
         self.currentFilePath = filePath
     }
 
@@ -224,8 +225,7 @@ class LawOfDemeterVisitor: BasePatternVisitor {
             return false
         }
         // Skip test files
-        if currentFilePath.contains("Tests")
-            || currentFilePath.hasSuffix("Test.swift") {
+        if isTestOrFixtureFile() {
             return false
         }
         return true

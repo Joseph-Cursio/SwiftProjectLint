@@ -9,7 +9,7 @@ struct UIVisitorForEachTests {
 
     private func createVisitor(identifiableTypes: Set<String> = []) -> UIVisitor {
         let visitor = UIVisitor(patternCategory: PatternCategory.uiPatterns)
-        visitor.setFilePath("test.swift")
+        visitor.setFilePath("Tests/SourceFile.swift")
         visitor.knownIdentifiableTypes = identifiableTypes
         visitor.reset()
         return visitor

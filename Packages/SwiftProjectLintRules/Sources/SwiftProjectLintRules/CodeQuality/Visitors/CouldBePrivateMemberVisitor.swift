@@ -236,15 +236,8 @@ final class CouldBePrivateMemberVisitor: BasePatternVisitor, CrossFilePatternVis
         // Must be inside a type
         guard !currentTypeName.isEmpty else { return }
 
-        // Skip test files
-        if currentFile.contains("Tests") || currentFile.hasSuffix("Test.swift") {
-            return
-        }
-
-        // Skip example/fixture directories
-        if currentFile.contains("ExampleCode") || currentFile.contains("Fixtures")
-            || currentFile.contains("Resources") || currentFile.contains("Examples")
-            || currentFile.contains("Samples") {
+        // Skip test/example/fixture files
+        if isTestOrFixtureFile() {
             return
         }
 

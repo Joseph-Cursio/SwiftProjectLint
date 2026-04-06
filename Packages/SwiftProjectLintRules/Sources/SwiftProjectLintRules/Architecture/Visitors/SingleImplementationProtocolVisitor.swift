@@ -62,7 +62,7 @@ final class SingleImplementationProtocolVisitor: BasePatternVisitor, CrossFilePa
 
     override func visit(_ node: ProtocolDeclSyntax) -> SyntaxVisitorContinueKind {
         // Skip test files
-        if currentFile.contains("Tests") || currentFile.hasSuffix("Test.swift") {
+        if isTestOrFixtureFile() {
             return .visitChildren
         }
 

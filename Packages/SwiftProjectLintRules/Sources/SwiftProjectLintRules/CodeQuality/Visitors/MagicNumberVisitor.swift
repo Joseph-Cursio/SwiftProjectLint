@@ -41,6 +41,7 @@ class MagicNumberVisitor: BasePatternVisitor {
     }
 
     override func setFilePath(_ filePath: String) {
+        super.setFilePath(filePath)
         self.currentFilePath = filePath
         // Reset per-file state
         magicNumberOccurrences = [:]
@@ -49,12 +50,7 @@ class MagicNumberVisitor: BasePatternVisitor {
 
     /// Returns true if the current file should be skipped entirely.
     private func shouldSkipFile() -> Bool {
-        currentFilePath.contains("Tests")
-            || currentFilePath.hasSuffix("Test.swift")
-            || currentFilePath.contains("ExampleCode")
-            || currentFilePath.contains("Fixtures")
-            || currentFilePath.contains("Examples")
-            || currentFilePath.hasSuffix("Examples.swift")
+        isTestOrFixtureFile()
     }
 
     // MARK: - SwiftUI layout/geometry sets

@@ -57,11 +57,7 @@ final class MultipleTypesPerFileVisitor: BasePatternVisitor {
         guard isTopLevel(node) else { return }
 
         // Skip test/example/fixture files
-        if currentFilePath.contains("Tests") || currentFilePath.hasSuffix("Test.swift")
-            || currentFilePath.contains("ExampleCode") || currentFilePath.contains("Fixtures")
-            || currentFilePath.contains("Examples") || currentFilePath.contains("Samples")
-            || currentFilePath.hasSuffix("Examples.swift")
-            || currentFilePath.contains("Mock") {
+        if isTestOrFixtureFile() {
             return
         }
 

@@ -21,6 +21,7 @@ class UIVisitor: BasePatternVisitor {
     }
 
     override func setFilePath(_ filePath: String) {
+        super.setFilePath(filePath)
         self.currentFilePath = filePath
     }
 
@@ -153,9 +154,7 @@ class UIVisitor: BasePatternVisitor {
            !detectedPreviews.contains(viewName),
            !hasComplexDependencies(node) {
             // Skip test files
-            if currentFilePath.contains("test.swift")
-                || currentFilePath.contains("Test")
-                || currentFilePath.contains("Tests") {
+            if isTestOrFixtureFile() {
                 return
             }
             // Skip helper/extension files
