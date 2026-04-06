@@ -129,6 +129,7 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
     case scrollViewShowsIndicators = "ScrollView showsIndicators"
     case legacyArrayInit = "Legacy Array Init"
     case legacyClosureSyntax = "Legacy Closure Syntax"
+    case ios17ObservationMigration = "iOS 17 Observation Migration"
 
     // Security Rules
     case hardcodedSecret = "Hardcoded Secret"
@@ -266,7 +267,7 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
              .legacyReplacingOccurrences, .tabItemDeprecated,
              .legacyFormatter, .legacyImageRenderer,
              .scrollViewShowsIndicators, .legacyArrayInit,
-             .legacyClosureSyntax:
+             .legacyClosureSyntax, .ios17ObservationMigration:
             return .modernization
 
             // Other/System Rules
