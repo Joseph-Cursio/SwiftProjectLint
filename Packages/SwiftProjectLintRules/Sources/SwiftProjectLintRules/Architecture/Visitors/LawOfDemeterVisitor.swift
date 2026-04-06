@@ -44,6 +44,19 @@ class LawOfDemeterVisitor: BasePatternVisitor {
         "isEmpty"
     ]
 
+    /// Members related to geometry/layout that form natural access chains.
+    private static let geometryMembers: Set<String> = [
+        "frame", "size", "bounds", "origin", "width", "height",
+        "minX", "minY", "maxX", "maxY", "midX", "midY",
+        "contentSize", "safeAreaInsets"
+    ]
+
+    /// Root names that indicate environment/navigation context (case-insensitive).
+    private static let environmentRoots: Set<String> = [
+        "environment", "theme", "settings", "configuration",
+        "navigationPath", "navigator", "coordinator", "router"
+    ]
+
     /// Well-known system chain prefixes that are idiomatic Foundation/system API usage.
     private static let exemptChainPrefixes: [[String]] = [
         ["FileManager", "default", "temporaryDirectory"],
@@ -123,8 +136,21 @@ class LawOfDemeterVisitor: BasePatternVisitor {
            rootRef.baseName.text == "self" { return false }
         if root.is(SuperExprSyntax.self) { return false }
         if root.is(FunctionCallExprSyntax.self) { return false }
+        // Binding projections ($viewModel.user.name)
         if root.trimmedDescription.hasPrefix("$") { return false }
+        // KeyPath literals (\.user.name) — inside a KeyPathExprSyntax parent
+        if isInsideKeyPath(root) { return false }
         return true
+    }
+
+    private func isInsideKeyPath(_ node: ExprSyntax) -> Bool {
+        var current: Syntax? = Syntax(node)
+        while let parent = current?.parent {
+            if parent.is(KeyPathExprSyntax.self) { return true }
+            if parent.is(CodeBlockItemSyntax.self) { return false }
+            current = parent
+        }
+        return false
     }
 
     private func isNonExemptChain(
@@ -162,6 +188,15 @@ class LawOfDemeterVisitor: BasePatternVisitor {
             if Array(orderedComponents.prefix(prefix.count)) == prefix {
                 return false
             }
+        }
+        // Skip environment/navigation roots
+        if let rootName = orderedComponents.first,
+           Self.environmentRoots.contains(rootName.lowercased()) {
+            return false
+        }
+        // Skip geometry/layout access chains
+        if orderedComponents.contains(where: { Self.geometryMembers.contains($0) }) {
+            return false
         }
         // Skip test files
         if currentFilePath.contains("Tests")

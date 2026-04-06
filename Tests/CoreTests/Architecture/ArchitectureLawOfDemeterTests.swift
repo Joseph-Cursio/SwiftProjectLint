@@ -313,4 +313,54 @@ struct ArchitectureLawOfDemeterTests {
         let issues = analyzeSource(source)
         #expect(issues.filter { $0.ruleName == .lawOfDemeter }.count == 1)
     }
+
+    // MARK: - SwiftUI exemptions
+
+    @Test func testNoIssueForBindingProjection() {
+        let source = """
+        class Editor {
+            func setup() {
+                let name = $viewModel.user.name.wrappedValue
+            }
+        }
+        """
+        let issues = analyzeSource(source)
+        #expect(issues.filter { $0.ruleName == .lawOfDemeter }.isEmpty)
+    }
+
+    @Test func testNoIssueForEnvironmentRoot() {
+        let source = """
+        class ThemeManager {
+            func color() -> String {
+                return environment.theme.color.name
+            }
+        }
+        """
+        let issues = analyzeSource(source)
+        #expect(issues.filter { $0.ruleName == .lawOfDemeter }.isEmpty)
+    }
+
+    @Test func testNoIssueForGeometryAccess() {
+        let source = """
+        class Layout {
+            func width(of proxy: GeometryProxy) -> CGFloat {
+                return proxy.frame.size.width
+            }
+        }
+        """
+        let issues = analyzeSource(source)
+        #expect(issues.filter { $0.ruleName == .lawOfDemeter }.isEmpty)
+    }
+
+    @Test func testNoIssueForNavigatorRoot() {
+        let source = """
+        class Flow {
+            func navigate() {
+                coordinator.router.stack.count
+            }
+        }
+        """
+        let issues = analyzeSource(source)
+        #expect(issues.filter { $0.ruleName == .lawOfDemeter }.isEmpty)
+    }
 }
