@@ -32,8 +32,9 @@ struct PrintStatementVisitorTests {
 
         let issue = try #require(visitor.detectedIssues.first)
         #expect(issue.ruleName == .printStatement)
-        #expect(issue.severity == .info)
+        #expect(issue.severity == .warning)
         #expect(issue.message.contains("print()"))
+        #expect(issue.message.contains("production"))
     }
 
     // MARK: - Parameterized Positive Cases
@@ -61,6 +62,47 @@ struct PrintStatementVisitorTests {
         runVisitor(visitor, source: source)
 
         #expect(visitor.detectedIssues.count == 3)
+    }
+
+    @Test
+    func debugPrintHasSpecificMessage() throws {
+        let source = """
+        debugPrint(object)
+        """
+        let visitor = makeVisitor()
+        runVisitor(visitor, source: source)
+        let issue = try #require(visitor.detectedIssues.first)
+        #expect(issue.message.contains("debugPrint()"))
+        #expect(issue.message.contains("left over"))
+    }
+
+    // MARK: - Suppression: #if DEBUG
+
+    @Test
+    func suppressesPrintInsideIfDebug() {
+        let source = """
+        #if DEBUG
+        print("debug only")
+        debugPrint(data)
+        #endif
+        """
+        let visitor = makeVisitor()
+        runVisitor(visitor, source: source)
+        #expect(visitor.detectedIssues.isEmpty)
+    }
+
+    @Test
+    func stillFlagsPrintOutsideIfDebug() {
+        let source = """
+        #if DEBUG
+        print("debug only")
+        #endif
+        print("production code")
+        """
+        let visitor = makeVisitor()
+        runVisitor(visitor, source: source)
+        #expect(visitor.detectedIssues.count == 1)
+        #expect(visitor.detectedIssues.first?.message.contains("production") == true)
     }
 
     // MARK: - Parameterized Negative Cases
