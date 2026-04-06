@@ -181,6 +181,7 @@ Rules marked **opt-in** are disabled by default and must be explicitly listed un
 | [tabItem Deprecated](tab-item-deprecated.md) | Info |
 | [Legacy Formatter](legacy-formatter.md) | Info |
 | [Legacy Image Renderer](legacy-image-renderer.md) | Info |
+| [ScrollView showsIndicators](scroll-view-shows-indicators.md) | Info |
 
 ---
 

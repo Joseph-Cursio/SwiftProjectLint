@@ -30,7 +30,8 @@ class Modernization: BasePatternRegistrar {
             LegacyReplacingOccurrences(),
             TabItemDeprecated(),
             LegacyFormatter(),
-            LegacyImageRenderer()
+            LegacyImageRenderer(),
+            ScrollViewShowsIndicators()
         ])
     }
 }
