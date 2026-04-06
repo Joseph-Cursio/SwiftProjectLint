@@ -29,7 +29,8 @@ class Modernization: BasePatternRegistrar {
             ScrollViewReaderDeprecated(),
             LegacyReplacingOccurrences(),
             TabItemDeprecated(),
-            LegacyFormatter()
+            LegacyFormatter(),
+            LegacyImageRenderer()
         ])
     }
 }

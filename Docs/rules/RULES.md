@@ -180,6 +180,7 @@ Rules marked **opt-in** are disabled by default and must be explicitly listed un
 | [Legacy Replacing Occurrences](legacy-replacing-occurrences.md) | Info |
 | [tabItem Deprecated](tab-item-deprecated.md) | Info |
 | [Legacy Formatter](legacy-formatter.md) | Info |
+| [Legacy Image Renderer](legacy-image-renderer.md) | Info |
 
 ---
 
