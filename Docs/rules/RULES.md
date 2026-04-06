@@ -176,6 +176,7 @@ Rules marked **opt-in** are disabled by default and must be explicitly listed un
 | [Corner Radius Deprecated](corner-radius-deprecated.md) | Warning |
 | [Legacy String Format](legacy-string-format.md) | Info |
 | [ScrollViewReader Deprecated](scroll-view-reader-deprecated.md) | Info |
+| [Legacy Replacing Occurrences](legacy-replacing-occurrences.md) | Info |
 
 ---
 

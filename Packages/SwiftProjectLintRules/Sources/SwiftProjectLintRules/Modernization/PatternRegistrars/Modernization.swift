@@ -26,7 +26,8 @@ class Modernization: BasePatternRegistrar {
             ForegroundColorDeprecated(),
             CornerRadiusDeprecated(),
             LegacyStringFormat(),
-            ScrollViewReaderDeprecated()
+            ScrollViewReaderDeprecated(),
+            LegacyReplacingOccurrences()
         ])
     }
 }
