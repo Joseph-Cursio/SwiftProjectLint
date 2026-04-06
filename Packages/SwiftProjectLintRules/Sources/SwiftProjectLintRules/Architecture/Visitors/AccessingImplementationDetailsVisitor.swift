@@ -42,6 +42,17 @@ class AccessingImplementationDetailsVisitor: BasePatternVisitor {
 
         // Heuristic A: underscore-prefix member on a non-self/super base
         if memberName.hasPrefix("_") {
+            // Skip test files — test code commonly accesses internals
+            if currentFilePath.contains("Tests")
+                || currentFilePath.contains("Test.swift") {
+                return .visitChildren
+            }
+            // Skip tuple element access (_0, _1, _2, etc.)
+            let afterUnderscore = memberName.dropFirst()
+            if afterUnderscore.isEmpty == false,
+               afterUnderscore.first?.isNumber == true {
+                return .visitChildren
+            }
             // Skip self._member
             if let ref = base.as(DeclReferenceExprSyntax.self),
                ref.baseName.text == "self" {
