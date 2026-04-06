@@ -37,6 +37,7 @@ Rules marked **opt-in** are disabled by default and must be explicitly listed un
 | [Formatter In View Body](formatter-in-view-body.md) | Warning |
 | [GeometryReader Overuse](geometry-reader-overuse.md) | Info *(opt-in)* |
 | [Unbounded Task Group](unbounded-task-group.md) | Warning |
+| [onReceive Without Debounce](on-receive-without-debounce.md) | Info *(opt-in)* |
 
 ## Animation
 

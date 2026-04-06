@@ -73,7 +73,8 @@ class Performance: BasePatternRegistrar {
             FormatterInViewBody(),
             AnyViewUsage(),
             GeometryReaderOveruse(),
-            UnboundedTaskGroup()
+            UnboundedTaskGroup(),
+            OnReceiveWithoutDebounce()
         ])
     }
 }
