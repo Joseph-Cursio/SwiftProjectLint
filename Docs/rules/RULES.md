@@ -71,6 +71,7 @@ Rules marked **opt-in** are disabled by default and must be explicitly listed un
 | [Computed Property View](computed-property-view.md) | Warning |
 | [SwiftData Unique Attribute CloudKit](swiftdata-unique-attribute-cloudkit.md) | Warning |
 | [God View Model](god-view-model.md) | Warning |
+| [View Model Direct DB Access](view-model-direct-db-access.md) | Info *(opt-in)* |
 
 ## Code Quality
 
