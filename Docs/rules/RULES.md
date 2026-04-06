@@ -65,6 +65,7 @@ Rules marked **opt-in** are disabled by default and must be explicitly listed un
 | [Fat Protocol](fat-protocol.md) | Info |
 | [Single Implementation Protocol](single-implementation-protocol.md) | Info |
 | [Mirror Protocol](mirror-protocol.md) | Info |
+| [Computed Property View](computed-property-view.md) | Warning |
 
 ## Code Quality
 

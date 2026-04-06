@@ -50,6 +50,7 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
     case fatProtocol = "Fat Protocol"
     case singleImplementationProtocol = "Single Implementation Protocol"
     case mirrorProtocol = "Mirror Protocol"
+    case computedPropertyView = "Computed Property View"
 
     // Code Quality Rules
     case magicNumber = "Magic Number"
@@ -183,7 +184,8 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
         case .missingDependencyInjection, .fatViewDetection, .directInstantiation,
              .concreteTypeUsage, .accessingImplementationDetails,
              .singletonUsage, .lawOfDemeter, .fatProtocol,
-             .singleImplementationProtocol, .mirrorProtocol:
+             .singleImplementationProtocol, .mirrorProtocol,
+             .computedPropertyView:
             return .architecture
 
             // Code Quality Rules
