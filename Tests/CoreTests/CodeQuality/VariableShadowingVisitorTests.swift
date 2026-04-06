@@ -273,6 +273,137 @@ struct VariableShadowingExclusionTests {
                 }
             }
             """
+        ),
+        ExclusionCase(
+            label: "closure parameter shadows outer variable",
+            source: """
+            func example() {
+                let value = 1
+                let closure = { (value: Int) in
+                    print(value)
+                }
+            }
+            """
+        ),
+        ExclusionCase(
+            label: "closure shorthand parameter shadows outer variable",
+            source: """
+            func example() {
+                let items = [1, 2, 3]
+                items.forEach { items in
+                    print(items)
+                }
+            }
+            """
+        ),
+        ExclusionCase(
+            label: "withLock closure parameter shadows wrapper",
+            source: """
+            func example() {
+                let counter = Mutex(0)
+                counter.withLock { counter in
+                    counter += 1
+                }
+            }
+            """
+        ),
+        ExclusionCase(
+            label: "rebinding with method call",
+            source: """
+            func example() {
+                var config = loadConfig()
+                if true {
+                    let config = config.cleaned()
+                }
+            }
+            """
+        ),
+        ExclusionCase(
+            label: "rebinding with transform function",
+            source: """
+            func process() {
+                let data = fetchData()
+                if true {
+                    let data = transform(data)
+                }
+            }
+            """
+        ),
+        ExclusionCase(
+            label: "rebinding in closure",
+            source: """
+            func example() {
+                let items = [1, 2, 3]
+                let closure = {
+                    let items = items.sorted()
+                    print(items)
+                }
+            }
+            """
+        ),
+        ExclusionCase(
+            label: "local in method shadows stored property",
+            source: """
+            struct Runner {
+                var configuration: Configuration
+                func run() {
+                    let configuration = self.configuration
+                    print(configuration)
+                }
+            }
+            """
+        ),
+        ExclusionCase(
+            label: "local in method shadows stored property via computation",
+            source: """
+            class Recorder {
+                var buffer: String = ""
+                func snapshot() {
+                    let buffer = stream.buffer.rawValue
+                    print(buffer)
+                }
+            }
+            """
+        ),
+        ExclusionCase(
+            label: "Codable init locals matching properties",
+            source: """
+            struct Location {
+                let fileID: String
+                let line: Int
+                init(from decoder: Decoder) throws {
+                    let container = try decoder.container(keyedBy: CodingKeys.self)
+                    let fileID = try container.decode(String.self, forKey: .fileID)
+                    let line = try container.decode(Int.self, forKey: .line)
+                    self.init(fileID: fileID, line: line)
+                }
+            }
+            """
+        ),
+        ExclusionCase(
+            label: "nested for-loop reusing iteration variable",
+            source: """
+            func example() {
+                for index in 0..<5 {
+                    for index in 0..<3 {
+                        print(index)
+                    }
+                }
+            }
+            """
+        ),
+        ExclusionCase(
+            label: "variable in nested loop shadows outer for-loop variable",
+            source: """
+            func example() {
+                for index in 0..<10 {
+                    if true {
+                        let index = index + 1
+                        print(index)
+                    }
+                }
+            }
+            """
         )
     ])
     func exclusion(_ testCase: ExclusionCase) {
@@ -308,18 +439,6 @@ struct VariableShadowingSeverityTests {
             expected: .error
         ),
         SeverityCase(
-            label: "closure parameter shadow → error",
-            source: """
-            func example() {
-                let value = 1
-                let closure = { (value: Int) in
-                    print(value)
-                }
-            }
-            """,
-            expected: .error
-        ),
-        SeverityCase(
             label: "nested function parameter → error",
             source: """
             func outer() {
@@ -342,43 +461,6 @@ struct VariableShadowingSeverityTests {
             }
             """,
             expected: .error
-        ),
-        SeverityCase(
-            label: "var-to-let with same name reference → warning",
-            source: """
-            func example() {
-                var config = loadConfig()
-                if true {
-                    let config = config.cleaned()
-                }
-            }
-            """,
-            expected: .warning
-        ),
-        SeverityCase(
-            label: "closure rebinding with same name → warning",
-            source: """
-            func example() {
-                let items = [1, 2, 3]
-                let closure = {
-                    let items = items.sorted()
-                    print(items)
-                }
-            }
-            """,
-            expected: .warning
-        ),
-        SeverityCase(
-            label: "transform referencing outer variable → warning",
-            source: """
-            func process() {
-                let data = fetchData()
-                if true {
-                    let data = transform(data)
-                }
-            }
-            """,
-            expected: .warning
         )
     ])
     func severity(_ testCase: SeverityCase) throws {

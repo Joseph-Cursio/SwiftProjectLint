@@ -11,10 +11,26 @@ import SwiftSyntax
 /// - `guard let x = x` / `guard let x`
 /// - `if let x = x as? T` (conditional type cast binding)
 /// - `guard let self = self` / `guard let self` (weak-to-strong self capture)
+/// - Closure parameters (closures create their own scope; reusing names is idiomatic)
+/// - Rebinding with transform (`let x = x.cleaned()`, `let x = transform(x)`)
+/// - Locals in methods that match stored property names (Swift uses `self.` for disambiguation)
+/// - Variables shadowing a for-loop iteration variable from an outer scope
 final class VariableShadowingVisitor: BasePatternVisitor {
 
+    private enum ScopeKind {
+        case typeMember   // struct/class/enum/extension body
+        case codeBlock    // function body, if/else, do, etc.
+        case closure
+        case forLoop      // for-statement scope (holds iteration variable)
+    }
+
+    private struct ScopeFrame {
+        var kind: ScopeKind
+        var names: [String] = []
+    }
+
     /// Each frame maps variable names declared in that scope.
-    private var scopeStack: [[String]] = [[]]
+    private var scopeStack: [ScopeFrame] = [ScopeFrame(kind: .codeBlock)]
 
     required init(pattern: SyntaxPattern, viewMode: SyntaxTreeViewMode = .sourceAccurate) {
         super.init(pattern: pattern, viewMode: viewMode)
@@ -22,13 +38,22 @@ final class VariableShadowingVisitor: BasePatternVisitor {
 
     override func reset() {
         super.reset()
-        scopeStack = [[]]
+        scopeStack = [ScopeFrame(kind: .codeBlock)]
     }
 
     // MARK: - Scope Tracking
 
+    override func visit(_ node: MemberBlockSyntax) -> SyntaxVisitorContinueKind {
+        scopeStack.append(ScopeFrame(kind: .typeMember))
+        return .visitChildren
+    }
+
+    override func visitPost(_ node: MemberBlockSyntax) {
+        _ = scopeStack.popLast()
+    }
+
     override func visit(_ node: CodeBlockSyntax) -> SyntaxVisitorContinueKind {
-        scopeStack.append([])
+        scopeStack.append(ScopeFrame(kind: .codeBlock))
         return .visitChildren
     }
 
@@ -37,7 +62,7 @@ final class VariableShadowingVisitor: BasePatternVisitor {
     }
 
     override func visit(_ node: ClosureExprSyntax) -> SyntaxVisitorContinueKind {
-        scopeStack.append([])
+        scopeStack.append(ScopeFrame(kind: .closure))
         if let signature = node.signature {
             registerClosureParameters(signature)
         }
@@ -49,7 +74,7 @@ final class VariableShadowingVisitor: BasePatternVisitor {
     }
 
     override func visit(_ node: ForStmtSyntax) -> SyntaxVisitorContinueKind {
-        scopeStack.append([])
+        scopeStack.append(ScopeFrame(kind: .forLoop))
         if let identifier = node.pattern.as(IdentifierPatternSyntax.self) {
             let name = identifier.identifier.text
             checkShadow(name: name, node: Syntax(node.pattern), severity: .error)
@@ -72,8 +97,11 @@ final class VariableShadowingVisitor: BasePatternVisitor {
             // Skip `_` placeholder names
             guard name != "_" else { continue }
 
-            let severity: IssueSeverity = initializerReferences(name: name, in: binding) ? .warning : .error
-            checkShadow(name: name, node: Syntax(binding.pattern), severity: severity)
+            // Skip rebinding transforms like `let x = x.cleaned()` or `let x = transform(x)`
+            // — the developer clearly knows about the outer variable.
+            if initializerReferences(name: name, in: binding) == false {
+                checkShadow(name: name, node: Syntax(binding.pattern), severity: .error)
+            }
             registerInCurrentScope(name)
         }
         return .visitChildren
@@ -95,6 +123,9 @@ final class VariableShadowingVisitor: BasePatternVisitor {
 
     // MARK: - Private Helpers
 
+    /// Registers closure parameters in the current scope **without** checking
+    /// for shadows. Closures create their own scope, and reusing names from
+    /// an outer scope is idiomatic Swift (e.g. `mutex.withLock { value in }`).
     private func registerClosureParameters(_ signature: ClosureSignatureSyntax) {
         if let parameterClause = signature.parameterClause {
             switch parameterClause {
@@ -102,14 +133,12 @@ final class VariableShadowingVisitor: BasePatternVisitor {
                 for parameter in clause.parameters {
                     let name = parameter.secondName?.text ?? parameter.firstName.text
                     guard name != "_" else { continue }
-                    checkShadow(name: name, node: Syntax(parameter), severity: .error)
                     registerInCurrentScope(name)
                 }
             case .simpleInput(let list):
                 for parameter in list {
                     let name = parameter.name.text
                     guard name != "_" else { continue }
-                    checkShadow(name: name, node: Syntax(parameter), severity: .error)
                     registerInCurrentScope(name)
                 }
             }
@@ -118,32 +147,19 @@ final class VariableShadowingVisitor: BasePatternVisitor {
 
     private func registerInCurrentScope(_ name: String) {
         guard scopeStack.isEmpty == false else { return }
-        scopeStack[scopeStack.count - 1].append(name)
+        scopeStack[scopeStack.count - 1].names.append(name)
     }
 
-    /// Check all frames including the current one. Used for function parameters
-    /// which are visited before the function body's CodeBlock pushes a new scope.
-    private func checkShadowAllFrames(name: String, node: Syntax, severity: IssueSeverity) {
-        for frame in scopeStack where frame.contains(name) {
-            addIssue(
-                severity: severity,
-                message: "Variable '\(name)' shadows a declaration from an outer scope",
-                filePath: getFilePath(for: node),
-                lineNumber: getLineNumber(for: node),
-                suggestion: "Rename the inner variable to avoid confusion with the outer '\(name)'",
-                ruleName: .variableShadowing
-            )
-            return
-        }
-    }
-
-    /// Check only local scopes (depth 2+), skipping the outermost type-member
-    /// scope. Function parameters matching type property names is idiomatic Swift.
+    /// Check only local code scopes, skipping type-member scopes (stored
+    /// properties) and for-loop scopes (iteration variables). Function
+    /// parameters matching type property names is idiomatic Swift, and
+    /// reusing a for-loop variable name in a nested loop is common.
     private func checkShadowLocalOnly(name: String, node: Syntax, severity: IssueSeverity) {
-        // Skip if only the outermost scope (type body) or global scope exists
-        guard scopeStack.count >= 2 else { return }
-        // Check frames from index 1 onward (skip index 0 = type-member scope)
-        for frame in scopeStack.dropFirst() where frame.contains(name) {
+        for frame in scopeStack where frame.names.contains(name) {
+            // Skip type-member scopes — locals matching properties is idiomatic
+            guard frame.kind != .typeMember else { continue }
+            // Skip for-loop scopes — reusing iteration variable names is common
+            guard frame.kind != .forLoop else { continue }
             addIssue(
                 severity: severity,
                 message: "Variable '\(name)' shadows a declaration from an outer scope",
@@ -159,7 +175,11 @@ final class VariableShadowingVisitor: BasePatternVisitor {
     private func checkShadow(name: String, node: Syntax, severity: IssueSeverity) {
         // Check all frames except the current (topmost) one
         let outerFrames = scopeStack.dropLast()
-        for frame in outerFrames where frame.contains(name) {
+        for frame in outerFrames where frame.names.contains(name) {
+            // Skip type-member scopes — locals matching properties is idiomatic
+            guard frame.kind != .typeMember else { continue }
+            // Skip for-loop scopes — reusing iteration variable names is common
+            guard frame.kind != .forLoop else { continue }
             addIssue(
                 severity: severity,
                 message: "Variable '\(name)' shadows a declaration from an outer scope",
