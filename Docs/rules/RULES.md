@@ -146,6 +146,8 @@ Rules marked **opt-in** are disabled by default and must be explicitly listed un
 | [Toggle Button Missing Selected Trait](toggle-button-missing-selected-trait.md) | Warning |
 | [Button Toggling Bool](button-toggling-bool.md) | Info |
 | [Stack Missing Accessibility Grouping](stack-missing-accessibility-grouping.md) | Info |
+| [Accessibility Hidden Conflict](accessibility-hidden-conflict.md) | Warning |
+| [Sort Priority Without Container](sort-priority-without-container.md) | Warning |
 
 ## Memory Management
 

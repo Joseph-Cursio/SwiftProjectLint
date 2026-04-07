@@ -153,6 +153,8 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
     case toggleButtonMissingSelectedTrait = "Toggle Button Missing Selected Trait"
     case buttonTogglingBool = "Button Toggling Bool"
     case stackMissingAccessibilityGrouping = "Stack Missing Accessibility Grouping"
+    case accessibilityHiddenConflict = "Accessibility Hidden Conflict"
+    case sortPriorityWithoutContainer = "Sort Priority Without Container"
 
     // Memory Management Rules
     case potentialRetainCycle = "Potential Retain Cycle"
@@ -248,7 +250,8 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
              .onTapGestureInsteadOfButton, .tapTargetTooSmall,
              .missingDynamicTypeSupport, .decorativeImageMissingTrait,
              .toggleButtonMissingSelectedTrait, .buttonTogglingBool,
-             .stackMissingAccessibilityGrouping:
+             .stackMissingAccessibilityGrouping,
+             .accessibilityHiddenConflict, .sortPriorityWithoutContainer:
             return .accessibility
 
             // Memory Management Rules

@@ -152,6 +152,35 @@ class Accessibility: BasePatternRegistrar {
         )
         registry.register(patterns: [stackGroupingPattern])
 
+        let hiddenConflictPattern = SyntaxPattern(
+            name: .accessibilityHiddenConflict,
+            visitor: AccessibilityHiddenConflictVisitor.self,
+            severity: .warning,
+            category: .accessibility,
+            messageTemplate: ".accessibilityHidden(true) conflicts with "
+                + "other accessibility modifiers on the same view",
+            suggestion: "Remove the conflicting modifiers, or replace "
+                + ".accessibilityHidden(true) with "
+                + ".accessibilityElement(children: .ignore).",
+            description: "Detects views with .accessibilityHidden(true) "
+                + "alongside other accessibility attributes that become unreachable."
+        )
+        registry.register(patterns: [hiddenConflictPattern])
+
+        let sortPriorityPattern = SyntaxPattern(
+            name: .sortPriorityWithoutContainer,
+            visitor: SortPriorityWithoutContainerVisitor.self,
+            severity: .warning,
+            category: .accessibility,
+            messageTemplate: ".accessibilitySortPriority() has no effect without "
+                + ".accessibilityElement(children: .contain) on the parent stack",
+            suggestion: "Add .accessibilityElement(children: .contain) to the "
+                + "enclosing stack for sort priorities to take effect.",
+            description: "Detects sort priority modifiers inside stacks "
+                + "that lack the required accessibility container modifier."
+        )
+        registry.register(patterns: [sortPriorityPattern])
+
         registry.register(registrars: [HardcodedFontSize()])
     }
 } 
