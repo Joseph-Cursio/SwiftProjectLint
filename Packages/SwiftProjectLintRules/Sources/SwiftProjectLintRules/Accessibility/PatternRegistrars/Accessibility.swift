@@ -138,6 +138,20 @@ class Accessibility: BasePatternRegistrar {
         )
         registry.register(patterns: [buttonTogglingBoolPattern])
 
+        let stackGroupingPattern = SyntaxPattern(
+            name: .stackMissingAccessibilityGrouping,
+            visitor: StackAccessibilityGroupingVisitor.self,
+            severity: .info,
+            category: .accessibility,
+            messageTemplate: "Stack with label\u{2013}value Text pair may need "
+                + ".accessibilityElement(children:) for VoiceOver grouping",
+            suggestion: "Add .accessibilityElement(children: .combine) so "
+                + "VoiceOver reads the label and value together.",
+            description: "Detects VStack/HStack with exactly two Text children "
+                + "and no interactive elements that lack accessibility grouping."
+        )
+        registry.register(patterns: [stackGroupingPattern])
+
         registry.register(registrars: [HardcodedFontSize()])
     }
 } 

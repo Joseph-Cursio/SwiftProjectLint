@@ -152,6 +152,7 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
     case decorativeImageMissingTrait = "Decorative Image Missing Trait"
     case toggleButtonMissingSelectedTrait = "Toggle Button Missing Selected Trait"
     case buttonTogglingBool = "Button Toggling Bool"
+    case stackMissingAccessibilityGrouping = "Stack Missing Accessibility Grouping"
 
     // Memory Management Rules
     case potentialRetainCycle = "Potential Retain Cycle"
@@ -246,7 +247,8 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
              .iconOnlyButtonMissingLabel, .longTextAccessibility, .hardcodedFontSize,
              .onTapGestureInsteadOfButton, .tapTargetTooSmall,
              .missingDynamicTypeSupport, .decorativeImageMissingTrait,
-             .toggleButtonMissingSelectedTrait, .buttonTogglingBool:
+             .toggleButtonMissingSelectedTrait, .buttonTogglingBool,
+             .stackMissingAccessibilityGrouping:
             return .accessibility
 
             // Memory Management Rules

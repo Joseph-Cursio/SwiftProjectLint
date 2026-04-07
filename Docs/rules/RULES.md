@@ -145,6 +145,7 @@ Rules marked **opt-in** are disabled by default and must be explicitly listed un
 | [Decorative Image Missing Trait](decorative-image-missing-trait.md) | Info *(opt-in)* |
 | [Toggle Button Missing Selected Trait](toggle-button-missing-selected-trait.md) | Warning |
 | [Button Toggling Bool](button-toggling-bool.md) | Info |
+| [Stack Missing Accessibility Grouping](stack-missing-accessibility-grouping.md) | Info |
 
 ## Memory Management
 
