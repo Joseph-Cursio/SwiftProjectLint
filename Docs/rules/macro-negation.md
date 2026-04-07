@@ -15,27 +15,25 @@ This was originally observed by Paul Hudson (Hacking with Swift) and has been ve
 
 ### Verified Failure Output (Swift 6.3 / Xcode 26.4 beta)
 
-Plain boolean — negation form loses the value entirely:
-```swift
-let flag = true
-#expect(!flag)
-// Expectation failed: !(flag → <not evaluated>)
+**Plain boolean:**
 
-#expect(flag == false)
-// Expectation failed: (flag → true) == false
-```
+| Form | Failure output |
+|------|----------------|
+| `#expect(!flag)` | `!(flag -> <not evaluated>)` |
+| `#expect(flag == false)` | `(flag -> true) == false` |
 
-Chained call — negation form produces a confusing triple-arrow chain:
-```swift
-let empty: [Int] = []
-#expect(!empty.isEmpty)
-// Expectation failed: !((empty → []).isEmpty → true → true)
+The negation form loses the value entirely (`<not evaluated>`). The `== false` form shows that `flag` was `true`.
 
-#expect(empty.isEmpty == false)
-// Expectation failed: (empty.isEmpty → true) == false
-```
+**Chained property call:**
 
-The `== false` form is consistently cleaner and immediately shows the actual value. The same applies to `#require`.
+| Form | Failure output |
+|------|----------------|
+| `#expect(!empty.isEmpty)` | `!((empty -> []).isEmpty -> true -> true)` |
+| `#expect(empty.isEmpty == false)` | `(empty.isEmpty -> true) == false` |
+
+The negation form produces a confusing triple-arrow chain. The `== false` form is clean and immediately shows the actual value.
+
+The same applies to `#require`.
 
 ### Scope
 - Flags `#expect(!expr)` and `#require(!expr)` — prefix `!` negation as the first argument
