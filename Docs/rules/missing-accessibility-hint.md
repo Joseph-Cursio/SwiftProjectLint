@@ -13,6 +13,7 @@ Accessibility hints provide additional context about what an interactive element
 - Flags `Button` views containing `Text` that lack an `.accessibilityHint()` modifier
 - Does **not** flag buttons that use `Label` — `Label` provides accessible text automatically
 - Does **not** flag icon-only buttons — those are covered by the [Icon-Only Button Missing Label](icon-only-button-missing-label.md) rule
+- Does **not** flag buttons with `.accessibilityHidden(true)` — hidden elements are invisible to VoiceOver
 - Info severity reflects that hints are recommended but not mandatory for all buttons
 
 ### Non-Violating Examples
@@ -29,6 +30,12 @@ Button {
 } label: {
     Label("Delete", systemImage: "trash")
 }
+
+// Decorative button hidden from VoiceOver — no hint needed
+Button("Dismiss") {
+    dismiss()
+}
+.accessibilityHidden(true)
 ```
 
 ### Violating Examples

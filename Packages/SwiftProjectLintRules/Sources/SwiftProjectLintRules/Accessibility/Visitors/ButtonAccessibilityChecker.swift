@@ -16,6 +16,11 @@ class ButtonAccessibilityChecker {
     }
 
     func checkAccessibility(_ node: FunctionCallExprSyntax) {
+        // Skip buttons explicitly hidden from VoiceOver
+        if AccessibilityTreeTraverser.hasAccessibilityModifier(in: node, modifierName: "accessibilityHidden") {
+            return
+        }
+
         // Track Images found in this Button
         let imagesInThisButton = AccessibilityTreeTraverser.findImages(in: Syntax(node))
         visitor.addImagesInButtons(imagesInThisButton)
