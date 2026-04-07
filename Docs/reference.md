@@ -132,6 +132,16 @@ These rules are **off by default** and must be listed under `enabled_only` to ru
 |------|--------|
 | `Magic Layout Number` | High false-positive rate in many codebases |
 | `Non-Actor Agent Suffix` | Project-specific naming convention |
+| `GeometryReader Overuse` | Sometimes legitimately necessary |
+| `onReceive Without Debounce` | Intentional high-frequency updates would false-positive |
+| `Missing Dynamic Type Support` | `.lineLimit(1)` is legitimate in many UI designs |
+| `Decorative Image Missing Trait` | Determining "decorative" from AST alone is heuristic |
+| `String Switch Over Enum` | Operates without full type info; uses structural heuristic |
+| `Nested Generic Complexity` | Generic-heavy code is sometimes necessary in frameworks |
+| `View Model Direct DB Access` | Many small apps use `@Query` directly per Apple tutorials |
+| `Legacy Array Init` | Pure style preference |
+| `Legacy Closure Syntax` | Some teams prefer explicit closure types |
+| `iOS 17 Observation Migration` | Companion to `legacyObservableObject` for migration planning |
 
 ### Precedence
 
@@ -203,7 +213,7 @@ Inline suppression applies **per-file only**. Cross-file issues (e.g. `Related D
 
 ## Rule Reference
 
-See [docs/rules/RULES.md](rules/RULES.md) for the complete list of 101 rules organized by category, with links to per-rule documentation.
+See [docs/rules/RULES.md](rules/RULES.md) for the complete list of 145 rules organized by category, with links to per-rule documentation.
 
 Each rule doc includes:
 - Display name and identifier
