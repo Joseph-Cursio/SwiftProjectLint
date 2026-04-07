@@ -110,6 +110,34 @@ class Accessibility: BasePatternRegistrar {
         )
         registry.register(patterns: [decorativeImagePattern])
 
+        let toggleButtonPattern = SyntaxPattern(
+            name: .toggleButtonMissingSelectedTrait,
+            visitor: ToggleButtonMissingSelectedTraitVisitor.self,
+            severity: .warning,
+            category: .accessibility,
+            messageTemplate: "Button with conditional appearance may need "
+                + ".accessibilityAddTraits to communicate selected state",
+            suggestion: "Add .accessibilityAddTraits(isSelected ? .isSelected : []) "
+                + "so VoiceOver announces the selection state.",
+            description: "Detects buttons with ternary-driven visuals "
+                + "that lack .accessibilityAddTraits for selected state."
+        )
+        registry.register(patterns: [toggleButtonPattern])
+
+        let buttonTogglingBoolPattern = SyntaxPattern(
+            name: .buttonTogglingBool,
+            visitor: ButtonTogglingBoolVisitor.self,
+            severity: .info,
+            category: .accessibility,
+            messageTemplate: "Button that toggles a Bool could be a Toggle "
+                + "with a custom ToggleStyle",
+            suggestion: "Use Toggle with a custom ToggleStyle to get "
+                + "semantic accessibility traits automatically.",
+            description: "Detects buttons whose action calls .toggle() "
+                + "on a Bool, suggesting a Toggle would be more accessible."
+        )
+        registry.register(patterns: [buttonTogglingBoolPattern])
+
         registry.register(registrars: [HardcodedFontSize()])
     }
 } 
