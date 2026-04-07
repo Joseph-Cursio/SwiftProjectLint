@@ -53,6 +53,29 @@ final class CouldBePrivateMemberVisitor: BasePatternVisitor, CrossFilePatternVis
         "applicationDockMenu", "userNotificationCenter"
     ]
 
+    /// System framework protocols whose members are called by the framework,
+    /// not by app code. Types conforming to these should be excluded because
+    /// their members are protocol requirements that must remain accessible.
+    private static let systemFrameworkProtocols: Set<String> = [
+        // AppIntents
+        "AppIntent", "AppEntity", "AppShortcutsProvider", "EntityQuery",
+        "EntityStringQuery", "EntityPropertyQuery", "AppEnum",
+        // WidgetKit
+        "Widget", "WidgetConfiguration", "TimelineProvider",
+        "IntentTimelineProvider", "AppIntentTimelineProvider",
+        "WidgetBundle", "TimelineEntry",
+        // Notification / Extension points
+        "UNNotificationServiceExtension", "UNNotificationContentExtension",
+        "NEPacketTunnelProvider", "FileProviderExtension",
+        // UIKit / AppKit lifecycle
+        "UIApplicationDelegate", "NSApplicationDelegate",
+        "UISceneDelegate", "UIWindowSceneDelegate",
+        // Core Data / SwiftData
+        "NSManagedObject", "FetchableRecord", "PersistableRecord",
+        // Testing
+        "XCTestCase"
+    ]
+
     required init(fileCache: [String: SourceFileSyntax]) {
         self.fileCache = fileCache
         super.init(pattern: BasePatternVisitor.placeholderPattern, viewMode: .sourceAccurate)
@@ -204,6 +227,13 @@ final class CouldBePrivateMemberVisitor: BasePatternVisitor, CrossFilePatternVis
             // the member may be a protocol requirement
             if let conformances = typeConformanceNames[decl.typeName],
                conformances.contains(where: { projectProtocolNames.contains($0) }) {
+                continue
+            }
+
+            // Suppress members on types conforming to system framework protocols —
+            // members are called by the framework, not by app code
+            if let conformances = typeConformanceNames[decl.typeName],
+               conformances.contains(where: { Self.systemFrameworkProtocols.contains($0) }) {
                 continue
             }
 

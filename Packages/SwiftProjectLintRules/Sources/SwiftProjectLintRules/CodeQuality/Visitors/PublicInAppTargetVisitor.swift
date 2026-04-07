@@ -14,28 +14,73 @@ import SwiftSyntax
 /// visibility between library and executable targets.
 final class PublicInAppTargetVisitor: BasePatternVisitor {
 
+    /// System framework protocols/types that require `public` on conforming
+    /// types and their members (e.g., AppIntents framework loads them dynamically).
+    private static let publicRequiredProtocols: Set<String> = [
+        // AppIntents
+        "AppIntent", "AppEntity", "AppShortcutsProvider", "EntityQuery",
+        "EntityStringQuery", "EntityPropertyQuery", "AppEnum",
+        // WidgetKit
+        "Widget", "WidgetConfiguration", "TimelineProvider",
+        "IntentTimelineProvider", "AppIntentTimelineProvider",
+        "WidgetBundle", "TimelineEntry"
+    ]
+
+    /// Tracks which type names conform to public-required protocols.
+    private var publicRequiredTypes: Set<String> = []
+
+    /// Current type nesting stack for tracking whether a member is inside
+    /// a type that requires public.
+    private var typeNameStack: [String] = []
+
     required init(pattern: SyntaxPattern, viewMode: SyntaxTreeViewMode = .sourceAccurate) {
         super.init(pattern: pattern, viewMode: viewMode)
     }
 
+    // MARK: - Type tracking
+
     override func visit(_ node: StructDeclSyntax) -> SyntaxVisitorContinueKind {
+        trackPublicRequired(node.name.text, inheritance: node.inheritanceClause)
+        typeNameStack.append(node.name.text)
         checkModifiers(node.modifiers, keyword: "struct", name: node.name.text, node: Syntax(node))
         return .visitChildren
     }
 
+    override func visitPost(_ node: StructDeclSyntax) {
+        typeNameStack.removeLast()
+    }
+
     override func visit(_ node: ClassDeclSyntax) -> SyntaxVisitorContinueKind {
+        trackPublicRequired(node.name.text, inheritance: node.inheritanceClause)
+        typeNameStack.append(node.name.text)
         checkModifiers(node.modifiers, keyword: "class", name: node.name.text, node: Syntax(node))
         return .visitChildren
     }
 
+    override func visitPost(_ node: ClassDeclSyntax) {
+        typeNameStack.removeLast()
+    }
+
     override func visit(_ node: EnumDeclSyntax) -> SyntaxVisitorContinueKind {
+        trackPublicRequired(node.name.text, inheritance: node.inheritanceClause)
+        typeNameStack.append(node.name.text)
         checkModifiers(node.modifiers, keyword: "enum", name: node.name.text, node: Syntax(node))
         return .visitChildren
     }
 
+    override func visitPost(_ node: EnumDeclSyntax) {
+        typeNameStack.removeLast()
+    }
+
     override func visit(_ node: ActorDeclSyntax) -> SyntaxVisitorContinueKind {
+        trackPublicRequired(node.name.text, inheritance: node.inheritanceClause)
+        typeNameStack.append(node.name.text)
         checkModifiers(node.modifiers, keyword: "actor", name: node.name.text, node: Syntax(node))
         return .visitChildren
+    }
+
+    override func visitPost(_ node: ActorDeclSyntax) {
+        typeNameStack.removeLast()
     }
 
     override func visit(_ node: ProtocolDeclSyntax) -> SyntaxVisitorContinueKind {
@@ -68,12 +113,31 @@ final class PublicInAppTargetVisitor: BasePatternVisitor {
         return .visitChildren
     }
 
+    private func trackPublicRequired(
+        _ name: String,
+        inheritance: InheritanceClauseSyntax?
+    ) {
+        guard let inheritance else { return }
+        for inherited in inheritance.inheritedTypes {
+            if let ident = inherited.type.as(IdentifierTypeSyntax.self),
+               Self.publicRequiredProtocols.contains(ident.name.text) {
+                publicRequiredTypes.insert(name)
+                return
+            }
+        }
+    }
+
     private func checkModifiers(
         _ modifiers: DeclModifierListSyntax,
         keyword: String,
         name: String,
         node: Syntax
     ) {
+        // Skip declarations inside types that require public for framework conformance
+        if typeNameStack.contains(where: { publicRequiredTypes.contains($0) }) {
+            return
+        }
+
         for modifier in modifiers {
             let access = modifier.name.text
             if access == "public" || access == "open" {
