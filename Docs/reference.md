@@ -132,6 +132,7 @@ These rules are **off by default** and must be listed under `enabled_only` to ru
 |------|--------|
 | `Magic Layout Number` | High false-positive rate in many codebases |
 | `Non-Actor Agent Suffix` | Project-specific naming convention |
+| `Hardcoded Strings` | False positives with String Catalogs (`.xcstrings`) — localization keys look like hardcoded text |
 | `GeometryReader Overuse` | Sometimes legitimately necessary |
 | `onReceive Without Debounce` | Intentional high-frequency updates would false-positive |
 | `Missing Dynamic Type Support` | `.lineLimit(1)` is legitimate in many UI designs |

@@ -80,7 +80,7 @@ Rules marked **opt-in** are disabled by default and must be explicitly listed un
 |------|----------|
 | [Magic Number](magic-number.md) | Info |
 | [Magic Layout Number](magic-layout-number.md) | Info *(opt-in)* |
-| [Hardcoded Strings](hardcoded-strings.md) | Info |
+| [Hardcoded Strings](hardcoded-strings.md) | Info *(opt-in)* |
 | [Missing Documentation](missing-documentation.md) | Info |
 | [Protocol Naming Suffix](protocol-naming-suffix.md) | Info |
 | [Actor Naming Suffix](actor-naming-suffix.md) | Info |

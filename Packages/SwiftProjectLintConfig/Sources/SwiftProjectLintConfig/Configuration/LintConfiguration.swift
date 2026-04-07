@@ -46,6 +46,7 @@ public struct LintConfiguration: Sendable {
     public static let optInRules: Set<RuleIdentifier> = [
         .magicLayoutNumber,
         .nonActorAgentSuffix,
+        .hardcodedStrings,
         .testMissingAssertion,
         .testMissingExpect,
         .testMissingRequire

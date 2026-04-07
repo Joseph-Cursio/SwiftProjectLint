@@ -4,10 +4,12 @@
 
 **Identifier:** `Hardcoded Strings`
 **Category:** Code Quality
-**Severity:** Info
+**Severity:** Info *(opt-in)*
 
 ### Rationale
 String literals that appear directly inside user-facing SwiftUI views should be localized. Hardcoded strings prevent internationalization and make content updates require code changes.
+
+This rule is opt-in because projects using String Catalogs (`.xcstrings`) already localize automatically -- SwiftUI views look up string literal keys at runtime, making these detections false positives.
 
 ### Scope
 - Flags hardcoded string literals (no interpolation) that are direct arguments to user-facing SwiftUI calls: `Text`, `Label`, `Button`, `Toggle`, `Picker`, `Slider`, `Section`, `NavigationLink`, `TabItem`, `DisclosureGroup`, `.navigationTitle()`, `.alert()`, `.confirmationDialog()`, `.help()`, `.badge()`, and others
