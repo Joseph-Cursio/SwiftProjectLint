@@ -23,6 +23,7 @@ class DirectInstantiationVisitor: BasePatternVisitor {
         case adapter = "Adapter"
         case viewModel = "ViewModel"
         case coordinator = "Coordinator"
+        case generator = "Generator"
     }
 
     required init(pattern: SyntaxPattern, viewMode: SyntaxTreeViewMode = .sourceAccurate) {

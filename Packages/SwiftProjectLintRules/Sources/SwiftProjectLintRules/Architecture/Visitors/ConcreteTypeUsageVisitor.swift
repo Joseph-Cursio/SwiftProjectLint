@@ -33,6 +33,7 @@ class ConcreteTypeUsageVisitor: BasePatternVisitor {
         case adapter = "Adapter"
         case viewModel = "ViewModel"
         case coordinator = "Coordinator"
+        case generator = "Generator"
     }
 
     /// Foundation / system types that are concrete by design and cannot

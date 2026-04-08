@@ -190,6 +190,7 @@ class ArchitectureVisitor: BasePatternVisitor {
         case controller = "Controller"
         case factory = "Factory"
         case adapter = "Adapter"
+        case generator = "Generator"
     }
 
     /**
