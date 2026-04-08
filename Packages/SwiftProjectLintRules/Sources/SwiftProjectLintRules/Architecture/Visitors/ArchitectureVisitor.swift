@@ -139,26 +139,48 @@ class ArchitectureVisitor: BasePatternVisitor {
     private func detectStateObjectCreation(_ node: VariableDeclSyntax) {
         for binding in node.bindings where binding.pattern.as(IdentifierPatternSyntax.self) != nil {
             let propertyWrapper = extractPropertyWrapper(from: node)
+
+            // @StateObject: always flag inline creation (it's always a reference type)
             if propertyWrapper == .stateObject {
-                    // Check if it's being created inline
-                    if let initializer = binding.initializer {
-                        let initText = initializer.value.description.trimmingCharacters(in: .whitespacesAndNewlines)
-                        if initText.hasSuffix("()") {
-                            hasStateObjectCreation = true
-                            // Try to extract type annotation, else infer from initializer
-                            var typeName = extractTypeAnnotation(from: binding)
-                            if typeName.isEmpty {
-                                // Try to infer from initializer, e.g. UserManager() -> UserManager
-                                if let expr = initializer.value.as(FunctionCallExprSyntax.self) {
-                                    typeName = expr.calledExpression.description
-                                        .trimmingCharacters(in: .whitespacesAndNewlines)
-                                }
-                            }
-                            stateObjectType = typeName
-                        }
+                if let initializer = binding.initializer {
+                    let initText = initializer.value.description.trimmingCharacters(in: .whitespacesAndNewlines)
+                    if initText.hasSuffix("()") {
+                        hasStateObjectCreation = true
+                        stateObjectType = inferTypeName(from: binding, initializer: initializer)
                     }
                 }
+            }
+
+            // @State: only flag when the initialized type looks like a service
+            // (e.g., @State private var viewModel = DiagramViewModel())
+            // Skip simple value types like @State private var count = 0
+            if propertyWrapper == .state {
+                if let initializer = binding.initializer,
+                   let expr = initializer.value.as(FunctionCallExprSyntax.self) {
+                    let callee = expr.calledExpression.description
+                        .trimmingCharacters(in: .whitespacesAndNewlines)
+                    if callee.first?.isUppercase == true,
+                       ProtocolizableClassSuffix.allCases.contains(where: { callee.hasSuffix($0.rawValue) }) {
+                        hasStateObjectCreation = true
+                        stateObjectType = callee
+                    }
+                }
+            }
         }
+    }
+
+    private func inferTypeName(
+        from binding: PatternBindingSyntax,
+        initializer: InitializerClauseSyntax
+    ) -> String {
+        var typeName = extractTypeAnnotation(from: binding)
+        if typeName.isEmpty {
+            if let expr = initializer.value.as(FunctionCallExprSyntax.self) {
+                typeName = expr.calledExpression.description
+                    .trimmingCharacters(in: .whitespacesAndNewlines)
+            }
+        }
+        return typeName
     }
 
     private func detectMissingDependencyInjection(_ node: InitializerDeclSyntax) {
@@ -190,6 +212,7 @@ class ArchitectureVisitor: BasePatternVisitor {
         case controller = "Controller"
         case factory = "Factory"
         case adapter = "Adapter"
+        case viewModel = "ViewModel"
         case generator = "Generator"
     }
 

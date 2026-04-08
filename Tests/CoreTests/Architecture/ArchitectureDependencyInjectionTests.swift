@@ -116,6 +116,78 @@ struct ArchitectureDependencyInjectionTests {
         #expect(diIssues.isEmpty)
     }
 
+    // MARK: - @State with service-like types
+
+    @Test("@State with service-like type fires missing DI")
+    func stateWithServiceTypeFires() {
+        let source = """
+        struct ContentView: View {
+            @State private var viewModel = DiagramViewModel()
+            var body: some View { Text("") }
+        }
+        """
+        let issues = detectIssues(in: source)
+        let diIssues = issues.filter { $0.ruleName == .missingDependencyInjection }
+        #expect(diIssues.isEmpty == false)
+        #expect(diIssues.first?.message.contains("DiagramViewModel") == true)
+    }
+
+    @Test("@State with Manager suffix fires missing DI")
+    func stateWithManagerTypeFires() {
+        let source = """
+        struct AppView: View {
+            @State private var subscriptionManager = SubscriptionManager()
+            var body: some View { Text("") }
+        }
+        """
+        let issues = detectIssues(in: source)
+        let diIssues = issues.filter { $0.ruleName == .missingDependencyInjection }
+        #expect(diIssues.isEmpty == false)
+    }
+
+    @Test("@State with Generator suffix fires missing DI")
+    func stateWithGeneratorTypeFires() {
+        let source = """
+        struct DiagramView: View {
+            @State private var generator = ClassDiagramGenerator()
+            var body: some View { Text("") }
+        }
+        """
+        let issues = detectIssues(in: source)
+        let diIssues = issues.filter { $0.ruleName == .missingDependencyInjection }
+        #expect(diIssues.isEmpty == false)
+    }
+
+    @Test("@State with simple value type does not fire")
+    func stateWithValueTypeDoesNotFire() {
+        let source = """
+        struct CounterView: View {
+            @State private var count = 0
+            @State private var name = ""
+            @State private var isActive = false
+            var body: some View { Text("\\(count)") }
+        }
+        """
+        let issues = detectIssues(in: source)
+        let diIssues = issues.filter { $0.ruleName == .missingDependencyInjection }
+        #expect(diIssues.isEmpty)
+    }
+
+    @Test("@State with non-service class does not fire")
+    func stateWithNonServiceClassDoesNotFire() {
+        let source = """
+        struct MyView: View {
+            @State private var config = AppConfig()
+            var body: some View { Text("") }
+        }
+        """
+        let issues = detectIssues(in: source)
+        let diIssues = issues.filter { $0.ruleName == .missingDependencyInjection }
+        #expect(diIssues.isEmpty)
+    }
+
+    // MARK: - Sibling struct bleed fix
+
     @Test("Non-view struct init after view-suffixed struct does not fire")
     func nonViewSiblingAfterViewDoesNotFire() {
         let source = """
