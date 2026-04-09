@@ -147,6 +147,7 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
     case longTextAccessibility = "Long Text Accessibility"
     case hardcodedFontSize = "Hardcoded Font Size"
     case onTapGestureInsteadOfButton = "onTapGesture Instead of Button"
+    case onTapGestureMissingAccessibility = "onTapGesture Missing Accessibility"
     case tapTargetTooSmall = "Tap Target Too Small"
     case missingDynamicTypeSupport = "Missing Dynamic Type Support"
     case decorativeImageMissingTrait = "Decorative Image Missing Trait"
@@ -247,7 +248,7 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
             // Accessibility Rules
         case .missingAccessibilityLabel, .missingAccessibilityHint, .inaccessibleColorUsage,
              .iconOnlyButtonMissingLabel, .longTextAccessibility, .hardcodedFontSize,
-             .onTapGestureInsteadOfButton, .tapTargetTooSmall,
+             .onTapGestureInsteadOfButton, .onTapGestureMissingAccessibility, .tapTargetTooSmall,
              .missingDynamicTypeSupport, .decorativeImageMissingTrait,
              .toggleButtonMissingSelectedTrait, .buttonTogglingBool,
              .stackMissingAccessibilityGrouping,

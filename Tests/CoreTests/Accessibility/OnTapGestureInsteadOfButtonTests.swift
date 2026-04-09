@@ -155,6 +155,97 @@ struct OnTapGestureInsteadOfButtonTests {
         #expect(issues.isEmpty)
     }
 
+    // MARK: - Accessibility check for allowed gestures
+
+    private func accessibilityIssues(_ source: String) -> [LintIssue] {
+        analyzeSource(source).filter { $0.ruleName == .onTapGestureMissingAccessibility }
+    }
+
+    @Test func testDoubleTapWithoutAccessibilityFlagsInfo() throws {
+        let source = """
+        struct MyView: View {
+            var body: some View {
+                Canvas { ctx, size in }
+                    .onTapGesture(count: 2) { resetZoom() }
+            }
+        }
+        """
+        let issues = accessibilityIssues(source)
+        #expect(issues.count == 1)
+        #expect(issues.first?.severity == .info)
+        #expect(issues.first?.message.contains("VoiceOver") == true)
+    }
+
+    @Test func testDoubleTapWithAccessibilityTraitsNoIssue() throws {
+        let source = """
+        struct MyView: View {
+            var body: some View {
+                Canvas { ctx, size in }
+                    .onTapGesture(count: 2) { resetZoom() }
+                    .accessibilityAddTraits(.isButton)
+            }
+        }
+        """
+        let issues = accessibilityIssues(source)
+        #expect(issues.isEmpty)
+    }
+
+    @Test func testDoubleTapWithAccessibilityLabelNoIssue() throws {
+        let source = """
+        struct MyView: View {
+            var body: some View {
+                Canvas { ctx, size in }
+                    .onTapGesture(count: 2) { resetZoom() }
+                    .accessibilityLabel("Reset zoom")
+            }
+        }
+        """
+        let issues = accessibilityIssues(source)
+        #expect(issues.isEmpty)
+    }
+
+    @Test func testTripleTapWithoutAccessibilityFlags() throws {
+        let source = """
+        struct MyView: View {
+            var body: some View {
+                Text("Tap me")
+                    .onTapGesture(count: 3) { tripleTapped() }
+            }
+        }
+        """
+        let issues = accessibilityIssues(source)
+        #expect(issues.count == 1)
+    }
+
+    @Test func testLocationAwareWithoutAccessibilityFlags() throws {
+        let source = """
+        struct MyView: View {
+            var body: some View {
+                Text("Tap here")
+                    .onTapGesture { location in
+                        handleTap(at: location)
+                    }
+            }
+        }
+        """
+        let issues = accessibilityIssues(source)
+        #expect(issues.count == 1)
+    }
+
+    @Test func testSimpleTapDoesNotFireAccessibilityRule() throws {
+        let source = """
+        struct MyView: View {
+            var body: some View {
+                Text("Tap").onTapGesture { tapped() }
+            }
+        }
+        """
+        let issues = accessibilityIssues(source)
+        #expect(issues.isEmpty)
+    }
+
+    // MARK: - Other gestures
+
     @Test func testNoIssueForOtherGestures() throws {
         let source = """
         struct MyView: View {
