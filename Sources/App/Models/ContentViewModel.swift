@@ -212,12 +212,15 @@ class ContentViewModel {
     }
 
     /// Saves the current GUI state to `.swiftprojectlint.yml` in the project directory.
+    ///
+    /// Uses `SafeFileWriter` for atomic writes with timestamped backups.
     func saveConfigToProject() {
         guard !selectedDirectory.isEmpty else { return }
         let config = buildConfiguration()
-        let path = (selectedDirectory as NSString)
+        let fileURL = URL(fileURLWithPath: selectedDirectory)
             .appendingPathComponent(configPersistence.defaultFileName)
-        configPersistence.write(config, to: path)
+        let content = LintConfigurationWriter.render(config)
+        try? SafeFileWriter.write(content, to: fileURL, createBackup: true)
         loadedConfig = config
         configIsDirty = false
     }
