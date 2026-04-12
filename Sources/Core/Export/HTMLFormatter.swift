@@ -138,7 +138,7 @@ public struct HTMLFormatter: IssueFormatterProtocol {
         switch severity {
         case .error: "severity-error"
         case .warning: "severity-warning"
-        case .info: "severity-warning"
+        case .info: "severity-info"
         }
     }
 }
