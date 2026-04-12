@@ -1,13 +1,15 @@
-import Core
+import SwiftProjectLintModels
 
 /// Formats lint issues as human-readable text in the style of compiler diagnostics.
-struct TextFormatter: IssueFormatterProtocol {
+public struct TextFormatter: IssueFormatterProtocol {
+    public init() {}
+
     /// Formats a list of lint issues as text lines.
     ///
     /// Each issue is formatted as:
     ///   `filepath:line: severity: [ruleName] message`
     /// with an optional indented suggestion line below.
-    func format(issues: [LintIssue]) -> String {
+    public func format(issues: [LintIssue]) -> String {
         var lines: [String] = []
 
         for issue in issues {
@@ -30,7 +32,7 @@ struct TextFormatter: IssueFormatterProtocol {
     }
 
     /// Returns a summary line like "Found 5 issues (1 error, 3 warnings, 1 info)".
-    func summaryLine(for issues: [LintIssue]) -> String {
+    public func summaryLine(for issues: [LintIssue]) -> String {
         let errorCount = issues.filter { $0.severity == .error }.count
         let warningCount = issues.filter { $0.severity == .warning }.count
         let infoCount = issues.filter { $0.severity == .info }.count

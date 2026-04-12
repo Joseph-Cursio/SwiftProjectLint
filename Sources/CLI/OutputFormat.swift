@@ -1,11 +1,6 @@
 import ArgumentParser
 import Core
 
-/// Contract for types that render lint issues into a string report.
-protocol IssueFormatterProtocol {
-    func format(issues: [LintIssue]) -> String
-}
-
 /// The output format for lint results.
 enum OutputFormat: String, ExpressibleByArgument, CaseIterable {
     case text

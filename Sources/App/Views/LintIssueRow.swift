@@ -33,6 +33,10 @@ struct LintIssueRow: View {
                         .foregroundStyle(.primary)
                         .fixedSize(horizontal: true, vertical: true)
                         .lineLimit(nil)
+                    Text(issue.ruleName.rawValue)
+                        .font(.caption)
+                        .foregroundStyle(.tertiary)
+                        .fontDesign(.monospaced)
                     if issue.locations.count == 1 {
                         Text("\(issue.locations[0].filePath):\(issue.locations[0].lineNumber)")
                             .font(.caption)

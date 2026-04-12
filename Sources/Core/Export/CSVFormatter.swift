@@ -1,10 +1,12 @@
 import Foundation
-import Core
+import SwiftProjectLintModels
 import LintStudioCore
 
 /// Formats lint issues as a CSV report using the shared LintStudioCore escaping.
-struct CSVFormatter: IssueFormatterProtocol {
-    func format(issues: [LintIssue]) -> String {
+public struct CSVFormatter: IssueFormatterProtocol {
+    public init() {}
+
+    public func format(issues: [LintIssue]) -> String {
         let header = [
             "Rule",
             "Category",

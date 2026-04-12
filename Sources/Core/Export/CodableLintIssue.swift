@@ -1,26 +1,25 @@
 import Foundation
-import Core
+import SwiftProjectLintModels
 
-// swiftprojectlint:disable:this could-be-private
 /// A Codable-friendly location for lint issues.
-struct IssueLocation: Codable {
-    let filePath: String
-    let lineNumber: Int
+public struct IssueLocation: Codable, Sendable {
+    public let filePath: String
+    public let lineNumber: Int
 }
 
 /// A Codable wrapper around LintIssue for JSON serialization.
 ///
 /// LintIssue uses tuple-based locations which aren't directly Codable,
 /// so this struct provides a clean mapping without modifying Core types.
-struct CodableLintIssue: Codable {
-    let severity: String
-    let message: String
-    let locations: [IssueLocation]
-    let suggestion: String?
-    let ruleName: String
-    let category: String
+public struct CodableLintIssue: Codable, Sendable {
+    public let severity: String
+    public let message: String
+    public let locations: [IssueLocation]
+    public let suggestion: String?
+    public let ruleName: String
+    public let category: String
 
-    init(from issue: LintIssue) {
+    public init(from issue: LintIssue) {
         self.severity = issue.severity.rawValue
         self.message = issue.message
         self.locations = issue.locations.map {

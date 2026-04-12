@@ -1,3 +1,4 @@
+@_exported import LintStudioCore
 @_exported import SwiftProjectLintConfig
 @_exported import SwiftProjectLintEngine
 @_exported import SwiftProjectLintModels

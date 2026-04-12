@@ -1,10 +1,12 @@
 import Foundation
-import Core
+import SwiftProjectLintModels
 import LintStudioCore
 
 /// Formats lint issues as an HTML report using the shared LintStudioCore template.
-struct HTMLFormatter: IssueFormatterProtocol {
-    func format(issues: [LintIssue]) -> String {
+public struct HTMLFormatter: IssueFormatterProtocol {
+    public init() {}
+
+    public func format(issues: [LintIssue]) -> String {
         let errorCount = issues.filter { $0.severity == .error }.count
         let warningCount = issues.filter { $0.severity == .warning }.count
         let infoCount = issues.filter { $0.severity == .info }.count
@@ -136,7 +138,7 @@ struct HTMLFormatter: IssueFormatterProtocol {
         switch severity {
         case .error: "severity-error"
         case .warning: "severity-warning"
-        case .info: "severity-warning" // reuse warning style for info
+        case .info: "severity-warning"
         }
     }
 }
