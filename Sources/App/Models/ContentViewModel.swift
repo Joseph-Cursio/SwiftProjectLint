@@ -40,6 +40,15 @@ class ContentViewModel {
     /// Whether the current GUI state differs from the loaded YAML config.
     var configIsDirty: Bool = false
 
+    /// Whether the config diff preview sheet is showing.
+    var showingConfigDiffPreview: Bool = false
+
+    /// The YAML string for the current on-disk config (before changes).
+    var beforeYAML: String = ""
+
+    /// The YAML string for the pending config (after changes).
+    var afterYAML: String = ""
+
     /// The configuration as loaded from the YAML file (for dirty tracking).
     private var loadedConfig: LintConfiguration?
 
@@ -192,6 +201,14 @@ class ContentViewModel {
             excludedPaths: computeExcludedPathsFromTree(),
             ruleOverrides: overrides
         )
+    }
+
+    /// Prepares a diff preview of the config changes and shows the preview sheet.
+    func showConfigDiffPreview() {
+        let currentConfig = loadedConfig ?? LintConfiguration.default
+        beforeYAML = LintConfigurationWriter.render(currentConfig)
+        afterYAML = LintConfigurationWriter.render(buildConfiguration())
+        showingConfigDiffPreview = true
     }
 
     /// Saves the current GUI state to `.swiftprojectlint.yml` in the project directory.

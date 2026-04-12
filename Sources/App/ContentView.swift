@@ -97,6 +97,19 @@ struct ContentView: View {
             .onDisappear {
                 viewModel.cancelAnalysis()
             }
+            .sheet(isPresented: $viewModel.showingConfigDiffPreview) {
+                ConfigDiffPreviewSheet(
+                    beforeYAML: viewModel.beforeYAML,
+                    afterYAML: viewModel.afterYAML,
+                    onConfirm: {
+                        viewModel.saveConfigToProject()
+                        viewModel.showingConfigDiffPreview = false
+                    },
+                    onCancel: {
+                        viewModel.showingConfigDiffPreview = false
+                    }
+                )
+            }
         }
     }
 
@@ -108,7 +121,7 @@ struct ContentView: View {
                 ruleExclusions: $viewModel.ruleExclusions,
                 configIsDirty: viewModel.configIsDirty,
                 onSave: viewModel.saveEnabledRules,
-                onSaveConfig: viewModel.saveConfigToProject,
+                onSaveConfig: viewModel.showConfigDiffPreview,
                 onDismiss: {}
             )
         )

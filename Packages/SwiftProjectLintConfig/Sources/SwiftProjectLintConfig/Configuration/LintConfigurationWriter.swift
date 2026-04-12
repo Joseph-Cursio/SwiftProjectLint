@@ -4,8 +4,8 @@ import Foundation
 /// Writes a `LintConfiguration` to a YAML file.
 public struct LintConfigurationWriter {
 
-    /// Writes the configuration to a `.swiftprojectlint.yml` file at the given path.
-    public static func write(_ config: LintConfiguration, to path: String) {
+    /// Renders the configuration as a YAML string.
+    public static func render(_ config: LintConfiguration) -> String {
         var lines: [String] = []
 
         // disabled_rules
@@ -57,7 +57,12 @@ public struct LintConfigurationWriter {
             lines.append("")
         }
 
-        let content = lines.joined(separator: "\n")
+        return lines.joined(separator: "\n")
+    }
+
+    /// Writes the configuration to a `.swiftprojectlint.yml` file at the given path.
+    public static func write(_ config: LintConfiguration, to path: String) {
+        let content = render(config)
         try? content.write(toFile: path, atomically: true, encoding: .utf8)
     }
 
