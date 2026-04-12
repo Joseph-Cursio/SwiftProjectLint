@@ -2,6 +2,7 @@ import Testing
 import SwiftUI
 import ViewInspector
 import Core
+import LintStudioUI
 
 @testable import App
 
@@ -83,11 +84,11 @@ struct IssueSummarySectionTests {
         #expect(zeroCount == 2) // Errors and Info
     }
 
-    @Test("renders four SummaryItem components")
-    func rendersFourSummaryItems() throws {
+    @Test("renders four StatisticBadge components")
+    func rendersFourStatisticBadges() throws {
         let view = IssueSummarySection(issues: [])
         let inspected = try view.inspect()
-        let items = inspected.findAll(SummaryItem.self)
+        let items = inspected.findAll(StatisticBadge.self)
         #expect(items.count == 4)
     }
 }

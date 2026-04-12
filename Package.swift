@@ -31,7 +31,8 @@ let package = Package(
         .package(url: "https://github.com/apple/swift-syntax.git", exact: "602.0.0"),
         .package(url: "https://github.com/nalexn/ViewInspector.git", from: "0.9.5"),
         .package(url: "https://github.com/apple/swift-argument-parser.git", from: "1.3.0"),
-        .package(url: "https://github.com/jpsim/Yams.git", from: "5.0.0")
+        .package(url: "https://github.com/jpsim/Yams.git", from: "5.0.0"),
+        .package(path: "../LintStudioUI")
     ],
     targets: [
         .target(
@@ -51,7 +52,11 @@ let package = Package(
         ),
         .executableTarget(
             name: "App",
-            dependencies: ["Core"],
+            dependencies: [
+                "Core",
+                .product(name: "LintStudioCore", package: "LintStudioUI"),
+                .product(name: "LintStudioUI", package: "LintStudioUI")
+            ],
             path: "Sources/App",
             resources: [
                 .process("Assets.xcassets"),
@@ -74,7 +79,10 @@ let package = Package(
         ),
         .testTarget(
             name: "AppTests",
-            dependencies: ["Core", "App", "ViewInspector"],
+            dependencies: [
+                "Core", "App", "ViewInspector",
+                .product(name: "LintStudioUI", package: "LintStudioUI")
+            ],
             path: "Tests/AppTests",
             swiftSettings: [
                 .enableUpcomingFeature("MemberImportVisibility")

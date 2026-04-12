@@ -1,5 +1,6 @@
 import SwiftUI
 import Core
+import LintStudioUI
 
 /// A reusable summary section displaying issue counts by severity.
 ///
@@ -18,23 +19,23 @@ struct IssueSummarySection: View {
                 }
 
                 HStack(spacing: 16) {
-                    SummaryItem(
-                        title: "Total Issues",
+                    StatisticBadge(
+                        label: "Total Issues",
                         value: "\(issues.count)",
                         color: .primary
                     )
-                    SummaryItem(
-                        title: "Errors",
+                    StatisticBadge(
+                        label: "Errors",
                         value: "\(issues.filter { $0.severity == .error }.count)",
                         color: .red
                     )
-                    SummaryItem(
-                        title: "Warnings",
+                    StatisticBadge(
+                        label: "Warnings",
                         value: "\(issues.filter { $0.severity == .warning }.count)",
                         color: .orange
                     )
-                    SummaryItem(
-                        title: "Info",
+                    StatisticBadge(
+                        label: "Info",
                         value: "\(issues.filter { $0.severity == .info }.count)",
                         color: .blue
                     )
