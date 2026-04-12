@@ -13,7 +13,7 @@ struct SwiftProjectLintCLI: AsyncParsableCommand {
     @Argument(help: "Path to the Swift project directory to analyze.")
     var projectPath: String
 
-    @Option(name: .long, help: "Output format: text or json.")
+    @Option(name: .long, help: "Output format: text, json, html, or csv.")
     var format: OutputFormat = .text
 
     @Option(name: .long, help: "Minimum severity to trigger a non-zero exit: error, warning, or info.")

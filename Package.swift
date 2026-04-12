@@ -46,7 +46,8 @@ let package = Package(
             name: "CLI",
             dependencies: [
                 "Core",
-                .product(name: "ArgumentParser", package: "swift-argument-parser")
+                .product(name: "ArgumentParser", package: "swift-argument-parser"),
+                .product(name: "LintStudioCore", package: "LintStudioUI")
             ],
             path: "Sources/CLI"
         ),
@@ -69,7 +70,10 @@ let package = Package(
         ),
         .testTarget(
             name: "CLITests",
-            dependencies: ["Core", "CLI"],
+            dependencies: [
+                "Core", "CLI",
+                .product(name: "LintStudioCore", package: "LintStudioUI")
+            ],
             path: "Tests/CLITests"
         ),
         .testTarget(
