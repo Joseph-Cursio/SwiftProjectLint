@@ -53,6 +53,7 @@ public struct LintConfigurationLoader {
         let disabledRules = parseRuleList(yaml["disabled_rules"])
         let excludedPaths = parseStringList(yaml["excluded_paths"])
         let ruleOverrides = parseRuleOverrides(yaml["rules"])
+        let architecturalLayers = parseArchitecturalLayers(yaml["architectural_layers"])
 
         // enabled_only is nil when the key is absent; only set when explicitly provided
         let enabledOnlyRules: Set<RuleIdentifier>?
@@ -68,8 +69,26 @@ public struct LintConfigurationLoader {
             disabledRules: disabledRules,
             enabledOnlyRules: enabledOnlyRules,
             excludedPaths: excludedPaths,
-            ruleOverrides: ruleOverrides
+            ruleOverrides: ruleOverrides,
+            architecturalLayers: architecturalLayers
         )
+    }
+
+    private static func parseArchitecturalLayers(_ value: Any?) -> [LayerPolicy] {
+        guard let dict = value as? [String: Any] else { return [] }
+        return dict.compactMap { name, layerValue -> LayerPolicy? in
+            guard let layerDict = layerValue as? [String: Any] else { return nil }
+            let paths = parseStringList(layerDict["paths"])
+            guard !paths.isEmpty else { return nil }
+            let forbiddenImports = Set(parseStringList(layerDict["forbidden_imports"]))
+            let forbiddenTypes = Set(parseStringList(layerDict["forbidden_types"]))
+            return LayerPolicy(
+                name: name,
+                paths: paths,
+                forbiddenImports: forbiddenImports,
+                forbiddenTypes: forbiddenTypes
+            )
+        }
     }
 
     private static func parseRuleList(_ value: Any?) -> Set<RuleIdentifier> {
