@@ -22,7 +22,10 @@ import Core
 @main
 struct SwiftProjectLintApp: App {
 
-    // Global system components - these will be injected into views that need them
+    // SystemComponents uses ObservableObject intentionally — ViewInspector requires
+    // @EnvironmentObject injection and does not support @Environment(Type.self) for
+    // @Observable types. Migration is blocked until ViewInspector adds that support.
+    // swiftprojectlint:disable:next legacy-observable-object ios17-observation-migration
     @StateObject private var systemComponents = SystemComponents()
 
     init() {

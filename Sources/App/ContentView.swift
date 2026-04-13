@@ -25,6 +25,7 @@ import UniformTypeIdentifiers
 /// - Expandable results with detailed issue information
 /// - Persistent rule preferences across app launches
 struct ContentView: View {
+    // swiftprojectlint:disable:next legacy-observable-object
     @EnvironmentObject private var systemComponents: SystemComponents
     @State private var viewModel = ContentViewModel()
 
@@ -146,6 +147,10 @@ struct ContentView: View {
 // Always use ContentViewPreviewHost() for previews and tests to avoid @State
 // access warnings. Never use ContentView() directly.
 struct ContentViewPreviewHost: View {
+    // SystemComponents uses ObservableObject intentionally — ViewInspector requires
+    // @EnvironmentObject injection and does not support @Environment(Type.self) for
+    // @Observable types. Migration is blocked until ViewInspector adds that support.
+    // swiftprojectlint:disable:next legacy-observable-object ios17-observation-migration
     @StateObject private var systemComponents = SystemComponents()
     var body: some View {
         ContentView()
