@@ -103,7 +103,8 @@ class Architecture: BasePatternRegistrar {
             SwiftDataUniqueAttribute(),
             GodViewModel(),
             ViewModelDirectDBAccess(),
-            CircularDependency()
+            CircularDependency(),
+            ArchitecturalBoundary()
         ])
     }
 } 
