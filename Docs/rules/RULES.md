@@ -1,6 +1,6 @@
 # SwiftProjectLint Rules Reference
 
-SwiftProjectLint is a static analysis tool for SwiftUI projects. It parses Swift source files using SwiftSyntax AST visitors to detect anti-patterns spanning state management, performance, animations, architecture, code quality, security, accessibility, memory management, networking, UI patterns, and modernization. This reference documents all 145 lint rules, organized by category.
+SwiftProjectLint is a static analysis tool for SwiftUI projects. It parses Swift source files using SwiftSyntax AST visitors to detect anti-patterns spanning state management, performance, animations, architecture, code quality, security, accessibility, memory management, networking, UI patterns, and modernization. This reference documents all 150 lint rules, organized by category.
 
 Rules marked **opt-in** are disabled by default and must be explicitly listed under `enabled_only` in `.swiftprojectlint.yml`.
 
@@ -97,7 +97,7 @@ Rules marked **opt-in** are disabled by default and must be explicitly listed un
 | [Force Try](force-try.md) | Warning |
 | [Force Unwrap](force-unwrap.md) | Info |
 | [Print Statement](print-statement.md) | Info |
-| [Empty Catch](empty-catch.md) | Warning |
+| [Catch Without Handling](catch-without-handling.md) | Warning |
 | [TODO Comment](todo-comment.md) | Info |
 | [Task Detached](task-detached.md) | Info |
 | [Async Let Unused](async-let-unused.md) | Warning |
@@ -105,6 +105,10 @@ Rules marked **opt-in** are disabled by default and must be explicitly listed un
 | [Nonisolated Unsafe](nonisolated-unsafe.md) | Warning |
 | [Task Yield Offload](task-yield-offload.md) | Info |
 | [Swallowed Task Error](swallowed-task-error.md) | Warning |
+| [Missing Cancellation Check](missing-cancellation-check.md) | Warning |
+| [Fire And Forget Task](fire-and-forget-task.md) | Warning |
+| [Discarded Try Result](discarded-try-result.md) | Warning |
+| [Map Used For Side Effects](map-used-for-side-effects.md) | Warning |
 | [Could Be Private](could-be-private.md) | Info |
 | [Public in App Target](public-in-app-target.md) | Info |
 | [Could Be Private Member](could-be-private-member.md) | Info |
@@ -162,6 +166,7 @@ Rules marked **opt-in** are disabled by default and must be explicitly listed un
 |------|----------|
 | [Missing Error Handling](missing-error-handling.md) | Warning |
 | [Synchronous Network Call](synchronous-network-call.md) | Error |
+| [URLSession Unhandled Error](url-session-unhandled-error.md) | Warning |
 
 ## UI Patterns
 

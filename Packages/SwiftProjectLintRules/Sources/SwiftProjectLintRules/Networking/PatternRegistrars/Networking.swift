@@ -29,5 +29,6 @@ class Networking: BasePatternRegistrar {
             )
         ]
         registry.register(patterns: patterns)
+        registry.register(registrars: [URLSessionUnhandledError()])
     }
 }

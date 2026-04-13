@@ -3,9 +3,10 @@ import SwiftProjectLintRegistry
 import SwiftProjectLintVisitors
 import Foundation
 
-/// A registrar for the Empty Catch pattern.
+/// A registrar for the catch-without-handling pattern.
 ///
-/// Provides the pattern for detecting empty catch blocks that silently swallow errors.
+/// Provides the pattern for detecting `catch` blocks that swallow errors without
+/// rethrowing, logging, or propagating error state.
 struct EmptyCatch: PatternRegistrarProtocol {
 
     var pattern: SyntaxPattern {
@@ -14,10 +15,13 @@ struct EmptyCatch: PatternRegistrarProtocol {
             visitor: EmptyCatchVisitor.self,
             severity: .warning,
             category: .codeQuality,
-            messageTemplate: "Empty catch block silently swallows errors",
-            suggestion: "Log the error or handle it explicitly. Use catch { print(error) } at minimum.",
-            description: "Detects catch blocks with empty bodies that silently swallow errors, "
-                + "making failures difficult to diagnose."
+            messageTemplate: "Catch block does not rethrow, log, or propagate the error",
+            suggestion: "Rethrow with 'throw error', log with 'print(error)' / 'logger.error(...)', "
+                + "or assign to error state. Use 'swiftprojectlint:disable:next catch-without-handling' "
+                + "if swallowing is intentional.",
+            description: "Detects catch blocks that silently swallow errors by not rethrowing, "
+                + "logging, referencing the error variable, or calling assertionFailure/fatalError. "
+                + "Catches that only update unrelated state (e.g. isLoading = false) are also flagged."
         )
     }
 }

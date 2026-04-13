@@ -144,7 +144,11 @@ class CodeQuality: BasePatternRegistrar {
             FontWeightBold(),
             GlobalActorMismatch(),
             NestedGenericComplexity(),
-            MagicBooleanParameter()
+            MagicBooleanParameter(),
+            MissingCancellationCheck(),
+            FireAndForgetTask(),
+            DiscardedTryResult(),
+            MapUsedForSideEffects()
         ])
     }
 }

@@ -76,7 +76,7 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
     case forceTry = "Force Try"
     case forceUnwrap = "Force Unwrap"
     case printStatement = "Print Statement"
-    case emptyCatch = "Empty Catch"
+    case emptyCatch = "Catch Without Handling"
     case todoComment = "TODO Comment"
     case swiftlintSuppression = "SwiftLint Suppression"
     case swiftprojectlintSuppression = "SwiftProjectLint Suppression"
@@ -86,6 +86,10 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
     case nonisolatedUnsafe = "Nonisolated Unsafe"
     case taskYieldOffload = "Task Yield Offload"
     case swallowedTaskError = "Swallowed Task Error"
+    case missingCancellationCheck = "Missing Cancellation Check"
+    case fireAndForgetTask = "Fire And Forget Task"
+    case discardedTryResult = "Discarded Try Result"
+    case mapUsedForSideEffects = "Map Used For Side Effects"
     case couldBePrivate = "Could Be Private"
     case publicInAppTarget = "Public in App Target"
     case couldBePrivateMember = "Could Be Private Member"
@@ -164,6 +168,7 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
     // Networking Rules
     case missingErrorHandling = "Missing Error Handling"
     case synchronousNetworkCall = "Synchronous Network Call"
+    case urlSessionUnhandledError = "URLSession Unhandled Error"
 
     // UI Pattern Rules
     case nestedNavigationView = "Nested Navigation View"
@@ -233,6 +238,8 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
              .todoComment, .swiftlintSuppression, .swiftprojectlintSuppression,
              .taskDetached, .asyncLetUnused, .buttonClosureWrapping,
              .nonisolatedUnsafe, .taskYieldOffload, .swallowedTaskError,
+             .missingCancellationCheck, .fireAndForgetTask,
+             .discardedTryResult, .mapUsedForSideEffects,
              .couldBePrivate, .publicInAppTarget, .couldBePrivateMember,
              .protocolCouldBePrivate, .variableShadowing, .uncheckedSendable,
              .stringSwitchOverEnum, .fontWeightBold,
@@ -260,7 +267,7 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
             return .memoryManagement
 
             // Networking Rules
-        case .missingErrorHandling, .synchronousNetworkCall:
+        case .missingErrorHandling, .synchronousNetworkCall, .urlSessionUnhandledError:
             return .networking
 
             // UI Pattern Rules
