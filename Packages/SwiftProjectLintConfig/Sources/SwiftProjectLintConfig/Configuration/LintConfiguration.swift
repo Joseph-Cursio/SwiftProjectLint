@@ -19,6 +19,12 @@ public struct LintConfiguration: Sendable {
     /// Per-rule overrides for severity and path exclusions.
     public let ruleOverrides: [RuleIdentifier: RuleOverride]
 
+    /// Layer policies for the Architectural Boundary rule.
+    ///
+    /// Empty by default — the rule is a no-op unless at least one layer is configured.
+    /// Only meaningful for single-target apps; modular projects rely on the compiler.
+    public let architecturalLayers: [LayerPolicy]
+
     /// Per-rule configuration override.
     public struct RuleOverride: Sendable {
         public let severity: IssueSeverity?
@@ -34,12 +40,14 @@ public struct LintConfiguration: Sendable {
         disabledRules: Set<RuleIdentifier> = [],
         enabledOnlyRules: Set<RuleIdentifier>? = nil,
         excludedPaths: [String] = [],
-        ruleOverrides: [RuleIdentifier: RuleOverride] = [:]
+        ruleOverrides: [RuleIdentifier: RuleOverride] = [:],
+        architecturalLayers: [LayerPolicy] = []
     ) {
         self.disabledRules = disabledRules
         self.enabledOnlyRules = enabledOnlyRules
         self.excludedPaths = excludedPaths
         self.ruleOverrides = ruleOverrides
+        self.architecturalLayers = architecturalLayers
     }
 
     /// Rules that are opt-in only — disabled unless explicitly enabled via `enabled_only`.

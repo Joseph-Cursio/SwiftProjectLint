@@ -230,7 +230,8 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
             disabledRules: configuration.disabledRules.union([.publicInAppTarget]),
             enabledOnlyRules: configuration.enabledOnlyRules,
             excludedPaths: configuration.excludedPaths,
-            ruleOverrides: overrides
+            ruleOverrides: overrides,
+            architecturalLayers: configuration.architecturalLayers
         )
     }
 
