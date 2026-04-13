@@ -26,6 +26,9 @@ public protocol SourcePatternDetectorProtocol {
     /// Type names known to be declared as actors across the project.
     var knownActorTypes: Set<String> { get set }
 
+    /// Architectural layer policies for the Architectural Boundary rule.
+    var layerPolicies: [LayerPolicy] { get set }
+
     /// Detects patterns filtered by category.
     func detectPatterns(
         in sourceCode: String,

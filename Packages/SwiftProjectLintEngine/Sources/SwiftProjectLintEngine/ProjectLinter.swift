@@ -90,6 +90,7 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
         resolvedDetector.knownIdentifiableTypes = identifiableTypes
         resolvedDetector.knownEnumTypes = enumTypes
         resolvedDetector.knownActorTypes = actorTypes
+        resolvedDetector.layerPolicies = effectiveConfiguration.architecturalLayers
         let registry = resolvedDetector.registry
 
         // Per-file I/O and analysis — throttled to avoid memory exhaustion on large projects.
@@ -99,6 +100,8 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
                  parsedAST: SourceFileSyntax)?.self
         ) { group in
             var iterator = filePaths.makeIterator()
+
+            let layers = effectiveConfiguration.architecturalLayers
 
             // Seed initial batch
             for _ in 0..<maxConcurrency {
@@ -111,7 +114,8 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
                         ruleIdentifiers: effectiveRules,
                         identifiableTypes: identifiableTypes,
                         enumTypes: enumTypes,
-                        actorTypes: actorTypes
+                        actorTypes: actorTypes,
+                        layerPolicies: layers
                     )
                 }
             }
@@ -135,7 +139,8 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
                             ruleIdentifiers: effectiveRules,
                             identifiableTypes: identifiableTypes,
                             enumTypes: enumTypes,
-                            actorTypes: actorTypes
+                            actorTypes: actorTypes,
+                            layerPolicies: layers
                         )
                     }
                 }
@@ -244,7 +249,8 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
         ruleIdentifiers: [RuleIdentifier]?,
         identifiableTypes: Set<String> = [],
         enumTypes: Set<String> = [],
-        actorTypes: Set<String> = []
+        actorTypes: Set<String> = [],
+        layerPolicies: [LayerPolicy] = []
     ) -> (file: ProjectFile, issues: [LintIssue], parsedAST: SourceFileSyntax)? {
         guard !Task.isCancelled else { return nil }
         guard let content = try? String(contentsOfFile: filePath) else { return nil }
@@ -264,6 +270,7 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
         det.knownIdentifiableTypes = identifiableTypes
         det.knownEnumTypes = enumTypes
         det.knownActorTypes = actorTypes
+        det.layerPolicies = layerPolicies
 
         let rawIssues: [LintIssue]
         if let ruleIdentifiers {

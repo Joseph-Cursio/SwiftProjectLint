@@ -36,6 +36,11 @@ open class BasePatternVisitor: SyntaxVisitor, PatternVisitorProtocol {
     /// Swift 6 strict concurrency — protocol-abstracting it weakens that contract.
     public var knownActorTypes: Set<String> = []
 
+    /// Architectural layer policies for the Architectural Boundary rule.
+    /// Injected by `SourcePatternDetector` after loading from `LintConfiguration`.
+    /// Empty by default — the rule is a no-op when no layers are defined.
+    public var layerPolicies: [LayerPolicy] = []
+
     /// Placeholder pattern used for cross-file visitors that set their pattern after initialization.
     public static let placeholderPattern = SyntaxPattern(
         name: .unknown,
