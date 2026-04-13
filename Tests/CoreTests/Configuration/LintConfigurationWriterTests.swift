@@ -224,10 +224,10 @@ struct LintConfigurationWriterTests {
         let lines = content.components(separatedBy: "\n")
         let ruleLines = lines.filter { $0.contains("- \"") }
             .map { $0.trimmingCharacters(in: .whitespaces) }
-        // Sorted alphabetically: Empty Catch, Force Try, Print Statement
+        // Sorted alphabetically: Catch Without Handling, Force Try, Print Statement
         #expect(ruleLines.count == 3)
         let first = try #require(ruleLines.first)
-        #expect(first.contains("Empty Catch"))
+        #expect(first.contains("Catch Without Handling"))
         let last = try #require(ruleLines.last)
         #expect(last.contains("Print Statement"))
     }
