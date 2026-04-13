@@ -13,6 +13,7 @@ struct TestMissingAssertionVisitorTests {
 
     private func run(_ visitor: TestMissingAssertionVisitor, source: String) {
         visitor.walk(Parser.parse(source: source))
+        visitor.finalizeAnalysis()
     }
 
     // MARK: - Positive Cases (should trigger)
