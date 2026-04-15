@@ -20,6 +20,10 @@ public final class SourcePatternDetector: SourcePatternDetectorProtocol, @unchec
     /// Set by `ProjectLinter` after a pre-scan phase and passed through to visitors.
     public var knownActorTypes: Set<String> = []
 
+    /// All type names (class, struct, enum, actor) declared anywhere in the project.
+    /// Set by `ProjectLinter` after a pre-scan phase using `LocalTypeCollector`.
+    public var knownLocalTypeNames: Set<String> = []
+
     /// Architectural layer policies, set from `LintConfiguration.architecturalLayers`.
     /// Passed through to visitors that need them (e.g. ArchitecturalBoundaryVisitor).
     public var layerPolicies: [LayerPolicy] = []
@@ -143,6 +147,7 @@ public final class SourcePatternDetector: SourcePatternDetectorProtocol, @unchec
             visitor.knownIdentifiableTypes = knownIdentifiableTypes
             visitor.knownEnumTypes = knownEnumTypes
             visitor.knownActorTypes = knownActorTypes
+            visitor.knownLocalTypeNames = knownLocalTypeNames
             visitor.layerPolicies = layerPolicies
             visitor.walk(sourceFile)
 

@@ -26,6 +26,9 @@ public protocol SourcePatternDetectorProtocol {
     /// Type names known to be declared as actors across the project.
     var knownActorTypes: Set<String> { get set }
 
+    /// All type names (class, struct, enum, actor) declared anywhere in the project.
+    var knownLocalTypeNames: Set<String> { get set }
+
     /// Architectural layer policies for the Architectural Boundary rule.
     var layerPolicies: [LayerPolicy] { get set }
 

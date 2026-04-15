@@ -36,6 +36,12 @@ open class BasePatternVisitor: SyntaxVisitor, PatternVisitorProtocol {
     /// Swift 6 strict concurrency — protocol-abstracting it weakens that contract.
     public var knownActorTypes: Set<String> = []
 
+    /// All type names (class, struct, enum, actor) declared anywhere in the project.
+    /// Populated by a pre-scan phase in `ProjectLinter` using `LocalTypeCollector`.
+    /// Used by `PreconcurrencyConformanceVisitor` to distinguish types defined in
+    /// the project ("yours to fix") from external library types.
+    public var knownLocalTypeNames: Set<String> = []
+
     /// Architectural layer policies for the Architectural Boundary rule.
     /// Injected by `SourcePatternDetector` after loading from `LintConfiguration`.
     /// Empty by default — the rule is a no-op when no layers are defined.

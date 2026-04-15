@@ -84,12 +84,14 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
         let identifiableTypes = Self.collectTypes(IdentifiableTypeCollector.self, from: filePaths)
         let enumTypes = Self.collectTypes(EnumTypeCollector.self, from: filePaths)
         let actorTypes = Self.collectTypes(ActorTypeCollector.self, from: filePaths)
+        let localTypes = Self.collectTypes(LocalTypeCollector.self, from: filePaths)
 
         // Resolve the registry once so each task can create its own detector
         var resolvedDetector = detector ?? SourcePatternDetector()
         resolvedDetector.knownIdentifiableTypes = identifiableTypes
         resolvedDetector.knownEnumTypes = enumTypes
         resolvedDetector.knownActorTypes = actorTypes
+        resolvedDetector.knownLocalTypeNames = localTypes
         resolvedDetector.layerPolicies = effectiveConfiguration.architecturalLayers
         let registry = resolvedDetector.registry
 
@@ -115,6 +117,7 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
                         identifiableTypes: identifiableTypes,
                         enumTypes: enumTypes,
                         actorTypes: actorTypes,
+                        localTypes: localTypes,
                         layerPolicies: layers
                     )
                 }
@@ -140,6 +143,7 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
                             identifiableTypes: identifiableTypes,
                             enumTypes: enumTypes,
                             actorTypes: actorTypes,
+                            localTypes: localTypes,
                             layerPolicies: layers
                         )
                     }
@@ -250,6 +254,7 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
         identifiableTypes: Set<String> = [],
         enumTypes: Set<String> = [],
         actorTypes: Set<String> = [],
+        localTypes: Set<String> = [],
         layerPolicies: [LayerPolicy] = []
     ) -> (file: ProjectFile, issues: [LintIssue], parsedAST: SourceFileSyntax)? {
         guard !Task.isCancelled else { return nil }
@@ -270,6 +275,7 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
         det.knownIdentifiableTypes = identifiableTypes
         det.knownEnumTypes = enumTypes
         det.knownActorTypes = actorTypes
+        det.knownLocalTypeNames = localTypes
         det.layerPolicies = layerPolicies
 
         let rawIssues: [LintIssue]
