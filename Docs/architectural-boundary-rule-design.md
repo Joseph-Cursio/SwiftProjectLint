@@ -1,6 +1,8 @@
 # Architectural Boundary Rule — Design Notes
 
-> Status: Under consideration. Decision deferred.
+> Status: Implemented (Option B — config-driven).
+>
+> **Scope:** This rule is designed exclusively for **single-target monolith apps**. If your project uses separate SPM targets or modules, the compiler already enforces architectural boundaries at build time — this rule adds nothing. See the "Why It's Valuable for Monoliths" section for details.
 
 ---
 
