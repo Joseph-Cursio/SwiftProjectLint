@@ -47,8 +47,8 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "2805B4902E149DAB0018C12A"
-            BuildableName = "App.app"
-            BlueprintName = "App"
+            BuildableName = "SwiftProjectLint.app"
+            BlueprintName = "SwiftProjectLint"
             ReferencedContainer = "container:SwiftProjectLint.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
@@ -63,8 +63,8 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "2805B4902E149DAB0018C12A"
-            BuildableName = "App.app"
-            BlueprintName = "App"
+            BuildableName = "SwiftProjectLint.app"
+            BlueprintName = "SwiftProjectLint"
             ReferencedContainer = "container:SwiftProjectLint.xcodeproj">
          </BuildableReference>
       </MacroExpansion>

@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0491FB042E22F450002C0B3B7880 /* Sources/Core/Export/HTMLFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = B79E90122EFD008100D1DD106810 /* Sources/Core/Export/HTMLFormatter.swift */; };
+		1334ACAA2E6A968100802A1E49A5 /* Sources/App/LintResultsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AF805642E457919009C56A58B0A /* Sources/App/LintResultsView.swift */; };
+		1C0E2EBC2E30EEDD0084BCDA4739 /* Sources/Core/Export/CodableLintIssue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20298B6E2E5914B1005D8E98E848 /* Sources/Core/Export/CodableLintIssue.swift */; };
 		2886405E2E19F25E0026F2CF /* SwiftSyntax in Frameworks */ = {isa = PBXBuildFile; productRef = 2886405D2E19F25E0026F2CF /* SwiftSyntax */; };
 		288640602E19F26E0026F2CF /* SwiftParser in Frameworks */ = {isa = PBXBuildFile; productRef = 2886405F2E19F26E0026F2CF /* SwiftParser */; };
 		28B283CB2E1738BC00F871B8 /* SwiftParser in Frameworks */ = {isa = PBXBuildFile; productRef = 28B283CA2E1738BC00F871B8 /* SwiftParser */; };
@@ -25,6 +28,50 @@
 		28D83EEB2E1A30F9001F4A6A /* SwiftSyntax in Frameworks */ = {isa = PBXBuildFile; productRef = 2886405D2E19F25E0026F2CF /* SwiftSyntax */; };
 		28D83EEC2E1A30F9001F4A6A /* SwiftParser in Frameworks */ = {isa = PBXBuildFile; productRef = 2886405F2E19F26E0026F2CF /* SwiftParser */; };
 		28D83F622E1A3200001F4A6A /* (null) in Frameworks */ = {isa = PBXBuildFile; };
+		2F0137942E93E6F700552D3868F6 /* Sources/App/Views/ContentViewProgress.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B3D1B6D2E96852F00BD85BC7B51 /* Sources/App/Views/ContentViewProgress.swift */; };
+		2F27BF602EFB28CE00B2B3B54F08 /* Sources/App/Views/RuleDocView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE5C68AC2EC6828000413216AF62 /* Sources/App/Views/RuleDocView.swift */; };
+		3137570E2ED107E700646B988F45 /* Sources/App/ExampleViews/ChildView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B55CA3B72E05712800A31C672A81 /* Sources/App/ExampleViews/ChildView.swift */; };
+		3C386EEC2E3191A6004A80304D42 /* Sources/Core/Export/IssueFormatterProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFFFD4BA2E22C22E00E016C5A374 /* Sources/Core/Export/IssueFormatterProtocol.swift */; };
+		3D5BFDD32EA01A2000AF033869A8 /* Sources/Core/Export/LintReport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14D886072E74A451004143A87929 /* Sources/Core/Export/LintReport.swift */; };
+		53365A6F2E26F879009EA4577CFE /* Sources/App/Views/ContentViewResults.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4896BB112EC92705002F5DBEE841 /* Sources/App/Views/ContentViewResults.swift */; };
+		588DAF2E2E396D0E00952E396BB0 /* Sources/Core/Export/TextFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE44A61A2E8693CC0047B7AECE6B /* Sources/Core/Export/TextFormatter.swift */; };
+		5984AE012E7A94F700DA97F3F508 /* Sources/Core/Exports.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB353B142EAEDE360004E0BB5834 /* Sources/Core/Exports.swift */; };
+		5EB0B4112E0AEBBB00A6AEFA293A /* Sources/App/Views/ConfigDiffPreviewSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4F44EFE2E516811000EB6898A9A /* Sources/App/Views/ConfigDiffPreviewSheet.swift */; };
+		711200CC2E378AA10019164355E0 /* Sources/App/Views/RuleSelectionDialog.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB7717E52E855ECC00BAFC3D3C86 /* Sources/App/Views/RuleSelectionDialog.swift */; };
+		755EB96C2E893C2800A9B364162A /* Sources/App/Views/LintIssueRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1CEF22752EB28D10003AF274AEB4 /* Sources/App/Views/LintIssueRow.swift */; };
+		80DD3C682EFB5C8300215B455FBE /* Sources/App/Models/ContentViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10B147282E10A718006A43ADE24E /* Sources/App/Models/ContentViewModel.swift */; };
+		81180E0F2E090BE600B7FABC058F /* Sources/App/Models/SystemComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = F79368E62E9935980008FAE543C6 /* Sources/App/Models/SystemComponents.swift */; };
+		847E7A342E67F40A00D5B9F15373 /* Sources/App/Views/FullScreenResultsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 881D5B9F2EF6633C00F0538B18D2 /* Sources/App/Views/FullScreenResultsView.swift */; };
+		8DB9D5B62EFB16CF0072A03E6577 /* Sources/App/ExampleViews/ParentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7D89ED72EAF644C004A66C5F02D /* Sources/App/ExampleViews/ParentView.swift */; };
+		91AC0B892E8AC79A00F71433EB66 /* Sources/App/Views/ContentViewActions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 47BB927A2EBEF0B200EC3038683E /* Sources/App/Views/ContentViewActions.swift */; };
+		935D2A9F2E8C18BA00370C854E31 /* Sources/App/ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F2471F52EEF74C7003C7BE2841E /* Sources/App/ContentView.swift */; };
+		93E877EE2E35A6F400E34F949CA8 /* Sources/App/ExampleViews/NetworkingIssuesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C9239CC2E17E3EC007B67C591E9 /* Sources/App/ExampleViews/NetworkingIssuesView.swift */; };
+		9D1F7BA32E52DB2200B746BD3366 /* Sources/Core/Export/ReportSummary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 058B88552E7E24CC009BEF120398 /* Sources/Core/Export/ReportSummary.swift */; };
+		A5137FBB2EDB50E60073EE1E67F0 /* Sources/App/SwiftProjectLintApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 550510B12EF16C700095C0ECCE8E /* Sources/App/SwiftProjectLintApp.swift */; };
+		AA000032AABBCC0000000032 /* Yams in Frameworks (Core) */ = {isa = PBXBuildFile; productRef = AA000031AABBCC0000000031 /* Yams */; };
+		AA000013AABBCC0000000013 /* LintStudioCore in Frameworks */ = {isa = PBXBuildFile; productRef = AA000011AABBCC0000000011 /* LintStudioCore */; };
+		AA000014AABBCC0000000014 /* LintStudioUI in Frameworks */ = {isa = PBXBuildFile; productRef = AA000012AABBCC0000000012 /* LintStudioUI */; };
+		AA000022AABBCC0000000022 /* SwiftProjectLintEngine in Frameworks */ = {isa = PBXBuildFile; productRef = AA000021AABBCC0000000021 /* SwiftProjectLintEngine */; };
+		AA000024AABBCC0000000024 /* LintStudioCore in Frameworks */ = {isa = PBXBuildFile; productRef = AA000023AABBCC0000000023 /* LintStudioCore */; };
+		ABAD4A722E9A0C03000668032C51 /* Sources/Core/Export/CSVFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B382A982E58233F0027A5001BCF /* Sources/Core/Export/CSVFormatter.swift */; };
+		B2F883882EE34E5D002D4ECFBDB9 /* Sources/App/Views/RuleSelectionWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E82B8552E252963001E1A08B872 /* Sources/App/Views/RuleSelectionWindowController.swift */; };
+		B65792C62EAE378D004DE22B35A8 /* Sources/App/ExampleViews/TightCouplingExampleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6363C602EB795B000B857422383 /* Sources/App/ExampleViews/TightCouplingExampleView.swift */; };
+		BEC070A72E651472009085573BF9 /* Sources/App/Models/DemoIssueGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 434B94032E3D4D2E00920534AA11 /* Sources/App/Models/DemoIssueGenerator.swift */; };
+		D6710B722EB9D20900F447D453D8 /* Sources/App/Models/PatternConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3038E2B52E320D5700D80D6C1350 /* Sources/App/Models/PatternConfiguration.swift */; };
+		D93E66302E8C1A7600122A827782 /* Sources/App/Models/RuleDocumentationLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC5658082E9AE38F006BA2E61DDB /* Sources/App/Models/RuleDocumentationLoader.swift */; };
+		DA60C6D02EB2FFA00043F0457CD8 /* Sources/App/ExampleViews/ArchitectureIssuesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E39B13542E1974E200B00F3FFDB9 /* Sources/App/ExampleViews/ArchitectureIssuesView.swift */; };
+		DC69C7A32E9F4944000D6564DBDB /* Sources/App/ExampleViews/AnimationIssuesExampleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AC021FE2EF9839E00B886432B05 /* Sources/App/ExampleViews/AnimationIssuesExampleView.swift */; };
+		E3E7C19E2EC1DC7F00EF356BCD47 /* Sources/App/Views/DirectoryTreeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BA0F4CF2E9673DD00FFD7FE458E /* Sources/App/Views/DirectoryTreeView.swift */; };
+		F423B6962E7BF02C007825D5826B /* Sources/App/Views/IssueSummarySection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41BC1E232EBD953800437E15F3DB /* Sources/App/Views/IssueSummarySection.swift */; };
+		F4B928CD2EE2BB1F00F110967475 /* Sources/App/Models/RuleExclusions.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB8270982E38EEC2007AA3E7EFC6 /* Sources/App/Models/RuleExclusions.swift */; };
+		FAAAD65E2EEF4D0F0008B506BDEE /* Sources/App/Models/LintStudioConformances.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56DF3FC02E85F6DB00AC9E35429C /* Sources/App/Models/LintStudioConformances.swift */; };
+		FB0119192E0DEBA5003B95DBFDAC /* Sources/Core/Export/JSONFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBFEB0402E57F4CA007340C82F35 /* Sources/Core/Export/JSONFormatter.swift */; };
+		FE67F0702ECD0E2200EA8BE65461 /* Sources/App/Views/ContentViewHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1689E2B2E74F7E80059663F4400 /* Sources/App/Views/ContentViewHeader.swift */; };
+		AA000040AABBCC000000402 /* SwiftProjectLintModels in Frameworks */ = {isa = PBXBuildFile; productRef = AA000040AABBCC000000401 /* SwiftProjectLintModels */; };
+		AA000041AABBCC000000412 /* SwiftProjectLintVisitors in Frameworks */ = {isa = PBXBuildFile; productRef = AA000041AABBCC000000411 /* SwiftProjectLintVisitors */; };
+		AA000042AABBCC000000422 /* SwiftProjectLintRegistry in Frameworks */ = {isa = PBXBuildFile; productRef = AA000042AABBCC000000421 /* SwiftProjectLintRegistry */; };
+		AA000043AABBCC000000432 /* SwiftProjectLintRules in Frameworks */ = {isa = PBXBuildFile; productRef = AA000043AABBCC000000431 /* SwiftProjectLintRules */; };
+		AA000044AABBCC000000442 /* SwiftProjectLintConfig in Frameworks */ = {isa = PBXBuildFile; productRef = AA000044AABBCC000000441 /* SwiftProjectLintConfig */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -87,6 +134,16 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		058B88552E7E24CC009BEF120398 /* Sources/Core/Export/ReportSummary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sources/Core/Export/ReportSummary.swift; sourceTree = SOURCE_ROOT; };
+		0F2471F52EEF74C7003C7BE2841E /* Sources/App/ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sources/App/ContentView.swift; sourceTree = SOURCE_ROOT; };
+		10B147282E10A718006A43ADE24E /* Sources/App/Models/ContentViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sources/App/Models/ContentViewModel.swift; sourceTree = SOURCE_ROOT; };
+		14D886072E74A451004143A87929 /* Sources/Core/Export/LintReport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sources/Core/Export/LintReport.swift; sourceTree = SOURCE_ROOT; };
+		1AC021FE2EF9839E00B886432B05 /* Sources/App/ExampleViews/AnimationIssuesExampleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sources/App/ExampleViews/AnimationIssuesExampleView.swift; sourceTree = SOURCE_ROOT; };
+		1B382A982E58233F0027A5001BCF /* Sources/Core/Export/CSVFormatter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sources/Core/Export/CSVFormatter.swift; sourceTree = SOURCE_ROOT; };
+		1BA0F4CF2E9673DD00FFD7FE458E /* Sources/App/Views/DirectoryTreeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sources/App/Views/DirectoryTreeView.swift; sourceTree = SOURCE_ROOT; };
+		1CEF22752EB28D10003AF274AEB4 /* Sources/App/Views/LintIssueRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sources/App/Views/LintIssueRow.swift; sourceTree = SOURCE_ROOT; };
+		1E82B8552E252963001E1A08B872 /* Sources/App/Views/RuleSelectionWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sources/App/Views/RuleSelectionWindowController.swift; sourceTree = SOURCE_ROOT; };
+		20298B6E2E5914B1005D8E98E848 /* Sources/Core/Export/CodableLintIssue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sources/Core/Export/CodableLintIssue.swift; sourceTree = SOURCE_ROOT; };
 		2805B4912E149DAB0018C12A /* SwiftProjectLint.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SwiftProjectLint.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		2805B49E2E149DAC0018C12A /* AppTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = AppTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		2805B4A82E149DAC0018C12A /* UITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = UITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -97,6 +154,33 @@
 		28B7966E2E19EDA400AE3C7B /* CoreTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CoreTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		28F3004A2E34314600BAE8D4 /* SwiftProjectLintApp.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; path = SwiftProjectLintApp.xctestplan; sourceTree = "<group>"; };
 		28F3004B2E34323400BAE8D4 /* CoreTests.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; path = CoreTests.xctestplan; sourceTree = "<group>"; };
+		3038E2B52E320D5700D80D6C1350 /* Sources/App/Models/PatternConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sources/App/Models/PatternConfiguration.swift; sourceTree = SOURCE_ROOT; };
+		41BC1E232EBD953800437E15F3DB /* Sources/App/Views/IssueSummarySection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sources/App/Views/IssueSummarySection.swift; sourceTree = SOURCE_ROOT; };
+		434B94032E3D4D2E00920534AA11 /* Sources/App/Models/DemoIssueGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sources/App/Models/DemoIssueGenerator.swift; sourceTree = SOURCE_ROOT; };
+		47BB927A2EBEF0B200EC3038683E /* Sources/App/Views/ContentViewActions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sources/App/Views/ContentViewActions.swift; sourceTree = SOURCE_ROOT; };
+		4896BB112EC92705002F5DBEE841 /* Sources/App/Views/ContentViewResults.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sources/App/Views/ContentViewResults.swift; sourceTree = SOURCE_ROOT; };
+		550510B12EF16C700095C0ECCE8E /* Sources/App/SwiftProjectLintApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sources/App/SwiftProjectLintApp.swift; sourceTree = SOURCE_ROOT; };
+		56DF3FC02E85F6DB00AC9E35429C /* Sources/App/Models/LintStudioConformances.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sources/App/Models/LintStudioConformances.swift; sourceTree = SOURCE_ROOT; };
+		5B3D1B6D2E96852F00BD85BC7B51 /* Sources/App/Views/ContentViewProgress.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sources/App/Views/ContentViewProgress.swift; sourceTree = SOURCE_ROOT; };
+		6C9239CC2E17E3EC007B67C591E9 /* Sources/App/ExampleViews/NetworkingIssuesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sources/App/ExampleViews/NetworkingIssuesView.swift; sourceTree = SOURCE_ROOT; };
+		881D5B9F2EF6633C00F0538B18D2 /* Sources/App/Views/FullScreenResultsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sources/App/Views/FullScreenResultsView.swift; sourceTree = SOURCE_ROOT; };
+		9AF805642E457919009C56A58B0A /* Sources/App/LintResultsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sources/App/LintResultsView.swift; sourceTree = SOURCE_ROOT; };
+		A6363C602EB795B000B857422383 /* Sources/App/ExampleViews/TightCouplingExampleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sources/App/ExampleViews/TightCouplingExampleView.swift; sourceTree = SOURCE_ROOT; };
+		AC5658082E9AE38F006BA2E61DDB /* Sources/App/Models/RuleDocumentationLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sources/App/Models/RuleDocumentationLoader.swift; sourceTree = SOURCE_ROOT; };
+		B55CA3B72E05712800A31C672A81 /* Sources/App/ExampleViews/ChildView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sources/App/ExampleViews/ChildView.swift; sourceTree = SOURCE_ROOT; };
+		B79E90122EFD008100D1DD106810 /* Sources/Core/Export/HTMLFormatter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sources/Core/Export/HTMLFormatter.swift; sourceTree = SOURCE_ROOT; };
+		B7D89ED72EAF644C004A66C5F02D /* Sources/App/ExampleViews/ParentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sources/App/ExampleViews/ParentView.swift; sourceTree = SOURCE_ROOT; };
+		BFFFD4BA2E22C22E00E016C5A374 /* Sources/Core/Export/IssueFormatterProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sources/Core/Export/IssueFormatterProtocol.swift; sourceTree = SOURCE_ROOT; };
+		DB8270982E38EEC2007AA3E7EFC6 /* Sources/App/Models/RuleExclusions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sources/App/Models/RuleExclusions.swift; sourceTree = SOURCE_ROOT; };
+		DBFEB0402E57F4CA007340C82F35 /* Sources/Core/Export/JSONFormatter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sources/Core/Export/JSONFormatter.swift; sourceTree = SOURCE_ROOT; };
+		DE5C68AC2EC6828000413216AF62 /* Sources/App/Views/RuleDocView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sources/App/Views/RuleDocView.swift; sourceTree = SOURCE_ROOT; };
+		E39B13542E1974E200B00F3FFDB9 /* Sources/App/ExampleViews/ArchitectureIssuesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sources/App/ExampleViews/ArchitectureIssuesView.swift; sourceTree = SOURCE_ROOT; };
+		F1689E2B2E74F7E80059663F4400 /* Sources/App/Views/ContentViewHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sources/App/Views/ContentViewHeader.swift; sourceTree = SOURCE_ROOT; };
+		F4F44EFE2E516811000EB6898A9A /* Sources/App/Views/ConfigDiffPreviewSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sources/App/Views/ConfigDiffPreviewSheet.swift; sourceTree = SOURCE_ROOT; };
+		F79368E62E9935980008FAE543C6 /* Sources/App/Models/SystemComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sources/App/Models/SystemComponents.swift; sourceTree = SOURCE_ROOT; };
+		FB353B142EAEDE360004E0BB5834 /* Sources/Core/Exports.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sources/Core/Exports.swift; sourceTree = SOURCE_ROOT; };
+		FB7717E52E855ECC00BAFC3D3C86 /* Sources/App/Views/RuleSelectionDialog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sources/App/Views/RuleSelectionDialog.swift; sourceTree = SOURCE_ROOT; };
+		FE44A61A2E8693CC0047B7AECE6B /* Sources/Core/Export/TextFormatter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sources/Core/Export/TextFormatter.swift; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -145,6 +229,8 @@
 				28B283CB2E1738BC00F871B8 /* SwiftParser in Frameworks */,
 				28B283CD2E1738BC00F871B8 /* SwiftSyntax in Frameworks */,
 				28B796792E19EDA400AE3C7B /* SwiftProjectLintCore.framework in Frameworks */,
+				AA000013AABBCC0000000013 /* LintStudioCore in Frameworks */,
+				AA000014AABBCC0000000014 /* LintStudioUI in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -174,6 +260,14 @@
 			files = (
 				2886405E2E19F25E0026F2CF /* SwiftSyntax in Frameworks */,
 				288640602E19F26E0026F2CF /* SwiftParser in Frameworks */,
+				AA000022AABBCC0000000022 /* SwiftProjectLintEngine in Frameworks */,
+				AA000024AABBCC0000000024 /* LintStudioCore in Frameworks */,
+				AA000032AABBCC0000000032 /* Yams in Frameworks (Core) */,
+				AA000040AABBCC000000402 /* SwiftProjectLintModels in Frameworks */,
+				AA000041AABBCC000000412 /* SwiftProjectLintVisitors in Frameworks */,
+				AA000042AABBCC000000422 /* SwiftProjectLintRegistry in Frameworks */,
+				AA000043AABBCC000000432 /* SwiftProjectLintRules in Frameworks */,
+				AA000044AABBCC000000442 /* SwiftProjectLintConfig in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -210,6 +304,7 @@
 				28090FA92E342AA200FE317F /* Tests */,
 				280910182E342AC200FE317F /* Sources */,
 				280910212E342ADB00FE317F /* Docs */,
+				70610C3E2F8F29DF0070EC0E /* Recovered References */,
 			);
 			sourceTree = "<group>";
 		};
@@ -230,6 +325,50 @@
 			children = (
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		70610C3E2F8F29DF0070EC0E /* Recovered References */ = {
+			isa = PBXGroup;
+			children = (
+				0F2471F52EEF74C7003C7BE2841E /* Sources/App/ContentView.swift */,
+				9AF805642E457919009C56A58B0A /* Sources/App/LintResultsView.swift */,
+				550510B12EF16C700095C0ECCE8E /* Sources/App/SwiftProjectLintApp.swift */,
+				1AC021FE2EF9839E00B886432B05 /* Sources/App/ExampleViews/AnimationIssuesExampleView.swift */,
+				E39B13542E1974E200B00F3FFDB9 /* Sources/App/ExampleViews/ArchitectureIssuesView.swift */,
+				B55CA3B72E05712800A31C672A81 /* Sources/App/ExampleViews/ChildView.swift */,
+				6C9239CC2E17E3EC007B67C591E9 /* Sources/App/ExampleViews/NetworkingIssuesView.swift */,
+				B7D89ED72EAF644C004A66C5F02D /* Sources/App/ExampleViews/ParentView.swift */,
+				A6363C602EB795B000B857422383 /* Sources/App/ExampleViews/TightCouplingExampleView.swift */,
+				10B147282E10A718006A43ADE24E /* Sources/App/Models/ContentViewModel.swift */,
+				434B94032E3D4D2E00920534AA11 /* Sources/App/Models/DemoIssueGenerator.swift */,
+				56DF3FC02E85F6DB00AC9E35429C /* Sources/App/Models/LintStudioConformances.swift */,
+				3038E2B52E320D5700D80D6C1350 /* Sources/App/Models/PatternConfiguration.swift */,
+				AC5658082E9AE38F006BA2E61DDB /* Sources/App/Models/RuleDocumentationLoader.swift */,
+				DB8270982E38EEC2007AA3E7EFC6 /* Sources/App/Models/RuleExclusions.swift */,
+				F79368E62E9935980008FAE543C6 /* Sources/App/Models/SystemComponents.swift */,
+				F4F44EFE2E516811000EB6898A9A /* Sources/App/Views/ConfigDiffPreviewSheet.swift */,
+				47BB927A2EBEF0B200EC3038683E /* Sources/App/Views/ContentViewActions.swift */,
+				F1689E2B2E74F7E80059663F4400 /* Sources/App/Views/ContentViewHeader.swift */,
+				5B3D1B6D2E96852F00BD85BC7B51 /* Sources/App/Views/ContentViewProgress.swift */,
+				4896BB112EC92705002F5DBEE841 /* Sources/App/Views/ContentViewResults.swift */,
+				1BA0F4CF2E9673DD00FFD7FE458E /* Sources/App/Views/DirectoryTreeView.swift */,
+				881D5B9F2EF6633C00F0538B18D2 /* Sources/App/Views/FullScreenResultsView.swift */,
+				41BC1E232EBD953800437E15F3DB /* Sources/App/Views/IssueSummarySection.swift */,
+				1CEF22752EB28D10003AF274AEB4 /* Sources/App/Views/LintIssueRow.swift */,
+				DE5C68AC2EC6828000413216AF62 /* Sources/App/Views/RuleDocView.swift */,
+				FB7717E52E855ECC00BAFC3D3C86 /* Sources/App/Views/RuleSelectionDialog.swift */,
+				1E82B8552E252963001E1A08B872 /* Sources/App/Views/RuleSelectionWindowController.swift */,
+				FB353B142EAEDE360004E0BB5834 /* Sources/Core/Exports.swift */,
+				1B382A982E58233F0027A5001BCF /* Sources/Core/Export/CSVFormatter.swift */,
+				20298B6E2E5914B1005D8E98E848 /* Sources/Core/Export/CodableLintIssue.swift */,
+				B79E90122EFD008100D1DD106810 /* Sources/Core/Export/HTMLFormatter.swift */,
+				BFFFD4BA2E22C22E00E016C5A374 /* Sources/Core/Export/IssueFormatterProtocol.swift */,
+				DBFEB0402E57F4CA007340C82F35 /* Sources/Core/Export/JSONFormatter.swift */,
+				14D886072E74A451004143A87929 /* Sources/Core/Export/LintReport.swift */,
+				058B88552E7E24CC009BEF120398 /* Sources/Core/Export/ReportSummary.swift */,
+				FE44A61A2E8693CC0047B7AECE6B /* Sources/Core/Export/TextFormatter.swift */,
+			);
+			name = "Recovered References";
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -264,6 +403,8 @@
 			packageProductDependencies = (
 				28B283CA2E1738BC00F871B8 /* SwiftParser */,
 				28B283CC2E1738BC00F871B8 /* SwiftSyntax */,
+				AA000011AABBCC0000000011 /* LintStudioCore */,
+				AA000012AABBCC0000000012 /* LintStudioUI */,
 			);
 			productName = SwiftProjectLint;
 			productReference = 2805B4912E149DAB0018C12A /* SwiftProjectLint.app */;
@@ -332,6 +473,14 @@
 			packageProductDependencies = (
 				2886405D2E19F25E0026F2CF /* SwiftSyntax */,
 				2886405F2E19F26E0026F2CF /* SwiftParser */,
+				AA000021AABBCC0000000021 /* SwiftProjectLintEngine */,
+				AA000023AABBCC0000000023 /* LintStudioCore */,
+				AA000031AABBCC0000000031 /* Yams */,
+				AA000040AABBCC000000401 /* SwiftProjectLintModels */,
+				AA000041AABBCC000000411 /* SwiftProjectLintVisitors */,
+				AA000042AABBCC000000421 /* SwiftProjectLintRegistry */,
+				AA000043AABBCC000000431 /* SwiftProjectLintRules */,
+				AA000044AABBCC000000441 /* SwiftProjectLintConfig */,
 			);
 			productName = SwiftProjectLintCore;
 			productReference = 28B796642E19EDA400AE3C7B /* SwiftProjectLintCore.framework */;
@@ -402,6 +551,14 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				28B283C92E17356500F871B8 /* XCRemoteSwiftPackageReference "swift-syntax" */,
+				AA000010AABBCC0000000010 /* XCLocalSwiftPackageReference "../LintStudioUI" */,
+				AA000020AABBCC0000000020 /* XCLocalSwiftPackageReference "Packages/SwiftProjectLintEngine" */,
+				AA000030AABBCC0000000030 /* XCRemoteSwiftPackageReference "Yams" */,
+				AA000040AABBCC000000400 /* XCLocalSwiftPackageReference "Models" */,
+				AA000041AABBCC000000410 /* XCLocalSwiftPackageReference "Visitors" */,
+				AA000042AABBCC000000420 /* XCLocalSwiftPackageReference "Registry" */,
+				AA000043AABBCC000000430 /* XCLocalSwiftPackageReference "Rules" */,
+				AA000044AABBCC000000440 /* XCLocalSwiftPackageReference "Config" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 2805B4922E149DAB0018C12A /* Products */;
@@ -548,6 +705,34 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				935D2A9F2E8C18BA00370C854E31 /* Sources/App/ContentView.swift in Sources */,
+				1334ACAA2E6A968100802A1E49A5 /* Sources/App/LintResultsView.swift in Sources */,
+				A5137FBB2EDB50E60073EE1E67F0 /* Sources/App/SwiftProjectLintApp.swift in Sources */,
+				DC69C7A32E9F4944000D6564DBDB /* Sources/App/ExampleViews/AnimationIssuesExampleView.swift in Sources */,
+				DA60C6D02EB2FFA00043F0457CD8 /* Sources/App/ExampleViews/ArchitectureIssuesView.swift in Sources */,
+				3137570E2ED107E700646B988F45 /* Sources/App/ExampleViews/ChildView.swift in Sources */,
+				93E877EE2E35A6F400E34F949CA8 /* Sources/App/ExampleViews/NetworkingIssuesView.swift in Sources */,
+				8DB9D5B62EFB16CF0072A03E6577 /* Sources/App/ExampleViews/ParentView.swift in Sources */,
+				B65792C62EAE378D004DE22B35A8 /* Sources/App/ExampleViews/TightCouplingExampleView.swift in Sources */,
+				80DD3C682EFB5C8300215B455FBE /* Sources/App/Models/ContentViewModel.swift in Sources */,
+				BEC070A72E651472009085573BF9 /* Sources/App/Models/DemoIssueGenerator.swift in Sources */,
+				FAAAD65E2EEF4D0F0008B506BDEE /* Sources/App/Models/LintStudioConformances.swift in Sources */,
+				D6710B722EB9D20900F447D453D8 /* Sources/App/Models/PatternConfiguration.swift in Sources */,
+				D93E66302E8C1A7600122A827782 /* Sources/App/Models/RuleDocumentationLoader.swift in Sources */,
+				F4B928CD2EE2BB1F00F110967475 /* Sources/App/Models/RuleExclusions.swift in Sources */,
+				81180E0F2E090BE600B7FABC058F /* Sources/App/Models/SystemComponents.swift in Sources */,
+				5EB0B4112E0AEBBB00A6AEFA293A /* Sources/App/Views/ConfigDiffPreviewSheet.swift in Sources */,
+				91AC0B892E8AC79A00F71433EB66 /* Sources/App/Views/ContentViewActions.swift in Sources */,
+				FE67F0702ECD0E2200EA8BE65461 /* Sources/App/Views/ContentViewHeader.swift in Sources */,
+				2F0137942E93E6F700552D3868F6 /* Sources/App/Views/ContentViewProgress.swift in Sources */,
+				53365A6F2E26F879009EA4577CFE /* Sources/App/Views/ContentViewResults.swift in Sources */,
+				E3E7C19E2EC1DC7F00EF356BCD47 /* Sources/App/Views/DirectoryTreeView.swift in Sources */,
+				847E7A342E67F40A00D5B9F15373 /* Sources/App/Views/FullScreenResultsView.swift in Sources */,
+				F423B6962E7BF02C007825D5826B /* Sources/App/Views/IssueSummarySection.swift in Sources */,
+				755EB96C2E893C2800A9B364162A /* Sources/App/Views/LintIssueRow.swift in Sources */,
+				2F27BF602EFB28CE00B2B3B54F08 /* Sources/App/Views/RuleDocView.swift in Sources */,
+				711200CC2E378AA10019164355E0 /* Sources/App/Views/RuleSelectionDialog.swift in Sources */,
+				B2F883882EE34E5D002D4ECFBDB9 /* Sources/App/Views/RuleSelectionWindowController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -569,6 +754,15 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5984AE012E7A94F700DA97F3F508 /* Sources/Core/Exports.swift in Sources */,
+				ABAD4A722E9A0C03000668032C51 /* Sources/Core/Export/CSVFormatter.swift in Sources */,
+				1C0E2EBC2E30EEDD0084BCDA4739 /* Sources/Core/Export/CodableLintIssue.swift in Sources */,
+				0491FB042E22F450002C0B3B7880 /* Sources/Core/Export/HTMLFormatter.swift in Sources */,
+				3C386EEC2E3191A6004A80304D42 /* Sources/Core/Export/IssueFormatterProtocol.swift in Sources */,
+				FB0119192E0DEBA5003B95DBFDAC /* Sources/Core/Export/JSONFormatter.swift in Sources */,
+				3D5BFDD32EA01A2000AF033869A8 /* Sources/Core/Export/LintReport.swift in Sources */,
+				9D1F7BA32E52DB2200B746BD3366 /* Sources/Core/Export/ReportSummary.swift in Sources */,
+				588DAF2E2E396D0E00952E396BB0 /* Sources/Core/Export/TextFormatter.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -668,7 +862,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MACOSX_DEPLOYMENT_TARGET = 15.5;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -725,7 +919,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MACOSX_DEPLOYMENT_TARGET = 15.5;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = macosx;
@@ -797,7 +991,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 15.5;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = name.JosephCursio.AppTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -816,7 +1010,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 15.5;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = name.JosephCursio.AppTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -882,11 +1076,13 @@
 					"@executable_path/../Frameworks",
 					"@loader_path/Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 15.5;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				MARKETING_VERSION = 1.0;
 				MODULE_VERIFIER_SUPPORTED_LANGUAGES = "objective-c objective-c++";
 				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu17 gnu++20";
 				PRODUCT_BUNDLE_IDENTIFIER = name.JosephCursio.SwiftProjectLintCore;
+				OTHER_SWIFT_FLAGS = "-I $(SRCROOT)/.build/arm64-apple-macosx/debug/Modules";
+				PRODUCT_MODULE_NAME = Core;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				SKIP_INSTALL = YES;
 				SWIFT_EMIT_LOC_STRINGS = NO;
@@ -917,11 +1113,12 @@
 					"@executable_path/../Frameworks",
 					"@loader_path/Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 15.5;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				MARKETING_VERSION = 1.0;
 				MODULE_VERIFIER_SUPPORTED_LANGUAGES = "objective-c objective-c++";
 				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu17 gnu++20";
 				PRODUCT_BUNDLE_IDENTIFIER = name.JosephCursio.SwiftProjectLintCore;
+				PRODUCT_MODULE_NAME = Core;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				SKIP_INSTALL = YES;
 				SWIFT_EMIT_LOC_STRINGS = NO;
@@ -939,7 +1136,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 15.5;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = name.JosephCursio.CoreTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -956,7 +1153,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 15.5;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = name.JosephCursio.CoreTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1026,13 +1223,52 @@
 		};
 /* End XCConfigurationList section */
 
+/* Begin XCLocalSwiftPackageReference section */
+		AA000010AABBCC0000000010 /* XCLocalSwiftPackageReference "../LintStudioUI" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = ../LintStudioUI;
+		};
+		AA000020AABBCC0000000020 /* XCLocalSwiftPackageReference "Packages/SwiftProjectLintEngine" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = Packages/SwiftProjectLintEngine;
+		};
+		AA000040AABBCC000000400 /* XCLocalSwiftPackageReference "Models" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = Packages/SwiftProjectLintModels;
+		};
+		AA000041AABBCC000000410 /* XCLocalSwiftPackageReference "Visitors" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = Packages/SwiftProjectLintVisitors;
+		};
+		AA000042AABBCC000000420 /* XCLocalSwiftPackageReference "Registry" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = Packages/SwiftProjectLintRegistry;
+		};
+		AA000043AABBCC000000430 /* XCLocalSwiftPackageReference "Rules" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = Packages/SwiftProjectLintRules;
+		};
+		AA000044AABBCC000000440 /* XCLocalSwiftPackageReference "Config" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = Packages/SwiftProjectLintConfig;
+		};
+/* End XCLocalSwiftPackageReference section */
+
 /* Begin XCRemoteSwiftPackageReference section */
 		28B283C92E17356500F871B8 /* XCRemoteSwiftPackageReference "swift-syntax" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/apple/swift-syntax.git";
 			requirement = {
 				kind = exactVersion;
-				version = 601.0.0;
+				version = 602.0.0;
+			};
+		};
+		AA000030AABBCC0000000030 /* XCRemoteSwiftPackageReference "Yams" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/jpsim/Yams.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.0.0;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
@@ -1057,6 +1293,56 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 28B283C92E17356500F871B8 /* XCRemoteSwiftPackageReference "swift-syntax" */;
 			productName = SwiftSyntax;
+		};
+		AA000011AABBCC0000000011 /* LintStudioCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = AA000010AABBCC0000000010 /* XCLocalSwiftPackageReference "../LintStudioUI" */;
+			productName = LintStudioCore;
+		};
+		AA000012AABBCC0000000012 /* LintStudioUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = AA000010AABBCC0000000010 /* XCLocalSwiftPackageReference "../LintStudioUI" */;
+			productName = LintStudioUI;
+		};
+		AA000031AABBCC0000000031 /* Yams */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = AA000030AABBCC0000000030 /* XCRemoteSwiftPackageReference "Yams" */;
+			productName = Yams;
+		};
+		AA000021AABBCC0000000021 /* SwiftProjectLintEngine */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = AA000020AABBCC0000000020 /* XCLocalSwiftPackageReference "Packages/SwiftProjectLintEngine" */;
+			productName = SwiftProjectLintEngine;
+		};
+		AA000023AABBCC0000000023 /* LintStudioCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = AA000010AABBCC0000000010 /* XCLocalSwiftPackageReference "../LintStudioUI" */;
+			productName = LintStudioCore;
+		};
+		AA000040AABBCC000000401 /* SwiftProjectLintModels */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = AA000040AABBCC000000400 /* XCLocalSwiftPackageReference "Models" */;
+			productName = SwiftProjectLintModels;
+		};
+		AA000041AABBCC000000411 /* SwiftProjectLintVisitors */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = AA000041AABBCC000000410 /* XCLocalSwiftPackageReference "Visitors" */;
+			productName = SwiftProjectLintVisitors;
+		};
+		AA000042AABBCC000000421 /* SwiftProjectLintRegistry */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = AA000042AABBCC000000420 /* XCLocalSwiftPackageReference "Registry" */;
+			productName = SwiftProjectLintRegistry;
+		};
+		AA000043AABBCC000000431 /* SwiftProjectLintRules */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = AA000043AABBCC000000430 /* XCLocalSwiftPackageReference "Rules" */;
+			productName = SwiftProjectLintRules;
+		};
+		AA000044AABBCC000000441 /* SwiftProjectLintConfig */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = AA000044AABBCC000000440 /* XCLocalSwiftPackageReference "Config" */;
+			productName = SwiftProjectLintConfig;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
