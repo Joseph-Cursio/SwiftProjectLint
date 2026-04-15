@@ -6,17 +6,19 @@ I allowed different AIs to hallucinate the market potential of this experiment.
 
 # Swift Project Linter
 
-A static analysis tool for SwiftUI projects that detects architectural issues, performance problems, and code quality concerns. Parses Swift source files using SwiftSyntax AST visitors to identify anti-patterns across 101 rules in 12 categories.
+A static analysis tool for SwiftUI projects that detects architectural issues, performance problems, and code quality concerns. Parses Swift source files using SwiftSyntax AST visitors to identify anti-patterns across 150 rules in 11 categories.
 
 ## Features
 
 - **SwiftSyntax AST Analysis**: Precise, AST-based pattern detection — no regex
 - **Cross-File Analysis**: Detects issues spanning multiple files (duplicate state, view hierarchies)
-- **101 Lint Rules** across 12 categories
+- **150 Lint Rules** across 11 categories
 - **Three delivery targets**: macOS app GUI, CLI for CI/CD, and a reusable Core library
 - **YAML configuration**: `.swiftprojectlint.yml` for per-project rule customization
 - **Inline suppression**: `// swiftprojectlint:disable` comments for per-line control
 - **Type-safe rule system**: `RuleIdentifier` enum for all rules and categories
+- **Architectural layer enforcement**: Declare layer boundaries in YAML; imports and type references that violate them are flagged
+- **Warning-suppression detection**: Flags misuse of `@_disfavoredOverload`, `@retroactive`, `@preconcurrency`, and `@discardableResult`
 
 ## Targets
 
@@ -41,22 +43,21 @@ swift run CLI /path/to/project --categories stateManagement performance --thresh
 
 ## Rules
 
-101 rules across 12 categories. See [Docs/rules/RULES.md](Docs/rules/RULES.md) for the full reference.
+150 rules across 11 categories. See [Docs/rules/RULES.md](Docs/rules/RULES.md) for the full reference.
 
 | Category | Rules |
 |----------|-------|
-| State Management | 8 |
-| Performance | 8 |
+| State Management | 10 |
+| Performance | 13 |
 | Animation | 10 |
-| Architecture | 10 |
-| Code Quality | 34 |
-| Security | 2 |
-| Accessibility | 6 |
+| Architecture | 16 |
+| Code Quality | 48 |
+| Security | 5 |
+| Accessibility | 15 |
 | Memory Management | 2 |
-| Networking | 2 |
-| UI Patterns | 7 |
-| Modernization | 12 |
-| Other | 2 |
+| Networking | 3 |
+| UI Patterns | 8 |
+| Modernization | 25 |
 
 Rules marked **opt-in** are disabled by default and must be explicitly listed under `enabled_only` in `.swiftprojectlint.yml`.
 
@@ -89,7 +90,7 @@ SwiftProjectLint/
     ├── reference.md       # CLI and configuration reference
     ├── user-guide.md      # User guide
     ├── tutorial.md        # Getting started tutorial
-    └── rules/             # Per-rule documentation (101 files)
+    └── rules/             # Per-rule documentation (150 files)
 ```
 
 ### Dependency Graph
@@ -169,6 +170,26 @@ rules:
   "Force Try":
     excluded_paths:
       - "LegacyViews/"
+
+# Architectural layer boundaries
+architectural_layers:
+  - name: domain
+    paths:
+      - "Domain/"
+    forbidden_imports:
+      - CoreData
+      - SwiftData
+      - UIKit
+      - SwiftUI
+    forbidden_types:
+      - URLSession
+      - UserDefaults
+      - NSManagedObject
+  - name: presentation
+    paths:
+      - "ViewModels/"
+    forbidden_imports:
+      - CoreData
 ```
 
 ## Inline Suppression
@@ -200,7 +221,7 @@ let b = result!
 
 ## Documentation
 
-- [Docs/rules/RULES.md](Docs/rules/RULES.md) — Full rule reference (101 rules)
+- [Docs/rules/RULES.md](Docs/rules/RULES.md) — Full rule reference (150 rules)
 - [Docs/user-guide.md](Docs/user-guide.md) — User guide
 - [Docs/architecture.md](Docs/architecture.md) — Architecture deep-dive
 - [Docs/reference.md](Docs/reference.md) — CLI and configuration reference
