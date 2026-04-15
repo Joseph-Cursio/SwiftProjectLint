@@ -4,6 +4,13 @@
 
 ---
 
+> **Note on scope:** After reviewing this proposal, it's clear the full design — effect lattice, annotation parser, cross-function inference engine, Swift macro generation, call-site context analysis — is substantially larger than a typical lint rule. The annotation and macro layers in particular (Layers 3 and 4) have almost no dependency on SwiftProjectLint's existing infrastructure and would make more sense as a standalone Swift package. If this is pursued, the recommended split is:
+>
+> - **SwiftProjectLint** — Layer 1 only: detect `/// @lint.effect` annotations on unannotated call sites and flag obvious violations (e.g., a non-idempotent call inside a `@context replayable` function body). This fits the existing AST visitor model.
+> - **Separate project** — Layers 2–4: the effect lattice inference engine, the `@Idempotent` macro, and the type-level protocol system. These require compiler plugin infrastructure and cross-function analysis that go well beyond what a lint visitor can do.
+
+---
+
 ## Overview
 
 Swift has no first-class support for idempotency as a language or static-analysis concept. Functions that must be safe to call multiple times — event handlers, retry-wrapped network calls, upsert operations — carry that contract only in documentation or team convention. Violations are silent and often expensive.
