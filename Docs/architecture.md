@@ -53,7 +53,7 @@ When `ProjectLinter.analyzeProject(at:)` is called, the following stages run in 
 
 ```
 1. FileAnalysisUtils        — discover .swift files, skip excluded paths and generated files
-2. Pre-scans                — collect cross-file type metadata (Identifiable, enum, actor types)
+2. Pre-scans                — collect cross-file type metadata (Identifiable, enum, actor types, all local type names)
 3. Per-file analysis        — concurrent task group, one task per file:
        Parser.parse()             parse source into SourceFileSyntax (AST)
        SourcePatternDetector      run visitors against the AST
@@ -97,6 +97,7 @@ SwiftProjectLintVisitors/Sources/
 ├── ActorTypeCollector.swift        ─┐
 ├── EnumTypeCollector.swift          │ type collectors for pre-scan phase
 ├── IdentifiableTypeCollector.swift  │
+├── LocalTypeCollector.swift         │ (collects all local class/struct/enum/actor names)
 └── TypeCollectorProtocol.swift     ─┘
 ```
 

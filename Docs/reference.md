@@ -214,7 +214,7 @@ Inline suppression applies **per-file only**. Cross-file issues (e.g. `Related D
 
 ## Rule Reference
 
-See [docs/rules/RULES.md](rules/RULES.md) for the complete list of 145 rules organized by category, with links to per-rule documentation.
+See [docs/rules/RULES.md](rules/RULES.md) for the complete list of 150 rules organized by category, with links to per-rule documentation.
 
 Each rule doc includes:
 - Display name and identifier
