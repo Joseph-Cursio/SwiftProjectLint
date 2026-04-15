@@ -4,13 +4,6 @@
 
 ---
 
-> **Note on scope:** After reviewing this proposal, it's clear the full design — effect lattice, annotation parser, cross-function inference engine, Swift macro generation, call-site context analysis — is substantially larger than a typical lint rule. The annotation and macro layers in particular (Layers 3 and 4) have almost no dependency on SwiftProjectLint's existing infrastructure and would make more sense as a standalone Swift package. If this is pursued, the recommended split is:
->
-> - **SwiftProjectLint** — Layer 1 only: detect `/// @lint.effect` annotations on unannotated call sites and flag obvious violations (e.g., a non-idempotent call inside a `@context replayable` function body). This fits the existing AST visitor model.
-> - **Separate project** — Layers 2–4: the effect lattice inference engine, the `@Idempotent` macro, and the type-level protocol system. These require compiler plugin infrastructure and cross-function analysis that go well beyond what a lint visitor can do.
-
----
-
 ## Overview
 
 Swift has no first-class support for idempotency as a language or static-analysis concept. Functions that must be safe to call multiple times — event handlers, retry-wrapped network calls, upsert operations — carry that contract only in documentation or team convention. Violations are silent and often expensive.
@@ -1030,6 +1023,62 @@ This delivers real value immediately, with no false positives from heuristics, a
 ---
 
 *Document prepared April 2026.*
+
+---
+
+## Open Issues
+
+These questions are unresolved and should be revisited before implementation of the relevant rules begins.
+
+### OI-1: Scope of `actorReentrancyIdempotencyHazard`
+
+The rule is currently specified to fire inside actor method bodies. The same check-suspend-act bug is possible in any `@MainActor`-isolated class or in any context where a suspension point separates a read-guard from a write. Should the rule apply only to `ActorDeclSyntax` bodies, or also to `@MainActor` class methods and other explicitly isolated contexts?
+
+Expanding scope reduces missed detections but increases false positive risk on code that isn't actually using the guard as an idempotency mechanism.
+
+### OI-2: Depth of `@context once` call-site analysis
+
+Phase 1 of `@context once` enforcement would detect direct call sites: a `@context once`-annotated function appearing inside a for-loop, a known retry wrapper, or a `@context retry_safe` / `replayable` function body — visible in the AST at parse time.
+
+Phase 2 would add transitive propagation: if `A` calls `B` and `B` calls a `@context once` function, and `A` is in a retry context, the violation is still real but requires a call graph rather than single-pass AST traversal.
+
+The question is whether Phase 1 alone delivers enough value to ship, or whether the gap (violations that only appear transitively) is large enough that Phase 2 should be a prerequisite. This depends on how `@context once` annotations are actually used in practice — a question that can only be answered against a real codebase.
+
+---
+
+## Q&A: Addressing Common Critiques
+
+These questions reflect critiques raised during review. Most concern design decisions that are already resolved in the document body; they are answered here to prevent re-litigation.
+
+---
+
+**Q: Isn't binary classification (idempotent / not) too limiting for real systems? What about idempotency per key, or within a time window?**
+
+A: The effect lattice is not binary. It has five positions: `pure`, `idempotent`, `externallyIdempotent`, `non_idempotent`, and `unknown`. Key-based idempotency is explicitly modeled as `externallyIdempotent`, with its own annotation (`/// @lint.effect externally_idempotent reason: "..."`) and enforcement rules that differ from intrinsic `idempotent`. Time-windowed or conditionally idempotent operations are a known gap — they fall under `unknown` with an `@lint.unsafe reason:` escape hatch. Parameterized scope (`idempotent(by: requestID)`) is not in the current grammar but would be a natural annotation extension once the core lattice is validated against real code.
+
+---
+
+**Q: Static analysis will always hit a ceiling — the linter can't know about database constraints, external API guarantees, etc.**
+
+A: Correct, and the design accounts for this explicitly. The static body check is one layer of four. For operations where the idempotency guarantee lives outside the function body, `@context idempotent_caller` suppresses the body check and replaces it with a mechanism check (presence of an `IdempotencyKey` parameter, a deduplication guard, or an explicit `@lint.unsafe reason:`). `@lint.assume db.upsert_is_idempotent`-style declarations are a possible future extension for annotating third-party boundaries, but are not in Phase 1. The point of the static layer is not complete verification — it's catching violations that *are* locally visible, which is a significant subset of real bugs.
+
+---
+
+**Q: Macro-generated tests aren't strong enough — they don't catch race conditions or distributed retries.**
+
+A: Agreed, and the document says so explicitly in the Tiered Generation Strategy section: "the fixed-input double-call pattern only tests one point in the input space." The macro tier is positioned as a heuristic that catches the simplest class of idempotency violations (a function that returns a different value on the second call, or a method whose captured state differs after repeated calls). It is not a proof of idempotency. The value proposition is: *zero-cost test scaffolding that catches obvious violations and makes the intent reviewable*, not exhaustive verification. Concurrency and distributed-system testing require purpose-built harnesses that are out of scope for a peer macro.
+
+---
+
+**Q: The type-level modeling is underdeveloped — shouldn't protocols be a more central abstraction?**
+
+A: The document covers three protocol patterns (marker, operation object, effect-tagged wrapper), conditional conformance, the `@unchecked` escape hatch, and an explicit trade-off table comparing protocols to doc-comment annotations on five dimensions. The conclusion is that both are needed: protocols for new code structured around operation objects where compile-time generic constraints are worth the architectural buy-in; annotations for existing APIs and free functions where structural change is not feasible. Making protocols the *core* abstraction would require architectural restructuring of existing codebases, which contradicts the incremental adoption requirement. The annotation layer is the lingua franca; the protocol layer is an opt-in for code that can afford the structure.
+
+---
+
+**Q: Concurrency integration is missing.**
+
+A: The Swift Concurrency Interactions section covers: actors don't imply idempotency; actor reentrancy breaks check-then-act patterns (including a detectable rule and fix pattern); four additional async retry patterns (`Task { }` in a loop, `withThrowingTaskGroup`, recursive async retry, and SwiftUI `.task {}`); and how `effectSpecifiers` propagate into generated macro test peers. The rule `actorReentrancyIdempotencyHazard` is the most original contribution in the concurrency section — it is both detectable with SwiftSyntax and absent from existing linting tools.
 
 ---
 

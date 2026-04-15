@@ -25,20 +25,20 @@ extension RuleDocView {
         }
 
         static let light = SyntaxColors(
-            keyword:   Color(hex: "#AD3DA4"),
-            type:      Color(hex: "#0B4F79"),
-            string:    Color(hex: "#D12F1B"),
-            number:    Color(hex: "#1C00CF"),
-            comment:   Color(hex: "#707F8C"),
+            keyword: Color(hex: "#AD3DA4"),
+            type: Color(hex: "#0B4F79"),
+            string: Color(hex: "#D12F1B"),
+            number: Color(hex: "#1C00CF"),
+            comment: Color(hex: "#707F8C"),
             attribute: Color(hex: "#6C36A9")
         )
 
         static let dark = SyntaxColors(
-            keyword:   Color(hex: "#FF7AB2"),
-            type:      Color(hex: "#6BDFFF"),
-            string:    Color(hex: "#FC6A5D"),
-            number:    Color(hex: "#D0BF69"),
-            comment:   Color(hex: "#7F8C98"),
+            keyword: Color(hex: "#FF7AB2"),
+            type: Color(hex: "#6BDFFF"),
+            string: Color(hex: "#FC6A5D"),
+            number: Color(hex: "#D0BF69"),
+            comment: Color(hex: "#7F8C98"),
             attribute: Color(hex: "#CC85D6")
         )
     }
@@ -50,9 +50,9 @@ extension RuleDocView {
         var result = AttributedString()
         let lines = code.components(separatedBy: "\n")
 
-        for (i, line) in lines.enumerated() {
+        for (idx, line) in lines.enumerated() {
             result.append(highlightLine(line, colors: colors))
-            if i < lines.count - 1 {
+            if idx < lines.count - 1 {
                 result.append(AttributedString("\n"))
             }
         }
@@ -121,12 +121,12 @@ extension RuleDocView {
         // Patterns in priority order: earlier patterns win when ranges overlap.
         let patterns: [(String, Color, Bool)] = [
             // (pattern, color, isComment)
-            (#""[^"\n]*""#,                  colors.string,    false),
-            (#"@[A-Za-z_][A-Za-z0-9_]*"#,   colors.attribute, false),
-            (Self.keywordPattern,            colors.keyword,   false),
-            (Self.typePattern,               colors.type,      false),
-            (#"\b\d[\d_.]*\b"#,              colors.number,    false),
-            (#"//.*$"#,                      colors.comment,   true),
+            (#""[^"\n]*""#, colors.string, false),
+            (#"@[A-Za-z_][A-Za-z0-9_]*"#, colors.attribute, false),
+            (Self.keywordPattern, colors.keyword, false),
+            (Self.typePattern, colors.type, false),
+            (#"\b\d[\d_.]*\b"#, colors.number, false),
+            (#"//.*$"#, colors.comment, true)
         ]
 
         var result = AttributedString()
