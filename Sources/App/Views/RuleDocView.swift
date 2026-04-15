@@ -13,6 +13,8 @@ import Core
 struct RuleDocView: View {
     let rule: RuleIdentifier
 
+    @Environment(\.colorScheme) private var colorScheme
+
     private var markdown: String {
         RuleDocumentationLoader.loadDocumentation(for: rule)
             ?? "_Documentation not available for this rule._"
@@ -128,7 +130,7 @@ struct RuleDocView: View {
                 .padding(.bottom, 4)
 
         case .codeBlock(let code):
-            Text(code)
+            Text(highlightedCode(code, colorScheme: colorScheme))
                 .font(.system(.callout, design: .monospaced))
                 .padding(12)
                 .frame(maxWidth: .infinity, alignment: .leading)
