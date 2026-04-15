@@ -148,7 +148,11 @@ class CodeQuality: BasePatternRegistrar {
             MissingCancellationCheck(),
             FireAndForgetTask(),
             DiscardedTryResult(),
-            MapUsedForSideEffects()
+            MapUsedForSideEffects(),
+            DisfavoredOverload(),
+            RetroactiveConformance(),
+            PreconcurrencyConformance(),
+            DiscardableResultMisuse()
         ])
     }
 }
