@@ -139,7 +139,10 @@ struct ArchitecturalBoundaryVisitorTests {
         let source = """
         import CoreData
         """
-        let found = issues(source, filePath: "ViewModels/OrderViewModel.swift", policies: [domainPolicy, presentationPolicy])
+        let found = issues(
+            source, filePath: "ViewModels/OrderViewModel.swift",
+            policies: [domainPolicy, presentationPolicy]
+        )
         let issue = try #require(found.first)
         #expect(issue.message.contains("presentation"))
     }

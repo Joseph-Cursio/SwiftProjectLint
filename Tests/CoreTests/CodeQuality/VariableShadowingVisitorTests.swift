@@ -114,14 +114,14 @@ struct VariableShadowingDetectionTests {
 
 // MARK: - Exclusion Tests
 
+struct ExclusionCase: Sendable, CustomTestStringConvertible {
+    let label: String
+    let source: String
+    var testDescription: String { label }
+}
+
 @Suite("Variable Shadowing Exclusions")
 struct VariableShadowingExclusionTests {
-
-    struct ExclusionCase: Sendable, CustomTestStringConvertible {
-        let label: String
-        let source: String
-        var testDescription: String { label }
-    }
 
     @Test("Idiomatic patterns are not flagged", arguments: [
         ExclusionCase(
@@ -306,7 +306,21 @@ struct VariableShadowingExclusionTests {
                 }
             }
             """
-        ),
+        )
+    ])
+    func exclusion(_ testCase: ExclusionCase) {
+        let visitor = makeVisitor()
+        runVisitor(visitor, source: testCase.source)
+        #expect(visitor.detectedIssues.isEmpty)
+    }
+}
+
+// MARK: - Rebinding and Loop Exclusion Tests
+
+@Suite("Variable Shadowing Rebinding and Loop Exclusions")
+struct VariableShadowingRebindingTests {
+
+    @Test("Rebinding and loop patterns are not flagged", arguments: [
         ExclusionCase(
             label: "rebinding with method call",
             source: """
@@ -443,7 +457,7 @@ struct VariableShadowingExclusionTests {
             """
         )
     ])
-    func exclusion(_ testCase: ExclusionCase) {
+    func rebindingExclusion(_ testCase: ExclusionCase) {
         let visitor = makeVisitor()
         runVisitor(visitor, source: testCase.source)
         #expect(visitor.detectedIssues.isEmpty)

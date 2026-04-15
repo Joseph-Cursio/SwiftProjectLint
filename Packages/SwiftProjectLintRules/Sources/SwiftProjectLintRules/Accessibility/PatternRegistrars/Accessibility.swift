@@ -8,6 +8,14 @@ import Foundation
 
 class Accessibility: BasePatternRegistrar {
     override func registerPatterns() {
+        registerCorePatterns()
+        registerInteractionPatterns()
+        registerStateAndGroupingPatterns()
+        registerConflictPatterns()
+        registry.register(registrars: [HardcodedFontSize()])
+    }
+
+    private func registerCorePatterns() {
         let patterns = [
             SyntaxPattern(
                 name: .missingAccessibilityLabel,
@@ -57,130 +65,125 @@ class Accessibility: BasePatternRegistrar {
             )
         ]
         registry.register(patterns: patterns)
+    }
 
-        let onTapGesturePattern = SyntaxPattern(
-            name: .onTapGestureInsteadOfButton,
-            visitor: OnTapGestureInsteadOfButtonVisitor.self,
-            severity: .warning,
-            category: .accessibility,
-            messageTemplate: "Prefer Button over .onTapGesture for accessibility",
-            suggestion: "Replace .onTapGesture { ... } with a Button",
-            description: "Detects .onTapGesture calls that bypass button " +
-                "accessibility traits, keyboard focus, and haptic feedback"
-        )
-        registry.register(patterns: [onTapGesturePattern])
+    private func registerInteractionPatterns() {
+        registry.register(patterns: [
+            SyntaxPattern(
+                name: .onTapGestureInsteadOfButton,
+                visitor: OnTapGestureInsteadOfButtonVisitor.self,
+                severity: .warning,
+                category: .accessibility,
+                messageTemplate: "Prefer Button over .onTapGesture for accessibility",
+                suggestion: "Replace .onTapGesture { ... } with a Button",
+                description: "Detects .onTapGesture calls that bypass button "
+                    + "accessibility traits, keyboard focus, and haptic feedback"
+            ),
+            SyntaxPattern(
+                name: .tapTargetTooSmall,
+                visitor: TapTargetTooSmallVisitor.self,
+                severity: .warning,
+                category: .accessibility,
+                messageTemplate: "Interactive element below 44pt minimum tap target",
+                suggestion: "Increase frame to at least 44\u{00D7}44pt or add padding",
+                description: "Detects interactive elements with frame dimensions "
+                    + "below the 44pt minimum tap target size."
+            ),
+            SyntaxPattern(
+                name: .missingDynamicTypeSupport,
+                visitor: MissingDynamicTypeSupportVisitor.self,
+                severity: .info,
+                category: .accessibility,
+                messageTemplate: ".lineLimit(1) on dynamic text may truncate "
+                    + "at larger Dynamic Type sizes",
+                suggestion: "Allow multiple lines, add .minimumScaleFactor(), "
+                    + "or provide full text via .accessibilityLabel().",
+                description: "Detects .lineLimit(1) on dynamic text content "
+                    + "that may truncate at larger text sizes. Disabled by default."
+            ),
+            SyntaxPattern(
+                name: .decorativeImageMissingTrait,
+                visitor: DecorativeImageMissingTraitVisitor.self,
+                severity: .info,
+                category: .accessibility,
+                messageTemplate: "Decorative image may need "
+                    + ".accessibilityHidden(true)",
+                suggestion: "Add .accessibilityHidden(true) if decorative, "
+                    + "or .accessibilityLabel() if meaningful.",
+                description: "Detects likely decorative images without "
+                    + "accessibility handling. Disabled by default."
+            )
+        ])
+    }
 
-        let tapTargetPattern = SyntaxPattern(
-            name: .tapTargetTooSmall,
-            visitor: TapTargetTooSmallVisitor.self,
-            severity: .warning,
-            category: .accessibility,
-            messageTemplate: "Interactive element below 44pt minimum tap target",
-            suggestion: "Increase frame to at least 44\u{00D7}44pt or add padding",
-            description: "Detects interactive elements with frame dimensions "
-                + "below the 44pt minimum tap target size."
-        )
-        registry.register(patterns: [tapTargetPattern])
+    private func registerStateAndGroupingPatterns() {
+        registry.register(patterns: [
+            SyntaxPattern(
+                name: .toggleButtonMissingSelectedTrait,
+                visitor: ToggleButtonMissingSelectedTraitVisitor.self,
+                severity: .warning,
+                category: .accessibility,
+                messageTemplate: "Button with conditional appearance may need "
+                    + ".accessibilityAddTraits to communicate selected state",
+                suggestion: "Add .accessibilityAddTraits(isSelected ? .isSelected : []) "
+                    + "so VoiceOver announces the selection state.",
+                description: "Detects buttons with ternary-driven visuals "
+                    + "that lack .accessibilityAddTraits for selected state."
+            ),
+            SyntaxPattern(
+                name: .buttonTogglingBool,
+                visitor: ButtonTogglingBoolVisitor.self,
+                severity: .info,
+                category: .accessibility,
+                messageTemplate: "Button that toggles a Bool could be a Toggle "
+                    + "with a custom ToggleStyle",
+                suggestion: "Use Toggle with a custom ToggleStyle to get "
+                    + "semantic accessibility traits automatically.",
+                description: "Detects buttons whose action calls .toggle() "
+                    + "on a Bool, suggesting a Toggle would be more accessible."
+            ),
+            SyntaxPattern(
+                name: .stackMissingAccessibilityGrouping,
+                visitor: StackAccessibilityGroupingVisitor.self,
+                severity: .info,
+                category: .accessibility,
+                messageTemplate: "Stack with label\u{2013}value Text pair may need "
+                    + ".accessibilityElement(children:) for VoiceOver grouping",
+                suggestion: "Add .accessibilityElement(children: .combine) so "
+                    + "VoiceOver reads the label and value together.",
+                description: "Detects VStack/HStack with exactly two Text children "
+                    + "and no interactive elements that lack accessibility grouping."
+            )
+        ])
+    }
 
-        let dynamicTypePattern = SyntaxPattern(
-            name: .missingDynamicTypeSupport,
-            visitor: MissingDynamicTypeSupportVisitor.self,
-            severity: .info,
-            category: .accessibility,
-            messageTemplate: ".lineLimit(1) on dynamic text may truncate "
-                + "at larger Dynamic Type sizes",
-            suggestion: "Allow multiple lines, add .minimumScaleFactor(), "
-                + "or provide full text via .accessibilityLabel().",
-            description: "Detects .lineLimit(1) on dynamic text content "
-                + "that may truncate at larger text sizes. Disabled by default."
-        )
-        registry.register(patterns: [dynamicTypePattern])
-
-        let decorativeImagePattern = SyntaxPattern(
-            name: .decorativeImageMissingTrait,
-            visitor: DecorativeImageMissingTraitVisitor.self,
-            severity: .info,
-            category: .accessibility,
-            messageTemplate: "Decorative image may need "
-                + ".accessibilityHidden(true)",
-            suggestion: "Add .accessibilityHidden(true) if decorative, "
-                + "or .accessibilityLabel() if meaningful.",
-            description: "Detects likely decorative images without "
-                + "accessibility handling. Disabled by default."
-        )
-        registry.register(patterns: [decorativeImagePattern])
-
-        let toggleButtonPattern = SyntaxPattern(
-            name: .toggleButtonMissingSelectedTrait,
-            visitor: ToggleButtonMissingSelectedTraitVisitor.self,
-            severity: .warning,
-            category: .accessibility,
-            messageTemplate: "Button with conditional appearance may need "
-                + ".accessibilityAddTraits to communicate selected state",
-            suggestion: "Add .accessibilityAddTraits(isSelected ? .isSelected : []) "
-                + "so VoiceOver announces the selection state.",
-            description: "Detects buttons with ternary-driven visuals "
-                + "that lack .accessibilityAddTraits for selected state."
-        )
-        registry.register(patterns: [toggleButtonPattern])
-
-        let buttonTogglingBoolPattern = SyntaxPattern(
-            name: .buttonTogglingBool,
-            visitor: ButtonTogglingBoolVisitor.self,
-            severity: .info,
-            category: .accessibility,
-            messageTemplate: "Button that toggles a Bool could be a Toggle "
-                + "with a custom ToggleStyle",
-            suggestion: "Use Toggle with a custom ToggleStyle to get "
-                + "semantic accessibility traits automatically.",
-            description: "Detects buttons whose action calls .toggle() "
-                + "on a Bool, suggesting a Toggle would be more accessible."
-        )
-        registry.register(patterns: [buttonTogglingBoolPattern])
-
-        let stackGroupingPattern = SyntaxPattern(
-            name: .stackMissingAccessibilityGrouping,
-            visitor: StackAccessibilityGroupingVisitor.self,
-            severity: .info,
-            category: .accessibility,
-            messageTemplate: "Stack with label\u{2013}value Text pair may need "
-                + ".accessibilityElement(children:) for VoiceOver grouping",
-            suggestion: "Add .accessibilityElement(children: .combine) so "
-                + "VoiceOver reads the label and value together.",
-            description: "Detects VStack/HStack with exactly two Text children "
-                + "and no interactive elements that lack accessibility grouping."
-        )
-        registry.register(patterns: [stackGroupingPattern])
-
-        let hiddenConflictPattern = SyntaxPattern(
-            name: .accessibilityHiddenConflict,
-            visitor: AccessibilityHiddenConflictVisitor.self,
-            severity: .warning,
-            category: .accessibility,
-            messageTemplate: ".accessibilityHidden(true) conflicts with "
-                + "other accessibility modifiers on the same view",
-            suggestion: "Remove the conflicting modifiers, or replace "
-                + ".accessibilityHidden(true) with "
-                + ".accessibilityElement(children: .ignore).",
-            description: "Detects views with .accessibilityHidden(true) "
-                + "alongside other accessibility attributes that become unreachable."
-        )
-        registry.register(patterns: [hiddenConflictPattern])
-
-        let sortPriorityPattern = SyntaxPattern(
-            name: .sortPriorityWithoutContainer,
-            visitor: SortPriorityWithoutContainerVisitor.self,
-            severity: .warning,
-            category: .accessibility,
-            messageTemplate: ".accessibilitySortPriority() has no effect without "
-                + ".accessibilityElement(children: .contain) on the parent stack",
-            suggestion: "Add .accessibilityElement(children: .contain) to the "
-                + "enclosing stack for sort priorities to take effect.",
-            description: "Detects sort priority modifiers inside stacks "
-                + "that lack the required accessibility container modifier."
-        )
-        registry.register(patterns: [sortPriorityPattern])
-
-        registry.register(registrars: [HardcodedFontSize()])
+    private func registerConflictPatterns() {
+        registry.register(patterns: [
+            SyntaxPattern(
+                name: .accessibilityHiddenConflict,
+                visitor: AccessibilityHiddenConflictVisitor.self,
+                severity: .warning,
+                category: .accessibility,
+                messageTemplate: ".accessibilityHidden(true) conflicts with "
+                    + "other accessibility modifiers on the same view",
+                suggestion: "Remove the conflicting modifiers, or replace "
+                    + ".accessibilityHidden(true) with "
+                    + ".accessibilityElement(children: .ignore).",
+                description: "Detects views with .accessibilityHidden(true) "
+                    + "alongside other accessibility attributes that become unreachable."
+            ),
+            SyntaxPattern(
+                name: .sortPriorityWithoutContainer,
+                visitor: SortPriorityWithoutContainerVisitor.self,
+                severity: .warning,
+                category: .accessibility,
+                messageTemplate: ".accessibilitySortPriority() has no effect without "
+                    + ".accessibilityElement(children: .contain) on the parent stack",
+                suggestion: "Add .accessibilityElement(children: .contain) to the "
+                    + "enclosing stack for sort priorities to take effect.",
+                description: "Detects sort priority modifiers inside stacks "
+                    + "that lack the required accessibility container modifier."
+            )
+        ])
     }
 } 
