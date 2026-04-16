@@ -11,27 +11,34 @@
 
 `#expect(expression == false)` and `#require(expression == false)` capture both sides of the binary comparison, so the failure message shows what `expression` actually evaluated to.
 
-This was originally observed by Paul Hudson (Hacking with Swift) and has been verified against **Swift 6.3 / Xcode 26.4 beta** — the behaviour is unchanged in the latest toolchain.
+This was originally observed by Paul Hudson (Hacking with Swift) and has been verified against **Swift 6.3 / Xcode 26.4** (stable, Testing 6.2.4) and **swift-testing `main`** (6.4-dev) — the underlying limitation is unchanged in both.
 
-### Verified Failure Output (Swift 6.3 / Xcode 26.4 beta)
-
-**Plain boolean:**
+### Verified Failure Output (Swift 6.3 / Xcode 26.4, Testing 6.2.4)
 
 | Form | Failure output |
 |------|----------------|
-| `#expect(!flag)` | `!(flag -> <not evaluated>)` |
-| `#expect(flag == false)` | `(flag -> true) == false` |
+| `#expect(!flag)` | `!(flag → <not evaluated>)` |
+| `#expect(flag == false)` | `(flag → true) == false` |
+| `#expect(!empty.isEmpty)` | `!((empty → []).isEmpty → true → true)` |
+| `#expect(empty.isEmpty == false)` | `(empty.isEmpty → true) == false` |
 
-The negation form loses the value entirely (`<not evaluated>`). The `== false` form shows that `flag` was `true`.
+The negation form loses the sub-expression value (`<not evaluated>`) or produces a confusing multi-arrow chain. The `== false` form always shows the actual value.
 
-**Chained property call:**
+### Verified Failure Output (swift-testing `main`, 6.4-dev)
 
-| Form | Failure output |
-|------|----------------|
-| `#expect(!empty.isEmpty)` | `!((empty -> []).isEmpty -> true -> true)` |
-| `#expect(empty.isEmpty == false)` | `(empty.isEmpty -> true) == false` |
+The tree-format diagnostic in the upcoming release makes the same limitation even more visible:
 
-The negation form produces a confusing triple-arrow chain. The `== false` form is clean and immediately shows the actual value.
+```
+Expectation failed: !flag
+↳ !flag → <not evaluated>
+↳   flag → <not evaluated>
+
+Expectation failed: flag == false
+↳ flag == false → false
+↳   flag → true
+```
+
+Under `!`, the inner operand is still `<not evaluated>`; under `== false`, you get the real value.
 
 The same applies to `#require`.
 
