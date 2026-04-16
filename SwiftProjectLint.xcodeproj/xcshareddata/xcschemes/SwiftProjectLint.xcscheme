@@ -11,7 +11,7 @@
             ActionType = "Xcode.IDEStandardExecutionActionsCore.ExecutionActionType.ShellScriptAction">
             <ActionContent
                title = "Build via SPM"
-               scriptText = "cd &quot;$SRCROOT&quot;&#10;swift build --product App 2&gt;&amp;1&#10;if [ $? -eq 0 ]; then&#10;  cp .build/arm64-apple-macosx/debug/App SwiftProjectLint.app/Contents/MacOS/SwiftProjectLint&#10;  codesign --force --sign - SwiftProjectLint.app&#10;fi&#10;">
+               scriptText = "cd &quot;$SRCROOT&quot;&#10;swift build --product App 2&gt;&amp;1&#10;if [ $? -eq 0 ]; then&#10;  mkdir -p SwiftProjectLint.app/Contents/MacOS&#10;  mkdir -p SwiftProjectLint.app/Contents/Resources&#10;  cp .build/arm64-apple-macosx/debug/App SwiftProjectLint.app/Contents/MacOS/SwiftProjectLint&#10;  # Copy SPM resources bundle if present&#10;  if [ -d .build/arm64-apple-macosx/debug/App_App.bundle ]; then&#10;    cp -R .build/arm64-apple-macosx/debug/App_App.bundle SwiftProjectLint.app/Contents/Resources/&#10;  fi&#10;  cat &gt; SwiftProjectLint.app/Contents/Info.plist &lt;&lt; PLIST&#10;&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;&#10;&lt;!DOCTYPE plist PUBLIC &quot;-//Apple//DTD PLIST 1.0//EN&quot; &quot;http://www.apple.com/DTDs/PropertyList-1.0.dtd&quot;&gt;&#10;&lt;plist version=&quot;1.0&quot;&gt;&#10;&lt;dict&gt;&#10;  &lt;key&gt;CFBundleExecutable&lt;/key&gt;&#10;  &lt;string&gt;SwiftProjectLint&lt;/string&gt;&#10;  &lt;key&gt;CFBundleIdentifier&lt;/key&gt;&#10;  &lt;string&gt;name.JosephCursio.SwiftProjectLint&lt;/string&gt;&#10;  &lt;key&gt;CFBundleName&lt;/key&gt;&#10;  &lt;string&gt;SwiftProjectLint&lt;/string&gt;&#10;  &lt;key&gt;CFBundlePackageType&lt;/key&gt;&#10;  &lt;string&gt;APPL&lt;/string&gt;&#10;  &lt;key&gt;CFBundleShortVersionString&lt;/key&gt;&#10;  &lt;string&gt;1.0&lt;/string&gt;&#10;  &lt;key&gt;LSMinimumSystemVersion&lt;/key&gt;&#10;  &lt;string&gt;26.0&lt;/string&gt;&#10;  &lt;key&gt;NSMainStoryboardFile&lt;/key&gt;&#10;  &lt;string&gt;&lt;/string&gt;&#10;  &lt;key&gt;NSPrincipalClass&lt;/key&gt;&#10;  &lt;string&gt;NSApplication&lt;/string&gt;&#10;&lt;/dict&gt;&#10;&lt;/plist&gt;&#10;PLIST&#10;  codesign --force --sign - SwiftProjectLint.app&#10;fi&#10;">
                <EnvironmentBuildable>
                   <BuildableReference
                      BuildableIdentifier = "primary"
@@ -50,8 +50,8 @@
    </TestAction>
    <LaunchAction
       buildConfiguration = "Debug"
-      selectedDebuggerIdentifier = ""
-      selectedLauncherIdentifier = "Xcode.IDEFoundation.Launcher.PosixSpawn"
+      selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
+      selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
       launchStyle = "0"
       useCustomWorkingDirectory = "NO"
       ignoresPersistentStateOnLaunch = "NO"
