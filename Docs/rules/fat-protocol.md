@@ -14,6 +14,9 @@ A protocol with 10 or more requirements violates the Interface Segregation Princ
 
 The threshold of 10 is intentionally generous — most well-designed protocols in the Swift ecosystem have 1–5 requirements. Reaching 10 is a strong signal that the protocol should be decomposed into focused, composable traits.
 
+Pawel Kozielecki recommends a limit of 5 requirements. "Why warn at 5, and not 6? Most protocols implement CRUD operations – Create, Read, Update, Delete. Reserving one spot per operation gives you a natural ceiling of 4. Five is the first sign the scope of the protocol has increased." See https://swiftandmemes.com/interface-segregation-principle-in-ios-how-to-prevent-protocol-from-becoming-a-prison.
+
+
 ### Non-Violating Examples
 ```swift
 protocol Loadable {
