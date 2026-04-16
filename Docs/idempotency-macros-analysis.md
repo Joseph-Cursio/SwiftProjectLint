@@ -15,23 +15,25 @@ The remote control on my car locks the doors—even if they’re already locked.
 
 This is an example of idempotency in the real world. The action is defined in terms of the desired end state (“locked”), not a transition (“toggle lock”). Repeating the action doesn’t introduce new effects—it simply ensures the same outcome.
 
-⸻
-
-### Example 2: Classroom Light Switches (Non-Idempotent / Ambiguous)
-
-In a classroom with multiple entrances and multiple light switches, I often don’t know which switch controls which lights. Flipping a switch might turn lights on—or it might turn them off. Pressing the same switch again doesn’t reliably produce the same result; it depends on the current state, which I may not know.
-
-This is not idempotent. The system behaves like a toggle, where each action changes state rather than ensuring a specific outcome. As a result, I have to remember or infer the current state before acting, increasing the chance of mistakes.
+Notably, pressing the lock button when the doors are already locked has no mechanical effect at all—the latches don’t move, nothing changes in the car’s physical state. The only thing the user gains is peace of mind: the certainty that the car is locked, without having to remember whether they already locked it. This is a defining property of idempotent operations: the second (and third, and fourth) invocation is a no-op at the system level, but still serves a real purpose for the caller—confirmation without consequence.
 
 ⸻
 
-### Example 3: Elevator Button (Idempotent Request)
+### Example 2: Elevator Button (Idempotent Request)
 
 Pressing the elevator button to go to a floor registers a request. Pressing it again doesn’t create additional requests or change the outcome—it simply ensures that the request has been made.
 
 This is another form of idempotency. The system interprets repeated actions as the same intent, not as additional work. The user doesn’t need to track whether they’ve already pressed the button; repeating the action is safe and has no unintended side effects.
  
 BTW: pressing an already lit elevator button does not make the elevator go any faster, even though I've seen so many people press it over and over again. They must believe in "ele-acceleration." 
+
+⸻
+
+### Example 3: Classroom Light Switches (Non-Idempotent / Ambiguous)
+
+In a classroom with multiple entrances and multiple light switches, I often don’t know which switch controls which lights. Flipping a switch might turn lights on—or it might turn them off. Pressing the same switch again doesn’t reliably produce the same result; it depends on the current state, which I may not know.
+
+This is not idempotent. The system behaves like a toggle, where each action changes state rather than ensuring a specific outcome. As a result, I have to remember or infer the current state before acting, increasing the chance of mistakes.
 
 ⸻
 
@@ -42,15 +44,15 @@ Idempotent systems are designed around achieving a desired state, not transition
 In this document, the goal is to design software systems that behave more like the car lock or elevator button—and less like the classroom light switches.
 
 
-| Property | Car Lock | Light Switch | Elevator Button |
-|----------|----------|--------------|------------------|
-| Requires memory | ❌ No | ✅ Yes | ❌ No |
-| Safe to repeat | ✅ Yes | ❌ No | ✅ Yes |
-| Outcome predictable | ✅ Yes | ❌ No | ✅ Yes |
-| Mental model | Ensure state (“locked”) | Toggle state | Ensure request is registered |
-| Repeated action effect | No additional effect | Reverses or changes state | No additional effect |
-| Undo available | Not needed | Sometimes (flip again) | Not needed |
-| User confidence | High | Low | High |
+| Property | Car Lock | Elevator Button | Light Switch |
+|----------|----------|------------------|--------------|
+| Requires memory | ❌ No | ❌ No | ✅ Yes |
+| Safe to repeat | ✅ Yes | ✅ Yes | ❌ No |
+| Outcome predictable | ✅ Yes | ✅ Yes | ❌ No |
+| Mental model | Ensure state (“locked”) | Ensure request is registered | Toggle state |
+| Repeated action effect | No additional effect | No additional effect | Reverses or changes state |
+| Undo available | Not needed | Not needed | Sometimes (flip again) |
+| User confidence | High | High | Low |
 
 The light switch appears manageable because mistakes can often be undone by flipping it again. But this only works in simple, local systems. In more complex or distributed systems, actions are often irreversible, delayed, or have side effects that cannot be cleanly undone. In those cases, toggle-style behavior becomes dangerous, and idempotent “ensure state” operations become much more valuable.
 
@@ -146,6 +148,35 @@ The linter does not need to enforce a single global definition of equivalence. I
 
 For the externally-idempotent tier, the observer is typically the external system's deduplication layer, and the equivalence relation is "the provider treats these calls as the same operation" — a claim grounded in the provider's contract, not in the function body.
 
+### Partial Failure and the Retry Contract
+
+Idempotency is frequently discussed as a property of successful calls — if `f(x); f(x)` both complete, they produce the same effect as `f(x)` alone. In production, the execution paths that matter most are the ones that *don't* complete. A function that begins, mutates external state, then throws leaves the observer in an intermediate state the retry has to reconcile.
+
+The canonical failure mode:
+
+```swift
+// ❌ Each individual call is idempotent in isolation.
+//    The composite is not — partial completion leaves state inconsistent.
+func processPayment(id: PaymentID) async throws {
+    try await chargeCard(id)               // succeeds, card is charged
+    try await updateOrderStatus(id, .paid) // throws — network blip
+}
+
+// Retry re-enters. chargeCard with the same key is deduplicated server-side.
+// updateOrderStatus retries and succeeds. OK — but only because chargeCard
+// is externally idempotent on the key. If chargeCard were non-idempotent,
+// the retry would double-charge.
+```
+
+This is not a theoretical edge case — it is the failure mode that motivates idempotency in most real systems. The proposal must therefore distinguish two contracts:
+
+- **Unconditional idempotency**: the function is idempotent on *every* execution path, including paths that throw partway through. The observable state after any prefix of the function's execution is either the pre-call state or the post-call state, never an intermediate state that makes retry unsafe.
+- **Atomic idempotency**: the function is idempotent *only* when its side effects commit atomically — typically because they are wrapped in a database transaction, a filesystem rename, or a single-message queue publish. If the atomic boundary is absent or broken, the function degrades to `non_idempotent`.
+
+Atomic idempotency is introduced as a first-class effect tier below. Compensating actions (rolling back `processedIDs.insert(id)` in the actor reentrancy example) are the mechanism teams reach for when atomicity is not available — they should be documented with `@lint.effect idempotent reason: "compensates on throw"` so the claim is reviewable.
+
+The enforcement rule is: every `@lint.effect idempotent` declaration is read as a claim that holds on *every* execution path through the function, including early-throw paths. A function that is idempotent only on the happy path must be declared `@lint.effect atomic_idempotent` (with an enforced transaction boundary) or `@lint.effect non_idempotent` (with a compensating-action story in prose).
+
 ---
 
 ## Formalized Effect Lattice
@@ -153,13 +184,15 @@ For the externally-idempotent tier, the observer is typically the external syste
 A strict ordering defines how effects compose and conflict:
 
 ```
-pure < idempotent < externallyIdempotent < non_idempotent
-                  unknown (incomparable)
+pure < idempotent < { atomic_idempotent, externallyIdempotent } < non_idempotent
+                                                                unknown (incomparable)
 ```
 
-Where `unknown` is incomparable to `non_idempotent`; in enforcement, it is treated conservatively as `non_idempotent`.
+Where `unknown` is incomparable to `non_idempotent`; in enforcement, it is treated conservatively as `non_idempotent`. `atomic_idempotent` and `externallyIdempotent` sit at the same tier — both are *conditionally* idempotent, depending on an external mechanism (a transaction boundary or a deduplication key, respectively). Neither is strictly stronger than the other; they address different classes of non-idempotent operation.
 
-`externallyIdempotent` sits between `idempotent` and `non_idempotent`: it represents operations that are made safe to retry via an external mechanism (idempotency keys, deduplication tables), rather than intrinsic function body properties. See the Idempotency Keys section for details.
+`externallyIdempotent` represents operations that are made safe to retry via an external mechanism (idempotency keys, deduplication tables), rather than intrinsic function body properties. See the Idempotency Keys section for details.
+
+`atomic_idempotent` represents operations whose side effects are individually non-idempotent but commit atomically — a single database transaction, an atomic rename, a single message publish. The retry contract holds because the observable state after any prefix of execution is either the pre-call state or the post-call state, never an intermediate one. See "Transactions as a Composition Boundary" below.
 
 **Composition rules** (for a function calling multiple callees):
 
@@ -167,7 +200,9 @@ Where `unknown` is incomparable to `non_idempotent`; in enforcement, it is treat
 |---|---|
 | pure only | pure |
 | idempotent only | idempotent |
-| any non_idempotent | non_idempotent |
+| any non_idempotent (outside a transaction) | non_idempotent |
+| multiple non_idempotent inside a single transaction | atomic_idempotent |
+| any externally_idempotent | externally_idempotent (if sole source) or non_idempotent (if mixed outside a txn) |
 | any unknown | unknown (warn; treat as non_idempotent in strict mode) |
 | idempotent + unknown | unknown |
 
@@ -178,12 +213,78 @@ Where `unknown` is incomparable to `non_idempotent`; in enforcement, it is treat
 | `idempotent` | `idempotent` | ✅ OK |
 | `idempotent` | `non_idempotent` | ❌ Error |
 | `idempotent` | `unknown` | ⚠️ Warning |
+| `idempotent` | `atomic_idempotent` | ❌ Error — weaker guarantee than declared |
+| `idempotent` | `externallyIdempotent` | ❌ Error — declared stronger than body supports |
+| `atomic_idempotent` | `atomic_idempotent` | ✅ OK |
+| `atomic_idempotent` | `non_idempotent` | ❌ Error — no transaction boundary detected |
+| `atomic_idempotent` | `idempotent` | ⚠️ Warning — stronger annotation applies |
 | `non_idempotent` | `idempotent` | ⚠️ Warning (over-declared) |
 | `non_idempotent` | `non_idempotent` | ✅ OK |
 | `externallyIdempotent` | `non_idempotent` | ✅ OK — key is the mechanism |
 | `externallyIdempotent` | `idempotent` | ⚠️ Warning — simpler annotation applies |
-| `idempotent` | `externallyIdempotent` | ❌ Error — declared stronger than body supports |
 | (none) | `non_idempotent` | ℹ️ Suggestion to annotate |
+
+### Transactions as a Composition Boundary
+
+A sequence of non-idempotent operations that commits atomically inside a single transaction is idempotent with respect to external observers — after any retry, the observable state is either "transaction never happened" or "transaction committed exactly once." The lattice recognizes this composite as `atomic_idempotent`.
+
+```swift
+/// @lint.effect atomic_idempotent
+/// @lint.txn_boundary db.transaction
+/// Each operation is non-idempotent in isolation; the transaction makes the
+/// composite safe to retry.
+func transferFunds(from: AccountID, to: AccountID, amount: Money) async throws {
+    try await db.transaction { tx in
+        try await tx.debit(from, amount)   // non_idempotent in isolation
+        try await tx.credit(to, amount)    // non_idempotent in isolation
+        try await tx.log(.transfer(from, to, amount))  // non_idempotent in isolation
+    }
+}
+```
+
+**Enforcement — body analysis for `@lint.effect atomic_idempotent`:**
+
+1. The function must contain exactly one transaction scope (by default: a call to a known transaction opener — `db.transaction`, `db.withTransaction`, `Connection.transaction`, etc.; configurable via project settings).
+2. Every non-idempotent side effect must occur *inside* that transaction scope.
+3. A non-idempotent call observed outside the transaction scope demotes the inferred effect to `non_idempotent` and triggers `atomicIdempotencyViolation`.
+4. `@lint.txn_boundary <identifier>` optionally names the transaction opener, for codebases that wrap the driver with a domain-specific helper (`ledger.withTransaction`, `UnitOfWork.run`).
+
+**Limitation.** The linter cannot verify that the *database itself* provides the atomicity guarantee — this is an assumption about the driver and the storage engine, recorded via `@lint.assume db.transaction is atomic` or (more commonly) treated as a project-wide baseline. A transactional composite over a non-transactional store (e.g., two separate HTTP calls wrapped in a function named `transaction`) is outside the linter's reach and belongs in review.
+
+### Branch-Sensitive Effect Inference
+
+A function whose branches have different effects must be reconciled — the function's inferred effect is the *join* of its branches under the lattice, which in practice is almost always the weaker of the two:
+
+```swift
+// Branches disagree: one is idempotent, the other is not.
+// Inferred effect: non_idempotent (the weaker join).
+func save(_ user: User) async throws {
+    if featureFlag.isOn(.upsert) {
+        try await db.upsert(user)   // idempotent
+    } else {
+        try await db.insert(user)   // non_idempotent
+    }
+}
+```
+
+Silently collapsing this to `non_idempotent` surprises authors. The linter should emit a distinct diagnostic — `effectVariesByBranch` — that surfaces the disagreement and names the branches. This lets the author either reconcile the branches (make both idempotent), restructure the function, or explicitly annotate the weaker of the two.
+
+**Join rules** (pairwise; extend to N branches by reduction):
+
+| Branch A | Branch B | Join |
+|---|---|---|
+| pure | idempotent | idempotent |
+| idempotent | idempotent | idempotent |
+| idempotent | atomic_idempotent | atomic_idempotent (requires both branches inside the same transaction, else demote) |
+| idempotent | externally_idempotent | externally_idempotent |
+| idempotent | non_idempotent | non_idempotent (emit `effectVariesByBranch`) |
+| atomic_idempotent | non_idempotent | non_idempotent (emit `effectVariesByBranch`) |
+| externally_idempotent | non_idempotent | non_idempotent (emit `effectVariesByBranch`) |
+| any | unknown | unknown (emit `effectVariesByBranch` if non-unknown branch is not unknown) |
+
+The diagnostic is a warning by default and an error when the function is declared `@lint.effect idempotent` but has non-idempotent branches — the declared contract does not hold uniformly.
+
+**Rule identifier:** `effectVariesByBranch`.
 
 ---
 
@@ -256,6 +357,43 @@ Phase 1 treats assumptions as documentation only — they populate the symbol ta
 
 Even when the linter can only verify 50% of violations, the annotations document the *intent* the linter checks against. That has independent value.
 
+### Effect Annotations on Closure Parameters
+
+A generic retry wrapper cannot say anything useful about its callees without a mechanism to declare what it expects of its body argument. Extending the annotation grammar to closure parameter types closes this gap:
+
+```swift
+/// @lint.effect non_idempotent
+/// @lint.param body requires idempotent
+/// Retries `body` on transient failure. Body must be idempotent.
+func withRetry<T>(
+    maxAttempts: Int = 3,
+    body: @escaping () async throws -> T
+) async throws -> T { ... }
+```
+
+**Enforcement:**
+
+- At every call site of `withRetry`, the linter resolves the argument passed for `body` and checks its effect against the declared requirement.
+- A literal closure is analyzed in-place using the same rules as a named function body.
+- A named function reference (`withRetry(body: sendEmail)`) is looked up in the effect symbol table.
+- A closure whose effect cannot be determined (captures an `unknown` callee, or is passed through multiple indirections) produces a warning rather than an error.
+
+**Shorthand form** for the common case where the retry wrapper is the body's only user:
+
+```swift
+/// @lint.effect retry_safe_wrapper
+func withRetry<T>(maxAttempts: Int = 3, body: @escaping () async throws -> T) async throws -> T
+```
+
+`@lint.effect retry_safe_wrapper` is sugar for `@lint.effect non_idempotent` + `@lint.param body requires idempotent_or_externally_idempotent`, matching the most common pattern exactly.
+
+**Rule identifiers:**
+
+```swift
+case closureArgumentFailsEffectRequirement   // body argument does not meet declared @lint.param requirement
+case retryWrapperMissingBodyRequirement      // @lint.effect retry_safe_wrapper without declared body effect
+```
+
 ### Swift Macros as a Second Layer
 
 Swift 5.9+ macros (`@attached(peer)`) can go further — surviving refactoring, enabling autocomplete, generating companion tests. Macros are a *second layer* that builds on the annotation contract, not a replacement for it.
@@ -267,6 +405,43 @@ Swift 5.9+ macros (`@attached(peer)`) can go further — surviving refactoring, 
 | Both together | Everyone | Full spectrum |
 
 The annotation grammar is the *lingua franca* that both humans and tools read. Macros can generate or verify the same annotations automatically.
+
+### Suppression Grammar
+
+`@lint.unsafe` is the right escape hatch for *semantic* suppressions — cases where the author is making a claim about external behavior that the linter cannot verify. It is the wrong mechanism for *mechanical* suppressions: a known-false-positive on a single line, a file that has not been migrated yet, a whole module excluded from a new rule. Teams that conflate these two uses end up with `@lint.unsafe reason: "temp"` scattered through the codebase, which poisons the `@lint.assume` audit trail.
+
+A separate suppression grammar, modeled on SwiftLint's conventions, handles the mechanical case:
+
+```swift
+// Single line
+// swift-idempotency:disable-next-line nonIdempotentInRetryContext
+try await chargeCard(amount: 100)
+
+// Block
+// swift-idempotency:disable nonIdempotentInRetryContext
+for attempt in 1...maxRetries {
+    try await legacyNonIdempotentCall()
+}
+// swift-idempotency:enable nonIdempotentInRetryContext
+
+// File scope — first line of the file
+// swift-idempotency:disable-file actorReentrancyIdempotencyHazard
+```
+
+**Rules:**
+
+- Suppressions name the specific rule identifier. Blanket `// swift-idempotency:disable` (no identifier) is not supported — it is the `catch (...)` of lint and makes the codebase unreviewable.
+- A suppression with no matching violation in its scope is itself a diagnostic (`unusedSuppression`). This keeps suppressions from outliving the problem they were hiding.
+- Project-level configuration (`.swift-idempotency.yml`) supports per-directory rule disables for incremental adoption — typically used to exclude a legacy module from a new rule while the migration is in flight.
+
+**Rule identifiers:**
+
+```swift
+case unusedSuppression              // suppression directive with no violation in scope
+case malformedSuppressionDirective  // unparseable // swift-idempotency: directive
+```
+
+The distinction to communicate in docs: `@lint.unsafe reason:` is a claim about *semantics* ("this really is idempotent, trust me"); `// swift-idempotency:disable-next-line` is a claim about *the linter* ("this rule is wrong here"). The two have different review implications, so they get different syntax.
 
 ---
 
@@ -656,6 +831,53 @@ struct ExternalServiceCall: @unchecked IdempotentOperation {
 
 `@unchecked` suppresses the body check while preserving the type-system constraint — callers still get the compile-time guarantee even though it's asserted rather than proven.
 
+### Effect Annotations on Protocol Requirements
+
+The most powerful composition of the protocol layer and the annotation layer is declaring an effect on a protocol method *requirement*. The contract then becomes a covariant obligation on every conformer — every witness must supply a body that satisfies at least the declared effect.
+
+```swift
+public protocol Repository {
+    associatedtype Entity: Identifiable
+
+    /// @lint.effect idempotent
+    func upsert(_ entity: Entity) async throws
+
+    /// @lint.effect non_idempotent
+    func insert(_ entity: Entity) async throws
+
+    /// @lint.effect externally_idempotent reason: "caller supplies key"
+    func enqueue(_ entity: Entity, key: IdempotencyKey) async throws
+}
+```
+
+**Enforcement.** When a type conforms to `Repository`, the linter checks every witness against the corresponding requirement's declared effect:
+
+- Witness's declared annotation stronger than or equal to requirement: ✅
+- Witness's declared annotation weaker than requirement: ❌ `protocolWitnessWeakerEffect`
+- Witness has no annotation: inferred effect must meet the requirement, else ⚠️ or ❌ depending on strict mode
+- Witness marked `@lint.unsafe`: ⚠️ — conformance by assertion, documented
+
+This is the cleanest way to encode "every `Repository` implementation has an idempotent `upsert`" as a *machine-checkable* constraint, and it plays well with the existing `IdempotentOperation` marker protocol — the marker enforces the constraint at the type level, the requirement annotation enforces it at the method level, and the two together cover both the call-graph and the conformance surface.
+
+**Generic callers** can then declare the effect they need from the repository method, and the linter can reason about it without inspecting the concrete type:
+
+```swift
+/// @context retry_safe
+func syncRemoteState<R: Repository>(_ repo: R, entities: [R.Entity]) async throws {
+    for entity in entities {
+        try await repo.upsert(entity)  // ✅ — requirement declares idempotent
+        try await repo.insert(entity)  // ❌ — requirement declares non_idempotent
+    }
+}
+```
+
+**Rule identifiers:**
+
+```swift
+case protocolWitnessWeakerEffect     // witness's effect is weaker than the requirement
+case protocolRequirementUnannotated  // protocol method has no @lint.effect — suggestion in strict mode
+```
+
 ### Composition
 
 Protocols compose naturally where annotations cannot:
@@ -880,6 +1102,25 @@ Detection requires identifying recursive calls in `catch` blocks.
 
 `.task {}` is called each time the view appears. Navigating back and forth replays the body — functionally equivalent to a retry for idempotency purposes. This is a high-value lint target in SwiftUI codebases.
 
+**Pattern 8: `for try await` over an AsyncSequence that may emit duplicates**
+
+```swift
+for try await event in eventStream {
+    try await chargeCard(amount: event.amount)  // ❌ if eventStream has at-least-once semantics
+}
+```
+
+An `AsyncSequence` is itself a replayable context whenever its producer has at-least-once semantics — Kafka consumers, Kinesis shards, CloudWatch Logs subscribers, SwiftNIO channel reads during reconnection. The sequence type alone doesn't tell the linter whether repeats are possible; the consumption site should be annotated when relevant:
+
+```swift
+/// @context replayable reason: "Kinesis may re-deliver on shard rebalance"
+for try await event in kinesisShard.events {
+    try await processEvent(event)  // must be @lint.effect idempotent
+}
+```
+
+Without an annotation the linter cannot know the semantics of an arbitrary `AsyncSequence`, so the default is no diagnostic — this is an opt-in replayable context rather than an inferred one.
+
 ### Async/Await Annotations
 
 The `async` keyword does not change a function's effect classification — a function is idempotent or not independent of whether it suspends. The annotation grammar applies directly:
@@ -1091,6 +1332,187 @@ Effect propagation that is truly meaningful requires cross-file analysis — mos
 
 ---
 
+## End-to-End Worked Example: Lambda SQS Handler
+
+To anchor the abstract framework, consider a realistic Lambda function that consumes SQS messages and processes orders. SQS delivers at-least-once, so every handler runs in an objectively replayable context.
+
+### Starting Point: Unannotated
+
+```swift
+struct OrderHandler: EventLoopLambdaHandler {
+    typealias Event = SQSEvent
+    typealias Output = Void
+
+    let db: OrderDatabase
+    let stripe: StripeClient
+    let mailer: MailerClient
+
+    func handle(_ event: SQSEvent, context: LambdaContext) async throws {
+        for record in event.records {
+            let order = try JSONDecoder().decode(Order.self, from: record.body)
+
+            try await db.insert(order)
+            let receipt = try await stripe.charge(
+                amount: order.amount,
+                customerID: order.customerID
+            )
+            try await mailer.send(
+                to: order.email,
+                subject: "Order confirmed",
+                body: "Receipt: \(receipt.id)"
+            )
+            try await db.update(order.id, status: .confirmed)
+        }
+    }
+}
+```
+
+Four distinct idempotency bugs, all live in production:
+
+1. `db.insert(order)` — a duplicate SQS delivery inserts the order a second time.
+2. `stripe.charge` without an idempotency key — duplicate charge on retry.
+3. `mailer.send` without a deduplication key — customer receives two confirmation emails.
+4. The composite is non-atomic — if any of the four steps throws after earlier steps succeed, retry replays the successful ones.
+
+### Phase 1: Declare Context and Intent
+
+The first pass adds annotations without any code changes. The annotations make the contract reviewable and turn on the linter.
+
+```swift
+/// @context replayable
+/// SQS provides at-least-once delivery. Handler must be idempotent.
+func handle(_ event: SQSEvent, context: LambdaContext) async throws {
+    for record in event.records {
+        let order = try JSONDecoder().decode(Order.self, from: record.body)
+
+        try await db.insert(order)           // ❌ nonIdempotentInReplayableContext
+        let receipt = try await stripe.charge(...)  // ❌ nonIdempotentInReplayableContext
+        try await mailer.send(...)           // ❌ nonIdempotentInReplayableContext
+        try await db.update(order.id, ...)   // ❌ nonIdempotentInReplayableContext
+    }
+}
+```
+
+Four lint violations. The team now has a written contract and a failing build — which is the whole point of Phase 1.
+
+### Phase 2: Fix the Individual Calls
+
+```swift
+public protocol OrderDatabase {
+    /// @lint.effect idempotent
+    func upsert(_ order: Order) async throws
+
+    /// @lint.effect idempotent(by: id)
+    func setStatus(_ id: OrderID, _ status: OrderStatus) async throws
+}
+
+extension StripeClient {
+    /// @lint.effect externally_idempotent reason: "Stripe dedupes on idempotency-key header"
+    /// @lint.requires idempotency_key
+    func charge(
+        amount: Money,
+        customerID: CustomerID,
+        idempotencyKey: IdempotencyKey
+    ) async throws -> Receipt { ... }
+}
+
+extension MailerClient {
+    /// @lint.effect externally_idempotent reason: "dedupe by message ID, 24h window"
+    /// @lint.requires idempotency_key
+    func send(
+        to: EmailAddress,
+        subject: String,
+        body: String,
+        deduplicationID: IdempotencyKey
+    ) async throws { ... }
+}
+```
+
+Each primitive now carries an accurate effect annotation. `stripe.charge` and `mailer.send` require idempotency keys. The handler is rewritten to supply them:
+
+```swift
+/// @context replayable
+func handle(_ event: SQSEvent, context: LambdaContext) async throws {
+    for record in event.records {
+        let order = try JSONDecoder().decode(Order.self, from: record.body)
+        let key = IdempotencyKey(from: order)  // derived from order fields — stable across retries
+
+        try await db.upsert(order)                          // ✅ idempotent
+        let receipt = try await stripe.charge(              // ✅ externally_idempotent
+            amount: order.amount,
+            customerID: order.customerID,
+            idempotencyKey: key
+        )
+        try await mailer.send(                              // ✅ externally_idempotent
+            to: order.email,
+            subject: "Order confirmed",
+            body: "Receipt: \(receipt.id)",
+            deduplicationID: key
+        )
+        try await db.setStatus(order.id, .confirmed)        // ✅ idempotent(by: id)
+    }
+}
+```
+
+The linter is silent. Every call site is reviewable against a named effect. But the composite still has the partial-failure bug: if `mailer.send` throws after `stripe.charge` succeeds, retry replays the charge (safely, via the key) and re-attempts the email (also safely) — but the observable state transiently includes "charge succeeded, no email sent, order not marked confirmed."
+
+### Phase 3: Introduce the Atomic Boundary
+
+Some of this is tolerable (the transient state resolves on retry). The remaining concern is the unbounded fan-out if the *handler itself* keeps failing: a message that poisons the queue replays indefinitely. The canonical fix is a processed-message guard keyed on the SQS message ID, which makes the handler `@context idempotent_caller`:
+
+```swift
+/// @context idempotent_caller
+/// Mechanism: processedMessageIDs set (see body) dedupes on SQS message ID.
+func handle(_ event: SQSEvent, context: LambdaContext) async throws {
+    for record in event.records {
+        // Claim the slot before any side-effecting work — actor reentrancy rule.
+        guard try await db.claimMessageID(record.messageID) else {
+            context.logger.info("Skipping already-processed message \(record.messageID)")
+            continue
+        }
+
+        do {
+            try await processOrder(record)
+        } catch {
+            try await db.releaseMessageID(record.messageID)
+            throw error
+        }
+    }
+}
+
+/// @lint.effect idempotent
+private func processOrder(_ record: SQSRecord) async throws {
+    let order = try JSONDecoder().decode(Order.self, from: record.body)
+    let key = IdempotencyKey(from: order)
+    try await db.upsert(order)
+    _ = try await stripe.charge(amount: order.amount, customerID: order.customerID, idempotencyKey: key)
+    try await mailer.send(to: order.email, subject: "...", body: "...", deduplicationID: key)
+    try await db.setStatus(order.id, .confirmed)
+}
+```
+
+The linter now verifies two distinct contracts:
+
+1. `handle` is `@context idempotent_caller` — the body check is suppressed, but the linter verifies a deduplication guard exists (`claimMessageID` before any non-idempotent call).
+2. `processOrder` is `@lint.effect idempotent` — the body check runs, and every callee meets the contract.
+
+### What the Linter Catches Going Forward
+
+Six months later, a junior engineer adds a metrics call:
+
+```swift
+private func processOrder(_ record: SQSRecord) async throws {
+    metrics.increment("orders.processed")  // ❌ idempotencyViolation
+    // ...
+}
+```
+
+`metrics.increment` is `@lint.effect non_idempotent` (each call increments the counter). The linter fires immediately in review. The engineer either moves the increment into the `@context idempotent_caller` body (where double-counting is acceptable because `claimMessageID` dedupes) or switches to an idempotent `metrics.gauge` pattern.
+
+This is the loop the proposal is designed to enable: declare the contract once, catch regressions automatically on every change.
+
+---
+
 ## Phased Implementation Roadmap
 
 ### Phase 1: Static Annotation Enforcement (no inference)
@@ -1110,6 +1532,16 @@ Effect propagation that is truly meaningful requires cross-file analysis — mos
 - Use `CrossFileAnalysisEngine` to build a cross-file call graph
 - Propagate effects upward: if B is `non_idempotent` and A calls B, A is inferred `non_idempotent`
 - Surface as suggestions where unannotated functions have inferred `non_idempotent` effects
+
+**Performance budget.** Target end-to-end analysis times, measured on a developer laptop (Apple Silicon, SSD):
+
+| Project size | Phase 1 (annotation parse) | Phase 2 (heuristic inference) | Phase 3 (call-graph propagation) |
+|---|---|---|---|
+| 100 files, ~20k LoC | < 500 ms | < 2 s | < 5 s |
+| 1,000 files, ~200k LoC | < 5 s | < 20 s | < 60 s |
+| 10,000 files, ~2M LoC | < 60 s | < 4 min | < 15 min |
+
+Phase 3 must support *incremental* analysis — re-running on a changed file should reuse the prior call graph and recompute only the affected subgraph. Without incremental support, the cross-file analysis is a CI-only check; with it, it's editor-friendly.
 
 ### Phase 4: Context Enforcement
 - Support `@lint.context` annotations
@@ -1161,6 +1593,38 @@ This delivers real value immediately, with no false positives from heuristics, a
 ---
 
 *Document prepared April 2026.*
+
+---
+
+## Edge Cases and Implementation Notes
+
+A handful of secondary concerns that are too small to warrant dedicated sections but should be specified before implementation.
+
+**Empty and trivial function bodies.** A function with an empty body, or a body containing only `return`, is trivially idempotent — it has no observable effect. The body analysis should short-circuit to `pure` in this case rather than `unknown`. A function whose body consists only of pure-declared callees is similarly `pure`. This matters for initializer stubs, no-op protocol witnesses, and generated code — the default `unknown` would flood such codebases with warnings in strict mode.
+
+**Annotation grammar versioning.** The `@lint.effect` grammar will evolve. A new tier (beyond `atomic_idempotent`) or a new annotation (some future `@lint.effect at_most_once`) must not silently change the interpretation of existing annotations. The proposal adopts a project-level version pin via configuration file:
+
+```yaml
+# .swift-idempotency.yml
+grammar_version: 1
+```
+
+Unrecognized annotations against a pinned grammar version are a warning (`unknownAnnotationVersion`), not an error — a newer linter reading an older project should be lenient. A newer annotation used against a pinned older grammar is flagged so teams see when they're reaching for a feature that isn't available under their current pin.
+
+**Generated code.** Code produced by Sourcery, Swift macros (including `@Idempotent` itself), or protobuf code generators typically has no hand-written doc comments. Two mechanisms support annotation on generated code:
+
+1. *Generator-side annotation injection* — the generator's template emits `/// @lint.effect` comments based on the source specification. This is the preferred approach for team-owned generators.
+2. *Symbol-level project annotation* — an `Assumptions.swift`-style file declares effects for generated symbols that cannot be modified at generation time. This is the fallback for third-party generated code.
+
+Generated files may be excluded wholesale via `// swift-idempotency:disable-file` or via project configuration (`exclude_paths: [Generated/**]`), at the cost of losing cross-file propagation into those files.
+
+**Strict mode default for unannotated functions.** In non-strict mode, an unannotated function is treated as `unknown` — no diagnostic unless it participates in a conflict elsewhere. In strict mode, all functions with observable side effects (detected heuristically in Phase 2) must carry an annotation; missing annotations are a warning. The recommended migration path is: enable the linter in non-strict mode, get to green, annotate progressively, flip strict mode on once coverage is acceptable. Per-directory strict-mode configuration supports the common case of "strict in the new domain module, lenient in legacy code."
+
+**Rule identifiers introduced in this section:**
+
+```swift
+case unknownAnnotationVersion  // annotation not defined in the pinned grammar version
+```
 
 ---
 
@@ -1260,3 +1724,23 @@ When choosing an open-source Swift library to validate these ideas against, the 
 ### Recommended Approach
 
 Start with **swift-aws-lambda-runtime** for Phase 1 validation: the `@context replayable` annotation is objectively correct on every handler, so there's no ambiguity about whether the annotation is accurate. Pick two or three handlers that contain a known non-idempotent call (a `db.insert`, a notification send), annotate them, and verify the linter fires. Then add the compensating fix (`db.upsert`, deduplication guard) and verify it goes silent. That's a clear, repeatable demonstration of the system working correctly against real production code.
+
+---
+
+## Related Work
+
+This proposal sits in a crowded field of effect systems, purity annotations, and retry framework conventions. A short survey situates the design against prior art and clarifies what is and isn't novel.
+
+**Koka (Microsoft Research)** formalizes effects as a first-class part of the type system. A function's type includes its effect row — `io`, `exn`, `div`, user-defined — and the compiler verifies effect composition. Koka is the closest academic ancestor of the effect lattice proposed here. The trade-off is stark: Koka's system is total and provable at the cost of requiring the language itself to support it. SwiftProjectLint cannot change Swift's type system, so this proposal re-uses Koka's intuition (effects as a lattice, composition rules, conservative handling of unknown) in a layered form compatible with an existing language.
+
+**Java's `@Idempotent` annotations** exist in several ecosystems — Spring, MicroProfile Fault Tolerance, Resilience4j, JAX-RS. Most are *runtime* annotations: they configure retry middleware rather than feed a static checker. Spring's `@Retryable` marks a method for the retry infrastructure; Resilience4j's `@Retry` does the same. None of these verify that the method body is actually idempotent. The Swift proposal's contribution is treating the annotation as a *verifiable claim* rather than a *runtime configuration directive*.
+
+**Rust's effect discussion** centers on `const fn` (compile-time-evaluable functions) and `unsafe fn` (functions with memory-safety preconditions). Both are properties the compiler enforces, and both are explicit about the escape hatch (`const fn` with runtime-only calls is rejected; `unsafe` blocks are explicit and reviewable). The Rust community has repeatedly discussed effect systems for purity, async context, and "no-panic" — none have shipped. The lesson the proposal takes: explicit effect declarations are more socially durable than inferred effects, even when inference is technically possible.
+
+**Haskell's IO monad** is the canonical example of effect tracking. Every side-effecting computation has type `IO a`; the type system prevents pure code from calling into effectful code without acknowledgment. The trade-off is the same as Koka's — total correctness at the cost of structural demands on the language. Haskell's experience also shows the limit: `IO` says "there is a side effect," not "this side effect is idempotent." Finer-grained distinctions (e.g., `IO` vs. `ReaderT` vs. specific effect type classes) require additional structure. This is why the lattice in this proposal has five positions rather than a binary pure/impure split.
+
+**SwiftLint's custom rules** are the closest existing tooling in the Swift ecosystem. They are pattern-based (regex, syntax matches) rather than effect-based — a SwiftLint rule can flag "any call to `UUID()` inside a function named `create*`" but cannot reason about call graphs or composition. This proposal is deliberately a layer above what SwiftLint can express, which is why it's proposed as part of SwiftProjectLint rather than as SwiftLint rules.
+
+**Akka's `At-Least-Once Delivery`** and **Kafka Streams' exactly-once semantics** are distributed-systems frameworks that *make* idempotency the responsibility of the application developer, typically with helper APIs for deduplication keys and processed-ID tracking. The `@context replayable` annotation is the static-analysis counterpart to the implicit "your handler had better be idempotent" contract that these frameworks impose.
+
+**What's novel here.** The specific combination of: (a) doc-comment annotations as the interoperable surface between humans and tooling, (b) the `externally_idempotent` and `atomic_idempotent` tiers as first-class effect positions (most prior work treats external-dedup and transaction-atomicity as implementation concerns rather than type-level distinctions), and (c) the `actorReentrancyIdempotencyHazard` rule — which catches the guard-suspend-insert anti-pattern specific to Swift actor reentrancy and does not have an equivalent in any linter surveyed — is the original contribution. The rest is a synthesis of existing ideas applied to the Swift ecosystem.
