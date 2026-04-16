@@ -4,6 +4,60 @@
 
 ---
 
+## Preview: Idempotency in the real (non-computer) world
+
+Idempotent systems are designed around desired end state, not state transitions. Non-idempotent systems require the caller to track history.
+
+
+### Example 1: Car Door Lock (Idempotent)
+
+The remote control on my car locks the doors—even if they’re already locked. I don’t need to remember whether I’ve locked the car; I can press the button again at any time and be confident the car will end up locked.
+
+This is an example of idempotency in the real world. The action is defined in terms of the desired end state (“locked”), not a transition (“toggle lock”). Repeating the action doesn’t introduce new effects—it simply ensures the same outcome.
+
+⸻
+
+### Example 2: Classroom Light Switches (Non-Idempotent / Ambiguous)
+
+In a classroom with multiple entrances and multiple light switches, I often don’t know which switch controls which lights. Flipping a switch might turn lights on—or it might turn them off. Pressing the same switch again doesn’t reliably produce the same result; it depends on the current state, which I may not know.
+
+This is not idempotent. The system behaves like a toggle, where each action changes state rather than ensuring a specific outcome. As a result, I have to remember or infer the current state before acting, increasing the chance of mistakes.
+
+⸻
+
+### Example 3: Elevator Button (Idempotent Request)
+
+Pressing the elevator button to go to a floor registers a request. Pressing it again doesn’t create additional requests or change the outcome—it simply ensures that the request has been made.
+
+This is another form of idempotency. The system interprets repeated actions as the same intent, not as additional work. The user doesn’t need to track whether they’ve already pressed the button; repeating the action is safe and has no unintended side effects.
+ 
+BTW: pressing an already lit elevator button does not make the elevator go any faster, even though I've seen so many people press it over and over again. They must believe in "ele-acceleration." 
+
+⸻
+
+### Bridging Idea
+
+Idempotent systems are designed around achieving a desired state, not transitioning between states. Because of this, they reduce the need for memory and make repeated actions safe.
+
+In this document, the goal is to design software systems that behave more like the car lock or elevator button—and less like the classroom light switches.
+
+
+| Property | Car Lock | Light Switch | Elevator Button |
+|----------|----------|--------------|------------------|
+| Requires memory | ❌ No | ✅ Yes | ❌ No |
+| Safe to repeat | ✅ Yes | ❌ No | ✅ Yes |
+| Outcome predictable | ✅ Yes | ❌ No | ✅ Yes |
+| Mental model | Ensure state (“locked”) | Toggle state | Ensure request is registered |
+| Repeated action effect | No additional effect | Reverses or changes state | No additional effect |
+| Undo available | Not needed | Sometimes (flip again) | Not needed |
+| User confidence | High | Low | High |
+
+The light switch appears manageable because mistakes can often be undone by flipping it again. But this only works in simple, local systems. In more complex or distributed systems, actions are often irreversible, delayed, or have side effects that cannot be cleanly undone. In those cases, toggle-style behavior becomes dangerous, and idempotent “ensure state” operations become much more valuable.
+
+In more complex or potentially dangerous situations, systems are often designed with a master control—such as a main power breaker or a water shutoff valve—that can be safely and repeatedly applied to bring the system to a known state. These controls are effectively idempotent: activating them repeatedly does not introduce additional risk, but simply ensures the system remains in that safe state.
+
+---
+
 ## Overview
 
 Swift has no first-class support for idempotency as a language or static-analysis concept. Functions that must be safe to call multiple times — event handlers, retry-wrapped network calls, upsert operations — carry that contract only in documentation or team convention. Violations are silent and often expensive.
@@ -16,6 +70,30 @@ This document proposes a multi-layer enforcement model for SwiftProjectLint:
 4. **Type-level safety** — protocols and strong types encode idempotency in the type system, enabling compile-time enforcement at generic boundaries.
 
 Each layer is independently valuable and can be adopted incrementally.
+
+---
+
+### Level 1: Annotation (Intent Declaration)
+
+At the first level, the goal is not to prove anything, but to clearly state intent. By annotating a function as idempotent (or not), you’re making an explicit claim about how it is supposed to behave when called multiple times. This shifts idempotency from an implicit assumption—often buried in comments or tribal knowledge—into something visible, reviewable, and enforceable. Think of this level as establishing a shared language: it allows developers, reviewers, and tools to align on what a piece of code is meant to guarantee before worrying about whether that guarantee actually holds.
+
+⸻
+
+### Level 2: Static Analysis (Reasoning About Code)
+
+Once intent is declared, the next step is to reason about whether the code appears to honor it. Static analysis operates purely at compile time, examining function bodies, call graphs, and known effects to detect obvious violations or inconsistencies. It doesn’t try to be perfect—in fact, it can’t be—but it provides valuable early feedback by catching mismatches between declared intent and observable structure. At this level, the system acts like a skeptical reviewer: it asks, “Given what we can see, does this claim of idempotency make sense?”
+
+⸻
+
+### Level 3: Runtime Validation (Behavioral Probing)
+
+Static reasoning has limits, especially when real-world behavior depends on runtime state, external systems, or timing. The third level introduces runtime validation to complement static analysis by observing how code actually behaves when executed. Rather than proving correctness, these checks act as probes—running functions multiple times, under varying conditions, to detect obvious violations of idempotency. This level helps bridge the gap between theory and reality, offering empirical signals that something may be wrong even when static analysis cannot detect it.
+
+⸻
+
+### Level 4: Type System & Composition (Guarantees by Construction)
+
+The final level moves from checking behavior to structuring code so that correct behavior is easier to achieve and maintain. By encoding idempotency (and related properties) into types and abstractions, you enable the compiler and the design itself to enforce constraints through composition. Instead of repeatedly verifying that individual functions behave correctly, you build systems where idempotency naturally emerges from how components are combined. This is the most powerful level, but also the most demanding—it requires careful design of APIs and types so that guarantees are not just asserted or checked, but built into the architecture itself.
 
 ---
 
@@ -49,6 +127,24 @@ func compute(x: Int) -> Int { x * 2 }
 ```
 
 The linter must reason about *effects on external state*, not just local non-determinism. A function that uses `UUID()` internally for a log trace is not necessarily non-idempotent — what matters is whether the non-deterministic value escapes the function boundary. This is covered in detail in the Effect Escaping section.
+
+### Observable Equivalence: What "Same Effect" Means
+
+"Idempotent" is defined throughout this document as "calling twice produces the same effect as calling once." That phrase only has teeth if *effect* and *same* are pinned down.
+
+**Working definition:**
+
+> A function `f` is idempotent with respect to an observer `O` if, for any input `x`, the sequence `f(x); f(x)` leaves `O` in a state indistinguishable from the sequence `f(x)` alone.
+
+Three parameters must be made concrete for any given function:
+
+- **Observable state.** The surface the observer can inspect. For most business logic this is persistent storage (database rows, filesystem, object storage) plus outbound messages (emails, webhooks, queue publishes). It explicitly *excludes* internal trace IDs, debug logs, cache warmth, and wall-clock timestamps in audit rows that are present for forensics rather than semantics.
+- **Equivalence relation.** Usually structural equality on the observable surface. Weaker relations are legitimate when documented — e.g. "equal modulo the `updated_at` column," "equal modulo log line ordering." The relation is part of the contract, not a universal constant.
+- **Observer scope.** Who is watching. End users and downstream services are in scope; an internal APM agent counting function invocations is not.
+
+The linter does not need to enforce a single global definition of equivalence. It needs each `@lint.effect idempotent` annotation to be *reviewable* against this frame: a reader should be able to ask "what's the observable state, what's the equivalence relation, who's the observer" and get a defensible answer. When the answer is non-obvious, the annotation should carry a `reason:` clause.
+
+For the externally-idempotent tier, the observer is typically the external system's deduplication layer, and the equivalence relation is "the provider treats these calls as the same operation" — a claim grounded in the provider's contract, not in the function body.
 
 ---
 
@@ -101,12 +197,54 @@ The `@lint.` prefix avoids collision with DocC conventions (`@param`, `@returns`
 
 ```swift
 /// @lint.effect idempotent
+/// @lint.effect idempotent(by: requestID)
 /// @lint.effect non_idempotent
 /// @lint.effect externally_idempotent reason: "Stripe deduplicates on idempotency-key header"
 /// @lint.context replayable
 /// @lint.requires idempotency_key
+/// @lint.assume db.upsert is idempotent
 /// @lint.unsafe reason: "provider guarantees deduplication"
 ```
+
+### Scoped Idempotency: `idempotent(by: <parameter>)`
+
+Some operations are idempotent only when repeated with the *same logical key*. Two calls with the same `requestID` are safe to collapse; two calls with different `requestID`s are two distinct operations, each of which happens exactly once.
+
+```swift
+/// @lint.effect idempotent(by: requestID)
+/// Repeated calls with the same requestID produce a single logical effect.
+/// Different requestIDs are independent operations.
+func enqueueJob(requestID: JobID, payload: Data) async throws { ... }
+```
+
+**Enforcement implications:**
+
+- The named parameter must exist on the function signature. Missing parameter → `scopedIdempotencyParameterNotFound`.
+- At retry-context call sites, the scoping parameter must be stable across iterations (same rules as `IdempotencyKey`: input-derived, defined outside the retry scope, not freshly generated per attempt). Violations reuse `idempotencyKeyGeneratedInRetry`.
+- For callers, `idempotent(by:)` is equivalent to `idempotent` — they may invoke it freely from `@context retry_safe` and `@context replayable` bodies, because the caller is expected to hold the key stable.
+
+Scoped idempotency is the common case for most real systems; the unscoped `@lint.effect idempotent` is the degenerate form where the scope is "all calls to this function."
+
+### `@lint.assume` — Declared, Auditable Assumptions
+
+Much of the static analysis rests on claims the linter cannot verify: that a third-party library method is idempotent, that a database driver's `upsert` really is an upsert, that a specific HTTP endpoint deduplicates server-side. Rather than burying these claims in `@lint.unsafe reason:` escape hatches, they can be declared explicitly:
+
+```swift
+/// @lint.assume db.upsert is idempotent
+/// @lint.assume stripe.PaymentIntents.create is externally_idempotent reason: "idempotency-key header"
+/// @lint.assume Logger.log is pure
+```
+
+An assumption is a first-class annotation that:
+
+- Binds a symbol (method, free function, type) to an asserted effect.
+- Is *named and locatable* — the linter can list every assumption in the codebase as a single report, making them reviewable in bulk.
+- Is *lintable itself* — a future rule can flag assumptions that reference symbols no longer present, are duplicated across files, or contradict each other.
+- Is *scoped* — assumptions declared at file scope apply only within that file; assumptions declared in a top-level `Assumptions.swift` (by convention) apply project-wide.
+
+Assumptions replace `@lint.unsafe` for the common case of "I know this external thing is idempotent." `@lint.unsafe` remains the escape hatch for cases where even an assumption would be too strong a claim to formalize.
+
+Phase 1 treats assumptions as documentation only — they populate the symbol table without enforcement. Phase 2+ uses them during propagation: an assumed-idempotent callee contributes `idempotent` rather than `unknown` to the caller's inferred effect.
 
 **Why doc comments are the right default:**
 
@@ -1054,7 +1192,7 @@ These questions reflect critiques raised during review. Most concern design deci
 
 **Q: Isn't binary classification (idempotent / not) too limiting for real systems? What about idempotency per key, or within a time window?**
 
-A: The effect lattice is not binary. It has five positions: `pure`, `idempotent`, `externallyIdempotent`, `non_idempotent`, and `unknown`. Key-based idempotency is explicitly modeled as `externallyIdempotent`, with its own annotation (`/// @lint.effect externally_idempotent reason: "..."`) and enforcement rules that differ from intrinsic `idempotent`. Time-windowed or conditionally idempotent operations are a known gap — they fall under `unknown` with an `@lint.unsafe reason:` escape hatch. Parameterized scope (`idempotent(by: requestID)`) is not in the current grammar but would be a natural annotation extension once the core lattice is validated against real code.
+A: The effect lattice is not binary. It has five positions: `pure`, `idempotent`, `externallyIdempotent`, `non_idempotent`, and `unknown`. Scoped idempotency (`idempotent(by: requestID)`) is part of the annotation grammar and enforces that the scoping parameter is stable across retry iterations. Key-based idempotency is separately modeled as `externallyIdempotent`, with its own annotation (`/// @lint.effect externally_idempotent reason: "..."`) and enforcement rules that differ from intrinsic `idempotent`. Time-windowed or conditionally idempotent operations remain a gap — they fall under `unknown` with a `@lint.assume` or `@lint.unsafe reason:` escape hatch.
 
 ---
 
