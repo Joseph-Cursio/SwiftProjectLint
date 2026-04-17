@@ -57,21 +57,12 @@ struct ActorReentrancyIdempotencySpecTests {
     func claimBeforeSuspension_noDiagnostic() {
         // The fix pattern from the proposal: claim the slot (insert into
         // processedIDs) BEFORE any suspension point, and compensate in catch.
-        // Expected by the proposal: no reentrancy diagnostic.
         //
-        // ### Trial finding (spec-alignment gap)
-        //
-        // The existing `actorReentrancy` rule detects "assignment" only via
-        // `SequenceExprSyntax` with `=` — plain or `self.prop =`. It does
-        // NOT recognise `Set.insert(_:)` or other mutating-method calls as
-        // writes to the stored property. So the proposal's canonical fix
-        // pattern ("claim the slot with insert(_:) before await, compensate
-        // with remove(_:) in catch") still fires the rule.
-        //
-        // For the trial Phase 2 gate, this is recorded via `withKnownIssue`
-        // so the fixture is shipped and the suite stays green. Phase 5
-        // records the gap in the proposal's Open Issues as a candidate
-        // refinement of `actorReentrancyIdempotencyHazard`.
+        // The rule now recognises mutating-method calls on tracked stored
+        // properties (Set.insert(_:), Array.append(_:), Dictionary.removeValue(...),
+        // etc.) as writes — see ActorReentrancyVisitor.mutatingMethodNames.
+        // OI-3 resolved for the common cases; subscript-set (X[k] = v) is still
+        // a remaining sub-gap noted in the proposal's Open Issues.
         let source = """
         actor PaymentProcessor {
             var processedIDs: Set<String> = []
@@ -91,10 +82,60 @@ struct ActorReentrancyIdempotencySpecTests {
         }
         """
 
-        withKnownIssue("actorReentrancy rule does not recognise Set.insert(_:) as a write; see Phase 5 trial findings.") {
-            let visitor = ActorReentrancyVisitor(pattern: ActorReentrancy().pattern)
-            visitor.walk(Parser.parse(source: source))
-            #expect(visitor.detectedIssues.isEmpty)
+        let visitor = ActorReentrancyVisitor(pattern: ActorReentrancy().pattern)
+        visitor.walk(Parser.parse(source: source))
+        #expect(visitor.detectedIssues.isEmpty)
+    }
+
+    @Test
+    func selfQualifiedMutatingMethodClaim_noDiagnostic() {
+        // Same fix pattern, but through self.<prop>.<method>(…) — must also
+        // suppress the diagnostic.
+        let source = """
+        actor PaymentProcessor {
+            var processedIDs: Set<String> = []
+
+            func charge(id: String) async throws {
+                guard !self.processedIDs.contains(id) else { return }
+                self.processedIDs.insert(id)
+                try await chargeCard(id)
+            }
+
+            private func chargeCard(_ id: String) async throws {}
         }
+        """
+
+        let visitor = ActorReentrancyVisitor(pattern: ActorReentrancy().pattern)
+        visitor.walk(Parser.parse(source: source))
+        #expect(visitor.detectedIssues.isEmpty)
+    }
+
+    @Test
+    func containsCallIsNotMistakenForWrite() throws {
+        // Regression guard against over-widening: `processedIDs.contains(id)` is a
+        // READ, not a write. If the widening accepted any method call on the
+        // property as a write, this fixture would be silently suppressed.
+        let source = """
+        actor PaymentProcessor {
+            var processedIDs: Set<String> = []
+
+            func charge(id: String) async throws {
+                guard !processedIDs.contains(id) else { return }
+                _ = processedIDs.contains(id)
+                try await chargeCard(id)
+                processedIDs.insert(id)
+            }
+
+            private func chargeCard(_ id: String) async throws {}
+        }
+        """
+
+        let visitor = ActorReentrancyVisitor(pattern: ActorReentrancy().pattern)
+        visitor.walk(Parser.parse(source: source))
+
+        // `insert` is AFTER the await, so no intervening write between guard
+        // and await — rule must still fire.
+        #expect(visitor.detectedIssues.isEmpty == false)
+        #expect(visitor.detectedIssues.first?.message.contains("processedIDs") == true)
     }
 }

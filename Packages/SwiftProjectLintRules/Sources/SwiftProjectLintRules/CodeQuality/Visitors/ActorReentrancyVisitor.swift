@@ -297,6 +297,21 @@ final class ActorReentrancyVisitor: BasePatternVisitor {
 
     // MARK: - Assignment Detection
 
+    /// Standard-library mutating method names recognised as writes to a stored property
+    /// when called on it as a receiver. Kept as a whitelist so that non-mutating reads
+    /// (`processedIDs.contains(id)`, `X.isEmpty`, `X.count`) are not mistaken for writes.
+    private static let mutatingMethodNames: Set<String> = [
+        // Set / Array / OrderedSet
+        "insert", "append", "add", "update", "updateValue",
+        // Removal (still counts as state change between check and await)
+        "remove", "removeAll", "removeFirst", "removeLast", "removeValue",
+        "popLast", "popFirst",
+        // Set-algebra mutation
+        "formUnion", "formIntersection", "subtract", "formSymmetricDifference",
+        // Dictionary-style merge
+        "merge", "replace"
+    ]
+
     private func collectAssignments(
         in syntax: Syntax,
         propertyNames: Set<String>,
@@ -325,9 +340,41 @@ final class ActorReentrancyVisitor: BasePatternVisitor {
             }
         }
 
+        // Mutating-method calls on a tracked stored property are also writes:
+        //   processedIDs.insert(id)        → base = DeclRef("processedIDs")
+        //   self.processedIDs.insert(id)   → base = MemberAccess(self, "processedIDs")
+        // Only method names in `mutatingMethodNames` qualify; this keeps
+        // `processedIDs.contains(id)` from being mistaken for a write.
+        if let call = syntax.as(FunctionCallExprSyntax.self),
+           let method = call.calledExpression.as(MemberAccessExprSyntax.self),
+           Self.mutatingMethodNames.contains(method.declName.baseName.text),
+           let base = method.base,
+           let matched = trackedPropertyName(receiver: base, in: propertyNames) {
+            results.append((matched, call.position))
+        }
+
         for child in syntax.children(viewMode: .sourceAccurate) {
             collectAssignments(in: child, propertyNames: propertyNames, into: &results)
         }
+    }
+
+    /// Returns the tracked-property name if `receiver` directly names a tracked
+    /// stored property (either `X` or `self.X`), else nil.
+    private func trackedPropertyName(
+        receiver: ExprSyntax,
+        in propertyNames: Set<String>
+    ) -> String? {
+        if let ref = receiver.as(DeclReferenceExprSyntax.self),
+           propertyNames.contains(ref.baseName.text) {
+            return ref.baseName.text
+        }
+        if let member = receiver.as(MemberAccessExprSyntax.self),
+           let base = member.base?.as(DeclReferenceExprSyntax.self),
+           base.baseName.text == "self",
+           propertyNames.contains(member.declName.baseName.text) {
+            return member.declName.baseName.text
+        }
+        return nil
     }
 
     // MARK: - Await Detection
