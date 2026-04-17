@@ -3,8 +3,16 @@ import SwiftProjectLintRegistry
 import SwiftProjectLintVisitors
 import SwiftSyntax
 
-/// Detects functions declared `/// @lint.effect idempotent` whose body calls a function
-/// declared `/// @lint.effect non_idempotent` in the same file.
+/// Detects functions whose declared effect contract is violated by a call to a
+/// more-permissive callee in the same file.
+///
+/// Two declared-caller effects are analysed:
+///
+/// - `/// @lint.effect idempotent` — the body must not call a `@lint.effect non_idempotent`
+///   callee. Observational and pure callees are acceptable.
+/// - `/// @lint.effect observational` — the body must only call observational/pure callees.
+///   An idempotent or non_idempotent callee is a violation, because observational claims
+///   the body mutates no business state beyond observation sinks.
 ///
 /// Phase 1 of the idempotency trial: no inference, per-file symbol table only.
 /// A callee defined in another file produces no diagnostic — working as specified.
@@ -29,39 +37,98 @@ final class IdempotencyViolationVisitor: BasePatternVisitor {
     }
 
     override func visit(_ node: FunctionDeclSyntax) -> SyntaxVisitorContinueKind {
-        guard EffectAnnotationParser.parseEffect(leadingTrivia: node.leadingTrivia) == .idempotent,
+        guard let callerEffect = EffectAnnotationParser.parseEffect(leadingTrivia: node.leadingTrivia),
+              callerEffect == .idempotent || callerEffect == .observational,
               let body = node.body else {
             return .visitChildren
         }
-        analyzeBody(Syntax(body), callerName: node.name.text)
+        analyzeBody(Syntax(body), callerName: node.name.text, callerEffect: callerEffect)
         return .visitChildren
     }
 
-    private func analyzeBody(_ syntax: Syntax, callerName: String) {
+    private func analyzeBody(_ syntax: Syntax, callerName: String, callerEffect: DeclaredEffect) {
         if syntax.is(FunctionDeclSyntax.self) { return }
         if let closure = syntax.as(ClosureExprSyntax.self), isEscapingClosure(closure) {
             return
         }
 
-        if let call = syntax.as(FunctionCallExprSyntax.self) {
-            if let calleeName = directCalleeName(from: call.calledExpression),
-               let calleeEffect = symbolTable.effect(for: calleeName),
-               calleeEffect == .nonIdempotent {
-                addIssue(
-                    severity: pattern.severity,
-                    message: "Idempotency violation: '\(callerName)' is declared `@lint.effect idempotent` "
-                        + "but calls '\(calleeName)', which is declared `@lint.effect non_idempotent`.",
-                    filePath: getFilePath(for: Syntax(call)),
-                    lineNumber: getLineNumber(for: Syntax(call)),
-                    suggestion: "Either change '\(calleeName)' to an idempotent alternative (e.g. upsert, "
-                        + "set-status-by-id), or weaken the declared effect of '\(callerName)'.",
-                    ruleName: .idempotencyViolation
-                )
-            }
+        if let call = syntax.as(FunctionCallExprSyntax.self),
+           let calleeName = directCalleeName(from: call.calledExpression),
+           let calleeEffect = symbolTable.effect(for: calleeName),
+           violates(caller: callerEffect, callee: calleeEffect) {
+            emitViolation(
+                call: call,
+                callerName: callerName,
+                callerEffect: callerEffect,
+                calleeName: calleeName,
+                calleeEffect: calleeEffect
+            )
         }
 
         for child in syntax.children(viewMode: .sourceAccurate) {
-            analyzeBody(child, callerName: callerName)
+            analyzeBody(child, callerName: callerName, callerEffect: callerEffect)
+        }
+    }
+
+    /// Effect-conflict rules for Phase 1. Only direct declared-vs-declared mismatches
+    /// fire; unannotated callees stay silent (Phase 1 does not infer).
+    private func violates(caller: DeclaredEffect, callee: DeclaredEffect) -> Bool {
+        switch (caller, callee) {
+        case (.idempotent, .nonIdempotent):
+            return true
+        case (.observational, .nonIdempotent):
+            return true
+        case (.observational, .idempotent):
+            return true
+        default:
+            return false
+        }
+    }
+
+    private func emitViolation(
+        call: FunctionCallExprSyntax,
+        callerName: String,
+        callerEffect: DeclaredEffect,
+        calleeName: String,
+        calleeEffect: DeclaredEffect
+    ) {
+        let callerTier = effectLabel(callerEffect)
+        let calleeTier = effectLabel(calleeEffect)
+        let headline: String
+        let suggestion: String
+        switch callerEffect {
+        case .observational:
+            headline = "Observational contract violation: '\(callerName)' is declared "
+                + "`@lint.effect observational` but calls '\(calleeName)', which is declared "
+                + "`@lint.effect \(calleeTier)`. Observational functions must not mutate "
+                + "business state beyond observation sinks."
+            suggestion = "Either call only observational/pure helpers from '\(callerName)', "
+                + "or weaken its declared effect to `idempotent` / `non_idempotent`."
+        case .idempotent:
+            headline = "Idempotency violation: '\(callerName)' is declared "
+                + "`@lint.effect \(callerTier)` but calls '\(calleeName)', which is declared "
+                + "`@lint.effect \(calleeTier)`."
+            suggestion = "Either change '\(calleeName)' to an idempotent alternative "
+                + "(e.g. upsert, set-status-by-id), or weaken the declared effect of '\(callerName)'."
+        default:
+            // `nonIdempotent` caller is never analysed.
+            return
+        }
+        addIssue(
+            severity: pattern.severity,
+            message: headline,
+            filePath: getFilePath(for: Syntax(call)),
+            lineNumber: getLineNumber(for: Syntax(call)),
+            suggestion: suggestion,
+            ruleName: .idempotencyViolation
+        )
+    }
+
+    private func effectLabel(_ effect: DeclaredEffect) -> String {
+        switch effect {
+        case .idempotent: return "idempotent"
+        case .observational: return "observational"
+        case .nonIdempotent: return "non_idempotent"
         }
     }
 

@@ -2,12 +2,15 @@ import SwiftSyntax
 
 /// Declared idempotency effect for a function, parsed from `/// @lint.effect` doc comments.
 ///
-/// Phase 1 of the idempotency trial recognises only the binary distinction. Additional
-/// tiers (`pure`, `transactional_idempotent`, `externally_idempotent`, `unknown`) are
-/// explicitly out of scope and treated as unrecognised — see
-/// `docs/phase1/trial-scope.md` in the swiftIdempotency repo.
+/// Phase 1 of the idempotency trial recognises three tiers: `idempotent`, `observational`,
+/// and `non_idempotent`. `observational` was promoted into the lattice to resolve OI-5 —
+/// see the Formalized Effect Lattice section of the proposal. Remaining tiers (`pure`,
+/// `transactional_idempotent`, `externally_idempotent`, `unknown`) stay out of scope and
+/// are treated as unrecognised — see `docs/phase1/trial-scope.md` in the
+/// swiftIdempotency repo.
 public enum DeclaredEffect: Sendable, Equatable {
     case idempotent
+    case observational
     case nonIdempotent
 }
 
@@ -69,6 +72,8 @@ public enum EffectAnnotationParser {
         switch token {
         case "idempotent":
             return .idempotent
+        case "observational":
+            return .observational
         case "non_idempotent":
             return .nonIdempotent
         default:
