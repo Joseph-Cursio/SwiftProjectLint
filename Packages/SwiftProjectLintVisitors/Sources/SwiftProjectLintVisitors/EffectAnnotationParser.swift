@@ -5,7 +5,7 @@ import SwiftSyntax
 /// Phase 1 of the idempotency trial recognises only the binary distinction. Additional
 /// tiers (`pure`, `transactional_idempotent`, `externally_idempotent`, `unknown`) are
 /// explicitly out of scope and treated as unrecognised — see
-/// `docs/trial-scope.md` in the swiftIdempotency repo.
+/// `docs/phase1/trial-scope.md` in the swiftIdempotency repo.
 public enum DeclaredEffect: Sendable, Equatable {
     case idempotent
     case nonIdempotent

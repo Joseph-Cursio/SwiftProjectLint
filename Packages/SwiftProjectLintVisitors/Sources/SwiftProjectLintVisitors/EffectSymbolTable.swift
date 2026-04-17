@@ -5,7 +5,7 @@ import SwiftSyntax
 ///
 /// Phase 1 of the idempotency trial is **deliberately per-file**. Cross-file
 /// propagation is the proposal's Phase 3 and is explicitly out of scope —
-/// see `docs/trial-scope.md` in the swiftIdempotency repo. A callee defined in
+/// see `docs/phase1/trial-scope.md` in the swiftIdempotency repo. A callee defined in
 /// a sibling file will not resolve, which is working as specified for Phase 1.
 public struct EffectSymbolTable: Sendable {
 
