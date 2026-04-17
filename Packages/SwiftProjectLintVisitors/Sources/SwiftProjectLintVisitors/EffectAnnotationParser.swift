@@ -98,18 +98,18 @@ public enum EffectAnnotationParser {
 
 private extension Substring {
     func trimmingLeadingWhitespace() -> Substring {
-        var s = self
-        while let c = s.first, c == " " || c == "\t" { s = s.dropFirst() }
-        return s
+        var slice = self
+        while let char = slice.first, char == " " || char == "\t" { slice = slice.dropFirst() }
+        return slice
     }
 
     func firstWord() -> String {
         var out = ""
-        for c in self {
-            if c.isWhitespace { break }
+        for char in self {
+            if char.isWhitespace { break }
             // Stop at grammar separators that would indicate sub-directives we don't handle.
-            if c == "(" || c == ":" { break }
-            out.append(c)
+            if char == "(" || char == ":" { break }
+            out.append(char)
         }
         return out
     }
