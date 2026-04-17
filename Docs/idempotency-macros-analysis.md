@@ -1753,3 +1753,102 @@ This proposal sits in a crowded field of effect systems, purity annotations, and
 **Akka's `At-Least-Once Delivery`** and **Kafka Streams' exactly-once semantics** are distributed-systems frameworks that *make* idempotency the responsibility of the application developer, typically with helper APIs for deduplication keys and processed-ID tracking. The `@context replayable` annotation is the static-analysis counterpart to the implicit "your handler had better be idempotent" contract that these frameworks impose.
 
 **What's novel here.** The specific combination of: (a) doc-comment annotations as the interoperable surface between humans and tooling, (b) the `externally_idempotent` and `transactional_idempotent` tiers as first-class effect positions (most prior work treats external-dedup and transaction-atomicity as implementation concerns rather than type-level distinctions), and (c) the `actorReentrancyIdempotencyHazard` rule — which catches the guard-suspend-insert anti-pattern specific to Swift actor reentrancy and does not have an equivalent in any linter surveyed — is the original contribution. The rest is a synthesis of existing ideas applied to the Swift ecosystem.
+
+---
+
+## What's Novel Here — Expanded
+
+The paragraph above names three contributions. This section walks through each in detail — what exists in prior art, what this proposal adds, and why the combination matters.
+
+### (a) Doc-comment annotations as the human/tooling interoperability surface
+
+**What already exists.** Effect information is typically carried in one of three places:
+
+- *The type system itself* (Koka effect rows, Haskell's `IO`, Rust `async`/`unsafe`/`const`). Strong guarantees, but requires the language to cooperate.
+- *Attributes/annotations tied to a framework* (Java's `@Retryable`, Spring's `@Idempotent`, JAX-RS, Resilience4j). These are runtime configuration directives — they tell the retry framework what to do, not the compiler or a checker what to verify.
+- *Linter-specific DSLs* (SwiftLint custom rules, ESLint config, CodeQL queries). These live in tool-owned files, not the source; a human reading the function cannot see the claim.
+
+**What the proposal does differently.** It treats the Swift doc-comment grammar (`/// @lint.effect idempotent`, `/// @context replayable`, `/// @lint.assume ...`) as a *shared surface* with three consumers reading the same token:
+
+1. The **human reviewer** reads the doc comment during code review — the claim is adjacent to the function signature, gets copy-pasted in PR descriptions, and renders in DocC.
+2. The **linter** parses the same comment into structured effects and runs the body/call-graph checks described in the lattice section.
+3. The **macro** (`@GenerateIdempotencyTests`) reads the same annotation to decide whether to synthesize a double-call test peer, what equivalence check to emit, and whether to mirror `async`/`throws` into the generated `@Test`.
+
+The novel part isn't inventing annotations — it's positioning them as **interoperable data** rather than as configuration for one specific tool. Every annotation is simultaneously documentation, a verifiable claim, and test-generation input. If any of the three consumers is missing, the annotation still has value to the remaining two. That asymmetry is why incremental adoption works: a team can start by *just writing the comments* (documentation value only), add the linter later (verification), and add the macro last (test scaffolding) without rewriting the source.
+
+This also explains why the proposal rejects protocol-only modeling. A protocol conformance carries the same information but *only* to the type system; the human reading `struct ChargeCard: IdempotentOperation` has no reason clause, no equivalence relation, and no `@lint.assume` escape hatch. The doc comment carries the same machine-readable claim *plus* the prose context a reviewer needs.
+
+### (b) `externally_idempotent` and `transactional_idempotent` as first-class lattice positions
+
+**What already exists.** Most prior systems use a binary split — pure/impure, idempotent/non-idempotent, safe-to-retry/not. When more nuance is needed, it's pushed into the framework layer:
+
+- Stripe, AWS SDKs, and similar clients handle idempotency-key-based dedup as an *implementation detail* of the client library. The type signature doesn't distinguish `chargeCard(amount:)` from `chargeCard(amount:idempotencyKey:)` in a way the compiler or a linter can reason about.
+- Database transaction boundaries are enforced at runtime (the DB throws if you commit twice) but don't propagate upward as a function-level property. A function that wraps several non-idempotent writes in `db.transaction { … }` has no standard way to declare "the composite is retry-safe."
+- Akka's at-least-once delivery, Kafka's exactly-once semantics, and AWS Lambda's SQS trigger all *require* idempotency in the handler but provide no type- or annotation-level way to say "this handler satisfies that requirement via mechanism X."
+
+**What the proposal does.** It promotes these two conditionally-idempotent modes to explicit, equally-ranked positions in the lattice:
+
+```
+pure < idempotent < { transactional_idempotent, externallyIdempotent } < non_idempotent
+                                                                unknown (incomparable)
+```
+
+And — this is the important part — each carries *different enforcement rules* in the linter:
+
+| Effect position | What the body check verifies |
+|---|---|
+| `idempotent` | No non-idempotent callees on any path, including throw paths |
+| `transactional_idempotent` | All non-idempotent writes live inside a detected `db.transaction { }` / atomic-rename / single-publish boundary; demoted if any write escapes |
+| `externallyIdempotent` | Function has an `IdempotencyKey` parameter; key is stable across retries (derived from inputs, not fresh entropy); `reason:` clause names the external mechanism |
+| `non_idempotent` | No check; but caller composition rules propagate it |
+
+These aren't cosmetic labels. The composition table has separate rows for each, the conflict-detection table has different lint actions for each declared/inferred pairing, and the annotation grammar has dedicated sub-directives (`@lint.txn_boundary db.transaction`, `@lint.assume stripe.PaymentIntents.create is externally_idempotent`, `IdempotencyKey` type).
+
+**Why this matters.** The two most common production idempotency patterns are:
+
+1. "It's idempotent *because* we pass an idempotency key to the provider." (externally_idempotent)
+2. "It's idempotent *because* multiple non-idempotent writes commit atomically in one transaction." (transactional_idempotent)
+
+A binary lattice forces both into either `idempotent` (which lies about the body) or `non_idempotent` (which over-reports and suppresses the retry-safety information the caller needs). The three-tier model captures both accurately *and* generates distinct, actionable diagnostics:
+
+- A `transactional_idempotent` function whose body has a write outside the transaction block gets a specific "write escapes transaction boundary" error, not a generic "body is non-idempotent."
+- An `externallyIdempotent` function whose key parameter is set from `UUID().uuidString` in a retry loop gets "key sourced from fresh entropy at call site," not a generic warning.
+
+Most prior work treats these as "library-level concerns" outside the scope of an effect system. Treating them as type-level distinctions is the contribution.
+
+### (c) `actorReentrancyIdempotencyHazard` — the guard-suspend-insert rule
+
+**What already exists.** Swift actor reentrancy is documented in the language (SE-0306), and the general hazard is known to concurrency experts. But no shipped linter surveyed here (SwiftLint, swift-format, the Swift compiler's own warnings, SwiftSyntax-based third-party rules) has a rule that specifically targets the check-then-act-across-a-suspension pattern.
+
+**What the pattern is.** In an actor method:
+
+```swift
+guard !processedIDs.contains(id) else { return }   // check
+try await chargeCard(id)                           // suspension point — actor reopens
+processedIDs.insert(id)                            // act, too late
+```
+
+Actor isolation serializes *each individual await-free segment* of the method, but at the `await` the actor is open to other callers. Two concurrent callers with the same `id` both pass the guard, both `await chargeCard`, both charge the card. The runtime won't catch this — the actor did serialize reads; it just couldn't serialize the check-suspend-act sequence as a unit. The usual "actors prevent races" mental model fails silently here.
+
+**Why this is AST-detectable.** The pattern has a precise structural signature:
+
+- Inside a `FunctionDeclSyntax` whose parent is an `ActorDeclSyntax`
+- A `GuardStmtSyntax` whose condition contains a membership check against a stored property (`!self.X.contains(...)`, `self.X[...] == nil`)
+- Followed by one or more `AwaitExprSyntax` nodes on the fall-through path
+- Followed by an insertion into the *same* stored property (`self.X.insert(...)`, `self.X[...] = ...`)
+
+SwiftSyntax has all of these node types directly. The rule is a single-pass AST traversal — no call graph, no type inference, no cross-file analysis. It fits inside SwiftProjectLint's existing `BasePatternVisitor` architecture and mirrors the structure of the other rules in `Sources/Core/StateManagement/Visitors/`.
+
+**Why this is the highest-value original rule.** The other concurrency rules in the proposal (`nonIdempotentInTaskRetry`, `nonIdempotentInTaskGroup`, `nonIdempotentInRecursiveRetry`, `nonIdempotentInSwiftUITask`) depend on having classified the callee as `non_idempotent` — they are downstream of the effect lattice. `actorReentrancyIdempotencyHazard` is different: it fires on structural grounds alone, independent of any annotation on `chargeCard`. That means it delivers value on day one of enabling the linter, before any team has annotated anything. It's also a bug pattern that very few Swift developers recognize — actor reentrancy interacting with idempotency is subtle enough that even careful concurrency code gets it wrong, and the bug is invisible in single-threaded tests.
+
+The fix pattern is as detectable as the bug pattern (claim the slot before the suspension, compensate in `catch`), so the linter can offer a targeted diagnostic with a concrete rewrite, not just a warning.
+
+### Why the combination is the contribution
+
+Each of the three pieces has partial analogs in prior work:
+
+- Effect annotations exist in Java-land (but as runtime config).
+- Multi-tiered idempotency is discussed in distributed systems literature (but not as a type-level lattice).
+- Actor reentrancy hazards are documented (but not mechanically checked).
+
+The proposal's claim is that pulling the three together — **annotations as the shared surface**, **a lattice rich enough to model the real patterns**, **and at least one concurrency rule that is detectable without the lattice** — produces a system that is adoptable incrementally (unlike Koka), verifiable (unlike Spring's `@Retryable`), and catches a class of bug (actor reentrancy idempotency) that no existing Swift tool catches. None of the three alone is the novelty; the synthesis is.
