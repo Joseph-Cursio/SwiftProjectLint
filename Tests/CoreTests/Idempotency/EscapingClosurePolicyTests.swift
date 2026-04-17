@@ -23,6 +23,7 @@ struct IdempotencyEscapingClosureTests {
     private func runEffect(source: String) -> IdempotencyViolationVisitor {
         let visitor = IdempotencyViolationVisitor(pattern: IdempotencyViolation().pattern)
         visitor.walk(Parser.parse(source: source))
+        visitor.analyze()
         return visitor
     }
 
@@ -31,6 +32,7 @@ struct IdempotencyEscapingClosureTests {
             pattern: NonIdempotentInRetryContext().pattern
         )
         visitor.walk(Parser.parse(source: source))
+        visitor.analyze()
         return visitor
     }
 

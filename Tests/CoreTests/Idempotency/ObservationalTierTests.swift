@@ -51,6 +51,7 @@ struct ObservationalVisitorTests {
         let visitor = IdempotencyViolationVisitor(pattern: IdempotencyViolation().pattern)
         let sourceFile = Parser.parse(source: source)
         visitor.walk(sourceFile)
+        visitor.analyze()
         return visitor
     }
 
@@ -60,6 +61,7 @@ struct ObservationalVisitorTests {
         )
         let sourceFile = Parser.parse(source: source)
         visitor.walk(sourceFile)
+        visitor.analyze()
         return visitor
     }
 

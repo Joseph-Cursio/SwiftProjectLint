@@ -4,7 +4,9 @@ import SwiftProjectLintVisitors
 import SwiftSyntax
 
 /// Detects functions whose declared effect contract is violated by a call to a
-/// more-permissive callee in the same file.
+/// more-permissive callee. The resolution is project-wide: callees defined in any
+/// file participating in the analysis are resolved against the shared
+/// `EffectSymbolTable`, subject to the table's collision policy.
 ///
 /// Two declared-caller effects are analysed:
 ///
@@ -14,39 +16,104 @@ import SwiftSyntax
 ///   An idempotent or non_idempotent callee is a violation, because observational claims
 ///   the body mutates no business state beyond observation sinks.
 ///
-/// Phase 1 of the idempotency trial: no inference, per-file symbol table only.
-/// A callee defined in another file produces no diagnostic — working as specified.
+/// ## Cross-file dispatch
+/// The visitor conforms to `CrossFilePatternVisitorProtocol`. Walk phase accumulates
+/// the symbol table and the list of analysis sites. Emission happens in
+/// `finalizeAnalysis()`, once every file has been walked. This keeps the per-file
+/// dispatch path a no-op for this rule (no double-emit) while enabling cross-file
+/// resolution via the `CrossFileAnalysisEngine`.
 ///
 /// ## Closure traversal policy
-/// The visitor descends into non-escaping closure bodies (the normal case for
-/// synchronous control flow). It does not descend into `ClosureExprSyntax` passed as
-/// escaping arguments (`Task { }`, `withTaskGroup { }`, `.task`) because the
-/// idempotency contract on those boundaries belongs to a later-phase retry-context
-/// check that Phase 1 explicitly excludes.
-final class IdempotencyViolationVisitor: BasePatternVisitor {
+/// The visitor descends into non-escaping closure bodies. It does not descend into
+/// `ClosureExprSyntax` passed as escaping arguments (`Task { }`, `withTaskGroup { }`,
+/// `Task.detached { }`, SwiftUI `.task { }`) — those boundaries are retry-context
+/// checks that Phase 1 of the trial explicitly excludes.
+final class IdempotencyViolationVisitor: BasePatternVisitor, CrossFilePatternVisitorProtocol {
 
+    let fileCache: [String: SourceFileSyntax]
+
+    /// Accumulated across every file walked in this analysis run. Populated in
+    /// `visit(_:)` and queried in `finalizeAnalysis()`.
     private var symbolTable = EffectSymbolTable()
 
+    /// Analysis sites cached during walk, keyed by their declaring file so that
+    /// line-number reporting resolves correctly in `finalizeAnalysis()`.
+    private var analysisSites: [AnalysisSite] = []
+
+    private struct AnalysisSite {
+        let function: FunctionDeclSyntax
+        let effect: DeclaredEffect
+        let filePath: String
+        let locationConverter: SourceLocationConverter
+    }
+
+    private var currentFilePath: String = ""
+    private var currentLocationConverter: SourceLocationConverter?
+
+    required init(fileCache: [String: SourceFileSyntax]) {
+        self.fileCache = fileCache
+        super.init(pattern: BasePatternVisitor.placeholderPattern, viewMode: .sourceAccurate)
+    }
+
     required init(pattern: SyntaxPattern, viewMode: SyntaxTreeViewMode = .sourceAccurate) {
+        self.fileCache = [:]
         super.init(pattern: pattern, viewMode: viewMode)
     }
 
+    override func setFilePath(_ filePath: String) {
+        super.setFilePath(filePath)
+        currentFilePath = filePath
+    }
+
+    override func setSourceLocationConverter(_ converter: SourceLocationConverter) {
+        super.setSourceLocationConverter(converter)
+        currentLocationConverter = converter
+    }
+
+    // MARK: - Walk phase: accumulate only
+
     override func visit(_ node: SourceFileSyntax) -> SyntaxVisitorContinueKind {
-        symbolTable = EffectSymbolTable.build(from: node)
+        symbolTable.merge(source: node)
         return .visitChildren
     }
 
     override func visit(_ node: FunctionDeclSyntax) -> SyntaxVisitorContinueKind {
         guard let callerEffect = EffectAnnotationParser.parseEffect(leadingTrivia: node.leadingTrivia),
               callerEffect == .idempotent || callerEffect == .observational,
-              let body = node.body else {
+              node.body != nil else {
             return .visitChildren
         }
-        analyzeBody(Syntax(body), callerName: node.name.text, callerEffect: callerEffect)
+        let converter = currentLocationConverter
+            ?? SourceLocationConverter(fileName: currentFilePath, tree: node.root)
+        analysisSites.append(
+            AnalysisSite(
+                function: node,
+                effect: callerEffect,
+                filePath: currentFilePath,
+                locationConverter: converter
+            )
+        )
         return .visitChildren
     }
 
-    private func analyzeBody(_ syntax: Syntax, callerName: String, callerEffect: DeclaredEffect) {
+    // MARK: - Finalize phase: emit issues
+
+    func finalizeAnalysis() {
+        for site in analysisSites {
+            guard let body = site.function.body else { continue }
+            analyzeBody(Syntax(body), site: site)
+        }
+    }
+
+    /// Single-file fallback: when the visitor is used outside the cross-file engine
+    /// (for example directly in unit tests), callers can walk once and invoke this
+    /// method instead of `finalizeAnalysis()` — they are equivalent. Exposed as a
+    /// separate name to make the test flow read `walk(source); analyze()`.
+    func analyze() {
+        finalizeAnalysis()
+    }
+
+    private func analyzeBody(_ syntax: Syntax, site: AnalysisSite) {
         if syntax.is(FunctionDeclSyntax.self) { return }
         if let closure = syntax.as(ClosureExprSyntax.self), isEscapingClosure(closure) {
             return
@@ -55,18 +122,17 @@ final class IdempotencyViolationVisitor: BasePatternVisitor {
         if let call = syntax.as(FunctionCallExprSyntax.self),
            let calleeName = directCalleeName(from: call.calledExpression),
            let calleeEffect = symbolTable.effect(for: calleeName),
-           violates(caller: callerEffect, callee: calleeEffect) {
+           violates(caller: site.effect, callee: calleeEffect) {
             emitViolation(
                 call: call,
-                callerName: callerName,
-                callerEffect: callerEffect,
+                site: site,
                 calleeName: calleeName,
                 calleeEffect: calleeEffect
             )
         }
 
         for child in syntax.children(viewMode: .sourceAccurate) {
-            analyzeBody(child, callerName: callerName, callerEffect: callerEffect)
+            analyzeBody(child, site: site)
         }
     }
 
@@ -87,16 +153,16 @@ final class IdempotencyViolationVisitor: BasePatternVisitor {
 
     private func emitViolation(
         call: FunctionCallExprSyntax,
-        callerName: String,
-        callerEffect: DeclaredEffect,
+        site: AnalysisSite,
         calleeName: String,
         calleeEffect: DeclaredEffect
     ) {
-        let callerTier = effectLabel(callerEffect)
+        let callerName = site.function.name.text
+        let callerTier = effectLabel(site.effect)
         let calleeTier = effectLabel(calleeEffect)
         let headline: String
         let suggestion: String
-        switch callerEffect {
+        switch site.effect {
         case .observational:
             headline = "Observational contract violation: '\(callerName)' is declared "
                 + "`@lint.effect observational` but calls '\(calleeName)', which is declared "
@@ -111,14 +177,14 @@ final class IdempotencyViolationVisitor: BasePatternVisitor {
             suggestion = "Either change '\(calleeName)' to an idempotent alternative "
                 + "(e.g. upsert, set-status-by-id), or weaken the declared effect of '\(callerName)'."
         default:
-            // `nonIdempotent` caller is never analysed.
             return
         }
+        let line = site.locationConverter.location(for: call.positionAfterSkippingLeadingTrivia).line
         addIssue(
             severity: pattern.severity,
             message: headline,
-            filePath: getFilePath(for: Syntax(call)),
-            lineNumber: getLineNumber(for: Syntax(call)),
+            filePath: site.filePath,
+            lineNumber: line,
             suggestion: suggestion,
             ruleName: .idempotencyViolation
         )

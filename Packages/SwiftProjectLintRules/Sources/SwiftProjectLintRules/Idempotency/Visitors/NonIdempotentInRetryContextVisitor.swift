@@ -4,67 +4,119 @@ import SwiftProjectLintVisitors
 import SwiftSyntax
 
 /// Detects functions declared `/// @lint.context replayable` or `/// @lint.context retry_safe`
-/// whose body calls a function declared `/// @lint.effect non_idempotent` in the same file.
+/// whose body calls a function declared `/// @lint.effect non_idempotent` anywhere in
+/// the project. Resolution is cross-file via the shared `EffectSymbolTable`, subject
+/// to the table's collision policy.
 ///
-/// Phase 1 of the idempotency trial: per-file symbol table only, no inference.
+/// ## Cross-file dispatch
+/// Conforms to `CrossFilePatternVisitorProtocol`. Walk phase accumulates the symbol
+/// table and analysis sites; emission happens in `finalizeAnalysis()` so the per-file
+/// dispatcher produces no double-emits.
 ///
-/// Closure traversal policy mirrors `IdempotencyViolationVisitor` — non-escaping only.
-final class NonIdempotentInRetryContextVisitor: BasePatternVisitor {
+/// Closure-traversal policy mirrors `IdempotencyViolationVisitor` — non-escaping only.
+final class NonIdempotentInRetryContextVisitor: BasePatternVisitor, CrossFilePatternVisitorProtocol {
+
+    let fileCache: [String: SourceFileSyntax]
 
     private var symbolTable = EffectSymbolTable()
+    private var analysisSites: [AnalysisSite] = []
+
+    private struct AnalysisSite {
+        let function: FunctionDeclSyntax
+        let context: ContextEffect
+        let filePath: String
+        let locationConverter: SourceLocationConverter
+    }
+
+    private var currentFilePath: String = ""
+    private var currentLocationConverter: SourceLocationConverter?
+
+    required init(fileCache: [String: SourceFileSyntax]) {
+        self.fileCache = fileCache
+        super.init(pattern: BasePatternVisitor.placeholderPattern, viewMode: .sourceAccurate)
+    }
 
     required init(pattern: SyntaxPattern, viewMode: SyntaxTreeViewMode = .sourceAccurate) {
+        self.fileCache = [:]
         super.init(pattern: pattern, viewMode: viewMode)
     }
 
+    override func setFilePath(_ filePath: String) {
+        super.setFilePath(filePath)
+        currentFilePath = filePath
+    }
+
+    override func setSourceLocationConverter(_ converter: SourceLocationConverter) {
+        super.setSourceLocationConverter(converter)
+        currentLocationConverter = converter
+    }
+
     override func visit(_ node: SourceFileSyntax) -> SyntaxVisitorContinueKind {
-        symbolTable = EffectSymbolTable.build(from: node)
+        symbolTable.merge(source: node)
         return .visitChildren
     }
 
     override func visit(_ node: FunctionDeclSyntax) -> SyntaxVisitorContinueKind {
         guard let context = EffectAnnotationParser.parseContext(leadingTrivia: node.leadingTrivia),
-              let body = node.body else {
+              node.body != nil else {
             return .visitChildren
         }
-        analyzeBody(Syntax(body), callerName: node.name.text, context: context)
+        let converter = currentLocationConverter
+            ?? SourceLocationConverter(fileName: currentFilePath, tree: node.root)
+        analysisSites.append(
+            AnalysisSite(
+                function: node,
+                context: context,
+                filePath: currentFilePath,
+                locationConverter: converter
+            )
+        )
         return .visitChildren
     }
 
-    private func analyzeBody(_ syntax: Syntax, callerName: String, context: ContextEffect) {
+    func finalizeAnalysis() {
+        for site in analysisSites {
+            guard let body = site.function.body else { continue }
+            analyzeBody(Syntax(body), site: site)
+        }
+    }
+
+    func analyze() {
+        finalizeAnalysis()
+    }
+
+    private func analyzeBody(_ syntax: Syntax, site: AnalysisSite) {
         if syntax.is(FunctionDeclSyntax.self) { return }
         if let closure = syntax.as(ClosureExprSyntax.self), isEscapingClosure(closure) {
             return
         }
 
-        if let call = syntax.as(FunctionCallExprSyntax.self) {
-            if let calleeName = directCalleeName(from: call.calledExpression),
-               let calleeEffect = symbolTable.effect(for: calleeName),
-               calleeEffect == .nonIdempotent {
-                let contextLabel: String = context == .replayable ? "replayable" : "retry_safe"
-                addIssue(
-                    severity: pattern.severity,
-                    message: "Non-idempotent call in \(contextLabel) context: '\(callerName)' is declared "
-                        + "`@lint.context \(contextLabel)` but calls '\(calleeName)', which is declared "
-                        + "`@lint.effect non_idempotent`.",
-                    filePath: getFilePath(for: Syntax(call)),
-                    lineNumber: getLineNumber(for: Syntax(call)),
-                    suggestion: "Replace '\(calleeName)' with an idempotent alternative, or route the call "
-                        + "through a deduplication guard or idempotency-key mechanism.",
-                    ruleName: .nonIdempotentInRetryContext
-                )
-            }
+        if let call = syntax.as(FunctionCallExprSyntax.self),
+           let calleeName = directCalleeName(from: call.calledExpression),
+           let calleeEffect = symbolTable.effect(for: calleeName),
+           calleeEffect == .nonIdempotent {
+            let contextLabel: String = site.context == .replayable ? "replayable" : "retry_safe"
+            let callerName = site.function.name.text
+            let line = site.locationConverter.location(for: call.positionAfterSkippingLeadingTrivia).line
+            addIssue(
+                severity: pattern.severity,
+                message: "Non-idempotent call in \(contextLabel) context: '\(callerName)' is declared "
+                    + "`@lint.context \(contextLabel)` but calls '\(calleeName)', which is declared "
+                    + "`@lint.effect non_idempotent`.",
+                filePath: site.filePath,
+                lineNumber: line,
+                suggestion: "Replace '\(calleeName)' with an idempotent alternative, or route the call "
+                    + "through a deduplication guard or idempotency-key mechanism.",
+                ruleName: .nonIdempotentInRetryContext
+            )
         }
 
         for child in syntax.children(viewMode: .sourceAccurate) {
-            analyzeBody(child, callerName: callerName, context: context)
+            analyzeBody(child, site: site)
         }
     }
 
-    /// See `IdempotencyViolationVisitor.isEscapingClosure` for the shared policy —
-    /// the closure is escaping when the nearest enclosing `FunctionCallExprSyntax`
-    /// has a callee name in `escapingCalleeNames`. `task` is included so SwiftUI's
-    /// `.task { … }` modifier boundary is honoured.
+    /// See `IdempotencyViolationVisitor.isEscapingClosure` for the shared policy.
     private func isEscapingClosure(_ closure: ClosureExprSyntax) -> Bool {
         var node = Syntax(closure).parent
         while let current = node {

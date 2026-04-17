@@ -16,6 +16,7 @@ struct IdempotencyViolationVisitorTests {
         let visitor = makeVisitor()
         let sourceFile = Parser.parse(source: source)
         visitor.walk(sourceFile)
+        visitor.analyze()
         return visitor
     }
 

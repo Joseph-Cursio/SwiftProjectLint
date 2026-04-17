@@ -16,6 +16,7 @@ struct NonIdempotentInRetryContextVisitorTests {
         let visitor = makeVisitor()
         let sourceFile = Parser.parse(source: source)
         visitor.walk(sourceFile)
+        visitor.analyze()
         return visitor
     }
 
@@ -147,11 +148,13 @@ struct IdempotencyRuleInteractionTests {
             pattern: IdempotencyViolation().pattern
         )
         violationVisitor.walk(sourceFile)
+        violationVisitor.analyze()
 
         let contextVisitor = NonIdempotentInRetryContextVisitor(
             pattern: NonIdempotentInRetryContext().pattern
         )
         contextVisitor.walk(sourceFile)
+        contextVisitor.analyze()
 
         #expect(violationVisitor.detectedIssues.count == 1)
         #expect(violationVisitor.detectedIssues.first?.ruleName == .idempotencyViolation)
