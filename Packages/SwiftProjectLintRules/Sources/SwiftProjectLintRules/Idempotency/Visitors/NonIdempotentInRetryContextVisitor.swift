@@ -61,18 +61,19 @@ final class NonIdempotentInRetryContextVisitor: BasePatternVisitor {
         }
     }
 
+    /// See `IdempotencyViolationVisitor.isEscapingClosure` for the shared policy —
+    /// the closure is escaping when the nearest enclosing `FunctionCallExprSyntax`
+    /// has a callee name in `escapingCalleeNames`. `task` is included so SwiftUI's
+    /// `.task { … }` modifier boundary is honoured.
     private func isEscapingClosure(_ closure: ClosureExprSyntax) -> Bool {
         var node = Syntax(closure).parent
         while let current = node {
             if let call = current.as(FunctionCallExprSyntax.self) {
-                if let name = directCalleeName(from: call.calledExpression) {
-                    if escapingCalleeNames.contains(name) { return true }
+                if let name = directCalleeName(from: call.calledExpression),
+                   escapingCalleeNames.contains(name) {
+                    return true
                 }
                 return false
-            }
-            if let member = current.as(MemberAccessExprSyntax.self),
-               member.declName.baseName.text == "task" {
-                return true
             }
             node = current.parent
         }
@@ -95,6 +96,7 @@ final class NonIdempotentInRetryContextVisitor: BasePatternVisitor {
         "withTaskGroup",
         "withThrowingTaskGroup",
         "withDiscardingTaskGroup",
-        "withThrowingDiscardingTaskGroup"
+        "withThrowingDiscardingTaskGroup",
+        "task"
     ]
 }

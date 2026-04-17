@@ -132,23 +132,20 @@ final class IdempotencyViolationVisitor: BasePatternVisitor {
         }
     }
 
-    /// A closure is treated as escaping when it appears as an argument to `Task`,
-    /// `withTaskGroup`-family, `Task.detached`, or as a trailing-closure `.task` modifier.
-    /// The visitor's Phase 1 scope stops at these boundaries.
+    /// A closure is treated as escaping when it is the trailing closure of a call
+    /// whose callee is in `escapingCalleeNames`. Matching happens on the *nearest*
+    /// enclosing `FunctionCallExprSyntax`; a closure deeply nested inside a
+    /// non-escaping call is treated as non-escaping relative to the Phase 1 body
+    /// check. The visitor's Phase 1 scope stops at these boundaries.
     private func isEscapingClosure(_ closure: ClosureExprSyntax) -> Bool {
         var node = Syntax(closure).parent
         while let current = node {
             if let call = current.as(FunctionCallExprSyntax.self) {
-                if let name = directCalleeName(from: call.calledExpression) {
-                    if escapingCalleeNames.contains(name) { return true }
-                }
-                return false
-            }
-            if current.is(MemberAccessExprSyntax.self) {
-                if let base = current.as(MemberAccessExprSyntax.self),
-                   base.declName.baseName.text == "task" {
+                if let name = directCalleeName(from: call.calledExpression),
+                   escapingCalleeNames.contains(name) {
                     return true
                 }
+                return false
             }
             node = current.parent
         }
@@ -165,12 +162,18 @@ final class IdempotencyViolationVisitor: BasePatternVisitor {
         return nil
     }
 
+    /// Callees whose trailing closures are treated as escaping for Phase 1 purposes.
+    /// `task` is deliberately included so that SwiftUI's `.task { … }` modifier
+    /// boundary is honoured — the SwiftUI runtime re-runs the closure on view
+    /// identity changes, so it's a genuine replay boundary, not part of the
+    /// caller's synchronous body.
     private let escapingCalleeNames: Set<String> = [
         "Task",
         "detached",
         "withTaskGroup",
         "withThrowingTaskGroup",
         "withDiscardingTaskGroup",
-        "withThrowingDiscardingTaskGroup"
+        "withThrowingDiscardingTaskGroup",
+        "task"
     ]
 }
