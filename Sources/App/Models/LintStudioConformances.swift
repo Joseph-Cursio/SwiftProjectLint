@@ -34,6 +34,7 @@ extension PatternCategory: @retroactive LintCategory {
         case .uiPatterns: "uiPatterns"
         case .animation: "animation"
         case .modernization: "modernization"
+        case .idempotency: "idempotency"
         case .other: "other"
         }
     }
@@ -51,6 +52,7 @@ extension PatternCategory: @retroactive LintCategory {
         case .uiPatterns: "UI Patterns"
         case .animation: "Animation"
         case .modernization: "Modernization"
+        case .idempotency: "Idempotency"
         case .other: "Other"
         }
     }
@@ -72,6 +74,7 @@ enum PatternCategoryColors {
         case .uiPatterns: .indigo
         case .animation: .mint
         case .modernization: .yellow
+        case .idempotency: .brown
         case .other: .gray
         }
     }

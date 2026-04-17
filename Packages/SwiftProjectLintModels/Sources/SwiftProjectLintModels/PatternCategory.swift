@@ -18,6 +18,7 @@
 /// - `memoryManagement`: Patterns indicating possible memory issues, such as retain cycles or inefficient state storage.
 /// - `networking`: Patterns related to network operations, error handling, and asynchronous calls.
 /// - `uiPatterns`: Patterns concerning user interface structure and design conventions, such as navigation usage, previews, or styling consistency.
+/// - `idempotency`: Patterns concerning retry safety and idempotency contracts, such as non-idempotent calls in replayable contexts.
 /// - `other`: System-level patterns and errors that don't fit into other categories, such as file parsing errors.
 public enum PatternCategory: CaseIterable, Sendable {
     case stateManagement
@@ -31,5 +32,6 @@ public enum PatternCategory: CaseIterable, Sendable {
     case uiPatterns
     case animation
     case modernization
+    case idempotency
     case other
 }

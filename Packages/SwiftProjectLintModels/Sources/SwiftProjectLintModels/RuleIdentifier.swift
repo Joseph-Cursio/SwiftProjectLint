@@ -185,6 +185,10 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
     case modifierOrderIssue = "Modifier Order Issue"
     case imageWithoutResizable = "Image Without Resizable"
 
+    // Idempotency Rules
+    case idempotencyViolation = "Idempotency Violation"
+    case nonIdempotentInRetryContext = "Non-Idempotent In Retry Context"
+
     // Other/System Rules
     case fileParsingError = "File Parsing Error"
     case unknown = "Unknown"
@@ -295,6 +299,10 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
              .scrollViewShowsIndicators, .legacyArrayInit,
              .legacyClosureSyntax, .ios17ObservationMigration:
             return .modernization
+
+            // Idempotency Rules
+        case .idempotencyViolation, .nonIdempotentInRetryContext:
+            return .idempotency
 
             // Other/System Rules
         case .fileParsingError, .unknown:
