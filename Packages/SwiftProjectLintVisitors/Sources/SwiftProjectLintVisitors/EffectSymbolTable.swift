@@ -55,6 +55,20 @@ public struct EffectSymbolTable: Sendable {
     /// multi-hop chains produce depth 2+.
     private var upwardInferredEffects: [FunctionSignature: UpwardInference] = [:]
 
+    /// Functions whose bodies transitively reach a `@lint.context once`
+    /// callee via zero or more un-annotated intermediate helpers. Populated
+    /// by `applyOnceReachInference(to:)`. Used by `OnceContractViolationVisitor`
+    /// to flag once-contract violations through chains that the direct
+    /// call-site check would miss.
+    ///
+    /// `depth` records the **shortest** path to a once-callee — `1` means
+    /// the function directly calls a `@context once` callee; `N` means N-1
+    /// un-annotated intermediates lie between this function and the
+    /// nearest once-callee. Shortest is used (rather than upward effect
+    /// inference's longest) because diagnostics want to point users at the
+    /// nearest evidence, not the farthest possible chain.
+    private var onceReachingFunctions: [FunctionSignature: OnceReachInference] = [:]
+
     public init() {}
 
     /// Builds a symbol table by walking every top-level and nested
@@ -260,6 +274,175 @@ public struct EffectSymbolTable: Sendable {
         let mergedDepth = max(existing.depth, incoming.depth)
         return UpwardInference(effect: mergedEffect, depth: mergedDepth)
     }
+
+    // MARK: - Once-reach inference
+
+    /// Returns the shortest-path hop depth to a `@lint.context once` callee
+    /// through `signature`'s body, or `nil` when the function has no
+    /// such reach (or is itself `@lint.context`-annotated and therefore
+    /// excluded from inference). `depth: 1` is a direct call; `depth: N`
+    /// means N-1 un-annotated intermediates lie between this function and
+    /// the nearest once-callee.
+    public func onceReach(for signature: FunctionSignature) -> OnceReachInference? {
+        onceReachingFunctions[signature]
+    }
+
+    /// Computes which functions across `sources` transitively reach a
+    /// `@lint.context once` callee, using a fixed-point iteration over the
+    /// project call graph.
+    ///
+    /// Inference rules:
+    /// - A function with any `@lint.context` annotation is **excluded** —
+    ///   the user has expressed an authoritative intent. The direct-
+    ///   call-site rule on the annotated function's body fires
+    ///   independently if applicable; double-flagging the outer caller
+    ///   transitively would be redundant noise.
+    /// - A function's reach depth is `1 + min(depth of contributing
+    ///   callees)` where contributing means either a direct
+    ///   `@lint.context once` callee (depth 0) or another previously-
+    ///   inferred reaching function. Shortest (not longest) because
+    ///   diagnostics point at the nearest evidence.
+    /// - Termination: set membership is monotone (a function that
+    ///   reaches in pass N still reaches in pass N+1) and the set is
+    ///   bounded by the project's function count. Loop exits when
+    ///   membership stabilises across a full pass; `maxHops` caps both
+    ///   iteration count and recorded depth.
+    /// - Closure-escape policy mirrors `OnceContractViolationVisitor`:
+    ///   calls inside `Task { }` / `withTaskGroup` / SwiftUI `.task` do
+    ///   not contribute to reach. Same false-negative trade-off.
+    public mutating func applyOnceReachInference(
+        to sources: [SourceFileSyntax],
+        maxHops: Int = 5
+    ) {
+        for _ in 0..<maxHops {
+            let previousKeys = Set(onceReachingFunctions.keys)
+            runOneOnceReachPass(sources: sources, maxHops: maxHops)
+            let currentKeys = Set(onceReachingFunctions.keys)
+            if previousKeys == currentKeys { return }
+        }
+    }
+
+    private mutating func runOneOnceReachPass(
+        sources: [SourceFileSyntax],
+        maxHops: Int
+    ) {
+        for source in sources {
+            let collector = ContextUnannotatedFunctionCollector()
+            collector.walk(source)
+            for decl in collector.functions {
+                guard let body = decl.body else { continue }
+                let depths = collectOnceReachDepths(in: Syntax(body))
+                guard let minDepth = depths.min() else { continue }
+                let signature = FunctionSignature.from(declaration: decl)
+                let cappedDepth = min(maxHops, minDepth + 1)
+                let merged = onceReachingFunctions[signature].map {
+                    min($0.depth, cappedDepth)
+                } ?? cappedDepth
+                onceReachingFunctions[signature] = OnceReachInference(depth: merged)
+            }
+        }
+    }
+
+    private func collectOnceReachDepths(in syntax: Syntax) -> [Int] {
+        var out: [Int] = []
+        collectOnceReachDepths(in: syntax, accumulator: &out)
+        return out
+    }
+
+    private func collectOnceReachDepths(in syntax: Syntax, accumulator: inout [Int]) {
+        if syntax.is(FunctionDeclSyntax.self) { return }
+        if let closure = syntax.as(ClosureExprSyntax.self),
+           OnceReachClosurePolicy.isEscaping(closure) {
+            return
+        }
+        if let call = syntax.as(FunctionCallExprSyntax.self),
+           let signature = FunctionSignature.from(call: call) {
+            if context(for: signature) == .once {
+                // Direct call to a `@context once` callee — depth 0
+                // contribution to the caller, which becomes depth 1 after
+                // the `1 +` step in the caller.
+                accumulator.append(0)
+            } else if let reach = onceReach(for: signature) {
+                accumulator.append(reach.depth)
+            }
+        }
+        for child in syntax.children(viewMode: .sourceAccurate) {
+            collectOnceReachDepths(in: child, accumulator: &accumulator)
+        }
+    }
+}
+
+/// One result from once-reach inference: the depth of the shortest path
+/// from this function to a `@lint.context once` callee through
+/// un-annotated intermediates.
+public struct OnceReachInference: Sendable, Equatable {
+    public let depth: Int
+    public init(depth: Int) {
+        self.depth = depth
+    }
+}
+
+/// Collects every `FunctionDeclSyntax` in a source file that does NOT
+/// carry a `@lint.context` annotation. Used by once-reach inference;
+/// annotated context decls are authoritative and are not transitively
+/// inferred.
+final class ContextUnannotatedFunctionCollector: SyntaxVisitor {
+    var functions: [FunctionDeclSyntax] = []
+
+    init() {
+        super.init(viewMode: .sourceAccurate)
+    }
+
+    override func visit(_ node: FunctionDeclSyntax) -> SyntaxVisitorContinueKind {
+        if EffectAnnotationParser.parseContext(declaration: node) == nil {
+            functions.append(node)
+        }
+        return .visitChildren
+    }
+
+    override func visit(_ node: ClosureExprSyntax) -> SyntaxVisitorContinueKind {
+        .skipChildren
+    }
+}
+
+/// Closure-escape policy used by once-reach inference. Same set as the
+/// idempotency rule visitors so reach inference and direct-call detection
+/// agree on what counts as a retry boundary.
+enum OnceReachClosurePolicy {
+    static func isEscaping(_ closure: ClosureExprSyntax) -> Bool {
+        var node = Syntax(closure).parent
+        while let current = node {
+            if let call = current.as(FunctionCallExprSyntax.self) {
+                if let name = directCalleeName(of: call.calledExpression),
+                   escapingCalleeNames.contains(name) {
+                    return true
+                }
+                return false
+            }
+            node = current.parent
+        }
+        return false
+    }
+
+    private static func directCalleeName(of expr: ExprSyntax) -> String? {
+        if let ref = expr.as(DeclReferenceExprSyntax.self) {
+            return ref.baseName.text
+        }
+        if let member = expr.as(MemberAccessExprSyntax.self) {
+            return member.declName.baseName.text
+        }
+        return nil
+    }
+
+    private static let escapingCalleeNames: Set<String> = [
+        "Task",
+        "detached",
+        "withTaskGroup",
+        "withThrowingTaskGroup",
+        "withDiscardingTaskGroup",
+        "withThrowingDiscardingTaskGroup",
+        "task"
+    ]
 }
 
 /// Walks a source file and collects every `FunctionDeclSyntax`, including
