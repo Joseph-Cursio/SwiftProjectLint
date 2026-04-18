@@ -21,7 +21,7 @@ struct ObservationalParserTests {
         """
         let sourceFile = Parser.parse(source: source)
         let table = EffectSymbolTable.build(from: sourceFile)
-        #expect(table.effect(for: "log") == .observational)
+        #expect(table.effect(for: FunctionSignature(name: "log", argumentLabels: [])) == .observational)
     }
 
     @Test
@@ -38,9 +38,9 @@ struct ObservationalParserTests {
         """
         let sourceFile = Parser.parse(source: source)
         let table = EffectSymbolTable.build(from: sourceFile)
-        #expect(table.effect(for: "log") == .observational)
-        #expect(table.effect(for: "upsert") == .idempotent)
-        #expect(table.effect(for: "insert") == .nonIdempotent)
+        #expect(table.effect(for: FunctionSignature(name: "log", argumentLabels: [])) == .observational)
+        #expect(table.effect(for: FunctionSignature(name: "upsert", argumentLabels: [])) == .idempotent)
+        #expect(table.effect(for: FunctionSignature(name: "insert", argumentLabels: [])) == .nonIdempotent)
     }
 }
 

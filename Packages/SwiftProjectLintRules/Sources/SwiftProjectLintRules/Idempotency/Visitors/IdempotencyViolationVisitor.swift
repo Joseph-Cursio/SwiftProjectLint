@@ -120,13 +120,13 @@ final class IdempotencyViolationVisitor: BasePatternVisitor, CrossFilePatternVis
         }
 
         if let call = syntax.as(FunctionCallExprSyntax.self),
-           let calleeName = directCalleeName(from: call.calledExpression),
-           let calleeEffect = symbolTable.effect(for: calleeName),
+           let calleeSignature = FunctionSignature.from(call: call),
+           let calleeEffect = symbolTable.effect(for: calleeSignature),
            violates(caller: site.effect, callee: calleeEffect) {
             emitViolation(
                 call: call,
                 site: site,
-                calleeName: calleeName,
+                calleeName: calleeSignature.name,
                 calleeEffect: calleeEffect
             )
         }

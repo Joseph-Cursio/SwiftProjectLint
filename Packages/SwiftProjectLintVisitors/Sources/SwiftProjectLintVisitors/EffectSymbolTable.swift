@@ -1,18 +1,35 @@
 import SwiftSyntax
 
-/// A map from function name to its declared idempotency effect and/or execution context,
-/// built either per-file or across the whole project.
+/// A map from function signature (name + argument labels) to its declared
+/// idempotency effect and/or execution context, built per-file or across the
+/// whole project.
+///
+/// ## Keying
+/// Entries are keyed on `FunctionSignature` — the canonical bare-receiver form
+/// `name(label1:label2:…)` — rather than bare names. Two declarations collide
+/// only if they would be indistinguishable at a call site without type info.
+/// This is the OI-4 Phase-1.1 refinement: the bare-name policy (every repeat
+/// of a name withdraws the entry) over-suppressed on protocol-oriented APIs,
+/// where a single function has three or more declarations sharing a name
+/// (protocol requirement + extension defaults + concrete conformance) but
+/// differing signatures.
 ///
 /// ## Collision policy
-/// When the same function name is recorded more than once (either within one file
-/// via overloads or across files with shared names), the entry is **removed** —
-/// a lookup for that name returns `nil`, as if the name were unannotated. This is
-/// the Phase 1 OI-4 resolution per the proposal's trial: without type information,
-/// a bare-name collision cannot be resolved unambiguously, so the rule retreats to
-/// "unknown" rather than guessing.
+/// Unannotated declarations do **not** participate in collision detection.
+/// The user's annotation expresses intent; an unannotated sibling is noise, not
+/// ambiguity. Semantics:
 ///
-/// The policy is intentionally provisional; a future pass may prefer to union
-/// effects or to disambiguate by receiver type. See `docs/phase1/trial-findings.md`.
+/// - Zero annotated declarations for a signature → no entry.
+/// - Exactly one annotated declaration → entry stored.
+/// - Multiple annotated declarations with matching `(effect, context)` →
+///   entry stored (counts as one logical declaration).
+/// - Multiple annotated declarations with conflicting `(effect, context)` →
+///   entry withdrawn (`nil` lookup).
+///
+/// This policy is strictly more permissive than the bare-name version and
+/// fixes the round-2 trial's `MemoryPersistDriver.create` case, where the
+/// concrete implementation's annotation was being withdrawn by collision
+/// with the unannotated protocol requirement and extension default.
 public struct EffectSymbolTable: Sendable {
 
     public struct Entry: Sendable, Equatable {
@@ -20,98 +37,87 @@ public struct EffectSymbolTable: Sendable {
         public let context: ContextEffect?
     }
 
-    public private(set) var entriesByName: [String: Entry] = [:]
+    public private(set) var entriesBySignature: [FunctionSignature: Entry] = [:]
 
-    /// Count of definitions seen per name across all `record` / `build` calls.
-    /// Used to suppress entries once a collision is detected.
-    private var definitionCounts: [String: Int] = [:]
+    /// Count of **annotated** definitions seen per signature. Unannotated
+    /// declarations are not recorded here — only annotated ones participate in
+    /// collision detection.
+    private var annotatedCounts: [FunctionSignature: Int] = [:]
 
     public init() {}
 
-    /// Builds a symbol table by walking every top-level and nested `FunctionDeclSyntax`
-    /// in the source file. Method names inside types are recorded without the type
-    /// qualifier, mirroring how `FunctionCallExprSyntax` callees appear when resolved
-    /// against a bare-name table.
+    /// Builds a symbol table by walking every top-level and nested
+    /// `FunctionDeclSyntax` in the source file.
     public static func build(from source: SourceFileSyntax) -> EffectSymbolTable {
         var table = EffectSymbolTable()
         table.merge(source: source)
         return table
     }
 
-    /// Adds every annotated `FunctionDeclSyntax` in `source` to this table, applying
-    /// the collision policy on duplicate names. Call repeatedly to accumulate entries
-    /// across multiple files; the same collision semantics apply within and across
-    /// file boundaries.
+    /// Adds every annotated `FunctionDeclSyntax` in `source` to this table,
+    /// applying the collision policy on duplicate signatures. Call repeatedly
+    /// to accumulate entries across files; the collision semantics apply
+    /// uniformly within and across file boundaries.
     public mutating func merge(source: SourceFileSyntax) {
         let collector = FunctionDeclCollector()
         collector.walk(source)
         for funcDecl in collector.functions {
             let effect = EffectAnnotationParser.parseEffect(leadingTrivia: funcDecl.leadingTrivia)
             let context = EffectAnnotationParser.parseContext(leadingTrivia: funcDecl.leadingTrivia)
-            record(name: funcDecl.name.text, effect: effect, context: context)
+            let signature = FunctionSignature.from(declaration: funcDecl)
+            record(signature: signature, effect: effect, context: context)
         }
     }
 
-    /// Records one occurrence of a function name with its parsed annotations.
-    ///
-    /// - First occurrence with at least one non-nil annotation: stored.
-    /// - Second occurrence with the same non-nil effect: kept (counts as one
-    ///   semantically unique declaration under the Phase-1 collision policy).
-    /// - Second occurrence with a differing non-nil effect, *or* any further
-    ///   occurrence once the count exceeds one: entry removed (unknown).
+    /// Records one annotated occurrence of a function signature. Unannotated
+    /// declarations (both `effect` and `context` nil) are ignored entirely —
+    /// they neither add entries nor count toward collision.
     public mutating func record(
-        name: String,
+        signature: FunctionSignature,
         effect: DeclaredEffect?,
         context: ContextEffect?
     ) {
-        definitionCounts[name, default: 0] += 1
-        let count = definitionCounts[name] ?? 0
+        guard effect != nil || context != nil else { return }
 
-        // Only consider annotated occurrences for entry storage; a function without
-        // either annotation contributes nothing to lookups.
-        guard effect != nil || context != nil else {
-            // Still counts toward collision detection — if a name is declared both
-            // annotated in file A and unannotated in file B, we can't know which
-            // definition a caller references by bare name.
-            if count > 1 {
-                entriesByName.removeValue(forKey: name)
-            }
-            return
-        }
+        annotatedCounts[signature, default: 0] += 1
+        let count = annotatedCounts[signature] ?? 0
 
         if count == 1 {
-            entriesByName[name] = Entry(effect: effect, context: context)
+            entriesBySignature[signature] = Entry(effect: effect, context: context)
             return
         }
 
-        // Second-or-later occurrence of an annotated name: keep only if semantically
-        // identical to what's already there; otherwise withdraw the entry entirely.
-        if let existing = entriesByName[name],
+        // Two-or-more annotated declarations of the same signature: keep only
+        // when semantically identical, otherwise withdraw the entry.
+        if let existing = entriesBySignature[signature],
            existing.effect == effect,
            existing.context == context {
             return
         }
-        entriesByName.removeValue(forKey: name)
+        entriesBySignature.removeValue(forKey: signature)
     }
 
-    public func effect(for name: String) -> DeclaredEffect? {
-        entriesByName[name]?.effect
+    /// Returns the declared effect for `signature`, or `nil` if the signature
+    /// has no annotated entry (zero declarations, or withdrawn by collision).
+    public func effect(for signature: FunctionSignature) -> DeclaredEffect? {
+        entriesBySignature[signature]?.effect
     }
 
-    public func context(for name: String) -> ContextEffect? {
-        entriesByName[name]?.context
+    /// Returns the declared context for `signature`, or `nil`.
+    public func context(for signature: FunctionSignature) -> ContextEffect? {
+        entriesBySignature[signature]?.context
     }
 
-    /// `true` if `name` was declared more than once across the sources merged into
-    /// this table. Exposed for diagnostics and targeted tests.
-    public func isCollision(name: String) -> Bool {
-        (definitionCounts[name] ?? 0) > 1
+    /// `true` if two or more annotated declarations of `signature` were
+    /// encountered. Useful for diagnostics and targeted tests.
+    public func isCollision(signature: FunctionSignature) -> Bool {
+        (annotatedCounts[signature] ?? 0) > 1
     }
 }
 
-/// Walks a source file and collects every `FunctionDeclSyntax`, including nested methods,
-/// without descending into closures (closures can't declare named functions that become
-/// call targets by simple name).
+/// Walks a source file and collects every `FunctionDeclSyntax`, including
+/// nested methods, without descending into closures (closures can't declare
+/// named functions that become call targets by simple name).
 final class FunctionDeclCollector: SyntaxVisitor {
     var functions: [FunctionDeclSyntax] = []
 

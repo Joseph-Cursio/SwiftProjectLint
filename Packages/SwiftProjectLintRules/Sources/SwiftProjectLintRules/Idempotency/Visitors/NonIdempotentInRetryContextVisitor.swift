@@ -92,11 +92,12 @@ final class NonIdempotentInRetryContextVisitor: BasePatternVisitor, CrossFilePat
         }
 
         if let call = syntax.as(FunctionCallExprSyntax.self),
-           let calleeName = directCalleeName(from: call.calledExpression),
-           let calleeEffect = symbolTable.effect(for: calleeName),
+           let calleeSignature = FunctionSignature.from(call: call),
+           let calleeEffect = symbolTable.effect(for: calleeSignature),
            calleeEffect == .nonIdempotent {
             let contextLabel: String = site.context == .replayable ? "replayable" : "retry_safe"
             let callerName = site.function.name.text
+            let calleeName = calleeSignature.name
             let line = site.locationConverter.location(for: call.positionAfterSkippingLeadingTrivia).line
             addIssue(
                 severity: pattern.severity,

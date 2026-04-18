@@ -173,10 +173,17 @@ struct CrossFileIdempotencyTests {
     }
 
     @Test
-    func collisionAnnotatedAndUnannotated_withdrawsEntry_noDiagnostic() {
-        // File A annotates `insert` as non_idempotent; file B has a different
-        // `insert` with no annotation. Without type info we can't know which
-        // the caller means — the entry is withdrawn and the rule stays silent.
+    func annotatedBeatsUnannotatedSibling_flagsViaAnnotatedEntry() throws {
+        // One annotated `insert(_:)` plus one unannotated `insert(_:)` that
+        // differs only by parameter type (which is invisible to a syntactic
+        // linter). Under the Phase-1.1 collision policy, unannotated siblings
+        // are noise — they neither add entries nor trigger withdrawal — so the
+        // annotated declaration's effect stands and the caller's call flags.
+        //
+        // This is the intended behaviour: the user's annotation expresses
+        // intent, and ignoring it because of an unannotated namesake is more
+        // conservative than the trial evidence supports. Previously this case
+        // produced zero diagnostics; it now produces one.
         let files: [String: String] = [
             "Handler.swift": """
             /// @lint.effect idempotent
@@ -193,13 +200,16 @@ struct CrossFileIdempotencyTests {
             """
         ]
 
-        #expect(runCrossFileEffect(files: files).detectedIssues.isEmpty)
+        let issues = runCrossFileEffect(files: files).detectedIssues
+        #expect(issues.count == 1)
+        #expect(issues.first?.message.contains("insert") == true)
     }
 
     @Test
     func collisionDetectedByIsCollision() {
-        // Direct check of the symbol table's collision reporting. Handy for
-        // diagnostics that might want to surface the ambiguity to the user.
+        // Two annotated declarations sharing a signature with conflicting
+        // effects — the canonical collision case. The entry is withdrawn and
+        // `isCollision(signature:)` reports true on the shared signature.
         let source = """
         /// @lint.effect non_idempotent
         func insert(_ id: Int) {}
@@ -211,8 +221,9 @@ struct CrossFileIdempotencyTests {
         var table = EffectSymbolTable()
         table.merge(source: Parser.parse(source: source))
 
-        #expect(table.isCollision(name: "insert"))
-        #expect(table.effect(for: "insert") == nil)
+        let signature = FunctionSignature(name: "insert", argumentLabels: ["_"])
+        #expect(table.isCollision(signature: signature))
+        #expect(table.effect(for: signature) == nil)
     }
 
     // MARK: - Phase-1-correct negative: the per-file mode from Phase 3
