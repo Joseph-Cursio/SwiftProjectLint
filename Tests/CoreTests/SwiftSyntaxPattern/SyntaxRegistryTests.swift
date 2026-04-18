@@ -3,6 +3,16 @@ import SwiftSyntax
 @testable import Core
 @testable import SwiftProjectLintRules
 
+/// Serialized so that concurrent tests in this suite cannot race on the
+/// shared `SourcePatternRegistry.registrarFactories` static list.
+/// `BuiltInRules.registerAll()` is lock-guarded only for the `registered`
+/// flag flip — the subsequent `registerFactory` calls happen outside the
+/// lock, so a second test entering makeRegistry during that window can
+/// see `registered == true` but read a partial factory list in
+/// `initialize()`. Complement to the explicit `registerAll()` in
+/// `makeRegistry` below (which guards against the more common
+/// run-before-any-other-suite flakiness).
+@Suite(.serialized)
 struct SyntaxRegistryTests {
 
     /// Each test gets its own isolated PatternVisitorRegistry so that
