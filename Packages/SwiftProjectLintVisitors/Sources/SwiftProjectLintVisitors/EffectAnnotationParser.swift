@@ -31,17 +31,25 @@ public enum DeclaredEffect: Sendable, Equatable {
 ///
 /// - `replayable` / `retry_safe` are semantically equivalent to the linter:
 ///   both impose "callees must be idempotent" on the body. Only the
-///   documentation intent differs.
+///   documentation intent differs. The `nonIdempotentInRetryContext` rule
+///   fires on callees declared/inferred `non_idempotent`; unannotated
+///   callees stay silent (precision-preserving default).
+/// - `strictReplayable` is the opt-in strict variant of `replayable`. The
+///   additional `unannotatedInStrictReplayableContext` rule fires on
+///   callees whose effect can't be proven idempotent/observational —
+///   "flag unless you know for sure." Adopters promote critical
+///   handlers to this tier and leave less-critical ones on `replayable`.
 /// - `once` is the inverse contract: the function asserts that it must run
 ///   at most once across all replays, retries, or iterations. The
 ///   `onceContractViolation` rule fires when a `@context once` callee
 ///   appears in a position where it could be re-invoked (loop body,
-///   `replayable` / `retry_safe` caller).
+///   `replayable` / `retry_safe` / `strict_replayable` caller).
 /// - `dedup_guarded` remains out of scope.
 public enum ContextEffect: Sendable, Equatable {
     case replayable
     case retrySafe
     case once
+    case strictReplayable
 }
 
 /// Parses `/// @lint.effect <tier>` and `/// @lint.context <kind>` from the doc-comment
@@ -336,6 +344,8 @@ public enum EffectAnnotationParser {
             return .retrySafe
         case "once":
             return .once
+        case "strict_replayable":
+            return .strictReplayable
         default:
             return nil
         }

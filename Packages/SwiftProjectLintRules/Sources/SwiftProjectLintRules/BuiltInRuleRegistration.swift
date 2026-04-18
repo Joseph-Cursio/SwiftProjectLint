@@ -11,10 +11,19 @@ public enum BuiltInRules {
     nonisolated(unsafe) private static var registered = false
 
     public static func registerAll() {
-        lock.withLock {
-            guard !registered else { return }
+        // Guard against double-registration. The `withLock` closure returns
+        // `true` when this call should become a no-op (another call already
+        // registered the factories). The previous form — `guard else { return }`
+        // inside the closure — only returned from the closure, so factories
+        // got appended on every call; the resulting per-call pattern growth
+        // bloated `SourcePatternRegistry` iteration under test workloads
+        // where `createConfiguredSystem()` is invoked repeatedly.
+        let alreadyRegistered: Bool = lock.withLock {
+            if registered { return true }
             registered = true
+            return false
         }
+        if alreadyRegistered { return }
 
         SourcePatternRegistry.registerFactory { registry, visitorRegistry in
             StateManagement(registry: registry, visitorRegistry: visitorRegistry)

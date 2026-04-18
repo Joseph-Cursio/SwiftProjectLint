@@ -172,7 +172,10 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
                 preBuiltCache: astCache
             )
         }
-        issues.append(contentsOf: crossFilePatternIssues)
+        issues.append(contentsOf: Self.applyInlineSuppression(
+            to: crossFilePatternIssues,
+            files: projectFiles
+        ))
 
         // Apply per-rule overrides (severity changes, per-rule path exclusions)
         return effectiveConfiguration.applyOverrides(to: issues, projectRoot: path)
@@ -293,5 +296,45 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
 
         let issues = InlineSuppressionFilter.filter(rawIssues, fileContent: content)
         return (file: file, issues: issues, parsedAST: parsedAST)
+    }
+
+    /// Applies inline-suppression filtering to cross-file issues. Grouped
+    /// by the issue's primary file (`LintIssue.filePath` — the first
+    /// location) and filtered against that file's content. Issues whose
+    /// primary file is not in the project-files set (defensive — shouldn't
+    /// normally happen) pass through unfiltered so no diagnostic goes
+    /// missing.
+    ///
+    /// Per-file issues are already filtered inside `analyzeFile`. Cross-
+    /// file issues are emitted by `CrossFileAnalysisEngine` and
+    /// previously bypassed suppression entirely; this method closes that
+    /// gap so `// swiftprojectlint:disable*` comments work equivalently
+    /// for both rule kinds.
+    private static func applyInlineSuppression(
+        to crossFileIssues: [LintIssue],
+        files: [ProjectFile]
+    ) -> [LintIssue] {
+        guard !crossFileIssues.isEmpty else { return crossFileIssues }
+
+        let contentByRelativePath = Dictionary(
+            uniqueKeysWithValues: files.map { ($0.relativePath, $0.content) }
+        )
+
+        let grouped = Dictionary(grouping: crossFileIssues) { $0.filePath }
+        var filtered: [LintIssue] = []
+        filtered.reserveCapacity(crossFileIssues.count)
+
+        for (filePath, issuesInFile) in grouped {
+            guard let content = contentByRelativePath[filePath] else {
+                filtered.append(contentsOf: issuesInFile)
+                continue
+            }
+            filtered.append(contentsOf: InlineSuppressionFilter.filter(
+                issuesInFile,
+                fileContent: content
+            ))
+        }
+
+        return filtered
     }
 }
