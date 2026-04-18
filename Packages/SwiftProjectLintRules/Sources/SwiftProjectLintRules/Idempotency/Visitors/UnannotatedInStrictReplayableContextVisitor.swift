@@ -145,10 +145,17 @@ final class UnannotatedInStrictReplayableContextVisitor:
 
     func finalizeAnalysis() {
         let allSources = Array(fileCache.values)
-        symbolTable.applyUpwardInference(
+        let enabledFrameworks = self.enabledFrameworkWhitelists
+        symbolTable.applyUpwardInferenceImportAware(
             to: allSources,
             multiHop: true,
-            heuristicEffectForCall: HeuristicEffectInferrer.infer(call:)
+            heuristicEffectForCall: { call, source in
+                HeuristicEffectInferrer.infer(
+                    call: call,
+                    imports: ImportCollector.imports(in: source),
+                    enabledFrameworks: enabledFrameworks
+                )
+            }
         )
 
         for site in analysisSites {
@@ -218,7 +225,11 @@ final class UnannotatedInStrictReplayableContextVisitor:
 
         // Heuristic inferrer returning any classification counts — either
         // the existing rule handles it, or it's a positive signal.
-        if HeuristicEffectInferrer.infer(call: call) != nil { return }
+        if HeuristicEffectInferrer.infer(
+            call: call,
+            imports: imports(forSiteFile: site.filePath),
+            enabledFrameworks: self.enabledFrameworkWhitelists
+        ) != nil { return }
 
         // Fall through: no evidence of the callee's effect. Fire.
         let callerName = site.callerName
@@ -281,4 +292,15 @@ final class UnannotatedInStrictReplayableContextVisitor:
         "withThrowingDiscardingTaskGroup",
         "task"
     ]
+
+    /// Per-file imports cache. See `NonIdempotentInRetryContextVisitor.imports(forSiteFile:)`.
+    private func imports(forSiteFile path: String) -> Set<String>? {
+        if let cached = importCache[path] { return cached }
+        guard let source = fileCache[path] else { return nil }
+        let set = ImportCollector.imports(in: source)
+        importCache[path] = set
+        return set
+    }
+
+    private var importCache: [String: Set<String>] = [:]
 }

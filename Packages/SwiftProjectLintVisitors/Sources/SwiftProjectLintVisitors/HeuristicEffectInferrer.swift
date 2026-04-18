@@ -58,14 +58,46 @@ import SwiftSyntax
 public enum HeuristicEffectInferrer {
 
     /// Returns the inferred effect of a call based on its callee syntax,
-    /// or `nil` if no heuristic applies.
+    /// or `nil` if no heuristic applies. Backward-compatible entry point —
+    /// equivalent to `infer(call:imports: nil, enabledFrameworks: nil)`.
     public static func infer(call: FunctionCallExprSyntax) -> DeclaredEffect? {
+        infer(call: call, imports: nil, enabledFrameworks: nil)
+    }
+
+    /// Import-aware and config-aware inference.
+    ///
+    /// - Parameters:
+    ///   - call: the call syntax under test
+    ///   - imports: base module names imported in the enclosing source
+    ///     file (see `ImportCollector.imports(in:)`). Pass `nil` to skip
+    ///     import gating entirely — every framework whitelist applies by
+    ///     name, preserving the pre-round-14 behaviour that unit-test
+    ///     fixtures rely on. Pass an explicit set (even empty) to enable
+    ///     import gating — framework whitelists only fire when their
+    ///     required module is imported.
+    ///   - enabledFrameworks: per-framework config override. `nil` means
+    ///     "all frameworks enabled" (default). Non-nil restricts
+    ///     classification to the listed framework names (from
+    ///     `FrameworkWhitelist.knownFrameworks`).
+    public static func infer(
+        call: FunctionCallExprSyntax,
+        imports: Set<String>?,
+        enabledFrameworks: Set<String>?
+    ) -> DeclaredEffect? {
         guard let (calleeName, receiverName) = callParts(of: call.calledExpression) else {
             return nil
         }
 
+        let context = FrameworkContext(imports: imports, enabled: enabledFrameworks)
+
         // Observational requires a logger-shaped receiver AND a log-level
-        // method name. Two signals, both required.
+        // method name. Two strong signals — high precision; not gated by
+        // import. swift-log is commonly accessed transitively through
+        // framework-provided properties (e.g. `context.logger` in
+        // AWSLambdaRuntime, `request.logger` in Hummingbird) where the
+        // file's own imports don't include `Logging` directly. Gating on
+        // `Logging`/`os` regressed round-9's chained-logger fix on
+        // exactly that adoption shape.
         if let receiverName,
            isLoggerReceiver(receiverName),
            loggerLevelMethods.contains(calleeName) {
@@ -73,37 +105,31 @@ public enum HeuristicEffectInferrer {
         }
 
         // Metric primitives (swift-metrics + observational-by-convention
-        // siblings). Receiver names containing `counter`, `gauge`, `meter`,
-        // `timer`, `recorder` + a metric-observation method classify
-        // observational. Matches round-12's `activeRequestMeter.increment()`
-        // and `Metrics.Timer(...).recordNanoseconds(...)` shapes.
+        // siblings). Gated on `Metrics` import when import-awareness
+        // is active.
         if let receiverName,
            isMetricReceiver(receiverName),
-           metricObservationMethods.contains(calleeName) {
+           metricObservationMethods.contains(calleeName),
+           context.isFrameworkActive(FrameworkWhitelist.metrics) {
             return .observational
         }
 
-        // Type-constructor whitelist — known pure/value-type constructors
-        // from Foundation, SwiftNIO, etc. `JSONDecoder()`, `Data(...)`,
-        // `ByteBuffer(bytes:)`. A constructor with no receiver (bare
-        // identifier that happens to match a known type) classifies
-        // idempotent. Deliberately excludes `UUID()` (violates this
-        // project's own `missingIdempotencyKey` rule) and `Date()`
-        // (reads current time).
+        // Type-constructor whitelist — per-framework groups. When
+        // import-aware, only firewall-the-adopter-uses groups apply.
         if receiverName == nil,
-           idempotentFrameworkTypes.contains(calleeName) {
+           let framework = FrameworkWhitelist.framework(
+               forIdempotentTypeConstructor: calleeName
+           ),
+           context.isFrameworkActive(framework) {
             return .idempotent
         }
 
-        // Codec-pattern method whitelist. Receivers whose names end in
-        // `Decoder` / `Encoder` or contain `decoder` / `encoder` plus the
-        // paired verb → idempotent. Silences `decoder.decode(...)` and
-        // `encoder.encode(...)` on codec instances without requiring a
-        // type-resolver. Round-9 Lambda MultiSourceAPI had 4 fires of
-        // this exact shape.
+        // Codec-pattern method whitelist. Gated on `Foundation` import
+        // when import-awareness is active.
         if let receiverName,
            isCodecReceiver(receiverName),
-           codecMethods.contains(calleeName) {
+           codecMethods.contains(calleeName),
+           context.isFrameworkActive(FrameworkWhitelist.foundation) {
             return .idempotent
         }
 
@@ -147,9 +173,20 @@ public enum HeuristicEffectInferrer {
     /// inferred. Used in diagnostic prose so the user can see what the
     /// linter matched against.
     public static func inferenceReason(for call: FunctionCallExprSyntax) -> String? {
+        inferenceReason(for: call, imports: nil, enabledFrameworks: nil)
+    }
+
+    /// Import-aware / config-aware reason string. Mirrors `infer(call:imports:enabledFrameworks:)`.
+    public static func inferenceReason(
+        for call: FunctionCallExprSyntax,
+        imports: Set<String>?,
+        enabledFrameworks: Set<String>?
+    ) -> String? {
         guard let (calleeName, receiverName) = callParts(of: call.calledExpression) else {
             return nil
         }
+        let context = FrameworkContext(imports: imports, enabled: enabledFrameworks)
+
         if let receiverName,
            isLoggerReceiver(receiverName),
            loggerLevelMethods.contains(calleeName) {
@@ -157,16 +194,21 @@ public enum HeuristicEffectInferrer {
         }
         if let receiverName,
            isMetricReceiver(receiverName),
-           metricObservationMethods.contains(calleeName) {
+           metricObservationMethods.contains(calleeName),
+           context.isFrameworkActive(FrameworkWhitelist.metrics) {
             return "from metric-primitive receiver `\(receiverName).\(calleeName)`"
         }
         if receiverName == nil,
-           idempotentFrameworkTypes.contains(calleeName) {
-            return "from the known-idempotent framework type `\(calleeName)`"
+           let framework = FrameworkWhitelist.framework(
+               forIdempotentTypeConstructor: calleeName
+           ),
+           context.isFrameworkActive(framework) {
+            return "from the known-idempotent \(framework) type `\(calleeName)`"
         }
         if let receiverName,
            isCodecReceiver(receiverName),
-           codecMethods.contains(calleeName) {
+           codecMethods.contains(calleeName),
+           context.isFrameworkActive(FrameworkWhitelist.foundation) {
             return "from codec-pattern receiver `\(receiverName).\(calleeName)`"
         }
         if idempotentNames.contains(calleeName) || nonIdempotentNames.contains(calleeName) {
@@ -267,31 +309,6 @@ public enum HeuristicEffectInferrer {
 
     private static let codecMethods: Set<String> = [
         "decode", "encode"
-    ]
-
-    /// Known-idempotent framework type constructors. When called as a
-    /// bare identifier (no receiver, capitalised callee = type
-    /// constructor), classify `.idempotent` so strict_replayable and
-    /// related rules defer.
-    ///
-    /// Scope: pure value-type constructors whose result is a function of
-    /// inputs alone. Deliberately excluded: `UUID()` (fresh per-call
-    /// identity — the very violation the `missingIdempotencyKey` rule
-    /// guards against), `Date()` (reads current time — not idempotent).
-    private static let idempotentFrameworkTypes: Set<String> = [
-        // Foundation — pure codec containers (configurable but no shared mutable state)
-        "JSONDecoder", "JSONEncoder",
-        "PropertyListDecoder", "PropertyListEncoder",
-        // Foundation — pure byte containers
-        "Data",
-        // SwiftNIO — pure byte buffers and views
-        "ByteBuffer",
-        "ByteBufferAllocator",
-        // AWS Lambda events — response constructors (build a response
-        // value from inputs; no side effects beyond allocation)
-        "ALBTargetGroupResponse",
-        "APIGatewayResponse",
-        "APIGatewayV2Response"
     ]
 
     private static let loggerLevelMethods: Set<String> = [

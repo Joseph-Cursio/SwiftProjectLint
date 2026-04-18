@@ -28,6 +28,14 @@ public final class SourcePatternDetector: SourcePatternDetectorProtocol, @unchec
     /// Passed through to visitors that need them (e.g. ArchitecturalBoundaryVisitor).
     public var layerPolicies: [LayerPolicy] = []
 
+    /// Per-framework whitelist opt-in for the idempotency heuristic
+    /// inferrer (round-14). Set from
+    /// `LintConfiguration.enabledFrameworkWhitelists`. `nil` means
+    /// "all known frameworks active" (subject to file-level import
+    /// gating in `HeuristicEffectInferrer`); non-nil restricts to the
+    /// listed framework names.
+    public var enabledFrameworkWhitelists: Set<String>? = nil
+
     /// Initializes a new SwiftSyntax pattern detector.
     ///
     /// - Parameter registry: The pattern visitor registry to use. Defaults to the shared registry.
@@ -149,6 +157,7 @@ public final class SourcePatternDetector: SourcePatternDetectorProtocol, @unchec
             visitor.knownActorTypes = knownActorTypes
             visitor.knownLocalTypeNames = knownLocalTypeNames
             visitor.layerPolicies = layerPolicies
+            visitor.enabledFrameworkWhitelists = enabledFrameworkWhitelists
             visitor.walk(sourceFile)
 
             // Filter to only the rules that were actually requested.

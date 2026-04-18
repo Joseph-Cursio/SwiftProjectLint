@@ -21,6 +21,12 @@ public class CrossFileAnalysisEngine: CrossFileAnalyzerProtocol {
     private let registry: PatternVisitorRegistry
     private var fileCache: [String: SourceFileSyntax] = [:]
 
+    /// Per-framework whitelist opt-in for the idempotency heuristic
+    /// (round-14). Propagated from `LintConfiguration.enabledFrameworkWhitelists`
+    /// by `ProjectLinter` and applied to each cross-file visitor before
+    /// it walks. `nil` means "all known frameworks active."
+    public var enabledFrameworkWhitelists: Set<String>? = nil
+
     /// Initializes a new SwiftSyntax pattern detector.
     ///
     /// - Parameter registry: The pattern visitor registry to use. Defaults to the shared registry.
@@ -77,6 +83,7 @@ public class CrossFileAnalysisEngine: CrossFileAnalyzerProtocol {
                     if let pattern = patterns.first(where: { $0.visitor == visitorType }) {
                         baseVisitor.setPattern(pattern)
                     }
+                    baseVisitor.enabledFrameworkWhitelists = enabledFrameworkWhitelists
                 }
 
                 for (fileName, sourceFile) in fileCache {
@@ -136,6 +143,7 @@ public class CrossFileAnalysisEngine: CrossFileAnalyzerProtocol {
                 let visitor = crossFileVisitorType.init(fileCache: fileCache)
                 if let baseVisitor = visitor as? BasePatternVisitor {
                     baseVisitor.setPattern(pattern)
+                    baseVisitor.enabledFrameworkWhitelists = enabledFrameworkWhitelists
                 }
                 for (fileName, sourceFile) in fileCache {
                     if let baseVisitor = visitor as? BasePatternVisitor {

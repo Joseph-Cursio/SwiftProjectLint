@@ -146,11 +146,23 @@ final class NonIdempotentInRetryContextVisitor: BasePatternVisitor, CrossFilePat
         // enables fixed-point propagation across chains of un-annotated
         // helpers between the `@context replayable` boundary and the
         // non-idempotent leaf.
+        //
+        // Round-14: the heuristic callback is now import-aware. We
+        // precompute per-source imports once and look them up on each
+        // call so framework whitelists only fire in files that actually
+        // import the relevant module.
         let allSources = Array(fileCache.values)
-        symbolTable.applyUpwardInference(
+        let enabledFrameworks = self.enabledFrameworkWhitelists
+        symbolTable.applyUpwardInferenceImportAware(
             to: allSources,
             multiHop: true,
-            heuristicEffectForCall: HeuristicEffectInferrer.infer(call:)
+            heuristicEffectForCall: { call, source in
+                HeuristicEffectInferrer.infer(
+                    call: call,
+                    imports: ImportCollector.imports(in: source),
+                    enabledFrameworks: enabledFrameworks
+                )
+            }
         )
 
         for site in analysisSites {
@@ -225,9 +237,17 @@ final class NonIdempotentInRetryContextVisitor: BasePatternVisitor, CrossFilePat
             calleeClaim = "whose effect is inferred `non_idempotent` from its body\(chainHint)"
             overrideHint = " If the inference is wrong, annotate '\(calleeSignature.name)' "
                 + "explicitly with `/// @lint.effect <tier>` to override the body-based inference."
-        } else if let inferred = HeuristicEffectInferrer.infer(call: call) {
+        } else if let inferred = HeuristicEffectInferrer.infer(
+            call: call,
+            imports: imports(forSiteFile: site.filePath),
+            enabledFrameworks: self.enabledFrameworkWhitelists
+        ) {
             calleeEffect = inferred
-            let reason = HeuristicEffectInferrer.inferenceReason(for: call) ?? ""
+            let reason = HeuristicEffectInferrer.inferenceReason(
+                for: call,
+                imports: imports(forSiteFile: site.filePath),
+                enabledFrameworks: self.enabledFrameworkWhitelists
+            ) ?? ""
             calleeClaim = "whose effect is inferred `non_idempotent` \(reason)"
             overrideHint = " If the inference is wrong, annotate '\(calleeSignature.name)' "
                 + "explicitly with `/// @lint.effect <tier>` to override."
@@ -297,4 +317,19 @@ final class NonIdempotentInRetryContextVisitor: BasePatternVisitor, CrossFilePat
         "withThrowingDiscardingTaskGroup",
         "task"
     ]
+
+    /// Returns the base module imports for the file that hosts a site.
+    /// Memoised off `fileCache` for the lifetime of a single analysis
+    /// run. Falls back to `nil` (no gating) when the path isn't in the
+    /// cache — preserves the old "heuristic applies always" behaviour
+    /// for call sites the visitor hasn't seen.
+    private func imports(forSiteFile path: String) -> Set<String>? {
+        if let cached = importCache[path] { return cached }
+        guard let source = fileCache[path] else { return nil }
+        let set = ImportCollector.imports(in: source)
+        importCache[path] = set
+        return set
+    }
+
+    private var importCache: [String: Set<String>] = [:]
 }
