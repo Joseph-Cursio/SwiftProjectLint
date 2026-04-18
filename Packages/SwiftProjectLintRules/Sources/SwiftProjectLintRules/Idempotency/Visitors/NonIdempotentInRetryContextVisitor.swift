@@ -57,7 +57,7 @@ final class NonIdempotentInRetryContextVisitor: BasePatternVisitor, CrossFilePat
     }
 
     override func visit(_ node: FunctionDeclSyntax) -> SyntaxVisitorContinueKind {
-        guard let context = EffectAnnotationParser.parseContext(leadingTrivia: node.leadingTrivia),
+        guard let context = EffectAnnotationParser.parseContext(declaration: node),
               node.body != nil else {
             return .visitChildren
         }

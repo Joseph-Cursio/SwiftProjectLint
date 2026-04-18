@@ -32,7 +32,10 @@ public enum ContextEffect: Sendable, Equatable {
 /// for Phase 1 of the trial.
 public enum EffectAnnotationParser {
 
-    /// Reads the `@lint.effect` tier declared on a node, if any.
+    /// Reads the `@lint.effect` tier declared on a node, if any. Scans only
+    /// the supplied trivia; callers with a whole `FunctionDeclSyntax` should
+    /// prefer `parseEffect(declaration:)`, which collects trivia from all
+    /// positions a doc comment can legitimately live (OI-7).
     public static func parseEffect(leadingTrivia: Trivia) -> DeclaredEffect? {
         for line in docCommentLines(from: leadingTrivia) {
             if let effect = extractEffect(from: line) {
@@ -42,7 +45,9 @@ public enum EffectAnnotationParser {
         return nil
     }
 
-    /// Reads the `@lint.context` kind declared on a node, if any.
+    /// Reads the `@lint.context` kind declared on a node, if any. Scans only
+    /// the supplied trivia; callers with a whole `FunctionDeclSyntax` should
+    /// prefer `parseContext(declaration:)`.
     public static func parseContext(leadingTrivia: Trivia) -> ContextEffect? {
         for line in docCommentLines(from: leadingTrivia) {
             if let context = extractContext(from: line) {
@@ -50,6 +55,68 @@ public enum EffectAnnotationParser {
             }
         }
         return nil
+    }
+
+    /// Reads the `@lint.effect` tier declared on a function, tolerating
+    /// the doc comment's position relative to attributes and modifiers.
+    ///
+    /// `FunctionDeclSyntax.leadingTrivia` only covers trivia before the
+    /// declaration's first token — which, when attributes are present, is the
+    /// first attribute's `@`. Doc comments that sit *between* an attribute and
+    /// the function keyword, or between an attribute and a modifier, land in
+    /// a different trivia position (attribute trailing trivia, modifier
+    /// leading trivia, or `funcKeyword` leading trivia). This overload
+    /// collects from every such position so annotations are read regardless
+    /// of ordering (see OI-7).
+    public static func parseEffect(declaration: FunctionDeclSyntax) -> DeclaredEffect? {
+        parseEffect(leadingTrivia: combinedDocTrivia(for: declaration))
+    }
+
+    /// Reads the `@lint.context` kind declared on a function, tolerating the
+    /// doc comment's position relative to attributes and modifiers. See
+    /// `parseEffect(declaration:)` for the full reasoning.
+    public static func parseContext(declaration: FunctionDeclSyntax) -> ContextEffect? {
+        parseContext(leadingTrivia: combinedDocTrivia(for: declaration))
+    }
+
+    /// Combines trivia from every position in a function declaration's header
+    /// where a user-authored doc comment could legitimately sit: before the
+    /// first token, after any attribute, before any modifier, and before the
+    /// `func` keyword. Source order is preserved so the parser's first-match
+    /// semantics pick up the earliest annotation the user wrote.
+    ///
+    /// ## Orderings handled
+    /// ```
+    /// /// @lint.context replayable
+    /// @available(macOS 13.0, *)
+    /// public func foo() { }            // captured by decl.leadingTrivia
+    ///
+    /// @available(macOS 13.0, *)
+    /// /// @lint.context replayable
+    /// public func foo() { }            // captured by modifier leading trivia
+    ///
+    /// @available(macOS 13.0, *)
+    /// /// @lint.context replayable
+    /// func foo() { }                   // captured by funcKeyword leading trivia
+    /// ```
+    static func combinedDocTrivia(for decl: FunctionDeclSyntax) -> Trivia {
+        var pieces: [TriviaPiece] = []
+        pieces.append(contentsOf: decl.leadingTrivia)
+        for attribute in decl.attributes {
+            // Each attribute's own leading/trailing trivia. Leading trivia of
+            // the FIRST attribute is the same content as `decl.leadingTrivia`
+            // (duplication accepted — the parser returns the first match, so
+            // re-scanning identical content is wasteful but not incorrect).
+            // Leading trivia of later attributes is where a doc comment
+            // between two attributes lands.
+            pieces.append(contentsOf: attribute.leadingTrivia)
+            pieces.append(contentsOf: attribute.trailingTrivia)
+        }
+        for modifier in decl.modifiers {
+            pieces.append(contentsOf: modifier.leadingTrivia)
+        }
+        pieces.append(contentsOf: decl.funcKeyword.leadingTrivia)
+        return Trivia(pieces: pieces)
     }
 
     private static func docCommentLines(from trivia: Trivia) -> [String] {

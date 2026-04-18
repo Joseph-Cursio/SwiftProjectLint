@@ -78,7 +78,7 @@ final class IdempotencyViolationVisitor: BasePatternVisitor, CrossFilePatternVis
     }
 
     override func visit(_ node: FunctionDeclSyntax) -> SyntaxVisitorContinueKind {
-        guard let callerEffect = EffectAnnotationParser.parseEffect(leadingTrivia: node.leadingTrivia),
+        guard let callerEffect = EffectAnnotationParser.parseEffect(declaration: node),
               callerEffect == .idempotent || callerEffect == .observational,
               node.body != nil else {
             return .visitChildren

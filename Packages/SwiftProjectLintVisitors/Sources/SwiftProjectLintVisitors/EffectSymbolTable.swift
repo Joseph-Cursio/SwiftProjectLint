@@ -62,8 +62,8 @@ public struct EffectSymbolTable: Sendable {
         let collector = FunctionDeclCollector()
         collector.walk(source)
         for funcDecl in collector.functions {
-            let effect = EffectAnnotationParser.parseEffect(leadingTrivia: funcDecl.leadingTrivia)
-            let context = EffectAnnotationParser.parseContext(leadingTrivia: funcDecl.leadingTrivia)
+            let effect = EffectAnnotationParser.parseEffect(declaration: funcDecl)
+            let context = EffectAnnotationParser.parseContext(declaration: funcDecl)
             let signature = FunctionSignature.from(declaration: funcDecl)
             record(signature: signature, effect: effect, context: context)
         }
