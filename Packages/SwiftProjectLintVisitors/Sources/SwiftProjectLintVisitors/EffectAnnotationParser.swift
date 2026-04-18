@@ -77,8 +77,11 @@ public enum EffectAnnotationParser {
         return nil
     }
 
-    /// Reads the `@lint.effect` tier declared on a function, tolerating
-    /// the doc comment's position relative to attributes and modifiers.
+    /// Reads the `@lint.effect` tier declared on a function. Considers
+    /// both doc-comment annotations (`/// @lint.effect idempotent`) and
+    /// attribute-form annotations emitted by the `SwiftIdempotency` macros
+    /// package (`@Idempotent`, `@NonIdempotent`, `@Observational`,
+    /// `@ExternallyIdempotent(by:)`).
     ///
     /// `FunctionDeclSyntax.leadingTrivia` only covers trivia before the
     /// declaration's first token — which, when attributes are present, is the
@@ -88,8 +91,15 @@ public enum EffectAnnotationParser {
     /// leading trivia, or `funcKeyword` leading trivia). This overload
     /// collects from every such position so annotations are read regardless
     /// of ordering (see OI-7).
+    ///
+    /// When both forms are present and agree, that effect is returned. When
+    /// both forms disagree, returns `nil` (collision-withdraw semantics
+    /// matching OI-4 — two conflicting user-authored signals on the same
+    /// declaration express ambiguity the parser will not paper over).
     public static func parseEffect(declaration: FunctionDeclSyntax) -> DeclaredEffect? {
-        parseEffect(leadingTrivia: combinedDocTrivia(for: declaration))
+        let attributeEffect = effectFromAttributes(declaration.attributes)
+        let docCommentEffect = parseEffect(leadingTrivia: combinedDocTrivia(for: declaration))
+        return resolveEffectSignals(attribute: attributeEffect, docComment: docCommentEffect)
     }
 
     /// Reads the `@lint.context` kind declared on a function, tolerating the
@@ -101,11 +111,17 @@ public enum EffectAnnotationParser {
 
     /// Reads the `@lint.effect` tier declared on a variable binding,
     /// tolerating doc-comment position the same way the function overload
-    /// does. Annotations on non-closure bindings (`let x: Int = 5`) parse
-    /// identically — callers decide whether the binding's initialiser makes
-    /// the annotation semantically meaningful; this parser is content-blind.
+    /// does. Also recognises attribute-form annotations (`@Idempotent`
+    /// etc.) emitted by the `SwiftIdempotency` macros package. Annotations
+    /// on non-closure bindings (`let x: Int = 5`) parse identically —
+    /// callers decide whether the binding's initialiser makes the
+    /// annotation semantically meaningful; this parser is content-blind.
+    ///
+    /// Collision semantics identical to the function-decl overload.
     public static func parseEffect(declaration: VariableDeclSyntax) -> DeclaredEffect? {
-        parseEffect(leadingTrivia: combinedDocTrivia(for: declaration))
+        let attributeEffect = effectFromAttributes(declaration.attributes)
+        let docCommentEffect = parseEffect(leadingTrivia: combinedDocTrivia(for: declaration))
+        return resolveEffectSignals(attribute: attributeEffect, docComment: docCommentEffect)
     }
 
     /// Reads the `@lint.context` kind declared on a variable binding.
@@ -169,6 +185,85 @@ public enum EffectAnnotationParser {
         }
         pieces.append(contentsOf: decl.bindingSpecifier.leadingTrivia)
         return Trivia(pieces: pieces)
+    }
+
+    /// Resolves a declaration's effect when both an attribute-form and a
+    /// doc-comment-form signal may be present.
+    ///
+    /// - Neither present → nil
+    /// - One present → that one
+    /// - Both present and agree → that tier
+    /// - Both present and disagree → nil (collision-withdraw, matching the
+    ///   cross-file OI-4 semantics for same-signature conflicts)
+    static func resolveEffectSignals(
+        attribute: DeclaredEffect?,
+        docComment: DeclaredEffect?
+    ) -> DeclaredEffect? {
+        switch (attribute, docComment) {
+        case (nil, nil): return nil
+        case (let a?, nil): return a
+        case (nil, let d?): return d
+        case (let a?, let d?): return a == d ? a : nil
+        }
+    }
+
+    /// Scans an attribute list for `@Idempotent`, `@NonIdempotent`,
+    /// `@Observational`, or `@ExternallyIdempotent(by:)` and returns the
+    /// corresponding `DeclaredEffect`. Returns nil when no recognised
+    /// attribute is present.
+    ///
+    /// Only inspects attribute names verbatim — no macro expansion is
+    /// consulted. This means the parser works independently of whether the
+    /// `SwiftIdempotency` package is in the build; the attributes are
+    /// recognised by name alone. Users who write `@Idempotent` without
+    /// importing the macros package get linter coverage but not the
+    /// compile-time / test-time behaviour.
+    static func effectFromAttributes(_ attributes: AttributeListSyntax) -> DeclaredEffect? {
+        for element in attributes {
+            guard let attr = element.as(AttributeSyntax.self) else { continue }
+            guard let typeName = attributeTypeName(attr.attributeName) else { continue }
+            switch typeName {
+            case "Idempotent":
+                return .idempotent
+            case "NonIdempotent":
+                return .nonIdempotent
+            case "Observational":
+                return .observational
+            case "ExternallyIdempotent":
+                return .externallyIdempotent(keyParameter: extractByLabel(from: attr))
+            default:
+                continue
+            }
+        }
+        return nil
+    }
+
+    /// Extracts the bare identifier name from an attribute's type syntax.
+    /// Returns nil for complex types (member access, generic, etc.) that
+    /// shouldn't be interpreted as effect attributes.
+    private static func attributeTypeName(_ type: TypeSyntax) -> String? {
+        type.as(IdentifierTypeSyntax.self)?.name.text
+    }
+
+    /// Extracts the `by:` labelled argument from an attribute's argument
+    /// list, if present and a string literal. Returns nil when the
+    /// argument is absent, not labelled `by:`, or not a string literal.
+    /// Empty-string arguments normalise to nil so
+    /// `@ExternallyIdempotent(by: "")` behaves identically to the
+    /// label-omitting `@ExternallyIdempotent` form.
+    private static func extractByLabel(from attr: AttributeSyntax) -> String? {
+        guard case .argumentList(let args) = attr.arguments else { return nil }
+        for arg in args {
+            guard arg.label?.text == "by",
+                  let strLit = arg.expression.as(StringLiteralExprSyntax.self),
+                  strLit.segments.count == 1,
+                  let segment = strLit.segments.first?.as(StringSegmentSyntax.self) else {
+                continue
+            }
+            let text = segment.content.text
+            return text.isEmpty ? nil : text
+        }
+        return nil
     }
 
     private static func docCommentLines(from trivia: Trivia) -> [String] {
