@@ -212,6 +212,10 @@ public enum EffectAnnotationParser {
     /// corresponding `DeclaredEffect`. Returns nil when no recognised
     /// attribute is present.
     ///
+    /// `@IdempotencyTests` is also recognised but carries no effect —
+    /// it's a test-generation attribute on `@Suite` types, not a
+    /// function-effect declaration.
+    ///
     /// Only inspects attribute names verbatim — no macro expansion is
     /// consulted. This means the parser works independently of whether the
     /// `SwiftIdempotency` package is in the build; the attributes are
@@ -231,6 +235,13 @@ public enum EffectAnnotationParser {
                 return .observational
             case "ExternallyIdempotent":
                 return .externallyIdempotent(keyParameter: extractByLabel(from: attr))
+            case "IdempotencyTests":
+                // Test-generation attribute on `@Suite` types (macros
+                // package round-8 redesign). Carries no function-effect
+                // semantics; listed here so the linter's recognised-
+                // attribute surface explicitly covers it rather than
+                // falling through as "unknown".
+                continue
             default:
                 continue
             }
