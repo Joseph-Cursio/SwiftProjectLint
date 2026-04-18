@@ -97,6 +97,14 @@ final class OnceContractViolationVisitor: BasePatternVisitor, CrossFilePatternVi
     }
 
     func finalizeAnalysis() {
+        // Run transitive once-reach inference across the whole project so
+        // that calls to un-annotated helpers that themselves reach a
+        // `@lint.context once` callee can be flagged. Direct call sites
+        // are still detected by `analyzeCall` regardless of whether the
+        // reach map has an entry — reach inference is purely additive.
+        let allSources = Array(fileCache.values)
+        symbolTable.applyOnceReachInference(to: allSources)
+
         for site in analysisSites {
             guard let body = site.function.body else { continue }
             analyzeBody(Syntax(body), site: site)
@@ -120,9 +128,16 @@ final class OnceContractViolationVisitor: BasePatternVisitor, CrossFilePatternVi
         }
 
         if let call = syntax.as(FunctionCallExprSyntax.self),
-           let signature = FunctionSignature.from(call: call),
-           symbolTable.context(for: signature) == .once {
-            analyzeCall(call, signature: signature, site: site)
+           let signature = FunctionSignature.from(call: call) {
+            // Direct callee declared `@lint.context once` is the Phase-1
+            // trigger. Transitive reach via un-annotated intermediates is
+            // the Phase-2 follow-up and only fires when the direct check
+            // didn't (declared `.once` always wins).
+            if symbolTable.context(for: signature) == .once {
+                analyzeCall(call, signature: signature, site: site, transitiveDepth: nil)
+            } else if let reach = symbolTable.onceReach(for: signature) {
+                analyzeCall(call, signature: signature, site: site, transitiveDepth: reach.depth)
+            }
         }
 
         for child in syntax.children(viewMode: .sourceAccurate) {
@@ -130,10 +145,17 @@ final class OnceContractViolationVisitor: BasePatternVisitor, CrossFilePatternVi
         }
     }
 
+    /// - Parameter transitiveDepth: `nil` when the callee is declared
+    ///   `@lint.context once` directly. Non-nil when the callee transitively
+    ///   reaches a once-callee — the value is the SHORTEST-path hop count
+    ///   from the callee to the nearest once function (1 = the callee
+    ///   directly calls a once function; N = N-1 un-annotated intermediates
+    ///   between the callee and the once function).
     private func analyzeCall(
         _ call: FunctionCallExprSyntax,
         signature: FunctionSignature,
-        site: AnalysisSite
+        site: AnalysisSite,
+        transitiveDepth: Int?
     ) {
         let inLoop = isInsideLoopBody(call: call, withinFunctionBody: site.function.body)
         let callerContext = site.callerContext
@@ -146,6 +168,14 @@ final class OnceContractViolationVisitor: BasePatternVisitor, CrossFilePatternVi
         let line = site.locationConverter.location(
             for: call.positionAfterSkippingLeadingTrivia
         ).line
+
+        let calleeDescription: String
+        if let depth = transitiveDepth {
+            calleeDescription = "transitively reaches a `@lint.context once` callee "
+                + "via a \(depth)-hop chain of un-annotated callees"
+        } else {
+            calleeDescription = "is declared `@lint.context once` and must run at most once"
+        }
 
         let trigger: String
         let detail: String
@@ -166,8 +196,7 @@ final class OnceContractViolationVisitor: BasePatternVisitor, CrossFilePatternVi
         addIssue(
             severity: pattern.severity,
             message: "Once-contract violation: '\(callerName)' calls '\(calleeName)' \(trigger). "
-                + "'\(calleeName)' is declared `@lint.context once` and must run at most once — "
-                + detail,
+                + "'\(calleeName)' \(calleeDescription) — \(detail)",
             filePath: site.filePath,
             lineNumber: line,
             suggestion: "Either move '\(calleeName)' to a position guaranteed to execute at most "

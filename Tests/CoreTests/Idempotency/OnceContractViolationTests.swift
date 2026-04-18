@@ -380,11 +380,13 @@ struct OnceContractViolationQuietTests {
     }
 
     @Test
-    func transitiveChainNotPropagated_phase1Limitation() {
+    func transitiveChainCaughtViaOnceReachInference() throws {
         // helper (un-annotated) -> bootstrap (@context once)
         // runAll has a loop calling helper, NOT bootstrap directly.
-        // Phase 1 detects direct call sites only, so this stays silent.
-        // Locked in as intentional; transitive propagation is a follow-up.
+        //
+        // Once-reach inference (Phase 2): helper's body reaches a
+        // `@context once` callee at depth 1. runAll's loop calls helper,
+        // and the rule fires with `via 1-hop chain` in the diagnostic.
         let files: [String: String] = [
             "All.swift": """
             /// @lint.context once
@@ -401,14 +403,11 @@ struct OnceContractViolationQuietTests {
             }
             """
         ]
-        // The DIRECT call to bootstrap from helper is not in a loop and
-        // helper has no replayable annotation, so no diagnostic there.
-        // The call to helper from inside the for-loop calls an
-        // un-annotated function, so no diagnostic there either.
-        // Net: zero diagnostics — the transitive chain is invisible.
-        #expect(
-            runRule(files).detectedIssues.isEmpty,
-            "Phase 1 catches direct call sites only; transitive chains are deferred"
-        )
+        let issues = runRule(files).detectedIssues
+        #expect(issues.count == 1)
+        let issue = try #require(issues.first)
+        #expect(issue.message.contains("'helper'"))
+        #expect(issue.message.contains("transitively reaches"))
+        #expect(issue.message.contains("1-hop chain"))
     }
 }
