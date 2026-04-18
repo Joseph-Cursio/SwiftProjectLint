@@ -250,6 +250,140 @@ struct HeuristicInferenceUnitTests {
         #expect(HeuristicEffectInferrer.infer(call: call) == nil)
     }
 
+    // MARK: - Framework whitelist — idempotent type constructors
+    //
+    // Round-12 follow-on. Known-pure framework type constructors classify
+    // idempotent when called as bare identifiers.
+
+    @Test
+    func jsonDecoderConstructor_infersIdempotent() throws {
+        let call = try firstCall(in: "func f() { _ = JSONDecoder() }")
+        #expect(HeuristicEffectInferrer.infer(call: call) == .idempotent)
+    }
+
+    @Test
+    func jsonEncoderConstructor_infersIdempotent() throws {
+        let call = try firstCall(in: "func f() { _ = JSONEncoder() }")
+        #expect(HeuristicEffectInferrer.infer(call: call) == .idempotent)
+    }
+
+    @Test
+    func dataConstructor_infersIdempotent() throws {
+        let call = try firstCall(in: "func f() { _ = Data(bytes) }")
+        #expect(HeuristicEffectInferrer.infer(call: call) == .idempotent)
+    }
+
+    @Test
+    func byteBufferConstructor_infersIdempotent() throws {
+        let call = try firstCall(in: "func f() { _ = ByteBuffer(bytes: data) }")
+        #expect(HeuristicEffectInferrer.infer(call: call) == .idempotent)
+    }
+
+    @Test
+    func albResponseConstructor_infersIdempotent() throws {
+        let call = try firstCall(
+            in: "func f() { _ = ALBTargetGroupResponse(statusCode: .ok) }"
+        )
+        #expect(HeuristicEffectInferrer.infer(call: call) == .idempotent)
+    }
+
+    @Test
+    func uuidConstructor_staysUnclassified() throws {
+        // DELIBERATELY EXCLUDED: UUID() produces a fresh-per-call identity.
+        // Classifying it as idempotent would contradict the
+        // `missingIdempotencyKey` rule this project specifically catches.
+        let call = try firstCall(in: "func f() { _ = UUID() }")
+        #expect(HeuristicEffectInferrer.infer(call: call) == nil)
+    }
+
+    @Test
+    func dateConstructor_staysUnclassified() throws {
+        // DELIBERATELY EXCLUDED: Date() reads current time. Same call
+        // produces different values across retries.
+        let call = try firstCall(in: "func f() { _ = Date() }")
+        #expect(HeuristicEffectInferrer.infer(call: call) == nil)
+    }
+
+    @Test
+    func userTypeConstructor_staysUnclassified() throws {
+        // Project-local types aren't on the whitelist. Unclassified by
+        // name alone; upward inference may still classify via body.
+        let call = try firstCall(in: "func f() { _ = OrderService() }")
+        #expect(HeuristicEffectInferrer.infer(call: call) == nil)
+    }
+
+    // MARK: - Framework whitelist — codec-pattern methods
+
+    @Test
+    func decoderDotDecode_infersIdempotent() throws {
+        let call = try firstCall(in: "func f() { decoder.decode(T.self, from: data) }")
+        #expect(HeuristicEffectInferrer.infer(call: call) == .idempotent)
+    }
+
+    @Test
+    func encoderDotEncode_infersIdempotent() throws {
+        let call = try firstCall(in: "func f() { encoder.encode(value) }")
+        #expect(HeuristicEffectInferrer.infer(call: call) == .idempotent)
+    }
+
+    @Test
+    func jsonDecoderStyleReceiver_infersIdempotent() throws {
+        let call = try firstCall(in: "func f() { jsonDecoder.decode(T.self, from: data) }")
+        #expect(HeuristicEffectInferrer.infer(call: call) == .idempotent)
+    }
+
+    @Test
+    func decodeOnNonCodecReceiver_staysUnclassified() throws {
+        // Vapor's `req.content.decode(...)` — receiver `content` doesn't
+        // contain `decoder`/`encoder`. The codec-pattern heuristic doesn't
+        // fire here; the 5-hop upward inference round-11 observed still
+        // applies.
+        let call = try firstCall(in: "func f() { content.decode(Creds.self) }")
+        #expect(HeuristicEffectInferrer.infer(call: call) == nil)
+    }
+
+    // MARK: - Framework whitelist — metric-pattern methods
+
+    @Test
+    func counterIncrement_infersObservational() throws {
+        let call = try firstCall(in: "func f() { counter.increment() }")
+        #expect(HeuristicEffectInferrer.infer(call: call) == .observational)
+    }
+
+    @Test
+    func meterDecrement_infersObservational() throws {
+        let call = try firstCall(in: "func f() { activeRequestMeter.decrement() }")
+        #expect(HeuristicEffectInferrer.infer(call: call) == .observational)
+    }
+
+    @Test
+    func timerRecordNanoseconds_infersObservational() throws {
+        let call = try firstCall(in: "func f() { timer.recordNanoseconds(100) }")
+        #expect(HeuristicEffectInferrer.infer(call: call) == .observational)
+    }
+
+    @Test
+    func gaugeRecord_infersObservational() throws {
+        let call = try firstCall(in: "func f() { gauge.record(42.0) }")
+        #expect(HeuristicEffectInferrer.infer(call: call) == .observational)
+    }
+
+    @Test
+    func metricMethodOnNonMetricReceiver_staysUnclassified() throws {
+        // `view.record()` — the method is a metric-observation verb but the
+        // receiver isn't metric-shaped. Don't fire.
+        let call = try firstCall(in: "func f() { view.record() }")
+        #expect(HeuristicEffectInferrer.infer(call: call) == nil)
+    }
+
+    @Test
+    func chainedMetricReceiver_infersObservational() throws {
+        // `context.metrics.counter.increment()` — immediate-parent segment
+        // is `counter`, which matches the metric-receiver shape.
+        let call = try firstCall(in: "func f() { context.metrics.counter.increment() }")
+        #expect(HeuristicEffectInferrer.infer(call: call) == .observational)
+    }
+
     // MARK: - Names deliberately left out of the whitelist
 
     @Test

@@ -72,6 +72,41 @@ public enum HeuristicEffectInferrer {
             return .observational
         }
 
+        // Metric primitives (swift-metrics + observational-by-convention
+        // siblings). Receiver names containing `counter`, `gauge`, `meter`,
+        // `timer`, `recorder` + a metric-observation method classify
+        // observational. Matches round-12's `activeRequestMeter.increment()`
+        // and `Metrics.Timer(...).recordNanoseconds(...)` shapes.
+        if let receiverName,
+           isMetricReceiver(receiverName),
+           metricObservationMethods.contains(calleeName) {
+            return .observational
+        }
+
+        // Type-constructor whitelist — known pure/value-type constructors
+        // from Foundation, SwiftNIO, etc. `JSONDecoder()`, `Data(...)`,
+        // `ByteBuffer(bytes:)`. A constructor with no receiver (bare
+        // identifier that happens to match a known type) classifies
+        // idempotent. Deliberately excludes `UUID()` (violates this
+        // project's own `missingIdempotencyKey` rule) and `Date()`
+        // (reads current time).
+        if receiverName == nil,
+           idempotentFrameworkTypes.contains(calleeName) {
+            return .idempotent
+        }
+
+        // Codec-pattern method whitelist. Receivers whose names end in
+        // `Decoder` / `Encoder` or contain `decoder` / `encoder` plus the
+        // paired verb → idempotent. Silences `decoder.decode(...)` and
+        // `encoder.encode(...)` on codec instances without requiring a
+        // type-resolver. Round-9 Lambda MultiSourceAPI had 4 fires of
+        // this exact shape.
+        if let receiverName,
+           isCodecReceiver(receiverName),
+           codecMethods.contains(calleeName) {
+            return .idempotent
+        }
+
         // Bare-name whitelists — now receiver-type gated. If the receiver
         // resolves to a stdlib collection whose (type, method) pair is in
         // the exclusion table, the bare-name match is suppressed. Named
@@ -119,6 +154,20 @@ public enum HeuristicEffectInferrer {
            isLoggerReceiver(receiverName),
            loggerLevelMethods.contains(calleeName) {
             return "from logger-shaped receiver `\(receiverName).\(calleeName)`"
+        }
+        if let receiverName,
+           isMetricReceiver(receiverName),
+           metricObservationMethods.contains(calleeName) {
+            return "from metric-primitive receiver `\(receiverName).\(calleeName)`"
+        }
+        if receiverName == nil,
+           idempotentFrameworkTypes.contains(calleeName) {
+            return "from the known-idempotent framework type `\(calleeName)`"
+        }
+        if let receiverName,
+           isCodecReceiver(receiverName),
+           codecMethods.contains(calleeName) {
+            return "from codec-pattern receiver `\(receiverName).\(calleeName)`"
         }
         if idempotentNames.contains(calleeName) || nonIdempotentNames.contains(calleeName) {
             // Receiver-type-excluded pairs produce no reason, mirroring
@@ -185,6 +234,65 @@ public enum HeuristicEffectInferrer {
         let lowered = name.lowercased()
         return lowered.contains("log")
     }
+
+    /// Matches swift-metrics primitive receivers and conventional siblings.
+    /// `counter`, `Counter`, `gauge`, `meter`, `timer`, `recorder`, plus
+    /// suffixed variants (`activeRequestMeter`, `requestCounter`, etc.).
+    /// Round-12 follow-on — observationally absorbs metric mutations the
+    /// same way the logger path absorbs log emissions.
+    private static func isMetricReceiver(_ name: String) -> Bool {
+        let lowered = name.lowercased()
+        return lowered.contains("counter")
+            || lowered.contains("gauge")
+            || lowered.contains("meter")
+            || lowered.contains("timer")
+            || lowered.contains("recorder")
+    }
+
+    private static let metricObservationMethods: Set<String> = [
+        "increment", "decrement",
+        "record", "recordNanoseconds",
+        "observe",
+        "startTimer"
+    ]
+
+    /// Matches Foundation/SwiftNIO codec receivers. Conservative: receiver
+    /// name must end with or contain `Decoder` / `Encoder` (case-insensitive
+    /// via lowercasing the whole name). Silences codec instances like
+    /// `decoder.decode(...)` without needing a full type resolver.
+    private static func isCodecReceiver(_ name: String) -> Bool {
+        let lowered = name.lowercased()
+        return lowered.contains("decoder") || lowered.contains("encoder")
+    }
+
+    private static let codecMethods: Set<String> = [
+        "decode", "encode"
+    ]
+
+    /// Known-idempotent framework type constructors. When called as a
+    /// bare identifier (no receiver, capitalised callee = type
+    /// constructor), classify `.idempotent` so strict_replayable and
+    /// related rules defer.
+    ///
+    /// Scope: pure value-type constructors whose result is a function of
+    /// inputs alone. Deliberately excluded: `UUID()` (fresh per-call
+    /// identity — the very violation the `missingIdempotencyKey` rule
+    /// guards against), `Date()` (reads current time — not idempotent).
+    private static let idempotentFrameworkTypes: Set<String> = [
+        // Foundation — pure codec containers (configurable but no shared mutable state)
+        "JSONDecoder", "JSONEncoder",
+        "PropertyListDecoder", "PropertyListEncoder",
+        // Foundation — pure byte containers
+        "Data",
+        // SwiftNIO — pure byte buffers and views
+        "ByteBuffer",
+        "ByteBufferAllocator",
+        // AWS Lambda events — response constructors (build a response
+        // value from inputs; no side effects beyond allocation)
+        "ALBTargetGroupResponse",
+        "APIGatewayResponse",
+        "APIGatewayV2Response"
+    ]
 
     private static let loggerLevelMethods: Set<String> = [
         "trace", "debug", "info", "notice",
