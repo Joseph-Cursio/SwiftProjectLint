@@ -13,7 +13,8 @@ class Idempotency: BasePatternRegistrar {
         registry.register(registrars: [
             IdempotencyViolation(),
             NonIdempotentInRetryContext(),
-            MissingIdempotencyKey()
+            MissingIdempotencyKey(),
+            OnceContractViolation()
         ])
     }
 }
