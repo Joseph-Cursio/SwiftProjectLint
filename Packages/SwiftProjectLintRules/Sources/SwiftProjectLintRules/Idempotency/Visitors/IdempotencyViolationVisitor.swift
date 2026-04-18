@@ -104,9 +104,16 @@ final class IdempotencyViolationVisitor: BasePatternVisitor, CrossFilePatternVis
         // (not during walk) because upward inference uses cross-file
         // declared effects and heuristic-downward resolution, both of which
         // are only complete at finalize time.
+        //
+        // `multiHop: true` enables fixed-point propagation across chains
+        // of un-annotated functions. A function whose body calls another
+        // un-annotated function whose own body has a non-idempotent leaf
+        // is now inferred non-idempotent itself. One-hop catches only the
+        // direct caller of the leaf.
         let allSources = Array(fileCache.values)
         symbolTable.applyUpwardInference(
             to: allSources,
+            multiHop: true,
             heuristicEffectForCall: HeuristicEffectInferrer.infer(call:)
         )
 
@@ -158,9 +165,9 @@ final class IdempotencyViolationVisitor: BasePatternVisitor, CrossFilePatternVis
             // inference runs — a guess would substitute a third
             // interpretation the user did not ask for. Stay silent.
             return
-        } else if let upward = symbolTable.upwardInferredEffect(for: calleeSignature) {
-            calleeEffect = upward
-            provenance = .inferredUpward
+        } else if let upward = symbolTable.upwardInference(for: calleeSignature) {
+            calleeEffect = upward.effect
+            provenance = .inferredUpward(depth: upward.depth)
         } else if let inferred = HeuristicEffectInferrer.infer(call: call) {
             calleeEffect = inferred
             provenance = .inferredDownward(
@@ -186,12 +193,15 @@ final class IdempotencyViolationVisitor: BasePatternVisitor, CrossFilePatternVis
     /// and how to override.
     ///
     /// - `declared`: `@lint.effect` annotation on the callee.
-    /// - `inferredUpward`: computed from the callee's own body (Phase 2.3).
+    /// - `inferredUpward(depth:)`: computed from the callee's own body
+    ///   (Phase 2.3). `depth: 1` is single-pass / one-hop; `depth: 2+` is
+    ///   multi-hop (a chain of un-annotated callees, surfaced in the
+    ///   diagnostic so users can locate the chain).
     /// - `inferredDownward`: computed from the call-site syntax (callee name
     ///   or receiver name, Phase 2.2).
     private enum EffectProvenance {
         case declared
-        case inferredUpward
+        case inferredUpward(depth: Int)
         case inferredDownward(reason: String)
     }
 
@@ -263,8 +273,9 @@ final class IdempotencyViolationVisitor: BasePatternVisitor, CrossFilePatternVis
         case .declared:
             calleeClaim = "which is declared `@lint.effect \(calleeTier)`"
             overrideHint = ""
-        case .inferredUpward:
-            calleeClaim = "whose effect is inferred `\(calleeTier)` from its body"
+        case .inferredUpward(let depth):
+            let chainHint = depth > 1 ? " via \(depth)-hop chain of un-annotated callees" : ""
+            calleeClaim = "whose effect is inferred `\(calleeTier)` from its body\(chainHint)"
             overrideHint = " If the inference is wrong, annotate '\(calleeName)' "
                 + "explicitly with `/// @lint.effect <tier>` to override the body-based inference."
         case .inferredDownward(let reason):

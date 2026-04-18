@@ -353,21 +353,21 @@ struct UpwardInferenceIntegrationTests {
         #expect(runContext(files).detectedIssues.isEmpty)
     }
 
-    // MARK: - One-hop scope (known limitation)
+    // MARK: - Multi-hop chains (Phase 2.3 follow-up)
 
     @Test
-    func twoHopChainNotCaught_firstSliceLimitation() {
-        // Documented limitation: upward inference is ONE hop only.
+    func twoHopChainCaughtViaMultiHop() throws {
+        // Three-link chain that one-hop inference missed:
         //   handler @context replayable
         //     -> outerHelper (unannotated, body calls innerHelper)
         //       -> innerHelper (unannotated, body calls sink)
         //         -> sink @lint.effect non_idempotent
-        // First-slice upward inference:
-        //   innerHelper → non_idempotent (from sink, declared)
-        //   outerHelper → nil (innerHelper's effect is upward-inferred, not
-        //                     propagated further in the same pass)
-        // Rule: handler → outerHelper is silent.
-        // This test locks in the limitation as intentional.
+        //
+        // Multi-hop fixed-point:
+        //   pass 1: innerHelper → (non_idempotent, depth 1)
+        //   pass 2: outerHelper → (non_idempotent, depth 2)  ← chains through
+        //   pass 3: no changes; converged
+        // Rule fires on handler→outerHelper with depth=2 in the diagnostic.
         let files: [String: String] = [
             "All.swift": """
             /// @lint.effect non_idempotent
@@ -388,9 +388,11 @@ struct UpwardInferenceIntegrationTests {
             """
         ]
         let issues = runContext(files).detectedIssues
-        // Upward inference catches innerHelper (one hop from sink) but NOT
-        // outerHelper. handler->outerHelper is silent.
-        #expect(issues.isEmpty, "Two-hop chains are a documented first-slice limitation")
+        #expect(issues.count == 1)
+        let issue = try #require(issues.first)
+        #expect(issue.message.contains("outerHelper"))
+        #expect(issue.message.contains("inferred"))
+        #expect(issue.message.contains("2-hop chain"))
     }
 
     // MARK: - Collision interaction

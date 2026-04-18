@@ -77,10 +77,14 @@ final class NonIdempotentInRetryContextVisitor: BasePatternVisitor, CrossFilePat
     func finalizeAnalysis() {
         // Phase-2.3 upward inference — see IdempotencyViolationVisitor for
         // rationale. Runs before the body walk so every lookup in
-        // analyzeCall can consult upward-inferred entries.
+        // analyzeCall can consult upward-inferred entries. `multiHop: true`
+        // enables fixed-point propagation across chains of un-annotated
+        // helpers between the `@context replayable` boundary and the
+        // non-idempotent leaf.
         let allSources = Array(fileCache.values)
         symbolTable.applyUpwardInference(
             to: allSources,
+            multiHop: true,
             heuristicEffectForCall: HeuristicEffectInferrer.infer(call:)
         )
 
@@ -129,9 +133,12 @@ final class NonIdempotentInRetryContextVisitor: BasePatternVisitor, CrossFilePat
             // Collision-withdrawn: annotated with conflicting effects. Neither
             // upward nor downward inference runs.
             return
-        } else if let upward = symbolTable.upwardInferredEffect(for: calleeSignature) {
-            calleeEffect = upward
-            calleeClaim = "whose effect is inferred `non_idempotent` from its body"
+        } else if let upward = symbolTable.upwardInference(for: calleeSignature) {
+            calleeEffect = upward.effect
+            let chainHint = upward.depth > 1
+                ? " via \(upward.depth)-hop chain of un-annotated callees"
+                : ""
+            calleeClaim = "whose effect is inferred `non_idempotent` from its body\(chainHint)"
             overrideHint = " If the inference is wrong, annotate '\(calleeSignature.name)' "
                 + "explicitly with `/// @lint.effect <tier>` to override the body-based inference."
         } else if let inferred = HeuristicEffectInferrer.infer(call: call) {
