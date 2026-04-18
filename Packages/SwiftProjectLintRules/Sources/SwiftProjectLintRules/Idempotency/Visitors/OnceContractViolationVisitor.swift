@@ -159,7 +159,9 @@ final class OnceContractViolationVisitor: BasePatternVisitor, CrossFilePatternVi
     ) {
         let inLoop = isInsideLoopBody(call: call, withinFunctionBody: site.function.body)
         let callerContext = site.callerContext
-        let isReplayableCaller = callerContext == .replayable || callerContext == .retrySafe
+        let isReplayableCaller = callerContext == .replayable
+            || callerContext == .retrySafe
+            || callerContext == .strictReplayable
 
         guard inLoop || isReplayableCaller else { return }
 
@@ -180,7 +182,12 @@ final class OnceContractViolationVisitor: BasePatternVisitor, CrossFilePatternVi
         let trigger: String
         let detail: String
         if inLoop && isReplayableCaller {
-            let contextLabel = callerContext == .replayable ? "replayable" : "retry_safe"
+            let contextLabel: String
+            switch callerContext {
+            case .replayable: contextLabel = "replayable"
+            case .strictReplayable: contextLabel = "strict_replayable"
+            default: contextLabel = "retry_safe"
+            }
             trigger = "inside a loop within a `\(contextLabel)` body"
             detail = "the loop will re-invoke '\(calleeName)' on every iteration, and "
                 + "every replay/retry of '\(callerName)' compounds that re-invocation."
@@ -188,7 +195,12 @@ final class OnceContractViolationVisitor: BasePatternVisitor, CrossFilePatternVi
             trigger = "inside a loop"
             detail = "the loop will re-invoke '\(calleeName)' on every iteration."
         } else {
-            let contextLabel = callerContext == .replayable ? "replayable" : "retry_safe"
+            let contextLabel: String
+            switch callerContext {
+            case .replayable: contextLabel = "replayable"
+            case .strictReplayable: contextLabel = "strict_replayable"
+            default: contextLabel = "retry_safe"
+            }
             trigger = "from a `\(contextLabel)` body"
             detail = "every replay/retry of '\(callerName)' will re-invoke '\(calleeName)'."
         }

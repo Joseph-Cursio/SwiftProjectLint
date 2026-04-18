@@ -3,9 +3,15 @@ import Foundation
 
 /// Filters lint issues according to inline suppression comments in the source file.
 ///
-/// Inline suppression only applies to per-file issues. Cross-file issues (e.g. duplicate
-/// state across view hierarchies) are not affected, as their line numbers span multiple
-/// files and a single-file comment cannot unambiguously reference them.
+/// Works per-file: callers supply issues *for a single file* plus that file's source
+/// text. Per-file rules go through `analyzeFile`; cross-file rules are grouped by
+/// their primary file (first `LintIssue.locations` entry) and filtered via
+/// `ProjectLinter.applyInlineSuppression(to:files:)`.
+///
+/// Multi-location issues (a single diagnostic pointing at several files — rare for
+/// idempotency rules, more common for duplicate-state rules) are filtered against
+/// the primary file only. If you want suppression to respect every location, place a
+/// `swiftprojectlint:disable`-shaped comment at the primary file's site.
 public struct InlineSuppressionFilter {
 
     /// Returns `issues` with any suppressed violations removed.
