@@ -76,6 +76,65 @@ struct HeuristicInferenceUnitTests {
         #expect(HeuristicEffectInferrer.infer(call: call) == .nonIdempotent)
     }
 
+    // MARK: - Destructive-verb whitelist (round-11 follow-on)
+    //
+    // Round 11 on Vapor surfaced `running.stop()` and `req.session.destroy()`
+    // as missed catches — both short, unambiguous destructive verbs that
+    // the existing whitelist didn't cover. Added to `nonIdempotentNames`.
+
+    @Test
+    func bareStop_infersNonIdempotent() throws {
+        let call = try firstCall(in: "func f() { stop() }")
+        #expect(HeuristicEffectInferrer.infer(call: call) == .nonIdempotent)
+    }
+
+    @Test
+    func memberStop_infersNonIdempotent() throws {
+        let call = try firstCall(in: "func f() { running.stop() }")
+        #expect(HeuristicEffectInferrer.infer(call: call) == .nonIdempotent)
+    }
+
+    @Test
+    func stopContainer_infersNonIdempotent_viaPrefix() throws {
+        // Prefix match extends `stop` to camelCase-composed destructive
+        // verbs like `stopContainer`, `stopService`, `stopTimer`.
+        let call = try firstCall(in: "func f() { stopContainer() }")
+        #expect(HeuristicEffectInferrer.infer(call: call) == .nonIdempotent)
+    }
+
+    @Test
+    func bareDestroy_infersNonIdempotent() throws {
+        let call = try firstCall(in: "func f() { destroy() }")
+        #expect(HeuristicEffectInferrer.infer(call: call) == .nonIdempotent)
+    }
+
+    @Test
+    func memberDestroy_infersNonIdempotent() throws {
+        let call = try firstCall(in: "func f() { session.destroy() }")
+        #expect(HeuristicEffectInferrer.infer(call: call) == .nonIdempotent)
+    }
+
+    @Test
+    func destroyResource_infersNonIdempotent_viaPrefix() throws {
+        let call = try firstCall(in: "func f() { destroyResource(id) }")
+        #expect(HeuristicEffectInferrer.infer(call: call) == .nonIdempotent)
+    }
+
+    @Test
+    func stopped_doesNotMatch_lowercaseNextCharacter() throws {
+        // `stopped` is a past participle, not a mutation verb — camelCase
+        // gate should block it (next character after `stop` is lowercase).
+        let call = try firstCall(in: "func f() { stopped(task) }")
+        #expect(HeuristicEffectInferrer.infer(call: call) == nil)
+    }
+
+    @Test
+    func destroyer_doesNotMatch_lowercaseNextCharacter() throws {
+        // `destroyer` is a noun form; should not classify as non-idempotent.
+        let call = try firstCall(in: "func f() { destroyer() }")
+        #expect(HeuristicEffectInferrer.infer(call: call) == nil)
+    }
+
     // MARK: - Idempotent name triggers
 
     @Test
