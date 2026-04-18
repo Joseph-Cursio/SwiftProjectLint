@@ -99,6 +99,20 @@ public enum EffectAnnotationParser {
         parseContext(leadingTrivia: combinedDocTrivia(for: declaration))
     }
 
+    /// Reads the `@lint.effect` tier declared on a variable binding,
+    /// tolerating doc-comment position the same way the function overload
+    /// does. Annotations on non-closure bindings (`let x: Int = 5`) parse
+    /// identically — callers decide whether the binding's initialiser makes
+    /// the annotation semantically meaningful; this parser is content-blind.
+    public static func parseEffect(declaration: VariableDeclSyntax) -> DeclaredEffect? {
+        parseEffect(leadingTrivia: combinedDocTrivia(for: declaration))
+    }
+
+    /// Reads the `@lint.context` kind declared on a variable binding.
+    public static func parseContext(declaration: VariableDeclSyntax) -> ContextEffect? {
+        parseContext(leadingTrivia: combinedDocTrivia(for: declaration))
+    }
+
     /// Combines trivia from every position in a function declaration's header
     /// where a user-authored doc comment could legitimately sit: before the
     /// first token, after any attribute, before any modifier, and before the
@@ -136,6 +150,24 @@ public enum EffectAnnotationParser {
             pieces.append(contentsOf: modifier.leadingTrivia)
         }
         pieces.append(contentsOf: decl.funcKeyword.leadingTrivia)
+        return Trivia(pieces: pieces)
+    }
+
+    /// Same combining strategy as the function-decl overload, but for
+    /// variable declarations. Collects every trivia position where a
+    /// user-authored doc comment can legitimately sit relative to
+    /// attributes and modifiers of a `let` / `var` binding.
+    static func combinedDocTrivia(for decl: VariableDeclSyntax) -> Trivia {
+        var pieces: [TriviaPiece] = []
+        pieces.append(contentsOf: decl.leadingTrivia)
+        for attribute in decl.attributes {
+            pieces.append(contentsOf: attribute.leadingTrivia)
+            pieces.append(contentsOf: attribute.trailingTrivia)
+        }
+        for modifier in decl.modifiers {
+            pieces.append(contentsOf: modifier.leadingTrivia)
+        }
+        pieces.append(contentsOf: decl.bindingSpecifier.leadingTrivia)
         return Trivia(pieces: pieces)
     }
 
