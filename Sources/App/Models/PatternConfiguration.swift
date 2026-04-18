@@ -109,6 +109,12 @@ struct PatternConfiguration {
                 display: "Modernization",
                 patterns: convertToDetectionPatterns(patternRegistry.getPatterns(for: .modernization)),
                 useSwiftSyntax: true
+            ),
+            PatternCategoryInfo(
+                category: .idempotency,
+                display: "Idempotency",
+                patterns: convertToDetectionPatterns(patternRegistry.getPatterns(for: .idempotency)),
+                useSwiftSyntax: true
             )
         ]
     }

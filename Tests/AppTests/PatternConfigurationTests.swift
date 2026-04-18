@@ -98,14 +98,14 @@ struct PatternConfigurationTests {
         let mockRegistry = MockPatternRegistry()
         let result = PatternConfiguration.allPatternsByCategory(from: mockRegistry)
 
-        // Should return all 11 categories even if empty (includes animation, modernization)
-        #expect(result.count == 11)
+        // Should return all 12 user-facing categories even if empty (includes animation, modernization, idempotency)
+        #expect(result.count == 12)
 
         let categories = Set(result.map { $0.category })
         let expectedCategories: Set<PatternCategory> = [
             .stateManagement, .performance, .architecture, .codeQuality,
             .security, .accessibility, .memoryManagement, .networking,
-            .uiPatterns, .animation, .modernization
+            .uiPatterns, .animation, .modernization, .idempotency
         ]
         #expect(categories == expectedCategories)
     }
