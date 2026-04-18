@@ -118,6 +118,31 @@ final class UnannotatedInStrictReplayableContextVisitor:
         return .visitChildren
     }
 
+    /// Trailing-closure annotation (round-11 grammar extension). An
+    /// un-bound closure passed to a call with `/// @lint.context
+    /// strict_replayable` above it becomes an analysis site. Matches the
+    /// pattern in `NonIdempotentInRetryContextVisitor.visit(_:)`; see
+    /// that visitor's doc comment for the shape rationale.
+    override func visit(_ node: FunctionCallExprSyntax) -> SyntaxVisitorContinueKind {
+        guard EffectAnnotationParser.parseContext(
+                leadingTrivia: node.leadingTrivia
+              ) == .strictReplayable,
+              let closure = node.trailingClosure else {
+            return .visitChildren
+        }
+        let converter = currentLocationConverter
+            ?? SourceLocationConverter(fileName: currentFilePath, tree: node.root)
+        analysisSites.append(
+            AnalysisSite(
+                callerName: "closure",
+                body: Syntax(closure.statements),
+                filePath: currentFilePath,
+                locationConverter: converter
+            )
+        )
+        return .visitChildren
+    }
+
     func finalizeAnalysis() {
         let allSources = Array(fileCache.values)
         symbolTable.applyUpwardInference(
@@ -143,6 +168,12 @@ final class UnannotatedInStrictReplayableContextVisitor:
         if let varDecl = syntax.as(VariableDeclSyntax.self),
            varDecl.closureInitializer != nil,
            EffectAnnotationParser.parseContext(declaration: varDecl) != nil {
+            return
+        }
+        // Same rule for annotated trailing-closure sites (round-11).
+        if let call = syntax.as(FunctionCallExprSyntax.self),
+           call.trailingClosure != nil,
+           EffectAnnotationParser.parseContext(leadingTrivia: call.leadingTrivia) != nil {
             return
         }
         if let closure = syntax.as(ClosureExprSyntax.self), isEscapingClosure(closure) {

@@ -364,6 +364,69 @@ struct UnannotatedInStrictReplayableContextVisitorTests {
 
     // MARK: - Nested context-annotated declarations don't leak
 
+    // MARK: - Trailing-closure annotation (round-11 grammar extension)
+
+    @Test
+    func strictReplayable_onTrailingClosure_flagsUnannotated() throws {
+        let source = """
+        func mystery() {}
+
+        func routes(_ app: App) throws {
+            /// @lint.context strict_replayable
+            app.post("x") { req in
+                mystery()
+            }
+        }
+        """
+
+        let visitor = run(source: source)
+
+        #expect(visitor.detectedIssues.count == 1)
+        let issue = try #require(visitor.detectedIssues.first)
+        #expect(issue.message.contains("closure"))
+        #expect(issue.message.contains("mystery"))
+        #expect(issue.message.contains("strict_replayable"))
+    }
+
+    @Test
+    func strictReplayable_onTrailingClosure_silentOnIdempotentCallee() {
+        let source = """
+        /// @lint.effect idempotent
+        func upsert(_ id: Int) {}
+
+        func routes(_ app: App) throws {
+            /// @lint.context strict_replayable
+            app.post("x") { req in
+                upsert(1)
+            }
+        }
+        """
+
+        let visitor = run(source: source)
+
+        #expect(visitor.detectedIssues.isEmpty)
+    }
+
+    @Test
+    func replayableOnTrailingClosure_doesNotFireStrictRule() {
+        // `@lint.context replayable` on a closure — existing retry-context
+        // rule applies, but the new strict rule stays silent.
+        let source = """
+        func mystery() {}
+
+        func routes(_ app: App) throws {
+            /// @lint.context replayable
+            app.post("x") { req in
+                mystery()
+            }
+        }
+        """
+
+        let visitor = run(source: source)
+
+        #expect(visitor.detectedIssues.isEmpty)
+    }
+
     @Test
     func strictReplayable_nestedReplayableBinding_doesNotFireOnInnerCallees() {
         // Nested `@lint.context replayable` closure binding is its own
