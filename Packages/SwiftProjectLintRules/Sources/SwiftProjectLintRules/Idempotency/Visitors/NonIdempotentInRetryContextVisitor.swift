@@ -107,6 +107,38 @@ final class NonIdempotentInRetryContextVisitor: BasePatternVisitor, CrossFilePat
         return .visitChildren
     }
 
+    /// Trailing-closure annotation (round-11 grammar extension). An
+    /// un-bound closure passed to a call — the Vapor / Hummingbird /
+    /// Lambda idiom `app.on(.POST, "login") { req in ... }` — is its
+    /// own analysis site when the call expression carries a
+    /// `/// @lint.context` annotation in its leading trivia.
+    ///
+    /// Round 6 flagged closure-based handlers as unannotatable under the
+    /// original grammar, which blocked >50% of Vapor's routes surface.
+    /// Round 10 re-surfaced it on Vapor's `Sources/Development/routes.swift`.
+    /// This visit method closes the gap for the common
+    /// "doc-comment-above-the-call" shape.
+    override func visit(_ node: FunctionCallExprSyntax) -> SyntaxVisitorContinueKind {
+        guard let context = EffectAnnotationParser.parseContext(
+                leadingTrivia: node.leadingTrivia
+              ),
+              let closure = node.trailingClosure else {
+            return .visitChildren
+        }
+        let converter = currentLocationConverter
+            ?? SourceLocationConverter(fileName: currentFilePath, tree: node.root)
+        analysisSites.append(
+            AnalysisSite(
+                callerName: "closure",
+                body: Syntax(closure.statements),
+                context: context,
+                filePath: currentFilePath,
+                locationConverter: converter
+            )
+        )
+        return .visitChildren
+    }
+
     func finalizeAnalysis() {
         // Phase-2.3 upward inference — see IdempotencyViolationVisitor for
         // rationale. Runs before the body walk so every lookup in
@@ -141,6 +173,15 @@ final class NonIdempotentInRetryContextVisitor: BasePatternVisitor, CrossFilePat
         if let varDecl = syntax.as(VariableDeclSyntax.self),
            varDecl.closureInitializer != nil,
            EffectAnnotationParser.parseContext(declaration: varDecl) != nil {
+            return
+        }
+        // Same rule for annotated trailing-closure sites: the outer walk
+        // must not descend into a call whose closure is its own analysis
+        // site, or the inner calls would be attributed to the outer
+        // context twice.
+        if let call = syntax.as(FunctionCallExprSyntax.self),
+           call.trailingClosure != nil,
+           EffectAnnotationParser.parseContext(leadingTrivia: call.leadingTrivia) != nil {
             return
         }
         if let closure = syntax.as(ClosureExprSyntax.self), isEscapingClosure(closure) {
