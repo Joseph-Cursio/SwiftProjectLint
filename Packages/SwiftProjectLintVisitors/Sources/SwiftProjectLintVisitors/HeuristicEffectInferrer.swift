@@ -144,18 +144,32 @@ public enum HeuristicEffectInferrer {
 
     // MARK: - Private
 
-    /// Extracts (calleeName, receiverName?) from a call's called-expression.
-    /// `foo()` → ("foo", nil). `x.foo()` → ("foo", "x"). Anything more
-    /// complex (subscripts, casts, chained member access) → nil.
+    /// Extracts `(calleeName, receiverName?)` from a call's called-expression.
+    ///
+    /// - `foo()` → `("foo", nil)`
+    /// - `x.foo()` → `("foo", "x")`
+    /// - `a.b.foo()` → `("foo", "b")` — the *immediate-parent* segment of
+    ///   a chained member access, matching the semantic "the thing that
+    ///   exposes `.foo`." Enables the observational heuristic to match
+    ///   `context.logger.info(...)` where `logger` is the logger-shaped
+    ///   segment even though it isn't the outermost base.
+    /// - `a.b.c.foo()` → `("foo", "c")` — same rule extends to any depth.
+    /// - Anything structurally more complex (subscripts, casts, function-
+    ///   call bases, tuple projections) → `nil`.
     private static func callParts(of expr: ExprSyntax) -> (String, String?)? {
         if let ref = expr.as(DeclReferenceExprSyntax.self) {
             return (ref.baseName.text, nil)
         }
         if let member = expr.as(MemberAccessExprSyntax.self) {
             let callee = member.declName.baseName.text
-            if let base = member.base,
-               let baseRef = base.as(DeclReferenceExprSyntax.self) {
+            guard let base = member.base else {
+                return (callee, nil)
+            }
+            if let baseRef = base.as(DeclReferenceExprSyntax.self) {
                 return (callee, baseRef.baseName.text)
+            }
+            if let innerMember = base.as(MemberAccessExprSyntax.self) {
+                return (callee, innerMember.declName.baseName.text)
             }
             return (callee, nil)
         }

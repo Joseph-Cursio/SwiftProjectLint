@@ -129,6 +129,68 @@ struct HeuristicInferenceUnitTests {
         #expect(HeuristicEffectInferrer.infer(call: call) == nil)
     }
 
+    // MARK: - Chained receiver (context.logger.method — round-9 follow-on)
+    //
+    // Round-9 validation on swift-aws-lambda-runtime surfaced a gap:
+    // `context.logger.info(...)` didn't match the observational heuristic
+    // because `callParts` only extracted the immediate base identifier
+    // (`context`), which isn't logger-shaped. The fix walks one level
+    // deeper on chained member access and tests the segment immediately
+    // before the callee — the segment that actually exposes the method.
+
+    @Test
+    func contextLoggerInfo_infersObservational_chainedReceiver() throws {
+        let call = try firstCall(in: "func f() { context.logger.info(\"x\") }")
+        #expect(HeuristicEffectInferrer.infer(call: call) == .observational)
+    }
+
+    @Test
+    func contextLoggerError_infersObservational_chainedReceiver() throws {
+        let call = try firstCall(in: "func f() { context.logger.error(\"x\") }")
+        #expect(HeuristicEffectInferrer.infer(call: call) == .observational)
+    }
+
+    @Test
+    func selfLoggerDebug_infersObservational_chainedReceiver() throws {
+        // Mirrors the same pattern but with `self` — a common shape for
+        // instance methods that carry their own logger.
+        let call = try firstCall(in: "func f() { self.logger.debug(\"x\") }")
+        #expect(HeuristicEffectInferrer.infer(call: call) == .observational)
+    }
+
+    @Test
+    func requestLoggerFromContext_infersObservational_chainedReceiver() throws {
+        // `context.requestLogger.warning(...)` — immediate-parent segment
+        // is `requestLogger`, which pattern-matches the suffixed-logger rule.
+        let call = try firstCall(in: "func f() { context.requestLogger.warning(\"x\") }")
+        #expect(HeuristicEffectInferrer.infer(call: call) == .observational)
+    }
+
+    @Test
+    func deeplyChainedLogger_infersObservational() throws {
+        // Three-level chain: `app.context.logger.info(...)` — still finds
+        // the logger-shaped segment as the immediate parent of `info`.
+        let call = try firstCall(in: "func f() { app.context.logger.info(\"x\") }")
+        #expect(HeuristicEffectInferrer.infer(call: call) == .observational)
+    }
+
+    @Test
+    func chainedNonLoggerReceiver_doesNotInferObservational() throws {
+        // Chained call where no segment looks like a logger. Stay silent.
+        // `view.debug()` already tests single-level; this covers the
+        // two-level variant to confirm the extension doesn't go too loose.
+        let call = try firstCall(in: "func f() { app.view.debug() }")
+        #expect(HeuristicEffectInferrer.infer(call: call) == nil)
+    }
+
+    @Test
+    func chainedLoggerNonLevelMethod_doesNotInferObservational() throws {
+        // `context.logger.flush()` — logger-shaped receiver but a non-level
+        // method. Observational heuristic still requires both signals.
+        let call = try firstCall(in: "func f() { context.logger.flush() }")
+        #expect(HeuristicEffectInferrer.infer(call: call) == nil)
+    }
+
     // MARK: - Names deliberately left out of the whitelist
 
     @Test
