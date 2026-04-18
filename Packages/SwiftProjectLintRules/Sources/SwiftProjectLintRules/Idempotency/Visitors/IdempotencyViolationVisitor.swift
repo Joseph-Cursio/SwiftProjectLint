@@ -143,10 +143,17 @@ final class IdempotencyViolationVisitor: BasePatternVisitor, CrossFilePatternVis
         // is now inferred non-idempotent itself. One-hop catches only the
         // direct caller of the leaf.
         let allSources = Array(fileCache.values)
-        symbolTable.applyUpwardInference(
+        let enabledFrameworks = self.enabledFrameworkWhitelists
+        symbolTable.applyUpwardInferenceImportAware(
             to: allSources,
             multiHop: true,
-            heuristicEffectForCall: HeuristicEffectInferrer.infer(call:)
+            heuristicEffectForCall: { call, source in
+                HeuristicEffectInferrer.infer(
+                    call: call,
+                    imports: ImportCollector.imports(in: source),
+                    enabledFrameworks: enabledFrameworks
+                )
+            }
         )
 
         for site in analysisSites {
@@ -210,10 +217,18 @@ final class IdempotencyViolationVisitor: BasePatternVisitor, CrossFilePatternVis
         } else if let upward = symbolTable.upwardInference(for: calleeSignature) {
             calleeEffect = upward.effect
             provenance = .inferredUpward(depth: upward.depth)
-        } else if let inferred = HeuristicEffectInferrer.infer(call: call) {
+        } else if let inferred = HeuristicEffectInferrer.infer(
+            call: call,
+            imports: imports(forSiteFile: site.filePath),
+            enabledFrameworks: self.enabledFrameworkWhitelists
+        ) {
             calleeEffect = inferred
             provenance = .inferredDownward(
-                reason: HeuristicEffectInferrer.inferenceReason(for: call) ?? ""
+                reason: HeuristicEffectInferrer.inferenceReason(
+                    for: call,
+                    imports: imports(forSiteFile: site.filePath),
+                    enabledFrameworks: self.enabledFrameworkWhitelists
+                ) ?? ""
             )
         } else {
             return
@@ -419,4 +434,15 @@ final class IdempotencyViolationVisitor: BasePatternVisitor, CrossFilePatternVis
         "withThrowingDiscardingTaskGroup",
         "task"
     ]
+
+    /// Per-file imports cache. See `NonIdempotentInRetryContextVisitor.imports(forSiteFile:)`.
+    private func imports(forSiteFile path: String) -> Set<String>? {
+        if let cached = importCache[path] { return cached }
+        guard let source = fileCache[path] else { return nil }
+        let set = ImportCollector.imports(in: source)
+        importCache[path] = set
+        return set
+    }
+
+    private var importCache: [String: Set<String>] = [:]
 }

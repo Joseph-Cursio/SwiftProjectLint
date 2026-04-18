@@ -65,12 +65,24 @@ public struct LintConfigurationLoader {
             enabledOnlyRules = nil
         }
 
+        // Round-14: per-framework whitelist opt-in. nil when key absent
+        // (= "all frameworks active"); explicit list = "only these
+        // frameworks active" (e.g., disable Metrics by listing only
+        // Foundation/NIOCore/Logging).
+        let enabledFrameworkWhitelists: Set<String>?
+        if let frameworkList = yaml["enabled_framework_whitelists"] as? [String] {
+            enabledFrameworkWhitelists = Set(frameworkList)
+        } else {
+            enabledFrameworkWhitelists = nil
+        }
+
         return LintConfiguration(
             disabledRules: disabledRules,
             enabledOnlyRules: enabledOnlyRules,
             excludedPaths: excludedPaths,
             ruleOverrides: ruleOverrides,
-            architecturalLayers: architecturalLayers
+            architecturalLayers: architecturalLayers,
+            enabledFrameworkWhitelists: enabledFrameworkWhitelists
         )
     }
 

@@ -188,8 +188,30 @@ public struct EffectSymbolTable: Sendable {
         maxHops: Int = 5,
         heuristicEffectForCall: (FunctionCallExprSyntax) -> DeclaredEffect?
     ) {
-        // Initial pass: declared + heuristic only. Equivalent to the
-        // pre-multi-hop behaviour.
+        // Backward-compat shim — wraps the per-call callback to ignore
+        // the source argument the full entry point supplies.
+        let wrapped: (FunctionCallExprSyntax, SourceFileSyntax) -> DeclaredEffect? = {
+            call, _ in heuristicEffectForCall(call)
+        }
+        applyUpwardInferenceImportAware(
+            to: sources,
+            multiHop: multiHop,
+            maxHops: maxHops,
+            heuristicEffectForCall: wrapped
+        )
+    }
+
+    /// Import-aware variant. The callback receives the source file the
+    /// current call lives in, so callers can pass the call's
+    /// per-file imports into `HeuristicEffectInferrer.infer(call:imports:
+    /// enabledFrameworks:)`. Round-14 follow-on — see
+    /// `ImportCollector` and `FrameworkWhitelist`.
+    public mutating func applyUpwardInferenceImportAware(
+        to sources: [SourceFileSyntax],
+        multiHop: Bool = false,
+        maxHops: Int = 5,
+        heuristicEffectForCall: (FunctionCallExprSyntax, SourceFileSyntax) -> DeclaredEffect?
+    ) {
         runInferencePass(
             sources: sources,
             includeUpward: false,
@@ -199,11 +221,6 @@ public struct EffectSymbolTable: Sendable {
 
         guard multiHop else { return }
 
-        // Fixed-point iteration. Termination: each entry's effect can only
-        // rise in the lattice (callees gain more info across passes, lub
-        // is monotone). Convergence on effect-equality typically happens
-        // in 2-3 passes; `maxHops` is a safety bound, not the expected
-        // iteration count.
         for _ in 0..<maxHops {
             let previousEffects = upwardInferredEffects.mapValues { $0.effect }
             runInferencePass(
@@ -221,7 +238,7 @@ public struct EffectSymbolTable: Sendable {
         sources: [SourceFileSyntax],
         includeUpward: Bool,
         maxHops: Int,
-        heuristicEffectForCall: (FunctionCallExprSyntax) -> DeclaredEffect?
+        heuristicEffectForCall: (FunctionCallExprSyntax, SourceFileSyntax) -> DeclaredEffect?
     ) {
         for source in sources {
             let inferred = UpwardEffectInferrer.inferEffects(
@@ -236,7 +253,7 @@ public struct EffectSymbolTable: Sendable {
                             return upward
                         }
                     }
-                    if let heuristic = heuristicEffectForCall(call) {
+                    if let heuristic = heuristicEffectForCall(call, source) {
                         return UpwardInference(effect: heuristic, depth: 0)
                     }
                     return nil

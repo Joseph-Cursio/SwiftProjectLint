@@ -93,6 +93,8 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
         resolvedDetector.knownActorTypes = actorTypes
         resolvedDetector.knownLocalTypeNames = localTypes
         resolvedDetector.layerPolicies = effectiveConfiguration.architecturalLayers
+        resolvedDetector.enabledFrameworkWhitelists =
+            effectiveConfiguration.enabledFrameworkWhitelists
         let registry = resolvedDetector.registry
 
         // Per-file I/O and analysis — throttled to avoid memory exhaustion on large projects.
@@ -158,6 +160,8 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
 
         // Run cross-file pattern detection (use the same registry as per-file analysis)
         let crossFileEngine = crossFileAnalyzerFactory(registry)
+        crossFileEngine.enabledFrameworkWhitelists =
+            effectiveConfiguration.enabledFrameworkWhitelists
         let crossFilePatternIssues: [LintIssue]
         if let effectiveRules {
             crossFilePatternIssues = crossFileEngine.detectCrossFilePatterns(
@@ -243,7 +247,8 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
             enabledOnlyRules: configuration.enabledOnlyRules,
             excludedPaths: configuration.excludedPaths,
             ruleOverrides: overrides,
-            architecturalLayers: configuration.architecturalLayers
+            architecturalLayers: configuration.architecturalLayers,
+            enabledFrameworkWhitelists: configuration.enabledFrameworkWhitelists
         )
     }
 

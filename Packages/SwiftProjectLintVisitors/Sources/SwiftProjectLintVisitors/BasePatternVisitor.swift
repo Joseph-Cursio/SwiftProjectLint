@@ -47,6 +47,18 @@ open class BasePatternVisitor: SyntaxVisitor, PatternVisitorProtocol {
     /// Empty by default — the rule is a no-op when no layers are defined.
     public var layerPolicies: [LayerPolicy] = []
 
+    /// Which framework-specific whitelists the heuristic-effect inferrer
+    /// should apply. `nil` (default) means "all frameworks enabled" — the
+    /// import-awareness path still gates by `import` presence in the
+    /// file under analysis. Non-nil restricts to the named subset (e.g.,
+    /// `["Foundation", "NIOCore"]`).
+    ///
+    /// Populated by `ProjectLinter` from
+    /// `LintConfiguration.enabledFrameworkWhitelists` when present.
+    /// Idempotency visitors read this when calling
+    /// `HeuristicEffectInferrer.infer(call:imports:enabledFrameworks:)`.
+    public var enabledFrameworkWhitelists: Set<String>? = nil
+
     /// Placeholder pattern used for cross-file visitors that set their pattern after initialization.
     public static let placeholderPattern = SyntaxPattern(
         name: .unknown,

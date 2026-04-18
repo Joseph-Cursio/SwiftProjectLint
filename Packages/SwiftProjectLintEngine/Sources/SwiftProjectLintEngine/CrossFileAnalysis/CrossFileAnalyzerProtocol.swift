@@ -13,7 +13,12 @@ import SwiftSyntax
 ///
 /// `ProjectLinter` depends on this protocol rather than the concrete
 /// `CrossFileAnalysisEngine`, enabling mock implementations in tests.
-public protocol CrossFileAnalyzerProtocol {
+public protocol CrossFileAnalyzerProtocol: AnyObject {
+    /// Per-framework whitelist opt-in for the idempotency heuristic
+    /// (round-14). Set by `ProjectLinter` from
+    /// `LintConfiguration.enabledFrameworkWhitelists` before analysis.
+    var enabledFrameworkWhitelists: Set<String>? { get set }
+
     /// Detects cross-file patterns filtered by category.
     func detectCrossFilePatterns(
         projectFiles: [ProjectFile],
