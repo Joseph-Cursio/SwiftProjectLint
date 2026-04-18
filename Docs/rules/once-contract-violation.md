@@ -19,9 +19,16 @@ When both triggers apply (a once-callee inside a loop inside a replayable body),
 
 The rule resolves callees cross-file via the shared `EffectSymbolTable`, subject to the table's collision policy: two annotated declarations of the same signature with conflicting contexts withdraw the entry, and the rule then sees nothing for that signature.
 
-### Phase 1 Scope
+### Detection Layers
 
-This is the direct-call-site check. The rule fires only when the call to the `@context once` callee is **lexically** inside the trigger position. Transitive propagation through un-annotated helpers — e.g. a `replayable` body calls `helper()` which itself calls a `@context once` function — is **not** detected. The multi-hop upward-inference call graph could be extended to track context propagation in a follow-up; until then, intermediate helpers between the trigger and the once-callee should be annotated explicitly.
+Two layers cover progressively more shapes:
+
+1. **Direct call sites.** The original Phase 1 check: a `@context once` callee literally appears at the call site, inside a loop body or inside a `replayable` / `retry_safe` function. The diagnostic reads "is declared `@lint.context once` and must run at most once."
+2. **Transitive once-reach.** A separate fixed-point inference over the project call graph identifies un-annotated helpers whose bodies transitively reach a `@context once` callee. Calls to those helpers in trigger positions also fire, with the diagnostic noting the chain ("transitively reaches a `@lint.context once` callee via N-hop chain of un-annotated callees"). The recorded depth is the SHORTEST path to the once-callee — diagnostics point users at the nearest evidence.
+
+Reach inference excludes any function that carries a `@lint.context` annotation, since annotated context decls are authoritative. Direct-call diagnostics on annotated decls (e.g. `@context replayable` body calling a `@context once` function) fire independently from the existing rule and aren't double-flagged on outer transitive callers.
+
+The fixed-point iteration is bounded by `maxHops` (default 5). Termination is guaranteed by set-membership monotonicity — once a function is in the reach set it stays there — so cycles in the call graph cannot loop forever.
 
 ### Violating Examples
 ```swift
@@ -85,7 +92,6 @@ func runUntilDone() {
 
 These shapes pass silently by design; deeper analysis to flag them lives in a future phase.
 
-- **Transitive chains.** A `replayable` body calling an un-annotated helper that calls a `@context once` function is invisible. Annotate intermediate helpers explicitly until context propagation joins the multi-hop call graph.
 - **Escaping closures.** `for x in xs { Task { onceCall() } }` does not fire — the closure-escape policy stops at `Task { }` / `withTaskGroup` / `Task.detached` / SwiftUI `.task { }`, mirroring the other idempotency visitors. The Task body still re-runs whenever the loop re-spawns it; detecting this cleanly requires cross-construct reasoning that the broader idempotency feature also defers.
 - **Callback-style iteration.** `xs.forEach { onceCall() }` and `xs.map { onceCall() }` do not fire — the closure runs N times per call to `forEach` / `map`, but recognising those callees as iteration constructs requires a name list and risks false positives on user-defined methods that share those names. Use a `for-in` loop if you want the diagnostic to fire.
 - **Nested function declarations.** A `@context once` call inside a nested `func` declaration is checked relative to the nested function's own body, not the outer function's. If the nested function is invoked in a loop in the outer body, the call is invisible.
