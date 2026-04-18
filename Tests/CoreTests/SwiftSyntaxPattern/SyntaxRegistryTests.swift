@@ -8,8 +8,18 @@ struct SyntaxRegistryTests {
     /// Each test gets its own isolated PatternVisitorRegistry so that
     /// testClearRemovesAllPatterns cannot race with other tests that read
     /// from PatternVisitorRegistry.shared.
+    ///
+    /// `BuiltInRules.registerAll()` populates the module-level factory list
+    /// that `SourcePatternRegistry.initialize()` iterates; without it,
+    /// initialize() is a no-op and tests that expect a populated registry
+    /// after initialize() fail whenever this suite runs before any other
+    /// test that would trigger registerAll (e.g. via TestRegistryManager).
+    /// The call is idempotent — the `registered` flag in BuiltInRules
+    /// guards against double-registration across tests. Calling here makes
+    /// every test in this suite independent of the wider test-run ordering.
     private func makeRegistry() -> SourcePatternRegistry {
-        SourcePatternRegistry(visitorRegistry: PatternVisitorRegistry())
+        BuiltInRules.registerAll()
+        return SourcePatternRegistry(visitorRegistry: PatternVisitorRegistry())
     }
 
     @Test func testSharedInstance() {
