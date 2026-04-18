@@ -79,9 +79,7 @@ final class IdempotencyViolationVisitor: BasePatternVisitor, CrossFilePatternVis
 
     override func visit(_ node: FunctionDeclSyntax) -> SyntaxVisitorContinueKind {
         guard let callerEffect = EffectAnnotationParser.parseEffect(declaration: node),
-              callerEffect == .idempotent
-                || callerEffect == .observational
-                || callerEffect == .externallyIdempotent,
+              isTriageableCaller(callerEffect),
               node.body != nil else {
             return .visitChildren
         }
@@ -138,6 +136,16 @@ final class IdempotencyViolationVisitor: BasePatternVisitor, CrossFilePatternVis
         }
     }
 
+    /// Caller effects whose bodies are analysed by this rule. `nonIdempotent`
+    /// is excluded — a non-idempotent caller makes no stronger claim than its
+    /// callees, so there is nothing to violate.
+    private func isTriageableCaller(_ effect: DeclaredEffect) -> Bool {
+        switch effect {
+        case .idempotent, .observational, .externallyIdempotent: return true
+        case .nonIdempotent: return false
+        }
+    }
+
     /// Effect-conflict rules. Only direct declared-vs-declared mismatches fire;
     /// unannotated callees stay silent (Phase 1 does not infer).
     ///
@@ -166,7 +174,8 @@ final class IdempotencyViolationVisitor: BasePatternVisitor, CrossFilePatternVis
             return true
         case (.observational, .idempotent):
             return true
-        // Phase 2 cases (externally_idempotent tier)
+        // Phase 2 cases (externally_idempotent tier); `_` ignores the
+        // associated `keyParameter` — lattice rows fire on tier alone.
         case (.observational, .externallyIdempotent):
             return true
         case (.externallyIdempotent, .nonIdempotent):
@@ -229,7 +238,7 @@ final class IdempotencyViolationVisitor: BasePatternVisitor, CrossFilePatternVis
         switch effect {
         case .idempotent: return "idempotent"
         case .observational: return "observational"
-        case .externallyIdempotent: return "externally_idempotent"
+        case .externallyIdempotent: return "externally_idempotent"   // tier-only label; (by:) is a visitor-level detail
         case .nonIdempotent: return "non_idempotent"
         }
     }

@@ -188,6 +188,7 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
     // Idempotency Rules
     case idempotencyViolation = "Idempotency Violation"
     case nonIdempotentInRetryContext = "Non-Idempotent In Retry Context"
+    case missingIdempotencyKey = "Missing Idempotency Key"
 
     // Other/System Rules
     case fileParsingError = "File Parsing Error"
@@ -301,7 +302,7 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
             return .modernization
 
             // Idempotency Rules
-        case .idempotencyViolation, .nonIdempotentInRetryContext:
+        case .idempotencyViolation, .nonIdempotentInRetryContext, .missingIdempotencyKey:
             return .idempotency
 
             // Other/System Rules

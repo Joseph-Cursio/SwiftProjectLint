@@ -12,7 +12,8 @@ class Idempotency: BasePatternRegistrar {
     override func registerPatterns() {
         registry.register(registrars: [
             IdempotencyViolation(),
-            NonIdempotentInRetryContext()
+            NonIdempotentInRetryContext(),
+            MissingIdempotencyKey()
         ])
     }
 }

@@ -39,7 +39,77 @@ struct ExternallyIdempotentParserTests {
             name: "charge",
             argumentLabels: ["idempotencyKey", "amount"]
         )
-        #expect(table.effect(for: signature) == .externallyIdempotent)
+        // No `(by:)` qualifier in the source → keyParameter is nil.
+        #expect(table.effect(for: signature) == .externallyIdempotent(keyParameter: nil))
+    }
+
+    @Test
+    func parsesExternallyIdempotentWithByQualifier() {
+        // Phase 2.1 grammar: `(by: paramName)` names the parameter that carries
+        // the deduplication key. `missingIdempotencyKey` will use this name at
+        // call sites; parser round-trip is verified here.
+        let source = """
+        /// @lint.effect externally_idempotent(by: idempotencyKey)
+        func charge(idempotencyKey: String, amount: Int) async throws {}
+        """
+        let table = EffectSymbolTable.build(from: Parser.parse(source: source))
+        let signature = FunctionSignature(
+            name: "charge",
+            argumentLabels: ["idempotencyKey", "amount"]
+        )
+        #expect(
+            table.effect(for: signature)
+                == .externallyIdempotent(keyParameter: "idempotencyKey")
+        )
+    }
+
+    @Test
+    func parsesExternallyIdempotentWithByQualifierWhitespaceVariants() {
+        // Parser must tolerate whitespace between the token and the paren,
+        // and between the colon and the name. Either form should parse the
+        // same keyParameter.
+        let tight = """
+        /// @lint.effect externally_idempotent(by:key)
+        func send(key: String) {}
+        """
+        let loose = """
+        /// @lint.effect externally_idempotent  (by:   key)
+        func send(key: String) {}
+        """
+        let signature = FunctionSignature(name: "send", argumentLabels: ["key"])
+        #expect(
+            EffectSymbolTable.build(from: Parser.parse(source: tight)).effect(for: signature)
+                == .externallyIdempotent(keyParameter: "key")
+        )
+        #expect(
+            EffectSymbolTable.build(from: Parser.parse(source: loose)).effect(for: signature)
+                == .externallyIdempotent(keyParameter: "key")
+        )
+    }
+
+    @Test
+    func malformedByQualifier_yieldsNilKeyParameter() {
+        // Malformed variants should parse as the tier alone (keyParameter nil)
+        // rather than erroring or dropping the annotation entirely. The
+        // lattice behaviour still applies; only the key-routing verifier will
+        // find nothing to check.
+        let noName = """
+        /// @lint.effect externally_idempotent(by:)
+        func send() {}
+        """
+        let wrongKey = """
+        /// @lint.effect externally_idempotent(on: key)
+        func send() {}
+        """
+        let signature = FunctionSignature(name: "send", argumentLabels: [])
+        #expect(
+            EffectSymbolTable.build(from: Parser.parse(source: noName)).effect(for: signature)
+                == .externallyIdempotent(keyParameter: nil)
+        )
+        #expect(
+            EffectSymbolTable.build(from: Parser.parse(source: wrongKey)).effect(for: signature)
+                == .externallyIdempotent(keyParameter: nil)
+        )
     }
 
     @Test
@@ -75,7 +145,7 @@ struct ExternallyIdempotentParserTests {
         let table = EffectSymbolTable.build(from: Parser.parse(source: source))
         #expect(table.effect(for: FunctionSignature(name: "upsert", argumentLabels: [])) == .idempotent)
         #expect(table.effect(for: FunctionSignature(name: "log", argumentLabels: [])) == .observational)
-        #expect(table.effect(for: FunctionSignature(name: "charge", argumentLabels: [])) == .externallyIdempotent)
+        #expect(table.effect(for: FunctionSignature(name: "charge", argumentLabels: [])) == .externallyIdempotent(keyParameter: nil))
         #expect(table.effect(for: FunctionSignature(name: "insert", argumentLabels: [])) == .nonIdempotent)
     }
 }

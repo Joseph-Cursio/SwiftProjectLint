@@ -3,20 +3,27 @@ import SwiftSyntax
 /// Declared idempotency effect for a function, parsed from `/// @lint.effect` doc comments.
 ///
 /// Phase 1 of the idempotency trial recognised three tiers: `idempotent`,
-/// `observational`, and `non_idempotent`. Phase 2 introduces `externally_idempotent`
+/// `observational`, and `non_idempotent`. Phase 2 introduced `externally_idempotent`
 /// for functions that are idempotent *only if* routed through a caller-supplied
 /// deduplication key — the characteristic shape of Stripe / SES / SNS / Mailgun
-/// APIs that accept a client-provided idempotency token. The key-routing check
-/// itself is deferred to a follow-up rule (`missingIdempotencyKey`); Phase 2's
-/// tier-introduction commit treats the key as assumed-routed at call sites that
-/// do not involve `observational` callers or `non_idempotent` callees.
+/// APIs that accept a client-provided idempotency token.
+///
+/// Phase 2.1 added the `(by: paramName)` qualifier to name the specific parameter
+/// that carries the key. When present, the `missingIdempotencyKey` rule verifies
+/// that call sites pass a stable value at the named parameter. When absent, the
+/// tier's lattice behaviour still applies but no key-routing verification runs —
+/// the annotation is documentary.
 ///
 /// Remaining tiers (`pure`, `transactional_idempotent`, `unknown`) stay out of
 /// scope and are treated as unrecognised — see `docs/phase1/trial-scope.md`.
 public enum DeclaredEffect: Sendable, Equatable {
     case idempotent
     case observational
-    case externallyIdempotent
+    /// - Parameter keyParameter: the external label of the parameter that
+    ///   holds the deduplication key, if the declaration specified one via
+    ///   `(by: paramName)`. `nil` when unspecified — the annotation then has
+    ///   lattice behaviour only.
+    case externallyIdempotent(keyParameter: String?)
     case nonIdempotent
 }
 
@@ -148,12 +155,29 @@ public enum EffectAnnotationParser {
         case "observational":
             return .observational
         case "externally_idempotent":
-            return .externallyIdempotent
+            // Look for an optional `(by: paramName)` qualifier immediately
+            // following the tier token. Whitespace between the token and `(`
+            // is tolerated.
+            let afterToken = rest.dropFirst(token.count).trimmingLeadingWhitespace()
+            return .externallyIdempotent(keyParameter: extractByQualifier(from: afterToken))
         case "non_idempotent":
             return .nonIdempotent
         default:
             return nil
         }
+    }
+
+    /// Extracts a `(by: paramName)` qualifier if present. Tolerates whitespace
+    /// variants and ignores additional content inside the parens (e.g. a future
+    /// `reason:` alongside). Returns `nil` when the qualifier is absent or
+    /// malformed.
+    private static func extractByQualifier(from text: Substring) -> String? {
+        guard text.first == "(" else { return nil }
+        let inside = text.dropFirst().trimmingLeadingWhitespace()
+        guard inside.hasPrefix("by:") else { return nil }
+        let afterBy = inside.dropFirst(3).trimmingLeadingWhitespace()
+        let ident = afterBy.firstIdentifier()
+        return ident.isEmpty ? nil : String(ident)
     }
 
     private static func extractContext(from line: String) -> ContextEffect? {
@@ -187,5 +211,21 @@ private extension Substring {
             out.append(char)
         }
         return out
+    }
+
+    /// Reads the longest prefix of identifier characters (letters, digits,
+    /// underscore). Used by the `(by: paramName)` parser to lift out the
+    /// parameter name from the rest of the annotation tail.
+    func firstIdentifier() -> Substring {
+        var end = startIndex
+        for idx in indices {
+            let char = self[idx]
+            if char.isLetter || char.isNumber || char == "_" {
+                end = index(after: idx)
+            } else {
+                break
+            }
+        }
+        return self[startIndex..<end]
     }
 }
