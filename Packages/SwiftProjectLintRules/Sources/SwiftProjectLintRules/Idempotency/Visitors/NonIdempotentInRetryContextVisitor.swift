@@ -91,30 +91,75 @@ final class NonIdempotentInRetryContextVisitor: BasePatternVisitor, CrossFilePat
             return
         }
 
-        if let call = syntax.as(FunctionCallExprSyntax.self),
-           let calleeSignature = FunctionSignature.from(call: call),
-           let calleeEffect = symbolTable.effect(for: calleeSignature),
-           calleeEffect == .nonIdempotent {
-            let contextLabel: String = site.context == .replayable ? "replayable" : "retry_safe"
-            let callerName = site.function.name.text
-            let calleeName = calleeSignature.name
-            let line = site.locationConverter.location(for: call.positionAfterSkippingLeadingTrivia).line
-            addIssue(
-                severity: pattern.severity,
-                message: "Non-idempotent call in \(contextLabel) context: '\(callerName)' is declared "
-                    + "`@lint.context \(contextLabel)` but calls '\(calleeName)', which is declared "
-                    + "`@lint.effect non_idempotent`.",
-                filePath: site.filePath,
-                lineNumber: line,
-                suggestion: "Replace '\(calleeName)' with an idempotent alternative, or route the call "
-                    + "through a deduplication guard or idempotency-key mechanism.",
-                ruleName: .nonIdempotentInRetryContext
-            )
+        if let call = syntax.as(FunctionCallExprSyntax.self) {
+            analyzeCall(call, site: site)
         }
 
         for child in syntax.children(viewMode: .sourceAccurate) {
             analyzeBody(child, site: site)
         }
+    }
+
+    /// Resolves the callee's effect via the symbol table, falling back to
+    /// Phase-2 heuristic inference for un-annotated callees. Declared effects
+    /// always win. Only `non_idempotent` (declared or inferred) fires this
+    /// rule; `idempotent`, `observational`, and `externally_idempotent`
+    /// callees pass silently in a retry context.
+    private func analyzeCall(_ call: FunctionCallExprSyntax, site: AnalysisSite) {
+        guard let calleeSignature = FunctionSignature.from(call: call) else { return }
+
+        let calleeEffect: DeclaredEffect
+        let isInferred: Bool
+        let inferenceReason: String
+
+        if let declared = symbolTable.effect(for: calleeSignature) {
+            calleeEffect = declared
+            isInferred = false
+            inferenceReason = ""
+        } else if symbolTable.isCollision(signature: calleeSignature) {
+            // Collision-withdrawn: annotated with conflicting effects. The
+            // symbol table flags the ambiguity; inference must not paper
+            // over it.
+            return
+        } else if let inferred = HeuristicEffectInferrer.infer(call: call) {
+            calleeEffect = inferred
+            isInferred = true
+            inferenceReason = HeuristicEffectInferrer.inferenceReason(for: call) ?? ""
+        } else {
+            return
+        }
+
+        guard calleeEffect == .nonIdempotent else { return }
+
+        let contextLabel: String = site.context == .replayable ? "replayable" : "retry_safe"
+        let callerName = site.function.name.text
+        let calleeName = calleeSignature.name
+        let line = site.locationConverter.location(
+            for: call.positionAfterSkippingLeadingTrivia
+        ).line
+
+        let calleeClaim: String
+        let overrideHint: String
+        if isInferred {
+            calleeClaim = "whose effect is inferred `non_idempotent` \(inferenceReason)"
+            overrideHint = " If the inference is wrong, annotate '\(calleeName)' explicitly "
+                + "with `/// @lint.effect <tier>` to override."
+        } else {
+            calleeClaim = "which is declared `@lint.effect non_idempotent`"
+            overrideHint = ""
+        }
+
+        addIssue(
+            severity: pattern.severity,
+            message: "Non-idempotent call in \(contextLabel) context: '\(callerName)' is declared "
+                + "`@lint.context \(contextLabel)` but calls '\(calleeName)', \(calleeClaim)."
+                + overrideHint,
+            filePath: site.filePath,
+            lineNumber: line,
+            suggestion: "Replace '\(calleeName)' with an idempotent alternative, or route the call "
+                + "through a deduplication guard or idempotency-key mechanism.",
+            ruleName: .nonIdempotentInRetryContext
+        )
     }
 
     /// See `IdempotencyViolationVisitor.isEscapingClosure` for the shared policy.

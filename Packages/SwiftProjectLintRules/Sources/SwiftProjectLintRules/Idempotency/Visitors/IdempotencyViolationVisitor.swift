@@ -119,21 +119,62 @@ final class IdempotencyViolationVisitor: BasePatternVisitor, CrossFilePatternVis
             return
         }
 
-        if let call = syntax.as(FunctionCallExprSyntax.self),
-           let calleeSignature = FunctionSignature.from(call: call),
-           let calleeEffect = symbolTable.effect(for: calleeSignature),
-           violates(caller: site.effect, callee: calleeEffect) {
-            emitViolation(
-                call: call,
-                site: site,
-                calleeName: calleeSignature.name,
-                calleeEffect: calleeEffect
-            )
+        if let call = syntax.as(FunctionCallExprSyntax.self) {
+            analyzeCall(call, site: site)
         }
 
         for child in syntax.children(viewMode: .sourceAccurate) {
             analyzeBody(child, site: site)
         }
+    }
+
+    /// Resolves a call's callee effect via the symbol table, falling back to
+    /// Phase-2 heuristic inference when no declared effect is found. Declared
+    /// effects always win; inference is strictly a fallback for the
+    /// un-annotated case.
+    private func analyzeCall(_ call: FunctionCallExprSyntax, site: AnalysisSite) {
+        guard let calleeSignature = FunctionSignature.from(call: call) else { return }
+
+        let calleeEffect: DeclaredEffect
+        let provenance: EffectProvenance
+
+        if let declared = symbolTable.effect(for: calleeSignature) {
+            calleeEffect = declared
+            provenance = .declared
+        } else if symbolTable.isCollision(signature: calleeSignature) {
+            // Collision-withdrawn: the user annotated this callee more than
+            // once with conflicting effects. The symbol table signals the
+            // ambiguity by withdrawing the entry, and inference must not
+            // paper over it — a heuristic guess would be a third
+            // interpretation the user didn't ask for. Stay silent.
+            return
+        } else if let inferred = HeuristicEffectInferrer.infer(call: call) {
+            calleeEffect = inferred
+            provenance = .inferred(
+                reason: HeuristicEffectInferrer.inferenceReason(for: call) ?? ""
+            )
+        } else {
+            return
+        }
+
+        guard violates(caller: site.effect, callee: calleeEffect) else { return }
+
+        emitViolation(
+            call: call,
+            site: site,
+            calleeName: calleeSignature.name,
+            calleeEffect: calleeEffect,
+            provenance: provenance
+        )
+    }
+
+    /// Tracks whether an effect came from an explicit `@lint.effect`
+    /// declaration or from Phase-2 heuristic inference. The distinction
+    /// surfaces in diagnostic prose so users can tell when the rule is
+    /// guessing vs. reading an annotation, and how to override.
+    private enum EffectProvenance {
+        case declared
+        case inferred(reason: String)
     }
 
     /// Caller effects whose bodies are analysed by this rule. `nonIdempotent`
@@ -189,34 +230,50 @@ final class IdempotencyViolationVisitor: BasePatternVisitor, CrossFilePatternVis
         call: FunctionCallExprSyntax,
         site: AnalysisSite,
         calleeName: String,
-        calleeEffect: DeclaredEffect
+        calleeEffect: DeclaredEffect,
+        provenance: EffectProvenance
     ) {
         let callerName = site.function.name.text
         let callerTier = effectLabel(site.effect)
         let calleeTier = effectLabel(calleeEffect)
+        // Two prose fragments covering the same semantic point: the callee's
+        // effect is `calleeTier`. Declared is authoritative; inferred credits
+        // the heuristic and tells the user how to override.
+        let calleeClaim: String
+        let overrideHint: String
+        switch provenance {
+        case .declared:
+            calleeClaim = "which is declared `@lint.effect \(calleeTier)`"
+            overrideHint = ""
+        case .inferred(let reason):
+            calleeClaim = "whose effect is inferred `\(calleeTier)` \(reason)"
+            overrideHint = " If the inference is wrong, annotate '\(calleeName)' "
+                + "explicitly with `/// @lint.effect <tier>` to override."
+        }
+
         let headline: String
         let suggestion: String
         switch site.effect {
         case .observational:
             headline = "Observational contract violation: '\(callerName)' is declared "
-                + "`@lint.effect observational` but calls '\(calleeName)', which is declared "
-                + "`@lint.effect \(calleeTier)`. Observational functions must not mutate "
-                + "business state beyond observation sinks."
+                + "`@lint.effect observational` but calls '\(calleeName)', \(calleeClaim). "
+                + "Observational functions must not mutate business state beyond observation sinks."
+                + overrideHint
             suggestion = "Either call only observational/pure helpers from '\(callerName)', "
                 + "or weaken its declared effect to `idempotent` / `non_idempotent`."
         case .idempotent:
             headline = "Idempotency violation: '\(callerName)' is declared "
-                + "`@lint.effect \(callerTier)` but calls '\(calleeName)', which is declared "
-                + "`@lint.effect \(calleeTier)`."
+                + "`@lint.effect \(callerTier)` but calls '\(calleeName)', \(calleeClaim)."
+                + overrideHint
             suggestion = "Either change '\(calleeName)' to an idempotent alternative "
                 + "(e.g. upsert, set-status-by-id), or weaken the declared effect of '\(callerName)'."
         case .externallyIdempotent:
             headline = "Externally-idempotent contract violation: '\(callerName)' is declared "
-                + "`@lint.effect externally_idempotent` but calls '\(calleeName)', which is "
-                + "declared `@lint.effect \(calleeTier)`. An externally-idempotent operation's "
-                + "keyed guarantee is only as strong as its weakest uninstrumented call — any "
-                + "unconditionally non-idempotent work inside the body re-fires on replay "
-                + "regardless of the caller's idempotency key."
+                + "`@lint.effect externally_idempotent` but calls '\(calleeName)', \(calleeClaim). "
+                + "An externally-idempotent operation's keyed guarantee is only as strong as its "
+                + "weakest uninstrumented call — any unconditionally non-idempotent work inside "
+                + "the body re-fires on replay regardless of the caller's idempotency key."
+                + overrideHint
             suggestion = "Route '\(calleeName)' through its own idempotency key, replace it "
                 + "with an idempotent alternative, or weaken '\(callerName)' to "
                 + "`@lint.effect non_idempotent`."

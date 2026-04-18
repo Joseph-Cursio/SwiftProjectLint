@@ -127,8 +127,24 @@ func upsert(_ user: User) async throws {}
 func upsert(_ user: User) async throws {}
 ```
 
+### Heuristic Inference Fallback (Phase 2)
+
+When a callee has no `@lint.effect` annotation in the project-wide symbol table, the rule consults a small set of name-based heuristics as a fallback. Declared annotations always win; inference fires **only** for un-annotated callees.
+
+The whitelist is intentionally small:
+
+- **Non-idempotent** (by bare callee name): `create`, `insert`, `append`, `publish`, `enqueue`, `post`, `send`.
+- **Idempotent** (by bare callee name): `upsert`, `setIfAbsent`, `replace`.
+- **Observational** (requires both receiver shape *and* level name): receiver name contains `log` (case-insensitive) — e.g. `logger`, `Logger`, `requestLogger`, `os_log` — and the method is one of `trace`/`debug`/`info`/`notice`/`warning`/`error`/`critical`/`fault`/`log`.
+
+Names deliberately out of scope include `save`, `put`, `update`, `write` — each has too many idempotent interpretations to classify by name alone.
+
+**Diagnostic prose makes inference visible.** An inference-driven diagnostic reads "whose effect is inferred `non_idempotent` from the callee name `insert`" (or similar), not "which is declared …", and tells the user that annotating the callee explicitly with `/// @lint.effect <tier>` will override the inference. Users know when the rule is guessing versus when it's reading an annotation.
+
+**Collision-withdrawn entries skip inference.** When the symbol table withdraws a callee's entry because of multiple conflicting annotations (the OI-4 collision policy), inference does **not** run on that callee. The user's conflicting annotations already express ambiguity; substituting a third name-based interpretation would paper over it.
+
 ### Interpretation of Zero Findings
-This rule is annotation-gated: it can fire only when both caller and callee carry `@lint.effect` declarations visible to the project-wide symbol table. On un-annotated source it produces nothing — that is neither a safety signal nor a defect. Diagnostics accumulate as the annotation campaign progresses. A zero-finding result on an un-annotated codebase tells you about annotation coverage, not about whether the code contains the class of bug the rule targets.
+This rule was annotation-gated in Phase 1; Phase 2's heuristic inference adds a fallback for un-annotated callees. Zero findings on un-annotated source now has a narrower meaning: "no caller annotated with `@lint.effect idempotent/observational/externally_idempotent` calls a callee either declared non-idempotent (or inferred non-idempotent by the whitelist)." A zero-finding result still tells you about annotation coverage on the caller side — the inference fallback does not itself produce diagnostics without an annotated caller context.
 
 ### Remediation
 - **Swap the callee.** Replace a `non_idempotent` function with an idempotent alternative (e.g. `create` → `upsert`, `insert` → `setIfAbsent`).

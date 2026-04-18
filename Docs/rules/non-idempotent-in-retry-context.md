@@ -96,8 +96,18 @@ func handleWebhook(event: Event) async throws {}
 ### Typical Application
 The rule targets handlers that are externally retry-exposed: webhook endpoints (Stripe, GitHub, Slack), queue workers (SQS, SNS, Lambda event sources, RabbitMQ), scheduled-job retries, and middleware in any at-least-once delivery pipeline.
 
+### Heuristic Inference Fallback (Phase 2)
+
+When a callee reached from a `@lint.context replayable` or `@lint.context retry_safe` body has no `@lint.effect` annotation, the rule consults a small set of name-based heuristics. The rule fires if inference classifies the callee `non_idempotent` — treating inferred non-idempotency the same as declared non-idempotency. Declared annotations always win; inference is strictly a fallback.
+
+The inferrer's non-idempotent whitelist is intentionally small: `create`, `insert`, `append`, `publish`, `enqueue`, `post`, `send`. Names like `save`, `put`, `update`, `write` are deliberately excluded because their idempotency depends on semantics the rule cannot see.
+
+**Diagnostic prose** distinguishes inference from declaration. An inference-driven diagnostic reads "whose effect is inferred `non_idempotent` from the callee name …" and instructs the user on how to override by annotating the callee explicitly.
+
+**Collision-withdrawn entries skip inference.** When the OI-4 collision policy withdraws an annotated callee's entry (two conflicting `@lint.effect` declarations for the same signature), inference does **not** run on that callee. The ambiguity is the user's to resolve; inference would substitute a third interpretation.
+
 ### Interpretation of Zero Findings
-This rule is annotation-gated: it can fire only when a function carries a `@lint.context` declaration *and* its direct callee carries a `@lint.effect non_idempotent` declaration. On un-annotated source it produces nothing. A zero-finding result on an un-annotated codebase means no `@lint.context` declarations are in scope — it does not mean the codebase is free of retry-hazard bugs. Findings accumulate as the annotation campaign progresses, starting with handlers whose retry semantics are objectively fixed (webhook endpoints, queue consumers).
+The caller side still requires `@lint.context replayable` / `retry_safe` — the rule cannot fire without that annotation. Once a caller is annotated, the callee can be annotated OR inferred. A zero-finding result on a corpus with no `@lint.context` declarations means no `replayable` bodies are in scope — not that no retry-hazard bugs exist. Findings accumulate as the annotation campaign progresses, starting with handlers whose retry semantics are objectively fixed (webhook endpoints, queue consumers).
 
 ### Remediation
 - **Swap the callee.** Replace a `non_idempotent` call with an idempotent alternative keyed by a stable upstream identifier.
