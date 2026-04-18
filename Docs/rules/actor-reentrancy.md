@@ -154,4 +154,30 @@ actor InsightsEngine {
 
 **Residual false positive — indirect resource use:** the suppression only works when the property or its bound name appears as a *direct token* in the `await` expression. If the property is consumed one call-stack level below — e.g. `guard connection != nil` followed by `await self.send(request)` where `send()` internally uses `connection` — the visitor cannot detect the relationship without semantic data-flow analysis. These cases remain flagged. A practical workaround is to add a `// swiftprojectlint:disable actor-reentrancy` comment on the line.
 
+### Architectural Scope
+
+The rule is structurally scoped. It fires only when all four pieces are present on the same declaration:
+
+1. A function declared inside an `actor` body
+2. A `guard` or `if` that reads a stored `var` property on that actor
+3. An `await` expression reached by fall-through from the guard
+4. No assignment to the same property between the guard and the `await`
+
+If any one of the four is missing, the rule is silent. That silence tells you something about your code's architecture — not about its safety.
+
+**Two very different codebases both produce zero findings:**
+
+1. **Codebases that use actors and have already applied the fix pattern.** Every `check → await → write` sequence has been rewritten to `claim → await → (optional re-check)`. The rule is silent because the intended fix has already landed. This is the *successful* outcome.
+2. **Codebases that use alternative isolation primitives** — lock-protected value types (`NIOLockedValueBox`, `Mutex`, `OSAllocatedUnfairLock`), dependency-injected singletons, structured-concurrency patterns that avoid shared mutable state entirely, or `@MainActor`-isolated reference types. The rule's precondition never holds. The class of bug it targets is not expressible in the chosen concurrency style *inside this rule's AST scope*.
+
+The rule has no way to tell those two cases apart. You should: zero findings is a signal about actor usage and claim-before-await discipline, not a proof that analogous hazards are absent elsewhere.
+
+**Related bugs this rule cannot catch:**
+
+- `check → await → write` inside a `@MainActor`-isolated class method (not an `actor` declaration)
+- `check → await → write` inside a closure passed to `NIOLockedValueBox.withLockedValue { ... }` or similar lock wrapper — the lock is released at `await`, re-acquired on resume, so the same interleaving is possible
+- Reentrancy spanning multiple actors via `async let` or `TaskGroup`
+
+If your codebase relies on any of these for shared mutable state, a zero-finding result from this rule rules the hazard out *inside `actor` declarations only*. It does not generalise beyond the rule's stated scope.
+
 ---
