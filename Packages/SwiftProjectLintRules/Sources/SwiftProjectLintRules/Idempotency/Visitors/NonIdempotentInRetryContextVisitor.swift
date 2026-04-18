@@ -21,8 +21,14 @@ final class NonIdempotentInRetryContextVisitor: BasePatternVisitor, CrossFilePat
     private var symbolTable = EffectSymbolTable()
     private var analysisSites: [AnalysisSite] = []
 
+    /// A location in source that carries a `@lint.context` annotation and
+    /// whose body the rule will walk. Uniformly represents both function
+    /// declarations and closure-initialised variable bindings — the rule
+    /// only needs the name (for prose), the body (for traversal), the
+    /// context, and file/location info.
     private struct AnalysisSite {
-        let function: FunctionDeclSyntax
+        let callerName: String
+        let body: Syntax
         let context: ContextEffect
         let filePath: String
         let locationConverter: SourceLocationConverter
@@ -58,14 +64,41 @@ final class NonIdempotentInRetryContextVisitor: BasePatternVisitor, CrossFilePat
 
     override func visit(_ node: FunctionDeclSyntax) -> SyntaxVisitorContinueKind {
         guard let context = EffectAnnotationParser.parseContext(declaration: node),
-              node.body != nil else {
+              let body = node.body else {
             return .visitChildren
         }
         let converter = currentLocationConverter
             ?? SourceLocationConverter(fileName: currentFilePath, tree: node.root)
         analysisSites.append(
             AnalysisSite(
-                function: node,
+                callerName: node.name.text,
+                body: Syntax(body),
+                context: context,
+                filePath: currentFilePath,
+                locationConverter: converter
+            )
+        )
+        return .visitChildren
+    }
+
+    /// Closure-binding annotation (Phase 2 third slice). A `let`/`var` with
+    /// a closure-literal initialiser and a `@lint.context` annotation is
+    /// treated analogously to an annotated function: the closure's body is
+    /// walked under the declared context, and non-idempotent calls inside
+    /// it produce diagnostics. Multi-binding decls and non-closure
+    /// initialisers are silently skipped.
+    override func visit(_ node: VariableDeclSyntax) -> SyntaxVisitorContinueKind {
+        guard let context = EffectAnnotationParser.parseContext(declaration: node),
+              let closure = node.closureInitializer,
+              let name = node.firstBindingName else {
+            return .visitChildren
+        }
+        let converter = currentLocationConverter
+            ?? SourceLocationConverter(fileName: currentFilePath, tree: node.root)
+        analysisSites.append(
+            AnalysisSite(
+                callerName: name,
+                body: Syntax(closure.statements),
                 context: context,
                 filePath: currentFilePath,
                 locationConverter: converter
@@ -89,8 +122,7 @@ final class NonIdempotentInRetryContextVisitor: BasePatternVisitor, CrossFilePat
         )
 
         for site in analysisSites {
-            guard let body = site.function.body else { continue }
-            analyzeBody(Syntax(body), site: site)
+            analyzeBody(site.body, site: site)
         }
     }
 
@@ -100,6 +132,17 @@ final class NonIdempotentInRetryContextVisitor: BasePatternVisitor, CrossFilePat
 
     private func analyzeBody(_ syntax: Syntax, site: AnalysisSite) {
         if syntax.is(FunctionDeclSyntax.self) { return }
+        // Nested closure-initialised variable bindings that carry their
+        // own `@lint.context` annotation are independent analysis sites.
+        // Don't descend — calls inside would otherwise be attributed to
+        // the outer context. Unannotated closure-bound bindings keep the
+        // old behaviour: they inherit the outer site's context and are
+        // walked through.
+        if let varDecl = syntax.as(VariableDeclSyntax.self),
+           varDecl.closureInitializer != nil,
+           EffectAnnotationParser.parseContext(declaration: varDecl) != nil {
+            return
+        }
         if let closure = syntax.as(ClosureExprSyntax.self), isEscapingClosure(closure) {
             return
         }
@@ -154,7 +197,7 @@ final class NonIdempotentInRetryContextVisitor: BasePatternVisitor, CrossFilePat
         guard calleeEffect == .nonIdempotent else { return }
 
         let contextLabel: String = site.context == .replayable ? "replayable" : "retry_safe"
-        let callerName = site.function.name.text
+        let callerName = site.callerName
         let calleeName = calleeSignature.name
         let line = site.locationConverter.location(
             for: call.positionAfterSkippingLeadingTrivia

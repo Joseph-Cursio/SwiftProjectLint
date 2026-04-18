@@ -40,8 +40,12 @@ final class IdempotencyViolationVisitor: BasePatternVisitor, CrossFilePatternVis
     /// line-number reporting resolves correctly in `finalizeAnalysis()`.
     private var analysisSites: [AnalysisSite] = []
 
+    /// A location in source that carries a `@lint.effect` annotation and
+    /// whose body the rule will walk. Uniformly represents both function
+    /// declarations and closure-initialised variable bindings.
     private struct AnalysisSite {
-        let function: FunctionDeclSyntax
+        let callerName: String
+        let body: Syntax
         let effect: DeclaredEffect
         let filePath: String
         let locationConverter: SourceLocationConverter
@@ -80,14 +84,42 @@ final class IdempotencyViolationVisitor: BasePatternVisitor, CrossFilePatternVis
     override func visit(_ node: FunctionDeclSyntax) -> SyntaxVisitorContinueKind {
         guard let callerEffect = EffectAnnotationParser.parseEffect(declaration: node),
               isTriageableCaller(callerEffect),
-              node.body != nil else {
+              let body = node.body else {
             return .visitChildren
         }
         let converter = currentLocationConverter
             ?? SourceLocationConverter(fileName: currentFilePath, tree: node.root)
         analysisSites.append(
             AnalysisSite(
-                function: node,
+                callerName: node.name.text,
+                body: Syntax(body),
+                effect: callerEffect,
+                filePath: currentFilePath,
+                locationConverter: converter
+            )
+        )
+        return .visitChildren
+    }
+
+    /// Closure-binding annotation (Phase 2 third slice). A `let`/`var` with
+    /// a closure-literal initialiser and a `@lint.effect` annotation is
+    /// treated analogously to an annotated function: the closure's body is
+    /// walked under the declared effect and any violating call fires the
+    /// rule. Only triageable caller effects (`idempotent`, `observational`,
+    /// `externallyIdempotent`) collect a site.
+    override func visit(_ node: VariableDeclSyntax) -> SyntaxVisitorContinueKind {
+        guard let callerEffect = EffectAnnotationParser.parseEffect(declaration: node),
+              isTriageableCaller(callerEffect),
+              let closure = node.closureInitializer,
+              let name = node.firstBindingName else {
+            return .visitChildren
+        }
+        let converter = currentLocationConverter
+            ?? SourceLocationConverter(fileName: currentFilePath, tree: node.root)
+        analysisSites.append(
+            AnalysisSite(
+                callerName: name,
+                body: Syntax(closure.statements),
                 effect: callerEffect,
                 filePath: currentFilePath,
                 locationConverter: converter
@@ -118,8 +150,7 @@ final class IdempotencyViolationVisitor: BasePatternVisitor, CrossFilePatternVis
         )
 
         for site in analysisSites {
-            guard let body = site.function.body else { continue }
-            analyzeBody(Syntax(body), site: site)
+            analyzeBody(site.body, site: site)
         }
     }
 
@@ -133,6 +164,17 @@ final class IdempotencyViolationVisitor: BasePatternVisitor, CrossFilePatternVis
 
     private func analyzeBody(_ syntax: Syntax, site: AnalysisSite) {
         if syntax.is(FunctionDeclSyntax.self) { return }
+        // Nested closure-initialised variable bindings that carry their
+        // own `@lint.effect` annotation are independent analysis sites.
+        // Don't descend — calls inside would otherwise be attributed to
+        // the outer effect. Unannotated closure-bound bindings keep the
+        // old behaviour: they inherit the outer site's effect and are
+        // walked through.
+        if let varDecl = syntax.as(VariableDeclSyntax.self),
+           varDecl.closureInitializer != nil,
+           EffectAnnotationParser.parseEffect(declaration: varDecl) != nil {
+            return
+        }
         if let closure = syntax.as(ClosureExprSyntax.self), isEscapingClosure(closure) {
             return
         }
@@ -261,7 +303,7 @@ final class IdempotencyViolationVisitor: BasePatternVisitor, CrossFilePatternVis
         calleeEffect: DeclaredEffect,
         provenance: EffectProvenance
     ) {
-        let callerName = site.function.name.text
+        let callerName = site.callerName
         let callerTier = effectLabel(site.effect)
         let calleeTier = effectLabel(calleeEffect)
         // Two prose fragments covering the same semantic point: the callee's
