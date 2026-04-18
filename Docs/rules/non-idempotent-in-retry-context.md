@@ -96,15 +96,24 @@ func handleWebhook(event: Event) async throws {}
 ### Typical Application
 The rule targets handlers that are externally retry-exposed: webhook endpoints (Stripe, GitHub, Slack), queue workers (SQS, SNS, Lambda event sources, RabbitMQ), scheduled-job retries, and middleware in any at-least-once delivery pipeline.
 
-### Heuristic Inference Fallback (Phase 2)
+### Inference Fallbacks (Phase 2.2 and 2.3)
 
-When a callee reached from a `@lint.context replayable` or `@lint.context retry_safe` body has no `@lint.effect` annotation, the rule consults a small set of name-based heuristics. The rule fires if inference classifies the callee `non_idempotent` — treating inferred non-idempotency the same as declared non-idempotency. Declared annotations always win; inference is strictly a fallback.
+When a callee reached from a `@lint.context replayable` or `@lint.context retry_safe` body has no `@lint.effect` annotation, the rule consults two inference sources in precedence order:
 
-The inferrer's non-idempotent whitelist is intentionally small: `create`, `insert`, `append`, `publish`, `enqueue`, `post`, `send`. Names like `save`, `put`, `update`, `write` are deliberately excluded because their idempotency depends on semantics the rule cannot see.
+1. **Upward inference** — the callee's own body is analysed; if it calls any non-idempotent function directly, the callee is itself inferred non-idempotent. One hop only; chains deeper than one level are a documented limitation.
+2. **Heuristic-downward inference** — a small name-based whitelist (`create`, `insert`, `append`, `publish`, `enqueue`, `post`, `send`) classifies callees whose bodies produced no upward result.
 
-**Diagnostic prose** distinguishes inference from declaration. An inference-driven diagnostic reads "whose effect is inferred `non_idempotent` from the callee name …" and instructs the user on how to override by annotating the callee explicitly.
+Declared annotations always win. The rule fires whenever an inferred-non-idempotent callee is reached from a retry context, treating inference the same as declaration for firing purposes.
 
-**Collision-withdrawn entries skip inference.** When the OI-4 collision policy withdraws an annotated callee's entry (two conflicting `@lint.effect` declarations for the same signature), inference does **not** run on that callee. The ambiguity is the user's to resolve; inference would substitute a third interpretation.
+**Diagnostic prose** distinguishes each provenance:
+
+- Upward: "whose effect is inferred `non_idempotent` from its body"
+- Heuristic-downward: "whose effect is inferred `non_idempotent` from the callee name …"
+- Declared: "which is declared `@lint.effect non_idempotent`"
+
+All variants instruct the user on how to override by annotating the callee explicitly with `/// @lint.effect <tier>`.
+
+**Collision-withdrawn entries skip both inference paths.** When the OI-4 collision policy withdraws an annotated callee's entry (two conflicting `@lint.effect` declarations for the same signature), neither upward nor downward inference runs. The ambiguity is the user's to resolve.
 
 ### Interpretation of Zero Findings
 The caller side still requires `@lint.context replayable` / `retry_safe` — the rule cannot fire without that annotation. Once a caller is annotated, the callee can be annotated OR inferred. A zero-finding result on a corpus with no `@lint.context` declarations means no `replayable` bodies are in scope — not that no retry-hazard bugs exist. Findings accumulate as the annotation campaign progresses, starting with handlers whose retry semantics are objectively fixed (webhook endpoints, queue consumers).

@@ -75,6 +75,15 @@ final class NonIdempotentInRetryContextVisitor: BasePatternVisitor, CrossFilePat
     }
 
     func finalizeAnalysis() {
+        // Phase-2.3 upward inference — see IdempotencyViolationVisitor for
+        // rationale. Runs before the body walk so every lookup in
+        // analyzeCall can consult upward-inferred entries.
+        let allSources = Array(fileCache.values)
+        symbolTable.applyUpwardInference(
+            to: allSources,
+            heuristicEffectForCall: HeuristicEffectInferrer.infer(call:)
+        )
+
         for site in analysisSites {
             guard let body = site.function.body else { continue }
             analyzeBody(Syntax(body), site: site)
@@ -109,22 +118,28 @@ final class NonIdempotentInRetryContextVisitor: BasePatternVisitor, CrossFilePat
         guard let calleeSignature = FunctionSignature.from(call: call) else { return }
 
         let calleeEffect: DeclaredEffect
-        let isInferred: Bool
-        let inferenceReason: String
+        let calleeClaim: String
+        let overrideHint: String
 
         if let declared = symbolTable.effect(for: calleeSignature) {
             calleeEffect = declared
-            isInferred = false
-            inferenceReason = ""
+            calleeClaim = "which is declared `@lint.effect non_idempotent`"
+            overrideHint = ""
         } else if symbolTable.isCollision(signature: calleeSignature) {
-            // Collision-withdrawn: annotated with conflicting effects. The
-            // symbol table flags the ambiguity; inference must not paper
-            // over it.
+            // Collision-withdrawn: annotated with conflicting effects. Neither
+            // upward nor downward inference runs.
             return
+        } else if let upward = symbolTable.upwardInferredEffect(for: calleeSignature) {
+            calleeEffect = upward
+            calleeClaim = "whose effect is inferred `non_idempotent` from its body"
+            overrideHint = " If the inference is wrong, annotate '\(calleeSignature.name)' "
+                + "explicitly with `/// @lint.effect <tier>` to override the body-based inference."
         } else if let inferred = HeuristicEffectInferrer.infer(call: call) {
             calleeEffect = inferred
-            isInferred = true
-            inferenceReason = HeuristicEffectInferrer.inferenceReason(for: call) ?? ""
+            let reason = HeuristicEffectInferrer.inferenceReason(for: call) ?? ""
+            calleeClaim = "whose effect is inferred `non_idempotent` \(reason)"
+            overrideHint = " If the inference is wrong, annotate '\(calleeSignature.name)' "
+                + "explicitly with `/// @lint.effect <tier>` to override."
         } else {
             return
         }
@@ -137,17 +152,6 @@ final class NonIdempotentInRetryContextVisitor: BasePatternVisitor, CrossFilePat
         let line = site.locationConverter.location(
             for: call.positionAfterSkippingLeadingTrivia
         ).line
-
-        let calleeClaim: String
-        let overrideHint: String
-        if isInferred {
-            calleeClaim = "whose effect is inferred `non_idempotent` \(inferenceReason)"
-            overrideHint = " If the inference is wrong, annotate '\(calleeName)' explicitly "
-                + "with `/// @lint.effect <tier>` to override."
-        } else {
-            calleeClaim = "which is declared `@lint.effect non_idempotent`"
-            overrideHint = ""
-        }
 
         addIssue(
             severity: pattern.severity,

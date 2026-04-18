@@ -44,6 +44,12 @@ public struct EffectSymbolTable: Sendable {
     /// collision detection.
     private var annotatedCounts: [FunctionSignature: Int] = [:]
 
+    /// Effects inferred upward from un-annotated function bodies. Populated
+    /// by `applyUpwardInference(to:)` after all declared effects have been
+    /// merged. Lookups go declared → collision → upward → heuristic → silent,
+    /// so these entries never override a declared one.
+    private var upwardInferredEffects: [FunctionSignature: DeclaredEffect] = [:]
+
     public init() {}
 
     /// Builds a symbol table by walking every top-level and nested
@@ -112,6 +118,57 @@ public struct EffectSymbolTable: Sendable {
     /// encountered. Useful for diagnostics and targeted tests.
     public func isCollision(signature: FunctionSignature) -> Bool {
         (annotatedCounts[signature] ?? 0) > 1
+    }
+
+    /// Returns the upward-inferred effect for `signature` if body analysis
+    /// produced one, or `nil` when the signature had no un-annotated
+    /// declaration, its body had no recognised calls, or
+    /// `applyUpwardInference` has not yet been invoked.
+    public func upwardInferredEffect(for signature: FunctionSignature) -> DeclaredEffect? {
+        upwardInferredEffects[signature]
+    }
+
+    /// Runs body-based upward inference across every source in `sources`,
+    /// using the supplied `heuristicEffectForCall` resolver to classify
+    /// un-annotated callees via `HeuristicEffectInferrer`-equivalent logic.
+    /// Populates `upwardInferredEffects`; callers may invoke this multiple
+    /// times with additional sources (later calls merge with earlier ones;
+    /// conflicts overwrite).
+    ///
+    /// ## Resolver contract
+    ///
+    /// The resolver should return, for each `FunctionCallExprSyntax`:
+    ///   1. declared effect from this table, if present and not collision-
+    ///      withdrawn, else
+    ///   2. heuristic-downward effect, if the downward inferrer matches, else
+    ///   3. `nil`.
+    ///
+    /// It MUST NOT consult upward-inferred effects — doing so would make the
+    /// single inference pass non-deterministic across iteration orders.
+    public mutating func applyUpwardInference(
+        to sources: [SourceFileSyntax],
+        heuristicEffectForCall: (FunctionCallExprSyntax) -> DeclaredEffect?
+    ) {
+        for source in sources {
+            let inferred = UpwardEffectInferrer.inferEffects(
+                in: source,
+                resolveCalleeEffect: { call in
+                    if let sig = FunctionSignature.from(call: call) {
+                        if isCollision(signature: sig) { return nil }
+                        if let declared = self.effect(for: sig) { return declared }
+                    }
+                    return heuristicEffectForCall(call)
+                }
+            )
+            for (sig, effect) in inferred {
+                // Never overwrite a declared effect. Upward is only for
+                // un-annotated signatures; the inferrer already filters by
+                // "no @lint.effect on decl" but a sibling annotated decl
+                // could have added the same signature to `entriesBySignature`.
+                guard entriesBySignature[sig] == nil else { continue }
+                upwardInferredEffects[sig] = effect
+            }
+        }
     }
 }
 

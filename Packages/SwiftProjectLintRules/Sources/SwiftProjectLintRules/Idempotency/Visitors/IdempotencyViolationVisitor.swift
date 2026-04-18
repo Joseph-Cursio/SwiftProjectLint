@@ -99,6 +99,17 @@ final class IdempotencyViolationVisitor: BasePatternVisitor, CrossFilePatternVis
     // MARK: - Finalize phase: emit issues
 
     func finalizeAnalysis() {
+        // Phase-2.3: after all files have merged declared effects into the
+        // symbol table, run body-based upward inference. Must happen here
+        // (not during walk) because upward inference uses cross-file
+        // declared effects and heuristic-downward resolution, both of which
+        // are only complete at finalize time.
+        let allSources = Array(fileCache.values)
+        symbolTable.applyUpwardInference(
+            to: allSources,
+            heuristicEffectForCall: HeuristicEffectInferrer.infer(call:)
+        )
+
         for site in analysisSites {
             guard let body = site.function.body else { continue }
             analyzeBody(Syntax(body), site: site)
@@ -143,14 +154,16 @@ final class IdempotencyViolationVisitor: BasePatternVisitor, CrossFilePatternVis
             provenance = .declared
         } else if symbolTable.isCollision(signature: calleeSignature) {
             // Collision-withdrawn: the user annotated this callee more than
-            // once with conflicting effects. The symbol table signals the
-            // ambiguity by withdrawing the entry, and inference must not
-            // paper over it — a heuristic guess would be a third
-            // interpretation the user didn't ask for. Stay silent.
+            // once with conflicting effects. Neither upward nor heuristic
+            // inference runs — a guess would substitute a third
+            // interpretation the user did not ask for. Stay silent.
             return
+        } else if let upward = symbolTable.upwardInferredEffect(for: calleeSignature) {
+            calleeEffect = upward
+            provenance = .inferredUpward
         } else if let inferred = HeuristicEffectInferrer.infer(call: call) {
             calleeEffect = inferred
-            provenance = .inferred(
+            provenance = .inferredDownward(
                 reason: HeuristicEffectInferrer.inferenceReason(for: call) ?? ""
             )
         } else {
@@ -168,13 +181,18 @@ final class IdempotencyViolationVisitor: BasePatternVisitor, CrossFilePatternVis
         )
     }
 
-    /// Tracks whether an effect came from an explicit `@lint.effect`
-    /// declaration or from Phase-2 heuristic inference. The distinction
-    /// surfaces in diagnostic prose so users can tell when the rule is
-    /// guessing vs. reading an annotation, and how to override.
+    /// Tracks where an effect came from. The distinction surfaces in
+    /// diagnostic prose so users know what signal the rule is acting on
+    /// and how to override.
+    ///
+    /// - `declared`: `@lint.effect` annotation on the callee.
+    /// - `inferredUpward`: computed from the callee's own body (Phase 2.3).
+    /// - `inferredDownward`: computed from the call-site syntax (callee name
+    ///   or receiver name, Phase 2.2).
     private enum EffectProvenance {
         case declared
-        case inferred(reason: String)
+        case inferredUpward
+        case inferredDownward(reason: String)
     }
 
     /// Caller effects whose bodies are analysed by this rule. `nonIdempotent`
@@ -245,7 +263,11 @@ final class IdempotencyViolationVisitor: BasePatternVisitor, CrossFilePatternVis
         case .declared:
             calleeClaim = "which is declared `@lint.effect \(calleeTier)`"
             overrideHint = ""
-        case .inferred(let reason):
+        case .inferredUpward:
+            calleeClaim = "whose effect is inferred `\(calleeTier)` from its body"
+            overrideHint = " If the inference is wrong, annotate '\(calleeName)' "
+                + "explicitly with `/// @lint.effect <tier>` to override the body-based inference."
+        case .inferredDownward(let reason):
             calleeClaim = "whose effect is inferred `\(calleeTier)` \(reason)"
             overrideHint = " If the inference is wrong, annotate '\(calleeName)' "
                 + "explicitly with `/// @lint.effect <tier>` to override."

@@ -127,9 +127,16 @@ func upsert(_ user: User) async throws {}
 func upsert(_ user: User) async throws {}
 ```
 
-### Heuristic Inference Fallback (Phase 2)
+### Inference Fallbacks (Phase 2.2 and 2.3)
 
-When a callee has no `@lint.effect` annotation in the project-wide symbol table, the rule consults a small set of name-based heuristics as a fallback. Declared annotations always win; inference fires **only** for un-annotated callees.
+When a callee has no `@lint.effect` annotation in the project-wide symbol table, the rule consults two inference sources in order:
+
+1. **Upward inference (Phase 2.3).** Before emitting diagnostics, the linter walks every un-annotated function body and computes the lattice lub of that body's direct callees' effects (using declared and heuristic-downward results). If one non-idempotent call appears, the enclosing function is inferred non-idempotent; if all calls are observational, the function is observational; and so on. Upward is **one hop only** — inferred effects do not chain further within a single pass.
+2. **Heuristic-downward inference (Phase 2.2).** If no upward inference ran (the callee wasn't defined in this project, or its body had no recognised calls), the rule consults a small name-based whitelist.
+
+Declared annotations always win; inference fires **only** for un-annotated callees, and in the precedence order: `declared > collision-withdraw (silent) > upward-inferred > heuristic-downward > silent`.
+
+#### Heuristic-downward whitelist
 
 The whitelist is intentionally small:
 
@@ -139,9 +146,17 @@ The whitelist is intentionally small:
 
 Names deliberately out of scope include `save`, `put`, `update`, `write` — each has too many idempotent interpretations to classify by name alone.
 
-**Diagnostic prose makes inference visible.** An inference-driven diagnostic reads "whose effect is inferred `non_idempotent` from the callee name `insert`" (or similar), not "which is declared …", and tells the user that annotating the callee explicitly with `/// @lint.effect <tier>` will override the inference. Users know when the rule is guessing versus when it's reading an annotation.
+**Diagnostic prose makes inference visible.** Inference-driven diagnostics distinguish their provenance:
 
-**Collision-withdrawn entries skip inference.** When the symbol table withdraws a callee's entry because of multiple conflicting annotations (the OI-4 collision policy), inference does **not** run on that callee. The user's conflicting annotations already express ambiguity; substituting a third name-based interpretation would paper over it.
+- Upward: "whose effect is inferred `non_idempotent` from its body"
+- Heuristic-downward: "whose effect is inferred `non_idempotent` from the callee name `insert`"
+- Declared: "which is declared `@lint.effect non_idempotent`"
+
+All three variants suggest annotating the callee explicitly with `/// @lint.effect <tier>` as the override mechanism when the inference is wrong.
+
+**Collision-withdrawn entries skip BOTH inference paths.** When the symbol table withdraws a callee's entry because of multiple conflicting annotations (the OI-4 collision policy), neither upward nor downward inference runs on that callee. The user's conflicting annotations already express ambiguity; substituting a third interpretation would paper over it.
+
+**Two-hop chains** (A → B → C with A and B un-annotated, C declared non-idempotent) are a known Phase-2.3 first-slice limitation. Upward inference picks up B (one hop from C) but does not propagate further within the same pass. Users annotating the entry point (A) directly, or adding a declared effect on B, closes the gap.
 
 ### Interpretation of Zero Findings
 This rule was annotation-gated in Phase 1; Phase 2's heuristic inference adds a fallback for un-annotated callees. Zero findings on un-annotated source now has a narrower meaning: "no caller annotated with `@lint.effect idempotent/observational/externally_idempotent` calls a callee either declared non-idempotent (or inferred non-idempotent by the whitelist)." A zero-finding result still tells you about annotation coverage on the caller side — the inference fallback does not itself produce diagnostics without an annotated caller context.
