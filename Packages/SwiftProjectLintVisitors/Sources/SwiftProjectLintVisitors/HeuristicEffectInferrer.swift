@@ -199,7 +199,9 @@ public enum HeuristicEffectInferrer {
         "publish",
         "enqueue",
         "post",
-        "send"
+        "send",
+        "stop",
+        "destroy"
     ]
 
     private static let idempotentNames: Set<String> = [
