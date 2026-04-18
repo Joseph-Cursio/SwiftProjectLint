@@ -44,6 +44,7 @@ Used with `--categories`:
 | `networking` | Missing error handling, synchronous calls |
 | `uiPatterns` | Navigation structure, previews, styling consistency |
 | `modernization` | Deprecated APIs, legacy concurrency patterns |
+| `idempotency` | Effect-annotation contracts, retry-context safety, idempotency-key routing |
 
 ### Exit Codes
 
@@ -214,7 +215,7 @@ Inline suppression applies **per-file only**. Cross-file issues (e.g. `Related D
 
 ## Rule Reference
 
-See [docs/rules/RULES.md](rules/RULES.md) for the complete list of 150 rules organized by category, with links to per-rule documentation.
+See [docs/rules/RULES.md](rules/RULES.md) for the complete list of 159 rules organized by category, with links to per-rule documentation.
 
 Each rule doc includes:
 - Display name and identifier

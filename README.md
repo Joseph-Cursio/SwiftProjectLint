@@ -6,13 +6,13 @@ I allowed different AIs to hallucinate the market potential of this experiment.
 
 # Swift Project Linter
 
-A static analysis tool for SwiftUI projects that detects architectural issues, performance problems, and code quality concerns. Parses Swift source files using SwiftSyntax AST visitors to identify anti-patterns across 150 rules in 11 categories.
+A static analysis tool for SwiftUI projects that detects architectural issues, performance problems, and code quality concerns. Parses Swift source files using SwiftSyntax AST visitors to identify anti-patterns across 159 rules in 12 categories.
 
 ## Features
 
 - **SwiftSyntax AST Analysis**: Precise, AST-based pattern detection — no regex
 - **Cross-File Analysis**: Detects issues spanning multiple files (duplicate state, view hierarchies)
-- **150 Lint Rules** across 11 categories
+- **159 Lint Rules** across 12 categories
 - **Three delivery targets**: macOS app GUI, CLI for CI/CD, and a reusable Core library
 - **YAML configuration**: `.swiftprojectlint.yml` for per-project rule customization
 - **Inline suppression**: `// swiftprojectlint:disable` comments for per-line control
@@ -43,7 +43,7 @@ swift run CLI /path/to/project --categories stateManagement performance --thresh
 
 ## Rules
 
-150 rules across 11 categories. See [Docs/rules/RULES.md](Docs/rules/RULES.md) for the full reference.
+159 rules across 12 categories. See [Docs/rules/RULES.md](Docs/rules/RULES.md) for the full reference.
 
 | Category | Rules |
 |----------|-------|
@@ -221,7 +221,7 @@ let b = result!
 
 ## Documentation
 
-- [Docs/rules/RULES.md](Docs/rules/RULES.md) — Full rule reference (150 rules)
+- [Docs/rules/RULES.md](Docs/rules/RULES.md) — Full rule reference (159 rules)
 - [Docs/user-guide.md](Docs/user-guide.md) — User guide
 - [Docs/architecture.md](Docs/architecture.md) — Architecture deep-dive
 - [Docs/reference.md](Docs/reference.md) — CLI and configuration reference
