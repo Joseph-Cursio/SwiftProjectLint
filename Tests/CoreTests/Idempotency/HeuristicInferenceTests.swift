@@ -25,6 +25,31 @@ struct HeuristicInferenceUnitTests {
         return try #require(finder.call)
     }
 
+    /// Finds the first `MemberAccessExpr`-based call whose method name
+    /// matches `method`. Used when a test's source contains multiple
+    /// calls (e.g. a binding's initializer call plus the call under test).
+    private func memberCall(method: String, in source: String) throws -> FunctionCallExprSyntax {
+        final class Finder: SyntaxVisitor {
+            let method: String
+            var call: FunctionCallExprSyntax?
+            init(method: String) {
+                self.method = method
+                super.init(viewMode: .sourceAccurate)
+            }
+            override func visit(_ node: FunctionCallExprSyntax) -> SyntaxVisitorContinueKind {
+                if call == nil,
+                   let member = node.calledExpression.as(MemberAccessExprSyntax.self),
+                   member.declName.baseName.text == method {
+                    call = node
+                }
+                return .visitChildren
+            }
+        }
+        let finder = Finder(method: method)
+        finder.walk(Parser.parse(source: source))
+        return try #require(finder.call, "expected a call to .\(method)")
+    }
+
     // MARK: - Non-idempotent name triggers
 
     @Test
@@ -140,6 +165,211 @@ struct HeuristicInferenceUnitTests {
     func unrecognisedName_returnsNil() throws {
         let call = try firstCall(in: "func f() { doThing(x) }")
         #expect(HeuristicEffectInferrer.infer(call: call) == nil)
+    }
+
+    // MARK: - Prefix matching (Phase 2 third slice — too-narrow fix)
+
+    @Test
+    func prefixSendEmail_infersNonIdempotent() throws {
+        // The canonical R5 Run B case. `sendEmail` is a `send*` prefix
+        // with an uppercase next character, no stdlib receiver — fires.
+        let call = try firstCall(in: "func f() { sendEmail(to: x) }")
+        #expect(HeuristicEffectInferrer.infer(call: call) == .nonIdempotent)
+    }
+
+    @Test
+    func prefixSendGiftEmail_infersNonIdempotent() throws {
+        let call = try firstCall(in: "func f() { sendGiftEmail(for: gift) }")
+        #expect(HeuristicEffectInferrer.infer(call: call) == .nonIdempotent)
+    }
+
+    @Test
+    func prefixCreateUser_infersNonIdempotent() throws {
+        let call = try firstCall(in: "func f() { createUser(name: \"a\") }")
+        #expect(HeuristicEffectInferrer.infer(call: call) == .nonIdempotent)
+    }
+
+    @Test
+    func prefixInsertRow_infersNonIdempotent() throws {
+        let call = try firstCall(in: "func f() { insertRow(row) }")
+        #expect(HeuristicEffectInferrer.infer(call: call) == .nonIdempotent)
+    }
+
+    @Test
+    func prefixPublishEvent_infersNonIdempotent() throws {
+        let call = try firstCall(in: "func f() { publishEvent(event) }")
+        #expect(HeuristicEffectInferrer.infer(call: call) == .nonIdempotent)
+    }
+
+    @Test
+    func prefixAppendUnique_infersNonIdempotent() throws {
+        let call = try firstCall(in: "func f() { appendUnique(row) }")
+        #expect(HeuristicEffectInferrer.infer(call: call) == .nonIdempotent)
+    }
+
+    @Test
+    func prefixEnqueueJob_infersNonIdempotent() throws {
+        let call = try firstCall(in: "func f() { enqueueJob(job) }")
+        #expect(HeuristicEffectInferrer.infer(call: call) == .nonIdempotent)
+    }
+
+    @Test
+    func prefixPostMessage_infersNonIdempotent() throws {
+        let call = try firstCall(in: "func f() { postMessage(m) }")
+        #expect(HeuristicEffectInferrer.infer(call: call) == .nonIdempotent)
+    }
+
+    @Test
+    func prefixMemberCall_mailgunSendEmail_infersNonIdempotent() throws {
+        // The other canonical R5 Run B case: `mailgun.sendEmail(...)`.
+        // Receiver unresolved (mailgun is a global / property-wrapper
+        // reference in real code) — the gate only silences on
+        // `.stdlibCollection`, not `.unresolved`.
+        let call = try memberCall(method: "sendEmail", in: "func f() { mailgun.sendEmail(x) }")
+        #expect(HeuristicEffectInferrer.infer(call: call) == .nonIdempotent)
+    }
+
+    // MARK: - Prefix matching — camelCase gate (negative cases)
+
+    @Test
+    func sendingLowercaseNext_notMatched() throws {
+        // `sending` is a participle, not a mutation verb. Lowercase next
+        // character fails the camel-case gate.
+        let call = try firstCall(in: "func f() { sending(x) }")
+        #expect(HeuristicEffectInferrer.infer(call: call) == nil)
+    }
+
+    @Test
+    func publisher_notMatched() throws {
+        // Combine's `publisher(for:)` etc. — noun form, idempotent factory.
+        let call = try firstCall(in: "func f() { publisher(for: x) }")
+        #expect(HeuristicEffectInferrer.infer(call: call) == nil)
+    }
+
+    @Test
+    func appending_notMatched() throws {
+        // `NSString.appending`, `Array.appending` — functional form,
+        // returns new value. Lowercase `i` fails the camel-case gate.
+        let call = try firstCall(in: "func f() { appending(x) }")
+        #expect(HeuristicEffectInferrer.infer(call: call) == nil)
+    }
+
+    @Test
+    func postponed_notMatched() throws {
+        // Starts with `post` but the next character is lowercase.
+        let call = try firstCall(in: "func f() { postponed(task) }")
+        #expect(HeuristicEffectInferrer.infer(call: call) == nil)
+    }
+
+    @Test
+    func creator_notMatched() throws {
+        let call = try firstCall(in: "func f() { creator() }")
+        #expect(HeuristicEffectInferrer.infer(call: call) == nil)
+    }
+
+    // MARK: - Prefix matching — stdlib gate
+
+    @Test
+    func prefixOnStringLiteralReceiver_suppressed() throws {
+        // Even if a hypothetical `sendAsBytes()` method existed on String,
+        // we don't fire on stdlib-collection receivers. Paranoid case —
+        // the specific name probably isn't stdlib, but the gate is broad.
+        let call = try memberCall(method: "sendAsBytes", in: #"func f() { "hello".sendAsBytes() }"#)
+        #expect(HeuristicEffectInferrer.infer(call: call) == nil)
+    }
+
+    @Test
+    func prefixOnArrayLiteralReceiver_suppressed() throws {
+        // `Array.appending(_:)` exists — returns a new array, idempotent.
+        // Prefix match `appendingX` on Array must stay silent.
+        let call = try memberCall(method: "appending", in: "func f() { [1, 2].appending(3) }")
+        #expect(HeuristicEffectInferrer.infer(call: call) == nil)
+    }
+
+    @Test
+    func prefixInferenceReason_emitted() throws {
+        let call = try firstCall(in: "func f() { sendEmail(x) }")
+        let reason = try #require(HeuristicEffectInferrer.inferenceReason(for: call))
+        #expect(reason.contains("send"))
+        #expect(reason.contains("sendEmail"))
+        #expect(reason.contains("prefix"))
+    }
+
+    // MARK: - Receiver-type gating (Phase 2 second slice)
+
+    @Test
+    func arrayLiteralAppend_isExcluded() throws {
+        // `[1, 2].append(3)` — bare-name `append` is whitelisted but the
+        // receiver resolves to an Array literal. Stdlib exclusion fires.
+        let call = try firstCall(in: "func f() { [1, 2].append(3) }")
+        #expect(HeuristicEffectInferrer.infer(call: call) == nil)
+    }
+
+    @Test
+    func localArrayAppend_isExcluded() throws {
+        // Regression fixture for the R5 Run D noise diagnostic: untyped
+        // local binding initialised from an array literal, then mutated
+        // via `append`.
+        let source = """
+        func f(owner: User) {
+            var users = [owner]
+            users.append(other)
+        }
+        """
+        let call = try memberCall(method: "append", in: source)
+        #expect(HeuristicEffectInferrer.infer(call: call) == nil)
+    }
+
+    @Test
+    func typedArrayParameterAppend_isExcluded() throws {
+        let call = try memberCall(
+            method: "append",
+            in: "func f(xs: [Int]) { xs.append(1) }"
+        )
+        #expect(HeuristicEffectInferrer.infer(call: call) == nil)
+    }
+
+    @Test
+    func userDefinedQueueAppend_stillFires() throws {
+        // User-defined receiver type: bare-name heuristic proceeds
+        // unchanged. This is the anchor test ensuring the gate doesn't
+        // over-reach and silence legitimate catches on non-stdlib types.
+        let call = try memberCall(
+            method: "append",
+            in: #"func f(q: UserQueue) { q.append("a") }"#
+        )
+        #expect(HeuristicEffectInferrer.infer(call: call) == .nonIdempotent)
+    }
+
+    @Test
+    func setInsert_isExcluded() throws {
+        // Set.insert is idempotent by set semantics. Previously the
+        // bare-name `insert` heuristic flagged it as non_idempotent.
+        let call = try memberCall(
+            method: "insert",
+            in: "func f(s: Set<Int>) { s.insert(1) }"
+        )
+        #expect(HeuristicEffectInferrer.infer(call: call) == nil)
+    }
+
+    @Test
+    func userDefinedSetInsert_stillFires() throws {
+        // User-defined `UserSet` — not stdlib Set. The gate must not
+        // apply; `insert` still fires as non_idempotent.
+        let call = try memberCall(
+            method: "insert",
+            in: "func f(s: UserSet) { s.insert(1) }"
+        )
+        #expect(HeuristicEffectInferrer.infer(call: call) == .nonIdempotent)
+    }
+
+    @Test
+    func excludedPair_producesNoReason() throws {
+        // Mirrors the `infer(call:)` suppression — `inferenceReason`
+        // must return nil on excluded pairs so visitors don't emit stray
+        // provenance prose when the effect itself was suppressed.
+        let call = try memberCall(method: "append", in: "func f() { [1, 2].append(3) }")
+        #expect(HeuristicEffectInferrer.inferenceReason(for: call) == nil)
     }
 
     // MARK: - Reason strings

@@ -72,11 +72,36 @@ public enum HeuristicEffectInferrer {
             return .observational
         }
 
-        // Bare-name whitelists — receiver-agnostic.
+        // Bare-name whitelists — now receiver-type gated. If the receiver
+        // resolves to a stdlib collection whose (type, method) pair is in
+        // the exclusion table, the bare-name match is suppressed. Named
+        // and unresolved receivers fall through to the original behaviour.
+        let onWhitelist = idempotentNames.contains(calleeName)
+            || nonIdempotentNames.contains(calleeName)
+        if onWhitelist,
+           StdlibExclusions.isExcluded(
+               receiver: ReceiverTypeResolver.resolve(receiverOf: call),
+               method: calleeName
+           ) {
+            return nil
+        }
+
         if idempotentNames.contains(calleeName) {
             return .idempotent
         }
         if nonIdempotentNames.contains(calleeName) {
+            return .nonIdempotent
+        }
+
+        // Camel-case-gated prefix match for non-idempotent verbs.
+        // `sendEmail`, `createUser`, `publishEvent`, etc. Ruled out:
+        //   - `sending`, `sender`, `publisher`, `appending` (lowercase next)
+        //   - `Array.sendAnything` and friends (stdlib-collection receiver)
+        // See `matchesNonIdempotentPrefix` for the exact rules.
+        if matchesNonIdempotentPrefix(calleeName) != nil {
+            if case .stdlibCollection = ReceiverTypeResolver.resolve(receiverOf: call) {
+                return nil
+            }
             return .nonIdempotent
         }
 
@@ -96,7 +121,23 @@ public enum HeuristicEffectInferrer {
             return "from logger-shaped receiver `\(receiverName).\(calleeName)`"
         }
         if idempotentNames.contains(calleeName) || nonIdempotentNames.contains(calleeName) {
+            // Receiver-type-excluded pairs produce no reason, mirroring
+            // `infer(call:)` which returns nil in the same case.
+            if StdlibExclusions.isExcluded(
+                receiver: ReceiverTypeResolver.resolve(receiverOf: call),
+                method: calleeName
+            ) {
+                return nil
+            }
             return "from the callee name `\(calleeName)`"
+        }
+        // Prefix-matched calls credit the matched verb explicitly so the
+        // user can see which heuristic fired and why.
+        if let prefix = matchesNonIdempotentPrefix(calleeName) {
+            if case .stdlibCollection = ReceiverTypeResolver.resolve(receiverOf: call) {
+                return nil
+            }
+            return "from the callee-name prefix `\(prefix)` (in `\(calleeName)`)"
         }
         return nil
     }
@@ -152,4 +193,27 @@ public enum HeuristicEffectInferrer {
         "setIfAbsent",
         "replace"
     ]
+
+    /// Returns the matched prefix when `name` is a non-idempotent
+    /// camelCase-composed name (e.g. `sendEmail`, `createUser`,
+    /// `publishEvent`). Returns `nil` when:
+    /// - `name` exactly equals a whitelist entry (handled by bare-name path)
+    /// - `name` starts with a whitelist entry but the next character is
+    ///   lowercase (e.g. `sending`, `sender`, `publisher`, `appending`,
+    ///   `creator`) — typically participle or noun forms, not mutation verbs
+    /// - `name` doesn't start with any whitelist entry
+    ///
+    /// The camel-case gate is the key precision mechanism. Swift methods
+    /// almost always camelCase, so `prefix + Uppercase` signals a composed
+    /// verb ("send-email", "create-user") while `prefix + lowercase`
+    /// signals a continuation of the prefix into a different word
+    /// ("send-ing", "publish-er").
+    private static func matchesNonIdempotentPrefix(_ name: String) -> String? {
+        for prefix in nonIdempotentNames {
+            guard name.hasPrefix(prefix), name.count > prefix.count else { continue }
+            let nextIndex = name.index(name.startIndex, offsetBy: prefix.count)
+            if name[nextIndex].isUppercase { return prefix }
+        }
+        return nil
+    }
 }
