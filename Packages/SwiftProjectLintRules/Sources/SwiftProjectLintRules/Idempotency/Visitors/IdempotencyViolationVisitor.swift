@@ -79,7 +79,9 @@ final class IdempotencyViolationVisitor: BasePatternVisitor, CrossFilePatternVis
 
     override func visit(_ node: FunctionDeclSyntax) -> SyntaxVisitorContinueKind {
         guard let callerEffect = EffectAnnotationParser.parseEffect(declaration: node),
-              callerEffect == .idempotent || callerEffect == .observational,
+              callerEffect == .idempotent
+                || callerEffect == .observational
+                || callerEffect == .externallyIdempotent,
               node.body != nil else {
             return .visitChildren
         }
@@ -136,15 +138,38 @@ final class IdempotencyViolationVisitor: BasePatternVisitor, CrossFilePatternVis
         }
     }
 
-    /// Effect-conflict rules for Phase 1. Only direct declared-vs-declared mismatches
-    /// fire; unannotated callees stay silent (Phase 1 does not infer).
+    /// Effect-conflict rules. Only direct declared-vs-declared mismatches fire;
+    /// unannotated callees stay silent (Phase 1 does not infer).
+    ///
+    /// Phase 2 added `externally_idempotent` rows:
+    ///
+    /// - `idempotent → externally_idempotent`: **OK by default.** The caller
+    ///   is trusted to route a deduplication key through. Verifying the key
+    ///   actually reaches the callee is deferred to a follow-up rule
+    ///   (`missingIdempotencyKey`).
+    /// - `observational → externally_idempotent`: **violation.** External
+    ///   operations unconditionally mutate business state — even with a key,
+    ///   a Stripe charge is not an observation. The observational contract
+    ///   forbids this regardless of key routing.
+    /// - `externally_idempotent → non_idempotent`: **violation.** Any
+    ///   unconditionally non-idempotent work inside a keyed operation
+    ///   re-fires on replay regardless of the caller's idempotency key, so
+    ///   the keyed guarantee is broken.
+    /// - `externally_idempotent → idempotent / observational / externally_idempotent`:
+    ///   **OK.** Composition holds.
     private func violates(caller: DeclaredEffect, callee: DeclaredEffect) -> Bool {
         switch (caller, callee) {
+        // Phase 1 cases
         case (.idempotent, .nonIdempotent):
             return true
         case (.observational, .nonIdempotent):
             return true
         case (.observational, .idempotent):
+            return true
+        // Phase 2 cases (externally_idempotent tier)
+        case (.observational, .externallyIdempotent):
+            return true
+        case (.externallyIdempotent, .nonIdempotent):
             return true
         default:
             return false
@@ -176,6 +201,16 @@ final class IdempotencyViolationVisitor: BasePatternVisitor, CrossFilePatternVis
                 + "`@lint.effect \(calleeTier)`."
             suggestion = "Either change '\(calleeName)' to an idempotent alternative "
                 + "(e.g. upsert, set-status-by-id), or weaken the declared effect of '\(callerName)'."
+        case .externallyIdempotent:
+            headline = "Externally-idempotent contract violation: '\(callerName)' is declared "
+                + "`@lint.effect externally_idempotent` but calls '\(calleeName)', which is "
+                + "declared `@lint.effect \(calleeTier)`. An externally-idempotent operation's "
+                + "keyed guarantee is only as strong as its weakest uninstrumented call — any "
+                + "unconditionally non-idempotent work inside the body re-fires on replay "
+                + "regardless of the caller's idempotency key."
+            suggestion = "Route '\(calleeName)' through its own idempotency key, replace it "
+                + "with an idempotent alternative, or weaken '\(callerName)' to "
+                + "`@lint.effect non_idempotent`."
         default:
             return
         }
@@ -194,6 +229,7 @@ final class IdempotencyViolationVisitor: BasePatternVisitor, CrossFilePatternVis
         switch effect {
         case .idempotent: return "idempotent"
         case .observational: return "observational"
+        case .externallyIdempotent: return "externally_idempotent"
         case .nonIdempotent: return "non_idempotent"
         }
     }

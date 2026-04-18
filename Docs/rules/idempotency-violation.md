@@ -12,15 +12,24 @@ A function can declare its effect contract via `/// @lint.effect` in its doc com
 ### Discussion
 `IdempotencyViolationVisitor` walks each function declaration in the project, reads its `@lint.effect` annotation, and — for callers declared `idempotent` or `observational` — checks every direct call in the body against the project-wide `EffectSymbolTable`. The visitor resolves callees by full function signature (name + argument labels), so overloads that Swift distinguishes resolve independently. Unannotated callees are silent (Phase 1 does not infer); callees whose symbol-table entry was withdrawn by a collision are also silent.
 
-The rule covers three combinations:
+The rule covers five combinations:
 
 | Caller effect | Callee effect | Fires? |
 |---|---|:-:|
 | `idempotent` | `non_idempotent` | ✓ |
 | `observational` | `idempotent` | ✓ |
 | `observational` | `non_idempotent` | ✓ |
+| `observational` | `externally_idempotent` | ✓ (Phase 2) |
+| `externally_idempotent` | `non_idempotent` | ✓ (Phase 2) |
 
-All other combinations are permissible under the Phase-1 lattice. In particular, `idempotent` can freely call `observational` (logging inside an idempotent function is fine), and either can call unannotated callees without a diagnostic.
+All other combinations are permissible. In particular, `idempotent` can freely call `observational` (logging inside an idempotent function is fine), and either can call unannotated callees without a diagnostic.
+
+**A note on `externally_idempotent` callees.** The tier models functions that are idempotent *only* when routed through a caller-supplied deduplication key (Stripe, SES, Mailgun, SNS). When an `idempotent`, `externally_idempotent`, or retry-context caller calls an `externally_idempotent` function, this rule stays silent — it trusts the caller to route the key. Whether the key actually reaches the callee is a separate check that a future rule (`missingIdempotencyKey`) will verify. Until then, the keyed path is trusted at the point it's declared.
+
+The two `externally_idempotent` rows the rule *does* fire on capture the cases where key routing doesn't rescue the situation:
+
+- **`observational → externally_idempotent`.** Observational functions must not mutate business state. A Stripe charge with an idempotency key is still a state mutation — the key only ensures the mutation converges under replay, not that it did not happen. Observational is stricter than both sides of the keyed bargain.
+- **`externally_idempotent → non_idempotent`.** Any unconditionally non-idempotent work inside a keyed operation's body re-fires on replay regardless of the caller's idempotency key. An audit-log append inside `stripeCharge(idempotencyKey:)` runs twice on webhook redelivery; the key does not protect it. The keyed guarantee is only as strong as its weakest uninstrumented call.
 
 ### Violating Examples
 ```swift
@@ -38,6 +47,25 @@ func upsert(_ user: User) async throws {}
 /// @lint.effect observational
 func logUser(_ user: User) async throws {
     try await upsert(user)            // observational must not mutate business state — flagged
+}
+
+// Phase 2 — observational caller into a keyed external operation
+/// @lint.effect externally_idempotent
+func charge(idempotencyKey: String, amount: Int) async throws {}
+
+/// @lint.effect observational
+func reportChargeMetric(orderID: String, amount: Int) async throws {
+    try await charge(idempotencyKey: orderID, amount: amount)   // flagged
+}
+
+// Phase 2 — keyed external caller with a non-idempotent helper inside
+/// @lint.effect non_idempotent
+func appendAudit(_ event: String) async throws {}
+
+/// @lint.effect externally_idempotent
+func chargeWithAudit(idempotencyKey: String, amount: Int) async throws {
+    try await appendAudit("charge \(idempotencyKey)")           // flagged
+    try await charge(idempotencyKey: idempotencyKey, amount: amount)
 }
 ```
 
@@ -67,6 +95,22 @@ func logEvent(_ name: String) {}
 /// @lint.effect observational
 func trace(_ event: String) {
     logEvent("traced.\(event)")       // observational → observational, no diagnostic
+}
+
+// Phase 2 — idempotent caller routing a key through externally_idempotent
+/// @lint.effect externally_idempotent
+func stripeCharge(idempotencyKey: String, amount: Int) async throws {}
+
+/// @lint.effect idempotent
+func process(orderID: String, amount: Int) async throws {
+    try await stripeCharge(idempotencyKey: orderID, amount: amount)   // no diagnostic
+}
+
+// Phase 2 — externally_idempotent wrapper that delegates to another keyed op
+/// @lint.effect externally_idempotent
+func billCustomer(idempotencyKey: String, amount: Int) async throws {
+    try await stripeCharge(idempotencyKey: idempotencyKey, amount: amount)
+    // composition holds; key is carried through
 }
 ```
 

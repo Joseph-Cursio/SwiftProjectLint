@@ -2,15 +2,21 @@ import SwiftSyntax
 
 /// Declared idempotency effect for a function, parsed from `/// @lint.effect` doc comments.
 ///
-/// Phase 1 of the idempotency trial recognises three tiers: `idempotent`, `observational`,
-/// and `non_idempotent`. `observational` was promoted into the lattice to resolve OI-5 —
-/// see the Formalized Effect Lattice section of the proposal. Remaining tiers (`pure`,
-/// `transactional_idempotent`, `externally_idempotent`, `unknown`) stay out of scope and
-/// are treated as unrecognised — see `docs/phase1/trial-scope.md` in the
-/// swiftIdempotency repo.
+/// Phase 1 of the idempotency trial recognised three tiers: `idempotent`,
+/// `observational`, and `non_idempotent`. Phase 2 introduces `externally_idempotent`
+/// for functions that are idempotent *only if* routed through a caller-supplied
+/// deduplication key — the characteristic shape of Stripe / SES / SNS / Mailgun
+/// APIs that accept a client-provided idempotency token. The key-routing check
+/// itself is deferred to a follow-up rule (`missingIdempotencyKey`); Phase 2's
+/// tier-introduction commit treats the key as assumed-routed at call sites that
+/// do not involve `observational` callers or `non_idempotent` callees.
+///
+/// Remaining tiers (`pure`, `transactional_idempotent`, `unknown`) stay out of
+/// scope and are treated as unrecognised — see `docs/phase1/trial-scope.md`.
 public enum DeclaredEffect: Sendable, Equatable {
     case idempotent
     case observational
+    case externallyIdempotent
     case nonIdempotent
 }
 
@@ -141,6 +147,8 @@ public enum EffectAnnotationParser {
             return .idempotent
         case "observational":
             return .observational
+        case "externally_idempotent":
+            return .externallyIdempotent
         case "non_idempotent":
             return .nonIdempotent
         default:

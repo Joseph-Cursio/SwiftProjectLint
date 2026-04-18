@@ -10,7 +10,9 @@
 A function declared `/// @lint.context replayable` or `/// @lint.context retry_safe` runs under at-least-once semantics. Upstream retries, webhook redeliveries, message-queue replays, or scheduled-job re-runs can invoke the function multiple times with the same input. Calling a `/// @lint.effect non_idempotent` function from such a body is the defining bug this rule catches: on replay, the non-idempotent call fires again, and whatever it does — sends an email, creates a database row without an idempotency key, charges a payment method, publishes a message — happens twice.
 
 ### Discussion
-`NonIdempotentInRetryContextVisitor` walks each function declaration whose doc comment carries a `@lint.context` annotation, then inspects every direct call in its body. Callees annotated `/// @lint.effect non_idempotent` trigger the rule; everything else (idempotent, observational, unannotated, or a callee whose symbol-table entry was withdrawn by a collision) passes silently.
+`NonIdempotentInRetryContextVisitor` walks each function declaration whose doc comment carries a `@lint.context` annotation, then inspects every direct call in its body. Callees annotated `/// @lint.effect non_idempotent` trigger the rule; everything else (idempotent, observational, externally_idempotent, unannotated, or a callee whose symbol-table entry was withdrawn by a collision) passes silently.
+
+**Note on `externally_idempotent` callees.** These are functions idempotent only when routed through a caller-supplied deduplication key (Stripe, SES, Mailgun, SNS). The rule trusts the caller to route the key and stays silent. Whether the key actually reaches the callee is a separate check that a future rule (`missingIdempotencyKey`) will verify. Until then, a keyed external operation inside a `replayable` body is not flagged — the happy path for webhook handlers using idempotency tokens.
 
 The visitor descends into non-escaping closure bodies but stops at escaping-closure boundaries (`Task { }`, `withTaskGroup`, `Task.detached`, SwiftUI's `.task { }` modifier). Those boundaries are retry contexts in their own right, and Phase 1 does not chain them.
 
