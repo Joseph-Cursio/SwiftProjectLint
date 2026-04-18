@@ -29,12 +29,19 @@ public enum DeclaredEffect: Sendable, Equatable {
 
 /// Declared execution context for a function, parsed from `/// @lint.context` doc comments.
 ///
-/// `replayable` and `retry_safe` are semantically equivalent to the linter —
-/// both impose "callees must be idempotent" on the body. Only the documentation
-/// intent differs. `once` and `dedup_guarded` are out of scope for Phase 1.
+/// - `replayable` / `retry_safe` are semantically equivalent to the linter:
+///   both impose "callees must be idempotent" on the body. Only the
+///   documentation intent differs.
+/// - `once` is the inverse contract: the function asserts that it must run
+///   at most once across all replays, retries, or iterations. The
+///   `onceContractViolation` rule fires when a `@context once` callee
+///   appears in a position where it could be re-invoked (loop body,
+///   `replayable` / `retry_safe` caller).
+/// - `dedup_guarded` remains out of scope.
 public enum ContextEffect: Sendable, Equatable {
     case replayable
     case retrySafe
+    case once
 }
 
 /// Parses `/// @lint.effect <tier>` and `/// @lint.context <kind>` from the doc-comment
@@ -189,6 +196,8 @@ public enum EffectAnnotationParser {
             return .replayable
         case "retry_safe":
             return .retrySafe
+        case "once":
+            return .once
         default:
             return nil
         }
