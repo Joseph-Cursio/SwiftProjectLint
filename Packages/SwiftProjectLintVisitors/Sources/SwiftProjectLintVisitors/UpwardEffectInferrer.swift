@@ -1,5 +1,24 @@
 import SwiftSyntax
 
+/// One result from upward inference: the effect plus a hop depth.
+///
+/// `depth` measures the longest chain of un-annotated functions back to a
+/// declared or heuristic-downward anchor, counting the function being
+/// described as one hop. So:
+/// - `depth: 1` means the function's lub-contributing callees are all
+///   declared or heuristic anchors (the single-pass / one-hop case).
+/// - `depth: 2+` means at least one lub-contributing callee was itself
+///   upward-inferred (multi-hop fixed-point).
+public struct UpwardInference: Sendable, Equatable {
+    public let effect: DeclaredEffect
+    public let depth: Int
+
+    public init(effect: DeclaredEffect, depth: Int) {
+        self.effect = effect
+        self.depth = depth
+    }
+}
+
 /// Phase-2.3 body-based effect inference ("upward inference").
 ///
 /// Given an un-annotated function declaration, walks its body and computes
@@ -19,14 +38,16 @@ import SwiftSyntax
 /// calls `logMetric` is observational (upward) rather than non-idempotent
 /// (downward-name).
 ///
-/// ## One-hop scope
+/// ## Single-pass vs multi-hop
 ///
-/// The inferrer uses only **declared effects** and **heuristic-downward
-/// effects** of body callees. It does **not** chain through other upward-
-/// inferred callees. This keeps inference order-invariant for a single
-/// pass without fixed-point iteration. Two-hop chains (A calls B calls
-/// non-idempotent C, with B un-annotated) stay un-inferred — that's a
-/// known limitation and an acceptable first-slice trade-off.
+/// `inferEffects` itself is single-pass and order-invariant: the resolver
+/// closure decides what to return for each callee, and the inferrer just
+/// takes the lub. The "one-hop" or "multi-hop" policy lives in the
+/// resolver — see `EffectSymbolTable.applyUpwardInference(multiHop:)`.
+/// In one-hop mode the resolver returns only declared and heuristic-
+/// downward effects. In multi-hop mode it also returns prior-pass upward
+/// results, and `EffectSymbolTable` iterates `inferEffects` to a fixed
+/// point.
 ///
 /// ## Escaping-closure policy
 ///
@@ -38,23 +59,31 @@ public enum UpwardEffectInferrer {
 
     /// Computes upward-inferred effects for every un-annotated function in
     /// `source`. Callers supply a `resolveCalleeEffect` function that maps
-    /// a call-site callee to its declared or heuristic-downward effect —
-    /// this is how the inferrer stays decoupled from the symbol table and
-    /// the downward inferrer.
+    /// a call-site callee to an `UpwardInference` (effect + depth). The
+    /// inferrer takes the lub of contributing effects and assigns the
+    /// resulting function `depth = 1 + max(depth of lub-contributing
+    /// callees)`. Callees whose effect is *not* the lub are still walked
+    /// and counted (so an unrelated 5-hop callee doesn't inflate depth
+    /// when a closer callee determines the lub).
     public static func inferEffects(
         in source: SourceFileSyntax,
-        resolveCalleeEffect: (FunctionCallExprSyntax) -> DeclaredEffect?
-    ) -> [FunctionSignature: DeclaredEffect] {
+        resolveCalleeEffect: (FunctionCallExprSyntax) -> UpwardInference?
+    ) -> [FunctionSignature: UpwardInference] {
         let collector = UnannotatedFunctionCollector()
         collector.walk(source)
 
-        var results: [FunctionSignature: DeclaredEffect] = [:]
+        var results: [FunctionSignature: UpwardInference] = [:]
         for decl in collector.functions {
             guard let body = decl.body else { continue }
-            let effects = collectEffects(in: Syntax(body), resolve: resolveCalleeEffect)
-            guard let inferred = leastUpperBound(of: effects) else { continue }
+            let calleeResults = collectResults(in: Syntax(body), resolve: resolveCalleeEffect)
+            guard let lub = leastUpperBound(of: calleeResults.map { $0.effect }) else { continue }
+            let lubRank = rank(of: lub)
+            let contributingDepths = calleeResults
+                .filter { rank(of: $0.effect) == lubRank }
+                .map { $0.depth }
+            let depth = 1 + (contributingDepths.max() ?? 0)
             let signature = FunctionSignature.from(declaration: decl)
-            results[signature] = inferred
+            results[signature] = UpwardInference(effect: lub, depth: depth)
         }
         return results
     }
@@ -85,19 +114,19 @@ public enum UpwardEffectInferrer {
         }
     }
 
-    private static func collectEffects(
+    private static func collectResults(
         in syntax: Syntax,
-        resolve: (FunctionCallExprSyntax) -> DeclaredEffect?
-    ) -> [DeclaredEffect] {
-        var out: [DeclaredEffect] = []
+        resolve: (FunctionCallExprSyntax) -> UpwardInference?
+    ) -> [UpwardInference] {
+        var out: [UpwardInference] = []
         collect(in: syntax, resolve: resolve, accumulator: &out)
         return out
     }
 
     private static func collect(
         in syntax: Syntax,
-        resolve: (FunctionCallExprSyntax) -> DeclaredEffect?,
-        accumulator: inout [DeclaredEffect]
+        resolve: (FunctionCallExprSyntax) -> UpwardInference?,
+        accumulator: inout [UpwardInference]
     ) {
         // Don't recurse into nested function declarations — they are their
         // own inference sites.
@@ -106,8 +135,8 @@ public enum UpwardEffectInferrer {
             return
         }
         if let call = syntax.as(FunctionCallExprSyntax.self),
-           let effect = resolve(call) {
-            accumulator.append(effect)
+           let result = resolve(call) {
+            accumulator.append(result)
         }
         for child in syntax.children(viewMode: .sourceAccurate) {
             collect(in: child, resolve: resolve, accumulator: &accumulator)

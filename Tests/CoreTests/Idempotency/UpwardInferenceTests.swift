@@ -56,10 +56,21 @@ struct UpwardInferrerUnitTests {
 
     // MARK: - Body walk semantics
 
-    private func infer(_ source: String, resolve: (FunctionCallExprSyntax) -> DeclaredEffect?) -> [FunctionSignature: DeclaredEffect] {
+    /// Helper that wraps the bare-effect resolver into the
+    /// `UpwardInference?` shape the inferrer now requires. All single-pass
+    /// fixtures here treat resolver-supplied effects as anchors (depth 0),
+    /// matching the symbol-table's behaviour for declared / heuristic
+    /// effects.
+    private func infer(
+        _ source: String,
+        resolve: @escaping (FunctionCallExprSyntax) -> DeclaredEffect?
+    ) -> [FunctionSignature: UpwardInference] {
         UpwardEffectInferrer.inferEffects(
             in: Parser.parse(source: source),
-            resolveCalleeEffect: resolve
+            resolveCalleeEffect: { call in
+                guard let effect = resolve(call) else { return nil }
+                return UpwardInference(effect: effect, depth: 0)
+            }
         )
     }
 
@@ -72,7 +83,8 @@ struct UpwardInferrerUnitTests {
         """
         let result = infer(source) { _ in .nonIdempotent }
         let sig = FunctionSignature(name: "caller", argumentLabels: [])
-        #expect(result[sig] == .nonIdempotent)
+        #expect(result[sig]?.effect == .nonIdempotent)
+        #expect(result[sig]?.depth == 1)
     }
 
     @Test
@@ -144,7 +156,7 @@ struct UpwardInferrerUnitTests {
         // outer should NOT inherit from inner's body (no evidence from
         // otherCall resolver); inner should infer non_idempotent.
         #expect(result[outerSig] == nil)
-        #expect(result[innerSig] == .nonIdempotent)
+        #expect(result[innerSig]?.effect == .nonIdempotent)
     }
 
     @Test

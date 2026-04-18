@@ -48,7 +48,12 @@ public struct EffectSymbolTable: Sendable {
     /// by `applyUpwardInference(to:)` after all declared effects have been
     /// merged. Lookups go declared → collision → upward → heuristic → silent,
     /// so these entries never override a declared one.
-    private var upwardInferredEffects: [FunctionSignature: DeclaredEffect] = [:]
+    ///
+    /// Each entry stores both the inferred effect and the hop depth — the
+    /// length of the longest chain of un-annotated functions back to a
+    /// declared or heuristic anchor. One-hop inference produces depth 1;
+    /// multi-hop chains produce depth 2+.
+    private var upwardInferredEffects: [FunctionSignature: UpwardInference] = [:]
 
     public init() {}
 
@@ -125,28 +130,83 @@ public struct EffectSymbolTable: Sendable {
     /// declaration, its body had no recognised calls, or
     /// `applyUpwardInference` has not yet been invoked.
     public func upwardInferredEffect(for signature: FunctionSignature) -> DeclaredEffect? {
+        upwardInferredEffects[signature]?.effect
+    }
+
+    /// Returns the upward-inferred effect *and depth* for `signature`. Use
+    /// this when callers need to surface the hop depth in diagnostics
+    /// (e.g. "via 3-hop chain"). Returns `nil` under the same conditions
+    /// as `upwardInferredEffect(for:)`.
+    public func upwardInference(for signature: FunctionSignature) -> UpwardInference? {
         upwardInferredEffects[signature]
     }
 
     /// Runs body-based upward inference across every source in `sources`,
     /// using the supplied `heuristicEffectForCall` resolver to classify
     /// un-annotated callees via `HeuristicEffectInferrer`-equivalent logic.
-    /// Populates `upwardInferredEffects`; callers may invoke this multiple
-    /// times with additional sources (later calls merge with earlier ones;
-    /// conflicts overwrite).
+    /// Populates `upwardInferredEffects`.
+    ///
+    /// ## One-hop vs multi-hop
+    ///
+    /// `multiHop: false` (default) is the original Phase-2.3 behaviour: a
+    /// single inference pass that consults declared and heuristic-downward
+    /// effects only. Order-invariant by construction.
+    ///
+    /// `multiHop: true` runs the single pass, then iterates: each subsequent
+    /// pass also consults prior upward-inferred results, so callers of
+    /// upward-inferred functions can themselves be inferred. The lattice
+    /// has finite height (4 tiers) and effects are monotone, so iteration
+    /// converges; the loop exits when a full pass produces no effect
+    /// changes. `maxHops` caps both the iteration count and the recorded
+    /// depth value, providing a circuit breaker for pathological cycles.
     ///
     /// ## Resolver contract
     ///
-    /// The resolver should return, for each `FunctionCallExprSyntax`:
-    ///   1. declared effect from this table, if present and not collision-
-    ///      withdrawn, else
-    ///   2. heuristic-downward effect, if the downward inferrer matches, else
-    ///   3. `nil`.
-    ///
-    /// It MUST NOT consult upward-inferred effects — doing so would make the
-    /// single inference pass non-deterministic across iteration orders.
+    /// The resolver should return, for each `FunctionCallExprSyntax`, the
+    /// callee's heuristic-downward effect or `nil`. The symbol table itself
+    /// supplies declared and (in multi-hop mode) prior upward-inferred
+    /// effects. Resolvers MUST NOT consult `upwardInference(for:)` directly
+    /// — the table inserts that lookup into the resolver chain at the
+    /// correct precedence.
     public mutating func applyUpwardInference(
         to sources: [SourceFileSyntax],
+        multiHop: Bool = false,
+        maxHops: Int = 5,
+        heuristicEffectForCall: (FunctionCallExprSyntax) -> DeclaredEffect?
+    ) {
+        // Initial pass: declared + heuristic only. Equivalent to the
+        // pre-multi-hop behaviour.
+        runInferencePass(
+            sources: sources,
+            includeUpward: false,
+            maxHops: maxHops,
+            heuristicEffectForCall: heuristicEffectForCall
+        )
+
+        guard multiHop else { return }
+
+        // Fixed-point iteration. Termination: each entry's effect can only
+        // rise in the lattice (callees gain more info across passes, lub
+        // is monotone). Convergence on effect-equality typically happens
+        // in 2-3 passes; `maxHops` is a safety bound, not the expected
+        // iteration count.
+        for _ in 0..<maxHops {
+            let previousEffects = upwardInferredEffects.mapValues { $0.effect }
+            runInferencePass(
+                sources: sources,
+                includeUpward: true,
+                maxHops: maxHops,
+                heuristicEffectForCall: heuristicEffectForCall
+            )
+            let currentEffects = upwardInferredEffects.mapValues { $0.effect }
+            if previousEffects == currentEffects { return }
+        }
+    }
+
+    private mutating func runInferencePass(
+        sources: [SourceFileSyntax],
+        includeUpward: Bool,
+        maxHops: Int,
         heuristicEffectForCall: (FunctionCallExprSyntax) -> DeclaredEffect?
     ) {
         for source in sources {
@@ -155,20 +215,50 @@ public struct EffectSymbolTable: Sendable {
                 resolveCalleeEffect: { call in
                     if let sig = FunctionSignature.from(call: call) {
                         if isCollision(signature: sig) { return nil }
-                        if let declared = self.effect(for: sig) { return declared }
+                        if let declared = self.effect(for: sig) {
+                            return UpwardInference(effect: declared, depth: 0)
+                        }
+                        if includeUpward, let upward = self.upwardInference(for: sig) {
+                            return upward
+                        }
                     }
-                    return heuristicEffectForCall(call)
+                    if let heuristic = heuristicEffectForCall(call) {
+                        return UpwardInference(effect: heuristic, depth: 0)
+                    }
+                    return nil
                 }
             )
-            for (sig, effect) in inferred {
+            for (sig, result) in inferred {
                 // Never overwrite a declared effect. Upward is only for
                 // un-annotated signatures; the inferrer already filters by
                 // "no @lint.effect on decl" but a sibling annotated decl
                 // could have added the same signature to `entriesBySignature`.
                 guard entriesBySignature[sig] == nil else { continue }
-                upwardInferredEffects[sig] = effect
+                let cappedDepth = min(maxHops, result.depth)
+                let cappedResult = UpwardInference(effect: result.effect, depth: cappedDepth)
+                upwardInferredEffects[sig] = mergedInference(
+                    existing: upwardInferredEffects[sig],
+                    incoming: cappedResult
+                )
             }
         }
+    }
+
+    /// Combines the prior pass's inference with this pass's inference for
+    /// a single signature. Effect rises monotonically (lub of the two);
+    /// depth takes the max so once we've established a long chain, a
+    /// subsequent pass that produces a shorter equivalent chain doesn't
+    /// shrink the recorded depth.
+    private func mergedInference(
+        existing: UpwardInference?,
+        incoming: UpwardInference
+    ) -> UpwardInference {
+        guard let existing else { return incoming }
+        let mergedEffect = UpwardEffectInferrer.leastUpperBound(
+            of: [existing.effect, incoming.effect]
+        ) ?? incoming.effect
+        let mergedDepth = max(existing.depth, incoming.depth)
+        return UpwardInference(effect: mergedEffect, depth: mergedDepth)
     }
 }
 
