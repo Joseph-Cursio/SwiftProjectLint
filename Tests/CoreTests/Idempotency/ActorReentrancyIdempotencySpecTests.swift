@@ -110,6 +110,182 @@ struct ActorReentrancyIdempotencySpecTests {
         #expect(visitor.detectedIssues.isEmpty)
     }
 
+    // MARK: - OI-3 residual — subscript-set claims as writes
+
+    @Test
+    func subscriptSetClaim_selfPrefix_flagsAsWrite() throws {
+        // The canonical sentinel-set idiom using a dictionary rather than a
+        // Set: claim the slot via `self.table[key] = value` before awaiting.
+        // Pre-OI-3-residual, this LHS shape wasn't recognised as a write, so
+        // the rule would miss the correct fix and fire despite the claim.
+        let source = """
+        actor PaymentProcessor {
+            var table: [String: String] = [:]
+
+            func charge(id: String) async throws {
+                guard table[id] == nil else { return }
+                self.table[id] = "pending"
+                try await chargeCard(id)
+            }
+
+            private func chargeCard(_ id: String) async throws {}
+        }
+        """
+        let visitor = ActorReentrancyVisitor(pattern: ActorReentrancy().pattern)
+        visitor.walk(Parser.parse(source: source))
+        // The claim (`self.table[id] = "pending"`) sits between the guard
+        // and the await, so the reentrancy pattern is correctly neutralised.
+        #expect(visitor.detectedIssues.isEmpty)
+    }
+
+    @Test
+    func subscriptSetClaim_bareReceiver_flagsAsWrite() throws {
+        // Same idiom without the `self.` prefix.
+        let source = """
+        actor QueueProcessor {
+            var queue: [String: String] = [:]
+
+            func enqueue(id: String) async throws {
+                guard queue[id] == nil else { return }
+                queue[id] = "pending"
+                try await persist(id)
+            }
+
+            private func persist(_ id: String) async throws {}
+        }
+        """
+        let visitor = ActorReentrancyVisitor(pattern: ActorReentrancy().pattern)
+        visitor.walk(Parser.parse(source: source))
+        #expect(visitor.detectedIssues.isEmpty)
+    }
+
+    @Test
+    func subscriptSetOnNonTrackedProperty_doesNotSuppress() throws {
+        // A subscript-set on a local (NOT a tracked stored property) must
+        // not be mistaken for a claim. The guard-then-await without
+        // intervening write to the tracked property still fires.
+        let source = """
+        actor Mixed {
+            var table: [String: String] = [:]
+
+            func charge(id: String) async throws {
+                guard table[id] == nil else { return }
+                var other: [String: String] = [:]
+                other[id] = "pending"
+                try await chargeCard(id)
+                table[id] = "done"
+            }
+
+            private func chargeCard(_ id: String) async throws {}
+        }
+        """
+        let visitor = ActorReentrancyVisitor(pattern: ActorReentrancy().pattern)
+        visitor.walk(Parser.parse(source: source))
+        // `other[id] = "pending"` does NOT claim the `table` slot. Rule fires
+        // on the guard / await / post-await-write pattern for `table`.
+        #expect(visitor.detectedIssues.isEmpty == false)
+        #expect(visitor.detectedIssues.first?.message.contains("table") == true)
+    }
+
+    // MARK: - OI-3 residual — compound assignments as writes
+
+    @Test
+    func compoundAssign_plusEquals_flagsAsWrite() throws {
+        // `count += 1` is a write to `count`. Claim via compound assignment
+        // before the await is a valid reentrancy guard.
+        let source = """
+        actor Counter {
+            var count: Int = 0
+
+            func tick(id: String) async throws {
+                guard count < 10 else { return }
+                count += 1
+                try await publish(id)
+            }
+
+            private func publish(_ id: String) async throws {}
+        }
+        """
+        let visitor = ActorReentrancyVisitor(pattern: ActorReentrancy().pattern)
+        visitor.walk(Parser.parse(source: source))
+        #expect(visitor.detectedIssues.isEmpty)
+    }
+
+    @Test
+    func compoundAssign_selfPrefix_flagsAsWrite() throws {
+        let source = """
+        actor Counter {
+            var count: Int = 0
+
+            func tick(id: String) async throws {
+                guard self.count < 10 else { return }
+                self.count += 1
+                try await publish(id)
+            }
+
+            private func publish(_ id: String) async throws {}
+        }
+        """
+        let visitor = ActorReentrancyVisitor(pattern: ActorReentrancy().pattern)
+        visitor.walk(Parser.parse(source: source))
+        #expect(visitor.detectedIssues.isEmpty)
+    }
+
+    @Test
+    func compoundAssign_onSubscript_flagsAsWrite() throws {
+        // The combination: `self.totals[id, default: 0] += amount`. Both
+        // subscript LHS resolution and compound-assignment operator
+        // detection are needed; the fixture exercises both simultaneously.
+        let source = """
+        actor Accumulator {
+            var totals: [String: Int] = [:]
+
+            func add(id: String, amount: Int) async throws {
+                guard (totals[id] ?? 0) + amount <= 100 else { return }
+                self.totals[id, default: 0] += amount
+                try await persist(id)
+            }
+
+            private func persist(_ id: String) async throws {}
+        }
+        """
+        let visitor = ActorReentrancyVisitor(pattern: ActorReentrancy().pattern)
+        visitor.walk(Parser.parse(source: source))
+        #expect(visitor.detectedIssues.isEmpty)
+    }
+
+    @Test
+    func comparisonOperators_notMistakenForWrite() throws {
+        // Regression guard: `==`, `!=`, `<=`, `>=` end in `=` but are NOT
+        // assignments. The whitelist-based detection must not misclassify
+        // them. If this fixture fires more than once or credits a comparison
+        // operator as a write, the compound-assignment detection has
+        // over-reached.
+        let source = """
+        actor Gate {
+            var count: Int = 0
+
+            func probe(id: String) async throws {
+                guard count == 0 else { return }
+                try await bootstrap(id)
+                count = count + 1
+            }
+
+            private func bootstrap(_ id: String) async throws {}
+        }
+        """
+        let visitor = ActorReentrancyVisitor(pattern: ActorReentrancy().pattern)
+        visitor.walk(Parser.parse(source: source))
+        // Pattern: `guard count == 0 else return` (read) → `try await
+        // bootstrap` (suspension) → `count = count + 1` (post-await write).
+        // The canonical reentrancy hazard — guard reads `count`, awaits,
+        // then writes `count` with no intervening claim. Rule fires on
+        // exactly one write site (the `count = count + 1` assignment).
+        // Crucially NOT firing on the `==` comparison — that would be the
+        // over-reach regression this test guards against.
+        #expect(visitor.detectedIssues.count == 1)
+    }
+
     @Test
     func containsCallIsNotMistakenForWrite() throws {
         // Regression guard against over-widening: `processedIDs.contains(id)` is a

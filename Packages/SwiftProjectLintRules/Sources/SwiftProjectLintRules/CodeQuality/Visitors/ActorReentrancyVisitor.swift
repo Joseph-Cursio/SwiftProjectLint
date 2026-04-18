@@ -321,22 +321,19 @@ final class ActorReentrancyVisitor: BasePatternVisitor {
             return
         }
 
-        // Assignments in SwiftSyntax 602 are SequenceExprSyntax: [lhs, =, rhs]
+        // Assignments in SwiftSyntax 602 are SequenceExprSyntax: [lhs, op, rhs].
+        // The operator is either an AssignmentExprSyntax (plain `=`) or a
+        // BinaryOperatorExprSyntax whose token text is a compound-assignment
+        // operator (`+=`, `-=`, `*=`, bitwise forms, overflow-safe forms).
+        // Either case is a write to the LHS. The LHS itself may be a bare
+        // identifier, a `self.X` member access, or a subscript on either
+        // (`queue[id] = .pending`, `self.table[key] += 1`).
         if let seqExpr = syntax.as(SequenceExprSyntax.self) {
             let elements = Array(seqExpr.elements)
-            if elements.count >= 2, elements[1].is(AssignmentExprSyntax.self) {
-                let lhs = elements[0]
-                if let declRef = lhs.as(DeclReferenceExprSyntax.self),
-                   propertyNames.contains(declRef.baseName.text) {
-                    results.append((declRef.baseName.text, seqExpr.position))
-                } else if let memberAccess = lhs.as(MemberAccessExprSyntax.self),
-                          let base = memberAccess.base?.as(DeclReferenceExprSyntax.self),
-                          base.baseName.text == "self" {
-                    let name = memberAccess.declName.baseName.text
-                    if propertyNames.contains(name) {
-                        results.append((name, seqExpr.position))
-                    }
-                }
+            if elements.count >= 2,
+               Self.isAssignmentOperator(elements[1]),
+               let matched = trackedPropertyName(lhs: elements[0], in: propertyNames) {
+                results.append((matched, seqExpr.position))
             }
         }
 
@@ -349,7 +346,7 @@ final class ActorReentrancyVisitor: BasePatternVisitor {
            let method = call.calledExpression.as(MemberAccessExprSyntax.self),
            Self.mutatingMethodNames.contains(method.declName.baseName.text),
            let base = method.base,
-           let matched = trackedPropertyName(receiver: base, in: propertyNames) {
+           let matched = trackedPropertyName(lhs: base, in: propertyNames) {
             results.append((matched, call.position))
         }
 
@@ -358,23 +355,62 @@ final class ActorReentrancyVisitor: BasePatternVisitor {
         }
     }
 
-    /// Returns the tracked-property name if `receiver` directly names a tracked
-    /// stored property (either `X` or `self.X`), else nil.
+    /// Returns the tracked-property name if `lhs` resolves to a tracked
+    /// stored property, else nil. Handles three shapes uniformly:
+    ///
+    ///   X                  // DeclReferenceExprSyntax
+    ///   self.X             // MemberAccessExprSyntax with self base
+    ///   X[...]             // SubscriptCallExprSyntax (recurses on base)
+    ///   self.X[...]        // subscript on member access (recurses)
+    ///
+    /// Subscript LHS recursion is bounded by SwiftSyntax's finite-tree
+    /// guarantee — any concrete source produces a finite expression depth.
     private func trackedPropertyName(
-        receiver: ExprSyntax,
+        lhs: ExprSyntax,
         in propertyNames: Set<String>
     ) -> String? {
-        if let ref = receiver.as(DeclReferenceExprSyntax.self),
+        if let ref = lhs.as(DeclReferenceExprSyntax.self),
            propertyNames.contains(ref.baseName.text) {
             return ref.baseName.text
         }
-        if let member = receiver.as(MemberAccessExprSyntax.self),
+        if let member = lhs.as(MemberAccessExprSyntax.self),
            let base = member.base?.as(DeclReferenceExprSyntax.self),
            base.baseName.text == "self",
            propertyNames.contains(member.declName.baseName.text) {
             return member.declName.baseName.text
         }
+        if let subscriptExpr = lhs.as(SubscriptCallExprSyntax.self) {
+            return trackedPropertyName(lhs: subscriptExpr.calledExpression, in: propertyNames)
+        }
         return nil
+    }
+
+    /// Compound-assignment operator tokens recognised as writes. Plain `=` is
+    /// an AssignmentExprSyntax node (not a BinaryOperatorExprSyntax), so it
+    /// is handled separately in `isAssignmentOperator(_:)`.
+    ///
+    /// Kept as an explicit whitelist rather than an "ends-in-`=`" heuristic so
+    /// that comparison operators (`==`, `!=`, `<=`, `>=`, `===`, `!==`) and
+    /// hypothetical user-defined operators ending in `=` cannot be mistaken
+    /// for writes.
+    private static let compoundAssignmentOperators: Set<String> = [
+        "+=", "-=", "*=", "/=", "%=",
+        "<<=", ">>=",
+        "&=", "|=", "^=",
+        "&+=", "&-=", "&*=",
+        "&<<=", "&>>=",
+    ]
+
+    /// True when `element` is the operator slot of a SequenceExpr representing
+    /// an assignment to the LHS. Covers plain `=` (an AssignmentExprSyntax
+    /// node) and compound-assignment operators (a BinaryOperatorExprSyntax
+    /// whose token text is in `compoundAssignmentOperators`).
+    private static func isAssignmentOperator(_ element: ExprSyntax) -> Bool {
+        if element.is(AssignmentExprSyntax.self) { return true }
+        if let binary = element.as(BinaryOperatorExprSyntax.self) {
+            return compoundAssignmentOperators.contains(binary.operator.text)
+        }
+        return false
     }
 
     // MARK: - Await Detection
