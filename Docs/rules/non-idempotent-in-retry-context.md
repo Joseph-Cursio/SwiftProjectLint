@@ -96,6 +96,15 @@ func handleWebhook(event: Event) async throws {}
 ### Typical Application
 The rule targets handlers that are externally retry-exposed: webhook endpoints (Stripe, GitHub, Slack), queue workers (SQS, SNS, Lambda event sources, RabbitMQ), scheduled-job retries, and middleware in any at-least-once delivery pipeline.
 
+### Annotation attachment — function declarations **and** closure bindings
+
+`/// @lint.context replayable` / `retry_safe` / `once` attaches to either:
+
+- a function declaration (`func handle(event:context:) async throws { ... }`), or
+- a variable binding whose initialiser is a closure literal (`let handler: @Sendable (Event, Context) -> Void = { ... }` — single binding, both top-level and stored-property forms).
+
+Closure-binding annotations were added after round 6, motivated by modern Swift-server handler idioms where the Lambda entry point is a closure stored in a `let`-binding rather than a method declaration. Inline trailing-closure arguments (`LambdaRuntime { event, ctx in ... }`) remain out of scope — they have no binding site to attach the annotation to. Users who want coverage refactor to a named `let handler = { ... }` binding.
+
 ### Inference Fallbacks (Phase 2.2 and 2.3)
 
 When a callee reached from a `@lint.context replayable` or `@lint.context retry_safe` body has no `@lint.effect` annotation, the rule consults two inference sources in precedence order:
