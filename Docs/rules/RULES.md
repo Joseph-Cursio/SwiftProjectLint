@@ -1,6 +1,6 @@
 # SwiftProjectLint Rules Reference
 
-SwiftProjectLint is a static analysis tool for SwiftUI projects. It parses Swift source files using SwiftSyntax AST visitors to detect anti-patterns spanning state management, performance, animations, architecture, code quality, security, accessibility, memory management, networking, UI patterns, modernization, and idempotency. This reference documents all 159 lint rules, organized by category.
+SwiftProjectLint is a static analysis tool for SwiftUI projects. It parses Swift source files using SwiftSyntax AST visitors to detect anti-patterns spanning state management, performance, animations, architecture, code quality, security, accessibility, memory management, networking, UI patterns, modernization, and idempotency. This reference documents all 160 lint rules, organized by category.
 
 Rules marked **opt-in** are disabled by default and must be explicitly listed under `enabled_only` in `.swiftprojectlint.yml`.
 
@@ -223,6 +223,7 @@ Rules marked **opt-in** are disabled by default and must be explicitly listed un
 | [Idempotency Violation](idempotency-violation.md) | Error |
 | [Non-Idempotent In Retry Context](non-idempotent-in-retry-context.md) | Error |
 | [Missing Idempotency Key](missing-idempotency-key.md) | Error |
+| [Once Contract Violation](once-contract-violation.md) | Error |
 
 ---
 
