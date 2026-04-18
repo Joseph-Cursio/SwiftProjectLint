@@ -146,6 +146,10 @@ The whitelist is intentionally small:
 
 Names deliberately out of scope include `save`, `put`, `update`, `write` — each has too many idempotent interpretations to classify by name alone.
 
+**Receiver-type gating (stdlib exclusions).** The bare-name heuristic is silenced when the receiver syntactically resolves to a stdlib-collection type whose `(type, method)` pair is known to be a local mutation: `Array.append`/`insert`/`remove*`, `String.append`/`insert`, `Set.insert`/`remove`/`removeAll` (semantically idempotent), and `Dictionary.updateValue`/`removeValue`. This catches the common false-positive shape `users.append(contentsOf: teammates)` where `users` is a local `[User]`. Resolution is syntactic (parameter annotations, local bindings, stored-property types, literals) — when the resolver can't determine the receiver's type lexically it falls through to the bare-name behaviour unchanged.
+
+**CamelCase-gated prefix matching.** The non-idempotent whitelist also matches prefix-style names — `sendEmail`, `createUser`, `publishEvent`, `insertRow`, `enqueueJob`, `appendUnique`, `postMessage` — when: (1) the callee name is strictly longer than the matched prefix, (2) the next character after the prefix is uppercase (Swift word boundary), and (3) the receiver is not a stdlib-collection. This deliberately does NOT match `sending`, `sender`, `publisher`, `postponed`, `creator`, `inserted`, `appending` — the lowercase-next-character rule identifies those as non-mutation forms. Diagnostic prose distinguishes prefix matches explicitly: "from the callee-name prefix `send` (in `sendEmail`)".
+
 **Diagnostic prose makes inference visible.** Inference-driven diagnostics distinguish their provenance:
 
 - Upward: "whose effect is inferred `non_idempotent` from its body"
