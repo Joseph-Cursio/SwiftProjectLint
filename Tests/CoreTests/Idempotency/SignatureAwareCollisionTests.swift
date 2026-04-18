@@ -59,11 +59,10 @@ struct SignatureAwareCollisionTests {
     // MARK: - FunctionSignature extraction
 
     @Test
-    func extractsSignatureFromDeclaration_externalLabelWinsOverInternalName() {
+    func extractsSignatureFromDeclaration_externalLabelWinsOverInternalName() throws {
         let source = "func send(to email: String) {}"
-        let decl = Parser.parse(source: source)
-            .statements.first!
-            .item.as(FunctionDeclSyntax.self)!
+        let firstStatement = try #require(Parser.parse(source: source).statements.first)
+        let decl = try #require(firstStatement.item.as(FunctionDeclSyntax.self))
         let signature = FunctionSignature.from(declaration: decl)
         #expect(signature.name == "send")
         #expect(signature.argumentLabels == ["to"])
@@ -71,25 +70,23 @@ struct SignatureAwareCollisionTests {
     }
 
     @Test
-    func extractsSignatureFromDeclaration_underscoreForSuppressedLabel() {
+    func extractsSignatureFromDeclaration_underscoreForSuppressedLabel() throws {
         let source = "func upsert(_ id: Int) {}"
-        let decl = Parser.parse(source: source)
-            .statements.first!
-            .item.as(FunctionDeclSyntax.self)!
+        let firstStatement = try #require(Parser.parse(source: source).statements.first)
+        let decl = try #require(firstStatement.item.as(FunctionDeclSyntax.self))
         let signature = FunctionSignature.from(declaration: decl)
         #expect(signature.argumentLabels == ["_"])
         #expect(signature.description == "upsert(_:)")
     }
 
     @Test
-    func extractsSignatureFromCallSite_matchingDeclarationForm() {
+    func extractsSignatureFromCallSite_matchingDeclarationForm() throws {
         let source = """
         func receiver() {
             create(key: "k", value: "v", expires: nil)
         }
         """
         // Dig out the one FunctionCallExprSyntax inside the body.
-        var found: FunctionCallExprSyntax?
         final class Finder: SyntaxVisitor {
             var call: FunctionCallExprSyntax?
             override func visit(_ node: FunctionCallExprSyntax) -> SyntaxVisitorContinueKind {
@@ -100,8 +97,8 @@ struct SignatureAwareCollisionTests {
         }
         let finder = Finder()
         finder.walk(Parser.parse(source: source))
-        found = finder.call
-        let signature = FunctionSignature.from(call: found!)
+        let found = try #require(finder.call)
+        let signature = FunctionSignature.from(call: found)
         #expect(signature?.name == "create")
         #expect(signature?.argumentLabels == ["key", "value", "expires"])
     }
@@ -205,7 +202,10 @@ struct SignatureAwareCollisionTests {
         ]
 
         let issues = runCrossFileContext(files: files).detectedIssues
-        #expect(issues.count == 1, "Expected the post-fix policy to resolve the 3-arg create despite protocol/extension siblings")
+        #expect(
+            issues.count == 1,
+            "Expected the post-fix policy to resolve the 3-arg create despite protocol/extension siblings"
+        )
         let issue = try #require(issues.first)
         #expect(issue.message.contains("create"))
         #expect(issue.filePath == "Handler.swift")

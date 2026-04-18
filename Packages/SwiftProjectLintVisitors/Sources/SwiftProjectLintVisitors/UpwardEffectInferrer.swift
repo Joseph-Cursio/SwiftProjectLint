@@ -68,9 +68,9 @@ public enum UpwardEffectInferrer {
         guard !effects.isEmpty else { return nil }
         var best: (rank: Int, effect: DeclaredEffect) = (-1, .observational)
         for effect in effects {
-            let r = rank(of: effect)
-            if r > best.rank {
-                best = (r, effect)
+            let currentRank = rank(of: effect)
+            if currentRank > best.rank {
+                best = (currentRank, effect)
             }
         }
         return best.rank >= 0 ? best.effect : nil

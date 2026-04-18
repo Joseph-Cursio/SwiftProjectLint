@@ -11,7 +11,7 @@ import SwiftParser
 @Suite
 struct HeuristicInferenceUnitTests {
 
-    private func firstCall(in source: String) -> FunctionCallExprSyntax? {
+    private func firstCall(in source: String) throws -> FunctionCallExprSyntax {
         final class Finder: SyntaxVisitor {
             var call: FunctionCallExprSyntax?
             init() { super.init(viewMode: .sourceAccurate) }
@@ -22,123 +22,123 @@ struct HeuristicInferenceUnitTests {
         }
         let finder = Finder()
         finder.walk(Parser.parse(source: source))
-        return finder.call
+        return try #require(finder.call)
     }
 
     // MARK: - Non-idempotent name triggers
 
     @Test
-    func bareInsert_infersNonIdempotent() {
-        let call = firstCall(in: "func f() { insert(1) }")!
+    func bareInsert_infersNonIdempotent() throws {
+        let call = try firstCall(in: "func f() { insert(1) }")
         #expect(HeuristicEffectInferrer.infer(call: call) == .nonIdempotent)
     }
 
     @Test
-    func bareCreate_infersNonIdempotent() {
-        let call = firstCall(in: "func f() { create() }")!
+    func bareCreate_infersNonIdempotent() throws {
+        let call = try firstCall(in: "func f() { create() }")
         #expect(HeuristicEffectInferrer.infer(call: call) == .nonIdempotent)
     }
 
     @Test
-    func bareAppend_infersNonIdempotent() {
-        let call = firstCall(in: "func f() { append(x) }")!
+    func bareAppend_infersNonIdempotent() throws {
+        let call = try firstCall(in: "func f() { append(x) }")
         #expect(HeuristicEffectInferrer.infer(call: call) == .nonIdempotent)
     }
 
     @Test
-    func memberInsert_infersNonIdempotent() {
-        let call = firstCall(in: "func f() { db.insert(row) }")!
+    func memberInsert_infersNonIdempotent() throws {
+        let call = try firstCall(in: "func f() { db.insert(row) }")
         #expect(HeuristicEffectInferrer.infer(call: call) == .nonIdempotent)
     }
 
     // MARK: - Idempotent name triggers
 
     @Test
-    func bareUpsert_infersIdempotent() {
-        let call = firstCall(in: "func f() { upsert(row) }")!
+    func bareUpsert_infersIdempotent() throws {
+        let call = try firstCall(in: "func f() { upsert(row) }")
         #expect(HeuristicEffectInferrer.infer(call: call) == .idempotent)
     }
 
     @Test
-    func memberSetIfAbsent_infersIdempotent() {
-        let call = firstCall(in: "func f() { cache.setIfAbsent(k, v) }")!
+    func memberSetIfAbsent_infersIdempotent() throws {
+        let call = try firstCall(in: "func f() { cache.setIfAbsent(k, v) }")
         #expect(HeuristicEffectInferrer.infer(call: call) == .idempotent)
     }
 
     // MARK: - Observational requires BOTH receiver shape AND level method
 
     @Test
-    func loggerInfo_infersObservational() {
-        let call = firstCall(in: "func f() { logger.info(\"x\") }")!
+    func loggerInfo_infersObservational() throws {
+        let call = try firstCall(in: "func f() { logger.info(\"x\") }")
         #expect(HeuristicEffectInferrer.infer(call: call) == .observational)
     }
 
     @Test
-    func uppercaseLoggerDebug_infersObservational() {
-        let call = firstCall(in: "func f() { Logger.debug(\"x\") }")!
+    func uppercaseLoggerDebug_infersObservational() throws {
+        let call = try firstCall(in: "func f() { Logger.debug(\"x\") }")
         #expect(HeuristicEffectInferrer.infer(call: call) == .observational)
     }
 
     @Test
-    func requestLoggerWarning_infersObservational() {
+    func requestLoggerWarning_infersObservational() throws {
         // Suffixed-logger receivers like `requestLogger` pattern-match the
         // "contains 'log'" check and produce observational.
-        let call = firstCall(in: "func f() { requestLogger.warning(\"x\") }")!
+        let call = try firstCall(in: "func f() { requestLogger.warning(\"x\") }")
         #expect(HeuristicEffectInferrer.infer(call: call) == .observational)
     }
 
     @Test
-    func bareInfoWithoutReceiver_doesNotInferObservational() {
+    func bareInfoWithoutReceiver_doesNotInferObservational() throws {
         // `info()` called on its own could be anything — an observable or a
         // domain method. Observational inference requires the logger-receiver
         // signal; without it, the inferrer stays silent.
-        let call = firstCall(in: "func f() { info(\"x\") }")!
+        let call = try firstCall(in: "func f() { info(\"x\") }")
         #expect(HeuristicEffectInferrer.infer(call: call) == nil)
     }
 
     @Test
-    func nonLoggerReceiverDebug_doesNotInferObservational() {
+    func nonLoggerReceiverDebug_doesNotInferObservational() throws {
         // `view.debug()` has a debug-level method name but the receiver
         // doesn't look like a logger. Stay silent.
-        let call = firstCall(in: "func f() { view.debug() }")!
+        let call = try firstCall(in: "func f() { view.debug() }")
         #expect(HeuristicEffectInferrer.infer(call: call) == nil)
     }
 
     // MARK: - Names deliberately left out of the whitelist
 
     @Test
-    func save_isNotInferred() {
+    func save_isNotInferred() throws {
         // `save` has too many idempotent interpretations (set-current-value,
         // upsert-like semantics) to classify as non_idempotent by name alone.
-        let call = firstCall(in: "func f() { save(row) }")!
+        let call = try firstCall(in: "func f() { save(row) }")
         #expect(HeuristicEffectInferrer.infer(call: call) == nil)
     }
 
     @Test
-    func put_isNotInferred() {
+    func put_isNotInferred() throws {
         // REST PUT is idempotent; dictionary `put` is often idempotent;
         // arbitrary `put` is ambiguous. Keep out of the whitelist.
-        let call = firstCall(in: "func f() { store.put(k, v) }")!
+        let call = try firstCall(in: "func f() { store.put(k, v) }")
         #expect(HeuristicEffectInferrer.infer(call: call) == nil)
     }
 
     @Test
-    func update_isNotInferred() {
-        let call = firstCall(in: "func f() { db.update(row) }")!
+    func update_isNotInferred() throws {
+        let call = try firstCall(in: "func f() { db.update(row) }")
         #expect(HeuristicEffectInferrer.infer(call: call) == nil)
     }
 
     @Test
-    func write_isNotInferred() {
+    func write_isNotInferred() throws {
         // `file.write` is often atomic and retry-safe; no blanket
         // non-idempotent classification.
-        let call = firstCall(in: "func f() { file.write(data) }")!
+        let call = try firstCall(in: "func f() { file.write(data) }")
         #expect(HeuristicEffectInferrer.infer(call: call) == nil)
     }
 
     @Test
-    func unrecognisedName_returnsNil() {
-        let call = firstCall(in: "func f() { doThing(x) }")!
+    func unrecognisedName_returnsNil() throws {
+        let call = try firstCall(in: "func f() { doThing(x) }")
         #expect(HeuristicEffectInferrer.infer(call: call) == nil)
     }
 
@@ -146,7 +146,7 @@ struct HeuristicInferenceUnitTests {
 
     @Test
     func inferenceReason_bareName() throws {
-        let call = firstCall(in: "func f() { insert(x) }")!
+        let call = try firstCall(in: "func f() { insert(x) }")
         let reason = try #require(HeuristicEffectInferrer.inferenceReason(for: call))
         #expect(reason.contains("insert"))
         #expect(reason.contains("callee name"))
@@ -154,7 +154,7 @@ struct HeuristicInferenceUnitTests {
 
     @Test
     func inferenceReason_loggerReceiver() throws {
-        let call = firstCall(in: "func f() { logger.info(\"x\") }")!
+        let call = try firstCall(in: "func f() { logger.info(\"x\") }")
         let reason = try #require(HeuristicEffectInferrer.inferenceReason(for: call))
         #expect(reason.contains("logger"))
         #expect(reason.contains("info"))

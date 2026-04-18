@@ -145,7 +145,10 @@ struct ExternallyIdempotentParserTests {
         let table = EffectSymbolTable.build(from: Parser.parse(source: source))
         #expect(table.effect(for: FunctionSignature(name: "upsert", argumentLabels: [])) == .idempotent)
         #expect(table.effect(for: FunctionSignature(name: "log", argumentLabels: [])) == .observational)
-        #expect(table.effect(for: FunctionSignature(name: "charge", argumentLabels: [])) == .externallyIdempotent(keyParameter: nil))
+        #expect(
+            table.effect(for: FunctionSignature(name: "charge", argumentLabels: []))
+                == .externallyIdempotent(keyParameter: nil)
+        )
         #expect(table.effect(for: FunctionSignature(name: "insert", argumentLabels: [])) == .nonIdempotent)
     }
 }
