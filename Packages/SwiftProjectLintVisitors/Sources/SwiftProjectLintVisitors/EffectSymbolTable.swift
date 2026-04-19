@@ -210,23 +210,37 @@ public struct EffectSymbolTable: Sendable {
         to sources: [SourceFileSyntax],
         multiHop: Bool = false,
         maxHops: Int = 5,
+        wallClockBudget: Duration = .seconds(30),
         heuristicEffectForCall: (FunctionCallExprSyntax, SourceFileSyntax) -> DeclaredEffect?
     ) {
+        // Wall-clock safety net for pathological corpora. The fixed-point
+        // loop is bounded by `maxHops`, but a single pass over a large
+        // corpus (e.g. swift-nio at 258 files × ~346 LOC average, wider
+        // per-file call graphs than typical adopter codebases) can take
+        // several minutes. Bail out with partial inference rather than
+        // hang indefinitely. Discovered when a 12-minute scan on swift-nio
+        // was still inside `runInferencePass` — see the trial notes under
+        // `docs/swift-nio/` in the companion SwiftIdempotency repo.
+        let deadline = ContinuousClock.now.advanced(by: wallClockBudget)
+
         runInferencePass(
             sources: sources,
             includeUpward: false,
             maxHops: maxHops,
+            deadline: deadline,
             heuristicEffectForCall: heuristicEffectForCall
         )
 
         guard multiHop else { return }
 
         for _ in 0..<maxHops {
+            if ContinuousClock.now >= deadline { return }
             let previousEffects = upwardInferredEffects.mapValues { $0.effect }
             runInferencePass(
                 sources: sources,
                 includeUpward: true,
                 maxHops: maxHops,
+                deadline: deadline,
                 heuristicEffectForCall: heuristicEffectForCall
             )
             let currentEffects = upwardInferredEffects.mapValues { $0.effect }
@@ -238,9 +252,11 @@ public struct EffectSymbolTable: Sendable {
         sources: [SourceFileSyntax],
         includeUpward: Bool,
         maxHops: Int,
+        deadline: ContinuousClock.Instant,
         heuristicEffectForCall: (FunctionCallExprSyntax, SourceFileSyntax) -> DeclaredEffect?
     ) {
         for source in sources {
+            if ContinuousClock.now >= deadline { return }
             let inferred = UpwardEffectInferrer.inferEffects(
                 in: source,
                 resolveCalleeEffect: { call in
