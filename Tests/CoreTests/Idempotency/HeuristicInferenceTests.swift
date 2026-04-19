@@ -403,15 +403,41 @@ struct HeuristicInferenceUnitTests {
     }
 
     @Test
-    func update_notInferred_withoutFluentImport() throws {
-        // `update` is framework-gated: fires on `model.update()` when
-        // FluentKit is imported (see `FrameworkWhitelistGatingTests`),
-        // stays silent otherwise. A user-defined `db.update(row)` in
-        // a module without `import FluentKit` does not trigger inference.
-        let call = try firstCall(in: "func f() { db.update(row) }")
-        #expect(HeuristicEffectInferrer.infer(
-            call: call, imports: ["MyApp"], enabledFrameworks: nil
-        ) == nil)
+    func update_bareName_firesOnNonStdlibReceivers() throws {
+        // `update` is in the bare non-idempotent list. Catches
+        // non-Fluent DB surfaces where an adopter has an
+        // `@Dependency(\.database)`-style accessor with `updateX`
+        // naming — the pointfreeco-shape case. Fires on any
+        // non-stdlib receiver; the stdlib-collection exclusions
+        // (Set.update, Dictionary.updateValue) are handled via
+        // `StdlibExclusions`.
+        let call = try firstCall(in: "func f() { database.update(row) }")
+        #expect(HeuristicEffectInferrer.infer(call: call) == .nonIdempotent)
+    }
+
+    @Test
+    func setUpdateWith_isExcluded() throws {
+        // `Set.update(with:)` leaves the set in the same final state
+        // on repeat invocation (set-idempotent semantics). Stdlib
+        // exclusion must suppress the bare-name `update` match.
+        let call = try memberCall(
+            method: "update",
+            in: "func f(s: Set<Int>) { s.update(with: 1) }"
+        )
+        #expect(HeuristicEffectInferrer.infer(call: call) == nil)
+    }
+
+    @Test
+    func prefixUpdateGiftStatus_firesOnUnresolvedReceiver() throws {
+        // Regression fixture for the pointfreeco adopter case:
+        // `database.updateGiftStatus(...)` via a swift-dependencies
+        // property. Receiver `database` resolves to `.unresolved`
+        // (not stdlib), so the prefix-match path fires.
+        let call = try memberCall(
+            method: "updateGiftStatus",
+            in: "func f() { database.updateGiftStatus(id, status, deliverNow) }"
+        )
+        #expect(HeuristicEffectInferrer.infer(call: call) == .nonIdempotent)
     }
 
     @Test
