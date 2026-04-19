@@ -84,6 +84,38 @@ That pair plus basic call-graph validation catches the bulk of real bugs (retry-
 
 ---
 
+## Implementation Status (as of 2026-04)
+
+Since this proposal was drafted, two things happened:
+
+1. **A sibling package, [`SwiftIdempotency`](https://github.com/Joseph-Cursio/SwiftIdempotency), was built** — it ships the macros and types (Phase 5 in the roadmap below). `SwiftProjectLint`'s side is the static-analysis rules (Phases 1–4); the two packages coordinate via a shared annotation grammar (attribute form + doc-comment form).
+2. **The design was road-tested against four Swift frameworks** — Hummingbird, Vapor, AWS Lambda, and SwiftNIO. Each spike lives in its own repo under the same GitHub organisation, with its own `FRICTION.md` log of what broke, what was fixed, and what carries over cleanly.
+
+**What shipped in `SwiftIdempotency`:**
+
+- `IdempotencyKey` strong type with two construction paths —
+  `init(fromEntity:)` (requires `Identifiable` + `CustomStringConvertible`) and
+  `init(fromAuditedString:)` (explicit audit signal). See §Idempotency Keys below for the original design; the shipped API renamed `init(from:)` → `init(fromEntity:)` during round-7 validation after a name collision with `Codable`'s `init(from: Decoder)` surfaced in adopter code.
+- Four attribute markers: `@Idempotent`, `@NonIdempotent`, `@Observational`, `@ExternallyIdempotent(by: <label>)`. The last one validates `by:` at expansion time — rejecting dotted key paths, non-literal expressions, and labels that don't name a parameter of the annotated function.
+- `@IdempotencyTests` extension macro attached to a `@Suite` type — emits one `@Test` method per `@Idempotent`-marked zero-argument member. Expansion is effect-aware (inspects the target's `asyncSpecifier`/`throwsClause`, emits only the `try`/`await` tokens the target's signature requires). This shape was chosen after the round-7 peer-macro design hit a Swift Testing expansion conflict; see the spike's FRICTION.md for the history.
+- `#assertIdempotent { ... }` freestanding expression macro with sync *and* async overloads — Swift's overload resolution picks the right one based on the closure's effects, so callers just write what they need.
+
+**What the four spikes validated:**
+
+- All five package-side findings surfaced by the Hummingbird spike were resolved and stay closed across Vapor (HTTP cross-check), AWS Lambda (event-driven), and SwiftNIO (low-level async).
+- One linter-side note was surfaced and stays on SwiftProjectLint's backlog: `"\(Date.now)"` (string-interpolation wrapping a fresh generator) slips past `MissingIdempotencyKey` — the visitor matches direct calls and two-level member accesses but not interpolation segments. Low-priority; tracked in each spike's FRICTION.md under "linter-side notes."
+
+**Spike repos** (each is a regression gate — `swift test` from the spike dir + `swift run CLI <spike>/Sources --categories idempotency` from this repo should stay green before merging macro changes in `SwiftIdempotency`):
+
+- [`SwiftIdempotencyHummingbirdSpike`](https://github.com/Joseph-Cursio/SwiftIdempotencyHummingbirdSpike) — primary HTTP spike; 6 tests.
+- [`SwiftIdempotencyVaporSpike`](https://github.com/Joseph-Cursio/SwiftIdempotencyVaporSpike) — HTTP cross-check via `VaporTesting`; 6 tests.
+- [`SwiftIdempotencyAWSLambdaSpike`](https://github.com/Joseph-Cursio/SwiftIdempotencyAWSLambdaSpike) — event-driven; 5 tests.
+- [`SwiftIdempotencySwiftNIOSpike`](https://github.com/Joseph-Cursio/SwiftIdempotencySwiftNIOSpike) — channel-handler cross-check; 4 tests.
+
+The rest of this document is the original design proposal — preserved as-is for traceability. Individual sections below have inline notes where the shipped API diverges from what's described.
+
+---
+
 ### Level 1: Annotation (Intent Declaration)
 
 At the first level, the goal is not to prove anything, but to clearly state intent. By annotating a function as idempotent (or not), you’re making an explicit claim about how it is supposed to behave when called multiple times. This shifts idempotency from an implicit assumption—often buried in comments or tribal knowledge—into something visible, reviewable, and enforceable. Think of this level as establishing a shared language: it allows developers, reviewers, and tools to align on what a piece of code is meant to guarantee before worrying about whether that guarantee actually holds.
@@ -579,6 +611,21 @@ public macro Idempotent() = #externalMacro(module: "IdempotencyMacros", type: "I
 ```
 
 The instinct — generate a test that calls the function twice with the same inputs and asserts equivalent outcomes — is correct. The execution is harder than it first appears.
+
+> **Shipped design note.** The round-7 validation spike discovered a
+> hard conflict between peer-emitted `@Test` declarations and Swift
+> Testing's own `@Test` macro expansion — the nested expansion
+> produces `@used`/`@section` properties referencing `self` during
+> property initialisation, which the compiler rejects. Round 8 moved
+> the test-generation role off `@Idempotent` and onto a separate
+> `@IdempotencyTests` extension macro attached to the enclosing
+> `@Suite` type. `@Idempotent` became marker-only. The tiered
+> generation strategy below was dropped in favour of a single tier —
+> zero-argument functions only — with the parameterised-function
+> case delegated to `#assertIdempotent` at the test site. Adopters
+> writing `@Suite @IdempotencyTests struct Checks` get one generated
+> `@Test` per `@Idempotent`-marked zero-arg member, with `try`/`await`
+> emitted only when the target's signature requires them.
 
 ### The State-Capture Problem
 
@@ -1233,6 +1280,16 @@ extension PaymentRequest: IdempotencyKeySource {
 
 With this type in place, passing `UUID().uuidString` directly as a key is a compile error, not a lint warning.
 
+> **Shipped design note.** The actual `IdempotencyKey` in
+> `SwiftIdempotency` dropped the `IdempotencyKeySource` protocol in
+> favour of Swift's existing `Identifiable` + `CustomStringConvertible`
+> constraints — Identifiable's `id` already meets the "stable value"
+> requirement without a parallel protocol. The two constructors are
+> `init(fromEntity:)` and `init(fromAuditedString:)`; the original
+> `init(from:)` was renamed during round-7 validation after colliding
+> with `Codable`'s `init(from: Decoder)` at call sites. The fundamental
+> property — no path accepts raw entropy — is preserved.
+
 ### Lintable Bad Patterns
 
 Even without the strong type, several patterns are detectable by the linter:
@@ -1560,6 +1617,21 @@ Phase 3 must support *incremental* analysis — re-running on a changed file sho
 - `@Idempotent` macro generates peer test functions using the tiered strategy above
 - Requires a separate `IdempotencyMacros` target in `Package.swift`
 
+> **Phase 5: shipped, with deviations.** The macro work landed in a
+> separate package ([`SwiftIdempotency`](https://github.com/Joseph-Cursio/SwiftIdempotency))
+> rather than in this repo — see "Scope: What Belongs in This Repo"
+> above. Two design deviations from this roadmap:
+> 1. `@Idempotent` is marker-only; test generation is handled by a
+>    separate `@IdempotencyTests` extension macro attached to the
+>    `@Suite` type (round-8 redesign; see the "Swift Macro–Based Test
+>    Generation" section's shipped-design note).
+> 2. The tiered strategy collapsed to a single tier — zero-argument
+>    functions only. The parameterised case is served by
+>    `#assertIdempotent` at the test site, which ships with both sync
+>    and async overloads. The `IdempotencyTestable` protocol and state-
+>    capture machinery are marked as deferred future work in the shipped
+>    README.
+
 ---
 
 ## Scope: What Belongs in This Repo
@@ -1601,7 +1673,7 @@ This delivers real value immediately, with no false positives from heuristics, a
 
 ---
 
-*Document prepared April 2026.*
+*Document prepared April 2026. Revised April 2026 with the "Implementation Status" section and inline shipped-design notes after the four road-test spikes landed.*
 
 ---
 
@@ -1733,6 +1805,17 @@ When choosing an open-source Swift library to validate these ideas against, the 
 ### Recommended Approach
 
 Start with **swift-aws-lambda-runtime** for Phase 1 validation: the `@context replayable` annotation is objectively correct on every handler, so there's no ambiguity about whether the annotation is accurate. Pick two or three handlers that contain a known non-idempotent call (a `db.insert`, a notification send), annotate them, and verify the linter fires. Then add the compensating fix (`db.upsert`, deduplication guard) and verify it goes silent. That's a clear, repeatable demonstration of the system working correctly against real production code.
+
+### Validation results (after the fact)
+
+The proposal was ultimately road-tested against four frameworks, not one. A brief rollup of what each one actually surfaced:
+
+- **Hummingbird** — the primary spike (the one-line case for "is the package usable against a real async Swift framework"). Surfaced all five package-side findings: async `#assertIdempotent` overload missing, silent `@ExternallyIdempotent(by:)` acceptance of unreachable paths, JSON key-ordering non-determinism making byte-equality HTTP comparisons unsafe, spurious `try` warnings on non-throwing `@IdempotencyTests` targets, and the positive layering observation that `IdempotencyKey` subsumes `MissingIdempotencyKey` on migrated call sites. All five closed.
+- **Vapor** — HTTP cross-check. Confirmed all Hummingbird-era fixes carry over cleanly to a second async HTTP framework. Surfaced one adopter-side item (XCTVapor silently drops test failures in Swift Testing contexts; adopters should import `VaporTesting` instead). No new package-side findings.
+- **AWS Lambda** — event-driven cross-check, roughly matching the original "Recommended Approach" above. Confirmed that all package fixes work for non-HTTP handlers too. Surfaced one adopter-side note (`swift-aws-lambda-events` event types are `Decodable`-only, no public memberwise init — tests synthesise events via JSON fixtures or factor business logic to take primitive fields).
+- **SwiftNIO** — included despite the proposal's original skepticism. The skepticism was correct: NIO's `ChannelHandler` methods are Void-returning and side-effect-only, which the package's Option C semantics (compare return values) can't reason about directly. The spike's workable pattern is to extract the per-frame business logic into pure async functions with real return values and annotate those, keeping the `ChannelHandler` as a thin wrapper. That pattern confirmed `#assertIdempotent` works at the annotatable layer — and caught a JSON-encoded-string return type that was non-idempotent even though the business logic was fine (tightening the "decode before comparing" guidance to apply beyond HTTP).
+
+Full narratives live in each spike's `FRICTION.md` (see Implementation Status above for links). The regression-gate command — `swift run CLI <spike>/Sources --categories idempotency` — should produce three errors per spike (the planted negatives in each `SpikeNegatives.swift`) and stay silent on the positive endpoints.
 
 ---
 
