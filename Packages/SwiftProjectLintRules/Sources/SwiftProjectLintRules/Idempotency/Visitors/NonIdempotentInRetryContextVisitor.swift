@@ -320,12 +320,12 @@ final class NonIdempotentInRetryContextVisitor: BasePatternVisitor, CrossFilePat
 
     /// Returns the base module imports for the file that hosts a site.
     /// Memoised off `fileCache` for the lifetime of a single analysis
-    /// run. Falls back to `nil` (no gating) when the path isn't in the
-    /// cache — preserves the old "heuristic applies always" behaviour
-    /// for call sites the visitor hasn't seen.
-    private func imports(forSiteFile path: String) -> Set<String>? {
+    /// run. Falls back to the empty set when the path isn't in the cache
+    /// (no source = no framework-gated whitelists fire for that site,
+    /// since we can't make import claims about a file we haven't seen).
+    private func imports(forSiteFile path: String) -> Set<String> {
         if let cached = importCache[path] { return cached }
-        guard let source = fileCache[path] else { return nil }
+        guard let source = fileCache[path] else { return [] }
         let set = ImportCollector.imports(in: source)
         importCache[path] = set
         return set
