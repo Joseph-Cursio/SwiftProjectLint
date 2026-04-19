@@ -97,40 +97,33 @@ public enum FrameworkWhitelist {
 /// "is this framework's whitelist active right now?" predicate. Used by
 /// `HeuristicEffectInferrer` to gate per-framework classifications.
 ///
-/// ## Backward-compat semantics
+/// ## Semantics
 ///
-/// When `imports` is `nil`, treat every framework as imported — this is
-/// the fallback used by call sites that haven't been updated to thread
-/// imports through yet.
-///
-/// When `imports` is an **empty** set, treat the source as having
-/// unknown module context (typical for synthetic test fixtures that
-/// declare types without importing modules). Falls back to the
-/// everything-active behaviour. Only a non-empty `imports` set engages
-/// the import gate — an adopter file with at least one `import`
-/// declaration supplies enough signal to trust the gate.
+/// `imports` is the **concrete** set of base module names the enclosing
+/// source file imports (see `ImportCollector.imports(in:)`). An empty
+/// set means "no framework-gated whitelists fire" — synthetic fixtures
+/// without imports and adopter files that simply don't use a given
+/// framework behave identically. Callers that want to bypass the gate
+/// must supply the relevant framework name explicitly.
 ///
 /// When `enabledFrameworks` is `nil`, treat every framework as enabled —
 /// the default when a project hasn't set `enabled_framework_whitelists`
-/// in its `.swiftprojectlint.yml`.
+/// in its `.swiftprojectlint.yml`. A non-nil value restricts
+/// classification to the listed frameworks.
 ///
-/// Both must be "active" for the whitelist to fire.
+/// Both the import gate and the config gate must be active for the
+/// whitelist to fire.
 public struct FrameworkContext: Sendable {
-    public let imports: Set<String>?
+    public let imports: Set<String>
     public let enabled: Set<String>?
 
-    public init(imports: Set<String>?, enabled: Set<String>?) {
+    public init(imports: Set<String>, enabled: Set<String>?) {
         self.imports = imports
         self.enabled = enabled
     }
 
     public func isFrameworkActive(_ framework: String) -> Bool {
-        let importOK: Bool
-        if let imports, !imports.isEmpty {
-            importOK = imports.contains(framework)
-        } else {
-            importOK = true
-        }
+        let importOK = imports.contains(framework)
         let enabledOK = enabled?.contains(framework) ?? true
         return importOK && enabledOK
     }

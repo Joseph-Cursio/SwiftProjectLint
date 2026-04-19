@@ -258,25 +258,25 @@ struct HeuristicInferenceUnitTests {
     @Test
     func jsonDecoderConstructor_infersIdempotent() throws {
         let call = try firstCall(in: "func f() { _ = JSONDecoder() }")
-        #expect(HeuristicEffectInferrer.infer(call: call) == .idempotent)
+        #expect(HeuristicEffectInferrer.infer(call: call, imports: ["Foundation"]) == .idempotent)
     }
 
     @Test
     func jsonEncoderConstructor_infersIdempotent() throws {
         let call = try firstCall(in: "func f() { _ = JSONEncoder() }")
-        #expect(HeuristicEffectInferrer.infer(call: call) == .idempotent)
+        #expect(HeuristicEffectInferrer.infer(call: call, imports: ["Foundation"]) == .idempotent)
     }
 
     @Test
     func dataConstructor_infersIdempotent() throws {
         let call = try firstCall(in: "func f() { _ = Data(bytes) }")
-        #expect(HeuristicEffectInferrer.infer(call: call) == .idempotent)
+        #expect(HeuristicEffectInferrer.infer(call: call, imports: ["Foundation"]) == .idempotent)
     }
 
     @Test
     func byteBufferConstructor_infersIdempotent() throws {
         let call = try firstCall(in: "func f() { _ = ByteBuffer(bytes: data) }")
-        #expect(HeuristicEffectInferrer.infer(call: call) == .idempotent)
+        #expect(HeuristicEffectInferrer.infer(call: call, imports: ["NIOCore"]) == .idempotent)
     }
 
     @Test
@@ -284,7 +284,7 @@ struct HeuristicInferenceUnitTests {
         let call = try firstCall(
             in: "func f() { _ = ALBTargetGroupResponse(statusCode: .ok) }"
         )
-        #expect(HeuristicEffectInferrer.infer(call: call) == .idempotent)
+        #expect(HeuristicEffectInferrer.infer(call: call, imports: ["AWSLambdaEvents"]) == .idempotent)
     }
 
     @Test
@@ -317,19 +317,19 @@ struct HeuristicInferenceUnitTests {
     @Test
     func decoderDotDecode_infersIdempotent() throws {
         let call = try firstCall(in: "func f() { decoder.decode(T.self, from: data) }")
-        #expect(HeuristicEffectInferrer.infer(call: call) == .idempotent)
+        #expect(HeuristicEffectInferrer.infer(call: call, imports: ["Foundation"]) == .idempotent)
     }
 
     @Test
     func encoderDotEncode_infersIdempotent() throws {
         let call = try firstCall(in: "func f() { encoder.encode(value) }")
-        #expect(HeuristicEffectInferrer.infer(call: call) == .idempotent)
+        #expect(HeuristicEffectInferrer.infer(call: call, imports: ["Foundation"]) == .idempotent)
     }
 
     @Test
     func jsonDecoderStyleReceiver_infersIdempotent() throws {
         let call = try firstCall(in: "func f() { jsonDecoder.decode(T.self, from: data) }")
-        #expect(HeuristicEffectInferrer.infer(call: call) == .idempotent)
+        #expect(HeuristicEffectInferrer.infer(call: call, imports: ["Foundation"]) == .idempotent)
     }
 
     @Test
@@ -347,25 +347,25 @@ struct HeuristicInferenceUnitTests {
     @Test
     func counterIncrement_infersObservational() throws {
         let call = try firstCall(in: "func f() { counter.increment() }")
-        #expect(HeuristicEffectInferrer.infer(call: call) == .observational)
+        #expect(HeuristicEffectInferrer.infer(call: call, imports: ["Metrics"]) == .observational)
     }
 
     @Test
     func meterDecrement_infersObservational() throws {
         let call = try firstCall(in: "func f() { activeRequestMeter.decrement() }")
-        #expect(HeuristicEffectInferrer.infer(call: call) == .observational)
+        #expect(HeuristicEffectInferrer.infer(call: call, imports: ["Metrics"]) == .observational)
     }
 
     @Test
     func timerRecordNanoseconds_infersObservational() throws {
         let call = try firstCall(in: "func f() { timer.recordNanoseconds(100) }")
-        #expect(HeuristicEffectInferrer.infer(call: call) == .observational)
+        #expect(HeuristicEffectInferrer.infer(call: call, imports: ["Metrics"]) == .observational)
     }
 
     @Test
     func gaugeRecord_infersObservational() throws {
         let call = try firstCall(in: "func f() { gauge.record(42.0) }")
-        #expect(HeuristicEffectInferrer.infer(call: call) == .observational)
+        #expect(HeuristicEffectInferrer.infer(call: call, imports: ["Metrics"]) == .observational)
     }
 
     @Test
@@ -381,7 +381,7 @@ struct HeuristicInferenceUnitTests {
         // `context.metrics.counter.increment()` — immediate-parent segment
         // is `counter`, which matches the metric-receiver shape.
         let call = try firstCall(in: "func f() { context.metrics.counter.increment() }")
-        #expect(HeuristicEffectInferrer.infer(call: call) == .observational)
+        #expect(HeuristicEffectInferrer.infer(call: call, imports: ["Metrics"]) == .observational)
     }
 
     // MARK: - Names deliberately left out of the whitelist

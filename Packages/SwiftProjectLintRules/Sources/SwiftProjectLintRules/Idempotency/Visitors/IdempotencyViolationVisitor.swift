@@ -436,9 +436,9 @@ final class IdempotencyViolationVisitor: BasePatternVisitor, CrossFilePatternVis
     ]
 
     /// Per-file imports cache. See `NonIdempotentInRetryContextVisitor.imports(forSiteFile:)`.
-    private func imports(forSiteFile path: String) -> Set<String>? {
+    private func imports(forSiteFile path: String) -> Set<String> {
         if let cached = importCache[path] { return cached }
-        guard let source = fileCache[path] else { return nil }
+        guard let source = fileCache[path] else { return [] }
         let set = ImportCollector.imports(in: source)
         importCache[path] = set
         return set

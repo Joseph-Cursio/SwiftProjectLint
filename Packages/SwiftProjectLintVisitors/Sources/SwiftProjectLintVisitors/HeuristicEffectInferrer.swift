@@ -63,32 +63,24 @@ import SwiftSyntax
 ///   Project-level overrides are a follow-up when evidence supports it.
 public enum HeuristicEffectInferrer {
 
-    /// Returns the inferred effect of a call based on its callee syntax,
-    /// or `nil` if no heuristic applies. Backward-compatible entry point —
-    /// equivalent to `infer(call:imports: nil, enabledFrameworks: nil)`.
-    public static func infer(call: FunctionCallExprSyntax) -> DeclaredEffect? {
-        infer(call: call, imports: nil, enabledFrameworks: nil)
-    }
-
-    /// Import-aware and config-aware inference.
+    /// Infers an effect for an unannotated callee from its call-site syntax,
+    /// or returns `nil` when no heuristic applies.
     ///
     /// - Parameters:
-    ///   - call: the call syntax under test
+    ///   - call: the call syntax under test.
     ///   - imports: base module names imported in the enclosing source
-    ///     file (see `ImportCollector.imports(in:)`). Pass `nil` to skip
-    ///     import gating entirely — every framework whitelist applies by
-    ///     name, preserving the pre-round-14 behaviour that unit-test
-    ///     fixtures rely on. Pass an explicit set (even empty) to enable
-    ///     import gating — framework whitelists only fire when their
-    ///     required module is imported.
+    ///     file (see `ImportCollector.imports(in:)`). Defaults to an
+    ///     empty set, in which case no framework-gated whitelist fires —
+    ///     only un-gated paths (bare-name triggers, logger receiver
+    ///     shape) produce an effect.
     ///   - enabledFrameworks: per-framework config override. `nil` means
     ///     "all frameworks enabled" (default). Non-nil restricts
     ///     classification to the listed framework names (from
     ///     `FrameworkWhitelist.knownFrameworks`).
     public static func infer(
         call: FunctionCallExprSyntax,
-        imports: Set<String>?,
-        enabledFrameworks: Set<String>?
+        imports: Set<String> = [],
+        enabledFrameworks: Set<String>? = nil
     ) -> DeclaredEffect? {
         guard let (calleeName, receiverName) = callParts(of: call.calledExpression) else {
             return nil
@@ -189,16 +181,12 @@ public enum HeuristicEffectInferrer {
 
     /// Human-readable reason string describing why a particular effect was
     /// inferred. Used in diagnostic prose so the user can see what the
-    /// linter matched against.
-    public static func inferenceReason(for call: FunctionCallExprSyntax) -> String? {
-        inferenceReason(for: call, imports: nil, enabledFrameworks: nil)
-    }
-
-    /// Import-aware / config-aware reason string. Mirrors `infer(call:imports:enabledFrameworks:)`.
+    /// linter matched against. Same argument semantics as
+    /// `infer(call:imports:enabledFrameworks:)`.
     public static func inferenceReason(
         for call: FunctionCallExprSyntax,
-        imports: Set<String>?,
-        enabledFrameworks: Set<String>?
+        imports: Set<String> = [],
+        enabledFrameworks: Set<String>? = nil
     ) -> String? {
         guard let (calleeName, receiverName) = callParts(of: call.calledExpression) else {
             return nil

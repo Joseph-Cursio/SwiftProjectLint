@@ -5,14 +5,13 @@ import Testing
 import SwiftSyntax
 import SwiftParser
 
-/// Round-14 follow-on coverage. Exercises the new
-/// `infer(call:imports:enabledFrameworks:)` API along three axes:
-///   1. Backward-compat — `imports = nil` matches every framework
-///      (preserves test fixtures that don't declare imports).
-///   2. Import-gated — explicit non-empty imports only fire matching
-///      frameworks' whitelists.
-///   3. Config-gated — `enabledFrameworks` non-nil restricts the active
-///      whitelist set even when imports would allow more.
+/// Covers the `infer(call:imports:enabledFrameworks:)` API along two axes:
+///   1. Import-gated — a framework's whitelist fires only when the
+///      `imports` set contains the framework's base module name.
+///      Absent module = silent (modulo un-gated paths like the logger
+///      receiver heuristic).
+///   2. Config-gated — `enabledFrameworks` non-nil restricts the active
+///      whitelist set even when imports would otherwise allow more.
 @Suite
 struct FrameworkWhitelistGatingTests {
 
@@ -30,26 +29,37 @@ struct FrameworkWhitelistGatingTests {
         return try #require(finder.call)
     }
 
-    // MARK: - Backward compatibility (imports = nil)
+    // MARK: - Empty imports (no framework gates fire)
 
     @Test
-    func backwardCompat_importsNil_jsonDecoderClassifiesIdempotent() throws {
-        let call = try firstCall(in: "func f() { _ = JSONDecoder() }")
-        // Old call site (and existing tests) expect this to fire.
-        #expect(HeuristicEffectInferrer.infer(
-            call: call, imports: nil, enabledFrameworks: nil
-        ) == .idempotent)
-    }
-
-    @Test
-    func backwardCompat_importsEmpty_jsonDecoderStillClassifiesIdempotent() throws {
-        // Empty imports = "synthetic fixture, no module signal" — falls
-        // back to the always-active behaviour. Round-14 design choice
-        // documented in `FrameworkContext`.
+    func emptyImports_jsonDecoderDoesNotFire() throws {
+        // An empty imports set means "no framework-gated whitelist is
+        // active" — synthetic fixtures and files without imports behave
+        // identically. Foundation's JSONDecoder stays unclassified.
         let call = try firstCall(in: "func f() { _ = JSONDecoder() }")
         #expect(HeuristicEffectInferrer.infer(
             call: call, imports: [], enabledFrameworks: nil
-        ) == .idempotent)
+        ) == nil)
+    }
+
+    @Test
+    func emptyImports_bareNameStillFires() throws {
+        // Bare-name whitelist (`create`/`insert`/etc.) is un-gated, so
+        // even with no imports the heuristic still classifies.
+        let call = try firstCall(in: "func f() { insert(row) }")
+        #expect(HeuristicEffectInferrer.infer(
+            call: call, imports: [], enabledFrameworks: nil
+        ) == .nonIdempotent)
+    }
+
+    @Test
+    func emptyImports_loggerStillFires() throws {
+        // The logger receiver-shape heuristic is intentionally un-gated
+        // (see `HeuristicEffectInferrer.loggerPattern` discussion).
+        let call = try firstCall(in: "func f() { logger.info(\"x\") }")
+        #expect(HeuristicEffectInferrer.infer(
+            call: call, imports: [], enabledFrameworks: nil
+        ) == .observational)
     }
 
     // MARK: - Import-gated (non-empty imports)
@@ -232,15 +242,6 @@ struct FrameworkWhitelistGatingTests {
         #expect(HeuristicEffectInferrer.infer(
             call: call, imports: ["FluentKit"], enabledFrameworks: nil
         ) == nil)
-    }
-
-    @Test
-    func backwardCompat_importsNil_modelSaveFires() throws {
-        // nil imports = backward-compat mode where every framework is active.
-        let call = try firstCall(in: "func f() { todo.save() }")
-        #expect(HeuristicEffectInferrer.infer(
-            call: call, imports: nil, enabledFrameworks: nil
-        ) == .nonIdempotent)
     }
 
     @Test
