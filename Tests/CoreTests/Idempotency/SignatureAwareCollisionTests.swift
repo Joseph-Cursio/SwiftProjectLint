@@ -79,6 +79,192 @@ struct SignatureAwareCollisionTests {
         #expect(signature.description == "upsert(_:)")
     }
 
+    // MARK: - Closure-typed stored properties (FunctionSignature.from(declaration: VariableDecl))
+
+    /// Helper: extract a `VariableDeclSyntax` from the first statement of a source.
+    private func varDecl(_ source: String) throws -> VariableDeclSyntax {
+        let firstStatement = try #require(Parser.parse(source: source).statements.first)
+        // Member-level decls land in `MemberBlockItemListSyntax`, so we also
+        // accept a struct-wrapped source and dig out the first member.
+        if let decl = firstStatement.item.as(VariableDeclSyntax.self) {
+            return decl
+        }
+        if let structDecl = firstStatement.item.as(StructDeclSyntax.self),
+           let member = structDecl.memberBlock.members.first,
+           let varDecl = member.decl.as(VariableDeclSyntax.self) {
+            return varDecl
+        }
+        fatalError("expected a var decl in the first statement or first struct member")
+    }
+
+    @Test
+    func closureProperty_plainFunctionType_producesUnderscoreLabel() throws {
+        // `(Int) -> Void` has one unlabeled parameter. Callers write
+        // `f(0)`, which matches `f(_:)`. No Path-A remap.
+        let decl = try varDecl("var f: (Int) -> Void")
+        let signature = try #require(FunctionSignature.from(declaration: decl))
+        #expect(signature.description == "f(_:)")
+    }
+
+    @Test
+    func closureProperty_pathARemap_underscoreInternalNameBecomesLabel() throws {
+        // `(_ id: Int) -> Void` — Swift function-type semantics call this
+        // `f(_:)`. Path A honours the macro-relabeling convention
+        // (`@DependencyClient` & friends) that exposes the var as
+        // `f(id:)`. See the `from(declaration: VariableDeclSyntax)` docs.
+        let decl = try varDecl("var f: (_ id: Int) -> Void")
+        let signature = try #require(FunctionSignature.from(declaration: decl))
+        #expect(signature.description == "f(id:)")
+    }
+
+    @Test
+    func closureProperty_labelledFunctionType_usesExplicitLabel() throws {
+        let decl = try varDecl("var f: (id: Int) -> Void")
+        let signature = try #require(FunctionSignature.from(declaration: decl))
+        #expect(signature.description == "f(id:)")
+    }
+
+    @Test
+    func closureProperty_attributedType_peelsAttributes() throws {
+        // TCA `@DependencyClient`'s canonical shape — `@Sendable` attribute
+        // wraps the function type, and the closure is async-throws. Path A
+        // remaps `_ query:` → `query`.
+        let decl = try varDecl(
+            "var search: @Sendable (_ query: String) async throws -> String"
+        )
+        let signature = try #require(FunctionSignature.from(declaration: decl))
+        #expect(signature.description == "search(query:)")
+    }
+
+    @Test
+    func closureProperty_multipleParameters_preservesOrder() throws {
+        let decl = try varDecl(
+            "var f: (_ id: Int, label: String, _ count: Int) -> Void"
+        )
+        let signature = try #require(FunctionSignature.from(declaration: decl))
+        // id (path A) / label (canonical) / count (path A).
+        #expect(signature.description == "f(id:label:count:)")
+    }
+
+    @Test
+    func closureProperty_nonFunctionTypedVar_returnsNil() throws {
+        let decl = try varDecl("var count: Int")
+        #expect(FunctionSignature.from(declaration: decl) == nil)
+    }
+
+    @Test
+    func closureProperty_untypedBinding_returnsNil() throws {
+        // Inferred-type bindings don't declare the call-site shape — can't
+        // extract a signature without the type annotation.
+        let decl = try varDecl("var f = { (x: Int) in print(x) }")
+        #expect(FunctionSignature.from(declaration: decl) == nil)
+    }
+
+    @Test
+    func closureProperty_multiBindingVar_returnsNil() throws {
+        // `var a: (Int) -> Void, b: (String) -> Void` — ambiguous which
+        // binding the annotation (if any) applies to. Skip entirely.
+        let decl = try varDecl(
+            "var a: (Int) -> Void, b: (String) -> Void"
+        )
+        #expect(FunctionSignature.from(declaration: decl) == nil)
+    }
+
+    @Test
+    func closureProperty_memberLevelStruct_stillExtracts() throws {
+        // Verify extraction works when the var is nested in a struct
+        // (the common TCA shape). The helper digs into the first member.
+        let decl = try varDecl("""
+        struct Client {
+            var search: @Sendable (_ query: String) async throws -> String
+        }
+        """)
+        let signature = try #require(FunctionSignature.from(declaration: decl))
+        #expect(signature.description == "search(query:)")
+    }
+
+    // MARK: - EffectSymbolTable closure-property integration
+
+    @Test
+    func symbolTable_mergesAnnotatedClosureProperty() throws {
+        let source = """
+        struct WeatherClient {
+            /// @lint.effect idempotent
+            var search: @Sendable (_ query: String) async throws -> String
+        }
+        """
+        let table = tableOf(source)
+        let signature = FunctionSignature(name: "search", argumentLabels: ["query"])
+        #expect(table.effect(for: signature) == .idempotent)
+    }
+
+    @Test
+    func symbolTable_unannotatedClosureProperty_notRecorded() throws {
+        let source = """
+        struct WeatherClient {
+            var search: @Sendable (_ query: String) async throws -> String
+        }
+        """
+        let table = tableOf(source)
+        let signature = FunctionSignature(name: "search", argumentLabels: ["query"])
+        #expect(table.effect(for: signature) == nil)
+    }
+
+    @Test
+    func symbolTable_collision_closurePropertyVsFunctionDecl() throws {
+        // A struct declares `search(query:)` as a closure property with
+        // `idempotent`, and a separate type declares a method with the
+        // same signature as `non_idempotent`. Collision policy withdraws.
+        let source = """
+        struct WeatherClient {
+            /// @lint.effect idempotent
+            var search: @Sendable (_ query: String) async throws -> String
+        }
+        struct MailClient {
+            /// @lint.effect non_idempotent
+            func search(query: String) async throws -> String { "" }
+        }
+        """
+        let table = tableOf(source)
+        let signature = FunctionSignature(name: "search", argumentLabels: ["query"])
+        #expect(table.effect(for: signature) == nil)
+        #expect(table.isCollision(signature: signature))
+    }
+
+    @Test
+    func symbolTable_closureProperty_contextAnnotationLands() throws {
+        // `@lint.context strict_replayable` on a closure-property declaration
+        // should populate the context entry the same way a function decl does.
+        let source = """
+        struct Workflow {
+            /// @lint.context strict_replayable
+            var run: @Sendable () async throws -> Void
+        }
+        """
+        let table = tableOf(source)
+        let signature = FunctionSignature(name: "run", argumentLabels: [])
+        #expect(table.context(for: signature) == .strictReplayable)
+    }
+
+    @Test
+    func symbolTable_closureInNestedClosure_skipped() throws {
+        // Mirrors FunctionDeclCollector: we don't collect declarations
+        // that live inside a closure body (they're not nominal surfaces
+        // addressable by bare name from outside the closure).
+        let source = """
+        func outer() {
+            _ = { (x: Int) -> Void in
+                /// @lint.effect idempotent
+                var inner: (Int) -> Void = { _ in }
+                inner(x)
+            }
+        }
+        """
+        let table = tableOf(source)
+        let signature = FunctionSignature(name: "inner", argumentLabels: ["_"])
+        #expect(table.effect(for: signature) == nil)
+    }
+
     @Test
     func extractsSignatureFromCallSite_matchingDeclarationForm() throws {
         let source = """

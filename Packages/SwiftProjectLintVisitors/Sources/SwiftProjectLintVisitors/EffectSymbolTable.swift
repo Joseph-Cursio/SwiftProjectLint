@@ -84,12 +84,29 @@ public struct EffectSymbolTable: Sendable {
     /// to accumulate entries across files; the collision semantics apply
     /// uniformly within and across file boundaries.
     public mutating func merge(source: SourceFileSyntax) {
-        let collector = FunctionDeclCollector()
-        collector.walk(source)
-        for funcDecl in collector.functions {
+        let funcCollector = FunctionDeclCollector()
+        funcCollector.walk(source)
+        for funcDecl in funcCollector.functions {
             let effect = EffectAnnotationParser.parseEffect(declaration: funcDecl)
             let context = EffectAnnotationParser.parseContext(declaration: funcDecl)
             let signature = FunctionSignature.from(declaration: funcDecl)
+            record(signature: signature, effect: effect, context: context)
+        }
+
+        // Closure-typed stored properties as pseudo-method declarations.
+        // The `@DependencyClient`/`@MemberwiseInit`-style macros expose
+        // `var search: @Sendable (_ query: String) async throws -> T` as
+        // callable `search(query:)`; the linter can consume user
+        // annotations on these via the same signature-keyed table
+        // without having to run the macro.
+        let propCollector = ClosurePropertyDeclCollector()
+        propCollector.walk(source)
+        for varDecl in propCollector.properties {
+            guard let signature = FunctionSignature.from(declaration: varDecl) else {
+                continue
+            }
+            let effect = EffectAnnotationParser.parseEffect(declaration: varDecl)
+            let context = EffectAnnotationParser.parseContext(declaration: varDecl)
             record(signature: signature, effect: effect, context: context)
         }
     }
@@ -490,6 +507,34 @@ final class FunctionDeclCollector: SyntaxVisitor {
 
     override func visit(_ node: FunctionDeclSyntax) -> SyntaxVisitorContinueKind {
         functions.append(node)
+        return .visitChildren
+    }
+
+    override func visit(_ node: ClosureExprSyntax) -> SyntaxVisitorContinueKind {
+        .skipChildren
+    }
+}
+
+/// Walks a source file and collects every `VariableDeclSyntax` that declares
+/// a single identifier whose annotated type is function-typed. These are the
+/// "closure property" shape — stored properties whose type is
+/// `(...) -> T`, `@Sendable (...) async throws -> T`, and so on. Macros
+/// like `@DependencyClient` expose them as method-call surfaces; the symbol
+/// table treats their annotations identically to real method declarations
+/// so user annotations land before macro expansion runs.
+///
+/// Collector only — filtering to function-typed bindings happens in
+/// `FunctionSignature.from(declaration: VariableDeclSyntax)`, which returns
+/// `nil` for non-qualifying vars and lets the caller skip them.
+final class ClosurePropertyDeclCollector: SyntaxVisitor {
+    var properties: [VariableDeclSyntax] = []
+
+    init() {
+        super.init(viewMode: .sourceAccurate)
+    }
+
+    override func visit(_ node: VariableDeclSyntax) -> SyntaxVisitorContinueKind {
+        properties.append(node)
         return .visitChildren
     }
 
