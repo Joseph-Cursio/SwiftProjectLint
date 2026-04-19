@@ -111,17 +111,20 @@ final class NonIdempotentInRetryContextVisitor: BasePatternVisitor, CrossFilePat
     /// un-bound closure passed to a call — the Vapor / Hummingbird /
     /// Lambda idiom `app.on(.POST, "login") { req in ... }` — is its
     /// own analysis site when the call expression carries a
-    /// `/// @lint.context` annotation in its leading trivia.
+    /// `/// @lint.context` annotation.
     ///
     /// Round 6 flagged closure-based handlers as unannotatable under the
     /// original grammar, which blocked >50% of Vapor's routes surface.
     /// Round 10 re-surfaced it on Vapor's `Sources/Development/routes.swift`.
-    /// This visit method closes the gap for the common
-    /// "doc-comment-above-the-call" shape.
+    /// The TCA round (see
+    /// `swiftIdempotency/docs/swift-composable-architecture/`) surfaced a
+    /// follow-on gap: annotations above `return .run { ... }` bind to the
+    /// `return` keyword, not the call, so the call's own `leadingTrivia`
+    /// missed them. `parseContextAtCallSite` now walks the enclosing
+    /// `CodeBlockItemSyntax` to pick up prefix-statement placements
+    /// (`return`, `try`, `await`, `let x =`) and ternary branches.
     override func visit(_ node: FunctionCallExprSyntax) -> SyntaxVisitorContinueKind {
-        guard let context = EffectAnnotationParser.parseContext(
-                leadingTrivia: node.leadingTrivia
-              ),
+        guard let context = EffectAnnotationParser.parseContextAtCallSite(of: node),
               let closure = node.trailingClosure else {
             return .visitChildren
         }
@@ -190,10 +193,12 @@ final class NonIdempotentInRetryContextVisitor: BasePatternVisitor, CrossFilePat
         // Same rule for annotated trailing-closure sites: the outer walk
         // must not descend into a call whose closure is its own analysis
         // site, or the inner calls would be attributed to the outer
-        // context twice.
+        // context twice. Must mirror the `visit` method's trivia lookup
+        // (call site + enclosing statement) or prefix-statement annotated
+        // sites get walked twice.
         if let call = syntax.as(FunctionCallExprSyntax.self),
            call.trailingClosure != nil,
-           EffectAnnotationParser.parseContext(leadingTrivia: call.leadingTrivia) != nil {
+           EffectAnnotationParser.parseContextAtCallSite(of: call) != nil {
             return
         }
         if let closure = syntax.as(ClosureExprSyntax.self), isEscapingClosure(closure) {

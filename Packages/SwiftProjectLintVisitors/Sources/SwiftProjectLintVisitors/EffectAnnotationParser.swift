@@ -85,6 +85,54 @@ public enum EffectAnnotationParser {
         return nil
     }
 
+    /// Reads the `@lint.context` kind that applies to a call site, tolerating
+    /// prefix-statement placements that SwiftSyntax binds to a keyword token
+    /// rather than to the call expression itself.
+    ///
+    /// The call's own `leadingTrivia` catches the direct idiom
+    /// `/// @lint.context replayable\napp.post(...) { req in ... }`. But adopter
+    /// code often wraps the annotated call in a prefix statement —
+    /// `return .run { ... }`, `try foo { ... }`, `let x = bar { ... }`, or a
+    /// ternary branch `? a : .run { ... }`. In those cases SwiftSyntax attaches
+    /// the doc comment to the keyword (`return`, `try`, `await`, `let`) or to
+    /// the ternary `:`, not to the call's first token. The earlier implementation
+    /// checked only the call's own leading trivia and silently missed these
+    /// placements, yielding zero diagnostics on 100% of TCA-style reducer
+    /// effects.
+    ///
+    /// Policy: the enclosing `CodeBlockItemSyntax` bounds the search. Within
+    /// that statement, the most recent doc-comment annotation that precedes
+    /// the call (in source order) wins. Unrelated annotations in earlier
+    /// statements are isolated by the CodeBlockItem boundary.
+    public static func parseContextAtCallSite(
+        of call: FunctionCallExprSyntax
+    ) -> ContextEffect? {
+        if let context = parseContext(leadingTrivia: call.leadingTrivia) {
+            return context
+        }
+
+        var cursor: Syntax? = Syntax(call).parent
+        var enclosingItem: CodeBlockItemSyntax?
+        while let node = cursor {
+            if let item = node.as(CodeBlockItemSyntax.self) {
+                enclosingItem = item
+                break
+            }
+            cursor = node.parent
+        }
+        guard let enclosingItem else { return nil }
+
+        let callStart = call.positionAfterSkippingLeadingTrivia
+        var mostRecent: ContextEffect?
+        for token in enclosingItem.tokens(viewMode: .sourceAccurate) {
+            if token.position >= callStart { break }
+            if let context = parseContext(leadingTrivia: token.leadingTrivia) {
+                mostRecent = context
+            }
+        }
+        return mostRecent
+    }
+
     /// Reads the `@lint.effect` tier declared on a function. Considers
     /// both doc-comment annotations (`/// @lint.effect idempotent`) and
     /// attribute-form annotations emitted by the `SwiftIdempotency` macros

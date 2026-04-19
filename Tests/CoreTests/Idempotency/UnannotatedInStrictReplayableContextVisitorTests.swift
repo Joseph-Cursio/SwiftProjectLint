@@ -454,6 +454,85 @@ struct UnannotatedInStrictReplayableContextVisitorTests {
         #expect(visitor.detectedIssues.count == 1)
         #expect(visitor.detectedIssues.first?.message.contains("outer") == true)
     }
+
+    // MARK: - Prefix-statement annotation (return-trailing-annotation slice)
+    //
+    // Same shape as the matching tests in
+    // `NonIdempotentInRetryContextVisitorTests`; strict mode needs the
+    // same trivia lookup to create analysis sites for
+    // `return .run { ... }` / ternary-branch trailing-closure calls.
+
+    @Test
+    func strictReplayable_underReturnCall_firesOnUnannotated() throws {
+        let source = """
+        enum Effect<A> {
+            static func run(_ body: (Int) async throws -> Void) -> Effect<A> { fatalError() }
+        }
+
+        func mystery(_ id: Int) async throws {}
+
+        func reduce(_ id: Int) -> Effect<Int> {
+            /// @lint.context strict_replayable
+            return Effect.run { send in
+                try await mystery(id)
+            }
+        }
+        """
+
+        let visitor = run(source: source)
+
+        #expect(visitor.detectedIssues.count == 1)
+        #expect(visitor.detectedIssues.first?.message.contains("mystery") == true)
+    }
+
+    @Test
+    func strictReplayable_underTernaryBranch_firesOnUnannotated() throws {
+        let source = """
+        enum Effect<A> {
+            static var none: Effect<A> { fatalError() }
+            static func run(_ body: (Int) async throws -> Void) -> Effect<A> { fatalError() }
+        }
+
+        func mystery(_ id: Int) async throws {}
+
+        func reduce(_ condition: Bool, _ id: Int) -> Effect<Int> {
+            return condition
+                ? .none
+                /// @lint.context strict_replayable
+                : Effect.run { send in
+                    try await mystery(id)
+                }
+        }
+        """
+
+        let visitor = run(source: source)
+
+        #expect(visitor.detectedIssues.count == 1)
+    }
+
+    @Test
+    func strictReplayable_unrelatedEarlierAnnotation_doesNotLeak() {
+        // Regression guard: an earlier statement's annotation must not
+        // attach to a later trailing-closure call in the same scope.
+        let source = """
+        func mystery(_ id: Int) async throws {}
+
+        func handler(_ id: Int) throws {
+            /// @lint.context strict_replayable
+            let marker = 1
+
+            withCallback { send in
+                try await mystery(id)
+            }
+        }
+
+        func withCallback(_ body: ((Int) async throws -> Void) -> Void) {}
+        """
+
+        let visitor = run(source: source)
+
+        #expect(visitor.detectedIssues.isEmpty)
+    }
 }
 
 /// Cross-rule interaction: strict_replayable + declared non-idempotent callee

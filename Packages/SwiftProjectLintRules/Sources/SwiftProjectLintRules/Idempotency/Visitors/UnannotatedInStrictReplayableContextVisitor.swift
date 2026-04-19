@@ -122,11 +122,11 @@ final class UnannotatedInStrictReplayableContextVisitor:
     /// un-bound closure passed to a call with `/// @lint.context
     /// strict_replayable` above it becomes an analysis site. Matches the
     /// pattern in `NonIdempotentInRetryContextVisitor.visit(_:)`; see
-    /// that visitor's doc comment for the shape rationale.
+    /// that visitor's doc comment for the shape rationale and the TCA
+    /// adopter round for the prefix-statement gap this helper closes.
     override func visit(_ node: FunctionCallExprSyntax) -> SyntaxVisitorContinueKind {
-        guard EffectAnnotationParser.parseContext(
-                leadingTrivia: node.leadingTrivia
-              ) == .strictReplayable,
+        guard EffectAnnotationParser.parseContextAtCallSite(of: node)
+                == .strictReplayable,
               let closure = node.trailingClosure else {
             return .visitChildren
         }
@@ -177,10 +177,13 @@ final class UnannotatedInStrictReplayableContextVisitor:
            EffectAnnotationParser.parseContext(declaration: varDecl) != nil {
             return
         }
-        // Same rule for annotated trailing-closure sites (round-11).
+        // Same rule for annotated trailing-closure sites (round-11). Use
+        // the call-site variant so prefix-statement annotations don't get
+        // double-walked — see NonIdempotentInRetryContextVisitor's matching
+        // guard.
         if let call = syntax.as(FunctionCallExprSyntax.self),
            call.trailingClosure != nil,
-           EffectAnnotationParser.parseContext(leadingTrivia: call.leadingTrivia) != nil {
+           EffectAnnotationParser.parseContextAtCallSite(of: call) != nil {
             return
         }
         if let closure = syntax.as(ClosureExprSyntax.self), isEscapingClosure(closure) {
