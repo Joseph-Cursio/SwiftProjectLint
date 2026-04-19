@@ -27,12 +27,13 @@ public enum FrameworkWhitelist {
     public static let logging = "Logging"
     public static let osLog = "os"
     public static let metrics = "Metrics"
+    public static let fluent = "FluentKit"
 
     /// Every framework this project recognises. Order-insensitive.
     /// Used as the default `enabledFrameworks` set when a project
     /// hasn't opted out of any framework's classifications.
     public static let knownFrameworks: Set<String> = [
-        foundation, nio, awsLambdaEvents, logging, osLog, metrics
+        foundation, nio, awsLambdaEvents, logging, osLog, metrics, fluent
     ]
 
     // MARK: - Idempotent type constructors (bare-identifier call)
@@ -64,6 +65,31 @@ public enum FrameworkWhitelist {
     /// constructor, or nil when the name isn't on any framework's list.
     public static func framework(forIdempotentTypeConstructor name: String) -> String? {
         idempotentTypesByFramework[name]
+    }
+
+    // MARK: - Non-idempotent methods (receiver-based call)
+
+    /// Maps a method name (as it appears in source on the receiver side)
+    /// to the framework it comes from. `save` → `"FluentKit"`. Lookup
+    /// returns nil for names not on any framework's list.
+    ///
+    /// Used for verbs that are *universally* non-idempotent inside a
+    /// framework but ambiguous enough elsewhere that we don't want them
+    /// in the global bare-name whitelist. Fluent's `save`/`update`/`delete`
+    /// are the motivating case — called on any `Model`-conforming type
+    /// they always hit the database, but `Set.update(with:)` in stdlib
+    /// or `cache.save()` on an in-memory store have different semantics.
+    /// Gating on `import FluentKit` resolves the ambiguity.
+    private static let nonIdempotentMethodsByFramework: [String: String] = [
+        "save": fluent,
+        "update": fluent,
+        "delete": fluent,
+    ]
+
+    /// Returns the framework that owns a given non-idempotent method
+    /// name, or nil when the name isn't on any framework's list.
+    public static func framework(forNonIdempotentMethod name: String) -> String? {
+        nonIdempotentMethodsByFramework[name]
     }
 }
 
