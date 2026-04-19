@@ -49,6 +49,15 @@ import SwiftSyntax
 ///   chains without requiring per-callee annotations.
 ///   See `FrameworkWhitelist.framework(forIdempotentMethod:)`.
 ///
+/// - Framework-gated receiver/method pairs: where a method name is
+///   too generic to whitelist alone but the `(receiver, method)`
+///   combination is a specific framework idiom. Hummingbird's
+///   `request.decode(...)` and `parameters.require(...)` are the
+///   motivating cases — pinned to the framework-canonical receiver
+///   name so that unrelated `.decode()` / `.require()` calls in the
+///   same file don't incorrectly classify.
+///   See `FrameworkWhitelist.framework(forIdempotentReceiver:method:)`.
+///
 /// - Idempotent bare-name triggers: `upsert`, `setIfAbsent`, `replace`.
 ///   These are explicit declarations of intent in the name itself.
 ///
@@ -137,6 +146,19 @@ public enum HeuristicEffectInferrer {
            isCodecReceiver(receiverName),
            codecMethods.contains(calleeName),
            context.isFrameworkActive(FrameworkWhitelist.foundation) {
+            return .idempotent
+        }
+
+        // Framework-gated idempotent (receiver, method) pairs —
+        // Hummingbird's `request.decode(...)` / `parameters.require(...)`
+        // motivating case. Specific pair match; the receiver has to
+        // be exactly the framework-canonical name.
+        if let receiverName,
+           let framework = FrameworkWhitelist.framework(
+               forIdempotentReceiver: receiverName,
+               method: calleeName
+           ),
+           context.isFrameworkActive(framework) {
             return .idempotent
         }
 
@@ -238,6 +260,14 @@ public enum HeuristicEffectInferrer {
            codecMethods.contains(calleeName),
            context.isFrameworkActive(FrameworkWhitelist.foundation) {
             return "from codec-pattern receiver `\(receiverName).\(calleeName)`"
+        }
+        if let receiverName,
+           let framework = FrameworkWhitelist.framework(
+               forIdempotentReceiver: receiverName,
+               method: calleeName
+           ),
+           context.isFrameworkActive(framework) {
+            return "from the \(framework) primitive `\(receiverName).\(calleeName)`"
         }
         if idempotentNames.contains(calleeName) || nonIdempotentNames.contains(calleeName) {
             // Receiver-type-excluded pairs produce no reason, mirroring

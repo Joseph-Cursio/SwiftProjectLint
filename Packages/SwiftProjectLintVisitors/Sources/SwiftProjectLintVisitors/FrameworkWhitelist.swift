@@ -28,12 +28,14 @@ public enum FrameworkWhitelist {
     public static let osLog = "os"
     public static let metrics = "Metrics"
     public static let fluent = "FluentKit"
+    public static let hummingbird = "Hummingbird"
 
     /// Every framework this project recognises. Order-insensitive.
     /// Used as the default `enabledFrameworks` set when a project
     /// hasn't opted out of any framework's classifications.
     public static let knownFrameworks: Set<String> = [
-        foundation, nio, awsLambdaEvents, logging, osLog, metrics, fluent
+        foundation, nio, awsLambdaEvents, logging, osLog, metrics, fluent,
+        hummingbird
     ]
 
     // MARK: - Idempotent type constructors (bare-identifier call)
@@ -59,6 +61,11 @@ public enum FrameworkWhitelist {
         "ALBTargetGroupResponse": awsLambdaEvents,
         "APIGatewayResponse": awsLambdaEvents,
         "APIGatewayV2Response": awsLambdaEvents,
+
+        // Hummingbird — error constructors (value types; throwing them
+        // is the control-flow mechanism, but constructing the value
+        // is pure).
+        "HTTPError": hummingbird,
     ]
 
     /// Returns the framework that owns a given idempotent type
@@ -122,6 +129,35 @@ public enum FrameworkWhitelist {
     /// name, or nil when the name isn't on any framework's list.
     public static func framework(forIdempotentMethod name: String) -> String? {
         idempotentMethodsByFramework[name]
+    }
+
+    // MARK: - Idempotent receiver/method pairs (framework-gated)
+
+    /// Idempotent `(receiver, method)` pairs — used when the method
+    /// name alone is too ambiguous to whitelist but the combination
+    /// is a specific framework idiom. Nested dictionary keyed by
+    /// method first (matching the inferrer's lookup pattern) then
+    /// by receiver name.
+    ///
+    /// Hummingbird's `request.decode(...)` and `parameters.require(...)`
+    /// are the motivating pair. `decode` as a bare method would fire
+    /// on any `.decode()` call in a Hummingbird-importing file (the
+    /// existing codec-receiver path only matches `decoder` / `encoder`
+    /// receivers), and `require` is generic enough to collide with
+    /// user-defined validation helpers. Pinning to the specific
+    /// framework-canonical receiver name avoids both problems.
+    private static let idempotentReceiverMethodsByFramework: [String: [String: String]] = [
+        "decode": ["request": hummingbird],
+        "require": ["parameters": hummingbird],
+    ]
+
+    /// Returns the framework that owns a given idempotent
+    /// `(receiver, method)` pair, or nil when the pair isn't listed.
+    public static func framework(
+        forIdempotentReceiver receiver: String,
+        method: String
+    ) -> String? {
+        idempotentReceiverMethodsByFramework[method]?[receiver]
     }
 }
 

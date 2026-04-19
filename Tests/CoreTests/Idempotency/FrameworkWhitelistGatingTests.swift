@@ -366,6 +366,107 @@ struct FrameworkWhitelistGatingTests {
         #expect(reason == "from the FluentKit query-builder read `all`")
     }
 
+    // MARK: - Hummingbird primitives (framework-gated)
+
+    @Test
+    func importGated_hummingbirdPresent_httpErrorFires() throws {
+        let call = try firstCall(in: "func f() { _ = HTTPError(.notFound) }")
+        #expect(HeuristicEffectInferrer.infer(
+            call: call, imports: ["Hummingbird"], enabledFrameworks: nil
+        ) == .idempotent)
+    }
+
+    @Test
+    func importGated_hummingbirdAbsent_httpErrorDoesNotFire() throws {
+        // A user-defined `HTTPError` type in a module without Hummingbird
+        // shouldn't classify.
+        let call = try firstCall(in: "func f() { _ = HTTPError(.notFound) }")
+        #expect(HeuristicEffectInferrer.infer(
+            call: call, imports: ["MyApp"], enabledFrameworks: nil
+        ) == nil)
+    }
+
+    @Test
+    func importGated_hummingbirdPresent_requestDecodeFires() throws {
+        let call = try firstCall(in: "func f() { try await request.decode(as: T.self) }")
+        #expect(HeuristicEffectInferrer.infer(
+            call: call, imports: ["Hummingbird"], enabledFrameworks: nil
+        ) == .idempotent)
+    }
+
+    @Test
+    func importGated_hummingbirdAbsent_requestDecodeDoesNotFire() throws {
+        let call = try firstCall(in: "func f() { try await request.decode(as: T.self) }")
+        #expect(HeuristicEffectInferrer.infer(
+            call: call, imports: ["MyApp"], enabledFrameworks: nil
+        ) == nil)
+    }
+
+    @Test
+    func importGated_hummingbirdPresent_parametersRequireFires() throws {
+        // Chained receiver — callParts extracts "parameters" from
+        // context.parameters.require(...) via the immediate-parent rule.
+        let call = try firstCall(in: "func f() { try context.parameters.require(\"id\", as: UUID.self) }")
+        #expect(HeuristicEffectInferrer.infer(
+            call: call, imports: ["Hummingbird"], enabledFrameworks: nil
+        ) == .idempotent)
+    }
+
+    @Test
+    func importGated_hummingbirdAbsent_parametersRequireDoesNotFire() throws {
+        let call = try firstCall(in: "func f() { try context.parameters.require(\"id\", as: UUID.self) }")
+        #expect(HeuristicEffectInferrer.infer(
+            call: call, imports: ["MyApp"], enabledFrameworks: nil
+        ) == nil)
+    }
+
+    @Test
+    func hummingbirdPair_wrongReceiver_doesNotFire() throws {
+        // `.decode()` on a non-`request` receiver in a Hummingbird-
+        // importing file: should NOT match the Hummingbird pair (only
+        // `request.decode` is whitelisted, not arbitrary `.decode()`).
+        // Codec-receiver path handles `decoder.decode` etc. separately.
+        let call = try firstCall(in: "func f() { try foo.decode(T.self) }")
+        #expect(HeuristicEffectInferrer.infer(
+            call: call, imports: ["Hummingbird"], enabledFrameworks: nil
+        ) == nil)
+    }
+
+    @Test
+    func hummingbirdPair_wrongMethod_doesNotFire() throws {
+        // `.wibble()` on `request` — method isn't in the pair table.
+        let call = try firstCall(in: "func f() { request.wibble() }")
+        #expect(HeuristicEffectInferrer.infer(
+            call: call, imports: ["Hummingbird"], enabledFrameworks: nil
+        ) == nil)
+    }
+
+    @Test
+    func configGated_hummingbirdDisabled_httpErrorDoesNotFire() throws {
+        let call = try firstCall(in: "func f() { _ = HTTPError(.notFound) }")
+        #expect(HeuristicEffectInferrer.infer(
+            call: call, imports: ["Hummingbird"], enabledFrameworks: ["Foundation"]
+        ) == nil)
+    }
+
+    @Test
+    func hummingbird_httpError_inferenceReason() throws {
+        let call = try firstCall(in: "func f() { _ = HTTPError(.notFound) }")
+        let reason = HeuristicEffectInferrer.inferenceReason(
+            for: call, imports: ["Hummingbird"], enabledFrameworks: nil
+        )
+        #expect(reason == "from the known-idempotent Hummingbird type `HTTPError`")
+    }
+
+    @Test
+    func hummingbird_requestDecode_inferenceReason() throws {
+        let call = try firstCall(in: "func f() { try request.decode(as: T.self) }")
+        let reason = HeuristicEffectInferrer.inferenceReason(
+            for: call, imports: ["Hummingbird"], enabledFrameworks: nil
+        )
+        #expect(reason == "from the Hummingbird primitive `request.decode`")
+    }
+
     // MARK: - ImportCollector
 
     @Test
