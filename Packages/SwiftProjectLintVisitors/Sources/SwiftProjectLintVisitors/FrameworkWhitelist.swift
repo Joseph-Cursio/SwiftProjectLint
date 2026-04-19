@@ -91,6 +91,38 @@ public enum FrameworkWhitelist {
     public static func framework(forNonIdempotentMethod name: String) -> String? {
         nonIdempotentMethodsByFramework[name]
     }
+
+    // MARK: - Idempotent methods (framework-gated)
+
+    /// Maps a method name to the framework it belongs to, when the
+    /// method is a known read-only / pure operation inside that
+    /// framework. Fluent's query-builder reads are the motivating case:
+    /// `db`, `query`, `all`, `first`, `filter` are all idempotent when
+    /// invoked through FluentKit's `Database` / `QueryBuilder` surface,
+    /// but have unrelated (usually also idempotent) senses elsewhere
+    /// in Swift. Gating on `import FluentKit` resolves which module
+    /// owns the name; the idempotent classification is correct for
+    /// either interpretation, so a cross-framework false positive
+    /// would only change the *reason* string, not the effect.
+    ///
+    /// Unlike type-constructor whitelists, these are ordinary
+    /// method-call names — they can appear as `.method()` on any
+    /// receiver, or bare-style when chained after another call.
+    /// The gate therefore does not require a receiver; the import
+    /// presence is the load-bearing signal.
+    private static let idempotentMethodsByFramework: [String: String] = [
+        "db": fluent,
+        "query": fluent,
+        "all": fluent,
+        "first": fluent,
+        "filter": fluent,
+    ]
+
+    /// Returns the framework that owns a given idempotent method
+    /// name, or nil when the name isn't on any framework's list.
+    public static func framework(forIdempotentMethod name: String) -> String? {
+        idempotentMethodsByFramework[name]
+    }
 }
 
 /// Combines file-level imports and project-level config into an

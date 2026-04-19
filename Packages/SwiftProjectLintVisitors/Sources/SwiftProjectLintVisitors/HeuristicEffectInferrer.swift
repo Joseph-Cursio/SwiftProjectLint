@@ -40,6 +40,15 @@ import SwiftSyntax
 ///   senses elsewhere (`Set.update(with:)`, a cache's `save(key:value:)`).
 ///   See `FrameworkWhitelist.framework(forNonIdempotentMethod:)`.
 ///
+/// - Framework-gated idempotent triggers: Fluent's query-builder
+///   read verbs (`db`, `query`, `all`, `first`, `filter`) fire as
+///   `idempotent` when the file imports `FluentKit`. These are the
+///   read-only counterparts to the save/update/delete gate above —
+///   same import signal, opposite classification. Silences strict-
+///   mode diagnostics on typical `Model.query(on: db).filter(...).all()`
+///   chains without requiring per-callee annotations.
+///   See `FrameworkWhitelist.framework(forIdempotentMethod:)`.
+///
 /// - Idempotent bare-name triggers: `upsert`, `setIfAbsent`, `replace`.
 ///   These are explicit declarations of intent in the name itself.
 ///
@@ -152,6 +161,19 @@ public enum HeuristicEffectInferrer {
             return .nonIdempotent
         }
 
+        // Framework-gated idempotent methods (Fluent's query-builder reads).
+        // No receiver requirement: these commonly appear as chained
+        // calls like `Todo.query(on: db).filter(...).all()` where the
+        // AST walker can't bind a simple receiver identifier to the
+        // terminal call. The FluentKit import presence is the
+        // load-bearing signal.
+        if let framework = FrameworkWhitelist.framework(
+               forIdempotentMethod: calleeName
+           ),
+           context.isFrameworkActive(framework) {
+            return .idempotent
+        }
+
         // Framework-gated non-idempotent methods (Fluent's save/update/delete).
         // Receiver-only: `model.save()` is the adopter shape; a bare
         // `save()` in a module that imports FluentKit is structurally
@@ -234,6 +256,12 @@ public enum HeuristicEffectInferrer {
            ),
            context.isFrameworkActive(framework) {
             return "from the \(framework) ORM verb `\(calleeName)`"
+        }
+        if let framework = FrameworkWhitelist.framework(
+               forIdempotentMethod: calleeName
+           ),
+           context.isFrameworkActive(framework) {
+            return "from the \(framework) query-builder read `\(calleeName)`"
         }
         // Prefix-matched calls credit the matched verb explicitly so the
         // user can see which heuristic fired and why.
