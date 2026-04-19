@@ -29,6 +29,32 @@ struct FrameworkWhitelistGatingTests {
         return try #require(finder.call)
     }
 
+    /// Locates a specific member-access call by method name in a source
+    /// snippet. Needed to pick the terminal `.all()` / `.first()` etc.
+    /// out of a chained expression where `firstCall` would return the
+    /// outer-most call.
+    private func memberCall(method: String, in source: String) throws -> FunctionCallExprSyntax {
+        final class Finder: SyntaxVisitor {
+            let method: String
+            var call: FunctionCallExprSyntax?
+            init(method: String) {
+                self.method = method
+                super.init(viewMode: .sourceAccurate)
+            }
+            override func visit(_ node: FunctionCallExprSyntax) -> SyntaxVisitorContinueKind {
+                if call == nil,
+                   let member = node.calledExpression.as(MemberAccessExprSyntax.self),
+                   member.declName.baseName.text == method {
+                    call = node
+                }
+                return .visitChildren
+            }
+        }
+        let finder = Finder(method: method)
+        finder.walk(Parser.parse(source: source))
+        return try #require(finder.call, "expected a call to .\(method)")
+    }
+
     // MARK: - Empty imports (no framework gates fire)
 
     @Test
@@ -261,6 +287,83 @@ struct FrameworkWhitelistGatingTests {
             for: call, imports: ["FluentKit"], enabledFrameworks: nil
         )
         #expect(reason == "from the FluentKit ORM verb `save`")
+    }
+
+    // MARK: - Fluent query-builder idempotent reads (framework-gated)
+
+    @Test
+    func importGated_fluentPresent_queryFires() throws {
+        let call = try firstCall(in: "func f() { Todo.query(on: db) }")
+        #expect(HeuristicEffectInferrer.infer(
+            call: call, imports: ["FluentKit"], enabledFrameworks: nil
+        ) == .idempotent)
+    }
+
+    @Test
+    func importGated_fluentPresent_allFires_onChainedCall() throws {
+        // Critical shape: `Todo.query(on: db).all()` — the terminal
+        // `.all()` has no simple receiver identifier (its base is a
+        // FunctionCallExpr, not a DeclRefExpr). The idempotent gate
+        // must fire without a receiver binding.
+        let source = "func f() { _ = Todo.query(on: db).all() }"
+        let call = try memberCall(method: "all", in: source)
+        #expect(HeuristicEffectInferrer.infer(
+            call: call, imports: ["FluentKit"], enabledFrameworks: nil
+        ) == .idempotent)
+    }
+
+    @Test
+    func importGated_fluentPresent_firstFires_onChainedCall() throws {
+        let source = "func f() { _ = Todo.query(on: db).filter(x).first() }"
+        let call = try memberCall(method: "first", in: source)
+        #expect(HeuristicEffectInferrer.infer(
+            call: call, imports: ["FluentKit"], enabledFrameworks: nil
+        ) == .idempotent)
+    }
+
+    @Test
+    func importGated_fluentPresent_filterFires_onChainedCall() throws {
+        let source = "func f() { _ = Todo.query(on: db).filter(x).all() }"
+        let call = try memberCall(method: "filter", in: source)
+        #expect(HeuristicEffectInferrer.infer(
+            call: call, imports: ["FluentKit"], enabledFrameworks: nil
+        ) == .idempotent)
+    }
+
+    @Test
+    func importGated_fluentPresent_dbFires() throws {
+        let call = try firstCall(in: "func f() { fluent.db() }")
+        #expect(HeuristicEffectInferrer.infer(
+            call: call, imports: ["FluentKit"], enabledFrameworks: nil
+        ) == .idempotent)
+    }
+
+    @Test
+    func importGated_fluentAbsent_queryDoesNotFire() throws {
+        // User-defined `.query()` in a module without FluentKit —
+        // classification is not Fluent's business.
+        let call = try firstCall(in: "func f() { db.query(on: x) }")
+        #expect(HeuristicEffectInferrer.infer(
+            call: call, imports: ["MyApp"], enabledFrameworks: nil
+        ) == nil)
+    }
+
+    @Test
+    func configGated_fluentDisabled_queryDoesNotFire() throws {
+        let call = try firstCall(in: "func f() { Todo.query(on: db) }")
+        #expect(HeuristicEffectInferrer.infer(
+            call: call, imports: ["FluentKit"], enabledFrameworks: ["Foundation"]
+        ) == nil)
+    }
+
+    @Test
+    func fluentIdempotent_inferenceReason_namesFramework() throws {
+        let source = "func f() { _ = Todo.query(on: db).all() }"
+        let call = try memberCall(method: "all", in: source)
+        let reason = HeuristicEffectInferrer.inferenceReason(
+            for: call, imports: ["FluentKit"], enabledFrameworks: nil
+        )
+        #expect(reason == "from the FluentKit query-builder read `all`")
     }
 
     // MARK: - ImportCollector
