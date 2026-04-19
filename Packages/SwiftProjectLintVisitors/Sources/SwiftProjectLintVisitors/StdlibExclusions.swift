@@ -69,10 +69,12 @@ public enum StdlibExclusions {
         TypeMethodPair(type: "String", method: "append"),
         TypeMethodPair(type: "String", method: "insert"),
 
-        // Set — semantic idempotency (insert/remove are set-idempotent).
+        // Set — semantic idempotency (insert/remove/update are set-idempotent;
+        // calling twice with the same element leaves the set in the same state).
         TypeMethodPair(type: "Set", method: "insert"),
         TypeMethodPair(type: "Set", method: "remove"),
         TypeMethodPair(type: "Set", method: "removeAll"),
+        TypeMethodPair(type: "Set", method: "update"),
 
         // Dictionary — key-addressed mutation is replay-safe.
         TypeMethodPair(type: "Dictionary", method: "removeValue"),

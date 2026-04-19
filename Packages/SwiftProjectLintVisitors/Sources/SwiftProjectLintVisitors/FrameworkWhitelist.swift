@@ -89,7 +89,6 @@ public enum FrameworkWhitelist {
     /// Gating on `import FluentKit` resolves the ambiguity.
     private static let nonIdempotentMethodsByFramework: [String: String] = [
         "save": fluent,
-        "update": fluent,
         "delete": fluent,
     ]
 

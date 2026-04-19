@@ -29,15 +29,22 @@ import SwiftSyntax
 /// - Non-idempotent bare-name triggers: names that are ~universally
 ///   non-idempotent in Swift/database/messaging codebases: `create`,
 ///   `insert`, `append`, `publish`, `enqueue`, `post`, `send`, `stop`,
-///   `destroy`. Names like `store`, `put`, `write` remain deliberately
-///   **not** in this list — they have too many idempotent interpretations
-///   (`put` is idempotent in REST semantics, `write` could mean atomic
-///   file write).
+///   `destroy`, `update`. The `update` entry catches non-Fluent DB
+///   surfaces (e.g. adopters with `@Dependency(\.database)` styles
+///   calling `database.updateX(...)`) — stdlib mutation APIs with
+///   the same name (`Set.update(with:)`, `Dictionary.updateValue(...)`)
+///   are suppressed via `StdlibExclusions` / the prefix-match stdlib
+///   gate. Names like `store`, `put`, `write` remain deliberately
+///   **not** in this list — they have too many idempotent
+///   interpretations (`put` is idempotent in REST semantics, `write`
+///   could mean atomic file write).
 ///
-/// - Framework-gated non-idempotent triggers: `save`, `update`, `delete`
-///   fire only when the file imports `FluentKit`. These are canonical
+/// - Framework-gated non-idempotent triggers: `save`, `delete` fire
+///   only when the file imports `FluentKit`. These are canonical
 ///   Fluent ORM verbs on `Model`-conforming types, but have idempotent
-///   senses elsewhere (`Set.update(with:)`, a cache's `save(key:value:)`).
+///   senses elsewhere (a cache's `save(key:value:)`, `collection.delete`
+///   wrappers in value-oriented APIs). `update` is no longer in the
+///   Fluent list — it's bare-matched instead (see the bullet above).
 ///   See `FrameworkWhitelist.framework(forNonIdempotentMethod:)`.
 ///
 /// - Framework-gated idempotent triggers: Fluent's query-builder
@@ -397,7 +404,8 @@ public enum HeuristicEffectInferrer {
         "post",
         "send",
         "stop",
-        "destroy"
+        "destroy",
+        "update"
     ]
 
     private static let idempotentNames: Set<String> = [
