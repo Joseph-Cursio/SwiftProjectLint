@@ -28,11 +28,17 @@ import SwiftSyntax
 ///
 /// - Non-idempotent bare-name triggers: names that are ~universally
 ///   non-idempotent in Swift/database/messaging codebases: `create`,
-///   `insert`, `append`, `publish`, `enqueue`, `post`, `send`. Names like
-///   `save`, `store`, `put`, `update`, `write` are deliberately **not** in
-///   the list — they have too many idempotent interpretations (`save`
-///   often means "set current value to this," `put` is idempotent in
-///   REST semantics, `write` could mean atomic file write).
+///   `insert`, `append`, `publish`, `enqueue`, `post`, `send`, `stop`,
+///   `destroy`. Names like `store`, `put`, `write` remain deliberately
+///   **not** in this list — they have too many idempotent interpretations
+///   (`put` is idempotent in REST semantics, `write` could mean atomic
+///   file write).
+///
+/// - Framework-gated non-idempotent triggers: `save`, `update`, `delete`
+///   fire only when the file imports `FluentKit`. These are canonical
+///   Fluent ORM verbs on `Model`-conforming types, but have idempotent
+///   senses elsewhere (`Set.update(with:)`, a cache's `save(key:value:)`).
+///   See `FrameworkWhitelist.framework(forNonIdempotentMethod:)`.
 ///
 /// - Idempotent bare-name triggers: `upsert`, `setIfAbsent`, `replace`.
 ///   These are explicit declarations of intent in the name itself.
@@ -154,6 +160,18 @@ public enum HeuristicEffectInferrer {
             return .nonIdempotent
         }
 
+        // Framework-gated non-idempotent methods (Fluent's save/update/delete).
+        // Receiver-only: `model.save()` is the adopter shape; a bare
+        // `save()` in a module that imports FluentKit is structurally
+        // unrelated (top-level free function), so we keep it out.
+        if receiverName != nil,
+           let framework = FrameworkWhitelist.framework(
+               forNonIdempotentMethod: calleeName
+           ),
+           context.isFrameworkActive(framework) {
+            return .nonIdempotent
+        }
+
         // Camel-case-gated prefix match for non-idempotent verbs.
         // `sendEmail`, `createUser`, `publishEvent`, etc. Ruled out:
         //   - `sending`, `sender`, `publisher`, `appending` (lowercase next)
@@ -221,6 +239,13 @@ public enum HeuristicEffectInferrer {
                 return nil
             }
             return "from the callee name `\(calleeName)`"
+        }
+        if receiverName != nil,
+           let framework = FrameworkWhitelist.framework(
+               forNonIdempotentMethod: calleeName
+           ),
+           context.isFrameworkActive(framework) {
+            return "from the \(framework) ORM verb `\(calleeName)`"
         }
         // Prefix-matched calls credit the matched verb explicitly so the
         // user can see which heuristic fired and why.

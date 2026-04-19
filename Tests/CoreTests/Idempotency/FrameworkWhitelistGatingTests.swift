@@ -176,6 +176,92 @@ struct FrameworkWhitelistGatingTests {
         ) == nil)
     }
 
+    // MARK: - Fluent non-idempotent verbs (framework-gated, receiver-only)
+
+    @Test
+    func importGated_fluentPresent_modelSaveFires() throws {
+        let call = try firstCall(in: "func f() { todo.save() }")
+        #expect(HeuristicEffectInferrer.infer(
+            call: call, imports: ["FluentKit"], enabledFrameworks: nil
+        ) == .nonIdempotent)
+    }
+
+    @Test
+    func importGated_fluentPresent_modelUpdateFires() throws {
+        let call = try firstCall(in: "func f() { todo.update() }")
+        #expect(HeuristicEffectInferrer.infer(
+            call: call, imports: ["FluentKit"], enabledFrameworks: nil
+        ) == .nonIdempotent)
+    }
+
+    @Test
+    func importGated_fluentPresent_modelDeleteFires() throws {
+        let call = try firstCall(in: "func f() { todo.delete() }")
+        #expect(HeuristicEffectInferrer.infer(
+            call: call, imports: ["FluentKit"], enabledFrameworks: nil
+        ) == .nonIdempotent)
+    }
+
+    @Test
+    func importGated_fluentAbsent_modelSaveDoesNotFire() throws {
+        // The classic false-positive the gate prevents: a cache with a
+        // `save(key:value:)` method shouldn't classify as non-idempotent
+        // just because the verb matches Fluent.
+        let call = try firstCall(in: "func f() { cache.save() }")
+        #expect(HeuristicEffectInferrer.infer(
+            call: call, imports: ["MyApp"], enabledFrameworks: nil
+        ) == nil)
+    }
+
+    @Test
+    func importGated_fluentAbsent_setUpdateDoesNotFire() throws {
+        // stdlib `Set.update(with:)` must not classify as Fluent's
+        // non-idempotent `update` on an adopter that doesn't import FluentKit.
+        let call = try firstCall(in: "func f() { var s: Set<Int> = []; s.update(with: 1) }")
+        #expect(HeuristicEffectInferrer.infer(
+            call: call, imports: ["MyApp"], enabledFrameworks: nil
+        ) == nil)
+    }
+
+    @Test
+    func fluent_bareSaveCall_doesNotFire() throws {
+        // No receiver = top-level free function, structurally unrelated
+        // to Fluent. Fluent's verbs are always called on a Model-conforming
+        // instance.
+        let call = try firstCall(in: "func f() { save() }")
+        #expect(HeuristicEffectInferrer.infer(
+            call: call, imports: ["FluentKit"], enabledFrameworks: nil
+        ) == nil)
+    }
+
+    @Test
+    func backwardCompat_importsNil_modelSaveFires() throws {
+        // nil imports = backward-compat mode where every framework is active.
+        let call = try firstCall(in: "func f() { todo.save() }")
+        #expect(HeuristicEffectInferrer.infer(
+            call: call, imports: nil, enabledFrameworks: nil
+        ) == .nonIdempotent)
+    }
+
+    @Test
+    func configGated_fluentDisabled_modelSaveDoesNotFire() throws {
+        // Adopter has FluentKit imported but opted out of Fluent
+        // classifications in their .swiftprojectlint.yml.
+        let call = try firstCall(in: "func f() { todo.save() }")
+        #expect(HeuristicEffectInferrer.infer(
+            call: call, imports: ["FluentKit"], enabledFrameworks: ["Foundation"]
+        ) == nil)
+    }
+
+    @Test
+    func fluent_inferenceReason_namesFramework() throws {
+        let call = try firstCall(in: "func f() { todo.save() }")
+        let reason = HeuristicEffectInferrer.inferenceReason(
+            for: call, imports: ["FluentKit"], enabledFrameworks: nil
+        )
+        #expect(reason == "from the FluentKit ORM verb `save`")
+    }
+
     // MARK: - ImportCollector
 
     @Test

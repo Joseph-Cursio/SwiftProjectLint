@@ -403,9 +403,15 @@ struct HeuristicInferenceUnitTests {
     }
 
     @Test
-    func update_isNotInferred() throws {
+    func update_notInferred_withoutFluentImport() throws {
+        // `update` is framework-gated: fires on `model.update()` when
+        // FluentKit is imported (see `FrameworkWhitelistGatingTests`),
+        // stays silent otherwise. A user-defined `db.update(row)` in
+        // a module without `import FluentKit` does not trigger inference.
         let call = try firstCall(in: "func f() { db.update(row) }")
-        #expect(HeuristicEffectInferrer.infer(call: call) == nil)
+        #expect(HeuristicEffectInferrer.infer(
+            call: call, imports: ["MyApp"], enabledFrameworks: nil
+        ) == nil)
     }
 
     @Test
