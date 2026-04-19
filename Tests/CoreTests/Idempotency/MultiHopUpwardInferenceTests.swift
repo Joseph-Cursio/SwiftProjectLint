@@ -338,6 +338,69 @@ struct MultiHopUpwardInferenceTests {
         #expect(top.depth == 3)
     }
 
+    // MARK: - Wall-clock budget (pathological-corpus safety net)
+
+    @Test
+    func wallClockBudgetExpired_skipsInference() {
+        // Defensive guard for large corpora where a single upward-inference
+        // pass can run for minutes (the swift-nio case — 258 files ×
+        // ~346 LOC average produced a 12-minute hang before this guard
+        // shipped). A zero budget means the deadline has already passed
+        // by the time the inner-loop check runs, so no source is
+        // processed. Useful primarily as a degenerate regression guard
+        // that the budget parameter is actually wired in and checked.
+        let source = Parser.parse(source: """
+        /// @lint.effect non_idempotent
+        func sink() async throws {}
+
+        func leaf() async throws { try await sink() }
+        func mid() async throws { try await leaf() }
+        """)
+        var table = EffectSymbolTable()
+        table.merge(source: source)
+        table.applyUpwardInferenceImportAware(
+            to: [source],
+            multiHop: true,
+            wallClockBudget: .zero,
+            heuristicEffectForCall: { _, _ in nil }
+        )
+
+        let leafSig = FunctionSignature(name: "leaf", argumentLabels: [])
+        let midSig = FunctionSignature(name: "mid", argumentLabels: [])
+
+        // Zero budget ⇒ no work ⇒ no inference recorded.
+        #expect(table.upwardInferredEffect(for: leafSig) == nil)
+        #expect(table.upwardInferredEffect(for: midSig) == nil)
+    }
+
+    @Test
+    func wallClockBudgetGenerous_inferenceStillLands() {
+        // Sanity check the happy path: a generous budget on a tiny
+        // corpus does NOT interfere with normal inference. Ensures the
+        // guard isn't a correctness regression on small inputs.
+        let source = Parser.parse(source: """
+        /// @lint.effect non_idempotent
+        func sink() async throws {}
+
+        func leaf() async throws { try await sink() }
+        func mid() async throws { try await leaf() }
+        """)
+        var table = EffectSymbolTable()
+        table.merge(source: source)
+        table.applyUpwardInferenceImportAware(
+            to: [source],
+            multiHop: true,
+            wallClockBudget: .seconds(30),
+            heuristicEffectForCall: { _, _ in nil }
+        )
+
+        let leafSig = FunctionSignature(name: "leaf", argumentLabels: [])
+        let midSig = FunctionSignature(name: "mid", argumentLabels: [])
+
+        #expect(table.upwardInferredEffect(for: leafSig) == .nonIdempotent)
+        #expect(table.upwardInferredEffect(for: midSig) == .nonIdempotent)
+    }
+
     // MARK: - One-hop default still works for callers that opt out
 
     @Test
