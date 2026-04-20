@@ -47,6 +47,84 @@ public extension FunctionSignature {
         return FunctionSignature(name: declaration.name.text, argumentLabels: labels)
     }
 
+    /// Computes the signature of a closure-typed stored property, treating it
+    /// as a pseudo-method declaration. Returns `nil` when the binding is not
+    /// a single named identifier or the declared type is not a function type.
+    ///
+    /// Attribute wrappers (`@Sendable`, `@MainActor`, `@escaping`, etc.) are
+    /// peeled before inspecting the type. A single optional wrapping a
+    /// function type (`((Int) -> Void)?`) is not supported — Swift function
+    /// types are already a nominal category, and wrapping them in `Optional`
+    /// is rare enough that pattern-matching the value shape isn't
+    /// worthwhile in this first slice.
+    ///
+    /// ## Label mapping ("Path A")
+    ///
+    /// Swift function types permit a `_ internalName:` parameter shape that
+    /// suppresses the call-site label at the type level. Macros in the
+    /// `@DependencyClient`/`@MemberwiseInit` family re-expose the var as
+    /// a method whose external label is the *internal* name, so the call
+    /// site written by users is `f(internalName:)`. This resolver honours
+    /// that convention: when `firstName` is `_` and `secondName` is a
+    /// non-empty identifier, the returned signature uses `secondName` as
+    /// the label.
+    ///
+    /// Concretely:
+    /// - `var f: (Int) -> Void`                → `f(_:)`
+    /// - `var f: (_ id: Int) -> Void`          → `f(id:)`      (Path A)
+    /// - `var f: (id: Int) -> Void`            → `f(id:)`
+    /// - `var f: @Sendable (_ x: String) async throws -> Bool` → `f(x:)`
+    ///
+    /// The tradeoff: a non-macro closure property `let f: (_ x: Int) -> Void`
+    /// called as `f(0)` produces an annotation-to-call-site mismatch
+    /// (`f(x:)` vs `f(_:)`). The mismatch is a false negative — the user's
+    /// annotation silently doesn't land — not a false positive, so the
+    /// heuristic is safe. The `_ name:` shape is in practice almost
+    /// exclusive to macro-wrapped declarations that re-label; the
+    /// alternative of using Swift-canonical `_` as the label produces
+    /// signatures that cannot match any TCA `@DependencyClient` call
+    /// site and delivers zero signal.
+    static func from(declaration: VariableDeclSyntax) -> FunctionSignature? {
+        guard let binding = declaration.bindings.first,
+              declaration.bindings.count == 1,
+              let pattern = binding.pattern.as(IdentifierPatternSyntax.self),
+              let typeAnnotation = binding.typeAnnotation else {
+            return nil
+        }
+        guard let fnType = unwrapFunctionType(typeAnnotation.type) else {
+            return nil
+        }
+        let labels = fnType.parameters.map { element -> String in
+            let first = element.firstName?.text ?? ""
+            let second = element.secondName?.text ?? ""
+            // Path A: `_ internalName:` → re-expose the internal name.
+            if first == "_" && !second.isEmpty {
+                return second
+            }
+            if first.isEmpty || first == "_" {
+                return "_"
+            }
+            return first
+        }
+        return FunctionSignature(
+            name: pattern.identifier.text,
+            argumentLabels: labels
+        )
+    }
+
+    /// Peels `AttributedTypeSyntax` wrappers (`@Sendable`, `@MainActor`,
+    /// `@escaping`) to expose the underlying `FunctionTypeSyntax`, or
+    /// returns `nil` when the type isn't function-typed.
+    private static func unwrapFunctionType(_ type: TypeSyntax) -> FunctionTypeSyntax? {
+        if let fn = type.as(FunctionTypeSyntax.self) {
+            return fn
+        }
+        if let attributed = type.as(AttributedTypeSyntax.self) {
+            return unwrapFunctionType(attributed.baseType)
+        }
+        return nil
+    }
+
     /// Computes the signature of a call site from its syntax. Each argument's
     /// external label is read from `LabeledExprSyntax.label`; unlabeled positional
     /// arguments become `"_"`. Trailing closures are counted as a single
