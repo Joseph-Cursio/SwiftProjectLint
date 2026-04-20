@@ -30,13 +30,14 @@ public enum FrameworkWhitelist {
     public static let fluent = "FluentKit"
     public static let hummingbird = "Hummingbird"
     public static let composableArchitecture = "ComposableArchitecture"
+    public static let awsLambdaRuntime = "AWSLambdaRuntime"
 
     /// Every framework this project recognises. Order-insensitive.
     /// Used as the default `enabledFrameworks` set when a project
     /// hasn't opted out of any framework's classifications.
     public static let knownFrameworks: Set<String> = [
         foundation, nio, awsLambdaEvents, logging, osLog, metrics, fluent,
-        hummingbird, composableArchitecture
+        hummingbird, composableArchitecture, awsLambdaRuntime
     ]
 
     // MARK: - Idempotent type constructors (bare-identifier call)
@@ -146,9 +147,28 @@ public enum FrameworkWhitelist {
     /// receivers), and `require` is generic enough to collide with
     /// user-defined validation helpers. Pinning to the specific
     /// framework-canonical receiver name avoids both problems.
+    ///
+    /// AWSLambdaRuntime's response-writer primitives
+    /// (`outputWriter.write(...)`, `responseWriter.write(...)`,
+    /// `responseWriter.finish()`) live here for the same reason:
+    /// `write` is explicitly excluded from the bare-name whitelist
+    /// (see `HeuristicEffectInferrer.nonIdempotentNames` commentary)
+    /// because atomic-file / REST-semantics writes are idempotent but
+    /// indistinguishable by name alone. The closure-parameter
+    /// receiver names (`outputWriter` for `LambdaResponseWriter`,
+    /// `responseWriter` for `LambdaResponseStreamWriter`) are the
+    /// canonical names in the swift-aws-lambda-runtime v2.x handler
+    /// signatures. The Lambda runtime's at-least-once contract
+    /// dedup-guards invocation retries at its own boundary, so these
+    /// calls are idempotent-in-replay by the runtime contract.
     private static let idempotentReceiverMethodsByFramework: [String: [String: String]] = [
         "decode": ["request": hummingbird],
         "require": ["parameters": hummingbird],
+        "write": [
+            "outputWriter": awsLambdaRuntime,
+            "responseWriter": awsLambdaRuntime,
+        ],
+        "finish": ["responseWriter": awsLambdaRuntime],
     ]
 
     /// Returns the framework that owns a given idempotent

@@ -60,9 +60,12 @@ import SwiftSyntax
 ///   too generic to whitelist alone but the `(receiver, method)`
 ///   combination is a specific framework idiom. Hummingbird's
 ///   `request.decode(...)` and `parameters.require(...)` are the
-///   motivating cases — pinned to the framework-canonical receiver
-///   name so that unrelated `.decode()` / `.require()` calls in the
-///   same file don't incorrectly classify.
+///   motivating cases; AWSLambdaRuntime's `outputWriter.write(...)`,
+///   `responseWriter.write(...)`, and `responseWriter.finish()` live
+///   on the same table. Each pair is pinned to the framework-canonical
+///   receiver name so that unrelated `.decode()` / `.require()` /
+///   `.write()` / `.finish()` calls in the same file don't
+///   incorrectly classify.
 ///   See `FrameworkWhitelist.framework(forIdempotentReceiver:method:)`.
 ///
 /// - Idempotent bare-name triggers: `upsert`, `setIfAbsent`, `replace`.
