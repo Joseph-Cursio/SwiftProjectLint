@@ -268,10 +268,18 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
         guard !Task.isCancelled else { return nil }
         guard let content = try? String(contentsOfFile: filePath) else { return nil }
 
-        let prefix = projectRoot.hasSuffix("/") ? projectRoot : projectRoot + "/"
-        let relativePath = filePath.hasPrefix(prefix)
-            ? String(filePath.dropFirst(prefix.count))
-            : (filePath as NSString).lastPathComponent
+        let resolvedRoot = URL(fileURLWithPath: projectRoot).resolvingSymlinksInPath().path
+        let resolvedFile = URL(fileURLWithPath: filePath).resolvingSymlinksInPath().path
+        let prefix = resolvedRoot.hasSuffix("/") ? resolvedRoot : resolvedRoot + "/"
+        let relativePath: String
+        if resolvedFile.hasPrefix(prefix) {
+            relativePath = String(resolvedFile.dropFirst(prefix.count))
+        } else {
+            // Fallback: full resolved path keeps uniqueness when the file is
+            // outside the declared project root (rare; shouldn't crash the
+            // inline-suppression dedup downstream).
+            relativePath = resolvedFile
+        }
 
         let file = ProjectFile(
             name: (filePath as NSString).lastPathComponent,
@@ -321,8 +329,12 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
     ) -> [LintIssue] {
         guard !crossFileIssues.isEmpty else { return crossFileIssues }
 
+        // Defensive: duplicate relativePaths shouldn't crash inline suppression
+        // dedup (e.g., an edge case where resolution still collides on symlinks
+        // or on-disk duplicates). Keep first occurrence.
         let contentByRelativePath = Dictionary(
-            uniqueKeysWithValues: files.map { ($0.relativePath, $0.content) }
+            files.map { ($0.relativePath, $0.content) },
+            uniquingKeysWith: { first, _ in first }
         )
 
         let grouped = Dictionary(grouping: crossFileIssues) { $0.filePath }
