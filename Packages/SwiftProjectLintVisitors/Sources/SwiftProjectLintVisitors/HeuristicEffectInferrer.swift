@@ -169,6 +169,21 @@ public enum HeuristicEffectInferrer {
             return .idempotent
         }
 
+        // Framework-gated bare-name overrides of the non-idempotent list.
+        // TCA's `Send<Action>` closure parameter is the motivating case:
+        // `await send(.action)` inside an effect closure is a structural
+        // state-transition dispatch, not a mail-sending call. Must fire
+        // *before* the bare-name non-idempotent list below, otherwise
+        // `send` hits that list first. Exact-match + receiverless only;
+        // `sendEmail` and `mailer.send` stay non-idempotent.
+        if receiverName == nil,
+           let framework = FrameworkWhitelist.framework(
+               forBareNameIdempotentOverride: calleeName
+           ),
+           context.isFrameworkActive(framework) {
+            return .idempotent
+        }
+
         // Bare-name whitelists — now receiver-type gated. If the receiver
         // resolves to a stdlib collection whose (type, method) pair is in
         // the exclusion table, the bare-name match is suppressed. Named
@@ -275,6 +290,13 @@ public enum HeuristicEffectInferrer {
            ),
            context.isFrameworkActive(framework) {
             return "from the \(framework) primitive `\(receiverName).\(calleeName)`"
+        }
+        if receiverName == nil,
+           let framework = FrameworkWhitelist.framework(
+               forBareNameIdempotentOverride: calleeName
+           ),
+           context.isFrameworkActive(framework) {
+            return "from the \(framework) closure-parameter primitive `\(calleeName)`"
         }
         if idempotentNames.contains(calleeName) || nonIdempotentNames.contains(calleeName) {
             // Receiver-type-excluded pairs produce no reason, mirroring

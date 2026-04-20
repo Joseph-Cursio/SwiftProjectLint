@@ -29,13 +29,14 @@ public enum FrameworkWhitelist {
     public static let metrics = "Metrics"
     public static let fluent = "FluentKit"
     public static let hummingbird = "Hummingbird"
+    public static let composableArchitecture = "ComposableArchitecture"
 
     /// Every framework this project recognises. Order-insensitive.
     /// Used as the default `enabledFrameworks` set when a project
     /// hasn't opted out of any framework's classifications.
     public static let knownFrameworks: Set<String> = [
         foundation, nio, awsLambdaEvents, logging, osLog, metrics, fluent,
-        hummingbird
+        hummingbird, composableArchitecture
     ]
 
     // MARK: - Idempotent type constructors (bare-identifier call)
@@ -157,6 +158,43 @@ public enum FrameworkWhitelist {
         method: String
     ) -> String? {
         idempotentReceiverMethodsByFramework[method]?[receiver]
+    }
+
+    // MARK: - Bare-name overrides of the non-idempotent list (framework-gated)
+
+    /// Bare-name callees that would otherwise hit
+    /// `HeuristicEffectInferrer.nonIdempotentNames` but are structurally
+    /// safe inside a specific framework's closure-parameter idiom. The
+    /// bare-name check is consulted *before* the non-idempotent list so
+    /// the framework import wins over the name heuristic.
+    ///
+    /// TCA's `Send<Action>` is the motivating case. Inside an `Effect`
+    /// closure (`.run { send in ... await send(.action) ... }`) the
+    /// `send` identifier is a closure parameter — calling it dispatches
+    /// an action value through the reducer, which is a pure state
+    /// transition, not a mail-sending side effect. The heuristic can't
+    /// tell the closure-parameter `send` apart from a receiverless
+    /// `mailer.send` by structure alone; the `ComposableArchitecture`
+    /// import is the disambiguating signal.
+    ///
+    /// Precision:
+    /// - Receiver must be nil — `mailer.send(.email)` keeps its
+    ///   non-idempotent classification even in a TCA-importing file.
+    /// - Exact-match only — `sendEmail(...)` still hits the prefix-match
+    ///   non-idempotent path; only the literal callee name `send` is
+    ///   exempted.
+    private static let bareNameIdempotentOverridesByFramework: [String: String] = [
+        "send": composableArchitecture,
+    ]
+
+    /// Returns the framework that owns a given bare-name override, or
+    /// nil when the name isn't listed. Callers must additionally check
+    /// that the call site has no receiver and that the framework is
+    /// active in the current `FrameworkContext`.
+    public static func framework(
+        forBareNameIdempotentOverride name: String
+    ) -> String? {
+        bareNameIdempotentOverridesByFramework[name]
     }
 }
 
