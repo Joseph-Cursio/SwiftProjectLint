@@ -29,15 +29,20 @@ import SwiftSyntax
 /// - Non-idempotent bare-name triggers: names that are ~universally
 ///   non-idempotent in Swift/database/messaging codebases: `create`,
 ///   `insert`, `append`, `publish`, `enqueue`, `post`, `send`, `stop`,
-///   `destroy`, `update`. The `update` entry catches non-Fluent DB
-///   surfaces (e.g. adopters with `@Dependency(\.database)` styles
-///   calling `database.updateX(...)`) — stdlib mutation APIs with
-///   the same name (`Set.update(with:)`, `Dictionary.updateValue(...)`)
-///   are suppressed via `StdlibExclusions` / the prefix-match stdlib
-///   gate. Names like `store`, `put`, `write` remain deliberately
-///   **not** in this list — they have too many idempotent
-///   interpretations (`put` is idempotent in REST semantics, `write`
-///   could mean atomic file write).
+///   `destroy`, `update`, `submit`, `start`, `complete`, `register`.
+///   The `update` entry catches non-Fluent DB surfaces (e.g. adopters
+///   with `@Dependency(\.database)` styles calling
+///   `database.updateX(...)`) — stdlib mutation APIs with the same
+///   name (`Set.update(with:)`, `Dictionary.updateValue(...)`) are
+///   suppressed via `StdlibExclusions` / the prefix-match stdlib
+///   gate. The server-app verbs — `submit`, `start`, `complete`,
+///   `register` — were added after the isowords round surfaced a
+///   real-bug miss on `startDailyChallenge` (INSERT without
+///   `ON CONFLICT`) that the `start*` prefix would have caught.
+///   Names like `store`, `put`, `write` remain deliberately **not**
+///   in this list — they have too many idempotent interpretations
+///   (`put` is idempotent in REST semantics, `write` could mean
+///   atomic file write).
 ///
 /// - Framework-gated non-idempotent triggers: `save`, `delete` fire
 ///   only when the file imports `FluentKit`. These are canonical
@@ -466,7 +471,14 @@ public enum HeuristicEffectInferrer {
         "send",
         "stop",
         "destroy",
-        "update"
+        "update",
+        // Server-app verbs — added from the isowords round (slot 13).
+        // `startDailyChallenge` was a real `INSERT` without `ON CONFLICT`
+        // that the prior lexicon missed on the default `replayable` tier.
+        "submit",
+        "start",
+        "complete",
+        "register"
     ]
 
     private static let idempotentNames: Set<String> = [
