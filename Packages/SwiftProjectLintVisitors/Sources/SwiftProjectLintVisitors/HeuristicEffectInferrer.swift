@@ -53,11 +53,13 @@ import SwiftSyntax
 ///   See `FrameworkWhitelist.framework(forNonIdempotentMethod:)`.
 ///
 /// - Framework-gated idempotent triggers: Fluent's query-builder
-///   read verbs (`db`, `query`, `all`, `first`, `filter`) fire as
-///   `idempotent` when the file imports `FluentKit`. These are the
-///   read-only counterparts to the save/update/delete gate above —
-///   same import signal, opposite classification. Silences strict-
-///   mode diagnostics on typical `Model.query(on: db).filter(...).all()`
+///   read verbs (`db`, `query`, `all`, `first`, `filter`) and
+///   HttpPipeline's response-pipeline primitives (`writeStatus`,
+///   `respond`) fire as `idempotent` when the file imports the
+///   relevant module. These cover both the chained-method shape
+///   (`Model.query(on: db).filter(...).all()`) and the pipe-forward
+///   composition shape (`conn |> writeStatus(.ok)`) where receivers
+///   aren't AST-bindable. Silences strict-mode diagnostics on these
 ///   chains without requiring per-callee annotations.
 ///   See `FrameworkWhitelist.framework(forIdempotentMethod:)`.
 ///
@@ -213,12 +215,13 @@ public enum HeuristicEffectInferrer {
             return .nonIdempotent
         }
 
-        // Framework-gated idempotent methods (Fluent's query-builder reads).
-        // No receiver requirement: these commonly appear as chained
-        // calls like `Todo.query(on: db).filter(...).all()` where the
-        // AST walker can't bind a simple receiver identifier to the
-        // terminal call. The FluentKit import presence is the
-        // load-bearing signal.
+        // Framework-gated idempotent methods. No receiver requirement:
+        // these commonly appear as chained calls like
+        // `Todo.query(on: db).filter(...).all()` (FluentKit) or pipe-
+        // forward composition like `conn |> writeStatus(.ok)`
+        // (HttpPipeline) where the AST walker can't bind a simple
+        // receiver identifier to the terminal call. The framework
+        // import presence is the load-bearing signal.
         if let framework = FrameworkWhitelist.framework(
                forIdempotentMethod: calleeName
            ),
@@ -328,7 +331,8 @@ public enum HeuristicEffectInferrer {
                forIdempotentMethod: calleeName
            ),
            context.isFrameworkActive(framework) {
-            return "from the \(framework) query-builder read `\(calleeName)`"
+            let phrase = FrameworkWhitelist.idempotentMethodPhrasing(forFramework: framework)
+            return "from the \(framework) \(phrase) `\(calleeName)`"
         }
         // Prefix-matched calls credit the matched verb explicitly so the
         // user can see which heuristic fired and why.

@@ -31,13 +31,14 @@ public enum FrameworkWhitelist {
     public static let hummingbird = "Hummingbird"
     public static let composableArchitecture = "ComposableArchitecture"
     public static let awsLambdaRuntime = "AWSLambdaRuntime"
+    public static let httpPipeline = "HttpPipeline"
 
     /// Every framework this project recognises. Order-insensitive.
     /// Used as the default `enabledFrameworks` set when a project
     /// hasn't opted out of any framework's classifications.
     public static let knownFrameworks: Set<String> = [
         foundation, nio, awsLambdaEvents, logging, osLog, metrics, fluent,
-        hummingbird, composableArchitecture, awsLambdaRuntime
+        hummingbird, composableArchitecture, awsLambdaRuntime, httpPipeline
     ]
 
     // MARK: - Idempotent type constructors (bare-identifier call)
@@ -113,23 +114,68 @@ public enum FrameworkWhitelist {
     /// either interpretation, so a cross-framework false positive
     /// would only change the *reason* string, not the effect.
     ///
+    /// HttpPipeline (slot 14) is the second framework on this table.
+    /// `writeStatus`, `respond` etc. are freestanding curried functions
+    /// in `pointfreeco/swift-web`'s HttpPipeline module, called via
+    /// the `|>` and `>=>` pipe operators — `conn |> writeStatus(.ok)`
+    /// reads as `writeStatus(.ok)(conn)`. They mutate `Conn<I, J, A>`
+    /// state in a value-typed pipeline (each call returns a new `Conn`),
+    /// so re-invocation with the same input yields the same response —
+    /// observably idempotent at the response-builder boundary.
+    /// 2-adopter evidence: isowords (12 fires) + pointfreeco www
+    /// (4 fires) on `writeStatus` alone, plus `respond` shared shape.
+    ///
     /// Unlike type-constructor whitelists, these are ordinary
     /// method-call names — they can appear as `.method()` on any
     /// receiver, or bare-style when chained after another call.
     /// The gate therefore does not require a receiver; the import
     /// presence is the load-bearing signal.
     private static let idempotentMethodsByFramework: [String: String] = [
+        // FluentKit — query-builder reads.
         "db": fluent,
         "query": fluent,
         "all": fluent,
         "first": fluent,
         "filter": fluent,
+
+        // HttpPipeline — response-pipeline primitives (pointfreeco/swift-web).
+        // Both adopters use these via `|>` / `>=>` pipe-forward operators
+        // on `Conn` state; each call is a value-typed mutation.
+        "writeStatus": httpPipeline,
+        "respond": httpPipeline,
     ]
 
     /// Returns the framework that owns a given idempotent method
     /// name, or nil when the name isn't on any framework's list.
     public static func framework(forIdempotentMethod name: String) -> String? {
         idempotentMethodsByFramework[name]
+    }
+
+    // MARK: - Per-framework reason phrasing (for diagnostic strings)
+
+    /// Per-framework noun phrase used in the diagnostic reason string
+    /// when a callee resolves through `idempotentMethodsByFramework`.
+    /// Default (`"framework primitive"`) is generic and safe for any
+    /// framework added without explicit phrasing.
+    ///
+    /// Existing per-framework phrasings:
+    /// - FluentKit: `"query-builder read"` — matches the original
+    ///   round-14 wording before slot 14 generalised the table.
+    /// - HttpPipeline: `"pipeline primitive"` — accurate for
+    ///   response-builder-pattern modules where the same name maps
+    ///   to a curried `(Conn) -> Conn` primitive.
+    private static let idempotentMethodPhrasingByFramework: [String: String] = [
+        fluent: "query-builder read",
+        httpPipeline: "pipeline primitive",
+    ]
+
+    /// Returns the per-framework noun phrase for the
+    /// `idempotentMethodsByFramework` reason string. Falls back to
+    /// `"framework primitive"` for any framework without an explicit
+    /// override, so adding a new framework to the table doesn't
+    /// require touching the inferrer.
+    public static func idempotentMethodPhrasing(forFramework framework: String) -> String {
+        idempotentMethodPhrasingByFramework[framework] ?? "framework primitive"
     }
 
     // MARK: - Idempotent receiver/method pairs (framework-gated)
