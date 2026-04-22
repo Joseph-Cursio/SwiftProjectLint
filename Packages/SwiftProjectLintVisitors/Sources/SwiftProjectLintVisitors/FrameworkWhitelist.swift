@@ -32,13 +32,15 @@ public enum FrameworkWhitelist {
     public static let composableArchitecture = "ComposableArchitecture"
     public static let awsLambdaRuntime = "AWSLambdaRuntime"
     public static let httpPipeline = "HttpPipeline"
+    public static let vapor = "Vapor"
 
     /// Every framework this project recognises. Order-insensitive.
     /// Used as the default `enabledFrameworks` set when a project
     /// hasn't opted out of any framework's classifications.
     public static let knownFrameworks: Set<String> = [
         foundation, nio, awsLambdaEvents, logging, osLog, metrics, fluent,
-        hummingbird, composableArchitecture, awsLambdaRuntime, httpPipeline
+        hummingbird, composableArchitecture, awsLambdaRuntime, httpPipeline,
+        vapor
     ]
 
     // MARK: - Idempotent type constructors (bare-identifier call)
@@ -225,6 +227,20 @@ public enum FrameworkWhitelist {
     /// `hummingbird-project/hummingbird-examples/open-telemetry`
     /// (1× `router.post` Run A + 2× `router.get` Run B) — identical
     /// rule-path shapes across both corpora.
+    ///
+    /// Vapor routing DSL (slot 17) — `app.{get,post,put,patch,delete}`
+    /// at route-registration sites. Parallel slice to slot 16 against
+    /// Vapor's `Application`. Vapor adopters that bind handlers via
+    /// inline trailing closures (`app.get("/path") { req in ... }`)
+    /// inside a `func routes(_ app: Application) throws { ... }` helper
+    /// annotated `@lint.context replayable` hit the same registration-
+    /// site-noise pattern as Hummingbird. Note: `app.get` is silent
+    /// under replayable because `get` is idempotent-by-prefix, but
+    /// fires under strict_replayable without this entry; whitelisting
+    /// all 5 verbs silences across both tiers. 2-adopter evidence:
+    /// `kylebshr/luka-vapor` (2× `app.post` Run A + 1× `app.get` Run B)
+    /// and `sinduke/HelloVapor` (1× `app.post` Run A + 5× `app.get`
+    /// Run B) — identical rule-path shapes across both corpora.
     private static let idempotentReceiverMethodsByFramework: [String: [String: String]] = [
         "decode": ["request": hummingbird],
         "require": ["parameters": hummingbird],
@@ -233,11 +249,11 @@ public enum FrameworkWhitelist {
             "responseWriter": awsLambdaRuntime,
         ],
         "finish": ["responseWriter": awsLambdaRuntime],
-        "get": ["router": hummingbird],
-        "post": ["router": hummingbird],
-        "put": ["router": hummingbird],
-        "patch": ["router": hummingbird],
-        "delete": ["router": hummingbird],
+        "get": ["router": hummingbird, "app": vapor],
+        "post": ["router": hummingbird, "app": vapor],
+        "put": ["router": hummingbird, "app": vapor],
+        "patch": ["router": hummingbird, "app": vapor],
+        "delete": ["router": hummingbird, "app": vapor],
     ]
 
     /// Returns the framework that owns a given idempotent
