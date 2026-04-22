@@ -241,6 +241,14 @@ public enum FrameworkWhitelist {
     /// `kylebshr/luka-vapor` (2× `app.post` Run A + 1× `app.get` Run B)
     /// and `sinduke/HelloVapor` (1× `app.post` Run A + 5× `app.get`
     /// Run B) — identical rule-path shapes across both corpora.
+    ///
+    /// Hummingbird `queryParameters.get` (slot 18) — structural sibling
+    /// to the existing `(parameters, require)` entry. Hummingbird's
+    /// `request.uri.queryParameters.get(_:as:)` is a URL-parameter
+    /// retrieval-by-name, no more side-effecting than `parameters.get`
+    /// (which ships as part of slot 18's cross-framework table below).
+    /// 1-adopter evidence (prospero: 1 fire); shipped as a Hummingbird-
+    /// gated sibling to keep the parameter-access surface complete.
     private static let idempotentReceiverMethodsByFramework: [String: [String: String]] = [
         "decode": ["request": hummingbird],
         "require": ["parameters": hummingbird],
@@ -249,7 +257,10 @@ public enum FrameworkWhitelist {
             "responseWriter": awsLambdaRuntime,
         ],
         "finish": ["responseWriter": awsLambdaRuntime],
-        "get": ["router": hummingbird, "app": vapor],
+        "get": [
+            "router": hummingbird, "app": vapor,
+            "queryParameters": hummingbird,
+        ],
         "post": ["router": hummingbird, "app": vapor],
         "put": ["router": hummingbird, "app": vapor],
         "patch": ["router": hummingbird, "app": vapor],
@@ -263,6 +274,48 @@ public enum FrameworkWhitelist {
         method: String
     ) -> String? {
         idempotentReceiverMethodsByFramework[method]?[receiver]
+    }
+
+    // MARK: - Cross-framework idempotent receiver/method pairs (slot 18)
+
+    /// Idempotent `(receiver, method)` pairs where the receiver
+    /// identifier is common convention across multiple web frameworks.
+    /// Consulted *after* `idempotentReceiverMethodsByFramework` so the
+    /// framework-specific table (where the receiver name is
+    /// framework-canonical) takes precedence.
+    ///
+    /// `parameters.get` (slot 18) is the motivating pair: both
+    /// Hummingbird (`context.parameters.get(_:as:)`) and Vapor
+    /// (`req.parameters.get("name")`) expose a `parameters` accessor
+    /// on their request object with a `.get(_:)` method that retrieves
+    /// URL path parameters by name. Retrieval is a pure-read — same
+    /// URL produces same value — so silencing is both safe and
+    /// precision-preserving. The receiver identifier `parameters` is
+    /// specific enough in the web-framework-imported context that
+    /// misattribution to user-defined `parameters` variables is
+    /// unlikely.
+    ///
+    /// 2-adopter cross-framework evidence:
+    /// `samalone/prospero` (4× `context.parameters.get`, Hummingbird)
+    /// and `sinduke/HelloVapor` (1× `req.parameters.get("name")`,
+    /// Vapor) — 5 fires silenced across 2 independent adopters,
+    /// different frameworks, identical receiver-method shape.
+    private static let idempotentReceiverMethodsMultiFramework: [String: [String: Set<String>]] = [
+        "get": [
+            "parameters": [hummingbird, vapor],
+        ],
+    ]
+
+    /// Returns the set of frameworks any of which qualifies a given
+    /// idempotent `(receiver, method)` pair as idempotent, or nil when
+    /// the pair isn't listed in the multi-framework table. The caller
+    /// is responsible for checking whether any of the returned
+    /// frameworks is active in the current file's import set.
+    public static func frameworks(
+        forCrossFrameworkIdempotentReceiver receiver: String,
+        method: String
+    ) -> Set<String>? {
+        idempotentReceiverMethodsMultiFramework[method]?[receiver]
     }
 
     // MARK: - Bare-name overrides of the non-idempotent list (framework-gated)

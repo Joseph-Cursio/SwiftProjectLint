@@ -179,6 +179,20 @@ public enum HeuristicEffectInferrer {
             return .idempotent
         }
 
+        // Cross-framework idempotent (receiver, method) pairs (slot 18).
+        // Receiver identifiers shared across multiple web frameworks —
+        // `parameters.get` being the motivating case (both Hummingbird
+        // and Vapor expose identical-named accessors). Qualifies when
+        // ANY of the pair's candidate frameworks is active.
+        if let receiverName,
+           let candidates = FrameworkWhitelist.frameworks(
+               forCrossFrameworkIdempotentReceiver: receiverName,
+               method: calleeName
+           ),
+           candidates.contains(where: context.isFrameworkActive) {
+            return .idempotent
+        }
+
         // Framework-gated bare-name overrides of the non-idempotent list.
         // TCA's `Send<Action>` closure parameter is the motivating case:
         // `await send(.action)` inside an effect closure is a structural
@@ -301,6 +315,14 @@ public enum HeuristicEffectInferrer {
            ),
            context.isFrameworkActive(framework) {
             return "from the \(framework) primitive `\(receiverName).\(calleeName)`"
+        }
+        if let receiverName,
+           let candidates = FrameworkWhitelist.frameworks(
+               forCrossFrameworkIdempotentReceiver: receiverName,
+               method: calleeName
+           ),
+           let active = candidates.first(where: context.isFrameworkActive) {
+            return "from the \(active) primitive `\(receiverName).\(calleeName)`"
         }
         if receiverName == nil,
            let framework = FrameworkWhitelist.framework(
