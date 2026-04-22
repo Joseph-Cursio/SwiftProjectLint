@@ -207,6 +207,24 @@ public enum FrameworkWhitelist {
     /// signatures. The Lambda runtime's at-least-once contract
     /// dedup-guards invocation retries at its own boundary, so these
     /// calls are idempotent-in-replay by the runtime contract.
+    ///
+    /// Hummingbird Router DSL (slot 16) — `router.{get,post,put,patch,delete}`
+    /// at route-registration sites. Hummingbird's `Router` exposes one
+    /// HTTP-verb method per standard method, each of which registers a
+    /// handler closure with the router's internal `TrieRouter`. From the
+    /// retry-context lint's perspective these are startup-time registration
+    /// calls, not request-scoped operations — annotating a `buildRouter()`
+    /// or `addXRoutes(to router:)` helper with `@lint.context replayable`
+    /// is a convenience to walk INTO the registered handler closures; the
+    /// registration calls themselves should stay silent. Gating on the
+    /// bare `router` receiver is the precision mechanism — it keeps the
+    /// whitelist from silencing unrelated `.get` / `.post` / `.delete`
+    /// methods on non-router receivers in the same file. 2-adopter
+    /// evidence: `samalone/prospero` (3× `router.post` Run A + 11×
+    /// `router.get` Run B) and
+    /// `hummingbird-project/hummingbird-examples/open-telemetry`
+    /// (1× `router.post` Run A + 2× `router.get` Run B) — identical
+    /// rule-path shapes across both corpora.
     private static let idempotentReceiverMethodsByFramework: [String: [String: String]] = [
         "decode": ["request": hummingbird],
         "require": ["parameters": hummingbird],
@@ -215,6 +233,11 @@ public enum FrameworkWhitelist {
             "responseWriter": awsLambdaRuntime,
         ],
         "finish": ["responseWriter": awsLambdaRuntime],
+        "get": ["router": hummingbird],
+        "post": ["router": hummingbird],
+        "put": ["router": hummingbird],
+        "patch": ["router": hummingbird],
+        "delete": ["router": hummingbird],
     ]
 
     /// Returns the framework that owns a given idempotent
