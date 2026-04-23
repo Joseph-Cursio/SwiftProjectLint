@@ -15,7 +15,8 @@ class Idempotency: BasePatternRegistrar {
             NonIdempotentInRetryContext(),
             MissingIdempotencyKey(),
             OnceContractViolation(),
-            UnannotatedInStrictReplayableContext()
+            UnannotatedInStrictReplayableContext(),
+            TupleEqualityWithUnstableComponents()
         ])
     }
 }

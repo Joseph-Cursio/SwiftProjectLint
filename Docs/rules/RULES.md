@@ -224,6 +224,7 @@ Rules marked **opt-in** are disabled by default and must be explicitly listed un
 | [Non-Idempotent In Retry Context](non-idempotent-in-retry-context.md) | Error |
 | [Missing Idempotency Key](missing-idempotency-key.md) | Error |
 | [Once Contract Violation](once-contract-violation.md) | Error |
+| [Tuple Equality With Unstable Components](tuple-equality-with-unstable-components.md) | Warning |
 
 ---
 
