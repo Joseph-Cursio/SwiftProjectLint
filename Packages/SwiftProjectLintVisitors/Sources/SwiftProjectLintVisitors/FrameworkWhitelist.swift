@@ -43,6 +43,46 @@ public enum FrameworkWhitelist {
         vapor
     ]
 
+    // MARK: - Import aliases (re-export / meta-package handling)
+
+    /// Alternate module names that, when imported, qualify as having
+    /// imported the canonical framework. Idiomatic adopter code often
+    /// imports a meta-package that re-exports the concrete module — the
+    /// linter sees the literal import name, so without an alias table
+    /// the framework-gated whitelist silently doesn't fire.
+    ///
+    /// Slot 19 motivating case: Vapor's `Fluent` meta-package
+    /// (`vapor/fluent`) re-exports `FluentKit`, `FluentSQL`, `FluentSQLiteDriver`
+    /// etc. Idiomatic Vapor code imports `Fluent`, not `FluentKit`. The
+    /// linter's FluentKit gate was matching the literal module name, so
+    /// `save()` / query-builder reads on `import Fluent` adopters were
+    /// going unclassified. Evidence from the hellovapor package trial:
+    /// a `save(on:)` call inside an `@ExternallyIdempotent`-marked body
+    /// under `import Fluent` went silent, then fired the expected
+    /// `idempotencyViolation` after swapping to `import FluentKit` —
+    /// confirming the gate, not the classification, was the gap.
+    ///
+    /// Alias sets live alongside the canonical framework name. The
+    /// `isFrameworkActive` check consults both the canonical name and
+    /// any alias when testing import presence. The canonical name
+    /// remains the single identity used throughout — the reason string
+    /// still names `FluentKit`, the `enabledFrameworks` config still
+    /// opts in/out via the canonical name, nested whitelist tables
+    /// still key on canonical. Aliases are purely an import-gate
+    /// convenience.
+    private static let frameworkImportAliases: [String: Set<String>] = [
+        fluent: ["Fluent"],
+    ]
+
+    /// Returns the set of alternate import names that satisfy the
+    /// import gate for `framework`, or an empty set when the framework
+    /// has no aliases. Callers should treat any of these as equivalent
+    /// to the canonical framework name when testing the adopter's
+    /// import set.
+    public static func importAliases(forFramework framework: String) -> Set<String> {
+        frameworkImportAliases[framework] ?? []
+    }
+
     // MARK: - Idempotent type constructors (bare-identifier call)
 
     /// Maps a type-constructor name (as it appears in source) to the
@@ -386,7 +426,8 @@ public struct FrameworkContext: Sendable {
     }
 
     public func isFrameworkActive(_ framework: String) -> Bool {
-        let importOK = imports.contains(framework)
+        let aliases = FrameworkWhitelist.importAliases(forFramework: framework)
+        let importOK = imports.contains(framework) || !aliases.isDisjoint(with: imports)
         let enabledOK = enabled?.contains(framework) ?? true
         return importOK && enabledOK
     }
