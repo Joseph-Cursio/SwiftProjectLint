@@ -366,6 +366,117 @@ struct FrameworkWhitelistGatingTests {
         #expect(reason == "from the FluentKit query-builder read `all`")
     }
 
+    // MARK: - Fluent import alias (slot 19)
+
+    /// Slot 19 — the `Fluent` meta-package (`vapor/fluent`) re-exports
+    /// `FluentKit`, so idiomatic Vapor code imports `Fluent` and the gate
+    /// must treat that as equivalent to `FluentKit`. Mirrors the Fluent
+    /// sections above with `imports: ["Fluent"]` in place of
+    /// `["FluentKit"]`. Evidence from the hellovapor package trial — a
+    /// `save(on:)` call under `import Fluent` went silent until the gate
+    /// was aliased.
+
+    @Test
+    func importGated_fluentMetaPackage_modelSaveFires() throws {
+        let call = try firstCall(in: "func f() { todo.save() }")
+        #expect(HeuristicEffectInferrer.infer(
+            call: call, imports: ["Fluent"], enabledFrameworks: nil
+        ) == .nonIdempotent)
+    }
+
+    @Test
+    func importGated_fluentMetaPackage_modelUpdateFires() throws {
+        let call = try firstCall(in: "func f() { todo.update() }")
+        #expect(HeuristicEffectInferrer.infer(
+            call: call, imports: ["Fluent"], enabledFrameworks: nil
+        ) == .nonIdempotent)
+    }
+
+    @Test
+    func importGated_fluentMetaPackage_modelDeleteFires() throws {
+        let call = try firstCall(in: "func f() { todo.delete() }")
+        #expect(HeuristicEffectInferrer.infer(
+            call: call, imports: ["Fluent"], enabledFrameworks: nil
+        ) == .nonIdempotent)
+    }
+
+    @Test
+    func importGated_fluentMetaPackage_queryFires() throws {
+        let call = try firstCall(in: "func f() { Todo.query(on: db) }")
+        #expect(HeuristicEffectInferrer.infer(
+            call: call, imports: ["Fluent"], enabledFrameworks: nil
+        ) == .idempotent)
+    }
+
+    @Test
+    func importGated_fluentMetaPackage_allFires_onChainedCall() throws {
+        // Same shape as the FluentKit chained-read test — the terminal
+        // `.all()` on a query builder resolves through the idempotent
+        // method gate when the file imports the meta-package.
+        let source = "func f() { _ = Todo.query(on: db).all() }"
+        let call = try memberCall(method: "all", in: source)
+        #expect(HeuristicEffectInferrer.infer(
+            call: call, imports: ["Fluent"], enabledFrameworks: nil
+        ) == .idempotent)
+    }
+
+    @Test
+    func fluentMetaPackage_inferenceReason_usesCanonicalFrameworkName() throws {
+        // The alias gates import presence; the reason string keeps the
+        // canonical `FluentKit` name so users searching the docs for the
+        // rule reason see the same phrasing regardless of import spelling.
+        let call = try firstCall(in: "func f() { todo.save() }")
+        let reason = HeuristicEffectInferrer.inferenceReason(
+            for: call, imports: ["Fluent"], enabledFrameworks: nil
+        )
+        #expect(reason == "from the FluentKit ORM verb `save`")
+    }
+
+    @Test
+    func fluentMetaPackage_idempotentReadReason_usesCanonicalFrameworkName() throws {
+        let source = "func f() { _ = Todo.query(on: db).all() }"
+        let call = try memberCall(method: "all", in: source)
+        let reason = HeuristicEffectInferrer.inferenceReason(
+            for: call, imports: ["Fluent"], enabledFrameworks: nil
+        )
+        #expect(reason == "from the FluentKit query-builder read `all`")
+    }
+
+    @Test
+    func fluentBothImports_modelSaveFires() throws {
+        // Redundant but legal — some adopters import both the
+        // meta-package and the concrete module. Either alone activates
+        // the gate, and both together should behave identically.
+        let call = try firstCall(in: "func f() { todo.save() }")
+        #expect(HeuristicEffectInferrer.infer(
+            call: call, imports: ["Fluent", "FluentKit"], enabledFrameworks: nil
+        ) == .nonIdempotent)
+    }
+
+    @Test
+    func configGated_fluentDisabled_metaPackageAliasStillSilenced() throws {
+        // `enabledFrameworks` gates by the canonical name, not by the
+        // import spelling. An adopter opting out of Fluent via config
+        // stays silenced under `import Fluent` just as under
+        // `import FluentKit` — the alias is purely an import-gate
+        // convenience.
+        let call = try firstCall(in: "func f() { todo.save() }")
+        #expect(HeuristicEffectInferrer.infer(
+            call: call, imports: ["Fluent"], enabledFrameworks: ["Foundation"]
+        ) == nil)
+    }
+
+    @Test
+    func fluentMetaPackage_nonAliasNameDoesNotActivateGate() throws {
+        // Defensive: only the enumerated alias `Fluent` qualifies.
+        // A user-defined module whose name merely prefixes `Fluent`
+        // (e.g. `MyFluentHelpers`) must not activate the gate.
+        let call = try firstCall(in: "func f() { todo.save() }")
+        #expect(HeuristicEffectInferrer.infer(
+            call: call, imports: ["MyFluentHelpers"], enabledFrameworks: nil
+        ) == nil)
+    }
+
     // MARK: - Hummingbird primitives (framework-gated)
 
     @Test
