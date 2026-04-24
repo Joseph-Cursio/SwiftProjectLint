@@ -147,8 +147,8 @@ public extension FunctionSignature {
     /// `@escaping`) to expose the underlying `FunctionTypeSyntax`, or
     /// returns `nil` when the type isn't function-typed.
     private static func unwrapFunctionType(_ type: TypeSyntax) -> FunctionTypeSyntax? {
-        if let fn = type.as(FunctionTypeSyntax.self) {
-            return fn
+        if let functionType = type.as(FunctionTypeSyntax.self) {
+            return functionType
         }
         if let attributed = type.as(AttributedTypeSyntax.self) {
             return unwrapFunctionType(attributed.baseType)
