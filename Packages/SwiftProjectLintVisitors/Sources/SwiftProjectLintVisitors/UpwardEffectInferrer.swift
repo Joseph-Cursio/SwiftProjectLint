@@ -76,16 +76,45 @@ public enum UpwardEffectInferrer {
         for decl in collector.functions {
             guard let body = decl.body else { continue }
             let calleeResults = collectResults(in: Syntax(body), resolve: resolveCalleeEffect)
-            guard let lub = leastUpperBound(of: calleeResults.map { $0.effect }) else { continue }
-            let lubRank = rank(of: lub)
-            let contributingDepths = calleeResults
-                .filter { rank(of: $0.effect) == lubRank }
-                .map { $0.depth }
-            let depth = 1 + (contributingDepths.max() ?? 0)
+            guard let inference = combine(calleeResults: calleeResults) else { continue }
             let signature = FunctionSignature.from(declaration: decl)
-            results[signature] = UpwardInference(effect: lub, depth: depth)
+            results[signature] = inference
         }
+
+        // Closure-literal bindings (`let handler = { ... }`) participate
+        // in upward inference on the same terms as `func` declarations.
+        // Only unannotated, not-function-local bindings with a derivable
+        // signature are inferred; all three filters mirror the declared-
+        // effect registration path in `EffectSymbolTable.merge`.
+        let bindingCollector = UnannotatedClosureBindingCollector()
+        bindingCollector.walk(source)
+        for varDecl in bindingCollector.bindings {
+            guard !isFunctionLocal(varDecl),
+                  let closure = varDecl.closureInitializer,
+                  let signature = FunctionSignature.from(declaration: varDecl) else {
+                continue
+            }
+            let calleeResults = collectResults(
+                in: Syntax(closure.statements),
+                resolve: resolveCalleeEffect
+            )
+            guard let inference = combine(calleeResults: calleeResults) else { continue }
+            results[signature] = inference
+        }
+
         return results
+    }
+
+    private static func combine(calleeResults: [UpwardInference]) -> UpwardInference? {
+        guard let lub = leastUpperBound(of: calleeResults.map { $0.effect }) else {
+            return nil
+        }
+        let lubRank = rank(of: lub)
+        let contributingDepths = calleeResults
+            .filter { rank(of: $0.effect) == lubRank }
+            .map { $0.depth }
+        let depth = 1 + (contributingDepths.max() ?? 0)
+        return UpwardInference(effect: lub, depth: depth)
     }
 
     /// Returns the single effect corresponding to the most permissive
@@ -177,6 +206,39 @@ public enum UpwardEffectInferrer {
         "withThrowingDiscardingTaskGroup",
         "task"
     ]
+}
+
+/// Collects every `VariableDeclSyntax` with a closure-literal initialiser
+/// that has no `@lint.effect` annotation. Paired with
+/// `UnannotatedFunctionCollector` for upward inference: a closure binding
+/// whose body calls non-idempotent work becomes itself inferred
+/// non-idempotent, surfacing cross-reference violations that would
+/// otherwise stay silent.
+///
+/// The collector skips descent into closure expressions — the body walk
+/// for the lub calculation happens separately via `collectResults`, which
+/// enforces the escape-closure policy at the right granularity.
+/// `@lint.context`-only bindings are still collected (context-only decls
+/// can have their body's effect inferred); the check is specifically on
+/// the presence of a declared *effect* annotation.
+final class UnannotatedClosureBindingCollector: SyntaxVisitor {
+    var bindings: [VariableDeclSyntax] = []
+
+    init() {
+        super.init(viewMode: .sourceAccurate)
+    }
+
+    override func visit(_ node: VariableDeclSyntax) -> SyntaxVisitorContinueKind {
+        if node.closureInitializer != nil,
+           EffectAnnotationParser.parseEffect(declaration: node) == nil {
+            bindings.append(node)
+        }
+        return .visitChildren
+    }
+
+    override func visit(_ node: ClosureExprSyntax) -> SyntaxVisitorContinueKind {
+        .skipChildren
+    }
 }
 
 /// Collects every un-annotated `FunctionDeclSyntax` in a source file.

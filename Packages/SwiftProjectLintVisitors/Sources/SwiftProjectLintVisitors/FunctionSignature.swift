@@ -87,29 +87,60 @@ public extension FunctionSignature {
     static func from(declaration: VariableDeclSyntax) -> FunctionSignature? {
         guard let binding = declaration.bindings.first,
               declaration.bindings.count == 1,
-              let pattern = binding.pattern.as(IdentifierPatternSyntax.self),
-              let typeAnnotation = binding.typeAnnotation else {
+              let pattern = binding.pattern.as(IdentifierPatternSyntax.self) else {
             return nil
         }
-        guard let fnType = unwrapFunctionType(typeAnnotation.type) else {
+        let name = pattern.identifier.text
+
+        // Primary path: explicit function-typed annotation. Preserves Path A
+        // re-labelling for the macro-friendly `@DependencyClient`-style shape.
+        if let typeAnnotation = binding.typeAnnotation,
+           let fnType = unwrapFunctionType(typeAnnotation.type) {
+            let labels = fnType.parameters.map { element -> String in
+                let first = element.firstName?.text ?? ""
+                let second = element.secondName?.text ?? ""
+                // Path A: `_ internalName:` → re-expose the internal name.
+                if first == "_" && !second.isEmpty {
+                    return second
+                }
+                if first.isEmpty || first == "_" {
+                    return "_"
+                }
+                return first
+            }
+            return FunctionSignature(name: name, argumentLabels: labels)
+        }
+
+        // Fallback: typeless binding with a closure-literal initialiser.
+        // Arity comes from the closure signature's parameter clause; labels
+        // are always `_` (Swift closures are positional at the call site).
+        // Requires an explicit parameter list — anonymous-arg closures
+        // (`{ $0 + $1 }`) can't be signed without scanning the body, so
+        // they stay unregistered.
+        if let closure = binding.initializer?.value.as(ClosureExprSyntax.self) {
+            guard let arity = closureParameterArity(closure) else { return nil }
+            return FunctionSignature(
+                name: name,
+                argumentLabels: Array(repeating: "_", count: arity)
+            )
+        }
+
+        return nil
+    }
+
+    /// Arity of a closure literal's explicit parameter list, or `nil` when
+    /// the closure has no `in`-delimited signature (anonymous-arg closures
+    /// like `{ $0 + $1 }` can't be signed without body analysis).
+    private static func closureParameterArity(_ closure: ClosureExprSyntax) -> Int? {
+        guard let parameterClause = closure.signature?.parameterClause else {
             return nil
         }
-        let labels = fnType.parameters.map { element -> String in
-            let first = element.firstName?.text ?? ""
-            let second = element.secondName?.text ?? ""
-            // Path A: `_ internalName:` → re-expose the internal name.
-            if first == "_" && !second.isEmpty {
-                return second
-            }
-            if first.isEmpty || first == "_" {
-                return "_"
-            }
-            return first
+        switch parameterClause {
+        case .simpleInput(let list):
+            return list.count
+        case .parameterClause(let clause):
+            return clause.parameters.count
         }
-        return FunctionSignature(
-            name: pattern.identifier.text,
-            argumentLabels: labels
-        )
     }
 
     /// Peels `AttributedTypeSyntax` wrappers (`@Sendable`, `@MainActor`,
