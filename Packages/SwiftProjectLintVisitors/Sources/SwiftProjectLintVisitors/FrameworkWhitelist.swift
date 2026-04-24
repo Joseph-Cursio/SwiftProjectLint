@@ -33,6 +33,7 @@ public enum FrameworkWhitelist {
     public static let awsLambdaRuntime = "AWSLambdaRuntime"
     public static let httpPipeline = "HttpPipeline"
     public static let vapor = "Vapor"
+    public static let swiftConcurrency = "SwiftConcurrency"
 
     /// Every framework this project recognises. Order-insensitive.
     /// Used as the default `enabledFrameworks` set when a project
@@ -40,7 +41,30 @@ public enum FrameworkWhitelist {
     public static let knownFrameworks: Set<String> = [
         foundation, nio, awsLambdaEvents, logging, osLog, metrics, fluent,
         hummingbird, composableArchitecture, awsLambdaRuntime, httpPipeline,
-        vapor
+        vapor, swiftConcurrency
+    ]
+
+    // MARK: - Always-active (stdlib / built-in) frameworks
+
+    /// Frameworks whose "import presence" gate is always satisfied
+    /// because their types are part of Swift's stdlib or a built-in
+    /// runtime and no `import` declaration is typically required.
+    ///
+    /// The `swiftConcurrency` framework name (slot 22) is the
+    /// motivating case: `Task`, `async`, `await`, `AsyncStream`,
+    /// `Actor`, etc. are in stdlib; adopter code never writes `import
+    /// SwiftConcurrency` because there's no such module. The
+    /// `FrameworkContext.isFrameworkActive` gate short-circuits to
+    /// `true` for these names (modulo the config opt-out), so entries
+    /// for `(Task, sleep)` etc. in `idempotentReceiverMethodsByFramework`
+    /// still go through the standard lookup path rather than needing
+    /// a parallel stdlib-specific table.
+    ///
+    /// The config opt-out still applies — a project can set
+    /// `enabled_framework_whitelists: [...]` excluding `SwiftConcurrency`
+    /// to restore pre-slot-22 behaviour.
+    public static let alwaysActiveFrameworks: Set<String> = [
+        swiftConcurrency,
     ]
 
     // MARK: - Import aliases (re-export / meta-package handling)
@@ -308,6 +332,25 @@ public enum FrameworkWhitelist {
     /// `WellKnownController`, `AuthorizeController`, `TokenController`,
     /// `RevokeController`), `kphrx/plc-handle-tracker` (2 sites —
     /// `DidController`, `HandleController`).
+    ///
+    /// Swift Concurrency `Task.sleep` (slot 22) — stdlib
+    /// `Task.sleep(nanoseconds:)` / `Task.sleep(for:)` primitive used
+    /// in retry-backoff loops, rate-limit pacing, scheduler delays,
+    /// and test harnesses. Idempotent by construction — a replay
+    /// incurs additional wall-clock latency but no state mutation.
+    /// The receiver `Task` is a stdlib type, not a framework module,
+    /// so the import gate is satisfied via `alwaysActiveFrameworks`
+    /// rather than a literal `import SwiftConcurrency`. Both modern
+    /// `Task.sleep(for: .seconds(N))` and legacy
+    /// `Task.sleep(nanoseconds: N)` spellings resolve here because the
+    /// `(receiver, method)` lookup is name-based, not signature-based.
+    /// 4-adopter evidence: `hummingbird-examples/open-telemetry`
+    /// (prior 1-adopter), `uitsmijter/Uitsmijter` (5 sites across
+    /// Logger, JWT KeyStorage, JavaScriptProvider, EntityCRDLoader),
+    /// `JulianKahnert/HomeAutomation` (5 sites across CustomActorSystem,
+    /// Timer, WindowOpen), `VernissageApp/VernissageServer` (5+ sites
+    /// across ClearAttachmentsService + PurgeStatusesService backoff
+    /// loops).
     private static let idempotentReceiverMethodsByFramework: [String: [String: String]] = [
         "decode": ["request": hummingbird],
         "require": ["parameters": hummingbird],
@@ -325,6 +368,7 @@ public enum FrameworkWhitelist {
         "patch": ["router": hummingbird, "app": vapor],
         "delete": ["router": hummingbird, "app": vapor],
         "register": ["app": vapor],
+        "sleep": ["Task": swiftConcurrency],
     ]
 
     /// Returns the framework that owns a given idempotent
@@ -446,9 +490,16 @@ public struct FrameworkContext: Sendable {
     }
 
     public func isFrameworkActive(_ framework: String) -> Bool {
+        let enabledOK = enabled?.contains(framework) ?? true
+        // Stdlib / built-in frameworks (slot 22: SwiftConcurrency) bypass
+        // the import gate — adopter code doesn't typically write
+        // `import SwiftConcurrency` because there's no such module.
+        // Config opt-out still applies.
+        if FrameworkWhitelist.alwaysActiveFrameworks.contains(framework) {
+            return enabledOK
+        }
         let aliases = FrameworkWhitelist.importAliases(forFramework: framework)
         let importOK = imports.contains(framework) || !aliases.isDisjoint(with: imports)
-        let enabledOK = enabled?.contains(framework) ?? true
         return importOK && enabledOK
     }
 }
