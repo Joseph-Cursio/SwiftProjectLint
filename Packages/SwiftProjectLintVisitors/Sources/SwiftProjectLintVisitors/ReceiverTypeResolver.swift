@@ -156,8 +156,8 @@ public enum ReceiverTypeResolver {
 
         while let node = current {
             // Function / initializer parameters.
-            if let fn = node.as(FunctionDeclSyntax.self),
-               let param = parameter(named: name, in: fn.parameterList) {
+            if let funcDecl = node.as(FunctionDeclSyntax.self),
+               let param = parameter(named: name, in: funcDecl.parameterList) {
                 return classifyTypeSyntax(param.type, localTypes: localTypes)
             }
             if let initz = node.as(InitializerDeclSyntax.self),
@@ -192,20 +192,20 @@ public enum ReceiverTypeResolver {
 
             // Stored properties of enclosing type decls.
             if let cls = node.as(ClassDeclSyntax.self),
-               let t = storedPropertyType(named: name, in: cls.memberBlock.members) {
-                return classifyTypeSyntax(t, localTypes: localTypes)
+               let typeSyntax = storedPropertyType(named: name, in: cls.memberBlock.members) {
+                return classifyTypeSyntax(typeSyntax, localTypes: localTypes)
             }
             if let str = node.as(StructDeclSyntax.self),
-               let t = storedPropertyType(named: name, in: str.memberBlock.members) {
-                return classifyTypeSyntax(t, localTypes: localTypes)
+               let typeSyntax = storedPropertyType(named: name, in: str.memberBlock.members) {
+                return classifyTypeSyntax(typeSyntax, localTypes: localTypes)
             }
             if let act = node.as(ActorDeclSyntax.self),
-               let t = storedPropertyType(named: name, in: act.memberBlock.members) {
-                return classifyTypeSyntax(t, localTypes: localTypes)
+               let typeSyntax = storedPropertyType(named: name, in: act.memberBlock.members) {
+                return classifyTypeSyntax(typeSyntax, localTypes: localTypes)
             }
             if let ext = node.as(ExtensionDeclSyntax.self),
-               let t = storedPropertyType(named: name, in: ext.memberBlock.members) {
-                return classifyTypeSyntax(t, localTypes: localTypes)
+               let typeSyntax = storedPropertyType(named: name, in: ext.memberBlock.members) {
+                return classifyTypeSyntax(typeSyntax, localTypes: localTypes)
             }
 
             current = node.parent
@@ -280,20 +280,20 @@ public enum ReceiverTypeResolver {
         var current: Syntax? = startNode.parent
         while let node = current {
             if let cls = node.as(ClassDeclSyntax.self),
-               let t = storedPropertyType(named: name, in: cls.memberBlock.members) {
-                return t
+               let typeSyntax = storedPropertyType(named: name, in: cls.memberBlock.members) {
+                return typeSyntax
             }
             if let str = node.as(StructDeclSyntax.self),
-               let t = storedPropertyType(named: name, in: str.memberBlock.members) {
-                return t
+               let typeSyntax = storedPropertyType(named: name, in: str.memberBlock.members) {
+                return typeSyntax
             }
             if let act = node.as(ActorDeclSyntax.self),
-               let t = storedPropertyType(named: name, in: act.memberBlock.members) {
-                return t
+               let typeSyntax = storedPropertyType(named: name, in: act.memberBlock.members) {
+                return typeSyntax
             }
             if let ext = node.as(ExtensionDeclSyntax.self),
-               let t = storedPropertyType(named: name, in: ext.memberBlock.members) {
-                return t
+               let typeSyntax = storedPropertyType(named: name, in: ext.memberBlock.members) {
+                return typeSyntax
             }
             current = node.parent
         }
