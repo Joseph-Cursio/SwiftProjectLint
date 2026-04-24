@@ -289,6 +289,25 @@ public enum FrameworkWhitelist {
     /// (which ships as part of slot 18's cross-framework table below).
     /// 1-adopter evidence (prospero: 1 fire); shipped as a Hummingbird-
     /// gated sibling to keep the parameter-access surface complete.
+    ///
+    /// Vapor `app.register(collection:)` (slot 21) — Vapor's
+    /// `Application.register(collection:)` idiom for mounting a
+    /// `RouteCollection` conformer at startup time. Structurally
+    /// sibling to the slot-17 `(app, get|post|...)` entries — same
+    /// receiver, same gating framework, same "startup-time registration
+    /// DSL, not request-scoped" semantics. Ships silent under both
+    /// replayable and strict_replayable because `register` is in the
+    /// `nonIdempotentNames` server-app-verb lexicon (slot 13), so
+    /// without this entry every `app.register(collection:)` in a
+    /// `@lint.context replayable`-annotated `routes(_:)` helper
+    /// mis-fires on adopters who bind their controllers by collection.
+    /// 3-adopter evidence: `sinduke/HelloVapor` (prior 1-adopter),
+    /// `uitsmijter/Uitsmijter` (10 sites — `HealthController`,
+    /// `VersionsController`, `MetricsController`, `LoginController`,
+    /// `LogoutController`, `InterceptorController`,
+    /// `WellKnownController`, `AuthorizeController`, `TokenController`,
+    /// `RevokeController`), `kphrx/plc-handle-tracker` (2 sites —
+    /// `DidController`, `HandleController`).
     private static let idempotentReceiverMethodsByFramework: [String: [String: String]] = [
         "decode": ["request": hummingbird],
         "require": ["parameters": hummingbird],
@@ -305,6 +324,7 @@ public enum FrameworkWhitelist {
         "put": ["router": hummingbird, "app": vapor],
         "patch": ["router": hummingbird, "app": vapor],
         "delete": ["router": hummingbird, "app": vapor],
+        "register": ["app": vapor],
     ]
 
     /// Returns the framework that owns a given idempotent
