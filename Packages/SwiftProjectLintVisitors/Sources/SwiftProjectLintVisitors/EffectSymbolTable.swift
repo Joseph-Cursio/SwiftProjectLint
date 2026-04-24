@@ -99,9 +99,21 @@ public struct EffectSymbolTable: Sendable {
         // callable `search(query:)`; the linter can consume user
         // annotations on these via the same signature-keyed table
         // without having to run the macro.
+        //
+        // Closure-literal bindings without a type annotation
+        // (`let sender = { (msg: String) in ... }`) are also registered
+        // when `FunctionSignature.from(declaration:)` can derive an
+        // arity from the closure literal's explicit parameter clause —
+        // see its fallback path.
+        //
+        // Function-local bindings (anything under a `func`, `init`,
+        // `deinit`, or accessor body) are skipped: they can't be called
+        // by name from outside their enclosing scope, so registering
+        // them risks cross-scope aliasing on common identifiers.
         let propCollector = ClosurePropertyDeclCollector()
         propCollector.walk(source)
         for varDecl in propCollector.properties {
+            guard !isFunctionLocal(varDecl) else { continue }
             guard let signature = FunctionSignature.from(declaration: varDecl) else {
                 continue
             }
@@ -430,6 +442,27 @@ public struct OnceReachInference: Sendable, Equatable {
     public init(depth: Int) {
         self.depth = depth
     }
+}
+
+/// `true` when `decl` appears inside a function-like body (`func`, `init`,
+/// `deinit`, `get`/`set`/`willSet`/`didSet` accessor) somewhere up its
+/// ancestor chain. Such bindings are not externally callable by name —
+/// registering them as symbol-table entries would let same-named identifiers
+/// elsewhere in the project silently bind to a scope-local closure.
+/// Top-level decls, type-member stored properties, and bindings inside
+/// top-level closure captures all return `false`.
+public func isFunctionLocal(_ decl: VariableDeclSyntax) -> Bool {
+    var current = Syntax(decl).parent
+    while let node = current {
+        if node.is(FunctionDeclSyntax.self)
+            || node.is(InitializerDeclSyntax.self)
+            || node.is(DeinitializerDeclSyntax.self)
+            || node.is(AccessorDeclSyntax.self) {
+            return true
+        }
+        current = node.parent
+    }
+    return false
 }
 
 /// Collects every `FunctionDeclSyntax` in a source file that does NOT

@@ -153,10 +153,44 @@ struct SignatureAwareCollisionTests {
     }
 
     @Test
-    func closureProperty_untypedBinding_returnsNil() throws {
-        // Inferred-type bindings don't declare the call-site shape — can't
-        // extract a signature without the type annotation.
+    func closureProperty_untypedBinding_typedClosureSignature_extractsFromArity() throws {
+        // Typeless binding with an explicit closure-literal parameter clause.
+        // Closures are positional at the call site, so all labels are `_`;
+        // only arity is derived.
         let decl = try varDecl("var f = { (x: Int) in print(x) }")
+        let signature = try #require(FunctionSignature.from(declaration: decl))
+        #expect(signature.description == "f(_:)")
+    }
+
+    @Test
+    func closureProperty_untypedBinding_shorthandClosureSignature_extractsFromArity() throws {
+        // Shorthand `a, b in` form. Arity still visible in the signature.
+        let decl = try varDecl("var f = { a, b in print(a, b) }")
+        let signature = try #require(FunctionSignature.from(declaration: decl))
+        #expect(signature.description == "f(_:_:)")
+    }
+
+    @Test
+    func closureProperty_untypedBinding_emptyParameterClause_returnsZeroArity() throws {
+        // `{ () in ... }` — explicit empty parameter clause, arity 0.
+        let decl = try varDecl("var f = { () in print(\"hi\") }")
+        let signature = try #require(FunctionSignature.from(declaration: decl))
+        #expect(signature.description == "f()")
+    }
+
+    @Test
+    func closureProperty_untypedBinding_anonymousArgs_returnsNil() throws {
+        // `{ $0 + $1 }` — no explicit parameter list, arity only visible
+        // via body analysis. Staying nil keeps the fallback conservative.
+        let decl = try varDecl("var f = { $0 + $1 }")
+        #expect(FunctionSignature.from(declaration: decl) == nil)
+    }
+
+    @Test
+    func closureProperty_untypedBinding_nonClosureInitializer_returnsNil() throws {
+        // Non-closure initializers stay nil — only closure literals are a
+        // callable pseudo-method.
+        let decl = try varDecl("var count = 42")
         #expect(FunctionSignature.from(declaration: decl) == nil)
     }
 
