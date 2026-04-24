@@ -219,8 +219,8 @@ public struct EffectSymbolTable: Sendable {
     ) {
         // Backward-compat shim — wraps the per-call callback to ignore
         // the source argument the full entry point supplies.
-        let wrapped: (FunctionCallExprSyntax, SourceFileSyntax) -> DeclaredEffect? = {
-            call, _ in heuristicEffectForCall(call)
+        let wrapped: (FunctionCallExprSyntax, SourceFileSyntax) -> DeclaredEffect? = { call, _ in
+            heuristicEffectForCall(call)
         }
         applyUpwardInferenceImportAware(
             to: sources,
