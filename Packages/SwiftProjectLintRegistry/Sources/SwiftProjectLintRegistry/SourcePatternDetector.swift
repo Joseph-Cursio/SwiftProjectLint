@@ -34,7 +34,7 @@ public final class SourcePatternDetector: SourcePatternDetectorProtocol, @unchec
     /// "all known frameworks active" (subject to file-level import
     /// gating in `HeuristicEffectInferrer`); non-nil restricts to the
     /// listed framework names.
-    public var enabledFrameworkWhitelists: Set<String>? = nil
+    public var enabledFrameworkWhitelists: Set<String>?
 
     /// Initializes a new SwiftSyntax pattern detector.
     ///

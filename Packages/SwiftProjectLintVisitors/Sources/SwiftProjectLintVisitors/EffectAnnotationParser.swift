@@ -257,9 +257,9 @@ public enum EffectAnnotationParser {
     ) -> DeclaredEffect? {
         switch (attribute, docComment) {
         case (nil, nil): return nil
-        case (let a?, nil): return a
-        case (nil, let d?): return d
-        case (let a?, let d?): return a == d ? a : nil
+        case (let attr?, nil): return attr
+        case (nil, let doc?): return doc
+        case (let attr?, let doc?): return attr == doc ? attr : nil
         }
     }
 

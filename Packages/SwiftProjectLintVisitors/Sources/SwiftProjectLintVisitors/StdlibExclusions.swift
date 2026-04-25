@@ -78,6 +78,6 @@ public enum StdlibExclusions {
 
         // Dictionary — key-addressed mutation is replay-safe.
         TypeMethodPair(type: "Dictionary", method: "removeValue"),
-        TypeMethodPair(type: "Dictionary", method: "updateValue"),
+        TypeMethodPair(type: "Dictionary", method: "updateValue")
     ]
 }

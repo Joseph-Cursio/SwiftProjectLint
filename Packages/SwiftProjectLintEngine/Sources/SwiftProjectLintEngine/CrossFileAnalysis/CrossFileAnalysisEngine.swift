@@ -25,7 +25,7 @@ public class CrossFileAnalysisEngine: CrossFileAnalyzerProtocol {
     /// (round-14). Propagated from `LintConfiguration.enabledFrameworkWhitelists`
     /// by `ProjectLinter` and applied to each cross-file visitor before
     /// it walks. `nil` means "all known frameworks active."
-    public var enabledFrameworkWhitelists: Set<String>? = nil
+    public var enabledFrameworkWhitelists: Set<String>?
 
     /// Initializes a new SwiftSyntax pattern detector.
     ///

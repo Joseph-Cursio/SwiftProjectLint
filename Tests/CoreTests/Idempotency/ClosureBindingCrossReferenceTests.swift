@@ -34,26 +34,28 @@ struct ClosureBindingCrossReferenceTests {
     /// `allSources` empty and silently skips inference.
     private func runEffect(_ source: String) -> IdempotencyViolationVisitor {
         let path = "Test.swift"
-        let cache: [String: SourceFileSyntax] = [path: Parser.parse(source: source)]
+        let parsed = Parser.parse(source: source)
+        let cache: [String: SourceFileSyntax] = [path: parsed]
         let visitor = IdempotencyViolationVisitor(fileCache: cache)
         visitor.setFilePath(path)
         visitor.setSourceLocationConverter(
-            SourceLocationConverter(fileName: path, tree: cache[path]!)
+            SourceLocationConverter(fileName: path, tree: parsed)
         )
-        visitor.walk(cache[path]!)
+        visitor.walk(parsed)
         visitor.finalizeAnalysis()
         return visitor
     }
 
     private func runContext(_ source: String) -> NonIdempotentInRetryContextVisitor {
         let path = "Test.swift"
-        let cache: [String: SourceFileSyntax] = [path: Parser.parse(source: source)]
+        let parsed = Parser.parse(source: source)
+        let cache: [String: SourceFileSyntax] = [path: parsed]
         let visitor = NonIdempotentInRetryContextVisitor(fileCache: cache)
         visitor.setFilePath(path)
         visitor.setSourceLocationConverter(
-            SourceLocationConverter(fileName: path, tree: cache[path]!)
+            SourceLocationConverter(fileName: path, tree: parsed)
         )
-        visitor.walk(cache[path]!)
+        visitor.walk(parsed)
         visitor.finalizeAnalysis()
         return visitor
     }

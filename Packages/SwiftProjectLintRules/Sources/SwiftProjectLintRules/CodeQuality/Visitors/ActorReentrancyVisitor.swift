@@ -398,7 +398,7 @@ final class ActorReentrancyVisitor: BasePatternVisitor {
         "<<=", ">>=",
         "&=", "|=", "^=",
         "&+=", "&-=", "&*=",
-        "&<<=", "&>>=",
+        "&<<=", "&>>="
     ]
 
     /// True when `element` is the operator slot of a SequenceExpr representing

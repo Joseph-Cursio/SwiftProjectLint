@@ -19,6 +19,7 @@ excluded:
 disabled_rules:
   - todo                      # Allow TODO comments during development
   - trailing_whitespace       # Can be handled by Xcode
+  - inclusive_language        # "whitelist" is core product terminology (FrameworkWhitelist API, Slot N whitelist rules)
 
 # Opt-in rules (enable specific rules that are valuable)
 opt_in_rules:
@@ -65,6 +66,12 @@ function_parameter_count:
 type_body_length:
   warning: 300
   error: 500
+
+type_name:
+  min_length: 3
+  max_length:
+    warning: 60
+    error: 80
 
 cyclomatic_complexity:
   warning: 15

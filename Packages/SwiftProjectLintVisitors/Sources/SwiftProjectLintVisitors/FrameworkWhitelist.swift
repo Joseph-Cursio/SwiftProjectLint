@@ -64,7 +64,7 @@ public enum FrameworkWhitelist {
     /// `enabled_framework_whitelists: [...]` excluding `SwiftConcurrency`
     /// to restore pre-slot-22 behaviour.
     public static let alwaysActiveFrameworks: Set<String> = [
-        swiftConcurrency,
+        swiftConcurrency
     ]
 
     // MARK: - Import aliases (re-export / meta-package handling)
@@ -95,7 +95,7 @@ public enum FrameworkWhitelist {
     /// still key on canonical. Aliases are purely an import-gate
     /// convenience.
     private static let frameworkImportAliases: [String: Set<String>] = [
-        fluent: ["Fluent"],
+        fluent: ["Fluent"]
     ]
 
     /// Returns the set of alternate import names that satisfy the
@@ -134,7 +134,7 @@ public enum FrameworkWhitelist {
         // Hummingbird — error constructors (value types; throwing them
         // is the control-flow mechanism, but constructing the value
         // is pure).
-        "HTTPError": hummingbird,
+        "HTTPError": hummingbird
     ]
 
     /// Returns the framework that owns a given idempotent type
@@ -158,7 +158,7 @@ public enum FrameworkWhitelist {
     /// Gating on `import FluentKit` resolves the ambiguity.
     private static let nonIdempotentMethodsByFramework: [String: String] = [
         "save": fluent,
-        "delete": fluent,
+        "delete": fluent
     ]
 
     /// Returns the framework that owns a given non-idempotent method
@@ -208,7 +208,7 @@ public enum FrameworkWhitelist {
         // Both adopters use these via `|>` / `>=>` pipe-forward operators
         // on `Conn` state; each call is a value-typed mutation.
         "writeStatus": httpPipeline,
-        "respond": httpPipeline,
+        "respond": httpPipeline
     ]
 
     /// Returns the framework that owns a given idempotent method
@@ -232,7 +232,7 @@ public enum FrameworkWhitelist {
     ///   to a curried `(Conn) -> Conn` primitive.
     private static let idempotentMethodPhrasingByFramework: [String: String] = [
         fluent: "query-builder read",
-        httpPipeline: "pipeline primitive",
+        httpPipeline: "pipeline primitive"
     ]
 
     /// Returns the per-framework noun phrase for the
@@ -356,19 +356,19 @@ public enum FrameworkWhitelist {
         "require": ["parameters": hummingbird],
         "write": [
             "outputWriter": awsLambdaRuntime,
-            "responseWriter": awsLambdaRuntime,
+            "responseWriter": awsLambdaRuntime
         ],
         "finish": ["responseWriter": awsLambdaRuntime],
         "get": [
             "router": hummingbird, "app": vapor,
-            "queryParameters": hummingbird,
+            "queryParameters": hummingbird
         ],
         "post": ["router": hummingbird, "app": vapor],
         "put": ["router": hummingbird, "app": vapor],
         "patch": ["router": hummingbird, "app": vapor],
         "delete": ["router": hummingbird, "app": vapor],
         "register": ["app": vapor],
-        "sleep": ["Task": swiftConcurrency],
+        "sleep": ["Task": swiftConcurrency]
     ]
 
     /// Returns the framework that owns a given idempotent
@@ -406,8 +406,8 @@ public enum FrameworkWhitelist {
     /// different frameworks, identical receiver-method shape.
     private static let idempotentReceiverMethodsMultiFramework: [String: [String: Set<String>]] = [
         "get": [
-            "parameters": [hummingbird, vapor],
-        ],
+            "parameters": [hummingbird, vapor]
+        ]
     ]
 
     /// Returns the set of frameworks any of which qualifies a given
@@ -446,7 +446,7 @@ public enum FrameworkWhitelist {
     ///   non-idempotent path; only the literal callee name `send` is
     ///   exempted.
     private static let bareNameIdempotentOverridesByFramework: [String: String] = [
-        "send": composableArchitecture,
+        "send": composableArchitecture
     ]
 
     /// Returns the framework that owns a given bare-name override, or

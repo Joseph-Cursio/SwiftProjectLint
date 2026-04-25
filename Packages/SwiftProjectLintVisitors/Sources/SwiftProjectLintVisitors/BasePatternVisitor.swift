@@ -57,7 +57,7 @@ open class BasePatternVisitor: SyntaxVisitor, PatternVisitorProtocol {
     /// `LintConfiguration.enabledFrameworkWhitelists` when present.
     /// Idempotency visitors read this when calling
     /// `HeuristicEffectInferrer.infer(call:imports:enabledFrameworks:)`.
-    public var enabledFrameworkWhitelists: Set<String>? = nil
+    public var enabledFrameworkWhitelists: Set<String>?
 
     /// Placeholder pattern used for cross-file visitors that set their pattern after initialization.
     public static let placeholderPattern = SyntaxPattern(
