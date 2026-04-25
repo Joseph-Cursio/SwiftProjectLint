@@ -122,6 +122,15 @@ public enum UpwardEffectInferrer {
     /// the input is empty (no call-site evidence available).
     ///
     /// Ordering (strictest first): `observational < idempotent < externally_idempotent < non_idempotent`.
+    ///
+    /// Tie-break note: comparison is rank-strict (`>`), so when two inputs
+    /// share the highest rank the first one in iteration order wins. This
+    /// matters for `externallyIdempotent(keyParameter:)` — two values with
+    /// different `keyParameter` strings sit at the same lattice position,
+    /// and lub returns whichever appeared first. The result is always
+    /// rank-correct, but is not Equatable-symmetric across input orderings
+    /// when same-rank duplicates carry different associated values. See
+    /// `LatticeLawsTests` for the property-based laws this guarantees.
     static func leastUpperBound(of effects: [DeclaredEffect]) -> DeclaredEffect? {
         guard !effects.isEmpty else { return nil }
         var best: (rank: Int, effect: DeclaredEffect) = (-1, .observational)
