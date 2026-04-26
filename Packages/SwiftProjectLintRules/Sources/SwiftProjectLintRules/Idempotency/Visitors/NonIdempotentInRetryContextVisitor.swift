@@ -282,7 +282,8 @@ final class NonIdempotentInRetryContextVisitor: BasePatternVisitor, CrossFilePat
             filePath: site.filePath,
             lineNumber: line,
             suggestion: "Replace '\(calleeName)' with an idempotent alternative, or route the call "
-                + "through a deduplication guard or idempotency-key mechanism.",
+                + "through a deduplication guard such as `IdempotencyKey` or "
+                + "`@ExternallyIdempotent(by:)` from the `SwiftIdempotency` package.",
             ruleName: .nonIdempotentInRetryContext
         )
     }
