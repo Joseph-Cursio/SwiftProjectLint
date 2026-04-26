@@ -13,6 +13,9 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
+      - name: Clone sibling LintStudioUI
+        run: git clone --depth 1 https://github.com/Joseph-Cursio/LintStudioUI.git ../LintStudioUI
+
       - name: Show Swift version
         run: swift --version
 
