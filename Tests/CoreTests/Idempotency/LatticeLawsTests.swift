@@ -62,8 +62,8 @@ struct LatticeLawsTests {
     @Test
     func lubCommutes_onRank() async {
         await propertyCheck(input: Self.effectGen, Self.effectGen) { lhs, rhs in
-            let lubLR = UpwardEffectInferrer.leastUpperBound(of: [lhs, rhs])!
-            let lubRL = UpwardEffectInferrer.leastUpperBound(of: [rhs, lhs])!
+            let lubLR = try #require(UpwardEffectInferrer.leastUpperBound(of: [lhs, rhs]))
+            let lubRL = try #require(UpwardEffectInferrer.leastUpperBound(of: [rhs, lhs]))
             #expect(Self.expectedRank(lubLR) == Self.expectedRank(lubRL))
         }
     }
@@ -72,12 +72,16 @@ struct LatticeLawsTests {
 
     @Test
     func lubAssociates_onRank() async {
-        await propertyCheck(input: Self.effectGen, Self.effectGen, Self.effectGen) { a, b, c in
-            let bc = UpwardEffectInferrer.leastUpperBound(of: [b, c])!
-            let leftFolded = UpwardEffectInferrer.leastUpperBound(of: [a, bc])!
+        await propertyCheck(
+            input: Self.effectGen,
+            Self.effectGen,
+            Self.effectGen
+        ) { lhs, mid, rhs in
+            let midRhs = try #require(UpwardEffectInferrer.leastUpperBound(of: [mid, rhs]))
+            let leftFolded = try #require(UpwardEffectInferrer.leastUpperBound(of: [lhs, midRhs]))
 
-            let ab = UpwardEffectInferrer.leastUpperBound(of: [a, b])!
-            let rightFolded = UpwardEffectInferrer.leastUpperBound(of: [ab, c])!
+            let lhsMid = try #require(UpwardEffectInferrer.leastUpperBound(of: [lhs, mid]))
+            let rightFolded = try #require(UpwardEffectInferrer.leastUpperBound(of: [lhsMid, rhs]))
 
             #expect(Self.expectedRank(leftFolded) == Self.expectedRank(rightFolded))
         }
@@ -88,7 +92,7 @@ struct LatticeLawsTests {
     @Test
     func lubDominates_eachInput() async {
         await propertyCheck(input: Self.effectGen, Self.effectGen) { lhs, rhs in
-            let bound = UpwardEffectInferrer.leastUpperBound(of: [lhs, rhs])!
+            let bound = try #require(UpwardEffectInferrer.leastUpperBound(of: [lhs, rhs]))
             #expect(Self.expectedRank(bound) >= Self.expectedRank(lhs))
             #expect(Self.expectedRank(bound) >= Self.expectedRank(rhs))
         }
@@ -99,7 +103,7 @@ struct LatticeLawsTests {
     @Test
     func lubMembership_byRank() async {
         await propertyCheck(input: Self.effectGen, Self.effectGen) { lhs, rhs in
-            let bound = UpwardEffectInferrer.leastUpperBound(of: [lhs, rhs])!
+            let bound = try #require(UpwardEffectInferrer.leastUpperBound(of: [lhs, rhs]))
             let boundRank = Self.expectedRank(bound)
             #expect(boundRank == Self.expectedRank(lhs) || boundRank == Self.expectedRank(rhs))
         }
