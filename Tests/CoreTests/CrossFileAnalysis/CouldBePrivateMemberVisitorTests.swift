@@ -274,4 +274,33 @@ struct CouldBePrivateMemberVisitorTests {
         let flagged = issues.map { $0.message }
         #expect(flagged.contains { $0.contains("uniqueInternalConfig") })
     }
+
+    // MARK: - System framework conformances
+
+    @Test func skipsCompilerPluginProvidingMacros() {
+        // SwiftSyntax compiler plugins (macro authors) declare a
+        // `providingMacros: [Macro.Type]` member that the macro host
+        // accesses via the @main entry point. There's no Swift-source
+        // reference to it in the package, so the rule's "only used in
+        // this file" check would otherwise fire — but making it private
+        // breaks the protocol witness. Cross-adopter evidence: surfaced
+        // on a SwiftIdempotency package scan (2026-04-26) where the
+        // adopter's `SwiftIdempotencyMacrosPlugin` was flagged.
+        let issues = analyze(files: [
+            "Plugin.swift": """
+            import SwiftCompilerPlugin
+            @main
+            struct MyMacrosPlugin: CompilerPlugin {
+                let providingMacros: [Macro.Type] = [MyMacro.self]
+            }
+            struct MyMacro {}
+            """,
+            "Other.swift": """
+            struct Other { }
+            """
+        ])
+
+        let flagged = issues.map(\.message)
+        #expect(flagged.contains { $0.contains("providingMacros") } == false)
+    }
 }
