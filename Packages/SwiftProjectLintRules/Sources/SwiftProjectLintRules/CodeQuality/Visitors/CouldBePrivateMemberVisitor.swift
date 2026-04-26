@@ -73,7 +73,14 @@ final class CouldBePrivateMemberVisitor: BasePatternVisitor, CrossFilePatternVis
         // Core Data / SwiftData
         "NSManagedObject", "FetchableRecord", "PersistableRecord",
         // Testing
-        "XCTestCase"
+        "XCTestCase",
+        // SwiftSyntax compiler plugins (macro authors). The
+        // `providingMacros` member on @main CompilerPlugin types is
+        // accessed by the macro host via the compiler-plugin entry
+        // point — there's no Swift-source reference in the package,
+        // so the rule's "only used in this file" check fires even
+        // though making it private would break the protocol witness.
+        "CompilerPlugin"
     ]
 
     required init(fileCache: [String: SourceFileSyntax]) {
