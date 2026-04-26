@@ -1,5 +1,6 @@
 import Foundation
 @testable import Core
+@testable import SwiftProjectLintIdempotencyRules
 @testable import SwiftProjectLintRules
 
 /// A struct containing isolated test instances for pattern detection.
@@ -50,6 +51,7 @@ public class TestRegistryManager {
     public static func initializeSharedRegistry() {
         guard !isInitialized else { return }
         BuiltInRules.registerAll()
+        IdempotencyRules.registerAll()
         sharedPatternRegistry.initialize()
         isInitialized = true
     }

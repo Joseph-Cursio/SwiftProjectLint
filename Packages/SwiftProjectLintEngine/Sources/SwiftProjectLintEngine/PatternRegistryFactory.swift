@@ -1,4 +1,5 @@
 import SwiftProjectLintConfig
+import SwiftProjectLintIdempotencyRules
 import SwiftProjectLintModels
 import SwiftProjectLintRegistry
 import SwiftProjectLintRules
@@ -65,6 +66,7 @@ public class PatternRegistryFactory {
         let visitorRegistry = createVisitorRegistry()
         let patternRegistry = createPatternRegistry(visitorRegistry: visitorRegistry)
         BuiltInRules.registerAll()
+        IdempotencyRules.registerAll()
         patternRegistry.initialize()
         let detector = createPatternDetector(registry: visitorRegistry)
 

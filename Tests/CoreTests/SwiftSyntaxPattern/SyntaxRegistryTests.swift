@@ -1,6 +1,7 @@
 import Testing
 import SwiftSyntax
 @testable import Core
+@testable import SwiftProjectLintIdempotencyRules
 @testable import SwiftProjectLintRules
 
 /// Serialized so that concurrent tests in this suite cannot race on the
@@ -29,6 +30,7 @@ struct SyntaxRegistryTests {
     /// every test in this suite independent of the wider test-run ordering.
     private func makeRegistry() -> SourcePatternRegistry {
         BuiltInRules.registerAll()
+        IdempotencyRules.registerAll()
         return SourcePatternRegistry(visitorRegistry: PatternVisitorRegistry())
     }
 

@@ -26,6 +26,7 @@ let package = Package(
         .package(path: "Packages/SwiftProjectLintVisitors"),
         .package(path: "Packages/SwiftProjectLintRegistry"),
         .package(path: "Packages/SwiftProjectLintRules"),
+        .package(path: "Packages/SwiftProjectLintIdempotencyRules"),
         .package(path: "Packages/SwiftProjectLintConfig"),
         .package(path: "Packages/SwiftProjectLintEngine"),
         .package(url: "https://github.com/apple/swift-syntax.git", exact: "602.0.0"),
@@ -77,6 +78,7 @@ let package = Package(
             name: "CoreTests",
             dependencies: [
                 "Core",
+                "SwiftProjectLintIdempotencyRules",
                 .product(name: "PropertyBased", package: "swift-property-based")
             ],
             path: "Tests/CoreTests"

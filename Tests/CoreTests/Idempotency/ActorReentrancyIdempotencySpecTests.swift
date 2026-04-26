@@ -1,5 +1,5 @@
 import Testing
-@testable import Core
+@testable import SwiftProjectLintIdempotencyRules
 @testable import SwiftProjectLintRules
 import SwiftSyntax
 import SwiftParser

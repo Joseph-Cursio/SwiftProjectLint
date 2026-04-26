@@ -2,40 +2,33 @@
 import PackageDescription
 
 let package = Package(
-    name: "SwiftProjectLintEngine",
+    name: "SwiftProjectLintIdempotencyRules",
     platforms: [
         .macOS(.v26),
         .iOS(.v26)
     ],
     products: [
         .library(
-            name: "SwiftProjectLintEngine",
-            targets: ["SwiftProjectLintEngine"]
+            name: "SwiftProjectLintIdempotencyRules",
+            targets: ["SwiftProjectLintIdempotencyRules"]
         )
     ],
     dependencies: [
         .package(path: "../SwiftProjectLintModels"),
         .package(path: "../SwiftProjectLintVisitors"),
         .package(path: "../SwiftProjectLintRegistry"),
-        .package(path: "../SwiftProjectLintRules"),
-        .package(path: "../SwiftProjectLintIdempotencyRules"),
-        .package(path: "../SwiftProjectLintConfig"),
         .package(url: "https://github.com/apple/swift-syntax.git", exact: "602.0.0")
     ],
     targets: [
         .target(
-            name: "SwiftProjectLintEngine",
+            name: "SwiftProjectLintIdempotencyRules",
             dependencies: [
                 "SwiftProjectLintModels",
                 "SwiftProjectLintVisitors",
                 "SwiftProjectLintRegistry",
-                "SwiftProjectLintRules",
-                "SwiftProjectLintIdempotencyRules",
-                "SwiftProjectLintConfig",
-                .product(name: "SwiftSyntax", package: "swift-syntax"),
-                .product(name: "SwiftParser", package: "swift-syntax")
+                .product(name: "SwiftSyntax", package: "swift-syntax")
             ],
-            path: "Sources/SwiftProjectLintEngine"
+            path: "Sources/SwiftProjectLintIdempotencyRules"
         )
     ]
 )
