@@ -12,6 +12,23 @@ Public APIs without documentation comments force callers to read the implementat
 ### Discussion
 `CodeQualityVisitor` checks for the presence of `///` doc-line-comment or `/** */` doc-block-comment trivia on the leading trivia of `public` struct, class, and function declarations. In the default configuration only `public` symbols are checked. In strict mode (`checkPublicAPIsOnly: false`) all functions are checked regardless of access level. The info severity reflects that internal documentation is valuable but not urgent.
 
+**Protocol-required stubs are exempted.** Documentation for these
+methods belongs at the protocol declaration site (Apple's stdlib
+or SwiftSyntax), not at every conforming type — adopters writing a
+boilerplate stub shouldn't have to copy the protocol's documentation
+into their conformance. Currently exempted:
+
+| Shape | Source protocol |
+|-------|-----------------|
+| `static func expansion(...)` | `Macro` / `PeerMacro` / `MemberMacro` / `ExtensionMacro` / `FreestandingMacro` (SwiftSyntax) |
+| `func encode(to:)` | `Encodable` (Foundation) — single parameter with external label `to` |
+
+Both shapes are receiver-gated to avoid silencing adopter methods
+that coincidentally share a name. `static func expansion(...)` requires
+the `static` modifier (matches the macro protocol family); a non-static
+`expansion()` method still fires. `encode(to:)` requires the `to`
+external parameter label; `encode(_:)` and other shapes still fire.
+
 ### Non-Violating Examples
 ```swift
 /// Fetches the user profile for the given identifier.

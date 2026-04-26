@@ -149,4 +149,91 @@ struct CodeQualityDocumentationTests {
         // Then - strict mode on public struct without doc comment should produce an issue
         #expect(visitor.detectedIssues.isEmpty == false)
     }
+
+    // MARK: - Protocol-required stub exemptions (slice C)
+
+    @Test func macroExpansionMethod_isExempt() throws {
+        // Cross-adopter evidence: SwiftIdempotency package scan (2026-04-26)
+        // showed 6 fires across 4 marker macro types — every macro-impl
+        // file pays the documentation-warning toll on protocol-required
+        // boilerplate. The expansion(...) method's documentation belongs
+        // at the SwiftSyntax Macro protocol declaration site, not at every
+        // adopter conformance.
+        let visitor = createVisitor()
+        let sourceCode = """
+        public struct IdempotentMacro: PeerMacro {
+            public static func expansion(
+                of node: AttributeSyntax,
+                providingPeersOf declaration: some DeclSyntaxProtocol,
+                in context: some MacroExpansionContext
+            ) throws -> [DeclSyntax] {
+                []
+            }
+        }
+        """
+        let sourceFile = Parser.parse(source: sourceCode)
+        visitor.walk(sourceFile)
+        let methodIssues = visitor.detectedIssues.filter {
+            $0.ruleName == .missingDocumentation && $0.message.contains("expansion")
+        }
+        #expect(methodIssues.isEmpty)
+    }
+
+    @Test func encodeToEncoderMethod_isExempt() throws {
+        // Encodable-required `encode(to:)`. Documentation lives at the
+        // protocol declaration site (Apple's Foundation), not at the
+        // conforming type.
+        let visitor = createVisitor()
+        let sourceCode = """
+        public struct IdempotencyKey: Encodable {
+            public func encode(to encoder: Encoder) throws {}
+        }
+        """
+        let sourceFile = Parser.parse(source: sourceCode)
+        visitor.walk(sourceFile)
+        let methodIssues = visitor.detectedIssues.filter {
+            $0.ruleName == .missingDocumentation && $0.message.contains("encode")
+        }
+        #expect(methodIssues.isEmpty)
+    }
+
+    @Test func nonStaticExpansionMethod_stillFires() throws {
+        // Receiver-gate: only `static func expansion(...)` is exempt —
+        // adopter-defined non-static `expansion` methods still fire as
+        // missing documentation. Protects the exemption from collisions
+        // with adopter code that coincidentally uses the name `expansion`
+        // for non-macro purposes.
+        let visitor = createVisitor()
+        let sourceCode = """
+        public struct Engine {
+            public func expansion() -> Int { 0 }
+        }
+        """
+        let sourceFile = Parser.parse(source: sourceCode)
+        visitor.walk(sourceFile)
+        let methodIssues = visitor.detectedIssues.filter {
+            $0.ruleName == .missingDocumentation && $0.message.contains("expansion")
+        }
+        #expect(!methodIssues.isEmpty,
+                "non-static expansion(...) should still fire missingDocumentation")
+    }
+
+    @Test func encodeWithoutToLabel_stillFires() throws {
+        // Receiver-gate: only `encode(to:)` (the Encodable shape) is
+        // exempt. Methods named `encode` with different parameter labels
+        // (e.g. `encode(_ value:)`) still fire.
+        let visitor = createVisitor()
+        let sourceCode = """
+        public struct Codec {
+            public func encode(_ value: String) -> Data { Data() }
+        }
+        """
+        let sourceFile = Parser.parse(source: sourceCode)
+        visitor.walk(sourceFile)
+        let methodIssues = visitor.detectedIssues.filter {
+            $0.ruleName == .missingDocumentation && $0.message.contains("encode")
+        }
+        #expect(!methodIssues.isEmpty,
+                "encode(_:) should still fire missingDocumentation")
+    }
 }
