@@ -10,6 +10,12 @@ import SwiftSyntax
 /// - **Logs**: calls `print`, `debugPrint`, `NSLog`, `os_log`, or any method with a
 ///   logging-suggestive name (`log`, `error`, `warning`, `warn`, `debug`, `info`,
 ///   `critical`, `fault`, `verbose`, `trace`, `notice`)
+/// - **Records a Swift Testing issue**: calls `Issue.record(...)` — Swift Testing's
+///   diagnostic API. In test code, the canonical "unexpected-error-in-test-body"
+///   pattern is `} catch { Issue.record("unexpected: \(error)") }` or
+///   `} catch is ExpectedError { … }` followed by `Issue.record(...)` for the
+///   unhandled-shape case. The presence of `Issue.record` in the catch body is
+///   explicit handling — the test's framework consumes the recorded issue.
 /// - **References the error variable**: the implicit `error` binding (or the typed
 ///   catch pattern name) appears anywhere in the body — covers assignment to error
 ///   state, passing to callbacks, string interpolation, etc.
@@ -48,6 +54,7 @@ final class EmptyCatchVisitor: BasePatternVisitor {
 
         if containsThrow(in: bodySyntax) { return true }
         if containsLoggingCall(in: bodySyntax) { return true }
+        if containsTestingDiagnosticCall(in: bodySyntax) { return true }
         if containsTerminatingCall(in: bodySyntax) { return true }
 
         let errorVar = catchErrorVariableName(node)
@@ -114,6 +121,41 @@ final class EmptyCatchVisitor: BasePatternVisitor {
             }
         }
         return syntax.children(viewMode: .sourceAccurate).contains { containsLoggingCall(in: $0) }
+    }
+
+    // MARK: - Swift Testing Diagnostic Detection
+
+    /// Detects `Issue.record(...)` — Swift Testing's API for recording an
+    /// unexpected condition. The canonical test idiom for handling an
+    /// unexpected error in a `do/catch` test body is:
+    ///
+    /// ```swift
+    /// do {
+    ///     try work()
+    /// } catch is ExpectedError {
+    ///     // expected — assertion below confirms the throw site
+    /// } catch {
+    ///     Issue.record("unexpected error type: \(error)")
+    /// }
+    /// ```
+    ///
+    /// `Issue.record` is the test framework's analogue of `print` / `logger.error`
+    /// for test code — it routes the message to the test runner's diagnostic
+    /// stream. Treating it as handling matches the existing logging-call
+    /// exemption.
+    ///
+    /// Receiver-gated on the `Issue` type identifier to avoid collision with
+    /// adopter-defined `record(...)` methods on unrelated types.
+    private func containsTestingDiagnosticCall(in syntax: Syntax) -> Bool {
+        if let call = syntax.as(FunctionCallExprSyntax.self),
+           let member = call.calledExpression.as(MemberAccessExprSyntax.self),
+           member.declName.baseName.text == "record",
+           let base = member.base?.as(DeclReferenceExprSyntax.self),
+           base.baseName.text == "Issue" {
+            return true
+        }
+        return syntax.children(viewMode: .sourceAccurate)
+            .contains { containsTestingDiagnosticCall(in: $0) }
     }
 
     // MARK: - Terminating Call Detection

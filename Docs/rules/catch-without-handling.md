@@ -17,6 +17,7 @@ A `catch` block that doesn't rethrow, log, or propagate the error is a silent fa
 |--------|---------|
 | **Rethrow** | `throw error`, `throw e` (not crossing closure/function boundaries) |
 | **Logging** | `print(error)`, `NSLog(...)`, `os_log(...)`, `logger.error(...)`, `Logger.shared.debug(...)`, any method call with a logging-suggestive name (`log`, `error`, `warning`, `warn`, `debug`, `info`, `critical`, `fault`, `verbose`, `trace`, `notice`) |
+| **Swift Testing diagnostic** | `Issue.record(...)` — receiver-gated on the `Issue` type identifier so adopter-defined `record(...)` methods on unrelated types still fire |
 | **Error variable reference** | The implicit `error` binding (or the typed catch pattern name) appears anywhere in the body — covers `self.lastError = error`, `completion(.failure(error))`, `"Failed: \(error)"`, error captured in a closure |
 | **Explicit termination** | `assertionFailure(...)`, `fatalError(...)`, `preconditionFailure(...)` |
 
@@ -79,6 +80,17 @@ do {
     try work()
 } catch {
     assertionFailure("This path should be unreachable: \(error)")
+}
+
+// Swift Testing diagnostic — the canonical "unexpected error in
+// a test body" idiom. The bare `catch` arm routes the message
+// into the test runner's diagnostic stream.
+do {
+    try work()
+} catch is ExpectedError {
+    // expected — assertion below confirms the throw site
+} catch {
+    Issue.record("unexpected error type: \(error)")
 }
 ```
 

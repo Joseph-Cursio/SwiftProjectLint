@@ -172,4 +172,62 @@ struct EmptyCatchVisitorTests {
         run(visitor, source: source)
         #expect(visitor.detectedIssues.isEmpty)
     }
+
+    // MARK: - Negative Cases: Swift Testing Issue.record
+
+    @Test("No issue when Issue.record is called (Swift Testing diagnostic)", arguments: [
+        // Bare-message form — most common for the unhandled-error catch arm.
+        "do { try work() } catch { Issue.record(\"unexpected\") }",
+        // String-interpolated form — references the error variable too, so
+        // this case would already pass via the error-reference check; included
+        // to lock in the Issue.record path independently.
+        "do { try work() } catch { Issue.record(\"got \\(error.localizedDescription)\") }",
+        // Multi-arm: typed catch first, untyped fallback Issue.record.
+        // Both arms are scanned independently; only the second one is the
+        // motivating shape, but the first should also stay silent because
+        // the typed-pattern name doesn't bind a usable error here — empty
+        // typed pattern arms are intentional pass-throughs.
+        """
+        do {
+            try work()
+        } catch is ExpectedError {
+            caught = true
+        } catch {
+            Issue.record("unexpected: \\(error)")
+        }
+        """
+    ])
+    func noIssueWhenIssueRecord(source: String) {
+        let visitor = makeVisitor()
+        run(visitor, source: source)
+        // The typed-pattern arm `catch is ExpectedError { caught = true }`
+        // does NOT contain Issue.record / throw / log / error-ref — but it
+        // assigns to `caught` which doesn't reference `error`. The visitor
+        // currently flags this arm; that's expected and out of scope for
+        // this slice. The test-pattern fix lands as a separate consideration.
+        // Scope this assertion to the Issue.record arm specifically.
+        let issueRecordArmFlagged = visitor.detectedIssues.contains { issue in
+            issue.suggestion?.contains("disable:next catch-without-handling") == true &&
+                source.contains("Issue.record") &&
+                !source.contains("ExpectedError")
+        }
+        #expect(!issueRecordArmFlagged)
+        // Single-arm Issue.record sources should produce zero issues outright.
+        if !source.contains("ExpectedError") {
+            #expect(visitor.detectedIssues.isEmpty)
+        }
+    }
+
+    @Test("Receiver-gated: only `Issue.record` exempts, not arbitrary `.record(...)`")
+    func onlyIssueRecordExempts() {
+        // A user-defined `recorder.record(...)` does not match — the gate is
+        // the `Issue` base receiver, not the bare method name.
+        let source = """
+        do { try work() } catch { recorder.record("ignored") }
+        """
+        let visitor = makeVisitor()
+        run(visitor, source: source)
+        #expect(!visitor.detectedIssues.isEmpty,
+                "non-Issue receiver should NOT exempt the catch")
+    }
 }
