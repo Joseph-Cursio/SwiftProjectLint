@@ -132,4 +132,26 @@ struct RuleDocumentationLoaderTests {
 
         }
     }
+
+    /// Exhaustive regression test: every `RuleIdentifier` case must resolve
+    /// to a non-empty bundled markdown file. Locks down both the
+    /// `camelCaseToKebab` algorithm and the `Docs/rules/` filename
+    /// convention as a single contract — when either drifts, this test
+    /// reports the offending rules by case name and expected filename.
+    @Test func everyRuleResolvesToBundledMarkdown() {
+        var unresolved: [String] = []
+        for rule in RuleIdentifier.allCases {
+            let filename = RuleDocumentationLoader.documentationFileName(for: rule)
+            guard let markdown = RuleDocumentationLoader.loadDocumentation(for: rule),
+                  markdown.isEmpty == false
+            else {
+                unresolved.append("\(rule)  →  \(filename).md")
+                continue
+            }
+        }
+        #expect(
+            unresolved.isEmpty,
+            "Rules whose doc lookup failed:\n  \(unresolved.joined(separator: "\n  "))"
+        )
+    }
 }
