@@ -12,6 +12,13 @@ Naming actors with an `Actor` suffix makes Swift's concurrency isolation semanti
 ### Discussion
 `NamingConventionVisitor` checks every `actor` declaration. If the name does not end with `Actor`, an issue is reported. Like the protocol naming rule, this is a project-specific convention that prioritizes clarity over brevity.
 
+**Test / fixture / example files are exempted** via the
+`BasePatternVisitor.isTestOrFixtureFile()` heuristic (paths under
+`Tests/`, `Examples/`, `Mocks/`, etc.). Test-scoped actors are
+typically 5-10-line fixtures (`Counter`, `Gate`, `Sequence`) where
+the verbose `Actor` suffix doesn't pay off at the call site. The
+sibling **Actor Agent Name** rule applies the same exemption.
+
 This rule is paired with **Actor Agent Name**, which fires on the narrower case of actor names that give *no* agency signal at all (e.g. `VectorStore`, `KnowledgeGraph`). An actor named `WorkspaceIndexer` satisfies Actor Agent Name (the `-er` suffix conveys agency) but still triggers this rule, since the explicit `Actor` suffix is needed to signal Swift concurrency isolation at call sites.
 
 ### Non-Violating Examples

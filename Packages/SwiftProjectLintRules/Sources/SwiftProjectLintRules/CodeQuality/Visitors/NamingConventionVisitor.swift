@@ -84,6 +84,15 @@ class NamingConventionVisitor: BasePatternVisitor {
     override func visit(_ node: ActorDeclSyntax) -> SyntaxVisitorContinueKind {
         let actorName = node.name.text
 
+        // Skip test / fixture / example files. Test-scoped actors are
+        // typically short-lived 5-10 line fixtures (Counter, Gate,
+        // Sequence) where an `Actor` suffix is verbose without
+        // payoff at the call site. The same heuristic the protocol-
+        // naming rule uses; see `BasePatternVisitor.isTestOrFixtureFile`.
+        if isTestOrFixtureFile() {
+            return .visitChildren
+        }
+
         // Rule: actorNamingSuffix — explicit "Actor" suffix required
         if !actorName.hasSuffix("Actor") {
             addIssue(

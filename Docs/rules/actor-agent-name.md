@@ -18,6 +18,13 @@ Agent-noun suffixes (`-er`/`-or`) are the English grammatical marker for "the th
 
 This rule is the semantic floor. Its stricter sibling, **Actor Naming Suffix**, requires the explicit `Actor` suffix on *all* actors regardless of whether the name already conveys agency.
 
+**Test / fixture / example files are exempted** via the
+`BasePatternVisitor.isTestOrFixtureFile()` heuristic (paths under
+`Tests/`, `Examples/`, `Mocks/`, etc.). Test-scoped actors are
+typically 5-10-line fixtures where the verbose suffix doesn't pay
+off at the call site. The sibling **Actor Naming Suffix** rule
+applies the same exemption.
+
 ### Non-Violating Examples
 ```swift
 // Agent-noun name (-er suffix) — conveys agency
