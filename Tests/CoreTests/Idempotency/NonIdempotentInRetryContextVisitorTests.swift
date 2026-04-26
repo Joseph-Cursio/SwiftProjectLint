@@ -44,6 +44,34 @@ struct NonIdempotentInRetryContextVisitorTests {
     }
 
     @Test
+    func replayableCallsNonIdempotent_suggestionNamesSwiftIdempotency() throws {
+        // Cross-adopter evidence (matool Cognito + tinyfaces Brevo) showed
+        // adopters consistently hit the email-on-retry-without-idempotency-key
+        // shape and the existing generic "deduplication guard or
+        // idempotency-key mechanism" wording didn't point at a concrete fix.
+        // The suggestion now names the SwiftIdempotency package surface
+        // (IdempotencyKey + @ExternallyIdempotent(by:)) directly so adopters
+        // have a discoverable path from diagnostic to remediation.
+        let source = """
+        /// @lint.effect non_idempotent
+        func sendEmail(_ to: String) async throws {}
+
+        /// @lint.context replayable
+        func sendMagicEmail(_ to: String) async throws {
+            try await sendEmail(to)
+        }
+        """
+
+        let visitor = run(source: source)
+
+        let issue = try #require(visitor.detectedIssues.first)
+        let suggestion = try #require(issue.suggestion)
+        #expect(suggestion.contains("IdempotencyKey"))
+        #expect(suggestion.contains("@ExternallyIdempotent(by:)"))
+        #expect(suggestion.contains("SwiftIdempotency"))
+    }
+
+    @Test
     func retrySafeCallsNonIdempotent_flags() throws {
         let source = """
         /// @lint.effect non_idempotent
