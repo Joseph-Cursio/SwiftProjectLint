@@ -5,14 +5,14 @@ import SwiftSyntax
 import SwiftParser
 
 @Suite
-struct EmptyCatchVisitorTests {
+struct CatchWithoutHandlingVisitorTests {
 
-    private func makeVisitor() -> EmptyCatchVisitor {
-        let pattern = EmptyCatch().pattern
-        return EmptyCatchVisitor(pattern: pattern)
+    private func makeVisitor() -> CatchWithoutHandlingVisitor {
+        let pattern = CatchWithoutHandling().pattern
+        return CatchWithoutHandlingVisitor(pattern: pattern)
     }
 
-    private func run(_ visitor: EmptyCatchVisitor, source: String) {
+    private func run(_ visitor: CatchWithoutHandlingVisitor, source: String) {
         let sourceFile = Parser.parse(source: source)
         visitor.walk(sourceFile)
     }
@@ -32,7 +32,7 @@ struct EmptyCatchVisitorTests {
 
         #expect(visitor.detectedIssues.count == 1)
         let issue = try #require(visitor.detectedIssues.first)
-        #expect(issue.ruleName == .emptyCatch)
+        #expect(issue.ruleName == .catchWithoutHandling)
         #expect(issue.severity == .warning)
         #expect(issue.message.contains("rethrow"))
     }

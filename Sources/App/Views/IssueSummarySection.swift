@@ -54,7 +54,7 @@ struct IssueSummarySection: View {
         ),
         LintIssue(
             severity: .warning, message: "Warning", filePath: "Bar.swift",
-            lineNumber: 2, suggestion: nil, ruleName: .emptyCatch
+            lineNumber: 2, suggestion: nil, ruleName: .catchWithoutHandling
         ),
         LintIssue(
             severity: .info, message: "Info", filePath: "Baz.swift",

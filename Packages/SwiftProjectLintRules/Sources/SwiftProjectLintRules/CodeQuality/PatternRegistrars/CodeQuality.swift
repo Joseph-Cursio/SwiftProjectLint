@@ -121,7 +121,7 @@ class CodeQuality: BasePatternRegistrar {
             ForceTry(),
             ForceUnwrap(),
             PrintStatement(),
-            EmptyCatch(),
+            CatchWithoutHandling(),
             TodoComment(),
             TaskDetached(),
             AsyncLetUnused(),

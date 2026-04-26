@@ -30,7 +30,7 @@ struct HTMLFormatterTests {
             ),
             LintIssue(
                 severity: .warning, message: "Warning", filePath: "B.swift",
-                lineNumber: 2, suggestion: nil, ruleName: .emptyCatch
+                lineNumber: 2, suggestion: nil, ruleName: .catchWithoutHandling
             ),
             LintIssue(
                 severity: .info, message: "Info", filePath: "C.swift",

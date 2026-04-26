@@ -7,12 +7,12 @@ import Foundation
 ///
 /// Provides the pattern for detecting `catch` blocks that swallow errors without
 /// rethrowing, logging, or propagating error state.
-struct EmptyCatch: PatternRegistrarProtocol {
+struct CatchWithoutHandling: PatternRegistrarProtocol {
 
     var pattern: SyntaxPattern {
         SyntaxPattern(
-            name: .emptyCatch,
-            visitor: EmptyCatchVisitor.self,
+            name: .catchWithoutHandling,
+            visitor: CatchWithoutHandlingVisitor.self,
             severity: .warning,
             category: .codeQuality,
             messageTemplate: "Catch block does not rethrow, log, or propagate the error",

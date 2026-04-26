@@ -77,7 +77,7 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
     case forceTry = "Force Try"
     case forceUnwrap = "Force Unwrap"
     case printStatement = "Print Statement"
-    case emptyCatch = "Catch Without Handling"
+    case catchWithoutHandling = "Catch Without Handling"
     case todoComment = "TODO Comment"
     case swiftlintSuppression = "SwiftLint Suppression"
     case swiftprojectlintSuppression = "SwiftProjectLint Suppression"
@@ -248,7 +248,7 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
              .nonActorAgentSuffix, .propertyWrapperNamingSuffix,
              .macroNegation, .testMissingRequire, .testMissingAssertion,
              .testMissingExpect, .lowercasedContains, .multipleTypesPerFile, .actorReentrancy,
-             .forceTry, .forceUnwrap, .printStatement, .emptyCatch,
+             .forceTry, .forceUnwrap, .printStatement, .catchWithoutHandling,
              .todoComment, .swiftlintSuppression, .swiftprojectlintSuppression,
              .taskDetached, .asyncLetUnused, .buttonClosureWrapping,
              .nonisolatedUnsafe, .taskYieldOffload, .swallowedTaskError,

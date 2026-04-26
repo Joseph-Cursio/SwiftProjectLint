@@ -197,7 +197,7 @@ struct LintConfigurationWriterTests {
     @Test("round-trip: full config survives write and reload")
     func roundTripFullConfig() throws {
         let original = LintConfiguration(
-            disabledRules: [.todoComment, .emptyCatch],
+            disabledRules: [.todoComment, .catchWithoutHandling],
             excludedPaths: ["Vendor/"],
             ruleOverrides: [
                 .lawOfDemeter: .init(severity: .warning, excludedPaths: ["Views/"])
@@ -218,7 +218,7 @@ struct LintConfigurationWriterTests {
     @Test("rules are written in sorted order")
     func rulesSortedOrder() throws {
         let config = LintConfiguration(
-            disabledRules: [.printStatement, .forceTry, .emptyCatch]
+            disabledRules: [.printStatement, .forceTry, .catchWithoutHandling]
         )
         let content = try writtenContent(config)
         let lines = content.components(separatedBy: "\n")

@@ -24,7 +24,7 @@ import SwiftSyntax
 ///
 /// Empty bodies, comment-only bodies, and bodies that update unrelated state
 /// (e.g. `isLoading = false`) without touching the error are all flagged.
-final class EmptyCatchVisitor: BasePatternVisitor {
+final class CatchWithoutHandlingVisitor: BasePatternVisitor {
 
     required init(pattern: SyntaxPattern, viewMode: SyntaxTreeViewMode = .sourceAccurate) {
         super.init(pattern: pattern, viewMode: viewMode)
@@ -41,7 +41,7 @@ final class EmptyCatchVisitor: BasePatternVisitor {
             suggestion: "Rethrow with 'throw error', log with 'print(error)' / 'logger.error(...)', "
                 + "or assign to error state. Use 'swiftprojectlint:disable:next catch-without-handling' "
                 + "if swallowing is intentional.",
-            ruleName: .emptyCatch
+            ruleName: .catchWithoutHandling
         )
 
         return .visitChildren
