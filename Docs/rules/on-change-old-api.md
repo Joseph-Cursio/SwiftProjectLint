@@ -2,7 +2,7 @@
 
 ## onChange Old API
 
-**Identifier:** `On Change Old API`
+**Identifier:** `onChange Old API`
 **Category:** Modernization
 **Severity:** Info
 

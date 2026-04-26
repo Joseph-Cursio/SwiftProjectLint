@@ -2,7 +2,7 @@
 
 ## ObservedObject Inline
 
-**Identifier:** `Observed Object Inline`
+**Identifier:** `ObservedObject Inline`
 **Category:** State Management
 **Severity:** Warning
 

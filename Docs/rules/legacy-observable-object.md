@@ -2,7 +2,7 @@
 
 ## Legacy ObservableObject
 
-**Identifier:** `Legacy Observable Object`
+**Identifier:** `Legacy ObservableObject`
 **Category:** Modernization
 **Severity:** Info
 

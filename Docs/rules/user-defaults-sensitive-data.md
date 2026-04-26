@@ -1,6 +1,6 @@
 # User Defaults Sensitive Data
 
-**Identifier:** `userDefaultsSensitiveData`  
+**Identifier:** `User Defaults Sensitive Data`  
 **Severity:** Error  
 **Category:** Security  
 **Opt-in:** No  

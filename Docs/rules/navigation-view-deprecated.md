@@ -2,7 +2,7 @@
 
 ## NavigationView Deprecated
 
-**Identifier:** `Navigation View Deprecated`
+**Identifier:** `NavigationView Deprecated`
 **Category:** Modernization
 **Severity:** Warning
 
