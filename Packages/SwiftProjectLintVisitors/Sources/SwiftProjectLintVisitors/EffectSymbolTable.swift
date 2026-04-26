@@ -309,7 +309,17 @@ public struct EffectSymbolTable: Sendable {
                 // un-annotated signatures; the inferrer already filters by
                 // "no @lint.effect on decl" but a sibling annotated decl
                 // could have added the same signature to `entriesBySignature`.
-                guard entriesBySignature[sig] == nil else { continue }
+                //
+                // Context-only entries (annotated `@lint.context` but no
+                // `@lint.effect`) DO allow upward inference to populate.
+                // Slot 23: a `@lint.context replayable` sub-handler whose
+                // body has non-idempotent calls needs its body-inferred
+                // effect stored so an upward-chain dispatcher caller can
+                // see it. Skipping all annotated entries (including
+                // context-only) was the root cause of the switch-dispatch
+                // deep-chain silent miss surfaced on tinyfaces (round 17)
+                // and unidoc (round 18).
+                guard entriesBySignature[sig]?.effect == nil else { continue }
                 let cappedDepth = min(maxHops, result.depth)
                 let cappedResult = UpwardInference(effect: result.effect, depth: cappedDepth)
                 upwardInferredEffects[sig] = mergedInference(
