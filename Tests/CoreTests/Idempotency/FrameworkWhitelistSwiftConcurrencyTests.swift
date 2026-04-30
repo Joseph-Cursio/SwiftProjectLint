@@ -24,7 +24,7 @@ struct FrameworkWhitelistSwiftConcurrencyTests {
         // no such module. 4-adopter evidence: hummingbird-examples +
         // Uitsmijter + HomeAutomation + Vernissage.
         let call = try firstCall(in: "func f() async throws { try await Task.sleep(nanoseconds: 500_000_000) }")
-        #expect(HeuristicEffectInferrer.infer(
+        #expect(CallSiteEffectInferrer.infer(
             call: call, imports: [], enabledFrameworks: nil
         ) == .idempotent)
     }
@@ -36,7 +36,7 @@ struct FrameworkWhitelistSwiftConcurrencyTests {
         // both `sleep(nanoseconds:)` and `sleep(for:)` resolve to the
         // same `(Task, sleep)` pair.
         let call = try firstCall(in: "func f() async throws { try await Task.sleep(for: .seconds(2)) }")
-        #expect(HeuristicEffectInferrer.infer(
+        #expect(CallSiteEffectInferrer.infer(
             call: call, imports: [], enabledFrameworks: nil
         ) == .idempotent)
     }
@@ -47,7 +47,7 @@ struct FrameworkWhitelistSwiftConcurrencyTests {
         // used for "best-effort delay" calls. The whitelist classification
         // is on the call site, not the surrounding error handling.
         let call = try firstCall(in: "func f() async { try? await Task.sleep(for: .seconds(60)) }")
-        #expect(HeuristicEffectInferrer.infer(
+        #expect(CallSiteEffectInferrer.infer(
             call: call, imports: [], enabledFrameworks: nil
         ) == .idempotent)
     }
@@ -60,7 +60,7 @@ struct FrameworkWhitelistSwiftConcurrencyTests {
         // classification falls through to `nil` (unclassified, which
         // is the correct behaviour for an unknown method name).
         let call = try firstCall(in: "func f() async { thread.sleep(forTimeInterval: 1.0) }")
-        #expect(HeuristicEffectInferrer.infer(
+        #expect(CallSiteEffectInferrer.infer(
             call: call, imports: [], enabledFrameworks: nil
         ) == nil)
     }
@@ -75,7 +75,7 @@ struct FrameworkWhitelistSwiftConcurrencyTests {
         // SwiftConcurrency. With the slot-22 pair off, `sleep` isn't
         // on any other lexicon, so classification falls through to nil.
         let call = try firstCall(in: "func f() async throws { try await Task.sleep(for: .seconds(1)) }")
-        #expect(HeuristicEffectInferrer.infer(
+        #expect(CallSiteEffectInferrer.infer(
             call: call, imports: [], enabledFrameworks: ["Foundation"]
         ) == nil)
     }
@@ -83,7 +83,7 @@ struct FrameworkWhitelistSwiftConcurrencyTests {
     @Test
     func swiftConcurrency_taskSleep_inferenceReason() throws {
         let call = try firstCall(in: "func f() async throws { try await Task.sleep(for: .seconds(1)) }")
-        let reason = HeuristicEffectInferrer.inferenceReason(
+        let reason = CallSiteEffectInferrer.inferenceReason(
             for: call, imports: [], enabledFrameworks: nil
         )
         #expect(reason == "from the SwiftConcurrency primitive `Task.sleep`")
@@ -97,12 +97,12 @@ struct FrameworkWhitelistSwiftConcurrencyTests {
         // shadowing — a `Task.sleep` call stays idempotent, a
         // `model.save(on:)` stays non-idempotent (Fluent ORM verb).
         let sleepCall = try firstCall(in: "func f() async throws { try await Task.sleep(for: .seconds(1)) }")
-        #expect(HeuristicEffectInferrer.infer(
+        #expect(CallSiteEffectInferrer.infer(
             call: sleepCall, imports: ["Vapor", "FluentKit"], enabledFrameworks: nil
         ) == .idempotent)
 
         let saveCall = try firstCall(in: "func f() async throws { try await model.save(on: db) }")
-        #expect(HeuristicEffectInferrer.infer(
+        #expect(CallSiteEffectInferrer.infer(
             call: saveCall, imports: ["Vapor", "FluentKit"], enabledFrameworks: nil
         ) == .nonIdempotent)
     }
@@ -112,6 +112,6 @@ struct FrameworkWhitelistSwiftConcurrencyTests {
         // Structural assertion — the always-active set is the data
         // structure that decouples slot 22 from the import gate.
         // Future stdlib additions go here.
-        #expect(FrameworkWhitelist.alwaysActiveFrameworks.contains(FrameworkWhitelist.swiftConcurrency))
+        #expect(FrameworkGates.alwaysActiveFrameworks.contains(FrameworkGates.swiftConcurrency))
     }
 }

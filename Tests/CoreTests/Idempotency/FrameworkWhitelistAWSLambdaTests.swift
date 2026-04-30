@@ -23,7 +23,7 @@ struct FrameworkWhitelistAWSLambdaTests {
         // per the Lambda at-least-once contract (dedup at invocation
         // boundary, not per-call).
         let call = try firstCall(in: "func f() { try await outputWriter.write(greeting) }")
-        #expect(HeuristicEffectInferrer.infer(
+        #expect(CallSiteEffectInferrer.infer(
             call: call, imports: ["AWSLambdaRuntime"], enabledFrameworks: nil
         ) == .idempotent)
     }
@@ -34,7 +34,7 @@ struct FrameworkWhitelistAWSLambdaTests {
         // shouldn't pick up the Lambda classification just because the
         // identifier matches.
         let call = try firstCall(in: "func f() { try await outputWriter.write(greeting) }")
-        #expect(HeuristicEffectInferrer.infer(
+        #expect(CallSiteEffectInferrer.infer(
             call: call, imports: ["MyApp"], enabledFrameworks: nil
         ) == nil)
     }
@@ -44,7 +44,7 @@ struct FrameworkWhitelistAWSLambdaTests {
         // Streaming shape — `responseWriter.write(...)` on
         // `LambdaResponseStreamWriter`.
         let call = try firstCall(in: "func f() { try await responseWriter.write(buffer) }")
-        #expect(HeuristicEffectInferrer.infer(
+        #expect(CallSiteEffectInferrer.infer(
             call: call, imports: ["AWSLambdaRuntime"], enabledFrameworks: nil
         ) == .idempotent)
     }
@@ -53,7 +53,7 @@ struct FrameworkWhitelistAWSLambdaTests {
     func importGated_lambdaRuntimePresent_responseWriterFinishFires() throws {
         // Streaming stream-close — `responseWriter.finish()`.
         let call = try firstCall(in: "func f() { try await responseWriter.finish() }")
-        #expect(HeuristicEffectInferrer.infer(
+        #expect(CallSiteEffectInferrer.infer(
             call: call, imports: ["AWSLambdaRuntime"], enabledFrameworks: nil
         ) == .idempotent)
     }
@@ -61,7 +61,7 @@ struct FrameworkWhitelistAWSLambdaTests {
     @Test
     func importGated_lambdaRuntimeAbsent_responseWriterFinishDoesNotFire() throws {
         let call = try firstCall(in: "func f() { try await responseWriter.finish() }")
-        #expect(HeuristicEffectInferrer.infer(
+        #expect(CallSiteEffectInferrer.infer(
             call: call, imports: ["MyApp"], enabledFrameworks: nil
         ) == nil)
     }
@@ -74,7 +74,7 @@ struct FrameworkWhitelistAWSLambdaTests {
         // names are whitelisted; arbitrary `.write()` (e.g. file-handle
         // writes) keeps its unclassified status.
         let call = try firstCall(in: "func f() { try fileHandle.write(data) }")
-        #expect(HeuristicEffectInferrer.infer(
+        #expect(CallSiteEffectInferrer.infer(
             call: call, imports: ["AWSLambdaRuntime"], enabledFrameworks: nil
         ) == nil)
     }
@@ -84,7 +84,7 @@ struct FrameworkWhitelistAWSLambdaTests {
         // `.finish()` on a non-`responseWriter` receiver — not in the
         // pair table even with AWSLambdaRuntime imported.
         let call = try firstCall(in: "func f() { animation.finish() }")
-        #expect(HeuristicEffectInferrer.infer(
+        #expect(CallSiteEffectInferrer.infer(
             call: call, imports: ["AWSLambdaRuntime"], enabledFrameworks: nil
         ) == nil)
     }
@@ -94,7 +94,7 @@ struct FrameworkWhitelistAWSLambdaTests {
         // `.wibble()` on `responseWriter` — method isn't in the pair
         // table. Confirms lookup is pair-keyed, not receiver-only.
         let call = try firstCall(in: "func f() { responseWriter.wibble() }")
-        #expect(HeuristicEffectInferrer.infer(
+        #expect(CallSiteEffectInferrer.infer(
             call: call, imports: ["AWSLambdaRuntime"], enabledFrameworks: nil
         ) == nil)
     }
@@ -104,7 +104,7 @@ struct FrameworkWhitelistAWSLambdaTests {
         // Adopter has AWSLambdaRuntime imported but opted out of the
         // whitelist via .swiftprojectlint.yml.
         let call = try firstCall(in: "func f() { try await outputWriter.write(greeting) }")
-        #expect(HeuristicEffectInferrer.infer(
+        #expect(CallSiteEffectInferrer.infer(
             call: call, imports: ["AWSLambdaRuntime"], enabledFrameworks: ["Foundation"]
         ) == nil)
     }
@@ -112,7 +112,7 @@ struct FrameworkWhitelistAWSLambdaTests {
     @Test
     func lambdaRuntime_outputWriterWrite_inferenceReason() throws {
         let call = try firstCall(in: "func f() { try await outputWriter.write(greeting) }")
-        let reason = HeuristicEffectInferrer.inferenceReason(
+        let reason = CallSiteEffectInferrer.inferenceReason(
             for: call, imports: ["AWSLambdaRuntime"], enabledFrameworks: nil
         )
         #expect(reason == "from the AWSLambdaRuntime primitive `outputWriter.write`")
@@ -121,7 +121,7 @@ struct FrameworkWhitelistAWSLambdaTests {
     @Test
     func lambdaRuntime_responseWriterFinish_inferenceReason() throws {
         let call = try firstCall(in: "func f() { try await responseWriter.finish() }")
-        let reason = HeuristicEffectInferrer.inferenceReason(
+        let reason = CallSiteEffectInferrer.inferenceReason(
             for: call, imports: ["AWSLambdaRuntime"], enabledFrameworks: nil
         )
         #expect(reason == "from the AWSLambdaRuntime primitive `responseWriter.finish`")

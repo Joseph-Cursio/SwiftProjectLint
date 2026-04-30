@@ -63,7 +63,7 @@ final class NonIdempotentInRetryContextVisitor: BasePatternVisitor, CrossFilePat
     }
 
     override func visit(_ node: FunctionDeclSyntax) -> SyntaxVisitorContinueKind {
-        guard let context = EffectAnnotationParser.parseContext(declaration: node),
+        guard let context = ContextAnnotationParser.parseContext(declaration: node),
               let body = node.body else {
             return .visitChildren
         }
@@ -88,7 +88,7 @@ final class NonIdempotentInRetryContextVisitor: BasePatternVisitor, CrossFilePat
     /// it produce diagnostics. Multi-binding decls and non-closure
     /// initialisers are silently skipped.
     override func visit(_ node: VariableDeclSyntax) -> SyntaxVisitorContinueKind {
-        guard let context = EffectAnnotationParser.parseContext(declaration: node),
+        guard let context = ContextAnnotationParser.parseContext(declaration: node),
               let closure = node.closureInitializer,
               let name = node.firstBindingName else {
             return .visitChildren
@@ -124,7 +124,7 @@ final class NonIdempotentInRetryContextVisitor: BasePatternVisitor, CrossFilePat
     /// `CodeBlockItemSyntax` to pick up prefix-statement placements
     /// (`return`, `try`, `await`, `let x =`) and ternary branches.
     override func visit(_ node: FunctionCallExprSyntax) -> SyntaxVisitorContinueKind {
-        guard let context = EffectAnnotationParser.parseContextAtCallSite(of: node),
+        guard let context = ContextAnnotationParser.parseContextAtCallSite(of: node),
               let closure = node.trailingClosure else {
             return .visitChildren
         }
@@ -160,7 +160,7 @@ final class NonIdempotentInRetryContextVisitor: BasePatternVisitor, CrossFilePat
             to: allSources,
             multiHop: true,
             heuristicEffectForCall: { call, source in
-                HeuristicEffectInferrer.infer(
+                CallSiteEffectInferrer.infer(
                     call: call,
                     imports: ImportCollector.imports(in: source),
                     enabledFrameworks: enabledFrameworks
@@ -187,7 +187,7 @@ final class NonIdempotentInRetryContextVisitor: BasePatternVisitor, CrossFilePat
         // walked through.
         if let varDecl = syntax.as(VariableDeclSyntax.self),
            varDecl.closureInitializer != nil,
-           EffectAnnotationParser.parseContext(declaration: varDecl) != nil {
+           ContextAnnotationParser.parseContext(declaration: varDecl) != nil {
             return
         }
         // Same rule for annotated trailing-closure sites: the outer walk
@@ -198,7 +198,7 @@ final class NonIdempotentInRetryContextVisitor: BasePatternVisitor, CrossFilePat
         // sites get walked twice.
         if let call = syntax.as(FunctionCallExprSyntax.self),
            call.trailingClosure != nil,
-           EffectAnnotationParser.parseContextAtCallSite(of: call) != nil {
+           ContextAnnotationParser.parseContextAtCallSite(of: call) != nil {
             return
         }
         if let closure = syntax.as(ClosureExprSyntax.self), isEscapingClosure(closure) {
@@ -222,7 +222,7 @@ final class NonIdempotentInRetryContextVisitor: BasePatternVisitor, CrossFilePat
     private func analyzeCall(_ call: FunctionCallExprSyntax, site: AnalysisSite) {
         guard let calleeSignature = FunctionSignature.from(call: call) else { return }
 
-        let calleeEffect: DeclaredEffect
+        let calleeEffect: Effect
         let calleeClaim: String
         let overrideHint: String
 
@@ -242,13 +242,13 @@ final class NonIdempotentInRetryContextVisitor: BasePatternVisitor, CrossFilePat
             calleeClaim = "whose effect is inferred `non_idempotent` from its body\(chainHint)"
             overrideHint = " If the inference is wrong, annotate '\(calleeSignature.name)' "
                 + "explicitly with `/// @lint.effect <tier>` to override the body-based inference."
-        } else if let inferred = HeuristicEffectInferrer.infer(
+        } else if let inferred = CallSiteEffectInferrer.infer(
             call: call,
             imports: imports(forSiteFile: site.filePath),
             enabledFrameworks: self.enabledFrameworkWhitelists
         ) {
             calleeEffect = inferred
-            let reason = HeuristicEffectInferrer.inferenceReason(
+            let reason = CallSiteEffectInferrer.inferenceReason(
                 for: call,
                 imports: imports(forSiteFile: site.filePath),
                 enabledFrameworks: self.enabledFrameworkWhitelists

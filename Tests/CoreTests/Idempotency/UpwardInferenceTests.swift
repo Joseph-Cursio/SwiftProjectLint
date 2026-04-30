@@ -16,13 +16,13 @@ struct UpwardInferrerUnitTests {
 
     @Test
     func lub_empty_isNil() {
-        #expect(UpwardEffectInferrer.leastUpperBound(of: []) == nil)
+        #expect(Effect.lub(of: []) == nil)
     }
 
     @Test
     func lub_onlyObservational_isObservational() {
         #expect(
-            UpwardEffectInferrer.leastUpperBound(of: [.observational, .observational])
+            Effect.lub(of: [.observational, .observational])
                 == .observational
         )
     }
@@ -30,7 +30,7 @@ struct UpwardInferrerUnitTests {
     @Test
     func lub_observationalAndIdempotent_isIdempotent() {
         #expect(
-            UpwardEffectInferrer.leastUpperBound(of: [.observational, .idempotent])
+            Effect.lub(of: [.observational, .idempotent])
                 == .idempotent
         )
     }
@@ -38,7 +38,7 @@ struct UpwardInferrerUnitTests {
     @Test
     func lub_idempotentAndExternallyIdempotent_isExternallyIdempotent() {
         #expect(
-            UpwardEffectInferrer.leastUpperBound(
+            Effect.lub(
                 of: [.idempotent, .externallyIdempotent(keyParameter: "k")]
             ) == .externallyIdempotent(keyParameter: "k")
         )
@@ -47,7 +47,7 @@ struct UpwardInferrerUnitTests {
     @Test
     func lub_nonIdempotentDominates() {
         #expect(
-            UpwardEffectInferrer.leastUpperBound(
+            Effect.lub(
                 of: [.observational, .idempotent, .externallyIdempotent(keyParameter: nil), .nonIdempotent]
             ) == .nonIdempotent
         )
@@ -56,19 +56,19 @@ struct UpwardInferrerUnitTests {
     // MARK: - Body walk semantics
 
     /// Helper that wraps the bare-effect resolver into the
-    /// `UpwardInference?` shape the inferrer now requires. All single-pass
+    /// `BodyInference?` shape the inferrer now requires. All single-pass
     /// fixtures here treat resolver-supplied effects as anchors (depth 0),
     /// matching the symbol-table's behaviour for declared / heuristic
     /// effects.
     private func infer(
         _ source: String,
-        resolve: @escaping (FunctionCallExprSyntax) -> DeclaredEffect?
-    ) -> [FunctionSignature: UpwardInference] {
-        UpwardEffectInferrer.inferEffects(
+        resolve: @escaping (FunctionCallExprSyntax) -> Effect?
+    ) -> [FunctionSignature: BodyInference] {
+        BodyEffectInferrer.inferEffects(
             in: Parser.parse(source: source),
             resolveCalleeEffect: { call in
                 guard let effect = resolve(call) else { return nil }
-                return UpwardInference(effect: effect, depth: 0)
+                return BodyInference(effect: effect, depth: 0)
             }
         )
     }
@@ -175,7 +175,7 @@ struct UpwardInferrerUnitTests {
     @Test
     func rankOrdering_observationalBelowIdempotent() {
         #expect(
-            UpwardEffectInferrer.leastUpperBound(of: [.idempotent, .observational])
+            Effect.lub(of: [.idempotent, .observational])
                 == .idempotent
         )
     }
@@ -183,7 +183,7 @@ struct UpwardInferrerUnitTests {
     @Test
     func rankOrdering_externallyIdempotentAboveIdempotent() {
         #expect(
-            UpwardEffectInferrer.leastUpperBound(
+            Effect.lub(
                 of: [.idempotent, .externallyIdempotent(keyParameter: nil)]
             ) == .externallyIdempotent(keyParameter: nil)
         )

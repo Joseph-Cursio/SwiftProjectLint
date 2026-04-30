@@ -1,3 +1,4 @@
+@_exported import SwiftEffectInference
 import SwiftSyntax
 
 /// A map from function signature (name + argument labels) to its declared
@@ -33,7 +34,7 @@ import SwiftSyntax
 public struct EffectSymbolTable: Sendable {
 
     public struct Entry: Sendable, Equatable {
-        public let effect: DeclaredEffect?
+        public let effect: Effect?
         public let context: ContextEffect?
     }
 
@@ -53,7 +54,7 @@ public struct EffectSymbolTable: Sendable {
     /// length of the longest chain of un-annotated functions back to a
     /// declared or heuristic anchor. One-hop inference produces depth 1;
     /// multi-hop chains produce depth 2+.
-    private var upwardInferredEffects: [FunctionSignature: UpwardInference] = [:]
+    private var upwardInferredEffects: [FunctionSignature: BodyInference] = [:]
 
     /// Functions whose bodies transitively reach a `@lint.context once`
     /// callee via zero or more un-annotated intermediate helpers. Populated
@@ -88,7 +89,7 @@ public struct EffectSymbolTable: Sendable {
         funcCollector.walk(source)
         for funcDecl in funcCollector.functions {
             let effect = EffectAnnotationParser.parseEffect(declaration: funcDecl)
-            let context = EffectAnnotationParser.parseContext(declaration: funcDecl)
+            let context = ContextAnnotationParser.parseContext(declaration: funcDecl)
             let signature = FunctionSignature.from(declaration: funcDecl)
             record(signature: signature, effect: effect, context: context)
         }
@@ -118,7 +119,7 @@ public struct EffectSymbolTable: Sendable {
                 continue
             }
             let effect = EffectAnnotationParser.parseEffect(declaration: varDecl)
-            let context = EffectAnnotationParser.parseContext(declaration: varDecl)
+            let context = ContextAnnotationParser.parseContext(declaration: varDecl)
             record(signature: signature, effect: effect, context: context)
         }
     }
@@ -128,7 +129,7 @@ public struct EffectSymbolTable: Sendable {
     /// they neither add entries nor count toward collision.
     public mutating func record(
         signature: FunctionSignature,
-        effect: DeclaredEffect?,
+        effect: Effect?,
         context: ContextEffect?
     ) {
         guard effect != nil || context != nil else { return }
@@ -153,7 +154,7 @@ public struct EffectSymbolTable: Sendable {
 
     /// Returns the declared effect for `signature`, or `nil` if the signature
     /// has no annotated entry (zero declarations, or withdrawn by collision).
-    public func effect(for signature: FunctionSignature) -> DeclaredEffect? {
+    public func effect(for signature: FunctionSignature) -> Effect? {
         entriesBySignature[signature]?.effect
     }
 
@@ -172,7 +173,7 @@ public struct EffectSymbolTable: Sendable {
     /// produced one, or `nil` when the signature had no un-annotated
     /// declaration, its body had no recognised calls, or
     /// `applyUpwardInference` has not yet been invoked.
-    public func upwardInferredEffect(for signature: FunctionSignature) -> DeclaredEffect? {
+    public func upwardInferredEffect(for signature: FunctionSignature) -> Effect? {
         upwardInferredEffects[signature]?.effect
     }
 
@@ -180,13 +181,13 @@ public struct EffectSymbolTable: Sendable {
     /// this when callers need to surface the hop depth in diagnostics
     /// (e.g. "via 3-hop chain"). Returns `nil` under the same conditions
     /// as `upwardInferredEffect(for:)`.
-    public func upwardInference(for signature: FunctionSignature) -> UpwardInference? {
+    public func upwardInference(for signature: FunctionSignature) -> BodyInference? {
         upwardInferredEffects[signature]
     }
 
     /// Runs body-based upward inference across every source in `sources`,
     /// using the supplied `heuristicEffectForCall` resolver to classify
-    /// un-annotated callees via `HeuristicEffectInferrer`-equivalent logic.
+    /// un-annotated callees via `CallSiteEffectInferrer`-equivalent logic.
     /// Populates `upwardInferredEffects`.
     ///
     /// ## One-hop vs multi-hop
@@ -215,11 +216,11 @@ public struct EffectSymbolTable: Sendable {
         to sources: [SourceFileSyntax],
         multiHop: Bool = false,
         maxHops: Int = 5,
-        heuristicEffectForCall: (FunctionCallExprSyntax) -> DeclaredEffect?
+        heuristicEffectForCall: (FunctionCallExprSyntax) -> Effect?
     ) {
         // Backward-compat shim — wraps the per-call callback to ignore
         // the source argument the full entry point supplies.
-        let wrapped: (FunctionCallExprSyntax, SourceFileSyntax) -> DeclaredEffect? = { call, _ in
+        let wrapped: (FunctionCallExprSyntax, SourceFileSyntax) -> Effect? = { call, _ in
             heuristicEffectForCall(call)
         }
         applyUpwardInferenceImportAware(
@@ -232,15 +233,15 @@ public struct EffectSymbolTable: Sendable {
 
     /// Import-aware variant. The callback receives the source file the
     /// current call lives in, so callers can pass the call's
-    /// per-file imports into `HeuristicEffectInferrer.infer(call:imports:
+    /// per-file imports into `CallSiteEffectInferrer.infer(call:imports:
     /// enabledFrameworks:)`. Round-14 follow-on — see
-    /// `ImportCollector` and `FrameworkWhitelist`.
+    /// `ImportCollector` and `FrameworkGates`.
     public mutating func applyUpwardInferenceImportAware(
         to sources: [SourceFileSyntax],
         multiHop: Bool = false,
         maxHops: Int = 5,
         wallClockBudget: Duration = .seconds(30),
-        heuristicEffectForCall: (FunctionCallExprSyntax, SourceFileSyntax) -> DeclaredEffect?
+        heuristicEffectForCall: (FunctionCallExprSyntax, SourceFileSyntax) -> Effect?
     ) {
         // Wall-clock safety net for pathological corpora. The fixed-point
         // loop is bounded by `maxHops`, but a single pass over a large
@@ -282,24 +283,24 @@ public struct EffectSymbolTable: Sendable {
         includeUpward: Bool,
         maxHops: Int,
         deadline: ContinuousClock.Instant,
-        heuristicEffectForCall: (FunctionCallExprSyntax, SourceFileSyntax) -> DeclaredEffect?
+        heuristicEffectForCall: (FunctionCallExprSyntax, SourceFileSyntax) -> Effect?
     ) {
         for source in sources {
             if ContinuousClock.now >= deadline { return }
-            let inferred = UpwardEffectInferrer.inferEffects(
+            let inferred = BodyEffectInferrer.inferEffects(
                 in: source,
                 resolveCalleeEffect: { call in
                     if let sig = FunctionSignature.from(call: call) {
                         if isCollision(signature: sig) { return nil }
                         if let declared = self.effect(for: sig) {
-                            return UpwardInference(effect: declared, depth: 0)
+                            return BodyInference(effect: declared, depth: 0)
                         }
                         if includeUpward, let upward = self.upwardInference(for: sig) {
                             return upward
                         }
                     }
                     if let heuristic = heuristicEffectForCall(call, source) {
-                        return UpwardInference(effect: heuristic, depth: 0)
+                        return BodyInference(effect: heuristic, depth: 0)
                     }
                     return nil
                 }
@@ -321,7 +322,7 @@ public struct EffectSymbolTable: Sendable {
                 // and unidoc (round 18).
                 guard entriesBySignature[sig]?.effect == nil else { continue }
                 let cappedDepth = min(maxHops, result.depth)
-                let cappedResult = UpwardInference(effect: result.effect, depth: cappedDepth)
+                let cappedResult = BodyInference(effect: result.effect, depth: cappedDepth)
                 upwardInferredEffects[sig] = mergedInference(
                     existing: upwardInferredEffects[sig],
                     incoming: cappedResult
@@ -336,15 +337,13 @@ public struct EffectSymbolTable: Sendable {
     /// subsequent pass that produces a shorter equivalent chain doesn't
     /// shrink the recorded depth.
     private func mergedInference(
-        existing: UpwardInference?,
-        incoming: UpwardInference
-    ) -> UpwardInference {
+        existing: BodyInference?,
+        incoming: BodyInference
+    ) -> BodyInference {
         guard let existing else { return incoming }
-        let mergedEffect = UpwardEffectInferrer.leastUpperBound(
-            of: [existing.effect, incoming.effect]
-        ) ?? incoming.effect
+        let mergedEffect = existing.effect.lub(incoming.effect)
         let mergedDepth = max(existing.depth, incoming.depth)
-        return UpwardInference(effect: mergedEffect, depth: mergedDepth)
+        return BodyInference(effect: mergedEffect, depth: mergedDepth)
     }
 
     // MARK: - Once-reach inference
@@ -487,7 +486,7 @@ final class ContextUnannotatedFunctionCollector: SyntaxVisitor {
     }
 
     override func visit(_ node: FunctionDeclSyntax) -> SyntaxVisitorContinueKind {
-        if EffectAnnotationParser.parseContext(declaration: node) == nil {
+        if ContextAnnotationParser.parseContext(declaration: node) == nil {
             functions.append(node)
         }
         return .visitChildren

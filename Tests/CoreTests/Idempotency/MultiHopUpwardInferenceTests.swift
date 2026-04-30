@@ -318,7 +318,7 @@ struct MultiHopUpwardInferenceTests {
         table.applyUpwardInference(
             to: [source],
             multiHop: true,
-            heuristicEffectForCall: { HeuristicEffectInferrer.infer(call: $0) }
+            heuristicEffectForCall: { CallSiteEffectInferrer.infer(call: $0) }
         )
 
         let leafSig = FunctionSignature(name: "leaf", argumentLabels: [])
@@ -419,7 +419,7 @@ struct MultiHopUpwardInferenceTests {
         table.merge(source: source)
         table.applyUpwardInference(
             to: [source],
-            heuristicEffectForCall: { HeuristicEffectInferrer.infer(call: $0) }
+            heuristicEffectForCall: { CallSiteEffectInferrer.infer(call: $0) }
         )
 
         let leafSig = FunctionSignature(name: "leaf", argumentLabels: [])

@@ -27,12 +27,12 @@ public struct LintConfiguration: Sendable {
 
     /// Optional per-framework opt-in/out for the idempotency heuristic
     /// whitelists (round-14). `nil` (default) means "all known frameworks
-    /// enabled" — the import-gating in `HeuristicEffectInferrer` still
+    /// enabled" — the import-gating in `CallSiteEffectInferrer` still
     /// applies so a framework's whitelist only fires when the file
     /// imports its module.
     ///
     /// Setting this to a non-nil set restricts whitelist activity to the
-    /// listed frameworks (using `FrameworkWhitelist` constants like
+    /// listed frameworks (using `FrameworkGates` constants like
     /// `Foundation`, `NIOCore`, `Logging`, `Metrics`, etc.). Adopters
     /// who want to disable a specific framework's classifications —
     /// for example, because their codebase has a user-defined

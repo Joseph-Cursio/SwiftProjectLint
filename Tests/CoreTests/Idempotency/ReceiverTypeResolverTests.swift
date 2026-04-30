@@ -40,19 +40,19 @@ struct ReceiverTypeResolverTests {
     @Test
     func arrayLiteralReceiver_resolvesToArray() throws {
         let call = try memberCall(method: "append", in: "func f() { [1, 2].append(3) }")
-        #expect(ReceiverTypeResolver.resolve(receiverOf: call) == .stdlibCollection("Array"))
+        #expect(ReceiverShapes.resolve(receiverOf: call) == .stdlibCollection("Array"))
     }
 
     @Test
     func dictionaryLiteralReceiver_resolvesToDictionary() throws {
         let call = try memberCall(method: "updateValue", in: #"func f() { ["a": 1].updateValue(2, forKey: "b") }"#)
-        #expect(ReceiverTypeResolver.resolve(receiverOf: call) == .stdlibCollection("Dictionary"))
+        #expect(ReceiverShapes.resolve(receiverOf: call) == .stdlibCollection("Dictionary"))
     }
 
     @Test
     func stringLiteralReceiver_resolvesToString() throws {
         let call = try memberCall(method: "append", in: #"func f() { "hello".append("!") }"#)
-        #expect(ReceiverTypeResolver.resolve(receiverOf: call) == .stdlibCollection("String"))
+        #expect(ReceiverShapes.resolve(receiverOf: call) == .stdlibCollection("String"))
     }
 
     // MARK: - Layer 2: constructor calls
@@ -60,13 +60,13 @@ struct ReceiverTypeResolverTests {
     @Test
     func arrayGenericConstructor_resolvesToArray() throws {
         let call = try memberCall(method: "append", in: "func f() { Array<Int>().append(1) }")
-        #expect(ReceiverTypeResolver.resolve(receiverOf: call) == .stdlibCollection("Array"))
+        #expect(ReceiverShapes.resolve(receiverOf: call) == .stdlibCollection("Array"))
     }
 
     @Test
     func userDefinedConstructor_resolvesToNamed() throws {
         let call = try memberCall(method: "enqueue", in: #"func f() { Queue().enqueue("a") }"#)
-        #expect(ReceiverTypeResolver.resolve(receiverOf: call) == .named("Queue"))
+        #expect(ReceiverShapes.resolve(receiverOf: call) == .named("Queue"))
     }
 
     @Test
@@ -74,7 +74,7 @@ struct ReceiverTypeResolverTests {
         // `makeQueue()` returns something, but syntactically it's a function
         // call with a lowercase callee — not a constructor. Unresolved.
         let call = try memberCall(method: "enqueue", in: #"func f() { makeQueue().enqueue("a") }"#)
-        #expect(ReceiverTypeResolver.resolve(receiverOf: call) == .unresolved)
+        #expect(ReceiverShapes.resolve(receiverOf: call) == .unresolved)
     }
 
     // MARK: - Layer 3: `self.` member access
@@ -88,7 +88,7 @@ struct ReceiverTypeResolverTests {
         }
         """
         let call = try memberCall(method: "append", in: source)
-        #expect(ReceiverTypeResolver.resolve(receiverOf: call) == .stdlibCollection("Array"))
+        #expect(ReceiverShapes.resolve(receiverOf: call) == .stdlibCollection("Array"))
     }
 
     @Test
@@ -100,7 +100,7 @@ struct ReceiverTypeResolverTests {
         }
         """
         let call = try memberCall(method: "enqueue", in: source)
-        #expect(ReceiverTypeResolver.resolve(receiverOf: call) == .named("Queue"))
+        #expect(ReceiverShapes.resolve(receiverOf: call) == .named("Queue"))
     }
 
     // MARK: - Layer 4: bare-identifier resolution (parameter)
@@ -111,13 +111,13 @@ struct ReceiverTypeResolverTests {
             method: "append",
             in: "func f(x: Array<Int>) { x.append(1) }"
         )
-        #expect(ReceiverTypeResolver.resolve(receiverOf: call) == .stdlibCollection("Array"))
+        #expect(ReceiverShapes.resolve(receiverOf: call) == .stdlibCollection("Array"))
     }
 
     @Test
     func parameter_arrayShorthand_resolvesToArray() throws {
         let call = try memberCall(method: "append", in: "func f(x: [Int]) { x.append(1) }")
-        #expect(ReceiverTypeResolver.resolve(receiverOf: call) == .stdlibCollection("Array"))
+        #expect(ReceiverShapes.resolve(receiverOf: call) == .stdlibCollection("Array"))
     }
 
     @Test
@@ -126,7 +126,7 @@ struct ReceiverTypeResolverTests {
             method: "updateValue",
             in: "func f(d: [String: Int]) { d.updateValue(1, forKey: \"a\") }"
         )
-        #expect(ReceiverTypeResolver.resolve(receiverOf: call) == .stdlibCollection("Dictionary"))
+        #expect(ReceiverShapes.resolve(receiverOf: call) == .stdlibCollection("Dictionary"))
     }
 
     @Test
@@ -135,14 +135,14 @@ struct ReceiverTypeResolverTests {
             method: "enqueue",
             in: #"func f(q: Queue) { q.enqueue("a") }"#
         )
-        #expect(ReceiverTypeResolver.resolve(receiverOf: call) == .named("Queue"))
+        #expect(ReceiverShapes.resolve(receiverOf: call) == .named("Queue"))
     }
 
     @Test
     func parameter_withExternalLabel_usesLocalName() throws {
         // `func f(_ x: [Int])` — external label `_`, local name `x`.
         let call = try memberCall(method: "append", in: "func f(_ x: [Int]) { x.append(1) }")
-        #expect(ReceiverTypeResolver.resolve(receiverOf: call) == .stdlibCollection("Array"))
+        #expect(ReceiverShapes.resolve(receiverOf: call) == .stdlibCollection("Array"))
     }
 
     // MARK: - Layer 4: bare-identifier resolution (local binding)
@@ -156,7 +156,7 @@ struct ReceiverTypeResolverTests {
         }
         """
         let call = try memberCall(method: "append", in: source)
-        #expect(ReceiverTypeResolver.resolve(receiverOf: call) == .stdlibCollection("Array"))
+        #expect(ReceiverShapes.resolve(receiverOf: call) == .stdlibCollection("Array"))
     }
 
     @Test
@@ -169,7 +169,7 @@ struct ReceiverTypeResolverTests {
         }
         """
         let call = try memberCall(method: "append", in: source)
-        #expect(ReceiverTypeResolver.resolve(receiverOf: call) == .stdlibCollection("Array"))
+        #expect(ReceiverShapes.resolve(receiverOf: call) == .stdlibCollection("Array"))
     }
 
     @Test
@@ -181,7 +181,7 @@ struct ReceiverTypeResolverTests {
         }
         """
         let call = try memberCall(method: "enqueue", in: source)
-        #expect(ReceiverTypeResolver.resolve(receiverOf: call) == .named("Queue"))
+        #expect(ReceiverShapes.resolve(receiverOf: call) == .named("Queue"))
     }
 
     @Test
@@ -194,7 +194,7 @@ struct ReceiverTypeResolverTests {
         }
         """
         let call = try memberCall(method: "enqueue", in: source)
-        #expect(ReceiverTypeResolver.resolve(receiverOf: call) == .unresolved)
+        #expect(ReceiverShapes.resolve(receiverOf: call) == .unresolved)
     }
 
     @Test
@@ -208,7 +208,7 @@ struct ReceiverTypeResolverTests {
         }
         """
         let call = try memberCall(method: "append", in: source)
-        #expect(ReceiverTypeResolver.resolve(receiverOf: call) == .stdlibCollection("Array"))
+        #expect(ReceiverShapes.resolve(receiverOf: call) == .stdlibCollection("Array"))
     }
 
     @Test
@@ -222,7 +222,7 @@ struct ReceiverTypeResolverTests {
         }
         """
         let call = try memberCall(method: "append", in: source)
-        #expect(ReceiverTypeResolver.resolve(receiverOf: call) == .stdlibCollection("Array"))
+        #expect(ReceiverShapes.resolve(receiverOf: call) == .stdlibCollection("Array"))
     }
 
     // MARK: - Layer 4: bare-identifier resolution (stored property)
@@ -236,7 +236,7 @@ struct ReceiverTypeResolverTests {
         }
         """
         let call = try memberCall(method: "append", in: source)
-        #expect(ReceiverTypeResolver.resolve(receiverOf: call) == .stdlibCollection("Array"))
+        #expect(ReceiverShapes.resolve(receiverOf: call) == .stdlibCollection("Array"))
     }
 
     @Test
@@ -248,7 +248,7 @@ struct ReceiverTypeResolverTests {
         }
         """
         let call = try memberCall(method: "enqueue", in: source)
-        #expect(ReceiverTypeResolver.resolve(receiverOf: call) == .named("Queue"))
+        #expect(ReceiverShapes.resolve(receiverOf: call) == .named("Queue"))
     }
 
     @Test
@@ -260,7 +260,7 @@ struct ReceiverTypeResolverTests {
         }
         """
         let call = try memberCall(method: "enqueue", in: source)
-        #expect(ReceiverTypeResolver.resolve(receiverOf: call) == .named("Queue"))
+        #expect(ReceiverShapes.resolve(receiverOf: call) == .named("Queue"))
     }
 
     // MARK: - Shadowing
@@ -273,7 +273,7 @@ struct ReceiverTypeResolverTests {
         // exclusions no longer apply.
         let call = try memberCall(method: "append", in: "func f(x: Array) { x.append(1) }")
         #expect(
-            ReceiverTypeResolver.resolve(receiverOf: call, localTypes: ["Array"])
+            ReceiverShapes.resolve(receiverOf: call, localTypes: ["Array"])
                 == .named("Array")
         )
     }
@@ -290,7 +290,7 @@ struct ReceiverTypeResolverTests {
         }
         """
         let call = try memberCall(method: "append", in: source)
-        #expect(ReceiverTypeResolver.resolve(receiverOf: call) == .unresolved)
+        #expect(ReceiverShapes.resolve(receiverOf: call) == .unresolved)
     }
 
     @Test
@@ -301,7 +301,7 @@ struct ReceiverTypeResolverTests {
         func f() { getThing().append(1) }
         """
         let call = try memberCall(method: "append", in: source)
-        #expect(ReceiverTypeResolver.resolve(receiverOf: call) == .unresolved)
+        #expect(ReceiverShapes.resolve(receiverOf: call) == .unresolved)
     }
 
     @Test
@@ -314,7 +314,7 @@ struct ReceiverTypeResolverTests {
         }
         """
         let call = try memberCall(method: "append", in: source)
-        #expect(ReceiverTypeResolver.resolve(receiverOf: call) == .unresolved)
+        #expect(ReceiverShapes.resolve(receiverOf: call) == .unresolved)
     }
 
     @Test
@@ -339,7 +339,7 @@ struct ReceiverTypeResolverTests {
         // A computed-get property with a type annotation is still
         // resolvable lexically — annotation says `[Int]`. Resolver sees
         // that and classifies as Array. This is correct behaviour.
-        #expect(ReceiverTypeResolver.resolve(receiverOf: call) == .stdlibCollection("Array"))
+        #expect(ReceiverShapes.resolve(receiverOf: call) == .stdlibCollection("Array"))
     }
 
     // MARK: - Convenience: no-receiver call
@@ -359,6 +359,6 @@ struct ReceiverTypeResolverTests {
         let finder = Finder()
         finder.walk(Parser.parse(source: "func f() { publish(event) }"))
         let call = try #require(finder.call)
-        #expect(ReceiverTypeResolver.resolve(receiverOf: call) == .unresolved)
+        #expect(ReceiverShapes.resolve(receiverOf: call) == .unresolved)
     }
 }

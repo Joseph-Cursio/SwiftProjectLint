@@ -15,25 +15,25 @@ struct HeuristicInferenceUnitTests {
     @Test
     func bareInsert_infersNonIdempotent() throws {
         let call = try firstCall(in: "func f() { insert(1) }")
-        #expect(HeuristicEffectInferrer.infer(call: call) == .nonIdempotent)
+        #expect(CallSiteEffectInferrer.infer(call: call) == .nonIdempotent)
     }
 
     @Test
     func bareCreate_infersNonIdempotent() throws {
         let call = try firstCall(in: "func f() { create() }")
-        #expect(HeuristicEffectInferrer.infer(call: call) == .nonIdempotent)
+        #expect(CallSiteEffectInferrer.infer(call: call) == .nonIdempotent)
     }
 
     @Test
     func bareAppend_infersNonIdempotent() throws {
         let call = try firstCall(in: "func f() { append(x) }")
-        #expect(HeuristicEffectInferrer.infer(call: call) == .nonIdempotent)
+        #expect(CallSiteEffectInferrer.infer(call: call) == .nonIdempotent)
     }
 
     @Test
     func memberInsert_infersNonIdempotent() throws {
         let call = try firstCall(in: "func f() { db.insert(row) }")
-        #expect(HeuristicEffectInferrer.infer(call: call) == .nonIdempotent)
+        #expect(CallSiteEffectInferrer.infer(call: call) == .nonIdempotent)
     }
 
     // MARK: - Destructive-verb whitelist (round-11 follow-on)
@@ -45,13 +45,13 @@ struct HeuristicInferenceUnitTests {
     @Test
     func bareStop_infersNonIdempotent() throws {
         let call = try firstCall(in: "func f() { stop() }")
-        #expect(HeuristicEffectInferrer.infer(call: call) == .nonIdempotent)
+        #expect(CallSiteEffectInferrer.infer(call: call) == .nonIdempotent)
     }
 
     @Test
     func memberStop_infersNonIdempotent() throws {
         let call = try firstCall(in: "func f() { running.stop() }")
-        #expect(HeuristicEffectInferrer.infer(call: call) == .nonIdempotent)
+        #expect(CallSiteEffectInferrer.infer(call: call) == .nonIdempotent)
     }
 
     @Test
@@ -59,25 +59,25 @@ struct HeuristicInferenceUnitTests {
         // Prefix match extends `stop` to camelCase-composed destructive
         // verbs like `stopContainer`, `stopService`, `stopTimer`.
         let call = try firstCall(in: "func f() { stopContainer() }")
-        #expect(HeuristicEffectInferrer.infer(call: call) == .nonIdempotent)
+        #expect(CallSiteEffectInferrer.infer(call: call) == .nonIdempotent)
     }
 
     @Test
     func bareDestroy_infersNonIdempotent() throws {
         let call = try firstCall(in: "func f() { destroy() }")
-        #expect(HeuristicEffectInferrer.infer(call: call) == .nonIdempotent)
+        #expect(CallSiteEffectInferrer.infer(call: call) == .nonIdempotent)
     }
 
     @Test
     func memberDestroy_infersNonIdempotent() throws {
         let call = try firstCall(in: "func f() { session.destroy() }")
-        #expect(HeuristicEffectInferrer.infer(call: call) == .nonIdempotent)
+        #expect(CallSiteEffectInferrer.infer(call: call) == .nonIdempotent)
     }
 
     @Test
     func destroyResource_infersNonIdempotent_viaPrefix() throws {
         let call = try firstCall(in: "func f() { destroyResource(id) }")
-        #expect(HeuristicEffectInferrer.infer(call: call) == .nonIdempotent)
+        #expect(CallSiteEffectInferrer.infer(call: call) == .nonIdempotent)
     }
 
     @Test
@@ -85,14 +85,14 @@ struct HeuristicInferenceUnitTests {
         // `stopped` is a past participle, not a mutation verb — camelCase
         // gate should block it (next character after `stop` is lowercase).
         let call = try firstCall(in: "func f() { stopped(task) }")
-        #expect(HeuristicEffectInferrer.infer(call: call) == nil)
+        #expect(CallSiteEffectInferrer.infer(call: call) == nil)
     }
 
     @Test
     func destroyer_doesNotMatch_lowercaseNextCharacter() throws {
         // `destroyer` is a noun form; should not classify as non-idempotent.
         let call = try firstCall(in: "func f() { destroyer() }")
-        #expect(HeuristicEffectInferrer.infer(call: call) == nil)
+        #expect(CallSiteEffectInferrer.infer(call: call) == nil)
     }
 
     // MARK: - Server-app verbs (slot 13 — isowords round)
@@ -107,13 +107,13 @@ struct HeuristicInferenceUnitTests {
     @Test
     func bareSubmit_infersNonIdempotent() throws {
         let call = try firstCall(in: "func f() { submit(form) }")
-        #expect(HeuristicEffectInferrer.infer(call: call) == .nonIdempotent)
+        #expect(CallSiteEffectInferrer.infer(call: call) == .nonIdempotent)
     }
 
     @Test
     func memberSubmit_infersNonIdempotent() throws {
         let call = try firstCall(in: "func f() { form.submit() }")
-        #expect(HeuristicEffectInferrer.infer(call: call) == .nonIdempotent)
+        #expect(CallSiteEffectInferrer.infer(call: call) == .nonIdempotent)
     }
 
     @Test
@@ -124,20 +124,20 @@ struct HeuristicInferenceUnitTests {
         let call = try firstCall(
             in: "func f() { database.submitLeaderboardScore(request) }"
         )
-        #expect(HeuristicEffectInferrer.infer(call: call) == .nonIdempotent)
+        #expect(CallSiteEffectInferrer.infer(call: call) == .nonIdempotent)
     }
 
     @Test
     func bareStart_infersNonIdempotent() throws {
         let call = try firstCall(in: "func f() { start() }")
-        #expect(HeuristicEffectInferrer.infer(call: call) == .nonIdempotent)
+        #expect(CallSiteEffectInferrer.infer(call: call) == .nonIdempotent)
     }
 
     @Test
     func memberStart_infersNonIdempotent() throws {
         // `service.start()` — natural complement to `service.stop()`.
         let call = try firstCall(in: "func f() { service.start() }")
-        #expect(HeuristicEffectInferrer.infer(call: call) == .nonIdempotent)
+        #expect(CallSiteEffectInferrer.infer(call: call) == .nonIdempotent)
     }
 
     @Test
@@ -148,13 +148,13 @@ struct HeuristicInferenceUnitTests {
         let call = try firstCall(
             in: "func f() { database.startDailyChallenge(id, playerId) }"
         )
-        #expect(HeuristicEffectInferrer.infer(call: call) == .nonIdempotent)
+        #expect(CallSiteEffectInferrer.infer(call: call) == .nonIdempotent)
     }
 
     @Test
     func bareComplete_infersNonIdempotent() throws {
         let call = try firstCall(in: "func f() { complete() }")
-        #expect(HeuristicEffectInferrer.infer(call: call) == .nonIdempotent)
+        #expect(CallSiteEffectInferrer.infer(call: call) == .nonIdempotent)
     }
 
     @Test
@@ -166,13 +166,13 @@ struct HeuristicInferenceUnitTests {
         let call = try firstCall(
             in: "func f() { database.completeDailyChallenge(id, playerId) }"
         )
-        #expect(HeuristicEffectInferrer.infer(call: call) == .nonIdempotent)
+        #expect(CallSiteEffectInferrer.infer(call: call) == .nonIdempotent)
     }
 
     @Test
     func bareRegister_infersNonIdempotent() throws {
         let call = try firstCall(in: "func f() { register(token) }")
-        #expect(HeuristicEffectInferrer.infer(call: call) == .nonIdempotent)
+        #expect(CallSiteEffectInferrer.infer(call: call) == .nonIdempotent)
     }
 
     @Test
@@ -183,7 +183,7 @@ struct HeuristicInferenceUnitTests {
         let call = try firstCall(
             in: "func f() { snsClient.registerPushToken(request) }"
         )
-        #expect(HeuristicEffectInferrer.infer(call: call) == .nonIdempotent)
+        #expect(CallSiteEffectInferrer.infer(call: call) == .nonIdempotent)
     }
 
     // Camel-case gate negative cases for the new verbs — confirm the
@@ -193,26 +193,26 @@ struct HeuristicInferenceUnitTests {
     func started_doesNotMatch_lowercaseNextCharacter() throws {
         // Past participle / past tense; not a mutation verb.
         let call = try firstCall(in: "func f() { started(service) }")
-        #expect(HeuristicEffectInferrer.infer(call: call) == nil)
+        #expect(CallSiteEffectInferrer.infer(call: call) == nil)
     }
 
     @Test
     func submitted_doesNotMatch_lowercaseNextCharacter() throws {
         let call = try firstCall(in: "func f() { submitted(form) }")
-        #expect(HeuristicEffectInferrer.infer(call: call) == nil)
+        #expect(CallSiteEffectInferrer.infer(call: call) == nil)
     }
 
     @Test
     func completion_doesNotMatch_lowercaseNextCharacter() throws {
         // Common callback-style noun form — `completion(result)`.
         let call = try firstCall(in: "func f() { completion(result) }")
-        #expect(HeuristicEffectInferrer.infer(call: call) == nil)
+        #expect(CallSiteEffectInferrer.infer(call: call) == nil)
     }
 
     @Test
     func registered_doesNotMatch_lowercaseNextCharacter() throws {
         let call = try firstCall(in: "func f() { registered(device) }")
-        #expect(HeuristicEffectInferrer.infer(call: call) == nil)
+        #expect(CallSiteEffectInferrer.infer(call: call) == nil)
     }
 
     // MARK: - Idempotent name triggers
@@ -220,13 +220,13 @@ struct HeuristicInferenceUnitTests {
     @Test
     func bareUpsert_infersIdempotent() throws {
         let call = try firstCall(in: "func f() { upsert(row) }")
-        #expect(HeuristicEffectInferrer.infer(call: call) == .idempotent)
+        #expect(CallSiteEffectInferrer.infer(call: call) == .idempotent)
     }
 
     @Test
     func memberSetIfAbsent_infersIdempotent() throws {
         let call = try firstCall(in: "func f() { cache.setIfAbsent(k, v) }")
-        #expect(HeuristicEffectInferrer.infer(call: call) == .idempotent)
+        #expect(CallSiteEffectInferrer.infer(call: call) == .idempotent)
     }
 
     // MARK: - Observational requires BOTH receiver shape AND level method
@@ -234,13 +234,13 @@ struct HeuristicInferenceUnitTests {
     @Test
     func loggerInfo_infersObservational() throws {
         let call = try firstCall(in: "func f() { logger.info(\"x\") }")
-        #expect(HeuristicEffectInferrer.infer(call: call) == .observational)
+        #expect(CallSiteEffectInferrer.infer(call: call) == .observational)
     }
 
     @Test
     func uppercaseLoggerDebug_infersObservational() throws {
         let call = try firstCall(in: "func f() { Logger.debug(\"x\") }")
-        #expect(HeuristicEffectInferrer.infer(call: call) == .observational)
+        #expect(CallSiteEffectInferrer.infer(call: call) == .observational)
     }
 
     @Test
@@ -248,7 +248,7 @@ struct HeuristicInferenceUnitTests {
         // Suffixed-logger receivers like `requestLogger` pattern-match the
         // "contains 'log'" check and produce observational.
         let call = try firstCall(in: "func f() { requestLogger.warning(\"x\") }")
-        #expect(HeuristicEffectInferrer.infer(call: call) == .observational)
+        #expect(CallSiteEffectInferrer.infer(call: call) == .observational)
     }
 
     @Test
@@ -257,7 +257,7 @@ struct HeuristicInferenceUnitTests {
         // domain method. Observational inference requires the logger-receiver
         // signal; without it, the inferrer stays silent.
         let call = try firstCall(in: "func f() { info(\"x\") }")
-        #expect(HeuristicEffectInferrer.infer(call: call) == nil)
+        #expect(CallSiteEffectInferrer.infer(call: call) == nil)
     }
 
     @Test
@@ -265,7 +265,7 @@ struct HeuristicInferenceUnitTests {
         // `view.debug()` has a debug-level method name but the receiver
         // doesn't look like a logger. Stay silent.
         let call = try firstCall(in: "func f() { view.debug() }")
-        #expect(HeuristicEffectInferrer.infer(call: call) == nil)
+        #expect(CallSiteEffectInferrer.infer(call: call) == nil)
     }
 
     // MARK: - Chained receiver (context.logger.method — round-9 follow-on)
@@ -280,13 +280,13 @@ struct HeuristicInferenceUnitTests {
     @Test
     func contextLoggerInfo_infersObservational_chainedReceiver() throws {
         let call = try firstCall(in: "func f() { context.logger.info(\"x\") }")
-        #expect(HeuristicEffectInferrer.infer(call: call) == .observational)
+        #expect(CallSiteEffectInferrer.infer(call: call) == .observational)
     }
 
     @Test
     func contextLoggerError_infersObservational_chainedReceiver() throws {
         let call = try firstCall(in: "func f() { context.logger.error(\"x\") }")
-        #expect(HeuristicEffectInferrer.infer(call: call) == .observational)
+        #expect(CallSiteEffectInferrer.infer(call: call) == .observational)
     }
 
     @Test
@@ -294,7 +294,7 @@ struct HeuristicInferenceUnitTests {
         // Mirrors the same pattern but with `self` — a common shape for
         // instance methods that carry their own logger.
         let call = try firstCall(in: "func f() { self.logger.debug(\"x\") }")
-        #expect(HeuristicEffectInferrer.infer(call: call) == .observational)
+        #expect(CallSiteEffectInferrer.infer(call: call) == .observational)
     }
 
     @Test
@@ -302,7 +302,7 @@ struct HeuristicInferenceUnitTests {
         // `context.requestLogger.warning(...)` — immediate-parent segment
         // is `requestLogger`, which pattern-matches the suffixed-logger rule.
         let call = try firstCall(in: "func f() { context.requestLogger.warning(\"x\") }")
-        #expect(HeuristicEffectInferrer.infer(call: call) == .observational)
+        #expect(CallSiteEffectInferrer.infer(call: call) == .observational)
     }
 
     @Test
@@ -310,7 +310,7 @@ struct HeuristicInferenceUnitTests {
         // Three-level chain: `app.context.logger.info(...)` — still finds
         // the logger-shaped segment as the immediate parent of `info`.
         let call = try firstCall(in: "func f() { app.context.logger.info(\"x\") }")
-        #expect(HeuristicEffectInferrer.infer(call: call) == .observational)
+        #expect(CallSiteEffectInferrer.infer(call: call) == .observational)
     }
 
     @Test
@@ -319,7 +319,7 @@ struct HeuristicInferenceUnitTests {
         // `view.debug()` already tests single-level; this covers the
         // two-level variant to confirm the extension doesn't go too loose.
         let call = try firstCall(in: "func f() { app.view.debug() }")
-        #expect(HeuristicEffectInferrer.infer(call: call) == nil)
+        #expect(CallSiteEffectInferrer.infer(call: call) == nil)
     }
 
     @Test
@@ -327,7 +327,7 @@ struct HeuristicInferenceUnitTests {
         // `context.logger.flush()` — logger-shaped receiver but a non-level
         // method. Observational heuristic still requires both signals.
         let call = try firstCall(in: "func f() { context.logger.flush() }")
-        #expect(HeuristicEffectInferrer.infer(call: call) == nil)
+        #expect(CallSiteEffectInferrer.infer(call: call) == nil)
     }
 
     // MARK: - Names deliberately left out of the whitelist
@@ -337,7 +337,7 @@ struct HeuristicInferenceUnitTests {
         // `save` has too many idempotent interpretations (set-current-value,
         // upsert-like semantics) to classify as non_idempotent by name alone.
         let call = try firstCall(in: "func f() { save(row) }")
-        #expect(HeuristicEffectInferrer.infer(call: call) == nil)
+        #expect(CallSiteEffectInferrer.infer(call: call) == nil)
     }
 
     @Test
@@ -345,7 +345,7 @@ struct HeuristicInferenceUnitTests {
         // REST PUT is idempotent; dictionary `put` is often idempotent;
         // arbitrary `put` is ambiguous. Keep out of the whitelist.
         let call = try firstCall(in: "func f() { store.put(k, v) }")
-        #expect(HeuristicEffectInferrer.infer(call: call) == nil)
+        #expect(CallSiteEffectInferrer.infer(call: call) == nil)
     }
 
     @Test
@@ -356,9 +356,9 @@ struct HeuristicInferenceUnitTests {
         // naming — the pointfreeco-shape case. Fires on any
         // non-stdlib receiver; the stdlib-collection exclusions
         // (Set.update, Dictionary.updateValue) are handled via
-        // `StdlibExclusions`.
+        // `StdlibIdempotentMutations`.
         let call = try firstCall(in: "func f() { database.update(row) }")
-        #expect(HeuristicEffectInferrer.infer(call: call) == .nonIdempotent)
+        #expect(CallSiteEffectInferrer.infer(call: call) == .nonIdempotent)
     }
 
     @Test
@@ -370,7 +370,7 @@ struct HeuristicInferenceUnitTests {
             method: "update",
             in: "func f(s: Set<Int>) { s.update(with: 1) }"
         )
-        #expect(HeuristicEffectInferrer.infer(call: call) == nil)
+        #expect(CallSiteEffectInferrer.infer(call: call) == nil)
     }
 
     @Test
@@ -383,7 +383,7 @@ struct HeuristicInferenceUnitTests {
             method: "updateGiftStatus",
             in: "func f() { database.updateGiftStatus(id, status, deliverNow) }"
         )
-        #expect(HeuristicEffectInferrer.infer(call: call) == .nonIdempotent)
+        #expect(CallSiteEffectInferrer.infer(call: call) == .nonIdempotent)
     }
 
     @Test
@@ -391,13 +391,13 @@ struct HeuristicInferenceUnitTests {
         // `file.write` is often atomic and retry-safe; no blanket
         // non-idempotent classification.
         let call = try firstCall(in: "func f() { file.write(data) }")
-        #expect(HeuristicEffectInferrer.infer(call: call) == nil)
+        #expect(CallSiteEffectInferrer.infer(call: call) == nil)
     }
 
     @Test
     func unrecognisedName_returnsNil() throws {
         let call = try firstCall(in: "func f() { doThing(x) }")
-        #expect(HeuristicEffectInferrer.infer(call: call) == nil)
+        #expect(CallSiteEffectInferrer.infer(call: call) == nil)
     }
 
     // MARK: - Reason strings
@@ -405,7 +405,7 @@ struct HeuristicInferenceUnitTests {
     @Test
     func inferenceReason_bareName() throws {
         let call = try firstCall(in: "func f() { insert(x) }")
-        let reason = try #require(HeuristicEffectInferrer.inferenceReason(for: call))
+        let reason = try #require(CallSiteEffectInferrer.inferenceReason(for: call))
         #expect(reason.contains("insert"))
         #expect(reason.contains("callee name"))
     }
@@ -413,7 +413,7 @@ struct HeuristicInferenceUnitTests {
     @Test
     func inferenceReason_loggerReceiver() throws {
         let call = try firstCall(in: "func f() { logger.info(\"x\") }")
-        let reason = try #require(HeuristicEffectInferrer.inferenceReason(for: call))
+        let reason = try #require(CallSiteEffectInferrer.inferenceReason(for: call))
         #expect(reason.contains("logger"))
         #expect(reason.contains("info"))
         #expect(reason.contains("logger-shaped"))

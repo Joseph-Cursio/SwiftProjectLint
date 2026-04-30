@@ -32,7 +32,7 @@ public final class SourcePatternDetector: SourcePatternDetectorProtocol, @unchec
     /// inferrer (round-14). Set from
     /// `LintConfiguration.enabledFrameworkWhitelists`. `nil` means
     /// "all known frameworks active" (subject to file-level import
-    /// gating in `HeuristicEffectInferrer`); non-nil restricts to the
+    /// gating in `CallSiteEffectInferrer`); non-nil restricts to the
     /// listed framework names.
     public var enabledFrameworkWhitelists: Set<String>?
 

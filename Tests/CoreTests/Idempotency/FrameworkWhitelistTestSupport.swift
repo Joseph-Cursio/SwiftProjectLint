@@ -4,7 +4,7 @@ import Testing
 import SwiftSyntax
 import SwiftParser
 
-// Shared helpers for the FrameworkWhitelist* test suites. Promoted to
+// Shared helpers for the FrameworkGates* test suites. Promoted to
 // module-scope so every split file can reach them without the verbose
 // `Type.` prefix that would push call sites past the line_length limit.
 // Other idempotency suites keep their own `private func firstCall/memberCall`

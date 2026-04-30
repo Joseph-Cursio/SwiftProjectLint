@@ -74,7 +74,7 @@ struct ClosureBindingAnnotationParserTests {
             let handler = { event in print(event) }
             """
         )
-        #expect(EffectAnnotationParser.parseContext(declaration: decl) == .replayable)
+        #expect(ContextAnnotationParser.parseContext(declaration: decl) == .replayable)
     }
 
     @Test
@@ -85,7 +85,7 @@ struct ClosureBindingAnnotationParserTests {
             let handler = { event in print(event) }
             """
         )
-        #expect(EffectAnnotationParser.parseContext(declaration: decl) == .retrySafe)
+        #expect(ContextAnnotationParser.parseContext(declaration: decl) == .retrySafe)
     }
 
     @Test
@@ -96,13 +96,13 @@ struct ClosureBindingAnnotationParserTests {
             let handler = { event in print(event) }
             """
         )
-        #expect(EffectAnnotationParser.parseContext(declaration: decl) == .once)
+        #expect(ContextAnnotationParser.parseContext(declaration: decl) == .once)
     }
 
     @Test
     func noAnnotation_returnsNil() throws {
         let decl = try firstVariableDecl(in: "let handler = { event in print(event) }")
-        #expect(EffectAnnotationParser.parseContext(declaration: decl) == nil)
+        #expect(ContextAnnotationParser.parseContext(declaration: decl) == nil)
         #expect(EffectAnnotationParser.parseEffect(declaration: decl) == nil)
     }
 
@@ -141,7 +141,7 @@ struct ClosureBindingAnnotationParserTests {
             public let handler = { event in print(event) }
             """
         )
-        #expect(EffectAnnotationParser.parseContext(declaration: decl) == .replayable)
+        #expect(ContextAnnotationParser.parseContext(declaration: decl) == .replayable)
     }
 
     @Test
@@ -152,7 +152,7 @@ struct ClosureBindingAnnotationParserTests {
             public let handler = { event in print(event) }
             """
         )
-        #expect(EffectAnnotationParser.parseContext(declaration: decl) == .replayable)
+        #expect(ContextAnnotationParser.parseContext(declaration: decl) == .replayable)
     }
 
     // MARK: - Stored property on a type declaration
@@ -178,7 +178,7 @@ struct ClosureBindingAnnotationParserTests {
         let finder = Finder()
         finder.walk(Parser.parse(source: source))
         let decl = try #require(finder.decl)
-        #expect(EffectAnnotationParser.parseContext(declaration: decl) == .replayable)
+        #expect(ContextAnnotationParser.parseContext(declaration: decl) == .replayable)
         #expect(decl.closureInitializer != nil)
         #expect(decl.firstBindingName == "handler")
     }

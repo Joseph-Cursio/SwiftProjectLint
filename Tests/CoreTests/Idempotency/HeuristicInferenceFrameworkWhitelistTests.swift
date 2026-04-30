@@ -18,25 +18,25 @@ struct HeuristicInferenceFrameworkWhitelistTests {
     @Test
     func jsonDecoderConstructor_infersIdempotent() throws {
         let call = try firstCall(in: "func f() { _ = JSONDecoder() }")
-        #expect(HeuristicEffectInferrer.infer(call: call, imports: ["Foundation"]) == .idempotent)
+        #expect(CallSiteEffectInferrer.infer(call: call, imports: ["Foundation"]) == .idempotent)
     }
 
     @Test
     func jsonEncoderConstructor_infersIdempotent() throws {
         let call = try firstCall(in: "func f() { _ = JSONEncoder() }")
-        #expect(HeuristicEffectInferrer.infer(call: call, imports: ["Foundation"]) == .idempotent)
+        #expect(CallSiteEffectInferrer.infer(call: call, imports: ["Foundation"]) == .idempotent)
     }
 
     @Test
     func dataConstructor_infersIdempotent() throws {
         let call = try firstCall(in: "func f() { _ = Data(bytes) }")
-        #expect(HeuristicEffectInferrer.infer(call: call, imports: ["Foundation"]) == .idempotent)
+        #expect(CallSiteEffectInferrer.infer(call: call, imports: ["Foundation"]) == .idempotent)
     }
 
     @Test
     func byteBufferConstructor_infersIdempotent() throws {
         let call = try firstCall(in: "func f() { _ = ByteBuffer(bytes: data) }")
-        #expect(HeuristicEffectInferrer.infer(call: call, imports: ["NIOCore"]) == .idempotent)
+        #expect(CallSiteEffectInferrer.infer(call: call, imports: ["NIOCore"]) == .idempotent)
     }
 
     @Test
@@ -44,7 +44,7 @@ struct HeuristicInferenceFrameworkWhitelistTests {
         let call = try firstCall(
             in: "func f() { _ = ALBTargetGroupResponse(statusCode: .ok) }"
         )
-        #expect(HeuristicEffectInferrer.infer(call: call, imports: ["AWSLambdaEvents"]) == .idempotent)
+        #expect(CallSiteEffectInferrer.infer(call: call, imports: ["AWSLambdaEvents"]) == .idempotent)
     }
 
     @Test
@@ -53,7 +53,7 @@ struct HeuristicInferenceFrameworkWhitelistTests {
         // Classifying it as idempotent would contradict the
         // `missingIdempotencyKey` rule this project specifically catches.
         let call = try firstCall(in: "func f() { _ = UUID() }")
-        #expect(HeuristicEffectInferrer.infer(call: call) == nil)
+        #expect(CallSiteEffectInferrer.infer(call: call) == nil)
     }
 
     @Test
@@ -61,7 +61,7 @@ struct HeuristicInferenceFrameworkWhitelistTests {
         // DELIBERATELY EXCLUDED: Date() reads current time. Same call
         // produces different values across retries.
         let call = try firstCall(in: "func f() { _ = Date() }")
-        #expect(HeuristicEffectInferrer.infer(call: call) == nil)
+        #expect(CallSiteEffectInferrer.infer(call: call) == nil)
     }
 
     @Test
@@ -69,7 +69,7 @@ struct HeuristicInferenceFrameworkWhitelistTests {
         // Project-local types aren't on the whitelist. Unclassified by
         // name alone; upward inference may still classify via body.
         let call = try firstCall(in: "func f() { _ = OrderService() }")
-        #expect(HeuristicEffectInferrer.infer(call: call) == nil)
+        #expect(CallSiteEffectInferrer.infer(call: call) == nil)
     }
 
     // MARK: - Framework whitelist — `.init(...)` member-access form
@@ -86,13 +86,13 @@ struct HeuristicInferenceFrameworkWhitelistTests {
     @Test
     func jsonDecoderDotInit_infersIdempotent() throws {
         let call = try firstCall(in: "func f() { _ = JSONDecoder.init() }")
-        #expect(HeuristicEffectInferrer.infer(call: call, imports: ["Foundation"]) == .idempotent)
+        #expect(CallSiteEffectInferrer.infer(call: call, imports: ["Foundation"]) == .idempotent)
     }
 
     @Test
     func dataDotInit_infersIdempotent() throws {
         let call = try firstCall(in: "func f() { _ = Data.init(bytes) }")
-        #expect(HeuristicEffectInferrer.infer(call: call, imports: ["Foundation"]) == .idempotent)
+        #expect(CallSiteEffectInferrer.infer(call: call, imports: ["Foundation"]) == .idempotent)
     }
 
     @Test
@@ -103,7 +103,7 @@ struct HeuristicInferenceFrameworkWhitelistTests {
             in: "func f() { _ = ALBTargetGroupResponse.init(statusCode: .ok) }"
         )
         #expect(
-            HeuristicEffectInferrer.infer(call: call, imports: ["AWSLambdaEvents"])
+            CallSiteEffectInferrer.infer(call: call, imports: ["AWSLambdaEvents"])
                 == .idempotent
         )
     }
@@ -112,7 +112,7 @@ struct HeuristicInferenceFrameworkWhitelistTests {
     func httpErrorDotInit_infersIdempotent() throws {
         let call = try firstCall(in: "func f() { _ = HTTPError.init(.notFound) }")
         #expect(
-            HeuristicEffectInferrer.infer(call: call, imports: ["Hummingbird"])
+            CallSiteEffectInferrer.infer(call: call, imports: ["Hummingbird"])
                 == .idempotent
         )
     }
@@ -124,7 +124,7 @@ struct HeuristicInferenceFrameworkWhitelistTests {
         // `TypeName<...>.init(...)` shape normalises to the base name.
         // Use `ByteBuffer` with a fabricated generic for the AST shape.
         let call = try firstCall(in: "func f() { _ = ByteBuffer<UInt8>.init(bytes: data) }")
-        #expect(HeuristicEffectInferrer.infer(call: call, imports: ["NIOCore"]) == .idempotent)
+        #expect(CallSiteEffectInferrer.infer(call: call, imports: ["NIOCore"]) == .idempotent)
     }
 
     @Test
@@ -137,7 +137,7 @@ struct HeuristicInferenceFrameworkWhitelistTests {
             in: "func f() { _ = Outer.APIGatewayV2Response.init(statusCode: .ok) }"
         )
         #expect(
-            HeuristicEffectInferrer.infer(call: call, imports: ["AWSLambdaEvents"])
+            CallSiteEffectInferrer.infer(call: call, imports: ["AWSLambdaEvents"])
                 == .idempotent
         )
     }
@@ -149,7 +149,7 @@ struct HeuristicInferenceFrameworkWhitelistTests {
         // project-local `OrderService.init()` remains unclassified, same
         // as the bare `OrderService()` form.
         let call = try firstCall(in: "func f() { _ = OrderService.init() }")
-        #expect(HeuristicEffectInferrer.infer(call: call) == nil)
+        #expect(CallSiteEffectInferrer.infer(call: call) == nil)
     }
 
     @Test
@@ -159,7 +159,7 @@ struct HeuristicInferenceFrameworkWhitelistTests {
         // because it produces a fresh-per-call identity. The
         // `.init(...)` form must not accidentally classify it either.
         let call = try firstCall(in: "func f() { _ = UUID.init() }")
-        #expect(HeuristicEffectInferrer.infer(call: call) == nil)
+        #expect(CallSiteEffectInferrer.infer(call: call) == nil)
     }
 
     @Test
@@ -171,7 +171,7 @@ struct HeuristicInferenceFrameworkWhitelistTests {
         let call = try firstCall(
             in: "struct S { init() { self.init(default: true) } }"
         )
-        #expect(HeuristicEffectInferrer.infer(call: call) == nil)
+        #expect(CallSiteEffectInferrer.infer(call: call) == nil)
     }
 
     @Test
@@ -179,7 +179,7 @@ struct HeuristicInferenceFrameworkWhitelistTests {
         // Inference reason credits the whitelisted type, not "init",
         // so adopter diagnostics read coherently on both spellings.
         let call = try firstCall(in: "func f() { _ = JSONDecoder.init() }")
-        let reason = HeuristicEffectInferrer.inferenceReason(
+        let reason = CallSiteEffectInferrer.inferenceReason(
             for: call,
             imports: ["Foundation"]
         )
@@ -191,19 +191,19 @@ struct HeuristicInferenceFrameworkWhitelistTests {
     @Test
     func decoderDotDecode_infersIdempotent() throws {
         let call = try firstCall(in: "func f() { decoder.decode(T.self, from: data) }")
-        #expect(HeuristicEffectInferrer.infer(call: call, imports: ["Foundation"]) == .idempotent)
+        #expect(CallSiteEffectInferrer.infer(call: call, imports: ["Foundation"]) == .idempotent)
     }
 
     @Test
     func encoderDotEncode_infersIdempotent() throws {
         let call = try firstCall(in: "func f() { encoder.encode(value) }")
-        #expect(HeuristicEffectInferrer.infer(call: call, imports: ["Foundation"]) == .idempotent)
+        #expect(CallSiteEffectInferrer.infer(call: call, imports: ["Foundation"]) == .idempotent)
     }
 
     @Test
     func jsonDecoderStyleReceiver_infersIdempotent() throws {
         let call = try firstCall(in: "func f() { jsonDecoder.decode(T.self, from: data) }")
-        #expect(HeuristicEffectInferrer.infer(call: call, imports: ["Foundation"]) == .idempotent)
+        #expect(CallSiteEffectInferrer.infer(call: call, imports: ["Foundation"]) == .idempotent)
     }
 
     @Test
@@ -213,7 +213,7 @@ struct HeuristicInferenceFrameworkWhitelistTests {
         // fire here; the 5-hop upward inference round-11 observed still
         // applies.
         let call = try firstCall(in: "func f() { content.decode(Creds.self) }")
-        #expect(HeuristicEffectInferrer.infer(call: call) == nil)
+        #expect(CallSiteEffectInferrer.infer(call: call) == nil)
     }
 
     // MARK: - Framework whitelist — metric-pattern methods
@@ -221,25 +221,25 @@ struct HeuristicInferenceFrameworkWhitelistTests {
     @Test
     func counterIncrement_infersObservational() throws {
         let call = try firstCall(in: "func f() { counter.increment() }")
-        #expect(HeuristicEffectInferrer.infer(call: call, imports: ["Metrics"]) == .observational)
+        #expect(CallSiteEffectInferrer.infer(call: call, imports: ["Metrics"]) == .observational)
     }
 
     @Test
     func meterDecrement_infersObservational() throws {
         let call = try firstCall(in: "func f() { activeRequestMeter.decrement() }")
-        #expect(HeuristicEffectInferrer.infer(call: call, imports: ["Metrics"]) == .observational)
+        #expect(CallSiteEffectInferrer.infer(call: call, imports: ["Metrics"]) == .observational)
     }
 
     @Test
     func timerRecordNanoseconds_infersObservational() throws {
         let call = try firstCall(in: "func f() { timer.recordNanoseconds(100) }")
-        #expect(HeuristicEffectInferrer.infer(call: call, imports: ["Metrics"]) == .observational)
+        #expect(CallSiteEffectInferrer.infer(call: call, imports: ["Metrics"]) == .observational)
     }
 
     @Test
     func gaugeRecord_infersObservational() throws {
         let call = try firstCall(in: "func f() { gauge.record(42.0) }")
-        #expect(HeuristicEffectInferrer.infer(call: call, imports: ["Metrics"]) == .observational)
+        #expect(CallSiteEffectInferrer.infer(call: call, imports: ["Metrics"]) == .observational)
     }
 
     @Test
@@ -247,7 +247,7 @@ struct HeuristicInferenceFrameworkWhitelistTests {
         // `view.record()` — the method is a metric-observation verb but the
         // receiver isn't metric-shaped. Don't fire.
         let call = try firstCall(in: "func f() { view.record() }")
-        #expect(HeuristicEffectInferrer.infer(call: call) == nil)
+        #expect(CallSiteEffectInferrer.infer(call: call) == nil)
     }
 
     @Test
@@ -255,6 +255,6 @@ struct HeuristicInferenceFrameworkWhitelistTests {
         // `context.metrics.counter.increment()` — immediate-parent segment
         // is `counter`, which matches the metric-receiver shape.
         let call = try firstCall(in: "func f() { context.metrics.counter.increment() }")
-        #expect(HeuristicEffectInferrer.infer(call: call, imports: ["Metrics"]) == .observational)
+        #expect(CallSiteEffectInferrer.infer(call: call, imports: ["Metrics"]) == .observational)
     }
 }

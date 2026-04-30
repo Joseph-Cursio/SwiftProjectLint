@@ -22,7 +22,7 @@ struct FrameworkWhitelistGatingTests {
         // active" — synthetic fixtures and files without imports behave
         // identically. Foundation's JSONDecoder stays unclassified.
         let call = try firstCall(in: "func f() { _ = JSONDecoder() }")
-        #expect(HeuristicEffectInferrer.infer(
+        #expect(CallSiteEffectInferrer.infer(
             call: call, imports: [], enabledFrameworks: nil
         ) == nil)
     }
@@ -32,7 +32,7 @@ struct FrameworkWhitelistGatingTests {
         // Bare-name whitelist (`create`/`insert`/etc.) is un-gated, so
         // even with no imports the heuristic still classifies.
         let call = try firstCall(in: "func f() { insert(row) }")
-        #expect(HeuristicEffectInferrer.infer(
+        #expect(CallSiteEffectInferrer.infer(
             call: call, imports: [], enabledFrameworks: nil
         ) == .nonIdempotent)
     }
@@ -40,9 +40,9 @@ struct FrameworkWhitelistGatingTests {
     @Test
     func emptyImports_loggerStillFires() throws {
         // The logger receiver-shape heuristic is intentionally un-gated
-        // (see `HeuristicEffectInferrer.loggerPattern` discussion).
+        // (see `CallSiteEffectInferrer.loggerPattern` discussion).
         let call = try firstCall(in: "func f() { logger.info(\"x\") }")
-        #expect(HeuristicEffectInferrer.infer(
+        #expect(CallSiteEffectInferrer.infer(
             call: call, imports: [], enabledFrameworks: nil
         ) == .observational)
     }
@@ -52,7 +52,7 @@ struct FrameworkWhitelistGatingTests {
     @Test
     func importGated_foundationPresent_jsonDecoderFires() throws {
         let call = try firstCall(in: "func f() { _ = JSONDecoder() }")
-        #expect(HeuristicEffectInferrer.infer(
+        #expect(CallSiteEffectInferrer.infer(
             call: call, imports: ["Foundation"], enabledFrameworks: nil
         ) == .idempotent)
     }
@@ -63,7 +63,7 @@ struct FrameworkWhitelistGatingTests {
         // a known module context but doesn't import Foundation, so
         // user-defined `JSONDecoder` should not classify.
         let call = try firstCall(in: "func f() { _ = JSONDecoder() }")
-        #expect(HeuristicEffectInferrer.infer(
+        #expect(CallSiteEffectInferrer.infer(
             call: call, imports: ["MyApp"], enabledFrameworks: nil
         ) == nil)
     }
@@ -71,7 +71,7 @@ struct FrameworkWhitelistGatingTests {
     @Test
     func importGated_nioPresent_byteBufferFires() throws {
         let call = try firstCall(in: "func f() { _ = ByteBuffer(bytes: data) }")
-        #expect(HeuristicEffectInferrer.infer(
+        #expect(CallSiteEffectInferrer.infer(
             call: call, imports: ["NIOCore"], enabledFrameworks: nil
         ) == .idempotent)
     }
@@ -79,7 +79,7 @@ struct FrameworkWhitelistGatingTests {
     @Test
     func importGated_nioAbsent_byteBufferDoesNotFire() throws {
         let call = try firstCall(in: "func f() { _ = ByteBuffer(bytes: data) }")
-        #expect(HeuristicEffectInferrer.infer(
+        #expect(CallSiteEffectInferrer.infer(
             call: call, imports: ["Foundation"], enabledFrameworks: nil
         ) == nil)
     }
@@ -94,15 +94,15 @@ struct FrameworkWhitelistGatingTests {
         // `Logging`/`os` regressed round-9's chained-logger fix on the
         // Lambda corpus in early round-14 testing — un-gated.
         let call = try firstCall(in: "func f() { logger.info(\"x\") }")
-        #expect(HeuristicEffectInferrer.infer(
+        #expect(CallSiteEffectInferrer.infer(
             call: call, imports: ["Logging"], enabledFrameworks: nil
         ) == .observational)
-        #expect(HeuristicEffectInferrer.infer(
+        #expect(CallSiteEffectInferrer.infer(
             call: call, imports: ["AWSLambdaRuntime"], enabledFrameworks: nil
         ) == .observational)
         // Also fires with no Logging-related import — adopters with
         // user-defined loggers can override via explicit annotation.
-        #expect(HeuristicEffectInferrer.infer(
+        #expect(CallSiteEffectInferrer.infer(
             call: call, imports: ["MyApp"], enabledFrameworks: nil
         ) == .observational)
     }
@@ -110,7 +110,7 @@ struct FrameworkWhitelistGatingTests {
     @Test
     func importGated_metricsPresent_counterIncrementFires() throws {
         let call = try firstCall(in: "func f() { counter.increment() }")
-        #expect(HeuristicEffectInferrer.infer(
+        #expect(CallSiteEffectInferrer.infer(
             call: call, imports: ["Metrics"], enabledFrameworks: nil
         ) == .observational)
     }
@@ -121,7 +121,7 @@ struct FrameworkWhitelistGatingTests {
         // a project without `import Metrics` shouldn't classify as
         // observational just because the receiver name matches.
         let call = try firstCall(in: "func f() { counter.increment() }")
-        #expect(HeuristicEffectInferrer.infer(
+        #expect(CallSiteEffectInferrer.infer(
             call: call, imports: ["MyApp"], enabledFrameworks: nil
         ) == nil)
     }
@@ -130,10 +130,10 @@ struct FrameworkWhitelistGatingTests {
     func importGated_codecPattern_requiresFoundation() throws {
         let call = try firstCall(in: "func f() { decoder.decode(T.self, from: data) }")
         // Codec pattern requires Foundation for the Codable protocols.
-        #expect(HeuristicEffectInferrer.infer(
+        #expect(CallSiteEffectInferrer.infer(
             call: call, imports: ["Foundation"], enabledFrameworks: nil
         ) == .idempotent)
-        #expect(HeuristicEffectInferrer.infer(
+        #expect(CallSiteEffectInferrer.infer(
             call: call, imports: ["MyApp"], enabledFrameworks: nil
         ) == nil)
     }
@@ -145,7 +145,7 @@ struct FrameworkWhitelistGatingTests {
         // Foundation imported AND the type matches, but the project
         // has set enabledFrameworks to exclude Foundation.
         let call = try firstCall(in: "func f() { _ = JSONDecoder() }")
-        #expect(HeuristicEffectInferrer.infer(
+        #expect(CallSiteEffectInferrer.infer(
             call: call, imports: ["Foundation"], enabledFrameworks: ["NIOCore"]
         ) == nil)
     }
@@ -158,7 +158,7 @@ struct FrameworkWhitelistGatingTests {
         // annotate the callee explicitly rather than disable the
         // framework whitelist.
         let call = try firstCall(in: "func f() { logger.info(\"x\") }")
-        #expect(HeuristicEffectInferrer.infer(
+        #expect(CallSiteEffectInferrer.infer(
             call: call, imports: ["Logging"], enabledFrameworks: ["Foundation"]
         ) == .observational)
     }
@@ -166,7 +166,7 @@ struct FrameworkWhitelistGatingTests {
     @Test
     func configGated_emptyEnabledSet_disablesAllFrameworks() throws {
         let call = try firstCall(in: "func f() { _ = JSONDecoder() }")
-        #expect(HeuristicEffectInferrer.infer(
+        #expect(CallSiteEffectInferrer.infer(
             call: call, imports: ["Foundation"], enabledFrameworks: []
         ) == nil)
     }

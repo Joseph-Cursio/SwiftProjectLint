@@ -23,7 +23,7 @@ struct FrameworkWhitelistVaporTests {
         // doesn't short-circuit. 2-adopter evidence: luka-vapor +
         // HelloVapor.
         let call = try firstCall(in: "func f() { app.get(\"/x\") { _ in \"\" } }")
-        #expect(HeuristicEffectInferrer.infer(
+        #expect(CallSiteEffectInferrer.infer(
             call: call, imports: ["Vapor"], enabledFrameworks: nil
         ) == .idempotent)
     }
@@ -36,7 +36,7 @@ struct FrameworkWhitelistVaporTests {
         // registration inside a `@lint.context replayable`-annotated
         // `routes(_:)` mis-fires.
         let call = try firstCall(in: "func f() { app.post(\"/x\") { _ in } }")
-        #expect(HeuristicEffectInferrer.infer(
+        #expect(CallSiteEffectInferrer.infer(
             call: call, imports: ["Vapor"], enabledFrameworks: nil
         ) == .idempotent)
     }
@@ -44,7 +44,7 @@ struct FrameworkWhitelistVaporTests {
     @Test
     func importGated_vaporPresent_appPutFires() throws {
         let call = try firstCall(in: "func f() { app.put(\"/x\") { _ in } }")
-        #expect(HeuristicEffectInferrer.infer(
+        #expect(CallSiteEffectInferrer.infer(
             call: call, imports: ["Vapor"], enabledFrameworks: nil
         ) == .idempotent)
     }
@@ -52,7 +52,7 @@ struct FrameworkWhitelistVaporTests {
     @Test
     func importGated_vaporPresent_appPatchFires() throws {
         let call = try firstCall(in: "func f() { app.patch(\"/x\") { _ in } }")
-        #expect(HeuristicEffectInferrer.infer(
+        #expect(CallSiteEffectInferrer.infer(
             call: call, imports: ["Vapor"], enabledFrameworks: nil
         ) == .idempotent)
     }
@@ -60,7 +60,7 @@ struct FrameworkWhitelistVaporTests {
     @Test
     func importGated_vaporPresent_appDeleteFires() throws {
         let call = try firstCall(in: "func f() { app.delete(\"/x\") { _ in } }")
-        #expect(HeuristicEffectInferrer.infer(
+        #expect(CallSiteEffectInferrer.infer(
             call: call, imports: ["Vapor"], enabledFrameworks: nil
         ) == .idempotent)
     }
@@ -72,7 +72,7 @@ struct FrameworkWhitelistVaporTests {
         // `app` in a non-Vapor module shouldn't pick up the Vapor
         // classification just because the identifier matches.
         let call = try firstCall(in: "func f() { app.post(\"/x\") { _ in } }")
-        #expect(HeuristicEffectInferrer.infer(
+        #expect(CallSiteEffectInferrer.infer(
             call: call, imports: ["MyApp"], enabledFrameworks: nil
         ) == .nonIdempotent)
     }
@@ -83,7 +83,7 @@ struct FrameworkWhitelistVaporTests {
         // file: the slot-17 pair must not fire, and the bare-name `post`
         // lexicon path should still classify as non-idempotent.
         let call = try firstCall(in: "func f() { mailer.post(email) }")
-        #expect(HeuristicEffectInferrer.infer(
+        #expect(CallSiteEffectInferrer.infer(
             call: call, imports: ["Vapor"], enabledFrameworks: nil
         ) == .nonIdempotent)
     }
@@ -94,7 +94,7 @@ struct FrameworkWhitelistVaporTests {
         // `enabled_framework_whitelists`. Slot-17 pair should not fire;
         // the bare-name `post` classification reasserts itself.
         let call = try firstCall(in: "func f() { app.post(\"/x\") { _ in } }")
-        #expect(HeuristicEffectInferrer.infer(
+        #expect(CallSiteEffectInferrer.infer(
             call: call, imports: ["Vapor"], enabledFrameworks: ["Foundation"]
         ) == .nonIdempotent)
     }
@@ -102,7 +102,7 @@ struct FrameworkWhitelistVaporTests {
     @Test
     func vapor_appPost_inferenceReason() throws {
         let call = try firstCall(in: "func f() { app.post(\"/x\") { _ in } }")
-        let reason = HeuristicEffectInferrer.inferenceReason(
+        let reason = CallSiteEffectInferrer.inferenceReason(
             for: call, imports: ["Vapor"], enabledFrameworks: nil
         )
         #expect(reason == "from the Vapor primitive `app.post`")
@@ -116,12 +116,12 @@ struct FrameworkWhitelistVaporTests {
         // `model.delete(on: db)` on a non-`app` receiver must still hit
         // Fluent's ORM-verb path (step 11).
         let appCall = try firstCall(in: "func f() { app.delete(\"/x\") { _ in } }")
-        #expect(HeuristicEffectInferrer.infer(
+        #expect(CallSiteEffectInferrer.infer(
             call: appCall, imports: ["Vapor", "FluentKit"], enabledFrameworks: nil
         ) == .idempotent)
 
         let modelCall = try firstCall(in: "func f() { try await model.delete(on: db) }")
-        #expect(HeuristicEffectInferrer.infer(
+        #expect(CallSiteEffectInferrer.infer(
             call: modelCall, imports: ["Vapor", "FluentKit"], enabledFrameworks: nil
         ) == .nonIdempotent)
     }
@@ -132,12 +132,12 @@ struct FrameworkWhitelistVaporTests {
         // Neither whitelist shadows the other; both `router.post` (slot 16)
         // and `app.post` (slot 17) resolve idempotent.
         let routerCall = try firstCall(in: "func f() { router.post(\"/x\") { _, _ in } }")
-        #expect(HeuristicEffectInferrer.infer(
+        #expect(CallSiteEffectInferrer.infer(
             call: routerCall, imports: ["Vapor", "Hummingbird"], enabledFrameworks: nil
         ) == .idempotent)
 
         let appCall = try firstCall(in: "func f() { app.post(\"/x\") { _ in } }")
-        #expect(HeuristicEffectInferrer.infer(
+        #expect(CallSiteEffectInferrer.infer(
             call: appCall, imports: ["Vapor", "Hummingbird"], enabledFrameworks: nil
         ) == .idempotent)
     }
@@ -155,7 +155,7 @@ struct FrameworkWhitelistVaporTests {
         // mis-fires. 3-adopter evidence: HelloVapor + Uitsmijter +
         // plc-handle-tracker.
         let call = try firstCall(in: "func f() { try app.register(collection: FooController()) }")
-        #expect(HeuristicEffectInferrer.infer(
+        #expect(CallSiteEffectInferrer.infer(
             call: call, imports: ["Vapor"], enabledFrameworks: nil
         ) == .idempotent)
     }
@@ -167,7 +167,7 @@ struct FrameworkWhitelistVaporTests {
         // defined `app` in a non-Vapor module shouldn't pick up the
         // Vapor classification just because the identifier matches.
         let call = try firstCall(in: "func f() { try app.register(collection: FooController()) }")
-        #expect(HeuristicEffectInferrer.infer(
+        #expect(CallSiteEffectInferrer.infer(
             call: call, imports: ["MyApp"], enabledFrameworks: nil
         ) == .nonIdempotent)
     }
@@ -179,7 +179,7 @@ struct FrameworkWhitelistVaporTests {
         // name `register` lexicon path should still classify as
         // non-idempotent.
         let call = try firstCall(in: "func f() { registry.register(collection: FooController()) }")
-        #expect(HeuristicEffectInferrer.infer(
+        #expect(CallSiteEffectInferrer.infer(
             call: call, imports: ["Vapor"], enabledFrameworks: nil
         ) == .nonIdempotent)
     }
@@ -190,7 +190,7 @@ struct FrameworkWhitelistVaporTests {
         // `enabled_framework_whitelists`. Slot-21 pair should not fire;
         // the bare-name `register` classification reasserts itself.
         let call = try firstCall(in: "func f() { try app.register(collection: FooController()) }")
-        #expect(HeuristicEffectInferrer.infer(
+        #expect(CallSiteEffectInferrer.infer(
             call: call, imports: ["Vapor"], enabledFrameworks: ["Foundation"]
         ) == .nonIdempotent)
     }
@@ -198,7 +198,7 @@ struct FrameworkWhitelistVaporTests {
     @Test
     func vapor_appRegister_inferenceReason() throws {
         let call = try firstCall(in: "func f() { try app.register(collection: FooController()) }")
-        let reason = HeuristicEffectInferrer.inferenceReason(
+        let reason = CallSiteEffectInferrer.inferenceReason(
             for: call, imports: ["Vapor"], enabledFrameworks: nil
         )
         #expect(reason == "from the Vapor primitive `app.register`")
@@ -212,12 +212,12 @@ struct FrameworkWhitelistVaporTests {
         // on a non-`app` receiver (hypothetical user API) must not
         // be silenced by the slot-21 pair.
         let appCall = try firstCall(in: "func f() { try app.register(collection: FooController()) }")
-        #expect(HeuristicEffectInferrer.infer(
+        #expect(CallSiteEffectInferrer.infer(
             call: appCall, imports: ["Vapor", "FluentKit"], enabledFrameworks: nil
         ) == .idempotent)
 
         let modelCall = try firstCall(in: "func f() { try model.register(delegate) }")
-        #expect(HeuristicEffectInferrer.infer(
+        #expect(CallSiteEffectInferrer.infer(
             call: modelCall, imports: ["Vapor", "FluentKit"], enabledFrameworks: nil
         ) == .nonIdempotent)
     }

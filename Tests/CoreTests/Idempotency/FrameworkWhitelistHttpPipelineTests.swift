@@ -23,7 +23,7 @@ struct FrameworkWhitelistHttpPipelineTests {
         // Each call is a value-typed `Conn` mutation; observably
         // idempotent at the response-builder boundary.
         let call = try firstCall(in: "func f() { _ = writeStatus(.ok) }")
-        #expect(HeuristicEffectInferrer.infer(
+        #expect(CallSiteEffectInferrer.infer(
             call: call, imports: ["HttpPipeline"], enabledFrameworks: nil
         ) == .idempotent)
     }
@@ -34,7 +34,7 @@ struct FrameworkWhitelistHttpPipelineTests {
         // HttpPipeline shouldn't pick up the slot 14 classification
         // just because the identifier matches.
         let call = try firstCall(in: "func f() { _ = writeStatus(.ok) }")
-        #expect(HeuristicEffectInferrer.infer(
+        #expect(CallSiteEffectInferrer.infer(
             call: call, imports: ["MyApp"], enabledFrameworks: nil
         ) == nil)
     }
@@ -45,7 +45,7 @@ struct FrameworkWhitelistHttpPipelineTests {
         // curried response-builder primitive in HttpPipeline,
         // composed via `>=>` Kleisli.
         let call = try firstCall(in: "func f() { _ = respond(html: index) }")
-        #expect(HeuristicEffectInferrer.infer(
+        #expect(CallSiteEffectInferrer.infer(
             call: call, imports: ["HttpPipeline"], enabledFrameworks: nil
         ) == .idempotent)
     }
@@ -53,7 +53,7 @@ struct FrameworkWhitelistHttpPipelineTests {
     @Test
     func importGated_httpPipelineAbsent_respondDoesNotFire() throws {
         let call = try firstCall(in: "func f() { _ = respond(html: index) }")
-        #expect(HeuristicEffectInferrer.infer(
+        #expect(CallSiteEffectInferrer.infer(
             call: call, imports: ["MyApp"], enabledFrameworks: nil
         ) == nil)
     }
@@ -64,7 +64,7 @@ struct FrameworkWhitelistHttpPipelineTests {
         // `enabled_framework_whitelists`. Whitelist does not fire;
         // the un-classified callee remains `unknown`.
         let call = try firstCall(in: "func f() { _ = writeStatus(.ok) }")
-        #expect(HeuristicEffectInferrer.infer(
+        #expect(CallSiteEffectInferrer.infer(
             call: call, imports: ["HttpPipeline"], enabledFrameworks: ["Foundation"]
         ) == nil)
     }
@@ -72,7 +72,7 @@ struct FrameworkWhitelistHttpPipelineTests {
     @Test
     func httpPipeline_writeStatus_inferenceReason_namesFramework() throws {
         let call = try firstCall(in: "func f() { _ = writeStatus(.ok) }")
-        let reason = HeuristicEffectInferrer.inferenceReason(
+        let reason = CallSiteEffectInferrer.inferenceReason(
             for: call, imports: ["HttpPipeline"], enabledFrameworks: nil
         )
         #expect(reason == "from the HttpPipeline pipeline primitive `writeStatus`")
@@ -81,7 +81,7 @@ struct FrameworkWhitelistHttpPipelineTests {
     @Test
     func httpPipeline_respond_inferenceReason_namesFramework() throws {
         let call = try firstCall(in: "func f() { _ = respond(html: index) }")
-        let reason = HeuristicEffectInferrer.inferenceReason(
+        let reason = CallSiteEffectInferrer.inferenceReason(
             for: call, imports: ["HttpPipeline"], enabledFrameworks: nil
         )
         #expect(reason == "from the HttpPipeline pipeline primitive `respond`")
@@ -91,8 +91,8 @@ struct FrameworkWhitelistHttpPipelineTests {
     func httpPipelineMethodPhrasing_hasOverride() {
         // Both per-framework phrasings on the slot 14 table should
         // resolve to their explicit overrides, not the generic default.
-        #expect(FrameworkWhitelist.idempotentMethodPhrasing(forFramework: "FluentKit") == "query-builder read")
-        #expect(FrameworkWhitelist.idempotentMethodPhrasing(forFramework: "HttpPipeline") == "pipeline primitive")
+        #expect(FrameworkGates.idempotentMethodPhrasing(forFramework: "FluentKit") == "query-builder read")
+        #expect(FrameworkGates.idempotentMethodPhrasing(forFramework: "HttpPipeline") == "pipeline primitive")
     }
 
     @Test
@@ -101,6 +101,6 @@ struct FrameworkWhitelistHttpPipelineTests {
         // `"framework primitive"` fallback — adding a new framework
         // to `idempotentMethodsByFramework` without specifying
         // phrasing should still produce a sensible reason string.
-        #expect(FrameworkWhitelist.idempotentMethodPhrasing(forFramework: "PhantomFramework") == "framework primitive")
+        #expect(FrameworkGates.idempotentMethodPhrasing(forFramework: "PhantomFramework") == "framework primitive")
     }
 }

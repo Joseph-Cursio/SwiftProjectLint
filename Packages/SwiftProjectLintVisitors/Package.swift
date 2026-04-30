@@ -16,7 +16,7 @@ let package = Package(
     dependencies: [
         .package(path: "../SwiftProjectLintModels"),
         // SwiftEffectInference owns the effect-classification engines that
-        // SPL used to host directly (HeuristicEffectInferrer / UpwardEffectInferrer
+        // SPL used to host directly (CallSiteEffectInferrer / BodyEffectInferrer
         // / EffectAnnotationParser / EffectSymbolTable). SPL is one of two
         // initial consumers (the other is SwiftInferProperties) per
         // SwiftEffectInference's docs/SwiftEffectInference Design v0.2.md §2/§10.

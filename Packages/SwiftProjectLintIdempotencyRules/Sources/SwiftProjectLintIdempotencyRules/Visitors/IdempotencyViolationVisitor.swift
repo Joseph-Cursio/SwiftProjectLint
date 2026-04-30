@@ -46,7 +46,7 @@ final class IdempotencyViolationVisitor: BasePatternVisitor, CrossFilePatternVis
     private struct AnalysisSite {
         let callerName: String
         let body: Syntax
-        let effect: DeclaredEffect
+        let effect: Effect
         let filePath: String
         let locationConverter: SourceLocationConverter
     }
@@ -148,7 +148,7 @@ final class IdempotencyViolationVisitor: BasePatternVisitor, CrossFilePatternVis
             to: allSources,
             multiHop: true,
             heuristicEffectForCall: { call, source in
-                HeuristicEffectInferrer.infer(
+                CallSiteEffectInferrer.infer(
                     call: call,
                     imports: ImportCollector.imports(in: source),
                     enabledFrameworks: enabledFrameworks
@@ -202,7 +202,7 @@ final class IdempotencyViolationVisitor: BasePatternVisitor, CrossFilePatternVis
     private func analyzeCall(_ call: FunctionCallExprSyntax, site: AnalysisSite) {
         guard let calleeSignature = FunctionSignature.from(call: call) else { return }
 
-        let calleeEffect: DeclaredEffect
+        let calleeEffect: Effect
         let provenance: EffectProvenance
 
         if let declared = symbolTable.effect(for: calleeSignature) {
@@ -217,14 +217,14 @@ final class IdempotencyViolationVisitor: BasePatternVisitor, CrossFilePatternVis
         } else if let upward = symbolTable.upwardInference(for: calleeSignature) {
             calleeEffect = upward.effect
             provenance = .inferredUpward(depth: upward.depth)
-        } else if let inferred = HeuristicEffectInferrer.infer(
+        } else if let inferred = CallSiteEffectInferrer.infer(
             call: call,
             imports: imports(forSiteFile: site.filePath),
             enabledFrameworks: self.enabledFrameworkWhitelists
         ) {
             calleeEffect = inferred
             provenance = .inferredDownward(
-                reason: HeuristicEffectInferrer.inferenceReason(
+                reason: CallSiteEffectInferrer.inferenceReason(
                     for: call,
                     imports: imports(forSiteFile: site.filePath),
                     enabledFrameworks: self.enabledFrameworkWhitelists
@@ -265,7 +265,7 @@ final class IdempotencyViolationVisitor: BasePatternVisitor, CrossFilePatternVis
     /// Caller effects whose bodies are analysed by this rule. `nonIdempotent`
     /// is excluded — a non-idempotent caller makes no stronger claim than its
     /// callees, so there is nothing to violate.
-    private func isTriageableCaller(_ effect: DeclaredEffect) -> Bool {
+    private func isTriageableCaller(_ effect: Effect) -> Bool {
         switch effect {
         case .idempotent, .observational, .externallyIdempotent: return true
         case .nonIdempotent: return false
@@ -291,7 +291,7 @@ final class IdempotencyViolationVisitor: BasePatternVisitor, CrossFilePatternVis
     ///   the keyed guarantee is broken.
     /// - `externally_idempotent → idempotent / observational / externally_idempotent`:
     ///   **OK.** Composition holds.
-    private func violates(caller: DeclaredEffect, callee: DeclaredEffect) -> Bool {
+    private func violates(caller: Effect, callee: Effect) -> Bool {
         switch (caller, callee) {
         // Phase 1 cases
         case (.idempotent, .nonIdempotent):
@@ -315,7 +315,7 @@ final class IdempotencyViolationVisitor: BasePatternVisitor, CrossFilePatternVis
         call: FunctionCallExprSyntax,
         site: AnalysisSite,
         calleeName: String,
-        calleeEffect: DeclaredEffect,
+        calleeEffect: Effect,
         provenance: EffectProvenance
     ) {
         let callerName = site.callerName
@@ -381,7 +381,7 @@ final class IdempotencyViolationVisitor: BasePatternVisitor, CrossFilePatternVis
         )
     }
 
-    private func effectLabel(_ effect: DeclaredEffect) -> String {
+    private func effectLabel(_ effect: Effect) -> String {
         switch effect {
         case .idempotent: return "idempotent"
         case .observational: return "observational"

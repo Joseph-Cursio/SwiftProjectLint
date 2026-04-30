@@ -4,6 +4,7 @@
 //
 //  Created by Joseph Cursio on 7/9/25.
 //
+import SwiftEffectInference
 import SwiftProjectLintModels
 import SwiftSyntax
 
@@ -56,7 +57,7 @@ open class BasePatternVisitor: SyntaxVisitor, PatternVisitorProtocol {
     /// Populated by `ProjectLinter` from
     /// `LintConfiguration.enabledFrameworkWhitelists` when present.
     /// Idempotency visitors read this when calling
-    /// `HeuristicEffectInferrer.infer(call:imports:enabledFrameworks:)`.
+    /// `CallSiteEffectInferrer.infer(call:imports:enabledFrameworks:)`.
     public var enabledFrameworkWhitelists: Set<String>?
 
     /// Placeholder pattern used for cross-file visitors that set their pattern after initialization.

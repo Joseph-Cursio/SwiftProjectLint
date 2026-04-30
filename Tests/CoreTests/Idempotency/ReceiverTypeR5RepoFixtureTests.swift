@@ -7,7 +7,7 @@ import SwiftParser
 /// pointfreeco's `removeBetaAccess`. The receiver `users` is declared
 /// inside a trailing closure as `var users = [owner]`, then mutated via
 /// `users.append(contentsOf:)` inside a nested if-let. If the resolver
-/// handles this shape correctly, `HeuristicEffectInferrer.infer(call:)`
+/// handles this shape correctly, `CallSiteEffectInferrer.infer(call:)`
 /// must return nil at the `append` site.
 @Suite
 struct ReceiverTypeR5RepoFixtureTests {
@@ -44,7 +44,7 @@ struct ReceiverTypeR5RepoFixtureTests {
         }
         """
         let call = try findAppendCall(source)
-        #expect(ReceiverTypeResolver.resolve(receiverOf: call) == .stdlibCollection("Array"))
+        #expect(ReceiverShapes.resolve(receiverOf: call) == .stdlibCollection("Array"))
     }
 
     @Test
@@ -61,6 +61,6 @@ struct ReceiverTypeR5RepoFixtureTests {
         }
         """
         let call = try findAppendCall(source)
-        #expect(HeuristicEffectInferrer.infer(call: call) == nil)
+        #expect(CallSiteEffectInferrer.infer(call: call) == nil)
     }
 }

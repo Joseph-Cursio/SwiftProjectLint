@@ -23,7 +23,7 @@ struct FrameworkWhitelistTCATests {
         // reducer. With `import ComposableArchitecture` the override
         // beats the bare-name non-idempotent entry for `send`.
         let call = try firstCall(in: "func f() { send(.action) }")
-        #expect(HeuristicEffectInferrer.infer(
+        #expect(CallSiteEffectInferrer.infer(
             call: call, imports: ["ComposableArchitecture"], enabledFrameworks: nil
         ) == .idempotent)
     }
@@ -33,7 +33,7 @@ struct FrameworkWhitelistTCATests {
         // No TCA import — `send(...)` hits the bare-name non-idempotent
         // list, which is the default posture for ambiguous `send` calls.
         let call = try firstCall(in: "func f() { send(.action) }")
-        #expect(HeuristicEffectInferrer.infer(
+        #expect(CallSiteEffectInferrer.infer(
             call: call, imports: ["MyApp"], enabledFrameworks: nil
         ) == .nonIdempotent)
     }
@@ -45,7 +45,7 @@ struct FrameworkWhitelistTCATests {
         // helper should stay non-idempotent; only the closure-parameter
         // shape is exempted.
         let call = try firstCall(in: "func f() { mailer.send(.email) }")
-        #expect(HeuristicEffectInferrer.infer(
+        #expect(CallSiteEffectInferrer.infer(
             call: call, imports: ["ComposableArchitecture"], enabledFrameworks: nil
         ) == .nonIdempotent)
     }
@@ -55,7 +55,7 @@ struct FrameworkWhitelistTCATests {
         // Exact-match only. `sendEmail(...)` still hits the
         // `matchesNonIdempotentPrefix` path for composed camelCase verbs.
         let call = try firstCall(in: "func f() { sendEmail(to: user) }")
-        #expect(HeuristicEffectInferrer.infer(
+        #expect(CallSiteEffectInferrer.infer(
             call: call, imports: ["ComposableArchitecture"], enabledFrameworks: nil
         ) == .nonIdempotent)
     }
@@ -66,7 +66,7 @@ struct FrameworkWhitelistTCATests {
         // `enabled_framework_whitelists`. Override does not fire; the
         // bare-name non-idempotent list wins.
         let call = try firstCall(in: "func f() { send(.action) }")
-        #expect(HeuristicEffectInferrer.infer(
+        #expect(CallSiteEffectInferrer.infer(
             call: call, imports: ["ComposableArchitecture"], enabledFrameworks: ["Foundation"]
         ) == .nonIdempotent)
     }
@@ -74,7 +74,7 @@ struct FrameworkWhitelistTCATests {
     @Test
     func tca_bareSend_inferenceReason_namesFramework() throws {
         let call = try firstCall(in: "func f() { send(.action) }")
-        let reason = HeuristicEffectInferrer.inferenceReason(
+        let reason = CallSiteEffectInferrer.inferenceReason(
             for: call, imports: ["ComposableArchitecture"], enabledFrameworks: nil
         )
         #expect(reason == "from the ComposableArchitecture closure-parameter primitive `send`")

@@ -16,7 +16,7 @@ struct HeuristicInferenceReceiverGatingTests {
         // `[1, 2].append(3)` — bare-name `append` is whitelisted but the
         // receiver resolves to an Array literal. Stdlib exclusion fires.
         let call = try firstCall(in: "func f() { [1, 2].append(3) }")
-        #expect(HeuristicEffectInferrer.infer(call: call) == nil)
+        #expect(CallSiteEffectInferrer.infer(call: call) == nil)
     }
 
     @Test
@@ -31,7 +31,7 @@ struct HeuristicInferenceReceiverGatingTests {
         }
         """
         let call = try memberCall(method: "append", in: source)
-        #expect(HeuristicEffectInferrer.infer(call: call) == nil)
+        #expect(CallSiteEffectInferrer.infer(call: call) == nil)
     }
 
     @Test
@@ -40,7 +40,7 @@ struct HeuristicInferenceReceiverGatingTests {
             method: "append",
             in: "func f(xs: [Int]) { xs.append(1) }"
         )
-        #expect(HeuristicEffectInferrer.infer(call: call) == nil)
+        #expect(CallSiteEffectInferrer.infer(call: call) == nil)
     }
 
     @Test
@@ -52,7 +52,7 @@ struct HeuristicInferenceReceiverGatingTests {
             method: "append",
             in: #"func f(q: UserQueue) { q.append("a") }"#
         )
-        #expect(HeuristicEffectInferrer.infer(call: call) == .nonIdempotent)
+        #expect(CallSiteEffectInferrer.infer(call: call) == .nonIdempotent)
     }
 
     @Test
@@ -63,7 +63,7 @@ struct HeuristicInferenceReceiverGatingTests {
             method: "insert",
             in: "func f(s: Set<Int>) { s.insert(1) }"
         )
-        #expect(HeuristicEffectInferrer.infer(call: call) == nil)
+        #expect(CallSiteEffectInferrer.infer(call: call) == nil)
     }
 
     @Test
@@ -74,7 +74,7 @@ struct HeuristicInferenceReceiverGatingTests {
             method: "insert",
             in: "func f(s: UserSet) { s.insert(1) }"
         )
-        #expect(HeuristicEffectInferrer.infer(call: call) == .nonIdempotent)
+        #expect(CallSiteEffectInferrer.infer(call: call) == .nonIdempotent)
     }
 
     @Test
@@ -83,6 +83,6 @@ struct HeuristicInferenceReceiverGatingTests {
         // must return nil on excluded pairs so visitors don't emit stray
         // provenance prose when the effect itself was suppressed.
         let call = try memberCall(method: "append", in: "func f() { [1, 2].append(3) }")
-        #expect(HeuristicEffectInferrer.inferenceReason(for: call) == nil)
+        #expect(CallSiteEffectInferrer.inferenceReason(for: call) == nil)
     }
 }

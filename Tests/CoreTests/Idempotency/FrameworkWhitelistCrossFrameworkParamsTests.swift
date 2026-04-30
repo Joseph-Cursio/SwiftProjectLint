@@ -20,7 +20,7 @@ struct FrameworkWhitelistCrossFrameworkParamsTests {
         // retrieval. Cross-framework multi-framework table matches
         // because Hummingbird is in the candidate set.
         let call = try firstCall(in: "func f() { _ = parameters.get(\"id\") }")
-        #expect(HeuristicEffectInferrer.infer(
+        #expect(CallSiteEffectInferrer.infer(
             call: call, imports: ["Hummingbird"], enabledFrameworks: nil
         ) == .idempotent)
     }
@@ -30,7 +30,7 @@ struct FrameworkWhitelistCrossFrameworkParamsTests {
         // `req.parameters.get("name")` — Vapor URL parameter
         // retrieval. Same cross-framework entry as Hummingbird.
         let call = try firstCall(in: "func f() { _ = parameters.get(\"name\") }")
-        #expect(HeuristicEffectInferrer.infer(
+        #expect(CallSiteEffectInferrer.infer(
             call: call, imports: ["Vapor"], enabledFrameworks: nil
         ) == .idempotent)
     }
@@ -41,7 +41,7 @@ struct FrameworkWhitelistCrossFrameworkParamsTests {
         // framework table qualifies when at least one candidate is
         // active; having both active must not cause ambiguity.
         let call = try firstCall(in: "func f() { _ = parameters.get(\"id\") }")
-        #expect(HeuristicEffectInferrer.infer(
+        #expect(CallSiteEffectInferrer.infer(
             call: call, imports: ["Hummingbird", "Vapor"], enabledFrameworks: nil
         ) == .idempotent)
     }
@@ -53,7 +53,7 @@ struct FrameworkWhitelistCrossFrameworkParamsTests {
         // whitelist is the precision gate — without one of the listed
         // imports, a user-defined `parameters` variable stays unclassified.
         let call = try firstCall(in: "func f() { _ = parameters.get(\"id\") }")
-        #expect(HeuristicEffectInferrer.infer(
+        #expect(CallSiteEffectInferrer.infer(
             call: call, imports: ["MyApp"], enabledFrameworks: nil
         ) == nil)
     }
@@ -64,7 +64,7 @@ struct FrameworkWhitelistCrossFrameworkParamsTests {
         // parameter retrieval. Hummingbird-only; ships in the
         // single-framework table as a sibling to parameters.require.
         let call = try firstCall(in: "func f() { _ = queryParameters.get(\"page\") }")
-        #expect(HeuristicEffectInferrer.infer(
+        #expect(CallSiteEffectInferrer.infer(
             call: call, imports: ["Hummingbird"], enabledFrameworks: nil
         ) == .idempotent)
     }
@@ -75,7 +75,7 @@ struct FrameworkWhitelistCrossFrameworkParamsTests {
         // with a different accessor shape. Under Vapor-only imports,
         // the queryParameters.get entry must not match.
         let call = try firstCall(in: "func f() { _ = queryParameters.get(\"page\") }")
-        #expect(HeuristicEffectInferrer.infer(
+        #expect(CallSiteEffectInferrer.infer(
             call: call, imports: ["Vapor"], enabledFrameworks: nil
         ) == nil)
     }
@@ -87,7 +87,7 @@ struct FrameworkWhitelistCrossFrameworkParamsTests {
         // still qualifies because Vapor (the other candidate) remains
         // active in `enabledFrameworks`.
         let call = try firstCall(in: "func f() { _ = parameters.get(\"id\") }")
-        #expect(HeuristicEffectInferrer.infer(
+        #expect(CallSiteEffectInferrer.infer(
             call: call, imports: ["Hummingbird", "Vapor"],
             enabledFrameworks: ["Vapor"]
         ) == .idempotent)
@@ -98,7 +98,7 @@ struct FrameworkWhitelistCrossFrameworkParamsTests {
         // Both Hummingbird and Vapor disabled via config. Neither
         // candidate qualifies; cross-framework table doesn't match.
         let call = try firstCall(in: "func f() { _ = parameters.get(\"id\") }")
-        #expect(HeuristicEffectInferrer.infer(
+        #expect(CallSiteEffectInferrer.infer(
             call: call, imports: ["Hummingbird", "Vapor"],
             enabledFrameworks: ["Foundation"]
         ) == nil)
@@ -110,7 +110,7 @@ struct FrameworkWhitelistCrossFrameworkParamsTests {
         // file must not be silenced — the cross-framework entry is
         // receiver-scoped to `parameters` only.
         let call = try firstCall(in: "func f() { _ = foo.get(\"id\") }")
-        #expect(HeuristicEffectInferrer.infer(
+        #expect(CallSiteEffectInferrer.infer(
             call: call, imports: ["Hummingbird", "Vapor"], enabledFrameworks: nil
         ) == nil)
     }
@@ -118,7 +118,7 @@ struct FrameworkWhitelistCrossFrameworkParamsTests {
     @Test
     func slot18_parametersGet_inferenceReason_hummingbird() throws {
         let call = try firstCall(in: "func f() { _ = parameters.get(\"id\") }")
-        let reason = HeuristicEffectInferrer.inferenceReason(
+        let reason = CallSiteEffectInferrer.inferenceReason(
             for: call, imports: ["Hummingbird"], enabledFrameworks: nil
         )
         #expect(reason == "from the Hummingbird primitive `parameters.get`")
@@ -127,7 +127,7 @@ struct FrameworkWhitelistCrossFrameworkParamsTests {
     @Test
     func slot18_parametersGet_inferenceReason_vapor() throws {
         let call = try firstCall(in: "func f() { _ = parameters.get(\"id\") }")
-        let reason = HeuristicEffectInferrer.inferenceReason(
+        let reason = CallSiteEffectInferrer.inferenceReason(
             for: call, imports: ["Vapor"], enabledFrameworks: nil
         )
         #expect(reason == "from the Vapor primitive `parameters.get`")

@@ -88,7 +88,7 @@ final class OnceContractViolationVisitor: BasePatternVisitor, CrossFilePatternVi
         analysisSites.append(
             AnalysisSite(
                 function: node,
-                callerContext: EffectAnnotationParser.parseContext(declaration: node),
+                callerContext: ContextAnnotationParser.parseContext(declaration: node),
                 filePath: currentFilePath,
                 locationConverter: converter
             )

@@ -17,7 +17,7 @@ struct FrameworkWhitelistHummingbirdTests {
     @Test
     func importGated_hummingbirdPresent_httpErrorFires() throws {
         let call = try firstCall(in: "func f() { _ = HTTPError(.notFound) }")
-        #expect(HeuristicEffectInferrer.infer(
+        #expect(CallSiteEffectInferrer.infer(
             call: call, imports: ["Hummingbird"], enabledFrameworks: nil
         ) == .idempotent)
     }
@@ -27,7 +27,7 @@ struct FrameworkWhitelistHummingbirdTests {
         // A user-defined `HTTPError` type in a module without Hummingbird
         // shouldn't classify.
         let call = try firstCall(in: "func f() { _ = HTTPError(.notFound) }")
-        #expect(HeuristicEffectInferrer.infer(
+        #expect(CallSiteEffectInferrer.infer(
             call: call, imports: ["MyApp"], enabledFrameworks: nil
         ) == nil)
     }
@@ -35,7 +35,7 @@ struct FrameworkWhitelistHummingbirdTests {
     @Test
     func importGated_hummingbirdPresent_requestDecodeFires() throws {
         let call = try firstCall(in: "func f() { try await request.decode(as: T.self) }")
-        #expect(HeuristicEffectInferrer.infer(
+        #expect(CallSiteEffectInferrer.infer(
             call: call, imports: ["Hummingbird"], enabledFrameworks: nil
         ) == .idempotent)
     }
@@ -43,7 +43,7 @@ struct FrameworkWhitelistHummingbirdTests {
     @Test
     func importGated_hummingbirdAbsent_requestDecodeDoesNotFire() throws {
         let call = try firstCall(in: "func f() { try await request.decode(as: T.self) }")
-        #expect(HeuristicEffectInferrer.infer(
+        #expect(CallSiteEffectInferrer.infer(
             call: call, imports: ["MyApp"], enabledFrameworks: nil
         ) == nil)
     }
@@ -53,7 +53,7 @@ struct FrameworkWhitelistHummingbirdTests {
         // Chained receiver — callParts extracts "parameters" from
         // context.parameters.require(...) via the immediate-parent rule.
         let call = try firstCall(in: "func f() { try context.parameters.require(\"id\", as: UUID.self) }")
-        #expect(HeuristicEffectInferrer.infer(
+        #expect(CallSiteEffectInferrer.infer(
             call: call, imports: ["Hummingbird"], enabledFrameworks: nil
         ) == .idempotent)
     }
@@ -61,7 +61,7 @@ struct FrameworkWhitelistHummingbirdTests {
     @Test
     func importGated_hummingbirdAbsent_parametersRequireDoesNotFire() throws {
         let call = try firstCall(in: "func f() { try context.parameters.require(\"id\", as: UUID.self) }")
-        #expect(HeuristicEffectInferrer.infer(
+        #expect(CallSiteEffectInferrer.infer(
             call: call, imports: ["MyApp"], enabledFrameworks: nil
         ) == nil)
     }
@@ -73,7 +73,7 @@ struct FrameworkWhitelistHummingbirdTests {
         // `request.decode` is whitelisted, not arbitrary `.decode()`).
         // Codec-receiver path handles `decoder.decode` etc. separately.
         let call = try firstCall(in: "func f() { try foo.decode(T.self) }")
-        #expect(HeuristicEffectInferrer.infer(
+        #expect(CallSiteEffectInferrer.infer(
             call: call, imports: ["Hummingbird"], enabledFrameworks: nil
         ) == nil)
     }
@@ -82,7 +82,7 @@ struct FrameworkWhitelistHummingbirdTests {
     func hummingbirdPair_wrongMethod_doesNotFire() throws {
         // `.wibble()` on `request` — method isn't in the pair table.
         let call = try firstCall(in: "func f() { request.wibble() }")
-        #expect(HeuristicEffectInferrer.infer(
+        #expect(CallSiteEffectInferrer.infer(
             call: call, imports: ["Hummingbird"], enabledFrameworks: nil
         ) == nil)
     }
@@ -90,7 +90,7 @@ struct FrameworkWhitelistHummingbirdTests {
     @Test
     func configGated_hummingbirdDisabled_httpErrorDoesNotFire() throws {
         let call = try firstCall(in: "func f() { _ = HTTPError(.notFound) }")
-        #expect(HeuristicEffectInferrer.infer(
+        #expect(CallSiteEffectInferrer.infer(
             call: call, imports: ["Hummingbird"], enabledFrameworks: ["Foundation"]
         ) == nil)
     }
@@ -98,7 +98,7 @@ struct FrameworkWhitelistHummingbirdTests {
     @Test
     func hummingbird_httpError_inferenceReason() throws {
         let call = try firstCall(in: "func f() { _ = HTTPError(.notFound) }")
-        let reason = HeuristicEffectInferrer.inferenceReason(
+        let reason = CallSiteEffectInferrer.inferenceReason(
             for: call, imports: ["Hummingbird"], enabledFrameworks: nil
         )
         #expect(reason == "from the known-idempotent Hummingbird type `HTTPError`")
@@ -107,7 +107,7 @@ struct FrameworkWhitelistHummingbirdTests {
     @Test
     func hummingbird_requestDecode_inferenceReason() throws {
         let call = try firstCall(in: "func f() { try request.decode(as: T.self) }")
-        let reason = HeuristicEffectInferrer.inferenceReason(
+        let reason = CallSiteEffectInferrer.inferenceReason(
             for: call, imports: ["Hummingbird"], enabledFrameworks: nil
         )
         #expect(reason == "from the Hummingbird primitive `request.decode`")
@@ -121,7 +121,7 @@ struct FrameworkWhitelistHummingbirdTests {
         // a `buildRouter()` / `addXRoutes(to router:)` helper. Without
         // this whitelist, strict mode would flag `get` as unannotated.
         let call = try firstCall(in: "func f() { router.get(\"/x\") { _, _ in \"\" } }")
-        #expect(HeuristicEffectInferrer.infer(
+        #expect(CallSiteEffectInferrer.infer(
             call: call, imports: ["Hummingbird"], enabledFrameworks: nil
         ) == .idempotent)
     }
@@ -134,7 +134,7 @@ struct FrameworkWhitelistHummingbirdTests {
         // registration helpers annotated `@lint.context replayable`
         // would mis-fire on every `router.post(...)` DSL call.
         let call = try firstCall(in: "func f() { router.post(\"/x\") { _, _ in } }")
-        #expect(HeuristicEffectInferrer.infer(
+        #expect(CallSiteEffectInferrer.infer(
             call: call, imports: ["Hummingbird"], enabledFrameworks: nil
         ) == .idempotent)
     }
@@ -142,7 +142,7 @@ struct FrameworkWhitelistHummingbirdTests {
     @Test
     func importGated_hummingbirdPresent_routerPutFires() throws {
         let call = try firstCall(in: "func f() { router.put(\"/x\") { _, _ in } }")
-        #expect(HeuristicEffectInferrer.infer(
+        #expect(CallSiteEffectInferrer.infer(
             call: call, imports: ["Hummingbird"], enabledFrameworks: nil
         ) == .idempotent)
     }
@@ -150,7 +150,7 @@ struct FrameworkWhitelistHummingbirdTests {
     @Test
     func importGated_hummingbirdPresent_routerPatchFires() throws {
         let call = try firstCall(in: "func f() { router.patch(\"/x\") { _, _ in } }")
-        #expect(HeuristicEffectInferrer.infer(
+        #expect(CallSiteEffectInferrer.infer(
             call: call, imports: ["Hummingbird"], enabledFrameworks: nil
         ) == .idempotent)
     }
@@ -158,7 +158,7 @@ struct FrameworkWhitelistHummingbirdTests {
     @Test
     func importGated_hummingbirdPresent_routerDeleteFires() throws {
         let call = try firstCall(in: "func f() { router.delete(\"/x\") { _, _ in } }")
-        #expect(HeuristicEffectInferrer.infer(
+        #expect(CallSiteEffectInferrer.infer(
             call: call, imports: ["Hummingbird"], enabledFrameworks: nil
         ) == .idempotent)
     }
@@ -170,7 +170,7 @@ struct FrameworkWhitelistHummingbirdTests {
         // whitelist is what silences the diagnostic, not a structural
         // override of the bare-name lexicon.
         let call = try firstCall(in: "func f() { router.post(\"/x\") { _, _ in } }")
-        #expect(HeuristicEffectInferrer.infer(
+        #expect(CallSiteEffectInferrer.infer(
             call: call, imports: ["MyApp"], enabledFrameworks: nil
         ) == .nonIdempotent)
     }
@@ -181,7 +181,7 @@ struct FrameworkWhitelistHummingbirdTests {
         // lists, so without the Hummingbird pair match the inferrer has
         // nothing to say — strict mode would surface it as unannotated.
         let call = try firstCall(in: "func f() { router.get(\"/x\") { _, _ in \"\" } }")
-        #expect(HeuristicEffectInferrer.infer(
+        #expect(CallSiteEffectInferrer.infer(
             call: call, imports: ["MyApp"], enabledFrameworks: nil
         ) == nil)
     }
@@ -192,7 +192,7 @@ struct FrameworkWhitelistHummingbirdTests {
         // importing file: the slot-16 pair must not fire, and the bare-
         // name `post` lexicon path should still classify as non-idempotent.
         let call = try firstCall(in: "func f() { mailer.post(email) }")
-        #expect(HeuristicEffectInferrer.infer(
+        #expect(CallSiteEffectInferrer.infer(
             call: call, imports: ["Hummingbird"], enabledFrameworks: nil
         ) == .nonIdempotent)
     }
@@ -203,7 +203,7 @@ struct FrameworkWhitelistHummingbirdTests {
         // `enabled_framework_whitelists`. Slot-16 pair should not fire;
         // the bare-name `post` classification reasserts itself.
         let call = try firstCall(in: "func f() { router.post(\"/x\") { _, _ in } }")
-        #expect(HeuristicEffectInferrer.infer(
+        #expect(CallSiteEffectInferrer.infer(
             call: call, imports: ["Hummingbird"], enabledFrameworks: ["Foundation"]
         ) == .nonIdempotent)
     }
@@ -211,7 +211,7 @@ struct FrameworkWhitelistHummingbirdTests {
     @Test
     func hummingbird_routerPost_inferenceReason() throws {
         let call = try firstCall(in: "func f() { router.post(\"/x\") { _, _ in } }")
-        let reason = HeuristicEffectInferrer.inferenceReason(
+        let reason = CallSiteEffectInferrer.inferenceReason(
             for: call, imports: ["Hummingbird"], enabledFrameworks: nil
         )
         #expect(reason == "from the Hummingbird primitive `router.post`")
@@ -225,7 +225,7 @@ struct FrameworkWhitelistHummingbirdTests {
         // framework-gated non-idempotent method path (step 11) where
         // Fluent's `delete` ORM verb lives.
         let routerCall = try firstCall(in: "func f() { router.delete(\"/x\") { _, _ in } }")
-        #expect(HeuristicEffectInferrer.infer(
+        #expect(CallSiteEffectInferrer.infer(
             call: routerCall, imports: ["Hummingbird", "FluentKit"], enabledFrameworks: nil
         ) == .idempotent)
 
@@ -233,7 +233,7 @@ struct FrameworkWhitelistHummingbirdTests {
         // a non-`router` receiver must still hit Fluent's ORM-verb path
         // — the slot-16 entry is receiver-scoped to `router` only.
         let modelCall = try firstCall(in: "func f() { try await model.delete(on: db) }")
-        #expect(HeuristicEffectInferrer.infer(
+        #expect(CallSiteEffectInferrer.infer(
             call: modelCall, imports: ["Hummingbird", "FluentKit"], enabledFrameworks: nil
         ) == .nonIdempotent)
     }
