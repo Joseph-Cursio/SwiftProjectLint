@@ -113,7 +113,7 @@ struct DetectorCoreTests {
         let crossFileRules: Set<RuleIdentifier> = [
             .relatedDuplicateStateVariable, .unrelatedDuplicateStateVariable
         ]
-        #expect(issues1.filter { crossFileRules.contains($0.ruleName) }.isEmpty)
-        #expect(issues2.filter { crossFileRules.contains($0.ruleName) }.isEmpty)
+        #expect(issues1.contains { crossFileRules.contains($0.ruleName) } == false)
+        #expect(issues2.contains { crossFileRules.contains($0.ruleName) } == false)
     }
 } 

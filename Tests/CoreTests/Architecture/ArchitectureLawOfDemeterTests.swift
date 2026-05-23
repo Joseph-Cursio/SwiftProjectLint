@@ -234,7 +234,7 @@ struct ArchitectureLawOfDemeterTests {
         }
         """
         let issues = analyzeSource(source)
-        #expect(issues.filter { $0.ruleName == .lawOfDemeter }.isEmpty)
+        #expect(issues.contains { $0.ruleName == .lawOfDemeter } == false)
     }
 
     @Test func testNoIssueWhenTrimmedDescriptionIsIntermediate() {
@@ -247,7 +247,7 @@ struct ArchitectureLawOfDemeterTests {
         }
         """
         let issues = analyzeSource(source)
-        #expect(issues.filter { $0.ruleName == .lawOfDemeter }.isEmpty)
+        #expect(issues.contains { $0.ruleName == .lawOfDemeter } == false)
     }
 
     @Test func testNoIssueWhenColorIsIntermediate() {
@@ -261,7 +261,7 @@ struct ArchitectureLawOfDemeterTests {
         }
         """
         let issues = analyzeSource(source)
-        #expect(issues.filter { $0.ruleName == .lawOfDemeter }.isEmpty)
+        #expect(issues.contains { $0.ruleName == .lawOfDemeter } == false)
     }
 
     @Test func testNoIssueForLowerBoundTerminal() {
@@ -274,7 +274,7 @@ struct ArchitectureLawOfDemeterTests {
         }
         """
         let issues = analyzeSource(source)
-        #expect(issues.filter { $0.ruleName == .lawOfDemeter }.isEmpty)
+        #expect(issues.contains { $0.ruleName == .lawOfDemeter } == false)
     }
 
     @Test func testNoIssueForUpperBoundTerminal() {
@@ -286,7 +286,7 @@ struct ArchitectureLawOfDemeterTests {
         }
         """
         let issues = analyzeSource(source)
-        #expect(issues.filter { $0.ruleName == .lawOfDemeter }.isEmpty)
+        #expect(issues.contains { $0.ruleName == .lawOfDemeter } == false)
     }
 
     // MARK: - Still detects real violations
@@ -325,7 +325,7 @@ struct ArchitectureLawOfDemeterTests {
         }
         """
         let issues = analyzeSource(source)
-        #expect(issues.filter { $0.ruleName == .lawOfDemeter }.isEmpty)
+        #expect(issues.contains { $0.ruleName == .lawOfDemeter } == false)
     }
 
     @Test func testNoIssueForEnvironmentRoot() {
@@ -337,7 +337,7 @@ struct ArchitectureLawOfDemeterTests {
         }
         """
         let issues = analyzeSource(source)
-        #expect(issues.filter { $0.ruleName == .lawOfDemeter }.isEmpty)
+        #expect(issues.contains { $0.ruleName == .lawOfDemeter } == false)
     }
 
     @Test func testNoIssueForGeometryAccess() {
@@ -349,7 +349,7 @@ struct ArchitectureLawOfDemeterTests {
         }
         """
         let issues = analyzeSource(source)
-        #expect(issues.filter { $0.ruleName == .lawOfDemeter }.isEmpty)
+        #expect(issues.contains { $0.ruleName == .lawOfDemeter } == false)
     }
 
     @Test func testNoIssueForNavigatorRoot() {
@@ -361,6 +361,6 @@ struct ArchitectureLawOfDemeterTests {
         }
         """
         let issues = analyzeSource(source)
-        #expect(issues.filter { $0.ruleName == .lawOfDemeter }.isEmpty)
+        #expect(issues.contains { $0.ruleName == .lawOfDemeter } == false)
     }
 }
