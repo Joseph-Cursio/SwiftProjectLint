@@ -164,11 +164,14 @@ class ViewRelationshipVisitor: SyntaxVisitor {
     private func findAllCustomViews(in expr: Syntax) -> [String] {
         if let call = expr.as(FunctionCallExprSyntax.self) {
             return findCustomViewsInCall(call)
-        } else if let codeBlock = expr.as(CodeBlockSyntax.self) {
+        }
+        if let codeBlock = expr.as(CodeBlockSyntax.self) {
             return findAllCustomViews(in: codeBlock.statements)
-        } else if let sequence = expr.as(SequenceExprSyntax.self) {
+        }
+        if let sequence = expr.as(SequenceExprSyntax.self) {
             return sequence.elements.flatMap { findAllCustomViews(in: Syntax($0)) }
-        } else if let tuple = expr.as(TupleExprSyntax.self) {
+        }
+        if let tuple = expr.as(TupleExprSyntax.self) {
             return tuple.elements.flatMap { findAllCustomViews(in: Syntax($0.expression)) }
         }
         return []
@@ -180,7 +183,8 @@ class ViewRelationshipVisitor: SyntaxVisitor {
 
         if !containerViews.contains(name) && !systemViews.contains(name) {
             return [name]
-        } else if containerViews.contains(name) {
+        }
+        if containerViews.contains(name) {
             return findCustomViewsInContainerArgs(call)
         }
         return []
@@ -189,7 +193,8 @@ class ViewRelationshipVisitor: SyntaxVisitor {
     private func extractViewNameFromCalledExpression(_ expr: ExprSyntax) -> String? {
         if let called = expr.as(DeclReferenceExprSyntax.self) {
             return called.baseName.text
-        } else if let member = expr.as(MemberAccessExprSyntax.self) {
+        }
+        if let member = expr.as(MemberAccessExprSyntax.self) {
             return member.declName.baseName.text
         }
         return nil

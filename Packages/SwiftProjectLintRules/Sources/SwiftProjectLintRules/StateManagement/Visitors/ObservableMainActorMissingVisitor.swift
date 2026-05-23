@@ -7,8 +7,8 @@ import SwiftSyntax
 /// annotated `@MainActor`.
 ///
 /// **Why this matters:** The `@Observable` macro (Swift 5.9 / iOS 17+) synthesises
-/// observation infrastructure for every stored property in the class.  Those properties
-/// drive SwiftUI view updates, which are inherently main-thread operations.  Without
+/// observation infrastructure for every stored property in the class. Those properties
+/// drive SwiftUI view updates, which are inherently main-thread operations. Without
 /// `@MainActor`, any code — including background `Task`s — can mutate observed state
 /// off the main thread, producing data races and undefined rendering behaviour under
 /// Swift 6 strict concurrency.
@@ -19,10 +19,10 @@ import SwiftSyntax
 ///
 /// **Cross-file suppression:** Uses a two-pass approach via `CrossFilePatternVisitorProtocol`.
 /// Pass 1 (the walk) collects all explicitly `@MainActor`-annotated class names across every
-/// file in the project.  Pass 2 (`finalizeAnalysis`) suppresses candidates whose direct
+/// file in the project. Pass 2 (`finalizeAnalysis`) suppresses candidates whose direct
 /// superclass is in that set — the subclass inherits main-actor isolation automatically.
 ///
-/// **Known limitation:** Suppression covers one level of inheritance only.  Multi-level
+/// **Known limitation:** Suppression covers one level of inheritance only. Multi-level
 /// chains and classes from external frameworks or SPM packages are not in the file cache.
 /// Teams using `swiftSettings: [.defaultIsolation(MainActor.self)]` in `Package.swift`
 /// will see false positives; they should disable this rule for those targets.

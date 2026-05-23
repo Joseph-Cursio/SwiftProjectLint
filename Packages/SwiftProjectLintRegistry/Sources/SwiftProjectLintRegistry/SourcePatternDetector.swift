@@ -57,7 +57,7 @@ public final class SourcePatternDetector: SourcePatternDetectorProtocol, @unchec
         parsedAST: SourceFileSyntax? = nil
     ) -> [LintIssue] {
         let patterns: [SyntaxPattern]
-        if let categories = categories {
+        if let categories {
             patterns = categories.flatMap { registry.getPatterns(for: $0) }
         } else {
             patterns = registry.getAllPatterns()

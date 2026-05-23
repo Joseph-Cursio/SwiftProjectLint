@@ -27,9 +27,8 @@ class ContentViewModel {
            let saved = try? JSONDecoder().decode(Set<RuleIdentifier>.self, from: data),
            !saved.isEmpty {
             return saved
-        } else {
-            return Set(RuleIdentifier.allCases)
         }
+        return Set(RuleIdentifier.allCases)
     }()
     var showingDirectoryPicker: Bool = false
     var analysisTask: Task<Void, Never>?

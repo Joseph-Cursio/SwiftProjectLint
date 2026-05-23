@@ -142,8 +142,8 @@ extension DocumentationVisitor {
         let checkPublicAPIsOnly: Bool
 
         // swiftprojectlint:disable:this could-be-private-member
-        static let `default` = Configuration(checkPublicAPIsOnly: true)
+        static let `default` = Self(checkPublicAPIsOnly: true)
         // swiftprojectlint:disable:this could-be-private-member
-        static let strict = Configuration(checkPublicAPIsOnly: false)
+        static let strict = Self(checkPublicAPIsOnly: false)
     }
 }

@@ -57,14 +57,14 @@ public enum SwiftUIViewType: String, CaseIterable, Sendable {
     case color = "Color"
 }
 
-public extension SwiftUIViewType {
+extension SwiftUIViewType {
     /// Container views that hold child views in a layout.
-    static let containerViews: Set<SwiftUIViewType> = [
+    public static let containerViews: Set<SwiftUIViewType> = [
         .vStack, .hStack, .zStack, .group, .scrollView, .list, .section, .form
     ]
 
     /// Built-in system views that are not custom user-defined views.
-    static let systemViews: Set<SwiftUIViewType> = [
+    public static let systemViews: Set<SwiftUIViewType> = [
         // Basic display
         .text, .image, .spacer, .divider, .emptyView, .label,
         // Interactive

@@ -84,7 +84,7 @@ final class TapTargetTooSmallVisitor: BasePatternVisitor {
 
     /// Walks the modifier chain backwards to check if the root is an interactive element.
     private func hasInteractiveRoot(from node: FunctionCallExprSyntax) -> Bool {
-        var current: ExprSyntax = ExprSyntax(node)
+        var current = ExprSyntax(node)
 
         while true {
             if let call = current.as(FunctionCallExprSyntax.self),

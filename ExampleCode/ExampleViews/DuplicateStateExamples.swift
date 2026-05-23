@@ -20,13 +20,13 @@ struct ParentView: View {
             
             Button("Show Child") {
                 showAlert = true
-            }
+    }
             
             ChildView()
-        }
+}
         .alert("Alert", isPresented: $showAlert) {
-            Button("OK") { }
-        }
+            Button("OK") { } 
+}
     }
 }
 
@@ -52,10 +52,10 @@ struct ChildView: View {
             
             Button("Toggle Loading") {
                 isLoading.toggle()
-            }
         }
+}
         .alert("Child Alert", isPresented: $showAlert) {
-            Button("OK") { }
+            Button("OK") { } 
         }
         .padding()
         .border(Color.blue)
@@ -73,7 +73,7 @@ struct GrandparentView: View {
             Text(message)
             
             ParentWithDuplicateState()
-        }
+    }
     }
 }
 
@@ -88,7 +88,7 @@ struct ParentWithDuplicateState: View {
                 
                 ChildWithDuplicateState()
             }
-        }
+            }
     }
 }
 
@@ -104,11 +104,11 @@ struct ChildWithDuplicateState: View {
                 
                 ForEach(data, id: \.self) { item in
                     Text(item)
-                }
+            }
                 
                 DeepChildView()
             }
-        }
+            }
     }
 }
 
@@ -137,7 +137,7 @@ struct TypeDuplicateParent: View {
         VStack {
             Text("Value: \(value)")
             TypeDuplicateChild()
-        }
+}
     }
 }
 
@@ -149,6 +149,6 @@ struct TypeDuplicateChild: View {
         VStack {
             Text("Value: \(value)")
             Text("Items count: \(items.count)")
-        }
+            }
     }
 }

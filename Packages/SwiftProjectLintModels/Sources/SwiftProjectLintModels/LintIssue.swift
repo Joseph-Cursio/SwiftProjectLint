@@ -24,7 +24,7 @@ import Foundation
 ///
 /// - SeeAlso: `IssueSeverity`
 public struct LintIssue: Identifiable, Sendable {
-    public let id: UUID = UUID()
+    public let id = UUID()
     public let severity: IssueSeverity
     public let message: String
     /// The locations (file path and line number pairs) where the issue occurs.

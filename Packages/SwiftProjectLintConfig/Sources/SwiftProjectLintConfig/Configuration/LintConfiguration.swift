@@ -78,7 +78,7 @@ public struct LintConfiguration: Sendable {
     ]
 
     /// Default configuration — all rules enabled, no exclusions.
-    public static let `default` = LintConfiguration()
+    public static let `default` = Self()
 
     /// Computes the effective set of rule identifiers to run, given optional CLI overrides.
     public func resolveRules(
@@ -188,12 +188,12 @@ public struct LintConfiguration: Sendable {
             // Strip **/ and match the remainder against the basename using fnmatch
             let basenamePattern = String(pattern.dropFirst(3))
             return fnmatch(basenamePattern, basename, 0) == 0
-        } else if pattern.contains("*") {
+        }
+        if pattern.contains("*") {
             // General glob — match against the full relative path
             return fnmatch(pattern, relativePath, 0) == 0
-        } else {
-            // Simple substring match
-            return relativePath.contains(pattern)
         }
+        // Simple substring match
+        return relativePath.contains(pattern)
     }
 }

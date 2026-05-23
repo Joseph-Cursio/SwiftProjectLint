@@ -35,7 +35,7 @@ class SwiftUIManagementVisitor: BasePatternVisitor {
         let checkForDuplicates: Bool
         let checkForUnused: Bool
 
-        fileprivate static let `default` = Configuration(
+        fileprivate static let `default` = Self(
             maxStateVariables: 5,
             checkForDuplicates: true,
             checkForUnused: true

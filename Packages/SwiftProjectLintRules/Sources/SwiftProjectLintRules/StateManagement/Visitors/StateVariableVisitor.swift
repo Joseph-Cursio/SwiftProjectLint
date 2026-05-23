@@ -36,7 +36,7 @@ class StateVariableVisitor: SyntaxVisitor {
     struct VisitorConfig {
         let strictTypeChecking: Bool
 
-        fileprivate static let `default` = VisitorConfig(
+        fileprivate static let `default` = Self(
             strictTypeChecking: false
         )
 
@@ -87,7 +87,7 @@ class StateVariableVisitor: SyntaxVisitor {
 
     /// Extracts property wrapper information from variable attributes
     private func extractPropertyWrapper(from attributes: AttributeListSyntax?) -> PropertyWrapper? {
-        guard let attributes = attributes else { return nil }
+        guard let attributes else { return nil }
 
         for attribute in attributes {
             if let attributeSyntax = attribute.as(AttributeSyntax.self),
@@ -102,11 +102,11 @@ class StateVariableVisitor: SyntaxVisitor {
 
     /// Extracts and formats type information from type annotations or infers from initializer
     private func extractTypeString(from typeAnnotation: TypeAnnotationSyntax?, initializer: InitializerClauseSyntax?) -> String {
-        if let typeAnnotation = typeAnnotation {
+        if let typeAnnotation {
             return extractTypeFromAnnotation(typeAnnotation)
         }
         
-        if let initializer = initializer {
+        if let initializer {
             return inferTypeFromInitializer(initializer)
         }
         
@@ -166,8 +166,7 @@ class StateVariableVisitor: SyntaxVisitor {
         
         // Check for function calls
         if trimmedText.hasSuffix("()") {
-            let functionName = String(trimmedText.dropLast(2))
-            return functionName
+            return String(trimmedText.dropLast(2))
         }
         
         // Check for array literals
@@ -199,9 +198,11 @@ class StateVariableVisitor: SyntaxVisitor {
         
         if text.contains("CGSize") {
             return "CGSize"
-        } else if text.contains("CGPoint") {
+        }
+        if text.contains("CGPoint") {
             return "CGPoint"
-        } else if text.contains("CGRect") {
+        }
+        if text.contains("CGRect") {
             return "CGRect"
         }
         
@@ -310,12 +311,10 @@ class StateVariableVisitor: SyntaxVisitor {
         return stateVariables.filter { stateVar in
             // Look for ObservableObject types that might be shared across views
             // @StateObject and @ObservedObject are typically used with ObservableObject types
-            let isStateOrObserved = stateVar.propertyWrapper == .stateObject ||
-                                  stateVar.propertyWrapper == .observedObject
-
             // For @StateObject and @ObservedObject, we assume they are ObservableObject types
             // since that's the intended use case for these property wrappers
-            return isStateOrObserved
+            return stateVar.propertyWrapper == .stateObject ||
+                                  stateVar.propertyWrapper == .observedObject
         }
     }
 }

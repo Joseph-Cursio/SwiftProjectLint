@@ -174,7 +174,8 @@ class NetworkingVisitor: BasePatternVisitor {
 
         if thirdName == "error" || thirdNameAlt == "error" {
             return checkErrorHandlingForErrorParameter(closure.statements.description)
-        } else if thirdName == "_" || thirdNameAlt == "_" || thirdName.isEmpty {
+        }
+        if thirdName == "_" || thirdNameAlt == "_" || thirdName.isEmpty {
             reportIgnoredErrorParameter(node: node)
             return true // Return true to prevent duplicate issue
         }

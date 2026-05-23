@@ -97,11 +97,10 @@ final class ViewModelDirectDBAccessVisitor: BasePatternVisitor {
         }
 
         // Attribute-based: @Observable
-        let hasObservable = node.attributes.contains { attr in
+        return node.attributes.contains { attr in
             guard let attrSyntax = attr.as(AttributeSyntax.self) else { return false }
             return attrSyntax.attributeName.trimmedDescription == "Observable"
         }
-        return hasObservable
     }
 
     private func isRepositoryClass(_ name: String) -> Bool {

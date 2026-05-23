@@ -73,7 +73,7 @@ class ModifierOrderVisitor: BasePatternVisitor {
     /// So we walk from outer to inner, collecting names, then reverse.
     private func extractModifierChain(from node: FunctionCallExprSyntax) -> [(name: String, node: Syntax)] {
         var chain: [(name: String, node: Syntax)] = []
-        var current: ExprSyntax = ExprSyntax(node)
+        var current = ExprSyntax(node)
 
         while let call = current.as(FunctionCallExprSyntax.self),
               let memberAccess = call.calledExpression.as(MemberAccessExprSyntax.self) {

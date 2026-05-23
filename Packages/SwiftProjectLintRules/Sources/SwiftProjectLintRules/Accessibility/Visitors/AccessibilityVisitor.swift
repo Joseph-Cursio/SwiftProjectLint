@@ -30,7 +30,7 @@ class AccessibilityVisitor: BasePatternVisitor {
         let minTextLengthForHint: Int
 
         /// Default configuration.
-        fileprivate static let `default` = Configuration(minTextLengthForHint: 50)
+        fileprivate static let `default` = Self(minTextLengthForHint: 50)
     }
 
     /// The configuration for this visitor.

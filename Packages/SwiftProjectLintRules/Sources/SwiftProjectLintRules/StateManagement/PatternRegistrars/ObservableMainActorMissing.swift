@@ -5,9 +5,9 @@ import Foundation
 
 /// A registrar for the observable-main-actor-missing pattern.
 ///
-/// Detects `@Observable` classes that are not annotated `@MainActor`.  In Swift 6
+/// Detects `@Observable` classes that are not annotated `@MainActor`. In Swift 6
 /// strict concurrency, the synthesised observation infrastructure drives SwiftUI view
-/// updates — which are inherently main-thread operations.  Without `@MainActor` the
+/// updates — which are inherently main-thread operations  Without `@MainActor` the
 /// compiler does not prevent off-thread mutations, creating silent data races.
 struct ObservableMainActorMissing: PatternRegistrarProtocol {
 

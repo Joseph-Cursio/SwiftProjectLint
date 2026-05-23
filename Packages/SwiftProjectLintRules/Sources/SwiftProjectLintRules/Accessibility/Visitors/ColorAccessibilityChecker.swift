@@ -91,7 +91,7 @@ class ColorAccessibilityChecker {
         // The parent of Color.red is the MemberAccessExpr for the whole `Color.red` expression,
         // which may be the base of another MemberAccessExpr `.opacity`, which is the calledExpression
         // of a FunctionCallExpr `.opacity(0.1)`.
-        var current: Syntax = Syntax(node)
+        var current = Syntax(node)
 
         // Walk up through the syntax tree looking for an .opacity() call
         for _ in 0..<4 {

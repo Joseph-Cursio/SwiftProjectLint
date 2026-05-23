@@ -229,7 +229,7 @@ class UIVisitor: BasePatternVisitor {
     }
 
     private func analyzeAccessorBlock(_ accessorBlock: AccessorBlockSyntax?, for node: VariableDeclSyntax) -> Bool {
-        guard let accessorBlock = accessorBlock else { return false }
+        guard let accessorBlock else { return false }
         for child in accessorBlock.accessors.children(viewMode: .all) {
             if let accessor = child.as(AccessorDeclSyntax.self), let body = accessor.body {
                 analyzeBodyTextForErrorHandling(body.description, node: node)
@@ -240,7 +240,7 @@ class UIVisitor: BasePatternVisitor {
     }
 
     private func analyzeInitializer(_ initializer: InitializerClauseSyntax?, for node: VariableDeclSyntax) -> Bool {
-        guard let initializer = initializer else { return false }
+        guard let initializer else { return false }
         if let closure = initializer.value.as(ClosureExprSyntax.self) {
             analyzeBodyTextForErrorHandling(closure.statements.description, node: node)
             return true
@@ -332,7 +332,7 @@ class UIVisitor: BasePatternVisitor {
         // but stop when we hit a closure body, code block, or container view — those modifiers
         // belong to the enclosing view, not this Text.
         var modifiers: Set<String> = []
-        var current: Syntax = Syntax(node)
+        var current = Syntax(node)
 
         while let parent = current.parent {
             // Stop at closure/code block boundaries — modifiers above here belong to a container

@@ -74,7 +74,7 @@ public class CrossFileAnalysisEngine: CrossFileAnalyzerProtocol {
                 if let baseVisitor = visitor as? BasePatternVisitor {
                     // Find the pattern that uses this visitor type
                     let patterns: [SyntaxPattern]
-                    if let categories = categories {
+                    if let categories {
                         patterns = categories.flatMap { registry.getPatterns(for: $0) }
                     } else {
                         patterns = registry.getAllPatterns()
@@ -209,11 +209,10 @@ public class CrossFileAnalysisEngine: CrossFileAnalyzerProtocol {
     // MARK: - Private Methods
 
     private func getVisitorsForCategories(_ categories: [PatternCategory]?) -> [PatternVisitorProtocol.Type] {
-        if let categories = categories {
+        if let categories {
             return categories.flatMap { registry.getVisitors(for: $0) }
-        } else {
-            return registry.getAllVisitors()
         }
+        return registry.getAllVisitors()
     }
 
 }

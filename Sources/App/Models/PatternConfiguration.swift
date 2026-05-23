@@ -33,7 +33,7 @@ struct PatternConfiguration {
     static func allPatternsByCategory(
         from patternRegistry: SourcePatternRegistryProtocol?
     ) -> [PatternCategoryInfo] {
-        guard let patternRegistry = patternRegistry else {
+        guard let patternRegistry else {
             // In test environments, return empty array instead of crashing
             // This allows tests to work without full environment setup
             #if DEBUG
@@ -145,7 +145,7 @@ struct PatternConfiguration {
         patternRegistry: SourcePatternRegistryProtocol?,
         enabledRuleNames: Set<RuleIdentifier>
     ) -> [PatternCategory] {
-        guard let patternRegistry = patternRegistry else {
+        guard let patternRegistry else {
             return []
         }
 

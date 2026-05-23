@@ -87,7 +87,7 @@ class HardcodedStringVisitor: BasePatternVisitor {
     // MARK: - Private helpers
 
     private func isInUserFacingContext(_ node: StringLiteralExprSyntax) -> Bool {
-        var current: Syntax = Syntax(node)
+        var current = Syntax(node)
         while let parent = current.parent {
             if let labeledArg = parent.as(LabeledExprSyntax.self),
                let argLabel = labeledArg.label?.text,

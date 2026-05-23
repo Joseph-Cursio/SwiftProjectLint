@@ -73,8 +73,8 @@ public struct EffectSymbolTable: Sendable {
 
     /// Builds a symbol table by walking every top-level and nested
     /// `FunctionDeclSyntax` in the source file.
-    public static func build(from source: SourceFileSyntax) -> EffectSymbolTable {
-        var table = EffectSymbolTable()
+    public static func build(from source: SourceFileSyntax) -> Self {
+        var table = Self()
         table.merge(source: source)
         return table
     }
@@ -291,10 +291,10 @@ public struct EffectSymbolTable: Sendable {
                 resolveCalleeEffect: { call in
                     if let sig = FunctionSignature.from(call: call) {
                         if isCollision(signature: sig) { return nil }
-                        if let declared = self.effect(for: sig) {
+                        if let declared = effect(for: sig) {
                             return UpwardInference(effect: declared, depth: 0)
                         }
-                        if includeUpward, let upward = self.upwardInference(for: sig) {
+                        if includeUpward, let upward = upwardInference(for: sig) {
                             return upward
                         }
                     }

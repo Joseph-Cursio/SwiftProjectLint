@@ -64,7 +64,7 @@ class AccessibilityTreeTraverser {
         // From a view/modifier call, the parent is a MemberAccessExpr (the
         // `.modifier` part), and *its* parent is the outer FunctionCallExpr
         // (the full `.modifier(args)` call). Repeat until we leave the chain.
-        var current: Syntax = Syntax(node)
+        var current = Syntax(node)
         while let memberAccess = current.parent?.as(MemberAccessExprSyntax.self),
               let modifierCall = memberAccess.parent?.as(FunctionCallExprSyntax.self) {
             if memberAccess.declName.baseName.text == modifierName {

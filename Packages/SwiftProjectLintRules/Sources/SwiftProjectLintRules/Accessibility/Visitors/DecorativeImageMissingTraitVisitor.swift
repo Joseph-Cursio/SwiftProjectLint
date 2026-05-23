@@ -120,7 +120,7 @@ final class DecorativeImageMissingTraitVisitor: BasePatternVisitor {
         var modifiers: Set<String> = []
 
         // Walk inner chain (backwards from this node)
-        var current: ExprSyntax = ExprSyntax(node)
+        var current = ExprSyntax(node)
         while let call = current.as(FunctionCallExprSyntax.self),
               let memberAccess = call.calledExpression.as(MemberAccessExprSyntax.self) {
             modifiers.insert(memberAccess.declName.baseName.text)

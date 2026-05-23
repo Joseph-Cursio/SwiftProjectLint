@@ -59,7 +59,7 @@ final class ImageWithoutResizableVisitor: BasePatternVisitor {
         from node: FunctionCallExprSyntax
     ) -> ModifierChain {
         var modifiers: [String] = []
-        var current: ExprSyntax = ExprSyntax(node)
+        var current = ExprSyntax(node)
 
         while true {
             if let call = current.as(FunctionCallExprSyntax.self),

@@ -20,11 +20,11 @@ extension RuleDocView {
         let comment: Color
         let attribute: Color
 
-        static func colors(for colorScheme: ColorScheme) -> SyntaxColors {
+        static func colors(for colorScheme: ColorScheme) -> Self {
             colorScheme == .dark ? .dark : .light
         }
 
-        static let light = SyntaxColors(
+        static let light = Self(
             keyword: Color(hex: "#AD3DA4"),
             type: Color(hex: "#0B4F79"),
             string: Color(hex: "#D12F1B"),
@@ -33,7 +33,7 @@ extension RuleDocView {
             attribute: Color(hex: "#6C36A9")
         )
 
-        static let dark = SyntaxColors(
+        static let dark = Self(
             keyword: Color(hex: "#FF7AB2"),
             type: Color(hex: "#6BDFFF"),
             string: Color(hex: "#FC6A5D"),
@@ -178,15 +178,15 @@ extension RuleDocView {
 
 // MARK: - Color from hex
 
-private extension Color {
-    init(hex: String) {
+extension Color {
+    fileprivate init(hex: String) {
         let hex = hex.trimmingCharacters(in: CharacterSet(charactersIn: "#"))
         let scanner = Scanner(string: hex)
         var rgb: UInt64 = 0
         scanner.scanHexInt64(&rgb)
         let red   = Double((rgb >> 16) & 0xFF) / 255
-        let green = Double((rgb >>  8) & 0xFF) / 255
-        let blue  = Double( rgb        & 0xFF) / 255
+        let green = Double((rgb >> 8) & 0xFF) / 255
+        let blue  = Double( rgb & 0xFF) / 255
         self.init(red: red, green: green, blue: blue)
     }
 }

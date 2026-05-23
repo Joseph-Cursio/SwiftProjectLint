@@ -71,7 +71,7 @@ final class AccessibilityHiddenConflictVisitor: BasePatternVisitor {
     /// Walks up the modifier chain from a node, collecting all modifier names.
     private func collectModifierNames(from node: FunctionCallExprSyntax) -> Set<String> {
         var names: Set<String> = []
-        var current: Syntax = Syntax(node)
+        var current = Syntax(node)
 
         while let memberAccess = current.parent?.as(MemberAccessExprSyntax.self),
               let modifierCall = memberAccess.parent?.as(FunctionCallExprSyntax.self) {

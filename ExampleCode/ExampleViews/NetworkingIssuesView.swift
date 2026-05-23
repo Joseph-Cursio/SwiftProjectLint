@@ -50,7 +50,7 @@ struct NetworkingIssuesView: View {
                         self.data = title
                     }
                 } catch {
-                    self.data = "Error: \(error.localizedDescription)"
+                    data = "Error: \(error.localizedDescription)"
                 }
             }
             .padding()
@@ -66,7 +66,7 @@ struct NetworkingIssuesView: View {
                 URLSession.shared.dataTask(with: url) { data, _, _ in
                     Task { @MainActor in
                         isLoading = false
-                        if let data = data,
+                        if let data,
                            let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
                            let title = json["title"] as? String {
                             self.data = title

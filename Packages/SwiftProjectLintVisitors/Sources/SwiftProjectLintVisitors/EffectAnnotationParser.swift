@@ -400,7 +400,7 @@ public enum EffectAnnotationParser {
     }
 }
 
-private extension Substring {
+extension Substring {
     func trimmingLeadingWhitespace() -> Substring {
         var slice = self
         while let char = slice.first, char == " " || char == "\t" { slice = slice.dropFirst() }

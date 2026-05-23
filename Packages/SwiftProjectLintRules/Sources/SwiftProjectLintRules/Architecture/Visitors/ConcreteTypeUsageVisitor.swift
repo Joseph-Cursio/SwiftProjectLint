@@ -183,7 +183,7 @@ class ConcreteTypeUsageVisitor: BasePatternVisitor {
 
     private func isInsideSwiftUIView(_ node: some SyntaxProtocol) -> Bool {
         // Walk up to find the enclosing struct and check for View conformance
-        var current: Syntax = Syntax(node)
+        var current = Syntax(node)
         while let parent = current.parent {
             if let structDecl = parent.as(StructDeclSyntax.self) {
                 return isSwiftUIView(structDecl)

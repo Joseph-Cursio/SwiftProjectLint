@@ -31,12 +31,12 @@ public struct FunctionSignature: Sendable, Hashable {
     }
 }
 
-public extension FunctionSignature {
+extension FunctionSignature {
 
     /// Computes the signature of a function declaration from its syntax. Uses
     /// each parameter's **external** label (Swift's `firstName`), or `"_"` when
     /// the declaration suppresses the label.
-    static func from(declaration: FunctionDeclSyntax) -> FunctionSignature {
+    public static func from(declaration: FunctionDeclSyntax) -> FunctionSignature {
         let labels = declaration.signature.parameterClause.parameters.map { param -> String in
             // `firstName` is the external label ("_" for suppressed) or the
             // single name when the declaration uses only one name. The internal
@@ -84,7 +84,7 @@ public extension FunctionSignature {
     /// alternative of using Swift-canonical `_` as the label produces
     /// signatures that cannot match any TCA `@DependencyClient` call
     /// site and delivers zero signal.
-    static func from(declaration: VariableDeclSyntax) -> FunctionSignature? {
+    public static func from(declaration: VariableDeclSyntax) -> FunctionSignature? {
         guard let binding = declaration.bindings.first,
               declaration.bindings.count == 1,
               let pattern = binding.pattern.as(IdentifierPatternSyntax.self) else {
@@ -162,7 +162,7 @@ public extension FunctionSignature {
     /// argument (matching how Swift encodes the call). Returns `nil` when the
     /// callee expression is not a plain identifier or member access that the
     /// Phase-1 linter can resolve.
-    static func from(call: FunctionCallExprSyntax) -> FunctionSignature? {
+    public static func from(call: FunctionCallExprSyntax) -> FunctionSignature? {
         guard let name = calleeBaseName(of: call.calledExpression) else { return nil }
 
         var labels: [String] = call.arguments.map { arg in
