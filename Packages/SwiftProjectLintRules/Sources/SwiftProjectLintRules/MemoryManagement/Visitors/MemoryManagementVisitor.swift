@@ -16,12 +16,6 @@ class MemoryManagementVisitor: BasePatternVisitor {
         let detectRetainCycles: Bool
         /// Whether to detect large objects in state
         let detectLargeObjects: Bool
-
-        fileprivate static let `default` = Self(
-            maxArraySize: 100,
-            detectRetainCycles: true,
-            detectLargeObjects: true
-        )
     }
 
     internal var config: Configuration
@@ -30,7 +24,11 @@ class MemoryManagementVisitor: BasePatternVisitor {
     private var currentFilePath: String?
 
     required init(pattern: SyntaxPattern, viewMode: SyntaxTreeViewMode = .sourceAccurate) {
-        self.config = .default
+        self.config = Configuration(
+            maxArraySize: 100,
+            detectRetainCycles: true,
+            detectLargeObjects: true
+        )
         super.init(pattern: pattern, viewMode: viewMode)
     }
 

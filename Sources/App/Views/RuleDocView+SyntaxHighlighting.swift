@@ -25,21 +25,21 @@ extension RuleDocView {
         }
 
         static let light = Self(
-            keyword: Color(hex: "#AD3DA4"),
-            type: Color(hex: "#0B4F79"),
-            string: Color(hex: "#D12F1B"),
-            number: Color(hex: "#1C00CF"),
-            comment: Color(hex: "#707F8C"),
-            attribute: Color(hex: "#6C36A9")
+            keyword: hexColor("#AD3DA4"),
+            type: hexColor("#0B4F79"),
+            string: hexColor("#D12F1B"),
+            number: hexColor("#1C00CF"),
+            comment: hexColor("#707F8C"),
+            attribute: hexColor("#6C36A9")
         )
 
         static let dark = Self(
-            keyword: Color(hex: "#FF7AB2"),
-            type: Color(hex: "#6BDFFF"),
-            string: Color(hex: "#FC6A5D"),
-            number: Color(hex: "#D0BF69"),
-            comment: Color(hex: "#7F8C98"),
-            attribute: Color(hex: "#CC85D6")
+            keyword: hexColor("#FF7AB2"),
+            type: hexColor("#6BDFFF"),
+            string: hexColor("#FC6A5D"),
+            number: hexColor("#D0BF69"),
+            comment: hexColor("#7F8C98"),
+            attribute: hexColor("#CC85D6")
         )
     }
 
@@ -178,15 +178,13 @@ extension RuleDocView {
 
 // MARK: - Color from hex
 
-extension Color {
-    fileprivate init(hex: String) {
-        let hex = hex.trimmingCharacters(in: CharacterSet(charactersIn: "#"))
-        let scanner = Scanner(string: hex)
-        var rgb: UInt64 = 0
-        scanner.scanHexInt64(&rgb)
-        let red   = Double((rgb >> 16) & 0xFF) / 255
-        let green = Double((rgb >> 8) & 0xFF) / 255
-        let blue  = Double( rgb & 0xFF) / 255
-        self.init(red: red, green: green, blue: blue)
-    }
+private func hexColor(_ hex: String) -> Color {
+    let trimmed = hex.trimmingCharacters(in: CharacterSet(charactersIn: "#"))
+    let scanner = Scanner(string: trimmed)
+    var rgb: UInt64 = 0
+    scanner.scanHexInt64(&rgb)
+    let red   = Double((rgb >> 16) & 0xFF) / 255
+    let green = Double((rgb >> 8) & 0xFF) / 255
+    let blue  = Double(rgb & 0xFF) / 255
+    return Color(red: red, green: green, blue: blue)
 }

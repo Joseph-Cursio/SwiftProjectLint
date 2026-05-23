@@ -28,9 +28,6 @@ class AccessibilityVisitor: BasePatternVisitor {
     struct Configuration {
         /// Minimum text length to suggest accessibility hints.
         let minTextLengthForHint: Int
-
-        /// Default configuration.
-        fileprivate static let `default` = Self(minTextLengthForHint: 50)
     }
 
     /// The configuration for this visitor.
@@ -88,7 +85,7 @@ class AccessibilityVisitor: BasePatternVisitor {
     // MARK: - Initializers
 
     required init(pattern: SyntaxPattern, viewMode: SyntaxTreeViewMode = .sourceAccurate) {
-        self.config = .default
+        self.config = Configuration(minTextLengthForHint: 50)
         super.init(pattern: pattern, viewMode: viewMode)
     }
 

@@ -35,14 +35,14 @@ class StateVariableVisitor: SyntaxVisitor {
 
     struct VisitorConfig {
         let strictTypeChecking: Bool
-
-        fileprivate static let `default` = Self(
-            strictTypeChecking: false
-        )
-
     }
 
-    init(viewName: String, filePath: String, sourceContents: String, config: VisitorConfig = .default) {
+    init(
+        viewName: String,
+        filePath: String,
+        sourceContents: String,
+        config: VisitorConfig = VisitorConfig(strictTypeChecking: false)
+    ) {
         self.viewName = viewName
         self.filePath = filePath
         self.sourceContents = sourceContents

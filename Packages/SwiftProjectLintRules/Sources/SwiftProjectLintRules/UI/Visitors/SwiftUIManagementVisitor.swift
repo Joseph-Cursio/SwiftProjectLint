@@ -34,12 +34,6 @@ class SwiftUIManagementVisitor: BasePatternVisitor {
         let maxStateVariables: Int
         let checkForDuplicates: Bool
         let checkForUnused: Bool
-
-        fileprivate static let `default` = Self(
-            maxStateVariables: 5,
-            checkForDuplicates: true,
-            checkForUnused: true
-        )
     }
 
     // MARK: - Properties
@@ -53,7 +47,11 @@ class SwiftUIManagementVisitor: BasePatternVisitor {
     // MARK: - Initialization
 
     required init(pattern: SyntaxPattern, viewMode: SyntaxTreeViewMode = .sourceAccurate) {
-        self.config = .default
+        self.config = Configuration(
+            maxStateVariables: 5,
+            checkForDuplicates: true,
+            checkForUnused: true
+        )
         super.init(pattern: pattern, viewMode: viewMode)
     }
 
