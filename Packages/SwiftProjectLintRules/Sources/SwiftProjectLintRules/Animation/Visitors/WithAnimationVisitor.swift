@@ -29,8 +29,10 @@ final class WithAnimationVisitor: BasePatternVisitor {
             switch pattern.name {
             case .withAnimationInOnAppear:
                 detectWithAnimationInOnAppear(node)
+
             case .animationWithoutStateChange:
                 detectAnimationWithoutStateChange(node)
+
             default:
                 break
             }

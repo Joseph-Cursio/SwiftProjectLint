@@ -247,12 +247,16 @@ class ViewRelationshipVisitor: SyntaxVisitor {
         switch modifier {
         case "sheet":
             return .sheet
+
         case "popover":
             return .popover
+
         case "alert":
             return .alert
+
         case "fullScreenCover":
             return .fullScreenCover
+
         default:
             return nil
         }

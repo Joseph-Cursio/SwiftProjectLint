@@ -18,8 +18,10 @@ final class AnimationHierarchyVisitor: BasePatternVisitor {
         switch pattern.name {
         case .defaultAnimationCurve:
             detectDefaultAnimationCurve(node)
+
         case .conflictingAnimations:
             detectConflictingAnimations(node)
+
         default:
             break
         }

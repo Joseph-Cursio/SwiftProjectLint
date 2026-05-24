@@ -165,6 +165,7 @@ final class UnboundedTaskGroupVisitor: BasePatternVisitor {
         switch paramClause {
         case .simpleInput(let params):
             return params.first?.name.text
+
         case .parameterClause(let clause):
             return clause.parameters.first?.firstName.text
         }

@@ -120,6 +120,7 @@ class DocumentationVisitor: BasePatternVisitor {
             switch piece {
             case .docLineComment, .docBlockComment:
                 return true
+
             default:
                 return false
             }

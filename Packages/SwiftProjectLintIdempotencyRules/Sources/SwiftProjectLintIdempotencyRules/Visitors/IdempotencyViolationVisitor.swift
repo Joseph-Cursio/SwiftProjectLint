@@ -296,16 +296,21 @@ final class IdempotencyViolationVisitor: BasePatternVisitor, CrossFilePatternVis
         // Phase 1 cases
         case (.idempotent, .nonIdempotent):
             return true
+
         case (.observational, .nonIdempotent):
             return true
+
         case (.observational, .idempotent):
             return true
+
         // Phase 2 cases (externally_idempotent tier); `_` ignores the
         // associated `keyParameter` — lattice rows fire on tier alone.
         case (.observational, .externallyIdempotent):
             return true
+
         case (.externallyIdempotent, .nonIdempotent):
             return true
+
         default:
             return false
         }
@@ -330,11 +335,13 @@ final class IdempotencyViolationVisitor: BasePatternVisitor, CrossFilePatternVis
         case .declared:
             calleeClaim = "which is declared `@lint.effect \(calleeTier)`"
             overrideHint = ""
+
         case .inferredUpward(let depth):
             let chainHint = depth > 1 ? " via \(depth)-hop chain of un-annotated callees" : ""
             calleeClaim = "whose effect is inferred `\(calleeTier)` from its body\(chainHint)"
             overrideHint = " If the inference is wrong, annotate '\(calleeName)' "
                 + "explicitly with `/// @lint.effect <tier>` to override the body-based inference."
+
         case .inferredDownward(let reason):
             calleeClaim = "whose effect is inferred `\(calleeTier)` \(reason)"
             overrideHint = " If the inference is wrong, annotate '\(calleeName)' "
@@ -351,12 +358,14 @@ final class IdempotencyViolationVisitor: BasePatternVisitor, CrossFilePatternVis
                 + overrideHint
             suggestion = "Either call only observational/pure helpers from '\(callerName)', "
                 + "or weaken its declared effect to `idempotent` / `non_idempotent`."
+
         case .idempotent:
             headline = "Idempotency violation: '\(callerName)' is declared "
                 + "`@lint.effect \(callerTier)` but calls '\(calleeName)', \(calleeClaim)."
                 + overrideHint
             suggestion = "Either change '\(calleeName)' to an idempotent alternative "
                 + "(e.g. upsert, set-status-by-id), or weaken the declared effect of '\(callerName)'."
+
         case .externallyIdempotent:
             headline = "Externally-idempotent contract violation: '\(callerName)' is declared "
                 + "`@lint.effect externally_idempotent` but calls '\(calleeName)', \(calleeClaim). "
@@ -367,6 +376,7 @@ final class IdempotencyViolationVisitor: BasePatternVisitor, CrossFilePatternVis
             suggestion = "Route '\(calleeName)' through its own idempotency key, replace it "
                 + "with an idempotent alternative, or weaken '\(callerName)' to "
                 + "`@lint.effect non_idempotent`."
+
         default:
             return
         }

@@ -142,6 +142,7 @@ final class VariableShadowingVisitor: BasePatternVisitor {
                     guard name != "_" else { continue }
                     registerInCurrentScope(name)
                 }
+
             case .simpleInput(let list):
                 for parameter in list {
                     let name = parameter.name.text

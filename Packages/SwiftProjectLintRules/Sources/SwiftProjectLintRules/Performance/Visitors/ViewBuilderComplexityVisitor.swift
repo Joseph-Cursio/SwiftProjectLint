@@ -47,6 +47,7 @@ class ViewBuilderComplexityVisitor: BasePatternVisitor {
                     name: propertyName,
                     node: Syntax(node)
                 )
+
             case .accessors(let accessorList):
                 for accessor in accessorList {
                     if accessor.accessorSpecifier.text == "get", let body = accessor.body {

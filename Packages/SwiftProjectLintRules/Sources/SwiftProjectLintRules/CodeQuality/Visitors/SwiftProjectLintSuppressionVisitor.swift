@@ -19,8 +19,10 @@ final class SwiftProjectLintSuppressionVisitor: BasePatternVisitor {
             switch piece {
             case .lineComment(let text):
                 checkForSuppression(text, node: Syntax(node))
+
             case .blockComment(let text):
                 checkForSuppression(text, node: Syntax(node))
+
             default:
                 break
             }

@@ -18,8 +18,10 @@ final class TodoCommentVisitor: BasePatternVisitor {
             switch piece {
             case .lineComment(let text):
                 checkComment(text, node: Syntax(node))
+
             case .blockComment(let text):
                 checkComment(text, node: Syntax(node))
+
             default:
                 break
             }

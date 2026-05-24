@@ -55,16 +55,19 @@ public struct InlineSuppressionFilter {
                 for key in keys where openDisables[key] == nil {
                     openDisables[key] = directive.line
                 }
+
             case .enable:
                 for key in keys {
                     if let start = openDisables.removeValue(forKey: key) {
                         appendRange(to: &ranges, key: key, start: start, end: directive.line - 1)
                     }
                 }
+
             case .disableNext:
                 for key in keys {
                     appendRange(to: &ranges, key: key, start: directive.line + 1, end: directive.line + 1)
                 }
+
             case .disableThis:
                 for key in keys {
                     appendRange(to: &ranges, key: key, start: directive.line, end: directive.line)

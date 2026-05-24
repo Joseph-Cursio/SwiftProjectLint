@@ -51,10 +51,13 @@ final class AnimationPerformanceVisitor: BasePatternVisitor {
         switch pattern.name {
         case .excessiveSpringAnimations:
             detectExcessiveSpringAnimations(node)
+
         case .longAnimationDuration:
             detectLongAnimationDuration(node)
+
         case .animationInHighFrequencyUpdate:
             detectAnimationInHighFrequencyUpdate(node)
+
         default:
             break
         }

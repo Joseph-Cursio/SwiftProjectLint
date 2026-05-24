@@ -106,6 +106,7 @@ class OnTapGestureInsteadOfButtonVisitor: BasePatternVisitor {
         switch paramClause {
         case .simpleInput(let params):
             return params.isEmpty == false
+
         case .parameterClause(let clause):
             return clause.parameters.isEmpty == false
         }

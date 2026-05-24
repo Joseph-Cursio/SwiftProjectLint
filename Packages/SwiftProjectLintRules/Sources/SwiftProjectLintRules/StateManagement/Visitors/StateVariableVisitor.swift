@@ -127,16 +127,22 @@ class StateVariableVisitor: SyntaxVisitor {
         switch value.kind {
         case .booleanLiteralExpr:
             return "Bool"
+
         case .integerLiteralExpr:
             return "Int"
+
         case .floatLiteralExpr:
             return "Double"
+
         case .stringLiteralExpr:
             return "String"
+
         case .arrayExpr:
             return "Array"
+
         case .dictionaryExpr:
             return "Dictionary"
+
         default:
             return inferTypeFromText(value.description)
         }
@@ -252,22 +258,27 @@ class StateVariableVisitor: SyntaxVisitor {
             if typeString.contains("ObservableObject") || typeString.contains("class") {
                 issues.append("Consider using @StateObject instead of @State for ObservableObject types")
             }
+
         case .stateObject:
             if !typeString.contains("ObservableObject") && !typeString.contains("class") {
                 issues.append("@StateObject should only be used with ObservableObject types")
             }
+
         case .observedObject:
             if !typeString.contains("ObservableObject") && !typeString.contains("class") {
                 issues.append("@ObservedObject should only be used with ObservableObject types")
             }
+
         case .binding:
             if !typeString.contains("Binding<") && !typeString.hasPrefix("Binding") {
                 issues.append("@Binding should be used with Binding types")
             }
+
         case .environment:
             if typeString.contains("ObservableObject") {
                 issues.append("Consider using @EnvironmentObject instead of @Environment for ObservableObject types")
             }
+
         default:
             break
         }

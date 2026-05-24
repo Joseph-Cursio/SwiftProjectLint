@@ -107,8 +107,10 @@ struct LintIssueRow: View {
         switch issue.severity {
         case .error:
             return "xmark.circle.fill"
+
         case .warning:
             return "exclamationmark.triangle.fill"
+
         case .info:
             return "info.circle.fill"
         }
@@ -118,8 +120,10 @@ struct LintIssueRow: View {
         switch issue.severity {
         case .error:
             return .red
+
         case .warning:
             return .orange
+
         case .info:
             return .blue
         }

@@ -155,8 +155,10 @@ struct CategoryFilteringTests {
             switch issue.ruleName {
             case .relatedDuplicateStateVariable, .unrelatedDuplicateStateVariable, .unusedStateVariable:
                 return PatternCategory.stateManagement
+
             case .missingAccessibilityLabel:
                 return PatternCategory.accessibility
+
             default:
                 return PatternCategory.performance
             }

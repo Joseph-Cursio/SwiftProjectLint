@@ -23,10 +23,12 @@ struct ExitCodes {
         switch threshold {
         case .error:
             return hasErrors ? errors : clean
+
         case .warning:
             if hasErrors { return errors }
             if hasWarnings { return warnings }
             return clean
+
         case .info:
             if hasErrors { return errors }
             if hasWarnings || hasInfo { return warnings }

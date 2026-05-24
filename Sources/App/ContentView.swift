@@ -108,6 +108,7 @@ struct ContentView: View {
             viewModel.selectedDirectoryURL = url
             viewModel.selectedDirectory = url.path
             viewModel.loadConfigFromProject()
+
         case .failure(let error):
             print("Error selecting directory: \(error.localizedDescription)")
         }

@@ -135,6 +135,7 @@ public struct FunctionSignature: Sendable, Hashable {
         switch parameterClause {
         case .simpleInput(let list):
             return list.count
+
         case .parameterClause(let clause):
             return clause.parameters.count
         }

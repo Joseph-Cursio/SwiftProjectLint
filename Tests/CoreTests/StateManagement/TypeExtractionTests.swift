@@ -53,6 +53,7 @@ struct TypeExtractionTests {
         switch testCase.typeMatchMode {
         case .exact:
             #expect(stateVar.type == testCase.expectedType)
+
         case .contains:
             #expect(stateVar.type.contains(testCase.expectedType))
         }

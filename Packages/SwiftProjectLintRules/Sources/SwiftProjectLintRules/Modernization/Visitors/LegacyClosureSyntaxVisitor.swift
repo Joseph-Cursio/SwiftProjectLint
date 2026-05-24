@@ -61,6 +61,7 @@ final class LegacyClosureSyntaxVisitor: BasePatternVisitor {
         case .simpleInput:
             // Simple input like `{ x in }` — no type annotations
             return false
+
         case .parameterClause(let clause):
             // Full parameter clause — check for type annotations
             return clause.parameters.contains { param in

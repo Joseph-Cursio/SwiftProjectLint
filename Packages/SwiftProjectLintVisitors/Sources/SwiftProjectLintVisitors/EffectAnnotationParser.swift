@@ -285,12 +285,16 @@ public enum EffectAnnotationParser {
             switch typeName {
             case "Idempotent":
                 return .idempotent
+
             case "NonIdempotent":
                 return .nonIdempotent
+
             case "Observational":
                 return .observational
+
             case "ExternallyIdempotent":
                 return .externallyIdempotent(keyParameter: extractByLabel(from: attr))
+
             case "IdempotencyTests":
                 // Test-generation attribute on `@Suite` types (macros
                 // package round-8 redesign). Carries no function-effect
@@ -298,6 +302,7 @@ public enum EffectAnnotationParser {
                 // attribute surface explicitly covers it rather than
                 // falling through as "unknown".
                 continue
+
             default:
                 continue
             }
@@ -338,8 +343,10 @@ public enum EffectAnnotationParser {
             switch piece {
             case .docLineComment(let text):
                 return text
+
             case .docBlockComment(let text):
                 return text
+
             default:
                 return nil
             }
@@ -353,16 +360,20 @@ public enum EffectAnnotationParser {
         switch token {
         case "idempotent":
             return .idempotent
+
         case "observational":
             return .observational
+
         case "externally_idempotent":
             // Look for an optional `(by: paramName)` qualifier immediately
             // following the tier token. Whitespace between the token and `(`
             // is tolerated.
             let afterToken = rest.dropFirst(token.count).trimmingLeadingWhitespace()
             return .externallyIdempotent(keyParameter: extractByQualifier(from: afterToken))
+
         case "non_idempotent":
             return .nonIdempotent
+
         default:
             return nil
         }
@@ -388,12 +399,16 @@ public enum EffectAnnotationParser {
         switch token {
         case "replayable":
             return .replayable
+
         case "retry_safe":
             return .retrySafe
+
         case "once":
             return .once
+
         case "strict_replayable":
             return .strictReplayable
+
         default:
             return nil
         }

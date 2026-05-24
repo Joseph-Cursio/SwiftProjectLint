@@ -72,6 +72,7 @@ final class FormatterInViewBodyVisitor: BasePatternVisitor {
         switch accessorBlock.accessors {
         case .getter(let items):
             reportFormatterCalls(in: Syntax(items))
+
         case .accessors(let list):
             for accessor in list where accessor.accessorSpecifier.text == "get" {
                 if let body = accessor.body {
