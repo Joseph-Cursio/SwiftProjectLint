@@ -85,14 +85,14 @@ public final class SourcePatternRegistry: SourcePatternRegistryProtocol, @unchec
     /// - Parameter category: The pattern category to retrieve patterns for.
     /// - Returns: An array of syntax patterns for the specified category.
     public func getPatterns(for category: PatternCategory) -> [SyntaxPattern] {
-        return visitorRegistry.getPatterns(for: category)
+        visitorRegistry.getPatterns(for: category)
     }
 
     /// Retrieves all registered patterns.
     ///
     /// - Returns: An array of all registered syntax patterns.
     public func getAllPatterns() -> [SyntaxPattern] {
-        return visitorRegistry.getAllPatterns()
+        visitorRegistry.getAllPatterns()
     }
 
     /// Registers a new pattern with the registry.

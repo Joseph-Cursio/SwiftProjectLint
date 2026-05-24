@@ -314,17 +314,17 @@ class StateVariableVisitor: SyntaxVisitor {
 
     /// Returns state variables filtered by property wrapper type
     func getStateVariables(withPropertyWrapper wrapper: PropertyWrapper) -> [StateVariable] {
-        return stateVariables.filter { $0.propertyWrapper == wrapper }
+        stateVariables.filter { $0.propertyWrapper == wrapper }
     }
 
     /// Returns state variables that might benefit from being converted to @EnvironmentObject
     func getPotentialEnvironmentObjectCandidates() -> [StateVariable] {
-        return stateVariables.filter { stateVar in
+        stateVariables.filter { stateVar in
             // Look for ObservableObject types that might be shared across views
             // @StateObject and @ObservedObject are typically used with ObservableObject types
             // For @StateObject and @ObservedObject, we assume they are ObservableObject types
             // since that's the intended use case for these property wrappers
-            return stateVar.propertyWrapper == .stateObject ||
+            stateVar.propertyWrapper == .stateObject ||
                                   stateVar.propertyWrapper == .observedObject
         }
     }

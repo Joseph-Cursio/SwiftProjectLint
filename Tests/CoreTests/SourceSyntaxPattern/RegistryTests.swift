@@ -17,7 +17,7 @@ struct RegistryTests {
 
     /// Creates isolated instances for tests that need complete isolation
     @MainActor static func createIsolatedInstances() -> IsolatedTestInstances {
-        return TestRegistryManager.createIsolatedInstances()
+        TestRegistryManager.createIsolatedInstances()
     }
 
     // MARK: - Registry Tests (Need Isolation)

@@ -12,7 +12,7 @@ struct ForEachAndBodyTests {
     // MARK: - Helper Methods
 
     private func createVisitor() -> PerformanceVisitor {
-        return PerformanceVisitor(patternCategory: .performance)
+        PerformanceVisitor(patternCategory: .performance)
     }
 
     private func analyzeSource(
@@ -307,7 +307,7 @@ struct ForEachAndBodyTests {
 struct PerformanceVisitorStateTrackingTests {
 
     private func createVisitor() -> PerformanceVisitor {
-        return PerformanceVisitor(patternCategory: .performance)
+        PerformanceVisitor(patternCategory: .performance)
     }
 
     @Test func testTracksStateVariableDeclaration() {

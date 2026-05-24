@@ -35,12 +35,12 @@ public struct LintIssue: Identifiable, Sendable {
 
     /// Returns the file path of the first location, or an empty string if no locations exist.
     public var filePath: String {
-        return locations.first?.filePath ?? ""
+        locations.first?.filePath ?? ""
     }
 
     /// Returns the line number of the first location, or 0 if no locations exist.
     public var lineNumber: Int {
-        return locations.first?.lineNumber ?? 0
+        locations.first?.lineNumber ?? 0
     }
 
     /// Initializes a lint issue with multiple locations.

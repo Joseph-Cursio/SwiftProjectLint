@@ -209,7 +209,7 @@ class PerformanceVisitor: BasePatternVisitor {
     }
 
     override func visit(_ _: AccessorBlockSyntax) -> SyntaxVisitorContinueKind {
-        return .visitChildren
+        .visitChildren
     }
 
     override func visitPost(_ node: StructDeclSyntax) {

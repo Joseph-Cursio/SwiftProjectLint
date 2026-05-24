@@ -124,7 +124,7 @@ struct PatternConfiguration {
     /// - Parameter syntaxPatterns: Array of SwiftSyntax patterns to convert.
     /// - Returns: Array of DetectionPattern objects suitable for UI display.
     static func convertToDetectionPatterns(_ syntaxPatterns: [SyntaxPattern]) -> [DetectionPattern] {
-        return syntaxPatterns.map { syntaxPattern in
+        syntaxPatterns.map { syntaxPattern in
             DetectionPattern(
                 name: syntaxPattern.name,
                 severity: syntaxPattern.severity,
@@ -186,7 +186,7 @@ struct PatternConfiguration {
 
         // Filter issues based on their ruleName and the enabled rules
         return issues.filter { issue in
-            return enabledRuleNames.contains(issue.ruleName)
+            enabledRuleNames.contains(issue.ruleName)
         }
     }
 }

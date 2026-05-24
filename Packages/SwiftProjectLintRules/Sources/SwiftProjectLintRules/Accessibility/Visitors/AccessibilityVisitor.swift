@@ -46,12 +46,12 @@ class AccessibilityVisitor: BasePatternVisitor {
 
     /// Get the current pattern for issue reporting
     internal var currentPattern: SyntaxPattern? {
-        return pattern
+        pattern
     }
 
     /// Get the current file path for issue reporting
     internal func getCurrentFilePath() -> String? {
-        return currentFilePath
+        currentFilePath
     }
 
     /// Add images found in buttons to avoid duplicate issues
@@ -61,7 +61,7 @@ class AccessibilityVisitor: BasePatternVisitor {
 
     /// Check if an image is already part of a button
     internal func isImageInButtons(_ image: Syntax) -> Bool {
-        return imagesInButtons.contains(image)
+        imagesInButtons.contains(image)
     }
 
     /// Add images found in labels to avoid false positives
@@ -71,7 +71,7 @@ class AccessibilityVisitor: BasePatternVisitor {
 
     /// Check if an image is already part of a label
     internal func isImageInLabels(_ image: Syntax) -> Bool {
-        return imagesInLabels.contains(image)
+        imagesInLabels.contains(image)
     }
 
     // MARK: - Accessibility Checkers

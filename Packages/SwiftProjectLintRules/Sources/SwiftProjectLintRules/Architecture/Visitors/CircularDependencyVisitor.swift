@@ -104,7 +104,7 @@ final class CircularDependencyVisitor: BasePatternVisitor, CrossFilePatternVisit
     override func visit(_ _: FunctionDeclSyntax) -> SyntaxVisitorContinueKind {
         // Skip — function params don't create structural dependencies
         // as strongly as stored properties
-        return .visitChildren
+        .visitChildren
     }
 
     // MARK: - Phase 2: Detect cycles

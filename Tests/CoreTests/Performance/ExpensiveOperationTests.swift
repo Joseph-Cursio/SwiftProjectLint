@@ -12,7 +12,7 @@ struct ExpensiveOperationTests {
     // MARK: - Helper Methods
 
     private func createVisitor() -> PerformanceVisitor {
-        return PerformanceVisitor(patternCategory: .performance)
+        PerformanceVisitor(patternCategory: .performance)
     }
 
     private func analyzeSource(

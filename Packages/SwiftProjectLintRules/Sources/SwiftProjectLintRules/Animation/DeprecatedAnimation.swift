@@ -17,7 +17,7 @@ struct DeprecatedAnimation: PatternRegistrarProtocol {
     /// property is set to `DeprecatedAnimationVisitor.self`, which is the SwiftSyntax
     /// visitor responsible for identifying the deprecated modifier.
     var pattern: SyntaxPattern {
-        return SyntaxPattern(
+        SyntaxPattern(
             name: .deprecatedAnimation,
             visitor: DeprecatedAnimationVisitor.self,
             severity: .warning,

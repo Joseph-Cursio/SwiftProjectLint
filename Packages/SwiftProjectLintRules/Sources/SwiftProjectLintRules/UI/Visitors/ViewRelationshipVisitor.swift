@@ -126,7 +126,7 @@ class ViewRelationshipVisitor: SyntaxVisitor {
     }
 
     override func visit(_ _: StructDeclSyntax) -> SyntaxVisitorContinueKind {
-        return .visitChildren
+        .visitChildren
     }
 
     // MARK: - Helpers

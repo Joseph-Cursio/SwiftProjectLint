@@ -231,7 +231,7 @@ class SwiftUIManagementVisitor: BasePatternVisitor {
     func findRelatedViews(for variables: [StateVariableInfo]) -> [String] {
         // For single-file analysis, we'll consider all views as potentially related
         // since we don't have cross-file relationship information
-        return Array(Set(variables.map { $0.viewName }))
+        Array(Set(variables.map { $0.viewName }))
     }
 
     private func addDuplicateStateIssue(

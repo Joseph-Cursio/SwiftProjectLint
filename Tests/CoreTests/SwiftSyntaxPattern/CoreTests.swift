@@ -17,12 +17,12 @@ struct CoreTests {
 
     /// Creates isolated instances for tests that need complete isolation
     @MainActor static func createIsolatedInstances() -> IsolatedTestInstances {
-        return TestRegistryManager.createIsolatedInstances()
+        TestRegistryManager.createIsolatedInstances()
     }
 
     /// Uses shared registry with specific patterns for focused testing
     static func setupTestWithSpecificPatterns(_ patterns: [SyntaxPattern]) -> SourcePatternDetector {
-        return TestRegistryManager.getDetectorWithPatterns(patterns)
+        TestRegistryManager.getDetectorWithPatterns(patterns)
     }
 
     // MARK: - SwiftSyntax Pattern Detector Core Tests (Use Shared Registry)

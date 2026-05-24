@@ -17,7 +17,7 @@ struct DetectorCoreTests {
 
     /// Creates isolated instances for tests that need complete isolation
     @MainActor static func createIsolatedInstances() -> IsolatedTestInstances {
-        return TestRegistryManager.createIsolatedInstances()
+        TestRegistryManager.createIsolatedInstances()
     }
 
     /// Uses shared registry with specific patterns for focused testing

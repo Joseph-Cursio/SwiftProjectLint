@@ -109,7 +109,7 @@ final class UnboundedTaskGroupVisitor: BasePatternVisitor {
     // MARK: - Clean up task group scope on closure exit
 
     override func visit(_ _: ClosureExprSyntax) -> SyntaxVisitorContinueKind {
-        return .visitChildren
+        .visitChildren
     }
 
     override func visitPost(_ node: ClosureExprSyntax) {

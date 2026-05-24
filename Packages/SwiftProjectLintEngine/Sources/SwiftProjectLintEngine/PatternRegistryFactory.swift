@@ -33,7 +33,7 @@ public class PatternRegistryFactory {
     ///
     /// - Returns: A fresh instance of PatternVisitorRegistry.
     public static func createVisitorRegistry() -> PatternVisitorRegistry {
-        return PatternVisitorRegistry()
+        PatternVisitorRegistry()
     }
 
     /// Creates a new SwiftSyntax pattern registry instance.
