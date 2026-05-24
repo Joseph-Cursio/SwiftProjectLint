@@ -45,5 +45,5 @@ open class BasePatternRegistrar: PatternRegistrarWithVisitorProtocol {
         self.visitorRegistry = visitorRegistry
     }
 
-    open func registerPatterns() {}
+    open func registerPatterns() { /* subclasses override */ }
 }

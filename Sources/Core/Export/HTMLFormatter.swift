@@ -4,7 +4,7 @@ import SwiftProjectLintModels
 
 /// Formats lint issues as an HTML report using the shared LintStudioCore template.
 public struct HTMLFormatter: IssueFormatterProtocol {
-    public init() {}
+    public init() { /* no-op */ }
 
     public func format(issues: [LintIssue]) -> String {
         let errorCount = issues.filter { $0.severity == .error }.count

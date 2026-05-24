@@ -11,9 +11,9 @@ struct PatternConfigurationTests {
             patterns[category] ?? []
         }
         func getAllPatterns() -> [SyntaxPattern] { patterns.values.flatMap(\.self) }
-        func initialize() {}
-        func register(pattern _: SyntaxPattern) {}
-        func register(patterns _: [SyntaxPattern]) {}
+        func initialize() { /* no-op */ }
+        func register(pattern _: SyntaxPattern) { /* no-op */ }
+        func register(patterns _: [SyntaxPattern]) { /* no-op */ }
     }
 
     @Test func test_allPatternsByCategory_returnsExpectedGroups() {

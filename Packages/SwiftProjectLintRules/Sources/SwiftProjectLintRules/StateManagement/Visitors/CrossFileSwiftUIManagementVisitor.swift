@@ -26,5 +26,6 @@ class CrossFileSwiftUIManagementVisitor: SwiftUIManagementVisitor, CrossFilePatt
     }
 
     override func finalizeAnalysis() {
+        // no-op: cross-file SwiftUI management has no aggregation step
     }
 }

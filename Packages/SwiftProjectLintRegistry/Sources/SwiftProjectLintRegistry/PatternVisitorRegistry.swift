@@ -27,7 +27,7 @@ public final class PatternVisitorRegistry: @unchecked Sendable {
     private var patterns: [SyntaxPattern] = []
     private var visitorsByCategory: [PatternCategory: [PatternVisitorProtocol.Type]] = [:]
 
-    public init() {}
+    public init() { /* no-op */ }
 
     /// Registers a new syntax pattern with the registry.
     ///

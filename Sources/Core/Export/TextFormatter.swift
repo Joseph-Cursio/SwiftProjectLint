@@ -2,7 +2,7 @@ import SwiftProjectLintModels
 
 /// Formats lint issues as human-readable text in the style of compiler diagnostics.
 public struct TextFormatter: IssueFormatterProtocol {
-    public init() {}
+    public init() { /* no-op */ }
 
     /// Formats a list of lint issues as text lines.
     ///

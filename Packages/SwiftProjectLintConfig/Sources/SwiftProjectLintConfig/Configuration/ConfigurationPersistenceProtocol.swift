@@ -22,7 +22,7 @@ public protocol ConfigurationPersistenceProtocol {
 public struct YAMLConfigurationPersistence: ConfigurationPersistenceProtocol {
     public let defaultFileName = LintConfigurationLoader.defaultFileName
 
-    public init() {}
+    public init() { /* no-op */ }
 
     public func load(projectRoot: String) -> LintConfiguration {
         LintConfigurationLoader.load(projectRoot: projectRoot)

@@ -3,7 +3,7 @@ import SwiftProjectLintModels
 
 /// Formats lint issues as a JSON report.
 public struct JSONFormatter: IssueFormatterProtocol {
-    public init() {}
+    public init() { /* no-op */ }
 
     /// Formats a list of lint issues as a pretty-printed JSON string.
     public func format(issues: [LintIssue]) -> String {

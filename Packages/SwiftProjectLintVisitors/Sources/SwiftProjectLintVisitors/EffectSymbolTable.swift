@@ -69,7 +69,7 @@ public struct EffectSymbolTable: Sendable {
     /// nearest evidence, not the farthest possible chain.
     private var onceReachingFunctions: [FunctionSignature: OnceReachInference] = [:]
 
-    public init() {}
+    public init() { /* no-op */ }
 
     /// Builds a symbol table by walking every top-level and nested
     /// `FunctionDeclSyntax` in the source file.

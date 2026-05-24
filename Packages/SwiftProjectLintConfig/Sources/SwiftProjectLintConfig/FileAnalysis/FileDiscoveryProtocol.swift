@@ -12,7 +12,7 @@ public protocol FileDiscoveryProtocol: Sendable {
 
 /// Default implementation that delegates to `FileAnalysisUtils`.
 public struct DefaultFileDiscovery: FileDiscoveryProtocol {
-    public init() {}
+    public init() { /* no-op */ }
 
     public func findSwiftFiles(
         in directory: String, excludedPaths: [String]
