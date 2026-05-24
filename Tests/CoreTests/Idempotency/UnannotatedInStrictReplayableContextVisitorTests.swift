@@ -184,7 +184,7 @@ struct UnannotatedInStrictReplayableContextVisitorTests {
         // observational heuristic. `logger` comes in as a parameter so
         // the test doesn't first trip over the `Logger(label:)`
         // constructor call (which would itself be unclassified).
-        struct LoggerStub { func info(_ message: String) {} }
+        struct LoggerStub { func info(_ _: String) {} }
         _ = LoggerStub.self  // suppress unused-type warning in release builds
 
         let source = """

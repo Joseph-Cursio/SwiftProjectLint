@@ -156,7 +156,7 @@ class AccessibilityVisitor: BasePatternVisitor {
         return .visitChildren
     }
 
-    override func visit(_ node: SourceFileSyntax) -> SyntaxVisitorContinueKind {
+    override func visit(_ _: SourceFileSyntax) -> SyntaxVisitorContinueKind {
         if currentFilePath == nil {
             currentFilePath = "unknown"
         }

@@ -130,7 +130,7 @@ final class WithAnimationVisitor: BasePatternVisitor {
 private final class StateMutationChecker: SyntaxVisitor {
     var foundMutation = false
 
-    override func visit(_ node: AssignmentExprSyntax) -> SyntaxVisitorContinueKind {
+    override func visit(_ _: AssignmentExprSyntax) -> SyntaxVisitorContinueKind {
         foundMutation = true
         return .skipChildren
     }

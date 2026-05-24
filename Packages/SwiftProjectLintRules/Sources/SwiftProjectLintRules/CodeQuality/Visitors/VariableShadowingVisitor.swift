@@ -45,12 +45,12 @@ final class VariableShadowingVisitor: BasePatternVisitor {
 
     // MARK: - Scope Tracking
 
-    override func visit(_ node: MemberBlockSyntax) -> SyntaxVisitorContinueKind {
+    override func visit(_ _: MemberBlockSyntax) -> SyntaxVisitorContinueKind {
         scopeStack.append(ScopeFrame(kind: .typeMember))
         return .visitChildren
     }
 
-    override func visitPost(_ node: MemberBlockSyntax) {
+    override func visitPost(_ _: MemberBlockSyntax) {
         _ = scopeStack.popLast()
     }
 
@@ -60,7 +60,7 @@ final class VariableShadowingVisitor: BasePatternVisitor {
         return .visitChildren
     }
 
-    override func visitPost(_ node: CodeBlockSyntax) {
+    override func visitPost(_ _: CodeBlockSyntax) {
         _ = scopeStack.popLast()
     }
 
@@ -72,7 +72,7 @@ final class VariableShadowingVisitor: BasePatternVisitor {
         return .visitChildren
     }
 
-    override func visitPost(_ node: ClosureExprSyntax) {
+    override func visitPost(_ _: ClosureExprSyntax) {
         _ = scopeStack.popLast()
     }
 
@@ -90,7 +90,7 @@ final class VariableShadowingVisitor: BasePatternVisitor {
         return .visitChildren
     }
 
-    override func visitPost(_ node: ForStmtSyntax) {
+    override func visitPost(_ _: ForStmtSyntax) {
         _ = scopeStack.popLast()
     }
 

@@ -114,21 +114,21 @@ class DirectInstantiationVisitor: BasePatternVisitor {
 
     // MARK: - Function / closure context tracking
 
-    override func visit(_ node: FunctionDeclSyntax) -> SyntaxVisitorContinueKind {
+    override func visit(_ _: FunctionDeclSyntax) -> SyntaxVisitorContinueKind {
         insideFunctionOrClosure += 1
         return .visitChildren
     }
 
-    override func visitPost(_ node: FunctionDeclSyntax) {
+    override func visitPost(_ _: FunctionDeclSyntax) {
         insideFunctionOrClosure -= 1
     }
 
-    override func visit(_ node: ClosureExprSyntax) -> SyntaxVisitorContinueKind {
+    override func visit(_ _: ClosureExprSyntax) -> SyntaxVisitorContinueKind {
         insideFunctionOrClosure += 1
         return .visitChildren
     }
 
-    override func visitPost(_ node: ClosureExprSyntax) {
+    override func visitPost(_ _: ClosureExprSyntax) {
         insideFunctionOrClosure -= 1
     }
 }

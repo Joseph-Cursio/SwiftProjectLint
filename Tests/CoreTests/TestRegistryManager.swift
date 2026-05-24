@@ -85,7 +85,7 @@ public class TestRegistryManager {
     }
 
     /// Get a detector for specific categories
-    public static func getDetectorForCategories(_ categories: [PatternCategory]) -> SourcePatternDetector {
+    public static func getDetectorForCategories(_ _: [PatternCategory]) -> SourcePatternDetector {
         initializeSharedRegistry()
         return SourcePatternDetector(registry: sharedVisitorRegistry)
     }

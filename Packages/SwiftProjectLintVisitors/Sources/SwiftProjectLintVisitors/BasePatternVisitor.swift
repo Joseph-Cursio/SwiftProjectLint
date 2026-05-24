@@ -158,7 +158,7 @@ open class BasePatternVisitor: SyntaxVisitor, PatternVisitorProtocol {
     ///
     /// - Parameter node: The syntax node to get the file path for.
     /// - Returns: The file path where the node appears.
-    public func getFilePath(for node: Syntax) -> String {
+    public func getFilePath(for _: Syntax) -> String {
         return filePath
     }
 

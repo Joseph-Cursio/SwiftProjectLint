@@ -134,7 +134,7 @@ class SwiftUIManagementVisitor: BasePatternVisitor {
         }
     }
 
-    private func analyzeFunctionForUnusedState(_ node: FunctionDeclSyntax) {
+    private func analyzeFunctionForUnusedState(_ _: FunctionDeclSyntax) {
         // This would analyze function bodies to check if state variables are used
         // Implementation would traverse the function body and check for variable usage
     }

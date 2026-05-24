@@ -12,8 +12,8 @@ struct PatternConfigurationTests {
         }
         func getAllPatterns() -> [SyntaxPattern] { patterns.values.flatMap { $0 } }
         func initialize() {}
-        func register(pattern: SyntaxPattern) {}
-        func register(patterns: [SyntaxPattern]) {}
+        func register(pattern _: SyntaxPattern) {}
+        func register(patterns _: [SyntaxPattern]) {}
     }
 
     @Test func test_allPatternsByCategory_returnsExpectedGroups() {

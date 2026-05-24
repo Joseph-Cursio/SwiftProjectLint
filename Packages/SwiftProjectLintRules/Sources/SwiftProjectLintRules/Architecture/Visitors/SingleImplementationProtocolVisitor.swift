@@ -87,7 +87,7 @@ final class SingleImplementationProtocolVisitor: BasePatternVisitor, CrossFilePa
         return .visitChildren
     }
 
-    override func visitPost(_ node: StructDeclSyntax) {
+    override func visitPost(_ _: StructDeclSyntax) {
         currentTypeName = nil
     }
 
@@ -97,7 +97,7 @@ final class SingleImplementationProtocolVisitor: BasePatternVisitor, CrossFilePa
         return .visitChildren
     }
 
-    override func visitPost(_ node: ClassDeclSyntax) {
+    override func visitPost(_ _: ClassDeclSyntax) {
         currentTypeName = nil
     }
 
@@ -107,7 +107,7 @@ final class SingleImplementationProtocolVisitor: BasePatternVisitor, CrossFilePa
         return .visitChildren
     }
 
-    override func visitPost(_ node: EnumDeclSyntax) {
+    override func visitPost(_ _: EnumDeclSyntax) {
         currentTypeName = nil
     }
 
@@ -117,7 +117,7 @@ final class SingleImplementationProtocolVisitor: BasePatternVisitor, CrossFilePa
         return .visitChildren
     }
 
-    override func visitPost(_ node: ActorDeclSyntax) {
+    override func visitPost(_ _: ActorDeclSyntax) {
         currentTypeName = nil
     }
 

@@ -620,11 +620,11 @@ private struct MockProjectAnalyzer: ProjectAnalyzerProtocol {
     let issues: [LintIssue]
 
     func analyzeProject(
-        at path: String,
-        categories: [PatternCategory]?,
-        ruleIdentifiers: [RuleIdentifier]?,
-        detector: (any SourcePatternDetectorProtocol)?,
-        configuration: LintConfiguration
+        at _: String,
+        categories _: [PatternCategory]?,
+        ruleIdentifiers _: [RuleIdentifier]?,
+        detector _: (any SourcePatternDetectorProtocol)?,
+        configuration _: LintConfiguration
     ) async -> [LintIssue] {
         await Task.yield()
         return issues

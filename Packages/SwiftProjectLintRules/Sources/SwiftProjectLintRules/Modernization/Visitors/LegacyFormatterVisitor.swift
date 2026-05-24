@@ -29,7 +29,7 @@ final class LegacyFormatterVisitor: BasePatternVisitor {
 
     // MARK: - Track view body to avoid double-flagging
 
-    override func visit(_ node: StructDeclSyntax) -> SyntaxVisitorContinueKind {
+    override func visit(_ _: StructDeclSyntax) -> SyntaxVisitorContinueKind {
         return .visitChildren
     }
 

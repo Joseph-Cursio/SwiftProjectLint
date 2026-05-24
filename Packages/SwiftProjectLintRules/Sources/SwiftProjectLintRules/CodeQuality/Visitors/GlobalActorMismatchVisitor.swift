@@ -46,7 +46,7 @@ final class GlobalActorMismatchVisitor: BasePatternVisitor {
         return .visitChildren
     }
 
-    override func visitPost(_ node: ClassDeclSyntax) {
+    override func visitPost(_ _: ClassDeclSyntax) {
         isolationStack.removeLast()
     }
 
@@ -59,7 +59,7 @@ final class GlobalActorMismatchVisitor: BasePatternVisitor {
         return .visitChildren
     }
 
-    override func visitPost(_ node: StructDeclSyntax) {
+    override func visitPost(_ _: StructDeclSyntax) {
         isolationStack.removeLast()
     }
 
@@ -72,7 +72,7 @@ final class GlobalActorMismatchVisitor: BasePatternVisitor {
         return .visitChildren
     }
 
-    override func visitPost(_ node: EnumDeclSyntax) {
+    override func visitPost(_ _: EnumDeclSyntax) {
         isolationStack.removeLast()
     }
 

@@ -245,7 +245,7 @@ final class UnannotatedClosureBindingCollector: SyntaxVisitor {
         return .visitChildren
     }
 
-    override func visit(_ node: ClosureExprSyntax) -> SyntaxVisitorContinueKind {
+    override func visit(_ _: ClosureExprSyntax) -> SyntaxVisitorContinueKind {
         .skipChildren
     }
 }
@@ -270,7 +270,7 @@ final class UnannotatedFunctionCollector: SyntaxVisitor {
         return .visitChildren
     }
 
-    override func visit(_ node: ClosureExprSyntax) -> SyntaxVisitorContinueKind {
+    override func visit(_ _: ClosureExprSyntax) -> SyntaxVisitorContinueKind {
         .skipChildren
     }
 }

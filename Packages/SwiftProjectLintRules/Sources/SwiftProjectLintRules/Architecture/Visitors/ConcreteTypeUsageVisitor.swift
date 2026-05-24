@@ -71,7 +71,7 @@ class ConcreteTypeUsageVisitor: BasePatternVisitor {
         return .visitChildren
     }
 
-    override func visitPost(_ node: StructDeclSyntax) {
+    override func visitPost(_ _: StructDeclSyntax) {
         isInsideDIContainer = false
         flaggedPropertyTypes = []
     }
@@ -82,27 +82,27 @@ class ConcreteTypeUsageVisitor: BasePatternVisitor {
         return .visitChildren
     }
 
-    override func visitPost(_ node: ClassDeclSyntax) {
+    override func visitPost(_ _: ClassDeclSyntax) {
         isInsideDIContainer = false
         flaggedPropertyTypes = []
     }
 
-    override func visit(_ node: ActorDeclSyntax) -> SyntaxVisitorContinueKind {
+    override func visit(_ _: ActorDeclSyntax) -> SyntaxVisitorContinueKind {
         isInsideDIContainer = false
         flaggedPropertyTypes = []
         return .visitChildren
     }
 
-    override func visitPost(_ node: ActorDeclSyntax) {
+    override func visitPost(_ _: ActorDeclSyntax) {
         flaggedPropertyTypes = []
     }
 
-    override func visit(_ node: InitializerDeclSyntax) -> SyntaxVisitorContinueKind {
+    override func visit(_ _: InitializerDeclSyntax) -> SyntaxVisitorContinueKind {
         isInsideInitializer = true
         return .visitChildren
     }
 
-    override func visitPost(_ node: InitializerDeclSyntax) {
+    override func visitPost(_ _: InitializerDeclSyntax) {
         isInsideInitializer = false
     }
 

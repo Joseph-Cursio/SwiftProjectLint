@@ -64,7 +64,7 @@ final class CircularDependencyVisitor: BasePatternVisitor, CrossFilePatternVisit
         return .visitChildren
     }
 
-    override func visitPost(_ node: ClassDeclSyntax) {
+    override func visitPost(_ _: ClassDeclSyntax) {
         currentTypeName = nil
     }
 
@@ -75,7 +75,7 @@ final class CircularDependencyVisitor: BasePatternVisitor, CrossFilePatternVisit
         return .visitChildren
     }
 
-    override func visitPost(_ node: StructDeclSyntax) {
+    override func visitPost(_ _: StructDeclSyntax) {
         currentTypeName = nil
     }
 
@@ -101,7 +101,7 @@ final class CircularDependencyVisitor: BasePatternVisitor, CrossFilePatternVisit
 
     // MARK: - Track function parameter type references
 
-    override func visit(_ node: FunctionDeclSyntax) -> SyntaxVisitorContinueKind {
+    override func visit(_ _: FunctionDeclSyntax) -> SyntaxVisitorContinueKind {
         // Skip — function params don't create structural dependencies
         // as strongly as stored properties
         return .visitChildren

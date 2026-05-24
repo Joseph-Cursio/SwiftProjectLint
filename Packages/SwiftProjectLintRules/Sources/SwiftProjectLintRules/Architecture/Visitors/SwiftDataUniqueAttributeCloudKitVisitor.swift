@@ -30,7 +30,7 @@ final class SwiftDataUniqueAttributeCloudKitVisitor: BasePatternVisitor {
         return .visitChildren
     }
 
-    override func visitPost(_ node: ClassDeclSyntax) {
+    override func visitPost(_ _: ClassDeclSyntax) {
         insideModelClass = false
     }
 

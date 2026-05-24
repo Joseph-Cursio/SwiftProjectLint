@@ -80,7 +80,7 @@ class SecurityVisitor: BasePatternVisitor {
         return .visitChildren
     }
 
-    override func visitPost(_ node: IfConfigDeclSyntax) {
+    override func visitPost(_ _: IfConfigDeclSyntax) {
         insideIfDebug = false
     }
 

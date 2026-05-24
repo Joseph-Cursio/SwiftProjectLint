@@ -493,7 +493,7 @@ final class ContextUnannotatedFunctionCollector: SyntaxVisitor {
         return .visitChildren
     }
 
-    override func visit(_ node: ClosureExprSyntax) -> SyntaxVisitorContinueKind {
+    override func visit(_ _: ClosureExprSyntax) -> SyntaxVisitorContinueKind {
         .skipChildren
     }
 }
@@ -553,7 +553,7 @@ final class FunctionDeclCollector: SyntaxVisitor {
         return .visitChildren
     }
 
-    override func visit(_ node: ClosureExprSyntax) -> SyntaxVisitorContinueKind {
+    override func visit(_ _: ClosureExprSyntax) -> SyntaxVisitorContinueKind {
         .skipChildren
     }
 }
@@ -581,7 +581,7 @@ final class ClosurePropertyDeclCollector: SyntaxVisitor {
         return .visitChildren
     }
 
-    override func visit(_ node: ClosureExprSyntax) -> SyntaxVisitorContinueKind {
+    override func visit(_ _: ClosureExprSyntax) -> SyntaxVisitorContinueKind {
         .skipChildren
     }
 }

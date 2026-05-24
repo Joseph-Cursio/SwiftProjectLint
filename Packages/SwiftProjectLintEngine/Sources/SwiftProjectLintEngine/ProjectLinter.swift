@@ -191,7 +191,7 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
     /// (Identifiable, Enum, Actor). Each collector walks the AST once per file and
     /// the results are merged into a single set.
     private static func collectTypes<T: TypeCollectorProtocol>(
-        _ collectorType: T.Type, from filePaths: [String]
+        _ _: T.Type, from filePaths: [String]
     ) -> Set<String> {
         var allTypes: Set<String> = []
         for filePath in filePaths {

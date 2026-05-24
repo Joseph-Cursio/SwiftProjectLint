@@ -114,7 +114,7 @@ final class CouldBePrivateMemberVisitor: BasePatternVisitor, CrossFilePatternVis
         return .visitChildren
     }
 
-    override func visitPost(_ node: StructDeclSyntax) {
+    override func visitPost(_ _: StructDeclSyntax) {
         typeNestingDepth -= 1
         if typeNestingDepth == 0 { currentTypeName = "" }
     }
@@ -126,7 +126,7 @@ final class CouldBePrivateMemberVisitor: BasePatternVisitor, CrossFilePatternVis
         return .visitChildren
     }
 
-    override func visitPost(_ node: ClassDeclSyntax) {
+    override func visitPost(_ _: ClassDeclSyntax) {
         typeNestingDepth -= 1
         if typeNestingDepth == 0 { currentTypeName = "" }
     }
@@ -138,7 +138,7 @@ final class CouldBePrivateMemberVisitor: BasePatternVisitor, CrossFilePatternVis
         return .visitChildren
     }
 
-    override func visitPost(_ node: EnumDeclSyntax) {
+    override func visitPost(_ _: EnumDeclSyntax) {
         typeNestingDepth -= 1
         if typeNestingDepth == 0 { currentTypeName = "" }
     }
@@ -150,7 +150,7 @@ final class CouldBePrivateMemberVisitor: BasePatternVisitor, CrossFilePatternVis
         return .visitChildren
     }
 
-    override func visitPost(_ node: ActorDeclSyntax) {
+    override func visitPost(_ _: ActorDeclSyntax) {
         typeNestingDepth -= 1
         if typeNestingDepth == 0 { currentTypeName = "" }
     }
@@ -171,26 +171,26 @@ final class CouldBePrivateMemberVisitor: BasePatternVisitor, CrossFilePatternVis
         return .visitChildren
     }
 
-    override func visitPost(_ node: FunctionDeclSyntax) {
+    override func visitPost(_ _: FunctionDeclSyntax) {
         functionNestingDepth -= 1
     }
 
     // Closures and computed property accessors also introduce local scope
-    override func visit(_ node: ClosureExprSyntax) -> SyntaxVisitorContinueKind {
+    override func visit(_ _: ClosureExprSyntax) -> SyntaxVisitorContinueKind {
         functionNestingDepth += 1
         return .visitChildren
     }
 
-    override func visitPost(_ node: ClosureExprSyntax) {
+    override func visitPost(_ _: ClosureExprSyntax) {
         functionNestingDepth -= 1
     }
 
-    override func visit(_ node: AccessorDeclSyntax) -> SyntaxVisitorContinueKind {
+    override func visit(_ _: AccessorDeclSyntax) -> SyntaxVisitorContinueKind {
         functionNestingDepth += 1
         return .visitChildren
     }
 
-    override func visitPost(_ node: AccessorDeclSyntax) {
+    override func visitPost(_ _: AccessorDeclSyntax) {
         functionNestingDepth -= 1
     }
 

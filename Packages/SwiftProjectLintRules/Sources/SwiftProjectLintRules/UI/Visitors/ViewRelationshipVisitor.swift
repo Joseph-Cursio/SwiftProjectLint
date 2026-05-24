@@ -125,7 +125,7 @@ class ViewRelationshipVisitor: SyntaxVisitor {
         return .visitChildren
     }
 
-    override func visit(_ node: StructDeclSyntax) -> SyntaxVisitorContinueKind {
+    override func visit(_ _: StructDeclSyntax) -> SyntaxVisitorContinueKind {
         return .visitChildren
     }
 

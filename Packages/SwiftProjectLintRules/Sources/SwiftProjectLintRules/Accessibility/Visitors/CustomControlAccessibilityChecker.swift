@@ -14,7 +14,7 @@ class CustomControlAccessibilityChecker {
         self.visitor = visitor
     }
 
-    func checkAccessibility(_ node: VariableDeclSyntax) {
+    func checkAccessibility(_ _: VariableDeclSyntax) {
         // Intentionally unimplemented — reserved for future custom-control accessibility checks.
     }
 }

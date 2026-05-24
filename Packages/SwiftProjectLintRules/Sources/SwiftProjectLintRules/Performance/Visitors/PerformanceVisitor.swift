@@ -208,7 +208,7 @@ class PerformanceVisitor: BasePatternVisitor {
         viewBodySize = 0
     }
 
-    override func visit(_ node: AccessorBlockSyntax) -> SyntaxVisitorContinueKind {
+    override func visit(_ _: AccessorBlockSyntax) -> SyntaxVisitorContinueKind {
         return .visitChildren
     }
 

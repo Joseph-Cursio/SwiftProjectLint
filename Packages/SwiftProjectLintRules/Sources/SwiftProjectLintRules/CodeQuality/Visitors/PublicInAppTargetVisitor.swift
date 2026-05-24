@@ -46,7 +46,7 @@ final class PublicInAppTargetVisitor: BasePatternVisitor {
         return .visitChildren
     }
 
-    override func visitPost(_ node: StructDeclSyntax) {
+    override func visitPost(_ _: StructDeclSyntax) {
         typeNameStack.removeLast()
     }
 
@@ -57,7 +57,7 @@ final class PublicInAppTargetVisitor: BasePatternVisitor {
         return .visitChildren
     }
 
-    override func visitPost(_ node: ClassDeclSyntax) {
+    override func visitPost(_ _: ClassDeclSyntax) {
         typeNameStack.removeLast()
     }
 
@@ -68,7 +68,7 @@ final class PublicInAppTargetVisitor: BasePatternVisitor {
         return .visitChildren
     }
 
-    override func visitPost(_ node: EnumDeclSyntax) {
+    override func visitPost(_ _: EnumDeclSyntax) {
         typeNameStack.removeLast()
     }
 
@@ -79,7 +79,7 @@ final class PublicInAppTargetVisitor: BasePatternVisitor {
         return .visitChildren
     }
 
-    override func visitPost(_ node: ActorDeclSyntax) {
+    override func visitPost(_ _: ActorDeclSyntax) {
         typeNameStack.removeLast()
     }
 

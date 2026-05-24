@@ -142,7 +142,7 @@ class MagicNumberVisitor: BasePatternVisitor {
         return .visitChildren
     }
 
-    override func visitPost(_ node: SourceFileSyntax) {
+    override func visitPost(_ _: SourceFileSyntax) {
         for (_, occurrences) in magicNumberOccurrences where occurrences.count >= 2 {
             for occurrence in occurrences {
                 addIssue(

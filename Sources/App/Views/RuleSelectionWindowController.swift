@@ -77,7 +77,7 @@ private final class WindowCloseDelegate: NSObject, NSWindowDelegate {
         self.onClose = onClose
     }
 
-    func windowWillClose(_ notification: Notification) {
+    func windowWillClose(_ _: Notification) {
         onClose()
     }
 }

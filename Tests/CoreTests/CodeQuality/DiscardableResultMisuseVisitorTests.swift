@@ -38,7 +38,7 @@ struct DiscardableResultMisuseVisitorTests {
         ("@discardableResult\nfunc getStatus() -> AuthStatus { .active }", "AuthStatus"),
         ("@discardableResult\nfunc evaluate() -> EvalOutcome { .pass }", "EvalOutcome")
     ])
-    func detectsMeaningfulSuffix(source: String, returnType: String) {
+    func detectsMeaningfulSuffix(source: String, returnType _: String) {
         let visitor = makeVisitor()
         run(visitor, source: source)
         #expect(visitor.detectedIssues.count == 1)
