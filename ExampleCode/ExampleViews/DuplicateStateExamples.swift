@@ -56,7 +56,7 @@ struct ChildView: View {
 }
         .alert("Child Alert", isPresented: $showAlert) {
             Button("OK") { } 
-        }
+}
         .padding()
         .border(Color.blue)
     }
