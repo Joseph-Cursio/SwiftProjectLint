@@ -47,7 +47,7 @@ struct ToggleButtonSelectedTraitTests {
         #expect(issue.message.contains("accessibilityAddTraits"))
     }
 
-    @Test func testFlagsButtonWithTernaryInLabelArgument() throws {
+    @Test func testFlagsButtonWithTernaryInLabelArgument() {
         let source = """
         struct MyView: View {
             @State private var active = false
@@ -64,7 +64,7 @@ struct ToggleButtonSelectedTraitTests {
         #expect(issues.count == 1)
     }
 
-    @Test func testFlagsButtonWithNestedTernary() throws {
+    @Test func testFlagsButtonWithNestedTernary() {
         let source = """
         struct MyView: View {
             @State private var selected = false
@@ -84,7 +84,7 @@ struct ToggleButtonSelectedTraitTests {
 
     // MARK: - Negative: should NOT flag
 
-    @Test func testNoIssueWhenAccessibilityAddTraitsPresent() throws {
+    @Test func testNoIssueWhenAccessibilityAddTraitsPresent() {
         let source = """
         struct MyView: View {
             @State private var selected = false
@@ -100,7 +100,7 @@ struct ToggleButtonSelectedTraitTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testNoIssueWhenAccessibilityHidden() throws {
+    @Test func testNoIssueWhenAccessibilityHidden() {
         let source = """
         struct MyView: View {
             @State private var selected = false
@@ -116,7 +116,7 @@ struct ToggleButtonSelectedTraitTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testNoIssueForButtonWithoutTernary() throws {
+    @Test func testNoIssueForButtonWithoutTernary() {
         let source = """
         struct MyView: View {
             var body: some View {
@@ -130,7 +130,7 @@ struct ToggleButtonSelectedTraitTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testNoIssueForNonButtonWithTernary() throws {
+    @Test func testNoIssueForNonButtonWithTernary() {
         let source = """
         struct MyView: View {
             @State private var active = false
@@ -143,7 +143,7 @@ struct ToggleButtonSelectedTraitTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testSkipsTestFiles() throws {
+    @Test func testSkipsTestFiles() {
         let source = """
         struct MyViewTests: View {
             @State private var selected = false

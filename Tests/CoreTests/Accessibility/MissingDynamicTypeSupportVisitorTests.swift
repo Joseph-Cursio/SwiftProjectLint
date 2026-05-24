@@ -46,7 +46,7 @@ struct MissingDynamicTypeSupportVisitorTests {
         #expect(issue.message.contains("lineLimit"))
     }
 
-    @Test func testFlagsLineLimitOnMemberAccess() throws {
+    @Test func testFlagsLineLimitOnMemberAccess() {
         let source = """
         struct MyView: View {
             var body: some View {
@@ -59,7 +59,7 @@ struct MissingDynamicTypeSupportVisitorTests {
         #expect(issues.count == 1)
     }
 
-    @Test func testFlagsLineLimitOnInterpolation() throws {
+    @Test func testFlagsLineLimitOnInterpolation() {
         let source = """
         struct MyView: View {
             let name: String
@@ -73,7 +73,7 @@ struct MissingDynamicTypeSupportVisitorTests {
         #expect(issues.count == 1)
     }
 
-    @Test func testFlagsLineLimitOnFunctionCallArg() throws {
+    @Test func testFlagsLineLimitOnFunctionCallArg() {
         let source = """
         struct MyView: View {
             var body: some View {
@@ -88,7 +88,7 @@ struct MissingDynamicTypeSupportVisitorTests {
 
     // MARK: - Negative: should NOT flag
 
-    @Test func testNoIssueForShortStaticLabel() throws {
+    @Test func testNoIssueForShortStaticLabel() {
         let source = """
         struct MyView: View {
             var body: some View {
@@ -101,7 +101,7 @@ struct MissingDynamicTypeSupportVisitorTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testNoIssueWithMinimumScaleFactor() throws {
+    @Test func testNoIssueWithMinimumScaleFactor() {
         let source = """
         struct MyView: View {
             let title: String
@@ -116,7 +116,7 @@ struct MissingDynamicTypeSupportVisitorTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testNoIssueForLineLimitZero() throws {
+    @Test func testNoIssueForLineLimitZero() {
         let source = """
         struct MyView: View {
             let title: String
@@ -130,7 +130,7 @@ struct MissingDynamicTypeSupportVisitorTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testNoIssueForLineLimitGreaterThanOne() throws {
+    @Test func testNoIssueForLineLimitGreaterThanOne() {
         let source = """
         struct MyView: View {
             let title: String
@@ -144,7 +144,7 @@ struct MissingDynamicTypeSupportVisitorTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testNoIssueForNonTextElement() throws {
+    @Test func testNoIssueForNonTextElement() {
         let source = """
         struct MyView: View {
             var body: some View {
@@ -157,7 +157,7 @@ struct MissingDynamicTypeSupportVisitorTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testNoIssueWithoutLineLimit() throws {
+    @Test func testNoIssueWithoutLineLimit() {
         let source = """
         struct MyView: View {
             let title: String

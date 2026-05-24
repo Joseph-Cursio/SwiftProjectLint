@@ -31,7 +31,7 @@ struct NetworkingVisitorTypedClosureTests {
     // MARK: - Typed closure with error parameter properly handled via "if let error"
 
     @Test("typed closure with if-let error handling reports no issues")
-    func typedClosureWithIfLetError() throws {
+    func typedClosureWithIfLetError() {
         let source = """
         let url = URL(string: "https://example.com")!
         URLSession.shared.dataTask(with: url) { (data: Data?, response: URLResponse?, error: Error?) in
@@ -48,7 +48,7 @@ struct NetworkingVisitorTypedClosureTests {
     // MARK: - Typed closure with error parameter handled via "guard let error"
 
     @Test("typed closure with guard-let error handling reports no issues")
-    func typedClosureWithGuardLetError() throws {
+    func typedClosureWithGuardLetError() {
         let source = """
         let url = URL(string: "https://example.com")!
         URLSession.shared.dataTask(with: url) { (data: Data?, response: URLResponse?, error: Error?) in
@@ -64,7 +64,7 @@ struct NetworkingVisitorTypedClosureTests {
     // MARK: - Typed closure with error parameter handled via "error != nil"
 
     @Test("typed closure with error-not-nil check reports no issues")
-    func typedClosureWithErrorNotNilCheck() throws {
+    func typedClosureWithErrorNotNilCheck() {
         let source = """
         let url = URL(string: "https://example.com")!
         URLSession.shared.dataTask(with: url) { (data: Data?, response: URLResponse?, error: Error?) in
@@ -81,7 +81,7 @@ struct NetworkingVisitorTypedClosureTests {
     // MARK: - Typed closure with error parameter handled via "error." property access
 
     @Test("typed closure with error dot access reports no issues")
-    func typedClosureWithErrorDotAccess() throws {
+    func typedClosureWithErrorDotAccess() {
         let source = """
         let url = URL(string: "https://example.com")!
         URLSession.shared.dataTask(with: url) { (data: Data?, response: URLResponse?, error: Error?) in
@@ -97,7 +97,7 @@ struct NetworkingVisitorTypedClosureTests {
     // MARK: - Typed closure with error parameter handled via "error.description"
 
     @Test("typed closure with error description access reports no issues")
-    func typedClosureWithErrorDescription() throws {
+    func typedClosureWithErrorDescription() {
         let source = """
         let url = URL(string: "https://example.com")!
         URLSession.shared.dataTask(with: url) { (data: Data?, response: URLResponse?, error: Error?) in
@@ -112,7 +112,7 @@ struct NetworkingVisitorTypedClosureTests {
     // MARK: - Typed closure with error parameter handled via "error as" cast
 
     @Test("typed closure with error-as cast reports no issues")
-    func typedClosureWithErrorAsCast() throws {
+    func typedClosureWithErrorAsCast() {
         let source = """
         let url = URL(string: "https://example.com")!
         URLSession.shared.dataTask(with: url) { (data: Data?, response: URLResponse?, error: Error?) in
@@ -183,7 +183,7 @@ struct NetworkingVisitorTypedClosureTests {
     }
 
     @Test("typed closure with two parameters and error handling in body reports no issues")
-    func typedClosureTwoParamsWithErrorInBody() throws {
+    func typedClosureTwoParamsWithErrorInBody() {
         let source = """
         let url = URL(string: "https://example.com")!
         URLSession.shared.dataTask(with: url) { (data: Data?, response: URLResponse?) in
@@ -216,7 +216,7 @@ struct NetworkingVisitorTypedClosureTests {
     }
 
     @Test("typed closure with non-error-named third parameter and error handling in body is clean")
-    func typedClosureNonErrorThirdParamWithBodyHandling() throws {
+    func typedClosureNonErrorThirdParamWithBodyHandling() {
         let source = """
         let url = URL(string: "https://example.com")!
         URLSession.shared.dataTask(with: url) { (data: Data?, response: URLResponse?, failure: Error?) in

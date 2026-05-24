@@ -81,7 +81,7 @@ struct ObservableMainActorMissingVisitorTests {
     }
 
     @Test("Flags @Observable class with many properties")
-    func detectsClassWithManyProperties() throws {
+    func detectsClassWithManyProperties() {
         let source = """
         @Observable
         class SettingsModel {

@@ -43,7 +43,7 @@ struct ColorAccessibilityCheckerCoverageTests {
     }
 
     @Test("detects Color.blue direct usage")
-    func detectsColorBlueUsage() throws {
+    func detectsColorBlueUsage() {
         let visitor = makeAccessibilityVisitor()
 
         let sourceCode = """

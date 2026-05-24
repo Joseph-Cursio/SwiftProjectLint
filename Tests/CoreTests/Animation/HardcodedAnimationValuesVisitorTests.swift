@@ -46,7 +46,7 @@ struct HardcodedAnimationValuesVisitorTests {
     }
 
     @Test
-    func testDetectsSpringParameters() throws {
+    func testDetectsSpringParameters() {
         let source = """
         import SwiftUI
 

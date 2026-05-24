@@ -122,7 +122,7 @@ struct PerfStateAssignmentCoverageTests {
     }
 
     @Test("trackStateVariableUsage ignores non-self member access")
-    func nonSelfMemberAccessIgnored() throws {
+    func nonSelfMemberAccessIgnored() {
         let source = """
         struct TestView: View {
             @State private var count: Int = 0
@@ -139,7 +139,7 @@ struct PerfStateAssignmentCoverageTests {
     }
 
     @Test("state variables reset between struct declarations")
-    func stateVarsResetBetweenStructs() throws {
+    func stateVarsResetBetweenStructs() {
         let source = """
         struct FirstView: View {
             @State private var alpha: Int = 0

@@ -10,7 +10,7 @@ struct MemoryManagementConfigurationTests {
 
     // MARK: - Configuration Tests
 
-    @Test func testCustomConfigurationForRetainCycles() throws {
+    @Test func testCustomConfigurationForRetainCycles() {
         let config = MemoryManagementVisitor.Configuration(
             maxArraySize: 100,
             detectRetainCycles: false,
@@ -52,7 +52,7 @@ struct MemoryManagementConfigurationTests {
 
     // MARK: - Complex Scenarios
 
-    @Test func testComplexViewWithMultipleIssues() throws {
+    @Test func testComplexViewWithMultipleIssues() {
         let sourceCode = """
         struct ContentView: View {
             @StateObject var viewModel: ContentViewModel = ContentViewModel()
@@ -101,7 +101,7 @@ struct MemoryManagementConfigurationTests {
         #expect(largeObjectIssues.count == 1)
     }
 
-    @Test func testResetClearsDetectedIssues() throws {
+    @Test func testResetClearsDetectedIssues() {
         let sourceCode = """
         struct TestView: View {
             @StateObject var viewModel: TestViewModel = TestViewModel()

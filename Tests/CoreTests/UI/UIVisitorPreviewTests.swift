@@ -38,7 +38,7 @@ struct UIVisitorPreviewTests {
         #expect(issue.severity == .info)
     }
 
-    @Test func testDoesNotDetectWhenPreviewExists() throws {
+    @Test func testDoesNotDetectWhenPreviewExists() {
         let visitor = UIVisitor(patternCategory: PatternCategory.uiPatterns)
         visitor.setFilePath("test.swift")
         visitor.reset()
@@ -63,7 +63,7 @@ struct UIVisitorPreviewTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testSubcomponentViewsNotFlaggedForMissingPreview() throws {
+    @Test func testSubcomponentViewsNotFlaggedForMissingPreview() {
         let visitor = UIVisitor(patternCategory: PatternCategory.uiPatterns)
         visitor.setFilePath("HealthScoreBadge.swift")
         visitor.reset()
@@ -99,7 +99,7 @@ struct UIVisitorPreviewTests {
         #expect(previewIssues.first?.message.contains("HealthScoreBadge") == true)
     }
 
-    @Test func testDetectsPreviewStruct() throws {
+    @Test func testDetectsPreviewStruct() {
         let visitor = UIVisitor(patternCategory: PatternCategory.uiPatterns)
         visitor.setFilePath("test.swift")
         visitor.reset()
@@ -128,7 +128,7 @@ struct UIVisitorPreviewTests {
 
     // MARK: - Tiered severity
 
-    @Test func testPublicViewGetsWarningSeverity() throws {
+    @Test func testPublicViewGetsWarningSeverity() {
         let visitor = UIVisitor(patternCategory: PatternCategory.uiPatterns)
         visitor.setFilePath("PublicView.swift")
         visitor.reset()

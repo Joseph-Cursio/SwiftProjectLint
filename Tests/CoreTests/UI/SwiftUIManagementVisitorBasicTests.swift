@@ -7,7 +7,7 @@ import Testing
 /// Tests for SwiftUIManagementVisitor basic detection functionality
 struct SwiftUIManagementVisitorBasicTests {
 
-    @Test func testDetectFatView() throws {
+    @Test func testDetectFatView() {
         // Test detection of views with too many state variables
         let source = """
         struct ContentView: View {
@@ -37,7 +37,7 @@ struct SwiftUIManagementVisitorBasicTests {
         #expect(fatViewIssues.count >= 1)
     }
 
-    @Test func testDetectUninitializedState() throws {
+    @Test func testDetectUninitializedState() {
         let source = """
         struct ContentView: View {
             @State private var count: Int
@@ -62,7 +62,7 @@ struct SwiftUIManagementVisitorBasicTests {
         #expect(uninitializedIssues.count >= 1)
     }
 
-    @Test func testDetectMissingStateObject() throws {
+    @Test func testDetectMissingStateObject() {
         let source = """
         class ViewModel: ObservableObject {
             @Published var data = ""
@@ -85,7 +85,7 @@ struct SwiftUIManagementVisitorBasicTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testAnalyzeViewStructure() throws {
+    @Test func testAnalyzeViewStructure() {
         let source = """
         struct ContentView: View {
             @State private var count = 0
@@ -110,7 +110,7 @@ struct SwiftUIManagementVisitorBasicTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testAnalyzeVariableDeclaration() throws {
+    @Test func testAnalyzeVariableDeclaration() {
         let source = """
         struct ContentView: View {
             @State private var count: Int = 0
@@ -152,7 +152,7 @@ struct SwiftUIManagementVisitorBasicTests {
         #expect(issue.filePath == "test/path/ContentView.swift")
     }
 
-    @Test func testDoesNotDetectFatViewWithFewStateVariables() throws {
+    @Test func testDoesNotDetectFatViewWithFewStateVariables() {
         let source = """
         struct ContentView: View {
             @State private var count = 0
@@ -177,7 +177,7 @@ struct SwiftUIManagementVisitorBasicTests {
         #expect(fatViewIssues.isEmpty)
     }
 
-    @Test func testDoesNotDetectUninitializedStateWithInitializer() throws {
+    @Test func testDoesNotDetectUninitializedStateWithInitializer() {
         let source = """
         struct ContentView: View {
             @State private var count: Int = 0
@@ -201,7 +201,7 @@ struct SwiftUIManagementVisitorBasicTests {
         #expect(uninitializedIssues.isEmpty)
     }
 
-    @Test func testAnalyzeFunctionForUnusedState() throws {
+    @Test func testAnalyzeFunctionForUnusedState() {
         // Test that analyzeFunctionForUnusedState is called (even if it's a stub)
         let source = """
         struct ContentView: View {
@@ -226,7 +226,7 @@ struct SwiftUIManagementVisitorBasicTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testDoesNotFlagOptionalStateVariable() throws {
+    @Test func testDoesNotFlagOptionalStateVariable() {
         let source = """
         struct ContentView: View {
             @State private var errorMessage: String?
@@ -246,7 +246,7 @@ struct SwiftUIManagementVisitorBasicTests {
         #expect(uninitializedIssues.isEmpty)
     }
 
-    @Test func testDoesNotFlagNonPrivateStateVariable() throws {
+    @Test func testDoesNotFlagNonPrivateStateVariable() {
         let source = """
         struct RuleDetailView: View {
             @State var viewModel: RuleDetailViewModel
@@ -265,7 +265,7 @@ struct SwiftUIManagementVisitorBasicTests {
         #expect(uninitializedIssues.isEmpty)
     }
 
-    @Test func testDoesNotFlagStateInitializedInInit() throws {
+    @Test func testDoesNotFlagStateInitializedInInit() {
         let source = """
         struct MyApp: View {
             @State private var registry: RuleRegistry
@@ -290,7 +290,7 @@ struct SwiftUIManagementVisitorBasicTests {
         #expect(uninitializedIssues.isEmpty)
     }
 
-    @Test func testStillFlagsPrivateNonOptionalWithoutInit() throws {
+    @Test func testStillFlagsPrivateNonOptionalWithoutInit() {
         let source = """
         struct ContentView: View {
             @State private var count: Int

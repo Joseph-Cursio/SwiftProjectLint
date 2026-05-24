@@ -284,7 +284,7 @@ struct StateVariableVisitorCoverageTests {
     // MARK: - Line number caching
 
     @Test("line number caching works for multiple variables")
-    func lineNumberCachingMultipleVars() throws {
+    func lineNumberCachingMultipleVars() {
         let source = """
         struct TestView: View {
             @State private var alpha = 0

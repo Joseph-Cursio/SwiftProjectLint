@@ -44,7 +44,7 @@ struct ButtonAccessibilityTests {
         #expect(issue.suggestion?.contains("labelStyle(.iconOnly)") == true)
     }
 
-    @Test func testIconOnlyButtonWithLabelClosureMissingLabel() throws {
+    @Test func testIconOnlyButtonWithLabelClosureMissingLabel() {
         let visitor = makeAccessibilityVisitor()
 
         let sourceCode = """
@@ -68,7 +68,7 @@ struct ButtonAccessibilityTests {
         #expect(iconOnlyIssues.count == 1)
     }
 
-    @Test func testIconOnlyButtonWithAssetImageMissingLabel() throws {
+    @Test func testIconOnlyButtonWithAssetImageMissingLabel() {
         let visitor = makeAccessibilityVisitor()
 
         let sourceCode = """
@@ -188,7 +188,7 @@ struct ButtonAccessibilityTests {
         #expect(issue.ruleName == .iconOnlyButtonMissingLabel)
     }
 
-    @Test func testButtonWithImageInNestedStack() throws {
+    @Test func testButtonWithImageInNestedStack() {
         let visitor = makeAccessibilityVisitor()
 
         let sourceCode = """

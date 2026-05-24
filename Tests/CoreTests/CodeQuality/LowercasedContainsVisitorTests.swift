@@ -56,7 +56,7 @@ struct LowercasedContainsVisitorTests {
 
     // Unique: multi-instance in filter closure, specific count validation
     @Test
-    func detectsInFilterClosure() throws {
+    func detectsInFilterClosure() {
         let source = """
         struct SearchView: View {
             @State private var query = ""

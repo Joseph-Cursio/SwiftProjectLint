@@ -21,7 +21,7 @@ struct TupleEqualityWithUnstableComponentsVisitorTests {
     // MARK: - Positive cases (rule fires)
 
     @Test
-    func dateConstructor_inTupleEquality_fires() throws {
+    func dateConstructor_inTupleEquality_fires() {
         let source = """
         func check(_ prev: (Int, Date)) -> Bool {
             return (userID, Date()) == prev
@@ -75,7 +75,7 @@ struct TupleEqualityWithUnstableComponentsVisitorTests {
     }
 
     @Test
-    func continuousClockNow_fires() throws {
+    func continuousClockNow_fires() {
         let source = """
         func check(_ a: Int, _ b: Int) -> Bool {
             (a, ContinuousClock.now) == (b, ContinuousClock.now)
@@ -99,7 +99,7 @@ struct TupleEqualityWithUnstableComponentsVisitorTests {
     }
 
     @Test
-    func cfAbsoluteTimeGetCurrent_fires() throws {
+    func cfAbsoluteTimeGetCurrent_fires() {
         let source = """
         func check(_ a: Double, _ b: Double) -> Bool {
             (a, CFAbsoluteTimeGetCurrent()) == (b, 0.0)
@@ -136,7 +136,7 @@ struct TupleEqualityWithUnstableComponentsVisitorTests {
     }
 
     @Test
-    func notEqualOperator_fires() throws {
+    func notEqualOperator_fires() {
         let source = """
         func check(_ a: Int, _ b: Int) -> Bool {
             (a, Date()) != (b, Date())
@@ -147,7 +147,7 @@ struct TupleEqualityWithUnstableComponentsVisitorTests {
     }
 
     @Test
-    func insideIfCondition_fires() throws {
+    func insideIfCondition_fires() {
         let source = """
         func check(_ a: Int, _ b: Int) {
             if (a, Date()) == (b, Date()) {
@@ -160,7 +160,7 @@ struct TupleEqualityWithUnstableComponentsVisitorTests {
     }
 
     @Test
-    func insideGuardCondition_fires() throws {
+    func insideGuardCondition_fires() {
         let source = """
         func check(_ a: Int, _ b: Int) -> Bool {
             guard (a, UUID()) == (b, UUID()) else { return false }
@@ -172,7 +172,7 @@ struct TupleEqualityWithUnstableComponentsVisitorTests {
     }
 
     @Test
-    func arity3Tuple_fires() throws {
+    func arity3Tuple_fires() {
         let source = """
         func check(_ a: Int, _ b: Int, _ c: Int, _ d: Int) -> Bool {
             (a, b, Date()) == (c, d, Date())
@@ -185,7 +185,7 @@ struct TupleEqualityWithUnstableComponentsVisitorTests {
     // MARK: - Negative cases (rule stays silent)
 
     @Test
-    func stableLiteralTuple_doesNotFire() throws {
+    func stableLiteralTuple_doesNotFire() {
         let source = """
         func check(_ a: Int, _ b: Int, _ c: Int, _ d: Int) -> Bool {
             (a, b) == (c, d)
@@ -196,7 +196,7 @@ struct TupleEqualityWithUnstableComponentsVisitorTests {
     }
 
     @Test
-    func coordinatePair_doesNotFire() throws {
+    func coordinatePair_doesNotFire() {
         let source = """
         func isAtOrigin(_ point: (Int, Int)) -> Bool {
             point == (0, 0)
@@ -209,7 +209,7 @@ struct TupleEqualityWithUnstableComponentsVisitorTests {
     }
 
     @Test
-    func singleElementParen_doesNotFire() throws {
+    func singleElementParen_doesNotFire() {
         let source = """
         func check(_ a: Int, _ b: Int) -> Bool {
             (a) == (b)
@@ -221,7 +221,7 @@ struct TupleEqualityWithUnstableComponentsVisitorTests {
     }
 
     @Test
-    func scalarEqualityToDateConstructor_doesNotFire() throws {
+    func scalarEqualityToDateConstructor_doesNotFire() {
         let source = """
         func check(_ a: Date) -> Bool {
             a == Date()
@@ -233,7 +233,7 @@ struct TupleEqualityWithUnstableComponentsVisitorTests {
     }
 
     @Test
-    func ambiguousIdentifierDate_doesNotFire() throws {
+    func ambiguousIdentifierDate_doesNotFire() {
         let source = """
         func check(_ a: Int, _ b: Int, date: Date, prev: Date) -> Bool {
             (a, date) == (b, prev)
@@ -246,7 +246,7 @@ struct TupleEqualityWithUnstableComponentsVisitorTests {
     }
 
     @Test
-    func nonZeroArgDateConstructor_doesNotFire() throws {
+    func nonZeroArgDateConstructor_doesNotFire() {
         let source = """
         func check(_ a: Int, _ b: Int, _ fixed: TimeInterval) -> Bool {
             (a, Date(timeIntervalSince1970: fixed)) == (b, Date(timeIntervalSince1970: fixed))
@@ -259,7 +259,7 @@ struct TupleEqualityWithUnstableComponentsVisitorTests {
     }
 
     @Test
-    func randomOnUnknownType_doesNotFire() throws {
+    func randomOnUnknownType_doesNotFire() {
         let source = """
         func check(_ a: Int, _ b: Int, _ gen: MyThing) -> Bool {
             (a, gen.random) == (b, 0)
@@ -272,7 +272,7 @@ struct TupleEqualityWithUnstableComponentsVisitorTests {
     }
 
     @Test
-    func leadingDotNow_doesNotFire() throws {
+    func leadingDotNow_doesNotFire() {
         let source = """
         func check(_ a: Int, _ b: Int, clock: ContinuousClock) -> Bool {
             (a, clock.now) == (b, clock.now)
@@ -287,7 +287,7 @@ struct TupleEqualityWithUnstableComponentsVisitorTests {
     }
 
     @Test
-    func dateConstructorOutsideEquality_doesNotFire() throws {
+    func dateConstructorOutsideEquality_doesNotFire() {
         let source = """
         func check() -> (Int, Date) {
             return (42, Date())
@@ -300,7 +300,7 @@ struct TupleEqualityWithUnstableComponentsVisitorTests {
     }
 
     @Test
-    func comparisonOperatorOtherThanEquality_doesNotFire() throws {
+    func comparisonOperatorOtherThanEquality_doesNotFire() {
         let source = """
         func check(_ a: Int, _ b: Int) -> Bool {
             (a, Date()) < (b, Date())

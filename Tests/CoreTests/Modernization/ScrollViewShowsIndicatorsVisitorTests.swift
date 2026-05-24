@@ -46,7 +46,7 @@ struct ScrollViewShowsIndicatorsVisitorTests {
         #expect(issue.message.contains("showsIndicators"))
     }
 
-    @Test func testFlagsShowsIndicatorsTrue() throws {
+    @Test func testFlagsShowsIndicatorsTrue() {
         let source = """
         struct MyView: View {
             var body: some View {
@@ -62,7 +62,7 @@ struct ScrollViewShowsIndicatorsVisitorTests {
 
     // MARK: - Negative: should NOT flag
 
-    @Test func testNoIssueForModernScrollIndicators() throws {
+    @Test func testNoIssueForModernScrollIndicators() {
         let source = """
         struct MyView: View {
             var body: some View {
@@ -77,7 +77,7 @@ struct ScrollViewShowsIndicatorsVisitorTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testNoIssueForPlainScrollView() throws {
+    @Test func testNoIssueForPlainScrollView() {
         let source = """
         struct MyView: View {
             var body: some View {
@@ -91,7 +91,7 @@ struct ScrollViewShowsIndicatorsVisitorTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testNoIssueForUnrelatedViews() throws {
+    @Test func testNoIssueForUnrelatedViews() {
         let source = """
         struct MyView: View {
             var body: some View {

@@ -45,7 +45,7 @@ struct SwiftDataUniqueAttributeCloudKitTests {
         #expect(issue.message.contains("CloudKit"))
     }
 
-    @Test func testFlagsMultipleUniqueAttributes() throws {
+    @Test func testFlagsMultipleUniqueAttributes() {
         let source = """
         @Model
         class Product {
@@ -60,7 +60,7 @@ struct SwiftDataUniqueAttributeCloudKitTests {
 
     // MARK: - Negative: should NOT flag
 
-    @Test func testNoIssueWithoutUniqueAttribute() throws {
+    @Test func testNoIssueWithoutUniqueAttribute() {
         let source = """
         @Model
         class User {
@@ -72,7 +72,7 @@ struct SwiftDataUniqueAttributeCloudKitTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testNoIssueForOtherAttributes() throws {
+    @Test func testNoIssueForOtherAttributes() {
         let source = """
         @Model
         class Item {
@@ -83,7 +83,7 @@ struct SwiftDataUniqueAttributeCloudKitTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testNoIssueForNonModelClass() throws {
+    @Test func testNoIssueForNonModelClass() {
         let source = """
         class RegularClass {
             @Attribute(.unique) var identifier: String
@@ -93,7 +93,7 @@ struct SwiftDataUniqueAttributeCloudKitTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testNoIssueForStruct() throws {
+    @Test func testNoIssueForStruct() {
         let source = """
         struct DataModel {
             @Attribute(.unique) var identifier: String

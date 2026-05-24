@@ -25,7 +25,7 @@ import Testing
 struct FileCacheTests {
     // MARK: - File Cache Characterization
 
-    @Test func characterizeFileCacheBasicBehavior() throws {
+    @Test func characterizeFileCacheBasicBehavior() {
         let detector = SourcePatternDetector()
 
         let file1Content = """

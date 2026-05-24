@@ -40,7 +40,7 @@ struct CrossFileInlineSuppressionTests {
     // MARK: - Baseline (no suppression, expects firing)
 
     @Test
-    func baseline_strictReplayableUnannotatedCallee_fires_withoutSuppression() async throws {
+    func baseline_strictReplayableUnannotatedCallee_fires_withoutSuppression() async {
         let source = """
         func mystery() {}
 
@@ -69,7 +69,7 @@ struct CrossFileInlineSuppressionTests {
     // MARK: - strict_replayable (the round-9 rule)
 
     @Test
-    func disableNext_silences_unannotatedInStrictReplayableContext() async throws {
+    func disableNext_silences_unannotatedInStrictReplayableContext() async {
         let source = """
         func mystery() {}
 
@@ -97,7 +97,7 @@ struct CrossFileInlineSuppressionTests {
     }
 
     @Test
-    func disableNext_onlySilencesTargetedLine() async throws {
+    func disableNext_onlySilencesTargetedLine() async {
         let source = """
         func mysteryA() {}
         func mysteryB() {}
@@ -130,7 +130,7 @@ struct CrossFileInlineSuppressionTests {
     // MARK: - nonIdempotentInRetryContext (pre-existing rule, also cross-file)
 
     @Test
-    func disableNext_silences_nonIdempotentInRetryContext() async throws {
+    func disableNext_silences_nonIdempotentInRetryContext() async {
         let source = """
         /// @lint.effect non_idempotent
         func sendEmail() async throws {}
@@ -161,7 +161,7 @@ struct CrossFileInlineSuppressionTests {
     // MARK: - Full-rule disable (no explicit rule list)
 
     @Test
-    func disableNextWithoutRuleName_silencesAllRulesOnNextLine() async throws {
+    func disableNextWithoutRuleName_silencesAllRulesOnNextLine() async {
         let source = """
         func mystery() {}
 
@@ -188,7 +188,7 @@ struct CrossFileInlineSuppressionTests {
     // MARK: - Wrong rule name does not silence
 
     @Test
-    func disableNext_wrongRuleName_doesNotSilence() async throws {
+    func disableNext_wrongRuleName_doesNotSilence() async {
         let source = """
         func mystery() {}
 

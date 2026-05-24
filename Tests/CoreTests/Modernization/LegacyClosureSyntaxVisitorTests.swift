@@ -42,7 +42,7 @@ struct LegacyClosureSyntaxVisitorTests {
         #expect(issue.message.contains("inferred"))
     }
 
-    @Test func testFlagsExplicitTypesInFilter() throws {
+    @Test func testFlagsExplicitTypesInFilter() {
         let source = """
         let adults = users.filter { (user: User) -> Bool in
             user.age >= 18
@@ -52,7 +52,7 @@ struct LegacyClosureSyntaxVisitorTests {
         #expect(issues.count == 1)
     }
 
-    @Test func testFlagsExplicitTypesInSorted() throws {
+    @Test func testFlagsExplicitTypesInSorted() {
         let source = """
         let sorted = items.sorted { (lhs: Item, rhs: Item) -> Bool in
             lhs.date < rhs.date
@@ -62,7 +62,7 @@ struct LegacyClosureSyntaxVisitorTests {
         #expect(issues.count == 1)
     }
 
-    @Test func testFlagsExplicitTypesInForEach() throws {
+    @Test func testFlagsExplicitTypesInForEach() {
         let source = """
         items.forEach { (item: Item) in
             process(item)
@@ -74,7 +74,7 @@ struct LegacyClosureSyntaxVisitorTests {
 
     // MARK: - Negative: should NOT flag
 
-    @Test func testNoIssueForInferredTypes() throws {
+    @Test func testNoIssueForInferredTypes() {
         let source = """
         let names = users.map { user in user.name }
         """
@@ -82,7 +82,7 @@ struct LegacyClosureSyntaxVisitorTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testNoIssueForShorthandSyntax() throws {
+    @Test func testNoIssueForShorthandSyntax() {
         let source = """
         let names = users.map { $0.name }
         """
@@ -90,7 +90,7 @@ struct LegacyClosureSyntaxVisitorTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testNoIssueForNonInferrableContext() throws {
+    @Test func testNoIssueForNonInferrableContext() {
         let source = """
         let closure = { (value: Int) -> String in
             String(value)
@@ -100,7 +100,7 @@ struct LegacyClosureSyntaxVisitorTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testNoIssueForCustomFunction() throws {
+    @Test func testNoIssueForCustomFunction() {
         let source = """
         doWork { (result: Result) in
             handle(result)
@@ -110,7 +110,7 @@ struct LegacyClosureSyntaxVisitorTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testNoIssueForUnrelatedCode() throws {
+    @Test func testNoIssueForUnrelatedCode() {
         let source = """
         let count = items.count
         let first = items.first

@@ -75,7 +75,7 @@ struct ExpectNegationVisitorTests {
     // MARK: - Multiple Detections
 
     @Test
-    func detectsMultipleNegationsAcrossMacros() throws {
+    func detectsMultipleNegationsAcrossMacros() {
         let visitor = makeVisitor()
         run(visitor, source: """
         #expect(!flagA)

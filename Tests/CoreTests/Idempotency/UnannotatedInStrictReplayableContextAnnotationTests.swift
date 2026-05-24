@@ -123,7 +123,7 @@ struct UnannotatedInStrictReplayableContextAnnotationTests {
     // `return .run { ... }` / ternary-branch trailing-closure calls.
 
     @Test
-    func strictReplayable_underReturnCall_firesOnUnannotated() throws {
+    func strictReplayable_underReturnCall_firesOnUnannotated() {
         let source = """
         enum Effect<A> {
             static func run(_ body: (Int) async throws -> Void) -> Effect<A> { fatalError() }
@@ -146,7 +146,7 @@ struct UnannotatedInStrictReplayableContextAnnotationTests {
     }
 
     @Test
-    func strictReplayable_underTernaryBranch_firesOnUnannotated() throws {
+    func strictReplayable_underTernaryBranch_firesOnUnannotated() {
         let source = """
         enum Effect<A> {
             static var none: Effect<A> { fatalError() }

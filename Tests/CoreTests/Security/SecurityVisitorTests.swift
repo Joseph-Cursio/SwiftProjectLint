@@ -24,7 +24,7 @@ struct SecurityVisitorTests {
 
     // MARK: - Original keyword-based detection
 
-    @Test func testHardcodedSecretDetection() throws {
+    @Test func testHardcodedSecretDetection() {
         let source = """
         let apiKey = "12345"
         let secret = "topsecret"
@@ -37,7 +37,7 @@ struct SecurityVisitorTests {
         #expect(issues.allSatisfy { $0.severity == .error })
     }
 
-    @Test func testDoesNotFlagNonSecretKeySuffixVariables() throws {
+    @Test func testDoesNotFlagNonSecretKeySuffixVariables() {
         let source = """
         let onboardingKey = "com.myapp.hasCompletedOnboarding"
         let recentWorkspacesKey = "MyApp.recentWorkspaces"
@@ -49,7 +49,7 @@ struct SecurityVisitorTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testStillFlagsCompoundSecretKeyVariables() throws {
+    @Test func testStillFlagsCompoundSecretKeyVariables() {
         let source = """
         let apiKey = "sk-12345"
         let secretKey = "abc123"
@@ -65,7 +65,7 @@ struct SecurityVisitorTests {
 
     // MARK: - JWT detection
 
-    @Test func testFlagsJWTToken() throws {
+    @Test func testFlagsJWTToken() {
         let source = """
         let authHeader = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.dozjgNryP4J3jVmNHl0w5N_XgL0n3I9PlFUP0THsR8U"
         """
@@ -76,7 +76,7 @@ struct SecurityVisitorTests {
 
     // MARK: - Known API key prefix detection
 
-    @Test func testFlagsOpenAIKey() throws {
+    @Test func testFlagsOpenAIKey() {
         let source = """
         let config = "sk-proj-abc123def456ghi789"
         """
@@ -85,7 +85,7 @@ struct SecurityVisitorTests {
         #expect(issues.first?.message.contains("sk-") == true)
     }
 
-    @Test func testFlagsGitHubToken() throws {
+    @Test func testFlagsGitHubToken() {
         let source = """
         let ghToken = "ghp_1234567890abcdef1234567890abcdef12345678"
         """
@@ -94,7 +94,7 @@ struct SecurityVisitorTests {
         #expect(issues.count >= 1)
     }
 
-    @Test func testFlagsAWSAccessKey() throws {
+    @Test func testFlagsAWSAccessKey() {
         let source = """
         let awsKey = "AKIAIOSFODNN7EXAMPLE"
         """
@@ -102,7 +102,7 @@ struct SecurityVisitorTests {
         #expect(issues.count >= 1)
     }
 
-    @Test func testFlagsSlackToken() throws {
+    @Test func testFlagsSlackToken() {
         let source = "let webhook = \"xoxb-fake\""
         let issues = secretIssues(source)
         #expect(issues.count == 1)
@@ -111,7 +111,7 @@ struct SecurityVisitorTests {
 
     // MARK: - Entropy-based detection
 
-    @Test func testFlagsHighEntropySecretKey() throws {
+    @Test func testFlagsHighEntropySecretKey() {
         let source = """
         let signingKey = "aB3cD4eF5gH6iJ7kL8mN9oP0qR1sT2u"
         """
@@ -119,7 +119,7 @@ struct SecurityVisitorTests {
         #expect(issues.count >= 1)
     }
 
-    @Test func testNoFlagForLowEntropyKey() throws {
+    @Test func testNoFlagForLowEntropyKey() {
         let source = """
         let cacheKey = "aaaaaaaaaaaaaaaaaaaaa"
         """
@@ -129,7 +129,7 @@ struct SecurityVisitorTests {
 
     // MARK: - Suppression
 
-    @Test func testSuppressesPlaceholderValues() throws {
+    @Test func testSuppressesPlaceholderValues() {
         let source = """
         let apiKey = "YOUR_API_KEY_HERE"
         let token = "REPLACE_ME"
@@ -138,7 +138,7 @@ struct SecurityVisitorTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testSuppressesInsideIfDebug() throws {
+    @Test func testSuppressesInsideIfDebug() {
         let source = """
         #if DEBUG
         let apiKey = "test-key-12345"
@@ -148,7 +148,7 @@ struct SecurityVisitorTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testSuppressesShortValuesInTestFiles() throws {
+    @Test func testSuppressesShortValuesInTestFiles() {
         let source = """
         let token = "mock-token"
         """
@@ -158,7 +158,7 @@ struct SecurityVisitorTests {
 
     // MARK: - Unsafe URL construction (unchanged)
 
-    @Test func testUnsafeURLConstruction() throws {
+    @Test func testUnsafeURLConstruction() {
         let source = """
         let token = "abc123"
         let userId = "user456"

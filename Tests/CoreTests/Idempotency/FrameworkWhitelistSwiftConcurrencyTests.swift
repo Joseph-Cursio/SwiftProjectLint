@@ -108,7 +108,7 @@ struct FrameworkWhitelistSwiftConcurrencyTests {
     }
 
     @Test
-    func alwaysActiveFrameworks_containsSwiftConcurrency() throws {
+    func alwaysActiveFrameworks_containsSwiftConcurrency() {
         // Structural assertion — the always-active set is the data
         // structure that decouples slot 22 from the import gate.
         // Future stdlib additions go here.

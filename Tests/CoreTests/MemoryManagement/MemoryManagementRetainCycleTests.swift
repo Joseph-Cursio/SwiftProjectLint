@@ -25,7 +25,7 @@ struct MemoryManagementRetainCycleTests {
         #expect(issue.suggestion?.contains("Review object lifecycle") == true)
     }
 
-    @Test func testDoesNotDetectRetainCycleWhenTypesDiffer() throws {
+    @Test func testDoesNotDetectRetainCycleWhenTypesDiffer() {
         let sourceCode = """
         struct ContentView: View {
             @StateObject var viewModel: ContentViewModel = DifferentViewModel()
@@ -38,7 +38,7 @@ struct MemoryManagementRetainCycleTests {
         #expect(visitor.detectedIssues.isEmpty)
     }
 
-    @Test func testDoesNotDetectRetainCycleWithoutStateObject() throws {
+    @Test func testDoesNotDetectRetainCycleWithoutStateObject() {
         let sourceCode = """
         struct ContentView: View {
             @State var viewModel: ContentViewModel = ContentViewModel()
@@ -51,7 +51,7 @@ struct MemoryManagementRetainCycleTests {
         #expect(visitor.detectedIssues.isEmpty)
     }
 
-    @Test func testDoesNotDetectRetainCycleWithoutInitializer() throws {
+    @Test func testDoesNotDetectRetainCycleWithoutInitializer() {
         let sourceCode = """
         struct ContentView: View {
             @StateObject var viewModel: ContentViewModel

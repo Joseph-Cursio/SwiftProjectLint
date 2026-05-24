@@ -47,7 +47,7 @@ struct UnboundedTaskGroupVisitorTests {
         #expect(issue.message.contains("loop"))
     }
 
-    @Test func testFlagsAddTaskInWhileLoop() throws {
+    @Test func testFlagsAddTaskInWhileLoop() {
         let source = """
         await withTaskGroup(of: Int.self) { group in
             var iterator = items.makeIterator()
@@ -60,7 +60,7 @@ struct UnboundedTaskGroupVisitorTests {
         #expect(issues.count == 1)
     }
 
-    @Test func testFlagsThrowingTaskGroup() throws {
+    @Test func testFlagsThrowingTaskGroup() {
         let source = """
         try await withThrowingTaskGroup(of: Data.self) { group in
             for url in urls {
@@ -76,7 +76,7 @@ struct UnboundedTaskGroupVisitorTests {
 
     // MARK: - Negative: should NOT flag
 
-    @Test func testAllowsBackpressureWithNext() throws {
+    @Test func testAllowsBackpressureWithNext() {
         let source = """
         await withTaskGroup(of: Data.self) { group in
             for (index, url) in urls.enumerated() {
@@ -93,7 +93,7 @@ struct UnboundedTaskGroupVisitorTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testAllowsForAwaitOverGroupInSameLoop() throws {
+    @Test func testAllowsForAwaitOverGroupInSameLoop() {
         let source = """
         await withTaskGroup(of: Data.self) { group in
             for await result in group {
@@ -105,7 +105,7 @@ struct UnboundedTaskGroupVisitorTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testNoIssueForAddTaskOutsideLoop() throws {
+    @Test func testNoIssueForAddTaskOutsideLoop() {
         let source = """
         await withTaskGroup(of: Int.self) { group in
             group.addTask { await fetchA() }
@@ -117,7 +117,7 @@ struct UnboundedTaskGroupVisitorTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testNoIssueOutsideTaskGroup() throws {
+    @Test func testNoIssueOutsideTaskGroup() {
         let source = """
         for item in items {
             Task { await process(item) }
@@ -127,7 +127,7 @@ struct UnboundedTaskGroupVisitorTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testNoIssueForUnrelatedCode() throws {
+    @Test func testNoIssueForUnrelatedCode() {
         let source = """
         func doWork() async {
             let result = await fetchData()

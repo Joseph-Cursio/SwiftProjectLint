@@ -49,7 +49,7 @@ struct ArchitectureSingletonUsageTests {
         #expect(issue.message.contains("UserRepository"))
     }
 
-    @Test func testDetectsMultipleSingletons() throws {
+    @Test func testDetectsMultipleSingletons() {
         let source = """
         class Setup {
             func configure() {
@@ -65,7 +65,7 @@ struct ArchitectureSingletonUsageTests {
 
     // MARK: - No issue for non-service singletons
 
-    @Test func testNoIssueForNonServiceSingleton() throws {
+    @Test func testNoIssueForNonServiceSingleton() {
         let source = """
         class Connector {
             func send() { URLSession.shared.dataTask(with: URL(string: "")!) }
@@ -76,7 +76,7 @@ struct ArchitectureSingletonUsageTests {
         #expect(singletonIssues.isEmpty)
     }
 
-    @Test func testNoIssueForNonSharedMember() throws {
+    @Test func testNoIssueForNonSharedMember() {
         let source = """
         class Owner {
             func build() { DataManager.default }
@@ -87,7 +87,7 @@ struct ArchitectureSingletonUsageTests {
         #expect(singletonIssues.isEmpty)
     }
 
-    @Test func testNoIssueForInstanceSharedProperty() throws {
+    @Test func testNoIssueForInstanceSharedProperty() {
         // base is not a DeclReferenceExprSyntax with a service-like name
         let source = """
         class Owner {

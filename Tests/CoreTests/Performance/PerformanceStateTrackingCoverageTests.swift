@@ -96,7 +96,7 @@ struct PerfUnnecessaryUpdateCoverageTests {
     }
 
     @Test("no warning when state var is both assigned and used in view body")
-    func noWarningWhenAssignedAndUsed() throws {
+    func noWarningWhenAssignedAndUsed() {
         let visitor = PerformanceVisitor(patternCategory: .performance)
         visitor.setFilePath("TestView.swift")
 
@@ -117,7 +117,7 @@ struct PerfUnnecessaryUpdateCoverageTests {
     }
 
     @Test("no warning when state var is not assigned")
-    func noWarningWhenNotAssigned() throws {
+    func noWarningWhenNotAssigned() {
         let visitor = PerformanceVisitor(patternCategory: .performance)
         visitor.setFilePath("TestView.swift")
 
@@ -138,7 +138,7 @@ struct PerfUnnecessaryUpdateCoverageTests {
     }
 
     @Test("reports multiple unnecessary updates for multiple state vars")
-    func multipleUnnecessaryUpdates() throws {
+    func multipleUnnecessaryUpdates() {
         let visitor = PerformanceVisitor(patternCategory: .performance)
         visitor.setFilePath("TestView.swift")
 
@@ -219,7 +219,7 @@ struct PerfUsageAndForEachCoverageTests {
     // MARK: - trackStateVariableUsage: non-self member access
 
     @Test("does not mark state var as used for non-self member access")
-    func nonSelfMemberAccessDoesNotMarkUsed() throws {
+    func nonSelfMemberAccessDoesNotMarkUsed() {
         let source = """
         struct TestView: View {
             @State private var count: Int = 0
@@ -294,7 +294,7 @@ struct PerfUsageAndForEachCoverageTests {
     // MARK: - trackStateVariableDeclaration edge cases
 
     @Test("does not track variables without property wrappers")
-    func plainVariableNotTracked() throws {
+    func plainVariableNotTracked() {
         let source = """
         struct TestView: View {
             var plainVar: Int = 0
@@ -309,7 +309,7 @@ struct PerfUsageAndForEachCoverageTests {
     }
 
     @Test("does not track @Binding variables")
-    func bindingVariableNotTracked() throws {
+    func bindingVariableNotTracked() {
         let source = """
         struct TestView: View {
             @Binding var isPresented: Bool
@@ -324,7 +324,7 @@ struct PerfUsageAndForEachCoverageTests {
     }
 
     @Test("resets state variables when visiting a new struct")
-    func stateVariablesResetForNewView() throws {
+    func stateVariablesResetForNewView() {
         let source = """
         struct FirstView: View {
             @State private var alpha: Int = 0
@@ -342,7 +342,7 @@ struct PerfUsageAndForEachCoverageTests {
     }
 
     @Test("checkForUnnecessaryUpdates is called at end of struct visit")
-    func unnecessaryUpdateDetectedAtStructEnd() throws {
+    func unnecessaryUpdateDetectedAtStructEnd() {
         let source = """
         struct TestView: View {
             @State private var count: Int = 0
@@ -362,7 +362,7 @@ struct PerfUsageAndForEachCoverageTests {
     // MARK: - detectForEachWithoutID coverage
 
     @Test("detectForEachWithoutID skips non-self member access")
-    func forEachDetectionSkipsNonSelfAccess() throws {
+    func forEachDetectionSkipsNonSelfAccess() {
         let source = """
         struct TestView: View {
             var body: some View {
@@ -380,7 +380,7 @@ struct PerfUsageAndForEachCoverageTests {
     }
 
     @Test("detectForEachSelfID detects backslash-self in nested ForEach")
-    func detectsSelfIDInNestedForEach() throws {
+    func detectsSelfIDInNestedForEach() {
         let source = """
         struct TestView: View {
             var items = [[1, 2], [3, 4]]
@@ -402,7 +402,7 @@ struct PerfUsageAndForEachCoverageTests {
     }
 
     @Test("detectForEachSelfID detects hashValue as unsafe ID keypath")
-    func detectsHashValueAsUnsafeID() throws {
+    func detectsHashValueAsUnsafeID() {
         let source = """
         struct TestView: View {
             var items: [Item] = []
@@ -422,7 +422,7 @@ struct PerfUsageAndForEachCoverageTests {
     }
 
     @Test("detectForEachSelfID does not flag ForEach with proper id keypath")
-    func noFalsePositiveForProperKeypath() throws {
+    func noFalsePositiveForProperKeypath() {
         let source = """
         struct TestView: View {
             struct Item: Identifiable {
@@ -446,7 +446,7 @@ struct PerfUsageAndForEachCoverageTests {
     }
 
     @Test("detectForEachSelfID does not flag non-ForEach function calls")
-    func noFalsePositiveForListWithSelfID() throws {
+    func noFalsePositiveForListWithSelfID() {
         let source = """
         struct TestView: View {
             var items = [1, 2, 3]

@@ -209,7 +209,7 @@ struct IdempotencyEscapingClosureTests {
     // MARK: - Negative regression: plain closures are NOT escaping
 
     @Test
-    func plainClosureIsNotEscaping_flagsThroughClosureBody() throws {
+    func plainClosureIsNotEscaping_flagsThroughClosureBody() {
         // A closure literal inside an if/for/let-binding is NOT escaping — the
         // body check must descend into it. This confirms the walker returns
         // false on the first non-escaping FunctionCall ancestor, and more

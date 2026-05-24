@@ -99,7 +99,7 @@ struct AccessibilityDebugTests {
         #expect(issue.message.contains("accessibility hint"))
     }
 
-    @Test func testDirectContainsTextMethod() throws {
+    @Test func testDirectContainsTextMethod() {
         // Given
         let sourceCode = """
         Button {

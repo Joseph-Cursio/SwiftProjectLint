@@ -26,7 +26,7 @@ struct NetworkingVisitorEdgeCaseTests {
     // MARK: - dataTask without trailing closure
 
     @Test
-    func dataTaskWithoutTrailingClosure() throws {
+    func dataTaskWithoutTrailingClosure() {
         let source = """
         let url = URL(string: "https://example.com")!
         let task = URLSession.shared.dataTask(with: url)
@@ -58,7 +58,7 @@ struct NetworkingVisitorEdgeCaseTests {
     }
 
     @Test
-    func dataTaskWithClosureWithoutSignatureButErrorInBody() throws {
+    func dataTaskWithClosureWithoutSignatureButErrorInBody() {
         let source = """
         let url = URL(string: "https://example.com")!
         URLSession.shared.dataTask(with: url) {
@@ -131,7 +131,7 @@ struct NetworkingVisitorEdgeCaseTests {
     // MARK: - guard let error pattern
 
     @Test
-    func dataTaskWithGuardLetError() throws {
+    func dataTaskWithGuardLetError() {
         let source = """
         let url = URL(string: "https://example.com")!
         URLSession.shared.dataTask(with: url) { data, response, error in
@@ -169,7 +169,7 @@ struct NetworkingVisitorEdgeCaseTests {
     // MARK: - Non-Data function call doesn't trigger
 
     @Test
-    func nonDataFunctionCallIgnored() throws {
+    func nonDataFunctionCallIgnored() {
         let source = """
         let string = String(contentsOf: url)
         """

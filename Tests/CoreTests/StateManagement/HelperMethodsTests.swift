@@ -11,7 +11,7 @@ struct HelperMethodsTests {
 
     // MARK: - Summary and Filter Methods
 
-    @Test func testGetStateVariableSummary() throws {
+    @Test func testGetStateVariableSummary() {
         let source = """
         struct TestView: View {
             @State private var a = 0
@@ -30,7 +30,7 @@ struct HelperMethodsTests {
         #expect(summary[.binding] == 1)
     }
 
-    @Test func testGetStateVariablesWithPropertyWrapper() throws {
+    @Test func testGetStateVariablesWithPropertyWrapper() {
         let source = """
         struct TestView: View {
             @State private var a = 0
@@ -47,7 +47,7 @@ struct HelperMethodsTests {
         #expect(stateVars.allSatisfy { $0.propertyWrapper == .state })
     }
 
-    @Test func testGetPotentialEnvironmentObjectCandidates() throws {
+    @Test func testGetPotentialEnvironmentObjectCandidates() {
         let source = """
         struct TestView: View {
             @State private var count = 0
@@ -149,7 +149,7 @@ struct HelperMethodsTests {
 
     // MARK: - Edge Cases
 
-    @Test func testNoPropertyWrapperVariablesIgnored() throws {
+    @Test func testNoPropertyWrapperVariablesIgnored() {
         let source = """
         struct TestView: View {
             let constant = 42
@@ -163,7 +163,7 @@ struct HelperMethodsTests {
         #expect(visitor.stateVariables.isEmpty)
     }
 
-    @Test func testEmptyView() throws {
+    @Test func testEmptyView() {
         let source = """
         struct TestView: View {
             var body: some View { Text("Test") }
@@ -176,7 +176,7 @@ struct HelperMethodsTests {
         #expect(visitor.getStateVariableSummary().isEmpty)
     }
 
-    @Test func testMultipleStateVariables() throws {
+    @Test func testMultipleStateVariables() {
         let source = """
         struct TestView: View {
             @State private var count = 0

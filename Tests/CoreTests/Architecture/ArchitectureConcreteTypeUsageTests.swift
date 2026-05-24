@@ -54,7 +54,7 @@ struct ArchitectureConcreteTypeUsageTests {
 
     // MARK: - Stored property without initializer
 
-    @Test func testDetectsConcreteTypeInStoredProperty() throws {
+    @Test func testDetectsConcreteTypeInStoredProperty() {
         let source = """
         class MyViewModel {
             var repo: UserRepository
@@ -85,7 +85,7 @@ struct ArchitectureConcreteTypeUsageTests {
 
     // MARK: - Protocol-named type — no issue
 
-    @Test func testNoIssueForProtocolNamedType() throws {
+    @Test func testNoIssueForProtocolNamedType() {
         let source = """
         class Owner {
             var service: NetworkServiceProtocol
@@ -99,7 +99,7 @@ struct ArchitectureConcreteTypeUsageTests {
 
     // MARK: - Property wrapper — no issue
 
-    @Test func testNoIssueForPropertyWrapperProperty() throws {
+    @Test func testNoIssueForPropertyWrapperProperty() {
         let source = """
         import SwiftUI
         struct MyView: View {
@@ -114,7 +114,7 @@ struct ArchitectureConcreteTypeUsageTests {
 
     // MARK: - Non-matching suffix — no issue
 
-    @Test func testNoIssueForNonServiceSuffix() throws {
+    @Test func testNoIssueForNonServiceSuffix() {
         let source = """
         class Owner {
             func foo(counter: PageCounter) { }
@@ -128,7 +128,7 @@ struct ArchitectureConcreteTypeUsageTests {
 
     // MARK: - Non-service value type param — no issue
 
-    @Test func testNoIssueForValueTypeParam() throws {
+    @Test func testNoIssueForValueTypeParam() {
         let source = """
         class Owner {
             func setup(config: AppConfiguration) { }
@@ -142,7 +142,7 @@ struct ArchitectureConcreteTypeUsageTests {
 
     // MARK: - Multiple concrete type usages
 
-    @Test func testDetectsMultipleConcreteTypeUsages() throws {
+    @Test func testDetectsMultipleConcreteTypeUsages() {
         let source = """
         class Setup {
             func configure(api: APIService, repo: UserRepository) { }
@@ -155,7 +155,7 @@ struct ArchitectureConcreteTypeUsageTests {
 
     // MARK: - Opaque some Protocol — no issue
 
-    @Test func testNoIssueForSomeProtocol() throws {
+    @Test func testNoIssueForSomeProtocol() {
         let source = """
         class Owner {
             func foo(service: some NetworkProtocol) { }
@@ -168,7 +168,7 @@ struct ArchitectureConcreteTypeUsageTests {
 
     // MARK: - DI container exemption
 
-    @Test func testNoIssueInsideDIContainer() throws {
+    @Test func testNoIssueInsideDIContainer() {
         let source = """
         class DependencyContainer {
             var workspaceManager: WorkspaceManager
@@ -186,7 +186,7 @@ struct ArchitectureConcreteTypeUsageTests {
 
     // MARK: - System type exemption
 
-    @Test func testNoIssueForSystemTypes() throws {
+    @Test func testNoIssueForSystemTypes() {
         let source = """
         class Analyzer {
             var fileManager: FileManager
@@ -200,7 +200,7 @@ struct ArchitectureConcreteTypeUsageTests {
 
     // MARK: - Test file exemption
 
-    @Test func testNoIssueInTestFiles() throws {
+    @Test func testNoIssueInTestFiles() {
         let source = """
         class Setup {
             func configure(service: APIService) { }
@@ -213,7 +213,7 @@ struct ArchitectureConcreteTypeUsageTests {
 
     // MARK: - Mock type exemption
 
-    @Test func testNoIssueForMockTypes() throws {
+    @Test func testNoIssueForMockTypes() {
         let source = """
         class Owner {
             var storage: MockViolationStorageForViewModel
@@ -226,7 +226,7 @@ struct ArchitectureConcreteTypeUsageTests {
 
     // MARK: - SwiftUI View + ViewModel exemption
 
-    @Test func testNoIssueForViewModelInSwiftUIView() throws {
+    @Test func testNoIssueForViewModelInSwiftUIView() {
         let source = """
         struct RuleBrowserView: View {
             var viewModel: RuleBrowserViewModel
@@ -238,7 +238,7 @@ struct ArchitectureConcreteTypeUsageTests {
         #expect(concreteIssues.isEmpty)
     }
 
-    @Test func testNoIssueForViewModelParamInSwiftUIView() throws {
+    @Test func testNoIssueForViewModelParamInSwiftUIView() {
         let source = """
         struct DetailView: View {
             init(viewModel: RuleDetailViewModel) { }
@@ -250,7 +250,7 @@ struct ArchitectureConcreteTypeUsageTests {
         #expect(concreteIssues.isEmpty)
     }
 
-    @Test func testNoIssueForAnyServiceTypeInSwiftUIView() throws {
+    @Test func testNoIssueForAnyServiceTypeInSwiftUIView() {
         let source = """
         struct OnboardingView: View {
             var onboardingManager: OnboardingManager
@@ -265,7 +265,7 @@ struct ArchitectureConcreteTypeUsageTests {
 
     // MARK: - Still detects real violations
 
-    @Test func testStillDetectsConcreteServiceInNonView() throws {
+    @Test func testStillDetectsConcreteServiceInNonView() {
         let source = """
         class Coordinator {
             var service: APIService

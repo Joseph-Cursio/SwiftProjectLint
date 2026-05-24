@@ -105,7 +105,7 @@ struct WithAnimationVisitorCoverageTests {
     // with a different pattern name.
 
     @Test("withAnimation call with unrelated pattern name does nothing")
-    func unrelatedPatternNameDefaultCase() throws {
+    func unrelatedPatternNameDefaultCase() {
         // Create a WithAnimationVisitor but with a pattern that has a different name
         let customPattern = SyntaxPattern(
             name: .unknown,

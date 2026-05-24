@@ -41,7 +41,7 @@ struct MagicBooleanParameterVisitorTests {
         #expect(issue.message.contains("unlabeled"))
     }
 
-    @Test func testFlagsMixedArgsWithUnlabeledBool() throws {
+    @Test func testFlagsMixedArgsWithUnlabeledBool() {
         let source = """
         process(data, true)
         """
@@ -49,7 +49,7 @@ struct MagicBooleanParameterVisitorTests {
         #expect(issues.count == 1)
     }
 
-    @Test func testFlagsTwoUnlabeledBooleans() throws {
+    @Test func testFlagsTwoUnlabeledBooleans() {
         let source = """
         configure(true, false)
         """
@@ -57,7 +57,7 @@ struct MagicBooleanParameterVisitorTests {
         #expect(issues.count == 1)
     }
 
-    @Test func testFlagsMemberFunctionCall() throws {
+    @Test func testFlagsMemberFunctionCall() {
         let source = """
         view.setup(data, false, true)
         """
@@ -67,7 +67,7 @@ struct MagicBooleanParameterVisitorTests {
 
     // MARK: - Negative: should NOT flag
 
-    @Test func testNoIssueForLabeledBooleans() throws {
+    @Test func testNoIssueForLabeledBooleans() {
         let source = """
         configureView(animated: true, recursive: false, verbose: true)
         """
@@ -75,7 +75,7 @@ struct MagicBooleanParameterVisitorTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testNoIssueForSingleBooleanArg() throws {
+    @Test func testNoIssueForSingleBooleanArg() {
         let source = """
         setEnabled(false)
         toggle(true)
@@ -84,7 +84,7 @@ struct MagicBooleanParameterVisitorTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testNoIssueForPrint() throws {
+    @Test func testNoIssueForPrint() {
         let source = """
         print(value, true)
         """
@@ -92,7 +92,7 @@ struct MagicBooleanParameterVisitorTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testNoIssueForXCTAssert() throws {
+    @Test func testNoIssueForXCTAssert() {
         let source = """
         XCTAssertEqual(result, true)
         XCTAssertTrue(flag)
@@ -101,7 +101,7 @@ struct MagicBooleanParameterVisitorTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testNoIssueForNoBooleansAtAll() throws {
+    @Test func testNoIssueForNoBooleansAtAll() {
         let source = """
         process(data, count, name)
         """
@@ -109,7 +109,7 @@ struct MagicBooleanParameterVisitorTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testNoIssueForLabeledBoolWithOtherArgs() throws {
+    @Test func testNoIssueForLabeledBoolWithOtherArgs() {
         let source = """
         render(view, animated: false)
         """

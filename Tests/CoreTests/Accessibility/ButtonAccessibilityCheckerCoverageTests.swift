@@ -69,7 +69,7 @@ struct ButtonAccessibilityCheckerCoverageTests {
     // MARK: - Button with Image in Trailing Closure
 
     @Test("button with image in trailing closure missing label is flagged as icon-only")
-    func buttonWithImageInTrailingClosure() throws {
+    func buttonWithImageInTrailingClosure() {
         let visitor = makeAccessibilityVisitor()
 
         let sourceCode = """
@@ -94,7 +94,7 @@ struct ButtonAccessibilityCheckerCoverageTests {
     // MARK: - Button with Text in Trailing Closure
 
     @Test("button with text in trailing closure missing hint is flagged")
-    func buttonWithTextInTrailingClosure() throws {
+    func buttonWithTextInTrailingClosure() {
         let visitor = makeAccessibilityVisitor()
 
         let sourceCode = """

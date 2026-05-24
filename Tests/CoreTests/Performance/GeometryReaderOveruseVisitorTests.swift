@@ -47,7 +47,7 @@ struct GeometryReaderOveruseVisitorTests {
         #expect(issue.message.contains("GeometryReader"))
     }
 
-    @Test func testFlagsMultipleGeometryReaders() throws {
+    @Test func testFlagsMultipleGeometryReaders() {
         let source = """
         struct MyView: View {
             var body: some View {
@@ -64,7 +64,7 @@ struct GeometryReaderOveruseVisitorTests {
 
     // MARK: - Negative: should NOT flag
 
-    @Test func testNoIssueForContainerRelativeFrame() throws {
+    @Test func testNoIssueForContainerRelativeFrame() {
         let source = """
         struct MyView: View {
             var body: some View {
@@ -79,7 +79,7 @@ struct GeometryReaderOveruseVisitorTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testNoIssueForVisualEffect() throws {
+    @Test func testNoIssueForVisualEffect() {
         let source = """
         struct MyView: View {
             var body: some View {
@@ -94,7 +94,7 @@ struct GeometryReaderOveruseVisitorTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testNoIssueForUnrelatedCode() throws {
+    @Test func testNoIssueForUnrelatedCode() {
         let source = """
         struct MyView: View {
             var body: some View {

@@ -54,7 +54,7 @@ struct AccessingImplDetailsTests {
         #expect(violation.message.contains("__storage"))
     }
 
-    @Test func testNoIssueForSelfUnderscoreAccess() throws {
+    @Test func testNoIssueForSelfUnderscoreAccess() {
         let source = """
         class MyClass {
             var _prop: Int = 0
@@ -66,7 +66,7 @@ struct AccessingImplDetailsTests {
         #expect(violations.isEmpty)
     }
 
-    @Test func testNoIssueForCapitalSelfUnderscoreAccess() throws {
+    @Test func testNoIssueForCapitalSelfUnderscoreAccess() {
         let source = """
         struct Config {
             static var _all: [Config] = []
@@ -78,7 +78,7 @@ struct AccessingImplDetailsTests {
         #expect(violations.isEmpty)
     }
 
-    @Test func testNoIssueForSuperUnderscoreAccess() throws {
+    @Test func testNoIssueForSuperUnderscoreAccess() {
         let source = """
         class Base { func _setup() {} }
         class Child: Base {
@@ -90,7 +90,7 @@ struct AccessingImplDetailsTests {
         #expect(violations.isEmpty)
     }
 
-    @Test func testNoIssueForPublicMember() throws {
+    @Test func testNoIssueForPublicMember() {
         let source = """
         class CacheManager { var data: [String] = [] }
         class Owner {
@@ -103,7 +103,7 @@ struct AccessingImplDetailsTests {
         #expect(violations.isEmpty)
     }
 
-    @Test func testNoIssueForImplicitMember() throws {
+    @Test func testNoIssueForImplicitMember() {
         // Implicit `.someCase` has a nil base — should not trigger
         let source = """
         enum Color { case red, blue }
@@ -131,7 +131,7 @@ struct AccessingImplDetailsTests {
         #expect(violation.message.contains("connectionPool"))
     }
 
-    @Test func testNoIssueForForceCastToNonServiceType() throws {
+    @Test func testNoIssueForForceCastToNonServiceType() {
         // UIButton does not end with a service-like suffix
         let source = """
         import UIKit
@@ -144,7 +144,7 @@ struct AccessingImplDetailsTests {
         #expect(violations.isEmpty)
     }
 
-    @Test func testNoIssueForOptionalCast() throws {
+    @Test func testNoIssueForOptionalCast() {
         // `as?` should not trigger — only `as!`
         let source = """
         protocol Networking {}
@@ -160,7 +160,7 @@ struct AccessingImplDetailsTests {
 
     // MARK: - Combined
 
-    @Test func testDetectsMultipleViolations() throws {
+    @Test func testDetectsMultipleViolations() {
         let source = """
         class DataStore { var _cache: [String] = [] }
         protocol Fetching {}

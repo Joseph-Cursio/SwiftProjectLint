@@ -134,7 +134,7 @@ struct LintConfigurationWriterTests {
     // MARK: - Round-trip
 
     @Test("round-trip: write then load produces equivalent config for disabled_rules")
-    func roundTripDisabledRules() throws {
+    func roundTripDisabledRules() {
         let original = LintConfiguration(
             disabledRules: [.forceTry, .forceUnwrap, .magicNumber]
         )
@@ -148,7 +148,7 @@ struct LintConfigurationWriterTests {
     }
 
     @Test("round-trip: write then load produces equivalent config for enabled_only")
-    func roundTripEnabledOnly() throws {
+    func roundTripEnabledOnly() {
         let original = LintConfiguration(
             enabledOnlyRules: [.hardcodedSecret, .unsafeURL]
         )
@@ -162,7 +162,7 @@ struct LintConfigurationWriterTests {
     }
 
     @Test("round-trip: write then load produces equivalent config for excluded_paths")
-    func roundTripExcludedPaths() throws {
+    func roundTripExcludedPaths() {
         let original = LintConfiguration(
             excludedPaths: ["Tests/", "Generated/", "Vendor/"]
         )
@@ -176,7 +176,7 @@ struct LintConfigurationWriterTests {
     }
 
     @Test("round-trip: write then load preserves rule overrides")
-    func roundTripRuleOverrides() throws {
+    func roundTripRuleOverrides() {
         let original = LintConfiguration(
             ruleOverrides: [
                 .magicNumber: .init(severity: .info, excludedPaths: ["Tests/"]),
@@ -195,7 +195,7 @@ struct LintConfigurationWriterTests {
     }
 
     @Test("round-trip: full config survives write and reload")
-    func roundTripFullConfig() throws {
+    func roundTripFullConfig() {
         let original = LintConfiguration(
             disabledRules: [.todoComment, .catchWithoutHandling],
             excludedPaths: ["Vendor/"],

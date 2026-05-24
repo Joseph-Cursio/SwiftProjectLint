@@ -5,12 +5,12 @@ import Testing
 
 struct ProjectLinterTests {
 
-    @Test func testProjectLinterInitialization() throws {
+    @Test func testProjectLinterInitialization() {
         let linter = ProjectLinter()
         #expect(linter != nil)
     }
 
-    @Test func testAnalyzeProjectWithValidPath() async throws {
+    @Test func testAnalyzeProjectWithValidPath() async {
         let testProjectPath = makeTestProject()
         let linter = ProjectLinter()
 
@@ -20,7 +20,7 @@ struct ProjectLinterTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testAnalyzeProjectWithInvalidPath() async throws {
+    @Test func testAnalyzeProjectWithInvalidPath() async {
         let linter = ProjectLinter()
         let invalidPath = "/nonexistent/path/to/project"
 
@@ -30,7 +30,7 @@ struct ProjectLinterTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testAnalyzeProjectWithSpecificCategories() async throws {
+    @Test func testAnalyzeProjectWithSpecificCategories() async {
         let testProjectPath = makeTestProject()
         let linter = ProjectLinter()
 
@@ -46,7 +46,7 @@ struct ProjectLinterTests {
         }
     }
 
-    @Test func testAnalyzeProjectWithSpecificRules() async throws {
+    @Test func testAnalyzeProjectWithSpecificRules() async {
         let testProjectPath = makeTestProject()
         let linter = ProjectLinter()
 
@@ -61,7 +61,7 @@ struct ProjectLinterTests {
         }
     }
 
-    @Test func testAnalyzeProjectWithEmptyProject() async throws {
+    @Test func testAnalyzeProjectWithEmptyProject() async {
         let testProjectPath = makeEmptyTestProject()
         let linter = ProjectLinter()
 
@@ -71,7 +71,7 @@ struct ProjectLinterTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testAnalyzeProjectWithComplexProject() async throws {
+    @Test func testAnalyzeProjectWithComplexProject() async {
         let testProjectPath = makeComplexTestProject()
         let linter = ProjectLinter()
 
@@ -86,7 +86,7 @@ struct ProjectLinterTests {
         }
     }
 
-    @Test func testAnalyzeProjectPerformance() async throws {
+    @Test func testAnalyzeProjectPerformance() async {
         let testProjectPath = makeComplexTestProject()
         let linter = ProjectLinter()
 
@@ -98,7 +98,7 @@ struct ProjectLinterTests {
         #expect(duration < 10.0) // Should complete within reasonable time
     }
 
-    @Test func testAnalyzeProjectWithAllCategories() async throws {
+    @Test func testAnalyzeProjectWithAllCategories() async {
         let testProjectPath = makeComplexTestProject()
         let linter = ProjectLinter()
 
@@ -118,7 +118,7 @@ struct ProjectLinterTests {
         }
     }
 
-    @Test func testAnalyzeProjectWithAllRules() async throws {
+    @Test func testAnalyzeProjectWithAllRules() async {
         let testProjectPath = makeComplexTestProject()
         let linter = ProjectLinter()
 

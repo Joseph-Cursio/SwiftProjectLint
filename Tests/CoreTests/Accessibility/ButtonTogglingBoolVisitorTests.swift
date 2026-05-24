@@ -47,7 +47,7 @@ struct ButtonTogglingBoolVisitorTests {
         #expect(issue.message.contains("Toggle"))
     }
 
-    @Test func testFlagsButtonWithToggleInActionArgument() throws {
+    @Test func testFlagsButtonWithToggleInActionArgument() {
         let source = """
         struct MyView: View {
             @State private var selected = false
@@ -62,7 +62,7 @@ struct ButtonTogglingBoolVisitorTests {
         #expect(issues.count == 1)
     }
 
-    @Test func testFlagsButtonWithToggleInMultiStatementClosure() throws {
+    @Test func testFlagsButtonWithToggleInMultiStatementClosure() {
         let source = """
         struct MyView: View {
             @State private var active = false
@@ -80,7 +80,7 @@ struct ButtonTogglingBoolVisitorTests {
 
     // MARK: - Negative: should NOT flag
 
-    @Test func testNoIssueForButtonWithoutToggle() throws {
+    @Test func testNoIssueForButtonWithoutToggle() {
         let source = """
         struct MyView: View {
             var body: some View {
@@ -94,7 +94,7 @@ struct ButtonTogglingBoolVisitorTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testNoIssueForToggleView() throws {
+    @Test func testNoIssueForToggleView() {
         let source = """
         struct MyView: View {
             @State private var enabled = false
@@ -107,7 +107,7 @@ struct ButtonTogglingBoolVisitorTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testNoIssueForNonButtonCallWithToggle() throws {
+    @Test func testNoIssueForNonButtonCallWithToggle() {
         let source = """
         struct MyView: View {
             @State private var active = false
@@ -121,7 +121,7 @@ struct ButtonTogglingBoolVisitorTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testDoesNotFlagToggleInLabelClosure() throws {
+    @Test func testDoesNotFlagToggleInLabelClosure() {
         // When Button has action: argument, the trailing closure is the label.
         // A .toggle() in the label closure is not an action — don't flag.
         let source = """
@@ -143,7 +143,7 @@ struct ButtonTogglingBoolVisitorTests {
         #expect(issues.count == 1)
     }
 
-    @Test func testSkipsTestFiles() throws {
+    @Test func testSkipsTestFiles() {
         let source = """
         struct MyViewTests: View {
             @State private var enabled = false

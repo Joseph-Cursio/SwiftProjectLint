@@ -42,7 +42,7 @@ struct LoggingSensitiveDataVisitorTests {
         #expect(issue.message.contains("authToken"))
     }
 
-    @Test func testFlagsDebugPrintWithPassword() throws {
+    @Test func testFlagsDebugPrintWithPassword() {
         let source = """
         func debug() {
             debugPrint(userPassword)
@@ -53,7 +53,7 @@ struct LoggingSensitiveDataVisitorTests {
         #expect(issues.first?.message.contains("userPassword") == true)
     }
 
-    @Test func testFlagsNSLogWithSecret() throws {
+    @Test func testFlagsNSLogWithSecret() {
         let source = """
         func debug() {
             NSLog("Secret: %@", clientSecret)
@@ -63,7 +63,7 @@ struct LoggingSensitiveDataVisitorTests {
         #expect(issues.count == 1)
     }
 
-    @Test func testFlagsLoggerWithApiKey() throws {
+    @Test func testFlagsLoggerWithApiKey() {
         let source = """
         func debug() {
             logger.debug("Key = \\(apiKey)")
@@ -74,7 +74,7 @@ struct LoggingSensitiveDataVisitorTests {
         #expect(issues.first?.message.contains("apiKey") == true)
     }
 
-    @Test func testFlagsBearerToken() throws {
+    @Test func testFlagsBearerToken() {
         let source = """
         func debug() {
             print(bearerToken)
@@ -84,7 +84,7 @@ struct LoggingSensitiveDataVisitorTests {
         #expect(issues.count == 1)
     }
 
-    @Test func testFlagsCreditCard() throws {
+    @Test func testFlagsCreditCard() {
         let source = """
         func debug() {
             print("Card: \\(creditCardNumber)")
@@ -96,7 +96,7 @@ struct LoggingSensitiveDataVisitorTests {
 
     // MARK: - Negative: should NOT flag
 
-    @Test func testNoIssueForNonSensitiveVariable() throws {
+    @Test func testNoIssueForNonSensitiveVariable() {
         let source = """
         func debug() {
             print("User name: \\(userName)")
@@ -106,7 +106,7 @@ struct LoggingSensitiveDataVisitorTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testNoIssueInsideIfDebug() throws {
+    @Test func testNoIssueInsideIfDebug() {
         let source = """
         #if DEBUG
         func debug() {
@@ -118,7 +118,7 @@ struct LoggingSensitiveDataVisitorTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testNoIssueWithPrivacyRedaction() throws {
+    @Test func testNoIssueWithPrivacyRedaction() {
         let source = """
         func debug() {
             logger.debug("Token: \\(token, privacy: .private)")
@@ -128,7 +128,7 @@ struct LoggingSensitiveDataVisitorTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testNoIssueForUnrelatedCalls() throws {
+    @Test func testNoIssueForUnrelatedCalls() {
         let source = """
         func work() {
             fetchData(from: url)
@@ -139,7 +139,7 @@ struct LoggingSensitiveDataVisitorTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testNoIssueForLoggerWithNonSensitiveData() throws {
+    @Test func testNoIssueForLoggerWithNonSensitiveData() {
         let source = """
         func debug() {
             logger.info("Request count: \\(requestCount)")

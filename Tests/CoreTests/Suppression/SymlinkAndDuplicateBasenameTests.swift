@@ -44,7 +44,7 @@ struct SymlinkAndDuplicateBasenameTests {
     /// Pre-fix: `Fatal error: Duplicate values for key: 'Errors.swift'`.
     /// Post-fix: scan completes without crash.
     @Test
-    func analyzeProject_onNonCanonicalRootPath_withDuplicateBasenames_doesNotCrash() async throws {
+    func analyzeProject_onNonCanonicalRootPath_withDuplicateBasenames_doesNotCrash() async {
         #if os(macOS)
         let projectPath = "/tmp/SymlinkDupBasenameProject-\(UUID().uuidString)"
         try? FileManager.default.createDirectory(
@@ -101,7 +101,7 @@ struct SymlinkAndDuplicateBasenameTests {
     /// symlink mismatch), duplicate `relativePath` values shouldn't
     /// crash the Dictionary initialiser.
     @Test
-    func analyzeProject_onCanonicalRootPath_withDuplicateBasenames_doesNotCrash() async throws {
+    func analyzeProject_onCanonicalRootPath_withDuplicateBasenames_doesNotCrash() async {
         let projectPath = FileManager.default.temporaryDirectory
             .appendingPathComponent("SymlinkDupBasenameProject-canonical-\(UUID().uuidString)")
             .path

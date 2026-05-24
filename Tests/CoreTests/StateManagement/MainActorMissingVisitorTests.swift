@@ -73,7 +73,7 @@ struct MainActorMissingVisitorTests {
     }
 
     @Test("Flags class with multiple @Published properties")
-    func detectsMultiplePublishedProperties() throws {
+    func detectsMultiplePublishedProperties() {
         let source = """
         class SettingsViewModel: ObservableObject {
             @Published var isDarkMode = false

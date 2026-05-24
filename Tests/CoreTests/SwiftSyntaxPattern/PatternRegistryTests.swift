@@ -56,7 +56,7 @@ struct PatternRegistryTests {
 
     @Test
     @MainActor
-    static func patternVisitorRegistryMultiplePatterns() throws {
+    static func patternVisitorRegistryMultiplePatterns() {
         let instances = createIsolatedInstances()
         let testVisitorRegistry = instances.visitorRegistry
 
@@ -106,7 +106,7 @@ struct PatternRegistryTests {
 
     @Test
     @MainActor
-    static func patternVisitorRegistryClear() throws {
+    static func patternVisitorRegistryClear() {
         let instances = createIsolatedInstances()
         let testVisitorRegistry = instances.visitorRegistry
 

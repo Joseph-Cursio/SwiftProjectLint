@@ -111,7 +111,7 @@ struct ClosureBindingCrossReferenceTests {
     }
 
     @Test
-    func idempotentFunction_callsNonIdempotentShorthandBinding_flags() throws {
+    func idempotentFunction_callsNonIdempotentShorthandBinding_flags() {
         // Same as above, but with `{ msg in ... }` shorthand form.
         let source = """
         func rawSMTPSend(_ msg: String) {}
@@ -179,7 +179,7 @@ struct ClosureBindingCrossReferenceTests {
     }
 
     @Test
-    func idempotentCaller_callsUnannotatedClosureWithNonIdempotentBody_fires() throws {
+    func idempotentCaller_callsUnannotatedClosureWithNonIdempotentBody_fires() {
         // Effect-rule sibling of the above. `logger` has no annotation;
         // its body calls `createRow`, heuristically non-idempotent by
         // prefix.
@@ -250,7 +250,7 @@ struct ClosureBindingCrossReferenceTests {
     }
 
     @Test
-    func typeMemberClosureProperty_registered_externalCallerFlags() throws {
+    func typeMemberClosureProperty_registered_externalCallerFlags() {
         // Counterpoint: a stored property on a type IS externally
         // callable via an instance; it stays registered.
         let source = """
@@ -306,7 +306,7 @@ struct ClosureBindingCrossReferenceTests {
     // MARK: - Typed + typeless parity
 
     @Test
-    func typedAndTypelessBinding_sameSignature_produceSameDiagnostic() throws {
+    func typedAndTypelessBinding_sameSignature_produceSameDiagnostic() {
         // Regression guard: the two forms produce identical signatures
         // (`sender(_:)`), so their callers fire identically. If the
         // typeless path ever drifts arity handling, this breaks.

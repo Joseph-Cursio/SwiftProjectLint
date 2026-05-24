@@ -45,7 +45,7 @@ struct UIVisitorForEachTests {
         #expect(forEachIssue.severity == .warning)
     }
 
-    @Test func testDoesNotDetectForEachWithExplicitID() throws {
+    @Test func testDoesNotDetectForEachWithExplicitID() {
         let visitor = createVisitor()
 
         let source = """
@@ -74,7 +74,7 @@ struct UIVisitorForEachTests {
 
     // MARK: - Identifiable Suppression Tests
 
-    @Test func testNoIssueForForEachWithIdentifiableAllCases() throws {
+    @Test func testNoIssueForForEachWithIdentifiableAllCases() {
         let visitor = createVisitor(identifiableTypes: ["Status"])
 
         let source = """
@@ -93,7 +93,7 @@ struct UIVisitorForEachTests {
         #expect(forEachIssues.isEmpty)
     }
 
-    @Test func testStillFlagsNonIdentifiableType() throws {
+    @Test func testStillFlagsNonIdentifiableType() {
         let visitor = createVisitor(identifiableTypes: ["OtherType"])
 
         let source = """
@@ -112,7 +112,7 @@ struct UIVisitorForEachTests {
         #expect(forEachIssues.count == 1)
     }
 
-    @Test func testNoIssueForTypedArrayWithIdentifiableElement() throws {
+    @Test func testNoIssueForTypedArrayWithIdentifiableElement() {
         let visitor = createVisitor(identifiableTypes: ["Task"])
 
         let source = """

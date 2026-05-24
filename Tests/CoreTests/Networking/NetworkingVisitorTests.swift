@@ -221,7 +221,7 @@ struct NetworkingVisitorTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func detectsMultipleSynchronousDataCalls() throws {
+    @Test func detectsMultipleSynchronousDataCalls() {
         let visitor = NetworkingVisitor(patternCategory: .networking)
         let source = """
         let data1 = try Data(contentsOf: URL(string: "https://example.com")!)

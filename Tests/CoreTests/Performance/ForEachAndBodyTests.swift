@@ -56,7 +56,7 @@ struct ForEachAndBodyTests {
         #expect(issue.ruleName == .forEachWithoutID)
     }
 
-    @Test func testNoIssueForForEachWithID() throws {
+    @Test func testNoIssueForForEachWithID() {
         let source = """
         struct TestView: View {
             struct Item: Identifiable {
@@ -85,7 +85,7 @@ struct ForEachAndBodyTests {
 
     // MARK: - ForEach Identifiable Suppression Tests
 
-    @Test func testNoIssueForForEachWithIdentifiableAllCases() throws {
+    @Test func testNoIssueForForEachWithIdentifiableAllCases() {
         let source = """
         struct TestView: View {
             var body: some View {
@@ -101,7 +101,7 @@ struct ForEachAndBodyTests {
         #expect(forEachIssues.isEmpty)
     }
 
-    @Test func testStillFlagsForEachWithNonIdentifiableAllCases() throws {
+    @Test func testStillFlagsForEachWithNonIdentifiableAllCases() {
         let source = """
         struct TestView: View {
             var body: some View {
@@ -118,7 +118,7 @@ struct ForEachAndBodyTests {
         #expect(forEachIssues.count == 1)
     }
 
-    @Test func testNoIssueForForEachWithIdentifiableTypedArray() throws {
+    @Test func testNoIssueForForEachWithIdentifiableTypedArray() {
         let source = """
         struct TestView: View {
             let items: [Item]
@@ -136,7 +136,7 @@ struct ForEachAndBodyTests {
         #expect(forEachIssues.isEmpty)
     }
 
-    @Test func testNoIssueForForEachWithIdentifiableMemberProperty() throws {
+    @Test func testNoIssueForForEachWithIdentifiableMemberProperty() {
         let source = """
         struct TestView: View {
             let viewModel: ViewModel
@@ -158,7 +158,7 @@ struct ForEachAndBodyTests {
 
     // MARK: - Large View Body Tests
 
-    @Test func testDetectsLargeViewBody() throws {
+    @Test func testDetectsLargeViewBody() {
         // Create a view with many statements (over 100 lines to trigger detection)
         let lines = (1...105).map { "Text(\"Line \($0)\")" }.joined(separator: "\n                    ")
         let source = """
@@ -177,7 +177,7 @@ struct ForEachAndBodyTests {
         #expect(largeBodyIssues.count == 1)
     }
 
-    @Test func testNoIssueForSmallViewBody() throws {
+    @Test func testNoIssueForSmallViewBody() {
         let source = """
         struct TestView: View {
             var body: some View {
@@ -216,14 +216,14 @@ struct ForEachAndBodyTests {
 
     // MARK: - Visitor Initialization Tests
 
-    @Test func testVisitorInitialization() throws {
+    @Test func testVisitorInitialization() {
         let visitor = createVisitor()
 
         #expect(visitor.detectedIssues.isEmpty)
         #expect(visitor.pattern.category == .performance)
     }
 
-    @Test func testVisitorReset() throws {
+    @Test func testVisitorReset() {
         let visitor = createVisitor()
 
         // First analysis
@@ -255,7 +255,7 @@ struct ForEachAndBodyTests {
 
     // MARK: - Multiple Issues Tests
 
-    @Test func testDetectsMultipleIssuesInSameView() throws {
+    @Test func testDetectsMultipleIssuesInSameView() {
         let source = """
         struct TestView: View {
             @State private var items = [3, 1, 2]
@@ -278,7 +278,7 @@ struct ForEachAndBodyTests {
 
     // MARK: - Function Declaration Body Tests
 
-    @Test func testDetectsIssuesInFunctionBody() throws {
+    @Test func testDetectsIssuesInFunctionBody() {
         let source = """
         struct TestView: View {
             @State private var items = [1, 2, 3]
@@ -310,7 +310,7 @@ struct PerformanceVisitorStateTrackingTests {
         return PerformanceVisitor(patternCategory: .performance)
     }
 
-    @Test func testTracksStateVariableDeclaration() throws {
+    @Test func testTracksStateVariableDeclaration() {
         let source = """
         struct TestView: View {
             @State private var count = 0
@@ -330,7 +330,7 @@ struct PerformanceVisitorStateTrackingTests {
         #expect(visitor.stateVariables.isEmpty == false) // Should track @State variables
     }
 
-    @Test func testStateVariableAssignmentTracking() throws {
+    @Test func testStateVariableAssignmentTracking() {
         let source = """
         struct TestView: View {
             @State private var count = 0

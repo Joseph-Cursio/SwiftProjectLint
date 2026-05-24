@@ -14,7 +14,7 @@ import Testing
 struct ActorReentrancyIdempotencySpecTests {
 
     @Test
-    func canonicalGuardAwaitInsertPattern_flags() throws {
+    func canonicalGuardAwaitInsertPattern_flags() {
         // From the design proposal's canonical example:
         //   guard !processedIDs.contains(id) else { return }
         //   try await chargeCard(id)
@@ -113,7 +113,7 @@ struct ActorReentrancyIdempotencySpecTests {
     // MARK: - OI-3 residual — subscript-set claims as writes
 
     @Test
-    func subscriptSetClaim_selfPrefix_flagsAsWrite() throws {
+    func subscriptSetClaim_selfPrefix_flagsAsWrite() {
         // The canonical sentinel-set idiom using a dictionary rather than a
         // Set: claim the slot via `self.table[key] = value` before awaiting.
         // Pre-OI-3-residual, this LHS shape wasn't recognised as a write, so
@@ -139,7 +139,7 @@ struct ActorReentrancyIdempotencySpecTests {
     }
 
     @Test
-    func subscriptSetClaim_bareReceiver_flagsAsWrite() throws {
+    func subscriptSetClaim_bareReceiver_flagsAsWrite() {
         // Same idiom without the `self.` prefix.
         let source = """
         actor QueueProcessor {
@@ -160,7 +160,7 @@ struct ActorReentrancyIdempotencySpecTests {
     }
 
     @Test
-    func subscriptSetOnNonTrackedProperty_doesNotSuppress() throws {
+    func subscriptSetOnNonTrackedProperty_doesNotSuppress() {
         // A subscript-set on a local (NOT a tracked stored property) must
         // not be mistaken for a claim. The guard-then-await without
         // intervening write to the tracked property still fires.
@@ -190,7 +190,7 @@ struct ActorReentrancyIdempotencySpecTests {
     // MARK: - OI-3 residual — compound assignments as writes
 
     @Test
-    func compoundAssign_plusEquals_flagsAsWrite() throws {
+    func compoundAssign_plusEquals_flagsAsWrite() {
         // `count += 1` is a write to `count`. Claim via compound assignment
         // before the await is a valid reentrancy guard.
         let source = """
@@ -212,7 +212,7 @@ struct ActorReentrancyIdempotencySpecTests {
     }
 
     @Test
-    func compoundAssign_selfPrefix_flagsAsWrite() throws {
+    func compoundAssign_selfPrefix_flagsAsWrite() {
         let source = """
         actor Counter {
             var count: Int = 0
@@ -232,7 +232,7 @@ struct ActorReentrancyIdempotencySpecTests {
     }
 
     @Test
-    func compoundAssign_onSubscript_flagsAsWrite() throws {
+    func compoundAssign_onSubscript_flagsAsWrite() {
         // The combination: `self.totals[id, default: 0] += amount`. Both
         // subscript LHS resolution and compound-assignment operator
         // detection are needed; the fixture exercises both simultaneously.
@@ -255,7 +255,7 @@ struct ActorReentrancyIdempotencySpecTests {
     }
 
     @Test
-    func comparisonOperators_notMistakenForWrite() throws {
+    func comparisonOperators_notMistakenForWrite() {
         // Regression guard: `==`, `!=`, `<=`, `>=` end in `=` but are NOT
         // assignments. The whitelist-based detection must not misclassify
         // them. If this fixture fires more than once or credits a comparison
@@ -287,7 +287,7 @@ struct ActorReentrancyIdempotencySpecTests {
     }
 
     @Test
-    func containsCallIsNotMistakenForWrite() throws {
+    func containsCallIsNotMistakenForWrite() {
         // Regression guard against over-widening: `processedIDs.contains(id)` is a
         // READ, not a write. If the widening accepted any method call on the
         // property as a write, this fixture would be silently suppressed.

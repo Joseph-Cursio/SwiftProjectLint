@@ -10,7 +10,7 @@ struct SystemComponentsTests {
 
     @Test
     @MainActor
-    func testSystemComponentsInitialState() throws {
+    func testSystemComponentsInitialState() {
         let components = SystemComponents()
 
         // Before initialize() is called, all properties should be nil
@@ -21,7 +21,7 @@ struct SystemComponentsTests {
 
     @Test
     @MainActor
-    func testSystemComponentsInitialize() async throws {
+    func testSystemComponentsInitialize() async {
         let components = SystemComponents()
         await components.initialize()
 
@@ -94,7 +94,7 @@ struct SystemComponentsTests {
 
     @Test
     @MainActor
-    func testMultipleInitializeCalls() async throws {
+    func testMultipleInitializeCalls() async {
         let components = SystemComponents()
 
         // First initialization
@@ -112,7 +112,7 @@ struct SystemComponentsTests {
 
     @Test
     @MainActor
-    func testSystemComponentsIsObservableObject() throws {
+    func testSystemComponentsIsObservableObject() {
         let components = SystemComponents()
 
         // SystemComponents should be an ObservableObject

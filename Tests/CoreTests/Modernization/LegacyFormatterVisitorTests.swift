@@ -41,7 +41,7 @@ struct LegacyFormatterVisitorTests {
         #expect(issue.message.contains("DateFormatter"))
     }
 
-    @Test func testFlagsNumberFormatter() throws {
+    @Test func testFlagsNumberFormatter() {
         let source = """
         func format(_ val: Double) -> String {
             let fmt = NumberFormatter()
@@ -54,7 +54,7 @@ struct LegacyFormatterVisitorTests {
         #expect(issues.first?.message.contains("NumberFormatter") == true)
     }
 
-    @Test func testFlagsMeasurementFormatter() throws {
+    @Test func testFlagsMeasurementFormatter() {
         let source = """
         class Exporter {
             func export() -> String {
@@ -68,7 +68,7 @@ struct LegacyFormatterVisitorTests {
         #expect(issues.first?.message.contains("MeasurementFormatter") == true)
     }
 
-    @Test func testFlagsMultipleFormatters() throws {
+    @Test func testFlagsMultipleFormatters() {
         let source = """
         let dateFmt = DateFormatter()
         let numFmt = NumberFormatter()
@@ -79,7 +79,7 @@ struct LegacyFormatterVisitorTests {
 
     // MARK: - Negative: should NOT flag
 
-    @Test func testSkipsViewBody() throws {
+    @Test func testSkipsViewBody() {
         let source = """
         struct MyView: View {
             var body: some View {
@@ -91,7 +91,7 @@ struct LegacyFormatterVisitorTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testNoIssueForModernFormatStyle() throws {
+    @Test func testNoIssueForModernFormatStyle() {
         let source = """
         let formatted = Date().formatted(.dateTime.month().day())
         """
@@ -99,7 +99,7 @@ struct LegacyFormatterVisitorTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testNoIssueForStaticCachedFormatter() throws {
+    @Test func testNoIssueForStaticCachedFormatter() {
         let source = """
         extension DateFormatter {
             static let medium: DateFormatter = {
@@ -115,7 +115,7 @@ struct LegacyFormatterVisitorTests {
         #expect(issues.count == 1)
     }
 
-    @Test func testNoIssueForUnrelatedTypes() throws {
+    @Test func testNoIssueForUnrelatedTypes() {
         let source = """
         let encoder = JSONEncoder()
         let decoder = JSONDecoder()
@@ -124,7 +124,7 @@ struct LegacyFormatterVisitorTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testFlagsFormatterOutsideViewBodyInViewStruct() throws {
+    @Test func testFlagsFormatterOutsideViewBodyInViewStruct() {
         let source = """
         struct MyView: View {
             func helperFormat() -> String {

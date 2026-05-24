@@ -9,14 +9,14 @@ import ViewInspector
 @MainActor
 struct ContentViewResultsTests {
     @Test
-    func testResultsNotShownWhenNoIssues() throws {
+    func testResultsNotShownWhenNoIssues() {
         let view = ContentViewResults(lintIssues: [], isAnalyzing: false)
         // Should render nothing
         #expect((try? view.inspect().vStack()) == nil)
     }
 
     @Test
-    func testResultsNotShownWhenAnalyzing() throws {
+    func testResultsNotShownWhenAnalyzing() {
         let demoIssues = [
             LintIssue(
                 severity: .warning, message: "Demo", filePath: "Test.swift", lineNumber: 1,

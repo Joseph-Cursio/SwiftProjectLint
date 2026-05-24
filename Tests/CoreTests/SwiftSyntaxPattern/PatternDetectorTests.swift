@@ -5,7 +5,7 @@ import Testing
 
 struct PatternDetectorTests {
 
-    @Test func testDetectPatternsInSourceCode() throws {
+    @Test func testDetectPatternsInSourceCode() {
         let detector = SourcePatternDetector()
         let sourceCode = """
         import SwiftUI
@@ -32,7 +32,7 @@ struct PatternDetectorTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testDetectPatternsWithSpecificRules() throws {
+    @Test func testDetectPatternsWithSpecificRules() {
         let detector = SourcePatternDetector()
         let sourceCode = """
         import SwiftUI
@@ -54,7 +54,7 @@ struct PatternDetectorTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testDetectPatternsInProject() async throws {
+    @Test func testDetectPatternsInProject() async {
         let detector = CrossFileAnalysisEngine()
         let tempDir = FileManager.default.temporaryDirectory
         let testProjectPath = tempDir.appendingPathComponent("TestProject")
@@ -66,7 +66,7 @@ struct PatternDetectorTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testCrossFilePatternDetection() throws {
+    @Test func testCrossFilePatternDetection() {
         let detector = CrossFileAnalysisEngine()
 
         let projectFiles = [
@@ -91,13 +91,13 @@ struct PatternDetectorTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testEmptySourceCode() throws {
+    @Test func testEmptySourceCode() {
         let detector = SourcePatternDetector()
         let issues = detector.detectPatterns(in: "", filePath: "/test/Empty.swift")
         #expect(issues.isEmpty)
     }
 
-    @Test func testInvalidSwiftCode() throws {
+    @Test func testInvalidSwiftCode() {
         let detector = SourcePatternDetector()
         let issues = detector.detectPatterns(
             in: "This is not valid Swift code {",

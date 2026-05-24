@@ -59,7 +59,7 @@ struct SwiftLintSuppressionVisitorTests {
     // MARK: - Multiple Rules on One Line
 
     @Test
-    func detectsMultipleRulesOnOneLine() throws {
+    func detectsMultipleRulesOnOneLine() {
         let source = """
         // swiftlint:disable force_cast force_unwrapping line_length
         let val = 1

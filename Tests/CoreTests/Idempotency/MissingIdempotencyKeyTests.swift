@@ -45,7 +45,7 @@ struct MissingIdempotencyKeyTests {
     }
 
     @Test
-    func bareUUIDInit_flags() throws {
+    func bareUUIDInit_flags() {
         let source = """
         /// @lint.effect externally_idempotent(by: key)
         func send(key: UUID, message: String) async throws {}
@@ -61,7 +61,7 @@ struct MissingIdempotencyKeyTests {
     }
 
     @Test
-    func dateNowAsKeyArgument_flags() throws {
+    func dateNowAsKeyArgument_flags() {
         let source = """
         /// @lint.effect externally_idempotent(by: key)
         func charge(key: String, amount: Int) async throws {}
@@ -80,7 +80,7 @@ struct MissingIdempotencyKeyTests {
     }
 
     @Test
-    func dateNowDirectAsKeyArgument_flags() throws {
+    func dateNowDirectAsKeyArgument_flags() {
         let source = """
         /// @lint.effect externally_idempotent(by: key)
         func charge(key: Date, amount: Int) async throws {}
@@ -96,7 +96,7 @@ struct MissingIdempotencyKeyTests {
     }
 
     @Test
-    func arc4randomAsKeyArgument_flags() throws {
+    func arc4randomAsKeyArgument_flags() {
         let source = """
         /// @lint.effect externally_idempotent(by: key)
         func send(key: UInt32, message: String) async throws {}
@@ -246,7 +246,7 @@ struct MissingIdempotencyKeyTests {
     // MARK: - Signature resolution
 
     @Test
-    func overloadedCallees_resolveIndependentlyBySignature() throws {
+    func overloadedCallees_resolveIndependentlyBySignature() {
         // Two overloads distinguishable by argument-label signature. Only the
         // one with `(by:)` on its annotation should trigger the rule at its
         // call sites.

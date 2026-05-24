@@ -51,7 +51,7 @@ struct CircularDependencyVisitorTests {
         #expect(issue.message.contains("SessionManager"))
     }
 
-    @Test func testFlagsOptionalCircularDependency() throws {
+    @Test func testFlagsOptionalCircularDependency() {
         let issues = analyze(files: [
             "A.swift": """
             class TypeA {
@@ -69,7 +69,7 @@ struct CircularDependencyVisitorTests {
 
     // MARK: - Negative: should NOT flag
 
-    @Test func testNoIssueForOneDirectionalRef() throws {
+    @Test func testNoIssueForOneDirectionalRef() {
         let issues = analyze(files: [
             "A.swift": """
             class TypeA {
@@ -85,7 +85,7 @@ struct CircularDependencyVisitorTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testSuppressesWeakReference() throws {
+    @Test func testSuppressesWeakReference() {
         let issues = analyze(files: [
             "Parent.swift": """
             class Parent {
@@ -101,7 +101,7 @@ struct CircularDependencyVisitorTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testSuppressesProtocolReference() throws {
+    @Test func testSuppressesProtocolReference() {
         let issues = analyze(files: [
             "UserManager.swift": """
             class UserManager {
@@ -120,7 +120,7 @@ struct CircularDependencyVisitorTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testNoIssueForSelfReference() throws {
+    @Test func testNoIssueForSelfReference() {
         let issues = analyze(files: [
             "Node.swift": """
             class Node {
@@ -131,7 +131,7 @@ struct CircularDependencyVisitorTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testNoIssueForUnrelatedTypes() throws {
+    @Test func testNoIssueForUnrelatedTypes() {
         let issues = analyze(files: [
             "A.swift": """
             class TypeA {

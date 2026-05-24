@@ -7,7 +7,7 @@ import Testing
 
 struct UIVisitorNavigationTests {
 
-    @Test func testDetectsNestedNavigationView() throws {
+    @Test func testDetectsNestedNavigationView() {
         let visitor = UIVisitor(patternCategory: PatternCategory.uiPatterns)
         visitor.setFilePath("Tests/SourceFile.swift")
         visitor.reset()
@@ -48,7 +48,7 @@ struct UIVisitorNavigationTests {
         }
     }
 
-    @Test func testDoesNotDetectSingleNavigationView() throws {
+    @Test func testDoesNotDetectSingleNavigationView() {
         let visitor = UIVisitor(patternCategory: PatternCategory.uiPatterns)
         visitor.setFilePath("Tests/SourceFile.swift")
         visitor.reset()
@@ -71,7 +71,7 @@ struct UIVisitorNavigationTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testDetectsModernNavigationAlternatives() throws {
+    @Test func testDetectsModernNavigationAlternatives() {
         let visitor = UIVisitor(patternCategory: PatternCategory.uiPatterns)
         visitor.setFilePath("Tests/SourceFile.swift")
         visitor.reset()

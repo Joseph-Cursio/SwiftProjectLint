@@ -39,7 +39,7 @@ struct AnyViewUsageVisitorTests {
     }
 
     @Test
-    func detectsAnyViewInConditional() throws {
+    func detectsAnyViewInConditional() {
         let source = """
         var body: some View {
             if condition {
@@ -57,7 +57,7 @@ struct AnyViewUsageVisitorTests {
     }
 
     @Test
-    func detectsAnyViewInFunction() throws {
+    func detectsAnyViewInFunction() {
         let source = """
         func makeView() -> AnyView {
             AnyView(VStack {

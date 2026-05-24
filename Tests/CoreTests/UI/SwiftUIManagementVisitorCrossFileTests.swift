@@ -7,7 +7,7 @@ import Testing
 /// Tests for SwiftUIManagementVisitor cross-file analysis and state object detection
 struct SwiftUIManagementVisitorCrossFileTests {
 
-    @Test func testDetectDuplicateStateVariables() throws {
+    @Test func testDetectDuplicateStateVariables() {
         let source = """
         struct ParentView: View {
             @State private var sharedData = ""
@@ -40,7 +40,7 @@ struct SwiftUIManagementVisitorCrossFileTests {
         #expect(duplicateIssues.count >= 1)
     }
 
-    @Test func testFindRelatedViews() throws {
+    @Test func testFindRelatedViews() {
         let source = """
         struct View1: View {
             @State private var data = ""
@@ -88,7 +88,7 @@ struct SwiftUIManagementVisitorCrossFileTests {
         #expect(relatedViews.contains("View2"))
     }
 
-    @Test func testCheckForMissingStateObjectWithManager() throws {
+    @Test func testCheckForMissingStateObjectWithManager() {
         let source = """
         class DataManager: ObservableObject {
             @Published var data = ""
@@ -111,7 +111,7 @@ struct SwiftUIManagementVisitorCrossFileTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testCheckForMissingStateObjectWithService() throws {
+    @Test func testCheckForMissingStateObjectWithService() {
         let source = """
         class NetworkService: ObservableObject {
             @Published var status = ""
@@ -134,7 +134,7 @@ struct SwiftUIManagementVisitorCrossFileTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testCheckForMissingStateObjectWithViewModel() throws {
+    @Test func testCheckForMissingStateObjectWithViewModel() {
         let source = """
         class MyViewModel: ObservableObject {
             @Published var data = ""
@@ -157,7 +157,7 @@ struct SwiftUIManagementVisitorCrossFileTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testPerformCrossFileAnalysis() throws {
+    @Test func testPerformCrossFileAnalysis() {
         let source = """
         struct View1: View {
             @State private var sharedState = ""
@@ -190,7 +190,7 @@ struct SwiftUIManagementVisitorCrossFileTests {
         #expect(duplicateIssues.count >= 1)
     }
 
-    @Test func testViewDeclarationsAreStored() throws {
+    @Test func testViewDeclarationsAreStored() {
         let source = """
         struct View1: View {
             @State private var count = 0

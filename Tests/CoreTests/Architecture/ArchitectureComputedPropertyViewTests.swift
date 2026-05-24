@@ -47,7 +47,7 @@ struct ArchitectureComputedPropertyViewTests {
         #expect(issue.severity == .warning)
     }
 
-    @Test func testFlagsMultipleComputedProperties() throws {
+    @Test func testFlagsMultipleComputedProperties() {
         let source = """
         struct MyView: View {
             var header: some View { Text("H") }
@@ -80,7 +80,7 @@ struct ArchitectureComputedPropertyViewTests {
         #expect(issue.message.contains("@ViewBuilder"))
     }
 
-    @Test func testDetectsViewViaBodyHeuristic() throws {
+    @Test func testDetectsViewViaBodyHeuristic() {
         let source = """
         struct CustomView {
             var body: some View {
@@ -98,7 +98,7 @@ struct ArchitectureComputedPropertyViewTests {
 
     // MARK: - Negative: should NOT flag
 
-    @Test func testBodyPropertyNotFlagged() throws {
+    @Test func testBodyPropertyNotFlagged() {
         let source = """
         struct ContentView: View {
             var body: some View {
@@ -110,7 +110,7 @@ struct ArchitectureComputedPropertyViewTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testNonViewTypeNotFlagged() throws {
+    @Test func testNonViewTypeNotFlagged() {
         let source = """
         struct Utility {
             var helper: some View {
@@ -122,7 +122,7 @@ struct ArchitectureComputedPropertyViewTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testStoredPropertyNotFlagged() throws {
+    @Test func testStoredPropertyNotFlagged() {
         let source = """
         struct MyView: View {
             var title: String = "Hello"
@@ -135,7 +135,7 @@ struct ArchitectureComputedPropertyViewTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testClassConformingToView() throws {
+    @Test func testClassConformingToView() {
         let source = """
         class MyViewController: View {
             var header: some View {
@@ -151,7 +151,7 @@ struct ArchitectureComputedPropertyViewTests {
         #expect(issues.first?.message.contains("header") == true)
     }
 
-    @Test func testComputedPropertyReturningNonView() throws {
+    @Test func testComputedPropertyReturningNonView() {
         let source = """
         struct MyView: View {
             var title: String { "Hello" }

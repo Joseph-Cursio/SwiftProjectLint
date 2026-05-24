@@ -4,7 +4,7 @@ import Testing
 
 final class AdvancedAnalyzerTests {
 
-    @Test func testExtractViewNameRemovesSwiftExtension() throws {
+    @Test func testExtractViewNameRemovesSwiftExtension() {
         let name = FileAnalysisUtils.extractSwiftBasename(from: "/Users/test/ContentView.swift")
         #expect(name == "ContentView")
 
@@ -15,7 +15,7 @@ final class AdvancedAnalyzerTests {
         #expect(name3 == "BazView")
     }
 
-    @Test func testFindDuplicatesReturnsCorrectDuplicates() throws {
+    @Test func testFindDuplicatesReturnsCorrectDuplicates() {
         let input = ["a", "b", "c", "a", "d", "b"]
         let result = Set(input.filter { item in input.filter { $0 == item }.count > 1 })
 
@@ -25,7 +25,7 @@ final class AdvancedAnalyzerTests {
         #expect(result.contains("d") == false)
     }
 
-    @Test @MainActor func testFindRelatedViewsDetectsHierarchy() throws {
+    @Test @MainActor func testFindRelatedViewsDetectsHierarchy() {
         // Test through the public interface by creating actual view relationships
         let analyzer = AdvancedAnalyzer()
 
@@ -37,7 +37,7 @@ final class AdvancedAnalyzerTests {
         #expect(issues.isEmpty)
     }
 
-    @Test @MainActor func testIsRootViewReturnsTrueForRoot() throws {
+    @Test @MainActor func testIsRootViewReturnsTrueForRoot() {
         let analyzer = AdvancedAnalyzer()
         let testProjectPath = createTestProject()
         defer { cleanupTestProject() }
@@ -46,7 +46,7 @@ final class AdvancedAnalyzerTests {
         #expect(issues.isEmpty)
     }
 
-    @Test @MainActor func testGenerateStateSharingSuggestionForTwoViews() throws {
+    @Test @MainActor func testGenerateStateSharingSuggestionForTwoViews() {
         let analyzer = AdvancedAnalyzer()
         let testProjectPath = createTestProject()
         defer { cleanupTestProject() }
@@ -55,7 +55,7 @@ final class AdvancedAnalyzerTests {
         #expect(issues.isEmpty)
     }
 
-    @Test @MainActor func testGenerateStateSharingSuggestionForManyViews() throws {
+    @Test @MainActor func testGenerateStateSharingSuggestionForManyViews() {
         let analyzer = AdvancedAnalyzer()
         let testProjectPath = createTestProject()
         defer { cleanupTestProject() }
@@ -64,7 +64,7 @@ final class AdvancedAnalyzerTests {
         #expect(issues.isEmpty)
     }
 
-    @Test @MainActor func testRelationshipTypeAndViewRelationship() throws {
+    @Test @MainActor func testRelationshipTypeAndViewRelationship() {
         let analyzer = AdvancedAnalyzer()
 
         // Test through the public interface by creating actual view relationships

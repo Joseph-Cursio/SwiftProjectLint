@@ -52,7 +52,7 @@ struct DetectorPerformanceTests {
 
     @Test
     @MainActor
-    static func performanceVisitorForEachWithID() async throws {
+    static func performanceVisitorForEachWithID() async {
         let detector = TestRegistryManager.getSharedDetector()
 
         // Given

@@ -60,7 +60,7 @@ struct SVPropertyWrapperTests {
     }
 
     @Test
-    func multiplePropertyWrapperTypes() throws {
+    func multiplePropertyWrapperTypes() {
         let source = """
         struct TestView: View {
             @State private var count = 0

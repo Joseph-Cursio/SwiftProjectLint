@@ -44,7 +44,7 @@ struct TapTargetTooSmallVisitorTests {
         #expect(issue.message.contains("44"))
     }
 
-    @Test func testFlagsOneDimensionBelow() throws {
+    @Test func testFlagsOneDimensionBelow() {
         let source = """
         Button("OK") { }
             .frame(width: 44, height: 20)
@@ -53,7 +53,7 @@ struct TapTargetTooSmallVisitorTests {
         #expect(issues.count == 1)
     }
 
-    @Test func testFlagsToggle() throws {
+    @Test func testFlagsToggle() {
         let source = """
         Toggle(isOn: .constant(true)) { Text("Flag") }
             .frame(width: 30, height: 30)
@@ -62,7 +62,7 @@ struct TapTargetTooSmallVisitorTests {
         #expect(issues.count == 1)
     }
 
-    @Test func testFlagsNavigationLink() throws {
+    @Test func testFlagsNavigationLink() {
         let source = """
         NavigationLink(destination: DetailView()) {
             Image(systemName: "chevron.right")
@@ -75,7 +75,7 @@ struct TapTargetTooSmallVisitorTests {
 
     // MARK: - Negative: should NOT flag
 
-    @Test func testNoIssueForMeetsMinimum() throws {
+    @Test func testNoIssueForMeetsMinimum() {
         let source = """
         Button(action: {}) {
             Image(systemName: "xmark")
@@ -86,7 +86,7 @@ struct TapTargetTooSmallVisitorTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testNoIssueForLargerThanMinimum() throws {
+    @Test func testNoIssueForLargerThanMinimum() {
         let source = """
         Button("Submit") { }
             .frame(width: 200, height: 50)
@@ -95,7 +95,7 @@ struct TapTargetTooSmallVisitorTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testNoIssueWithPadding() throws {
+    @Test func testNoIssueWithPadding() {
         let source = """
         Button(action: {}) {
             Image(systemName: "xmark")
@@ -107,7 +107,7 @@ struct TapTargetTooSmallVisitorTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testNoIssueForOnlyWidthSet() throws {
+    @Test func testNoIssueForOnlyWidthSet() {
         let source = """
         Button("OK") { }
             .frame(width: 30)
@@ -116,7 +116,7 @@ struct TapTargetTooSmallVisitorTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testNoIssueForNonInteractiveElement() throws {
+    @Test func testNoIssueForNonInteractiveElement() {
         let source = """
         Text("Hello")
             .frame(width: 20, height: 20)
@@ -125,7 +125,7 @@ struct TapTargetTooSmallVisitorTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testNoIssueForImageFrame() throws {
+    @Test func testNoIssueForImageFrame() {
         let source = """
         Image(systemName: "star")
             .frame(width: 20, height: 20)

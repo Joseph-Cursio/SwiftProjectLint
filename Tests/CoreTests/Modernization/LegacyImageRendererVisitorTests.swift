@@ -40,7 +40,7 @@ struct LegacyImageRendererVisitorTests {
         #expect(issue.message.contains("UIGraphicsImageRenderer"))
     }
 
-    @Test func testFlagsTypeAnnotation() throws {
+    @Test func testFlagsTypeAnnotation() {
         let source = """
         let renderer: UIGraphicsImageRenderer = makeRenderer()
         """
@@ -50,7 +50,7 @@ struct LegacyImageRendererVisitorTests {
 
     // MARK: - Negative: should NOT flag
 
-    @Test func testNoIssueForImageRenderer() throws {
+    @Test func testNoIssueForImageRenderer() {
         let source = """
         let renderer = ImageRenderer(content: myView)
         """
@@ -58,7 +58,7 @@ struct LegacyImageRendererVisitorTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testNoIssueForUnrelatedTypes() throws {
+    @Test func testNoIssueForUnrelatedTypes() {
         let source = """
         let view = UIView()
         let image = UIImage(named: "test")

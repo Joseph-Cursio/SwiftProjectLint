@@ -20,7 +20,7 @@ struct ContentViewProgressTests {
     }
 
     @Test
-    func testProgressWhenNotAnalyzing() throws {
+    func testProgressWhenNotAnalyzing() {
         let view = ContentViewProgress(isAnalyzing: false)
         // Should render nothing
         #expect((try? view.inspect().vStack()) == nil)

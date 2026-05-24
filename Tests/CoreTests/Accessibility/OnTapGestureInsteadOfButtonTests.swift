@@ -45,7 +45,7 @@ struct OnTapGestureInsteadOfButtonTests {
         #expect(issue.message.contains("Button"))
     }
 
-    @Test func testFlagsOnTapGestureOnImage() throws {
+    @Test func testFlagsOnTapGestureOnImage() {
         let source = """
         struct MyView: View {
             var body: some View {
@@ -58,7 +58,7 @@ struct OnTapGestureInsteadOfButtonTests {
         #expect(issues.count == 1)
     }
 
-    @Test func testFlagsMultipleOnTapGestures() throws {
+    @Test func testFlagsMultipleOnTapGestures() {
         let source = """
         struct MyView: View {
             var body: some View {
@@ -73,7 +73,7 @@ struct OnTapGestureInsteadOfButtonTests {
         #expect(issues.count == 2)
     }
 
-    @Test func testFlagsCountOneAsSimpleTap() throws {
+    @Test func testFlagsCountOneAsSimpleTap() {
         let source = """
         struct MyView: View {
             var body: some View {
@@ -87,7 +87,7 @@ struct OnTapGestureInsteadOfButtonTests {
 
     // MARK: - Negative: should NOT flag
 
-    @Test func testAllowsDoubleTap() throws {
+    @Test func testAllowsDoubleTap() {
         let source = """
         struct MyView: View {
             var body: some View {
@@ -100,7 +100,7 @@ struct OnTapGestureInsteadOfButtonTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testAllowsTripleTap() throws {
+    @Test func testAllowsTripleTap() {
         let source = """
         struct MyView: View {
             var body: some View {
@@ -113,7 +113,7 @@ struct OnTapGestureInsteadOfButtonTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testAllowsLocationAwareClosure() throws {
+    @Test func testAllowsLocationAwareClosure() {
         let source = """
         struct MyView: View {
             var body: some View {
@@ -128,7 +128,7 @@ struct OnTapGestureInsteadOfButtonTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testAllowsCoordinateSpaceArgument() throws {
+    @Test func testAllowsCoordinateSpaceArgument() {
         let source = """
         struct MyView: View {
             var body: some View {
@@ -143,7 +143,7 @@ struct OnTapGestureInsteadOfButtonTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testNoIssueForButton() throws {
+    @Test func testNoIssueForButton() {
         let source = """
         struct MyView: View {
             var body: some View {
@@ -161,7 +161,7 @@ struct OnTapGestureInsteadOfButtonTests {
         analyzeSource(source).filter { $0.ruleName == .onTapGestureMissingAccessibility }
     }
 
-    @Test func testDoubleTapWithoutAccessibilityFlagsInfo() throws {
+    @Test func testDoubleTapWithoutAccessibilityFlagsInfo() {
         let source = """
         struct MyView: View {
             var body: some View {
@@ -176,7 +176,7 @@ struct OnTapGestureInsteadOfButtonTests {
         #expect(issues.first?.message.contains("VoiceOver") == true)
     }
 
-    @Test func testDoubleTapWithAccessibilityTraitsNoIssue() throws {
+    @Test func testDoubleTapWithAccessibilityTraitsNoIssue() {
         let source = """
         struct MyView: View {
             var body: some View {
@@ -190,7 +190,7 @@ struct OnTapGestureInsteadOfButtonTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testDoubleTapWithAccessibilityLabelNoIssue() throws {
+    @Test func testDoubleTapWithAccessibilityLabelNoIssue() {
         let source = """
         struct MyView: View {
             var body: some View {
@@ -204,7 +204,7 @@ struct OnTapGestureInsteadOfButtonTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testTripleTapWithoutAccessibilityFlags() throws {
+    @Test func testTripleTapWithoutAccessibilityFlags() {
         let source = """
         struct MyView: View {
             var body: some View {
@@ -217,7 +217,7 @@ struct OnTapGestureInsteadOfButtonTests {
         #expect(issues.count == 1)
     }
 
-    @Test func testLocationAwareWithoutAccessibilityFlags() throws {
+    @Test func testLocationAwareWithoutAccessibilityFlags() {
         let source = """
         struct MyView: View {
             var body: some View {
@@ -232,7 +232,7 @@ struct OnTapGestureInsteadOfButtonTests {
         #expect(issues.count == 1)
     }
 
-    @Test func testSimpleTapDoesNotFireAccessibilityRule() throws {
+    @Test func testSimpleTapDoesNotFireAccessibilityRule() {
         let source = """
         struct MyView: View {
             var body: some View {
@@ -246,7 +246,7 @@ struct OnTapGestureInsteadOfButtonTests {
 
     // MARK: - Other gestures
 
-    @Test func testNoIssueForOtherGestures() throws {
+    @Test func testNoIssueForOtherGestures() {
         let source = """
         struct MyView: View {
             var body: some View {

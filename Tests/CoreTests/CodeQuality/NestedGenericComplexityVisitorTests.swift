@@ -42,7 +42,7 @@ struct NestedGenericComplexityVisitorTests {
         #expect(issue.message.contains("type parameters"))
     }
 
-    @Test func testFlagsDeeplyNestedGenericArguments() throws {
+    @Test func testFlagsDeeplyNestedGenericArguments() {
         let source = """
         var result: Result<Array<Optional<String>>, Error>
         """
@@ -51,7 +51,7 @@ struct NestedGenericComplexityVisitorTests {
         #expect(issues.first?.message.contains("nesting depth") == true)
     }
 
-    @Test func testFlagsComplexWhereClause() throws {
+    @Test func testFlagsComplexWhereClause() {
         let source = """
         func process<TypeVar>(_ val: TypeVar)
             where TypeVar: Equatable, TypeVar: Hashable,
@@ -62,7 +62,7 @@ struct NestedGenericComplexityVisitorTests {
         #expect(issues.first?.message.contains("where clause") == true)
     }
 
-    @Test func testFlagsFiveGenericParameters() throws {
+    @Test func testFlagsFiveGenericParameters() {
         let source = """
         func combine<ParamA, ParamB, ParamC, ParamD, ParamE>() { }
         """
@@ -73,7 +73,7 @@ struct NestedGenericComplexityVisitorTests {
 
     // MARK: - Negative: should NOT flag
 
-    @Test func testNoIssueForTwoParameters() throws {
+    @Test func testNoIssueForTwoParameters() {
         let source = """
         func map<Input, Output>(_ transform: (Input) -> Output) -> [Output] { [] }
         """
@@ -81,7 +81,7 @@ struct NestedGenericComplexityVisitorTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testNoIssueForThreeParameters() throws {
+    @Test func testNoIssueForThreeParameters() {
         let source = """
         func zip<ParamA, ParamB, ParamC>(_ first: ParamA, _ second: ParamB, _ third: ParamC) { }
         """
@@ -89,7 +89,7 @@ struct NestedGenericComplexityVisitorTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testNoIssueForShallowNesting() throws {
+    @Test func testNoIssueForShallowNesting() {
         let source = """
         var result: Result<[String], Error>
         """
@@ -97,7 +97,7 @@ struct NestedGenericComplexityVisitorTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testNoIssueForThreeWhereConstraints() throws {
+    @Test func testNoIssueForThreeWhereConstraints() {
         let source = """
         func process<TypeVar>(_ val: TypeVar) where TypeVar: Equatable, TypeVar: Hashable, TypeVar: Codable { }
         """
@@ -105,7 +105,7 @@ struct NestedGenericComplexityVisitorTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testNoIssueForSimpleGenericType() throws {
+    @Test func testNoIssueForSimpleGenericType() {
         let source = """
         var items: Array<String>
         """

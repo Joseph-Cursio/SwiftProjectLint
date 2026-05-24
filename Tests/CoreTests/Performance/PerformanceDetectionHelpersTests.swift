@@ -39,7 +39,7 @@ struct PerformanceDetectionHelpersTests {
     }
 
     @Test("Does not flag .self via MemberAccessExpr (no backslash)")
-    func doesNotFlagMemberAccessSelf() throws {
+    func doesNotFlagMemberAccessSelf() {
         let source = """
         struct ContentView: View {
             var items = [1, 2, 3]
@@ -60,7 +60,7 @@ struct PerformanceDetectionHelpersTests {
     }
 
     @Test("Does not flag ForEach with proper ID keypath")
-    func doesNotFlagProperID() throws {
+    func doesNotFlagProperID() {
         let source = """
         struct Item {
             let id: String
@@ -106,7 +106,7 @@ struct PerformanceDetectionHelpersTests {
     }
 
     @Test("Detects ForEach with explicit keypath self")
-    func detectsExplicitKeypathSelf() throws {
+    func detectsExplicitKeypathSelf() {
         let source = """
         struct ContentView: View {
             var items = ["a", "b", "c"]
@@ -127,7 +127,7 @@ struct PerformanceDetectionHelpersTests {
     }
 
     @Test("Does not flag List with self ID")
-    func doesNotFlagNonForEach() throws {
+    func doesNotFlagNonForEach() {
         let source = """
         struct ContentView: View {
             var items = [1, 2, 3]
@@ -148,7 +148,7 @@ struct PerformanceDetectionHelpersTests {
     }
 
     @Test("Detects self ID in nested ForEach")
-    func detectsNestedForEach() throws {
+    func detectsNestedForEach() {
         let source = """
         struct ContentView: View {
             var items = [[1, 2], [3, 4]]
@@ -171,7 +171,7 @@ struct PerformanceDetectionHelpersTests {
     }
 
     @Test("Detects self ID with complex collection expression")
-    func detectsComplexExpression() throws {
+    func detectsComplexExpression() {
         let source = """
         struct ContentView: View {
             var items = [1, 2, 3]
@@ -216,7 +216,7 @@ struct PerformanceDetectionHelpersTests {
     }
 
     @Test("Does not flag hashValue for proper ID keypath")
-    func doesNotFlagProperIDForHashValue() throws {
+    func doesNotFlagProperIDForHashValue() {
         let source = """
         struct ContentView: View {
             var items = [Item(id: "1"), Item(id: "2")]
@@ -237,7 +237,7 @@ struct PerformanceDetectionHelpersTests {
     }
 
     @Test("Detects missing ID in empty array ForEach")
-    func detectsMissingIDEdgeCase() throws {
+    func detectsMissingIDEdgeCase() {
         let source = """
         struct ContentView: View {
             var body: some View {

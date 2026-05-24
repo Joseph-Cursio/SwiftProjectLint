@@ -24,7 +24,7 @@ struct UIVisitorMacroPreviewTests {
     // MARK: - #Preview Macro with Arguments
 
     @Test("detects preview via macro expansion with DeclReferenceExpr argument")
-    func detectsPreviewMacroWithArgument() throws {
+    func detectsPreviewMacroWithArgument() {
         // The MacroExpansionExprSyntax visit path detects previews when a
         // DeclReferenceExpr appears directly in the macro arguments list,
         // e.g. #Preview("name", MyView) — not the trailing closure form.
@@ -48,7 +48,7 @@ struct UIVisitorMacroPreviewTests {
     }
 
     @Test("missing preview detected for non-test file path")
-    func missingPreviewForNonTestFile() throws {
+    func missingPreviewForNonTestFile() {
         let visitor = createVisitor(filePath: "Sources/MyView.swift")
         let source = """
         struct MyView: View {
@@ -70,7 +70,7 @@ struct UIVisitorMacroPreviewTests {
 
     @Test("no missing preview warning for test file paths",
           arguments: ["SomeTest.swift", "Tests/MyView.swift", "test.swift"])
-    func noMissingPreviewForTestFiles(path: String) throws {
+    func noMissingPreviewForTestFiles(path: String) {
         let visitor = createVisitor(filePath: path)
         let source = """
         struct SomeView: View {
@@ -85,7 +85,7 @@ struct UIVisitorMacroPreviewTests {
     }
 
     @Test("non-View struct does not trigger missing preview")
-    func nonViewStructNoPreviewWarning() throws {
+    func nonViewStructNoPreviewWarning() {
         let visitor = createVisitor(filePath: "Sources/Model.swift")
         let source = """
         struct UserModel: Codable {
@@ -100,7 +100,7 @@ struct UIVisitorMacroPreviewTests {
     // MARK: - Body Computed Property Error Handling Analysis
 
     @Test("detects error handling in computed body property with accessor block")
-    func errorHandlingInAccessorBlock() throws {
+    func errorHandlingInAccessorBlock() {
         let visitor = createVisitor()
         let source = """
         struct ErrorView: View {
@@ -123,7 +123,7 @@ struct UIVisitorMacroPreviewTests {
     }
 
     @Test("detects error handling in body with closure initializer")
-    func errorHandlingInClosureInitializer() throws {
+    func errorHandlingInClosureInitializer() {
         let visitor = createVisitor()
         // This exercises the analyzeInitializer path with a closure expression
         let source = """
@@ -147,7 +147,7 @@ struct UIVisitorMacroPreviewTests {
     }
 
     @Test("no error handling issue when alert is used properly")
-    func noErrorHandlingWithAlert() throws {
+    func noErrorHandlingWithAlert() {
         let visitor = createVisitor()
         let source = """
         struct GoodErrorView: View {
@@ -173,7 +173,7 @@ struct UIVisitorMacroPreviewTests {
     }
 
     @Test("no error handling issue when sheet is used properly")
-    func noErrorHandlingWithSheet() throws {
+    func noErrorHandlingWithSheet() {
         let visitor = createVisitor()
         let source = """
         struct SheetErrorView: View {
@@ -201,7 +201,7 @@ struct UIVisitorMacroPreviewTests {
     // MARK: - NavigationView Stack Pop (visitPost)
 
     @Test("navigation stack pops correctly after NavigationView exits")
-    func navigationStackPopsOnExit() throws {
+    func navigationStackPopsOnExit() {
         let visitor = createVisitor()
         // Two sibling NavigationViews should not trigger nested detection
         let source = """
@@ -229,7 +229,7 @@ struct UIVisitorMacroPreviewTests {
     // MARK: - Styling Modifiers Collection
 
     @Test("detects heavily styled Text with 4+ visual modifiers")
-    func multipleStyleModifiers() throws {
+    func multipleStyleModifiers() {
         let visitor = createVisitor()
         let source = """
         struct StyledView: View {
@@ -249,7 +249,7 @@ struct UIVisitorMacroPreviewTests {
     }
 
     @Test("no styling issue for non-styling modifiers on Text")
-    func nonStylingModifiersIgnored() throws {
+    func nonStylingModifiersIgnored() {
         let visitor = createVisitor()
         let source = """
         struct PlainView: View {

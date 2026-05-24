@@ -49,7 +49,7 @@ struct CodeQualityHardcodedStringTests {
         #expect(issue.message.contains("hardcoded string"))
     }
 
-    @Test func testShortStringInTextIsDetected() throws {
+    @Test func testShortStringInTextIsDetected() {
         let visitor = createVisitor()
 
         let sourceCode = """
@@ -67,7 +67,7 @@ struct CodeQualityHardcodedStringTests {
         #expect(hardcodedIssues.count == 1)
     }
 
-    @Test func testStringOutsideSwiftUINotDetected() throws {
+    @Test func testStringOutsideSwiftUINotDetected() {
         let visitor = createVisitor()
 
         let sourceCode = """
@@ -133,7 +133,7 @@ struct CodeQualityHardcodedStringTests {
         #expect(issue.severity == .info)
     }
 
-    @Test func testShortStringsNotDetected() throws {
+    @Test func testShortStringsNotDetected() {
         let visitor = createVisitor()
 
         let sourceCode = """
@@ -153,7 +153,7 @@ struct CodeQualityHardcodedStringTests {
         #expect(hardcodedIssues.isEmpty)
     }
 
-    @Test func testTestFileStringsNotDetected() throws {
+    @Test func testTestFileStringsNotDetected() {
         let visitor = createVisitor()
         visitor.setFilePath("MyAppTests/ViewTests.swift")
 
@@ -172,7 +172,7 @@ struct CodeQualityHardcodedStringTests {
         #expect(hardcodedIssues.isEmpty)
     }
 
-    @Test func testThreeCharStringStillDetected() throws {
+    @Test func testThreeCharStringStillDetected() {
         let visitor = createVisitor()
 
         let sourceCode = """

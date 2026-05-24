@@ -158,7 +158,7 @@ struct NonIdempotentInRetryContextVisitorTests {
 struct IdempotencyRuleInteractionTests {
 
     @Test
-    func bothRulesFireIndependently() throws {
+    func bothRulesFireIndependently() {
         let source = """
         /// @lint.effect non_idempotent
         func insert(_ id: Int) async throws {}

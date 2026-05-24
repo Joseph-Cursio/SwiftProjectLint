@@ -26,7 +26,7 @@ struct CodeQualityIntegrationTests {
 
     // MARK: - Integration Tests
 
-    @Test func testMultipleCodeQualityIssues() throws {
+    @Test func testMultipleCodeQualityIssues() {
         let sourceCode = """
         public struct TestView: View {
             let retryCount: Int = 16
@@ -50,7 +50,7 @@ struct CodeQualityIntegrationTests {
         #expect(documentationIssues.count == 1)
     }
 
-    @Test func testConfigurationCharacterization() throws {
+    @Test func testConfigurationCharacterization() {
         let magicVisitor = MagicNumberVisitor(patternCategory: .codeQuality, configuration: .strict)
         magicVisitor.setFilePath("TestFile.swift")
         let stringVisitor = HardcodedStringVisitor(patternCategory: .codeQuality)
@@ -104,7 +104,7 @@ struct CodeQualityIntegrationTests {
 
     // MARK: - Documentation Tests
 
-    @Test func testMissingDocumentationDetection() throws {
+    @Test func testMissingDocumentationDetection() {
         let sourceCode = """
         public struct UndocumentedView: View {
             public func doSomething() {}
@@ -121,7 +121,7 @@ struct CodeQualityIntegrationTests {
         #expect(docIssues.count == 4)
     }
 
-    @Test func testDocumentedAPIsNoDetection() throws {
+    @Test func testDocumentedAPIsNoDetection() {
         let sourceCode = """
         /// A documented struct
         public struct DocumentedView: View {
@@ -138,7 +138,7 @@ struct CodeQualityIntegrationTests {
         #expect(docIssues.isEmpty)
     }
 
-    @Test func testPrivateAPIsNoDetection() throws {
+    @Test func testPrivateAPIsNoDetection() {
         let sourceCode = """
         struct InternalView: View {
             func doSomething() {}

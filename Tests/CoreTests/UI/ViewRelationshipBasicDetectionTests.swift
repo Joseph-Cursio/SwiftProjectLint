@@ -24,7 +24,7 @@ struct ViewRelationshipBasicDetectionTests {
 
     // MARK: - Basic Detection Tests
 
-    @Test func testVerySimpleDetection() throws {
+    @Test func testVerySimpleDetection() {
         let sourceCode = """
         struct ContentView: View {
             var body: some View {
@@ -39,7 +39,7 @@ struct ViewRelationshipBasicDetectionTests {
         #expect(relationships.isEmpty)
     }
 
-    @Test func testBasicDetection() throws {
+    @Test func testBasicDetection() {
         let sourceCode = """
         struct ContentView: View {
             var body: some View {

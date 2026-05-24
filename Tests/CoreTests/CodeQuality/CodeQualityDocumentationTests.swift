@@ -70,7 +70,7 @@ struct CodeQualityDocumentationTests {
         _ = anotherFunctionIssue
     }
 
-    @Test func testDocumentedAPIsNoDetection() throws {
+    @Test func testDocumentedAPIsNoDetection() {
         let visitor = createVisitor()
 
         // Given
@@ -96,7 +96,7 @@ struct CodeQualityDocumentationTests {
         #expect(visitor.detectedIssues.contains { $0.ruleName == .missingDocumentation } == false)
     }
 
-    @Test func testPrivateAPIsNoDetection() throws {
+    @Test func testPrivateAPIsNoDetection() {
         let visitor = createVisitor()
 
         // Given
@@ -120,7 +120,7 @@ struct CodeQualityDocumentationTests {
         #expect(visitor.detectedIssues.contains { $0.ruleName == .missingDocumentation } == false)
     }
 
-    @Test func testDocumentationDetectionCharacterization() throws {
+    @Test func testDocumentationDetectionCharacterization() {
         let visitor = createVisitor()
         // Given
         let sourceCode = """
@@ -135,7 +135,7 @@ struct CodeQualityDocumentationTests {
         #expect(visitor.detectedIssues.isEmpty == false)
     }
 
-    @Test func testStrictDocumentationDetectionCharacterization() throws {
+    @Test func testStrictDocumentationDetectionCharacterization() {
         let visitor = createStrictVisitor()
         // Given
         let sourceCode = """
@@ -152,7 +152,7 @@ struct CodeQualityDocumentationTests {
 
     // MARK: - Protocol-required stub exemptions (slice C)
 
-    @Test func macroExpansionMethod_isExempt() throws {
+    @Test func macroExpansionMethod_isExempt() {
         // Cross-adopter evidence: SwiftIdempotency package scan (2026-04-26)
         // showed 6 fires across 4 marker macro types — every macro-impl
         // file pays the documentation-warning toll on protocol-required
@@ -179,7 +179,7 @@ struct CodeQualityDocumentationTests {
         #expect(methodIssues.isEmpty)
     }
 
-    @Test func encodeToEncoderMethod_isExempt() throws {
+    @Test func encodeToEncoderMethod_isExempt() {
         // Encodable-required `encode(to:)`. Documentation lives at the
         // protocol declaration site (Apple's Foundation), not at the
         // conforming type.
@@ -197,7 +197,7 @@ struct CodeQualityDocumentationTests {
         #expect(methodIssues.isEmpty)
     }
 
-    @Test func nonStaticExpansionMethod_stillFires() throws {
+    @Test func nonStaticExpansionMethod_stillFires() {
         // Receiver-gate: only `static func expansion(...)` is exempt —
         // adopter-defined non-static `expansion` methods still fire as
         // missing documentation. Protects the exemption from collisions
@@ -218,7 +218,7 @@ struct CodeQualityDocumentationTests {
                 "non-static expansion(...) should still fire missingDocumentation")
     }
 
-    @Test func encodeWithoutToLabel_stillFires() throws {
+    @Test func encodeWithoutToLabel_stillFires() {
         // Receiver-gate: only `encode(to:)` (the Encodable shape) is
         // exempt. Methods named `encode` with different parameter labels
         // (e.g. `encode(_ value:)`) still fire.

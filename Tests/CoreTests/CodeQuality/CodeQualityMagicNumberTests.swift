@@ -23,7 +23,7 @@ struct CodeQualityMagicNumberTests {
 
     // MARK: - Repeated Magic Numbers (should fire)
 
-    @Test func testRepeatedMagicNumberDetected() throws {
+    @Test func testRepeatedMagicNumberDetected() {
         let visitor = createVisitor()
 
         let sourceCode = """
@@ -44,7 +44,7 @@ struct CodeQualityMagicNumberTests {
         #expect(magicIssues.allSatisfy { $0.message.contains("16") })
     }
 
-    @Test func testRepeatedFloatMagicNumberDetected() throws {
+    @Test func testRepeatedFloatMagicNumberDetected() {
         let visitor = createVisitor()
 
         let sourceCode = """
@@ -67,7 +67,7 @@ struct CodeQualityMagicNumberTests {
 
     // MARK: - Single-use numbers (should NOT fire)
 
-    @Test func testSingleUseMagicNumberNotDetected() throws {
+    @Test func testSingleUseMagicNumberNotDetected() {
         let visitor = createVisitor()
 
         let sourceCode = """
@@ -86,7 +86,7 @@ struct CodeQualityMagicNumberTests {
         #expect(magicIssues.isEmpty)
     }
 
-    @Test func testSingleUseInVariableNotDetected() throws {
+    @Test func testSingleUseInVariableNotDetected() {
         let visitor = createVisitor()
 
         let sourceCode = """
@@ -108,7 +108,7 @@ struct CodeQualityMagicNumberTests {
 
     // MARK: - Threshold
 
-    @Test func testBelowThresholdNotDetected() throws {
+    @Test func testBelowThresholdNotDetected() {
         let visitor = createVisitor()
 
         let sourceCode = """
@@ -129,7 +129,7 @@ struct CodeQualityMagicNumberTests {
         #expect(magicIssues.isEmpty)
     }
 
-    @Test func testStrictThresholdDetectsSmallRepeatedNumbers() throws {
+    @Test func testStrictThresholdDetectsSmallRepeatedNumbers() {
         let visitor = createStrictVisitor()
 
         let sourceCode = """
@@ -152,7 +152,7 @@ struct CodeQualityMagicNumberTests {
 
     // MARK: - Layout Modifier Exclusion
 
-    @Test func testLayoutModifierNumbersNotDetected() throws {
+    @Test func testLayoutModifierNumbersNotDetected() {
         let visitor = createVisitor()
 
         let sourceCode = """
@@ -174,7 +174,7 @@ struct CodeQualityMagicNumberTests {
         #expect(magicIssues.isEmpty)
     }
 
-    @Test func testLayoutArgLabelsNotDetected() throws {
+    @Test func testLayoutArgLabelsNotDetected() {
         let visitor = createVisitor()
 
         let sourceCode = """
@@ -193,7 +193,7 @@ struct CodeQualityMagicNumberTests {
         #expect(magicIssues.isEmpty)
     }
 
-    @Test func testNonLayoutRepeatedNumberStillDetected() throws {
+    @Test func testNonLayoutRepeatedNumberStillDetected() {
         let visitor = createVisitor()
 
         let sourceCode = """
@@ -215,7 +215,7 @@ struct CodeQualityMagicNumberTests {
 
     // MARK: - Characterization
 
-    @Test func testMagicNumberDetectionCharacterization() throws {
+    @Test func testMagicNumberDetectionCharacterization() {
         let visitor = createVisitor()
         let sourceCode = """
         struct TestView: View {

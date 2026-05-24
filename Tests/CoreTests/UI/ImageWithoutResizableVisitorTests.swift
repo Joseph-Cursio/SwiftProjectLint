@@ -45,7 +45,7 @@ struct ImageWithoutResizableVisitorTests {
         #expect(issue.message.contains("resizable"))
     }
 
-    @Test func testFlagsSFSymbolWithFrameNoResizable() throws {
+    @Test func testFlagsSFSymbolWithFrameNoResizable() {
         let source = """
         struct MyView: View {
             var body: some View {
@@ -58,7 +58,7 @@ struct ImageWithoutResizableVisitorTests {
         #expect(issues.count == 1)
     }
 
-    @Test func testFlagsImageWithModifiersButNoResizable() throws {
+    @Test func testFlagsImageWithModifiersButNoResizable() {
         let source = """
         struct MyView: View {
             var body: some View {
@@ -74,7 +74,7 @@ struct ImageWithoutResizableVisitorTests {
 
     // MARK: - Negative: should NOT flag
 
-    @Test func testNoIssueWithResizableBeforeFrame() throws {
+    @Test func testNoIssueWithResizableBeforeFrame() {
         let source = """
         struct MyView: View {
             var body: some View {
@@ -88,7 +88,7 @@ struct ImageWithoutResizableVisitorTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testNoIssueWithResizableAndAspectRatio() throws {
+    @Test func testNoIssueWithResizableAndAspectRatio() {
         let source = """
         struct MyView: View {
             var body: some View {
@@ -103,7 +103,7 @@ struct ImageWithoutResizableVisitorTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testNoIssueForImageWithoutFrame() throws {
+    @Test func testNoIssueForImageWithoutFrame() {
         let source = """
         struct MyView: View {
             var body: some View {
@@ -116,7 +116,7 @@ struct ImageWithoutResizableVisitorTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testNoIssueForNonImageWithFrame() throws {
+    @Test func testNoIssueForNonImageWithFrame() {
         let source = """
         struct MyView: View {
             var body: some View {
@@ -129,7 +129,7 @@ struct ImageWithoutResizableVisitorTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testNoIssueForPlainImage() throws {
+    @Test func testNoIssueForPlainImage() {
         let source = """
         struct MyView: View {
             var body: some View {

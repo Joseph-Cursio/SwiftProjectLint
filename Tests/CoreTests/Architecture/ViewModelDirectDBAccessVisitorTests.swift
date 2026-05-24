@@ -54,7 +54,7 @@ struct ViewModelDirectDBAccessVisitorTests {
         #expect(issue.message.contains("SwiftData"))
     }
 
-    @Test func testFlagsObservableWithCoreData() throws {
+    @Test func testFlagsObservableWithCoreData() {
         let source = """
         import CoreData
 
@@ -68,7 +68,7 @@ struct ViewModelDirectDBAccessVisitorTests {
         #expect(issues.first?.message.contains("CoreData") == true)
     }
 
-    @Test func testFlagsNameBasedViewModel() throws {
+    @Test func testFlagsNameBasedViewModel() {
         let source = """
         import SwiftData
 
@@ -85,7 +85,7 @@ struct ViewModelDirectDBAccessVisitorTests {
 
     // MARK: - Negative: should NOT flag
 
-    @Test func testNoIssueWithoutPersistenceImport() throws {
+    @Test func testNoIssueWithoutPersistenceImport() {
         let source = """
         import Foundation
 
@@ -97,7 +97,7 @@ struct ViewModelDirectDBAccessVisitorTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testNoIssueForRepositoryClass() throws {
+    @Test func testNoIssueForRepositoryClass() {
         let source = """
         import SwiftData
 
@@ -109,7 +109,7 @@ struct ViewModelDirectDBAccessVisitorTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testNoIssueForServiceFile() throws {
+    @Test func testNoIssueForServiceFile() {
         let source = """
         import CoreData
 
@@ -121,7 +121,7 @@ struct ViewModelDirectDBAccessVisitorTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testNoIssueForStoreClass() throws {
+    @Test func testNoIssueForStoreClass() {
         let source = """
         import SwiftData
 
@@ -134,7 +134,7 @@ struct ViewModelDirectDBAccessVisitorTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testNoIssueForPlainClassWithImport() throws {
+    @Test func testNoIssueForPlainClassWithImport() {
         let source = """
         import SwiftData
 

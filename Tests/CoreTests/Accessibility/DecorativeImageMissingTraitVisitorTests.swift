@@ -46,7 +46,7 @@ struct DecorativeImageMissingTraitVisitorTests {
         #expect(issue.message.contains("headerBackground"))
     }
 
-    @Test func testFlagsImageWithLowOpacity() throws {
+    @Test func testFlagsImageWithLowOpacity() {
         let source = """
         struct MyView: View {
             var body: some View {
@@ -59,7 +59,7 @@ struct DecorativeImageMissingTraitVisitorTests {
         #expect(issues.count == 1)
     }
 
-    @Test func testFlagsPatternImage() throws {
+    @Test func testFlagsPatternImage() {
         let source = """
         struct MyView: View {
             var body: some View {
@@ -74,7 +74,7 @@ struct DecorativeImageMissingTraitVisitorTests {
 
     // MARK: - Negative: should NOT flag
 
-    @Test func testNoIssueWithAccessibilityHidden() throws {
+    @Test func testNoIssueWithAccessibilityHidden() {
         let source = """
         struct MyView: View {
             var body: some View {
@@ -88,7 +88,7 @@ struct DecorativeImageMissingTraitVisitorTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testNoIssueWithAccessibilityLabel() throws {
+    @Test func testNoIssueWithAccessibilityLabel() {
         let source = """
         struct MyView: View {
             var body: some View {
@@ -101,7 +101,7 @@ struct DecorativeImageMissingTraitVisitorTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testNoIssueForSFSymbol() throws {
+    @Test func testNoIssueForSFSymbol() {
         let source = """
         struct MyView: View {
             var body: some View {
@@ -113,7 +113,7 @@ struct DecorativeImageMissingTraitVisitorTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testNoIssueForNonDecorativeName() throws {
+    @Test func testNoIssueForNonDecorativeName() {
         let source = """
         struct MyView: View {
             var body: some View {
@@ -126,7 +126,7 @@ struct DecorativeImageMissingTraitVisitorTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testNoIssueInsideButton() throws {
+    @Test func testNoIssueInsideButton() {
         let source = """
         struct MyView: View {
             var body: some View {
@@ -140,7 +140,7 @@ struct DecorativeImageMissingTraitVisitorTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testNoIssueForFullOpacity() throws {
+    @Test func testNoIssueForFullOpacity() {
         let source = """
         struct MyView: View {
             var body: some View {

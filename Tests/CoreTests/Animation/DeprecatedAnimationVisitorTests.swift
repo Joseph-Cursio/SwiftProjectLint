@@ -41,7 +41,7 @@ struct DeprecatedAnimationVisitorTests {
     }
 
     @Test
-    func modernAnimationModifier() throws {
+    func modernAnimationModifier() {
         let source = """
         import SwiftUI
 
@@ -61,7 +61,7 @@ struct DeprecatedAnimationVisitorTests {
     }
 
     @Test
-    func bindingAnimationModifier() throws {
+    func bindingAnimationModifier() {
         let source = """
         import SwiftUI
 

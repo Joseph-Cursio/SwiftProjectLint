@@ -23,7 +23,7 @@ struct ViewRelationshipAdvancedTests {
     // MARK: - Container Views with Nested Custom Views
 
     @Test("detects custom views nested inside container views")
-    func customViewsInsideContainerViews() throws {
+    func customViewsInsideContainerViews() {
         let source = """
         struct ParentView: View {
             var body: some View {
@@ -45,7 +45,7 @@ struct ViewRelationshipAdvancedTests {
     }
 
     @Test("skips system views inside containers")
-    func systemViewsInsideContainersSkipped() throws {
+    func systemViewsInsideContainersSkipped() {
         let source = """
         struct ParentView: View {
             var body: some View {
@@ -67,7 +67,7 @@ struct ViewRelationshipAdvancedTests {
     // MARK: - NavigationLink Content Closure
 
     @Test("views inside NavigationLink content are not detected as direct children")
-    func viewsInsideNavigationLinkNotDirectChild() throws {
+    func viewsInsideNavigationLinkNotDirectChild() {
         let source = """
         struct ParentView: View {
             var body: some View {
@@ -85,7 +85,7 @@ struct ViewRelationshipAdvancedTests {
     }
 
     @Test("NavigationLink without destination argument")
-    func navigationLinkWithoutDestination() throws {
+    func navigationLinkWithoutDestination() {
         let source = """
         struct ParentView: View {
             var body: some View {
@@ -106,7 +106,7 @@ struct ViewRelationshipAdvancedTests {
     // MARK: - Presentation Modifiers with Content Label
 
     @Test("sheet with content labeled argument detects custom view")
-    func sheetWithContentLabel() throws {
+    func sheetWithContentLabel() {
         let source = """
         struct ParentView: View {
             @State var showSheet = false
@@ -126,7 +126,7 @@ struct ViewRelationshipAdvancedTests {
     }
 
     @Test("fullScreenCover with content labeled argument")
-    func fullScreenCoverWithContentLabel() throws {
+    func fullScreenCoverWithContentLabel() {
         let source = """
         struct ParentView: View {
             @State var showCover = false
@@ -146,7 +146,7 @@ struct ViewRelationshipAdvancedTests {
     }
 
     @Test("popover with content labeled argument")
-    func popoverWithContentLabel() throws {
+    func popoverWithContentLabel() {
         let source = """
         struct ParentView: View {
             @State var showPop = false
@@ -168,7 +168,7 @@ struct ViewRelationshipAdvancedTests {
     // MARK: - Multiple Custom Views in Presentation Closures
 
     @Test("sheet with multiple custom views in closure")
-    func sheetWithMultipleViews() throws {
+    func sheetWithMultipleViews() {
         let source = """
         struct ParentView: View {
             @State var showSheet = false
@@ -194,7 +194,7 @@ struct ViewRelationshipAdvancedTests {
     // MARK: - Member Access View Name Extraction
 
     @Test("detects view name from member access expression in NavigationLink")
-    func memberAccessInNavigationDestination() throws {
+    func memberAccessInNavigationDestination() {
         let source = """
         struct ParentView: View {
             var body: some View {

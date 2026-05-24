@@ -55,7 +55,7 @@ struct ExpensiveOperationTests {
         #expect(issue.message.contains("Expensive operation"))
     }
 
-    @Test func testDetectsFilterInViewBody() throws {
+    @Test func testDetectsFilterInViewBody() {
         let source = """
         struct TestView: View {
             @State private var items = [1, 2, 3, 4, 5]
@@ -76,7 +76,7 @@ struct ExpensiveOperationTests {
         #expect(filterIssues.count == 1)
     }
 
-    @Test func testDetectsMapInViewBody() throws {
+    @Test func testDetectsMapInViewBody() {
         let source = """
         struct TestView: View {
             @State private var items = [1, 2, 3]
@@ -97,7 +97,7 @@ struct ExpensiveOperationTests {
         #expect(mapIssues.count == 1)
     }
 
-    @Test func testDetectsReduceInViewBody() throws {
+    @Test func testDetectsReduceInViewBody() {
         let source = """
         struct TestView: View {
             @State private var numbers = [1, 2, 3]
@@ -114,7 +114,7 @@ struct ExpensiveOperationTests {
         #expect(reduceIssues.count == 1)
     }
 
-    @Test func testDetectsFlatMapInViewBody() throws {
+    @Test func testDetectsFlatMapInViewBody() {
         let source = """
         struct TestView: View {
             @State private var items = [[1, 2], [3, 4]]
@@ -135,7 +135,7 @@ struct ExpensiveOperationTests {
         #expect(flatMapIssues.count == 1)
     }
 
-    @Test func testDetectsCompactMapInViewBody() throws {
+    @Test func testDetectsCompactMapInViewBody() {
         let source = """
         struct TestView: View {
             @State private var items: [String?] = ["a", nil, "b"]
@@ -156,7 +156,7 @@ struct ExpensiveOperationTests {
         #expect(compactMapIssues.count == 1)
     }
 
-    @Test func testNoExpensiveOperationOutsideViewBody() throws {
+    @Test func testNoExpensiveOperationOutsideViewBody() {
         // sorted() outside of View body should not be flagged
         let source = """
         struct DataModel {
@@ -174,7 +174,7 @@ struct ExpensiveOperationTests {
         #expect(sortedIssues.isEmpty)
     }
 
-    @Test func testIgnoresNonSwiftUIStruct() throws {
+    @Test func testIgnoresNonSwiftUIStruct() {
         let source = """
         struct DataModel {
             var items = [1, 2, 3]

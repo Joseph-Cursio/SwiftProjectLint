@@ -44,7 +44,7 @@ struct FontWeightBoldVisitorTests {
         #expect(issue.message.contains(".bold()"))
     }
 
-    @Test func testFlagsMultipleFontWeightBold() throws {
+    @Test func testFlagsMultipleFontWeightBold() {
         let source = """
         struct MyView: View {
             var body: some View {
@@ -61,7 +61,7 @@ struct FontWeightBoldVisitorTests {
 
     // MARK: - Negative: should NOT flag
 
-    @Test func testNoIssueForBoldModifier() throws {
+    @Test func testNoIssueForBoldModifier() {
         let source = """
         struct MyView: View {
             var body: some View {
@@ -73,7 +73,7 @@ struct FontWeightBoldVisitorTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testNoIssueForOtherFontWeights() throws {
+    @Test func testNoIssueForOtherFontWeights() {
         let source = """
         struct MyView: View {
             var body: some View {
@@ -90,7 +90,7 @@ struct FontWeightBoldVisitorTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testNoIssueForUnrelatedModifiers() throws {
+    @Test func testNoIssueForUnrelatedModifiers() {
         let source = """
         struct MyView: View {
             var body: some View {

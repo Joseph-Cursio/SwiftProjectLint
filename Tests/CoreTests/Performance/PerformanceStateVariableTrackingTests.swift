@@ -79,7 +79,7 @@ struct PerformanceStateVariableTrackingTests {
         #expect(countInfo.isAssigned == true || countInfo.isAssigned == false)
     }
 
-    @Test func testCheckForUnnecessaryUpdates() throws {
+    @Test func testCheckForUnnecessaryUpdates() {
         let source = """
         struct ContentView: View {
             @State private var unusedVar: Int = 0
@@ -188,7 +188,7 @@ struct PerformanceStateVariableTrackingTests {
         #expect(countInfo.isAssigned == true || countInfo.isAssigned == false)
     }
 
-    @Test func testTrackMultipleStateVariables() throws {
+    @Test func testTrackMultipleStateVariables() {
         let source = """
         struct ContentView: View {
             @State private var count: Int = 0
@@ -218,7 +218,7 @@ struct PerformanceStateVariableTrackingTests {
         #expect(visitor.stateVariables["isVisible"]?.isUsedInViewBody == true)
     }
 
-    @Test func testTrackStateVariableWithNonStatePropertyWrapper() throws {
+    @Test func testTrackStateVariableWithNonStatePropertyWrapper() {
         let source = """
         struct ContentView: View {
             @StateObject private var viewModel = ViewModel()

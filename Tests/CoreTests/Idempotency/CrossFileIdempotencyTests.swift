@@ -145,7 +145,7 @@ struct CrossFileIdempotencyTests {
     }
 
     @Test
-    func collisionWithSameEffect_keepsEntry_stillFlags() throws {
+    func collisionWithSameEffect_keepsEntry_stillFlags() {
         // Two files define `insert` with the *same* non_idempotent effect. The
         // entry survives collision detection, so the caller's call to `insert`
         // still flags.
@@ -172,7 +172,7 @@ struct CrossFileIdempotencyTests {
     }
 
     @Test
-    func annotatedBeatsUnannotatedSibling_flagsViaAnnotatedEntry() throws {
+    func annotatedBeatsUnannotatedSibling_flagsViaAnnotatedEntry() {
         // One annotated `insert(_:)` plus one unannotated `insert(_:)` that
         // differs only by parameter type (which is invisible to a syntactic
         // linter). Under the Phase-1.1 collision policy, unannotated siblings

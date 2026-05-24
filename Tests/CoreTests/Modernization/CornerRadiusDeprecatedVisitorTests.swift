@@ -38,7 +38,7 @@ struct CornerRadiusDeprecatedVisitorTests {
     }
 
     @Test
-    func detectsCornerRadiusOnView() throws {
+    func detectsCornerRadiusOnView() {
         let source = """
         Text("Hello")
             .padding()

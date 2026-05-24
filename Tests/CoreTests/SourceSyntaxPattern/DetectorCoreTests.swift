@@ -38,7 +38,7 @@ struct DetectorCoreTests {
 
     @Test
     @MainActor
-    static func swiftSyntaxPatternDetectorSingleFile() async throws {
+    static func swiftSyntaxPatternDetectorSingleFile() async {
         let detector = getSharedDetector()
 
         // Given
@@ -74,7 +74,7 @@ struct DetectorCoreTests {
 
     @Test
     @MainActor
-    static func swiftSyntaxPatternDetectorCrossFile() async throws {
+    static func swiftSyntaxPatternDetectorCrossFile() async {
         let detector = getSharedDetector()
 
         // Given

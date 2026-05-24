@@ -47,7 +47,7 @@ struct SortPriorityWithoutContainerTests {
         #expect(issue.message.contains("VStack"))
     }
 
-    @Test func testFlagsHStackWithoutContainer() throws {
+    @Test func testFlagsHStackWithoutContainer() {
         let source = """
         struct MyView: View {
             var body: some View {
@@ -63,7 +63,7 @@ struct SortPriorityWithoutContainerTests {
         #expect(issues.first?.message.contains("HStack") == true)
     }
 
-    @Test func testFlagsZStackWithoutContainer() throws {
+    @Test func testFlagsZStackWithoutContainer() {
         let source = """
         struct MyView: View {
             var body: some View {
@@ -78,7 +78,7 @@ struct SortPriorityWithoutContainerTests {
         #expect(issues.count == 2)
     }
 
-    @Test func testFlagsSingleSortPriority() throws {
+    @Test func testFlagsSingleSortPriority() {
         let source = """
         struct MyView: View {
             var body: some View {
@@ -95,7 +95,7 @@ struct SortPriorityWithoutContainerTests {
 
     // MARK: - Negative: should NOT flag
 
-    @Test func testNoIssueWithContainModifier() throws {
+    @Test func testNoIssueWithContainModifier() {
         let source = """
         struct MyView: View {
             var body: some View {
@@ -111,7 +111,7 @@ struct SortPriorityWithoutContainerTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testNoIssueWithCombineModifier() throws {
+    @Test func testNoIssueWithCombineModifier() {
         let source = """
         struct MyView: View {
             var body: some View {
@@ -127,7 +127,7 @@ struct SortPriorityWithoutContainerTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testNoIssueWithoutSortPriority() throws {
+    @Test func testNoIssueWithoutSortPriority() {
         let source = """
         struct MyView: View {
             var body: some View {
@@ -142,7 +142,7 @@ struct SortPriorityWithoutContainerTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testNoIssueOutsideStack() throws {
+    @Test func testNoIssueOutsideStack() {
         let source = """
         struct MyView: View {
             var body: some View {
@@ -155,7 +155,7 @@ struct SortPriorityWithoutContainerTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testSkipsTestFiles() throws {
+    @Test func testSkipsTestFiles() {
         let source = """
         struct MyView: View {
             var body: some View {

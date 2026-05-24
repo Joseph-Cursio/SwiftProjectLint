@@ -47,7 +47,7 @@ struct OnReceiveWithoutDebounceVisitorTests {
         #expect(issue.message.contains("rate limiting"))
     }
 
-    @Test func testFlagsNotificationCenterWithoutDebounce() throws {
+    @Test func testFlagsNotificationCenterWithoutDebounce() {
         let source = """
         struct MyView: View {
             var body: some View {
@@ -62,7 +62,7 @@ struct OnReceiveWithoutDebounceVisitorTests {
         #expect(issues.count == 1)
     }
 
-    @Test func testFlagsHalfSecondTimer() throws {
+    @Test func testFlagsHalfSecondTimer() {
         let source = """
         struct MyView: View {
             var body: some View {
@@ -79,7 +79,7 @@ struct OnReceiveWithoutDebounceVisitorTests {
 
     // MARK: - Negative: should NOT flag
 
-    @Test func testAllowsTimerAtOneSecond() throws {
+    @Test func testAllowsTimerAtOneSecond() {
         let source = """
         struct MyView: View {
             var body: some View {
@@ -94,7 +94,7 @@ struct OnReceiveWithoutDebounceVisitorTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testAllowsDebounced() throws {
+    @Test func testAllowsDebounced() {
         let source = """
         struct MyView: View {
             var body: some View {
@@ -113,7 +113,7 @@ struct OnReceiveWithoutDebounceVisitorTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testAllowsThrottled() throws {
+    @Test func testAllowsThrottled() {
         let source = """
         struct MyView: View {
             var body: some View {
@@ -131,7 +131,7 @@ struct OnReceiveWithoutDebounceVisitorTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testNoIssueForNonHighFrequencyPublisher() throws {
+    @Test func testNoIssueForNonHighFrequencyPublisher() {
         let source = """
         struct MyView: View {
             @Published var searchText = ""
@@ -147,7 +147,7 @@ struct OnReceiveWithoutDebounceVisitorTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testNoIssueForUnrelatedModifiers() throws {
+    @Test func testNoIssueForUnrelatedModifiers() {
         let source = """
         struct MyView: View {
             var body: some View {

@@ -49,7 +49,7 @@ struct TabItemDeprecatedVisitorTests {
         #expect(issue.message.contains("tabItem"))
     }
 
-    @Test func testFlagsMultipleTabItems() throws {
+    @Test func testFlagsMultipleTabItems() {
         let source = """
         struct MyView: View {
             var body: some View {
@@ -68,7 +68,7 @@ struct TabItemDeprecatedVisitorTests {
 
     // MARK: - Negative: should NOT flag
 
-    @Test func testNoIssueForModernTabAPI() throws {
+    @Test func testNoIssueForModernTabAPI() {
         let source = """
         struct MyView: View {
             var body: some View {
@@ -84,7 +84,7 @@ struct TabItemDeprecatedVisitorTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testNoIssueForUnrelatedModifier() throws {
+    @Test func testNoIssueForUnrelatedModifier() {
         let source = """
         struct MyView: View {
             var body: some View {

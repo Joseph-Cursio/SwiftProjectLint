@@ -48,7 +48,7 @@ struct GlobalActorMismatchVisitorTests {
         #expect(issue.message.contains("MainActor"))
     }
 
-    @Test func testFlagsStaticCallOnMainActorType() throws {
+    @Test func testFlagsStaticCallOnMainActorType() {
         let source = """
         @MainActor
         class ViewModel {
@@ -64,7 +64,7 @@ struct GlobalActorMismatchVisitorTests {
         #expect(issues.first?.message.contains("ViewModel.refresh") == true)
     }
 
-    @Test func testFlagsFreeFunctionWithDifferentActor() throws {
+    @Test func testFlagsFreeFunctionWithDifferentActor() {
         let source = """
         @MainActor
         func updateUI() { }
@@ -78,7 +78,7 @@ struct GlobalActorMismatchVisitorTests {
         #expect(issues.first?.message.contains("updateUI") == true)
     }
 
-    @Test func testFlagsCrossActorMismatchBetweenDifferentActors() throws {
+    @Test func testFlagsCrossActorMismatchBetweenDifferentActors() {
         let source = """
         @MainActor
         class UIManager {
@@ -99,7 +99,7 @@ struct GlobalActorMismatchVisitorTests {
 
     // MARK: - Negative: should NOT flag
 
-    @Test func testNoIssueWithAwait() throws {
+    @Test func testNoIssueWithAwait() {
         let source = """
         @MainActor
         class ViewModel {
@@ -114,7 +114,7 @@ struct GlobalActorMismatchVisitorTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testNoIssueWithinSameActorContext() throws {
+    @Test func testNoIssueWithinSameActorContext() {
         let source = """
         @MainActor
         class ViewModel {
@@ -130,7 +130,7 @@ struct GlobalActorMismatchVisitorTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testNoIssueForNonActorAnnotatedTypes() throws {
+    @Test func testNoIssueForNonActorAnnotatedTypes() {
         let source = """
         class DataManager {
             func fetchData() { }
@@ -144,7 +144,7 @@ struct GlobalActorMismatchVisitorTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testNoIssueForCallsWithinSameActorClass() throws {
+    @Test func testNoIssueForCallsWithinSameActorClass() {
         let source = """
         @MainActor
         class ViewModel {
@@ -158,7 +158,7 @@ struct GlobalActorMismatchVisitorTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testNoIssueForUnrelatedCalls() throws {
+    @Test func testNoIssueForUnrelatedCalls() {
         let source = """
         func doWork() {
             print("hello")

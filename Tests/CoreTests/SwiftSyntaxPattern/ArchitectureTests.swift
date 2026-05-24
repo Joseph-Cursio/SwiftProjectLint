@@ -94,7 +94,7 @@ struct ArchitectureTests {
 
     @Test
     @MainActor
-    static func architectureVisitorValidArchitecture() async throws {
+    static func architectureVisitorValidArchitecture() async {
         let detector = TestRegistryManager.getSharedDetector()
 
         // Given

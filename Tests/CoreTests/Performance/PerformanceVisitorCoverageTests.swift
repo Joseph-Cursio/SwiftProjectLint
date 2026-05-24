@@ -33,7 +33,7 @@ struct PerformanceVisitorCoverageTests {
     // MARK: - Expensive operations in view body (lines 105-112)
 
     @Test("detects sorted free function call in view body")
-    func detectsSortedInViewBody() throws {
+    func detectsSortedInViewBody() {
         // The visitor checks for DeclReferenceExprSyntax (free function calls),
         // not method calls like items.sorted(). Using sorted(items) syntax.
         let source = """
@@ -57,7 +57,7 @@ struct PerformanceVisitorCoverageTests {
     }
 
     @Test("detects reduce free function call in view body")
-    func detectsReduceInViewBody() throws {
+    func detectsReduceInViewBody() {
         let source = """
         struct ReduceView: View {
             var body: some View {
@@ -75,7 +75,7 @@ struct PerformanceVisitorCoverageTests {
     }
 
     @Test("detects compactMap free function call in view body")
-    func detectsCompactMapInViewBody() throws {
+    func detectsCompactMapInViewBody() {
         let source = """
         struct CompactMapView: View {
             var body: some View {
@@ -95,7 +95,7 @@ struct PerformanceVisitorCoverageTests {
     // MARK: - Large view body via visitPost on VariableDeclSyntax (lines 180-188)
 
     @Test("detects large view body in computed property via visitPost")
-    func largeViewBodyInComputedProperty() throws {
+    func largeViewBodyInComputedProperty() {
         // Generate a body with more than 20 statements
         var bodyLines = ""
         for idx in 0..<25 {
@@ -121,7 +121,7 @@ struct PerformanceVisitorCoverageTests {
     // MARK: - Large view body via visitPost on FunctionDeclSyntax (lines 194-203)
 
     @Test("detects large view body in func body via visitPost")
-    func largeViewBodyInFuncBody() throws {
+    func largeViewBodyInFuncBody() {
         var bodyLines = ""
         for idx in 0..<25 {
             bodyLines += "            Text(\"Item \\(idx)\")\n"
@@ -146,7 +146,7 @@ struct PerformanceVisitorCoverageTests {
     // MARK: - Helper size check (lines 89-91, 227-228)
 
     @Test("detects oversized helper method in View struct")
-    func detectsLargeHelperMethod() throws {
+    func detectsLargeHelperMethod() {
         var helperLines = ""
         for idx in 0..<55 {
             helperLines += "        let val\\(idx) = \\(idx)\n"
@@ -175,7 +175,7 @@ struct PerformanceVisitorCoverageTests {
     }
 
     @Test("detects oversized helper computed property in View struct")
-    func detectsLargeHelperComputedProperty() throws {
+    func detectsLargeHelperComputedProperty() {
         var helperLines = ""
         for idx in 0..<55 {
             helperLines += "        let val\\(idx) = \\(idx)\n"
@@ -206,7 +206,7 @@ struct PerformanceVisitorCoverageTests {
     // MARK: - Body computed property with getter block (lines 56, 61-73)
 
     @Test("detects large body in getter block of computed property")
-    func largeBodyInGetterBlock() throws {
+    func largeBodyInGetterBlock() {
         var bodyLines = ""
         for idx in 0..<25 {
             bodyLines += "                Text(\"Row \\(idx)\")\n"
@@ -234,7 +234,7 @@ struct PerformanceVisitorCoverageTests {
     // MARK: - MemberAccessExprSyntax tracking in view body (line 148)
 
     @Test("tracks self.stateVar member access in view body")
-    func tracksSelfMemberAccessInBody() throws {
+    func tracksSelfMemberAccessInBody() {
         let source = """
         struct TrackingView: View {
             @State private var label: String = "Hello"
@@ -253,7 +253,7 @@ struct PerformanceVisitorCoverageTests {
     // MARK: - CodeBlockSyntax statement counting in view body (lines 160-163)
 
     @Test("counts statements in code blocks within view body")
-    func countsStatementsInCodeBlocks() throws {
+    func countsStatementsInCodeBlocks() {
         let source = """
         struct BlockView: View {
             @State private var flag = false
@@ -282,7 +282,7 @@ struct PerformanceVisitorCoverageTests {
     // MARK: - No expensive operations outside view body
 
     @Test("does not flag expensive operations outside view body")
-    func noFlagOutsideViewBody() throws {
+    func noFlagOutsideViewBody() {
         let source = """
         struct SafeView: View {
             let items = [1, 2, 3].sorted()
@@ -303,7 +303,7 @@ struct PerformanceVisitorCoverageTests {
     // MARK: - AccessorBlockSyntax coverage (lines 208-210)
 
     @Test("accessor block inside view body is visited without crash")
-    func accessorBlockInViewBody() throws {
+    func accessorBlockInViewBody() {
         let source = """
         struct AccessorView: View {
             var body: some View {

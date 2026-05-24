@@ -483,7 +483,7 @@ struct HeuristicInferenceIntegrationTests {
     }
 
     @Test
-    func observationalCallerCallsInferredIdempotent_flags() throws {
+    func observationalCallerCallsInferredIdempotent_flags() {
         // Observational must call only observational/pure. An inferred-
         // idempotent call (like `upsert`) still breaks that contract.
         let source = """

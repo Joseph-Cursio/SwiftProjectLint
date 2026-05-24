@@ -23,7 +23,7 @@ struct ViewRelationshipEdgeCaseTests {
     // MARK: - Struct Declaration Visiting
 
     @Test("visits struct declarations without issues")
-    func visitsStructDeclarations() throws {
+    func visitsStructDeclarations() {
         let source = """
         struct ContentView: View {
             var body: some View {
@@ -46,7 +46,7 @@ struct ViewRelationshipEdgeCaseTests {
     // MARK: - Unknown Modifier Does Not Create Relationship
 
     @Test("unknown modifier does not create presentation relationship")
-    func unknownModifierIgnored() throws {
+    func unknownModifierIgnored() {
         let source = """
         struct ParentView: View {
             var body: some View {
@@ -71,7 +71,7 @@ struct ViewRelationshipEdgeCaseTests {
     // MARK: - Direct Child Not Detected When Already Special
 
     @Test("view detected in sheet is not also detected as direct child")
-    func sheetViewNotDuplicatedAsDirectChild() throws {
+    func sheetViewNotDuplicatedAsDirectChild() {
         let source = """
         struct ParentView: View {
             @State var showSheet = false
@@ -93,13 +93,13 @@ struct ViewRelationshipEdgeCaseTests {
     // MARK: - Empty Source and Edge Cases
 
     @Test("empty source produces no relationships")
-    func emptySourceNoRelationships() throws {
+    func emptySourceNoRelationships() {
         let relationships = extractRelationships(from: "", parentView: "EmptyView")
         #expect(relationships.isEmpty)
     }
 
     @Test("source with no views produces no relationships")
-    func noViewsNoRelationships() throws {
+    func noViewsNoRelationships() {
         let source = """
         let value = 42
         func compute() -> Int { return value * 2 }
@@ -110,7 +110,7 @@ struct ViewRelationshipEdgeCaseTests {
     }
 
     @Test("deeply nested containers detect custom views at all levels")
-    func deeplyNestedContainers() throws {
+    func deeplyNestedContainers() {
         let source = """
         struct DeepView: View {
             var body: some View {
@@ -154,7 +154,7 @@ struct ViewRelationshipEdgeCaseTests {
     }
 
     @Test("alert relationship type is detected correctly")
-    func alertRelationshipType() throws {
+    func alertRelationshipType() {
         let source = """
         struct AlertHost: View {
             @State var showAlert = false
@@ -176,7 +176,7 @@ struct ViewRelationshipEdgeCaseTests {
     // MARK: - Multiple Direct Children
 
     @Test("detects multiple custom direct children in flat layout")
-    func multipleDirectChildrenFlat() throws {
+    func multipleDirectChildrenFlat() {
         let source = """
         struct DashboardView: View {
             var body: some View {
@@ -200,7 +200,7 @@ struct ViewRelationshipEdgeCaseTests {
     // MARK: - List and Section Container Views
 
     @Test("detects custom views inside List container")
-    func customViewsInsideList() throws {
+    func customViewsInsideList() {
         let source = """
         struct ListView: View {
             var body: some View {
@@ -220,7 +220,7 @@ struct ViewRelationshipEdgeCaseTests {
     }
 
     @Test("detects custom views inside Form container")
-    func customViewsInsideForm() throws {
+    func customViewsInsideForm() {
         let source = """
         struct FormView: View {
             var body: some View {

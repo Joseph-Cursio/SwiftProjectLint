@@ -276,7 +276,7 @@ about the lint issue that was detected in the codebase during analysis
     }
 
     @Test("issue with empty locations array uses default values")
-    func emptyLocationsDefaults() throws {
+    func emptyLocationsDefaults() {
         let issue = LintIssue(
             severity: .warning,
             message: "No locations",
@@ -289,7 +289,7 @@ about the lint issue that was detected in the codebase during analysis
     }
 
     @Test("issue with many locations preserves all of them")
-    func manyLocationsPreserved() throws {
+    func manyLocationsPreserved() {
         let locations = (1...10).map { index in
             (filePath: "/file\(index).swift", lineNumber: index * 10)
         }

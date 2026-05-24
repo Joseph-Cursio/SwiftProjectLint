@@ -13,7 +13,7 @@ import Testing
 struct RuleIdentifierTests {
 
     @Test
-    func detectCrossFilePatternsWithRuleIdentifiers() throws {
+    func detectCrossFilePatternsWithRuleIdentifiers() {
         let engine = CrossFileAnalysisEngine()
 
         let file1 = ProjectFile(
@@ -43,7 +43,7 @@ struct RuleIdentifierTests {
     }
 
     @Test
-    func detectCrossFilePatternsWithEmptyFiles() throws {
+    func detectCrossFilePatternsWithEmptyFiles() {
         let engine = CrossFileAnalysisEngine()
 
         let issues = engine.detectCrossFilePatterns(
@@ -55,7 +55,7 @@ struct RuleIdentifierTests {
     }
 
     @Test
-    func detectCrossFilePatternsWithEmptyRuleIdentifiers() throws {
+    func detectCrossFilePatternsWithEmptyRuleIdentifiers() {
         let engine = CrossFileAnalysisEngine()
 
         let file = ProjectFile(
@@ -76,7 +76,7 @@ struct RuleIdentifierTests {
     }
 
     @Test
-    func detectCrossFilePatternsWithNilCategories() throws {
+    func detectCrossFilePatternsWithNilCategories() {
         let engine = CrossFileAnalysisEngine()
 
         let file = ProjectFile(
@@ -98,7 +98,7 @@ struct RuleIdentifierTests {
     }
 
     @Test
-    func detectCrossFilePatternsWithNonMatchingRuleIdentifier() throws {
+    func detectCrossFilePatternsWithNonMatchingRuleIdentifier() {
         let engine = CrossFileAnalysisEngine()
 
         let file = ProjectFile(
@@ -121,7 +121,7 @@ struct RuleIdentifierTests {
     }
 
     @Test
-    func detectPatternsInNonexistentPath() async throws {
+    func detectPatternsInNonexistentPath() async {
         let engine = CrossFileAnalysisEngine()
 
         let issues = await engine.detectPatterns(
@@ -132,7 +132,7 @@ struct RuleIdentifierTests {
     }
 
     @Test
-    func detectPatternsInPathWithRuleIdentifiers() async throws {
+    func detectPatternsInPathWithRuleIdentifiers() async {
         let engine = CrossFileAnalysisEngine()
 
         let issues = await engine.detectPatterns(

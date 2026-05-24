@@ -88,7 +88,7 @@ struct ArchitecturalBoundaryVisitorTests {
         #expect(issue.message.contains("domain"))
     }
 
-    @Test func testForbiddenTypeAnnotationInLayer() throws {
+    @Test func testForbiddenTypeAnnotationInLayer() {
         let source = """
         import Foundation
 

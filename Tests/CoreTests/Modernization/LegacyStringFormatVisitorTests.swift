@@ -37,7 +37,7 @@ struct LegacyStringFormatVisitorTests {
     }
 
     @Test
-    func detectsStringFormatWithMultipleArgs() throws {
+    func detectsStringFormatWithMultipleArgs() {
         let source = """
         let text = String(format: "%d of %d items", count, total)
         """

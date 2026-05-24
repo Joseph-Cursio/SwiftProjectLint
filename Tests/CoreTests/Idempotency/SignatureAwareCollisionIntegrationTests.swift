@@ -56,7 +56,7 @@ struct SignatureAwareCollisionIntegrationTests {
     // MARK: - EffectSymbolTable closure-property integration
 
     @Test
-    func symbolTable_mergesAnnotatedClosureProperty() throws {
+    func symbolTable_mergesAnnotatedClosureProperty() {
         let source = """
         struct WeatherClient {
             /// @lint.effect idempotent
@@ -69,7 +69,7 @@ struct SignatureAwareCollisionIntegrationTests {
     }
 
     @Test
-    func symbolTable_unannotatedClosureProperty_notRecorded() throws {
+    func symbolTable_unannotatedClosureProperty_notRecorded() {
         let source = """
         struct WeatherClient {
             var search: @Sendable (_ query: String) async throws -> String
@@ -81,7 +81,7 @@ struct SignatureAwareCollisionIntegrationTests {
     }
 
     @Test
-    func symbolTable_collision_closurePropertyVsFunctionDecl() throws {
+    func symbolTable_collision_closurePropertyVsFunctionDecl() {
         // A struct declares `search(query:)` as a closure property with
         // `idempotent`, and a separate type declares a method with the
         // same signature as `non_idempotent`. Collision policy withdraws.
@@ -102,7 +102,7 @@ struct SignatureAwareCollisionIntegrationTests {
     }
 
     @Test
-    func symbolTable_closureProperty_contextAnnotationLands() throws {
+    func symbolTable_closureProperty_contextAnnotationLands() {
         // `@lint.context strict_replayable` on a closure-property declaration
         // should populate the context entry the same way a function decl does.
         let source = """
@@ -117,7 +117,7 @@ struct SignatureAwareCollisionIntegrationTests {
     }
 
     @Test
-    func symbolTable_closureInNestedClosure_skipped() throws {
+    func symbolTable_closureInNestedClosure_skipped() {
         // Mirrors FunctionDeclCollector: we don't collect declarations
         // that live inside a closure body (they're not nominal surfaces
         // addressable by bare name from outside the closure).
@@ -297,7 +297,7 @@ struct SignatureAwareCollisionIntegrationTests {
     }
 
     @Test
-    func twoAnnotatedDeclarationsSameSignature_matchingEffects_keep() throws {
+    func twoAnnotatedDeclarationsSameSignature_matchingEffects_keep() {
         let files: [String: String] = [
             "Handler.swift": """
             /// @lint.effect idempotent

@@ -166,7 +166,7 @@ struct MirrorProtocolVisitorTests {
     }
 
     @Test
-    func propertyMirrorFlags() throws {
+    func propertyMirrorFlags() {
         let issues = analyze(files: [
             "Protocol.swift": """
             protocol SettingsServiceProtocol {

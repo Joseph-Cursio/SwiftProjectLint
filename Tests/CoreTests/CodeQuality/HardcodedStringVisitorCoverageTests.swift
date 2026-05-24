@@ -28,7 +28,7 @@ struct HardcodedStringVisitorCoverageTests {
     // MARK: - Multi-segment string (interpolated) early return (line 56)
 
     @Test("string interpolation in Text is not flagged")
-    func interpolatedStringNotFlagged() throws {
+    func interpolatedStringNotFlagged() {
         let visitor = createVisitor()
         let source = """
         struct TestView: View {
@@ -47,7 +47,7 @@ struct HardcodedStringVisitorCoverageTests {
     // MARK: - Non-localizable argument label (lines 90-91)
 
     @Test("systemImage argument is not flagged")
-    func systemImageArgNotFlagged() throws {
+    func systemImageArgNotFlagged() {
         let visitor = createVisitor()
         let source = """
         struct TestView: View {
@@ -65,7 +65,7 @@ struct HardcodedStringVisitorCoverageTests {
     }
 
     @Test("systemName argument is not flagged")
-    func systemNameArgNotFlagged() throws {
+    func systemNameArgNotFlagged() {
         let visitor = createVisitor()
         let source = """
         struct TestView: View {
@@ -83,7 +83,7 @@ struct HardcodedStringVisitorCoverageTests {
     // MARK: - Member access call name check (lines 98-100)
 
     @Test("modifier call with string argument is flagged when user-facing")
-    func modifierCallStringFlagged() throws {
+    func modifierCallStringFlagged() {
         let visitor = createVisitor()
         let source = """
         struct TestView: View {
@@ -102,7 +102,7 @@ struct HardcodedStringVisitorCoverageTests {
     }
 
     @Test("confirmationDialog string is flagged")
-    func confirmationDialogStringFlagged() throws {
+    func confirmationDialogStringFlagged() {
         let visitor = createVisitor()
         let source = """
         struct TestView: View {
@@ -126,7 +126,7 @@ struct HardcodedStringVisitorCoverageTests {
     // MARK: - SF Symbol name detection (lines 125-129)
 
     @Test("SF Symbol-like strings are not flagged")
-    func sfSymbolNotFlagged() throws {
+    func sfSymbolNotFlagged() {
         let visitor = createVisitor()
         let source = """
         struct TestView: View {
@@ -142,7 +142,7 @@ struct HardcodedStringVisitorCoverageTests {
     }
 
     @Test("string with spaces is not treated as SF Symbol")
-    func stringWithSpacesNotSFSymbol() throws {
+    func stringWithSpacesNotSFSymbol() {
         let visitor = createVisitor()
         let source = """
         struct TestView: View {
@@ -161,7 +161,7 @@ struct HardcodedStringVisitorCoverageTests {
     }
 
     @Test("string starting with dot is not SF Symbol")
-    func dotPrefixStringNotSFSymbol() throws {
+    func dotPrefixStringNotSFSymbol() {
         let visitor = createVisitor()
         let source = """
         struct TestView: View {
@@ -181,7 +181,7 @@ struct HardcodedStringVisitorCoverageTests {
     }
 
     @Test("string with uppercase parts is not SF Symbol")
-    func uppercasePartsNotSFSymbol() throws {
+    func uppercasePartsNotSFSymbol() {
         let visitor = createVisitor()
         let source = """
         struct TestView: View {
@@ -202,7 +202,7 @@ struct HardcodedStringVisitorCoverageTests {
     // MARK: - Edge cases
 
     @Test("empty string is not flagged")
-    func emptyStringNotFlagged() throws {
+    func emptyStringNotFlagged() {
         let visitor = createVisitor()
         let source = """
         struct TestView: View {
@@ -218,7 +218,7 @@ struct HardcodedStringVisitorCoverageTests {
     }
 
     @Test("string with backslash is not flagged")
-    func backslashStringNotFlagged() throws {
+    func backslashStringNotFlagged() {
         let visitor = createVisitor()
         let source = """
         struct TestView: View {
@@ -235,7 +235,7 @@ struct HardcodedStringVisitorCoverageTests {
     }
 
     @Test("data: URL string is not flagged")
-    func dataURLNotFlagged() throws {
+    func dataURLNotFlagged() {
         let visitor = createVisitor()
         let source = """
         struct TestView: View {

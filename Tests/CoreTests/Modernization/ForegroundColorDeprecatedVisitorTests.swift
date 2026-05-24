@@ -38,7 +38,7 @@ struct ForegroundColorDeprecatedVisitorTests {
     }
 
     @Test
-    func detectsForegroundColorWithCustomColor() throws {
+    func detectsForegroundColorWithCustomColor() {
         let source = """
         Image(systemName: "star")
             .foregroundColor(Color.accentColor)

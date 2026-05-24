@@ -64,7 +64,7 @@ struct StackAccessibilityGroupingTests {
         #expect(issue.message.contains("HStack"))
     }
 
-    @Test func testFlagsMultipleUngroupedStacks() throws {
+    @Test func testFlagsMultipleUngroupedStacks() {
         let source = """
         struct MyView: View {
             var body: some View {
@@ -86,7 +86,7 @@ struct StackAccessibilityGroupingTests {
         #expect(issues.count == 2)
     }
 
-    @Test func testFlagsStackWithModifiedTexts() throws {
+    @Test func testFlagsStackWithModifiedTexts() {
         let source = """
         struct MyView: View {
             var body: some View {
@@ -105,7 +105,7 @@ struct StackAccessibilityGroupingTests {
 
     // MARK: - Negative: should NOT flag
 
-    @Test func testNoIssueWithAccessibilityElement() throws {
+    @Test func testNoIssueWithAccessibilityElement() {
         let source = """
         struct MyView: View {
             var body: some View {
@@ -121,7 +121,7 @@ struct StackAccessibilityGroupingTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testNoIssueWithAccessibilityHidden() throws {
+    @Test func testNoIssueWithAccessibilityHidden() {
         let source = """
         struct MyView: View {
             var body: some View {
@@ -137,7 +137,7 @@ struct StackAccessibilityGroupingTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testNoIssueWithInteractiveElement() throws {
+    @Test func testNoIssueWithInteractiveElement() {
         let source = """
         struct MyView: View {
             @State private var enabled = false
@@ -153,7 +153,7 @@ struct StackAccessibilityGroupingTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testNoIssueWithButton() throws {
+    @Test func testNoIssueWithButton() {
         let source = """
         struct MyView: View {
             var body: some View {
@@ -168,7 +168,7 @@ struct StackAccessibilityGroupingTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testNoIssueWithSingleText() throws {
+    @Test func testNoIssueWithSingleText() {
         let source = """
         struct MyView: View {
             var body: some View {
@@ -182,7 +182,7 @@ struct StackAccessibilityGroupingTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testNoIssueWithThreeTexts() throws {
+    @Test func testNoIssueWithThreeTexts() {
         let source = """
         struct MyView: View {
             var body: some View {
@@ -198,7 +198,7 @@ struct StackAccessibilityGroupingTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testNoIssueForZStack() throws {
+    @Test func testNoIssueForZStack() {
         let source = """
         struct MyView: View {
             var body: some View {
@@ -213,7 +213,7 @@ struct StackAccessibilityGroupingTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testSkipsTestFiles() throws {
+    @Test func testSkipsTestFiles() {
         let source = """
         struct MyView: View {
             var body: some View {

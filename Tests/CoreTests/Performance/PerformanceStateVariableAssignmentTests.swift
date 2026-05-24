@@ -86,7 +86,7 @@ struct PerformanceStateVariableAssignmentTests {
     // MARK: - Non-@State variables excluded
 
     @Test
-    func doesNotTrackObservedObjectVariables() throws {
+    func doesNotTrackObservedObjectVariables() {
         let source = """
         struct ContentView: View {
             @ObservedObject var viewModel: ViewModel
@@ -101,7 +101,7 @@ struct PerformanceStateVariableAssignmentTests {
     }
 
     @Test
-    func doesNotTrackEnvironmentVariables() throws {
+    func doesNotTrackEnvironmentVariables() {
         let source = """
         struct ContentView: View {
             @Environment(\\.colorScheme) var colorScheme

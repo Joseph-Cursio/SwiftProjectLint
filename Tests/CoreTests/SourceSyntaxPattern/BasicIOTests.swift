@@ -27,7 +27,7 @@ struct BasicIOTests {
 
     // MARK: - Basic Input/Output Characterization
 
-    @Test func characterizeEmptySourceBehavior() throws {
+    @Test func characterizeEmptySourceBehavior() {
         let detector = SourcePatternDetector()
         let issues = detector.detectPatterns(in: "", filePath: "/empty.swift")
 
@@ -35,7 +35,7 @@ struct BasicIOTests {
         #expect(issues.isEmpty, "Empty source code should produce no issues")
     }
 
-    @Test func testInvalidSwiftCode() throws {
+    @Test func testInvalidSwiftCode() {
         let detector = SourcePatternDetector()
         let invalidCode = "This is not valid Swift code {"
 
@@ -46,14 +46,14 @@ struct BasicIOTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func characterizeWhitespaceOnlySource() throws {
+    @Test func characterizeWhitespaceOnlySource() {
         let detector = SourcePatternDetector()
         let whitespaceCode = "   \n\n  \t  \n   "
         let issues = detector.detectPatterns(in: whitespaceCode, filePath: "/whitespace.swift")
         #expect(issues.isEmpty)
     }
 
-    @Test func characterizeInvalidSyntaxHandling() throws {
+    @Test func characterizeInvalidSyntaxHandling() {
         let detector = SourcePatternDetector()
         let invalidCode = """
         struct InvalidView {
@@ -67,7 +67,7 @@ struct BasicIOTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func characterizeMinimalValidSwiftUI() throws {
+    @Test func characterizeMinimalValidSwiftUI() {
         let detector = SourcePatternDetector()
         let minimalView = """
         import SwiftUI
@@ -83,7 +83,7 @@ struct BasicIOTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func characterizeComplexStateVariables() throws {
+    @Test func characterizeComplexStateVariables() {
         let detector = SourcePatternDetector()
         let complexView = """
         import SwiftUI

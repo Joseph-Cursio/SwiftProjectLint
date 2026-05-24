@@ -38,7 +38,7 @@ struct AnimationVisitorTests {
     }
 
     @Test
-    func modernAnimationModifierDoesNotTriggerIssue() throws {
+    func modernAnimationModifierDoesNotTriggerIssue() {
         let sourceCode = """
         import SwiftUI
 

@@ -30,7 +30,7 @@ struct UIVisitorCoverageTests {
     // MARK: - FunctionDeclSyntax body analysis (lines 61-66)
 
     @Test("detects error handling in func body declaration")
-    func errorHandlingInFuncBody() throws {
+    func errorHandlingInFuncBody() {
         let visitor = createVisitor()
         let source = """
         struct ErrorView: View {
@@ -51,7 +51,7 @@ struct UIVisitorCoverageTests {
     }
 
     @Test("func body with proper .alert does not flag error handling")
-    func funcBodyWithAlertNoIssue() throws {
+    func funcBodyWithAlertNoIssue() {
         let visitor = createVisitor()
         let source = """
         struct GoodView: View {
@@ -76,7 +76,7 @@ struct UIVisitorCoverageTests {
     // MARK: - Closure initializer body analysis (lines 194-196)
 
     @Test("analyzes body closure initializer for error handling")
-    func closureInitializerErrorHandling() throws {
+    func closureInitializerErrorHandling() {
         let visitor = createVisitor(filePath: "test.swift")
         let source = """
         struct ClosureView: View {
@@ -98,7 +98,7 @@ struct UIVisitorCoverageTests {
     // MARK: - hasComplexDependencies: ViewModel-typed property (line 247)
 
     @Test("view with ViewModel-typed property is not flagged for missing preview")
-    func viewModelPropertySuppressesMissingPreview() throws {
+    func viewModelPropertySuppressesMissingPreview() {
         let visitor = createVisitor(filePath: "Sources/SettingsView.swift")
         let source = """
         struct SettingsView: View {
@@ -116,7 +116,7 @@ struct UIVisitorCoverageTests {
     }
 
     @Test("view with @Bindable property is not flagged for missing preview")
-    func bindablePropertySuppressesMissingPreview() throws {
+    func bindablePropertySuppressesMissingPreview() {
         let visitor = createVisitor(filePath: "Sources/DetailView.swift")
         let source = """
         struct DetailView: View {
@@ -134,7 +134,7 @@ struct UIVisitorCoverageTests {
     }
 
     @Test("view with @Environment property is not flagged for missing preview")
-    func environmentPropertySuppressesMissingPreview() throws {
+    func environmentPropertySuppressesMissingPreview() {
         let visitor = createVisitor(filePath: "Sources/ThemeView.swift")
         let source = """
         struct ThemeView: View {
@@ -152,7 +152,7 @@ struct UIVisitorCoverageTests {
     }
 
     @Test("view with @EnvironmentObject property is not flagged for missing preview")
-    func environmentObjectPropertySuppressesMissingPreview() throws {
+    func environmentObjectPropertySuppressesMissingPreview() {
         let visitor = createVisitor(filePath: "Sources/DashboardView.swift")
         let source = """
         struct DashboardView: View {
@@ -172,7 +172,7 @@ struct UIVisitorCoverageTests {
     // MARK: - analyzeBodyForBasicErrorHandling via func body (lines 257-277)
 
     @Test("func body with Text Error but no alert flags basic error handling")
-    func funcBodyTextErrorNoAlert() throws {
+    func funcBodyTextErrorNoAlert() {
         let visitor = createVisitor(filePath: "test.swift")
         let source = """
         struct MyView: View {
@@ -190,7 +190,7 @@ struct UIVisitorCoverageTests {
     }
 
     @Test("func body with Alert is not flagged")
-    func funcBodyWithAlertConstructor() throws {
+    func funcBodyWithAlertConstructor() {
         let visitor = createVisitor(filePath: "test.swift")
         let source = """
         struct MyView: View {
@@ -213,7 +213,7 @@ struct UIVisitorCoverageTests {
     // MARK: - App struct does not trigger missing preview (line 29)
 
     @Test("App struct does not trigger missing preview")
-    func appStructNoMissingPreview() throws {
+    func appStructNoMissingPreview() {
         let visitor = createVisitor(filePath: "Sources/MyApp.swift")
         let source = """
         struct MyApp: App {
@@ -233,7 +233,7 @@ struct UIVisitorCoverageTests {
     // MARK: - Binding fallback path (line 176, analyzeBindingFallback)
 
     @Test("body binding without accessor or initializer exercises fallback path")
-    func bodyBindingFallbackPath() throws {
+    func bodyBindingFallbackPath() {
         let visitor = createVisitor(filePath: "test.swift")
         let source = """
         struct FallbackView: View {

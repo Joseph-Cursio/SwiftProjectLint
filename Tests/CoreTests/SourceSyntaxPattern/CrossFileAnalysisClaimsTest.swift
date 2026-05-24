@@ -26,7 +26,7 @@ struct CrossFileAnalysisClaimsTests {
 
     // MARK: - Cross-File Analysis Claims Investigation
 
-    @Test func characterizeCrossFileAnalysisClaimsVsReality() throws {
+    @Test func characterizeCrossFileAnalysisClaimsVsReality() {
         let detector = SourcePatternDetector()
 
         // Create two files with identical state variables (potential duplicates)
@@ -82,7 +82,7 @@ struct CrossFileAnalysisClaimsTests {
         #expect(duplicateRelatedIssues.isEmpty)
     }
 
-    @Test func characterizeFileCacheCapabilities() throws {
+    @Test func characterizeFileCacheCapabilities() {
         let detector = SourcePatternDetector()
 
         // Test if file cache can hold multiple files simultaneously

@@ -35,7 +35,7 @@ struct LintResultsViewTests {
         }
     }
 
-    @Test func testIssueSeverityFiltering() async throws {
+    @Test func testIssueSeverityFiltering() async {
         await MainActor.run {
             let issues = mixedSeverityIssues()
             _ = LintResultsView(issues: issues)
@@ -98,7 +98,7 @@ struct LintResultsViewTests {
         }
     }
 
-    @Test func testIssueFileAndLineNumber() throws {
+    @Test func testIssueFileAndLineNumber() {
         let issue = LintIssue(
             severity: .warning,
             message: "Test issue",
@@ -112,7 +112,7 @@ struct LintResultsViewTests {
         #expect(issue.lineNumber == 42)
     }
 
-    @Test func testIssueMessageAndSuggestion() throws {
+    @Test func testIssueMessageAndSuggestion() {
         let issue = LintIssue(
             severity: .warning,
             message: "Duplicate state variable found",

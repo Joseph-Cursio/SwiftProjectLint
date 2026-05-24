@@ -47,7 +47,7 @@ struct MemoryManagementLargeObjectTests {
         #expect(issue.suggestion?.contains("Consider using @StateObject") == true)
     }
 
-    @Test func testDoesNotDetectSmallArrayInState() throws {
+    @Test func testDoesNotDetectSmallArrayInState() {
         let sourceCode = """
         struct ContentView: View {
             @State var items: [String] = ["item1", "item2", "item3"]
@@ -60,7 +60,7 @@ struct MemoryManagementLargeObjectTests {
         #expect(visitor.detectedIssues.isEmpty)
     }
 
-    @Test func testDoesNotDetectLargeArrayWithoutState() throws {
+    @Test func testDoesNotDetectLargeArrayWithoutState() {
         let sourceCode = """
         struct ContentView: View {
             var items: [String] = [
@@ -95,7 +95,7 @@ struct MemoryManagementLargeObjectTests {
         #expect(visitor.detectedIssues.isEmpty)
     }
 
-    @Test func testDoesNotDetectNonArrayInState() throws {
+    @Test func testDoesNotDetectNonArrayInState() {
         let sourceCode = """
         struct ContentView: View {
             @State var text: String = "Hello World"

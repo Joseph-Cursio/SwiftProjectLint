@@ -52,7 +52,7 @@ struct ArchitectureLawOfDemeterTests {
 
     // MARK: - No violations (3 levels or fewer)
 
-    @Test func testNoIssueForThreeLevelChain() throws {
+    @Test func testNoIssueForThreeLevelChain() {
         // a.b.c is idiomatic Swift — not flagged
         let source = """
         class Owner {
@@ -64,7 +64,7 @@ struct ArchitectureLawOfDemeterTests {
         #expect(lodIssues.isEmpty)
     }
 
-    @Test func testNoIssueForTwoLevelChain() throws {
+    @Test func testNoIssueForTwoLevelChain() {
         let source = """
         class Owner {
             func run() { let _ = manager.data }
@@ -75,7 +75,7 @@ struct ArchitectureLawOfDemeterTests {
         #expect(lodIssues.isEmpty)
     }
 
-    @Test func testNoIssueForSelfChain() throws {
+    @Test func testNoIssueForSelfChain() {
         let source = """
         class ViewModel {
             func run() { let _ = self.manager.service.data.count }
@@ -86,7 +86,7 @@ struct ArchitectureLawOfDemeterTests {
         #expect(lodIssues.isEmpty)
     }
 
-    @Test func testNoIssueForSuperChain() throws {
+    @Test func testNoIssueForSuperChain() {
         let source = """
         class Child: Parent {
             func run() { let _ = super.manager.data.value }
@@ -97,7 +97,7 @@ struct ArchitectureLawOfDemeterTests {
         #expect(lodIssues.isEmpty)
     }
 
-    @Test func testFiresOnceForFiveLevelChain() throws {
+    @Test func testFiresOnceForFiveLevelChain() {
         // a.b.c.d.e — should report exactly once from the outermost access
         let source = """
         class Owner {
@@ -109,7 +109,7 @@ struct ArchitectureLawOfDemeterTests {
         #expect(lodIssues.count == 1)
     }
 
-    @Test func testNoIssueForFunctionCallChain() throws {
+    @Test func testNoIssueForFunctionCallChain() {
         // root is a FunctionCallExpr — SwiftUI modifier chain
         let source = """
         struct MyView: View {
@@ -125,7 +125,7 @@ struct ArchitectureLawOfDemeterTests {
 
     // MARK: - Singleton / static accessor exemptions
 
-    @Test func testNoIssueForFileManagerDefaultChain() throws {
+    @Test func testNoIssueForFileManagerDefaultChain() {
         let source = """
         class Setup {
             func tempDir() -> URL {
@@ -138,7 +138,7 @@ struct ArchitectureLawOfDemeterTests {
         #expect(lodIssues.isEmpty)
     }
 
-    @Test func testNoIssueForProcessInfoChain() throws {
+    @Test func testNoIssueForProcessInfoChain() {
         let source = """
         class Guard {
             func isTesting() -> Bool {
@@ -153,7 +153,7 @@ struct ArchitectureLawOfDemeterTests {
 
     // MARK: - Nested type / enum case exemptions
 
-    @Test func testNoIssueForNestedTypeAccess() throws {
+    @Test func testNoIssueForNestedTypeAccess() {
         let source = """
         class Validator {
             func check() -> String {
@@ -166,7 +166,7 @@ struct ArchitectureLawOfDemeterTests {
         #expect(lodIssues.isEmpty)
     }
 
-    @Test func testNoIssueForEnumAllCasesChain() throws {
+    @Test func testNoIssueForEnumAllCasesChain() {
         let source = """
         class Picker {
             func steps() {
@@ -181,7 +181,7 @@ struct ArchitectureLawOfDemeterTests {
 
     // MARK: - Value transform exemptions
 
-    @Test func testNoIssueForRawValueCapitalizedChain() throws {
+    @Test func testNoIssueForRawValueCapitalizedChain() {
         let source = """
         class Formatter {
             func label(for violation: Violation) -> String {
@@ -196,7 +196,7 @@ struct ArchitectureLawOfDemeterTests {
 
     // MARK: - Closure parameter exemptions
 
-    @Test func testNoIssueForClosureParameterChain() throws {
+    @Test func testNoIssueForClosureParameterChain() {
         let source = """
         class Sorter {
             func sort(items: [Item]) -> [Item] {
@@ -211,7 +211,7 @@ struct ArchitectureLawOfDemeterTests {
 
     // MARK: - Test file exemptions
 
-    @Test func testNoIssueInTestFiles() throws {
+    @Test func testNoIssueInTestFiles() {
         let source = """
         class OwnerTests {
             func test() { let _ = result.viewModel.searchText.isEmpty }
@@ -291,7 +291,7 @@ struct ArchitectureLawOfDemeterTests {
 
     // MARK: - Still detects real violations
 
-    @Test func testStillDetectsRealViolationInNonTestFile() throws {
+    @Test func testStillDetectsRealViolationInNonTestFile() {
         let source = """
         class Owner {
             func run() { let _ = manager.service.data.count }

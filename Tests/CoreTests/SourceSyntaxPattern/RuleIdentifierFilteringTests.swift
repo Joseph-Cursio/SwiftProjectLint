@@ -26,7 +26,7 @@ struct RuleIdentifierFilteringTests {
 
     // MARK: - Rule Identifier Filtering Characterization
 
-    @Test func characterizeSpecificRuleIdentifierFiltering() throws {
+    @Test func characterizeSpecificRuleIdentifierFiltering() {
         let detector = SourcePatternDetector()
         let testCode = """
         import SwiftUI
@@ -65,7 +65,7 @@ struct RuleIdentifierFilteringTests {
         #expect(specificIssues.count <= allIssues.count, "Specific rules should be subset of all rules")
     }
 
-    @Test func characterizeEmptyRuleIdentifierList() throws {
+    @Test func characterizeEmptyRuleIdentifierList() {
         let detector = SourcePatternDetector()
         let testCode = """
         import SwiftUI

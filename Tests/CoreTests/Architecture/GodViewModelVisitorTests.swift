@@ -63,7 +63,7 @@ struct GodViewModelVisitorTests {
 
     // MARK: - Negative: should NOT flag
 
-    @Test func testNoIssueForSmallObservableObject() throws {
+    @Test func testNoIssueForSmallObservableObject() {
         let source = """
         class AuthViewModel: ObservableObject {
             @Published var email: String = ""
@@ -75,7 +75,7 @@ struct GodViewModelVisitorTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testNoIssueAtExactThreshold() throws {
+    @Test func testNoIssueAtExactThreshold() {
         let props = (1...10).map { "    @Published var prop\($0): String = \"\"" }
             .joined(separator: "\n")
         let source = """
@@ -87,7 +87,7 @@ struct GodViewModelVisitorTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testNoIssueForObservableAtThreshold() throws {
+    @Test func testNoIssueForObservableAtThreshold() {
         let props = (1...15).map { "    var prop\($0): String = \"\"" }
             .joined(separator: "\n")
         let source = """
@@ -100,7 +100,7 @@ struct GodViewModelVisitorTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testNoIssueForNonViewModel() throws {
+    @Test func testNoIssueForNonViewModel() {
         let props = (1...20).map { "    var prop\($0): String = \"\"" }
             .joined(separator: "\n")
         let source = """
@@ -112,7 +112,7 @@ struct GodViewModelVisitorTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testExcludesComputedProperties() throws {
+    @Test func testExcludesComputedProperties() {
         let stored = (1...8).map { "    var prop\($0): String = \"\"" }
             .joined(separator: "\n")
         let computed = (1...10).map {
@@ -129,7 +129,7 @@ struct GodViewModelVisitorTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testNoIssueForStruct() throws {
+    @Test func testNoIssueForStruct() {
         let props = (1...20).map { "    @Published var prop\($0): String = \"\"" }
             .joined(separator: "\n")
         let source = """

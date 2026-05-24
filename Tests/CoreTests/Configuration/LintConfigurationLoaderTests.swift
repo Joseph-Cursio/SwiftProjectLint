@@ -42,7 +42,7 @@ struct LintConfigurationLoaderTests {
     // MARK: - YAML Parsing
 
     @Test
-    func testParsesDisabledRules() throws {
+    func testParsesDisabledRules() {
         let yaml = """
         disabled_rules:
           - "Force Try"
@@ -54,7 +54,7 @@ struct LintConfigurationLoaderTests {
     }
 
     @Test
-    func testParsesEnabledOnly() throws {
+    func testParsesEnabledOnly() {
         let yaml = """
         enabled_only:
           - "Hardcoded Secret"
@@ -107,7 +107,7 @@ struct LintConfigurationLoaderTests {
     }
 
     @Test
-    func testParsesSeverityValues() throws {
+    func testParsesSeverityValues() {
         let yaml = """
         rules:
           "Magic Number":

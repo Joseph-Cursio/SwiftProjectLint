@@ -46,7 +46,7 @@ struct AccessibilityHiddenConflictTests {
         #expect(issue.message.contains("accessibilityLabel"))
     }
 
-    @Test func testFlagsHiddenWithHint() throws {
+    @Test func testFlagsHiddenWithHint() {
         let source = """
         struct MyView: View {
             var body: some View {
@@ -79,7 +79,7 @@ struct AccessibilityHiddenConflictTests {
         #expect(message.contains("accessibilityHint"))
     }
 
-    @Test func testFlagsHiddenWithAddTraits() throws {
+    @Test func testFlagsHiddenWithAddTraits() {
         let source = """
         struct MyView: View {
             var body: some View {
@@ -93,7 +93,7 @@ struct AccessibilityHiddenConflictTests {
         #expect(issues.count == 1)
     }
 
-    @Test func testFlagsHiddenWithValue() throws {
+    @Test func testFlagsHiddenWithValue() {
         let source = """
         struct MyView: View {
             var body: some View {
@@ -107,7 +107,7 @@ struct AccessibilityHiddenConflictTests {
         #expect(issues.count == 1)
     }
 
-    @Test func testReportsOnlyOncePerChain() throws {
+    @Test func testReportsOnlyOncePerChain() {
         let source = """
         struct MyView: View {
             var body: some View {
@@ -125,7 +125,7 @@ struct AccessibilityHiddenConflictTests {
 
     // MARK: - Negative: should NOT flag
 
-    @Test func testNoIssueForHiddenAlone() throws {
+    @Test func testNoIssueForHiddenAlone() {
         let source = """
         struct MyView: View {
             var body: some View {
@@ -138,7 +138,7 @@ struct AccessibilityHiddenConflictTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testNoIssueForHiddenWithNonAccessibilityModifiers() throws {
+    @Test func testNoIssueForHiddenWithNonAccessibilityModifiers() {
         let source = """
         struct MyView: View {
             var body: some View {
@@ -153,7 +153,7 @@ struct AccessibilityHiddenConflictTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testNoIssueForLabelWithoutHidden() throws {
+    @Test func testNoIssueForLabelWithoutHidden() {
         let source = """
         struct MyView: View {
             var body: some View {
@@ -166,7 +166,7 @@ struct AccessibilityHiddenConflictTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testNoIssueForIgnoreWithLabel() throws {
+    @Test func testNoIssueForIgnoreWithLabel() {
         let source = """
         struct MyView: View {
             var body: some View {
@@ -183,7 +183,7 @@ struct AccessibilityHiddenConflictTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testSkipsTestFiles() throws {
+    @Test func testSkipsTestFiles() {
         let source = """
         struct MyView: View {
             var body: some View {

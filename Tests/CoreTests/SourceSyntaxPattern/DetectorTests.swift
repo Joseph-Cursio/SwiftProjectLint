@@ -5,12 +5,12 @@ import Testing
 
 struct DetectorTests {
 
-    @Test func testPatternDetectorInitialization() throws {
+    @Test func testPatternDetectorInitialization() {
         let detector = SourcePatternDetector()
         #expect(detector != nil)
     }
 
-    @Test func testDetectPatternsInSourceCode() throws {
+    @Test func testDetectPatternsInSourceCode() {
         let detector = SourcePatternDetector()
         let sourceCode = """
         import SwiftUI
@@ -37,7 +37,7 @@ struct DetectorTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testDetectPatternsWithSpecificRules() throws {
+    @Test func testDetectPatternsWithSpecificRules() {
         let detector = SourcePatternDetector()
         let sourceCode = """
         import SwiftUI
@@ -59,7 +59,7 @@ struct DetectorTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testDetectPatternsInProject() async throws {
+    @Test func testDetectPatternsInProject() async {
         let detector = CrossFileAnalysisEngine()
 
         // Create a temporary test project structure
@@ -74,7 +74,7 @@ struct DetectorTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testCrossFilePatternDetection() throws {
+    @Test func testCrossFilePatternDetection() {
         let detector = CrossFileAnalysisEngine()
 
         let projectFiles = [
@@ -89,7 +89,7 @@ struct DetectorTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testPatternRegistryIntegration() throws {
+    @Test func testPatternRegistryIntegration() {
         let detector = SourcePatternDetector()
         let registry = SourcePatternRegistry.shared
 
@@ -99,7 +99,7 @@ struct DetectorTests {
 
     // MARK: - Error Handling and Edge Cases
 
-    @Test func characterizeVeryLargeSourceFile() throws {
+    @Test func characterizeVeryLargeSourceFile() {
         let detector = SourcePatternDetector()
 
         // Generate a large SwiftUI file
@@ -129,7 +129,7 @@ struct DetectorTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func characterizeFilePathVariations() throws {
+    @Test func characterizeFilePathVariations() {
         let detector = SourcePatternDetector()
         let testCode = """
         import SwiftUI

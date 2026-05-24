@@ -53,7 +53,7 @@ struct NonIdempotentInRetryContextAnnotationTests {
     }
 
     @Test
-    func trailingClosureAnnotatedRetrySafe_firesOnNonIdempotent() throws {
+    func trailingClosureAnnotatedRetrySafe_firesOnNonIdempotent() {
         let source = """
         /// @lint.effect non_idempotent
         func publishEvent(_ payload: String) async throws {}
@@ -116,7 +116,7 @@ struct NonIdempotentInRetryContextAnnotationTests {
     }
 
     @Test
-    func trailingClosureWithAnnotatedCalleeInside_firesOnceNotTwice() throws {
+    func trailingClosureWithAnnotatedCalleeInside_firesOnceNotTwice() {
         // Regression: the annotated trailing closure is its own site.
         // If the OUTER enclosing function is ALSO annotated, we must not
         // double-count the inner non-idempotent call.
@@ -173,7 +173,7 @@ struct NonIdempotentInRetryContextAnnotationTests {
     // shapes.
 
     @Test
-    func trailingClosureAnnotatedReplayable_underReturnCall_fires() throws {
+    func trailingClosureAnnotatedReplayable_underReturnCall_fires() {
         // The TCA canonical shape: `return .run { send in ... }`.
         let source = """
         enum Effect {
@@ -198,7 +198,7 @@ struct NonIdempotentInRetryContextAnnotationTests {
     }
 
     @Test
-    func trailingClosureAnnotatedReplayable_underTryPrefix_fires() throws {
+    func trailingClosureAnnotatedReplayable_underTryPrefix_fires() {
         let source = """
         /// @lint.effect non_idempotent
         func sendNotification(_ id: Int) async throws {}
@@ -219,7 +219,7 @@ struct NonIdempotentInRetryContextAnnotationTests {
     }
 
     @Test
-    func trailingClosureAnnotatedReplayable_underAwaitPrefix_fires() throws {
+    func trailingClosureAnnotatedReplayable_underAwaitPrefix_fires() {
         let source = """
         /// @lint.effect non_idempotent
         func sendNotification(_ id: Int) async throws {}
@@ -240,7 +240,7 @@ struct NonIdempotentInRetryContextAnnotationTests {
     }
 
     @Test
-    func trailingClosureAnnotatedReplayable_underLetAssignment_fires() throws {
+    func trailingClosureAnnotatedReplayable_underLetAssignment_fires() {
         let source = """
         /// @lint.effect non_idempotent
         func sendNotification(_ id: Int) async throws {}
@@ -264,7 +264,7 @@ struct NonIdempotentInRetryContextAnnotationTests {
     }
 
     @Test
-    func trailingClosureAnnotatedReplayable_underTernaryBranch_fires() throws {
+    func trailingClosureAnnotatedReplayable_underTernaryBranch_fires() {
         // TCA EffectsBasics shape: annotation between `?` and `:` branches.
         let source = """
         /// @lint.effect non_idempotent
@@ -321,7 +321,7 @@ struct NonIdempotentInRetryContextAnnotationTests {
     }
 
     @Test
-    func returnCallShape_strictReplayableAlsoCarried() throws {
+    func returnCallShape_strictReplayableAlsoCarried() {
         // The same prefix-statement shape must carry through for
         // strict_replayable as the label on the emitted message.
         let source = """

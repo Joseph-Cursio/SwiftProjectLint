@@ -65,7 +65,7 @@ struct SwiftProjectLintSuppressionVisitorTests {
     // MARK: - Multiple Rules on One Line
 
     @Test
-    func detectsMultipleRulesOnOneLine() throws {
+    func detectsMultipleRulesOnOneLine() {
         let source = """
         // swiftprojectlint:disable force-try force-unwrap magic-number
         let val = 1

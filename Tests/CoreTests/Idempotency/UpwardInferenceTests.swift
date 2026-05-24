@@ -318,7 +318,7 @@ struct UpwardInferenceIntegrationTests {
     }
 
     @Test
-    func upwardBeatsHeuristicDownward() throws {
+    func upwardBeatsHeuristicDownward() {
         // A function named `insert` would normally be heuristic-downward-
         // inferred non_idempotent from its name. But if its body only calls
         // `logMetric` (heuristic-downward observational), upward inference

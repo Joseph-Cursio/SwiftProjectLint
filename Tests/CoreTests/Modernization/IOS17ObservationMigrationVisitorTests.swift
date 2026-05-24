@@ -71,7 +71,7 @@ struct IOS17ObservationMigrationVisitorTests {
 
     // MARK: - Negative: should NOT flag
 
-    @Test func testNoIssueForObservableClass() throws {
+    @Test func testNoIssueForObservableClass() {
         let source = """
         @Observable
         class ProfileViewModel {
@@ -82,7 +82,7 @@ struct IOS17ObservationMigrationVisitorTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testNoIssueForNonObservableObject() throws {
+    @Test func testNoIssueForNonObservableObject() {
         let source = """
         class PlainClass {
             @Published var name: String = ""
@@ -92,7 +92,7 @@ struct IOS17ObservationMigrationVisitorTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testSuppressesCombinePublisherUsage() throws {
+    @Test func testSuppressesCombinePublisherUsage() {
         let source = """
         class StreamViewModel: ObservableObject {
             @Published var items: [String] = []
@@ -105,7 +105,7 @@ struct IOS17ObservationMigrationVisitorTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testSuppressesNSObjectSubclass() throws {
+    @Test func testSuppressesNSObjectSubclass() {
         let source = """
         class LegacyModel: NSObject, ObservableObject {
             @Published var value: Int = 0
@@ -115,7 +115,7 @@ struct IOS17ObservationMigrationVisitorTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testNoIssueForStruct() throws {
+    @Test func testNoIssueForStruct() {
         let source = """
         struct DataModel: ObservableObject {
             @Published var value: Int = 0

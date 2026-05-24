@@ -43,7 +43,7 @@ struct SyntaxHelpersCoverageTests {
     // MARK: - isForEachCollectionSafeForSelfID
 
     @Test("array literal is safe for self ID")
-    func arrayLiteralSafeForSelfID() throws {
+    func arrayLiteralSafeForSelfID() {
         // ForEach([1, 2, 3], id: \.self) — should NOT flag \.self issue
         let source = """
         struct TestView: View {
@@ -63,7 +63,7 @@ struct SyntaxHelpersCoverageTests {
     }
 
     @Test(".allCases is safe for self ID")
-    func allCasesSafeForSelfID() throws {
+    func allCasesSafeForSelfID() {
         // ForEach(MyEnum.allCases, id: \.self) — should NOT flag \.self issue
         let source = """
         struct TestView: View {
@@ -83,7 +83,7 @@ struct SyntaxHelpersCoverageTests {
     }
 
     @Test(".filter chain is safe for self ID")
-    func filterChainSafeForSelfID() throws {
+    func filterChainSafeForSelfID() {
         let source = """
         struct TestView: View {
             let names: [String] = []
@@ -105,7 +105,7 @@ struct SyntaxHelpersCoverageTests {
     // MARK: - inferForEachElementType: TypeName.allCases pattern (line 87)
 
     @Test("infers element type from TypeName.allCases in ForEach")
-    func infersTypeFromAllCases() throws {
+    func infersTypeFromAllCases() {
         // ForEach(Category.allCases) without id: — if Category is Identifiable, no issue
         // This exercises the inferForEachElementType pattern 1
         let source = """
@@ -127,7 +127,7 @@ struct SyntaxHelpersCoverageTests {
     // MARK: - inferForEachElementType: member access pattern (line 113)
 
     @Test("infers element type from member access property in ForEach")
-    func infersTypeFromMemberAccess() throws {
+    func infersTypeFromMemberAccess() {
         // ForEach(self.items) WITHOUT id: — triggers inferForEachElementType pattern 3
         let source = """
         struct TestView: View {
@@ -148,7 +148,7 @@ struct SyntaxHelpersCoverageTests {
     // MARK: - inferForEachElementType: variable reference finding array type (lines 104, 128)
 
     @Test("infers element type from struct property with array type annotation")
-    func infersTypeFromStructPropertyArrayAnnotation() throws {
+    func infersTypeFromStructPropertyArrayAnnotation() {
         // ForEach(items) WITHOUT id: — triggers inferForEachElementType pattern 2
         // then findArrayElementType -> findArrayProperty for struct members
         let source = """
@@ -170,7 +170,7 @@ struct SyntaxHelpersCoverageTests {
     // MARK: - findArrayParameter: function parameter path (lines 150-156)
 
     @Test("infers element type from function parameter array type")
-    func infersTypeFromFunctionParameter() throws {
+    func infersTypeFromFunctionParameter() {
         // ForEach inside a function that has [Person] parameter type
         let source = """
         struct TestView: View {
@@ -194,7 +194,7 @@ struct SyntaxHelpersCoverageTests {
     // MARK: - findArrayProperty: class member path (lines 138-140)
 
     @Test("infers element type from class member array property via member access")
-    func infersTypeFromClassMemberArray() throws {
+    func infersTypeFromClassMemberArray() {
         // ForEach(viewModel.tasks) without id: — triggers pattern 3
         // then findArrayProperty should search the class declaration
         let source = """
@@ -220,7 +220,7 @@ struct SyntaxHelpersCoverageTests {
     // MARK: - extractArrayElementTypeName: member type path (lines 187-191)
 
     @Test("extracts element type from nested member type array")
-    func extractsNestedMemberTypeFromArray() throws {
+    func extractsNestedMemberTypeFromArray() {
         // ForEach(items) where items: [Outer.Inner] — triggers MemberTypeSyntax path
         let source = """
         struct TestView: View {
@@ -241,7 +241,7 @@ struct SyntaxHelpersCoverageTests {
     // MARK: - isForEachCollectionSafeForSelfID: no collection arg (line 29)
 
     @Test("ForEach with no arguments returns false for safe self ID check")
-    func forEachNoArgsNotSafe() throws {
+    func forEachNoArgsNotSafe() {
         // ForEach with only id: parameter (edge case)
         let source = """
         struct TestView: View {
@@ -262,7 +262,7 @@ struct SyntaxHelpersCoverageTests {
     // MARK: - UIVisitor ForEach: Identifiable suppression
 
     @Test("UIVisitor suppresses ForEach warning for Identifiable types")
-    func uiVisitorSuppressesForIdentifiable() throws {
+    func uiVisitorSuppressesForIdentifiable() {
         let source = """
         struct TestView: View {
             var items: [String] = []

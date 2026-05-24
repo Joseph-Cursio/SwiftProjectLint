@@ -87,7 +87,7 @@ struct ArchitectureDirectInstantiationTests {
 
     // MARK: - No issue for injected dependency
 
-    @Test func testNoIssueForInjectedDependency() throws {
+    @Test func testNoIssueForInjectedDependency() {
         let source = """
         class MyViewModel {
             private let service: NetworkService
@@ -103,7 +103,7 @@ struct ArchitectureDirectInstantiationTests {
 
     // MARK: - No issue for property wrapper instantiation
 
-    @Test func testNoIssueForPropertyWrapperInstantiation() throws {
+    @Test func testNoIssueForPropertyWrapperInstantiation() {
         let source = """
         import SwiftUI
         struct MyView: View {
@@ -118,7 +118,7 @@ struct ArchitectureDirectInstantiationTests {
 
     // MARK: - No issue for non-matching types
 
-    @Test func testNoIssueForValueTypes() throws {
+    @Test func testNoIssueForValueTypes() {
         let source = """
         class Owner {
             let counter = Counter()
@@ -131,7 +131,7 @@ struct ArchitectureDirectInstantiationTests {
 
     // MARK: - Multiple instantiations
 
-    @Test func testDetectsMultipleInstantiations() throws {
+    @Test func testDetectsMultipleInstantiations() {
         let source = """
         class Owner {
             let apiClient = APIClient()

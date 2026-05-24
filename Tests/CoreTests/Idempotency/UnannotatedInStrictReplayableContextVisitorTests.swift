@@ -66,7 +66,7 @@ struct UnannotatedInStrictReplayableContextVisitorTests {
     }
 
     @Test
-    func strictReplayable_multipleUnannotatedCallees_eachFlagged() throws {
+    func strictReplayable_multipleUnannotatedCallees_eachFlagged() {
         let source = """
         func alpha() {}
         func beta() {}
@@ -369,7 +369,7 @@ struct UnannotatedInStrictReplayableContextVisitorTests {
 struct StrictReplayableRuleInteractionTests {
 
     @Test
-    func strictCallsDeclaredNonIdempotent_onlyExistingRuleFires() throws {
+    func strictCallsDeclaredNonIdempotent_onlyExistingRuleFires() {
         let source = """
         /// @lint.effect non_idempotent
         func insert(_ id: Int) async throws {}
@@ -401,7 +401,7 @@ struct StrictReplayableRuleInteractionTests {
     }
 
     @Test
-    func strictCallsUnannotated_onlyNewRuleFires() throws {
+    func strictCallsUnannotated_onlyNewRuleFires() {
         let source = """
         func mystery() async throws {}
 

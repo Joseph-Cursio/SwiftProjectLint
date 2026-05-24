@@ -5,12 +5,12 @@ import Testing
 
 struct DetectionPatternTests {
 
-    @Test func testRuleIdentifierRawValueAndDisplayName() throws {
+    @Test func testRuleIdentifierRawValueAndDisplayName() {
         let rule = RuleIdentifier.magicNumber
         #expect(rule.rawValue == "Magic Number")
     }
 
-    @Test func testRuleIdentifierCategoryMapping() throws {
+    @Test func testRuleIdentifierCategoryMapping() {
         #expect(RuleIdentifier.relatedDuplicateStateVariable.category == .stateManagement)
         #expect(RuleIdentifier.expensiveOperationInViewBody.category == .performance)
         #expect(RuleIdentifier.missingDependencyInjection.category == .architecture)
@@ -30,13 +30,13 @@ struct DetectionPatternTests {
         #expect(rule == decoded)
     }
 
-    @Test func testRuleIdentifierAllCasesContainsAll() throws {
+    @Test func testRuleIdentifierAllCasesContainsAll() {
         // Just check that all cases are present and unique
         let allCases = Set(RuleIdentifier.allCases.map { $0.rawValue })
         #expect(allCases.count == RuleIdentifier.allCases.count)
     }
 
-    @Test func testPatternCategoryAllCases() throws {
+    @Test func testPatternCategoryAllCases() {
         let all = PatternCategory.allCases
         #expect(all.contains(.stateManagement))
         #expect(all.contains(.performance))
@@ -50,7 +50,7 @@ struct DetectionPatternTests {
         #expect(all.contains(.other))
     }
 
-    @Test func testDetectionPatternInitAndProperties() throws {
+    @Test func testDetectionPatternInitAndProperties() {
         let pattern = DetectionPattern(
             name: .magicNumber,
             severity: .warning,

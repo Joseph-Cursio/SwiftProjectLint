@@ -41,7 +41,7 @@ struct LegacyArrayInitVisitorTests {
         #expect(issue.message.contains("[String]"))
     }
 
-    @Test func testFlagsDictionaryInit() throws {
+    @Test func testFlagsDictionaryInit() {
         let source = """
         let map = Dictionary<String, Int>()
         """
@@ -50,7 +50,7 @@ struct LegacyArrayInitVisitorTests {
         #expect(issues.first?.message.contains("Dictionary") == true)
     }
 
-    @Test func testFlagsOptionalNone() throws {
+    @Test func testFlagsOptionalNone() {
         let source = """
         let nothing = Optional<String>.none
         """
@@ -61,7 +61,7 @@ struct LegacyArrayInitVisitorTests {
 
     // MARK: - Negative: should NOT flag
 
-    @Test func testNoIssueForShorthandArray() throws {
+    @Test func testNoIssueForShorthandArray() {
         let source = """
         let items: [String] = []
         """
@@ -69,7 +69,7 @@ struct LegacyArrayInitVisitorTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testNoIssueForShorthandDictionary() throws {
+    @Test func testNoIssueForShorthandDictionary() {
         let source = """
         let map: [String: Int] = [:]
         """
@@ -77,7 +77,7 @@ struct LegacyArrayInitVisitorTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testNoIssueForArrayWithArguments() throws {
+    @Test func testNoIssueForArrayWithArguments() {
         let source = """
         let items = Array<Int>(repeating: 0, count: 10)
         """
@@ -85,7 +85,7 @@ struct LegacyArrayInitVisitorTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testNoIssueForSetInit() throws {
+    @Test func testNoIssueForSetInit() {
         let source = """
         let unique = Set<String>()
         """
@@ -93,7 +93,7 @@ struct LegacyArrayInitVisitorTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testNoIssueForNil() throws {
+    @Test func testNoIssueForNil() {
         let source = """
         let nothing: String? = nil
         """
@@ -101,7 +101,7 @@ struct LegacyArrayInitVisitorTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testNoIssueForUnrelatedCode() throws {
+    @Test func testNoIssueForUnrelatedCode() {
         let source = """
         let name = String(describing: type)
         """

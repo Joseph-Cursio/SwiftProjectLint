@@ -40,7 +40,7 @@ struct LegacyReplacingOccurrencesVisitorTests {
         #expect(issue.message.contains("replacingOccurrences"))
     }
 
-    @Test func testFlagsChainedReplacingOccurrences() throws {
+    @Test func testFlagsChainedReplacingOccurrences() {
         let source = """
         let result = path
             .replacingOccurrences(of: "\\\\", with: "/")
@@ -50,7 +50,7 @@ struct LegacyReplacingOccurrencesVisitorTests {
         #expect(issues.count == 2)
     }
 
-    @Test func testFlagsReplacingOccurrencesInFunction() throws {
+    @Test func testFlagsReplacingOccurrencesInFunction() {
         let source = """
         func clean(_ input: String) -> String {
             return input.replacingOccurrences(of: "bad", with: "good")
@@ -62,7 +62,7 @@ struct LegacyReplacingOccurrencesVisitorTests {
 
     // MARK: - Negative: should NOT flag
 
-    @Test func testNoIssueForModernReplacing() throws {
+    @Test func testNoIssueForModernReplacing() {
         let source = """
         let result = str.replacing("hello", with: "world")
         """
@@ -70,7 +70,7 @@ struct LegacyReplacingOccurrencesVisitorTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testNoIssueForUnrelatedMethod() throws {
+    @Test func testNoIssueForUnrelatedMethod() {
         let source = """
         let result = arr.replacing([1, 2], with: [3, 4])
         """
@@ -78,7 +78,7 @@ struct LegacyReplacingOccurrencesVisitorTests {
         #expect(issues.isEmpty)
     }
 
-    @Test func testNoIssueForOtherMemberAccess() throws {
+    @Test func testNoIssueForOtherMemberAccess() {
         let source = """
         let count = str.count
         let upper = str.uppercased()
