@@ -67,8 +67,8 @@ struct HardcodedAnimationValuesVisitorTests {
         #expect(visitor.detectedIssues.count == 2)
         #expect(visitor.detectedIssues.allSatisfy { $0.ruleName == .hardcodedAnimationValues })
         let messages = visitor.detectedIssues.map(\.message)
-        #expect(messages.contains(where: { $0.contains("response") }))
-        #expect(messages.contains(where: { $0.contains("dampingFraction") }))
+        #expect(messages.contains { $0.contains("response") })
+        #expect(messages.contains { $0.contains("dampingFraction") })
     }
 
     @Test

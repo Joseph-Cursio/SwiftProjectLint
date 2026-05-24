@@ -80,6 +80,6 @@ final class AnimationHierarchyVisitor: BasePatternVisitor {
     private func animationValueArgText(_ node: FunctionCallExprSyntax) -> String? {
         guard let memberAccess = node.calledExpression.as(MemberAccessExprSyntax.self),
               memberAccess.declName.baseName.text == "animation" else { return nil }
-        return node.arguments.first(where: { $0.label?.text == "value" })?.expression.trimmedDescription
+        return node.arguments.first { $0.label?.text == "value" }?.expression.trimmedDescription
     }
 }

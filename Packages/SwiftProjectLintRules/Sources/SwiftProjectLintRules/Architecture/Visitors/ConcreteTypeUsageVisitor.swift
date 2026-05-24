@@ -66,7 +66,7 @@ class ConcreteTypeUsageVisitor: BasePatternVisitor {
     // MARK: - Scope tracking
 
     override func visit(_ node: StructDeclSyntax) -> SyntaxVisitorContinueKind {
-        isInsideDIContainer = Self.diContainerSuffixes.contains(where: { node.name.text.hasSuffix($0) })
+        isInsideDIContainer = Self.diContainerSuffixes.contains { node.name.text.hasSuffix($0) }
         flaggedPropertyTypes = []
         return .visitChildren
     }
@@ -77,7 +77,7 @@ class ConcreteTypeUsageVisitor: BasePatternVisitor {
     }
 
     override func visit(_ node: ClassDeclSyntax) -> SyntaxVisitorContinueKind {
-        isInsideDIContainer = Self.diContainerSuffixes.contains(where: { node.name.text.hasSuffix($0) })
+        isInsideDIContainer = Self.diContainerSuffixes.contains { node.name.text.hasSuffix($0) }
         flaggedPropertyTypes = []
         return .visitChildren
     }

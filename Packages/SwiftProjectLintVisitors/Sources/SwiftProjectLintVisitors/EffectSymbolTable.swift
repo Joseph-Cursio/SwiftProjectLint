@@ -286,24 +286,21 @@ public struct EffectSymbolTable: Sendable {
     ) {
         for source in sources {
             if ContinuousClock.now >= deadline { return }
-            let inferred = UpwardEffectInferrer.inferEffects(
-                in: source,
-                resolveCalleeEffect: { call in
-                    if let sig = FunctionSignature.from(call: call) {
-                        if isCollision(signature: sig) { return nil }
-                        if let declared = effect(for: sig) {
-                            return UpwardInference(effect: declared, depth: 0)
-                        }
-                        if includeUpward, let upward = upwardInference(for: sig) {
-                            return upward
-                        }
+            let inferred = UpwardEffectInferrer.inferEffects(in: source) { call in
+                if let sig = FunctionSignature.from(call: call) {
+                    if isCollision(signature: sig) { return nil }
+                    if let declared = effect(for: sig) {
+                        return UpwardInference(effect: declared, depth: 0)
                     }
-                    if let heuristic = heuristicEffectForCall(call, source) {
-                        return UpwardInference(effect: heuristic, depth: 0)
+                    if includeUpward, let upward = upwardInference(for: sig) {
+                        return upward
                     }
-                    return nil
                 }
-            )
+                if let heuristic = heuristicEffectForCall(call, source) {
+                    return UpwardInference(effect: heuristic, depth: 0)
+                }
+                return nil
+            }
             for (sig, result) in inferred {
                 // Never overwrite a declared effect. Upward is only for
                 // un-annotated signatures; the inferrer already filters by

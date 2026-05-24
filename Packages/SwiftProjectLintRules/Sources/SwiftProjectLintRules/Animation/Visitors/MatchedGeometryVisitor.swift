@@ -42,8 +42,8 @@ final class MatchedGeometryVisitor: BasePatternVisitor {
         guard let memberAccess = node.calledExpression.as(MemberAccessExprSyntax.self),
               memberAccess.declName.baseName.text == "matchedGeometryEffect" else { return }
 
-        let namespaceName = node.arguments.first(where: { $0.label?.text == "in" })?.expression.trimmedDescription
-        let idValue = node.arguments.first(where: { $0.label?.text == "id" })?.expression.trimmedDescription
+        let namespaceName = node.arguments.first { $0.label?.text == "in" }?.expression.trimmedDescription
+        let idValue = node.arguments.first { $0.label?.text == "id" }?.expression.trimmedDescription
 
         guard let namespace = namespaceName, let id = idValue else { return }
 

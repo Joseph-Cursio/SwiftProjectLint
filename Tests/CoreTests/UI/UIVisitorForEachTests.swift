@@ -41,7 +41,7 @@ struct UIVisitorForEachTests {
         #expect(messages.contains("ForEach without explicit ID can cause performance issues"))
 
         // Check that the ForEach issue has the correct severity
-        let forEachIssue = try #require(issues.first(where: { $0.message.contains("ForEach without explicit ID") }))
+        let forEachIssue = try #require(issues.first { $0.message.contains("ForEach without explicit ID") })
         #expect(forEachIssue.severity == .warning)
     }
 

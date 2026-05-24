@@ -349,10 +349,9 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
         // Defensive: duplicate relativePaths shouldn't crash inline suppression
         // dedup (e.g., an edge case where resolution still collides on symlinks
         // or on-disk duplicates). Keep first occurrence.
-        let contentByRelativePath = Dictionary(
-            files.map { ($0.relativePath, $0.content) },
-            uniquingKeysWith: { first, _ in first }
-        )
+        let contentByRelativePath = Dictionary(files.map { ($0.relativePath, $0.content) }) { first, _ in
+            first
+        }
 
         let grouped = Dictionary(grouping: crossFileIssues) { $0.filePath }
         var filtered: [LintIssue] = []

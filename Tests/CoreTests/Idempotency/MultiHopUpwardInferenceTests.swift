@@ -315,11 +315,9 @@ struct MultiHopUpwardInferenceTests {
         """)
         var table = EffectSymbolTable()
         table.merge(source: source)
-        table.applyUpwardInference(
-            to: [source],
-            multiHop: true,
-            heuristicEffectForCall: { HeuristicEffectInferrer.infer(call: $0) }
-        )
+        table.applyUpwardInference(to: [source], multiHop: true) {
+            HeuristicEffectInferrer.infer(call: $0)
+        }
 
         let leafSig = FunctionSignature(name: "leaf", argumentLabels: [])
         let midSig = FunctionSignature(name: "mid", argumentLabels: [])
@@ -360,9 +358,8 @@ struct MultiHopUpwardInferenceTests {
         table.applyUpwardInferenceImportAware(
             to: [source],
             multiHop: true,
-            wallClockBudget: .zero,
-            heuristicEffectForCall: { _, _ in nil }
-        )
+            wallClockBudget: .zero
+        ) { _, _ in nil }
 
         let leafSig = FunctionSignature(name: "leaf", argumentLabels: [])
         let midSig = FunctionSignature(name: "mid", argumentLabels: [])
@@ -389,9 +386,8 @@ struct MultiHopUpwardInferenceTests {
         table.applyUpwardInferenceImportAware(
             to: [source],
             multiHop: true,
-            wallClockBudget: .seconds(30),
-            heuristicEffectForCall: { _, _ in nil }
-        )
+            wallClockBudget: .seconds(30)
+        ) { _, _ in nil }
 
         let leafSig = FunctionSignature(name: "leaf", argumentLabels: [])
         let midSig = FunctionSignature(name: "mid", argumentLabels: [])
@@ -417,10 +413,9 @@ struct MultiHopUpwardInferenceTests {
         """)
         var table = EffectSymbolTable()
         table.merge(source: source)
-        table.applyUpwardInference(
-            to: [source],
-            heuristicEffectForCall: { HeuristicEffectInferrer.infer(call: $0) }
-        )
+        table.applyUpwardInference(to: [source]) {
+            HeuristicEffectInferrer.infer(call: $0)
+        }
 
         let leafSig = FunctionSignature(name: "leaf", argumentLabels: [])
         let midSig = FunctionSignature(name: "mid", argumentLabels: [])

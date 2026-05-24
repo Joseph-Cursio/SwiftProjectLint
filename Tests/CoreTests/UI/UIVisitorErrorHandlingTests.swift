@@ -37,7 +37,7 @@ struct UIVisitorErrorHandlingTests {
         #expect(messages.contains("Consider using proper error handling UI patterns"))
 
         // Check that the error handling issue has the correct severity
-        let errorIssue = try #require(issues.first(where: { $0.message.contains("proper error handling") }))
+        let errorIssue = try #require(issues.first { $0.message.contains("proper error handling") })
         #expect(errorIssue.severity == .info)
     }
 

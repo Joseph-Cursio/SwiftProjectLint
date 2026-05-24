@@ -156,17 +156,13 @@ final class NonIdempotentInRetryContextVisitor: BasePatternVisitor, CrossFilePat
         // import the relevant module.
         let allSources = Array(fileCache.values)
         let enabledFrameworks = self.enabledFrameworkWhitelists
-        symbolTable.applyUpwardInferenceImportAware(
-            to: allSources,
-            multiHop: true,
-            heuristicEffectForCall: { call, source in
-                HeuristicEffectInferrer.infer(
-                    call: call,
-                    imports: ImportCollector.imports(in: source),
-                    enabledFrameworks: enabledFrameworks
-                )
-            }
-        )
+        symbolTable.applyUpwardInferenceImportAware(to: allSources, multiHop: true) { call, source in
+            HeuristicEffectInferrer.infer(
+                call: call,
+                imports: ImportCollector.imports(in: source),
+                enabledFrameworks: enabledFrameworks
+            )
+        }
 
         for site in analysisSites {
             analyzeBody(site.body, site: site)

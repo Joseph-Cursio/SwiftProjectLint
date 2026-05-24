@@ -94,7 +94,7 @@ class AccessingImplementationDetailsVisitor: BasePatternVisitor {
         // Find "as! TypeName" — extract the identifier that follows
         guard let castRange = text.range(of: "as! ") else { return nil }
         let afterCast = text[castRange.upperBound...]
-        let typeName = String(afterCast.prefix(while: { $0.isLetter || $0.isNumber || $0 == "_" }))
+        let typeName = String(afterCast.prefix { $0.isLetter || $0.isNumber || $0 == "_" })
         return qualifyingServiceName(typeName)
     }
 

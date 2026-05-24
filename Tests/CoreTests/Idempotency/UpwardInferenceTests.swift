@@ -64,13 +64,10 @@ struct UpwardInferrerUnitTests {
         _ source: String,
         resolve: @escaping (FunctionCallExprSyntax) -> DeclaredEffect?
     ) -> [FunctionSignature: UpwardInference] {
-        UpwardEffectInferrer.inferEffects(
-            in: Parser.parse(source: source),
-            resolveCalleeEffect: { call in
-                guard let effect = resolve(call) else { return nil }
-                return UpwardInference(effect: effect, depth: 0)
-            }
-        )
+        UpwardEffectInferrer.inferEffects(in: Parser.parse(source: source)) { call in
+            guard let effect = resolve(call) else { return nil }
+            return UpwardInference(effect: effect, depth: 0)
+        }
     }
 
     @Test

@@ -127,9 +127,8 @@ struct ContentView: View {
                 ruleExclusions: $viewModel.ruleExclusions,
                 configIsDirty: viewModel.configIsDirty,
                 onSave: viewModel.saveEnabledRules,
-                onSaveConfig: viewModel.showConfigDiffPreview,
-                onDismiss: {}
-            )
+                onSaveConfig: viewModel.showConfigDiffPreview
+            ) {}
         )
     }
 
