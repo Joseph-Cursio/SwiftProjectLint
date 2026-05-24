@@ -134,6 +134,7 @@ opt_in_rules:
   - unused_parameter
   - implicit_return
   - prefer_condition_list
+  - trailing_closure
 # Rule configurations
 line_length:
   error: 150
