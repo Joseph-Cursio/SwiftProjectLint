@@ -6,7 +6,7 @@ import Testing
 
 /// Transitive-propagation fixtures for the once-contract rule.
 ///
-/// Direct call sites are exercised by `OnceContractViolationTriggerTests`.
+/// Direct call sites are exercised by `OnceContractViolationTests`.
 /// This suite exercises the once-reach inference layer specifically:
 /// chains of un-annotated helpers between the trigger position (loop or
 /// replayable body) and the `@lint.context once` callee.

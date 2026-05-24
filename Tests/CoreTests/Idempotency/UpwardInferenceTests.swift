@@ -10,7 +10,7 @@ import Testing
 /// the gap between "declared" and "heuristic-downward" in the rule lookup
 /// cascade.
 @Suite
-struct UpwardInferrerUnitTests {
+struct UpwardInferenceTests {
 
     // MARK: - Lattice lub
 

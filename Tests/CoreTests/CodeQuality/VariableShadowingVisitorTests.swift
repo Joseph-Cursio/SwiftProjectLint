@@ -18,7 +18,7 @@ private func runVisitor(_ visitor: VariableShadowingVisitor, source: String) {
 // MARK: - Detection Tests
 
 @Suite("Variable Shadowing Detection")
-struct VariableShadowingDetectionTests {
+struct VariableShadowingVisitorTests {
 
     @Test("Detects shadowing inside closure with capture list")
     func closureShadowing() throws {

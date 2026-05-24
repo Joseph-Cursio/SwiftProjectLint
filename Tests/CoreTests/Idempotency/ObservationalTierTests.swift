@@ -10,7 +10,7 @@ import Testing
 /// tracing). It does not mandate that such calls appear — no rule of the form
 /// "replayable context must log."
 @Suite
-struct ObservationalParserTests {
+struct ObservationalTierTests {
 
     @Test
     func parsesObservationalEffect() {

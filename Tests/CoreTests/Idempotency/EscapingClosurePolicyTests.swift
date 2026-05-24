@@ -17,7 +17,7 @@ import Testing
 /// Expected: zero diagnostics. If a variant regresses and the visitor descends
 /// into the trailing closure, the fixture will fail.
 @Suite
-struct IdempotencyEscapingClosureTests {
+struct EscapingClosurePolicyTests {
 
     private func runEffect(source: String) -> IdempotencyViolationVisitor {
         let visitor = IdempotencyViolationVisitor(pattern: IdempotencyViolation().pattern)

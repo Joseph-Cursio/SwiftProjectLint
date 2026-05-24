@@ -9,8 +9,8 @@ import Testing
 /// - `trackStateVariableUsage` for non-self member access (false branch)
 /// - `trackStateVariableAssignment` entry path
 /// - `trackStateVariableDeclaration` edge cases (non-@State wrappers, resets)
-@Suite("PerfUnnecessaryUpdateCoverageTests")
-struct PerfUnnecessaryUpdateCoverageTests {
+@Suite("PerformanceStateTrackingCoverageTests")
+struct PerformanceStateTrackingCoverageTests {
 
     // MARK: - checkForUnnecessaryUpdates: assigned but not used in view body
 

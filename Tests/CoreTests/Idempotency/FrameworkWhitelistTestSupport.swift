@@ -11,6 +11,11 @@ import Testing
 // helpers — member lookup shadows these at usage sites inside those types,
 // so there is no ambiguity.
 
+/// Namespace marker. Required by SwiftLint's `file_name` rule, which
+/// expects this file to declare a type matching its name. The helpers
+/// below remain at module scope by design.
+enum FrameworkWhitelistTestSupport {}
+
 func firstCall(in source: String) throws -> FunctionCallExprSyntax {
     final class Finder: SyntaxVisitor {
         var call: FunctionCallExprSyntax?

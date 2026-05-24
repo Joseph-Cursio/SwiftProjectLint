@@ -27,7 +27,7 @@ private func runOnceContractRule(
 /// Covers the loop case, the replayable / retry_safe case, the combined
 /// case, and cross-file resolution.
 @Suite
-struct OnceContractViolationTriggerTests {
+struct OnceContractViolationTests {
 
     private func runRule(_ files: [String: String]) -> OnceContractViolationVisitor {
         runOnceContractRule(files)

@@ -10,7 +10,7 @@
 import Testing
 
 @Suite("Core Module Tests")
-struct CoreModuleTests {
+struct SwiftProjectLintCoreTests {
 
     @Test func testCoreModuleImports() {
         // Test that all core modules can be imported and accessed

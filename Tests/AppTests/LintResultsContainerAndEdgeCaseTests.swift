@@ -6,7 +6,7 @@ import ViewInspector
 
 // MARK: - LintResultsContainerView Tests
 
-struct LintResultsContainerViewTests {
+struct LintResultsContainerAndEdgeCaseTests {
     @Test
     @MainActor
     func testContainerViewHasFullScreenButton() throws {

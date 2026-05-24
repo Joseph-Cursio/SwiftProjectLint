@@ -12,9 +12,9 @@ import Testing
 /// assignment tracking path (lines 46-54) is therefore not reachable through normal
 /// AST walking. These tests exercise the path directly by calling the tracking
 /// methods on a manually-prepared visitor, similar to the approach used in
-/// PerfUnnecessaryUpdateCoverageTests.
+/// PerformanceStateTrackingCoverageTests.
 @Suite("PerformanceStateVariableTracking Assignment Coverage")
-struct PerfStateAssignmentCoverageTests {
+struct PerformanceStateTrackingAssignmentCoverageTests {
 
     private func makeVisitor(
         source: String,

@@ -7,7 +7,7 @@
 
 import Testing
 
-struct UITestsLaunchTests {
+struct SwiftProjectLintUITestsLaunchTests {
     // UI automation is not yet supported in Swift Testing.
     // You can add launch performance or logic tests here using @Test if needed.
     // Example:

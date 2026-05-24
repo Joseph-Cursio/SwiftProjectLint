@@ -25,7 +25,7 @@ import Testing
 /// | externally_idempotent | non_idempotent | YES (breaks keyed guarantee) |
 /// | replayable / retry_safe | externally_idempotent | NO (assume key routed) |
 @Suite
-struct ExternallyIdempotentParserTests {
+struct ExternallyIdempotentTierTests {
 
     @Test
     func parsesExternallyIdempotentEffect() {

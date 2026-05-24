@@ -35,7 +35,7 @@ private func makeTempProject(
 // MARK: - Basic Scanning & Structure
 
 @Suite("DirectoryScanner Basic Tests")
-struct DirectoryScannerBasicTests {
+struct DirectoryScannerTests {
 
     @Test("scanSync returns root node with correct name")
     func scanSyncRootName() throws {
