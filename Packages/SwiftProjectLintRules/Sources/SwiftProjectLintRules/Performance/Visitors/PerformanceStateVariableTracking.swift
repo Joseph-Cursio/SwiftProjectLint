@@ -58,7 +58,7 @@ extension PerformanceVisitor {
 
     func checkForUnnecessaryUpdates() {
         for (variableName, info) in stateVariables {
-            if info.isAssigned && !info.isUsedInViewBody {
+            if info.isAssigned, !info.isUsedInViewBody {
                 addIssue(
                     severity: .warning,
                     message: "State variable '\(variableName)' is being updated unnecessarily",

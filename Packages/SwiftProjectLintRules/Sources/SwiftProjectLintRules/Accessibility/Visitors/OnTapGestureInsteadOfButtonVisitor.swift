@@ -86,7 +86,7 @@ class OnTapGestureInsteadOfButtonVisitor: BasePatternVisitor {
             in: node, modifierName: "accessibilityLabel"
         )
 
-        if !hasTraits && !hasLabel {
+        if !hasTraits, !hasLabel {
             addIssue(
                 severity: .info,
                 message: "onTapGesture with count or location is invisible to VoiceOver "

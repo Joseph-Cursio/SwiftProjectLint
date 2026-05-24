@@ -17,7 +17,7 @@ struct ContentViewResults: View {
     let isAnalyzing: Bool
 
     var body: some View {
-        if !lintIssues.isEmpty && !isAnalyzing {
+        if !lintIssues.isEmpty, !isAnalyzing {
             VStack(spacing: 12) {
                 HStack {
                     Text("Analysis Results")

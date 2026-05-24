@@ -115,7 +115,7 @@ public struct LintConfiguration: Sendable {
         let allRules = Set(RuleIdentifier.allCases)
             .subtracting([.unknown, .fileParsingError])
             .subtracting(Self.optInRules)
-        if rules == allRules && cliCategories == nil {
+        if rules == allRules, cliCategories == nil {
             return nil
         }
 

@@ -83,7 +83,7 @@ class ArchitectureVisitor: BasePatternVisitor {
 
     override func visitPost(_ node: StructDeclSyntax) {
         // Check for fat view pattern after processing the entire struct
-        if isSwiftUIView(node) && stateVariableCount > 5 {
+        if isSwiftUIView(node), stateVariableCount > 5 {
             addIssue(
                 severity: .warning,
                 message: "View '\(currentViewName)' has \(stateVariableCount) state variables - " +
@@ -96,7 +96,7 @@ class ArchitectureVisitor: BasePatternVisitor {
         }
 
         // Check for missing dependency injection
-        if hasStateObjectCreation && !stateObjectType.isEmpty {
+        if hasStateObjectCreation, !stateObjectType.isEmpty {
             addIssue(
                 severity: .info,
                 message: "Consider using dependency injection for '\(stateObjectType)'",

@@ -31,7 +31,7 @@ final class NonisolatedUnsafeVisitor: BasePatternVisitor {
                 && modifier.detail?.detail.text == "unsafe"
         }
 
-        if hasNonisolatedUnsafe && !enclosingTypeHasLock(for: node) {
+        if hasNonisolatedUnsafe, !enclosingTypeHasLock(for: node) {
             addIssue(
                 severity: .warning,
                 message: "nonisolated(unsafe) silences data-race checking without fixing the race",

@@ -97,7 +97,7 @@ public struct FunctionSignature: Sendable, Hashable {
                 let first = element.firstName?.text ?? ""
                 let second = element.secondName?.text ?? ""
                 // Path A: `_ internalName:` → re-expose the internal name.
-                if first == "_" && !second.isEmpty {
+                if first == "_", !second.isEmpty {
                     return second
                 }
                 if first.isEmpty || first == "_" {

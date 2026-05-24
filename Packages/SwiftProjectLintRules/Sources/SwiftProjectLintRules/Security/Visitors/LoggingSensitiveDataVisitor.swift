@@ -107,7 +107,7 @@ final class LoggingSensitiveDataVisitor: BasePatternVisitor {
 
         override func visit(_ node: DeclReferenceExprSyntax) -> SyntaxVisitorContinueKind {
             let name = node.baseName.text
-            if containsSensitiveWord(name) && hasPrivacyRedaction(node) == false {
+            if containsSensitiveWord(name), hasPrivacyRedaction(node) == false {
                 sensitiveNames.append(name)
             }
             return .visitChildren

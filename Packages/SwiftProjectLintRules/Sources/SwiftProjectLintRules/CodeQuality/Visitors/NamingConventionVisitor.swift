@@ -108,7 +108,7 @@ class NamingConventionVisitor: BasePatternVisitor {
         // Rule: actorAgentName — name must convey agency via an agent-noun suffix OR "Actor"
         // Fires only on passive-sounding names (e.g. VectorStore, KnowledgeGraph) that give
         // no signal at call sites that the type is an isolated concurrent agent.
-        if !actorName.hasSuffix("Actor") && !Self.hasAgentNounSuffix(actorName) {
+        if !actorName.hasSuffix("Actor"), !Self.hasAgentNounSuffix(actorName) {
             addIssue(
                 severity: .info,
                 message: "Actor '\(actorName)' has a passive name — nothing signals it's an isolated concurrent agent",
@@ -144,7 +144,7 @@ class NamingConventionVisitor: BasePatternVisitor {
             guard case .attribute(let attribute) = element else { return false }
             return attribute.attributeName.as(IdentifierTypeSyntax.self)?.name.text == "propertyWrapper"
         }
-        guard !isPropertyWrapper, Self.hasAgentNounSuffix(name) && !name.hasSuffix("Agent") else { return }
+        guard !isPropertyWrapper, Self.hasAgentNounSuffix(name), !name.hasSuffix("Agent") else { return }
         addIssue(
             severity: .info,
             message: "'\(name)' has an agent-noun name but is not a Swift actor or explicitly named 'Agent'",
@@ -162,7 +162,7 @@ class NamingConventionVisitor: BasePatternVisitor {
             return attribute.attributeName.as(IdentifierTypeSyntax.self)?.name.text == "propertyWrapper"
         }
 
-        if hasPropertyWrapper && !name.hasSuffix("Wrapper") {
+        if hasPropertyWrapper, !name.hasSuffix("Wrapper") {
             addIssue(
                 severity: .info,
                 message: "Property wrapper '\(name)' is not suffixed with 'Wrapper'",

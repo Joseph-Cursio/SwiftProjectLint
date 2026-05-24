@@ -110,10 +110,10 @@ class ViewRelationshipVisitor: SyntaxVisitor {
         // Handle direct child instantiation (only if not in special contexts)
         if let called = node.calledExpression.as(DeclReferenceExprSyntax.self) {
             let viewName = called.baseName.text
-            if !containerViews.contains(viewName) &&
-               !systemViews.contains(viewName) &&
-               !detectedSpecialViews.contains(viewName) &&
-               !isInPresentationModifier &&
+            if !containerViews.contains(viewName),
+               !systemViews.contains(viewName),
+               !detectedSpecialViews.contains(viewName),
+               !isInPresentationModifier,
                !isInNavigationLink {
                 addRelationship(
                     childView: viewName,
@@ -181,7 +181,7 @@ class ViewRelationshipVisitor: SyntaxVisitor {
         let viewName = extractViewNameFromCalledExpression(call.calledExpression)
         guard let name = viewName else { return [] }
 
-        if !containerViews.contains(name) && !systemViews.contains(name) {
+        if !containerViews.contains(name), !systemViews.contains(name) {
             return [name]
         }
         if containerViews.contains(name) {

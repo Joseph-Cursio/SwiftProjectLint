@@ -38,7 +38,7 @@ class ButtonAccessibilityChecker {
             return
         }
 
-        if hasImage && !hasText && !hasStringTitle {
+        if hasImage, !hasText, !hasStringTitle {
             // Icon-only button — invisible to VoiceOver without a label
             if !hasAccessibilityLabel {
                 visitor.addIssue(

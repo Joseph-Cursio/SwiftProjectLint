@@ -57,7 +57,7 @@ final class TestMissingAssertionVisitor: BasePatternVisitor, CrossFilePatternVis
         if hasTestAttribute(node) {
             if containsAssertionMacro(in: Syntax(body)) {
                 // Has a macro assertion — not a candidate.
-            } else if isThrowing(node) && containsDiscardedTry(in: Syntax(body)) {
+            } else if isThrowing(node), containsDiscardedTry(in: Syntax(body)) {
                 // Uses _ = try as assertion (e.g. ViewInspector presence checks) — not a candidate.
             } else {
                 // Tentatively flag — may be cleared in finalizeAnalysis if a
@@ -137,7 +137,7 @@ final class TestMissingAssertionVisitor: BasePatternVisitor, CrossFilePatternVis
                 if let tryExpr = element.as(TryExprSyntax.self),
                    tryExpr.questionOrExclamationMark == nil { hasPlainTry = true }
             }
-            if hasDiscard && hasPlainTry { return true }
+            if hasDiscard, hasPlainTry { return true }
         }
         for child in node.children(viewMode: .sourceAccurate)
             where containsDiscardedTry(in: child) {

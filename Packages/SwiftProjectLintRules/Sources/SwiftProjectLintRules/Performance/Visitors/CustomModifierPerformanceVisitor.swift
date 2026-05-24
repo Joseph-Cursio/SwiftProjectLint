@@ -32,7 +32,7 @@ class CustomModifierPerformanceVisitor: BasePatternVisitor {
     }
 
     override func visitPost(_ node: StructDeclSyntax) {
-        if isInViewModifier && node.name.text == currentModifierName {
+        if isInViewModifier, node.name.text == currentModifierName {
             isInViewModifier = false
             isInModifierBody = false
             currentModifierName = ""
@@ -40,7 +40,7 @@ class CustomModifierPerformanceVisitor: BasePatternVisitor {
     }
 
     override func visit(_ node: FunctionDeclSyntax) -> SyntaxVisitorContinueKind {
-        if isInViewModifier && node.name.text == "body" {
+        if isInViewModifier, node.name.text == "body" {
             // Verify it has a `content` parameter to confirm it's the ViewModifier body
             let hasContentParam = node.signature.parameterClause.parameters.contains { parameter in
                 parameter.firstName.text == "content"
@@ -53,7 +53,7 @@ class CustomModifierPerformanceVisitor: BasePatternVisitor {
     }
 
     override func visitPost(_ node: FunctionDeclSyntax) {
-        if isInModifierBody && node.name.text == "body" {
+        if isInModifierBody, node.name.text == "body" {
             isInModifierBody = false
         }
     }

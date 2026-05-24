@@ -75,7 +75,7 @@ class PerformanceVisitor: BasePatternVisitor {
                         viewBodySize = 0
                         return .skipChildren
                     }
-                } else if isInViewStruct && !isInViewBody {
+                } else if isInViewStruct, !isInViewBody {
                     // Check helper computed property size
                     checkHelperSize(node: Syntax(node), name: propertyName)
                 }
@@ -88,7 +88,7 @@ class PerformanceVisitor: BasePatternVisitor {
         if node.name.text == "body" {
             isInViewBody = true
             viewBodySize = 0
-        } else if isInViewStruct && !isInViewBody {
+        } else if isInViewStruct, !isInViewBody {
             // Check helper method size
             checkHelperSize(node: Syntax(node), name: node.name.text)
         }
@@ -179,7 +179,7 @@ class PerformanceVisitor: BasePatternVisitor {
     }
 
     override func visitPost(_ node: VariableDeclSyntax) {
-        if isInViewBody && viewBodySize > 20 {
+        if isInViewBody, viewBodySize > 20 {
             addIssue(
                 severity: .warning,
                 message: "Large view body in '\(currentViewName)' with \(viewBodySize) statements",
@@ -194,7 +194,7 @@ class PerformanceVisitor: BasePatternVisitor {
     }
 
     override func visitPost(_ node: FunctionDeclSyntax) {
-        if isInViewBody && viewBodySize > 20 {
+        if isInViewBody, viewBodySize > 20 {
             addIssue(
                 severity: .warning,
                 message: "Large view body in '\(currentViewName)' with \(viewBodySize) statements",

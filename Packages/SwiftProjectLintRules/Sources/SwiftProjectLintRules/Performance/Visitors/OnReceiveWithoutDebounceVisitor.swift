@@ -59,7 +59,7 @@ final class OnReceiveWithoutDebounceVisitor: BasePatternVisitor {
         }
 
         // NotificationCenter publisher
-        if description.contains("NotificationCenter") && description.contains("publisher") {
+        if description.contains("NotificationCenter"), description.contains("publisher") {
             return true
         }
 

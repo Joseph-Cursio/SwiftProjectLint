@@ -255,7 +255,7 @@ class UIVisitor: BasePatternVisitor {
     private func analyzeBodyTextForErrorHandling(_ bodyText: String, node: VariableDeclSyntax) {
         let hasErrorHandling = bodyText.contains("if let error") || bodyText.contains("Text(\"Error")
         let hasProperUI = bodyText.contains(".alert(") || bodyText.contains(".sheet(") || bodyText.contains("Alert(")
-        if hasErrorHandling && !hasProperUI {
+        if hasErrorHandling, !hasProperUI {
             addIssue(
                 severity: .info,
                 message: "Consider using proper error handling UI patterns",
@@ -314,7 +314,7 @@ class UIVisitor: BasePatternVisitor {
             bodyText.contains(".sheet(") ||
             bodyText.contains("Alert(")
 
-        if hasErrorHandling && !hasProperUI {
+        if hasErrorHandling, !hasProperUI {
             addIssue(
                 severity: .info,
                 message: "Consider using proper error handling UI patterns",

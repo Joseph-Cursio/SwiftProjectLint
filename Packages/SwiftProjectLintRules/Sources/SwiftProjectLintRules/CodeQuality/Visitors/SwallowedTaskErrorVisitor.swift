@@ -25,7 +25,7 @@ final class SwallowedTaskErrorVisitor: BasePatternVisitor {
             ofType: DoStmtSyntax.self, in: closure.statements
         )
 
-        if hasBareTry && !hasDoCatch && !isTaskResultConsumed(node) {
+        if hasBareTry, !hasDoCatch, !isTaskResultConsumed(node) {
             addIssue(
                 severity: .warning,
                 message: "Task closure uses 'try' without do/catch "

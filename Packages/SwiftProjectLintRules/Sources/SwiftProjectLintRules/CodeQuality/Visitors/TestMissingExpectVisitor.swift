@@ -53,7 +53,7 @@ final class TestMissingExpectVisitor: BasePatternVisitor, CrossFilePatternVisito
         if hasTestAttribute(node) {
             if containsExpectMacro(in: Syntax(body)) {
                 // Has #expect — not a candidate.
-            } else if isThrowing(node) && containsDiscardedTry(in: Syntax(body)) {
+            } else if isThrowing(node), containsDiscardedTry(in: Syntax(body)) {
                 // Uses _ = try as assertion in place of #expect — not a candidate.
             } else {
                 candidateTests.append((name: name, filePath: currentFilePath, node: Syntax(node)))
@@ -125,7 +125,7 @@ final class TestMissingExpectVisitor: BasePatternVisitor, CrossFilePatternVisito
                 if let tryExpr = element.as(TryExprSyntax.self),
                    tryExpr.questionOrExclamationMark == nil { hasPlainTry = true }
             }
-            if hasDiscard && hasPlainTry { return true }
+            if hasDiscard, hasPlainTry { return true }
         }
         for child in node.children(viewMode: .sourceAccurate)
             where containsDiscardedTry(in: child) {

@@ -67,7 +67,7 @@ class DirectInstantiationVisitor: BasePatternVisitor {
     override func visit(_ node: VariableDeclSyntax) -> SyntaxVisitorContinueKind {
         // Inside a function or closure: local variable — no wrapper check needed
         // Outside (stored property): skip if it has a property wrapper
-        if insideFunctionOrClosure == 0 && hasPropertyWrapper(node) {
+        if insideFunctionOrClosure == 0, hasPropertyWrapper(node) {
             return .visitChildren
         }
 

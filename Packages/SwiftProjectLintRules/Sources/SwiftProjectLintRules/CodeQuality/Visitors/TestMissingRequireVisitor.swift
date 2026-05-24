@@ -55,7 +55,7 @@ final class TestMissingRequireVisitor: BasePatternVisitor, CrossFilePatternVisit
         if hasTestAttribute(node) {
             if containsRequireMacro(in: Syntax(body)) {
                 // Has #require — not a candidate.
-            } else if isThrowing(node) && containsDiscardedTry(in: Syntax(body)) {
+            } else if isThrowing(node), containsDiscardedTry(in: Syntax(body)) {
                 // Uses _ = try as a precondition assertion — not a candidate.
             } else {
                 candidateTests.append((name: name, filePath: currentFilePath, node: Syntax(node)))
@@ -127,7 +127,7 @@ final class TestMissingRequireVisitor: BasePatternVisitor, CrossFilePatternVisit
                 if let tryExpr = element.as(TryExprSyntax.self),
                    tryExpr.questionOrExclamationMark == nil { hasPlainTry = true }
             }
-            if hasDiscard && hasPlainTry { return true }
+            if hasDiscard, hasPlainTry { return true }
         }
         for child in node.children(viewMode: .sourceAccurate)
             where containsDiscardedTry(in: child) {

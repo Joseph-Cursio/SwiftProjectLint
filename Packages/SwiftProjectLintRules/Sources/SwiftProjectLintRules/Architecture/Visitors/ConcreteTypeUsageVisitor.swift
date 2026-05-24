@@ -212,7 +212,7 @@ class ConcreteTypeUsageVisitor: BasePatternVisitor {
         // Suppress init parameters whose type was already flagged as a stored property
         // in this type scope — the property and its init parameter are the same coupling
         // point and should only be reported once.
-        if isInsideInitializer && flaggedPropertyTypes.contains(typeName) {
+        if isInsideInitializer, flaggedPropertyTypes.contains(typeName) {
             return .visitChildren
         }
         let paramName = node.firstName.text

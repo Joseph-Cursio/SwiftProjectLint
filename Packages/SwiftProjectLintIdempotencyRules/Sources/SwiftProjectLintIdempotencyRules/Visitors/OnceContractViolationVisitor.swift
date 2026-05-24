@@ -181,7 +181,7 @@ final class OnceContractViolationVisitor: BasePatternVisitor, CrossFilePatternVi
 
         let trigger: String
         let detail: String
-        if inLoop && isReplayableCaller {
+        if inLoop, isReplayableCaller {
             let contextLabel: String
             switch callerContext {
             case .replayable: contextLabel = "replayable"

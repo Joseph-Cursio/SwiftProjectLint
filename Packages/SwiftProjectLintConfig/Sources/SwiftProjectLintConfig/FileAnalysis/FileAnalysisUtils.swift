@@ -95,19 +95,18 @@ public struct FileAnalysisUtils {
             // Skip directories that contain their own Package.swift — they are
             // separate Swift packages (whether first- or third-party) and should
             // only be linted when the tool is invoked with that directory as root.
-            if isDirectory && fileManager.fileExists(atPath: itemURL.appendingPathComponent("Package.swift").path) {
+            if isDirectory, fileManager.fileExists(atPath: itemURL.appendingPathComponent("Package.swift").path) {
                 enumerator.skipDescendants()
                 continue
             }
 
             // Check user-configured excluded paths
-            if !excludedPaths.isEmpty
-                && excludedPaths.contains(where: { relativePath.contains($0) }) {
+            if !excludedPaths.isEmpty, excludedPaths.contains(where: { relativePath.contains($0) }) {
                 if isDirectory { enumerator.skipDescendants() }
                 continue
             }
 
-            if !isDirectory && itemURL.pathExtension == "swift" {
+            if !isDirectory, itemURL.pathExtension == "swift" {
                 swiftFiles.append(itemURL.path)
             }
         }

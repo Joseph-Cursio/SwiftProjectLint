@@ -95,7 +95,7 @@ class DocumentationVisitor: BasePatternVisitor {
         // `Macro` sub-protocols requires this — receiver-of-name match plus
         // `static` is specific enough to avoid colliding with adopter
         // methods coincidentally named `expansion`.
-        if name == "expansion" && isStatic {
+        if name == "expansion", isStatic {
             return true
         }
 

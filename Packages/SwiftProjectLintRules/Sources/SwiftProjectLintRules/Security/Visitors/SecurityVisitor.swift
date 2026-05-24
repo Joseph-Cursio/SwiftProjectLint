@@ -103,7 +103,7 @@ class SecurityVisitor: BasePatternVisitor {
             if isPlaceholder(stringValue) { continue }
 
             // Skip test files with short mock-looking values
-            if isTestFile() && stringValue.count < 20 { continue }
+            if isTestFile(), stringValue.count < 20 { continue }
 
             // Check 1: Known keyword match (original behavior)
             if Self.secretKeywords.contains(where: {

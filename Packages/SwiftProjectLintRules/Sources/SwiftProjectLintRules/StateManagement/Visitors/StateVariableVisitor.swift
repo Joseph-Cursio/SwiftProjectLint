@@ -166,7 +166,7 @@ class StateVariableVisitor: SyntaxVisitor {
         }
 
         // Check for string literals
-        if trimmedText.hasPrefix("\"") && trimmedText.hasSuffix("\"") {
+        if trimmedText.hasPrefix("\""), trimmedText.hasSuffix("\"") {
             return "String"
         }
 
@@ -176,7 +176,7 @@ class StateVariableVisitor: SyntaxVisitor {
         }
 
         // Check for array literals
-        if trimmedText.hasPrefix("[") && trimmedText.hasSuffix("]") {
+        if trimmedText.hasPrefix("["), trimmedText.hasSuffix("]") {
             return "Array"
         }
 
@@ -260,17 +260,17 @@ class StateVariableVisitor: SyntaxVisitor {
             }
 
         case .stateObject:
-            if !typeString.contains("ObservableObject") && !typeString.contains("class") {
+            if !typeString.contains("ObservableObject"), !typeString.contains("class") {
                 issues.append("@StateObject should only be used with ObservableObject types")
             }
 
         case .observedObject:
-            if !typeString.contains("ObservableObject") && !typeString.contains("class") {
+            if !typeString.contains("ObservableObject"), !typeString.contains("class") {
                 issues.append("@ObservedObject should only be used with ObservableObject types")
             }
 
         case .binding:
-            if !typeString.contains("Binding<") && !typeString.hasPrefix("Binding") {
+            if !typeString.contains("Binding<"), !typeString.hasPrefix("Binding") {
                 issues.append("@Binding should be used with Binding types")
             }
 

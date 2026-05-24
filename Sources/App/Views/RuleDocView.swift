@@ -76,7 +76,7 @@ struct RuleDocView: View {
             if line.hasPrefix("```") {
                 lineIndex += 1
                 var codeLines: [String] = []
-                while lineIndex < lines.count && !lines[lineIndex].hasPrefix("```") {
+                while lineIndex < lines.count, !lines[lineIndex].hasPrefix("```") {
                     codeLines.append(lines[lineIndex])
                     lineIndex += 1
                 }
