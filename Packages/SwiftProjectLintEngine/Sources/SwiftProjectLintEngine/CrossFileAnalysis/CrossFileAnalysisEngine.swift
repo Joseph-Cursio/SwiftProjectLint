@@ -195,7 +195,7 @@ public class CrossFileAnalysisEngine: CrossFileAnalyzerProtocol {
                     let relativePath = filePath.hasPrefix(prefix)
                         ? String(filePath.dropFirst(prefix.count))
                         : name
-                    return ProjectFile(name: name, relativePath: relativePath, content: content)
+                    return ProjectFile(name: name, content: content, relativePath: relativePath)
                 }
             }
             var files: [ProjectFile] = []

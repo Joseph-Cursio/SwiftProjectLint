@@ -283,8 +283,8 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
 
         let file = ProjectFile(
             name: (filePath as NSString).lastPathComponent,
-            relativePath: relativePath,
-            content: content
+            content: content,
+            relativePath: relativePath
         )
         let parsedAST = Parser.parse(source: content)
         let det = SourcePatternDetector(registry: registry)

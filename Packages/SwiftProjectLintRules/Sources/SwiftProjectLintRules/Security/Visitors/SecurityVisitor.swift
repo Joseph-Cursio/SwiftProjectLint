@@ -117,8 +117,8 @@ class SecurityVisitor: BasePatternVisitor {
             if looksLikeJWT(stringValue) {
                 reportHardcodedSecret(
                     variableName: variableName,
-                    detail: "JWT token",
-                    node: node
+                    node: node,
+                    detail: "JWT token"
                 )
                 continue
             }
@@ -127,8 +127,8 @@ class SecurityVisitor: BasePatternVisitor {
             if let prefix = matchesKnownKeyPrefix(stringValue) {
                 reportHardcodedSecret(
                     variableName: variableName,
-                    detail: "matches known key prefix '\(prefix)'",
-                    node: node
+                    node: node,
+                    detail: "matches known key prefix '\(prefix)'"
                 )
                 continue
             }
@@ -139,8 +139,8 @@ class SecurityVisitor: BasePatternVisitor {
                shannonEntropy(stringValue) > Self.entropyThreshold {
                 reportHardcodedSecret(
                     variableName: variableName,
-                    detail: "high-entropy value",
-                    node: node
+                    node: node,
+                    detail: "high-entropy value"
                 )
             }
         }
@@ -175,8 +175,8 @@ class SecurityVisitor: BasePatternVisitor {
 
     private func reportHardcodedSecret(
         variableName: String,
-        detail: String? = nil,
-        node: VariableDeclSyntax
+        node: VariableDeclSyntax,
+        detail: String? = nil
     ) {
         let detailSuffix = detail.map { " (\($0))" } ?? ""
         addIssue(

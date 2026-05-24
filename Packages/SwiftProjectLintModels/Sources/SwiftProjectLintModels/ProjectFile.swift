@@ -15,7 +15,7 @@ public struct ProjectFile: Sendable, Equatable {
 
     public let content: String
 
-    public init(name: String, relativePath: String? = nil, content: String) {
+    public init(name: String, content: String, relativePath: String? = nil) {
         self.name = name
         self.relativePath = relativePath ?? name
         self.content = content
