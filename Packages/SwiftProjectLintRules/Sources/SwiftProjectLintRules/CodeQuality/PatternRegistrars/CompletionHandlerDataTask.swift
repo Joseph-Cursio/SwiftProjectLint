@@ -7,7 +7,7 @@ import SwiftProjectLintVisitors
 ///
 /// Provides the pattern for detecting URLSession task methods with completion handlers
 /// that should use async/await equivalents instead.
-struct CallbackDataTask: PatternRegistrarProtocol {
+struct CompletionHandlerDataTask: PatternRegistrarProtocol {
 
     var pattern: SyntaxPattern {
         SyntaxPattern(

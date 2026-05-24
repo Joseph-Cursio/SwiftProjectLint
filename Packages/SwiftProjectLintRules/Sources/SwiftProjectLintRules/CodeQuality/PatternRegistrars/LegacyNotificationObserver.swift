@@ -7,7 +7,7 @@ import SwiftProjectLintVisitors
 ///
 /// Provides the pattern for detecting `addObserver(_:selector:name:object:)` calls
 /// that should use modern notification observation APIs instead.
-struct LegacyObserver: PatternRegistrarProtocol {
+struct LegacyNotificationObserver: PatternRegistrarProtocol {
 
     var pattern: SyntaxPattern {
         SyntaxPattern(

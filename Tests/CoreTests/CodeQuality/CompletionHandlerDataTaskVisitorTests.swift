@@ -8,7 +8,7 @@ import Testing
 struct CompletionHandlerDataTaskVisitorTests {
 
     private func makeVisitor() -> CompletionHandlerDataTaskVisitor {
-        let pattern = CallbackDataTask().pattern
+        let pattern = CompletionHandlerDataTask().pattern
         return CompletionHandlerDataTaskVisitor(pattern: pattern)
     }
 

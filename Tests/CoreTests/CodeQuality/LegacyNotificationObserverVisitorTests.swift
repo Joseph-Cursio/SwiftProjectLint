@@ -8,7 +8,7 @@ import Testing
 struct LegacyNotificationObserverVisitorTests {
 
     private func makeVisitor() -> LegacyNotificationObserverVisitor {
-        let pattern = LegacyObserver().pattern
+        let pattern = LegacyNotificationObserver().pattern
         return LegacyNotificationObserverVisitor(pattern: pattern)
     }
 
