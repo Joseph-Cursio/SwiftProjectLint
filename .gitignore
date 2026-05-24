@@ -45,6 +45,9 @@ TestResults.xcresult/Data/data.0*
 # Output and logs
 Output/
 
+# SwiftLint config edit-tool backups
+.swiftlint.yml.*.backup
+
 # Project documentation and scripts (optional, if you want to ignore generated or local-only files)
 # Docs/
 # Scripts/
