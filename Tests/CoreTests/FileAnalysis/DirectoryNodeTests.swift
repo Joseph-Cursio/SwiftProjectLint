@@ -316,10 +316,13 @@ struct DirectoryNodeTests {
 
     @Test("CheckState equatable conformance")
     func checkStateEquatable() {
-        #expect(DirectoryNode.CheckState.checked == DirectoryNode.CheckState.checked)
-        #expect(DirectoryNode.CheckState.unchecked == DirectoryNode.CheckState.unchecked)
-        #expect(DirectoryNode.CheckState.mixed == DirectoryNode.CheckState.mixed)
-        #expect(DirectoryNode.CheckState.checked != DirectoryNode.CheckState.unchecked)
+        let checked: DirectoryNode.CheckState = .checked
+        let unchecked: DirectoryNode.CheckState = .unchecked
+        let mixed: DirectoryNode.CheckState = .mixed
+        #expect(checked == .checked)
+        #expect(unchecked == .unchecked)
+        #expect(mixed == .mixed)
+        #expect(checked != .unchecked)
     }
 
     @Test("recomputeAncestorStates across multiple generations")
