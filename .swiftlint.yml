@@ -138,7 +138,10 @@ opt_in_rules:
   - vertical_whitespace_closing_braces
   - prefer_key_path
   - file_name
+  - no_empty_block
 # Rule configurations
+no_empty_block:
+  disabled_block_types: [closure_blocks]
 line_length:
   error: 150
   ignores_comments: true
