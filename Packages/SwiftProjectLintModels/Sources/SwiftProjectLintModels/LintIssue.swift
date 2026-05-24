@@ -51,9 +51,13 @@ public struct LintIssue: Identifiable, Sendable {
     ///   - locations: An array of file path and line number tuples where the issue occurs.
     ///   - suggestion: An optional suggestion for fixing the issue.
     ///   - ruleName: The identifier of the rule that generated this issue.
-    public init(severity: IssueSeverity,
-                message: String,
-                locations: [(filePath: String, lineNumber: Int)], suggestion: String?, ruleName: RuleIdentifier) {
+    public init(
+        severity: IssueSeverity,
+        message: String,
+        locations: [(filePath: String, lineNumber: Int)],
+        suggestion: String?,
+        ruleName: RuleIdentifier
+    ) {
         self.severity = severity
         self.message = message
         self.locations = locations
@@ -71,12 +75,14 @@ public struct LintIssue: Identifiable, Sendable {
     ///   - lineNumber: The line number where the issue occurs.
     ///   - suggestion: An optional suggestion for fixing the issue.
     ///   - ruleName: The identifier of the rule that generated this issue.
-    public init(severity: IssueSeverity,
-                message: String,
-                filePath: String,
-                lineNumber: Int,
-                suggestion: String?,
-                ruleName: RuleIdentifier) {
+    public init(
+        severity: IssueSeverity,
+        message: String,
+        filePath: String,
+        lineNumber: Int,
+        suggestion: String?,
+        ruleName: RuleIdentifier
+    ) {
         self.severity = severity
         self.message = message
         self.locations = [(filePath, lineNumber)]
