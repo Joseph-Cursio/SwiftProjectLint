@@ -139,9 +139,11 @@ opt_in_rules:
   - prefer_key_path
   - file_name
   - no_empty_block
+  - accessibility_label_for_image
 # Rule configurations
 no_empty_block:
-  disabled_block_types: [closure_blocks]
+  disabled_block_types:
+    - closure_blocks
 line_length:
   error: 150
   ignores_comments: true
