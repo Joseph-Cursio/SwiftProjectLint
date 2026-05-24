@@ -32,86 +32,90 @@ struct ContentView: View {
     var body: some View {
         @Bindable var viewModel = viewModel
         NavigationStack {
-            VStack(spacing: 20) {
-                // Header
-                ContentViewHeader()
-
-                // Action Buttons
-                ContentViewActions(
-                    selectedDirectory: viewModel.selectedDirectory,
-                    onSelectRules: { showRuleSelectionWindow() },
-                    onSelectDirectory: viewModel.selectDirectory,
-                    onAnalyzeProject: viewModel.analyzeProject
-                )
-
-                // Directory Tree — expands to fill remaining space
-                if let tree = viewModel.directoryTree {
-                    DirectoryTreeView(
-                        tree: tree,
-                        projectPath: viewModel.selectedDirectory,
-                        treeVersion: viewModel.treeVersion,
-                        onToggle: viewModel.toggleDirectoryNode,
-                        onCheckAll: {
-                            tree.setChecked(true)
-                            viewModel.treeVersion += 1
-                        },
-                        onUncheckAll: {
-                            tree.setChecked(false)
-                            viewModel.treeVersion += 1
-                        }
-                    )
-                    .frame(maxHeight: .infinity)
+            mainStack
+                .frame(minWidth: 600, minHeight: 400)
+                .navigationTitle("Project Linter")
+                .fileImporter(
+                    isPresented: $viewModel.showingDirectoryPicker,
+                    allowedContentTypes: [.folder]
+                ) { result in handleDirectorySelection(result) }
+                .onChange(of: viewModel.ruleExclusions) {
+                    viewModel.updateDirtyState()
                 }
-
-                // Analysis Progress
-                ContentViewProgress(isAnalyzing: viewModel.isAnalyzing)
-
-                // Results
-                ContentViewResults(lintIssues: viewModel.lintIssues, isAnalyzing: viewModel.isAnalyzing)
-            }
-            .frame(minWidth: 600, minHeight: 400)
-            .navigationTitle("Project Linter")
-            .fileImporter(isPresented: $viewModel.showingDirectoryPicker, allowedContentTypes: [.folder]) { result in
-                switch result {
-                case .success(let url):
-                    // fileImporter succeeded
-                    viewModel.selectedDirectoryURL = url
-                    viewModel.selectedDirectory = url.path
-                    viewModel.loadConfigFromProject()
-                case .failure(let error):
-                    print("Error selecting directory: \(error.localizedDescription)")
+                .onAppear { wirePatternRegistry() }
+                .onChange(of: systemComponents.patternRegistry != nil) { _, isReady in
+                    if isReady { wirePatternRegistry() }
                 }
-            }
-            .onChange(of: viewModel.ruleExclusions) {
-                viewModel.updateDirtyState()
-            }
-            .onAppear {
-                viewModel.patternRegistry = systemComponents.patternRegistry
-                viewModel.detector = systemComponents.detector
-            }
-            .onChange(of: systemComponents.patternRegistry != nil) { _, isReady in
-                if isReady {
-                    viewModel.patternRegistry = systemComponents.patternRegistry
-                    viewModel.detector = systemComponents.detector
+                .onDisappear { viewModel.cancelAnalysis() }
+                .sheet(isPresented: $viewModel.showingConfigDiffPreview) {
+                    configDiffSheet
                 }
-            }
-            .onDisappear {
-                viewModel.cancelAnalysis()
-            }
-            .sheet(isPresented: $viewModel.showingConfigDiffPreview) {
-                ConfigDiffPreviewSheet(
-                    beforeYAML: viewModel.beforeYAML,
-                    afterYAML: viewModel.afterYAML,
-                    onConfirm: {
-                        viewModel.saveConfigToProject()
-                        viewModel.showingConfigDiffPreview = false
-                    },
-                    onCancel: {
-                        viewModel.showingConfigDiffPreview = false
-                    }
-                )
-            }
         }
+    }
+
+    private var mainStack: some View {
+        VStack(spacing: 20) {
+            ContentViewHeader()
+            ContentViewActions(
+                selectedDirectory: viewModel.selectedDirectory,
+                onSelectRules: { showRuleSelectionWindow() },
+                onSelectDirectory: viewModel.selectDirectory,
+                onAnalyzeProject: viewModel.analyzeProject
+            )
+            if let tree = viewModel.directoryTree {
+                directoryTreeView(tree: tree)
+                    .frame(maxHeight: .infinity)
+            }
+            ContentViewProgress(isAnalyzing: viewModel.isAnalyzing)
+            ContentViewResults(lintIssues: viewModel.lintIssues, isAnalyzing: viewModel.isAnalyzing)
+        }
+    }
+
+    private func directoryTreeView(tree: DirectoryNode) -> some View {
+        DirectoryTreeView(
+            tree: tree,
+            projectPath: viewModel.selectedDirectory,
+            treeVersion: viewModel.treeVersion,
+            onToggle: viewModel.toggleDirectoryNode,
+            onCheckAll: {
+                tree.setChecked(true)
+                viewModel.treeVersion += 1
+            },
+            onUncheckAll: {
+                tree.setChecked(false)
+                viewModel.treeVersion += 1
+            }
+        )
+    }
+
+    private var configDiffSheet: some View {
+        ConfigDiffPreviewSheet(
+            beforeYAML: viewModel.beforeYAML,
+            afterYAML: viewModel.afterYAML,
+            onConfirm: {
+                viewModel.saveConfigToProject()
+                viewModel.showingConfigDiffPreview = false
+            },
+            onCancel: {
+                viewModel.showingConfigDiffPreview = false
+            }
+        )
+    }
+
+    private func handleDirectorySelection(_ result: Result<URL, Error>) {
+        switch result {
+        case .success(let url):
+            viewModel.selectedDirectoryURL = url
+            viewModel.selectedDirectory = url.path
+            viewModel.loadConfigFromProject()
+        case .failure(let error):
+            print("Error selecting directory: \(error.localizedDescription)")
+        }
+    }
+
+    private func wirePatternRegistry() {
+        viewModel.patternRegistry = systemComponents.patternRegistry
+        viewModel.detector = systemComponents.detector
     }
 
     private func showRuleSelectionWindow() {
