@@ -29,9 +29,6 @@ public struct FunctionSignature: Sendable, Hashable {
         let labels = argumentLabels.map { "\($0):" }.joined()
         return "\(name)(\(labels))"
     }
-}
-
-extension FunctionSignature {
 
     /// Computes the signature of a function declaration from its syntax. Uses
     /// each parameter's **external** label (Swift's `firstName`), or `"_"` when

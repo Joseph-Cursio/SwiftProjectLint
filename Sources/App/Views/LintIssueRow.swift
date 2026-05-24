@@ -74,6 +74,42 @@ struct LintIssueRow: View {
         .padding(.vertical, 4)
     }
 
+    private var severityIcon: some View {
+        Image(systemName: severityIconName)
+            .foregroundStyle(severityColor)
+            .font(.title2)
+            .accessibilityLabel(severityAccessibilityLabel)
+    }
+
+    private var severityAccessibilityLabel: String {
+        switch issue.severity {
+        case .error: return "Error"
+        case .warning: return "Warning"
+        case .info: return "Info"
+        }
+    }
+
+    private var severityIconName: String {
+        switch issue.severity {
+        case .error:
+            return "xmark.circle.fill"
+        case .warning:
+            return "exclamationmark.triangle.fill"
+        case .info:
+            return "info.circle.fill"
+        }
+    }
+
+    private var severityColor: Color {
+        switch issue.severity {
+        case .error:
+            return .red
+        case .warning:
+            return .orange
+        case .info:
+            return .blue
+        }
+    }
 }
 
 // MARK: - Subviews
@@ -122,45 +158,6 @@ private struct ExpandedIssueContent: View {
         .frame(maxHeight: .infinity)
         .layoutPriority(1)
         .transition(.opacity.combined(with: .move(edge: .top)))
-    }
-}
-
-extension LintIssueRow {
-    private var severityIcon: some View {
-        Image(systemName: severityIconName)
-            .foregroundStyle(severityColor)
-            .font(.title2)
-            .accessibilityLabel(severityAccessibilityLabel)
-    }
-
-    private var severityAccessibilityLabel: String {
-        switch issue.severity {
-        case .error: return "Error"
-        case .warning: return "Warning"
-        case .info: return "Info"
-        }
-    }
-
-    private var severityIconName: String {
-        switch issue.severity {
-        case .error:
-            return "xmark.circle.fill"
-        case .warning:
-            return "exclamationmark.triangle.fill"
-        case .info:
-            return "info.circle.fill"
-        }
-    }
-
-    private var severityColor: Color {
-        switch issue.severity {
-        case .error:
-            return .red
-        case .warning:
-            return .orange
-        case .info:
-            return .blue
-        }
     }
 }
 

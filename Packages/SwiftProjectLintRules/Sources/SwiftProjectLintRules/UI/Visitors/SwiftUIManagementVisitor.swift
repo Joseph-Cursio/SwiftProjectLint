@@ -266,25 +266,6 @@ class SwiftUIManagementVisitor: BasePatternVisitor {
     func finalizeAnalysis() {
         performCrossFileAnalysis()
     }
-}
-
-// MARK: - Supporting Types
-
-/// Information about a state variable detected during analysis.
-struct StateVariableInfo {
-    let name: String
-    let type: String
-    let propertyWrapper: PropertyWrapper
-    let viewName: String
-    let filePath: String
-    let lineNumber: Int
-    let hasInitialValue: Bool
-    let node: VariableDeclSyntax? // Store the node (optional for tests)
-}
-
-// MARK: - Helper methods from SwiftUIManagementUtils.swift
-
-extension SwiftUIManagementVisitor {
 
     // MARK: - Helper Methods
 
@@ -313,6 +294,20 @@ extension SwiftUIManagementVisitor {
         count = visitor.stateVariableCount
         return count
     }
+}
+
+// MARK: - Supporting Types
+
+/// Information about a state variable detected during analysis.
+struct StateVariableInfo {
+    let name: String
+    let type: String
+    let propertyWrapper: PropertyWrapper
+    let viewName: String
+    let filePath: String
+    let lineNumber: Int
+    let hasInitialValue: Bool
+    let node: VariableDeclSyntax? // Store the node (optional for tests)
 }
 
 private class StateVariableCounter: SyntaxVisitor {

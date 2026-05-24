@@ -135,9 +135,7 @@ class DocumentationVisitor: BasePatternVisitor {
             )
         }
     }
-}
 
-extension DocumentationVisitor {
     struct Configuration {
         let checkPublicAPIsOnly: Bool
 

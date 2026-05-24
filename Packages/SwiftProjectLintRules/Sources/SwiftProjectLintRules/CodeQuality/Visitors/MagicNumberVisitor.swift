@@ -214,9 +214,7 @@ class MagicNumberVisitor: BasePatternVisitor {
         )
         layoutNumberOccurrences[literal, default: []].append(entry)
     }
-}
 
-extension MagicNumberVisitor {
     struct Configuration {
         let magicNumberThreshold: Int
 

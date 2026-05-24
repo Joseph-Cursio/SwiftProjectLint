@@ -55,9 +55,7 @@ public enum SwiftUIViewType: String, CaseIterable, Sendable {
 
     // Other
     case color = "Color"
-}
 
-extension SwiftUIViewType {
     /// Container views that hold child views in a layout.
     public static let containerViews: Set<SwiftUIViewType> = [
         .vStack, .hStack, .zStack, .group, .scrollView, .list, .section, .form
