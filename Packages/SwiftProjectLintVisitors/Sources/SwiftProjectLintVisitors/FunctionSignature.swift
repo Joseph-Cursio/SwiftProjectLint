@@ -33,7 +33,7 @@ public struct FunctionSignature: Sendable, Hashable {
     /// Computes the signature of a function declaration from its syntax. Uses
     /// each parameter's **external** label (Swift's `firstName`), or `"_"` when
     /// the declaration suppresses the label.
-    public static func from(declaration: FunctionDeclSyntax) -> FunctionSignature {
+    public static func from(declaration: FunctionDeclSyntax) -> Self {
         let labels = declaration.signature.parameterClause.parameters.map { param -> String in
             // `firstName` is the external label ("_" for suppressed) or the
             // single name when the declaration uses only one name. The internal
@@ -41,7 +41,7 @@ public struct FunctionSignature: Sendable, Hashable {
             let firstText = param.firstName.text
             return firstText.isEmpty ? "_" : firstText
         }
-        return FunctionSignature(name: declaration.name.text, argumentLabels: labels)
+        return Self(name: declaration.name.text, argumentLabels: labels)
     }
 
     /// Computes the signature of a closure-typed stored property, treating it
@@ -81,7 +81,7 @@ public struct FunctionSignature: Sendable, Hashable {
     /// alternative of using Swift-canonical `_` as the label produces
     /// signatures that cannot match any TCA `@DependencyClient` call
     /// site and delivers zero signal.
-    public static func from(declaration: VariableDeclSyntax) -> FunctionSignature? {
+    public static func from(declaration: VariableDeclSyntax) -> Self? {
         guard let binding = declaration.bindings.first,
               declaration.bindings.count == 1,
               let pattern = binding.pattern.as(IdentifierPatternSyntax.self) else {
@@ -105,7 +105,7 @@ public struct FunctionSignature: Sendable, Hashable {
                 }
                 return first
             }
-            return FunctionSignature(name: name, argumentLabels: labels)
+            return Self(name: name, argumentLabels: labels)
         }
 
         // Fallback: typeless binding with a closure-literal initialiser.
@@ -116,7 +116,7 @@ public struct FunctionSignature: Sendable, Hashable {
         // they stay unregistered.
         if let closure = binding.initializer?.value.as(ClosureExprSyntax.self) {
             guard let arity = closureParameterArity(closure) else { return nil }
-            return FunctionSignature(
+            return Self(
                 name: name,
                 argumentLabels: Array(repeating: "_", count: arity)
             )
@@ -159,7 +159,7 @@ public struct FunctionSignature: Sendable, Hashable {
     /// argument (matching how Swift encodes the call). Returns `nil` when the
     /// callee expression is not a plain identifier or member access that the
     /// Phase-1 linter can resolve.
-    public static func from(call: FunctionCallExprSyntax) -> FunctionSignature? {
+    public static func from(call: FunctionCallExprSyntax) -> Self? {
         guard let name = calleeBaseName(of: call.calledExpression) else { return nil }
 
         var labels: [String] = call.arguments.map { arg in
@@ -177,7 +177,7 @@ public struct FunctionSignature: Sendable, Hashable {
             labels.append(additional.label.text)
         }
 
-        return FunctionSignature(name: name, argumentLabels: labels)
+        return Self(name: name, argumentLabels: labels)
     }
 
     private static func calleeBaseName(of expr: ExprSyntax) -> String? {
