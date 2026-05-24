@@ -114,7 +114,6 @@ opt_in_rules:
   - pattern_matching_keywords
   - direct_return
   - identical_operands
-  - extension_access_modifier
   - multiline_parameters_brackets
   - no_extension_access_modifier
   - redundant_self
