@@ -81,4 +81,4 @@ struct MemoryManagementRetainCycleTests {
         #expect(firstIssue.message.contains("viewModel1"))
         #expect(issues.dropFirst().first?.message.contains("viewModel2") == true)
     }
-} 
+}

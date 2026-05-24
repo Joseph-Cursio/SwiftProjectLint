@@ -3,36 +3,36 @@ import Foundation
 import Testing
 
 final class AdvancedAnalyzerTests {
-    
+
     @Test func testExtractViewNameRemovesSwiftExtension() throws {
         let name = FileAnalysisUtils.extractSwiftBasename(from: "/Users/test/ContentView.swift")
         #expect(name == "ContentView")
-        
+
         let name2 = FileAnalysisUtils.extractSwiftBasename(from: "MyView.swift")
         #expect(name2 == "MyView")
-        
+
         let name3 = FileAnalysisUtils.extractSwiftBasename(from: "/foo/bar/BazView.swift")
         #expect(name3 == "BazView")
     }
-    
+
     @Test func testFindDuplicatesReturnsCorrectDuplicates() throws {
         let input = ["a", "b", "c", "a", "d", "b"]
         let result = Set(input.filter { item in input.filter { $0 == item }.count > 1 })
-        
+
         #expect(result.contains("a"))
         #expect(result.contains("b"))
         #expect(result.contains("c") == false)
         #expect(result.contains("d") == false)
     }
-    
+
     @Test @MainActor func testFindRelatedViewsDetectsHierarchy() throws {
         // Test through the public interface by creating actual view relationships
         let analyzer = AdvancedAnalyzer()
-        
+
         // Create a test project structure and analyze it
         let testProjectPath = createTestProject()
         defer { cleanupTestProject() }
-        
+
         let issues = analyzer.analyzeArchitecture(projectPath: testProjectPath)
         #expect(issues.isEmpty)
     }
@@ -63,33 +63,33 @@ final class AdvancedAnalyzerTests {
         let issues = analyzer.analyzeArchitecture(projectPath: testProjectPath)
         #expect(issues.isEmpty)
     }
-    
+
     @Test @MainActor func testRelationshipTypeAndViewRelationship() throws {
         let analyzer = AdvancedAnalyzer()
-        
+
         // Test through the public interface by creating actual view relationships
         let testProjectPath = createTestProject()
         defer { cleanupTestProject() }
-        
+
         let issues = analyzer.analyzeArchitecture(projectPath: testProjectPath)
-        
+
         // Test the public methods that should work after analysis
         let relationshipType = analyzer.relationshipType(between: "TestParent", and: "TestChild")
         let relationship = analyzer.viewRelationship(between: "TestParent", and: "TestChild")
-        
+
         // The analyzer should be able to query relationships through its public interface
         #expect(true) // At minimum, it should complete without errors
     }
-    
+
     // MARK: - Helper Methods
-    
+
     private func createTestProject() -> String {
         let tempDir = FileManager.default.temporaryDirectory.appendingPathComponent("TestProject")
-        
+
         // Create a simple test project structure
         let testSwiftFile = """
         import SwiftUI
-        
+
         struct TestParent: View {
             var body: some View {
                 NavigationView {
@@ -97,14 +97,14 @@ final class AdvancedAnalyzerTests {
                 }
             }
         }
-        
+
         struct TestChild: View {
             var body: some View {
                 Text("Child View")
             }
         }
         """
-        
+
         do {
             try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
             try testSwiftFile.write(
@@ -114,10 +114,10 @@ final class AdvancedAnalyzerTests {
         } catch {
             print("Failed to create test project: \(error)")
         }
-        
+
         return tempDir.path
     }
-    
+
     private func cleanupTestProject() {
         let tempDir = FileManager.default.temporaryDirectory.appendingPathComponent("TestProject")
         try? FileManager.default.removeItem(at: tempDir)

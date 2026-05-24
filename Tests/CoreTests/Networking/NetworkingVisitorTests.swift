@@ -68,7 +68,7 @@ struct NetworkingVisitorTests {
         #expect(firstIssue.message == "Network request missing error handling")
         #expect(firstIssue.severity == .warning)
     }
-    
+
     @Test func doesNotDetectWhenErrorHandled() {
         let visitor = NetworkingVisitor(patternCategory: .networking)
         let source = """
@@ -82,10 +82,10 @@ struct NetworkingVisitorTests {
         let syntax = Parser.parse(source: source)
         visitor.walk(syntax)
         let issues = visitor.detectedIssues
-        
+
         #expect(issues.isEmpty)
     }
-    
+
     @Test func detectsIgnoredErrorParameter() throws {
         let visitor = NetworkingVisitor(patternCategory: .networking)
         let source = """
@@ -110,7 +110,7 @@ struct NetworkingVisitorTests {
         #expect(isIgnoredError || isMissingError)
         #expect(firstIssue.severity == .warning)
     }
-    
+
     @Test func detectsErrorHandlingInBodyWithoutParameter() {
         let visitor = NetworkingVisitor(patternCategory: .networking)
         let source = """
@@ -121,15 +121,15 @@ struct NetworkingVisitorTests {
             }
         }.resume()
         """
-        
+
         let syntax = Parser.parse(source: source)
         visitor.walk(syntax)
         let issues = visitor.detectedIssues
-        
+
         // Should not detect issue if error is handled in body even without parameter
         #expect(issues.isEmpty)
     }
-    
+
     @Test func detectsMissingErrorHandlingWithTwoParameters() throws {
         let visitor = NetworkingVisitor(patternCategory: .networking)
         let source = """
@@ -149,7 +149,7 @@ struct NetworkingVisitorTests {
         #expect(firstIssue.message == "Network request missing error handling")
         #expect(firstIssue.severity == .warning)
     }
-    
+
     @Test func detectsErrorHandlingWithGuardStatement() {
         let visitor = NetworkingVisitor(patternCategory: .networking)
         let source = """
@@ -159,14 +159,14 @@ struct NetworkingVisitorTests {
             print(error)
         }.resume()
         """
-        
+
         let syntax = Parser.parse(source: source)
         visitor.walk(syntax)
         let issues = visitor.detectedIssues
-        
+
         #expect(issues.isEmpty)
     }
-    
+
     @Test func detectsErrorHandlingWithErrorNotNilCheck() {
         let visitor = NetworkingVisitor(patternCategory: .networking)
         let source = """
@@ -177,14 +177,14 @@ struct NetworkingVisitorTests {
             }
         }.resume()
         """
-        
+
         let syntax = Parser.parse(source: source)
         visitor.walk(syntax)
         let issues = visitor.detectedIssues
-        
+
         #expect(issues.isEmpty)
     }
-    
+
     @Test func detectsErrorHandlingWithErrorPropertyAccess() {
         let visitor = NetworkingVisitor(patternCategory: .networking)
         let source = """
@@ -193,12 +193,12 @@ struct NetworkingVisitorTests {
             print(error.localizedDescription)
         }.resume()
         """
-        
+
         let syntax = Parser.parse(source: source)
         visitor.setFilePath("test.swift")
         visitor.walk(syntax)
         let issues = visitor.detectedIssues
-        
+
         // Accessing error.localizedDescription should ideally be recognized as error handling
         // via the "error." pattern check, but if the body text parsing doesn't capture it
         // correctly, an issue may still be reported. This is acceptable since just accessing
@@ -206,41 +206,41 @@ struct NetworkingVisitorTests {
         // The test verifies that the visitor at least processes the closure correctly.
         #expect(issues.count <= 1) // May report missing error handling or may recognize property access
     }
-    
+
     @Test func doesNotDetectDataInitializerWithoutContentsOf() {
         let visitor = NetworkingVisitor(patternCategory: .networking)
         let source = """
         let data = Data()
         let data2 = Data([1, 2, 3])
         """
-        
+
         let syntax = Parser.parse(source: source)
         visitor.walk(syntax)
         let issues = visitor.detectedIssues
-        
+
         #expect(issues.isEmpty)
     }
-    
+
     @Test func detectsMultipleSynchronousDataCalls() throws {
         let visitor = NetworkingVisitor(patternCategory: .networking)
         let source = """
         let data1 = try Data(contentsOf: URL(string: "https://example.com")!)
         let data2 = try Data(contentsOf: URL(string: "https://example2.com")!)
         """
-        
+
         let syntax = Parser.parse(source: source)
         let converter = SourceLocationConverter(fileName: "test.swift", tree: syntax)
         visitor.setSourceLocationConverter(converter)
         visitor.walk(syntax)
         let issues = visitor.detectedIssues
-        
+
         #expect(issues.count == 2)
         for issue in issues {
             #expect(issue.message == "Synchronous networking can block the UI thread")
             #expect(issue.severity == .error)
         }
     }
-    
+
     @Test func detectsBothSynchronousDataAndMissingErrorHandling() throws {
         let visitor = NetworkingVisitor(patternCategory: .networking)
         let source = """
@@ -263,7 +263,7 @@ struct NetworkingVisitorTests {
         let warningIssue = try #require(issues.first { $0.severity == .warning })
         #expect(warningIssue.message == "Network request missing error handling")
     }
-    
+
     @Test func filePathIsSetCorrectly() throws {
         let visitor = NetworkingVisitor(patternCategory: .networking)
         visitor.setFilePath("test/file.swift")

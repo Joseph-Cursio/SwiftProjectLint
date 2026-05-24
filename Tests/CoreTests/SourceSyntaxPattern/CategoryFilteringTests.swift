@@ -24,19 +24,19 @@ import Testing
 /// - Error handling and edge cases
 
 struct CategoryFilteringTests {
-    
+
     // MARK: - Category Filtering Characterization
-    
+
     @Test func characterizeStateManagementCategoryFiltering() throws {
         let detector = SourcePatternDetector()
         let stateCode = """
         import SwiftUI
-        
+
         struct StateTestView: View {
             @State private var isVisible: Bool = false
             @State private var data: [String] = []
             @State private var unusedVar: Int = 42
-            
+
             var body: some View {
                 VStack {
                     if isVisible {
@@ -48,21 +48,21 @@ struct CategoryFilteringTests {
             }
         }
         """
-        
+
         // Test with state management category only
         let stateIssues = detector.detectPatterns(
             in: stateCode,
             filePath: "/StateTest.swift",
             categories: [.stateManagement]
         )
-        
+
         // Test with all categories
         let allIssues = detector.detectPatterns(
             in: stateCode,
             filePath: "/StateTest.swift",
             categories: nil
         )
-        
+
         print("📊 State Management Category Filtering:")
         print("   Input: View with state variables and potential unused state")
         print("   State category only: \(stateIssues.count) issues")
@@ -71,15 +71,15 @@ struct CategoryFilteringTests {
         for issue in stateIssues {
             print("     - \(issue.ruleName.rawValue): \(issue.message)")
         }
-        
+
         #expect(allIssues.count >= stateIssues.count, "All categories should include at least state issues")
     }
-    
+
     @Test func characterizePerformanceCategoryFiltering() throws {
         let detector = SourcePatternDetector()
         let performanceCode = """
         import SwiftUI
-        
+
         struct PerformanceTestView: View {
             var body: some View {
                 VStack {
@@ -99,13 +99,13 @@ struct CategoryFilteringTests {
             }
         }
         """
-        
+
         let performanceIssues = detector.detectPatterns(
             in: performanceCode,
             filePath: "/PerformanceTest.swift",
             categories: [.performance]
         )
-        
+
         print("📊 Performance Category Filtering:")
         print("   Input: View with potentially expensive nested loops")
         print("   Performance issues found: \(performanceIssues.count)")
@@ -114,22 +114,22 @@ struct CategoryFilteringTests {
         }
         #expect(performanceIssues.isEmpty)
     }
-    
+
     @Test func characterizeMultipleCategoryFiltering() throws {
         let detector = SourcePatternDetector()
         let multiCategoryCode = """
         import SwiftUI
-        
+
         struct MultiCategoryView: View {
             @State private var isLoading: Bool = false
             @State private var unusedState: String = ""
-            
+
             var body: some View {
                 VStack {
                     ForEach(0..<100) { index in
                         Text("Item \\(index)")
                     }
-                    
+
                     Button("Tap") {
                         isLoading.toggle()
                     }
@@ -137,19 +137,19 @@ struct CategoryFilteringTests {
             }
         }
         """
-        
+
         let multipleCategories: [PatternCategory] = [.stateManagement, .performance, .accessibility]
         let issues = detector.detectPatterns(
             in: multiCategoryCode,
             filePath: "/MultiCategory.swift",
             categories: multipleCategories
         )
-        
+
         print("📊 Multiple Category Filtering:")
         print("   Input: View with state, performance, and accessibility concerns")
         print("   Categories: \(multipleCategories)")
         print("   Issues found: \(issues.count)")
-        
+
         let issuesByCategory = Dictionary(grouping: issues) { issue in
             // Determine category based on rule name
             switch issue.ruleName {
@@ -161,7 +161,7 @@ struct CategoryFilteringTests {
                 return PatternCategory.performance
             }
         }
-        
+
         for (category, categoryIssues) in issuesByCategory {
             print("     \(category): \(categoryIssues.count) issues")
         }

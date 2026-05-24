@@ -93,7 +93,7 @@ struct PatternConfigurationTests {
         #expect(filtered.count == 1)
         #expect(filtered.first?.ruleName == RuleIdentifier.magicNumber)
     }
-    
+
     @Test func test_allPatternsByCategory_returnsAllCategories() {
         let mockRegistry = MockPatternRegistry()
         let result = PatternConfiguration.allPatternsByCategory(from: mockRegistry)
@@ -109,37 +109,37 @@ struct PatternConfigurationTests {
         ]
         #expect(categories == expectedCategories)
     }
-    
+
     @Test func test_allPatternsByCategory_hasCorrectDisplayNames() {
         let mockRegistry = MockPatternRegistry()
         let result = PatternConfiguration.allPatternsByCategory(from: mockRegistry)
-        
+
         let stateManagement = result.first { $0.category == .stateManagement }
         #expect(stateManagement?.display == "State Management")
-        
+
         let performance = result.first { $0.category == .performance }
         #expect(performance?.display == "Performance")
-        
+
         let architecture = result.first { $0.category == .architecture }
         #expect(architecture?.display == "Architecture")
     }
-    
+
     @Test func test_allPatternsByCategory_allUseSwiftSyntax() {
         let mockRegistry = MockPatternRegistry()
         let result = PatternConfiguration.allPatternsByCategory(from: mockRegistry)
-        
+
         for categoryInfo in result {
             #expect(categoryInfo.useSwiftSyntax)
         }
     }
-    
+
     @Test func test_allPatternsByCategory_handlesNilRegistry() {
         let result = PatternConfiguration.allPatternsByCategory(from: nil)
-        
+
         // Should return empty array when registry is nil (changed from returning default category)
         #expect(result.isEmpty)
     }
-    
+
     @Test func test_PatternCategoryInfo_properties() {
         let info = PatternCategoryInfo(
             category: .stateManagement,
@@ -147,7 +147,7 @@ struct PatternConfigurationTests {
             patterns: [],
             useSwiftSyntax: true
         )
-        
+
         #expect(info.category == .stateManagement)
         #expect(info.display == "State Management")
         #expect(info.patterns.isEmpty)
@@ -167,4 +167,4 @@ private class DummyVisitor: SyntaxVisitor, PatternVisitorProtocol {
     }
 
     func reset() { detectedIssues.removeAll() }
-} 
+}

@@ -19,7 +19,7 @@ public struct SyntaxPattern: @unchecked Sendable {
     public let messageTemplate: String
     public let suggestion: String
     public let description: String
-    
+
     /// Creates a new syntax pattern with the specified parameters.
     ///
     /// - Parameters:

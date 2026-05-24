@@ -4,12 +4,12 @@ import Foundation
 import Testing
 
 struct DetectionPatternTests {
-    
+
     @Test func testRuleIdentifierRawValueAndDisplayName() throws {
         let rule = RuleIdentifier.magicNumber
         #expect(rule.rawValue == "Magic Number")
     }
-    
+
     @Test func testRuleIdentifierCategoryMapping() throws {
         #expect(RuleIdentifier.relatedDuplicateStateVariable.category == .stateManagement)
         #expect(RuleIdentifier.expensiveOperationInViewBody.category == .performance)
@@ -22,20 +22,20 @@ struct DetectionPatternTests {
         #expect(RuleIdentifier.nestedNavigationView.category == .uiPatterns)
         #expect(RuleIdentifier.fileParsingError.category == .other)
     }
-    
+
     @Test func testRuleIdentifierCodable() throws {
         let rule: RuleIdentifier = .magicNumber
         let data = try JSONEncoder().encode(rule)
         let decoded = try JSONDecoder().decode(RuleIdentifier.self, from: data)
         #expect(rule == decoded)
     }
-    
+
     @Test func testRuleIdentifierAllCasesContainsAll() throws {
         // Just check that all cases are present and unique
         let allCases = Set(RuleIdentifier.allCases.map { $0.rawValue })
         #expect(allCases.count == RuleIdentifier.allCases.count)
     }
-    
+
     @Test func testPatternCategoryAllCases() throws {
         let all = PatternCategory.allCases
         #expect(all.contains(.stateManagement))
@@ -49,7 +49,7 @@ struct DetectionPatternTests {
         #expect(all.contains(.uiPatterns))
         #expect(all.contains(.other))
     }
-    
+
     @Test func testDetectionPatternInitAndProperties() throws {
         let pattern = DetectionPattern(
             name: .magicNumber,

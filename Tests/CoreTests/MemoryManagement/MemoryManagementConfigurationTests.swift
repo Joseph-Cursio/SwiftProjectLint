@@ -17,7 +17,7 @@ struct MemoryManagementConfigurationTests {
             detectLargeObjects: true
         )
         let customVisitor = MemoryManagementVisitor(config: config)
-        
+
         let sourceCode = """
         struct ContentView: View {
             @StateObject var viewModel: ContentViewModel = ContentViewModel()
@@ -36,7 +36,7 @@ struct MemoryManagementConfigurationTests {
             detectLargeObjects: true
         )
         let customVisitor = MemoryManagementVisitor(config: config)
-        
+
         let sourceCode = """
         struct ContentView: View {
             @State var items: [String] = ["item1", "item2", "item3", "item4", "item5", "item6"]
@@ -93,10 +93,10 @@ struct MemoryManagementConfigurationTests {
         let visitor = self.visitor
         visitor.walk(sourceFile)
         #expect(visitor.detectedIssues.count == 2)
-        
+
         let retainCycleIssues = visitor.detectedIssues.filter { $0.message.contains("retain cycle") }
         let largeObjectIssues = visitor.detectedIssues.filter { $0.message.contains("Large array") }
-        
+
         #expect(retainCycleIssues.count == 1)
         #expect(largeObjectIssues.count == 1)
     }
@@ -117,4 +117,4 @@ struct MemoryManagementConfigurationTests {
         visitor.reset()
         #expect(visitor.detectedIssues.isEmpty)
     }
-} 
+}

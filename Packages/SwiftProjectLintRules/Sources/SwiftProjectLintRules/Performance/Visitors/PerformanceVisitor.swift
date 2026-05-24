@@ -23,7 +23,7 @@ class PerformanceVisitor: BasePatternVisitor {
 
     // For tracking unnecessary view updates
     var stateVariables: [String: PerformanceStateVariableInfo] = [:]
-    
+
     required init(pattern: SyntaxPattern, viewMode: SyntaxTreeViewMode = .sourceAccurate) {
         super.init(pattern: pattern, viewMode: viewMode)
     }

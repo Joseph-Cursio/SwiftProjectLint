@@ -5,7 +5,7 @@ import SwiftSyntax
 import Testing
 
 struct PerformanceStateVariableTrackingTests {
-    
+
     @Test func testTrackStateVariableDeclaration() throws {
         let source = """
         struct ContentView: View {
@@ -16,17 +16,17 @@ struct PerformanceStateVariableTrackingTests {
             }
         }
         """
-        
+
         let syntax = Parser.parse(source: source)
         let visitor = PerformanceVisitor(patternCategory: .performance)
         visitor.setFilePath("test.swift")
         visitor.walk(syntax)
-        
+
         // Should track both @State variables
         #expect(visitor.stateVariables.count == 2)
         #expect(visitor.stateVariables["count"] != nil)
         #expect(visitor.stateVariables["name"] != nil)
-        
+
         let countInfo = try #require(visitor.stateVariables["count"])
         #expect(countInfo.name == "count")
         #expect(countInfo.isUsedInViewBody == false)
@@ -42,12 +42,12 @@ struct PerformanceStateVariableTrackingTests {
             }
         }
         """
-        
+
         let syntax = Parser.parse(source: source)
         let visitor = PerformanceVisitor(patternCategory: .performance)
         visitor.setFilePath("test.swift")
         visitor.walk(syntax)
-        
+
         // Should track that count is used in view body
         let countInfo = try #require(visitor.stateVariables["count"])
         #expect(countInfo.isUsedInViewBody)
@@ -64,12 +64,12 @@ struct PerformanceStateVariableTrackingTests {
             }
         }
         """
-        
+
         let syntax = Parser.parse(source: source)
         let visitor = PerformanceVisitor(patternCategory: .performance)
         visitor.setFilePath("test.swift")
         visitor.walk(syntax)
-        
+
         // Should track that count is assigned
         // Note: Assignment detection depends on AST structure and may not always work
         let countInfo = try #require(visitor.stateVariables["count"])
@@ -90,24 +90,24 @@ struct PerformanceStateVariableTrackingTests {
             }
         }
         """
-        
+
         let syntax = Parser.parse(source: source)
         let visitor = PerformanceVisitor(patternCategory: .performance)
         visitor.setFilePath("test.swift")
         visitor.walk(syntax)
-        
+
         // checkForUnnecessaryUpdates is called automatically when leaving view body
         // The visitor should track that unusedVar is assigned but not used
         let issues = visitor.detectedIssues
         // Should detect unnecessary update (assigned but not used in view body)
-        let unnecessaryIssues = issues.filter { 
+        let unnecessaryIssues = issues.filter {
             $0.message.contains("unnecessary") || $0.message.contains("unusedVar")
         }
-        
+
         // May or may not detect depending on view body analysis
         #expect(unnecessaryIssues.isEmpty)
     }
-    
+
     @Test func testTrackStateVariableWithMultipleAssignments() throws {
         let source = """
         struct ContentView: View {
@@ -124,12 +124,12 @@ struct PerformanceStateVariableTrackingTests {
             }
         }
         """
-        
+
         let syntax = Parser.parse(source: source)
         let visitor = PerformanceVisitor(patternCategory: .performance)
         visitor.setFilePath("test.swift")
         visitor.walk(syntax)
-        
+
         // Should track that count is assigned
         // Note: Assignment detection depends on AST structure
         let countInfo = try #require(visitor.stateVariables["count"])
@@ -148,12 +148,12 @@ struct PerformanceStateVariableTrackingTests {
             }
         }
         """
-        
+
         let syntax = Parser.parse(source: source)
         let visitor = PerformanceVisitor(patternCategory: .performance)
         visitor.setFilePath("test.swift")
         visitor.walk(syntax)
-        
+
         // Should track usage but not assignment
         let countInfo = try #require(visitor.stateVariables["count"])
         #expect(countInfo.isUsedInViewBody)
@@ -174,12 +174,12 @@ struct PerformanceStateVariableTrackingTests {
             }
         }
         """
-        
+
         let syntax = Parser.parse(source: source)
         let visitor = PerformanceVisitor(patternCategory: .performance)
         visitor.setFilePath("test.swift")
         visitor.walk(syntax)
-        
+
         // Should track both usage and assignment
         let countInfo = try #require(visitor.stateVariables["count"])
         // Usage detection should work reliably
@@ -187,7 +187,7 @@ struct PerformanceStateVariableTrackingTests {
         // Assignment detection may vary based on AST structure
         #expect(countInfo.isAssigned == true || countInfo.isAssigned == false)
     }
-    
+
     @Test func testTrackMultipleStateVariables() throws {
         let source = """
         struct ContentView: View {
@@ -205,19 +205,19 @@ struct PerformanceStateVariableTrackingTests {
             }
         }
         """
-        
+
         let syntax = Parser.parse(source: source)
         let visitor = PerformanceVisitor(patternCategory: .performance)
         visitor.setFilePath("test.swift")
         visitor.walk(syntax)
-        
+
         // Should track all three state variables
         #expect(visitor.stateVariables.count == 3)
         #expect(visitor.stateVariables["count"]?.isUsedInViewBody == true)
         #expect(visitor.stateVariables["name"]?.isUsedInViewBody == true)
         #expect(visitor.stateVariables["isVisible"]?.isUsedInViewBody == true)
     }
-    
+
     @Test func testTrackStateVariableWithNonStatePropertyWrapper() throws {
         let source = """
         struct ContentView: View {
@@ -228,18 +228,18 @@ struct PerformanceStateVariableTrackingTests {
             }
         }
         """
-        
+
         let syntax = Parser.parse(source: source)
         let visitor = PerformanceVisitor(patternCategory: .performance)
         visitor.setFilePath("test.swift")
         visitor.walk(syntax)
-        
+
         // Should only track @State, not @StateObject
         #expect(visitor.stateVariables.count == 1)
         #expect(visitor.stateVariables["count"] != nil)
         #expect(visitor.stateVariables["viewModel"] == nil)
     }
-    
+
     @Test func testTrackStateVariableAssignmentWithComplexExpression() throws {
         let source = """
         struct ContentView: View {
@@ -251,12 +251,12 @@ struct PerformanceStateVariableTrackingTests {
             }
         }
         """
-        
+
         let syntax = Parser.parse(source: source)
         let visitor = PerformanceVisitor(patternCategory: .performance)
         visitor.setFilePath("test.swift")
         visitor.walk(syntax)
-        
+
         // Should track assignment even with complex expression
         // Note: Complex expressions may not always be detected depending on AST structure
         let countInfo = try #require(visitor.stateVariables["count"])

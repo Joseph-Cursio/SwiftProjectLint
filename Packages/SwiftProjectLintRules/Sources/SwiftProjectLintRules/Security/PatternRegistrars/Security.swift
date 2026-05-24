@@ -64,4 +64,4 @@ class Security: BasePatternRegistrar {
         )
         registry.register(patterns: [loggingSensitivePattern])
     }
-} 
+}

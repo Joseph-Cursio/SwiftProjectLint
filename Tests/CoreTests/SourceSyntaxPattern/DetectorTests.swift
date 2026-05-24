@@ -4,21 +4,21 @@ import Foundation
 import Testing
 
 struct DetectorTests {
-    
+
     @Test func testPatternDetectorInitialization() throws {
         let detector = SourcePatternDetector()
         #expect(detector != nil)
     }
-    
+
     @Test func testDetectPatternsInSourceCode() throws {
         let detector = SourcePatternDetector()
         let sourceCode = """
         import SwiftUI
-        
+
         struct ContentView: View {
             @State private var isLoading = false
             @State private var counter = 0
-            
+
             var body: some View {
                 VStack {
                     Text("Hello, World!")
@@ -29,7 +29,7 @@ struct DetectorTests {
             }
         }
         """
-        
+
         let issues = detector.detectPatterns(
             in: sourceCode,
             filePath: "/test/ContentView.swift"
@@ -41,16 +41,16 @@ struct DetectorTests {
         let detector = SourcePatternDetector()
         let sourceCode = """
         import SwiftUI
-        
+
         struct TestView: View {
             @State private var isLoading = false
-            
+
             var body: some View {
                 Text("Test")
             }
         }
         """
-        
+
         let issues = detector.detectPatterns(
             in: sourceCode,
             filePath: "/test/TestView.swift",
@@ -58,7 +58,7 @@ struct DetectorTests {
         )
         #expect(issues.isEmpty)
     }
-    
+
     @Test func testDetectPatternsInProject() async throws {
         let detector = CrossFileAnalysisEngine()
 
@@ -73,44 +73,44 @@ struct DetectorTests {
         )
         #expect(issues.isEmpty)
     }
-    
+
     @Test func testCrossFilePatternDetection() throws {
         let detector = CrossFileAnalysisEngine()
-        
+
         let projectFiles = [
             ProjectFile(name: "View1.swift", content: "struct View1: View { var body: some View { Text(\"A\") } }"),
             ProjectFile(name: "View2.swift", content: "struct View2: View { var body: some View { Text(\"B\") } }")
         ]
-        
+
         let issues = detector.detectCrossFilePatterns(
             projectFiles: projectFiles,
             ruleIdentifiers: [.relatedDuplicateStateVariable]
         )
         #expect(issues.isEmpty)
     }
-    
+
     @Test func testPatternRegistryIntegration() throws {
         let detector = SourcePatternDetector()
         let registry = SourcePatternRegistry.shared
-        
+
         #expect(registry != nil)
         // #expect(detector.registry != nil) // This line was removed as per the edit hint.
     }
 
     // MARK: - Error Handling and Edge Cases
-    
+
     @Test func characterizeVeryLargeSourceFile() throws {
         let detector = SourcePatternDetector()
-        
+
         // Generate a large SwiftUI file
         var largeFileContent = """
         import SwiftUI
-        
+
         struct LargeView: View {
             var body: some View {
                 VStack {
         """
-        
+
         // Add many repetitive elements
         for index in 0..<500 {
             largeFileContent += """
@@ -118,17 +118,17 @@ struct DetectorTests {
                     Text("Description \(index)")
             """
         }
-        
+
         largeFileContent += """
                 }
             }
         }
         """
-        
+
         let issues = detector.detectPatterns(in: largeFileContent, filePath: "/LargeView.swift")
         #expect(issues.isEmpty)
     }
-    
+
     @Test func characterizeFilePathVariations() throws {
         let detector = SourcePatternDetector()
         let testCode = """
@@ -137,7 +137,7 @@ struct DetectorTests {
             var body: some View { Text("Test") }
         }
         """
-        
+
         let pathVariations = [
             "/simple.swift",
             "/path/to/nested/file.swift",
@@ -146,14 +146,14 @@ struct DetectorTests {
             "/path with spaces/file.swift",
             "/path/with/unicode/文件.swift"
         ]
-        
+
         print("📊 File Path Variations:")
         for path in pathVariations {
             let issues = detector.detectPatterns(in: testCode, filePath: path)
             print("   Path: '\(path)' -> \(issues.count) issues")
         }
-        
+
         #expect(true, "Various file path formats should be handled")
     }
-    
+
 }

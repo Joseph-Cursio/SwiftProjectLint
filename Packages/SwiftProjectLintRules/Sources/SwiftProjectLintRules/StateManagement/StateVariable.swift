@@ -24,4 +24,4 @@ public struct StateVariable: Sendable {
     public let lineNumber: Int
     public let viewName: String
     public let propertyWrapper: PropertyWrapper
-} 
+}

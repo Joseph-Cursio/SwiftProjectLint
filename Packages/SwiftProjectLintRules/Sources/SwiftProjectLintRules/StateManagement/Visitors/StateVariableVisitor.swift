@@ -105,24 +105,24 @@ class StateVariableVisitor: SyntaxVisitor {
         if let typeAnnotation {
             return extractTypeFromAnnotation(typeAnnotation)
         }
-        
+
         if let initializer {
             return inferTypeFromInitializer(initializer)
         }
-        
+
         return handleMissingType()
     }
-    
+
     /// Extracts type from type annotation
     private func extractTypeFromAnnotation(_ typeAnnotation: TypeAnnotationSyntax) -> String {
         let typeString = typeAnnotation.type.description.trimmingCharacters(in: .whitespaces)
         return cleanTypeString(typeString)
     }
-    
+
     /// Infers type from initializer value
     private func inferTypeFromInitializer(_ initializer: InitializerClauseSyntax) -> String {
         let value = initializer.value
-        
+
         // Handle known syntax kinds
         switch value.kind {
         case .booleanLiteralExpr:
@@ -141,16 +141,16 @@ class StateVariableVisitor: SyntaxVisitor {
             return inferTypeFromText(value.description)
         }
     }
-    
+
     /// Infers type from text representation of the value
     private func inferTypeFromText(_ text: String) -> String {
         let trimmedText = text.trimmingCharacters(in: .whitespacesAndNewlines)
-        
+
         // Check for boolean literals
         if trimmedText == "true" || trimmedText == "false" {
             return "Bool"
         }
-        
+
         // Check for numeric types
         if Int(trimmedText) != nil {
             return "Int"
@@ -158,27 +158,27 @@ class StateVariableVisitor: SyntaxVisitor {
         if Double(trimmedText) != nil {
             return "Double"
         }
-        
+
         // Check for string literals
         if trimmedText.hasPrefix("\"") && trimmedText.hasSuffix("\"") {
             return "String"
         }
-        
+
         // Check for function calls
         if trimmedText.hasSuffix("()") {
             return String(trimmedText.dropLast(2))
         }
-        
+
         // Check for array literals
         if trimmedText.hasPrefix("[") && trimmedText.hasSuffix("]") {
             return "Array"
         }
-        
+
         // Check for Core Graphics types
         if let cgType = inferCGType(from: trimmedText) {
             return cgType
         }
-        
+
         // Check for SwiftUI types
         if trimmedText.contains("Color.") {
             return "Color"
@@ -186,16 +186,16 @@ class StateVariableVisitor: SyntaxVisitor {
         if trimmedText.contains("Font.") {
             return "Font"
         }
-        
+
         return handleUnknownType(text: trimmedText)
     }
-    
+
     /// Infers Core Graphics types from text
     private func inferCGType(from text: String) -> String? {
         guard text.hasPrefix("CGSize(") || text.hasSuffix(".zero") || text.contains("CG") else {
             return nil
         }
-        
+
         if text.contains("CGSize") {
             return "CGSize"
         }
@@ -205,25 +205,25 @@ class StateVariableVisitor: SyntaxVisitor {
         if text.contains("CGRect") {
             return "CGRect"
         }
-        
+
         return nil
     }
-    
+
     /// Handles unknown type patterns
     private func handleUnknownType(text: String) -> String {
         if config.strictTypeChecking {
             fatalError("Failed to infer type for initializer: '\(text)' at \(filePath)")
         }
-        
+
         return "Unknown"
     }
-    
+
     /// Handles missing type annotation and initializer
     private func handleMissingType() -> String {
         if config.strictTypeChecking {
             fatalError("No type annotation or initializer found for variable at \(filePath)")
         }
-        
+
         return "Unknown"
     }
 

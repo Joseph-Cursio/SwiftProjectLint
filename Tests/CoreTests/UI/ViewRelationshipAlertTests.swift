@@ -11,7 +11,7 @@ struct ViewRelationshipAlertTests {
 
     private func extractRelationships(from sourceCode: String, parentView: String) -> [ViewRelationship] {
         let sourceFile = Parser.parse(source: sourceCode)
-        
+
         let sourceLocationConverter = SourceLocationConverter(fileName: "test.swift", tree: sourceFile)
         let visitor = ViewRelationshipVisitor(
             parentView: parentView,
@@ -28,7 +28,7 @@ struct ViewRelationshipAlertTests {
         let sourceCode = """
         struct ContentView: View {
             @State private var showingAlert = false
-            
+
             var body: some View {
                 Button("Show Alert") {
                     showingAlert = true
@@ -39,23 +39,23 @@ struct ViewRelationshipAlertTests {
             }
         }
         """
-        
+
         let relationships = extractRelationships(from: sourceCode, parentView: "ContentView")
 
         #expect(relationships.count == 1)
-        
+
         // Button is a system view, so it should NOT be detected as directChild
         // Only AlertView should be detected as alert
         let alertRelationship = relationships.first { $0.childView == "AlertView" && $0.relationshipType == .alert }
         #expect(alertRelationship != nil)
         #expect(alertRelationship?.parentView == "ContentView")
     }
-    
+
     @Test func testSimpleAlertDetection() throws {
         let sourceCode = """
         struct ContentView: View {
             @State private var showingAlert = false
-            
+
             var body: some View {
                 Text("Hello")
                 .alert("Title", isPresented: $showingAlert) {
@@ -64,14 +64,14 @@ struct ViewRelationshipAlertTests {
             }
         }
         """
-        
+
         let relationships = extractRelationships(from: sourceCode, parentView: "ContentView")
 
         #expect(relationships.count == 1)
-        
+
         // Text is a system view, so it should NOT be detected as directChild
         // Only AlertView should be detected as alert
         let alertRelationship = relationships.first { $0.childView == "AlertView" && $0.relationshipType == .alert }
         #expect(alertRelationship != nil)
     }
-} 
+}

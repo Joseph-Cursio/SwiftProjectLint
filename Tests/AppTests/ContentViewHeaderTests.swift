@@ -21,4 +21,4 @@ struct ContentViewHeaderTests {
         let descText = try vStack.text(2)
         #expect(try descText.string() == "Detect cross-file issues and architectural problems")
     }
-} 
+}

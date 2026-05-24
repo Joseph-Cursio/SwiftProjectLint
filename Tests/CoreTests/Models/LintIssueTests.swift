@@ -2,7 +2,7 @@ import Core
 import Testing
 
 struct LintIssueTests {
-    
+
     @Test func testLintIssueInitializationWithSingleLocation() throws {
         let issue = LintIssue(
             severity: .warning,
@@ -12,7 +12,7 @@ struct LintIssueTests {
             suggestion: "Fix this",
             ruleName: .magicNumber
         )
-        
+
         #expect(issue.severity == .warning)
         #expect(issue.message == "Test issue")
         #expect(issue.filePath == "test.swift")
@@ -23,7 +23,7 @@ struct LintIssueTests {
         #expect(location.filePath == "test.swift")
         #expect(location.lineNumber == 42)
     }
-    
+
     @Test func testLintIssueInitializationWithMultipleLocations() throws {
         let locations: [(filePath: String, lineNumber: Int)] = [
             ("file1.swift", 10),
@@ -54,7 +54,7 @@ struct LintIssueTests {
         #expect(issue.filePath == "file1.swift")
         #expect(issue.lineNumber == 10)
     }
-    
+
     @Test func testLintIssueWithNilSuggestion() {
         let issue = LintIssue(
             severity: .info,
@@ -64,10 +64,10 @@ struct LintIssueTests {
             suggestion: nil,
             ruleName: .magicNumber
         )
-        
+
         #expect(issue.suggestion == nil)
     }
-    
+
     @Test func testLintIssueIdentifiable() {
         let issue1 = LintIssue(
             severity: .warning,
@@ -77,7 +77,7 @@ struct LintIssueTests {
             suggestion: nil,
             ruleName: .magicNumber
         )
-        
+
         let issue2 = LintIssue(
             severity: .warning,
             message: "Issue 2",
@@ -86,11 +86,11 @@ struct LintIssueTests {
             suggestion: nil,
             ruleName: .magicNumber
         )
-        
+
         // Each issue should have a unique ID
         #expect(issue1.id != issue2.id)
     }
-    
+
     @Test func testLintIssueEmptyLocations() {
         let issue = LintIssue(
             severity: .warning,
@@ -99,12 +99,12 @@ struct LintIssueTests {
             suggestion: nil,
             ruleName: .magicNumber
         )
-        
+
         #expect(issue.locations.isEmpty)
         #expect(issue.filePath.isEmpty)
         #expect(issue.lineNumber == 0)
     }
-    
+
     @Test func testLintIssueDifferentSeverities() {
         let error = LintIssue(
             severity: .error,
@@ -114,7 +114,7 @@ struct LintIssueTests {
             suggestion: nil,
             ruleName: .magicNumber
         )
-        
+
         let warning = LintIssue(
             severity: .warning,
             message: "Warning",
@@ -123,7 +123,7 @@ struct LintIssueTests {
             suggestion: nil,
             ruleName: .magicNumber
         )
-        
+
         let info = LintIssue(
             severity: .info,
             message: "Info",
@@ -132,12 +132,12 @@ struct LintIssueTests {
             suggestion: nil,
             ruleName: .magicNumber
         )
-        
+
         #expect(error.severity == .error)
         #expect(warning.severity == .warning)
         #expect(info.severity == .info)
     }
-    
+
     @Test func testLintIssueSendable() {
         // Verify LintIssue conforms to Sendable
         // This test verifies compilation - if LintIssue conforms to Sendable, this will compile
@@ -149,7 +149,7 @@ struct LintIssueTests {
             suggestion: "Fix",
             ruleName: .magicNumber
         )
-        
+
         // Verify the issue was created successfully
         #expect(issue.severity == .warning)
         #expect(issue.message == "Test")

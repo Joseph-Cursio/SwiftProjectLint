@@ -20,4 +20,4 @@ public struct ProjectFile: Sendable, Equatable {
         self.relativePath = relativePath ?? name
         self.content = content
     }
-} 
+}

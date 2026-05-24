@@ -24,10 +24,10 @@ import Testing
 
 struct FileCacheTests {
     // MARK: - File Cache Characterization
-    
+
     @Test func characterizeFileCacheBasicBehavior() throws {
         let detector = SourcePatternDetector()
-        
+
         let file1Content = """
         import SwiftUI
         struct View1: View {
@@ -35,7 +35,7 @@ struct FileCacheTests {
             var body: some View { Text("View 1") }
         }
         """
-        
+
         let file2Content = """
         import SwiftUI
         struct View2: View {
@@ -43,16 +43,16 @@ struct FileCacheTests {
             var body: some View { Text("View 2") }
         }
         """
-        
+
         // Analyze first file
         let issues1 = detector.detectPatterns(in: file1Content, filePath: "/View1.swift")
-        
+
         // Analyze second file
         let issues2 = detector.detectPatterns(in: file2Content, filePath: "/View2.swift")
-        
+
         // Both files should be analyzed independently
         #expect(issues1.isEmpty)
         #expect(issues2.isEmpty)
     }
-    
+
  }

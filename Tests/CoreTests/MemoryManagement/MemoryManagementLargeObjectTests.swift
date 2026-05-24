@@ -107,4 +107,4 @@ struct MemoryManagementLargeObjectTests {
         visitor.walk(sourceFile)
         #expect(visitor.detectedIssues.isEmpty)
     }
-} 
+}

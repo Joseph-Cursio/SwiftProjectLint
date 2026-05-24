@@ -6,7 +6,7 @@ import SwiftSyntax
 import Testing
 
 struct UIVisitorStylingTests {
-    
+
     @Test func testDetectsInconsistentTextStyling() throws {
         let visitor = UIVisitor(patternCategory: PatternCategory.uiPatterns)
         visitor.setFilePath("Tests/SourceFile.swift")
@@ -63,12 +63,12 @@ struct UIVisitorStylingTests {
         // 3 styling modifiers should not trigger — threshold is 4
         #expect(issues.isEmpty)
     }
-    
+
     @Test func testDoesNotDetectSingleStylingModifier() throws {
         let visitor = UIVisitor(patternCategory: PatternCategory.uiPatterns)
         visitor.setFilePath("Tests/SourceFile.swift")
         visitor.reset()
-        
+
         let source = """
         struct ContentView: View {
             var body: some View {
@@ -77,12 +77,12 @@ struct UIVisitorStylingTests {
             }
         }
         """
-        
+
         let syntax = Parser.parse(source: source)
         visitor.walk(syntax)
         let issues = visitor.detectedIssues
-        
+
         // Should not detect any issues (preview detection skipped for test files)
         #expect(issues.isEmpty)
     }
-} 
+}

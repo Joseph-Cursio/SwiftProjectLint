@@ -42,4 +42,4 @@ struct EdgeCaseTests {
         let issue = try #require(customVisitor.detectedIssues.first)
         #expect(issue.message.contains("Long text content may benefit from accessibility features"))
     }
-} 
+}

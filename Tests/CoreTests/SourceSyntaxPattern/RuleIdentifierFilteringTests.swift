@@ -25,16 +25,16 @@ import Testing
 struct RuleIdentifierFilteringTests {
 
     // MARK: - Rule Identifier Filtering Characterization
-    
+
     @Test func characterizeSpecificRuleIdentifierFiltering() throws {
         let detector = SourcePatternDetector()
         let testCode = """
         import SwiftUI
-        
+
         struct RuleTestView: View {
             @State private var isLoading: Bool = false
             @State private var unusedVar: String = ""
-            
+
             var body: some View {
                 VStack {
                     Text("Test")
@@ -45,26 +45,26 @@ struct RuleIdentifierFilteringTests {
             }
         }
         """
-        
+
         // Test specific rule identifiers
         let specificRules: [RuleIdentifier] = [
             .relatedDuplicateStateVariable,
             .unusedStateVariable,
             .missingAccessibilityLabel
         ]
-        
+
         let specificIssues = detector.detectPatterns(
             in: testCode,
             filePath: "/RuleTest.swift",
             ruleIdentifiers: specificRules
         )
-        
+
         // Compare with all rules
         let allIssues = detector.detectPatterns(in: testCode, filePath: "/RuleTest.swift")
-        
+
         #expect(specificIssues.count <= allIssues.count, "Specific rules should be subset of all rules")
     }
-    
+
     @Test func characterizeEmptyRuleIdentifierList() throws {
         let detector = SourcePatternDetector()
         let testCode = """
@@ -74,13 +74,13 @@ struct RuleIdentifierFilteringTests {
             var body: some View { Text("Test") }
         }
         """
-        
+
         let emptyRuleIssues = detector.detectPatterns(
             in: testCode,
             filePath: "/EmptyRuleTest.swift",
             ruleIdentifiers: []
         )
-        
+
         #expect(emptyRuleIssues.isEmpty, "Empty rule list should produce no issues")
     }
     }

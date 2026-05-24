@@ -30,4 +30,4 @@ class MemoryManagement: BasePatternRegistrar {
         ]
         registry.register(patterns: patterns)
     }
-} 
+}

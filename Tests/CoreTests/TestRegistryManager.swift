@@ -15,38 +15,38 @@ public struct IsolatedTestInstances {
 /// test isolation where needed.
 @preconcurrency @MainActor
 public class TestRegistryManager {
-    
+
     // MARK: - Shared Instances
-    
+
     /// Shared visitor registry instance for all tests
     public static let sharedVisitorRegistry = PatternVisitorRegistry()
-    
+
     /// Shared pattern registry instance for all tests
     public static let sharedPatternRegistry = SourcePatternRegistry(visitorRegistry: sharedVisitorRegistry)
 
     /// Shared detector instance for all tests
     public static let sharedDetector = SourcePatternDetector(registry: sharedVisitorRegistry)
-    
+
     // MARK: - Initialization State
-    
+
     private static var isInitialized = false
-    
+
     // MARK: - Timeout Configuration
-    
+
     /// Default timeout for tests (30 seconds)
     public static let defaultTestTimeout: Duration = .seconds(30)
-    
+
     /// Short timeout for quick tests (10 seconds)
     public static let shortTestTimeout: Duration = .seconds(10)
-    
+
     /// Long timeout for complex tests (60 seconds)
     public static let longTestTimeout: Duration = .seconds(60)
-    
+
     /// Very long timeout for integration tests (120 seconds)
     public static let veryLongTestTimeout: Duration = .seconds(120)
-    
+
     // MARK: - Public Methods
-    
+
     /// Initialize the shared registry once for all tests
     public static func initializeSharedRegistry() {
         guard !isInitialized else { return }
@@ -55,14 +55,14 @@ public class TestRegistryManager {
         sharedPatternRegistry.initialize()
         isInitialized = true
     }
-    
+
     /// Reset the shared registry to a clean state
     public static func resetSharedRegistry() {
         sharedVisitorRegistry.clear()
 
         isInitialized = false
     }
-    
+
     /// Create isolated instances for tests that need complete isolation
     public static func createIsolatedInstances() -> IsolatedTestInstances {
         let visitorRegistry = PatternVisitorRegistry()
@@ -107,9 +107,9 @@ public class TestRegistryManager {
         initializeSharedRegistry()
         return sharedPatternRegistry
     }
-    
+
     // MARK: - Performance Monitoring
-    
+
     /// Measure execution time of a synchronous test operation
     @preconcurrency
     public static func measureExecutionTime<T: Sendable>(_ operation: @Sendable () throws -> T) rethrows -> (T, Duration) {
@@ -118,7 +118,7 @@ public class TestRegistryManager {
         let end = ContinuousClock.now
         return (result, end - start)
     }
-    
+
     /// Measure execution time of an async test operation
     @preconcurrency
     public static func measureExecutionTime<T: Sendable>(_ operation: @Sendable () async throws -> T) async rethrows -> (T, Duration) {
@@ -127,11 +127,11 @@ public class TestRegistryManager {
         let end = ContinuousClock.now
         return (result, end - start)
     }
-    
+
     /// Log slow test execution for debugging
     public static func logSlowTest(_ testName: String, duration: Duration, threshold: Duration = .seconds(5)) {
         if duration > threshold {
             print("⚠️  SLOW TEST: \(testName) took \(duration.formatted()) (threshold: \(threshold.formatted()))")
         }
     }
-} 
+}

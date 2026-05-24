@@ -27,9 +27,9 @@ struct DemoIssueGeneratorTests {
             #expect(actualRuleNames.contains(rule), "Expected rule \(rule) in demo issues")
         }
     }
-    
+
     @Test func test_createDemoIssues_emptyForOtherCategory() {
         let issues = DemoIssueGenerator.createDemoIssues(for: [.other])
         #expect(issues.isEmpty)
     }
-} 
+}

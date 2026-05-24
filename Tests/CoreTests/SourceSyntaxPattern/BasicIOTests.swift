@@ -24,35 +24,35 @@ import Testing
 /// - Error handling and edge cases
 
 struct BasicIOTests {
-    
+
     // MARK: - Basic Input/Output Characterization
-    
+
     @Test func characterizeEmptySourceBehavior() throws {
         let detector = SourcePatternDetector()
         let issues = detector.detectPatterns(in: "", filePath: "/empty.swift")
-        
+
         // Document current behavior with empty source
         #expect(issues.isEmpty, "Empty source code should produce no issues")
     }
-    
+
     @Test func testInvalidSwiftCode() throws {
         let detector = SourcePatternDetector()
         let invalidCode = "This is not valid Swift code {"
-        
+
         let issues = detector.detectPatterns(
             in: invalidCode,
             filePath: "/test/Invalid.swift"
         )
         #expect(issues.isEmpty)
     }
-    
+
     @Test func characterizeWhitespaceOnlySource() throws {
         let detector = SourcePatternDetector()
         let whitespaceCode = "   \n\n  \t  \n   "
         let issues = detector.detectPatterns(in: whitespaceCode, filePath: "/whitespace.swift")
         #expect(issues.isEmpty)
     }
-    
+
     @Test func characterizeInvalidSyntaxHandling() throws {
         let detector = SourcePatternDetector()
         let invalidCode = """
@@ -61,33 +61,33 @@ struct BasicIOTests {
             @State var incomplete
             func broken( {
         """
-        
+
         let issues = detector.detectPatterns(in: invalidCode, filePath: "/invalid.swift")
         // The detector should handle invalid syntax without crashing
         #expect(issues.isEmpty)
     }
-    
+
     @Test func characterizeMinimalValidSwiftUI() throws {
         let detector = SourcePatternDetector()
         let minimalView = """
         import SwiftUI
-        
+
         struct ContentView: View {
             var body: some View {
                 Text("Hello, World!")
             }
         }
         """
-        
+
         let issues = detector.detectPatterns(in: minimalView, filePath: "/ContentView.swift")
         #expect(issues.isEmpty)
     }
-    
+
     @Test func characterizeComplexStateVariables() throws {
         let detector = SourcePatternDetector()
         let complexView = """
         import SwiftUI
-        
+
         struct ComplexStateView: View {
             @State private var isLoading: Bool = false
             @State private var userName: String = ""
@@ -96,7 +96,7 @@ struct BasicIOTests {
             @StateObject private var viewModel = ViewModel()
             @ObservedObject var dataModel: DataModel
             @EnvironmentObject var appState: AppState
-            
+
             var body: some View {
                 VStack {
                     Text("Counter: \\(counter)")
@@ -111,7 +111,7 @@ struct BasicIOTests {
             }
         }
         """
-        
+
         let issues = detector.detectPatterns(in: complexView, filePath: "/ComplexStateView.swift")
         #expect(issues.isEmpty)
     }}

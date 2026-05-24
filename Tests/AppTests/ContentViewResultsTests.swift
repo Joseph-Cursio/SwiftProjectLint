@@ -50,4 +50,4 @@ struct ContentViewResultsTests {
         // LintResultsView
         _ = try vStack.find(LintResultsView.self)
     }
-} 
+}

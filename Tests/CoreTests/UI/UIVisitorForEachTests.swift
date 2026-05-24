@@ -132,4 +132,4 @@ struct UIVisitorForEachTests {
         let forEachIssues = visitor.detectedIssues.filter { $0.ruleName == .forEachWithoutIDUI }
         #expect(forEachIssues.isEmpty)
     }
-} 
+}

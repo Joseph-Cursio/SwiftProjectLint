@@ -7,14 +7,14 @@ import Testing
 
 @Suite("ArchitectureTests")
 struct ArchitectureTests {
-    
+
     // MARK: - Architecture Visitor Tests (Use Shared Registry)
-    
+
     @Test
     @MainActor
     static func architectureVisitorFatView() async throws {
         let detector = TestRegistryManager.getSharedDetector()
-        
+
         // Given
         let sourceCode = """
         struct TestView: View {
@@ -25,13 +25,13 @@ struct ArchitectureTests {
             @State private var userAddress = ""
             @State private var userPhone = ""
             @State private var userCity = ""
-            
+
             var body: some View {
                 Text("Hello")
             }
         }
         """
-        
+
         // When - Use the detector with shared registry and measure performance
         let (issues, duration) = await TestRegistryManager.measureExecutionTime {
             await MainActor.run {
@@ -42,34 +42,34 @@ struct ArchitectureTests {
                 )
             }
         }
-        
+
         // Log slow test execution
         TestRegistryManager.logSlowTest("testArchitectureVisitorFatView", duration: duration)
-        
+
         // Then
         let fatViewIssues = issues.filter { $0.message.contains("state variables") }
-        
+
         let fatViewIssue = try #require(fatViewIssues.first)
         #expect(fatViewIssue.severity == .warning)
-        
+
     }
-    
+
     @Test
     @MainActor
     static func architectureVisitorMissingDependencyInjection() async throws {
         let detector = TestRegistryManager.getSharedDetector()
-        
+
         // Given
         let sourceCode = """
         struct TestView: View {
             @StateObject private var userManager = UserManager()
-            
+
             var body: some View {
                 Text("Hello")
             }
         }
         """
-        
+
         // When - Use the detector with shared registry and measure performance
         let (issues, duration) = await TestRegistryManager.measureExecutionTime {
             await MainActor.run {
@@ -80,40 +80,40 @@ struct ArchitectureTests {
                 )
             }
         }
-        
+
         // Log slow test execution
         TestRegistryManager.logSlowTest("testArchitectureVisitorMissingDependencyInjection", duration: duration)
-        
+
         // Then
         let diIssues = issues.filter { $0.message.contains("UserManager") }
-        
+
         let diIssue = try #require(diIssues.first)
         #expect(diIssue.severity == .info)
-        
+
     }
-    
+
     @Test
     @MainActor
     static func architectureVisitorValidArchitecture() async throws {
         let detector = TestRegistryManager.getSharedDetector()
-        
+
         // Given
         let sourceCode = """
         struct TestView: View {
             @State private var isLoading = false
             @State private var userName = ""
             @ObservedObject var userManager: UserManager
-            
+
             init(userManager: UserManager) {
                 self.userManager = userManager
             }
-            
+
             var body: some View {
                 Text("Hello")
             }
         }
         """
-        
+
         // When - Use the detector with shared registry and measure performance
         let (_, duration) = await TestRegistryManager.measureExecutionTime {
             await MainActor.run {
@@ -124,14 +124,14 @@ struct ArchitectureTests {
                 )
             }
         }
-        
+
         // Log slow test execution
         TestRegistryManager.logSlowTest("testArchitectureVisitorValidArchitecture", duration: duration)
-        
+
         // Then - This should have no architecture issues since it uses proper DI
         #expect(duration > .zero)
     }
-    
+
     @Test
     static func architectureVisitorMissingProtocols() throws {
         // Given
@@ -141,49 +141,49 @@ struct ArchitectureTests {
             @Published var userEmail = ""
         }
         """
-        
+
         var visitor = ArchitectureVisitor(patternCategory: .architecture)
         visitor.setFilePath("UserManager.swift")
-        
+
         // When
         let sourceFile = Parser.parse(source: sourceCode)
         visitor.walk(sourceFile)
-        
+
         // Then
         #expect(visitor.detectedIssues.count == 1)
-        
+
         let protocolIssue = visitor.detectedIssues.first
         try #require(protocolIssue)
         #expect(protocolIssue?.message.contains("UserManager") == true)
         #expect(protocolIssue?.message.contains("protocol") == true)
         #expect(protocolIssue?.severity == .info)
     }
-    
+
     @Test
     static func architectureVisitorCircularDependencies() throws {
         // Given
         let sourceCode = """
         import TestView
-        
+
         struct TestView: View {
             var body: some View {
                 Text("Hello")
             }
         }
         """
-        
+
         var visitor = ArchitectureVisitor(patternCategory: .architecture)
         visitor.setFilePath("TestView.swift")
-        
+
         // When
         let sourceFile = Parser.parse(source: sourceCode)
         visitor.walk(sourceFile)
-        
+
         // Then
         #expect(visitor.detectedIssues.count == 1)
-        
+
         let circularIssue = try #require(visitor.detectedIssues.first)
         #expect(circularIssue.message.contains("circular dependency") == true)
         #expect(circularIssue.severity == .error)
     }
-} 
+}

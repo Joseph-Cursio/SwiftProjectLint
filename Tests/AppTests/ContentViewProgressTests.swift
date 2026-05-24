@@ -25,4 +25,4 @@ struct ContentViewProgressTests {
         // Should render nothing
         #expect((try? view.inspect().vStack()) == nil)
     }
-} 
+}

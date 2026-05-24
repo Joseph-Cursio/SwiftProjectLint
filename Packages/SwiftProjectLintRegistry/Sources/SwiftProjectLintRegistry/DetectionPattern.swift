@@ -21,7 +21,7 @@ public struct DetectionPattern {
     public let message: String
     public let suggestion: String
     public let category: PatternCategory
-    
+
     public init(name: RuleIdentifier, severity: IssueSeverity, message: String, suggestion: String, category: PatternCategory) {
         self.name = name
         self.severity = severity
@@ -29,4 +29,4 @@ public struct DetectionPattern {
         self.suggestion = suggestion
         self.category = category
     }
-} 
+}

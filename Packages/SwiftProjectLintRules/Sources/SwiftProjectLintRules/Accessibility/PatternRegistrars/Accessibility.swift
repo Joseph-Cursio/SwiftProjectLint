@@ -186,4 +186,4 @@ class Accessibility: BasePatternRegistrar {
             )
         ])
     }
-} 
+}

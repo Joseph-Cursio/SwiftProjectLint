@@ -14,7 +14,7 @@ import SwiftSyntax
 ///
 /// - Note: This registry supports both singleton access via `shared` and dependency injection.
 public final class SourcePatternRegistry: SourcePatternRegistryProtocol, @unchecked Sendable {
-    
+
     /// Shared singleton instance for global access.
     public static let shared = SourcePatternRegistry()
 

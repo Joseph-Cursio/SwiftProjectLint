@@ -11,7 +11,7 @@ struct ViewRelationshipBasicDetectionTests {
 
     private func extractRelationships(from sourceCode: String, parentView: String) -> [ViewRelationship] {
         let sourceFile = Parser.parse(source: sourceCode)
-        
+
         let sourceLocationConverter = SourceLocationConverter(fileName: "test.swift", tree: sourceFile)
         let visitor = ViewRelationshipVisitor(
             parentView: parentView,
@@ -32,13 +32,13 @@ struct ViewRelationshipBasicDetectionTests {
             }
         }
         """
-        
+
         let relationships = extractRelationships(from: sourceCode, parentView: "ContentView")
-        
+
         // Text is a system view, so it should NOT be detected as a direct child
         #expect(relationships.isEmpty)
     }
-    
+
     @Test func testBasicDetection() throws {
         let sourceCode = """
         struct ContentView: View {
@@ -52,13 +52,13 @@ struct ViewRelationshipBasicDetectionTests {
             }
         }
         """
-        
+
         let relationships = extractRelationships(from: sourceCode, parentView: "ContentView")
-        
+
         // Text and Button are system views, so they should NOT be detected as direct children
         #expect(relationships.isEmpty)
     }
-    
+
     @Test func testDirectChildViewDetection() throws {
         let sourceCode = """
         struct ContentView: View {
@@ -70,7 +70,7 @@ struct ViewRelationshipBasicDetectionTests {
             }
         }
         """
-        
+
         let relationships = extractRelationships(from: sourceCode, parentView: "ContentView")
 
         // Only RoundView (custom view) should be detected as direct child
@@ -81,7 +81,7 @@ struct ViewRelationshipBasicDetectionTests {
         #expect(relationship.relationshipType == .directChild)
         #expect(relationship.parentView == "ContentView")
     }
-    
+
     @Test func testLineNumberCalculation() throws {
         let sourceCode = """
         struct ContentView: View {
@@ -90,11 +90,11 @@ struct ViewRelationshipBasicDetectionTests {
             }
         }
         """
-        
+
         let relationships = extractRelationships(from: sourceCode, parentView: "ContentView")
-        
+
         #expect(relationships.count == 1)
         let relationship = try #require(relationships.first)
         #expect(relationship.lineNumber == 3) // CustomView("Hello") is on line 3
     }
-} 
+}

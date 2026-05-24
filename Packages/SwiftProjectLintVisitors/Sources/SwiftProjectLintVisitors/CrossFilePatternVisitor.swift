@@ -16,12 +16,12 @@ import SwiftSyntax
 public protocol CrossFilePatternVisitorProtocol: PatternVisitorProtocol {
     /// The cached source files for cross-file analysis.
     var fileCache: [String: SourceFileSyntax] { get }
-    
+
     /// Creates a new cross-file pattern visitor with access to the file cache.
     ///
     /// - Parameter fileCache: A dictionary mapping file paths to their parsed ASTs.
     init(fileCache: [String: SourceFileSyntax])
-    
+
     /// Performs final analysis after all files have been processed.
     func finalizeAnalysis()
 }

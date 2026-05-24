@@ -23,21 +23,21 @@ import Testing
 /// - Error handling and edge cases
 
 struct CrossFileAnalysisClaimsTests {
-    
+
     // MARK: - Cross-File Analysis Claims Investigation
-    
+
     @Test func characterizeCrossFileAnalysisClaimsVsReality() throws {
         let detector = SourcePatternDetector()
-        
+
         // Create two files with identical state variables (potential duplicates)
         let parentViewContent = """
     import SwiftUI
-    
+
     struct ParentView: View {
         @State private var isLoading: Bool = false
         @State private var userName: String = ""
         @State private var counter: Int = 0
-        
+
         var body: some View {
             VStack {
                 ChildView()
@@ -48,15 +48,15 @@ struct CrossFileAnalysisClaimsTests {
         }
     }
     """
-        
+
         let childViewContent = """
     import SwiftUI
-    
+
     struct ChildView: View {
         @State private var isLoading: Bool = false  // Same as parent
         @State private var userName: String = ""   // Same as parent
         @State private var counter: Int = 0        // Same as parent
-        
+
         var body: some View {
             VStack {
                 Text("Child View")
@@ -66,11 +66,11 @@ struct CrossFileAnalysisClaimsTests {
         }
     }
     """
-        
+
         // Analyze files separately (current single-file behavior)
         let parentIssues = detector.detectPatterns(in: parentViewContent, filePath: "/ParentView.swift")
         let childIssues = detector.detectPatterns(in: childViewContent, filePath: "/ChildView.swift")
-        
+
         // Look for any cross-file duplicate detection
         let allIssues = parentIssues + childIssues
         let duplicateRelatedIssues = allIssues.filter { issue in
@@ -81,10 +81,10 @@ struct CrossFileAnalysisClaimsTests {
         // Single-file analysis cannot detect cross-file duplicates
         #expect(duplicateRelatedIssues.isEmpty)
     }
-    
+
     @Test func characterizeFileCacheCapabilities() throws {
         let detector = SourcePatternDetector()
-        
+
         // Test if file cache can hold multiple files simultaneously
         let view1 = """
     import SwiftUI
@@ -93,7 +93,7 @@ struct CrossFileAnalysisClaimsTests {
         var body: some View { Text("1") }
     }
     """
-        
+
         let view2 = """
     import SwiftUI
     struct View2: View {
@@ -101,7 +101,7 @@ struct CrossFileAnalysisClaimsTests {
         var body: some View { Text("2") }
     }
     """
-        
+
         let view3 = """
     import SwiftUI
     struct View3: View {
@@ -109,13 +109,13 @@ struct CrossFileAnalysisClaimsTests {
         var body: some View { Text("3") }
     }
     """
-        
+
         // Analyze multiple files in sequence
         _ = detector.detectPatterns(in: view1, filePath: "/View1.swift")
         _ = detector.detectPatterns(in: view2, filePath: "/View2.swift")
         _ = detector.detectPatterns(in: view3, filePath: "/View3.swift")
-        
+
         #expect(true, "File cache should handle sequential single-file analysis")
     }
-    
+
 }

@@ -17,4 +17,4 @@ struct SimpleTests {
         #expect(rule.rawValue == "Related Duplicate State Variable")
         #expect(rule.category == .stateManagement)
     }
-} 
+}
