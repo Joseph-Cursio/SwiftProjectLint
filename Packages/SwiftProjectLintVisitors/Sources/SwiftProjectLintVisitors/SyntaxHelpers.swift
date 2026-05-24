@@ -1,50 +1,11 @@
 import SwiftProjectLintModels
 import SwiftSyntax
 
-// MARK: - SwiftSyntax Convenience Extensions
-
-extension FunctionDeclSyntax {
-    /// Direct accessor for the parameter list, avoiding deep signature navigation.
-    public var parameterList: FunctionParameterListSyntax {
-        signature.parameterClause.parameters
-    }
-}
-
-extension InitializerDeclSyntax {
-    /// Direct accessor for the parameter list, avoiding deep signature navigation.
-    public var parameterList: FunctionParameterListSyntax {
-        signature.parameterClause.parameters
-    }
-}
-
-extension VariableDeclSyntax {
-    /// Returns the initialiser closure for a single-binding decl whose
-    /// initialiser is a closure literal. Returns `nil` when:
-    /// - the decl has more than one binding (`let a = {}, b = {}`)
-    /// - the sole binding has no initialiser
-    /// - the initialiser is some other expression (`let x = 42`)
-    ///
-    /// Closure-handler annotation (Phase 2 third slice) uses this as the
-    /// anchor for the closure's body when `/// @lint.context` is declared
-    /// on the variable decl.
-    public var closureInitializer: ClosureExprSyntax? {
-        guard bindings.count == 1,
-              let binding = bindings.first,
-              let initialiser = binding.initializer?.value.as(ClosureExprSyntax.self)
-        else { return nil }
-        return initialiser
-    }
-
-    /// The simple identifier of the single binding, if any. Returns `nil`
-    /// for multi-binding decls or non-identifier patterns (tuple patterns,
-    /// wildcards, etc.).
-    public var firstBindingName: String? {
-        guard bindings.count == 1,
-              let pattern = bindings.first?.pattern.as(IdentifierPatternSyntax.self)
-        else { return nil }
-        return pattern.identifier.text
-    }
-}
+/// Namespace marker. Required by SwiftLint's `file_name` rule, which
+/// expects this file to declare a type matching its name. The helpers
+/// below remain at module scope by design (call sites bypass the verbose
+/// `Type.` prefix that would push them past `line_length`).
+public enum SyntaxHelpers {}
 
 /// Returns whether a `ForEach` collection expression is safe to use with `id: \.self`.
 ///
