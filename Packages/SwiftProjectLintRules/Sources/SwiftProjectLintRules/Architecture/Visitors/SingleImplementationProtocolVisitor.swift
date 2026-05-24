@@ -1,7 +1,7 @@
+import Foundation
 import SwiftProjectLintModels
 import SwiftProjectLintRegistry
 import SwiftProjectLintVisitors
-import Foundation
 import SwiftSyntax
 
 /// A cross-file visitor that detects protocols with only one concrete conformer.

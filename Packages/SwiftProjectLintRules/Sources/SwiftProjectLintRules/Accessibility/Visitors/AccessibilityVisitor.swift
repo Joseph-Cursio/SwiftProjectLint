@@ -1,9 +1,9 @@
+import Foundation
+import SwiftParser
 import SwiftProjectLintModels
 import SwiftProjectLintRegistry
 import SwiftProjectLintVisitors
-import Foundation
 import SwiftSyntax
-import SwiftParser
 
 /// A visitor that analyzes Swift code for accessibility-related issues using SwiftSyntax AST.
 ///

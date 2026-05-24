@@ -1,8 +1,8 @@
-import Testing
+import SwiftParser
 @testable import SwiftProjectLintIdempotencyRules
 @testable import SwiftProjectLintVisitors
 import SwiftSyntax
-import SwiftParser
+import Testing
 
 /// Slot 14 — the HttpPipeline pipeline-primitive whitelist. Covers the
 /// freestanding curried functions (`writeStatus` / `respond`) used in

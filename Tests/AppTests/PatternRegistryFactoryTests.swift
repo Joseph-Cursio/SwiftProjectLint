@@ -1,6 +1,6 @@
-import Testing
 @testable import App
 @testable import Core
+import Testing
 
 @Suite("PatternRegistryFactory Tests")
 @MainActor

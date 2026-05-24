@@ -5,8 +5,8 @@
 //  Created by Joseph Cursio on 3/18/26.
 //
 
-import Foundation
 import Core
+import Foundation
 
 /// Loads rule documentation markdown from the app bundle.
 struct RuleDocumentationLoader {

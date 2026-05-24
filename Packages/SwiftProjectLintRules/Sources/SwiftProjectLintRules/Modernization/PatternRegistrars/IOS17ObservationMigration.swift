@@ -1,7 +1,7 @@
+import Foundation
 import SwiftProjectLintModels
 import SwiftProjectLintRegistry
 import SwiftProjectLintVisitors
-import Foundation
 
 /// A registrar for the iOS 17 Observation Migration pattern.
 ///

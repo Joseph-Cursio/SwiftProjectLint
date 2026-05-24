@@ -1,7 +1,7 @@
-import Testing
+import SwiftParser
 @testable import SwiftProjectLintVisitors
 import SwiftSyntax
-import SwiftParser
+import Testing
 
 /// Tests that `EffectAnnotationParser` recognises attribute-form
 /// annotations (`@Idempotent`, `@NonIdempotent`, `@Observational`,

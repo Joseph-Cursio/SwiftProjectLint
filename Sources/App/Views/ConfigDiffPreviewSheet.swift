@@ -1,6 +1,6 @@
-import SwiftUI
-import LintStudioUI
 import LintStudioCore
+import LintStudioUI
+import SwiftUI
 
 /// A sheet that shows a unified diff of YAML config changes before saving.
 struct ConfigDiffPreviewSheet: View {

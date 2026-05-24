@@ -1,8 +1,8 @@
-import Testing
+import SwiftParser
 @testable import SwiftProjectLintIdempotencyRules
 @testable import SwiftProjectLintVisitors
 import SwiftSyntax
-import SwiftParser
+import Testing
 
 /// Integration-level tests for the signature-aware collision policy:
 /// `EffectSymbolTable` end-to-end behavior, overload resolution,

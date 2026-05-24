@@ -1,9 +1,9 @@
-import Testing
-import Foundation
-import SwiftSyntax
-import SwiftParser
 @testable import Core
+import Foundation
+import SwiftParser
 @testable import SwiftProjectLintRules
+import SwiftSyntax
+import Testing
 
 /// Tests for NetworkingVisitor code paths that require typed closure parameters.
 ///

@@ -1,8 +1,8 @@
-import Testing
+import SwiftParser
 @testable import SwiftProjectLintIdempotencyRules
 @testable import SwiftProjectLintVisitors
 import SwiftSyntax
-import SwiftParser
+import Testing
 
 /// Phase-2 third-slice: closure-binding annotation end-to-end rule tests.
 /// Verifies that `/// @lint.context` / `/// @lint.effect` on a variable

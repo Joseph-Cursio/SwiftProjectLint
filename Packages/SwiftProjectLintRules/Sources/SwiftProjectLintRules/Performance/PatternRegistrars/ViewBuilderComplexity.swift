@@ -1,7 +1,7 @@
+import Foundation
 import SwiftProjectLintModels
 import SwiftProjectLintRegistry
 import SwiftProjectLintVisitors
-import Foundation
 
 /// A registrar for the ViewBuilder complexity pattern.
 ///

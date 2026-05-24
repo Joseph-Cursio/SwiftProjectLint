@@ -5,10 +5,10 @@
 //  Created by Joseph Cursio on 7/15/25.
 //
 
-import Testing
-import Foundation
 @testable import Core
+import Foundation
 @testable import SwiftProjectLintRules
+import Testing
 
 /// Comprehensive Characterization Tests for SourcePatternDetector
 ///

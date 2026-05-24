@@ -1,5 +1,5 @@
-import SwiftUI
 import Core
+import SwiftUI
 
 /// A SwiftUI view that displays a single lint issue in a row format, with expandable details.
 ///

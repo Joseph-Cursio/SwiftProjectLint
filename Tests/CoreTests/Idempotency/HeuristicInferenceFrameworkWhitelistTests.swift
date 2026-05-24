@@ -1,8 +1,8 @@
-import Testing
+import SwiftParser
 @testable import SwiftProjectLintIdempotencyRules
 @testable import SwiftProjectLintVisitors
 import SwiftSyntax
-import SwiftParser
+import Testing
 
 /// Framework-whitelist fixtures for the heuristic inferrer: known-pure
 /// type constructors, `.init(...)` member-access form, codec-pattern

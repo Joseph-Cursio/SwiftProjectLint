@@ -1,8 +1,8 @@
-import Testing
+import SwiftParser
 @testable import SwiftProjectLintIdempotencyRules
 @testable import SwiftProjectLintVisitors
 import SwiftSyntax
-import SwiftParser
+import Testing
 
 /// Covers the `infer(call:imports:enabledFrameworks:)` API along two axes:
 ///   1. Import-gated — a framework's whitelist fires only when the

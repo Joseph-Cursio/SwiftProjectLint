@@ -1,6 +1,6 @@
-import Testing
 import PropertyBased
 @testable import SwiftProjectLintVisitors
+import Testing
 
 /// Property-based validation of `UpwardEffectInferrer.leastUpperBound`.
 ///

@@ -1,6 +1,6 @@
-import Testing
-import SwiftUI
 import Core
+import SwiftUI
+import Testing
 
 @testable import App
 

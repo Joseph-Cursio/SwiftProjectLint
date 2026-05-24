@@ -1,7 +1,7 @@
+import Foundation
 import SwiftProjectLintModels
 import SwiftProjectLintRegistry
 import SwiftProjectLintVisitors
-import Foundation
 
 struct PublicInAppTarget: PatternRegistrarProtocol {
 

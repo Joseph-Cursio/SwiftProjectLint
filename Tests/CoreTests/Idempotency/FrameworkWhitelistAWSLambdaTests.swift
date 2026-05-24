@@ -1,8 +1,8 @@
-import Testing
+import SwiftParser
 @testable import SwiftProjectLintIdempotencyRules
 @testable import SwiftProjectLintVisitors
 import SwiftSyntax
-import SwiftParser
+import Testing
 
 /// AWSLambdaRuntime-framework whitelist coverage: the response-writer
 /// primitive pairs (`outputWriter.write` / `responseWriter.write` /

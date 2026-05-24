@@ -1,5 +1,5 @@
-import Testing
 import SwiftUI
+import Testing
 import ViewInspector
 
 @testable import App

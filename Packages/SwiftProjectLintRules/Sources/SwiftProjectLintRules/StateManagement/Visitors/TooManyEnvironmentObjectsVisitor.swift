@@ -1,7 +1,7 @@
+import Foundation
 import SwiftProjectLintModels
 import SwiftProjectLintRegistry
 import SwiftProjectLintVisitors
-import Foundation
 import SwiftSyntax
 
 /// Visitor that detects SwiftUI views with too many @EnvironmentObject declarations.

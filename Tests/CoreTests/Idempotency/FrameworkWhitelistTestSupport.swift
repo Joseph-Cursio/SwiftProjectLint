@@ -1,8 +1,8 @@
-import Testing
+import SwiftParser
 @testable import SwiftProjectLintIdempotencyRules
 @testable import SwiftProjectLintVisitors
 import SwiftSyntax
-import SwiftParser
+import Testing
 
 // Shared helpers for the FrameworkWhitelist* test suites. Promoted to
 // module-scope so every split file can reach them without the verbose

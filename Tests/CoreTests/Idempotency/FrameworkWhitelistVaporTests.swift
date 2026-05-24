@@ -1,8 +1,8 @@
-import Testing
+import SwiftParser
 @testable import SwiftProjectLintIdempotencyRules
 @testable import SwiftProjectLintVisitors
 import SwiftSyntax
-import SwiftParser
+import Testing
 
 /// Vapor-framework whitelist coverage: routing DSL (slot 17 —
 /// `app.get/post/put/patch/delete`) and `app.register(collection:)`

@@ -1,8 +1,8 @@
+import SwiftParser
 import SwiftProjectLintModels
 import SwiftProjectLintRegistry
 import SwiftProjectLintVisitors
 import SwiftSyntax
-import SwiftParser
 
 /// A visitor that analyzes Swift code for networking issues using SwiftSyntax AST.
 /// Detects patterns such as missing error handling in URLSession and synchronous networking calls.

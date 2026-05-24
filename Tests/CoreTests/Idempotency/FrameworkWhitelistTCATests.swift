@@ -1,8 +1,8 @@
-import Testing
+import SwiftParser
 @testable import SwiftProjectLintIdempotencyRules
 @testable import SwiftProjectLintVisitors
 import SwiftSyntax
-import SwiftParser
+import Testing
 
 /// ComposableArchitecture (TCA) `send` closure-parameter override — when
 /// `import ComposableArchitecture` is present, bare receiverless `send(...)`

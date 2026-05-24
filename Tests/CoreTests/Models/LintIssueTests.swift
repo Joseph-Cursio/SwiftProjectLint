@@ -1,5 +1,5 @@
-import Testing
 import Core
+import Testing
 
 struct LintIssueTests {
     

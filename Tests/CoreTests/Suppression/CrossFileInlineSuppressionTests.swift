@@ -1,7 +1,7 @@
-import Testing
-import Foundation
 @testable import Core
+import Foundation
 @testable import SwiftProjectLintRules
+import Testing
 
 /// Regression tests for the cross-file-rule inline-suppression bug
 /// surfaced during round-9 validation. Prior to the fix,

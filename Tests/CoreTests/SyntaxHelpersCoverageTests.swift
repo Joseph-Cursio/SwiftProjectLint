@@ -1,8 +1,8 @@
-import Testing
-import SwiftSyntax
-import SwiftParser
 @testable import Core
+import SwiftParser
 @testable import SwiftProjectLintRules
+import SwiftSyntax
+import Testing
 
 /// Coverage tests for uncovered paths in SyntaxHelpers.swift:
 /// - isForEachCollectionSafeForSelfID: array literal, .allCases, .filter chain (lines 29, 35, 41, 48-49)

@@ -1,8 +1,8 @@
-import Testing
+import SwiftParser
 @testable import SwiftProjectLintIdempotencyRules
 @testable import SwiftProjectLintVisitors
 import SwiftSyntax
-import SwiftParser
+import Testing
 
 /// Phase-2 heuristic inference fixtures. The inferrer supplies a declared-
 /// style effect for un-annotated callees at the call site. Declared effects

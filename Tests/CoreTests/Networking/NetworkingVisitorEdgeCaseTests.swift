@@ -1,9 +1,9 @@
-import Testing
-import Foundation
-import SwiftSyntax
-import SwiftParser
 @testable import Core
+import Foundation
+import SwiftParser
 @testable import SwiftProjectLintRules
+import SwiftSyntax
+import Testing
 
 /// Tests for uncovered paths in NetworkingVisitor:
 /// - dataTask without trailing closure

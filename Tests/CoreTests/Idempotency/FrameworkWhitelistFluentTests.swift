@@ -1,8 +1,8 @@
-import Testing
+import SwiftParser
 @testable import SwiftProjectLintIdempotencyRules
 @testable import SwiftProjectLintVisitors
 import SwiftSyntax
-import SwiftParser
+import Testing
 
 /// Fluent-framework whitelist coverage: non-idempotent ORM verbs,
 /// idempotent query-builder reads, and the `Fluent` meta-package import

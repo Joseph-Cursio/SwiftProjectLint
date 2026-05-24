@@ -1,5 +1,5 @@
-import SwiftProjectLintModels
 import Foundation
+import SwiftProjectLintModels
 
 /// A node in a directory tree with tri-state check behavior.
 ///

@@ -1,5 +1,5 @@
-import SwiftProjectLintModels
 import Foundation
+import SwiftProjectLintModels
 
 /// Writes a `LintConfiguration` to a YAML file.
 public struct LintConfigurationWriter {

@@ -1,8 +1,8 @@
-import Testing
+import SwiftParser
 @testable import SwiftProjectLintIdempotencyRules
 @testable import SwiftProjectLintVisitors
 import SwiftSyntax
-import SwiftParser
+import Testing
 
 /// Hummingbird-framework whitelist coverage: primitive pairs
 /// (`HTTPError` / `request.decode` / `parameters.require`) and the

@@ -1,7 +1,7 @@
+import Foundation
 import SwiftProjectLintModels
 import SwiftProjectLintRegistry
 import SwiftProjectLintVisitors
-import Foundation
 import SwiftSyntax
 
 /// Checks accessibility issues specific to Text elements in SwiftUI.

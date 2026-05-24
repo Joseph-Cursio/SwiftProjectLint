@@ -1,5 +1,5 @@
-import Foundation
 @testable import Core
+import Foundation
 @testable import SwiftProjectLintIdempotencyRules
 @testable import SwiftProjectLintRules
 

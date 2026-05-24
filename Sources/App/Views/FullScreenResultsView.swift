@@ -1,5 +1,5 @@
-import SwiftUI
 import Core
+import SwiftUI
 
 /// A full-screen view for displaying lint results with maximum space utilization.
 struct FullScreenResultsView: View {

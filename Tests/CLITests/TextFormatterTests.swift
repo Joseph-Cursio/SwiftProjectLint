@@ -1,6 +1,6 @@
-import Testing
-import Core
 @testable import CLI
+import Core
+import Testing
 
 struct TextFormatterTests {
     @Test

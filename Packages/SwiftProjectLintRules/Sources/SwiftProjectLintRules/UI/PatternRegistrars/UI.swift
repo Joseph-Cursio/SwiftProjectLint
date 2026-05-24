@@ -1,7 +1,7 @@
+import Foundation
 import SwiftProjectLintModels
 import SwiftProjectLintRegistry
 import SwiftProjectLintVisitors
-import Foundation
 
 /// Registers patterns related to UI best practices in SwiftUI.
 /// This registrar handles patterns for navigation, ForEach usage, styling, and error handling.

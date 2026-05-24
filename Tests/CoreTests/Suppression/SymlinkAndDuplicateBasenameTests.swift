@@ -1,7 +1,7 @@
-import Testing
-import Foundation
 @testable import Core
+import Foundation
 @testable import SwiftProjectLintRules
+import Testing
 
 /// Regression tests for the slot-12 round-6 blocker surfaced on
 /// `vapor/penny-bot` — `ProjectLinter.makeProjectFile` miscomputed

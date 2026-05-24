@@ -1,7 +1,7 @@
+import Foundation
 import SwiftProjectLintModels
 import SwiftProjectLintRegistry
 import SwiftProjectLintVisitors
-import Foundation
 import SwiftSyntax
 
 /// Visitor that detects incorrect SwiftUI modifier ordering.

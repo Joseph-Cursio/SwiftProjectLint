@@ -1,8 +1,8 @@
-import Testing
-import SwiftSyntax
 @testable import Core
 @testable import SwiftProjectLintIdempotencyRules
 @testable import SwiftProjectLintRules
+import SwiftSyntax
+import Testing
 
 /// Serialized so that concurrent tests in this suite cannot race on the
 /// shared `SourcePatternRegistry.registrarFactories` static list.

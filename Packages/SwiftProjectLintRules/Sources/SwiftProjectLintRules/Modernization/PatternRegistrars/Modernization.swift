@@ -1,7 +1,7 @@
+import Foundation
 import SwiftProjectLintModels
 import SwiftProjectLintRegistry
 import SwiftProjectLintVisitors
-import Foundation
 
 /// Registers patterns related to API modernization.
 /// This registrar handles patterns for outdated APIs that have modern Swift replacements,

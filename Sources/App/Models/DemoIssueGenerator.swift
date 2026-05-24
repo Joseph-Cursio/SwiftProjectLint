@@ -5,8 +5,8 @@
 //  Created by Joseph Cursio on 7/1/25.
 //
 
-import Foundation
 import Core
+import Foundation
 
 /// Generates demo lint issues for illustration purposes.
 ///

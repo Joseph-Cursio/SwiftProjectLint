@@ -1,3 +1,6 @@
+@testable import Core
+import Foundation
+@testable import SwiftProjectLintRules
 //
 //  SourcePatternFileCacheTests.swift
 //  SwiftProjectLint
@@ -5,9 +8,6 @@
 //  Created by Joseph Cursio on 7/15/25.
 //
 import Testing
-import Foundation
-@testable import Core
-@testable import SwiftProjectLintRules
 
 /// Comprehensive Characterization Tests for SourcePatternDetector
 ///

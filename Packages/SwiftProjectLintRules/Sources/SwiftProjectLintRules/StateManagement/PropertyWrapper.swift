@@ -1,7 +1,7 @@
+import Foundation
 import SwiftProjectLintModels
 import SwiftProjectLintRegistry
 import SwiftProjectLintVisitors
-import Foundation
 
 /// Enum representing supported SwiftUI property wrappers for state management.
 public enum PropertyWrapper: String, CaseIterable, Sendable {

@@ -1,6 +1,6 @@
-import SwiftUI
 import Core
 import LintStudioUI
+import SwiftUI
 
 /// A reusable summary section displaying issue counts by severity.
 ///

@@ -5,8 +5,8 @@
 //  Created by Joseph Cursio on 7/1/25.
 //
 
-import Foundation
 import Core
+import Foundation
 
 /// Represents pattern category information for UI display.
 struct PatternCategoryInfo {

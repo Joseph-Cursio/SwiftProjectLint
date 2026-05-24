@@ -1,7 +1,7 @@
-import Testing
+import SwiftParser
 @testable import SwiftProjectLintIdempotencyRules
 import SwiftSyntax
-import SwiftParser
+import Testing
 
 @Suite
 struct NonIdempotentInRetryContextVisitorTests {

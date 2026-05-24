@@ -1,6 +1,6 @@
-import Testing
 @testable import App
 import Core
+import Testing
 
 @MainActor
 struct DemoIssueGeneratorTests {

@@ -1,7 +1,7 @@
-import Testing
 @testable import App
 import Core
 import SwiftSyntax
+import Testing
 
 @MainActor
 struct PatternConfigurationTests {

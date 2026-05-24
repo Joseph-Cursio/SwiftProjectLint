@@ -5,9 +5,9 @@
 //  Created by Joseph Cursio on 7/5/25.
 //
 
-import Testing
 @testable import Core
 @testable import SwiftProjectLintRules
+import Testing
 
 @Suite("Core Module Tests")
 struct CoreModuleTests {

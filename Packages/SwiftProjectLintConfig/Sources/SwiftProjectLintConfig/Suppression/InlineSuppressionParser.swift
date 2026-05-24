@@ -1,5 +1,5 @@
-import SwiftProjectLintModels
 import Foundation
+import SwiftProjectLintModels
 
 /// A parsed inline suppression directive from a Swift source comment.
 public struct SuppressionDirective: Sendable {

@@ -1,6 +1,6 @@
-import Testing
 import Foundation
 @testable import SwiftProjectLintCore
+import Testing
 
 final class AdvancedAnalyzerTests {
     

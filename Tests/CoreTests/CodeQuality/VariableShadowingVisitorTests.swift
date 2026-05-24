@@ -1,9 +1,9 @@
-import Testing
 @testable import Core
-@testable import SwiftProjectLintRules
-import SwiftProjectLintModels
-import SwiftSyntax
 import SwiftParser
+import SwiftProjectLintModels
+@testable import SwiftProjectLintRules
+import SwiftSyntax
+import Testing
 
 private func makeVisitor() -> VariableShadowingVisitor {
     let pattern = VariableShadowing().pattern

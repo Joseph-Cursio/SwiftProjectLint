@@ -1,6 +1,6 @@
 import AppKit
-import SwiftUI
 import Core
+import SwiftUI
 
 /// Manages a standalone NSWindow for the rule selection dialog.
 ///

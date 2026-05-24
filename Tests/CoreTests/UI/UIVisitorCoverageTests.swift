@@ -1,9 +1,9 @@
-import Testing
-import Foundation
-import SwiftSyntax
-import SwiftParser
 @testable import Core
+import Foundation
+import SwiftParser
 @testable import SwiftProjectLintRules
+import SwiftSyntax
+import Testing
 
 /// Coverage tests for uncovered paths in UIVisitor.swift:
 /// - #Preview attribute on struct (lines 41-43)

@@ -1,8 +1,8 @@
-import Testing
+import SwiftParser
 @testable import SwiftProjectLintIdempotencyRules
 @testable import SwiftProjectLintVisitors
 import SwiftSyntax
-import SwiftParser
+import Testing
 
 /// Phase-2.1 fixtures for the `missingIdempotencyKey` rule — the verifier for
 /// the trust the `externally_idempotent` tier grants call sites.

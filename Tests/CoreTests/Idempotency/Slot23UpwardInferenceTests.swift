@@ -1,8 +1,8 @@
-import Testing
+import SwiftParser
 @testable import SwiftProjectLintIdempotencyRules
 @testable import SwiftProjectLintVisitors
 import SwiftSyntax
-import SwiftParser
+import Testing
 
 /// Tests the slot-23 fix: upward inference must populate `upwardInferredEffects`
 /// even when the signature already has a context-only entry in

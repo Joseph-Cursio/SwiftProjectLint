@@ -1,7 +1,7 @@
-import Testing
-import SwiftUI
-@testable import Core
 @testable import App
+@testable import Core
+import SwiftUI
+import Testing
 import ViewInspector
 
 struct LintResultsViewTests {

@@ -1,6 +1,6 @@
 import Foundation
-import SwiftProjectLintModels
 import LintStudioCore
+import SwiftProjectLintModels
 
 /// Formats lint issues as a CSV report using the shared LintStudioCore escaping.
 public struct CSVFormatter: IssueFormatterProtocol {

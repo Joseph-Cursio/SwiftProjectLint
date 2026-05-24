@@ -1,8 +1,8 @@
-import Testing
+import SwiftParser
 @testable import SwiftProjectLintIdempotencyRules
 @testable import SwiftProjectLintVisitors
 import SwiftSyntax
-import SwiftParser
+import Testing
 
 /// Exercises the cross-file pathway: declarations in one file resolved against
 /// callers in another, plus the collision policy for bare-name ambiguity.

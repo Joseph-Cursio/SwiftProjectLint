@@ -1,8 +1,8 @@
+import Foundation
+import SwiftParser
 import SwiftProjectLintModels
 import SwiftProjectLintRegistry
 import SwiftProjectLintVisitors
-import Foundation
-import SwiftParser
 import SwiftSyntax
 
 // MARK: - SwiftUI Management Visitor

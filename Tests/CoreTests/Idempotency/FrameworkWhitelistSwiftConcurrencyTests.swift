@@ -1,8 +1,8 @@
-import Testing
+import SwiftParser
 @testable import SwiftProjectLintIdempotencyRules
 @testable import SwiftProjectLintVisitors
 import SwiftSyntax
-import SwiftParser
+import Testing
 
 /// Slot 22 — `Task.sleep` under the SwiftConcurrency always-active gate.
 /// SwiftConcurrency is a stdlib framework (listed in

@@ -1,8 +1,8 @@
-import Testing
+import SwiftParser
 @testable import SwiftProjectLintIdempotencyRules
 @testable import SwiftProjectLintVisitors
 import SwiftSyntax
-import SwiftParser
+import Testing
 
 /// Locks in the Phase-1 closure-traversal policy: the body check stops at
 /// trailing closures of structured-concurrency / SwiftUI escape boundaries.

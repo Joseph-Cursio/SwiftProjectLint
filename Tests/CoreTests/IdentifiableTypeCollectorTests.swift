@@ -1,8 +1,8 @@
-import Testing
-import SwiftSyntax
-import SwiftParser
 @testable import Core
+import SwiftParser
 @testable import SwiftProjectLintRules
+import SwiftSyntax
+import Testing
 
 @Suite
 struct IdentifiableTypeCollectorTests {

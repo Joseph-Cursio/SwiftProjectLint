@@ -5,8 +5,8 @@
 //  Created by Joseph Cursio on 3/16/26.
 //
 
-import SwiftUI
 import Core
+import SwiftUI
 
 /// View model that manages state and business logic for ContentView.
 ///

@@ -1,7 +1,7 @@
+@testable import CLI
+import Core
 import Foundation
 import Testing
-import Core
-@testable import CLI
 
 struct JSONFormatterTests {
     @Test

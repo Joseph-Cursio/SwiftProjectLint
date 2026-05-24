@@ -5,8 +5,8 @@
 //  Created by Joseph Cursio on 7/1/25.
 //
 
-import SwiftUI
 import Core
+import SwiftUI
 
 /// The results section of the main content view.
 ///

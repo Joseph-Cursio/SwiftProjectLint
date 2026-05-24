@@ -1,7 +1,7 @@
-import Testing
 @testable import Core
-@testable import SwiftProjectLintRules
 import SwiftParser
+@testable import SwiftProjectLintRules
+import Testing
 
 @Suite
 struct DisfavoredOverloadVisitorTests {

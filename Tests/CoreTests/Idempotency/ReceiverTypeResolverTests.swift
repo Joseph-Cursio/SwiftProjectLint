@@ -1,7 +1,7 @@
-import Testing
+import SwiftParser
 @testable import SwiftProjectLintVisitors
 import SwiftSyntax
-import SwiftParser
+import Testing
 
 /// Phase-2 second-slice: receiver-type resolver fixtures. Exercises the
 /// syntactic resolver across every supported source (literal, constructor,

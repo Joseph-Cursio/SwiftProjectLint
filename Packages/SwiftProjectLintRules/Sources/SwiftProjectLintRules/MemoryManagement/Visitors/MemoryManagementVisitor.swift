@@ -1,8 +1,8 @@
+import SwiftParser
 import SwiftProjectLintModels
 import SwiftProjectLintRegistry
 import SwiftProjectLintVisitors
 import SwiftSyntax
-import SwiftParser
 
 /// A visitor that analyzes Swift code for memory management issues using SwiftSyntax AST.
 /// Detects patterns such as potential retain cycles and large objects in state.

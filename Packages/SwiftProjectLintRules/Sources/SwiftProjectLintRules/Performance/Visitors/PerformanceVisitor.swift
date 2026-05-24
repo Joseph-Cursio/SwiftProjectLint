@@ -1,7 +1,7 @@
+import Foundation
 import SwiftProjectLintModels
 import SwiftProjectLintRegistry
 import SwiftProjectLintVisitors
-import Foundation
 import SwiftSyntax
 
 // Helpers are now in: PerformanceDetectionHelpers.swift, PerformanceStateVariableTracking.swift, SwiftUIViewUtils.swift

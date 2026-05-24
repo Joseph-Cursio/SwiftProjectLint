@@ -1,6 +1,6 @@
 import Foundation
-import SwiftProjectLintModels
 import LintStudioCore
+import SwiftProjectLintModels
 
 /// Formats lint issues as an HTML report using the shared LintStudioCore template.
 public struct HTMLFormatter: IssueFormatterProtocol {

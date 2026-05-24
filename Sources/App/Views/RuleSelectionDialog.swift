@@ -5,8 +5,8 @@
 //  Created by Joseph Cursio on 7/1/25.
 //
 
-import SwiftUI
 import Core
+import SwiftUI
 
 // swiftprojectlint:disable:next large-view-body
 /// A two-panel dialog for selecting lint rules and browsing their documentation.

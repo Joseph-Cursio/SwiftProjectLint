@@ -1,7 +1,7 @@
-import Testing
+import SwiftParser
 @testable import SwiftProjectLintVisitors
 import SwiftSyntax
-import SwiftParser
+import Testing
 
 /// Phase-2 third-slice: closure-binding annotation parsing. Exercises
 /// `EffectAnnotationParser` on `VariableDeclSyntax` and the accompanying

@@ -1,8 +1,8 @@
-import Testing
-import SwiftParser
-import SwiftSyntax
 @testable import Core
+import SwiftParser
 @testable import SwiftProjectLintRules
+import SwiftSyntax
+import Testing
 
 /// Coverage tests for uncovered paths in PerformanceStateVariableTracking.swift:
 /// - trackStateVariableAssignment via direct API call (lines 46-54)

@@ -1,9 +1,9 @@
+import Foundation
 // Contains detection helper functions for performance anti-patterns in SwiftUI views.
 import SwiftProjectLintModels
 import SwiftProjectLintRegistry
 import SwiftProjectLintVisitors
 import SwiftSyntax
-import Foundation
 
 extension PerformanceVisitor {
     // MARK: - Detection Methods

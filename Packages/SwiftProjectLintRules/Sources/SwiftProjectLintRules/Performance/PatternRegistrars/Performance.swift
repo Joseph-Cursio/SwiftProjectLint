@@ -1,7 +1,7 @@
+import Foundation
 import SwiftProjectLintModels
 import SwiftProjectLintRegistry
 import SwiftProjectLintVisitors
-import Foundation
 
 /// Registers patterns related to performance optimization in SwiftUI.
 /// This registrar handles patterns for view body optimization, ForEach usage, and performance anti-patterns.

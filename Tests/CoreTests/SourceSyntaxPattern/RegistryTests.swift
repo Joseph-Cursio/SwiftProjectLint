@@ -1,3 +1,4 @@
+@testable import Core
 ///
 /// NOTE ON TEST ISOLATION
 ///
@@ -6,10 +7,9 @@
 ///
 import Foundation
 import SwiftParser
+@testable import SwiftProjectLintRules
 import SwiftSyntax
 import Testing
-@testable import Core
-@testable import SwiftProjectLintRules
 
 struct RegistryTests {
 

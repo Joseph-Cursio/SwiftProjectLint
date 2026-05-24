@@ -6,9 +6,9 @@
 //  to LintStudioCore protocols for shared UI components
 //
 
-import SwiftUI
-import LintStudioCore
 import Core
+import LintStudioCore
+import SwiftUI
 
 // MARK: - IssueSeverity
 

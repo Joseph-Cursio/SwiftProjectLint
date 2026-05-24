@@ -1,5 +1,5 @@
-import SwiftProjectLintModels
 import Foundation
+import SwiftProjectLintModels
 import Yams
 
 /// Loads a `LintConfiguration` from a YAML file.

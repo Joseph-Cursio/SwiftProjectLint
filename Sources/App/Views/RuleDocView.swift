@@ -5,8 +5,8 @@
 //  Created by Joseph Cursio on 3/18/26.
 //
 
-import SwiftUI
 import Core
+import SwiftUI
 
 // swiftprojectlint:disable:next large-view-body
 /// Renders the markdown documentation for a single lint rule.

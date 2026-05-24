@@ -1,5 +1,5 @@
-import SwiftProjectLintModels
 import Foundation
+import SwiftProjectLintModels
 
 /// Filters lint issues according to inline suppression comments in the source file.
 ///

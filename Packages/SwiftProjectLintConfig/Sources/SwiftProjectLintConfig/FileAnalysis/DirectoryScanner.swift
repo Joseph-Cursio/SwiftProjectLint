@@ -1,5 +1,5 @@
-import SwiftProjectLintModels
 import Foundation
+import SwiftProjectLintModels
 
 /// Scans a project directory and builds a `DirectoryNode` tree.
 ///

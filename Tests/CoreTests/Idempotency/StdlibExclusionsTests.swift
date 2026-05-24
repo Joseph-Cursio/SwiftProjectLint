@@ -1,5 +1,5 @@
-import Testing
 @testable import SwiftProjectLintVisitors
+import Testing
 
 /// Fixtures for the stdlib-collection exclusion table. Covers every pair
 /// in the exclusion set plus negative cases (non-matching receivers,

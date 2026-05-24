@@ -1,8 +1,8 @@
-import Testing
+import SwiftParser
 @testable import SwiftProjectLintIdempotencyRules
 @testable import SwiftProjectLintVisitors
 import SwiftSyntax
-import SwiftParser
+import Testing
 
 /// Phase-2.3 upward inference fixtures. Body analysis computes an inferred
 /// effect for an un-annotated function from the lattice lub of its direct

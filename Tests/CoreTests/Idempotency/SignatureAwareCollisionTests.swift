@@ -1,8 +1,8 @@
-import Testing
+import SwiftParser
 @testable import SwiftProjectLintIdempotencyRules
 @testable import SwiftProjectLintVisitors
 import SwiftSyntax
-import SwiftParser
+import Testing
 
 /// Exercises the OI-4 Phase-1.1 collision refinement: the `EffectSymbolTable`
 /// keys entries on `FunctionSignature` (name + argument labels) rather than

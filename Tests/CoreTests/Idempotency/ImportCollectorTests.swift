@@ -1,8 +1,8 @@
-import Testing
+import SwiftParser
 @testable import SwiftProjectLintIdempotencyRules
 @testable import SwiftProjectLintVisitors
 import SwiftSyntax
-import SwiftParser
+import Testing
 
 /// Structural tests for `ImportCollector` — the visitor that produces
 /// the base-module import set consumed by the framework-whitelist gate.

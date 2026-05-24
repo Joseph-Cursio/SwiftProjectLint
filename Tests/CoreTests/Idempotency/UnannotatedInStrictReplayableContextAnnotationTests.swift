@@ -1,8 +1,8 @@
-import Testing
+import SwiftParser
 @testable import SwiftProjectLintIdempotencyRules
 @testable import SwiftProjectLintVisitors
 import SwiftSyntax
-import SwiftParser
+import Testing
 
 /// Annotation-grammar tests for `UnannotatedInStrictReplayableContext`:
 /// the trailing-closure (round-11) and prefix-statement (return-trailing)

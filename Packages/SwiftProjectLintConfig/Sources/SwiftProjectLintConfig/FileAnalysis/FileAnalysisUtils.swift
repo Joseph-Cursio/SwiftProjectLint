@@ -1,6 +1,6 @@
-import SwiftProjectLintModels
 import Darwin
 import Foundation
+import SwiftProjectLintModels
 
 /// Utility functions for file system operations and analysis in SwiftUI projects.
 ///

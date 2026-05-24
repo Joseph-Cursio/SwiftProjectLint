@@ -1,7 +1,7 @@
-import Testing
+import SwiftParser
 @testable import SwiftProjectLintVisitors
 import SwiftSyntax
-import SwiftParser
+import Testing
 
 /// Parsing-level coverage for `/// @lint.context strict_replayable`. The
 /// visitor-level behaviour (new diagnostic firing on unannotated callees)

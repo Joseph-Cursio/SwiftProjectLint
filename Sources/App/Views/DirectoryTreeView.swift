@@ -1,5 +1,5 @@
-import SwiftUI
 import Core
+import SwiftUI
 
 /// A collapsible directory tree checklist for globally excluding
 /// directories from lint analysis.

@@ -1,9 +1,9 @@
+@testable import Core
 import Foundation
 import SwiftParser
+@testable import SwiftProjectLintRules
 import SwiftSyntax
 import Testing
-@testable import Core
-@testable import SwiftProjectLintRules
 
 @Suite("SyntaxPatternDetectorPerfTests")
 struct DetectorPerformanceTests {

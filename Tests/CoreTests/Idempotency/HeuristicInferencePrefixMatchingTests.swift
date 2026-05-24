@@ -1,8 +1,8 @@
-import Testing
+import SwiftParser
 @testable import SwiftProjectLintIdempotencyRules
 @testable import SwiftProjectLintVisitors
 import SwiftSyntax
-import SwiftParser
+import Testing
 
 /// Prefix-matching fixtures for the heuristic inferrer: verb prefixes,
 /// camelCase gating on negative forms, and stdlib-receiver suppression.

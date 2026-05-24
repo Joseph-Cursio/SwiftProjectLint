@@ -1,6 +1,6 @@
-import Testing
 @testable import Core
 @testable import SwiftProjectLintRules
+import Testing
 
 @Suite
 struct InlineSuppressionFilterTests {

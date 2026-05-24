@@ -1,8 +1,8 @@
-import Testing
+import SwiftParser
 @testable import SwiftProjectLintIdempotencyRules
 @testable import SwiftProjectLintVisitors
 import SwiftSyntax
-import SwiftParser
+import Testing
 
 /// Receiver-type gating fixtures for the heuristic inferrer: stdlib
 /// collection exclusions and user-defined receiver anchors.

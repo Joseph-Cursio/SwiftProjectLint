@@ -1,7 +1,7 @@
+import Foundation
 import SwiftProjectLintModels
 import SwiftProjectLintRegistry
 import SwiftProjectLintVisitors
-import Foundation
 
 /// Registers patterns related to code quality and best practices.
 /// This registrar handles patterns for magic numbers, long functions, hardcoded strings, and documentation.

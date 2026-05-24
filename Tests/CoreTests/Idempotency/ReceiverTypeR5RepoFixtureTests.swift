@@ -1,7 +1,7 @@
-import Testing
+import SwiftParser
 @testable import SwiftProjectLintVisitors
 import SwiftSyntax
-import SwiftParser
+import Testing
 
 /// Reproduces the exact structure of the R5 Run D noise site in
 /// pointfreeco's `removeBetaAccess`. The receiver `users` is declared

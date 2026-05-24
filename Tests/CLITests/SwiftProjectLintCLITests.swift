@@ -1,6 +1,6 @@
-import Testing
-import Foundation
 @testable import CLI
+import Foundation
+import Testing
 
 @Suite
 struct CLITests {

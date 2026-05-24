@@ -1,5 +1,5 @@
-import SwiftProjectLintModels
 import Foundation
+import SwiftProjectLintModels
 
 /// Parses `Package.swift` to identify source directories belonging to executable targets.
 ///

@@ -1,7 +1,7 @@
+import Foundation
 import SwiftProjectLintModels
 import SwiftProjectLintRegistry
 import SwiftProjectLintVisitors
-import Foundation
 
 /// Registers patterns related to memory management in SwiftUI.
 /// This registrar handles patterns for retain cycles, large objects, and memory optimization.

@@ -1,8 +1,8 @@
-import Testing
+import SwiftParser
 @testable import SwiftProjectLintIdempotencyRules
 @testable import SwiftProjectLintVisitors
 import SwiftSyntax
-import SwiftParser
+import Testing
 
 /// Slot 18 — the cross-framework `parameters.get` / `queryParameters.get`
 /// table. These receivers show up under both Hummingbird and Vapor, so the

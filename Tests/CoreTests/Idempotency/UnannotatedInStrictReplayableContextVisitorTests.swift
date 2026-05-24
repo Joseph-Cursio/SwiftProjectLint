@@ -1,7 +1,7 @@
-import Testing
+import SwiftParser
 @testable import SwiftProjectLintIdempotencyRules
 import SwiftSyntax
-import SwiftParser
+import Testing
 
 /// Unit tests for the `unannotatedInStrictReplayableContext` rule —
 /// round-9 strict-replayable slice. See

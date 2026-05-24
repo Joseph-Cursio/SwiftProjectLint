@@ -1,10 +1,10 @@
+import Foundation
 import SwiftProjectLintConfig
 import SwiftProjectLintIdempotencyRules
 import SwiftProjectLintModels
 import SwiftProjectLintRegistry
 import SwiftProjectLintRules
 import SwiftProjectLintVisitors
-import Foundation
 
 /// A struct containing the components of a pattern detection system.
 public struct PatternDetectionSystem: Sendable {

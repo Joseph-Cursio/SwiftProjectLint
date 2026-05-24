@@ -1,8 +1,8 @@
-import Testing
-import SwiftUI
-import ViewInspector
 import Core
 import LintStudioUI
+import SwiftUI
+import Testing
+import ViewInspector
 
 @testable import App
 

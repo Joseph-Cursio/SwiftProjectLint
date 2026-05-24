@@ -1,10 +1,10 @@
+import Foundation
+// import SwiftSyntaxParser
+import SwiftParser
 import SwiftProjectLintModels
 import SwiftProjectLintRegistry
 import SwiftProjectLintVisitors
-import Foundation
 import SwiftSyntax
-// import SwiftSyntaxParser
-import SwiftParser
 
 /// Visitor for UI patterns (Navigation, preview, styling, ForEach without ID, error handling)
 class UIVisitor: BasePatternVisitor {

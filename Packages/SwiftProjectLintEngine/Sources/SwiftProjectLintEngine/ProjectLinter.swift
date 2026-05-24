@@ -1,10 +1,10 @@
+import Foundation
+import SwiftParser
 import SwiftProjectLintConfig
 import SwiftProjectLintModels
 import SwiftProjectLintRegistry
 import SwiftProjectLintRules
 import SwiftProjectLintVisitors
-import Foundation
-import SwiftParser
 import SwiftSyntax
 
 /// Analyzes SwiftUI projects by running per-file pattern detection concurrently,

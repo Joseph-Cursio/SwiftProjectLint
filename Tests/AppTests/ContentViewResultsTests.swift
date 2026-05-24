@@ -1,7 +1,7 @@
-import Testing
-import SwiftUI
-import ViewInspector
 import Core
+import SwiftUI
+import Testing
+import ViewInspector
 
 @testable import App
 

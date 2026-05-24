@@ -1,7 +1,7 @@
+import Foundation
 import SwiftProjectLintModels
 import SwiftProjectLintRegistry
 import SwiftProjectLintVisitors
-import Foundation
 
 /// Registers patterns related to networking best practices in SwiftUI.
 /// This registrar handles patterns for error handling, async operations, and network safety.

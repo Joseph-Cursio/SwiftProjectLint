@@ -1,7 +1,7 @@
+import Foundation
 import SwiftProjectLintModels
 import SwiftProjectLintRegistry
 import SwiftProjectLintVisitors
-import Foundation
 
 /// Registers patterns related to state management in SwiftUI.
 /// This registrar handles patterns for state variables, property wrappers, and state-related issues.

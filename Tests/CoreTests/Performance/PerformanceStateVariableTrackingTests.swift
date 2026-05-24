@@ -1,8 +1,8 @@
-import Testing
-import SwiftParser
-import SwiftSyntax
 @testable import Core
+import SwiftParser
 @testable import SwiftProjectLintRules
+import SwiftSyntax
+import Testing
 
 struct PerformanceStateVariableTrackingTests {
     
