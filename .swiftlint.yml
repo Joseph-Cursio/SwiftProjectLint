@@ -13,6 +13,8 @@ excluded:
   - .xcode
   - Packages/**/.build
   - Sources/SwiftProjectLint/ExampleViews
+  - Sources/App/ExampleViews
+  - ExampleCode
 # Disable rules that are too strict for development
 disabled_rules:
   - todo
