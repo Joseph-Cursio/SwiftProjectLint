@@ -44,6 +44,7 @@ struct LintResultsContainerView: View {
                 } label: {
                     HStack(spacing: 4) {
                         Image(systemName: "arrow.up.left.and.arrow.down.right")
+                            .accessibilityHidden(true)
                         Text("Full Screen")
                     }
                     .font(.caption)

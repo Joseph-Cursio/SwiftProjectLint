@@ -17,6 +17,7 @@ struct DirectoryTreeView: View {
             HStack {
                 Image(systemName: "folder.fill")
                     .foregroundStyle(.secondary)
+                    .accessibilityHidden(true)
                 Text(projectPath)
                     .font(.caption)
                     .foregroundStyle(.secondary)
@@ -80,6 +81,7 @@ private struct DirectoryNodeRow: View {
             Image(systemName: "folder.fill")
                 .foregroundStyle(.secondary)
                 .font(.system(size: 13))
+                .accessibilityHidden(true)
             Text(node.name)
                 .lineLimit(1)
         }
@@ -97,9 +99,11 @@ private struct TriStateCheckbox: View {
             Image(systemName: symbolName)
                 .foregroundStyle(symbolColor)
                 .font(.system(size: 15))
+                .accessibilityHidden(true)
         }
         .buttonStyle(.plain)
         .focusable(false)
+        .accessibilityLabel(stateLabel)
     }
 
     private var symbolName: String {
@@ -107,6 +111,14 @@ private struct TriStateCheckbox: View {
         case .checked: return "checkmark.square.fill"
         case .unchecked: return "square"
         case .mixed: return "minus.square.fill"
+        }
+    }
+
+    private var stateLabel: String {
+        switch state {
+        case .checked: return "Selected"
+        case .unchecked: return "Not selected"
+        case .mixed: return "Partially selected"
         }
     }
 

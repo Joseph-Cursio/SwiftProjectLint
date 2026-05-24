@@ -29,6 +29,7 @@ struct ConfigDiffPreviewSheet: View {
         HStack {
             Image(systemName: "doc.text.magnifyingglass")
                 .foregroundStyle(.secondary)
+                .accessibilityHidden(true)
             Text("Review Configuration Changes")
                 .font(.headline)
             Spacer()
