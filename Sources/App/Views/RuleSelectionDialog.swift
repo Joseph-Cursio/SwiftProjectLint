@@ -96,90 +96,107 @@ struct RuleSelectionDialog: View {
     // swiftprojectlint:disable:next large-view-body
     var body: some View {
         VStack(spacing: 0) {
-            // Toolbar
-            HStack {
-                Picker("Category", selection: $selectedCategory) {
-                    Text("All Categories").tag(nil as PatternCategory?)
-                    Divider()
-                    ForEach(allPatternsByCategory.sorted { $0.display < $1.display }, id: \.category) { group in
-                        Text(group.display).tag(group.category as PatternCategory?)
-                    }
-                }
-                .frame(width: 220)
-                Button("Select All") {
-                    enabledRuleNames = allRuleNames
-                    listRefreshToken = UUID()
-                }
-                Button("Deselect All") {
-                    selectedRule = nil
-                    enabledRuleNames = []
-                    listRefreshToken = UUID()
-                }
-                Button("Reset to Default") {
-                    enabledRuleNames = Set(RuleIdentifier.allCases)
-                    ruleExclusions = [:]
-                    listRefreshToken = UUID()
-                }
-                Spacer()
-                if configIsDirty {
-                    Button("Save Config", action: onSaveConfig)
-                        .help("Save rule exclusions to .swiftprojectlint.yml")
-                }
-                Button("Cancel") { closeWindow() }
-                Button("Save") { onSave(); closeWindow() }
-                    .buttonStyle(.borderedProminent)
-            }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 8)
-
+            toolbar
             Divider()
-
-            // List + Detail
-            HStack(spacing: 0) {
-                List(selection: $selectedRule) {
-                    ForEach(filteredPatternsByCategory, id: \.category) { group in
-                        Section {
-                            ForEach(group.patterns, id: \.name) { pattern in
-                                ruleRow(for: pattern)
-                            }
-                        } header: {
-                            Text(group.display)
-                                .font(.title3)
-                                .fontWeight(.semibold)
-                                .foregroundStyle(.primary)
-                                .textCase(nil)
-                        }
-                    }
-                }
-                .listStyle(.sidebar)
-                .id(listRefreshToken)
-                .frame(width: 400)
-
-                Divider()
-
-                // Detail panel
-                Group {
-                    if let rule = selectedRule {
-                        VStack(alignment: .leading, spacing: 0) {
-                            ruleControlsBar(for: rule)
-                            Divider()
-                            RuleDocView(rule: rule)
-                        }
-                    } else {
-                        ContentUnavailableView(
-                            "No Rule Selected",
-                            systemImage: "doc.text.magnifyingglass",
-                            description: Text(
-                                "Select a rule from the sidebar "
-                                + "to view its documentation."
-                            )
-                        )
-                    }
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-            }
+            listAndDetail
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    private var toolbar: some View {
+        HStack {
+            categoryPicker
+            bulkActionButtons
+            Spacer()
+            if configIsDirty {
+                Button("Save Config", action: onSaveConfig)
+                    .help("Save rule exclusions to .swiftprojectlint.yml")
+            }
+            Button("Cancel") { closeWindow() }
+            Button("Save") { onSave(); closeWindow() }
+                .buttonStyle(.borderedProminent)
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 8)
+    }
+
+    private var categoryPicker: some View {
+        Picker("Category", selection: $selectedCategory) {
+            Text("All Categories").tag(nil as PatternCategory?)
+            Divider()
+            ForEach(allPatternsByCategory.sorted { $0.display < $1.display }, id: \.category) { group in
+                Text(group.display).tag(group.category as PatternCategory?)
+            }
+        }
+        .frame(width: 220)
+    }
+
+    @ViewBuilder
+    private var bulkActionButtons: some View {
+        Button("Select All") {
+            enabledRuleNames = allRuleNames
+            listRefreshToken = UUID()
+        }
+        Button("Deselect All") {
+            selectedRule = nil
+            enabledRuleNames = []
+            listRefreshToken = UUID()
+        }
+        Button("Reset to Default") {
+            enabledRuleNames = Set(RuleIdentifier.allCases)
+            ruleExclusions = [:]
+            listRefreshToken = UUID()
+        }
+    }
+
+    private var listAndDetail: some View {
+        HStack(spacing: 0) {
+            rulesList
+            Divider()
+            detailPanel
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
+    }
+
+    private var rulesList: some View {
+        List(selection: $selectedRule) {
+            ForEach(filteredPatternsByCategory, id: \.category) { group in
+                Section {
+                    ForEach(group.patterns, id: \.name) { pattern in
+                        ruleRow(for: pattern)
+                    }
+                } header: {
+                    Text(group.display)
+                        .font(.title3)
+                        .fontWeight(.semibold)
+                        .foregroundStyle(.primary)
+                        .textCase(nil)
+                }
+            }
+        }
+        .listStyle(.sidebar)
+        .id(listRefreshToken)
+        .frame(width: 400)
+    }
+
+    @ViewBuilder
+    private var detailPanel: some View {
+        if let rule = selectedRule {
+            VStack(alignment: .leading, spacing: 0) {
+                ruleControlsBar(for: rule)
+                Divider()
+                RuleDocView(rule: rule)
+            }
+        } else {
+            ContentUnavailableView(
+                "No Rule Selected",
+                systemImage: "doc.text.magnifyingglass",
+                description: Text(
+                    "Select a rule from the sidebar "
+                    + "to view its documentation."
+                )
+            )
+        }
     }
 
     private func ruleControlsBar(for rule: RuleIdentifier) -> some View {
@@ -222,33 +239,33 @@ struct RuleSelectionDialog: View {
 
 }
 
-#Preview {
-    let demoPatterns: [PatternCategoryInfo] = [
-        PatternCategoryInfo(
-            category: .stateManagement,
-            display: "State Management",
-            patterns: [
-                DetectionPattern(
-                    name: .relatedDuplicateStateVariable,
-                    severity: .warning,
-                    message: "Related Duplicate State Variable",
-                    suggestion: "Create a shared ObservableObject for state variables",
-                    category: .stateManagement
-                ),
-                DetectionPattern(
-                    name: .unusedStateVariable,
-                    severity: .warning,
-                    message: "Unused State Variable",
-                    suggestion: "Remove unused @State variables",
-                    category: .stateManagement
-                )
-            ],
-            useSwiftSyntax: true
-        )
-    ]
+private let previewPatterns: [PatternCategoryInfo] = [
+    PatternCategoryInfo(
+        category: .stateManagement,
+        display: "State Management",
+        patterns: [
+            DetectionPattern(
+                name: .relatedDuplicateStateVariable,
+                severity: .warning,
+                message: "Related Duplicate State Variable",
+                suggestion: "Create a shared ObservableObject for state variables",
+                category: .stateManagement
+            ),
+            DetectionPattern(
+                name: .unusedStateVariable,
+                severity: .warning,
+                message: "Unused State Variable",
+                suggestion: "Remove unused @State variables",
+                category: .stateManagement
+            )
+        ],
+        useSwiftSyntax: true
+    )
+]
 
-    return RuleSelectionDialog(
-        allPatternsByCategory: demoPatterns,
+#Preview {
+    RuleSelectionDialog(
+        allPatternsByCategory: previewPatterns,
         enabledRuleNames: .constant([.relatedDuplicateStateVariable]),
         ruleExclusions: .constant([:]),
         configIsDirty: false,
