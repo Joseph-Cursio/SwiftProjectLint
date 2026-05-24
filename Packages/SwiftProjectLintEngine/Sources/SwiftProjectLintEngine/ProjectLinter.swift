@@ -99,33 +99,27 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
 
         // Per-file I/O and analysis — throttled to avoid memory exhaustion on large projects.
         let maxConcurrency = max(ProcessInfo.processInfo.activeProcessorCount, 1)
+        let env = FileAnalysisEnvironment(
+            projectRoot: path,
+            registry: registry,
+            categories: effectiveRules != nil ? nil : categories,
+            ruleIdentifiers: effectiveRules,
+            identifiableTypes: identifiableTypes,
+            enumTypes: enumTypes,
+            actorTypes: actorTypes,
+            localTypes: localTypes,
+            layerPolicies: effectiveConfiguration.architecturalLayers
+        )
         let perFileResults = await withTaskGroup(
             of: (file: ProjectFile, issues: [LintIssue],
                  parsedAST: SourceFileSyntax)?.self
         ) { group in
             var iterator = filePaths.makeIterator()
-
-            let layers = effectiveConfiguration.architecturalLayers
-
-            // Seed initial batch
             for _ in 0..<maxConcurrency {
                 guard let filePath = iterator.next() else { break }
-                group.addTask {
-                    Self.analyzeFile(
-                        at: filePath, projectRoot: path,
-                        registry: registry,
-                        categories: effectiveRules != nil ? nil : categories,
-                        ruleIdentifiers: effectiveRules,
-                        identifiableTypes: identifiableTypes,
-                        enumTypes: enumTypes,
-                        actorTypes: actorTypes,
-                        localTypes: localTypes,
-                        layerPolicies: layers
-                    )
-                }
+                group.addTask { Self.analyzeFile(at: filePath, env: env) }
             }
 
-            // As each task completes, start the next
             var allFiles: [ProjectFile] = []
             var allIssues: [LintIssue] = []
             var astCache: [String: SourceFileSyntax] = [:]
@@ -136,19 +130,7 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
                     astCache[result.file.relativePath] = result.parsedAST
                 }
                 if let filePath = iterator.next() {
-                    group.addTask {
-                        Self.analyzeFile(
-                            at: filePath, projectRoot: path,
-                            registry: registry,
-                            categories: effectiveRules != nil ? nil : categories,
-                            ruleIdentifiers: effectiveRules,
-                            identifiableTypes: identifiableTypes,
-                            enumTypes: enumTypes,
-                            actorTypes: actorTypes,
-                            localTypes: localTypes,
-                            layerPolicies: layers
-                        )
-                    }
+                    group.addTask { Self.analyzeFile(at: filePath, env: env) }
                 }
             }
             return (allFiles, allIssues, astCache)
@@ -249,6 +231,41 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
             ruleOverrides: overrides,
             architecturalLayers: configuration.architecturalLayers,
             enabledFrameworkWhitelists: configuration.enabledFrameworkWhitelists
+        )
+    }
+
+    /// Bundle of per-run analysis inputs shared across every file in a
+    /// task-group invocation. Existing only so concurrent task closures
+    /// can capture a single value instead of ten.
+    private struct FileAnalysisEnvironment: Sendable {
+        let projectRoot: String
+        let registry: PatternVisitorRegistry
+        let categories: [PatternCategory]?
+        let ruleIdentifiers: [RuleIdentifier]?
+        let identifiableTypes: Set<String>
+        let enumTypes: Set<String>
+        let actorTypes: Set<String>
+        let localTypes: Set<String>
+        let layerPolicies: [LayerPolicy]
+    }
+
+    /// Convenience wrapper around `analyzeFile(at:projectRoot:...)` that
+    /// pulls per-run inputs from a `FileAnalysisEnvironment`.
+    private static func analyzeFile(
+        at filePath: String,
+        env: FileAnalysisEnvironment
+    ) -> (file: ProjectFile, issues: [LintIssue], parsedAST: SourceFileSyntax)? {
+        analyzeFile(
+            at: filePath,
+            projectRoot: env.projectRoot,
+            registry: env.registry,
+            categories: env.categories,
+            ruleIdentifiers: env.ruleIdentifiers,
+            identifiableTypes: env.identifiableTypes,
+            enumTypes: env.enumTypes,
+            actorTypes: env.actorTypes,
+            localTypes: env.localTypes,
+            layerPolicies: env.layerPolicies
         )
     }
 

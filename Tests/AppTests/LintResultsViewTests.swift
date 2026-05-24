@@ -37,33 +37,7 @@ struct LintResultsViewTests {
 
     @Test func testIssueSeverityFiltering() async throws {
         await MainActor.run {
-            let issues = [
-                LintIssue(
-                    severity: .error,
-                    message: "Error issue",
-                    filePath: "/test/file.swift",
-                    lineNumber: 1,
-                    suggestion: "Fix this",
-                    ruleName: .relatedDuplicateStateVariable
-                ),
-                LintIssue(
-                    severity: .warning,
-                    message: "Warning issue",
-                    filePath: "/test/file2.swift",
-                    lineNumber: 5,
-                    suggestion: "Consider this",
-                    ruleName: .missingStateObject
-                ),
-                LintIssue(
-                    severity: .info,
-                    message: "Info issue",
-                    filePath: "/test/file3.swift",
-                    lineNumber: 10,
-                    suggestion: "Note this",
-                    ruleName: .uninitializedStateVariable
-                )
-            ]
-
+            let issues = mixedSeverityIssues()
             _ = LintResultsView(issues: issues)
 
             let errorIssues = issues.filter { $0.severity == .error }
@@ -74,6 +48,35 @@ struct LintResultsViewTests {
             #expect(warningIssues.count == 1)
             #expect(infoIssues.count == 1)
         }
+    }
+
+    private func mixedSeverityIssues() -> [LintIssue] {
+        [
+            LintIssue(
+                severity: .error,
+                message: "Error issue",
+                filePath: "/test/file.swift",
+                lineNumber: 1,
+                suggestion: "Fix this",
+                ruleName: .relatedDuplicateStateVariable
+            ),
+            LintIssue(
+                severity: .warning,
+                message: "Warning issue",
+                filePath: "/test/file2.swift",
+                lineNumber: 5,
+                suggestion: "Consider this",
+                ruleName: .missingStateObject
+            ),
+            LintIssue(
+                severity: .info,
+                message: "Info issue",
+                filePath: "/test/file3.swift",
+                lineNumber: 10,
+                suggestion: "Note this",
+                ruleName: .uninitializedStateVariable
+            )
+        ]
     }
 
     @Test func testIssueRuleNameMapping() async throws {
