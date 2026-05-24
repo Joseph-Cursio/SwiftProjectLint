@@ -106,13 +106,13 @@ public enum UpwardEffectInferrer {
     }
 
     private static func combine(calleeResults: [UpwardInference]) -> UpwardInference? {
-        guard let lub = leastUpperBound(of: calleeResults.map { $0.effect }) else {
+        guard let lub = leastUpperBound(of: calleeResults.map(\.effect)) else {
             return nil
         }
         let lubRank = rank(of: lub)
         let contributingDepths = calleeResults
             .filter { rank(of: $0.effect) == lubRank }
-            .map { $0.depth }
+            .map(\.depth)
         let depth = 1 + (contributingDepths.max() ?? 0)
         return UpwardInference(effect: lub, depth: depth)
     }

@@ -171,7 +171,7 @@ struct PerfUnnecessaryUpdateCoverageTests {
         }
         #expect(unnecessaryIssues.count == 2)
 
-        let reportedNames = Set(unnecessaryIssues.map { $0.message })
+        let reportedNames = Set(unnecessaryIssues.map(\.message))
         #expect(reportedNames.contains { $0.contains("alpha") })
         #expect(reportedNames.contains { $0.contains("beta") })
     }

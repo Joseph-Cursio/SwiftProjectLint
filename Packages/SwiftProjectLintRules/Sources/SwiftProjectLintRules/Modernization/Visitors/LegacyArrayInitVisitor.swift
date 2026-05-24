@@ -27,7 +27,7 @@ final class LegacyArrayInitVisitor: BasePatternVisitor {
 
         let typeName = declRef.baseName.text
         let genericArgs = callee.genericArgumentClause.arguments
-            .map { $0.trimmedDescription }
+            .map(\.trimmedDescription)
             .joined(separator: ", ")
 
         let shortForm: String
@@ -60,7 +60,7 @@ final class LegacyArrayInitVisitor: BasePatternVisitor {
         }
 
         let wrappedType = base.genericArgumentClause.arguments
-            .map { $0.trimmedDescription }
+            .map(\.trimmedDescription)
             .joined(separator: ", ")
 
         addIssue(

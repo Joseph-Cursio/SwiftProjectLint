@@ -40,7 +40,7 @@ final class ViewModelDirectDBAccessVisitor: BasePatternVisitor {
     // MARK: - Track imports
 
     override func visit(_ node: ImportDeclSyntax) -> SyntaxVisitorContinueKind {
-        let moduleName = node.path.map { $0.name.text }.joined(separator: ".")
+        let moduleName = node.path.map(\.name.text).joined(separator: ".")
         if Self.persistenceFrameworks.contains(moduleName) {
             importedFrameworks.append(moduleName)
         }
@@ -88,9 +88,7 @@ final class ViewModelDirectDBAccessVisitor: BasePatternVisitor {
 
         // Conformance-based: ObservableObject
         if let inheritance = node.inheritanceClause {
-            let conformances = inheritance.inheritedTypes.map {
-                $0.type.trimmedDescription
-            }
+            let conformances = inheritance.inheritedTypes.map(\.type.trimmedDescription)
             if conformances.contains("ObservableObject") {
                 return true
             }

@@ -11,7 +11,7 @@ public struct HTMLFormatter: IssueFormatterProtocol {
         let warningCount = issues.filter { $0.severity == .warning }.count
         let infoCount = issues.filter { $0.severity == .info }.count
         let fileCount = Set(issues.map(\.filePath)).count
-        let ruleCount = Set(issues.map { $0.ruleName.rawValue }).count
+        let ruleCount = Set(issues.map(\.ruleName.rawValue)).count
         let timestamp = DateFormatter.localizedString(
             from: Date.now,
             dateStyle: .long,

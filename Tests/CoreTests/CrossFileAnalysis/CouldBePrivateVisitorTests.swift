@@ -53,7 +53,7 @@ struct CouldBePrivateVisitorTests {
         visitor.finalizeAnalysis()
 
         let issues = visitor.detectedIssues.filter { $0.ruleName == .couldBePrivate }
-        let flaggedNames = issues.map { $0.message }
+        let flaggedNames = issues.map(\.message)
 
         // HelperView is only used in FileA — should be flagged
         #expect(flaggedNames.contains { $0.contains("HelperView") })
@@ -91,7 +91,7 @@ struct CouldBePrivateVisitorTests {
 
         let flaggedNames = visitor.detectedIssues
             .filter { $0.ruleName == .couldBePrivate }
-            .map { $0.message }
+            .map(\.message)
 
         // SharedModel is referenced in FileB — should NOT be flagged
         #expect(flaggedNames.contains { $0.contains("SharedModel") } == false)
@@ -190,7 +190,7 @@ struct CouldBePrivateVisitorTests {
 
         let flaggedNames = visitor.detectedIssues
             .filter { $0.ruleName == .couldBePrivate }
-            .map { $0.message }
+            .map(\.message)
 
         #expect(flaggedNames.contains { $0.contains("AlreadyPrivate") } == false)
 

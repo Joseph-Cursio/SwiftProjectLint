@@ -29,7 +29,7 @@ final class GlobalActorMismatchVisitor: BasePatternVisitor {
     /// Stack of current isolation contexts (actor name or nil for non-isolated)
     private var isolationStack: [String?] = [nil]
 
-    private var currentIsolation: String? { isolationStack.last.flatMap { $0 } }
+    private var currentIsolation: String? { isolationStack.last.flatMap(\.self) }
 
     required init(pattern: SyntaxPattern, viewMode: SyntaxTreeViewMode = .sourceAccurate) {
         super.init(pattern: pattern, viewMode: viewMode)

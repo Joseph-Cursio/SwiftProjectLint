@@ -22,7 +22,7 @@ struct DemoIssueGeneratorTests {
             .missingErrorHandling, // networking
             .nestedNavigationView // uiPatterns
         ]
-        let actualRuleNames = Set(issues.map { $0.ruleName })
+        let actualRuleNames = Set(issues.map(\.ruleName))
         for rule in expectedRuleNames {
             #expect(actualRuleNames.contains(rule), "Expected rule \(rule) in demo issues")
         }

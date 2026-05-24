@@ -39,7 +39,7 @@ struct UIVisitorNavigationTests {
         // Should detect nested NavigationView (preview detection skipped for test files)
         #expect(issues.count == 1, "Expected 1 issue, but got \(issues.count)")
 
-        let messages = issues.map { $0.message }
+        let messages = issues.map(\.message)
         #expect(messages.contains("Nested NavigationView detected, this can cause issues"))
 
         // Check that the nested navigation issue has the correct severity

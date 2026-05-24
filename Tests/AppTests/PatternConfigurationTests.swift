@@ -10,7 +10,7 @@ struct PatternConfigurationTests {
         func getPatterns(for category: PatternCategory) -> [SyntaxPattern] {
             patterns[category] ?? []
         }
-        func getAllPatterns() -> [SyntaxPattern] { patterns.values.flatMap { $0 } }
+        func getAllPatterns() -> [SyntaxPattern] { patterns.values.flatMap(\.self) }
         func initialize() {}
         func register(pattern _: SyntaxPattern) {}
         func register(patterns _: [SyntaxPattern]) {}
@@ -101,7 +101,7 @@ struct PatternConfigurationTests {
         // Should return all 12 user-facing categories even if empty (includes animation, modernization, idempotency)
         #expect(result.count == 12)
 
-        let categories = Set(result.map { $0.category })
+        let categories = Set(result.map(\.category))
         let expectedCategories: Set<PatternCategory> = [
             .stateManagement, .performance, .architecture, .codeQuality,
             .security, .accessibility, .memoryManagement, .networking,

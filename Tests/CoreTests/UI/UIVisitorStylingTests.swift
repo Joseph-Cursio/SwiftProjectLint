@@ -31,7 +31,7 @@ struct UIVisitorStylingTests {
         // Should detect inconsistent styling with 4 styling modifiers
         #expect(issues.count == 1)
 
-        let messages = issues.map { $0.message }
+        let messages = issues.map(\.message)
         #expect(messages.contains("Consider using consistent text styling"))
 
         // Check that the styling issue has the correct severity

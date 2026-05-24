@@ -38,7 +38,7 @@ final class ArchitecturalBoundaryVisitor: BasePatternVisitor {
         guard let policy = currentPolicy, !policy.forbiddenImports.isEmpty else {
             return .visitChildren
         }
-        let moduleName = node.path.map { $0.name.text }.joined(separator: ".")
+        let moduleName = node.path.map(\.name.text).joined(separator: ".")
         guard policy.forbiddenImports.contains(moduleName) else { return .visitChildren }
 
         addIssue(

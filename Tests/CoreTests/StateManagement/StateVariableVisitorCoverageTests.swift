@@ -297,7 +297,7 @@ struct StateVariableVisitorCoverageTests {
         let visitor = makeStateVariableVisitor(for: source)
         #expect(visitor.stateVariables.count == 3)
         // Line numbers should be sequential and correct
-        let lines = visitor.stateVariables.map { $0.lineNumber }
+        let lines = visitor.stateVariables.map(\.lineNumber)
         #expect(lines.sorted() == lines, "Line numbers should be in order")
         #expect(Set(lines).count == 3, "Each variable should have a unique line number")
     }

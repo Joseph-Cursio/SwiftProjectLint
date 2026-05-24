@@ -40,7 +40,7 @@ struct CouldBePrivateMemberVisitorTests {
             """
         ])
 
-        let flagged = issues.map { $0.message }
+        let flagged = issues.map(\.message)
         #expect(flagged.contains { $0.contains("helperMethod") })
     }
 
@@ -59,7 +59,7 @@ struct CouldBePrivateMemberVisitorTests {
             """
         ])
 
-        let flagged = issues.map { $0.message }
+        let flagged = issues.map(\.message)
         #expect(flagged.contains { $0.contains("fetchData") } == false)
     }
 
@@ -73,7 +73,7 @@ struct CouldBePrivateMemberVisitorTests {
             """
         ])
 
-        let flagged = issues.map { $0.message }
+        let flagged = issues.map(\.message)
         #expect(flagged.contains { $0.contains("secretHelper") } == false)
 
         #expect(flagged.contains { $0.contains("uniquePublicMethod") })
@@ -88,7 +88,7 @@ struct CouldBePrivateMemberVisitorTests {
             """
         ])
 
-        let flagged = issues.map { $0.message }
+        let flagged = issues.map(\.message)
         #expect(flagged.contains { $0.contains("viewDidLoad") } == false)
     }
 
@@ -114,7 +114,7 @@ struct CouldBePrivateMemberVisitorTests {
             """
         ])
 
-        let flagged = issues.map { $0.message }
+        let flagged = issues.map(\.message)
         #expect(flagged.contains { $0.contains("counter") } == false)
     }
 
@@ -268,7 +268,7 @@ struct CouldBePrivateMemberVisitorTests {
             """
         ])
 
-        let flagged = issues.map { $0.message }
+        let flagged = issues.map(\.message)
         #expect(flagged.contains { $0.contains("uniqueInternalConfig") })
     }
 

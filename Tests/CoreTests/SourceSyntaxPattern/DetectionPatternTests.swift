@@ -32,7 +32,7 @@ struct DetectionPatternTests {
 
     @Test func testRuleIdentifierAllCasesContainsAll() {
         // Just check that all cases are present and unique
-        let allCases = Set(RuleIdentifier.allCases.map { $0.rawValue })
+        let allCases = Set(RuleIdentifier.allCases.map(\.rawValue))
         #expect(allCases.count == RuleIdentifier.allCases.count)
     }
 

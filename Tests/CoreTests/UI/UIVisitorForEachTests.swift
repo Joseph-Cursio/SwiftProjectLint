@@ -37,7 +37,7 @@ struct UIVisitorForEachTests {
         // Should detect ForEach without ID (preview detection skipped for test files)
         #expect(issues.count == 1)
 
-        let messages = issues.map { $0.message }
+        let messages = issues.map(\.message)
         #expect(messages.contains("ForEach without explicit ID can cause performance issues"))
 
         // Check that the ForEach issue has the correct severity

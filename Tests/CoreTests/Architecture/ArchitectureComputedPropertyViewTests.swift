@@ -59,7 +59,7 @@ struct ArchitectureComputedPropertyViewTests {
         """
         let issues = filteredIssues(source)
         #expect(issues.count == 2)
-        let names = issues.compactMap { $0.message }
+        let names = issues.compactMap(\.message)
         #expect(names.contains { $0.contains("header") })
         #expect(names.contains { $0.contains("footer") })
     }

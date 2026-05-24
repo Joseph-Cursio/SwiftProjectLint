@@ -103,7 +103,7 @@ final class MultipleTypesPerFileVisitor: BasePatternVisitor {
     /// - `WorkspaceData` → shares "Workspace" prefix → coupled
     /// - `SortOption` → no shared prefix → not coupled
     private func isTightlyCoupled(_ secondaryName: String) -> Bool {
-        let anchors = [primaryTypeName, fileNameStem].compactMap { $0 }
+        let anchors = [primaryTypeName, fileNameStem].compactMap(\.self)
 
         for anchor in anchors {
             let prefix = longestCommonPrefix(anchor, secondaryName)

@@ -59,7 +59,7 @@ struct ProtocolCouldBePrivateVisitorTests {
             """
         ])
 
-        let flagged = issues.map { $0.message }
+        let flagged = issues.map(\.message)
         #expect(flagged.contains { $0.contains("Loadable") } == false)
     }
 
@@ -77,7 +77,7 @@ struct ProtocolCouldBePrivateVisitorTests {
             """
         ])
 
-        let flagged = issues.map { $0.message }
+        let flagged = issues.map(\.message)
         #expect(flagged.contains { $0.contains("Fetchable") } == false)
     }
 

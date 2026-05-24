@@ -33,7 +33,7 @@ struct UIVisitorErrorHandlingTests {
         // Should detect basic error handling (preview detection skipped for test files)
         #expect(issues.count == 1)
 
-        let messages = issues.map { $0.message }
+        let messages = issues.map(\.message)
         #expect(messages.contains("Consider using proper error handling UI patterns"))
 
         // Check that the error handling issue has the correct severity
@@ -114,7 +114,7 @@ struct UIVisitorErrorHandlingTests {
         // (Preview detection skipped for test files)
         #expect(issues.count == 2)
 
-        let messages = issues.map { $0.message }
+        let messages = issues.map(\.message)
         #expect(messages.contains("Nested NavigationView detected, this can cause issues"))
         #expect(messages.contains("Consider using proper error handling UI patterns"))
     }

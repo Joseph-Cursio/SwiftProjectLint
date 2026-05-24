@@ -118,6 +118,6 @@ struct SyntaxRegistryTests {
         let allPatterns = registry.getAllPatterns()
         #expect(allPatterns.isEmpty == false)
 
-        #expect(Set(allPatterns.map { $0.category }).count > 1)
+        #expect(Set(allPatterns.map(\.category)).count > 1)
     }
 }

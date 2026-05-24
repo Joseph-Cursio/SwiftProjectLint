@@ -39,7 +39,7 @@ struct PropertyWrapperTests {
             "FocusedBinding", "FocusedValue", "AccessibilityFocusState", "Unknown"
         ]
 
-        let actualWrappers = Set(PropertyWrapper.allCases.map { $0.rawValue })
+        let actualWrappers = Set(PropertyWrapper.allCases.map(\.rawValue))
         #expect(actualWrappers == expectedWrappers)
     }
 

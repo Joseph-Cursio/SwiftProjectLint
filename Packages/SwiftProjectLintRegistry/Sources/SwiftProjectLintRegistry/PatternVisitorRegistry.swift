@@ -72,7 +72,7 @@ public final class PatternVisitorRegistry: @unchecked Sendable {
     /// - Returns: An array of all registered visitor types.
     public func getAllVisitors() -> [PatternVisitorProtocol.Type] {
         lock.withLock {
-            patterns.map { $0.visitor }
+            patterns.map(\.visitor)
         }
     }
 
