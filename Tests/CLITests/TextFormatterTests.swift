@@ -51,6 +51,5 @@ struct TextFormatterTests {
         )
         let output = TextFormatter().format(issues: [issue])
         #expect(output.contains("suggestion:") == false)
-
     }
 }

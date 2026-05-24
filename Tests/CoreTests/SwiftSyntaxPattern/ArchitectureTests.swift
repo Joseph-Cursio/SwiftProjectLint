@@ -51,7 +51,6 @@ struct ArchitectureTests {
 
         let fatViewIssue = try #require(fatViewIssues.first)
         #expect(fatViewIssue.severity == .warning)
-
     }
 
     @Test
@@ -89,7 +88,6 @@ struct ArchitectureTests {
 
         let diIssue = try #require(diIssues.first)
         #expect(diIssue.severity == .info)
-
     }
 
     @Test

@@ -47,7 +47,6 @@ struct DetectorPerformanceTests {
 
         let forEachIssue = try #require(forEachIssues.first)
         #expect(forEachIssue.severity == .warning)
-
     }
 
     @Test

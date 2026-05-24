@@ -50,7 +50,6 @@ struct PatternRegistryFactoryTests {
         let system = PatternRegistryFactory.createConfiguredSystem()
         let allPatterns = system.patternRegistry.getAllPatterns()
         #expect(allPatterns.isEmpty == false, "Configured system should have patterns registered")
-
     }
 
     @Test("createConfiguredSystem registers patterns across multiple categories")
@@ -109,6 +108,5 @@ struct PatternRegistryFactoryTests {
         // Verify detector is wired by confirming the system has patterns it can detect
         let allPatterns = system.patternRegistry.getAllPatterns()
         #expect(allPatterns.isEmpty == false)
-
     }
 }

@@ -25,7 +25,6 @@ struct SimpleExtractBasenameTest {
 
         // Assert: Verify the function correctly extracts the basename
         #expect(result == "ContentView")
-
     }
 
     // jdc: I never checked for Windows pathname formats, by CoPilot added this test...

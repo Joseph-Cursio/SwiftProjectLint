@@ -221,5 +221,4 @@ final class VariableShadowingVisitor: BasePatternVisitor {
             token.tokenKind == .identifier(name)
         }
     }
-
 }

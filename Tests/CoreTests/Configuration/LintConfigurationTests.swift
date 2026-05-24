@@ -37,7 +37,6 @@ struct LintConfigurationTests {
         #expect(rules.contains(.forceTry))
         #expect(rules.contains(.forceUnwrap))
         #expect(rules.contains(.magicNumber) == false)
-
     }
 
     @Test
@@ -141,7 +140,6 @@ struct LintConfigurationTests {
         #expect(rules.contains(.magicNumber) == false)
 
         #expect(rules.contains(.forceTry) == false)
-
     }
 
     @Test("enabledOnly combined with cliCategories intersects both")

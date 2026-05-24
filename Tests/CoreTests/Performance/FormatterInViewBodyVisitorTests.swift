@@ -242,5 +242,4 @@ struct FormatterInViewBodyVisitorTests {
         #expect(visitor.detectedIssues.count == 1)
         #expect(visitor.detectedIssues[0].message.contains("DateFormatter"))
     }
-
 }

@@ -144,7 +144,6 @@ struct PerformanceStateVariableAssignmentTests {
         #expect(aInfo.isUsedInViewBody)
         #expect(bInfo.isUsedInViewBody)
         #expect(cInfo.isUsedInViewBody == false)
-
     }
 
     // MARK: - Line number tracking

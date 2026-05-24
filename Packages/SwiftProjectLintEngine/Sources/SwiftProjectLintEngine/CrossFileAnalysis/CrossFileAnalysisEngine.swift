@@ -214,5 +214,4 @@ public class CrossFileAnalysisEngine: CrossFileAnalyzerProtocol {
         }
         return registry.getAllVisitors()
     }
-
 }

@@ -261,5 +261,4 @@ class ViewRelationshipVisitor: SyntaxVisitor {
             return nil
         }
     }
-
 }

@@ -39,7 +39,6 @@ struct LintConfigurationWriterTests {
         #expect(content.contains("\"Force Unwrap\""))
         // Should not contain disabled_rules since none were set
         #expect(content.contains("disabled_rules:") == false)
-
     }
 
     @Test("writes excluded_paths section")
@@ -103,7 +102,6 @@ struct LintConfigurationWriterTests {
         let content = try writtenContent(config)
         // The individual rule entry is skipped (no "Magic Number":) even though the rules: header exists
         #expect(content.contains("\"Magic Number\":") == false)
-
     }
 
     // MARK: - Combined Config

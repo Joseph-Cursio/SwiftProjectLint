@@ -45,7 +45,6 @@ struct ArchitectureDependencyInjectionTests {
         let issues = detectIssues(in: source)
         let diIssues = issues.filter { $0.ruleName == .missingDependencyInjection }
         #expect(diIssues.isEmpty == false)
-
     }
 
     // MARK: - Empty init fires
@@ -62,7 +61,6 @@ struct ArchitectureDependencyInjectionTests {
         let issues = detectIssues(in: source)
         let diIssues = issues.filter { $0.ruleName == .missingDependencyInjection }
         #expect(diIssues.isEmpty == false)
-
     }
 
     // MARK: - @Environment suppresses empty init

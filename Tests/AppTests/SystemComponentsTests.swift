@@ -41,7 +41,6 @@ struct SystemComponentsTests {
 
         let allPatterns = registry.getAllPatterns()
         #expect(allPatterns.isEmpty == false, "Registry should have patterns registered")
-
     }
 
     @Test
@@ -65,7 +64,6 @@ struct SystemComponentsTests {
         #expect(archPatterns.isEmpty == false, "Should have architecture patterns")
 
         #expect(uiPatterns.isEmpty == false, "Should have UI patterns")
-
     }
 
     @Test
@@ -139,7 +137,6 @@ struct SystemComponentsIntegrationTests {
         // View should render without crashing when given initialized components
         let texts = try inspected.findAll(ViewType.Text.self)
         #expect(texts.isEmpty == false)
-
     }
 
     @Test
@@ -156,7 +153,6 @@ struct SystemComponentsIntegrationTests {
         // View should still render (graceful handling of nil registry)
         let texts = try inspected.findAll(ViewType.Text.self)
         #expect(texts.isEmpty == false)
-
     }
 
     @Test
@@ -188,7 +184,6 @@ struct SystemComponentsIntegrationTests {
 
         let securityPatterns = registry.getPatterns(for: .security)
         #expect(securityPatterns.isEmpty == false, "Should have security patterns")
-
     }
 
     @Test
@@ -201,7 +196,6 @@ struct SystemComponentsIntegrationTests {
 
         let accessibilityPatterns = registry.getPatterns(for: .accessibility)
         #expect(accessibilityPatterns.isEmpty == false, "Should have accessibility patterns")
-
     }
 
     @Test
@@ -214,7 +208,6 @@ struct SystemComponentsIntegrationTests {
 
         let memoryPatterns = registry.getPatterns(for: .memoryManagement)
         #expect(memoryPatterns.isEmpty == false, "Should have memory management patterns")
-
     }
 
     @Test
@@ -227,7 +220,6 @@ struct SystemComponentsIntegrationTests {
 
         let networkingPatterns = registry.getPatterns(for: .networking)
         #expect(networkingPatterns.isEmpty == false, "Should have networking patterns")
-
     }
 
     @Test
@@ -240,7 +232,6 @@ struct SystemComponentsIntegrationTests {
 
         let animationPatterns = registry.getPatterns(for: .animation)
         #expect(animationPatterns.isEmpty == false, "Should have animation patterns")
-
     }
 
     @Test
@@ -253,6 +244,5 @@ struct SystemComponentsIntegrationTests {
 
         let codeQualityPatterns = registry.getPatterns(for: .codeQuality)
         #expect(codeQualityPatterns.isEmpty == false, "Should have code quality patterns")
-
     }
 }

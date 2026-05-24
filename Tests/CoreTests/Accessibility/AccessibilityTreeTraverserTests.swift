@@ -56,7 +56,6 @@ struct AccessibilityTreeTraverserTests {
                 in: button, modifierName: "accessibilityLabel"
             ) == false
         )
-
     }
 
     @Test func hasAccessibilityModifierReturnsFalseForUnknownModifier() throws {
@@ -71,7 +70,6 @@ struct AccessibilityTreeTraverserTests {
                 in: button, modifierName: "foregroundColor"
             ) == false
         )
-
     }
 
     @Test func hasAccessibilityModifierFindsHintInChain() throws {
@@ -96,7 +94,6 @@ struct AccessibilityTreeTraverserTests {
                 in: button, modifierName: "accessibilityLabel"
             ) == false
         )
-
     }
 
     // MARK: - buttonHasStringTitle
@@ -123,7 +120,6 @@ struct AccessibilityTreeTraverserTests {
         """
         let button = try #require(findFirstCall(named: "Button", in: source))
         #expect(AccessibilityTreeTraverser.buttonHasStringTitle(button) == false)
-
     }
 
     @Test func buttonHasStringTitleReturnsFalseForTrailingClosureOnly() throws {
@@ -132,7 +128,6 @@ struct AccessibilityTreeTraverserTests {
         """
         let button = try #require(findFirstCall(named: "Button", in: source))
         #expect(AccessibilityTreeTraverser.buttonHasStringTitle(button) == false)
-
     }
 
     // MARK: - findImages
@@ -186,7 +181,6 @@ struct AccessibilityTreeTraverserTests {
         """
         let tree = Parser.parse(source: source)
         #expect(AccessibilityTreeTraverser.containsImage(in: Syntax(tree)) == false)
-
     }
 
     // MARK: - containsText
@@ -205,7 +199,6 @@ struct AccessibilityTreeTraverserTests {
         """
         let tree = Parser.parse(source: source)
         #expect(AccessibilityTreeTraverser.containsText(in: Syntax(tree)) == false)
-
     }
 
     @Test func containsTextFindsDeepNestedText() {

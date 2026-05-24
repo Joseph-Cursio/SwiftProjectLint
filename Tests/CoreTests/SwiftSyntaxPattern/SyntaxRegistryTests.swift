@@ -49,7 +49,6 @@ struct SyntaxRegistryTests {
         let registry = makeRegistry()
         registry.initialize()
         #expect(registry.getAllPatterns().isEmpty == false)
-
     }
 
     @Test func testGetPatternsForCategory() {
@@ -61,7 +60,6 @@ struct SyntaxRegistryTests {
         #expect(registry.getPatterns(for: .performance).isEmpty == false)
 
         #expect(registry.getPatterns(for: .architecture).isEmpty == false)
-
     }
 
     @Test func testRegisterPattern() {

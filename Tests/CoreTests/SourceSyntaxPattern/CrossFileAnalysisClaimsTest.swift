@@ -117,5 +117,4 @@ struct CrossFileAnalysisClaimsTests {
 
         #expect(true, "File cache should handle sequential single-file analysis")
     }
-
 }

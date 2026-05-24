@@ -113,5 +113,4 @@ final class ProtocolCouldBePrivateVisitor: BasePatternVisitor, CrossFilePatternV
             }
         }
     }
-
 }

@@ -360,7 +360,6 @@ struct UnannotatedInStrictReplayableContextVisitorTests {
         #expect(issue.message.contains("handler"))
         #expect(issue.message.contains("mystery"))
     }
-
 }
 
 /// Cross-rule interaction: strict_replayable + declared non-idempotent callee

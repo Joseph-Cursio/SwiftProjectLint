@@ -155,5 +155,4 @@ struct DetectorTests {
 
         #expect(true, "Various file path formats should be handled")
     }
-
 }

@@ -177,5 +177,4 @@ struct SignatureAwareCollisionTests {
         let signature = try #require(FunctionSignature.from(declaration: decl))
         #expect(signature.description == "search(query:)")
     }
-
 }

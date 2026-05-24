@@ -315,5 +315,4 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
             return .other
         }
     }
-
 }

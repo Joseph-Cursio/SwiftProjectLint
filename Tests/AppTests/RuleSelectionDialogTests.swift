@@ -293,7 +293,6 @@ struct RuleSelectionDialogTests {
         try firstToggle.tap()
 
         #expect(enabled.contains(.relatedDuplicateStateVariable) == false)
-
     }
 
     // MARK: - Empty State

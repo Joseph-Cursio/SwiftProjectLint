@@ -62,7 +62,6 @@ struct CoreTests {
 
         // Overall, we should have at least some issues detected
         #expect(issues.count >= 1)
-
     }
 
     @Test

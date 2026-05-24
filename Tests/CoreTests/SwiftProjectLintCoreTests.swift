@@ -43,5 +43,4 @@ struct CoreModuleTests {
         #expect(severity == .warning)
         // Remove or comment out the test for IssueSeverity.allCases if not CaseIterable
     }
-
 }

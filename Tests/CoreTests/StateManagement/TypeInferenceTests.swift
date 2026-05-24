@@ -45,5 +45,4 @@ struct TypeInferenceTests {
         let stateVar = try #require(visitor.stateVariables.first)
         #expect(stateVar.type == testCase.expectedType)
     }
-
 }

@@ -54,5 +54,4 @@ struct FileCacheTests {
         #expect(issues1.isEmpty)
         #expect(issues2.isEmpty)
     }
-
  }

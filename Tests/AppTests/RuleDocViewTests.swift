@@ -15,7 +15,6 @@ struct RuleDocViewTests {
         let inspected = try view.inspect()
         let texts = inspected.findAll(ViewType.Text.self)
         #expect(texts.isEmpty == false)
-
     }
 
     @Test func showsFallbackWhenDocumentationMissing() throws {
@@ -26,7 +25,6 @@ struct RuleDocViewTests {
         let strings = texts.compactMap { try? $0.string() }
         // Should show the fallback message parsed from markdown italic
         #expect(strings.isEmpty == false)
-
     }
 
     @Test func containsScrollView() throws {
@@ -50,7 +48,6 @@ struct RuleDocViewTests {
         let inspected = try view.inspect()
         let texts = inspected.findAll(ViewType.Text.self)
         #expect(texts.isEmpty == false)
-
     }
 
     @Test func rendersPerformanceRule() throws {
@@ -58,7 +55,6 @@ struct RuleDocViewTests {
         let inspected = try view.inspect()
         let texts = inspected.findAll(ViewType.Text.self)
         #expect(texts.isEmpty == false)
-
     }
 
     @Test func rendersSecurityRule() throws {
@@ -66,7 +62,6 @@ struct RuleDocViewTests {
         let inspected = try view.inspect()
         let texts = inspected.findAll(ViewType.Text.self)
         #expect(texts.isEmpty == false)
-
     }
 }
 
@@ -129,7 +124,6 @@ struct RuleDocumentationLoaderTests {
         // We can't guarantee docs are in the test bundle, so just verify the function runs
         if let result {
             #expect(result.isEmpty == false)
-
         }
     }
 

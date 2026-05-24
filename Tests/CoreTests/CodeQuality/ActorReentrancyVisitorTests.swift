@@ -124,7 +124,6 @@ struct ActorReentrancyVisitorTests {
 
         // Should detect at least one reentrancy issue
         #expect(visitor.detectedIssues.isEmpty == false)
-
     }
 
     // MARK: - False Positive Suppression

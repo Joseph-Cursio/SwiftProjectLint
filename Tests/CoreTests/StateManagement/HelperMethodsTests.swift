@@ -64,7 +64,6 @@ struct HelperMethodsTests {
         #expect(candidates.contains { $0.propertyWrapper == .stateObject })
         #expect(candidates.contains { $0.propertyWrapper == .observedObject })
         #expect(candidates.contains { $0.propertyWrapper == .state } == false)
-
     }
 
     // MARK: - Generic Type Tests
@@ -194,5 +193,4 @@ struct HelperMethodsTests {
         #expect(stateVars.contains { $0.type == "String" && $0.name == "name" })
         #expect(stateVars.contains { $0.type == "Bool" && $0.name == "isVisible" })
     }
-
 }

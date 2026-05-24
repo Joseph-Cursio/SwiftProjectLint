@@ -61,7 +61,6 @@ struct CouldBePrivateMemberVisitorTests {
 
         let flagged = issues.map { $0.message }
         #expect(flagged.contains { $0.contains("fetchData") } == false)
-
     }
 
     @Test func skipsAlreadyPrivateMembers() {
@@ -91,7 +90,6 @@ struct CouldBePrivateMemberVisitorTests {
 
         let flagged = issues.map { $0.message }
         #expect(flagged.contains { $0.contains("viewDidLoad") } == false)
-
     }
 
     @Test func skipsBodyProperty() {
@@ -118,7 +116,6 @@ struct CouldBePrivateMemberVisitorTests {
 
         let flagged = issues.map { $0.message }
         #expect(flagged.contains { $0.contains("counter") } == false)
-
     }
 
     // MARK: - Enum and Actor Type Tracking

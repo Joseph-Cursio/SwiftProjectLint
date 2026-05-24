@@ -95,7 +95,6 @@ struct CouldBePrivateVisitorTests {
 
         // SharedModel is referenced in FileB — should NOT be flagged
         #expect(flaggedNames.contains { $0.contains("SharedModel") } == false)
-
     }
 
     // MARK: - Class, Enum, Actor Declarations

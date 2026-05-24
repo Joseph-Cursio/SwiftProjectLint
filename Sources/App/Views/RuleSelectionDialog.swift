@@ -236,7 +236,6 @@ struct RuleSelectionDialog: View {
         .contentShape(Rectangle())
         .tag(pattern.name)
     }
-
 }
 
 private let previewPatterns: [PatternCategoryInfo] = [

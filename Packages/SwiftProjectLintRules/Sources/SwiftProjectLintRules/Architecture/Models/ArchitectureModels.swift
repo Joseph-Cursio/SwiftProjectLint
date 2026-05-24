@@ -39,7 +39,6 @@ public struct ViewRelationship: Sendable {
     public let relationshipType: RelationshipType
     public let lineNumber: Int
     public let filePath: String
-
 }
 
 public enum RelationshipType: Sendable {

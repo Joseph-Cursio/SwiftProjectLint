@@ -148,7 +148,6 @@ struct NonIdempotentInRetryContextVisitorTests {
 
         #expect(visitor.detectedIssues.isEmpty)
     }
-
 }
 
 /// Cross-rule fixture: a function annotated with both an effect and a context.

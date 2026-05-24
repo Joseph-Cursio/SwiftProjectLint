@@ -351,5 +351,4 @@ class UIVisitor: BasePatternVisitor {
 
         return Array(modifiers)
     }
-
 }

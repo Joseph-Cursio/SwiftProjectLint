@@ -20,7 +20,6 @@ struct ContentViewModelTests {
     func initialIsAnalyzingIsFalse() {
         let viewModel = ContentViewModel()
         #expect(viewModel.isAnalyzing == false)
-
     }
 
     @Test("initial state has no lint issues")
@@ -33,14 +32,12 @@ struct ContentViewModelTests {
     func initialShowRuleSelectorIsFalse() {
         let viewModel = ContentViewModel()
         #expect(viewModel.showRuleSelector == false)
-
     }
 
     @Test("initial state has directory picker hidden")
     func initialShowingDirectoryPickerIsFalse() {
         let viewModel = ContentViewModel()
         #expect(viewModel.showingDirectoryPicker == false)
-
     }
 
     @Test("initial state has no analysis task")
@@ -85,7 +82,6 @@ struct ContentViewModelTests {
         let viewModel = ContentViewModel()
         viewModel.analyzeProject()
         #expect(viewModel.isAnalyzing == false)
-
     }
 
     @Test("analyzeProject with non-empty directory sets isAnalyzing to true")
@@ -295,7 +291,6 @@ struct ContentViewModelTests {
         // this documents the failure mode so it stays visible.
         #expect(viewModel.lintIssues.isEmpty)
     }
-
 }
 
 // MARK: - Mock Analyzer & Configuration Tests
@@ -582,7 +577,6 @@ struct ContentViewModelConfigTests {
         viewModel.updateDirtyState()
         #expect(viewModel.configIsDirty)
     }
-
 }
 
 // MARK: - Additional ContentViewModel Tests
@@ -608,7 +602,6 @@ struct ContentViewModelPatternTests {
         viewModel.patternRegistry = systemComponents.patternRegistry
         let patterns = viewModel.allPatternsByCategory
         #expect(patterns.isEmpty == false)
-
     }
 }
 

@@ -102,7 +102,6 @@ class SwiftUIManagementVisitor: BasePatternVisitor {
                 ruleName: .fatView
             )
         }
-
     }
 
     private func analyzeVariableDeclaration(_ node: VariableDeclSyntax) {

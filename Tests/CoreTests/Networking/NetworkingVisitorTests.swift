@@ -281,7 +281,6 @@ struct NetworkingVisitorTests {
         let issue = try #require(issues.first)
         #expect(issue.filePath == "test/file.swift")
     }
-
 }
 
 // MARK: - Local File URL Exclusion Tests

@@ -27,5 +27,4 @@ class CrossFileSwiftUIManagementVisitor: SwiftUIManagementVisitor, CrossFilePatt
 
     override func finalizeAnalysis() {
     }
-
 }

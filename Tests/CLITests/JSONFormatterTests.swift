@@ -51,6 +51,5 @@ struct JSONFormatterTests {
         let data = try #require(jsonString.data(using: .utf8))
         let decoded = try JSONDecoder().decode(LintReport.self, from: data)
         #expect(decoded.issues[0].category.isEmpty == false)
-
     }
 }
