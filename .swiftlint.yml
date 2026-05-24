@@ -129,6 +129,7 @@ opt_in_rules:
   - contains_over_filter_is_empty
   - closure_body_length
   - prefer_self_in_static_references
+  - sorted_imports
 # Rule configurations
 line_length:
   error: 150
