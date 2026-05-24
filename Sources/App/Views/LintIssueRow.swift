@@ -25,53 +25,67 @@ struct LintIssueRow: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                severityIcon
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(issue.message)
-                        .font(.headline)
-                        .foregroundStyle(.primary)
-                        .fixedSize(horizontal: true, vertical: true)
-                        .lineLimit(nil)
-                    Text(issue.ruleName.rawValue)
-                        .font(.caption)
-                        .foregroundStyle(.tertiary)
-                        .fontDesign(.monospaced)
-                    if issue.locations.count == 1 {
-                        Text("\(issue.locations[0].filePath):\(issue.locations[0].lineNumber)")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                            .fixedSize(horizontal: false, vertical: true)
-                    } else {
-                        VStack(alignment: .leading, spacing: 2) {
-                            ForEach(Array(issue.locations.enumerated()), id: \.offset) { _, location in
-                                Text("\(location.filePath):\(location.lineNumber)")
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                                    .fixedSize(horizontal: false, vertical: true)
-                            }
-                        }
-                    }
-                }
-
-                Spacer()
-
-                Button {
-                    withAnimation(.easeInOut(duration: Self.expandAnimationDuration)) {
-                        isExpanded.toggle()
-                    }
-                } label: {
-                    Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
-                        .foregroundStyle(.blue)
-                }
-                .accessibilityLabel(isExpanded ? "Collapse details" : "Expand details")
-            }
-
+            summaryRow
             if isExpanded {
                 ExpandedIssueContent(issue: issue)
             }
         }
         .padding(.vertical, 4)
+    }
+
+    private var summaryRow: some View {
+        HStack {
+            severityIcon
+            issueSummary
+            Spacer()
+            expandToggle
+        }
+    }
+
+    private var issueSummary: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(issue.message)
+                .font(.headline)
+                .foregroundStyle(.primary)
+                .fixedSize(horizontal: true, vertical: true)
+                .lineLimit(nil)
+            Text(issue.ruleName.rawValue)
+                .font(.caption)
+                .foregroundStyle(.tertiary)
+                .fontDesign(.monospaced)
+            locationLines
+        }
+    }
+
+    @ViewBuilder
+    private var locationLines: some View {
+        if issue.locations.count == 1 {
+            Text("\(issue.locations[0].filePath):\(issue.locations[0].lineNumber)")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+        } else {
+            VStack(alignment: .leading, spacing: 2) {
+                ForEach(Array(issue.locations.enumerated()), id: \.offset) { _, location in
+                    Text("\(location.filePath):\(location.lineNumber)")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+        }
+    }
+
+    private var expandToggle: some View {
+        Button {
+            withAnimation(.easeInOut(duration: Self.expandAnimationDuration)) {
+                isExpanded.toggle()
+            }
+        } label: {
+            Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
+                .foregroundStyle(.blue)
+        }
+        .accessibilityLabel(isExpanded ? "Collapse details" : "Expand details")
     }
 
     private var severityIcon: some View {
@@ -120,44 +134,56 @@ private struct ExpandedIssueContent: View {
     var body: some View {
         ScrollView(.vertical, showsIndicators: true) {
             VStack(alignment: .leading, spacing: 12) {
-                Text(issue.message)
-                    .font(.body)
-                    .foregroundStyle(.primary)
-                    .padding(.bottom, 4)
-                    .textSelection(.enabled)
-                    .fixedSize(horizontal: false, vertical: true)
+                messageBody
                 if let suggestion = issue.suggestion {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("Suggestion:")
-                            .font(.subheadline)
-                            .fontWeight(.semibold)
-                            .foregroundStyle(.blue)
-                        Text(suggestion)
-                            .font(.body)
-                            .foregroundStyle(.primary)
-                            .padding(.leading, 8)
-                            .textSelection(.enabled)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
+                    suggestionSection(suggestion)
                 }
-                VStack(alignment: .leading, spacing: 6) {
-                    Text("Locations:")
-                        .font(.caption)
-                        .fontWeight(.semibold)
-                        .foregroundStyle(.secondary)
-                    ForEach(Array(issue.locations.enumerated()), id: \.offset) { _, location in
-                        Text("\(location.filePath):\(location.lineNumber)")
-                            .font(.caption)
-                            .foregroundStyle(.primary)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
-                }
+                locationsSection
             }
             .padding(.leading, 24)
         }
         .frame(maxHeight: .infinity)
         .layoutPriority(1)
         .transition(.opacity.combined(with: .move(edge: .top)))
+    }
+
+    private var messageBody: some View {
+        Text(issue.message)
+            .font(.body)
+            .foregroundStyle(.primary)
+            .padding(.bottom, 4)
+            .textSelection(.enabled)
+            .fixedSize(horizontal: false, vertical: true)
+    }
+
+    private func suggestionSection(_ suggestion: String) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text("Suggestion:")
+                .font(.subheadline)
+                .fontWeight(.semibold)
+                .foregroundStyle(.blue)
+            Text(suggestion)
+                .font(.body)
+                .foregroundStyle(.primary)
+                .padding(.leading, 8)
+                .textSelection(.enabled)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
+    private var locationsSection: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text("Locations:")
+                .font(.caption)
+                .fontWeight(.semibold)
+                .foregroundStyle(.secondary)
+            ForEach(Array(issue.locations.enumerated()), id: \.offset) { _, location in
+                Text("\(location.filePath):\(location.lineNumber)")
+                    .font(.caption)
+                    .foregroundStyle(.primary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
     }
 }
 
