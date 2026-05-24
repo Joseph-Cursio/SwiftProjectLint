@@ -135,6 +135,7 @@ opt_in_rules:
   - implicit_return
   - prefer_condition_list
   - trailing_closure
+  - vertical_whitespace_closing_braces
 # Rule configurations
 line_length:
   error: 150
