@@ -264,6 +264,23 @@ public enum HeuristicEffectInferrer {
         return nil
     }
 
+    /// Reason-string counterpart to the framework-gated method matches in
+    /// `inferByMethodFramework` (Fluent's ORM verbs on a receiver, plus
+    /// the un-receiver-gated idempotent method list).
+    private static func frameworkMethodReason(calleeName: String, receiverName: String?, context: FrameworkContext) -> String? {
+        if receiverName != nil,
+           let framework = FrameworkAllowlist.framework(forNonIdempotentMethod: calleeName),
+           context.isFrameworkActive(framework) {
+            return "from the \(framework) ORM verb `\(calleeName)`"
+        }
+        if let framework = FrameworkAllowlist.framework(forIdempotentMethod: calleeName),
+           context.isFrameworkActive(framework) {
+            let phrase = FrameworkAllowlist.idempotentMethodPhrasing(forFramework: framework)
+            return "from the \(framework) \(phrase) `\(calleeName)`"
+        }
+        return nil
+    }
+
     /// Reason-string counterpart to the camel-case prefix match in
     /// `inferByMethodFramework`. Credits the matched verb explicitly so
     /// the user can see which heuristic fired and why.
@@ -349,19 +366,8 @@ public enum HeuristicEffectInferrer {
             }
             return "from the callee name `\(calleeName)`"
         }
-        if receiverName != nil,
-           let framework = FrameworkAllowlist.framework(
-               forNonIdempotentMethod: calleeName
-           ),
-           context.isFrameworkActive(framework) {
-            return "from the \(framework) ORM verb `\(calleeName)`"
-        }
-        if let framework = FrameworkAllowlist.framework(
-               forIdempotentMethod: calleeName
-           ),
-           context.isFrameworkActive(framework) {
-            let phrase = FrameworkAllowlist.idempotentMethodPhrasing(forFramework: framework)
-            return "from the \(framework) \(phrase) `\(calleeName)`"
+        if let reason = frameworkMethodReason(calleeName: calleeName, receiverName: receiverName, context: context) {
+            return reason
         }
         return byNamePrefixReason(calleeName: calleeName, call: call)
     }
