@@ -48,42 +48,8 @@ class ViewRelationshipVisitor: SyntaxVisitor {
     }
 
     override func visit(_ node: FunctionCallExprSyntax) -> SyntaxVisitorContinueKind {
-        // Handle NavigationLink
-        if let called = node.calledExpression.as(DeclReferenceExprSyntax.self),
-           called.baseName.text == "NavigationLink" {
-            let wasInNavigationLink = isInNavigationLink
-            isInNavigationLink = true
-
-            if let destArg = node.arguments.first(where: { $0.label?.text == "destination" }),
-               let destCall = destArg.expression.as(FunctionCallExprSyntax.self) {
-                if let destName = extractViewName(from: destCall) {
-                    addRelationship(
-                        childView: destName,
-                        relationshipType: .navigationDestination,
-                        node: Syntax(node)
-                    )
-                    detectedSpecialViews.insert(destName)
-                }
-            }
-
-            // Visit children to handle the content closure
-            let result = super.visit(node)
-            isInNavigationLink = wasInNavigationLink
-            return result
-        }
-
-        // Handle container views - just visit children normally
-        if let called = node.calledExpression.as(DeclReferenceExprSyntax.self),
-           containerViews.contains(called.baseName.text) {
-            // Set flag to indicate we're inside a container
-            let wasInContainer = isInContainer
-            isInContainer = true
-
-            // Visit children normally - they will be detected as direct children
-            let result = super.visit(node)
-            isInContainer = wasInContainer
-            return result
-        }
+        if let result = visitNavigationLinkIfApplicable(node) { return result }
+        if let result = visitContainerIfApplicable(node) { return result }
 
         // Handle presentation modifiers
         if let memberAccess = node.calledExpression.as(MemberAccessExprSyntax.self) {
@@ -130,6 +96,45 @@ class ViewRelationshipVisitor: SyntaxVisitor {
     }
 
     // MARK: - Helpers
+
+    /// Specialised handler for `NavigationLink(destination: ...)` calls.
+    /// Records the navigation-destination relationship, toggles the
+    /// `isInNavigationLink` flag for the subtree, and returns the
+    /// SyntaxVisitor's continuation kind. Returns `nil` when the call
+    /// isn't a `NavigationLink` so the main visitor can keep dispatching.
+    private func visitNavigationLinkIfApplicable(_ node: FunctionCallExprSyntax) -> SyntaxVisitorContinueKind? {
+        guard let called = node.calledExpression.as(DeclReferenceExprSyntax.self),
+              called.baseName.text == "NavigationLink" else { return nil }
+        let wasInNavigationLink = isInNavigationLink
+        isInNavigationLink = true
+        if let destArg = node.arguments.first(where: { $0.label?.text == "destination" }),
+           let destCall = destArg.expression.as(FunctionCallExprSyntax.self),
+           let destName = extractViewName(from: destCall) {
+            addRelationship(
+                childView: destName,
+                relationshipType: .navigationDestination,
+                node: Syntax(node)
+            )
+            detectedSpecialViews.insert(destName)
+        }
+        let result = super.visit(node)
+        isInNavigationLink = wasInNavigationLink
+        return result
+    }
+
+    /// Specialised handler for container view calls (VStack, HStack, ...).
+    /// Toggles the `isInContainer` flag for the subtree so direct
+    /// children inside the container can be classified accurately.
+    /// Returns `nil` when the call isn't a known container.
+    private func visitContainerIfApplicable(_ node: FunctionCallExprSyntax) -> SyntaxVisitorContinueKind? {
+        guard let called = node.calledExpression.as(DeclReferenceExprSyntax.self),
+              containerViews.contains(called.baseName.text) else { return nil }
+        let wasInContainer = isInContainer
+        isInContainer = true
+        let result = super.visit(node)
+        isInContainer = wasInContainer
+        return result
+    }
 
     private func extractViewFromClosure(
         _ expr: ExprSyntax,
