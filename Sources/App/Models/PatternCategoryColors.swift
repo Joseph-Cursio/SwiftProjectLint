@@ -2,21 +2,27 @@ import Core
 import SwiftUI
 
 enum PatternCategoryColors {
+    // Table lookup keeps `color(for:)` under SwiftLint's cyclomatic-complexity
+    // budget. `.other` is both an explicit entry and the fallback colour, so
+    // any future category added without a palette entry degrades to the same
+    // neutral colour rather than crashing.
+    private static let palette: [PatternCategory: Color] = [
+        .stateManagement: .blue,
+        .performance: .orange,
+        .architecture: .purple,
+        .codeQuality: .green,
+        .security: .red,
+        .accessibility: .teal,
+        .memoryManagement: .pink,
+        .networking: .cyan,
+        .uiPatterns: .indigo,
+        .animation: .mint,
+        .modernization: .yellow,
+        .idempotency: .brown,
+        .other: .gray
+    ]
+
     static func color(for category: PatternCategory) -> Color {
-        switch category {
-        case .stateManagement: .blue
-        case .performance: .orange
-        case .architecture: .purple
-        case .codeQuality: .green
-        case .security: .red
-        case .accessibility: .teal
-        case .memoryManagement: .pink
-        case .networking: .cyan
-        case .uiPatterns: .indigo
-        case .animation: .mint
-        case .modernization: .yellow
-        case .idempotency: .brown
-        case .other: .gray
-        }
+        palette[category] ?? .gray
     }
 }
