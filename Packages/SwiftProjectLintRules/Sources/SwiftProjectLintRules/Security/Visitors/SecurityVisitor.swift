@@ -88,63 +88,48 @@ class SecurityVisitor: BasePatternVisitor {
 
     override func visit(_ node: VariableDeclSyntax) -> SyntaxVisitorContinueKind {
         guard insideIfDebug == false else { return .visitChildren }
-
         for binding in node.bindings {
-            guard let pattern = binding.pattern.as(IdentifierPatternSyntax.self),
-                  let initializer = binding.initializer,
-                  let stringLiteral = initializer.value.as(StringLiteralExprSyntax.self) else {
-                continue
-            }
-
-            let variableName = pattern.identifier.text
-            let stringValue = extractStringValue(stringLiteral)
-
-            // Skip placeholders
-            if isPlaceholder(stringValue) { continue }
-
-            // Skip test files with short mock-looking values
-            if isTestFile(), stringValue.count < 20 { continue }
-
-            // Check 1: Known keyword match (original behavior)
-            if Self.secretKeywords.contains(where: {
-                variableName.localizedCaseInsensitiveContains($0)
-            }) {
-                reportHardcodedSecret(variableName: variableName, node: node)
-                continue
-            }
-
-            // Check 2: JWT token
-            if looksLikeJWT(stringValue) {
-                reportHardcodedSecret(
-                    variableName: variableName,
-                    node: node,
-                    detail: "JWT token"
-                )
-                continue
-            }
-
-            // Check 3: Known API key prefix
-            if let prefix = matchesKnownKeyPrefix(stringValue) {
-                reportHardcodedSecret(
-                    variableName: variableName,
-                    node: node,
-                    detail: "matches known key prefix '\(prefix)'"
-                )
-                continue
-            }
-
-            // Check 4: High-entropy string with sensitive variable name
-            if isSensitiveVariableName(variableName),
-               stringValue.count >= Self.minEntropyLength,
-               shannonEntropy(stringValue) > Self.entropyThreshold {
-                reportHardcodedSecret(
-                    variableName: variableName,
-                    node: node,
-                    detail: "high-entropy value"
-                )
-            }
+            analyzeStringBinding(binding, in: node)
         }
         return .visitChildren
+    }
+
+    /// Runs the four hardcoded-secret heuristics against a single `let`/
+    /// `var` binding initialised from a string literal. Each heuristic
+    /// short-circuits — the variable name's keyword match wins over
+    /// JWT/key-prefix/entropy checks if multiple apply.
+    private func analyzeStringBinding(_ binding: PatternBindingSyntax, in node: VariableDeclSyntax) {
+        guard let pattern = binding.pattern.as(IdentifierPatternSyntax.self),
+              let initializer = binding.initializer,
+              let stringLiteral = initializer.value.as(StringLiteralExprSyntax.self) else { return }
+
+        let variableName = pattern.identifier.text
+        let stringValue = extractStringValue(stringLiteral)
+
+        if isPlaceholder(stringValue) { return }
+        if isTestFile(), stringValue.count < 20 { return }
+
+        if Self.secretKeywords.contains(where: { variableName.localizedCaseInsensitiveContains($0) }) {
+            reportHardcodedSecret(variableName: variableName, node: node)
+            return
+        }
+        if looksLikeJWT(stringValue) {
+            reportHardcodedSecret(variableName: variableName, node: node, detail: "JWT token")
+            return
+        }
+        if let prefix = matchesKnownKeyPrefix(stringValue) {
+            reportHardcodedSecret(
+                variableName: variableName,
+                node: node,
+                detail: "matches known key prefix '\(prefix)'"
+            )
+            return
+        }
+        if isSensitiveVariableName(variableName),
+           stringValue.count >= Self.minEntropyLength,
+           shannonEntropy(stringValue) > Self.entropyThreshold {
+            reportHardcodedSecret(variableName: variableName, node: node, detail: "high-entropy value")
+        }
     }
 
     // MARK: - Unsafe URL construction
