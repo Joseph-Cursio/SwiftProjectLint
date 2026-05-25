@@ -74,14 +74,9 @@ struct RuleDocView: View {
 
             // Fenced code block
             if line.hasPrefix("```") {
-                lineIndex += 1
-                var codeLines: [String] = []
-                while lineIndex < lines.count, !lines[lineIndex].hasPrefix("```") {
-                    codeLines.append(lines[lineIndex])
-                    lineIndex += 1
-                }
-                lineIndex += 1 // consume closing ```
-                blocks.append(.codeBlock(codeLines.joined(separator: "\n")))
+                let (codeBlock, nextIndex) = parseFencedCode(lines: lines, startIndex: lineIndex)
+                blocks.append(codeBlock)
+                lineIndex = nextIndex
                 continue
             }
 
@@ -109,6 +104,20 @@ struct RuleDocView: View {
         }
 
         return blocks
+    }
+
+    /// Parses a fenced code block starting at the opening ``` line and
+    /// returns the constructed block plus the index of the line *after*
+    /// the closing fence. Extracted from `parseBlocks` to keep its
+    /// cyclomatic complexity within the SwiftLint budget.
+    private func parseFencedCode(lines: [String], startIndex: Int) -> (Block, Int) {
+        var lineIndex = startIndex + 1
+        var codeLines: [String] = []
+        while lineIndex < lines.count, !lines[lineIndex].hasPrefix("```") {
+            codeLines.append(lines[lineIndex])
+            lineIndex += 1
+        }
+        return (.codeBlock(codeLines.joined(separator: "\n")), lineIndex + 1)
     }
 
     // MARK: - Block rendering
