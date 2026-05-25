@@ -185,45 +185,7 @@ public enum HeuristicEffectInferrer {
             return .nonIdempotent
         }
 
-        // Framework-gated idempotent methods. No receiver requirement:
-        // these commonly appear as chained calls like
-        // `Todo.query(on: db).filter(...).all()` (FluentKit) or pipe-
-        // forward composition like `conn |> writeStatus(.ok)`
-        // (HttpPipeline) where the AST walker can't bind a simple
-        // receiver identifier to the terminal call. The framework
-        // import presence is the load-bearing signal.
-        if let framework = FrameworkAllowlist.framework(
-               forIdempotentMethod: calleeName
-           ),
-           context.isFrameworkActive(framework) {
-            return .idempotent
-        }
-
-        // Framework-gated non-idempotent methods (Fluent's save/update/delete).
-        // Receiver-only: `model.save()` is the adopter shape; a bare
-        // `save()` in a module that imports FluentKit is structurally
-        // unrelated (top-level free function), so we keep it out.
-        if receiverName != nil,
-           let framework = FrameworkAllowlist.framework(
-               forNonIdempotentMethod: calleeName
-           ),
-           context.isFrameworkActive(framework) {
-            return .nonIdempotent
-        }
-
-        // Camel-case-gated prefix match for non-idempotent verbs.
-        // `sendEmail`, `createUser`, `publishEvent`, etc. Ruled out:
-        //   - `sending`, `sender`, `publisher`, `appending` (lowercase next)
-        //   - `Array.sendAnything` and friends (stdlib-collection receiver)
-        // See `matchesNonIdempotentPrefix` for the exact rules.
-        if matchesNonIdempotentPrefix(calleeName) != nil {
-            if case .stdlibCollection = ReceiverTypeResolver.resolve(receiverOf: call) {
-                return nil
-            }
-            return .nonIdempotent
-        }
-
-        return nil
+        return inferByMethodFramework(calleeName: calleeName, receiverName: receiverName, call: call, context: context)
     }
 
     /// Observational sub-classifier: logger-shaped receivers + swift-metrics
@@ -276,6 +238,41 @@ public enum HeuristicEffectInferrer {
             return "from metric-primitive receiver `\(receiverName).\(calleeName)`"
         }
         return nil
+    }
+
+    /// Trailing sub-classifier for `infer`: framework-gated idempotent
+    /// methods, Fluent-style ORM verbs on a receiver, and the camel-case
+    /// non-idempotent prefix match (with the stdlib-collection escape
+    /// hatch). Returns `nil` for both "no match" and "matched but
+    /// stdlib-excluded"; both cases collapse to the same caller return.
+    private static func inferByMethodFramework(calleeName: String, receiverName: String?, call: FunctionCallExprSyntax, context: FrameworkContext) -> DeclaredEffect? {
+        if let framework = FrameworkAllowlist.framework(forIdempotentMethod: calleeName),
+           context.isFrameworkActive(framework) {
+            return .idempotent
+        }
+        if receiverName != nil,
+           let framework = FrameworkAllowlist.framework(forNonIdempotentMethod: calleeName),
+           context.isFrameworkActive(framework) {
+            return .nonIdempotent
+        }
+        if matchesNonIdempotentPrefix(calleeName) != nil {
+            if case .stdlibCollection = ReceiverTypeResolver.resolve(receiverOf: call) {
+                return nil
+            }
+            return .nonIdempotent
+        }
+        return nil
+    }
+
+    /// Reason-string counterpart to the camel-case prefix match in
+    /// `inferByMethodFramework`. Credits the matched verb explicitly so
+    /// the user can see which heuristic fired and why.
+    private static func byNamePrefixReason(calleeName: String, call: FunctionCallExprSyntax) -> String? {
+        guard let prefix = matchesNonIdempotentPrefix(calleeName) else { return nil }
+        if case .stdlibCollection = ReceiverTypeResolver.resolve(receiverOf: call) {
+            return nil
+        }
+        return "from the callee-name prefix `\(prefix)` (in `\(calleeName)`)"
     }
 
     /// Reason-string counterpart to `inferIdempotentReceiverPair`.
@@ -366,15 +363,7 @@ public enum HeuristicEffectInferrer {
             let phrase = FrameworkAllowlist.idempotentMethodPhrasing(forFramework: framework)
             return "from the \(framework) \(phrase) `\(calleeName)`"
         }
-        // Prefix-matched calls credit the matched verb explicitly so the
-        // user can see which heuristic fired and why.
-        if let prefix = matchesNonIdempotentPrefix(calleeName) {
-            if case .stdlibCollection = ReceiverTypeResolver.resolve(receiverOf: call) {
-                return nil
-            }
-            return "from the callee-name prefix `\(prefix)` (in `\(calleeName)`)"
-        }
-        return nil
+        return byNamePrefixReason(calleeName: calleeName, call: call)
     }
 
     // MARK: - Private
