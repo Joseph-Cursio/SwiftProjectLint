@@ -217,46 +217,14 @@ final class NonIdempotentInRetryContextVisitor: BasePatternVisitor, CrossFilePat
     /// callees pass silently in a retry context.
     private func analyzeCall(_ call: FunctionCallExprSyntax, site: AnalysisSite) {
         guard let calleeSignature = FunctionSignature.from(call: call) else { return }
-
-        let calleeEffect: DeclaredEffect
-        let calleeClaim: String
-        let overrideHint: String
-
-        if let declared = symbolTable.effect(for: calleeSignature) {
-            calleeEffect = declared
-            calleeClaim = "which is declared `@lint.effect non_idempotent`"
-            overrideHint = ""
-        } else if symbolTable.isCollision(signature: calleeSignature) {
-            // Collision-withdrawn: annotated with conflicting effects. Neither
-            // upward nor downward inference runs.
-            return
-        } else if let upward = symbolTable.upwardInference(for: calleeSignature) {
-            calleeEffect = upward.effect
-            let chainHint = upward.depth > 1
-                ? " via \(upward.depth)-hop chain of un-annotated callees"
-                : ""
-            calleeClaim = "whose effect is inferred `non_idempotent` from its body\(chainHint)"
-            overrideHint = " If the inference is wrong, annotate '\(calleeSignature.name)' "
-                + "explicitly with `/// @lint.effect <tier>` to override the body-based inference."
-        } else if let inferred = HeuristicEffectInferrer.infer(
+        guard let resolution = resolveCalleeEffect(
             call: call,
-            imports: imports(forSiteFile: site.filePath),
-            enabledFrameworks: self.enabledFrameworkAllowlists
-        ) {
-            calleeEffect = inferred
-            let reason = HeuristicEffectInferrer.inferenceReason(
-                for: call,
-                imports: imports(forSiteFile: site.filePath),
-                enabledFrameworks: self.enabledFrameworkAllowlists
-            ) ?? ""
-            calleeClaim = "whose effect is inferred `non_idempotent` \(reason)"
-            overrideHint = " If the inference is wrong, annotate '\(calleeSignature.name)' "
-                + "explicitly with `/// @lint.effect <tier>` to override."
-        } else {
-            return
-        }
-
-        guard calleeEffect == .nonIdempotent else { return }
+            signature: calleeSignature,
+            site: site
+        ) else { return }
+        guard resolution.effect == .nonIdempotent else { return }
+        let calleeClaim = resolution.claim
+        let overrideHint = resolution.overrideHint
 
         let contextLabel: String
         switch site.context {
@@ -282,6 +250,55 @@ final class NonIdempotentInRetryContextVisitor: BasePatternVisitor, CrossFilePat
                 + "`@ExternallyIdempotent(by:)` from the `SwiftIdempotency` package.",
             ruleName: .nonIdempotentInRetryContext
         )
+    }
+
+    /// Returns the resolved effect for `signature` together with the
+    /// diagnostic claim/override-hint prose. Returns `nil` for callees
+    /// the rule does not consider (collision-withdrawn, unannotated +
+    /// no upward inference + no heuristic match).
+    private func resolveCalleeEffect(
+        call: FunctionCallExprSyntax,
+        signature: FunctionSignature,
+        site: AnalysisSite
+    ) -> (effect: DeclaredEffect, claim: String, overrideHint: String)? {
+        if let declared = symbolTable.effect(for: signature) {
+            return (declared, "which is declared `@lint.effect non_idempotent`", "")
+        }
+        if symbolTable.isCollision(signature: signature) {
+            // Collision-withdrawn: annotated with conflicting effects. Neither
+            // upward nor downward inference runs.
+            return nil
+        }
+        if let upward = symbolTable.upwardInference(for: signature) {
+            let chainHint = upward.depth > 1
+                ? " via \(upward.depth)-hop chain of un-annotated callees"
+                : ""
+            return (
+                upward.effect,
+                "whose effect is inferred `non_idempotent` from its body\(chainHint)",
+                " If the inference is wrong, annotate '\(signature.name)' "
+                + "explicitly with `/// @lint.effect <tier>` to override the body-based inference."
+            )
+        }
+        let siteImports = imports(forSiteFile: site.filePath)
+        if let inferred = HeuristicEffectInferrer.infer(
+            call: call,
+            imports: siteImports,
+            enabledFrameworks: enabledFrameworkAllowlists
+        ) {
+            let reason = HeuristicEffectInferrer.inferenceReason(
+                for: call,
+                imports: siteImports,
+                enabledFrameworks: enabledFrameworkAllowlists
+            ) ?? ""
+            return (
+                inferred,
+                "whose effect is inferred `non_idempotent` \(reason)",
+                " If the inference is wrong, annotate '\(signature.name)' "
+                + "explicitly with `/// @lint.effect <tier>` to override."
+            )
+        }
+        return nil
     }
 
     /// See `IdempotencyViolationVisitor.isEscapingClosure` for the shared policy.
