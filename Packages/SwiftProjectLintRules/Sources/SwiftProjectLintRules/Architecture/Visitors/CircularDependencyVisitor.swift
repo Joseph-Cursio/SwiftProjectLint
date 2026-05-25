@@ -114,25 +114,8 @@ final class CircularDependencyVisitor: BasePatternVisitor, CrossFilePatternVisit
 
         for (typeA, refs) in typeReferences {
             for ref in refs {
+                guard reportableCycleTarget(from: typeA, ref: ref) != nil else { continue }
                 let typeB = ref.target
-
-                // Skip if B is a protocol (dependency is inverted)
-                guard protocolNames.contains(typeB) == false else { continue }
-
-                // Skip if B is not a project type
-                guard typeDeclarations[typeB] != nil else { continue }
-
-                // Check if B also references A
-                guard let backRefs = typeReferences[typeB] else { continue }
-                let backRef = backRefs.first { $0.target == typeA }
-                guard let backRef else { continue }
-
-                // Suppress if either side is weak (intentional parent-child)
-                if ref.isWeak || backRef.isWeak { continue }
-
-                // Suppress if either side references via protocol
-                // (already checked typeB above, check typeA from B's perspective)
-                if protocolNames.contains(typeA) { continue }
 
                 // Avoid duplicate reports (A↔B and B↔A)
                 let cycleKey = [typeA, typeB].sorted().joined(separator: "↔")
@@ -158,6 +141,25 @@ final class CircularDependencyVisitor: BasePatternVisitor, CrossFilePatternVisit
     }
 
     // MARK: - Helpers
+
+    /// Returns the cycle partner for `(typeA, ref)` when the pair forms a
+    /// reportable strong cycle: B is a project type (not a protocol), B
+    /// references A back, neither side is weak, and A itself isn't a
+    /// protocol. Returns `nil` otherwise. The non-nil return is the
+    /// matched back-reference so callers can use it for further reasoning.
+    private func reportableCycleTarget(
+        from typeA: String,
+        ref: (target: String, isWeak: Bool)
+    ) -> (target: String, isWeak: Bool)? {
+        let typeB = ref.target
+        guard protocolNames.contains(typeB) == false else { return nil }
+        guard typeDeclarations[typeB] != nil else { return nil }
+        guard let backRefs = typeReferences[typeB] else { return nil }
+        guard let backRef = backRefs.first(where: { $0.target == typeA }) else { return nil }
+        if ref.isWeak || backRef.isWeak { return nil }
+        if protocolNames.contains(typeA) { return nil }
+        return backRef
+    }
 
     /// Extracts the simple type name from a type syntax, stripping optionals and generics.
     private func extractTypeName(_ type: TypeSyntax) -> String? {
