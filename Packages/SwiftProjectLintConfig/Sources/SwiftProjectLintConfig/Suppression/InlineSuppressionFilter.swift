@@ -49,31 +49,7 @@ public struct InlineSuppressionFilter {
             let keys: [RuleIdentifier?] = directive.rules.isEmpty
                 ? [nil]
                 : directive.rules.map { Optional($0) }
-
-            switch directive.kind {
-            case .disable:
-                for key in keys where openDisables[key] == nil {
-                    openDisables[key] = directive.line
-                }
-
-            case .enable:
-                for key in keys {
-                    if let start = openDisables.removeValue(forKey: key) {
-                        appendRange(to: &ranges, key: key, start: start, end: directive.line - 1)
-                    }
-                }
-
-            case .disableNext, .disableThis:
-                let target: Int
-                if directive.kind == .disableNext {
-                    target = directive.line + 1
-                } else {
-                    target = directive.line
-                }
-                for key in keys {
-                    appendRange(to: &ranges, key: key, start: target, end: target)
-                }
-            }
+            applyDirective(directive, keys: keys, ranges: &ranges, openDisables: &openDisables)
         }
 
         // Close any regions still open at end of file
@@ -82,6 +58,52 @@ public struct InlineSuppressionFilter {
         }
 
         return ranges
+    }
+
+    private static func applyDirective(
+        _ directive: SuppressionDirective,
+        keys: [RuleIdentifier?],
+        ranges: inout SuppressedRanges,
+        openDisables: inout [RuleIdentifier?: Int]
+    ) {
+        switch directive.kind {
+        case .disable:
+            for key in keys where openDisables[key] == nil {
+                openDisables[key] = directive.line
+            }
+
+        case .enable:
+            closeDisableRegions(keys: keys, endLine: directive.line - 1, ranges: &ranges, openDisables: &openDisables)
+
+        case .disableNext:
+            appendSingleLineRange(keys: keys, line: directive.line + 1, ranges: &ranges)
+
+        case .disableThis:
+            appendSingleLineRange(keys: keys, line: directive.line, ranges: &ranges)
+        }
+    }
+
+    private static func closeDisableRegions(
+        keys: [RuleIdentifier?],
+        endLine: Int,
+        ranges: inout SuppressedRanges,
+        openDisables: inout [RuleIdentifier?: Int]
+    ) {
+        for key in keys {
+            if let start = openDisables.removeValue(forKey: key) {
+                appendRange(to: &ranges, key: key, start: start, end: endLine)
+            }
+        }
+    }
+
+    private static func appendSingleLineRange(
+        keys: [RuleIdentifier?],
+        line: Int,
+        ranges: inout SuppressedRanges
+    ) {
+        for key in keys {
+            appendRange(to: &ranges, key: key, start: line, end: line)
+        }
     }
 
     private static func appendRange(
