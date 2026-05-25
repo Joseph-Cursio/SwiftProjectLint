@@ -105,15 +105,7 @@ class MagicNumberVisitor: BasePatternVisitor {
         if shouldSkipFile() { return .visitChildren }
         if isInsidePreviewMacro(Syntax(node)) { return .visitChildren }
 
-        let calledName: String?
-        if let memberAccess = node.calledExpression.as(MemberAccessExprSyntax.self) {
-            calledName = memberAccess.declName.baseName.text
-        } else if let declRef = node.calledExpression.as(DeclReferenceExprSyntax.self) {
-            calledName = declRef.baseName.text
-        } else {
-            calledName = nil
-        }
-
+        let calledName = extractCalledName(node.calledExpression)
         let isLayoutCall = calledName.map { Self.layoutModifierNames.contains($0) } ?? false
         let isPositionalCall = calledName.map { name in
             Self.positionalIndexPrefixes.contains { name.hasPrefix($0) }
@@ -125,21 +117,42 @@ class MagicNumberVisitor: BasePatternVisitor {
             let isLayoutArg = isLayoutCall || (
                 argument.label.map { Self.layoutArgLabels.contains($0.text) } ?? false
             )
-            if let intLiteral = argument.expression.as(IntegerLiteralExprSyntax.self) {
-                if isLayoutArg {
-                    recordLayoutNumber(intLiteral.literal.text, node: Syntax(argument))
-                } else {
-                    recordMagicNumber(intLiteral.literal.text, node: Syntax(argument))
-                }
-            } else if let floatLiteral = argument.expression.as(FloatLiteralExprSyntax.self) {
-                if isLayoutArg {
-                    recordLayoutNumber(floatLiteral.literal.text, node: Syntax(argument))
-                } else {
-                    recordMagicNumber(floatLiteral.literal.text, node: Syntax(argument))
-                }
-            }
+            recordArgumentNumber(argument, isLayoutArg: isLayoutArg)
         }
         return .visitChildren
+    }
+
+    /// Resolves the call's name from either a member-access (`foo.bar()`)
+    /// or a direct decl reference (`bar()`). Returns `nil` for any other
+    /// shape — those forms are too dynamic to gate layout/positional
+    /// classification on.
+    private func extractCalledName(_ expr: ExprSyntax) -> String? {
+        if let memberAccess = expr.as(MemberAccessExprSyntax.self) {
+            return memberAccess.declName.baseName.text
+        }
+        if let declRef = expr.as(DeclReferenceExprSyntax.self) {
+            return declRef.baseName.text
+        }
+        return nil
+    }
+
+    /// Routes a single numeric-literal argument to either the layout
+    /// bucket or the magic-number bucket. Centralises the int/float
+    /// duplication that the visitor previously inlined in two places.
+    private func recordArgumentNumber(_ argument: LabeledExprSyntax, isLayoutArg: Bool) {
+        if let intLiteral = argument.expression.as(IntegerLiteralExprSyntax.self) {
+            if isLayoutArg {
+                recordLayoutNumber(intLiteral.literal.text, node: Syntax(argument))
+            } else {
+                recordMagicNumber(intLiteral.literal.text, node: Syntax(argument))
+            }
+        } else if let floatLiteral = argument.expression.as(FloatLiteralExprSyntax.self) {
+            if isLayoutArg {
+                recordLayoutNumber(floatLiteral.literal.text, node: Syntax(argument))
+            } else {
+                recordMagicNumber(floatLiteral.literal.text, node: Syntax(argument))
+            }
+        }
     }
 
     override func visitPost(_ _: SourceFileSyntax) {
