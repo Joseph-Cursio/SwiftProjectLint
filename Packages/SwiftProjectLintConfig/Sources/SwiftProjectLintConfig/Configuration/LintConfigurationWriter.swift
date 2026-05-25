@@ -35,29 +35,34 @@ public struct LintConfigurationWriter {
             lines.append("")
         }
 
-        // rules (per-rule overrides)
-        if !config.ruleOverrides.isEmpty {
-            lines.append("rules:")
-            for (rule, override) in config.ruleOverrides.sorted(by: { $0.key.rawValue < $1.key.rawValue }) {
-                let hasSeverity = override.severity != nil
-                let hasPaths = !override.excludedPaths.isEmpty
-                guard hasSeverity || hasPaths else { continue }
-
-                lines.append("  \"\(rule.rawValue)\":")
-                if let severity = override.severity {
-                    lines.append("    severity: \(severityString(severity))")
-                }
-                if !override.excludedPaths.isEmpty {
-                    lines.append("    excluded_paths:")
-                    for exclusion in override.excludedPaths {
-                        lines.append("      - \"\(exclusion)\"")
-                    }
-                }
-            }
-            lines.append("")
-        }
+        lines.append(contentsOf: ruleOverrideLines(config.ruleOverrides))
 
         return lines.joined(separator: "\n")
+    }
+
+    private static func ruleOverrideLines(
+        _ overrides: [RuleIdentifier: LintConfiguration.RuleOverride]
+    ) -> [String] {
+        guard !overrides.isEmpty else { return [] }
+        var lines = ["rules:"]
+        for (rule, override) in overrides.sorted(by: { $0.key.rawValue < $1.key.rawValue }) {
+            let hasSeverity = override.severity != nil
+            let hasPaths = !override.excludedPaths.isEmpty
+            guard hasSeverity || hasPaths else { continue }
+
+            lines.append("  \"\(rule.rawValue)\":")
+            if let severity = override.severity {
+                lines.append("    severity: \(severityString(severity))")
+            }
+            if !override.excludedPaths.isEmpty {
+                lines.append("    excluded_paths:")
+                for exclusion in override.excludedPaths {
+                    lines.append("      - \"\(exclusion)\"")
+                }
+            }
+        }
+        lines.append("")
+        return lines
     }
 
     /// Writes the configuration to a `.swiftprojectlint.yml` file at the given path.
