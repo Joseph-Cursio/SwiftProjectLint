@@ -18,7 +18,6 @@ excluded:
 # Disable rules that are too strict for development
 disabled_rules:
   - todo
-  - inclusive_language
 # Opt-in rules (enable specific rules that are valuable)
 opt_in_rules:
   - empty_count
