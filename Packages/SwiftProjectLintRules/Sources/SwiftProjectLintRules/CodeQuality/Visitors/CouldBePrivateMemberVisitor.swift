@@ -270,56 +270,11 @@ final class CouldBePrivateMemberVisitor: BasePatternVisitor, CrossFilePatternVis
         modifiers: DeclModifierListSyntax,
         node: Syntax
     ) {
-        // Must be inside a type
         guard !currentTypeName.isEmpty else { return }
-
-        // Skip test/example/fixture files
-        if isTestOrFixtureFile() {
-            return
-        }
-
-        // Skip ignored names
+        if isTestOrFixtureFile() { return }
         guard !Self.ignoredNames.contains(name) else { return }
-
-        // Skip members with explicit access control
-        let hasExplicitAccess = modifiers.contains { modifier in
-            let text = modifier.name.text
-            return text == "private" || text == "fileprivate"
-                || text == "public" || text == "open" || text == "internal"
-        }
-        guard !hasExplicitAccess else { return }
-
-        // Skip overrides — they implement a superclass requirement
-        let isOverride = modifiers.contains { $0.name.text == "override" }
-        guard !isOverride else { return }
-
-        // Skip @objc members — may be called via selectors
-        let hasObjc = node.as(FunctionDeclSyntax.self)?.attributes.contains {
-            $0.description.contains("@objc")
-        } ?? false
-        guard !hasObjc else { return }
-
-        // Skip property wrapper-attributed properties (@State, @Binding, etc.)
-        if let varDecl = node.as(VariableDeclSyntax.self) {
-            let hasWrapper = varDecl.attributes.contains {
-                $0.as(AttributeSyntax.self) != nil
-            }
-            if hasWrapper { return }
-
-            // Skip struct stored properties without default values — they're part of
-            // the memberwise initializer and must remain accessible to callers.
-            if isStructStoredPropertyWithoutDefault(varDecl) { return }
-        }
-
-        // Skip operators (==, <, etc.) — typically protocol conformance requirements
-        if let funcDecl = node.as(FunctionDeclSyntax.self) {
-            let funcName = funcDecl.name.text
-            if funcName == "==" || funcName == "<" || funcName == ">" || funcName == "hash" {
-                return
-            }
-        }
-
-        // Skip members inside already-private types — they're already inaccessible
+        guard !hasDisqualifyingModifiers(modifiers, node: node) else { return }
+        guard !hasDisqualifyingDeclShape(node) else { return }
         if isInsidePrivateType(node) { return }
 
         declarations.append(MemberDeclaration(
@@ -329,6 +284,43 @@ final class CouldBePrivateMemberVisitor: BasePatternVisitor, CrossFilePatternVis
             file: currentFile,
             node: node
         ))
+    }
+
+    /// Members carrying explicit access control, `override`, or `@objc`
+    /// are out of scope for the "could be private" rule: explicit access
+    /// is the author's stated intent, `override` participates in a vtable,
+    /// and `@objc` may be reached via selector.
+    private func hasDisqualifyingModifiers(_ modifiers: DeclModifierListSyntax, node: Syntax) -> Bool {
+        let hasExplicitAccess = modifiers.contains { modifier in
+            let text = modifier.name.text
+            return text == "private" || text == "fileprivate"
+                || text == "public" || text == "open" || text == "internal"
+        }
+        if hasExplicitAccess { return true }
+        if modifiers.contains(where: { $0.name.text == "override" }) { return true }
+        return node.as(FunctionDeclSyntax.self)?.attributes.contains {
+            $0.description.contains("@objc")
+        } ?? false
+    }
+
+    /// Disqualifies decls whose *shape* (rather than modifiers) keeps them
+    /// from being legitimately privatised: property-wrapped vars, struct
+    /// memberwise-init stored properties, and protocol-style operators.
+    private func hasDisqualifyingDeclShape(_ node: Syntax) -> Bool {
+        if let varDecl = node.as(VariableDeclSyntax.self) {
+            let hasWrapper = varDecl.attributes.contains {
+                $0.as(AttributeSyntax.self) != nil
+            }
+            if hasWrapper { return true }
+            if isStructStoredPropertyWithoutDefault(varDecl) { return true }
+        }
+        if let funcDecl = node.as(FunctionDeclSyntax.self) {
+            let funcName = funcDecl.name.text
+            if funcName == "==" || funcName == "<" || funcName == ">" || funcName == "hash" {
+                return true
+            }
+        }
+        return false
     }
 
     /// Returns true if this is a stored property on a struct with no default value.
