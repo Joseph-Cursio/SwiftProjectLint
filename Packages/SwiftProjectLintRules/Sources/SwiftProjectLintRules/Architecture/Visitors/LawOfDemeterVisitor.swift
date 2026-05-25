@@ -178,20 +178,7 @@ class LawOfDemeterVisitor: BasePatternVisitor {
     private func isNonExemptChain(
         _ orderedComponents: [String], dotCount: Int
     ) -> Bool {
-        // Skip type.singleton chains
-        if let rootName = orderedComponents.first,
-           rootName.first?.isUppercase == true,
-           orderedComponents.count > 1,
-           Self.singletonAccessors.contains(orderedComponents[1]) {
-            return false
-        }
-        // Skip nested-type / enum-case chains
-        if let rootName = orderedComponents.first,
-           rootName.first?.isUppercase == true,
-           orderedComponents.count > 2,
-           orderedComponents[1].first?.isUppercase == true {
-            return false
-        }
+        if isTypePrefixedChain(orderedComponents) { return false }
         // Skip early value-transform
         if let vtIndex = orderedComponents.firstIndex(
             where: { Self.valueTransformMembers.contains($0) }
@@ -211,17 +198,10 @@ class LawOfDemeterVisitor: BasePatternVisitor {
                 return false
             }
         }
-        // Skip framework API chains (SwiftSyntax, etc.)
-        if orderedComponents.contains(where: { Self.frameworkAPIMembers.contains($0) }) {
-            return false
-        }
+        if hasExemptMember(in: orderedComponents) { return false }
         // Skip environment/navigation roots
         if let rootName = orderedComponents.first,
            Self.environmentRoots.contains(rootName.lowercased()) {
-            return false
-        }
-        // Skip geometry/layout access chains
-        if orderedComponents.contains(where: { Self.geometryMembers.contains($0) }) {
             return false
         }
         // Skip test files
@@ -229,5 +209,37 @@ class LawOfDemeterVisitor: BasePatternVisitor {
             return false
         }
         return true
+    }
+
+    /// True when the chain looks like a static-namespace traversal
+    /// (`Foo.shared`, `Foo.Bar.something`) — both forms are syntactic
+    /// type-prefix shapes that the Law-of-Demeter rule deliberately
+    /// exempts. Folded into one helper so the main predicate stays
+    /// within the cyclomatic-complexity budget.
+    private func isTypePrefixedChain(_ orderedComponents: [String]) -> Bool {
+        guard let rootName = orderedComponents.first,
+              rootName.first?.isUppercase == true else { return false }
+        if orderedComponents.count > 1,
+           Self.singletonAccessors.contains(orderedComponents[1]) {
+            return true
+        }
+        if orderedComponents.count > 2,
+           orderedComponents[1].first?.isUppercase == true {
+            return true
+        }
+        return false
+    }
+
+    /// True when the chain touches a framework/system API member
+    /// (`SwiftSyntax` traversals, geometry/layout accessors) that the
+    /// rule treats as legitimately long.
+    private func hasExemptMember(in components: [String]) -> Bool {
+        if components.contains(where: { Self.frameworkAPIMembers.contains($0) }) {
+            return true
+        }
+        if components.contains(where: { Self.geometryMembers.contains($0) }) {
+            return true
+        }
+        return false
     }
 }
