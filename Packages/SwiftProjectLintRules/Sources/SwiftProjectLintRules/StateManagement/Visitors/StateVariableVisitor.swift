@@ -185,15 +185,19 @@ class StateVariableVisitor: SyntaxVisitor {
             return cgType
         }
 
-        // Check for SwiftUI types
-        if trimmedText.contains("Color.") {
-            return "Color"
-        }
-        if trimmedText.contains("Font.") {
-            return "Font"
+        if let swiftUIType = inferSwiftUIType(from: trimmedText) {
+            return swiftUIType
         }
 
         return handleUnknownType(text: trimmedText)
+    }
+
+    /// Infers SwiftUI types from text. Folded out of `inferTypeFromText`
+    /// so the parent stays within the cyclomatic-complexity budget.
+    private func inferSwiftUIType(from text: String) -> String? {
+        if text.contains("Color.") { return "Color" }
+        if text.contains("Font.") { return "Font" }
+        return nil
     }
 
     /// Infers Core Graphics types from text
