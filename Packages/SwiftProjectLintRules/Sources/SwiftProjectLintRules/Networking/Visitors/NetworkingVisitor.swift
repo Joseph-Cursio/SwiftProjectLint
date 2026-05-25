@@ -104,10 +104,8 @@ class NetworkingVisitor: BasePatternVisitor {
         if let memberAccess = expr.as(FunctionCallExprSyntax.self)?.calledExpression
             .as(MemberAccessExprSyntax.self) {
             let member = memberAccess.declName.baseName.text
-            if member == "appendingPathComponent" || member == "appendingPathExtension" {
-                return true
-            }
-            if member == "appending" || member == "appendingPath" {
+            if member == "appendingPathComponent" || member == "appendingPathExtension"
+                || member == "appending" || member == "appendingPath" {
                 return true
             }
         }
