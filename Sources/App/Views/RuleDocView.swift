@@ -54,22 +54,10 @@ struct RuleDocView: View {
             // Skip back-navigation link
             if line.hasPrefix("[←") { lineIndex += 1; continue }
 
-            // H2
-            if line.hasPrefix("## ") {
-                blocks.append(.heading2(String(line.dropFirst(3))))
-                lineIndex += 1; continue
-            }
-
-            // H3
-            if line.hasPrefix("### ") {
-                blocks.append(.heading3(String(line.dropFirst(4))))
-                lineIndex += 1; continue
-            }
-
-            // Divider
-            if line == "---" {
-                blocks.append(.divider)
-                lineIndex += 1; continue
+            if let block = singleLineBlock(from: line) {
+                blocks.append(block)
+                lineIndex += 1
+                continue
             }
 
             // Fenced code block
@@ -78,12 +66,6 @@ struct RuleDocView: View {
                 blocks.append(codeBlock)
                 lineIndex = nextIndex
                 continue
-            }
-
-            // Empty line
-            if line.trimmingCharacters(in: .whitespaces).isEmpty {
-                blocks.append(.spacer)
-                lineIndex += 1; continue
             }
 
             // Paragraph — collect consecutive non-special lines
@@ -104,6 +86,17 @@ struct RuleDocView: View {
         }
 
         return blocks
+    }
+
+    /// Single-line block recognisers: headings, dividers, and the empty
+    /// spacer. Folded out of `parseBlocks` so the main loop only handles
+    /// multi-line shapes (fenced code, paragraphs) and the back-nav skip.
+    private func singleLineBlock(from line: String) -> Block? {
+        if line.hasPrefix("## ") { return .heading2(String(line.dropFirst(3))) }
+        if line.hasPrefix("### ") { return .heading3(String(line.dropFirst(4))) }
+        if line == "---" { return .divider }
+        if line.trimmingCharacters(in: .whitespaces).isEmpty { return .spacer }
+        return nil
     }
 
     /// Parses a fenced code block starting at the opening ``` line and
