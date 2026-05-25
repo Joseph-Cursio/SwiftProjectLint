@@ -295,15 +295,11 @@ public enum EffectAnnotationParser {
             case "ExternallyIdempotent":
                 return .externallyIdempotent(keyParameter: extractByLabel(from: attr))
 
-            case "IdempotencyTests":
-                // Test-generation attribute on `@Suite` types (macros
-                // package round-8 redesign). Carries no function-effect
-                // semantics; listed here so the linter's recognised-
-                // attribute surface explicitly covers it rather than
-                // falling through as "unknown".
-                continue
-
             default:
+                // `IdempotencyTests` (test-generation attribute on `@Suite`
+                // types, added in the macros package round-8 redesign)
+                // carries no function-effect semantics and shares this
+                // skip path with any unrecognised attribute name.
                 continue
             }
         }
