@@ -69,22 +69,7 @@ public class CrossFileAnalysisEngine: CrossFileAnalyzerProtocol {
         for visitorType in crossFileVisitors {
             if let crossFileVisitor = visitorType as? CrossFilePatternVisitorProtocol.Type {
                 let visitor = crossFileVisitor.init(fileCache: fileCache)
-
-                // Set the pattern for the visitor if it's a BasePatternVisitor
-                if let baseVisitor = visitor as? BasePatternVisitor {
-                    // Find the pattern that uses this visitor type
-                    let patterns: [SyntaxPattern]
-                    if let categories {
-                        patterns = categories.flatMap { registry.getPatterns(for: $0) }
-                    } else {
-                        patterns = registry.getAllPatterns()
-                    }
-
-                    if let pattern = patterns.first(where: { $0.visitor == visitorType }) {
-                        baseVisitor.setPattern(pattern)
-                    }
-                    baseVisitor.enabledFrameworkAllowlists = enabledFrameworkAllowlists
-                }
+                configureBaseVisitor(visitor, visitorType: visitorType, categories: categories)
 
                 for (fileName, sourceFile) in fileCache {
                     if let baseVisitor = visitor as? BasePatternVisitor {
@@ -104,6 +89,28 @@ public class CrossFileAnalysisEngine: CrossFileAnalyzerProtocol {
         }
 
         return allIssues
+    }
+
+    /// Wires per-analysis-run state into a `BasePatternVisitor`: matches
+    /// the visitor's pattern within the requested categories (or the full
+    /// registry if none were given) and forwards the framework allowlist.
+    /// Non-base visitors are skipped — they don't have these hooks.
+    private func configureBaseVisitor(
+        _ visitor: CrossFilePatternVisitorProtocol,
+        visitorType: PatternVisitorProtocol.Type,
+        categories: [PatternCategory]?
+    ) {
+        guard let baseVisitor = visitor as? BasePatternVisitor else { return }
+        let patterns: [SyntaxPattern]
+        if let categories {
+            patterns = categories.flatMap { registry.getPatterns(for: $0) }
+        } else {
+            patterns = registry.getAllPatterns()
+        }
+        if let pattern = patterns.first(where: { $0.visitor == visitorType }) {
+            baseVisitor.setPattern(pattern)
+        }
+        baseVisitor.enabledFrameworkAllowlists = enabledFrameworkAllowlists
     }
 
     /// Detects patterns across multiple Swift files using specific rule identifiers.
