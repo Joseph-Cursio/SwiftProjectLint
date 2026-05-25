@@ -252,22 +252,14 @@ class StateVariableVisitor: SyntaxVisitor {
     private func validatePropertyWrapperUsage(propertyWrapper: PropertyWrapper, typeString: String) -> [String] {
         var issues: [String] = []
 
-        // Check for common anti-patterns
         switch propertyWrapper {
         case .state:
             if typeString.contains("ObservableObject") || typeString.contains("class") {
                 issues.append("Consider using @StateObject instead of @State for ObservableObject types")
             }
 
-        case .stateObject:
-            if !typeString.contains("ObservableObject"), !typeString.contains("class") {
-                issues.append("@StateObject should only be used with ObservableObject types")
-            }
-
-        case .observedObject:
-            if !typeString.contains("ObservableObject"), !typeString.contains("class") {
-                issues.append("@ObservedObject should only be used with ObservableObject types")
-            }
+        case .stateObject, .observedObject:
+            issues.append(contentsOf: observableObjectWrapperIssues(propertyWrapper, typeString: typeString))
 
         case .binding:
             if !typeString.contains("Binding<"), !typeString.hasPrefix("Binding") {
@@ -284,6 +276,15 @@ class StateVariableVisitor: SyntaxVisitor {
         }
 
         return issues
+    }
+
+    /// Shared validation for `@StateObject` and `@ObservedObject`: both
+    /// require an `ObservableObject` / class-typed value. Returning a
+    /// label-tagged message keeps the diagnostic accurate per wrapper.
+    private func observableObjectWrapperIssues(_ wrapper: PropertyWrapper, typeString: String) -> [String] {
+        guard !typeString.contains("ObservableObject"), !typeString.contains("class") else { return [] }
+        let label = wrapper == .stateObject ? "@StateObject" : "@ObservedObject"
+        return ["\(label) should only be used with ObservableObject types"]
     }
 
     /// Calculates line number for a given position with caching for performance
