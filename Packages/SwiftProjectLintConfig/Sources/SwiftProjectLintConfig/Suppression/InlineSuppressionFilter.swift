@@ -63,14 +63,15 @@ public struct InlineSuppressionFilter {
                     }
                 }
 
-            case .disableNext:
-                for key in keys {
-                    appendRange(to: &ranges, key: key, start: directive.line + 1, end: directive.line + 1)
+            case .disableNext, .disableThis:
+                let target: Int
+                if directive.kind == .disableNext {
+                    target = directive.line + 1
+                } else {
+                    target = directive.line
                 }
-
-            case .disableThis:
                 for key in keys {
-                    appendRange(to: &ranges, key: key, start: directive.line, end: directive.line)
+                    appendRange(to: &ranges, key: key, start: target, end: target)
                 }
             }
         }
