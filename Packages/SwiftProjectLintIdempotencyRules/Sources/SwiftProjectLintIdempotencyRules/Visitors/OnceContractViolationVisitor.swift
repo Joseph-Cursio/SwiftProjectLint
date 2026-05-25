@@ -182,26 +182,14 @@ final class OnceContractViolationVisitor: BasePatternVisitor, CrossFilePatternVi
         let trigger: String
         let detail: String
         if inLoop, isReplayableCaller {
-            let contextLabel: String
-            switch callerContext {
-            case .replayable: contextLabel = "replayable"
-            case .strictReplayable: contextLabel = "strict_replayable"
-            default: contextLabel = "retry_safe"
-            }
-            trigger = "inside a loop within a `\(contextLabel)` body"
+            trigger = "inside a loop within a `\(contextLabel(for: callerContext))` body"
             detail = "the loop will re-invoke '\(calleeName)' on every iteration, and "
                 + "every replay/retry of '\(callerName)' compounds that re-invocation."
         } else if inLoop {
             trigger = "inside a loop"
             detail = "the loop will re-invoke '\(calleeName)' on every iteration."
         } else {
-            let contextLabel: String
-            switch callerContext {
-            case .replayable: contextLabel = "replayable"
-            case .strictReplayable: contextLabel = "strict_replayable"
-            default: contextLabel = "retry_safe"
-            }
-            trigger = "from a `\(contextLabel)` body"
+            trigger = "from a `\(contextLabel(for: callerContext))` body"
             detail = "every replay/retry of '\(callerName)' will re-invoke '\(calleeName)'."
         }
 
@@ -216,6 +204,18 @@ final class OnceContractViolationVisitor: BasePatternVisitor, CrossFilePatternVi
                 + "or weaken '\(calleeName)'s annotation if the once-contract is incorrect.",
             ruleName: .onceContractViolation
         )
+    }
+
+    /// Diagnostic label for a replayable/retry-safe context. Defaults to
+    /// `retry_safe` for any context not explicitly named — analyzeCall
+    /// only calls this when the caller is already known to be one of the
+    /// three replayable kinds, so the default acts as a typed fallback.
+    private func contextLabel(for context: ContextEffect?) -> String {
+        switch context {
+        case .replayable: return "replayable"
+        case .strictReplayable: return "strict_replayable"
+        default: return "retry_safe"
+        }
     }
 
     /// Walks the parent chain from `call` up to (but not including) the
