@@ -168,8 +168,7 @@ type_name:
     warning: 60
   min_length: 3
 cyclomatic_complexity:
-  error: 25
-  warning: 15
+  warning: 12
 nesting:
   function_level: 3
   type_level: 2
