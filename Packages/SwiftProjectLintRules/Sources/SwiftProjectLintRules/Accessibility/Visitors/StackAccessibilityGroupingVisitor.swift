@@ -60,20 +60,7 @@ final class StackAccessibilityGroupingVisitor: BasePatternVisitor {
         // Get the trailing closure (the stack body)
         guard let body = node.trailingClosure else { return }
 
-        // Count direct Text children and check for interactive elements
-        var textCount = 0
-        var hasInteractive = false
-
-        for statement in body.statements {
-            guard let item = topLevelCallName(Syntax(statement.item)) else { continue }
-
-            if item == "Text" {
-                textCount += 1
-            } else if Self.interactiveViews.contains(item) {
-                hasInteractive = true
-                break
-            }
-        }
+        let (textCount, hasInteractive) = countTextAndInteractive(in: body)
 
         // Flag stacks with exactly 2 Text children and nothing interactive
         guard textCount == 2, !hasInteractive else { return }
@@ -88,6 +75,25 @@ final class StackAccessibilityGroupingVisitor: BasePatternVisitor {
                 + "VoiceOver reads the label and value together.",
             ruleName: .stackMissingAccessibilityGrouping
         )
+    }
+
+    /// Walks the stack's trailing-closure body once, tallying direct
+    /// `Text(...)` children and short-circuiting if anything interactive
+    /// (Button, TextField, Toggle, ...) is found. The combined return
+    /// lets the caller decide on a single guard.
+    private func countTextAndInteractive(in body: ClosureExprSyntax) -> (textCount: Int, hasInteractive: Bool) {
+        var textCount = 0
+        var hasInteractive = false
+        for statement in body.statements {
+            guard let item = topLevelCallName(Syntax(statement.item)) else { continue }
+            if item == "Text" {
+                textCount += 1
+            } else if Self.interactiveViews.contains(item) {
+                hasInteractive = true
+                break
+            }
+        }
+        return (textCount, hasInteractive)
     }
 
     /// Returns the top-level function call name from a code block item,
