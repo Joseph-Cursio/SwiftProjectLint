@@ -78,17 +78,8 @@ public enum ReceiverTypeResolver {
         localTypes: Set<String> = []
     ) -> ResolvedReceiverType {
         // Layer 1: literal shapes.
-        if expr.is(ArrayExprSyntax.self) {
-            return classifyTypeName("Array", localTypes: localTypes)
-        }
-        if expr.is(DictionaryExprSyntax.self) {
-            return classifyTypeName("Dictionary", localTypes: localTypes)
-        }
-        if expr.is(StringLiteralExprSyntax.self) {
-            return classifyTypeName("String", localTypes: localTypes)
-        }
-        if expr.is(NilLiteralExprSyntax.self) {
-            return classifyTypeName("Optional", localTypes: localTypes)
+        if let literal = literalReceiverType(expr, localTypes: localTypes) {
+            return literal
         }
 
         // Layer 2: constructor call. `Queue()`, `Array<Int>()`, `UUID()`.
@@ -191,25 +182,43 @@ public enum ReceiverTypeResolver {
             }
 
             // Stored properties of enclosing type decls.
-            if let cls = node.as(ClassDeclSyntax.self),
-               let typeSyntax = storedPropertyType(named: name, in: cls.memberBlock.members) {
-                return classifyTypeSyntax(typeSyntax, localTypes: localTypes)
-            }
-            if let str = node.as(StructDeclSyntax.self),
-               let typeSyntax = storedPropertyType(named: name, in: str.memberBlock.members) {
-                return classifyTypeSyntax(typeSyntax, localTypes: localTypes)
-            }
-            if let act = node.as(ActorDeclSyntax.self),
-               let typeSyntax = storedPropertyType(named: name, in: act.memberBlock.members) {
-                return classifyTypeSyntax(typeSyntax, localTypes: localTypes)
-            }
-            if let ext = node.as(ExtensionDeclSyntax.self),
-               let typeSyntax = storedPropertyType(named: name, in: ext.memberBlock.members) {
+            if let typeSyntax = storedPropertyTypeFromTypeDecl(named: name, node: node) {
                 return classifyTypeSyntax(typeSyntax, localTypes: localTypes)
             }
 
             current = node.parent
         }
+        return nil
+    }
+
+    /// Single entry point for "is `name` a stored property of this type
+    /// decl?" across the four type-decl kinds (class, struct, actor,
+    /// extension). Returning the type-syntax keeps the caller free of
+    /// the per-decl dispatch.
+    private static func storedPropertyTypeFromTypeDecl(named name: String, node: Syntax) -> TypeSyntax? {
+        if let cls = node.as(ClassDeclSyntax.self) {
+            return storedPropertyType(named: name, in: cls.memberBlock.members)
+        }
+        if let str = node.as(StructDeclSyntax.self) {
+            return storedPropertyType(named: name, in: str.memberBlock.members)
+        }
+        if let act = node.as(ActorDeclSyntax.self) {
+            return storedPropertyType(named: name, in: act.memberBlock.members)
+        }
+        if let ext = node.as(ExtensionDeclSyntax.self) {
+            return storedPropertyType(named: name, in: ext.memberBlock.members)
+        }
+        return nil
+    }
+
+    /// Literal-shape receivers (`[1,2,3]`, `["k": "v"]`, `"hello"`, `nil`)
+    /// resolve to their canonical stdlib type names so the inferrer's
+    /// `(receiverType, method)` exclusions can fire on them.
+    private static func literalReceiverType(_ expr: ExprSyntax, localTypes: Set<String>) -> ResolvedReceiverType? {
+        if expr.is(ArrayExprSyntax.self) { return classifyTypeName("Array", localTypes: localTypes) }
+        if expr.is(DictionaryExprSyntax.self) { return classifyTypeName("Dictionary", localTypes: localTypes) }
+        if expr.is(StringLiteralExprSyntax.self) { return classifyTypeName("String", localTypes: localTypes) }
+        if expr.is(NilLiteralExprSyntax.self) { return classifyTypeName("Optional", localTypes: localTypes) }
         return nil
     }
 
