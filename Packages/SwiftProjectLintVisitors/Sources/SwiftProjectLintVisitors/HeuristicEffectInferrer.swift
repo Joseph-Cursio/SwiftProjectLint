@@ -123,28 +123,12 @@ public enum HeuristicEffectInferrer {
 
         let context = FrameworkContext(imports: imports, enabled: enabledFrameworks)
 
-        // Observational requires a logger-shaped receiver AND a log-level
-        // method name. Two strong signals — high precision; not gated by
-        // import. swift-log is commonly accessed transitively through
-        // framework-provided properties (e.g. `context.logger` in
-        // AWSLambdaRuntime, `request.logger` in Hummingbird) where the
-        // file's own imports don't include `Logging` directly. Gating on
-        // `Logging`/`os` regressed round-9's chained-logger fix on
-        // exactly that adoption shape.
-        if let receiverName,
-           isLoggerReceiver(receiverName),
-           loggerLevelMethods.contains(calleeName) {
-            return .observational
-        }
-
-        // Metric primitives (swift-metrics + observational-by-convention
-        // siblings). Gated on `Metrics` import when import-awareness
-        // is active.
-        if let receiverName,
-           isMetricReceiver(receiverName),
-           metricObservationMethods.contains(calleeName),
-           context.isFrameworkActive(FrameworkAllowlist.metrics) {
-            return .observational
+        if let effect = inferObservational(
+            calleeName: calleeName,
+            receiverName: receiverName,
+            context: context
+        ) {
+            return effect
         }
 
         // Type-constructor allowlist — per-framework groups. When
@@ -157,40 +141,12 @@ public enum HeuristicEffectInferrer {
             return .idempotent
         }
 
-        // Codec-pattern method allowlist. Gated on `Foundation` import
-        // when import-awareness is active.
-        if let receiverName,
-           isCodecReceiver(receiverName),
-           codecMethods.contains(calleeName),
-           context.isFrameworkActive(FrameworkAllowlist.foundation) {
-            return .idempotent
-        }
-
-        // Framework-gated idempotent (receiver, method) pairs —
-        // Hummingbird's `request.decode(...)` / `parameters.require(...)`
-        // motivating case. Specific pair match; the receiver has to
-        // be exactly the framework-canonical name.
-        if let receiverName,
-           let framework = FrameworkAllowlist.framework(
-               forIdempotentReceiver: receiverName,
-               method: calleeName
-           ),
-           context.isFrameworkActive(framework) {
-            return .idempotent
-        }
-
-        // Cross-framework idempotent (receiver, method) pairs (slot 18).
-        // Receiver identifiers shared across multiple web frameworks —
-        // `parameters.get` being the motivating case (both Hummingbird
-        // and Vapor expose identical-named accessors). Qualifies when
-        // ANY of the pair's candidate frameworks is active.
-        if let receiverName,
-           let candidates = FrameworkAllowlist.frameworks(
-               forCrossFrameworkIdempotentReceiver: receiverName,
-               method: calleeName
-           ),
-           candidates.contains(where: context.isFrameworkActive) {
-            return .idempotent
+        if let effect = inferIdempotentReceiverPair(
+            calleeName: calleeName,
+            receiverName: receiverName,
+            context: context
+        ) {
+            return effect
         }
 
         // Framework-gated bare-name overrides of the non-idempotent list.
@@ -270,6 +226,79 @@ public enum HeuristicEffectInferrer {
         return nil
     }
 
+    /// Observational sub-classifier: logger-shaped receivers + swift-metrics
+    /// primitives. Extracted from `infer` to keep cyclomatic complexity
+    /// within the project's SwiftLint budget.
+    private static func inferObservational(calleeName: String, receiverName: String?, context: FrameworkContext) -> DeclaredEffect? {
+        guard let receiverName else { return nil }
+        if isLoggerReceiver(receiverName), loggerLevelMethods.contains(calleeName) {
+            return .observational
+        }
+        if isMetricReceiver(receiverName),
+           metricObservationMethods.contains(calleeName),
+           context.isFrameworkActive(FrameworkAllowlist.metrics) {
+            return .observational
+        }
+        return nil
+    }
+
+    /// Idempotent-by-receiver sub-classifier: codec-pattern methods plus
+    /// framework-canonical and cross-framework (receiver, method) pairs.
+    private static func inferIdempotentReceiverPair(calleeName: String, receiverName: String?, context: FrameworkContext) -> DeclaredEffect? {
+        guard let receiverName else { return nil }
+        if isCodecReceiver(receiverName),
+           codecMethods.contains(calleeName),
+           context.isFrameworkActive(FrameworkAllowlist.foundation) {
+            return .idempotent
+        }
+        if let framework = FrameworkAllowlist.framework(
+               forIdempotentReceiver: receiverName, method: calleeName),
+           context.isFrameworkActive(framework) {
+            return .idempotent
+        }
+        if let candidates = FrameworkAllowlist.frameworks(
+               forCrossFrameworkIdempotentReceiver: receiverName, method: calleeName),
+           candidates.contains(where: context.isFrameworkActive) {
+            return .idempotent
+        }
+        return nil
+    }
+
+    /// Reason-string counterpart to `inferObservational`.
+    private static func observationalReason(calleeName: String, receiverName: String?, context: FrameworkContext) -> String? {
+        guard let receiverName else { return nil }
+        if isLoggerReceiver(receiverName), loggerLevelMethods.contains(calleeName) {
+            return "from logger-shaped receiver `\(receiverName).\(calleeName)`"
+        }
+        if isMetricReceiver(receiverName),
+           metricObservationMethods.contains(calleeName),
+           context.isFrameworkActive(FrameworkAllowlist.metrics) {
+            return "from metric-primitive receiver `\(receiverName).\(calleeName)`"
+        }
+        return nil
+    }
+
+    /// Reason-string counterpart to `inferIdempotentReceiverPair`.
+    private static func idempotentReceiverPairReason(calleeName: String, receiverName: String?, context: FrameworkContext) -> String? {
+        guard let receiverName else { return nil }
+        if isCodecReceiver(receiverName),
+           codecMethods.contains(calleeName),
+           context.isFrameworkActive(FrameworkAllowlist.foundation) {
+            return "from codec-pattern receiver `\(receiverName).\(calleeName)`"
+        }
+        if let framework = FrameworkAllowlist.framework(
+               forIdempotentReceiver: receiverName, method: calleeName),
+           context.isFrameworkActive(framework) {
+            return "from the \(framework) primitive `\(receiverName).\(calleeName)`"
+        }
+        if let candidates = FrameworkAllowlist.frameworks(
+               forCrossFrameworkIdempotentReceiver: receiverName, method: calleeName),
+           let active = candidates.first(where: context.isFrameworkActive) {
+            return "from the \(active) primitive `\(receiverName).\(calleeName)`"
+        }
+        return nil
+    }
+
     /// Human-readable reason string describing why a particular effect was
     /// inferred. Used in diagnostic prose so the user can see what the
     /// linter matched against. Same argument semantics as
@@ -284,16 +313,12 @@ public enum HeuristicEffectInferrer {
         }
         let context = FrameworkContext(imports: imports, enabled: enabledFrameworks)
 
-        if let receiverName,
-           isLoggerReceiver(receiverName),
-           loggerLevelMethods.contains(calleeName) {
-            return "from logger-shaped receiver `\(receiverName).\(calleeName)`"
-        }
-        if let receiverName,
-           isMetricReceiver(receiverName),
-           metricObservationMethods.contains(calleeName),
-           context.isFrameworkActive(FrameworkAllowlist.metrics) {
-            return "from metric-primitive receiver `\(receiverName).\(calleeName)`"
+        if let reason = observationalReason(
+            calleeName: calleeName,
+            receiverName: receiverName,
+            context: context
+        ) {
+            return reason
         }
         if receiverName == nil,
            let framework = FrameworkAllowlist.framework(
@@ -302,27 +327,12 @@ public enum HeuristicEffectInferrer {
            context.isFrameworkActive(framework) {
             return "from the known-idempotent \(framework) type `\(calleeName)`"
         }
-        if let receiverName,
-           isCodecReceiver(receiverName),
-           codecMethods.contains(calleeName),
-           context.isFrameworkActive(FrameworkAllowlist.foundation) {
-            return "from codec-pattern receiver `\(receiverName).\(calleeName)`"
-        }
-        if let receiverName,
-           let framework = FrameworkAllowlist.framework(
-               forIdempotentReceiver: receiverName,
-               method: calleeName
-           ),
-           context.isFrameworkActive(framework) {
-            return "from the \(framework) primitive `\(receiverName).\(calleeName)`"
-        }
-        if let receiverName,
-           let candidates = FrameworkAllowlist.frameworks(
-               forCrossFrameworkIdempotentReceiver: receiverName,
-               method: calleeName
-           ),
-           let active = candidates.first(where: context.isFrameworkActive) {
-            return "from the \(active) primitive `\(receiverName).\(calleeName)`"
+        if let reason = idempotentReceiverPairReason(
+            calleeName: calleeName,
+            receiverName: receiverName,
+            context: context
+        ) {
+            return reason
         }
         if receiverName == nil,
            let framework = FrameworkAllowlist.framework(
