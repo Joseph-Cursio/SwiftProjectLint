@@ -33,7 +33,7 @@ The currently shipped version (Phase 2.3, `UpwardEffectInferrer`) intentionally 
 
 So when inferring `A`'s effect, callee resolution returns:
 1. `B`'s declared annotation (if any), else
-2. `B`'s name-based heuristic (if it matches the whitelist), else
+2. `B`'s name-based heuristic (if it matches the allowlist), else
 3. nothing.
 
 It explicitly does **not** look up "did we just upward-infer B?"

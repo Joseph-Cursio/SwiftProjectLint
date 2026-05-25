@@ -144,7 +144,7 @@ final class UnannotatedInStrictReplayableContextVisitor:
 
     func finalizeAnalysis() {
         let allSources = Array(fileCache.values)
-        let enabledFrameworks = self.enabledFrameworkWhitelists
+        let enabledFrameworks = self.enabledFrameworkAllowlists
         symbolTable.applyUpwardInferenceImportAware(to: allSources, multiHop: true) { call, source in
             HeuristicEffectInferrer.infer(
                 call: call,
@@ -226,7 +226,7 @@ final class UnannotatedInStrictReplayableContextVisitor:
         if HeuristicEffectInferrer.infer(
             call: call,
             imports: imports(forSiteFile: site.filePath),
-            enabledFrameworks: self.enabledFrameworkWhitelists
+            enabledFrameworks: self.enabledFrameworkAllowlists
         ) != nil { return }
 
         // Fall through: no evidence of the callee's effect. Fire.

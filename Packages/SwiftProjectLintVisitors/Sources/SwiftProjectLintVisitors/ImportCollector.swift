@@ -2,7 +2,7 @@ import SwiftSyntax
 
 /// Collects the set of top-level module imports declared in a source file.
 ///
-/// Used by `HeuristicEffectInferrer` to gate framework-specific whitelists
+/// Used by `HeuristicEffectInferrer` to gate framework-specific allowlists
 /// by import presence: a `JSONDecoder()` call classifies as
 /// Foundation-idempotent only when the enclosing file actually has
 /// `import Foundation`. Without this gate, a user-defined

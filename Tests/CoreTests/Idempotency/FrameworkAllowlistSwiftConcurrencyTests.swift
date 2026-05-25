@@ -7,17 +7,17 @@ import Testing
 /// Slot 22 — `Task.sleep` under the SwiftConcurrency always-active gate.
 /// SwiftConcurrency is a stdlib framework (listed in
 /// `alwaysActiveFrameworks`) so the import gate is satisfied by an empty
-/// `imports` set. Split off from `FrameworkWhitelistGatingTests` so the
+/// `imports` set. Split off from `FrameworkAllowlistGatingTests` so the
 /// base struct stays under SwiftLint's `type_body_length` threshold.
 @Suite
-struct FrameworkWhitelistSwiftConcurrencyTests {
+struct FrameworkAllowlistSwiftConcurrencyTests {
 
-    // MARK: - Swift Concurrency Task.sleep whitelist (slot 22)
+    // MARK: - Swift Concurrency Task.sleep allowlist (slot 22)
 
     @Test
     func stdlib_taskSleep_firesWithoutExplicitImport() throws {
         // `Task.sleep(nanoseconds:)` — Swift Concurrency stdlib primitive.
-        // Unlike the Vapor / Hummingbird whitelists, SwiftConcurrency is
+        // Unlike the Vapor / Hummingbird allowlists, SwiftConcurrency is
         // a stdlib framework (listed in `alwaysActiveFrameworks`) so the
         // import gate is satisfied by an empty `imports` set — adopter
         // code never writes `import SwiftConcurrency` because there's
@@ -32,7 +32,7 @@ struct FrameworkWhitelistSwiftConcurrencyTests {
     @Test
     func stdlib_taskSleep_modernForSpelling_firesAlso() throws {
         // `Task.sleep(for: .seconds(N))` — modern stdlib spelling.
-        // The whitelist lookup is name-based, not signature-based, so
+        // The allowlist lookup is name-based, not signature-based, so
         // both `sleep(nanoseconds:)` and `sleep(for:)` resolve to the
         // same `(Task, sleep)` pair.
         let call = try firstCall(in: "func f() async throws { try await Task.sleep(for: .seconds(2)) }")
@@ -44,7 +44,7 @@ struct FrameworkWhitelistSwiftConcurrencyTests {
     @Test
     func stdlib_taskSleep_triedOptional_firesAlso() throws {
         // `try? await Task.sleep(...)` — the exception-swallow spelling
-        // used for "best-effort delay" calls. The whitelist classification
+        // used for "best-effort delay" calls. The allowlist classification
         // is on the call site, not the surrounding error handling.
         let call = try firstCall(in: "func f() async { try? await Task.sleep(for: .seconds(60)) }")
         #expect(HeuristicEffectInferrer.infer(
@@ -67,8 +67,8 @@ struct FrameworkWhitelistSwiftConcurrencyTests {
 
     @Test
     func configGated_swiftConcurrencyDisabled_taskSleepFallsThrough() throws {
-        // Adopter opts out of the `SwiftConcurrency` whitelist via
-        // `enabled_framework_whitelists: [...]`. The always-active gate
+        // Adopter opts out of the `SwiftConcurrency` allowlist via
+        // `enabled_framework_allowlists: [...]`. The always-active gate
         // still respects the config opt-out — `isFrameworkActive`
         // short-circuits `importOK` to `true` but returns
         // `enabledOK && importOK` = `false` because enabled excludes
@@ -92,7 +92,7 @@ struct FrameworkWhitelistSwiftConcurrencyTests {
     @Test
     func swiftConcurrency_taskSleep_coexistsWithServerFrameworks() throws {
         // A real adopter file imports Vapor + FluentKit + uses
-        // Task.sleep. All three whitelists must coexist without
+        // Task.sleep. All three allowlists must coexist without
         // interfering. Also confirms no stdlib-framework false
         // shadowing — a `Task.sleep` call stays idempotent, a
         // `model.save(on:)` stays non-idempotent (Fluent ORM verb).
@@ -112,6 +112,6 @@ struct FrameworkWhitelistSwiftConcurrencyTests {
         // Structural assertion — the always-active set is the data
         // structure that decouples slot 22 from the import gate.
         // Future stdlib additions go here.
-        #expect(FrameworkWhitelist.alwaysActiveFrameworks.contains(FrameworkWhitelist.swiftConcurrency))
+        #expect(FrameworkAllowlist.alwaysActiveFrameworks.contains(FrameworkAllowlist.swiftConcurrency))
     }
 }

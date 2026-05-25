@@ -257,7 +257,7 @@ struct ActorReentrancyIdempotencySpecTests {
     @Test
     func comparisonOperators_notMistakenForWrite() {
         // Regression guard: `==`, `!=`, `<=`, `>=` end in `=` but are NOT
-        // assignments. The whitelist-based detection must not misclassify
+        // assignments. The allowlist-based detection must not misclassify
         // them. If this fixture fires more than once or credits a comparison
         // operator as a write, the compound-assignment detection has
         // over-reached.

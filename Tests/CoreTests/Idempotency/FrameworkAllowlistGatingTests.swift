@@ -5,20 +5,20 @@ import SwiftSyntax
 import Testing
 
 /// Covers the `infer(call:imports:enabledFrameworks:)` API along two axes:
-///   1. Import-gated — a framework's whitelist fires only when the
+///   1. Import-gated — a framework's allowlist fires only when the
 ///      `imports` set contains the framework's base module name.
 ///      Absent module = silent (modulo un-gated paths like the logger
 ///      receiver heuristic).
 ///   2. Config-gated — `enabledFrameworks` non-nil restricts the active
-///      whitelist set even when imports would otherwise allow more.
+///      allowlist set even when imports would otherwise allow more.
 @Suite
-struct FrameworkWhitelistGatingTests {
+struct FrameworkAllowlistGatingTests {
 
     // MARK: - Empty imports (no framework gates fire)
 
     @Test
     func emptyImports_jsonDecoderDoesNotFire() throws {
-        // An empty imports set means "no framework-gated whitelist is
+        // An empty imports set means "no framework-gated allowlist is
         // active" — synthetic fixtures and files without imports behave
         // identically. Foundation's JSONDecoder stays unclassified.
         let call = try firstCall(in: "func f() { _ = JSONDecoder() }")
@@ -29,7 +29,7 @@ struct FrameworkWhitelistGatingTests {
 
     @Test
     func emptyImports_bareNameStillFires() throws {
-        // Bare-name whitelist (`create`/`insert`/etc.) is un-gated, so
+        // Bare-name allowlist (`create`/`insert`/etc.) is un-gated, so
         // even with no imports the heuristic still classifies.
         let call = try firstCall(in: "func f() { insert(row) }")
         #expect(HeuristicEffectInferrer.infer(
@@ -156,7 +156,7 @@ struct FrameworkWhitelistGatingTests {
         // the logger pattern bypasses both the import gate and the
         // config gate, so adopters who want to silence it must
         // annotate the callee explicitly rather than disable the
-        // framework whitelist.
+        // framework allowlist.
         let call = try firstCall(in: "func f() { logger.info(\"x\") }")
         #expect(HeuristicEffectInferrer.infer(
             call: call, imports: ["Logging"], enabledFrameworks: ["Foundation"]

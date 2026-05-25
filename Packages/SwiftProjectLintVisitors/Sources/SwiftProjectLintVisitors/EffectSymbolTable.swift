@@ -234,7 +234,7 @@ public struct EffectSymbolTable: Sendable {
     /// current call lives in, so callers can pass the call's
     /// per-file imports into `HeuristicEffectInferrer.infer(call:imports:
     /// enabledFrameworks:)`. Round-14 follow-on — see
-    /// `ImportCollector` and `FrameworkWhitelist`.
+    /// `ImportCollector` and `FrameworkAllowlist`.
     public mutating func applyUpwardInferenceImportAware(
         to sources: [SourceFileSyntax],
         multiHop: Bool = false,

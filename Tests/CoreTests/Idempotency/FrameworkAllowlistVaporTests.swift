@@ -4,15 +4,15 @@ import SwiftParser
 import SwiftSyntax
 import Testing
 
-/// Vapor-framework whitelist coverage: routing DSL (slot 17 —
+/// Vapor-framework allowlist coverage: routing DSL (slot 17 —
 /// `app.get/post/put/patch/delete`) and `app.register(collection:)`
 /// controller-mount idiom (slot 21). Split off from
-/// `FrameworkWhitelistGatingTests` so the base struct stays under
+/// `FrameworkAllowlistGatingTests` so the base struct stays under
 /// SwiftLint's `type_body_length` threshold.
 @Suite
-struct FrameworkWhitelistVaporTests {
+struct FrameworkAllowlistVaporTests {
 
-    // MARK: - Vapor routing DSL whitelist (slot 17)
+    // MARK: - Vapor routing DSL allowlist (slot 17)
 
     @Test
     func importGated_vaporPresent_appGetFires() throws {
@@ -90,8 +90,8 @@ struct FrameworkWhitelistVaporTests {
 
     @Test
     func configGated_vaporDisabled_appPostFallsThroughToBareName() throws {
-        // Adopter imports Vapor but opted out of its whitelist via
-        // `enabled_framework_whitelists`. Slot-17 pair should not fire;
+        // Adopter imports Vapor but opted out of its allowlist via
+        // `enabled_framework_allowlists`. Slot-17 pair should not fire;
         // the bare-name `post` classification reasserts itself.
         let call = try firstCall(in: "func f() { app.post(\"/x\") { _ in } }")
         #expect(HeuristicEffectInferrer.infer(
@@ -129,7 +129,7 @@ struct FrameworkWhitelistVaporTests {
     @Test
     func vaporAndHummingbirdImportedTogether_bothPairsActive() throws {
         // Multi-framework import — Vapor and Hummingbird co-imported.
-        // Neither whitelist shadows the other; both `router.post` (slot 16)
+        // Neither allowlist shadows the other; both `router.post` (slot 16)
         // and `app.post` (slot 17) resolve idempotent.
         let routerCall = try firstCall(in: "func f() { router.post(\"/x\") { _, _ in } }")
         #expect(HeuristicEffectInferrer.infer(
@@ -142,7 +142,7 @@ struct FrameworkWhitelistVaporTests {
         ) == .idempotent)
     }
 
-    // MARK: - Vapor `app.register(collection:)` whitelist (slot 21)
+    // MARK: - Vapor `app.register(collection:)` allowlist (slot 21)
 
     @Test
     func importGated_vaporPresent_appRegisterCollectionFires() throws {
@@ -186,8 +186,8 @@ struct FrameworkWhitelistVaporTests {
 
     @Test
     func configGated_vaporDisabled_appRegisterFallsThroughToBareName() throws {
-        // Adopter imports Vapor but opted out of its whitelist via
-        // `enabled_framework_whitelists`. Slot-21 pair should not fire;
+        // Adopter imports Vapor but opted out of its allowlist via
+        // `enabled_framework_allowlists`. Slot-21 pair should not fire;
         // the bare-name `register` classification reasserts itself.
         let call = try firstCall(in: "func f() { try app.register(collection: FooController()) }")
         #expect(HeuristicEffectInferrer.infer(

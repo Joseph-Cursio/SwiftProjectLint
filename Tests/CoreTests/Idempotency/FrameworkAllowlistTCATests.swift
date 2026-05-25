@@ -8,10 +8,10 @@ import Testing
 /// `import ComposableArchitecture` is present, bare receiverless `send(...)`
 /// calls inside TCA Effect closures classify as idempotent rather than
 /// hitting the default non-idempotent bare-name lexicon. Split off from
-/// `FrameworkWhitelistGatingTests` so the base struct stays under SwiftLint's
+/// `FrameworkAllowlistGatingTests` so the base struct stays under SwiftLint's
 /// `type_body_length` threshold.
 @Suite
-struct FrameworkWhitelistTCATests {
+struct FrameworkAllowlistTCATests {
 
     // MARK: - ComposableArchitecture (TCA) send-closure-parameter override
 
@@ -63,7 +63,7 @@ struct FrameworkWhitelistTCATests {
     @Test
     func configGated_tcaDisabled_bareSendStaysNonIdempotent() throws {
         // Adopter imports ComposableArchitecture but opted out via
-        // `enabled_framework_whitelists`. Override does not fire; the
+        // `enabled_framework_allowlists`. Override does not fire; the
         // bare-name non-idempotent list wins.
         let call = try firstCall(in: "func f() { send(.action) }")
         #expect(HeuristicEffectInferrer.infer(

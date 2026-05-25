@@ -4,14 +4,14 @@ import SwiftParser
 import SwiftSyntax
 import Testing
 
-/// AWSLambdaRuntime-framework whitelist coverage: the response-writer
+/// AWSLambdaRuntime-framework allowlist coverage: the response-writer
 /// primitive pairs (`outputWriter.write` / `responseWriter.write` /
 /// `responseWriter.finish`) for both the buffered and streaming
 /// swift-aws-lambda-runtime v2.x handler shapes. Split off from
-/// `FrameworkWhitelistGatingTests` so the base struct stays under
+/// `FrameworkAllowlistGatingTests` so the base struct stays under
 /// SwiftLint's `type_body_length` threshold.
 @Suite
-struct FrameworkWhitelistAWSLambdaTests {
+struct FrameworkAllowlistAWSLambdaTests {
 
     // MARK: - AWSLambdaRuntime response-writer primitives (framework-gated)
 
@@ -71,7 +71,7 @@ struct FrameworkWhitelistAWSLambdaTests {
         // `.write()` on a non-`outputWriter`/`responseWriter` receiver
         // in an AWSLambdaRuntime-importing file: should NOT match the
         // Lambda pair. Only the canonical runtime-callback receiver
-        // names are whitelisted; arbitrary `.write()` (e.g. file-handle
+        // names are allowlisted; arbitrary `.write()` (e.g. file-handle
         // writes) keeps its unclassified status.
         let call = try firstCall(in: "func f() { try fileHandle.write(data) }")
         #expect(HeuristicEffectInferrer.infer(
@@ -102,7 +102,7 @@ struct FrameworkWhitelistAWSLambdaTests {
     @Test
     func configGated_lambdaRuntimeDisabled_writeDoesNotFire() throws {
         // Adopter has AWSLambdaRuntime imported but opted out of the
-        // whitelist via .swiftprojectlint.yml.
+        // allowlist via .swiftprojectlint.yml.
         let call = try firstCall(in: "func f() { try await outputWriter.write(greeting) }")
         #expect(HeuristicEffectInferrer.infer(
             call: call, imports: ["AWSLambdaRuntime"], enabledFrameworks: ["Foundation"]

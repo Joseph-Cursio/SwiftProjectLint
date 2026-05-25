@@ -4,12 +4,12 @@ import SwiftParser
 import SwiftSyntax
 import Testing
 
-/// Fluent-framework whitelist coverage: non-idempotent ORM verbs,
+/// Fluent-framework allowlist coverage: non-idempotent ORM verbs,
 /// idempotent query-builder reads, and the `Fluent` meta-package import
-/// alias (slot 19). Split off from `FrameworkWhitelistGatingTests` so the
+/// alias (slot 19). Split off from `FrameworkAllowlistGatingTests` so the
 /// base struct stays under SwiftLint's `type_body_length` threshold.
 @Suite
-struct FrameworkWhitelistFluentTests {
+struct FrameworkAllowlistFluentTests {
 
     // MARK: - Fluent non-idempotent verbs (framework-gated, receiver-only)
 

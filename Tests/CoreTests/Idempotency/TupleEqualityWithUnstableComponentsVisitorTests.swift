@@ -265,7 +265,7 @@ struct TupleEqualityWithUnstableComponentsVisitorTests {
             (a, gen.random) == (b, 0)
         }
         """
-        // `.random` on a non-whitelisted receiver could be a stable field
+        // `.random` on a non-allowlisted receiver could be a stable field
         // named "random" — we stay silent without type info.
         let visitor = run(source)
         #expect(visitor.detectedIssues.isEmpty)

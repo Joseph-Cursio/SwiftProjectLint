@@ -152,10 +152,10 @@ final class NonIdempotentInRetryContextVisitor: BasePatternVisitor, CrossFilePat
         //
         // Round-14: the heuristic callback is now import-aware. We
         // precompute per-source imports once and look them up on each
-        // call so framework whitelists only fire in files that actually
+        // call so framework allowlists only fire in files that actually
         // import the relevant module.
         let allSources = Array(fileCache.values)
-        let enabledFrameworks = self.enabledFrameworkWhitelists
+        let enabledFrameworks = self.enabledFrameworkAllowlists
         symbolTable.applyUpwardInferenceImportAware(to: allSources, multiHop: true) { call, source in
             HeuristicEffectInferrer.infer(
                 call: call,
@@ -241,13 +241,13 @@ final class NonIdempotentInRetryContextVisitor: BasePatternVisitor, CrossFilePat
         } else if let inferred = HeuristicEffectInferrer.infer(
             call: call,
             imports: imports(forSiteFile: site.filePath),
-            enabledFrameworks: self.enabledFrameworkWhitelists
+            enabledFrameworks: self.enabledFrameworkAllowlists
         ) {
             calleeEffect = inferred
             let reason = HeuristicEffectInferrer.inferenceReason(
                 for: call,
                 imports: imports(forSiteFile: site.filePath),
-                enabledFrameworks: self.enabledFrameworkWhitelists
+                enabledFrameworks: self.enabledFrameworkAllowlists
             ) ?? ""
             calleeClaim = "whose effect is inferred `non_idempotent` \(reason)"
             overrideHint = " If the inference is wrong, annotate '\(calleeSignature.name)' "
@@ -323,7 +323,7 @@ final class NonIdempotentInRetryContextVisitor: BasePatternVisitor, CrossFilePat
     /// Returns the base module imports for the file that hosts a site.
     /// Memoised off `fileCache` for the lifetime of a single analysis
     /// run. Falls back to the empty set when the path isn't in the cache
-    /// (no source = no framework-gated whitelists fire for that site,
+    /// (no source = no framework-gated allowlists fire for that site,
     /// since we can't make import claims about a file we haven't seen).
     private func imports(forSiteFile path: String) -> Set<String> {
         if let cached = importCache[path] { return cached }

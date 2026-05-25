@@ -26,19 +26,19 @@ public struct LintConfiguration: Sendable {
     public let architecturalLayers: [LayerPolicy]
 
     /// Optional per-framework opt-in/out for the idempotency heuristic
-    /// whitelists (round-14). `nil` (default) means "all known frameworks
+    /// allowlists (round-14). `nil` (default) means "all known frameworks
     /// enabled" — the import-gating in `HeuristicEffectInferrer` still
-    /// applies so a framework's whitelist only fires when the file
+    /// applies so a framework's allowlist only fires when the file
     /// imports its module.
     ///
-    /// Setting this to a non-nil set restricts whitelist activity to the
-    /// listed frameworks (using `FrameworkWhitelist` constants like
+    /// Setting this to a non-nil set restricts allowlist activity to the
+    /// listed frameworks (using `FrameworkAllowlist` constants like
     /// `Foundation`, `NIOCore`, `Logging`, `Metrics`, etc.). Adopters
     /// who want to disable a specific framework's classifications —
     /// for example, because their codebase has a user-defined
     /// `class Counter` that shouldn't classify as observational —
     /// can omit the framework name from the set.
-    public let enabledFrameworkWhitelists: Set<String>?
+    public let enabledFrameworkAllowlists: Set<String>?
 
     /// Per-rule configuration override.
     public struct RuleOverride: Sendable {
@@ -57,14 +57,14 @@ public struct LintConfiguration: Sendable {
         excludedPaths: [String] = [],
         ruleOverrides: [RuleIdentifier: RuleOverride] = [:],
         architecturalLayers: [LayerPolicy] = [],
-        enabledFrameworkWhitelists: Set<String>? = nil
+        enabledFrameworkAllowlists: Set<String>? = nil
     ) {
         self.disabledRules = disabledRules
         self.enabledOnlyRules = enabledOnlyRules
         self.excludedPaths = excludedPaths
         self.ruleOverrides = ruleOverrides
         self.architecturalLayers = architecturalLayers
-        self.enabledFrameworkWhitelists = enabledFrameworkWhitelists
+        self.enabledFrameworkAllowlists = enabledFrameworkAllowlists
     }
 
     /// Rules that are opt-in only — disabled unless explicitly enabled via `enabled_only`.

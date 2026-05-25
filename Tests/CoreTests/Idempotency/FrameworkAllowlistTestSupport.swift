@@ -4,7 +4,7 @@ import SwiftParser
 import SwiftSyntax
 import Testing
 
-// Shared helpers for the FrameworkWhitelist* test suites. Promoted to
+// Shared helpers for the FrameworkAllowlist* test suites. Promoted to
 // module-scope so every split file can reach them without the verbose
 // `Type.` prefix that would push call sites past the line_length limit.
 // Other idempotency suites keep their own `private func firstCall/memberCall`
@@ -14,7 +14,7 @@ import Testing
 /// Namespace marker. Required by SwiftLint's `file_name` rule, which
 /// expects this file to declare a type matching its name. The helpers
 /// below remain at module scope by design.
-enum FrameworkWhitelistTestSupport {}
+enum FrameworkAllowlistTestSupport {}
 
 func firstCall(in source: String) throws -> FunctionCallExprSyntax {
     final class Finder: SyntaxVisitor {

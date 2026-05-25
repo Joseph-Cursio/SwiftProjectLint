@@ -298,7 +298,7 @@ final class ActorReentrancyVisitor: BasePatternVisitor {
     // MARK: - Assignment Detection
 
     /// Standard-library mutating method names recognised as writes to a stored property
-    /// when called on it as a receiver. Kept as a whitelist so that non-mutating reads
+    /// when called on it as a receiver. Kept as a allowlist so that non-mutating reads
     /// (`processedIDs.contains(id)`, `X.isEmpty`, `X.count`) are not mistaken for writes.
     private static let mutatingMethodNames: Set<String> = [
         // Set / Array / OrderedSet
@@ -389,7 +389,7 @@ final class ActorReentrancyVisitor: BasePatternVisitor {
     /// an AssignmentExprSyntax node (not a BinaryOperatorExprSyntax), so it
     /// is handled separately in `isAssignmentOperator(_:)`.
     ///
-    /// Kept as an explicit whitelist rather than an "ends-in-`=`" heuristic so
+    /// Kept as an explicit allowlist rather than an "ends-in-`=`" heuristic so
     /// that comparison operators (`==`, `!=`, `<=`, `>=`, `===`, `!==`) and
     /// hypothetical user-defined operators ending in `=` cannot be mistaken
     /// for writes.

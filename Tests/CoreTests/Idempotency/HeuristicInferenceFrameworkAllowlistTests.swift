@@ -4,13 +4,13 @@ import SwiftParser
 import SwiftSyntax
 import Testing
 
-/// Framework-whitelist fixtures for the heuristic inferrer: known-pure
+/// Framework-allowlist fixtures for the heuristic inferrer: known-pure
 /// type constructors, `.init(...)` member-access form, codec-pattern
 /// methods, and metric-pattern methods.
 @Suite
-struct HeuristicInferenceFrameworkWhitelistTests {
+struct HeuristicInferenceFrameworkAllowlistTests {
 
-    // MARK: - Framework whitelist — idempotent type constructors
+    // MARK: - Framework allowlist — idempotent type constructors
     //
     // Round-12 follow-on. Known-pure framework type constructors classify
     // idempotent when called as bare identifiers.
@@ -66,21 +66,21 @@ struct HeuristicInferenceFrameworkWhitelistTests {
 
     @Test
     func userTypeConstructor_staysUnclassified() throws {
-        // Project-local types aren't on the whitelist. Unclassified by
+        // Project-local types aren't on the allowlist. Unclassified by
         // name alone; upward inference may still classify via body.
         let call = try firstCall(in: "func f() { _ = OrderService() }")
         #expect(HeuristicEffectInferrer.infer(call: call) == nil)
     }
 
-    // MARK: - Framework whitelist — `.init(...)` member-access form
+    // MARK: - Framework allowlist — `.init(...)` member-access form
     //
     // The explicit-initializer form `JSONDecoder.init()` is semantically
     // identical to the bare `JSONDecoder()` — but without normalisation in
     // `callParts`, the member-access form would produce
     // `(calleeName: "init", receiverName: "JSONDecoder")` and miss the
-    // type-constructor whitelist entirely. Adopter corpora surface the
+    // type-constructor allowlist entirely. Adopter corpora surface the
     // `.init(...)` form at ~1 diagnostic per round on framework-response
-    // builders. These fixtures pin the normalisation so the whitelist
+    // builders. These fixtures pin the normalisation so the allowlist
     // fires on either spelling.
 
     @Test
@@ -120,7 +120,7 @@ struct HeuristicInferenceFrameworkWhitelistTests {
     @Test
     func genericTypeDotInit_infersIdempotent() throws {
         // `Data<T>` doesn't exist, but the generic-specialisation peel
-        // applies uniformly — any whitelisted type invoked in the
+        // applies uniformly — any allowlisted type invoked in the
         // `TypeName<...>.init(...)` shape normalises to the base name.
         // Use `ByteBuffer` with a fabricated generic for the AST shape.
         let call = try firstCall(in: "func f() { _ = ByteBuffer<UInt8>.init(bytes: data) }")
@@ -131,7 +131,7 @@ struct HeuristicInferenceFrameworkWhitelistTests {
     func nestedTypeDotInit_picksLeafName() throws {
         // `Foo.APIGatewayV2Response.init(...)` — the nested form appears
         // when the response type is re-exported under a module namespace.
-        // `callParts` returns the leaf type identifier, so the whitelist
+        // `callParts` returns the leaf type identifier, so the allowlist
         // lookup on `APIGatewayV2Response` still fires.
         let call = try firstCall(
             in: "func f() { _ = Outer.APIGatewayV2Response.init(statusCode: .ok) }"
@@ -145,7 +145,7 @@ struct HeuristicInferenceFrameworkWhitelistTests {
     @Test
     func userTypeDotInit_staysUnclassified() throws {
         // `.init(...)` normalisation does NOT silence user-local types —
-        // only types already on the framework whitelist benefit. A
+        // only types already on the framework allowlist benefit. A
         // project-local `OrderService.init()` remains unclassified, same
         // as the bare `OrderService()` form.
         let call = try firstCall(in: "func f() { _ = OrderService.init() }")
@@ -155,7 +155,7 @@ struct HeuristicInferenceFrameworkWhitelistTests {
     @Test
     func uuidDotInit_staysUnclassified() throws {
         // Mirrors `uuidConstructor_staysUnclassified` — `UUID` is
-        // deliberately excluded from the idempotent-type whitelist
+        // deliberately excluded from the idempotent-type allowlist
         // because it produces a fresh-per-call identity. The
         // `.init(...)` form must not accidentally classify it either.
         let call = try firstCall(in: "func f() { _ = UUID.init() }")
@@ -166,7 +166,7 @@ struct HeuristicInferenceFrameworkWhitelistTests {
     func selfDotInit_staysUnclassified() throws {
         // Delegating initializer — `self.init(...)` is a convenience-init
         // dispatch, not a fresh construction. `"self"` isn't on any
-        // whitelist, so the normalisation returns no inferred effect,
+        // allowlist, so the normalisation returns no inferred effect,
         // matching pre-slice behaviour exactly.
         let call = try firstCall(
             in: "struct S { init() { self.init(default: true) } }"
@@ -176,7 +176,7 @@ struct HeuristicInferenceFrameworkWhitelistTests {
 
     @Test
     func jsonDecoderDotInit_reasonMatchesBareForm() throws {
-        // Inference reason credits the whitelisted type, not "init",
+        // Inference reason credits the allowlisted type, not "init",
         // so adopter diagnostics read coherently on both spellings.
         let call = try firstCall(in: "func f() { _ = JSONDecoder.init() }")
         let reason = HeuristicEffectInferrer.inferenceReason(
@@ -186,7 +186,7 @@ struct HeuristicInferenceFrameworkWhitelistTests {
         #expect(reason == "from the known-idempotent Foundation type `JSONDecoder`")
     }
 
-    // MARK: - Framework whitelist — codec-pattern methods
+    // MARK: - Framework allowlist — codec-pattern methods
 
     @Test
     func decoderDotDecode_infersIdempotent() throws {
@@ -216,7 +216,7 @@ struct HeuristicInferenceFrameworkWhitelistTests {
         #expect(HeuristicEffectInferrer.infer(call: call) == nil)
     }
 
-    // MARK: - Framework whitelist — metric-pattern methods
+    // MARK: - Framework allowlist — metric-pattern methods
 
     @Test
     func counterIncrement_infersObservational() throws {

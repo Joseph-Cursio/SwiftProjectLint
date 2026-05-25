@@ -6,8 +6,8 @@ import Testing
 
 /// Locks in the Phase-1 closure-traversal policy: the body check stops at
 /// trailing closures of structured-concurrency / SwiftUI escape boundaries.
-/// One fixture per whitelisted callee to guard against regression if the
-/// whitelist drifts or the `isEscapingClosure` walker is refactored.
+/// One fixture per allowlisted callee to guard against regression if the
+/// allowlist drifts or the `isEscapingClosure` walker is refactored.
 ///
 /// Each fixture uses the same declared pair:
 ///   - `@lint.effect non_idempotent` callee

@@ -249,7 +249,7 @@ struct MultiHopUpwardInferenceTests {
     @Test
     func heuristicDownwardLeaf_anchorsMultiHopChain() throws {
         // Same chain shape but the leaf is inferred by the downward heuristic
-        // (`insert` matches the non-idempotent name whitelist) rather than
+        // (`insert` matches the non-idempotent name allowlist) rather than
         // declared. Multi-hop should still propagate up the chain.
         let files: [String: String] = [
             "Chain.swift": """

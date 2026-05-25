@@ -1,7 +1,7 @@
 import Foundation
 
 /// Stdlib-collection operations that are **not** anchors for bare-name
-/// inference. The first-slice bare-name whitelist classifies `append`,
+/// inference. The first-slice bare-name allowlist classifies `append`,
 /// `insert`, and friends as non_idempotent, which is correct for
 /// user-defined persistent-queue or database-row operations but wrong for
 /// local `Array.append`, `Set.insert` (set-idempotent), and similar stdlib
@@ -11,7 +11,7 @@ import Foundation
 /// call the resolver has classified by receiver type. Matches suppress the
 /// bare-name inference result — the inferrer returns `nil` as though no
 /// heuristic applied, which is the round-5 baseline behaviour for
-/// user-defined receivers that happen not to match the whitelist.
+/// user-defined receivers that happen not to match the allowlist.
 ///
 /// ## What's excluded and why
 ///
@@ -28,7 +28,7 @@ import Foundation
 /// ## What's deliberately NOT excluded
 ///
 /// - `Array.replaceSubrange`, `Array.swapAt`, `Array.sort`, etc.: less
-///   common, and none are triggered by the current bare-name whitelist
+///   common, and none are triggered by the current bare-name allowlist
 ///   anyway. Adding them preemptively would be scope creep.
 /// - Any user-defined type methods that happen to share names with stdlib
 ///   methods: that's the problem receiver-type inference exists to fix —

@@ -4,13 +4,13 @@ import SwiftParser
 import SwiftSyntax
 import Testing
 
-/// Hummingbird-framework whitelist coverage: primitive pairs
+/// Hummingbird-framework allowlist coverage: primitive pairs
 /// (`HTTPError` / `request.decode` / `parameters.require`) and the
-/// Router DSL whitelist (slot 16 — `router.get/post/put/patch/delete`).
-/// Split off from `FrameworkWhitelistGatingTests` so the base struct
+/// Router DSL allowlist (slot 16 — `router.get/post/put/patch/delete`).
+/// Split off from `FrameworkAllowlistGatingTests` so the base struct
 /// stays under SwiftLint's `type_body_length` threshold.
 @Suite
-struct FrameworkWhitelistHummingbirdTests {
+struct FrameworkAllowlistHummingbirdTests {
 
     // MARK: - Hummingbird primitives (framework-gated)
 
@@ -70,7 +70,7 @@ struct FrameworkWhitelistHummingbirdTests {
     func hummingbirdPair_wrongReceiver_doesNotFire() throws {
         // `.decode()` on a non-`request` receiver in a Hummingbird-
         // importing file: should NOT match the Hummingbird pair (only
-        // `request.decode` is whitelisted, not arbitrary `.decode()`).
+        // `request.decode` is allowlisted, not arbitrary `.decode()`).
         // Codec-receiver path handles `decoder.decode` etc. separately.
         let call = try firstCall(in: "func f() { try foo.decode(T.self) }")
         #expect(HeuristicEffectInferrer.infer(
@@ -113,13 +113,13 @@ struct FrameworkWhitelistHummingbirdTests {
         #expect(reason == "from the Hummingbird primitive `request.decode`")
     }
 
-    // MARK: - Hummingbird Router DSL whitelist (slot 16)
+    // MARK: - Hummingbird Router DSL allowlist (slot 16)
 
     @Test
     func importGated_hummingbirdPresent_routerGetFires() throws {
         // `router.get("/path") { ... }` — route-registration DSL inside
         // a `buildRouter()` / `addXRoutes(to router:)` helper. Without
-        // this whitelist, strict mode would flag `get` as unannotated.
+        // this allowlist, strict mode would flag `get` as unannotated.
         let call = try firstCall(in: "func f() { router.get(\"/x\") { _, _ in \"\" } }")
         #expect(HeuristicEffectInferrer.infer(
             call: call, imports: ["Hummingbird"], enabledFrameworks: nil
@@ -130,7 +130,7 @@ struct FrameworkWhitelistHummingbirdTests {
     func importGated_hummingbirdPresent_routerPostFires() throws {
         // `router.post` is the motivating slot-16 case — the callee
         // name `post` is in `nonIdempotentNames`, so without a receiver-
-        // method whitelist ahead of the bare-name check, route
+        // method allowlist ahead of the bare-name check, route
         // registration helpers annotated `@lint.context replayable`
         // would mis-fire on every `router.post(...)` DSL call.
         let call = try firstCall(in: "func f() { router.post(\"/x\") { _, _ in } }")
@@ -167,7 +167,7 @@ struct FrameworkWhitelistHummingbirdTests {
     func importGated_hummingbirdAbsent_routerPostFiresAsNonIdempotent() throws {
         // Without Hummingbird, the slot-16 pair doesn't match and the
         // bare-name `post` classification at step 9 applies — the
-        // whitelist is what silences the diagnostic, not a structural
+        // allowlist is what silences the diagnostic, not a structural
         // override of the bare-name lexicon.
         let call = try firstCall(in: "func f() { router.post(\"/x\") { _, _ in } }")
         #expect(HeuristicEffectInferrer.infer(
@@ -199,8 +199,8 @@ struct FrameworkWhitelistHummingbirdTests {
 
     @Test
     func configGated_hummingbirdDisabled_routerPostFallsThroughToBareName() throws {
-        // Adopter imports Hummingbird but opted out of its whitelist via
-        // `enabled_framework_whitelists`. Slot-16 pair should not fire;
+        // Adopter imports Hummingbird but opted out of its allowlist via
+        // `enabled_framework_allowlists`. Slot-16 pair should not fire;
         // the bare-name `post` classification reasserts itself.
         let call = try firstCall(in: "func f() { router.post(\"/x\") { _, _ in } }")
         #expect(HeuristicEffectInferrer.infer(

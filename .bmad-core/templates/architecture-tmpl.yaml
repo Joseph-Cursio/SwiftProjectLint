@@ -574,7 +574,7 @@ sections:
           - **Required Rules:**
             - All external inputs MUST be validated
             - Validation at API boundary before processing
-            - Whitelist approach preferred over blacklist
+            - Allowlist approach preferred over blacklist
       - id: auth-authorization
         title: Authentication & Authorization
         template: |

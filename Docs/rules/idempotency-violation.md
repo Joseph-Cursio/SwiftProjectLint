@@ -132,13 +132,13 @@ func upsert(_ user: User) async throws {}
 When a callee has no `@lint.effect` annotation in the project-wide symbol table, the rule consults two inference sources in order:
 
 1. **Upward inference (Phase 2.3).** Before emitting diagnostics, the linter walks every un-annotated function body and computes the lattice lub of that body's direct callees' effects (using declared and heuristic-downward results). If one non-idempotent call appears, the enclosing function is inferred non-idempotent; if all calls are observational, the function is observational; and so on. Upward is **one hop only** — inferred effects do not chain further within a single pass.
-2. **Heuristic-downward inference (Phase 2.2).** If no upward inference ran (the callee wasn't defined in this project, or its body had no recognised calls), the rule consults a small name-based whitelist.
+2. **Heuristic-downward inference (Phase 2.2).** If no upward inference ran (the callee wasn't defined in this project, or its body had no recognised calls), the rule consults a small name-based allowlist.
 
 Declared annotations always win; inference fires **only** for un-annotated callees, and in the precedence order: `declared > collision-withdraw (silent) > upward-inferred > heuristic-downward > silent`.
 
-#### Heuristic-downward whitelist
+#### Heuristic-downward allowlist
 
-The whitelist is intentionally small:
+The allowlist is intentionally small:
 
 - **Non-idempotent** (by bare callee name): `create`, `insert`, `append`, `publish`, `enqueue`, `post`, `send`.
 - **Idempotent** (by bare callee name): `upsert`, `setIfAbsent`, `replace`.
@@ -148,7 +148,7 @@ Names deliberately out of scope include `save`, `put`, `update`, `write` — eac
 
 **Receiver-type gating (stdlib exclusions).** The bare-name heuristic is silenced when the receiver syntactically resolves to a stdlib-collection type whose `(type, method)` pair is known to be a local mutation: `Array.append`/`insert`/`remove*`, `String.append`/`insert`, `Set.insert`/`remove`/`removeAll` (semantically idempotent), and `Dictionary.updateValue`/`removeValue`. This catches the common false-positive shape `users.append(contentsOf: teammates)` where `users` is a local `[User]`. Resolution is syntactic (parameter annotations, local bindings, stored-property types, literals) — when the resolver can't determine the receiver's type lexically it falls through to the bare-name behaviour unchanged.
 
-**CamelCase-gated prefix matching.** The non-idempotent whitelist also matches prefix-style names — `sendEmail`, `createUser`, `publishEvent`, `insertRow`, `enqueueJob`, `appendUnique`, `postMessage` — when: (1) the callee name is strictly longer than the matched prefix, (2) the next character after the prefix is uppercase (Swift word boundary), and (3) the receiver is not a stdlib-collection. This deliberately does NOT match `sending`, `sender`, `publisher`, `postponed`, `creator`, `inserted`, `appending` — the lowercase-next-character rule identifies those as non-mutation forms. Diagnostic prose distinguishes prefix matches explicitly: "from the callee-name prefix `send` (in `sendEmail`)".
+**CamelCase-gated prefix matching.** The non-idempotent allowlist also matches prefix-style names — `sendEmail`, `createUser`, `publishEvent`, `insertRow`, `enqueueJob`, `appendUnique`, `postMessage` — when: (1) the callee name is strictly longer than the matched prefix, (2) the next character after the prefix is uppercase (Swift word boundary), and (3) the receiver is not a stdlib-collection. This deliberately does NOT match `sending`, `sender`, `publisher`, `postponed`, `creator`, `inserted`, `appending` — the lowercase-next-character rule identifies those as non-mutation forms. Diagnostic prose distinguishes prefix matches explicitly: "from the callee-name prefix `send` (in `sendEmail`)".
 
 **Diagnostic prose makes inference visible.** Inference-driven diagnostics distinguish their provenance:
 
@@ -163,7 +163,7 @@ All three variants suggest annotating the callee explicitly with `/// @lint.effe
 **Two-hop chains** (A → B → C with A and B un-annotated, C declared non-idempotent) are a known Phase-2.3 first-slice limitation. Upward inference picks up B (one hop from C) but does not propagate further within the same pass. Users annotating the entry point (A) directly, or adding a declared effect on B, closes the gap.
 
 ### Interpretation of Zero Findings
-This rule was annotation-gated in Phase 1; Phase 2's heuristic inference adds a fallback for un-annotated callees. Zero findings on un-annotated source now has a narrower meaning: "no caller annotated with `@lint.effect idempotent/observational/externally_idempotent` calls a callee either declared non-idempotent (or inferred non-idempotent by the whitelist)." A zero-finding result still tells you about annotation coverage on the caller side — the inference fallback does not itself produce diagnostics without an annotated caller context.
+This rule was annotation-gated in Phase 1; Phase 2's heuristic inference adds a fallback for un-annotated callees. Zero findings on un-annotated source now has a narrower meaning: "no caller annotated with `@lint.effect idempotent/observational/externally_idempotent` calls a callee either declared non-idempotent (or inferred non-idempotent by the allowlist)." A zero-finding result still tells you about annotation coverage on the caller side — the inference fallback does not itself produce diagnostics without an annotated caller context.
 
 ### Remediation
 - **Swap the callee.** Replace a `non_idempotent` function with an idempotent alternative (e.g. `create` → `upsert`, `insert` → `setIfAbsent`).

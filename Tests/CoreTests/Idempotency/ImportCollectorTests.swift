@@ -5,8 +5,8 @@ import SwiftSyntax
 import Testing
 
 /// Structural tests for `ImportCollector` — the visitor that produces
-/// the base-module import set consumed by the framework-whitelist gate.
-/// Split off from `FrameworkWhitelistGatingTests` into its own file so
+/// the base-module import set consumed by the framework-allowlist gate.
+/// Split off from `FrameworkAllowlistGatingTests` into its own file so
 /// the base struct stays under SwiftLint's `type_body_length` threshold.
 @Suite
 struct ImportCollectorTests {

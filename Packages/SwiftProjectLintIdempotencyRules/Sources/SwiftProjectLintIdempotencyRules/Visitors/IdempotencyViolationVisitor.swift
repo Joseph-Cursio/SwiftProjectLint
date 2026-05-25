@@ -143,7 +143,7 @@ final class IdempotencyViolationVisitor: BasePatternVisitor, CrossFilePatternVis
         // is now inferred non-idempotent itself. One-hop catches only the
         // direct caller of the leaf.
         let allSources = Array(fileCache.values)
-        let enabledFrameworks = self.enabledFrameworkWhitelists
+        let enabledFrameworks = self.enabledFrameworkAllowlists
         symbolTable.applyUpwardInferenceImportAware(to: allSources, multiHop: true) { call, source in
             HeuristicEffectInferrer.infer(
                 call: call,
@@ -216,14 +216,14 @@ final class IdempotencyViolationVisitor: BasePatternVisitor, CrossFilePatternVis
         } else if let inferred = HeuristicEffectInferrer.infer(
             call: call,
             imports: imports(forSiteFile: site.filePath),
-            enabledFrameworks: self.enabledFrameworkWhitelists
+            enabledFrameworks: self.enabledFrameworkAllowlists
         ) {
             calleeEffect = inferred
             provenance = .inferredDownward(
                 reason: HeuristicEffectInferrer.inferenceReason(
                     for: call,
                     imports: imports(forSiteFile: site.filePath),
-                    enabledFrameworks: self.enabledFrameworkWhitelists
+                    enabledFrameworks: self.enabledFrameworkAllowlists
                 ) ?? ""
             )
         } else {

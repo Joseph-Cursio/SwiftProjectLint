@@ -323,9 +323,9 @@ struct UpwardInferenceIntegrationTests {
         // name-based one.
         //
         // Note: this test depends on `logMetric` not matching any
-        // non-idempotent whitelist name and on `logger.info` or similar
+        // non-idempotent allowlist name and on `logger.info` or similar
         // not being invoked. We use a neutral helper name that's NOT in
-        // any whitelist, and the inner body does nothing observable, so
+        // any allowlist, and the inner body does nothing observable, so
         // upward inference finds no callee effects and produces no
         // inference. The test below instead uses a logger-shaped call.
         let files: [String: String] = [

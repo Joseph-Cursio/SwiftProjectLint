@@ -32,9 +32,9 @@ public protocol SourcePatternDetectorProtocol {
     /// Architectural layer policies for the Architectural Boundary rule.
     var layerPolicies: [LayerPolicy] { get set }
 
-    /// Per-framework whitelist opt-in for the idempotency heuristic
+    /// Per-framework allowlist opt-in for the idempotency heuristic
     /// (round-14). `nil` = all frameworks active subject to import gating.
-    var enabledFrameworkWhitelists: Set<String>? { get set }
+    var enabledFrameworkAllowlists: Set<String>? { get set }
 
     /// Detects patterns filtered by category.
     func detectPatterns(

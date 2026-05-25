@@ -7,10 +7,10 @@ import Testing
 /// Slot 18 — the cross-framework `parameters.get` / `queryParameters.get`
 /// table. These receivers show up under both Hummingbird and Vapor, so the
 /// pair is gated on the multi-framework candidate set rather than a single
-/// module. Split off from `FrameworkWhitelistGatingTests` so the base
+/// module. Split off from `FrameworkAllowlistGatingTests` so the base
 /// struct stays under SwiftLint's `type_body_length` threshold.
 @Suite
-struct FrameworkWhitelistCrossFrameworkParamsTests {
+struct FrameworkAllowlistCrossFrameworkParamsTests {
 
     // MARK: - Cross-framework parameters.get / queryParameters.get (slot 18)
 
@@ -50,7 +50,7 @@ struct FrameworkWhitelistCrossFrameworkParamsTests {
     func slot18_parametersGet_doesNotFireWithoutWebFramework() throws {
         // `parameters.get(...)` in a file that imports neither
         // Hummingbird nor Vapor must not match. The cross-framework
-        // whitelist is the precision gate — without one of the listed
+        // allowlist is the precision gate — without one of the listed
         // imports, a user-defined `parameters` variable stays unclassified.
         let call = try firstCall(in: "func f() { _ = parameters.get(\"id\") }")
         #expect(HeuristicEffectInferrer.infer(
@@ -83,7 +83,7 @@ struct FrameworkWhitelistCrossFrameworkParamsTests {
     @Test
     func slot18_parametersGet_configGatedHummingbirdDisabled_stillFiresUnderVapor() throws {
         // Adopter imports both Hummingbird and Vapor but has disabled
-        // Hummingbird's whitelist via config. Cross-framework table
+        // Hummingbird's allowlist via config. Cross-framework table
         // still qualifies because Vapor (the other candidate) remains
         // active in `enabledFrameworks`.
         let call = try firstCall(in: "func f() { _ = parameters.get(\"id\") }")

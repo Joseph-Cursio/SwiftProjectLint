@@ -36,11 +36,11 @@ struct HeuristicInferenceTests {
         #expect(HeuristicEffectInferrer.infer(call: call) == .nonIdempotent)
     }
 
-    // MARK: - Destructive-verb whitelist (round-11 follow-on)
+    // MARK: - Destructive-verb allowlist (round-11 follow-on)
     //
     // Round 11 on Vapor surfaced `running.stop()` and `req.session.destroy()`
     // as missed catches — both short, unambiguous destructive verbs that
-    // the existing whitelist didn't cover. Added to `nonIdempotentNames`.
+    // the existing allowlist didn't cover. Added to `nonIdempotentNames`.
 
     @Test
     func bareStop_infersNonIdempotent() throws {
@@ -330,7 +330,7 @@ struct HeuristicInferenceTests {
         #expect(HeuristicEffectInferrer.infer(call: call) == nil)
     }
 
-    // MARK: - Names deliberately left out of the whitelist
+    // MARK: - Names deliberately left out of the allowlist
 
     @Test
     func save_isNotInferred() throws {
@@ -343,7 +343,7 @@ struct HeuristicInferenceTests {
     @Test
     func put_isNotInferred() throws {
         // REST PUT is idempotent; dictionary `put` is often idempotent;
-        // arbitrary `put` is ambiguous. Keep out of the whitelist.
+        // arbitrary `put` is ambiguous. Keep out of the allowlist.
         let call = try firstCall(in: "func f() { store.put(k, v) }")
         #expect(HeuristicEffectInferrer.infer(call: call) == nil)
     }
@@ -565,7 +565,7 @@ struct HeuristicInferenceIntegrationTests {
 
     @Test
     func saveIsNotInferredAsNonIdempotent() {
-        // Regression guard: `save` is deliberately OUT of the whitelist.
+        // Regression guard: `save` is deliberately OUT of the allowlist.
         // If someone later adds it to `nonIdempotentNames`, this test
         // starts failing and forces the decision to be re-litigated.
         let source = """

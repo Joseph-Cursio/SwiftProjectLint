@@ -62,7 +62,7 @@ struct ClosureBindingRuleTests {
     }
 
     @Test
-    func replayableVarBinding_callsExactWhitelistName_flags() {
+    func replayableVarBinding_callsExactAllowlistName_flags() {
         let source = """
         func publish(_ event: String) {}
 

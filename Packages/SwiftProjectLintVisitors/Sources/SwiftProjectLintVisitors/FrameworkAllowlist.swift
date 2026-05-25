@@ -1,6 +1,6 @@
 import Foundation
 
-/// Per-framework grouping of the `HeuristicEffectInferrer` whitelists.
+/// Per-framework grouping of the `HeuristicEffectInferrer` allowlists.
 ///
 /// Round 14 split the previously-monolithic `idempotentFrameworkTypes`
 /// (PR #9) into per-framework groups so the inferrer can gate each group
@@ -15,9 +15,9 @@ import Foundation
 ///   - `enabledFrameworks` — per-project config override
 ///
 /// Both are optional; when nil, the inferrer falls back to the pre-round-
-/// 14 "apply every whitelist by name" behaviour for test backwards
+/// 14 "apply every allowlist by name" behaviour for test backwards
 /// compatibility.
-public enum FrameworkWhitelist {
+public enum FrameworkAllowlist {
 
     // MARK: - Framework names (opaque strings — used as dictionary keys)
 
@@ -61,7 +61,7 @@ public enum FrameworkWhitelist {
     /// a parallel stdlib-specific table.
     ///
     /// The config opt-out still applies — a project can set
-    /// `enabled_framework_whitelists: [...]` excluding `SwiftConcurrency`
+    /// `enabled_framework_allowlists: [...]` excluding `SwiftConcurrency`
     /// to restore pre-slot-22 behaviour.
     public static let alwaysActiveFrameworks: Set<String> = [
         swiftConcurrency
@@ -73,7 +73,7 @@ public enum FrameworkWhitelist {
     /// imported the canonical framework. Idiomatic adopter code often
     /// imports a meta-package that re-exports the concrete module — the
     /// linter sees the literal import name, so without an alias table
-    /// the framework-gated whitelist silently doesn't fire.
+    /// the framework-gated allowlist silently doesn't fire.
     ///
     /// Slot 19 motivating case: Vapor's `Fluent` meta-package
     /// (`vapor/fluent`) re-exports `FluentKit`, `FluentSQL`, `FluentSQLiteDriver`
@@ -91,7 +91,7 @@ public enum FrameworkWhitelist {
     /// any alias when testing import presence. The canonical name
     /// remains the single identity used throughout — the reason string
     /// still names `FluentKit`, the `enabledFrameworks` config still
-    /// opts in/out via the canonical name, nested whitelist tables
+    /// opts in/out via the canonical name, nested allowlist tables
     /// still key on canonical. Aliases are purely an import-gate
     /// convenience.
     private static let frameworkImportAliases: [String: Set<String>] = [
@@ -151,7 +151,7 @@ public enum FrameworkWhitelist {
     ///
     /// Used for verbs that are *universally* non-idempotent inside a
     /// framework but ambiguous enough elsewhere that we don't want them
-    /// in the global bare-name whitelist. Fluent's `save`/`update`/`delete`
+    /// in the global bare-name allowlist. Fluent's `save`/`update`/`delete`
     /// are the motivating case — called on any `Model`-conforming type
     /// they always hit the database, but `Set.update(with:)` in stdlib
     /// or `cache.save()` on an in-memory store have different semantics.
@@ -191,7 +191,7 @@ public enum FrameworkWhitelist {
     /// 2-adopter evidence: isowords (12 fires) + pointfreeco www
     /// (4 fires) on `writeStatus` alone, plus `respond` shared shape.
     ///
-    /// Unlike type-constructor whitelists, these are ordinary
+    /// Unlike type-constructor allowlists, these are ordinary
     /// method-call names — they can appear as `.method()` on any
     /// receiver, or bare-style when chained after another call.
     /// The gate therefore does not require a receiver; the import
@@ -247,7 +247,7 @@ public enum FrameworkWhitelist {
     // MARK: - Idempotent receiver/method pairs (framework-gated)
 
     /// Idempotent `(receiver, method)` pairs — used when the method
-    /// name alone is too ambiguous to whitelist but the combination
+    /// name alone is too ambiguous to allowlist but the combination
     /// is a specific framework idiom. Nested dictionary keyed by
     /// method first (matching the inferrer's lookup pattern) then
     /// by receiver name.
@@ -263,7 +263,7 @@ public enum FrameworkWhitelist {
     /// AWSLambdaRuntime's response-writer primitives
     /// (`outputWriter.write(...)`, `responseWriter.write(...)`,
     /// `responseWriter.finish()`) live here for the same reason:
-    /// `write` is explicitly excluded from the bare-name whitelist
+    /// `write` is explicitly excluded from the bare-name allowlist
     /// (see `HeuristicEffectInferrer.nonIdempotentNames` commentary)
     /// because atomic-file / REST-semantics writes are idempotent but
     /// indistinguishable by name alone. The closure-parameter
@@ -284,7 +284,7 @@ public enum FrameworkWhitelist {
     /// is a convenience to walk INTO the registered handler closures; the
     /// registration calls themselves should stay silent. Gating on the
     /// bare `router` receiver is the precision mechanism — it keeps the
-    /// whitelist from silencing unrelated `.get` / `.post` / `.delete`
+    /// allowlist from silencing unrelated `.get` / `.post` / `.delete`
     /// methods on non-router receivers in the same file. 2-adopter
     /// evidence: `samalone/prospero` (3× `router.post` Run A + 11×
     /// `router.get` Run B) and
@@ -300,7 +300,7 @@ public enum FrameworkWhitelist {
     /// annotated `@lint.context replayable` hit the same registration-
     /// site-noise pattern as Hummingbird. Note: `app.get` is silent
     /// under replayable because `get` is idempotent-by-prefix, but
-    /// fires under strict_replayable without this entry; whitelisting
+    /// fires under strict_replayable without this entry; allowlisting
     /// all 5 verbs silences across both tiers. 2-adopter evidence:
     /// `kylebshr/luka-vapor` (2× `app.post` Run A + 1× `app.get` Run B)
     /// and `sinduke/HelloVapor` (1× `app.post` Run A + 5× `app.get`
@@ -461,25 +461,25 @@ public enum FrameworkWhitelist {
 }
 
 /// Combines file-level imports and project-level config into an
-/// "is this framework's whitelist active right now?" predicate. Used by
+/// "is this framework's allowlist active right now?" predicate. Used by
 /// `HeuristicEffectInferrer` to gate per-framework classifications.
 ///
 /// ## Semantics
 ///
 /// `imports` is the **concrete** set of base module names the enclosing
 /// source file imports (see `ImportCollector.imports(in:)`). An empty
-/// set means "no framework-gated whitelists fire" — synthetic fixtures
+/// set means "no framework-gated allowlists fire" — synthetic fixtures
 /// without imports and adopter files that simply don't use a given
 /// framework behave identically. Callers that want to bypass the gate
 /// must supply the relevant framework name explicitly.
 ///
 /// When `enabledFrameworks` is `nil`, treat every framework as enabled —
-/// the default when a project hasn't set `enabled_framework_whitelists`
+/// the default when a project hasn't set `enabled_framework_allowlists`
 /// in its `.swiftprojectlint.yml`. A non-nil value restricts
 /// classification to the listed frameworks.
 ///
 /// Both the import gate and the config gate must be active for the
-/// whitelist to fire.
+/// allowlist to fire.
 public struct FrameworkContext: Sendable {
     public let imports: Set<String>
     public let enabled: Set<String>?
@@ -495,10 +495,10 @@ public struct FrameworkContext: Sendable {
         // the import gate — adopter code doesn't typically write
         // `import SwiftConcurrency` because there's no such module.
         // Config opt-out still applies.
-        if FrameworkWhitelist.alwaysActiveFrameworks.contains(framework) {
+        if FrameworkAllowlist.alwaysActiveFrameworks.contains(framework) {
             return enabledOK
         }
-        let aliases = FrameworkWhitelist.importAliases(forFramework: framework)
+        let aliases = FrameworkAllowlist.importAliases(forFramework: framework)
         let importOK = imports.contains(framework) || !aliases.isDisjoint(with: imports)
         return importOK && enabledOK
     }

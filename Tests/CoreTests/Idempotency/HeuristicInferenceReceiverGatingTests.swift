@@ -13,7 +13,7 @@ struct HeuristicInferenceReceiverGatingTests {
 
     @Test
     func arrayLiteralAppend_isExcluded() throws {
-        // `[1, 2].append(3)` — bare-name `append` is whitelisted but the
+        // `[1, 2].append(3)` — bare-name `append` is allowlisted but the
         // receiver resolves to an Array literal. Stdlib exclusion fires.
         let call = try firstCall(in: "func f() { [1, 2].append(3) }")
         #expect(HeuristicEffectInferrer.infer(call: call) == nil)

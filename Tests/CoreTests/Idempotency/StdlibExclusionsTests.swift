@@ -52,7 +52,7 @@ struct StdlibExclusionsTests {
     @Test
     func setInsert_excluded() {
         // Set.insert is idempotent by set semantics — the first-slice
-        // bare-name whitelist incorrectly flagged this as non_idempotent
+        // bare-name allowlist incorrectly flagged this as non_idempotent
         // across the board. Receiver-type gating fixes it.
         #expect(StdlibExclusions.isExcluded(receiver: .stdlibCollection("Set"), method: "insert"))
     }

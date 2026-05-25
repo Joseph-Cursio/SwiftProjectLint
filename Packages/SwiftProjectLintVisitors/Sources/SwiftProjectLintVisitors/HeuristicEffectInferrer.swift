@@ -19,7 +19,7 @@ import SwiftSyntax
 ///
 /// ## Design
 ///
-/// The whitelist is **deliberately tight**. The risk profile of inference
+/// The allowlist is **deliberately tight**. The risk profile of inference
 /// is asymmetric: a false positive from inference fires on code whose
 /// author hasn't opted in to anything, and the fix is "go annotate the
 /// thing" which is exactly the friction the rule set was designed to
@@ -50,7 +50,7 @@ import SwiftSyntax
 ///   senses elsewhere (a cache's `save(key:value:)`, `collection.delete`
 ///   wrappers in value-oriented APIs). `update` is no longer in the
 ///   Fluent list — it's bare-matched instead (see the bullet above).
-///   See `FrameworkWhitelist.framework(forNonIdempotentMethod:)`.
+///   See `FrameworkAllowlist.framework(forNonIdempotentMethod:)`.
 ///
 /// - Framework-gated idempotent triggers: Fluent's query-builder
 ///   read verbs (`db`, `query`, `all`, `first`, `filter`) and
@@ -61,10 +61,10 @@ import SwiftSyntax
 ///   composition shape (`conn |> writeStatus(.ok)`) where receivers
 ///   aren't AST-bindable. Silences strict-mode diagnostics on these
 ///   chains without requiring per-callee annotations.
-///   See `FrameworkWhitelist.framework(forIdempotentMethod:)`.
+///   See `FrameworkAllowlist.framework(forIdempotentMethod:)`.
 ///
 /// - Framework-gated receiver/method pairs: where a method name is
-///   too generic to whitelist alone but the `(receiver, method)`
+///   too generic to allowlist alone but the `(receiver, method)`
 ///   combination is a specific framework idiom. Hummingbird's
 ///   `request.decode(...)` and `parameters.require(...)` are the
 ///   motivating cases; AWSLambdaRuntime's `outputWriter.write(...)`,
@@ -73,7 +73,7 @@ import SwiftSyntax
 ///   receiver name so that unrelated `.decode()` / `.require()` /
 ///   `.write()` / `.finish()` calls in the same file don't
 ///   incorrectly classify.
-///   See `FrameworkWhitelist.framework(forIdempotentReceiver:method:)`.
+///   See `FrameworkAllowlist.framework(forIdempotentReceiver:method:)`.
 ///
 /// - Idempotent bare-name triggers: `upsert`, `setIfAbsent`, `replace`.
 ///   These are explicit declarations of intent in the name itself.
@@ -94,7 +94,7 @@ import SwiftSyntax
 ///   Phase 1 and remain out of scope here.
 /// - **No type-based inference.** We infer from call-site syntax only;
 ///   no attempt to resolve the receiver's declared type.
-/// - **No YAML override.** The whitelist is hard-coded for this slice.
+/// - **No YAML override.** The allowlist is hard-coded for this slice.
 ///   Project-level overrides are a follow-up when evidence supports it.
 public enum HeuristicEffectInferrer {
 
@@ -105,13 +105,13 @@ public enum HeuristicEffectInferrer {
     ///   - call: the call syntax under test.
     ///   - imports: base module names imported in the enclosing source
     ///     file (see `ImportCollector.imports(in:)`). Defaults to an
-    ///     empty set, in which case no framework-gated whitelist fires —
+    ///     empty set, in which case no framework-gated allowlist fires —
     ///     only un-gated paths (bare-name triggers, logger receiver
     ///     shape) produce an effect.
     ///   - enabledFrameworks: per-framework config override. `nil` means
     ///     "all frameworks enabled" (default). Non-nil restricts
     ///     classification to the listed framework names (from
-    ///     `FrameworkWhitelist.knownFrameworks`).
+    ///     `FrameworkAllowlist.knownFrameworks`).
     public static func infer(
         call: FunctionCallExprSyntax,
         imports: Set<String> = [],
@@ -143,26 +143,26 @@ public enum HeuristicEffectInferrer {
         if let receiverName,
            isMetricReceiver(receiverName),
            metricObservationMethods.contains(calleeName),
-           context.isFrameworkActive(FrameworkWhitelist.metrics) {
+           context.isFrameworkActive(FrameworkAllowlist.metrics) {
             return .observational
         }
 
-        // Type-constructor whitelist — per-framework groups. When
+        // Type-constructor allowlist — per-framework groups. When
         // import-aware, only firewall-the-adopter-uses groups apply.
         if receiverName == nil,
-           let framework = FrameworkWhitelist.framework(
+           let framework = FrameworkAllowlist.framework(
                forIdempotentTypeConstructor: calleeName
            ),
            context.isFrameworkActive(framework) {
             return .idempotent
         }
 
-        // Codec-pattern method whitelist. Gated on `Foundation` import
+        // Codec-pattern method allowlist. Gated on `Foundation` import
         // when import-awareness is active.
         if let receiverName,
            isCodecReceiver(receiverName),
            codecMethods.contains(calleeName),
-           context.isFrameworkActive(FrameworkWhitelist.foundation) {
+           context.isFrameworkActive(FrameworkAllowlist.foundation) {
             return .idempotent
         }
 
@@ -171,7 +171,7 @@ public enum HeuristicEffectInferrer {
         // motivating case. Specific pair match; the receiver has to
         // be exactly the framework-canonical name.
         if let receiverName,
-           let framework = FrameworkWhitelist.framework(
+           let framework = FrameworkAllowlist.framework(
                forIdempotentReceiver: receiverName,
                method: calleeName
            ),
@@ -185,7 +185,7 @@ public enum HeuristicEffectInferrer {
         // and Vapor expose identical-named accessors). Qualifies when
         // ANY of the pair's candidate frameworks is active.
         if let receiverName,
-           let candidates = FrameworkWhitelist.frameworks(
+           let candidates = FrameworkAllowlist.frameworks(
                forCrossFrameworkIdempotentReceiver: receiverName,
                method: calleeName
            ),
@@ -201,20 +201,20 @@ public enum HeuristicEffectInferrer {
         // `send` hits that list first. Exact-match + receiverless only;
         // `sendEmail` and `mailer.send` stay non-idempotent.
         if receiverName == nil,
-           let framework = FrameworkWhitelist.framework(
+           let framework = FrameworkAllowlist.framework(
                forBareNameIdempotentOverride: calleeName
            ),
            context.isFrameworkActive(framework) {
             return .idempotent
         }
 
-        // Bare-name whitelists — now receiver-type gated. If the receiver
+        // Bare-name allowlists — now receiver-type gated. If the receiver
         // resolves to a stdlib collection whose (type, method) pair is in
         // the exclusion table, the bare-name match is suppressed. Named
         // and unresolved receivers fall through to the original behaviour.
-        let onWhitelist = idempotentNames.contains(calleeName)
+        let onAllowlist = idempotentNames.contains(calleeName)
             || nonIdempotentNames.contains(calleeName)
-        if onWhitelist,
+        if onAllowlist,
            StdlibExclusions.isExcluded(
                receiver: ReceiverTypeResolver.resolve(receiverOf: call),
                method: calleeName
@@ -236,7 +236,7 @@ public enum HeuristicEffectInferrer {
         // (HttpPipeline) where the AST walker can't bind a simple
         // receiver identifier to the terminal call. The framework
         // import presence is the load-bearing signal.
-        if let framework = FrameworkWhitelist.framework(
+        if let framework = FrameworkAllowlist.framework(
                forIdempotentMethod: calleeName
            ),
            context.isFrameworkActive(framework) {
@@ -248,7 +248,7 @@ public enum HeuristicEffectInferrer {
         // `save()` in a module that imports FluentKit is structurally
         // unrelated (top-level free function), so we keep it out.
         if receiverName != nil,
-           let framework = FrameworkWhitelist.framework(
+           let framework = FrameworkAllowlist.framework(
                forNonIdempotentMethod: calleeName
            ),
            context.isFrameworkActive(framework) {
@@ -292,11 +292,11 @@ public enum HeuristicEffectInferrer {
         if let receiverName,
            isMetricReceiver(receiverName),
            metricObservationMethods.contains(calleeName),
-           context.isFrameworkActive(FrameworkWhitelist.metrics) {
+           context.isFrameworkActive(FrameworkAllowlist.metrics) {
             return "from metric-primitive receiver `\(receiverName).\(calleeName)`"
         }
         if receiverName == nil,
-           let framework = FrameworkWhitelist.framework(
+           let framework = FrameworkAllowlist.framework(
                forIdempotentTypeConstructor: calleeName
            ),
            context.isFrameworkActive(framework) {
@@ -305,11 +305,11 @@ public enum HeuristicEffectInferrer {
         if let receiverName,
            isCodecReceiver(receiverName),
            codecMethods.contains(calleeName),
-           context.isFrameworkActive(FrameworkWhitelist.foundation) {
+           context.isFrameworkActive(FrameworkAllowlist.foundation) {
             return "from codec-pattern receiver `\(receiverName).\(calleeName)`"
         }
         if let receiverName,
-           let framework = FrameworkWhitelist.framework(
+           let framework = FrameworkAllowlist.framework(
                forIdempotentReceiver: receiverName,
                method: calleeName
            ),
@@ -317,7 +317,7 @@ public enum HeuristicEffectInferrer {
             return "from the \(framework) primitive `\(receiverName).\(calleeName)`"
         }
         if let receiverName,
-           let candidates = FrameworkWhitelist.frameworks(
+           let candidates = FrameworkAllowlist.frameworks(
                forCrossFrameworkIdempotentReceiver: receiverName,
                method: calleeName
            ),
@@ -325,7 +325,7 @@ public enum HeuristicEffectInferrer {
             return "from the \(active) primitive `\(receiverName).\(calleeName)`"
         }
         if receiverName == nil,
-           let framework = FrameworkWhitelist.framework(
+           let framework = FrameworkAllowlist.framework(
                forBareNameIdempotentOverride: calleeName
            ),
            context.isFrameworkActive(framework) {
@@ -343,17 +343,17 @@ public enum HeuristicEffectInferrer {
             return "from the callee name `\(calleeName)`"
         }
         if receiverName != nil,
-           let framework = FrameworkWhitelist.framework(
+           let framework = FrameworkAllowlist.framework(
                forNonIdempotentMethod: calleeName
            ),
            context.isFrameworkActive(framework) {
             return "from the \(framework) ORM verb `\(calleeName)`"
         }
-        if let framework = FrameworkWhitelist.framework(
+        if let framework = FrameworkAllowlist.framework(
                forIdempotentMethod: calleeName
            ),
            context.isFrameworkActive(framework) {
-            let phrase = FrameworkWhitelist.idempotentMethodPhrasing(forFramework: framework)
+            let phrase = FrameworkAllowlist.idempotentMethodPhrasing(forFramework: framework)
             return "from the \(framework) \(phrase) `\(calleeName)`"
         }
         // Prefix-matched calls credit the matched verb explicitly so the
@@ -380,11 +380,11 @@ public enum HeuristicEffectInferrer {
     ///   segment even though it isn't the outermost base.
     /// - `a.b.c.foo()` → `("foo", "c")` — same rule extends to any depth.
     /// - `Foo.init(...)` → `("Foo", nil)` — normalised to the bare-identifier
-    ///   form so the type-constructor whitelist fires on either spelling.
+    ///   form so the type-constructor allowlist fires on either spelling.
     ///   `A.B.init(...)` → `("B", nil)` (immediate type name); `Foo<T>.init(...)`
     ///   → `("Foo", nil)` (generic base peeled). `self.init(...)` and
     ///   `super.init(...)` normalise to `("self", nil)` / `("super", nil)`,
-    ///   which match no whitelist — outcome unchanged.
+    ///   which match no allowlist — outcome unchanged.
     /// - Anything structurally more complex (subscripts, casts, function-
     ///   call bases, tuple projections) → `nil`.
     private static func callParts(of expr: ExprSyntax) -> (String, String?)? {
@@ -398,7 +398,7 @@ public enum HeuristicEffectInferrer {
             }
             // `Type.init(...)` — treat the explicit-initializer form as
             // semantically identical to `Type(...)`. Without this normalisation
-            // the type-constructor whitelist fires on `JSONDecoder()` but
+            // the type-constructor allowlist fires on `JSONDecoder()` but
             // misses `JSONDecoder.init()`, producing one stray diagnostic per
             // framework-response-builder call site that uses the explicit form.
             if callee == "init", let typeName = typeIdentifierName(of: base) {
@@ -417,7 +417,7 @@ public enum HeuristicEffectInferrer {
 
     /// Extracts the leaf type identifier from an expression used as the
     /// base of a `.init(...)` call. Returns nil when the base is not a
-    /// type reference the whitelist could match (closure calls, subscripts,
+    /// type reference the allowlist could match (closure calls, subscripts,
     /// tuple projections, etc.).
     ///
     /// - `Foo` → `"Foo"`
@@ -516,11 +516,11 @@ public enum HeuristicEffectInferrer {
     /// Returns the matched prefix when `name` is a non-idempotent
     /// camelCase-composed name (e.g. `sendEmail`, `createUser`,
     /// `publishEvent`). Returns `nil` when:
-    /// - `name` exactly equals a whitelist entry (handled by bare-name path)
-    /// - `name` starts with a whitelist entry but the next character is
+    /// - `name` exactly equals a allowlist entry (handled by bare-name path)
+    /// - `name` starts with a allowlist entry but the next character is
     ///   lowercase (e.g. `sending`, `sender`, `publisher`, `appending`,
     ///   `creator`) — typically participle or noun forms, not mutation verbs
-    /// - `name` doesn't start with any whitelist entry
+    /// - `name` doesn't start with any allowlist entry
     ///
     /// The camel-case gate is the key precision mechanism. Swift methods
     /// almost always camelCase, so `prefix + Uppercase` signals a composed

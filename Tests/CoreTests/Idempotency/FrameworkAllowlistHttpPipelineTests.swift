@@ -4,14 +4,14 @@ import SwiftParser
 import SwiftSyntax
 import Testing
 
-/// Slot 14 — the HttpPipeline pipeline-primitive whitelist. Covers the
+/// Slot 14 — the HttpPipeline pipeline-primitive allowlist. Covers the
 /// freestanding curried functions (`writeStatus` / `respond`) used in
 /// pointfreeco/swift-web's `conn |> writeStatus(.ok) >=> respond(html:)`
 /// composition, plus the per-framework phrasing hook introduced with
-/// this slot. Split off from `FrameworkWhitelistGatingTests` so the base
+/// this slot. Split off from `FrameworkAllowlistGatingTests` so the base
 /// struct stays under SwiftLint's `type_body_length` threshold.
 @Suite
-struct FrameworkWhitelistHttpPipelineTests {
+struct FrameworkAllowlistHttpPipelineTests {
 
     // MARK: - HttpPipeline pipeline primitives (framework-gated, slot 14)
 
@@ -61,7 +61,7 @@ struct FrameworkWhitelistHttpPipelineTests {
     @Test
     func configGated_httpPipelineDisabled_writeStatusDoesNotFire() throws {
         // Adopter imports HttpPipeline but opted out via
-        // `enabled_framework_whitelists`. Whitelist does not fire;
+        // `enabled_framework_allowlists`. Allowlist does not fire;
         // the un-classified callee remains `unknown`.
         let call = try firstCall(in: "func f() { _ = writeStatus(.ok) }")
         #expect(HeuristicEffectInferrer.infer(
@@ -91,8 +91,8 @@ struct FrameworkWhitelistHttpPipelineTests {
     func httpPipelineMethodPhrasing_hasOverride() {
         // Both per-framework phrasings on the slot 14 table should
         // resolve to their explicit overrides, not the generic default.
-        #expect(FrameworkWhitelist.idempotentMethodPhrasing(forFramework: "FluentKit") == "query-builder read")
-        #expect(FrameworkWhitelist.idempotentMethodPhrasing(forFramework: "HttpPipeline") == "pipeline primitive")
+        #expect(FrameworkAllowlist.idempotentMethodPhrasing(forFramework: "FluentKit") == "query-builder read")
+        #expect(FrameworkAllowlist.idempotentMethodPhrasing(forFramework: "HttpPipeline") == "pipeline primitive")
     }
 
     @Test
@@ -101,6 +101,6 @@ struct FrameworkWhitelistHttpPipelineTests {
         // `"framework primitive"` fallback — adding a new framework
         // to `idempotentMethodsByFramework` without specifying
         // phrasing should still produce a sensible reason string.
-        #expect(FrameworkWhitelist.idempotentMethodPhrasing(forFramework: "PhantomFramework") == "framework primitive")
+        #expect(FrameworkAllowlist.idempotentMethodPhrasing(forFramework: "PhantomFramework") == "framework primitive")
     }
 }
