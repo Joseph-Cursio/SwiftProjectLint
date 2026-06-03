@@ -4,9 +4,14 @@ I have tested examining rules and simulations out with a real project only a few
 I've never looked at what the YAML part does (or does not do).
 I allowed different AIs to hallucinate the market potential of this experiment.
 
+Many of these rules exist just so I can explorwe the effects. Some rules are bad ideas, some are poorly implemented, and some are bad ideas poorly implemented. 
+
 # Swift Project Linter
 
 A static analysis tool for SwiftUI projects that detects architectural issues, performance problems, and code quality concerns. Parses Swift source files using SwiftSyntax AST visitors to identify anti-patterns across 160 rules in 12 categories.
+
+The origin of this project began with a limnitation of SwiftLint: it processes a single file at a time and cannot identify cross-file issues.
+I was watching the "Quality Coding" channel on YouTube. Jon Reid had a playlist in which he was exploring TDD with SwiftUI. ALong the way he ended up with a @State variable in a window, and the same @State variable in a child window. The second definition in the child window shadows the first definition, but it is not the same variable. To use the same variable, the child window needs @Binding instead. Jon remarked that this would be a good candicate for a SwiftLint rule. But the child window can be in a different file than the parent window...
 
 ## Features
 
