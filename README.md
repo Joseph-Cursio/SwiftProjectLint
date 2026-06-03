@@ -4,7 +4,7 @@ I have tested examining rules and simulations out with a real project only a few
 I've never looked at what the YAML part does (or does not do).
 I allowed different AIs to hallucinate the market potential of this experiment.
 
-Many of these rules exist just so I can explorwe the effects. Some rules are bad ideas, some are poorly implemented, and some are bad ideas poorly implemented. 
+Many of these rules exist just so I can explore the effects. Some rules are bad ideas, some are poorly implemented, and some are bad ideas poorly implemented. I did not want to pollute SwiftLint with these ideas (and I don't know how to create a custom rule in SwiftLint anyway.)
 
 # Swift Project Linter
 
