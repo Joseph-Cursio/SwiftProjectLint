@@ -3,6 +3,7 @@ import SwiftParser
 @testable import SwiftProjectLintVisitors
 import SwiftSyntax
 import Testing
+import SwiftProjectLintModels
 
 /// OI-7 regression suite: doc-comment annotations must be read regardless of
 /// where they sit relative to attributes and modifiers on a function

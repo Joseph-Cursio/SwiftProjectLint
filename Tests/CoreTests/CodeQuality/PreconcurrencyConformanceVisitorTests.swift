@@ -2,6 +2,7 @@
 import SwiftParser
 @testable import SwiftProjectLintRules
 import Testing
+import SwiftSyntax
 
 @Suite
 struct PreconcurrencyConformanceVisitorTests {

@@ -2,6 +2,8 @@ import SwiftParser
 @testable import SwiftProjectLintIdempotencyRules
 import SwiftSyntax
 import Testing
+import SwiftProjectLintModels
+import SwiftProjectLintVisitors
 
 @Suite
 struct IdempotencyViolationVisitorTests {

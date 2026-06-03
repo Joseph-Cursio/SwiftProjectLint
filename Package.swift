@@ -1,6 +1,22 @@
 // swift-tools-version:6.2
 import PackageDescription
 
+// Consistent with SwiftLintRuleStudio. Non-UI targets (Core, CLI, tests) get
+// Swift 6 language mode + MemberImportVisibility but stay nonisolated — Core
+// drives background AST analysis and feeds the batch CLI, so MainActor default
+// isolation would be wrong here. Only the SwiftUI App target adds MainActor
+// default isolation.
+let engineSwiftSettings: [SwiftSetting] = [
+    .swiftLanguageMode(.v6),
+    .enableUpcomingFeature("MemberImportVisibility")
+]
+
+let uiSwiftSettings: [SwiftSetting] = [
+    .swiftLanguageMode(.v6),
+    .defaultIsolation(MainActor.self),
+    .enableUpcomingFeature("MemberImportVisibility")
+]
+
 let package = Package(
     name: "SwiftProjectLint",
     platforms: [
@@ -43,7 +59,8 @@ let package = Package(
                 "SwiftProjectLintEngine",
                 .product(name: "LintStudioCore", package: "LintStudioUI")
             ],
-            path: "Sources/Core"
+            path: "Sources/Core",
+            swiftSettings: engineSwiftSettings
         ),
         .executableTarget(
             name: "CLI",
@@ -51,7 +68,8 @@ let package = Package(
                 "Core",
                 .product(name: "ArgumentParser", package: "swift-argument-parser")
             ],
-            path: "Sources/CLI"
+            path: "Sources/CLI",
+            swiftSettings: engineSwiftSettings
         ),
         .executableTarget(
             name: "App",
@@ -64,15 +82,13 @@ let package = Package(
                 .process("Assets.xcassets"),
                 .process("Resources")
             ],
-            swiftSettings: [
-                .defaultIsolation(MainActor.self),
-                .enableUpcomingFeature("MemberImportVisibility")
-            ]
+            swiftSettings: uiSwiftSettings
         ),
         .testTarget(
             name: "CLITests",
             dependencies: ["Core", "CLI"],
-            path: "Tests/CLITests"
+            path: "Tests/CLITests",
+            swiftSettings: engineSwiftSettings
         ),
         .testTarget(
             name: "CoreTests",
@@ -81,7 +97,8 @@ let package = Package(
                 "SwiftProjectLintIdempotencyRules",
                 .product(name: "PropertyBased", package: "swift-property-based")
             ],
-            path: "Tests/CoreTests"
+            path: "Tests/CoreTests",
+            swiftSettings: engineSwiftSettings
         ),
         .testTarget(
             name: "AppTests",
@@ -90,9 +107,7 @@ let package = Package(
                 .product(name: "LintStudioUI", package: "LintStudioUI")
             ],
             path: "Tests/AppTests",
-            swiftSettings: [
-                .enableUpcomingFeature("MemberImportVisibility")
-            ]
+            swiftSettings: engineSwiftSettings
         )
         // UI tests are configured in Xcode project and should be run through Xcode
         // .testTarget(

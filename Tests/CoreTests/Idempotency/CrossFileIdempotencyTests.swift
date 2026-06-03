@@ -3,6 +3,7 @@ import SwiftParser
 @testable import SwiftProjectLintVisitors
 import SwiftSyntax
 import Testing
+import SwiftProjectLintModels
 
 /// Exercises the cross-file pathway: declarations in one file resolved against
 /// callers in another, plus the collision policy for bare-name ambiguity.

@@ -3,6 +3,7 @@ import SwiftParser
 @testable import SwiftProjectLintVisitors
 import SwiftSyntax
 import Testing
+import SwiftProjectLintModels
 
 /// Phase-2+ fixtures for the `observational` lattice position (OI-5 resolution).
 ///

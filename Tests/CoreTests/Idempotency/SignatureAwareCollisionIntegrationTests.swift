@@ -3,6 +3,7 @@ import SwiftParser
 @testable import SwiftProjectLintVisitors
 import SwiftSyntax
 import Testing
+import SwiftProjectLintModels
 
 /// Integration-level tests for the signature-aware collision policy:
 /// `EffectSymbolTable` end-to-end behavior, overload resolution,
