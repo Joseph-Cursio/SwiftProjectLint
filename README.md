@@ -10,8 +10,9 @@ Many of these rules exist just so I can explorwe the effects. Some rules are bad
 
 A static analysis tool for SwiftUI projects that detects architectural issues, performance problems, and code quality concerns. Parses Swift source files using SwiftSyntax AST visitors to identify anti-patterns across 160 rules in 12 categories.
 
-The origin of this project began with a limnitation of SwiftLint: it processes a single file at a time and cannot identify cross-file issues.
-I was watching the "Quality Coding" channel on YouTube. Jon Reid had a playlist in which he was exploring TDD with SwiftUI. ALong the way he ended up with a @State variable in a window, and the same @State variable in a child window. The second definition in the child window shadows the first definition, but it is not the same variable. To use the same variable, the child window needs @Binding instead. Jon remarked that this would be a good candicate for a SwiftLint rule. But the child window can be in a different file than the parent window...
+The origin of this project began with a limitation of SwiftLint: it processes a single file at a time and cannot identify cross-file issues.
+
+Motivating example: I was watching the "Quality Coding" channel on YouTube. Jon Reid had a playlist in which he was exploring TDD with SwiftUI. ALong the way he ended up with a @State variable in a window, and the same @State variable in a child window. The second definition in the child window shadows the first definition, but it is not the same variable. To use the same variable, the child window needs @Binding instead. Jon remarked that this would be a good candicate for a SwiftLint rule. But the child window can be in a different file than the parent window...
 
 ## Features
 
