@@ -12,7 +12,7 @@ A static analysis tool for SwiftUI projects that detects architectural issues, p
 
 The origin of this project began with a limitation of SwiftLint: it processes a single file at a time and cannot identify cross-file issues.
 
-Motivating example: I was watching the "Quality Coding" channel on YouTube. Jon Reid had a playlist in which he was exploring TDD with SwiftUI. ALong the way he ended up with a @State variable in a window, and the same @State variable in a child window. The second definition in the child window shadows the first definition, but it is not the same variable. To use the same variable, the child window needs @Binding instead. Jon remarked that this would be a good candicate for a SwiftLint rule. But the child window can be in a different file than the parent window...
+Motivating example: I was watching the "Quality Coding" channel on YouTube. Jon Reid had a playlist in which he was exploring TDD with SwiftUI. ALong the way he ended up with a @State variable in a window, and the same @State variable in a child window. The second definition in the child window shadows the first definition, but it is not the same variable. To use the same variable, the child window needs @Binding instead. Jon remarked that this would be a good candicate for a SwiftLint rule. But the child window can be in a different file than the parent window... [Docs/rules/related-duplicate-state-variable.md]
 
 ## Features
 
