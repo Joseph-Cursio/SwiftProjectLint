@@ -1,3 +1,4 @@
+import Foundation
 import SwiftParser
 import SwiftProjectLintModels
 import SwiftProjectLintRegistry

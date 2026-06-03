@@ -1,6 +1,15 @@
 // swift-tools-version:6.2
 import PackageDescription
 
+// Consistent with SwiftLintRuleStudio: explicit Swift 6 language mode + the
+// MemberImportVisibility upcoming feature. MainActor default isolation is NOT
+// applied here — these rules run as background AST analysis (actors / task
+// groups), so main-actor pinning would defeat their parallelism.
+let swiftSettings: [SwiftSetting] = [
+    .swiftLanguageMode(.v6),
+    .enableUpcomingFeature("MemberImportVisibility")
+]
+
 let package = Package(
     name: "SwiftProjectLintRules",
     platforms: [
@@ -28,7 +37,8 @@ let package = Package(
                 "SwiftProjectLintRegistry",
                 .product(name: "SwiftSyntax", package: "swift-syntax")
             ],
-            path: "Sources/SwiftProjectLintRules"
+            path: "Sources/SwiftProjectLintRules",
+            swiftSettings: swiftSettings
         )
     ]
 )
