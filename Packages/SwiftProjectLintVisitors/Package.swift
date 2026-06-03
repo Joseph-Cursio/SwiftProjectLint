@@ -1,6 +1,14 @@
 // swift-tools-version:6.2
 import PackageDescription
 
+// Consistent with SwiftLintRuleStudio: explicit Swift 6 language mode + the
+// MemberImportVisibility upcoming feature. MainActor default isolation is NOT
+// applied here — this package runs background AST visitors.
+let swiftSettings: [SwiftSetting] = [
+    .swiftLanguageMode(.v6),
+    .enableUpcomingFeature("MemberImportVisibility")
+]
+
 let package = Package(
     name: "SwiftProjectLintVisitors",
     platforms: [
@@ -24,7 +32,8 @@ let package = Package(
                 "SwiftProjectLintModels",
                 .product(name: "SwiftSyntax", package: "swift-syntax")
             ],
-            path: "Sources/SwiftProjectLintVisitors"
+            path: "Sources/SwiftProjectLintVisitors",
+            swiftSettings: swiftSettings
         )
     ]
 )

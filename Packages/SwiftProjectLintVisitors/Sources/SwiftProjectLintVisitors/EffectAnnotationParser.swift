@@ -1,3 +1,4 @@
+import Foundation
 import SwiftSyntax
 
 /// Declared idempotency effect for a function, parsed from `/// @lint.effect` doc comments.

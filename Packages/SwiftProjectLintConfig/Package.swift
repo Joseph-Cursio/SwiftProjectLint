@@ -1,6 +1,14 @@
 // swift-tools-version:6.2
 import PackageDescription
 
+// Consistent with SwiftLintRuleStudio: explicit Swift 6 language mode + the
+// MemberImportVisibility upcoming feature. MainActor default isolation is NOT
+// applied here — config parsing feeds the background AST engine.
+let swiftSettings: [SwiftSetting] = [
+    .swiftLanguageMode(.v6),
+    .enableUpcomingFeature("MemberImportVisibility")
+]
+
 let package = Package(
     name: "SwiftProjectLintConfig",
     platforms: [
@@ -24,7 +32,8 @@ let package = Package(
                 "SwiftProjectLintModels",
                 .product(name: "Yams", package: "Yams")
             ],
-            path: "Sources/SwiftProjectLintConfig"
+            path: "Sources/SwiftProjectLintConfig",
+            swiftSettings: swiftSettings
         )
     ]
 )
