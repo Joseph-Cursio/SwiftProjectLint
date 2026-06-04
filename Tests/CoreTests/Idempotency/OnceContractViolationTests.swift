@@ -1,9 +1,9 @@
 import SwiftParser
 @testable import SwiftProjectLintIdempotencyRules
+import SwiftProjectLintModels
 @testable import SwiftProjectLintVisitors
 import SwiftSyntax
 import Testing
-import SwiftProjectLintModels
 
 /// Shared test helpers for the once-contract suites. Each suite below
 /// drives the rule through this same harness; the splits exist only to

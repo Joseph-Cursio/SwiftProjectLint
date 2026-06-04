@@ -1,10 +1,10 @@
 import SwiftParser
 @testable import SwiftProjectLintIdempotencyRules
+import SwiftProjectLintModels
 @testable import SwiftProjectLintRules
+import SwiftProjectLintVisitors
 import SwiftSyntax
 import Testing
-import SwiftProjectLintModels
-import SwiftProjectLintVisitors
 
 /// Verifies that the existing `actorReentrancy` rule aligns with the idempotency
 /// proposal's `actorReentrancyIdempotencyHazard` specification — the canonical

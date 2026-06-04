@@ -1,8 +1,8 @@
 @testable import Core
 import SwiftParser
 @testable import SwiftProjectLintRules
-import Testing
 import SwiftSyntax
+import Testing
 
 @Suite
 struct RetroactiveConformanceVisitorTests {

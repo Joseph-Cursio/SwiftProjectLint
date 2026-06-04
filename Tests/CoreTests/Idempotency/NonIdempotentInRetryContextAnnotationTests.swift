@@ -1,9 +1,9 @@
 import SwiftParser
 @testable import SwiftProjectLintIdempotencyRules
+import SwiftProjectLintModels
 @testable import SwiftProjectLintVisitors
 import SwiftSyntax
 import Testing
-import SwiftProjectLintModels
 
 /// Annotation-grammar tests for `NonIdempotentInRetryContext`: the
 /// trailing-closure (round-11) and prefix-statement (return-trailing)

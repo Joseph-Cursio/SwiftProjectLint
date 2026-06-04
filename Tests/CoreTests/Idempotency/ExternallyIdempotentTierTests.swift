@@ -1,9 +1,9 @@
 import SwiftParser
 @testable import SwiftProjectLintIdempotencyRules
+import SwiftProjectLintModels
 @testable import SwiftProjectLintVisitors
 import SwiftSyntax
 import Testing
-import SwiftProjectLintModels
 
 /// Phase-2 fixtures for the `externally_idempotent` lattice tier.
 ///

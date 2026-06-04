@@ -1,9 +1,9 @@
 import SwiftParser
 @testable import SwiftProjectLintIdempotencyRules
+import SwiftProjectLintModels
 @testable import SwiftProjectLintVisitors
 import SwiftSyntax
 import Testing
-import SwiftProjectLintModels
 
 /// Cross-reference lookup for closure-bound bindings called by name from
 /// elsewhere in the project. The original closure-handler annotation slice
