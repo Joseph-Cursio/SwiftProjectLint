@@ -11,7 +11,7 @@ excluded:
   - .swiftpm
   - xcuserdata
   - .xcode
-  - Packages/**/.build
+  - "**/.build"
   - Sources/SwiftProjectLint/ExampleViews
   - Sources/App/ExampleViews
   - ExampleCode
