@@ -26,7 +26,6 @@ struct RuleSelectionDialog: View {
 
     @State private var selectedRule: RuleIdentifier?
     @State private var selectedCategory: PatternCategory?
-    @State private var listRefreshToken = UUID()
 
     private func enabledBinding(for rule: RuleIdentifier) -> Binding<Bool> {
         Binding(
@@ -135,17 +134,14 @@ struct RuleSelectionDialog: View {
     private var bulkActionButtons: some View {
         Button("Select All") {
             enabledRuleNames = allRuleNames
-            listRefreshToken = UUID()
         }
         Button("Deselect All") {
             selectedRule = nil
             enabledRuleNames = []
-            listRefreshToken = UUID()
         }
         Button("Reset to Default") {
             enabledRuleNames = Set(RuleIdentifier.allCases)
             ruleExclusions = [:]
-            listRefreshToken = UUID()
         }
     }
 
@@ -175,7 +171,6 @@ struct RuleSelectionDialog: View {
             }
         }
         .listStyle(.sidebar)
-        .id(listRefreshToken)
         .frame(width: 400)
     }
 
