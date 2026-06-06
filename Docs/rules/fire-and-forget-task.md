@@ -18,6 +18,7 @@ The result is considered **consumed** (and the rule suppressed) in these cases:
 |---------|--------|
 | `let task = Task { }` | Handle stored for later cancellation/awaiting |
 | `var handle = Task { }` | Same |
+| `existingHandle = Task { }` | Handle assigned to an existing property/var (e.g. `analysisTask = Task { }`, cancelled later via `analysisTask?.cancel()`) |
 | `try await Task { }.value` | Error propagates to caller |
 | `Task { }.result` | Result captured by caller |
 
@@ -40,6 +41,12 @@ let task = Task {
     await doWork()
 }
 task.cancel()
+
+// Handle assigned to an existing property — can be cancelled later
+analysisTask = Task {
+    await runAnalysis()
+}
+// elsewhere: analysisTask?.cancel()
 
 // .value propagates errors to the caller
 try await Task {
