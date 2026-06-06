@@ -175,6 +175,7 @@ struct MyViewTests {
 - Use `RuleIdentifier` enum cases directly (not `RuleIdentifier(rawValue:)`)
 - Pattern visitors should inherit from `BasePatternVisitor`
 - New rules need: a visitor, a pattern registrar entry, and a `RuleIdentifier` case
+- Registrar style: a rule with its own **single-purpose visitor** gets its own leaf registrar — a `struct` conforming to `PatternRegistrarProtocol` that supplies one `var pattern` — wired in via the category registrar's `register(registrars:)` list. Rules that **share a multi-purpose category visitor** (e.g. `PerformanceVisitor`, `AccessibilityVisitor`, `UIVisitor`, `NamingConventionVisitor`) stay inline in that category's `register(patterns:)` array, since one visitor emits several rule names. (Both styles are functionally identical; a few single-purpose rules predate this convention and remain inline — that's fine, not a bug.)
 - Tests are organized to mirror the source structure under `Tests/CoreTests/`
 - UI tests use Swift Testing framework (`@Test`, `#expect`) with ViewInspector
 - In `#expect`, avoid leading `!` — use `== false` instead: `#expect(x.isEmpty == false)` not `#expect(!x.isEmpty)`. The `!` form produces noisy failure output (`!((x → []).isEmpty → true → true)`); the `== false` form gives clean diagnostics (`(x.isEmpty → true) == false`)
