@@ -7,39 +7,42 @@
 **Severity:** Warning
 
 ### Rationale
-In SwiftUI, modifier order determines visual outcome. Applying `.background()` before `.clipShape()` means the background extends beyond the clipped region, which is almost never the intended result. Similarly, `.shadow()` before `.cornerRadius()` produces a rectangular shadow instead of one matching the rounded shape.
+In SwiftUI, modifier order determines visual outcome, and a modifier only affects the view *beneath* it in the chain.
+
+`.clipShape()` (and `.cornerRadius()`) masks the view it is applied to. A `.background()` added **after** the clip is drawn behind the already-clipped view at its full rectangular bounds, so it is *not* clipped — usually a bug. The clipped-background idiom is therefore `.background().clipShape()`: add the background first, then clip the composited result so the background is clipped too.
+
+`.shadow()` works the opposite way: a shadow applied **before** a clip is clipped away entirely. Clip first, then shadow, so the shadow follows the clipped shape.
 
 ### Discussion
 `ModifierOrderVisitor` walks modifier chains (nested `FunctionCallExprSyntax` nodes) and extracts the ordered list of modifier names. It then checks for known-bad orderings:
 
-| Misordered | Should come after | Why |
-|------------|-------------------|-----|
-| `.background()` | `.clipShape()` or `.cornerRadius()` | Background won't be clipped to the shape |
-| `.shadow()` | `.clipShape()` or `.cornerRadius()` | Shadow won't match the clipped shape |
-| `.border()` | `.clipShape()` | Border won't follow the clip shape |
+| Misordered (applied first) | Should come after | Why |
+|----------------------------|-------------------|-----|
+| `.clipShape()` / `.cornerRadius()` | `.background()` | The background is added after the clip, so it isn't clipped to the shape |
+| `.shadow()` | `.clipShape()` or `.cornerRadius()` | The shadow is clipped away — apply it after the clip so it follows the shape |
 
 Only chains containing both the "before" and "after" modifiers are checked. Chains with unrelated modifiers are ignored.
 
 ### Non-Violating Examples
 ```swift
 Text("Hello")
-    .clipShape(RoundedRectangle(cornerRadius: 10))
-    .background(Color.red)    // background after clipShape — correct
+    .background(Color.red)
+    .clipShape(RoundedRectangle(cornerRadius: 10))  // background then clip — background IS clipped
 
 Text("World")
     .cornerRadius(8)
-    .shadow(radius: 5)        // shadow after cornerRadius — correct
+    .shadow(radius: 5)        // clip then shadow — shadow follows the shape
 ```
 
 ### Violating Examples
 ```swift
 Text("Hello")
-    .background(Color.red)
-    .clipShape(RoundedRectangle(cornerRadius: 10))  // background before clipShape
+    .clipShape(RoundedRectangle(cornerRadius: 10))
+    .background(Color.red)    // clip before background — background is left unclipped
 
 Text("World")
     .shadow(radius: 5)
-    .cornerRadius(8)          // shadow before cornerRadius
+    .cornerRadius(8)          // shadow before clip — shadow is clipped away
 ```
 
 ---

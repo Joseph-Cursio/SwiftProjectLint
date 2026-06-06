@@ -7,9 +7,11 @@ import SwiftSyntax
 /// Visitor that detects incorrect SwiftUI modifier ordering.
 ///
 /// Certain modifiers must appear in a specific order to work correctly.
-/// For example, `.background()` should come after `.clipShape()` so the
-/// background is clipped to the shape. This visitor walks modifier chains
-/// and flags known-bad orderings.
+/// For example, `.clipShape()` applied *before* `.background()` leaves the
+/// background unclipped — `clipShape` masks only the view it is applied to,
+/// so a background added afterward sits behind it at the full rectangular
+/// bounds. The clipped-background idiom is `.background().clipShape()`.
+/// This visitor walks modifier chains and flags known-bad orderings.
 class ModifierOrderVisitor: BasePatternVisitor {
 
     /// Each rule says: if `before` appears earlier in the chain than any modifier
@@ -21,20 +23,26 @@ class ModifierOrderVisitor: BasePatternVisitor {
     }
 
     private static let rules: [OrderingRule] = [
+        // A clip applied BEFORE the background leaves the background unclipped:
+        // `.clipShape(S).background(B)` draws B behind the clipped view at its
+        // rectangular bounds. The clipped-background idiom is the reverse,
+        // `.background(B).clipShape(S)`, so that is NOT flagged.
         OrderingRule(
-            before: "background",
-            after: ["clipShape", "cornerRadius"],
-            reason: "background won't be clipped to the shape"
+            before: "clipShape",
+            after: ["background"],
+            reason: "the background is added after the clip, so it isn't clipped to the shape"
         ),
+        OrderingRule(
+            before: "cornerRadius",
+            after: ["background"],
+            reason: "the background is added after the corner radius, so it isn't rounded"
+        ),
+        // A shadow applied BEFORE a clip is clipped away — clip first, then
+        // shadow, so the shadow follows the clipped shape.
         OrderingRule(
             before: "shadow",
             after: ["clipShape", "cornerRadius"],
-            reason: "shadow won't match the clipped shape"
-        ),
-        OrderingRule(
-            before: "border",
-            after: ["clipShape"],
-            reason: "border won't follow the clip shape"
+            reason: "the shadow is clipped away — apply it after the clip so it follows the shape"
         )
     ]
 
