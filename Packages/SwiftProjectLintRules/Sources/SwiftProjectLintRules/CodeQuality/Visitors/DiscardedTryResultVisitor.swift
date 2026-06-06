@@ -16,7 +16,15 @@ import SwiftSyntax
 /// - `guard let x = try? call() else { … }` — result checked
 /// - `_ = try? call()` — explicit discard, developer intent is clear
 /// - `try call()` / `try! call()` — different operators
+/// - `items.compactMap { try? f($0) }` — the `try?` is the last expression of a
+///   transform closure (`map`/`compactMap`/`flatMap`), so its value IS the
+///   closure's result and is collected by the caller, not discarded. (A Void
+///   closure such as `Button { try? save() }` still fires — its last expression
+///   is genuinely discarded.)
 final class DiscardedTryResultVisitor: BasePatternVisitor {
+
+    /// Sequence transforms whose closure returns a value the caller collects.
+    private static let transformMethods: Set<String> = ["map", "compactMap", "flatMap"]
 
     required init(pattern: SyntaxPattern, viewMode: SyntaxTreeViewMode = .sourceAccurate) {
         super.init(pattern: pattern, viewMode: viewMode)
@@ -29,7 +37,14 @@ final class DiscardedTryResultVisitor: BasePatternVisitor {
         }
 
         // Only when the entire try? expression is a bare statement (result not used)
-        guard node.parent?.is(CodeBlockItemSyntax.self) == true else {
+        guard let codeBlockItem = node.parent?.as(CodeBlockItemSyntax.self) else {
+            return .visitChildren
+        }
+
+        // Don't flag when the try? is the last expression of a value-transforming
+        // closure (map/compactMap/flatMap) — there the value is the closure's
+        // result, collected by the caller rather than discarded.
+        guard isTransformClosureResult(codeBlockItem) == false else {
             return .visitChildren
         }
 
@@ -43,5 +58,39 @@ final class DiscardedTryResultVisitor: BasePatternVisitor {
         )
 
         return .visitChildren
+    }
+
+    // MARK: - Transform-closure detection
+
+    /// True when `item` is the LAST statement of a closure passed to a
+    /// value-transforming method (`map`/`compactMap`/`flatMap`), so the
+    /// statement's value is the closure's result rather than a discard.
+    private func isTransformClosureResult(_ item: CodeBlockItemSyntax) -> Bool {
+        guard let itemList = item.parent?.as(CodeBlockItemListSyntax.self),
+              let closure = itemList.parent?.as(ClosureExprSyntax.self),
+              itemList.last?.id == item.id
+        else {
+            return false
+        }
+        return enclosingCallMethodName(of: closure)
+            .map(Self.transformMethods.contains) ?? false
+    }
+
+    /// The method name of the call this closure is an argument to — whether it
+    /// is the trailing closure or a regular closure argument.
+    private func enclosingCallMethodName(of closure: ClosureExprSyntax) -> String? {
+        if let call = closure.parent?.as(FunctionCallExprSyntax.self) {
+            return calledMethodName(call)
+        }
+        if let labeled = closure.parent?.as(LabeledExprSyntax.self),
+           let list = labeled.parent?.as(LabeledExprListSyntax.self),
+           let call = list.parent?.as(FunctionCallExprSyntax.self) {
+            return calledMethodName(call)
+        }
+        return nil
+    }
+
+    private func calledMethodName(_ call: FunctionCallExprSyntax) -> String? {
+        call.calledExpression.as(MemberAccessExprSyntax.self)?.declName.baseName.text
     }
 }
