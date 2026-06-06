@@ -50,6 +50,20 @@ struct ContentView: View {
                 .sheet(isPresented: $viewModel.showingConfigDiffPreview) {
                     configDiffSheet
                 }
+                .alert(
+                    "Couldn’t Save Configuration",
+                    isPresented: Binding(
+                        get: { viewModel.configSaveError != nil },
+                        set: { isPresented in
+                            if isPresented == false { viewModel.configSaveError = nil }
+                        }
+                    ),
+                    presenting: viewModel.configSaveError
+                ) { _ in
+                    Button("OK", role: .cancel) {}
+                } message: { errorMessage in
+                    Text(errorMessage)
+                }
         }
     }
 

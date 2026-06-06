@@ -39,6 +39,11 @@ class ContentViewModel {
     /// Whether the current GUI state differs from the loaded YAML config.
     var configIsDirty: Bool = false
 
+    /// Set when writing `.swiftprojectlint.yml` fails, so the view can surface
+    /// the failure instead of silently reporting success. Cleared when the
+    /// alert is dismissed.
+    var configSaveError: String?
+
     /// Whether the config diff preview sheet is showing.
     var showingConfigDiffPreview: Bool = false
 
@@ -230,7 +235,16 @@ class ContentViewModel {
             }
         }
 
-        try? SafeFileWriter.write(content, to: fileURL, createBackup: true)
+        do {
+            try SafeFileWriter.write(content, to: fileURL, createBackup: true)
+        } catch {
+            // Surface the failure and keep the dirty state so the user knows
+            // their changes were NOT saved (previously this was swallowed and
+            // the UI falsely reported success).
+            configSaveError = "Couldn’t save \(configPersistence.defaultFileName): "
+                + error.localizedDescription
+            return
+        }
         loadedConfig = config
         configIsDirty = false
     }

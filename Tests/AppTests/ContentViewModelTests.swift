@@ -417,6 +417,28 @@ struct ContentViewModelConfigTests {
         let configPath = tempDir.appendingPathComponent(".swiftprojectlint.yml")
         #expect(FileManager.default.fileExists(atPath: configPath.path))
         #expect(viewModel.configIsDirty == false)
+        #expect(viewModel.configSaveError == nil)
+    }
+
+    @Test("saveConfigToProject surfaces an error and keeps dirty when the write fails")
+    func saveConfigSurfacesWriteFailure() {
+        // A directory that does not exist — SafeFileWriter does not create
+        // intermediate directories, so the write throws.
+        let missingDir = FileManager.default.temporaryDirectory
+            .appendingPathComponent("Missing_\(UUID().uuidString)")
+            .appendingPathComponent("nested")
+
+        let viewModel = ContentViewModel()
+        viewModel.selectedDirectory = missingDir.path
+        viewModel.ruleExclusions = [
+            .forceTry: RuleExclusions(excludeTests: true, excludeViews: false)
+        ]
+        viewModel.configIsDirty = true
+        viewModel.saveConfigToProject()
+
+        // The failure must be surfaced, not swallowed, and the unsaved state kept.
+        #expect(viewModel.configSaveError != nil)
+        #expect(viewModel.configIsDirty == true)
     }
 
     // MARK: - updateDirtyState
