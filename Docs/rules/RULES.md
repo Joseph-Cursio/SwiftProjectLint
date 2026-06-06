@@ -1,6 +1,6 @@
 # SwiftProjectLint Rules Reference
 
-SwiftProjectLint is a static analysis tool for SwiftUI projects. It parses Swift source files using SwiftSyntax AST visitors to detect anti-patterns spanning state management, performance, animations, architecture, code quality, security, accessibility, memory management, networking, UI patterns, modernization, and idempotency. This reference documents all 160 lint rules, organized by category.
+SwiftProjectLint is a static analysis tool for SwiftUI projects. It parses Swift source files using SwiftSyntax AST visitors to detect anti-patterns spanning state management, performance, animations, architecture, code quality, security, accessibility, memory management, networking, UI patterns, modernization, and idempotency. This reference documents all 161 lint rules, organized by category.
 
 Rules marked **opt-in** are disabled by default and must be explicitly listed under `enabled_only` in `.swiftprojectlint.yml`.
 
@@ -147,6 +147,7 @@ Rules marked **opt-in** are disabled by default and must be explicitly listed un
 | [Missing Accessibility Hint](missing-accessibility-hint.md) | Info |
 | [Inaccessible Color Usage](inaccessible-color-usage.md) | Info |
 | [Icon-Only Button Missing Label](icon-only-button-missing-label.md) | Warning |
+| [Control Missing Accessibility Label](control-missing-accessibility-label.md) | Warning |
 | [Long Text Accessibility](long-text-accessibility.md) | Info |
 | [Hardcoded Font Size](hardcoded-font-size.md) | Warning |
 | [onTapGesture Instead of Button](on-tap-gesture-instead-of-button.md) | Warning |

@@ -166,6 +166,7 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
     case stackMissingAccessibilityGrouping = "Stack Missing Accessibility Grouping"
     case accessibilityHiddenConflict = "Accessibility Hidden Conflict"
     case sortPriorityWithoutContainer = "Sort Priority Without Container"
+    case controlMissingAccessibilityLabel = "Control Missing Accessibility Label"
 
     // Memory Management Rules
     case potentialRetainCycle = "Potential Retain Cycle"
@@ -276,7 +277,8 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
              .missingDynamicTypeSupport, .decorativeImageMissingTrait,
              .toggleButtonMissingSelectedTrait, .buttonTogglingBool,
              .stackMissingAccessibilityGrouping,
-             .accessibilityHiddenConflict, .sortPriorityWithoutContainer:
+             .accessibilityHiddenConflict, .sortPriorityWithoutContainer,
+             .controlMissingAccessibilityLabel:
             return .accessibility
 
             // Memory Management Rules
