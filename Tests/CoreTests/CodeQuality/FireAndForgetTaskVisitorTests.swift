@@ -81,6 +81,18 @@ struct FireAndForgetTaskVisitorTests {
         // .result consumed
         """
         let result = Task { await doWork() }.result
+        """,
+        // assigned to an existing property (the analysisTask pattern)
+        """
+        func start() {
+            analysisTask = Task { await doWork() }
+        }
+        """,
+        // assigned to an existing property via self
+        """
+        func start() {
+            self.analysisTask = Task { await doWork() }
+        }
         """
     ])
     func noIssueWhenResultCaptured(source: String) {

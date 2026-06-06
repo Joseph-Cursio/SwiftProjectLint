@@ -55,7 +55,8 @@ final class FireAndForgetTaskVisitor: BasePatternVisitor {
     /// Returns `true` when the Task handle is captured rather than immediately discarded.
     ///
     /// Matches:
-    /// - `let task = Task { ... }` — stored for later use
+    /// - `let task = Task { ... }` — stored in a new binding
+    /// - `existingHandle = Task { ... }` — assigned to an existing property/var
     /// - `try await Task { ... }.value` — errors propagate to the caller
     /// - `Task { ... }.result` — result captured by the caller
     private func isResultConsumed(_ node: FunctionCallExprSyntax) -> Bool {
@@ -70,13 +71,28 @@ final class FireAndForgetTaskVisitor: BasePatternVisitor {
             if name == "value" || name == "result" { return true }
         }
 
-        // Walk up through Await/Try wrappers to find a MemberAccess (.value / .result)
+        // Walk up to the enclosing statement, looking for a consumer.
         var current: Syntax? = parent
         while let ancestor = current {
+            // Task { ... }.value / .result, possibly behind try/await wrappers.
             if let member = ancestor.as(MemberAccessExprSyntax.self) {
                 let name = member.declName.baseName.text
                 if name == "value" || name == "result" { return true }
             }
+
+            // Pattern: `existingHandle = Task { ... }` (handle stored on a
+            // property or existing variable, e.g. `analysisTask = Task { }`).
+            // Unfolded parse trees model this as a SequenceExpr containing an
+            // AssignmentExpr; folded trees as an InfixOperatorExpr with `=`.
+            if let sequence = ancestor.as(SequenceExprSyntax.self),
+               sequence.elements.contains(where: { $0.is(AssignmentExprSyntax.self) }) {
+                return true
+            }
+            if let infix = ancestor.as(InfixOperatorExprSyntax.self),
+               infix.operator.is(AssignmentExprSyntax.self) {
+                return true
+            }
+
             if ancestor.is(CodeBlockItemSyntax.self) { break }
             current = ancestor.parent
         }
