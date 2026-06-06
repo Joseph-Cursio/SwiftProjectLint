@@ -85,30 +85,9 @@ class UIVisitor: BasePatternVisitor {
             }
             navigationStack.append(currentViewName)
         }
-        // Detect ForEach without ID (UI perspective)
-        if let calledExpr = node.calledExpression.as(DeclReferenceExprSyntax.self),
-           calledExpr.baseName.text == SwiftUIViewType.forEach.rawValue {
-            var hasID = false
-            for argument in node.arguments where argument.label?.text == "id" {
-                hasID = true
-            }
-            if !hasID {
-                // Suppress when the element type is known to be Identifiable
-                let elementType = inferForEachElementType(node)
-                let isIdentifiable = elementType.map { knownIdentifiableTypes.contains($0) } ?? false
-
-                if !isIdentifiable {
-                    addIssue(
-                        severity: .warning,
-                        message: "ForEach without explicit ID can cause performance issues",
-                        filePath: currentFilePath,
-                        lineNumber: getLineNumber(for: Syntax(node)),
-                        suggestion: "Add an explicit id: parameter to ForEach",
-                        ruleName: .forEachWithoutIDUI
-                    )
-                }
-            }
-        }
+        // ForEach-without-id is detected by `PerformanceVisitor` (rule
+        // `.forEachWithoutID`); it used to be duplicated here as
+        // `.forEachWithoutIDUI`, which double-reported every site.
         // Detect inconsistent styling
         if let calledExpr = node.calledExpression.as(DeclReferenceExprSyntax.self),
            calledExpr.baseName.text == SwiftUIViewType.text.rawValue {

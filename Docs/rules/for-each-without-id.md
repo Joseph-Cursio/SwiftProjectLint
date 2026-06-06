@@ -10,7 +10,7 @@
 `ForEach` uses the `id` parameter to perform efficient diffing when the collection changes. Without an explicit `id`, SwiftUI falls back to index-based identity, which defeats structural diffing and forces full redraws of unchanged elements.
 
 ### Discussion
-This performance-category rule is detected by `PerformanceVisitor`. A companion UI-category rule (`forEachWithoutIDUI`) detects the same pattern from the UI visitor. The two rules exist because the same issue is independently flagged by both the performance and UI analysis passes. If a `ForEach` item type conforms to `Identifiable`, the `ForEach(_:content:)` form implicitly uses the `id` property and does not trigger this rule.
+This rule is detected by `PerformanceVisitor`. It checks for a `ForEach` call with no `id:` argument. If the item type is known to conform to `Identifiable`, the `ForEach(_:content:)` form implicitly uses the `id` property and the rule does not trigger.
 
 ### Non-Violating Examples
 ```swift

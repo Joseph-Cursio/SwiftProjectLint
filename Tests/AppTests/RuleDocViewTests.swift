@@ -81,11 +81,6 @@ struct RuleDocumentationLoaderTests {
         #expect(filename == "for-each-without-id")
     }
 
-    @Test func specialCaseForEachWithoutIDUI() {
-        let filename = RuleDocumentationLoader.documentationFileName(for: .forEachWithoutIDUI)
-        #expect(filename == "for-each-without-id-ui")
-    }
-
     @Test func acronymInMiddleConvertsCorrectly() {
         let filename = RuleDocumentationLoader.documentationFileName(for: .unsafeURL)
         #expect(filename == "unsafe-url")

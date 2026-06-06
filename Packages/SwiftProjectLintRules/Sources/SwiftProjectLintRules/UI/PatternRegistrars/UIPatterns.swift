@@ -28,15 +28,6 @@ class UIPatterns: BasePatternRegistrar {
                 description: "Detects SwiftUI views missing preview providers"
             ),
             SyntaxPattern(
-                name: .forEachWithoutID,
-                visitor: UIVisitor.self,
-                severity: .warning,
-                category: .uiPatterns,
-                messageTemplate: "ForEach should specify an explicit ID for better performance",
-                suggestion: "Add an explicit id parameter to ForEach",
-                description: "Detects ForEach usage without explicit ID specification"
-            ),
-            SyntaxPattern(
                 name: .forEachWithSelfID,
                 visitor: ForEachSelfIDVisitor.self,
                 severity: .warning,
@@ -55,15 +46,6 @@ class UIPatterns: BasePatternRegistrar {
                 messageTemplate: "Inconsistent styling detected in {context}",
                 suggestion: "Use consistent styling patterns and consider creating reusable style components",
                 description: "Detects inconsistent styling patterns across the UI"
-            ),
-            SyntaxPattern(
-                name: .forEachWithoutIDUI,
-                visitor: UIVisitor.self,
-                severity: .warning,
-                category: .uiPatterns,
-                messageTemplate: "ForEach should specify an explicit ID for better performance",
-                suggestion: "Add an explicit id parameter to ForEach",
-                description: "Detects ForEach usage without explicit ID specification in UI contexts"
             ),
             SyntaxPattern(
                 name: .basicErrorHandling,

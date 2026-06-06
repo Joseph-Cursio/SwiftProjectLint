@@ -266,25 +266,6 @@ struct UIVisitorMacroPreviewTests {
         #expect(stylingIssues.isEmpty, "Non-styling modifiers should not trigger styling warning")
     }
 
-    @Test("ForEach without id has correct suggestion text")
-    func forEachWithoutIdSuggestion() throws {
-        let visitor = createVisitor()
-        let source = """
-        struct ListView: View {
-            var body: some View {
-                ForEach(["a", "b"]) { item in
-                    Text(item)
-                }
-            }
-        }
-        """
-
-        let issues = walkSource(source, visitor: visitor)
-        let forEachIssue = try #require(issues.first { $0.message.contains("ForEach without explicit ID") })
-        #expect(forEachIssue.suggestion == "Add an explicit id: parameter to ForEach")
-        #expect(forEachIssue.ruleName == .forEachWithoutIDUI)
-    }
-
     @Test("nested NavigationView has correct suggestion text")
     func nestedNavigationSuggestion() throws {
         let visitor = createVisitor()

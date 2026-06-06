@@ -180,7 +180,6 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
     case nestedNavigationView = "Nested Navigation View"
     case missingPreview = "Missing Preview"
     case forEachWithSelfID = "ForEach With Self ID"
-    case forEachWithoutIDUI = "ForEach Without ID UI"
     case inconsistentStyling = "Inconsistent Styling"
     case basicErrorHandling = "Basic Error Handling"
     case modifierOrderIssue = "Modifier Order Issue"
@@ -290,7 +289,7 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
 
             // UI Pattern Rules
         case .nestedNavigationView, .missingPreview, .forEachWithSelfID,
-             .forEachWithoutIDUI, .inconsistentStyling, .basicErrorHandling,
+             .inconsistentStyling, .basicErrorHandling,
              .modifierOrderIssue, .imageWithoutResizable:
             return .uiPatterns
 

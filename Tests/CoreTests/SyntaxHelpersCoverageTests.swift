@@ -259,30 +259,4 @@ struct SyntaxHelpersCoverageTests {
         _ = issues
     }
 
-    // MARK: - UIVisitor ForEach: Identifiable suppression
-
-    @Test("UIVisitor suppresses ForEach warning for Identifiable types")
-    func uiVisitorSuppressesForIdentifiable() {
-        let source = """
-        struct TestView: View {
-            var items: [String] = []
-            var body: some View {
-                ForEach(items) { item in
-                    Text(item)
-                }
-            }
-        }
-        """
-
-        let syntax = Parser.parse(source: source)
-        let visitor = UIVisitor(patternCategory: .uiPatterns)
-        visitor.setFilePath("test.swift")
-        visitor.knownIdentifiableTypes = ["String"]
-        visitor.walk(syntax)
-
-        let forEachIssues = visitor.detectedIssues.filter {
-            $0.ruleName == .forEachWithoutIDUI
-        }
-        #expect(forEachIssues.isEmpty, "Should suppress ForEach warning for known Identifiable types")
-    }
 }

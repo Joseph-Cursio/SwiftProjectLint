@@ -29,9 +29,8 @@ struct RuleDocumentationLoader {
         // Special cases — the algorithmic kebab-conversion can't recover these
         // because the doc filenames intentionally keep multi-word Apple brand
         // names glued together (`SwiftData` → `swiftdata`, `CloudKit` →
-        // `cloudkit`) and can't disambiguate two consecutive acronyms (`IDUI`).
+        // `cloudkit`).
         switch rule {
-        case .forEachWithoutIDUI: return "for-each-without-id-ui"
         case .swiftDataUniqueAttributeCloudKit: return "swiftdata-unique-attribute-cloudkit"
         default: break
         }
