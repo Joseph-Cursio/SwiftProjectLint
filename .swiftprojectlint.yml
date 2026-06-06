@@ -1,3 +1,8 @@
 excluded_paths:
   - "ExampleViews/"
   - "ExampleCode/"
+
+rules:
+  "Discarded Try Result":
+    excluded_paths:
+      - "Tests/"
