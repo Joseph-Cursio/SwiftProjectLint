@@ -213,7 +213,9 @@ struct RuleSelectionDialog: View {
 
     private func ruleRow(for pattern: DetectionPattern) -> some View {
         HStack(spacing: 10) {
-            Toggle("", isOn: enabledBinding(for: pattern.name))
+            // Label set (for VoiceOver) but hidden visually — the rule name is
+            // shown by the adjacent Text. Without it this is an unlabeled checkbox.
+            Toggle(pattern.name.rawValue, isOn: enabledBinding(for: pattern.name))
                 .toggleStyle(.checkbox)
                 .labelsHidden()
                 .focusable(false)
