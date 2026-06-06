@@ -25,6 +25,7 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
     case largeViewBody = "Large View Body"
     case largeViewHelper = "Large View Helper"
     case forEachSelfID = "ForEach Self ID"
+    case volatileViewID = "Volatile View ID"
     case unnecessaryViewUpdate = "Unnecessary View Update"
     case viewBuilderComplexity = "ViewBuilder Complexity"
     case customModifierPerformance = "Custom Modifier Performance"
@@ -219,7 +220,8 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
 
             // Performance Rules
         case .anyViewUsage, .expensiveOperationInViewBody, .forEachWithoutID, .largeViewBody,
-             .largeViewHelper, .forEachSelfID, .unnecessaryViewUpdate, .viewBuilderComplexity,
+             .largeViewHelper, .forEachSelfID, .volatileViewID, .unnecessaryViewUpdate,
+             .viewBuilderComplexity,
              .customModifierPerformance, .formatterInViewBody,
              .geometryReaderOveruse, .unboundedTaskGroup,
              .onReceiveWithoutDebounce:

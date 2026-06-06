@@ -57,6 +57,19 @@ class Performance: BasePatternRegistrar {
                 description: "Detects .self or .hashValue as the id parameter in ForEach"
             ),
             SyntaxPattern(
+                name: .volatileViewID,
+                visitor: VolatileViewIDVisitor.self,
+                severity: .warning,
+                category: .performance,
+                messageTemplate: "View identity is reset via `.id({token})`, but '{token}' is "
+                    + "reassigned elsewhere — changing a view's id forces a full subtree rebuild",
+                suggestion: "Remove the changing `.id(...)` and drive updates through the state "
+                    + "the subviews already observe; churning a List/Table identity can cause "
+                    + "reentrant NSTableView updates and lost scroll/selection state",
+                description: "Detects `.id(token)` on a view where the token is reassigned, "
+                    + "forcing SwiftUI to discard and rebuild the subtree"
+            ),
+            SyntaxPattern(
                 name: .unnecessaryViewUpdate,
                 visitor: PerformanceVisitor.self,
                 severity: .info,

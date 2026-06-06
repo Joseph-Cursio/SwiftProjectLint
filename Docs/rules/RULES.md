@@ -1,6 +1,6 @@
 # SwiftProjectLint Rules Reference
 
-SwiftProjectLint is a static analysis tool for SwiftUI projects. It parses Swift source files using SwiftSyntax AST visitors to detect anti-patterns spanning state management, performance, animations, architecture, code quality, security, accessibility, memory management, networking, UI patterns, modernization, and idempotency. This reference documents all 160 lint rules, organized by category.
+SwiftProjectLint is a static analysis tool for SwiftUI projects. It parses Swift source files using SwiftSyntax AST visitors to detect anti-patterns spanning state management, performance, animations, architecture, code quality, security, accessibility, memory management, networking, UI patterns, modernization, and idempotency. This reference documents all 161 lint rules, organized by category.
 
 Rules marked **opt-in** are disabled by default and must be explicitly listed under `enabled_only` in `.swiftprojectlint.yml`.
 
@@ -31,6 +31,7 @@ Rules marked **opt-in** are disabled by default and must be explicitly listed un
 | [Large View Body](large-view-body.md) | Warning |
 | [Large View Helper](large-view-helper.md) | Warning |
 | [ForEach Self ID](for-each-self-id.md) | Warning |
+| [Volatile View ID](volatile-view-id.md) | Warning |
 | [Unnecessary View Update](unnecessary-view-update.md) | Warning |
 | [ViewBuilder Complexity](view-builder-complexity.md) | Warning |
 | [Custom Modifier Performance](custom-modifier-performance.md) | Warning |
