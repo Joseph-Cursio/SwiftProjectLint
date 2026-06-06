@@ -10,9 +10,9 @@
 When an inner scope declares a variable with the same name as one in an outer scope, the outer variable becomes inaccessible within that scope. This can cause subtle bugs, especially inside closures where the captured value may not be what the developer expects.
 
 ### Discussion
-`VariableShadowingVisitor` maintains a scope stack that tracks variable names across nested scopes. Each scope frame is tagged with a kind (`typeMember`, `codeBlock`, `closure`, or `forLoop`) so the visitor can distinguish between scope types. When a new declaration reuses a name from an outer scope, the rule flags it as a potential source of confusion.
+`VariableShadowingVisitor` maintains a scope stack that tracks variable names across nested scopes. Each scope frame is tagged with a kind (`typeMember`, `codeBlock`, `closure`, `forLoop`, or `switchCase`) so the visitor can distinguish between scope types. When a new declaration reuses a name from an outer scope, the rule flags it as a potential source of confusion.
 
-The visitor pushes a new scope frame on entering `MemberBlockSyntax` (type bodies), `CodeBlockSyntax`, `ClosureExprSyntax`, and `ForStmtSyntax` nodes, and pops the frame on exit. Variable declarations, function parameters, and for-loop binding patterns are checked against outer scope frames. Closure parameters are registered in their scope but not checked for shadows.
+The visitor pushes a new scope frame on entering `MemberBlockSyntax` (type bodies), `CodeBlockSyntax`, `ClosureExprSyntax`, `ForStmtSyntax`, and `SwitchCaseSyntax` nodes, and pops the frame on exit. Variable declarations, function parameters, and for-loop binding patterns are checked against outer scope frames. Closure parameters are registered in their scope but not checked for shadows.
 
 **Idiomatic type-narrowing patterns are excluded.** The visitor recognises several Swift patterns where shadowing is intentional and expected:
 
@@ -29,6 +29,8 @@ The visitor detects these by walking up to `OptionalBindingConditionSyntax` and 
 **Locals matching type properties are excluded.** The visitor tracks type-member scopes (`MemberBlockSyntax`) separately from code-block scopes. Variables declared at type level (stored properties) are placed in a `typeMember` scope frame, which is skipped during shadow checks. This means `let configuration = self.configuration` inside a method body is not flagged — Swift uses `self.` for disambiguation, making this safe by design. Function and init parameters matching property names are also excluded by the same mechanism.
 
 **For-loop variables are excluded from shadow checks.** Both the iteration variable (`for i in ...`) and variables declared in for-loop bodies are placed in dedicated scope frames (`forLoop` and `forLoopBody`) that are skipped during shadow checks. Reusing variable names across nested loops is common — variables in a for-loop body are inherently short-lived (re-created each iteration), so shadowing them in a nested scope is low-risk. Additionally, `for x in x` patterns (where the iteration variable matches the sequence expression) are skipped, analogous to `if let x = x`.
+
+**Sibling `switch` cases are independent scopes.** A switch case body is a bare `CodeBlockItemListSyntax`, not a `CodeBlockSyntax`, so the visitor pushes an explicit `switchCase` frame per case. Without it, a `let` in one case would register in the enclosing function scope and falsely appear to shadow a same-named `let` in a *sibling* case — but those cases never overlap lexically, so they are not shadows. A declaration nested inside a case that reuses a name from the *same* case (or a genuine outer scope) is still flagged.
 
 ### Flagged (Error)
 
@@ -65,6 +67,7 @@ The visitor detects these by walking up to `OptionalBindingConditionSyntax` and 
 | Variable shadowing for-loop variable | `for i in a { let i = i + 1 }` |
 | Variable in nested for-loop body | `for a in x { let v = f(a); for b in y { let v = f(b) } }` |
 | for-in iterating same-name collection | `for environ in environ { ... }` |
+| Same name in sibling switch cases | `switch x { case .a: let t = f(); case .b: let t = g() }` |
 
 ### Violating Examples
 

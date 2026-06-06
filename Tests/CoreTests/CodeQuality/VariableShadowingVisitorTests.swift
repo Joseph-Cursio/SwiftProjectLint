@@ -37,6 +37,49 @@ struct VariableShadowingVisitorTests {
         #expect(issue.message.contains("count"))
     }
 
+    @Test("Still flags a switch case shadowing an outer function variable")
+    func switchCaseShadowsOuterVariable() throws {
+        let source = """
+        func example(_ kind: String) {
+            let text = "outer"
+            switch kind {
+            case "a":
+                let text = "inner"
+                print(text)
+            default:
+                break
+            }
+            print(text)
+        }
+        """
+        let visitor = makeVisitor()
+        runVisitor(visitor, source: source)
+        let issue = try #require(visitor.detectedIssues.first)
+        #expect(issue.message.contains("text"))
+    }
+
+    @Test("Still flags genuine shadowing nested within a switch case")
+    func nestedShadowWithinSwitchCase() throws {
+        let source = """
+        func example(_ kind: String) {
+            switch kind {
+            case "a":
+                let value = 1
+                if value > 0 {
+                    let value = 2
+                    print(value)
+                }
+            default:
+                break
+            }
+        }
+        """
+        let visitor = makeVisitor()
+        runVisitor(visitor, source: source)
+        let issue = try #require(visitor.detectedIssues.first)
+        #expect(issue.message.contains("value"))
+    }
+
     @Test("Detects type-changing shadow")
     func typeChangingShadow() throws {
         let source = """
@@ -235,6 +278,26 @@ struct VariableShadowingExclusionTests {
                 }
                 if true {
                     let value = 2
+                }
+            }
+            """
+        ),
+        ExclusionCase(
+            label: "sibling switch cases reusing name (DocCChunker repro)",
+            source: """
+            func render(_ item: Item) -> String {
+                switch item.kind {
+                case "paragraph":
+                    let text = renderInline()
+                    return text
+                case "list":
+                    for sub in item.items {
+                        let text = render(sub)
+                        return text
+                    }
+                    return ""
+                default:
+                    return ""
                 }
             }
             """

@@ -16,6 +16,7 @@ import SwiftSyntax
 /// - Locals in methods that match stored property names (Swift uses `self.` for disambiguation)
 /// - Variables shadowing a for-loop iteration variable or for-loop body variable
 /// - `for x in x` where the iteration variable matches the sequence expression
+/// - Reused names across sibling `switch` cases (each case is its own scope)
 final class VariableShadowingVisitor: BasePatternVisitor {
 
     private enum ScopeKind {
@@ -24,6 +25,7 @@ final class VariableShadowingVisitor: BasePatternVisitor {
         case closure
         case forLoop       // for-statement scope (holds iteration variable)
         case forLoopBody   // code block that is the body of a for-statement
+        case switchCase    // a single `case`/`default` of a switch (its own scope)
     }
 
     private struct ScopeFrame {
@@ -91,6 +93,19 @@ final class VariableShadowingVisitor: BasePatternVisitor {
     }
 
     override func visitPost(_ _: ForStmtSyntax) {
+        _ = scopeStack.popLast()
+    }
+
+    // A switch case body is a bare `CodeBlockItemListSyntax` (not wrapped in a
+    // `CodeBlockSyntax`), so without this its `let`s would register in the
+    // enclosing function scope and falsely shadow declarations in *sibling*
+    // cases. Each case is its own lexical scope.
+    override func visit(_ node: SwitchCaseSyntax) -> SyntaxVisitorContinueKind {
+        scopeStack.append(ScopeFrame(kind: .switchCase))
+        return .visitChildren
+    }
+
+    override func visitPost(_ _: SwitchCaseSyntax) {
         _ = scopeStack.popLast()
     }
 
