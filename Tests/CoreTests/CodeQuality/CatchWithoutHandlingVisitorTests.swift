@@ -211,7 +211,7 @@ struct CatchWithoutHandlingVisitorTests {
                 source.contains("Issue.record") &&
                 !source.contains("ExpectedError")
         }
-        #expect(!issueRecordArmFlagged)
+        #expect(issueRecordArmFlagged == false)
         // Single-arm Issue.record sources should produce zero issues outright.
         if !source.contains("ExpectedError") {
             #expect(visitor.detectedIssues.isEmpty)
@@ -227,7 +227,7 @@ struct CatchWithoutHandlingVisitorTests {
         """
         let visitor = makeVisitor()
         run(visitor, source: source)
-        #expect(!visitor.detectedIssues.isEmpty,
+        #expect(visitor.detectedIssues.isEmpty == false,
                 "non-Issue receiver should NOT exempt the catch")
     }
 }

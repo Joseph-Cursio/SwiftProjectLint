@@ -339,7 +339,7 @@ struct SignatureAwareCollisionIntegrationTests {
         )
         let signature = FunctionSignature(name: "insert", argumentLabels: ["_"])
         // Only one ANNOTATED declaration → not a collision, entry kept.
-        #expect(!table.isCollision(signature: signature))
+        #expect(table.isCollision(signature: signature) == false)
         #expect(table.effect(for: signature) == .nonIdempotent)
     }
 }

@@ -76,7 +76,7 @@ struct HTMLFormatterTests {
         let html = HTMLFormatter().format(issues: [issue])
 
         #expect(html.contains("&lt;View&gt;"))
-        #expect(!html.contains("<View>"))
+        #expect(html.contains("<View>") == false)
     }
 
     @Test

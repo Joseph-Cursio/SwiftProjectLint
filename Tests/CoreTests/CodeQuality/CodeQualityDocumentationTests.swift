@@ -214,7 +214,7 @@ struct CodeQualityDocumentationTests {
         let methodIssues = visitor.detectedIssues.filter {
             $0.ruleName == .missingDocumentation && $0.message.contains("expansion")
         }
-        #expect(!methodIssues.isEmpty,
+        #expect(methodIssues.isEmpty == false,
                 "non-static expansion(...) should still fire missingDocumentation")
     }
 
@@ -233,7 +233,7 @@ struct CodeQualityDocumentationTests {
         let methodIssues = visitor.detectedIssues.filter {
             $0.ruleName == .missingDocumentation && $0.message.contains("encode")
         }
-        #expect(!methodIssues.isEmpty,
+        #expect(methodIssues.isEmpty == false,
                 "encode(_:) should still fire missingDocumentation")
     }
 }

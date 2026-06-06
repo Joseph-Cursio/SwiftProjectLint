@@ -86,15 +86,15 @@ struct StdlibExclusionsTests {
         // `Array.enqueue` isn't an Array method at all. Whether or not
         // the linter later flags `enqueue` on a user type, the (Array,
         // enqueue) pair must not suppress it.
-        #expect(!StdlibExclusions.isExcluded(
-            receiver: .stdlibCollection("Array"), method: "enqueue"))
+        #expect(StdlibExclusions.isExcluded(
+            receiver: .stdlibCollection("Array"), method: "enqueue") == false)
     }
 
     @Test
     func dictionaryInsert_notExcluded() {
         // Dictionary has no `insert` method. Don't suppress.
-        #expect(!StdlibExclusions.isExcluded(
-            receiver: .stdlibCollection("Dictionary"), method: "insert"))
+        #expect(StdlibExclusions.isExcluded(
+            receiver: .stdlibCollection("Dictionary"), method: "insert") == false)
     }
 
     // MARK: - Negative: named (user-defined) receivers are never excluded
@@ -103,14 +103,14 @@ struct StdlibExclusionsTests {
     func namedReceiverAppend_notExcluded() {
         // `queue.append(...)` where `queue: UserDefinedQueue`. The bare
         // name `append` should still classify this as non_idempotent.
-        #expect(!StdlibExclusions.isExcluded(
-            receiver: .named("UserDefinedQueue"), method: "append"))
+        #expect(StdlibExclusions.isExcluded(
+            receiver: .named("UserDefinedQueue"), method: "append") == false)
     }
 
     @Test
     func namedReceiverInsert_notExcluded() {
-        #expect(!StdlibExclusions.isExcluded(
-            receiver: .named("Database"), method: "insert"))
+        #expect(StdlibExclusions.isExcluded(
+            receiver: .named("Database"), method: "insert") == false)
     }
 
     @Test
@@ -119,14 +119,14 @@ struct StdlibExclusionsTests {
         // "Array", the resolver downgrades to `.named("Array")` (see
         // `localTypeShadowsStdlibName_downgradesToNamed` in the resolver
         // tests). The exclusion table only matches `.stdlibCollection`.
-        #expect(!StdlibExclusions.isExcluded(
-            receiver: .named("Array"), method: "append"))
+        #expect(StdlibExclusions.isExcluded(
+            receiver: .named("Array"), method: "append") == false)
     }
 
     // MARK: - Negative: unresolved receivers are never excluded
 
     @Test
     func unresolvedReceiver_notExcluded() {
-        #expect(!StdlibExclusions.isExcluded(receiver: .unresolved, method: "append"))
+        #expect(StdlibExclusions.isExcluded(receiver: .unresolved, method: "append") == false)
     }
 }
