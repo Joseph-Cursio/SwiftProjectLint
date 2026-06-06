@@ -31,6 +31,16 @@ Task { await logMetrics() }
 
 `Task.detached` is intentionally excluded from this rule; it is already flagged by `TaskDetachedVisitor`.
 
+### Legitimate fire-and-forget
+Some contexts genuinely cannot store or await the handle, and a fire-and-forget `Task` is the idiomatic bridge. Suppress these with the directive rather than restructuring:
+
+- **SwiftUI event handlers** — `Button("Save") { Task { await viewModel.save() } }`, `.onSubmit { Task { await search() } }`. The closure is synchronous and returns `Void`, so awaiting isn't possible.
+- **Sync→async callback bridges** — a non-`async` delegate or closure (file-system watcher, MCP continuation) that needs to call into async code.
+- **`defer { Task { await cleanup() } }`** and test teardown.
+- **Telemetry / side effects** that must not block the caller and whose errors are already handled, e.g. `Task { try? await recorder.record(decision) }`.
+
+There is usually nothing meaningful to cancel in these, and storing a handle would add complexity without benefit. The exception worth a real fix: when the task represents *re-triggerable* work where a stale in-flight run could clobber shared state — a search or detail-load that the user can fire repeatedly. There, store the handle in the owner and cancel the previous run (or guard the result assignment by identity) instead of suppressing.
+
 ### Suppression key
 `fire-and-forget-task`
 

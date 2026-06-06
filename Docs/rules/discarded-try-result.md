@@ -21,6 +21,18 @@ Not flagged:
 - `items.compactMap { try? f($0) }` — `try?` is the transform closure's result
 - `try call()` / `try! call()` — different operators
 
+### A common intentional case: best-effort I/O in tests
+Test setup/teardown frequently uses bare `try? FileManager.default.createDirectory(…)`, `try? "…".write(…)`, or `try? FileManager.default.removeItem(…)` to set up or clean up scratch state where failure is deliberately ignored. These **are** flagged — the result genuinely is discarded — and that is technically correct. In production code the same pattern usually warrants a real fix or a `_ =`. If the test-scaffolding occurrences dominate the report, exclude the rule from test paths via a per-rule override in `.swiftprojectlint.yml`:
+
+```yaml
+rules:
+  "Discarded Try Result":
+    excluded_paths:
+      - "Tests/"
+```
+
+This keeps the rule active on production code while silencing the intentional best-effort I/O in tests.
+
 ### Non-Violating Examples
 ```swift
 let data = try? loadData()             // result captured

@@ -47,6 +47,7 @@ The same applies to `#require`.
 - Does not flag `#expect(expr == false)` or `#require(expr == false)` — the recommended alternative
 - Does not flag positive assertions like `#expect(isVisible)`
 - Does not flag negation outside these macros (e.g., in `if` conditions or variable bindings)
+- Only fires when `!` is the **outermost** operator of the argument. Compound conditions such as `#expect(!a && b)` or `#expect(!a || !b)` are intentionally **not** flagged: there `!` negates only a sub-term, not the whole expression. The naive rewrite would be wrong — `#expect(a && b == false)` parses as `a && (b == false)`, a different assertion. To get decomposition for a compound condition, split it into separate `#expect` calls instead.
 
 ### Non-Violating Examples
 ```swift
@@ -55,6 +56,7 @@ The same applies to `#require`.
 #require(value == false)
 #expect(isVisible)               // positive assertion — fine
 #expect(count == 3)
+#expect(!a && !b)                // compound — ! is not the outermost operator, not flagged
 ```
 
 ### Violating Examples

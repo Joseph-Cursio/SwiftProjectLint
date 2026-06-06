@@ -25,6 +25,20 @@ A `catch` block that doesn't rethrow, log, or propagate the error is a silent fa
 
 **Error reference crosses closures**: the error variable is considered referenced even if it appears inside a closure inside the catch block (e.g. `DispatchQueue.main.async { self.error = error }`), since it is captured from the catch scope.
 
+### Intentional graceful degradation
+A common — and legitimate — pattern is a catch that deliberately degrades: returning the original input, an empty collection, or `nil` on failure (often documented in the function's doc comment, e.g. *"Returns the original on any failure"*). These are not bugs, but the swallowed error is still invisible. **Prefer logging over suppression**: a single `logger.warning("…: \(error)")` makes the failure diagnosable, preserves the fallback, and satisfies the rule. Reserve the suppression directive for cases where even a log line is unwanted (a hot path where the failure is truly expected and noise-free).
+
+```swift
+// Graceful degradation done right — fallback preserved, failure logged
+func format(_ swift: String) async -> String {
+    do { return try await formatter.format(swift) }
+    catch {
+        logger.warning("Formatting failed, returning original: \(error)")
+        return swift
+    }
+}
+```
+
 ### Suppression
 Use the standard directive when swallowing the error is genuinely intentional:
 

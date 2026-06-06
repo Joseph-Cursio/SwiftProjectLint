@@ -19,6 +19,26 @@ If neither is found, the rule fires once on the function declaration line.
 
 Nested `func` declarations inside the flagged function are treated as separate scopes: a cancellation check buried inside a nested helper does not satisfy the outer function's requirement, and vice versa.
 
+### When the warning is acceptable
+The rule is a heuristic — it fires on *any* `async` function that creates a task, even when cancellation is already handled or simply irrelevant. Common cases where it is a false positive:
+
+- **Structured concurrency.** `withTaskGroup` / `withThrowingTaskGroup` / `async let` propagate cancellation to their child tasks automatically, and the children's `await`s throw `CancellationError` when cancelled. A function whose only task creation is structured concurrency usually needs no manual check. The exception is a long drain loop that *swallows* child errors — e.g. `for try await x in group { … }` where the child returns `nil` on failure. There an explicit `try Task.checkCancellation()` in the loop makes the batch abort promptly instead of churning through every remaining item as a no-op.
+- **Tests.** Test bodies spawn tasks for setup/teardown (`defer { Task { await server.stop() } }`) or to exercise concurrency. They have no meaningful parent to cancel them, so the check is noise — in practice essentially every occurrence inside a test is fine.
+- **Fire-and-forget side effects.** A function flagged only because it kicks off `Task { await logMetrics() }`-style telemetry doesn't need the *enclosing* function to check cancellation.
+
+For these, suppress with `// swiftprojectlint:disable:next missing-cancellation-check`. Add a real check only when the function performs a long, cancellable unit of work that would otherwise run to completion after its parent is cancelled.
+
+Because essentially every occurrence inside a test is a false positive, consider **disabling this rule for test directories entirely** rather than peppering test files with suppression comments — via a per-rule path exclusion in `.swiftprojectlint.yml`:
+
+```yaml
+rules:
+  "Missing Cancellation Check":
+    excluded_paths:
+      - "Tests/"
+```
+
+This keeps the rule active on production code while silencing the test noise in one place.
+
 ### Suppression key
 `missing-cancellation-check`
 
