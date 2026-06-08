@@ -36,8 +36,14 @@ public struct FileAnalysisUtils {
     ///         unless they lack the `.swift` file extension.
     /// - Warning: Symbolic links and circular directory structures may cause redundant file paths or infinite loops,
     ///            depending on the file system's enumerator behavior.
-    public static func findSwiftFiles(in path: String, excludedPaths: [String] = []) -> [String] {
-        enumerateSwiftFiles(in: path, excludedPaths: excludedPaths)
+    public static func findSwiftFiles(
+        in path: String,
+        excludedPaths: [String] = [],
+        includeNestedPackages: Bool = false
+    ) -> [String] {
+        enumerateSwiftFiles(
+            in: path, excludedPaths: excludedPaths, includeNestedPackages: includeNestedPackages
+        )
     }
 
     /// Async overload that runs file enumeration off the caller's actor.
@@ -51,8 +57,14 @@ public struct FileAnalysisUtils {
     ///   - excludedPaths: Path patterns to exclude (matched against relative paths).
     /// - Returns: An array of full file paths to `.swift` files found within the directory and its subdirectories.
     @concurrent
-    public static func findSwiftFiles(in path: String, excludedPaths: [String] = []) async -> [String] {
-        enumerateSwiftFiles(in: path, excludedPaths: excludedPaths)
+    public static func findSwiftFiles(
+        in path: String,
+        excludedPaths: [String] = [],
+        includeNestedPackages: Bool = false
+    ) async -> [String] {
+        enumerateSwiftFiles(
+            in: path, excludedPaths: excludedPaths, includeNestedPackages: includeNestedPackages
+        )
     }
 
     /// Directories to skip during file enumeration. These are build artifacts,
@@ -62,7 +74,11 @@ public struct FileAnalysisUtils {
         ".hg", ".svn", "node_modules", "Carthage"
     ]
 
-    private static func enumerateSwiftFiles(in path: String, excludedPaths: [String] = []) -> [String] {
+    private static func enumerateSwiftFiles(
+        in path: String,
+        excludedPaths: [String] = [],
+        includeNestedPackages: Bool = false
+    ) -> [String] {
         let fileManager = FileManager.default
         var swiftFiles: [String] = []
         let rootURL = URL(fileURLWithPath: path, isDirectory: true)
@@ -93,9 +109,14 @@ public struct FileAnalysisUtils {
             }
 
             // Skip directories that contain their own Package.swift — they are
-            // separate Swift packages (whether first- or third-party) and should
-            // only be linted when the tool is invoked with that directory as root.
-            if isDirectory, fileManager.fileExists(atPath: itemURL.appendingPathComponent("Package.swift").path) {
+            // separate Swift packages and are normally linted only when the tool
+            // is invoked with that directory as root. Opting in with
+            // `includeNestedPackages` keeps them in scope so cross-file rules can
+            // span the boundary; build artefacts and resolved dependencies (under
+            // .build / Pods / Carthage) are already pruned above, so this reaches
+            // first-party local packages without pulling in third-party code.
+            if !includeNestedPackages, isDirectory,
+               fileManager.fileExists(atPath: itemURL.appendingPathComponent("Package.swift").path) {
                 enumerator.skipDescendants()
                 continue
             }

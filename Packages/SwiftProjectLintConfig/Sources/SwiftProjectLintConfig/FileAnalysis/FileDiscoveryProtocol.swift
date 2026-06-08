@@ -5,8 +5,12 @@
 public protocol FileDiscoveryProtocol: Sendable {
     /// Returns the paths of all Swift files under the given directory,
     /// excluding any paths matching the exclusion patterns.
+    ///
+    /// - Parameter includeNestedPackages: When `true`, directories containing
+    ///   their own `Package.swift` are analyzed rather than skipped, so
+    ///   cross-file analysis can span first-party local packages.
     func findSwiftFiles(
-        in directory: String, excludedPaths: [String]
+        in directory: String, excludedPaths: [String], includeNestedPackages: Bool
     ) async -> [String]
 }
 
@@ -15,10 +19,10 @@ public struct DefaultFileDiscovery: FileDiscoveryProtocol {
     public init() { /* no-op */ }
 
     public func findSwiftFiles(
-        in directory: String, excludedPaths: [String]
+        in directory: String, excludedPaths: [String], includeNestedPackages: Bool
     ) async -> [String] {
         await FileAnalysisUtils.findSwiftFiles(
-            in: directory, excludedPaths: excludedPaths
+            in: directory, excludedPaths: excludedPaths, includeNestedPackages: includeNestedPackages
         )
     }
 }

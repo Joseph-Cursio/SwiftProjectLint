@@ -25,6 +25,16 @@ struct SwiftProjectLintCLI: AsyncParsableCommand {
     @Option(name: .long, help: "Path to configuration file (default: .swiftprojectlint.yml in project root).")
     var config: String?
 
+    @Flag(
+        name: .long,
+        help: ArgumentHelp(
+            "Analyze nested first-party Swift packages instead of skipping them.",
+            discussion: "Directories with their own Package.swift are normally skipped; this keeps "
+                + "them in scope so cross-file rules can span the boundary."
+        )
+    )
+    var includeNestedPackages = false
+
     mutating func run() async throws {
         let resolvedPath = (projectPath as NSString).standardizingPath
         let absolutePath: String
@@ -41,11 +51,17 @@ struct SwiftProjectLintCLI: AsyncParsableCommand {
         let selectedCategories = try parseCategories()
 
         // Load configuration from YAML file
-        let configuration: LintConfiguration
+        var configuration: LintConfiguration
         if let configPath = config {
             configuration = LintConfigurationLoader.load(from: configPath)
         } else {
             configuration = LintConfigurationLoader.load(projectRoot: absolutePath)
+        }
+
+        // The --include-nested-packages flag can only turn the option on, so it
+        // overrides the config when present and leaves it untouched otherwise.
+        if includeNestedPackages {
+            configuration = configuration.withIncludeNestedPackages(true)
         }
 
         let system = PatternRegistryFactory.createConfiguredSystem()

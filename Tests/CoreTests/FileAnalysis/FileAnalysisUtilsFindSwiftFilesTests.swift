@@ -127,4 +127,47 @@ struct FileAnalysisUtilsFindSwiftFilesTests {
         let found = FileAnalysisUtils.findSwiftFiles(in: "/nonexistent/path/that/does/not/exist")
         #expect(found.isEmpty)
     }
+
+    // MARK: - includeNestedPackages opt-in
+
+    /// With the opt-in enabled, a nested first-party package's Swift files are
+    /// analyzed alongside the parent so cross-file rules can span the boundary.
+    @Test func includesNestedPackageWhenOptedIn() throws {
+        try withTempDir { root in
+            try touch(root.appendingPathComponent("Sources/App/Main.swift"))
+
+            let local = root.appendingPathComponent("Packages/CoreKit")
+            try touch(local.appendingPathComponent("Package.swift"), content: "// manifest")
+            try touch(local.appendingPathComponent("Sources/CoreKit/CoreKit.swift"))
+
+            let found = FileAnalysisUtils.findSwiftFiles(in: root.path, includeNestedPackages: true)
+
+            // Both the parent's and the nested package's sources are in scope, so a
+            // cross-file rule can correlate declarations across the boundary. (The
+            // nested Package.swift manifest is also a .swift file and gets included,
+            // consistent with linting any package at its own root.)
+            #expect(found.contains { $0.hasSuffix("/App/Main.swift") })
+            #expect(found.contains { $0.hasSuffix("/CoreKit/CoreKit.swift") })
+        }
+    }
+
+    /// The opt-in must not reach resolved third-party dependencies: `.build`
+    /// (and friends) are pruned before the nested-package check, so their
+    /// manifests and sources stay out of scope even when nested packages are on.
+    @Test func optInStillExcludesBuildArtifacts() throws {
+        try withTempDir { root in
+            try touch(root.appendingPathComponent("Sources/App/Main.swift"))
+
+            // A resolved dependency checked out under .build — has a Package.swift.
+            let dep = root.appendingPathComponent(".build/checkouts/Yams")
+            try touch(dep.appendingPathComponent("Package.swift"), content: "// manifest")
+            try touch(dep.appendingPathComponent("Sources/Yams/Yams.swift"))
+
+            let found = FileAnalysisUtils.findSwiftFiles(in: root.path, includeNestedPackages: true)
+
+            #expect(found.count == 1)
+            let firstFile = try #require(found.first)
+            #expect(firstFile.hasSuffix("Main.swift"))
+        }
+    }
 }

@@ -66,7 +66,9 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
         )
 
         let allFilePaths = await fileDiscovery.findSwiftFiles(
-            in: path, excludedPaths: effectiveConfiguration.excludedPaths
+            in: path,
+            excludedPaths: effectiveConfiguration.excludedPaths,
+            includeNestedPackages: effectiveConfiguration.includeNestedPackages
         )
 
         // Skip generated files — linting machine-generated code produces noise with no

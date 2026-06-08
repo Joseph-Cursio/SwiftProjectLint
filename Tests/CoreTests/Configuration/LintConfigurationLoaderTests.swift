@@ -54,6 +54,18 @@ struct LintConfigurationLoaderTests {
     }
 
     @Test
+    func testParsesIncludeNestedPackages() {
+        let config = loadFromString("include_nested_packages: true")
+        #expect(config.includeNestedPackages)
+    }
+
+    @Test
+    func testIncludeNestedPackagesDefaultsFalse() {
+        let config = loadFromString("disabled_rules:\n  - \"Force Try\"")
+        #expect(config.includeNestedPackages == false)
+    }
+
+    @Test
     func testParsesEnabledOnly() {
         let yaml = """
         enabled_only:

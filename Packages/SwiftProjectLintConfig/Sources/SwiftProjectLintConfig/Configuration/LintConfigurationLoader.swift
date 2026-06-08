@@ -76,13 +76,16 @@ public struct LintConfigurationLoader {
             enabledFrameworkAllowlists = nil
         }
 
+        let includeNestedPackages = (yaml["include_nested_packages"] as? Bool) ?? false
+
         return LintConfiguration(
             disabledRules: disabledRules,
             enabledOnlyRules: enabledOnlyRules,
             excludedPaths: excludedPaths,
             ruleOverrides: ruleOverrides,
             architecturalLayers: architecturalLayers,
-            enabledFrameworkAllowlists: enabledFrameworkAllowlists
+            enabledFrameworkAllowlists: enabledFrameworkAllowlists,
+            includeNestedPackages: includeNestedPackages
         )
     }
 

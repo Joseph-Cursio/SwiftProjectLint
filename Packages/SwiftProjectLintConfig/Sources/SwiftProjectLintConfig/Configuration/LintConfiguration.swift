@@ -40,6 +40,13 @@ public struct LintConfiguration: Sendable {
     /// can omit the framework name from the set.
     public let enabledFrameworkAllowlists: Set<String>?
 
+    /// When `true`, nested first-party Swift packages (directories with their
+    /// own `Package.swift`, outside build/dependency directories) are analyzed
+    /// in the same run rather than skipped. This lets cross-file rules span the
+    /// package boundary, at the cost of linting those packages under this
+    /// configuration rather than their own. Defaults to `false`.
+    public let includeNestedPackages: Bool
+
     /// Per-rule configuration override.
     public struct RuleOverride: Sendable {
         public let severity: IssueSeverity?
@@ -57,7 +64,8 @@ public struct LintConfiguration: Sendable {
         excludedPaths: [String] = [],
         ruleOverrides: [RuleIdentifier: RuleOverride] = [:],
         architecturalLayers: [LayerPolicy] = [],
-        enabledFrameworkAllowlists: Set<String>? = nil
+        enabledFrameworkAllowlists: Set<String>? = nil,
+        includeNestedPackages: Bool = false
     ) {
         self.disabledRules = disabledRules
         self.enabledOnlyRules = enabledOnlyRules
@@ -65,6 +73,21 @@ public struct LintConfiguration: Sendable {
         self.ruleOverrides = ruleOverrides
         self.architecturalLayers = architecturalLayers
         self.enabledFrameworkAllowlists = enabledFrameworkAllowlists
+        self.includeNestedPackages = includeNestedPackages
+    }
+
+    /// Returns a copy with `includeNestedPackages` overridden — used to apply a
+    /// CLI flag on top of a loaded configuration.
+    public func withIncludeNestedPackages(_ value: Bool) -> Self {
+        Self(
+            disabledRules: disabledRules,
+            enabledOnlyRules: enabledOnlyRules,
+            excludedPaths: excludedPaths,
+            ruleOverrides: ruleOverrides,
+            architecturalLayers: architecturalLayers,
+            enabledFrameworkAllowlists: enabledFrameworkAllowlists,
+            includeNestedPackages: value
+        )
     }
 
     /// Rules that are opt-in only — disabled unless explicitly enabled via `enabled_only`.

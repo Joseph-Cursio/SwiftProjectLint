@@ -24,6 +24,7 @@ swiftprojectlint <project-path> [options]
 | `--threshold` | `error`, `warning`, `info` | `warning` | Minimum severity that causes a non-zero exit code. |
 | `--categories` | See below | all | One or more category names (space-separated). Restricts analysis to those categories. |
 | `--config` | file path | `.swiftprojectlint.yml` in project root | Path to a configuration file. |
+| `--include-nested-packages` | — | off | Analyze nested first-party Swift packages instead of skipping them (see [Nested Packages](#nested-packages)). Overrides `include_nested_packages` in the config when present. |
 | `--version` | — | — | Print the version number and exit. |
 | `--help` | — | — | Print usage information and exit. |
 
@@ -101,6 +102,11 @@ excluded_paths:
   - "Generated/"
   - "**/*.generated.swift"
 
+# Analyze nested first-party Swift packages (directories with their own
+# Package.swift) in the same run instead of skipping them. Default: false.
+# See "Nested Packages" below for the trade-offs.
+include_nested_packages: false
+
 # Per-rule overrides: change severity or exclude specific paths for a single rule.
 rules:
   "Fat View":
@@ -124,6 +130,30 @@ rules:
 | `Tests/` | Substring match — excludes any path containing `Tests/` |
 | `*.generated.swift` | Glob match against the full relative path |
 | `**/*.generated.swift` | Strip `**/`, then glob match against the filename only |
+
+### Nested Packages
+
+By default, any subdirectory containing its own `Package.swift` is treated as a
+separate Swift package and skipped — you lint it by pointing the tool at that
+directory. This keeps un-owned third-party code out of your results and lets each
+package apply its own configuration.
+
+Set `include_nested_packages: true` (or pass `--include-nested-packages`) to keep
+those packages in scope for the parent run instead. This is useful when your app
+is split into first-party local packages and you want **cross-file** rules to
+correlate declarations that live on opposite sides of a package boundary (for
+example, a base type in a `Core` package and a test double in the app target).
+
+Trade-offs to be aware of when enabling it:
+
+- **Resolved dependencies stay excluded.** Build/dependency directories
+  (`.build`, `Pods`, `Carthage`, …) are pruned first, so third-party code you
+  don't own is still skipped. If you *vendor* third-party packages as source,
+  exclude them with `excluded_paths`.
+- **One configuration governs everything.** Nested packages are linted under the
+  parent's configuration, not their own `.swiftprojectlint.yml`.
+- **Avoid double-reporting.** If CI already lints each package at its own root,
+  enabling this in the parent run will report their files twice.
 
 ### Opt-In Rules
 
