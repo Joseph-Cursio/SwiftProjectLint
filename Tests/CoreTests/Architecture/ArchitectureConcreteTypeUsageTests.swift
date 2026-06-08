@@ -126,6 +126,33 @@ struct ArchitectureConcreteTypeUsageTests {
         #expect(concreteIssues.isEmpty)
     }
 
+    // MARK: - Extended service suffixes (Analyzer / Simulator / Engine / Checker)
+
+    @Test func testDetectsAnalyzerAndSimulatorSuffixes() {
+        let source = """
+        class ViewModel {
+            var workspaceAnalyzer: WorkspaceAnalyzer?
+            var simulator: ImpactSimulator?
+        }
+        """
+        let issues = analyzeSource(source)
+        let concreteIssues = issues.filter { $0.ruleName == .concreteTypeUsage }
+        #expect(concreteIssues.contains { $0.message.contains("WorkspaceAnalyzer") })
+        #expect(concreteIssues.contains { $0.message.contains("ImpactSimulator") })
+    }
+
+    @Test func testDetectsEngineAndCheckerSuffixes() throws {
+        let source = """
+        class Owner {
+            func run(engine: YAMLConfigurationEngine, checker: VersionChecker) { }
+        }
+        """
+        let issues = analyzeSource(source)
+        let concreteIssues = issues.filter { $0.ruleName == .concreteTypeUsage }
+        #expect(concreteIssues.contains { $0.message.contains("YAMLConfigurationEngine") })
+        #expect(concreteIssues.contains { $0.message.contains("VersionChecker") })
+    }
+
     // MARK: - Non-service value type param — no issue
 
     @Test func testNoIssueForValueTypeParam() {

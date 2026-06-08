@@ -34,6 +34,10 @@ class ConcreteTypeUsageVisitor: BasePatternVisitor {
         case viewModel = "ViewModel"
         case coordinator = "Coordinator"
         case generator = "Generator"
+        case analyzer = "Analyzer"
+        case simulator = "Simulator"
+        case engine = "Engine"
+        case checker = "Checker"
     }
 
     /// Foundation / system types that are concrete by design and cannot
