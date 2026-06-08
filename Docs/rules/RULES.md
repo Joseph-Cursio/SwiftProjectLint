@@ -69,6 +69,7 @@ Rules marked **opt-in** are disabled by default and must be explicitly listed un
 | [Fat Protocol](fat-protocol.md) | Info |
 | [Single Implementation Protocol](single-implementation-protocol.md) | Info |
 | [Mirror Protocol](mirror-protocol.md) | Info |
+| [Subclassed For Mocking](subclassed-for-mocking.md) | Info |
 | [Computed Property View](computed-property-view.md) | Warning |
 | [SwiftData Unique Attribute CloudKit](swiftdata-unique-attribute-cloudkit.md) | Warning |
 | [God View Model](god-view-model.md) | Warning |

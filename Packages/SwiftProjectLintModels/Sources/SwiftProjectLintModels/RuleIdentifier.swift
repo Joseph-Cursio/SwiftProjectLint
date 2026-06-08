@@ -51,6 +51,7 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
     case fatProtocol = "Fat Protocol"
     case singleImplementationProtocol = "Single Implementation Protocol"
     case mirrorProtocol = "Mirror Protocol"
+    case subclassedForMocking = "Subclassed For Mocking"
     case computedPropertyView = "Computed Property View"
     case swiftDataUniqueAttributeCloudKit = "SwiftData Unique Attribute CloudKit"
     case godViewModel = "God View Model"
@@ -238,6 +239,7 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
              .concreteTypeUsage, .accessingImplementationDetails,
              .singletonUsage, .lawOfDemeter, .fatProtocol,
              .singleImplementationProtocol, .mirrorProtocol,
+             .subclassedForMocking,
              .computedPropertyView,
              .swiftDataUniqueAttributeCloudKit, .godViewModel,
              .viewModelDirectDBAccess, .circularDependency,
