@@ -20,6 +20,16 @@ final class DuplicateStructShapeVisitor: CrossFileVisitorBase, CrossFilePatternV
     private static let minimumShared = 4
     private static let minimumClusterSize = 2
 
+    /// SwiftUI types whose stored properties (`@State`, `@Binding`, closures) are shared by
+    /// design when one view bridges to another — clustering them produces noise, not missing
+    /// abstractions. Types declaring conformance to any of these are skipped entirely.
+    ///
+    /// Detection is by inheritance-clause name only: it cannot distinguish SwiftUI's `View`
+    /// from a same-named local protocol, and does not see conformance added via a separate
+    /// `extension Foo: View {}`. In practice SwiftUI views declare `: View` inline, so this
+    /// covers the real cases.
+    private static let skippedConformances: Set<String> = ["View", "ViewModifier"]
+
     /// One stored property's identity. `Hashable` so a `Set` of these forms the fingerprint.
     private struct PropertySignature: Hashable {
         let name: String
@@ -66,6 +76,18 @@ final class DuplicateStructShapeVisitor: CrossFileVisitorBase, CrossFilePatternV
         _ inheritance: InheritanceClauseSyntax?,
         _ node: Syntax
     ) {
+        var conformances: Set<String> = []
+        if let inheritance {
+            for inherited in inheritance.inheritedTypes {
+                if let ident = inherited.type.as(IdentifierTypeSyntax.self) {
+                    conformances.insert(ident.name.text)
+                }
+            }
+        }
+        // SwiftUI views/modifiers share state-carrying properties by design — skip them so
+        // bridge-pair views don't read as missing data-model abstractions.
+        guard Self.skippedConformances.isDisjoint(with: conformances) else { return }
+
         let signatures = members.members.reduce(into: Set<PropertySignature>()) { acc, member in
             guard let varDecl = member.decl.as(VariableDeclSyntax.self),
                   isStoredInstanceProperty(varDecl) else { return }
@@ -78,14 +100,6 @@ final class DuplicateStructShapeVisitor: CrossFileVisitorBase, CrossFilePatternV
         }
         guard signatures.isEmpty == false else { return }
 
-        var conformances: Set<String> = []
-        if let inheritance {
-            for inherited in inheritance.inheritedTypes {
-                if let ident = inherited.type.as(IdentifierTypeSyntax.self) {
-                    conformances.insert(ident.name.text)
-                }
-            }
-        }
         shapes.append(TypeShape(
             name: name,
             file: currentFilePath,

@@ -69,6 +69,16 @@ rules:
     minimum_cluster_size: 2        # how many types must share the shape to fire
 ```
 
+#### SwiftUI views are skipped
+Types declaring conformance to `View` or `ViewModifier` are excluded entirely. SwiftUI
+views routinely share the same `@State`, `@Binding`, and closure properties when one view
+bridges to another (an extracted "content" view, a sheet/wrapper pair), so clustering them
+surfaces noise rather than a missing data-model abstraction. The skip happens at collection
+time, so a view never enters a cluster — which also means a mixed cluster of one non-view
+owner plus several views collapses below the cluster threshold and is not reported. The
+detection is by inheritance-clause name, so a `View` conformance added through a separate
+`extension Foo: View {}` is not seen; in practice SwiftUI views declare `: View` inline.
+
 #### Known limitations and false positives
 - **Deliberately separate types.** Some structurally-identical types are kept apart on
   purpose (a wire-format DTO vs. a domain model that happen to coincide today but evolve
