@@ -97,7 +97,8 @@ public struct LintConfiguration: Sendable {
         .hardcodedStrings,
         .testMissingAssertion,
         .testMissingExpect,
-        .testMissingRequire
+        .testMissingRequire,
+        .duplicateStructShape
     ]
 
     /// Default configuration — all rules enabled, no exclusions.

@@ -100,6 +100,7 @@ class Architecture: BasePatternRegistrar {
             FatProtocol(),
             SingleImplementationProtocol(),
             MirrorProtocol(),
+            DuplicateStructShape(),
             SubclassedForMocking(),
             SwiftDataUniqueAttribute(),
             GodViewModel(),
