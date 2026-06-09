@@ -178,7 +178,7 @@ final class IdempotencyViolationVisitor: BasePatternVisitor, CrossFilePatternVis
            EffectAnnotationParser.parseEffect(declaration: varDecl) != nil {
             return
         }
-        if let closure = syntax.as(ClosureExprSyntax.self), isEscapingClosure(closure) {
+        if let closure = syntax.as(ClosureExprSyntax.self), EscapingClosurePolicy.isEscaping(closure) {
             return
         }
 
@@ -215,14 +215,14 @@ final class IdempotencyViolationVisitor: BasePatternVisitor, CrossFilePatternVis
             provenance = .inferredUpward(depth: upward.depth)
         } else if let inferred = HeuristicEffectInferrer.infer(
             call: call,
-            imports: imports(forSiteFile: site.filePath),
+            imports: siteImportCache.imports(forSiteFile: site.filePath),
             enabledFrameworks: self.enabledFrameworkAllowlists
         ) {
             calleeEffect = inferred
             provenance = .inferredDownward(
                 reason: HeuristicEffectInferrer.inferenceReason(
                     for: call,
-                    imports: imports(forSiteFile: site.filePath),
+                    imports: siteImportCache.imports(forSiteFile: site.filePath),
                     enabledFrameworks: self.enabledFrameworkAllowlists
                 ) ?? ""
             )
@@ -396,59 +396,6 @@ final class IdempotencyViolationVisitor: BasePatternVisitor, CrossFilePatternVis
         }
     }
 
-    /// A closure is treated as escaping when it is the trailing closure of a call
-    /// whose callee is in `escapingCalleeNames`. Matching happens on the *nearest*
-    /// enclosing `FunctionCallExprSyntax`; a closure deeply nested inside a
-    /// non-escaping call is treated as non-escaping relative to the Phase 1 body
-    /// check. The visitor's Phase 1 scope stops at these boundaries.
-    private func isEscapingClosure(_ closure: ClosureExprSyntax) -> Bool {
-        var node = Syntax(closure).parent
-        while let current = node {
-            if let call = current.as(FunctionCallExprSyntax.self) {
-                if let name = directCalleeName(from: call.calledExpression),
-                   escapingCalleeNames.contains(name) {
-                    return true
-                }
-                return false
-            }
-            node = current.parent
-        }
-        return false
-    }
-
-    private func directCalleeName(from expr: ExprSyntax) -> String? {
-        if let ref = expr.as(DeclReferenceExprSyntax.self) {
-            return ref.baseName.text
-        }
-        if let member = expr.as(MemberAccessExprSyntax.self) {
-            return member.declName.baseName.text
-        }
-        return nil
-    }
-
-    /// Callees whose trailing closures are treated as escaping for Phase 1 purposes.
-    /// `task` is deliberately included so that SwiftUI's `.task { … }` modifier
-    /// boundary is honoured — the SwiftUI runtime re-runs the closure on view
-    /// identity changes, so it's a genuine replay boundary, not part of the
-    /// caller's synchronous body.
-    private let escapingCalleeNames: Set<String> = [
-        "Task",
-        "detached",
-        "withTaskGroup",
-        "withThrowingTaskGroup",
-        "withDiscardingTaskGroup",
-        "withThrowingDiscardingTaskGroup",
-        "task"
-    ]
-
-    /// Per-file imports cache. See `NonIdempotentInRetryContextVisitor.imports(forSiteFile:)`.
-    private func imports(forSiteFile path: String) -> Set<String> {
-        if let cached = importCache[path] { return cached }
-        guard let source = fileCache[path] else { return [] }
-        let set = ImportCollector.imports(in: source)
-        importCache[path] = set
-        return set
-    }
-
-    private var importCache: [String: Set<String>] = [:]
+    /// Per-file imports cache shared with the other idempotency visitors.
+    private lazy var siteImportCache = SiteImportCache(fileCache: fileCache)
 }

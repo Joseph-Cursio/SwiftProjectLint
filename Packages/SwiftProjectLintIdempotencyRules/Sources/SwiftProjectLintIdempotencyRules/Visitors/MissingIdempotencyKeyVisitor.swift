@@ -102,7 +102,7 @@ final class MissingIdempotencyKeyVisitor: BasePatternVisitor, CrossFilePatternVi
            syntax.positionAfterSkippingLeadingTrivia != site.function.positionAfterSkippingLeadingTrivia {
             return
         }
-        if let closure = syntax.as(ClosureExprSyntax.self), isEscapingClosure(closure) {
+        if let closure = syntax.as(ClosureExprSyntax.self), EscapingClosurePolicy.isEscaping(closure) {
             return
         }
 
@@ -203,22 +203,6 @@ final class MissingIdempotencyKeyVisitor: BasePatternVisitor, CrossFilePatternVi
         "SuspendingClock"
     ]
 
-    /// Closure-escaping policy mirrors the other idempotency visitors.
-    private func isEscapingClosure(_ closure: ClosureExprSyntax) -> Bool {
-        var node = Syntax(closure).parent
-        while let current = node {
-            if let call = current.as(FunctionCallExprSyntax.self) {
-                if let name = calleeBaseName(of: call.calledExpression),
-                   escapingCalleeNames.contains(name) {
-                    return true
-                }
-                return false
-            }
-            node = current.parent
-        }
-        return false
-    }
-
     private func calleeBaseName(of expr: ExprSyntax) -> String? {
         if let ref = expr.as(DeclReferenceExprSyntax.self) {
             return ref.baseName.text
@@ -228,14 +212,4 @@ final class MissingIdempotencyKeyVisitor: BasePatternVisitor, CrossFilePatternVi
         }
         return nil
     }
-
-    private let escapingCalleeNames: Set<String> = [
-        "Task",
-        "detached",
-        "withTaskGroup",
-        "withThrowingTaskGroup",
-        "withDiscardingTaskGroup",
-        "withThrowingDiscardingTaskGroup",
-        "task"
-    ]
 }

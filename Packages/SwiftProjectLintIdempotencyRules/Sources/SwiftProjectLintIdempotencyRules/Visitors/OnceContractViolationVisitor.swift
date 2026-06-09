@@ -123,7 +123,7 @@ final class OnceContractViolationVisitor: BasePatternVisitor, CrossFilePatternVi
                 != site.function.positionAfterSkippingLeadingTrivia {
             return
         }
-        if let closure = syntax.as(ClosureExprSyntax.self), isEscapingClosure(closure) {
+        if let closure = syntax.as(ClosureExprSyntax.self), EscapingClosurePolicy.isEscaping(closure) {
             return
         }
 
@@ -255,40 +255,4 @@ final class OnceContractViolationVisitor: BasePatternVisitor, CrossFilePatternVi
         }
         return false
     }
-
-    /// See `IdempotencyViolationVisitor.isEscapingClosure` for the shared policy.
-    private func isEscapingClosure(_ closure: ClosureExprSyntax) -> Bool {
-        var node = Syntax(closure).parent
-        while let current = node {
-            if let call = current.as(FunctionCallExprSyntax.self) {
-                if let name = directCalleeName(from: call.calledExpression),
-                   escapingCalleeNames.contains(name) {
-                    return true
-                }
-                return false
-            }
-            node = current.parent
-        }
-        return false
-    }
-
-    private func directCalleeName(from expr: ExprSyntax) -> String? {
-        if let ref = expr.as(DeclReferenceExprSyntax.self) {
-            return ref.baseName.text
-        }
-        if let member = expr.as(MemberAccessExprSyntax.self) {
-            return member.declName.baseName.text
-        }
-        return nil
-    }
-
-    private let escapingCalleeNames: Set<String> = [
-        "Task",
-        "detached",
-        "withTaskGroup",
-        "withThrowingTaskGroup",
-        "withDiscardingTaskGroup",
-        "withThrowingDiscardingTaskGroup",
-        "task"
-    ]
 }

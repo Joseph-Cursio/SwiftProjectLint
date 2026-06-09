@@ -197,7 +197,7 @@ final class NonIdempotentInRetryContextVisitor: BasePatternVisitor, CrossFilePat
            EffectAnnotationParser.parseContextAtCallSite(of: call) != nil {
             return
         }
-        if let closure = syntax.as(ClosureExprSyntax.self), isEscapingClosure(closure) {
+        if let closure = syntax.as(ClosureExprSyntax.self), EscapingClosurePolicy.isEscaping(closure) {
             return
         }
 
@@ -280,7 +280,7 @@ final class NonIdempotentInRetryContextVisitor: BasePatternVisitor, CrossFilePat
                 + "explicitly with `/// @lint.effect <tier>` to override the body-based inference."
             )
         }
-        let siteImports = imports(forSiteFile: site.filePath)
+        let siteImports = siteImportCache.imports(forSiteFile: site.filePath)
         if let inferred = HeuristicEffectInferrer.infer(
             call: call,
             imports: siteImports,
@@ -301,54 +301,6 @@ final class NonIdempotentInRetryContextVisitor: BasePatternVisitor, CrossFilePat
         return nil
     }
 
-    /// See `IdempotencyViolationVisitor.isEscapingClosure` for the shared policy.
-    private func isEscapingClosure(_ closure: ClosureExprSyntax) -> Bool {
-        var node = Syntax(closure).parent
-        while let current = node {
-            if let call = current.as(FunctionCallExprSyntax.self) {
-                if let name = directCalleeName(from: call.calledExpression),
-                   escapingCalleeNames.contains(name) {
-                    return true
-                }
-                return false
-            }
-            node = current.parent
-        }
-        return false
-    }
-
-    private func directCalleeName(from expr: ExprSyntax) -> String? {
-        if let ref = expr.as(DeclReferenceExprSyntax.self) {
-            return ref.baseName.text
-        }
-        if let member = expr.as(MemberAccessExprSyntax.self) {
-            return member.declName.baseName.text
-        }
-        return nil
-    }
-
-    private let escapingCalleeNames: Set<String> = [
-        "Task",
-        "detached",
-        "withTaskGroup",
-        "withThrowingTaskGroup",
-        "withDiscardingTaskGroup",
-        "withThrowingDiscardingTaskGroup",
-        "task"
-    ]
-
-    /// Returns the base module imports for the file that hosts a site.
-    /// Memoised off `fileCache` for the lifetime of a single analysis
-    /// run. Falls back to the empty set when the path isn't in the cache
-    /// (no source = no framework-gated allowlists fire for that site,
-    /// since we can't make import claims about a file we haven't seen).
-    private func imports(forSiteFile path: String) -> Set<String> {
-        if let cached = importCache[path] { return cached }
-        guard let source = fileCache[path] else { return [] }
-        let set = ImportCollector.imports(in: source)
-        importCache[path] = set
-        return set
-    }
-
-    private var importCache: [String: Set<String>] = [:]
+    /// Per-file imports cache shared with the other idempotency visitors.
+    private lazy var siteImportCache = SiteImportCache(fileCache: fileCache)
 }

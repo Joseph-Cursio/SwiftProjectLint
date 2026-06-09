@@ -181,7 +181,7 @@ final class UnannotatedInStrictReplayableContextVisitor:
            EffectAnnotationParser.parseContextAtCallSite(of: call) != nil {
             return
         }
-        if let closure = syntax.as(ClosureExprSyntax.self), isEscapingClosure(closure) {
+        if let closure = syntax.as(ClosureExprSyntax.self), EscapingClosurePolicy.isEscaping(closure) {
             return
         }
 
@@ -204,8 +204,8 @@ final class UnannotatedInStrictReplayableContextVisitor:
         // declared/inferred `non_idempotent`; strict mode needs an
         // explicit exclusion or it fires on every `Task { }` in a
         // strict-replayable body.
-        if let bareName = directCalleeName(from: call.calledExpression),
-           escapingCalleeNames.contains(bareName) {
+        if let bareName = EscapingClosurePolicy.directCalleeName(from: call.calledExpression),
+           EscapingClosurePolicy.calleeNames.contains(bareName) {
             return
         }
 
@@ -225,7 +225,7 @@ final class UnannotatedInStrictReplayableContextVisitor:
         // the existing rule handles it, or it's a positive signal.
         if HeuristicEffectInferrer.infer(
             call: call,
-            imports: imports(forSiteFile: site.filePath),
+            imports: siteImportCache.imports(forSiteFile: site.filePath),
             enabledFrameworks: self.enabledFrameworkAllowlists
         ) != nil { return }
 
@@ -255,50 +255,6 @@ final class UnannotatedInStrictReplayableContextVisitor:
         )
     }
 
-    /// See `IdempotencyViolationVisitor.isEscapingClosure` for the shared policy.
-    private func isEscapingClosure(_ closure: ClosureExprSyntax) -> Bool {
-        var node = Syntax(closure).parent
-        while let current = node {
-            if let call = current.as(FunctionCallExprSyntax.self) {
-                if let name = directCalleeName(from: call.calledExpression),
-                   escapingCalleeNames.contains(name) {
-                    return true
-                }
-                return false
-            }
-            node = current.parent
-        }
-        return false
-    }
-
-    private func directCalleeName(from expr: ExprSyntax) -> String? {
-        if let ref = expr.as(DeclReferenceExprSyntax.self) {
-            return ref.baseName.text
-        }
-        if let member = expr.as(MemberAccessExprSyntax.self) {
-            return member.declName.baseName.text
-        }
-        return nil
-    }
-
-    private let escapingCalleeNames: Set<String> = [
-        "Task",
-        "detached",
-        "withTaskGroup",
-        "withThrowingTaskGroup",
-        "withDiscardingTaskGroup",
-        "withThrowingDiscardingTaskGroup",
-        "task"
-    ]
-
-    /// Per-file imports cache. See `NonIdempotentInRetryContextVisitor.imports(forSiteFile:)`.
-    private func imports(forSiteFile path: String) -> Set<String> {
-        if let cached = importCache[path] { return cached }
-        guard let source = fileCache[path] else { return [] }
-        let set = ImportCollector.imports(in: source)
-        importCache[path] = set
-        return set
-    }
-
-    private var importCache: [String: Set<String>] = [:]
+    /// Per-file imports cache shared with the other idempotency visitors.
+    private lazy var siteImportCache = SiteImportCache(fileCache: fileCache)
 }
