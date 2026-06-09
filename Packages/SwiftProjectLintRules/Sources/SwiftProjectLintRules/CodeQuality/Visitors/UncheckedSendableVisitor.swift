@@ -19,13 +19,6 @@ import SwiftSyntax
 /// calls, including generic specializations such as `OSAllocatedUnfairLock<()>`.
 final class UncheckedSendableVisitor: BasePatternVisitor {
 
-    private static let lockTypeNames: Set<String> = [
-        "OSAllocatedUnfairLock",
-        "Mutex",
-        "NSLock",
-        "NSRecursiveLock"
-    ]
-
     required init(pattern: SyntaxPattern, viewMode: SyntaxTreeViewMode = .sourceAccurate) {
         super.init(pattern: pattern, viewMode: viewMode)
     }
@@ -71,7 +64,7 @@ final class UncheckedSendableVisitor: BasePatternVisitor {
         reportNode: Syntax
     ) {
         guard hasUncheckedSendable(inheritanceClause) else { return }
-        guard memberBlockHasLock(memberBlock) == false else { return }
+        guard LockPropertyDetector.memberBlockDeclaresLock(memberBlock) == false else { return }
 
         addIssue(node: reportNode, variables: ["typeName": name])
     }
@@ -91,47 +84,5 @@ final class UncheckedSendableVisitor: BasePatternVisitor {
             }
             return isSendable && isUnchecked
         }
-    }
-
-    // MARK: - Lock Detection
-
-    /// Returns `true` when the member block contains a stored property whose
-    /// type is a recognized synchronization primitive.
-    private func memberBlockHasLock(_ memberBlock: MemberBlockSyntax) -> Bool {
-        memberBlock.members.contains { member in
-            guard let varDecl = member.decl.as(VariableDeclSyntax.self) else { return false }
-            return varDecl.bindings.contains { isLockBinding($0) }
-        }
-    }
-
-    private func isLockBinding(_ binding: PatternBindingSyntax) -> Bool {
-        // Explicit type annotation: `let lock: OSAllocatedUnfairLock<()>`
-        if let typeAnnotation = binding.typeAnnotation {
-            let typeName = typeAnnotation.type.trimmedDescription
-            if Self.lockTypeNames.contains(where: { typeName == $0 || typeName.hasPrefix($0 + "<") }) {
-                return true
-            }
-        }
-        // Inferred type from initializer call: `let lock = OSAllocatedUnfairLock()`
-        if let initExpr = binding.initializer?.value,
-           let baseName = initCallBaseName(initExpr) {
-            return Self.lockTypeNames.contains(baseName)
-        }
-        return false
-    }
-
-    /// Extracts the base type name from a call expression, handling both
-    /// plain calls (`NSLock()`) and generic calls (`OSAllocatedUnfairLock<()>()`).
-    private func initCallBaseName(_ expr: ExprSyntax) -> String? {
-        guard let call = expr.as(FunctionCallExprSyntax.self) else { return nil }
-        let callee = call.calledExpression
-        if let declRef = callee.as(DeclReferenceExprSyntax.self) {
-            return declRef.baseName.text
-        }
-        if let generic = callee.as(GenericSpecializationExprSyntax.self),
-           let declRef = generic.expression.as(DeclReferenceExprSyntax.self) {
-            return declRef.baseName.text
-        }
-        return nil
     }
 }

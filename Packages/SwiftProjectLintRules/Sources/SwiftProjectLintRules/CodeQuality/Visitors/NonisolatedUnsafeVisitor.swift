@@ -14,13 +14,6 @@ import SwiftSyntax
 /// explicitly rather than silencing the compiler without a safety net.
 final class NonisolatedUnsafeVisitor: BasePatternVisitor {
 
-    private static let lockTypeNames: Set<String> = [
-        "OSAllocatedUnfairLock",
-        "Mutex",
-        "NSLock",
-        "NSRecursiveLock"
-    ]
-
     required init(pattern: SyntaxPattern, viewMode: SyntaxTreeViewMode = .sourceAccurate) {
         super.init(pattern: pattern, viewMode: viewMode)
     }
@@ -56,44 +49,10 @@ final class NonisolatedUnsafeVisitor: BasePatternVisitor {
         var current: Syntax? = Syntax(node).parent
         while let syntax = current {
             if let memberBlock = syntax.as(MemberBlockSyntax.self) {
-                return memberBlock.members.contains { member in
-                    guard let varDecl = member.decl.as(VariableDeclSyntax.self) else { return false }
-                    return varDecl.bindings.contains { isLockBinding($0) }
-                }
+                return LockPropertyDetector.memberBlockDeclaresLock(memberBlock)
             }
             current = syntax.parent
         }
         return false
-    }
-
-    private func isLockBinding(_ binding: PatternBindingSyntax) -> Bool {
-        // Explicit type annotation: `let lock: OSAllocatedUnfairLock<()>`
-        if let typeAnnotation = binding.typeAnnotation {
-            let typeName = typeAnnotation.type.trimmedDescription
-            if Self.lockTypeNames.contains(where: { typeName == $0 || typeName.hasPrefix($0 + "<") }) {
-                return true
-            }
-        }
-        // Inferred type from initializer call: `let lock = OSAllocatedUnfairLock()`
-        if let initExpr = binding.initializer?.value,
-           let baseName = initCallBaseName(initExpr) {
-            return Self.lockTypeNames.contains(baseName)
-        }
-        return false
-    }
-
-    /// Extracts the base type name from a call expression, handling both
-    /// plain calls (`NSLock()`) and generic calls (`OSAllocatedUnfairLock<()>()`).
-    private func initCallBaseName(_ expr: ExprSyntax) -> String? {
-        guard let call = expr.as(FunctionCallExprSyntax.self) else { return nil }
-        let callee = call.calledExpression
-        if let declRef = callee.as(DeclReferenceExprSyntax.self) {
-            return declRef.baseName.text
-        }
-        if let generic = callee.as(GenericSpecializationExprSyntax.self),
-           let declRef = generic.expression.as(DeclReferenceExprSyntax.self) {
-            return declRef.baseName.text
-        }
-        return nil
     }
 }
