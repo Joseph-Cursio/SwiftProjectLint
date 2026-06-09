@@ -43,6 +43,8 @@ struct SwiftLintSuppressionVisitorTests {
     @Test("Detects suppression comment", arguments: [
         ("// swiftlint:disable force_cast\nlet val = foo as! Bar", "swiftlint:disable", "force_cast"),
         ("// swiftlint:disable:next line_length\nlet val = 1", "swiftlint:disable:next", "line_length"),
+        ("// swiftlint:disable:this line_length\nlet val = 1", "swiftlint:disable:this", "line_length"),
+        ("// swiftlint:disable:previous line_length\nlet val = 1", "swiftlint:disable:previous", "line_length"),
         ("// swiftlint:disable force_unwrapping\nlet val = 1", "swiftlint:disable", "force_unwrapping"),
         ("/* swiftlint:disable identifier_name */\nlet val = 1", "swiftlint:disable", "identifier_name")
     ])
