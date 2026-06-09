@@ -27,21 +27,7 @@ import SwiftSyntax
 /// chains and classes from external frameworks or SPM packages are not in the file cache.
 /// Teams using `swiftSettings: [.defaultIsolation(MainActor.self)]` in `Package.swift`
 /// will see false positives; they should disable this rule for those targets.
-final class ObservableMainActorMissingVisitor: BasePatternVisitor, CrossFilePatternVisitorProtocol {
-
-    // MARK: - CrossFilePatternVisitorProtocol
-
-    let fileCache: [String: SourceFileSyntax]
-
-    required init(fileCache: [String: SourceFileSyntax]) {
-        self.fileCache = fileCache
-        super.init(pattern: BasePatternVisitor.placeholderPattern)
-    }
-
-    required init(pattern: SyntaxPattern, viewMode: SyntaxTreeViewMode = .sourceAccurate) {
-        self.fileCache = [:]
-        super.init(pattern: pattern, viewMode: viewMode)
-    }
+final class ObservableMainActorMissingVisitor: CrossFileVisitorBase, CrossFilePatternVisitorProtocol {
 
     // MARK: - State
 

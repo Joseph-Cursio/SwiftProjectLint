@@ -23,8 +23,7 @@ import SwiftSyntax
 ///
 /// Subclasses supply only configuration: which macros satisfy the rule, the
 /// issue severity, the rule identifier, and the message/suggestion prose.
-class TestMissingMacroVisitorBase: BasePatternVisitor, CrossFilePatternVisitorProtocol {
-    let fileCache: [String: SourceFileSyntax]
+class TestMissingMacroVisitorBase: CrossFileVisitorBase, CrossFilePatternVisitorProtocol {
 
     // MARK: - Subclass configuration
 
@@ -59,23 +58,6 @@ class TestMissingMacroVisitorBase: BasePatternVisitor, CrossFilePatternVisitorPr
     /// @Test functions with no direct recognised macro, held for deferred
     /// reporting in `finalizeAnalysis`.
     private var candidateTests: [(name: String, filePath: String, node: Syntax)] = []
-
-    private var currentFilePath: String = ""
-
-    required init(fileCache: [String: SourceFileSyntax]) {
-        self.fileCache = fileCache
-        super.init(pattern: BasePatternVisitor.placeholderPattern, viewMode: .sourceAccurate)
-    }
-
-    required init(pattern: SyntaxPattern, viewMode: SyntaxTreeViewMode = .sourceAccurate) {
-        self.fileCache = [:]
-        super.init(pattern: pattern, viewMode: viewMode)
-    }
-
-    override func setFilePath(_ filePath: String) {
-        super.setFilePath(filePath)
-        currentFilePath = filePath
-    }
 
     // MARK: - Phase 1: Walk
 

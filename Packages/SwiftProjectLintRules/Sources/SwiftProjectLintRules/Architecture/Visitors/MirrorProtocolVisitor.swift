@@ -14,8 +14,7 @@ import SwiftSyntax
 /// **Phase 1 (walk):** Collects protocol declarations with their requirement names,
 /// and type declarations with their member names and conformances.
 /// **Phase 2 (finalizeAnalysis):** Compares protocol requirements against conforming types.
-final class MirrorProtocolVisitor: BasePatternVisitor, CrossFilePatternVisitorProtocol {
-    let fileCache: [String: SourceFileSyntax]
+final class MirrorProtocolVisitor: CrossFileVisitorBase, CrossFilePatternVisitorProtocol {
 
     private struct ProtocolInfo {
         let name: String
@@ -32,22 +31,6 @@ final class MirrorProtocolVisitor: BasePatternVisitor, CrossFilePatternVisitorPr
 
     private var protocols: [ProtocolInfo] = []
     private var types: [TypeInfo] = []
-    private var currentFile = ""
-
-    required init(fileCache: [String: SourceFileSyntax]) {
-        self.fileCache = fileCache
-        super.init(pattern: BasePatternVisitor.placeholderPattern, viewMode: .sourceAccurate)
-    }
-
-    required init(pattern: SyntaxPattern, viewMode: SyntaxTreeViewMode = .sourceAccurate) {
-        self.fileCache = [:]
-        super.init(pattern: pattern, viewMode: viewMode)
-    }
-
-    override func setFilePath(_ filePath: String) {
-        super.setFilePath(filePath)
-        currentFile = filePath
-    }
 
     // MARK: - Collect Protocol Declarations
 
@@ -60,7 +43,7 @@ final class MirrorProtocolVisitor: BasePatternVisitor, CrossFilePatternVisitorPr
         let requirements = extractMemberNames(from: node.memberBlock)
         protocols.append(ProtocolInfo(
             name: name,
-            file: currentFile,
+            file: currentFilePath,
             node: Syntax(node),
             requirementNames: requirements
         ))

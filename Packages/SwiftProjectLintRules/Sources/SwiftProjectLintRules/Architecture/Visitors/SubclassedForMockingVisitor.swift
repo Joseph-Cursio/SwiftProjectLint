@@ -20,8 +20,7 @@ import SwiftSyntax
 /// source-location converter is active — the declaration's line number.
 /// **Phase 2 (finalizeAnalysis):** For each test-double subclass, flags its
 /// production superclass when that superclass has no protocol abstraction.
-final class SubclassedForMockingVisitor: BasePatternVisitor, CrossFilePatternVisitorProtocol {
-    let fileCache: [String: SourceFileSyntax]
+final class SubclassedForMockingVisitor: CrossFileVisitorBase, CrossFilePatternVisitorProtocol {
 
     private struct ClassRecord {
         let name: String
@@ -34,27 +33,11 @@ final class SubclassedForMockingVisitor: BasePatternVisitor, CrossFilePatternVis
     private var classes: [ClassRecord] = []
     private var classNames: Set<String> = []
     private var protocolNames: Set<String> = []
-    private var currentFile = ""
 
     /// Type-name prefixes that mark a class as a test double.
     private static let mockMarkers = ["Mock", "Stub", "Fake", "Spy", "Dummy"]
 
-    required init(fileCache: [String: SourceFileSyntax]) {
-        self.fileCache = fileCache
-        super.init(pattern: BasePatternVisitor.placeholderPattern, viewMode: .sourceAccurate)
-    }
-
-    required init(pattern: SyntaxPattern, viewMode: SyntaxTreeViewMode = .sourceAccurate) {
-        self.fileCache = [:]
-        super.init(pattern: pattern, viewMode: viewMode)
-    }
-
     // MARK: - Collect declarations
-
-    override func setFilePath(_ filePath: String) {
-        super.setFilePath(filePath)
-        currentFile = filePath
-    }
 
     override func visit(_ node: ProtocolDeclSyntax) -> SyntaxVisitorContinueKind {
         protocolNames.insert(node.name.text)
@@ -67,7 +50,7 @@ final class SubclassedForMockingVisitor: BasePatternVisitor, CrossFilePatternVis
         classes.append(
             ClassRecord(
                 name: name,
-                file: currentFile,
+                file: currentFilePath,
                 line: getLineNumber(for: Syntax(node)),
                 inheritedNames: inheritedNames(from: node.inheritanceClause),
                 isTestDoubleLocation: isTestOrFixtureFile()

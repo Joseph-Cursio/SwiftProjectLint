@@ -9,8 +9,7 @@ import SwiftSyntax
 /// **Phase 1 (walk):** Collects all protocol declarations and tracks every
 /// protocol name reference (inheritance clauses, type annotations, generic constraints).
 /// **Phase 2 (finalizeAnalysis):** Flags protocols with no external references.
-final class ProtocolCouldBePrivateVisitor: BasePatternVisitor, CrossFilePatternVisitorProtocol {
-    let fileCache: [String: SourceFileSyntax]
+final class ProtocolCouldBePrivateVisitor: CrossFileVisitorBase, CrossFilePatternVisitorProtocol {
 
     private struct ProtocolDeclaration {
         let name: String
@@ -26,25 +25,6 @@ final class ProtocolCouldBePrivateVisitor: BasePatternVisitor, CrossFilePatternV
     /// All declared protocol names (to distinguish from other types).
     private var declaredProtocolNames: Set<String> = []
 
-    private var currentFile: String = ""
-
-    required init(fileCache: [String: SourceFileSyntax]) {
-        self.fileCache = fileCache
-        super.init(pattern: BasePatternVisitor.placeholderPattern, viewMode: .sourceAccurate)
-    }
-
-    required init(pattern: SyntaxPattern, viewMode: SyntaxTreeViewMode = .sourceAccurate) {
-        self.fileCache = [:]
-        super.init(pattern: pattern, viewMode: viewMode)
-    }
-
-    // MARK: - File Walking
-
-    override func setFilePath(_ filePath: String) {
-        super.setFilePath(filePath)
-        currentFile = filePath
-    }
-
     // MARK: - Collect Protocol Declarations
 
     override func visit(_ node: ProtocolDeclSyntax) -> SyntaxVisitorContinueKind {
@@ -58,7 +38,7 @@ final class ProtocolCouldBePrivateVisitor: BasePatternVisitor, CrossFilePatternV
         // Skip protocols with explicit access control
         guard !node.modifiers.hasExplicitAccessControl else { return .visitChildren }
 
-        declarations.append(ProtocolDeclaration(name: name, file: currentFile, node: Syntax(node)))
+        declarations.append(ProtocolDeclaration(name: name, file: currentFilePath, node: Syntax(node)))
         declaredProtocolNames.insert(name)
         return .visitChildren
     }
@@ -68,14 +48,14 @@ final class ProtocolCouldBePrivateVisitor: BasePatternVisitor, CrossFilePatternV
     // Inheritance clauses: struct Foo: MyProtocol
     override func visit(_ node: InheritedTypeSyntax) -> SyntaxVisitorContinueKind {
         if let ident = node.type.as(IdentifierTypeSyntax.self) {
-            references[ident.name.text, default: []].insert(currentFile)
+            references[ident.name.text, default: []].insert(currentFilePath)
         }
         return .visitChildren
     }
 
     // Type annotations: let delegate: MyProtocol
     override func visit(_ node: IdentifierTypeSyntax) -> SyntaxVisitorContinueKind {
-        references[node.name.text, default: []].insert(currentFile)
+        references[node.name.text, default: []].insert(currentFilePath)
         return .visitChildren
     }
 
@@ -83,7 +63,7 @@ final class ProtocolCouldBePrivateVisitor: BasePatternVisitor, CrossFilePatternV
     override func visit(_ node: DeclReferenceExprSyntax) -> SyntaxVisitorContinueKind {
         let name = node.baseName.text
         if let first = name.first, first.isUppercase {
-            references[name, default: []].insert(currentFile)
+            references[name, default: []].insert(currentFilePath)
         }
         return .visitChildren
     }

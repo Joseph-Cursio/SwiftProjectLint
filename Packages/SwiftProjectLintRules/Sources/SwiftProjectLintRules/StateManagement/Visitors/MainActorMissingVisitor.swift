@@ -28,21 +28,7 @@ import SwiftSyntax
 /// in the file cache and cannot be suppressed automatically. Teams using
 /// `swiftSettings: [.defaultIsolation(MainActor.self)]` in `Package.swift` will see
 /// false positives; they should disable this rule for those targets.
-final class MainActorMissingVisitor: BasePatternVisitor, CrossFilePatternVisitorProtocol {
-
-    // MARK: - CrossFilePatternVisitorProtocol
-
-    let fileCache: [String: SourceFileSyntax]
-
-    required init(fileCache: [String: SourceFileSyntax]) {
-        self.fileCache = fileCache
-        super.init(pattern: BasePatternVisitor.placeholderPattern)
-    }
-
-    required init(pattern: SyntaxPattern, viewMode: SyntaxTreeViewMode = .sourceAccurate) {
-        self.fileCache = [:]
-        super.init(pattern: pattern, viewMode: viewMode)
-    }
+final class MainActorMissingVisitor: CrossFileVisitorBase, CrossFilePatternVisitorProtocol {
 
     // MARK: - State
 

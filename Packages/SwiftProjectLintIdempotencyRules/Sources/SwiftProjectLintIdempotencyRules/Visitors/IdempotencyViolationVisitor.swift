@@ -28,9 +28,7 @@ import SwiftSyntax
 /// `ClosureExprSyntax` passed as escaping arguments (`Task { }`, `withTaskGroup { }`,
 /// `Task.detached { }`, SwiftUI `.task { }`) — those boundaries are retry-context
 /// checks that Phase 1 of the trial explicitly excludes.
-final class IdempotencyViolationVisitor: BasePatternVisitor, CrossFilePatternVisitorProtocol {
-
-    let fileCache: [String: SourceFileSyntax]
+final class IdempotencyViolationVisitor: CrossFileVisitorBase, CrossFilePatternVisitorProtocol {
 
     /// Accumulated across every file walked in this analysis run. Populated in
     /// `visit(_:)` and queried in `finalizeAnalysis()`.
@@ -51,23 +49,7 @@ final class IdempotencyViolationVisitor: BasePatternVisitor, CrossFilePatternVis
         let locationConverter: SourceLocationConverter
     }
 
-    private var currentFilePath: String = ""
     private var currentLocationConverter: SourceLocationConverter?
-
-    required init(fileCache: [String: SourceFileSyntax]) {
-        self.fileCache = fileCache
-        super.init(pattern: BasePatternVisitor.placeholderPattern, viewMode: .sourceAccurate)
-    }
-
-    required init(pattern: SyntaxPattern, viewMode: SyntaxTreeViewMode = .sourceAccurate) {
-        self.fileCache = [:]
-        super.init(pattern: pattern, viewMode: viewMode)
-    }
-
-    override func setFilePath(_ filePath: String) {
-        super.setFilePath(filePath)
-        currentFilePath = filePath
-    }
 
     override func setSourceLocationConverter(_ converter: SourceLocationConverter) {
         super.setSourceLocationConverter(converter)

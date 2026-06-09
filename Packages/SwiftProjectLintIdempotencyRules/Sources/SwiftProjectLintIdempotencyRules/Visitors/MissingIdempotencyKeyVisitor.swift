@@ -29,9 +29,7 @@ import SwiftSyntax
 ///   the callee and stays silent.
 /// - Call sites where the labelled argument is absent: likely a default-
 ///   valued parameter; not flagged in Phase 2.1.
-final class MissingIdempotencyKeyVisitor: BasePatternVisitor, CrossFilePatternVisitorProtocol {
-
-    let fileCache: [String: SourceFileSyntax]
+final class MissingIdempotencyKeyVisitor: CrossFileVisitorBase, CrossFilePatternVisitorProtocol {
 
     private var symbolTable = EffectSymbolTable()
     private var analysisSites: [AnalysisSite] = []
@@ -42,23 +40,7 @@ final class MissingIdempotencyKeyVisitor: BasePatternVisitor, CrossFilePatternVi
         let locationConverter: SourceLocationConverter
     }
 
-    private var currentFilePath: String = ""
     private var currentLocationConverter: SourceLocationConverter?
-
-    required init(fileCache: [String: SourceFileSyntax]) {
-        self.fileCache = fileCache
-        super.init(pattern: BasePatternVisitor.placeholderPattern, viewMode: .sourceAccurate)
-    }
-
-    required init(pattern: SyntaxPattern, viewMode: SyntaxTreeViewMode = .sourceAccurate) {
-        self.fileCache = [:]
-        super.init(pattern: pattern, viewMode: viewMode)
-    }
-
-    override func setFilePath(_ filePath: String) {
-        super.setFilePath(filePath)
-        currentFilePath = filePath
-    }
 
     override func setSourceLocationConverter(_ converter: SourceLocationConverter) {
         super.setSourceLocationConverter(converter)

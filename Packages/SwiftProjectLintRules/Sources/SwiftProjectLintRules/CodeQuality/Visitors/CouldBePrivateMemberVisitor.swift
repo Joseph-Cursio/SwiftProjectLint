@@ -15,8 +15,7 @@ import SwiftSyntax
 /// declaring file, and record every identifier usage per file.
 /// **Phase 2 (finalizeAnalysis):** Flag members whose name only appears in their
 /// declaring file.
-final class CouldBePrivateMemberVisitor: BasePatternVisitor, CrossFilePatternVisitorProtocol {
-    let fileCache: [String: SourceFileSyntax]
+final class CouldBePrivateMemberVisitor: CrossFileVisitorBase, CrossFilePatternVisitorProtocol {
 
     private struct MemberDeclaration {
         let typeName: String
@@ -31,7 +30,6 @@ final class CouldBePrivateMemberVisitor: BasePatternVisitor, CrossFilePatternVis
     /// Tracks which files mention each identifier: name → Set<file>
     private var identifierUsages: [String: Set<String>] = [:]
 
-    private var currentFile: String = ""
     private var currentTypeName: String = ""
     private var typeNestingDepth: Int = 0
     private var functionNestingDepth: Int = 0
@@ -82,23 +80,6 @@ final class CouldBePrivateMemberVisitor: BasePatternVisitor, CrossFilePatternVis
         // though making it private would break the protocol witness.
         "CompilerPlugin"
     ]
-
-    required init(fileCache: [String: SourceFileSyntax]) {
-        self.fileCache = fileCache
-        super.init(pattern: BasePatternVisitor.placeholderPattern, viewMode: .sourceAccurate)
-    }
-
-    required init(pattern: SyntaxPattern, viewMode: SyntaxTreeViewMode = .sourceAccurate) {
-        self.fileCache = [:]
-        super.init(pattern: pattern, viewMode: viewMode)
-    }
-
-    // MARK: - File Walking
-
-    override func setFilePath(_ filePath: String) {
-        super.setFilePath(filePath)
-        currentFile = filePath
-    }
 
     // MARK: - Track Current Type and Conformances
 
@@ -216,13 +197,13 @@ final class CouldBePrivateMemberVisitor: BasePatternVisitor, CrossFilePatternVis
     // MARK: - Collect References
 
     override func visit(_ node: DeclReferenceExprSyntax) -> SyntaxVisitorContinueKind {
-        identifierUsages[node.baseName.text, default: []].insert(currentFile)
+        identifierUsages[node.baseName.text, default: []].insert(currentFilePath)
         return .visitChildren
     }
 
     override func visit(_ node: MemberAccessExprSyntax) -> SyntaxVisitorContinueKind {
         let memberName = node.declName.baseName.text
-        identifierUsages[memberName, default: []].insert(currentFile)
+        identifierUsages[memberName, default: []].insert(currentFilePath)
         return .visitChildren
     }
 
@@ -281,7 +262,7 @@ final class CouldBePrivateMemberVisitor: BasePatternVisitor, CrossFilePatternVis
             typeName: currentTypeName,
             memberName: name,
             memberKind: kind,
-            file: currentFile,
+            file: currentFilePath,
             node: node
         ))
     }

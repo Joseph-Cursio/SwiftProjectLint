@@ -10,17 +10,13 @@ import SwiftSyntax
 /// across every file.
 /// **Phase 2 (finalizeAnalysis):** Compares declarations against references. Types that
 /// are never referenced outside their declaring file are flagged.
-final class CouldBePrivateVisitor: BasePatternVisitor, CrossFilePatternVisitorProtocol {
-    let fileCache: [String: SourceFileSyntax]
+final class CouldBePrivateVisitor: CrossFileVisitorBase, CrossFilePatternVisitorProtocol {
 
     /// Tracks where each type name is declared: typeName → fileName
     private var declarations: [(name: String, file: String, node: Syntax)] = []
 
     /// Tracks which files reference each type name: typeName → Set<fileName>
     private var references: [String: Set<String>] = [:]
-
-    /// The file currently being walked.
-    private var currentFile: String = ""
 
     /// All declared type names (to avoid flagging references to external types).
     private var declaredTypeNames: Set<String> = []
@@ -30,23 +26,6 @@ final class CouldBePrivateVisitor: BasePatternVisitor, CrossFilePatternVisitorPr
 
     /// Maps type name → set of protocol names it conforms to.
     private var typeConformances: [String: Set<String>] = [:]
-
-    required init(fileCache: [String: SourceFileSyntax]) {
-        self.fileCache = fileCache
-        super.init(pattern: BasePatternVisitor.placeholderPattern, viewMode: .sourceAccurate)
-    }
-
-    required init(pattern: SyntaxPattern, viewMode: SyntaxTreeViewMode = .sourceAccurate) {
-        self.fileCache = [:]
-        super.init(pattern: pattern, viewMode: viewMode)
-    }
-
-    // MARK: - File Walking
-
-    override func setFilePath(_ filePath: String) {
-        super.setFilePath(filePath)
-        currentFile = filePath
-    }
 
     // MARK: - Collect Declarations (top-level, internal access only)
 
@@ -84,7 +63,7 @@ final class CouldBePrivateVisitor: BasePatternVisitor, CrossFilePatternVisitorPr
     // MARK: - Collect References
 
     override func visit(_ node: IdentifierTypeSyntax) -> SyntaxVisitorContinueKind {
-        references[node.name.text, default: []].insert(currentFile)
+        references[node.name.text, default: []].insert(currentFilePath)
         return .visitChildren
     }
 
@@ -92,7 +71,7 @@ final class CouldBePrivateVisitor: BasePatternVisitor, CrossFilePatternVisitorPr
         let name = node.baseName.text
         // Only track references that start with uppercase (type names)
         if let first = name.first, first.isUppercase {
-            references[name, default: []].insert(currentFile)
+            references[name, default: []].insert(currentFilePath)
         }
         return .visitChildren
     }
@@ -102,7 +81,7 @@ final class CouldBePrivateVisitor: BasePatternVisitor, CrossFilePatternVisitorPr
         if let base = node.base?.as(DeclReferenceExprSyntax.self) {
             let name = base.baseName.text
             if let first = name.first, first.isUppercase {
-                references[name, default: []].insert(currentFile)
+                references[name, default: []].insert(currentFilePath)
             }
         }
         // Track Type.self metatype references (e.g., [MyRule.self])
@@ -110,7 +89,7 @@ final class CouldBePrivateVisitor: BasePatternVisitor, CrossFilePatternVisitorPr
            let base = node.base?.as(DeclReferenceExprSyntax.self) {
             let name = base.baseName.text
             if let first = name.first, first.isUppercase {
-                references[name, default: []].insert(currentFile)
+                references[name, default: []].insert(currentFilePath)
             }
         }
         return .visitChildren
@@ -164,7 +143,7 @@ final class CouldBePrivateVisitor: BasePatternVisitor, CrossFilePatternVisitorPr
         // Skip types that already have explicit access control
         guard !modifiers.hasExplicitAccessControl else { return }
 
-        declarations.append((name: name, file: currentFile, node: node))
+        declarations.append((name: name, file: currentFilePath, node: node))
         declaredTypeNames.insert(name)
     }
 

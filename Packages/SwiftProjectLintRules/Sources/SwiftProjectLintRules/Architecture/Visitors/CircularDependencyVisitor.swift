@@ -10,8 +10,7 @@ import SwiftSyntax
 /// they reference via stored properties and function parameters.
 /// **Phase 2 (finalizeAnalysis):** Builds a directed graph and detects length-2
 /// cycles (A→B→A). Suppresses when one side uses a `weak` reference or a protocol.
-final class CircularDependencyVisitor: BasePatternVisitor, CrossFilePatternVisitorProtocol {
-    let fileCache: [String: SourceFileSyntax]
+final class CircularDependencyVisitor: CrossFileVisitorBase, CrossFilePatternVisitorProtocol {
 
     // MARK: - Collected data
 
@@ -30,25 +29,7 @@ final class CircularDependencyVisitor: BasePatternVisitor, CrossFilePatternVisit
     /// Maps type name → set of (referenced type name, isWeak).
     private var typeReferences: [String: [(target: String, isWeak: Bool)]] = [:]
 
-    private var currentFile = ""
     private var currentTypeName: String?
-
-    // MARK: - Init
-
-    required init(fileCache: [String: SourceFileSyntax]) {
-        self.fileCache = fileCache
-        super.init(pattern: BasePatternVisitor.placeholderPattern, viewMode: .sourceAccurate)
-    }
-
-    required init(pattern: SyntaxPattern, viewMode: SyntaxTreeViewMode = .sourceAccurate) {
-        self.fileCache = [:]
-        super.init(pattern: pattern, viewMode: viewMode)
-    }
-
-    override func setFilePath(_ filePath: String) {
-        super.setFilePath(filePath)
-        currentFile = filePath
-    }
 
     // MARK: - Phase 1: Collect types and references
 
@@ -59,7 +40,7 @@ final class CircularDependencyVisitor: BasePatternVisitor, CrossFilePatternVisit
 
     override func visit(_ node: ClassDeclSyntax) -> SyntaxVisitorContinueKind {
         let name = node.name.text
-        typeDeclarations[name] = TypeInfo(name: name, file: currentFile, node: Syntax(node))
+        typeDeclarations[name] = TypeInfo(name: name, file: currentFilePath, node: Syntax(node))
         currentTypeName = name
         return .visitChildren
     }
@@ -70,7 +51,7 @@ final class CircularDependencyVisitor: BasePatternVisitor, CrossFilePatternVisit
 
     override func visit(_ node: StructDeclSyntax) -> SyntaxVisitorContinueKind {
         let name = node.name.text
-        typeDeclarations[name] = TypeInfo(name: name, file: currentFile, node: Syntax(node))
+        typeDeclarations[name] = TypeInfo(name: name, file: currentFilePath, node: Syntax(node))
         currentTypeName = name
         return .visitChildren
     }
@@ -123,7 +104,7 @@ final class CircularDependencyVisitor: BasePatternVisitor, CrossFilePatternVisit
                 reported.insert(cycleKey)
 
                 let infoA = typeDeclarations[typeA]
-                let fileA = infoA?.file ?? currentFile
+                let fileA = infoA?.file ?? currentFilePath
 
                 addIssue(
                     severity: .warning,

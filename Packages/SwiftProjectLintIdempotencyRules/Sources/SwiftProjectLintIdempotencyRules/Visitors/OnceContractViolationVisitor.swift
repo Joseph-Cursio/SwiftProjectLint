@@ -37,9 +37,7 @@ import SwiftSyntax
 /// calling an un-annotated helper that calls a `@context once` function
 /// is not flagged here; the upward-inference infrastructure could be
 /// extended to track context propagation in a follow-up.
-final class OnceContractViolationVisitor: BasePatternVisitor, CrossFilePatternVisitorProtocol {
-
-    let fileCache: [String: SourceFileSyntax]
+final class OnceContractViolationVisitor: CrossFileVisitorBase, CrossFilePatternVisitorProtocol {
 
     private var symbolTable = EffectSymbolTable()
     private var analysisSites: [AnalysisSite] = []
@@ -53,23 +51,7 @@ final class OnceContractViolationVisitor: BasePatternVisitor, CrossFilePatternVi
         let locationConverter: SourceLocationConverter
     }
 
-    private var currentFilePath: String = ""
     private var currentLocationConverter: SourceLocationConverter?
-
-    required init(fileCache: [String: SourceFileSyntax]) {
-        self.fileCache = fileCache
-        super.init(pattern: BasePatternVisitor.placeholderPattern, viewMode: .sourceAccurate)
-    }
-
-    required init(pattern: SyntaxPattern, viewMode: SyntaxTreeViewMode = .sourceAccurate) {
-        self.fileCache = [:]
-        super.init(pattern: pattern, viewMode: viewMode)
-    }
-
-    override func setFilePath(_ filePath: String) {
-        super.setFilePath(filePath)
-        currentFilePath = filePath
-    }
 
     override func setSourceLocationConverter(_ converter: SourceLocationConverter) {
         super.setSourceLocationConverter(converter)

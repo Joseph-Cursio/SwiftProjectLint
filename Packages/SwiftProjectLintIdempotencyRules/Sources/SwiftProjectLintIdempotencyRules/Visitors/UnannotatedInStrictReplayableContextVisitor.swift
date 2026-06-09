@@ -38,9 +38,7 @@ import SwiftSyntax
 /// Round-9 / phase-2 strict-replayable slice. See
 /// `docs/claude_phase_2_strict_replayable_plan.md`.
 final class UnannotatedInStrictReplayableContextVisitor:
-    BasePatternVisitor, CrossFilePatternVisitorProtocol {
-
-    let fileCache: [String: SourceFileSyntax]
+    CrossFileVisitorBase, CrossFilePatternVisitorProtocol {
 
     private var symbolTable = EffectSymbolTable()
     private var analysisSites: [AnalysisSite] = []
@@ -52,23 +50,7 @@ final class UnannotatedInStrictReplayableContextVisitor:
         let locationConverter: SourceLocationConverter
     }
 
-    private var currentFilePath: String = ""
     private var currentLocationConverter: SourceLocationConverter?
-
-    required init(fileCache: [String: SourceFileSyntax]) {
-        self.fileCache = fileCache
-        super.init(pattern: BasePatternVisitor.placeholderPattern, viewMode: .sourceAccurate)
-    }
-
-    required init(pattern: SyntaxPattern, viewMode: SyntaxTreeViewMode = .sourceAccurate) {
-        self.fileCache = [:]
-        super.init(pattern: pattern, viewMode: viewMode)
-    }
-
-    override func setFilePath(_ filePath: String) {
-        super.setFilePath(filePath)
-        currentFilePath = filePath
-    }
 
     override func setSourceLocationConverter(_ converter: SourceLocationConverter) {
         super.setSourceLocationConverter(converter)

@@ -10,8 +10,7 @@ import SwiftSyntax
 /// from struct/class/enum/actor inheritance clauses.
 /// **Phase 2 (finalizeAnalysis):** Flags protocols with exactly 0 or 1 conformers,
 /// excluding those with mock/fake/stub/spy conformers or public access.
-final class SingleImplementationProtocolVisitor: BasePatternVisitor, CrossFilePatternVisitorProtocol {
-    let fileCache: [String: SourceFileSyntax]
+final class SingleImplementationProtocolVisitor: CrossFileVisitorBase, CrossFilePatternVisitorProtocol {
 
     private struct ProtocolDeclaration {
         let name: String
@@ -24,8 +23,6 @@ final class SingleImplementationProtocolVisitor: BasePatternVisitor, CrossFilePa
 
     /// Maps protocol name → set of conforming type names
     private var conformances: [String: Set<String>] = [:]
-
-    private var currentFile = ""
 
     /// Tracks the current type being visited so we can associate conformances
     private var currentTypeName: String?
@@ -40,23 +37,6 @@ final class SingleImplementationProtocolVisitor: BasePatternVisitor, CrossFilePa
 
     /// Maps conforming type name → file path where it was found.
     private var conformerFiles: [String: String] = [:]
-
-    required init(fileCache: [String: SourceFileSyntax]) {
-        self.fileCache = fileCache
-        super.init(pattern: BasePatternVisitor.placeholderPattern, viewMode: .sourceAccurate)
-    }
-
-    required init(pattern: SyntaxPattern, viewMode: SyntaxTreeViewMode = .sourceAccurate) {
-        self.fileCache = [:]
-        super.init(pattern: pattern, viewMode: viewMode)
-    }
-
-    // MARK: - File Walking
-
-    override func setFilePath(_ filePath: String) {
-        super.setFilePath(filePath)
-        currentFile = filePath
-    }
 
     // MARK: - Collect Protocol Declarations
 
@@ -74,7 +54,7 @@ final class SingleImplementationProtocolVisitor: BasePatternVisitor, CrossFilePa
         guard !hasPublicAccess else { return .visitChildren }
 
         let name = node.name.text
-        declarations.append(ProtocolDeclaration(name: name, file: currentFile, node: Syntax(node)))
+        declarations.append(ProtocolDeclaration(name: name, file: currentFilePath, node: Syntax(node)))
         declaredProtocolNames.insert(name)
         return .visitChildren
     }
@@ -128,7 +108,7 @@ final class SingleImplementationProtocolVisitor: BasePatternVisitor, CrossFilePa
         for inherited in inheritanceClause.inheritedTypes {
             if let ident = inherited.type.as(IdentifierTypeSyntax.self) {
                 conformances[ident.name.text, default: []].insert(typeName)
-                conformerFiles[typeName] = currentFile
+                conformerFiles[typeName] = currentFilePath
             }
         }
     }
