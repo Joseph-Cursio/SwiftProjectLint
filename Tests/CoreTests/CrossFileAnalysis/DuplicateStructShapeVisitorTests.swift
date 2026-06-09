@@ -198,6 +198,43 @@ struct DuplicateStructShapeVisitorTests {
         #expect(issues.contains { $0.message.contains("'Abstracted'") } == false)
     }
 
+    /// Isolated conformances (`: @MainActor Protocol`, common under Swift 6 strict
+    /// concurrency) parse the conformance as an attributed type. The covering protocol must
+    /// still be recognised so the types are suppressed — regression for the bug found when
+    /// the rule was dogfooded on a freshly-extracted protocol.
+    @Test
+    func isolatedConformanceToCoveringProtocolIsClean() {
+        let issues = analyze(files: [
+            "Models.swift": """
+            protocol BuildSettingIdentity: Identifiable {
+                var id: UUID { get }
+                var rawKey: String { get }
+                var name: String { get }
+                var description: String? { get }
+                var category: String { get }
+            }
+            struct CompilerFlag: @MainActor BuildSettingIdentity, Hashable {
+                let id: UUID
+                let rawKey: String
+                let name: String
+                let description: String?
+                let category: String
+                let value: String
+            }
+            struct SettingDiff: @MainActor BuildSettingIdentity, Hashable {
+                let id: UUID
+                let rawKey: String
+                let name: String
+                let description: String?
+                let category: String
+                let diffType: String
+            }
+            """
+        ])
+
+        #expect(issues.isEmpty)
+    }
+
     /// SwiftUI `View` types share `@State`/`@Binding`/closure properties by design (bridge
     /// pairs), so they are skipped entirely — even when they share an identical core.
     @Test

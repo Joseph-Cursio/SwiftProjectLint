@@ -79,8 +79,8 @@ final class DuplicateStructShapeVisitor: CrossFileVisitorBase, CrossFilePatternV
         var conformances: Set<String> = []
         if let inheritance {
             for inherited in inheritance.inheritedTypes {
-                if let ident = inherited.type.as(IdentifierTypeSyntax.self) {
-                    conformances.insert(ident.name.text)
+                if let name = conformanceName(inherited.type) {
+                    conformances.insert(name)
                 }
             }
         }
@@ -119,6 +119,15 @@ final class DuplicateStructShapeVisitor: CrossFileVisitorBase, CrossFilePatternV
             return false
         }
         return true
+    }
+
+    /// The simple name of a conformance, unwrapping attributes so isolated/attributed
+    /// conformances (`@MainActor P`, `@retroactive P`, `@preconcurrency P`) resolve to `P`.
+    private func conformanceName(_ type: TypeSyntax) -> String? {
+        if let attributed = type.as(AttributedTypeSyntax.self) {
+            return conformanceName(attributed.baseType)
+        }
+        return type.as(IdentifierTypeSyntax.self)?.name.text
     }
 
     private func isComputed(_ binding: PatternBindingSyntax) -> Bool {
