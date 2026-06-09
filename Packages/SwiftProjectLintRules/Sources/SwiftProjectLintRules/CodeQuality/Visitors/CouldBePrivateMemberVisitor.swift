@@ -291,12 +291,7 @@ final class CouldBePrivateMemberVisitor: BasePatternVisitor, CrossFilePatternVis
     /// is the author's stated intent, `override` participates in a vtable,
     /// and `@objc` may be reached via selector.
     private func hasDisqualifyingModifiers(_ modifiers: DeclModifierListSyntax, node: Syntax) -> Bool {
-        let hasExplicitAccess = modifiers.contains { modifier in
-            let text = modifier.name.text
-            return text == "private" || text == "fileprivate"
-                || text == "public" || text == "open" || text == "internal"
-        }
-        if hasExplicitAccess { return true }
+        if modifiers.hasExplicitAccessControl { return true }
         if modifiers.contains(where: { $0.name.text == "override" }) { return true }
         return node.as(FunctionDeclSyntax.self)?.attributes.contains {
             $0.description.contains("@objc")

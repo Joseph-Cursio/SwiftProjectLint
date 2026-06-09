@@ -56,12 +56,7 @@ final class ProtocolCouldBePrivateVisitor: BasePatternVisitor, CrossFilePatternV
         }
 
         // Skip protocols with explicit access control
-        let hasExplicitAccess = node.modifiers.contains { modifier in
-            let text = modifier.name.text
-            return text == "private" || text == "fileprivate"
-                || text == "public" || text == "open" || text == "internal"
-        }
-        guard !hasExplicitAccess else { return .visitChildren }
+        guard !node.modifiers.hasExplicitAccessControl else { return .visitChildren }
 
         declarations.append(ProtocolDeclaration(name: name, file: currentFile, node: Syntax(node)))
         declaredProtocolNames.insert(name)

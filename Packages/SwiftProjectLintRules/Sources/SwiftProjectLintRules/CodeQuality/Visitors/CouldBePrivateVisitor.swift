@@ -162,12 +162,7 @@ final class CouldBePrivateVisitor: BasePatternVisitor, CrossFilePatternVisitorPr
         }
 
         // Skip types that already have explicit access control
-        let hasExplicitAccess = modifiers.contains { modifier in
-            let text = modifier.name.text
-            return text == "private" || text == "fileprivate"
-                || text == "public" || text == "open" || text == "internal"
-        }
-        guard !hasExplicitAccess else { return }
+        guard !modifiers.hasExplicitAccessControl else { return }
 
         declarations.append((name: name, file: currentFile, node: node))
         declaredTypeNames.insert(name)
