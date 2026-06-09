@@ -5,7 +5,6 @@
 **Identifier:** `Duplicate Struct Shape`
 **Category:** Architecture
 **Severity:** Info *(opt-in)*
-**Status:** Proposed — not yet implemented
 
 ### Rationale
 When several unrelated types declare the same cluster of stored properties — identical
