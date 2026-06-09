@@ -10,22 +10,6 @@ import SwiftSyntax
 class AccessingImplementationDetailsVisitor: BasePatternVisitor {
     private var currentFilePath: String = ""
 
-    private enum ServiceSuffix: String, CaseIterable {
-        case manager = "Manager"
-        case service = "Service"
-        case store = "Store"
-        case provider = "Provider"
-        case client = "Client"
-        case repository = "Repository"
-        case handler = "Handler"
-        case controller = "Controller"
-        case factory = "Factory"
-        case adapter = "Adapter"
-        case viewModel = "ViewModel"
-        case coordinator = "Coordinator"
-        case generator = "Generator"
-    }
-
     required init(pattern: SyntaxPattern, viewMode: SyntaxTreeViewMode = .sourceAccurate) {
         super.init(pattern: pattern, viewMode: viewMode)
     }
@@ -101,7 +85,7 @@ class AccessingImplementationDetailsVisitor: BasePatternVisitor {
     /// Returns the name if it starts uppercase and ends with a service-like suffix, else nil.
     private func qualifyingServiceName(_ name: String) -> String? {
         guard name.first?.isUppercase == true,
-              ServiceSuffix.allCases.contains(where: { name.hasSuffix($0.rawValue) })
+              ServiceTypeSuffix.matches(name)
         else { return nil }
         return name
     }

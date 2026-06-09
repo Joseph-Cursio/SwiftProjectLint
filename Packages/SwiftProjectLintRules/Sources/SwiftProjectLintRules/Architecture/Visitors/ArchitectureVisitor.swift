@@ -160,7 +160,7 @@ class ArchitectureVisitor: BasePatternVisitor {
                     let callee = expr.calledExpression.description
                         .trimmingCharacters(in: .whitespacesAndNewlines)
                     if callee.first?.isUppercase == true,
-                       ProtocolizableClassSuffix.allCases.contains(where: { callee.hasSuffix($0.rawValue) }) {
+                       ServiceTypeSuffix.matches(callee) {
                         hasStateObjectCreation = true
                         stateObjectType = callee
                     }
@@ -199,30 +199,13 @@ class ArchitectureVisitor: BasePatternVisitor {
         )
     }
 
-    /// Enum representing class name suffixes that typically indicate a service, manager, or similar type that should have a protocol for testability and flexibility.
-    enum ProtocolizableClassSuffix: String, CaseIterable {
-        case manager = "Manager"
-        case service = "Service"
-        case store = "Store"
-        case provider = "Provider"
-        case client = "Client"
-        case coordinator = "Coordinator"
-        case repository = "Repository"
-        case handler = "Handler"
-        case controller = "Controller"
-        case factory = "Factory"
-        case adapter = "Adapter"
-        case viewModel = "ViewModel"
-        case generator = "Generator"
-    }
-
     /**
-     Checks if a class declaration matches any of the protocolizable suffixes defined in ProtocolizableClassSuffix and, if it also conforms to ObservableObject, suggests defining a protocol for better testability.
+     Checks if a class declaration matches any of the service-type suffixes defined in ``ServiceTypeSuffix`` and, if it also conforms to ObservableObject, suggests defining a protocol for better testability.
      */
     private func detectMissingProtocols(_ node: ClassDeclSyntax) {
         let className = node.name.text
         // Check if this looks like a service/manager class that should have a protocol
-        let matchesSuffix = ProtocolizableClassSuffix.allCases.contains { className.hasSuffix($0.rawValue) }
+        let matchesSuffix = ServiceTypeSuffix.matches(className)
         if matchesSuffix {
             // Check if it conforms to ObservableObject
             let hasObservableObject = node.inheritanceClause?.inheritedTypes.contains { type in

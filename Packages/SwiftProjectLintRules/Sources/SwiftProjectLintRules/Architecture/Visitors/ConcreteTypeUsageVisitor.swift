@@ -20,26 +20,6 @@ class ConcreteTypeUsageVisitor: BasePatternVisitor {
     /// Whether the visitor is currently inside an initializer body.
     private var isInsideInitializer: Bool = false
 
-    private enum ServiceSuffix: String, CaseIterable {
-        case manager = "Manager"
-        case service = "Service"
-        case store = "Store"
-        case provider = "Provider"
-        case client = "Client"
-        case repository = "Repository"
-        case handler = "Handler"
-        case controller = "Controller"
-        case factory = "Factory"
-        case adapter = "Adapter"
-        case viewModel = "ViewModel"
-        case coordinator = "Coordinator"
-        case generator = "Generator"
-        case analyzer = "Analyzer"
-        case simulator = "Simulator"
-        case engine = "Engine"
-        case checker = "Checker"
-    }
-
     /// Foundation / system types that are concrete by design and cannot
     /// reasonably be protocol-abstracted.
     private static let systemConcreteTypes: Set<String> = [
@@ -133,7 +113,7 @@ class ConcreteTypeUsageVisitor: BasePatternVisitor {
     /// Returns the name if it's service-like and not a protocol indicator, else nil.
     private func qualifying(_ name: String) -> String? {
         guard name.first?.isUppercase == true,
-              ServiceSuffix.allCases.contains(where: { name.hasSuffix($0.rawValue) }),
+              ServiceTypeSuffix.matches(name),
               !name.hasSuffix("Protocol"),
               !name.hasSuffix("Type"),
               !name.hasSuffix("Interface")

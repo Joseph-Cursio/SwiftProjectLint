@@ -10,22 +10,6 @@ class DirectInstantiationVisitor: BasePatternVisitor {
     private var currentFilePath: String = ""
     private var insideFunctionOrClosure = 0
 
-    private enum ServiceSuffix: String, CaseIterable {
-        case manager = "Manager"
-        case service = "Service"
-        case store = "Store"
-        case provider = "Provider"
-        case client = "Client"
-        case repository = "Repository"
-        case handler = "Handler"
-        case controller = "Controller"
-        case factory = "Factory"
-        case adapter = "Adapter"
-        case viewModel = "ViewModel"
-        case coordinator = "Coordinator"
-        case generator = "Generator"
-    }
-
     required init(pattern: SyntaxPattern, viewMode: SyntaxTreeViewMode = .sourceAccurate) {
         super.init(pattern: pattern, viewMode: viewMode)
     }
@@ -40,7 +24,7 @@ class DirectInstantiationVisitor: BasePatternVisitor {
         guard let call = expr.as(FunctionCallExprSyntax.self) else { return nil }
         let callee = call.calledExpression.description.trimmingCharacters(in: .whitespaces)
         guard callee.first?.isUppercase == true,
-              ServiceSuffix.allCases.contains(where: { callee.hasSuffix($0.rawValue) }) else { return nil }
+              ServiceTypeSuffix.matches(callee) else { return nil }
         return callee
     }
 

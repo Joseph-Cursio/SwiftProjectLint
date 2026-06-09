@@ -142,4 +142,25 @@ struct ArchitectureDirectInstantiationTests {
         let directIssues = issues.filter { $0.ruleName == .directInstantiation }
         #expect(directIssues.count == 2)
     }
+
+    // MARK: - Service-suffix coverage (regression for ServiceSuffix divergence)
+
+    /// `Analyzer`/`Simulator`/`Engine`/`Checker` were added to the canonical
+    /// suffix set in `ConcreteTypeUsage` but never propagated to the other
+    /// architecture rules, which each held a private copy. After consolidating
+    /// onto `ServiceTypeSuffix`, this rule must detect them too.
+    @Test("Detects direct instantiation of newly-restored service suffixes", arguments: [
+        "PaymentEngine", "RiskAnalyzer", "FlightSimulator", "SpellChecker"
+    ])
+    func testDetectsRestoredServiceSuffixes(typeName: String) throws {
+        let source = """
+        class Owner {
+            let dependency = \(typeName)()
+        }
+        """
+        let issues = analyzeSource(source)
+        let directIssues = issues.filter { $0.ruleName == .directInstantiation }
+        let issue = try #require(directIssues.first)
+        #expect(issue.message.contains(typeName))
+    }
 }
