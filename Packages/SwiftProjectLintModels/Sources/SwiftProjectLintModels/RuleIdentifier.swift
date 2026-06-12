@@ -55,6 +55,7 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
     case unusedProtocolAbstraction = "Unused Protocol Abstraction"
     case couldAdoptProtocol = "Could Adopt Protocol"
     case subclassedForMocking = "Subclassed For Mocking"
+    case unabstractedFileIO = "Unabstracted File IO"
     case computedPropertyView = "Computed Property View"
     case swiftDataUniqueAttributeCloudKit = "SwiftData Unique Attribute CloudKit"
     case godViewModel = "God View Model"
@@ -245,6 +246,7 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
              .duplicateStructShape, .unusedProtocolAbstraction,
              .couldAdoptProtocol,
              .subclassedForMocking,
+             .unabstractedFileIO,
              .computedPropertyView,
              .swiftDataUniqueAttributeCloudKit, .godViewModel,
              .viewModelDirectDBAccess, .circularDependency,

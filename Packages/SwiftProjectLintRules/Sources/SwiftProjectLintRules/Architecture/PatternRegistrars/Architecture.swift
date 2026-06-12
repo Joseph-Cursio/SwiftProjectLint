@@ -104,6 +104,7 @@ class Architecture: BasePatternRegistrar {
             UnusedProtocolAbstraction(),
             CouldAdoptProtocol(),
             SubclassedForMocking(),
+            UnabstractedFileIO(),
             SwiftDataUniqueAttribute(),
             GodViewModel(),
             ViewModelDirectDBAccess(),
