@@ -4,7 +4,7 @@
 
 **Identifier:** `Unused Protocol Abstraction`
 **Category:** Architecture
-**Severity:** Info *(opt-in)*
+**Severity:** Info
 
 ### Rationale
 A protocol earns its keep by being *used* — as a generic constraint, an existential
@@ -37,10 +37,17 @@ Refinement and extension count as uses deliberately: a protocol that backs a ref
 hierarchy (`protocol Q: P`) or carries default implementations (`extension P { … }`) is
 providing value even without a direct existential, so it is kept.
 
+Matching is scoped by visibility. A `private`/`fileprivate` protocol is invisible outside
+its declaring file, so only conformers and uses **in that same file** are credited to it —
+a same-named, unrelated type referenced in another file can no longer mask it (a false
+negative the earlier name-global matching allowed). `internal` and `public` protocols stay
+name-global: AST-only analysis can't resolve modules, and within one module a same-named
+reference plausibly *is* the protocol, so crediting it is the safe choice.
+
 #### Known limitations
-- **Cross-module blindness.** If the protocol is consumed by code in another module not
-  included in the analysis, the rule cannot see that use and may report a false positive.
-  This is why the rule is `Info` and opt-in.
+- **Cross-module blindness.** If a non-file-private protocol is consumed by code in another
+  module not included in the analysis, the rule cannot see that use and may report a false
+  positive. This is why the rule's severity is `Info` rather than `Warning`.
 - A protocol used *only* in a refinement chain that itself is unused is still considered
   used (the refinement counts), so a fully dead refinement hierarchy is not reported.
 
