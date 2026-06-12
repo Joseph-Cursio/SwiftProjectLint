@@ -177,6 +177,7 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
     // Memory Management Rules
     case potentialRetainCycle = "Potential Retain Cycle"
     case largeObjectInState = "Large Object in State"
+    case unsafeMemoryAPI = "Unsafe Memory API"
 
     // Networking Rules
     case missingErrorHandling = "Missing Error Handling"
@@ -292,7 +293,7 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
             return .accessibility
 
             // Memory Management Rules
-        case .potentialRetainCycle, .largeObjectInState:
+        case .potentialRetainCycle, .largeObjectInState, .unsafeMemoryAPI:
             return .memoryManagement
 
             // Networking Rules

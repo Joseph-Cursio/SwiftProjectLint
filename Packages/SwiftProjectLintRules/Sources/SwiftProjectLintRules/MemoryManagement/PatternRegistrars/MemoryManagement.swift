@@ -26,6 +26,18 @@ class MemoryManagement: BasePatternRegistrar {
                 messageTemplate: "Large object stored in state: {objectType}",
                 suggestion: "Consider using @StateObject or moving to a separate model",
                 description: "Detects large objects that might be inefficiently stored in @State"
+            ),
+            SyntaxPattern(
+                name: .unsafeMemoryAPI,
+                visitor: UnsafeMemoryAPIVisitor.self,
+                severity: .info,
+                category: .memoryManagement,
+                messageTemplate: "Unsafe memory API bypasses Swift's memory safety",
+                suggestion: "Keep unsafe memory access localized, commented, and justified; "
+                    + "prefer safe abstractions and confine it to interop or measured hot paths.",
+                description: "Surfaces raw-pointer types, unsafeBitCast/unsafeDowncast, the "
+                    + "withUnsafe… APIs, manual memory rebinding, and Unmanaged — escape "
+                    + "hatches out of Swift's memory safety that should be audited."
             )
         ]
         registry.register(patterns: patterns)

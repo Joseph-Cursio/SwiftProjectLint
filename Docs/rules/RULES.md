@@ -171,6 +171,7 @@ Rules marked **opt-in** are disabled by default and must be explicitly listed un
 | Rule | Severity |
 |------|----------|
 | [Potential Retain Cycle](potential-retain-cycle.md) | Warning |
+| [Unsafe Memory API](unsafe-memory-api.md) | Info |
 | [Large Object in State](large-object-in-state.md) | Info |
 
 ## Networking
