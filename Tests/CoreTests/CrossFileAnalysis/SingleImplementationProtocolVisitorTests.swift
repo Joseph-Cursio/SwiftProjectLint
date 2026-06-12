@@ -321,4 +321,46 @@ struct SingleImplementationProtocolVisitorTests {
         ])
         #expect(issues.isEmpty)
     }
+
+    /// The bare `Protocol` suffix is *not* a DI-intent signal — it is the universal
+    /// naming convention — so a single-conformer `FooProtocol` with no mock is flagged.
+    @Test
+    func protocolSuffixAloneDoesNotSuppress() throws {
+        let issues = analyze(files: [
+            "Protocol.swift": """
+            protocol PaymentProtocol {
+                func charge()
+            }
+            """,
+            "Impl.swift": """
+            struct StripePayment: PaymentProtocol {
+                func charge() { }
+            }
+            """
+        ])
+
+        #expect(issues.count == 1)
+        let issue = try #require(issues.first)
+        #expect(issue.message.contains("PaymentProtocol"))
+    }
+
+    /// A `…ServiceProtocol` name ends in `Protocol`, not the role word `Service`, so
+    /// the role-suffix exemption does not apply and it is flagged.
+    @Test
+    func serviceProtocolSuffixDoesNotSuppress() {
+        let issues = analyze(files: [
+            "Protocol.swift": """
+            protocol AnalyticsServiceProtocol {
+                func track()
+            }
+            """,
+            "Impl.swift": """
+            struct AnalyticsService: AnalyticsServiceProtocol {
+                func track() { }
+            }
+            """
+        ])
+
+        #expect(issues.count == 1)
+    }
 }

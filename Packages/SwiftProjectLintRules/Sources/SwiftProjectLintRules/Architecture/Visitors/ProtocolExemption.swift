@@ -11,8 +11,12 @@ import Foundation
 ///    seam that lets tests substitute a fake. A protocol that mirrors a type 1:1
 ///    or has a single production conformer is the *expected* shape here, not a
 ///    smell — removing it would also remove the testing seam.
-/// 2. **A dependency-injection naming suffix** (`…Protocol`, `…Service`, …).
-///    This signals DI intent even before a second conformer exists.
+/// 2. **A dependency-injection *role* naming suffix** (`…Service`, `…Repository`,
+///    …). A role word signals the author meant the type as a swappable dependency,
+///    so it can justify the abstraction even before a second conformer exists. The
+///    bare `…Protocol` suffix is deliberately *not* in this list: it is the universal
+///    Swift naming convention for protocols, not a role signal, so treating it as
+///    DI intent would exempt essentially every protocol and silence the rule.
 ///
 /// Centralising these keeps the rules from contradicting each other about the same
 /// protocol. Before this type existed, `MirrorProtocol` had no mock awareness, so it
@@ -32,9 +36,14 @@ enum ProtocolExemption {
     /// Conformer-name fragments that mark a type as a test double.
     static let mockMarkers = ["Mock", "Fake", "Stub", "Spy"]
 
-    /// Protocol-name suffixes that imply dependency-injection intent.
+    /// Protocol-name *role* suffixes that imply dependency-injection intent.
+    ///
+    /// The bare `Protocol` suffix is intentionally absent: it is the conventional
+    /// suffix on nearly every protocol (`FooProtocol`), so matching it would exempt
+    /// essentially all protocols and prevent `SingleImplementationProtocol` from ever
+    /// firing. Only role words — which describe a swappable dependency — qualify.
     static let diSuffixes = [
-        "Protocol", "Providing", "Service", "Repository",
+        "Providing", "Service", "Repository",
         "DataSource", "Client", "Networking"
     ]
 
