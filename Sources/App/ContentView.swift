@@ -30,41 +30,47 @@ struct ContentView: View {
     @State private var viewModel = ContentViewModel()
 
     var body: some View {
-        @Bindable var viewModel = viewModel
         NavigationStack {
-            mainStack
-                .frame(minWidth: 600, minHeight: 400)
-                .navigationTitle("Project Linter")
-                .fileImporter(
-                    isPresented: $viewModel.showingDirectoryPicker,
-                    allowedContentTypes: [.folder]
-                ) { result in handleDirectorySelection(result) }
-                .onChange(of: viewModel.ruleExclusions) {
-                    viewModel.updateDirtyState()
-                }
-                .onAppear { wirePatternRegistry() }
-                .onChange(of: systemComponents.patternRegistry != nil) { _, isReady in
-                    if isReady { wirePatternRegistry() }
-                }
-                .onDisappear { viewModel.cancelAnalysis() }
-                .sheet(isPresented: $viewModel.showingConfigDiffPreview) {
-                    configDiffSheet
-                }
-                .alert(
-                    "Couldn’t Save Configuration",
-                    isPresented: Binding(
-                        get: { viewModel.configSaveError != nil },
-                        set: { isPresented in
-                            if isPresented == false { viewModel.configSaveError = nil }
-                        }
-                    ),
-                    presenting: viewModel.configSaveError
-                ) { _ in
-                    Button("OK", role: .cancel) {}
-                } message: { errorMessage in
-                    Text(errorMessage)
-                }
+            decoratedMainStack
         }
+    }
+
+    /// `mainStack` with its navigation chrome, importers, and alerts applied.
+    /// Extracted from `body` so the `NavigationStack` closure stays small.
+    private var decoratedMainStack: some View {
+        @Bindable var viewModel = viewModel
+        return mainStack
+            .frame(minWidth: 600, minHeight: 400)
+            .navigationTitle("Project Linter")
+            .fileImporter(
+                isPresented: $viewModel.showingDirectoryPicker,
+                allowedContentTypes: [.folder]
+            ) { result in handleDirectorySelection(result) }
+            .onChange(of: viewModel.ruleExclusions) {
+                viewModel.updateDirtyState()
+            }
+            .onAppear { wirePatternRegistry() }
+            .onChange(of: systemComponents.patternRegistry != nil) { _, isReady in
+                if isReady { wirePatternRegistry() }
+            }
+            .onDisappear { viewModel.cancelAnalysis() }
+            .sheet(isPresented: $viewModel.showingConfigDiffPreview) {
+                configDiffSheet
+            }
+            .alert(
+                "Couldn’t Save Configuration",
+                isPresented: Binding(
+                    get: { viewModel.configSaveError != nil },
+                    set: { isPresented in
+                        if isPresented == false { viewModel.configSaveError = nil }
+                    }
+                ),
+                presenting: viewModel.configSaveError
+            ) { _ in
+                Button("OK", role: .cancel) {}
+            } message: { errorMessage in
+                Text(errorMessage)
+            }
     }
 
     private var mainStack: some View {

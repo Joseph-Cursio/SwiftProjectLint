@@ -100,7 +100,7 @@ final class VariableShadowingVisitor: BasePatternVisitor {
     // `CodeBlockSyntax`), so without this its `let`s would register in the
     // enclosing function scope and falsely shadow declarations in *sibling*
     // cases. Each case is its own lexical scope.
-    override func visit(_ node: SwitchCaseSyntax) -> SyntaxVisitorContinueKind {
+    override func visit(_: SwitchCaseSyntax) -> SyntaxVisitorContinueKind {
         scopeStack.append(ScopeFrame(kind: .switchCase))
         return .visitChildren
     }

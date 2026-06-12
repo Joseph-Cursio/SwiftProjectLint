@@ -141,7 +141,7 @@ struct ArchitectureConcreteTypeUsageTests {
         #expect(concreteIssues.contains { $0.message.contains("ImpactSimulator") })
     }
 
-    @Test func testDetectsEngineAndCheckerSuffixes() throws {
+    @Test func testDetectsEngineAndCheckerSuffixes() {
         let source = """
         class Owner {
             func run(engine: YAMLConfigurationEngine, checker: VersionChecker) { }

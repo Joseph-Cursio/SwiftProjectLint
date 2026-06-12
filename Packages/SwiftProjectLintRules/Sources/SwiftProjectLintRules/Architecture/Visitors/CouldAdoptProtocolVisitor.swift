@@ -161,6 +161,7 @@ final class CouldAdoptProtocolVisitor: CrossFileVisitorBase, CrossFilePatternVis
         switch accessorBlock.accessors {
         case .getter:
             return true
+
         case .accessors(let list):
             return list.contains { ["get", "set"].contains($0.accessorSpecifier.text) }
         }

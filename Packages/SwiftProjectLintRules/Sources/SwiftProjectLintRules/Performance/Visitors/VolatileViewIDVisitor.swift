@@ -37,7 +37,7 @@ final class VolatileViewIDVisitor: BasePatternVisitor {
     }
 
     // Start each file with a clean slate even if the visitor instance is reused.
-    override func visit(_ node: SourceFileSyntax) -> SyntaxVisitorContinueKind {
+    override func visit(_: SourceFileSyntax) -> SyntaxVisitorContinueKind {
         mutatedNames.removeAll()
         idSites.removeAll()
         return .visitChildren
@@ -80,7 +80,7 @@ final class VolatileViewIDVisitor: BasePatternVisitor {
 
     // Both name sets are fully populated once the whole file has been walked,
     // so correlate here rather than relying on declaration-before-use order.
-    override func visitPost(_ node: SourceFileSyntax) {
+    override func visitPost(_: SourceFileSyntax) {
         for site in idSites where mutatedNames.contains(site.name) {
             addIssue(
                 severity: .warning,

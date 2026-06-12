@@ -65,38 +65,41 @@ final class FireAndForgetTaskVisitor: BasePatternVisitor {
         // Pattern: let task = Task { ... }
         if parent.is(InitializerClauseSyntax.self) { return true }
 
-        // Pattern: Task { ... }.value  /  Task { ... }.result
-        if let member = parent.as(MemberAccessExprSyntax.self) {
-            let name = member.declName.baseName.text
-            if name == "value" || name == "result" { return true }
-        }
-
-        // Walk up to the enclosing statement, looking for a consumer.
+        // Walk up to the enclosing statement, looking for a consumer. The first
+        // iteration covers `parent`, so the direct `.value`/`.result` case is
+        // handled here too rather than as a separate pre-loop check.
         var current: Syntax? = parent
         while let ancestor = current {
-            // Task { ... }.value / .result, possibly behind try/await wrappers.
-            if let member = ancestor.as(MemberAccessExprSyntax.self) {
-                let name = member.declName.baseName.text
-                if name == "value" || name == "result" { return true }
-            }
-
-            // Pattern: `existingHandle = Task { ... }` (handle stored on a
-            // property or existing variable, e.g. `analysisTask = Task { }`).
-            // Unfolded parse trees model this as a SequenceExpr containing an
-            // AssignmentExpr; folded trees as an InfixOperatorExpr with `=`.
-            if let sequence = ancestor.as(SequenceExprSyntax.self),
-               sequence.elements.contains(where: { $0.is(AssignmentExprSyntax.self) }) {
-                return true
-            }
-            if let infix = ancestor.as(InfixOperatorExprSyntax.self),
-               infix.operator.is(AssignmentExprSyntax.self) {
-                return true
-            }
-
+            if isValueOrResultAccess(ancestor) { return true }
+            if isHandleAssignment(ancestor) { return true }
             if ancestor.is(CodeBlockItemSyntax.self) { break }
             current = ancestor.parent
         }
 
+        return false
+    }
+
+    /// `Task { ... }.value` / `.result` — the handle's value is consumed,
+    /// possibly behind `try`/`await` wrappers.
+    private func isValueOrResultAccess(_ syntax: Syntax) -> Bool {
+        guard let member = syntax.as(MemberAccessExprSyntax.self) else { return false }
+        let name = member.declName.baseName.text
+        return name == "value" || name == "result"
+    }
+
+    /// `existingHandle = Task { ... }` — handle stored on a property or existing
+    /// variable (e.g. `analysisTask = Task { }`). Unfolded parse trees model this
+    /// as a SequenceExpr containing an AssignmentExpr; folded trees as an
+    /// InfixOperatorExpr with `=`.
+    private func isHandleAssignment(_ syntax: Syntax) -> Bool {
+        if let sequence = syntax.as(SequenceExprSyntax.self),
+           sequence.elements.contains(where: { $0.is(AssignmentExprSyntax.self) }) {
+            return true
+        }
+        if let infix = syntax.as(InfixOperatorExprSyntax.self),
+           infix.operator.is(AssignmentExprSyntax.self) {
+            return true
+        }
         return false
     }
 }

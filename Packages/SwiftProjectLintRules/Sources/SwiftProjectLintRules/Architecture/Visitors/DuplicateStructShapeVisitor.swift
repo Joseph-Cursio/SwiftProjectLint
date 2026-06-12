@@ -135,6 +135,7 @@ final class DuplicateStructShapeVisitor: CrossFileVisitorBase, CrossFilePatternV
         switch accessorBlock.accessors {
         case .getter:
             return true        // single-expression computed getter
+
         case .accessors(let list):
             return list.contains { ["get", "set"].contains($0.accessorSpecifier.text) }
         }
@@ -172,15 +173,15 @@ final class DuplicateStructShapeVisitor: CrossFileVisitorBase, CrossFilePatternV
         }
         func union(_ lhs: Int, _ rhs: Int) { parent[find(lhs)] = find(rhs) }
 
-        for i in shapes.indices {
-            for j in (i + 1)..<shapes.count
-            where shapes[i].signatures.intersection(shapes[j].signatures).count >= Self.minimumShared {
-                union(i, j)
+        for lhsIndex in shapes.indices {
+            for rhsIndex in (lhsIndex + 1)..<shapes.count
+            where shapes[lhsIndex].signatures.intersection(shapes[rhsIndex].signatures).count >= Self.minimumShared {
+                union(lhsIndex, rhsIndex)
             }
         }
 
         var clusters: [Int: [Int]] = [:]
-        for i in shapes.indices { clusters[find(i), default: []].append(i) }
+        for index in shapes.indices { clusters[find(index), default: []].append(index) }
 
         for indices in clusters.values where indices.count >= Self.minimumClusterSize {
             let members = indices.map { shapes[$0] }

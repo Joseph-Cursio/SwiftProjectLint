@@ -258,5 +258,4 @@ struct SyntaxHelpersCoverageTests {
         // Exercising the code path is the goal; no specific assertion needed
         _ = issues
     }
-
 }
