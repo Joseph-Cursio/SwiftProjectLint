@@ -46,12 +46,17 @@ final class SingleImplementationProtocolVisitor: CrossFileVisitorBase, CrossFile
             return .visitChildren
         }
 
-        // Skip public/open protocols (library API, intended for external conformance)
+        // Skip public/open protocols in library targets — they are API intended for
+        // external conformance, so a missing in-project conformer is expected. In an
+        // executable/app target there are no external consumers, so a public protocol
+        // is just as suspect as an internal one and is still analyzed.
         let hasPublicAccess = node.modifiers.contains { modifier in
             let text = modifier.name.text
             return text == "public" || text == "open"
         }
-        guard !hasPublicAccess else { return .visitChildren }
+        if hasPublicAccess, !isInExecutableTarget(currentFilePath) {
+            return .visitChildren
+        }
 
         let name = node.name.text
         declarations.append(ProtocolDeclaration(name: name, file: currentFilePath, node: Syntax(node)))
@@ -99,6 +104,13 @@ final class SingleImplementationProtocolVisitor: CrossFileVisitorBase, CrossFile
 
     override func visitPost(_ _: ActorDeclSyntax) {
         currentTypeName = nil
+    }
+
+    /// True when `filePath` lives under one of the project's executable-target source
+    /// roots (e.g. `Sources/CLI/`). Empty `executableSourcePaths` (the default, and the
+    /// case in unit tests) means no path matches, preserving the library-style skip.
+    private func isInExecutableTarget(_ filePath: String) -> Bool {
+        executableSourcePaths.contains { filePath.contains($0) }
     }
 
     private func recordConformances(from inheritanceClause: InheritanceClauseSyntax?) {

@@ -7,7 +7,10 @@ import Testing
 @Suite
 struct SingleImplementationProtocolVisitorTests {
 
-    private func analyze(files: [String: String]) -> [LintIssue] {
+    private func analyze(
+        files: [String: String],
+        executablePaths: [String] = []
+    ) -> [LintIssue] {
         var cache: [String: SourceFileSyntax] = [:]
         for (name, source) in files {
             cache[name] = Parser.parse(source: source)
@@ -15,6 +18,7 @@ struct SingleImplementationProtocolVisitorTests {
         let pattern = SingleImplementationProtocol().pattern
         let visitor = SingleImplementationProtocolVisitor(fileCache: cache)
         visitor.setPattern(pattern)
+        visitor.executableSourcePaths = executablePaths
 
         for (name, ast) in cache {
             visitor.setFilePath(name)
@@ -125,6 +129,54 @@ struct SingleImplementationProtocolVisitorTests {
             }
             """
         ])
+
+        #expect(issues.isEmpty)
+    }
+
+    /// A public protocol in an executable/app target has no external consumers,
+    /// so the library-API exemption does not apply and it is still flagged.
+    @Test
+    func publicProtocolInExecutableTargetFlags() throws {
+        let issues = analyze(
+            files: [
+                "Sources/CLI/Protocol.swift": """
+                public protocol Runnable {
+                    func run()
+                }
+                """,
+                "Sources/CLI/Impl.swift": """
+                struct Runner: Runnable {
+                    func run() { }
+                }
+                """
+            ],
+            executablePaths: ["Sources/CLI/"]
+        )
+
+        #expect(issues.count == 1)
+        let issue = try #require(issues.first)
+        #expect(issue.message.contains("Runnable"))
+    }
+
+    /// The same public protocol in a library target (not under an executable path)
+    /// stays exempt.
+    @Test
+    func publicProtocolInLibraryTargetClean() {
+        let issues = analyze(
+            files: [
+                "Sources/MyLib/Protocol.swift": """
+                public protocol Runnable {
+                    func run()
+                }
+                """,
+                "Sources/MyLib/Impl.swift": """
+                struct Runner: Runnable {
+                    func run() { }
+                }
+                """
+            ],
+            executablePaths: ["Sources/CLI/"]
+        )
 
         #expect(issues.isEmpty)
     }

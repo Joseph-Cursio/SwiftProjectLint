@@ -19,6 +19,12 @@ public protocol CrossFileAnalyzerProtocol: AnyObject {
     /// `LintConfiguration.enabledFrameworkAllowlists` before analysis.
     var enabledFrameworkAllowlists: Set<String>? { get set }
 
+    /// Source-relative path prefixes of executable targets, set by `ProjectLinter`
+    /// from `ExecutableTargetDetector` and forwarded to each cross-file visitor.
+    /// Lets rules distinguish app-target declarations (no external consumers) from
+    /// library API.
+    var executableSourcePaths: [String] { get set }
+
     /// Detects cross-file patterns filtered by category.
     func detectCrossFilePatterns(
         projectFiles: [ProjectFile],

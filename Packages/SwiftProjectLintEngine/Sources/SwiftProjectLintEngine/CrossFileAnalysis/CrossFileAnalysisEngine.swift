@@ -27,6 +27,11 @@ public class CrossFileAnalysisEngine: CrossFileAnalyzerProtocol {
     /// it walks. `nil` means "all known frameworks active."
     public var enabledFrameworkAllowlists: Set<String>?
 
+    /// Source-relative path prefixes of executable targets, forwarded to each
+    /// cross-file visitor before it walks. Set by `ProjectLinter` from
+    /// `ExecutableTargetDetector`. Empty means "no app targets known."
+    public var executableSourcePaths: [String] = []
+
     /// Initializes a new SwiftSyntax pattern detector.
     ///
     /// - Parameter registry: The pattern visitor registry to use. Defaults to the shared registry.
@@ -111,6 +116,7 @@ public class CrossFileAnalysisEngine: CrossFileAnalyzerProtocol {
             baseVisitor.setPattern(pattern)
         }
         baseVisitor.enabledFrameworkAllowlists = enabledFrameworkAllowlists
+        baseVisitor.executableSourcePaths = executableSourcePaths
     }
 
     /// Detects patterns across multiple Swift files using specific rule identifiers.
@@ -151,6 +157,7 @@ public class CrossFileAnalysisEngine: CrossFileAnalyzerProtocol {
                 if let baseVisitor = visitor as? BasePatternVisitor {
                     baseVisitor.setPattern(pattern)
                     baseVisitor.enabledFrameworkAllowlists = enabledFrameworkAllowlists
+                    baseVisitor.executableSourcePaths = executableSourcePaths
                 }
                 for (fileName, sourceFile) in fileCache {
                     if let baseVisitor = visitor as? BasePatternVisitor {

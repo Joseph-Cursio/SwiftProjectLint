@@ -60,6 +60,13 @@ open class BasePatternVisitor: SyntaxVisitor, PatternVisitorProtocol {
     /// `HeuristicEffectInferrer.infer(call:imports:enabledFrameworks:)`.
     public var enabledFrameworkAllowlists: Set<String>?
 
+    /// Source-relative path prefixes of executable/app targets (e.g. `"Sources/CLI/"`),
+    /// set by `ProjectLinter` from `ExecutableTargetDetector`. Rules use this to tell an
+    /// app-target declaration (no external consumers — `public` there is not a real API
+    /// seam) from genuine library API. Empty by default, so nothing is treated as an
+    /// app target unless explicitly populated.
+    public var executableSourcePaths: [String] = []
+
     /// Placeholder pattern used for cross-file visitors that set their pattern after initialization.
     public static let placeholderPattern = SyntaxPattern(
         name: .unknown,
