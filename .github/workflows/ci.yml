@@ -22,6 +22,16 @@ jobs:
       - name: Test
         run: swift test --parallel
 
+      # Run the linter on its own source as one unit. --include-nested-packages
+      # pulls in every first-party package under Packages/ so cross-file rules
+      # (e.g. unusedProtocolAbstraction) span the package boundary. Reuses the
+      # debug build from the Build step. Gated at `error`: the project is clean
+      # of errors today, so this passes now and fails CI only when a new
+      # error-severity issue is introduced. All findings still print for
+      # visibility; tighten the threshold once the warning backlog is cleared.
+      - name: Self-lint (whole project)
+        run: swift run CLI . --include-nested-packages --threshold error
+
   doc-drift:
     name: Doc-drift check
     runs-on: ubuntu-latest
