@@ -109,4 +109,43 @@ struct UnusedProtocolAbstractionVisitorTests {
         // `Base` is used via `Extended`'s refinement; `Extended` is used as an existential.
         #expect(issues.isEmpty)
     }
+
+    /// A file-scoped (`fileprivate`) dead protocol is flagged even when an unrelated
+    /// same-named type is used as a type in another file — that homonym cannot refer
+    /// to the file-scoped protocol, so it no longer masks it.
+    @Test
+    func fileScopedProtocolNotMaskedByHomonymInAnotherFile() throws {
+        let issues = analyze(files: [
+            "A.swift": """
+            fileprivate protocol Identity { var id: String { get } }
+            struct A: Identity { let id: String }
+            """,
+            "B.swift": """
+            struct Identity { let id: String }
+            func use(_ value: Identity) { _ = value.id }
+            """
+        ])
+
+        #expect(issues.count == 1)
+        let issue = try #require(issues.first)
+        #expect(issue.message.contains("Identity"))
+    }
+
+    /// Internal protocols remain name-global: AST-only analysis can't resolve modules,
+    /// and within a single module a same-named reference plausibly *is* the protocol,
+    /// so a use elsewhere still counts. Documents the deliberate scope boundary.
+    @Test
+    func internalProtocolStaysGloballyScoped() {
+        let issues = analyze(files: [
+            "A.swift": """
+            protocol Identity { var id: String { get } }
+            struct A: Identity { let id: String }
+            """,
+            "B.swift": """
+            func use(_ value: Identity) { _ = value }
+            """
+        ])
+
+        #expect(issues.isEmpty)
+    }
 }

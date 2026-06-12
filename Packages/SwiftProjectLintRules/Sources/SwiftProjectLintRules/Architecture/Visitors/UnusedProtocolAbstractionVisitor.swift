@@ -23,20 +23,30 @@ final class UnusedProtocolAbstractionVisitor: CrossFileVisitorBase, CrossFilePat
         let name: String
         let file: String
         let line: Int
+        /// `private`/`fileprivate` protocols are invisible outside their declaring file,
+        /// so conformers and uses are only credited from that same file. This avoids a
+        /// same-named type in another file masking a genuinely dead file-scoped protocol.
+        let isFileScoped: Bool
     }
 
     private var declaredProtocols: [ProtocolDecl] = []
-    private var conformerCounts: [String: Int] = [:]
-    /// Protocol names referenced as a type in a non-conformance position.
-    private var typeUses: Set<String> = []
+    /// Protocol name → files containing a concrete conformance to it.
+    private var conformerFiles: [String: [String]] = [:]
+    /// Protocol name → files referencing it as a type in a non-conformance position.
+    private var useFiles: [String: Set<String>] = [:]
 
     // MARK: - Phase 1: collect
 
     override func visit(_ node: ProtocolDeclSyntax) -> SyntaxVisitorContinueKind {
+        let isFileScoped = node.modifiers.contains { modifier in
+            let text = modifier.name.text
+            return text == "private" || text == "fileprivate"
+        }
         declaredProtocols.append(ProtocolDecl(
             name: node.name.text,
             file: currentFilePath,
-            line: getLineNumber(for: Syntax(node))
+            line: getLineNumber(for: Syntax(node)),
+            isFileScoped: isFileScoped
         ))
         return .visitChildren
     }
@@ -44,9 +54,9 @@ final class UnusedProtocolAbstractionVisitor: CrossFileVisitorBase, CrossFilePat
     override func visit(_ node: IdentifierTypeSyntax) -> SyntaxVisitorContinueKind {
         let name = node.name.text
         if isConcreteConformancePosition(Syntax(node)) {
-            conformerCounts[name, default: 0] += 1
+            conformerFiles[name, default: []].append(currentFilePath)
         } else {
-            typeUses.insert(name)
+            useFiles[name, default: []].insert(currentFilePath)
         }
         return .visitChildren
     }
@@ -70,8 +80,19 @@ final class UnusedProtocolAbstractionVisitor: CrossFileVisitorBase, CrossFilePat
 
     func finalizeAnalysis() {
         for proto in declaredProtocols {
-            let conformers = conformerCounts[proto.name] ?? 0
-            guard conformers >= 1, typeUses.contains(proto.name) == false else { continue }
+            let conformanceFiles = conformerFiles[proto.name] ?? []
+            let referencingFiles = useFiles[proto.name] ?? []
+
+            // A file-scoped protocol only "sees" conformers and uses in its own file;
+            // a same-named reference elsewhere cannot refer to it.
+            let conformers = proto.isFileScoped
+                ? conformanceFiles.filter { $0 == proto.file }.count
+                : conformanceFiles.count
+            let isUsed = proto.isFileScoped
+                ? referencingFiles.contains(proto.file)
+                : referencingFiles.isEmpty == false
+
+            guard conformers >= 1, isUsed == false else { continue }
             let suffix = conformers == 1 ? "type" : "types"
             addIssue(
                 severity: .info,
