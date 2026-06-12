@@ -195,6 +195,23 @@ struct ProjectLinterTests {
         #expect(issues.contains { $0.ruleName == .unusedProtocolAbstraction })
     }
 
+    /// End-to-end: the `@Observable` pre-scan must reach `ConcreteTypeUsage` so an
+    /// observable model referenced outside a view is not nudged toward a protocol, while
+    /// a plain service in the same project still is. Proves the collector → visitor wiring.
+    @Test func testConcreteTypeUsageExemptsObservableModelEndToEnd() async {
+        let root = makeProjectWithObservableAndPlainService()
+        let linter = ProjectLinter()
+        let system = PatternRegistryFactory.createConfiguredSystem()
+
+        let issues = await linter.analyzeProject(at: root, detector: system.detector)
+        let concrete = issues.filter { $0.ruleName == .concreteTypeUsage }
+
+        // The @Observable model is exempt...
+        #expect(concrete.contains { $0.message.contains("SessionStore") } == false)
+        // ...but the plain service is still flagged (rule is active, exemption is targeted).
+        #expect(concrete.contains { $0.message.contains("PlainService") })
+    }
+
     /// A protocol that is conformed to but never used as a type — flagged by
     /// `unusedProtocolAbstraction` once the rule is in scope.
     private static let deadProtocolSource = """
@@ -217,6 +234,35 @@ struct ProjectLinterTests {
     private func makeSinglePackageWithDeadProtocol() -> String {
         let root = makeTempPackageRoot(named: "SinglePackage")
         writeFile(at: "\(root)/Sources/Root/Root.swift", Self.deadProtocolSource)
+        return root
+    }
+
+    /// Package with an `@Observable` model and a plain service, each referenced as a
+    /// stored property in a non-view coordinator. Exercises the observable exemption
+    /// (SessionStore) against the active rule (PlainService).
+    private func makeProjectWithObservableAndPlainService() -> String {
+        let root = makeTempPackageRoot(named: "ObservableExemption")
+        writeFile(at: "\(root)/Sources/Root/SessionStore.swift", """
+        @Observable
+        final class SessionStore {
+            var token = ""
+        }
+        """)
+        writeFile(at: "\(root)/Sources/Root/PlainService.swift", """
+        final class PlainService {
+            func run() { }
+        }
+        """)
+        writeFile(at: "\(root)/Sources/Root/Coordinator.swift", """
+        final class Coordinator {
+            var session: SessionStore
+            var service: PlainService
+            init(session: SessionStore, service: PlainService) {
+                self.session = session
+                self.service = service
+            }
+        }
+        """)
         return root
     }
 

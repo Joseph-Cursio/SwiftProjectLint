@@ -43,6 +43,13 @@ open class BasePatternVisitor: SyntaxVisitor, PatternVisitorProtocol {
     /// the project ("yours to fix") from external library types.
     public var knownLocalTypeNames: Set<String> = []
 
+    /// Type names known to participate in SwiftUI observation — `@Observable`
+    /// classes or `ObservableObject` conformers. Populated by a pre-scan phase in
+    /// `ProjectLinter` so that per-file visitors can exempt them from "prefer a
+    /// protocol abstraction" suggestions. Protocol-abstracting an observable model
+    /// severs SwiftUI's observation tracking, so the concrete type is load-bearing.
+    public var knownObservableTypes: Set<String> = []
+
     /// Architectural layer policies for the Architectural Boundary rule.
     /// Injected by `SourcePatternDetector` after loading from `LintConfiguration`.
     /// Empty by default — the rule is a no-op when no layers are defined.

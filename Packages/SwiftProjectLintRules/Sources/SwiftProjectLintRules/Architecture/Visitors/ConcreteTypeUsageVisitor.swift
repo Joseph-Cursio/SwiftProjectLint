@@ -136,6 +136,12 @@ class ConcreteTypeUsageVisitor: BasePatternVisitor {
         // at every call site. Requires the project-wide actor prescan.
         if knownActorTypes.contains(name) { return nil }
 
+        // @Observable / ObservableObject types — protocol-abstracting a SwiftUI
+        // observation model severs change tracking: through `any SomeProtocol` the view
+        // can no longer see the concrete observable storage and stops re-rendering. The
+        // concrete type is load-bearing. Requires the project-wide observable prescan.
+        if knownObservableTypes.contains(name) { return nil }
+
         return name
     }
 

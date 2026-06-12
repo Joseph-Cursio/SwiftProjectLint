@@ -18,7 +18,12 @@ final class CouldAdoptProtocolVisitor: CrossFileVisitorBase, CrossFilePatternVis
 
     /// Protocols with fewer requirements than this are too generic to suggest adoption.
     private static let minimumRequirements = 3
-    private static let skippedConformances: Set<String> = ["View", "ViewModifier"]
+
+    /// Conformances that take a type out of scope: SwiftUI views (a structural match
+    /// against a data protocol is coincidental) and `ObservableObject` (an observation
+    /// model must stay concrete so SwiftUI tracking is not severed — see also the
+    /// `@Observable` macro check in `visit(ClassDeclSyntax)`).
+    private static let skippedConformances: Set<String> = ["View", "ViewModifier", "ObservableObject"]
 
     private struct PropertySignature: Hashable {
         let name: String
@@ -73,8 +78,18 @@ final class CouldAdoptProtocolVisitor: CrossFileVisitorBase, CrossFilePatternVis
     }
 
     override func visit(_ node: ClassDeclSyntax) -> SyntaxVisitorContinueKind {
+        // An `@Observable` model must stay concrete — protocol-abstracting it severs
+        // SwiftUI's observation tracking. (`ObservableObject` conformers are handled by
+        // `skippedConformances`; the macro leaves no conformance to match, so check it here.)
+        if hasObservableAttribute(node.attributes) { return .visitChildren }
         recordType(node.name.text, node.memberBlock, node.inheritanceClause, Syntax(node))
         return .visitChildren
+    }
+
+    private func hasObservableAttribute(_ attributes: AttributeListSyntax) -> Bool {
+        attributes.contains { element in
+            element.as(AttributeSyntax.self)?.attributeName.trimmedDescription == "Observable"
+        }
     }
 
     private func recordType(

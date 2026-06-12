@@ -23,6 +23,24 @@ struct ArchitectureConcreteTypeUsageTests {
         return visitor.detectedIssues
     }
 
+    /// Variant that injects the project-wide observable prescan result, the way
+    /// `ProjectLinter` does, so the `@Observable`/`ObservableObject` exemption can be
+    /// exercised at the visitor level.
+    private func analyzeSource(
+        _ source: String,
+        observableTypes: Set<String>,
+        filePath: String = "SourceFile.swift"
+    ) -> [LintIssue] {
+        let visitor = ConcreteTypeUsageVisitor(patternCategory: .architecture)
+        visitor.knownObservableTypes = observableTypes
+        let syntax = Parser.parse(source: source)
+        let converter = SourceLocationConverter(fileName: filePath, tree: syntax)
+        visitor.setSourceLocationConverter(converter)
+        visitor.setFilePath(filePath)
+        visitor.walk(syntax)
+        return visitor.detectedIssues
+    }
+
     // MARK: - Function parameter
 
     @Test func testDetectsConcreteTypeInFunctionParameter() throws {
@@ -151,6 +169,36 @@ struct ArchitectureConcreteTypeUsageTests {
         let concreteIssues = issues.filter { $0.ruleName == .concreteTypeUsage }
         #expect(concreteIssues.contains { $0.message.contains("YAMLConfigurationEngine") })
         #expect(concreteIssues.contains { $0.message.contains("VersionChecker") })
+    }
+
+    // MARK: - @Observable exemption
+
+    /// A property typed as a project `@Observable`/`ObservableObject` model must not be
+    /// nudged toward a protocol — hiding it behind `any P` severs SwiftUI observation.
+    @Test func testNoIssueForObservableTypedProperty() {
+        let source = """
+        final class Coordinator {
+            var session: SessionStore
+            init(session: SessionStore) { self.session = session }
+        }
+        """
+        let issues = analyzeSource(source, observableTypes: ["SessionStore"])
+        let concreteIssues = issues.filter { $0.ruleName == .concreteTypeUsage }
+        #expect(concreteIssues.isEmpty)
+    }
+
+    /// Control: the same `…Store` name with no observable prescan entry is still flagged,
+    /// proving the exemption — not the suffix — is what suppresses the observable case.
+    @Test func testFlagsSameTypeWhenNotObservable() {
+        let source = """
+        final class Coordinator {
+            var session: SessionStore
+            init(session: SessionStore) { self.session = session }
+        }
+        """
+        let issues = analyzeSource(source, observableTypes: [])
+        let concreteIssues = issues.filter { $0.ruleName == .concreteTypeUsage }
+        #expect(concreteIssues.contains { $0.message.contains("SessionStore") })
     }
 
     // MARK: - Non-service value type param — no issue

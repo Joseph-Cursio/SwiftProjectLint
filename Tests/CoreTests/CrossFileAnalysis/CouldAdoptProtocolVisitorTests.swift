@@ -54,6 +54,44 @@ struct CouldAdoptProtocolVisitorTests {
         #expect(issue.message.contains("Identity"))
     }
 
+    /// An `@Observable` class that structurally matches a protocol is not nudged to adopt
+    /// it — protocol-abstracting an observation model would sever SwiftUI tracking.
+    @Test
+    func observableMacroClassNotFlagged() {
+        let issues = analyze(files: [
+            "Models.swift": """
+            \(identityProtocol)
+            @Observable
+            final class Widget {
+                var rawKey: String = ""
+                var name: String = ""
+                var category: String = ""
+                var extra: Int = 0
+            }
+            """
+        ])
+
+        #expect(issues.isEmpty)
+    }
+
+    /// Likewise for a legacy `ObservableObject` conformer (handled via skippedConformances).
+    @Test
+    func observableObjectConformerNotFlagged() {
+        let issues = analyze(files: [
+            "Models.swift": """
+            \(identityProtocol)
+            final class Widget: ObservableObject {
+                var rawKey: String = ""
+                var name: String = ""
+                var category: String = ""
+                var extra: Int = 0
+            }
+            """
+        ])
+
+        #expect(issues.isEmpty)
+    }
+
     /// A type that already conforms is not flagged.
     @Test
     func alreadyConformingIsClean() {
