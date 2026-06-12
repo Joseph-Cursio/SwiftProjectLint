@@ -99,7 +99,6 @@ public struct LintConfiguration: Sendable {
         .testMissingExpect,
         .testMissingRequire,
         .duplicateStructShape,
-        .unusedProtocolAbstraction,
         .couldAdoptProtocol
     ]
 
