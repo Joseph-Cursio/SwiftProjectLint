@@ -161,6 +161,81 @@ struct ProjectLinterTests {
         #expect(nestedWith.contains { $0.ruleName == .forceUnwrap })
     }
 
+    /// `unusedProtocolAbstraction` runs by default, but must auto-suppress when the run
+    /// excludes first-party nested packages — otherwise a protocol consumed only in a
+    /// sibling package looks unused and is falsely flagged. The dead protocol here lives
+    /// in the *root* target (always analyzed), so the only thing changing the verdict is
+    /// whether the rule is suppressed.
+    @Test func testUnusedProtocolAbstractionSuppressedWhenNestedPackagesExcluded() async {
+        let root = makeMonorepoWithRootDeadProtocol()
+        let linter = ProjectLinter()
+        let system = PatternRegistryFactory.createConfiguredSystem()
+
+        let withoutFlag = await linter.analyzeProject(at: root, detector: system.detector)
+        let withFlag = await linter.analyzeProject(
+            at: root,
+            detector: system.detector,
+            configuration: LintConfiguration(includeNestedPackages: true)
+        )
+
+        // Nested package excluded -> incomplete scope -> rule suppressed.
+        #expect(withoutFlag.contains { $0.ruleName == .unusedProtocolAbstraction } == false)
+        // Whole-project scope -> rule runs and flags the root's dead protocol.
+        #expect(withFlag.contains { $0.ruleName == .unusedProtocolAbstraction })
+    }
+
+    /// With no nested packages the scope is always complete, so the rule runs by default.
+    @Test func testUnusedProtocolAbstractionRunsForSinglePackage() async {
+        let root = makeSinglePackageWithDeadProtocol()
+        let linter = ProjectLinter()
+        let system = PatternRegistryFactory.createConfiguredSystem()
+
+        let issues = await linter.analyzeProject(at: root, detector: system.detector)
+
+        #expect(issues.contains { $0.ruleName == .unusedProtocolAbstraction })
+    }
+
+    /// A protocol that is conformed to but never used as a type — flagged by
+    /// `unusedProtocolAbstraction` once the rule is in scope.
+    private static let deadProtocolSource = """
+    protocol Orphanable { var tag: String { get } }
+    struct Widget: Orphanable { let tag = "x" }
+    """
+
+    /// Root Swift package containing a dead protocol, plus a nested first-party package
+    /// (with no protocols of its own) that a default run excludes.
+    private func makeMonorepoWithRootDeadProtocol() -> String {
+        let root = makeTempPackageRoot(named: "Monorepo")
+        writeFile(at: "\(root)/Sources/Root/Root.swift", Self.deadProtocolSource)
+        let child = "\(root)/Packages/Child"
+        writeFile(at: "\(child)/Package.swift", "// swift-tools-version:6.0\n")
+        writeFile(at: "\(child)/Sources/Child/Child.swift", "struct Thing { let value = 1 }\n")
+        return root
+    }
+
+    /// Single Swift package containing a dead protocol and no nested packages.
+    private func makeSinglePackageWithDeadProtocol() -> String {
+        let root = makeTempPackageRoot(named: "SinglePackage")
+        writeFile(at: "\(root)/Sources/Root/Root.swift", Self.deadProtocolSource)
+        return root
+    }
+
+    /// Creates a fresh temp directory with a root `Package.swift` and returns its path.
+    private func makeTempPackageRoot(named: String) -> String {
+        let base = FileManager.default.temporaryDirectory.path
+        let root = (base as NSString).appendingPathComponent("\(named)-\(UUID().uuidString)")
+        writeFile(at: "\(root)/Package.swift", "// swift-tools-version:6.0\n")
+        return root
+    }
+
+    private func writeFile(at path: String, _ content: String) {
+        try? FileManager.default.createDirectory(
+            atPath: (path as NSString).deletingLastPathComponent,
+            withIntermediateDirectories: true
+        )
+        try? content.write(toFile: path, atomically: true, encoding: .utf8)
+    }
+
     /// Builds a Swift-package project whose root has a `Package.swift` and a nested
     /// first-party package under `Packages/Child` containing one obvious violation.
     private func makeNestedPackageProject() -> String {

@@ -24,6 +24,43 @@ struct FileAnalysisUtilsFindSwiftFilesTests {
         try content.write(to: url, atomically: true, encoding: .utf8)
     }
 
+    // MARK: - Nested package detection
+
+    /// A subdirectory with its own Package.swift is reported as a nested package.
+    @Test func containsNestedPackageDetectsSubdirectoryManifest() throws {
+        try withTempDir { root in
+            try touch(root.appendingPathComponent("Package.swift"), content: "// root")
+            try touch(root.appendingPathComponent("Sources/App/Main.swift"))
+            let child = root.appendingPathComponent("Packages/Child")
+            try touch(child.appendingPathComponent("Package.swift"), content: "// child")
+            try touch(child.appendingPathComponent("Sources/Child/Child.swift"))
+
+            #expect(FileAnalysisUtils.containsNestedPackage(in: root.path))
+        }
+    }
+
+    /// A flat project whose only manifest is at the root has no nested packages.
+    @Test func containsNestedPackageIgnoresRootManifest() throws {
+        try withTempDir { root in
+            try touch(root.appendingPathComponent("Package.swift"), content: "// root")
+            try touch(root.appendingPathComponent("Sources/App/Main.swift"))
+
+            #expect(FileAnalysisUtils.containsNestedPackage(in: root.path) == false)
+        }
+    }
+
+    /// A Package.swift inside a build/checkout directory is a third-party dependency,
+    /// not a first-party nested package, and must not count.
+    @Test func containsNestedPackageIgnoresDependencyCheckouts() throws {
+        try withTempDir { root in
+            try touch(root.appendingPathComponent("Package.swift"), content: "// root")
+            let checkout = root.appendingPathComponent(".build/checkouts/swift-syntax")
+            try touch(checkout.appendingPathComponent("Package.swift"), content: "// dep")
+
+            #expect(FileAnalysisUtils.containsNestedPackage(in: root.path) == false)
+        }
+    }
+
     // MARK: - Embedded package detection
 
     /// A subdirectory that contains its own Package.swift is a separate Swift

@@ -208,8 +208,9 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
         return allTypes
     }
 
-    /// Adjusts configuration for Swift Packages: disables `publicInAppTarget` and
-    /// excludes executable source paths from the `printStatement` rule.
+    /// Adjusts configuration for Swift Packages: disables `publicInAppTarget`,
+    /// excludes executable source paths from the `printStatement` rule, and suppresses
+    /// `unusedProtocolAbstraction` when first-party nested packages are out of scope.
     private static func resolveConfiguration(
         for path: String,
         base configuration: LintConfiguration
@@ -218,6 +219,21 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
             atPath: (path as NSString).appendingPathComponent("Package.swift")
         )
         guard isSwiftPackage else { return configuration }
+
+        var disabledRules = configuration.disabledRules
+        disabledRules.insert(.publicInAppTarget)
+
+        // `unusedProtocolAbstraction` reasons about whole-project usage: it flags a
+        // protocol that is conformed to but never *used* as a type. If first-party
+        // nested packages exist but are excluded from this run, a protocol consumed
+        // only in a sibling package looks unused and is falsely flagged. Suppress it
+        // unless the scope is complete — i.e. those packages are pulled in with
+        // `includeNestedPackages`, or there are none. (A single-package project and a
+        // `--include-nested-packages` whole-project run both keep the rule on.)
+        if !configuration.includeNestedPackages,
+           FileAnalysisUtils.containsNestedPackage(in: path) {
+            disabledRules.insert(.unusedProtocolAbstraction)
+        }
 
         let execPaths = ExecutableTargetDetector.executableSourcePaths(in: path)
         var overrides = configuration.ruleOverrides
@@ -229,7 +245,7 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
             )
         }
         return LintConfiguration(
-            disabledRules: configuration.disabledRules.union([.publicInAppTarget]),
+            disabledRules: disabledRules,
             enabledOnlyRules: configuration.enabledOnlyRules,
             excludedPaths: configuration.excludedPaths,
             ruleOverrides: overrides,

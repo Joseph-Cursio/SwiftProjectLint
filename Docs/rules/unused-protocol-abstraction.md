@@ -4,7 +4,7 @@
 
 **Identifier:** `Unused Protocol Abstraction`
 **Category:** Architecture
-**Severity:** Info *(opt-in)*
+**Severity:** Info
 
 ### Rationale
 A protocol earns its keep by being *used* — as a generic constraint, an existential
@@ -44,14 +44,27 @@ negative the earlier name-global matching allowed). `internal` and `public` prot
 name-global: AST-only analysis can't resolve modules, and within one module a same-named
 reference plausibly *is* the protocol, so crediting it is the safe choice.
 
+#### Scope gating
+The rule is on by default, but it only fires when the analysis scope is **complete** — i.e.
+every potential consumer of a protocol is in scope. Concretely:
+
+- **Single-package / single-target projects** — always complete; the rule runs.
+- **Whole-project runs** (`--include-nested-packages`) — every first-party package is pulled
+  in, so the rule runs.
+- **A project with first-party nested packages run *without* `--include-nested-packages`** —
+  those packages are excluded, so a protocol declared in one of them (or in the root) and
+  consumed only in an excluded sibling would be falsely flagged. The rule **auto-suppresses
+  itself** for the whole run in this case rather than emit unreliable findings.
+
+Run with `--include-nested-packages` to lint a multi-package project as one unit and keep the
+rule active across the boundary.
+
 #### Known limitations
-- **Cross-module blindness.** If a non-file-private protocol is consumed by code in another
-  module not included in the analysis, the rule cannot see that use and may report a false
-  positive. In a multi-package or multi-target project linted one module at a time, a
-  protocol declared in module A but consumed (as `any P` or a generic constraint) only in
-  module B is flagged in A's run even though it is genuinely used. This is why the rule is
-  `Info` and **opt-in** — enable it deliberately, ideally on whole-project runs where every
-  consumer is in scope.
+- **Cross-module blindness.** The gating above relies on detecting excluded first-party
+  packages from the project root. If the tool is pointed *directly* at a sub-package of a
+  larger workspace, it cannot know an external consumer exists and may report a false
+  positive — lint the workspace root instead. This residual uncertainty is why the rule's
+  severity is `Info` rather than `Warning`.
 - A protocol used *only* in a refinement chain that itself is unused is still considered
   used (the refinement counts), so a fully dead refinement hierarchy is not reported.
 

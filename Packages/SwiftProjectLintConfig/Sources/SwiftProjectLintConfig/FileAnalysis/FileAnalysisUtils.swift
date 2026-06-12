@@ -67,6 +67,39 @@ public struct FileAnalysisUtils {
         )
     }
 
+    /// Returns `true` when `path` contains a first-party nested Swift package — a
+    /// subdirectory (outside build/dependency directories) with its own
+    /// `Package.swift`. This mirrors the skip performed by `findSwiftFiles`, so it
+    /// reports exactly the packages a default (non-`includeNestedPackages`) run would
+    /// exclude. The root's own `Package.swift` does not count. Returns on the first
+    /// match and prunes build/checkout directories, so it never treats a third-party
+    /// dependency checkout (e.g. under `.build`) as a first-party package.
+    public static func containsNestedPackage(in path: String) -> Bool {
+        let fileManager = FileManager.default
+        let rootURL = URL(fileURLWithPath: path, isDirectory: true)
+        guard let enumerator = fileManager.enumerator(
+            at: rootURL,
+            includingPropertiesForKeys: [.isDirectoryKey],
+            options: .skipsHiddenFiles
+        ) else {
+            return false
+        }
+
+        for case let itemURL as URL in enumerator {
+            let isDirectory = (try? itemURL.resourceValues(forKeys: [.isDirectoryKey]).isDirectory) ?? false
+            guard isDirectory else { continue }
+
+            if skippedDirectories.contains(itemURL.lastPathComponent) {
+                enumerator.skipDescendants()
+                continue
+            }
+            if fileManager.fileExists(atPath: itemURL.appendingPathComponent("Package.swift").path) {
+                return true
+            }
+        }
+        return false
+    }
+
     /// Directories to skip during file enumeration. These are build artifacts,
     /// dependency checkouts, and VCS directories that should never be linted.
     static let skippedDirectories: Set<String> = [
