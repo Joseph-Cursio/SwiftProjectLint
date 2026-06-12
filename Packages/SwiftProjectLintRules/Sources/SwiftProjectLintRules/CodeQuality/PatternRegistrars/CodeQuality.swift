@@ -152,6 +152,7 @@ class CodeQuality: BasePatternRegistrar {
             DisfavoredOverload(),
             RetroactiveConformance(),
             PreconcurrencyConformance(),
+            PreconcurrencyImport(),
             DiscardableResultMisuse()
         ])
     }

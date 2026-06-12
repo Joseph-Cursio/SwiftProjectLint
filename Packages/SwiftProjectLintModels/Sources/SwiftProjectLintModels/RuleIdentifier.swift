@@ -106,6 +106,7 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
     case disfavoredOverload = "Disfavored Overload"
     case retroactiveConformance = "Retroactive Conformance"
     case preconcurrencyConformance = "Preconcurrency Conformance"
+    case preconcurrencyImport = "Preconcurrency Import"
     case discardableResultMisuse = "Discardable Result Misuse"
     case stringSwitchOverEnum = "String Switch Over Enum"
     case fontWeightBold = "Font Weight Bold"
@@ -268,7 +269,7 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
              .couldBePrivate, .publicInAppTarget, .couldBePrivateMember,
              .protocolCouldBePrivate, .variableShadowing, .uncheckedSendable,
              .disfavoredOverload, .retroactiveConformance,
-             .preconcurrencyConformance, .discardableResultMisuse,
+             .preconcurrencyConformance, .preconcurrencyImport, .discardableResultMisuse,
              .stringSwitchOverEnum, .fontWeightBold,
              .globalActorMismatch, .nestedGenericComplexity,
              .magicBooleanParameter:
