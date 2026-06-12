@@ -70,7 +70,7 @@ Rules marked **opt-in** are disabled by default and must be explicitly listed un
 | [Single Implementation Protocol](single-implementation-protocol.md) | Info |
 | [Mirror Protocol](mirror-protocol.md) | Info |
 | [Duplicate Struct Shape](duplicate-struct-shape.md) | Info *(opt-in)* |
-| [Unused Protocol Abstraction](unused-protocol-abstraction.md) | Info |
+| [Unused Protocol Abstraction](unused-protocol-abstraction.md) | Info *(opt-in)* |
 | [Could Adopt Protocol](could-adopt-protocol.md) | Info *(opt-in)* |
 | [Subclassed For Mocking](subclassed-for-mocking.md) | Info |
 | [Unabstracted File IO](unabstracted-file-io.md) | Info |

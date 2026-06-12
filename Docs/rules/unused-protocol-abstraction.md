@@ -4,7 +4,7 @@
 
 **Identifier:** `Unused Protocol Abstraction`
 **Category:** Architecture
-**Severity:** Info
+**Severity:** Info *(opt-in)*
 
 ### Rationale
 A protocol earns its keep by being *used* — as a generic constraint, an existential
@@ -47,7 +47,11 @@ reference plausibly *is* the protocol, so crediting it is the safe choice.
 #### Known limitations
 - **Cross-module blindness.** If a non-file-private protocol is consumed by code in another
   module not included in the analysis, the rule cannot see that use and may report a false
-  positive. This is why the rule's severity is `Info` rather than `Warning`.
+  positive. In a multi-package or multi-target project linted one module at a time, a
+  protocol declared in module A but consumed (as `any P` or a generic constraint) only in
+  module B is flagged in A's run even though it is genuinely used. This is why the rule is
+  `Info` and **opt-in** — enable it deliberately, ideally on whole-project runs where every
+  consumer is in scope.
 - A protocol used *only* in a refinement chain that itself is unused is still considered
   used (the refinement counts), so a fully dead refinement hierarchy is not reported.
 
