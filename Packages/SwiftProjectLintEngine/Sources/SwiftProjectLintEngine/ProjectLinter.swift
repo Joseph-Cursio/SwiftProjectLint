@@ -234,7 +234,12 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
             excludedPaths: configuration.excludedPaths,
             ruleOverrides: overrides,
             architecturalLayers: configuration.architecturalLayers,
-            enabledFrameworkAllowlists: configuration.enabledFrameworkAllowlists
+            enabledFrameworkAllowlists: configuration.enabledFrameworkAllowlists,
+            // Preserve the caller's nested-package opt-in: this rebuild only adjusts
+            // package-specific rule defaults. Omitting it reset the flag to its `false`
+            // default, silently making `--include-nested-packages` a no-op for every
+            // Swift-package project (the only projects that reach this branch).
+            includeNestedPackages: configuration.includeNestedPackages
         )
     }
 

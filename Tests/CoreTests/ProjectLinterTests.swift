@@ -134,6 +134,61 @@ struct ProjectLinterTests {
         }
     }
 
+    // MARK: - Nested package opt-in
+
+    /// `includeNestedPackages` must survive `resolveConfiguration`, which rebuilds the
+    /// configuration for Swift-package projects. A regression guard: the rebuild once
+    /// dropped the flag, silently making `--include-nested-packages` a no-op for every
+    /// project with a root `Package.swift`.
+    @Test func testNestedPackageFlagIsHonoredForSwiftPackages() async {
+        let root = makeNestedPackageProject()
+        let linter = ProjectLinter()
+        let system = PatternRegistryFactory.createConfiguredSystem()
+
+        let withoutFlag = await linter.analyzeProject(at: root, detector: system.detector)
+        let withFlag = await linter.analyzeProject(
+            at: root,
+            detector: system.detector,
+            configuration: LintConfiguration(includeNestedPackages: true)
+        )
+
+        let nestedWithout = withoutFlag.filter { $0.filePath.contains("Packages/Child") }
+        let nestedWith = withFlag.filter { $0.filePath.contains("Packages/Child") }
+
+        // Default: nested package is skipped.
+        #expect(nestedWithout.isEmpty)
+        // Opt-in: the nested package's force-unwrap violation is now in scope.
+        #expect(nestedWith.contains { $0.ruleName == .forceUnwrap })
+    }
+
+    /// Builds a Swift-package project whose root has a `Package.swift` and a nested
+    /// first-party package under `Packages/Child` containing one obvious violation.
+    private func makeNestedPackageProject() -> String {
+        let base = FileManager.default.temporaryDirectory.path
+        let root = (base as NSString).appendingPathComponent("NestedPackageProject-\(UUID().uuidString)")
+        let nestedSources = (root as NSString)
+            .appendingPathComponent("Packages/Child/Sources/Child")
+        try? FileManager.default.createDirectory(atPath: nestedSources, withIntermediateDirectories: true)
+
+        let manifest = "// swift-tools-version:6.0\n"
+        try? manifest.write(
+            toFile: (root as NSString).appendingPathComponent("Package.swift"),
+            atomically: true, encoding: .utf8
+        )
+        try? manifest.write(
+            toFile: ((root as NSString)
+                .appendingPathComponent("Packages/Child") as NSString)
+                .appendingPathComponent("Package.swift"),
+            atomically: true, encoding: .utf8
+        )
+        let thing = "func boom(_ value: Int?) -> Int { return value! }\n"
+        try? thing.write(
+            toFile: (nestedSources as NSString).appendingPathComponent("Thing.swift"),
+            atomically: true, encoding: .utf8
+        )
+        return root
+    }
+
     // MARK: - Helper Methods
 
     private func makeTestProject() -> String {
