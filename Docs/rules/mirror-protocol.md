@@ -16,6 +16,8 @@ The 80% threshold allows for minor differences (a private helper method on the t
 
 Protocols with names that do not end in "Protocol" are not checked — naming conventions like `Loadable` or `Configurable` typically indicate a focused capability rather than a type mirror.
 
+**Mock-conformer exemption.** If a mock/test double conforms to the protocol — a conformer whose name contains `Mock`, `Fake`, `Stub`, or `Spy`, or one declared in a `Tests`/`Mocks`/`Fakes`/`Stubs` file — the protocol is **not** flagged, even if it mirrors the type 1:1. Such a protocol is a justified dependency-injection seam: it exists so tests can substitute a fake, and removing it would remove that seam. This exemption is shared with [Single Implementation Protocol](single-implementation-protocol.md) via a common `ProtocolExemption` predicate, so the two rules can no longer disagree about the same protocol. Unlike that rule, Mirror Protocol does **not** exempt on the dependency-injection *name suffix* alone — every mirror protocol ends in `Protocol`, so a suffix exemption would silence the rule entirely; only a real mock conformer justifies a 1:1 mirror.
+
 ### Non-Violating Examples
 ```swift
 // Focused capability protocol — not a mirror

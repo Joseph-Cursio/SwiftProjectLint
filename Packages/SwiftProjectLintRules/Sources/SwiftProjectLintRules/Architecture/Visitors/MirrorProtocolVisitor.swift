@@ -25,6 +25,7 @@ final class MirrorProtocolVisitor: CrossFileVisitorBase, CrossFilePatternVisitor
 
     private struct TypeInfo {
         let name: String
+        let file: String
         let memberNames: Set<String>
         let conformances: Set<String>
     }
@@ -70,6 +71,17 @@ final class MirrorProtocolVisitor: CrossFileVisitorBase, CrossFilePatternVisitor
         return .visitChildren
     }
 
+    override func visit(_ node: ActorDeclSyntax) -> SyntaxVisitorContinueKind {
+        // Actors are recorded for conformer tracking so that a mock implemented as
+        // an actor (e.g. `MockFooActor: FooProtocol`) still exempts the protocol.
+        recordType(
+            name: node.name.text,
+            members: node.memberBlock,
+            inheritanceClause: node.inheritanceClause
+        )
+        return .visitChildren
+    }
+
     private func recordType(
         name: String,
         members: MemberBlockSyntax,
@@ -84,7 +96,12 @@ final class MirrorProtocolVisitor: CrossFileVisitorBase, CrossFilePatternVisitor
                 }
             }
         }
-        types.append(TypeInfo(name: name, memberNames: memberNames, conformances: conformances))
+        types.append(TypeInfo(
+            name: name,
+            file: currentFilePath,
+            memberNames: memberNames,
+            conformances: conformances
+        ))
     }
 
     // MARK: - Extract Member Names
@@ -115,6 +132,23 @@ final class MirrorProtocolVisitor: CrossFileVisitorBase, CrossFilePatternVisitor
     func finalizeAnalysis() {
         for proto in protocols {
             guard proto.requirementNames.isEmpty == false else { continue }
+
+            // Exempt: a mock/test double conforms to this protocol, so the abstraction
+            // is a justified dependency-injection seam — not an unnecessary mirror.
+            // (Matches SingleImplementationProtocol's handling via the shared predicate.)
+            // The DI-suffix signal is deliberately *not* applied here: every mirror
+            // protocol ends in "Protocol", so a suffix exemption would silence the rule.
+            let conformers = types.filter { $0.conformances.contains(proto.name) }
+            var conformerFiles: [String: String] = [:]
+            for conformer in conformers {
+                conformerFiles[conformer.name] = conformer.file
+            }
+            if ProtocolExemption.hasTestConformer(
+                Set(conformers.map(\.name)),
+                conformerFiles: conformerFiles
+            ) {
+                continue
+            }
 
             // Derive expected type name: "FooServiceProtocol" → "FooService"
             let expectedTypeName = String(proto.name.dropLast("Protocol".count))

@@ -27,14 +27,6 @@ final class SingleImplementationProtocolVisitor: CrossFileVisitorBase, CrossFile
     /// Tracks the current type being visited so we can associate conformances
     private var currentTypeName: String?
 
-    private static let mockPrefixes = ["Mock", "Fake", "Stub", "Spy"]
-
-    /// Protocol name suffixes that imply dependency injection intent.
-    private static let diSuffixes = [
-        "Protocol", "Providing", "Service", "Repository",
-        "DataSource", "Client", "Networking"
-    ]
-
     /// Maps conforming type name → file path where it was found.
     private var conformerFiles: [String: String] = [:]
 
@@ -132,12 +124,15 @@ final class SingleImplementationProtocolVisitor: CrossFileVisitorBase, CrossFile
             let conformers = conformances[decl.name] ?? []
 
             // Suppress: protocol name implies dependency injection intent
-            if Self.diSuffixes.contains(where: { decl.name.hasSuffix($0) }) {
+            if ProtocolExemption.hasDIIntentSuffix(decl.name) {
                 continue
             }
 
             // Partition conformers into production vs test/mock
-            let (prodConformers, testConformers) = partitionConformers(conformers)
+            let (prodConformers, testConformers) = ProtocolExemption.partitionConformers(
+                conformers,
+                conformerFiles: conformerFiles
+            )
 
             // Suppress: has mock/test conformers (DI + mocking pattern)
             if testConformers.isEmpty == false {
@@ -169,31 +164,5 @@ final class SingleImplementationProtocolVisitor: CrossFileVisitorBase, CrossFile
                 )
             }
         }
-    }
-
-    /// Splits conformers into production and test/mock sets.
-    private func partitionConformers(
-        _ conformers: Set<String>
-    ) -> (production: Set<String>, test: Set<String>) {
-        var production: Set<String> = []
-        var test: Set<String> = []
-
-        for conformer in conformers {
-            let isMockName = Self.mockPrefixes.contains { prefix in
-                conformer.hasPrefix(prefix) || conformer.contains(prefix)
-            }
-            let isInTestFile = conformerFiles[conformer].map { file in
-                file.contains("Tests") || file.contains("Mocks")
-                    || file.contains("Fakes") || file.contains("Stubs")
-                    || file.hasSuffix("Test.swift")
-            } ?? false
-
-            if isMockName || isInTestFile {
-                test.insert(conformer)
-            } else {
-                production.insert(conformer)
-            }
-        }
-        return (production, test)
     }
 }
