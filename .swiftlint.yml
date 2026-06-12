@@ -12,6 +12,7 @@ excluded:
   - xcuserdata
   - .xcode
   - "**/.build"
+  - "**/.build-coverage"
   - Sources/SwiftProjectLint/ExampleViews
   - Sources/App/ExampleViews
   - ExampleCode
