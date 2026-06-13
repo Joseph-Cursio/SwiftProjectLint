@@ -9,10 +9,12 @@ import Testing
 /// The violating fixtures are distilled from real TCA example code — PointFree's
 /// `ScreenA` (`isLoading` + `fact: String?`) and `NavigateAndLoad`
 /// (`isNavigationActive` + `optionalCounter`) case studies model a loading
-/// transition as a Bool flag next to an optional result. Both declare the flag
-/// with an inferred type (`var isLoading = false`). That code is not buggy
-/// (the flag/result skew is benign), which is why the rule is an opt-in `.info`
-/// refactor suggestion rather than an error.
+/// transition as a Bool flag next to an optional result — plus the broader
+/// "impossible state combination" shapes (`hasError` + `errorMessage`,
+/// `isLoading` + `results: [User]`). Tier 1 (transition verbs) pairs with any
+/// optional/collection; tier 2 (`has<X>`/`is<X>`) requires a name correlation.
+/// Such code is not buggy, which is why the rule is an opt-in `.info` refactor
+/// suggestion rather than an error.
 @Suite
 struct FlagOptionalPairStateVisitorTests {
 
@@ -73,6 +75,94 @@ struct FlagOptionalPairStateVisitorTests {
         let visitor = makeVisitor()
         runVisitor(visitor, source: source)
         #expect(visitor.detectedIssues.count == 1)
+    }
+
+    // MARK: - Flagged: tier 1 paired with a collection (issue #10)
+
+    @Test("Flags a transition flag paired with a collection (isLoading + results: [User])")
+    func detectsLoadingWithCollection() throws {
+        let source = """
+        struct State {
+            var isLoading = false
+            var results: [User] = []
+        }
+        """
+        let visitor = makeVisitor()
+        runVisitor(visitor, source: source)
+        let issue = try #require(visitor.detectedIssues.first)
+        #expect(issue.message.contains("isLoading"))
+    }
+
+    @Test("Flags a transition flag paired with an IdentifiedArrayOf collection")
+    func detectsLoadingWithIdentifiedArray() {
+        let source = """
+        struct State {
+            var isFetching = false
+            var items: IdentifiedArrayOf<Item> = []
+        }
+        """
+        let visitor = makeVisitor()
+        runVisitor(visitor, source: source)
+        #expect(visitor.detectedIssues.count == 1)
+    }
+
+    // MARK: - Flagged: tier 2 name-correlated has<X>/is<X> (issue #1)
+
+    @Test("Flags the hasError + errorMessage shape (name-correlated)")
+    func detectsHasErrorShape() throws {
+        let source = """
+        struct State {
+            var hasError = false
+            var errorMessage: String?
+        }
+        """
+        let visitor = makeVisitor()
+        runVisitor(visitor, source: source)
+        let issue = try #require(visitor.detectedIssues.first)
+        #expect(issue.message.contains("hasError"))
+    }
+
+    @Test("Flags isSelected + selectedItem (name-correlated)")
+    func detectsIsSelectedShape() {
+        let source = """
+        struct State {
+            var isSelected = false
+            var selectedItem: Item?
+        }
+        """
+        let visitor = makeVisitor()
+        runVisitor(visitor, source: source)
+        #expect(visitor.detectedIssues.count == 1)
+    }
+
+    // MARK: - Not flagged: tier 2 requires correlation
+
+    @Test("No issue for a has<X> flag with no name-correlated property")
+    func noIssueForUncorrelatedHasFlag() {
+        let source = """
+        struct State {
+            var hasError = false
+            var userName: String?
+        }
+        """
+        let visitor = makeVisitor()
+        runVisitor(visitor, source: source)
+        #expect(visitor.detectedIssues.isEmpty)
+    }
+
+    // MARK: - Not flagged: known gap (no shared name token)
+
+    @Test("No issue for isLoggedIn + currentUser (known gap — no name correlation)")
+    func noIssueForUncorrelatedSession() {
+        let source = """
+        struct State {
+            var isLoggedIn = false
+            var currentUser: User?
+        }
+        """
+        let visitor = makeVisitor()
+        runVisitor(visitor, source: source)
+        #expect(visitor.detectedIssues.isEmpty)
     }
 
     // MARK: - Not flagged: no optional result
