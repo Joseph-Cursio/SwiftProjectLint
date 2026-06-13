@@ -126,6 +126,7 @@ Rules marked **opt-in** are disabled by default and must be explicitly listed un
 | [Retroactive Conformance](retroactive-conformance.md) | Warning |
 | [Preconcurrency Conformance](preconcurrency-conformance.md) | Warning |
 | [Preconcurrency Import](preconcurrency-import.md) | Info |
+| [Swallowed Injection Downcast](swallowed-injection-downcast.md) | Info |
 | [Discardable Result Misuse](discardable-result-misuse.md) | Info |
 | [String Switch Over Enum](string-switch-over-enum.md) | Info *(opt-in)* |
 | [SwiftLint Suppression](swiftlint-suppression.md) | Warning |
