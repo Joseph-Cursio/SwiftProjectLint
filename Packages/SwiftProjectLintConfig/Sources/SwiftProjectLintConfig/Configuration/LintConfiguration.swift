@@ -101,7 +101,8 @@ public struct LintConfiguration: Sendable {
         .duplicateStructShape,
         .couldAdoptProtocol,
         .mutuallyExclusivePresentationState,
-        .flagOptionalPairState
+        .flagOptionalPairState,
+        .redundantDerivedProperty
     ]
 
     /// Default configuration — all rules enabled, no exclusions.

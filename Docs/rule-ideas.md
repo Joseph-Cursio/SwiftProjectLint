@@ -17,7 +17,7 @@ simple syntax matching."
 | 1 | Impossible state combos (`isLoggedIn`+`currentUser?`, `hasError`+`errorMessage?`) | SPL | Extend `flag-optional-pair-state` | ✅ **DONE** — tier-2 name-correlated `has<X>`/`is<X>` flags |
 | 10 | Loading inconsistency (`isLoading`+`results: [User]`) | SPL | Extend `flag-optional-pair-state` | ✅ **DONE** — flag now pairs with collections, not only `T?` |
 | 11 | Effect cycles (`.start→.send(.refresh)`, `.refresh→.send(.start)`) | SPL | New rule | ✅ **DONE** — `effect-cycle` rule: cycle detection over the synchronous `.send(.X)` graph in a `switch action`; `.run`-closure sends excluded. `.warning`, enabled by default |
-| 12 | Redundant derived state (`fullName` stored vs computed) | SPL or SInferP | New rule | TODO — "prefer computed property" lint; generalizes SInferP's `conservation` family (`itemCount == items.count`). Lint framing is lower-risk |
+| 12 | Redundant derived state (`fullName` stored vs computed) | SPL | New rule | ✅ **DONE** — `redundant-derived-property`: stored property assigned a string interpolation of sibling fields → suggest computed. `.info`, opt-in. v1 is string-only (numeric aggregates left to SInferP's conservation family) |
 | 2 | Dead actions (defined/handled, never `send`) | SPL (cross-file) | New rule | Maybe — needs whole-project action def/send graph. FP risk: bindings, parent features, tests, public API |
 | 6 | State fields never written | SPL (cross-file) | New rule | Maybe — complements `unused-state-variable` |
 | 7 | Actions sent but ignored (`default: .none`) | SPL (cross-file) | New rule | Maybe — send↔case graph |
@@ -29,13 +29,14 @@ simple syntax matching."
 
 ## Recommended next (ranked)
 
-1. **Redundant stored derived property (#12)** — "this stored field is only ever
-   assigned a derivation of other stored fields → make it computed." Heuristic;
-   lower precision.
-2. **Cross-file batch (#2 / #6 / #7 / #9)** — feasible and on-brand for this
+1. **Cross-file batch (#2 / #6 / #7 / #9)** — feasible and on-brand for this
    linter (cross-file is its reason to exist), but each needs a usage graph plus
    FP tuning (bindings, parent features, tests). Treat as one project, not four
    quick rules.
+
+Possible follow-ups to the shipped rules:
+- `redundant-derived-property` v2 — extend beyond string interpolation to string
+  `+` concatenation, and (carefully) `self`/bare-reference derivations.
 
 ## Done — `flag-optional-pair-state` extension (#1 + #10)
 

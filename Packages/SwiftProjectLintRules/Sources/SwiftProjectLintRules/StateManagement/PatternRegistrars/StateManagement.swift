@@ -73,7 +73,8 @@ class StateManagement: BasePatternRegistrar {
             MainActorMissing(),
             ObservableMainActorMissing(),
             MutuallyExclusivePresentationState(),
-            FlagOptionalPairState()
+            FlagOptionalPairState(),
+            RedundantDerivedProperty()
         ])
     }
 }

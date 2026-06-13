@@ -19,6 +19,7 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
     case tooManyEnvironmentObjects = "Too Many Environment Objects"
     case mutuallyExclusivePresentationState = "Mutually Exclusive Presentation State"
     case flagOptionalPairState = "Flag Optional Pair State"
+    case redundantDerivedProperty = "Redundant Derived Property"
 
     // Performance Rules
     case anyViewUsage = "AnyView Usage"
@@ -227,7 +228,7 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
              .uninitializedStateVariable, .missingStateObject, .unusedStateVariable, .fatView,
              .observedObjectInline, .tooManyEnvironmentObjects, .mainActorMissingOnUICode,
              .observableMainActorMissing, .mutuallyExclusivePresentationState,
-             .flagOptionalPairState:
+             .flagOptionalPairState, .redundantDerivedProperty:
             return .stateManagement
 
             // Performance Rules
