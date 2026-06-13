@@ -71,7 +71,8 @@ class StateManagement: BasePatternRegistrar {
             ObservedObjectInline(),
             TooManyEnvironmentObjects(),
             MainActorMissing(),
-            ObservableMainActorMissing()
+            ObservableMainActorMissing(),
+            MutuallyExclusivePresentationState()
         ])
     }
 }
