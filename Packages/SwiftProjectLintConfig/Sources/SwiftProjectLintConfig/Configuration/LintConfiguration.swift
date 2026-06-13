@@ -100,7 +100,8 @@ public struct LintConfiguration: Sendable {
         .testMissingRequire,
         .duplicateStructShape,
         .couldAdoptProtocol,
-        .mutuallyExclusivePresentationState
+        .mutuallyExclusivePresentationState,
+        .flagOptionalPairState
     ]
 
     /// Default configuration — all rules enabled, no exclusions.

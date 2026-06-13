@@ -72,7 +72,8 @@ class StateManagement: BasePatternRegistrar {
             TooManyEnvironmentObjects(),
             MainActorMissing(),
             ObservableMainActorMissing(),
-            MutuallyExclusivePresentationState()
+            MutuallyExclusivePresentationState(),
+            FlagOptionalPairState()
         ])
     }
 }
