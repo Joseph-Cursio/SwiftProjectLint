@@ -16,7 +16,7 @@ simple syntax matching."
 |---|---|---|---|---|
 | 1 | Impossible state combos (`isLoggedIn`+`currentUser?`, `hasError`+`errorMessage?`) | SPL | Extend `flag-optional-pair-state` | ✅ **DONE** — tier-2 name-correlated `has<X>`/`is<X>` flags |
 | 10 | Loading inconsistency (`isLoading`+`results: [User]`) | SPL | Extend `flag-optional-pair-state` | ✅ **DONE** — flag now pairs with collections, not only `T?` |
-| 11 | Effect cycles (`.start→.send(.refresh)`, `.refresh→.send(.start)`) | SPL | New rule | ⭐ **TODO** — intra-reducer `action→.send(action)` graph, flag short cycles. Not covered by `potential-retain-cycle`. Self-contained, structural |
+| 11 | Effect cycles (`.start→.send(.refresh)`, `.refresh→.send(.start)`) | SPL | New rule | ✅ **DONE** — `effect-cycle` rule: cycle detection over the synchronous `.send(.X)` graph in a `switch action`; `.run`-closure sends excluded. `.warning`, enabled by default |
 | 12 | Redundant derived state (`fullName` stored vs computed) | SPL or SInferP | New rule | TODO — "prefer computed property" lint; generalizes SInferP's `conservation` family (`itemCount == items.count`). Lint framing is lower-risk |
 | 2 | Dead actions (defined/handled, never `send`) | SPL (cross-file) | New rule | Maybe — needs whole-project action def/send graph. FP risk: bindings, parent features, tests, public API |
 | 6 | State fields never written | SPL (cross-file) | New rule | Maybe — complements `unused-state-variable` |
@@ -29,14 +29,10 @@ simple syntax matching."
 
 ## Recommended next (ranked)
 
-1. **Effect-send cycles (#11)** — smallest novel win: structural, self-contained
-   (single reducer), a real bug class, nothing covers it. Build an
-   `action → .send(action)` edge set within each `Reduce` and report short
-   cycles. Watch FP from conditional/guarded sends.
-2. **Redundant stored derived property (#12)** — "this stored field is only ever
+1. **Redundant stored derived property (#12)** — "this stored field is only ever
    assigned a derivation of other stored fields → make it computed." Heuristic;
-   lower precision than #11.
-3. **Cross-file batch (#2 / #6 / #7 / #9)** — feasible and on-brand for this
+   lower precision.
+2. **Cross-file batch (#2 / #6 / #7 / #9)** — feasible and on-brand for this
    linter (cross-file is its reason to exist), but each needs a usage graph plus
    FP tuning (bindings, parent features, tests). Treat as one project, not four
    quick rules.

@@ -154,7 +154,8 @@ class CodeQuality: BasePatternRegistrar {
             PreconcurrencyConformance(),
             PreconcurrencyImport(),
             SwallowedInjectionDowncast(),
-            DiscardableResultMisuse()
+            DiscardableResultMisuse(),
+            EffectCycle()
         ])
     }
 }

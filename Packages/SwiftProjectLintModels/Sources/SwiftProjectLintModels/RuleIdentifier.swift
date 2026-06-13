@@ -112,6 +112,7 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
     case swallowedInjectionDowncast = "Swallowed Injection Downcast"
     case discardableResultMisuse = "Discardable Result Misuse"
     case stringSwitchOverEnum = "String Switch Over Enum"
+    case effectCycle = "Effect Cycle"
     case fontWeightBold = "Font Weight Bold"
     case globalActorMismatch = "Global Actor Mismatch"
     case nestedGenericComplexity = "Nested Generic Complexity"
@@ -276,7 +277,7 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
              .disfavoredOverload, .retroactiveConformance,
              .preconcurrencyConformance, .preconcurrencyImport,
              .swallowedInjectionDowncast, .discardableResultMisuse,
-             .stringSwitchOverEnum, .fontWeightBold,
+             .stringSwitchOverEnum, .effectCycle, .fontWeightBold,
              .globalActorMismatch, .nestedGenericComplexity,
              .magicBooleanParameter:
             return .codeQuality
