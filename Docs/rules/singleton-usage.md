@@ -12,6 +12,8 @@ Accessing a service through a `.shared` singleton creates a global dependency th
 ### Discussion
 `SingletonUsageVisitor` flags member accesses where the member name is `shared` and the base is a type-name reference (a `DeclReferenceExprSyntax` with an uppercase first character) ending in a service-like suffix (`Manager`, `Service`, `Store`, `Provider`, `Client`, `Repository`, `Handler`, `Controller`, `Factory`, `Adapter`, `ViewModel`, `Coordinator`, `Generator`). Standard system singletons such as `URLSession.shared`, `UserDefaults.standard`, or `NotificationCenter.default` are not flagged because their base names (`URLSession`, `UserDefaults`, `NotificationCenter`) do not match the service suffixes.
 
+**Test and fixture files are exempt.** A unit test that calls the real `ProjectParser.shared` is exercising production code, not introducing coupling to refactor — the access *is* the test. The visitor skips files detected as test/fixture by `isTestOrFixtureFile()` (SPM `Tests/` and Xcode `…Tests/` target folders, `…Tests.swift` files, and fixture directories), matching the test-file handling already applied by other architecture rules (`Single Implementation Protocol`, `Unabstracted File IO`). This keeps the signal on the production call sites — e.g. an `AppState`/`…Model` that reaches for `Service.shared` — where injecting the dependency actually pays off.
+
 ### Non-Violating Examples
 ```swift
 // System singleton — not flagged

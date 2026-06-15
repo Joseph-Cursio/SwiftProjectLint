@@ -87,6 +87,35 @@ struct ArchitectureSingletonUsageTests {
         #expect(singletonIssues.isEmpty)
     }
 
+    // MARK: - Test-file exemption
+
+    @Test func testNoIssueInTestFile() {
+        // A unit test calling the real `.shared` singleton is the test using
+        // production code, not a coupling smell — exempt test files.
+        let source = """
+        final class ProjectParserTests {
+            func testParse() { _ = ProjectParser.shared.parse() }
+        }
+        """
+        let issues = analyzeSource(source, filePath: "MyAppTests/ProjectParserTests.swift")
+        let singletonIssues = issues.filter { $0.ruleName == .singletonUsage }
+        #expect(singletonIssues.isEmpty)
+    }
+
+    @Test func testStillFlagsInProductionFile() throws {
+        // The same access in a production file must still be flagged — the
+        // exemption is scoped to test/fixture files only.
+        let source = """
+        final class ProjectParserTests {
+            func testParse() { _ = ProjectParser.shared.parse() }
+        }
+        """
+        let issues = analyzeSource(source, filePath: "Sources/App/AppState.swift")
+        let singletonIssues = issues.filter { $0.ruleName == .singletonUsage }
+        let issue = try #require(singletonIssues.first)
+        #expect(issue.message.contains("ProjectParser"))
+    }
+
     @Test func testNoIssueForInstanceSharedProperty() {
         // base is not a DeclReferenceExprSyntax with a service-like name
         let source = """
