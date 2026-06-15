@@ -38,15 +38,22 @@ final class SingleImplementationProtocolVisitor: CrossFileVisitorBase, CrossFile
             return .visitChildren
         }
 
-        // Skip public/open protocols in library targets — they are API intended for
-        // external conformance, so a missing in-project conformer is expected. In an
-        // executable/app target there are no external consumers, so a public protocol
-        // is just as suspect as an internal one and is still analyzed.
+        // Skip public/open protocols only when the whole project is a standalone
+        // library (declares no executable target). There, a public protocol may be
+        // part of the published API — conformed to by an external module the analysis
+        // can't see — so a single in-project conformer is expected.
+        //
+        // When the project ships an executable (a CLI or app), it is not a published
+        // library: its library targets and first-party nested packages are
+        // implementation detail with no external consumers, so their public protocols
+        // are just as suspect as internal ones and are analyzed. Without a
+        // `Package.swift` we can't tell, so the project is treated as a library and the
+        // protocol is skipped — the conservative choice.
         let hasPublicAccess = node.modifiers.contains { modifier in
             let text = modifier.name.text
             return text == "public" || text == "open"
         }
-        if hasPublicAccess, !isInExecutableTarget(currentFilePath) {
+        if hasPublicAccess, projectIsPureLibrary {
             return .visitChildren
         }
 
@@ -98,11 +105,14 @@ final class SingleImplementationProtocolVisitor: CrossFileVisitorBase, CrossFile
         currentTypeName = nil
     }
 
-    /// True when `filePath` lives under one of the project's executable-target source
-    /// roots (e.g. `Sources/CLI/`). Empty `executableSourcePaths` (the default, and the
-    /// case in unit tests) means no path matches, preserving the library-style skip.
-    private func isInExecutableTarget(_ filePath: String) -> Bool {
-        executableSourcePaths.contains { filePath.contains($0) }
+    /// True when the analyzed project declares no executable target — i.e. it is a
+    /// standalone library (or has no `Package.swift`, which we can't distinguish and
+    /// treat conservatively as a library). `executableSourcePaths` is populated from
+    /// `Package.swift`'s `.executableTarget` declarations; an empty list means the
+    /// project ships no executable, so its public protocols may be a published API
+    /// surface and are left exempt.
+    private var projectIsPureLibrary: Bool {
+        executableSourcePaths.isEmpty
     }
 
     private func recordConformances(from inheritanceClause: InheritanceClauseSyntax?) {
