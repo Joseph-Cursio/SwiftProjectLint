@@ -448,4 +448,78 @@ struct SingleImplementationProtocolVisitorTests {
 
         #expect(issues.count == 1)
     }
+
+    // MARK: - Extension-based conformance
+
+    /// `extension Foo: P` is the idiomatic way to add a conformance; the rule
+    /// previously only inspected struct/class/enum/actor declarations, so a protocol
+    /// conformed to solely via extensions counted zero conformers and was wrongly
+    /// reported as dead code. A single extension conformer should now be counted
+    /// (and flagged as the single conformer, by name).
+    @Test
+    func extensionConformerIsCounted() throws {
+        let issues = analyze(files: [
+            "Protocol.swift": """
+            protocol RowDecodable {
+                func decode()
+            }
+            """,
+            "Conformer.swift": """
+            struct Node { }
+            extension Node: RowDecodable {
+                func decode() { }
+            }
+            """
+        ])
+
+        #expect(issues.count == 1)
+        let issue = try #require(issues.first)
+        #expect(issue.message.contains("only one conformer"))
+        #expect(issue.message.contains("Node"))
+    }
+
+    /// Two conformers declared via extensions are real polymorphism — the rule must
+    /// stay silent. This is the `GraphRowDecodable`-with-many-extension-conformers
+    /// scenario that previously produced a "dead code" false positive.
+    @Test
+    func multipleExtensionConformersClean() {
+        let issues = analyze(files: [
+            "Protocol.swift": """
+            protocol RowDecodable {
+                func decode()
+            }
+            """,
+            "Conformers.swift": """
+            struct NodeA { }
+            struct NodeB { }
+            extension NodeA: RowDecodable { func decode() { } }
+            extension NodeB: RowDecodable { func decode() { } }
+            """
+        ])
+
+        #expect(issues.isEmpty)
+    }
+
+    /// A mock conformer declared via an extension must suppress the warning just as a
+    /// directly-declared mock does.
+    @Test
+    func mockConformerViaExtensionSuppresses() {
+        let issues = analyze(files: [
+            "Protocol.swift": """
+            protocol RowDecodable {
+                func decode()
+            }
+            """,
+            "Conformer.swift": """
+            struct Node { }
+            extension Node: RowDecodable { func decode() { } }
+            """,
+            "MockNode.swift": """
+            struct MockNode { }
+            extension MockNode: RowDecodable { func decode() { } }
+            """
+        ])
+
+        #expect(issues.isEmpty)
+    }
 }

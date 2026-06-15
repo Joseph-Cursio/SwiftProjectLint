@@ -7,7 +7,9 @@ import SwiftSyntax
 /// A cross-file visitor that detects protocols with only one concrete conformer.
 ///
 /// **Phase 1 (walk):** Collects protocol declarations and tracks conformances
-/// from struct/class/enum/actor inheritance clauses.
+/// from struct/class/enum/actor declarations *and* extensions — `extension Foo:
+/// Bar` is the idiomatic way to add a conformance in Swift, so missing it
+/// reported widely-used protocols as dead code.
 /// **Phase 2 (finalizeAnalysis):** Flags protocols with exactly 0 or 1 conformers,
 /// excluding those with mock/fake/stub/spy conformers or public access.
 final class SingleImplementationProtocolVisitor: CrossFileVisitorBase, CrossFilePatternVisitorProtocol {
@@ -103,6 +105,28 @@ final class SingleImplementationProtocolVisitor: CrossFileVisitorBase, CrossFile
 
     override func visitPost(_ _: ActorDeclSyntax) {
         currentTypeName = nil
+    }
+
+    override func visit(_ node: ExtensionDeclSyntax) -> SyntaxVisitorContinueKind {
+        currentTypeName = extendedTypeName(from: node.extendedType)
+        recordConformances(from: node.inheritanceClause)
+        return .visitChildren
+    }
+
+    override func visitPost(_ _: ExtensionDeclSyntax) {
+        currentTypeName = nil
+    }
+
+    /// The base name of an extended type, e.g. `KGSkillNode` for
+    /// `extension KGSkillNode` and `Inner` for `extension Outer.Inner`.
+    private func extendedTypeName(from type: TypeSyntax) -> String? {
+        if let ident = type.as(IdentifierTypeSyntax.self) {
+            return ident.name.text
+        }
+        if let member = type.as(MemberTypeSyntax.self) {
+            return member.name.text
+        }
+        return nil
     }
 
     /// True when the analyzed project declares no executable target — i.e. it is a
