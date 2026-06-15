@@ -34,9 +34,6 @@ final class SubclassedForMockingVisitor: CrossFileVisitorBase, CrossFilePatternV
     private var classNames: Set<String> = []
     private var protocolNames: Set<String> = []
 
-    /// Type-name prefixes that mark a class as a test double.
-    private static let mockMarkers = ["Mock", "Stub", "Fake", "Spy", "Dummy"]
-
     // MARK: - Collect declarations
 
     override func visit(_ node: ProtocolDeclSyntax) -> SyntaxVisitorContinueKind {
@@ -100,10 +97,11 @@ final class SubclassedForMockingVisitor: CrossFileVisitorBase, CrossFilePatternV
         }
     }
 
-    /// A class is a test double if its name carries a mock marker or it is
-    /// declared in a test/fixture file.
+    /// A class is a test double if its name carries a mock marker (matched at a
+    /// camelCase boundary, so `MockFoo`/`FooMock` qualify but `MockingbirdRunner`
+    /// does not) or it is declared in a test/fixture file.
     private func isTestDouble(_ record: ClassRecord) -> Bool {
-        record.isTestDoubleLocation || Self.mockMarkers.contains { record.name.hasPrefix($0) }
+        record.isTestDoubleLocation || ProtocolExemption.isTestDoubleName(record.name)
     }
 
     /// A base class is flaggable only when it is a production type with no

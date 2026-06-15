@@ -33,8 +33,9 @@ import Foundation
 /// the rule entirely. Each rule composes the pieces it needs.
 enum ProtocolExemption {
 
-    /// Conformer-name fragments that mark a type as a test double.
-    static let mockMarkers = ["Mock", "Fake", "Stub", "Spy"]
+    /// Conformer-name markers that mark a type as a test double, matched at
+    /// camelCase boundaries by `isTestDoubleName(_:)` (never as inner substrings).
+    static let mockMarkers = ["Mock", "Fake", "Stub", "Spy", "Dummy"]
 
     /// Protocol-name *role* suffixes that imply dependency-injection intent.
     ///
@@ -54,11 +55,31 @@ enum ProtocolExemption {
     /// or by living in a test/fixtures file. A `nil` `filePath` means "file unknown",
     /// in which case only the name signal applies.
     static func isTestConformer(name: String, filePath: String?) -> Bool {
-        let isMockName = mockMarkers.contains { name.contains($0) }
         let isInTestFile = filePath.map { path in
             testPathFragments.contains { path.contains($0) } || path.hasSuffix("Test.swift")
         } ?? false
-        return isMockName || isInTestFile
+        return isTestDoubleName(name) || isInTestFile
+    }
+
+    /// True when a type name carries a test-double marker (`Mock`, `Fake`, `Stub`,
+    /// `Spy`, `Dummy`) at a camelCase boundary — as a prefix before an uppercase
+    /// letter (`MockFoo`), a suffix (`FooSpy`), or the whole name (`Mock`). An inner
+    /// substring (`MockingbirdRunner`, `SpyglassView`) is production code and is not
+    /// matched, so a type that merely alludes to mocking is not mistaken for a double.
+    ///
+    /// This is the single definition of "is this a test-double name" shared by every
+    /// protocol-architecture rule, so they cannot drift apart on the question.
+    static func isTestDoubleName(_ name: String) -> Bool {
+        mockMarkers.contains { marker in
+            if name == marker || name.hasSuffix(marker) {
+                return true
+            }
+            guard name.hasPrefix(marker),
+                  let next = name.dropFirst(marker.count).first else {
+                return false
+            }
+            return next.isUppercase
+        }
     }
 
     /// Splits `conformers` into production vs test/mock sets, resolving each

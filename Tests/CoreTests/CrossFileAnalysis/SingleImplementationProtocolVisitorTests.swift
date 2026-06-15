@@ -403,6 +403,32 @@ struct SingleImplementationProtocolVisitorTests {
         #expect(issue.message.contains("PaymentProtocol"))
     }
 
+    /// A conformer whose name merely *contains* a mock marker mid-word
+    /// (`Mockingbird…` ⊃ `Mock`) is production code, not a test double, so it counts
+    /// as the single production conformer and the protocol is still flagged.
+    /// Guards against the old substring match that treated it as a mock and silently
+    /// suppressed the rule.
+    @Test
+    func conformerWithMarkerMidNameIsNotTreatedAsMock() throws {
+        let issues = analyze(files: [
+            "Protocol.swift": """
+            protocol Renderer {
+                func render()
+            }
+            """,
+            "Impl.swift": """
+            struct MockingbirdRenderer: Renderer {
+                func render() { }
+            }
+            """
+        ])
+
+        #expect(issues.count == 1)
+        let issue = try #require(issues.first)
+        #expect(issue.message.contains("Renderer"))
+        #expect(issue.message.contains("MockingbirdRenderer"))
+    }
+
     /// A `…ServiceProtocol` name ends in `Protocol`, not the role word `Service`, so
     /// the role-suffix exemption does not apply and it is flagged.
     @Test

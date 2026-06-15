@@ -122,6 +122,27 @@ struct SubclassedForMockingVisitorTests {
         #expect(issues.isEmpty)
     }
 
+    /// A production subclass whose name only *contains* a mock marker mid-word
+    /// (`Mockingbird…` ⊃ `Mock`) is not a test double, so its base is not flagged.
+    /// Guards against the old `hasPrefix("Mock")` check that matched `Mocking…`.
+    @Test
+    func productionSubclassWithMarkerMidNameDoesNotFlagBase() {
+        let issues = analyze(files: [
+            "ChartController.swift": """
+            class ChartController {
+                func render() { }
+            }
+            """,
+            "MockingbirdController.swift": """
+            class MockingbirdController: ChartController {
+                override func render() { }
+            }
+            """
+        ])
+
+        #expect(issues.isEmpty)
+    }
+
     @Test
     func reportsEachBaseOnceForMultipleMocks() {
         let issues = analyze(files: [
