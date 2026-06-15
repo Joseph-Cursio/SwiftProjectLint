@@ -351,4 +351,33 @@ struct ArchitectureConcreteTypeUsageTests {
         let concreteIssues = issues.filter { $0.ruleName == .concreteTypeUsage }
         #expect(concreteIssues.count >= 1)
     }
+
+    // MARK: - Behaviour-type suffixes (Runner, Indexer, ...)
+
+    @Test func testDetectsRunnerSuffixProperty() throws {
+        // A concrete `Runner`-typed dependency injected into a type is exactly the
+        // testability seam this rule targets; `Runner` was previously absent from the
+        // service-type suffix set, so it slipped through.
+        let source = """
+        final class Reflector {
+            private let buildRunner: BuildRunner
+            init(buildRunner: BuildRunner) { self.buildRunner = buildRunner }
+        }
+        """
+        let issues = analyzeSource(source, filePath: "Reflector.swift")
+        let concreteIssues = issues.filter { $0.ruleName == .concreteTypeUsage }
+        let issue = try #require(concreteIssues.first)
+        #expect(issue.message.contains("BuildRunner"))
+        #expect(issue.message.contains("buildRunner"))
+    }
+
+    @Test func testServiceTypeSuffixMatchesNewBehaviourSuffixes() {
+        // Lock the newly added suffixes so the set cannot silently regress.
+        #expect(ServiceTypeSuffix.matches("BuildRunner"))
+        #expect(ServiceTypeSuffix.matches("WorkspaceIndexer"))
+        #expect(ServiceTypeSuffix.matches("DocCFetcher"))
+        #expect(ServiceTypeSuffix.matches("FileSystemWatcher"))
+        #expect(ServiceTypeSuffix.matches("BuildErrorInterpreter"))
+        #expect(ServiceTypeSuffix.matches("PlainValue") == false)
+    }
 }

@@ -26,6 +26,16 @@ enum ServiceTypeSuffix: String, CaseIterable {
     case simulator = "Simulator"
     case engine = "Engine"
     case checker = "Checker"
+    case runner = "Runner"
+    case builder = "Builder"
+    case fetcher = "Fetcher"
+    case loader = "Loader"
+    case indexer = "Indexer"
+    case parser = "Parser"
+    case interpreter = "Interpreter"
+    case reporter = "Reporter"
+    case watcher = "Watcher"
+    case scheduler = "Scheduler"
 
     /// Whether `name` ends with any service-type suffix.
     static func matches(_ name: String) -> Bool {
