@@ -192,14 +192,57 @@ open class BasePatternVisitor: SyntaxVisitor, PatternVisitorProtocol {
     /// fixture, mock, or sample file that should generally be excluded from
     /// lint rules.
     public func isTestOrFixtureFile() -> Bool {
-        filePath.contains("Tests") || filePath.hasSuffix("Test.swift")
-            || filePath.hasSuffix("Tests.swift")
-            || filePath.contains("ExampleCode") || filePath.contains("Fixtures")
-            || filePath.contains("Examples") || filePath.contains("Samples")
-            || filePath.hasSuffix("Examples.swift")
-            || filePath.contains("Mock") || filePath.contains("Mocks")
-            || filePath.contains("Fakes") || filePath.contains("Stubs")
+        let pathString = filePath as NSString
+
+        // Directory-based: a *containing folder* is a test target or fixture root.
+        // Matching whole path components (not raw substrings) means a production
+        // file that merely mentions a marker mid-name — e.g.
+        // `.../SubclassedForMockingVisitor.swift`, where "Mocking" contains "Mock" —
+        // is not mistaken for a fixture.
+        for component in pathString.pathComponents.dropLast() {
+            if component == "Tests" || component.hasSuffix("Tests") {
+                return true // SPM `Tests/` and Xcode `FooTests/` target folders
+            }
+            if Self.fixtureDirectoryNames.contains(component) {
+                return true
+            }
+        }
+
+        // File-name-based: standard test / fixture file names.
+        let fileName = pathString.lastPathComponent
+        if fileName.hasSuffix("Test.swift") || fileName.hasSuffix("Tests.swift")
+            || fileName.hasSuffix("Examples.swift") || fileName.hasSuffix("Samples.swift") {
+            return true
+        }
+
+        // Test doubles: a Mock/Fake/Stub/Spy marker at a camelCase boundary — the
+        // whole stem (`Mocks.swift`), a suffix (`ClientMock.swift`), or a prefix
+        // before an uppercase letter (`MockClient.swift`) — never an inner
+        // substring (`MockingbirdConfig.swift` stays production).
+        let baseName = (fileName as NSString).deletingPathExtension
+        return Self.testDoubleMarkers.contains { marker in
+            if baseName == marker || baseName.hasSuffix(marker) {
+                return true
+            }
+            guard baseName.hasPrefix(marker),
+                  let next = baseName.dropFirst(marker.count).first else {
+                return false
+            }
+            return next.isUppercase
+        }
     }
+
+    /// Folder names whose contents are test fixtures, samples, or doubles rather
+    /// than production code. Matched against whole path components.
+    private static let fixtureDirectoryNames: Set<String> = [
+        "Mocks", "Fakes", "Stubs", "Fixtures", "Examples", "Samples", "ExampleCode"
+    ]
+
+    /// Test-double name markers, matched only at camelCase boundaries within a file
+    /// name (singular and plural forms) so production code is not swept in.
+    private static let testDoubleMarkers = [
+        "Mock", "Mocks", "Fake", "Fakes", "Stub", "Stubs", "Spy", "Spies"
+    ]
 
     /// Adds a detected issue directly with explicit parameters.
     ///
