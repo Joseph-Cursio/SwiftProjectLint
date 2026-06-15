@@ -143,6 +143,65 @@ struct ArchitectureDirectInstantiationTests {
         #expect(directIssues.count == 2)
     }
 
+    // MARK: - Singleton definition site (self-instantiation) is exempt
+
+    @Test func testNoIssueForStaticSharedSelfInstantiation() {
+        // `static let shared = ProjectParser()` inside `ProjectParser` is the
+        // canonical singleton definition, not an injectable dependency.
+        let source = """
+        final class ProjectParser {
+            static let shared = ProjectParser()
+            private init() {}
+        }
+        """
+        let issues = analyzeSource(source)
+        let directIssues = issues.filter { $0.ruleName == .directInstantiation }
+        #expect(directIssues.isEmpty)
+    }
+
+    @Test func testNoIssueForStaticSelfInstantiationInStructAndActor() {
+        // Applies to any nominal type vending an instance of itself statically.
+        let source = """
+        struct ConfigStore {
+            static let shared = ConfigStore()
+        }
+        actor SyncEngine {
+            static let shared = SyncEngine()
+        }
+        """
+        let issues = analyzeSource(source)
+        let directIssues = issues.filter { $0.ruleName == .directInstantiation }
+        #expect(directIssues.isEmpty)
+    }
+
+    @Test func testStillFlagsStaticInstantiationOfDifferentType() throws {
+        // A static member instantiating a *different* service type is still a
+        // hard-coded dependency — only self-instantiation is exempt.
+        let source = """
+        enum Dependencies {
+            static let client = APIClient()
+        }
+        """
+        let issues = analyzeSource(source)
+        let directIssues = issues.filter { $0.ruleName == .directInstantiation }
+        let issue = try #require(directIssues.first)
+        #expect(issue.message.contains("APIClient"))
+    }
+
+    @Test func testStillFlagsInstanceMemberOfSameType() throws {
+        // A non-static stored property instantiating the enclosing type is not
+        // the singleton idiom — keep flagging it.
+        let source = """
+        final class DataManager {
+            let backup = DataManager()
+        }
+        """
+        let issues = analyzeSource(source)
+        let directIssues = issues.filter { $0.ruleName == .directInstantiation }
+        let issue = try #require(directIssues.first)
+        #expect(issue.message.contains("DataManager"))
+    }
+
     // MARK: - Service-suffix coverage (regression for ServiceSuffix divergence)
 
     /// `Analyzer`/`Simulator`/`Engine`/`Checker` were added to the canonical

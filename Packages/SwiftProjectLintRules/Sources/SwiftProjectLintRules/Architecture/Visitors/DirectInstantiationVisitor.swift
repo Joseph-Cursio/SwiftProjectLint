@@ -10,6 +10,11 @@ class DirectInstantiationVisitor: BasePatternVisitor {
     private var currentFilePath: String = ""
     private var insideFunctionOrClosure = 0
 
+    /// Names of the nominal types currently being visited, innermost last.
+    /// Used to recognise a type that instantiates *itself* as a static member —
+    /// the canonical singleton definition site, which is not a coupling smell.
+    private var typeNameStack: [String] = []
+
     required init(pattern: SyntaxPattern, viewMode: SyntaxTreeViewMode = .sourceAccurate) {
         super.init(pattern: pattern, viewMode: viewMode)
     }
@@ -58,6 +63,16 @@ class DirectInstantiationVisitor: BasePatternVisitor {
         for binding in node.bindings {
             guard let initializer = binding.initializer else { continue }
             if let typeName = isServiceLikeCall(initializer.value) {
+                // Exempt a type that vends an instance of itself as a `static`
+                // member — `static let shared = Foo()` *inside* `Foo`. Publishing
+                // your own `.shared` by instantiating yourself is the singleton
+                // idiom (and the same shape covers namespaced constants like
+                // `static let live = Client()`); it is a definition, not an
+                // injectable dependency. The coupling worth flagging is the
+                // `.shared` *access* at call sites, which `SingletonUsage` covers.
+                if isStatic(node), typeNameStack.last == typeName {
+                    continue
+                }
                 let paramName: String
                 if let pattern = binding.pattern.as(IdentifierPatternSyntax.self) {
                     paramName = pattern.identifier.text
@@ -94,6 +109,50 @@ class DirectInstantiationVisitor: BasePatternVisitor {
             )
         }
         return .visitChildren
+    }
+
+    // MARK: - Static-member detection
+
+    private func isStatic(_ node: VariableDeclSyntax) -> Bool {
+        node.modifiers.contains { $0.name.tokenKind == .keyword(.static) }
+    }
+
+    // MARK: - Enclosing-type context tracking
+
+    override func visit(_ node: ClassDeclSyntax) -> SyntaxVisitorContinueKind {
+        typeNameStack.append(node.name.text)
+        return .visitChildren
+    }
+
+    override func visitPost(_ _: ClassDeclSyntax) {
+        typeNameStack.removeLast()
+    }
+
+    override func visit(_ node: StructDeclSyntax) -> SyntaxVisitorContinueKind {
+        typeNameStack.append(node.name.text)
+        return .visitChildren
+    }
+
+    override func visitPost(_ _: StructDeclSyntax) {
+        typeNameStack.removeLast()
+    }
+
+    override func visit(_ node: EnumDeclSyntax) -> SyntaxVisitorContinueKind {
+        typeNameStack.append(node.name.text)
+        return .visitChildren
+    }
+
+    override func visitPost(_ _: EnumDeclSyntax) {
+        typeNameStack.removeLast()
+    }
+
+    override func visit(_ node: ActorDeclSyntax) -> SyntaxVisitorContinueKind {
+        typeNameStack.append(node.name.text)
+        return .visitChildren
+    }
+
+    override func visitPost(_ _: ActorDeclSyntax) {
+        typeNameStack.removeLast()
     }
 
     // MARK: - Function / closure context tracking
