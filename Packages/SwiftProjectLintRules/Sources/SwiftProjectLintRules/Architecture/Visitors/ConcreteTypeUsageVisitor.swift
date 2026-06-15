@@ -142,6 +142,14 @@ class ConcreteTypeUsageVisitor: BasePatternVisitor {
         // concrete type is load-bearing. Requires the project-wide observable prescan.
         if knownObservableTypes.contains(name) { return nil }
 
+        // Protocol types — already an abstraction. A protocol used as a bare
+        // existential (`let provider: ResourceMetricsProvider`) is not a concrete
+        // dependency, but the name-based check above only recognises the
+        // `Protocol`/`Type`/`Interface` naming conventions. The project-wide protocol
+        // prescan catches the rest, so we don't tell users to "prefer a protocol
+        // abstraction" for something that already is one.
+        if knownProtocolTypes.contains(name) { return nil }
+
         return name
     }
 

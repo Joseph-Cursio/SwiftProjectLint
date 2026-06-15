@@ -32,6 +32,9 @@ public protocol SourcePatternDetectorProtocol {
     /// Type names known to be `@Observable`/`ObservableObject` across the project.
     var knownObservableTypes: Set<String> { get set }
 
+    /// Type names known to be declared as protocols across the project.
+    var knownProtocolTypes: Set<String> { get set }
+
     /// Architectural layer policies for the Architectural Boundary rule.
     var layerPolicies: [LayerPolicy] { get set }
 

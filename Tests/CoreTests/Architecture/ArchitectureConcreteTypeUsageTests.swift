@@ -41,6 +41,24 @@ struct ArchitectureConcreteTypeUsageTests {
         return visitor.detectedIssues
     }
 
+    /// Variant that injects the project-wide protocol prescan result, the way
+    /// `ProjectLinter` does, so the "type is already a protocol" exemption can be
+    /// exercised at the visitor level.
+    private func analyzeSource(
+        _ source: String,
+        protocolTypes: Set<String>,
+        filePath: String = "SourceFile.swift"
+    ) -> [LintIssue] {
+        let visitor = ConcreteTypeUsageVisitor(patternCategory: .architecture)
+        visitor.knownProtocolTypes = protocolTypes
+        let syntax = Parser.parse(source: source)
+        let converter = SourceLocationConverter(fileName: filePath, tree: syntax)
+        visitor.setSourceLocationConverter(converter)
+        visitor.setFilePath(filePath)
+        visitor.walk(syntax)
+        return visitor.detectedIssues
+    }
+
     // MARK: - Function parameter
 
     @Test func testDetectsConcreteTypeInFunctionParameter() throws {
@@ -379,5 +397,38 @@ struct ArchitectureConcreteTypeUsageTests {
         #expect(ServiceTypeSuffix.matches("FileSystemWatcher"))
         #expect(ServiceTypeSuffix.matches("BuildErrorInterpreter"))
         #expect(ServiceTypeSuffix.matches("PlainValue") == false)
+    }
+
+    // MARK: - Known-protocol exemption (bare existentials)
+
+    @Test func testNoIssueForKnownProtocolUsedAsBareExistential() {
+        // `ResourceMetricsProvider` is a protocol whose name does not end in
+        // Protocol/Type/Interface; used as a bare existential it must not be flagged
+        // once the project-wide protocol prescan recognises it as already-abstract.
+        let source = """
+        final class ResourceGovernor {
+            private let provider: ResourceMetricsProvider
+            init(provider: ResourceMetricsProvider) { self.provider = provider }
+        }
+        """
+        let issues = analyzeSource(
+            source, protocolTypes: ["ResourceMetricsProvider"], filePath: "ResourceGovernor.swift"
+        ).filter { $0.ruleName == .concreteTypeUsage }
+        #expect(issues.isEmpty)
+    }
+
+    @Test func testFlagsSameTypeWhenNotKnownProtocol() throws {
+        // Control: with no protocol prescan the same property is flagged — proving the
+        // prescan, not some unrelated exemption, is what suppresses the false positive.
+        let source = """
+        final class ResourceGovernor {
+            private let provider: ResourceMetricsProvider
+            init(provider: ResourceMetricsProvider) { self.provider = provider }
+        }
+        """
+        let issues = analyzeSource(source, filePath: "ResourceGovernor.swift")
+            .filter { $0.ruleName == .concreteTypeUsage }
+        let issue = try #require(issues.first)
+        #expect(issue.message.contains("ResourceMetricsProvider"))
     }
 }

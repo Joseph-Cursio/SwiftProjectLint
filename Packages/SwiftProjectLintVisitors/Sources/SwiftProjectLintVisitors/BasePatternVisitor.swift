@@ -50,6 +50,13 @@ open class BasePatternVisitor: SyntaxVisitor, PatternVisitorProtocol {
     /// severs SwiftUI's observation tracking, so the concrete type is load-bearing.
     public var knownObservableTypes: Set<String> = []
 
+    /// Type names known to be declared as protocols across the project. Populated by
+    /// a pre-scan phase in `ProjectLinter` so that per-file visitors can tell a
+    /// protocol apart from a concrete service type — e.g. so "Concrete Type Usage"
+    /// does not flag a property typed as a bare-existential protocol whose name does
+    /// not end in `Protocol`/`Type`/`Interface`.
+    public var knownProtocolTypes: Set<String> = []
+
     /// Architectural layer policies for the Architectural Boundary rule.
     /// Injected by `SourcePatternDetector` after loading from `LintConfiguration`.
     /// Empty by default — the rule is a no-op when no layers are defined.
