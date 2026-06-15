@@ -76,10 +76,31 @@ struct SwiftProjectLintCLI: AsyncParsableCommand {
 
         print(format.formatter.format(issues: issues))
 
+        // Surface skipped scope: a clean-looking result is misleading if whole
+        // first-party packages were never analyzed. Written to stderr so it never
+        // contaminates machine-readable stdout (e.g. `--format json`).
+        if configuration.includeNestedPackages == false,
+           FileAnalysisUtils.containsNestedPackage(in: absolutePath) {
+            Self.printToStandardError(Self.nestedPackagesSkippedNotice)
+        }
+
         let code = ExitCodes.exitCode(for: issues, threshold: threshold)
         if code != 0 {
             throw ExitCode(code)
         }
+    }
+
+    /// Shown when a project has nested first-party packages but they were left out
+    /// of scope. Cross-file rules can't span the package boundary, so issues inside
+    /// those packages go unreported — a "clean" result here doesn't mean clean.
+    static let nestedPackagesSkippedNotice =
+        "Note: nested Swift packages were not analyzed, so issues inside them are "
+        + "not reported. Cross-file rules (e.g. architecture and protocol checks) "
+        + "cannot span the package boundary. Re-run with --include-nested-packages "
+        + "to include them."
+
+    private static func printToStandardError(_ message: String) {
+        FileHandle.standardError.write(Data((message + "\n").utf8))
     }
 
     private func parseCategories() throws -> [PatternCategory]? {

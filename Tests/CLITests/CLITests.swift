@@ -169,4 +169,57 @@ struct CLITests {
         // Should exit clean (magic numbers are warnings, not errors)
         #expect(result.exitCode == 0)
     }
+
+    // MARK: - Nested-package skip notice
+
+    /// Creates a project directory containing a nested first-party package
+    /// (`<dir>/Nested/Package.swift`), which a default run skips.
+    private func makeProjectWithNestedPackage() throws -> URL {
+        let dir = try makeTemporaryDirectory()
+        let nested = dir.appendingPathComponent("Nested")
+        try FileManager.default.createDirectory(at: nested, withIntermediateDirectories: true)
+        try "// swift-tools-version:5.9\n".write(
+            to: nested.appendingPathComponent("Package.swift"),
+            atomically: true,
+            encoding: .utf8
+        )
+        return dir
+    }
+
+    @Test func warnsWhenNestedPackagesSkipped() throws {
+        let dir = try makeProjectWithNestedPackage()
+        defer { try? FileManager.default.removeItem(at: dir) }
+
+        let result = try runCLI(arguments: [dir.path])
+        #expect(result.stderr.contains("nested Swift packages were not analyzed"))
+        #expect(result.stderr.contains("--include-nested-packages"))
+    }
+
+    @Test func noNestedPackageWarningWithFlag() throws {
+        let dir = try makeProjectWithNestedPackage()
+        defer { try? FileManager.default.removeItem(at: dir) }
+
+        let result = try runCLI(arguments: [dir.path, "--include-nested-packages"])
+        #expect(result.stderr.contains("nested Swift packages") == false)
+    }
+
+    @Test func noNestedPackageWarningWhenNonePresent() throws {
+        let dir = try makeTemporaryDirectory()
+        defer { try? FileManager.default.removeItem(at: dir) }
+
+        let result = try runCLI(arguments: [dir.path])
+        #expect(result.stderr.contains("nested Swift packages") == false)
+    }
+
+    /// The notice must go to stderr only, leaving JSON stdout parseable.
+    @Test func nestedPackageWarningDoesNotCorruptJSONOutput() throws {
+        let dir = try makeProjectWithNestedPackage()
+        defer { try? FileManager.default.removeItem(at: dir) }
+
+        let result = try runCLI(arguments: [dir.path, "--format", "json"])
+        #expect(result.stderr.contains("nested Swift packages were not analyzed"))
+        let data = try #require(result.stdout.data(using: .utf8))
+        let parsed = try? JSONSerialization.jsonObject(with: data)
+        #expect(parsed != nil)
+    }
 }
