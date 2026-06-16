@@ -14,6 +14,8 @@ Accessing a service through a `.shared` singleton creates a global dependency th
 
 **Test and fixture files are exempt.** A unit test that calls the real `ProjectParser.shared` is exercising production code, not introducing coupling to refactor — the access *is* the test. The visitor skips files detected as test/fixture by `isTestOrFixtureFile()` (SPM `Tests/` and Xcode `…Tests/` target folders, `…Tests.swift` files, and fixture directories), matching the test-file handling already applied by other architecture rules (`Single Implementation Protocol`, `Unabstracted File IO`). This keeps the signal on the production call sites — e.g. an `AppState`/`…Model` that reaches for `Service.shared` — where injecting the dependency actually pays off.
 
+**`.shared` as a parameter default value is exempt.** `init(parser: ProjectParsing = ProjectParser.shared)` is exactly the dependency-injection seam this rule's own suggestion recommends: the dependency is visible in the signature and replaceable by callers and tests, so it is not the hidden global coupling the rule targets. The visitor walks up from the `.shared` access and exempts it when it sits directly in a `FunctionParameterSyntax` default value — but **not** when it is a call inside a default *closure* body (`init(work: () -> Void = { Service.shared.run() })`), which is still hidden coupling. The walk stops at a closure or code block, so only the plain default-value position is exempt.
+
 ### Non-Violating Examples
 ```swift
 // System singleton — not flagged
@@ -28,6 +30,14 @@ class Coordinator {
     private let dataManager: DataManagerProtocol
     init(dataManager: DataManagerProtocol) {
         self.dataManager = dataManager
+    }
+}
+
+// `.shared` as a parameter default — the DI seam, not flagged
+final class AppState {
+    private let parser: ProjectParsing
+    init(parser: ProjectParsing = ProjectParser.shared) {
+        self.parser = parser
     }
 }
 ```

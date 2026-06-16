@@ -129,4 +129,30 @@ struct ArchitectureSingletonUsageTests {
         // dm is not a service-like type name (lowercase), so no issue
         #expect(singletonIssues.isEmpty)
     }
+
+    // MARK: - Parameter-default (dependency-injection seam) exemption
+
+    @Test func testNoIssueForSharedAsParameterDefault() {
+        // `.shared` as a default argument is the DI seam the rule itself recommends:
+        // visible in the signature and replaceable in tests.
+        let source = """
+        final class Coordinator {
+            init(manager: DataManaging = DataManager.shared) { }
+        }
+        """
+        let issues = analyzeSource(source).filter { $0.ruleName == .singletonUsage }
+        #expect(issues.isEmpty)
+    }
+
+    @Test func testStillFlagsSharedInsideDefaultClosureBody() throws {
+        // A `.shared` *call* inside a default closure body is still hidden coupling.
+        let source = """
+        final class Coordinator {
+            init(work: () -> Void = { DataManager.shared.fetch() }) { }
+        }
+        """
+        let issues = analyzeSource(source).filter { $0.ruleName == .singletonUsage }
+        let issue = try #require(issues.first)
+        #expect(issue.message.contains("DataManager"))
+    }
 }

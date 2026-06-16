@@ -41,6 +41,14 @@ class SingletonUsageVisitor: BasePatternVisitor {
               let typeName = qualifyingServiceName(ref.baseName.text) else {
             return .visitChildren
         }
+        // Exempt `.shared` used as an initializer/function parameter default value —
+        // `init(parser: ProjectParsing = ProjectParser.shared)` is the dependency-
+        // injection seam the rule's own suggestion recommends: the dependency is
+        // visible in the signature and replaceable by callers and tests, so it is
+        // not the hidden global coupling this rule targets.
+        guard !isParameterDefaultValue(node) else {
+            return .visitChildren
+        }
         addIssue(
             severity: .warning,
             message: "Accessing singleton '\(typeName).shared' creates hard coupling — prefer dependency injection",
@@ -57,5 +65,22 @@ class SingletonUsageVisitor: BasePatternVisitor {
               ServiceTypeSuffix.matches(name)
         else { return nil }
         return name
+    }
+
+    /// True when `node` sits directly in a function/initializer parameter's default
+    /// value (e.g. `init(x: P = Type.shared)`). Walking stops at a closure or code
+    /// block so a `.shared` *call* inside a default closure body is still flagged.
+    private func isParameterDefaultValue(_ node: MemberAccessExprSyntax) -> Bool {
+        var current = node.parent
+        while let syntax = current {
+            if syntax.is(ClosureExprSyntax.self) || syntax.is(CodeBlockSyntax.self) {
+                return false
+            }
+            if syntax.is(FunctionParameterSyntax.self) {
+                return true
+            }
+            current = syntax.parent
+        }
+        return false
     }
 }
