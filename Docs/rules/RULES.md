@@ -82,6 +82,7 @@ Rules marked **opt-in** are disabled by default and must be explicitly listed un
 | [View Model Direct DB Access](view-model-direct-db-access.md) | Info *(opt-in)* |
 | [Circular Dependency](circular-dependency.md) | Warning |
 | [Architectural Boundary](architectural-boundary.md) | Warning |
+| [Boolean Control Coupling](boolean-control-coupling.md) | Warning |
 
 ## Code Quality
 

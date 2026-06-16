@@ -111,7 +111,8 @@ class Architecture: BasePatternRegistrar {
             GodViewModel(),
             ViewModelDirectDBAccess(),
             CircularDependency(),
-            ArchitecturalBoundary()
+            ArchitecturalBoundary(),
+            BooleanControlCoupling()
         ])
     }
 }
