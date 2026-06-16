@@ -36,10 +36,15 @@ final class ParallelEnumShapeVisitor: CrossFileVisitorBase, CrossFilePatternVisi
         let file: String
         let line: Int
         let cases: Set<String>
-        let domainConformances: Set<String>   // conformances minus ubiquitous ones
+        let ownConformances: Set<String>   // raw, from the enum's own inheritance clause
     }
 
     private var enums: [EnumInfo] = []
+
+    /// Conformances added to a type via a separate `extension Foo: P {}`, keyed by the
+    /// extended type's simple name. Merged with each enum's own conformances in Phase 2
+    /// so a protocol adopted in an extension still counts as "already unified".
+    private var extensionConformances: [String: Set<String>] = [:]
 
     // MARK: - Phase 1: collect
 
@@ -74,8 +79,27 @@ final class ParallelEnumShapeVisitor: CrossFileVisitorBase, CrossFilePatternVisi
             file: currentFilePath,
             line: getLineNumber(for: Syntax(node)),
             cases: caseNames,
-            domainConformances: conformances.subtracting(Self.ubiquitousConformances)
+            ownConformances: conformances
         ))
+        return .visitChildren
+    }
+
+    /// Record protocol conformances declared in a separate `extension Foo: P {}` so
+    /// they count toward the type being "already unified" in Phase 2.
+    override func visit(_ node: ExtensionDeclSyntax) -> SyntaxVisitorContinueKind {
+        guard let inheritance = node.inheritanceClause,
+              let typeName = conformanceName(node.extendedType) else {
+            return .visitChildren
+        }
+        var conformances: Set<String> = []
+        for inherited in inheritance.inheritedTypes {
+            if let name = conformanceName(inherited.type) {
+                conformances.insert(name)
+            }
+        }
+        if !conformances.isEmpty {
+            extensionConformances[typeName, default: []].formUnion(conformances)
+        }
         return .visitChildren
     }
 
@@ -102,8 +126,8 @@ final class ParallelEnumShapeVisitor: CrossFileVisitorBase, CrossFilePatternVisi
         for cluster in clusters.values where cluster.count >= Self.minClusterSize {
             // Suppress when every member already shares a domain protocol — they are
             // unified, so there is nothing to suggest.
-            let sharedProtocols = cluster.dropFirst().reduce(cluster[0].domainConformances) {
-                $0.intersection($1.domainConformances)
+            let sharedProtocols = cluster.dropFirst().reduce(domainConformances(of: cluster[0])) {
+                $0.intersection(domainConformances(of: $1))
             }
             guard sharedProtocols.isEmpty else { continue }
 
@@ -125,5 +149,13 @@ final class ParallelEnumShapeVisitor: CrossFileVisitorBase, CrossFilePatternVisi
                 )
             }
         }
+    }
+
+    /// The enum's domain conformances: its own plus any added in a separate extension,
+    /// minus ubiquitous raw-value types and standard protocols.
+    private func domainConformances(of info: EnumInfo) -> Set<String> {
+        info.ownConformances
+            .union(extensionConformances[info.name] ?? [])
+            .subtracting(Self.ubiquitousConformances)
     }
 }

@@ -25,9 +25,11 @@ flags.
 files, so a single-file linter never sees them together.
 
 **Phase 1 (walk).** It catalogs every `enum`, recording its case-name set, whether any case
-has associated values, and its conformances. Enums with associated values, or with fewer than
-**3** cases, are skipped: an associated value makes a case a constructor rather than a label,
-and two-case enums (`on`/`off`, `yes`/`no`) coincide too often to be meaningful.
+has associated values, and its conformances — both from the enum's own inheritance clause and
+from any separate `extension Foo: P {}` (collected by extended-type name and merged in Phase 2).
+Enums with associated values, or with fewer than **3** cases, are skipped: an associated value
+makes a case a constructor rather than a label, and two-case enums (`on`/`off`, `yes`/`no`)
+coincide too often to be meaningful.
 
 **Phase 2 (`finalizeAnalysis`).** Enums are clustered by *identical* case-name set. A cluster
 of two or more fires, one issue per member, naming the peers and the shared cases.
@@ -45,8 +47,11 @@ conformance (a real domain protocol like `SeverityDisplaying`) suppresses it.
   `// swiftprojectlint:disable Parallel Enum Shape`.
 - **Exact-set clustering only.** Two enums where one case set is a superset of the other are
   not currently clustered — the rule targets the high-signal "identical cases" case.
-- **Conformance detection is by inheritance-clause name**, so a shared protocol added via a
-  separate `extension Foo: P {}` is not seen as unifying (the cluster would still fire).
+- **Conformance detection is by name**, covering both the enum's own inheritance clause and
+  conformances added in a separate `extension Foo: P {}` (collected cross-file and merged in
+  Phase 2). It does not resolve a protocol that is itself only reachable through a chain of
+  refinements, and it keys on the extended type's simple name (so `extension Outer.Severity: P`
+  is attributed to `Severity`).
 - Nested enums are named by their simple name (`Severity`, not `ValidationResult.Severity`).
 
 ### Non-Violating Examples

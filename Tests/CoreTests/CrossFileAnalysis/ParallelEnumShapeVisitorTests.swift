@@ -74,6 +74,44 @@ struct ParallelEnumShapeVisitorTests {
     }
 
     @Test
+    func extensionBasedConformanceSuppresses() {
+        // The shared protocol is adopted via a separate `extension`, not the enum's
+        // inheritance clause — it must still count as "already unified".
+        let issues = analyze(files: [
+            "P.swift": "protocol Displayable {}",
+            "A.swift": "enum A { case error, info, warning }\nextension A: Displayable {}",
+            "B.swift": "enum B { case error, info, warning }\nextension B: Displayable {}"
+        ])
+        #expect(issues.isEmpty)
+    }
+
+    @Test
+    func nestedExtensionConformanceSuppresses() {
+        // Mirrors SwiftCompilerFlagStudio: one enum conforms inline, a nested enum
+        // conforms via `extension Outer.Inner: P`.
+        let issues = analyze(files: [
+            "P.swift": "protocol SeverityDisplaying {}",
+            "C.swift": "enum ConflictSeverity: SeverityDisplaying { case error, info, warning }",
+            "V.swift": """
+            struct ValidationResult { enum Severity { case error, info, warning } }
+            extension ValidationResult.Severity: SeverityDisplaying {}
+            """
+        ])
+        #expect(issues.isEmpty)
+    }
+
+    @Test
+    func extensionConformanceOnOnlyOneMemberStillFires() {
+        // Only A adopts the protocol; B shares nothing — they are not unified.
+        let issues = analyze(files: [
+            "P.swift": "protocol Displayable {}",
+            "A.swift": "enum A { case error, info, warning }\nextension A: Displayable {}",
+            "B.swift": "enum B { case error, info, warning }"
+        ])
+        #expect(issues.count == 2)
+    }
+
+    @Test
     func associatedValuesExcludeTheEnum() {
         // `A` has an associated value → not a plain tag enum → not catalogued, so the
         // remaining single `B` has no parallel peer.
