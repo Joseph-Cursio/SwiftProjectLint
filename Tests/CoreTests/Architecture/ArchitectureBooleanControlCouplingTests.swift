@@ -217,6 +217,44 @@ struct ArchitectureBooleanControlCouplingTests {
         #expect(analyzeSource(source).isEmpty)
     }
 
+    @Test func ignoresStdlibCapacityConventionFlag() {
+        // `keepCapacity` mirrors `removeAll(keepingCapacity:)` — exempt even
+        // though it branches two ways.
+        let source = """
+        struct Buffer {
+            func removeAll(keepCapacity: Bool) {
+                if keepCapacity {
+                    zeroOut()
+                    retainStorage()
+                } else {
+                    deallocate()
+                    resetCount()
+                }
+            }
+        }
+        """
+        #expect(analyzeSource(source).isEmpty)
+    }
+
+    @Test func ignoresCapacityConventionByArgumentLabel() {
+        // The convention lives on the label; the internal name differs but is
+        // still exempt.
+        let source = """
+        struct Buffer {
+            func clear(keepingCapacity keep: Bool) {
+                if keep {
+                    zeroOut()
+                    retainStorage()
+                } else {
+                    deallocate()
+                    resetCount()
+                }
+            }
+        }
+        """
+        #expect(analyzeSource(source).isEmpty)
+    }
+
     @Test func ignoresTestAndFixtureFiles() {
         let source = """
         struct S {

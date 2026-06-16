@@ -23,6 +23,16 @@ final class BooleanControlCouplingVisitor: BasePatternVisitor {
     /// never matches.
     private var boolParamStack: [Set<String>] = []
 
+    /// Parameter names that are established standard-library conventions for a
+    /// capacity-retention flag — `Array.removeAll(keepingCapacity:)` and the
+    /// many collection methods that mirror it. These flags branch two ways by
+    /// design, but they deliberately echo the stdlib spelling; refactoring them
+    /// to a strategy would fight the convention rather than clarify it, so they
+    /// are exempt. Matched against both the argument label and the internal name.
+    private static let conventionFlagNames: Set<String> = [
+        "keepCapacity", "keepingCapacity"
+    ]
+
     required init(pattern: SyntaxPattern, viewMode: SyntaxTreeViewMode = .sourceAccurate) {
         super.init(pattern: pattern, viewMode: viewMode)
     }
@@ -107,10 +117,17 @@ final class BooleanControlCouplingVisitor: BasePatternVisitor {
         for param in clause.parameters where isBoolType(param.type) {
             // The internal (body-visible) name is the second name when present
             // (`func f(animated flag: Bool)` → `flag`), else the first.
+            let externalName = param.firstName.text
             let internalName = (param.secondName ?? param.firstName).text
-            if internalName != "_" {
-                names.insert(internalName)
+            if internalName == "_" {
+                continue
             }
+            // Exempt stdlib-convention capacity flags (matched on either name).
+            if Self.conventionFlagNames.contains(internalName)
+                || Self.conventionFlagNames.contains(externalName) {
+                continue
+            }
+            names.insert(internalName)
         }
         return names
     }

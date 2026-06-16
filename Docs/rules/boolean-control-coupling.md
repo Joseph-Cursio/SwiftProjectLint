@@ -66,6 +66,11 @@ presence of a `Bool` parameter is **not** flagged.
 - **`override` methods** — the signature is inherited and can't be changed freely.
 - **Protocol requirements / bodyless declarations** — nothing to refactor.
 - **Test, fixture, mock, and example files** — via the shared path heuristic.
+- **Standard-library capacity conventions** — a parameter named `keepCapacity` or
+  `keepingCapacity` (on either the label or the internal name) is exempt. These mirror
+  `Array.removeAll(keepingCapacity:)` and the many collection methods built on it; they
+  branch two ways by design, but echoing the stdlib spelling is the point, so a strategy
+  would fight the convention rather than clarify it.
 
 #### Known limitations / false-positive posture
 - **`else if` chains** are evaluated at the inner `if`. The flag driving a middle `else if`
