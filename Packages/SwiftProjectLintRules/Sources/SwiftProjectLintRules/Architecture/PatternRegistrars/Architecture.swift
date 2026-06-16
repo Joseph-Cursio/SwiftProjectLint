@@ -102,6 +102,7 @@ class Architecture: BasePatternRegistrar {
             MirrorProtocol(),
             DuplicateStructShape(),
             ScatteredEnumMapping(),
+            ParallelEnumShape(),
             UnusedProtocolAbstraction(),
             CouldAdoptProtocol(),
             SubclassedForMocking(),

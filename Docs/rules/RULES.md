@@ -1,6 +1,6 @@
 # SwiftProjectLint Rules Reference
 
-SwiftProjectLint is a static analysis tool for SwiftUI projects. It parses Swift source files using SwiftSyntax AST visitors to detect anti-patterns spanning state management, performance, animations, architecture, code quality, security, accessibility, memory management, networking, UI patterns, modernization, and idempotency. This reference documents all 162 lint rules, organized by category.
+SwiftProjectLint is a static analysis tool for SwiftUI projects. It parses Swift source files using SwiftSyntax AST visitors to detect anti-patterns spanning state management, performance, animations, architecture, code quality, security, accessibility, memory management, networking, UI patterns, modernization, and idempotency. This reference documents all 163 lint rules, organized by category.
 
 Rules marked **opt-in** are disabled by default and must be explicitly listed under `enabled_only` in `.swiftprojectlint.yml`.
 
@@ -71,6 +71,7 @@ Rules marked **opt-in** are disabled by default and must be explicitly listed un
 | [Mirror Protocol](mirror-protocol.md) | Info |
 | [Duplicate Struct Shape](duplicate-struct-shape.md) | Info *(opt-in)* |
 | [Scattered Enum Mapping](scattered-enum-mapping.md) | Info *(opt-in)* |
+| [Parallel Enum Shape](parallel-enum-shape.md) | Info *(opt-in)* |
 | [Unused Protocol Abstraction](unused-protocol-abstraction.md) | Info |
 | [Could Adopt Protocol](could-adopt-protocol.md) | Info *(opt-in)* |
 | [Subclassed For Mocking](subclassed-for-mocking.md) | Info |

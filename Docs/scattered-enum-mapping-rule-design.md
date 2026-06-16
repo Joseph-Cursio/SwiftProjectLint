@@ -1,8 +1,9 @@
 # Rule Design: Scattered Enum Mapping (+ companion: Parallel Enum Shape)
 
-**Status:** Rule 1 (Scattered Enum Mapping) **implemented** — see
-[`rules/scattered-enum-mapping.md`](rules/scattered-enum-mapping.md). Rule 2 (Parallel
-Enum Shape) remains proposed future work.
+**Status:** Both rules **implemented** — Rule 1
+[`rules/scattered-enum-mapping.md`](rules/scattered-enum-mapping.md),
+Rule 2 [`rules/parallel-enum-shape.md`](rules/parallel-enum-shape.md). Rule 2 ships
+exact-set clustering only (the superset case noted below is deferred).
 **Category:** Architecture
 **Severity:** Info *(opt-in)*
 **Proposed identifiers:** `Scattered Enum Mapping`, `Parallel Enum Shape`

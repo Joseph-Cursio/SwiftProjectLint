@@ -56,6 +56,7 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
     case mirrorProtocol = "Mirror Protocol"
     case duplicateStructShape = "Duplicate Struct Shape"
     case scatteredEnumMapping = "Scattered Enum Mapping"
+    case parallelEnumShape = "Parallel Enum Shape"
     case unusedProtocolAbstraction = "Unused Protocol Abstraction"
     case couldAdoptProtocol = "Could Adopt Protocol"
     case subclassedForMocking = "Subclassed For Mocking"
@@ -253,7 +254,8 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
              .concreteTypeUsage, .accessingImplementationDetails,
              .singletonUsage, .lawOfDemeter, .fatProtocol,
              .singleImplementationProtocol, .mirrorProtocol,
-             .duplicateStructShape, .scatteredEnumMapping, .unusedProtocolAbstraction,
+             .duplicateStructShape, .scatteredEnumMapping, .parallelEnumShape,
+             .unusedProtocolAbstraction,
              .couldAdoptProtocol,
              .subclassedForMocking,
              .unabstractedFileIO,
