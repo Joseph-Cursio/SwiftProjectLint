@@ -500,6 +500,92 @@ struct SingleImplementationProtocolVisitorTests {
         #expect(issues.isEmpty)
     }
 
+    // MARK: - Dependency-injection consumption suppression
+
+    /// A single-conformer protocol injected through an initializer parameter is a
+    /// deliberate DI seam — flagging it would tell the author to delete the injection
+    /// point. The signal is the *consumption shape* (a constructor dependency), not the
+    /// protocol's name, so it catches gerund capability names (`DataParsing`) that the
+    /// role-suffix list (`Service`, `Repository`, …) does not.
+    @Test
+    func singleConformerInjectedViaInitializerClean() {
+        let issues = analyze(files: [
+            "Protocol.swift": """
+            protocol DataParsing {
+                func parse()
+            }
+            """,
+            "Impl.swift": """
+            struct RealParser: DataParsing {
+                func parse() { }
+            }
+            """,
+            "Engine.swift": """
+            struct Engine {
+                init(parser: DataParsing = RealParser()) { }
+            }
+            """
+        ])
+
+        #expect(issues.isEmpty)
+    }
+
+    /// A single-conformer protocol held as a stored property is consumed as an
+    /// abstraction; the rule's advice ("use the concrete type") would force rewriting
+    /// that field, so the protocol earns its keep and is exempt. `some`/`any`/optional
+    /// wrappers are unwrapped to the base name.
+    @Test
+    func singleConformerHeldAsStoredPropertyClean() {
+        let issues = analyze(files: [
+            "Protocol.swift": """
+            protocol DataParsing {
+                func parse()
+            }
+            """,
+            "Impl.swift": """
+            struct RealParser: DataParsing {
+                func parse() { }
+            }
+            """,
+            "Holder.swift": """
+            final class Coordinator {
+                private let parser: any DataParsing
+                init(parser: any DataParsing) { self.parser = parser }
+            }
+            """
+        ])
+
+        #expect(issues.isEmpty)
+    }
+
+    /// The exemption is scoped to *held or injected* dependencies. A protocol that is
+    /// only mentioned as a factory return type is not a stored/injected dependency, so
+    /// the single-conformer protocol is still flagged — keeping the exemption narrow.
+    @Test
+    func singleConformerUsedOnlyAsReturnTypeStillFlags() throws {
+        let issues = analyze(files: [
+            "Protocol.swift": """
+            protocol DataParsing {
+                func parse()
+            }
+            """,
+            "Impl.swift": """
+            struct RealParser: DataParsing {
+                func parse() { }
+            }
+            """,
+            "Factory.swift": """
+            enum Factory {
+                static func make() -> DataParsing { RealParser() }
+            }
+            """
+        ])
+
+        #expect(issues.count == 1)
+        let issue = try #require(issues.first)
+        #expect(issue.message.contains("DataParsing"))
+    }
+
     /// A mock conformer declared via an extension must suppress the warning just as a
     /// directly-declared mock does.
     @Test

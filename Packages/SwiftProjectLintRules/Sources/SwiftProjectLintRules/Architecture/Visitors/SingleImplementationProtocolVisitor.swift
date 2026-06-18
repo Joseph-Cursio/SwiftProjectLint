@@ -9,9 +9,15 @@ import SwiftSyntax
 /// **Phase 1 (walk):** Collects protocol declarations and tracks conformances
 /// from struct/class/enum/actor declarations *and* extensions — `extension Foo:
 /// Bar` is the idiomatic way to add a conformance in Swift, so missing it
-/// reported widely-used protocols as dead code.
+/// reported widely-used protocols as dead code. It also records which protocols are
+/// *consumed as a dependency* — held as a stored property or received as an
+/// initializer parameter.
 /// **Phase 2 (finalizeAnalysis):** Flags protocols with exactly 0 or 1 conformers,
-/// excluding those with mock/fake/stub/spy conformers or public access.
+/// excluding those with mock/fake/stub/spy conformers, public access, or — for the
+/// single-conformer case — those consumed as an injected dependency. That last
+/// exemption is name-agnostic: it recognizes the DI *shape* (`init(parser: P = …)`,
+/// `let parser: P`), so gerund capability protocols (`DataParsing`, `Caching`) that
+/// the role-suffix list (`Service`, `Repository`, …) misses are still exempt.
 final class SingleImplementationProtocolVisitor: CrossFileVisitorBase, CrossFilePatternVisitorProtocol {
 
     private struct ProtocolDeclaration {
@@ -31,6 +37,11 @@ final class SingleImplementationProtocolVisitor: CrossFileVisitorBase, CrossFile
 
     /// Maps conforming type name → file path where it was found.
     private var conformerFiles: [String: String] = [:]
+
+    /// Names of types consumed as a dependency — held as a stored property or received
+    /// as an initializer parameter. A single-conformer protocol in this set is a
+    /// deliberate DI seam and is exempted in `finalizeAnalysis`.
+    private var dependencyConsumedTypeNames: Set<String> = []
 
     // MARK: - Collect Protocol Declarations
 
@@ -70,6 +81,7 @@ final class SingleImplementationProtocolVisitor: CrossFileVisitorBase, CrossFile
     override func visit(_ node: StructDeclSyntax) -> SyntaxVisitorContinueKind {
         currentTypeName = node.name.text
         recordConformances(from: node.inheritanceClause)
+        recordDependencyConsumption(from: node.memberBlock)
         return .visitChildren
     }
 
@@ -80,6 +92,7 @@ final class SingleImplementationProtocolVisitor: CrossFileVisitorBase, CrossFile
     override func visit(_ node: ClassDeclSyntax) -> SyntaxVisitorContinueKind {
         currentTypeName = node.name.text
         recordConformances(from: node.inheritanceClause)
+        recordDependencyConsumption(from: node.memberBlock)
         return .visitChildren
     }
 
@@ -100,6 +113,7 @@ final class SingleImplementationProtocolVisitor: CrossFileVisitorBase, CrossFile
     override func visit(_ node: ActorDeclSyntax) -> SyntaxVisitorContinueKind {
         currentTypeName = node.name.text
         recordConformances(from: node.inheritanceClause)
+        recordDependencyConsumption(from: node.memberBlock)
         return .visitChildren
     }
 
@@ -110,6 +124,7 @@ final class SingleImplementationProtocolVisitor: CrossFileVisitorBase, CrossFile
     override func visit(_ node: ExtensionDeclSyntax) -> SyntaxVisitorContinueKind {
         currentTypeName = extendedTypeName(from: node.extendedType)
         recordConformances(from: node.inheritanceClause)
+        recordDependencyConsumption(from: node.memberBlock)
         return .visitChildren
     }
 
@@ -151,6 +166,72 @@ final class SingleImplementationProtocolVisitor: CrossFileVisitorBase, CrossFile
         }
     }
 
+    /// Records type names a type *consumes as a dependency*: stored instance properties
+    /// (`let parser: P`) and initializer parameters (`init(parser: P = …)`). These are
+    /// the two canonical constructor/property-injection sites; flagging a protocol used
+    /// here would tell the author to delete the very injection point. Method parameters
+    /// and return types are intentionally excluded — they are not held dependencies, so
+    /// the exemption stays narrow.
+    private func recordDependencyConsumption(from members: MemberBlockSyntax) {
+        for member in members.members {
+            if let varDecl = member.decl.as(VariableDeclSyntax.self),
+               isStoredInstanceProperty(varDecl) {
+                for binding in varDecl.bindings {
+                    if let type = binding.typeAnnotation?.type,
+                       let name = dependencyTypeName(type) {
+                        dependencyConsumedTypeNames.insert(name)
+                    }
+                }
+            } else if let initDecl = member.decl.as(InitializerDeclSyntax.self) {
+                for parameter in initDecl.signature.parameterClause.parameters {
+                    if let name = dependencyTypeName(parameter.type) {
+                        dependencyConsumedTypeNames.insert(name)
+                    }
+                }
+            }
+        }
+    }
+
+    /// Stored, instance-level, non-computed property. `static`/`class`/`lazy` and
+    /// computed properties are not dependency-holding instance state.
+    private func isStoredInstanceProperty(_ varDecl: VariableDeclSyntax) -> Bool {
+        for modifier in varDecl.modifiers
+        where ["static", "class", "lazy"].contains(modifier.name.text) {
+            return false
+        }
+        for binding in varDecl.bindings where binding.accessorBlock != nil {
+            return false
+        }
+        return true
+    }
+
+    /// The base type name of a dependency annotation, unwrapping `any`/`some`,
+    /// optionals, and a single array layer (`[any P]` — plugin-list injection) so the
+    /// existential `any DataParsing` and the bare `DataParsing` both resolve to
+    /// `DataParsing`. Returns `nil` for tuples, functions, and other non-nominal types.
+    private func dependencyTypeName(_ type: TypeSyntax) -> String? {
+        if let someOrAny = type.as(SomeOrAnyTypeSyntax.self) {
+            return dependencyTypeName(someOrAny.constraint)
+        }
+        if let optional = type.as(OptionalTypeSyntax.self) {
+            return dependencyTypeName(optional.wrappedType)
+        }
+        if let implicit = type.as(ImplicitlyUnwrappedOptionalTypeSyntax.self) {
+            return dependencyTypeName(implicit.wrappedType)
+        }
+        if let array = type.as(ArrayTypeSyntax.self) {
+            return dependencyTypeName(array.element)
+        }
+        if let ident = type.as(IdentifierTypeSyntax.self) {
+            if ident.name.text == "Optional",
+               let inner = ident.genericArgumentClause?.arguments.first?.argument.as(TypeSyntax.self) {
+                return dependencyTypeName(inner)
+            }
+            return ident.name.text
+        }
+        return nil
+    }
+
     // MARK: - Finalize
 
     func finalizeAnalysis() {
@@ -184,6 +265,16 @@ final class SingleImplementationProtocolVisitor: CrossFileVisitorBase, CrossFile
                     ruleName: .singleImplementationProtocol
                 )
             } else if prodConformers.count == 1 {
+                // Suppress: the protocol is consumed as an injected dependency (held as
+                // a stored property or received as an init parameter). The abstraction
+                // is a deliberate seam, so "use the concrete type" is the wrong advice.
+                // Name-agnostic, so gerund capability protocols the DI-suffix list
+                // misses are still exempt. A zero-conformer protocol gets no such pass —
+                // nothing implements it, so it is dead regardless of where it is named.
+                if dependencyConsumedTypeNames.contains(decl.name) {
+                    continue
+                }
+
                 let conformer = prodConformers.first ?? ""
                 addIssue(
                     severity: .info,
