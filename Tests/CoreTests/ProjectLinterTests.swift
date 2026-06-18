@@ -260,6 +260,55 @@ struct ProjectLinterTests {
         return root
     }
 
+    /// End-to-end wiring for the opt-in Shared Domain-Enum Field rule: it is silent by
+    /// default (opt-in) and fires only when explicitly enabled, proving the registrar is
+    /// registered and the opt-in membership is correct.
+    @Test func testSharedDomainEnumFieldIsOptInAndFiresWhenEnabled() async {
+        let root = makeProjectWithSharedEnumFieldCluster()
+        let linter = ProjectLinter()
+        let system = PatternRegistryFactory.createConfiguredSystem()
+
+        let byDefault = await linter.analyzeProject(at: root, detector: system.detector)
+        let whenEnabled = await linter.analyzeProject(
+            at: root,
+            detector: system.detector,
+            configuration: LintConfiguration(enabledOnlyRules: [.sharedDomainEnumField])
+        )
+
+        // Opt-in: not run unless explicitly enabled.
+        #expect(byDefault.contains { $0.ruleName == .sharedDomainEnumField } == false)
+        // Enabled: the three-type IssueSeverity cluster is flagged.
+        let flagged = whenEnabled.filter { $0.ruleName == .sharedDomainEnumField }
+        #expect(flagged.count == 3)
+        #expect(flagged.allSatisfy { $0.message.contains("IssueSeverity") })
+    }
+
+    /// A package with three unrelated types each carrying `severity: IssueSeverity` and
+    /// no shared protocol — the Shared Domain-Enum Field cluster.
+    private func makeProjectWithSharedEnumFieldCluster() -> String {
+        let root = makeTempPackageRoot(named: "SharedEnumField")
+        writeFile(at: "\(root)/Sources/Root/Severity.swift", "enum IssueSeverity { case error, warning, info }")
+        writeFile(at: "\(root)/Sources/Root/Conflict.swift", """
+        struct SettingConflict {
+            let severity: IssueSeverity
+            let title: String
+        }
+        """)
+        writeFile(at: "\(root)/Sources/Root/Simulation.swift", """
+        struct SimulationIssue {
+            let severity: IssueSeverity
+            let message: String
+        }
+        """)
+        writeFile(at: "\(root)/Sources/Root/Validation.swift", """
+        struct ValidationIssue {
+            let severity: IssueSeverity
+            let detail: String
+        }
+        """)
+        return root
+    }
+
     /// A protocol that is conformed to but never used as a type — flagged by
     /// `unusedProtocolAbstraction` once the rule is in scope.
     private static let deadProtocolSource = """

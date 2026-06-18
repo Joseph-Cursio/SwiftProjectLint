@@ -70,6 +70,7 @@ Rules marked **opt-in** are disabled by default and must be explicitly listed un
 | [Single Implementation Protocol](single-implementation-protocol.md) | Info |
 | [Mirror Protocol](mirror-protocol.md) | Info |
 | [Duplicate Struct Shape](duplicate-struct-shape.md) | Info *(opt-in)* |
+| [Shared Domain-Enum Field](shared-domain-enum-field.md) | Info *(opt-in)* |
 | [Scattered Enum Mapping](scattered-enum-mapping.md) | Info *(opt-in)* |
 | [Parallel Enum Shape](parallel-enum-shape.md) | Info *(opt-in)* |
 | [Unused Protocol Abstraction](unused-protocol-abstraction.md) | Info |
