@@ -351,6 +351,49 @@ struct ProjectLinterTests {
         return root
     }
 
+    /// End-to-end wiring for the opt-in Hoistable Sequence Operation rule: silent by
+    /// default, fires only when enabled — proving the registrar and opt-in membership.
+    @Test func testHoistableSequenceOperationIsOptInAndFiresWhenEnabled() async {
+        let root = makeProjectWithRepeatedSequenceClosure()
+        let linter = ProjectLinter()
+        let system = PatternRegistryFactory.createConfiguredSystem()
+
+        let byDefault = await linter.analyzeProject(at: root, detector: system.detector)
+        let whenEnabled = await linter.analyzeProject(
+            at: root,
+            detector: system.detector,
+            configuration: LintConfiguration(enabledOnlyRules: [.hoistableSequenceOperation])
+        )
+
+        #expect(byDefault.contains { $0.ruleName == .hoistableSequenceOperation } == false)
+        let flagged = whenEnabled.filter { $0.ruleName == .hoistableSequenceOperation }
+        #expect(flagged.count == 2)
+        #expect(flagged.allSatisfy { $0.message.contains("Ranked") })
+    }
+
+    /// A package where the same two-key sort closure (`{category,name}` ⊆ Ranked) appears at
+    /// two call sites — the Hoistable Sequence Operation case.
+    private func makeProjectWithRepeatedSequenceClosure() -> String {
+        let root = makeTempPackageRoot(named: "HoistableSequence")
+        writeFile(at: "\(root)/Sources/Root/Ranked.swift", """
+        protocol Ranked {
+            var category: String { get }
+            var name: String { get }
+        }
+        """)
+        writeFile(at: "\(root)/Sources/Root/SortA.swift", """
+        func sortA(_ items: [Ranked]) -> [Ranked] {
+            items.sorted { ($0.category, $0.name) < ($1.category, $1.name) }
+        }
+        """)
+        writeFile(at: "\(root)/Sources/Root/SortB.swift", """
+        func sortB(_ items: [Ranked]) -> [Ranked] {
+            items.sorted { ($0.category, $0.name) < ($1.category, $1.name) }
+        }
+        """)
+        return root
+    }
+
     /// A protocol that is conformed to but never used as a type — flagged by
     /// `unusedProtocolAbstraction` once the rule is in scope.
     private static let deadProtocolSource = """

@@ -1,7 +1,8 @@
 # Design Spike: Could Hoist To Protocol Extension
 
 **Status:** Variant A shipped as the [Hoistable Conformer Member](rules/hoistable-conformer-member.md)
-rule. Variant B (call-site closures) deferred — see §7.
+rule. Variant B's broad form was measured and rejected; its narrow `|S| >= 2` subset shipped as
+the [Hoistable Sequence Operation](rules/hoistable-sequence-operation.md) rule — see §7.
 
 ## 1. Problem statement
 
@@ -102,7 +103,7 @@ provided by `extension P`, no common protocol, differing bodies, plus a computed
 positive. End-to-end opt-in test in `ProjectLinterTests`. New rule also needs the 6-point
 wiring + `Docs/rules/hoistable-conformer-member.md` (the exhaustive doc test enforces it).
 
-## 7. Variant B — Hoistable Sequence Operation (measured; not shipped)
+## 7. Variant B — Hoistable Sequence Operation (measured; narrow subset shipped)
 
 **Sketch.** Find closure literals passed to a fixed allowlist of `Sequence` higher-order
 methods (`sorted`, `filter`, `min/max(by:)`, `first/contains(where:)`, `partition(by:)`,
@@ -165,7 +166,8 @@ version.
   own identifier.
 - **A does not close the original SCFS (Shape B) finding.** Recorded so the gap is not mistaken
   for covered.
-- **B is a measurement spike, not a committed feature.** Measured (§7): broad B is ~33%
-  precision and unshippable; a narrow `|S| >= 2` subset hits 100% on the sample but is still a
-  heuristic. Pending a decision on whether the narrow subset is worth shipping; the complete
-  solution needs type resolution the linter does not have.
+- **B's broad form was rejected by measurement; the narrow subset shipped.** Broad B is ~33%
+  precision and unshippable. The `|S| >= 2` subset (`Hoistable Sequence Operation`, opt-in,
+  `Info`, with a recurrence requirement) shipped: run against SwiftCompilerFlagStudio it
+  reported exactly the five `{category, name}` sort sites and nothing else — 5/5. It remains a
+  heuristic; the complete solution needs type resolution the linter does not have.

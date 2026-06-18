@@ -104,6 +104,7 @@ public struct LintConfiguration: Sendable {
         .parallelEnumShape,
         .couldAdoptProtocol,
         .hoistableConformerMember,
+        .hoistableSequenceOperation,
         .mutuallyExclusivePresentationState,
         .flagOptionalPairState,
         .redundantDerivedProperty
