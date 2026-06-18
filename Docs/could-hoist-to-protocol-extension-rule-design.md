@@ -102,21 +102,61 @@ provided by `extension P`, no common protocol, differing bodies, plus a computed
 positive. End-to-end opt-in test in `ProjectLinterTests`. New rule also needs the 6-point
 wiring + `Docs/rules/hoistable-conformer-member.md` (the exhaustive doc test enforces it).
 
-## 7. Variant B — Hoistable Sequence Operation (deferred)
+## 7. Variant B — Hoistable Sequence Operation (measured; not shipped)
 
 **Sketch.** Find closure literals passed to a fixed allowlist of `Sequence` higher-order
 methods (`sorted`, `filter`, `min/max(by:)`, `first/contains(where:)`, `partition(by:)`,
-`Dictionary(grouping:by:)`). Extract the member-set accessed off the closure's first parameter
-and a normalized body. Group by body; for a group of `>= 3` sites whose member-set is a subset
-of some project protocol `P`'s requirements, emit a *conditional* suggestion to hoist to
-`extension Sequence where Element: P`.
+`Dictionary(grouping:by:)`). Extract the member-set `S` accessed off the closure's first
+parameter; for a site whose `S` is a subset of some project protocol `P`'s property
+requirements, suggest hoisting to `extension Sequence where Element: P`.
 
-**Why deferred.** The element-type-unknown problem (§3). Precision levers, in increasing cost:
-require the member-set to *exactly* equal a `P` requirement subset where `P` is distinctive
-(refines `Identifiable`, all-property requirements); require at least one call site whose
-receiver is type-resolvable to a `P` conformer via the prescan; info + opt-in always. None of
-these removes the core ambiguity. B should not ship without measuring the false-positive rate on
-real repositories first — that measurement is B's deliverable, not the rule.
+**The measurement.** A throwaway probe (not wired into the registry) ran the detection over two
+real codebases and the findings were classified by hand.
+
+*SwiftCompilerFlagStudio* (114 files, 4 protocols) — the repo with the genuine finding:
+
+| Filter | Findings | True positives | Precision |
+|---|---|---|---|
+| `\|S\| >= 1` | 30 | 10 | **33%** |
+| `\|S\| >= 1`, repeated closure (>= 3 sites) | 19 | 9 | 47% |
+| **`\|S\| >= 2`** | **5** | **5** | **100%** |
+
+*SwiftProjectLint* (369 files, 11 protocols): **1** finding total, a false positive
+(`caseItems.contains { $0.pattern … }`, where `pattern` coincidentally subsets a protocol). B
+fires rarely across a codebase, but what it does fire at `|S| = 1` is noise.
+
+**What the data says.**
+
+1. **The element-type-unknown problem (§3) dominates.** Two-thirds of `|S| >= 1` findings are
+   false positives: common property names (`name`, `rawKey`) are subsets of a protocol's
+   requirements *by coincidence*, so `targets.first { $0.name == … }` matches
+   `BuildSettingIdentity` even though `ParsedTarget` is not a conformer.
+2. **Recurrence does *not* discriminate** — the decisive negative result. The false-positive
+   `{name}` closures recur **5×, 5×, 2×**, exactly as often as the real `{category,name}` sorts.
+   "Repeated identical closure" was the spike's leading precision lever; the measurement refutes
+   it.
+3. **Member-set distinctiveness is the only lever that worked.** `|S| >= 2` gave 5/5 precision —
+   the five `sorted { ($0.category, $0.name) < … }` sites, every one over a real conformer
+   (`[CompilerFlag]`, `[EffectiveSetting]`, …). But it is still a heuristic: it worked only
+   because no non-conformer happened to access `{category, name}` *together*, which is not
+   guaranteed in general. And it misses the single-key `Dictionary(grouping:) { $0.category }`
+   sites — 5 of which are real (and 1, over `[Recommendation]`, is the predicted soft-FP).
+
+**Verdict.** Do **not** ship B as a broad syntactic rule: 33% precision at `|S| >= 1`, and
+recurrence can't rescue it. Two viable paths:
+
+- **Narrow, high-precision subset (shippable):** restrict to `|S| >= 2` — distinctive
+  multi-key `Sequence` closures matching a protocol's requirements. 100% precision on this
+  sample, catches the multi-key sort duplication (the strongest half of the original finding),
+  documented explicitly as a heuristic that may miss single-key cases and can rarely FP. Opt-in,
+  `Info`.
+- **Complete solution (large lift):** resolve each receiver's element type and check conformance
+  to `P`. That needs SourceKit/index integration, which is out of scope for a SwiftSyntax-only
+  linter.
+
+The single-key grouping sites (`{category}`) are genuinely real but indistinguishable from the
+`[Recommendation]` false positive without type information, so they stay out of any syntactic
+version.
 
 ## 8. Decisions on record
 
@@ -125,4 +165,7 @@ real repositories first — that measurement is B's deliverable, not the rule.
   own identifier.
 - **A does not close the original SCFS (Shape B) finding.** Recorded so the gap is not mistaken
   for covered.
-- **B is a measurement spike, not a committed feature.**
+- **B is a measurement spike, not a committed feature.** Measured (§7): broad B is ~33%
+  precision and unshippable; a narrow `|S| >= 2` subset hits 100% on the sample but is still a
+  heuristic. Pending a decision on whether the narrow subset is worth shipping; the complete
+  solution needs type resolution the linter does not have.
