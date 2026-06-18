@@ -106,6 +106,7 @@ class Architecture: BasePatternRegistrar {
             ParallelEnumShape(),
             UnusedProtocolAbstraction(),
             CouldAdoptProtocol(),
+            HoistableConformerMember(),
             SubclassedForMocking(),
             UnabstractedFileIO(),
             SwiftDataUniqueAttribute(),

@@ -60,6 +60,7 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
     case parallelEnumShape = "Parallel Enum Shape"
     case unusedProtocolAbstraction = "Unused Protocol Abstraction"
     case couldAdoptProtocol = "Could Adopt Protocol"
+    case hoistableConformerMember = "Hoistable Conformer Member"
     case subclassedForMocking = "Subclassed For Mocking"
     case unabstractedFileIO = "Unabstracted File IO"
     case computedPropertyView = "Computed Property View"
@@ -259,7 +260,7 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
              .duplicateStructShape, .sharedDomainEnumField,
              .scatteredEnumMapping, .parallelEnumShape,
              .unusedProtocolAbstraction,
-             .couldAdoptProtocol,
+             .couldAdoptProtocol, .hoistableConformerMember,
              .subclassedForMocking,
              .unabstractedFileIO,
              .computedPropertyView,

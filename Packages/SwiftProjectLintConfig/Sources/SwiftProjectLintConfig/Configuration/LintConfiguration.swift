@@ -103,6 +103,7 @@ public struct LintConfiguration: Sendable {
         .scatteredEnumMapping,
         .parallelEnumShape,
         .couldAdoptProtocol,
+        .hoistableConformerMember,
         .mutuallyExclusivePresentationState,
         .flagOptionalPairState,
         .redundantDerivedProperty

@@ -309,6 +309,48 @@ struct ProjectLinterTests {
         return root
     }
 
+    /// End-to-end wiring for the opt-in Hoistable Conformer Member rule: silent by
+    /// default, fires only when enabled — proving the registrar and opt-in membership.
+    @Test func testHoistableConformerMemberIsOptInAndFiresWhenEnabled() async {
+        let root = makeProjectWithHoistableConformerMember()
+        let linter = ProjectLinter()
+        let system = PatternRegistryFactory.createConfiguredSystem()
+
+        let byDefault = await linter.analyzeProject(at: root, detector: system.detector)
+        let whenEnabled = await linter.analyzeProject(
+            at: root,
+            detector: system.detector,
+            configuration: LintConfiguration(enabledOnlyRules: [.hoistableConformerMember])
+        )
+
+        #expect(byDefault.contains { $0.ruleName == .hoistableConformerMember } == false)
+        let flagged = whenEnabled.filter { $0.ruleName == .hoistableConformerMember }
+        #expect(flagged.count == 3)
+        #expect(flagged.allSatisfy { $0.message.contains("Named") })
+    }
+
+    /// A package with three `Named` conformers that each implement `matches` identically
+    /// using only `Named`'s requirements — the hoist-to-`extension Named` case.
+    private func makeProjectWithHoistableConformerMember() -> String {
+        let root = makeTempPackageRoot(named: "HoistableMember")
+        writeFile(at: "\(root)/Sources/Root/Named.swift", """
+        protocol Named {
+            var rawKey: String { get }
+            var name: String { get }
+        }
+        """)
+        for typeName in ["Alpha", "Beta", "Gamma"] {
+            writeFile(at: "\(root)/Sources/Root/\(typeName).swift", """
+            struct \(typeName): Named {
+                let rawKey: String
+                let name: String
+                func matches(_ query: String) -> Bool { rawKey.contains(query) || name.contains(query) }
+            }
+            """)
+        }
+        return root
+    }
+
     /// A protocol that is conformed to but never used as a type — flagged by
     /// `unusedProtocolAbstraction` once the rule is in scope.
     private static let deadProtocolSource = """

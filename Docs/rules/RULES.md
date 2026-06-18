@@ -75,6 +75,7 @@ Rules marked **opt-in** are disabled by default and must be explicitly listed un
 | [Parallel Enum Shape](parallel-enum-shape.md) | Info *(opt-in)* |
 | [Unused Protocol Abstraction](unused-protocol-abstraction.md) | Info |
 | [Could Adopt Protocol](could-adopt-protocol.md) | Info *(opt-in)* |
+| [Hoistable Conformer Member](hoistable-conformer-member.md) | Info *(opt-in)* |
 | [Subclassed For Mocking](subclassed-for-mocking.md) | Info |
 | [Unabstracted File IO](unabstracted-file-io.md) | Info |
 | [Computed Property View](computed-property-view.md) | Warning |
