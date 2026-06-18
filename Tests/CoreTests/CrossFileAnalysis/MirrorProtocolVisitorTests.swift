@@ -245,6 +245,39 @@ struct MirrorProtocolVisitorTests {
         #expect(issues.count == 1)
     }
 
+    /// A mirror protocol that is consumed as an injected dependency — held as a stored
+    /// property or received as an init parameter — is a deliberate DI seam, so the
+    /// mirror is exempt even without a mock conformer. Parity with
+    /// SingleImplementationProtocol's consumption exemption, via the shared
+    /// `DependencyConsumption` detector.
+    @Test
+    func mirrorConsumedAsInjectedDependencyExempt() {
+        let issues = analyze(files: [
+            "Protocol.swift": """
+            protocol ReportFormatterProtocol {
+                func format()
+                func finalize()
+            }
+            """,
+            "Impl.swift": """
+            struct ReportFormatter: ReportFormatterProtocol {
+                func format() { }
+                func finalize() { }
+            }
+            """,
+            "Consumer.swift": """
+            final class ReportBuilder {
+                private let formatter: ReportFormatterProtocol
+                init(formatter: ReportFormatterProtocol) {
+                    self.formatter = formatter
+                }
+            }
+            """
+        ])
+
+        #expect(issues.isEmpty)
+    }
+
     @Test
     func propertyMirrorFlags() {
         let issues = analyze(files: [

@@ -33,6 +33,12 @@ final class MirrorProtocolVisitor: CrossFileVisitorBase, CrossFilePatternVisitor
     private var protocols: [ProtocolInfo] = []
     private var types: [TypeInfo] = []
 
+    /// Names of types consumed as a dependency — held as a stored property or received
+    /// as an initializer parameter. A mirror protocol in this set is a deliberate DI
+    /// seam and is exempted in `finalizeAnalysis`. Parity with
+    /// `SingleImplementationProtocol`, via the shared `DependencyConsumption` detector.
+    private var dependencyConsumedTypeNames: Set<String> = []
+
     // MARK: - Collect Protocol Declarations
 
     override func visit(_ node: ProtocolDeclSyntax) -> SyntaxVisitorContinueKind {
@@ -82,12 +88,24 @@ final class MirrorProtocolVisitor: CrossFileVisitorBase, CrossFilePatternVisitor
         return .visitChildren
     }
 
+    override func visit(_ node: ExtensionDeclSyntax) -> SyntaxVisitorContinueKind {
+        // Extensions can't add stored properties but can declare injecting
+        // initializers; collect consumption for parity with the other type kinds.
+        dependencyConsumedTypeNames.formUnion(
+            DependencyConsumption.consumedTypeNames(in: node.memberBlock)
+        )
+        return .visitChildren
+    }
+
     private func recordType(
         name: String,
         members: MemberBlockSyntax,
         inheritanceClause: InheritanceClauseSyntax?
     ) {
         let memberNames = extractMemberNames(from: members)
+        dependencyConsumedTypeNames.formUnion(
+            DependencyConsumption.consumedTypeNames(in: members)
+        )
         var conformances: Set<String> = []
         if let inheritanceClause {
             for inherited in inheritanceClause.inheritedTypes {
@@ -132,6 +150,14 @@ final class MirrorProtocolVisitor: CrossFileVisitorBase, CrossFilePatternVisitor
     func finalizeAnalysis() {
         for proto in protocols {
             guard proto.requirementNames.isEmpty == false else { continue }
+
+            // Exempt: the protocol is consumed as an injected dependency (held as a
+            // stored property or received as an init parameter). The mirror backs a
+            // real DI seam, so "use the concrete type" is the wrong advice. Parity with
+            // SingleImplementationProtocol, via the shared DependencyConsumption detector.
+            if dependencyConsumedTypeNames.contains(proto.name) {
+                continue
+            }
 
             // Exempt: a mock/test double conforms to this protocol, so the abstraction
             // is a justified dependency-injection seam — not an unnecessary mirror.
