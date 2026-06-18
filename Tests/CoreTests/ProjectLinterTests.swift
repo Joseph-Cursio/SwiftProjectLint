@@ -212,6 +212,54 @@ struct ProjectLinterTests {
         #expect(concrete.contains { $0.message.contains("PlainService") })
     }
 
+    /// Excluding a test directory must not hide the mock conformers that justify a
+    /// DI-seam protocol. `excludedPaths` is a *reporting* filter, not an *evidence*
+    /// filter: the excluded `MockDataParsing` is still walked for cross-file evidence,
+    /// so `SingleImplementationProtocol` sees a test double and exempts `DataParsing`.
+    /// The un-mocked `Lonelyish` in the same run proves the rule is active and the
+    /// exemption is targeted, not a blanket "the rule never ran".
+    @Test func testSingleImplProtocolExemptedByMockInExcludedTestDir() async {
+        let root = makeProjectWithMockedSeamInExcludedTests()
+        let linter = ProjectLinter()
+        let system = PatternRegistryFactory.createConfiguredSystem()
+        let configuration = LintConfiguration(
+            enabledOnlyRules: [.singleImplementationProtocol],
+            excludedPaths: ["Tests"]
+        )
+
+        let issues = await linter.analyzeProject(
+            at: root, detector: system.detector, configuration: configuration
+        )
+        let singleImpl = issues.filter { $0.ruleName == .singleImplementationProtocol }
+
+        // The mocked seam is exempt even though its only mock lives in the excluded dir...
+        #expect(singleImpl.contains { $0.message.contains("DataParsing") } == false)
+        // ...while a single-conformer protocol with no mock is still flagged.
+        #expect(singleImpl.contains { $0.message.contains("Lonelyish") })
+        // No issue is reported against a file in the excluded test directory.
+        #expect(singleImpl.contains { $0.filePath.contains("Tests/") } == false)
+    }
+
+    /// A package whose internal DI-seam protocol (`DataParsing`) is mocked only in an
+    /// excluded `Tests/` directory, alongside an un-mocked single-conformer protocol
+    /// (`Lonelyish`). Protocols are internal so the pure-library public-protocol skip
+    /// does not apply.
+    private func makeProjectWithMockedSeamInExcludedTests() -> String {
+        let root = makeTempPackageRoot(named: "MockedSeam")
+        writeFile(at: "\(root)/Sources/Root/DataParsing.swift", """
+        protocol DataParsing { func parse() -> Int }
+        struct RealParser: DataParsing { func parse() -> Int { 0 } }
+        """)
+        writeFile(at: "\(root)/Sources/Root/Lonely.swift", """
+        protocol Lonelyish { func go() -> Int }
+        struct OnlyImpl: Lonelyish { func go() -> Int { 0 } }
+        """)
+        writeFile(at: "\(root)/Tests/RootTests/MockDataParsing.swift", """
+        struct MockDataParsing: DataParsing { func parse() -> Int { 1 } }
+        """)
+        return root
+    }
+
     /// A protocol that is conformed to but never used as a type — flagged by
     /// `unusedProtocolAbstraction` once the rule is in scope.
     private static let deadProtocolSource = """

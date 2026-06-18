@@ -65,7 +65,17 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
             for: path, base: configuration
         )
 
-        let allFilePaths = await fileDiscovery.findSwiftFiles(
+        // `excludedPaths` is a *reporting* filter, not an *evidence* filter. Files the
+        // user excluded (commonly a test directory) still inform cross-file analysis:
+        // a `MockFoo: FooParsing` in `Tests/` is the conformer that justifies the
+        // `FooParsing` DI seam, so hiding it would make `SingleImplementationProtocol`
+        // and `MirrorProtocol` false-positive on a legitimately-mocked protocol. So we
+        // discover two sets — `filePaths` (reportable: walked *and* eligible for issues)
+        // and `evidenceOnlyFilePaths` (excluded: walked for cross-file evidence only,
+        // never a source of reported issues). The split is computed by re-discovering
+        // without exclusions and subtracting; with no exclusions the two coincide and
+        // the extra discovery is skipped.
+        let reportableFilePaths = await fileDiscovery.findSwiftFiles(
             in: path,
             excludedPaths: effectiveConfiguration.excludedPaths,
             includeNestedPackages: effectiveConfiguration.includeNestedPackages
@@ -74,7 +84,22 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
         // Skip generated files — linting machine-generated code produces noise with no
         // actionable signal. Detected by file suffix (.pb.swift, .generated.swift) or a
         // "do not edit" header comment.
-        let filePaths = allFilePaths.filter { !Self.isGeneratedFile(at: $0) }
+        let filePaths = reportableFilePaths.filter { !Self.isGeneratedFile(at: $0) }
+
+        let evidenceOnlyFilePaths: [String]
+        if effectiveConfiguration.excludedPaths.isEmpty {
+            evidenceOnlyFilePaths = []
+        } else {
+            let allFilePaths = await fileDiscovery.findSwiftFiles(
+                in: path,
+                excludedPaths: [],
+                includeNestedPackages: effectiveConfiguration.includeNestedPackages
+            )
+            let reportableSet = Set(filePaths)
+            evidenceOnlyFilePaths = allFilePaths.filter {
+                !reportableSet.contains($0) && !Self.isGeneratedFile(at: $0)
+            }
+        }
 
         // Resolve effective rules from configuration + CLI overrides
         let effectiveRules = effectiveConfiguration.resolveRules(
@@ -148,26 +173,46 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
         var issues = perFileResults.1
         let astCache = perFileResults.2
 
+        // Parse evidence-only files (excluded from reporting) for cross-file context.
+        // They are added to the walk so conformances/type-shapes they contain inform
+        // the visitors, but never run through per-file detection and are stripped from
+        // the issue set below — so they can exonerate (e.g. a mock conformer) without
+        // ever being a reported location.
+        let evidenceFiles = Self.parseEvidenceFiles(
+            at: evidenceOnlyFilePaths, projectRoot: path
+        )
+        let evidenceRelativePaths = Set(evidenceFiles.map { $0.file.relativePath })
+        let crossFileProjectFiles = projectFiles + evidenceFiles.map(\.file)
+        var crossFileCache = astCache
+        for entry in evidenceFiles {
+            crossFileCache[entry.file.relativePath] = entry.ast
+        }
+
         // Run cross-file pattern detection (use the same registry as per-file analysis)
         let crossFileEngine = crossFileAnalyzerFactory(registry)
         crossFileEngine.enabledFrameworkAllowlists =
             effectiveConfiguration.enabledFrameworkAllowlists
         crossFileEngine.executableSourcePaths =
             ExecutableTargetDetector.executableSourcePaths(in: path)
-        let crossFilePatternIssues: [LintIssue]
+        let rawCrossFileIssues: [LintIssue]
         if let effectiveRules {
-            crossFilePatternIssues = crossFileEngine.detectCrossFilePatterns(
-                projectFiles: projectFiles,
+            rawCrossFileIssues = crossFileEngine.detectCrossFilePatterns(
+                projectFiles: crossFileProjectFiles,
                 ruleIdentifiers: effectiveRules,
-                preBuiltCache: astCache
+                preBuiltCache: crossFileCache
             )
         } else {
-            crossFilePatternIssues = crossFileEngine.detectCrossFilePatterns(
-                projectFiles: projectFiles,
+            rawCrossFileIssues = crossFileEngine.detectCrossFilePatterns(
+                projectFiles: crossFileProjectFiles,
                 categories: categories,
-                preBuiltCache: astCache
+                preBuiltCache: crossFileCache
             )
         }
+        // Drop any issue anchored in an evidence-only file: those files informed the
+        // analysis but are excluded from reporting.
+        let crossFilePatternIssues = evidenceRelativePaths.isEmpty
+            ? rawCrossFileIssues
+            : rawCrossFileIssues.filter { !evidenceRelativePaths.contains($0.filePath) }
         issues.append(contentsOf: Self.applyInlineSuppression(
             to: crossFilePatternIssues,
             files: projectFiles
@@ -322,18 +367,7 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
         guard !Task.isCancelled else { return nil }
         guard let content = try? String(contentsOfFile: filePath) else { return nil }
 
-        let resolvedRoot = URL(fileURLWithPath: projectRoot).resolvingSymlinksInPath().path
-        let resolvedFile = URL(fileURLWithPath: filePath).resolvingSymlinksInPath().path
-        let prefix = resolvedRoot.hasSuffix("/") ? resolvedRoot : resolvedRoot + "/"
-        let relativePath: String
-        if resolvedFile.hasPrefix(prefix) {
-            relativePath = String(resolvedFile.dropFirst(prefix.count))
-        } else {
-            // Fallback: full resolved path keeps uniqueness when the file is
-            // outside the declared project root (rare; shouldn't crash the
-            // inline-suppression dedup downstream).
-            relativePath = resolvedFile
-        }
+        let relativePath = Self.relativePath(for: filePath, projectRoot: projectRoot)
 
         let file = ProjectFile(
             name: (filePath as NSString).lastPathComponent,
@@ -365,6 +399,37 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
 
         let issues = InlineSuppressionFilter.filter(rawIssues, fileContent: content)
         return (file: file, issues: issues, parsedAST: parsedAST)
+    }
+
+    /// Project-root-relative path for `filePath`, resolving symlinks on both sides so
+    /// the prefix drop matches the canonicalized root (e.g. `/var` → `/private/var` on
+    /// macOS). Falls back to the full resolved path when the file lies outside the
+    /// declared root — keeps downstream relative-path dedup keys unique.
+    private static func relativePath(for filePath: String, projectRoot: String) -> String {
+        let resolvedRoot = URL(fileURLWithPath: projectRoot).resolvingSymlinksInPath().path
+        let resolvedFile = URL(fileURLWithPath: filePath).resolvingSymlinksInPath().path
+        let prefix = resolvedRoot.hasSuffix("/") ? resolvedRoot : resolvedRoot + "/"
+        guard resolvedFile.hasPrefix(prefix) else { return resolvedFile }
+        return String(resolvedFile.dropFirst(prefix.count))
+    }
+
+    /// Reads and parses evidence-only files into `(ProjectFile, AST)` pairs *without*
+    /// running per-file detection: they contribute to the cross-file walk but cannot
+    /// produce reported issues (see the call site for why exclusion is a reporting
+    /// filter, not an evidence filter). Unreadable files are skipped.
+    private static func parseEvidenceFiles(
+        at filePaths: [String],
+        projectRoot: String
+    ) -> [(file: ProjectFile, ast: SourceFileSyntax)] {
+        filePaths.compactMap { filePath in
+            guard let content = try? String(contentsOfFile: filePath) else { return nil }
+            let file = ProjectFile(
+                name: (filePath as NSString).lastPathComponent,
+                content: content,
+                relativePath: Self.relativePath(for: filePath, projectRoot: projectRoot)
+            )
+            return (file: file, ast: Parser.parse(source: content))
+        }
     }
 
     /// Applies inline-suppression filtering to cross-file issues. Grouped
