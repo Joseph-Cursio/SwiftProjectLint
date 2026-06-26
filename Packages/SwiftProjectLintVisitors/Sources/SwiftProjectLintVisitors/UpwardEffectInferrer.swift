@@ -1,3 +1,4 @@
+import enum SwiftEffectInference.Effect
 import SwiftSyntax
 
 /// One result from upward inference: the effect plus a hop depth.
@@ -106,50 +107,19 @@ public enum UpwardEffectInferrer {
     }
 
     private static func combine(calleeResults: [UpwardInference]) -> UpwardInference? {
-        guard let lub = leastUpperBound(of: calleeResults.map(\.effect)) else {
+        // Lattice lub and rank now come from SwiftEffectInference.Effect — the
+        // single source of truth. SEI's `lub(of:)` matches the deleted
+        // `leastUpperBound` exactly (rank-correct, first-of-highest-rank wins
+        // for same-rank ties), as `LatticeLawsTests` continues to verify.
+        guard let lub = Effect.lub(of: calleeResults.map(\.effect)) else {
             return nil
         }
-        let lubRank = rank(of: lub)
+        let lubRank = lub.rank
         let contributingDepths = calleeResults
-            .filter { rank(of: $0.effect) == lubRank }
+            .filter { $0.effect.rank == lubRank }
             .map(\.depth)
         let depth = 1 + (contributingDepths.max() ?? 0)
         return UpwardInference(effect: lub, depth: depth)
-    }
-
-    /// Returns the single effect corresponding to the most permissive
-    /// element of the input collection, per the lattice ordering. Nil when
-    /// the input is empty (no call-site evidence available).
-    ///
-    /// Ordering (strictest first): `observational < idempotent < externally_idempotent < non_idempotent`.
-    ///
-    /// Tie-break note: comparison is rank-strict (`>`), so when two inputs
-    /// share the highest rank the first one in iteration order wins. This
-    /// matters for `externallyIdempotent(keyParameter:)` — two values with
-    /// different `keyParameter` strings sit at the same lattice position,
-    /// and lub returns whichever appeared first. The result is always
-    /// rank-correct, but is not Equatable-symmetric across input orderings
-    /// when same-rank duplicates carry different associated values. See
-    /// `LatticeLawsTests` for the property-based laws this guarantees.
-    static func leastUpperBound(of effects: [DeclaredEffect]) -> DeclaredEffect? {
-        guard !effects.isEmpty else { return nil }
-        var best: (rank: Int, effect: DeclaredEffect) = (-1, .observational)
-        for effect in effects {
-            let currentRank = rank(of: effect)
-            if currentRank > best.rank {
-                best = (currentRank, effect)
-            }
-        }
-        return best.rank >= 0 ? best.effect : nil
-    }
-
-    private static func rank(of effect: DeclaredEffect) -> Int {
-        switch effect {
-        case .observational: return 0
-        case .idempotent: return 1
-        case .externallyIdempotent: return 2
-        case .nonIdempotent: return 3
-        }
     }
 
     private static func collectResults(

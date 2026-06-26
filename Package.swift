@@ -50,7 +50,20 @@ let package = Package(
         .package(url: "https://github.com/apple/swift-argument-parser.git", from: "1.3.0"),
         .package(url: "https://github.com/jpsim/Yams.git", from: "5.0.0"),
         .package(url: "https://github.com/x-sheep/swift-property-based.git", from: "1.0.0"),
-        .package(url: "https://github.com/Joseph-Cursio/LintStudioUI.git", from: "1.3.0")
+        .package(url: "https://github.com/Joseph-Cursio/LintStudioUI.git", from: "1.3.0"),
+        // The leaf effect-lattice library — now the single source of truth for
+        // the `Effect` type and its `lub`. SPL's `DeclaredEffect` is a typealias
+        // onto `SwiftEffectInference.Effect`, consumed transitively through the
+        // SwiftProjectLintVisitors / SwiftProjectLintIdempotencyRules packages
+        // (which declare their own SEI dependency at this same revision). This
+        // root-level declaration also backs CoreTests' direct `import` of the
+        // lattice laws. Pinned by revision because SEI carries no version tags
+        // yet; keep this SHA aligned with the nested packages' pins. Both pin
+        // swift-syntax exact 602.0.0, so there is no version conflict.
+        .package(
+            url: "https://github.com/Joseph-Cursio/SwiftEffectInference.git",
+            revision: "6722e260f011c89c9f0334e5189a2c42590e41e4"
+        )
     ],
     targets: [
         .target(
@@ -95,7 +108,8 @@ let package = Package(
             dependencies: [
                 "Core",
                 "SwiftProjectLintIdempotencyRules",
-                .product(name: "PropertyBased", package: "swift-property-based")
+                .product(name: "PropertyBased", package: "swift-property-based"),
+                .product(name: "SwiftEffectInference", package: "SwiftEffectInference")
             ],
             path: "Tests/CoreTests",
             swiftSettings: engineSwiftSettings

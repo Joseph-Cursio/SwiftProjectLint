@@ -1,3 +1,4 @@
+import enum SwiftEffectInference.Effect
 import SwiftParser
 @testable import SwiftProjectLintIdempotencyRules
 import SwiftProjectLintModels
@@ -17,13 +18,13 @@ struct UpwardInferenceTests {
 
     @Test
     func lub_empty_isNil() {
-        #expect(UpwardEffectInferrer.leastUpperBound(of: []) == nil)
+        #expect(Effect.lub(of: []) == nil)
     }
 
     @Test
     func lub_onlyObservational_isObservational() {
         #expect(
-            UpwardEffectInferrer.leastUpperBound(of: [.observational, .observational])
+            Effect.lub(of: [.observational, .observational])
                 == .observational
         )
     }
@@ -31,7 +32,7 @@ struct UpwardInferenceTests {
     @Test
     func lub_observationalAndIdempotent_isIdempotent() {
         #expect(
-            UpwardEffectInferrer.leastUpperBound(of: [.observational, .idempotent])
+            Effect.lub(of: [.observational, .idempotent])
                 == .idempotent
         )
     }
@@ -39,7 +40,7 @@ struct UpwardInferenceTests {
     @Test
     func lub_idempotentAndExternallyIdempotent_isExternallyIdempotent() {
         #expect(
-            UpwardEffectInferrer.leastUpperBound(
+            Effect.lub(
                 of: [.idempotent, .externallyIdempotent(keyParameter: "k")]
             ) == .externallyIdempotent(keyParameter: "k")
         )
@@ -48,7 +49,7 @@ struct UpwardInferenceTests {
     @Test
     func lub_nonIdempotentDominates() {
         #expect(
-            UpwardEffectInferrer.leastUpperBound(
+            Effect.lub(
                 of: [.observational, .idempotent, .externallyIdempotent(keyParameter: nil), .nonIdempotent]
             ) == .nonIdempotent
         )
@@ -173,7 +174,7 @@ struct UpwardInferenceTests {
     @Test
     func rankOrdering_observationalBelowIdempotent() {
         #expect(
-            UpwardEffectInferrer.leastUpperBound(of: [.idempotent, .observational])
+            Effect.lub(of: [.idempotent, .observational])
                 == .idempotent
         )
     }
@@ -181,7 +182,7 @@ struct UpwardInferenceTests {
     @Test
     func rankOrdering_externallyIdempotentAboveIdempotent() {
         #expect(
-            UpwardEffectInferrer.leastUpperBound(
+            Effect.lub(
                 of: [.idempotent, .externallyIdempotent(keyParameter: nil)]
             ) == .externallyIdempotent(keyParameter: nil)
         )

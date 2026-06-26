@@ -1,3 +1,4 @@
+import enum SwiftEffectInference.Effect
 import SwiftSyntax
 
 /// A map from function signature (name + argument labels) to its declared
@@ -356,7 +357,7 @@ public struct EffectSymbolTable: Sendable {
         incoming: UpwardInference
     ) -> UpwardInference {
         guard let existing else { return incoming }
-        let mergedEffect = UpwardEffectInferrer.leastUpperBound(
+        let mergedEffect = Effect.lub(
             of: [existing.effect, incoming.effect]
         ) ?? incoming.effect
         let mergedDepth = max(existing.depth, incoming.depth)

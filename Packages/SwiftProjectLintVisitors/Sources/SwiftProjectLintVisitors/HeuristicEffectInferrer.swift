@@ -1,3 +1,4 @@
+import enum SwiftEffectInference.Effect
 import SwiftSyntax
 
 /// Phase-2 heuristic inference.

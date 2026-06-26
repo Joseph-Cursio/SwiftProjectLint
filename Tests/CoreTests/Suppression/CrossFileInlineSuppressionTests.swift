@@ -1,5 +1,6 @@
 @testable import Core
 import Foundation
+import enum SwiftEffectInference.Effect
 @testable import SwiftProjectLintRules
 import Testing
 

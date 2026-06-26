@@ -26,7 +26,16 @@ let package = Package(
         .package(path: "../SwiftProjectLintModels"),
         .package(path: "../SwiftProjectLintVisitors"),
         .package(path: "../SwiftProjectLintRegistry"),
-        .package(url: "https://github.com/apple/swift-syntax.git", exact: "602.0.0")
+        .package(url: "https://github.com/apple/swift-syntax.git", exact: "602.0.0"),
+        // Idempotency rule visitors pattern-match `Effect` cases (via the
+        // `DeclaredEffect` alias re-exported by SwiftProjectLintVisitors).
+        // MemberImportVisibility requires importing the defining module, so
+        // these targets depend on SEI directly. Keep this SHA aligned with the
+        // root and SwiftProjectLintVisitors pins.
+        .package(
+            url: "https://github.com/Joseph-Cursio/SwiftEffectInference.git",
+            revision: "6722e260f011c89c9f0334e5189a2c42590e41e4"
+        )
     ],
     targets: [
         .target(
@@ -35,7 +44,8 @@ let package = Package(
                 "SwiftProjectLintModels",
                 "SwiftProjectLintVisitors",
                 "SwiftProjectLintRegistry",
-                .product(name: "SwiftSyntax", package: "swift-syntax")
+                .product(name: "SwiftSyntax", package: "swift-syntax"),
+                .product(name: "SwiftEffectInference", package: "SwiftEffectInference")
             ],
             path: "Sources/SwiftProjectLintIdempotencyRules",
             swiftSettings: swiftSettings

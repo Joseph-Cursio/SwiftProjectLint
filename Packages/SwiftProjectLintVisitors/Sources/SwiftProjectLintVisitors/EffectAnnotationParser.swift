@@ -1,4 +1,5 @@
 import Foundation
+import enum SwiftEffectInference.Effect
 import SwiftSyntax
 
 /// Declared idempotency effect for a function, parsed from `/// @lint.effect` doc comments.
@@ -17,16 +18,19 @@ import SwiftSyntax
 ///
 /// Remaining tiers (`pure`, `transactional_idempotent`, `unknown`) stay out of
 /// scope and are treated as unrecognised — see `docs/phase1/trial-scope.md`.
-public enum DeclaredEffect: Sendable, Equatable {
-    case idempotent
-    case observational
-    /// - Parameter keyParameter: the external label of the parameter that
-    ///   holds the deduplication key, if the declaration specified one via
-    ///   `(by: paramName)`. `nil` when unspecified — the annotation then has
-    ///   lattice behaviour only.
-    case externallyIdempotent(keyParameter: String?)
-    case nonIdempotent
-}
+/// Transitional alias onto `SwiftEffectInference.Effect`, the single source of
+/// truth for the idempotency effect lattice. The case set is identical
+/// (`observational` / `idempotent` / `externallyIdempotent(keyParameter:)` /
+/// `nonIdempotent`), so every existing `DeclaredEffect` reference and pattern
+/// match is unchanged. The name is retained for SPL's annotation-parser,
+/// symbol-table, and inferrer vocabulary, which are not yet migrated onto SEI's
+/// own parser/inferrer implementations. Consumers reference the cases through
+/// this alias and must `import SwiftEffectInference` (MemberImportVisibility).
+///
+/// The duplicate enum definition and the duplicate `leastUpperBound` algorithm
+/// that this alias replaces were proven equivalent to SEI's `Effect`/`lub` by
+/// the (now-retired) `LatticeDifferentialTests` before removal.
+public typealias DeclaredEffect = Effect
 
 /// Declared execution context for a function, parsed from `/// @lint.context` doc comments.
 ///
