@@ -57,6 +57,14 @@ open class BasePatternVisitor: SyntaxVisitor, PatternVisitorProtocol {
     /// not end in `Protocol`/`Type`/`Interface`.
     public var knownProtocolTypes: Set<String> = []
 
+    /// Type names known to be `Equatable` (declaring `Equatable`, `Hashable`, or
+    /// `Comparable`, inline or via an extension in any file). Populated by a
+    /// pre-scan phase in `ProjectLinter` so that per-file visitors can tell
+    /// whether a type's values can be compared — e.g. the Pure Function
+    /// Property-Test Candidate rule requires an `Equatable` return type so the
+    /// result can be asserted on by a property test.
+    public var knownEquatableTypes: Set<String> = []
+
     /// Architectural layer policies for the Architectural Boundary rule.
     /// Injected by `SourcePatternDetector` after loading from `LintConfiguration`.
     /// Empty by default — the rule is a no-op when no layers are defined.

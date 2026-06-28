@@ -35,6 +35,10 @@ public protocol SourcePatternDetectorProtocol {
     /// Type names known to be declared as protocols across the project.
     var knownProtocolTypes: Set<String> { get set }
 
+    /// Type names known to be `Equatable` across the project (Equatable /
+    /// Hashable / Comparable, declared inline or via an extension).
+    var knownEquatableTypes: Set<String> { get set }
+
     /// Architectural layer policies for the Architectural Boundary rule.
     var layerPolicies: [LayerPolicy] { get set }
 
