@@ -32,6 +32,10 @@ public final class SourcePatternDetector: SourcePatternDetectorProtocol, @unchec
     /// Set by `ProjectLinter` after a pre-scan phase and passed through to visitors.
     public var knownProtocolTypes: Set<String> = []
 
+    /// Type names known to be `Equatable` across the project. Set by
+    /// `ProjectLinter` after a pre-scan phase and passed through to visitors.
+    public var knownEquatableTypes: Set<String> = []
+
     /// Architectural layer policies, set from `LintConfiguration.architecturalLayers`.
     /// Passed through to visitors that need them (e.g. ArchitecturalBoundaryVisitor).
     public var layerPolicies: [LayerPolicy] = []
@@ -166,6 +170,7 @@ public final class SourcePatternDetector: SourcePatternDetectorProtocol, @unchec
             visitor.knownLocalTypeNames = knownLocalTypeNames
             visitor.knownObservableTypes = knownObservableTypes
             visitor.knownProtocolTypes = knownProtocolTypes
+            visitor.knownEquatableTypes = knownEquatableTypes
             visitor.layerPolicies = layerPolicies
             visitor.enabledFrameworkAllowlists = enabledFrameworkAllowlists
             visitor.walk(sourceFile)

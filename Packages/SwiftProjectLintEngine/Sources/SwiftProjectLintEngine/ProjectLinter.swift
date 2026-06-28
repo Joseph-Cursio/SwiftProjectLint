@@ -114,6 +114,7 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
         let localTypes = Self.collectTypes(LocalTypeCollector.self, from: filePaths)
         let observableTypes = Self.collectTypes(ObservableTypeCollector.self, from: filePaths)
         let protocolTypes = Self.collectTypes(ProtocolTypeCollector.self, from: filePaths)
+        let equatableTypes = Self.collectTypes(EquatableConformanceCollector.self, from: filePaths)
 
         // Resolve the registry once so each task can create its own detector
         var resolvedDetector = detector ?? SourcePatternDetector()
@@ -123,6 +124,7 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
         resolvedDetector.knownLocalTypeNames = localTypes
         resolvedDetector.knownObservableTypes = observableTypes
         resolvedDetector.knownProtocolTypes = protocolTypes
+        resolvedDetector.knownEquatableTypes = equatableTypes
         resolvedDetector.layerPolicies = effectiveConfiguration.architecturalLayers
         resolvedDetector.enabledFrameworkAllowlists =
             effectiveConfiguration.enabledFrameworkAllowlists
@@ -141,6 +143,7 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
             localTypes: localTypes,
             observableTypes: observableTypes,
             protocolTypes: protocolTypes,
+            equatableTypes: equatableTypes,
             layerPolicies: effectiveConfiguration.architecturalLayers
         )
         let perFileResults = await withTaskGroup(
@@ -324,6 +327,7 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
         let localTypes: Set<String>
         let observableTypes: Set<String>
         let protocolTypes: Set<String>
+        let equatableTypes: Set<String>
         let layerPolicies: [LayerPolicy]
     }
 
@@ -345,6 +349,7 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
             localTypes: env.localTypes,
             observableTypes: env.observableTypes,
             protocolTypes: env.protocolTypes,
+            equatableTypes: env.equatableTypes,
             layerPolicies: env.layerPolicies
         )
     }
@@ -362,6 +367,7 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
         localTypes: Set<String> = [],
         observableTypes: Set<String> = [],
         protocolTypes: Set<String> = [],
+        equatableTypes: Set<String> = [],
         layerPolicies: [LayerPolicy] = []
     ) -> (file: ProjectFile, issues: [LintIssue], parsedAST: SourceFileSyntax)? {
         guard !Task.isCancelled else { return nil }
@@ -382,6 +388,7 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
         det.knownLocalTypeNames = localTypes
         det.knownObservableTypes = observableTypes
         det.knownProtocolTypes = protocolTypes
+        det.knownEquatableTypes = equatableTypes
         det.layerPolicies = layerPolicies
 
         let rawIssues: [LintIssue]
