@@ -248,6 +248,7 @@ Rules marked **opt-in** are disabled by default and must be explicitly listed un
 | [Global Mutable State](global-mutable-state.md) | Warning |
 | [Non-Injected Nondeterminism](non-injected-nondeterminism.md) | Warning |
 | [Pure Function Property-Test Candidate](pure-function-candidate.md) | Info |
+| [Missing Equatable on State Type](missing-equatable-on-state-type.md) | Info |
 
 ---
 

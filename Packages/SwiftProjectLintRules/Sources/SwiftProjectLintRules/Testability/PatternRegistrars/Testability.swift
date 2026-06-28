@@ -46,5 +46,10 @@ class Testability: BasePatternRegistrar {
             )
         ]
         registry.register(patterns: patterns)
+
+        // Cross-file rules get their own single-purpose leaf registrars.
+        registry.register(registrars: [
+            MissingEquatableOnStateType()
+        ])
     }
 }
