@@ -33,5 +33,6 @@ public enum PatternCategory: CaseIterable, Sendable {
     case animation
     case modernization
     case idempotency
+    case testability
     case other
 }

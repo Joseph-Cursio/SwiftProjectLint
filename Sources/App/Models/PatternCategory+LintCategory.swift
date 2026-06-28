@@ -16,6 +16,7 @@ extension PatternCategory: @retroactive LintCategory {
         case .animation: "animation"
         case .modernization: "modernization"
         case .idempotency: "idempotency"
+        case .testability: "testability"
         case .other: "other"
         }
     }
@@ -34,6 +35,7 @@ extension PatternCategory: @retroactive LintCategory {
         case .animation: "Animation"
         case .modernization: "Modernization"
         case .idempotency: "Idempotency"
+        case .testability: "Testability"
         case .other: "Other"
         }
     }

@@ -58,6 +58,9 @@ public enum BuiltInRules {
         SourcePatternRegistry.registerFactory { registry, visitorRegistry in
             Modernization(registry: registry, visitorRegistry: visitorRegistry)
         }
+        SourcePatternRegistry.registerFactory { registry, visitorRegistry in
+            Testability(registry: registry, visitorRegistry: visitorRegistry)
+        }
     }
 
     /// Resets registration state. Used by tests to ensure a clean slate.

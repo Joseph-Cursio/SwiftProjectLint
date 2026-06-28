@@ -1,0 +1,28 @@
+import Foundation
+import SwiftProjectLintModels
+import SwiftProjectLintRegistry
+import SwiftProjectLintVisitors
+
+/// Registers testability / PBT-readiness patterns — code shapes that make
+/// property-based testing harder (global mutable state, non-injected
+/// nondeterminism), plus the positive `pureFunctionCandidate` signal that
+/// seeds the lint → infer → verify pipeline.
+class Testability: BasePatternRegistrar {
+    override func registerPatterns() {
+        let patterns = [
+            SyntaxPattern(
+                name: .globalMutableState,
+                visitor: GlobalMutableStateVisitor.self,
+                severity: .warning,
+                category: .testability,
+                messageTemplate: "Global mutable state — a top-level or `static var` can't be "
+                    + "reset between property-test trials, so it leaks state across runs",
+                suggestion: "Move the mutable state behind an injected, instance-scoped owner "
+                    + "the test can construct fresh.",
+                description: "Detects stored top-level `var` and `static var` declarations, which "
+                    + "defeat property-based-test isolation."
+            )
+        ]
+        registry.register(patterns: patterns)
+    }
+}
