@@ -58,4 +58,16 @@ struct GlobalMutableStateVisitorTests {
     @Test func ignoresTopLevelComputedVar() {
         #expect(analyze("var value: Int { 42 }").isEmpty)
     }
+
+    @Test func ignoresTestFiles() {
+        // A global `var` in a test file isn't a property-test subject — exempt,
+        // consistent with the sibling testability rules.
+        #expect(analyze("var sharedCounter = 0", filePath: "FeatureTests.swift").isEmpty)
+        let staticVar = """
+        enum Fixture {
+            static var calls = 0
+        }
+        """
+        #expect(analyze(staticVar, filePath: "SomeTests.swift").isEmpty)
+    }
 }
