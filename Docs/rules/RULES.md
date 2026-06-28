@@ -241,6 +241,14 @@ Rules marked **opt-in** are disabled by default and must be explicitly listed un
 | [Once Contract Violation](once-contract-violation.md) | Error |
 | [Tuple Equality With Unstable Components](tuple-equality-with-unstable-components.md) | Warning |
 
+## Testability
+
+| Rule | Severity |
+|------|----------|
+| [Global Mutable State](global-mutable-state.md) | Warning |
+| [Non-Injected Nondeterminism](non-injected-nondeterminism.md) | Warning |
+| [Pure Function Property-Test Candidate](pure-function-candidate.md) | Info |
+
 ---
 
 *Generated from visitor source code and test cases in SwiftProjectLint. To contribute a rule correction or new rule, see the [contributor guide](../CONTRIBUTING.md).*
