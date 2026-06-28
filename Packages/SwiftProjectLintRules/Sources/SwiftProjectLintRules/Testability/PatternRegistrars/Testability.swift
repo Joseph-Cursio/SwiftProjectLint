@@ -23,6 +23,18 @@ class Testability: BasePatternRegistrar {
                     + "defeat property-based-test isolation."
             ),
             SyntaxPattern(
+                name: .nonInjectedNondeterminism,
+                visitor: NonInjectedNondeterminismVisitor.self,
+                severity: .warning,
+                category: .testability,
+                messageTemplate: "Non-injected nondeterminism — an inline `Date()` / `UUID()` / "
+                    + "`.random` / `Date.now` can't be pinned or reproduced by a property test",
+                suggestion: "Inject the source (a clock, `RandomNumberGenerator`, or UUID provider) "
+                    + "so tests can control it.",
+                description: "Detects nondeterministic sources used inline in logic rather than "
+                    + "injected as a dependency."
+            ),
+            SyntaxPattern(
                 name: .pureFunctionCandidate,
                 visitor: PureFunctionCandidateVisitor.self,
                 severity: .info,
