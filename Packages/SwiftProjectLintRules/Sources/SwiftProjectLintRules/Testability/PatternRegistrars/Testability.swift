@@ -21,6 +21,16 @@ class Testability: BasePatternRegistrar {
                     + "the test can construct fresh.",
                 description: "Detects stored top-level `var` and `static var` declarations, which "
                     + "defeat property-based-test isolation."
+            ),
+            SyntaxPattern(
+                name: .pureFunctionCandidate,
+                visitor: PureFunctionCandidateVisitor.self,
+                severity: .info,
+                category: .testability,
+                messageTemplate: "Looks pure and total — a good property-based-test candidate",
+                suggestion: "Run `swift-infer discover` on it, or add a PropertyLawKit test.",
+                description: "Surfaces free / `static` functions that take inputs, return a value, "
+                    + "aren't async, and show no obvious impurity — the seeds for the PBT pipeline."
             )
         ]
         registry.register(patterns: patterns)
