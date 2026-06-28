@@ -33,6 +33,16 @@ class Testability: BasePatternRegistrar {
                     + "so tests can control it.",
                 description: "Detects nondeterministic sources used inline in logic rather than "
                     + "injected as a dependency."
+            ),
+            SyntaxPattern(
+                name: .pureFunctionCandidate,
+                visitor: PureFunctionCandidateVisitor.self,
+                severity: .info,
+                category: .testability,
+                messageTemplate: "Looks pure and total — a good property-based-test candidate",
+                suggestion: "Run `swift-infer discover` on it, or add a PropertyLawKit test.",
+                description: "Surfaces free / `static` functions that take inputs, return a value, "
+                    + "aren't async, and show no obvious impurity — the seeds for the PBT pipeline."
             )
         ]
         registry.register(patterns: patterns)
