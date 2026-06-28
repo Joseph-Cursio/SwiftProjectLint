@@ -73,6 +73,12 @@ final class NonInjectedNondeterminismVisitor: BasePatternVisitor {
         // Member call: `Int.random(in:)`, `array.randomElement()`, `.shuffled()`.
         if let member = node.calledExpression.as(MemberAccessExprSyntax.self),
            Self.randomMembers.contains(member.declName.baseName.text) {
+            // A `using:` argument injects the RNG — `Int.random(in: r, using: &rng)`
+            // is reproducible from a seed, which is exactly the testable form. Only
+            // the system-RNG forms (no `using:`) are non-injected nondeterminism.
+            if node.arguments.contains(where: { $0.label?.text == "using" }) {
+                return nil
+            }
             return ".\(member.declName.baseName.text)(…)"
         }
         return nil
