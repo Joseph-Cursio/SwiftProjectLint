@@ -21,6 +21,18 @@ class Testability: BasePatternRegistrar {
                     + "the test can construct fresh.",
                 description: "Detects stored top-level `var` and `static var` declarations, which "
                     + "defeat property-based-test isolation."
+            ),
+            SyntaxPattern(
+                name: .nonInjectedNondeterminism,
+                visitor: NonInjectedNondeterminismVisitor.self,
+                severity: .warning,
+                category: .testability,
+                messageTemplate: "Non-injected nondeterminism — an inline `Date()` / `UUID()` / "
+                    + "`.random` / `Date.now` can't be pinned or reproduced by a property test",
+                suggestion: "Inject the source (a clock, `RandomNumberGenerator`, or UUID provider) "
+                    + "so tests can control it.",
+                description: "Detects nondeterministic sources used inline in logic rather than "
+                    + "injected as a dependency."
             )
         ]
         registry.register(patterns: patterns)

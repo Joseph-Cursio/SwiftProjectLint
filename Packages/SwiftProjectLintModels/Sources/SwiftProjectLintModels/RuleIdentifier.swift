@@ -215,6 +215,7 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
 
     // Testability / PBT-readiness Rules
     case globalMutableState = "Global Mutable State"
+    case nonInjectedNondeterminism = "Non-Injected Nondeterminism"
 
     // Other/System Rules
     case fileParsingError = "File Parsing Error"
@@ -345,7 +346,7 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
             return .idempotency
 
             // Testability / PBT-readiness Rules
-        case .globalMutableState:
+        case .globalMutableState, .nonInjectedNondeterminism:
             return .testability
 
             // Other/System Rules
