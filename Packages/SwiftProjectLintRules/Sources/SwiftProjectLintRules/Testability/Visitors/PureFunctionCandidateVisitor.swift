@@ -42,7 +42,11 @@ final class PureFunctionCandidateVisitor: BasePatternVisitor {
         guard !node.signature.parameterClause.parameters.isEmpty else { return .visitChildren }
         guard hasNonVoidReturn(node.signature) else { return .visitChildren }
         guard node.signature.effectSpecifiers?.asyncSpecifier == nil else { return .visitChildren }
+        // Total: a `throws` function (or one whose body can trap) isn't a function
+        // of its inputs alone — there are inputs for which it has no return value.
+        guard node.signature.effectSpecifiers?.throwsClause == nil else { return .visitChildren }
         guard !bodyLooksImpure(body) else { return .visitChildren }
+        guard bodyIsTotal(body) else { return .visitChildren }
 
         addIssue(
             severity: .info,
@@ -79,5 +83,61 @@ final class PureFunctionCandidateVisitor: BasePatternVisitor {
 
     private func bodyLooksImpure(_ body: CodeBlockSyntax) -> Bool {
         body.tokens(viewMode: .sourceAccurate).contains { Self.impureMarkers.contains($0.text) }
+    }
+
+    /// True when nothing in the body can trap (crash) at runtime — the property
+    /// that lets us treat the function as total. Force-unwrap (`!`), `try!`,
+    /// `as!`, and the `fatalError` / `precondition` / `assert` family all
+    /// introduce inputs for which there is no return value, so a property test
+    /// over generated inputs would hit a crash rather than a falsified law.
+    private func bodyIsTotal(_ body: CodeBlockSyntax) -> Bool {
+        let checker = TotalityChecker(viewMode: .sourceAccurate)
+        checker.walk(body)
+        return checker.isTotal
+    }
+}
+
+/// Walks a function body looking for any runtime trap that breaks totality.
+private final class TotalityChecker: SyntaxVisitor {
+
+    private(set) var isTotal = true
+
+    /// Standard-library trap functions: reaching them means the function has no
+    /// return value for some inputs.
+    private static let trapFunctions: Set<String> = [
+        "fatalError", "preconditionFailure", "precondition",
+        "assert", "assertionFailure"
+    ]
+
+    override func visit(_ node: ForceUnwrapExprSyntax) -> SyntaxVisitorContinueKind {
+        _ = node
+        isTotal = false
+        return .skipChildren
+    }
+
+    override func visit(_ node: TryExprSyntax) -> SyntaxVisitorContinueKind {
+        if node.questionOrExclamationMark?.text == "!" { isTotal = false }
+        return .visitChildren
+    }
+
+    override func visit(_ node: AsExprSyntax) -> SyntaxVisitorContinueKind {
+        if node.questionOrExclamationMark?.text == "!" { isTotal = false }
+        return .visitChildren
+    }
+
+    // Raw (unfolded) parse trees represent `x as! T` as an `UnresolvedAsExprSyntax`
+    // inside a `SequenceExprSyntax`; the folded `AsExprSyntax` form only appears
+    // after operator-precedence folding, which the linter doesn't run.
+    override func visit(_ node: UnresolvedAsExprSyntax) -> SyntaxVisitorContinueKind {
+        if node.questionOrExclamationMark?.text == "!" { isTotal = false }
+        return .visitChildren
+    }
+
+    override func visit(_ node: FunctionCallExprSyntax) -> SyntaxVisitorContinueKind {
+        if let callee = node.calledExpression.as(DeclReferenceExprSyntax.self)?.baseName.text,
+           Self.trapFunctions.contains(callee) {
+            isTotal = false
+        }
+        return .visitChildren
     }
 }

@@ -69,4 +69,46 @@ struct PureFunctionCandidateVisitorTests {
     @Test func ignoresTestFiles() {
         #expect(analyze("func add(_ a: Int, _ b: Int) -> Int { a + b }", filePath: "MathTests.swift").isEmpty)
     }
+
+    // MARK: - Totality (not a function of inputs alone if it can trap or throw)
+
+    @Test func ignoresThrowingFunction() {
+        #expect(analyze("func parse(_ s: String) throws -> Int { Int(s) ?? 0 }").isEmpty)
+    }
+
+    @Test func ignoresForceUnwrapInBody() {
+        #expect(analyze("func first(_ xs: [Int]) -> Int { xs.first! }").isEmpty)
+    }
+
+    @Test func ignoresForceTryInBody() {
+        let source = """
+        func decode(_ data: Data) -> Model {
+            try! JSONDecoder().decode(Model.self, from: data)
+        }
+        """
+        #expect(analyze(source).isEmpty)
+    }
+
+    @Test func ignoresForceCastInBody() {
+        #expect(analyze("func cast(_ x: Any) -> Int { x as! Int }").isEmpty)
+    }
+
+    @Test func ignoresFatalErrorInBody() {
+        let source = """
+        func pick(_ flag: Bool) -> Int {
+            if flag { return 1 }
+            fatalError("unreachable")
+        }
+        """
+        #expect(analyze(source).isEmpty)
+    }
+
+    @Test func ignoresPreconditionInBody() {
+        #expect(analyze("func half(_ x: Int) -> Int { precondition(x >= 0); return x / 2 }").isEmpty)
+    }
+
+    @Test func allowsOptionalChainingAndNilCoalescing() {
+        // `?.` and `??` are total — these stay candidates.
+        #expect(analyze("func len(_ s: String?) -> Int { s?.count ?? 0 }").count == 1)
+    }
 }
