@@ -269,7 +269,8 @@ open class BasePatternVisitor: SyntaxVisitor, PatternVisitorProtocol {
         filePath: String,
         lineNumber: Int,
         suggestion: String,
-        ruleName: RuleIdentifier?
+        ruleName: RuleIdentifier?,
+        symbol: String? = nil
     ) {
         let issue = LintIssue(
             severity: severity,
@@ -277,7 +278,8 @@ open class BasePatternVisitor: SyntaxVisitor, PatternVisitorProtocol {
             filePath: filePath,
             lineNumber: lineNumber,
             suggestion: suggestion,
-            ruleName: ruleName ?? pattern.name
+            ruleName: ruleName ?? pattern.name,
+            symbol: symbol
         )
         detectedIssues.append(issue)
     }

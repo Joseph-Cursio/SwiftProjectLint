@@ -18,6 +18,9 @@ public struct CodableLintIssue: Codable, Sendable {
     public let suggestion: String?
     public let ruleName: String
     public let category: String
+    /// The source symbol (e.g. function name) this issue is about, when the rule
+    /// identifies one. Synthesized `Codable` omits this key from JSON when `nil`.
+    public let symbol: String?
 
     public init(from issue: LintIssue) {
         self.severity = issue.severity.rawValue
@@ -28,5 +31,6 @@ public struct CodableLintIssue: Codable, Sendable {
         self.suggestion = issue.suggestion
         self.ruleName = issue.ruleName.rawValue
         self.category = String(describing: issue.ruleName.category)
+        self.symbol = issue.symbol
     }
 }

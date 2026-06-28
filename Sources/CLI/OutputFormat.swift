@@ -7,6 +7,7 @@ enum OutputFormat: String, ExpressibleByArgument, CaseIterable {
     case json
     case html
     case csv
+    case pbtSeeds = "pbt-seeds"
 
     /// Returns the formatter for this output format.
     var formatter: any IssueFormatterProtocol {
@@ -15,6 +16,7 @@ enum OutputFormat: String, ExpressibleByArgument, CaseIterable {
         case .json: return JSONFormatter()
         case .html: return HTMLFormatter()
         case .csv: return CSVFormatter()
+        case .pbtSeeds: return PBTSeedsFormatter()
         }
     }
 }

@@ -52,7 +52,8 @@ final class PureFunctionCandidateVisitor: BasePatternVisitor {
             lineNumber: getLineNumber(for: Syntax(node)),
             suggestion: "Run `swift-infer discover` on it, or add a PropertyLawKit test that "
                 + "checks a law over generated inputs.",
-            ruleName: .pureFunctionCandidate
+            ruleName: .pureFunctionCandidate,
+            symbol: node.name.text
         )
         return .visitChildren
     }

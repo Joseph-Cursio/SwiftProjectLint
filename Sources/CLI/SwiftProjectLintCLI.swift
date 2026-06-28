@@ -13,7 +13,13 @@ struct SwiftProjectLintCLI: AsyncParsableCommand {
     @Argument(help: "Path to the Swift project directory to analyze.")
     var projectPath: String
 
-    @Option(name: .long, help: "Output format: text, json, html, or csv.")
+    @Option(
+        name: .long,
+        help: """
+        Output format: text, json, html, csv, or pbt-seeds \
+        (emit pure-function candidates as a swift-infer seed manifest).
+        """
+    )
     var format: OutputFormat = .text
 
     @Option(name: .long, help: "Minimum severity to trigger a non-zero exit: error, warning, or info.")
@@ -83,6 +89,12 @@ struct SwiftProjectLintCLI: AsyncParsableCommand {
            FileAnalysisUtils.containsNestedPackage(in: absolutePath) {
             Self.printToStandardError(Self.nestedPackagesSkippedNotice)
         }
+
+        // `pbt-seeds` is an extraction format, not a lint gate: it exists to hand a
+        // seed manifest to `swift-infer`. Failing the process for findings would make
+        // `swiftprojectlint … --format pbt-seeds > .pbt/seeds.json` abort under a
+        // `set -e` pipeline, so this format always exits 0.
+        guard format != .pbtSeeds else { return }
 
         let code = ExitCodes.exitCode(for: issues, threshold: threshold)
         if code != 0 {

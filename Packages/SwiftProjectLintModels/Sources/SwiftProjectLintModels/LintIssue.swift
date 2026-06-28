@@ -32,6 +32,11 @@ public struct LintIssue: Identifiable, Sendable {
     public let locations: [(filePath: String, lineNumber: Int)]
     public let suggestion: String?
     public let ruleName: RuleIdentifier
+    /// The name of the source symbol this issue is about (e.g. a function or type name),
+    /// when the rule can identify one. Used by machine-readable exports — notably the
+    /// `pbt-seeds` format, which hands these symbols to `swift-infer` as the functions
+    /// worth property-testing. `nil` when the rule reports no specific symbol.
+    public let symbol: String?
 
     /// Returns the file path of the first location, or an empty string if no locations exist.
     public var filePath: String {
@@ -56,13 +61,15 @@ public struct LintIssue: Identifiable, Sendable {
         message: String,
         locations: [(filePath: String, lineNumber: Int)],
         suggestion: String?,
-        ruleName: RuleIdentifier
+        ruleName: RuleIdentifier,
+        symbol: String? = nil
     ) {
         self.severity = severity
         self.message = message
         self.locations = locations
         self.suggestion = suggestion
         self.ruleName = ruleName
+        self.symbol = symbol
     }
 
     /// Initializes a lint issue with a single location.
@@ -81,12 +88,14 @@ public struct LintIssue: Identifiable, Sendable {
         filePath: String,
         lineNumber: Int,
         suggestion: String?,
-        ruleName: RuleIdentifier
+        ruleName: RuleIdentifier,
+        symbol: String? = nil
     ) {
         self.severity = severity
         self.message = message
         self.locations = [(filePath, lineNumber)]
         self.suggestion = suggestion
         self.ruleName = ruleName
+        self.symbol = symbol
     }
 }
