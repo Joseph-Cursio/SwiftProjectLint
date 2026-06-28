@@ -115,6 +115,12 @@ struct PatternConfiguration {
                 display: "Idempotency",
                 patterns: convertToDetectionPatterns(patternRegistry.getPatterns(for: .idempotency)),
                 useSwiftSyntax: true
+            ),
+            PatternCategoryInfo(
+                category: .testability,
+                display: "Testability",
+                patterns: convertToDetectionPatterns(patternRegistry.getPatterns(for: .testability)),
+                useSwiftSyntax: true
             )
         ]
     }

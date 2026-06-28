@@ -213,6 +213,9 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
     case tupleEqualityWithUnstableComponents = "Tuple Equality With Unstable Components"
     case nonIdempotentActionName = "Non-Idempotent Action Name"
 
+    // Testability / PBT-readiness Rules
+    case globalMutableState = "Global Mutable State"
+
     // Other/System Rules
     case fileParsingError = "File Parsing Error"
     case unknown = "Unknown"
@@ -340,6 +343,10 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
              .onceContractViolation, .unannotatedInStrictReplayableContext,
              .tupleEqualityWithUnstableComponents, .nonIdempotentActionName:
             return .idempotency
+
+            // Testability / PBT-readiness Rules
+        case .globalMutableState:
+            return .testability
 
             // Other/System Rules
         case .fileParsingError, .unknown:
