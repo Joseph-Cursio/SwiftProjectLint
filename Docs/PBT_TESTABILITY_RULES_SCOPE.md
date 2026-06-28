@@ -2,6 +2,17 @@
 
 _Date: 2026-06-27 · Implements Idea #1 from `~/xcode_projects/PBT_ECOSYSTEM_REVIEW.md`_
 
+> **Status (2026-06-28): core shipped.** The `.testability` category and its three
+> purely-syntactic Tier-A rules are on `main`, each with bundled docs and tests:
+> - **Global Mutable State** (warning) — PR #36
+> - **Non-Injected Nondeterminism** (warning) — PR #39 (orig. #37)
+> - **Pure Function Property-Test Candidate** (info) — PR #40 (orig. #38), the keystone seed producer
+>
+> The seed handoff to `swift-infer` (Idea #2) is shipped: `--format pbt-seeds` emits a
+> `{file,line,symbol,rule}` manifest from PureFunctionCandidate findings, consumed by
+> `swift-infer discover --seeds`. Remaining optional Tier-A/B rules below are **not yet
+> built**: Unabstracted I/O, Missing Equatable on State Type, Impure Call in View Body.
+
 ## Goal
 
 Turn SwiftProjectLint from "linter that drives idempotency" into "linter that tells a
