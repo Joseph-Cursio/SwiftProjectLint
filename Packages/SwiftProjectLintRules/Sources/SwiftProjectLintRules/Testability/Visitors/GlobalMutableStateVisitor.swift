@@ -14,11 +14,22 @@ import SwiftSyntax
 /// `var` (with an accessor block), and instance properties are left alone.
 final class GlobalMutableStateVisitor: BasePatternVisitor {
 
+    private var fileIsTestOrFixture = false
+
     required init(pattern: SyntaxPattern, viewMode: SyntaxTreeViewMode = .sourceAccurate) {
         super.init(pattern: pattern, viewMode: viewMode)
     }
 
+    override func setFilePath(_ filePath: String) {
+        super.setFilePath(filePath)
+        fileIsTestOrFixture = isTestOrFixtureFile()
+    }
+
     override func visit(_ node: VariableDeclSyntax) -> SyntaxVisitorContinueKind {
+        // Test/fixture files aren't property-test subjects — a global `var` in a
+        // test is not what this rule is about. Exempt them, as the sibling
+        // testability rules do.
+        guard !fileIsTestOrFixture else { return .visitChildren }
         guard node.bindingSpecifier.tokenKind == .keyword(.var) else {
             return .visitChildren
         }
