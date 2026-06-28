@@ -72,4 +72,32 @@ struct NonInjectedNondeterminismVisitorTests {
         let source = "func roll() -> Int { Int.random(in: 1...6) }"
         #expect(analyze(source, filePath: "RollTests.swift").isEmpty)
     }
+
+    // MARK: - Injected RNG via `using:` is the testable form, not a finding
+
+    @Test func ignoresRandomWithInjectedRNG() {
+        let source = """
+        func roll(using rng: inout some RandomNumberGenerator) -> Int {
+            Int.random(in: 1...6, using: &rng)
+        }
+        """
+        #expect(analyze(source).isEmpty)
+    }
+
+    @Test func ignoresRandomElementAndShuffledWithInjectedRNG() {
+        let source = """
+        func pick(_ xs: [Int], using rng: inout some RandomNumberGenerator) -> Int? {
+            xs.randomElement(using: &rng)
+        }
+        func mix(_ xs: [Int], using rng: inout some RandomNumberGenerator) -> [Int] {
+            xs.shuffled(using: &rng)
+        }
+        """
+        #expect(analyze(source).isEmpty)
+    }
+
+    @Test func stillFlagsSystemRandomWithoutUsing() {
+        // Regression guard: only the `using:`-injected form is exempt.
+        #expect(analyze("func roll() -> Int { Int.random(in: 1...6) }").count == 1)
+    }
 }
