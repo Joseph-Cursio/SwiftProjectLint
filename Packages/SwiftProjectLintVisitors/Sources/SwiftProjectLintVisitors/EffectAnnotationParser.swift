@@ -288,6 +288,9 @@ public enum EffectAnnotationParser {
             guard let attr = element.as(AttributeSyntax.self) else { continue }
             guard let typeName = attributeTypeName(attr.attributeName) else { continue }
             switch typeName {
+            case "Pure":
+                return .pure
+
             case "Idempotent":
                 return .idempotent
 
@@ -359,6 +362,9 @@ public enum EffectAnnotationParser {
         let rest = line[range.upperBound...].trimmingLeadingWhitespace()
         let token = rest.firstWord()
         switch token {
+        case "pure":
+            return .pure
+
         case "idempotent":
             return .idempotent
 
