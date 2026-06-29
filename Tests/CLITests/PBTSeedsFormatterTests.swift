@@ -66,6 +66,29 @@ struct PBTSeedsFormatterTests {
     }
 
     @Test
+    func emitsIdempotencyViolationSeedWithItsFunctionSymbol() throws {
+        let issues = [
+            LintIssue(
+                severity: .info, message: "`add(…)` looks pure", filePath: "Math.swift",
+                lineNumber: 3, suggestion: nil, ruleName: .pureFunctionCandidate, symbol: "add"
+            ),
+            LintIssue(
+                severity: .warning, message: "Idempotency violation: 'sync' …", filePath: "Sync.swift",
+                lineNumber: 9, suggestion: nil, ruleName: .idempotencyViolation, symbol: "sync"
+            )
+        ]
+        let json = PBTSeedsFormatter().format(issues: issues)
+        let data = try #require(json.data(using: .utf8))
+        let manifest = try JSONDecoder().decode(PBTSeedManifest.self, from: data)
+
+        #expect(manifest.seeds.count == 2)
+        let idem = try #require(manifest.seeds.first { $0.rule == RuleIdentifier.idempotencyViolation.rawValue })
+        #expect(idem.symbol == "sync")
+        #expect(idem.file == "Sync.swift")
+        #expect(idem.line == 9)
+    }
+
+    @Test
     func dropsCandidateWithoutSymbol() throws {
         // A pureFunctionCandidate issue that somehow carries no symbol must not
         // produce a malformed seed (symbol is required in the manifest).

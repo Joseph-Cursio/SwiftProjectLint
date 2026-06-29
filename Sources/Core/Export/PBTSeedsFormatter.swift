@@ -42,11 +42,24 @@ public struct PBTSeedManifest: Codable, Sendable {
 /// from other rules (and any candidate lacking a resolved symbol) are dropped,
 /// so the output is exactly the set of functions worth property-testing.
 public struct PBTSeedsFormatter: IssueFormatterProtocol {
+    /// Rules whose findings name a function worth property-testing. Each must
+    /// populate `LintIssue.symbol` with that function's name.
+    ///
+    /// - `pureFunctionCandidate`: the positive signal — a pure, total function
+    ///   (the property is "is it deterministic / does some law hold").
+    /// - `idempotencyViolation`: a function that *claims* idempotence
+    ///   (`@lint.effect idempotent`) but calls non-idempotent work — it comes
+    ///   with a ready-made property (idempotence) to verify or characterize.
+    static let seedWorthyRules: Set<RuleIdentifier> = [
+        .pureFunctionCandidate,
+        .idempotencyViolation
+    ]
+
     public init() { /* no-op */ }
 
     public func format(issues: [LintIssue]) -> String {
         let seeds: [PBTSeed] = issues.compactMap { issue in
-            guard issue.ruleName == .pureFunctionCandidate,
+            guard Self.seedWorthyRules.contains(issue.ruleName),
                   let symbol = issue.symbol,
                   symbol.isEmpty == false
             else { return nil }

@@ -366,7 +366,10 @@ final class IdempotencyViolationVisitor: CrossFileVisitorBase, CrossFilePatternV
             filePath: site.filePath,
             lineNumber: line,
             suggestion: suggestion,
-            ruleName: .idempotencyViolation
+            ruleName: .idempotencyViolation,
+            // The violating function is itself the idempotence property-test
+            // subject — surfaced as a seed for `--format pbt-seeds`.
+            symbol: callerName
         )
     }
 
