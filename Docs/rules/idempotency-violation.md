@@ -10,12 +10,13 @@
 A function can declare its effect contract via `/// @lint.effect` in its doc comment. Once declared, callers depend on that contract — a function trusted as idempotent is trusted because of its annotation, and silent violations of the annotation undermine the entire annotation layer. This rule verifies that a function's body respects the effect it claims.
 
 ### Discussion
-`IdempotencyViolationVisitor` walks each function declaration in the project, reads its `@lint.effect` annotation, and — for callers declared `idempotent` or `observational` — checks every direct call in the body against the project-wide `EffectSymbolTable`. The visitor resolves callees by full function signature (name + argument labels), so overloads that Swift distinguishes resolve independently. Unannotated callees are silent (Phase 1 does not infer); callees whose symbol-table entry was withdrawn by a collision are also silent.
+`IdempotencyViolationVisitor` walks each function declaration in the project, reads its `@lint.effect` annotation, and — for callers declared `pure`, `idempotent`, or `observational` — checks every direct call in the body against the project-wide `EffectSymbolTable`. The visitor resolves callees by full function signature (name + argument labels), so overloads that Swift distinguishes resolve independently. Unannotated callees are silent (Phase 1 does not infer); callees whose symbol-table entry was withdrawn by a collision are also silent.
 
-The rule covers five combinations:
+The rule covers these combinations:
 
 | Caller effect | Callee effect | Fires? |
 |---|---|:-:|
+| `pure` | `observational` / `idempotent` / `externally_idempotent` / `non_idempotent` | ✓ (Phase 3) |
 | `idempotent` | `non_idempotent` | ✓ |
 | `observational` | `idempotent` | ✓ |
 | `observational` | `non_idempotent` | ✓ |
@@ -23,6 +24,8 @@ The rule covers five combinations:
 | `externally_idempotent` | `non_idempotent` | ✓ (Phase 2) |
 
 All other combinations are permissible. In particular, `idempotent` can freely call `observational` (logging inside an idempotent function is fine), and either can call unannotated callees without a diagnostic.
+
+**A note on `pure` callers (Phase 3).** `pure` is the bottom of the effect lattice — referential transparency: no side effects, deterministic, total. It is *strictly stronger* than `observational`, so a function declared `@lint.effect pure` (or `@Pure`) may call **only other pure functions**. Every `pure → non-pure` pairing fires, including `pure → observational` — the case that separates the purity axis from the retry-safety axis. An `observational` caller calling another `observational` helper is fine (logging is retry-safe), but a `pure` caller doing the same breaks referential transparency. This is the `Effect.pure` tier introduced in [SwiftEffectInference](https://github.com/Joseph-Cursio/SwiftEffectInference); the testability rules infer it, this rule enforces it when declared.
 
 **A note on `externally_idempotent` callees.** The tier models functions that are idempotent *only* when routed through a caller-supplied deduplication key (Stripe, SES, Mailgun, SNS). When an `idempotent`, `externally_idempotent`, or retry-context caller calls an `externally_idempotent` function, this rule stays silent — it trusts the caller to route the key. Whether the key actually reaches the callee is a separate check that a future rule (`missingIdempotencyKey`) will verify. Until then, the keyed path is trusted at the point it's declared.
 
@@ -66,6 +69,16 @@ func appendAudit(_ event: String) async throws {}
 func chargeWithAudit(idempotencyKey: String, amount: Int) async throws {
     try await appendAudit("charge \(idempotencyKey)")           // flagged
     try await charge(idempotencyKey: idempotencyKey, amount: amount)
+}
+
+// Phase 3 — a pure caller may call only pure callees
+/// @lint.effect observational
+func logHit(_ key: String) {}
+
+/// @lint.effect pure
+func normalize(_ key: String) -> String {
+    logHit(key)                                                 // pure → observational, flagged
+    return key.lowercased()
 }
 ```
 

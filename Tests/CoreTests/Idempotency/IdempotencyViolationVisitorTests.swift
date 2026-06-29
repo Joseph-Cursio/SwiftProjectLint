@@ -167,4 +167,97 @@ struct IdempotencyViolationVisitorTests {
 
         #expect(visitor.detectedIssues.isEmpty)
     }
+
+    // MARK: - Phase 3: `pure` caller contract
+
+    @Test
+    func pureCallsNonIdempotent_flagsAsPurityViolation() throws {
+        // A function declared `@lint.effect pure` must be referentially
+        // transparent — calling a non-idempotent primitive breaks that.
+        let source = """
+        /// @lint.effect non_idempotent
+        func persist(_ value: Int) async throws {}
+
+        /// @lint.effect pure
+        func compute(_ value: Int) async throws {
+            try await persist(value)
+        }
+        """
+
+        let visitor = run(source: source)
+
+        #expect(visitor.detectedIssues.count == 1)
+        let issue = try #require(visitor.detectedIssues.first)
+        #expect(issue.ruleName == .idempotencyViolation)
+        #expect(issue.message.contains("Purity violation"))
+        #expect(issue.message.contains("@lint.effect pure"))
+        #expect(issue.message.contains("compute"))
+        #expect(issue.message.contains("persist"))
+    }
+
+    @Test
+    func pureCallsObservational_flags() throws {
+        // `pure` is strictly below `observational`: a pure function may not
+        // even call a logging/observation helper. This is the case that
+        // distinguishes the purity axis from the retry-safety axis — an
+        // observational caller calling another observational helper is fine,
+        // but a `pure` caller is not.
+        let source = """
+        /// @lint.effect observational
+        func logMetric(_ value: Int) {}
+
+        /// @lint.effect pure
+        func compute(_ value: Int) -> Int {
+            logMetric(value)
+            return value
+        }
+        """
+
+        let visitor = run(source: source)
+
+        #expect(visitor.detectedIssues.count == 1)
+        let issue = try #require(visitor.detectedIssues.first)
+        #expect(issue.message.contains("Purity violation"))
+        #expect(issue.message.contains("logMetric"))
+    }
+
+    @Test
+    func pureCallsPure_noDiagnostic() {
+        // Composition holds: a pure caller calling a pure callee is the one
+        // OK pairing for a `pure` declaration.
+        let source = """
+        /// @lint.effect pure
+        func double(_ value: Int) -> Int { value * 2 }
+
+        /// @lint.effect pure
+        func quadruple(_ value: Int) -> Int {
+            double(double(value))
+        }
+        """
+
+        let visitor = run(source: source)
+
+        #expect(visitor.detectedIssues.isEmpty)
+    }
+
+    @Test
+    func pureCallerViaAttributeForm_flags() throws {
+        // The `@Pure` attribute grammar resolves to the same tier as the
+        // `/// @lint.effect pure` doc-comment grammar.
+        let source = """
+        /// @lint.effect non_idempotent
+        func persist(_ value: Int) async throws {}
+
+        @Pure
+        func compute(_ value: Int) async throws {
+            try await persist(value)
+        }
+        """
+
+        let visitor = run(source: source)
+
+        #expect(visitor.detectedIssues.count == 1)
+        let issue = try #require(visitor.detectedIssues.first)
+        #expect(issue.message.contains("Purity violation"))
+    }
 }

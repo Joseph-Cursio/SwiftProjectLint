@@ -246,7 +246,7 @@ final class IdempotencyViolationVisitor: CrossFileVisitorBase, CrossFilePatternV
     /// callees, so there is nothing to violate.
     private func isTriageableCaller(_ effect: DeclaredEffect) -> Bool {
         switch effect {
-        case .idempotent, .observational, .externallyIdempotent: return true
+        case .pure, .idempotent, .observational, .externallyIdempotent: return true
         case .nonIdempotent: return false
         }
     }
@@ -270,8 +270,23 @@ final class IdempotencyViolationVisitor: CrossFileVisitorBase, CrossFilePatternV
     ///   the keyed guarantee is broken.
     /// - `externally_idempotent → idempotent / observational / externally_idempotent`:
     ///   **OK.** Composition holds.
+    ///
+    /// Phase 3 added the `pure` caller rows. `pure` is the lattice bottom —
+    /// referential transparency — so a function declared `@lint.effect pure`
+    /// may call *only* other pure functions. Any callee at a higher tier
+    /// (`observational` and up) introduces a side effect or an observation the
+    /// pure contract forbids, so every `pure → non-pure` pairing violates.
     private func violates(caller: DeclaredEffect, callee: DeclaredEffect) -> Bool {
         switch (caller, callee) {
+        // Phase 3: a pure caller may call only pure callees; anything else
+        // (observational/idempotent/externallyIdempotent/nonIdempotent) breaks
+        // referential transparency.
+        case (.pure, .pure):
+            return false
+
+        case (.pure, _):
+            return true
+
         // Phase 1 cases
         case (.idempotent, .nonIdempotent):
             return true
@@ -330,6 +345,15 @@ final class IdempotencyViolationVisitor: CrossFileVisitorBase, CrossFilePatternV
         let headline: String
         let suggestion: String
         switch site.effect {
+        case .pure:
+            headline = "Purity violation: '\(callerName)' is declared "
+                + "`@lint.effect pure` but calls '\(calleeName)', \(calleeClaim). "
+                + "A pure function must be referentially transparent — no side effects, no I/O, "
+                + "no observation — so it may call only other pure functions."
+                + overrideHint
+            suggestion = "Either call only `pure` helpers from '\(callerName)', or weaken its "
+                + "declared effect to `observational` / `idempotent` / `non_idempotent`."
+
         case .observational:
             headline = "Observational contract violation: '\(callerName)' is declared "
                 + "`@lint.effect observational` but calls '\(calleeName)', \(calleeClaim). "
@@ -375,6 +399,7 @@ final class IdempotencyViolationVisitor: CrossFileVisitorBase, CrossFilePatternV
 
     private func effectLabel(_ effect: DeclaredEffect) -> String {
         switch effect {
+        case .pure: return "pure"
         case .idempotent: return "idempotent"
         case .observational: return "observational"
         case .externallyIdempotent: return "externally_idempotent"   // tier-only label; (by:) is a visitor-level detail
