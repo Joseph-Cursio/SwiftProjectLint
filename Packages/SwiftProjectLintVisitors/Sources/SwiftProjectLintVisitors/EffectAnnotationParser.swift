@@ -283,32 +283,26 @@ public enum EffectAnnotationParser {
     /// recognised by name alone. Users who write `@Idempotent` without
     /// importing the macros package get linter coverage but not the
     /// compile-time / test-time behaviour.
+    /// Attribute names that map to a fixed tier (no associated value). The
+    /// keyed `ExternallyIdempotent` form is handled separately because it must
+    /// read a `(by:)` argument. `IdempotencyTests` and any other unrecognised
+    /// name simply miss this table and skip.
+    private static let fixedTierAttributes: [String: DeclaredEffect] = [
+        "Pure": .pure,
+        "Idempotent": .idempotent,
+        "NonIdempotent": .nonIdempotent,
+        "Observational": .observational
+    ]
+
     static func effectFromAttributes(_ attributes: AttributeListSyntax) -> DeclaredEffect? {
         for element in attributes {
             guard let attr = element.as(AttributeSyntax.self) else { continue }
             guard let typeName = attributeTypeName(attr.attributeName) else { continue }
-            switch typeName {
-            case "Pure":
-                return .pure
-
-            case "Idempotent":
-                return .idempotent
-
-            case "NonIdempotent":
-                return .nonIdempotent
-
-            case "Observational":
-                return .observational
-
-            case "ExternallyIdempotent":
+            if let fixed = fixedTierAttributes[typeName] {
+                return fixed
+            }
+            if typeName == "ExternallyIdempotent" {
                 return .externallyIdempotent(keyParameter: extractByLabel(from: attr))
-
-            default:
-                // `IdempotencyTests` (test-generation attribute on `@Suite`
-                // types, added in the macros package round-8 redesign)
-                // carries no function-effect semantics and shares this
-                // skip path with any unrecognised attribute name.
-                continue
             }
         }
         return nil

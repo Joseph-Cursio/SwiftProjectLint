@@ -17,13 +17,10 @@ final class PureFunctionCandidateVisitor: BasePatternVisitor {
 
     private var fileIsTestOrFixture = false
 
-    /// Strong impurity markers — any in the body disqualifies the function.
-    private static let impureMarkers: Set<String> = [
-        "print", "NSLog", "FileManager", "URLSession", "UserDefaults",
-        "NotificationCenter", "DispatchQueue",
-        "arc4random", "arc4random_uniform", "drand48",
-        "random", "randomElement", "shuffled"
-    ]
+    /// Shared purity inference on `SwiftEffectInference.Effect`. A function is
+    /// a candidate only when this infers `.pure` — the testability rule and the
+    /// idempotency rules now decide purity through the same vocabulary.
+    private let purityInferrer = PurityInferrer()
 
     required init(pattern: SyntaxPattern, viewMode: SyntaxTreeViewMode = .sourceAccurate) {
         super.init(pattern: pattern, viewMode: viewMode)
@@ -35,7 +32,7 @@ final class PureFunctionCandidateVisitor: BasePatternVisitor {
     }
 
     override func visit(_ node: FunctionDeclSyntax) -> SyntaxVisitorContinueKind {
-        guard let body = node.body, isCandidate(node, body: body) else { return .visitChildren }
+        guard isCandidate(node) else { return .visitChildren }
 
         addIssue(
             severity: .info,
@@ -51,29 +48,28 @@ final class PureFunctionCandidateVisitor: BasePatternVisitor {
         return .visitChildren
     }
 
-    /// A function is a candidate when it is free/`static`, takes inputs, is total
-    /// (synchronous, non-throwing, no trapping body, no impurity), and returns an
-    /// `Equatable` value. Split into grouped predicates to keep each one simple.
-    private func isCandidate(_ node: FunctionDeclSyntax, body: CodeBlockSyntax) -> Bool {
+    /// A function is a candidate when it is free/`static`, takes inputs,
+    /// returns an `Equatable` value, and is inferred `Effect.pure` (referentially
+    /// transparent — synchronous, non-throwing, no trapping body, no impurity).
+    /// Purity is delegated to the shared `PurityInferrer`; this method adds only
+    /// the *testability* requirements (assertable return, has inputs, free/static).
+    private func isCandidate(_ node: FunctionDeclSyntax) -> Bool {
         guard !fileIsTestOrFixture else { return false }
         // Free or `static` only — instance methods can read mutable `self`.
         guard isStatic(node) || isFileScope(node) else { return false }
-        return signatureQualifies(node.signature) && bodyQualifies(body)
+        // The purity verdict — `.pure` on SwiftEffectInference's lattice — is the
+        // unified signal; `_ = body` because the inferrer reads the node's body.
+        guard purityInferrer.isPure(node) else { return false }
+        return signatureIsAssertable(node.signature)
     }
 
-    /// Takes inputs, returns an `Equatable` value, and is synchronous + total at
-    /// the signature level (no `async`, no `throws`).
-    private func signatureQualifies(_ signature: FunctionSignatureSyntax) -> Bool {
+    /// The candidacy half of the signature check (purity covers async/throws):
+    /// takes inputs and returns a non-`Void`, `Equatable` value a property test
+    /// can assert on.
+    private func signatureIsAssertable(_ signature: FunctionSignatureSyntax) -> Bool {
         !signature.parameterClause.parameters.isEmpty
             && hasNonVoidReturn(signature)
-            && signature.effectSpecifiers?.asyncSpecifier == nil
-            && signature.effectSpecifiers?.throwsClause == nil
             && returnTypeIsEquatable(signature)
-    }
-
-    /// The body shows no impurity and can't trap (is total).
-    private func bodyQualifies(_ body: CodeBlockSyntax) -> Bool {
-        !bodyLooksImpure(body) && bodyIsTotal(body)
     }
 
     private func isStatic(_ node: FunctionDeclSyntax) -> Bool {
@@ -120,6 +116,10 @@ final class PureFunctionCandidateVisitor: BasePatternVisitor {
         return Self.equatableStdlibTypes.contains(base) || knownEquatableTypes.contains(base)
     }
 
+    // Purity inference (impurity markers, totality) lives in the shared
+    // `PurityInferrer` (SwiftProjectLintVisitors) so the testability rule and
+    // the idempotency rules decide purity through the same `Effect.pure` verdict.
+
     /// The underlying nominal name of a type, unwrapping optionals and arrays:
     /// `Foo?` → `Foo`, `[Foo]` → `Foo`, `Foo<Bar>` → `Foo`. `[K: V]` resolves to
     /// `Dictionary`. Returns `nil` for tuples, closures, and other non-nominal
@@ -141,65 +141,5 @@ final class PureFunctionCandidateVisitor: BasePatternVisitor {
             return identifier.name.text
         }
         return nil
-    }
-
-    private func bodyLooksImpure(_ body: CodeBlockSyntax) -> Bool {
-        body.tokens(viewMode: .sourceAccurate).contains { Self.impureMarkers.contains($0.text) }
-    }
-
-    /// True when nothing in the body can trap (crash) at runtime — the property
-    /// that lets us treat the function as total. Force-unwrap (`!`), `try!`,
-    /// `as!`, and the `fatalError` / `precondition` / `assert` family all
-    /// introduce inputs for which there is no return value, so a property test
-    /// over generated inputs would hit a crash rather than a falsified law.
-    private func bodyIsTotal(_ body: CodeBlockSyntax) -> Bool {
-        let checker = TotalityChecker(viewMode: .sourceAccurate)
-        checker.walk(body)
-        return checker.isTotal
-    }
-}
-
-/// Walks a function body looking for any runtime trap that breaks totality.
-private final class TotalityChecker: SyntaxVisitor {
-
-    private(set) var isTotal = true
-
-    /// Standard-library trap functions: reaching them means the function has no
-    /// return value for some inputs.
-    private static let trapFunctions: Set<String> = [
-        "fatalError", "preconditionFailure", "precondition",
-        "assert", "assertionFailure"
-    ]
-
-    override func visit(_ node: ForceUnwrapExprSyntax) -> SyntaxVisitorContinueKind {
-        _ = node
-        isTotal = false
-        return .skipChildren
-    }
-
-    override func visit(_ node: TryExprSyntax) -> SyntaxVisitorContinueKind {
-        if node.questionOrExclamationMark?.text == "!" { isTotal = false }
-        return .visitChildren
-    }
-
-    override func visit(_ node: AsExprSyntax) -> SyntaxVisitorContinueKind {
-        if node.questionOrExclamationMark?.text == "!" { isTotal = false }
-        return .visitChildren
-    }
-
-    // Raw (unfolded) parse trees represent `x as! T` as an `UnresolvedAsExprSyntax`
-    // inside a `SequenceExprSyntax`; the folded `AsExprSyntax` form only appears
-    // after operator-precedence folding, which the linter doesn't run.
-    override func visit(_ node: UnresolvedAsExprSyntax) -> SyntaxVisitorContinueKind {
-        if node.questionOrExclamationMark?.text == "!" { isTotal = false }
-        return .visitChildren
-    }
-
-    override func visit(_ node: FunctionCallExprSyntax) -> SyntaxVisitorContinueKind {
-        if let callee = node.calledExpression.as(DeclReferenceExprSyntax.self)?.baseName.text,
-           Self.trapFunctions.contains(callee) {
-            isTotal = false
-        }
-        return .visitChildren
     }
 }
