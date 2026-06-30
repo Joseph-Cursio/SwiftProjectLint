@@ -32,7 +32,7 @@ let package = Package(
         // 602.0.0, so there is no version conflict.
         .package(
             url: "https://github.com/Joseph-Cursio/SwiftEffectInference.git",
-            revision: "b0751356cba09ed798a01a0a8930902d9955174c"
+            revision: "2b63b759e3bdf907d545f5d7aa1badf8355a4d8d"
         )
     ],
     targets: [
