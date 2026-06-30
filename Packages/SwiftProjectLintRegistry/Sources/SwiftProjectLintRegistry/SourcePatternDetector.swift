@@ -157,7 +157,16 @@ public final class SourcePatternDetector: SourcePatternDetectorProtocol, @unchec
 
         var allIssues: [LintIssue] = []
 
-        for (_, entry) in visitorTypeToPatterns {
+        // Iterate visitor groups in a deterministic order. `visitorTypeToPatterns`
+        // is keyed by `ObjectIdentifier`, whose hash (and therefore the dictionary's
+        // iteration order) varies between dictionary instances — so without this
+        // sort, two analyses of the same source can emit issues from different
+        // visitors in different relative order. Sort by the group's first rule name
+        // for a stable, source-independent ordering.
+        let orderedEntries = visitorTypeToPatterns.values.sorted {
+            ($0.patterns.first?.name.rawValue ?? "") < ($1.patterns.first?.name.rawValue ?? "")
+        }
+        for entry in orderedEntries {
             // Initialize the visitor with the first pattern (for visitors that
             // use the pattern's template). The visitor will report issues with
             // specific ruleNames regardless of which pattern was used to init.

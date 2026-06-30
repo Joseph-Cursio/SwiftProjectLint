@@ -249,6 +249,7 @@ Rules marked **opt-in** are disabled by default and must be explicitly listed un
 | [Non-Injected Nondeterminism](non-injected-nondeterminism.md) | Warning |
 | [Pure Function Property-Test Candidate](pure-function-candidate.md) | Info |
 | [Missing Equatable on State Type](missing-equatable-on-state-type.md) | Info |
+| [Impure Call in View Body](impure-call-in-view-body.md) | Warning |
 
 ---
 
