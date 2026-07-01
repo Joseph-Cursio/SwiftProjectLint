@@ -172,7 +172,6 @@ public final class SourcePatternDetector: SourcePatternDetectorProtocol, @unchec
             // specific ruleNames regardless of which pattern was used to init.
             let visitor = entry.type.init(pattern: entry.patterns[0])
             visitor.setSourceLocationConverter(converter)
-            visitor.setFilePath(filePath)
             visitor.knownIdentifiableTypes = knownIdentifiableTypes
             visitor.knownEnumTypes = knownEnumTypes
             visitor.knownActorTypes = knownActorTypes
@@ -182,6 +181,11 @@ public final class SourcePatternDetector: SourcePatternDetectorProtocol, @unchec
             visitor.knownEquatableTypes = knownEquatableTypes
             visitor.layerPolicies = layerPolicies
             visitor.enabledFrameworkAllowlists = enabledFrameworkAllowlists
+            // `setFilePath` must run after every injected property is set: some
+            // visitors (e.g. `ArchitecturalBoundaryVisitor`) snapshot per-file state
+            // from `layerPolicies` at this point, so setting the file path earlier
+            // would capture an empty policy set and silently disable the rule.
+            visitor.setFilePath(filePath)
             visitor.walk(sourceFile)
 
             // Filter to only the rules that were actually requested.
