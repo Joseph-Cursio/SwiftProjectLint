@@ -201,6 +201,81 @@ struct LintConfigurationLoaderTests {
         #expect(config.disabledRules.isEmpty)
     }
 
+    // MARK: - Global excluded_paths
+
+    @Test("top-level excluded_paths parses into a global exclusion list")
+    func testParsesGlobalExcludedPaths() {
+        let yaml = """
+        excluded_paths:
+          - "Generated/"
+          - "**/*.g.swift"
+        """
+        let config = loadFromString(yaml)
+        #expect(config.excludedPaths == ["Generated/", "**/*.g.swift"])
+    }
+
+    // MARK: - Architectural layers
+
+    @Test("architectural_layers parses into LayerPolicy with paths and forbidden sets")
+    func testParsesArchitecturalLayers() throws {
+        let yaml = """
+        architectural_layers:
+          domain:
+            paths:
+              - "Domain/"
+            forbidden_imports:
+              - "CoreData"
+              - "SwiftUI"
+            forbidden_types:
+              - "NSManagedObject"
+        """
+        let config = loadFromString(yaml)
+        let layer = try #require(config.architecturalLayers.first)
+        #expect(config.architecturalLayers.count == 1)
+        #expect(layer.name == "domain")
+        #expect(layer.paths == ["Domain/"])
+        #expect(layer.forbiddenImports == ["CoreData", "SwiftUI"])
+        #expect(layer.forbiddenTypes == ["NSManagedObject"])
+    }
+
+    @Test("a layer without paths is skipped (paths are required to scope the policy)")
+    func testArchitecturalLayerWithoutPathsIsSkipped() {
+        let yaml = """
+        architectural_layers:
+          domain:
+            forbidden_imports:
+              - "CoreData"
+        """
+        let config = loadFromString(yaml)
+        #expect(config.architecturalLayers.isEmpty)
+    }
+
+    @Test("architectural_layers absent yields no layers (rule stays a no-op)")
+    func testArchitecturalLayersAbsentYieldsEmpty() {
+        let config = loadFromString("disabled_rules:\n  - \"Force Try\"")
+        #expect(config.architecturalLayers.isEmpty)
+    }
+
+    // MARK: - Framework allowlists
+
+    @Test("enabled_framework_allowlists parses an explicit set of framework names")
+    func testParsesEnabledFrameworkAllowlists() throws {
+        let yaml = """
+        enabled_framework_allowlists:
+          - "Foundation"
+          - "NIOCore"
+        """
+        let config = loadFromString(yaml)
+        let allowlists = try #require(config.enabledFrameworkAllowlists)
+        #expect(allowlists == ["Foundation", "NIOCore"])
+    }
+
+    @Test("enabled_framework_allowlists absent is nil (all frameworks active)")
+    func testEnabledFrameworkAllowlistsAbsentIsNil() {
+        let config = loadFromString("disabled_rules:\n  - \"Force Try\"")
+        #expect(config.enabledFrameworkAllowlists == nil)
+    }
+
     // MARK: - Helpers
 
     private func loadFromString(_ yaml: String) -> LintConfiguration {
