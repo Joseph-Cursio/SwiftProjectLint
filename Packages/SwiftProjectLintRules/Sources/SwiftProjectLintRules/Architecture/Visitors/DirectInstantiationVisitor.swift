@@ -35,16 +35,11 @@ class DirectInstantiationVisitor: BasePatternVisitor {
 
     // MARK: - Property wrapper detection
 
-    private static let propertyWrapperNames: Set<String> = [
-        "State", "StateObject", "ObservedObject", "EnvironmentObject",
-        "Binding", "Published", "AppStorage", "SceneStorage"
-    ]
-
     private func hasPropertyWrapper(_ node: VariableDeclSyntax) -> Bool {
         for attribute in node.attributes {
             if let attr = attribute.as(AttributeSyntax.self),
                let name = attr.attributeName.as(IdentifierTypeSyntax.self)?.name.text,
-               Self.propertyWrapperNames.contains(name) {
+               PropertyWrapper.stateStorageAttributeNames.contains(name) {
                 return true
             }
         }

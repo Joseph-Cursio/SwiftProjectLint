@@ -155,11 +155,12 @@ class ConcreteTypeUsageVisitor: BasePatternVisitor {
 
     // MARK: - Property wrapper detection
 
-    private static let propertyWrapperNames: Set<String> = [
-        "State", "StateObject", "ObservedObject", "EnvironmentObject",
-        "Binding", "Published", "AppStorage", "SceneStorage",
-        "Bindable", "Environment"
-    ]
+    // The shared state-storage set plus two this rule also treats as wrapped
+    // properties: `@Environment` (a typed `PropertyWrapper` case) and `@Bindable`
+    // (Observation's wrapper, with no SwiftUI-state enum case of its own).
+    private static let propertyWrapperNames: Set<String> =
+        PropertyWrapper.stateStorageAttributeNames
+            .union([PropertyWrapper.environment.rawValue, "Bindable"])
 
     private func hasPropertyWrapper(_ node: VariableDeclSyntax) -> Bool {
         for attribute in node.attributes {

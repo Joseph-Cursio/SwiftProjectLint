@@ -27,4 +27,18 @@ public enum PropertyWrapper: String, CaseIterable, Sendable {
     case focusedValue = "FocusedValue"
     case accessibilityFocusState = "AccessibilityFocusState"
     case unknown = "Unknown"
+
+    /// Attribute names whose presence marks a stored property as SwiftUI/Combine
+    /// state, so coupling rules (direct-instantiation, concrete-type-usage) skip
+    /// it — e.g. `@StateObject var model = Model()` is the standard pattern, not a
+    /// DI smell. Sourced from the typed cases so a raw-value rename stays in sync;
+    /// `Published` is Combine's wrapper (no SwiftUI-state enum case of its own) and
+    /// is listed explicitly.
+    public static let stateStorageAttributeNames: Set<String> = {
+        let cases: [Self] = [
+            .state, .stateObject, .observedObject, .environmentObject,
+            .binding, .appStorage, .sceneStorage
+        ]
+        return Set(cases.map(\.rawValue)).union(["Published"])
+    }()
 }
