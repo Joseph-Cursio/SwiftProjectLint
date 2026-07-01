@@ -19,15 +19,6 @@ class Architecture: BasePatternRegistrar {
                 description: "Detects direct instantiation where dependency injection would be better"
             ),
             SyntaxPattern(
-                name: .fatViewDetection, // TODO: Replace with correct RuleIdentifier if available
-                visitor: ArchitectureVisitor.self,
-                severity: .warning,
-                category: .architecture,
-                messageTemplate: "Tight coupling detected between {component1} and {component2}",
-                suggestion: "Use protocols or abstractions to reduce coupling",
-                description: "Detects tightly coupled components that could benefit from abstraction"
-            ),
-            SyntaxPattern(
                 name: .fatViewDetection,
                 visitor: ArchitectureVisitor.self,
                 severity: .warning,
