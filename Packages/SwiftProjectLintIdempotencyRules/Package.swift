@@ -26,7 +26,7 @@ let package = Package(
         .package(path: "../SwiftProjectLintModels"),
         .package(path: "../SwiftProjectLintVisitors"),
         .package(path: "../SwiftProjectLintRegistry"),
-        .package(url: "https://github.com/apple/swift-syntax.git", exact: "602.0.0"),
+        .package(url: "https://github.com/swiftlang/swift-syntax.git", exact: "602.0.0"),
         // Idempotency rule visitors pattern-match `Effect` cases (via the
         // `DeclaredEffect` alias re-exported by SwiftProjectLintVisitors).
         // MemberImportVisibility requires importing the defining module, so
@@ -34,7 +34,7 @@ let package = Package(
         // root and SwiftProjectLintVisitors pins.
         .package(
             url: "https://github.com/Joseph-Cursio/SwiftEffectInference.git",
-            revision: "2b63b759e3bdf907d545f5d7aa1badf8355a4d8d"
+            revision: "1f2265a0fa63a9659886024a01fb3221bddc8768"
         )
     ],
     targets: [

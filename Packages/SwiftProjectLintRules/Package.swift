@@ -26,7 +26,7 @@ let package = Package(
         .package(path: "../SwiftProjectLintModels"),
         .package(path: "../SwiftProjectLintVisitors"),
         .package(path: "../SwiftProjectLintRegistry"),
-        .package(url: "https://github.com/apple/swift-syntax.git", exact: "602.0.0")
+        .package(url: "https://github.com/swiftlang/swift-syntax.git", exact: "602.0.0")
     ],
     targets: [
         .target(

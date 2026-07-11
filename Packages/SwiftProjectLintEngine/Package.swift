@@ -29,7 +29,7 @@ let package = Package(
         .package(path: "../SwiftProjectLintRules"),
         .package(path: "../SwiftProjectLintIdempotencyRules"),
         .package(path: "../SwiftProjectLintConfig"),
-        .package(url: "https://github.com/apple/swift-syntax.git", exact: "602.0.0")
+        .package(url: "https://github.com/swiftlang/swift-syntax.git", exact: "602.0.0")
     ],
     targets: [
         .target(

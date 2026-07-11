@@ -23,7 +23,7 @@ let package = Package(
     ],
     dependencies: [
         .package(path: "../SwiftProjectLintModels"),
-        .package(url: "https://github.com/apple/swift-syntax.git", exact: "602.0.0"),
+        .package(url: "https://github.com/swiftlang/swift-syntax.git", exact: "602.0.0"),
         // The leaf effect-lattice library: single source of truth for the
         // `Effect` type and its `lub`. `DeclaredEffect` here is now a typealias
         // onto `SwiftEffectInference.Effect` (see EffectAnnotationParser.swift).
@@ -32,7 +32,7 @@ let package = Package(
         // 602.0.0, so there is no version conflict.
         .package(
             url: "https://github.com/Joseph-Cursio/SwiftEffectInference.git",
-            revision: "2b63b759e3bdf907d545f5d7aa1badf8355a4d8d"
+            revision: "1f2265a0fa63a9659886024a01fb3221bddc8768"
         )
     ],
     targets: [
