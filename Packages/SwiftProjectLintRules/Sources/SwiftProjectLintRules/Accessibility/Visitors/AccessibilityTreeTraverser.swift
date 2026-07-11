@@ -144,6 +144,31 @@ class AccessibilityTreeTraverser {
         return false
     }
 
+    /// Checks whether a syntax tree contains a "bare" view reference — a standalone
+    /// identifier used as a view element, such as an injected `@ViewBuilder content`
+    /// parameter written as `content` on its own line inside a label closure.
+    ///
+    /// The contents of such a view are opaque to single-file analysis (the text it
+    /// renders lives at the call site, in another file), so a button containing one
+    /// cannot be assumed to be icon-only.
+    ///
+    /// - Parameter syntax: The syntax node to search within.
+    /// - Returns: True if a bare view reference is found, false otherwise.
+    static func containsBareViewReference(in syntax: Syntax) -> Bool {
+        // A lone identifier expression whose direct parent is a code-block item is a
+        // view element being composed (e.g. `content`), not part of a larger
+        // expression like a modifier argument or a `base.member` access.
+        if syntax.is(DeclReferenceExprSyntax.self),
+           syntax.parent?.is(CodeBlockItemSyntax.self) == true {
+            return true
+        }
+        for child in syntax.children(viewMode: .sourceAccurate)
+            where containsBareViewReference(in: child) {
+            return true
+        }
+        return false
+    }
+
     /// Checks if a syntax tree contains a Label element.
     /// Label provides accessibility text automatically via its title.
     ///

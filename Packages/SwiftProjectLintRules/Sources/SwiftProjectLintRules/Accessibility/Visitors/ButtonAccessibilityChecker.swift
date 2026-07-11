@@ -39,8 +39,11 @@ class ButtonAccessibilityChecker {
         }
 
         if hasImage, !hasText, !hasStringTitle {
-            // Icon-only button — invisible to VoiceOver without a label
-            if !hasAccessibilityLabel {
+            // Icon-only button — invisible to VoiceOver without a label. But an
+            // injected or otherwise opaque child view (e.g. a `@ViewBuilder content`
+            // parameter) may supply the text itself; a bare view reference in the
+            // label rules out "icon-only" and would otherwise be a false positive.
+            if !hasAccessibilityLabel, !containsOpaqueContentView(node) {
                 visitor.addIssue(
                     severity: .warning,
                     message: "Icon-only button is invisible to VoiceOver",
@@ -64,6 +67,14 @@ class ButtonAccessibilityChecker {
                 )
             }
         }
+    }
+
+    /// True if the button's label contains an opaque child view whose contents this
+    /// single-file check can't inspect — e.g. an injected `@ViewBuilder content`
+    /// view. Such a view may render the button's text itself, so its presence rules
+    /// out an "icon-only" verdict.
+    private func containsOpaqueContentView(_ node: FunctionCallExprSyntax) -> Bool {
+        AccessibilityTreeTraverser.containsBareViewReference(in: Syntax(node))
     }
 
     /// Checks if the function call contains an Image element

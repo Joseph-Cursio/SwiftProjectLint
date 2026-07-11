@@ -214,6 +214,64 @@ struct ButtonAccessibilityTests {
         #expect(iconOnlyIssues.count == 1)
     }
 
+    @Test func testButtonWithImageAndInjectedContentViewIsNotIconOnly() {
+        // A reusable card: the Button's label holds an icon plus an injected
+        // `@ViewBuilder content` view. The text lives at the call site (another
+        // file), so this must not be flagged as icon-only.
+        let visitor = makeAccessibilityVisitor()
+
+        let sourceCode = """
+        struct SelectableCard<Content: View>: View {
+            let isSelected: Bool
+            let onSelect: () -> Void
+            @ViewBuilder let content: Content
+
+            var body: some View {
+                Button(action: onSelect) {
+                    HStack {
+                        Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
+                        content
+                        Spacer(minLength: 0)
+                    }
+                }
+            }
+        }
+        """
+
+        let sourceFile = Parser.parse(source: sourceCode)
+        visitor.walk(sourceFile)
+
+        let iconOnlyIssues = visitor.detectedIssues.filter {
+            $0.message.contains("Icon-only button")
+        }
+        #expect(iconOnlyIssues.isEmpty)
+    }
+
+    @Test func testTrulyIconOnlyButtonStillFiresAlongsideOpaqueCheck() {
+        // A bare identifier that is an action reference (not a view element) must
+        // not suppress the icon-only verdict — this stays a true positive.
+        let visitor = makeAccessibilityVisitor()
+
+        let sourceCode = """
+        struct ContentView: View {
+            let doAction: () -> Void
+            var body: some View {
+                Button(action: doAction) {
+                    Image(systemName: "trash")
+                }
+            }
+        }
+        """
+
+        let sourceFile = Parser.parse(source: sourceCode)
+        visitor.walk(sourceFile)
+
+        let iconOnlyIssues = visitor.detectedIssues.filter {
+            $0.message.contains("Icon-only button")
+        }
+        #expect(iconOnlyIssues.count == 1)
+    }
+
     // MARK: - Button with Text Missing Hint Tests
 
     @Test func testButtonWithTextMissingHint() throws {
