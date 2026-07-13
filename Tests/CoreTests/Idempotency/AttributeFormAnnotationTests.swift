@@ -1,3 +1,4 @@
+import SwiftEffectInference
 import enum SwiftEffectInference.Effect
 import SwiftParser
 @testable import SwiftProjectLintVisitors

@@ -1,3 +1,4 @@
+import SwiftEffectInference
 import enum SwiftEffectInference.Effect
 import SwiftProjectLintModels
 import SwiftProjectLintRegistry
@@ -127,10 +128,10 @@ final class IdempotencyViolationVisitor: CrossFileVisitorBase, CrossFilePatternV
         // direct caller of the leaf.
         let allSources = Array(fileCache.values)
         let enabledFrameworks = self.enabledFrameworkAllowlists
-        symbolTable.applyUpwardInferenceImportAware(to: allSources, multiHop: true) { call, source in
+        symbolTable.applyBodyInference(to: allSources, multiHop: true) { call, source in
             HeuristicEffectInferrer.infer(
                 call: call,
-                imports: ImportCollector.imports(in: source),
+                imports: SwiftProjectLintVisitors.ImportCollector.imports(in: source),
                 enabledFrameworks: enabledFrameworks
             )
         }

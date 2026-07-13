@@ -1,3 +1,4 @@
+import SwiftEffectInference
 import SwiftProjectLintModels
 import SwiftProjectLintRegistry
 import SwiftProjectLintVisitors
@@ -63,7 +64,7 @@ final class UnannotatedInStrictReplayableContextVisitor:
     }
 
     override func visit(_ node: FunctionDeclSyntax) -> SyntaxVisitorContinueKind {
-        guard EffectAnnotationParser.parseContext(declaration: node) == .strictReplayable,
+        guard ContextAnnotationParser.parseContext(declaration: node) == .strictReplayable,
               let body = node.body else {
             return .visitChildren
         }
@@ -81,7 +82,7 @@ final class UnannotatedInStrictReplayableContextVisitor:
     }
 
     override func visit(_ node: VariableDeclSyntax) -> SyntaxVisitorContinueKind {
-        guard EffectAnnotationParser.parseContext(declaration: node) == .strictReplayable,
+        guard ContextAnnotationParser.parseContext(declaration: node) == .strictReplayable,
               let closure = node.closureInitializer,
               let name = node.firstBindingName else {
             return .visitChildren
@@ -106,7 +107,7 @@ final class UnannotatedInStrictReplayableContextVisitor:
     /// that visitor's doc comment for the shape rationale and the TCA
     /// adopter round for the prefix-statement gap this helper closes.
     override func visit(_ node: FunctionCallExprSyntax) -> SyntaxVisitorContinueKind {
-        guard EffectAnnotationParser.parseContextAtCallSite(of: node)
+        guard ContextAnnotationParser.parseContextAtCallSite(of: node)
                 == .strictReplayable,
               let closure = node.trailingClosure else {
             return .visitChildren
@@ -127,10 +128,10 @@ final class UnannotatedInStrictReplayableContextVisitor:
     func finalizeAnalysis() {
         let allSources = Array(fileCache.values)
         let enabledFrameworks = self.enabledFrameworkAllowlists
-        symbolTable.applyUpwardInferenceImportAware(to: allSources, multiHop: true) { call, source in
+        symbolTable.applyBodyInference(to: allSources, multiHop: true) { call, source in
             HeuristicEffectInferrer.infer(
                 call: call,
-                imports: ImportCollector.imports(in: source),
+                imports: SwiftProjectLintVisitors.ImportCollector.imports(in: source),
                 enabledFrameworks: enabledFrameworks
             )
         }
@@ -151,7 +152,7 @@ final class UnannotatedInStrictReplayableContextVisitor:
         // don't descend.
         if let varDecl = syntax.as(VariableDeclSyntax.self),
            varDecl.closureInitializer != nil,
-           EffectAnnotationParser.parseContext(declaration: varDecl) != nil {
+           ContextAnnotationParser.parseContext(declaration: varDecl) != nil {
             return
         }
         // Same rule for annotated trailing-closure sites (round-11). Use
@@ -160,7 +161,7 @@ final class UnannotatedInStrictReplayableContextVisitor:
         // guard.
         if let call = syntax.as(FunctionCallExprSyntax.self),
            call.trailingClosure != nil,
-           EffectAnnotationParser.parseContextAtCallSite(of: call) != nil {
+           ContextAnnotationParser.parseContextAtCallSite(of: call) != nil {
             return
         }
         if let closure = syntax.as(ClosureExprSyntax.self), EscapingClosurePolicy.isEscaping(closure) {

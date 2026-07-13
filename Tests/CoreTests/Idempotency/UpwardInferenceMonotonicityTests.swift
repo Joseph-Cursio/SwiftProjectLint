@@ -1,3 +1,4 @@
+import SwiftEffectInference
 import PropertyBased
 import enum SwiftEffectInference.Effect
 import SwiftParser
@@ -5,7 +6,7 @@ import SwiftParser
 import SwiftSyntax
 import Testing
 
-/// Property-based validation that `UpwardEffectInferrer.inferEffects` is
+/// Property-based validation that `BodyEffectInferrer.inferEffects` is
 /// **monotone in its resolver**: strengthening any callee's effect — raising it
 /// in the chain `observational < idempotent < externallyIdempotent <
 /// nonIdempotent` — can only raise, never lower, each caller's inferred effect.
@@ -49,11 +50,11 @@ struct UpwardInferenceMonotonicityTests {
     /// inference). Unknown calls resolve to `nil` and contribute nothing.
     private static func resolver(
         _ assignment: [String: Effect]
-    ) -> (FunctionCallExprSyntax) -> UpwardInference? {
+    ) -> (FunctionCallExprSyntax) -> BodyInference? {
         { call in
             guard let signature = FunctionSignature.from(call: call),
                   let effect = assignment[signature.name] else { return nil }
-            return UpwardInference(effect: effect, depth: 0)
+            return BodyInference(effect: effect, depth: 0)
         }
     }
 
@@ -76,11 +77,11 @@ struct UpwardInferenceMonotonicityTests {
                 raised[name] = higher
             }
 
-            let baseResult = UpwardEffectInferrer.inferEffects(
+            let baseResult = BodyEffectInferrer.inferEffects(
                 in: Self.source,
                 resolveCalleeEffect: Self.resolver(base)
             )
-            let raisedResult = UpwardEffectInferrer.inferEffects(
+            let raisedResult = BodyEffectInferrer.inferEffects(
                 in: Self.source,
                 resolveCalleeEffect: Self.resolver(raised)
             )
@@ -104,7 +105,7 @@ struct UpwardInferenceMonotonicityTests {
             "beta": .nonIdempotent,
             "gamma": .idempotent
         ]
-        let result = UpwardEffectInferrer.inferEffects(
+        let result = BodyEffectInferrer.inferEffects(
             in: Self.source,
             resolveCalleeEffect: Self.resolver(assignment)
         )

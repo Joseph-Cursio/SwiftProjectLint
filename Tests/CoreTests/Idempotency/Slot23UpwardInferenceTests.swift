@@ -1,3 +1,4 @@
+import SwiftEffectInference
 import enum SwiftEffectInference.Effect
 import SwiftParser
 @testable import SwiftProjectLintIdempotencyRules
@@ -28,17 +29,19 @@ struct Slot23UpwardInferenceTests {
         var table = EffectSymbolTable()
         let parsed = Parser.parse(source: source)
         table.merge(source: parsed)
+        let contexts = ContextSymbolTable.build(from: parsed)
 
-        // Sanity: entry exists with context but no effect.
+        // Sanity: the declaration carries a context and no effect. The two axes are separate
+        // tables now, so "context-only" means literally absent from the effect table.
         let signature = FunctionSignature(name: "subHandler", argumentLabels: [])
         #expect(table.effect(for: signature) == nil,
                 "no declared effect (context-only)")
-        #expect(table.context(for: signature) == .replayable,
+        #expect(contexts.context(for: signature) == .replayable,
                 "context is recorded")
 
         // Run upward inference. With multiHop, the sub-handler's
         // body-inferred non-idempotent should land in upwardInferredEffects.
-        table.applyUpwardInferenceImportAware(
+        table.applyBodyInference(
             to: [parsed],
             multiHop: true
         ) { call, _ in
@@ -85,7 +88,7 @@ struct Slot23UpwardInferenceTests {
         let parsed = Parser.parse(source: source)
         table.merge(source: parsed)
 
-        table.applyUpwardInferenceImportAware(
+        table.applyBodyInference(
             to: [parsed],
             multiHop: true
         ) { call, _ in

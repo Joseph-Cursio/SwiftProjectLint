@@ -1,3 +1,4 @@
+import SwiftEffectInference
 import SwiftProjectLintModels
 import SwiftProjectLintRegistry
 import SwiftProjectLintVisitors
@@ -39,7 +40,9 @@ import SwiftSyntax
 /// extended to track context propagation in a follow-up.
 final class OnceContractViolationVisitor: CrossFileVisitorBase, CrossFilePatternVisitorProtocol {
 
-    private var symbolTable = EffectSymbolTable()
+    /// This rule reads only the execution-context axis — never an effect — so it holds a
+    /// context table, not the effect table.
+    private var contextTable = ContextSymbolTable()
     private var analysisSites: [AnalysisSite] = []
 
     private struct AnalysisSite {
@@ -59,7 +62,7 @@ final class OnceContractViolationVisitor: CrossFileVisitorBase, CrossFilePattern
     }
 
     override func visit(_ node: SourceFileSyntax) -> SyntaxVisitorContinueKind {
-        symbolTable.merge(source: node)
+        contextTable.merge(source: node)
         return .visitChildren
     }
 
@@ -70,7 +73,7 @@ final class OnceContractViolationVisitor: CrossFileVisitorBase, CrossFilePattern
         analysisSites.append(
             AnalysisSite(
                 function: node,
-                callerContext: EffectAnnotationParser.parseContext(declaration: node),
+                callerContext: ContextAnnotationParser.parseContext(declaration: node),
                 filePath: currentFilePath,
                 locationConverter: converter
             )
@@ -85,7 +88,7 @@ final class OnceContractViolationVisitor: CrossFileVisitorBase, CrossFilePattern
         // are still detected by `analyzeCall` regardless of whether the
         // reach map has an entry — reach inference is purely additive.
         let allSources = Array(fileCache.values)
-        symbolTable.applyOnceReachInference(to: allSources)
+        contextTable.applyOnceReachInference(to: allSources)
 
         for site in analysisSites {
             guard let body = site.function.body else { continue }
@@ -115,9 +118,9 @@ final class OnceContractViolationVisitor: CrossFileVisitorBase, CrossFilePattern
             // trigger. Transitive reach via un-annotated intermediates is
             // the Phase-2 follow-up and only fires when the direct check
             // didn't (declared `.once` always wins).
-            if symbolTable.context(for: signature) == .once {
+            if contextTable.context(for: signature) == .once {
                 analyzeCall(call, signature: signature, site: site, transitiveDepth: nil)
-            } else if let reach = symbolTable.onceReach(for: signature) {
+            } else if let reach = contextTable.onceReach(for: signature) {
                 analyzeCall(call, signature: signature, site: site, transitiveDepth: reach.depth)
             }
         }

@@ -1,3 +1,4 @@
+import SwiftEffectInference
 import SwiftParser
 @testable import SwiftProjectLintIdempotencyRules
 import SwiftProjectLintModels
@@ -28,7 +29,7 @@ import Testing
 @Suite
 struct ClosureBindingCrossReferenceTests {
 
-    /// Uses the `fileCache:` constructor so `applyUpwardInferenceImportAware`
+    /// Uses the `fileCache:` constructor so `applyBodyInference`
     /// receives a non-empty source list. Upward-inference-dependent tests
     /// require this path; the simpler `pattern:`-only harness leaves
     /// `allSources` empty and silently skips inference.

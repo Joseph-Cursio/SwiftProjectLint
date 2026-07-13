@@ -1,3 +1,4 @@
+import SwiftEffectInference
 import SwiftParser
 @testable import SwiftProjectLintVisitors
 import SwiftSyntax
@@ -62,7 +63,7 @@ struct StrictReplayableContextParsingTests {
             func handle(_ event: String) async throws {}
             """
         )
-        #expect(EffectAnnotationParser.parseContext(declaration: decl) == .strictReplayable)
+        #expect(ContextAnnotationParser.parseContext(declaration: decl) == .strictReplayable)
     }
 
     @Test
@@ -73,7 +74,7 @@ struct StrictReplayableContextParsingTests {
             let handler = { event in print(event) }
             """
         )
-        #expect(EffectAnnotationParser.parseContext(declaration: decl) == .strictReplayable)
+        #expect(ContextAnnotationParser.parseContext(declaration: decl) == .strictReplayable)
     }
 
     @Test
@@ -87,8 +88,8 @@ struct StrictReplayableContextParsingTests {
             """
         )
         #expect(decls.count == 2)
-        #expect(EffectAnnotationParser.parseContext(declaration: decls[0]) == .replayable)
-        #expect(EffectAnnotationParser.parseContext(declaration: decls[1]) == .strictReplayable)
+        #expect(ContextAnnotationParser.parseContext(declaration: decls[0]) == .replayable)
+        #expect(ContextAnnotationParser.parseContext(declaration: decls[1]) == .strictReplayable)
     }
 
     @Test
@@ -99,7 +100,7 @@ struct StrictReplayableContextParsingTests {
             func handle() {}
             """
         )
-        #expect(EffectAnnotationParser.parseContext(declaration: decl) == nil)
+        #expect(ContextAnnotationParser.parseContext(declaration: decl) == nil)
     }
 
     @Test
@@ -113,6 +114,6 @@ struct StrictReplayableContextParsingTests {
             func handle() {}
             """
         )
-        #expect(EffectAnnotationParser.parseContext(declaration: decl) == .strictReplayable)
+        #expect(ContextAnnotationParser.parseContext(declaration: decl) == .strictReplayable)
     }
 }

@@ -1,3 +1,4 @@
+import SwiftEffectInference
 import SwiftParser
 @testable import SwiftProjectLintIdempotencyRules
 import SwiftProjectLintModels
@@ -306,7 +307,7 @@ struct OnceReachTransitiveTests {
             b()
         }
         """)
-        var table = EffectSymbolTable()
+        var table = ContextSymbolTable()
         table.merge(source: source)
         table.applyOnceReachInference(to: [source])
 

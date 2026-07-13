@@ -1,3 +1,4 @@
+import SwiftEffectInference
 import enum SwiftEffectInference.Effect
 import SwiftParser
 @testable import SwiftProjectLintIdempotencyRules
@@ -113,9 +114,9 @@ struct SignatureAwareCollisionIntegrationTests {
             var run: @Sendable () async throws -> Void
         }
         """
-        let table = tableOf(source)
+        let contexts = ContextSymbolTable.build(from: Parser.parse(source: source))
         let signature = FunctionSignature(name: "run", argumentLabels: [])
-        #expect(table.context(for: signature) == .strictReplayable)
+        #expect(contexts.context(for: signature) == .strictReplayable)
     }
 
     @Test

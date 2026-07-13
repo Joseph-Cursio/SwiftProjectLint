@@ -1,3 +1,4 @@
+import SwiftEffectInference
 import PropertyBased
 import enum SwiftEffectInference.Effect
 import SwiftParser
@@ -135,14 +136,14 @@ struct EffectSymbolTableLawsTests {
             // Resolver returns nil throughout: the chain is anchored solely by
             // the declared `anchor`, so every inferred helper effect traces
             // back to it through the upward chain.
-            table.applyUpwardInference(to: [source], multiHop: true) { _ in nil }
+            table.applyBodyInference(to: [source], multiHop: true) { _ in nil }
             let afterFirst = helpers.map { table.upwardInference(for: $0)?.effect }
 
             // Non-vacuity: every helper in the chain is actually inferred, so
             // the idempotence check below has real content to compare.
             #expect(afterFirst.allSatisfy { $0 != nil })
 
-            table.applyUpwardInference(to: [source], multiHop: true) { _ in nil }
+            table.applyBodyInference(to: [source], multiHop: true) { _ in nil }
             let afterSecond = helpers.map { table.upwardInference(for: $0)?.effect }
 
             #expect(afterFirst == afterSecond)

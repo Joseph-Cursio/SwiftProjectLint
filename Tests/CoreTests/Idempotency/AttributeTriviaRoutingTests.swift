@@ -1,3 +1,4 @@
+import SwiftEffectInference
 import enum SwiftEffectInference.Effect
 import SwiftParser
 @testable import SwiftProjectLintIdempotencyRules
@@ -25,6 +26,12 @@ struct AttributeTriviaRoutingTests {
 
     private func tableFrom(_ source: String) -> EffectSymbolTable {
         EffectSymbolTable.build(from: Parser.parse(source: source))
+    }
+
+    /// The context axis routes doc comments through the same trivia logic, so it is asserted
+    /// here too — that shared routing is precisely what SwiftEffectInference now vends.
+    private func contextsFrom(_ source: String) -> ContextSymbolTable {
+        ContextSymbolTable.build(from: Parser.parse(source: source))
     }
 
     private func runContext(_ source: String) -> NonIdempotentInRetryContextVisitor {
@@ -97,7 +104,7 @@ struct AttributeTriviaRoutingTests {
         func handler() async throws {}
         """
         let signature = FunctionSignature(name: "handler", argumentLabels: [])
-        #expect(tableFrom(source).context(for: signature) == .replayable)
+        #expect(contextsFrom(source).context(for: signature) == .replayable)
     }
 
     @Test

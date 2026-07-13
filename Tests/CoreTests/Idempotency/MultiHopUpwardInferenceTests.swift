@@ -1,3 +1,4 @@
+import SwiftEffectInference
 import enum SwiftEffectInference.Effect
 import SwiftParser
 @testable import SwiftProjectLintIdempotencyRules
@@ -9,7 +10,7 @@ import Testing
 /// Multi-hop / fixed-point upward inference fixtures.
 ///
 /// These tests exercise behaviours unique to the multi-hop pathway in
-/// `EffectSymbolTable.applyUpwardInference(multiHop: true)`:
+/// `EffectSymbolTable.applyBodyInference(multiHop: true)`:
 ///
 /// - Chains longer than two hops resolve.
 /// - Order of files / declarations does not change the result (fixed-point
@@ -317,7 +318,7 @@ struct MultiHopUpwardInferenceTests {
         """)
         var table = EffectSymbolTable()
         table.merge(source: source)
-        table.applyUpwardInference(to: [source], multiHop: true) {
+        table.applyBodyInference(to: [source], multiHop: true) {
             HeuristicEffectInferrer.infer(call: $0)
         }
 
@@ -357,7 +358,7 @@ struct MultiHopUpwardInferenceTests {
         """)
         var table = EffectSymbolTable()
         table.merge(source: source)
-        table.applyUpwardInferenceImportAware(
+        table.applyBodyInference(
             to: [source],
             multiHop: true,
             wallClockBudget: .zero
@@ -385,7 +386,7 @@ struct MultiHopUpwardInferenceTests {
         """)
         var table = EffectSymbolTable()
         table.merge(source: source)
-        table.applyUpwardInferenceImportAware(
+        table.applyBodyInference(
             to: [source],
             multiHop: true,
             wallClockBudget: .seconds(30)
@@ -415,7 +416,7 @@ struct MultiHopUpwardInferenceTests {
         """)
         var table = EffectSymbolTable()
         table.merge(source: source)
-        table.applyUpwardInference(to: [source]) {
+        table.applyBodyInference(to: [source]) {
             HeuristicEffectInferrer.infer(call: $0)
         }
 

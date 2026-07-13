@@ -1,3 +1,4 @@
+import SwiftEffectInference
 import enum SwiftEffectInference.Effect
 import SwiftParser
 @testable import SwiftProjectLintIdempotencyRules
@@ -58,17 +59,17 @@ struct UpwardInferenceTests {
     // MARK: - Body walk semantics
 
     /// Helper that wraps the bare-effect resolver into the
-    /// `UpwardInference?` shape the inferrer now requires. All single-pass
+    /// `BodyInference?` shape the inferrer now requires. All single-pass
     /// fixtures here treat resolver-supplied effects as anchors (depth 0),
     /// matching the symbol-table's behaviour for declared / heuristic
     /// effects.
     private func infer(
         _ source: String,
         resolve: @escaping (FunctionCallExprSyntax) -> DeclaredEffect?
-    ) -> [FunctionSignature: UpwardInference] {
-        UpwardEffectInferrer.inferEffects(in: Parser.parse(source: source)) { call in
+    ) -> [FunctionSignature: BodyInference] {
+        BodyEffectInferrer.inferEffects(in: Parser.parse(source: source)) { call in
             guard let effect = resolve(call) else { return nil }
-            return UpwardInference(effect: effect, depth: 0)
+            return BodyInference(effect: effect, depth: 0)
         }
     }
 

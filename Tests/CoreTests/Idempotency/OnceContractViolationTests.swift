@@ -1,3 +1,4 @@
+import SwiftEffectInference
 import SwiftParser
 @testable import SwiftProjectLintIdempotencyRules
 import SwiftProjectLintModels
@@ -285,7 +286,7 @@ struct OnceContractViolationQuietTests {
         /// @lint.context once
         func bootstrap() {}
         """)
-        var table = EffectSymbolTable()
+        var table = ContextSymbolTable()
         table.merge(source: source)
         let signature = FunctionSignature(name: "bootstrap", argumentLabels: [])
         #expect(table.context(for: signature) == .once)
