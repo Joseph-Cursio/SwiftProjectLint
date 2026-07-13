@@ -8,12 +8,32 @@
 
 ### Rationale
 
-[Pure Function Property-Test Candidate](pure-function-candidate.md) can only point at a
-*declaration*. A great deal of the pure logic in real Swift has none.
+**An inline closure cannot be tested.** Not *is hard to test* — cannot. There is no name to call, no
+signature to satisfy, no seam to reach it through. It is the only kind of Swift code that a test
+literally cannot address.
 
-A `filter` predicate or a `sorted(by:)` comparator written inline is a pure function in everything
-but syntax. Being anonymous is the only thing standing between it and a property test — and because
-the linter had nothing to point at, it said nothing, so neither did you.
+Everything else in a file has a door. A method has a name. A computed property has a getter. Even a
+`private` helper can be reached by widening it or by testing the type that owns it. A closure written
+inline at a call site has none of that: the only way to run it is to run *the entire method that
+contains it*, with whatever state that method needs standing up around it, and then to infer what the
+closure did from what the method returned.
+
+That inference is where the testing actually breaks down. Suppose you do the work — construct the
+type, populate a store, set the state the method reads, call it, and assert on the result. You have
+now written a test whose failure message tells you *the output list was wrong*. It does not tell you
+which of the two closures was wrong, or which input broke it, and you cannot enumerate the closure's
+inputs directly because you never had a handle on the closure. You are testing a predicate through a
+keyhole.
+
+And it gets worse the more the closure is worth testing. A closure with a branch, an edge case, an
+ordering, an arithmetic step — the closures that actually *earn* a test — are exactly the ones buried
+deepest, because they tend to live inside the methods with the most state around them. **The code
+most in need of a test is the code least reachable by one.** That is not a property-testing problem.
+It is true of any test you might want to write, and it would be true if this linter did not exist.
+
+What makes it worth a rule is that this is **self-inflicted and reversible**. The closure is *pure*:
+a function in everything but syntax. Nothing about it needs to be unreachable. The only thing standing
+between it and a test is that nobody gave it a name.
 
 ### The case this rule was built for
 
@@ -29,18 +49,32 @@ files = immediateChildren.sorted { file1, file2 in
 ```
 
 Two pure functions, neither with a name. The first has a **real bug**: `replacingOccurrences` strips
-*every* match, not just the leading one, so for `currentPath = "/a/"` the path `/a/b/a/c` collapses
-to `bc` — one component — and a *grandchild* is listed as an immediate child of the folder. It sat
-there because there was nothing to write a test against.
+*every* match, not just the leading one, so for `currentPath = "/a/"` the path `/a/b/a/c` collapses to
+`bc` — one component — and a *grandchild* is listed as an immediate child of the folder.
 
-Name it and the property writes itself:
+It is worth being precise about why that bug survived, because "nobody tested it" is not the answer.
+It survived because testing it meant standing up a view model, a model context, a populated store and
+a current path, calling the method, and then asserting on a **file list** — at which point you are no
+longer looking at the predicate. To catch this you would have had to *already suspect* that a path
+component might repeat, and then hand-build a store containing `/a/b/a/c` to prove it. The bug is
+invisible to every test you would think to write, and reachable only by a test you would only write if
+you already knew the answer.
+
+Give it a name and the whole shape changes:
 
 ```swift
 func isImmediateChild(_ path: String, of parent: String) -> Bool { … }
-
-// and now this is sayable, and checkable over generated paths:
-//   a grandchild is never an immediate child, however its names repeat
 ```
+
+Now it takes two `String`s and returns a `Bool`. You can call it. You can generate inputs for it — and
+a generator does not need to suspect anything, which is the entire point:
+
+```swift
+// a grandchild is never an immediate child, however its names repeat
+```
+
+The bug falls out on the first run, and it falls out as a *minimal* failing pair, not as a wrong list
+of files.
 
 ### Captures are not impurities
 
@@ -49,8 +83,8 @@ disqualify it.** Lift the body into `isImmediateChild(_ path: String, of parent:
 capture simply *becomes a parameter*. What the caller does with its own state is the caller's
 business.
 
-Refusing captured state would refuse this rule's most valuable finding — which is exactly the bug
-site above.
+Refusing captured state would refuse this rule's most valuable finding — which is exactly the bug site
+above.
 
 What no extraction rescues is a closure that **writes** to what it captured:
 
@@ -80,11 +114,13 @@ Does **not** fire on:
 - **impure** closures — I/O, logging, the clock, randomness, or anything that can trap. Purity is
   decided by the same oracle as the function rule (`SwiftEffectInference.PurityInferrer`).
 - closures that **write** to a capture.
-- one-statement `map { $0.name }` projections. A projection is not a property, naming it buys
-  nothing, and a rule that fires on every `map` in a codebase teaches people to switch the category
-  off.
+- one-statement `map { $0.name }` projections. A projection is not a property, naming it buys nothing,
+  and a rule that fires on every `map` in a codebase teaches people to switch the category off.
 - comparators whose ordering is **free** — see below.
 - test files.
+
+The exclusions all serve one end: **a finding must be worth the refactor it asks for.** Unreachable is
+only a problem when there is something in there worth reaching.
 
 ### A comparator only counts when the ordering can be got wrong
 
@@ -92,11 +128,11 @@ The other operations are floored on body size. Comparators cannot be, because **
 comparators are the wrong ones**:
 
 ```swift
-files.sorted { $0.name <= $1.name }                          // reflexive: not a strict weak ordering
-tasks.sorted { $0.priority > $1.priority || $0.name < $1.name }   // transitivity broken, on one line
+files.sorted { $0.name <= $1.name }                              // reflexive: not a strict weak ordering
+tasks.sorted { $0.priority > $1.priority || $0.name < $1.name }  // transitivity broken, on one line
 ```
 
-Both fit inside a size floor, and both can crash `sorted(by:)`. So the discriminator is not size, it
+Both fit inside any size floor, and both can crash `sorted(by:)`. So the discriminator is not size, it
 is whether the ordering is **free**:
 
 ```swift
@@ -105,8 +141,8 @@ files.sorted { $0.date > $1.date }    // no finding
 
 One strict comparison (`<` or `>`), the same member path on both sides, the two closure parameters as
 the two bases. That ordering is inherited from the key's `Comparable` conformance and cannot be got
-wrong — there is no law left to state, and firing on it is the noise that teaches people to switch the
-category off. Everything else earns the finding: a branch, a `||`, a second key, a `compare(_:)` call.
+wrong — there is no law left to state. Everything else earns the finding: a branch, a `||`, a second
+key, a `compare(_:)` call.
 
 Two residuals worth knowing:
 
@@ -122,15 +158,19 @@ Two residuals worth knowing:
 Lift it into a named function. Anything it captures becomes a parameter, and what is left is a pure
 function you can generate inputs for.
 
-**The reason to do this does not depend on any tool.** An anonymous closure inlined in a method body
-has no test seam at all — not a property test, *any* test. You cannot call it, cannot construct its
-inputs, and cannot observe its output except by driving the whole method around it. That is why the
-grandchild bug above survived: not because it was subtle, but because there was nothing to write a
-test *against*. Naming the closure is what makes the logic addressable, and it would be worth doing if
-this linter did not exist.
+That is the whole fix, and the payoff is immediate and local: the logic becomes **addressable**. You
+can call it, you can enumerate its inputs, and a failure points at the function rather than at the
+list of files three layers up.
 
-What naming it *additionally* buys you is the rest of the chain:
-[Pure Function Property-Test Candidate](pure-function-candidate.md) can then seed it, and
-`swift-infer discover --seeds` will propose its laws. That is a consequence, not the argument.
+<details><summary>It also unblocks the rest of the toolchain</summary>
+
+Once the closure has a name, [Pure Function Property-Test Candidate](pure-function-candidate.md) can
+seed it, and `swift-infer discover --seeds` will propose its laws — a nameless closure cannot be
+indexed by anything.
+
+This is a consequence of naming it, not a reason to. If the only argument for a refactor were that it
+suits a tool, the right response would be to fix the tool.
+
+</details>
 
 ---

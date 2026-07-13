@@ -6,10 +6,20 @@ import SwiftSyntax
 
 /// The property test hiding inside a closure.
 ///
-/// `pureFunctionCandidate` can only point at a *declaration*. A great deal of the pure logic in
-/// real Swift has none: a `filter` predicate or a `sorted(by:)` comparator written inline is a pure
-/// function in everything but syntax, and being anonymous is the only thing standing between it and
-/// a property test. The linter had nothing to say about them, so neither did the reader.
+/// **An inline closure cannot be tested** — not *is hard to test*, cannot. There is no name to call
+/// and no seam to reach it through. The only way to run it is to run the whole method containing it,
+/// with all that method's state stood up around it, and then to infer what the closure did from what
+/// the method returned. You are testing a predicate through a keyhole: the failure says the output
+/// was wrong, not which input broke which closure.
+///
+/// It gets worse the more the closure is worth testing, because the closures that earn a test — a
+/// branch, an ordering, an edge case — are the ones buried inside the methods with the most state
+/// around them. The code most in need of a test is the code least reachable by one. That is true of
+/// *any* test, not just a property test.
+///
+/// What makes it worth a rule is that it is self-inflicted and reversible: the closure is **pure**, a
+/// function in everything but syntax. Nothing about it needs to be unreachable. The only thing
+/// standing between it and a test is that nobody gave it a name.
 ///
 /// The motivating case, and the reason this rule exists at all:
 ///
