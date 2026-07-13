@@ -70,6 +70,55 @@ struct PureClosureCandidateVisitorTests {
         #expect(finding.message.contains("strict weak ordering"))
     }
 
+    // MARK: - Comparators: the ordering has to be worth stating
+
+    @Test("a comparator on one key in its natural order gets its ordering for free")
+    func singleKeyNaturalOrderingIsNotFlagged() {
+        // `$0.date > $1.date` inherits its ordering from `Comparable` and cannot be got wrong. There
+        // is no law left to state, so there is nothing to name — and a rule that fires on every
+        // `sorted` in the codebase is the noise that teaches people to switch the category off.
+        #expect(analyze("func recent() { let recent = files.sorted { $0.date > $1.date } }").isEmpty)
+        #expect(analyze("func ordered() { let ordered = names.sorted { $0 < $1 } }").isEmpty)
+    }
+
+    @Test("a non-strict comparator is flagged — it is not even irreflexive")
+    func nonStrictComparatorIsFlagged() {
+        // The size floor cannot catch this one: it is the *shortest* a comparator gets, and it is
+        // wrong. `<=` is reflexive, so it is not a strict weak ordering, and `sorted(by:)` is within
+        // its rights to crash on it.
+        let issues = analyze("func ordered() { let ordered = files.sorted { $0.name <= $1.name } }")
+
+        #expect(issues.count == 1)
+        #expect(issues.first?.message.contains("strict weak ordering") == true)
+    }
+
+    @Test("a comparator over two keys is flagged")
+    func multiKeyComparatorIsFlagged() {
+        // The classic way to break transitivity, and it fits on one line.
+        let issues = analyze("""
+        func ordered() {
+            let ordered = tasks.sorted { $0.priority > $1.priority || $0.name < $1.name }
+        }
+        """)
+
+        #expect(issues.count == 1)
+    }
+
+    @Test("a comparator whose key is a call is flagged")
+    func comparatorOverAComputedKeyIsFlagged() {
+        // The ordering is only free when the key is plain stored access. `localizedCaseInsensitive`
+        // ordering is locale-dependent, and the syntax cannot tell us it is total.
+        let issues = analyze("""
+        func ordered() {
+            let ordered = files.sorted {
+                $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending
+            }
+        }
+        """)
+
+        #expect(issues.count == 1)
+    }
+
     // MARK: - Not candidates
 
     @Test("a closure that writes to a capture is refused")

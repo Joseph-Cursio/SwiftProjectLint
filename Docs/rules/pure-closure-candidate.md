@@ -83,16 +83,54 @@ Does **not** fire on:
 - one-statement `map { $0.name }` projections. A projection is not a property, naming it buys
   nothing, and a rule that fires on every `map` in a codebase teaches people to switch the category
   off.
+- comparators whose ordering is **free** — see below.
 - test files.
+
+### A comparator only counts when the ordering can be got wrong
+
+The other operations are floored on body size. Comparators cannot be, because **the shortest
+comparators are the wrong ones**:
+
+```swift
+files.sorted { $0.name <= $1.name }                          // reflexive: not a strict weak ordering
+tasks.sorted { $0.priority > $1.priority || $0.name < $1.name }   // transitivity broken, on one line
+```
+
+Both fit inside a size floor, and both can crash `sorted(by:)`. So the discriminator is not size, it
+is whether the ordering is **free**:
+
+```swift
+files.sorted { $0.date > $1.date }    // no finding
+```
+
+One strict comparison (`<` or `>`), the same member path on both sides, the two closure parameters as
+the two bases. That ordering is inherited from the key's `Comparable` conformance and cannot be got
+wrong — there is no law left to state, and firing on it is the noise that teaches people to switch the
+category off. Everything else earns the finding: a branch, a `||`, a second key, a `compare(_:)` call.
+
+Two residuals worth knowing:
+
+- A key reached through a **call** — `{ $0.name.lowercased() < $1.name.lowercased() }` — still fires.
+  The rule cannot see that the call is total and deterministic, and the case it was built for
+  (`localizedCaseInsensitiveCompare`, locale-dependent) is one where it is not obviously either.
+- A **floating-point** key is a false negative: `{ $0.score < $1.score }` on a `Double` is *not* a
+  strict weak ordering once a `NaN` is in the collection, and nothing in the syntax says whether
+  `score` is a `Double`. Naming it is what would surface that — which is this rule's advice anyway.
 
 ### What to do about it
 
 Lift it into a named function. Anything it captures becomes a parameter, and what is left is a pure
-function you can generate inputs for — at which point
-[Pure Function Property-Test Candidate](pure-function-candidate.md) will seed it, and
-`swift-infer discover --seeds` will propose its laws.
+function you can generate inputs for.
 
-This is the loop: the closure rule tells you what to *name*, and naming it is what lets every other
-tool in the chain see it.
+**The reason to do this does not depend on any tool.** An anonymous closure inlined in a method body
+has no test seam at all — not a property test, *any* test. You cannot call it, cannot construct its
+inputs, and cannot observe its output except by driving the whole method around it. That is why the
+grandchild bug above survived: not because it was subtle, but because there was nothing to write a
+test *against*. Naming the closure is what makes the logic addressable, and it would be worth doing if
+this linter did not exist.
+
+What naming it *additionally* buys you is the rest of the chain:
+[Pure Function Property-Test Candidate](pure-function-candidate.md) can then seed it, and
+`swift-infer discover --seeds` will propose its laws. That is a consequence, not the argument.
 
 ---

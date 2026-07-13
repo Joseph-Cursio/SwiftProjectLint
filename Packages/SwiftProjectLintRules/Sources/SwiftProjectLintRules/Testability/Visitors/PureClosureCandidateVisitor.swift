@@ -53,6 +53,7 @@ final class PureClosureCandidateVisitor: BasePatternVisitor {
               let operation = CollectionOperation(call: node),
               let closure = node.trailingClosure ?? firstClosureArgument(of: node),
               closure.statements.count >= operation.minimumStatements,
+              operation.hidesALawWorthStating(closure),
               purityInferrer.isPure(closure) else {
             return .visitChildren
         }
@@ -92,9 +93,10 @@ private struct CollectionOperation {
     let law: String
 
     /// A one-statement `map { $0.name }` is a projection, not a property; naming it buys nothing.
-    /// A comparator earns its finding at any size, because the law is about the *ordering*, not the
-    /// body's complexity.
     let minimumStatements: Int
+
+    /// Comparators are size-floored differently from the rest — see `hidesALawWorthStating`.
+    private let isComparator: Bool
 
     init?(call: FunctionCallExprSyntax) {
         guard let callee = call.calledExpression.as(MemberAccessExprSyntax.self) else { return nil }
@@ -106,27 +108,147 @@ private struct CollectionOperation {
                 + "transitive. Sorting with one that is not can crash, and no example test will "
                 + "tell you which triple broke it."
             self.minimumStatements = 1
+            self.isComparator = true
 
         case "filter", "first", "contains", "allSatisfy", "drop", "prefix", "removeAll":
             self.name = callee.declName.baseName.text
             self.law = "A predicate is a total function of its inputs — generate them and state "
                 + "what it must accept and reject."
             self.minimumStatements = 2
+            self.isComparator = false
 
         case "map", "compactMap", "flatMap":
             self.name = callee.declName.baseName.text
             self.law = "A transform is a function of its input — generate inputs and state what "
                 + "the result must satisfy."
             self.minimumStatements = 2
+            self.isComparator = false
 
         case "reduce":
             self.name = "reduce"
             self.law = "A reducer's combine step is usually associative, and often has an identity "
                 + "— both are laws a property test can check and an example cannot."
             self.minimumStatements = 2
+            self.isComparator = false
 
         default:
             return nil
         }
+    }
+
+    /// Whether the closure hides a law that naming it would let you *state*.
+    ///
+    /// Every operation but the comparators is floored on body size, and that is the whole test. A
+    /// comparator cannot be, because the shortest comparators are the wrong ones: `{ $0.a > $1.a ||
+    /// $0.b < $1.b }` and `{ $0.name <= $1.name }` each fit on one line and neither is a strict weak
+    /// ordering — the second is not even irreflexive, and both can crash `sorted(by:)`.
+    ///
+    /// So the discriminator is not *size*, it is whether the ordering is **free**. A body that is one
+    /// strict comparison of the same key on both sides — `{ $0.date > $1.date }` — inherits its
+    /// ordering from the key's `Comparable` conformance and cannot be got wrong. There is no law left
+    /// to state, and firing on it is the noise that teaches people to switch the category off.
+    /// Everything else earns the finding: a branch, a `||`, a second key, a `compare(_:)` call.
+    func hidesALawWorthStating(_ closure: ClosureExprSyntax) -> Bool {
+        guard isComparator else { return true }
+        return !FreeOrdering.describes(closure)
+    }
+}
+
+/// A comparator body whose ordering comes for free from the key's `Comparable` conformance.
+///
+/// The shape is exactly `<lhs><path> < <rhs><path>` (or `>`) — one strict comparison, the same member
+/// path on both sides, the two closure parameters as the two bases. `{ $0 < $1 }` qualifies with an
+/// empty path.
+///
+/// **Deliberately syntactic, and it errs towards firing.** A key reached through a *call* —
+/// `{ $0.name.lowercased() < $1.name.lowercased() }` — is not recognised, because the analyser cannot
+/// see that the call is total and deterministic (`localizedCaseInsensitiveCompare` is the one this
+/// rule was built for, and it is neither obviously). The residual it cannot see at all is a
+/// floating-point key: `{ $0.score < $1.score }` on a `Double` is *not* a strict weak ordering once a
+/// `NaN` is in the collection, and nothing in the syntax says whether `score` is a `Double`. Naming
+/// the type is what would fix that, which is the rule's advice anyway.
+private enum FreeOrdering {
+
+    static func describes(_ closure: ClosureExprSyntax) -> Bool {
+        guard closure.statements.count == 1,
+              let expression = soleExpression(of: closure),
+              let comparison = Comparison(expression),
+              comparison.symbol == "<" || comparison.symbol == ">",
+              let left = key(of: comparison.left),
+              let right = key(of: comparison.right) else {
+            return false
+        }
+        // Same key, different operands: `$0.date > $1.date`, not `$0.date > $0.cutoff`.
+        return left.path == right.path && left.base != right.base
+    }
+
+    /// One binary comparison, however the tree happens to be shaped.
+    ///
+    /// `Parser.parse` does **not** fold infix operators, so `$0.date > $1.date` arrives as a
+    /// three-element `SequenceExprSyntax` and not as an `InfixOperatorExprSyntax`. Matching only the
+    /// folded form is a guard that never fires — and it fails *open*, flagging the very comparators
+    /// this is meant to stay quiet about. Both shapes are read, so the rule behaves the same whether
+    /// or not an `OperatorTable` has run over the tree.
+    ///
+    /// Anything longer than one comparison — `$0.a > $1.a || $0.b < $1.b` is a five-element sequence
+    /// — is not a free ordering, and falls out of the arity check here.
+    private struct Comparison {
+        let left: ExprSyntax
+        let symbol: String
+        let right: ExprSyntax
+
+        init?(_ expression: ExprSyntax) {
+            if let folded = expression.as(InfixOperatorExprSyntax.self) {
+                guard let binary = folded.operator.as(BinaryOperatorExprSyntax.self) else {
+                    return nil
+                }
+                self.left = folded.leftOperand
+                self.symbol = binary.operator.text
+                self.right = folded.rightOperand
+                return
+            }
+
+            guard let sequence = expression.as(SequenceExprSyntax.self),
+                  sequence.elements.count == 3 else {
+                return nil
+            }
+
+            let elements = Array(sequence.elements)
+            guard let binary = elements[1].as(BinaryOperatorExprSyntax.self) else { return nil }
+
+            self.left = elements[0]
+            self.symbol = binary.operator.text
+            self.right = elements[2]
+        }
+    }
+
+    /// The single expression a one-statement closure evaluates, whether or not it says `return`.
+    private static func soleExpression(of closure: ClosureExprSyntax) -> ExprSyntax? {
+        switch closure.statements.first?.item {
+        case .expr(let expression):
+            return expression
+
+        case .stmt(let statement):
+            return statement.as(ReturnStmtSyntax.self)?.expression
+
+        default:
+            return nil
+        }
+    }
+
+    /// Splits `$0.file.name` into its base (`$0`) and its member path (`file.name`). A call anywhere
+    /// in the chain returns `nil` — the ordering is only free when the key is plain stored access.
+    private static func key(of expression: ExprSyntax) -> (base: String, path: String)? {
+        var path: [String] = []
+        var current = expression
+
+        while let member = current.as(MemberAccessExprSyntax.self) {
+            path.append(member.declName.baseName.text)
+            guard let base = member.base else { return nil }
+            current = base
+        }
+
+        guard let reference = current.as(DeclReferenceExprSyntax.self) else { return nil }
+        return (reference.baseName.text, path.reversed().joined(separator: "."))
     }
 }
