@@ -47,3 +47,17 @@ struct DataService: Loadable {
 ```
 
 ---
+
+### Testability: a narrower cost than the sibling rules
+
+Narrowing a **protocol** does *not* hide the methods of the types conforming to it. A test can still
+call a conforming type's methods directly, so a `private` protocol costs you no property tests, and
+this rule carries no testability caveat.
+
+What it does cost is the *abstraction*: a test cannot name the protocol, so it cannot write a
+generic law over "every conforming type" or substitute a stub through it. If the protocol exists to
+be that seam, keep it `internal`.
+
+Contrast [Could Be Private Member](could-be-private-member.md) and
+[Could Be Private](could-be-private.md), where narrowing genuinely does put the declaration beyond
+`@testable import` — those two name the cost when the declaration is a property-test candidate.

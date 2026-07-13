@@ -112,17 +112,44 @@ final class CouldBePrivateVisitor: CrossFileVisitorBase, CrossFilePatternVisitor
             let externalFiles = referencingFiles.subtracting([decl.file])
 
             if externalFiles.isEmpty {
+                let carriesCandidates = declaresPropertyTestCandidate(decl.node)
+                let cost = carriesCandidates
+                    ? " — but it declares a property-based-test candidate, and a `private` type is "
+                        + "beyond `@testable import`, which reaches `internal` and no further. "
+                        + "Narrowing it means no test can construct it."
+                    : ""
+                let advice = carriesCandidates
+                    ? "Leave it `internal` if you intend to property-test what it declares. Making "
+                        + "the type private hides its members just as effectively as marking each "
+                        + "of them private."
+                    : "Add `private` access to narrow the scope of '\(decl.name)'."
+
                 addIssue(
                     severity: .info,
                     message: "'\(decl.name)' is only used in its declaring file "
-                        + "and could be private",
+                        + "and could be private" + cost,
                     filePath: decl.file,
                     lineNumber: getLineNumber(for: decl.node),
-                    suggestion: "Add `private` access to narrow the scope of '\(decl.name)'.",
+                    suggestion: advice,
                     ruleName: .couldBePrivate
                 )
             }
         }
+    }
+
+    /// Whether `node` — a type declaration — declares any function that is a property-test
+    /// candidate.
+    ///
+    /// A `private` type puts every one of its members beyond `@testable import`, so narrowing the
+    /// type costs exactly what narrowing each member would. Advising it without saying so would
+    /// take away the property tests by a side door.
+    private func declaresPropertyTestCandidate(_ node: Syntax) -> Bool {
+        let collector = CandidateFunctionCollector(
+            knownEquatableTypes: knownEquatableTypes,
+            viewMode: .sourceAccurate
+        )
+        collector.walk(node)
+        return collector.foundCandidate
     }
 
     // MARK: - Helpers
@@ -180,5 +207,24 @@ final class CouldBePrivateVisitor: CrossFileVisitorBase, CrossFilePatternVisitor
               let greatGrandparent = grandparent.parent,
               greatGrandparent.is(SourceFileSyntax.self) else { return false }
         return true
+    }
+}
+
+/// Finds whether a type declaration contains any property-test candidate.
+private final class CandidateFunctionCollector: SyntaxVisitor {
+    private let knownEquatableTypes: Set<String>
+
+    var foundCandidate = false
+
+    init(knownEquatableTypes: Set<String>, viewMode: SyntaxTreeViewMode) {
+        self.knownEquatableTypes = knownEquatableTypes
+        super.init(viewMode: viewMode)
+    }
+
+    override func visit(_ node: FunctionDeclSyntax) -> SyntaxVisitorContinueKind {
+        if PropertyTestCandidacy.shape(of: node, knownEquatableTypes: knownEquatableTypes) != nil {
+            foundCandidate = true
+        }
+        return .visitChildren
     }
 }

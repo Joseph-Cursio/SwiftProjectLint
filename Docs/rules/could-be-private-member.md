@@ -32,6 +32,43 @@ Because SwiftSyntax has no type resolution, the rule uses a conservative strateg
 - Does **not** flag members in example/fixture directories (`ExampleCode/`, `Fixtures/`, `Resources/`, `Examples/`, `Samples/`)
 - Does **not** flag members on types conforming to project-defined protocols — these may be protocol requirements that cannot be private
 
+### Testability: what narrowing costs
+
+`private` is not free. A Swift test target reaches its subject with `@testable import`, which
+exposes `internal` — and stops there. It does not expose `private` or `fileprivate`. So a
+declaration narrowed to `private` **cannot be called by any test**, and `swift-infer` will not
+index it as a property candidate either.
+
+That matters here because this rule and [Pure Function Property-Test Candidate](pure-function-candidate.md)
+routinely fire **on the same declaration**. A pure helper used only in its own file is exactly what
+each of them is looking for:
+
+```
+Pricing.swift:8: [Pure Function Property-Test Candidate] `discounted(…)` … a good candidate
+Pricing.swift:8: [Could Be Private Member]  'Pricing.discounted' … could be private
+```
+
+Both findings are right. Composed, they are advice to test a function and to hide it — and hiding
+wins.
+
+So when the member is a property-test candidate, this rule **says so**, and names the resolution:
+
+> `'Pricing.discounted'` is only used in its declaring file and could be private — but it is a
+> property-based-test candidate, and `private` puts it beyond `@testable import`, which reaches
+> `internal` and no further. Narrowing it means no test can call it.
+
+The finding is **not suppressed**. Least privilege is a real principle and the choice is yours;
+what you should not have to do is weigh a cost nobody mentioned. Three ways to resolve it:
+
+| you want | do this |
+|---|---|
+| the property test | leave it `internal` |
+| the narrow scope, and no test | add `private` — the finding is telling you the truth |
+| **both** | **extract the logic into a type of its own** — the new type is a small, `internal`, testable surface, and the original type's interface shrinks anyway |
+
+The third is usually the right answer, and it is the same refactor that makes the function easier to
+property-test in the first place: a pure function wants to live somewhere it can be reached.
+
 ### Non-Violating Examples
 ```swift
 // File: Service.swift

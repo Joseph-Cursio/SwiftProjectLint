@@ -69,6 +69,43 @@ Because the rule uses name-based reference tracking without type resolution, it 
 
 For these cases, Periphery (see [See Also](#see-also)) provides more accurate analysis.
 
+### Testability: what narrowing costs
+
+`private` is not free. A Swift test target reaches its subject with `@testable import`, which
+exposes `internal` — and stops there. It does not expose `private` or `fileprivate`. A `private`
+type therefore **cannot be constructed by any test**, which hides its members just as effectively as
+marking each of them `private`, and `swift-infer` will not index them as property candidates either.
+
+That matters here because this rule and [Pure Function Property-Test Candidate](pure-function-candidate.md)
+routinely fire on the **same type**. A type whose pure helpers are used only in its own file is
+exactly what each of them is looking for:
+
+```
+Pricing.swift:3: [Could Be Private]  'Pricing' … could be private
+Pricing.swift:8: [Pure Function Property-Test Candidate] `discounted(…)` … a good candidate
+```
+
+Both findings are right. Composed, they are advice to test a function and to hide the only type that
+can reach it — and hiding wins.
+
+So when the type declares a property-test candidate, this rule **says so**:
+
+> `'Pricing'` is only used in its declaring file and could be private — but it declares a
+> property-based-test candidate, and a `private` type is beyond `@testable import`, which reaches
+> `internal` and no further. Narrowing it means no test can construct it.
+
+The finding is **not suppressed**. Least privilege is a real principle and the choice is yours; what
+you should not have to do is weigh a cost nobody mentioned.
+
+| you want | do this |
+|---|---|
+| the property tests | leave the type `internal` |
+| the narrow scope, and no tests | add `private` — the finding is telling you the truth |
+| **both** | **extract the pure logic into a type of its own** and leave that one `internal`; the original can still be `private` |
+
+The third is usually the right answer, and it is the same refactor that makes the logic easier to
+property-test in the first place: a pure function wants to live somewhere it can be reached.
+
 ### Non-violating examples
 
 ```swift
