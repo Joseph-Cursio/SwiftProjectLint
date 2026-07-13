@@ -206,11 +206,17 @@ struct MissingIdempotencyKeyTests {
     }
 
     @Test
-    func keyLabelAbsentAtCallSite_noDiagnostic() {
-        // The callee's `key` parameter has a default. The call site omits
-        // it. The rule cannot reach into the callee's declaration to
-        // distinguish "defaulted and thus stable" from "omitted and thus
-        // fresh-per-call" — both are invisible. Stays silent by design.
+    func keyLabelAbsentAtCallSite_flagsTheDefaultedParameter() {
+        // This case used to be silent "by design", on the reasoning that the rule could not reach
+        // into the callee's declaration to tell "defaulted and thus stable" from "omitted and thus
+        // fresh-per-call". It can now — and the reasoning was wrong anyway: a *constant* default is
+        // not the safe case. Every caller that omits the argument shares the one key, so two
+        // unrelated charges collide and the server drops the second as a replay of the first.
+        //
+        // A default is never right here, in either direction. Swift forbids a default value from
+        // referring to another parameter, so the key can never be derived from this operation's
+        // inputs: it is a constant (all operations collide) or it is fresh per call (no retry ever
+        // converges). The caller has to own the key, which means the parameter has to be required.
         let source = """
         /// @lint.effect externally_idempotent(by: key)
         func charge(key: String = "default", amount: Int) async throws {}
@@ -220,7 +226,9 @@ struct MissingIdempotencyKeyTests {
             try await charge(amount: amount)
         }
         """
-        #expect(run(source).detectedIssues.isEmpty)
+        let issues = run(source).detectedIssues
+        #expect(issues.count == 1)
+        #expect(issues.first?.ruleName == .missingIdempotencyKey)
     }
 
     @Test

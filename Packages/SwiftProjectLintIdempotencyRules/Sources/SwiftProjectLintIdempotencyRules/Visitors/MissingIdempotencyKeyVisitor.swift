@@ -111,10 +111,11 @@ final class MissingIdempotencyKeyVisitor: CrossFileVisitorBase, CrossFilePattern
         site: AnalysisSite
     ) {
         guard let arg = call.arguments.first(where: { $0.label?.text == keyParam }) else {
-            // Labelled argument absent. Could be a defaulted parameter; the
-            // Phase-2.1 rule does not flag this. A future enhancement could
-            // cross-reference the callee's declaration to tell the
-            // "defaulted" case from the "omitted required" case.
+            // The key argument is absent, and the two ways that happens are not the same thing.
+            // If the parameter is required, this code would not compile and it is the compiler's
+            // problem, not ours. If it is omittable, the key comes from the declaration's default
+            // rather than from the caller — which is the whole hole.
+            checkOmittedKeyIsNotDefaulted(call: call, keyParam: keyParam, site: site)
             return
         }
         guard let reason = nonStableReason(for: arg.expression) else { return }
@@ -134,6 +135,49 @@ final class MissingIdempotencyKeyVisitor: CrossFileVisitorBase, CrossFilePattern
                 + "e.g. an event ID, request ID, or message ID received from the caller. "
                 + "If no such identifier is available, consider weakening '\(calleeName)' to "
                 + "`@lint.effect non_idempotent` or introducing a deduplication guard at this site.",
+            ruleName: .missingIdempotencyKey
+        )
+    }
+
+    /// Flags a call that leaves out the idempotency key because the declaration lets it.
+    ///
+    /// A defaulted key is never right, and the reason is structural rather than a matter of
+    /// taste: **Swift forbids a default value from referring to another parameter**, so the
+    /// default can never be derived from this operation's own inputs. It can only be a constant —
+    /// in which case every distinct operation shares one key, and the server deduplicates the
+    /// second as a replay of the first — or nondeterministic, like `UUID()`, in which case every
+    /// retry mints a fresh key and the operation runs twice. The annotation promises the caller
+    /// repeats the key on a retry; a caller that never supplied it cannot.
+    private func checkOmittedKeyIsNotDefaulted(
+        call: FunctionCallExprSyntax,
+        keyParam: String,
+        site: AnalysisSite
+    ) {
+        guard let callSite = CallSiteShape.from(call: call),
+              let declaration = symbolTable.declaration(matching: callSite),
+              let parameter = declaration.parameters.first(where: { $0.label == keyParam }),
+              parameter.isOmittable else {
+            return
+        }
+
+        let calleeName = calleeBaseName(of: call.calledExpression) ?? "<unresolved>"
+        let line = site.locationConverter.location(for: call.positionAfterSkippingLeadingTrivia).line
+
+        addIssue(
+            severity: pattern.severity,
+            message: "Idempotency-key argument `\(keyParam):` is not supplied to '\(calleeName)' "
+                + "at this call site, and the parameter is omittable — so the key comes from the "
+                + "declaration's default rather than from the caller. A caller that never supplied "
+                + "the key cannot repeat it on a retry, which is what '\(calleeName)' claims. A "
+                + "default cannot supply it either: Swift forbids a default from referring to "
+                + "another parameter, so it is either a constant (every operation shares one key, "
+                + "and the second is deduplicated as a replay of the first) or a fresh value per "
+                + "call (every retry runs the operation again).",
+            filePath: site.filePath,
+            lineNumber: line,
+            suggestion: "Make `\(keyParam):` a required parameter of '\(calleeName)' and pass a "
+                + "stable upstream identifier here — an event ID, request ID, or message ID that "
+                + "is the same on replay.",
             ruleName: .missingIdempotencyKey
         )
     }
