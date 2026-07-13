@@ -93,15 +93,33 @@ closure has a name:
 The list is deliberately closed. `Task { }`, `withAnimation { }` and `DispatchQueue.main.async { }`
 take closures too, and a closure run for its *effects* is not a property waiting to be named.
 
-**A comparator only counts when the ordering can be got wrong.** Every other operation is floored on
-body size — a one-statement `map { $0.name }` is a projection, not a property. Comparators cannot be
-floored that way, because **the shortest comparators are the wrong ones**: `{ $0.name <= $1.name }` is
-reflexive and `{ $0.a > $1.a || $0.b < $1.b }` is intransitive, both fit on one line, and both can
-crash `sorted(by:)`. So the discriminator is not size but whether the ordering is **free** — one
-strict comparison (`<` or `>`), the same member path on both sides, the two closure parameters as the
-two bases. `{ $0.date > $1.date }` inherits its ordering from `Comparable` and cannot be got wrong;
-there is no law left to state. Everything else earns the finding: a branch, a `||`, a second key, a
-`compare(_:)` call.
+**Body size is the wrong axis wherever a closure can be wrong on one line.** The temptation is to
+floor every operation on statement count, and for comparators and predicates that is a mistake,
+because **the shortest ones are the wrong ones**:
+
+```swift
+files.sorted { $0.name <= $1.name }                            // reflexive — not a strict weak ordering
+tasks.sorted { $0.a > $1.a || $0.b < $1.b }                    // intransitive
+files.filter { $0.path.hasPrefix(parent) && $0.path != parent }  // one off-by-one from wrong
+```
+
+Each fits inside any floor, and the first two can crash `sorted(by:)`. So both kinds ask a sharper
+question instead — **can this be got wrong at all?** — in their own terms:
+
+| kind | free when… | example that is free | example that earns the finding |
+|---|---|---|---|
+| **comparator** | the ordering is inherited whole from `Comparable`: one strict comparison (`<`/`>`), same member path both sides, the two parameters as the two bases | `{ $0.date > $1.date }` | a branch, a `\|\|`, a second key, a `compare(_:)` call |
+| **predicate** | it makes no decision — it surfaces a stored `Bool`, or states an identity | `{ $0.isEnabled }`, `{ $0 == fileURL }` | a `&&`, a *relational* comparison, a call, a branch |
+
+An equality is **identity, not a decision**: `removeAll { $0 == fileURL }` means "remove this element"
+and nothing more, `Equatable` already guarantees everything there is to guarantee about it, and there
+is no boundary for a generator to find. A *relational* comparison is a different matter and does fire
+— `{ $0.count > 0 }` and `{ $0.updated < $0.created }` are thresholds and orderings, and those are
+exactly the decisions that come out one boundary wrong.
+
+Transforms and reducers keep the size floor, and legitimately: a one-statement `map { $0.name }` is a
+**projection**, and unlike a predicate or a comparator it carries no law that a single expression
+could violate — there is nothing for it to be inconsistent with.
 
 Every exclusion serves one end: **a finding must be worth the refactor it asks for.** Unreachable is
 only a problem when there is something in there worth reaching, and a rule that fires on every `map`
@@ -119,8 +137,16 @@ items.min { $0.count < $1.count }
 // A projection, not a property. Naming it buys nothing.
 let names = items.map { $0.name }
 
-// A one-line predicate: below the size floor, and there is no law to state about it.
+// A predicate that decides nothing: a stored Bool, surfaced. It cannot disagree with
+// itself, so there is no law to state and nothing to generate inputs against.
 let active = items.filter { $0.isEnabled }
+let shown = items.filter { !$0.isHidden }
+let folders = items.filter { $0.file.isFolder }
+
+// Identity, not a decision. `removeAll { $0 == fileURL }` means "remove this element"
+// and nothing more — Equatable already guarantees all there is to guarantee.
+selectedFiles.removeAll { $0 == fileURL }
+let busy = uploadStatus.values.contains { $0 == .uploading }
 
 // Not a collection operation. A closure run for its effects is not a property
 // waiting to be named — the operation list is deliberately closed.
@@ -172,6 +198,18 @@ files.sorted { $0.name <= $1.name }
 // Two keys, one line: the classic way to break transitivity.
 tasks.sorted { $0.priority > $1.priority || $0.name < $1.name }
 
+// A predicate with a rule in it, on one line. A size floor drops this, and it is one
+// off-by-one from wrong — is the parent itself an immediate child of itself or not?
+files.filter { $0.path.hasPrefix(parent) && $0.path != parent }
+
+// A relational comparison is a threshold, and thresholds come out one boundary wrong.
+items.filter { $0.count > 0 }
+items.filter { $0.updated < $0.created }
+
+// A predicate reached through a call. Locale-dependent matching has real laws: an empty
+// query matches everything, a match implies a substring, matching ignores case.
+files.filter { $0.name.localizedCaseInsensitiveContains(query) }
+
 // A transform with logic in it — a function of its input, waiting for a name.
 let labels = files.map { file in
     let size = Double(file.byteCount) / 1_000_000
@@ -188,18 +226,18 @@ let total = items.reduce(Money.zero) { running, item in
 
 ### Known Limitations
 
-- **A key reached through a call still fires.** `{ $0.name.lowercased() < $1.name.lowercased() }` is
-  reported, because the rule cannot see that the call is total and deterministic. The case it was
-  built for (`localizedCaseInsensitiveCompare`) is one where it is not obviously either, so the
-  conservative direction is to report.
+- **A closure reached through a call always fires**, in both kinds:
+  `{ $0.name.lowercased() < $1.name.lowercased() }` and `{ $0.name.hasPrefix("_") }` are both
+  reported, because the rule cannot see that the call is total and deterministic. This errs towards
+  reporting on purpose — the *interesting* closures in real code are call-shaped, and every locale
+  bug lives in one — but it will occasionally name something that did not need naming.
 - **A floating-point key is a false negative.** `{ $0.score < $1.score }` on a `Double` is *not* a
   strict weak ordering once a `NaN` is in the collection — but nothing in the syntax says whether
   `score` is a `Double`, so it is treated as a free ordering and skipped. Naming it is what would
   surface this, which is the rule's advice anyway.
-- **A one-line predicate is skipped, even a non-trivial one.** The size floor drops
-  `{ $0.path.hasPrefix(parent) && $0.path != parent }`, which has a law worth stating. This is the
-  same lesson the comparators taught — the shortest ones can still be wrong — and predicates have not
-  yet had it applied to them.
+- **An equality against a computed value is skipped.** `{ $0.normalized == target }` reads as identity
+  and is treated as free, even though `normalized` may be doing real work. The decision is in the
+  property, not in the closure — and the property rule will see it.
 
 ### Remediation
 

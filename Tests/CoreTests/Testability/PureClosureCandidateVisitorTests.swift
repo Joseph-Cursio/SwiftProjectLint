@@ -139,9 +139,68 @@ struct PureClosureCandidateVisitorTests {
         """).isEmpty)
     }
 
-    @Test("a one-line predicate is below the floor")
-    func trivialPredicateIsNotFlagged() {
+    // MARK: - Predicates: the decision has to be one that can be got wrong
+
+    @Test("a predicate that only surfaces a stored Bool decides nothing")
+    func plainBooleanReadIsNotFlagged() {
+        // Nothing is being decided here, only surfaced. A stored property cannot disagree with
+        // itself, so there is no law to state and nothing to generate inputs against.
         #expect(analyze("func active() { let active = items.filter { $0.isEnabled } }").isEmpty)
+        #expect(analyze("func shown() { let shown = items.filter { !$0.isHidden } }").isEmpty)
+        #expect(analyze("func folders() { let folders = items.filter { $0.file.isFolder } }").isEmpty)
+    }
+
+    @Test("an equality predicate is identity, not a decision")
+    func plainEqualityIsNotFlagged() {
+        // `removeAll { $0 == fileURL }` means "remove this element" and nothing more. Equatable
+        // already guarantees everything there is to guarantee, so there is no law left to state and
+        // no off-by-one for a generator to find.
+        #expect(analyze("func drop() { selected.removeAll { $0 == fileURL } }").isEmpty)
+        #expect(analyze("func busy() { let busy = status.values.contains { $0 == .uploading } }")
+            .isEmpty)
+        #expect(analyze("func others() { let others = files.filter { $0.path != parent } }").isEmpty)
+    }
+
+    @Test("a relational predicate is a decision, and still a candidate")
+    func relationalPredicateIsFlagged() {
+        // Unlike `==`, a threshold or an ordering is exactly the decision that comes out one boundary
+        // wrong. `>` or `>=`? `updated` before `created`, or after?
+        #expect(analyze("func full() { let full = items.filter { $0.count > 0 } }").count == 1)
+    }
+
+    @Test("a one-line predicate with a rule in it is a candidate")
+    func compoundPredicateIsFlagged() {
+        // The bug the old size floor allowed through. This is one statement — so the floor of two
+        // dropped it — and it is one off-by-one from wrong. Exactly the lesson the comparators
+        // taught, which had not been applied to predicates.
+        let issues = analyze("""
+        func children() {
+            let children = files.filter { $0.path.hasPrefix(parent) && $0.path != parent }
+        }
+        """)
+
+        #expect(issues.count == 1)
+        #expect(issues.first?.message.contains("predicate") == true)
+    }
+
+    @Test("a one-line predicate reached through a call is a candidate")
+    func callShapedPredicateIsFlagged() {
+        // Errs towards firing, symmetrically with the comparators: the analyser cannot see that the
+        // call is total, and the interesting predicates in real code are call-shaped — every locale
+        // bug lives in one.
+        let issues = analyze("""
+        func matching() {
+            let matching = files.filter { $0.name.localizedCaseInsensitiveContains(query) }
+        }
+        """)
+
+        #expect(issues.count == 1)
+    }
+
+    @Test("a one-line predicate comparing two keys is a candidate")
+    func comparingPredicateIsFlagged() {
+        #expect(analyze("func stale() { let stale = items.filter { $0.updated < $0.created } }")
+            .count == 1)
     }
 
     @Test("min and max take comparators too, and the free ordering still applies")
