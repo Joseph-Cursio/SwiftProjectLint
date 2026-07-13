@@ -123,14 +123,60 @@ struct PureClosureCandidateVisitorTests {
 
     @Test("a closure that writes to a capture is refused")
     func mutatingClosureIsRefused() {
-        // Its job IS the side effect; no extraction rescues it.
+        // Its job IS the side effect; no extraction rescues it, because lifting the body out would
+        // not turn `runningTotal` into a parameter.
+        //
+        // Deliberately a `map` and not a `forEach`: `forEach` is not on the operation list at all, so
+        // a `forEach` here would be refused before purity was ever consulted, and this test would
+        // pass without exercising the thing it names.
         #expect(analyze("""
         func total() {
-            items.forEach { item in
+            let flags = items.map { item in
                 runningTotal += item.amount
+                return item.isValid
             }
         }
         """).isEmpty)
+    }
+
+    @Test("a one-line predicate is below the floor")
+    func trivialPredicateIsNotFlagged() {
+        #expect(analyze("func active() { let active = items.filter { $0.isEnabled } }").isEmpty)
+    }
+
+    @Test("min and max take comparators too, and the free ordering still applies")
+    func freeOrderingHoldsAcrossComparatorOperations() {
+        #expect(analyze("func fewest() { let fewest = items.min { $0.count < $1.count } }").isEmpty)
+    }
+
+    @Test("a transform with logic in it is a candidate")
+    func transformWithLogicIsCandidate() {
+        let issues = analyze("""
+        func labels() {
+            let labels = files.map { file in
+                let size = Double(file.byteCount) / 1_000_000
+                return "\\(file.name) (\\(size) MB)"
+            }
+        }
+        """)
+
+        #expect(issues.count == 1)
+        #expect(issues.first?.message.contains("transform") == true)
+    }
+
+    @Test("a reducer's combine step is a candidate")
+    func reducerIsCandidate() {
+        let issues = analyze("""
+        func total() {
+            let total = items.reduce(Money.zero) { running, item in
+                let taxed = item.price * (1 + item.taxRate)
+                return running + taxed
+            }
+        }
+        """)
+
+        #expect(issues.count == 1)
+        #expect(issues.first?.message.contains("associative") == true)
     }
 
     @Test("a closure doing I/O is refused")
