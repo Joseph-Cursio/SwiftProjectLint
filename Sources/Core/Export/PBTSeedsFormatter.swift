@@ -1,25 +1,83 @@
 import Foundation
 import SwiftProjectLintModels
 
-/// A single property-based-test seed: a function the linter judged a good
-/// property-test candidate, identified precisely enough for a downstream tool
-/// (`swift-infer`) to locate and analyze it.
+/// What a seed *is*, which decides what a consumer may do with it.
+///
+/// The distinction is the whole reason this field exists, and getting it wrong recreates a bug the
+/// pipeline has already had once. A seed is not always "a symbol to analyse":
+///
+/// - An **analysable** seed names a function `swift-infer` can index, focus on, and propose laws for.
+/// - A **refactor-pending** seed names a place where pure logic *exists* but has **no name yet** —
+///   an extractable kernel. There is nothing to index. `swift-infer` cannot analyse it, cannot call
+///   it, and cannot generate inputs for it, because the thing does not exist as a callable entity
+///   until a human draws a boundary around it and names it.
+///
+/// **Feed a refactor-pending seed to a focus filter and you get a confident zero**: the tool narrows
+/// to a symbol it must then refuse (`uploadRemainingChunks` is `private async throws`, which refutes
+/// purity), and reports `kept 0` for a codebase that has property-testable logic in it. That is
+/// exactly the failure this whole pipeline was rebuilt to eliminate, arriving by a new route. Hence
+/// the field, and hence `isAnalysable`.
+public enum PBTSeedKind: String, Codable, Sendable {
+    /// A pure, total function. Index it, propose laws for it, run them.
+    case pureFunction = "pure-function"
+
+    /// A function claiming idempotence that calls non-idempotent work — it arrives with a ready-made
+    /// property to verify.
+    case idempotency = "idempotency"
+
+    /// Pure logic inlined inside an impure method — real, valuable, and **not yet callable**. The
+    /// symbol names the *enclosing* function, which is where to look, not what to test.
+    case extractableKernel = "extractable-kernel"
+
+    /// Whether a consumer may point analysis at this seed's symbol.
+    ///
+    /// `false` means: report it to the reader as work to do, and **do not** narrow discovery to it.
+    /// The symbol is a location, not a subject.
+    public var isAnalysable: Bool {
+        switch self {
+        case .pureFunction, .idempotency:
+            return true
+
+        case .extractableKernel:
+            return false
+        }
+    }
+}
+
+/// A single property-based-test seed: a place the linter judged worth a property test, identified
+/// precisely enough for a downstream tool (`swift-infer`) to act on it.
+///
+/// `kind` decides *how* to act — see `PBTSeedKind`. A consumer that ignores `kind` and treats every
+/// seed as an analysable symbol will narrow itself to zero on the kernels.
 public struct PBTSeed: Codable, Sendable {
     public let file: String
     public let line: Int
     public let symbol: String
     public let rule: String
+    public let kind: PBTSeedKind
 
-    public init(file: String, line: Int, symbol: String, rule: String) {
+    public init(file: String, line: Int, symbol: String, rule: String, kind: PBTSeedKind) {
         self.file = file
         self.line = line
         self.symbol = symbol
         self.rule = rule
+        self.kind = kind
+    }
+
+    /// A manifest written by an older linter has no `kind`. Default it to `.pureFunction`, which is
+    /// what every seed in a v1 manifest was.
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.file = try container.decode(String.self, forKey: .file)
+        self.line = try container.decode(Int.self, forKey: .line)
+        self.symbol = try container.decode(String.self, forKey: .symbol)
+        self.rule = try container.decode(String.self, forKey: .rule)
+        self.kind = try container.decodeIfPresent(PBTSeedKind.self, forKey: .kind) ?? .pureFunction
     }
 }
 
-/// The top-level manifest written by the `pbt-seeds` format. `version` lets the
-/// consumer evolve the schema without silently misreading an older file.
+/// The top-level manifest written by the `pbt-seeds` format. `version` lets the consumer evolve the
+/// schema without silently misreading an older file.
 public struct PBTSeedManifest: Codable, Sendable {
     public let version: Int
     public let seeds: [PBTSeed]
@@ -30,36 +88,48 @@ public struct PBTSeedManifest: Codable, Sendable {
     }
 
     /// The schema version emitted by this build.
-    public static let currentVersion = 1
+    ///
+    /// **v2 adds `kind`.** The change is additive and backwards-compatible on read — a v1 manifest
+    /// decodes with every seed defaulted to `.pureFunction`, which is what a v1 seed always was — but
+    /// a v1 *consumer* reading a v2 manifest will silently ignore `kind` and treat an
+    /// `extractable-kernel` as an analysable symbol. That produces a confident zero, so the version
+    /// bump is what lets such a consumer notice and say so.
+    public static let currentVersion = 2
+
+    /// The seeds a consumer may narrow analysis to. The rest are work for a human first.
+    public var analysableSeeds: [PBTSeed] {
+        seeds.filter(\.kind.isAnalysable)
+    }
 }
 
 /// Emits the seeds that drive the `lint → infer → verify` pipeline (Idea #2).
 ///
-/// It keeps only `pureFunctionCandidate` issues — the *positive* testability
-/// signal — and projects each to a `{file, line, symbol, rule}` seed. The
-/// result is a `PBTSeedManifest` JSON document, intended to be redirected to
-/// `.pbt/seeds.json` and consumed by `swift-infer discover --seeds`. Issues
-/// from other rules (and any candidate lacking a resolved symbol) are dropped,
-/// so the output is exactly the set of functions worth property-testing.
+/// Projects each seed-worthy finding to a `{file, line, symbol, rule, kind}` record. The result is a
+/// `PBTSeedManifest` JSON document, intended to be redirected to `.pbt/seeds.json` and consumed by
+/// `swift-infer discover --seeds`. Findings from other rules (and any candidate lacking a resolved
+/// symbol) are dropped, so the output is exactly the set of places worth property-testing.
 public struct PBTSeedsFormatter: IssueFormatterProtocol {
-    /// Rules whose findings name a function worth property-testing. Each must
-    /// populate `LintIssue.symbol` with that function's name.
+
+    /// Rules whose findings name a place worth property-testing, and what kind of place each names.
     ///
-    /// - `pureFunctionCandidate`: the positive signal — a pure, total function
-    ///   (the property is "is it deterministic / does some law hold").
-    /// - `idempotencyViolation`: a function that *claims* idempotence
-    ///   (`@lint.effect idempotent`) but calls non-idempotent work — it comes
-    ///   with a ready-made property (idempotence) to verify or characterize.
-    static let seedWorthyRules: Set<RuleIdentifier> = [
-        .pureFunctionCandidate,
-        .idempotencyViolation
+    /// Every rule here must populate `LintIssue.symbol`. For an analysable kind the symbol is the
+    /// *subject*; for `extractableKernel` it is the enclosing function — a **location**, because the
+    /// kernel itself has no name yet. That is the point of the rule.
+    ///
+    /// `pureClosureCandidate` is deliberately **absent**. It is the same refactor-pending shape as a
+    /// kernel and belongs here on the same terms, but adding it changes the manifest a downstream
+    /// pin already consumes; it is a separate, deliberate step rather than a side effect of this one.
+    static let seedKinds: [RuleIdentifier: PBTSeedKind] = [
+        .pureFunctionCandidate: .pureFunction,
+        .idempotencyViolation: .idempotency,
+        .extractablePureKernel: .extractableKernel
     ]
 
     public init() { /* no-op */ }
 
     public func format(issues: [LintIssue]) -> String {
         let seeds: [PBTSeed] = issues.compactMap { issue in
-            guard Self.seedWorthyRules.contains(issue.ruleName),
+            guard let kind = Self.seedKinds[issue.ruleName],
                   let symbol = issue.symbol,
                   symbol.isEmpty == false
             else { return nil }
@@ -67,7 +137,8 @@ public struct PBTSeedsFormatter: IssueFormatterProtocol {
                 file: issue.filePath,
                 line: issue.lineNumber,
                 symbol: symbol,
-                rule: issue.ruleName.rawValue
+                rule: issue.ruleName.rawValue,
+                kind: kind
             )
         }
 

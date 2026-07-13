@@ -20,6 +20,73 @@ struct PBTSeedsFormatterTests {
         )
     }
 
+    private func kernel(
+        symbol: String,
+        file: String = "Upload.swift",
+        line: Int = 73
+    ) -> LintIssue {
+        LintIssue(
+            severity: .info,
+            message: "A pure kernel is trapped in this impure method",
+            filePath: file,
+            lineNumber: line,
+            suggestion: "Extract the arithmetic into a value type",
+            ruleName: .extractablePureKernel,
+            symbol: symbol
+        )
+    }
+
+    // MARK: - A kernel is a location, not a subject
+
+    @Test
+    func emitsExtractableKernelWithItsOwnKind() throws {
+        let json = PBTSeedsFormatter().format(
+            issues: [kernel(symbol: "uploadRemainingChunks")]
+        )
+        let data = try #require(json.data(using: .utf8))
+        let manifest = try JSONDecoder().decode(PBTSeedManifest.self, from: data)
+
+        let seed = try #require(manifest.seeds.first)
+        #expect(seed.kind == .extractableKernel)
+        #expect(seed.symbol == "uploadRemainingChunks")
+    }
+
+    @Test
+    func anExtractableKernelIsNotAnalysable() throws {
+        // The distinction the `kind` field exists for. A kernel has no name yet — there is nothing
+        // to index, nothing to call, nothing to generate inputs for. Narrow a focus filter to
+        // `uploadRemainingChunks` and the tool must refuse it (`private async throws` refutes
+        // purity) and report `kept 0` — a CONFIDENT ZERO for a codebase that has property-testable
+        // logic in it. That is the failure this pipeline was rebuilt to eliminate, arriving by a new
+        // route, and `isAnalysable` is what stops it.
+        let json = PBTSeedsFormatter().format(issues: [
+            candidate(symbol: "add"),
+            kernel(symbol: "uploadRemainingChunks")
+        ])
+        let data = try #require(json.data(using: .utf8))
+        let manifest = try JSONDecoder().decode(PBTSeedManifest.self, from: data)
+
+        #expect(manifest.seeds.count == 2)
+        #expect(manifest.analysableSeeds.count == 1)
+        #expect(manifest.analysableSeeds.first?.symbol == "add")
+    }
+
+    @Test
+    func aV1ManifestDecodesWithEverySeedAnalysable() throws {
+        // Backwards compatibility on read: a manifest written before `kind` existed had exactly one
+        // sort of seed in it, and it was analysable.
+        let legacy = """
+        {"version":1,"seeds":[{"file":"Math.swift","line":7,"symbol":"add",\
+        "rule":"Pure Function Property-Test Candidate"}]}
+        """
+        let data = try #require(legacy.data(using: .utf8))
+        let manifest = try JSONDecoder().decode(PBTSeedManifest.self, from: data)
+
+        let seed = try #require(manifest.seeds.first)
+        #expect(seed.kind == .pureFunction)
+        #expect(manifest.analysableSeeds.count == 1)
+    }
+
     @Test
     func emitsSeedForPureFunctionCandidate() throws {
         let json = PBTSeedsFormatter().format(issues: [candidate(symbol: "add", line: 7)])
