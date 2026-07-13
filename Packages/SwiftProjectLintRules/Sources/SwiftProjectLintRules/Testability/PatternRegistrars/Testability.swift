@@ -55,6 +55,18 @@ class Testability: BasePatternRegistrar {
                 description: "Surfaces pure closures passed to `filter`, `sorted(by:)`, `map` and "
                     + "the rest — pure functions in everything but syntax, which the "
                     + "declaration-based rules cannot see because they have no name to point at."
+            ),
+            SyntaxPattern(
+                name: .extractablePureKernel,
+                visitor: ExtractablePureKernelVisitor.self,
+                severity: .info,
+                category: .testability,
+                messageTemplate: "A pure kernel is trapped inside an impure method",
+                suggestion: "Lift the arithmetic into a value type built from its inputs alone; "
+                    + "the method keeps the I/O.",
+                description: "Surfaces arithmetic that governs a loop bound, an index, a slice or a "
+                    + "progress fraction while inlined in a method that also performs I/O — a pure "
+                    + "function with no boundary drawn around it, which no test can reach."
             )
         ]
         registry.register(patterns: patterns)
