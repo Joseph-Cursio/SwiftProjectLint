@@ -41,8 +41,20 @@ class Testability: BasePatternRegistrar {
                 category: .testability,
                 messageTemplate: "Looks pure and total — a good property-based-test candidate",
                 suggestion: "Run `swift-infer discover` on it, or add a PropertyLawKit test.",
-                description: "Surfaces free / `static` functions that take inputs, return a value, "
-                    + "aren't async, and show no obvious impurity — the seeds for the PBT pipeline."
+                description: "Surfaces functions — free, `static`, or instance methods that read no "
+                    + "mutable state — which take inputs, return a value, aren't async, and show no "
+                    + "obvious impurity. The seeds for the PBT pipeline."
+            ),
+            SyntaxPattern(
+                name: .pureClosureCandidate,
+                visitor: PureClosureCandidateVisitor.self,
+                severity: .info,
+                category: .testability,
+                messageTemplate: "A pure closure — a property-based-test candidate with no name",
+                suggestion: "Lift it into a named function; its captures become parameters.",
+                description: "Surfaces pure closures passed to `filter`, `sorted(by:)`, `map` and "
+                    + "the rest — pure functions in everything but syntax, which the "
+                    + "declaration-based rules cannot see because they have no name to point at."
             )
         ]
         registry.register(patterns: patterns)

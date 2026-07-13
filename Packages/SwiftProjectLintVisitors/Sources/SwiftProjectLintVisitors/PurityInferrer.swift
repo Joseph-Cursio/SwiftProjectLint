@@ -30,4 +30,13 @@ public struct PurityInferrer: Sendable {
     public func isPure(_ function: FunctionDeclSyntax) -> Bool {
         underlying.isPure(function)
     }
+
+    /// Whether a **closure literal** is referentially transparent.
+    ///
+    /// A capture that is only read is not an impurity — lift the body into a named function and the
+    /// capture becomes a parameter. A capture the closure *writes* to is refuted, because no
+    /// signature change rescues a closure whose job is the side effect.
+    public func isPure(_ closure: ClosureExprSyntax) -> Bool {
+        underlying.isPure(closure)
+    }
 }
