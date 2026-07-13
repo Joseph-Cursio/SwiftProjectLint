@@ -185,7 +185,12 @@ final class IdempotencyViolationVisitor: CrossFileVisitorBase, CrossFilePatternV
         let calleeEffect: DeclaredEffect
         let provenance: EffectProvenance
 
-        if let declared = symbolTable.effect(for: calleeSignature) {
+        // The lookup is by *call shape*, not bare signature: Swift drops a trailing closure's
+        // argument label, so `perform { }` against `func perform(action:)` cannot be found
+        // by name alone — and Swift is made of trailing closures.
+        let calleeCall = CallSiteShape.from(call: call) ?? CallSiteShape(signature: calleeSignature)
+
+        if let declared = symbolTable.effect(for: calleeCall) {
             calleeEffect = declared
             provenance = .declared
         } else if symbolTable.isCollision(signature: calleeSignature) {

@@ -32,8 +32,16 @@ public struct ContextSymbolTable: Sendable {
     /// How many annotated declarations were seen per signature — the collision counter.
     private var annotatedCounts: [FunctionSignature: Int] = [:]
 
-    /// Signatures whose declarations disagreed, and whose entry has therefore been withdrawn.
-    private var withdrawn: Set<FunctionSignature> = []
+    /// Annotated declarations indexed by bare name, with the shape that says which call sites
+    /// could have reached them.
+    ///
+    /// A declaration's label list names every parameter; a call site's names only what was
+    /// written. Keying on equality alone therefore loses every call that omits a default or
+    /// passes a trailing closure — and loses it *silently*, which for this table means the
+    /// `once` contract simply evaporates. Worse, a miss inside `applyOnceReachInference`
+    /// truncates the whole reach chain: one defaulted parameter anywhere along it disables the
+    /// rule for every caller upstream.
+    private var shapesByName: [String: [(shape: DeclarationShape, context: ContextEffect)]] = [:]
 
     /// Functions that transitively reach a `@lint.context once` callee, with the shortest
     /// hop distance. Populated by `applyOnceReachInference(to:)`.
@@ -56,23 +64,40 @@ public struct ContextSymbolTable: Sendable {
             guard let context = ContextAnnotationParser.parseContext(declaration: decl) else {
                 continue
             }
-            record(signature: FunctionSignature.from(declaration: decl), context: context)
+            record(shape: DeclarationShape.from(declaration: decl), context: context)
         }
 
         let properties = ContextAnnotatedPropertyCollector()
         properties.walk(source)
         for decl in properties.properties {
             guard !isFunctionLocal(decl),
-                  let signature = FunctionSignature.from(declaration: decl),
+                  let shape = DeclarationShape.from(declaration: decl),
                   let context = ContextAnnotationParser.parseContext(declaration: decl) else {
                 continue
             }
-            record(signature: signature, context: context)
+            record(shape: shape, context: context)
         }
     }
 
-    /// Records one annotated occurrence of a signature's context.
+    /// Records one annotated occurrence of a signature's context, with no parameter treated as
+    /// omittable. Prefer `record(shape:context:)` when the declaration is to hand.
     public mutating func record(signature: FunctionSignature, context: ContextEffect) {
+        record(
+            shape: DeclarationShape(
+                name: signature.name,
+                parameters: signature.argumentLabels.map {
+                    DeclarationShape.Parameter(label: $0, hasDefault: false)
+                }
+            ),
+            context: context
+        )
+    }
+
+    /// Records one annotated declaration's context, keeping the call-site shape alongside it.
+    public mutating func record(shape: DeclarationShape, context: ContextEffect) {
+        shapesByName[shape.signature.name, default: []].append((shape, context))
+
+        let signature = shape.signature
         annotatedCounts[signature, default: 0] += 1
 
         if annotatedCounts[signature] == 1 {
@@ -83,13 +108,39 @@ public struct ContextSymbolTable: Sendable {
         if contextsBySignature[signature] == context { return }
 
         contextsBySignature.removeValue(forKey: signature)
-        withdrawn.insert(signature)
     }
 
     /// The declared context for `signature`, or `nil` when none was declared or the
     /// declarations disagreed.
     public func context(for signature: FunctionSignature) -> ContextEffect? {
-        contextsBySignature[signature]
+        context(for: CallSiteShape(signature: signature))
+    }
+
+    /// The declared context for a call site, or `nil` when none was declared or the
+    /// declarations disagreed.
+    ///
+    /// Prefer this wherever the call syntax is to hand: a `@lint.context once` migration
+    /// declared `migrate(schema:dryRun:)` and called `migrate(schema: s)` — or a retry wrapper
+    /// called `withRetry { }` — is unreachable by bare signature, and retry contexts are
+    /// definitionally closure-shaped.
+    public func context(for callSite: CallSiteShape) -> ContextEffect? {
+        let signature = callSite.signature
+
+        if callSite.trailingClosureCount == 0,
+           let exact = contextsBySignature[signature] {
+            return exact
+        }
+        if isCollision(signature: signature) { return nil }
+
+        guard let candidates = shapesByName[signature.name] else { return nil }
+
+        var matched: Set<ContextEffect> = []
+        for candidate in candidates
+        where contextsBySignature[candidate.shape.signature] != nil
+            && candidate.shape.accepts(callSite) {
+            matched.insert(candidate.context)
+        }
+        return matched.count == 1 ? matched.first : nil
     }
 
     /// `true` when two or more annotated declarations of `signature` were seen.
@@ -162,10 +213,13 @@ public struct ContextSymbolTable: Sendable {
         }
 
         if let call = syntax.as(FunctionCallExprSyntax.self),
-           let signature = FunctionSignature.from(call: call) {
-            if context(for: signature) == .once {
+           let callSite = CallSiteShape.from(call: call) {
+            // By call shape, not bare signature. A miss here does not merely drop one edge —
+            // it truncates the chain, so every caller upstream of the missed hop silently
+            // loses its `once` reachability too.
+            if context(for: callSite) == .once {
                 accumulator.append(0)
-            } else if let reach = onceReach(for: signature) {
+            } else if let reach = onceReach(for: callSite.signature) {
                 accumulator.append(reach.depth)
             }
         }

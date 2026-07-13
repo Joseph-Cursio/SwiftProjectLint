@@ -195,7 +195,11 @@ final class UnannotatedInStrictReplayableContextVisitor:
         // Any declared effect — even non_idempotent — means the callee is
         // classified. `nonIdempotentInRetryContext` handles the negative
         // case; positive tiers pass silently.
-        if symbolTable.effect(for: calleeSignature) != nil { return }
+        // The lookup is by *call shape*, not bare signature: Swift drops a trailing closure's
+        // argument label, so `perform { }` against `func perform(action:)` cannot be found
+        // by name alone — and Swift is made of trailing closures.
+        let calleeCall = CallSiteShape.from(call: call) ?? CallSiteShape(signature: calleeSignature)
+        if symbolTable.effect(for: calleeCall) != nil { return }
 
         // Collision-withdrawn: do not double-fire.
         if symbolTable.isCollision(signature: calleeSignature) { return }

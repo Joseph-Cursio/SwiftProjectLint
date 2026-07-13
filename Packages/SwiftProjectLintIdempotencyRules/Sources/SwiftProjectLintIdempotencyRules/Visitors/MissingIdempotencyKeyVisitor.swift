@@ -92,7 +92,9 @@ final class MissingIdempotencyKeyVisitor: CrossFileVisitorBase, CrossFilePattern
 
         if let call = syntax.as(FunctionCallExprSyntax.self),
            let signature = FunctionSignature.from(call: call),
-           let calleeEffect = symbolTable.effect(for: signature),
+           let calleeEffect = symbolTable.effect(
+               for: CallSiteShape.from(call: call) ?? CallSiteShape(signature: signature)
+           ),
            case let .externallyIdempotent(keyParameter: keyParam) = calleeEffect,
            let keyParam {
             checkKeyArgument(call: call, keyParam: keyParam, site: site)

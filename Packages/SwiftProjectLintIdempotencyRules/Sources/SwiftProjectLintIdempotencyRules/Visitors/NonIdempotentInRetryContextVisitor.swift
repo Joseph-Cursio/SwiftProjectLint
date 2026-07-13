@@ -245,7 +245,12 @@ final class NonIdempotentInRetryContextVisitor: CrossFileVisitorBase, CrossFileP
         signature: FunctionSignature,
         site: AnalysisSite
     ) -> (effect: DeclaredEffect, claim: String, overrideHint: String)? {
-        if let declared = symbolTable.effect(for: signature) {
+        // The lookup is by *call shape*, not bare signature: Swift drops a trailing closure's
+        // argument label, so `perform { }` against `func perform(action:)` cannot be found
+        // by name alone — and Swift is made of trailing closures.
+        let calleeCall = CallSiteShape.from(call: call) ?? CallSiteShape(signature: signature)
+
+        if let declared = symbolTable.effect(for: calleeCall) {
             return (declared, "which is declared `@lint.effect non_idempotent`", "")
         }
         if symbolTable.isCollision(signature: signature) {

@@ -118,7 +118,10 @@ final class OnceContractViolationVisitor: CrossFileVisitorBase, CrossFilePattern
             // trigger. Transitive reach via un-annotated intermediates is
             // the Phase-2 follow-up and only fires when the direct check
             // didn't (declared `.once` always wins).
-            if contextTable.context(for: signature) == .once {
+            // By call shape: a `@lint.context once` migration declared `migrate(schema:dryRun:)`
+            // and written `migrate(schema: s)` is unreachable by bare signature.
+            let callSite = CallSiteShape.from(call: call) ?? CallSiteShape(signature: signature)
+            if contextTable.context(for: callSite) == .once {
                 analyzeCall(call, signature: signature, site: site, transitiveDepth: nil)
             } else if let reach = contextTable.onceReach(for: signature) {
                 analyzeCall(call, signature: signature, site: site, transitiveDepth: reach.depth)
