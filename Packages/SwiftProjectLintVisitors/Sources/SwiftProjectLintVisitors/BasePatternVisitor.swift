@@ -65,6 +65,17 @@ open class BasePatternVisitor: SyntaxVisitor, PatternVisitorProtocol {
     /// result can be asserted on by a property test.
     public var knownEquatableTypes: Set<String> = []
 
+    /// Functions **this project declares**, as bare names and labelled names (`matches(name:)`).
+    /// Built by `DeclaredFunctionCollector` in `ProjectLinter`'s pre-scan.
+    ///
+    /// It answers one question a per-file visitor cannot: *did we write this function?* The Pure
+    /// Closure rule needs it to tell a closure that still hides logic —
+    /// `{ $0.name.localizedCaseInsensitiveContains(query) }`, where the law can only be stated at the
+    /// closure — from one that is merely **forwarding to a function the reader already extracted**,
+    /// `{ search.matches(name: $0.name) }`. The two are syntactically identical, so without this the
+    /// rule re-reports its own advice and the extraction loop never terminates.
+    public var knownProjectFunctions: Set<String> = []
+
     /// Architectural layer policies for the Architectural Boundary rule.
     /// Injected by `SourcePatternDetector` after loading from `LintConfiguration`.
     /// Empty by default — the rule is a no-op when no layers are defined.

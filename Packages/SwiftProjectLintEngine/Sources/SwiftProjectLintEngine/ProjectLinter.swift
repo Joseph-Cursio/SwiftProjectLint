@@ -115,6 +115,7 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
         let observableTypes = Self.collectTypes(ObservableTypeCollector.self, from: filePaths)
         let protocolTypes = Self.collectTypes(ProtocolTypeCollector.self, from: filePaths)
         let equatableTypes = Self.collectTypes(EquatableConformanceCollector.self, from: filePaths)
+        let projectFunctions = Self.collectTypes(DeclaredFunctionCollector.self, from: filePaths)
 
         // Resolve the registry once so each task can create its own detector
         var resolvedDetector = detector ?? SourcePatternDetector()
@@ -125,6 +126,7 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
         resolvedDetector.knownObservableTypes = observableTypes
         resolvedDetector.knownProtocolTypes = protocolTypes
         resolvedDetector.knownEquatableTypes = equatableTypes
+        resolvedDetector.knownProjectFunctions = projectFunctions
         resolvedDetector.layerPolicies = effectiveConfiguration.architecturalLayers
         resolvedDetector.enabledFrameworkAllowlists =
             effectiveConfiguration.enabledFrameworkAllowlists
@@ -144,6 +146,7 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
             observableTypes: observableTypes,
             protocolTypes: protocolTypes,
             equatableTypes: equatableTypes,
+            projectFunctions: projectFunctions,
             layerPolicies: effectiveConfiguration.architecturalLayers
         )
         let perFileResults = await withTaskGroup(
@@ -328,6 +331,10 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
         let observableTypes: Set<String>
         let protocolTypes: Set<String>
         let equatableTypes: Set<String>
+
+        /// Functions this project declares — lets the Pure Closure rule tell a closure that still
+        /// hides logic from one merely forwarding to a function the reader already extracted.
+        let projectFunctions: Set<String>
         let layerPolicies: [LayerPolicy]
     }
 
@@ -350,6 +357,7 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
             observableTypes: env.observableTypes,
             protocolTypes: env.protocolTypes,
             equatableTypes: env.equatableTypes,
+            projectFunctions: env.projectFunctions,
             layerPolicies: env.layerPolicies
         )
     }
@@ -368,6 +376,7 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
         observableTypes: Set<String> = [],
         protocolTypes: Set<String> = [],
         equatableTypes: Set<String> = [],
+        projectFunctions: Set<String> = [],
         layerPolicies: [LayerPolicy] = []
     ) -> (file: ProjectFile, issues: [LintIssue], parsedAST: SourceFileSyntax)? {
         guard !Task.isCancelled else { return nil }
@@ -389,6 +398,7 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
         det.knownObservableTypes = observableTypes
         det.knownProtocolTypes = protocolTypes
         det.knownEquatableTypes = equatableTypes
+        det.knownProjectFunctions = projectFunctions
         det.layerPolicies = layerPolicies
 
         let rawIssues: [LintIssue]

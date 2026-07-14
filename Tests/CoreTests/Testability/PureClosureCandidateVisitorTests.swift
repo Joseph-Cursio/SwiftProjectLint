@@ -19,8 +19,16 @@ import Testing
 @Suite("Pure closures are property-test candidates")
 struct PureClosureCandidateVisitorTests {
 
-    private func analyze(_ source: String, filePath: String = "Logic.swift") -> [LintIssue] {
+    /// `projectFunctions` is what `ProjectLinter`'s pre-scan injects in a real run — the functions
+    /// this codebase declares, which is the one fact that tells a closure still hiding logic from one
+    /// merely forwarding to a function the reader already extracted.
+    private func analyze(
+        _ source: String,
+        filePath: String = "Logic.swift",
+        projectFunctions: Set<String> = []
+    ) -> [LintIssue] {
         let visitor = PureClosureCandidateVisitor(patternCategory: .testability)
+        visitor.knownProjectFunctions = projectFunctions
         let syntax = Parser.parse(source: source)
         visitor.setSourceLocationConverter(
             SourceLocationConverter(fileName: filePath, tree: syntax)
@@ -337,5 +345,107 @@ struct PureClosureCandidateVisitorTests {
         """)
 
         #expect(issues.first?.symbol == "filteredFiles")
+    }
+
+    // MARK: - The loop must converge (B11)
+
+    /// **A rule that cannot recognise its own advice being taken never terminates.**
+    ///
+    /// The rule tells a reader to lift a closure's logic into a named function. The call site they
+    /// are left with is *itself a closure* — a forwarding one — and the rule reported it again,
+    /// saying "extract it into a named value type" about a closure whose entire body is a call to the
+    /// type they created one step earlier. All three cold readers hit this; one walked the loop three
+    /// times before stopping.
+    @Test("a closure forwarding to an already-extracted function is NOT reported")
+    func forwardingClosureIsNotReported() {
+        #expect(analyze("""
+        struct Model {
+            func filtered() -> [File] {
+                files.filter { search.matches(name: $0.name) }
+            }
+        }
+        """, projectFunctions: ["matches(name:)"]).isEmpty)
+    }
+
+    /// The discrimination this rule turns on. These two closures are **the same shape** — one call,
+    /// plain operands — and only ownership separates them. `localizedCaseInsensitiveContains` is
+    /// Foundation's: it cannot be seeded, so the law must be stated at the closure or nowhere, and
+    /// every locale bug that hides in one is why the rule fires on call-shaped predicates at all.
+    @Test("a closure calling a function we did NOT declare still fires")
+    func closureCallingForeignFunctionStillFires() {
+        #expect(analyze("""
+        struct Model {
+            func filtered() -> [File] {
+                files.filter { $0.name.localizedCaseInsensitiveContains(query) }
+            }
+        }
+        """, projectFunctions: ["matches(name:)"]).isEmpty == false)
+    }
+
+    /// The instant the closure does work of its own around the call, it is expressing a rule again.
+    @Test("forwarding plus logic of its own still fires")
+    func forwardingPlusLogicStillFires() {
+        #expect(analyze("""
+        struct Model {
+            func filtered() -> [File] {
+                files.filter { search.matches(name: $0.name) && !$0.isHidden }
+            }
+        }
+        """, projectFunctions: ["matches(name:)"]).isEmpty == false)
+    }
+
+    /// After extracting a comparator, the adapter is all that is left. Refusing to see it as plumbing
+    /// never converges — extracting the projection just yields another nested call, forever.
+    @Test("a coherent projection into an extracted comparator is plumbing, not a finding")
+    func coherentProjectionIsNotReported() {
+        #expect(analyze("""
+        struct Model {
+            func ordered() -> [File] {
+                files.sorted { a, b in
+                    FileOrdering.precedes(
+                        FileSortKey(isFolder: a.isFolder, name: a.name),
+                        FileSortKey(isFolder: b.isFolder, name: b.name)
+                    )
+                }
+            }
+        }
+        """, projectFunctions: ["precedes(_:_:)"]).isEmpty)
+    }
+
+    /// **The bug that slipped past the first cut.** Each projection draws from a single base, so each
+    /// is individually "coherent" — and the comparator ignores its left operand entirely. No law on
+    /// `precedes` can see this: the law is checked against *generated* keys and never runs the
+    /// adapter. Exempting it would silence the only rule that could have spoken.
+    @Test("a projection that never uses one of the closure's parameters still fires")
+    func projectionIgnoringAParameterStillFires() {
+        #expect(analyze("""
+        struct Model {
+            func ordered() -> [File] {
+                files.sorted { a, b in
+                    FileOrdering.precedes(
+                        FileSortKey(isFolder: b.isFolder, name: b.name),
+                        FileSortKey(isFolder: b.isFolder, name: b.name)
+                    )
+                }
+            }
+        }
+        """, projectFunctions: ["precedes(_:_:)"]).isEmpty == false)
+    }
+
+    /// A projection that *combines* two values is a decision, not an adapter.
+    @Test("a projection mixing two parameters in one key still fires")
+    func projectionMixingParametersStillFires() {
+        #expect(analyze("""
+        struct Model {
+            func ordered() -> [File] {
+                files.sorted { a, b in
+                    FileOrdering.precedes(
+                        FileSortKey(isFolder: a.isFolder, name: b.name),
+                        FileSortKey(isFolder: b.isFolder, name: b.name)
+                    )
+                }
+            }
+        }
+        """, projectFunctions: ["precedes(_:_:)"]).isEmpty == false)
     }
 }

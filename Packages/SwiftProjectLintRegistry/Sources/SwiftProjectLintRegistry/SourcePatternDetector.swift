@@ -36,6 +36,10 @@ public final class SourcePatternDetector: SourcePatternDetectorProtocol, @unchec
     /// `ProjectLinter` after a pre-scan phase and passed through to visitors.
     public var knownEquatableTypes: Set<String> = []
 
+    /// Functions this project declares, by bare and labelled name. Set by `ProjectLinter` after a
+    /// pre-scan and passed through to visitors.
+    public var knownProjectFunctions: Set<String> = []
+
     /// Architectural layer policies, set from `LintConfiguration.architecturalLayers`.
     /// Passed through to visitors that need them (e.g. ArchitecturalBoundaryVisitor).
     public var layerPolicies: [LayerPolicy] = []
@@ -179,6 +183,7 @@ public final class SourcePatternDetector: SourcePatternDetectorProtocol, @unchec
             visitor.knownObservableTypes = knownObservableTypes
             visitor.knownProtocolTypes = knownProtocolTypes
             visitor.knownEquatableTypes = knownEquatableTypes
+            visitor.knownProjectFunctions = knownProjectFunctions
             visitor.layerPolicies = layerPolicies
             visitor.enabledFrameworkAllowlists = enabledFrameworkAllowlists
             // `setFilePath` must run after every injected property is set: some

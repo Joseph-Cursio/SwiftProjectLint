@@ -39,6 +39,10 @@ public protocol SourcePatternDetectorProtocol {
     /// Hashable / Comparable, declared inline or via an extension).
     var knownEquatableTypes: Set<String> { get set }
 
+    /// Functions this project declares (bare and labelled names). Lets the Pure Closure rule tell a
+    /// closure that still hides logic from one merely forwarding to a function already extracted.
+    var knownProjectFunctions: Set<String> { get set }
+
     /// Architectural layer policies for the Architectural Boundary rule.
     var layerPolicies: [LayerPolicy] { get set }
 
