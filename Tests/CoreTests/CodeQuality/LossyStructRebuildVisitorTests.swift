@@ -222,6 +222,45 @@ struct LossyStructRebuildVisitorTests {
         """).isEmpty)
     }
 
+    /// **A local's type is often written on the line above, even without an annotation.**
+    ///
+    /// Reading the initialiser is what proves this is a projection rather than a copy. Real code:
+    /// `let visitor = FunctionScannerVisitor(…)` followed by `ScannedCorpus(summaries:
+    /// visitor.summaries, …)` — every argument comes from `visitor`, so the ratio fires, and only the
+    /// constructor on the previous line says the types differ.
+    @Test("a local's type is read from its initialiser, not just its annotation")
+    func localTypeResolvedFromInitializer() {
+        #expect(analyze("""
+        func scan(_ source: String) -> ScannedCorpus {
+            let visitor = FunctionScannerVisitor(source)
+            return ScannedCorpus(
+                summaries: visitor.summaries,
+                identities: visitor.identities,
+                typeDecls: visitor.typeDecls,
+                restricted: visitor.restricted
+            )
+        }
+        """, defaultedTypes: ["ScannedCorpus", "FunctionScannerVisitor"]).isEmpty)
+    }
+
+    /// …and when the local IS the type being rebuilt, the same resolution confirms the copy.
+    @Test("a local of the same type, resolved from its initialiser, still fires")
+    func localOfSameTypeFires() throws {
+        let issue = try #require(analyze("""
+        func amend() -> Suggestion {
+            let base = Suggestion(templateName: "x")
+            return Suggestion(
+                templateName: base.templateName,
+                evidence: base.evidence,
+                score: base.score,
+                identity: base.identity
+            )
+        }
+        """).first)
+
+        #expect(issue.message.contains("is rebuilt field-by-field"))
+    }
+
     // MARK: - What the rule says when it does not know
 
     /// **The rule must not give advice it cannot stand behind.**

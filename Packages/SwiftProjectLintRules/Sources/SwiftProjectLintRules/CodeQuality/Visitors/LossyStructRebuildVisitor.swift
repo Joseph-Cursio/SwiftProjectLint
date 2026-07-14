@@ -204,16 +204,42 @@ final class LossyStructRebuildVisitor: BasePatternVisitor {
                     }
                 }
             }
-            if let binding = current.as(VariableDeclSyntax.self) {
-                for pattern in binding.bindings {
-                    guard
-                        pattern.pattern.as(IdentifierPatternSyntax.self)?.identifier.text == name,
-                        let annotation = pattern.typeAnnotation
-                    else { continue }
-                    return annotation.type.trimmedDescription
+            // A local binding, in either of the two ways Swift lets you write one.
+            if let block = current.as(CodeBlockSyntax.self) {
+                for item in block.statements {
+                    guard let declaration = item.item.as(VariableDeclSyntax.self) else { continue }
+                    if let type = declaredType(of: name, in: declaration) { return type }
                 }
             }
             cursor = current.parent
+        }
+        return nil
+    }
+
+    /// The type of a local binding named `name`, from an annotation **or from its initialiser**.
+    ///
+    ///     let visitor: FunctionScannerVisitor = …     // annotated
+    ///     let visitor = FunctionScannerVisitor(…)     // inferred, but the type is right there
+    ///
+    /// Reading the initialiser matters: without it, a projection built from a locally-constructed
+    /// value has an unresolvable base, falls through to the ratio, and reports. Real code —
+    /// `let visitor = FunctionScannerVisitor(…)` followed by `ScannedCorpus(summaries:
+    /// visitor.summaries, …)` — is a projection into a *different* type, and the type it needs to
+    /// prove that is written on the line above.
+    private func declaredType(of name: String, in declaration: VariableDeclSyntax) -> String? {
+        for binding in declaration.bindings {
+            guard binding.pattern.as(IdentifierPatternSyntax.self)?.identifier.text == name else {
+                continue
+            }
+            if let annotation = binding.typeAnnotation {
+                return annotation.type.trimmedDescription
+            }
+            // `let x = T(…)` — the constructor names the type.
+            if let call = binding.initializer?.value.as(FunctionCallExprSyntax.self),
+               let reference = call.calledExpression.as(DeclReferenceExprSyntax.self),
+               let first = reference.baseName.text.first, first.isUppercase {
+                return reference.baseName.text
+            }
         }
         return nil
     }
