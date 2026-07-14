@@ -128,17 +128,36 @@ struct PureFunctionCandidateVisitorTests {
         #expect(analyze(source).isEmpty)
     }
 
-    @Test func ignoresInstanceMethodReadingComputedState() {
-        // A computed property can read anything at all, so reading one is not reading `self` —
-        // it is reading whatever that property decided to read.
-        let source = """
+    /// **Reversed by B9, and the old expectation is the bug it names.**
+    ///
+    /// This used to assert `.isEmpty`, on the reasoning that "a computed property can read anything
+    /// at all, so reading one is not reading `self`." True of an *arbitrary* computed property;
+    /// false of a **derived** one. `var derived: Int { raw * 2 }` reads a single `let` and is exactly
+    /// as pure as it is — and refusing it meant the linter refused the very value type it had just
+    /// told the reader to extract. The refusal is now made on what the getter actually reads, not on
+    /// the fact that it has a getter.
+    @Test func flagsInstanceMethodReadingDerivedState() throws {
+        let issue = try #require(analyze("""
         struct Report {
             let raw: Int
             var derived: Int { raw * 2 }
             func scaled(_ n: Int) -> Int { derived * n }
         }
-        """
-        #expect(analyze(source).isEmpty)
+        """).first)
+        #expect(issue.message.contains("scaled"))
+    }
+
+    /// The half of the old rule that was right, kept: a computed property whose getter reads a name
+    /// this file cannot resolve may vary independently of the arguments, so a method reading it is
+    /// not a function of `self`.
+    @Test func ignoresInstanceMethodReadingUnresolvableComputedState() {
+        #expect(analyze("""
+        struct Report {
+            let raw: Int
+            var derived: Int { raw * hiddenGlobal }
+            func scaled(_ n: Int) -> Int { derived * n }
+        }
+        """).contains { $0.message.contains("scaled") } == false)
     }
 
     @Test func ignoresInstanceMethodReadingAnUnresolvableIdentifier() {
@@ -267,5 +286,89 @@ struct PureFunctionCandidateVisitorTests {
     @Test func dropsTupleReturn() {
         // A tuple has no nominal base to look up — treated as non-assertable.
         #expect(analyze("func pair(_ x: Int) -> (Int, Int) { (x, x) }").isEmpty)
+    }
+
+    // MARK: - The extracted value type must be seedable (B9)
+
+    /// **The rule reported a refactor and then refused its own output.**
+    ///
+    /// `ExtractablePureKernel` tells the reader to lift the chunk arithmetic into a value type. The
+    /// natural way to write that type — and the way this project's own reference `ChunkPlan` does
+    /// write it — uses `min(...)` and a computed `totalChunks`. Both refuted purity, so the extracted
+    /// type earned **no seed at all**, and the lint → infer loop dead-ended on the code it was aimed
+    /// at. Three cold readers hit this independently; one wrote that the round trip *"destroyed
+    /// information that step 1's prose already had."*
+    @Test("a method calling `min` is still a candidate — it computes, it does not reach out")
+    func methodCallingMinIsCandidate() throws {
+        let issue = try #require(analyze("""
+        struct ChunkPlan {
+            let byteCount: Int
+            let chunkSize: Int
+            func byteRange(ofChunk index: Int) -> Int {
+                let start = index * chunkSize
+                return min(start + chunkSize, byteCount)
+            }
+        }
+        """).first)
+        #expect(issue.message.contains("byteRange"))
+    }
+
+    /// A computed property derived from immutable stored state is a *value of the type*, not a
+    /// channel to the outside world. Reading one keeps the method a function of `self`.
+    @Test("a method reading a derived computed property is still a candidate")
+    func methodReadingDerivedPropertyIsCandidate() throws {
+        let issue = try #require(analyze("""
+        struct ChunkPlan {
+            let byteCount: Int
+            let chunkSize: Int
+            var totalChunks: Int { (byteCount + chunkSize - 1) / chunkSize }
+            func progress(afterCompleting index: Int) -> Double {
+                Double(index + 1) / Double(totalChunks)
+            }
+        }
+        """).first)
+        #expect(issue.message.contains("progress"))
+    }
+
+    /// **The soundness case, and the reason the derived-property check has two halves.**
+    ///
+    /// `var now: Date { Date() }` reads no *mutable stored state*, so a check that only resolved
+    /// names would see an uppercase type reference and wave it through — admitting a clock into a
+    /// function claimed pure. It is the marker scan on the getter body that refutes it.
+    @Test("a method reading a clock-backed computed property is NOT a candidate")
+    func methodReadingClockPropertyIsRefuted() {
+        // `age` reads `now` and nothing else nondeterministic — no `Date` token appears in its own
+        // body, so the method-level marker scan sees nothing wrong. Only the check on the GETTER's
+        // body refutes it. Drop that check and a clock walks into a function claimed pure.
+        #expect(analyze("""
+        struct Session {
+            var now: Date { Date() }
+            func age(_ since: Double) -> Double { now.timeIntervalSince1970 - since }
+        }
+        """).contains { $0.message.contains("age") } == false)
+    }
+
+    /// A computed property over a `var` is not derived — the `var` may differ between two reads.
+    @Test("a method reading a computed property backed by a `var` is NOT a candidate")
+    func methodReadingMutableBackedPropertyIsRefuted() {
+        #expect(analyze("""
+        struct Box {
+            let count: Int
+            var multiplier: Int = 2
+            var scaled: Int { count * multiplier }
+            func total(_ extra: Int) -> Int { scaled + extra }
+        }
+        """).contains { $0.message.contains("total") } == false)
+    }
+
+    /// A `min` *value* is not a `min` *call*. Only callee position is waved through, so a global
+    /// variable that happens to share the name still refutes.
+    @Test("reading a value named `min` still refutes — only a call is waved through")
+    func readingValueNamedMinIsRefuted() {
+        #expect(analyze("""
+        struct Box {
+            func scaled(_ x: Int) -> Int { x * min }
+        }
+        """).isEmpty)
     }
 }

@@ -39,4 +39,15 @@ public struct PurityInferrer: Sendable {
     public func isPure(_ closure: ClosureExprSyntax) -> Bool {
         underlying.isPure(closure)
     }
+
+    /// Whether a **computed property's getter** is referentially transparent.
+    ///
+    /// Answers the effect half only — markers and totality. `SelfAccessAnalyzer` resolves the state
+    /// half, because whether the names a getter reads are immutable is a fact about the enclosing
+    /// type that the shared leaf cannot see. Both halves are needed: this one refutes
+    /// `var now: Date { Date() }`, which touches no stored state and would otherwise pass a
+    /// names-only check.
+    public func isPure(_ accessor: AccessorBlockSyntax) -> Bool {
+        underlying.isPure(accessor)
+    }
 }
