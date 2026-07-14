@@ -113,16 +113,30 @@ public struct PBTSeedsFormatter: IssueFormatterProtocol {
     /// Rules whose findings name a place worth property-testing, and what kind of place each names.
     ///
     /// Every rule here must populate `LintIssue.symbol`. For an analysable kind the symbol is the
-    /// *subject*; for `extractableKernel` it is the enclosing function — a **location**, because the
-    /// kernel itself has no name yet. That is the point of the rule.
+    /// *subject*; for `extractableKernel` it is the enclosing declaration — a **location**, because
+    /// the kernel itself has no name yet. That is the point of the rule.
     ///
-    /// `pureClosureCandidate` is deliberately **absent**. It is the same refactor-pending shape as a
-    /// kernel and belongs here on the same terms, but adding it changes the manifest a downstream
-    /// pin already consumes; it is a separate, deliberate step rather than a side effect of this one.
+    /// **`pureClosureCandidate` is a kernel, and leaving it out cost the pipeline its best finding.**
+    /// It was held back once as "a separate, deliberate step"; this is that step. A pure closure is
+    /// the same refactor-pending shape as an inlined kernel — pure logic with no name, which no tool
+    /// can index, call or generate inputs for until a human draws a boundary around it — and it
+    /// belongs here on exactly the same terms.
+    ///
+    /// What it cost: `ExtractablePureKernelVisitor` is arithmetic-shaped, so on the road-test fixture
+    /// it seeds `uploadRemainingChunks` and `collect` and **cannot** see `fetchLocalFiles`, whose
+    /// logic is a predicate and a comparator rather than a computation. The closure rule *did* fire
+    /// on both halves of it and said the right thing — and then the finding died in the formatter,
+    /// because a manifest is the only channel the downstream tool reads. So no reader was ever asked
+    /// to extract that logic, no comparator law was ever proposed for it, and the bug living in the
+    /// predicate was reached by 1 cold reader in 3 — by ignoring the manifest and reading the code.
+    ///
+    /// The lesson generalises past this rule: **a finding the linter prints but does not seed is a
+    /// finding the pipeline does not have.**
     static let seedKinds: [RuleIdentifier: PBTSeedKind] = [
         .pureFunctionCandidate: .pureFunction,
         .idempotencyViolation: .idempotency,
-        .extractablePureKernel: .extractableKernel
+        .extractablePureKernel: .extractableKernel,
+        .pureClosureCandidate: .extractableKernel
     ]
 
     public init() { /* no-op */ }

@@ -282,4 +282,60 @@ struct PureClosureCandidateVisitorTests {
         }
         """, filePath: "LogicTests.swift").isEmpty)
     }
+
+    // MARK: - The symbol is a location
+
+    /// The symbol names the enclosing **member**, because that is the only thing a reader can
+    /// navigate to. `filter` names the operation, not the code, and every `filter` in a codebase
+    /// would share it — a consumer narrowing to `filter` narrows to nothing.
+    @Test("the symbol is the enclosing function, not the collection operation")
+    func symbolIsTheEnclosingFunction() {
+        let issues = analyze("""
+        func fetchLocalFiles() {
+            files = allFiles.sorted { lhs, rhs in
+                if lhs.isFolder != rhs.isFolder { return lhs.isFolder }
+                return lhs.name < rhs.name
+            }
+        }
+        """)
+
+        #expect(issues.first?.symbol == "fetchLocalFiles")
+    }
+
+    /// **A local binding is stepped over.** Written naively the parent walk stops at the nearest
+    /// `VariableDeclSyntax` — which here is the local `let`, yielding the symbol `immediateChildren`:
+    /// a name that exists nowhere a consumer can look up, and that changes the instant someone
+    /// renames a local. This is the exact shape of `fetchLocalFiles`, and the naive walk got it
+    /// wrong.
+    @Test("a closure bound to a local `let` is still named for the enclosing function")
+    func localBindingIsNotTheSymbol() {
+        let issues = analyze("""
+        func fetchLocalFiles() {
+            let immediateChildren = allFiles.filter { file in
+                let relativePath = file.path.replacingOccurrences(of: currentPath, with: "")
+                return relativePath.split(separator: "/").count <= 1
+            }
+            print(immediateChildren)
+        }
+        """)
+
+        #expect(issues.first?.symbol == "fetchLocalFiles")
+        #expect(issues.first?.symbol != "immediateChildren")
+    }
+
+    /// A computed property is a member with a body, and the predicate hiding in it is as extractable
+    /// as one inside a `func`. Refusing it because it is spelled `var` would be a distinction the
+    /// reader does not care about.
+    @Test("a closure inside a computed property is named for the property")
+    func computedPropertyIsTheSymbol() {
+        let issues = analyze("""
+        struct Model {
+            var filteredFiles: [File] {
+                files.filter { $0.name.localizedCaseInsensitiveContains(searchText) }
+            }
+        }
+        """)
+
+        #expect(issues.first?.symbol == "filteredFiles")
+    }
 }

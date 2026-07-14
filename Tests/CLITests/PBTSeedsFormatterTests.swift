@@ -186,4 +186,40 @@ struct PBTSeedsFormatterTests {
         #expect(bySymbol["mul"]?.file == "B.swift")
         #expect(bySymbol["mul"]?.line == 9)
     }
+
+    // MARK: - A pure closure is a kernel
+
+    /// A closure has no name, so it is `refactor-pending` on exactly the terms an inlined kernel is:
+    /// report it as a place to look, and never let a consumer narrow analysis to it.
+    ///
+    /// Held back once as "a separate, deliberate step", and the cost was concrete — on the road-test
+    /// fixture the closure rule fired on both halves of `fetchLocalFiles` (a predicate and a
+    /// comparator), and the finding died here because a manifest is the only channel `swift-infer`
+    /// reads. No reader was ever asked to extract that logic, so no law was proposed for it, and the
+    /// bug in the predicate was reached by 1 cold reader in 3 — by ignoring the manifest.
+    @Test("a pure closure seeds as an extractable kernel, named for its enclosing declaration")
+    func pureClosureSeedsAsKernel() throws {
+        let issue = LintIssue(
+            severity: .info,
+            message: "The closure passed to `filter` is pure",
+            filePath: "MacCloudViewModel+FileOperations.swift",
+            lineNumber: 57,
+            suggestion: "Lift it into a named function",
+            ruleName: .pureClosureCandidate,
+            symbol: "fetchLocalFiles"
+        )
+
+        let json = PBTSeedsFormatter().format(issues: [issue])
+        let data = try #require(json.data(using: .utf8))
+        let manifest = try JSONDecoder().decode(PBTSeedManifest.self, from: data)
+
+        let seed = try #require(manifest.seeds.first)
+        #expect(seed.kind == .extractableKernel)
+        #expect(seed.symbol == "fetchLocalFiles")
+        #expect(seed.line == 57)
+
+        // The symbol is a LOCATION, not a subject: there is nothing named to analyse until a human
+        // draws the boundary. Narrowing to it would report a confident zero.
+        #expect(manifest.analysableSeeds.isEmpty)
+    }
 }
