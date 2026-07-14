@@ -40,6 +40,9 @@ public final class SourcePatternDetector: SourcePatternDetectorProtocol, @unchec
     /// pre-scan and passed through to visitors.
     public var knownProjectFunctions: Set<String> = []
 
+    /// Types whose initialiser has defaulted parameters. Set by `ProjectLinter` after a pre-scan.
+    public var knownDefaultedInitializerTypes: Set<String> = []
+
     /// Architectural layer policies, set from `LintConfiguration.architecturalLayers`.
     /// Passed through to visitors that need them (e.g. ArchitecturalBoundaryVisitor).
     public var layerPolicies: [LayerPolicy] = []
@@ -184,6 +187,7 @@ public final class SourcePatternDetector: SourcePatternDetectorProtocol, @unchec
             visitor.knownProtocolTypes = knownProtocolTypes
             visitor.knownEquatableTypes = knownEquatableTypes
             visitor.knownProjectFunctions = knownProjectFunctions
+            visitor.knownDefaultedInitializerTypes = knownDefaultedInitializerTypes
             visitor.layerPolicies = layerPolicies
             visitor.enabledFrameworkAllowlists = enabledFrameworkAllowlists
             // `setFilePath` must run after every injected property is set: some

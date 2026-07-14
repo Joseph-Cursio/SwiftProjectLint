@@ -121,6 +121,7 @@ Rules marked **opt-in** are disabled by default and must be explicitly listed un
 | [Missing Cancellation Check](missing-cancellation-check.md) | Warning |
 | [Fire And Forget Task](fire-and-forget-task.md) | Warning |
 | [Discarded Try Result](discarded-try-result.md) | Warning |
+| [Lossy Struct Rebuild](lossy-struct-rebuild.md) | Warning |
 | [Map Used For Side Effects](map-used-for-side-effects.md) | Warning |
 | [Could Be Private](could-be-private.md) | Info |
 | [Public in App Target](public-in-app-target.md) | Info |

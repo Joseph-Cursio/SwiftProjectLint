@@ -76,6 +76,13 @@ open class BasePatternVisitor: SyntaxVisitor, PatternVisitorProtocol {
     /// rule re-reports its own advice and the extraction loop never terminates.
     public var knownProjectFunctions: Set<String> = []
 
+    /// Types whose initialiser has DEFAULTED parameters — built by `DefaultedInitializerCollector`.
+    ///
+    /// The load-bearing half of `lossyStructRebuild`: a field-by-field rebuild is only a bug when a
+    /// forgotten argument can silently take a default. With all-required parameters the omission is a
+    /// compile error and the mistake is impossible.
+    public var knownDefaultedInitializerTypes: Set<String> = []
+
     /// Architectural layer policies for the Architectural Boundary rule.
     /// Injected by `SourcePatternDetector` after loading from `LintConfiguration`.
     /// Empty by default — the rule is a no-op when no layers are defined.

@@ -43,6 +43,9 @@ public protocol SourcePatternDetectorProtocol {
     /// closure that still hides logic from one merely forwarding to a function already extracted.
     var knownProjectFunctions: Set<String> { get set }
 
+    /// Types whose initialiser has defaulted parameters — the gate for `lossyStructRebuild`.
+    var knownDefaultedInitializerTypes: Set<String> { get set }
+
     /// Architectural layer policies for the Architectural Boundary rule.
     var layerPolicies: [LayerPolicy] { get set }
 

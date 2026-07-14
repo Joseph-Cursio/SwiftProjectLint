@@ -116,6 +116,7 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
         let protocolTypes = Self.collectTypes(ProtocolTypeCollector.self, from: filePaths)
         let equatableTypes = Self.collectTypes(EquatableConformanceCollector.self, from: filePaths)
         let projectFunctions = Self.collectTypes(DeclaredFunctionCollector.self, from: filePaths)
+        let defaultedInits = Self.collectTypes(DefaultedInitializerCollector.self, from: filePaths)
 
         // Resolve the registry once so each task can create its own detector
         var resolvedDetector = detector ?? SourcePatternDetector()
@@ -127,6 +128,7 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
         resolvedDetector.knownProtocolTypes = protocolTypes
         resolvedDetector.knownEquatableTypes = equatableTypes
         resolvedDetector.knownProjectFunctions = projectFunctions
+        resolvedDetector.knownDefaultedInitializerTypes = defaultedInits
         resolvedDetector.layerPolicies = effectiveConfiguration.architecturalLayers
         resolvedDetector.enabledFrameworkAllowlists =
             effectiveConfiguration.enabledFrameworkAllowlists
@@ -147,6 +149,7 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
             protocolTypes: protocolTypes,
             equatableTypes: equatableTypes,
             projectFunctions: projectFunctions,
+            defaultedInitializerTypes: defaultedInits,
             layerPolicies: effectiveConfiguration.architecturalLayers
         )
         let perFileResults = await withTaskGroup(
@@ -335,6 +338,9 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
         /// Functions this project declares — lets the Pure Closure rule tell a closure that still
         /// hides logic from one merely forwarding to a function the reader already extracted.
         let projectFunctions: Set<String>
+
+        /// Types whose initialiser has defaulted parameters — the gate for `lossyStructRebuild`.
+        let defaultedInitializerTypes: Set<String>
         let layerPolicies: [LayerPolicy]
     }
 
@@ -358,6 +364,7 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
             protocolTypes: env.protocolTypes,
             equatableTypes: env.equatableTypes,
             projectFunctions: env.projectFunctions,
+            defaultedInitializerTypes: env.defaultedInitializerTypes,
             layerPolicies: env.layerPolicies
         )
     }
@@ -377,6 +384,7 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
         protocolTypes: Set<String> = [],
         equatableTypes: Set<String> = [],
         projectFunctions: Set<String> = [],
+        defaultedInitializerTypes: Set<String> = [],
         layerPolicies: [LayerPolicy] = []
     ) -> (file: ProjectFile, issues: [LintIssue], parsedAST: SourceFileSyntax)? {
         guard !Task.isCancelled else { return nil }
@@ -399,6 +407,7 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
         det.knownProtocolTypes = protocolTypes
         det.knownEquatableTypes = equatableTypes
         det.knownProjectFunctions = projectFunctions
+        det.knownDefaultedInitializerTypes = defaultedInitializerTypes
         det.layerPolicies = layerPolicies
 
         let rawIssues: [LintIssue]

@@ -222,6 +222,10 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
     case missingEquatableOnStateType = "Missing Equatable on State Type"
     case impureCallInViewBody = "Impure Call in View Body"
 
+    /// A value rebuilt field-by-field from one you already have, where the initialiser has
+    /// defaulted parameters — so a forgotten field takes its default SILENTLY.
+    case lossyStructRebuild = "Lossy Struct Rebuild"
+
     // Other/System Rules
     case fileParsingError = "File Parsing Error"
     case unknown = "Unknown"
@@ -291,7 +295,7 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
              .taskDetached, .asyncLetUnused, .buttonClosureWrapping,
              .nonisolatedUnsafe, .taskYieldOffload, .swallowedTaskError,
              .missingCancellationCheck, .fireAndForgetTask,
-             .discardedTryResult, .mapUsedForSideEffects,
+             .discardedTryResult, .lossyStructRebuild, .mapUsedForSideEffects,
              .couldBePrivate, .publicInAppTarget, .couldBePrivateMember,
              .protocolCouldBePrivate, .variableShadowing, .uncheckedSendable,
              .disfavoredOverload, .retroactiveConformance,
