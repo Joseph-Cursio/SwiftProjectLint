@@ -178,4 +178,52 @@ struct ExtractablePureKernelVisitorTests {
         }
         """, filePath: "ServiceTests.swift").isEmpty)
     }
+
+    // MARK: - The advice names the tiler shape when one is present (B16)
+
+    /// **A kernel with slicing arithmetic must tell the reader to extract a TILER, not just "the
+    /// arithmetic."** Cold-reader walks measured the cost of the vague advice: given chunking math,
+    /// readers reliably lift the scalar chunk *count*, which carries no tiling law — so the
+    /// `partition` law that catches the resume-counter and empty-payload bugs is never proposed, and
+    /// the bug is one method away. The suggestion now names the index-to-slice shape.
+    @Test("a slicing kernel's advice names the index-to-slice tiler shape")
+    func slicingKernelSuggestsATiler() throws {
+        let issue = try #require(analyze("""
+        func uploadRemainingChunks(of data: Data, from queued: Int, chunkSize: Int) async throws {
+            let totalChunks = (data.count + chunkSize - 1) / chunkSize
+            var index = queued
+            while index < totalChunks {
+                let chunk = Data(data.dropFirst(index * chunkSize).prefix(chunkSize))
+                _ = try await uploadChunk(chunk)
+                index += 1
+                progressHandler?(Double(index) / Double(totalChunks))
+            }
+        }
+        """).first)
+
+        let suggestion = try #require(issue.suggestion)
+        #expect(suggestion.contains("maps a part INDEX to its slice"))
+        #expect(suggestion.contains("byteRange(ofChunk"))
+        // And it warns off the scalar the readers kept extracting.
+        #expect(suggestion.contains("count"))
+    }
+
+    /// A kernel that is a **fraction with no slicing** — a progress throttle — keeps the generic
+    /// advice: there is no tiler shape to name, so naming one would be cargo-culting.
+    @Test("a fraction-only kernel keeps the generic advice, not the tiler shape")
+    func fractionOnlyKernelKeepsGenericAdvice() throws {
+        let issue = try #require(analyze("""
+        func stream(_ received: Int, of expected: Int) async throws {
+            let fraction = Double(received) / Double(expected)
+            if fraction - lastReported >= 0.01 {
+                progressHandler?(fraction)
+                _ = try await flush()
+            }
+        }
+        """).first)
+
+        let suggestion = try #require(issue.suggestion)
+        #expect(suggestion.contains("Extract the arithmetic into a value type"))
+        #expect(suggestion.contains("maps a part INDEX to its slice") == false)
+    }
 }

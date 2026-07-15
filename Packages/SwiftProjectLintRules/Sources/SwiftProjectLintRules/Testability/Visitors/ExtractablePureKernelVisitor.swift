@@ -81,8 +81,7 @@ final class ExtractablePureKernelVisitor: BasePatternVisitor {
                 + "Lift them into a value type and they become property-testable: \(kernel.law)",
             filePath: getFilePath(for: Syntax(kernel.anchor)),
             lineNumber: getLineNumber(for: Syntax(kernel.anchor)),
-            suggestion: "Extract the arithmetic into a value type constructed from those inputs "
-                + "alone. The method keeps the I/O and asks the value type where the bytes are.",
+            suggestion: kernel.suggestion,
             ruleName: .extractablePureKernel,
             symbol: node.name.text
         )
@@ -177,6 +176,33 @@ private struct KernelScan {
         }
         return "the parts should tile the whole exactly — no gap, no overlap — and the count should "
             + "be exactly `ceil(total / size)`."
+    }
+
+    /// What to actually build — and for a **tiler**, the shape matters as much as the fact.
+    ///
+    /// *"Extract the arithmetic into a value type"* is not wrong, but it is under-specified in the one
+    /// case where the reader has a real choice, and cold-reader walks measured the cost: given
+    /// chunking math, readers reliably lift the **count** — `func chunkCount(...) -> Int` — because a
+    /// scalar is the most obvious "arithmetic." A count is a fine pure function, but it is **not a
+    /// tiler**: no law over it says the parts tile the whole, and the property that actually catches
+    /// the resume-counter and empty-payload bugs (a `partition` over an index → slice map) never gets
+    /// proposed for it. The bug is one method away and the reader walks past it.
+    ///
+    /// So when slicing arithmetic is present, name the shape that carries the tiling law: a method
+    /// mapping a part **index** to its slice (or byte range) of the whole. That is the extraction that
+    /// pays; the count comes along for free as a property of it.
+    var suggestion: String {
+        guard hasSlicingArithmetic else {
+            return "Extract the arithmetic into a value type constructed from those inputs alone. "
+                + "The method keeps the I/O and asks the value type where the bytes are."
+        }
+        return "Extract a value type whose key method maps a part INDEX to its slice of the whole — "
+            + "`func chunk(of whole: …, at index: Int) -> …` returning the part, or "
+            + "`func byteRange(ofChunk index: Int) -> Range<Int>` returning where it lives. THAT "
+            + "method carries the tiling law (the parts reassemble the whole, and an out-of-range "
+            + "index yields nothing rather than trapping); a bare chunk *count* does not, and is the "
+            + "extraction that walks past the bug. The method keeps the I/O and asks the value type "
+            + "where the bytes are."
     }
 }
 
