@@ -119,6 +119,11 @@ private struct KernelScan {
     /// without saying "`progress` and the progress fraction".
     private var hasUnnamedFraction = false
 
+    /// A mutable index seeded from outside the kernel — `var index = current.queuedChunks` — that
+    /// then drives the slice. The resume point, and the thing a cold reader lifted as a separate
+    /// scalar rather than folding into the tiler where its clamp belongs. (B18.)
+    private var hasResumableIndex = false
+
     private(set) var anchor: Syntax
 
     init(body: CodeBlockSyntax) {
@@ -131,6 +136,7 @@ private struct KernelScan {
         hasSlicingArithmetic = collector.hasSlicingArithmetic
         hasUnnamedFraction = collector.hasFraction && !collector.fractionIsNamed
         hasGoverningComparison = collector.governingComparisonReferencing(collector.derivedBindings)
+        hasResumableIndex = collector.hasResumableIndex
 
         if let first = collector.firstArithmeticSite {
             anchor = first
@@ -191,18 +197,36 @@ private struct KernelScan {
     /// So when slicing arithmetic is present, name the shape that carries the tiling law: a method
     /// mapping a part **index** to its slice (or byte range) of the whole. That is the extraction that
     /// pays; the count comes along for free as a property of it.
+    ///
+    /// **B18 — and when the tiler has a resume point, name that too.** Naming the tiler shape moved
+    /// the resume-counter bug from 1/3 to 2/3 in a cold-reader walk; the miss that held it there was a
+    /// reader who lifted the *resume index* — `var index = current.queuedChunks` — as its own scalar
+    /// `func resumeIndex(...) -> Int`, a shape that carries no tiling law and drew them straight past
+    /// the bug at the right line. The resume point is not a kernel of its own: it is the tiler's
+    /// clamped `startIndex`. When an externally-seeded index drives the slice, say so — but *only*
+    /// then, so a plain `var i = 0` tiler with no resume concept keeps the shorter advice.
     var suggestion: String {
         guard hasSlicingArithmetic else {
             return "Extract the arithmetic into a value type constructed from those inputs alone. "
                 + "The method keeps the I/O and asks the value type where the bytes are."
         }
-        return "Extract a value type whose key method maps a part INDEX to its slice of the whole — "
-            + "`func chunk(of whole: …, at index: Int) -> …` returning the part, or "
+        var advice = "Extract a value type whose key method maps a part INDEX to its slice of the "
+            + "whole — `func chunk(of whole: …, at index: Int) -> …` returning the part, or "
             + "`func byteRange(ofChunk index: Int) -> Range<Int>` returning where it lives. THAT "
             + "method carries the tiling law (the parts reassemble the whole, and an out-of-range "
             + "index yields nothing rather than trapping); a bare chunk *count* does not, and is the "
             + "extraction that walks past the bug. The method keeps the I/O and asks the value type "
             + "where the bytes are."
+        if hasResumableIndex {
+            advice += " And the point this loop RESUMES from — the index seeded from outside, not a "
+                + "literal `0` — is not a kernel of its own: do not lift it as a separate "
+                + "`func resumeIndex(...) -> Int`, which carries no tiling law and leaves the bug at "
+                + "the site. It is the tiler's `startIndex`, and it belongs INSIDE the value type, "
+                + "clamped to `0...count` at construction — an unclamped start from a server counter "
+                + "either traps (negative) or silently completes a partial upload (too large), and "
+                + "the clamp is the property the tiler owes."
+        }
+        return advice
     }
 }
 
@@ -217,6 +241,23 @@ private struct Collector {
     private(set) var hasSlicingArithmetic = false
     private(set) var firstArithmeticSite: Syntax?
     private var comparisons: [ExprSyntax] = []
+
+    /// A `var` whose initialiser is not an integer literal — a mutable value seeded from *outside*
+    /// the kernel, e.g. `var index = current.queuedChunks`. A `var i = 0` is excluded: a literal
+    /// seed has no resume concept and no clamp to owe.
+    private var externallySeededVars: Set<String> = []
+
+    /// Identifiers that appear inside slicing arithmetic — `index` and `chunkSize` in
+    /// `dropFirst(index * chunkSize)`. The intersection with `externallySeededVars` is the resume
+    /// index: a value sourced from outside that drives the slice.
+    private var slicingIndexNames: Set<String> = []
+
+    /// A resumable index is present when an externally-seeded `var` is the thing driving the slice.
+    /// (B18.) This implies `hasSlicingArithmetic`, since `slicingIndexNames` is only ever populated
+    /// alongside it.
+    var hasResumableIndex: Bool {
+        !externallySeededVars.isDisjoint(with: slicingIndexNames)
+    }
 
     /// Calls that do not refute the kernel — a numeric conversion computes nothing you could not
     /// have written with an operator. Anything else in an initialiser means the binding is doing
@@ -249,6 +290,7 @@ private struct Collector {
             if let subscriptCall = child.as(SubscriptCallExprSyntax.self) {
                 if containsArithmetic(Syntax(subscriptCall.arguments)) {
                     hasSlicingArithmetic = true
+                    slicingIndexNames.formUnion(identifiers(in: Syntax(subscriptCall.arguments)))
                 }
             }
             walk(child)
@@ -256,14 +298,21 @@ private struct Collector {
     }
 
     /// `let totalChunks = (data.count + chunkSize - 1) / chunkSize` — arithmetic, no opaque calls.
+    ///
+    /// Also notes a **`var` seeded from a non-literal** — `var index = current.queuedChunks` — as an
+    /// externally-sourced mutable index (B18), independent of whether its initialiser does
+    /// arithmetic; the resume seed usually does none.
     private mutating func record(_ declaration: VariableDeclSyntax) {
+        let isVar = declaration.bindingSpecifier.tokenKind == .keyword(.var)
         for binding in declaration.bindings {
             guard let value = binding.initializer?.value,
-                  let name = binding.pattern.as(IdentifierPatternSyntax.self)?.identifier.text,
-                  containsArithmetic(Syntax(value)),
-                  onlyPureCalls(Syntax(value)) else {
+                  let name = binding.pattern.as(IdentifierPatternSyntax.self)?.identifier.text else {
                 continue
             }
+            if isVar, !value.is(IntegerLiteralExprSyntax.self) {
+                externallySeededVars.insert(name)
+            }
+            guard containsArithmetic(Syntax(value)), onlyPureCalls(Syntax(value)) else { continue }
             derivedBindings.append(name)
             if firstArithmeticSite == nil { firstArithmeticSite = Syntax(declaration) }
             if isFraction(Syntax(value)) {
@@ -278,6 +327,7 @@ private struct Collector {
         if Self.slicingCalls.contains(callee.declName.baseName.text),
            containsArithmetic(Syntax(call.arguments)) {
             hasSlicingArithmetic = true
+            slicingIndexNames.formUnion(identifiers(in: Syntax(call.arguments)))
             if firstArithmeticSite == nil { firstArithmeticSite = Syntax(call) }
         }
     }
@@ -318,6 +368,16 @@ private struct Collector {
 
     private func containsArithmetic(_ node: Syntax) -> Bool {
         !operators(in: node).isDisjoint(with: Self.arithmeticOperators)
+    }
+
+    /// The bare identifiers appearing in a slice expression — `index`, `chunkSize` in
+    /// `dropFirst(index * chunkSize)`. Used to find which names actually drive a slice. (B18.)
+    private func identifiers(in node: Syntax) -> Set<String> {
+        var found: Set<String> = []
+        for token in node.tokens(viewMode: .sourceAccurate) {
+            if case .identifier = token.tokenKind { found.insert(token.text) }
+        }
+        return found
     }
 
     /// `Double(a) / Double(b)` — a division with a numeric conversion in it. This is the progress

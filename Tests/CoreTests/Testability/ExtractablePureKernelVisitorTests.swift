@@ -226,4 +226,59 @@ struct ExtractablePureKernelVisitorTests {
         #expect(suggestion.contains("Extract the arithmetic into a value type"))
         #expect(suggestion.contains("maps a part INDEX to its slice") == false)
     }
+
+    // MARK: - The advice names the resume-index shape when the tiler has one (B18)
+
+    /// **A tiler whose loop resumes from an externally-seeded index must warn the reader off lifting
+    /// that index as its own scalar.** Naming the tiler shape (B16) moved the resume-counter bug from
+    /// 1/3 to 2/3 in a cold-reader walk; the miss that held it there was a reader who extracted the
+    /// resume point — `var index = current.queuedChunks` — as a separate `func resumeIndex(...) ->
+    /// Int`, a shape carrying no tiling law, and so walked past the bug at the right line. The
+    /// suggestion now says the resume point is the tiler's clamped `startIndex`.
+    @Test("a tiler with a server-seeded resume index is told to fold it in as a clamped startIndex")
+    func resumableTilerSuggestsFoldingTheIndexIn() throws {
+        let issue = try #require(analyze("""
+        func uploadRemainingChunks(of data: Data, chunkSize: Int) async throws {
+            let totalChunks = (data.count + chunkSize - 1) / chunkSize
+            var index = current.queuedChunks
+            while index < totalChunks {
+                let chunk = Data(data.dropFirst(index * chunkSize).prefix(chunkSize))
+                _ = try await uploadChunk(chunk)
+                index += 1
+            }
+        }
+        """).first)
+
+        let suggestion = try #require(issue.suggestion)
+        // Still the tiler advice (B16 unchanged) …
+        #expect(suggestion.contains("maps a part INDEX to its slice"))
+        // … plus the resume-index clause (B18): it is the tiler's clamped startIndex, not a scalar.
+        #expect(suggestion.contains("startIndex"))
+        #expect(suggestion.contains("clamped to `0...count`"))
+        #expect(suggestion.contains("resumeIndex"))
+    }
+
+    /// A tiler whose loop starts from a **literal `0`** has no resume concept, so the B18 clause must
+    /// stay silent — naming a clamp there would be cargo-culting a bug the code cannot have.
+    @Test("a tiler that starts from a literal 0 keeps the plain tiler advice, no resume clause")
+    func nonResumableTilerOmitsTheResumeClause() throws {
+        // Identical to the resumable case above except the seed — `var index = 0`, not a server
+        // counter — so this isolates exactly the B18 signal.
+        let issue = try #require(analyze("""
+        func splitEvenly(_ data: Data, chunkSize: Int) async throws {
+            let totalChunks = (data.count + chunkSize - 1) / chunkSize
+            var index = 0
+            while index < totalChunks {
+                let chunk = Data(data.dropFirst(index * chunkSize).prefix(chunkSize))
+                _ = try await upload(chunk)
+                index += 1
+            }
+        }
+        """).first)
+
+        let suggestion = try #require(issue.suggestion)
+        #expect(suggestion.contains("maps a part INDEX to its slice"))
+        #expect(suggestion.contains("startIndex") == false)
+        #expect(suggestion.contains("resumeIndex") == false)
+    }
 }
