@@ -47,7 +47,11 @@ public enum PropertyTestCandidacy {
         knownEquatableTypes: Set<String>
     ) -> PropertyTestShape? {
         guard PurityInferrer().isPure(function) else { return nil }
-        guard returnIsAssertable(function.signature, knownEquatableTypes: knownEquatableTypes) else {
+        guard returnIsAssertable(
+            function.signature,
+            enclosingTypeName: enclosingTypeName(of: function),
+            knownEquatableTypes: knownEquatableTypes
+        ) else {
             return nil
         }
 
@@ -87,13 +91,37 @@ public enum PropertyTestCandidacy {
 
     private static func returnIsAssertable(
         _ signature: FunctionSignatureSyntax,
+        enclosingTypeName: String?,
         knownEquatableTypes: Set<String>
     ) -> Bool {
         guard let returnType = signature.returnClause?.type else { return false }
         let text = returnType.trimmedDescription
         guard text != "Void", text != "()" else { return false }
-        guard let base = baseTypeName(returnType) else { return false }
+        guard let rawBase = baseTypeName(returnType) else { return false }
+        // A `Self` return resolves to the enclosing type — check ITS equatability,
+        // so the idiomatic value-semantic `func f(...) -> Self` (SetAlgebra /
+        // OrderedSet's `union` / `intersection`) is seeded rather than dropped for
+        // an unrecognized `"Self"` base name (B26 reach fix).
+        let base = (rawBase == "Self") ? (enclosingTypeName ?? rawBase) : rawBase
         return equatableStdlibTypes.contains(base) || knownEquatableTypes.contains(base)
+    }
+
+    /// The bare name of the type (or extended type) `function` is declared in, or
+    /// `nil` for a free function. Used to resolve a `Self` return to its concrete
+    /// type. Mirrors `enclosingTypeContainer`'s ancestor walk.
+    private static func enclosingTypeName(of function: FunctionDeclSyntax) -> String? {
+        var cursor: Syntax? = Syntax(function).parent
+        while let current = cursor {
+            if let structDecl = current.as(StructDeclSyntax.self) { return structDecl.name.text }
+            if let classDecl = current.as(ClassDeclSyntax.self) { return classDecl.name.text }
+            if let enumDecl = current.as(EnumDeclSyntax.self) { return enumDecl.name.text }
+            if let actorDecl = current.as(ActorDeclSyntax.self) { return actorDecl.name.text }
+            if let extensionDecl = current.as(ExtensionDeclSyntax.self) {
+                return baseTypeName(extensionDecl.extendedType)
+            }
+            cursor = current.parent
+        }
+        return nil
     }
 
     private static func hasInputs(_ signature: FunctionSignatureSyntax) -> Bool {

@@ -38,6 +38,31 @@ struct PureFunctionCandidateVisitorTests {
         #expect(analyze(source).count == 1)
     }
 
+    @Test("B26 — a `Self`-returning value-semantic method is a candidate (Self resolves to its type)")
+    func flagsSelfReturningMethod() {
+        // `union(_ other: Self) -> Self` — the idiomatic SetAlgebra shape. The
+        // `Self` return resolves to the enclosing (Equatable) `Ring`, so it is
+        // assertable rather than dropped for an unrecognized `"Self"` base name.
+        let source = """
+        struct Ring {
+            let items: [Int]
+            func union(_ other: Self) -> Self { Ring(items: items + other.items) }
+        }
+        """
+        #expect(analyze(source, equatableTypes: ["Ring"]).count == 1)
+    }
+
+    @Test("a `Self` return whose enclosing type is NOT Equatable is still not a candidate")
+    func selfReturnRequiresEquatableEnclosingType() {
+        let source = """
+        struct Ring {
+            let items: [Int]
+            func union(_ other: Self) -> Self { Ring(items: items + other.items) }
+        }
+        """
+        #expect(analyze(source, equatableTypes: []).isEmpty)
+    }
+
     // MARK: - Not candidates
 
     @Test func ignoresVoidReturn() {
