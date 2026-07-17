@@ -42,9 +42,13 @@ public enum PropertyTestCandidacy {
     ///   - function: the declaration to judge.
     ///   - knownEquatableTypes: project types the pre-scan found declaring `Equatable` /
     ///     `Hashable` / `Comparable`. A candidate must return something a test can compare.
+    ///   - knownValueTypes: project types declared as `struct` or `enum`. Lets a method in an
+    ///     `extension OrderedSet { … }` know its `self` is a value even though the extension's
+    ///     syntax never repeats the `struct` keyword — the gate for reading a bare `self`.
     public static func shape(
         of function: FunctionDeclSyntax,
-        knownEquatableTypes: Set<String>
+        knownEquatableTypes: Set<String>,
+        knownValueTypes: Set<String> = []
     ) -> PropertyTestShape? {
         guard PurityInferrer().isPure(function) else { return nil }
         guard returnIsAssertable(
@@ -61,18 +65,26 @@ public enum PropertyTestCandidacy {
             return .ofInputs
         }
 
-        return instanceShape(of: function)
+        return instanceShape(of: function, knownValueTypes: knownValueTypes)
     }
 
     /// The shape of an instance method, decided by what it reads from `self`.
-    private static func instanceShape(of function: FunctionDeclSyntax) -> PropertyTestShape? {
+    private static func instanceShape(
+        of function: FunctionDeclSyntax,
+        knownValueTypes: Set<String>
+    ) -> PropertyTestShape? {
         // A `mutating` method's whole purpose is to change `self`; it is not a function of it.
         guard !isMutating(function) else { return nil }
-        guard let container = enclosingTypeContainer(of: function), !container.isActor else {
+        guard let container = enclosingTypeContainer(of: function, knownValueTypes: knownValueTypes),
+              !container.isActor else {
             return nil
         }
 
-        switch SelfAccessAnalyzer.access(of: function, storedProperties: container.storedProperties) {
+        switch SelfAccessAnalyzer.access(
+            of: function,
+            storedProperties: container.storedProperties,
+            enclosingIsValueType: container.isValueType
+        ) {
         case .unresolvedOrMutable:
             return nil
 
@@ -171,6 +183,10 @@ public enum PropertyTestCandidacy {
     /// The type a method is declared in, with the stored properties visible in this file.
     private struct TypeContainer {
         let isActor: Bool
+        /// `true` when the enclosing type is a `struct` or `enum`. Decided directly for a primary
+        /// declaration and, for an `extension`, by looking the extended type up in the project's
+        /// value-type index — the extension syntax alone never says `struct`.
+        let isValueType: Bool
         let storedProperties: [String: StoredProperty]
     }
 
@@ -181,25 +197,33 @@ public enum PropertyTestCandidacy {
     /// primary declaration, and an extension's own member block holds no stored properties at all.
     /// What this cannot see is a primary declaration in another file — and a reference the analyzer
     /// cannot resolve disqualifies the candidate, which is the safe direction.
-    private static func enclosingTypeContainer(of function: FunctionDeclSyntax) -> TypeContainer? {
+    private static func enclosingTypeContainer(
+        of function: FunctionDeclSyntax,
+        knownValueTypes: Set<String>
+    ) -> TypeContainer? {
         var cursor: Syntax? = Syntax(function).parent
         while let current = cursor {
             if let structDecl = current.as(StructDeclSyntax.self) {
-                return container(named: structDecl.name.text, isActor: false, from: function)
+                return container(named: structDecl.name.text, isActor: false, isValueType: true, from: function)
             }
             if let classDecl = current.as(ClassDeclSyntax.self) {
-                return container(named: classDecl.name.text, isActor: false, from: function)
+                return container(named: classDecl.name.text, isActor: false, isValueType: false, from: function)
             }
             if let enumDecl = current.as(EnumDeclSyntax.self) {
-                return container(named: enumDecl.name.text, isActor: false, from: function)
+                return container(named: enumDecl.name.text, isActor: false, isValueType: true, from: function)
             }
             if let actorDecl = current.as(ActorDeclSyntax.self) {
-                return container(named: actorDecl.name.text, isActor: true, from: function)
+                return container(named: actorDecl.name.text, isActor: true, isValueType: false, from: function)
             }
             if let extensionDecl = current.as(ExtensionDeclSyntax.self) {
+                // The extended type's kind is not in the extension's syntax; the cross-file index
+                // is what says whether `extension OrderedSet` extends a value type.
+                let extendedBase = baseTypeName(extensionDecl.extendedType)
+                    ?? extensionDecl.extendedType.trimmedDescription
                 return container(
                     named: extensionDecl.extendedType.trimmedDescription,
                     isActor: false,
+                    isValueType: knownValueTypes.contains(extendedBase),
                     from: function
                 )
             }
@@ -211,16 +235,21 @@ public enum PropertyTestCandidacy {
     private static func container(
         named name: String,
         isActor: Bool,
+        isValueType: Bool,
         from node: some SyntaxProtocol
     ) -> TypeContainer {
         guard let file = node.root.as(SourceFileSyntax.self) else {
-            return TypeContainer(isActor: isActor, storedProperties: [:])
+            return TypeContainer(isActor: isActor, isValueType: isValueType, storedProperties: [:])
         }
 
         let collector = TypeStoredPropertyCollector(typeName: name, viewMode: .sourceAccurate)
         collector.walk(file)
+        let sawActor = isActor || collector.sawActorDeclaration
         return TypeContainer(
-            isActor: isActor || collector.sawActorDeclaration,
+            isActor: sawActor,
+            // An actor is never a value type — if the local scan reveals `name` is actually an
+            // actor, the value-type read must not fire.
+            isValueType: isValueType && !sawActor,
             storedProperties: collector.properties
         )
     }

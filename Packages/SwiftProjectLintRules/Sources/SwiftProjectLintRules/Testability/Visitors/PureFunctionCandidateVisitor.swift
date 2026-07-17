@@ -32,7 +32,8 @@ final class PureFunctionCandidateVisitor: BasePatternVisitor {
         guard !fileIsTestOrFixture,
               let shape = PropertyTestCandidacy.shape(
                   of: node,
-                  knownEquatableTypes: knownEquatableTypes
+                  knownEquatableTypes: knownEquatableTypes,
+                  knownValueTypes: knownValueTypes
               ) else {
             return .visitChildren
         }

@@ -115,6 +115,7 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
         let observableTypes = Self.collectTypes(ObservableTypeCollector.self, from: filePaths)
         let protocolTypes = Self.collectTypes(ProtocolTypeCollector.self, from: filePaths)
         let equatableTypes = Self.collectTypes(EquatableConformanceCollector.self, from: filePaths)
+        let valueTypes = Self.collectTypes(ValueTypeCollector.self, from: filePaths)
         let projectFunctions = Self.collectTypes(DeclaredFunctionCollector.self, from: filePaths)
         let defaultedInits = Self.collectTypes(DefaultedInitializerCollector.self, from: filePaths)
 
@@ -127,6 +128,7 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
         resolvedDetector.knownObservableTypes = observableTypes
         resolvedDetector.knownProtocolTypes = protocolTypes
         resolvedDetector.knownEquatableTypes = equatableTypes
+        resolvedDetector.knownValueTypes = valueTypes
         resolvedDetector.knownProjectFunctions = projectFunctions
         resolvedDetector.knownDefaultedInitializerTypes = defaultedInits
         resolvedDetector.layerPolicies = effectiveConfiguration.architecturalLayers
@@ -148,6 +150,7 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
             observableTypes: observableTypes,
             protocolTypes: protocolTypes,
             equatableTypes: equatableTypes,
+            valueTypes: valueTypes,
             projectFunctions: projectFunctions,
             defaultedInitializerTypes: defaultedInits,
             layerPolicies: effectiveConfiguration.architecturalLayers
@@ -334,6 +337,7 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
         let observableTypes: Set<String>
         let protocolTypes: Set<String>
         let equatableTypes: Set<String>
+        let valueTypes: Set<String>
 
         /// Functions this project declares — lets the Pure Closure rule tell a closure that still
         /// hides logic from one merely forwarding to a function the reader already extracted.
@@ -363,6 +367,7 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
             observableTypes: env.observableTypes,
             protocolTypes: env.protocolTypes,
             equatableTypes: env.equatableTypes,
+            valueTypes: env.valueTypes,
             projectFunctions: env.projectFunctions,
             defaultedInitializerTypes: env.defaultedInitializerTypes,
             layerPolicies: env.layerPolicies
@@ -383,6 +388,7 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
         observableTypes: Set<String> = [],
         protocolTypes: Set<String> = [],
         equatableTypes: Set<String> = [],
+        valueTypes: Set<String> = [],
         projectFunctions: Set<String> = [],
         defaultedInitializerTypes: Set<String> = [],
         layerPolicies: [LayerPolicy] = []
@@ -406,6 +412,7 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
         det.knownObservableTypes = observableTypes
         det.knownProtocolTypes = protocolTypes
         det.knownEquatableTypes = equatableTypes
+        det.knownValueTypes = valueTypes
         det.knownProjectFunctions = projectFunctions
         det.knownDefaultedInitializerTypes = defaultedInitializerTypes
         det.layerPolicies = layerPolicies

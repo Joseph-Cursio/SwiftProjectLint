@@ -65,6 +65,12 @@ open class BasePatternVisitor: SyntaxVisitor, PatternVisitorProtocol {
     /// result can be asserted on by a property test.
     public var knownEquatableTypes: Set<String> = []
 
+    /// Type names declared as `struct` or `enum` (value types) anywhere in the project. Populated
+    /// by a pre-scan phase in `ProjectLinter` so a visitor looking at `extension OrderedSet { … }`
+    /// knows `self` is a value even though the extension syntax never repeats the `struct` keyword.
+    /// The Pure Function Property-Test Candidate rule uses it to allow reading a bare `self`.
+    public var knownValueTypes: Set<String> = []
+
     /// Functions **this project declares**, as bare names and labelled names (`matches(name:)`).
     /// Built by `DeclaredFunctionCollector` in `ProjectLinter`'s pre-scan.
     ///

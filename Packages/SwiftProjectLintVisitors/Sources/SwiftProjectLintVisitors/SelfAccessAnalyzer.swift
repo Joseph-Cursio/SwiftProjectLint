@@ -55,7 +55,8 @@ public enum SelfAccessAnalyzer {
     ///     therefore resolves to `.unresolvedOrMutable` — the safe direction.
     public static func access(
         of method: FunctionDeclSyntax,
-        storedProperties: [String: StoredProperty]
+        storedProperties: [String: StoredProperty],
+        enclosingIsValueType: Bool = false
     ) -> SelfAccess {
         guard let body = method.body else { return .unresolvedOrMutable }
 
@@ -63,7 +64,12 @@ public enum SelfAccessAnalyzer {
         var readsImmutableSelf = false
 
         for reference in freeReferences(in: body) {
-            switch classify(reference, locals: locals, storedProperties: storedProperties) {
+            switch classify(
+                reference,
+                locals: locals,
+                storedProperties: storedProperties,
+                enclosingIsValueType: enclosingIsValueType
+            ) {
             case .local, .typeName:
                 continue
 
@@ -96,7 +102,15 @@ public enum SelfAccessAnalyzer {
 
         let locals = accessorLocalNames(accessor)
         for reference in collector.references {
-            switch classify(reference, locals: locals, storedProperties: storedProperties) {
+            // A derived-property getter reading a bare `self` as a value is exotic and out of
+            // this analyzer's promotion scope, so the getter path stays conservative: bare `self`
+            // remains disqualifying here regardless of the enclosing type's kind.
+            switch classify(
+                reference,
+                locals: locals,
+                storedProperties: storedProperties,
+                enclosingIsValueType: false
+            ) {
             case .local, .typeName, .immutableSelf:
                 continue
 
@@ -126,14 +140,27 @@ public enum SelfAccessAnalyzer {
     private static func classify(
         _ reference: Reference,
         locals: Set<String>,
-        storedProperties: [String: StoredProperty]
+        storedProperties: [String: StoredProperty],
+        enclosingIsValueType: Bool
     ) -> Resolution {
         let name = reference.name
 
-        // An explicit `self.x` names the property directly; a bare `self` used as a value (passed
-        // to something, captured, returned) hands the whole object over and is not analyzable.
+        // An explicit `self.x` names the property directly. A bare `self` used as a value (copied
+        // into a local, returned, compared) hands the whole `self` over.
+        //
+        // For a **value type** that read is a function of the input and nothing else: `self` *is*
+        // a value, so `var result = self` copies it, `return self` yields it, `self == other`
+        // compares it — none reaches outside `(self, args)`. This analyzer only ever runs on
+        // non-mutating methods (`instanceShape` rejects `mutating` first), so a bare `self` here is
+        // always a read, never `self = …`. This is the gate that hid the idiomatic value-semantic
+        // `func union(_ other: Self) -> Self { var r = self; r.formUnion(other); return r }`.
+        //
+        // For a **reference type** the same copy aliases one shared object, so mutating the copy
+        // mutates `self`; it stays disqualifying.
         if name == "self" {
-            guard let member = reference.selfMemberName else { return .disqualifying }
+            guard let member = reference.selfMemberName else {
+                return enclosingIsValueType ? .immutableSelf : .disqualifying
+            }
             return resolveSelfProperty(named: member, storedProperties: storedProperties)
         }
 

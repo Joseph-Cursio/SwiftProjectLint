@@ -36,6 +36,10 @@ public final class SourcePatternDetector: SourcePatternDetectorProtocol, @unchec
     /// `ProjectLinter` after a pre-scan phase and passed through to visitors.
     public var knownEquatableTypes: Set<String> = []
 
+    /// Type names declared as `struct` or `enum` across the project. Set by
+    /// `ProjectLinter` after a pre-scan phase and passed through to visitors.
+    public var knownValueTypes: Set<String> = []
+
     /// Functions this project declares, by bare and labelled name. Set by `ProjectLinter` after a
     /// pre-scan and passed through to visitors.
     public var knownProjectFunctions: Set<String> = []
@@ -186,6 +190,7 @@ public final class SourcePatternDetector: SourcePatternDetectorProtocol, @unchec
             visitor.knownObservableTypes = knownObservableTypes
             visitor.knownProtocolTypes = knownProtocolTypes
             visitor.knownEquatableTypes = knownEquatableTypes
+            visitor.knownValueTypes = knownValueTypes
             visitor.knownProjectFunctions = knownProjectFunctions
             visitor.knownDefaultedInitializerTypes = knownDefaultedInitializerTypes
             visitor.layerPolicies = layerPolicies

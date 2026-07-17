@@ -11,10 +11,12 @@ struct PureFunctionCandidateVisitorTests {
     private func analyze(
         _ source: String,
         filePath: String = "Logic.swift",
-        equatableTypes: Set<String> = []
+        equatableTypes: Set<String> = [],
+        valueTypes: Set<String> = []
     ) -> [LintIssue] {
         let visitor = PureFunctionCandidateVisitor(patternCategory: .testability)
         visitor.knownEquatableTypes = equatableTypes
+        visitor.knownValueTypes = valueTypes
         let syntax = Parser.parse(source: source)
         let converter = SourceLocationConverter(fileName: filePath, tree: syntax)
         visitor.setSourceLocationConverter(converter)
@@ -61,6 +63,80 @@ struct PureFunctionCandidateVisitorTests {
         }
         """
         #expect(analyze(source, equatableTypes: []).isEmpty)
+    }
+
+    // MARK: - Bare `self` as a value (B26 — the OrderedSet.union slice)
+
+    @Test("B26 — a value type copying bare `self` and mutating the copy is a candidate")
+    func flagsValueTypeBareSelfCopyMutate() {
+        // The idiomatic value-semantic `union`: copy `self`, mutate the copy via a
+        // `mutating` primitive, return it. `self` IS the value, so this is a
+        // function of `(self, other)`. The inline `struct` is seen directly, so no
+        // cross-file value-type index is needed here.
+        let source = """
+        struct Bag: Equatable {
+            var items: [Int]
+            mutating func formUnion(_ other: Bag) { items += other.items }
+            func union(_ other: Bag) -> Bag {
+                var result = self
+                result.formUnion(other)
+                return result
+            }
+        }
+        """
+        let unions = analyze(source, equatableTypes: ["Bag"]).filter { $0.message.contains("union") }
+        #expect(unions.count == 1)
+    }
+
+    @Test("B26 — bare `self` in an extension seeds when the extended type is a known value type")
+    func flagsBareSelfInExtensionOfValueType() {
+        // The real OrderedSet shape: `union` lives in `extension OrderedSet`, whose
+        // syntax never says `struct`. The cross-file value-type index supplies the
+        // kind — mirroring `ValueTypeCollector` in a full run.
+        let source = """
+        extension Bag {
+            func union(_ other: Bag) -> Bag {
+                var result = self
+                result.formUnion(other)
+                return result
+            }
+        }
+        """
+        #expect(analyze(source, equatableTypes: ["Bag"], valueTypes: ["Bag"]).count == 1)
+    }
+
+    @Test("bare `self` in an extension is NOT a candidate when the type's kind is unknown")
+    func bareSelfInExtensionRequiresKnownValueType() {
+        // Without the value-type index, the extended type might be a class — whose
+        // copy aliases a shared object — so the safe direction is to drop it.
+        let source = """
+        extension Bag {
+            func union(_ other: Bag) -> Bag {
+                var result = self
+                result.formUnion(other)
+                return result
+            }
+        }
+        """
+        #expect(analyze(source, equatableTypes: ["Bag"], valueTypes: []).isEmpty)
+    }
+
+    @Test("a reference type copying bare `self` stays out — the copy aliases a shared object")
+    func referenceTypeBareSelfStaysRejected() {
+        let source = """
+        final class Box: Equatable {
+            let items: [Int]
+            init(_ items: [Int]) { self.items = items }
+            static func == (lhs: Box, rhs: Box) -> Bool { lhs.items == rhs.items }
+            func duplicate(_ other: Box) -> Box {
+                let result = self
+                return result
+            }
+        }
+        """
+        let dupes = analyze(source, equatableTypes: ["Box"], valueTypes: [])
+            .filter { $0.message.contains("duplicate") }
+        #expect(dupes.isEmpty)
     }
 
     // MARK: - Not candidates
