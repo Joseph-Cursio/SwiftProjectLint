@@ -1,0 +1,13 @@
+diff --git a/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/Testability/Visitors/ExtractablePureKernelVisitor.swift b/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/Testability/Visitors/ExtractablePureKernelVisitor.swift
+index db7997e..11c66ea 100644
+--- a/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/Testability/Visitors/ExtractablePureKernelVisitor.swift
++++ b/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/Testability/Visitors/ExtractablePureKernelVisitor.swift
+@@ -152,7 +152,7 @@ private struct KernelScan {
+     var isWorthExtracting: Bool {
+         let hasArithmetic = !derivedBindings.isEmpty || hasFraction
+         let governs = hasGoverningComparison || hasSlicingArithmetic || hasFraction
+-        return hasArithmetic && governs && signalCount >= 2
++        return true
+     }
+ 
+     private var signalCount: Int {

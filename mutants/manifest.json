@@ -1,0 +1,30 @@
+{
+  "kind": "spm",
+  "note": "Private mutation/regression corpus for SwiftProjectLint (a SwiftPM monorepo — rules live under Packages/*). Mutants live in a detector's own source; each is killed by the root package's CoreTests. Run via `swift test --filter`. Not a scored benchmark. Target: the ExtractablePureKernelVisitor (the §15.2.5 'lift the trapped kernel' rule).",
+  "mutants": [
+    {
+      "id": "kernel-governs-always-false",
+      "patch": "patches/kernel-governs-always-false.patch",
+      "shape": "detector-recall",
+      "expected": "killed",
+      "test": "chunkingKernelIsCandidate",
+      "label": "isWorthExtracting's `governs` is forced false — a genuine chunking kernel is never surfaced"
+    },
+    {
+      "id": "kernel-scans-pure-functions",
+      "patch": "patches/kernel-scans-pure-functions.patch",
+      "shape": "detector-precision",
+      "expected": "killed",
+      "test": "pureFunctionIsNotReported",
+      "label": "the purity guard is inverted — the rule scans pure functions (which ARE the kernel) instead of the impure methods that trap one"
+    },
+    {
+      "id": "kernel-worth-extracting-always-true",
+      "patch": "patches/kernel-worth-extracting-always-true.patch",
+      "shape": "detector-precision",
+      "expected": "killed",
+      "test": "arithmeticWithoutAGoverningUseIsNotReported",
+      "label": "isWorthExtracting returns true unconditionally — merely-stored arithmetic (assigned, not governing) is falsely flagged"
+    }
+  ]
+}
