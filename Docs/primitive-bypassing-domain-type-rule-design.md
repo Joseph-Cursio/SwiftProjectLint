@@ -14,7 +14,9 @@ a smell no linter can detect directly (primitive obsession): the disease is sema
 once applied, is syntactic — and that asymmetry is the whole justification for the rules. See §1.
 Variant C's wrapper-shape widening (raw-value enums, `RawRepresentable` structs) has since shipped
 to both rules, and the field sweep it triggered added a symmetric value-type guard to Variant A
-(§8); `Set` support and the broad Variant B name form remain deferred.
+(§8). `Set` support was then implemented, measured, and **rejected** — it flooded (296 hits, 248 in
+one project), because element-only sets lack the linking signal precision needs (§8). The broad
+Variant B name form remains deferred.
 
 ## 1. Problem statement — why detecting the smell is undecidable but policing the cure is not
 
@@ -104,7 +106,8 @@ skipped).
 ### Variant C — wider wrapper and container shapes
 
 Variants A and B first recognized only the cleanest wrapper shape — a `struct` with a single
-stored primitive property. Variant C widens that. One item shipped (measured); two stay deferred.
+stored primitive property. Variant C widens that. One item shipped (measured), one was tried and
+rejected (measured), one stays deferred.
 
 - **Enum and `RawRepresentable` wrappers — shipped, both rules.** `enum Currency: String` and a
   `struct` declaring `typealias RawValue = <primitive>` (covering `RawRepresentable` structs with
@@ -119,18 +122,26 @@ stored primitive property. Variant C widens that. One item shipped (measured); t
   With it, Variant A returned to one real finding; Variant B's expansion was all distinctive
   domain-enum names (`Tier`, `Severity`, `Phase`, …) and needed no new guard beyond the stop-list.
 
-- **`Set` support — deferred.** `Set<UserID>` beside `Set<String>` is the Variant A inconsistency
-  without a value type to match on — and the value type is precisely A's false-positive guard
-  (now doubly load-bearing, per the enum result above). Absent it, the only signal is "a `Set<W>`
-  and a `Set<P>` both exist," which for `String` is close to noise. Set needs a *different* guard
-  (e.g. same element domain inferred elsewhere) before it can fire at A's precision.
+- **`Set` support — tried, measured, rejected.** `Set<UserID>` beside `Set<String>` is the
+  Variant A inconsistency *without a value type to match on* — and the value type is precisely A's
+  false-positive guard. The plan was to borrow a "different guard": fire a raw `Set<P>` only when a
+  `Set<W>` over the same carrier exists **and** `W` is independently corroborated as an identity
+  type (used as a distinctive-value dictionary key `[W: V]` elsewhere). It was implemented and
+  swept — and it flooded: **296 findings across 32 projects, 248 from a single project** where one
+  corroborated wrapper (`InteractionInvariantFamily`) flagged every unrelated `Set<String>` across
+  115 files. The guard gates the *wrapper*'s legitimacy but nothing links a *specific* `Set<String>`
+  to it — a Set has no second type to provide that link, so one legitimate wrapper taints every raw
+  set of the same carrier. Reverted. Element-only sets simply lack the signal precision needs; see
+  §8. (A proximity guard — only a `Set<P>` co-located with a `Set<W>` in one type — might narrow it,
+  but co-location is weak evidence and was not pursued.)
 
 - **The broad Variant B name form — deferred.** `key: String` inside an `Idempotenc*`-named type,
   rather than an exact `idempotencyKey ↔ IdempotencyKey` match — the same "measure the noisy tail
-  first" bucket.
+  first" bucket, still unmeasured.
 
-The through-line holds: a shape ships only once its precision is argued *and* measured. The enum
-item cleared that bar (and taught a guard on the way); Set and the broad name form have not.
+The through-line holds, and now cuts both ways: a shape ships only once its precision is argued
+*and* measured. The enum item cleared that bar (and taught a guard); Set was measured against it
+and **failed**; the broad name form is still unmeasured.
 
 ### Phases (both variants)
 
@@ -235,6 +246,26 @@ The meta-lesson, twice now: **each rule's guard is only as strong as the distinc
 thing it keys on** — the wrapper name for B, the value type for A. Widen the wrappers and any
 weakness in that guard surfaces at once. Both guards are now symmetric: key *and* value must be
 distinctive.
+
+**A third sweep killed a feature: `Set` support.** The plan (Variant C) was to fire a raw `Set<P>`
+only when a `Set<W>` existed *and* `W` was corroborated as an identity type via a distinctive-value
+dictionary key — borrowing A's validated signal for a container that has no value type of its own.
+Implemented and swept, it returned **296 hits, 248 from SwiftInferProperties alone**, where a single
+corroborated wrapper (`InteractionInvariantFamily`) flagged every unrelated `Set<String>` across 115
+files. The diagnosis is clean and final: corroboration proves the *wrapper* is real, but with no
+value type there is nothing to link a *specific* `Set<String>` to that wrapper — so one legitimate
+wrapper taints every raw set of its carrier. The feature was reverted.
+
+| the three sweeps | outcome |
+|---|---|
+| Variant B name heuristic | 114 → 9 via a generic-name stop-list — **kept** |
+| Variant A + enum wrappers | 72 → 1 via a trivial-value guard — **kept** |
+| Variant C `Set` support | 296, un-guardable with the available signal — **rejected** |
+
+The discipline is the point, and it now has a negative to prove it: "measure before trust" only
+means something if measurement is allowed to say *no*. Two guards were found by measurement; one
+whole shape was discarded by it. A shape that cannot be made precise is not shipped dimmer — it is
+not shipped.
 
 ## 9. Case study — the one true positive (Hummingbird)
 

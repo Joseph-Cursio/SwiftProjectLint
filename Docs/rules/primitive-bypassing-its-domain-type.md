@@ -61,8 +61,12 @@ safe here because Variant A's value-type guard still applies — a `[Currency: R
 `[String: Rate]` bypass only when both key the same value type.
 
 #### Known limitations
-- **Dictionaries only.** `Set<P>` next to `Set<W>` is a weaker signal (no value type to match
-  on) and is left out; deferred to Variant C in the design spike, which needs a different guard.
+- **Dictionaries only — `Set` was tried and rejected.** A `Set` has no value type, and the value
+  type is this rule's whole false-positive guard. A candidate implementation gated a raw `Set<P>`
+  on a `Set<W>` existing *and* `W` being corroborated as a dictionary key — but that gates only the
+  *wrapper*, not the *specific* `Set<String>`, and a 32-project sweep produced **296 findings, 248
+  of them from one wrapper flagging every unrelated `Set<String>` in the codebase**. Element-only
+  sets lack a linking signal, so Set support was reverted; see the design spike §8.
 - **`RawRepresentable` structs with an *inferred* `RawValue`** (no explicit `typealias`, no single
   stored primitive) are not recognized — the conformance's raw type isn't visible syntactically.
 - **Value-type match is textual.** Two maps whose value types are both a common type (`Bool`,
