@@ -91,8 +91,15 @@ final class PrimitiveNamedForDomainTypeVisitor: CrossFileVisitorBase, CrossFileP
 
     override func visitPost(_ node: ActorDeclSyntax) { typeNameStack.removeLast() }
 
+    /// A raw-value enum (`enum Currency: String`) is a `RawRepresentable` newtype. The
+    /// generic-name stop-list still applies, so an `enum Status: String` does not turn every
+    /// `status: String` into a finding.
     override func visit(_ node: EnumDeclSyntax) -> SyntaxVisitorContinueKind {
         typeNameStack.append(node.name.text)
+        if let carrier = rawValueCarrier(node.inheritanceClause),
+           Self.genericWrapperNames.contains(node.name.text.lowercased()) == false {
+            wrappers[node.name.text] = carrier
+        }
         return .visitChildren
     }
 
@@ -113,24 +120,45 @@ final class PrimitiveNamedForDomainTypeVisitor: CrossFileVisitorBase, CrossFileP
         return .visitChildren
     }
 
-    /// A struct with exactly one stored instance property of a bare primitive type is a
-    /// newtype wrapper over that primitive.
+    /// Record a `struct` newtype wrapper (single stored primitive, or `typealias RawValue =
+    /// <primitive>`), unless its name is too generic to trust (§`genericWrapperNames`).
     private func recordWrapperIfNewtype(_ node: StructDeclSyntax) {
+        guard let carrier = structWrapperCarrier(node),
+              Self.genericWrapperNames.contains(node.name.text.lowercased()) == false else { return }
+        wrappers[node.name.text] = carrier
+    }
+
+    /// The primitive a `struct` wraps: an explicit `typealias RawValue = <primitive>`, otherwise
+    /// a single stored primitive property.
+    private func structWrapperCarrier(_ node: StructDeclSyntax) -> String? {
+        for member in node.memberBlock.members {
+            if let alias = member.decl.as(TypeAliasDeclSyntax.self), alias.name.text == "RawValue",
+               let carrier = plainName(alias.initializer.value), Self.primitiveCarriers.contains(carrier) {
+                return carrier
+            }
+        }
         var storedCount = 0
         var solePrimitive: String?
         for member in node.memberBlock.members {
             guard let varDecl = member.decl.as(VariableDeclSyntax.self),
                   isStoredInstanceProperty(varDecl) else { continue }
-            for binding in varDecl.bindings {
-                guard binding.pattern.as(IdentifierPatternSyntax.self) != nil else { continue }
+            for binding in varDecl.bindings where binding.pattern.as(IdentifierPatternSyntax.self) != nil {
                 storedCount += 1
                 solePrimitive = plainName(binding.typeAnnotation?.type)
             }
         }
-        if storedCount == 1, let carrier = solePrimitive, Self.primitiveCarriers.contains(carrier),
-           Self.genericWrapperNames.contains(node.name.text.lowercased()) == false {
-            wrappers[node.name.text] = carrier
+        if storedCount == 1, let carrier = solePrimitive, Self.primitiveCarriers.contains(carrier) {
+            return carrier
         }
+        return nil
+    }
+
+    /// The primitive raw type of an `enum`, if its first inherited type is a primitive.
+    private func rawValueCarrier(_ inheritance: InheritanceClauseSyntax?) -> String? {
+        guard let first = inheritance?.inheritedTypes.first,
+              let name = first.type.as(IdentifierTypeSyntax.self)?.name.text,
+              Self.primitiveCarriers.contains(name) else { return nil }
+        return name
     }
 
     private func recordPosition(name: String, type: TypeSyntax?, at node: Syntax) {

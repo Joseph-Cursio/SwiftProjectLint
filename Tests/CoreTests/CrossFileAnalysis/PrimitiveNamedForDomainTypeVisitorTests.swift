@@ -119,6 +119,31 @@ struct PrimitiveNamedForDomainTypeVisitorTests {
         #expect(issues.count == 1)
     }
 
+    /// A raw-value enum (`enum Currency: String`) is a wrapper; a distinctively-named one
+    /// still drives the name signal.
+    @Test
+    func rawValueEnumNamedFlags() {
+        let issues = analyze(files: [
+            "Currency.swift": "enum Currency: String { case usd, eur }",
+            "Money.swift": "func convert(currency: String) {}"
+        ])
+
+        #expect(issues.count == 1)
+        #expect(issues.first?.message.contains("Currency") == true)
+    }
+
+    /// A generic-named raw-value enum (`enum Status: String`) is still stop-listed — `status:
+    /// String` is too common to trust.
+    @Test
+    func genericRawValueEnumSuppressed() {
+        let issues = analyze(files: [
+            "Status.swift": "enum Status: String { case ok, bad }",
+            "Use.swift": "func set(status: String) {}"
+        ])
+
+        #expect(issues.isEmpty)
+    }
+
     /// Case-insensitive match: `IdempotencyKey` matches an `idempotencyKey` position.
     @Test
     func caseInsensitiveNameMatchFlags() {

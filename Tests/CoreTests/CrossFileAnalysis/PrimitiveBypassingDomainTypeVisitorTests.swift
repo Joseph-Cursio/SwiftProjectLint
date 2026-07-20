@@ -138,4 +138,63 @@ struct PrimitiveBypassingDomainTypeVisitorTests {
         #expect(issues.count == 1)
         #expect(issues.first?.message.contains("IdempotencyKey") == true)
     }
+
+    /// A raw-value enum (`enum MediaKind: String`) is a wrapper; a `[String: Data]` map beside
+    /// a `[MediaKind: Data]` map bypasses it.
+    @Test
+    func rawValueEnumWrapperFlags() {
+        let issues = analyze(files: [
+            "Kind.swift": "enum MediaKind: String { case png, jpeg }",
+            "Store.swift": """
+            struct Store {
+                var byKind: [MediaKind: Data] = [:]
+                var byRaw: [String: Data] = [:]
+            }
+            """
+        ])
+
+        #expect(issues.count == 1)
+        #expect(issues.first?.message.contains("MediaKind") == true)
+    }
+
+    /// A bare-primitive value type (`[…: String]`, `[…: Int]`) makes the value-type guard
+    /// worthless — such maps are ubiquitous — so a match on a trivial value type does not fire.
+    @Test
+    func trivialValueTypeSuppressed() {
+        let issues = analyze(files: [
+            "Kind.swift": "enum Kind: String { case a, b }",
+            "Store.swift": """
+            struct Store {
+                var byKind: [Kind: String] = [:]
+                var byRaw: [String: String] = [:]
+            }
+            """
+        ])
+
+        #expect(issues.isEmpty)
+    }
+
+    /// A `RawRepresentable` struct with a computed `rawValue` (missed by the single-stored-
+    /// property shape) is recognized via its `typealias RawValue`.
+    @Test
+    func rawRepresentableStructWrapperFlags() {
+        let issues = analyze(files: [
+            "Token.swift": """
+            struct Token: RawRepresentable {
+                typealias RawValue = String
+                var rawValue: String { "" }
+                init?(rawValue: String) { nil }
+            }
+            """,
+            "Store.swift": """
+            struct Store {
+                var byToken: [Token: Session] = [:]
+                var byRaw: [String: Session] = [:]
+            }
+            """
+        ])
+
+        #expect(issues.count == 1)
+        #expect(issues.first?.message.contains("Token") == true)
+    }
 }

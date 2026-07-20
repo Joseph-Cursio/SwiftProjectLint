@@ -31,7 +31,7 @@ Variant A.
    every `[P: V]` usage keyed by the **raw carrier** to the **same value type** `V`, naming the
    wrapper it should use.
 
-#### The matching value type is the false-positive guard
+#### The matching value type is the false-positive guard — and it must itself be distinctive
 `String` keys thousands of unrelated dictionaries; flagging every `[String: X]` merely because
 *some* `String` newtype exists would drown in noise. The rule fires only when a raw `[String: V]`
 shares its value type `V` with an existing `[IdempotencyKey: V]` — the identical value type is
@@ -39,17 +39,32 @@ the evidence the two maps model one mapping, not a coincidence of the same key p
 is the same discipline as [Shared Domain-Enum Field](shared-domain-enum-field.md)'s
 project-enum requirement: a strong structural signal in place of a name guess.
 
+The guard only holds when `V` is *itself distinctive*. A **bare-primitive value type**
+(`[…: String]`, `[…: Int]`) makes it worthless — those maps are ubiquitous, so an
+`[Enum: String]` beside a `[String: String]` is coincidence, not one mapping keyed two ways. A
+32-project field sweep made this vivid: recognizing raw-value enums surfaced 72 candidate hits,
+but 71 had a bare-primitive value (`String`×58, `Int`×13) and only the one with a distinctive
+value (`[…: MediaType]`) was real. So a match on a trivial value type (the ubiquitous scalars and
+`String`; **not** `UUID`/`URL`/`Data`/`Decimal`, which stay eligible) does not fire.
+
 #### Complements, does not overlap
 [Shared Domain-Enum Field](shared-domain-enum-field.md) and
 [Duplicate Struct Shape](duplicate-struct-shape.md) say *"a type is missing — create it."* This
 rule says *"the type exists — use it."* Together they cover both halves of the modeling loop.
 [Magic Number](magic-number.md) is the degenerate case — a raw literal with no wrapper at all.
 
-#### Known limitations (v1)
-- **Structs only.** Enums with raw types (`enum Currency: String`) and `RawRepresentable`
-  conformances declared via `typealias RawValue` are not yet recognized as wrappers.
+#### Recognized wrapper shapes
+A wrapper is a `struct` with a single stored primitive property, a `struct` declaring
+`typealias RawValue = <primitive>` (covering `RawRepresentable` structs with a computed
+`rawValue`), or an `enum` with a primitive raw type (`enum Currency: String`). Enum wrappers are
+safe here because Variant A's value-type guard still applies — a `[Currency: Rate]` fires a
+`[String: Rate]` bypass only when both key the same value type.
+
+#### Known limitations
 - **Dictionaries only.** `Set<P>` next to `Set<W>` is a weaker signal (no value type to match
-  on) and is left out; deferred to a later variant.
+  on) and is left out; deferred to Variant C in the design spike, which needs a different guard.
+- **`RawRepresentable` structs with an *inferred* `RawValue`** (no explicit `typealias`, no single
+  stored primitive) are not recognized — the conformance's raw type isn't visible syntactically.
 - **Value-type match is textual.** Two maps whose value types are both a common type (`Bool`,
   `Int`) can match coincidentally; the rule is `Info` and opt-in for exactly this residue.
 - Suppress a deliberate raw keying with `// swiftprojectlint:disable Primitive Bypassing Its Domain Type`.

@@ -36,6 +36,18 @@ final class PrimitiveBypassingDomainTypeVisitor: CrossFileVisitorBase, CrossFile
         "UUID", "URL", "Data", "Decimal"
     ]
 
+    /// Value types too ubiquitous for the value-type guard to mean anything: a `[…: String]` or
+    /// `[…: Int]` map is everywhere, so matching one against `[W: String]` is coincidence. The
+    /// richer primitives (`UUID`, `URL`, `Data`, `Decimal`) are *not* here — a `[…: Data]` map is
+    /// distinctive enough to trust. Measured: 58 `String` + 13 `Int` false hits vs 1 real
+    /// (`[…: MediaType]`) across 32 projects.
+    private static let trivialValueTypes: Set<String> = [
+        "String", "Substring", "Character",
+        "Int", "Int8", "Int16", "Int32", "Int64",
+        "UInt", "UInt8", "UInt16", "UInt32", "UInt64",
+        "Double", "Float", "Bool"
+    ]
+
     private struct DictUsage {
         let key: String
         let value: String
@@ -49,23 +61,22 @@ final class PrimitiveBypassingDomainTypeVisitor: CrossFileVisitorBase, CrossFile
 
     // MARK: - Phase 1: collect
 
-    /// A struct with exactly one stored instance property whose type is a bare primitive is
-    /// a newtype wrapper over that primitive (`struct IdempotencyKey { let value: String }`).
-    /// Structs with two or more stored properties, or a non-primitive sole property, are not
-    /// wrappers. Enums with raw types are a v1 exclusion (see the rule doc).
+    /// A newtype wrapper over a primitive, in any of the recognized shapes: a `struct` with a
+    /// single stored primitive property (`struct IdempotencyKey { let value: String }`), a
+    /// `struct` declaring `typealias RawValue = <primitive>`, or (see `visit(EnumDeclSyntax)`)
+    /// an `enum` with a primitive raw type.
     override func visit(_ node: StructDeclSyntax) -> SyntaxVisitorContinueKind {
-        var storedCount = 0
-        var solePrimitive: String?
-        for member in node.memberBlock.members {
-            guard let varDecl = member.decl.as(VariableDeclSyntax.self),
-                  isStoredInstanceProperty(varDecl) else { continue }
-            for binding in varDecl.bindings {
-                guard binding.pattern.as(IdentifierPatternSyntax.self) != nil else { continue }
-                storedCount += 1
-                solePrimitive = plainName(binding.typeAnnotation?.type)
-            }
+        if let carrier = structWrapperCarrier(node) {
+            wrappers[node.name.text] = carrier
         }
-        if storedCount == 1, let carrier = solePrimitive, Self.primitiveCarriers.contains(carrier) {
+        return .visitChildren
+    }
+
+    /// A raw-value enum (`enum Currency: String`) is a `RawRepresentable` newtype over its raw
+    /// type. Variant A's value-type guard keeps precision intact — a `[Currency: Rate]` fires a
+    /// `[String: Rate]` bypass only when both key the same value type.
+    override func visit(_ node: EnumDeclSyntax) -> SyntaxVisitorContinueKind {
+        if let carrier = rawValueCarrier(node.inheritanceClause) {
             wrappers[node.name.text] = carrier
         }
         return .visitChildren
@@ -105,15 +116,23 @@ final class PrimitiveBypassingDomainTypeVisitor: CrossFileVisitorBase, CrossFile
     func finalizeAnalysis() {
         guard wrappers.isEmpty == false, dictUsages.isEmpty == false else { return }
 
+        // The value type V is the false-positive guard, and it only holds when V is *distinctive*.
+        // A bare-primitive value — `[…: String]`, `[…: Int]` — makes the guard worthless: those
+        // maps are ubiquitous, so an `[Enum: String]` beside a `[String: String]` is coincidence,
+        // not one mapping keyed two ways. Measured as 71 of 72 hits (58 String, 13 Int) across 32
+        // projects; the sole distinctive-V finding (`[…: MediaType]`) was the only real one.
+        let meaningful = dictUsages.filter { Self.trivialValueTypes.contains($0.value) == false }
+        guard meaningful.isEmpty == false else { return }
+
         // carrier P → (value type V → wrapper names over P used as a `[W: V]` key)
         var keyedByWrapper: [String: [String: Set<String>]] = [:]
-        for usage in dictUsages {
+        for usage in meaningful {
             guard let carrier = wrappers[usage.key] else { continue }
             keyedByWrapper[carrier, default: [:]][usage.value, default: []].insert(usage.key)
         }
         guard keyedByWrapper.isEmpty == false else { return }
 
-        for usage in dictUsages {
+        for usage in meaningful {
             // A raw-primitive key whose carrier has a wrapper keyed to the *same* value type.
             guard Self.primitiveCarriers.contains(usage.key),
                   let wrappersForValue = keyedByWrapper[usage.key]?[usage.value],
@@ -134,6 +153,41 @@ final class PrimitiveBypassingDomainTypeVisitor: CrossFileVisitorBase, CrossFile
     }
 
     // MARK: - Shared helpers
+
+    /// The primitive a `struct` wraps, if any: an explicit `typealias RawValue = <primitive>`
+    /// (covers `RawRepresentable` structs with a computed `rawValue`), otherwise a single stored
+    /// primitive property. Structs with two or more stored properties are not wrappers.
+    private func structWrapperCarrier(_ node: StructDeclSyntax) -> String? {
+        for member in node.memberBlock.members {
+            if let alias = member.decl.as(TypeAliasDeclSyntax.self), alias.name.text == "RawValue",
+               let carrier = plainName(alias.initializer.value), Self.primitiveCarriers.contains(carrier) {
+                return carrier
+            }
+        }
+        var storedCount = 0
+        var solePrimitive: String?
+        for member in node.memberBlock.members {
+            guard let varDecl = member.decl.as(VariableDeclSyntax.self),
+                  isStoredInstanceProperty(varDecl) else { continue }
+            for binding in varDecl.bindings where binding.pattern.as(IdentifierPatternSyntax.self) != nil {
+                storedCount += 1
+                solePrimitive = plainName(binding.typeAnnotation?.type)
+            }
+        }
+        if storedCount == 1, let carrier = solePrimitive, Self.primitiveCarriers.contains(carrier) {
+            return carrier
+        }
+        return nil
+    }
+
+    /// The primitive raw type of an `enum`, if its first inherited type is a primitive
+    /// (`enum Currency: String, Codable` → `String`); `nil` for protocol-only inheritance.
+    private func rawValueCarrier(_ inheritance: InheritanceClauseSyntax?) -> String? {
+        guard let first = inheritance?.inheritedTypes.first,
+              let name = first.type.as(IdentifierTypeSyntax.self)?.name.text,
+              Self.primitiveCarriers.contains(name) else { return nil }
+        return name
+    }
 
     /// Stored, instance-level, non-computed. `static`/`class`/`lazy` and computed properties
     /// are not the newtype's carrier.

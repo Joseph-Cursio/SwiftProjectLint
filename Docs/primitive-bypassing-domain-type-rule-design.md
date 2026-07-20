@@ -12,6 +12,9 @@ false-positive guard for a carrier as common as `String`), and v1 recognizes **s
 newtypes** and **`Dictionary`** only — see §3.1 and §4. This is the *enforcement* complement to
 a smell no linter can detect directly (primitive obsession): the disease is semantic; the cure,
 once applied, is syntactic — and that asymmetry is the whole justification for the rules. See §1.
+Variant C's wrapper-shape widening (raw-value enums, `RawRepresentable` structs) has since shipped
+to both rules, and the field sweep it triggered added a symmetric value-type guard to Variant A
+(§8); `Set` support and the broad Variant B name form remain deferred.
 
 ## 1. Problem statement — why detecting the smell is undecidable but policing the cure is not
 
@@ -98,34 +101,36 @@ can be measured against real projects, the same caution the broad
 flags a wrapper's own backing field (a position whose enclosing type is the matching wrapper is
 skipped).
 
-### Variant C — wider wrapper and container shapes (deferred)
+### Variant C — wider wrapper and container shapes
 
-Variants A and B both recognize only the cleanest wrapper shape — a `struct` with a single
-stored primitive property — and Variant A only the cleanest container — a `Dictionary` with a
-matchable value type. Variant C is the label for the coverage deliberately left out of v1,
-collected here so the deferral is a decision on record rather than an omission. Each item widens
-recall at a measurable cost in precision, which is exactly why it is not in the shipped rules.
+Variants A and B first recognized only the cleanest wrapper shape — a `struct` with a single
+stored primitive property. Variant C widens that. One item shipped (measured); two stay deferred.
 
-- **Enum and `RawRepresentable` wrappers.** `enum Currency: String` and a `struct` conforming to
-  `RawRepresentable` via `typealias RawValue = String` (with a *computed* `rawValue`, so the
-  single-stored-property heuristic misses it) are both newtypes over a primitive. Recognizing
-  them widens the wrapper set — but an enum with a raw type is *also* a serialization detail, and
-  a `[Currency: Rate]` sitting beside a `[String: JSONValue]` is a weaker signal than two struct
-  newtypes disagreeing. This item would ship behind its own opt-in and be measured before trust.
+- **Enum and `RawRepresentable` wrappers — shipped, both rules.** `enum Currency: String` and a
+  `struct` declaring `typealias RawValue = <primitive>` (covering `RawRepresentable` structs with
+  a *computed* `rawValue` the single-stored-property shape misses) are now recognized. The worry
+  was that an enum raw type is *also* a serialization detail — and the measurement (§8) proved it
+  founded, but not in the way expected: enums didn't make the wrappers bad, they exposed a latent
+  hole in Variant A's *value*-type guard. Raw-value enums are commonly keyed to bare primitives
+  (`[Currency: String]`), and `[String: String]` maps are everywhere, so the value-type match
+  fired on coincidence — 71 of 72 sweep hits had a bare-primitive value. The fix was a second
+  guard symmetric to the first: as the *key* wrapper must be distinctive, the matched *value*
+  type must be too (ubiquitous scalars and `String` excluded; `UUID`/`Data`/`Decimal` kept).
+  With it, Variant A returned to one real finding; Variant B's expansion was all distinctive
+  domain-enum names (`Tier`, `Severity`, `Phase`, …) and needed no new guard beyond the stop-list.
 
-- **`Set` support.** `Set<UserID>` beside `Set<String>` is the Variant A inconsistency without a
-  value type to match on — and the value type is precisely A's false-positive guard. Absent it,
-  the only signal is "a `Set<W>` and a `Set<P>` both exist," which for a carrier as common as
-  `String` is close to noise. Set support therefore needs a *different* guard (e.g. same element
-  domain inferred elsewhere) before it can fire at A's precision.
+- **`Set` support — deferred.** `Set<UserID>` beside `Set<String>` is the Variant A inconsistency
+  without a value type to match on — and the value type is precisely A's false-positive guard
+  (now doubly load-bearing, per the enum result above). Absent it, the only signal is "a `Set<W>`
+  and a `Set<P>` both exist," which for `String` is close to noise. Set needs a *different* guard
+  (e.g. same element domain inferred elsewhere) before it can fire at A's precision.
 
-- **The broad Variant B name form.** `key: String` inside an `Idempotenc*`-named type, rather
-  than an exact `idempotencyKey ↔ IdempotencyKey` match — noted under Variant B, and belonging to
-  the same "measure the noisy tail first" bucket.
+- **The broad Variant B name form — deferred.** `key: String` inside an `Idempotenc*`-named type,
+  rather than an exact `idempotencyKey ↔ IdempotencyKey` match — the same "measure the noisy tail
+  first" bucket.
 
-The through-line: v1 shipped the shapes whose precision could be argued from the syntax alone.
-Variant C is the set whose precision can only be established by measurement, and it stays
-unshipped until that measurement exists.
+The through-line holds: a shape ships only once its precision is argued *and* measured. The enum
+item cleared that bar (and taught a guard on the way); Set and the broad name form have not.
 
 ### Phases (both variants)
 
@@ -208,3 +213,25 @@ finding names.
 The lesson, on record: the name heuristic is trustworthy only for *distinctive* wrapper names, and
 a generic-name stop-list is the cheap guard that makes it so. Variant C's broader contains/context
 form must clear the same bar — measured, not assumed — before it ships.
+
+**A second sweep, after adding enum/`RawRepresentable` wrappers (Variant C).** Recognizing
+raw-value enums re-ran across the same 32 projects and immediately blew Variant A up from 1 hit to
+**72** (SwiftInferProperties 46, VernissageServer 16, SwiftAssist 9). The cause was not the enums
+but what they revealed: **71 of the 72 keyed a bare-primitive value** (`[…: String]`×58,
+`[…: Int]`×13), and only the lone distinctive-value hit (`[…: MediaType]`, Hummingbird) was real.
+The value-type guard — A's whole basis — is worthless when the value is itself ubiquitous. Adding
+a trivial-value-type exclusion (symmetric to the wrapper-name stop-list: the matched value must be
+distinctive, not `String`/`Int`) dropped Variant A back to **1**, the real finding intact. Variant
+B's enum expansion (~9 → ~59) needed no such fix — it was all distinctive domain-enum names
+(`Tier`×19, `Repo`×8, `Severity`×7, `Phase`, `ByteCount`, `SessionID`, `Role`, …) matched against
+same-named `String` positions, the name signal working as designed.
+
+| after enum widening | Variant A | Variant A + value guard | Variant B |
+|---|---|---|---|
+| hits across 32 projects | 72 | 1 | ~59 |
+| character | 71 bare-primitive-value false | 1 real (`MediaType`) | distinctive domain-enum names |
+
+The meta-lesson, twice now: **each rule's guard is only as strong as the distinctiveness of the
+thing it keys on** — the wrapper name for B, the value type for A. Widen the wrappers and any
+weakness in that guard surfaces at once. Both guards are now symmetric: key *and* value must be
+distinctive.

@@ -53,11 +53,16 @@ alone accounted for 71), nearly all false positives. So a wrapper whose name is 
 generic-named wrapper used as a *key* is still a valid finding for
 [Primitive Bypassing Its Domain Type](primitive-bypassing-its-domain-type.md).
 
-#### Known limitations (v1)
+#### Recognized wrapper shapes
+A wrapper is a `struct` with a single stored primitive property, a `struct` declaring
+`typealias RawValue = <primitive>`, or an `enum` with a primitive raw type (`enum Currency: String`).
+The generic-name stop-list applies to all of them, so an `enum Status: String` does not turn
+every `status: String` into a finding.
+
+#### Known limitations
 - **Exact name match only.** `idempotencyKey: String` matches `IdempotencyKey`, but `key: String`
   inside an idempotency-flavored type does not — the broader contains/context heuristic is noisier
-  and deferred.
-- **Structs only.** Enum and `RawRepresentable`-via-`typealias` wrappers are not yet recognized.
+  and deferred to Variant C.
 - Suppress with `// swiftprojectlint:disable Primitive Named For Its Domain Type`.
 
 ### Non-Violating Examples
