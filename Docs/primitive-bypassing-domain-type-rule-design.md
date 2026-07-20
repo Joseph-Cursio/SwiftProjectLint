@@ -235,3 +235,50 @@ The meta-lesson, twice now: **each rule's guard is only as strong as the distinc
 thing it keys on** — the wrapper name for B, the value type for A. Widen the wrappers and any
 weakness in that guard surfaces at once. Both guards are now symmetric: key *and* value must be
 distinctive.
+
+## 9. Case study — the one true positive (Hummingbird)
+
+The single Variant A finding that survived every guard is worth reading in full, because it is
+exactly the shape the rule exists to catch — and its adjudication is exactly the posture the rule
+is meant to have.
+
+`Sources/Hummingbird/Middleware/FileMiddleware.swift:124`:
+
+```swift
+public func withAdditionalMediaType(_ mediaType: MediaType, mappedToFileExtension fileExtension: String) -> FileMiddleware {
+    withAdditionalMediaType(mediaType, mappedToFileExtension: MediaType.FileExtension(fileExtension))
+}
+public func withAdditionalMediaType(_ mediaType: MediaType, mappedToFileExtension fileExtension: MediaType.FileExtension) -> FileMiddleware {
+    withAdditionalMediaTypes(forFileExtensions: [fileExtension: mediaType])
+}
+
+public func withAdditionalMediaTypes(forFileExtensions extensionToMediaTypeMap: [String: MediaType]) -> FileMiddleware {  // ← flagged
+    withAdditionalMediaTypes(
+        forFileExtensions: extensionToMediaTypeMap.reduce(into: [MediaType.FileExtension: MediaType]()) {
+            $0[.init($1.key)] = $1.value
+        }
+    )
+}
+```
+
+`MediaType.FileExtension` is a newtype over `String`, and the canonical internal map is
+`[MediaType.FileExtension: MediaType]`. The flagged method is a public overload that accepts the
+*raw* `[String: MediaType]` and, on the very next line, `.reduce`s each `String` key through
+`MediaType.FileExtension.init` to reach the domain-keyed form. The rule saw a `[String: MediaType]`
+map beside a `[MediaType.FileExtension: MediaType]` map — same value type, one keyed by the
+wrapper, one by the raw carrier — and that is precisely what it reported. Zero false positives: the
+inconsistency is real, and the `.init($1.key)` conversion two lines down is the proof.
+
+**The adjudication is the point.** This is not a bug — it is a deliberate ergonomic overload: the
+`[String: MediaType]` entry point exists so callers can pass string literals without wrapping each
+one, and the method pays for that convenience with a single explicit conversion at the boundary.
+A reviewer looks at it and, reasonably, keeps it. That is the whole design in one example:
+
+- the rule's job is to **surface the seam** — a place where a domain type exists but a raw
+  primitive still crosses a boundary — with enough precision that the seam is real;
+- the human's job is to **rule on intent** — bug, or intentional convenience?
+
+An `error`-severity rule that forced this to change would be wrong; an `Info`, opt-in rule that
+draws the reviewer's eye to it is exactly right. The one true positive in 32 projects turning out
+to be an intentional overload is not a disappointment — it is the honest ceiling of static
+enforcement restated: **a tool finds the divergence; a human still adjudicates the intent.**
