@@ -100,6 +100,7 @@ public struct LintConfiguration: Sendable {
         .testMissingRequire,
         .duplicateStructShape,
         .sharedDomainEnumField,
+        .primitiveBypassingDomainType,
         .scatteredEnumMapping,
         .parallelEnumShape,
         .couldAdoptProtocol,

@@ -93,6 +93,7 @@ class Architecture: BasePatternRegistrar {
             MirrorProtocol(),
             DuplicateStructShape(),
             SharedDomainEnumField(),
+            PrimitiveBypassingDomainType(),
             ScatteredEnumMapping(),
             ParallelEnumShape(),
             UnusedProtocolAbstraction(),

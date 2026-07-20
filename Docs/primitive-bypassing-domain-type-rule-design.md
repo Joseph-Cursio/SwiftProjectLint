@@ -1,8 +1,12 @@
 # Design Spike: Primitive Bypassing Its Domain Type
 
-**Status:** Proposed. This is the *enforcement* complement to a smell no linter can detect
-directly (primitive obsession). The disease is semantic; the cure, once applied, is syntactic —
-and that asymmetry is the whole justification for the rule. See §1.
+**Status:** Variant A shipped as the [Primitive Bypassing Its Domain Type](rules/primitive-bypassing-its-domain-type.md)
+rule (Info, opt-in, Architecture). The shipped form is tightened from §3's first sketch: it
+fires only when the raw-keyed and wrapper-keyed maps share the **same value type** (the
+false-positive guard for a carrier as common as `String`), and v1 recognizes **struct
+newtypes** and **`Dictionary`** only — see §3.1 and §4. This is the *enforcement* complement to
+a smell no linter can detect directly (primitive obsession): the disease is semantic; the cure,
+once applied, is syntactic — and that asymmetry is the whole justification for the rule. See §1.
 
 ## 1. Problem statement — why detecting the smell is undecidable but policing the cure is not
 
@@ -59,14 +63,20 @@ signal.
 Following the [Could Hoist](could-hoist-to-protocol-extension-rule-design.md) discipline of
 leading with the tractable variant and being honest about what it misses.
 
-### Variant A — inconsistent keying (highest precision, ship first)
+### Variant A — inconsistent keying (highest precision, shipped)
 
-Fire when a `Dictionary` or `Set` is keyed by the carrier `P` **in the same module where a
-wrapper `W` over `P` is already used as a key elsewhere.** `[String: Response]` next to a
+Fire when a `Dictionary` is keyed by the raw carrier `P` **and a wrapper `W` over `P` keys a
+map to the *same value type* `V` elsewhere in the sources.** `[String: Response]` next to a
 `[IdempotencyKey: Response]` is a real inconsistency, not a naming guess — one map enforces the
 domain identity and the other launders it back to a bare string, which is precisely the
-dedup-key confusion that produces a double charge. Precision here is high because the signal is
-structural (two container keyings that disagree), not lexical.
+dedup-key confusion that produces a double charge.
+
+The **matching value type is the false-positive guard**, and it is load-bearing: `String` keys
+thousands of unrelated dictionaries, so firing on every `[String: X]` merely because some
+`String` newtype exists would flood. Requiring the raw-keyed and wrapper-keyed maps to share
+`V` is what makes the signal structural (two keyings of one mapping that disagree) rather than
+lexical. v1 recognizes struct newtypes and `Dictionary` only; `Set` (no `V` to match on) and
+enum/`RawRepresentable` wrappers are deferred to Variant C.
 
 ### Variant B — raw carrier in a named domain position (broader, opt-in, measure before shipping)
 
