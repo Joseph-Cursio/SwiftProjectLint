@@ -43,6 +43,16 @@ A wrapper whose backing property happens to share its name — `struct Percentag
 — is not flagged for its *own* field: a position whose enclosing type is the matching wrapper is
 skipped, so the rule never nags the very cure it is enforcing.
 
+#### Generic wrapper names are not triggers
+The name signal only earns its keep when the wrapper name is *distinctive*. A project may declare
+`struct Name` or `struct Value`, but `name: String` and `value: String` are everyday parameter
+names that collide by coincidence — measured as ~110 hits across real projects (vapor's `Name`
+alone accounted for 71), nearly all false positives. So a wrapper whose name is a common word
+(`Name`, `Value`, `Text`, `Image`, `Code`, `Message`, …) is skipped; a distinctive one
+(`IdempotencyKey`, `SessionID`, `ByteCount`) still fires. The guard is Variant-B-only — a
+generic-named wrapper used as a *key* is still a valid finding for
+[Primitive Bypassing Its Domain Type](primitive-bypassing-its-domain-type.md).
+
 #### Known limitations (v1)
 - **Exact name match only.** `idempotencyKey: String` matches `IdempotencyKey`, but `key: String`
   inside an idempotency-flavored type does not — the broader contains/context heuristic is noisier

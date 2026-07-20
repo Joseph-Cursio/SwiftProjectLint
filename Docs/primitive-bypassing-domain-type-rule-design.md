@@ -179,3 +179,32 @@ an `Info` severity that admits it is advice, not a verdict.
   halves of the modeling loop: extract the abstraction, then enforce its adoption.
 - **[Magic Number](rules/magic-number.md)** is the degenerate case — a raw literal with no
   wrapper at all; this rule is what becomes possible once that literal has been given a type.
+
+## 8. Field measurement — a 32-project sweep
+
+§3 and §4 promised Variant B would be "measured before trust." It has been: both rules were run
+(opt-in, via `enabled_only`) across 32 real Swift projects — the author's own apps and packages
+plus vapor, hummingbird, pointfreeco, ViewInspector, and swift-server ecosystem repos.
+
+**Variant A held.** Exactly one finding in 32 projects, and it was real: Hummingbird's
+`FileMiddleware` keys a `[String: MediaType]` map beside a `[FileExtension: MediaType]` map — the
+raw `String` bypasses the `FileExtension` type. Zero false positives anywhere else. The
+structural signal is as precise as designed, which retro-justifies shipping it first and un-gated.
+
+**Variant B flooded, then was fixed by measurement.** The first run returned **114 hits, ~95% of
+them one coincidence**: a generic-word newtype colliding with an everyday parameter name — vapor's
+`Name` (71) and `Value` (13); `Text`, `Image`, `Code`, `Message`, `Modifier` elsewhere. Precision
+was gated entirely by *how distinctive the wrapper name is*. Adding a generic-name stop-list (skip
+`Name`/`Value`/`Text`/… as triggers) collapsed **114 → 9**, and every survivor is a distinctive
+domain type that is plausibly a true positive: `ByteCount` (4) and `SessionID` (2) in vapor,
+`Command`/`File` in pointfreeco, and `FileExtension` in hummingbird — the very type its Variant A
+finding names.
+
+| across 32 projects | Variant A | Variant B (before) | Variant B (after stop-list) |
+|---|---|---|---|
+| hits | 1 | 114 | 9 |
+| character | 1 real, 0 false | ~95% generic-word coincidence | survivors all distinctive |
+
+The lesson, on record: the name heuristic is trustworthy only for *distinctive* wrapper names, and
+a generic-name stop-list is the cheap guard that makes it so. Variant C's broader contains/context
+form must clear the same bar — measured, not assumed — before it ships.

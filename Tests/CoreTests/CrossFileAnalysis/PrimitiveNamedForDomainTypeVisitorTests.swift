@@ -95,6 +95,30 @@ struct PrimitiveNamedForDomainTypeVisitorTests {
         #expect(issues.isEmpty)
     }
 
+    /// A generic-word wrapper (`Name`, `Value`, `Text`) is too common to trust the name
+    /// signal — `name: String` collides with it by coincidence, so it is not a trigger.
+    /// (Measured as the dominant false-positive source across real projects.)
+    @Test
+    func genericWrapperNameSuppressed() {
+        let issues = analyze(files: [
+            "Name.swift": "struct Name { let value: String }",
+            "User.swift": "func create(name: String) {}"
+        ])
+
+        #expect(issues.isEmpty)
+    }
+
+    /// A distinctive wrapper name still fires — the stop-list targets generic words only.
+    @Test
+    func distinctiveWrapperStillFires() {
+        let issues = analyze(files: [
+            "Key.swift": "struct SessionID { let value: String }",
+            "Use.swift": "func track(sessionID: String) {}"
+        ])
+
+        #expect(issues.count == 1)
+    }
+
     /// Case-insensitive match: `IdempotencyKey` matches an `idempotencyKey` position.
     @Test
     func caseInsensitiveNameMatchFlags() {

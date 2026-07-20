@@ -32,6 +32,27 @@ final class PrimitiveNamedForDomainTypeVisitor: CrossFileVisitorBase, CrossFileP
         "UUID", "URL", "Data", "Decimal"
     ]
 
+    /// Wrapper names too generic to trust the name-correspondence signal. A project may well
+    /// declare `struct Name` or `struct Value`, but `name: String` and `value: String` are
+    /// everyday parameter names that collide with them by coincidence, not intent — measured
+    /// as ~110 hits across real projects, nearly all of them here (vapor's `Name`×71,
+    /// `Value`×13; `Text`, `Image`, `Code`, `Message`, `Modifier`). The name heuristic only
+    /// earns its keep when the wrapper name is *distinctive* (`IdempotencyKey`, `SessionID`,
+    /// `ByteCount`), so a generic-word wrapper is not treated as a trigger. This guard is
+    /// Variant-B-only: a generic-named wrapper used as a *key* is still a valid structural
+    /// finding for `PrimitiveBypassingDomainType`.
+    private static let genericWrapperNames: Set<String> = [
+        "name", "value", "text", "image", "code", "message", "modifier",
+        "item", "data", "content", "title", "label", "key", "id", "identifier",
+        "type", "kind", "model", "state", "status", "result", "response",
+        "request", "error", "info", "index", "count", "size", "length",
+        "color", "font", "style", "entry", "field", "entity", "object",
+        "element", "node", "tag", "path", "description", "source", "target",
+        "input", "output", "body", "header", "token", "action", "event",
+        "view", "context", "option", "config", "mode", "format", "unit",
+        "group", "number", "flag", "point", "line", "page", "row", "column"
+    ]
+
     private struct NamedPosition {
         let name: String
         let carrier: String
@@ -106,7 +127,8 @@ final class PrimitiveNamedForDomainTypeVisitor: CrossFileVisitorBase, CrossFileP
                 solePrimitive = plainName(binding.typeAnnotation?.type)
             }
         }
-        if storedCount == 1, let carrier = solePrimitive, Self.primitiveCarriers.contains(carrier) {
+        if storedCount == 1, let carrier = solePrimitive, Self.primitiveCarriers.contains(carrier),
+           Self.genericWrapperNames.contains(node.name.text.lowercased()) == false {
             wrappers[node.name.text] = carrier
         }
     }
