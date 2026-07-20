@@ -94,6 +94,7 @@ class Architecture: BasePatternRegistrar {
             DuplicateStructShape(),
             SharedDomainEnumField(),
             PrimitiveBypassingDomainType(),
+            PrimitiveNamedForDomainType(),
             ScatteredEnumMapping(),
             ParallelEnumShape(),
             UnusedProtocolAbstraction(),

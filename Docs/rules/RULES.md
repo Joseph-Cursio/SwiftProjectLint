@@ -1,6 +1,6 @@
 # SwiftProjectLint Rules Reference
 
-SwiftProjectLint is a static analysis tool for SwiftUI projects. It parses Swift source files using SwiftSyntax AST visitors to detect anti-patterns spanning state management, performance, animations, architecture, code quality, security, accessibility, memory management, networking, UI patterns, modernization, and idempotency. This reference documents all 164 lint rules, organized by category.
+SwiftProjectLint is a static analysis tool for SwiftUI projects. It parses Swift source files using SwiftSyntax AST visitors to detect anti-patterns spanning state management, performance, animations, architecture, code quality, security, accessibility, memory management, networking, UI patterns, modernization, and idempotency. This reference documents all 165 lint rules, organized by category.
 
 Rules marked **opt-in** are disabled by default and must be explicitly listed under `enabled_only` in `.swiftprojectlint.yml`.
 
@@ -72,6 +72,7 @@ Rules marked **opt-in** are disabled by default and must be explicitly listed un
 | [Duplicate Struct Shape](duplicate-struct-shape.md) | Info *(opt-in)* |
 | [Shared Domain-Enum Field](shared-domain-enum-field.md) | Info *(opt-in)* |
 | [Primitive Bypassing Its Domain Type](primitive-bypassing-its-domain-type.md) | Info *(opt-in)* |
+| [Primitive Named For Its Domain Type](primitive-named-for-its-domain-type.md) | Info *(opt-in)* |
 | [Scattered Enum Mapping](scattered-enum-mapping.md) | Info *(opt-in)* |
 | [Parallel Enum Shape](parallel-enum-shape.md) | Info *(opt-in)* |
 | [Unused Protocol Abstraction](unused-protocol-abstraction.md) | Info |

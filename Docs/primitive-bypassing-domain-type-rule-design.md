@@ -1,12 +1,17 @@
 # Design Spike: Primitive Bypassing Its Domain Type
 
-**Status:** Variant A shipped as the [Primitive Bypassing Its Domain Type](rules/primitive-bypassing-its-domain-type.md)
-rule (Info, opt-in, Architecture). The shipped form is tightened from §3's first sketch: it
+**Status:** Both variants shipped as separate opt-in Architecture rules, following the
+[Could Hoist](could-hoist-to-protocol-extension-rule-design.md) precedent of shipping a spike's
+variants as distinct rules. Variant A →
+[Primitive Bypassing Its Domain Type](rules/primitive-bypassing-its-domain-type.md) (the
+structural inconsistent-keying signal); Variant B →
+[Primitive Named For Its Domain Type](rules/primitive-named-for-its-domain-type.md) (the
+name-correspondence signal). Variant A's shipped form is tightened from §3's first sketch: it
 fires only when the raw-keyed and wrapper-keyed maps share the **same value type** (the
 false-positive guard for a carrier as common as `String`), and v1 recognizes **struct
 newtypes** and **`Dictionary`** only — see §3.1 and §4. This is the *enforcement* complement to
 a smell no linter can detect directly (primitive obsession): the disease is semantic; the cure,
-once applied, is syntactic — and that asymmetry is the whole justification for the rule. See §1.
+once applied, is syntactic — and that asymmetry is the whole justification for the rules. See §1.
 
 ## 1. Problem statement — why detecting the smell is undecidable but policing the cure is not
 
@@ -78,17 +83,20 @@ thousands of unrelated dictionaries, so firing on every `[String: X]` merely bec
 lexical. v1 recognizes struct newtypes and `Dictionary` only; `Set` (no `V` to match on) and
 enum/`RawRepresentable` wrappers are deferred to Variant C.
 
-### Variant B — raw carrier in a named domain position (broader, opt-in, measure before shipping)
+### Variant B — raw carrier in a named domain position (shipped as a separate opt-in rule)
 
 Fire when a function parameter or stored property is typed `P` but *named* for the wrapper's
-concept — `idempotencyKey: String`, `key: String` inside a type whose name contains
-`Idempotenc*`, `percentage: Int`, `amount: Decimal` where `Money` exists. This is the
-name-correspondence heuristic, and it *will* have false positives (a generic `key: String` in a
-cache utility has nothing to do with `IdempotencyKey`). It should be **Info, opt-in**, and its
-broad form should be measured against real projects and rejected if noisy — the same fate the
-broad [Could Hoist](could-hoist-to-protocol-extension-rule-design.md) variant met. The honest
-expectation is that Variant B is the higher-value shape and the lower-precision one; ship A,
-prototype B behind a flag.
+concept — `idempotencyKey: String` where `IdempotencyKey` exists. This is the name-correspondence
+heuristic, and it *will* have false positives (a generic `key: String` in a cache utility has
+nothing to do with `IdempotencyKey`), so it ships as its own opt-in rule
+([Primitive Named For Its Domain Type](rules/primitive-named-for-its-domain-type.md)) — a team
+can adopt Variant A's structural signal without it. **v1 uses exact name match only**
+(`idempotencyKey` ↔ `IdempotencyKey`, case-insensitive); the broader contains/context form
+(`key: String` inside an `Idempotenc*`-named type) is the noisier tail and is deferred until it
+can be measured against real projects, the same caution the broad
+[Could Hoist](could-hoist-to-protocol-extension-rule-design.md) variant earned. The rule never
+flags a wrapper's own backing field (a position whose enclosing type is the matching wrapper is
+skipped).
 
 ### Phases (both variants)
 
