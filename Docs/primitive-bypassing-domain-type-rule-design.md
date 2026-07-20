@@ -98,6 +98,35 @@ can be measured against real projects, the same caution the broad
 flags a wrapper's own backing field (a position whose enclosing type is the matching wrapper is
 skipped).
 
+### Variant C — wider wrapper and container shapes (deferred)
+
+Variants A and B both recognize only the cleanest wrapper shape — a `struct` with a single
+stored primitive property — and Variant A only the cleanest container — a `Dictionary` with a
+matchable value type. Variant C is the label for the coverage deliberately left out of v1,
+collected here so the deferral is a decision on record rather than an omission. Each item widens
+recall at a measurable cost in precision, which is exactly why it is not in the shipped rules.
+
+- **Enum and `RawRepresentable` wrappers.** `enum Currency: String` and a `struct` conforming to
+  `RawRepresentable` via `typealias RawValue = String` (with a *computed* `rawValue`, so the
+  single-stored-property heuristic misses it) are both newtypes over a primitive. Recognizing
+  them widens the wrapper set — but an enum with a raw type is *also* a serialization detail, and
+  a `[Currency: Rate]` sitting beside a `[String: JSONValue]` is a weaker signal than two struct
+  newtypes disagreeing. This item would ship behind its own opt-in and be measured before trust.
+
+- **`Set` support.** `Set<UserID>` beside `Set<String>` is the Variant A inconsistency without a
+  value type to match on — and the value type is precisely A's false-positive guard. Absent it,
+  the only signal is "a `Set<W>` and a `Set<P>` both exist," which for a carrier as common as
+  `String` is close to noise. Set support therefore needs a *different* guard (e.g. same element
+  domain inferred elsewhere) before it can fire at A's precision.
+
+- **The broad Variant B name form.** `key: String` inside an `Idempotenc*`-named type, rather
+  than an exact `idempotencyKey ↔ IdempotencyKey` match — noted under Variant B, and belonging to
+  the same "measure the noisy tail first" bucket.
+
+The through-line: v1 shipped the shapes whose precision could be argued from the syntax alone.
+Variant C is the set whose precision can only be established by measurement, and it stays
+unshipped until that measurement exists.
+
 ### Phases (both variants)
 
 1. **Collect wrappers.** Walk all declarations; record each qualifying `W` with its carrier `P`
