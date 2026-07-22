@@ -108,7 +108,8 @@ class Architecture: BasePatternRegistrar {
             ViewModelDirectDBAccess(),
             CircularDependency(),
             ArchitecturalBoundary(),
-            BooleanControlCoupling()
+            BooleanControlCoupling(),
+            ManualRegistrationList()
         ])
     }
 }
