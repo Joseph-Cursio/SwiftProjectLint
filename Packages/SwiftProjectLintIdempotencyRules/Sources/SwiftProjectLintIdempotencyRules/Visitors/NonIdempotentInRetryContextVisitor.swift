@@ -29,15 +29,7 @@ final class NonIdempotentInRetryContextVisitor: CrossFileVisitorBase, CrossFileP
         let callerName: String
         let body: Syntax
         let context: ContextEffect
-        let filePath: String
-        let locationConverter: SourceLocationConverter
-    }
-
-    private var currentLocationConverter: SourceLocationConverter?
-
-    override func setSourceLocationConverter(_ converter: SourceLocationConverter) {
-        super.setSourceLocationConverter(converter)
-        currentLocationConverter = converter
+        let location: CapturedSiteLocation
     }
 
     override func visit(_ node: SourceFileSyntax) -> SyntaxVisitorContinueKind {
@@ -50,15 +42,12 @@ final class NonIdempotentInRetryContextVisitor: CrossFileVisitorBase, CrossFileP
               let body = node.body else {
             return .visitChildren
         }
-        let converter = currentLocationConverter
-            ?? SourceLocationConverter(fileName: currentFilePath, tree: node.root)
         analysisSites.append(
             AnalysisSite(
                 callerName: node.name.text,
                 body: Syntax(body),
                 context: context,
-                filePath: currentFilePath,
-                locationConverter: converter
+                location: captureSiteLocation(rootedAt: node)
             )
         )
         return .visitChildren
@@ -76,15 +65,12 @@ final class NonIdempotentInRetryContextVisitor: CrossFileVisitorBase, CrossFileP
               let name = node.firstBindingName else {
             return .visitChildren
         }
-        let converter = currentLocationConverter
-            ?? SourceLocationConverter(fileName: currentFilePath, tree: node.root)
         analysisSites.append(
             AnalysisSite(
                 callerName: name,
                 body: Syntax(closure.statements),
                 context: context,
-                filePath: currentFilePath,
-                locationConverter: converter
+                location: captureSiteLocation(rootedAt: node)
             )
         )
         return .visitChildren
@@ -111,15 +97,12 @@ final class NonIdempotentInRetryContextVisitor: CrossFileVisitorBase, CrossFileP
               let closure = node.trailingClosure else {
             return .visitChildren
         }
-        let converter = currentLocationConverter
-            ?? SourceLocationConverter(fileName: currentFilePath, tree: node.root)
         analysisSites.append(
             AnalysisSite(
                 callerName: "closure",
                 body: Syntax(closure.statements),
                 context: context,
-                filePath: currentFilePath,
-                locationConverter: converter
+                location: captureSiteLocation(rootedAt: node)
             )
         )
         return .visitChildren
@@ -217,16 +200,14 @@ final class NonIdempotentInRetryContextVisitor: CrossFileVisitorBase, CrossFileP
         }
         let callerName = site.callerName
         let calleeName = calleeSignature.name
-        let line = site.locationConverter.location(
-            for: call.positionAfterSkippingLeadingTrivia
-        ).line
+        let line = site.location.line(of: call)
 
         addIssue(
             severity: pattern.severity,
             message: "Non-idempotent call in \(contextLabel) context: '\(callerName)' is declared "
                 + "`@lint.context \(contextLabel)` but calls '\(calleeName)', \(calleeClaim)."
                 + overrideHint,
-            filePath: site.filePath,
+            filePath: site.location.filePath,
             lineNumber: line,
             suggestion: "Replace '\(calleeName)' with an idempotent alternative, or route the call "
                 + "through a deduplication guard such as `IdempotencyKey` or "
@@ -268,7 +249,7 @@ final class NonIdempotentInRetryContextVisitor: CrossFileVisitorBase, CrossFileP
                 + "explicitly with `/// @lint.effect <tier>` to override the body-based inference."
             )
         }
-        let siteImports = siteImportCache.imports(forSiteFile: site.filePath)
+        let siteImports = siteImportCache.imports(forSiteFile: site.location.filePath)
         if let inferred = HeuristicEffectInferrer.infer(
             call: call,
             imports: siteImports,

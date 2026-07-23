@@ -37,15 +37,7 @@ final class MissingIdempotencyKeyVisitor: CrossFileVisitorBase, CrossFilePattern
 
     private struct AnalysisSite {
         let function: FunctionDeclSyntax
-        let filePath: String
-        let locationConverter: SourceLocationConverter
-    }
-
-    private var currentLocationConverter: SourceLocationConverter?
-
-    override func setSourceLocationConverter(_ converter: SourceLocationConverter) {
-        super.setSourceLocationConverter(converter)
-        currentLocationConverter = converter
+        let location: CapturedSiteLocation
     }
 
     override func visit(_ node: SourceFileSyntax) -> SyntaxVisitorContinueKind {
@@ -55,13 +47,10 @@ final class MissingIdempotencyKeyVisitor: CrossFileVisitorBase, CrossFilePattern
 
     override func visit(_ node: FunctionDeclSyntax) -> SyntaxVisitorContinueKind {
         guard node.body != nil else { return .visitChildren }
-        let converter = currentLocationConverter
-            ?? SourceLocationConverter(fileName: currentFilePath, tree: node.root)
         analysisSites.append(
             AnalysisSite(
                 function: node,
-                filePath: currentFilePath,
-                locationConverter: converter
+                location: captureSiteLocation(rootedAt: node)
             )
         )
         return .visitChildren
@@ -120,7 +109,7 @@ final class MissingIdempotencyKeyVisitor: CrossFileVisitorBase, CrossFilePattern
         guard let reason = nonStableReason(for: arg.expression) else { return }
 
         let calleeName = calleeBaseName(of: call.calledExpression) ?? "<unresolved>"
-        let line = site.locationConverter.location(for: arg.positionAfterSkippingLeadingTrivia).line
+        let line = site.location.line(of: arg)
 
         addIssue(
             severity: pattern.severity,
@@ -128,7 +117,7 @@ final class MissingIdempotencyKeyVisitor: CrossFileVisitorBase, CrossFilePattern
                 + "invocation produces a different key, so retries do not converge. "
                 + "The key must be derived from a stable upstream identifier that is the "
                 + "same on replay.",
-            filePath: site.filePath,
+            filePath: site.location.filePath,
             lineNumber: line,
             suggestion: "Route a stable upstream identifier into the `\(keyParam):` argument — "
                 + "e.g. an event ID, request ID, or message ID received from the caller. "
@@ -160,7 +149,7 @@ final class MissingIdempotencyKeyVisitor: CrossFileVisitorBase, CrossFilePattern
         }
 
         let calleeName = calleeBaseName(of: call.calledExpression) ?? "<unresolved>"
-        let line = site.locationConverter.location(for: call.positionAfterSkippingLeadingTrivia).line
+        let line = site.location.line(of: call)
 
         addIssue(
             severity: pattern.severity,
@@ -172,7 +161,7 @@ final class MissingIdempotencyKeyVisitor: CrossFileVisitorBase, CrossFilePattern
                 + "another parameter, so it is either a constant (every operation shares one key, "
                 + "and the second is deduplicated as a replay of the first) or a fresh value per "
                 + "call (every retry runs the operation again).",
-            filePath: site.filePath,
+            filePath: site.location.filePath,
             lineNumber: line,
             suggestion: "Make `\(keyParam):` a required parameter of '\(calleeName)' and pass a "
                 + "stable upstream identifier here — an event ID, request ID, or message ID that "

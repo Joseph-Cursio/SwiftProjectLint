@@ -50,15 +50,7 @@ final class OnceContractViolationVisitor: CrossFileVisitorBase, CrossFilePattern
         /// Caller's own `@lint.context` annotation, if any. Used to surface
         /// the replayable / retry_safe trigger separately from the loop one.
         let callerContext: ContextEffect?
-        let filePath: String
-        let locationConverter: SourceLocationConverter
-    }
-
-    private var currentLocationConverter: SourceLocationConverter?
-
-    override func setSourceLocationConverter(_ converter: SourceLocationConverter) {
-        super.setSourceLocationConverter(converter)
-        currentLocationConverter = converter
+        let location: CapturedSiteLocation
     }
 
     override func visit(_ node: SourceFileSyntax) -> SyntaxVisitorContinueKind {
@@ -68,14 +60,11 @@ final class OnceContractViolationVisitor: CrossFileVisitorBase, CrossFilePattern
 
     override func visit(_ node: FunctionDeclSyntax) -> SyntaxVisitorContinueKind {
         guard node.body != nil else { return .visitChildren }
-        let converter = currentLocationConverter
-            ?? SourceLocationConverter(fileName: currentFilePath, tree: node.root)
         analysisSites.append(
             AnalysisSite(
                 function: node,
                 callerContext: ContextAnnotationParser.parseContext(declaration: node),
-                filePath: currentFilePath,
-                locationConverter: converter
+                location: captureSiteLocation(rootedAt: node)
             )
         )
         return .visitChildren
@@ -155,9 +144,7 @@ final class OnceContractViolationVisitor: CrossFileVisitorBase, CrossFilePattern
 
         let callerName = site.function.name.text
         let calleeName = signature.name
-        let line = site.locationConverter.location(
-            for: call.positionAfterSkippingLeadingTrivia
-        ).line
+        let line = site.location.line(of: call)
 
         let calleeDescription: String
         if let depth = transitiveDepth {
@@ -185,7 +172,7 @@ final class OnceContractViolationVisitor: CrossFileVisitorBase, CrossFilePattern
             severity: pattern.severity,
             message: "Once-contract violation: '\(callerName)' calls '\(calleeName)' \(trigger). "
                 + "'\(calleeName)' \(calleeDescription) — \(detail)",
-            filePath: site.filePath,
+            filePath: site.location.filePath,
             lineNumber: line,
             suggestion: "Either move '\(calleeName)' to a position guaranteed to execute at most "
                 + "once (e.g. one-time init, idempotency-key-guarded path, or pre-loop hoist), "

@@ -47,15 +47,7 @@ final class UnannotatedInStrictReplayableContextVisitor:
     private struct AnalysisSite {
         let callerName: String
         let body: Syntax
-        let filePath: String
-        let locationConverter: SourceLocationConverter
-    }
-
-    private var currentLocationConverter: SourceLocationConverter?
-
-    override func setSourceLocationConverter(_ converter: SourceLocationConverter) {
-        super.setSourceLocationConverter(converter)
-        currentLocationConverter = converter
+        let location: CapturedSiteLocation
     }
 
     override func visit(_ node: SourceFileSyntax) -> SyntaxVisitorContinueKind {
@@ -68,14 +60,11 @@ final class UnannotatedInStrictReplayableContextVisitor:
               let body = node.body else {
             return .visitChildren
         }
-        let converter = currentLocationConverter
-            ?? SourceLocationConverter(fileName: currentFilePath, tree: node.root)
         analysisSites.append(
             AnalysisSite(
                 callerName: node.name.text,
                 body: Syntax(body),
-                filePath: currentFilePath,
-                locationConverter: converter
+                location: captureSiteLocation(rootedAt: node)
             )
         )
         return .visitChildren
@@ -87,14 +76,11 @@ final class UnannotatedInStrictReplayableContextVisitor:
               let name = node.firstBindingName else {
             return .visitChildren
         }
-        let converter = currentLocationConverter
-            ?? SourceLocationConverter(fileName: currentFilePath, tree: node.root)
         analysisSites.append(
             AnalysisSite(
                 callerName: name,
                 body: Syntax(closure.statements),
-                filePath: currentFilePath,
-                locationConverter: converter
+                location: captureSiteLocation(rootedAt: node)
             )
         )
         return .visitChildren
@@ -112,14 +98,11 @@ final class UnannotatedInStrictReplayableContextVisitor:
               let closure = node.trailingClosure else {
             return .visitChildren
         }
-        let converter = currentLocationConverter
-            ?? SourceLocationConverter(fileName: currentFilePath, tree: node.root)
         analysisSites.append(
             AnalysisSite(
                 callerName: "closure",
                 body: Syntax(closure.statements),
-                filePath: currentFilePath,
-                locationConverter: converter
+                location: captureSiteLocation(rootedAt: node)
             )
         )
         return .visitChildren
@@ -212,16 +195,14 @@ final class UnannotatedInStrictReplayableContextVisitor:
         // the existing rule handles it, or it's a positive signal.
         if HeuristicEffectInferrer.infer(
             call: call,
-            imports: siteImportCache.imports(forSiteFile: site.filePath),
+            imports: siteImportCache.imports(forSiteFile: site.location.filePath),
             enabledFrameworks: self.enabledFrameworkAllowlists
         ) != nil { return }
 
         // Fall through: no evidence of the callee's effect. Fire.
         let callerName = site.callerName
         let calleeName = calleeSignature.name
-        let line = site.locationConverter.location(
-            for: call.positionAfterSkippingLeadingTrivia
-        ).line
+        let line = site.location.line(of: call)
 
         addIssue(
             severity: pattern.severity,
@@ -230,7 +211,7 @@ final class UnannotatedInStrictReplayableContextVisitor:
                 + "whose effect is not declared and cannot be inferred from its body. "
                 + "Under strict mode, every callee must be provably idempotent, "
                 + "observational, or externally-keyed.",
-            filePath: site.filePath,
+            filePath: site.location.filePath,
             lineNumber: line,
             suggestion: "Annotate '\(calleeName)' with `/// @lint.effect idempotent` if "
                 + "re-invocation produces no additional observable effects; `observational` "

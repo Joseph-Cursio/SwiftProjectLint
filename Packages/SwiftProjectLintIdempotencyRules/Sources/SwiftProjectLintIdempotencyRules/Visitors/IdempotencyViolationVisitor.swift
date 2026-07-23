@@ -46,15 +46,7 @@ final class IdempotencyViolationVisitor: CrossFileVisitorBase, CrossFilePatternV
         let callerName: String
         let body: Syntax
         let effect: DeclaredEffect
-        let filePath: String
-        let locationConverter: SourceLocationConverter
-    }
-
-    private var currentLocationConverter: SourceLocationConverter?
-
-    override func setSourceLocationConverter(_ converter: SourceLocationConverter) {
-        super.setSourceLocationConverter(converter)
-        currentLocationConverter = converter
+        let location: CapturedSiteLocation
     }
 
     // MARK: - Walk phase: accumulate only
@@ -70,15 +62,12 @@ final class IdempotencyViolationVisitor: CrossFileVisitorBase, CrossFilePatternV
               let body = node.body else {
             return .visitChildren
         }
-        let converter = currentLocationConverter
-            ?? SourceLocationConverter(fileName: currentFilePath, tree: node.root)
         analysisSites.append(
             AnalysisSite(
                 callerName: node.name.text,
                 body: Syntax(body),
                 effect: callerEffect,
-                filePath: currentFilePath,
-                locationConverter: converter
+                location: captureSiteLocation(rootedAt: node)
             )
         )
         return .visitChildren
@@ -97,15 +86,12 @@ final class IdempotencyViolationVisitor: CrossFileVisitorBase, CrossFilePatternV
               let name = node.firstBindingName else {
             return .visitChildren
         }
-        let converter = currentLocationConverter
-            ?? SourceLocationConverter(fileName: currentFilePath, tree: node.root)
         analysisSites.append(
             AnalysisSite(
                 callerName: name,
                 body: Syntax(closure.statements),
                 effect: callerEffect,
-                filePath: currentFilePath,
-                locationConverter: converter
+                location: captureSiteLocation(rootedAt: node)
             )
         )
         return .visitChildren
@@ -203,14 +189,14 @@ final class IdempotencyViolationVisitor: CrossFileVisitorBase, CrossFilePatternV
             provenance = .inferredUpward(depth: upward.depth)
         } else if let inferred = HeuristicEffectInferrer.infer(
             call: call,
-            imports: siteImportCache.imports(forSiteFile: site.filePath),
+            imports: siteImportCache.imports(forSiteFile: site.location.filePath),
             enabledFrameworks: self.enabledFrameworkAllowlists
         ) {
             calleeEffect = inferred
             provenance = .inferredDownward(
                 reason: HeuristicEffectInferrer.inferenceReason(
                     for: call,
-                    imports: siteImportCache.imports(forSiteFile: site.filePath),
+                    imports: siteImportCache.imports(forSiteFile: site.location.filePath),
                     enabledFrameworks: self.enabledFrameworkAllowlists
                 ) ?? ""
             )
@@ -388,11 +374,11 @@ final class IdempotencyViolationVisitor: CrossFileVisitorBase, CrossFilePatternV
         default:
             return
         }
-        let line = site.locationConverter.location(for: call.positionAfterSkippingLeadingTrivia).line
+        let line = site.location.line(of: call)
         addIssue(
             severity: pattern.severity,
             message: headline,
-            filePath: site.filePath,
+            filePath: site.location.filePath,
             lineNumber: line,
             suggestion: suggestion,
             ruleName: .idempotencyViolation,
