@@ -147,7 +147,7 @@ final class PrimitiveBypassingDomainTypeVisitor: CrossFileVisitorBase, CrossFile
                 lineNumber: usage.line,
                 suggestion: "Key this map by '\(names)' too, so the identity is enforced by the "
                     + "type instead of a bare '\(usage.key)' that any value can impersonate.",
-                ruleName: .primitiveBypassingDomainType
+                ruleName: .primitiveBypassingItsDomainType
             )
         }
     }

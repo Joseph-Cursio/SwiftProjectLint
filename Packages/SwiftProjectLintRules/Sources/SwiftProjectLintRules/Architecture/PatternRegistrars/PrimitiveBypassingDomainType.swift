@@ -17,7 +17,7 @@ struct PrimitiveBypassingDomainType: PatternRegistrarProtocol {
 
     var pattern: SyntaxPattern {
         SyntaxPattern(
-            name: .primitiveBypassingDomainType,
+            name: .primitiveBypassingItsDomainType,
             visitor: PrimitiveBypassingDomainTypeVisitor.self,
             severity: .info,
             category: .architecture,

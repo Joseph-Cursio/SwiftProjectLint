@@ -22,7 +22,7 @@ struct PrimitiveNamedForDomainTypeVisitorTests {
             visitor.walk(ast)
         }
         visitor.finalizeAnalysis()
-        return visitor.detectedIssues.filter { $0.ruleName == .primitiveNamedForDomainType }
+        return visitor.detectedIssues.filter { $0.ruleName == .primitiveNamedForItsDomainType }
     }
 
     /// A parameter named for the wrapper but typed as the raw carrier.

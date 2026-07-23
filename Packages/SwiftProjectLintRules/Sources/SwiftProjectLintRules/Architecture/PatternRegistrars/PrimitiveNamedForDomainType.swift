@@ -15,7 +15,7 @@ struct PrimitiveNamedForDomainType: PatternRegistrarProtocol {
 
     var pattern: SyntaxPattern {
         SyntaxPattern(
-            name: .primitiveNamedForDomainType,
+            name: .primitiveNamedForItsDomainType,
             visitor: PrimitiveNamedForDomainTypeVisitor.self,
             severity: .info,
             category: .architecture,

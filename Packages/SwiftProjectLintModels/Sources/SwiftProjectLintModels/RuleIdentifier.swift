@@ -56,8 +56,8 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
     case mirrorProtocol = "Mirror Protocol"
     case duplicateStructShape = "Duplicate Struct Shape"
     case sharedDomainEnumField = "Shared Domain-Enum Field"
-    case primitiveBypassingDomainType = "Primitive Bypassing Its Domain Type"
-    case primitiveNamedForDomainType = "Primitive Named For Its Domain Type"
+    case primitiveBypassingItsDomainType = "Primitive Bypassing Its Domain Type"
+    case primitiveNamedForItsDomainType = "Primitive Named For Its Domain Type"
     case scatteredEnumMapping = "Scattered Enum Mapping"
     case parallelEnumShape = "Parallel Enum Shape"
     case unusedProtocolAbstraction = "Unused Protocol Abstraction"
@@ -276,7 +276,7 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
              .singletonUsage, .lawOfDemeter, .fatProtocol,
              .singleImplementationProtocol, .mirrorProtocol,
              .duplicateStructShape, .sharedDomainEnumField,
-             .primitiveBypassingDomainType, .primitiveNamedForDomainType,
+             .primitiveBypassingItsDomainType, .primitiveNamedForItsDomainType,
              .scatteredEnumMapping, .parallelEnumShape,
              .unusedProtocolAbstraction,
              .couldAdoptProtocol, .hoistableConformerMember,

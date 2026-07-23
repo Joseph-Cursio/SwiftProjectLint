@@ -22,7 +22,7 @@ struct PrimitiveBypassingDomainTypeVisitorTests {
             visitor.walk(ast)
         }
         visitor.finalizeAnalysis()
-        return visitor.detectedIssues.filter { $0.ruleName == .primitiveBypassingDomainType }
+        return visitor.detectedIssues.filter { $0.ruleName == .primitiveBypassingItsDomainType }
     }
 
     /// The canonical case: a `String` newtype keys one map; a same-value-type sibling is still
