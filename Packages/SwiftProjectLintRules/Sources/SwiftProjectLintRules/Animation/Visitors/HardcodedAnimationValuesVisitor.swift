@@ -10,11 +10,6 @@ import SwiftSyntax
 /// instead of named constants.
 final class HardcodedAnimationValuesVisitor: BasePatternVisitor {
 
-    private static let animationFactories: Set<String> = [
-        "easeIn", "easeOut", "easeInOut", "linear",
-        "spring", "interactiveSpring", "interpolatingSpring"
-    ]
-
     private static let parameterLabels: Set<String> = [
         "duration", "response", "dampingFraction", "bounce",
         "blendDuration", "speed", "repeatCount"
@@ -33,7 +28,7 @@ final class HardcodedAnimationValuesVisitor: BasePatternVisitor {
         guard let memberAccess = node.calledExpression.as(MemberAccessExprSyntax.self) else { return }
 
         let methodName = memberAccess.declName.baseName.text
-        guard Self.animationFactories.contains(methodName) else { return }
+        guard AnimationFactory.matches(methodName) else { return }
 
         for argument in node.arguments {
             guard let label = argument.label?.text,

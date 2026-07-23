@@ -98,9 +98,8 @@ final class AnimationPerformanceVisitor: BasePatternVisitor {
             return nil
         }
 
-        let animationFactories: Set<String> = ["easeIn", "easeOut", "easeInOut", "linear", "spring"]
         let methodName = memberAccess.declName.baseName.text
-        guard animationFactories.contains(methodName) else { return nil }
+        guard AnimationFactory.matches(methodName) else { return nil }
 
         for argument in node.arguments {
             if argument.label?.text == "duration",
