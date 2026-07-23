@@ -26,7 +26,7 @@ fragile, that one tells you it has broken.
 of consecutive expression statements that call the **same** registration-verb method, and flags
 any run of **5** or more.
 
-Two constraints keep the rule quiet on ordinary code:
+Three constraints keep the rule quiet on ordinary code:
 
 - **The callee must match at a camelCase boundary.** `registerFactory` matches the verb
   `register`; `address` does not match `add`. The verb vocabulary lives in `RegistrationVerb`,
@@ -34,9 +34,18 @@ Two constraints keep the rule quiet on ordinary code:
   honoured by the other.
 - **The run must be the same callee.** Interleaved or alternating calls do not accumulate, so
   assertion-heavy tests and mixed setup blocks do not trip it.
+- **Output-building `append`/`insert`/`put` of string text is excluded.** `lines.append("…")`
+  or `out.append("\(x)")` in a renderer or emitter constructs a report line by line — each
+  entry is unique text joined later, not a distinct component that could be silently omitted
+  from a registry. The unambiguous registration verbs (`register`, `bind`, `connect`, …) still
+  count even with a string argument, so a register-by-name registry (`commands.register("build")`)
+  is unaffected; only the collection verbs get the string exclusion. This was the rule's dominant
+  false positive: measured across the author's projects it went from **5 of 23** findings actionable
+  to **5 of 5**, the 18 excluded runs all being renderers building output.
 
 Recognized verbs: `register`, `add`, `append`, `insert`, `put`, `record`, `bind`, `connect`,
-`install`, `mount`, `wire`, `enroll`.
+`install`, `mount`, `wire`, `enroll` (the last three plus `register`/`bind`/`connect` are the
+"unambiguous" set exempt from the output-building exclusion above).
 
 #### Known limitations / false-positive posture
 - **Five is a heuristic.** Shorter runs are usually incidental repetition; a genuinely fragile
@@ -70,6 +79,18 @@ person.address(line2)
 person.address(line3)
 person.address(line4)
 person.address(line5)
+```
+
+```swift
+// Output-building, not a registry: each append is unique text joined later, so a forgotten
+// line is not a silent-omission bug. `append` of string content is excluded.
+var lines: [String] = []
+lines.append("Summary")
+lines.append("")
+lines.append("  • \(first)")
+lines.append("  • \(second)")
+lines.append("Done")
+return lines.joined(separator: "\n")
 ```
 
 ### Violating Examples

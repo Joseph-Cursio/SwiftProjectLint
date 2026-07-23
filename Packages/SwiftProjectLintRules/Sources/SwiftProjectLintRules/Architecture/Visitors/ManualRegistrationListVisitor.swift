@@ -65,7 +65,17 @@ final class ManualRegistrationListVisitor: BasePatternVisitor {
     /// The callee text of `item` when it is an expression statement calling a
     /// registration-verb method; `nil` otherwise. See `RegistrationVerb`, shared with
     /// the cross-file `ParallelListDrift` rule.
+    ///
+    /// Output-building `append`/`insert`/`put` of string text (`lines.append("…")`) is *not*
+    /// a registration call — it constructs a report or message, not a registry of distinct
+    /// components, so a forgotten line is not a silent-omission bug. Excluding it removes the
+    /// rule's dominant false positive (measured across a corpus of the author's projects,
+    /// where every such run was a renderer/emitter building output).
     private func registrationCallee(of item: CodeBlockItemSyntax) -> String? {
-        RegistrationVerb.callee(of: item)
+        guard let call = RegistrationVerb.call(in: item),
+              !RegistrationVerb.isStringOutputBuilding(call) else {
+            return nil
+        }
+        return call.calledExpression.trimmedDescription
     }
 }

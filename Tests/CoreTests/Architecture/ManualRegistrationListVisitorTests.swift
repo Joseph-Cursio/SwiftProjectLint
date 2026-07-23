@@ -59,7 +59,63 @@ struct ManualRegistrationListVisitorTests {
         #expect(visitor.detectedIssues.count == 1)
     }
 
+    @Test("a register-by-name run still fires — registration verbs count even with string args")
+    func flagsRegisterByNameRun() {
+        // `register` is unambiguous, so a register-by-name registry is still a hand-maintained
+        // list even though its arguments are strings. Only the collection verbs get the
+        // output-building exclusion.
+        let source = """
+        func setup() {
+            commands.register("build")
+            commands.register("test")
+            commands.register("run")
+            commands.register("clean")
+            commands.register("lint")
+        }
+        """
+        let visitor = makeVisitor()
+        runVisitor(visitor, source: source)
+        #expect(visitor.detectedIssues.count == 1)
+    }
+
+    @Test("an append run of non-string items still fires")
+    func flagsEntityAppendRun() {
+        let source = """
+        func collect() {
+            handlers.append(FetchHandler())
+            handlers.append(ParseHandler())
+            handlers.append(ValidateHandler())
+            handlers.append(PersistHandler())
+            handlers.append(NotifyHandler())
+        }
+        """
+        let visitor = makeVisitor()
+        runVisitor(visitor, source: source)
+        #expect(visitor.detectedIssues.count == 1)
+    }
+
     // MARK: - Does not fire
+
+    @Test("an output-building append run of string text is not flagged")
+    func outputBuildingAppendIgnored() {
+        // The dominant false positive: a renderer/emitter building a report line by line. Each
+        // append is unique text joined later, not a distinct component that can be silently
+        // omitted from a registry.
+        let source = #"""
+        func render() -> String {
+            var lines: [String] = []
+            lines.append("Header")
+            lines.append("")
+            lines.append("  • item one")
+            lines.append("  • item two  \(count)")
+            lines.append("Footer")
+            return lines.joined(separator: "\n")
+        }
+        """#
+        let visitor = makeVisitor()
+        runVisitor(visitor, source: source)
+        #expect(visitor.detectedIssues.isEmpty)
+    }
 
     @Test("a short run (below threshold) is not flagged")
     func shortRunIgnored() {

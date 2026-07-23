@@ -18,16 +18,41 @@ enum RegistrationVerb {
         "bind", "connect", "install", "mount", "wire", "enroll"
     ]
 
+    /// The subset of `all` that is *collection building* rather than unambiguous
+    /// registration. `lines.append("…")` and `parts.insert("…")` overwhelmingly construct
+    /// output text, so when such a call's argument is string content it is not treated as a
+    /// registration call (see `isStringOutputBuilding`). The unambiguous verbs
+    /// (`register`/`bind`/`connect`/…) always count, so a register-by-name registry
+    /// (`commands.register("build")`) is still detected.
+    static let collectionVerbs = ["append", "insert", "put"]
+
     /// A name matches a verb only at a camelCase boundary: `register` /
     /// `registerFactory` match `register`, but `address` does not match `add`.
     static func matches(_ name: String) -> Bool {
+        matches(name, in: all)
+    }
+
+    /// Boundary match of `name` against an explicit verb list.
+    static func matches(_ name: String, in verbs: [String]) -> Bool {
         let lowered = name.lowercased()
-        return all.contains { verb in
+        return verbs.contains { verb in
             if lowered == verb { return true }
             guard lowered.hasPrefix(verb) else { return false }
             let boundary = name.index(name.startIndex, offsetBy: verb.count)
             return name[boundary].isUppercase
         }
+    }
+
+    /// Whether `call` is a collection verb applied to string text — the output-building shape
+    /// (`lines.append("…")`, `out.append("\(x)")`), not the registration of a distinct item.
+    /// String interpolation is a `StringLiteralExprSyntax`, so both literals and interpolated
+    /// text are recognised.
+    static func isStringOutputBuilding(_ call: FunctionCallExprSyntax) -> Bool {
+        guard matches(baseName(of: call.calledExpression), in: collectionVerbs),
+              let firstArgument = call.arguments.first?.expression else {
+            return false
+        }
+        return firstArgument.is(StringLiteralExprSyntax.self)
     }
 
     /// The trailing identifier of a callee: `a.b.register` → `register`,
