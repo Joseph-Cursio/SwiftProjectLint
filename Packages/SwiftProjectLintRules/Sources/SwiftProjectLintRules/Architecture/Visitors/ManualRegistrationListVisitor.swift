@@ -17,14 +17,6 @@ final class ManualRegistrationListVisitor: BasePatternVisitor {
     /// maintenance hazard; shorter runs are usually incidental repetition.
     private static let threshold = 5
 
-    /// Verbs meaning "add one item to a collection / registry". A run of calls to
-    /// the same such method is a hand-maintained list. `#expect` / `assert` and
-    /// other non-registration calls are excluded by construction.
-    private static let registrationVerbs = [
-        "register", "add", "append", "insert", "put", "record",
-        "bind", "connect", "install", "mount", "wire", "enroll"
-    ]
-
     required init(pattern: SyntaxPattern, viewMode: SyntaxTreeViewMode = .sourceAccurate) {
         super.init(pattern: pattern, viewMode: viewMode)
     }
@@ -71,38 +63,9 @@ final class ManualRegistrationListVisitor: BasePatternVisitor {
     }
 
     /// The callee text of `item` when it is an expression statement calling a
-    /// registration-verb method; `nil` otherwise.
+    /// registration-verb method; `nil` otherwise. See `RegistrationVerb`, shared with
+    /// the cross-file `ParallelListDrift` rule.
     private func registrationCallee(of item: CodeBlockItemSyntax) -> String? {
-        guard case .expr(let expr) = item.item,
-              let call = expr.as(FunctionCallExprSyntax.self) else {
-            return nil
-        }
-        let callee = call.calledExpression
-        guard isRegistrationVerb(baseName(of: callee)) else { return nil }
-        return callee.trimmedDescription
-    }
-
-    /// The trailing identifier of a callee: `a.b.register` → `register`,
-    /// `register` → `register`.
-    private func baseName(of callee: ExprSyntax) -> String {
-        if let member = callee.as(MemberAccessExprSyntax.self) {
-            return member.declName.baseName.text
-        }
-        if let reference = callee.as(DeclReferenceExprSyntax.self) {
-            return reference.baseName.text
-        }
-        return ""
-    }
-
-    /// A name matches a verb only at a camelCase boundary: `register` /
-    /// `registerFactory` match `register`, but `address` does not match `add`.
-    private func isRegistrationVerb(_ name: String) -> Bool {
-        let lowered = name.lowercased()
-        return Self.registrationVerbs.contains { verb in
-            if lowered == verb { return true }
-            guard lowered.hasPrefix(verb) else { return false }
-            let boundary = name.index(name.startIndex, offsetBy: verb.count)
-            return name[boundary].isUppercase
-        }
+        RegistrationVerb.callee(of: item)
     }
 }
