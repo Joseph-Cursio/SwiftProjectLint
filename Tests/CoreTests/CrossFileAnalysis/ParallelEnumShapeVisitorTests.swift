@@ -147,4 +147,92 @@ struct ParallelEnumShapeVisitorTests {
         ])
         #expect(issues.isEmpty)
     }
+
+    // MARK: - Array carrier
+
+    @Test("two identical name arrays in different files are flagged")
+    func identicalArraysAreFlagged() throws {
+        let issues = analyze(files: [
+            "A.swift": #"let mockMarkers = ["Mock", "Fake", "Stub", "Spy", "Dummy"]"#,
+            "B.swift": #"let mockSuffixes = ["Mock", "Fake", "Stub", "Spy", "Dummy"]"#
+        ])
+        #expect(issues.count == 2)
+        let issue = try #require(issues.first)
+        #expect(issue.message.contains("entries"))
+        #expect(issue.suggestion?.contains("Declare") == true)
+    }
+
+    @Test("an array matches an enum with the same names across spellings")
+    func arrayAndEnumClusterAcrossSpellings() {
+        let issues = analyze(files: [
+            "Cat.swift": "enum Category { case stateManagement, uiPatterns, codeQuality, animation, security }",
+            "Doc.swift": #"""
+            let documented = ["state-management", "ui-patterns", "code-quality", "animation", "security"]
+            """#
+        ])
+        #expect(issues.count == 2)
+    }
+
+    @Test("arrays below the five-entry floor coincide too easily to report")
+    func shortArraysAreIgnored() {
+        let issues = analyze(files: [
+            "A.swift": #"let a = ["one", "two", "three", "four"]"#,
+            "B.swift": #"let b = ["one", "two", "three", "four"]"#
+        ])
+        #expect(issues.isEmpty)
+    }
+
+    @Test("a mixed-kind array is data, not a name list")
+    func mixedArraysAreIgnored() {
+        let issues = analyze(files: [
+            "A.swift": #"let a = ["one", .two, "three", 4, "five"]"#,
+            "B.swift": #"let b = ["one", .two, "three", 4, "five"]"#
+        ])
+        #expect(issues.isEmpty)
+    }
+
+    @Test("arrays in test and fixture files are excluded")
+    func arraysInTestFilesAreIgnored() {
+        let issues = analyze(files: [
+            "A.swift": #"let markers = ["Mock", "Fake", "Stub", "Spy", "Dummy"]"#,
+            "Tests/ATests.swift": #"let expected = ["Mock", "Fake", "Stub", "Spy", "Dummy"]"#
+        ])
+        #expect(issues.isEmpty)
+    }
+
+    @Test("differing arrays are Parallel List Drift's finding, not this rule's")
+    func nearlyIdenticalArraysDoNotFire() {
+        let issues = analyze(files: [
+            "A.swift": #"let a = ["Mock", "Fake", "Stub", "Spy", "Dummy"]"#,
+            "B.swift": #"let b = ["Mock", "Fake", "Stub", "Spy", "Phony"]"#
+        ])
+        #expect(issues.isEmpty)
+    }
+
+    // MARK: - Peer naming
+
+    @Test("peers are identified by location, so same-named lists still name each other")
+    func sameNamedListsStillReportPeers() throws {
+        // Filtering peers by name used to yield an empty list when both copies shared one —
+        // the case where knowing the other location matters most.
+        let issues = analyze(files: [
+            "One.swift": #"let expensiveOperations = ["map", "filter", "reduce", "sorted", "flatMap"]"#,
+            "Two.swift": #"let expensiveOperations = ["map", "filter", "reduce", "sorted", "flatMap"]"#
+        ])
+        #expect(issues.count == 2)
+        let issue = try #require(issues.first { $0.filePath == "One.swift" })
+        #expect(issue.message.contains("Two.swift"))
+        #expect(issue.message.contains("as  ") == false)
+    }
+
+    @Test("same-named enums also name their peer by location")
+    func sameNamedEnumsStillReportPeers() throws {
+        let issues = analyze(files: [
+            "One.swift": "enum FilterType { case all, active, inactive }",
+            "Two.swift": "enum FilterType { case all, active, inactive }"
+        ])
+        #expect(issues.count == 2)
+        let issue = try #require(issues.first { $0.filePath == "One.swift" })
+        #expect(issue.message.contains("Two.swift"))
+    }
 }

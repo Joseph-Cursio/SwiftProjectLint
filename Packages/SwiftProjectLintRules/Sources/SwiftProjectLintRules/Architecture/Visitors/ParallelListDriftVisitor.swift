@@ -91,37 +91,10 @@ final class ParallelListDriftVisitor: CrossFileVisitorBase, CrossFilePatternVisi
     // MARK: - Phase 1: carrier 2 — array literals
 
     override func visit(_ node: ArrayExprSyntax) -> SyntaxVisitorContinueKind {
-        // Every element must be name-like, and of one uniform kind — a mixed array is a
-        // data structure, not an enumeration of names.
-        var names: [String] = []
-        var kinds: Set<String> = []
-        for element in node.elements {
-            guard let (name, kind) = nameAndKind(of: element.expression) else {
-                return .visitChildren
-            }
-            names.append(name)
-            kinds.insert(kind)
-        }
-        guard kinds.count == 1 else { return .visitChildren }
-        record(names, owner: enclosingBindingName(of: node) ?? "array literal",
+        guard let names = NameListReader.names(inArrayLiteral: node) else { return .visitChildren }
+        record(names, owner: NameListReader.bindingName(of: node) ?? "array literal",
                carrier: .arrayLiteral, node: Syntax(node))
         return .visitChildren
-    }
-
-    /// The variable/property name an array literal is bound to, by walking up to the
-    /// nearest `PatternBindingSyntax` — `let packs = [...]` → `packs`.
-    private func enclosingBindingName(of node: ArrayExprSyntax) -> String? {
-        var current: Syntax? = node.parent
-        while let syntax = current {
-            if let binding = syntax.as(PatternBindingSyntax.self) {
-                return binding.pattern.as(IdentifierPatternSyntax.self)?.identifier.text
-            }
-            // Stop at a declaration boundary: an array nested inside a function body
-            // has no meaningful owning binding above it.
-            if syntax.is(CodeBlockSyntax.self) { return nil }
-            current = syntax.parent
-        }
-        return nil
     }
 
     // MARK: - Phase 1: carrier 3 — registration-call runs
@@ -175,64 +148,13 @@ final class ParallelListDriftVisitor: CrossFileVisitorBase, CrossFilePatternVisi
         if let closure = call.trailingClosure,
            let last = closure.statements.last,
            case .expr(let expr) = last.item,
-           let (name, _) = nameAndKind(of: expr) {
+           let (name, _) = NameListReader.nameAndKind(of: expr) {
             return name
         }
         for argument in call.arguments {
-            if let (name, _) = nameAndKind(of: argument.expression) { return name }
+            if let (name, _) = NameListReader.nameAndKind(of: argument.expression) { return name }
         }
         return nil
-    }
-
-    // MARK: - Name extraction
-
-    /// Reads a name out of an expression, with a coarse kind tag used to require array
-    /// elements to be uniform. Returns nil for anything that is not name-like.
-    private func nameAndKind(of expr: ExprSyntax) -> (name: String, kind: String)? {
-        // "state-management" — single-segment string literals only (no interpolation).
-        if let literal = expr.as(StringLiteralExprSyntax.self) {
-            guard literal.segments.count == 1,
-                  let segment = literal.segments.first?.as(StringSegmentSyntax.self) else {
-                return nil
-            }
-            let text = segment.content.text
-            return text.isEmpty ? nil : (text, "string")
-        }
-
-        // `StateManagement(…)` / `Foo.bar(…)` — read the constructed type or callee name.
-        if let call = expr.as(FunctionCallExprSyntax.self) {
-            return nameAndKind(of: call.calledExpression).map { ($0.name, "reference") }
-        }
-
-        if let member = expr.as(MemberAccessExprSyntax.self) {
-            // `.stateManagement` — a leading-dot case reference.
-            if member.base == nil {
-                return (member.declName.baseName.text, "member")
-            }
-            // `StateManagement.self` names the base, not the `self` member.
-            if member.declName.baseName.text == "self",
-               let base = member.base {
-                return nameAndKind(of: base).map { ($0.name, "reference") }
-            }
-            // `Category.stateManagement` — qualified case reference.
-            return (member.declName.baseName.text, "member")
-        }
-
-        // A bare type reference: `StateManagement`. Require an uppercase initial so
-        // ordinary variable references are not mistaken for names.
-        if let reference = expr.as(DeclReferenceExprSyntax.self) {
-            let text = reference.baseName.text
-            guard text.first?.isUppercase == true else { return nil }
-            return (text, "reference")
-        }
-
-        return nil
-    }
-
-    /// Normalizes a name for comparison: case- and separator-insensitive, so
-    /// `UIPatterns`, `uiPatterns` and `"ui-patterns"` all collapse to `uipatterns`.
-    private static func normalize(_ raw: String) -> String {
-        raw.lowercased().filter { $0.isLetter || $0.isNumber }
     }
 
     /// Adds a collected list, applying the length floor and dropping test/fixture files —
@@ -242,7 +164,7 @@ final class ParallelListDriftVisitor: CrossFileVisitorBase, CrossFilePatternVisi
         var names: Set<String> = []
         var display: [String: String] = [:]
         for original in raw {
-            let key = Self.normalize(original)
+            let key = NameListReader.normalize(original)
             guard !key.isEmpty else { continue }
             names.insert(key)
             if display[key] == nil { display[key] = original }

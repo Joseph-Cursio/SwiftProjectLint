@@ -18,7 +18,7 @@ This rule completes a trio:
 | Rule | Fires when | Scope |
 |---|---|---|
 | [Manual Registration List](manual-registration-list.md) | a list is built by hand, entry by entry | single file |
-| [Parallel Enum Shape](parallel-enum-shape.md) | two enums agree **exactly** | cross-file |
+| [Parallel Enum Shape](parallel-enum-shape.md) | two lists agree **exactly** | cross-file |
 | **Parallel List Drift** | two lists agree **almost** | cross-file |
 
 Manual Registration List flags the hazardous *shape* before it costs anything. Parallel Enum
@@ -60,8 +60,11 @@ The floor is deliberately applied only to the longer list. A list that has drift
 two or three entries is the deficient one, and gating on its own length would silence exactly
 the finding worth reporting.
 
-Similarity of exactly 1.0 means the lists agree — no drift. For enum/enum pairs that is
-[Parallel Enum Shape](parallel-enum-shape.md)'s finding, not this rule's.
+Similarity of exactly 1.0 means the lists agree — no drift, and therefore
+[Parallel Enum Shape](parallel-enum-shape.md)'s finding rather than this rule's. That rule
+covers both carriers this one does: identical enums *and* identical literal lists. (It did not
+always — the array half was added after dogfooding this rule surfaced two byte-identical copies
+of `primitiveCarriers` that no rule in the suite could report.)
 
 One issue is emitted **per list that is missing entries**, so a strict subset reports only at
 the deficient side, while two lists each holding something the other lacks report twice — both
@@ -151,9 +154,35 @@ designed: it cannot know intent, so it surfaces the discrepancy for a human to c
 `Tests/CoreTests/CrossFileAnalysis/ParallelListDriftDogfoodTests.swift` pins this finding
 against the checked-in sources, so if the two lists are ever reconciled the test records it.
 
-Other findings on the same run were less benign, including three separately-maintained copies
-of a logging-method-name list (`loggingMethodNames`, `osLogMethods`, `loggerLevelMethods`), two
-of them missing `verbose` and `warn`, and a `systemViews` array 11 entries behind the
-`SwiftUIViewType` enum it mirrors.
+#### Measured precision on that run
+
+All 14 findings were read individually. They are roughly **10 distinct pairs** (four are the same
+pair reported from both sides), of which **three are actionable**:
+
+1. **`animationFactories`** — a real defect. `AnimationPerformanceVisitor` knew five SwiftUI
+   animation factories and `HardcodedAnimationValuesVisitor` seven, so the duration check was
+   silently blind to `.interactiveSpring(…)` and `.interpolatingSpring(…)`. Fixed by giving both
+   rules one `AnimationFactory` list. This is the first real bug the rule found.
+2. **`nonStableGeneratorTypes` vs `clockLikeTypeNames`** — a genuine disagreement: each holds
+   something the other lacks (`Clock` vs `DispatchTime`) while describing the same concept.
+3. **`osLogMethods` / `loggerLevelMethods`** — surfaced sideways. The real finding is that the
+   two are byte-identical, which is [Parallel Enum Shape](parallel-enum-shape.md)'s job.
+
+The remaining findings are all one false-positive class — a **deliberate subset** — and in
+several the code says so directly:
+
+- `systemViews` excludes container views on purpose
+- `conflictingModifiers` is "modifiers that conflict with `.accessibilityHidden`", so it cannot
+  contain `accessibilityHidden` itself
+- `legacyFunctions` is random-only where `bareFunctions` covers all nondeterminism
+- `compoundTerms` omits `apiSecret`/`clientSecret` because it substring-matches and `secret`
+  already subsumes them
+- `trivialValueTypes` carries a comment above it explaining the exclusion, citing a measurement:
+  *"58 `String` + 13 `Int` false hits vs 1 real across 32 projects"*
+
+So expect roughly **one actionable finding in three** from this rule, and read each one before
+acting. That ratio is the reason it is `Info`. Its exact-match sibling scores far better —
+five for five on the same codebase — because "these lists agree exactly" has far fewer innocent
+explanations than "these lists nearly agree."
 
 ---
