@@ -3,8 +3,10 @@ import SwiftProjectLintModels
 import SwiftProjectLintVisitors
 import SwiftSyntax
 
-// Safety: @unchecked Sendable — `isInitialized` is protected by `lock` (NSLock).
-// All pattern storage is delegated to `PatternVisitorRegistry` which has its own lock.
+// Safety: @unchecked Sendable — `state` is protected by `stateCondition` (NSCondition),
+// which also lets callers wait out an in-flight initialization rather than observe a
+// half-filled registry. All pattern storage is delegated to `PatternVisitorRegistry`,
+// which has its own lock.
 
 /// Registry for managing SwiftSyntax-based pattern detection and registration.
 ///
@@ -21,10 +23,21 @@ public final class SourcePatternRegistry: SourcePatternRegistryProtocol, @unchec
     /// The underlying visitor registry that manages pattern visitors.
     private let visitorRegistry: PatternVisitorRegistry
 
-    private let lock = NSLock()
+    /// Guards `state`, and lets a caller that arrives mid-initialization *wait* for the
+    /// registration to finish rather than proceed against a half-filled registry.
+    private let stateCondition = NSCondition()
 
-    /// Whether the registry has been initialized with default patterns.
-    private var isInitialized = false
+    /// How far `initialize()` has got. The three-state form matters: a plain
+    /// `isInitialized` boolean cannot distinguish "registration finished" from
+    /// "registration is running right now", and that distinction is the whole bug it
+    /// replaces (see `initialize()`).
+    private enum InitializationState {
+        case notStarted
+        case running
+        case finished
+    }
+
+    private var state: InitializationState = .notStarted
 
     /// Registered factory closures that create registrars on demand.
     /// Each factory receives the registry and visitor registry, and returns
@@ -59,25 +72,54 @@ public final class SourcePatternRegistry: SourcePatternRegistryProtocol, @unchec
     /// This method registers all the built-in patterns for various categories
     /// including state management, performance, security, accessibility, etc.
     /// Custom categories added via `registerFactory(_:)` are also initialized.
+    /// Registration cannot run under the lock — registrars call back into
+    /// `self.register()` → `visitorRegistry`, which takes its own locks — so the work
+    /// necessarily happens outside it. The earlier version handled that by flipping an
+    /// `isInitialized` flag to `true` *before* the work and releasing the lock, which
+    /// meant a caller arriving during registration saw "initialized", returned
+    /// immediately, and read a **partially populated registry**. That surfaced as
+    /// `getPatterns(for: .memoryManagement)` returning empty in a parallel test run —
+    /// `MemoryManagement` is the fifth of twelve factories, late enough to miss.
+    ///
+    /// The fix is to make the in-progress state observable. The first caller claims the
+    /// work and every later one blocks on the condition until registration completes, so
+    /// no caller can ever see a half-filled registry. Repeat calls after that are still a
+    /// cheap no-op.
     public func initialize() {
-        // Atomically check-and-set to prevent double-initialization.
-        // Set `isInitialized` before releasing the lock so concurrent callers
-        // see it immediately. The lock is released before registering patterns
-        // because registrars call back into self.register() → visitorRegistry,
-        // which acquires its own lock (avoiding deadlock).
-        lock.lock()
-        guard !isInitialized else {
-            lock.unlock()
-            return
-        }
-        isInitialized = true
-        lock.unlock()
+        guard claimInitialization() else { return }
+        // `defer` so a trapping registrar cannot strand later callers waiting forever.
+        defer { finishInitialization() }
 
         let factories = Self.factoryLock.withLock { Self.registrarFactories }
         for factory in factories {
             let registrar = factory(self, visitorRegistry)
             registrar.registerPatterns()
         }
+    }
+
+    /// Claims the right to run registration.
+    ///
+    /// Returns `true` for the single caller that should do the work. Returns `false` once
+    /// registration is complete — including for callers that had to wait for it, which is
+    /// the point: by the time they return the registry is fully populated.
+    private func claimInitialization() -> Bool {
+        stateCondition.lock()
+        defer { stateCondition.unlock() }
+
+        while state == .running {
+            stateCondition.wait()
+        }
+        guard state == .notStarted else { return false }
+        state = .running
+        return true
+    }
+
+    /// Marks registration complete and releases every waiting caller.
+    private func finishInitialization() {
+        stateCondition.lock()
+        state = .finished
+        stateCondition.broadcast()
+        stateCondition.unlock()
     }
 
     /// Retrieves all registered patterns for a specific category.
@@ -121,12 +163,20 @@ public final class SourcePatternRegistry: SourcePatternRegistryProtocol, @unchec
         visitorRegistry.register(patterns: allPatterns)
     }
 
-    /// Clears all registered patterns.
+    /// Clears all registered patterns, so a later `initialize()` repopulates the registry.
+    ///
+    /// Waits for any in-flight registration first. Clearing underneath a running
+    /// `initialize()` would drop the patterns it had already registered and leave the
+    /// registry permanently short of the rest.
     public func clear() {
-        visitorRegistry.clear()
-        lock.withLock {
-            isInitialized = false
+        stateCondition.lock()
+        while state == .running {
+            stateCondition.wait()
         }
+        state = .notStarted
+        stateCondition.unlock()
+
+        visitorRegistry.clear()
     }
 
     /// Resets factory state. Used by tests to ensure a clean slate.
