@@ -196,22 +196,37 @@ final class LossyStructRebuildVisitor: BasePatternVisitor {
 
         var cursor: Syntax? = node.parent
         while let current = cursor {
-            if let function = current.as(FunctionDeclSyntax.self) {
-                for parameter in function.signature.parameterClause.parameters {
-                    let internalName = parameter.secondName?.text ?? parameter.firstName.text
-                    if internalName == name {
-                        return parameter.type.trimmedDescription
-                    }
-                }
+            if let function = current.as(FunctionDeclSyntax.self),
+               let type = parameterType(of: name, in: function) {
+                return type
             }
             // A local binding, in either of the two ways Swift lets you write one.
-            if let block = current.as(CodeBlockSyntax.self) {
-                for item in block.statements {
-                    guard let declaration = item.item.as(VariableDeclSyntax.self) else { continue }
-                    if let type = declaredType(of: name, in: declaration) { return type }
-                }
+            if let block = current.as(CodeBlockSyntax.self),
+               let type = localBindingType(of: name, in: block) {
+                return type
             }
             cursor = current.parent
+        }
+        return nil
+    }
+
+    /// The declared type of `function`'s parameter named `name`, matched on the *internal*
+    /// name — that is the one the body refers to.
+    private func parameterType(of name: String, in function: FunctionDeclSyntax) -> String? {
+        for parameter in function.signature.parameterClause.parameters {
+            let internalName = parameter.secondName?.text ?? parameter.firstName.text
+            if internalName == name {
+                return parameter.type.trimmedDescription
+            }
+        }
+        return nil
+    }
+
+    /// The declared type of a local binding named `name` declared directly inside `block`.
+    private func localBindingType(of name: String, in block: CodeBlockSyntax) -> String? {
+        for item in block.statements {
+            guard let declaration = item.item.as(VariableDeclSyntax.self) else { continue }
+            if let type = declaredType(of: name, in: declaration) { return type }
         }
         return nil
     }

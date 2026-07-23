@@ -46,7 +46,7 @@ final class ScatteredEnumMappingVisitor: CrossFileVisitorBase, CrossFilePatternV
     override func visit(_ node: EnumDeclSyntax) -> SyntaxVisitorContinueKind {
         let names = node.memberBlock.members.flatMap { member -> [String] in
             guard let caseDecl = member.decl.as(EnumCaseDeclSyntax.self) else { return [] }
-            return caseDecl.elements.map { $0.name.text }
+            return caseDecl.elements.map(\.name.text)
         }
         if !names.isEmpty {
             enumCases[node.name.text] = Set(names)
@@ -94,27 +94,10 @@ final class ScatteredEnumMappingVisitor: CrossFileVisitorBase, CrossFilePatternV
         var members: Set<String> = []
 
         for element in node.cases {
-            guard let switchCase = element.as(SwitchCaseSyntax.self) else { return nil }
-
-            // Body must be a single expression (`return X` or implicit-return `X`).
-            guard let value = singleExpressionBody(switchCase.statements),
-                  let (kind, member) = classify(value) else { return nil }
-            kinds.insert(kind)
-            if let member { members.insert(member) }
-
-            switch switchCase.label {
-            case .case(let caseLabel):
-                for item in caseLabel.caseItems {
-                    guard let label = enumCaseLabel(item.pattern) else { return nil }
-                    labels.insert(label)
-                }
-
-            case .default:
-                break   // default contributes no label but its body is still kind-checked
-
-            @unknown default:
-                return nil
-            }
+            guard let arm = mappingArm(from: element) else { return nil }
+            kinds.insert(arm.kind)
+            if let member = arm.member { members.insert(member) }
+            labels.formUnion(arm.labels)
         }
 
         guard labels.count >= Self.minLabels, kinds.count == 1, let kind = kinds.first else {
@@ -130,6 +113,36 @@ final class ScatteredEnumMappingVisitor: CrossFileVisitorBase, CrossFilePatternV
             enclosingType: typeStack.last,
             isSelfSubject: node.subject.trimmedDescription == "self"
         )
+    }
+
+    /// One arm of a candidate mapping switch: the uniform return kind of its body, the
+    /// implicit member when the kind is too weak to compare on its own, and the case labels
+    /// it covers. Nil when the arm disqualifies the whole switch — a non-single-expression
+    /// body, a non-literal value, or a value-binding pattern.
+    private func mappingArm(
+        from element: SwitchCaseListSyntax.Element
+    ) -> (kind: String, member: String?, labels: Set<String>)? {
+        // Body must be a single expression (`return X` or implicit-return `X`).
+        guard let switchCase = element.as(SwitchCaseSyntax.self),
+              let value = singleExpressionBody(switchCase.statements),
+              let (kind, member) = classify(value) else { return nil }
+
+        switch switchCase.label {
+        case .case(let caseLabel):
+            var labels: Set<String> = []
+            for item in caseLabel.caseItems {
+                guard let label = enumCaseLabel(item.pattern) else { return nil }
+                labels.insert(label)
+            }
+            return (kind, member, labels)
+
+        case .default:
+            // `default` contributes no label but its body is still kind-checked.
+            return (kind, member, [])
+
+        @unknown default:
+            return nil
+        }
     }
 
     /// The bare enum-constant name of a `case .x:` pattern (`.error` → "error"), or nil

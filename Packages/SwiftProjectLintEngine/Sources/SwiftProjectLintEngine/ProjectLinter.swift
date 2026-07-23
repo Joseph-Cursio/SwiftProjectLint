@@ -65,41 +65,9 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
             for: path, base: configuration
         )
 
-        // `excludedPaths` is a *reporting* filter, not an *evidence* filter. Files the
-        // user excluded (commonly a test directory) still inform cross-file analysis:
-        // a `MockFoo: FooParsing` in `Tests/` is the conformer that justifies the
-        // `FooParsing` DI seam, so hiding it would make `SingleImplementationProtocol`
-        // and `MirrorProtocol` false-positive on a legitimately-mocked protocol. So we
-        // discover two sets — `filePaths` (reportable: walked *and* eligible for issues)
-        // and `evidenceOnlyFilePaths` (excluded: walked for cross-file evidence only,
-        // never a source of reported issues). The split is computed by re-discovering
-        // without exclusions and subtracting; with no exclusions the two coincide and
-        // the extra discovery is skipped.
-        let reportableFilePaths = await fileDiscovery.findSwiftFiles(
-            in: path,
-            excludedPaths: effectiveConfiguration.excludedPaths,
-            includeNestedPackages: effectiveConfiguration.includeNestedPackages
+        let (filePaths, evidenceOnlyFilePaths) = await discoverFiles(
+            at: path, configuration: effectiveConfiguration
         )
-
-        // Skip generated files — linting machine-generated code produces noise with no
-        // actionable signal. Detected by file suffix (.pb.swift, .generated.swift) or a
-        // "do not edit" header comment.
-        let filePaths = reportableFilePaths.filter { !Self.isGeneratedFile(at: $0) }
-
-        let evidenceOnlyFilePaths: [String]
-        if effectiveConfiguration.excludedPaths.isEmpty {
-            evidenceOnlyFilePaths = []
-        } else {
-            let allFilePaths = await fileDiscovery.findSwiftFiles(
-                in: path,
-                excludedPaths: [],
-                includeNestedPackages: effectiveConfiguration.includeNestedPackages
-            )
-            let reportableSet = Set(filePaths)
-            evidenceOnlyFilePaths = allFilePaths.filter {
-                !reportableSet.contains($0) && !Self.isGeneratedFile(at: $0)
-            }
-        }
 
         // Resolve effective rules from configuration + CLI overrides
         let effectiveRules = effectiveConfiguration.resolveRules(
@@ -108,61 +76,197 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
         )
 
         // Pre-scan: collect cross-file type metadata needed by visitors.
-        let identifiableTypes = Self.collectTypes(IdentifiableTypeCollector.self, from: filePaths)
-        let enumTypes = Self.collectTypes(EnumTypeCollector.self, from: filePaths)
-        let actorTypes = Self.collectTypes(ActorTypeCollector.self, from: filePaths)
-        let localTypes = Self.collectTypes(LocalTypeCollector.self, from: filePaths)
-        let observableTypes = Self.collectTypes(ObservableTypeCollector.self, from: filePaths)
-        let protocolTypes = Self.collectTypes(ProtocolTypeCollector.self, from: filePaths)
-        let equatableTypes = Self.collectTypes(EquatableConformanceCollector.self, from: filePaths)
-        let valueTypes = Self.collectTypes(ValueTypeCollector.self, from: filePaths)
-        let projectFunctions = Self.collectTypes(DeclaredFunctionCollector.self, from: filePaths)
-        let defaultedInits = Self.collectTypes(DefaultedInitializerCollector.self, from: filePaths)
+        let collected = CollectedTypes.collect(from: filePaths)
 
         // Resolve the registry once so each task can create its own detector
-        var resolvedDetector = detector ?? SourcePatternDetector()
-        resolvedDetector.knownIdentifiableTypes = identifiableTypes
-        resolvedDetector.knownEnumTypes = enumTypes
-        resolvedDetector.knownActorTypes = actorTypes
-        resolvedDetector.knownLocalTypeNames = localTypes
-        resolvedDetector.knownObservableTypes = observableTypes
-        resolvedDetector.knownProtocolTypes = protocolTypes
-        resolvedDetector.knownEquatableTypes = equatableTypes
-        resolvedDetector.knownValueTypes = valueTypes
-        resolvedDetector.knownProjectFunctions = projectFunctions
-        resolvedDetector.knownDefaultedInitializerTypes = defaultedInits
-        resolvedDetector.layerPolicies = effectiveConfiguration.architecturalLayers
-        resolvedDetector.enabledFrameworkAllowlists =
-            effectiveConfiguration.enabledFrameworkAllowlists
-        let registry = resolvedDetector.registry
+        let registry = Self.configuredDetector(
+            detector, collected: collected, configuration: effectiveConfiguration
+        ).registry
 
-        // Per-file I/O and analysis — throttled to avoid memory exhaustion on large projects.
-        let maxConcurrency = max(ProcessInfo.processInfo.activeProcessorCount, 1)
-        let env = FileAnalysisEnvironment(
-            projectRoot: path,
-            registry: registry,
-            categories: effectiveRules != nil ? nil : categories,
-            ruleIdentifiers: effectiveRules,
-            identifiableTypes: identifiableTypes,
-            enumTypes: enumTypes,
-            actorTypes: actorTypes,
-            localTypes: localTypes,
-            observableTypes: observableTypes,
-            protocolTypes: protocolTypes,
-            equatableTypes: equatableTypes,
-            valueTypes: valueTypes,
-            projectFunctions: projectFunctions,
-            defaultedInitializerTypes: defaultedInits,
-            layerPolicies: effectiveConfiguration.architecturalLayers
+        let perFile = await Self.runPerFileAnalysis(
+            filePaths: filePaths,
+            env: Self.makeEnvironment(
+                projectRoot: path,
+                registry: registry,
+                categories: effectiveRules != nil ? nil : categories,
+                ruleIdentifiers: effectiveRules,
+                collected: collected,
+                layerPolicies: effectiveConfiguration.architecturalLayers
+            )
         )
-        let perFileResults = await withTaskGroup(
+        var issues = perFile.issues
+
+        // Parse evidence-only files (excluded from reporting) for cross-file context.
+        // They are added to the walk so conformances/type-shapes they contain inform
+        // the visitors, but never run through per-file detection and are stripped from
+        // the issue set below — so they can exonerate (e.g. a mock conformer) without
+        // ever being a reported location.
+        let evidenceFiles = Self.parseEvidenceFiles(
+            at: evidenceOnlyFilePaths, projectRoot: path
+        )
+        var crossFileCache = perFile.astCache
+        for entry in evidenceFiles {
+            crossFileCache[entry.file.relativePath] = entry.ast
+        }
+
+        let crossFilePatternIssues = runCrossFileAnalysis(
+            CrossFileInput(
+                projectFiles: perFile.files + evidenceFiles.map(\.file),
+                cache: crossFileCache,
+                evidenceRelativePaths: Set(evidenceFiles.map(\.file.relativePath))
+            ),
+            registry: registry,
+            projectRoot: path,
+            categories: categories,
+            effectiveRules: effectiveRules,
+            configuration: effectiveConfiguration
+        )
+        issues.append(contentsOf: Self.applyInlineSuppression(
+            to: crossFilePatternIssues,
+            files: perFile.files
+        ))
+
+        // Apply per-rule overrides (severity changes, per-rule path exclusions)
+        return effectiveConfiguration.applyOverrides(to: issues, projectRoot: path)
+    }
+
+    /// Splits discovery into the files that may be *reported on* and the files that may only
+    /// serve as *evidence*.
+    ///
+    /// `excludedPaths` is a reporting filter, not an evidence filter. Files the user excluded
+    /// (commonly a test directory) still inform cross-file analysis: a `MockFoo: FooParsing` in
+    /// `Tests/` is the conformer that justifies the `FooParsing` DI seam, so hiding it would make
+    /// `SingleImplementationProtocol` and `MirrorProtocol` false-positive on a legitimately-mocked
+    /// protocol. The split is computed by re-discovering without exclusions and subtracting; with
+    /// no exclusions the two coincide and the extra discovery is skipped.
+    ///
+    /// Generated files (`.pb.swift`, `.generated.swift`, "do not edit" headers) are dropped from
+    /// both sets — linting machine-generated code produces noise with no actionable signal.
+    private func discoverFiles(
+        at path: String,
+        configuration: LintConfiguration
+    ) async -> (reportable: [String], evidenceOnly: [String]) {
+        let reportableFilePaths = await fileDiscovery.findSwiftFiles(
+            in: path,
+            excludedPaths: configuration.excludedPaths,
+            includeNestedPackages: configuration.includeNestedPackages
+        )
+        let filePaths = reportableFilePaths.filter { !Self.isGeneratedFile(at: $0) }
+
+        guard !configuration.excludedPaths.isEmpty else { return (filePaths, []) }
+
+        let allFilePaths = await fileDiscovery.findSwiftFiles(
+            in: path,
+            excludedPaths: [],
+            includeNestedPackages: configuration.includeNestedPackages
+        )
+        let reportableSet = Set(filePaths)
+        let evidenceOnly = allFilePaths.filter {
+            !reportableSet.contains($0) && !Self.isGeneratedFile(at: $0)
+        }
+        return (filePaths, evidenceOnly)
+    }
+
+    /// The cross-file type catalogs the visitors need, gathered in one pre-scan.
+    ///
+    /// Bundled into a single value so the pre-scan, the detector, and the per-file environment
+    /// each take one parameter instead of ten — adding an eleventh collector then touches this
+    /// type and nothing else.
+    private struct CollectedTypes: Sendable {
+        let identifiable: Set<String>
+        let enums: Set<String>
+        let actors: Set<String>
+        let local: Set<String>
+        let observable: Set<String>
+        let protocols: Set<String>
+        let equatable: Set<String>
+        let values: Set<String>
+        let functions: Set<String>
+        let defaultedInitializers: Set<String>
+
+        static func collect(from filePaths: [String]) -> Self {
+            Self(
+                identifiable: collectTypes(IdentifiableTypeCollector.self, from: filePaths),
+                enums: collectTypes(EnumTypeCollector.self, from: filePaths),
+                actors: collectTypes(ActorTypeCollector.self, from: filePaths),
+                local: collectTypes(LocalTypeCollector.self, from: filePaths),
+                observable: collectTypes(ObservableTypeCollector.self, from: filePaths),
+                protocols: collectTypes(ProtocolTypeCollector.self, from: filePaths),
+                equatable: collectTypes(EquatableConformanceCollector.self, from: filePaths),
+                values: collectTypes(ValueTypeCollector.self, from: filePaths),
+                functions: collectTypes(DeclaredFunctionCollector.self, from: filePaths),
+                defaultedInitializers: collectTypes(
+                    DefaultedInitializerCollector.self, from: filePaths
+                )
+            )
+        }
+    }
+
+    /// The caller's detector (or a fresh one) primed with the pre-scan catalogs and config.
+    private static func configuredDetector(
+        _ detector: (any SourcePatternDetectorProtocol)?,
+        collected: CollectedTypes,
+        configuration: LintConfiguration
+    ) -> any SourcePatternDetectorProtocol {
+        var resolved = detector ?? SourcePatternDetector()
+        resolved.knownIdentifiableTypes = collected.identifiable
+        resolved.knownEnumTypes = collected.enums
+        resolved.knownActorTypes = collected.actors
+        resolved.knownLocalTypeNames = collected.local
+        resolved.knownObservableTypes = collected.observable
+        resolved.knownProtocolTypes = collected.protocols
+        resolved.knownEquatableTypes = collected.equatable
+        resolved.knownValueTypes = collected.values
+        resolved.knownProjectFunctions = collected.functions
+        resolved.knownDefaultedInitializerTypes = collected.defaultedInitializers
+        resolved.layerPolicies = configuration.architecturalLayers
+        resolved.enabledFrameworkAllowlists = configuration.enabledFrameworkAllowlists
+        return resolved
+    }
+
+    /// Spreads the bundled catalogs back into the flat per-file environment.
+    private static func makeEnvironment(
+        projectRoot: String,
+        registry: PatternVisitorRegistry,
+        categories: [PatternCategory]?,
+        ruleIdentifiers: [RuleIdentifier]?,
+        collected: CollectedTypes,
+        layerPolicies: [LayerPolicy]
+    ) -> FileAnalysisEnvironment {
+        FileAnalysisEnvironment(
+            projectRoot: projectRoot,
+            registry: registry,
+            categories: categories,
+            ruleIdentifiers: ruleIdentifiers,
+            identifiableTypes: collected.identifiable,
+            enumTypes: collected.enums,
+            actorTypes: collected.actors,
+            localTypes: collected.local,
+            observableTypes: collected.observable,
+            protocolTypes: collected.protocols,
+            equatableTypes: collected.equatable,
+            valueTypes: collected.values,
+            projectFunctions: collected.functions,
+            defaultedInitializerTypes: collected.defaultedInitializers,
+            layerPolicies: layerPolicies
+        )
+    }
+
+    /// Per-file I/O and analysis — throttled to avoid memory exhaustion on large projects by
+    /// keeping at most `activeProcessorCount` files in flight and refilling as each completes.
+    private static func runPerFileAnalysis(
+        filePaths: [String],
+        env: FileAnalysisEnvironment
+    ) async -> (files: [ProjectFile], issues: [LintIssue], astCache: [String: SourceFileSyntax]) {
+        let maxConcurrency = max(ProcessInfo.processInfo.activeProcessorCount, 1)
+        return await withTaskGroup(
             of: (file: ProjectFile, issues: [LintIssue],
                  parsedAST: SourceFileSyntax)?.self
         ) { group in
             var iterator = filePaths.makeIterator()
             for _ in 0..<maxConcurrency {
                 guard let filePath = iterator.next() else { break }
-                group.addTask { Self.analyzeFile(at: filePath, env: env) }
+                group.addTask { analyzeFile(at: filePath, env: env) }
             }
 
             var allFiles: [ProjectFile] = []
@@ -175,336 +279,54 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
                     astCache[result.file.relativePath] = result.parsedAST
                 }
                 if let filePath = iterator.next() {
-                    group.addTask { Self.analyzeFile(at: filePath, env: env) }
+                    group.addTask { analyzeFile(at: filePath, env: env) }
                 }
             }
             return (allFiles, allIssues, astCache)
         }
+    }
 
-        let projectFiles = perFileResults.0
-        var issues = perFileResults.1
-        let astCache = perFileResults.2
+    /// Runs cross-file detection against the same registry per-file analysis used, then drops any
+    /// issue anchored in an evidence-only file — those files informed the analysis but are
+    /// excluded from reporting.
+    /// The walk input for cross-file detection: every file the visitors may see, their parsed
+    /// ASTs, and which of them are evidence-only (walked, never reported on).
+    private struct CrossFileInput {
+        let projectFiles: [ProjectFile]
+        let cache: [String: SourceFileSyntax]
+        let evidenceRelativePaths: Set<String>
+    }
 
-        // Parse evidence-only files (excluded from reporting) for cross-file context.
-        // They are added to the walk so conformances/type-shapes they contain inform
-        // the visitors, but never run through per-file detection and are stripped from
-        // the issue set below — so they can exonerate (e.g. a mock conformer) without
-        // ever being a reported location.
-        let evidenceFiles = Self.parseEvidenceFiles(
-            at: evidenceOnlyFilePaths, projectRoot: path
-        )
-        let evidenceRelativePaths = Set(evidenceFiles.map { $0.file.relativePath })
-        let crossFileProjectFiles = projectFiles + evidenceFiles.map(\.file)
-        var crossFileCache = astCache
-        for entry in evidenceFiles {
-            crossFileCache[entry.file.relativePath] = entry.ast
-        }
-
-        // Run cross-file pattern detection (use the same registry as per-file analysis)
+    private func runCrossFileAnalysis(
+        _ input: CrossFileInput,
+        registry: PatternVisitorRegistry,
+        projectRoot: String,
+        categories: [PatternCategory]?,
+        effectiveRules: [RuleIdentifier]?,
+        configuration: LintConfiguration
+    ) -> [LintIssue] {
         let crossFileEngine = crossFileAnalyzerFactory(registry)
-        crossFileEngine.enabledFrameworkAllowlists =
-            effectiveConfiguration.enabledFrameworkAllowlists
+        crossFileEngine.enabledFrameworkAllowlists = configuration.enabledFrameworkAllowlists
         crossFileEngine.executableSourcePaths =
-            ExecutableTargetDetector.executableSourcePaths(in: path)
+            ExecutableTargetDetector.executableSourcePaths(in: projectRoot)
+
         let rawCrossFileIssues: [LintIssue]
         if let effectiveRules {
             rawCrossFileIssues = crossFileEngine.detectCrossFilePatterns(
-                projectFiles: crossFileProjectFiles,
+                projectFiles: input.projectFiles,
                 ruleIdentifiers: effectiveRules,
-                preBuiltCache: crossFileCache
+                preBuiltCache: input.cache
             )
         } else {
             rawCrossFileIssues = crossFileEngine.detectCrossFilePatterns(
-                projectFiles: crossFileProjectFiles,
+                projectFiles: input.projectFiles,
                 categories: categories,
-                preBuiltCache: crossFileCache
-            )
-        }
-        // Drop any issue anchored in an evidence-only file: those files informed the
-        // analysis but are excluded from reporting.
-        let crossFilePatternIssues = evidenceRelativePaths.isEmpty
-            ? rawCrossFileIssues
-            : rawCrossFileIssues.filter { !evidenceRelativePaths.contains($0.filePath) }
-        issues.append(contentsOf: Self.applyInlineSuppression(
-            to: crossFilePatternIssues,
-            files: projectFiles
-        ))
-
-        // Apply per-rule overrides (severity changes, per-rule path exclusions)
-        return effectiveConfiguration.applyOverrides(to: issues, projectRoot: path)
-    }
-
-    /// Returns true if the file at the given path is machine-generated and should be skipped.
-    ///
-    /// Detection heuristics (any one suffices):
-    /// - File suffix: `.pb.swift` (protobuf), `.generated.swift`
-    /// - Header comment: first 5 lines contain "DO NOT EDIT" or "Code generated"
-    private static func isGeneratedFile(at filePath: String) -> Bool {
-        let name = (filePath as NSString).lastPathComponent
-        if name.hasSuffix(".pb.swift") || name.hasSuffix(".generated.swift") {
-            return true
-        }
-        guard let handle = FileHandle(forReadingAtPath: filePath) else { return false }
-        let data = handle.readData(ofLength: 512)
-        guard let header = String(bytes: data, encoding: .utf8) else { return false }
-        let firstLines = header.components(separatedBy: .newlines).prefix(5).joined(separator: "\n")
-        return firstLines.contains("DO NOT EDIT") || firstLines.contains("Code generated")
-    }
-
-    /// Scans all project files with a `TypeCollectorProtocol`-conforming visitor
-    /// and returns the union of collected type names.
-    ///
-    /// This generic pre-scan eliminates duplication across the three collector types
-    /// (Identifiable, Enum, Actor). Each collector walks the AST once per file and
-    /// the results are merged into a single set.
-    private static func collectTypes<T: TypeCollectorProtocol>(
-        _ _: T.Type, from filePaths: [String]
-    ) -> Set<String> {
-        var allTypes: Set<String> = []
-        for filePath in filePaths {
-            guard let content = try? String(contentsOfFile: filePath) else { continue }
-            let syntax = Parser.parse(source: content)
-            let collector = T()
-            collector.walk(syntax)
-            allTypes.formUnion(collector.collectedTypes)
-        }
-        return allTypes
-    }
-
-    /// Adjusts configuration for Swift Packages: disables `publicInAppTarget`,
-    /// excludes executable source paths from the `printStatement` rule, and suppresses
-    /// `unusedProtocolAbstraction` when first-party nested packages are out of scope.
-    private static func resolveConfiguration(
-        for path: String,
-        base configuration: LintConfiguration
-    ) -> LintConfiguration {
-        let isSwiftPackage = FileManager.default.fileExists(
-            atPath: (path as NSString).appendingPathComponent("Package.swift")
-        )
-        guard isSwiftPackage else { return configuration }
-
-        var disabledRules = configuration.disabledRules
-        disabledRules.insert(.publicInAppTarget)
-
-        // `unusedProtocolAbstraction` reasons about whole-project usage: it flags a
-        // protocol that is conformed to but never *used* as a type. If first-party
-        // nested packages exist but are excluded from this run, a protocol consumed
-        // only in a sibling package looks unused and is falsely flagged. Suppress it
-        // unless the scope is complete — i.e. those packages are pulled in with
-        // `includeNestedPackages`, or there are none. (A single-package project and a
-        // `--include-nested-packages` whole-project run both keep the rule on.)
-        if !configuration.includeNestedPackages,
-           FileAnalysisUtils.containsNestedPackage(in: path) {
-            disabledRules.insert(.unusedProtocolAbstraction)
-        }
-
-        let execPaths = ExecutableTargetDetector.executableSourcePaths(in: path)
-        var overrides = configuration.ruleOverrides
-        if execPaths.isEmpty == false {
-            let existing = overrides[.printStatement]
-            overrides[.printStatement] = LintConfiguration.RuleOverride(
-                severity: existing?.severity,
-                excludedPaths: (existing?.excludedPaths ?? []) + execPaths
-            )
-        }
-        return LintConfiguration(
-            disabledRules: disabledRules,
-            enabledOnlyRules: configuration.enabledOnlyRules,
-            excludedPaths: configuration.excludedPaths,
-            ruleOverrides: overrides,
-            architecturalLayers: configuration.architecturalLayers,
-            enabledFrameworkAllowlists: configuration.enabledFrameworkAllowlists,
-            // Preserve the caller's nested-package opt-in: this rebuild only adjusts
-            // package-specific rule defaults. Omitting it reset the flag to its `false`
-            // default, silently making `--include-nested-packages` a no-op for every
-            // Swift-package project (the only projects that reach this branch).
-            includeNestedPackages: configuration.includeNestedPackages
-        )
-    }
-
-    /// Bundle of per-run analysis inputs shared across every file in a
-    /// task-group invocation. Existing only so concurrent task closures
-    /// can capture a single value instead of ten.
-    private struct FileAnalysisEnvironment: Sendable {
-        let projectRoot: String
-        let registry: PatternVisitorRegistry
-        let categories: [PatternCategory]?
-        let ruleIdentifiers: [RuleIdentifier]?
-        let identifiableTypes: Set<String>
-        let enumTypes: Set<String>
-        let actorTypes: Set<String>
-        let localTypes: Set<String>
-        let observableTypes: Set<String>
-        let protocolTypes: Set<String>
-        let equatableTypes: Set<String>
-        let valueTypes: Set<String>
-
-        /// Functions this project declares — lets the Pure Closure rule tell a closure that still
-        /// hides logic from one merely forwarding to a function the reader already extracted.
-        let projectFunctions: Set<String>
-
-        /// Types whose initialiser has defaulted parameters — the gate for `lossyStructRebuild`.
-        let defaultedInitializerTypes: Set<String>
-        let layerPolicies: [LayerPolicy]
-    }
-
-    /// Convenience wrapper around `analyzeFile(at:projectRoot:...)` that
-    /// pulls per-run inputs from a `FileAnalysisEnvironment`.
-    private static func analyzeFile(
-        at filePath: String,
-        env: FileAnalysisEnvironment
-    ) -> (file: ProjectFile, issues: [LintIssue], parsedAST: SourceFileSyntax)? {
-        analyzeFile(
-            at: filePath,
-            projectRoot: env.projectRoot,
-            registry: env.registry,
-            categories: env.categories,
-            ruleIdentifiers: env.ruleIdentifiers,
-            identifiableTypes: env.identifiableTypes,
-            enumTypes: env.enumTypes,
-            actorTypes: env.actorTypes,
-            localTypes: env.localTypes,
-            observableTypes: env.observableTypes,
-            protocolTypes: env.protocolTypes,
-            equatableTypes: env.equatableTypes,
-            valueTypes: env.valueTypes,
-            projectFunctions: env.projectFunctions,
-            defaultedInitializerTypes: env.defaultedInitializerTypes,
-            layerPolicies: env.layerPolicies
-        )
-    }
-
-    /// Analyzes a single file — pure function safe for concurrent task group use.
-    private static func analyzeFile(
-        at filePath: String,
-        projectRoot: String,
-        registry: PatternVisitorRegistry,
-        categories: [PatternCategory]?,
-        ruleIdentifiers: [RuleIdentifier]?,
-        identifiableTypes: Set<String> = [],
-        enumTypes: Set<String> = [],
-        actorTypes: Set<String> = [],
-        localTypes: Set<String> = [],
-        observableTypes: Set<String> = [],
-        protocolTypes: Set<String> = [],
-        equatableTypes: Set<String> = [],
-        valueTypes: Set<String> = [],
-        projectFunctions: Set<String> = [],
-        defaultedInitializerTypes: Set<String> = [],
-        layerPolicies: [LayerPolicy] = []
-    ) -> (file: ProjectFile, issues: [LintIssue], parsedAST: SourceFileSyntax)? {
-        guard !Task.isCancelled else { return nil }
-        guard let content = try? String(contentsOfFile: filePath) else { return nil }
-
-        let relativePath = Self.relativePath(for: filePath, projectRoot: projectRoot)
-
-        let file = ProjectFile(
-            name: (filePath as NSString).lastPathComponent,
-            content: content,
-            relativePath: relativePath
-        )
-        let parsedAST = Parser.parse(source: content)
-        let det = SourcePatternDetector(registry: registry)
-        det.knownIdentifiableTypes = identifiableTypes
-        det.knownEnumTypes = enumTypes
-        det.knownActorTypes = actorTypes
-        det.knownLocalTypeNames = localTypes
-        det.knownObservableTypes = observableTypes
-        det.knownProtocolTypes = protocolTypes
-        det.knownEquatableTypes = equatableTypes
-        det.knownValueTypes = valueTypes
-        det.knownProjectFunctions = projectFunctions
-        det.knownDefaultedInitializerTypes = defaultedInitializerTypes
-        det.layerPolicies = layerPolicies
-
-        let rawIssues: [LintIssue]
-        if let ruleIdentifiers {
-            rawIssues = det.detectPatterns(
-                in: file.content, filePath: file.relativePath,
-                ruleIdentifiers: ruleIdentifiers, parsedAST: parsedAST
-            )
-        } else {
-            rawIssues = det.detectPatterns(
-                in: file.content, filePath: file.relativePath,
-                categories: categories, parsedAST: parsedAST
+                preBuiltCache: input.cache
             )
         }
 
-        let issues = InlineSuppressionFilter.filter(rawIssues, fileContent: content)
-        return (file: file, issues: issues, parsedAST: parsedAST)
-    }
-
-    /// Project-root-relative path for `filePath`, resolving symlinks on both sides so
-    /// the prefix drop matches the canonicalized root (e.g. `/var` → `/private/var` on
-    /// macOS). Falls back to the full resolved path when the file lies outside the
-    /// declared root — keeps downstream relative-path dedup keys unique.
-    private static func relativePath(for filePath: String, projectRoot: String) -> String {
-        let resolvedRoot = URL(fileURLWithPath: projectRoot).resolvingSymlinksInPath().path
-        let resolvedFile = URL(fileURLWithPath: filePath).resolvingSymlinksInPath().path
-        let prefix = resolvedRoot.hasSuffix("/") ? resolvedRoot : resolvedRoot + "/"
-        guard resolvedFile.hasPrefix(prefix) else { return resolvedFile }
-        return String(resolvedFile.dropFirst(prefix.count))
-    }
-
-    /// Reads and parses evidence-only files into `(ProjectFile, AST)` pairs *without*
-    /// running per-file detection: they contribute to the cross-file walk but cannot
-    /// produce reported issues (see the call site for why exclusion is a reporting
-    /// filter, not an evidence filter). Unreadable files are skipped.
-    private static func parseEvidenceFiles(
-        at filePaths: [String],
-        projectRoot: String
-    ) -> [(file: ProjectFile, ast: SourceFileSyntax)] {
-        filePaths.compactMap { filePath in
-            guard let content = try? String(contentsOfFile: filePath) else { return nil }
-            let file = ProjectFile(
-                name: (filePath as NSString).lastPathComponent,
-                content: content,
-                relativePath: Self.relativePath(for: filePath, projectRoot: projectRoot)
-            )
-            return (file: file, ast: Parser.parse(source: content))
-        }
-    }
-
-    /// Applies inline-suppression filtering to cross-file issues. Grouped
-    /// by the issue's primary file (`LintIssue.filePath` — the first
-    /// location) and filtered against that file's content. Issues whose
-    /// primary file is not in the project-files set (defensive — shouldn't
-    /// normally happen) pass through unfiltered so no diagnostic goes
-    /// missing.
-    ///
-    /// Per-file issues are already filtered inside `analyzeFile`. Cross-
-    /// file issues are emitted by `CrossFileAnalysisEngine` and
-    /// previously bypassed suppression entirely; this method closes that
-    /// gap so `// swiftprojectlint:disable*` comments work equivalently
-    /// for both rule kinds.
-    private static func applyInlineSuppression(
-        to crossFileIssues: [LintIssue],
-        files: [ProjectFile]
-    ) -> [LintIssue] {
-        guard !crossFileIssues.isEmpty else { return crossFileIssues }
-
-        // Defensive: duplicate relativePaths shouldn't crash inline suppression
-        // dedup (e.g., an edge case where resolution still collides on symlinks
-        // or on-disk duplicates). Keep first occurrence.
-        let contentByRelativePath = Dictionary(files.map { ($0.relativePath, $0.content) }) { first, _ in
-            first
-        }
-
-        let grouped = Dictionary(grouping: crossFileIssues) { $0.filePath }
-        var filtered: [LintIssue] = []
-        filtered.reserveCapacity(crossFileIssues.count)
-
-        for (filePath, issuesInFile) in grouped {
-            guard let content = contentByRelativePath[filePath] else {
-                filtered.append(contentsOf: issuesInFile)
-                continue
-            }
-            filtered.append(contentsOf: InlineSuppressionFilter.filter(
-                issuesInFile,
-                fileContent: content
-            ))
-        }
-
-        return filtered
+        let evidencePaths = input.evidenceRelativePaths
+        guard !evidencePaths.isEmpty else { return rawCrossFileIssues }
+        return rawCrossFileIssues.filter { !evidencePaths.contains($0.filePath) }
     }
 }
