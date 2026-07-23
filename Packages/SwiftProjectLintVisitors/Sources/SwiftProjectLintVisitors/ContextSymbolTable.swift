@@ -47,11 +47,13 @@ public struct ContextSymbolTable: Sendable {
     /// hop distance. Populated by `applyOnceReachInference(to:)`.
     private var onceReachingFunctions: [FunctionSignature: OnceReachInference] = [:]
 
-    public init() {}
+    public init() {
+        // Starts empty; populated by `build(from:)` or the inference passes.
+    }
 
     /// Builds a context table by walking every `@lint.context`-annotated declaration.
-    public static func build(from source: SourceFileSyntax) -> ContextSymbolTable {
-        var table = ContextSymbolTable()
+    public static func build(from source: SourceFileSyntax) -> Self {
+        var table = Self()
         table.merge(source: source)
         return table
     }
@@ -246,7 +248,7 @@ final class ContextAnnotatedDeclCollector: SyntaxVisitor {
         return .visitChildren
     }
 
-    override func visit(_ node: ClosureExprSyntax) -> SyntaxVisitorContinueKind {
+    override func visit(_: ClosureExprSyntax) -> SyntaxVisitorContinueKind {
         .skipChildren
     }
 }
@@ -265,7 +267,7 @@ final class ContextAnnotatedPropertyCollector: SyntaxVisitor {
         return .visitChildren
     }
 
-    override func visit(_ node: ClosureExprSyntax) -> SyntaxVisitorContinueKind {
+    override func visit(_: ClosureExprSyntax) -> SyntaxVisitorContinueKind {
         .skipChildren
     }
 }
@@ -287,7 +289,7 @@ final class ContextUnannotatedFunctionCollector: SyntaxVisitor {
         return .visitChildren
     }
 
-    override func visit(_ node: ClosureExprSyntax) -> SyntaxVisitorContinueKind {
+    override func visit(_: ClosureExprSyntax) -> SyntaxVisitorContinueKind {
         .skipChildren
     }
 }

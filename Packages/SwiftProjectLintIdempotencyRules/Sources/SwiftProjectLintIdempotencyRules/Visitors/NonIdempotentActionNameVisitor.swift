@@ -47,13 +47,13 @@ final class NonIdempotentActionNameVisitor: BasePatternVisitor {
         guard let caseName = idempotentSoundingCaseName(in: node) else {
             return .visitChildren
         }
-        guard let op = nonIdempotentOperation(in: Syntax(node.statements)) else {
+        guard let operation = nonIdempotentOperation(in: Syntax(node.statements)) else {
             return .visitChildren
         }
         addIssue(
             severity: pattern.severity,
             message: "Action `.\(caseName)` is named like an idempotent action but its "
-                + "body mutates non-idempotently (`\(op)`). Applying it twice would not "
+                + "body mutates non-idempotently (`\(operation)`). Applying it twice would not "
                 + "equal applying it once.",
             filePath: currentFilePath,
             lineNumber: getLineNumber(for: Syntax(node)),
@@ -102,9 +102,9 @@ final class NonIdempotentActionNameVisitor: BasePatternVisitor {
     /// closures (effect bodies). Returns its textual form for the message.
     private func nonIdempotentOperation(in syntax: Syntax) -> String? {
         if syntax.is(ClosureExprSyntax.self) { return nil }
-        if let op = syntax.as(BinaryOperatorExprSyntax.self),
-           Self.compoundAssignOperators.contains(op.operator.text) {
-            return op.operator.text
+        if let operation = syntax.as(BinaryOperatorExprSyntax.self),
+           Self.compoundAssignOperators.contains(operation.operator.text) {
+            return operation.operator.text
         }
         if let call = syntax.as(FunctionCallExprSyntax.self),
            let member = call.calledExpression.as(MemberAccessExprSyntax.self),

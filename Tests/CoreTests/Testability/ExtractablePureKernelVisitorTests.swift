@@ -31,7 +31,7 @@ struct ExtractablePureKernelVisitorTests {
     // MARK: - The motivating case
 
     @Test("the chunking arithmetic inside an async upload is a candidate")
-    func chunkingKernelIsCandidate() throws {
+    func chunkingKernelIsCandidate() {
         // MacCloud's `uploadRemainingChunks`, and the reason this rule exists. How many chunks,
         // where chunk n starts, how far along we are: a function of (data.count, chunkSize, index)
         // and nothing else — welded to a method that needs a live session and a server, so no test
@@ -55,7 +55,7 @@ struct ExtractablePureKernelVisitorTests {
     }
 
     @Test("a progress throttle inside a byte stream is a candidate")
-    func progressThrottleIsCandidate() throws {
+    func progressThrottleIsCandidate() {
         // MacCloud's `collect`, which the fix plan did not know about — found by hand-classifying
         // the app before writing the rule. It is the *same defect family* as the known chunking bug:
         // if the server omits Content-Length, `expectedBytes <= 0` and progress is never reported at

@@ -75,21 +75,21 @@ final class PrimitiveNamedForDomainTypeVisitor: CrossFileVisitorBase, CrossFileP
         return .visitChildren
     }
 
-    override func visitPost(_ node: StructDeclSyntax) { typeNameStack.removeLast() }
+    override func visitPost(_: StructDeclSyntax) { typeNameStack.removeLast() }
 
     override func visit(_ node: ClassDeclSyntax) -> SyntaxVisitorContinueKind {
         typeNameStack.append(node.name.text)
         return .visitChildren
     }
 
-    override func visitPost(_ node: ClassDeclSyntax) { typeNameStack.removeLast() }
+    override func visitPost(_: ClassDeclSyntax) { typeNameStack.removeLast() }
 
     override func visit(_ node: ActorDeclSyntax) -> SyntaxVisitorContinueKind {
         typeNameStack.append(node.name.text)
         return .visitChildren
     }
 
-    override func visitPost(_ node: ActorDeclSyntax) { typeNameStack.removeLast() }
+    override func visitPost(_: ActorDeclSyntax) { typeNameStack.removeLast() }
 
     /// A raw-value enum (`enum Currency: String`) is a `RawRepresentable` newtype. The
     /// generic-name stop-list still applies, so an `enum Status: String` does not turn every
@@ -103,7 +103,7 @@ final class PrimitiveNamedForDomainTypeVisitor: CrossFileVisitorBase, CrossFileP
         return .visitChildren
     }
 
-    override func visitPost(_ node: EnumDeclSyntax) { typeNameStack.removeLast() }
+    override func visitPost(_: EnumDeclSyntax) { typeNameStack.removeLast() }
 
     override func visit(_ node: FunctionParameterSyntax) -> SyntaxVisitorContinueKind {
         let name = (node.secondName ?? node.firstName).text

@@ -35,7 +35,7 @@ struct HoistableConformerMemberVisitorTests {
     /// Three types conforming to `Named` each implement `matches` identically, using only
     /// `Named`'s requirements — the canonical hoist case. One issue per participating type.
     @Test
-    func identicalMethodOverConformersHoists() throws {
+    func identicalMethodOverConformersHoists() {
         let issues = analyze(files: [
             "P.swift": Self.namedProtocol,
             "A.swift": """

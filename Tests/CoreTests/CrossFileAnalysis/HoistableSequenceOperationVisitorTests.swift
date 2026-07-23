@@ -35,7 +35,7 @@ struct HoistableSequenceOperationVisitorTests {
     /// A multi-key sort closure (`{category,name}` ⊆ Ranked) repeated at two sites — the
     /// measured high-precision case. One issue per site, naming the hoist target.
     @Test
-    func multiKeyClosureRepeatedHoists() throws {
+    func multiKeyClosureRepeatedHoists() {
         let issues = analyze(files: [
             "P.swift": Self.rankedProtocol,
             "A.swift": """

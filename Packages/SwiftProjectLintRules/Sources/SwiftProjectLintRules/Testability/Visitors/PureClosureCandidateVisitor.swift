@@ -120,7 +120,7 @@ final class PureClosureCandidateVisitor: BasePatternVisitor {
             if let function = current.as(FunctionDeclSyntax.self) {
                 return function.name.text
             }
-            if let variable = current.as(VariableDeclSyntax.self), variable.isMemberDeclaration {
+            if let variable = current.as(VariableDeclSyntax.self), isMemberDeclaration(variable) {
                 return variable.bindings
                     .lazy
                     .compactMap { $0.pattern.as(IdentifierPatternSyntax.self)?.identifier.text }
@@ -130,17 +130,14 @@ final class PureClosureCandidateVisitor: BasePatternVisitor {
         }
         return nil
     }
-}
-
-private extension VariableDeclSyntax {
 
     /// A stored or computed property, as opposed to a `let` inside a function body.
     ///
     /// A member declaration sits directly in a type's `MemberBlockItemList`; a local binding sits in
     /// a `CodeBlockItemList`. That parent is the only thing that distinguishes them — the two share a
     /// syntax node — so it is what the check asks about.
-    var isMemberDeclaration: Bool {
-        parent?.is(MemberBlockItemSyntax.self) ?? false
+    private func isMemberDeclaration(_ variable: VariableDeclSyntax) -> Bool {
+        variable.parent?.is(MemberBlockItemSyntax.self) ?? false
     }
 }
 

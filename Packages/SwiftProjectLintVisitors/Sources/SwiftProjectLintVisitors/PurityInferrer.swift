@@ -18,7 +18,9 @@ public struct PurityInferrer: Sendable {
 
     private let underlying = SwiftEffectInference.PurityInferrer()
 
-    public init() {}
+    public init() {
+        // No configuration: the underlying oracle is stateless.
+    }
 
     /// Returns `.pure` when `function` is referentially transparent, `nil`
     /// otherwise. Forwards to the canonical oracle.

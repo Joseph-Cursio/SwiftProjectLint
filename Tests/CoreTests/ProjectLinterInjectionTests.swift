@@ -35,7 +35,7 @@ struct ProjectLinterInjectionTests {
 
         func findSwiftFiles(
             in directory: String, excludedPaths: [String], includeNestedPackages: Bool
-        ) async -> [String] {
+        ) -> [String] {
             lock.withLock {
                 calls.append(
                     Call(
@@ -107,10 +107,7 @@ struct ProjectLinterInjectionTests {
     func mergesCrossFileAnalyzerOutputAndConsultsDiscovery() async throws {
         let discovery = FakeFileDiscovery(files: [])
         let analyzer = FakeCrossFileAnalyzer(issues: [sentinelIssue()])
-        let linter = ProjectLinter(
-            fileDiscovery: discovery,
-            crossFileAnalyzerFactory: { _ in analyzer }
-        )
+        let linter = ProjectLinter(fileDiscovery: discovery) { _ in analyzer }
 
         let issues = await linter.analyzeProject(at: "/tmp/project-under-test")
 
@@ -145,17 +142,15 @@ struct ProjectLinterInjectionTests {
 
         // Discovery returns the file → it is analyzed → at least one per-file issue.
         let withFile = ProjectLinter(
-            fileDiscovery: FakeFileDiscovery(files: [badFile.path]),
-            crossFileAnalyzerFactory: { _ in FakeCrossFileAnalyzer(issues: []) }
-        )
+            fileDiscovery: FakeFileDiscovery(files: [badFile.path])
+        ) { _ in FakeCrossFileAnalyzer(issues: []) }
         let foundIssues = await withFile.analyzeProject(at: directory.path, detector: detector)
         #expect(foundIssues.isEmpty == false)
 
         // Discovery returns nothing → nothing is analyzed → no issues (cross-file empty too).
         let withoutFile = ProjectLinter(
-            fileDiscovery: FakeFileDiscovery(files: []),
-            crossFileAnalyzerFactory: { _ in FakeCrossFileAnalyzer(issues: []) }
-        )
+            fileDiscovery: FakeFileDiscovery(files: [])
+        ) { _ in FakeCrossFileAnalyzer(issues: []) }
         let emptyIssues = await withoutFile.analyzeProject(at: directory.path, detector: detector)
         #expect(emptyIssues.isEmpty)
     }
@@ -165,10 +160,7 @@ struct ProjectLinterInjectionTests {
     @Test
     func forwardsConfigurationToFileDiscovery() async throws {
         let discovery = FakeFileDiscovery(files: [])
-        let linter = ProjectLinter(
-            fileDiscovery: discovery,
-            crossFileAnalyzerFactory: { _ in FakeCrossFileAnalyzer(issues: []) }
-        )
+        let linter = ProjectLinter(fileDiscovery: discovery) { _ in FakeCrossFileAnalyzer(issues: []) }
 
         let configuration = LintConfiguration(
             excludedPaths: ["Generated"],

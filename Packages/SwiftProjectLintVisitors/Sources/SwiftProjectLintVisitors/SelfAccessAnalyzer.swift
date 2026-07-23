@@ -10,7 +10,10 @@ import SwiftSyntax
 /// out of reach, because its result is not a function of anything a test can pin down.
 public enum SelfAccess: Sendable, Equatable {
     /// The body reads nothing from `self`. A function of its arguments alone.
-    case none
+    ///
+    /// Deliberately not spelled `none` — at a use site `.none` reads as `Optional.none`,
+    /// which is a different meaning entirely.
+    case readsNothing
 
     /// The body reads only immutable stored properties of `self`. A function of `(self, args)`.
     case immutableStoredOnly
@@ -81,7 +84,7 @@ public enum SelfAccessAnalyzer {
             }
         }
 
-        return readsImmutableSelf ? .immutableStoredOnly : .none
+        return readsImmutableSelf ? .immutableStoredOnly : .readsNothing
     }
 
     /// Whether every name a computed property's getter reads resolves to something immutable.
@@ -318,9 +321,6 @@ public struct StoredProperty: Sendable, Equatable {
     public init(isMutable: Bool) {
         self.isMutable = isMutable
     }
-}
-
-public extension StoredProperty {
 
     /// The properties of a type that a method may read while remaining a function of `self`.
     ///
@@ -346,8 +346,8 @@ public extension StoredProperty {
     ///   would wave it straight through;
     /// - every **name** the getter reads must already be immutable stored state or derived, which is
     ///   what refutes `var scaled: Int { count * multiplier }` when `multiplier` is a `var`.
-    static func declared(in members: MemberBlockItemListSyntax) -> [String: StoredProperty] {
-        var properties: [String: StoredProperty] = [:]
+    public static func declared(in members: MemberBlockItemListSyntax) -> [String: Self] {
+        var properties: [String: Self] = [:]
         var computed: [(name: String, accessor: AccessorBlockSyntax)] = []
 
         for member in members {
@@ -359,7 +359,7 @@ public extension StoredProperty {
                 let name = pattern.identifier.text
 
                 guard let accessor = binding.accessorBlock else {
-                    properties[name] = StoredProperty(isMutable: isMutable)
+                    properties[name] = Self(isMutable: isMutable)
                     continue
                 }
                 // `var x = 5 { didSet { … } }` is *stored*, with an observer. It is not a derived
@@ -381,7 +381,7 @@ public extension StoredProperty {
     /// matter, which it otherwise would.
     private static func promoteDerived(
         _ computed: [(name: String, accessor: AccessorBlockSyntax)],
-        into properties: inout [String: StoredProperty]
+        into properties: inout [String: Self]
     ) {
         let inferrer = PurityInferrer()
         var pending = computed
@@ -394,7 +394,7 @@ public extension StoredProperty {
                       readsOnlyKnownImmutable(candidate.accessor, given: properties)
                 else { return false }
 
-                properties[candidate.name] = StoredProperty(isMutable: false)
+                properties[candidate.name] = Self(isMutable: false)
                 promotedThisPass = true
                 return true
             }
@@ -410,7 +410,7 @@ public extension StoredProperty {
     /// already known immutable.
     private static func readsOnlyKnownImmutable(
         _ accessor: AccessorBlockSyntax,
-        given properties: [String: StoredProperty]
+        given properties: [String: Self]
     ) -> Bool {
         SelfAccessAnalyzer.accessorReadsOnlyImmutable(accessor, storedProperties: properties)
     }

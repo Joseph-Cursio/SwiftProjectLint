@@ -42,7 +42,7 @@ struct ArchitectureBooleanControlCouplingTests {
         #expect(issue.message.contains("isPremium"))
     }
 
-    @Test func flagsBranchingInsideInitializer() throws {
+    @Test func flagsBranchingInsideInitializer() {
         let source = """
         struct Engine {
             init(useFastPath: Bool) {
@@ -57,7 +57,7 @@ struct ArchitectureBooleanControlCouplingTests {
         #expect(analyzeSource(source).isEmpty == false)
     }
 
-    @Test func flagsNegatedCondition() throws {
+    @Test func flagsNegatedCondition() {
         let source = """
         struct S {
             func run(skipValidation: Bool) {
@@ -72,7 +72,7 @@ struct ArchitectureBooleanControlCouplingTests {
         #expect(analyzeSource(source).isEmpty == false)
     }
 
-    @Test func flagsCompoundCondition() throws {
+    @Test func flagsCompoundCondition() {
         let source = """
         struct S {
             func run(verbose: Bool, ready: Bool) {
@@ -87,7 +87,7 @@ struct ArchitectureBooleanControlCouplingTests {
         #expect(analyzeSource(source).isEmpty == false)
     }
 
-    @Test func flagsMultiStatementArmsWithoutCalls() throws {
+    @Test func flagsMultiStatementArmsWithoutCalls() {
         // Both arms have 2+ statements — substantial even without calls.
         let source = """
         struct S {
@@ -107,7 +107,7 @@ struct ArchitectureBooleanControlCouplingTests {
         #expect(analyzeSource(source).isEmpty == false)
     }
 
-    @Test func flagsElseIfBranchOnFlag() throws {
+    @Test func flagsElseIfBranchOnFlag() {
         // The flag drives the inner if of an else-if chain.
         let source = """
         struct S {

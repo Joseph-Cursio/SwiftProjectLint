@@ -1,5 +1,4 @@
 import SwiftEffectInference
-import enum SwiftEffectInference.Effect
 import SwiftProjectLintModels
 import SwiftProjectLintRegistry
 import SwiftProjectLintVisitors

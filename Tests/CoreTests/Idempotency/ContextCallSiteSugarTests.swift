@@ -1,8 +1,8 @@
 import SwiftEffectInference
 import SwiftParser
+@testable import SwiftProjectLintVisitors
 import SwiftSyntax
 import Testing
-@testable import SwiftProjectLintVisitors
 
 /// The execution-context axis must survive call-site sugar, exactly as the effect axis does.
 ///

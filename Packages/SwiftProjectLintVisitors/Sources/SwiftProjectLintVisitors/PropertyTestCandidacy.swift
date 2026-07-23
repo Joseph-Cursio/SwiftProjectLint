@@ -88,7 +88,7 @@ public enum PropertyTestCandidacy {
         case .unresolvedOrMutable:
             return nil
 
-        case .none:
+        case .readsNothing:
             guard hasInputs(function.signature) else { return nil }
             return .ofInputs
 

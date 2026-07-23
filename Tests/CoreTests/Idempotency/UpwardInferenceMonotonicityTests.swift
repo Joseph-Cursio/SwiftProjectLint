@@ -1,6 +1,5 @@
-import SwiftEffectInference
 import PropertyBased
-import enum SwiftEffectInference.Effect
+import SwiftEffectInference
 import SwiftParser
 @testable import SwiftProjectLintVisitors
 import SwiftSyntax
