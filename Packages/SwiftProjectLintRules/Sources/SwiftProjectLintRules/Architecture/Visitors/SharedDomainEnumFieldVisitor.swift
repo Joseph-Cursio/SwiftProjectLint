@@ -144,10 +144,11 @@ final class SharedDomainEnumFieldVisitor: CrossFileVisitorBase, CrossFilePattern
             }
             guard reportable.count >= Self.minimumCluster else { continue }
 
-            let allNames = reportable.map(\.name).sorted()
+            let locations = reportable.map { (name: $0.name, file: $0.file, line: $0.line) }
+            let conformNames = PeerLabeling.distinctNames(reportable.map(\.name))
             let fieldText = "\(signature.propertyName): \(signature.typeName)"
             for shape in reportable {
-                let peers = allNames.filter { $0 != shape.name }.joined(separator: ", ")
+                let peers = PeerLabeling.peers(locations, excluding: (shape.file, shape.line))
                 addIssue(
                     severity: .info,
                     message: "'\(shape.name)' carries domain-enum field '\(fieldText)' shared "
@@ -155,7 +156,7 @@ final class SharedDomainEnumFieldVisitor: CrossFileVisitorBase, CrossFilePattern
                     filePath: shape.file,
                     lineNumber: shape.line,
                     suggestion: "Extract a protocol requiring '\(fieldText)' and conform "
-                        + "\(allNames.joined(separator: ", ")) to it, so behavior keyed on "
+                        + "\(conformNames) to it, so behavior keyed on "
                         + "\(signature.typeName) (sorting, filtering, grouping) is written once.",
                     ruleName: .sharedDomainEnumField
                 )

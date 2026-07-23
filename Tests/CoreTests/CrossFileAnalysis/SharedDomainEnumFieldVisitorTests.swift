@@ -118,4 +118,23 @@ struct SharedDomainEnumFieldVisitorTests {
 
         #expect(issues.isEmpty)
     }
+
+    // MARK: - Peer naming with shared type names
+
+    @Test("clustered types that share a name still name each other by location")
+    func sameNamedTypesReportLocationPeers() throws {
+        // Two types both named `Record`, each carrying the same project enum field. Filtering
+        // peers by name used to leave an empty peer list and a duplicated suggestion.
+        let issues = analyze(files: [
+            "Kind.swift": "enum Kind { case a, b, c }",
+            "A.swift": "struct Record { let kind: Kind; let id: Int }",
+            "B.swift": "struct Record { let kind: Kind; let id: Int }",
+            "C.swift": "struct Record { let kind: Kind; let id: Int }"
+        ])
+        #expect(issues.count == 3)
+        let onA = try #require(issues.first { $0.filePath == "A.swift" })
+        #expect(onA.message.contains("B.swift"))
+        #expect(onA.message.contains("with  ") == false)
+        #expect(onA.suggestion?.contains("Record, Record") == false)
+    }
 }

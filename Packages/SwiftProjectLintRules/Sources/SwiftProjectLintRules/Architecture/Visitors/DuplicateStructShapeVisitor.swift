@@ -197,10 +197,11 @@ final class DuplicateStructShapeVisitor: CrossFileVisitorBase, CrossFilePatternV
             let reportable = members.filter { conformsToCovering($0, coreNames: coreNames) == false }
             guard reportable.count >= Self.minimumClusterSize else { continue }
 
-            let allNames = reportable.map(\.name).sorted()
+            let locations = reportable.map { (name: $0.name, file: $0.file, line: $0.line) }
+            let conformNames = PeerLabeling.distinctNames(reportable.map(\.name))
             let propertyList = core.map(\.name).sorted().joined(separator: ", ")
             for shape in reportable {
-                let peers = allNames.filter { $0 != shape.name }.joined(separator: ", ")
+                let peers = PeerLabeling.peers(locations, excluding: (shape.file, shape.line))
                 addIssue(
                     severity: .info,
                     message: "'\(shape.name)' shares \(core.count) stored properties "
@@ -208,7 +209,7 @@ final class DuplicateStructShapeVisitor: CrossFileVisitorBase, CrossFilePatternV
                     filePath: shape.file,
                     lineNumber: shape.line,
                     suggestion: "Extract a protocol declaring \(propertyList) and conform "
-                        + "\(allNames.joined(separator: ", ")) to it.",
+                        + "\(conformNames) to it.",
                     ruleName: .duplicateStructShape
                 )
             }

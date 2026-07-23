@@ -4,26 +4,29 @@ import SwiftParser
 import SwiftSyntax
 import Testing
 
+/// Drives the visitor over `files` and returns just this rule's findings. At file scope
+/// rather than inside the suite so the body stays within `type_body_length` as tests
+/// accumulate; call sites read identically.
+private func analyze(files: [String: String]) -> [LintIssue] {
+    var cache: [String: SourceFileSyntax] = [:]
+    for (name, source) in files {
+        cache[name] = Parser.parse(source: source)
+    }
+    let pattern = DuplicateStructShape().pattern
+    let visitor = DuplicateStructShapeVisitor(fileCache: cache)
+    visitor.setPattern(pattern)
+
+    for (name, ast) in cache {
+        visitor.setFilePath(name)
+        visitor.setSourceLocationConverter(SourceLocationConverter(fileName: name, tree: ast))
+        visitor.walk(ast)
+    }
+    visitor.finalizeAnalysis()
+    return visitor.detectedIssues.filter { $0.ruleName == .duplicateStructShape }
+}
+
 @Suite
 struct DuplicateStructShapeVisitorTests {
-
-    private func analyze(files: [String: String]) -> [LintIssue] {
-        var cache: [String: SourceFileSyntax] = [:]
-        for (name, source) in files {
-            cache[name] = Parser.parse(source: source)
-        }
-        let pattern = DuplicateStructShape().pattern
-        let visitor = DuplicateStructShapeVisitor(fileCache: cache)
-        visitor.setPattern(pattern)
-
-        for (name, ast) in cache {
-            visitor.setFilePath(name)
-            visitor.setSourceLocationConverter(SourceLocationConverter(fileName: name, tree: ast))
-            visitor.walk(ast)
-        }
-        visitor.finalizeAnalysis()
-        return visitor.detectedIssues.filter { $0.ruleName == .duplicateStructShape }
-    }
 
     /// Five structs share a four-property core (rawKey/name/description/category) with no
     /// shared protocol — one issue per struct, each naming the four shared properties.
@@ -320,5 +323,45 @@ struct DuplicateStructShapeVisitorTests {
         ])
 
         #expect(issues.isEmpty)
+    }
+
+    // MARK: - Peer naming with shared type names
+
+    @Test("clustered structs that share a name still name each other by location")
+    func sameNamedShapesReportLocationPeers() throws {
+        // The regression: three visitors each with a private `TypeShape` of identical shape.
+        // Filtering peers by name used to collapse to an empty peer list ("with  but no…")
+        // and a "conform TypeShape, TypeShape, TypeShape" suggestion.
+        let shape = "{ let name: String; let file: String; let line: Int; let extra: Bool }"
+        let issues = analyze(files: [
+            "A.swift": "struct TypeShape \(shape)",
+            "B.swift": "struct TypeShape \(shape)",
+            "C.swift": "struct TypeShape \(shape)"
+        ])
+        #expect(issues.count == 3)
+
+        let onA = try #require(issues.first { $0.filePath == "A.swift" })
+        // Peers are the other two files, not an empty string.
+        #expect(onA.message.contains("B.swift"))
+        #expect(onA.message.contains("C.swift"))
+        #expect(onA.message.contains("with  ") == false)
+
+        // The suggestion lists the name once, not three times.
+        let suggestion = try #require(onA.suggestion)
+        #expect(suggestion.contains("TypeShape, TypeShape") == false)
+    }
+
+    @Test("differently-named clustered structs still report each name")
+    func distinctlyNamedShapesUnaffected() throws {
+        let shape = "{ let alpha: Int; let bravo: Int; let charlie: Int; let delta: Int }"
+        let issues = analyze(files: [
+            "A.swift": "struct Foo \(shape)",
+            "B.swift": "struct Bar \(shape)"
+        ])
+        #expect(issues.count == 2)
+        let onFoo = try #require(issues.first { $0.filePath == "A.swift" })
+        #expect(onFoo.message.contains("Bar"))
+        #expect(onFoo.suggestion?.contains("Bar") == true)
+        #expect(onFoo.suggestion?.contains("Foo") == true)
     }
 }
