@@ -74,6 +74,7 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
     case architecturalBoundary = "Architectural Boundary"
     case booleanControlCoupling = "Boolean Control Coupling"
     case manualRegistrationList = "Manual Registration List"
+    case parallelListDrift = "Parallel List Drift"
 
     // Code Quality Rules
     case magicNumber = "Magic Number"
@@ -286,7 +287,7 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
              .swiftDataUniqueAttributeCloudKit, .godViewModel,
              .viewModelDirectDBAccess, .circularDependency,
              .architecturalBoundary, .booleanControlCoupling,
-             .manualRegistrationList:
+             .manualRegistrationList, .parallelListDrift:
             return .architecture
 
             // Code Quality Rules

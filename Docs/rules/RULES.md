@@ -89,6 +89,7 @@ Rules marked **opt-in** are disabled by default and must be explicitly listed un
 | [Architectural Boundary](architectural-boundary.md) | Warning |
 | [Boolean Control Coupling](boolean-control-coupling.md) | Warning |
 | [Manual Registration List](manual-registration-list.md) | Info |
+| [Parallel List Drift](parallel-list-drift.md) | Info |
 
 ## Code Quality
 
