@@ -124,10 +124,6 @@ final class UnannotatedInStrictReplayableContextVisitor:
         }
     }
 
-    func analyze() {
-        finalizeAnalysis()
-    }
-
     private func analyzeBody(_ syntax: Syntax, site: AnalysisSite) {
         if syntax.is(FunctionDeclSyntax.self) { return }
         // Nested closure-initialised variable bindings that carry their

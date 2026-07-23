@@ -85,10 +85,6 @@ final class OnceContractViolationVisitor: CrossFileVisitorBase, CrossFilePattern
         }
     }
 
-    func analyze() {
-        finalizeAnalysis()
-    }
-
     private func analyzeBody(_ syntax: Syntax, site: AnalysisSite) {
         // Don't re-enter nested function declarations — they are their own
         // analysis site in `analysisSites`.

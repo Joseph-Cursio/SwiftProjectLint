@@ -126,14 +126,6 @@ final class IdempotencyViolationVisitor: CrossFileVisitorBase, CrossFilePatternV
         }
     }
 
-    /// Single-file fallback: when the visitor is used outside the cross-file engine
-    /// (for example directly in unit tests), callers can walk once and invoke this
-    /// method instead of `finalizeAnalysis()` — they are equivalent. Exposed as a
-    /// separate name to make the test flow read `walk(source); analyze()`.
-    func analyze() {
-        finalizeAnalysis()
-    }
-
     private func analyzeBody(_ syntax: Syntax, site: AnalysisSite) {
         if syntax.is(FunctionDeclSyntax.self) { return }
         // Nested closure-initialised variable bindings that carry their
