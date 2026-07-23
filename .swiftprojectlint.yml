@@ -1,3 +1,10 @@
+# This project's own code lives almost entirely in Packages/*, each a nested Swift
+# package. Nested packages are skipped by default, so without this a self-lint run
+# analyzed only Sources/ and Tests/ — a few dozen files out of ~790 — and silently
+# reported nothing for rules whose only subjects are in Packages/. Dogfooding needs
+# this on.
+include_nested_packages: true
+
 excluded_paths:
   - "ExampleViews/"
   - "ExampleCode/"
