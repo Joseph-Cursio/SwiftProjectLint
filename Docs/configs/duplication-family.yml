@@ -1,0 +1,59 @@
+# Dogfood sweep: the duplication / missing-abstraction rule family.
+#
+# Not a recommended project config — an intentionally broad, experimental sweep for
+# running SwiftProjectLint against its own sources (or any project) to surface duplicated
+# structure, drifted lists, and missing abstractions in one pass. Most of these rules are
+# opt-in and several are experimental, so `enabled_only` turns exactly this set on and
+# nothing else.
+#
+# Run it:
+#
+#   swift run CLI . --config Docs/configs/duplication-family.yml
+#
+# `include_nested_packages` is required here: SwiftProjectLint's own code lives in
+# Packages/*, each a nested Swift package, which a default run skips (see the note in the
+# project's own .swiftprojectlint.yml).
+#
+# What this last surfaced on this repository (2026-07): the family agrees on real backlog —
+# an `AnalysisSite` struct duplicated across five idempotency visitors (flagged by both
+# Duplicate Struct Shape and, via their identical `analyze()`, Hoistable Conformer Member),
+# a `TypeShape` duplicated across three Architecture visitors, and the animation-factory and
+# logging-method lists that Parallel List Drift caught drifting. Expect Parallel List Drift
+# itself to be the noisiest member (~1 actionable in 3 — deliberate subsets read as drift);
+# the exact-match rules score far higher.
+
+include_nested_packages: true
+
+excluded_paths:
+  - "ExampleViews/"
+  - "ExampleCode/"
+
+enabled_only:
+  # Lists that should agree
+  - "Manual Registration List"
+  - "Parallel List Drift"
+  - "Parallel Enum Shape"
+  - "Scattered Enum Mapping"
+
+  # Duplicated structure / behaviour that wants one home
+  - "Duplicate Struct Shape"
+  - "Shared Domain-Enum Field"
+  - "Hoistable Conformer Member"
+  - "Hoistable Sequence Operation"
+  - "Redundant Derived Property"
+  - "Lossy Struct Rebuild"
+
+  # Abstractions that are missing, unused, or mirrored
+  - "Could Adopt Protocol"
+  - "Mirror Protocol"
+  - "Single Implementation Protocol"
+  - "Unused Protocol Abstraction"
+
+  # Primitives standing in for a domain type
+  - "Primitive Bypassing Its Domain Type"
+  - "Primitive Named For Its Domain Type"
+
+  # Adjacent smells that often co-occur with the above
+  - "String Switch Over Enum"
+  - "Boolean Control Coupling"
+  - "Extractable Pure Kernel"
