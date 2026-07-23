@@ -5,59 +5,35 @@ import SwiftParser
 import SwiftSyntax
 import Testing
 
+/// Drives `ConcreteTypeUsageVisitor` over `source` and returns its findings.
+///
+/// At file scope rather than inside the suite: it is the suite's only helper, and keeping it out
+/// of the type keeps the body within `type_body_length` as tests accumulate. Call sites read
+/// identically either way.
+///
+/// `observableTypes` and `protocolTypes` are the project-wide prescan results `ProjectLinter`
+/// injects in a real run, so the `@Observable`/`ObservableObject` and "type is already a protocol"
+/// exemptions can be exercised at the visitor level. They were three overloads that differed only
+/// in which one they set; defaulting both to empty says the same thing once.
+private func analyzeSource(
+    _ source: String,
+    observableTypes: Set<String> = [],
+    protocolTypes: Set<String> = [],
+    filePath: String = "SourceFile.swift"
+) -> [LintIssue] {
+    let visitor = ConcreteTypeUsageVisitor(patternCategory: .architecture)
+    visitor.knownObservableTypes = observableTypes
+    visitor.knownProtocolTypes = protocolTypes
+    let syntax = Parser.parse(source: source)
+    let converter = SourceLocationConverter(fileName: filePath, tree: syntax)
+    visitor.setSourceLocationConverter(converter)
+    visitor.setFilePath(filePath)
+    visitor.walk(syntax)
+    return visitor.detectedIssues
+}
+
 @Suite
 struct ArchitectureConcreteTypeUsageTests {
-
-    // MARK: - Helper
-
-    private func analyzeSource(
-        _ source: String,
-        filePath: String = "SourceFile.swift"
-    ) -> [LintIssue] {
-        let visitor = ConcreteTypeUsageVisitor(patternCategory: .architecture)
-        let syntax = Parser.parse(source: source)
-        let converter = SourceLocationConverter(fileName: filePath, tree: syntax)
-        visitor.setSourceLocationConverter(converter)
-        visitor.setFilePath(filePath)
-        visitor.walk(syntax)
-        return visitor.detectedIssues
-    }
-
-    /// Variant that injects the project-wide observable prescan result, the way
-    /// `ProjectLinter` does, so the `@Observable`/`ObservableObject` exemption can be
-    /// exercised at the visitor level.
-    private func analyzeSource(
-        _ source: String,
-        observableTypes: Set<String>,
-        filePath: String = "SourceFile.swift"
-    ) -> [LintIssue] {
-        let visitor = ConcreteTypeUsageVisitor(patternCategory: .architecture)
-        visitor.knownObservableTypes = observableTypes
-        let syntax = Parser.parse(source: source)
-        let converter = SourceLocationConverter(fileName: filePath, tree: syntax)
-        visitor.setSourceLocationConverter(converter)
-        visitor.setFilePath(filePath)
-        visitor.walk(syntax)
-        return visitor.detectedIssues
-    }
-
-    /// Variant that injects the project-wide protocol prescan result, the way
-    /// `ProjectLinter` does, so the "type is already a protocol" exemption can be
-    /// exercised at the visitor level.
-    private func analyzeSource(
-        _ source: String,
-        protocolTypes: Set<String>,
-        filePath: String = "SourceFile.swift"
-    ) -> [LintIssue] {
-        let visitor = ConcreteTypeUsageVisitor(patternCategory: .architecture)
-        visitor.knownProtocolTypes = protocolTypes
-        let syntax = Parser.parse(source: source)
-        let converter = SourceLocationConverter(fileName: filePath, tree: syntax)
-        visitor.setSourceLocationConverter(converter)
-        visitor.setFilePath(filePath)
-        visitor.walk(syntax)
-        return visitor.detectedIssues
-    }
 
     // MARK: - Function parameter
 

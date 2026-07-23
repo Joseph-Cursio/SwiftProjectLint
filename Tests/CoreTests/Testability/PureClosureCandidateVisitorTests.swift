@@ -5,6 +5,31 @@ import SwiftParser
 import SwiftSyntax
 import Testing
 
+/// Drives the visitor over `source` and returns just this rule's findings.
+///
+/// At file scope rather than inside the suite: it is the suite's only helper, and keeping it
+/// out of the type keeps the body within `type_body_length` as tests accumulate. Call sites
+/// read identically either way.
+///
+/// `projectFunctions` is what `ProjectLinter`'s pre-scan injects in a real run — the functions
+/// this codebase declares, which is the one fact that tells a closure still hiding logic from one
+/// merely forwarding to a function the reader already extracted.
+private func analyze(
+    _ source: String,
+    filePath: String = "Logic.swift",
+    projectFunctions: Set<String> = []
+) -> [LintIssue] {
+    let visitor = PureClosureCandidateVisitor(patternCategory: .testability)
+    visitor.knownProjectFunctions = projectFunctions
+    let syntax = Parser.parse(source: source)
+    visitor.setSourceLocationConverter(
+        SourceLocationConverter(fileName: filePath, tree: syntax)
+    )
+    visitor.setFilePath(filePath)
+    visitor.walk(syntax)
+    return visitor.detectedIssues.filter { $0.ruleName == .pureClosureCandidate }
+}
+
 /// The property test hiding inside a closure.
 ///
 /// `pureFunctionCandidate` can only point at a *declaration*, and a great deal of the pure logic in
@@ -19,29 +44,10 @@ import Testing
 @Suite("Pure closures are property-test candidates")
 struct PureClosureCandidateVisitorTests {
 
-    /// `projectFunctions` is what `ProjectLinter`'s pre-scan injects in a real run — the functions
-    /// this codebase declares, which is the one fact that tells a closure still hiding logic from one
-    /// merely forwarding to a function the reader already extracted.
-    private func analyze(
-        _ source: String,
-        filePath: String = "Logic.swift",
-        projectFunctions: Set<String> = []
-    ) -> [LintIssue] {
-        let visitor = PureClosureCandidateVisitor(patternCategory: .testability)
-        visitor.knownProjectFunctions = projectFunctions
-        let syntax = Parser.parse(source: source)
-        visitor.setSourceLocationConverter(
-            SourceLocationConverter(fileName: filePath, tree: syntax)
-        )
-        visitor.setFilePath(filePath)
-        visitor.walk(syntax)
-        return visitor.detectedIssues.filter { $0.ruleName == .pureClosureCandidate }
-    }
-
     // MARK: - The motivating case
 
     @Test("a filter predicate that captures a mutable var is still a candidate")
-    func filterCapturingMutableStateIsCandidate() throws {
+    func filterCapturingMutableStateIsCandidate() {
         // The capture is the whole point. `currentPath` is a `var` on the enclosing type, and that
         // says nothing about this closure: lift the body into
         // `isImmediateChild(_ path: String, of parent: String)` and the capture becomes a

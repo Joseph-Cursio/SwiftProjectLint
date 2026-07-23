@@ -5,6 +5,27 @@ import SwiftParser
 import SwiftSyntax
 import Testing
 
+/// Shared driver for the two suites below, at file scope so both can reach it.
+private enum TestSupport {
+
+static func analyze(
+    _ source: String,
+    filePath: String = "Logic.swift",
+    equatableTypes: Set<String> = [],
+    valueTypes: Set<String> = []
+) -> [LintIssue] {
+    let visitor = PureFunctionCandidateVisitor(patternCategory: .testability)
+    visitor.knownEquatableTypes = equatableTypes
+    visitor.knownValueTypes = valueTypes
+    let syntax = Parser.parse(source: source)
+    let converter = SourceLocationConverter(fileName: filePath, tree: syntax)
+    visitor.setSourceLocationConverter(converter)
+    visitor.setFilePath(filePath)
+    visitor.walk(syntax)
+    return visitor.detectedIssues.filter { $0.ruleName == .pureFunctionCandidate }
+}
+}
+
 @Suite
 struct PureFunctionCandidateVisitorTests {
 
@@ -14,15 +35,12 @@ struct PureFunctionCandidateVisitorTests {
         equatableTypes: Set<String> = [],
         valueTypes: Set<String> = []
     ) -> [LintIssue] {
-        let visitor = PureFunctionCandidateVisitor(patternCategory: .testability)
-        visitor.knownEquatableTypes = equatableTypes
-        visitor.knownValueTypes = valueTypes
-        let syntax = Parser.parse(source: source)
-        let converter = SourceLocationConverter(fileName: filePath, tree: syntax)
-        visitor.setSourceLocationConverter(converter)
-        visitor.setFilePath(filePath)
-        visitor.walk(syntax)
-        return visitor.detectedIssues.filter { $0.ruleName == .pureFunctionCandidate }
+        TestSupport.analyze(
+            source,
+            filePath: filePath,
+            equatableTypes: equatableTypes,
+            valueTypes: valueTypes
+        )
     }
 
     @Test func flagsFreePureFunction() throws {
@@ -305,6 +323,26 @@ struct PureFunctionCandidateVisitorTests {
 
     @Test func ignoresTestFiles() {
         #expect(analyze("func add(_ a: Int, _ b: Int) -> Int { a + b }", filePath: "MathTests.swift").isEmpty)
+    }
+}
+
+/// The gates a candidate must clear: totality, an assertable return, and a seedable
+/// value type. Split from the detection suite purely for size.
+@Suite
+struct PureFunctionCandidateGateTests {
+
+    private func analyze(
+        _ source: String,
+        filePath: String = "Logic.swift",
+        equatableTypes: Set<String> = [],
+        valueTypes: Set<String> = []
+    ) -> [LintIssue] {
+        TestSupport.analyze(
+            source,
+            filePath: filePath,
+            equatableTypes: equatableTypes,
+            valueTypes: valueTypes
+        )
     }
 
     // MARK: - Totality (not a function of inputs alone if it can trap or throw)

@@ -3,6 +3,7 @@ import Foundation
 @testable import SwiftProjectLintRules
 import Testing
 
+/// Core `analyzeProject` behaviour: paths, categories, rule selection, and scale.
 struct ProjectLinterTests {
 
     @Test func testProjectLinterInitialization() {
@@ -133,6 +134,118 @@ struct ProjectLinterTests {
             #expect(allRules.contains(issue.ruleName))
         }
     }
+    // MARK: - Helper Methods
+
+    private func makeTestProject() -> String {
+        let tempDir = FileManager.default.temporaryDirectory.path
+        let path = (tempDir as NSString).appendingPathComponent("TestProject")
+        try? FileManager.default.createDirectory(atPath: path, withIntermediateDirectories: true)
+        let contentViewPath = (path as NSString).appendingPathComponent("ContentView.swift")
+        let contentViewCode = """
+        import SwiftUI
+
+        struct ContentView: View {
+            @State private var isLoading = false
+            @State private var counter = 0
+
+            var body: some View {
+                VStack {
+                    Text("Hello, World!")
+                    Button("Increment") {
+                        counter += 1
+                    }
+                }
+            }
+        }
+        """
+        try? contentViewCode.write(toFile: contentViewPath, atomically: true, encoding: .utf8)
+        return path
+    }
+
+    private func makeEmptyTestProject() -> String {
+        let tempDir = FileManager.default.temporaryDirectory.path
+        let path = (tempDir as NSString).appendingPathComponent("EmptyTestProject")
+        try? FileManager.default.createDirectory(atPath: path, withIntermediateDirectories: true)
+        return path
+    }
+
+    private func makeComplexTestProject() -> String {
+        let tempDir = FileManager.default.temporaryDirectory.path
+        let path = (tempDir as NSString).appendingPathComponent("ComplexTestProject")
+        try? FileManager.default.createDirectory(atPath: path, withIntermediateDirectories: true)
+
+        let files = [
+            ("ContentView.swift", """
+            import SwiftUI
+
+            struct ContentView: View {
+                @State private var isLoading = false
+                @State private var counter = 0
+
+                var body: some View {
+                    VStack {
+                        Text("Hello, World!")
+                        Button("Increment") {
+                            counter += 1
+                        }
+                        Image("icon")
+                        Text("This is a very long text that should trigger accessibility warnings")
+                    }
+                }
+            }
+            """),
+            ("DetailView.swift", """
+            import SwiftUI
+
+            struct DetailView: View {
+                @State private var isLoading = false
+                @State private var data = ""
+
+                var body: some View {
+                    VStack {
+                        Text("Detail View")
+                        Button("Load Data") {
+                            // Missing error handling
+                            URLSession.shared.dataTask(with: URL(string: "https://api.example.com")!) { _, _, _ in
+                                // No error handling
+                            }.resume()
+                        }
+                    }
+                }
+            }
+            """),
+            ("SettingsView.swift", """
+            import SwiftUI
+
+            struct SettingsView: View {
+                @State private var isLoading = false
+
+                var body: some View {
+                    VStack {
+                        Text("Settings")
+                        ForEach(0..<10) { index in
+                            Text("Item \\(index)")
+                        }
+                    }
+                }
+            }
+            """)
+        ]
+
+        for (fileName, content) in files {
+            let filePath = (path as NSString).appendingPathComponent(fileName)
+            try? content.write(toFile: filePath, atomically: true, encoding: .utf8)
+        }
+        return path
+    }
+}
+
+/// Rules whose behaviour depends on package layout — nested-package discovery and the
+/// opt-in architecture rules that only fire once their evidence is in scope.
+///
+/// A separate suite from `ProjectLinterTests` because the two share no fixtures: these
+/// build real Swift-package trees on disk, those use flat directories.
+struct ProjectLinterNestedPackageTests {
 
     // MARK: - Nested package opt-in
 
@@ -490,110 +603,5 @@ struct ProjectLinterTests {
             atomically: true, encoding: .utf8
         )
         return root
-    }
-
-    // MARK: - Helper Methods
-
-    private func makeTestProject() -> String {
-        let tempDir = FileManager.default.temporaryDirectory.path
-        let path = (tempDir as NSString).appendingPathComponent("TestProject")
-        try? FileManager.default.createDirectory(atPath: path, withIntermediateDirectories: true)
-        let contentViewPath = (path as NSString).appendingPathComponent("ContentView.swift")
-        let contentViewCode = """
-        import SwiftUI
-
-        struct ContentView: View {
-            @State private var isLoading = false
-            @State private var counter = 0
-
-            var body: some View {
-                VStack {
-                    Text("Hello, World!")
-                    Button("Increment") {
-                        counter += 1
-                    }
-                }
-            }
-        }
-        """
-        try? contentViewCode.write(toFile: contentViewPath, atomically: true, encoding: .utf8)
-        return path
-    }
-
-    private func makeEmptyTestProject() -> String {
-        let tempDir = FileManager.default.temporaryDirectory.path
-        let path = (tempDir as NSString).appendingPathComponent("EmptyTestProject")
-        try? FileManager.default.createDirectory(atPath: path, withIntermediateDirectories: true)
-        return path
-    }
-
-    private func makeComplexTestProject() -> String {
-        let tempDir = FileManager.default.temporaryDirectory.path
-        let path = (tempDir as NSString).appendingPathComponent("ComplexTestProject")
-        try? FileManager.default.createDirectory(atPath: path, withIntermediateDirectories: true)
-
-        let files = [
-            ("ContentView.swift", """
-            import SwiftUI
-
-            struct ContentView: View {
-                @State private var isLoading = false
-                @State private var counter = 0
-
-                var body: some View {
-                    VStack {
-                        Text("Hello, World!")
-                        Button("Increment") {
-                            counter += 1
-                        }
-                        Image("icon")
-                        Text("This is a very long text that should trigger accessibility warnings")
-                    }
-                }
-            }
-            """),
-            ("DetailView.swift", """
-            import SwiftUI
-
-            struct DetailView: View {
-                @State private var isLoading = false
-                @State private var data = ""
-
-                var body: some View {
-                    VStack {
-                        Text("Detail View")
-                        Button("Load Data") {
-                            // Missing error handling
-                            URLSession.shared.dataTask(with: URL(string: "https://api.example.com")!) { _, _, _ in
-                                // No error handling
-                            }.resume()
-                        }
-                    }
-                }
-            }
-            """),
-            ("SettingsView.swift", """
-            import SwiftUI
-
-            struct SettingsView: View {
-                @State private var isLoading = false
-
-                var body: some View {
-                    VStack {
-                        Text("Settings")
-                        ForEach(0..<10) { index in
-                            Text("Item \\(index)")
-                        }
-                    }
-                }
-            }
-            """)
-        ]
-
-        for (fileName, content) in files {
-            let filePath = (path as NSString).appendingPathComponent(fileName)
-            try? content.write(toFile: filePath, atomically: true, encoding: .utf8)
-        }
-        return path
     }
 }
