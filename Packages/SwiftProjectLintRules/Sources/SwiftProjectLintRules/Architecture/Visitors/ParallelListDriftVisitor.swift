@@ -43,6 +43,16 @@ final class ParallelListDriftVisitor: CrossFileVisitorBase, CrossFilePatternVisi
     private static let minShared = 3
     /// Jaccard floor. 0.6 admits e.g. 6-of-8 agreement while rejecting incidental overlap.
     private static let minSimilarity = 0.6
+    /// A stricter floor for a **strict subset** — a pair where one list is wholly contained in
+    /// the other. A subset is far weaker evidence of drift than mutual divergence: a curated
+    /// "the few we support" list is a subset of a canonical one *by design*, not by mistake. At
+    /// >= 0.8 the subset is missing only about one entry of a substantial list — the genuine
+    /// "forgot to add the new entry" case — whereas a curated subset omits a larger fraction and
+    /// is suppressed. Mutual divergence (each list holds something the other lacks) keeps the
+    /// base `minSimilarity`. Measured: SwiftCompilerFlagStudio produced 11 three-entry
+    /// `.enumeration([...])` value lists, each flagged at 0.75 against one four-entry canonical
+    /// list — all false positives.
+    private static let subsetSimilarity = 0.8
     /// A name appearing in more than this many lists is a generic word (`name`, `value`),
     /// not a distinguishing entry. Ignoring it for candidate generation also bounds the
     /// pair count, keeping Phase 2 near-linear instead of quadratic in list count.
@@ -198,10 +208,18 @@ final class ParallelListDriftVisitor: CrossFileVisitorBase, CrossFilePatternVisi
         var best: [Int: Match] = [:]
 
         func offer(deficient: Int, counterpart: Int, shared: Int, similarity: Double) {
+            let deficientNames = lists[deficient].names
+            let counterpartNames = lists[counterpart].names
             // Only a list that is actually missing something is worth reporting.
-            guard !lists[counterpart].names.subtracting(lists[deficient].names).isEmpty else {
-                return
-            }
+            guard !counterpartNames.subtracting(deficientNames).isEmpty else { return }
+
+            // A strict subset — the deficient list holds nothing the counterpart lacks — is weak
+            // evidence of drift and needs the stricter `subsetSimilarity` floor. Mutual
+            // divergence (the deficient list also has entries the counterpart lacks) is strong
+            // evidence and keeps the base threshold already applied upstream.
+            let deficientIsStrictSubset = deficientNames.subtracting(counterpartNames).isEmpty
+            if deficientIsStrictSubset, similarity < Self.subsetSimilarity { return }
+
             let candidate = Match(counterpart: counterpart, shared: shared, similarity: similarity)
             guard let incumbent = best[deficient] else {
                 best[deficient] = candidate

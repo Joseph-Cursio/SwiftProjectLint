@@ -27,18 +27,31 @@ struct ParallelListDriftVisitorTests {
 
     // MARK: - Fires
 
-    @Test("enum and array literal that drift by one entry flag the deficient side only")
+    @Test("a strict subset missing one of a substantial list flags the deficient side")
     func enumVersusArrayStrictSubset() throws {
+        // High coverage (5 of 6 = 0.83): the array is missing about one entry of a real
+        // enumeration — the "forgot to add the new entry" case — so the strict subset still fires.
         let issues = analyze(files: [
-            "Kind.swift": "enum TemplateKind { case header, body, footer, sidebar }",
-            "Emit.swift": #"let emitted = ["header", "body", "footer"]"#
+            "Kind.swift": "enum TemplateKind { case header, body, footer, sidebar, hero, banner }",
+            "Emit.swift": #"let emitted = ["header", "body", "footer", "sidebar", "hero"]"#
         ])
         // Only `emitted` is missing something; the enum is a superset, so it stays quiet.
         #expect(issues.count == 1)
         let issue = try #require(issues.first)
         #expect(issue.filePath == "Emit.swift")
-        #expect(issue.message.contains("sidebar"))
+        #expect(issue.message.contains("banner"))
         #expect(issue.message.contains("emitted"))
+    }
+
+    @Test("a low-coverage strict subset is suppressed — a curated subset, not drift")
+    func curatedStrictSubsetIsSuppressed() {
+        // The SwiftCompilerFlagStudio false positive: a small value list that is wholly contained
+        // in a larger canonical one (3 of 4 = 0.75) is a curated subset by design, not drift.
+        let issues = analyze(files: [
+            "A.swift": #"let supported = ["YES", "YES_ERROR", "NO"]"#,
+            "B.swift": #"let canonical = ["DEFAULT", "YES", "YES_ERROR", "NO"]"#
+        ])
+        #expect(issues.isEmpty)
     }
 
     @Test("each side missing a distinct entry produces one issue per side")
@@ -53,15 +66,21 @@ struct ParallelListDriftVisitorTests {
 
     @Test("normalization spans camelCase, PascalCase and kebab-case spellings")
     func namesNormalizeAcrossSpellingConventions() throws {
+        // 5 of 6 = 0.83, so this fires as a substantial strict subset; the point under test is
+        // that kebab-case entries normalize to the enum's camelCase cases.
         let issues = analyze(files: [
-            "Cat.swift": "enum Category { case stateManagement, uiPatterns, codeQuality, memoryManagement }",
-            "Doc.swift": #"let documented = ["state-management", "ui-patterns", "code-quality"]"#
+            "Cat.swift": """
+            enum Category { case stateManagement, uiPatterns, codeQuality, memoryManagement, security, performance }
+            """,
+            "Doc.swift": #"""
+            let documented = ["state-management", "ui-patterns", "code-quality", "memory-management", "security"]
+            """#
         ])
         #expect(issues.count == 1)
         let issue = try #require(issues.first)
         #expect(issue.filePath == "Doc.swift")
         // The missing entry is reported in the counterpart's original spelling.
-        #expect(issue.message.contains("memoryManagement"))
+        #expect(issue.message.contains("performance"))
     }
 
     @Test("a registration-call run is read as a list and compared against an enum")

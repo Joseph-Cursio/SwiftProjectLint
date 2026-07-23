@@ -53,12 +53,24 @@ spelling.
 **Phase 2 (`finalizeAnalysis`).** An inverted index yields candidate pairs sharing at least
 **3** entries; all-pairs comparison is never performed. A pair fires when:
 
-- the **longer** list has at least **4** entries, and
-- Jaccard similarity (`|A ∩ B| / |A ∪ B|`) is at least **0.6** but strictly below **1.0**.
+- the **longer** list has at least **4** entries,
+- Jaccard similarity (`|A ∩ B| / |A ∪ B|`) is at least **0.6** but strictly below **1.0**, and
+- if the deficient list is a **strict subset** of the other, similarity is at least **0.8**.
 
-The floor is deliberately applied only to the longer list. A list that has drifted *down* to
-two or three entries is the deficient one, and gating on its own length would silence exactly
-the finding worth reporting.
+The length floor is deliberately applied only to the longer list. A list that has drifted
+*down* to two or three entries is the deficient one, and gating on its own length would silence
+exactly the finding worth reporting.
+
+**Mutual divergence vs. strict subset.** The stricter subset floor is the rule's main precision
+lever. When each list holds an entry the other lacks — *mutual divergence* — the two genuinely
+diverged from a common state, which is strong evidence and needs only the base **0.6**. When one
+list is wholly contained in the other — a *strict subset* — the evidence is weak: a curated "the
+few we support" list is a subset of a canonical one by design, not by mistake. Requiring **0.8**
+there means a subset fires only when it is missing about one entry of a substantial list (the
+genuine "forgot to add the new entry" case), while a curated subset that omits a larger fraction
+is suppressed. This was added after dogfooding surfaced 11 three-entry `.enumeration([...])`
+value lists in a sibling project, each flagged at 0.75 against one four-entry canonical list —
+all false positives.
 
 Similarity of exactly 1.0 means the lists agree — no drift, and therefore
 [Parallel Enum Shape](parallel-enum-shape.md)'s finding rather than this rule's. That rule
@@ -73,9 +85,10 @@ list copied into four visitors pairs with all three siblings), only the **closes
 is named: the same fix resolves all of them, and any remainder re-surfaces on the next run.
 
 #### Known limitations / false-positive posture
-- **A deliberate subset is indistinguishable from drift.** A curated "the five we support" list
-  next to a twelve-case enum reads as an eight-entry omission. This is the rule's dominant
-  false positive and the reason it is `Info`. Suppress with
+- **A deliberate subset can still read as drift when its coverage is high.** The 0.8 subset
+  floor suppresses low-coverage curated subsets, but a curated "the ten we support" list that
+  happens to cover most of a twelve-entry canonical one still fires. This is the rule's residual
+  false positive and part of why it is `Info`. Suppress with
   `// swiftprojectlint:disable Parallel List Drift`.
 - **Test and fixture files are excluded entirely** — a test enumerating a deliberate subset is
   the most common instance of the above.
@@ -108,13 +121,21 @@ let unrelated = ["alpha", "bravo", "charlie", "xray", "yankee", "zulu", "whiskey
 let mixed = ["alpha", .bravo, "charlie", 42, "delta"]
 ```
 
+```swift
+// A low-coverage strict subset (3 of 4 = 0.75) — a curated value list, not drift. Below the
+// 0.8 subset floor, so it is suppressed.
+let supported = ["YES", "YES_ERROR", "NO"]
+let canonical = ["DEFAULT", "YES", "YES_ERROR", "NO"]
+```
+
 ### Violating Examples
 ```swift
 // TemplateKind.swift
-enum TemplateKind { case header, body, footer, sidebar }
+enum TemplateKind { case header, body, footer, sidebar, hero, banner }
 
-// Emitter.swift — one issue, here: `sidebar` is missing.
-let emitted = ["header", "body", "footer"]
+// Emitter.swift — a strict subset missing one of six (0.83, above the 0.8 floor). One issue,
+// here: `banner` is missing.
+let emitted = ["header", "body", "footer", "sidebar", "hero"]
 ```
 
 ```swift
@@ -168,21 +189,29 @@ pair reported from both sides), of which **three are actionable**:
 3. **`osLogMethods` / `loggerLevelMethods`** — surfaced sideways. The real finding is that the
    two are byte-identical, which is [Parallel Enum Shape](parallel-enum-shape.md)'s job.
 
-The remaining findings are all one false-positive class — a **deliberate subset** — and in
-several the code says so directly:
+The remaining findings were all one false-positive class — a **deliberate subset**, several of
+which the code named directly: `systemViews` excludes container views on purpose,
+`conflictingModifiers` is "modifiers that conflict with `.accessibilityHidden`" (so cannot
+contain it), and `primitiveCarriers` is naturally a subset of the Equatable stdlib types.
 
-- `systemViews` excludes container views on purpose
-- `conflictingModifiers` is "modifiers that conflict with `.accessibilityHidden`", so it cannot
-  contain `accessibilityHidden` itself
-- `legacyFunctions` is random-only where `bareFunctions` covers all nondeterminism
-- `compoundTerms` omits `apiSecret`/`clientSecret` because it substring-matches and `secret`
-  already subsumes them
-- `trivialValueTypes` carries a comment above it explaining the exclusion, citing a measurement:
-  *"58 `String` + 13 `Int` false hits vs 1 real across 32 projects"*
+#### The subset tightening
 
-So expect roughly **one actionable finding in three** from this rule, and read each one before
-acting. That ratio is the reason it is `Info`. Its exact-match sibling scores far better —
-five for five on the same codebase — because "these lists agree exactly" has far fewer innocent
-explanations than "these lists nearly agree."
+That deliberate-subset class was the rule's dominant false positive, and it drove the **0.8
+strict-subset floor** (see Phase 2 above). A three-repo sweep before and after the change:
+
+| Repo | Drift before | after | note |
+|---|---|---|---|
+| SwiftCompilerFlagStudio | 11 | **0** | 11 three-entry `.enumeration([...])` value lists, all 0.75 subset FPs |
+| SwiftProjectLint | 13 | **8** | dropped `systemViews`, `conflictingModifiers`, the `primitiveCarriers`/Equatable pair |
+| SwiftLintRuleStudio | 2 | **2** | one genuine *mutual-divergence* pair (`modeledReservedKeys` vs `defaultTopLevelKeyOrder`) — unaffected |
+
+The eight that survive on SwiftProjectLint are mutual divergences and near-complete subsets
+(`registerAll` at 0.86, the logging lists at 0.82). The one real finding in RuleStudio is
+mutual and never depended on the subset path. So the floor removed a whole noise class without
+touching the signal — precision rose on all three codebases at once.
+
+Read each surviving finding before acting; it remains `Info`. Its exact-match sibling still
+scores better — five for five on this codebase — because "these lists agree exactly" has far
+fewer innocent explanations than "these lists nearly agree."
 
 ---

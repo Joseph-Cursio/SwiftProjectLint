@@ -174,9 +174,9 @@ genuine copy rather than a coincidence:
 | `mockSuffixes` / `mockMarkers` | `ConcreteTypeUsageVisitor`, `ProtocolExemption` |
 | `expensiveOperations` | `CustomModifierPerformanceVisitor`, `PerformanceVisitor` |
 
-The precision contrast with its sibling is instructive. Parallel List Drift's 14 findings on the
-same codebase were mostly deliberate subsets — roughly three actionable out of ten distinct
-pairs — because "these lists nearly agree" has an innocent explanation. "These lists agree
-exactly" has far fewer: all five pairs here were real.
+The precision contrast with its sibling is instructive. Parallel List Drift's near-match findings
+on the same codebase were mostly deliberate subsets — its low-coverage-subset floor has since
+suppressed that class — because "these lists nearly agree" has an innocent explanation. "These
+lists agree exactly" has far fewer: all five pairs here were real.
 
 ---
