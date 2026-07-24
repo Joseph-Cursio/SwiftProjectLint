@@ -1,7 +1,9 @@
 # Design Note: History-Aware Drift Provenance & Sync Contracts
 
-**Status:** Idea / design sketch — **not implemented.** A forward direction for the
-already-shipped duplication rules.
+**Status:** Idea / design sketch — **not implemented** as a rule. The Part 1
+provenance technique has since been **run by hand and validated** on two real
+decisions (see *§Field result (2026-07-24)*); Parts 2–3 remain unbuilt. A forward
+direction for the already-shipped duplication rules.
 **Category:** Architecture (cross-file — and, newly, cross-*time*)
 **Severity:** Info *(opt-in)*, same posture as the detection-only predecessors.
 **Builds on:** [`rules/parallel-enum-shape.md`](rules/parallel-enum-shape.md),
@@ -120,6 +122,65 @@ the commit **message** is the classifier:
 Provenance is a **prior, not a verdict.** It should re-rank and pre-annotate
 findings ("born together, diverged in `abc123` — *fix?*" vs "born apart —
 *suppress?*"), not auto-apply changes.
+
+### Field result (2026-07-24): the *empty* pickaxe is the cheapest high-signal probe
+
+The first real use of this technique — mid-way through the SwiftInferProperties
+carrier-list consolidation — produced a result worth promoting into the method.
+Two consolidations each surfaced a **member missing from one list but present in
+its sibling**, and in both cases the fix hinged on a single question: *was this
+removed deliberately, or never added?*
+
+| Asymmetry | Probe | Result |
+|---|---|---|
+| `UInt32` absent from the partition index list, while `Int32` is present | `git log -S'"UInt32"' -- PartitionPairing.swift` | **empty** |
+| `Swift.Float80` absent, while bare `Float80` is present | `git log -S'Swift.Float80' -- ReducerDiscoverer+ShapeHelpers.swift` | **empty** |
+
+**An empty pickaxe is not a null result — it is the answer.** It proves the token
+never existed in any revision of that path, which *rules out the one hypothesis
+that makes widening dangerous*: that someone had it, hit a problem, and removed it
+on purpose. What remains is an authoring-time omission, and adding the member
+becomes a safe call rather than a guess. Both were adopted on that basis (`UInt32`
+was added; `Swift.Float80` was deliberately left alone for an unrelated reason —
+`Float80` does not exist on arm64, so the entry is vestigial on the target
+platform).
+
+Three practical consequences for the design:
+
+1. **Run the empty-check first.** It is a single `log -S` per suspicious member,
+   needs no blame, no rename detection, and no commit-message interpretation — the
+   parts of §Git mechanics that are expensive and failure-prone. It should be the
+   *first* probe, not a follow-up.
+2. **Report it explicitly in the finding.** "Member `X` never appeared in this
+   path's history" is directly actionable text for the person reading the lint
+   output; "these two lists differ" is not.
+3. **A near-match finding should name the missing member, not just the delta
+   count.** The probe is only cheap because the rule already knows *which* token to
+   pickaxe — which the `Parallel List Drift` message format already surfaces
+   ("agrees on 8 entries but is missing 1: `UnsignedInteger`").
+
+### The propagation case, from this repo's own history
+
+The same session's provenance run turned up a textbook instance of §1c, and its
+commit message is the punchline. The partition index list was created in
+`460bc9c` (*"Add the partition template…"*). A **second copy** of it appeared the
+next day in `7b4af37`, whose subject reads:
+
+> Ship the generator the law needs — **and stop the copy sites eating it**
+
+That commit's entire thesis is that three readers had hand-copied a generator
+because the template made them re-derive it — and in fixing exactly that failure
+mode, it hand-copied the index list into a second site one layer down. Neither
+copy was wrong in isolation; the duplication is only visible across the two
+commits.
+
+This is the strongest argument for Part 2 in the whole note: the author was *at
+that moment actively thinking about copy-paste harm* and still introduced a copy,
+because nothing in the toolchain connected the new site to the old one. Reviewer
+attention is not the missing ingredient — a mechanical link is. It also shows the
+commit message earning its keep as a classifier: it identifies which copy is
+canonical (the one the commit set out to serve) and confirms the propagation was
+incidental rather than a deliberate fork.
 
 ---
 
