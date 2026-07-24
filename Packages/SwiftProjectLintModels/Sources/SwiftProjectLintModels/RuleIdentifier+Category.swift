@@ -43,7 +43,7 @@ extension RuleIdentifier {
              .singleImplementationProtocol, .mirrorProtocol,
              .duplicateStructShape, .sharedDomainEnumField,
              .primitiveBypassingItsDomainType, .primitiveNamedForItsDomainType,
-             .scatteredEnumMapping, .parallelEnumShape,
+             .scatteredEnumMapping, .duplicateEnumMapping, .parallelEnumShape,
              .unusedProtocolAbstraction,
              .couldAdoptProtocol, .hoistableConformerMember,
              .hoistableSequenceOperation,

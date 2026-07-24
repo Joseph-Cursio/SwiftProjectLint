@@ -59,6 +59,7 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
     case primitiveBypassingItsDomainType = "Primitive Bypassing Its Domain Type"
     case primitiveNamedForItsDomainType = "Primitive Named For Its Domain Type"
     case scatteredEnumMapping = "Scattered Enum Mapping"
+    case duplicateEnumMapping = "Duplicate Enum Mapping"
     case parallelEnumShape = "Parallel Enum Shape"
     case unusedProtocolAbstraction = "Unused Protocol Abstraction"
     case couldAdoptProtocol = "Could Adopt Protocol"

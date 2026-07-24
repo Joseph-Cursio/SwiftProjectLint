@@ -96,6 +96,7 @@ class Architecture: BasePatternRegistrar {
             PrimitiveBypassingDomainType(),
             PrimitiveNamedForDomainType(),
             ScatteredEnumMapping(),
+            DuplicateEnumMapping(),
             ParallelEnumShape(),
             UnusedProtocolAbstraction(),
             CouldAdoptProtocol(),

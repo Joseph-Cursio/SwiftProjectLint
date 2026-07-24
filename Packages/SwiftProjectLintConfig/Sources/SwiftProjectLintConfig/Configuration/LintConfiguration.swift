@@ -103,6 +103,7 @@ public struct LintConfiguration: Sendable {
         .primitiveBypassingItsDomainType,
         .primitiveNamedForItsDomainType,
         .scatteredEnumMapping,
+        .duplicateEnumMapping,
         .parallelEnumShape,
         .couldAdoptProtocol,
         .hoistableConformerMember,

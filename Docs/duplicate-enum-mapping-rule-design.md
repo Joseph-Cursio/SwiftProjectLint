@@ -1,7 +1,10 @@
 # Rule Design: Duplicate Enum Mapping
 
-**Status:** Proposed — **not implemented.** Fills a verified coverage hole between two
-shipped rules.
+**Status:** **Implemented** — [`rules/duplicate-enum-mapping.md`](rules/duplicate-enum-mapping.md).
+Fills a verified coverage hole between two shipped rules. Validated against the motivating case:
+run over SwiftInferProperties at the commit still containing `humanReadableTier`, the rule
+reports exactly one finding — that duplicate, pointed at `Tier.label` — where `Scattered Enum
+Mapping` reported zero, and no false positives elsewhere in that codebase.
 **Category:** Architecture (cross-file)
 **Severity:** Info *(opt-in)*, matching its neighbours.
 **Proposed identifier:** `Duplicate Enum Mapping`
