@@ -18,7 +18,7 @@ developer clearly means the concept but wrote the raw carrier.
 Like its sibling, this rule does not attempt to *detect* primitive obsession (undecidable — the
 domain rule is not in the syntax). It enforces an *already-declared* wrapper wherever a name
 gives the concept away. See
-[`Docs/primitive-bypassing-domain-type-rule-design.md`](../primitive-bypassing-domain-type-rule-design.md),
+[`Docs/design/primitive-bypassing-domain-type-rule-design.md`](../design/primitive-bypassing-domain-type-rule-design.md),
 Variant B.
 
 ### Discussion

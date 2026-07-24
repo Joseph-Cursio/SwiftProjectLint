@@ -1,21 +1,21 @@
 # Design Spike: Could Hoist To Protocol Extension
 
-**Status:** Variant A shipped as the [Hoistable Conformer Member](rules/hoistable-conformer-member.md)
+**Status:** Variant A shipped as the [Hoistable Conformer Member](../rules/hoistable-conformer-member.md)
 rule. Variant B's broad form was measured and rejected; its narrow `|S| >= 2` subset shipped as
-the [Hoistable Sequence Operation](rules/hoistable-sequence-operation.md) rule — see §7.
+the [Hoistable Sequence Operation](../rules/hoistable-sequence-operation.md) rule — see §7.
 
 ## 1. Problem statement
 
 The protocol-architecture rules so far critique *existing* abstractions
-([Single Implementation Protocol](rules/single-implementation-protocol.md),
-[Mirror Protocol](rules/mirror-protocol.md),
-[Unused Protocol Abstraction](rules/unused-protocol-abstraction.md)) or *missing structural*
-ones ([Duplicate Struct Shape](rules/duplicate-struct-shape.md),
-[Shared Domain-Enum Field](rules/shared-domain-enum-field.md)). The remaining gap is
+([Single Implementation Protocol](../rules/single-implementation-protocol.md),
+[Mirror Protocol](../rules/mirror-protocol.md),
+[Unused Protocol Abstraction](../rules/unused-protocol-abstraction.md)) or *missing structural*
+ones ([Duplicate Struct Shape](../rules/duplicate-struct-shape.md),
+[Shared Domain-Enum Field](../rules/shared-domain-enum-field.md)). The remaining gap is
 **behavioral**: logic duplicated across types that already share a protocol, which could move
 into `extension P` so it is written once.
 
-This is the behavioral inverse of [Could Adopt Protocol](rules/could-adopt-protocol.md):
+This is the behavioral inverse of [Could Adopt Protocol](../rules/could-adopt-protocol.md):
 
 | Rule | Starts from | Asks |
 |---|---|---|

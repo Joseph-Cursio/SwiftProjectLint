@@ -1,6 +1,6 @@
 # Rule Design: Duplicate Enum Mapping
 
-**Status:** **Implemented** — [`rules/duplicate-enum-mapping.md`](rules/duplicate-enum-mapping.md).
+**Status:** **Implemented** — [`rules/duplicate-enum-mapping.md`](../rules/duplicate-enum-mapping.md).
 Fills a verified coverage hole between two shipped rules. Validated against the motivating case:
 run over SwiftInferProperties at the commit still containing `humanReadableTier`, the rule
 reports exactly one finding — that duplicate, pointed at `Tier.label` — where `Scattered Enum
@@ -9,9 +9,9 @@ Mapping` reported zero, and no false positives elsewhere in that codebase.
 **Severity:** Info *(opt-in)*, matching its neighbours.
 **Proposed identifier:** `Duplicate Enum Mapping`
 **Builds on:** [`scattered-enum-mapping-rule-design.md`](scattered-enum-mapping-rule-design.md),
-[`rules/scattered-enum-mapping.md`](rules/scattered-enum-mapping.md),
-[`rules/parallel-enum-shape.md`](rules/parallel-enum-shape.md),
-[`rules/parallel-list-drift.md`](rules/parallel-list-drift.md).
+[`rules/scattered-enum-mapping.md`](../rules/scattered-enum-mapping.md),
+[`rules/parallel-enum-shape.md`](../rules/parallel-enum-shape.md),
+[`rules/parallel-list-drift.md`](../rules/parallel-list-drift.md).
 
 ---
 
@@ -178,7 +178,7 @@ enum").
   This is the `SurveyOutcome`/`VerifyEvidenceOutcome` situation from the same codebase — a
   deliberate boundary. Mitigation: the finding is `Info`/opt-in and suppressible, and this
   is exactly the case the `linked-to` sync contract in
-  [`history-aware-drift-and-sync-contracts-design.md`](history-aware-drift-and-sync-contracts-design.md)
+  [`history-aware-drift-and-sync-contracts-design.md`](../history-aware-drift-and-sync-contracts-design.md)
   is designed to serve — the right outcome there is "keep both, enforce agreement," not
   "merge."
 - **Test doubles / fixtures.** A fixture reproducing a production mapping on purpose.

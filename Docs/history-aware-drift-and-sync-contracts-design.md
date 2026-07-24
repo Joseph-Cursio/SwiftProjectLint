@@ -9,7 +9,7 @@ direction for the already-shipped duplication rules.
 **Builds on:** [`rules/parallel-enum-shape.md`](rules/parallel-enum-shape.md),
 [`rules/parallel-list-drift.md`](rules/parallel-list-drift.md),
 [`rules/manual-registration-list.md`](rules/manual-registration-list.md),
-[`scattered-enum-mapping-rule-design.md`](scattered-enum-mapping-rule-design.md).
+[`scattered-enum-mapping-rule-design.md`](design/scattered-enum-mapping-rule-design.md).
 
 ---
 

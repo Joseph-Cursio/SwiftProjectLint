@@ -3,9 +3,9 @@
 **Status:** Both variants shipped as separate opt-in Architecture rules, following the
 [Could Hoist](could-hoist-to-protocol-extension-rule-design.md) precedent of shipping a spike's
 variants as distinct rules. Variant A →
-[Primitive Bypassing Its Domain Type](rules/primitive-bypassing-its-domain-type.md) (the
+[Primitive Bypassing Its Domain Type](../rules/primitive-bypassing-its-domain-type.md) (the
 structural inconsistent-keying signal); Variant B →
-[Primitive Named For Its Domain Type](rules/primitive-named-for-its-domain-type.md) (the
+[Primitive Named For Its Domain Type](../rules/primitive-named-for-its-domain-type.md) (the
 name-correspondence signal). Variant A's shipped form is tightened from §3's first sketch: it
 fires only when the raw-keyed and wrapper-keyed maps share the **same value type** (the
 false-positive guard for a carrier as common as `String`), and v1 recognizes **struct
@@ -26,7 +26,7 @@ impersonate. It is a genuine smell, but it is **not something a linter can detec
 the fact that a particular `String` "is really an idempotency key with a stability rule" lives
 in the developer's head, not in the syntax. A tool that tried would be guessing from parameter
 names, and would drown in false positives — the same wall
-[Shared Domain-Enum Field](rules/shared-domain-enum-field.md) hits, one level worse. This is
+[Shared Domain-Enum Field](../rules/shared-domain-enum-field.md) hits, one level worse. This is
 the deliberate blind spot the type system has too: the constraint was never written down where
 any analyzer — compiler or linter — could see it.
 
@@ -63,7 +63,7 @@ The rule only arms itself against project-declared newtypes over a single primit
 Call that primitive `P` the wrapper's *carrier*. `IdempotencyKey` (carrier `String`),
 `Percentage` (carrier `Int`), `Money`/`Cents` (carrier `Int`/`Decimal`), `UserID` (carrier
 `UUID`) all qualify. Framework types never qualify — the wrapper must be declared in the
-sources, exactly as [Shared Domain-Enum Field](rules/shared-domain-enum-field.md) requires the
+sources, exactly as [Shared Domain-Enum Field](../rules/shared-domain-enum-field.md) requires the
 enum to be project-declared. That requirement is again the false-positive guard: a `String`
 somewhere is meaningless; a `String` *where `IdempotencyKey` exists and is named for* is a
 signal.
@@ -94,7 +94,7 @@ Fire when a function parameter or stored property is typed `P` but *named* for t
 concept — `idempotencyKey: String` where `IdempotencyKey` exists. This is the name-correspondence
 heuristic, and it *will* have false positives (a generic `key: String` in a cache utility has
 nothing to do with `IdempotencyKey`), so it ships as its own opt-in rule
-([Primitive Named For Its Domain Type](rules/primitive-named-for-its-domain-type.md)) — a team
+([Primitive Named For Its Domain Type](../rules/primitive-named-for-its-domain-type.md)) — a team
 can adopt Variant A's structural signal without it. **v1 uses exact name match only**
 (`idempotencyKey` ↔ `IdempotencyKey`, case-insensitive); the broader contains/context form
 (`key: String` inside an `Idempotenc*`-named type) is the noisier tail and is deferred until it
@@ -148,7 +148,7 @@ and **failed**; the broad name form is still unmeasured.
 1. **Collect wrappers.** Walk all declarations; record each qualifying `W` with its carrier `P`
    and its conventional field/parameter name(s). Cross-file, because the wrapper and its
    bypass usually live apart — the same reason
-   [Shared Domain-Enum Field](rules/shared-domain-enum-field.md) needs cross-file analysis.
+   [Shared Domain-Enum Field](../rules/shared-domain-enum-field.md) needs cross-file analysis.
 2. **Scan for bypasses.** For Variant A, index every `Dictionary`/`Set` key type and report `P`
    keyings that co-exist with a `W` keying. For Variant B, report `P`-typed parameters/
    properties whose name matches a collected wrapper's concept.
@@ -189,11 +189,11 @@ an `Info` severity that admits it is advice, not a verdict.
 
 ## 7. Relationship to existing rules
 
-- **Complement, not overlap, with [Shared Domain-Enum Field](rules/shared-domain-enum-field.md)
-  and [Duplicate Struct Shape](rules/duplicate-struct-shape.md):** those two say *"a type is
+- **Complement, not overlap, with [Shared Domain-Enum Field](../rules/shared-domain-enum-field.md)
+  and [Duplicate Struct Shape](../rules/duplicate-struct-shape.md):** those two say *"a type is
   missing — create it."* This one says *"the type exists — use it."* Together they cover both
   halves of the modeling loop: extract the abstraction, then enforce its adoption.
-- **[Magic Number](rules/magic-number.md)** is the degenerate case — a raw literal with no
+- **[Magic Number](../rules/magic-number.md)** is the degenerate case — a raw literal with no
   wrapper at all; this rule is what becomes possible once that literal has been given a type.
 
 ## 8. Field measurement — a 32-project sweep

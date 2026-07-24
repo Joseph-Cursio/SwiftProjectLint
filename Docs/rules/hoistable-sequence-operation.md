@@ -37,7 +37,7 @@ The visitor proceeds in two phases:
 #### Why the two-member floor — and why it is a heuristic
 A syntactic linter cannot resolve the *element type* of `things` in `things.sorted { … }`, so
 it cannot prove `Element: P`. It can only observe which members the closure reads. A
-[measurement](../could-hoist-to-protocol-extension-rule-design.md) over real codebases made the
+[measurement](../design/could-hoist-to-protocol-extension-rule-design.md) over real codebases made the
 trade-off concrete:
 
 | Filter | Precision |

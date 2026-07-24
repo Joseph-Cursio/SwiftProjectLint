@@ -16,7 +16,7 @@ duplicate impossible: change a case's value in one place, and a newly-added case
 caller through one exhaustiveness error.
 
 This is the strict sibling of [Scattered Enum Mapping](scattered-enum-mapping.md). See the
-design note [`duplicate-enum-mapping-rule-design.md`](../duplicate-enum-mapping-rule-design.md)
+design note [`duplicate-enum-mapping-rule-design.md`](../design/duplicate-enum-mapping-rule-design.md)
 for the full argument; in short:
 
 | | Scattered Enum Mapping | **Duplicate Enum Mapping** |

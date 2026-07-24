@@ -18,7 +18,7 @@ Instead it *polices the cure*. The moment a project declares a newtype `W` over 
 still keyed by the raw `P`** becomes a visible, decidable inconsistency — the domain identity is
 enforced in one place and laundered back to a bare primitive in another. Detecting the disease
 is undecidable; policing the cure is merely a cross-file check. This is the design recorded in
-[`Docs/primitive-bypassing-domain-type-rule-design.md`](../primitive-bypassing-domain-type-rule-design.md),
+[`Docs/design/primitive-bypassing-domain-type-rule-design.md`](../design/primitive-bypassing-domain-type-rule-design.md),
 Variant A.
 
 ### Discussion
