@@ -1,3 +1,4 @@
+import SwiftEffectInference
 import SwiftSyntax
 
 /// What a property-testable function is a function *of* — which decides how a test drives it.
@@ -8,6 +9,31 @@ public enum PropertyTestShape: Sendable, Equatable {
     /// A function of `(self, arguments)`: it reads immutable stored state, so a test has to build
     /// a `self` first. Still perfectly property-testable — just not free-standing.
     case ofSelfAndInputs
+}
+
+/// A property-test candidate: what it is a function of, and whether it is total.
+///
+/// The second field exists because **a throwing function is still a property-test candidate**, and
+/// treating it as one was worth a real law. `serialize(_ config: YAMLConfig) throws -> String` is a
+/// deterministic function of its argument; it simply has no answer for the inputs that throw. The
+/// downstream tool already knows how to write that law with its domain narrowed to the success set
+/// (`(try? f(x)) == (try? f(x))`) — it just never got the chance, because this predicate refused to
+/// name the subject, and a finding the linter does not seed is a finding the pipeline does not have.
+///
+/// So partiality is *reported*, not used to refuse. A reader who is told a candidate is partial can
+/// write the narrowed law; a reader who is told nothing writes no test at all.
+public struct PropertyTestCandidate: Sendable, Equatable {
+    /// What the function is a function of.
+    public let shape: PropertyTestShape
+
+    /// `true` when the subject `throws` — referentially transparent where it is defined, and
+    /// undefined on the rest of its domain. A law over it must narrow to the success set.
+    public let isPartial: Bool
+
+    public init(shape: PropertyTestShape, isPartial: Bool) {
+        self.shape = shape
+        self.isPartial = isPartial
+    }
 }
 
 /// Whether a function is a property-based-test candidate: pure, total, and returning something a
@@ -38,6 +64,27 @@ public enum PropertyTestCandidacy {
 
     /// What `function` is a function of, or `nil` when it is not a property-test candidate.
     ///
+    /// Convenience form of `candidate(of:knownEquatableTypes:knownValueTypes:)` for callers that
+    /// care only *whether* a declaration is testable — `couldBePrivateMember`, which needs to know
+    /// what narrowing would cost, and is owed the same answer for a throwing candidate as any other.
+    public static func shape(
+        of function: FunctionDeclSyntax,
+        knownEquatableTypes: Set<String>,
+        knownValueTypes: Set<String> = []
+    ) -> PropertyTestShape? {
+        candidate(
+            of: function,
+            knownEquatableTypes: knownEquatableTypes,
+            knownValueTypes: knownValueTypes
+        )?.shape
+    }
+
+    /// The full candidacy verdict on `function`, or `nil` when it is not a property-test candidate.
+    ///
+    /// Purity is delegated to the shared oracle, and this is the one place that distinguishes its
+    /// two passing tiers: `.pure` and `.pureButPartial` are both candidates, and the difference is
+    /// carried through as `isPartial` rather than being used to refuse. See `PropertyTestCandidate`.
+    ///
     /// - Parameters:
     ///   - function: the declaration to judge.
     ///   - knownEquatableTypes: project types the pre-scan found declaring `Equatable` /
@@ -45,12 +92,39 @@ public enum PropertyTestCandidacy {
     ///   - knownValueTypes: project types declared as `struct` or `enum`. Lets a method in an
     ///     `extension OrderedSet { … }` know its `self` is a value even though the extension's
     ///     syntax never repeats the `struct` keyword — the gate for reading a bare `self`.
-    public static func shape(
+    public static func candidate(
         of function: FunctionDeclSyntax,
         knownEquatableTypes: Set<String>,
         knownValueTypes: Set<String> = []
+    ) -> PropertyTestCandidate? {
+        let isPartial: Bool
+        switch PurityInferrer().verdict(for: function) {
+        case .pure:
+            isPartial = false
+
+        case .pureButPartial:
+            isPartial = true
+
+        case .refuted:
+            return nil
+        }
+
+        guard let shape = assertableShape(
+            of: function,
+            knownEquatableTypes: knownEquatableTypes,
+            knownValueTypes: knownValueTypes
+        ) else {
+            return nil
+        }
+        return PropertyTestCandidate(shape: shape, isPartial: isPartial)
+    }
+
+    /// The shape half of candidacy — everything after the purity verdict.
+    private static func assertableShape(
+        of function: FunctionDeclSyntax,
+        knownEquatableTypes: Set<String>,
+        knownValueTypes: Set<String>
     ) -> PropertyTestShape? {
-        guard PurityInferrer().isPure(function) else { return nil }
         guard returnIsAssertable(
             function.signature,
             enclosingTypeName: enclosingTypeName(of: function),

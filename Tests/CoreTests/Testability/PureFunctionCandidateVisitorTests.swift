@@ -345,10 +345,70 @@ struct PureFunctionCandidateGateTests {
         )
     }
 
-    // MARK: - Totality (not a function of inputs alone if it can trap or throw)
+    // MARK: - Totality (not a function of inputs alone if it can trap)
 
-    @Test func ignoresThrowingFunction() {
-        #expect(analyze("func parse(_ s: String) throws -> Int { Int(s) ?? 0 }").isEmpty)
+    /// A `throws` function that raises only its own error is *partial*, not impure — a
+    /// deterministic function of its inputs everywhere it returns. The message says so, because
+    /// the reader has to know to narrow the law's domain to the success set.
+    @Test func flagsThrowingFunctionAsPartial() throws {
+        let issue = try #require(
+            analyze("func parse(_ s: String) throws -> Int { Int(s) ?? 0 }").first
+        )
+        #expect(issue.message.contains("pure but partial"))
+        #expect(issue.suggestion?.contains("try? parse") == true)
+    }
+
+    @Test func flagsThrowingFunctionRaisingItsOwnError() throws {
+        let source = """
+        func parse(_ s: String) throws -> Int {
+            guard let value = Int(s) else { throw ParseError.bad }
+            return value
+        }
+        """
+        let issue = try #require(analyze(source).first)
+        #expect(issue.message.contains("pure but partial"))
+    }
+
+    /// The gate that keeps the partial tier sound. `throws` used to double as an impurity refuter
+    /// — nearly all Swift I/O throws — so admitting throwing candidates without checking WHERE the
+    /// throw comes from re-admits every marker the set does not name. A subprocess is the case that
+    /// caught it.
+    @Test func ignoresThrowPropagatedFromSubprocess() {
+        let source = """
+        func runTool(_ executable: URL) throws -> Data {
+            let process = Process()
+            process.executableURL = executable
+            try process.run()
+            return Data()
+        }
+        """
+        #expect(analyze(source).isEmpty)
+    }
+
+    @Test func ignoresThrowPropagatedFromFileRead() {
+        let source = """
+        func read(_ url: URL) throws -> String {
+            try String(contentsOf: url, encoding: .utf8)
+        }
+        """
+        #expect(analyze(source).isEmpty)
+    }
+
+    /// `try?` propagates too — it still calls something that throws.
+    @Test func ignoresOptionalTryPropagation() {
+        let source = """
+        func read(_ url: URL) throws -> String? {
+            try? String(contentsOf: url, encoding: .utf8)
+        }
+        """
+        #expect(analyze(source).isEmpty)
+    }
+
+    /// A non-throwing candidate keeps its old wording — the partial phrasing must not leak.
+    @Test func totalFunctionKeepsTotalWording() throws {
+        let issue = try #require(analyze("func add(_ a: Int, _ b: Int) -> Int { a + b }").first)
+        #expect(issue.message.contains("pure and total"))
+        #expect(issue.message.contains("partial") == false)
     }
 
     @Test func ignoresForceUnwrapInBody() {

@@ -14,8 +14,9 @@ Most testability rules flag what makes code *hard* to test. This one is the posi
 - is free (top-level) or `static` — instance methods can read mutable `self`, so they're excluded,
 - takes at least one parameter,
 - returns a non-`Void` value,
-- is not `async`, and
-- has a body with no obvious impurity markers — `print`, `NSLog`, `FileManager`, `URLSession`, `UserDefaults`, `NotificationCenter`, `DispatchQueue`, the `arc4random` family, `.random` / `.randomElement` / `.shuffled`.
+- is not `async`,
+- has a body with no obvious impurity markers — `print`, `NSLog`, `FileManager`, `URLSession`, `UserDefaults`, `NotificationCenter`, `DispatchQueue`, the `arc4random` family, `.random` / `.randomElement` / `.shuffled`, and
+- if it `throws`, raises only its **own** errors — see [Throwing candidates](#throwing-candidates-pure-but-partial).
 
 The rule is deliberately conservative: it would rather stay silent than label an impure function pure. It is `info` severity (a suggestion, not a problem) and skips test files.
 
@@ -46,6 +47,10 @@ struct Counter { var n = 0; func next() -> Int { n + 1 } }
 
 // Instance method reading state this file cannot resolve — doubt refutes
 extension Widget { func scaled(_ n: Int) -> Int { hidden * n } }
+
+// THROWS by propagation — the error comes from a callee this rule cannot see, and so does
+// whatever else that callee does. Doubt refutes.
+func read(_ url: URL) throws -> String { try String(contentsOf: url, encoding: .utf8) }
 ```
 
 ### Violating Examples
@@ -67,6 +72,12 @@ struct Pricing { let rate: Double; func discounted(_ amount: Double) -> Double {
 
 // Nullary, over immutable stored state — `self` IS the input. Vary the value, not the arguments.
 struct Receipt { let amount: Double; func formatted() -> String { String(amount) } }
+
+// THROWS its own error — "pure but partial". The law narrows to the success set.
+func parse(_ text: String) throws -> Int {
+    guard let value = Int(text) else { throw ParseError.bad }
+    return value
+}
 ```
 
 ### Instance methods
@@ -87,6 +98,33 @@ of the effect lattice and the most dangerous place to land wrongly, so an identi
 tied to a parameter, a local, or a type is assumed to be instance state — even when it is a global.
 Under-suggesting costs a missed test; over-suggesting costs a generated test that runs impure code
 and lies about the result.
+
+### Throwing candidates: pure but partial
+
+A `throws` function can be a candidate. `throws` refutes **totality**, not referential transparency,
+and only one of those makes a function untestable: a function that rejects the inputs it cannot map
+is a deterministic function of its inputs on all the rest. The message says *"looks pure but
+partial"* and the suggestion tells you to narrow the law's domain — compare `try? f(x)` on both
+sides, so an input in the throwing domain is a no-op for the property rather than a failure.
+
+**But only when the function throws its own errors.** A `try` into a callee refutes:
+
+| the body | verdict |
+|---|---|
+| `guard let v = Int(text) else { throw ParseError.bad }` | **pure but partial** — it rejects an input |
+| `try process.run()`, `try String(contentsOf: url)` | not a candidate — the throw, and whatever else the callee does, comes from code this rule cannot see |
+
+That second gate is load-bearing, and the reason is worth knowing before anyone relaxes it. **The
+old blanket `throws` exclusion was silently doing a second job**: nearly all real I/O in Swift
+throws, so gating on `throws` masked every impurity marker the set does not name — `Process`,
+`Pipe`, `FileHandle`, `String(contentsOf:)`, `Data(contentsOf:)`, the SQLite surface. Admitting
+throwing candidates without the propagation check re-admitted all of them at once, and a
+subprocess-spawning `runSwiftLint(executable:workingDirectory:lintFile:)` was judged pure — the
+lattice-bottom mistake this rule exists to avoid. Measured on a real subject, the unnarrowed form
+added 11 seeds of which ~10 were I/O; the narrowed form adds 3.
+
+The cost is a pure function that happens to call another pure throwing function, refused for want of
+a cross-file view. That is the sound direction.
 
 ### Access level: `internal` is the floor
 

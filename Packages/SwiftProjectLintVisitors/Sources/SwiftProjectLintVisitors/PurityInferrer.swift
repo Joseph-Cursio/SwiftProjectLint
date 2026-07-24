@@ -33,6 +33,18 @@ public struct PurityInferrer: Sendable {
         underlying.isPure(function)
     }
 
+    /// Which clause of purity `function` satisfies — transparency and totality
+    /// answered separately.
+    ///
+    /// `isPure(_:)` folds `throws` in with the impurity refuters, which is the
+    /// right answer for a rule enforcing a claim over the whole domain and the
+    /// wrong one for the seed manifest: a throwing pure function is a property-
+    /// test candidate whose law narrows to the success set. `PropertyTestCandidacy`
+    /// is the caller that needs the distinction.
+    public func verdict(for function: FunctionDeclSyntax) -> PurityVerdict {
+        underlying.verdict(for: function)
+    }
+
     /// Whether a **closure literal** is referentially transparent.
     ///
     /// A capture that is only read is not an impurity — lift the body into a named function and the
