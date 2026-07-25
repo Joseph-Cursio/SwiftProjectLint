@@ -642,6 +642,40 @@ real vocabulary it surfaced neither. That is Finding C exactly ("verified on a
 `YAMLConfig`-**shaped** probe"), committed while invoking the discipline that
 forbids it. The probe has to use the real thing, or it is not a probe.
 
+### Fix 6 — declined, and the fix-list entry was wrong
+
+*"Rank seeds by production call-site count. The top-scored Config suggestion is
+on `extractSwiftBasename`, which has zero production callers."*
+
+**The premise does not survive scrutiny, and the motivating example refutes it.**
+That same `extractSwiftBasename` is where a property found a real doc-vs-code
+drift — the `.swift`-stripped-everywhere bug. Under fix 6 it would have been
+demoted. The one case that inspired the ranking is a case the ranking would have
+hurt.
+
+More generally, call-site count is a poor proxy for property-test value. A pure
+*leaf* kernel with one caller is arguably the better subject — pure leaves are
+what property tests are good at — while a heavily-called orchestrator is usually
+where the impurity lives. Ranking by callers would push the best candidates down.
+
+The real concern buried in the original note was **dead code** — zero production
+references — which is a narrower claim with a different remedy: delete it, not
+test it later. That is a lint rule, not a seed-ranking feature, and it would need
+the same new machinery: `knownProjectFunctions` is a `Set<String>` of *declared*
+names, so there is no call-site index and one would have to be built.
+
+**A note on the measurement, because it failed three times.** Attempting to size
+the low-value population with text tooling produced three bad numbers in a row:
+an unvalidated regex; a test-file classifier matching `"/Tests/"` against paths
+that begin `"Tests/"`, so every test file counted as production; and a residual
+disagreement with `grep` that was never reproduced. No number here is trustworthy
+and none is quoted. Same failure family as the cue-subset probe above — a text
+proxy taken on trust — and the right response was to stop at three rather than
+try a fourth variant.
+
+Declined on the design, not on the measurement: even a perfect count would be
+ranking by the wrong signal.
+
 ## Net
 
 The loop found **two real bugs and four clean guards** on a codebase whose 2931
