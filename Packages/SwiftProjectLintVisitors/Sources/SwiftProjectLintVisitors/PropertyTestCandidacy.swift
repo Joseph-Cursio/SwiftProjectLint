@@ -187,6 +187,114 @@ public enum PropertyTestCandidacy {
         }
     }
 
+    /// The candidacy verdict on a **computed property**, or `nil` when it is not a candidate.
+    ///
+    /// A get-only computed property is a nullary function of `self`: `allCases.map(\.suppressionKey)`
+    /// is exactly the shape a property test wants. It reports `.ofSelfAndInputs` — the argument
+    /// list is simply empty — because the thing a test must build first is the enclosing value.
+    ///
+    /// This overload exists because the seeding path was `FunctionDeclSyntax`-only, so every
+    /// computed property in the project was invisible to the manifest no matter how testable. The
+    /// purity oracle already answered for accessors (`PurityInferrer.isPure(_: AccessorBlockSyntax)`);
+    /// nothing above it ever asked.
+    ///
+    /// **Get-only is required.** A property with a setter is mutable state wearing a getter, and a
+    /// law over it would be quantifying over something a test can change underneath it.
+    public static func candidate(
+        of property: VariableDeclSyntax,
+        knownEquatableTypes: Set<String>,
+        knownValueTypes: Set<String> = [],
+        cleanInstanceMethods: CleanInstanceMethodCatalog = .empty
+    ) -> PropertyTestCandidate? {
+        // A `static` computed property takes no input at all — it is a constant, not a property
+        // in the testable sense. Same reasoning the nullary free-function gate already applies.
+        guard !isStatic(property),
+              let binding = soleBinding(of: property),
+              let annotation = binding.typeAnnotation?.type,
+              let accessor = binding.accessorBlock,
+              isGetOnly(accessor) else {
+            return nil
+        }
+        guard PurityInferrer().isPure(accessor) else { return nil }
+        guard typeIsAssertable(
+            annotation,
+            enclosingTypeName: enclosingTypeName(of: property),
+            knownEquatableTypes: knownEquatableTypes
+        ) else {
+            return nil
+        }
+        guard let container = enclosingTypeContainer(of: property, knownValueTypes: knownValueTypes),
+              !container.isActor,
+              SelfAccessAnalyzer.accessorReadsOnlyImmutable(
+                  accessor,
+                  storedProperties: container.storedProperties,
+                  enclosingIsValueType: container.isValueType,
+                  cleanMethods: cleanInstanceMethods.cleanMethods(on: enclosingTypeName(of: property))
+              ) else {
+            return nil
+        }
+        return PropertyTestCandidate(shape: .ofSelfAndInputs, isPartial: accessorThrows(accessor))
+    }
+
+    /// The single binding of `var x: T { … }`. A multi-binding line cannot carry an accessor, so
+    /// anything else is not a computed property.
+    public static func soleBinding(of property: VariableDeclSyntax) -> PatternBindingSyntax? {
+        guard property.bindings.count == 1 else { return nil }
+        return property.bindings.first
+    }
+
+    /// Whether the accessor is read-only: an implicit getter (`{ expr }`) or an explicit `get`
+    /// with no `set` / `_modify`.
+    static func isGetOnly(_ accessor: AccessorBlockSyntax) -> Bool {
+        switch accessor.accessors {
+        case .getter:
+            return true
+
+        case .accessors(let list):
+            var sawGetter = false
+            for entry in list {
+                switch entry.accessorSpecifier.tokenKind {
+                case .keyword(.get):
+                    sawGetter = true
+
+                case .keyword(.willSet), .keyword(.didSet):
+                    // Observers belong to a STORED property, which is not this shape at all.
+                    return false
+
+                default:
+                    return false
+                }
+            }
+            return sawGetter
+        }
+    }
+
+    /// A `get throws` accessor is transparent where it returns and undefined elsewhere — partial,
+    /// exactly as a throwing function is.
+    static func accessorThrows(_ accessor: AccessorBlockSyntax) -> Bool {
+        guard case .accessors(let list) = accessor.accessors else { return false }
+        return list.contains { $0.effectSpecifiers?.throwsClause != nil }
+    }
+
+    private static func isStatic(_ property: VariableDeclSyntax) -> Bool {
+        property.modifiers.contains {
+            $0.name.tokenKind == .keyword(.static) || $0.name.tokenKind == .keyword(.class)
+        }
+    }
+
+    /// The assertability check over a bare type, shared with the signature form.
+    private static func typeIsAssertable(
+        _ type: TypeSyntax,
+        enclosingTypeName: String?,
+        knownEquatableTypes: Set<String>
+    ) -> Bool {
+        let text = type.trimmedDescription
+        guard text != "Void", text != "()" else { return false }
+        guard let rawBase = baseTypeName(type) else { return false }
+        let base = (rawBase == "Self") ? (enclosingTypeName ?? rawBase) : rawBase
+        return equatableStdlibTypes.contains(base) || knownEquatableTypes.contains(base)
+    }
+
     // MARK: - Signature
 
     private static func returnIsAssertable(
@@ -209,7 +317,7 @@ public enum PropertyTestCandidacy {
     /// The bare name of the type (or extended type) `function` is declared in, or
     /// `nil` for a free function. Used to resolve a `Self` return to its concrete
     /// type. Mirrors `enclosingTypeContainer`'s ancestor walk.
-    private static func enclosingTypeName(of function: FunctionDeclSyntax) -> String? {
+    private static func enclosingTypeName(of function: some SyntaxProtocol) -> String? {
         var cursor: Syntax? = Syntax(function).parent
         while let current = cursor {
             if let structDecl = current.as(StructDeclSyntax.self) { return structDecl.name.text }
@@ -286,7 +394,7 @@ public enum PropertyTestCandidacy {
     /// What this cannot see is a primary declaration in another file — and a reference the analyzer
     /// cannot resolve disqualifies the candidate, which is the safe direction.
     private static func enclosingTypeContainer(
-        of function: FunctionDeclSyntax,
+        of function: some SyntaxProtocol,
         knownValueTypes: Set<String>
     ) -> TypeContainer? {
         var cursor: Syntax? = Syntax(function).parent

@@ -101,23 +101,31 @@ public enum SelfAccessAnalyzer {
     /// **The effect check is the caller's job** — see `PurityInferrer.isPure(_: AccessorBlockSyntax)`.
     /// This answers only "are these names immutable", and on its own would wave through
     /// `var now: Date { Date() }`, whose only reference is an uppercase type name.
+    /// - Parameter enclosingIsValueType: whether the getter's type is a `struct` or `enum`.
+    ///   Defaults to `false`, which keeps a bare `self` read disqualifying — the conservative
+    ///   posture every pre-existing caller was written against. A caller that *knows* the
+    ///   enclosing type is a value type passes `true`, which is the same rule `instanceShape`
+    ///   already applies to methods: `self` IS the value, so `switch self` in a getter is a
+    ///   function of the input and nothing else. Without it, `RuleIdentifier.category` — a
+    ///   `switch self` over an enum — was refused, and it is the exact shape this path exists to
+    ///   admit.
     static func accessorReadsOnlyImmutable(
         _ accessor: AccessorBlockSyntax,
-        storedProperties: [String: StoredProperty]
+        storedProperties: [String: StoredProperty],
+        enclosingIsValueType: Bool = false,
+        cleanMethods: Set<String> = []
     ) -> Bool {
         let collector = ReferenceCollector(viewMode: .sourceAccurate)
         collector.walk(accessor)
 
         let locals = accessorLocalNames(accessor)
         for reference in collector.references {
-            // A derived-property getter reading a bare `self` as a value is exotic and out of
-            // this analyzer's promotion scope, so the getter path stays conservative: bare `self`
-            // remains disqualifying here regardless of the enclosing type's kind.
             switch classify(
                 reference,
                 locals: locals,
                 storedProperties: storedProperties,
-                enclosingIsValueType: false
+                enclosingIsValueType: enclosingIsValueType,
+                cleanMethods: cleanMethods
             ) {
             case .local, .typeName, .immutableSelf:
                 continue
@@ -180,6 +188,36 @@ public enum SelfAccessAnalyzer {
         }
 
         if locals.contains(name) { return .local }
+        return classifyBareName(
+            reference,
+            storedProperties: storedProperties,
+            enclosingIsValueType: enclosingIsValueType,
+            cleanMethods: cleanMethods
+        )
+    }
+
+    /// Resolution for a name that is neither `self` nor a local — split out of `classify` to keep
+    /// that function inside the cyclomatic-complexity cap.
+    private static func classifyBareName(
+        _ reference: Reference,
+        storedProperties: [String: StoredProperty],
+        enclosingIsValueType: Bool,
+        cleanMethods: Set<String>
+    ) -> Resolution {
+        let name = reference.name
+
+        // `rawValue` on a value type that does not declare it is `RawRepresentable`'s synthesised
+        // accessor — a function of the case, and immutable. A type that declares its own
+        // `rawValue` is in `storedProperties` and resolves through the normal path, so this only
+        // ever admits the synthesised one.
+        //
+        // Reading it is a read of `self`, which is precisely what `.ofSelfAndInputs` models; the
+        // effect question is answered separately by `PurityInferrer`. Without this,
+        // `RuleIdentifier.suppressionKey` fell through to the assume-the-dangerous-one branch
+        // below and was refused.
+        if name == "rawValue", enclosingIsValueType, storedProperties[name] == nil {
+            return .immutableSelf
+        }
 
         // `$0` and friends are an enclosing closure's shorthand parameters — bound by the closure
         // and declared nowhere a pattern collector can see, so they used to fall through to the

@@ -86,4 +86,48 @@ final class PureFunctionCandidateVisitor: BasePatternVisitor {
         )
         return .visitChildren
     }
+
+    /// Computed properties are candidates too, and were invisible to the seed manifest until now.
+    ///
+    /// A get-only computed property is a nullary function of `self` — `allCases.map(\.suppressionKey)`
+    /// is precisely the shape a property test wants, and this project's own `RuleIdentifier`
+    /// carries two of them. The seeding path was `FunctionDeclSyntax`-only, so every computed
+    /// property in every scanned project was dropped before candidacy was even asked, however
+    /// testable. A finding the linter does not seed is a finding the pipeline does not have.
+    override func visit(_ node: VariableDeclSyntax) -> SyntaxVisitorContinueKind {
+        guard !fileIsTestOrFixture,
+              let binding = PropertyTestCandidacy.soleBinding(of: node),
+              let candidate = PropertyTestCandidacy.candidate(
+                  of: node,
+                  knownEquatableTypes: knownEquatableTypes,
+                  knownValueTypes: knownValueTypes,
+                  cleanInstanceMethods: knownCleanInstanceMethods
+              ) else {
+            return .visitChildren
+        }
+
+        let name = binding.pattern.trimmedDescription
+        let claim = candidate.isPartial
+            ? "looks pure but partial — its getter `throws`, so it is a function of `self` "
+                + "wherever it returns"
+            : "looks pure and total"
+        var advice = "Construct the enclosing value in the test and assert the law over it — for a "
+            + "`CaseIterable` carrier that is `allCases.map(\\.\(name))`, which is exhaustive "
+            + "rather than sampled."
+        if candidate.isPartial {
+            advice += " Narrow the law's domain to the values that do not throw."
+        }
+
+        addIssue(
+            severity: .info,
+            message: "`\(name)` \(claim) — a good property-based-test candidate "
+                + "(a function of `self` alone)",
+            filePath: getFilePath(for: Syntax(node)),
+            lineNumber: getLineNumber(for: Syntax(node)),
+            suggestion: advice,
+            ruleName: .pureFunctionCandidate,
+            symbol: name
+        )
+        return .visitChildren
+    }
 }

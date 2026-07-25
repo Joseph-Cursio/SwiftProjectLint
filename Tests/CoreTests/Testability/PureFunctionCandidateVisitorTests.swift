@@ -255,15 +255,23 @@ struct PureFunctionCandidateVisitorTests {
     /// as pure as it is — and refusing it meant the linter refused the very value type it had just
     /// told the reader to extract. The refusal is now made on what the getter actually reads, not on
     /// the fact that it has a getter.
+    ///
+    /// Selected by symbol rather than by position: `derived` is *itself* a candidate now that
+    /// computed properties are seeded, and it precedes `scaled` in source order. That is the same
+    /// judgement this test's own reasoning makes — a getter reading one `let` is as pure as the
+    /// `let` — so the extra finding is the rule agreeing with itself, not noise to suppress.
     @Test func flagsInstanceMethodReadingDerivedState() throws {
-        let issue = try #require(analyze("""
+        let issues = analyze("""
         struct Report {
             let raw: Int
             var derived: Int { raw * 2 }
             func scaled(_ n: Int) -> Int { derived * n }
         }
-        """).first)
+        """)
+        let issue = try #require(issues.first { $0.message.contains("scaled") })
         #expect(issue.message.contains("scaled"))
+        // And the derived property is a candidate in its own right.
+        #expect(issues.contains { $0.message.contains("derived") })
     }
 
     /// The half of the old rule that was right, kept: a computed property whose getter reads a name
@@ -516,7 +524,7 @@ struct PureFunctionCandidateGateTests {
     /// channel to the outside world. Reading one keeps the method a function of `self`.
     @Test("a method reading a derived computed property is still a candidate")
     func methodReadingDerivedPropertyIsCandidate() throws {
-        let issue = try #require(analyze("""
+        let issues = analyze("""
         struct ChunkPlan {
             let byteCount: Int
             let chunkSize: Int
@@ -525,8 +533,11 @@ struct PureFunctionCandidateGateTests {
                 Double(index + 1) / Double(totalChunks)
             }
         }
-        """).first)
+        """)
+        // Selected by symbol: `totalChunks` is now a candidate itself and comes first.
+        let issue = try #require(issues.first { $0.message.contains("progress") })
         #expect(issue.message.contains("progress"))
+        #expect(issues.contains { $0.message.contains("totalChunks") })
     }
 
     /// **The soundness case, and the reason the derived-property check has two halves.**
