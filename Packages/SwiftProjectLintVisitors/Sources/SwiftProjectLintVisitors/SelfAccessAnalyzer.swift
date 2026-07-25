@@ -56,10 +56,14 @@ public enum SelfAccessAnalyzer {
     ///   - storedProperties: the enclosing type's stored properties, by name. Properties the
     ///     analyzer cannot see (declared in another file) are absent, and a reference to one
     ///     therefore resolves to `.unresolvedOrMutable` — the safe direction.
+    ///   - cleanMethods: names the project pre-scan cleared as sibling methods that are themselves
+    ///     functions of their inputs. Empty by default, which refuses every call — the behaviour
+    ///     before `CleanInstanceMethodCatalog` existed.
     public static func access(
         of method: FunctionDeclSyntax,
         storedProperties: [String: StoredProperty],
-        enclosingIsValueType: Bool = false
+        enclosingIsValueType: Bool = false,
+        cleanMethods: Set<String> = []
     ) -> SelfAccess {
         guard let body = method.body else { return .unresolvedOrMutable }
 
@@ -71,7 +75,8 @@ public enum SelfAccessAnalyzer {
                 reference,
                 locals: locals,
                 storedProperties: storedProperties,
-                enclosingIsValueType: enclosingIsValueType
+                enclosingIsValueType: enclosingIsValueType,
+                cleanMethods: cleanMethods
             ) {
             case .local, .typeName:
                 continue
@@ -144,9 +149,16 @@ public enum SelfAccessAnalyzer {
         _ reference: Reference,
         locals: Set<String>,
         storedProperties: [String: StoredProperty],
-        enclosingIsValueType: Bool
+        enclosingIsValueType: Bool,
+        cleanMethods: Set<String> = []
     ) -> Resolution {
         let name = reference.name
+
+        // `catch { … }` binds `error` without naming it anywhere a pattern collector can see, so
+        // the implicit binding used to fall through to "assume the dangerous one" and refute any
+        // method with an untyped catch block. Scoped to the clause: a stored `error` read outside
+        // one is still instance state.
+        if reference.isImplicitCatchError { return .local }
 
         // An explicit `self.x` names the property directly. A bare `self` used as a value (copied
         // into a local, returned, compared) hands the whole `self` over.
@@ -169,6 +181,12 @@ public enum SelfAccessAnalyzer {
 
         if locals.contains(name) { return .local }
 
+        // `$0` and friends are an enclosing closure's shorthand parameters — bound by the closure
+        // and declared nowhere a pattern collector can see, so they used to fall through to the
+        // "assume the dangerous one" branch and refute any method containing a `filter { … $0 … }`.
+        // No stored property can be named `$0`, so the prefix is unambiguous.
+        if name.hasPrefix("$") { return .local }
+
         // A leading capital is a type, an enum case, or a static member — none of which is
         // instance state.
         if let first = name.first, first.isUppercase { return .typeName }
@@ -187,6 +205,23 @@ public enum SelfAccessAnalyzer {
         // only be the stdlib function or a shadowing one with the same arity — a risk the tiny,
         // fixed set below bounds.
         if reference.isCallee, Self.pureStdlibFunctions.contains(name) { return .typeName }
+
+        // A **call** to a sibling method the project pre-scan has cleared. `serialize` composes
+        // three of these and was refused for it, while the identical body at file scope is a
+        // candidate without its callee being checked at all — an instance method held to a
+        // stricter standard than a free one for the same construct.
+        //
+        // The membership test is what keeps this sound: a name is in `cleanMethods` only when
+        // every declaration of it on this type is non-`mutating`, passes the purity oracle, and is
+        // itself a function of its inputs. A name the pre-scan never cleared falls through and is
+        // still refused, so the "every doubt resolves to `.unresolvedOrMutable`" posture holds for
+        // everything outside the catalog. A stored closure property shadowing the name is caught
+        // ahead of this, because a visible stored property resolves below.
+        if reference.isCallee,
+           storedProperties[name] == nil,
+           cleanMethods.contains(name) {
+            return .typeName
+        }
 
         // A lowercase identifier that is not local is an implicit `self.` reference, unless it is
         // a global. The analyzer cannot tell those apart, so it assumes the dangerous one.
@@ -227,10 +262,21 @@ public enum SelfAccessAnalyzer {
         /// without also waving through a global variable that happens to share its name.
         let isCallee: Bool
 
-        init(name: String, selfMemberName: String?, isCallee: Bool = false) {
+        /// Whether this is the `error` an untyped `catch { … }` binds implicitly, read inside that
+        /// clause. Resolved by ancestor walk rather than by adding `error` to the method's locals,
+        /// so a stored property of the same name read elsewhere in the body still disqualifies.
+        let isImplicitCatchError: Bool
+
+        init(
+            name: String,
+            selfMemberName: String?,
+            isCallee: Bool = false,
+            isImplicitCatchError: Bool = false
+        ) {
             self.name = name
             self.selfMemberName = selfMemberName
             self.isCallee = isCallee
+            self.isImplicitCatchError = isImplicitCatchError
         }
     }
 
@@ -265,8 +311,27 @@ public enum SelfAccessAnalyzer {
 
             let isCallee = node.parent?.as(FunctionCallExprSyntax.self)
                 .map { $0.calledExpression.id == Syntax(node).id } ?? false
-            references.append(Reference(name: name, selfMemberName: nil, isCallee: isCallee))
+            references.append(
+                Reference(
+                    name: name,
+                    selfMemberName: nil,
+                    isCallee: isCallee,
+                    isImplicitCatchError: name == "error" && Self.isInsideUntypedCatch(node)
+                )
+            )
             return .visitChildren
+        }
+
+        /// Whether `node` sits inside a `catch` clause that names no pattern, and so binds `error`.
+        private static func isInsideUntypedCatch(_ node: some SyntaxProtocol) -> Bool {
+            var cursor: Syntax? = Syntax(node).parent
+            while let current = cursor {
+                if let clause = current.as(CatchClauseSyntax.self) {
+                    return clause.catchItems.isEmpty
+                }
+                cursor = current.parent
+            }
+            return false
         }
     }
 
