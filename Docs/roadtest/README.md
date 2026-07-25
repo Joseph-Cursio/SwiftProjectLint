@@ -676,6 +676,49 @@ try a fourth variant.
 Declined on the design, not on the measurement: even a perfect count would be
 ranking by the wrong signal.
 
+### Fix 7 — built, measured, reverted: naming is the wrong instrument
+
+*"Require a shared label stem (not just type symmetry) for `round-trip` pairing."*
+
+**The noise is real and worse than the entry says.** `initializerPairAdmissible`
+gates only synthetic initializers — `return true // neither half is a synthetic
+init — no gate` — so two ordinary functions pair on type symmetry alone. Measured
+spurious pairings: 1 in SwiftProjectLint (`extractSwiftBasename ↔ realPath`) and
+**17 in SwiftInferProperties**, every one of them `(String) -> String` against
+`(String) -> String`, with `codableRoundTripGenerator` matched against five
+unrelated helpers. Same-type endomorphisms pair combinatorially: the candidate
+set is *every same-typed function*, so the shape constrains nothing.
+
+A gate was built for exactly that case — requiring an inverse-name signal only
+when both halves are endomorphisms on the same type, leaving cross-type pairs
+untouched so the cycle-4 posture held where its reasoning holds. It worked on the
+stated target: **1 → 0** and **17 → 4**, the survivors all cross-type.
+
+**And it costs real signal, which the existing tests proved.** Two failures, and
+neither was a fixture-naming quibble:
+
+- `ProtocolCoverageVetoIntegrationTests` pins `minimumCapacity(Int) -> Int`
+  against `scale(Int) -> Int` surfacing as a round-trip — its own comment reads
+  *"Score 30 from type-symmetry alone, **no curated name bonus**"*, and it is
+  labelled *"the cycle-4 false-positive case in end-to-end form"*. The project
+  met this exact noise before and answered it with a **shape** gate (V1.8.1),
+  deliberately not a naming one.
+- The curated algebraic survey corpus lost a `round-trip` recorded as
+  `measuredDefaultFails` — a law that was executed and **disproven**. The gate
+  would stop a real refutation from ever being proposed.
+
+So the hypothesis behind fix 7 — *genuine `T -> T` inverse pairs are exactly the
+ones a name identifies* — is false, and the counterexamples were already sitting
+in the test suite before it was written. Reverted.
+
+**What the entry got wrong.** It named the instrument, not just the problem, and
+the instrument had already been considered and rejected here twice. The noise
+deserves an answer; the answer wants to be a shape or semantic gate in the
+V1.8.1 mould, not naming. Recorded as measured and declined, with the residual
+noted: even after the endomorphism blowup, the four surviving cross-type pairs in
+`SwiftInferProperties` also look spurious, which is a separate precision problem
+this fix never addressed.
+
 ## Net
 
 The loop found **two real bugs and four clean guards** on a codebase whose 2931
