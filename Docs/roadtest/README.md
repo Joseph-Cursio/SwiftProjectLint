@@ -902,6 +902,60 @@ And one from the syntax-predicate family, which is the law of the batch:
 That last one is what the whole exercise is for: stated in prose, refutable, and
 invisible to any single-predicate law.
 
+### Toolchain finding 10 — a law the repository already disproves is proposed at full score
+
+Found by reading the re-run's own output rather than by measuring anything, which
+is worth noting: it had been sitting in the file for two runs.
+
+`discover` on the Config package proposes **`idempotence` on
+`extractSwiftBasename`** — `f(f(x)) == f(x)`, Possible tier, score 35. That
+function was *fixed during this road test* to strip only the trailing extension,
+which made it deliberately non-idempotent, and the fix shipped with a test saying
+so in as many words:
+
+```swift
+@Test
+func extractionIsDeliberatelyNotIdempotent() {
+    let once = FileAnalysisUtils.extractSwiftBasename(from: "a.swift.swift")
+    #expect(once == "a.swift")
+    #expect(FileAnalysisUtils.extractSwiftBasename(from: once) == "a")
+}
+```
+
+So the tool proposes a law that a test in the same repository **executes and
+disproves**, at full confidence, with no indication that the question has been
+asked and settled.
+
+**Not a test-discovery problem — measured.** The obvious explanation is the
+layout: TestLifter walks up to `<package-root>/Tests/`, this scan targets a
+nested package that has no `Tests/` directory, and the real suite lives at the
+repository root. Re-running with `--test-dir Tests` pointed straight at it
+changes nothing — still two `idempotence` suggestions, the refuted one among
+them. TestLifter's job is to *lift* laws out of example tests to strengthen
+suggestions; there is no channel by which a test **refutes** one.
+
+**The counter-evidence channel exists and is manual only.** Every suggestion
+prints `Suppress: // swiftinfer: skip <identity>`, and `.swiftinfer/decisions.json`
+records triage. Both require a human to act. That is a defensible design —
+a tool silently retiring its own proposals would be its own failure mode — but
+there is a real difference between *no decision has been recorded* and *a test in
+this project asserts the opposite*, and only the first is currently modelled.
+This repository has no `.swiftinfer` directory at all, so nothing has been
+recorded, which is the state most projects will be in.
+
+**Why it belongs with the rest of these findings.** It is the third instance of
+one pattern, and the pattern is the most durable thing this road test produced:
+
+| The information | Where it sat | Why it never arrived |
+|---|---|---|
+| the `symbol`-dropping bug | the linter's own default output | 804 findings, no way to mark the one that breaks the pipeline (fix 9) |
+| `CleanInstanceMethodCatalog`'s fixpoint law | the **type**'s doc comment | the advisory reads only the function's own docstring (fix 5, declined) |
+| `extractSwiftBasename` is not idempotent | a **passing test** in the same repo | no refutation channel from tests to proposals |
+
+Each time the knowledge was already in the project and the tool could not reach
+it. That is a different failure from "the catalog has no law for this shape" —
+and, on this evidence, a more common one.
+
 ## Net
 
 The loop found **two real bugs and four clean guards** on a codebase whose 2931
