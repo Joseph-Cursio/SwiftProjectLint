@@ -517,6 +517,60 @@ K6 is now reached with a **refutable** law under `--include-possible`, and on a
 default run via the docstring advisory. `determinism` on the Config package fell
 16 → 15 as `resolveRules` moved off the tautology.
 
+### The computed-property seeding gap — three refuters, found before building
+
+Noticed while measuring fix 3′: `category` and `suppressionKey` reach `discover`
+(the `caseiterable-*` templates find them) but never entered the seed manifest.
+The stated cause was that the seeding rules visit only `FunctionDeclSyntax`.
+
+That was true and **insufficient**, and this time the probe ran *before* the
+build rather than after. Three gates sat in series:
+
+1. `PureFunctionCandidateVisitor` visits only `FunctionDeclSyntax`.
+2. `PropertyTestCandidacy` had no computed-property overload — every entry point
+   takes a `FunctionDeclSyntax`.
+3. **And even wired up, it would have reached neither target.**
+   `SelfAccessAnalyzer.accessorReadsOnlyImmutable` refused both:
+   - `category` is `switch self`, and the getter path *hard-coded* bare `self` as
+     disqualifying — although `instanceShape` already treats it as an ordinary
+     read for a value type, because `self` **is** the value a test constructs.
+   - `suppressionKey` reads `rawValue`, which is `RawRepresentable`'s synthesised
+     accessor rather than a declared stored property, so it fell through to the
+     assume-the-dangerous-one branch.
+
+Measured, not assumed: a probe reported `pure=true readsOnlyImmutable=false` for
+both before any change. Fixing only (1) and (2) would have shipped a change that
+reached nothing — the Finding A/C failure a fourth time, avoided by spending one
+probe.
+
+**Fixed:** a computed-property candidacy overload (get-only, non-`static`, pure,
+assertable return, reads only immutable state) reporting `.ofSelfAndInputs` —
+a test must build the enclosing value first, and the argument list is simply
+empty. Bare `self` now resolves through the same value-type rule the method path
+uses, and a *synthesised* `rawValue` is treated as immutable while a declared
+mutable one still refuses. The clean-method catalog is threaded through rather
+than accepted and ignored.
+
+**Measured on the subject: 600 → 662 seeds (+62), nothing removed.** 58 distinct
+computed properties became visible to the manifest, `suppressionKey` and
+`category` among them.
+
+What this buys, stated precisely — and narrower than the first draft of this
+paragraph claimed. It is a **linter-side reach** gain, not a scored-row gain.
+Both K2 and K10 were already reached by the `caseiterable-*` templates through
+*unseeded* discovery. Under `--seeds` focus, measured on the Models package:
+
+| | old manifest | new manifest |
+|---|---|---|
+| `caseiterable-key-injectivity` (K2) | surfaced | surfaced |
+| `caseiterable-case-coverage` (K10) | **dropped** | surfaced |
+
+K2 already survived focus without being seeded, because it is role-entailed and
+the refutability rescue keeps such laws rather than let a filter take the run to
+zero. K10 is not role-entailed, so nothing rescued it — seeding `category` is
+what makes it survive. **One law recovered on the seeded path**, not two, and the
+scored table is unchanged either way.
+
 ## Net
 
 The loop found **two real bugs and four clean guards** on a codebase whose 2931
