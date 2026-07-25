@@ -90,6 +90,15 @@ struct SwiftProjectLintCLI: AsyncParsableCommand {
             Self.printToStandardError(Self.nestedPackagesSkippedNotice)
         }
 
+        // A seed-bearing finding with no resolved symbol cannot become a seed, so the manifest is
+        // shorter than the run that produced it — silently, and while still exiting 0. That is the
+        // shape of a confident zero, and it has happened: a lossy `LintIssue` rebuild once emptied
+        // a whole rule's contribution without a word. Same stderr channel and same reasoning as
+        // the skipped-scope notice above — the output understates reality, so say so.
+        if format == .pbtSeeds, let dropped = PBTSeedsFormatter.droppedSeeds(in: issues) {
+            Self.printToStandardError(dropped.notice)
+        }
+
         // `pbt-seeds` is an extraction format, not a lint gate: it exists to hand a
         // seed manifest to `swift-infer`. Failing the process for findings would make
         // `swiftprojectlint … --format pbt-seeds > .pbt/seeds.json` abort under a

@@ -139,6 +139,62 @@ public struct PBTSeedsFormatter: IssueFormatterProtocol {
         .pureClosureCandidate: .extractableKernel
     ]
 
+    /// Seed-bearing findings the manifest could not carry, and why.
+    ///
+    /// A seed with no resolved symbol is dropped — the manifest names *places*, and a place
+    /// without a name is not one. That is the right behaviour and the wrong silence: the output is
+    /// still valid JSON, still exits 0, and is simply shorter than the run that produced it. A
+    /// consumer cannot tell a project with fewer candidates from a project whose candidates fell
+    /// out on the way.
+    ///
+    /// This is not hypothetical. `LintConfiguration.applyOverrides` rebuilt `LintIssue` without
+    /// carrying `symbol` across, so configuring a severity on any seed-bearing rule silently
+    /// emptied that rule's contribution — a confident zero at the entry point of the whole adoption
+    /// loop. The linter's own `lossyStructRebuild` rule reported the responsible line in its
+    /// default output and the finding went unread, which is the argument for detecting the loss
+    /// *here*, where it happens, rather than hoping someone correlates a lint finding with a short
+    /// manifest.
+    public struct DroppedSeedReport: Sendable, Equatable {
+        /// How many findings each seed-bearing rule lost.
+        public let countsByRule: [RuleIdentifier: Int]
+
+        public var total: Int { countsByRule.values.reduce(0, +) }
+
+        public init(countsByRule: [RuleIdentifier: Int]) {
+            self.countsByRule = countsByRule
+        }
+
+        /// The stderr notice, phrased so the number is the first thing read.
+        public var notice: String {
+            let lines = countsByRule
+                .sorted { $0.key.rawValue < $1.key.rawValue }
+                .map { "  \($0.value) × \($0.key.rawValue)" }
+            return """
+            Note: \(total) seed-bearing finding\(total == 1 ? "" : "s") had no resolved symbol and \
+            were left out of the manifest. The seeds file is correspondingly shorter than this run \
+            — it is not a smaller project, it is a lossy hand-off. Each rule below is expected to \
+            populate `LintIssue.symbol`; one that does not has usually had the field dropped in a \
+            field-by-field rebuild.
+            \(lines.joined(separator: "\n"))
+            """
+        }
+    }
+
+    /// The findings a `format(issues:)` call will silently discard, or `nil` when it discards
+    /// nothing.
+    ///
+    /// Deliberately a separate query rather than state on the formatter: `format` stays a pure
+    /// function of its input, and the caller decides whether anyone is listening.
+    public static func droppedSeeds(in issues: [LintIssue]) -> DroppedSeedReport? {
+        var counts: [RuleIdentifier: Int] = [:]
+        for issue in issues where seedKinds[issue.ruleName] != nil {
+            if issue.symbol?.isEmpty ?? true {
+                counts[issue.ruleName, default: 0] += 1
+            }
+        }
+        return counts.isEmpty ? nil : DroppedSeedReport(countsByRule: counts)
+    }
+
     public init() { /* no-op */ }
 
     public func format(issues: [LintIssue]) -> String {
