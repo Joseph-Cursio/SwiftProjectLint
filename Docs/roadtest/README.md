@@ -24,17 +24,30 @@ with at least one refutable law?**
 
 | Configuration | Reached | |
 |---|---|---|
-| `discover` default | **2 / 10** | K8, K9 |
+| `discover` default (templates only) | **1 / 10** | K8 |
+| `discover --include-possible` | **2 / 10** | K8, K9 |
 | `discover --seeds` (linter manifest) | **2 / 10** | unchanged; seeding added 14 tautologies |
 | linter seed manifest alone | **6 / 10** | K1, K5, K6, K7, K8, K9 |
 | `discover --docstring-advice` | **8 / 10** | K1–K6, K9, K10 |
 | **union of all surfaces** | **9 / 10** | only K7 missed — correctly, it is impure |
 
-Prediction logged pre-run was "3 of 10". The default-run answer was **2**.
+Prediction logged pre-run was "3 of 10". The template catalog's answer was **2**
+with `--include-possible`, **1** without.
 
-The result that matters is not the 2. It is the spread between **2** and **9**,
-because every configuration in that table was already shipping. The candidates
-were not out of reach — they were behind a flag that is off by default.
+> **Correction (2026-07-25).** The first version of this table gave the default
+> run as 2/10 (K8, K9). That was wrong: it was the `--include-possible` figure.
+> Both K8 and K9 score `Possible`, and only K8 survives a default run — the tier
+> cut promotes a Possible-tier law only when it is **role-entailed**
+> (`Refutability.roleEntailedTemplates`), which `filter-subset` is and
+> `idempotence` is not. K9's idempotence proposal is hidden by default.
+>
+> Found while verifying fix 2, by checking a claim rather than re-deriving it.
+> The split now has its own row instead of one conflated number.
+
+The result that matters is not the 1 or the 2. It is the spread between it and
+**9**, because every configuration in that table was already shipping. The
+candidates were not out of reach — they were behind a flag that is off by
+default.
 
 ## What the pipeline actually did
 
@@ -326,27 +339,46 @@ would be the denominator-moving this exercise exists to avoid.
 | 1 — `--docstring-advice` on by default | SwiftInferProperties `ec7604c` | shipped |
 | 2 — `CaseIterable` mapping law family | SwiftInferProperties | shipped |
 
-**Fix 1** flips a default; it surfaces nothing that was not already reachable by
-passing a flag, so it moves the *default-run* row from 2 to 8 and changes no
-capability.
+**Fix 1** flips a default. It surfaces nothing that was not already reachable by
+passing a flag, so it is a defaults change and not new capability.
 
 **Fix 2** is new capability: `caseiterable-key-injectivity` and
-`caseiterable-case-coverage`, both name-conjectured and Possible-tier. On this
-subject they fire exactly twice across ~37k lines — `suppressionKey` earns the
-injectivity law, `category` earns the coverage law — with no false positives and
-no cross-firing. K2 and K10 are now reached by the template catalog itself
-rather than only by the docstring surface.
+`caseiterable-case-coverage`. On this subject they fire exactly twice across
+~37k lines — `suppressionKey` earns the injectivity law, `category` earns the
+coverage law — with no false positives and no cross-firing.
 
 The design point worth carrying: injectivity is **not** shape-entailed. This
 subject's own `category` maps 197 rules onto 11 categories deliberately, so a
 template that proposed distinctness for every enum mapping would fail on correct
 code. The name and the codomain decide which of the two laws is owed.
 
-**Re-measured default run: 4 of 10** (K2, K8, K9, K10), against 2 on the day.
-The union across surfaces is unchanged at 9 of 10 — fix 2 moved candidates from
-"only the docstring surface finds these" into the catalog proper, which is a
-robustness gain rather than a reach gain. K7 remains correctly unreached: it is
+Only the injectivity half is admitted to `roleEntailedTemplates`, and that
+asymmetry is the point. A member called `…Key` / `…Identifier` / `…Slug` claims
+to *identify* the case, so a collision is a bug or a lie about the name — the
+same standard `filter-subset` was admitted under. Routing cases to a sink can be
+perfectly correct (this subject's own `.unknown` and `.fileParsingError` do), so
+coverage stays below the cut. Admitting it would make the tool cry wolf, which
+`Refutability` argues is worse than saying nothing. The template's noun list was
+narrowed to clear that bar: `name` is excluded, because two cases sharing a
+*label* is ordinary code.
+
+Re-measured, both fixes in:
+
+| Configuration | On the day | Now |
+|---|---|---|
+| `discover` default (templates only) | 1 (K8) | **2** (K2, K8) |
+| `discover --include-possible` | 2 (K8, K9) | **4** (K2, K8, K9, K10) |
+| `discover` default, all surfaces | — | **9** (everything but K7) |
+
+The last row is the one an adopter actually experiences: with fix 1 the
+docstring advisory is on by default, so a bare `swift-infer discover` now
+reaches 9 of the 10 keyed candidates. K7 remains correctly unreached — it is
 impure.
+
+The union across surfaces is unchanged at 9. Fix 2 did not widen reach; it moved
+two candidates from "only the docstring surface finds these" into the catalog
+proper, and promoted one of them above the default tier cut. That is a
+robustness gain, and it is worth less than the headline makes it sound.
 
 ## Net
 
