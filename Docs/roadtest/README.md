@@ -719,6 +719,42 @@ noted: even after the endomorphism blowup, the four surviving cross-type pairs i
 `SwiftInferProperties` also look spurious, which is a separate precision problem
 this fix never addressed.
 
+### Fix 9 — shipped, with a different instrument than the entry named
+
+*"Surface findings that damage the seed path separately from ordinary lint
+output."*
+
+The problem is the sharpest single finding in this road test: the linter reported
+the `symbol`-dropping rebuild in its own default output, and the finding went
+unread among thousands. But a **separate lint section** is the wrong remedy — it
+still asks a reader to notice a finding and connect it to a symptom they have not
+seen yet, which is the step that already failed once.
+
+What actually fails is narrower and mechanical. `PBTSeedsFormatter` discards any
+seed-bearing finding whose `symbol` is unresolved — correctly, since the manifest
+names *places* and a place without a name is not one — and says nothing. The
+output stays valid JSON, still exits 0, and is simply shorter than the run behind
+it. A consumer cannot tell a project with fewer candidates from a project whose
+candidates fell out on the way.
+
+So the loss is reported **where it happens**: `droppedSeeds(in:)` counts what
+`format` will discard, per rule, and the CLI writes a notice to stderr. That is
+the same channel and the same argument as the existing skipped-scope notice —
+*"a clean-looking result is misleading if whole first-party packages were never
+analyzed"* — which this codebase had already reached for once, in the same shape,
+for the same reason.
+
+**Measured honestly: on this subject the notice fires zero times.** The
+`applyOverrides` fix removed the only source, so nothing is dropped today. This
+is a regression guard, not a live catch — the same category as the
+`suppressionKey` injectivity law, and worth exactly what that is worth: the next
+rule that forgets to populate `symbol` announces itself instead of quietly
+shortening the manifest.
+
+A test pins the report against the formatter's own behaviour, so the two readings
+of "what counts as droppable" cannot drift. A notice that disagreed with the file
+beside it would be worse than none.
+
 ## Net
 
 The loop found **two real bugs and four clean guards** on a codebase whose 2931
