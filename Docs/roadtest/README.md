@@ -311,8 +311,23 @@ kind is only safe where the linter can name the callable boundary itself.
 
 ## Property tests added
 
-Seven suites, 45 tests, all green. Written against the key, not against the
-tools' output.
+**11 suites, 83 tests, all green** — the whole suite goes 2931 → 3014 tests and
+352 → 363 suites. Written against the key, not against the tools' output.
+
+> **These are not a toolchain score, and must not be read as one.** Every one was
+> written by hand. What the toolchain contributed is *reach* — which candidates it
+> surfaced — and that number is 1 of 10 on a default run, 9 of 10 across all
+> surfaces. A test count measures the effort spent, not the tool's yield, and the
+> two move independently: the largest suite here (`InlineSuppressionParserRoundTrip`,
+> exhaustive over 197 rules × 4 spellings) is for a candidate the templates never
+> surfaced at all.
+>
+> The five suites already in `Tests/CoreTests` before this exercise — 10 tests —
+> are excluded throughout. They predate the road test, so nothing here found them;
+> see the answer key's exclusion table.
+
+The first seven were written against the frozen key. The last four came out of
+the toolchain fixes below and are listed separately.
 
 | Suite | Key | Laws |
 |---|---|---|
@@ -324,9 +339,18 @@ tools' output.
 | `FileAnalysis/DirectoryNodeExclusionRoundTripTests` | K4 | round-trip, pruning soundness, sorted/deduped output, leaf states, empty-pattern semantics |
 | `FileAnalysis/BasenameExtractionLawsTests` | K9 | suffix-only removal (**found bug 2**), basename projection, deliberate non-idempotence |
 
-Two suites needed input built in a proxy representation (Swift source strings
+Two of those needed input built in a proxy representation (Swift source strings
 parsed into `SourceFileSyntax`; `DirectoryNode` trees assembled by hand) — the
 recipe fix 4 would automate.
+
+Four more followed from the toolchain work rather than from the key:
+
+| Suite | From | Laws |
+|---|---|---|
+| `Visitors/SyntaxPredicateTotalityTests` | fix 4 | totality over parsed nodes incl. malformed source; `isSwiftUIViewOnly` refines `isSwiftUIView`; reparse determinism. Also the check that the emitted recipe compiles |
+| `Visitors/EquatableSynthesisCollectorTests` | fix 3′ | synthesised `Equatable` on payload-free enums; payload enums, structs and classes still gated on declaration |
+| `Visitors/ComputedPropertyCandidacyTests` | computed-property seeding | get-only / non-static / pure / assertable gates; bare `self` on a value type; synthesised vs declared `rawValue` |
+| `Export/DroppedSeedReportTests` | fix 9 | the manifest reports its own losses, and the report agrees with what the formatter actually discards |
 
 ## Since the road test — what shipped, and what it moved
 
