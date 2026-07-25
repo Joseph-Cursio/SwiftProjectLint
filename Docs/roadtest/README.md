@@ -755,6 +755,48 @@ A test pins the report against the formatter's own behaviour, so the two reading
 of "what counts as droppable" cannot drift. A notice that disagreed with the file
 beside it would be worse than none.
 
+### Fix 8 — shipped; the smallest entry, and the only one whose remedy was right
+
+*"Scope the `--seeds` advisory to `--sources`."*
+
+Reproduced first: the refactor-pending block was **byte-identical** across four
+different `--sources` values, naming files in all seven packages every time,
+while every other part of the focus reporting — the focus ratio, the
+private-function notes, the role-entailed warning — scoped correctly. One block
+had been missed.
+
+Now filtered to the files the scan actually saw. Per-scope counts on this
+subject:
+
+| Scope | Kernels |
+|---|---|
+| Core | 1 |
+| Models / Config / Registry / Engine | 1 / 11 / 4 / 7 |
+| Visitors / IdempotencyRules / Rules | 16 / 2 / 156 |
+| **sum** | **198** |
+
+**Checked for losslessness rather than assumed.** 198 across the eight scanned
+scopes, plus exactly 6 in `Sources/App` — the target this road test deliberately
+excludes — against a manifest of 204. Nothing is dropped by the path matching;
+the residue is genuinely out of scope. Had those numbers not reconciled, the
+scoping would have traded a noisy answer for a quiet wrong one.
+
+The matching aligns on a path separator, so a seed in
+`Visitors/Support/Policy.swift` cannot be claimed by a scan of
+`Rules/Support/Policy.swift`, and `MyLoader.swift` cannot absorb `Loader.swift`.
+Bare-basename matching would collide across targets; equality would never fire,
+since seed paths are relative and scanned paths absolute.
+
+**And when nothing is in scope it says so**, rather than emitting an empty
+section: a listing that vanishes reads as "no kernels here", which is a different
+claim and usually a false one. Verified against a scan of `Sources/CLI`, which
+correctly reports 204 pending seeds all belonging to other targets.
+
+Worth noting against the rest of this list: fix 8 was the only entry whose stated
+remedy survived contact unchanged. It was also the entry that named a *defect*
+rather than a *design* — "this block ignores a flag the others honour" — which is
+the difference the other nine kept demonstrating.
+
 ## Net
 
 The loop found **two real bugs and four clean guards** on a codebase whose 2931
