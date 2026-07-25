@@ -338,7 +338,9 @@ would be the denominator-moving this exercise exists to avoid.
 |---|---|---|
 | 1 — `--docstring-advice` on by default | SwiftInferProperties `ec7604c` | shipped |
 | 2 — `CaseIterable` mapping law family | SwiftInferProperties `10318a4` | shipped |
-| 4 — proxy-construction generator recipes | SwiftInferProperties | shipped |
+| 4 — proxy-construction generator recipes | SwiftInferProperties `820b55a` | shipped |
+| 3 — the seed-kind split | — | **not built; the diagnosis was wrong** |
+| 3′ — Equatable index missed synthesised conformances | SwiftProjectLint | shipped in its place |
 
 **Fix 1** flips a default. It surfaces nothing that was not already reachable by
 passing a flag, so it is a defaults change and not new capability.
@@ -403,6 +405,66 @@ The claim was verified by using it rather than by inspection:
 `Tests/CoreTests/Visitors/SyntaxPredicateTotalityTests.swift` is the emitted
 recipe pasted and filled in, and it holds `SyntaxHelpers`' predicates to totality
 and a refinement law. A recipe that does not compile is advice, not a generator.
+
+### Fix 3 — the diagnosis was wrong, and the fix that replaced it does not move the score
+
+Recorded at length because it is the fourth time in this road test that a named
+blocker turned out not to be the blocker, and the repetition is the finding.
+
+**What was proposed.** Toolchain finding 2 said K6/K7/K8 are seeded
+`extractable-kernel`, whose `isAnalysable` is `false`, so `discover --seeds`
+cannot focus on them — split the kind and the three become analysable.
+
+**What was true.** All three come from the `pureClosureCandidate` rule, and their
+line numbers point at closures *inside* those functions
+(`LintConfiguration.swift:147` is the `rules.filter { … }` call). The symbol
+really is a location rather than a subject, so `isAnalysable == false` is
+**correct** and splitting the kind would have been wrong. The caveat attached to
+the original proposal was right, for the wrong reason.
+
+**The real blocker was one layer down.** `PropertyTestCandidacy` gates seeding on
+the return type being known-`Equatable`, and `EquatableConformanceCollector` only
+recorded types that *explicitly declare* `Equatable` / `Hashable` / `Comparable`.
+It missed conformances the **compiler synthesises**. A probe settled it without
+guesswork:
+
+```
+resolveRules — purity verdict: .pure
+  without RuleIdentifier in the index → nil (not a candidate)
+  with    RuleIdentifier in the index → candidate(.ofSelfAndInputs)
+```
+
+`resolveRules` was pure the whole time. The only thing keeping it out of the
+manifest was that `RuleIdentifier: String, CaseIterable, Codable` never says
+`Equatable` — it has it by language guarantee.
+
+**Fixed:** an enum with no associated values is `Equatable` and `Hashable`
+whether it declares them or not, and a raw-value enum cannot carry associated
+values, so the two cases are one. Enums *with* payloads stay gated on the
+declaration. That is a language guarantee rather than a heuristic, which is what
+makes widening the index sound.
+
+**Measured on the subject: 588 → 600 seeds, all `pure-function`, none removed.**
+`resolveRules` is now seeded analysably; `applyOverrides` and `filter` correctly
+are not (the first calls `findSwiftFiles`, the second returns `[LintIssue]`,
+which carries a random `UUID` and is genuinely not `Equatable`).
+
+**And the scored row does not move.** Seeded discovery on the Config package went
+19 → 21 suggestions, and *the entire increase is `determinism`* — 14 → 16 of the
+`f(x) == f(x)` tautology. `resolveRules` reaches `discover` and is handed a law
+that cannot fail, because no template matches
+`([PatternCategory]?, [RuleIdentifier]?) -> [RuleIdentifier]?`.
+
+So K6 moved from **invisible** to **visible but tautological**, which is progress
+in the pipeline and not progress on the benchmark. Counting it as reached would
+be exactly the refutability error Appendix C's scoring rule exists to prevent.
+
+The next refuter is now named, and on this record that is worth stating as a
+hypothesis rather than a plan: the shape wants a law like
+`Set(result) ⊆ Set(RuleIdentifier.allCases)` — a selection out of a `CaseIterable`
+domain, which would be a third member of the `caseiterable-*` family. Three
+previous passes each named the remaining blocker and were wrong, so it should be
+*measured* before it is built.
 
 ## Net
 
