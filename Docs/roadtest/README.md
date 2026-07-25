@@ -337,7 +337,8 @@ would be the denominator-moving this exercise exists to avoid.
 | Fix | Where | Status |
 |---|---|---|
 | 1 — `--docstring-advice` on by default | SwiftInferProperties `ec7604c` | shipped |
-| 2 — `CaseIterable` mapping law family | SwiftInferProperties | shipped |
+| 2 — `CaseIterable` mapping law family | SwiftInferProperties `10318a4` | shipped |
+| 4 — proxy-construction generator recipes | SwiftInferProperties | shipped |
 
 **Fix 1** flips a default. It surfaces nothing that was not already reachable by
 passing a flag, so it is a defaults change and not new capability.
@@ -379,6 +380,29 @@ The union across surfaces is unchanged at 9. Fix 2 did not widen reach; it moved
 two candidates from "only the docstring surface finds these" into the catalog
 proper, and promoted one of them above the default tier cut. That is a
 robustness gain, and it is worth less than the headline makes it sound.
+
+**Fix 4** addresses the largest finding by count — toolchain finding 3, the
+generator boundary. 60% of suggestions printed "not derived (no strategy matched
+this type)", and ~92% of those carriers were SwiftSyntax nodes, because this
+subject is a static analyser whose kernels take AST nodes.
+
+`swift-infer` now recognises a parser-constructed carrier and attaches a runnable
+recipe — generate source, `Parser.parse` it, walk the tree — rather than
+dead-ending. **Dead carriers on this subject: 28 → 3.** The residue is honest:
+`FunctionSignature` and `[LintIssue]` are declared in packages outside the
+scanned scope, and `some SyntaxProtocol` is declined on purpose (no single
+concrete node to parse out).
+
+It does not move the scored row, and should not be read as if it did. Reach is
+about which candidates are *proposed*; this is about whether a proposed law can
+be *run*. The keyed candidate it touches is K1, which was already reached by the
+linter's manifest and by the docstring surface — what changed is that a reader
+who gets there is no longer told the law is unrunnable.
+
+The claim was verified by using it rather than by inspection:
+`Tests/CoreTests/Visitors/SyntaxPredicateTotalityTests.swift` is the emitted
+recipe pasted and filled in, and it holds `SyntaxHelpers`' predicates to totality
+and a refinement law. A recipe that does not compile is advice, not a generator.
 
 ## Net
 
