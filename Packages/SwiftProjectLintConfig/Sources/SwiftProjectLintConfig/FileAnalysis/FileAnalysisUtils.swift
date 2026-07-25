@@ -20,7 +20,21 @@ public struct FileAnalysisUtils {
         // Normalize Windows paths to use forward slashes
         let normalizedPath = filePath.replacingOccurrences(of: "\\", with: "/")
         let fileName = (normalizedPath as NSString).lastPathComponent
-        return fileName.replacingOccurrences(of: ".swift", with: "")
+
+        // Remove the *extension* — a trailing suffix — and nothing else. This
+        // was `replacingOccurrences(of: ".swift", with: "")`, which stripped
+        // every occurrence anywhere in the name, so `My.swiftUI.helper.swift`
+        // came back as `MyUI.helper` with the interior text silently eaten.
+        //
+        // The stem must be non-empty to strip: a file named exactly `.swift` is
+        // a hidden file whose whole name is the dotted part, not a Swift source
+        // file with an empty base name, so it is returned as-is. (Written out
+        // rather than delegated to `deletingPathExtension`, which applies its
+        // own leading-dot rules and disagrees with this docstring on names like
+        // `..swift`.)
+        let suffix = ".swift"
+        guard fileName.hasSuffix(suffix), fileName.count > suffix.count else { return fileName }
+        return String(fileName.dropLast(suffix.count))
     }
 
     /// Recursively searches the specified directory for Swift source files.
