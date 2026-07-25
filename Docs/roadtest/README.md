@@ -821,6 +821,87 @@ remedy survived contact unchanged. It was also the entry that named a *defect*
 rather than a *design* — "this block ignores a flag the others honour" — which is
 the difference the other nine kept demonstrating.
 
+## Re-run after the fixes — what the toolchain now offers
+
+Run again once fixes 1–4, 8, 9 and the computed-property seeding had shipped.
+**Not a scored measurement**, and it cannot be compared with the 1-of-10 / 9-of-10
+figures above: this is the second pass over a tree the tools have now been tuned
+against, which is exactly what Appendix C says to fork a fresh fixture to avoid.
+Read it as a coverage investigation.
+
+Manifest: **664 seeds** (460 analysable), no drops reported. Unseeded `discover`
+across the scope: **52 proposals**, of which **43 name symbols no property test
+exercises**. By whether the law can actually be run today:
+
+| | Count | |
+|---|---|---|
+| DERIVED | 17 | generator synthesised |
+| RECIPE | 24 | SwiftSyntax carrier; construction recipe attached (fix 4) |
+| NONE | 2 | `some SyntaxProtocol` (declined by design); a carrier outside the scanned scope |
+
+So 41 of 43 are actionable, against 17 before fix 4 — the largest practical change
+in this exercise.
+
+### What "actionable" does *not* mean
+
+The number invites a conflation worth heading off, because the first draft of this
+section made it.
+
+| | predicate | law-bearing template |
+|---|---|---|
+| DERIVED (17) | 14 | 3 × idempotence |
+| RECIPE (24) | 21 | 3 × monotonicity |
+
+**35 of the 41 are `predicate`, whose only entailed law is totality.** A generator
+solves the *input* problem; it does not supply a *law*. Those are independent
+halves and fix 4 moved only the first. The tool is explicit about the second, in
+the caveat it prints on every predicate: *"THE INTERESTING LAW IS NOT FREE, and no
+tool can invent it for you. State that reference definition in one English
+sentence."*
+
+The two candidates written up below are the evidence. `LayerPolicy.contains` was a
+DERIVED predicate: the toolchain supplied a candidate, a generator and the
+totality obligation. Prefix semantics, monotonicity in `paths`, and the
+empty-string hazard came from reading the one-line implementation. For
+`isGeneratedFile`, the five-line boundary came from its docstring. Neither law was
+proposed by a template.
+
+So the honest ledger for a reader planning work: **41 candidates**, of which
+roughly **6 arrive with a law attached** (idempotence and monotonicity, both
+name-conjectured and still owing a sanity check) and **35 arrive with a generator
+and an obligation**. And candidates are not tests — the three suites below are 22
+tests over 3 candidates.
+
+### Two of them written up
+
+Both were candidates the frozen answer key **walked past** and the tools
+surfaced — recorded as unscored key defects earlier, and now covered.
+
+- **`LayerPolicy.contains(relativePath:)`** — prefix membership, monotone in
+  `paths` (an implementation that intersected rather than unioned would *shrink*
+  a layer when a user adds a folder, silently un-enforcing the boundary), and the
+  hazard that `paths: [""]` claims every file. That last one is the **same shape**
+  as `DirectoryNode`'s empty-pattern case found earlier in this road test: prefix
+  matching meeting the empty string, twice, in unrelated code.
+- **`ProjectLinter.isGeneratedFile(at:)`** — the docstring's **five-line
+  boundary**, a number living only in prose and a `prefix(5)`. A marker on line 5
+  counts and on line 6 does not; the code honours that today. A false positive
+  here means a hand-written file is never linted, which is a confident zero with
+  no output at all.
+
+And one from the syntax-predicate family, which is the law of the batch:
+
+- **The two closure-escape policies must agree.** `OnceReachClosurePolicy` and
+  `EscapingClosurePolicy` are separate implementations carrying their own
+  `calleeNames`, and the first one's doc states the contract: *"the same set as
+  the idempotency rule visitors, so reach inference and direct-call detection
+  agree on what counts as a retry boundary."* Nothing enforced it. Add a framework
+  to one list and not the other and the two disagree about where a retry boundary
+  is, with no test failing and no diagnostic saying so. They agree today.
+
+That last one is what the whole exercise is for: stated in prose, refutable, and
+invisible to any single-predicate law.
+
 ## Net
 
 The loop found **two real bugs and four clean guards** on a codebase whose 2931

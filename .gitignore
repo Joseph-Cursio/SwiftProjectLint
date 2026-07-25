@@ -54,3 +54,19 @@ Output/
 
 # Centralized tests (optional, if you want to ignore generated or local-only files)
 # Tests/
+
+# Road-test raw output. The `Output/` rule above matches this directory too —
+# git on macOS is case-insensitive by default, so `Docs/roadtest/output/` was
+# being swallowed whole, README included. Re-include it, then exclude only the
+# large artifacts by name.
+!Docs/roadtest/output/
+
+# Reproducible on demand, too large to archive.
+# The committed subset and the regeneration commands are in
+# Docs/roadtest/output/README.md, which lists these by name so their
+# absence is visible rather than silent.
+Docs/roadtest/output/lint-report.txt
+Docs/roadtest/output/lint-report.json
+Docs/roadtest/output/seed-manifest.json
+Docs/roadtest/output/discover-SwiftProjectLintVisitors.txt
+Docs/roadtest/output/discover-SwiftProjectLintRules.txt

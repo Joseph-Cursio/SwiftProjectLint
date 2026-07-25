@@ -1,0 +1,334 @@
+6 suggestions.
+
+[Suggestion]
+Template: override-precedence
+Score:    35 (Possible)
+
+Why suggested:
+  ✓ resolveRules(cliCategories:cliRuleIdentifiers:) ([PatternCategory]?, [RuleIdentifier]?) -> [RuleIdentifier]? — /Users/josephcursio/xcode_projects/SwiftProjectLint/Packages/SwiftProjectLintConfig/Sources/SwiftProjectLintConfig/Configuration/LintConfiguration.swift:120
+  ✓ Override shape: `cliRuleIdentifiers` has the return type exactly ([RuleIdentifier]?), so the function can hand it straight back (+20)
+  ✓ Curated override noun in `cliRuleIdentifiers` — the caller is SUPPLYING the answer, so a non-nil value owes being returned unchanged (+15)
+
+Why this might be wrong:
+  ⚠ THE LAW IS `cliRuleIdentifiers != nil` implies `result == cliRuleIdentifiers` — an explicit value is returned unchanged, not merged, filtered or subtracted from. It is refutable exactly where it matters: the precedence lives in an early return, and early returns migrate.
+  ⚠ WHAT IT CATCHES is a tidy-up, not a typo. Move that early return below the rest of the computation — natural enough as the surrounding code grows — and the explicit value silently stops winning. Nothing fails to compile, and a fixed test that passes an override and expects it back still passes if the other arguments happen to be empty.
+  ⚠ GENERATE THE OTHER ARGUMENTS NON-EMPTY. This law passes vacuously when everything else is nil or empty, because then merging and overriding agree. The counterexample needs a populated configuration AND an override that contradicts it — draw both from a small pool so they genuinely conflict.
+  ⚠ PRECEDENCE IS NAME-CONJECTURED, not shape-entailed. A function may legitimately take an optional value of its own return type and MERGE it — defaults-with-fallback, or an accumulate-into shape — which is correct code that fails this law. Confirm the parameter is obeyed rather than combined.
+  ⚠ If two parameters could each override, the law is owed for each INDEPENDENTLY and their relative precedence is a separate claim the signature does not state.
+
+Generator: not derived (no strategy matched this type)
+Sampling:  not run; lifted test seed: 0x0453A6002BA4CFB9EE79A93CDC3AA66148C852B7FC97B202D7465A0203EB4079
+Identity:  0x0083AFB85E4F3D04
+Suppress:  // swiftinfer: skip 0x0083AFB85E4F3D04
+
+[Suggestion]
+Template: idempotence
+Score:    35 (Possible)
+
+Why suggested:
+  ✓ extractSwiftBasename(from:) (String) -> String — /Users/josephcursio/xcode_projects/SwiftProjectLint/Packages/SwiftProjectLintConfig/Sources/SwiftProjectLintConfig/FileAnalysis/FileAnalysisUtils.swift:19
+  ✓ Type-symmetry signature: T -> T (T = String) (+30)
+  ✓ Value-semantic carrier (FileAnalysisUtils) — algebraic property is well-defined under aliasing (+5)
+
+Why this might be wrong:
+  ⚠ T must conform to Equatable for the emitted property to compile. SwiftInfer M1 does not verify protocol conformance — confirm before applying.
+  ⚠ If T is a class with a custom ==, the property is over value equality as T.== defines it.
+
+Generator: .derivedComposite, confidence: .high
+Sampling:  not run; lifted test seed: 0x3053C1C6715DAE8EC99966965FDCAA080A629AA6CBC69D818EB3453EB3C95D1D
+Identity:  0x824A12659A7234D1
+Suppress:  // swiftinfer: skip 0x824A12659A7234D1
+
+[Suggestion]
+Template: round-trip
+Score:    35 (Possible)
+
+Why suggested:
+  ✓ extractSwiftBasename(from:) (String) -> String — /Users/josephcursio/xcode_projects/SwiftProjectLint/Packages/SwiftProjectLintConfig/Sources/SwiftProjectLintConfig/FileAnalysis/FileAnalysisUtils.swift:19
+  ✓ realPath(_:) (String) -> String — /Users/josephcursio/xcode_projects/SwiftProjectLint/Packages/SwiftProjectLintConfig/Sources/SwiftProjectLintConfig/FileAnalysis/FileAnalysisUtils.swift:187
+  ✓ Type-symmetry signature: String -> String ↔ String -> String (+30)
+  ✓ Value-semantic carrier (FileAnalysisUtils) — algebraic property is well-defined under aliasing (+5)
+
+Why this might be wrong:
+  ⚠ Throws on either side narrows the property's domain to the success set of the inner function; a generator that produces values outside that set will surface false-positive failures (Appendix B.4).
+  ⚠ T must conform to Equatable for the emitted property to compile. SwiftInfer M1 does not verify protocol conformance — confirm before applying.
+
+Generator: .derivedComposite, confidence: .high
+Sampling:  not run; lifted test seed: 0xAE3292A551EDFFDEF1DC88736CC7BAB26614E6E295782C05343076C5A9E6C5F1
+Identity:  0x72CC1B63850E7E8F
+Suppress:  // swiftinfer: skip 0x72CC1B63850E7E8F
+
+[Suggestion]
+Template: predicate
+Score:    20 (Possible)
+
+Why suggested:
+  ✓ containsNestedPackage(in:) (String) -> Bool — /Users/josephcursio/xcode_projects/SwiftProjectLint/Packages/SwiftProjectLintConfig/Sources/SwiftProjectLintConfig/FileAnalysis/FileAnalysisUtils.swift:91
+  ✓ `containsNestedPackage` classifies its inputs — it must be TOTAL over them, and it must agree with a reference definition only you can state (+20)
+
+Why this might be wrong:
+  ⚠ TOTALITY is the only law that follows from the shape, and it is a real one: the predicate must return `true` or `false` for *every* input its type admits — never trap, never crash. Generate the awkward ones: the empty string, a string that is all separators, a value at the type's boundary.
+  ⚠ THE INTERESTING LAW IS NOT FREE, and no tool can invent it for you. A comparator owes a strict weak ordering and a partition owes a tiling *by virtue of being one*; a predicate owes only what its DOMAIN says it owes. State that reference definition in one English sentence, then encode it — that sentence is the property.
+  ⚠ The reference definition is where the bugs are, because the bug is almost always that the CODE says something subtly different from the SENTENCE. "Two addresses name the same mailbox" is a sentence; an implementation that case-folds one side and not the other agrees with it on every example anyone thought to write down, and disagrees on the first generated pair that differs only in case. Write the sentence, encode THAT, and let the generator find where the code drifted from it.
+  ⚠ Bias the generator toward inputs where structure COLLIDES — a small alphabet, repeated components, values equal under one notion and distinct under another. A predicate that has quietly confused two notions agrees with the right answer everywhere the two coincide, so a generator drawing from a wide alphabet will almost never catch it. The counterexample lives in the collisions, and you have to generate them on purpose.
+  ⚠ If you cannot state the reference definition in one true English sentence, that is not a reason to skip the property — it is a finding about the function.
+
+
+Generators the law needs (a uniform one will pass VACUOUSLY):
+
+  // path: String — A four-symbol alphabet including the separator, so substrings REPEAT and any path contains its own ancestors. A wide alphabet never produces that, and a predicate that confuses `strip the prefix` with `strip every occurrence` agrees with the right answer everywhere the two coincide — which is everywhere, until they collide. Do not widen this alphabet.
+  // A FOUR-symbol alphabet, one of which is the separator, so substrings repeat and any
+  // path contains its own ancestors — the recurrence a wide alphabet never produces.
+  // Zero components yields "/", the root case, for free.
+  Gen<String?>.element(of: ["a", "b", "c", "/"] as [String])
+      .map { $0! }
+      .array(of: 0...6)
+      .map { "/" + $0.joined() }
+Generator: .derivedComposite, confidence: .high
+Sampling:  not run; lifted test seed: 0x2742D9713039C88E2D4A725EB1AEFD11BE747E18EAC4357360BECB6951DC17B4
+Identity:  0xFDDA80E8CED7BCBB
+Suppress:  // swiftinfer: skip 0xFDDA80E8CED7BCBB
+
+[Suggestion]
+Template: idempotence
+Score:    35 (Possible)
+
+Why suggested:
+  ✓ realPath(_:) (String) -> String — /Users/josephcursio/xcode_projects/SwiftProjectLint/Packages/SwiftProjectLintConfig/Sources/SwiftProjectLintConfig/FileAnalysis/FileAnalysisUtils.swift:187
+  ✓ Type-symmetry signature: T -> T (T = String) (+30)
+  ✓ Value-semantic carrier (FileAnalysisUtils) — algebraic property is well-defined under aliasing (+5)
+
+Why this might be wrong:
+  ⚠ T must conform to Equatable for the emitted property to compile. SwiftInfer M1 does not verify protocol conformance — confirm before applying.
+  ⚠ If T is a class with a custom ==, the property is over value equality as T.== defines it.
+
+Generator: .derivedComposite, confidence: .high
+Sampling:  not run; lifted test seed: 0x11BD4223CE6567B99CD009946AA0A9BA03F334DBF94FC757829CC9EC6A3E888B
+Identity:  0xF29D13AEFA6A3449
+Suppress:  // swiftinfer: skip 0xF29D13AEFA6A3449
+
+[Suggestion]
+Template: filter-subset
+Score:    35 (Possible)
+
+Why suggested:
+  ✓ filter(_:fileContent:) ([LintIssue], String) -> [LintIssue] — /Users/josephcursio/xcode_projects/SwiftProjectLint/Packages/SwiftProjectLintConfig/Sources/SwiftProjectLintConfig/Suppression/InlineSuppressionFilter.swift:22
+  ✓ Filter shape: [LintIssue], … -> [LintIssue] (selects a sub-collection) (+20)
+  ✓ Curated filter/selection verb match: 'filter' — it selects, so it owes `result ⊆ input` (+15)
+
+Why this might be wrong:
+  ⚠ THE LAW IS `Set(result) ⊆ Set(haystack)` — a filter returns only elements it was given. It is refutable where it matters: a `filter` that quietly maps, appends a default, or reads from another source returns an element that was never in the input, and this law rejects exactly that.
+  ⚠ SUBSET IS NAME-CONJECTURED, not shape-entailed. A `[T] -> [T]` that TRANSFORMS its elements (a map: `[1,2] -> [2,4]`) has the same shape and is a false positive — the law holds only because the NAME asserts selection. Confirm the function selects rather than transforms.
+  ⚠ The element type must be Equatable (or Hashable) for the membership check to compile. SwiftInfer M1 does not verify conformance — confirm before applying.
+  ⚠ Bias the generator so elements COLLIDE (a small alphabet, repeated values): a filter that mishandles equal-but-distinct elements fails only where the input repeats.
+
+Generator: not derived (no strategy matched this type)
+Sampling:  not run; lifted test seed: 0xE7F1D6B332C78E52856586F7973F3A9A26D031A345E5945622DCA55EABA265FE
+Identity:  0x33E58C98EF0670A0
+Suppress:  // swiftinfer: skip 0x33E58C98EF0670A0
+
+Reference definitions from docstrings (14 functions):
+  A property is the code checked against a definition you state in one sentence. Where you already wrote that sentence, here it is next to the law it defines.
+
+  • executableSourcePaths(in:)  (String) -> [String]
+    /Users/josephcursio/xcode_projects/SwiftProjectLint/Packages/SwiftProjectLintConfig/Sources/SwiftProjectLintConfig/Configuration/ExecutableTargetDetector.swift:17
+    the templates could offer only a determinism tautology here (f(x) == f(x), which no wrong code fails). Your docstring is the one refutable contract on this function:
+      "Returns source-relative path prefixes for all executable targets declared in `Package.swift` at the given project root.  Example return value: `["Sources/swift-assist-cli/", "Sources/tool/"]`"
+    encode THAT sentence; it is the law the templates could not name.
+
+  • withIncludeNestedPackages(_:)  (Bool) -> Self
+    /Users/josephcursio/xcode_projects/SwiftProjectLint/Packages/SwiftProjectLintConfig/Sources/SwiftProjectLintConfig/Configuration/LintConfiguration.swift:81
+    the templates could offer only a determinism tautology here (f(x) == f(x), which no wrong code fails). Your docstring is the one refutable contract on this function:
+      "Returns a copy with `includeNestedPackages` overridden — used to apply a CLI flag on top of a loaded configuration."
+    encode THAT sentence; it is the law the templates could not name.
+
+  • resolveRules(cliCategories:cliRuleIdentifiers:)  ([PatternCategory]?, [RuleIdentifier]?) -> [RuleIdentifier]?
+    /Users/josephcursio/xcode_projects/SwiftProjectLint/Packages/SwiftProjectLintConfig/Sources/SwiftProjectLintConfig/Configuration/LintConfiguration.swift:120
+    the templates matched override-precedence by shape, but a correct implementation need not satisfy them — they are guesses, not laws it is owed. Your docstring is the contract that IS owed:
+      "Computes the effective set of rule identifiers to run, given optional CLI overrides."
+    encode THAT sentence; it is the law the templates could not name.
+    ── runnable reference oracle (fill the stub, then run it) ──
+    // Fill in the reference definition below — your docstring already states it:
+    //   "Computes the effective set of rule identifiers to run, given optional CLI overrides."
+    // Then run the test: the generator finds the input where the code disagrees
+    // with its own documentation.
+    // (the return type [RuleIdentifier]? must be Equatable for this to compile)
+    func resolveRules_reference(cliCategories: [PatternCategory]?, cliRuleIdentifiers: [RuleIdentifier]?) -> [RuleIdentifier]? {
+        fatalError("state the reference definition from the docstring, then replace this line")
+    }
+    
+    @Test func resolveRules_matchesReferenceDefinition() async {
+        let backend = SwiftPropertyBasedBackend()
+        let seed = Seed(
+            stateA: 0x0453A6002BA4CFB9,
+            stateB: 0xEE79A93CDC3AA661,
+            stateC: 0x48C852B7FC97B202,
+            stateD: 0xD7465A0203EB4079
+        )
+        let result = await backend.check(
+            trials: 100,
+            seed: seed,
+            sample: { rng in (([PatternCategory]?.gen()).run(using: &rng), ([RuleIdentifier]?.gen()).run(using: &rng)) },
+            property: { tuple in resolveRules(cliCategories: tuple.0, cliRuleIdentifiers: tuple.1) == resolveRules_reference(cliCategories: tuple.0, cliRuleIdentifiers: tuple.1) }
+        )
+        if case let .failed(_, _, input, error) = result {
+            Issue.record(
+                "resolveRules(cliCategories:cliRuleIdentifiers:) disagrees with its documented reference definition at input \(input). \(error?.message ?? "")"
+            )
+        }
+    }
+
+  • load(from:)  (String) -> LintConfiguration
+    /Users/josephcursio/xcode_projects/SwiftProjectLint/Packages/SwiftProjectLintConfig/Sources/SwiftProjectLintConfig/Configuration/LintConfigurationLoader.swift:34
+    the templates could offer only a determinism tautology here (f(x) == f(x), which no wrong code fails). Your docstring is the one refutable contract on this function:
+      "Loads configuration from a YAML file at the given path. Returns `.default` if the file doesn't exist or can't be parsed."
+    encode THAT sentence; it is the law the templates could not name.
+
+  • recomputeAncestorStates()  () -> Void
+    /Users/josephcursio/xcode_projects/SwiftProjectLint/Packages/SwiftProjectLintConfig/Sources/SwiftProjectLintConfig/FileAnalysis/DirectoryNode.swift:61
+    the templates could offer only a determinism tautology here (f(x) == f(x), which no wrong code fails). Your docstring is the one refutable contract on this function:
+      "Walks up the parent chain, recomputing each ancestor's state based on its children."
+    encode THAT sentence; it is the law the templates could not name.
+
+  • computeExcludedPaths()  () -> [String]
+    /Users/josephcursio/xcode_projects/SwiftProjectLint/Packages/SwiftProjectLintConfig/Sources/SwiftProjectLintConfig/FileAnalysis/DirectoryNode.swift:84
+    the templates could offer only a determinism tautology here (f(x) == f(x), which no wrong code fails). Your docstring is the one refutable contract on this function:
+      "Returns the relative directory paths that are unchecked.  Optimization: if a parent is unchecked, its children are not emitted (the parent path with trailing `/` is sufficient for substring matching in `FileAnalysisUtils`)."
+    encode THAT sentence; it is the law the templates could not name.
+
+  • applyExcludedPaths(_:)  ([String]) -> Void
+    /Users/josephcursio/xcode_projects/SwiftProjectLint/Packages/SwiftProjectLintConfig/Sources/SwiftProjectLintConfig/FileAnalysis/DirectoryNode.swift:106
+    the templates could offer only a determinism tautology here (f(x) == f(x), which no wrong code fails). Your docstring is the one refutable contract on this function:
+      "Unchecks nodes whose paths match any of the given exclusion patterns, then recomputes ancestor states."
+    encode THAT sentence; it is the law the templates could not name.
+
+  • allNodes()  () -> [DirectoryNode]
+    /Users/josephcursio/xcode_projects/SwiftProjectLint/Packages/SwiftProjectLintConfig/Sources/SwiftProjectLintConfig/FileAnalysis/DirectoryNode.swift:144
+    the templates could offer only a determinism tautology here (f(x) == f(x), which no wrong code fails). Your docstring is the one refutable contract on this function:
+      "Returns all nodes in the tree (including self) in depth-first order."
+    encode THAT sentence; it is the law the templates could not name.
+
+  • scan(rootPath:maxDepth:)  (String, Int) async -> DirectoryNode
+    /Users/josephcursio/xcode_projects/SwiftProjectLint/Packages/SwiftProjectLintConfig/Sources/SwiftProjectLintConfig/FileAnalysis/DirectoryScanner.swift:21
+    the templates could offer only a determinism tautology here (f(x) == f(x), which no wrong code fails). Your docstring is the one refutable contract on this function:
+      "Scans the directory tree under `rootPath`.  - Parameters:   - rootPath: Absolute path to the project root.   - maxDepth: Maximum directory depth to include (default 4). - Returns: A `DirectoryNode` tree rooted at the project directory."
+    encode THAT sentence; it is the law the templates could not name.
+
+  • extractSwiftBasename(from:)  (String) -> String
+    /Users/josephcursio/xcode_projects/SwiftProjectLint/Packages/SwiftProjectLintConfig/Sources/SwiftProjectLintConfig/FileAnalysis/FileAnalysisUtils.swift:19
+    the templates matched idempotence, round-trip by shape, but a correct implementation need not satisfy them — they are guesses, not laws it is owed. Your docstring is the contract that IS owed:
+      "Extracts the view name from a given Swift file path.  This method takes a file path string (e.g., "/Users/project/MyView.swift") and returns the base file name without its extension, which is used as the view's name in internal analysis. For example, given the input "/path/to/ContentView.swift", the returned view name will be "ContentView".  - Parameter filePath: The full file system path to a Swift source file. - Returns: The name of the view, derived from the file name by removing the ".swift" extension."
+    encode THAT sentence; it is the law the templates could not name.
+    ── runnable reference oracle (fill the stub, then run it) ──
+    // Fill in the reference definition below — your docstring already states it:
+    //   "Extracts the view name from a given Swift file path.  This method takes a file path string (e.g., "/Users/project/MyView.swift") and returns the base file name without its extension, which is used as the view's name in internal analysis. For example, given the input "/path/to/ContentView.swift", the returned view name will be "ContentView".  - Parameter filePath: The full file system path to a Swift source file. - Returns: The name of the view, derived from the file name by removing the ".swift" extension."
+    // Then run the test: the generator finds the input where the code disagrees
+    // with its own documentation.
+    // (the return type String must be Equatable for this to compile)
+    func extractSwiftBasename_reference(from filePath: String) -> String {
+        fatalError("state the reference definition from the docstring, then replace this line")
+    }
+    
+    @Test func extractSwiftBasename_matchesReferenceDefinition() async {
+        let backend = SwiftPropertyBasedBackend()
+        let seed = Seed(
+            stateA: 0x3053C1C6715DAE8E,
+            stateB: 0xC99966965FDCAA08,
+            stateC: 0x0A629AA6CBC69D81,
+            stateD: 0x8EB3453EB3C95D1D
+        )
+        let result = await backend.check(
+            trials: 100,
+            seed: seed,
+            sample: { rng in (Gen<Character>.letterOrNumber.string(of: 0...8)).run(using: &rng) },
+            property: { value in extractSwiftBasename(from: value) == extractSwiftBasename_reference(from: value) }
+        )
+        if case let .failed(_, _, input, error) = result {
+            Issue.record(
+                "extractSwiftBasename(from:) disagrees with its documented reference definition at input \(input). \(error?.message ?? "")"
+            )
+        }
+    }
+
+  • findSwiftFiles(in:excludedPaths:includeNestedPackages:)  (String, [String], Bool) -> [String]
+    /Users/josephcursio/xcode_projects/SwiftProjectLint/Packages/SwiftProjectLintConfig/Sources/SwiftProjectLintConfig/FileAnalysis/FileAnalysisUtils.swift:53
+    the templates could offer only a determinism tautology here (f(x) == f(x), which no wrong code fails). Your docstring is the one refutable contract on this function:
+      "Recursively searches the specified directory for Swift source files.  This method traverses the directory tree rooted at the given `path`, returning the full file paths of all files with the `.swift` extension. It uses the file system's enumerator to efficiently locate all Swift files, regardless of their depth within the directory hierarchy.  - Parameter path: The root directory path in which to search for Swift files. - Returns: An array of full file paths to `.swift` files found within the directory and its subdirectories.  - Note: Hidden files, non-Swift files, and files inside system or build directories are not explicitly excluded         unless they lack the `.swift` file extension. - Warning: Symbolic links and circular directory structures may cause redundant file paths or infinite loops,            depending on the file system's enumerator behavior."
+    encode THAT sentence; it is the law the templates could not name.
+
+  • containsNestedPackage(in:)  (String) -> Bool
+    /Users/josephcursio/xcode_projects/SwiftProjectLint/Packages/SwiftProjectLintConfig/Sources/SwiftProjectLintConfig/FileAnalysis/FileAnalysisUtils.swift:91
+    the `predicate` law openly owes a reference definition — your docstring states one:
+      "Returns `true` when `path` contains a first-party nested Swift package — a subdirectory (outside build/dependency directories) with its own `Package.swift`. This mirrors the skip performed by `findSwiftFiles`, so it reports exactly the packages a default (non-`includeNestedPackages`) run would exclude. The root's own `Package.swift` does not count. Returns on the first match and prunes build/checkout directories, so it never treats a third-party dependency checkout (e.g. under `.build`) as a first-party package."
+    encode THAT sentence as the property; the law checks the code against it.
+    ── runnable reference oracle (fill the stub, then run it) ──
+    // Fill in the reference definition below — your docstring already states it:
+    //   "Returns `true` when `path` contains a first-party nested Swift package — a subdirectory (outside build/dependency directories) with its own `Package.swift`. This mirrors the skip performed by `findSwiftFiles`, so it reports exactly the packages a default (non-`includeNestedPackages`) run would exclude. The root's own `Package.swift` does not count. Returns on the first match and prunes build/checkout directories, so it never treats a third-party dependency checkout (e.g. under `.build`) as a first-party package."
+    // Then run the test: the generator finds the input where the code disagrees
+    // with its own documentation.
+    func containsNestedPackage_reference(in path: String) -> Bool {
+        fatalError("state the reference definition from the docstring, then replace this line")
+    }
+    
+    @Test func containsNestedPackage_matchesReferenceDefinition() async {
+        let backend = SwiftPropertyBasedBackend()
+        let seed = Seed(
+            stateA: 0x2742D9713039C88E,
+            stateB: 0x2D4A725EB1AEFD11,
+            stateC: 0xBE747E18EAC43573,
+            stateD: 0x60BECB6951DC17B4
+        )
+        let result = await backend.check(
+            trials: 100,
+            seed: seed,
+            sample: { rng in (Gen<Character>.letterOrNumber.string(of: 0...8)).run(using: &rng) },
+            property: { value in containsNestedPackage(in: value) == containsNestedPackage_reference(in: value) }
+        )
+        if case let .failed(_, _, input, error) = result {
+            Issue.record(
+                "containsNestedPackage(in:) disagrees with its documented reference definition at input \(input). \(error?.message ?? "")"
+            )
+        }
+    }
+
+  • realPath(_:)  (String) -> String
+    /Users/josephcursio/xcode_projects/SwiftProjectLint/Packages/SwiftProjectLintConfig/Sources/SwiftProjectLintConfig/FileAnalysis/FileAnalysisUtils.swift:187
+    the templates matched idempotence, round-trip by shape, but a correct implementation need not satisfy them — they are guesses, not laws it is owed. Your docstring is the contract that IS owed:
+      "Returns the canonical (symlink-resolved) path using POSIX `realpath(3)`. Falls back to the input string if the path does not exist or resolution fails."
+    encode THAT sentence; it is the law the templates could not name.
+    ── runnable reference oracle (fill the stub, then run it) ──
+    // Fill in the reference definition below — your docstring already states it:
+    //   "Returns the canonical (symlink-resolved) path using POSIX `realpath(3)`. Falls back to the input string if the path does not exist or resolution fails."
+    // Then run the test: the generator finds the input where the code disagrees
+    // with its own documentation.
+    // (the return type String must be Equatable for this to compile)
+    func realPath_reference(_ path: String) -> String {
+        fatalError("state the reference definition from the docstring, then replace this line")
+    }
+    
+    @Test func realPath_matchesReferenceDefinition() async {
+        let backend = SwiftPropertyBasedBackend()
+        let seed = Seed(
+            stateA: 0xAE3292A551EDFFDE,
+            stateB: 0xF1DC88736CC7BAB2,
+            stateC: 0x6614E6E295782C05,
+            stateD: 0x343076C5A9E6C5F1
+        )
+        let result = await backend.check(
+            trials: 100,
+            seed: seed,
+            sample: { rng in (Gen<Character>.letterOrNumber.string(of: 0...8)).run(using: &rng) },
+            property: { value in realPath(value) == realPath_reference(value) }
+        )
+        if case let .failed(_, _, input, error) = result {
+            Issue.record(
+                "realPath(_:) disagrees with its documented reference definition at input \(input). \(error?.message ?? "")"
+            )
+        }
+    }
+
+  • parse(fileContent:)  (String) -> [SuppressionDirective]
+    /Users/josephcursio/xcode_projects/SwiftProjectLint/Packages/SwiftProjectLintConfig/Sources/SwiftProjectLintConfig/Suppression/InlineSuppressionParser.swift:51
+    the templates could offer only a determinism tautology here (f(x) == f(x), which no wrong code fails). Your docstring is the one refutable contract on this function:
+      "Parses all suppression directives found in `fileContent`."
+    encode THAT sentence; it is the law the templates could not name.

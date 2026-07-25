@@ -1,0 +1,143 @@
+3 suggestions.
+
+[Suggestion]
+Template: predicate
+Score:    20 (Possible)
+
+Why suggested:
+  ✓ contains(relativePath:) (String) -> Bool — /Users/josephcursio/xcode_projects/SwiftProjectLint/Packages/SwiftProjectLintModels/Sources/SwiftProjectLintModels/LayerPolicy.swift:42
+  ✓ `contains` classifies its inputs — it must be TOTAL over them, and it must agree with a reference definition only you can state (+20)
+
+Why this might be wrong:
+  ⚠ TOTALITY is the only law that follows from the shape, and it is a real one: the predicate must return `true` or `false` for *every* input its type admits — never trap, never crash. Generate the awkward ones: the empty string, a string that is all separators, a value at the type's boundary.
+  ⚠ THE INTERESTING LAW IS NOT FREE, and no tool can invent it for you. A comparator owes a strict weak ordering and a partition owes a tiling *by virtue of being one*; a predicate owes only what its DOMAIN says it owes. State that reference definition in one English sentence, then encode it — that sentence is the property.
+  ⚠ The reference definition is where the bugs are, because the bug is almost always that the CODE says something subtly different from the SENTENCE. "Two addresses name the same mailbox" is a sentence; an implementation that case-folds one side and not the other agrees with it on every example anyone thought to write down, and disagrees on the first generated pair that differs only in case. Write the sentence, encode THAT, and let the generator find where the code drifted from it.
+  ⚠ Bias the generator toward inputs where structure COLLIDES — a small alphabet, repeated components, values equal under one notion and distinct under another. A predicate that has quietly confused two notions agrees with the right answer everywhere the two coincide, so a generator drawing from a wide alphabet will almost never catch it. The counterexample lives in the collisions, and you have to generate them on purpose.
+  ⚠ If you cannot state the reference definition in one true English sentence, that is not a reason to skip the property — it is a finding about the function.
+
+
+Generators the law needs (a uniform one will pass VACUOUSLY):
+
+  // relativePath: String — A four-symbol alphabet including the separator, so substrings REPEAT and any path contains its own ancestors. A wide alphabet never produces that, and a predicate that confuses `strip the prefix` with `strip every occurrence` agrees with the right answer everywhere the two coincide — which is everywhere, until they collide. Do not widen this alphabet.
+  // A FOUR-symbol alphabet, one of which is the separator, so substrings repeat and any
+  // path contains its own ancestors — the recurrence a wide alphabet never produces.
+  // Zero components yields "/", the root case, for free.
+  Gen<String?>.element(of: ["a", "b", "c", "/"] as [String])
+      .map { $0! }
+      .array(of: 0...6)
+      .map { "/" + $0.joined() }
+
+  // LayerPolicy (the carrier's own state): LayerPolicy — Half the collision lives in the carrier's stored state. A generator that varies only the arguments, against a carrier fixed at some plausible value, quantifies over exactly the inputs where the two notions agree — so the carrier's own String state must be drawn from this same generator, not a wide one.
+  // Draw the CARRIER's String state from the SAME colliding alphabet, then build the
+  // carrier from it — e.g. `.map { LayerPolicy(currentPath: $0) }` for whatever its
+  // path-like stored property is called. Holding that state fixed while varying only
+  // the arguments cannot produce the collision, and the collision is the counterexample.
+  // A FOUR-symbol alphabet, one of which is the separator, so substrings repeat and any
+  // path contains its own ancestors — the recurrence a wide alphabet never produces.
+  // Zero components yields "/", the root case, for free.
+  Gen<String?>.element(of: ["a", "b", "c", "/"] as [String])
+      .map { $0! }
+      .array(of: 0...6)
+      .map { "/" + $0.joined() }
+Generator: .derivedComposite, confidence: .high
+Sampling:  not run; lifted test seed: 0x0472502F7E1CE2D6E6C3A5D04610E7B0A411CAAB3ED84CF68ACF845CB541FDDD
+Identity:  0x0E52B6E9F9FB6AD9
+Suppress:  // swiftinfer: skip 0x0E52B6E9F9FB6AD9
+
+[Suggestion]
+Template: caseiterable-case-coverage
+Score:    35 (Possible)
+
+Why suggested:
+  ✓ category() () -> PatternCategory — /Users/josephcursio/xcode_projects/SwiftProjectLint/Packages/SwiftProjectLintModels/Sources/SwiftProjectLintModels/RuleIdentifier+Category.swift:14
+  ✓ CaseIterable classifier: RuleIdentifier (197 cases) -> PatternCategory, so every case's classification is enumerable (+20)
+  ✓ PatternCategory carries the sink case `.other` — a case routed there is never reported wrong, it is simply never checked (+15)
+
+Why this might be wrong:
+  ⚠ THE LAW IS `allCases.filter { $0.category == .other } == <your written-down exceptions>` — not "nothing maps to the sink", which is usually false and would be deleted on day one. State the exceptions as a literal set; the law is that the ACTUAL sink members equal the declared ones.
+  ⚠ WHAT IT CATCHES is the next case, not this one. Today's mapping is presumably right. The failure is six months out, when a case is added and the arm that already exists is the cheapest place to put it — the law fires on that commit, which is the only moment anyone can still cheaply fix it.
+  ⚠ CHECK IT EXHAUSTIVELY, NOT BY SAMPLING. The domain is 197 cases and fully enumerable, so iterate `allCases`. A sampled run over this domain can miss the one newly-added case and report success.
+  ⚠ AN EXHAUSTIVE `switch` IS NOT THIS LAW. The compiler forces every case to be MENTIONED; it cannot force it to be mentioned somewhere other than the sink arm. If the mapping uses a `default:` arm, the compiler is not even doing that much, and this law is the only check there is.
+  ⚠ SINK ROUTING IS NAME-CONJECTURED. `.other` is read as a sink because of its NAME; it may be a perfectly ordinary member of the codomain. If it is, this law does not apply — say so and move on.
+
+Generator: .derivedCaseIterable, confidence: .high
+Sampling:  not run; lifted test seed: 0x12B1EA865445BFC2C888738E843DE5B01498085E20B1FD7B3157AA48E607D812
+Identity:  0x0C0F04D9652F8DB3
+Suppress:  // swiftinfer: skip 0x0C0F04D9652F8DB3
+
+[Suggestion]
+Template: caseiterable-key-injectivity
+Score:    35 (Possible)
+
+Why suggested:
+  ✓ suppressionKey() () -> String — /Users/josephcursio/xcode_projects/SwiftProjectLint/Packages/SwiftProjectLintModels/Sources/SwiftProjectLintModels/RuleIdentifier.swift:241
+  ✓ CaseIterable mapping: RuleIdentifier (197 cases) -> String, so the domain is finite and fully enumerable (+20)
+  ✓ Curated key noun in 'suppressionKey' — it IDENTIFIES a case rather than describing it, so distinct cases owe distinct values (+15)
+
+Why this might be wrong:
+  ⚠ THE LAW IS `Set(allCases.map(\.suppressionKey)).count == allCases.count` — distinct cases map to distinct keys. It is refutable where it matters: two cases whose names differ only by punctuation or spacing collapse to one key, and this law rejects exactly that.
+  ⚠ CHECK IT EXHAUSTIVELY, NOT BY SAMPLING. The domain is 197 cases and it is fully enumerable, so iterate `allCases` — a `propertyCheck` over this domain has to be LUCKY to draw the one colliding pair, and it reports success when it misses. This is the rare case where a loop strictly dominates a generator.
+  ⚠ ASK WHAT A COLLISION COSTS — it decides the severity, not the law. If the mapping backs a lookup built with `Dictionary(uniqueKeysWithValues:)`, a collision is a runtime TRAP on first use, from inside a lazy static initialiser, with a stack that points at the lookup rather than at the case someone added.
+  ⚠ INJECTIVITY IS NAME-CONJECTURED, not shape-entailed. A mapping out of an enum is usually MANY-TO-ONE by design — a classifier mapping 197 rules onto 11 categories is correct code that fails this law. It is owed here only because the NAME says the value identifies the case. Confirm that before applying.
+  ⚠ The law lives on the TYPE, not on this member: it is a claim about the whole case list, so it belongs in a suite over the enum and should be re-run whenever a case is added. That is the commit where it earns its keep.
+
+Generator: .derivedCaseIterable, confidence: .high
+Sampling:  not run; lifted test seed: 0x40DA755F75AE0DD65E62E639AE8BCA5162E3BC596E49A5A3456D038DAD02683B
+Identity:  0xAE6F3F1F1C8F8BD2
+Suppress:  // swiftinfer: skip 0xAE6F3F1F1C8F8BD2
+
+Reference definitions from docstrings (4 functions):
+  A property is the code checked against a definition you state in one sentence. Where you already wrote that sentence, here it is next to the law it defines.
+
+  • contains(relativePath:)  (String) -> Bool
+    /Users/josephcursio/xcode_projects/SwiftProjectLint/Packages/SwiftProjectLintModels/Sources/SwiftProjectLintModels/LayerPolicy.swift:42
+    the `predicate` law openly owes a reference definition — your docstring states one:
+      "Returns `true` if the given relative file path falls within this layer."
+    encode THAT sentence as the property; the law checks the code against it.
+    ── runnable reference oracle (fill the stub, then run it) ──
+    // Fill in the reference definition below — your docstring already states it:
+    //   "Returns `true` if the given relative file path falls within this layer."
+    // Then run the test: the generator finds the input where the code disagrees
+    // with its own documentation.
+    func contains_reference(relativePath: String) -> Bool {
+        fatalError("state the reference definition from the docstring, then replace this line")
+    }
+    
+    @Test func contains_matchesReferenceDefinition() async {
+        let backend = SwiftPropertyBasedBackend()
+        let seed = Seed(
+            stateA: 0x0472502F7E1CE2D6,
+            stateB: 0xE6C3A5D04610E7B0,
+            stateC: 0xA411CAAB3ED84CF6,
+            stateD: 0x8ACF845CB541FDDD
+        )
+        let result = await backend.check(
+            trials: 100,
+            seed: seed,
+            sample: { rng in (Gen<Character>.letterOrNumber.string(of: 0...8)).run(using: &rng) },
+            property: { value in contains(relativePath: value) == contains_reference(relativePath: value) }
+        )
+        if case let .failed(_, _, input, error) = result {
+            Issue.record(
+                "contains(relativePath:) disagrees with its documented reference definition at input \(input). \(error?.message ?? "")"
+            )
+        }
+    }
+
+  • filePath()  () -> String
+    /Users/josephcursio/xcode_projects/SwiftProjectLint/Packages/SwiftProjectLintModels/Sources/SwiftProjectLintModels/LintIssue.swift:42
+    the templates could offer only a determinism tautology here (f(x) == f(x), which no wrong code fails). Your docstring is the one refutable contract on this function:
+      "Returns the file path of the first location, or an empty string if no locations exist."
+    encode THAT sentence; it is the law the templates could not name.
+
+  • lineNumber()  () -> Int
+    /Users/josephcursio/xcode_projects/SwiftProjectLint/Packages/SwiftProjectLintModels/Sources/SwiftProjectLintModels/LintIssue.swift:47
+    the templates could offer only a determinism tautology here (f(x) == f(x), which no wrong code fails). Your docstring is the one refutable contract on this function:
+      "Returns the line number of the first location, or 0 if no locations exist."
+    encode THAT sentence; it is the law the templates could not name.
+
+  • category()  () -> PatternCategory
+    /Users/josephcursio/xcode_projects/SwiftProjectLint/Packages/SwiftProjectLintModels/Sources/SwiftProjectLintModels/RuleIdentifier+Category.swift:14
+    the templates matched caseiterable-case-coverage by shape, but a correct implementation need not satisfy them — they are guesses, not laws it is owed. Your docstring is the contract that IS owed:
+      "Returns the category this rule belongs to"
+    encode THAT sentence; it is the law the templates could not name.

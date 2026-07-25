@@ -1,0 +1,16 @@
+0 suggestions.
+
+Reference definitions from docstrings (2 functions):
+  A property is the code checked against a definition you state in one sentence. Where you already wrote that sentence, here it is next to the law it defines.
+
+  • format(issues:)  ([LintIssue]) -> String
+    /Users/josephcursio/xcode_projects/SwiftProjectLint/Sources/Core/Export/TextFormatter.swift:12
+    the templates could offer only a determinism tautology here (f(x) == f(x), which no wrong code fails). Your docstring is the one refutable contract on this function:
+      "Formats a list of lint issues as text lines.  Each issue is formatted as:   `filepath:line: severity: [ruleName] message` with an optional indented suggestion line below."
+    encode THAT sentence; it is the law the templates could not name.
+
+  • summaryLine(for:)  ([LintIssue]) -> String
+    /Users/josephcursio/xcode_projects/SwiftProjectLint/Sources/Core/Export/TextFormatter.swift:35
+    the templates could offer only a determinism tautology here (f(x) == f(x), which no wrong code fails). Your docstring is the one refutable contract on this function:
+      "Returns a summary line like "Found 5 issues (1 error, 3 warnings, 1 info)"."
+    encode THAT sentence; it is the law the templates could not name.

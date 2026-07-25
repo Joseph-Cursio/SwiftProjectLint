@@ -1,0 +1,136 @@
+1 suggestion.
+
+[Suggestion]
+Template: predicate
+Score:    20 (Possible)
+
+Why suggested:
+  ✓ isGeneratedFile(at:) (String) -> Bool — /Users/josephcursio/xcode_projects/SwiftProjectLint/Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/ProjectLinter+FileAnalysis.swift:29
+  ✓ `isGeneratedFile` classifies its inputs — it must be TOTAL over them, and it must agree with a reference definition only you can state (+20)
+
+Why this might be wrong:
+  ⚠ TOTALITY is the only law that follows from the shape, and it is a real one: the predicate must return `true` or `false` for *every* input its type admits — never trap, never crash. Generate the awkward ones: the empty string, a string that is all separators, a value at the type's boundary.
+  ⚠ THE INTERESTING LAW IS NOT FREE, and no tool can invent it for you. A comparator owes a strict weak ordering and a partition owes a tiling *by virtue of being one*; a predicate owes only what its DOMAIN says it owes. State that reference definition in one English sentence, then encode it — that sentence is the property.
+  ⚠ The reference definition is where the bugs are, because the bug is almost always that the CODE says something subtly different from the SENTENCE. "Two addresses name the same mailbox" is a sentence; an implementation that case-folds one side and not the other agrees with it on every example anyone thought to write down, and disagrees on the first generated pair that differs only in case. Write the sentence, encode THAT, and let the generator find where the code drifted from it.
+  ⚠ Bias the generator toward inputs where structure COLLIDES — a small alphabet, repeated components, values equal under one notion and distinct under another. A predicate that has quietly confused two notions agrees with the right answer everywhere the two coincide, so a generator drawing from a wide alphabet will almost never catch it. The counterexample lives in the collisions, and you have to generate them on purpose.
+  ⚠ If you cannot state the reference definition in one true English sentence, that is not a reason to skip the property — it is a finding about the function.
+
+
+Generators the law needs (a uniform one will pass VACUOUSLY):
+
+  // filePath: String — A four-symbol alphabet including the separator, so substrings REPEAT and any path contains its own ancestors. A wide alphabet never produces that, and a predicate that confuses `strip the prefix` with `strip every occurrence` agrees with the right answer everywhere the two coincide — which is everywhere, until they collide. Do not widen this alphabet.
+  // A FOUR-symbol alphabet, one of which is the separator, so substrings repeat and any
+  // path contains its own ancestors — the recurrence a wide alphabet never produces.
+  // Zero components yields "/", the root case, for free.
+  Gen<String?>.element(of: ["a", "b", "c", "/"] as [String])
+      .map { $0! }
+      .array(of: 0...6)
+      .map { "/" + $0.joined() }
+Generator: .derivedComposite, confidence: .high
+Sampling:  not run; lifted test seed: 0xC870B76D013E6DAECFDCC006CC353CC22869DB77072605FD704808B47E6FC947
+Identity:  0x7018D0235352A319
+Suppress:  // swiftinfer: skip 0x7018D0235352A319
+
+Reference definitions from docstrings (12 functions):
+  A property is the code checked against a definition you state in one sentence. Where you already wrote that sentence, here it is next to the law it defines.
+
+  • detectCrossFilePatterns(projectFiles:categories:preBuiltCache:)  ([ProjectFile], [PatternCategory]?, [String: SourceFileSyntax]?) -> [LintIssue]
+    /Users/josephcursio/xcode_projects/SwiftProjectLint/Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/CrossFileAnalysis/CrossFileAnalysisEngine.swift:51
+    the templates could offer only a determinism tautology here (f(x) == f(x), which no wrong code fails). Your docstring is the one refutable contract on this function:
+      "Detects patterns across multiple Swift files with cross-file analysis capabilities.  This method analyzes multiple files and can detect patterns that span across files, such as duplicate state variables or architectural issues.  - Parameters:   - projectFiles: Array of ProjectFile to analyze.   - categories: Optional array of pattern categories to analyze. - Returns: An array of detected lint issues."
+    encode THAT sentence; it is the law the templates could not name.
+
+  • createVisitorRegistry()  () -> PatternVisitorRegistry
+    /Users/josephcursio/xcode_projects/SwiftProjectLint/Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/PatternRegistryFactory.swift:35
+    the templates could offer only a determinism tautology here (f(x) == f(x), which no wrong code fails). Your docstring is the one refutable contract on this function:
+      "Creates a new pattern visitor registry instance.  - Returns: A fresh instance of PatternVisitorRegistry."
+    encode THAT sentence; it is the law the templates could not name.
+
+  • createPatternRegistry(visitorRegistry:)  (PatternVisitorRegistry?) -> SourcePatternRegistry
+    /Users/josephcursio/xcode_projects/SwiftProjectLint/Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/PatternRegistryFactory.swift:43
+    the templates could offer only a determinism tautology here (f(x) == f(x), which no wrong code fails). Your docstring is the one refutable contract on this function:
+      "Creates a new SwiftSyntax pattern registry instance.  - Parameter visitorRegistry: The visitor registry to use. If nil, creates a new one. - Returns: A fresh instance of SourcePatternRegistry."
+    encode THAT sentence; it is the law the templates could not name.
+
+  • createPatternDetector(registry:)  (PatternVisitorRegistry?) -> SourcePatternDetector
+    /Users/josephcursio/xcode_projects/SwiftProjectLint/Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/PatternRegistryFactory.swift:52
+    the templates could offer only a determinism tautology here (f(x) == f(x), which no wrong code fails). Your docstring is the one refutable contract on this function:
+      "Creates a new SwiftSyntax pattern detector instance.  - Parameter registry: The pattern registry to use. If nil, creates a new one. - Returns: A fresh instance of SourcePatternDetector."
+    encode THAT sentence; it is the law the templates could not name.
+
+  • createConfiguredSystem()  () -> PatternDetectionSystem
+    /Users/josephcursio/xcode_projects/SwiftProjectLint/Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/PatternRegistryFactory.swift:65
+    the templates could offer only a determinism tautology here (f(x) == f(x), which no wrong code fails). Your docstring is the one refutable contract on this function:
+      "Creates a fully configured pattern registry system.  This method creates and initializes all components needed for pattern detection: - A PatternVisitorRegistry - A SourcePatternRegistry (initialized with patterns) - A SourcePatternDetector  - Returns: A PatternDetectionSystem containing all configured components."
+    encode THAT sentence; it is the law the templates could not name.
+
+  • createTestSystem()  () -> PatternDetectionSystem
+    /Users/josephcursio/xcode_projects/SwiftProjectLint/Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/PatternRegistryFactory.swift:85
+    the templates could offer only a determinism tautology here (f(x) == f(x), which no wrong code fails). Your docstring is the one refutable contract on this function:
+      "Creates a test-ready pattern registry system.  This method creates a clean system suitable for testing, with no pre-registered patterns.  - Returns: A PatternDetectionSystem containing all test components."
+    encode THAT sentence; it is the law the templates could not name.
+
+  • isGeneratedFile(at:)  (String) -> Bool
+    /Users/josephcursio/xcode_projects/SwiftProjectLint/Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/ProjectLinter+FileAnalysis.swift:29
+    the `predicate` law openly owes a reference definition — your docstring states one:
+      "Returns true if the file at the given path is machine-generated and should be skipped.  Detection heuristics (any one suffices): - File suffix: `.pb.swift` (protobuf), `.generated.swift` - Header comment: first 5 lines contain "DO NOT EDIT" or "Code generated""
+    encode THAT sentence as the property; the law checks the code against it.
+    ── runnable reference oracle (fill the stub, then run it) ──
+    // Fill in the reference definition below — your docstring already states it:
+    //   "Returns true if the file at the given path is machine-generated and should be skipped.  Detection heuristics (any one suffices): - File suffix: `.pb.swift` (protobuf), `.generated.swift` - Header comment: first 5 lines contain "DO NOT EDIT" or "Code generated""
+    // Then run the test: the generator finds the input where the code disagrees
+    // with its own documentation.
+    func isGeneratedFile_reference(at filePath: String) -> Bool {
+        fatalError("state the reference definition from the docstring, then replace this line")
+    }
+    
+    @Test func isGeneratedFile_matchesReferenceDefinition() async {
+        let backend = SwiftPropertyBasedBackend()
+        let seed = Seed(
+            stateA: 0xC870B76D013E6DAE,
+            stateB: 0xCFDCC006CC353CC2,
+            stateC: 0x2869DB77072605FD,
+            stateD: 0x704808B47E6FC947
+        )
+        let result = await backend.check(
+            trials: 100,
+            seed: seed,
+            sample: { rng in (Gen<Character>.letterOrNumber.string(of: 0...8)).run(using: &rng) },
+            property: { value in isGeneratedFile(at: value) == isGeneratedFile_reference(at: value) }
+        )
+        if case let .failed(_, _, input, error) = result {
+            Issue.record(
+                "isGeneratedFile(at:) disagrees with its documented reference definition at input \(input). \(error?.message ?? "")"
+            )
+        }
+    }
+
+  • collectTypes(_:from:)  (T.Type, [String]) -> Set<String>
+    /Users/josephcursio/xcode_projects/SwiftProjectLint/Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/ProjectLinter+FileAnalysis.swift:47
+    the templates could offer only a determinism tautology here (f(x) == f(x), which no wrong code fails). Your docstring is the one refutable contract on this function:
+      "Scans all project files with a `TypeCollectorProtocol`-conforming visitor and returns the union of collected type names.  This generic pre-scan eliminates duplication across the three collector types (Identifiable, Enum, Actor). Each collector walks the AST once per file and the results are merged into a single set."
+    encode THAT sentence; it is the law the templates could not name.
+
+  • parseAll(_:)  ([String]) -> [SourceFileSyntax]
+    /Users/josephcursio/xcode_projects/SwiftProjectLint/Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/ProjectLinter+FileAnalysis.swift:63
+    the templates could offer only a determinism tautology here (f(x) == f(x), which no wrong code fails). Your docstring is the one refutable contract on this function:
+      "Parses every project file once, for the pre-scan passes that need whole bodies rather than declaration names — `CleanInstanceMethodCatalog`, which has to judge what each method reads."
+    encode THAT sentence; it is the law the templates could not name.
+
+  • relativePath(for:projectRoot:)  (String, String) -> String
+    /Users/josephcursio/xcode_projects/SwiftProjectLint/Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/ProjectLinter+FileAnalysis.swift:237
+    the templates could offer only a determinism tautology here (f(x) == f(x), which no wrong code fails). Your docstring is the one refutable contract on this function:
+      "Project-root-relative path for `filePath`, resolving symlinks on both sides so the prefix drop matches the canonicalized root (e.g. `/var` → `/private/var` on macOS). Falls back to the full resolved path when the file lies outside the declared root — keeps downstream relative-path dedup keys unique."
+    encode THAT sentence; it is the law the templates could not name.
+
+  • parseEvidenceFiles(at:projectRoot:)  ([String], String) -> [(file: ProjectFile, ast: SourceFileSyntax)]
+    /Users/josephcursio/xcode_projects/SwiftProjectLint/Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/ProjectLinter+FileAnalysis.swift:249
+    the templates could offer only a determinism tautology here (f(x) == f(x), which no wrong code fails). Your docstring is the one refutable contract on this function:
+      "Reads and parses evidence-only files into `(ProjectFile, AST)` pairs *without* running per-file detection: they contribute to the cross-file walk but cannot produce reported issues (see the call site for why exclusion is a reporting filter, not an evidence filter). Unreadable files are skipped."
+    encode THAT sentence; it is the law the templates could not name.
+
+  • analyzeProject(at:categories:ruleIdentifiers:detector:configuration:)  (String, [PatternCategory]?, [RuleIdentifier]?, (any SourcePatternDetectorProtocol)?, LintConfiguration) async -> [LintIssue]
+    /Users/josephcursio/xcode_projects/SwiftProjectLint/Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/ProjectLinter.swift:57
+    the templates could offer only a determinism tautology here (f(x) == f(x), which no wrong code fails). Your docstring is the one refutable contract on this function:
+      "Analyzes a SwiftUI project at the specified file system path.  Per-file analysis runs concurrently (throttled to CPU count) using a TaskGroup. Cross-file analysis runs sequentially after all per-file results have been collected.  - Parameters:   - path: The root directory path of the SwiftUI project to analyze.   - categories: Optional array of pattern categories to analyze. If nil, analyzes all categories.   - ruleIdentifiers: Optional array of specific rule identifiers to analyze. If provided, overrides categories.   - detector: Optional pre-configured detector. If nil, a default detector is created.   - configuration: YAML-based configuration for rule/path control. - Returns: An array of `LintIssue` objects describing all detected issues."
+    encode THAT sentence; it is the law the templates could not name.

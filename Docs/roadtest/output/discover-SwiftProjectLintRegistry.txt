@@ -1,0 +1,58 @@
+0 suggestions.
+
+Reference definitions from docstrings (9 functions):
+  A property is the code checked against a definition you state in one sentence. Where you already wrote that sentence, here it is next to the law it defines.
+
+  • getVisitors(for:)  (PatternCategory) -> [PatternVisitorProtocol.Type]
+    /Users/josephcursio/xcode_projects/SwiftProjectLint/Packages/SwiftProjectLintRegistry/Sources/SwiftProjectLintRegistry/PatternVisitorRegistry.swift:64
+    the templates could offer only a determinism tautology here (f(x) == f(x), which no wrong code fails). Your docstring is the one refutable contract on this function:
+      "Retrieves all visitor types for a specific pattern category.  - Parameter category: The pattern category to retrieve visitors for. - Returns: An array of visitor types for the specified category."
+    encode THAT sentence; it is the law the templates could not name.
+
+  • getAllVisitors()  () -> [PatternVisitorProtocol.Type]
+    /Users/josephcursio/xcode_projects/SwiftProjectLint/Packages/SwiftProjectLintRegistry/Sources/SwiftProjectLintRegistry/PatternVisitorRegistry.swift:73
+    the templates could offer only a determinism tautology here (f(x) == f(x), which no wrong code fails). Your docstring is the one refutable contract on this function:
+      "Retrieves all registered visitor types.  - Returns: An array of all registered visitor types."
+    encode THAT sentence; it is the law the templates could not name.
+
+  • getAllPatterns()  () -> [SyntaxPattern]
+    /Users/josephcursio/xcode_projects/SwiftProjectLint/Packages/SwiftProjectLintRegistry/Sources/SwiftProjectLintRegistry/PatternVisitorRegistry.swift:82
+    the templates could offer only a determinism tautology here (f(x) == f(x), which no wrong code fails). Your docstring is the one refutable contract on this function:
+      "Retrieves all registered syntax patterns.  - Returns: An array of all registered syntax patterns."
+    encode THAT sentence; it is the law the templates could not name.
+
+  • getPatterns(for:)  (PatternCategory) -> [SyntaxPattern]
+    /Users/josephcursio/xcode_projects/SwiftProjectLint/Packages/SwiftProjectLintRegistry/Sources/SwiftProjectLintRegistry/PatternVisitorRegistry.swift:92
+    the templates could offer only a determinism tautology here (f(x) == f(x), which no wrong code fails). Your docstring is the one refutable contract on this function:
+      "Retrieves syntax patterns for a specific category.  - Parameter category: The pattern category to retrieve patterns for. - Returns: An array of syntax patterns for the specified category."
+    encode THAT sentence; it is the law the templates could not name.
+
+  • detectPatterns(in:filePath:categories:parsedAST:)  (String, String, [PatternCategory]?, SourceFileSyntax?) -> [LintIssue]
+    /Users/josephcursio/xcode_projects/SwiftProjectLint/Packages/SwiftProjectLintRegistry/Sources/SwiftProjectLintRegistry/SourcePatternDetector.swift:80
+    the templates could offer only a determinism tautology here (f(x) == f(x), which no wrong code fails). Your docstring is the one refutable contract on this function:
+      "Detects patterns in a single Swift source file using SwiftSyntax analysis.  - Parameters:   - sourceCode: The Swift source code to analyze.   - filePath: The file path for the source code (used for issue reporting).   - categories: Optional array of pattern categories to analyze. If nil, analyzes all categories. - Returns: An array of detected lint issues."
+    encode THAT sentence; it is the law the templates could not name.
+
+  • initialize()  () -> Void
+    /Users/josephcursio/xcode_projects/SwiftProjectLint/Packages/SwiftProjectLintRegistry/Sources/SwiftProjectLintRegistry/SourcePatternRegistry.swift:88
+    the templates could offer only a determinism tautology here (f(x) == f(x), which no wrong code fails). Your docstring is the one refutable contract on this function:
+      "Initializes the registry with default patterns.  This method registers all the built-in patterns for various categories including state management, performance, security, accessibility, etc. Custom categories added via `registerFactory(_:)` are also initialized. Registration cannot run under the lock — registrars call back into `self.register()` → `visitorRegistry`, which takes its own locks — so the work necessarily happens outside it. The earlier version handled that by flipping an `isInitialized` flag to `true` *before* the work and releasing the lock, which meant a caller arriving during registration saw "initialized", returned immediately, and read a **partially populated registry**. That surfaced as `getPatterns(for: .memoryManagement)` returning empty in a parallel test run — `MemoryManagement` is the fifth of twelve factories, late enough to miss.  The fix is to make the in-progress state observable. The first caller claims the work and every later one blocks on the condition until registration completes, so no caller can ever see a half-filled registry. Repeat calls after that are still a cheap no-op."
+    encode THAT sentence; it is the law the templates could not name.
+
+  • getPatterns(for:)  (PatternCategory) -> [SyntaxPattern]
+    /Users/josephcursio/xcode_projects/SwiftProjectLint/Packages/SwiftProjectLintRegistry/Sources/SwiftProjectLintRegistry/SourcePatternRegistry.swift:129
+    the templates could offer only a determinism tautology here (f(x) == f(x), which no wrong code fails). Your docstring is the one refutable contract on this function:
+      "Retrieves all registered patterns for a specific category.  - Parameter category: The pattern category to retrieve patterns for. - Returns: An array of syntax patterns for the specified category."
+    encode THAT sentence; it is the law the templates could not name.
+
+  • getAllPatterns()  () -> [SyntaxPattern]
+    /Users/josephcursio/xcode_projects/SwiftProjectLint/Packages/SwiftProjectLintRegistry/Sources/SwiftProjectLintRegistry/SourcePatternRegistry.swift:136
+    the templates could offer only a determinism tautology here (f(x) == f(x), which no wrong code fails). Your docstring is the one refutable contract on this function:
+      "Retrieves all registered patterns.  - Returns: An array of all registered syntax patterns."
+    encode THAT sentence; it is the law the templates could not name.
+
+  • register(registrars:)  ([any PatternRegistrarProtocol]) -> Void
+    /Users/josephcursio/xcode_projects/SwiftProjectLint/Packages/SwiftProjectLintRegistry/Sources/SwiftProjectLintRegistry/SourcePatternRegistry.swift:161
+    the templates could offer only a determinism tautology here (f(x) == f(x), which no wrong code fails). Your docstring is the one refutable contract on this function:
+      "Registers all patterns provided by the given registrars.  This is the primary registration API for category registrars. Each `PatternRegistrarProtocol` conformer provides one or more patterns via its `patterns` property.  - Parameter registrars: An array of pattern registrars to register."
+    encode THAT sentence; it is the law the templates could not name.

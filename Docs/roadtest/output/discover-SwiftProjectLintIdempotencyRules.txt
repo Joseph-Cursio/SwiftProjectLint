@@ -1,0 +1,180 @@
+2 suggestions.
+
+[Suggestion]
+Template: monotonicity
+Score:    25 (Possible)
+
+Why suggested:
+  ✓ line(of:) (some SyntaxProtocol) -> Int — /Users/josephcursio/xcode_projects/SwiftProjectLint/Packages/SwiftProjectLintIdempotencyRules/Sources/SwiftProjectLintIdempotencyRules/Support/CapturedSiteLocation.swift:24
+  ✓ Ordered-codomain signature: some SyntaxProtocol -> Int (Comparable) (+25)
+
+Why this might be wrong:
+  ⚠ Ordered-codomain assumption breaks under custom Comparable conformances that don't satisfy strict order; the curated codomain set (Int, Double, Float, Date, Duration) is the only one M7.1 recognises.
+  ⚠ Possible-tier by default per the §5.2 caveat — explicit @CheckProperty(.monotonic(over:)) annotation escalates to Likely (M5 macro extension is the opt-in path).
+
+Generator: not derived (no strategy matched this type)
+Sampling:  not run; lifted test seed: 0x395492D77D1C24CDB06145F948FEC119143E2E93A94A29F4F55C2A492653F37E
+Identity:  0xA2426A044A2253B0
+Suppress:  // swiftinfer: skip 0xA2426A044A2253B0
+
+[Suggestion]
+Template: predicate
+Score:    20 (Possible)
+
+Why suggested:
+  ✓ isEscaping(_:) (ClosureExprSyntax) -> Bool — /Users/josephcursio/xcode_projects/SwiftProjectLint/Packages/SwiftProjectLintIdempotencyRules/Sources/SwiftProjectLintIdempotencyRules/Support/EscapingClosurePolicy.swift:30
+  ✓ `isEscaping` classifies its inputs — it must be TOTAL over them, and it must agree with a reference definition only you can state (+20)
+
+Why this might be wrong:
+  ⚠ TOTALITY is the only law that follows from the shape, and it is a real one: the predicate must return `true` or `false` for *every* input its type admits — never trap, never crash. Generate the awkward ones: the empty string, a string that is all separators, a value at the type's boundary.
+  ⚠ THE INTERESTING LAW IS NOT FREE, and no tool can invent it for you. A comparator owes a strict weak ordering and a partition owes a tiling *by virtue of being one*; a predicate owes only what its DOMAIN says it owes. State that reference definition in one English sentence, then encode it — that sentence is the property.
+  ⚠ The reference definition is where the bugs are, because the bug is almost always that the CODE says something subtly different from the SENTENCE. "Two addresses name the same mailbox" is a sentence; an implementation that case-folds one side and not the other agrees with it on every example anyone thought to write down, and disagrees on the first generated pair that differs only in case. Write the sentence, encode THAT, and let the generator find where the code drifted from it.
+  ⚠ Bias the generator toward inputs where structure COLLIDES — a small alphabet, repeated components, values equal under one notion and distinct under another. A predicate that has quietly confused two notions agrees with the right answer everywhere the two coincide, so a generator drawing from a wide alphabet will almost never catch it. The counterexample lives in the collisions, and you have to generate them on purpose.
+  ⚠ If you cannot state the reference definition in one true English sentence, that is not a reason to skip the property — it is a finding about the function.
+
+
+Generators the law needs (a uniform one will pass VACUOUSLY):
+
+  // node: ClosureExprSyntax — SwiftSyntax nodes are PARSED, not built. Hand-constructing a `ClosureExprSyntax` produces trees the parser never produces — absent trivia, child arrangements real code cannot have — so the law would be checked against inputs that do not occur and its counterexamples would be unactionable. Generating source and parsing it is the correct domain, not a workaround. Keep the malformed fragments: a predicate over syntax owes totality, and half-written code is what an analyser is handed on every keystroke.
+  // `ClosureExprSyntax` has no `Gen`: SwiftSyntax nodes come out of the parser, not
+  // out of an initialiser. Generate the SOURCE, parse it, and run the law over
+  // every node of the type in the resulting tree.
+  
+  // Paste once per test target:
+  //     extension SyntaxProtocol {
+  //         func descendants<T: SyntaxProtocol>(of type: T.Type) -> [T] {
+  //             children(viewMode: .sourceAccurate).flatMap { child -> [T] in
+  //                 (child.as(T.self).map { [$0] } ?? []) + child.descendants(of: type)
+  //             }
+  //         }
+  //     }
+  
+  let sourceGen = Gen<String?>.element(of: [
+      "struct S { var x = 0 }",
+      "struct V: View { var body: some View { Text(\"hi\") } }",
+      "final class C { func f(_ x: Int) -> Int { x } }",
+      "actor A { func g() async {} }",
+      "enum E { case a, b }",
+      "extension S { var doubled: Int { x * 2 } }",
+      "func free<T>(_ value: T) throws -> T { value }",
+      "let closure = { (n: Int) in n + 1 }",
+      "let escaping: (Int) -> Void = { _ in }",
+      "struct Half { var x =",
+      "func broken( {",
+      "",
+  ] as [String]).map { $0! }
+  
+  await propertyCheck(input: sourceGen) { source in
+      let tree = Parser.parse(source: source)
+      for node in tree.descendants(of: ClosureExprSyntax.self) {
+          // the law, over `node`
+      }
+  }
+Generator: not synthesisable — a construction recipe is given below
+Sampling:  not run; lifted test seed: 0xC6C408EA37668972CA6281DADE75A452F0D75EB80284B3798656E5028AAC4AF2
+Identity:  0x962D06121489D32E
+Suppress:  // swiftinfer: skip 0x962D06121489D32E
+
+Reference definitions from docstrings (7 functions):
+  A property is the code checked against a definition you state in one sentence. Where you already wrote that sentence, here it is next to the law it defines.
+
+  • line(of:)  (some SyntaxProtocol) -> Int
+    /Users/josephcursio/xcode_projects/SwiftProjectLint/Packages/SwiftProjectLintIdempotencyRules/Sources/SwiftProjectLintIdempotencyRules/Support/CapturedSiteLocation.swift:24
+    the templates matched monotonicity by shape, but a correct implementation need not satisfy them — they are guesses, not laws it is owed. Your docstring is the contract that IS owed:
+      "The 1-based line `node` begins on, skipping leading trivia — the lookup every emit site used to spell out by hand."
+    encode THAT sentence; it is the law the templates could not name.
+    ── runnable reference oracle (fill the stub, then run it) ──
+    // Fill in the reference definition below — your docstring already states it:
+    //   "The 1-based line `node` begins on, skipping leading trivia — the lookup every emit site used to spell out by hand."
+    // Then run the test: the generator finds the input where the code disagrees
+    // with its own documentation.
+    // (the return type Int must be Equatable for this to compile)
+    func line_reference(of node: some SyntaxProtocol) -> Int {
+        fatalError("state the reference definition from the docstring, then replace this line")
+    }
+    
+    @Test func line_matchesReferenceDefinition() async {
+        let backend = SwiftPropertyBasedBackend()
+        let seed = Seed(
+            stateA: 0x395492D77D1C24CD,
+            stateB: 0xB06145F948FEC119,
+            stateC: 0x143E2E93A94A29F4,
+            stateD: 0xF55C2A492653F37E
+        )
+        let result = await backend.check(
+            trials: 100,
+            seed: seed,
+            sample: { rng in (some SyntaxProtocol.gen()).run(using: &rng) },
+            property: { value in line(of: value) == line_reference(of: value) }
+        )
+        if case let .failed(_, _, input, error) = result {
+            Issue.record(
+                "line(of:) disagrees with its documented reference definition at input \(input). \(error?.message ?? "")"
+            )
+        }
+    }
+
+  • captureSiteLocation(rootedAt:)  (some SyntaxProtocol) -> CapturedSiteLocation
+    /Users/josephcursio/xcode_projects/SwiftProjectLint/Packages/SwiftProjectLintIdempotencyRules/Sources/SwiftProjectLintIdempotencyRules/Support/CapturedSiteLocation.swift:36
+    the templates could offer only a determinism tautology here (f(x) == f(x), which no wrong code fails). Your docstring is the one refutable contract on this function:
+      "Captures the current file's location for a site being collected during the walk.  Reads the converter the analysis engine set for this file before walking it, falling back to one built from `node.root` if none was set (the same defensive default the visitors carried inline). `rootedAt` only supplies that fallback tree."
+    encode THAT sentence; it is the law the templates could not name.
+
+  • isEscaping(_:)  (ClosureExprSyntax) -> Bool
+    /Users/josephcursio/xcode_projects/SwiftProjectLint/Packages/SwiftProjectLintIdempotencyRules/Sources/SwiftProjectLintIdempotencyRules/Support/EscapingClosurePolicy.swift:30
+    the `predicate` law openly owes a reference definition — your docstring states one:
+      "A closure is escaping when its *nearest* enclosing `FunctionCallExprSyntax` targets a callee in ``calleeNames``. A closure deeply nested inside a non-escaping call is treated as non-escaping relative to the Phase 1 body check — the scope stops at these boundaries."
+    encode THAT sentence as the property; the law checks the code against it.
+    ── runnable reference oracle (fill the stub, then run it) ──
+    // Fill in the reference definition below — your docstring already states it:
+    //   "A closure is escaping when its *nearest* enclosing `FunctionCallExprSyntax` targets a callee in ``calleeNames``. A closure deeply nested inside a non-escaping call is treated as non-escaping relative to the Phase 1 body check — the scope stops at these boundaries."
+    // Then run the test: the generator finds the input where the code disagrees
+    // with its own documentation.
+    func isEscaping_reference(_ closure: ClosureExprSyntax) -> Bool {
+        fatalError("state the reference definition from the docstring, then replace this line")
+    }
+    
+    @Test func isEscaping_matchesReferenceDefinition() async {
+        let backend = SwiftPropertyBasedBackend()
+        let seed = Seed(
+            stateA: 0xC6C408EA37668972,
+            stateB: 0xCA6281DADE75A452,
+            stateC: 0xF0D75EB80284B379,
+            stateD: 0x8656E5028AAC4AF2
+        )
+        let result = await backend.check(
+            trials: 100,
+            seed: seed,
+            sample: { rng in (ClosureExprSyntax.gen()).run(using: &rng) },
+            property: { value in isEscaping(value) == isEscaping_reference(value) }
+        )
+        if case let .failed(_, _, input, error) = result {
+            Issue.record(
+                "isEscaping(_:) disagrees with its documented reference definition at input \(input). \(error?.message ?? "")"
+            )
+        }
+    }
+
+  • imports(forSiteFile:)  (String) -> Set<String>
+    /Users/josephcursio/xcode_projects/SwiftProjectLint/Packages/SwiftProjectLintIdempotencyRules/Sources/SwiftProjectLintIdempotencyRules/Support/SiteImportCache.swift:22
+    the templates could offer only a determinism tautology here (f(x) == f(x), which no wrong code fails). Your docstring is the one refutable contract on this function:
+      "Returns the base module imports for the file that hosts a site."
+    encode THAT sentence; it is the law the templates could not name.
+
+  • visit(_:)  (VariableDeclSyntax) -> SyntaxVisitorContinueKind
+    /Users/josephcursio/xcode_projects/SwiftProjectLint/Packages/SwiftProjectLintIdempotencyRules/Sources/SwiftProjectLintIdempotencyRules/Visitors/IdempotencyViolationVisitor.swift:82
+    the templates could offer only a determinism tautology here (f(x) == f(x), which no wrong code fails). Your docstring is the one refutable contract on this function:
+      "Closure-binding annotation (Phase 2 third slice). A `let`/`var` with a closure-literal initialiser and a `@lint.effect` annotation is treated analogously to an annotated function: the closure's body is walked under the declared effect and any violating call fires the rule. Only triageable caller effects (`idempotent`, `observational`, `externallyIdempotent`) collect a site."
+    encode THAT sentence; it is the law the templates could not name.
+
+  • visit(_:)  (VariableDeclSyntax) -> SyntaxVisitorContinueKind
+    /Users/josephcursio/xcode_projects/SwiftProjectLint/Packages/SwiftProjectLintIdempotencyRules/Sources/SwiftProjectLintIdempotencyRules/Visitors/NonIdempotentInRetryContextVisitor.swift:62
+    the templates could offer only a determinism tautology here (f(x) == f(x), which no wrong code fails). Your docstring is the one refutable contract on this function:
+      "Closure-binding annotation (Phase 2 third slice). A `let`/`var` with a closure-literal initialiser and a `@lint.context` annotation is treated analogously to an annotated function: the closure's body is walked under the declared context, and non-idempotent calls inside it produce diagnostics. Multi-binding decls and non-closure initialisers are silently skipped."
+    encode THAT sentence; it is the law the templates could not name.
+
+  • visit(_:)  (FunctionCallExprSyntax) -> SyntaxVisitorContinueKind
+    /Users/josephcursio/xcode_projects/SwiftProjectLint/Packages/SwiftProjectLintIdempotencyRules/Sources/SwiftProjectLintIdempotencyRules/Visitors/UnannotatedInStrictReplayableContextVisitor.swift:95
+    the templates could offer only a determinism tautology here (f(x) == f(x), which no wrong code fails). Your docstring is the one refutable contract on this function:
+      "Trailing-closure annotation (round-11 grammar extension). An un-bound closure passed to a call with `/// @lint.context strict_replayable` above it becomes an analysis site. Matches the pattern in `NonIdempotentInRetryContextVisitor.visit(_:)`; see that visitor's doc comment for the shape rationale and the TCA adopter round for the prefix-statement gap this helper closes."
+    encode THAT sentence; it is the law the templates could not name.
