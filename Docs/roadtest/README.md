@@ -606,6 +606,34 @@ to the type's prose but *finding the claim inside it*, which is a text-ranking
 problem this heuristic vocabulary does not solve. Recording it as measured and
 declined, in the same spirit as the whole-project `try` resolver.
 
+**Second attempt, killed by a pre-check rather than a revert.** The obvious next
+selector was "lift the sentence under a `## Soundness` / `## Contract` heading",
+proposed on the strength of `CleanInstanceMethodCatalog`, which has exactly that
+heading. Measured across three repos before writing any code:
+
+| Repo | Type docs | With any `##` heading |
+|---|---|---|
+| SwiftProjectLint | 465 | 26 (5%) |
+| SwiftInferProperties | 606 | 4 (0%) |
+| SwiftPropertyLaws | 92 | 0 (0%) |
+
+Contract-*named* headings — `Soundness`, `Contract`, `Guarantees`, `Invariants`,
+`Laws` — total **two across all three repositories**. The real heading vocabulary
+is bespoke prose: "Why this exists", "The gap", "Cross-file dispatch", "Collision
+policy", "Naming choice". There is no convention; there was one file, generalised
+from.
+
+That is the same error as the cue-subset probe an hour earlier — a rule formed
+from the case in hand rather than from the corpus — and the only difference is
+that the check ran first and cost two greps instead of a build and a revert. Both
+failures argue the same thing: *measure the vocabulary, not the example.*
+
+**Fix 5 is closed, not deferred.** Both available selection strategies are
+measured and dead. What would solve it is ranking sentences by whether they state
+a claim *about a value*, which is a semantic judgement this cue vocabulary cannot
+make — a real capability, out of proportion to a feature that fires on 2
+functions in ~37k lines.
+
 **A process failure worth recording too, because it is the one this project keeps
 naming.** The density ranking was validated offline against a **hand-written
 subset** of the cue phrases rather than `contractCues` itself, and against that
