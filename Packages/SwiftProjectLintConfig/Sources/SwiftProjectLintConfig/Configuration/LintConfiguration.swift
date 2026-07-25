@@ -198,14 +198,22 @@ public struct LintConfiguration: Sendable {
                 if excluded { return nil }
             }
 
-            // Apply severity override
+            // Apply severity override.
+            //
+            // Every field must be carried across explicitly: `LintIssue`'s
+            // initialiser defaults `symbol` to nil, so omitting it here does not
+            // downgrade a seed — `PBTSeedsFormatter` drops symbol-less issues
+            // outright, which silently empties the seed manifest for any rule a
+            // user configures a severity on. This is exactly the shape the
+            // `lossyStructRebuild` rule exists to flag; keep it exhaustive.
             if let severity = override.severity {
                 return LintIssue(
                     severity: severity,
                     message: issue.message,
                     locations: issue.locations,
                     suggestion: issue.suggestion,
-                    ruleName: issue.ruleName
+                    ruleName: issue.ruleName,
+                    symbol: issue.symbol
                 )
             }
 
