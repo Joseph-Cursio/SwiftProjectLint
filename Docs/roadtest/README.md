@@ -459,12 +459,63 @@ So K6 moved from **invisible** to **visible but tautological**, which is progres
 in the pipeline and not progress on the benchmark. Counting it as reached would
 be exactly the refutability error Appendix C's scoring rule exists to prevent.
 
-The next refuter is now named, and on this record that is worth stating as a
-hypothesis rather than a plan: the shape wants a law like
-`Set(result) ⊆ Set(RuleIdentifier.allCases)` — a selection out of a `CaseIterable`
-domain, which would be a third member of the `caseiterable-*` family. Three
-previous passes each named the remaining blocker and were wrong, so it should be
-*measured* before it is built.
+### Fix 3′′ — the follow-on, and the hypothesis that was itself a tautology
+
+The write-up above recorded a next step as a hypothesis to measure rather than
+build: `Set(result) ⊆ Set(RuleIdentifier.allCases)`, a selection out of a
+`CaseIterable` domain.
+
+**That hypothesis was wrong, and it was wrong in the most embarrassing available
+way — the proposed law is a tautology.** Every value of a payload-free
+`CaseIterable` enum *is* one of its cases, so `Set(result) ⊆ Set(E.allCases)`
+holds by the type system for every implementation that compiles. Building it
+would have added a fifth `f(x) == f(x)` dressed as a finding. Writing the law
+down before writing the code is the only reason it was caught.
+
+**The real law was already on the page.** The docstring surface's output for
+`resolveRules` names it: *"given optional CLI **overrides**"* — i.e. L6.4 of the
+frozen key, *an explicit value wins*. And it is structurally legible, not merely
+documented: `cliRuleIdentifiers` has the return type **exactly**
+(`[RuleIdentifier]?` → `[RuleIdentifier]?`), which is an unusual signature whose
+overwhelmingly common reason is an override.
+
+**Shipped:** `override-precedence` — `param != nil` implies `result == param`.
+Refutable where it matters: the precedence lives in an early return, and early
+returns migrate. Move it below the rest of the computation and the explicit value
+silently stops winning, with nothing failing to compile.
+
+**Checked for overfitting, because a template built for one function on its own
+benchmark is exactly what this exercise is supposed to distrust.** Fired across
+two unrelated codebases:
+
+| Codebase | Firings | Verdict |
+|---|---|---|
+| SwiftProjectLint (~37k lines) | 1 — `resolveRules` | the motivating case |
+| SwiftInferProperties (~40k lines) | 1 — `resolveVocabularyPath(cliOverride:…)` | **independent true positive** |
+
+The second was not tuned for and is the same idiom (CLI > config > default), with
+the law holding — a correct-today, guarded-against-tomorrow candidate in a repo
+the template never saw. Two firings, two true positives, no false positives. Low
+frequency is what a *specific* idiom should look like; precision is the number
+that matters.
+
+**Kept below the confidence cut on purpose.** A function may legitimately take an
+optional value of its own return type and *merge* rather than replace, which is
+correct code this law rejects — so it is a name-conjecture, not role-entailed,
+and `Refutability`'s argument applies: a tool that proposes a false law is worse
+than one that proposes nothing.
+
+**Scored effect, re-measured rather than counted:**
+
+| Configuration | On the day | After fix 2 | Now |
+|---|---|---|---|
+| `discover` default (templates only) | 1 (K8) | 2 | **2** (K2, K8) |
+| `discover --include-possible` | 2 (K8, K9) | 4 | **5** (K2, K6, K8, K9, K10) |
+| `discover` default, all surfaces | — | 9 | **9** (everything but K7) |
+
+K6 is now reached with a **refutable** law under `--include-possible`, and on a
+default run via the docstring advisory. `determinism` on the Config package fell
+16 → 15 as `resolveRules` moved off the tautology.
 
 ## Net
 
