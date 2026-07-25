@@ -71,6 +71,12 @@ open class BasePatternVisitor: SyntaxVisitor, PatternVisitorProtocol {
     /// The Pure Function Property-Test Candidate rule uses it to allow reading a bare `self`.
     public var knownValueTypes: Set<String> = []
 
+    /// Per type, the sibling methods that are themselves functions of their inputs, so a call to
+    /// one does not make its caller a function of mutable state. Built project-wide by
+    /// `CleanInstanceMethodCatalog` in `ProjectLinter`'s pre-scan, because a type's methods are
+    /// spread across its extensions and a single-file answer would miss most of them.
+    public var knownCleanInstanceMethods = CleanInstanceMethodCatalog.empty
+
     /// Functions **this project declares**, as bare names and labelled names (`matches(name:)`).
     /// Built by `DeclaredFunctionCollector` in `ProjectLinter`'s pre-scan.
     ///

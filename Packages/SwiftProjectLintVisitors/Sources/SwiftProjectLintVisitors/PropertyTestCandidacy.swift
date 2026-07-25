@@ -70,12 +70,14 @@ public enum PropertyTestCandidacy {
     public static func shape(
         of function: FunctionDeclSyntax,
         knownEquatableTypes: Set<String>,
-        knownValueTypes: Set<String> = []
+        knownValueTypes: Set<String> = [],
+        cleanInstanceMethods: CleanInstanceMethodCatalog = .empty
     ) -> PropertyTestShape? {
         candidate(
             of: function,
             knownEquatableTypes: knownEquatableTypes,
-            knownValueTypes: knownValueTypes
+            knownValueTypes: knownValueTypes,
+            cleanInstanceMethods: cleanInstanceMethods
         )?.shape
     }
 
@@ -92,10 +94,14 @@ public enum PropertyTestCandidacy {
     ///   - knownValueTypes: project types declared as `struct` or `enum`. Lets a method in an
     ///     `extension OrderedSet { … }` know its `self` is a value even though the extension's
     ///     syntax never repeats the `struct` keyword — the gate for reading a bare `self`.
+    ///   - cleanInstanceMethods: the pre-scan's per-type catalog of sibling methods that are
+    ///     themselves functions of their inputs, so a call to one does not refute the caller. Empty
+    ///     by default, which refuses every sibling call.
     public static func candidate(
         of function: FunctionDeclSyntax,
         knownEquatableTypes: Set<String>,
-        knownValueTypes: Set<String> = []
+        knownValueTypes: Set<String> = [],
+        cleanInstanceMethods: CleanInstanceMethodCatalog = .empty
     ) -> PropertyTestCandidate? {
         let isPartial: Bool
         switch PurityInferrer().verdict(for: function) {
@@ -112,7 +118,8 @@ public enum PropertyTestCandidacy {
         guard let shape = assertableShape(
             of: function,
             knownEquatableTypes: knownEquatableTypes,
-            knownValueTypes: knownValueTypes
+            knownValueTypes: knownValueTypes,
+            cleanInstanceMethods: cleanInstanceMethods
         ) else {
             return nil
         }
@@ -123,7 +130,8 @@ public enum PropertyTestCandidacy {
     private static func assertableShape(
         of function: FunctionDeclSyntax,
         knownEquatableTypes: Set<String>,
-        knownValueTypes: Set<String>
+        knownValueTypes: Set<String>,
+        cleanInstanceMethods: CleanInstanceMethodCatalog
     ) -> PropertyTestShape? {
         guard returnIsAssertable(
             function.signature,
@@ -139,13 +147,18 @@ public enum PropertyTestCandidacy {
             return .ofInputs
         }
 
-        return instanceShape(of: function, knownValueTypes: knownValueTypes)
+        return instanceShape(
+            of: function,
+            knownValueTypes: knownValueTypes,
+            cleanInstanceMethods: cleanInstanceMethods
+        )
     }
 
     /// The shape of an instance method, decided by what it reads from `self`.
     private static func instanceShape(
         of function: FunctionDeclSyntax,
-        knownValueTypes: Set<String>
+        knownValueTypes: Set<String>,
+        cleanInstanceMethods: CleanInstanceMethodCatalog
     ) -> PropertyTestShape? {
         // A `mutating` method's whole purpose is to change `self`; it is not a function of it.
         guard !isMutating(function) else { return nil }
@@ -157,7 +170,8 @@ public enum PropertyTestCandidacy {
         switch SelfAccessAnalyzer.access(
             of: function,
             storedProperties: container.storedProperties,
-            enclosingIsValueType: container.isValueType
+            enclosingIsValueType: container.isValueType,
+            cleanMethods: cleanInstanceMethods.cleanMethods(on: enclosingTypeName(of: function))
         ) {
         case .unresolvedOrMutable:
             return nil

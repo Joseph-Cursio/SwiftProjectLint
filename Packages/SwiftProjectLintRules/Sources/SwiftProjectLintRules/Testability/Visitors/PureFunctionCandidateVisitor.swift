@@ -41,7 +41,8 @@ final class PureFunctionCandidateVisitor: BasePatternVisitor {
               let candidate = PropertyTestCandidacy.candidate(
                   of: node,
                   knownEquatableTypes: knownEquatableTypes,
-                  knownValueTypes: knownValueTypes
+                  knownValueTypes: knownValueTypes,
+                  cleanInstanceMethods: knownCleanInstanceMethods
               ) else {
             return .visitChildren
         }

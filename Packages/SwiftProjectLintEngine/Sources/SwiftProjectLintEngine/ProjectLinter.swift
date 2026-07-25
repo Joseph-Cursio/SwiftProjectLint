@@ -183,6 +183,10 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
         let values: Set<String>
         let functions: Set<String>
         let defaultedInitializers: Set<String>
+        /// Per type, the sibling methods that are themselves functions of their inputs. Unlike the
+        /// name sets above this needs the parsed bodies, not just declarations, so it is resolved
+        /// by its own fixpoint rather than by `collectTypes`.
+        let cleanInstanceMethods: CleanInstanceMethodCatalog
 
         static func collect(from filePaths: [String]) -> Self {
             Self(
@@ -197,6 +201,9 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
                 functions: collectTypes(DeclaredFunctionCollector.self, from: filePaths),
                 defaultedInitializers: collectTypes(
                     DefaultedInitializerCollector.self, from: filePaths
+                ),
+                cleanInstanceMethods: CleanInstanceMethodCatalog.build(
+                    from: parseAll(filePaths)
                 )
             )
         }
@@ -217,6 +224,7 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
         resolved.knownProtocolTypes = collected.protocols
         resolved.knownEquatableTypes = collected.equatable
         resolved.knownValueTypes = collected.values
+        resolved.knownCleanInstanceMethods = collected.cleanInstanceMethods
         resolved.knownProjectFunctions = collected.functions
         resolved.knownDefaultedInitializerTypes = collected.defaultedInitializers
         resolved.layerPolicies = configuration.architecturalLayers

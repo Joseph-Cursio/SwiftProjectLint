@@ -40,6 +40,10 @@ public final class SourcePatternDetector: SourcePatternDetectorProtocol, @unchec
     /// `ProjectLinter` after a pre-scan phase and passed through to visitors.
     public var knownValueTypes: Set<String> = []
 
+    /// Per type, sibling methods cleared as functions of their inputs. Set by `ProjectLinter`
+    /// after a pre-scan and passed through to visitors.
+    public var knownCleanInstanceMethods = CleanInstanceMethodCatalog.empty
+
     /// Functions this project declares, by bare and labelled name. Set by `ProjectLinter` after a
     /// pre-scan and passed through to visitors.
     public var knownProjectFunctions: Set<String> = []
@@ -191,6 +195,7 @@ public final class SourcePatternDetector: SourcePatternDetectorProtocol, @unchec
             visitor.knownProtocolTypes = knownProtocolTypes
             visitor.knownEquatableTypes = knownEquatableTypes
             visitor.knownValueTypes = knownValueTypes
+            visitor.knownCleanInstanceMethods = knownCleanInstanceMethods
             visitor.knownProjectFunctions = knownProjectFunctions
             visitor.knownDefaultedInitializerTypes = knownDefaultedInitializerTypes
             visitor.layerPolicies = layerPolicies

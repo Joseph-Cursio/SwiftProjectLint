@@ -58,6 +58,15 @@ extension ProjectLinter {
         return allTypes
     }
 
+    /// Parses every project file once, for the pre-scan passes that need whole bodies rather than
+    /// declaration names — `CleanInstanceMethodCatalog`, which has to judge what each method reads.
+    static func parseAll(_ filePaths: [String]) -> [SourceFileSyntax] {
+        filePaths.compactMap { filePath in
+            guard let content = try? String(contentsOfFile: filePath) else { return nil }
+            return Parser.parse(source: content)
+        }
+    }
+
     /// Adjusts configuration for Swift Packages: disables `publicInAppTarget`,
     /// excludes executable source paths from the `printStatement` rule, and suppresses
     /// `unusedProtocolAbstraction` when first-party nested packages are out of scope.
