@@ -315,6 +315,39 @@ Two suites needed input built in a proxy representation (Swift source strings
 parsed into `SourceFileSyntax`; `DirectoryNode` trees assembled by hand) — the
 recipe fix 4 would automate.
 
+## Since the road test — what shipped, and what it moved
+
+Recorded as an addendum rather than folded into the numbers above. The scored
+result is a measurement taken on a date; rewriting it to reflect later fixes
+would be the denominator-moving this exercise exists to avoid.
+
+| Fix | Where | Status |
+|---|---|---|
+| 1 — `--docstring-advice` on by default | SwiftInferProperties `ec7604c` | shipped |
+| 2 — `CaseIterable` mapping law family | SwiftInferProperties | shipped |
+
+**Fix 1** flips a default; it surfaces nothing that was not already reachable by
+passing a flag, so it moves the *default-run* row from 2 to 8 and changes no
+capability.
+
+**Fix 2** is new capability: `caseiterable-key-injectivity` and
+`caseiterable-case-coverage`, both name-conjectured and Possible-tier. On this
+subject they fire exactly twice across ~37k lines — `suppressionKey` earns the
+injectivity law, `category` earns the coverage law — with no false positives and
+no cross-firing. K2 and K10 are now reached by the template catalog itself
+rather than only by the docstring surface.
+
+The design point worth carrying: injectivity is **not** shape-entailed. This
+subject's own `category` maps 197 rules onto 11 categories deliberately, so a
+template that proposed distinctness for every enum mapping would fail on correct
+code. The name and the codomain decide which of the two laws is owed.
+
+**Re-measured default run: 4 of 10** (K2, K8, K9, K10), against 2 on the day.
+The union across surfaces is unchanged at 9 of 10 — fix 2 moved candidates from
+"only the docstring surface finds these" into the catalog proper, which is a
+robustness gain rather than a reach gain. K7 remains correctly unreached: it is
+impure.
+
 ## Net
 
 The loop found **two real bugs and four clean guards** on a codebase whose 2931
