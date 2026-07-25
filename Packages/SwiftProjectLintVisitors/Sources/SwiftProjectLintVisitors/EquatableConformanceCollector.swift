@@ -31,7 +31,40 @@ public final class EquatableConformanceCollector: SyntaxVisitor, TypeCollectorPr
 
     override public func visit(_ node: EnumDeclSyntax) -> SyntaxVisitorContinueKind {
         record(node.name.text, node.inheritanceClause)
+        // An enum with no associated values is `Equatable` and `Hashable` whether
+        // or not it says so — the compiler synthesises both, and a raw-value enum
+        // cannot carry associated values, so this covers `enum R: String` and
+        // bare `enum C { case a, b }` alike.
+        //
+        // Recording only *declared* conformances missed those, and the omission
+        // was load-bearing rather than cosmetic: `PropertyTestCandidacy` gates a
+        // seed on the return type being assertable, so a pure function returning
+        // `[RuleIdentifier]` — an enum Equatable by language guarantee — was
+        // silently refused as a property-test candidate. Measured on this
+        // codebase, that alone was what kept `LintConfiguration.resolveRules` out
+        // of the seed manifest; its purity verdict was `.pure` all along.
+        //
+        // This is a language guarantee, not a heuristic, so it cannot admit a
+        // type that is not really `Equatable`.
+        if hasNoAssociatedValues(node) {
+            equatableTypes.insert(node.name.text)
+        }
         return .visitChildren
+    }
+
+    /// Whether every case of `node` is payload-free.
+    ///
+    /// An enum with associated values is `Equatable` only when it *declares* it
+    /// (and only if every payload is itself `Equatable`), which the compiler
+    /// checks — so those stay gated on the declared conformance above.
+    private func hasNoAssociatedValues(_ node: EnumDeclSyntax) -> Bool {
+        for member in node.memberBlock.members {
+            guard let caseDecl = member.decl.as(EnumCaseDeclSyntax.self) else { continue }
+            for element in caseDecl.elements where element.parameterClause != nil {
+                return false
+            }
+        }
+        return true
     }
 
     override public func visit(_ node: ClassDeclSyntax) -> SyntaxVisitorContinueKind {
