@@ -571,6 +571,49 @@ zero. K10 is not role-entailed, so nothing rescued it — seeding `category` is
 what makes it survive. **One law recovered on the seeded path**, not two, and the
 scored table is unchanged either way.
 
+### Fix 5 — built, measured, reverted
+
+Toolchain finding 7: the docstring advisory reads only the function's own doc
+comment, so `CleanInstanceMethodCatalog.build(from:)` is paired with *"Resolves
+the catalog over every parsed source in the project"* — a restatement of the
+signature — while the law sits one declaration away on the **type**: *"Resolution
+runs to a fixpoint, so a chain resolves regardless of declaration order, and a
+cycle simply never promotes."* That is the sentence K1's property was written
+from.
+
+Built end to end: `TypeDecl` gained a doc comment (it captured none), the scanner
+populated it at all five declaration sites, the pipeline threaded it, and the
+advisory attached it — gated to functions that *produce* the type, so a type's
+sentence could not be sprayed across every method it declares.
+
+**The mechanism worked. The selection did not.** A type's doc comment is an
+essay: rationale, headings, a worked example, and the contract somewhere inside.
+`CleanInstanceMethodCatalog`'s runs past 1500 characters. Handing that back
+defeats an advisory whose promise is *here is the sentence*, so the prose has to
+be **selected** — and two heuristics failed:
+
+- **First cue-bearing sentences**: returns two paragraphs of motivation. The
+  contract is stated *after* the rationale, which is how people write.
+- **Highest cue density**: returns three rationale sentences, and neither law.
+
+Measured outcome: it fires on **2 functions across ~37k lines**, and on the one
+case that motivated it, it surfaces the wrong prose. A pointer that reliably
+points at the wrong sentence spends the reader's trust — the same argument
+`Refutability` makes about crying wolf, applied to advice rather than laws.
+
+**Reverted.** The gap is real and the diagnosis holds; the blocker is not access
+to the type's prose but *finding the claim inside it*, which is a text-ranking
+problem this heuristic vocabulary does not solve. Recording it as measured and
+declined, in the same spirit as the whole-project `try` resolver.
+
+**A process failure worth recording too, because it is the one this project keeps
+naming.** The density ranking was validated offline against a **hand-written
+subset** of the cue phrases rather than `contractCues` itself, and against that
+proxy it looked like it worked — it surfaced both law sentences. Run with the
+real vocabulary it surfaced neither. That is Finding C exactly ("verified on a
+`YAMLConfig`-**shaped** probe"), committed while invoking the discipline that
+forbids it. The probe has to use the real thing, or it is not a probe.
+
 ## Net
 
 The loop found **two real bugs and four clean guards** on a codebase whose 2931
