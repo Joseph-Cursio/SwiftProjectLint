@@ -102,7 +102,8 @@ final class ExtractablePureKernelVisitor: BasePatternVisitor {
             lineNumber: getLineNumber(for: Syntax(kernel.anchor)),
             suggestion: kernel.suggestion,
             ruleName: .extractablePureKernel,
-            symbol: node.name.text
+            symbol: node.name.text,
+            role: kernel.role
         )
         return .visitChildren
     }
@@ -233,6 +234,22 @@ private struct KernelScan {
         if hasGoverningComparison { count += 1 }
         if hasSlicingArithmetic { count += 1 }
         return count
+    }
+
+    /// What this kernel **is**, for the seed manifest.
+    ///
+    /// Only claimed where the shape actually entails it. A tiler — slicing arithmetic mapping an
+    /// index to a part — is a `partition`, and a partition owes a tiling by virtue of being one;
+    /// that is a law a correct implementation cannot fail, which is what makes it worth carrying.
+    /// The path shape is a `normalizer`: its round-trip and idempotence are real but conjectured,
+    /// and the manifest says so rather than overclaiming.
+    ///
+    /// A fraction-only kernel gets `nil`. Progress arithmetic is a kernel worth extracting, but
+    /// "monotone and terminates at 1.0" is not one of the roles this vocabulary names, and inventing
+    /// a role to fill the field would be worse than leaving it empty.
+    var role: PBTSeedRole? {
+        if !isArithmeticKernel, isPathKernel { return .normalizer }
+        return hasSlicingArithmetic ? .partition : nil
     }
 
     var summary: String {

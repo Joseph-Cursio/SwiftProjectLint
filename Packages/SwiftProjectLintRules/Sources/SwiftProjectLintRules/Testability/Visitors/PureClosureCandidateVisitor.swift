@@ -77,7 +77,8 @@ final class PureClosureCandidateVisitor: BasePatternVisitor {
             suggestion: "Lift it into a named function. Anything it captures becomes a parameter, "
                 + "and what is left is a pure function you can generate inputs for.",
             ruleName: .pureClosureCandidate,
-            symbol: enclosingDeclarationName(of: node) ?? operation.name
+            symbol: enclosingDeclarationName(of: node) ?? operation.name,
+            role: operation.kind.seedRole
         )
         return .visitChildren
     }
@@ -155,6 +156,28 @@ private struct CollectionOperation {
         case predicate
         case transform
         case reducer
+
+        /// The manifest's vocabulary for this classification.
+        ///
+        /// The rule has always known which of these a closure is — it picks the law sentence off
+        /// exactly this distinction. Until the manifest grew a `role` field, that knowledge reached
+        /// the reader as prose and reached the downstream tool not at all, so every finding here
+        /// arrived as an undifferentiated "extractable-kernel at line N".
+        var seedRole: PBTSeedRole {
+            switch self {
+            case .comparator:
+                return .comparator
+
+            case .predicate:
+                return .predicate
+
+            case .transform:
+                return .transform
+
+            case .reducer:
+                return .reducer
+            }
+        }
     }
 
     let name: String

@@ -56,12 +56,30 @@ public struct PBTSeed: Codable, Sendable {
     public let rule: String
     public let kind: PBTSeedKind
 
-    public init(file: String, line: Int, symbol: String, rule: String, kind: PBTSeedKind) {
+    /// What the logic **is** — comparator, predicate, partition — when the rule classified it.
+    ///
+    /// `symbol` says where to look; `kind` says whether a tool can call it yet; this says what law
+    /// it owes. Absent when the rule that produced the seed classifies nothing, which is every rule
+    /// but the two candidate rules.
+    ///
+    /// Encoded only when present, so a seed with no role is byte-identical to one written before
+    /// this field existed.
+    public let role: PBTSeedRole?
+
+    public init(
+        file: String,
+        line: Int,
+        symbol: String,
+        rule: String,
+        kind: PBTSeedKind,
+        role: PBTSeedRole? = nil
+    ) {
         self.file = file
         self.line = line
         self.symbol = symbol
         self.rule = rule
         self.kind = kind
+        self.role = role
     }
 
     /// A manifest written by an older linter has no `kind`. Default it to `.pureFunction`, which is
@@ -73,6 +91,9 @@ public struct PBTSeed: Codable, Sendable {
         self.symbol = try container.decode(String.self, forKey: .symbol)
         self.rule = try container.decode(String.self, forKey: .rule)
         self.kind = try container.decodeIfPresent(PBTSeedKind.self, forKey: .kind) ?? .pureFunction
+        // A manifest from a producer that does not classify roles simply has none. Unknown is a
+        // legitimate answer here, unlike `kind`, where absence had to mean `.pureFunction`.
+        self.role = try container.decodeIfPresent(PBTSeedRole.self, forKey: .role)
     }
 }
 
@@ -208,7 +229,8 @@ public struct PBTSeedsFormatter: IssueFormatterProtocol {
                 line: issue.lineNumber,
                 symbol: symbol,
                 rule: issue.ruleName.rawValue,
-                kind: kind
+                kind: kind,
+                role: issue.role
             )
         }
 

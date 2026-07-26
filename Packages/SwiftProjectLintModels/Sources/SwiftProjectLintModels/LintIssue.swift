@@ -38,6 +38,12 @@ public struct LintIssue: Identifiable, Sendable {
     /// worth property-testing. `nil` when the rule reports no specific symbol.
     public let symbol: String?
 
+    /// What the seeded logic *is* — a comparator, a predicate, a partition — when the rule can
+    /// classify it. `symbol` says where to look and `PBTSeedKind` says whether a tool can call it
+    /// yet; this says what law it owes, which is the one thing the linter knows and the downstream
+    /// tool has to guess. `nil` for rules that classify nothing.
+    public let role: PBTSeedRole?
+
     /// Returns the file path of the first location, or an empty string if no locations exist.
     public var filePath: String {
         locations.first?.filePath ?? ""
@@ -62,7 +68,8 @@ public struct LintIssue: Identifiable, Sendable {
         locations: [(filePath: String, lineNumber: Int)],
         suggestion: String?,
         ruleName: RuleIdentifier,
-        symbol: String? = nil
+        symbol: String? = nil,
+        role: PBTSeedRole? = nil
     ) {
         self.severity = severity
         self.message = message
@@ -70,6 +77,7 @@ public struct LintIssue: Identifiable, Sendable {
         self.suggestion = suggestion
         self.ruleName = ruleName
         self.symbol = symbol
+        self.role = role
     }
 
     /// Initializes a lint issue with a single location.
@@ -89,7 +97,8 @@ public struct LintIssue: Identifiable, Sendable {
         lineNumber: Int,
         suggestion: String?,
         ruleName: RuleIdentifier,
-        symbol: String? = nil
+        symbol: String? = nil,
+        role: PBTSeedRole? = nil
     ) {
         self.severity = severity
         self.message = message
@@ -97,5 +106,6 @@ public struct LintIssue: Identifiable, Sendable {
         self.suggestion = suggestion
         self.ruleName = ruleName
         self.symbol = symbol
+        self.role = role
     }
 }
