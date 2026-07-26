@@ -11,6 +11,7 @@ Why suggested:
 Why this might be wrong:
   ⚠ Ordered-codomain assumption breaks under custom Comparable conformances that don't satisfy strict order; the curated codomain set (Int, Double, Float, Date, Duration) is the only one M7.1 recognises.
   ⚠ Possible-tier by default per the §5.2 caveat — explicit @CheckProperty(.monotonic(over:)) annotation escalates to Likely (M5 macro extension is the opt-in path).
+  ⚠ THIS LAW IS A CONJECTURE — read off the shape and the name, not entailed by either, so a CORRECT implementation can fail it. A `T -> T` need not be idempotent (a one-shot suffix strip applied twice removes two suffixes); a `(T, T) -> T` need not commute (subtraction, division, concatenation). Confirm the claim is meant to hold before encoding it — and if it is not, that is a finding about the function, not a reason to skip the property.
 
 Generator: not derived (no strategy matched this type)
 Sampling:  not run; lifted test seed: 0x395492D77D1C24CDB06145F948FEC119143E2E93A94A29F4F55C2A492653F37E

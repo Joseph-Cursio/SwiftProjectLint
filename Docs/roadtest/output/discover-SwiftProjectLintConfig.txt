@@ -17,6 +17,7 @@ Why this might be wrong:
   ⚠ GENERATE THE OTHER ARGUMENTS NON-EMPTY. This law passes vacuously when everything else is nil or empty, because then merging and overriding agree. The counterexample needs a populated configuration AND an override that contradicts it — draw both from a small pool so they genuinely conflict.
   ⚠ PRECEDENCE IS NAME-CONJECTURED, not shape-entailed. A function may legitimately take an optional value of its own return type and MERGE it — defaults-with-fallback, or an accumulate-into shape — which is correct code that fails this law. Confirm the parameter is obeyed rather than combined.
   ⚠ If two parameters could each override, the law is owed for each INDEPENDENTLY and their relative precedence is a separate claim the signature does not state.
+  ⚠ THIS LAW IS A CONJECTURE — read off the shape and the name, not entailed by either, so a CORRECT implementation can fail it. A `T -> T` need not be idempotent (a one-shot suffix strip applied twice removes two suffixes); a `(T, T) -> T` need not commute (subtraction, division, concatenation). Confirm the claim is meant to hold before encoding it — and if it is not, that is a finding about the function, not a reason to skip the property.
 
 Generator: not derived (no strategy matched this type)
 Sampling:  not run; lifted test seed: 0x0453A6002BA4CFB9EE79A93CDC3AA66148C852B7FC97B202D7465A0203EB4079
@@ -35,8 +36,8 @@ Why suggested:
   ✓ Value-semantic carrier (FileAnalysisUtils) — algebraic property is well-defined under aliasing (+5)
 
 Why this might be wrong:
-  ⚠ T must conform to Equatable for the emitted property to compile. SwiftInfer M1 does not verify protocol conformance — confirm before applying.
   ⚠ If T is a class with a custom ==, the property is over value equality as T.== defines it.
+  ⚠ THIS LAW IS A CONJECTURE — read off the shape and the name, not entailed by either, so a CORRECT implementation can fail it. A `T -> T` need not be idempotent (a one-shot suffix strip applied twice removes two suffixes); a `(T, T) -> T` need not commute (subtraction, division, concatenation). Confirm the claim is meant to hold before encoding it — and if it is not, that is a finding about the function, not a reason to skip the property.
 
 Generator: .derivedComposite, confidence: .high
 Sampling:  not run; lifted test seed: 0x3053C1C6715DAE8EC99966965FDCAA080A629AA6CBC69D818EB3453EB3C95D1D
@@ -57,7 +58,8 @@ Why suggested:
 
 Why this might be wrong:
   ⚠ Throws on either side narrows the property's domain to the success set of the inner function; a generator that produces values outside that set will surface false-positive failures (Appendix B.4).
-  ⚠ T must conform to Equatable for the emitted property to compile. SwiftInfer M1 does not verify protocol conformance — confirm before applying.
+  ⚠ T must conform to Equatable for the emitted property to compile. This tool does not verify protocol conformance — confirm before applying.
+  ⚠ THIS LAW IS A CONJECTURE — read off the shape and the name, not entailed by either, so a CORRECT implementation can fail it. A `T -> T` need not be idempotent (a one-shot suffix strip applied twice removes two suffixes); a `(T, T) -> T` need not commute (subtraction, division, concatenation). Confirm the claim is meant to hold before encoding it — and if it is not, that is a finding about the function, not a reason to skip the property.
 
 Generator: .derivedComposite, confidence: .high
 Sampling:  not run; lifted test seed: 0xAE3292A551EDFFDEF1DC88736CC7BAB26614E6E295782C05343076C5A9E6C5F1
@@ -109,8 +111,8 @@ Why suggested:
   ✓ Value-semantic carrier (FileAnalysisUtils) — algebraic property is well-defined under aliasing (+5)
 
 Why this might be wrong:
-  ⚠ T must conform to Equatable for the emitted property to compile. SwiftInfer M1 does not verify protocol conformance — confirm before applying.
   ⚠ If T is a class with a custom ==, the property is over value equality as T.== defines it.
+  ⚠ THIS LAW IS A CONJECTURE — read off the shape and the name, not entailed by either, so a CORRECT implementation can fail it. A `T -> T` need not be idempotent (a one-shot suffix strip applied twice removes two suffixes); a `(T, T) -> T` need not commute (subtraction, division, concatenation). Confirm the claim is meant to hold before encoding it — and if it is not, that is a finding about the function, not a reason to skip the property.
 
 Generator: .derivedComposite, confidence: .high
 Sampling:  not run; lifted test seed: 0x11BD4223CE6567B99CD009946AA0A9BA03F334DBF94FC757829CC9EC6A3E888B
@@ -131,7 +133,7 @@ Why suggested:
 Why this might be wrong:
   ⚠ THE LAW IS `Set(result) ⊆ Set(haystack)` — a filter returns only elements it was given. It is refutable where it matters: a `filter` that quietly maps, appends a default, or reads from another source returns an element that was never in the input, and this law rejects exactly that.
   ⚠ SUBSET IS NAME-CONJECTURED, not shape-entailed. A `[T] -> [T]` that TRANSFORMS its elements (a map: `[1,2] -> [2,4]`) has the same shape and is a false positive — the law holds only because the NAME asserts selection. Confirm the function selects rather than transforms.
-  ⚠ The element type must be Equatable (or Hashable) for the membership check to compile. SwiftInfer M1 does not verify conformance — confirm before applying.
+  ⚠ The element type must be Equatable (or Hashable) for the membership check to compile. This tool does not verify conformance — confirm before applying.
   ⚠ Bias the generator so elements COLLIDE (a small alphabet, repeated values): a filter that mishandles equal-but-distinct elements fails only where the input repeats.
 
 Generator: not derived (no strategy matched this type)

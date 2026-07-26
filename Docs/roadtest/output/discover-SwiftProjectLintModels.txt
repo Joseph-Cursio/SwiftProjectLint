@@ -59,6 +59,7 @@ Why this might be wrong:
   ⚠ CHECK IT EXHAUSTIVELY, NOT BY SAMPLING. The domain is 197 cases and fully enumerable, so iterate `allCases`. A sampled run over this domain can miss the one newly-added case and report success.
   ⚠ AN EXHAUSTIVE `switch` IS NOT THIS LAW. The compiler forces every case to be MENTIONED; it cannot force it to be mentioned somewhere other than the sink arm. If the mapping uses a `default:` arm, the compiler is not even doing that much, and this law is the only check there is.
   ⚠ SINK ROUTING IS NAME-CONJECTURED. `.other` is read as a sink because of its NAME; it may be a perfectly ordinary member of the codomain. If it is, this law does not apply — say so and move on.
+  ⚠ THIS LAW IS A CONJECTURE — read off the shape and the name, not entailed by either, so a CORRECT implementation can fail it. A `T -> T` need not be idempotent (a one-shot suffix strip applied twice removes two suffixes); a `(T, T) -> T` need not commute (subtraction, division, concatenation). Confirm the claim is meant to hold before encoding it — and if it is not, that is a finding about the function, not a reason to skip the property.
 
 Generator: .derivedCaseIterable, confidence: .high
 Sampling:  not run; lifted test seed: 0x12B1EA865445BFC2C888738E843DE5B01498085E20B1FD7B3157AA48E607D812

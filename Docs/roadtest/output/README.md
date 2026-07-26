@@ -5,7 +5,14 @@ The actual output of both tools on this repository, so the claims in
 summary.
 
 Generated 2026-07-25, against SwiftProjectLint at the commit that added the
-road-test suites, with `swift-infer` @ `39ca16e`.
+road-test suites, with `swift-infer` @ `271e409`.
+
+Regenerating rewrites these files verbatim, which drops the blank-line
+separation between suggestion blocks in
+`discover-SwiftProjectLintConfig.txt` — that spacing is a hand-added reading
+aid, not tool output. Re-insert two blank lines before each `[Suggestion]`
+after a regeneration, or the diff will look like a content change when it is
+not.
 
 ## What is here, and what is not
 
