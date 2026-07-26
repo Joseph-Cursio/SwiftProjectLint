@@ -95,12 +95,49 @@ written, and each gate below exists because that audit turned up a case that nee
    disagree.
 2. **Closure bodies are skipped.** A kernel living wholly inside a `filter` predicate belongs to
    [Pure Closure Property-Test Candidate](pure-closure-candidate.md), reported once.
-3. **The arithmetic must govern a decision.** A derived value that is merely *stored* is not a
-   kernel — it has to become a **loop bound, an index, a slice range, a comparison, or a progress
-   fraction**. This is the clause that separates chunking math from a local variable someone extracted
-   for readability, and it is why `navigateUp`'s pure path arithmetic is deliberately *not* reported
-   (its result is assigned, not used as a bound). That shape is a state-machine law — `up ∘ down ==
-   id` — and it belongs to a different template.
+3. **The derivation must govern a decision.** A derived value that is merely *stored* is not a
+   kernel — it has to become a **loop bound, an index, a slice range, a comparison, a membership
+   test, or a progress fraction**. This is the clause that separates chunking math from a local
+   variable someone extracted for readability, and it is why `navigateUp`'s pure path arithmetic is
+   deliberately *not* reported (its result is assigned, not used as a bound). That shape is a
+   state-machine law — `up ∘ down == id` — and it belongs to a different template.
+
+### Two shapes, and how the second one was found
+
+Gates 1 and 2 apply to both shapes; gate 3 is what each shape has to satisfy.
+
+| | **Arithmetic** | **Path / string** |
+|---|---|---|
+| Derivation | `let total = (count + size - 1) / size` | `let prefix = root.hasSuffix("/") ? root : root + "/"` |
+| Governing use | loop bound, index, slice with an operator, fraction | slice driven by a `.count`, membership test, or a comparison **naming** the binding |
+| Law it owes | the parts tile the whole; progress terminates at 1.0 | the derivation round-trips; normalisation is idempotent |
+| Bug it catches | off-by-one counts, unclamped resume index | off-by-one prefixes, a suffix stripped from the wrong end |
+
+The second shape exists because the rule was run over a 60k-line linter and reported **nothing at
+all** — and that silence was not "this code is clean". The linter's impure methods enumerate
+directories and derive paths, and a path kernel has no operator reaching a bound, so every gate
+walked past it. `dropFirst(prefix.count)` is a slice with no arithmetic in it anywhere.
+
+Admitting it **narrows** gate 3 rather than widening it. A derived display string still does not
+fire, because it governs nothing. What changed is that "governs" now includes deciding *with* a
+string, not only bounding a loop with a number.
+
+Its governing test is deliberately stricter than the arithmetic shape's. That one accepts any
+comparison containing an arithmetic operator, whatever names it mentions; since `+` on strings is
+concatenation, reusing it here vouched for derivations it had nothing to do with. The path shape
+requires the comparison to actually name the binding.
+
+**Measured, on two codebases:**
+
+| Corpus | Before | After | Lost |
+|---|---|---|---|
+| SwiftProjectLint (876 findings) | 0 | 2 | 0 |
+| SwiftInferProperties (2421 findings) | 1 | 9 | 0 |
+
+Eight of the nine new findings are the same `findPackageRoot` walk-up, inlined in eight files. The
+law is that the walk **terminates**, and it is unreachable from a test because the derivation is
+welded to a hardcoded `FileManager.default`. The threshold of two derivations is a cheap guard, not
+the thing providing the precision: relaxing it to one changes nothing on either corpus.
 
 ### Non-Violating Examples
 
@@ -190,10 +227,20 @@ func collect(_ bytes: URLSession.AsyncBytes, expecting expectedBytes: Int64) asy
 - **A binding whose initialiser calls anything but a numeric conversion is not counted.** The rule
   will not vouch for work it cannot see, so a kernel assembled through a helper call is missed.
   Conservative in the direction of silence.
-- **Clause 3 excludes classification.** A pure `getFileIcon(for:)` mapping an extension to an asset
-  name has a law worth stating, but its result is a display string, not a bound or a fraction. It is
-  the function rule's finding, not this one's — and if it were `private` inside an impure method, this
-  rule would miss it.
+- **Clause 3 excludes classification whose result decides nothing.** A pure `getFileIcon(for:)`
+  mapping an extension to an asset name has a law worth stating, but its result is a display string
+  that is returned, not a bound, a slice or a lookup key. It is the function rule's finding, not this
+  one's — and if it were inlined in an impure method, this rule still misses it.
+
+  *Partially closed.* Classification that **governs** — `skipped.contains(dirName)` deciding whether
+  to prune a subtree — is now the path shape's finding. What remains excluded is classification
+  whose result is merely returned or stored.
+- **The path shape needs two chained derivations.** A single one that slices is not enough. Measured
+  as inert on both corpora tested, so a codebase with one-step path kernels would be missed; the
+  guard is kept because it is cheap and the shapes it would admit are unmeasured.
+- **Duplicated kernels are reported once per copy.** The eight `findPackageRoot` findings in
+  SwiftInferProperties are eight real sites, but one refactor closes all of them. The rule has no
+  cross-file identity for a kernel, so it cannot say so.
 
 ### Remediation
 

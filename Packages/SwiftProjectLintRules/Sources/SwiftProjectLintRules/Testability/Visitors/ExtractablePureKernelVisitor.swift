@@ -40,12 +40,31 @@ import SwiftSyntax
 ///   function with nothing to extract.
 /// - **Closure bodies are skipped.** `pureClosureCandidate` owns those, and a kernel that lives
 ///   wholly inside a `filter` predicate is that rule's finding, reported once.
-/// - **Arithmetic must feed a decision.** A derived value that is merely *stored* is not a kernel —
-///   it has to govern something: a loop bound, an index, a slice range, a comparison, or a progress
-///   fraction. This is the clause that separates chunking math from a local variable someone
-///   extracted for readability, and it is why `navigateUp`'s pure path arithmetic is deliberately
-///   *not* reported here (its result is assigned, not used as a bound) — that shape is a
-///   state-machine law, and it belongs to a different template.
+/// - **A derivation must feed a decision.** A derived value that is merely *stored* is not a kernel
+///   — it has to govern something: a loop bound, an index, a slice range, a comparison, or a
+///   progress fraction. This is the clause that separates chunking math from a local variable
+///   someone extracted for readability, and it is why `navigateUp`'s pure path arithmetic is
+///   deliberately *not* reported here (its result is assigned, not used as a bound) — that shape is
+///   a state-machine law, and it belongs to a different template.
+///
+/// ## Two shapes, because one of them was found by the rule scoring zero
+///
+/// The gates above describe the **arithmetic** shape. It was the only shape for as long as the rule
+/// was only ever pointed at an app whose bugs were chunking math — and then the rule was run over a
+/// 60k-line linter and reported **nothing at all**. Not "this code is clean": the linter's impure
+/// methods enumerate directories and derive paths, and a path kernel has no operator reaching a
+/// bound, so every gate walked past it. `dropFirst(prefix.count)` is a slice with no arithmetic in
+/// it anywhere.
+///
+/// So there is a second shape: a **path/string derivation that governs a decision**. Two strings
+/// derived and chained, then used to slice, to compare, or to look up. Its law is a round-trip and
+/// an idempotent normalisation rather than a tiling, and its bugs are off-by-one prefixes rather
+/// than off-by-one counts — including both of the bugs this project's own property-test road test
+/// found.
+///
+/// Admitting it narrows the third gate rather than widening it: a derived *display string* still
+/// does not fire, because it governs nothing. What changed is that "governs" now includes deciding
+/// with a string, not only bounding a loop with a number.
 ///
 /// `info` severity; opt-in. Reports a refactor, not a defect.
 final class ExtractablePureKernelVisitor: BasePatternVisitor {
@@ -124,6 +143,35 @@ private struct KernelScan {
     /// scalar rather than folding into the tiler where its clamp belongs. (B18.)
     private var hasResumableIndex = false
 
+    /// A local bound to a **path or string derivation** — `let prefix = root.hasSuffix("/") ? root
+    /// : root + "/"`, `let relative = String(path.dropFirst(prefix.count))`.
+    ///
+    /// The second kernel shape, and the one this rule was blind to. Scoring **zero** on a 60k-line
+    /// linter is what exposed it: the arithmetic gate wants an operator reaching a bound or a
+    /// fraction, and a path kernel has neither — it derives one string from another and then
+    /// *decides* with it. `dropFirst(prefix.count)` is a slice with no arithmetic operator in it at
+    /// all, so every gate here read it as ordinary string handling.
+    ///
+    /// It is not ordinary. This is the shape both of this project's own property-test bugs had: a
+    /// `.swift` suffix stripped with `replacingOccurrences` rather than from the end, and a
+    /// directory exclusion that did not round-trip. Both are laws over `(root, path) -> relative`,
+    /// and both were unreachable from a test because the derivation was welded to a `FileManager`
+    /// enumeration.
+    private var derivedPathBindings: [String] = []
+
+    /// `dropFirst(prefix.count)` — a slice driven by a **count** rather than by an arithmetic
+    /// expression. `hasSlicingArithmetic` requires an operator, so it does not see this.
+    private var hasCountDrivenSlice = false
+
+    /// A derived name used in a membership test — `skippedDirectories.contains(dirName)`.
+    ///
+    /// This is the governing use that **classification** kernels have and arithmetic ones do not,
+    /// and admitting it is a deliberate narrowing of the rule's third gate. That gate excluded
+    /// classification wholesale, on the grounds that a derived *display string* governs nothing.
+    /// That is right for a string which is merely stored or returned — and wrong for one that then
+    /// decides whether to prune a subtree.
+    private var hasGoverningMembershipTest = false
+
     private(set) var anchor: Syntax
 
     init(body: CodeBlockSyntax) {
@@ -138,6 +186,12 @@ private struct KernelScan {
         hasGoverningComparison = collector.governingComparisonReferencing(collector.derivedBindings)
         hasResumableIndex = collector.hasResumableIndex
 
+        derivedPathBindings = collector.derivedPathBindings
+        hasCountDrivenSlice = collector.hasCountDrivenSlice
+        hasGoverningMembershipTest =
+            collector.membershipTestReferences(collector.derivedPathBindings)
+            || collector.comparisonReferences(collector.derivedPathBindings)
+
         if let first = collector.firstArithmeticSite {
             anchor = first
         }
@@ -149,10 +203,28 @@ private struct KernelScan {
     /// layout constant. A governing use alone fires on every `if` in the codebase. It is the
     /// conjunction — a value *computed* and then used as a bound, an index, a slice or a fraction —
     /// that picks out chunking math and progress tracking and essentially nothing else.
-    var isWorthExtracting: Bool {
+    var isWorthExtracting: Bool { isArithmeticKernel || isPathKernel }
+
+    private var isArithmeticKernel: Bool {
         let hasArithmetic = !derivedBindings.isEmpty || hasFraction
         let governs = hasGoverningComparison || hasSlicingArithmetic || hasFraction
         return hasArithmetic && governs && signalCount >= 2
+    }
+
+    /// The same conjunction as the arithmetic shape, in the string domain: a value **derived** and
+    /// then used to **decide**.
+    ///
+    /// **The governing clause is what earns the precision here, not the count.** Measured: relaxing
+    /// `>= 2` to `>= 1` changes nothing on either corpus below — one derived string almost never
+    /// reaches a slice or a membership test on its own. The threshold stays as a cheap guard for
+    /// codebases unlike these two, but it should not be credited with the filtering.
+    ///
+    /// The governing test is deliberately stricter than the arithmetic shape's. That one accepts
+    /// any comparison containing an arithmetic operator, regardless of which names it mentions;
+    /// `+` on strings is concatenation, so reusing it here vouched for derivations it had nothing
+    /// to do with. `comparisonReferences` requires the comparison to actually name the binding.
+    private var isPathKernel: Bool {
+        derivedPathBindings.count >= 2 && (hasCountDrivenSlice || hasGoverningMembershipTest)
     }
 
     private var signalCount: Int {
@@ -164,6 +236,9 @@ private struct KernelScan {
     }
 
     var summary: String {
+        if !isArithmeticKernel, isPathKernel {
+            return derivedPathBindings.prefix(3).map { "`\($0)`" }.joined(separator: ", ")
+        }
         guard !derivedBindings.isEmpty else { return "the progress fraction here" }
         let named = derivedBindings.prefix(3).map { "`\($0)`" }.joined(separator: ", ")
         // Only mention the fraction separately when it is not already one of the names — otherwise
@@ -172,6 +247,12 @@ private struct KernelScan {
     }
 
     var law: String {
+        if !isArithmeticKernel, isPathKernel {
+            return "the derivation should ROUND-TRIP — rebuilding the whole from the root and the "
+                + "derived part should give back what you started with — and normalising should be "
+                + "IDEMPOTENT: applying it twice must equal applying it once. Both are checkable "
+                + "over generated roots and paths, and both are where off-by-one prefix bugs live."
+        }
         if hasFraction, hasSlicingArithmetic {
             return "the parts should tile the whole exactly, and progress should terminate at 1.0 — "
                 + "including for an empty input."
@@ -206,6 +287,16 @@ private struct KernelScan {
     /// clamped `startIndex`. When an externally-seeded index drives the slice, say so — but *only*
     /// then, so a plain `var i = 0` tiler with no resume concept keeps the shorter advice.
     var suggestion: String {
+        if !isArithmeticKernel, isPathKernel {
+            return "Extract the derivation into a free function or value type over the strings "
+                + "alone — `func relativePath(of item: String, under root: String) -> String` — and "
+                + "let the method keep the enumeration and ask it what to call each item. Two "
+                + "strings in, one string out is constructible in a test with no disk, which is the "
+                + "whole point: the prefix handling can then be generated against rather than "
+                + "eyeballed. Do NOT lift the membership check on its own — a `Set.contains` is "
+                + "already correct by construction, and the law is over the value being CLASSIFIED, "
+                + "not over the lookup."
+        }
         guard hasSlicingArithmetic else {
             return "Extract the arithmetic into a value type constructed from those inputs alone. "
                 + "The method keeps the I/O and asks the value type where the bytes are."
@@ -273,6 +364,39 @@ private struct Collector {
     private static let arithmeticOperators: Set<String> = ["+", "-", "*", "/", "%"]
     private static let comparisonOperators: Set<String> = ["<", ">", "<=", ">=", "==", "!="]
 
+    // MARK: - The path/string shape
+
+    private(set) var derivedPathBindings: [String] = []
+    private(set) var hasCountDrivenSlice = false
+
+    /// Identifiers passed to a membership test — `dirName` in `skipped.contains(dirName)`.
+    private var membershipArguments: Set<String> = []
+
+    /// Calls that derive one string from another and nothing else. Every entry is total and
+    /// allocation-only: none of them reads the disk, the clock or global state, so a binding built
+    /// from them is a value the reader could have written by hand.
+    ///
+    /// `contains` is absent on purpose. It is the membership *test*, tracked separately as a
+    /// governing use — counting it as a derivation too would let one expression satisfy both
+    /// halves of the conjunction and collapse the gate.
+    private static let pathCalls: Set<String> = [
+        "hasPrefix", "hasSuffix", "starts", "dropFirst", "dropLast", "prefix", "suffix",
+        "lowercased", "uppercased", "capitalized", "trimmingCharacters", "replacingOccurrences",
+        "components", "split", "joined", "appendingPathComponent", "appendingPathExtension",
+        "deletingLastPathComponent", "deletingPathExtension", "standardizingPath"
+    ]
+
+    /// Property reads that are part of a derivation rather than a call — `path.lastPathComponent`.
+    private static let pathMembers: Set<String> = [
+        "lastPathComponent", "pathExtension", "deletingLastPathComponent", "deletingPathExtension",
+        "standardizedFileURL", "absoluteString", "count", "isEmpty"
+    ]
+
+    /// Wrappers that change a string's static type without computing anything.
+    private static let pathConversions: Set<String> = [
+        "String", "Substring", "NSString", "URL", "Character"
+    ]
+
     mutating func walk(_ node: some SyntaxProtocol) {
         for child in node.children(viewMode: .sourceAccurate) {
             // A closure body belongs to `pureClosureCandidate`. Do not descend.
@@ -312,7 +436,10 @@ private struct Collector {
             if isVar, !value.is(IntegerLiteralExprSyntax.self) {
                 externallySeededVars.insert(name)
             }
-            guard containsArithmetic(Syntax(value)), onlyPureCalls(Syntax(value)) else { continue }
+            guard containsArithmetic(Syntax(value)), onlyPureCalls(Syntax(value)) else {
+                recordPathDerivation(name, value: value, at: declaration)
+                continue
+            }
             derivedBindings.append(name)
             if firstArithmeticSite == nil { firstArithmeticSite = Syntax(declaration) }
             if isFraction(Syntax(value)) {
@@ -322,14 +449,105 @@ private struct Collector {
         }
     }
 
+    /// A binding that derives a string from other strings — reached only when the arithmetic test
+    /// has already declined, so the two shapes never both claim one binding.
+    ///
+    /// Note this catches `let prefix = root.hasSuffix("/") ? root : root + "/"`, which the
+    /// arithmetic path sees and rejects: `+` reads as an arithmetic operator, then `onlyPureCalls`
+    /// refuses `hasSuffix`. Falling through to here is what turns that rejection into a finding
+    /// instead of a silence.
+    private mutating func recordPathDerivation(
+        _ name: String, value: ExprSyntax, at declaration: VariableDeclSyntax
+    ) {
+        guard containsPathOperation(Syntax(value)), onlyPathSafeCalls(Syntax(value)) else { return }
+        derivedPathBindings.append(name)
+        if firstArithmeticSite == nil { firstArithmeticSite = Syntax(declaration) }
+    }
+
     private mutating func record(_ call: FunctionCallExprSyntax) {
         guard let callee = call.calledExpression.as(MemberAccessExprSyntax.self) else { return }
-        if Self.slicingCalls.contains(callee.declName.baseName.text),
-           containsArithmetic(Syntax(call.arguments)) {
+        let name = callee.declName.baseName.text
+        let arguments = Syntax(call.arguments)
+        if Self.slicingCalls.contains(name), containsArithmetic(arguments) {
             hasSlicingArithmetic = true
-            slicingIndexNames.formUnion(identifiers(in: Syntax(call.arguments)))
+            slicingIndexNames.formUnion(identifiers(in: arguments))
             if firstArithmeticSite == nil { firstArithmeticSite = Syntax(call) }
+            return
         }
+        // `dropFirst(prefix.count)` — a slice with no operator in it, and the exact expression the
+        // arithmetic gate above walks past.
+        if Self.slicingCalls.contains(name), referencesCount(arguments) {
+            hasCountDrivenSlice = true
+            if firstArithmeticSite == nil { firstArithmeticSite = Syntax(call) }
+            return
+        }
+        // `skippedDirectories.contains(dirName)` — the governing use a classification kernel has.
+        // A trailing-closure form (`contains(where:)`) is `pureClosureCandidate`'s finding, so only
+        // the value form counts here.
+        if name == "contains", call.trailingClosure == nil {
+            membershipArguments.formUnion(identifiers(in: arguments))
+        }
+    }
+
+    /// Whether the expression reads a `.count` — what makes `dropFirst(prefix.count)` a derived
+    /// slice rather than a constant one. `dropFirst(1)` is not a kernel.
+    private func referencesCount(_ node: Syntax) -> Bool {
+        node.children(viewMode: .sourceAccurate).contains { child in
+            if let member = child.as(MemberAccessExprSyntax.self),
+               member.declName.baseName.text == "count" {
+                return true
+            }
+            return referencesCount(child)
+        }
+    }
+
+    /// Whether any of these derived names is the subject of a membership test.
+    func membershipTestReferences(_ names: [String]) -> Bool {
+        !membershipArguments.isDisjoint(with: Set(names))
+    }
+
+    /// A comparison that names one of these bindings — `parent == current`.
+    ///
+    /// Strictly `references`, with no `containsArithmetic` shortcut. That shortcut is right for the
+    /// arithmetic shape, where any computed comparison is evidence, and wrong here: `+` on strings
+    /// is concatenation, so a single `message + suffix` anywhere in the body would vouch for a
+    /// derivation it has nothing to do with. Writing the loose version first and then finding it
+    /// fired on unrelated bindings is what produced this method.
+    func comparisonReferences(_ names: [String]) -> Bool {
+        let derived = Set(names)
+        return comparisons.contains { references(Syntax($0), anyOf: derived) }
+    }
+
+    private func containsPathOperation(_ node: Syntax) -> Bool {
+        for child in node.children(viewMode: .sourceAccurate) {
+            if let member = child.as(MemberAccessExprSyntax.self) {
+                let name = member.declName.baseName.text
+                if Self.pathCalls.contains(name) || Self.pathMembers.contains(name) { return true }
+            }
+            if containsPathOperation(child) { return true }
+        }
+        return false
+    }
+
+    /// Every call in the subtree must be a known string derivation or a type conversion. Same
+    /// posture as `onlyPureCalls`: the rule will not vouch for work it cannot see, so one unknown
+    /// helper call disqualifies the binding.
+    private func onlyPathSafeCalls(_ node: Syntax) -> Bool {
+        for child in node.children(viewMode: .sourceAccurate) {
+            if let call = child.as(FunctionCallExprSyntax.self) {
+                if let member = call.calledExpression.as(MemberAccessExprSyntax.self) {
+                    guard Self.pathCalls.contains(member.declName.baseName.text) else { return false }
+                } else if let reference = call.calledExpression.as(DeclReferenceExprSyntax.self) {
+                    let name = reference.baseName.text
+                    guard Self.pathConversions.contains(name) || Self.pureConversions.contains(name)
+                    else { return false }
+                } else {
+                    return false
+                }
+            }
+            guard onlyPathSafeCalls(child) else { return false }
+        }
+        return true
     }
 
     private mutating func record(_ sequence: SequenceExprSyntax) {
