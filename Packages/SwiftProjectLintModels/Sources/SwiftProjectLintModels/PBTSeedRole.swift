@@ -36,6 +36,10 @@
 /// reporting a confident zero. Absent `role` cannot be misread: a consumer that ignores it loses
 /// information and misinterprets nothing. Bumping would announce a compatibility event that has not
 /// happened.
+///
+/// That difference is also why `role` decodes as optional while `kind` is required. An absent role
+/// is honestly unknown and nothing acts on it; an absent kind would have to be guessed, and the
+/// guess decides whether a consumer narrows discovery onto the seed.
 public enum PBTSeedRole: String, Codable, Sendable, CaseIterable {
 
     /// Ordering logic — a closure passed to `sorted`, `min`, `max`, `partition`.

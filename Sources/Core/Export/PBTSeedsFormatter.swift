@@ -82,17 +82,24 @@ public struct PBTSeed: Codable, Sendable {
         self.role = role
     }
 
-    /// A manifest written by an older linter has no `kind`. Default it to `.pureFunction`, which is
-    /// what every seed in a v1 manifest was.
+    /// `kind` is **required**, mirroring the consumer.
+    ///
+    /// It used to default to `.pureFunction` so a v1 manifest still decoded. No v1 manifest can
+    /// exist any more — `currentVersion` is a constant 2 and manifests are generated on demand
+    /// rather than archived, so nothing was ever written that lacks the field. Worse, the default
+    /// was SILENT on the one field whose misreading the v1 -> v2 bump existed to prevent: a seed
+    /// read as `.pureFunction` is a seed a consumer may narrow discovery onto, and doing that to an
+    /// uncallable kernel produces a confident zero.
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         self.file = try container.decode(String.self, forKey: .file)
         self.line = try container.decode(Int.self, forKey: .line)
         self.symbol = try container.decode(String.self, forKey: .symbol)
         self.rule = try container.decode(String.self, forKey: .rule)
-        self.kind = try container.decodeIfPresent(PBTSeedKind.self, forKey: .kind) ?? .pureFunction
-        // A manifest from a producer that does not classify roles simply has none. Unknown is a
-        // legitimate answer here, unlike `kind`, where absence had to mean `.pureFunction`.
+        self.kind = try container.decode(PBTSeedKind.self, forKey: .kind)
+        // A manifest from a producer that does not classify roles simply has none — unknown is a
+        // legitimate answer. `kind` above is required for the opposite reason: absence there would
+        // have to be guessed, and the guess decides whether a consumer may analyse the seed.
         self.role = try container.decodeIfPresent(PBTSeedRole.self, forKey: .role)
     }
 }

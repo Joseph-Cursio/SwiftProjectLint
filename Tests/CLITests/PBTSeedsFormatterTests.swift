@@ -71,20 +71,28 @@ struct PBTSeedsFormatterTests {
         #expect(manifest.analysableSeeds.first?.symbol == "add")
     }
 
+    /// This used to assert the reverse — that a seed with no `kind` decodes as `.pureFunction`, so
+    /// a manifest written before the field existed still read. That tolerance is gone.
+    ///
+    /// No such manifest can exist: `currentVersion` is a constant 2, and manifests are generated on
+    /// demand rather than archived (this repository gitignores its own). What remained was a SILENT
+    /// default on the one field whose misreading the v1 -> v2 bump was created to prevent — a seed
+    /// read as `.pureFunction` is one a consumer may narrow discovery onto, and doing that to an
+    /// uncallable kernel produces exactly the confident zero the test above describes. Required
+    /// makes it a loud parse error instead.
+    ///
+    /// The version NUMBER check is untouched and still warns: that is forward compatibility, for a
+    /// future producer meeting an older consumer.
     @Test
-    func aV1ManifestDecodesWithEverySeedAnalysable() throws {
-        // Backwards compatibility on read: a manifest written before `kind` existed had exactly one
-        // sort of seed in it, and it was analysable.
+    func aSeedWithNoKindIsRejectedRatherThanAssumedAnalysable() throws {
         let legacy = """
         {"version":1,"seeds":[{"file":"Math.swift","line":7,"symbol":"add",\
         "rule":"Pure Function Property-Test Candidate"}]}
         """
         let data = try #require(legacy.data(using: .utf8))
-        let manifest = try JSONDecoder().decode(PBTSeedManifest.self, from: data)
-
-        let seed = try #require(manifest.seeds.first)
-        #expect(seed.kind == .pureFunction)
-        #expect(manifest.analysableSeeds.count == 1)
+        #expect(throws: DecodingError.self) {
+            try JSONDecoder().decode(PBTSeedManifest.self, from: data)
+        }
     }
 
     @Test
