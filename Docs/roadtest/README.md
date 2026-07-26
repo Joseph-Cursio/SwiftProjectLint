@@ -12,6 +12,13 @@ against it.
   as the linter, SwiftEffectInference @ `097181a`.
 - **Baseline:** 2931 tests in 352 suites, all green, before any change.
 
+Two passes, and the second one matters for how you read the first. Everything up
+to *Net* is the original run and the fixes that followed it, kept as written.
+[**Second pass (2026-07-26)**](#second-pass-2026-07-26--the-handoff-and-the-defaults-problem-this-write-up-named)
+records what shipped afterwards — including the defaults problem the Net section
+correctly named and then pointed at the wrong flag for. The scored row is
+unchanged by it, and the section says so.
+
 This is a dogfooding run — the linter is one of the five packages, pointed at
 itself. That makes it a weaker benchmark than an unrelated subject in one way
 (shared authorship) and a sharper one in another: it is a compiler-adjacent
@@ -956,6 +963,147 @@ Each time the knowledge was already in the project and the tool could not reach
 it. That is a different failure from "the catalog has no law for this shape" —
 and, on this evidence, a more common one.
 
+## Second pass (2026-07-26) — the handoff, and the defaults problem this write-up named
+
+Four changes shipped after the section above. Ordered by what they moved, not by
+effort.
+
+### The volume problem — the Net section named it and pointed at the wrong flag
+
+"It is a **defaults** problem" was right. The fix it proposed —
+`--docstring-advice` — was the smaller of the two defaults problems in this
+output, and the larger one was measured in this very document without being
+recognised as fixable.
+
+A default run prints **884 findings, of which 672 are the two property-test
+candidate rules**. That is 76% of everything the linter says. Both rules are
+working correctly: there really are 464 pure functions and 208 pure closures.
+
+The cost is already written up above, under *"the part that stings"*. The
+**Lossy Struct Rebuild** finding — the correct diagnosis of bug 1, at the right
+line, in default output, which nobody read — sat at **line 1438 of a
+1768-line report**. It is now at **line 197 of 432**.
+
+| | Before | After |
+|---|---|---|
+| Default text report | 1768 lines | **432** |
+| Position of the bug-1 finding | line 1438 | **line 197** |
+| Findings detected | 884 | 884 |
+| Seeds exported | 669 | 669 |
+
+**The constraint that shaped it:** the CLI computes its findings *once* and hands
+the same array to the report formatter and to `--format pbt-seeds`. So the
+obvious reading of "make the candidate rules opt-in" — disable them — would have
+emptied the seed manifest and stopped the linter feeding `swift-infer` entirely.
+This had to be presentation-only. The candidates are still detected, still
+counted in the summary, still exported, still exit-code relevant; they are
+counted and named in a footer instead of printed one per line, and
+`--categories testability` restores the listing.
+
+**It does not move the scored row, and saying otherwise would be the same error
+this write-up keeps catching.** That row measures what `discover` proposes. This
+changes what a human sees in the *linter's* report. The two are different
+surfaces, and 1/10 is still 1/10.
+
+### The kernel rule was scoring zero, and nobody had checked
+
+`Extractable Pure Kernel` — the rule with the most prescriptive advice in the
+family, the one that says *lift this into a value type* — returned **0 findings
+on 60k lines**. Not "this code is clean": its gates want an arithmetic operator
+reaching a bound, and this codebase's impure methods enumerate directories and
+derive paths. `dropFirst(prefix.count)` is a slice with no arithmetic in it
+anywhere.
+
+The sting is the same shape as bug 1. **Both bugs this road test found were
+path/preservation shapes** — a `.swift` suffix stripped from the wrong end, a
+field dropped on rebuild — and the rule built to find trapped logic was looking
+straight at that family with nothing to say.
+
+A second shape (a path derivation that *governs* a decision) took it from 0 → 2
+here and 1 → 9 on SwiftInferProperties, losing nothing. Eight of those nine are
+one `findPackageRoot` walk-up inlined in eight files, welded to a hardcoded
+`FileManager.default`.
+
+Two things about it are worth recording because they were found by measuring
+rather than reasoning. The `>= 2` derivations threshold is **not** what provides
+the precision — relaxing it to 1 changes nothing on either corpus, and the doc
+comment now says so instead of a false-positive rate I had asserted without
+measuring. And the first cut reused a helper that treats any comparison
+containing `+` as evidence; `+` on strings is concatenation, so it vouched for
+derivations it had nothing to do with.
+
+### The manifest now says what the code *is*
+
+`PureClosureCandidateVisitor` has always known which shape it found — it picks
+its law sentence off exactly that distinction, calling one a comparator and
+another a predicate. The manifest carried `{file, line, symbol, rule, kind}` and
+threw the classification away, so all 204 of those findings reached `swift-infer`
+as an undifferentiated `extractable-kernel` at a line number.
+
+This is the same species of defect as the one `PBTSeedsFormatter` already
+records — *"a finding the linter prints but does not seed is a finding the
+pipeline does not have"* — except it was not the finding being dropped, it was
+the finding's **content**.
+
+The consumer had been asking for it in its own warning text, which is the part
+that should have been noticed sooner:
+
+> the seed manifest does not name the subject, but this law is owed by the
+> code's **ROLE** … The manifest SHOULD have named it: this is a LINTER gap.
+
+**207 of 669 seeds** now carry a role — 182 predicate, 15 transform, 4
+comparator, 4 reducer, 2 normalizer. The refactor-pending listing ranks entailed
+roles first and names the payoff:
+
+```
+…:31: inside `filter` — extract it into a named value type… It is a predicate —
+it owes totality… Extracting it PAYS: `discover` will then propose the
+`predicate` law, which a correct implementation cannot fail.
+```
+
+**Roles are not template names, and were deliberately not merged with them.**
+`Refutability.roleEntailedTemplates` holds *law* names (`filter-subset`,
+`caseiterable-key-injectivity`); a role is what the *code* is. They overlap on
+three cases and are different vocabularies. Merging them would prevent a
+spelling mismatch by asserting a correspondence that does not hold.
+
+What can actually rot is the **entailment claim** — that comparator, predicate
+and partition are laws correct code cannot fail. The two repositories are
+versioned independently and pin their one shared dependency
+(`SwiftEffectInference`) at *different revisions*, so there is no compiler
+between them. A comment saying "these must not drift" is not a mechanism, so the
+claim is pinned by tests at both ends: `SeedRoleEmissionTests` here, and
+`SeedRoleContractTests` in SwiftInferProperties checking each role against
+`Refutability.roleEntailedTemplates` itself.
+
+**What it cannot do yet, and why.** The obvious use of a role is a *join*: match
+it against what `discover` proposed at that location, and say whether a missing
+law is a linter gap or a template gap — the question the two tools currently
+answer by blaming each other. That is blocked, and checking the manifest is what
+revealed it. Every seed carrying a role is an `extractable-kernel`, because roles
+come from the two kernel rules and `pureFunctionCandidate` classifies nothing.
+A kernel's symbol names the enclosing impure method, so there is nothing to join
+on. The diagnostic needs the pure-function rule to start classifying first.
+
+### The v1 shape tolerance is gone
+
+`kind` used to default to `.pureFunction` when absent, for manifests written
+before the field existed. None can exist — the producer's version is a constant
+2 and manifests are generated on demand rather than archived — and the default
+was **silent** on the one field whose misreading the v1 → v2 bump was created to
+prevent. A seed read as `.pureFunction` is one a consumer may narrow discovery
+onto, and doing that to an uncallable kernel produces exactly the confident zero
+the bump existed to stop. It is now a parse error naming the file. The version
+*number* warning is untouched — that is forward compatibility, a different
+mechanism.
+
+### What none of this changed
+
+The scored row. 1/10 on a default `discover`, 9/10 across shipping surfaces,
+exactly as before. Every change above is to the **handoff and the presentation**
+— which findings reach a reader, and how much the manifest tells the next tool.
+The template catalog proposes the same laws it did on 2026-07-24.
+
 ## Net
 
 The loop found **two real bugs and four clean guards** on a codebase whose 2931
@@ -963,8 +1111,9 @@ tests were green throughout, which is the ratio Appendix C predicts: applied to
 real code, the practice returns *correct-today, guarded-against-tomorrow* about
 as often as it returns a defect.
 
-The scored answer is **2 of 10 on a default run, 9 of 10 across surfaces already
-shipping**. That gap is the actionable result, and it is not a catalog gap — it
+The scored answer is **1 of 10 on a default run, 9 of 10 across surfaces already
+shipping** (see the correction under The headline — the 2 was the
+`--include-possible` figure). That gap is the actionable result, and it is not a catalog gap — it
 is a **defaults** problem. The single most valuable change in the table above is
 turning on a feature the book currently describes as unverified.
 
