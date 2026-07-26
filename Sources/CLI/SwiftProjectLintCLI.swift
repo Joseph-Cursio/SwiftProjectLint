@@ -80,7 +80,7 @@ struct SwiftProjectLintCLI: AsyncParsableCommand {
             configuration: configuration
         )
 
-        print(format.formatter.format(issues: issues))
+        print(Self.render(issues, format: format, selectedCategories: selectedCategories))
 
         // Surface skipped scope: a clean-looking result is misleading if whole
         // first-party packages were never analyzed. Written to stderr so it never
@@ -119,6 +119,27 @@ struct SwiftProjectLintCLI: AsyncParsableCommand {
         + "not reported. Cross-file rules (e.g. architecture and protocol checks) "
         + "cannot span the package boundary. Re-run with --include-nested-packages "
         + "to include them."
+
+    /// Render the report, collapsing the property-test candidate inventory when a human is reading.
+    ///
+    /// Only `text` collapses. The machine-readable formats stay complete on purpose: a JSON or CSV
+    /// consumer filters for itself and would be poorly served by a tool that decided which findings
+    /// it was allowed to see, and `pbt-seeds` exists precisely to carry the candidates.
+    ///
+    /// Naming `testability` in `--categories` is the opt-in. Asking for the category is asking for
+    /// its contents, so the listing comes back in full with no extra flag to discover.
+    static func render(
+        _ issues: [LintIssue],
+        format: OutputFormat,
+        selectedCategories: [PatternCategory]?
+    ) -> String {
+        let requestedTestability = selectedCategories?.contains(.testability) ?? false
+        guard format == .text, !requestedTestability else {
+            return format.formatter.format(issues: issues)
+        }
+        let split = CandidateInventory.split(issues, collapsing: true)
+        return TextFormatter(withheld: split.withheld).format(issues: split.listed)
+    }
 
     private static func printToStandardError(_ message: String) {
         FileHandle.standardError.write(Data((message + "\n").utf8))

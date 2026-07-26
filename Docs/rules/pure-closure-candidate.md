@@ -224,6 +224,52 @@ let total = items.reduce(Money.zero) { running, item in
 }
 ```
 
+### What the seed manifest carries
+
+Each finding contributes a seed to `--format pbt-seeds` with a `role` naming what the closure **is**
+— `comparator`, `predicate`, `transform` or `reducer` — taken from the same classification that
+picks the law sentence above. Before that field existed the manifest carried `{file, line, symbol,
+rule, kind}`, so all 208 findings reached `swift-infer` as an undifferentiated
+`extractable-kernel`, and the classification this rule had already made was thrown away at the
+boundary.
+
+The role matters most here precisely because a closure seed can never be *analysed*: it has no name
+to call, so the downstream tool can only report it as work for a human. The role is what makes that
+report say something — "a comparator, which owes a strict weak ordering" rather than "a kernel at
+line 42". `comparator` and `predicate` are role-*entailed*: a correct implementation cannot fail
+their law. `transform` and `reducer` are conjectures, and the manifest says so rather than
+overclaiming.
+
+### Not listed in the default report
+
+This rule is a **census**, and on a real codebase it is a large one: 464 findings here, alongside
+208 from [Pure Closure Property-Test Candidate](pure-closure-candidate.md) — together **76% of
+everything the linter prints**. A pure function is not a defect and there is nothing to fix per
+line, so enumerating them buries the findings that *are* defects. During this project's own road
+test the linter found a real bug in its configuration code, reported it correctly, and the finding
+went unread in exactly that pile. Volume that large does not inform; it functions as silence.
+
+So `--format text` counts these findings in its summary and names them in a footer, but does not
+print one line each:
+
+```
+Found 884 issues (82 warnings, 802 info)
+
+672 of these are property-test candidates, not listed above (464 Pure Function …, 208 Pure Closure …).
+  See them:  --categories testability
+  Use them:  --format pbt-seeds > .pbt/seeds.json
+```
+
+**Nothing is filtered out of detection.** The rule still runs, still counts toward the summary and
+the exit code, and still populates the seed manifest — `--format pbt-seeds` is the pipeline's input
+and would be emptied by any change that suppressed the rule itself. `--format json`, `csv` and
+`html` also stay complete: a machine consumer filters for itself. Only the human listing is
+shortened, and naming `testability` in `--categories` restores it in full.
+
+This is [`../PBT_TESTABILITY_RULES_SCOPE.md`](../PBT_TESTABILITY_RULES_SCOPE.md) decision 5 —
+*"Rule 5 opt-in (info, advisory)"* — arriving late, in the only place it can arrive without
+breaking the handoff.
+
 ### Known Limitations
 
 - **A closure reached through a call always fires**, in both kinds:

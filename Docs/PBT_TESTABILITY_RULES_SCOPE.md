@@ -256,11 +256,17 @@ because it composes everything before it.
 > was dropped rather than extended; (4) `symbol` was added; (5) the candidate rules ship
 > default-on at `.info`, not opt-in.
 >
-> Decision (5) is the one worth revisiting. A default run over this repository produces 873
-> findings, of which **671 are `.testability` and 664 of those are the two candidate rules** —
-> so 76% of everything the linter says is "this might be property-testable", and a real bug it
-> reported went unread among them. The Rule-5 note below ("opt-in, off by default to avoid
-> noise") was the right instinct and was not followed.
+> Decision (5) has since been **resolved, in the spirit the note intended**. A default run
+> produces 884 findings, of which 672 are the two candidate rules — 76% of everything the linter
+> says is "this might be property-testable", and a real bug it reported went unread among them.
+>
+> "Opt-in" could not mean *disabled*, though, and that is the part the original note did not
+> foresee: the CLI computes its findings ONCE and hands the same array to the report and to
+> `--format pbt-seeds`, so suppressing the rules would empty the seed manifest and stop the linter
+> feeding `swift-infer` entirely. The resolution is presentational — `--format text` counts the
+> candidates and names them in a footer instead of printing one line each, `--categories
+> testability` restores the listing, and every machine-readable format stays complete. See
+> `CandidateInventory`.
 >
 > The same run puts the whole of tier 2 at **7 findings**: Global Mutable State 3,
 > Non-Injected Nondeterminism 2, Missing Equatable on State Type 2, Impure Call in View Body

@@ -140,3 +140,33 @@ Note the tension with [Could Be Private Member](could-be-private-member.md), whi
 you to narrow the very function this rule just flagged. That rule now names the cost when it does.
 
 ---
+
+### Not listed in the default report
+
+This rule is a **census**, and on a real codebase it is a large one: 464 findings here, alongside
+208 from [Pure Closure Property-Test Candidate](pure-closure-candidate.md) — together **76% of
+everything the linter prints**. A pure function is not a defect and there is nothing to fix per
+line, so enumerating them buries the findings that *are* defects. During this project's own road
+test the linter found a real bug in its configuration code, reported it correctly, and the finding
+went unread in exactly that pile. Volume that large does not inform; it functions as silence.
+
+So `--format text` counts these findings in its summary and names them in a footer, but does not
+print one line each:
+
+```
+Found 884 issues (82 warnings, 802 info)
+
+672 of these are property-test candidates, not listed above (464 Pure Function …, 208 Pure Closure …).
+  See them:  --categories testability
+  Use them:  --format pbt-seeds > .pbt/seeds.json
+```
+
+**Nothing is filtered out of detection.** The rule still runs, still counts toward the summary and
+the exit code, and still populates the seed manifest — `--format pbt-seeds` is the pipeline's input
+and would be emptied by any change that suppressed the rule itself. `--format json`, `csv` and
+`html` also stay complete: a machine consumer filters for itself. Only the human listing is
+shortened, and naming `testability` in `--categories` restores it in full.
+
+This is [`../PBT_TESTABILITY_RULES_SCOPE.md`](../PBT_TESTABILITY_RULES_SCOPE.md) decision 5 —
+*"Rule 5 opt-in (info, advisory)"* — arriving late, in the only place it can arrive without
+breaking the handoff.

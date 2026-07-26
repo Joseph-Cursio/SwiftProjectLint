@@ -217,6 +217,24 @@ func collect(_ bytes: URLSession.AsyncBytes, expecting expectedBytes: Int64) asy
 }
 ```
 
+### What the seed manifest carries
+
+A finding contributes a seed whose `role` names the kernel's shape: a tiler is a `partition`, a path
+derivation is a `normalizer`. A progress-only kernel claims **no** role — "monotone and terminates
+at 1.0" is not one of the vocabulary's names, and inventing one to fill the field would have the
+consumer act on a classification nobody made.
+
+`partition` is role-*entailed*: a partition owes a tiling by virtue of being one, so a correct
+implementation cannot fail that law. `normalizer` is a conjecture — its round-trip and idempotence
+are real but not guaranteed — and the manifest says so rather than overclaiming. The entailment
+claim is pinned from both sides by `SeedRoleEmissionTests` here and `SeedRoleContractTests` in
+SwiftInferProperties, because the two repositories are versioned independently and a comment saying
+"these must not drift" is not a mechanism.
+
+Unlike the two candidate rules, this rule **is** listed in the default text report. It diagnoses a
+specific place and proposes a refactor that can be wrong, which is worth reading each time; a
+candidate rule only nominates.
+
 ### Known Limitations
 
 - **It is not a dataflow analysis, on purpose.** A kernel has no syntactic boundary — it is whatever
