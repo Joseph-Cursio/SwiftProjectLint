@@ -82,7 +82,12 @@ final class PureFunctionCandidateVisitor: BasePatternVisitor {
             lineNumber: getLineNumber(for: Syntax(node)),
             suggestion: advice,
             ruleName: .pureFunctionCandidate,
-            symbol: node.name.text
+            symbol: node.name.text,
+            // A computed property is a nullary function of `self`, so there is no signature to
+            // read a role from — only the `FunctionDeclSyntax` path classifies.
+            role: DeclaredRoleClassifier.role(of: node, isPartial: candidate.isPartial),
+            testReachability: PropertyTestCandidacy.isTestReachable(node)
+                ? .reachable : .unreachable
         )
         return .visitChildren
     }

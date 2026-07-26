@@ -44,6 +44,14 @@ public struct LintIssue: Identifiable, Sendable {
     /// tool has to guess. `nil` for rules that classify nothing.
     public let role: PBTSeedRole?
 
+    /// Whether a test could call the symbol this issue names — `.unknown` unless a rule determined
+    /// it.
+    ///
+    /// A neutral fact, deliberately: the model records that `@testable import` cannot reach the
+    /// declaration, and the export layer decides what that implies for a seed. Putting the seed
+    /// KIND here instead would push a `pbt-seeds` concern into every rule that ever sets it.
+    public let testReachability: TestReachability
+
     /// Returns the file path of the first location, or an empty string if no locations exist.
     public var filePath: String {
         locations.first?.filePath ?? ""
@@ -69,7 +77,8 @@ public struct LintIssue: Identifiable, Sendable {
         suggestion: String?,
         ruleName: RuleIdentifier,
         symbol: String? = nil,
-        role: PBTSeedRole? = nil
+        role: PBTSeedRole? = nil,
+        testReachability: TestReachability = .unknown
     ) {
         self.severity = severity
         self.message = message
@@ -78,6 +87,7 @@ public struct LintIssue: Identifiable, Sendable {
         self.ruleName = ruleName
         self.symbol = symbol
         self.role = role
+        self.testReachability = testReachability
     }
 
     /// Initializes a lint issue with a single location.
@@ -98,7 +108,8 @@ public struct LintIssue: Identifiable, Sendable {
         suggestion: String?,
         ruleName: RuleIdentifier,
         symbol: String? = nil,
-        role: PBTSeedRole? = nil
+        role: PBTSeedRole? = nil,
+        testReachability: TestReachability = .unknown
     ) {
         self.severity = severity
         self.message = message
@@ -107,5 +118,6 @@ public struct LintIssue: Identifiable, Sendable {
         self.ruleName = ruleName
         self.symbol = symbol
         self.role = role
+        self.testReachability = testReachability
     }
 }

@@ -1076,14 +1076,83 @@ claim is pinned by tests at both ends: `SeedRoleEmissionTests` here, and
 `SeedRoleContractTests` in SwiftInferProperties checking each role against
 `Refutability.roleEntailedTemplates` itself.
 
-**What it cannot do yet, and why.** The obvious use of a role is a *join*: match
-it against what `discover` proposed at that location, and say whether a missing
-law is a linter gap or a template gap — the question the two tools currently
-answer by blaming each other. That is blocked, and checking the manifest is what
-revealed it. Every seed carrying a role is an `extractable-kernel`, because roles
-come from the two kernel rules and `pureFunctionCandidate` classifies nothing.
-A kernel's symbol names the enclosing impure method, so there is nothing to join
-on. The diagnostic needs the pure-function rule to start classifying first.
+**What it could not do yet, and why.** The obvious use of a role is a *join*:
+match it against what `discover` proposed at that location, and say whether a
+missing law is a linter gap or a template gap — the question the two tools
+answered by blaming each other. That was blocked, and checking the manifest is
+what revealed it: every seed carrying a role was an `extractable-kernel`, because
+roles came from the two kernel rules and `pureFunctionCandidate` classified
+nothing. A kernel's symbol names the enclosing impure method, so there was
+nothing to join on.
+
+*Unblocked below* — and the join's first run contradicted the prediction in this
+paragraph. See
+[The classification, and the prediction it inverted](#the-classification-and-the-prediction-it-inverted).
+
+### The classification, and the prediction it inverted
+
+The section above ends by naming the next increment: teach `pureFunctionCandidate` to classify its
+findings, so analysable seeds carry a role and `swift-infer` can say whether a missing law is a
+**linter** gap or a **template** gap, instead of the two tools blaming each other.
+
+`DeclaredRoleClassifier` does the classifying — signature-only, since a declaration has no call site
+the way a closure does. It reaches **215 of 468** analysable seeds: 201 predicate, 14 normalizer,
+and **zero comparators**, because nothing in this codebase is a `compare`-shaped two-argument
+`Bool`.
+
+Then the join was run, and it went wrong twice — both worth recording, because the second one is the
+actual finding.
+
+**First, the join logic was mine and it was wrong.** Comparing a role name against a template name
+flagged `extractSwiftBasename` and `realPath` as gaps. They are not: the linter called them
+`normalizer`, and `discover` proposed `idempotence` and `round-trip`, which *are* the normalizer
+laws. Only entailed roles have a one-to-one template name; conjectured roles map to several. Those
+two were agreements being read as failures by a check that assumed an identity that does not hold.
+
+**Second, the real disagreements pointed the opposite way from the prediction.** The two genuine
+mismatches — `isSuppressed` and `pathMatches`, both seeded as predicates with no law proposed — are
+`private static func`. `swift-infer` declines them deliberately, under a `RestrictedFunction`
+concept whose own doc comment says: *"`private` or `fileprivate`. Not even `@testable import`
+reaches these."*
+
+The consumer was right and the linter was wrong. The diagnostic predicted to surface a **template**
+gap surfaced a **linter** one on its first run.
+
+And it was not two functions. A full count:
+
+| | Before | After |
+|---|---|---|
+| Seeds marked analysable | 468 | **154** |
+| …that no test could call | **316** | 0 |
+| Reported as `restricted-function` | — | **319** |
+
+**Two thirds of the manifest's actionable half named a function no test could reach.** The linter
+had been telling `swift-infer` to go analyse things, `swift-infer` had been quietly refusing, and
+neither tool could see the disagreement until both stated their beliefs in the same vocabulary.
+That is the whole argument for the `role`/`kind` handoff, arriving as evidence rather than as a
+design claim.
+
+The knowledge was, once again, **already in the project**. `PropertyTestCandidacy`'s own doc comment
+says `@testable import` exposes `internal` and not `private`. `couldBePrivate` and
+`couldBePrivateMember` exist *specifically* so a scope rule cannot advise a reader into an
+untestable corner. The seeding path never consulted any of it — the fourth instance in this document
+of a fact the project held and the pipeline could not reach.
+
+Restricted seeds are reported, not dropped, for the reason `RestrictedFunction` already argues: a
+private helper is often the *best* property target. The obstacle is an access level, which is a
+human decision — the same posture as an extractable kernel, a different obstacle, so a separate
+listing with its own instruction:
+
+```
+12 restricted function(s) — pure, total and named, but `private` or `fileprivate`, so no test
+can call them…
+  …InlineSuppressionFilter.swift:119: `isSuppressed` — make it `internal` to property-test it.
+  It is a predicate — it owes totality: an answer for every input its type admits.
+```
+
+**Still not a change to the scored row.** 1/10 default, 9/10 across surfaces. What moved is that the
+manifest now describes itself honestly: a consumer narrowing to its analysable set gets 154 real
+subjects instead of 468, of which two thirds were unreachable.
 
 ### The v1 shape tolerance is gone
 

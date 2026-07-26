@@ -29,6 +29,25 @@ public enum PBTSeedKind: String, Codable, Sendable {
     /// symbol names the *enclosing* function, which is where to look, not what to test.
     case extractableKernel = "extractable-kernel"
 
+    /// A pure, total, **named** function that no test can call: `private` or `fileprivate`.
+    ///
+    /// `@testable import` reaches `internal` and no further. This codebase has always known that —
+    /// `PropertyTestCandidacy`'s own doc comment says it, and `couldBePrivateMember` exists because
+    /// of it — and the seeding path did not apply it. Measured here: **316 of 468 seeds marked
+    /// analysable named a function no test could reach**, two thirds of the manifest's supposedly
+    /// actionable half.
+    ///
+    /// The consumer was right and the linter was wrong, which is how this was found: `swift-infer`
+    /// declines these under its own `RestrictedFunction` concept, so the two tools disagreed and
+    /// the disagreement only became visible once both sides stated their beliefs in a comparable
+    /// vocabulary.
+    ///
+    /// **Not dropped, because the logic is real.** A private helper is often the *best* property
+    /// target — that is `RestrictedFunction`'s own argument. It is simply gated behind a decision
+    /// only a human can make: widen the access, or lift the logic somewhere reachable. Same posture
+    /// as `extractableKernel`, different obstacle.
+    case restrictedFunction = "restricted-function"
+
     /// Whether a consumer may point analysis at this seed's symbol.
     ///
     /// `false` means: report it to the reader as work to do, and **do not** narrow discovery to it.
@@ -38,7 +57,7 @@ public enum PBTSeedKind: String, Codable, Sendable {
         case .pureFunction, .idempotency:
             return true
 
-        case .extractableKernel:
+        case .extractableKernel, .restrictedFunction:
             return false
         }
     }
@@ -167,6 +186,18 @@ public struct PBTSeedsFormatter: IssueFormatterProtocol {
         .pureClosureCandidate: .extractableKernel
     ]
 
+    /// Demote an otherwise-analysable seed whose symbol no test can call.
+    ///
+    /// The rule-to-kind table is static, but reachability is a property of the *declaration*, so the
+    /// two have to meet here. Only an analysable kind can be demoted: a kernel is already
+    /// refactor-pending, and its reachability is not the obstacle.
+    static func effectiveKind(
+        _ declared: PBTSeedKind, reachability: TestReachability
+    ) -> PBTSeedKind {
+        guard declared.isAnalysable, reachability == .unreachable else { return declared }
+        return .restrictedFunction
+    }
+
     /// Seed-bearing findings the manifest could not carry, and why.
     ///
     /// A seed with no resolved symbol is dropped — the manifest names *places*, and a place
@@ -227,10 +258,11 @@ public struct PBTSeedsFormatter: IssueFormatterProtocol {
 
     public func format(issues: [LintIssue]) -> String {
         let seeds: [PBTSeed] = issues.compactMap { issue in
-            guard let kind = Self.seedKinds[issue.ruleName],
+            guard let declaredKind = Self.seedKinds[issue.ruleName],
                   let symbol = issue.symbol,
                   symbol.isEmpty == false
             else { return nil }
+            let kind = Self.effectiveKind(declaredKind, reachability: issue.testReachability)
             return PBTSeed(
                 file: issue.filePath,
                 line: issue.lineNumber,
