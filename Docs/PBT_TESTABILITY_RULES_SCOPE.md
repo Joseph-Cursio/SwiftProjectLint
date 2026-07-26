@@ -2,16 +2,44 @@
 
 _Date: 2026-06-27 · Implements Idea #1 from `~/xcode_projects/PBT_ECOSYSTEM_REVIEW.md`_
 
-> **Status (2026-06-28): core shipped.** The `.testability` category and its three
-> purely-syntactic Tier-A rules are on `main`, each with bundled docs and tests:
-> - **Global Mutable State** (warning) — PR #36
-> - **Non-Injected Nondeterminism** (warning) — PR #39 (orig. #37)
-> - **Pure Function Property-Test Candidate** (info) — PR #40 (orig. #38), the keystone seed producer
+> **Status (2026-07-25): done. Everything below is the original plan, kept as a record of
+> intent — read this header for the state.** Verify against `RuleIdentifier+Category.swift`
+> and `PBTSeedsFormatter.seedKinds`, not against the rule catalog further down.
 >
-> The seed handoff to `swift-infer` (Idea #2) is shipped: `--format pbt-seeds` emits a
-> `{file,line,symbol,rule}` manifest from PureFunctionCandidate findings, consumed by
-> `swift-infer discover --seeds`. Remaining optional Tier-A/B rules below are **not yet
-> built**: Unabstracted I/O, Missing Equatable on State Type, Impure Call in View Body.
+> `.testability` holds **seven** rules, all shipped with docs and tests:
+>
+> | Rule | Severity | Seeds? | In the plan below? |
+> |---|---|---|---|
+> | Global Mutable State | warning | — | Rule 2 |
+> | Non-Injected Nondeterminism | warning | — | Rule 1 |
+> | Pure Function Property-Test Candidate | info | `pureFunction` | Rule 5 |
+> | Missing Equatable on State Type | info | — | Rule 4 |
+> | Impure Call in View Body | warning | — | Rule 6 |
+> | **Pure Closure Property-Test Candidate** | info | `extractableKernel` | **no — added later** |
+> | **Extractable Pure Kernel** | info | `extractableKernel` | **no — added later** |
+>
+> **Rule 3 (Unabstracted I/O) was never built as a testability rule.** The pre-existing
+> `.unabstractedFileIO` stayed in `.architecture`, and the "audit it first" recommendation
+> was effectively answered by leaving it alone. Nothing is pending; it was dropped, not
+> deferred.
+>
+> **The two late additions are the interesting part.** Both ask for a *refactoring* rather
+> than flagging a candidate — lift this closure into a named function, lift this kernel into
+> a value type — which is the goal statement below finally being met. Neither was foreseen
+> here, because the plan framed the thesis rule as a positive signal over code that is
+> *already* pure, and most code is not.
+>
+> The seed handoff (Idea #2) shipped and has since moved on: the manifest is **v2**, and each
+> seed is `{file, line, symbol, rule, kind}` — not the `{file,line,symbol,rule}` this doc
+> originally described. `kind` is the field that matters, because `extractableKernel` is
+> **not analysable in place**: its `symbol` names the *enclosing* declaration, and the seed is
+> a request to the human to extract first. On this repository that is 204 of 664 seeds.
+>
+> A fourth seed kind, `idempotency` (from `.idempotencyViolation`), is wired but produced
+> zero seeds on this repository.
+>
+> See [`roadtest/README.md`](roadtest/README.md) for what all of this actually scored when
+> pointed at this codebase.
 
 ## Goal
 
@@ -107,6 +135,8 @@ addIssue(severity: .warning, message: "…", filePath: getFilePath(for: Syntax(n
 - **Effort:** S.
 
 #### Rule 3 — Unabstracted I/O Dependency  `.unabstractedIODependency` *(extend existing)*
+> **Dropped — not built.** `.unabstractedFileIO` remains an `.architecture` rule and was never
+> extended or reframed. There is no `.unabstractedIODependency` case.
 - **Note:** Architecture already registers `UnabstractedFileIO()`. **Audit it first** — it may
   already cover `FileManager`. Scope here = extend coverage to concrete `URLSession`,
   `UserDefaults`, `FileManager` appearing as **parameter types or stored-property types**
@@ -163,6 +193,12 @@ addIssue(severity: .warning, message: "…", filePath: getFilePath(for: Syntax(n
 
 ## Cross-cutting: the handoff seam (Idea #2)
 
+> **Shipped, and then outgrew this section.** `symbol` is on `CodableLintIssue`,
+> `--format pbt-seeds` exists, and `swift-infer discover --seeds` consumes it. But the
+> manifest is **v2** and carries a fifth field, `kind`, which this section did not anticipate
+> and which turned out to be the load-bearing one — see the status header. Four rules seed it,
+> not one: `PBTSeedsFormatter.seedKinds` is the list.
+
 The candidate rule (5) is only useful downstream if the emitted finding names the **symbol**.
 Today `CodableLintIssue` (`Sources/Core/Export/CodableLintIssue.swift:14`) carries
 `severity, message, locations, suggestion, ruleName, category` — **no function name/signature**.
@@ -213,7 +249,26 @@ because it composes everything before it.
 
 ---
 
-## Open decisions (need a call before coding)
+## Open decisions (all since resolved — kept for the reasoning)
+
+> Nothing here is pending. In order: (1) Tier B landed in `SwiftProjectLintRules` under a
+> `Testability/` group, not the idempotency package; (2) co-fire, as recommended; (3) Rule 3
+> was dropped rather than extended; (4) `symbol` was added; (5) the candidate rules ship
+> default-on at `.info`, not opt-in.
+>
+> Decision (5) is the one worth revisiting. A default run over this repository produces 873
+> findings, of which **671 are `.testability` and 664 of those are the two candidate rules** —
+> so 76% of everything the linter says is "this might be property-testable", and a real bug it
+> reported went unread among them. The Rule-5 note below ("opt-in, off by default to avoid
+> noise") was the right instinct and was not followed.
+>
+> The same run puts the whole of tier 2 at **7 findings**: Global Mutable State 3,
+> Non-Injected Nondeterminism 2, Missing Equatable on State Type 2, Impure Call in View Body
+> **0**. Extractable Pure Kernel also scored **0**. Both zeros are genuine — the rules are
+> registered and the SwiftUI surface was scanned (95 findings in `Sources/App`, 19 files with
+> `var body: some View`). For Extractable Pure Kernel that is a known shape limit, admitted in
+> `PBTSeedsFormatter`'s own doc comment: the visitor is arithmetic-shaped and cannot see a
+> kernel that is a predicate or a comparator rather than a computation.
 
 1. **New package vs. group:** Tier B in `SwiftProjectLintIdempotencyRules` (reuses wired SEI)
    vs. a new `SwiftProjectLintTestabilityRules` package. Recommendation: start Tier B inside
