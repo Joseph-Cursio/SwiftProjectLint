@@ -25,8 +25,8 @@ public struct InlineSuppressionFilter {
         let directives = InlineSuppressionParser.parse(fileContent: fileContent)
         guard !directives.isEmpty else { return issues }
 
-        let lineCount = fileContent.components(separatedBy: "\n").count
-        let ranges = buildSuppressedRanges(from: directives, lineCount: lineCount)
+        let lines = fileContent.components(separatedBy: "\n")
+        let ranges = buildSuppressedRanges(from: directives, lines: lines)
 
         return issues.filter { !isSuppressed(line: $0.lineNumber, rule: $0.ruleName, in: ranges) }
     }
@@ -38,8 +38,9 @@ public struct InlineSuppressionFilter {
 
     private static func buildSuppressedRanges(
         from directives: [SuppressionDirective],
-        lineCount: Int
+        lines: [String]
     ) -> SuppressedRanges {
+        let lineCount = lines.count
         var ranges: SuppressedRanges = [:]
         // Open disable regions: key → start line. nil key means "all rules".
         var openDisables: [RuleIdentifier?: Int] = [:]
@@ -49,7 +50,13 @@ public struct InlineSuppressionFilter {
             let keys: [RuleIdentifier?] = directive.rules.isEmpty
                 ? [nil]
                 : directive.rules.map { Optional($0) }
-            applyDirective(directive, keys: keys, ranges: &ranges, openDisables: &openDisables)
+            applyDirective(
+                directive,
+                keys: keys,
+                lines: lines,
+                ranges: &ranges,
+                openDisables: &openDisables
+            )
         }
 
         // Close any regions still open at end of file
@@ -63,6 +70,7 @@ public struct InlineSuppressionFilter {
     private static func applyDirective(
         _ directive: SuppressionDirective,
         keys: [RuleIdentifier?],
+        lines: [String],
         ranges: inout SuppressedRanges,
         openDisables: inout [RuleIdentifier?: Int]
     ) {
@@ -76,11 +84,40 @@ public struct InlineSuppressionFilter {
             closeDisableRegions(keys: keys, endLine: directive.line - 1, ranges: &ranges, openDisables: &openDisables)
 
         case .disableNext:
-            appendSingleLineRange(keys: keys, line: directive.line + 1, ranges: &ranges)
+            let target = nextCodeLine(after: directive.line, in: lines)
+            appendSingleLineRange(keys: keys, line: target, ranges: &ranges)
 
         case .disableThis:
             appendSingleLineRange(keys: keys, line: directive.line, ranges: &ranges)
         }
+    }
+
+    /// The first line after `line` that carries code — skipping blank lines and
+    /// comments, including doc comments.
+    ///
+    /// `disable:next` used to mean literally `line + 1`, which silently missed
+    /// any *documented* declaration: the directive landed on the doc comment and
+    /// the declaration went unsuppressed. That is unfixable by reordering on a
+    /// project that also runs SwiftLint, whose `orphaned_doc_comment` requires
+    /// the opposite adjacency — a `///` block must touch its declaration. The
+    /// two demands are unsatisfiable together, and reordering to satisfy
+    /// SwiftLint disables every `disable:next` in the file without any signal.
+    ///
+    /// The scan stops at the first line bearing code, so a directive followed by
+    /// unrelated code still targets that code rather than leaping to whatever
+    /// the author might have meant. If nothing follows, the returned line is
+    /// past the end and the directive is inert.
+    ///
+    /// - Parameter line: 1-based line of the directive.
+    /// - Returns: 1-based line to suppress.
+    static func nextCodeLine(after line: Int, in lines: [String]) -> Int {
+        var candidate = line + 1
+        while candidate <= lines.count {
+            let trimmed = lines[candidate - 1].trimmingCharacters(in: .whitespaces)
+            if !trimmed.isEmpty, !trimmed.hasPrefix("//") { return candidate }
+            candidate += 1
+        }
+        return line + 1
     }
 
     private static func closeDisableRegions(
