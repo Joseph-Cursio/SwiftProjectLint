@@ -4,6 +4,14 @@ build/
 *.xcworkspace/
 *.xcuserstate
 *.xcuserdata/
+# Per-user Xcode state: schemes, breakpoints, window layout. The `*.xcuserdata/`
+# rule above never matched these — it needs something before a literal
+# `.xcuserdata`, whereas the real directories are a plain `xcuserdata/` inside
+# `.xcodeproj/`, `project.xcworkspace/` and `.swiftpm/xcode/`. Eight such files
+# were tracked under two machine identities (joecursio, josephcursio), so every
+# machine switch showed a spurious diff. Untracked in the same commit as this
+# rule — .gitignore does not apply to already-tracked files.
+xcuserdata/
 *.xcarchive/
 *.xcsettings
 *.xcscmblueprint
