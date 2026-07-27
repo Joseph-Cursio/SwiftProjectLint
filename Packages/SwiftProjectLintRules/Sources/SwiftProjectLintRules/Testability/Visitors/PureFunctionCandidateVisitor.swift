@@ -74,10 +74,13 @@ final class PureFunctionCandidateVisitor: BasePatternVisitor {
                 + "for the property rather than a failure."
         }
 
+        let reachable = PropertyTestCandidacy.isTestReachable(node)
+        if !reachable { advice = Self.wideningAdvice }
+
         addIssue(
             severity: .info,
             message: "`\(node.name.text)(…)` \(claim) — a good property-based-test "
-                + "candidate (\(description))",
+                + "candidate (\(description))\(reachable ? "" : Self.unreachableClause)",
             filePath: getFilePath(for: Syntax(node)),
             lineNumber: getLineNumber(for: Syntax(node)),
             suggestion: advice,
@@ -86,8 +89,7 @@ final class PureFunctionCandidateVisitor: BasePatternVisitor {
             // A computed property is a nullary function of `self`, so there is no signature to
             // read a role from — only the `FunctionDeclSyntax` path classifies.
             role: DeclaredRoleClassifier.role(of: node, isPartial: candidate.isPartial),
-            testReachability: PropertyTestCandidacy.isTestReachable(node)
-                ? .reachable : .unreachable
+            testReachability: reachable ? .reachable : .unreachable
         )
         return .visitChildren
     }
@@ -122,17 +124,43 @@ final class PureFunctionCandidateVisitor: BasePatternVisitor {
         if candidate.isPartial {
             advice += " Narrow the law's domain to the values that do not throw."
         }
+        let reachable = PropertyTestCandidacy.isTestReachable(node)
+        if !reachable { advice = Self.wideningAdvice }
 
         addIssue(
             severity: .info,
             message: "`\(name)` \(claim) — a good property-based-test candidate "
-                + "(a function of `self` alone)",
+                + "(a function of `self` alone)\(reachable ? "" : Self.unreachableClause)",
             filePath: getFilePath(for: Syntax(node)),
             lineNumber: getLineNumber(for: Syntax(node)),
             suggestion: advice,
             ruleName: .pureFunctionCandidate,
-            symbol: name
+            symbol: name,
+            testReachability: reachable ? .reachable : .unreachable
         )
         return .visitChildren
     }
+
+    /// Appended to the message when no test can reach the declaration.
+    ///
+    /// The finding stays — the logic really is a good candidate, and that is worth knowing. What
+    /// changes is that the reader is not told to do something impossible.
+    static let unreachableClause = ", but it is `private`, so no test can reach it as written"
+
+    /// What to actually do about it.
+    ///
+    /// Replaces the advice outright rather than appending, because the advice it replaces is
+    /// **wrong**: "add a PropertyLawKit test that checks a law over generated inputs" cannot be
+    /// followed for a `private` declaration, and on this repository that instruction was issued for
+    /// 316 of 468 findings. `@testable import` raises `internal` to visible and stops there.
+    ///
+    /// Two routes, because widening is not always wanted. The second mirrors what
+    /// `couldBePrivateMember` already tells a reader facing the same tension: extracting the logic
+    /// narrows the surface *and* keeps it testable, which is strictly better than trading one for
+    /// the other.
+    static let wideningAdvice = "Widen it to `internal` first — `@testable import` reaches "
+        + "`internal` and no further — then run `swift-infer discover` on it or add a "
+        + "PropertyLawKit test. If it must stay `private`, lift the logic into a type of its own: "
+        + "that keeps the surface narrow AND makes the logic reachable, rather than trading one for "
+        + "the other."
 }

@@ -1,6 +1,7 @@
 @testable import Core
 import SwiftParser
 import SwiftProjectLintModels
+@testable import SwiftProjectLintRules
 @testable import SwiftProjectLintVisitors
 import SwiftSyntax
 import Testing
@@ -17,6 +18,18 @@ import Testing
 /// comparable vocabulary — which is the argument for the whole `role`/`kind` handoff.
 @Suite("Restricted seeds — pure, named, and unreachable")
 struct RestrictedSeedTests {
+
+    /// The sibling suite's `analyze` is file-scope private, so this suite carries its own.
+    private func findings(_ source: String) -> [LintIssue] {
+        let visitor = PureFunctionCandidateVisitor(patternCategory: .testability)
+        let syntax = Parser.parse(source: source)
+        visitor.setSourceLocationConverter(
+            SourceLocationConverter(fileName: "Logic.swift", tree: syntax)
+        )
+        visitor.setFilePath("Logic.swift")
+        visitor.walk(syntax)
+        return visitor.detectedIssues.filter { $0.ruleName == .pureFunctionCandidate }
+    }
 
     private func reachable(_ source: String) -> Bool {
         let syntax = Parser.parse(source: source)
@@ -84,8 +97,13 @@ struct RestrictedSeedTests {
     func unreachableSeedIsDemoted() {
         #expect(PBTSeedsFormatter.effectiveKind(.pureFunction, reachability: .unreachable)
             == .restrictedFunction)
+        // ...and it stays ANALYSABLE. The first cut returned false here, grouping it with
+        // `extractableKernel`, which conflated two obstacles: a kernel has no symbol to analyse,
+        // while a private function has a name and a signature and only lacks *verifiability* from
+        // another module. `swift-infer` keys its seeded-private rescue on the analysable set, so
+        // the false silently switched that feature off for every seed this linter produces.
         #expect(PBTSeedsFormatter.effectiveKind(.pureFunction, reachability: .unreachable)
-            .isAnalysable == false)
+            .isAnalysable)
     }
 
     @Test("a reachable or unknown seed keeps its declared kind")
@@ -106,15 +124,73 @@ struct RestrictedSeedTests {
             == .extractableKernel)
     }
 
-    @Test("restricted seeds are excluded from the analysable set but kept in the manifest")
-    func restrictedIsReportedNotDropped() {
-        // Dropping them would lose real logic: a private helper is often the BEST property target,
-        // which is `RestrictedFunction`'s own argument. The obstacle is a decision, not the code.
+    @Test("restricted seeds stay in the analysable set — the label is not a refusal")
+    func restrictedIsLabelledNotWithheld() {
+        // A private helper is often the BEST property target; an app has no public API and its pure
+        // logic lives in `private` helpers. The kind records WHY verification needs a refactor; it
+        // does not withhold the seed from analysis.
         let manifest = PBTSeedManifest(seeds: [
             PBTSeed(file: "A.swift", line: 1, symbol: "open", rule: "r", kind: .pureFunction),
-            PBTSeed(file: "A.swift", line: 9, symbol: "hidden", rule: "r", kind: .restrictedFunction)
+            PBTSeed(file: "A.swift", line: 9, symbol: "hidden", rule: "r", kind: .restrictedFunction),
+            PBTSeed(file: "A.swift", line: 20, symbol: "trapped", rule: "r", kind: .extractableKernel)
         ])
-        #expect(manifest.seeds.count == 2)
-        #expect(manifest.analysableSeeds.map(\.symbol) == ["open"])
+        #expect(manifest.seeds.count == 3)
+        #expect(manifest.analysableSeeds.map(\.symbol) == ["open", "hidden"])
+    }
+
+    // MARK: - The advice must be followable
+
+    @Test("a private candidate is told to widen, not to write a test it cannot write")
+    func privateCandidateGetsWideningAdvice() throws {
+        // The defect this closes: the rule told the reader to "add a PropertyLawKit test that
+        // checks a law over generated inputs" for a `private` function. That cannot be done —
+        // `@testable import` reaches `internal` and stops — and on this repository the instruction
+        // was issued for 316 of 468 findings.
+        let issue = try #require(findings("""
+        private func normalize(_ path: String) -> String { path }
+        """).first)
+
+        #expect(issue.message.contains("no test can reach it as written"))
+        #expect(try #require(issue.suggestion).contains("Widen it to `internal`"))
+        // The escape hatch, for a declaration that must stay narrow.
+        #expect(try #require(issue.suggestion).contains("lift the logic into a type of its own"))
+    }
+
+    @Test("an internal candidate keeps the original advice")
+    func internalCandidateKeepsOriginalAdvice() throws {
+        let issue = try #require(findings("""
+        func normalize(_ path: String) -> String { path }
+        """).first)
+
+        #expect(issue.message.contains("no test can reach it") == false)
+        #expect(try #require(issue.suggestion).contains("Run `swift-infer discover`"))
+        #expect(try #require(issue.suggestion).contains("Widen it") == false)
+    }
+
+    /// The hole in the first cut: only the `FunctionDeclSyntax` path passed reachability, so a
+    /// `private` computed property was still seeded as analysable.
+    @Test("a private computed property is unreachable too")
+    func privateComputedPropertyIsUnreachable() throws {
+        let issue = try #require(findings("""
+        struct Rule {
+            let name: String
+            private var slug: String { name.lowercased() }
+        }
+        """).first)
+
+        #expect(issue.testReachability == .unreachable)
+        #expect(issue.message.contains("no test can reach it as written"))
+    }
+
+    @Test("an internal computed property stays reachable")
+    func internalComputedPropertyIsReachable() throws {
+        let issue = try #require(findings("""
+        struct Rule {
+            let name: String
+            var slug: String { name.lowercased() }
+        }
+        """).first)
+
+        #expect(issue.testReachability == .reachable)
     }
 }

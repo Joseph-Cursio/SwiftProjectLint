@@ -42,10 +42,25 @@ public enum PBTSeedKind: String, Codable, Sendable {
     /// the disagreement only became visible once both sides stated their beliefs in a comparable
     /// vocabulary.
     ///
-    /// **Not dropped, because the logic is real.** A private helper is often the *best* property
-    /// target — that is `RestrictedFunction`'s own argument. It is simply gated behind a decision
-    /// only a human can make: widen the access, or lift the logic somewhere reachable. Same posture
-    /// as `extractableKernel`, different obstacle.
+    /// **Analysable, and a label rather than a gate.** This case first shipped with
+    /// `isAnalysable == false`, grouping it with `extractableKernel`, and that conflated two
+    /// different obstacles:
+    ///
+    /// | | symbol to analyse? | law proposable? | blocker |
+    /// |---|---|---|---|
+    /// | `extractableKernel` | no — the logic has no name | no | someone must draw a boundary |
+    /// | `restrictedFunction` | **yes** — name and signature | **yes** | one keyword, to *verify* it |
+    ///
+    /// `isAnalysable` asks whether a consumer may narrow analysis to this symbol. For a private
+    /// function the answer is yes; what it cannot do is *verify* the law from another module
+    /// without a refactor. Answering the verification question with the analysis flag suppressed
+    /// **319 seeds on this repository** — and `swift-infer` has a deliberate feature for exactly
+    /// these, keyed on the analysable set, so marking them unanalysable switched it off silently.
+    ///
+    /// A private helper is often the *best* property target. An app has no public API; its pure
+    /// logic lives in `private` helpers. The kind stays because the consumer wants to know — it
+    /// leads with the access caveat and names the one refactor that unlocks verification — but
+    /// knowing is not the same as refusing.
     case restrictedFunction = "restricted-function"
 
     /// Whether a consumer may point analysis at this seed's symbol.
@@ -54,10 +69,10 @@ public enum PBTSeedKind: String, Codable, Sendable {
     /// The symbol is a location, not a subject.
     public var isAnalysable: Bool {
         switch self {
-        case .pureFunction, .idempotency:
+        case .pureFunction, .idempotency, .restrictedFunction:
             return true
 
-        case .extractableKernel, .restrictedFunction:
+        case .extractableKernel:
             return false
         }
     }
