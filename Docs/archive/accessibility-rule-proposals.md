@@ -2,6 +2,22 @@
 
 Potential lint rules derived from [mobilea11y.com SwiftUI accessibility guides](https://mobilea11y.com/guides/swiftui/swiftui-accessibility/).
 
+> **Status (2026-07-31): closed.** Every candidate is resolved — all six shipped,
+> and the seven Deferred items below are decisions not to build rather than
+> pending work. Kept as the record of what was proposed, what shipped, and where
+> each rule departed from its proposal. The shipped rules are documented in
+> [`rules/RULES.md`](../rules/RULES.md); read those for current behaviour, and
+> this only for intent.
+>
+> | # | Proposal | Shipped as |
+> |---|---|---|
+> | 1 | Accessibility Hidden With Other Modifiers | `accessibilityHiddenConflict` |
+> | 2 | Sort Priority Without Container | `sortPriorityWithoutContainer` |
+> | 3 | Animation Without Reduce Motion | `animationWithoutReduceMotion` (opt-in) |
+> | 4 | Custom Font With Fixed Size | folded into `hardcodedFontSize` |
+> | 5 | isButton Trait Without Action | `isButtonTraitWithoutAction` |
+> | 6 | Unlabeled Toggle, Slider, or Picker | folded into `controlMissingAccessibilityLabel`, with the absent-label half split out as `unlabeledControl` |
+
 ---
 
 ## Strong Candidates
