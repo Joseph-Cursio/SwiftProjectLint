@@ -1,7 +1,5 @@
 import Foundation
-import SwiftProjectLintModels
 import SwiftProjectLintRegistry
-import SwiftProjectLintVisitors
 
 /// Registers patterns related to idempotency contracts for retry-safe code.
 ///
