@@ -79,7 +79,7 @@ class AccessibilityVisitor: BasePatternVisitor {
     private lazy var imageChecker = ImageAccessibilityChecker(visitor: self)
     private lazy var textChecker = TextAccessibilityChecker(visitor: self)
     private lazy var colorChecker = ColorAccessibilityChecker(visitor: self)
-    private lazy var customControlChecker = CustomControlAccessibilityChecker(visitor: self)
+    private lazy var customControlChecker = CustomControlAccessibilityChecker()
 
     // MARK: - Initializers
 

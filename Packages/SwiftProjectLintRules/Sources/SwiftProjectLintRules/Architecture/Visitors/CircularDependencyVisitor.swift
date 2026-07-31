@@ -13,8 +13,9 @@ final class CircularDependencyVisitor: CrossFileVisitorBase, CrossFilePatternVis
 
     // MARK: - Collected data
 
+    /// The declaring file and syntax node for a type. The type's own name is
+    /// the key in `typeDeclarations`, so it is not repeated here.
     private struct TypeInfo {
-        let name: String
         let file: String
         let node: Syntax
     }
@@ -39,7 +40,7 @@ final class CircularDependencyVisitor: CrossFileVisitorBase, CrossFilePatternVis
 
     override func visit(_ node: ClassDeclSyntax) -> SyntaxVisitorContinueKind {
         let name = node.name.text
-        typeDeclarations[name] = TypeInfo(name: name, file: currentFilePath, node: Syntax(node))
+        typeDeclarations[name] = TypeInfo(file: currentFilePath, node: Syntax(node))
         currentTypeName = name
         return .visitChildren
     }
@@ -50,7 +51,7 @@ final class CircularDependencyVisitor: CrossFileVisitorBase, CrossFilePatternVis
 
     override func visit(_ node: StructDeclSyntax) -> SyntaxVisitorContinueKind {
         let name = node.name.text
-        typeDeclarations[name] = TypeInfo(name: name, file: currentFilePath, node: Syntax(node))
+        typeDeclarations[name] = TypeInfo(file: currentFilePath, node: Syntax(node))
         currentTypeName = name
         return .visitChildren
     }

@@ -16,7 +16,6 @@ final class MultipleTypesPerFileVisitor: BasePatternVisitor {
     private var topLevelTypeCount = 0
     private var primaryTypeName: String?
     private var fileNameStem: String?
-    private var currentFilePath: String = ""
 
     required init(pattern: SyntaxPattern, viewMode: SyntaxTreeViewMode = .sourceAccurate) {
         super.init(pattern: pattern, viewMode: viewMode)
@@ -24,7 +23,6 @@ final class MultipleTypesPerFileVisitor: BasePatternVisitor {
 
     override func setFilePath(_ filePath: String) {
         super.setFilePath(filePath)
-        currentFilePath = filePath
         // Extract file name stem: "WorkspaceManager.swift" → "WorkspaceManager"
         // Also handle "+Extensions" files: "ViolationInspectorView+Options.swift" → "ViolationInspectorView"
         let fileName = (filePath as NSString).lastPathComponent

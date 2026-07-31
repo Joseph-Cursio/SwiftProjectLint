@@ -6,12 +6,6 @@ import SwiftSyntax
 /// This checker analyzes custom view types that should have accessibility traits.
 class CustomControlAccessibilityChecker {
 
-    let visitor: AccessibilityVisitor
-
-    init(visitor: AccessibilityVisitor) {
-        self.visitor = visitor
-    }
-
     func checkAccessibility(_ _: VariableDeclSyntax) {
         // Intentionally unimplemented — reserved for future custom-control accessibility checks.
     }

@@ -23,9 +23,6 @@ final class ViewModelDirectDBAccessVisitor: BasePatternVisitor {
     /// Imported persistence frameworks found in this file.
     private var importedFrameworks: [String] = []
 
-    /// Whether this file contains a view model class.
-    private var viewModelClassNames: [String] = []
-
     required init(pattern: SyntaxPattern, viewMode: SyntaxTreeViewMode = .sourceAccurate) {
         super.init(pattern: pattern, viewMode: viewMode)
     }
@@ -33,7 +30,6 @@ final class ViewModelDirectDBAccessVisitor: BasePatternVisitor {
     override func setFilePath(_ filePath: String) {
         self.currentFilePath = filePath
         importedFrameworks = []
-        viewModelClassNames = []
     }
 
     // MARK: - Track imports
