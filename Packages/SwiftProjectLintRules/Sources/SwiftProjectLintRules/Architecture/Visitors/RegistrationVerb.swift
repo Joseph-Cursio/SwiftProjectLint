@@ -67,15 +67,6 @@ enum RegistrationVerb {
         return ""
     }
 
-    /// The callee text of `item` when it is an expression statement calling a
-    /// registration-verb method; `nil` otherwise. The returned string is the full
-    /// callee spelling (`SourcePatternRegistry.registerFactory`), so callers can
-    /// require a run to target the *same* callee.
-    static func callee(of item: CodeBlockItemSyntax) -> String? {
-        guard let call = call(in: item) else { return nil }
-        return call.calledExpression.trimmedDescription
-    }
-
     /// The registration `FunctionCallExprSyntax` of `item`, or `nil` when `item` is not
     /// an expression statement calling a registration-verb method.
     static func call(in item: CodeBlockItemSyntax) -> FunctionCallExprSyntax? {

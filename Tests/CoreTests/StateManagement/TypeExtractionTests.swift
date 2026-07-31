@@ -64,15 +64,4 @@ struct TypeExtractionTests {
     }
 
     // MARK: - Helper Methods
-
-    private func createVisitor(for source: String) -> StateVariableVisitor {
-        let syntax = Parser.parse(source: source)
-        let visitor = StateVariableVisitor(
-            viewName: "TestView",
-            filePath: "/test/TestView.swift",
-            sourceContents: source
-        )
-        visitor.walk(syntax)
-        return visitor
-    }
 }

@@ -22,12 +22,6 @@ public struct PurityInferrer: Sendable {
         // No configuration: the underlying oracle is stateless.
     }
 
-    /// Returns `.pure` when `function` is referentially transparent, `nil`
-    /// otherwise. Forwards to the canonical oracle.
-    public func inferredEffect(for function: FunctionDeclSyntax) -> Effect? {
-        underlying.inferredEffect(for: function)
-    }
-
     /// Convenience boolean form of `inferredEffect(for:)`.
     public func isPure(_ function: FunctionDeclSyntax) -> Bool {
         underlying.isPure(function)

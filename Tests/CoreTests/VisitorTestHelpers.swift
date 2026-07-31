@@ -6,12 +6,6 @@ import SwiftSyntax
 
 // MARK: - Accessibility
 
-/// Creates a ready-to-use AccessibilityVisitor with the shared registry initialized.
-func makeAccessibilityVisitor() -> AccessibilityVisitor {
-    TestRegistryManager.initializeSharedRegistry()
-    return AccessibilityVisitor(patternCategory: .accessibility)
-}
-
 // MARK: - State Variable
 
 /// Parses `source`, walks a StateVariableVisitor over it, and returns the visitor.
