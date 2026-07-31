@@ -1,4 +1,3 @@
-@testable import CLI
 import Core
 import Testing
 

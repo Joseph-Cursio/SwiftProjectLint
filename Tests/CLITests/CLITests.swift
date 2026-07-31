@@ -1,4 +1,3 @@
-@testable import CLI
 import Foundation
 import Testing
 
