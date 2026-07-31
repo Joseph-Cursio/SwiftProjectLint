@@ -40,10 +40,6 @@ final class ControlMissingAccessibilityLabelVisitor: BasePatternVisitor {
         "Toggle", "Slider", "Stepper"
     ]
 
-    /// Parent groupings that take over naming, making an unlabeled child harmless:
-    /// `.combine` merges the children's labels, `.ignore` removes them from the tree.
-    private static let groupingChildBehaviours: Set<String> = ["combine", "ignore"]
-
     required init(pattern: SyntaxPattern, viewMode: SyntaxTreeViewMode = .sourceAccurate) {
         super.init(pattern: pattern, viewMode: viewMode)
     }
@@ -63,7 +59,9 @@ final class ControlMissingAccessibilityLabelVisitor: BasePatternVisitor {
         }
 
         // A parent that merges or ignores its children names the group itself.
-        guard isInsideNamingGroup(node) == false else { return .visitChildren }
+        guard AccessibilityTreeTraverser.isInsideNamingGroup(node) == false else {
+            return .visitChildren
+        }
 
         addIssue(
             severity: .warning,
@@ -112,36 +110,6 @@ final class ControlMissingAccessibilityLabelVisitor: BasePatternVisitor {
             return false
         }
         return callee.baseName.text == "EmptyView" && call.arguments.isEmpty
-    }
-
-    /// True when any ancestor applies `.accessibilityElement(children: .combine/.ignore)`.
-    ///
-    /// A parent's modifier call is an ancestor of the control in the syntax tree, so one
-    /// upward walk covers both the control's own chain and any enclosing container's —
-    /// no separate parent tracking needed.
-    private func isInsideNamingGroup(_ node: FunctionCallExprSyntax) -> Bool {
-        var current: Syntax? = Syntax(node)
-
-        while let syntax = current {
-            if let call = syntax.as(FunctionCallExprSyntax.self),
-               let member = call.calledExpression.as(MemberAccessExprSyntax.self),
-               member.declName.baseName.text == "accessibilityElement",
-               groupsChildren(call.arguments) {
-                return true
-            }
-            current = syntax.parent
-        }
-        return false
-    }
-
-    private func groupsChildren(_ arguments: LabeledExprListSyntax) -> Bool {
-        arguments.contains { argument in
-            guard argument.label?.text == "children",
-                  let member = argument.expression.as(MemberAccessExprSyntax.self) else {
-                return false
-            }
-            return Self.groupingChildBehaviours.contains(member.declName.baseName.text)
-        }
     }
 
     /// True for `""` and a literal made only of empty string segments (no interpolation).

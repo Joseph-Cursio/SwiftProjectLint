@@ -73,6 +73,51 @@ class AccessibilityTreeTraverser {
         return false
     }
 
+    /// Parent groupings that take over naming, making an unlabeled child harmless:
+    /// `.combine` merges the children's labels into one, `.ignore` removes them from
+    /// the accessibility tree. `.contain` is absent on purpose — it keeps children as
+    /// individual elements, so an unlabeled one stays unlabeled.
+    private static let groupingChildBehaviours: Set<String> = ["combine", "ignore"]
+
+    /// Whether any ancestor applies `.accessibilityElement(children: .combine/.ignore)`,
+    /// which hands naming to the parent.
+    ///
+    /// Unlike `hasAccessibilityModifier`, this walks the *whole* ancestor chain rather
+    /// than the node's own modifier chain — and that is the point. A container's
+    /// modifier call is an ancestor of the controls inside it:
+    /// ```
+    /// FunctionCallExpr(.accessibilityElement)      ← ancestor
+    ///   └─ MemberAccessExpr(.accessibilityElement)
+    ///        └─ FunctionCallExpr(HStack)
+    ///             └─ … └─ FunctionCallExpr(Toggle) ← the control
+    /// ```
+    /// so one upward walk covers both the control's own chain and any enclosing
+    /// container's, with no separate parent tracking.
+    static func isInsideNamingGroup(_ node: FunctionCallExprSyntax) -> Bool {
+        var current: Syntax? = Syntax(node)
+
+        while let syntax = current {
+            if let call = syntax.as(FunctionCallExprSyntax.self),
+               let member = call.calledExpression.as(MemberAccessExprSyntax.self),
+               member.declName.baseName.text == "accessibilityElement",
+               groupsChildren(call.arguments) {
+                return true
+            }
+            current = syntax.parent
+        }
+        return false
+    }
+
+    private static func groupsChildren(_ arguments: LabeledExprListSyntax) -> Bool {
+        arguments.contains { argument in
+            guard argument.label?.text == "children",
+                  let member = argument.expression.as(MemberAccessExprSyntax.self) else {
+                return false
+            }
+            return groupingChildBehaviours.contains(member.declName.baseName.text)
+        }
+    }
+
     /// Checks if a Button call has a string literal as its first unlabeled argument,
     /// which acts as the button's title (e.g., `Button("Send", systemImage: "paperplane", action: ...)`).
     static func buttonHasStringTitle(_ node: FunctionCallExprSyntax) -> Bool {

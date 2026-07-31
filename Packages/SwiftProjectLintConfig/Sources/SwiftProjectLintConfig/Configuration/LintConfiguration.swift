@@ -119,7 +119,10 @@ public struct LintConfiguration: Sendable {
         // and Docs/rules/decorative-image-missing-trait.md for why each is
         // heuristic enough to warrant opting in.
         .missingDynamicTypeSupport,
-        .decorativeImageMissingTrait
+        .decorativeImageMissingTrait,
+        // Opt-in: `Slider(value:in:)` is the ordinary spelling, so this would fire
+        // across most codebases on a default run.
+        .unlabeledControl
     ]
 
     /// Default configuration — all rules enabled, no exclusions.
