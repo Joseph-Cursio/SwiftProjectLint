@@ -157,7 +157,16 @@ Text("Hello")
 
 ## Moderate Candidates
 
-### 5. isButton Trait Without Accessibility Action
+### 5. ~~isButton Trait Without Accessibility Action~~ -- Implemented (`isButtonTraitWithoutAction`)
+
+Shipped as its own rule, with one deliberate widening of the detection below: the
+chain is collected whole before either check, so modifier *order* does not matter,
+and activation counts as satisfied by any of `.accessibilityAction`,
+`.accessibilityCustomAction`, `.accessibilityAdjustableAction`, `.onTapGesture`,
+`.onLongPressGesture`, `.gesture`, `.highPriorityGesture`, `.simultaneousGesture`.
+Already-activatable views (`Button`, `NavigationLink`, `Link`, `Menu`, `Toggle`,
+`Stepper`, `Picker`) are skipped, since there the trait is redundant, not broken.
+
 
 **Source:** [Semantic Views](https://mobilea11y.com/guides/swiftui/swiftui-semantic-views/)
 

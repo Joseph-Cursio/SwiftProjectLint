@@ -167,6 +167,7 @@ Rules marked **opt-in** are disabled by default and must be explicitly listed un
 | [Inaccessible Color Usage](inaccessible-color-usage.md) | Info |
 | [Icon-Only Button Missing Label](icon-only-button-missing-label.md) | Warning |
 | [Control Missing Accessibility Label](control-missing-accessibility-label.md) | Warning |
+| [isButton Trait Without Action](is-button-trait-without-action.md) | Warning |
 | [Long Text Accessibility](long-text-accessibility.md) | Info |
 | [Hardcoded Font Size](hardcoded-font-size.md) | Warning |
 | [onTapGesture Instead of Button](on-tap-gesture-instead-of-button.md) | Warning |

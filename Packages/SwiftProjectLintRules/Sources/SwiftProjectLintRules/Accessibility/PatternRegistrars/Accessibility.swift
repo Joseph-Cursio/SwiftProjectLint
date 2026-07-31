@@ -12,7 +12,11 @@ class Accessibility: BasePatternRegistrar {
         registerInteractionPatterns()
         registerStateAndGroupingPatterns()
         registerConflictPatterns()
-        registry.register(registrars: [HardcodedFontSize(), ControlMissingAccessibilityLabel()])
+        registry.register(registrars: [
+            HardcodedFontSize(),
+            ControlMissingAccessibilityLabel(),
+            IsButtonTraitWithoutAction()
+        ])
     }
 
     private func registerCorePatterns() {

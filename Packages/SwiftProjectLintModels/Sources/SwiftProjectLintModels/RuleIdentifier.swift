@@ -189,6 +189,7 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
     case accessibilityHiddenConflict = "Accessibility Hidden Conflict"
     case sortPriorityWithoutContainer = "Sort Priority Without Container"
     case controlMissingAccessibilityLabel = "Control Missing Accessibility Label"
+    case isButtonTraitWithoutAction = "isButton Trait Without Action"
 
     // Memory Management Rules
     case potentialRetainCycle = "Potential Retain Cycle"
