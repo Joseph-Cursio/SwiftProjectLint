@@ -230,6 +230,14 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
     case missingEquatableOnStateType = "Missing Equatable on State Type"
     case impureCallInViewBody = "Impure Call in View Body"
 
+    /// A ViewInspector test that hosts a view and only *then* inspects it. The
+    /// inspection must be registered first; hosting drives it.
+    case viewHostingBeforeInspection = "ViewHosting Before Inspection"
+
+    /// A view reading `@Environment(SomeType.self)` with no inspection relay —
+    /// so it cannot be inspected without trapping.
+    case observableEnvironmentViewMissingInspectionHook = "Observable Environment View Missing Inspection Hook"
+
     /// A value rebuilt field-by-field from one you already have, where the initialiser has
     /// defaulted parameters — so a forgotten field takes its default SILENTLY.
     case lossyStructRebuild = "Lossy Struct Rebuild"
