@@ -18,11 +18,6 @@ final class MagicBooleanParameterVisitor: BasePatternVisitor {
         "fatalError"
     ]
 
-    /// Macro names where booleans are standard.
-    private static let suppressedMacros: Set<String> = [
-        "#expect", "#require"
-    ]
-
     required init(pattern: SyntaxPattern, viewMode: SyntaxTreeViewMode = .sourceAccurate) {
         super.init(pattern: pattern, viewMode: viewMode)
     }
