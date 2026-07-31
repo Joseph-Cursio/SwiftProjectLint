@@ -44,10 +44,20 @@ report_exclude:
 #
 # Also left on:
 #
-#   redundant public analysis — the Packages/* are local path dependencies with
-#     no external consumers, so a `public` that nothing outside its module uses
-#     is genuinely redundant. Tests reach in via `@testable import`, which
-#     Periphery accounts for.
+#   redundant public analysis — the Packages/* are local path dependencies used
+#     only by this repo (Sources/Core re-exports them with `@_exported`), so a
+#     `public` that nothing outside its module uses is genuinely redundant.
+#     Tests reach in via `@testable import`, which Periphery accounts for.
+#
+#     The 26 remaining findings are all in FrameworkAllowlist.swift and are
+#     expected to stay. Its constants are adopter-facing API: the doc comment on
+#     `LintConfiguration.enabledFrameworkAllowlists` tells adopters to configure
+#     it "using `FrameworkAllowlist` constants like `Foundation`, `NIOCore`".
+#     Nothing in this repo uses them from outside the Visitors module, which is
+#     exactly why Periphery flags them — and exactly why the flag is wrong here.
+#     Marking them with `// periphery:ignore` was tried and rejected: it
+#     suppressed 21 findings but produced 13 `superfluousIgnoreCommand` ones,
+#     trading one kind of noise for another.
 #
 #   unused import analysis — this found 272 real unused imports across 251
 #     files in the first run (all removed 2026-07-31, verified by a clean

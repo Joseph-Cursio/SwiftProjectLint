@@ -6,7 +6,7 @@ import SwiftSyntax
 /// annotations, pattern-binding annotations, literal shapes) and does not
 /// perform semantic resolution. Cases the resolver cannot classify
 /// lexically return `.unresolved`.
-public enum ResolvedReceiverType: Equatable, Sendable {
+enum ResolvedReceiverType: Equatable, Sendable {
     /// A well-known stdlib collection or wrapper type. The `String` payload
     /// is the bare type name (`"Array"`, `"Set"`, `"Dictionary"`, `"String"`,
     /// `"Optional"`). Used by `StdlibExclusions` to suppress bare-name
@@ -54,12 +54,12 @@ public enum ResolvedReceiverType: Equatable, Sendable {
 /// resolves to one of the stdlib names *and* `localTypes` contains that
 /// name, the result is downgraded to `.named` — the stdlib exclusion table
 /// won't fire on a user-defined shadow.
-public enum ReceiverTypeResolver {
+enum ReceiverTypeResolver {
 
     /// Convenience wrapper that extracts the receiver expression from a
     /// method call. For `x.foo(y)` returns the resolution of `x`. For
     /// `foo(y)` (no receiver) returns `.unresolved`.
-    public static func resolve(
+    static func resolve(
         receiverOf call: FunctionCallExprSyntax,
         localTypes: Set<String> = []
     ) -> ResolvedReceiverType {
@@ -73,7 +73,7 @@ public enum ReceiverTypeResolver {
     /// Resolves a single receiver expression. Public so that the inferrer
     /// (and future callers) can operate on arbitrary expressions without
     /// routing through a `FunctionCallExprSyntax`.
-    public static func resolve(
+    static func resolve(
         _ expr: ExprSyntax,
         localTypes: Set<String> = []
     ) -> ResolvedReceiverType {

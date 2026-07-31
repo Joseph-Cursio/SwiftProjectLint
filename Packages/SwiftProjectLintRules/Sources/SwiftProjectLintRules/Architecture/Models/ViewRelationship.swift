@@ -30,15 +30,15 @@ import Foundation
 ///     filePath: "/path/to/RootView.swift"
 /// )
 /// ```
-public struct ViewRelationship: Sendable {
-    public let parentView: String
-    public let childView: String
-    public let relationshipType: RelationshipType
-    public let lineNumber: Int
-    public let filePath: String
+struct ViewRelationship: Sendable {
+    let parentView: String
+    let childView: String
+    let relationshipType: RelationshipType
+    let lineNumber: Int
+    let filePath: String
 }
 
-public enum RelationshipType: Sendable {
+enum RelationshipType: Sendable {
     case directChild
     case navigationDestination
     case sheet
