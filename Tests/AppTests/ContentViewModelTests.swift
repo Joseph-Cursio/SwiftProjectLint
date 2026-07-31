@@ -8,6 +8,25 @@ import Testing
 @MainActor
 struct ContentViewModelTests {
 
+    /// A unique, empty directory for a test to analyze.
+    ///
+    /// Never point the linter at `FileManager.default.temporaryDirectory` *itself*.
+    /// That is shared machine state, and on a developer machine it accumulates Swift
+    /// sources — 26,000+ of them after a day of builds, largely from the toolchain's
+    /// own `swift-generated-sources`. Analysing it parses every one through
+    /// SwiftSyntax, which made this suite non-hermetic: fast on a clean machine,
+    /// stalled for ten minutes on a working one, and the single reason a full
+    /// `swift test` run appeared to hang.
+    ///
+    /// The caller is responsible for removing the directory; `defer` is the tidiest
+    /// way to do that.
+    private func makeIsolatedDirectory(_ name: String = #function) throws -> String {
+        let directory = FileManager.default.temporaryDirectory
+            .appendingPathComponent("ContentViewModelTests_\(name)_\(UUID().uuidString)")
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        return directory.path
+    }
+
     // MARK: - Initial State
 
     @Test("initial state has empty selected directory")
@@ -85,19 +104,27 @@ struct ContentViewModelTests {
     }
 
     @Test("analyzeProject with non-empty directory sets isAnalyzing to true")
-    func analyzeProjectSetsIsAnalyzing() {
+    func analyzeProjectSetsIsAnalyzing() throws {
+        let directory = try makeIsolatedDirectory()
+        defer { try? FileManager.default.removeItem(atPath: directory) }
+
         let viewModel = ContentViewModel()
-        viewModel.selectedDirectory = FileManager.default.temporaryDirectory.path
+        viewModel.selectedDirectory = directory
         viewModel.enabledRuleNames = [.relatedDuplicateStateVariable]
         viewModel.analyzeProject()
+        // Safe to read synchronously: analyzeProject sets the flag before starting its
+        // task, and resetting it requires the MainActor this test is holding.
         #expect(viewModel.isAnalyzing)
         viewModel.cancelAnalysis()
     }
 
     @Test("analyzeProject prevents double-start when already analyzing")
-    func analyzeProjectPreventsDoubleStart() {
+    func analyzeProjectPreventsDoubleStart() throws {
+        let directory = try makeIsolatedDirectory()
+        defer { try? FileManager.default.removeItem(atPath: directory) }
+
         let viewModel = ContentViewModel()
-        viewModel.selectedDirectory = FileManager.default.temporaryDirectory.path
+        viewModel.selectedDirectory = directory
         viewModel.enabledRuleNames = [.relatedDuplicateStateVariable]
         viewModel.analyzeProject()
         #expect(viewModel.isAnalyzing)
@@ -109,9 +136,12 @@ struct ContentViewModelTests {
     }
 
     @Test("analyzeProject with no enabled categories completes without issues")
-    func analyzeProjectWithNoCategoriesCompletesEmpty() async {
+    func analyzeProjectWithNoCategoriesCompletesEmpty() async throws {
+        let directory = try makeIsolatedDirectory()
+        defer { try? FileManager.default.removeItem(atPath: directory) }
+
         let viewModel = ContentViewModel()
-        viewModel.selectedDirectory = FileManager.default.temporaryDirectory.path
+        viewModel.selectedDirectory = directory
         viewModel.enabledRuleNames = [] // no rules → no categories → skips linter
         viewModel.analyzeProject()
         await viewModel.analysisTask?.value
