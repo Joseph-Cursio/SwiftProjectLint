@@ -111,7 +111,15 @@ public struct LintConfiguration: Sendable {
         .mutuallyExclusivePresentationState,
         .flagOptionalPairState,
         .redundantDerivedProperty,
-        .animationWithoutReduceMotion
+        .animationWithoutReduceMotion,
+        // Both of these were authored as opt-in — their rule docs say so, their
+        // registrar descriptions say "Disabled by default", and the commits that
+        // added them are titled "(opt-in)" — but neither was ever registered here,
+        // so both ran by default. See Docs/rules/missing-dynamic-type-support.md
+        // and Docs/rules/decorative-image-missing-trait.md for why each is
+        // heuristic enough to warrant opting in.
+        .missingDynamicTypeSupport,
+        .decorativeImageMissingTrait
     ]
 
     /// Default configuration — all rules enabled, no exclusions.
