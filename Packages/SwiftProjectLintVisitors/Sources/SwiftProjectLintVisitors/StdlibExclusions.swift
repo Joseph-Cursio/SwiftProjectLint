@@ -33,7 +33,7 @@ import Foundation
 /// - Any user-defined type methods that happen to share names with stdlib
 ///   methods: that's the problem receiver-type inference exists to fix —
 ///   user-defined receivers stay on the bare-name path.
-public enum StdlibExclusions {
+enum StdlibExclusions {
 
     /// Returns `true` when the `(receiver, method)` pair is a stdlib
     /// exclusion — i.e., a bare-name inference match that should be
@@ -41,7 +41,7 @@ public enum StdlibExclusions {
     ///
     /// Pair matches require the receiver to be `.stdlibCollection(name)`.
     /// Named or unresolved receivers are never excluded.
-    public static func isExcluded(
+    static func isExcluded(
         receiver: ResolvedReceiverType,
         method: String
     ) -> Bool {

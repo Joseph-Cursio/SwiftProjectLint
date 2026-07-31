@@ -8,7 +8,7 @@ import SwiftSyntax
 /// only *immutable* stored state is a function of `(self, arguments)` — still property-testable,
 /// you just have to build a `self`. Only a method that reads *mutable* instance state is genuinely
 /// out of reach, because its result is not a function of anything a test can pin down.
-public enum SelfAccess: Sendable, Equatable {
+enum SelfAccess: Sendable, Equatable {
     /// The body reads nothing from `self`. A function of its arguments alone.
     ///
     /// Deliberately not spelled `none` — at a use site `.none` reads as `Optional.none`,
@@ -47,7 +47,7 @@ public enum SelfAccess: Sendable, Equatable {
 /// This establishes that the method does not *read mutable instance state*. It does not establish
 /// that everything the method transitively calls is pure — the same boundary the rule has always
 /// had for free functions, and the reason its findings are candidates rather than proofs.
-public enum SelfAccessAnalyzer {
+enum SelfAccessAnalyzer {
 
     /// What `method` reads from `self`, given the stored properties its enclosing type declares.
     ///
@@ -59,7 +59,7 @@ public enum SelfAccessAnalyzer {
     ///   - cleanMethods: names the project pre-scan cleared as sibling methods that are themselves
     ///     functions of their inputs. Empty by default, which refuses every call — the behaviour
     ///     before `CleanInstanceMethodCatalog` existed.
-    public static func access(
+    static func access(
         of method: FunctionDeclSyntax,
         storedProperties: [String: StoredProperty],
         enclosingIsValueType: Bool = false,
@@ -416,14 +416,10 @@ public enum SelfAccessAnalyzer {
 }
 
 /// A stored property of a type, as the file that declares it shows.
-public struct StoredProperty: Sendable, Equatable {
+struct StoredProperty: Sendable, Equatable {
     /// `true` for `var`, `false` for `let`. A `var` may differ between two reads, so a method
     /// that reads one is not a function of its inputs.
-    public let isMutable: Bool
-
-    public init(isMutable: Bool) {
-        self.isMutable = isMutable
-    }
+    let isMutable: Bool
 
     /// The properties of a type that a method may read while remaining a function of `self`.
     ///
@@ -449,7 +445,7 @@ public struct StoredProperty: Sendable, Equatable {
     ///   would wave it straight through;
     /// - every **name** the getter reads must already be immutable stored state or derived, which is
     ///   what refutes `var scaled: Int { count * multiplier }` when `multiplier` is a `var`.
-    public static func declared(in members: MemberBlockItemListSyntax) -> [String: Self] {
+    static func declared(in members: MemberBlockItemListSyntax) -> [String: Self] {
         var properties: [String: Self] = [:]
         var computed: [(name: String, accessor: AccessorBlockSyntax)] = []
 
