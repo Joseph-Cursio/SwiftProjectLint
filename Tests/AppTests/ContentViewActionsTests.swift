@@ -128,7 +128,25 @@ struct ContentViewActionsTests {
         #expect(buttons.count == 2)
     }
 
-    @Test("accessibility identifiers are set correctly without directory")
+    // ViewInspector 0.10.3 (the latest release) cannot read accessibility
+    // modifiers on macOS 27 beta (build 26A5388g). Its `accessibilityIdentifier()`
+    // takes the `#available(macOS 26.0, *)` branch, which reads
+    // `modifier|storage|value|properties|identifier|some|rawValue` off an
+    // `AccessibilityAttachmentModifier`; this SwiftUI lays that out differently,
+    // so every lookup throws `modifierNotFound`. Expected upstream lag against a
+    // beta OS — 0.10.3 predates it.
+    //
+    // Not specific to the modifier chain here: a bare
+    // `Button("Hi") {}.accessibilityIdentifier("x")` fails identically, as do
+    // `find(viewWithAccessibilityIdentifier:)` and `accessibilityLabel()`.
+    //
+    // The identifiers themselves are correct and present in
+    // `ContentViewActions.swift` (lines 25, 31, 38); only the test-time
+    // introspection is broken. Re-enable when ViewInspector ships support for
+    // this SwiftUI version. Runtime coverage for these identifiers lives in the
+    // XCUITest target (`Tests/UITests`), which reads the real accessibility tree.
+    @Test("accessibility identifiers are set correctly without directory",
+          .disabled("ViewInspector 0.10.3 cannot read accessibility modifiers on macOS 27 beta"))
     func accessibilityIdentifiersWithoutDirectory() throws {
         let view = ContentViewActions(
             selectedDirectory: "",
@@ -143,7 +161,9 @@ struct ContentViewActionsTests {
         #expect(identifiers.contains("mainActionButton"))
     }
 
-    @Test("accessibility identifiers are set correctly with directory")
+    // Disabled for the same reason as the test above.
+    @Test("accessibility identifiers are set correctly with directory",
+          .disabled("ViewInspector 0.10.3 cannot read accessibility modifiers on macOS 27 beta"))
     func accessibilityIdentifiersWithDirectory() throws {
         let view = ContentViewActions(
             selectedDirectory: "/some/path",
