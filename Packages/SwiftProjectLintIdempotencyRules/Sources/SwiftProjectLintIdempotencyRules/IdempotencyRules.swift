@@ -12,15 +12,15 @@ public enum IdempotencyRules {
     nonisolated(unsafe) private static var registered = false
 
     public static func registerAll() {
-        let alreadyRegistered: Bool = lock.withLock {
-            if registered { return true }
+        // Held for the whole of registration — see BuiltInRules.registerAll for
+        // why the flag alone is not enough.
+        lock.withLock {
+            guard registered == false else { return }
             registered = true
-            return false
-        }
-        if alreadyRegistered { return }
 
-        SourcePatternRegistry.registerFactory { registry, visitorRegistry in
-            Idempotency(registry: registry, visitorRegistry: visitorRegistry)
+            SourcePatternRegistry.registerFactory { registry, visitorRegistry in
+                Idempotency(registry: registry, visitorRegistry: visitorRegistry)
+            }
         }
     }
 

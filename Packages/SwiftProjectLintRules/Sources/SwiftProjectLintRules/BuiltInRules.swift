@@ -11,20 +11,26 @@ public enum BuiltInRules {
     nonisolated(unsafe) private static var registered = false
 
     public static func registerAll() {
-        // Guard against double-registration. The `withLock` closure returns
-        // `true` when this call should become a no-op (another call already
-        // registered the factories). The previous form — `guard else { return }`
-        // inside the closure — only returned from the closure, so factories
-        // got appended on every call; the resulting per-call pattern growth
-        // bloated `SourcePatternRegistry` iteration under test workloads
-        // where `createConfiguredSystem()` is invoked repeatedly.
-        let alreadyRegistered: Bool = lock.withLock {
-            if registered { return true }
+        // The lock is held for the whole of registration, not just the flag
+        // check. Setting `registered` and *then* registering outside the lock
+        // let a second caller see the flag, conclude registration was finished,
+        // and build a registry from a partial factory list — `Security` is only
+        // the third factory appended, so it went missing intermittently. A late
+        // caller must block until the work is actually done.
+        //
+        // `guard else { return }` is correct here precisely because everything
+        // lives inside the closure: it returns from the closure having done
+        // nothing, which is the intended no-op.
+        lock.withLock {
+            guard registered == false else { return }
             registered = true
-            return false
+            registerCategoryFactories()
         }
-        if alreadyRegistered { return }
+    }
 
+    /// The category factories themselves. Split out so the locked region stays
+    /// readable; it must only ever be called with `lock` held.
+    private static func registerCategoryFactories() {
         SourcePatternRegistry.registerFactory { registry, visitorRegistry in
             StateManagement(registry: registry, visitorRegistry: visitorRegistry)
         }
