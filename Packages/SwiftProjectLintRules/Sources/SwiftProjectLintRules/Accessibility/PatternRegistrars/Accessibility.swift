@@ -16,7 +16,8 @@ class Accessibility: BasePatternRegistrar {
             HardcodedFontSize(),
             ControlMissingAccessibilityLabel(),
             IsButtonTraitWithoutAction(),
-            AnimationWithoutReduceMotion()
+            AnimationWithoutReduceMotion(),
+            UnlabeledControl()
         ])
     }
 

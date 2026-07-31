@@ -92,7 +92,7 @@ extension RuleIdentifier {
              .stackMissingAccessibilityGrouping,
              .accessibilityHiddenConflict, .sortPriorityWithoutContainer,
              .controlMissingAccessibilityLabel, .isButtonTraitWithoutAction,
-             .animationWithoutReduceMotion:
+             .animationWithoutReduceMotion, .unlabeledControl:
             return .accessibility
 
             // Memory Management Rules
