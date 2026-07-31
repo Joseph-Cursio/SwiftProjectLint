@@ -261,6 +261,8 @@ Rules marked **opt-in** are disabled by default and must be explicitly listed un
 | [Extractable Pure Kernel](extractable-pure-kernel.md) | Info |
 | [Missing Equatable on State Type](missing-equatable-on-state-type.md) | Info |
 | [Impure Call in View Body](impure-call-in-view-body.md) | Warning |
+| [ViewHosting Before Inspection](view-hosting-before-inspection.md) | Error |
+| [Observable Environment View Missing Inspection Hook](observable-environment-view-missing-inspection-hook.md) | Info |
 
 ---
 

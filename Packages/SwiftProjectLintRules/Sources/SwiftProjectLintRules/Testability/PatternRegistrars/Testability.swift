@@ -67,6 +67,36 @@ class Testability: BasePatternRegistrar {
                 description: "Surfaces arithmetic that governs a loop bound, an index, a slice or a "
                     + "progress fraction while inlined in a method that also performs I/O — a pure "
                     + "function with no boundary drawn around it, which no test can reach."
+            ),
+            SyntaxPattern(
+                name: .viewHostingBeforeInspection,
+                visitor: ViewHostingBeforeInspectionVisitor.self,
+                severity: .error,
+                category: .testability,
+                messageTemplate: "ViewHosting.host(…) runs before the view is inspected — the "
+                    + "inspection must be registered first, and hosting drives it",
+                suggestion: "Either register the callback before hosting "
+                    + "(`let exp = sut.inspection.inspect { … }` then `ViewHosting.host(…)`), or "
+                    + "nest it inside `try await ViewHosting.host(sut) { … }`.",
+                description: "Inspecting after hosting still evaluates the body out-of-tree. For a "
+                    + "view reading @Environment(SomeType.self) that traps rather than fails, "
+                    + "killing the test process and reporting every co-scheduled test as failed at "
+                    + "0.000s — a different set each run, with a backtrace naming neither "
+                    + "ViewInspector nor the offending test. Measured on macOS 27."
+            ),
+            SyntaxPattern(
+                name: .observableEnvironmentViewMissingInspectionHook,
+                visitor: ObservableEnvironmentViewMissingInspectionHookVisitor.self,
+                severity: .info,
+                category: .testability,
+                messageTemplate: "View reads @Environment(SomeType.self) but has no inspection "
+                    + "relay — ViewInspector cannot evaluate its body without trapping",
+                suggestion: "If the view is inspected in tests, add `internal let inspection = "
+                    + "Inspection<Self>()` plus `.onReceive(inspection.notice) { … }` to its body.",
+                description: "The @Observable form of @Environment has no default value, so reading "
+                    + "it outside a hosted hierarchy traps. Only the keypath form degrades safely. "
+                    + "Advisory: a view nobody inspects needs no hook, but adding it up front beats "
+                    + "discovering the constraint via a process-killing trap."
             )
         ]
         registry.register(patterns: patterns)
