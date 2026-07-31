@@ -33,18 +33,6 @@ class TestRegistryManager {
 
     // MARK: - Timeout Configuration
 
-    /// Default timeout for tests (30 seconds)
-    static let defaultTestTimeout: Duration = .seconds(30)
-
-    /// Short timeout for quick tests (10 seconds)
-    static let shortTestTimeout: Duration = .seconds(10)
-
-    /// Long timeout for complex tests (60 seconds)
-    static let longTestTimeout: Duration = .seconds(60)
-
-    /// Very long timeout for integration tests (120 seconds)
-    static let veryLongTestTimeout: Duration = .seconds(120)
-
     // MARK: - Public Methods
 
     /// Initialize the shared registry once for all tests
@@ -75,21 +63,6 @@ class TestRegistryManager {
         )
     }
 
-    /// Get a detector with specific patterns for focused testing
-    static func getDetectorWithPatterns(_ patterns: [SyntaxPattern]) -> SourcePatternDetector {
-        initializeSharedRegistry()
-        for pattern in patterns {
-            sharedVisitorRegistry.register(pattern: pattern)
-        }
-        return SourcePatternDetector(registry: sharedVisitorRegistry)
-    }
-
-    /// Get a detector for specific categories
-    static func getDetectorForCategories(_ _: [PatternCategory]) -> SourcePatternDetector {
-        initializeSharedRegistry()
-        return SourcePatternDetector(registry: sharedVisitorRegistry)
-    }
-
     /// Get the shared detector (most common use case)
     static func getSharedDetector() -> SourcePatternDetector {
         initializeSharedRegistry()
@@ -100,12 +73,6 @@ class TestRegistryManager {
     static func getSharedVisitorRegistry() -> PatternVisitorRegistry {
         initializeSharedRegistry()
         return sharedVisitorRegistry
-    }
-
-    /// Get the shared pattern registry
-    static func getSharedPatternRegistry() -> SourcePatternRegistry {
-        initializeSharedRegistry()
-        return sharedPatternRegistry
     }
 
     // MARK: - Performance Monitoring

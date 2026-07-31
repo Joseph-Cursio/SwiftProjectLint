@@ -10,19 +10,6 @@ struct ViewModelDirectDBAccessVisitorTests {
 
     // MARK: - Helper
 
-    private func analyzeSource(
-        _ source: String,
-        filePath: String = "TestFile.swift"
-    ) -> [LintIssue] {
-        let visitor = ViewModelDirectDBAccessVisitor(patternCategory: .architecture)
-        let syntax = Parser.parse(source: source)
-        let converter = SourceLocationConverter(fileName: filePath, tree: syntax)
-        visitor.setSourceLocationConverter(converter)
-        visitor.setFilePath(filePath)
-        visitor.walk(syntax)
-        return visitor.detectedIssues
-    }
-
     private func filteredIssues(
         _ source: String,
         filePath: String = "TestFile.swift"

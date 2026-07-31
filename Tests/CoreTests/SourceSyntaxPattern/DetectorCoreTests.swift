@@ -14,20 +14,6 @@ struct DetectorCoreTests {
 
     // MARK: - Test Helper Methods
 
-    /// Creates isolated instances for tests that need complete isolation
-    @MainActor static func createIsolatedInstances() -> IsolatedTestInstances {
-        TestRegistryManager.createIsolatedInstances()
-    }
-
-    /// Uses shared registry with specific patterns for focused testing
-    static func setupTestWithSpecificPatterns(_ patterns: [SyntaxPattern]) -> SourcePatternDetector {
-        let visitorRegistry = TestRegistryManager.getSharedVisitorRegistry()
-        for pattern in patterns {
-            visitorRegistry.register(pattern: pattern)
-        }
-        return SourcePatternDetector(registry: visitorRegistry)
-    }
-
     static func getSharedDetector() -> SourcePatternDetector {
         let visitorRegistry = TestRegistryManager.getSharedVisitorRegistry()
         return SourcePatternDetector(registry: visitorRegistry)

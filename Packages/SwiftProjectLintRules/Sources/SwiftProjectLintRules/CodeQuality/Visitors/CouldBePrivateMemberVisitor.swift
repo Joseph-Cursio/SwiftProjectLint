@@ -33,9 +33,6 @@ final class CouldBePrivateMemberVisitor: CrossFileVisitorBase, CrossFilePatternV
     private var typeNestingDepth: Int = 0
     private var functionNestingDepth: Int = 0
 
-    /// Types that conform to any protocol — members may be protocol requirements.
-    private var typesWithConformance: Set<String> = []
-
     /// Protocol names defined in the project.
     private var projectProtocolNames: Set<String> = []
 

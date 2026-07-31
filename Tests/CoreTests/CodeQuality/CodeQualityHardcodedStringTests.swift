@@ -15,12 +15,6 @@ struct CodeQualityHardcodedStringTests {
         return visitor
     }
 
-    private func createStrictVisitor() -> HardcodedStringVisitor {
-        let visitor = HardcodedStringVisitor(patternCategory: .codeQuality)
-        visitor.setFilePath("TestFile.swift")
-        return visitor
-    }
-
     // MARK: - Hardcoded Strings Tests
 
     @Test func testHardcodedStringDetection() throws {

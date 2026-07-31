@@ -19,19 +19,6 @@ import SwiftSyntax
 /// where one side is the developer's own type — those have lower collision risk.
 final class RetroactiveConformanceVisitor: BasePatternVisitor {
 
-    /// Framework module names considered high-risk on both sides of a retroactive conformance.
-    private static let highRiskModules: Set<String> = [
-        "Swift",
-        "Foundation",
-        "SwiftUI",
-        "UIKit",
-        "AppKit",
-        "Combine",
-        "CoreData",
-        "CoreFoundation",
-        "CoreGraphics"
-    ]
-
     required init(pattern: SyntaxPattern, viewMode: SyntaxTreeViewMode = .sourceAccurate) {
         super.init(pattern: pattern, viewMode: viewMode)
     }

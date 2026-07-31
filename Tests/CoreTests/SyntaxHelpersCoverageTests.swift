@@ -28,18 +28,6 @@ struct SyntaxHelpersCoverageTests {
         return visitor.detectedIssues
     }
 
-    /// Parses source code and runs a UIVisitor to exercise ForEach-related
-    /// SyntaxHelpers functions via the UIVisitor's ForEach detection paths.
-    private func analyzeWithUIVisitor(_ source: String) -> [LintIssue] {
-        let syntax = Parser.parse(source: source)
-        let visitor = UIVisitor(patternCategory: .uiPatterns)
-        let converter = SourceLocationConverter(fileName: "Test.swift", tree: syntax)
-        visitor.setSourceLocationConverter(converter)
-        visitor.setFilePath("Test.swift")
-        visitor.walk(syntax)
-        return visitor.detectedIssues
-    }
-
     // MARK: - isForEachCollectionSafeForSelfID
 
     @Test("array literal is safe for self ID")

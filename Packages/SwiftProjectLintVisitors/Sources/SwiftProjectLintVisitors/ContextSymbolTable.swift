@@ -81,20 +81,6 @@ public struct ContextSymbolTable: Sendable {
         }
     }
 
-    /// Records one annotated occurrence of a signature's context, with no parameter treated as
-    /// omittable. Prefer `record(shape:context:)` when the declaration is to hand.
-    public mutating func record(signature: FunctionSignature, context: ContextEffect) {
-        record(
-            shape: DeclarationShape(
-                name: signature.name,
-                parameters: signature.argumentLabels.map {
-                    DeclarationShape.Parameter(label: $0, hasDefault: false)
-                }
-            ),
-            context: context
-        )
-    }
-
     /// Records one annotated declaration's context, keeping the call-site shape alongside it.
     public mutating func record(shape: DeclarationShape, context: ContextEffect) {
         shapesByName[shape.signature.name, default: []].append((shape, context))
