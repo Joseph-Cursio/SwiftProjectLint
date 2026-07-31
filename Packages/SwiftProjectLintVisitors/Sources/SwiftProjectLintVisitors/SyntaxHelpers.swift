@@ -1,10 +1,15 @@
 import SwiftProjectLintModels
 import SwiftSyntax
 
+// periphery:ignore
 /// Namespace marker. Required by SwiftLint's `file_name` rule, which
 /// expects this file to declare a type matching its name. The helpers
 /// below remain at module scope by design (call sites bypass the verbose
 /// `Type.` prefix that would push them past `line_length`).
+///
+/// Unreferenced on purpose — the marker's whole job is to exist. Periphery
+/// reports it as unused, which is correct and useless, so it is silenced here
+/// rather than in `.periphery.yml`: the reason belongs next to the code.
 public enum SyntaxHelpers {}
 
 /// Returns whether a `ForEach` collection expression is safe to use with `id: \.self`.
