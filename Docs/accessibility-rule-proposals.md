@@ -110,7 +110,18 @@ struct MyView: View {
 
 ---
 
-### 4. Custom Font With Fixed Size
+### 4. ~~Custom Font With Fixed Size~~ -- Implemented (folded into `hardcodedFontSize`)
+
+**Shipped as an extension of the existing rule rather than a new one**, per the
+implementation note below. `HardcodedFontSizeVisitor` now accepts `.custom` alongside
+`.system`, and exempts the `relativeTo:` form. No new `RuleIdentifier`: the concern,
+category, and severity are identical, so disabling `hardcodedFontSize` disables both.
+
+Note this *changed* previously-tested behaviour — a negative test asserted custom fonts
+were not flagged, and `rules/hardcoded-font-size.md` justified the exemption with
+"cannot use text styles". That reasoning conflated `.font(.title)` with Dynamic Type;
+`relativeTo:` and `@ScaledMetric` both scale a custom face.
+
 
 **Source:** [Dynamic Type](https://mobilea11y.com/guides/swiftui/swiftui-dynamic-type/)
 

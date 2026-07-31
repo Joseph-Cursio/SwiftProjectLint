@@ -66,6 +66,33 @@ struct HardcodedFontSizeVisitorTests {
         #expect(issue.message.contains("14.0"))
     }
 
+    @Test
+    func detectsLiteralSizeOnCustomFont() throws {
+        let source = """
+        import SwiftUI
+
+        struct MyView: View {
+            var body: some View {
+                Text("Brand")
+                    .font(.custom("Avenir", size: 14))
+            }
+        }
+        """
+
+        let visitor = makeVisitor()
+        runVisitor(visitor, source: source)
+
+        #expect(visitor.detectedIssues.count == 1)
+
+        let issue = try #require(visitor.detectedIssues.first)
+        #expect(issue.ruleName == .hardcodedFontSize)
+        #expect(issue.severity == .warning)
+        #expect(issue.message.contains("14"))
+        // The fix for a custom face is relativeTo:, not a semantic text style.
+        let suggestion = try #require(issue.suggestion)
+        #expect(suggestion.contains("relativeTo"))
+    }
+
     // MARK: - Negative Cases
 
     @Test("No issue for dynamic or semantic fonts", arguments: [
@@ -93,14 +120,27 @@ struct HardcodedFontSizeVisitorTests {
             }
         }
         """,
-        // Custom font
+        // Custom font anchored to a text style — scales with Dynamic Type
         """
         import SwiftUI
 
         struct MyView: View {
             var body: some View {
                 Text("Hello")
-                    .font(.custom("Avenir", size: 14))
+                    .font(.custom("Avenir", size: 14, relativeTo: .body))
+            }
+        }
+        """,
+        // Custom font with a variable size — assumed @ScaledMetric-driven
+        """
+        import SwiftUI
+
+        struct MyView: View {
+            @ScaledMetric private var fontSize: CGFloat = 14
+
+            var body: some View {
+                Text("Hello")
+                    .font(.custom("Avenir", size: fontSize))
             }
         }
         """,
