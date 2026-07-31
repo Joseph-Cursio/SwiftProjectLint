@@ -235,6 +235,9 @@ struct RuleSelectionDialog: View {
     }
 }
 
+// periphery:ignore
+/// Sample data for the `#Preview` below. Periphery does not index preview
+/// macros, so it reports this as unused; the consumer is 25 lines down.
 private let previewPatterns: [PatternCategoryInfo] = [
     PatternCategoryInfo(
         category: .stateManagement,

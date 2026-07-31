@@ -53,10 +53,20 @@ report_exclude:
 #     files in the first run (all removed 2026-07-31, verified by a clean
 #     build). Worth keeping honest.
 #
-# Two known false positives are deliberately NOT configured away, because they
-# are better marked at the source with a `// periphery:ignore` comment:
+# Known false positives are marked at the source with `// periphery:ignore`
+# rather than listed here, so the reason sits next to the code it explains:
 #
-#   SyntaxHelpers   — an intentionally empty enum that exists to satisfy
-#                     SwiftLint's file_name rule (see the doc comment on it)
-#   previewPatterns — RuleSelectionDialog.swift, consumed by a #Preview block,
-#                     which Periphery does not index
+#   SyntaxHelpers                 empty enums that exist only to satisfy
+#   FrameworkAllowlistTestSupport   SwiftLint's file_name rule. Note the latter
+#                                   file's `firstCall`/`memberCall` helpers have
+#                                   250+ call sites — only the marker is unused.
+#   previewPatterns               RuleSelectionDialog.swift, consumed by a
+#                                   #Preview block, which Periphery does not index
+#   PatternCategoryColors         kept for the CategoryBadge integration listed
+#                                   under "Adoption Path for Unused Components"
+#                                   in Docs/lintstudioui-shared-components.md
+#
+# Before deleting anything Periphery reports as unused, check *why* it exists.
+# Two of the four above were briefly slated for deletion on the strength of a
+# zero-reference grep; one is a namespace marker whose file backs 250+ call
+# sites, the other is documented scaffolding.
