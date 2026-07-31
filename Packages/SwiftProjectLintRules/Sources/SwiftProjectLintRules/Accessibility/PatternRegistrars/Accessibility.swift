@@ -15,7 +15,8 @@ class Accessibility: BasePatternRegistrar {
         registry.register(registrars: [
             HardcodedFontSize(),
             ControlMissingAccessibilityLabel(),
-            IsButtonTraitWithoutAction()
+            IsButtonTraitWithoutAction(),
+            AnimationWithoutReduceMotion()
         ])
     }
 

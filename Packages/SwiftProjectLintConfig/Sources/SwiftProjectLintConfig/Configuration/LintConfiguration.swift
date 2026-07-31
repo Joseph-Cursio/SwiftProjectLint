@@ -110,7 +110,8 @@ public struct LintConfiguration: Sendable {
         .hoistableSequenceOperation,
         .mutuallyExclusivePresentationState,
         .flagOptionalPairState,
-        .redundantDerivedProperty
+        .redundantDerivedProperty,
+        .animationWithoutReduceMotion
     ]
 
     /// Default configuration — all rules enabled, no exclusions.

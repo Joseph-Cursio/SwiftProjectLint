@@ -91,7 +91,8 @@ extension RuleIdentifier {
              .toggleButtonMissingSelectedTrait, .buttonTogglingBool,
              .stackMissingAccessibilityGrouping,
              .accessibilityHiddenConflict, .sortPriorityWithoutContainer,
-             .controlMissingAccessibilityLabel, .isButtonTraitWithoutAction:
+             .controlMissingAccessibilityLabel, .isButtonTraitWithoutAction,
+             .animationWithoutReduceMotion:
             return .accessibility
 
             // Memory Management Rules

@@ -190,6 +190,7 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
     case sortPriorityWithoutContainer = "Sort Priority Without Container"
     case controlMissingAccessibilityLabel = "Control Missing Accessibility Label"
     case isButtonTraitWithoutAction = "isButton Trait Without Action"
+    case animationWithoutReduceMotion = "Animation Without Reduce Motion"
 
     // Memory Management Rules
     case potentialRetainCycle = "Potential Retain Cycle"
