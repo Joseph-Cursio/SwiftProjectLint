@@ -2,7 +2,6 @@ import Foundation
 // import SwiftSyntaxParser
 import SwiftParser
 import SwiftProjectLintModels
-import SwiftProjectLintRegistry
 import SwiftProjectLintVisitors
 import SwiftSyntax
 

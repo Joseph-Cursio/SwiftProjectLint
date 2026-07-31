@@ -1,7 +1,5 @@
 import Foundation
-import SwiftProjectLintModels
 import SwiftProjectLintRegistry
-import SwiftProjectLintVisitors
 
 /// A registrar for all animation-related syntax patterns.
 ///

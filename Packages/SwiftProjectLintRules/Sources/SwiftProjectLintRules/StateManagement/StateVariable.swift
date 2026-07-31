@@ -1,7 +1,4 @@
 import Foundation
-import SwiftProjectLintModels
-import SwiftProjectLintRegistry
-import SwiftProjectLintVisitors
 
 /// Represents a state-related property declared within a SwiftUI view.
 ///

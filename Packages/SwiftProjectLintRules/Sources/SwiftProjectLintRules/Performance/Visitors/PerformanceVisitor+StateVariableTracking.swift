@@ -1,7 +1,6 @@
 import Foundation
 // Handles tracking of @State variable declarations, usages, and assignments.
 import SwiftProjectLintModels
-import SwiftProjectLintRegistry
 import SwiftProjectLintVisitors
 import SwiftSyntax
 

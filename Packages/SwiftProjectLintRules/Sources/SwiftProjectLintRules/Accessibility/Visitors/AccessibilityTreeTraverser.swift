@@ -1,7 +1,5 @@
 import Foundation
 import SwiftProjectLintModels
-import SwiftProjectLintRegistry
-import SwiftProjectLintVisitors
 import SwiftSyntax
 
 /// Handles complex tree traversal logic for accessibility analysis.

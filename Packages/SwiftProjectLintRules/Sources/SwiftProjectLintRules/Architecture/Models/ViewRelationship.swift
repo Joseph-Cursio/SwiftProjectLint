@@ -1,7 +1,4 @@
 import Foundation
-import SwiftProjectLintModels
-import SwiftProjectLintRegistry
-import SwiftProjectLintVisitors
 
 // MARK: - Advanced Analysis Models
 
