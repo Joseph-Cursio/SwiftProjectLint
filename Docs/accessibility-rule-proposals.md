@@ -71,7 +71,20 @@ VStack {
 
 ---
 
-### 3. Animation Without Reduce Motion Check
+### 3. ~~Animation Without Reduce Motion Check~~ -- Implemented (`animationWithoutReduceMotion`)
+
+Shipped **opt-in** rather than merely Info-severity. The proposal treated Info as
+sufficient mitigation for the false-positive risk; in practice most SwiftUI views
+animate and few consult Reduce Motion, so enabling it by default would bury a
+codebase in findings on first run. It matches the posture of the other Info-severity
+heuristic rules instead.
+
+Detection also went slightly wider and slightly narrower than specified: `.transition`
+counts as animating alongside `.animation` and `withAnimation` (the proposal's own
+violating example relies on it), while `.animation(nil, …)`, `.transition(.opacity)`,
+and `.transition(.identity)` are excluded because they introduce no motion.
+`UIAccessibility.isReduceMotionEnabled` counts as consulting the preference, not just
+the SwiftUI environment value.
 
 **Source:** [User Settings](https://mobilea11y.com/guides/swiftui/swiftui-settings/)
 

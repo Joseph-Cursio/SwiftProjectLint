@@ -168,6 +168,7 @@ Rules marked **opt-in** are disabled by default and must be explicitly listed un
 | [Icon-Only Button Missing Label](icon-only-button-missing-label.md) | Warning |
 | [Control Missing Accessibility Label](control-missing-accessibility-label.md) | Warning |
 | [isButton Trait Without Action](is-button-trait-without-action.md) | Warning |
+| [Animation Without Reduce Motion](animation-without-reduce-motion.md) | Info |
 | [Long Text Accessibility](long-text-accessibility.md) | Info |
 | [Hardcoded Font Size](hardcoded-font-size.md) | Warning |
 | [onTapGesture Instead of Button](on-tap-gesture-instead-of-button.md) | Warning |
