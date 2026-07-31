@@ -215,7 +215,26 @@ HStack {
 
 ---
 
-### 6. Unlabeled Toggle, Slider, or Picker
+### 6. ~~Unlabeled Toggle, Slider, or Picker~~ -- Implemented (folded into `controlMissingAccessibilityLabel`)
+
+Shipped as an extension of the existing rule, which already handled the empty-*string*
+form for `Toggle`/`Button`. The extension adds `Slider`, `Stepper`, and `Picker`, plus
+the empty-*closure* form the original rule explicitly left alone.
+
+Split deliberately from the **absent**-label case. The proposal's wording ("the label
+closure is empty or the string title is empty") is about labels that are present but
+blank; a control written with no label at all — `Slider(value:in:)` — is a different and
+far more common shape. Folding both into one default-on Warning rule would have turned a
+quiet rule noisy overnight, so the absent case is tracked as its own rule instead.
+
+`Picker` is excluded from the closure check on purpose: its trailing closure is the
+option *content*, not the label, so an empty one there means something else entirely.
+
+The proposal's own false-positive note — controls intentionally unlabeled inside a
+`.accessibilityElement(children: .combine)` group — is handled, and `.ignore` too. Since
+a parent's modifier call is an ancestor of the control in the syntax tree, one upward
+walk covers both the control's own chain and any enclosing container's. `.contain` does
+not suppress, because it leaves children as individual elements.
 
 **Source:** [Named Controls](https://mobilea11y.com/guides/swiftui/swiftui-controls/)
 
