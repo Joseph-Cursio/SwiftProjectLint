@@ -1,4 +1,3 @@
-import SwiftProjectLintModels
 import SwiftSyntax
 /// Whether a test could actually call this declaration.
 ///
