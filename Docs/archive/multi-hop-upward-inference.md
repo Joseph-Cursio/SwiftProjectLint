@@ -1,6 +1,6 @@
 # Multi-hop / fixed-point upward inference
 
-> **Status: shipped April 2026.** This document originally captured the design before implementation. The four-step plan at the bottom landed as described, with the worklist optimisation (step 5 in spirit) deferred — current implementation iterates over every source on every pass and relies on rapid lattice convergence (2-3 passes typical). See `Docs/idempotency-macros-analysis.md` Phase 3 for the post-shipping summary.
+> **Status: shipped April 2026.** This document originally captured the design before implementation. The four-step plan at the bottom landed as described, with the worklist optimisation (step 5 in spirit) deferred — current implementation iterates over every source on every pass and relies on rapid lattice convergence (2-3 passes typical). See `Docs/archive/idempotency-macros-analysis.md` Phase 3 for the post-shipping summary.
 
 ---
 

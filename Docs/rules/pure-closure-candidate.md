@@ -266,7 +266,7 @@ and would be emptied by any change that suppressed the rule itself. `--format js
 `html` also stay complete: a machine consumer filters for itself. Only the human listing is
 shortened, and naming `testability` in `--categories` restores it in full.
 
-This is [`../PBT_TESTABILITY_RULES_SCOPE.md`](../PBT_TESTABILITY_RULES_SCOPE.md) decision 5 —
+This is [`../archive/PBT_TESTABILITY_RULES_SCOPE.md`](../archive/PBT_TESTABILITY_RULES_SCOPE.md) decision 5 —
 *"Rule 5 opt-in (info, advisory)"* — arriving late, in the only place it can arrive without
 breaking the handoff.
 
