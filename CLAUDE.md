@@ -11,6 +11,13 @@ swift build
 # Run all tests
 swift test
 
+# Run every test EXCEPT AppTests — the fast loop for linter work
+# ~2900 tests in ~6s, vs ~900s for the full run. AppTests (ViewInspector,
+# SwiftUI view structure) is essentially all of the runtime and cannot be
+# affected by a rule change, so skip it while iterating and run the full
+# suite once before merging.
+swift test --skip AppTests
+
 # Run a specific test file
 swift test --filter CoreTests.ArchitectureFatViewTests
 
@@ -175,7 +182,7 @@ struct MyViewTests {
 - Use `RuleIdentifier` enum cases directly (not `RuleIdentifier(rawValue:)`)
 - Pattern visitors should inherit from `BasePatternVisitor`
 - New rules need: a visitor, a pattern registrar entry, and a `RuleIdentifier` case
-- **After adding or removing a `RuleIdentifier` case, run `swift package clean`.** Inserting a case mid-enum shifts every later case's ordinal, and SPM's incremental build can leave dependent modules resolving the old positions. The tell is rule-identity assertions failing in modules you never touched — e.g. `DemoIssueGeneratorTests` reporting rules that its static dictionary literal does not name. A literal cannot emit a value it doesn't name, so that symptom is always a stale build, never a logic bug; don't debug the failing tests
+- **After *inserting* a `RuleIdentifier` case mid-enum, run `swift package clean`.** Inserting shifts every later case's ordinal, and SPM's incremental build can leave dependent modules resolving the old positions. **Appending** a case at the end of its category block shifts nothing and needs no clean — prefer that, and skip the rebuild. The tell that you needed one is rule-identity assertions failing in modules you never touched: e.g. `DemoIssueGeneratorTests` reporting rules that its static dictionary literal does not name. A literal cannot emit a value it doesn't name, so that symptom is always a stale build, never a logic bug; don't debug the failing tests
 - Registrar style: a rule with its own **single-purpose visitor** gets its own leaf registrar — a `struct` conforming to `PatternRegistrarProtocol` that supplies one `var pattern` — wired in via the category registrar's `register(registrars:)` list. Rules that **share a multi-purpose category visitor** (e.g. `PerformanceVisitor`, `AccessibilityVisitor`, `UIVisitor`, `NamingConventionVisitor`) stay inline in that category's `register(patterns:)` array, since one visitor emits several rule names. (Both styles are functionally identical; a few single-purpose rules predate this convention and remain inline — that's fine, not a bug.)
 - Tests are organized to mirror the source structure under `Tests/CoreTests/`
 - UI tests use Swift Testing framework (`@Test`, `#expect`) with ViewInspector
