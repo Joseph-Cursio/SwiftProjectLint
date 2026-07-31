@@ -1,6 +1,5 @@
 @testable import Core
 import Foundation
-@testable import SwiftProjectLintRules
 import Testing
 
 /// Core `analyzeProject` behaviour: paths, categories, rule selection, and scale.

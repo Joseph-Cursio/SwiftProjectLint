@@ -1,5 +1,4 @@
 import SwiftParser
-@testable import SwiftProjectLintIdempotencyRules
 import SwiftProjectLintModels
 @testable import SwiftProjectLintRules
 import SwiftProjectLintVisitors

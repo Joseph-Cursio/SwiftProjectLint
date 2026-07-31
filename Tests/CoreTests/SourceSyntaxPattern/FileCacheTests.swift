@@ -1,6 +1,5 @@
 @testable import Core
 import Foundation
-@testable import SwiftProjectLintRules
 //
 //  SourcePatternFileCacheTests.swift
 //  SwiftProjectLint

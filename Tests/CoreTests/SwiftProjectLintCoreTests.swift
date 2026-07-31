@@ -6,7 +6,6 @@
 //
 
 @testable import Core
-@testable import SwiftProjectLintRules
 import Testing
 
 @Suite("Core Module Tests")

@@ -1,6 +1,5 @@
 import enum SwiftEffectInference.Effect
 import SwiftParser
-@testable import SwiftProjectLintIdempotencyRules
 @testable import SwiftProjectLintVisitors
 import SwiftSyntax
 import Testing

@@ -1,7 +1,6 @@
 @testable import Core
 import Foundation
 import enum SwiftEffectInference.Effect
-@testable import SwiftProjectLintRules
 import Testing
 
 /// Regression tests for the cross-file-rule inline-suppression bug

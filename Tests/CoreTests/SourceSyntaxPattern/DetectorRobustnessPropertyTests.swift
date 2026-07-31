@@ -1,7 +1,6 @@
 @testable import Core
 import Foundation
 import PropertyBased
-@testable import SwiftProjectLintRules
 import Testing
 
 /// Generators, fixtures, and pure helpers for the robustness laws. Kept out of

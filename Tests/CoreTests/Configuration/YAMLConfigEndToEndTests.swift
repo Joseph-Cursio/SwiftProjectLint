@@ -1,6 +1,5 @@
 @testable import Core
 import Foundation
-@testable import SwiftProjectLintRules
 import Testing
 
 /// End-to-end coverage for `.swiftprojectlint.yml`.

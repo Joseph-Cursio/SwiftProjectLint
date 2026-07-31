@@ -1,7 +1,6 @@
 @testable import Core
 import PropertyBased
 import SwiftParser
-@testable import SwiftProjectLintRules
 import SwiftSyntax
 import Testing
 
