@@ -15,7 +15,6 @@ import SwiftParser
 import SwiftProjectLintConfig
 import SwiftProjectLintModels
 import SwiftProjectLintRegistry
-import SwiftProjectLintRules
 import SwiftProjectLintVisitors
 import SwiftSyntax
 
