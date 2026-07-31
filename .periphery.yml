@@ -1,0 +1,62 @@
+# Periphery configuration — dead-code scanning.
+#
+# Run with:  periphery scan
+#            periphery scan --format json    (machine-readable)
+#
+# Periphery reads this file automatically when run from the repo root.
+
+# Intentional bad code. The ExampleViews are demo fixtures that exist purely so
+# the linter has something to detect — fat views, tight coupling, retain cycles.
+# Nothing references them by design, so Periphery reports all ~30 as unused.
+#
+# These are report_exclude rather than index_exclude on purpose: the files stay
+# indexed, so a real declaration used only by an example still counts as used.
+# We hide the examples from the results, we don't pretend they aren't there.
+report_exclude:
+  - "Sources/App/ExampleViews/**"
+
+# Everything else is left ON, including assign-only property analysis. That
+# category is noisy but not worthless — in the 2026-07-31 baseline it was about
+# half genuine dead state:
+#
+#   ViewModelDirectDBAccessVisitor.viewModelClassNames  reset to [], never
+#                                                       appended to, never read
+#   MultipleTypesPerFileVisitor.currentFilePath         assigned, never read
+#   CustomControlAccessibilityChecker.visitor           stored, never read
+#
+# When triaging it, these are the recurring false-positive shapes — check for
+# them before deleting anything:
+#
+#   1. Synthesized conformances. Periphery does not see compiler-generated
+#      Codable / Hashable / Equatable code, so a property read only by `==`,
+#      `hash(into:)`, or an encoder looks unused. Examples here:
+#        CodableLintIssue.ruleName/.symbol, ReportSummary.infoCount  (Codable)
+#        PBTSeed.role                                                (Codable)
+#        PropertySignature.type/.isOptional in CouldAdoptProtocol
+#          and DuplicateStructShape                                  (Hashable)
+#        ProjectFile.name                                            (Equatable)
+#
+#   2. Ownership anchors. A stored property whose only job is to hold a strong
+#      reference is assign-only by construction and load-bearing anyway:
+#        RuleSelectionWindowController.windowCloseHandler — retains the
+#          NSWindowDelegate, which AppKit itself holds weakly. Deleting it
+#          would break window-close handling.
+#
+# Also left on:
+#
+#   redundant public analysis — the Packages/* are local path dependencies with
+#     no external consumers, so a `public` that nothing outside its module uses
+#     is genuinely redundant. Tests reach in via `@testable import`, which
+#     Periphery accounts for.
+#
+#   unused import analysis — this found 272 real unused imports across 251
+#     files in the first run (all removed 2026-07-31, verified by a clean
+#     build). Worth keeping honest.
+#
+# Two known false positives are deliberately NOT configured away, because they
+# are better marked at the source with a `// periphery:ignore` comment:
+#
+#   SyntaxHelpers   — an intentionally empty enum that exists to satisfy
+#                     SwiftLint's file_name rule (see the doc comment on it)
+#   previewPatterns — RuleSelectionDialog.swift, consumed by a #Preview block,
+#                     which Periphery does not index
