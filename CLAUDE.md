@@ -11,11 +11,17 @@ swift build
 # Run all tests
 swift test
 
-# Run every test EXCEPT AppTests — the fast loop for linter work
-# ~2900 tests in ~6s, vs ~900s for the full run. AppTests (ViewInspector,
-# SwiftUI view structure) is essentially all of the runtime and cannot be
-# affected by a rule change, so skip it while iterating and run the full
-# suite once before merging.
+# The whole suite is ~3100 tests in ~6 seconds. Just run `swift test`.
+#
+# It used to take ~900s and often never finished, which made skipping
+# AppTests look necessary. The cause was three tests in ContentViewModelTests
+# pointing the linter at `FileManager.default.temporaryDirectory` *itself* —
+# shared machine state holding 26,000+ Swift files on a developer machine,
+# every one of them parsed through SwiftSyntax. Fixed by giving those tests
+# their own directories. If a run ever crawls again, suspect a test analysing
+# a directory it does not own, not the suite being inherently slow.
+
+# Run every test EXCEPT AppTests (rarely needed now — see above)
 swift test --skip AppTests
 
 # Run a specific test file
