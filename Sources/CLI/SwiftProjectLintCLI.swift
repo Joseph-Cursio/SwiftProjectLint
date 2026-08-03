@@ -25,7 +25,33 @@ struct SwiftProjectLintCLI: AsyncParsableCommand {
     @Option(name: .long, help: "Minimum severity to trigger a non-zero exit: error, warning, or info.")
     var threshold: SeverityThreshold = .warning
 
-    @Option(name: .long, parsing: .upToNextOption, help: "Pattern categories to analyze (default: all).")
+    /// Repeat the flag, or comma-separate: `--categories a,b` / `--categories a --categories b`.
+    ///
+    /// **`.singleValue` rather than `.upToNextOption`, and the difference is a real defect.**
+    /// `.upToNextOption` consumes every following value until the next `-`-prefixed token, which
+    /// includes the required `<project-path>` positional when it is written last:
+    ///
+    /// ```
+    /// swiftprojectlint --categories testability /path/to/project   # exit 64
+    /// Error: Missing expected argument '<project-path>'
+    /// ```
+    ///
+    /// The path was read as a category name and the positional went missing. The failure is at
+    /// least loud — a parse error, not a silent scan of the wrong tree — but it cannot be caught
+    /// and explained, because parsing fails before `validate()` ever runs. An unambiguous parsing
+    /// strategy is the only structural fix.
+    ///
+    /// Comma splitting is handled in `parseCategories()` and matches `swift-infer --packs`, so the
+    /// two halves of the lint → infer hop accept list arguments the same way.
+    ///
+    /// This drops the space-separated form (`--categories a b`), which `Docs/reference.md`
+    /// documented. Both of that file's examples put the path first and so were never at risk;
+    /// they are updated regardless, since the syntax they show no longer parses.
+    @Option(
+        name: .long,
+        parsing: .singleValue,
+        help: "Pattern category to analyze; repeat or comma-separate for several (default: all)."
+    )
     var categories: [String] = []
 
     @Option(name: .long, help: "Path to configuration file (default: .swiftprojectlint.yml in project root).")
@@ -145,8 +171,19 @@ struct SwiftProjectLintCLI: AsyncParsableCommand {
         FileHandle.standardError.write(Data((message + "\n").utf8))
     }
 
+    /// Flatten the repeated flag's values, splitting each on commas.
+    ///
+    /// Empties are dropped so `a,,b` and a trailing `a,` behave, rather than failing with
+    /// `Unknown category ''` — a message that names nothing and helps nobody.
+    static func expandCategoryNames(_ raw: [String]) -> [String] {
+        raw.flatMap { $0.split(separator: ",") }
+            .map { $0.trimmingCharacters(in: .whitespaces) }
+            .filter { !$0.isEmpty }
+    }
+
     private func parseCategories() throws -> [PatternCategory]? {
-        guard !categories.isEmpty else { return nil }
+        let names = Self.expandCategoryNames(categories)
+        guard !names.isEmpty else { return nil }
 
         let categoryMap: [String: PatternCategory] = Dictionary(
             uniqueKeysWithValues: PatternCategory.allCases.map {
@@ -155,7 +192,7 @@ struct SwiftProjectLintCLI: AsyncParsableCommand {
         )
 
         var result: [PatternCategory] = []
-        for name in categories {
+        for name in names {
             guard let category = categoryMap[name] else {
                 let valid = categoryMap.keys.sorted().joined(separator: ", ")
                 throw ValidationError("Unknown category '\(name)'. Valid categories: \(valid)")
