@@ -49,7 +49,7 @@ public struct ExecutableTargetDetector {
 
     /// Returns the substring of `content` between the already-consumed opening `(`
     /// and its matching `)`, by counting paren depth.
-    private static func balancedArgs(in content: String, from start: String.Index) -> String? {
+    static func balancedArgs(in content: String, from start: String.Index) -> String? {
         var depth = 1
         var pos = start
         while pos < content.endIndex, depth > 0 {
