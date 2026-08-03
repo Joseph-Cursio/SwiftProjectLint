@@ -1,3 +1,4 @@
+import SwiftProjectLintModels
 import SwiftSyntax
 /// Whether a test could actually call this declaration.
 ///
@@ -18,17 +19,28 @@ extension PropertyTestCandidacy {
 
     /// `false` when this declaration, or any type enclosing it, is `private` or `fileprivate`.
     public static func isTestReachable(_ node: some SyntaxProtocol) -> Bool {
+        restriction(of: node) == nil
+    }
+
+    /// **What** would have to move for a test to reach this declaration, or `nil` when nothing does.
+    ///
+    /// The enclosing-type check runs **last but wins**, and the order is the point. A `private` func
+    /// inside a `private` struct is restricted both ways, and only the outer one is binding: widen
+    /// the func and it is still unreachable. Reporting `.declaration` there would send a patch
+    /// generator to change a keyword that alters nothing — see `TestRestriction`.
+    public static func restriction(of node: some SyntaxProtocol) -> TestRestriction? {
+        if !enclosingTypesAreReachable(node) { return .enclosingType }
         if let declaration = node.as(DeclSyntax.self) ?? node.parent?.as(DeclSyntax.self),
            hasUnreachableModifier(declaration) {
-            return false
+            return .declaration
         }
         if let function = node.as(FunctionDeclSyntax.self), isUnreachable(function.modifiers) {
-            return false
+            return .declaration
         }
         if let property = node.as(VariableDeclSyntax.self), isUnreachable(property.modifiers) {
-            return false
+            return .declaration
         }
-        return enclosingTypesAreReachable(node)
+        return nil
     }
 
     /// A `private struct`'s `internal` members are unreachable too — the container decides.

@@ -73,7 +73,8 @@ final class PureFunctionCandidateVisitor: BasePatternVisitor {
                 + "for the property rather than a failure."
         }
 
-        let reachable = PropertyTestCandidacy.isTestReachable(node)
+        let restriction = PropertyTestCandidacy.restriction(of: node)
+        let reachable = restriction == nil
         if !reachable { advice = Self.wideningAdvice }
 
         addIssue(
@@ -88,7 +89,7 @@ final class PureFunctionCandidateVisitor: BasePatternVisitor {
             // A computed property is a nullary function of `self`, so there is no signature to
             // read a role from — only the `FunctionDeclSyntax` path classifies.
             role: DeclaredRoleClassifier.role(of: node, isPartial: candidate.isPartial),
-            testReachability: reachable ? .reachable : .unreachable
+            testReachability: restriction.map(TestReachability.unreachable) ?? .reachable
         )
         return .visitChildren
     }
@@ -123,7 +124,8 @@ final class PureFunctionCandidateVisitor: BasePatternVisitor {
         if candidate.isPartial {
             advice += " Narrow the law's domain to the values that do not throw."
         }
-        let reachable = PropertyTestCandidacy.isTestReachable(node)
+        let restriction = PropertyTestCandidacy.restriction(of: node)
+        let reachable = restriction == nil
         if !reachable { advice = Self.wideningAdvice }
 
         addIssue(
@@ -135,7 +137,7 @@ final class PureFunctionCandidateVisitor: BasePatternVisitor {
             suggestion: advice,
             ruleName: .pureFunctionCandidate,
             symbol: name,
-            testReachability: reachable ? .reachable : .unreachable
+            testReachability: restriction.map(TestReachability.unreachable) ?? .reachable
         )
         return .visitChildren
     }
