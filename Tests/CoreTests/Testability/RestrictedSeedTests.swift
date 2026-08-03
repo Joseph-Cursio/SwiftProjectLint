@@ -95,14 +95,14 @@ struct RestrictedSeedTests {
 
     @Test("an unreachable analysable seed is demoted to restricted-function")
     func unreachableSeedIsDemoted() {
-        #expect(PBTSeedsFormatter.effectiveKind(.pureFunction, reachability: .unreachable)
+        #expect(PBTSeedsFormatter.effectiveKind(.pureFunction, reachability: .unreachable(.declaration))
             == .restrictedFunction)
         // ...and it stays ANALYSABLE. The first cut returned false here, grouping it with
         // `extractableKernel`, which conflated two obstacles: a kernel has no symbol to analyse,
         // while a private function has a name and a signature and only lacks *verifiability* from
         // another module. `swift-infer` keys its seeded-private rescue on the analysable set, so
         // the false silently switched that feature off for every seed this linter produces.
-        #expect(PBTSeedsFormatter.effectiveKind(.pureFunction, reachability: .unreachable)
+        #expect(PBTSeedsFormatter.effectiveKind(.pureFunction, reachability: .unreachable(.declaration))
             .isAnalysable)
     }
 
@@ -120,7 +120,7 @@ struct RestrictedSeedTests {
     func kernelIsUnaffected() {
         // A kernel is already refactor-pending because it has no name. Re-labelling it would
         // replace the right instruction (draw a boundary) with the wrong one (widen access).
-        #expect(PBTSeedsFormatter.effectiveKind(.extractableKernel, reachability: .unreachable)
+        #expect(PBTSeedsFormatter.effectiveKind(.extractableKernel, reachability: .unreachable(.declaration))
             == .extractableKernel)
     }
 
@@ -178,7 +178,7 @@ struct RestrictedSeedTests {
         }
         """).first)
 
-        #expect(issue.testReachability == .unreachable)
+        #expect(issue.testReachability.isUnreachable)
         #expect(issue.message.contains("no test can reach it as written"))
     }
 

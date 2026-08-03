@@ -100,13 +100,26 @@ public struct PBTSeed: Codable, Sendable {
     /// this field existed.
     public let role: PBTSeedRole?
 
+    /// For a `restricted-function`, **what a consumer would have to widen** — see `TestRestriction`.
+    ///
+    /// `kind` says a test cannot reach this symbol; this says whether the remedy is one keyword on
+    /// the declaration or a change to an enclosing type. The two are not interchangeable: widening a
+    /// member nested inside a `private` type compiles and changes nothing, so a consumer acting on
+    /// the kind alone can emit a patch that unblocks nothing and then blame the property when
+    /// verification fails.
+    ///
+    /// `nil` for every other kind, and encoded only when present — a seed without it is
+    /// byte-identical to one written before this field existed.
+    public let restriction: TestRestriction?
+
     public init(
         file: String,
         line: Int,
         symbol: String,
         rule: String,
         kind: PBTSeedKind,
-        role: PBTSeedRole? = nil
+        role: PBTSeedRole? = nil,
+        restriction: TestRestriction? = nil
     ) {
         self.file = file
         self.line = line
@@ -114,6 +127,7 @@ public struct PBTSeed: Codable, Sendable {
         self.rule = rule
         self.kind = kind
         self.role = role
+        self.restriction = restriction
     }
 
     /// `kind` is **required**, mirroring the consumer.
@@ -135,6 +149,9 @@ public struct PBTSeed: Codable, Sendable {
         // legitimate answer. `kind` above is required for the opposite reason: absence there would
         // have to be guessed, and the guess decides whether a consumer may analyse the seed.
         self.role = try container.decodeIfPresent(PBTSeedRole.self, forKey: .role)
+        // Same reasoning as `role`: absent is honestly unknown, and only a `restricted-function`
+        // ever carries one. A consumer that ignores it loses the remedy, not the finding.
+        self.restriction = try container.decodeIfPresent(TestRestriction.self, forKey: .restriction)
     }
 }
 
@@ -209,7 +226,7 @@ public struct PBTSeedsFormatter: IssueFormatterProtocol {
     static func effectiveKind(
         _ declared: PBTSeedKind, reachability: TestReachability
     ) -> PBTSeedKind {
-        guard declared.isAnalysable, reachability == .unreachable else { return declared }
+        guard declared.isAnalysable, reachability.isUnreachable else { return declared }
         return .restrictedFunction
     }
 
@@ -284,7 +301,8 @@ public struct PBTSeedsFormatter: IssueFormatterProtocol {
                 symbol: symbol,
                 rule: issue.ruleName.rawValue,
                 kind: kind,
-                role: issue.role
+                role: issue.role,
+                restriction: issue.testReachability.restriction
             )
         }
 
