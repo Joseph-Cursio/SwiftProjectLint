@@ -148,10 +148,7 @@ final class UserDefaultsSensitiveDataVisitor: BasePatternVisitor {
 
     /// Extracts the string value from a simple (non-interpolated) string literal.
     private func extractStringValue(from literal: StringLiteralExprSyntax) -> String? {
-        guard !literal.description.contains("\\(") else { return nil }
-        let trimmed = literal.description.trimmingCharacters(in: .whitespaces)
-        guard trimmed.hasPrefix("\""), trimmed.hasSuffix("\""), trimmed.count >= 2 else { return nil }
-        return String(trimmed.dropFirst().dropLast())
+        StringLiteralValue.of(literal)
     }
 
     // MARK: - Sensitivity Heuristics

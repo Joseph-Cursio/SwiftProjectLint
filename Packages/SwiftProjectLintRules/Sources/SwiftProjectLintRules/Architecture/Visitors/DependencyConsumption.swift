@@ -55,7 +55,7 @@ enum DependencyConsumption {
     /// optionals, and a single array layer (`[any P]` — plugin-list injection) so the
     /// existential `any DataParsing` and the bare `DataParsing` both resolve to
     /// `DataParsing`. Returns `nil` for tuples, functions, and other non-nominal types.
-    private static func baseTypeName(_ type: TypeSyntax) -> String? {
+    static func baseTypeName(_ type: TypeSyntax) -> String? {
         if let someOrAny = type.as(SomeOrAnyTypeSyntax.self) {
             return baseTypeName(someOrAny.constraint)
         }
