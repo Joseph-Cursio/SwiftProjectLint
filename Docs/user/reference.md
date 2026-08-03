@@ -22,7 +22,7 @@ swiftprojectlint <project-path> [options]
 |--------|--------|---------|-------------|
 | `--format` | `text`, `json` | `text` | Output format. |
 | `--threshold` | `error`, `warning`, `info` | `warning` | Minimum severity that causes a non-zero exit code. |
-| `--categories` | See below | all | One or more category names (space-separated). Restricts analysis to those categories. |
+| `--categories` | See below | all | One category name. **Repeat the flag or comma-separate** for several: `--categories a,b` or `--categories a --categories b`. Restricts analysis to those categories. |
 | `--config` | file path | `.swiftprojectlint.yml` in project root | Path to a configuration file. |
 | `--include-nested-packages` | — | off | Analyze nested first-party Swift packages instead of skipping them (see [Nested Packages](#nested-packages)). Overrides `include_nested_packages` in the config when present. |
 | `--version` | — | — | Print the version number and exit. |
@@ -65,7 +65,12 @@ swiftprojectlint /path/to/MyApp
 swiftprojectlint /path/to/MyApp --format json --threshold error
 
 # Analyze only state management and security rules
-swiftprojectlint /path/to/MyApp --categories stateManagement security
+swiftprojectlint /path/to/MyApp --categories stateManagement,security
+
+# The flag may also be repeated, and the path may go anywhere. The old
+# space-separated form (`--categories stateManagement security`) no longer
+# parses: it consumed the path as a category name when the path came last.
+swiftprojectlint --categories stateManagement --categories security /path/to/MyApp
 
 # Use a custom config file
 swiftprojectlint /path/to/MyApp --config ~/configs/strict.yml

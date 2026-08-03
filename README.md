@@ -44,7 +44,7 @@ swift run CLI /path/to/project
 swift run CLI /path/to/project --format json
 
 # Filter by category and severity threshold
-swift run CLI /path/to/project --categories stateManagement performance --threshold error
+swift run CLI /path/to/project --categories stateManagement,performance --threshold error
 ```
 
 ## Rules
