@@ -140,6 +140,34 @@ struct SeedRoleEmissionTests {
         """) == nil)
     }
 
+    // MARK: - How many rules classify, and which
+
+    /// The third classifier, and the one this suite had no coverage for.
+    ///
+    /// `PBTSeed.role`'s doc said *"every rule but the two candidate rules"* until 2026-08-04, when
+    /// there were three — and the wording ruled the third out **by name**, since
+    /// `extractablePureKernel` is a kernel rule rather than a candidate one. A reader checking that
+    /// sentence against the code would have read the classification they found there as a bug.
+    private func functionRole(_ source: String) -> PBTSeedRole? {
+        let visitor = PureFunctionCandidateVisitor(patternCategory: .testability)
+        let syntax = Parser.parse(source: source)
+        visitor.setSourceLocationConverter(SourceLocationConverter(fileName: "F.swift", tree: syntax))
+        visitor.setFilePath("F.swift")
+        visitor.walk(syntax)
+        return visitor.detectedIssues.first { $0.ruleName == .pureFunctionCandidate }?.role
+    }
+
+    @Test("a pure comparator FUNCTION is classified, not just a closure")
+    func functionCandidateClassifies() {
+        // The closure and kernel rules already have arms above. This is the third, and without it
+        // the count in the doc rests on nothing executable.
+        #expect(functionRole("""
+        func isBefore(_ lhs: Int, _ rhs: Int) -> Bool {
+            lhs < rhs
+        }
+        """) == .comparator)
+    }
+
     // MARK: - The entailment claim this repository makes
 
     @Test("exactly the three entailed roles claim an entailed law")

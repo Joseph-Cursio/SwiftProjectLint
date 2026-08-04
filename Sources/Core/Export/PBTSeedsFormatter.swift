@@ -93,8 +93,20 @@ public struct PBTSeed: Codable, Sendable {
     /// What the logic **is** — comparator, predicate, partition — when the rule classified it.
     ///
     /// `symbol` says where to look; `kind` says whether a tool can call it yet; this says what law
-    /// it owes. Absent when the rule that produced the seed classifies nothing, which is every rule
-    /// but the two candidate rules.
+    /// it owes. Absent when the rule that produced the seed classifies nothing.
+    ///
+    /// **Three rules classify**, and naming them is the point — the count has already drifted once:
+    ///
+    /// - `.pureFunctionCandidate` — `PureFunctionCandidateVisitor`, via `DeclaredRoleClassifier`
+    /// - `.pureClosureCandidate` — `PureClosureCandidateVisitor`, via `seedRole`
+    /// - `.extractablePureKernel` — `ExtractablePureKernelVisitor`, via `kernel.role`
+    ///
+    /// This said *"every rule but the two candidate rules"* until 2026-08-04, which was wrong twice
+    /// over: the count was stale, and the description ruled the third one out **by name** —
+    /// `extractablePureKernel` is a kernel rule, not a candidate rule, so a reader checking the
+    /// sentence against the code would have concluded the classification it saw there was a bug.
+    /// A doc that characterises a set by a property its newest member lacks does not merely go out
+    /// of date; it argues against the code.
     ///
     /// Encoded only when present, so a seed with no role is byte-identical to one written before
     /// this field existed.
