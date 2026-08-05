@@ -95,4 +95,42 @@ struct CrossFileLineNumberDeterminismTests {
             #expect(finding?.lineNumber == Self.declaredLine + 1)
         }
     }
+
+    /// A rule that quotes one member of a cluster must quote the same one every run.
+    ///
+    /// Parallel Enum Shape prints the spellings of whichever twin it recorded first, so the walk
+    /// order picked the wording. On the SwiftInferProperties corpus the same two enums were
+    /// reported as `(Int, Int16, …)` on some runs and `(int, int16, …)` on others — four findings
+    /// changing text with the hash seed. The engine now walks the cache in path order, so the
+    /// alphabetically-first file supplies the wording.
+    @Test func parallelEnumShapeQuotesTheAlphabeticallyFirstFile() {
+        let registry = PatternVisitorRegistry()
+        registry.register(pattern: ParallelEnumShape().pattern)
+        let engine = CrossFileAnalysisEngine(registry: registry)
+
+        // Every enum here normalises to the same case set; only the spelling differs, and only
+        // in `A_first.swift`. Seven files rather than two on purpose: the walk order is fixed
+        // within a process, so a two-file corpus would have caught an unsorted walk only on the
+        // coin-flip where the wrong file came first. With seven, an unsorted walk quotes the
+        // lowercase spelling only if it happens to lead — one chance in seven.
+        let lowercaseFirst = ProjectFile(
+            name: "A_first.swift",
+            content: "enum KindA { case alpha, bravo, charlie }"
+        )
+        let others = ["B", "C", "D", "E", "F", "G"].map { letter in
+            ProjectFile(
+                name: "\(letter)_later.swift",
+                content: "enum Kind\(letter) { case Alpha, Bravo, Charlie }"
+            )
+        }
+
+        let issues = engine.detectCrossFilePatterns(
+            projectFiles: others + [lowercaseFirst],
+            ruleIdentifiers: [.parallelEnumShape]
+        )
+
+        #expect(issues.isEmpty == false)
+        #expect(issues.allSatisfy { $0.message.contains("alpha, bravo, charlie") })
+        #expect(issues.contains { $0.message.contains("Alpha, Bravo, Charlie") } == false)
+    }
 }
