@@ -38,6 +38,17 @@ public class CrossFileAnalysisEngine: CrossFileAnalyzerProtocol {
         self.registry = registry
     }
 
+    /// The cached files in a fixed order, so every run walks them the same way.
+    ///
+    /// `fileCache` is a dictionary, and iterating one yields its elements in an order derived
+    /// from the process's hash seed — different on every launch. Any visitor state that depends
+    /// on which file came first or last then varies run to run for the same input. Sorting by
+    /// path costs one sort per visitor and removes the whole class of drift; a cross-file
+    /// visitor that reports "the first of these" now reports the same one every time.
+    private var orderedFileCache: [(fileName: String, sourceFile: SourceFileSyntax)] {
+        fileCache.sorted { $0.key < $1.key }.map { (fileName: $0.key, sourceFile: $0.value) }
+    }
+
     /// Detects patterns across multiple Swift files with cross-file analysis capabilities.
     ///
     /// This method analyzes multiple files and can detect patterns that span
@@ -75,7 +86,7 @@ public class CrossFileAnalysisEngine: CrossFileAnalyzerProtocol {
                 let visitor = crossFileVisitor.init(fileCache: fileCache)
                 configureBaseVisitor(visitor, visitorType: visitorType, categories: categories)
 
-                for (fileName, sourceFile) in fileCache {
+                for (fileName, sourceFile) in orderedFileCache {
                     if let baseVisitor = visitor as? BasePatternVisitor {
                         baseVisitor.setFilePath(fileName)
                         baseVisitor.setSourceLocationConverter(
@@ -158,7 +169,7 @@ public class CrossFileAnalysisEngine: CrossFileAnalyzerProtocol {
                     baseVisitor.enabledFrameworkAllowlists = enabledFrameworkAllowlists
                     baseVisitor.executableSourcePaths = executableSourcePaths
                 }
-                for (fileName, sourceFile) in fileCache {
+                for (fileName, sourceFile) in orderedFileCache {
                     if let baseVisitor = visitor as? BasePatternVisitor {
                         baseVisitor.setFilePath(fileName)
                         baseVisitor.setSourceLocationConverter(
