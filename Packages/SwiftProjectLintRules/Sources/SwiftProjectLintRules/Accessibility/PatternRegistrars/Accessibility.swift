@@ -85,6 +85,31 @@ class Accessibility: BasePatternRegistrar {
                 description: "Detects .onTapGesture calls that bypass button "
                     + "accessibility traits, keyboard focus, and haptic feedback"
             ),
+            // The same visitor's second finding, registered so the rule can be selected.
+            //
+            // `OnTapGestureInsteadOfButtonVisitor` raises two findings from one walk: a tap gesture
+            // that should be a Button, and an *allowed* multi-tap gesture that VoiceOver cannot
+            // discover. Only the first had a pattern, and `SourcePatternDetector.runVisitors`
+            // filters a visitor's output to the requested rule names — so the second was produced
+            // and then dropped on every default run. The rule fired only for a user who named it
+            // in `enabled_only` alongside this one, which required already knowing both that it
+            // existed and that it was coupled.
+            //
+            // Costs no extra work: `runVisitors` groups patterns by visitor type and walks once,
+            // so this entry adds a name to the requested set and nothing else. The visitor passes
+            // an explicit severity for each finding and never reads `pattern.severity`, so which
+            // of the two patterns happens to initialise it does not matter.
+            SyntaxPattern(
+                name: .onTapGestureMissingAccessibility,
+                visitor: OnTapGestureInsteadOfButtonVisitor.self,
+                severity: .info,
+                category: .accessibility,
+                messageTemplate: "Multi-tap or location-aware onTapGesture is invisible to VoiceOver",
+                suggestion: "Add .accessibilityAddTraits(.isButton) and "
+                    + ".accessibilityLabel(\"description\")",
+                description: "Detects allowed multi-tap and location-aware .onTapGesture calls "
+                    + "that VoiceOver users cannot discover"
+            ),
             SyntaxPattern(
                 name: .tapTargetTooSmall,
                 visitor: TapTargetTooSmallVisitor.self,

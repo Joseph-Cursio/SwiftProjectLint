@@ -173,6 +173,7 @@ Rules marked **opt-in** are disabled by default and must be explicitly listed un
 | [Long Text Accessibility](long-text-accessibility.md) | Info |
 | [Hardcoded Font Size](hardcoded-font-size.md) | Warning |
 | [onTapGesture Instead of Button](on-tap-gesture-instead-of-button.md) | Warning |
+| [onTapGesture Missing Accessibility](on-tap-gesture-missing-accessibility.md) | Info |
 | [Tap Target Too Small](tap-target-too-small.md) | Warning |
 | [Missing Dynamic Type Support](missing-dynamic-type-support.md) | Info *(opt-in)* |
 | [Decorative Image Missing Trait](decorative-image-missing-trait.md) | Info *(opt-in)* |

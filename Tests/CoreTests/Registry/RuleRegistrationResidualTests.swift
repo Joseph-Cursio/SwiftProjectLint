@@ -28,15 +28,15 @@ struct RuleRegistrationResidualTests {
     /// The list is the point of this test. An identifier missing from the registry is either a
     /// rule that silently reaches nothing — a real defect — or a deliberate arrangement someone
     /// has to have thought about. Writing the reason down is what tells the next reader which.
-    private static let unregisteredByDesign: [RuleIdentifier: String] = [
-        .onTapGestureMissingAccessibility:
-            "Emitted with `ruleName:` by OnTapGestureInsteadOfButtonVisitor, which is registered "
-            + "under .onTapGestureInsteadOfButton. One visitor, two findings: a tap gesture that "
-            + "should be a Button is also invisible to VoiceOver, and the two are found by the "
-            + "same walk. Consequence, measured: selecting this rule on its own resolves to it "
-            + "and then runs zero patterns, because the detector filters patterns by name and "
-            + "this rule has none — so it cannot be enabled in isolation, only alongside its host."
-    ]
+    /// Empty, and worth keeping that way.
+    ///
+    /// It held one entry — `.onTapGestureMissingAccessibility`, emitted with `ruleName:` by a
+    /// visitor registered under a different name. Writing the reason down is what exposed it as a
+    /// defect rather than an arrangement: a rule with no pattern is filtered out of its own
+    /// visitor's output by `SourcePatternDetector.runVisitors`, so it never fired on a default run.
+    /// It now has a pattern, and `testNoExceptionIsActuallyRegistered` is what forced this entry to
+    /// be removed rather than left behind as a stale excuse.
+    private static let unregisteredByDesign: [RuleIdentifier: String] = [:]
 
     @Test("every selectable rule is registered, or documented as to why not")
     func testEverySelectableRuleIsReachable() {
