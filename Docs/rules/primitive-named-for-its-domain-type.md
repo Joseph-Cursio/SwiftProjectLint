@@ -103,4 +103,22 @@ struct Session {
 **Suggestion:** Type the position as the domain newtype (`IdempotencyKey`, `UserID`) so the
 identity is enforced by the type instead of a bare primitive any value can impersonate.
 
+### As a Property-Test Seed
+
+A finding is exported by `--format pbt-seeds` with `kind: carrier` and a `symbol` naming the
+**domain type** — not the mistyped position, and not a function. A carrier is a type that owes laws
+the raw primitive cannot state: `Percentage` can own `0...100`; `Int` cannot.
+
+Two things a consumer needs to know about this kind:
+
+- **The `symbol` is a type name.** Every other analysable kind names something callable. Templates
+  that state laws over a carrier type (round-trip, model laws, value semantics) are the consumers
+  this kind is for; anything expecting a function should skip it.
+- **The `file` is the *use site*, not the type's declaration.** The rule fires where the primitive
+  is used, and the domain type it names usually lives in another file. A consumer joining on
+  `(file, symbol)` will miss; join on the type name.
+
+`carrier` is analysable — the subject can be named and laws proposed for it — but it never demotes
+to `restricted-function`, which promises a callable.
+
 ---

@@ -114,4 +114,26 @@ struct ValidationIssue {
 IssueSeverity { get }` and conform each type to it, so sorting, filtering, and grouping keyed
 on `IssueSeverity` are written once over `Sequence where Element: SeverityRanked`.
 
+### As a Property-Test Seed
+
+A finding is exported by `--format pbt-seeds` with `kind: carrier` and a `symbol` naming the
+**type this finding is anchored on** — the cluster member carrying the shared field, one seed per
+member, not a function.
+
+Note what the symbol is *not*: the protocol the rule asks you to extract. That protocol does not
+exist yet, and a manifest names what is there. Once it exists, the types conforming to it are still
+the carriers — the seed does not become stale, it becomes better grounded.
+
+Two things a consumer needs to know about this kind:
+
+- **The `symbol` is a type name.** Every other analysable kind names something callable. Templates
+  that state laws over a carrier type (round-trip, model laws, value semantics) are the consumers
+  this kind is for; anything expecting a function should skip it.
+- **The `file` is the *use site*, not the type's declaration.** The rule fires where the primitive
+  is used, and the domain type it names usually lives in another file. A consumer joining on
+  `(file, symbol)` will miss; join on the type name.
+
+`carrier` is analysable — the subject can be named and laws proposed for it — but it never demotes
+to `restricted-function`, which promises a callable.
+
 ---
