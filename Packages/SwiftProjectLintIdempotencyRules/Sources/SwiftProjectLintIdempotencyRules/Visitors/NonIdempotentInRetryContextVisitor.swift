@@ -119,7 +119,7 @@ final class NonIdempotentInRetryContextVisitor: CrossFileVisitorBase, CrossFileP
         // precompute per-source imports once and look them up on each
         // call so framework allowlists only fire in files that actually
         // import the relevant module.
-        let allSources = Array(fileCache.values)
+        let allSources = orderedSources
         let enabledFrameworks = self.enabledFrameworkAllowlists
         symbolTable.applyBodyInference(to: allSources, multiHop: true) { call, source in
             HeuristicEffectInferrer.infer(
