@@ -46,6 +46,13 @@ final class IdempotencyViolationVisitor: CrossFileVisitorBase, CrossFilePatternV
         let body: Syntax
         let effect: DeclaredEffect
         let location: CapturedSiteLocation
+        /// What would have to widen for a test to call `callerName`, or `nil` if nothing does.
+        ///
+        /// Captured here, from the declaration itself, rather than recomputed at emit time from
+        /// `body`: a closure site's body is the closure's statements, whose parent is a
+        /// `ClosureExprSyntax` and not a declaration, so the `private let` binding that carries the
+        /// annotation would go unnoticed. The declaration is in hand at capture; keep it.
+        let restriction: TestRestriction?
     }
 
     // MARK: - Walk phase: accumulate only
@@ -66,7 +73,8 @@ final class IdempotencyViolationVisitor: CrossFileVisitorBase, CrossFilePatternV
                 callerName: node.name.text,
                 body: Syntax(body),
                 effect: callerEffect,
-                location: captureSiteLocation(rootedAt: node)
+                location: captureSiteLocation(rootedAt: node),
+                restriction: PropertyTestCandidacy.restriction(of: node)
             )
         )
         return .visitChildren
@@ -90,7 +98,8 @@ final class IdempotencyViolationVisitor: CrossFileVisitorBase, CrossFilePatternV
                 callerName: name,
                 body: Syntax(closure.statements),
                 effect: callerEffect,
-                location: captureSiteLocation(rootedAt: node)
+                location: captureSiteLocation(rootedAt: node),
+                restriction: PropertyTestCandidacy.restriction(of: node)
             )
         )
         return .visitChildren
@@ -390,7 +399,15 @@ final class IdempotencyViolationVisitor: CrossFileVisitorBase, CrossFilePatternV
             // claimed, what the body reached, and how confidently the rule
             // knows — the last of which no consumer can recompute, because the
             // resolution is cross-file and multi-hop.
-            effect: seedEffect(callerEffect: site.effect, calleeEffect: calleeEffect, provenance: provenance)
+            effect: seedEffect(callerEffect: site.effect, calleeEffect: calleeEffect, provenance: provenance),
+            // Whether a test can reach the symbol above, so the export layer can demote an
+            // otherwise-analysable seed to `restricted-function`. Without this the demotion was
+            // reachable only from `pureFunctionCandidate`, the one visitor that computed it, and
+            // an idempotency seed naming a `private` function was handed over as analysable — a
+            // subject the consumer cannot call. `.idempotency` is an analysable kind, so the
+            // demotion path is live here; the kernel rules are excluded by `effectiveKind` for a
+            // different reason and correctly leave this `.unknown`.
+            testReachability: site.restriction.map(TestReachability.unreachable) ?? .reachable
         )
     }
 

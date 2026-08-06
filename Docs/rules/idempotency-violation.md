@@ -178,6 +178,20 @@ All three variants suggest annotating the callee explicitly with `/// @lint.effe
 ### Interpretation of Zero Findings
 This rule was annotation-gated in Phase 1; Phase 2's heuristic inference adds a fallback for un-annotated callees. Zero findings on un-annotated source now has a narrower meaning: "no caller annotated with `@lint.effect idempotent/observational/externally_idempotent` calls a callee either declared non-idempotent (or inferred non-idempotent by the allowlist)." A zero-finding result still tells you about annotation coverage on the caller side — the inference fallback does not itself produce diagnostics without an annotated caller context.
 
+### As a Property-Test Seed
+A finding from this rule is exported by `--format pbt-seeds` with `kind: idempotency` — the violating function is itself the subject of the idempotence property, so a consumer can point analysis straight at it.
+
+That holds only if a test can *call* it. When the function is `private`/`fileprivate`, or sits inside a type that is, the seed is demoted to `kind: restricted-function` and carries a `restriction` field naming what would have to widen:
+
+| what is restricted | `restriction` | what the fix has to touch |
+|---|---|---|
+| the function itself | `declaration` | widen the function |
+| an enclosing type | `enclosing-type` | the type — widening the function changes nothing |
+
+`enclosing-type` wins when both apply, because it names the binding constraint: a `private` func inside a `private` struct is still unreachable after the func is widened.
+
+The seed is still reported — a private helper is often the *best* property target, since an app's pure logic tends to live in them. The demotion says "reachable after one named refactor", not "not worth testing".
+
 ### Remediation
 - **Swap the callee.** Replace a `non_idempotent` function with an idempotent alternative (e.g. `create` → `upsert`, `insert` → `setIfAbsent`).
 - **Weaken the caller's annotation.** If the function genuinely does not guarantee idempotency, `@lint.effect non_idempotent` is the correct declaration.
