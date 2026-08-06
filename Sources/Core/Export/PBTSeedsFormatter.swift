@@ -17,7 +17,7 @@ import SwiftProjectLintModels
 /// purity), and reports `kept 0` for a codebase that has property-testable logic in it. That is
 /// exactly the failure this whole pipeline was rebuilt to eliminate, arriving by a new route. Hence
 /// the field, and hence `isAnalysable`.
-public enum PBTSeedKind: String, Codable, Sendable {
+public enum PBTSeedKind: String, Codable, Sendable, CaseIterable {
     /// A pure, total function. Index it, propose laws for it, run them.
     case pureFunction = "pure-function"
 
