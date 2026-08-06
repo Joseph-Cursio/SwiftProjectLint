@@ -75,7 +75,7 @@ final class OnceContractViolationVisitor: CrossFileVisitorBase, CrossFilePattern
         // `@lint.context once` callee can be flagged. Direct call sites
         // are still detected by `analyzeCall` regardless of whether the
         // reach map has an entry — reach inference is purely additive.
-        let allSources = Array(fileCache.values)
+        let allSources = orderedSources
         contextTable.applyOnceReachInference(to: allSources)
 
         for site in analysisSites {

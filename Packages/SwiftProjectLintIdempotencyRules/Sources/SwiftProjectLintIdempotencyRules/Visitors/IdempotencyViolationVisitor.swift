@@ -110,7 +110,7 @@ final class IdempotencyViolationVisitor: CrossFileVisitorBase, CrossFilePatternV
         // un-annotated function whose own body has a non-idempotent leaf
         // is now inferred non-idempotent itself. One-hop catches only the
         // direct caller of the leaf.
-        let allSources = Array(fileCache.values)
+        let allSources = orderedSources
         let enabledFrameworks = self.enabledFrameworkAllowlists
         symbolTable.applyBodyInference(to: allSources, multiHop: true) { call, source in
             HeuristicEffectInferrer.infer(

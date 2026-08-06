@@ -20,6 +20,26 @@ open class CrossFileVisitorBase: BasePatternVisitor {
     /// Path of the file currently being walked. Updated via `setFilePath`.
     public private(set) var currentFilePath: String = ""
 
+    /// Every cached tree in a fixed order — by the path it was parsed from.
+    ///
+    /// `fileCache.values` yields a dictionary's values, so its order derives from the process's
+    /// hash seed and differs on every launch. Any pass that folds over the sources and keeps the
+    /// first answer it arrives at then gives a different answer run to run for the same input.
+    ///
+    /// That is measured, not hypothetical. The idempotency family's upward effect inference
+    /// described one violation as resting on a "5-hop chain of un-annotated callees" on one run
+    /// and a "4-hop chain" on the next — same binary, same corpus, one line of 1,523 differing —
+    /// because the fixed-point walk reached the non-idempotent leaf by a different route each
+    /// time. The finding was right both times; the number in it was a coin flip.
+    ///
+    /// Fixing the *input* order makes the reported depth reproducible. It does not make it the
+    /// shortest chain — if the inference reports the first path it finds rather than the minimum,
+    /// that is an upstream question for `SwiftEffectInference`, and this ordering is what makes it
+    /// answerable at all.
+    public var orderedSources: [SourceFileSyntax] {
+        fileCache.sorted { $0.key < $1.key }.map(\.value)
+    }
+
     public required init(fileCache: [String: SourceFileSyntax]) {
         self.fileCache = fileCache
         super.init(pattern: BasePatternVisitor.placeholderPattern, viewMode: .sourceAccurate)

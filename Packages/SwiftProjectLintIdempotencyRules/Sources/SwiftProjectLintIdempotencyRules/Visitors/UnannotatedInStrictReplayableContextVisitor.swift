@@ -108,7 +108,7 @@ final class UnannotatedInStrictReplayableContextVisitor:
     }
 
     func finalizeAnalysis() {
-        let allSources = Array(fileCache.values)
+        let allSources = orderedSources
         let enabledFrameworks = self.enabledFrameworkAllowlists
         symbolTable.applyBodyInference(to: allSources, multiHop: true) { call, source in
             HeuristicEffectInferrer.infer(
