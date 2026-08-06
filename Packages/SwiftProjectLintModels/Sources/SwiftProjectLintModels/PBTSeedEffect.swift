@@ -59,7 +59,8 @@ public struct PBTSeedEffect: Codable, Sendable, Equatable {
 
         /// Resolved by walking bodies up the call graph — the lattice join of a
         /// function's callees, iterated to a fixed point across files. Carries a
-        /// `depth`; see that field for why it is not decoration.
+        /// `depth`; see that field for why it is not decoration, and an
+        /// `anchor`, without which a consumer cannot act on it at all.
         case inferredUpward = "inferred-upward"
 
         /// Matched by the heuristic name/framework inferrer (`save` on a Fluent
@@ -94,6 +95,35 @@ public struct PBTSeedEffect: Codable, Sendable, Equatable {
     /// that wants to weight by confidence has no other way to.
     public let depth: Int?
 
+    /// For an upward inference, whether the chain bottomed out on annotations
+    /// or on a guess. `nil` for the other two provenances, where the question
+    /// does not arise — a declaration *is* the anchor, and a heuristic match is
+    /// a guess by construction.
+    ///
+    /// **This is what makes `inferred-upward` usable rather than merely
+    /// reported.** `provenance` names the final hop; it says how the immediate
+    /// callee's effect was known and nothing about the chain beneath it. Because
+    /// `IdempotencyViolationVisitor` supplies `HeuristicEffectInferrer` as the
+    /// anchor resolver to `applyBodyInference`, an upward chain can bottom out
+    /// on a name guess — so a consumer reading provenance alone had to withhold
+    /// every upward tier, which SwiftInferProperties did, keeping only the
+    /// direct-callee case. This field separates the two, and a
+    /// `declaration`-anchored multi-hop chain is precisely the signal a consumer
+    /// cannot compute for itself: its own pass runs one hop against a 2-second
+    /// budget.
+    public let anchor: Anchor?
+
+    /// What an upward chain rests on. Mirrors
+    /// `SwiftEffectInference.BodyInference.Anchor`, translated rather than
+    /// shared for the same reason `Tier` is: the manifest is a versioned wire
+    /// format and must not move because a dependency renamed a case.
+    public enum Anchor: String, Codable, Sendable {
+        /// Every step justifying the tier was a human annotation.
+        case declaration
+        /// At least one step was a name or framework guess.
+        case heuristic
+    }
+
     /// For a heuristic match, the phrase naming what matched — *"from the callee
     /// name `save`"*, *"from the known-idempotent Fluent type `QueryBuilder`"*.
     ///
@@ -108,12 +138,14 @@ public struct PBTSeedEffect: Codable, Sendable, Equatable {
         resolved: Tier,
         provenance: Provenance,
         depth: Int? = nil,
+        anchor: Anchor? = nil,
         reason: String? = nil
     ) {
         self.declared = declared
         self.resolved = resolved
         self.provenance = provenance
         self.depth = depth
+        self.anchor = anchor
         self.reason = reason
     }
 
@@ -130,6 +162,7 @@ public struct PBTSeedEffect: Codable, Sendable, Equatable {
         self.resolved = try container.decode(Tier.self, forKey: .resolved)
         self.provenance = try container.decode(Provenance.self, forKey: .provenance)
         self.depth = try container.decodeIfPresent(Int.self, forKey: .depth)
+        self.anchor = try container.decodeIfPresent(Anchor.self, forKey: .anchor)
         self.reason = try container.decodeIfPresent(String.self, forKey: .reason)
     }
 }

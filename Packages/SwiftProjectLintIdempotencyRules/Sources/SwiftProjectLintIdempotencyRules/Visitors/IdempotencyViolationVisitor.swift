@@ -177,7 +177,7 @@ final class IdempotencyViolationVisitor: CrossFileVisitorBase, CrossFilePatternV
             return
         } else if let upward = symbolTable.upwardInference(for: calleeSignature) {
             calleeEffect = upward.effect
-            provenance = .inferredUpward(depth: upward.depth)
+            provenance = .inferredUpward(depth: upward.depth, anchor: upward.anchor)
         } else if let inferred = HeuristicEffectInferrer.infer(
             call: call,
             imports: siteImportCache.imports(forSiteFile: site.location.filePath),
@@ -219,7 +219,7 @@ final class IdempotencyViolationVisitor: CrossFileVisitorBase, CrossFilePatternV
     ///   or receiver name, Phase 2.2).
     private enum EffectProvenance {
         case declared
-        case inferredUpward(depth: Int)
+        case inferredUpward(depth: Int, anchor: BodyInference.Anchor)
         case inferredDownward(reason: String)
     }
 
@@ -312,9 +312,18 @@ final class IdempotencyViolationVisitor: CrossFileVisitorBase, CrossFilePatternV
             calleeClaim = "which is declared `@lint.effect \(calleeTier)`"
             overrideHint = ""
 
-        case .inferredUpward(let depth):
+        case .inferredUpward(let depth, let chainAnchor):
             let chainHint = depth > 1 ? " via \(depth)-hop chain of un-annotated callees" : ""
-            calleeClaim = "whose effect is inferred `\(calleeTier)` from its body\(chainHint)"
+            // Say what the chain bottoms out on. A reader deciding whether to
+            // trust a multi-hop inference is asking exactly this, and until the
+            // anchor was tracked the diagnostic could not answer: a chain
+            // resting entirely on annotations and one resting on a name match
+            // read identically.
+            let anchorHint = chainAnchor == .declared
+                ? ", resting on a declared effect"
+                : ", resting on a name-based guess"
+            calleeClaim = "whose effect is inferred `\(calleeTier)` from its body"
+                + "\(chainHint)\(anchorHint)"
             overrideHint = " If the inference is wrong, annotate '\(calleeName)' "
                 + "explicitly with `/// @lint.effect <tier>` to override the body-based inference."
 
@@ -401,21 +410,33 @@ final class IdempotencyViolationVisitor: CrossFileVisitorBase, CrossFilePatternV
     ) -> PBTSeedEffect {
         let depth: Int?
         let reason: String?
+        // `nil` for the two provenances where the question does not arise: a
+        // declaration IS the anchor, and a heuristic match is a guess by
+        // construction. Only an upward chain has a bottom worth naming.
+        let anchor: PBTSeedEffect.Anchor?
         let wireProvenance: PBTSeedEffect.Provenance
         switch provenance {
         case .declared:
             wireProvenance = .declared
             depth = nil
+            anchor = nil
             reason = nil
 
-        case let .inferredUpward(hops):
+        case let .inferredUpward(hops, chainAnchor):
             wireProvenance = .inferredUpward
             depth = hops
+            // Carried so a consumer can tell a chain of annotations from one
+            // that bottomed out on a name match. Without it, `inferred-upward`
+            // is honest but unusable: SwiftInferProperties withheld every one,
+            // because this visitor supplies `HeuristicEffectInferrer` as the
+            // anchor resolver and provenance alone describes only the last hop.
+            anchor = chainAnchor == .declared ? .declaration : .heuristic
             reason = nil
 
         case let .inferredDownward(why):
             wireProvenance = .inferredDownward
             depth = nil
+            anchor = nil
             // The heuristic inferrer returns "" when it matched but could not
             // phrase why. Empty is not a reason, and a consumer rendering it
             // would print a dangling "because ." — `nil` says the same thing
@@ -427,6 +448,7 @@ final class IdempotencyViolationVisitor: CrossFileVisitorBase, CrossFilePatternV
             resolved: seedTier(calleeEffect),
             provenance: wireProvenance,
             depth: depth,
+            anchor: anchor,
             reason: reason
         )
     }

@@ -170,3 +170,101 @@ struct PBTSeedEffectTests {
         }
     }
 }
+
+/// `anchor` — what an `inferred-upward` chain bottoms out on.
+///
+/// `provenance` names the **final hop**: how the immediate callee's effect was
+/// known, and nothing about the chain beneath it. Because
+/// `IdempotencyViolationVisitor` supplies `HeuristicEffectInferrer` as the anchor
+/// resolver to `applyBodyInference`, an upward chain can bottom out on a name
+/// guess. A consumer reading provenance alone therefore had to withhold *every*
+/// upward tier — SwiftInferProperties did exactly that, keeping only the
+/// direct-callee case it could verify itself, and the multi-hop reach this
+/// linter uniquely has went unused.
+///
+/// This field separates the two. A `declaration`-anchored multi-hop chain is
+/// precisely the signal a consumer cannot compute for itself: its own pass runs
+/// one hop against a 2-second budget.
+@Suite("PBT seeds — what an upward chain rests on")
+struct PBTSeedAnchorTests {
+
+    private func seed(_ effect: PBTSeedEffect) -> LintIssue {
+        LintIssue(
+            severity: .error,
+            message: "`confirmOrder` claims idempotence but calls non-idempotent work",
+            filePath: "Orders.swift",
+            lineNumber: 11,
+            suggestion: "Route it through an idempotency key",
+            ruleName: .idempotencyViolation,
+            symbol: "confirmOrder",
+            effect: effect
+        )
+    }
+
+    private func decoded(_ effect: PBTSeedEffect) throws -> PBTSeed {
+        let json = PBTSeedsFormatter().format(issues: [seed(effect)])
+        let data = try #require(json.data(using: .utf8))
+        let manifest = try JSONDecoder().decode(PBTSeedManifest.self, from: data)
+        return try #require(manifest.seeds.first)
+    }
+
+    @Test("a declaration-anchored chain says so")
+    func declarationAnchorSurvives() throws {
+        let seed = try decoded(PBTSeedEffect(
+            declared: .idempotent, resolved: .nonIdempotent,
+            provenance: .inferredUpward, depth: 3, anchor: .declaration
+        ))
+        #expect(seed.effect?.anchor == .declaration)
+        #expect(seed.effect?.depth == 3)
+    }
+
+    @Test("a guess-anchored chain says so")
+    func heuristicAnchorSurvives() throws {
+        let seed = try decoded(PBTSeedEffect(
+            declared: .idempotent, resolved: .nonIdempotent,
+            provenance: .inferredUpward, depth: 3, anchor: .heuristic
+        ))
+        #expect(seed.effect?.anchor == .heuristic)
+    }
+
+    /// **Depth and anchor are independent, and this is the pair that shows why.**
+    /// Same tier, same distance, different trustworthiness — before this field a
+    /// consumer saw these two as identical documents.
+    @Test("depth alone cannot distinguish the two")
+    func depthDoesNotImplyAnchor() throws {
+        let clean = try decoded(PBTSeedEffect(
+            declared: .idempotent, resolved: .nonIdempotent,
+            provenance: .inferredUpward, depth: 4, anchor: .declaration
+        ))
+        let tainted = try decoded(PBTSeedEffect(
+            declared: .idempotent, resolved: .nonIdempotent,
+            provenance: .inferredUpward, depth: 4, anchor: .heuristic
+        ))
+        #expect(clean.effect?.depth == tainted.effect?.depth)
+        #expect(clean.effect?.anchor != tainted.effect?.anchor)
+    }
+
+    /// A declaration *is* the anchor; a heuristic match is a guess by
+    /// construction. Emitting the field for either would be noise a consumer has
+    /// to learn to ignore, and every key that must be ignored is one a future
+    /// reader may act on by mistake.
+    @Test("the other provenances omit the key entirely", arguments: [
+        PBTSeedEffect.Provenance.declared, .inferredDownward
+    ])
+    func otherProvenancesOmitAnchor(provenance: PBTSeedEffect.Provenance) throws {
+        let json = PBTSeedsFormatter().format(issues: [seed(PBTSeedEffect(
+            declared: .idempotent, resolved: .nonIdempotent, provenance: provenance
+        ))])
+        #expect(!json.contains("anchor"))
+    }
+
+    /// The wire spelling is `declaration`, not the producer's internal
+    /// `declared` — deliberately distinct from `Provenance.declared`, which is a
+    /// different question about a different hop. Two fields whose values read
+    /// the same invite exactly the conflation this whole field exists to undo.
+    @Test("the anchor spelling is distinct from the provenance spelling")
+    func anchorSpellingIsDistinct() {
+        #expect(PBTSeedEffect.Anchor.declaration.rawValue == "declaration")
+        #expect(PBTSeedEffect.Provenance.declared.rawValue == "declared")
+    }
+}
