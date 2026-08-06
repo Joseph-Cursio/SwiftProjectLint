@@ -218,6 +218,15 @@ public struct LintConfiguration: Sendable {
             // outright, which silently empties the seed manifest for any rule a
             // user configures a severity on. This is exactly the shape the
             // `lossyStructRebuild` rule exists to flag; keep it exhaustive.
+            //
+            // **The comment was right and the code had drifted anyway.** It was
+            // written when `symbol` was the only seed-bearing field, and stayed
+            // accurate in spirit while `role` and `testReachability` were added
+            // above it and silently dropped here — so configuring a severity on
+            // `pureFunctionCandidate` cost the manifest its role classification
+            // and its restriction remedy, leaving the seed present but stripped
+            // of everything a consumer acts on. A warning to be exhaustive does
+            // not stay true by itself; only the enumeration does.
             if let severity = override.severity {
                 return LintIssue(
                     severity: severity,
@@ -225,7 +234,10 @@ public struct LintConfiguration: Sendable {
                     locations: issue.locations,
                     suggestion: issue.suggestion,
                     ruleName: issue.ruleName,
-                    symbol: issue.symbol
+                    symbol: issue.symbol,
+                    role: issue.role,
+                    effect: issue.effect,
+                    testReachability: issue.testReachability
                 )
             }
 
