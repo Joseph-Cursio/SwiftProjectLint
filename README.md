@@ -8,7 +8,7 @@ Many of these rules exist just so I can explore the effects. Some rules are bad 
 
 # Swift Project Linter
 
-A static analysis tool for SwiftUI projects that detects architectural issues, performance problems, and code quality concerns. Parses Swift source files using SwiftSyntax AST visitors to identify anti-patterns across 160 rules in 12 categories.
+A static analysis tool for SwiftUI projects that detects architectural issues, performance problems, and code quality concerns. Parses Swift source files using SwiftSyntax AST visitors to identify anti-patterns across 200 rules in 13 categories.
 
 The origin of this project began with a limitation of SwiftLint: it processes a single file at a time and cannot identify cross-file issues.
 
@@ -18,7 +18,7 @@ Motivating example: I was watching the "Quality Coding" channel on YouTube. Jon 
 
 - **SwiftSyntax AST Analysis**: Precise, AST-based pattern detection — no regex
 - **Cross-File Analysis**: Detects issues spanning multiple files (duplicate state, view hierarchies)
-- **160 Lint Rules** across 12 categories
+- **200 Lint Rules** across 13 categories
 - **Three delivery targets**: macOS app GUI, CLI for CI/CD, and a reusable Core library
 - **YAML configuration**: `.swiftprojectlint.yml` for per-project rule customization
 - **Inline suppression**: `// swiftprojectlint:disable` comments for per-line control
@@ -49,21 +49,23 @@ swift run CLI /path/to/project --categories stateManagement,performance --thresh
 
 ## Rules
 
-160 rules across 12 categories. See [Docs/rules/RULES.md](Docs/rules/RULES.md) for the full reference.
+200 rules across 13 categories. See [Docs/rules/RULES.md](Docs/rules/RULES.md) for the full reference.
 
 | Category | Rules |
 |----------|-------|
-| State Management | 10 |
-| Performance | 13 |
+| State Management | 13 |
+| Performance | 14 |
 | Animation | 10 |
-| Architecture | 16 |
-| Code Quality | 48 |
+| Architecture | 32 |
+| Code Quality | 52 |
 | Security | 5 |
-| Accessibility | 15 |
-| Memory Management | 2 |
+| Accessibility | 20 |
+| Memory Management | 3 |
 | Networking | 3 |
-| UI Patterns | 8 |
+| UI Patterns | 7 |
 | Modernization | 25 |
+| Idempotency | 7 |
+| Testability | 9 |
 
 Rules marked **opt-in** are disabled by default and must be explicitly listed under `enabled_only` in `.swiftprojectlint.yml`.
 
@@ -96,7 +98,7 @@ SwiftProjectLint/
     ├── reference.md       # CLI and configuration reference
     ├── user-guide.md      # User guide
     ├── tutorial.md        # Getting started tutorial
-    └── rules/             # Per-rule documentation (150 files)
+    └── rules/             # Per-rule documentation (one file per rule)
 ```
 
 ### Dependency Graph
@@ -227,7 +229,7 @@ let b = result!
 
 ## Documentation
 
-- [Docs/rules/RULES.md](Docs/rules/RULES.md) — Full rule reference (160 rules)
+- [Docs/rules/RULES.md](Docs/rules/RULES.md) — Full rule reference
 - [Docs/user-guide.md](Docs/user-guide.md) — User guide
 - [Docs/architecture.md](Docs/architecture.md) — Architecture deep-dive
 - [Docs/reference.md](Docs/reference.md) — CLI and configuration reference
