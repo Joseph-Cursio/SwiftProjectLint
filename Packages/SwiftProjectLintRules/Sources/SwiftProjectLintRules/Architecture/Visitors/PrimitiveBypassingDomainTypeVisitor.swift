@@ -146,7 +146,12 @@ final class PrimitiveBypassingDomainTypeVisitor: CrossFileVisitorBase, CrossFile
                 lineNumber: usage.line,
                 suggestion: "Key this map by '\(names)' too, so the identity is enforced by the "
                     + "type instead of a bare '\(usage.key)' that any value can impersonate.",
-                ruleName: .primitiveBypassingItsDomainType
+                ruleName: .primitiveBypassingItsDomainType,
+                // The domain type being bypassed, which is what owes the laws — not the map or the
+                // raw key. Where several wrappers exist over the same carrier the message names
+                // them all and the seed takes the first in sorted order: a manifest names one
+                // subject, and picking deterministically beats picking by hash.
+                symbol: wrappersForValue.min()
             )
         }
     }

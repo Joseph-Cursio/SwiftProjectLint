@@ -62,15 +62,48 @@ struct SeedKindDemotionBoundaryTests {
         #expect(result == .extractableKernel)
     }
 
-    /// Guards the claim the two tests above split on, so adding an analysable kind forces a
-    /// decision about whether the demotion should reach it rather than inheriting one silently.
+    /// A carrier does not demote either, and for a different reason than a kernel — which is why
+    /// it gets its own test rather than joining the one above.
+    ///
+    /// A kernel is excluded because it is *not analysable*. A carrier **is** analysable; it is
+    /// excluded because `restrictedFunction` names a function and a carrier's symbol is a type.
+    /// Demotion would hand a consumer a type name under a kind promising a callable. A private
+    /// type is a real obstacle, but saying so needs its own vocabulary.
+    @Test("carrier never demotes", arguments: [
+        TestReachability.reachable, .unknown,
+        .unreachable(.declaration), .unreachable(.enclosingType)
+    ])
+    func testCarriersNeverDemote(reachability: TestReachability) {
+        #expect(PBTSeedsFormatter.effectiveKind(.carrier, reachability: reachability) == .carrier)
+    }
+
+    /// Guards the claim the tests above split on, so adding a kind forces a decision about whether
+    /// the demotion should reach it rather than inheriting one silently.
+    ///
+    /// It has already done that once: adding `.carrier` failed this test, which is how the
+    /// question "should a type-named seed demote to a function-named kind?" got asked at all
+    /// instead of being answered by whichever branch `isAnalysable` happened to fall into.
     @Test("every seed kind is accounted for by one of the two behaviours")
     func testEveryKindIsClassified() {
         let analysable = PBTSeedKind.allCases.filter(\.isAnalysable).map(\.rawValue).sorted()
         let refactorPending = PBTSeedKind.allCases.filter { !$0.isAnalysable }
             .map(\.rawValue).sorted()
 
-        #expect(analysable == ["idempotency", "pure-function", "restricted-function"])
+        #expect(analysable == ["carrier", "idempotency", "pure-function", "restricted-function"])
         #expect(refactorPending == ["extractable-kernel"])
+    }
+
+    /// Analysable is not the same as demotable, now that the two have come apart.
+    ///
+    /// Asked as "which kinds *change*" rather than "which end up as `restrictedFunction`", because
+    /// a seed that is already `restrictedFunction` demotes to itself and would otherwise be
+    /// counted as a third demotable kind — true of the expression, false of the behaviour.
+    @Test("only function-subject kinds demote")
+    func testOnlyFunctionSubjectKindsDemote() {
+        let changed = PBTSeedKind.allCases.filter {
+            PBTSeedsFormatter.effectiveKind($0, reachability: .unreachable(.declaration)) != $0
+        }
+
+        #expect(changed.map(\.rawValue).sorted() == ["idempotency", "pure-function"])
     }
 }

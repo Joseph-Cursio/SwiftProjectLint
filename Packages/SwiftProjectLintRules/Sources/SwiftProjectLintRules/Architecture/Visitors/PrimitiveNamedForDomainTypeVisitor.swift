@@ -193,7 +193,10 @@ final class PrimitiveNamedForDomainTypeVisitor: CrossFileVisitorBase, CrossFileP
                 lineNumber: position.line,
                 suggestion: "Type '\(position.name)' as '\(wrapper.name)' so the identity is "
                     + "enforced by the type instead of a bare '\(position.carrier)'.",
-                ruleName: .primitiveNamedForItsDomainType
+                ruleName: .primitiveNamedForItsDomainType,
+                // The domain type, not the mistyped property: it is the type that owes the laws
+                // the raw primitive cannot state. Exported as a `carrier` seed.
+                symbol: wrapper.name
             )
         }
     }
