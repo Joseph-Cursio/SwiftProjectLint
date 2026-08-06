@@ -124,6 +124,20 @@ public struct PBTSeed: Codable, Sendable {
     /// byte-identical to one written before this field existed.
     public let restriction: TestRestriction?
 
+    /// Where the seeded symbol sits on the effect lattice — what it claimed,
+    /// what its body reached, and how the linter knows.
+    ///
+    /// Only `idempotency` seeds carry one; the other kinds are about purity and
+    /// callability, which the lattice does not speak to. Encoded only when
+    /// present, so every other seed stays byte-identical to one written before
+    /// this field existed.
+    ///
+    /// This is the field that closes the gap SwiftInferProperties named from the
+    /// other side: the linter resolves effects cross-file and multi-hop, the
+    /// consumer can only read the declaration in front of it, and until now none
+    /// of the difference crossed the manifest boundary.
+    public let effect: PBTSeedEffect?
+
     public init(
         file: String,
         line: Int,
@@ -131,7 +145,8 @@ public struct PBTSeed: Codable, Sendable {
         rule: String,
         kind: PBTSeedKind,
         role: PBTSeedRole? = nil,
-        restriction: TestRestriction? = nil
+        restriction: TestRestriction? = nil,
+        effect: PBTSeedEffect? = nil
     ) {
         self.file = file
         self.line = line
@@ -140,6 +155,7 @@ public struct PBTSeed: Codable, Sendable {
         self.kind = kind
         self.role = role
         self.restriction = restriction
+        self.effect = effect
     }
 
     /// `kind` is **required**, mirroring the consumer.
@@ -164,6 +180,10 @@ public struct PBTSeed: Codable, Sendable {
         // Same reasoning as `role`: absent is honestly unknown, and only a `restricted-function`
         // ever carries one. A consumer that ignores it loses the remedy, not the finding.
         self.restriction = try container.decodeIfPresent(TestRestriction.self, forKey: .restriction)
+        // Same reasoning again: only the idempotency family resolves a lattice
+        // position, so absence is an honest "this kind of seed has none" rather
+        // than a value to guess at.
+        self.effect = try container.decodeIfPresent(PBTSeedEffect.self, forKey: .effect)
     }
 }
 
@@ -314,7 +334,8 @@ public struct PBTSeedsFormatter: IssueFormatterProtocol {
                 rule: issue.ruleName.rawValue,
                 kind: kind,
                 role: issue.role,
-                restriction: issue.testReachability.restriction
+                restriction: issue.testReachability.restriction,
+                effect: issue.effect
             )
         }
 

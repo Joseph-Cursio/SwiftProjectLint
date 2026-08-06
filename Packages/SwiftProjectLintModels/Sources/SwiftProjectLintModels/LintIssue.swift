@@ -44,6 +44,11 @@ public struct LintIssue: Identifiable, Sendable {
     /// tool has to guess. `nil` for rules that classify nothing.
     public let role: PBTSeedRole?
 
+    /// Where this issue's symbol sits on the effect lattice, when the rule
+    /// resolved it. Only the idempotency family populates it; see
+    /// `PBTSeedEffect` for why the tier travels with its provenance.
+    public let effect: PBTSeedEffect?
+
     /// Whether a test could call the symbol this issue names — `.unknown` unless a rule determined
     /// it.
     ///
@@ -78,6 +83,7 @@ public struct LintIssue: Identifiable, Sendable {
         ruleName: RuleIdentifier,
         symbol: String? = nil,
         role: PBTSeedRole? = nil,
+        effect: PBTSeedEffect? = nil,
         testReachability: TestReachability = .unknown
     ) {
         self.severity = severity
@@ -87,6 +93,7 @@ public struct LintIssue: Identifiable, Sendable {
         self.ruleName = ruleName
         self.symbol = symbol
         self.role = role
+        self.effect = effect
         self.testReachability = testReachability
     }
 
@@ -109,6 +116,7 @@ public struct LintIssue: Identifiable, Sendable {
         ruleName: RuleIdentifier,
         symbol: String? = nil,
         role: PBTSeedRole? = nil,
+        effect: PBTSeedEffect? = nil,
         testReachability: TestReachability = .unknown
     ) {
         self.severity = severity
@@ -118,6 +126,7 @@ public struct LintIssue: Identifiable, Sendable {
         self.ruleName = ruleName
         self.symbol = symbol
         self.role = role
+        self.effect = effect
         self.testReachability = testReachability
     }
 }

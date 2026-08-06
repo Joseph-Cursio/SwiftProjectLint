@@ -375,8 +375,74 @@ final class IdempotencyViolationVisitor: CrossFileVisitorBase, CrossFilePatternV
             ruleName: .idempotencyViolation,
             // The violating function is itself the idempotence property-test
             // subject — surfaced as a seed for `--format pbt-seeds`.
-            symbol: callerName
+            symbol: callerName,
+            // …and the lattice position it was judged on travels with it. The
+            // seed already said *that* the claim failed; this says what was
+            // claimed, what the body reached, and how confidently the rule
+            // knows — the last of which no consumer can recompute, because the
+            // resolution is cross-file and multi-hop.
+            effect: seedEffect(callerEffect: site.effect, calleeEffect: calleeEffect, provenance: provenance)
         )
+    }
+
+    /// Project the rule's own effect vocabulary onto the manifest's.
+    ///
+    /// A deliberate translation rather than a shared type. `DeclaredEffect` is
+    /// SwiftEffectInference's enum and `EffectProvenance` is private to this
+    /// visitor; making either one Codable to save this function would put the
+    /// manifest's wire format at the mercy of a rename in a dependency, and the
+    /// manifest is a published contract with a version number. The exhaustive
+    /// switches are the point: adding a tier upstream should fail to compile
+    /// here rather than silently emit a case a consumer has never seen.
+    private func seedEffect(
+        callerEffect: DeclaredEffect,
+        calleeEffect: DeclaredEffect,
+        provenance: EffectProvenance
+    ) -> PBTSeedEffect {
+        let depth: Int?
+        let reason: String?
+        let wireProvenance: PBTSeedEffect.Provenance
+        switch provenance {
+        case .declared:
+            wireProvenance = .declared
+            depth = nil
+            reason = nil
+
+        case let .inferredUpward(hops):
+            wireProvenance = .inferredUpward
+            depth = hops
+            reason = nil
+
+        case let .inferredDownward(why):
+            wireProvenance = .inferredDownward
+            depth = nil
+            // The heuristic inferrer returns "" when it matched but could not
+            // phrase why. Empty is not a reason, and a consumer rendering it
+            // would print a dangling "because ." — `nil` says the same thing
+            // honestly.
+            reason = why.isEmpty ? nil : why
+        }
+        return PBTSeedEffect(
+            declared: seedTier(callerEffect),
+            resolved: seedTier(calleeEffect),
+            provenance: wireProvenance,
+            depth: depth,
+            reason: reason
+        )
+    }
+
+    /// Lattice position → wire spelling. Mirrors `effectLabel`, which produces
+    /// the same tokens for human prose; both exist because one is a `String` for
+    /// a sentence and the other is a typed case in a published schema, and
+    /// collapsing them would let a reworded diagnostic change the manifest.
+    private func seedTier(_ effect: DeclaredEffect) -> PBTSeedEffect.Tier {
+        switch effect {
+        case .pure: return .pure
+        case .idempotent: return .idempotent
+        case .observational: return .observational
+        case .externallyIdempotent: return .externallyIdempotent
+        case .nonIdempotent: return .nonIdempotent
+        }
     }
 
     private func effectLabel(_ effect: DeclaredEffect) -> String {
