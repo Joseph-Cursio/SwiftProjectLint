@@ -125,8 +125,13 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
             files: perFile.files
         ))
 
-        // Apply per-rule overrides (severity changes, per-rule path exclusions)
-        return effectiveConfiguration.applyOverrides(to: issues, projectRoot: path)
+        // Apply per-rule overrides (severity changes, per-rule path exclusions), then put the
+        // findings in reporting order. Per-file analysis collects results as tasks *complete*, so
+        // without this the same project yields the same findings in a different sequence on every
+        // run — see `LintIssue.precedes`.
+        return effectiveConfiguration
+            .applyOverrides(to: issues, projectRoot: path)
+            .sortedForReporting()
     }
 
     /// Splits discovery into the files that may be *reported on* and the files that may only

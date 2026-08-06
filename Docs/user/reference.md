@@ -55,6 +55,22 @@ Used with `--categories`:
 | `1` | One or more issues at or above the threshold |
 | `2` | Invalid arguments |
 
+### Output Order
+
+Findings are emitted in a fixed order — by file path, then line number, then rule name — in every
+format. Two runs over unchanged sources produce byte-identical output, so a report can be diffed
+against an earlier one to see what a change actually fixed:
+
+```bash
+swiftprojectlint /path/to/MyApp > before.txt
+# ...make a change...
+swiftprojectlint /path/to/MyApp > after.txt
+diff before.txt after.txt
+```
+
+Analysis itself is concurrent, so this ordering is applied to the results rather than being a
+by-product of the order files happened to finish in.
+
 ### Examples
 
 ```bash
