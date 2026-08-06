@@ -246,6 +246,23 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
     case fileParsingError = "File Parsing Error"
     case unknown = "Unknown"
 
+    /// The cases that are actually rules — every case except the two sentinels.
+    ///
+    /// `unknown` and `fileParsingError` are `RuleIdentifier`s for plumbing reasons (a finding needs
+    /// *some* identifier before its rule is resolved, and a file that fails to parse has to be
+    /// reported as something), but a user cannot enable, disable, or select either one. They are
+    /// the whole difference between `allCases.count` and the number of rules this tool has.
+    ///
+    /// Exists because that distinction was previously re-derived by an inline `subtracting` call at
+    /// each site that needed it, which meant the definition of "a rule" was duplicated and the
+    /// count in the README could disagree with the code without anything noticing — it did, by
+    /// roughly a quarter.
+    public static let selectableRules: Set<RuleIdentifier> =
+        Set(allCases).subtracting(sentinels)
+
+    /// Identifiers that exist to carry a state, not to name a rule. See `selectableRules`.
+    public static let sentinels: Set<RuleIdentifier> = [.unknown, .fileParsingError]
+
     /// Returns the kebab-case key used in inline suppression comments.
     ///
     /// Example: `.forceTry` → `"force-try"` → `// swiftprojectlint:disable force-try`

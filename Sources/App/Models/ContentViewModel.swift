@@ -175,8 +175,7 @@ class ContentViewModel {
     /// Builds a `LintConfiguration` from the current GUI state.
     private func buildConfiguration() -> LintConfiguration {
         // Compute disabled rules (all rules not in enabledRuleNames)
-        let allRules = Set(RuleIdentifier.allCases).subtracting([.unknown, .fileParsingError])
-        let disabledRules = allRules.subtracting(enabledRuleNames)
+        let disabledRules = RuleIdentifier.selectableRules.subtracting(enabledRuleNames)
 
         // Build per-rule overrides from exclusion checkboxes
         var overrides: [RuleIdentifier: LintConfiguration.RuleOverride] = [:]

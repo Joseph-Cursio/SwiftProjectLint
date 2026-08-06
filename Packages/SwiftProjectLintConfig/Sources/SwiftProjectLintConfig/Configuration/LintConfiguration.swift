@@ -160,8 +160,7 @@ public struct LintConfiguration: Sendable {
         }
 
         // nil means "no filtering" — return nil if we haven't actually restricted anything
-        let allRules = Set(RuleIdentifier.allCases)
-            .subtracting([.unknown, .fileParsingError])
+        let allRules = RuleIdentifier.selectableRules
             .subtracting(Self.optInRules)
         if rules == allRules, cliCategories == nil {
             return nil
