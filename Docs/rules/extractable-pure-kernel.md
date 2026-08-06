@@ -235,6 +235,22 @@ Unlike the two candidate rules, this rule **is** listed in the default text repo
 specific place and proposes a refactor that can be wrong, which is worth reading each time; a
 candidate rule only nominates.
 
+**The seed carries no test-reachability claim, and its absence means nothing here.** Seeds whose
+kind is analysable — `pure-function`, `idempotency` — are demoted to `restricted-function` when the
+symbol they name is `private` or sits inside a `private` type, so a consumer knows one named refactor
+stands between it and verification. `extractable-kernel` is not analysable, so that demotion never
+applies: the export layer returns before consulting reachability.
+
+That is deliberate. The symbol on a kernel seed names *where the kernel is trapped*, not a function a
+consumer could call — and the refactor this rule asks for **creates** the declaration that would be
+called, so the reader chooses its access level while extracting. Reporting "widen this declaration"
+would name a keyword the fix replaces anyway.
+
+The one case this does leave unsaid: a kernel trapped inside a `private` **type** stays unreachable
+after extraction, because the container decides. The manifest does not currently distinguish that
+from an ordinary kernel, so treat the absence of a reachability signal on a kernel seed as *"not
+asked"*, never as *"reachable"*.
+
 ### Known Limitations
 
 - **It is not a dataflow analysis, on purpose.** A kernel has no syntactic boundary — it is whatever

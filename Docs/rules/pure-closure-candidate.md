@@ -240,6 +240,13 @@ line 42". `comparator` and `predicate` are role-*entailed*: a correct implementa
 their law. `transform` and `reducer` are conjectures, and the manifest says so rather than
 overclaiming.
 
+For the same reason the seed carries **no test-reachability claim**. Analysable kinds are demoted to
+`restricted-function` when their symbol is out of `@testable import`'s reach; `extractable-kernel` is
+not analysable, so the export layer returns before consulting reachability. A closure has no
+declaration to widen, and lifting it into a named function — which is the whole ask — creates one
+whose access level the reader picks. Read the absence of a reachability signal as *"not asked"*,
+never as *"reachable"*.
+
 ### Not listed in the default report
 
 This rule is a **census**, and on a real codebase it is a large one: 464 findings here, alongside
