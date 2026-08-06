@@ -78,3 +78,21 @@ Docs/roadtest/output/lint-report.json
 Docs/roadtest/output/seed-manifest.json
 Docs/roadtest/output/discover-SwiftProjectLintVisitors.txt
 Docs/roadtest/output/discover-SwiftProjectLintRules.txt
+
+# swift-infer working state. `index.json` / `verify-evidence.json` are a cache
+# of a scan, and `verify-workdir/` holds one synthesized SwiftPM package per
+# surveyed suggestion — measured at 640 MB–1.1 GB per package directory during
+# a `prove-then-show` run, and several GB across this repo's seven packages.
+# All of it is reproducible by re-running the tool.
+.swiftinfer/
+
+# The seed manifest, produced on demand by `--format pbt-seeds` and consumed by
+# `swift-infer discover --seeds`.
+#
+# Added because SwiftInferProperties had already assumed it: `SeedManifest.swift`
+# argues that no v1 manifest can still exist because "manifests are generated on
+# demand rather than archived (SwiftProjectLint gitignores its own)" — and that
+# parenthesis was not true until this line. The conclusion held anyway (nothing
+# here ever committed one), but it rested on a fact about this repo that this
+# repo had not established. Now it has.
+.pbt/
