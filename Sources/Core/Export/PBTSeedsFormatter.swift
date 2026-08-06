@@ -29,6 +29,26 @@ public enum PBTSeedKind: String, Codable, Sendable, CaseIterable {
     /// symbol names the *enclosing* function, which is where to look, not what to test.
     case extractableKernel = "extractable-kernel"
 
+    /// A **type** that owes laws — the domain-type rules' subject. `symbol` names a type, not a
+    /// function, and that is the whole point of the case.
+    ///
+    /// Every other kind assumes the consumer's subject is a callable. It often is not:
+    /// `CodableRoundTripTemplate`, `ModelLawTemplate` and the `verify-value-semantics` command all
+    /// state laws over a *carrier type* with no free function anywhere. A newtype over a primitive
+    /// is exactly that shape — `Percentage` can own `0...100` and `String` cannot — which is the
+    /// argument the domain-type rules already make in prose.
+    ///
+    /// **Analysable**, for the same reason `restrictedFunction` is: the consumer can name the
+    /// subject and propose laws for it. What it cannot do is *call* it, and nothing here claims
+    /// otherwise — a carrier is a type, and the templates that consume one know that.
+    ///
+    /// **No schema bump.** A consumer built before this case decodes it as unrecognised and skips
+    /// it *loudly* — `SwiftInferProperties.SeedKind` has an explicit `case unrecognised(String)`
+    /// with `isAnalysable == false`, chosen because guessing "analysable" for an unknown kind is
+    /// the silent failure and guessing "not" is the spoken one. So an older consumer degrades to
+    /// the behaviour it had before this case existed, which is what a version bump would buy.
+    case carrier = "carrier"
+
     /// A pure, total, **named** function that no test can call: `private` or `fileprivate`.
     ///
     /// `@testable import` reaches `internal` and no further. This codebase has always known that —
@@ -69,7 +89,7 @@ public enum PBTSeedKind: String, Codable, Sendable, CaseIterable {
     /// The symbol is a location, not a subject.
     public var isAnalysable: Bool {
         switch self {
-        case .pureFunction, .idempotency, .restrictedFunction:
+        case .pureFunction, .idempotency, .restrictedFunction, .carrier:
             return true
 
         case .extractableKernel:
@@ -247,7 +267,11 @@ public struct PBTSeedsFormatter: IssueFormatterProtocol {
         .pureFunctionCandidate: .pureFunction,
         .idempotencyViolation: .idempotency,
         .extractablePureKernel: .extractableKernel,
-        .pureClosureCandidate: .extractableKernel
+        .pureClosureCandidate: .extractableKernel,
+        // The domain-type family. Their symbol is a type name — see `PBTSeedKind.carrier`.
+        .primitiveBypassingItsDomainType: .carrier,
+        .primitiveNamedForItsDomainType: .carrier,
+        .sharedDomainEnumField: .carrier
     ]
 
     /// Demote an otherwise-analysable seed whose symbol no test can call.
@@ -258,7 +282,16 @@ public struct PBTSeedsFormatter: IssueFormatterProtocol {
     static func effectiveKind(
         _ declared: PBTSeedKind, reachability: TestReachability
     ) -> PBTSeedKind {
-        guard declared.isAnalysable, reachability.isUnreachable else { return declared }
+        // `.carrier` is excluded even though it is analysable, because the kind it would demote to
+        // names a *function* — "a pure, total, **named** function that no test can call" — and a
+        // carrier's symbol is a type. Demoting one would hand a consumer a type name under a kind
+        // that promises a callable, which is the same category error the kind split exists to stop.
+        // A private *type* is a real obstacle and deserves saying, but it needs its own vocabulary,
+        // not this one. No domain-type rule computes reachability today, so nothing is lost now;
+        // the guard is here so that adding one later fails visibly instead of mislabelling.
+        guard declared.isAnalysable, declared != .carrier, reachability.isUnreachable else {
+            return declared
+        }
         return .restrictedFunction
     }
 

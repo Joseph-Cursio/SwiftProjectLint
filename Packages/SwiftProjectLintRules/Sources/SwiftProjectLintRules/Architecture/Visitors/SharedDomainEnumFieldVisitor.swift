@@ -157,7 +157,11 @@ final class SharedDomainEnumFieldVisitor: CrossFileVisitorBase, CrossFilePattern
                     suggestion: "Extract a protocol requiring '\(fieldText)' and conform "
                         + "\(conformNames) to it, so behavior keyed on "
                         + "\(signature.typeName) (sorting, filtering, grouping) is written once.",
-                    ruleName: .sharedDomainEnumField
+                    ruleName: .sharedDomainEnumField,
+                    // The type this finding is anchored on. One issue is raised per member of the
+                    // cluster, so each seed names the type at its own location rather than the
+                    // protocol that does not exist yet — a manifest names what is there.
+                    symbol: shape.name
                 )
             }
         }
