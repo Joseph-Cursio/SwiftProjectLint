@@ -77,10 +77,11 @@ Report a `ClosureExprSyntax` when **all** hold:
 1. **Registered, not called.** It is a trailing/argument closure on a call whose base is a member
    access in a `View` body position — the SwiftUI callback surface. Start from an explicit allowlist
    rather than inferring: `onTapGesture`, `onLongPressGesture`, `onKeyPress`, `onContinuousHover`,
-   `onHover`, `onChange`, `onSubmit`, `onDrag`, `onDrop`, `onAppear`, `onDisappear`, and the gesture
-   callbacks `onEnded` / `onChanged` / `updating`.
+   `onHover`, `onChange`, `onSubmit`, `onDrag`, `onDrop`, and the gesture callbacks `onEnded` /
+   `onChanged` / `updating`.
 
-   **`Button`'s action closure is deliberately present**, as a
+   **`onAppear` / `onDisappear` are deliberately absent** — see *Interaction with
+   `impure-call-in-view-body`* below. **`Button`'s action closure is deliberately present**, as a
    second surface with a different shape: it is a `DeclReferenceExprSyntax` call, not a member
    access, so the allowlist above cannot reach it and it needs its own arm. It belongs here — the
    unreachability argument applies to a button action verbatim, and it is likely the single most
@@ -185,6 +186,22 @@ the exemption currently documented in `CouldBePrivateMemberVisitor` is gated on
 appears to come from usage counting rather than from that exemption; if usage counting ever stops
 seeing test files, these four would start being told to go back to `private`.
 
+## Interaction with `impure-call-in-view-body`
+
+Sharper than a timing distinction, and it is what removes `onAppear` / `onDisappear` from condition 1.
+
+The two rules do target different moments — that rule catches impurity evaluated *during* body
+evaluation, whereas these closures are merely *registered* during body evaluation and run later. But
+they are not independent, because that rule's suggested fix names this rule's trigger surface
+directly: *"Move it out of `body` — an action / `onAppear` for effects"*
+(`ImpureCallInViewBodyVisitor.swift:84`). Allowlist `onAppear` and a developer who does exactly what
+`impure-call-in-view-body` told them to do lands immediately on a fresh finding from this rule. Two
+rules that hand a reader back and forth is how a whole category gets switched off.
+
+Excluding both lifecycle modifiers from v1 costs little independently — they are usually one-liners,
+which condition 3 mostly refutes anyway — and it removes the loop. Revisit only with a real project's
+numbers showing what the exclusion misses.
+
 ## Feasibility
 
 Structural AST, per-file. No cross-file graph, no flow analysis. The only genuinely new machinery is
@@ -219,15 +236,13 @@ scope, but by being named explicitly (condition 1), not by being inferred.
 
 ## Open questions
 
-1. Should a closure that writes captured state **and** is non-trivial but lives on `onAppear` /
-   `onDisappear` count? Those are lifecycle, often one-line, and often genuinely trivial. Possibly
-   worth a lower tier or exclusion.
-2. Does this overlap `impure-call-in-view-body`? That rule targets impurity evaluated *during* body
-   evaluation; these closures are registered during body evaluation but run later. Different timing,
-   different defect — but the two should be checked against each other on a real project before both
-   ship enabled.
+1. ~~Should `onAppear` / `onDisappear` closures count?~~ **Resolved: excluded from v1.** Not because
+   they are trivial — because of the hand-off loop with `impure-call-in-view-body`, above.
+2. ~~Does this overlap `impure-call-in-view-body`?~~ **Resolved: no overlap, but a chain.** See that
+   section. The road test it asked for is still worth running once both ship, to check the chain is
+   actually broken and not just moved.
 3. Is there a matching finding for AppKit/UIKit target-action and `NotificationCenter` observer
-   blocks? Same unreachability, different surface. Out of scope for v1.
+   blocks? Same unreachability, different surface. Out of scope for v1. **Still open.**
 4. **New.** Does `Button`-action volume swamp the modifier surface? Button actions are now in scope
    (condition 1) and are far more common than gesture callbacks. If a road test shows they dominate
    the finding count, that is the evidence that would reopen the `inventoryRules` decision under
