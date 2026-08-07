@@ -238,6 +238,10 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
     /// so it cannot be inspected without trapping.
     case observableEnvironmentViewMissingInspectionHook = "Observable Environment View Missing Inspection Hook"
 
+    /// A closure registered as a callback that writes to what it captured — the
+    /// impure twin of `pureClosureCandidate`, which refutes exactly this shape.
+    case unreachableEffectClosure = "Unreachable Effect Closure"
+
     /// A value rebuilt field-by-field from one you already have, where the initialiser has
     /// defaulted parameters — so a forgotten field takes its default SILENTLY.
     case lossyStructRebuild = "Lossy Struct Rebuild"
