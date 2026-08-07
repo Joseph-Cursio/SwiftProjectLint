@@ -182,9 +182,10 @@ reported `could-be-private-member` 39 times project-wide and on none of the four
 because the cross-file visitor counts the new test-file references as usages. Worth an explicit
 regression test in this rule's suite regardless, since the two rules pull in opposite directions and
 the exemption currently documented in `CouldBePrivateMemberVisitor` is gated on
-`propertyTestShape(of:) != nil` — a *pure* shape, which these handlers are not. The protection here
-appears to come from usage counting rather than from that exemption; if usage counting ever stops
-seeing test files, these four would start being told to go back to `private`.
+`propertyTestShape(of:) != nil` (`CouldBePrivateMemberVisitor.swift:151,160`) — a *pure* shape, which
+these handlers are not. The protection here appears to come from usage counting rather than from that
+exemption; if usage counting ever stops seeing test files, these four would start being told to go
+back to `private`.
 
 ## Interaction with `impure-call-in-view-body`
 
