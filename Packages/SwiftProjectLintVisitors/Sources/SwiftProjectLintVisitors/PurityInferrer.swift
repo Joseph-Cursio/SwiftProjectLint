@@ -48,6 +48,20 @@ public struct PurityInferrer: Sendable {
         underlying.isPure(closure)
     }
 
+    /// Whether a closure assigns to something it captured, asked on its own.
+    ///
+    /// The capture-write clause of `isPure(_ closure:)`, unfolded from the other three refuters
+    /// (`async`/`throws`, impurity markers, totality). A caller cannot recover it by inverting
+    /// `isPure`: `{ print(x) }` is impure and mutates no capture.
+    ///
+    /// `pure-closure-candidate` uses this verdict to **refute** a property-test seed, where
+    /// over-reporting costs only a missed candidate. A rule reporting *because* a closure's effect
+    /// escapes into captured state makes the opposite, positive claim and pays for a wrong answer
+    /// with a wrong finding — so read SEI's note on the flat bound-name set before consuming it.
+    public func mutatesCapturedState(_ closure: ClosureExprSyntax) -> Bool {
+        underlying.mutatesCapturedState(closure)
+    }
+
     /// Whether a **computed property's getter** is referentially transparent.
     ///
     /// Answers the effect half only — markers and totality. `SelfAccessAnalyzer` resolves the state

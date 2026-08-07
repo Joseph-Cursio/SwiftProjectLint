@@ -167,6 +167,48 @@ struct PurityOracleLawsTests {
         }
     }
 
+    /// The capture-write clause must not be recoverable by inverting `isPure` — which is the whole
+    /// reason it is forwarded separately.
+    ///
+    /// A caller wanting "does this closure's effect escape into captured state?" and reaching for
+    /// `!isPure(closure)` gets every impure-but-capture-free closure wrong. Each source below is
+    /// refuted by a *different* one of the other three clauses, so this pins the independence rather
+    /// than one instance of it.
+    @Test(arguments: [
+        "let logged = items.map { item in print(item) }",     // impurity marker
+        "let stamped = items.map { item in Date() }",         // nondeterminism
+        "let names = items.map { item in item.name! }"        // partiality
+    ])
+    func theCaptureClauseIsIndependentOfTheOtherRefuters(source: String) throws {
+        let closure = try #require(
+            Self.descendants(of: ClosureExprSyntax.self, in: Parser.parse(source: source)).first
+        )
+        let inferrer = PurityInferrer()
+        #expect(inferrer.isPure(closure) == false)
+        #expect(inferrer.mutatesCapturedState(closure) == false)
+    }
+
+    /// The forwarder answers what the shared oracle answers.
+    ///
+    /// `SwiftProjectLintVisitors.PurityInferrer` restates SEI's members rather than aliasing the
+    /// type, so each one is a hand-written call that can be wired to the wrong thing. This is the
+    /// module-boundary check, not a re-test of the predicate — SEI owns that.
+    @Test
+    func theForwarderAgreesWithTheSharedOracle() {
+        let tree = Parser.parse(source: """
+        items.forEach { item in total += item.amount }
+        let children = files.filter { file in file.path.hasPrefix(currentPath) }
+        let totals = groups.map { group in group.values.reduce(into: 0) { acc, v in acc += v } }
+        """)
+        let closures = Self.descendants(of: ClosureExprSyntax.self, in: tree)
+        let mutates = closures.map { PurityInferrer().mutatesCapturedState($0) }
+
+        // The captured write, the read-only capture, and — since the pin this landed on — a nested
+        // `reduce(into:)` accumulator, whose parameter is a local and not a capture.
+        #expect(mutates.first == true)
+        #expect(mutates.dropFirst().contains(true) == false)
+    }
+
     /// A concrete anchor for the agreement, on the shape the contract is about: a closure passed to
     /// an escaping-by-policy callee, and one that is an ordinary `map`.
     @Test
