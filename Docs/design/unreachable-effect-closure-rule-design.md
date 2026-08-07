@@ -1,7 +1,8 @@
 # `unreachable-effect-closure` — rule design
 
 **Status:** proposal. Not implemented.
-**Category:** Testability · **Severity:** `.info` · **Gating:** opt-in
+**Category:** Testability · **Severity:** `.info` · **Gating:** listed by default (see below — there
+is no per-rule opt-in switch, and the sibling's "opt-in" is something else entirely)
 **Sibling:** `pure-closure-candidate` (this is its impure twin)
 
 ## The gap
@@ -139,8 +140,36 @@ What changes is that the *effect* acquires a name a test can invoke.
 
 ## Severity and gating
 
-`.info`, opt-in — matching its pure sibling. This reports a refactor, not a defect. The code works;
-it is simply unobservable.
+`.info`. This reports a refactor, not a defect. The code works; it is simply unobservable.
+
+**"Opt-in, matching its pure sibling" is not available, because rules have no opt-in switch.**
+`SyntaxPattern` carries a severity and a category and nothing else — there is no per-rule enable
+flag to set. What makes `pure-closure-candidate` feel opt-in is a *rendering* decision one layer up:
+`CandidateInventory.inventoryRules` is exactly `{.pureFunctionCandidate, .pureClosureCandidate}`
+(`CandidateInventory.swift:48-51`), those two collapse into a count in `text` output, and naming
+`testability` in `--categories` un-collapses them (`SwiftProjectLintCLI.swift:155`). Machine formats
+never collapse at all.
+
+So this rule ships **listed by default** unless it is added to `inventoryRules`, and that is a
+decision to make on purpose rather than inherit:
+
+- **Don't add it** (preferred). The inventory's stated meaning is *property-test seeds* — the same
+  refutal this rule was written to route around. A finding that is explicitly not a seed does not
+  belong in the seed inventory, and widening the set to hold it would cost the inventory its
+  meaning. Accept default-listed at `.info`, which is what `.extractablePureKernel` already does
+  (`CandidateInventory.swift:32` records that choice and why).
+- **Add it** only if a road test shows the volume is inventory-scale. `pure-closure-candidate` alone
+  contributed 208 findings in the run recorded at `Docs/rules/pure-closure-candidate.md:253`; if
+  this rule lands anywhere near that, collapsing becomes a readability argument that outweighs the
+  taxonomy one. Measure before deciding.
+
+## Registrar placement
+
+Single-purpose visitor, so it gets its own leaf registrar — a `struct` conforming to
+`PatternRegistrarProtocol` supplying one `var pattern`, wired into the `register(registrars:)` list
+in `Testability.swift` alongside `ImpureCallInViewBody()` (`Testability.swift:105-108`). Not an
+inline entry in the `patterns` array; that form is for rules sharing a multi-purpose category
+visitor.
 
 ## Interaction with `could-be-private-member`
 
