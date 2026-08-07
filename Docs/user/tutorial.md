@@ -184,18 +184,18 @@ For structured output that a downstream step can parse:
 
 ## Step 7: Explore the Rules
 
-Each rule has a dedicated doc in `docs/rules/`. Start with the index:
+Each rule has a dedicated doc in `Docs/rules/`. Start with the index:
 
 ```
-docs/rules/RULES.md
+Docs/rules/RULES.md
 ```
 
-For example, `docs/rules/force-try.md` explains exactly what pattern is detected, why it matters, and shows both violating and non-violating code examples.
+For example, `Docs/rules/force-try.md` explains exactly what pattern is detected, why it matters, and shows both violating and non-violating code examples.
 
 ---
 
 ## Next Steps
 
-- Browse `docs/rules/RULES.md` to discover rules you haven't encountered yet
+- Browse `Docs/rules/RULES.md` to discover rules you haven't encountered yet
 - Use `--categories` to audit one area at a time
-- Read `docs/reference.md` for the complete CLI and configuration schema
+- Read `Docs/user/reference.md` for the complete CLI and configuration schema

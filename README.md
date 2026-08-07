@@ -230,10 +230,10 @@ let b = result!
 ## Documentation
 
 - [Docs/rules/RULES.md](Docs/rules/RULES.md) — Full rule reference
-- [Docs/user-guide.md](Docs/user-guide.md) — User guide
+- [Docs/user/user-guide.md](Docs/user/user-guide.md) — User guide
 - [Docs/architecture.md](Docs/architecture.md) — Architecture deep-dive
-- [Docs/reference.md](Docs/reference.md) — CLI and configuration reference
-- [Docs/tutorial.md](Docs/tutorial.md) — Getting started tutorial
+- [Docs/user/reference.md](Docs/user/reference.md) — CLI and configuration reference
+- [Docs/user/tutorial.md](Docs/user/tutorial.md) — Getting started tutorial
 
 ## License
 

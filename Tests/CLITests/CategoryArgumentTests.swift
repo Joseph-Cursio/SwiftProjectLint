@@ -36,7 +36,7 @@ struct CategoryArgumentTests {
         #expect(command.categories == ["testability"])
     }
 
-    /// The form `Docs/reference.md` documented before this change. It now parses as ONE category
+    /// The form `Docs/user/reference.md` documented before this change. It now parses as ONE category
     /// with the second name taken as the positional — which is why the docs were updated in the
     /// same commit rather than left to rot.
     @Test func spaceSeparatedFormNoLongerCollectsBothNames() throws {

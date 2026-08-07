@@ -44,7 +44,7 @@ struct SwiftProjectLintCLI: AsyncParsableCommand {
     /// Comma splitting is handled in `parseCategories()` and matches `swift-infer --packs`, so the
     /// two halves of the lint → infer hop accept list arguments the same way.
     ///
-    /// This drops the space-separated form (`--categories a b`), which `Docs/reference.md`
+    /// This drops the space-separated form (`--categories a b`), which `Docs/user/reference.md`
     /// documented. Both of that file's examples put the path first and so were never at risk;
     /// they are updated regardless, since the syntax they show no longer parses.
     @Option(

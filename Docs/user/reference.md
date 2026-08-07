@@ -102,7 +102,7 @@ Place `.swiftprojectlint.yml` in the project root. It is loaded automatically. P
 
 ```yaml
 # Disable specific rules entirely.
-# Values are the rule's display name (see docs/rules/RULES.md).
+# Values are the rule's display name (see Docs/rules/RULES.md).
 # Mutually exclusive with enabled_only; disabled_rules takes precedence if both appear.
 disabled_rules:
   - "Print Statement"
@@ -266,7 +266,7 @@ Inline suppression applies **per-file only**. Cross-file issues (e.g. `Related D
 
 ## Rule Reference
 
-See [docs/rules/RULES.md](rules/RULES.md) for the complete list of 160 rules organized by category, with links to per-rule documentation.
+See [Docs/rules/RULES.md](../rules/RULES.md) for the complete list of 160 rules organized by category, with links to per-rule documentation.
 
 Each rule doc includes:
 - Display name and identifier
