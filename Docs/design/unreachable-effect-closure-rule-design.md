@@ -78,6 +78,18 @@ Report a `ClosureExprSyntax` when **all** hold:
    rather than inferring: `onTapGesture`, `onLongPressGesture`, `onKeyPress`, `onContinuousHover`,
    `onHover`, `onChange`, `onSubmit`, `onDrag`, `onDrop`, `onAppear`, `onDisappear`, and the gesture
    callbacks `onEnded` / `onChanged` / `updating`.
+
+   **`Button`'s action closure is deliberately present**, as a
+   second surface with a different shape: it is a `DeclReferenceExprSyntax` call, not a member
+   access, so the allowlist above cannot reach it and it needs its own arm. It belongs here — the
+   unreachability argument applies to a button action verbatim, and it is likely the single most
+   common instance of the whole pattern.
+
+   This widens the rule's scope past what the original proposal asked for, and it is a **settled
+   decision, not the author's preference** — affirmed 2026-08-07, on the reasoning that a rule
+   arguing from reachability cannot exclude the most-used callback surface without contradicting
+   itself. Expect the finding count to be materially higher than a modifiers-only v1; open question 4
+   is how that count gets measured.
 2. **Effectful on captured state.** The body contains an assignment whose left-hand side roots in a
    captured identifier rather than a closure parameter or a local. Reuse `PurityInferrer` inverted:
    the existing oracle already computes this to refute; this rule consumes the same verdict for the
@@ -96,14 +108,23 @@ that is exactly one `FunctionCallExprSyntax` (optionally `return`ed) is already 
   pure, and nobody's when it merely reads.
 - **Local-only writes** — writes to a `var` declared inside the closure never escape.
 - **Test files** — same skip the accessibility visitors already apply.
-- **`Button { … }` action closures** — already owned by `button-closure-wrapping`; defer to it to
-  avoid double-reporting the same line.
+- ~~**`Button { … }` action closures** — already owned by `button-closure-wrapping`.~~ **Withdrawn.**
+  Deferring wholesale would have opened a hole rather than closing an overlap.
+  `button-closure-wrapping` fires only on a body that is a *single no-argument call*
+  (`ButtonClosureWrappingVisitor.swift:20-45`) — exactly the shape condition 3 already excludes. The
+  two rules therefore cannot collide: where that one reports, this one is silent by construction.
+  What the deferral would have cost is every multi-statement effectful action —
+  `Button { count += 1; save() }` — waived here and reported by nothing. Button actions are in
+  scope; see condition 1.
 - **Writes only to a closure parameter** — e.g. `inout` accumulators in `reduce(into:)`, which are
   local by construction.
 
 ## Message
 
-> An effectful closure registered on a view modifier — no test can reach its effect.
+> An effectful closure registered as a callback — no test can reach its effect.
+
+"Registered as a callback" rather than the narrower "registered on a view modifier": since Button
+actions are in scope (condition 1), a modifier-specific wording would misdescribe a whole surface.
 
 **Suggestion:** *Lift the body into a named method; the effect becomes assertable through the state
 it writes.*
@@ -138,7 +159,8 @@ Structural AST, per-file. No cross-file graph, no flow analysis. The only genuin
 
 Main false-positive risk is condition 1's allowlist drifting behind SwiftUI. Prefer under-reporting:
 an unlisted modifier is a missed finding, whereas inferring "any trailing closure on a member access
-in a view body" would sweep in `Button`, `Toggle`, `ForEach` and every custom view builder.
+in a view body" would sweep in `Toggle`, `ForEach` and every custom view builder. `Button` is in
+scope, but by being named explicitly (condition 1), not by being inferred.
 
 ## Open questions
 
@@ -151,3 +173,7 @@ in a view body" would sweep in `Button`, `Toggle`, `ForEach` and every custom vi
    ship enabled.
 3. Is there a matching finding for AppKit/UIKit target-action and `NotificationCenter` observer
    blocks? Same unreachability, different surface. Out of scope for v1.
+4. **New.** Does `Button`-action volume swamp the modifier surface? Button actions are now in scope
+   (condition 1) and are far more common than gesture callbacks. If a road test shows they dominate
+   the finding count, that is the evidence that would reopen the `inventoryRules` decision under
+   *Severity and gating*. Measure the two surfaces separately from the first run.
