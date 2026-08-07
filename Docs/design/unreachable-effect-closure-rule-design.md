@@ -99,7 +99,8 @@ Report a `ClosureExprSyntax` when **all** hold:
    folding four separate refuters — `async`/`throws`, impurity markers, totality, and capture
    mutation (`SwiftEffectInference/PurityInferrer.swift:194-205`). Inverting it over-reports:
    `.onHover { print(x) }` is impure and has no captured write. The predicate this rule actually
-   wants is the last of the four alone. See *Feasibility* for what that costs.
+   wants is the last of the four alone, and it is now available as
+   `PurityInferrer.mutatesCapturedState(_ closure:)` — see *Feasibility*.
 3. **Not already extracted.** The body is more than a single call expression.
 
 Condition 3 is what makes the rule converge. `.onKeyPress(.escape) { clearSelection() }` is the
@@ -206,29 +207,31 @@ numbers showing what the exclusion misses.
 ## Feasibility
 
 Structural AST, per-file. No cross-file graph, no flow analysis. The only genuinely new machinery is
-"assignment whose LHS roots in a capture" — and that machinery **exists but is not reachable from
-this repo**, which is the real cost of v1.
+"assignment whose LHS roots in a capture" — and **that prerequisite is now done**, via the upstream
+route rather than a local reimplementation, so one definition of the predicate serves both rules.
 
-`PurityInferrer` does decide the predicate, in a `CaptureMutationChecker` walk
-(`SwiftEffectInference/PurityInferrer.swift:256-260`). But that type is `private final class` at
-`PurityInferrer.swift:392`, visible only to the file that folds it into `isPure(_:)`. It lives in
-`SwiftEffectInference`, a separate repository pinned here by revision (`bc084fb` in
-`Package.resolved`), and reached only through the forwarding `PurityInferrer` in the Visitors package
-— which exposes the folded Bool and nothing finer. Two ways out:
+`PurityInferrer.mutatesCapturedState(_ closure:)` is public in SwiftEffectInference as of `fc82ec4`
+(SEI PR #6), forwarded here on `SwiftProjectLintVisitors.PurityInferrer`, with all three manifests
+re-pinned. `CaptureMutationChecker` stays private — only the verdict crossed the boundary. The
+implementation reads it directly; there is nothing left to build for condition 2.
 
-- **Expose it upstream.** A PR to SwiftEffectInference publishing the capture-mutation verdict —
-  either `CaptureMutationChecker` itself or a `mutatesCapturedState(_ closure:)` member on
-  `PurityInferrer` — then re-pin here and add a forwarding member to
-  `SwiftProjectLintVisitors.PurityInferrer`. Correct long-term: it keeps one definition of the
-  predicate, which is the whole reason the oracle was relocated to SEI in the first place. Costs a
-  cross-repo round trip and a pin bump before this rule can build.
-- **Reimplement locally.** A ~40-line visitor in this package. Ships without touching SEI, at the
-  price of a second definition of "writes to a capture" that can drift from the one that refutes
-  `pure-closure-candidate` — and these two rules are supposed to partition the same space, so drift
-  between them is exactly the failure that matters.
+Two things the prerequisite turned up that the rule must know:
 
-Prefer the upstream route, and treat the SEI PR as a prerequisite of this one rather than a
-follow-up.
+- **Inverting `isPure` was never going to work.** That Bool folds four refuters — `async`/`throws`,
+  markers, totality, capture mutation — and three are unrelated to captures. `{ print(x) }` is impure
+  and mutates nothing. Pinned by `theCaptureClauseIsIndependentOfTheOtherRefuters` in
+  `PurityOracleLawsTests`.
+- **The predicate had a bug the audit found, now fixed.** Nested closures' *parameters* were not
+  counted as locals, though their `let`/`var` were, so a nested `reduce(into:) { acc, x in acc += x }`
+  read as a captured write — exactly the case this rule's own refutation list says must not fire.
+  It measured as a no-op on both available corpora (SwiftProjectLint 10 → 10,
+  SwiftInferProperties 250 → 250 `pure-closure-candidate` findings), so it changed nothing for the
+  pure sibling; it was only ever going to matter for this rule.
+
+One caveat carried over from SEI and worth re-reading before writing the visitor: the bound-name set
+is **flat — scopes are not tracked**. A genuine captured write to `total` goes unrecorded if some
+unrelated nested closure also binds a `total`. That errs toward *not* reporting, which is the right
+direction for a rule making a positive claim, but it is the known soundness hole.
 
 Main false-positive risk is condition 1's allowlist drifting behind SwiftUI. Prefer under-reporting:
 an unlisted modifier is a missed finding, whereas inferring "any trailing closure on a member access
