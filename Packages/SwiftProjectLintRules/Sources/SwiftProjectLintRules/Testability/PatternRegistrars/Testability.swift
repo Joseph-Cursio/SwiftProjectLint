@@ -104,7 +104,8 @@ class Testability: BasePatternRegistrar {
         // Single-purpose-visitor rules get their own leaf registrars.
         registry.register(registrars: [
             MissingEquatableOnStateType(),
-            ImpureCallInViewBody()
+            ImpureCallInViewBody(),
+            UnreachableEffectClosure()
         ])
     }
 }
