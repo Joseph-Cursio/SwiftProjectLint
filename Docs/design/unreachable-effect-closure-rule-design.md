@@ -1,0 +1,153 @@
+# `unreachable-effect-closure` — rule design
+
+**Status:** proposal. Not implemented.
+**Category:** Testability · **Severity:** `.info` · **Gating:** opt-in
+**Sibling:** `pure-closure-candidate` (this is its impure twin)
+
+## The gap
+
+`pure-closure-candidate` opens with the right argument:
+
+> *An inline closure cannot be tested — not "is hard to test", cannot. There is no name to call and
+> no seam to reach it through.*
+
+That argument is about **reachability**, and reachability has nothing to do with purity. But the
+rule then narrows to pure closures, and refutes anything that writes to what it captured:
+
+> *What no extraction rescues is a closure that **writes** to what it captured — that one is
+> refuted, by the shared purity oracle.*
+
+For a *property-test* seed that refutal is correct: you cannot generate inputs for a closure whose
+job is a side effect. But the unreachability claim still holds — and for effectful closures it
+matters more, because a side effect on shared state is exactly the kind of thing that regresses
+silently. The refutal is scoped to the wrong conclusion: it should refuse *property-test candidacy*,
+not refuse *extraction*.
+
+This rule covers what falls through: a closure that **mutates captured state**, is **registered as a
+callback** rather than called inline, and therefore has no seam through which any test can observe
+its effect.
+
+### Worked example
+
+Measured in SwiftUMLStudio (`NativeDiagramView`, `NativeSequenceDiagramView`), before:
+
+```swift
+.onContinuousHover(coordinateSpace: .named(Self.canvasCoordinateSpace)) { phase in
+    switch phase {
+    case .active(let location):
+        viewport.hoveredNodeId = NativeDiagramGeometry.hitNode(in: graph, at: location)?.id
+    case .ended:
+        viewport.hoveredNodeId = nil
+    }
+}
+.onKeyPress(.escape) {
+    viewport.selectedNodeId = nil
+    return .handled
+}
+```
+
+Both write to captured `viewport`, so `pure-closure-candidate` refutes both. Neither is reachable by
+a unit test: `ImageRenderer` drives a real draw pass but never fires gestures or key presses, and
+ViewInspector cannot traverse these views at all (their bodies are `GeometryReader`s — see the
+`ViewInspectorCompatibility` preflight). Coverage sat at **0%** across both files.
+
+After extraction:
+
+```swift
+.onContinuousHover(coordinateSpace: .named(Self.canvasCoordinateSpace)) { updateHover($0) }
+.onKeyPress(.escape) { clearSelection() }
+
+func updateHover(_ phase: HoverPhase) { … }
+func clearSelection() -> KeyPress.Result { … }
+```
+
+The behaviours that then became assertable are real contracts, not ceremony:
+
+- tapping empty canvas **clears** the selection rather than leaving a stale one
+- the pointer leaving the canvas **clears** the hover highlight
+- an arrow key on an empty graph returns `.ignored` rather than being swallowed (so it does not beep)
+
+None of those could be stated as a test before. All three are one careless edit from regressing.
+
+## Trigger
+
+Report a `ClosureExprSyntax` when **all** hold:
+
+1. **Registered, not called.** It is a trailing/argument closure on a call whose base is a member
+   access in a `View` body position — the SwiftUI callback surface. Start from an explicit allowlist
+   rather than inferring: `onTapGesture`, `onLongPressGesture`, `onKeyPress`, `onContinuousHover`,
+   `onHover`, `onChange`, `onSubmit`, `onDrag`, `onDrop`, `onAppear`, `onDisappear`, and the gesture
+   callbacks `onEnded` / `onChanged` / `updating`.
+2. **Effectful on captured state.** The body contains an assignment whose left-hand side roots in a
+   captured identifier rather than a closure parameter or a local. Reuse `PurityInferrer` inverted:
+   the existing oracle already computes this to refute; this rule consumes the same verdict for the
+   opposite purpose.
+3. **Not already extracted.** The body is more than a single call expression.
+
+Condition 3 is what makes the rule converge. `.onKeyPress(.escape) { clearSelection() }` is the
+*fixed* form and must not be reported — otherwise the rule fires forever and gets disabled. A body
+that is exactly one `FunctionCallExprSyntax` (optionally `return`ed) is already a named seam.
+
+## Refutations
+
+- **Single-call bodies** — the fixed form (condition 3).
+- **Empty bodies** — nothing to extract.
+- **Read-only closures** — no captured write. That is `pure-closure-candidate`'s territory when
+  pure, and nobody's when it merely reads.
+- **Local-only writes** — writes to a `var` declared inside the closure never escape.
+- **Test files** — same skip the accessibility visitors already apply.
+- **`Button { … }` action closures** — already owned by `button-closure-wrapping`; defer to it to
+  avoid double-reporting the same line.
+- **Writes only to a closure parameter** — e.g. `inout` accumulators in `reduce(into:)`, which are
+  local by construction.
+
+## Message
+
+> An effectful closure registered on a view modifier — no test can reach its effect.
+
+**Suggestion:** *Lift the body into a named method; the effect becomes assertable through the state
+it writes.*
+
+Deliberately different from `pure-closure-candidate`'s "its captures become parameters" — that
+advice is wrong here. The captures are not becoming parameters; the mutation target stays captured.
+What changes is that the *effect* acquires a name a test can invoke.
+
+## Severity and gating
+
+`.info`, opt-in — matching its pure sibling. This reports a refactor, not a defect. The code works;
+it is simply unobservable.
+
+## Interaction with `could-be-private-member`
+
+Acting on this rule widens access: the extracted method is called from one place in production, so
+`could-be-private-member` is the natural next visitor to look at it.
+
+Empirically it does **not** misfire — a run against SwiftUMLStudio after the extraction above
+reported `could-be-private-member` 39 times project-wide and on none of the four extracted handlers,
+because the cross-file visitor counts the new test-file references as usages. Worth an explicit
+regression test in this rule's suite regardless, since the two rules pull in opposite directions and
+the exemption currently documented in `CouldBePrivateMemberVisitor` is gated on
+`propertyTestShape(of:) != nil` — a *pure* shape, which these handlers are not. The protection here
+appears to come from usage counting rather than from that exemption; if usage counting ever stops
+seeing test files, these four would start being told to go back to `private`.
+
+## Feasibility
+
+Structural AST, per-file. No cross-file graph, no flow analysis. The only genuinely new machinery is
+"assignment whose LHS roots in a capture", and `PurityInferrer` already decides it.
+
+Main false-positive risk is condition 1's allowlist drifting behind SwiftUI. Prefer under-reporting:
+an unlisted modifier is a missed finding, whereas inferring "any trailing closure on a member access
+in a view body" would sweep in `Button`, `Toggle`, `ForEach` and every custom view builder.
+
+## Open questions
+
+1. Should a closure that writes captured state **and** is non-trivial but lives on `onAppear` /
+   `onDisappear` count? Those are lifecycle, often one-line, and often genuinely trivial. Possibly
+   worth a lower tier or exclusion.
+2. Does this overlap `impure-call-in-view-body`? That rule targets impurity evaluated *during* body
+   evaluation; these closures are registered during body evaluation but run later. Different timing,
+   different defect — but the two should be checked against each other on a real project before both
+   ship enabled.
+3. Is there a matching finding for AppKit/UIKit target-action and `NotificationCenter` observer
+   blocks? Same unreachability, different surface. Out of scope for v1.
