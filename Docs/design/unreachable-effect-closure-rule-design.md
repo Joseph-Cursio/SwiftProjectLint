@@ -1,7 +1,8 @@
 # `unreachable-effect-closure` — rule design
 
 **Status:** proposal. Not implemented.
-**Category:** Testability · **Severity:** `.info` · **Gating:** opt-in
+**Category:** Testability · **Severity:** `.info` · **Gating:** listed by default (see below — there
+is no per-rule opt-in switch, and the sibling's "opt-in" is something else entirely)
 **Sibling:** `pure-closure-candidate` (this is its impure twin)
 
 ## The gap
@@ -76,12 +77,29 @@ Report a `ClosureExprSyntax` when **all** hold:
 1. **Registered, not called.** It is a trailing/argument closure on a call whose base is a member
    access in a `View` body position — the SwiftUI callback surface. Start from an explicit allowlist
    rather than inferring: `onTapGesture`, `onLongPressGesture`, `onKeyPress`, `onContinuousHover`,
-   `onHover`, `onChange`, `onSubmit`, `onDrag`, `onDrop`, `onAppear`, `onDisappear`, and the gesture
-   callbacks `onEnded` / `onChanged` / `updating`.
+   `onHover`, `onChange`, `onSubmit`, `onDrag`, `onDrop`, and the gesture callbacks `onEnded` /
+   `onChanged` / `updating`.
+
+   **`onAppear` / `onDisappear` are deliberately absent** — see *Interaction with
+   `impure-call-in-view-body`* below. **`Button`'s action closure is deliberately present**, as a
+   second surface with a different shape: it is a `DeclReferenceExprSyntax` call, not a member
+   access, so the allowlist above cannot reach it and it needs its own arm. It belongs here — the
+   unreachability argument applies to a button action verbatim, and it is likely the single most
+   common instance of the whole pattern.
+
+   This widens the rule's scope past what the original proposal asked for, and it is a **settled
+   decision, not the author's preference** — affirmed 2026-08-07, on the reasoning that a rule
+   arguing from reachability cannot exclude the most-used callback surface without contradicting
+   itself. Expect the finding count to be materially higher than a modifiers-only v1; open question 4
+   is how that count gets measured.
 2. **Effectful on captured state.** The body contains an assignment whose left-hand side roots in a
-   captured identifier rather than a closure parameter or a local. Reuse `PurityInferrer` inverted:
-   the existing oracle already computes this to refute; this rule consumes the same verdict for the
-   opposite purpose.
+   captured identifier rather than a closure parameter or a local.
+
+   **Do not implement this by inverting `PurityInferrer.isPure(_ closure:)`.** That returns one Bool
+   folding four separate refuters — `async`/`throws`, impurity markers, totality, and capture
+   mutation (`SwiftEffectInference/PurityInferrer.swift:194-205`). Inverting it over-reports:
+   `.onHover { print(x) }` is impure and has no captured write. The predicate this rule actually
+   wants is the last of the four alone. See *Feasibility* for what that costs.
 3. **Not already extracted.** The body is more than a single call expression.
 
 Condition 3 is what makes the rule converge. `.onKeyPress(.escape) { clearSelection() }` is the
@@ -96,14 +114,23 @@ that is exactly one `FunctionCallExprSyntax` (optionally `return`ed) is already 
   pure, and nobody's when it merely reads.
 - **Local-only writes** — writes to a `var` declared inside the closure never escape.
 - **Test files** — same skip the accessibility visitors already apply.
-- **`Button { … }` action closures** — already owned by `button-closure-wrapping`; defer to it to
-  avoid double-reporting the same line.
+- ~~**`Button { … }` action closures** — already owned by `button-closure-wrapping`.~~ **Withdrawn.**
+  Deferring wholesale would have opened a hole rather than closing an overlap.
+  `button-closure-wrapping` fires only on a body that is a *single no-argument call*
+  (`ButtonClosureWrappingVisitor.swift:20-45`) — exactly the shape condition 3 already excludes. The
+  two rules therefore cannot collide: where that one reports, this one is silent by construction.
+  What the deferral would have cost is every multi-statement effectful action —
+  `Button { count += 1; save() }` — waived here and reported by nothing. Button actions are in
+  scope; see condition 1.
 - **Writes only to a closure parameter** — e.g. `inout` accumulators in `reduce(into:)`, which are
   local by construction.
 
 ## Message
 
-> An effectful closure registered on a view modifier — no test can reach its effect.
+> An effectful closure registered as a callback — no test can reach its effect.
+
+"Registered as a callback" rather than the narrower "registered on a view modifier": since Button
+actions are in scope (condition 1), a modifier-specific wording would misdescribe a whole surface.
 
 **Suggestion:** *Lift the body into a named method; the effect becomes assertable through the state
 it writes.*
@@ -114,8 +141,36 @@ What changes is that the *effect* acquires a name a test can invoke.
 
 ## Severity and gating
 
-`.info`, opt-in — matching its pure sibling. This reports a refactor, not a defect. The code works;
-it is simply unobservable.
+`.info`. This reports a refactor, not a defect. The code works; it is simply unobservable.
+
+**"Opt-in, matching its pure sibling" is not available, because rules have no opt-in switch.**
+`SyntaxPattern` carries a severity and a category and nothing else — there is no per-rule enable
+flag to set. What makes `pure-closure-candidate` feel opt-in is a *rendering* decision one layer up:
+`CandidateInventory.inventoryRules` is exactly `{.pureFunctionCandidate, .pureClosureCandidate}`
+(`CandidateInventory.swift:48-51`), those two collapse into a count in `text` output, and naming
+`testability` in `--categories` un-collapses them (`SwiftProjectLintCLI.swift:155`). Machine formats
+never collapse at all.
+
+So this rule ships **listed by default** unless it is added to `inventoryRules`, and that is a
+decision to make on purpose rather than inherit:
+
+- **Don't add it** (preferred). The inventory's stated meaning is *property-test seeds* — the same
+  refutal this rule was written to route around. A finding that is explicitly not a seed does not
+  belong in the seed inventory, and widening the set to hold it would cost the inventory its
+  meaning. Accept default-listed at `.info`, which is what `.extractablePureKernel` already does
+  (`CandidateInventory.swift:32` records that choice and why).
+- **Add it** only if a road test shows the volume is inventory-scale. `pure-closure-candidate` alone
+  contributed 208 findings in the run recorded at `Docs/rules/pure-closure-candidate.md:253`; if
+  this rule lands anywhere near that, collapsing becomes a readability argument that outweighs the
+  taxonomy one. Measure before deciding.
+
+## Registrar placement
+
+Single-purpose visitor, so it gets its own leaf registrar — a `struct` conforming to
+`PatternRegistrarProtocol` supplying one `var pattern`, wired into the `register(registrars:)` list
+in `Testability.swift` alongside `ImpureCallInViewBody()` (`Testability.swift:105-108`). Not an
+inline entry in the `patterns` array; that form is for rules sharing a multi-purpose category
+visitor.
 
 ## Interaction with `could-be-private-member`
 
@@ -127,27 +182,69 @@ reported `could-be-private-member` 39 times project-wide and on none of the four
 because the cross-file visitor counts the new test-file references as usages. Worth an explicit
 regression test in this rule's suite regardless, since the two rules pull in opposite directions and
 the exemption currently documented in `CouldBePrivateMemberVisitor` is gated on
-`propertyTestShape(of:) != nil` — a *pure* shape, which these handlers are not. The protection here
-appears to come from usage counting rather than from that exemption; if usage counting ever stops
-seeing test files, these four would start being told to go back to `private`.
+`propertyTestShape(of:) != nil` (`CouldBePrivateMemberVisitor.swift:151,160`) — a *pure* shape, which
+these handlers are not. The protection here appears to come from usage counting rather than from that
+exemption; if usage counting ever stops seeing test files, these four would start being told to go
+back to `private`.
+
+## Interaction with `impure-call-in-view-body`
+
+Sharper than a timing distinction, and it is what removes `onAppear` / `onDisappear` from condition 1.
+
+The two rules do target different moments — that rule catches impurity evaluated *during* body
+evaluation, whereas these closures are merely *registered* during body evaluation and run later. But
+they are not independent, because that rule's suggested fix names this rule's trigger surface
+directly: *"Move it out of `body` — an action / `onAppear` for effects"*
+(`ImpureCallInViewBodyVisitor.swift:84`). Allowlist `onAppear` and a developer who does exactly what
+`impure-call-in-view-body` told them to do lands immediately on a fresh finding from this rule. Two
+rules that hand a reader back and forth is how a whole category gets switched off.
+
+Excluding both lifecycle modifiers from v1 costs little independently — they are usually one-liners,
+which condition 3 mostly refutes anyway — and it removes the loop. Revisit only with a real project's
+numbers showing what the exclusion misses.
 
 ## Feasibility
 
 Structural AST, per-file. No cross-file graph, no flow analysis. The only genuinely new machinery is
-"assignment whose LHS roots in a capture", and `PurityInferrer` already decides it.
+"assignment whose LHS roots in a capture" — and that machinery **exists but is not reachable from
+this repo**, which is the real cost of v1.
+
+`PurityInferrer` does decide the predicate, in a `CaptureMutationChecker` walk
+(`SwiftEffectInference/PurityInferrer.swift:256-260`). But that type is `private final class` at
+`PurityInferrer.swift:392`, visible only to the file that folds it into `isPure(_:)`. It lives in
+`SwiftEffectInference`, a separate repository pinned here by revision (`bc084fb` in
+`Package.resolved`), and reached only through the forwarding `PurityInferrer` in the Visitors package
+— which exposes the folded Bool and nothing finer. Two ways out:
+
+- **Expose it upstream.** A PR to SwiftEffectInference publishing the capture-mutation verdict —
+  either `CaptureMutationChecker` itself or a `mutatesCapturedState(_ closure:)` member on
+  `PurityInferrer` — then re-pin here and add a forwarding member to
+  `SwiftProjectLintVisitors.PurityInferrer`. Correct long-term: it keeps one definition of the
+  predicate, which is the whole reason the oracle was relocated to SEI in the first place. Costs a
+  cross-repo round trip and a pin bump before this rule can build.
+- **Reimplement locally.** A ~40-line visitor in this package. Ships without touching SEI, at the
+  price of a second definition of "writes to a capture" that can drift from the one that refutes
+  `pure-closure-candidate` — and these two rules are supposed to partition the same space, so drift
+  between them is exactly the failure that matters.
+
+Prefer the upstream route, and treat the SEI PR as a prerequisite of this one rather than a
+follow-up.
 
 Main false-positive risk is condition 1's allowlist drifting behind SwiftUI. Prefer under-reporting:
 an unlisted modifier is a missed finding, whereas inferring "any trailing closure on a member access
-in a view body" would sweep in `Button`, `Toggle`, `ForEach` and every custom view builder.
+in a view body" would sweep in `Toggle`, `ForEach` and every custom view builder. `Button` is in
+scope, but by being named explicitly (condition 1), not by being inferred.
 
 ## Open questions
 
-1. Should a closure that writes captured state **and** is non-trivial but lives on `onAppear` /
-   `onDisappear` count? Those are lifecycle, often one-line, and often genuinely trivial. Possibly
-   worth a lower tier or exclusion.
-2. Does this overlap `impure-call-in-view-body`? That rule targets impurity evaluated *during* body
-   evaluation; these closures are registered during body evaluation but run later. Different timing,
-   different defect — but the two should be checked against each other on a real project before both
-   ship enabled.
+1. ~~Should `onAppear` / `onDisappear` closures count?~~ **Resolved: excluded from v1.** Not because
+   they are trivial — because of the hand-off loop with `impure-call-in-view-body`, above.
+2. ~~Does this overlap `impure-call-in-view-body`?~~ **Resolved: no overlap, but a chain.** See that
+   section. The road test it asked for is still worth running once both ship, to check the chain is
+   actually broken and not just moved.
 3. Is there a matching finding for AppKit/UIKit target-action and `NotificationCenter` observer
-   blocks? Same unreachability, different surface. Out of scope for v1.
+   blocks? Same unreachability, different surface. Out of scope for v1. **Still open.**
+4. **New.** Does `Button`-action volume swamp the modifier surface? Button actions are now in scope
+   (condition 1) and are far more common than gesture callbacks. If a road test shows they dominate
+   the finding count, that is the evidence that would reopen the `inventoryRules` decision under
+   *Severity and gating*. Measure the two surfaces separately from the first run.
