@@ -30,8 +30,7 @@ its effect.
 
 ### Worked example
 
-Observed in SwiftUMLStudio (`NativeDiagramView`, `NativeSequenceDiagramView`). This is the code as it
-stands there today — the rule found both of these unprompted on the road test (see *Road test*):
+Measured in SwiftUMLStudio (`NativeDiagramView`, `NativeSequenceDiagramView`), before:
 
 ```swift
 .onContinuousHover(coordinateSpace: .named(Self.canvasCoordinateSpace)) { phase in
@@ -53,7 +52,8 @@ a unit test: `ImageRenderer` drives a real draw pass but never fires gestures or
 ViewInspector cannot traverse these views at all (their bodies are `GeometryReader`s — see the
 `ViewInspectorCompatibility` preflight). Coverage sat at **0%** across both files.
 
-The extraction this rule asks for would be:
+After extraction (landed in SwiftUMLStudio `095de17`, "Cover NativeDiagramView and
+NativeSequenceDiagramView"):
 
 ```swift
 .onContinuousHover(coordinateSpace: .named(Self.canvasCoordinateSpace)) { updateHover($0) }
@@ -63,20 +63,13 @@ func updateHover(_ phase: HoverPhase) { … }
 func clearSelection() -> KeyPress.Result { … }
 ```
 
-**This extraction is proposed, not performed.** An earlier draft of this document wrote it up in the
-past tense — "after extraction", "the behaviours that *then became* assertable" — which was wrong:
-`updateHover` and `clearSelection` exist nowhere in SwiftUMLStudio, on no branch, and its tree is
-clean. Everything below the "before" listing is an argument about what naming these would buy, not a
-report of having done it. Corrected once the road test put the rule on that repo and found the
-closures still in their original form.
-
-The behaviours it would make assertable are real contracts, not ceremony:
+The behaviours that then became assertable are real contracts, not ceremony:
 
 - tapping empty canvas **clears** the selection rather than leaving a stale one
 - the pointer leaving the canvas **clears** the hover highlight
 - an arrow key on an empty graph returns `.ignored` rather than being swallowed (so it does not beep)
 
-None of those can be stated as a test today. All three are one careless edit from regressing.
+None of those could be stated as a test before. All three are one careless edit from regressing.
 
 ## Trigger
 
@@ -186,27 +179,35 @@ visitor.
 Acting on this rule widens access: the extracted method is called from one place in production, so
 `could-be-private-member` is the natural next visitor to look at it.
 
-**This interaction is untested, and an earlier draft claimed otherwise.** That draft said a run
-against SwiftUMLStudio "after the extraction above" reported `could-be-private-member` 39 times
-project-wide "and on none of the four extracted handlers". The first half is roughly right — the
-count there today is **40** — but the second half cannot have been measured, because the four
-handlers were never created (see *Worked example*). It has been withdrawn rather than re-stated:
-a number that close to the real one is most likely a genuine reading of the *unextracted* tree,
-mislabelled, which is exactly the kind of claim that survives review by sounding specific.
+Empirically it does **not** misfire, and the original figure reproduces exactly: a run against
+SwiftUMLStudio reports `could-be-private-member` **39** times project-wide and on **none** of the four
+extracted handlers (`selectNode`, `updateHover`, `clearSelection`, `handleArrow`), because the
+cross-file visitor counts the test-file references as usages.
 
-What can be said without measuring is the mechanism, and it argues both ways:
+**But that result depends entirely on analysis scope, which is the part worth writing down.** Point
+the linter at the app directory alone — `SwiftUMLStudio/SwiftUMLStudio` rather than the repository
+root — and the picture inverts:
 
-- The exemption documented in `CouldBePrivateMemberVisitor` is gated on `propertyTestShape(of:) !=
-  nil` (`CouldBePrivateMemberVisitor.swift:151,160`) — a *pure* shape, which these handlers are not.
-  So the exemption should **not** protect them.
-- The cross-file visitor counts usages, and a handler extracted for testing acquires test-file
-  references. If those count, that is what protects it — and it would stop protecting it the moment
-  usage counting stopped seeing test files.
+| scope | `could-be-private-member` | on extracted handlers |
+|---|---|---|
+| repository root (tests in scope) | 39 | **0** |
+| app directory only (tests excluded) | 46 | **2** — `selectNode`, `selectParticipant` |
 
-Which of those actually governs is unknown until someone extracts a handler and runs both rules. The
-regression test this section asks for is therefore not optional polish; it is the only thing that
-would settle it. Until then, treat "acting on this rule may hand you a `could-be-private-member`
-finding on the method you just extracted" as an open risk.
+So the protection is real but conditional, and the mechanism is now confirmed rather than assumed. It
+is **usage counting**, not the property-test exemption: that exemption is gated on
+`propertyTestShape(of:) != nil` (`CouldBePrivateMemberVisitor.swift:151,160`) — a *pure* shape, which
+these handlers are not. The moment usage counting stops seeing test files, the handlers you extracted
+on this rule's advice get told to go back to `private`.
+
+The two that fall out first are the ones whose names are unique to a single view. `updateHover`,
+`clearSelection` and `handleArrow` are each declared by *both* diagram views, so a name-based
+cross-file check sees them in more than one file regardless of tests — which means their apparent
+safety in the narrow-scope run is a **name collision, not a real exemption**. `selectNode` and
+`selectParticipant` have no twin, and they are exactly the two that get reported.
+
+The explicit regression test this section asks for is still worth writing, and should pin the scoped
+behaviour rather than just the happy path — the happy path passes for a reason that does not
+generalise.
 
 ## Interaction with `impure-call-in-view-body`
 
@@ -260,27 +261,46 @@ scope, but by being named explicitly (condition 1), not by being inferred.
 
 ## Road test
 
-Implemented and measured across four corpora. **52 findings, no false positive found on inspection.**
+Implemented and measured across four corpora. **46 findings, no false positive found on inspection.**
+
+One methodological warning, learned the hard way here: **pull before you measure, and check what
+scope you are measuring.** Both mistakes were made during this road test — a stale SwiftUMLStudio
+checkout produced a confident claim that its extraction had never happened, and analysing the app
+directory instead of the repository root inverted the `could-be-private-member` result below. Neither
+error was visible from the output; both looked like clean measurements.
 
 | corpus | kind | total | `Button` | modifiers |
 |---|---|---|---|---|
-| SwiftUMLStudio | SwiftUI app, gesture-heavy | 17 | 7 | 4 `onChange`, 2 `onContinuousHover`, 2 `onKeyPress`, 2 `onEnded` |
+| SwiftUMLStudio (post-extraction) | SwiftUI app, gesture-heavy | 11 | 7 | 4 `onChange` |
 | SwiftLintRuleStudio | SwiftUI app | 28 | 24 | 2 `onHover`, 2 `onChange` |
 | SwiftProjectLint `Sources/App` | SwiftUI app | 7 | 7 | — |
 | SwiftInferProperties | CLI/library, 598 files | 0 | — | — |
 
 Three things the run settled:
 
-**The rule found its own motivating case unprompted.** `NativeDiagramView.swift:55` and `:70` are the
-two closures in the *Worked example* above, reported without being pointed at.
+**Acting on the rule silences it — measured, not argued.** SwiftUMLStudio was analysed by accident at
+both ends of its own extraction: a stale checkout sitting at `cebd879` (pre-extraction) and then the
+current tree at `daa9f41`.
 
-**Convergence holds on production code, not just fixtures.** The same file carries already-named
-handlers, and the rule is silent on every one:
+| SwiftUMLStudio | findings | in the two extracted files |
+|---|---|---|
+| before (`cebd879`) | 17 | 6 |
+| after (`095de17` onward) | 11 | **0** |
+
+Every one of the six findings in `NativeDiagramView` and `NativeSequenceDiagramView` disappeared, and
+nothing else moved. That is the end-to-end property a lint rule is usually asserted to have and rarely
+shown to have: take its advice, and it stops reporting.
+
+**The rule found its own motivating case unprompted**, on the pre-extraction tree —
+`NativeDiagramView.swift:55` and `:70` are exactly the two closures in the *Worked example* above.
+
+**Convergence holds on production code, not just fixtures.** The post-extraction file carries the
+named forms, and the rule is silent on every one:
 
 ```swift
 .onTapGesture(count: 2) { viewport.reset() }        // silent — single call
 .onKeyPress(.rightArrow) { handleArrow(.right) }    // silent — single call
-.onKeyPress(.escape) { …two statements… }           // reports — no name
+.onKeyPress(.escape) { clearSelection() }           // silent — the fixed form
 ```
 
 That is condition 3 doing the job it exists for, on code nobody wrote to demonstrate it.
@@ -303,13 +323,13 @@ Precision rests on the 52 findings inspected across the three GUI apps.
 3. Is there a matching finding for AppKit/UIKit target-action and `NotificationCenter` observer
    blocks? Same unreachability, different surface. Out of scope for v1. **Still open.**
 4. ~~Does `Button`-action volume swamp the modifier surface?~~ **Resolved: it dominates, and the
-   widening was right.** 38 of 52 findings are `Button` — and on the two non-gesture-heavy apps it is
-   31 of 35. A modifiers-only v1 would have found **two** things in a whole GUI application. The
-   modifier arm does earn its place, but only on gesture-heavy code: SwiftUMLStudio is the one corpus
-   where modifiers (10) outnumber buttons (7).
+   widening was right.** 38 of 46 findings are `Button`. A modifiers-only v1 would have found **two**
+   things in a whole GUI application (SwiftLintRuleStudio). The modifier arm earns its place only on
+   gesture-heavy code — and note that on SwiftUMLStudio, the one corpus where modifiers led before the
+   extraction (10 to 7), taking the rule's advice removed every modifier finding except `onChange`.
 
    The volume this predicted might reopen — inventory-scale, near `pure-closure-candidate`'s 208 —
-   did not materialise. 52 across four corpora is an order of magnitude short, so the
+   did not materialise. 46 across four corpora is an order of magnitude short, so the
    `inventoryRules` recommendation under *Severity and gating* stands unchanged: this rule stays out,
    and lists by default.
 5. **New.** Does the single-assignment shape hold up in use? `{ selectedId = nil }` reports while
