@@ -91,9 +91,13 @@ Report a `ClosureExprSyntax` when **all** hold:
    itself. Expect the finding count to be materially higher than a modifiers-only v1; open question 4
    is how that count gets measured.
 2. **Effectful on captured state.** The body contains an assignment whose left-hand side roots in a
-   captured identifier rather than a closure parameter or a local. Reuse `PurityInferrer` inverted:
-   the existing oracle already computes this to refute; this rule consumes the same verdict for the
-   opposite purpose.
+   captured identifier rather than a closure parameter or a local.
+
+   **Do not implement this by inverting `PurityInferrer.isPure(_ closure:)`.** That returns one Bool
+   folding four separate refuters — `async`/`throws`, impurity markers, totality, and capture
+   mutation (`SwiftEffectInference/PurityInferrer.swift:194-205`). Inverting it over-reports:
+   `.onHover { print(x) }` is impure and has no captured write. The predicate this rule actually
+   wants is the last of the four alone. See *Feasibility* for what that costs.
 3. **Not already extracted.** The body is more than a single call expression.
 
 Condition 3 is what makes the rule converge. `.onKeyPress(.escape) { clearSelection() }` is the
@@ -155,7 +159,29 @@ seeing test files, these four would start being told to go back to `private`.
 ## Feasibility
 
 Structural AST, per-file. No cross-file graph, no flow analysis. The only genuinely new machinery is
-"assignment whose LHS roots in a capture", and `PurityInferrer` already decides it.
+"assignment whose LHS roots in a capture" — and that machinery **exists but is not reachable from
+this repo**, which is the real cost of v1.
+
+`PurityInferrer` does decide the predicate, in a `CaptureMutationChecker` walk
+(`SwiftEffectInference/PurityInferrer.swift:256-260`). But that type is `private final class` at
+`PurityInferrer.swift:392`, visible only to the file that folds it into `isPure(_:)`. It lives in
+`SwiftEffectInference`, a separate repository pinned here by revision (`bc084fb` in
+`Package.resolved`), and reached only through the forwarding `PurityInferrer` in the Visitors package
+— which exposes the folded Bool and nothing finer. Two ways out:
+
+- **Expose it upstream.** A PR to SwiftEffectInference publishing the capture-mutation verdict —
+  either `CaptureMutationChecker` itself or a `mutatesCapturedState(_ closure:)` member on
+  `PurityInferrer` — then re-pin here and add a forwarding member to
+  `SwiftProjectLintVisitors.PurityInferrer`. Correct long-term: it keeps one definition of the
+  predicate, which is the whole reason the oracle was relocated to SEI in the first place. Costs a
+  cross-repo round trip and a pin bump before this rule can build.
+- **Reimplement locally.** A ~40-line visitor in this package. Ships without touching SEI, at the
+  price of a second definition of "writes to a capture" that can drift from the one that refutes
+  `pure-closure-candidate` — and these two rules are supposed to partition the same space, so drift
+  between them is exactly the failure that matters.
+
+Prefer the upstream route, and treat the SEI PR as a prerequisite of this one rather than a
+follow-up.
 
 Main false-positive risk is condition 1's allowlist drifting behind SwiftUI. Prefer under-reporting:
 an unlisted modifier is a missed finding, whereas inferring "any trailing closure on a member access
