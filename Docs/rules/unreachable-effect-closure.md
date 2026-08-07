@@ -39,7 +39,9 @@ func updateHover(_ phase: HoverPhase) { … }
 func clearSelection() -> KeyPress.Result { … }
 ```
 
-Measured in SwiftUMLStudio (`NativeDiagramView`, `NativeSequenceDiagramView`), both files sat at **0% coverage**: `ImageRenderer` drives a real draw pass but never fires gestures or key presses, and ViewInspector cannot traverse those views at all — their bodies are `GeometryReader`s. After extraction, three real contracts became assertable: tapping empty canvas clears the selection, the pointer leaving the canvas clears the hover highlight, and an arrow key on an empty graph returns `.ignored` rather than being swallowed. None could be stated as a test before; all three are one careless edit from regressing.
+Observed in SwiftUMLStudio (`NativeDiagramView`, `NativeSequenceDiagramView`), where both files sit at **0% coverage**: `ImageRenderer` drives a real draw pass but never fires gestures or key presses, and ViewInspector cannot traverse those views at all — their bodies are `GeometryReader`s. The rule found both of these unprompted on its road test; the extraction shown above is what it asks for, **not** something that has been done to that codebase.
+
+Three real contracts would become assertable: tapping empty canvas clears the selection, the pointer leaving the canvas clears the hover highlight, and an arrow key on an empty graph returns `.ignored` rather than being swallowed. None can be stated as a test today; all three are one careless edit from regressing.
 
 ### Discussion
 
@@ -76,7 +78,7 @@ A single **assignment** is not a call and does report. That asymmetry with `{ cl
 
 **[Impure Call in View Body](impure-call-in-view-body.md)** is why `onAppear` and `onDisappear` are absent from the allowlist. That rule's suggestion is *"move it out of `body` — an action / `onAppear` for effects"*, so listing `onAppear` here would hand a reader straight from that rule's fix into this rule's finding. Two rules passing someone back and forth is how a whole category gets disabled. The lifecycle modifiers are also usually one-liners, which condition 3 mostly refutes anyway, so the exclusion costs little.
 
-**[Could Be Private Member](could-be-private-member.md)** pulls the other way: the extracted method is called from one place in production, so it becomes a candidate for `private`. Empirically it does not misfire — a run against SwiftUMLStudio after the extraction above reported `could-be-private-member` 39 times project-wide and on none of the four extracted handlers, because the cross-file visitor counts the new test-file references as usages. The protection comes from usage counting rather than from that rule's property-test exemption, which is gated on a *pure* shape these handlers do not have.
+**[Could Be Private Member](could-be-private-member.md)** pulls the other way, and **this interaction is untested**. The method you extract is called from one place in production, so it becomes a candidate for `private` — which would undo the seam you just made. Two mechanisms could decide it, and nobody has measured which governs: that rule's property-test exemption is gated on a *pure* shape these handlers do not have, so it should not protect them, while its cross-file usage counting may protect them if test-file references count. Expect the finding until someone checks; treat it as a known rough edge rather than a settled non-issue.
 
 **[Button Closure Wrapping](button-closure-wrapping.md)** covers the complementary Button shape, as described in the refutations.
 
