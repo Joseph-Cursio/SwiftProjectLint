@@ -46,7 +46,14 @@ let package = Package(
         .package(path: "Packages/SwiftProjectLintConfig"),
         .package(path: "Packages/SwiftProjectLintEngine"),
         .package(url: "https://github.com/swiftlang/swift-syntax.git", exact: "602.0.0"),
-        .package(url: "https://github.com/nalexn/ViewInspector.git", from: "0.9.5"),
+        // Pinned to the exact commit that fixes ViewInspector on macOS 27
+        // (nalexn/ViewInspector#421, merged 2026-08-09). There is no 0.10.4 tag
+        // yet — 0.10.4 is the default branch — so a revision pin is the only way
+        // to get the fix reproducibly. Swap for `from:` once the tag lands.
+        .package(
+            url: "https://github.com/nalexn/ViewInspector.git",
+            revision: "6be008f348a757e7c0c6901c2dde983e5bba069f"
+        ),
         .package(url: "https://github.com/apple/swift-argument-parser.git", from: "1.3.0"),
         .package(url: "https://github.com/jpsim/Yams.git", from: "5.0.0"),
         .package(url: "https://github.com/x-sheep/swift-property-based.git", from: "1.0.0"),
