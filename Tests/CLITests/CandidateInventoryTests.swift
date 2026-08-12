@@ -123,6 +123,46 @@ struct CandidateInventoryTests {
         #expect(output.contains("not listed above"))
     }
 
+    // MARK: - Skipped scope reaches every text reading (#95)
+
+    @Test("the collapsed text summary carries the skipped-scope caveat")
+    func collapsedTextCarriesCaveat() {
+        let output = SwiftProjectLintCLI.render(
+            corpus(), format: .text, selectedCategories: nil,
+            skippedNestedPackages: ["MyLibCore"]
+        )
+        #expect(output.contains("excludes nested package MyLibCore"))
+    }
+
+    /// The seam this nearly shipped without. `--categories testability` skips the
+    /// collapsing, and an earlier shape of the guard sent it through the bare
+    /// `format.formatter` — dropping the caveat on precisely the request that asks to see
+    /// the candidate inventory in full, which is the reading a missing package distorts
+    /// most.
+    @Test("asking for testability still carries the caveat")
+    func testabilityListingCarriesCaveat() {
+        let output = SwiftProjectLintCLI.render(
+            corpus(), format: .text, selectedCategories: [.testability],
+            skippedNestedPackages: ["MyLibCore"]
+        )
+        #expect(output.contains("not listed above") == false)
+        #expect(output.contains("excludes nested package MyLibCore"))
+    }
+
+    @Test("machine-readable output is never contaminated with the caveat")
+    func machineReadableStaysClean() {
+        // The constraint the stderr channel existed to respect in the first place: a JSON
+        // consumer parses this. Prose in it is a break, not a courtesy — a machine-readable
+        // channel wanting this fact wants it as a field.
+        for format in [OutputFormat.json, .csv, .pbtSeeds] {
+            let output = SwiftProjectLintCLI.render(
+                corpus(), format: format, selectedCategories: nil,
+                skippedNestedPackages: ["MyLibCore"]
+            )
+            #expect(output.contains("excludes nested package") == false)
+        }
+    }
+
     /// The constraint this whole design exists to respect: the machine-readable formats must stay
     /// complete, because `pbt-seeds` IS the pipeline and a JSON consumer filters for itself.
     @Test("machine-readable formats are never collapsed", arguments: [OutputFormat.json, .csv, .pbtSeeds])

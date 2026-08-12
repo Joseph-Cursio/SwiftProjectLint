@@ -206,4 +206,58 @@ struct FileAnalysisUtilsFindSwiftFilesTests {
             #expect(firstFile.hasSuffix("Main.swift"))
         }
     }
+
+    // MARK: - nestedPackageNames (#95)
+
+    /// Names every skipped package, so the summary caveat can say WHICH — a reader told
+    /// "excludes 1 nested package" still has to go find out whether it was theirs.
+    @Test func nestedPackageNamesListsThemSorted() throws {
+        try withTempDir { root in
+            try touch(root.appendingPathComponent("Package.swift"), content: "// root")
+            for name in ["Zeta", "Alpha"] {
+                let child = root.appendingPathComponent("Packages/\(name)")
+                try touch(child.appendingPathComponent("Package.swift"), content: "// \(name)")
+            }
+
+            #expect(FileAnalysisUtils.nestedPackageNames(in: root.path) == ["Alpha", "Zeta"])
+        }
+    }
+
+    /// Agrees with the fast predicate on the negative case. The root's own manifest is not
+    /// a nested package, and a listing that returned it would put a caveat on every flat
+    /// project — noise a reader learns to skip, which costs the caveat its meaning where it
+    /// is true.
+    @Test func nestedPackageNamesIgnoresRootManifest() throws {
+        try withTempDir { root in
+            try touch(root.appendingPathComponent("Package.swift"), content: "// root")
+            try touch(root.appendingPathComponent("Sources/App/Main.swift"))
+
+            #expect(FileAnalysisUtils.nestedPackageNames(in: root.path).isEmpty)
+            #expect(FileAnalysisUtils.containsNestedPackage(in: root.path) == false)
+        }
+    }
+
+    /// A third-party checkout is not a first-party package. Same pruning as the predicate.
+    @Test func nestedPackageNamesExcludesBuildArtifacts() throws {
+        try withTempDir { root in
+            let dep = root.appendingPathComponent(".build/checkouts/Yams")
+            try touch(dep.appendingPathComponent("Package.swift"), content: "// manifest")
+
+            #expect(FileAnalysisUtils.nestedPackageNames(in: root.path).isEmpty)
+        }
+    }
+
+    /// A nested package's OWN nested packages are inside it, not beside it. Descending
+    /// would report a vendored or example package as a separately-skipped one, which
+    /// overstates what the default run left out.
+    @Test func nestedPackageNamesDoesNotDescendIntoAPackage() throws {
+        try withTempDir { root in
+            let child = root.appendingPathComponent("Packages/Child")
+            try touch(child.appendingPathComponent("Package.swift"), content: "// child")
+            let grandchild = child.appendingPathComponent("Examples/Demo")
+            try touch(grandchild.appendingPathComponent("Package.swift"), content: "// demo")
+
+            #expect(FileAnalysisUtils.nestedPackageNames(in: root.path) == ["Child"])
+        }
+    }
 }
