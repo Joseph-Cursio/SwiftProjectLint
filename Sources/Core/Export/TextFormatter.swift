@@ -11,8 +11,39 @@ public struct TextFormatter: IssueFormatterProtocol {
     /// designing against. The count covers everything; only the enumeration is shortened.
     private let withheld: [LintIssue]
 
-    public init(withheld: [LintIssue] = []) {
+    /// Nested first-party packages this run did NOT analyse, by directory name.
+    ///
+    /// The same reasoning as `withheld` one level up. `withheld` keeps the summary honest
+    /// about issues we counted but did not print; this keeps it honest about files we never
+    /// read at all — a strictly worse silence, because no flag on the enumeration brings
+    /// them back, only re-running with `--include-nested-packages`.
+    ///
+    /// Measured on SwiftFormatRuleStudio (issue #95): a default run reported
+    /// `Found 405 issues` and `44 of these are property-test candidates` over the app
+    /// target alone, while the nested `SwiftFormatRuleStudioCore` — the library, and where
+    /// every interesting subject lived — contributed **nothing**. With the flag the
+    /// candidate count is 131. The stderr notice said so and lost the placement fight:
+    /// line 698 of 730, after 405 issues had scrolled past, on a stream that `> file`
+    /// leaves behind.
+    private let skippedNestedPackages: [String]
+
+    public init(withheld: [LintIssue] = [], skippedNestedPackages: [String] = []) {
         self.withheld = withheld
+        self.skippedNestedPackages = skippedNestedPackages
+    }
+
+    /// The scope caveat appended to any count this formatter prints, or `""` when the run
+    /// covered everything.
+    ///
+    /// Deliberately on EVERY count rather than once at the end: the two numbers get quoted
+    /// separately — an issue total into a CI summary, the candidate total into a decision
+    /// about what to property-test — and a caveat that travels with only one of them is a
+    /// caveat the other reader never sees.
+    private var scopeCaveat: String {
+        guard !skippedNestedPackages.isEmpty else { return "" }
+        let names = skippedNestedPackages.joined(separator: ", ")
+        let noun = skippedNestedPackages.count == 1 ? "package" : "packages"
+        return " — excludes nested \(noun) \(names); re-run with --include-nested-packages"
     }
 
     /// Formats a list of lint issues as text lines.
@@ -56,7 +87,7 @@ public struct TextFormatter: IssueFormatterProtocol {
         return [
             "",
             "\(withheld.count) of these are property-test candidates, not listed above "
-                + "(\(breakdown)).",
+                + "(\(breakdown))\(scopeCaveat).",
             "  They are an inventory of what COULD be property-tested — a pure function is not a "
                 + "defect, and there is nothing to fix per line.",
             "  See them:  --categories testability",
@@ -84,10 +115,13 @@ public struct TextFormatter: IssueFormatterProtocol {
 
         let total = issues.count
         if total == 0 {
-            return "No issues found."
+            // The caveat matters MOST here. "No issues found." over a repo whose library was
+            // never opened is the confident zero this project designs against, and it is the
+            // one line a reader is least likely to go looking behind.
+            return "No issues found.\(scopeCaveat)"
         }
 
         let detail = parts.joined(separator: ", ")
-        return "Found \(total) \(total == 1 ? "issue" : "issues") (\(detail))"
+        return "Found \(total) \(total == 1 ? "issue" : "issues") (\(detail))\(scopeCaveat)"
     }
 }

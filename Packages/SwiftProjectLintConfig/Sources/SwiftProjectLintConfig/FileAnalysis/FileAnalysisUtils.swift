@@ -87,6 +87,46 @@ public struct FileAnalysisUtils {
     /// exclude. The root's own `Package.swift` does not count. Returns on the first
     /// match and prunes build/checkout directories, so it never treats a third-party
     /// dependency checkout (e.g. under `.build`) as a first-party package.
+    /// The directory names of the first-party nested packages a default run excludes,
+    /// sorted, or `[]` when there are none.
+    ///
+    /// Same walk and same skip list as ``containsNestedPackage(in:)``, which stays as
+    /// the fast predicate: it returns on the first match, and every caller that only
+    /// needs to know *whether* to warn should keep using it. This one pays the full
+    /// enumeration to say WHICH packages, and is worth that only where the names are
+    /// going into a message — a reader who is told "excludes 1 nested package" still
+    /// has to go find out which, and on a repo with several the count alone does not
+    /// say whether the one they care about was in scope.
+    public static func nestedPackageNames(in path: String) -> [String] {
+        let fileManager = FileManager.default
+        let rootURL = URL(fileURLWithPath: path, isDirectory: true)
+        guard let enumerator = fileManager.enumerator(
+            at: rootURL,
+            includingPropertiesForKeys: [.isDirectoryKey],
+            options: .skipsHiddenFiles
+        ) else {
+            return []
+        }
+
+        var names: Set<String> = []
+        for case let itemURL as URL in enumerator {
+            let isDirectory = (try? itemURL.resourceValues(forKeys: [.isDirectoryKey]).isDirectory) ?? false
+            guard isDirectory else { continue }
+
+            if skippedDirectories.contains(itemURL.lastPathComponent) {
+                enumerator.skipDescendants()
+                continue
+            }
+            if fileManager.fileExists(atPath: itemURL.appendingPathComponent("Package.swift").path) {
+                names.insert(itemURL.lastPathComponent)
+                // A package's own subdirectories are inside it, not beside it; descending
+                // would report its vendored or example packages as separate skips.
+                enumerator.skipDescendants()
+            }
+        }
+        return names.sorted()
+    }
+
     public static func containsNestedPackage(in path: String) -> Bool {
         let fileManager = FileManager.default
         let rootURL = URL(fileURLWithPath: path, isDirectory: true)

@@ -106,13 +106,30 @@ struct SwiftProjectLintCLI: AsyncParsableCommand {
             configuration: configuration
         )
 
-        print(Self.render(issues, format: format, selectedCategories: selectedCategories))
+        // Named once and used twice: the summary caveat on stdout and the fuller notice on
+        // stderr describe the same skip, so deriving them from one value keeps them from
+        // drifting into disagreeing about whether anything was excluded.
+        let skippedPackages = configuration.includeNestedPackages == false
+            ? FileAnalysisUtils.nestedPackageNames(in: absolutePath)
+            : []
+
+        print(Self.render(
+            issues,
+            format: format,
+            selectedCategories: selectedCategories,
+            skippedNestedPackages: skippedPackages
+        ))
 
         // Surface skipped scope: a clean-looking result is misleading if whole
         // first-party packages were never analyzed. Written to stderr so it never
         // contaminates machine-readable stdout (e.g. `--format json`).
-        if configuration.includeNestedPackages == false,
-           FileAnalysisUtils.containsNestedPackage(in: absolutePath) {
+        //
+        // The summary line now carries a short form of this on stdout as well, and both are
+        // wanted. Measured (#95): on a 730-line run this notice lands at line 698, after the
+        // count it qualifies, and `> file` keeps the count while dropping the caveat — so
+        // stderr alone reaches nobody reading the number. This one stays because it says
+        // more: that cross-file rules cannot span the boundary at all.
+        if !skippedPackages.isEmpty {
             Self.printToStandardError(Self.nestedPackagesSkippedNotice)
         }
 
@@ -154,17 +171,32 @@ struct SwiftProjectLintCLI: AsyncParsableCommand {
     ///
     /// Naming `testability` in `--categories` is the opt-in. Asking for the category is asking for
     /// its contents, so the listing comes back in full with no extra flag to discover.
+    /// `skippedNestedPackages` reaches only the text path, and that asymmetry is the same
+    /// rule the collapsing is: a JSON or CSV consumer must not have prose spliced into its
+    /// output, and `pbt-seeds` is parsed by `swift-infer`. A machine-readable channel wanting
+    /// this fact wants it as a FIELD, which is a separate change and belongs in the schema.
     static func render(
         _ issues: [LintIssue],
         format: OutputFormat,
-        selectedCategories: [PatternCategory]?
+        selectedCategories: [PatternCategory]?,
+        skippedNestedPackages: [String] = []
     ) -> String {
-        let requestedTestability = selectedCategories?.contains(.testability) ?? false
-        guard format == .text, !requestedTestability else {
+        guard format == .text else {
             return format.formatter.format(issues: issues)
         }
+        // `--categories testability` skips the collapsing but NOT the caveat. It is the
+        // request that asks to see the candidate inventory in full, which makes it the
+        // reading most distorted by a package having been left out — the earlier shape of
+        // this guard sent it through the bare `format.formatter` and dropped the caveat on
+        // exactly that path.
+        guard !(selectedCategories?.contains(.testability) ?? false) else {
+            return TextFormatter(skippedNestedPackages: skippedNestedPackages)
+                .format(issues: issues)
+        }
         let split = CandidateInventory.split(issues, collapsing: true)
-        return TextFormatter(withheld: split.withheld).format(issues: split.listed)
+        return TextFormatter(
+            withheld: split.withheld, skippedNestedPackages: skippedNestedPackages
+        ).format(issues: split.listed)
     }
 
     private static func printToStandardError(_ message: String) {
