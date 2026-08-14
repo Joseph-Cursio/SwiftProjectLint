@@ -124,6 +124,13 @@ excluded_paths:
   - "Generated/"
   - "**/*.generated.swift"
 
+# Exclude files by name, wherever they appear in the tree.
+# Matched against the file's basename only, and compared exactly —
+# no substring or glob matching. See "Excluded Filenames" below.
+excluded_filenames:
+  - "Deprecations.swift"
+  - "Constants.swift"
+
 # Analyze nested first-party Swift packages (directories with their own
 # Package.swift) in the same run instead of skipping them. Default: false.
 # See "Nested Packages" below for the trade-offs.
@@ -180,6 +187,31 @@ is unnecessary.
 
 The flag only overrides this app-versus-library judgement. It does not change which
 files are discovered, and it is independent of nested-package handling below.
+
+### Excluded Filenames
+
+`excluded_paths` answers "where": everything under `Generated/`, or — through its
+`**/` form — everything matching a filename glob. `excluded_filenames` answers a
+narrower question: *this filename, wherever it appears*.
+
+```yaml
+excluded_filenames:
+  - "Deprecations.swift"
+  - "Constants.swift"
+```
+
+Matching is against the file's **basename only** and is **exact**. `"Constants"`
+excludes nothing, and neither does `"Sources/Alpha/Constants.swift"` — a path
+pattern belongs in `excluded_paths`.
+
+Reach for it when the same filename recurs across a tree and the violations in it
+are intended wherever it appears. Listing directories would mean enumerating them
+all and revisiting the list whenever one is added.
+
+An excluded file is excluded from **reporting**, not from **evidence**. Cross-file
+rules reason about whole-project usage, so the file is still parsed and still
+counts as a use — otherwise a type referenced only from `Constants.swift` would
+start looking unused. This is the same treatment `excluded_paths` gets.
 
 ### Nested Packages
 

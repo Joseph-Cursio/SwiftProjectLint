@@ -18,6 +18,10 @@ import Yams
 ///   - "Tests/"
 ///   - "Generated/"
 ///
+/// excluded_filenames:
+///   - "Deprecations.swift"
+///   - "Constants.swift"
+///
 /// rules:
 ///   "Hardcoded Strings":
 ///     severity: info
@@ -52,6 +56,7 @@ public struct LintConfigurationLoader {
     private static func parse(yaml: [String: Any]) -> LintConfiguration {
         let disabledRules = parseRuleList(yaml["disabled_rules"])
         let excludedPaths = parseStringList(yaml["excluded_paths"])
+        let excludedFilenames = parseStringList(yaml["excluded_filenames"])
         let ruleOverrides = parseRuleOverrides(yaml["rules"])
         let architecturalLayers = parseArchitecturalLayers(yaml["architectural_layers"])
 
@@ -82,6 +87,7 @@ public struct LintConfigurationLoader {
             disabledRules: disabledRules,
             enabledOnlyRules: enabledOnlyRules,
             excludedPaths: excludedPaths,
+            excludedFilenames: excludedFilenames,
             ruleOverrides: ruleOverrides,
             architecturalLayers: architecturalLayers,
             enabledFrameworkAllowlists: enabledFrameworkAllowlists,

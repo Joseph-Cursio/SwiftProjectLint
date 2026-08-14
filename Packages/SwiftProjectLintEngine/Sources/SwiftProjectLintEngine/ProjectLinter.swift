@@ -190,15 +190,22 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
         let reportableFilePaths = await fileDiscovery.findSwiftFiles(
             in: path,
             excludedPaths: configuration.excludedPaths,
+            excludedFilenames: configuration.excludedFilenames,
             includeNestedPackages: configuration.includeNestedPackages
         )
         let filePaths = reportableFilePaths.filter { !Self.isGeneratedFile(at: $0) }
 
-        guard !configuration.excludedPaths.isEmpty else { return (filePaths, []) }
+        // An excluded file is excluded from *reporting*, not from evidence: cross-file
+        // rules reason about whole-project usage, so dropping the file outright would
+        // make anything only used there look unused. Filename exclusions take the same
+        // second pass as path exclusions for that reason.
+        guard !configuration.excludedPaths.isEmpty
+            || !configuration.excludedFilenames.isEmpty else { return (filePaths, []) }
 
         let allFilePaths = await fileDiscovery.findSwiftFiles(
             in: path,
             excludedPaths: [],
+            excludedFilenames: [],
             includeNestedPackages: configuration.includeNestedPackages
         )
         let reportableSet = Set(filePaths)
