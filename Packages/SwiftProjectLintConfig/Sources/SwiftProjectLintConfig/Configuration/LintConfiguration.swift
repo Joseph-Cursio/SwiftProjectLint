@@ -16,6 +16,16 @@ public struct LintConfiguration: Sendable {
     /// File path patterns to exclude globally (matched against relative paths).
     public let excludedPaths: [String]
 
+    /// Filenames to exclude globally, matched against the file's basename only and
+    /// compared exactly — no substring or glob matching.
+    ///
+    /// `excludedPaths` already covers location ("everything under `Generated/`") and,
+    /// through its `**/` form, name-shaped globs. This covers the case where the same
+    /// filename recurs all over a tree and the violations in it are intended wherever it
+    /// appears — `Deprecations.swift`, `Constants.swift` — so listing the directories
+    /// would mean enumerating them and revisiting the list whenever one is added.
+    public let excludedFilenames: [String]
+
     /// Per-rule overrides for severity and path exclusions.
     public let ruleOverrides: [RuleIdentifier: RuleOverride]
 
@@ -62,6 +72,7 @@ public struct LintConfiguration: Sendable {
         disabledRules: Set<RuleIdentifier> = [],
         enabledOnlyRules: Set<RuleIdentifier>? = nil,
         excludedPaths: [String] = [],
+        excludedFilenames: [String] = [],
         ruleOverrides: [RuleIdentifier: RuleOverride] = [:],
         architecturalLayers: [LayerPolicy] = [],
         enabledFrameworkAllowlists: Set<String>? = nil,
@@ -70,6 +81,7 @@ public struct LintConfiguration: Sendable {
         self.disabledRules = disabledRules
         self.enabledOnlyRules = enabledOnlyRules
         self.excludedPaths = excludedPaths
+        self.excludedFilenames = excludedFilenames
         self.ruleOverrides = ruleOverrides
         self.architecturalLayers = architecturalLayers
         self.enabledFrameworkAllowlists = enabledFrameworkAllowlists
@@ -83,6 +95,7 @@ public struct LintConfiguration: Sendable {
             disabledRules: disabledRules,
             enabledOnlyRules: enabledOnlyRules,
             excludedPaths: excludedPaths,
+            excludedFilenames: excludedFilenames,
             ruleOverrides: ruleOverrides,
             architecturalLayers: architecturalLayers,
             enabledFrameworkAllowlists: enabledFrameworkAllowlists,

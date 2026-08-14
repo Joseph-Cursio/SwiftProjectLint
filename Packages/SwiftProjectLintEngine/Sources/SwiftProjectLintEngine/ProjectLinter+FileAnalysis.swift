@@ -126,6 +126,7 @@ extension ProjectLinter {
             disabledRules: disabledRules,
             enabledOnlyRules: configuration.enabledOnlyRules,
             excludedPaths: configuration.excludedPaths,
+            excludedFilenames: configuration.excludedFilenames,
             ruleOverrides: overrides,
             architecturalLayers: configuration.architecturalLayers,
             enabledFrameworkAllowlists: configuration.enabledFrameworkAllowlists,

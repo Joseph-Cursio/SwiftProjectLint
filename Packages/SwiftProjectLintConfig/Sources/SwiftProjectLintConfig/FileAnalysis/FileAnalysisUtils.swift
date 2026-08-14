@@ -52,10 +52,14 @@ public struct FileAnalysisUtils {
     public static func findSwiftFiles(
         in path: String,
         excludedPaths: [String] = [],
+        excludedFilenames: [String] = [],
         includeNestedPackages: Bool = false
     ) -> [String] {
         enumerateSwiftFiles(
-            in: path, excludedPaths: excludedPaths, includeNestedPackages: includeNestedPackages
+            in: path,
+            excludedPaths: excludedPaths,
+            excludedFilenames: excludedFilenames,
+            includeNestedPackages: includeNestedPackages
         )
     }
 
@@ -68,15 +72,20 @@ public struct FileAnalysisUtils {
     /// - Parameters:
     ///   - path: The root directory path in which to search for Swift files.
     ///   - excludedPaths: Path patterns to exclude (matched against relative paths).
+    ///   - excludedFilenames: Basenames to exclude (matched against the file name only).
     /// - Returns: An array of full file paths to `.swift` files found within the directory and its subdirectories.
     @concurrent
     public static func findSwiftFiles(
         in path: String,
         excludedPaths: [String] = [],
+        excludedFilenames: [String] = [],
         includeNestedPackages: Bool = false
     ) async -> [String] {
         enumerateSwiftFiles(
-            in: path, excludedPaths: excludedPaths, includeNestedPackages: includeNestedPackages
+            in: path,
+            excludedPaths: excludedPaths,
+            excludedFilenames: excludedFilenames,
+            includeNestedPackages: includeNestedPackages
         )
     }
 
@@ -163,6 +172,7 @@ public struct FileAnalysisUtils {
     private static func enumerateSwiftFiles(
         in path: String,
         excludedPaths: [String] = [],
+        excludedFilenames: [String] = [],
         includeNestedPackages: Bool = false
     ) -> [String] {
         let fileManager = FileManager.default
@@ -213,12 +223,25 @@ public struct FileAnalysisUtils {
                 continue
             }
 
-            if !isDirectory, itemURL.pathExtension == "swift" {
+            if !isDirectory, isCollectableSwiftFile(itemURL, excludedFilenames: excludedFilenames) {
                 swiftFiles.append(itemURL.path)
             }
         }
 
         return swiftFiles
+    }
+
+    /// Whether `url` is a Swift file the caller asked to keep.
+    ///
+    /// Split out of `enumerateSwiftFiles` to keep that within the cyclomatic-complexity
+    /// budget. The filename comparison is against the basename alone and is exact:
+    /// `excludedPaths` already covers location and name-shaped globs, so this is for a
+    /// filename that recurs across the tree.
+    private static func isCollectableSwiftFile(
+        _ url: URL,
+        excludedFilenames: [String]
+    ) -> Bool {
+        url.pathExtension == "swift" && !excludedFilenames.contains(url.lastPathComponent)
     }
 
     /// Returns the canonical (symlink-resolved) path using POSIX `realpath(3)`.

@@ -20,6 +20,7 @@ struct ProjectLinterInjectionTests {
         struct Call {
             let directory: String
             let excludedPaths: [String]
+            let excludedFilenames: [String]
             let includeNestedPackages: Bool
         }
 
@@ -34,13 +35,17 @@ struct ProjectLinterInjectionTests {
         }
 
         func findSwiftFiles(
-            in directory: String, excludedPaths: [String], includeNestedPackages: Bool
+            in directory: String,
+            excludedPaths: [String],
+            excludedFilenames: [String],
+            includeNestedPackages: Bool
         ) -> [String] {
             lock.withLock {
                 calls.append(
                     Call(
                         directory: directory,
                         excludedPaths: excludedPaths,
+                        excludedFilenames: excludedFilenames,
                         includeNestedPackages: includeNestedPackages
                     )
                 )
