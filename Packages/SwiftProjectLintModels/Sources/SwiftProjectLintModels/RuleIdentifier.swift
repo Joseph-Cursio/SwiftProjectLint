@@ -176,6 +176,7 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
     case missingAccessibilityHint = "Missing Accessibility Hint"
     case inaccessibleColorUsage = "Inaccessible Color Usage"
     case iconOnlyButtonMissingLabel = "Icon-Only Button Missing Label"
+    case navigationButtonShouldBeLink = "Navigation Button Should Be Link"
     case longTextAccessibility = "Long Text Accessibility"
     case hardcodedFontSize = "Hardcoded Font Size"
     case onTapGestureInsteadOfButton = "onTapGesture Instead of Button"

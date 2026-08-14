@@ -61,6 +61,17 @@ class Accessibility: BasePatternRegistrar {
                 description: "Detects buttons containing only an image without an accessibility label"
             ),
             SyntaxPattern(
+                name: .navigationButtonShouldBeLink,
+                visitor: AccessibilityVisitor.self,
+                severity: .warning,
+                category: .accessibility,
+                messageTemplate: "Button with trailing chevron signals navigation but VoiceOver "
+                    + "announces it as a generic button",
+                suggestion: "Use NavigationLink, or add .accessibilityAddTraits(.isLink) "
+                    + "so VoiceOver announces this as a link",
+                description: "Detects buttons with a navigation chevron that lack link semantics"
+            ),
+            SyntaxPattern(
                 name: .longTextAccessibility,
                 visitor: AccessibilityVisitor.self,
                 severity: .info,

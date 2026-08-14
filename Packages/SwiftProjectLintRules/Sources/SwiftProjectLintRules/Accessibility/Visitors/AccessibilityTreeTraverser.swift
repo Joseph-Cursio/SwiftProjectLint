@@ -73,6 +73,32 @@ class AccessibilityTreeTraverser {
         return false
     }
 
+    /// Searches the entire subtree for an accessibility modifier applied to any child view.
+    ///
+    /// Unlike `hasAccessibilityModifier`, which walks *up* the node's own modifier chain,
+    /// this walks *down* — catching the case where the modifier sits on a view inside the
+    /// label closure rather than on the enclosing control itself:
+    /// ```
+    /// Button { } label: { Image(...).accessibilityAddTraits(.isLink) }
+    /// ```
+    /// The two are complements; callers that accept either placement must check both.
+    ///
+    /// - Parameters:
+    ///   - syntax: The subtree to search.
+    ///   - modifierName: The name of the accessibility modifier to look for.
+    /// - Returns: True if any descendant applies the modifier, false otherwise.
+    static func containsAccessibilityModifier(in syntax: Syntax, modifierName: String) -> Bool {
+        if let memberAccess = syntax.as(MemberAccessExprSyntax.self),
+           memberAccess.declName.baseName.text == modifierName {
+            return true
+        }
+        for child in syntax.children(viewMode: .sourceAccurate)
+            where containsAccessibilityModifier(in: child, modifierName: modifierName) {
+            return true
+        }
+        return false
+    }
+
     /// Parent groupings that take over naming, making an unlabeled child harmless:
     /// `.combine` merges the children's labels into one, `.ignore` removes them from
     /// the accessibility tree. `.contain` is absent on purpose — it keeps children as
