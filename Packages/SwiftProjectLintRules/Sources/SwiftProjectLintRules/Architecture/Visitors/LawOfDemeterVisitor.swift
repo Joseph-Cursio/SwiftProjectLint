@@ -174,10 +174,25 @@ class LawOfDemeterVisitor: BasePatternVisitor {
         return false
     }
 
+    /// Roots that put a chain outside the rule regardless of its depth.
+    ///
+    /// Split from `isNonExemptChain` to keep that within the cyclomatic-complexity budget.
+    ///
+    /// The underscore case is the substantive one: a leading underscore is Swift's
+    /// convention for the implementation domain — a private stored property behind a
+    /// computed one, or a library's own SPI. Demeter is about coupling to a *collaborator's*
+    /// internals; reaching through your own storage is not that.
+    private func hasExemptRoot(_ orderedComponents: [String]) -> Bool {
+        guard let rootName = orderedComponents.first else { return false }
+        if rootName.hasPrefix("_") { return true }
+        return Self.environmentRoots.contains(rootName.lowercased())
+    }
+
     private func isNonExemptChain(
         _ orderedComponents: [String], dotCount: Int
     ) -> Bool {
         if isTypePrefixedChain(orderedComponents) { return false }
+        if hasExemptRoot(orderedComponents) { return false }
         // Skip early value-transform
         if let vtIndex = orderedComponents.firstIndex(
             where: { Self.valueTransformMembers.contains($0) }
@@ -198,11 +213,6 @@ class LawOfDemeterVisitor: BasePatternVisitor {
             }
         }
         if hasExemptMember(in: orderedComponents) { return false }
-        // Skip environment/navigation roots
-        if let rootName = orderedComponents.first,
-           Self.environmentRoots.contains(rootName.lowercased()) {
-            return false
-        }
         // Skip test files
         if isTestOrFixtureFile() {
             return false
