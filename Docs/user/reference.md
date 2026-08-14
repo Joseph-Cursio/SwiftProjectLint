@@ -24,6 +24,7 @@ swiftprojectlint <project-path> [options]
 | `--threshold` | `error`, `warning`, `info` | `warning` | Minimum severity that causes a non-zero exit code. |
 | `--categories` | See below | all | One category name. **Repeat the flag or comma-separate** for several: `--categories a,b` or `--categories a --categories b`. Restricts analysis to those categories. |
 | `--config` | file path | `.swiftprojectlint.yml` in project root | Path to a configuration file. |
+| `--target-type` | `auto`, `app`, `library` | `auto` | Whether the analyzed code is an app target or a library (see [Target Type](#target-type)). `auto` treats a directory containing `Package.swift` as a library and everything else as an app. |
 | `--include-nested-packages` | — | off | Analyze nested first-party Swift packages instead of skipping them (see [Nested Packages](#nested-packages)). Overrides `include_nested_packages` in the config when present. |
 | `--version` | — | — | Print the version number and exit. |
 | `--help` | — | — | Print usage information and exit. |
@@ -151,6 +152,34 @@ rules:
 | `Tests/` | Substring match — excludes any path containing `Tests/` |
 | `*.generated.swift` | Glob match against the full relative path |
 | `**/*.generated.swift` | Strip `**/`, then glob match against the filename only |
+
+### Target Type
+
+A few rules assume the single-target app model. `public-in-app-target` is the
+clearest: in an app, a `public` declaration is over-exposure, because nothing
+outside the target can consume it; in a library, `public` **is** the API. The same
+declaration is a finding in one and the point of the code in the other.
+
+By default (`--target-type auto`) the tool looks for a `Package.swift` in the
+directory you point it at. That answers correctly for a Swift package linted at its
+root, and says "app" for everything else — including two cases where it is wrong:
+
+- a **framework or library target in an Xcode project**, which has no manifest at all
+- a **package linted from a subdirectory**, where the manifest sits further up
+
+In both, every `public` in a deliberately public API is flagged. Pass
+`--target-type library` to state the answer instead:
+
+```bash
+swift run CLI /path/to/MyFramework --target-type library
+```
+
+`--target-type app` forces the opposite, keeping app-only rules on even when a
+`Package.swift` is present — useful for an executable package where `public` really
+is unnecessary.
+
+The flag only overrides this app-versus-library judgement. It does not change which
+files are discovered, and it is independent of nested-package handling below.
 
 ### Nested Packages
 
