@@ -71,6 +71,14 @@ final class MultipleTypesPerFileVisitor: BasePatternVisitor {
             return
         }
 
+        // Skip underscore-prefixed types. The leading underscore is Swift's convention for
+        // an implementation-detail companion deliberately co-located with the type it
+        // serves — `_Storage`, `__BridgingBufferStorage`. Moving one to its own file is
+        // the opposite of what the naming says about where it belongs.
+        if name.hasPrefix("_") {
+            return
+        }
+
         // Skip types that share a naming relationship with the primary type or file name
         if isTightlyCoupled(name) {
             return
@@ -93,12 +101,18 @@ final class MultipleTypesPerFileVisitor: BasePatternVisitor {
     }
 
     /// Determines whether a secondary type name is tightly coupled to the primary type
-    /// or file name, based on shared naming prefixes.
+    /// or file name, by shared naming prefix or by a shared camelCase word.
     ///
     /// For example, in `WorkspaceManager.swift` with primary type `WorkspaceManager`:
     /// - `WorkspaceError` → shares "Workspace" prefix → coupled
     /// - `WorkspaceData` → shares "Workspace" prefix → coupled
-    /// - `SortOption` → no shared prefix → not coupled
+    /// - `SortOption` → no shared prefix or word → not coupled
+    ///
+    /// The prefix test alone misses the common case where the related name is a
+    /// *rearrangement* rather than an extension, so the shared word matters:
+    /// - `ParsedRuleDocumentation` in `RuleDocumentationParser.swift` → shares
+    ///   "Documentation" → coupled, though the common prefix is empty
+    /// - `TemplateError` in `ConfigurationTemplateManager.swift` → shares "Template"
     private func isTightlyCoupled(_ secondaryName: String) -> Bool {
         let anchors = [primaryTypeName, fileNameStem].compactMap(\.self)
 
@@ -109,9 +123,43 @@ final class MultipleTypesPerFileVisitor: BasePatternVisitor {
             if prefix.count >= 3 {
                 return true
             }
+            if sharesSignificantWord(anchor, secondaryName) {
+                return true
+            }
         }
 
         return false
+    }
+
+    /// Whether either name contains a camelCase word of the other.
+    ///
+    /// The four-character floor is doing real work: it keeps "Type", "Data" and the like
+    /// from coupling everything to everything, and without it a two-letter fragment would
+    /// make the test vacuous.
+    private func sharesSignificantWord(_ anchor: String, _ secondaryName: String) -> Bool {
+        let significant = { (name: String) in
+            Self.camelCaseWords(name).filter { $0.count >= 4 }
+        }
+        if significant(anchor).contains(where: { secondaryName.contains($0) }) { return true }
+        return significant(secondaryName).contains { anchor.contains($0) }
+    }
+
+    /// Splits a camelCase name into its constituent words.
+    /// "WorkspaceManager" → ["Workspace", "Manager"]
+    /// "RuleDocumentationParser" → ["Rule", "Documentation", "Parser"]
+    private static func camelCaseWords(_ name: String) -> [String] {
+        var words: [String] = []
+        var current = ""
+        for character in name {
+            if character.isUppercase, !current.isEmpty {
+                words.append(current)
+                current = String(character)
+            } else {
+                current.append(character)
+            }
+        }
+        if !current.isEmpty { words.append(current) }
+        return words
     }
 
     /// Returns the longest common prefix of two strings, breaking on camelCase boundaries.

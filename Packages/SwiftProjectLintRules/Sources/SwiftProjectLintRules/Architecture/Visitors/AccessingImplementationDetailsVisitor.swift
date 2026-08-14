@@ -40,6 +40,14 @@ class AccessingImplementationDetailsVisitor: BasePatternVisitor {
             if base.is(SuperExprSyntax.self) {
                 return .visitChildren
             }
+            // Skip `_base._member` — the base is underscored too, so both sides are in the
+            // implementation domain. The rule is about a caller reaching past a type's
+            // public interface; a type reaching through its own SPI is the convention
+            // working as intended, and library code does it routinely.
+            if let baseReference = base.as(DeclReferenceExprSyntax.self),
+               baseReference.baseName.text.hasPrefix("_") {
+                return .visitChildren
+            }
             let baseDesc = base.as(DeclReferenceExprSyntax.self)?.baseName.text ?? "object"
             addIssue(
                 severity: .warning,
