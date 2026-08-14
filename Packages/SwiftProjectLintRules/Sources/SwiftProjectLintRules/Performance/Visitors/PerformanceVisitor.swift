@@ -18,6 +18,15 @@ class PerformanceVisitor: BasePatternVisitor {
     var currentFilePath: String = ""
     private var isInViewBody: Bool = false
     private var viewBodySize: Int = 0
+
+    /// Statement count above which a `body` is reported as large.
+    ///
+    /// 25 rather than 20: the number is a judgement about where a body stops being
+    /// readable and starts costing type-checker time, and 20 fired on bodies that are
+    /// ordinary SwiftUI composition. Named here because it was written out at three
+    /// comparison sites, where changing one and missing the others would make the rule
+    /// disagree with itself about what "large" means.
+    private static let largeViewBodyStatementThreshold = 25
     private var isInViewStruct: Bool = false
 
     // For tracking unnecessary view updates
@@ -60,7 +69,7 @@ class PerformanceVisitor: BasePatternVisitor {
                        case .getter(let stmts) = accessorBlock.accessors {
                         self.walk(stmts)
                         // After walking, check and report large body
-                        if viewBodySize > 20 {
+                        if viewBodySize > Self.largeViewBodyStatementThreshold {
                             addIssue(
                                 severity: .warning,
                                 message: "Large view body in '\(currentViewName)' with \(viewBodySize) statements",
@@ -178,7 +187,7 @@ class PerformanceVisitor: BasePatternVisitor {
     }
 
     override func visitPost(_ node: VariableDeclSyntax) {
-        if isInViewBody, viewBodySize > 20 {
+        if isInViewBody, viewBodySize > Self.largeViewBodyStatementThreshold {
             addIssue(
                 severity: .warning,
                 message: "Large view body in '\(currentViewName)' with \(viewBodySize) statements",
@@ -193,7 +202,7 @@ class PerformanceVisitor: BasePatternVisitor {
     }
 
     override func visitPost(_ node: FunctionDeclSyntax) {
-        if isInViewBody, viewBodySize > 20 {
+        if isInViewBody, viewBodySize > Self.largeViewBodyStatementThreshold {
             addIssue(
                 severity: .warning,
                 message: "Large view body in '\(currentViewName)' with \(viewBodySize) statements",
