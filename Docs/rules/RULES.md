@@ -166,6 +166,7 @@ Rules marked **opt-in** are disabled by default and must be explicitly listed un
 | [Missing Accessibility Hint](missing-accessibility-hint.md) | Info |
 | [Inaccessible Color Usage](inaccessible-color-usage.md) | Info |
 | [Icon-Only Button Missing Label](icon-only-button-missing-label.md) | Warning |
+| [Navigation Button Should Be Link](navigation-button-should-be-link.md) | Warning |
 | [Control Missing Accessibility Label](control-missing-accessibility-label.md) | Warning |
 | [isButton Trait Without Action](is-button-trait-without-action.md) | Warning |
 | [Animation Without Reduce Motion](animation-without-reduce-motion.md) | Info |

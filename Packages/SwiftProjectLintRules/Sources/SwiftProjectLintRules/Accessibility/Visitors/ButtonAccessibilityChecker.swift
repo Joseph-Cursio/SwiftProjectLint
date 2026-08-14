@@ -20,6 +20,8 @@ class ButtonAccessibilityChecker {
             return
         }
 
+        checkNavigationSemantics(node)
+
         // Track Images found in this Button
         let imagesInThisButton = AccessibilityTreeTraverser.findImages(in: Syntax(node))
         visitor.addImagesInButtons(imagesInThisButton)
@@ -66,6 +68,63 @@ class ButtonAccessibilityChecker {
                 )
             }
         }
+    }
+
+    /// Chevrons that conventionally mean "this navigates forward". `chevron.down` and
+    /// `chevron.up` are deliberately absent — they indicate expand/collapse, where the
+    /// control really is a button and announcing it as a link would be wrong.
+    private static let navigationChevrons: Set<String> = ["chevron.right", "chevron.forward"]
+
+    /// Checks whether a Button uses a navigation chevron in its label without link semantics.
+    ///
+    /// A `Button` containing `Image(systemName: "chevron.right")` visually signals navigation,
+    /// but VoiceOver announces it as a generic button — so the element type a sighted user
+    /// infers and the one VoiceOver reports disagree. `NavigationLink`, or
+    /// `.accessibilityAddTraits(.isLink)`, makes them agree.
+    private func checkNavigationSemantics(_ node: FunctionCallExprSyntax) {
+        guard containsNavigationChevron(in: Syntax(node)) else { return }
+
+        // Skip if the caller already opted in to link semantics. Check both up the modifier
+        // chain (`Button { }.accessibilityAddTraits(...)`) and down into the label closure,
+        // since either placement reaches VoiceOver.
+        let hasLinkTrait =
+            AccessibilityTreeTraverser.hasAccessibilityModifier(
+                in: node, modifierName: "accessibilityAddTraits"
+            )
+            || AccessibilityTreeTraverser.containsAccessibilityModifier(
+                in: Syntax(node), modifierName: "accessibilityAddTraits"
+            )
+        guard !hasLinkTrait else { return }
+
+        visitor.addIssue(
+            severity: .warning,
+            message: "Button with trailing chevron signals navigation but VoiceOver announces it as a generic button",
+            filePath: visitor.getCurrentFilePath() ?? "unknown",
+            lineNumber: visitor.getLineNumber(for: Syntax(node)),
+            suggestion: "Use NavigationLink, or add .accessibilityAddTraits(.isLink) "
+                + "so VoiceOver announces this as a link",
+            ruleName: .navigationButtonShouldBeLink
+        )
+    }
+
+    /// True if the subtree contains `Image(systemName:)` naming a navigation chevron.
+    private func containsNavigationChevron(in syntax: Syntax) -> Bool {
+        if let call = syntax.as(FunctionCallExprSyntax.self),
+           let callee = call.calledExpression.as(DeclReferenceExprSyntax.self),
+           callee.baseName.text == SwiftUIViewType.image.rawValue {
+            for argument in call.arguments where argument.label?.text == "systemName" {
+                if let literal = argument.expression.as(StringLiteralExprSyntax.self),
+                   let segment = literal.segments.first?.as(StringSegmentSyntax.self),
+                   Self.navigationChevrons.contains(segment.content.text) {
+                    return true
+                }
+            }
+        }
+        for child in syntax.children(viewMode: .sourceAccurate)
+            where containsNavigationChevron(in: child) {
+            return true
+        }
+        return false
     }
 
     /// True if the button's label contains an opaque child view whose contents this

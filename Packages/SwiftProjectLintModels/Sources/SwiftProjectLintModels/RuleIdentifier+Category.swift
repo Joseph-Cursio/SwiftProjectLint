@@ -85,7 +85,8 @@ extension RuleIdentifier {
 
             // Accessibility Rules
         case .missingAccessibilityLabel, .missingAccessibilityHint, .inaccessibleColorUsage,
-             .iconOnlyButtonMissingLabel, .longTextAccessibility, .hardcodedFontSize,
+             .iconOnlyButtonMissingLabel, .navigationButtonShouldBeLink,
+             .longTextAccessibility, .hardcodedFontSize,
              .onTapGestureInsteadOfButton, .onTapGestureMissingAccessibility, .tapTargetTooSmall,
              .missingDynamicTypeSupport, .decorativeImageMissingTrait,
              .toggleButtonMissingSelectedTrait, .buttonTogglingBool,
