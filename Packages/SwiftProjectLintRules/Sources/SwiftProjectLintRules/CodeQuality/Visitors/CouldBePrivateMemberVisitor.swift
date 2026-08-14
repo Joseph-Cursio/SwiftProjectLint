@@ -209,6 +209,24 @@ final class CouldBePrivateMemberVisitor: CrossFileVisitorBase, CrossFilePatternV
         functionNestingDepth -= 1
     }
 
+    /// An *implicit* getter — `var body: String { … }` with no `get` keyword — is spelled
+    /// as an `AccessorBlockSyntax` whose accessors are a bare `.getter` statement list,
+    /// with no `AccessorDeclSyntax` anywhere inside. The accessor override above therefore
+    /// never fires, `functionNestingDepth` stays at 0 through the body, and every local
+    /// `let` in it is collected as though it were a stored property of the enclosing type.
+    ///
+    /// Only the `.getter` case is counted: an explicit `get { }` / `set { }` block does
+    /// contain `AccessorDeclSyntax` children, so incrementing here as well would
+    /// double-count it.
+    override func visit(_ node: AccessorBlockSyntax) -> SyntaxVisitorContinueKind {
+        if case .getter = node.accessors { functionNestingDepth += 1 }
+        return .visitChildren
+    }
+
+    override func visitPost(_ node: AccessorBlockSyntax) {
+        if case .getter = node.accessors { functionNestingDepth -= 1 }
+    }
+
     override func visit(_ node: VariableDeclSyntax) -> SyntaxVisitorContinueKind {
         // Skip if outside a type, or inside a function body (local variables)
         guard typeNestingDepth > 0, functionNestingDepth == 0 else { return .visitChildren }
@@ -231,12 +249,13 @@ final class CouldBePrivateMemberVisitor: CrossFileVisitorBase, CrossFilePatternV
     // MARK: - Collect References
 
     override func visit(_ node: DeclReferenceExprSyntax) -> SyntaxVisitorContinueKind {
-        identifierUsages[node.baseName.text, default: []].insert(currentFilePath)
+        identifierUsages[Self.stripBackticks(node.baseName.text), default: []]
+            .insert(currentFilePath)
         return .visitChildren
     }
 
     override func visit(_ node: MemberAccessExprSyntax) -> SyntaxVisitorContinueKind {
-        let memberName = node.declName.baseName.text
+        let memberName = Self.stripBackticks(node.declName.baseName.text)
         identifierUsages[memberName, default: []].insert(currentFilePath)
         return .visitChildren
     }
@@ -292,11 +311,27 @@ final class CouldBePrivateMemberVisitor: CrossFileVisitorBase, CrossFilePatternV
 
         declarations.append(MemberDeclaration(
             typeName: currentTypeName,
-            memberName: name,
+            memberName: Self.stripBackticks(name),
             memberKind: kind,
             file: currentFilePath,
             node: node
         ))
+    }
+
+    /// Strips the backtick escaping from a keyword used as an identifier.
+    ///
+    /// SwiftSyntax reports the declaration `func \`default\`()` with a `.text` of
+    /// `` `default` ``, backticks included, but the call site `config.default()` needs no
+    /// escaping and reports `default`. The two spellings are the same member, so without
+    /// normalising both sides the usage map never matches and every backticked member
+    /// looks unreferenced.
+    ///
+    /// Applied at all three sites — the declaration and both reference collectors — since
+    /// normalising only one side would leave the mismatch exactly as it was.
+    private static func stripBackticks(_ text: String) -> String {
+        text.hasPrefix("`") && text.hasSuffix("`") && text.count >= 2
+            ? String(text.dropFirst().dropLast())
+            : text
     }
 
     /// Members carrying explicit access control, `override`, or `@objc`
