@@ -25,6 +25,16 @@ struct SwiftProjectLintCLI: AsyncParsableCommand {
     @Option(name: .long, help: "Minimum severity to trigger a non-zero exit: error, warning, or info.")
     var threshold: SeverityThreshold = .warning
 
+    @Option(
+        name: .long,
+        help: """
+        Target type: auto (default), app, or library. Use 'library' to suppress app-only \
+        rules such as public-in-app-target for a framework target or a package linted \
+        from a subdirectory, where auto-detection reports 'app'.
+        """
+    )
+    var targetType: CLITargetType = .auto
+
     /// Repeat the flag, or comma-separate: `--categories a,b` / `--categories a --categories b`.
     ///
     /// **`.singleValue` rather than `.upToNextOption`, and the difference is a real defect.**
@@ -101,6 +111,7 @@ struct SwiftProjectLintCLI: AsyncParsableCommand {
 
         let issues = await linter.analyzeProject(
             at: absolutePath,
+            targetType: targetType.coreTargetType,
             categories: selectedCategories,
             detector: system.detector,
             configuration: configuration

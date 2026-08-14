@@ -66,17 +66,37 @@ extension ProjectLinter {
         }
     }
 
-    /// Adjusts configuration for Swift Packages: disables `publicInAppTarget`,
+    /// Adjusts configuration for libraries: disables `publicInAppTarget`,
     /// excludes executable source paths from the `printStatement` rule, and suppresses
     /// `unusedProtocolAbstraction` when first-party nested packages are out of scope.
+    ///
+    /// - Parameters:
+    ///   - path: The project root being analyzed.
+    ///   - configuration: The configuration to adjust.
+    ///   - targetType: Whether to treat the project as a library, an app, or to detect
+    ///     it from the presence of a `Package.swift`. See ``TargetType``.
     static func resolveConfiguration(
         for path: String,
-        base configuration: LintConfiguration
+        base configuration: LintConfiguration,
+        targetType: TargetType = .auto
     ) -> LintConfiguration {
-        let isSwiftPackage = FileManager.default.fileExists(
-            atPath: (path as NSString).appendingPathComponent("Package.swift")
-        )
-        guard isSwiftPackage else { return configuration }
+        // `.auto` keeps the historical rule — a `Package.swift` beside the analyzed
+        // path means library — so an existing run's behaviour is unchanged unless the
+        // caller asks for something else.
+        let isLibrary: Bool
+        switch targetType {
+        case .library:
+            isLibrary = true
+
+        case .app:
+            isLibrary = false
+
+        case .auto:
+            isLibrary = FileManager.default.fileExists(
+                atPath: (path as NSString).appendingPathComponent("Package.swift")
+            )
+        }
+        guard isLibrary else { return configuration }
 
         var disabledRules = configuration.disabledRules
         disabledRules.insert(.publicInAppTarget)

@@ -53,6 +53,11 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
     ///   - detector: Optional pre-configured detector. If nil, a default detector is created.
     ///   - configuration: YAML-based configuration for rule/path control.
     /// - Returns: An array of `LintIssue` objects describing all detected issues.
+    ///
+    /// This is the `ProjectAnalyzerProtocol` requirement, which cannot carry a
+    /// defaulted `targetType` — Swift does not let a default argument satisfy a
+    /// protocol requirement. It forwards to the overload below with `.auto`, so a
+    /// caller that does not care about target type is unaffected.
     public func analyzeProject(
         at path: String,
         categories: [PatternCategory]? = nil,
@@ -60,8 +65,40 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
         detector: (any SourcePatternDetectorProtocol)? = nil,
         configuration: LintConfiguration = .default
     ) async -> [LintIssue] {
+        await analyzeProject(
+            at: path,
+            targetType: .auto,
+            categories: categories,
+            ruleIdentifiers: ruleIdentifiers,
+            detector: detector,
+            configuration: configuration
+        )
+    }
+
+    /// Analyzes a project, stating whether it is an app target or a library.
+    ///
+    /// - Parameters:
+    ///   - path: The root directory path of the SwiftUI project to analyze.
+    ///   - targetType: Whether the project is an app, a library, or should be detected
+    ///     from its structure. See ``TargetType``. It carries no default and sits ahead
+    ///     of the optional parameters for two reasons: a default here would make this
+    ///     overload ambiguous with the protocol requirement above, and a non-defaulted
+    ///     parameter trailing the defaulted ones trips `function_default_parameter_at_end`.
+    ///   - categories: Optional array of pattern categories to analyze. If nil, analyzes all categories.
+    ///   - ruleIdentifiers: Optional array of specific rule identifiers to analyze. If provided, overrides categories.
+    ///   - detector: Optional pre-configured detector. If nil, a default detector is created.
+    ///   - configuration: YAML-based configuration for rule/path control.
+    /// - Returns: An array of `LintIssue` objects describing all detected issues.
+    public func analyzeProject(
+        at path: String,
+        targetType: TargetType,
+        categories: [PatternCategory]? = nil,
+        ruleIdentifiers: [RuleIdentifier]? = nil,
+        detector: (any SourcePatternDetectorProtocol)? = nil,
+        configuration: LintConfiguration = .default
+    ) async -> [LintIssue] {
         let effectiveConfiguration = Self.resolveConfiguration(
-            for: path, base: configuration
+            for: path, base: configuration, targetType: targetType
         )
 
         let (filePaths, evidenceOnlyFilePaths) = await discoverFiles(
