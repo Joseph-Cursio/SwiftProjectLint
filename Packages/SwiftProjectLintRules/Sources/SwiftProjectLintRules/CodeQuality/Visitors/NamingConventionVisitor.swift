@@ -124,26 +124,51 @@ class NamingConventionVisitor: BasePatternVisitor {
     override func visit(_ node: StructDeclSyntax) -> SyntaxVisitorContinueKind {
         let name = node.name.text
         checkPropertyWrapperNaming(node: node, name: name, attributes: node.attributes)
-        checkNonActorAgentSuffix(node: node, name: name, attributes: node.attributes)
+        checkNonActorAgentSuffix(
+            node: node, name: name, attributes: node.attributes,
+            inheritanceClause: node.inheritanceClause
+        )
         return .visitChildren
     }
 
     override func visit(_ node: ClassDeclSyntax) -> SyntaxVisitorContinueKind {
         let name = node.name.text
         checkPropertyWrapperNaming(node: node, name: name, attributes: node.attributes)
-        checkNonActorAgentSuffix(node: node, name: name, attributes: node.attributes)
+        checkNonActorAgentSuffix(
+            node: node, name: name, attributes: node.attributes,
+            inheritanceClause: node.inheritanceClause
+        )
         return .visitChildren
     }
 
     // MARK: - Private
 
-    private func checkNonActorAgentSuffix(node: some SyntaxProtocol, name: String, attributes: AttributeListSyntax) {
+    /// SwiftUI protocols whose conforming types are UI components rather than concurrent
+    /// agents. The framework's own vocabulary is full of agent nouns — `Editor`, `Picker`,
+    /// `Indicator`, `Divider` — and a type named for the control it draws carries no
+    /// implication about isolation, which is what this rule is about.
+    private static let swiftUIComponentProtocols: Set<String> = [
+        "View", "ViewModifier", "ToolbarContent", "CustomizableToolbarContent",
+        "Commands", "Scene", "App", "Shape", "InsettableShape",
+        "PreviewProvider", "LibraryContentProvider"
+    ]
+
+    private func checkNonActorAgentSuffix(
+        node: some SyntaxProtocol,
+        name: String,
+        attributes: AttributeListSyntax,
+        inheritanceClause: InheritanceClauseSyntax?
+    ) {
         // Property wrappers follow the Wrapper convention (which incidentally ends in -er); skip them.
         let isPropertyWrapper = attributes.contains { element in
             guard case .attribute(let attribute) = element else { return false }
             return attribute.attributeName.as(IdentifierTypeSyntax.self)?.name.text == "propertyWrapper"
         }
         guard !isPropertyWrapper, Self.hasAgentNounSuffix(name), !name.hasSuffix("Agent") else { return }
+        // An error type is not an agent. `ValidationError` and `NetworkError` end in "-or"
+        // and match the agent-noun test on spelling alone.
+        guard !name.hasSuffix("Error") else { return }
+        guard !isSwiftUIComponent(inheritanceClause) else { return }
         addIssue(
             severity: .info,
             message: "'\(name)' has an agent-noun name but is not a Swift actor or explicitly named 'Agent'",
@@ -153,6 +178,14 @@ class NamingConventionVisitor: BasePatternVisitor {
                 + "or rename to '\(name)Agent' to signal intentional non-isolation",
             ruleName: .nonActorAgentSuffix
         )
+    }
+
+    private func isSwiftUIComponent(_ inheritanceClause: InheritanceClauseSyntax?) -> Bool {
+        guard let inheritanceClause else { return false }
+        return inheritanceClause.inheritedTypes.contains { inherited in
+            guard let identifier = inherited.type.as(IdentifierTypeSyntax.self) else { return false }
+            return Self.swiftUIComponentProtocols.contains(identifier.name.text)
+        }
     }
 
     private func checkPropertyWrapperNaming(node: some SyntaxProtocol, name: String, attributes: AttributeListSyntax) {
