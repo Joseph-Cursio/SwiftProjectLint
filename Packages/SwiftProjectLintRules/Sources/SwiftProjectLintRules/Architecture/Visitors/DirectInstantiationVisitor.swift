@@ -9,6 +9,11 @@ class DirectInstantiationVisitor: BasePatternVisitor {
     private var currentFilePath: String = ""
     private var insideFunctionOrClosure = 0
 
+    /// Depth inside a `#Preview` macro or an `#if DEBUG` block. A counter rather than a
+    /// flag because the two nest — a `#Preview` inside `#if DEBUG` is the ordinary
+    /// spelling — and a flag would be cleared by whichever closed first.
+    private var insidePreviewOrDebug = 0
+
     /// Names of the nominal types currently being visited, innermost last.
     /// Used to recognise a type that instantiates *itself* as a static member —
     /// the canonical singleton definition site, which is not a coupling smell.
@@ -48,6 +53,12 @@ class DirectInstantiationVisitor: BasePatternVisitor {
     // MARK: - Stored property / local variable detection
 
     override func visit(_ node: VariableDeclSyntax) -> SyntaxVisitorContinueKind {
+        // `#Preview` and `#if DEBUG` are composition contexts: the whole point of a
+        // preview is to build a concrete object graph to look at, and a debug block is
+        // scaffolding that never ships. Injecting a dependency there would mean routing
+        // it in from somewhere, which is what the preview exists to avoid.
+        guard insidePreviewOrDebug == 0 else { return .visitChildren }
+
         // Inside a function or closure: local variable — no wrapper check needed
         // Outside (stored property): skip if it has a property wrapper
         if insideFunctionOrClosure == 0, hasPropertyWrapper(node) {
@@ -167,5 +178,49 @@ class DirectInstantiationVisitor: BasePatternVisitor {
 
     override func visitPost(_ _: ClosureExprSyntax) {
         insideFunctionOrClosure -= 1
+    }
+
+    // MARK: - Preview / debug context tracking
+
+    override func visit(_ node: MacroExpansionDeclSyntax) -> SyntaxVisitorContinueKind {
+        if node.macroName.text == "Preview" { insidePreviewOrDebug += 1 }
+        return .visitChildren
+    }
+
+    override func visitPost(_ node: MacroExpansionDeclSyntax) {
+        if node.macroName.text == "Preview" { insidePreviewOrDebug -= 1 }
+    }
+
+    // `#Preview { }` parses as a *declaration* among other declarations and as an
+    // *expression* when it is the only item in the file, so both spellings have to be
+    // tracked. Handling only the declaration form left a file containing nothing but a
+    // preview still reporting — which is exactly the file a preview tends to live in.
+    override func visit(_ node: MacroExpansionExprSyntax) -> SyntaxVisitorContinueKind {
+        if node.macroName.text == "Preview" { insidePreviewOrDebug += 1 }
+        return .visitChildren
+    }
+
+    override func visitPost(_ node: MacroExpansionExprSyntax) {
+        if node.macroName.text == "Preview" { insidePreviewOrDebug -= 1 }
+    }
+
+    override func visit(_ node: IfConfigDeclSyntax) -> SyntaxVisitorContinueKind {
+        if Self.isDebugBlock(node) { insidePreviewOrDebug += 1 }
+        return .visitChildren
+    }
+
+    override func visitPost(_ node: IfConfigDeclSyntax) {
+        if Self.isDebugBlock(node) { insidePreviewOrDebug -= 1 }
+    }
+
+    /// Whether any clause of an `#if` names `DEBUG`.
+    ///
+    /// Read off the condition's source text rather than parsed as an expression: the
+    /// condition grammar admits `&&`, `!`, and nested parentheses, and this only has to
+    /// answer whether the block is debug-only scaffolding. The same predicate must be used
+    /// by `visit` and `visitPost` or the counter unbalances, which is why it is one
+    /// function rather than the condition written twice.
+    private static func isDebugBlock(_ node: IfConfigDeclSyntax) -> Bool {
+        node.clauses.contains { $0.condition?.description.contains("DEBUG") == true }
     }
 }
