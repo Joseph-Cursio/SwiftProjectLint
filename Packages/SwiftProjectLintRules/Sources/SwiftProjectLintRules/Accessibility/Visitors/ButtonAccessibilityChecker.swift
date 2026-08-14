@@ -30,9 +30,18 @@ class ButtonAccessibilityChecker {
         let hasText = containsText(node)
         let hasLabel = containsLabel(node)
         let hasStringTitle = AccessibilityTreeTraverser.buttonHasStringTitle(node)
-        let hasAccessibilityLabel = AccessibilityTreeTraverser.hasAccessibilityModifier(
-            in: node, modifierName: "accessibilityLabel"
-        )
+        // Check both directions. `hasAccessibilityModifier` walks *up* the button's own
+        // modifier chain and so misses the label placed on the image inside the label
+        // closure — `Button { } label: { Image(...).accessibilityLabel("…") }` — which is
+        // a perfectly ordinary way to name an icon button, and was being reported as
+        // having no label at all.
+        let hasAccessibilityLabel =
+            AccessibilityTreeTraverser.hasAccessibilityModifier(
+                in: node, modifierName: "accessibilityLabel"
+            )
+            || AccessibilityTreeTraverser.containsAccessibilityModifier(
+                in: Syntax(node), modifierName: "accessibilityLabel"
+            )
 
         // Label() provides accessible text automatically
         if hasLabel {

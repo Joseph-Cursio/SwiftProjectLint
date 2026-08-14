@@ -14,8 +14,14 @@ class ColorAccessibilityChecker {
         "clear", "gray", "primary", "secondary", "accentColor"
     ]
 
-    /// Maximum opacity value considered a background tint (not a primary color indicator).
-    private static let backgroundTintOpacityThreshold = 0.2
+    /// Maximum opacity value considered a background tint or decorative stroke rather than
+    /// a primary colour indicator.
+    ///
+    /// 0.35 rather than 0.2 so that the common decorative border —
+    /// `.stroke(Color.x.opacity(0.3), lineWidth: 1)` — is read as decoration. The rule is
+    /// about colour carrying *information* a colourblind reader would lose; a hairline
+    /// border at a third opacity is not carrying it.
+    private static let backgroundTintOpacityThreshold = 0.35
 
     init(visitor: AccessibilityVisitor) {
         self.visitor = visitor
