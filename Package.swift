@@ -57,6 +57,21 @@ let package = Package(
         .package(url: "https://github.com/apple/swift-argument-parser.git", from: "1.3.0"),
         .package(url: "https://github.com/jpsim/Yams.git", from: "5.0.0"),
         .package(url: "https://github.com/x-sheep/swift-property-based.git", from: "1.0.0"),
+        // The conformance-law catalog, test-only. This package already had the
+        // generator *engine* (`swift-property-based`, above) and used it for
+        // hand-written property suites, but nothing ran the laws the standard
+        // protocols already owe: `swift-infer discover` measured 59 such laws
+        // over 22 carriers across the seven nested packages, checked by nothing.
+        // `PropertyLawKit` is the catalog that runs them — one
+        // `check<Protocol>PropertyLaws` call per conformance.
+        //
+        // Test-only, and deliberately kit-only. Recording verdicts back to
+        // `swift-infer` needs `SwiftInferKitEvidence`, which would add a
+        // dependency edge from this package to SwiftInferProperties — the
+        // opposite direction from the one the toolchain's dependency graph has,
+        // where the two leaves meet only at SwiftEffectInference. Running the
+        // laws is the value; feeding the verdicts back is a separate decision.
+        .package(url: "https://github.com/Joseph-Cursio/SwiftPropertyLaws.git", from: "3.28.0"),
         .package(url: "https://github.com/Joseph-Cursio/LintStudioUI.git", from: "1.3.0"),
         // The leaf effect-lattice library — now the single source of truth for
         // the `Effect` type and its `lub`. SPL's `DeclaredEffect` is a typealias
@@ -69,7 +84,7 @@ let package = Package(
         // swift-syntax exact 602.0.0, so there is no version conflict.
         .package(
             url: "https://github.com/Joseph-Cursio/SwiftEffectInference.git",
-            revision: "fc82ec440e38c3467cf2621666937510ebde5301"
+            revision: "22342caf2015e528bb71cad3b677eb64fad11aaf"
         )
     ],
     targets: [
@@ -116,6 +131,7 @@ let package = Package(
                 "Core",
                 "SwiftProjectLintIdempotencyRules",
                 .product(name: "PropertyBased", package: "swift-property-based"),
+                .product(name: "PropertyLawKit", package: "SwiftPropertyLaws"),
                 .product(name: "SwiftEffectInference", package: "SwiftEffectInference")
             ],
             path: "Tests/CoreTests",
