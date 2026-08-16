@@ -243,6 +243,12 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
     /// impure twin of `pureClosureCandidate`, which refutes exactly this shape.
     case unreachableEffectClosure = "Unreachable Effect Closure"
 
+    /// A function claiming `@ClockDeterministic` whose own body reaches for a
+    /// clock nobody passed in. The only rule in the family that reports a
+    /// *contradiction* rather than a smell: the author stated the property, so
+    /// this is not advice about style.
+    case contradictedClockDeterminism = "Contradicted Clock Determinism"
+
     /// A value rebuilt field-by-field from one you already have, where the initialiser has
     /// defaulted parameters — so a forgotten field takes its default SILENTLY.
     case lossyStructRebuild = "Lossy Struct Rebuild"

@@ -5,23 +5,35 @@ import SwiftSyntax
 
 /// Detects nondeterministic sources used inline in logic rather than injected
 /// as a dependency: `Date()`, `UUID()`, `.random(in:)`, `.randomElement()`,
-/// `.shuffled()`, the legacy C RNG/clock functions, and `Date.now` /
-/// `Locale.current` / `TimeZone.current`.
+/// `.shuffled()`, the legacy C RNG/clock functions, `Date.now` /
+/// `Locale.current` / `TimeZone.current`, and the concrete clocks
+/// (`ContinuousClock()`, `Task.sleep(for:)`).
 ///
 /// Inline nondeterminism is the #1 blocker to property-testing pure logic: a
 /// property can't pin the value or reproduce a counterexample, so the function
 /// stops being a function of its inputs. A source supplied as a parameter
 /// default (`init(id: UUID = UUID())`) is the injection seam, not inline use,
 /// and is exempt.
+///
+/// **What this classifies, it no longer decides.** The marker sets and the
+/// argument-aware matching that used to live here moved to
+/// `SwiftEffectInference.NondeterminismSources` — an equivalent copy had grown
+/// there alongside the clock-determinism refuter, and two implementations of one
+/// scan in two repositories is what the shared leaf exists to prevent. What
+/// stays here is everything the leaf cannot know: that a parameter default is a
+/// seam rather than a use, that fixture files are exempt, and what to tell the
+/// author.
+///
+/// The move widened coverage, because the leaf's clock set is larger than the
+/// one this rule had grown independently. `ContinuousClock()`,
+/// `SuspendingClock()`, `Task.sleep(for:)`, `DispatchTime.now()`, the remaining
+/// C clock functions and `Date(timeIntervalSinceNow:)` now report where they did
+/// not before. That is within the rule's stated intent rather than an extension
+/// of it — timing a property cannot pin is exactly what the message describes,
+/// and the suggestion already named a clock as the thing to inject.
 final class NonInjectedNondeterminismVisitor: BasePatternVisitor {
 
     private var fileIsTestOrFixture = false
-
-    private static let noArgInitTypes: Set<String> = ["Date", "UUID"]
-    private static let bareFunctions: Set<String> = [
-        "arc4random", "arc4random_uniform", "drand48", "CFAbsoluteTimeGetCurrent"
-    ]
-    private static let randomMembers: Set<String> = ["random", "randomElement", "shuffled"]
 
     required init(pattern: SyntaxPattern, viewMode: SyntaxTreeViewMode = .sourceAccurate) {
         super.init(pattern: pattern, viewMode: viewMode)
@@ -33,54 +45,24 @@ final class NonInjectedNondeterminismVisitor: BasePatternVisitor {
     }
 
     override func visit(_ node: FunctionCallExprSyntax) -> SyntaxVisitorContinueKind {
-        guard !fileIsTestOrFixture, !isParameterDefaultValue(Syntax(node)) else {
-            return .visitChildren
-        }
-        if let source = nondeterministicCallSource(node) {
-            flag(source, at: Syntax(node))
-        }
+        report(NondeterminismSources.source(of: node), at: Syntax(node))
         return .visitChildren
     }
 
     override func visit(_ node: MemberAccessExprSyntax) -> SyntaxVisitorContinueKind {
-        guard !fileIsTestOrFixture, !isParameterDefaultValue(Syntax(node)) else {
-            return .visitChildren
-        }
-        guard let base = node.base?.as(DeclReferenceExprSyntax.self)?.baseName.text else {
-            return .visitChildren
-        }
-        let name = node.declName.baseName.text
-        if (base == "Date" && name == "now")
-            || ((base == "Locale" || base == "TimeZone") && name == "current") {
-            flag("\(base).\(name)", at: Syntax(node))
-        }
+        report(NondeterminismSources.source(of: node), at: Syntax(node))
         return .visitChildren
     }
 
-    private func nondeterministicCallSource(_ node: FunctionCallExprSyntax) -> String? {
-        // Bare init / function: `Date()`, `UUID()` (only the no-argument forms
-        // are nondeterministic), `arc4random()`, `CFAbsoluteTimeGetCurrent()`.
-        if let ref = node.calledExpression.as(DeclReferenceExprSyntax.self) {
-            let name = ref.baseName.text
-            if Self.noArgInitTypes.contains(name), node.arguments.isEmpty {
-                return "\(name)()"
-            }
-            if Self.bareFunctions.contains(name) {
-                return "\(name)()"
-            }
-        }
-        // Member call: `Int.random(in:)`, `array.randomElement()`, `.shuffled()`.
-        if let member = node.calledExpression.as(MemberAccessExprSyntax.self),
-           Self.randomMembers.contains(member.declName.baseName.text) {
-            // A `using:` argument injects the RNG — `Int.random(in: r, using: &rng)`
-            // is reproducible from a seed, which is exactly the testable form. Only
-            // the system-RNG forms (no `using:`) are non-injected nondeterminism.
-            if node.arguments.contains(where: { $0.label?.text == "using" }) {
-                return nil
-            }
-            return ".\(member.declName.baseName.text)(…)"
-        }
-        return nil
+    /// Applies this rule's policy to a classified source: every kind reports,
+    /// but not in a fixture and not at an injection seam.
+    ///
+    /// The exemptions are checked here rather than in the classifier because
+    /// both are facts about *where* the expression sits, which is a property of
+    /// this rule's contract rather than of the expression.
+    private func report(_ source: NondeterminismSources.Source?, at node: Syntax) {
+        guard let source, !fileIsTestOrFixture, !isParameterDefaultValue(node) else { return }
+        flag(source.marker, at: node)
     }
 
     private func flag(_ source: String, at node: Syntax) {

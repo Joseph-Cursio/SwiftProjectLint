@@ -266,6 +266,7 @@ Rules marked **opt-in** are disabled by default and must be explicitly listed un
 | [ViewHosting Before Inspection](view-hosting-before-inspection.md) | Error |
 | [Observable Environment View Missing Inspection Hook](observable-environment-view-missing-inspection-hook.md) | Info |
 | [Unreachable Effect Closure](unreachable-effect-closure.md) | Info |
+| [Contradicted Clock Determinism](contradicted-clock-determinism.md) | Warning |
 
 ---
 

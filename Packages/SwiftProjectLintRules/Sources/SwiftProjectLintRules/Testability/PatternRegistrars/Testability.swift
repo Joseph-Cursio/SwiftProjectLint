@@ -105,7 +105,8 @@ class Testability: BasePatternRegistrar {
         registry.register(registrars: [
             MissingEquatableOnStateType(),
             ImpureCallInViewBody(),
-            UnreachableEffectClosure()
+            UnreachableEffectClosure(),
+            ContradictedClockDeterminism()
         ])
     }
 }
