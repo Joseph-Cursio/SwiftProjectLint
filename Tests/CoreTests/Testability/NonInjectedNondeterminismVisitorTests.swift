@@ -100,4 +100,49 @@ struct NonInjectedNondeterminismVisitorTests {
         // Regression guard: only the `using:`-injected form is exempt.
         #expect(analyze("func roll() -> Int { Int.random(in: 1...6) }").count == 1)
     }
+
+    // MARK: - Clock coverage gained with the shared classifier
+    //
+    // The rule's own marker set never knew the concrete clocks; the leaf's does.
+    // These are new reports, and they are the rule's stated subject — a
+    // property-based test can no more pin `Task.sleep(for:)` than `Date()`.
+
+    @Test func flagsConcreteClockConstruction() {
+        let source = """
+        func timed() -> Duration { ContinuousClock().measure { } }
+        func suspended() -> SuspendingClock.Instant { SuspendingClock().now }
+        """
+        #expect(analyze(source).count == 2)
+    }
+
+    @Test func flagsTaskSleepOnTheHostClock() {
+        let source = """
+        func wait() async throws { try await Task.sleep(for: .seconds(1)) }
+        """
+        #expect(analyze(source).count == 1)
+    }
+
+    @Test func ignoresTaskSleepOnASuppliedClock() {
+        // The injection seam, exactly as `using:` is for randomness.
+        let source = """
+        func wait<C: Clock>(clock: C) async throws {
+            try await Task.sleep(for: .seconds(1), tolerance: nil, clock: clock)
+        }
+        """
+        #expect(analyze(source).isEmpty)
+    }
+
+    @Test func flagsDateOffsetFromNow() {
+        // `timeIntervalSinceNow:` reads the clock despite taking an argument —
+        // the case a "no-argument initializers only" rule could not express.
+        #expect(analyze("func soon() -> Date { Date(timeIntervalSinceNow: 60) }").count == 1)
+    }
+
+    @Test func ignoresReadingAnInjectedClock() {
+        // The shape the whole clock family exists to make possible.
+        let source = """
+        func at<C: Clock>(clock: C) -> C.Instant { clock.now }
+        """
+        #expect(analyze(source).isEmpty)
+    }
 }
