@@ -27,7 +27,24 @@ public enum NondeterminismSources {
     /// it: the nondeterminism rule reports every kind, and the
     /// clock-determinism rule is only interested in `.clock`.
     public enum Kind: Sendable, Equatable {
-        case clock
+        /// A bare read of the current wall-clock instant — `Date()`,
+        /// `Date.now`, `CFAbsoluteTimeGetCurrent()`.
+        case wallClockNow
+
+        /// A wall-clock instant derived *from* now —
+        /// `Date(timeIntervalSinceNow:)`.
+        case wallClockOffset
+
+        /// A monotonic clock read — `DispatchTime.now()`, `mach_absolute_time()`.
+        case monotonicClock
+
+        /// Obtaining a host clock object — `ContinuousClock()`,
+        /// `SuspendingClock()`.
+        case clockAcquisition
+
+        /// Suspending on a clock nobody supplied — `Task.sleep(for:)`.
+        case timedSuspension
+
         case randomness
         case identity
         case ambientEnvironment
@@ -61,14 +78,28 @@ public enum NondeterminismSources {
 
     private static func map(_ source: SwiftEffectInference.NondeterminismSource?) -> Source? {
         guard let source else { return nil }
-        let kind: Kind
-        switch source.kind {
-        case .clock: kind = .clock
-        case .randomness: kind = .randomness
-        case .identity: kind = .identity
-        case .ambientEnvironment: kind = .ambientEnvironment
+        return Source(kind: mapKind(source.kind), marker: source.marker)
+    }
+
+    /// Exhaustive, with no `default`: a kind added upstream must fail to compile
+    /// here and get a considered mapping, rather than quietly landing in
+    /// whichever local case happened to be the fallback.
+    ///
+    /// Split from `map` so the nil-guard's branch does not count against the
+    /// switch's complexity budget. The alternative — a dictionary lookup with a
+    /// fallback — would fit in one function and give up exactly the
+    /// exhaustiveness this exists for.
+    private static func mapKind(_ kind: SwiftEffectInference.NondeterminismSource.Kind) -> Kind {
+        switch kind {
+        case .wallClockNow: return .wallClockNow
+        case .wallClockOffset: return .wallClockOffset
+        case .monotonicClock: return .monotonicClock
+        case .clockAcquisition: return .clockAcquisition
+        case .timedSuspension: return .timedSuspension
+        case .randomness: return .randomness
+        case .identity: return .identity
+        case .ambientEnvironment: return .ambientEnvironment
         }
-        return Source(kind: kind, marker: source.marker)
     }
 }
 

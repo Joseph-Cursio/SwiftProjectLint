@@ -101,48 +101,65 @@ struct NonInjectedNondeterminismVisitorTests {
         #expect(analyze("func roll() -> Int { Int.random(in: 1...6) }").count == 1)
     }
 
-    // MARK: - Clock coverage gained with the shared classifier
+    // MARK: - Scope held at the pre-migration line
     //
-    // The rule's own marker set never knew the concrete clocks; the leaf's does.
-    // These are new reports, and they are the rule's stated subject — a
-    // property-based test can no more pin `Task.sleep(for:)` than `Date()`.
+    // The shared classifier knows more time sources than this rule reports.
+    // These pin the exclusions, because the failure they guard against is
+    // silent: a rule that widens whenever its dependency learns a new spelling
+    // has a scope nobody chose. Each of these DOES read a clock — they are
+    // `contradicted-clock-determinism`'s subject, not this rule's.
 
-    @Test func flagsConcreteClockConstruction() {
+    @Test func ignoresConcreteClockConstruction() {
         let source = """
         func timed() -> Duration { ContinuousClock().measure { } }
         func suspended() -> SuspendingClock.Instant { SuspendingClock().now }
         """
-        #expect(analyze(source).count == 2)
+        #expect(analyze(source).isEmpty)
     }
 
-    @Test func flagsTaskSleepOnTheHostClock() {
+    @Test func ignoresTaskSleep() {
         let source = """
         func wait() async throws { try await Task.sleep(for: .seconds(1)) }
-        """
-        #expect(analyze(source).count == 1)
-    }
-
-    @Test func ignoresTaskSleepOnASuppliedClock() {
-        // The injection seam, exactly as `using:` is for randomness.
-        let source = """
-        func wait<C: Clock>(clock: C) async throws {
-            try await Task.sleep(for: .seconds(1), tolerance: nil, clock: clock)
-        }
         """
         #expect(analyze(source).isEmpty)
     }
 
-    @Test func flagsDateOffsetFromNow() {
-        // `timeIntervalSinceNow:` reads the clock despite taking an argument —
-        // the case a "no-argument initializers only" rule could not express.
-        #expect(analyze("func soon() -> Date { Date(timeIntervalSinceNow: 60) }").count == 1)
+    @Test func ignoresMonotonicClockReads() {
+        let source = """
+        func ticks() -> UInt64 { mach_absolute_time() }
+        func stamp() -> DispatchTime { DispatchTime.now() }
+        """
+        #expect(analyze(source).isEmpty)
+    }
+
+    /// The rule's line is arity — a construction taking no input can only have
+    /// come from ambient state. This one takes an argument, so it is out, and
+    /// that is a known miss preserved deliberately rather than an oversight.
+    @Test func ignoresDateOffsetFromNow() {
+        #expect(analyze("func soon() -> Date { Date(timeIntervalSinceNow: 60) }").isEmpty)
     }
 
     @Test func ignoresReadingAnInjectedClock() {
-        // The shape the whole clock family exists to make possible.
         let source = """
         func at<C: Clock>(clock: C) -> C.Instant { clock.now }
         """
         #expect(analyze(source).isEmpty)
+    }
+
+    /// The non-vacuity guard for the four above. Without it, a `reportedKinds`
+    /// set that had emptied itself — or a classifier returning nil for
+    /// everything — would satisfy every exclusion test while the rule reported
+    /// nothing at all.
+    @Test func stillReportsItsOwnScopeAlongsideTheExclusions() {
+        let source = """
+        func mixed() async throws -> Date {
+            try await Task.sleep(for: .seconds(1))
+            _ = ContinuousClock()
+            return Date()
+        }
+        """
+        let issues = analyze(source)
+        #expect(issues.count == 1)
+        #expect(issues.first?.message.contains("Date()") == true)
     }
 }
