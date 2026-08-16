@@ -24,13 +24,27 @@ import SwiftSyntax
 /// seam rather than a use, that fixture files are exempt, and what to tell the
 /// author.
 ///
-/// The move widened coverage, because the leaf's clock set is larger than the
-/// one this rule had grown independently. `ContinuousClock()`,
-/// `SuspendingClock()`, `Task.sleep(for:)`, `DispatchTime.now()`, the remaining
-/// C clock functions and `Date(timeIntervalSinceNow:)` now report where they did
-/// not before. That is within the rule's stated intent rather than an extension
-/// of it — timing a property cannot pin is exactly what the message describes,
-/// and the suggestion already named a clock as the thing to inject.
+/// ## Scope is declared, not inherited
+///
+/// The leaf classifies more time sources than this rule reports —
+/// `ContinuousClock()`, `SuspendingClock()`, `Task.sleep(for:)`,
+/// `DispatchTime.now()`, the monotonic C functions, and
+/// `Date(timeIntervalSinceNow:)`. Moving to the shared classifier briefly pulled
+/// all of them in, and they are **deliberately excluded again**: this rule's
+/// coverage is unchanged from before the migration, and a rule that widens
+/// because its dependency learned new spellings is a rule whose scope nobody
+/// chose.
+///
+/// The exclusions are not a claim that those constructs are testable. They are
+/// the rule keeping the line it has always drawn — bare acquisitions of a value
+/// the inputs do not determine — while `contradicted-clock-determinism` covers
+/// the fuller clock set for functions that claimed otherwise. Widening this one
+/// is a decision to take on its own evidence, not a side effect of
+/// de-duplication.
+///
+/// `reportedKinds` is where that scope lives, and it is exhaustive rather than
+/// a negative test: a kind added upstream fails to compile until someone says
+/// which side of the line it falls on.
 final class NonInjectedNondeterminismVisitor: BasePatternVisitor {
 
     private var fileIsTestOrFixture = false
@@ -54,14 +68,31 @@ final class NonInjectedNondeterminismVisitor: BasePatternVisitor {
         return .visitChildren
     }
 
-    /// Applies this rule's policy to a classified source: every kind reports,
-    /// but not in a fixture and not at an injection seam.
+    /// The kinds this rule reports — its scope, stated once.
+    ///
+    /// Exactly the set it covered before the shared classifier existed:
+    /// `Date()` / `Date.now` / `CFAbsoluteTimeGetCurrent()`, `UUID()`, the RNG
+    /// draws, and `Locale.current` / `TimeZone.current`. The time kinds absent
+    /// here are absent on purpose — see the type doc.
+    ///
+    /// `wallClockOffset` is excluded because the rule's line is arity: a
+    /// construction taking no input can only have come from ambient state, and
+    /// `Date(timeIntervalSinceNow:)` takes one. That is a *known* miss rather
+    /// than an oversight — it does read the clock — and it is preserved so this
+    /// change stays a narrowing and nothing else.
+    private static let reportedKinds: Set<NondeterminismSources.Kind> = [
+        .wallClockNow, .randomness, .identity, .ambientEnvironment
+    ]
+
+    /// Applies this rule's policy to a classified source: the reported kinds
+    /// fire, but not in a fixture and not at an injection seam.
     ///
     /// The exemptions are checked here rather than in the classifier because
     /// both are facts about *where* the expression sits, which is a property of
     /// this rule's contract rather than of the expression.
     private func report(_ source: NondeterminismSources.Source?, at node: Syntax) {
-        guard let source, !fileIsTestOrFixture, !isParameterDefaultValue(node) else { return }
+        guard let source, Self.reportedKinds.contains(source.kind) else { return }
+        guard !fileIsTestOrFixture, !isParameterDefaultValue(node) else { return }
         flag(source.marker, at: node)
     }
 
