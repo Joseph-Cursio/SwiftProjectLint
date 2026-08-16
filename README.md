@@ -8,7 +8,7 @@ Many of these rules exist just so I can explore the effects. Some rules are bad 
 
 # Swift Project Linter
 
-A static analysis tool for SwiftUI projects that detects architectural issues, performance problems, and code quality concerns. Parses Swift source files using SwiftSyntax AST visitors to identify anti-patterns across 202 rules in 13 categories.
+A static analysis tool for SwiftUI projects that detects architectural issues, performance problems, and code quality concerns. Parses Swift source files using SwiftSyntax AST visitors to identify anti-patterns across 203 rules in 13 categories.
 
 The origin of this project began with a limitation of SwiftLint: it processes a single file at a time and cannot identify cross-file issues.
 
@@ -18,7 +18,7 @@ Motivating example: I was watching the "Quality Coding" channel on YouTube. Jon 
 
 - **SwiftSyntax AST Analysis**: Precise, AST-based pattern detection — no regex
 - **Cross-File Analysis**: Detects issues spanning multiple files (duplicate state, view hierarchies)
-- **202 Lint Rules** across 13 categories
+- **203 Lint Rules** across 13 categories
 - **Three delivery targets**: macOS app GUI, CLI for CI/CD, and a reusable Core library
 - **YAML configuration**: `.swiftprojectlint.yml` for per-project rule customization
 - **Inline suppression**: `// swiftprojectlint:disable` comments for per-line control
@@ -49,7 +49,7 @@ swift run CLI /path/to/project --categories stateManagement,performance --thresh
 
 ## Rules
 
-202 rules across 13 categories. See [Docs/rules/RULES.md](Docs/rules/RULES.md) for the full reference.
+203 rules across 13 categories. See [Docs/rules/RULES.md](Docs/rules/RULES.md) for the full reference.
 
 | Category | Rules |
 |----------|-------|
@@ -65,7 +65,7 @@ swift run CLI /path/to/project --categories stateManagement,performance --thresh
 | UI Patterns | 7 |
 | Modernization | 25 |
 | Idempotency | 7 |
-| Testability | 10 |
+| Testability | 11 |
 
 Rules marked **opt-in** are disabled by default and must be explicitly listed under `enabled_only` in `.swiftprojectlint.yml`.
 
