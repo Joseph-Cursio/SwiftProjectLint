@@ -75,6 +75,18 @@ open class BasePatternVisitor: SyntaxVisitor, PatternVisitorProtocol {
     /// one does not make its caller a function of mutable state. Built project-wide by
     /// `CleanInstanceMethodCatalog` in `ProjectLinter`'s pre-scan, because a type's methods are
     /// spread across its extensions and a single-file answer would miss most of them.
+    /// Package function names the purity oracle refutes with an establishable witness.
+    ///
+    /// The one-hop callee join. `PurityInferrer` decides each declaration alone, so a
+    /// one-line function whose helper spawns a subprocess reads as pure — the callee's
+    /// verdict is computed and then never consulted. A rule that offers purity
+    /// candidates consults this to avoid offering that caller.
+    ///
+    /// Built project-wide by `PackagePurityJoin` in the pre-scan, because the sinking
+    /// callee is usually in another file. Empty in unit tests that drive a visitor
+    /// directly, which is correct: a single file has no package to join against.
+    public var knownImpurePackageFunctions: Set<String> = []
+
     public var knownCleanInstanceMethods = CleanInstanceMethodCatalog.empty
 
     /// Functions **this project declares**, as bare names and labelled names (`matches(name:)`).
