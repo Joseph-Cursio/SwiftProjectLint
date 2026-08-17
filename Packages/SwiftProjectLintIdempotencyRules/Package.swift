@@ -34,7 +34,7 @@ let package = Package(
         // root and SwiftProjectLintVisitors pins.
         .package(
             url: "https://github.com/Joseph-Cursio/SwiftEffectInference.git",
-            revision: "c66fceb825eebf77477631388e1ba4326a7aa4e6"
+            revision: "3ea25f29de9e0fbb86a6a8f20b2c42ead58a039e"
         )
     ],
     targets: [
