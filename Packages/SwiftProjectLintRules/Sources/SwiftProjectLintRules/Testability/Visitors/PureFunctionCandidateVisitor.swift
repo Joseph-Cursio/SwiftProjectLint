@@ -73,6 +73,10 @@ final class PureFunctionCandidateVisitor: BasePatternVisitor {
                 + "for the property rather than a failure."
         }
 
+        // The callee join: a candidate whose body reaches a package function this same
+        // oracle refutes is not offered at all.
+        if impureCallee(of: node) != nil { return .visitChildren }
+
         let restriction = PropertyTestCandidacy.restriction(of: node)
         let reachable = restriction == nil
         if !reachable { advice = Self.wideningAdvice }
@@ -124,6 +128,14 @@ final class PureFunctionCandidateVisitor: BasePatternVisitor {
         if candidate.isPartial {
             advice += " Narrow the law's domain to the values that do not throw."
         }
+        if let accessor = binding.accessorBlock,
+           PackagePurityJoin.impureCallee(
+               in: Syntax(accessor),
+               settledImpureNames: knownImpurePackageFunctions
+           ) != nil {
+            return .visitChildren
+        }
+
         let restriction = PropertyTestCandidacy.restriction(of: node)
         let reachable = restriction == nil
         if !reachable { advice = Self.wideningAdvice }
@@ -140,6 +152,30 @@ final class PureFunctionCandidateVisitor: BasePatternVisitor {
             testReachability: restriction.map(TestReachability.unreachable) ?? .reachable
         )
         return .visitChildren
+    }
+
+    /// The settled-impure package callee that disqualifies `node`, if any.
+    ///
+    /// **A function is not a purity candidate because its callee was never consulted.**
+    /// `PurityInferrer` decides each declaration alone, so `standardOutputViaEnv` —
+    /// whose one-line body calls a `standardOutput` that spawns a subprocess and drains
+    /// two pipes — read as pure and was offered here. Offering a false candidate is
+    /// worse than offering none: this rule is what seeds `swift-infer`, so a wrong seed
+    /// becomes a law nobody can hold.
+    ///
+    /// Measured in SwiftInferProperties before being built (its
+    /// `docs/measurements/purity-refuting-fixpoint-census.md`): 18 rows at one hop over
+    /// 2,396 `.pure` subjects. One hop is 62% of the fixpoint's effect, and is what
+    /// ships — see `PackagePurityJoin` for why the loop is a later phase.
+    ///
+    /// Suppression is silent. The over-claim is worth reporting on its own terms, and
+    /// that is a separate rule rather than a second job for this one.
+    private func impureCallee(of node: FunctionDeclSyntax) -> String? {
+        guard !knownImpurePackageFunctions.isEmpty, let body = node.body else { return nil }
+        return PackagePurityJoin.impureCallee(
+            in: Syntax(body),
+            settledImpureNames: knownImpurePackageFunctions
+        )
     }
 
     /// Appended to the message when no test can reach the declaration.

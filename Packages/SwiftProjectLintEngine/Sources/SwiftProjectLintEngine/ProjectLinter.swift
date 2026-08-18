@@ -236,8 +236,25 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
         /// by its own fixpoint rather than by `collectTypes`.
         let cleanInstanceMethods: CleanInstanceMethodCatalog
 
+        /// Package function names this project's own purity oracle refutes with an
+        /// establishable witness — the one-hop callee join. Needs parsed bodies for the
+        /// same reason `cleanInstanceMethods` does, and shares the single parse below.
+        ///
+        /// A per-file visitor cannot compute this: the callee whose verdict sinks a
+        /// candidate is usually in another file. This pre-pass is the project's existing
+        /// answer to that, which is why the join arrives as a `known*` set rather than by
+        /// converting a rule to cross-file — the cross-file dispatch path does not forward
+        /// the `known*` catalogs at all, so a rule that moved onto it would silently lose
+        /// the type knowledge its candidacy test depends on. Measured, when that route was
+        /// tried: 377 candidate symbols dropped out.
+        let impurePackageFunctions: Set<String>
+
         static func collect(from filePaths: [String]) -> Self {
-            Self(
+            // Parsed once and shared: both body-needing collectors below walk the same
+            // trees, and parsing a project twice to build two catalogs is the kind of
+            // cost that does not show up until someone points the linter at a large tree.
+            let parsed = parseAll(filePaths)
+            return Self(
                 identifiable: collectTypes(IdentifiableTypeCollector.self, from: filePaths),
                 enums: collectTypes(EnumTypeCollector.self, from: filePaths),
                 actors: collectTypes(ActorTypeCollector.self, from: filePaths),
@@ -250,9 +267,8 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
                 defaultedInitializers: collectTypes(
                     DefaultedInitializerCollector.self, from: filePaths
                 ),
-                cleanInstanceMethods: CleanInstanceMethodCatalog.build(
-                    from: parseAll(filePaths)
-                )
+                cleanInstanceMethods: CleanInstanceMethodCatalog.build(from: parsed),
+                impurePackageFunctions: PackagePurityJoin(sources: parsed).settledImpureNames
             )
         }
     }
@@ -273,6 +289,7 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
         resolved.knownEquatableTypes = collected.equatable
         resolved.knownValueTypes = collected.values
         resolved.knownCleanInstanceMethods = collected.cleanInstanceMethods
+        resolved.knownImpurePackageFunctions = collected.impurePackageFunctions
         resolved.knownProjectFunctions = collected.functions
         resolved.knownDefaultedInitializerTypes = collected.defaultedInitializers
         resolved.layerPolicies = configuration.architecturalLayers
@@ -303,6 +320,7 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
             equatableTypes: collected.equatable,
             valueTypes: collected.values,
             projectFunctions: collected.functions,
+            impurePackageFunctions: collected.impurePackageFunctions,
             defaultedInitializerTypes: collected.defaultedInitializers,
             layerPolicies: layerPolicies
         )

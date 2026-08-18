@@ -158,6 +158,8 @@ extension ProjectLinter {
         /// Functions this project declares — lets the Pure Closure rule tell a closure that still
         /// hides logic from one merely forwarding to a function the reader already extracted.
         let projectFunctions: Set<String>
+        /// The one-hop callee join, resolved once in the pre-scan. See `PackagePurityJoin`.
+        let impurePackageFunctions: Set<String>
 
         /// Types whose initialiser has defaulted parameters — the gate for `lossyStructRebuild`.
         let defaultedInitializerTypes: Set<String>
@@ -185,6 +187,7 @@ extension ProjectLinter {
             equatableTypes: env.equatableTypes,
             valueTypes: env.valueTypes,
             projectFunctions: env.projectFunctions,
+            impurePackageFunctions: env.impurePackageFunctions,
             defaultedInitializerTypes: env.defaultedInitializerTypes,
             layerPolicies: env.layerPolicies
         )
@@ -206,6 +209,7 @@ extension ProjectLinter {
         equatableTypes: Set<String> = [],
         valueTypes: Set<String> = [],
         projectFunctions: Set<String> = [],
+        impurePackageFunctions: Set<String> = [],
         defaultedInitializerTypes: Set<String> = [],
         layerPolicies: [LayerPolicy] = []
     ) -> (file: ProjectFile, issues: [LintIssue], parsedAST: SourceFileSyntax)? {
@@ -230,6 +234,7 @@ extension ProjectLinter {
         det.knownEquatableTypes = equatableTypes
         det.knownValueTypes = valueTypes
         det.knownProjectFunctions = projectFunctions
+        det.knownImpurePackageFunctions = impurePackageFunctions
         det.knownDefaultedInitializerTypes = defaultedInitializerTypes
         det.layerPolicies = layerPolicies
 

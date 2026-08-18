@@ -43,6 +43,11 @@ public protocol SourcePatternDetectorProtocol {
     var knownValueTypes: Set<String> { get set }
 
     /// Per type, sibling methods cleared as functions of their inputs by the pre-scan.
+    /// Package function names the purity oracle refutes with an establishable witness —
+    /// the one-hop callee join, resolved once in the pre-scan. See
+    /// `PackagePurityJoin` and `BasePatternVisitor.knownImpurePackageFunctions`.
+    var knownImpurePackageFunctions: Set<String> { get set }
+
     var knownCleanInstanceMethods: CleanInstanceMethodCatalog { get set }
 
     /// Functions this project declares (bare and labelled names). Lets the Pure Closure rule tell a
