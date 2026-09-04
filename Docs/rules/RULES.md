@@ -114,7 +114,7 @@ Rules marked **opt-in** are disabled by default and must be explicitly listed un
 | [Actor Reentrancy](actor-reentrancy.md) | Warning |
 | [Force Cast](force-cast.md) | Warning |
 | [Force Try](force-try.md) | Warning |
-| [Force Unwrap](force-unwrap.md) | Info |
+| [Force Unwrap](force-unwrap.md) | Warning |
 | [Unconditional Trap](unconditional-trap.md) | Warning |
 | [Print Statement](print-statement.md) | Info |
 | [Catch Without Handling](catch-without-handling.md) | Warning |

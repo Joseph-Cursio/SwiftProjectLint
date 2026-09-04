@@ -147,7 +147,41 @@ struct TrapFamilyDetectionTests {
         #expect(found.isEmpty)
     }
 
-    // MARK: - Category
+    // MARK: - Severity across the family
+
+    @Test func everyTrapInTheFamilyReportsAtTheSameSeverity() {
+        // The consequence is identical in all four cases — a dead process, no counterexample —
+        // so reporting one of them more quietly than the rest would hide the commonest one.
+        let found = issues(
+            in: """
+            func port(from text: String) -> Int {
+                Int(text)!
+            }
+
+            func config(from data: Data) -> Config {
+                try! JSONDecoder().decode(Config.self, from: data)
+            }
+
+            func label(from value: Any) -> String {
+                value as! String
+            }
+
+            func symbol(for status: Status) -> String {
+                switch status {
+                case .ok: return "ok"
+                default: fatalError("unhandled status")
+                }
+            }
+            """,
+            rules: [.forceUnwrap, .forceTry, .forceCast, .unconditionalTrap]
+        )
+
+        let byRule = Dictionary(grouping: found, by: \.ruleName)
+        for rule in [RuleIdentifier.forceUnwrap, .forceTry, .forceCast, .unconditionalTrap] {
+            #expect(byRule[rule]?.isEmpty == false, "\(rule.rawValue) reported nothing")
+            #expect(byRule[rule]?.allSatisfy { $0.severity == .warning } == true)
+        }
+    }
 
     @Test func everyTrapInTheFamilyIsCodeQuality() {
         // Section 15.3.2's readiness profile pulls totality rules from the code-quality bucket,
