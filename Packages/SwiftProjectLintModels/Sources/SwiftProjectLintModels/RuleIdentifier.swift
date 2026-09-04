@@ -96,6 +96,8 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
     case actorReentrancy = "Actor Reentrancy"
     case forceTry = "Force Try"
     case forceUnwrap = "Force Unwrap"
+    case forceCast = "Force Cast"
+    case unconditionalTrap = "Unconditional Trap"
     case printStatement = "Print Statement"
     case catchWithoutHandling = "Catch Without Handling"
     case todoComment = "TODO Comment"
