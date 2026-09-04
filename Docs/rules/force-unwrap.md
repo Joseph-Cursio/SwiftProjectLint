@@ -4,7 +4,7 @@
 
 **Identifier:** `Force Unwrap`
 **Category:** Code Quality
-**Severity:** Info
+**Severity:** Warning
 
 ### Rationale
 Force unwrapping an optional with `!` will crash at runtime if the value is nil. Prefer safe alternatives like `if-let`, `guard-let`, or the nil-coalescing operator (`??`).

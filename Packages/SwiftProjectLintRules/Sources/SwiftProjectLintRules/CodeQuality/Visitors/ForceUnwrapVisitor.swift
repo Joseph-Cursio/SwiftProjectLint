@@ -14,7 +14,7 @@ final class ForceUnwrapVisitor: BasePatternVisitor {
 
     override func visit(_ node: ForceUnwrapExprSyntax) -> SyntaxVisitorContinueKind {
         addIssue(
-            severity: .info,
+            severity: .warning,
             message: "Force unwrap (!) will crash on nil — consider using if-let, guard-let, or nil-coalescing",
             filePath: getFilePath(for: Syntax(node)),
             lineNumber: getLineNumber(for: Syntax(node)),

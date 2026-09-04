@@ -112,8 +112,10 @@ Rules marked **opt-in** are disabled by default and must be explicitly listed un
 | [Lowercased Contains](lowercased-contains.md) | Warning |
 | [Multiple Types Per File](multiple-types-per-file.md) | Info |
 | [Actor Reentrancy](actor-reentrancy.md) | Warning |
+| [Force Cast](force-cast.md) | Warning |
 | [Force Try](force-try.md) | Warning |
-| [Force Unwrap](force-unwrap.md) | Info |
+| [Force Unwrap](force-unwrap.md) | Warning |
+| [Unconditional Trap](unconditional-trap.md) | Warning |
 | [Print Statement](print-statement.md) | Info |
 | [Catch Without Handling](catch-without-handling.md) | Warning |
 | [TODO Comment](todo-comment.md) | Info |

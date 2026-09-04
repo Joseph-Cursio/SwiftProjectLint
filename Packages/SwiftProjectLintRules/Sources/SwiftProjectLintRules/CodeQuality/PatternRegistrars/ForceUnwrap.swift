@@ -12,7 +12,7 @@ struct ForceUnwrap: PatternRegistrarProtocol {
         SyntaxPattern(
             name: .forceUnwrap,
             visitor: ForceUnwrapVisitor.self,
-            severity: .info,
+            severity: .warning,
             category: .codeQuality,
             messageTemplate: "Force unwrap (!) will crash on nil — consider using if-let, guard-let, or nil-coalescing",
             suggestion: "Use if-let, guard-let, or the nil-coalescing operator (??) for safe unwrapping.",

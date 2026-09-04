@@ -32,7 +32,7 @@ struct ForceUnwrapVisitorTests {
 
         let issue = try #require(visitor.detectedIssues.first)
         #expect(issue.ruleName == .forceUnwrap)
-        #expect(issue.severity == .info)
+        #expect(issue.severity == .warning)
         #expect(issue.message.contains("Force unwrap"))
     }
 

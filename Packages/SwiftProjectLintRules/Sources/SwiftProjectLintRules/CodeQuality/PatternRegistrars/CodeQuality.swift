@@ -120,6 +120,8 @@ class CodeQuality: BasePatternRegistrar {
             ActorReentrancy(),
             ForceTry(),
             ForceUnwrap(),
+            ForceCast(),
+            UnconditionalTrap(),
             PrintStatement(),
             CatchWithoutHandling(),
             TodoComment(),
