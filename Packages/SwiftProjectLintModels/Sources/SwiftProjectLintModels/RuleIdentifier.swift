@@ -227,7 +227,7 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
     case nonInjectedNondeterminism = "Non-Injected Nondeterminism"
     case pureFunctionCandidate = "Pure Function Property-Test Candidate"
     case pureClosureCandidate = "Pure Closure Property-Test Candidate"
-    case extractablePureKernel = "Extractable Pure Kernel"
+    case extractableTotalKernel = "Extractable Total Kernel"
     case missingEquatableOnStateType = "Missing Equatable on State Type"
     case impureCallInViewBody = "Impure Call in View Body"
 

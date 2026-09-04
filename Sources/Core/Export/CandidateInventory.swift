@@ -29,7 +29,7 @@ import SwiftProjectLintModels
 ///
 /// ## Why these two rules and not the whole category
 ///
-/// `.extractablePureKernel` stays listed, and the distinction is what the rule *asks of the reader*
+/// `.extractableTotalKernel` stays listed, and the distinction is what the rule *asks of the reader*
 /// rather than how many there are. A candidate rule **nominates**: "this is pure, it could be
 /// property-tested." There is nothing to do per item — you hand the manifest to a tool. The kernel
 /// rule **diagnoses**: "pure logic is trapped in an impure method, and here is the refactor." That

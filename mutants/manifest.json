@@ -1,6 +1,6 @@
 {
   "kind": "spm",
-  "note": "Private mutation/regression corpus for SwiftProjectLint (a SwiftPM monorepo — rules live under Packages/*). Mutants live in a detector's own source; each is killed by the root package's CoreTests. Run via `swift test --filter`. Not a scored benchmark. Target: the ExtractablePureKernelVisitor (the §15.2.5 'lift the trapped kernel' rule).",
+  "note": "Private mutation/regression corpus for SwiftProjectLint (a SwiftPM monorepo — rules live under Packages/*). Mutants live in a detector's own source; each is killed by the root package's CoreTests. Run via `swift test --filter`. Not a scored benchmark. Target: the ExtractableTotalKernelVisitor (the §15.2.5 'lift the trapped kernel' rule).",
   "mutants": [
     {
       "id": "kernel-governs-always-false",

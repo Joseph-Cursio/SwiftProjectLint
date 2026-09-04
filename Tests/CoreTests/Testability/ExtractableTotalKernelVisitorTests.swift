@@ -15,17 +15,17 @@ import Testing
 /// the rule's whole worth is its precision; the acceptance set below was built by hand-classifying
 /// all 85 functions in the fixture app before a line of the rule was written.
 @Suite("Arithmetic trapped inside an impure method")
-struct ExtractablePureKernelVisitorTests {
+struct ExtractableTotalKernelVisitorTests {
 
     private func analyze(_ source: String, filePath: String = "Service.swift") -> [LintIssue] {
-        let visitor = ExtractablePureKernelVisitor(patternCategory: .testability)
+        let visitor = ExtractableTotalKernelVisitor(patternCategory: .testability)
         let syntax = Parser.parse(source: source)
         visitor.setSourceLocationConverter(
             SourceLocationConverter(fileName: filePath, tree: syntax)
         )
         visitor.setFilePath(filePath)
         visitor.walk(syntax)
-        return visitor.detectedIssues.filter { $0.ruleName == .extractablePureKernel }
+        return visitor.detectedIssues.filter { $0.ruleName == .extractableTotalKernel }
     }
 
     // MARK: - The motivating case

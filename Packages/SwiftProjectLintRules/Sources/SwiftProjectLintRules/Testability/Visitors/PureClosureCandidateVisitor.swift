@@ -97,7 +97,7 @@ final class PureClosureCandidateVisitor: BasePatternVisitor {
     /// symbol. A downstream consumer that narrowed analysis to `filter` would be narrowing to
     /// nothing.
     ///
-    /// So the symbol names the enclosing declaration, on exactly the terms `extractablePureKernel`
+    /// So the symbol names the enclosing declaration, on exactly the terms `extractableTotalKernel`
     /// already uses: *here is where to look*, and a human draws the boundary. `PBTSeedKind` calls
     /// this shape `refactor-pending`, and a consumer must not point analysis at it.
     ///

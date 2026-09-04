@@ -159,7 +159,7 @@ decision to make on purpose rather than inherit:
 - **Don't add it** (preferred). The inventory's stated meaning is *property-test seeds* — the same
   refutal this rule was written to route around. A finding that is explicitly not a seed does not
   belong in the seed inventory, and widening the set to hold it would cost the inventory its
-  meaning. Accept default-listed at `.info`, which is what `.extractablePureKernel` already does
+  meaning. Accept default-listed at `.info`, which is what `.extractableTotalKernel` already does
   (`CandidateInventory.swift:32` records that choice and why).
 - **Add it** only if a road test shows the volume is inventory-scale. `pure-closure-candidate` alone
   contributed 208 findings in the run recorded at `Docs/rules/pure-closure-candidate.md:253`; if

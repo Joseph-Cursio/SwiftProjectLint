@@ -1,8 +1,8 @@
-diff --git a/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/Testability/Visitors/ExtractablePureKernelVisitor.swift b/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/Testability/Visitors/ExtractablePureKernelVisitor.swift
+diff --git a/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/Testability/Visitors/ExtractableTotalKernelVisitor.swift b/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/Testability/Visitors/ExtractableTotalKernelVisitor.swift
 index db7997e..7fa96ef 100644
---- a/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/Testability/Visitors/ExtractablePureKernelVisitor.swift
-+++ b/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/Testability/Visitors/ExtractablePureKernelVisitor.swift
-@@ -67,7 +67,7 @@ final class ExtractablePureKernelVisitor: BasePatternVisitor {
+--- a/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/Testability/Visitors/ExtractableTotalKernelVisitor.swift
++++ b/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/Testability/Visitors/ExtractableTotalKernelVisitor.swift
+@@ -67,7 +67,7 @@ final class ExtractableTotalKernelVisitor: BasePatternVisitor {
                let body = node.body,
                // Gate 1: a *pure* function has no trapped kernel — it IS the kernel, and
                // `pureFunctionCandidate` reports it.
