@@ -193,8 +193,8 @@ final class NonInjectedNondeterminismVisitor: BasePatternVisitor {
         )
     }
 
-    /// True when `node` is the right-hand side of a `??` — the value used when
-    /// the real one was absent.
+    /// True when `node` **is** the right-hand side of a `??` — the value used
+    /// when the real one was absent.
     ///
     /// Handles both spellings because the tree shape depends on who parsed it.
     /// `SwiftParser` leaves `a ?? b` as a `SequenceExprSyntax` of three
@@ -202,10 +202,27 @@ final class NonInjectedNondeterminismVisitor: BasePatternVisitor {
     /// `InfixOperatorExprSyntax`. Reading only the folded form would make this
     /// silently report nothing under the parser the tests and the CLI both use.
     ///
-    /// Stops at a closure or code block for the same reason
-    /// `isParameterDefaultValue` does: `cached ?? recompute { Date() }` has a
-    /// clock read *inside* the fallback rather than *as* it, and that is the
-    /// first fault, not this one.
+    /// ## Being the fallback, not sitting inside one
+    ///
+    /// The walk climbs only through *transparent* wrappers — parentheses,
+    /// `try`, `await` — and stops at anything else. That distinction is the
+    /// whole rule, and the first version of this got it wrong: an unrestricted
+    /// walk reported the `UUID()` in
+    ///
+    /// ```swift
+    /// userDefaults ?? UserDefaults(suiteName: "test.\(UUID().uuidString)") ?? .standard
+    /// ```
+    ///
+    /// as a fabrication, because a `??` sits somewhere above it. Nothing is
+    /// fabricated there: the fallback is a fresh isolated suite, and the UUID
+    /// is a genuine identity doing its job. Caught by running the corpus rather
+    /// than by the unit tests, which had only covered the closure form of the
+    /// same mistake.
+    ///
+    /// The reachable-source case — `cached ?? recompute { Date() }` — is the
+    /// same shape and now falls out of the same check rather than needing the
+    /// closure stop to catch it. That stop is kept anyway: it is cheap, and it
+    /// states the intent at the boundary a reader looks for it.
     private func isNilCoalescingFallback(_ node: Syntax) -> Bool {
         var current = node
         while let parent = current.parent {
@@ -218,7 +235,27 @@ final class NonInjectedNondeterminismVisitor: BasePatternVisitor {
                elements.parent?.is(SequenceExprSyntax.self) == true {
                 return isFallbackElement(current, in: elements)
             }
+            guard isTransparentWrapper(parent) else { return false }
             current = parent
+        }
+        return false
+    }
+
+    /// True when `syntax` wraps an expression without changing which expression
+    /// it *is* — parentheses, `try`, `await`.
+    ///
+    /// A parenthesised expression parses as a one-element `TupleExprSyntax`, so
+    /// the arity and label checks are what separate `(Date())` from
+    /// `f(at: Date())`. Without them this would re-admit every call argument and
+    /// the walk would be unrestricted again.
+    private func isTransparentWrapper(_ syntax: Syntax) -> Bool {
+        if syntax.is(TryExprSyntax.self) || syntax.is(AwaitExprSyntax.self) { return true }
+        if let tuple = syntax.as(TupleExprSyntax.self) { return tuple.elements.count == 1 }
+        if let element = syntax.as(LabeledExprSyntax.self) {
+            return element.label == nil && element.parent?.parent?.is(TupleExprSyntax.self) == true
+        }
+        if let list = syntax.as(LabeledExprListSyntax.self) {
+            return list.parent?.is(TupleExprSyntax.self) == true
         }
         return false
     }
