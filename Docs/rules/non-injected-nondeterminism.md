@@ -18,6 +18,54 @@ A property-based test re-runs logic against many randomized inputs and, when it 
 
 Uses in a parameter *default value* position are exempt (a defaulted `clock: () -> Date = { Date() }` is itself the injection seam), as are test files.
 
+### Two faults, one trigger
+
+The same marker witnesses two different problems, and only one of them is about testability. The
+rule reports both, with different messages.
+
+**Cannot control the value.** A clock or an RNG read inline, feeding a bound, a branch or a retry
+window. The value is real; a test cannot pin it. The discriminator this fault wants — does the
+value feed a *decision*, or is it only stored and shown? — is not decidable from the expression's
+own syntax (`lastRunDate = Date()` reads as a record until you find the later
+`Date().timeIntervalSince(lastRunDate)` that makes it a bound), so the message carries it as advice
+rather than applying it as a gate.
+
+**Fabricates the value.** A nondeterministic source as the fallback of `??`, standing in for a
+value that was absent:
+
+```swift
+id = model.id ?? UUID()
+modifiedDate = attributes.contentModificationDate ?? Date()
+lastOccurrence = result.finishedAt ?? Date()
+```
+
+Nothing computes with these in the sense above — they are stored and shown, exactly the shape the
+first fault's advice waves through — and that advice is wrong here. Injecting a clock makes the
+invention *reproducible*, not correct.
+
+The harm is specific. `Date()` is the largest instant in the system and `UUID()` matches no row, so
+an invented value does not merely differ from the real one: **it wins every comparison it enters.**
+Three independent instances found across the corpus, one failure mode each time:
+
+| Where | What the fabricated value did |
+| --- | --- |
+| A file whose modification date the file system did not report | Looked like the newest thing on disk, won every comparison, and silently uploaded over the server's copy |
+| A CI run with no finish time | Won `max(existing.lastOccurrence, incoming)` and pinned the anti-pattern's last occurrence to poll time |
+| A note with no recorded date | Never matched its search-index entry, so it was re-indexed on every refresh, forever |
+
+The fix is to propagate the `nil` so callers can say *unknown*, or to refuse — Fluent's
+`try requireID()` is the idiom.
+
+This fault *is* a local syntactic shape, which is the only reason it can be separated from the
+first. Measured across the sweep corpus before the split: **7 production occurrences in 23
+repositories**, 2 of them live defects and 2 more already unreachable by construction. It is kept
+inside this rule rather than promoted to its own, because every one of these sites was already
+reported here and moving them would hand new findings to anyone who had disabled the rule.
+
+The fabrication check runs *before* the `Identifiable` identity exemption, and that order matters:
+`struct Response: Identifiable { let id = model.id ?? UUID() }` satisfies the exemption exactly, and
+is also the shape of the four DTO defects that motivated the split.
+
 ### What this rule deliberately does not flag
 
 `ContinuousClock()`, `SuspendingClock()`, `Task.sleep(for:)`, `DispatchTime.now()`, the monotonic C functions (`mach_absolute_time`, `clock_gettime`), and `Date(timeIntervalSinceNow:)` all read a clock, and none of them are reported here.
