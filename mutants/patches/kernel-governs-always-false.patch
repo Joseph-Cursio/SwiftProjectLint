@@ -1,10 +1,10 @@
 diff --git a/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/Testability/Visitors/ExtractableTotalKernelVisitor.swift b/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/Testability/Visitors/ExtractableTotalKernelVisitor.swift
-index db7997e..d8eb87a 100644
+index 30583e3..78fa9f8 100644
 --- a/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/Testability/Visitors/ExtractableTotalKernelVisitor.swift
 +++ b/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/Testability/Visitors/ExtractableTotalKernelVisitor.swift
-@@ -151,7 +151,7 @@ private struct KernelScan {
-     /// that picks out chunking math and progress tracking and essentially nothing else.
-     var isWorthExtracting: Bool {
+@@ -207,7 +207,7 @@ private struct KernelScan {
+ 
+     private var isArithmeticKernel: Bool {
          let hasArithmetic = !derivedBindings.isEmpty || hasFraction
 -        let governs = hasGoverningComparison || hasSlicingArithmetic || hasFraction
 +        let governs = false

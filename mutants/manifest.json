@@ -25,6 +25,14 @@
       "expected": "killed",
       "test": "arithmeticWithoutAGoverningUseIsNotReported",
       "label": "isWorthExtracting returns true unconditionally — merely-stored arithmetic (assigned, not governing) is falsely flagged"
+    },
+    {
+      "id": "kernel-ignores-ambient-state",
+      "patch": "patches/kernel-ignores-ambient-state.patch",
+      "shape": "detector-precision",
+      "expected": "killed",
+      "test": "continuousClockElapsedIsNotAKernel",
+      "label": "the ambient-state guard is removed — a clock read (`ContinuousClock.now - lastActivityAt`) is reported as a kernel that 'depends only on its parameters and locals'"
     }
   ]
 }
