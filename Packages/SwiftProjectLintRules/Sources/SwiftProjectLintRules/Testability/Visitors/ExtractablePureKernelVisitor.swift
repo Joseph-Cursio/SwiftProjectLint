@@ -449,6 +449,16 @@ private struct Collector {
                   let name = binding.pattern.as(IdentifierPatternSyntax.self)?.identifier.text else {
                 continue
             }
+            // A binding that reads ambient state is not a kernel, whichever shape it has below:
+            // this rule's own message claims the bindings "depend only on its parameters and
+            // locals", and a clock read makes that claim false.
+            //
+            // `onlyPureCalls` cannot catch it. That walk visits `FunctionCallExprSyntax`, and
+            // `ContinuousClock.now` is a member access with no call in it. `Date()` was already
+            // refused because it *is* a call whose callee is not a pure conversion — which is why
+            // only the clock-property spelling ever got through, and why the gap went unnoticed.
+            guard !AmbientStateReads.occur(in: value) else { continue }
+
             if isVar, !value.is(IntegerLiteralExprSyntax.self) {
                 externallySeededVars.insert(name)
             }
