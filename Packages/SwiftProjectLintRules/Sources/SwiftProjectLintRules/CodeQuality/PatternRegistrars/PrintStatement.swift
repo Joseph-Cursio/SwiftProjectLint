@@ -12,7 +12,7 @@ struct PrintStatement: PatternRegistrarProtocol {
         SyntaxPattern(
             name: .printStatement,
             visitor: PrintStatementVisitor.self,
-            severity: .info,
+            severity: .warning,
             category: .codeQuality,
             messageTemplate: "print() statement found — consider using os.Logger or removing before release",
             suggestion: "Use os.Logger for structured logging or remove print statements before release.",

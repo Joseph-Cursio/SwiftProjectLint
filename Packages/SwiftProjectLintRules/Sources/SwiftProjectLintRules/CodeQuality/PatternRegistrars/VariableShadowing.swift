@@ -13,7 +13,7 @@ struct VariableShadowing: PatternRegistrarProtocol {
         SyntaxPattern(
             name: .variableShadowing,
             visitor: VariableShadowingVisitor.self,
-            severity: .warning,
+            severity: .error,
             category: .codeQuality,
             messageTemplate: "Variable shadows a declaration from an outer scope",
             suggestion: "Rename the inner variable to avoid confusion with the outer declaration.",

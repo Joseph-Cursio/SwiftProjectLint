@@ -44,7 +44,7 @@ class Accessibility: BasePatternRegistrar {
             SyntaxPattern(
                 name: .inaccessibleColorUsage,
                 visitor: AccessibilityVisitor.self,
-                severity: .warning,
+                severity: .info,
                 category: .accessibility,
                 messageTemplate: "Color usage may not be accessible for colorblind users",
                 suggestion: "Use semantic colors or add alternative indicators beyond color",
