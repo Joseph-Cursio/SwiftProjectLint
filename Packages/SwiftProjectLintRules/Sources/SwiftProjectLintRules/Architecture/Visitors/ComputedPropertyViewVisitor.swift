@@ -113,34 +113,111 @@ class ComputedPropertyViewVisitor: BasePatternVisitor {
     /// exactly when its parent does, so a child struct changes nothing; a type with no stored
     /// properties at all has nothing to narrow, and yields nothing.
     static func propertiesWorthExtracting(in memberBlock: MemberBlockSyntax) -> Set<String> {
+        let members = properties(of: memberBlock)
+        guard !members.stored.isEmpty else { return [] }
+
+        let buttonCollections = namesUsedAsButtonCollections(in: memberBlock)
+
+        return members.viewProperties.filter { name in
+            guard !buttonCollections.contains(name) else { return false }
+            let depends = resolvedDependencies(
+                of: name, computed: members.computedReferences, stored: members.stored
+            )
+            return depends.isSubset(of: members.stored) && depends.count < members.stored.count
+        }
+    }
+
+    private struct TypeProperties {
         var stored: Set<String> = []
         var computedReferences: [String: Set<String>] = [:]
         var viewProperties: Set<String> = []
+    }
 
+    /// The type's stored inputs, what each computed property references, and which of them return
+    /// `some View`.
+    private static func properties(of memberBlock: MemberBlockSyntax) -> TypeProperties {
+        var result = TypeProperties()
         for member in memberBlock.members {
             guard let varDecl = member.decl.as(VariableDeclSyntax.self) else { continue }
             let isStatic = varDecl.modifiers.contains { $0.name.tokenKind == .keyword(.static) }
             for binding in varDecl.bindings {
-                guard let name = binding.pattern.as(IdentifierPatternSyntax.self)?
-                    .identifier.text else { continue }
-                guard let accessor = binding.accessorBlock else {
-                    // A stored property. `static let` is a constant, not an input the view
-                    // re-renders on, so it is not part of the surface.
-                    if !isStatic { stored.insert(name) }
-                    continue
-                }
-                computedReferences[name] = referencedNames(in: Syntax(accessor))
-                if name != "body", returnsSomeViewType(binding.typeAnnotation) {
-                    viewProperties.insert(name)
-                }
+                record(binding, isStatic: isStatic, into: &result)
             }
         }
-        guard !stored.isEmpty else { return [] }
+        return result
+    }
 
-        return viewProperties.filter { name in
-            let depends = resolvedDependencies(of: name, computed: computedReferences, stored: stored)
-            return depends.isSubset(of: stored) && depends.count < stored.count
+    private static func record(
+        _ binding: PatternBindingSyntax, isStatic: Bool, into result: inout TypeProperties
+    ) {
+        guard let name = binding.pattern.as(IdentifierPatternSyntax.self)?
+            .identifier.text else { return }
+        guard let accessor = binding.accessorBlock else {
+            // A stored property. `static let` is a constant, not an input the view re-renders on,
+            // so it is not part of the surface.
+            if !isStatic { result.stored.insert(name) }
+            return
         }
+        result.computedReferences[name] = referencedNames(in: Syntax(accessor))
+        if name != "body", returnsSomeViewType(binding.typeAnnotation) {
+            result.viewProperties.insert(name)
+        }
+    }
+
+    /// APIs whose closure is a **collection of buttons**, not an arbitrary view.
+    ///
+    /// `confirmationDialog(actions:)`, `alert(actions:)`, `Menu(content:)` and `contextMenu` read
+    /// the buttons out of the builder they are handed. A `View` struct wrapping those buttons is a
+    /// container these APIs are not specified to accept, so "extract this into its own View" is not
+    /// behaviour-preserving here — it is the one place where following this rule can change what
+    /// the app does rather than only how it redraws.
+    ///
+    /// Found on MacCloud_client_iOS, where `FileListView` had three such properties and the rule
+    /// reported all three. It marked them `info` for carrying `@ViewBuilder`, which is not the same
+    /// thing as declining to report them.
+    private static let buttonCollectionBuilders: Set<String> = [
+        "confirmationDialog", "alert", "actionSheet", "Menu", "contextMenu"
+    ]
+
+    /// Property names referenced inside one of those builders.
+    ///
+    /// Only the *arguments and trailing closures* are searched, never the called expression. For a
+    /// modifier the called expression holds the receiver — the entire view it is applied to — and
+    /// walking it would sweep up every name in `body`.
+    ///
+    /// Deliberately coarse in one direction: a name appearing in `alert`'s `message:` closure is
+    /// spared along with the ones in `actions:`. Sparing a property costs a finding; reporting one
+    /// whose extraction breaks a dialog costs a working app, so the imprecision is pointed the safe
+    /// way.
+    private static func namesUsedAsButtonCollections(in memberBlock: MemberBlockSyntax) -> Set<String> {
+        var found: Set<String> = []
+        collectButtonCollectionNames(in: Syntax(memberBlock), into: &found)
+        return found
+    }
+
+    private static func collectButtonCollectionNames(in node: Syntax, into found: inout Set<String>) {
+        for child in node.children(viewMode: .sourceAccurate) {
+            if let call = child.as(FunctionCallExprSyntax.self), isButtonCollection(call) {
+                found.formUnion(referencedNames(in: Syntax(call.arguments)))
+                if let trailing = call.trailingClosure {
+                    found.formUnion(referencedNames(in: Syntax(trailing)))
+                }
+                for extra in call.additionalTrailingClosures {
+                    found.formUnion(referencedNames(in: Syntax(extra.closure)))
+                }
+            }
+            collectButtonCollectionNames(in: child, into: &found)
+        }
+    }
+
+    private static func isButtonCollection(_ call: FunctionCallExprSyntax) -> Bool {
+        if let member = call.calledExpression.as(MemberAccessExprSyntax.self) {
+            return buttonCollectionBuilders.contains(member.declName.baseName.text)
+        }
+        if let reference = call.calledExpression.as(DeclReferenceExprSyntax.self) {
+            return buttonCollectionBuilders.contains(reference.baseName.text)
+        }
+        return false
     }
 
     /// The stored properties a computed property reaches, following the type's other computed

@@ -293,3 +293,164 @@ struct ComputedPropertyViewSubsetGateTests {
         #expect(issues.first?.message.contains("fewer of this view's inputs") == true)
     }
 }
+
+/// A property that supplies a dialog's buttons is not extractable into a `View` struct.
+///
+/// `confirmationDialog(actions:)`, `alert(actions:)`, `Menu(content:)` and `contextMenu` read the
+/// buttons out of the builder they are handed. Wrapping them in a `View` interposes a container
+/// those APIs are not specified to accept, so following the rule's advice there changes what the
+/// app does rather than only how it redraws — the one place this rule could break something.
+///
+/// Found on MacCloud_client_iOS: `FileListView` had three such properties and the rule reported
+/// all three. Lowering them to `info` for carrying `@ViewBuilder` is not the same as declining.
+@Suite("A dialog's buttons are not an extractable subview")
+struct ComputedPropertyViewButtonCollectionTests {
+
+    private func filteredIssues(_ source: String) -> [LintIssue] {
+        let visitor = ComputedPropertyViewVisitor(patternCategory: .architecture)
+        let syntax = Parser.parse(source: source)
+        visitor.setSourceLocationConverter(
+            SourceLocationConverter(fileName: "TestFile.swift", tree: syntax)
+        )
+        visitor.setFilePath("TestFile.swift")
+        visitor.walk(syntax)
+        return visitor.detectedIssues.filter { $0.ruleName == RuleIdentifier.computedPropertyView }
+    }
+
+    @Test("a confirmation dialog's actions are not reported")
+    func confirmationDialogActionsAreNotReported() {
+        #expect(filteredIssues("""
+        struct Row: View {
+            let title: String
+            @State private var showing = false
+            @ViewBuilder
+            private var fileActions: some View {
+                Button("Delete", role: .destructive) { }
+                Button("Cancel", role: .cancel) { }
+            }
+            var body: some View {
+                Text(title)
+                    .confirmationDialog("Pick", isPresented: $showing) { fileActions }
+            }
+        }
+        """).isEmpty)
+    }
+
+    @Test("an alert's actions are not reported")
+    func alertActionsAreNotReported() {
+        #expect(filteredIssues("""
+        struct Row: View {
+            let title: String
+            @State private var showing = false
+            @ViewBuilder
+            private var deleteActions: some View {
+                Button("Delete", role: .destructive) { }
+            }
+            var body: some View {
+                Text(title)
+                    .alert("Sure?", isPresented: $showing) { deleteActions }
+            }
+        }
+        """).isEmpty)
+    }
+
+    @Test("a menu's content is not reported")
+    func menuContentIsNotReported() {
+        #expect(filteredIssues("""
+        struct Row: View {
+            let title: String
+            @State private var showing = false
+            @ViewBuilder
+            private var moreMenuItems: some View {
+                Button("Upload") { }
+                Button("New Folder") { }
+            }
+            var body: some View {
+                HStack {
+                    Text(title)
+                    Menu(content: { moreMenuItems }, label: { Text("More") })
+                    Toggle("", isOn: $showing)
+                }
+            }
+        }
+        """).isEmpty)
+    }
+
+    // MARK: - The controls
+
+    @Test("the same property in ordinary content is still reported")
+    func ordinaryContentIsStillReported() {
+        // The control the gate needs, and the reason it keys on the *consumer* rather than on
+        // `@ViewBuilder`: an identical property placed in a `VStack` has no dialog to break.
+        let issues = filteredIssues("""
+        struct Row: View {
+            let title: String
+            @State private var showing = false
+            @ViewBuilder
+            private var buttons: some View {
+                Button("Delete", role: .destructive) { }
+            }
+            var body: some View {
+                VStack {
+                    buttons
+                    Text(title)
+                    Toggle("", isOn: $showing)
+                }
+            }
+        }
+        """)
+        #expect(issues.count == 1)
+        #expect(issues.first?.message.contains("buttons") == true)
+    }
+
+    @Test("a sibling not used by the dialog is still reported")
+    func siblingOutsideTheDialogIsStillReported() {
+        // The gate must spare the dialog's own builder without silencing the whole type.
+        let issues = filteredIssues("""
+        struct Row: View {
+            let title: String
+            @State private var showing = false
+            @ViewBuilder
+            private var fileActions: some View {
+                Button("Delete", role: .destructive) { }
+            }
+            private var header: some View { Text("Files") }
+            var body: some View {
+                VStack {
+                    header
+                    Text(title)
+                    Toggle("", isOn: $showing)
+                }
+                .confirmationDialog("Pick", isPresented: $showing) { fileActions }
+            }
+        }
+        """)
+        #expect(issues.count == 1)
+        #expect(issues.first?.message.contains("header") == true)
+    }
+
+    @Test("the receiver of a dialog modifier is not swept up")
+    func modifierReceiverIsNotSweptUp() {
+        // `.confirmationDialog` is a member call whose *called expression* holds the entire view it
+        // is applied to. Searching that instead of the arguments would collect every name in
+        // `body`, and the rule would go silent on any file containing one dialog.
+        let issues = filteredIssues("""
+        struct Row: View {
+            let title: String
+            @State private var showing = false
+            private var summary: some View { Text(title) }
+            @ViewBuilder
+            private var actions: some View { Button("OK") { } }
+            var body: some View {
+                VStack {
+                    summary
+                    Toggle("", isOn: $showing)
+                }
+                .confirmationDialog("Pick", isPresented: $showing) { actions }
+            }
+        }
+        """)
+        #expect(issues.count == 1)
+        #expect(issues.first?.message.contains("summary") == true)
+    }
+}
