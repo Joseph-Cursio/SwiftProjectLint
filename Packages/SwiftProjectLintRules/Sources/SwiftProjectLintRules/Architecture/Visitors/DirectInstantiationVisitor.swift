@@ -98,24 +98,6 @@ class DirectInstantiationVisitor: BasePatternVisitor {
         return .visitChildren
     }
 
-    // MARK: - Constructor/function parameter defaults
-
-    override func visit(_ node: FunctionParameterSyntax) -> SyntaxVisitorContinueKind {
-        guard let defaultValue = node.defaultValue else { return .visitChildren }
-        if let typeName = isServiceLikeCall(defaultValue.value) {
-            let paramName = node.firstName.text
-            addIssue(
-                severity: .warning,
-                message: "Default parameter '\(paramName)' directly instantiates '\(typeName)' — prefer injection",
-                filePath: currentFilePath,
-                lineNumber: getLineNumber(for: Syntax(node)),
-                suggestion: "Remove the default value and inject '\(typeName)' at the call site",
-                ruleName: .directInstantiation
-            )
-        }
-        return .visitChildren
-    }
-
     // MARK: - Static-member detection
 
     private func isStatic(_ node: VariableDeclSyntax) -> Bool {

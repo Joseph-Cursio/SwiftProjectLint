@@ -39,15 +39,39 @@ struct ArchitectureDirectInstantiationTests {
 
     // MARK: - Constructor default
 
-    @Test func testDetectsDirectInstantiationInConstructorDefault() throws {
+    @Test func testDefaultedParameterIsASeamNotAViolation() {
+        // A defaulted parameter *is* the injection point: a test substitutes by passing one,
+        // which is the whole requirement. The old advice — "remove the default value and
+        // inject at the call site" — makes every caller construct one for no testability gain.
+        //
+        // The rule was also inconsistent about it. Three defaults hard-wire production
+        // identically and only the constructor spelling was reported:
+        //
+        //     init(svc: NetworkService = NetworkService())   // flagged
+        //     init(svc: NetworkService = .shared)            // silent
+        //     init(fm: FileManager = .default)               // silent
+        //
+        // If the concern is the hard-wire, `.shared` is the worse case. The line was drawn on
+        // syntax rather than substance, and `= .default` is the convention these projects use.
         let source = """
         class MyViewModel {
             init(svc: NetworkService = NetworkService()) { }
         }
         """
-        let issues = analyzeSource(source)
-        let directIssues = issues.filter { $0.ruleName == .directInstantiation }
-        let issue = try #require(directIssues.first)
+        let issues = analyzeSource(source).filter { $0.ruleName == .directInstantiation }
+        #expect(issues.isEmpty)
+    }
+
+    @Test func testStoredPropertyHardWireIsStillDetected() throws {
+        // The control, and where the rule's value actually is. A stored property with an
+        // inline initializer has no seam at all — there is no parameter to pass.
+        let source = """
+        class MyViewModel {
+            private let svc = NetworkService()
+        }
+        """
+        let issues = analyzeSource(source).filter { $0.ruleName == .directInstantiation }
+        let issue = try #require(issues.first)
         #expect(issue.message.contains("NetworkService"))
     }
 
