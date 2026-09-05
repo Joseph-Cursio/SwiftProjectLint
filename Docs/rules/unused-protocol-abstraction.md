@@ -105,4 +105,13 @@ struct SettingDiff: BuildSettingIdentity { /* … */ }
 function taking `any BuildSettingIdentity` — to replace per-type duplication, or remove the
 protocol if no shared behavior is actually needed.
 
+### Known Limitations
+
+- **A `public`, `open` or `package` protocol is never reported.** Its consumers can be in
+  another module, package or repository, and this rule reads one project at a time — "conformed
+  to here, used nowhere here" is what a healthy abstraction looks like from inside the library
+  that publishes it. The rule keeps its value on `internal` protocols, whose consumers are all
+  inside the module by definition. In an app target nothing is lost either: a `public` protocol
+  there is over-exposed rather than unused, and `publicInAppTarget` is the rule that says so.
+
 ---
