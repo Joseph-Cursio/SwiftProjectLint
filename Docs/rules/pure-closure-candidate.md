@@ -249,8 +249,8 @@ never as *"reachable"*.
 
 ### Not listed in the default report
 
-This rule is a **census**, and on a real codebase it is a large one: 464 findings here, alongside
-208 from [Pure Closure Property-Test Candidate](pure-closure-candidate.md) — together **76% of
+This rule is a **census**, and on a real codebase it is a large one: 208 findings here, alongside
+464 from [Pure Function Property-Test Candidate](pure-function-candidate.md) — together **76% of
 everything the linter prints**. A pure function is not a defect and there is nothing to fix per
 line, so enumerating them buries the findings that *are* defects. During this project's own road
 test the linter found a real bug in its configuration code, reported it correctly, and the finding
@@ -300,6 +300,16 @@ function you can generate inputs for.
 That is the whole fix, and the payoff is immediate and local: the logic becomes **addressable**. You
 can call it, you can enumerate its inputs, and a failure points at the function rather than at a list
 of files three layers up.
+
+The same refactor has an argument behind it that has nothing to do with testing. Adam Tornhill's
+[*Beyond Lambdas: Raising the Abstraction Level*](https://adamtornhill.substack.com/p/beyond-lambdas-raising-the-abstraction)
+makes the case on readability: a lambda optimises for writing at the cost of reading, so intent stays
+opaque where a named function would carry the domain, and an abstraction does not have to be reused to
+earn its place. Worth reading beside this rule, with two differences noted. It argues from worked
+examples rather than from measurement, which is not what his code-analysis work leads you to expect.
+And his criterion is wider than this rule's — he would name every step of a pipeline for the
+narrative, including the `{ $0.date > $1.date }` listed above as free. The agreement is on the fix,
+not on when to ask for it.
 
 <details><summary>It also unblocks the rest of the toolchain</summary>
 
