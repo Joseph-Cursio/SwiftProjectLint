@@ -3,7 +3,7 @@
 ## Thread Sleep
 
 **Identifier:** `Thread Sleep`
-**Category:** Code Quality
+**Category:** Modernization
 **Severity:** Warning
 
 ### Rationale

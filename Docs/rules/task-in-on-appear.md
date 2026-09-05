@@ -3,7 +3,7 @@
 ## Task in onAppear
 
 **Identifier:** `Task in onAppear`
-**Category:** UI Patterns
+**Category:** Modernization
 **Severity:** Warning
 
 ### Rationale

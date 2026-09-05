@@ -3,7 +3,7 @@
 ## Date Now
 
 **Identifier:** `Date Now`
-**Category:** Code Quality
+**Category:** Modernization
 **Severity:** Info
 
 ### Rationale

@@ -3,7 +3,7 @@
 ## Dispatch Main Async
 
 **Identifier:** `Dispatch Main Async`
-**Category:** Code Quality
+**Category:** Modernization
 **Severity:** Info
 
 ### Rationale

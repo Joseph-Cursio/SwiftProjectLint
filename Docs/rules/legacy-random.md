@@ -3,7 +3,7 @@
 ## Legacy Random
 
 **Identifier:** `Legacy Random`
-**Category:** Code Quality
+**Category:** Modernization
 **Severity:** Info
 
 ### Rationale

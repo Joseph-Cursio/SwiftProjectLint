@@ -3,7 +3,7 @@
 ## Completion Handler Data Task
 
 **Identifier:** `Completion Handler Data Task`
-**Category:** Code Quality
+**Category:** Modernization
 **Severity:** Info
 
 ### Rationale

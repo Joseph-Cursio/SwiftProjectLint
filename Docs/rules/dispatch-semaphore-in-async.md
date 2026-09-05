@@ -3,7 +3,7 @@
 ## Dispatch Semaphore in Async
 
 **Identifier:** `Dispatch Semaphore in Async`
-**Category:** Performance
+**Category:** Modernization
 **Severity:** Warning
 
 ### Rationale

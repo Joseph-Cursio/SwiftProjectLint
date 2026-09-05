@@ -3,7 +3,7 @@
 ## CF Absolute Time
 
 **Identifier:** `CF Absolute Time`
-**Category:** Code Quality
+**Category:** Modernization
 **Severity:** Info
 
 ### Rationale
