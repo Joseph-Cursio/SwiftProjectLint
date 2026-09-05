@@ -66,6 +66,24 @@ The fabrication check runs *before* the `Identifiable` identity exemption, and t
 `struct Response: Identifiable { let id = model.id ?? UUID() }` satisfies the exemption exactly, and
 is also the shape of the four DTO defects that motivated the split.
 
+#### Creating a value is not fabricating one
+
+```swift
+let sessionID = currentSessionID ?? UUID()   // no session yet, so make one
+…
+currentSessionID = sessionID                 // and it is now the session
+```
+
+What makes a fabrication a defect is that the invented value stands in for a **real one that exists
+somewhere else** — a row's id, a file's modification date — so the two can disagree. When the value
+is written back into the thing that was missing, there is no counterpart left to disagree with: it
+*becomes* the answer. The one-statement form `current = current ?? UUID()` is the same thing.
+
+These are **reclassified, not silenced.** They fall through to the rule's ordinary message, which is
+true of them — a test still cannot pin the id — so the gate moves the corpus count by zero. The
+gate stays shut when the `??` falls back from a call or a literal, because there is no storage a
+later statement could be matched against.
+
 ### What this rule deliberately does not flag
 
 `ContinuousClock()`, `SuspendingClock()`, `Task.sleep(for:)`, `DispatchTime.now()`, the monotonic C functions (`mach_absolute_time`, `clock_gettime`), and `Date(timeIntervalSinceNow:)` all read a clock, and none of them are reported here.
