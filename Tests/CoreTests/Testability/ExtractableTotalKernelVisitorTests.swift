@@ -399,7 +399,7 @@ struct ExtractableTotalKernelVisitorTests {
     }
 }
 
-/// A clock read is not a pure kernel, and the rule used to say it was.
+/// A clock read is not a total kernel, and the rule used to say it was.
 ///
 /// Found by running the rule over SwiftAssist: `WorkloadTracker.isIdle(forAtLeast:)` and
 /// `ResourceGovernor.isStale(_:)` both compute `let elapsed = ContinuousClock.now - instant` and
@@ -412,17 +412,17 @@ struct ExtractableTotalKernelVisitorTests {
 /// callee is not one of the pure conversions, so the wall-clock spelling was refused all along —
 /// which is why the gap survived: the obvious probe passes.
 @Suite("A clock read is not a kernel")
-struct ExtractablePureKernelAmbientStateTests {
+struct ExtractableTotalKernelAmbientStateTests {
 
     private func analyze(_ source: String) -> [LintIssue] {
-        let visitor = ExtractablePureKernelVisitor(patternCategory: .testability)
+        let visitor = ExtractableTotalKernelVisitor(patternCategory: .testability)
         let syntax = Parser.parse(source: source)
         visitor.setSourceLocationConverter(
             SourceLocationConverter(fileName: "Service.swift", tree: syntax)
         )
         visitor.setFilePath("Service.swift")
         visitor.walk(syntax)
-        return visitor.detectedIssues.filter { $0.ruleName == .extractablePureKernel }
+        return visitor.detectedIssues.filter { $0.ruleName == .extractableTotalKernel }
     }
 
     // MARK: - The false positives this closes
