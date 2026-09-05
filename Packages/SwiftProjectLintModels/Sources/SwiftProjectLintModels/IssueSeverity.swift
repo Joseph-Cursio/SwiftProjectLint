@@ -16,7 +16,10 @@
 ///   - info: Provides informational messages or suggestions for improving code quality or consistency.
 ///
 /// - SeeAlso: `LintIssue`
-public enum IssueSeverity: String, Codable, Sendable {
+/// `CaseIterable` so that presentation mappings over severity can be checked exhaustively rather
+/// than one example per case. A three-case switch is exactly where a fourth case gets folded into
+/// an existing branch, and only a test that iterates `allCases` notices.
+public enum IssueSeverity: String, Codable, Sendable, CaseIterable {
     case error
     case warning
     case info
