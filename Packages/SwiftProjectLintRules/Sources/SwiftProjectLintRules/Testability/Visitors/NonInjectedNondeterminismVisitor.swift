@@ -92,7 +92,8 @@ final class NonInjectedNondeterminismVisitor: BasePatternVisitor {
     /// this rule's contract rather than of the expression.
     private func report(_ source: NondeterminismSources.Source?, at node: Syntax) {
         guard let source, Self.reportedKinds.contains(source.kind) else { return }
-        guard !fileIsTestOrFixture, !isParameterDefaultValue(node) else { return }
+        guard !fileIsTestOrFixture, !isParameterDefaultValue(node),
+              !isIdentifiableIdentity(node) else { return }
         flag(source.marker, at: node)
     }
 
@@ -104,9 +105,58 @@ final class NonInjectedNondeterminismVisitor: BasePatternVisitor {
             filePath: getFilePath(for: node),
             lineNumber: getLineNumber(for: node),
             suggestion: "Inject the source (a clock `() -> Date`, a `RandomNumberGenerator`, a UUID "
-                + "provider) so tests can control it.",
+                + "provider) so tests can control it. Worth doing where the value feeds a DECISION — "
+                + "a name, a bound, a branch, a retry window. A value that is only stored and shown "
+                + "needs no seam: a test can construct the record with whatever value it wants.",
             ruleName: .nonInjectedNondeterminism
         )
+    }
+
+    /// True when `node` is the `id` of an `Identifiable` type — `let id = UUID()`.
+    ///
+    /// The one shape where the marker is real and injecting the source buys nothing. `Identifiable`
+    /// is a declaration that the value's whole job is to be distinct: nothing computes with it, no
+    /// law can be stated over it, and a test that needs a particular id constructs the value with
+    /// one. A UUID provider here adds a seam to thread through every call site to fix nothing.
+    ///
+    /// **The conformance is what makes this safe, and it is required rather than inferred.** A bare
+    /// `let id = UUID()` on a type that is not `Identifiable` stays reported: without the
+    /// conformance, `id` is just a name, and the value may well be compared, persisted as a key, or
+    /// sent over a wire.
+    ///
+    /// Measured across the seven-run sweep corpus: 14 of 198 findings are `let id = UUID()`, and 13
+    /// of those carry the conformance. **This is a 7% narrowing, not the wholesale one the rule
+    /// looks like it wants** — see the note on `report`.
+    private func isIdentifiableIdentity(_ node: Syntax) -> Bool {
+        var current = node.parent
+        var isStoredIDBinding = false
+
+        while let syntax = current {
+            // A local inside a function or closure is not a stored identity, whatever it is named.
+            if syntax.is(ClosureExprSyntax.self) || syntax.is(CodeBlockSyntax.self) { return false }
+
+            if let binding = syntax.as(PatternBindingSyntax.self) {
+                guard binding.accessorBlock == nil,
+                      binding.pattern.as(IdentifierPatternSyntax.self)?.identifier.text == "id"
+                else { return false }
+                isStoredIDBinding = true
+            }
+            if isStoredIDBinding, let inheritance = inheritanceClause(of: syntax) {
+                return inheritance.inheritedTypes.contains {
+                    $0.type.trimmedDescription == "Identifiable"
+                }
+            }
+            current = syntax.parent
+        }
+        return false
+    }
+
+    private func inheritanceClause(of syntax: Syntax) -> InheritanceClauseSyntax? {
+        if let decl = syntax.as(StructDeclSyntax.self) { return decl.inheritanceClause }
+        if let decl = syntax.as(ClassDeclSyntax.self) { return decl.inheritanceClause }
+        if let decl = syntax.as(ActorDeclSyntax.self) { return decl.inheritanceClause }
+        if let decl = syntax.as(EnumDeclSyntax.self) { return decl.inheritanceClause }
+        return nil
     }
 
     /// True when `node` sits in a function/initializer parameter's default
