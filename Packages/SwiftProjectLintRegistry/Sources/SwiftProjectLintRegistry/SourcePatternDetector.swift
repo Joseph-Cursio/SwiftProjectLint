@@ -34,6 +34,9 @@ public final class SourcePatternDetector: SourcePatternDetectorProtocol, @unchec
     public var knownObservableEnvironmentViews: Set<String>?
 
     /// `typealias` names whose underlying type is a function type.
+    /// Member names declared under `@_spi(...)`.
+    public var knownSPIMembers: Set<String> = []
+
     public var knownFunctionTypeAliases: Set<String> = []
 
     public var knownProtocolTypes: Set<String> = []
@@ -196,6 +199,7 @@ public final class SourcePatternDetector: SourcePatternDetectorProtocol, @unchec
             let visitor = entry.type.init(pattern: entry.patterns[0])
             visitor.setSourceLocationConverter(converter)
             visitor.knownObservableEnvironmentViews = knownObservableEnvironmentViews
+            visitor.knownSPIMembers = knownSPIMembers
             visitor.knownFunctionTypeAliases = knownFunctionTypeAliases
             visitor.knownIdentifiableTypes = knownIdentifiableTypes
             visitor.knownEnumTypes = knownEnumTypes

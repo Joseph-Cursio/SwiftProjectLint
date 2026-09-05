@@ -36,6 +36,8 @@ public protocol SourcePatternDetectorProtocol {
     /// `View` names reading `@Environment(SomeType.self)`; `nil` when no pre-scan ran.
     var knownObservableEnvironmentViews: Set<String>? { get set }
 
+    var knownSPIMembers: Set<String> { get set }
+
     var knownFunctionTypeAliases: Set<String> { get set }
 
     var knownProtocolTypes: Set<String> { get set }

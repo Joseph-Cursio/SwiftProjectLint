@@ -50,4 +50,15 @@ func hack(n: Networking) {
 }
 ```
 
+### Known Limitations
+
+- **A member published under `@_spi(...)` is never reported.** The attribute is Swift's own way
+  of saying "public symbol, deliberately not public API", and the underscore is the naming
+  convention that accompanies it. Reporting it tells the author something they already said.
+  This needs the project-wide SPI prescan, so a single-file run will still report such an access.
+- **A member the enclosing type declares itself is never reported.** `other._value` inside that
+  type's own initializer is how an `Equatable`-style comparison is written. The scope is the
+  enclosing type, not the file: two types in one file are still separate encapsulations, and one
+  reaching into the other's underscored member is the violation this rule exists for.
+
 ---

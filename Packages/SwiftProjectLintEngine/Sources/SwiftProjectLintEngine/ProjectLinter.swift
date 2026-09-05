@@ -236,6 +236,8 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
         let observableEnvironmentViews: Set<String>
         /// `typealias` names whose underlying type is a function type.
         let functionTypeAliases: Set<String>
+        /// Member names declared under `@_spi(...)`.
+        let spiMembers: Set<String>
         /// Per type, the sibling methods that are themselves functions of their inputs. Unlike the
         /// name sets above this needs the parsed bodies, not just declarations, so it is resolved
         /// by its own fixpoint rather than by `collectTypes`.
@@ -276,6 +278,7 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
                     ObservableEnvironmentViewCollector.self, from: filePaths
                 ),
                 functionTypeAliases: collectTypes(FunctionTypeAliasCollector.self, from: filePaths),
+                spiMembers: collectTypes(SPIMemberCollector.self, from: filePaths),
                 cleanInstanceMethods: CleanInstanceMethodCatalog.build(from: parsed),
                 impurePackageFunctions: PackagePurityJoin(sources: parsed).settledImpureNames
             )
@@ -295,6 +298,7 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
         resolved.knownLocalTypeNames = collected.local
         resolved.knownObservableTypes = collected.observable
         resolved.knownObservableEnvironmentViews = collected.observableEnvironmentViews
+        resolved.knownSPIMembers = collected.spiMembers
         resolved.knownFunctionTypeAliases = collected.functionTypeAliases
         resolved.knownProtocolTypes = collected.protocols
         resolved.knownEquatableTypes = collected.equatable
@@ -325,6 +329,7 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
             identifiableTypes: collected.identifiable,
             observableEnvironmentViews: collected.observableEnvironmentViews,
             functionTypeAliases: collected.functionTypeAliases,
+            spiMembers: collected.spiMembers,
             enumTypes: collected.enums,
             actorTypes: collected.actors,
             localTypes: collected.local,
