@@ -40,7 +40,7 @@ struct OverrideApplicationLawsTests {
     /// generated issue lists repeat rules and a single override lands on several
     /// issues at once. A wide pool would almost never produce that collision.
     private static let rulePool: [RuleIdentifier] = [
-        .pureFunctionCandidate, .extractablePureKernel, .idempotencyViolation,
+        .pureFunctionCandidate, .extractableTotalKernel, .idempotencyViolation,
         .forceTry, .magicNumber
     ]
 

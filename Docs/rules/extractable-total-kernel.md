@@ -1,10 +1,12 @@
 [← Back to Rules](RULES.md)
 
-## Extractable Pure Kernel
+## Extractable Total Kernel
 
-**Identifier:** `Extractable Pure Kernel`
+**Identifier:** `Extractable Total Kernel`
 **Category:** Testability
 **Severity:** Info
+
+> **Total kernel.** The book's name for a function that passes all three readiness criteria: *pure* (reads only its arguments, so it is deterministic by construction), *total* (defined on every input — no traps, no `fatalError`, no overflow), and value-returning. "Pure" alone is the effect-lattice tier that `PurityInferrer` grades; a total kernel is a pure function that is also safe to hand to a property checker, because a trap ends the run with a raw input where a failing law would hand you a shrunk counterexample. This rule finds total kernels that have no boundary drawn around them yet.
 
 ### Rationale
 

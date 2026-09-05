@@ -29,7 +29,7 @@ struct CandidateInventoryTests {
             issue(.pureFunctionCandidate),
             issue(.pureFunctionCandidate),
             issue(.pureClosureCandidate),
-            issue(.extractablePureKernel),
+            issue(.extractableTotalKernel),
             issue(.globalMutableState, severity: .warning),
             issue(.idempotencyViolation, severity: .error)
         ]
@@ -46,12 +46,12 @@ struct CandidateInventoryTests {
 
     @Test("a diagnosing rule in the same category stays listed")
     func kernelRuleStaysListed() {
-        // `.extractablePureKernel` is `.testability` and seeds the pipeline, like the two above.
+        // `.extractableTotalKernel` is `.testability` and seeds the pipeline, like the two above.
         // It stays because of what it asks of the reader: a candidate rule NOMINATES ("this is
         // pure"), with nothing to do per item, while the kernel rule DIAGNOSES a specific place and
         // proposes a refactor that can be wrong. Volume is the symptom; that is the criterion.
         let listed = CandidateInventory.split(corpus(), collapsing: true).listed
-        #expect(listed.map(\.ruleName).contains(.extractablePureKernel))
+        #expect(listed.map(\.ruleName).contains(.extractableTotalKernel))
     }
 
     @Test("an error-severity seeding rule is never withheld")

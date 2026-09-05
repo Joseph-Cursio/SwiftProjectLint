@@ -56,4 +56,4 @@ enabled_only:
   # Adjacent smells that often co-occur with the above
   - "String Switch Over Enum"
   - "Boolean Control Coupling"
-  - "Extractable Pure Kernel"
+  - "Extractable Total Kernel"
