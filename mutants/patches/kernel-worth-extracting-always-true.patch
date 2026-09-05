@@ -1,13 +1,13 @@
 diff --git a/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/Testability/Visitors/ExtractableTotalKernelVisitor.swift b/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/Testability/Visitors/ExtractableTotalKernelVisitor.swift
-index db7997e..11c66ea 100644
+index 30583e3..3baa0b3 100644
 --- a/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/Testability/Visitors/ExtractableTotalKernelVisitor.swift
 +++ b/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/Testability/Visitors/ExtractableTotalKernelVisitor.swift
-@@ -152,7 +152,7 @@ private struct KernelScan {
-     var isWorthExtracting: Bool {
-         let hasArithmetic = !derivedBindings.isEmpty || hasFraction
-         let governs = hasGoverningComparison || hasSlicingArithmetic || hasFraction
--        return hasArithmetic && governs && signalCount >= 2
-+        return true
-     }
+@@ -203,7 +203,7 @@ private struct KernelScan {
+     /// layout constant. A governing use alone fires on every `if` in the codebase. It is the
+     /// conjunction — a value *computed* and then used as a bound, an index, a slice or a fraction —
+     /// that picks out chunking math and progress tracking and essentially nothing else.
+-    var isWorthExtracting: Bool { isArithmeticKernel || isPathKernel }
++    var isWorthExtracting: Bool { true }
  
-     private var signalCount: Int {
+     private var isArithmeticKernel: Bool {
+         let hasArithmetic = !derivedBindings.isEmpty || hasFraction
