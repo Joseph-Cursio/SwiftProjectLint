@@ -26,6 +26,10 @@ final class UnusedProtocolAbstractionVisitor: CrossFileVisitorBase, CrossFilePat
         /// so conformers and uses are only credited from that same file. This avoids a
         /// same-named type in another file masking a genuinely dead file-scoped protocol.
         let isFileScoped: Bool
+        /// `public`, `open` and `package` protocols can be used by code this run cannot see.
+        /// The same visibility reasoning as `isFileScoped`, pointed the other way: there, the
+        /// consumers must be inside one file; here, they may be outside the project entirely.
+        let isAPI: Bool
     }
 
     private var declaredProtocols: [ProtocolDecl] = []
@@ -37,15 +41,13 @@ final class UnusedProtocolAbstractionVisitor: CrossFileVisitorBase, CrossFilePat
     // MARK: - Phase 1: collect
 
     override func visit(_ node: ProtocolDeclSyntax) -> SyntaxVisitorContinueKind {
-        let isFileScoped = node.modifiers.contains { modifier in
-            let text = modifier.name.text
-            return text == "private" || text == "fileprivate"
-        }
+        let modifiers = Set(node.modifiers.map(\.name.text))
         declaredProtocols.append(ProtocolDecl(
             name: node.name.text,
             file: currentFilePath,
             line: getLineNumber(for: Syntax(node)),
-            isFileScoped: isFileScoped
+            isFileScoped: !modifiers.isDisjoint(with: ["private", "fileprivate"]),
+            isAPI: !modifiers.isDisjoint(with: ["public", "open", "package"])
         ))
         return .visitChildren
     }
@@ -91,6 +93,16 @@ final class UnusedProtocolAbstractionVisitor: CrossFileVisitorBase, CrossFilePat
                 ? referencingFiles.contains(proto.file)
                 : referencingFiles.isEmpty == false
 
+            // A protocol that is API cannot be judged from this project's sources. Its
+            // consumers may be in another package or another repository, and "conformed to
+            // here, used nowhere here" is what a well-behaved abstraction looks like from
+            // inside the library that publishes it. Reported against LintStudioUI's
+            // `GitServiceProtocol`, which SwiftLintRuleStudio takes in two places.
+            //
+            // Nothing is lost in an app target, where a `public` protocol has no outside
+            // consumer to speak of: `publicInAppTarget` is the rule that says so, and it says
+            // it better, because over-exposure rather than disuse is the actual problem there.
+            guard !proto.isAPI else { continue }
             guard conformers >= 1, isUsed == false else { continue }
             let suffix = conformers == 1 ? "type" : "types"
             addIssue(

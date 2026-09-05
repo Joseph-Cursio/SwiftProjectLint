@@ -148,4 +148,97 @@ struct UnusedProtocolAbstractionVisitorTests {
 
         #expect(issues.isEmpty)
     }
+
+    // MARK: - API is out of scope
+
+    // A protocol declared `public`, `open` or `package` can be used by code this run cannot
+    // see. "Conformed to here, used nowhere here" is what a well-behaved abstraction looks
+    // like from inside the library that publishes it, so the rule has no evidence either way.
+    //
+    // This was reported against LintStudioUI's `GitServiceProtocol`, which SwiftLintRuleStudio
+    // takes in two places — `DependencyContainer.gitService` and `GitBranchDiffService`.
+
+    @Test
+    func publicProtocolIsNotFlagged() {
+        let issues = analyze(files: [
+            "Service.swift": """
+            public protocol GitServiceProtocol: Sendable {
+                func currentBranch() async throws -> String
+            }
+            public actor GitServiceActor: GitServiceProtocol {
+                public func currentBranch() async throws -> String { "main" }
+            }
+            """
+        ])
+        #expect(issues.isEmpty)
+    }
+
+    @Test
+    func openProtocolIsNotFlagged() {
+        let issues = analyze(files: [
+            "Service.swift": """
+            open protocol Openable {
+                func open()
+            }
+            struct Door: Openable {
+                func open() {}
+            }
+            """
+        ])
+        #expect(issues.isEmpty)
+    }
+
+    @Test
+    func packageProtocolIsNotFlagged() {
+        // `package` reaches other modules in the same package, which a single-target run of
+        // this rule need not be able to see either.
+        let issues = analyze(files: [
+            "Service.swift": """
+            package protocol Shareable {
+                func share()
+            }
+            struct Note: Shareable {
+                func share() {}
+            }
+            """
+        ])
+        #expect(issues.isEmpty)
+    }
+
+    @Test
+    func internalProtocolIsStillFlagged() {
+        // The control, and most of the rule's value. An `internal` protocol's consumers are
+        // all inside the module, so the absence of a use here is evidence rather than a gap.
+        let issues = analyze(files: [
+            "Service.swift": """
+            protocol Formatting {
+                func format() -> String
+            }
+            struct Plain: Formatting {
+                func format() -> String { "plain" }
+            }
+            """
+        ])
+        #expect(issues.count == 1)
+        #expect(issues.first?.message.contains("'Formatting'") == true)
+    }
+
+    @Test
+    func publicProtocolUsedAsATypeIsStillNotFlagged() {
+        // Belt and braces: a used API protocol was never flagged and still is not, so this
+        // change cannot be masking a regression in the "is it used" logic itself.
+        let issues = analyze(files: [
+            "Service.swift": """
+            public protocol Formatting {
+                func format() -> String
+            }
+            struct Plain: Formatting {
+                func format() -> String { "plain" }
+            }
+            func render(_ formatter: any Formatting) -> String { formatter.format() }
+            """
+        ])
+        #expect(issues.isEmpty)
+    }
+
 }
