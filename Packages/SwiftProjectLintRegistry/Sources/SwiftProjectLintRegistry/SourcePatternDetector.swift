@@ -33,6 +33,9 @@ public final class SourcePatternDetector: SourcePatternDetectorProtocol, @unchec
     /// `View` names reading `@Environment(SomeType.self)`; `nil` when no pre-scan ran.
     public var knownObservableEnvironmentViews: Set<String>?
 
+    /// `typealias` names whose underlying type is a function type.
+    public var knownFunctionTypeAliases: Set<String> = []
+
     public var knownProtocolTypes: Set<String> = []
 
     /// Type names known to be `Equatable` across the project. Set by
@@ -193,6 +196,7 @@ public final class SourcePatternDetector: SourcePatternDetectorProtocol, @unchec
             let visitor = entry.type.init(pattern: entry.patterns[0])
             visitor.setSourceLocationConverter(converter)
             visitor.knownObservableEnvironmentViews = knownObservableEnvironmentViews
+            visitor.knownFunctionTypeAliases = knownFunctionTypeAliases
             visitor.knownIdentifiableTypes = knownIdentifiableTypes
             visitor.knownEnumTypes = knownEnumTypes
             visitor.knownActorTypes = knownActorTypes

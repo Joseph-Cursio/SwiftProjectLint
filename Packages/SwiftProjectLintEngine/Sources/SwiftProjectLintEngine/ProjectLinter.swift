@@ -234,6 +234,8 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
         /// `View` names reading `@Environment(SomeType.self)`. See
         /// `ObservableEnvironmentViewCollector` for why the keypath form is excluded.
         let observableEnvironmentViews: Set<String>
+        /// `typealias` names whose underlying type is a function type.
+        let functionTypeAliases: Set<String>
         /// Per type, the sibling methods that are themselves functions of their inputs. Unlike the
         /// name sets above this needs the parsed bodies, not just declarations, so it is resolved
         /// by its own fixpoint rather than by `collectTypes`.
@@ -273,6 +275,7 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
                 observableEnvironmentViews: collectTypes(
                     ObservableEnvironmentViewCollector.self, from: filePaths
                 ),
+                functionTypeAliases: collectTypes(FunctionTypeAliasCollector.self, from: filePaths),
                 cleanInstanceMethods: CleanInstanceMethodCatalog.build(from: parsed),
                 impurePackageFunctions: PackagePurityJoin(sources: parsed).settledImpureNames
             )
@@ -292,6 +295,7 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
         resolved.knownLocalTypeNames = collected.local
         resolved.knownObservableTypes = collected.observable
         resolved.knownObservableEnvironmentViews = collected.observableEnvironmentViews
+        resolved.knownFunctionTypeAliases = collected.functionTypeAliases
         resolved.knownProtocolTypes = collected.protocols
         resolved.knownEquatableTypes = collected.equatable
         resolved.knownValueTypes = collected.values
@@ -320,6 +324,7 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
             ruleIdentifiers: ruleIdentifiers,
             identifiableTypes: collected.identifiable,
             observableEnvironmentViews: collected.observableEnvironmentViews,
+            functionTypeAliases: collected.functionTypeAliases,
             enumTypes: collected.enums,
             actorTypes: collected.actors,
             localTypes: collected.local,

@@ -107,6 +107,10 @@ open class BasePatternVisitor: SyntaxVisitor, PatternVisitorProtocol {
     /// quiet in exactly the single-file case where it has no way to know better.
     public var knownObservableEnvironmentViews: Set<String>?
 
+    /// `typealias` names whose underlying type is a function type. A property typed with one
+    /// is already injected — the closure is the seam.
+    public var knownFunctionTypeAliases: Set<String> = []
+
     public var knownProjectFunctions: Set<String> = []
 
     /// Types whose initialiser has DEFAULTED parameters — built by `DefaultedInitializerCollector`.
