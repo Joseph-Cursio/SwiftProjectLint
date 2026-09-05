@@ -15,17 +15,17 @@ import Testing
 /// the rule's whole worth is its precision; the acceptance set below was built by hand-classifying
 /// all 85 functions in the fixture app before a line of the rule was written.
 @Suite("Arithmetic trapped inside an impure method")
-struct ExtractablePureKernelVisitorTests {
+struct ExtractableTotalKernelVisitorTests {
 
     private func analyze(_ source: String, filePath: String = "Service.swift") -> [LintIssue] {
-        let visitor = ExtractablePureKernelVisitor(patternCategory: .testability)
+        let visitor = ExtractableTotalKernelVisitor(patternCategory: .testability)
         let syntax = Parser.parse(source: source)
         visitor.setSourceLocationConverter(
             SourceLocationConverter(fileName: filePath, tree: syntax)
         )
         visitor.setFilePath(filePath)
         visitor.walk(syntax)
-        return visitor.detectedIssues.filter { $0.ruleName == .extractablePureKernel }
+        return visitor.detectedIssues.filter { $0.ruleName == .extractableTotalKernel }
     }
 
     // MARK: - The motivating case
@@ -399,7 +399,7 @@ struct ExtractablePureKernelVisitorTests {
     }
 }
 
-/// A clock read is not a pure kernel, and the rule used to say it was.
+/// A clock read is not a total kernel, and the rule used to say it was.
 ///
 /// Found by running the rule over SwiftAssist: `WorkloadTracker.isIdle(forAtLeast:)` and
 /// `ResourceGovernor.isStale(_:)` both compute `let elapsed = ContinuousClock.now - instant` and
@@ -412,17 +412,17 @@ struct ExtractablePureKernelVisitorTests {
 /// callee is not one of the pure conversions, so the wall-clock spelling was refused all along —
 /// which is why the gap survived: the obvious probe passes.
 @Suite("A clock read is not a kernel")
-struct ExtractablePureKernelAmbientStateTests {
+struct ExtractableTotalKernelAmbientStateTests {
 
     private func analyze(_ source: String) -> [LintIssue] {
-        let visitor = ExtractablePureKernelVisitor(patternCategory: .testability)
+        let visitor = ExtractableTotalKernelVisitor(patternCategory: .testability)
         let syntax = Parser.parse(source: source)
         visitor.setSourceLocationConverter(
             SourceLocationConverter(fileName: "Service.swift", tree: syntax)
         )
         visitor.setFilePath("Service.swift")
         visitor.walk(syntax)
-        return visitor.detectedIssues.filter { $0.ruleName == .extractablePureKernel }
+        return visitor.detectedIssues.filter { $0.ruleName == .extractableTotalKernel }
     }
 
     // MARK: - The false positives this closes

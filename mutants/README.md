@@ -21,7 +21,7 @@ Requires a clean working tree.
 
 ## The corpus (`manifest.json`)
 
-All three target the `ExtractablePureKernelVisitor` — the §15.2.5 "a pure kernel is
+All three target the `ExtractableTotalKernelVisitor` — the §15.2.5 "a total kernel is
 trapped in this impure method; lift it" rule — one on each side of the
 precision/recall line:
 

@@ -26,11 +26,11 @@ struct PBTSeedsFormatterTests {
     ) -> LintIssue {
         LintIssue(
             severity: .info,
-            message: "A pure kernel is trapped in this impure method",
+            message: "A total kernel is trapped in this impure method",
             filePath: file,
             lineNumber: line,
             suggestion: "Extract the arithmetic into a value type",
-            ruleName: .extractablePureKernel,
+            ruleName: .extractableTotalKernel,
             symbol: symbol
         )
     }

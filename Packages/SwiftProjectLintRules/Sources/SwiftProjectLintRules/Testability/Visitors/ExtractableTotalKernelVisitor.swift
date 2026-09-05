@@ -66,7 +66,7 @@ import SwiftSyntax
 /// with a string, not only bounding a loop with a number.
 ///
 /// `info` severity; opt-in. Reports a refactor, not a defect.
-final class ExtractablePureKernelVisitor: BasePatternVisitor {
+final class ExtractableTotalKernelVisitor: BasePatternVisitor {
 
     private var fileIsTestOrFixture = false
     private let purityInferrer = PurityInferrer()
@@ -94,13 +94,13 @@ final class ExtractablePureKernelVisitor: BasePatternVisitor {
 
         addIssue(
             severity: .info,
-            message: "A pure kernel is trapped in this impure method — \(kernel.summary) depend "
+            message: "A total kernel is trapped in this impure method — \(kernel.summary) depend "
                 + "only on its parameters and locals, and nothing else in the method reaches them. "
                 + "Lift them into a value type and they become property-testable: \(kernel.law)",
             filePath: getFilePath(for: Syntax(kernel.anchor)),
             lineNumber: getLineNumber(for: Syntax(kernel.anchor)),
             suggestion: kernel.suggestion,
-            ruleName: .extractablePureKernel,
+            ruleName: .extractableTotalKernel,
             symbol: node.name.text,
             role: kernel.role
         )

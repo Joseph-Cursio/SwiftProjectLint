@@ -119,11 +119,11 @@ public struct PBTSeed: Codable, Sendable {
     ///
     /// - `.pureFunctionCandidate` — `PureFunctionCandidateVisitor`, via `DeclaredRoleClassifier`
     /// - `.pureClosureCandidate` — `PureClosureCandidateVisitor`, via `seedRole`
-    /// - `.extractablePureKernel` — `ExtractablePureKernelVisitor`, via `kernel.role`
+    /// - `.extractableTotalKernel` — `ExtractableTotalKernelVisitor`, via `kernel.role`
     ///
     /// This said *"every rule but the two candidate rules"* until 2026-08-04, which was wrong twice
     /// over: the count was stale, and the description ruled the third one out **by name** —
-    /// `extractablePureKernel` is a kernel rule, not a candidate rule, so a reader checking the
+    /// `extractableTotalKernel` is a kernel rule, not a candidate rule, so a reader checking the
     /// sentence against the code would have concluded the classification it saw there was a bug.
     /// A doc that characterises a set by a property its newest member lacks does not merely go out
     /// of date; it argues against the code.
@@ -253,7 +253,7 @@ public struct PBTSeedsFormatter: IssueFormatterProtocol {
     /// can index, call or generate inputs for until a human draws a boundary around it — and it
     /// belongs here on exactly the same terms.
     ///
-    /// What it cost: `ExtractablePureKernelVisitor` is arithmetic-shaped, so on the road-test fixture
+    /// What it cost: `ExtractableTotalKernelVisitor` is arithmetic-shaped, so on the road-test fixture
     /// it seeds `uploadRemainingChunks` and `collect` and **cannot** see `fetchLocalFiles`, whose
     /// logic is a predicate and a comparator rather than a computation. The closure rule *did* fire
     /// on both halves of it and said the right thing — and then the finding died in the formatter,
@@ -266,7 +266,7 @@ public struct PBTSeedsFormatter: IssueFormatterProtocol {
     static let seedKinds: [RuleIdentifier: PBTSeedKind] = [
         .pureFunctionCandidate: .pureFunction,
         .idempotencyViolation: .idempotency,
-        .extractablePureKernel: .extractableKernel,
+        .extractableTotalKernel: .extractableKernel,
         .pureClosureCandidate: .extractableKernel,
         // The domain-type family. Their symbol is a type name — see `PBTSeedKind.carrier`.
         .primitiveBypassingItsDomainType: .carrier,

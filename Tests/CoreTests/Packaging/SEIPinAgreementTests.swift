@@ -22,7 +22,7 @@ import Testing
 /// SwiftInferProperties moved its SEI pin past a measured ~2× regression on the
 /// whole-domain purity path ([SEI#1](https://github.com/Joseph-Cursio/SwiftEffectInference/issues/1))
 /// while this repository stayed on the regressed revision — and calls
-/// `PurityInferrer` from `ExtractablePureKernelVisitor` and
+/// `PurityInferrer` from `ExtractableTotalKernelVisitor` and
 /// `PureClosureCandidateVisitor` over every function *and closure* in a project.
 /// This test cannot see that cross-repo gap; nothing in a single repository can.
 /// What it can do is make sure that when this repository's pin moves, it moves

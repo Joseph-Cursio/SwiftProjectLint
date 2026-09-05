@@ -57,11 +57,11 @@ class Testability: BasePatternRegistrar {
                     + "declaration-based rules cannot see because they have no name to point at."
             ),
             SyntaxPattern(
-                name: .extractablePureKernel,
-                visitor: ExtractablePureKernelVisitor.self,
+                name: .extractableTotalKernel,
+                visitor: ExtractableTotalKernelVisitor.self,
                 severity: .info,
                 category: .testability,
-                messageTemplate: "A pure kernel is trapped inside an impure method",
+                messageTemplate: "A total kernel is trapped inside an impure method",
                 suggestion: "Lift the arithmetic into a value type built from its inputs alone; "
                     + "the method keeps the I/O.",
                 description: "Surfaces arithmetic that governs a loop bound, an index, a slice or a "

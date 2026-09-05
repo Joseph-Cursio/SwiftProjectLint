@@ -499,7 +499,7 @@ struct PureFunctionCandidateGateTests {
 
     /// **The rule reported a refactor and then refused its own output.**
     ///
-    /// `ExtractablePureKernel` tells the reader to lift the chunk arithmetic into a value type. The
+    /// `ExtractableTotalKernel` tells the reader to lift the chunk arithmetic into a value type. The
     /// natural way to write that type — and the way this project's own reference `ChunkPlan` does
     /// write it — uses `min(...)` and a computed `totalChunks`. Both refuted purity, so the extracted
     /// type earned **no seed at all**, and the lint → infer loop dead-ended on the code it was aimed

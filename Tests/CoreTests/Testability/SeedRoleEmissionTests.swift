@@ -30,12 +30,12 @@ struct SeedRoleEmissionTests {
     }
 
     private func kernelRole(_ source: String) -> PBTSeedRole? {
-        let visitor = ExtractablePureKernelVisitor(patternCategory: .testability)
+        let visitor = ExtractableTotalKernelVisitor(patternCategory: .testability)
         let syntax = Parser.parse(source: source)
         visitor.setSourceLocationConverter(SourceLocationConverter(fileName: "S.swift", tree: syntax))
         visitor.setFilePath("S.swift")
         visitor.walk(syntax)
-        return visitor.detectedIssues.first { $0.ruleName == .extractablePureKernel }?.role
+        return visitor.detectedIssues.first { $0.ruleName == .extractableTotalKernel }?.role
     }
 
     // MARK: - One per CollectionOperation.Kind
@@ -146,7 +146,7 @@ struct SeedRoleEmissionTests {
     ///
     /// `PBTSeed.role`'s doc said *"every rule but the two candidate rules"* until 2026-08-04, when
     /// there were three — and the wording ruled the third out **by name**, since
-    /// `extractablePureKernel` is a kernel rule rather than a candidate one. A reader checking that
+    /// `extractableTotalKernel` is a kernel rule rather than a candidate one. A reader checking that
     /// sentence against the code would have read the classification they found there as a bug.
     private func functionRole(_ source: String) -> PBTSeedRole? {
         let visitor = PureFunctionCandidateVisitor(patternCategory: .testability)

@@ -60,11 +60,11 @@ struct DroppedSeedReportTests {
         let report = try #require(PBTSeedsFormatter.droppedSeeds(in: [
             issue(.pureFunctionCandidate, symbol: nil, line: 1),
             issue(.pureFunctionCandidate, symbol: nil, line: 2),
-            issue(.extractablePureKernel, symbol: nil, line: 3)
+            issue(.extractableTotalKernel, symbol: nil, line: 3)
         ]))
         #expect(report.total == 3)
         #expect(report.countsByRule[.pureFunctionCandidate] == 2)
-        #expect(report.countsByRule[.extractablePureKernel] == 1)
+        #expect(report.countsByRule[.extractableTotalKernel] == 1)
     }
 
     /// The count is the first thing in the notice, and every losing rule is named — a reader who
@@ -97,7 +97,7 @@ struct DroppedSeedReportTests {
     func nothingIsReportedWhenEverySeedResolves() {
         let issues = [
             issue(.pureFunctionCandidate, symbol: "resolveRules"),
-            issue(.extractablePureKernel, symbol: "applyOverrides")
+            issue(.extractableTotalKernel, symbol: "applyOverrides")
         ]
         #expect(PBTSeedsFormatter.droppedSeeds(in: issues) == nil)
     }
@@ -123,7 +123,7 @@ struct DroppedSeedReportTests {
         let issues = [
             issue(.pureFunctionCandidate, symbol: "kept", line: 1),
             issue(.pureFunctionCandidate, symbol: nil, line: 2),
-            issue(.extractablePureKernel, symbol: "", line: 3),
+            issue(.extractableTotalKernel, symbol: "", line: 3),
             issue(.forceTry, symbol: nil, line: 4)
         ]
         let json = PBTSeedsFormatter().format(issues: issues)

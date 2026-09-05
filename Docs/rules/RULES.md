@@ -268,7 +268,7 @@ Rules marked **opt-in** are disabled by default and must be explicitly listed un
 | [Non-Injected Nondeterminism](non-injected-nondeterminism.md) | Warning |
 | [Pure Function Property-Test Candidate](pure-function-candidate.md) | Info |
 | [Pure Closure Property-Test Candidate](pure-closure-candidate.md) | Info |
-| [Extractable Pure Kernel](extractable-pure-kernel.md) | Info |
+| [Extractable Total Kernel](extractable-total-kernel.md) | Info |
 | [Missing Equatable on State Type](missing-equatable-on-state-type.md) | Info |
 | [Impure Call in View Body](impure-call-in-view-body.md) | Warning |
 | [ViewHosting Before Inspection](view-hosting-before-inspection.md) | Error |

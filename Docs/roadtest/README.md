@@ -219,7 +219,7 @@ Recorded, not deleted, per the freeze commitment.
 3. **K4's predicted defect did not exist.** I recorded in advance that the
    empty-string root pattern would likely break the round-trip. It does not —
    `""` means "exclude everything" consistently on both sides.
-4. **Two pure kernels were walked past.** `LayerPolicy.contains(relativePath:)`
+4. **Two total kernels were walked past.** `LayerPolicy.contains(relativePath:)`
    and `ProjectLinter.isGeneratedFile(at:)` are pure predicates the tools
    surfaced and the key omitted. This is precisely the Appendix C shape — the
    hand-written key missing a real candidate — and they are recorded here as
@@ -1007,7 +1007,7 @@ surfaces, and 1/10 is still 1/10.
 
 ### The kernel rule was scoring zero, and nobody had checked
 
-`Extractable Pure Kernel` — the rule with the most prescriptive advice in the
+`Extractable Total Kernel` — the rule with the most prescriptive advice in the
 family, the one that says *lift this into a value type* — returned **0 findings
 on 60k lines**. Not "this code is clean": its gates want an arithmetic operator
 reaching a bound, and this codebase's impure methods enumerate directories and
