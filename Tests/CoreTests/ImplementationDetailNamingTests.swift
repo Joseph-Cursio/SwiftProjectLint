@@ -57,8 +57,9 @@ struct ImplementationDetailNamingTests {
 
     // MARK: - Accessing implementation details
 
-    private func implDetailIssues(_ source: String) -> [LintIssue] {
+    private func implDetailIssues(_ source: String, spiMembers: Set<String> = []) -> [LintIssue] {
         let visitor = AccessingImplementationDetailsVisitor(patternCategory: .architecture)
+        visitor.knownSPIMembers = spiMembers
         let syntax = Parser.parse(source: source)
         visitor.setSourceLocationConverter(
             SourceLocationConverter(fileName: "TestFile.swift", tree: syntax)
@@ -167,4 +168,61 @@ struct ImplementationDetailNamingTests {
 
         #expect(issues.contains { $0.message.contains("TabView") })
     }
+
+    // MARK: - SPI and same-file declarations
+
+    // Two shapes an underscored access takes in a library that is not a leak. Both were
+    // reported against SwiftIdempotency, whose whole snapshot mechanism is published SPI.
+
+    @Test("a member published under @_spi is not an implementation-detail access")
+    func spiMemberIsExempt() {
+        // `@_spi` is Swift's own way of saying "public symbol, deliberately not public API".
+        // The underscore is the convention accompanying the attribute, not an accident.
+        let issues = implDetailIssues("""
+        func compare(_ recorders: [any Recorder]) {
+            let boxes = recorders.map { $0._snapshotBox() }
+            _ = boxes
+        }
+        """, spiMembers: ["_snapshotBox"])
+        #expect(issues.isEmpty)
+    }
+
+    @Test("an underscored member declared in this file is not an implementation-detail access")
+    func sameFileMemberIsExempt() {
+        // `private` is file-scoped in Swift, so this is legal and idiomatic — it is how an
+        // Equatable-style comparison against another instance of the same type is written.
+        let issues = implDetailIssues("""
+        struct Box {
+            private let _value: Any
+            init<T: Equatable>(_ value: T) {
+                self._value = value
+                self.equals = { other in (other._value as? T) == value }
+            }
+        }
+        """)
+        #expect(issues.isEmpty)
+    }
+
+    @Test("an underscored member declared nowhere in this file is still reported")
+    func foreignMemberIsStillReported() {
+        // The control. Without it both guards above could be satisfied by a rule that had
+        // simply stopped firing, and the two absence assertions would still pass.
+        let issues = implDetailIssues("""
+        func peek(_ other: Widget) -> Any {
+            other._internalStorage
+        }
+        """)
+        #expect(issues.isEmpty == false)
+    }
+
+    @Test("a member outside the SPI catalog is still reported")
+    func nonSPIMemberIsStillReported() {
+        let issues = implDetailIssues("""
+        func peek(_ other: Widget) -> Any {
+            other._internalStorage
+        }
+        """, spiMembers: ["_snapshotBox"])
+        #expect(issues.isEmpty == false)
+    }
+
 }

@@ -109,6 +109,9 @@ open class BasePatternVisitor: SyntaxVisitor, PatternVisitorProtocol {
 
     /// `typealias` names whose underlying type is a function type. A property typed with one
     /// is already injected — the closure is the seam.
+    /// Member names declared under `@_spi(...)` — published deliberately, not leaked.
+    public var knownSPIMembers: Set<String> = []
+
     public var knownFunctionTypeAliases: Set<String> = []
 
     public var knownProjectFunctions: Set<String> = []

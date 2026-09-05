@@ -150,6 +150,7 @@ extension ProjectLinter {
         /// `View` names reading `@Environment(SomeType.self)`; `nil` when no pre-scan ran.
         let observableEnvironmentViews: Set<String>?
         let functionTypeAliases: Set<String>
+        let spiMembers: Set<String>
         let enumTypes: Set<String>
         let actorTypes: Set<String>
         let localTypes: Set<String>
@@ -184,6 +185,7 @@ extension ProjectLinter {
             identifiableTypes: env.identifiableTypes,
             observableEnvironmentViews: env.observableEnvironmentViews,
             functionTypeAliases: env.functionTypeAliases,
+            spiMembers: env.spiMembers,
             enumTypes: env.enumTypes,
             actorTypes: env.actorTypes,
             localTypes: env.localTypes,
@@ -208,6 +210,7 @@ extension ProjectLinter {
         identifiableTypes: Set<String> = [],
         observableEnvironmentViews: Set<String>? = nil,
         functionTypeAliases: Set<String> = [],
+        spiMembers: Set<String> = [],
         enumTypes: Set<String> = [],
         actorTypes: Set<String> = [],
         localTypes: Set<String> = [],
@@ -235,6 +238,7 @@ extension ProjectLinter {
         det.knownIdentifiableTypes = identifiableTypes
         det.knownObservableEnvironmentViews = observableEnvironmentViews
         det.knownFunctionTypeAliases = functionTypeAliases
+        det.knownSPIMembers = spiMembers
         det.knownEnumTypes = enumTypes
         det.knownActorTypes = actorTypes
         det.knownLocalTypeNames = localTypes
