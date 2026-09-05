@@ -45,6 +45,50 @@ import SwiftSyntax
 /// `reportedKinds` is where that scope lives, and it is exhaustive rather than
 /// a negative test: a kind added upstream fails to compile until someone says
 /// which side of the line it falls on.
+///
+/// ## Two faults, one trigger
+///
+/// The same marker witnesses two different problems, and only one of them is
+/// about testability.
+///
+/// **Cannot control the value.** A clock or an RNG read inline, feeding a bound,
+/// a branch or a retry window. The value is real; the test cannot pin it. This
+/// is the rule's original subject, and the discriminator it wants — does the
+/// value feed a *decision*, or is it only stored and shown? — is not decidable
+/// from the expression's own syntax, so the message carries it as advice rather
+/// than applying it as a gate.
+///
+/// **Fabricates the value.** A nondeterministic source as the fallback of `??`,
+/// standing in for a value that was absent: `id = model.id ?? UUID()`,
+/// `modifiedDate = attributes.contentModificationDate ?? Date()`. Nothing
+/// computes with it in the sense above — it is stored and shown, exactly the
+/// shape the first fault's advice waves through — and that advice is *wrong*
+/// here, which is why the shape gets its own message.
+///
+/// The harm is specific, and the corpus named it. `Date()` is the largest
+/// instant in the system and `UUID()` matches no row, so an invented value does
+/// not merely differ from the real one: it wins every comparison it enters.
+/// Three independent instances, three repositories, one failure mode — a file
+/// whose modification date the file system did not report looked like the
+/// newest thing on disk and silently uploaded over the server's copy; a CI run
+/// with no finish time won a `max(existing, incoming)` and pinned an
+/// anti-pattern's last occurrence to poll time; a note with no recorded date
+/// never matched its search-index entry and was re-indexed on every refresh
+/// forever.
+///
+/// Injecting a source does not fix any of those. It makes the invention
+/// reproducible. The fix is to propagate the `nil` or to refuse — Fluent's
+/// `try requireID()` is the idiom — so this is reported as a defect rather than
+/// as a missing seam.
+///
+/// Unlike the first fault, this one *is* a local syntactic shape, which is the
+/// whole reason it can be separated. Measured across the sweep corpus before
+/// the split: 7 production occurrences in 23 repositories, of which 2 were
+/// live defects and 2 more were fallbacks the surrounding code had already made
+/// unreachable. It is a small, precise subset — kept inside this rule rather
+/// than promoted to its own, because every one of these sites was already being
+/// reported here and moving them would hand new findings to anyone who had
+/// disabled this rule.
 final class NonInjectedNondeterminismVisitor: BasePatternVisitor {
 
     private var fileIsTestOrFixture = false
@@ -90,10 +134,23 @@ final class NonInjectedNondeterminismVisitor: BasePatternVisitor {
     /// The exemptions are checked here rather than in the classifier because
     /// both are facts about *where* the expression sits, which is a property of
     /// this rule's contract rather than of the expression.
+    /// The fabrication branch is taken **before** the `Identifiable` exemption,
+    /// and the order is load-bearing rather than incidental.
+    /// `struct Response: Identifiable { let id = model.id ?? UUID() }` satisfies
+    /// that exemption exactly — a stored binding named `id` on a type declaring
+    /// that its whole job is to be distinct — and it is also the precise shape
+    /// of the four DTO defects that motivated this split. Checking identity
+    /// first would silence them.
     private func report(_ source: NondeterminismSources.Source?, at node: Syntax) {
         guard let source, Self.reportedKinds.contains(source.kind) else { return }
-        guard !fileIsTestOrFixture, !isParameterDefaultValue(node),
-              !isIdentifiableIdentity(node) else { return }
+        guard !fileIsTestOrFixture, !isParameterDefaultValue(node) else { return }
+
+        if isNilCoalescingFallback(node) {
+            flagFabrication(source.marker, at: node)
+            return
+        }
+
+        guard !isIdentifiableIdentity(node) else { return }
         flag(source.marker, at: node)
     }
 
@@ -110,6 +167,80 @@ final class NonInjectedNondeterminismVisitor: BasePatternVisitor {
                 + "needs no seam: a test can construct the record with whatever value it wants.",
             ruleName: .nonInjectedNondeterminism
         )
+    }
+
+    /// Reports the fabrication fault: a nondeterministic source standing in for
+    /// a value that was absent.
+    ///
+    /// Deliberately does not mention injection. Injecting a clock here would
+    /// make the invented instant reproducible without making it true, and a
+    /// reader who takes this rule's usual advice on this shape ends up with a
+    /// seam threaded through every call site and the defect still in place.
+    private func flagFabrication(_ source: String, at node: Syntax) {
+        addIssue(
+            severity: .warning,
+            message: "Fabricated fallback: `\(source)` invents a value where one was missing, and "
+                + "nothing downstream can tell the invented value from a recorded one",
+            filePath: getFilePath(for: node),
+            lineNumber: getLineNumber(for: node),
+            suggestion: "This is not the testability fault the rest of this rule reports, and "
+                + "injecting a source will not fix it — it makes the invention reproducible. "
+                + "`Date()` is the largest instant in the system and `UUID()` matches no row, so a "
+                + "fabricated value wins every comparison it enters: a `max`, a `>`, a `newest` "
+                + "sort, an is-this-stale check. Propagate the `nil` so callers can say `unknown`, "
+                + "or refuse outright the way `try requireID()` does.",
+            ruleName: .nonInjectedNondeterminism
+        )
+    }
+
+    /// True when `node` is the right-hand side of a `??` — the value used when
+    /// the real one was absent.
+    ///
+    /// Handles both spellings because the tree shape depends on who parsed it.
+    /// `SwiftParser` leaves `a ?? b` as a `SequenceExprSyntax` of three
+    /// elements; a caller that has folded operators hands over an
+    /// `InfixOperatorExprSyntax`. Reading only the folded form would make this
+    /// silently report nothing under the parser the tests and the CLI both use.
+    ///
+    /// Stops at a closure or code block for the same reason
+    /// `isParameterDefaultValue` does: `cached ?? recompute { Date() }` has a
+    /// clock read *inside* the fallback rather than *as* it, and that is the
+    /// first fault, not this one.
+    private func isNilCoalescingFallback(_ node: Syntax) -> Bool {
+        var current = node
+        while let parent = current.parent {
+            if parent.is(ClosureExprSyntax.self) || parent.is(CodeBlockSyntax.self) { return false }
+
+            if let infix = parent.as(InfixOperatorExprSyntax.self) {
+                return isNilCoalescing(infix.operator) && Syntax(infix.rightOperand).id == current.id
+            }
+            if let elements = parent.as(ExprListSyntax.self),
+               elements.parent?.is(SequenceExprSyntax.self) == true {
+                return isFallbackElement(current, in: elements)
+            }
+            current = parent
+        }
+        return false
+    }
+
+    /// True when `element` is preceded by a `??` in an unfolded sequence.
+    ///
+    /// The predecessor rather than the position, so `a ?? b ?? c` reports both
+    /// `b` and `c` — each is the value used when everything to its left was
+    /// absent.
+    private func isFallbackElement(_ element: Syntax, in elements: ExprListSyntax) -> Bool {
+        var previous: ExprSyntax?
+        for expression in elements {
+            if Syntax(expression).id == element.id {
+                return previous.map(isNilCoalescing) ?? false
+            }
+            previous = expression
+        }
+        return false
+    }
+
+    private func isNilCoalescing(_ expression: ExprSyntax) -> Bool {
+        expression.as(BinaryOperatorExprSyntax.self)?.operator.text == "??"
     }
 
     /// True when `node` is the `id` of an `Identifiable` type — `let id = UUID()`.
