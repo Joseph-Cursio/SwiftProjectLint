@@ -449,4 +449,53 @@ struct ArchitectureConcreteTypeUsageTests {
         #expect(issues.isEmpty == false)
     }
 
+
+    // MARK: - A generic type is already parameterised
+
+    // `Generator<[Element], Shrinker>` cannot usefully take the advice: `any GeneratorProtocol`
+    // erases the element type and the shrinker, which is the whole of what the type carries.
+    // Measured on SwiftPropertyLaws, where every law takes a generator — 215 of its 218 findings
+    // named `Generator`, and 263 of 267 uses there carry generic arguments.
+
+    @Test
+    func genericParameterIsNotFlagged() {
+        let issues = analyzeSource("""
+        func checkLaw<Element, Shrinker>(generator: Generator<[Element], Shrinker>) {}
+        """)
+        #expect(issues.isEmpty)
+    }
+
+    @Test
+    func genericPropertyIsNotFlagged() {
+        let issues = analyzeSource("""
+        struct LawRunner {
+            private let generator: Generator<Int, AnySequence<Int>>
+        }
+        """)
+        #expect(issues.isEmpty)
+    }
+
+    @Test
+    func optionalGenericIsNotFlagged() {
+        let issues = analyzeSource("""
+        struct LawRunner {
+            private let generator: Generator<Int, AnySequence<Int>>?
+        }
+        """)
+        #expect(issues.isEmpty)
+    }
+
+    @Test
+    func aBareServiceTypeIsStillFlaggedWithoutGenerics() {
+        // The control. A foreign service taking no parameters — `Alamofire.Session` in the
+        // motivating shape — can be wrapped behind your own protocol, and that is the canonical
+        // advice. Without this the exemption could be silencing the rule outright.
+        let issues = analyzeSource("""
+        struct Client {
+            private let networkService: NetworkService
+        }
+        """)
+        #expect(issues.isEmpty == false)
+    }
+
 }

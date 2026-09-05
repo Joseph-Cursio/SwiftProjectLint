@@ -79,6 +79,11 @@ class MyViewModel {
 
 ### Known Limitations
 
+- **A type written with generic arguments is never reported.** `Generator<[Element], Shrinker>`
+  is already parameterised by its use site, and the advice is not available to it in any useful
+  form — `any GeneratorProtocol` erases the element type and the shrinker, which is the whole of
+  what the type carries. A bare foreign service is different and is still reported: it takes no
+  parameters, and wrapping it behind your own protocol is the canonical advice.
 - **A `typealias` for a function type is never reported.** `typealias CommandRunner = @Sendable
   ([String]) async throws -> Data` names a closure, and a property typed with it is already
   injected — a test substitutes another closure. Asking for a protocol around it would replace a
