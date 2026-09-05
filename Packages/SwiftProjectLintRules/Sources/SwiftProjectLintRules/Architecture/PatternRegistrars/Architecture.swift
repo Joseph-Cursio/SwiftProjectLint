@@ -12,7 +12,7 @@ class Architecture: BasePatternRegistrar {
             SyntaxPattern(
                 name: .missingDependencyInjection,
                 visitor: ArchitectureVisitor.self,
-                severity: .warning,
+                severity: .info,
                 category: .architecture,
                 messageTemplate: "Consider using dependency injection for {dependency}",
                 suggestion: "Inject dependencies through initializers or environment",

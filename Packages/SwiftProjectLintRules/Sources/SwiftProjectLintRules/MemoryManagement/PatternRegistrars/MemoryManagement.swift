@@ -21,7 +21,7 @@ class MemoryManagement: BasePatternRegistrar {
             SyntaxPattern(
                 name: .largeObjectInState,
                 visitor: MemoryManagementVisitor.self,
-                severity: .warning,
+                severity: .info,
                 category: .memoryManagement,
                 messageTemplate: "Large object stored in state: {objectType}",
                 suggestion: "Consider using @StateObject or moving to a separate model",

@@ -12,7 +12,7 @@ class Networking: BasePatternRegistrar {
             SyntaxPattern(
                 name: .missingErrorHandling,
                 visitor: NetworkingVisitor.self,
-                severity: .error,
+                severity: .warning,
                 category: .networking,
                 messageTemplate: "Network call missing error handling",
                 suggestion: "Add proper error handling for network operations",
@@ -21,7 +21,7 @@ class Networking: BasePatternRegistrar {
             SyntaxPattern(
                 name: .synchronousNetworkCall,
                 visitor: NetworkingVisitor.self,
-                severity: .warning,
+                severity: .error,
                 category: .networking,
                 messageTemplate: "Synchronous network call detected",
                 suggestion: "Use async/await or completion handlers for network calls",

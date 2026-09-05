@@ -4,7 +4,7 @@
 
 **Identifier:** `Unnecessary View Update`
 **Category:** Performance
-**Severity:** Warning
+**Severity:** Info
 
 ### Rationale
 When a state variable is assigned the value it already holds, SwiftUI still schedules a redraw because it observes the assignment, not whether the value changed. Unnecessary reassignments cause spurious re-renders that degrade scrolling performance and battery life.

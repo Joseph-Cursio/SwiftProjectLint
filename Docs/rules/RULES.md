@@ -1,6 +1,6 @@
 # SwiftProjectLint Rules Reference
 
-SwiftProjectLint is a static analysis tool for SwiftUI projects. It parses Swift source files using SwiftSyntax AST visitors to detect anti-patterns spanning state management, performance, animations, architecture, code quality, security, accessibility, memory management, networking, UI patterns, modernization, and idempotency. This reference documents all 165 lint rules, organized by category.
+SwiftProjectLint is a static analysis tool for SwiftUI projects. It parses Swift source files using SwiftSyntax AST visitors to detect anti-patterns spanning state management, performance, animations, architecture, code quality, security, accessibility, memory management, networking, UI patterns, modernization, and idempotency. This reference documents all 205 lint rules, organized by category.
 
 Rules marked **opt-in** are disabled by default and must be explicitly listed under `enabled_only` in `.swiftprojectlint.yml`.
 
@@ -10,6 +10,9 @@ Rules marked **opt-in** are disabled by default and must be explicitly listed un
 
 | Rule | Severity |
 |------|----------|
+| [Flag Optional Pair State](flag-optional-pair-state.md) | Info |
+| [Mutually Exclusive Presentation State](mutually-exclusive-presentation-state.md) | Info |
+| [Redundant Derived Property](redundant-derived-property.md) | Info |
 | [Related Duplicate State Variable](related-duplicate-state-variable.md) | Warning |
 | [Unrelated Duplicate State Variable](unrelated-duplicate-state-variable.md) | Info |
 | [Uninitialized State Variable](uninitialized-state-variable.md) | Error |
@@ -32,7 +35,7 @@ Rules marked **opt-in** are disabled by default and must be explicitly listed un
 | [Large View Helper](large-view-helper.md) | Warning |
 | [ForEach Self ID](for-each-self-id.md) | Warning |
 | [Volatile View ID](volatile-view-id.md) | Warning |
-| [Unnecessary View Update](unnecessary-view-update.md) | Warning |
+| [Unnecessary View Update](unnecessary-view-update.md) | Info |
 | [ViewBuilder Complexity](view-builder-complexity.md) | Warning |
 | [Custom Modifier Performance](custom-modifier-performance.md) | Warning |
 | [Formatter In View Body](formatter-in-view-body.md) | Warning |
@@ -96,6 +99,7 @@ Rules marked **opt-in** are disabled by default and must be explicitly listed un
 
 | Rule | Severity |
 |------|----------|
+| [Effect Cycle](effect-cycle.md) | Warning |
 | [Magic Number](magic-number.md) | Info |
 | [Magic Layout Number](magic-layout-number.md) | Info *(opt-in)* |
 | [Hardcoded Strings](hardcoded-strings.md) | Info *(opt-in)* |
@@ -116,7 +120,7 @@ Rules marked **opt-in** are disabled by default and must be explicitly listed un
 | [Force Try](force-try.md) | Warning |
 | [Force Unwrap](force-unwrap.md) | Warning |
 | [Unconditional Trap](unconditional-trap.md) | Warning |
-| [Print Statement](print-statement.md) | Info |
+| [Print Statement](print-statement.md) | Warning |
 | [Catch Without Handling](catch-without-handling.md) | Warning |
 | [TODO Comment](todo-comment.md) | Info |
 | [Task Detached](task-detached.md) | Info |
@@ -249,10 +253,12 @@ Rules marked **opt-in** are disabled by default and must be explicitly listed un
 | Rule | Severity |
 |------|----------|
 | [Idempotency Violation](idempotency-violation.md) | Error |
+| [Non-Idempotent Action Name](non-idempotent-action-name.md) | Warning |
 | [Non-Idempotent In Retry Context](non-idempotent-in-retry-context.md) | Error |
 | [Missing Idempotency Key](missing-idempotency-key.md) | Error |
 | [Once Contract Violation](once-contract-violation.md) | Error |
 | [Tuple Equality With Unstable Components](tuple-equality-with-unstable-components.md) | Warning |
+| [Unannotated In Strict Replayable Context](unannotated-in-strict-replayable-context.md) | Error |
 
 ## Testability
 

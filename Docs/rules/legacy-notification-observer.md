@@ -3,7 +3,7 @@
 ## Legacy Notification Observer
 
 **Identifier:** `Legacy Notification Observer`
-**Category:** Code Quality
+**Category:** Modernization
 **Severity:** Info
 
 ### Rationale
