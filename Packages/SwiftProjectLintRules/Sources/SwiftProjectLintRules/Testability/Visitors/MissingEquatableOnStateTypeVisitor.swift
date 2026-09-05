@@ -46,6 +46,8 @@ final class MissingEquatableOnStateTypeVisitor: CrossFileVisitorBase, CrossFileP
     private var declaredConformances: [String: Set<String>] = [:]
     /// Base nominal names of value types observed in a state property wrapper.
     private var stateUsedTypes: Set<String> = []
+    /// Enums the compiler makes `Equatable` without a declaration.
+    private var synthesizedEquatableTypes: Set<String> = []
 
     // MARK: - Phase 1: collect
 
@@ -56,6 +58,13 @@ final class MissingEquatableOnStateTypeVisitor: CrossFileVisitorBase, CrossFileP
 
     override func visit(_ node: EnumDeclSyntax) -> SyntaxVisitorContinueKind {
         recordValueType(node.name.text, node.inheritanceClause, Syntax(node))
+        // A payload-free enum is `Equatable` and `Hashable` without saying so, and telling the
+        // reader to add a conformance the compiler already synthesised is advice they cannot
+        // act on. `EquatableConformanceCollector` has always known this; the rule did not, so
+        // the gate and the nag disagreed about the same language guarantee.
+        if SynthesizedConformance.isImplicitlyEquatable(node) {
+            synthesizedEquatableTypes.insert(node.name.text)
+        }
         return .visitChildren
     }
 
@@ -108,6 +117,7 @@ final class MissingEquatableOnStateTypeVisitor: CrossFileVisitorBase, CrossFileP
     func finalizeAnalysis() {
         for name in stateUsedTypes.sorted() {
             guard let declaration = valueTypeDecls[name] else { continue } // external type → can't judge
+            guard !synthesizedEquatableTypes.contains(name) else { continue }
             let conformances = declaredConformances[name] ?? []
             guard conformances.isDisjoint(with: Self.equatableConformances) else { continue }
 

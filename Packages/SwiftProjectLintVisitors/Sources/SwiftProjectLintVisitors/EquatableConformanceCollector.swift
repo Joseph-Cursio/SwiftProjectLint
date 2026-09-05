@@ -46,25 +46,10 @@ public final class EquatableConformanceCollector: SyntaxVisitor, TypeCollectorPr
         //
         // This is a language guarantee, not a heuristic, so it cannot admit a
         // type that is not really `Equatable`.
-        if hasNoAssociatedValues(node) {
+        if SynthesizedConformance.isImplicitlyEquatable(node) {
             equatableTypes.insert(node.name.text)
         }
         return .visitChildren
-    }
-
-    /// Whether every case of `node` is payload-free.
-    ///
-    /// An enum with associated values is `Equatable` only when it *declares* it
-    /// (and only if every payload is itself `Equatable`), which the compiler
-    /// checks — so those stay gated on the declared conformance above.
-    private func hasNoAssociatedValues(_ node: EnumDeclSyntax) -> Bool {
-        for member in node.memberBlock.members {
-            guard let caseDecl = member.decl.as(EnumCaseDeclSyntax.self) else { continue }
-            for element in caseDecl.elements where element.parameterClause != nil {
-                return false
-            }
-        }
-        return true
     }
 
     override public func visit(_ node: ClassDeclSyntax) -> SyntaxVisitorContinueKind {
