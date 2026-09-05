@@ -94,19 +94,37 @@ class ConcreteTypeUsageVisitor: BasePatternVisitor {
     private func extractServiceTypeName(from type: TypeSyntax) -> String? {
         // Direct: NetworkService
         if let identifier = type.as(IdentifierTypeSyntax.self) {
-            return qualifying(identifier.name.text)
+            return qualifying(identifier)
         }
         // Optional: NetworkService?
         if let opt = type.as(OptionalTypeSyntax.self),
            let identifier = opt.wrappedType.as(IdentifierTypeSyntax.self) {
-            return qualifying(identifier.name.text)
+            return qualifying(identifier)
         }
         // Implicitly unwrapped: NetworkService!
         if let iuo = type.as(ImplicitlyUnwrappedOptionalTypeSyntax.self),
            let identifier = iuo.wrappedType.as(IdentifierTypeSyntax.self) {
-            return qualifying(identifier.name.text)
+            return qualifying(identifier)
         }
         return nil
+    }
+
+    /// A type written with generic arguments is already parameterised by its use site, and
+    /// "prefer a protocol abstraction" is not available to it in any useful form: replacing
+    /// `Generator<[Element], Shrinker>` with `any GeneratorProtocol` erases the element type and
+    /// the shrinker, which is the whole of what the type was carrying. That is a loss, not an
+    /// abstraction.
+    ///
+    /// This is what a bare foreign service does not have. `Alamofire.Session` takes no
+    /// parameters and wrapping it behind your own protocol is the canonical advice; the rule
+    /// still gives it.
+    ///
+    /// Measured on SwiftPropertyLaws, whose every law takes a generator: 215 of its 218
+    /// findings named `Generator`, and 263 of the 267 uses in that package carry generic
+    /// arguments.
+    private func qualifying(_ identifier: IdentifierTypeSyntax) -> String? {
+        guard identifier.genericArgumentClause == nil else { return nil }
+        return qualifying(identifier.name.text)
     }
 
     /// Returns the name if it's service-like and not a protocol indicator, else nil.
