@@ -370,4 +370,34 @@ struct NonInjectedNondeterminismFabricationTests {
     func parameterDefaultStaysExempt() {
         #expect(analyze("func make(at date: Date = stored ?? Date()) {}").isEmpty)
     }
+
+    /// Verbatim from `SwiftLintRuleStudioCoreTestSupport`, and the reason this gate exists.
+    ///
+    /// The first version of `isNilCoalescingFallback` walked to any `??` above the node, so it
+    /// called this `UUID()` a fabrication. Nothing is fabricated: the fallback is a fresh isolated
+    /// `UserDefaults` suite, and the UUID inside it is a genuine identity doing its job. Being the
+    /// fallback and sitting somewhere inside one are different facts.
+    @Test("a source inside the fallback's arguments is not a fabrication")
+    func aSourceInsideTheFallbacksArgumentsIsNotAFabrication() {
+        // A raw literal, so the `\(` reaches the parser instead of interpolating into this
+        // test file — which is what makes `UUID()` an expression in the analysed source.
+        let issues = analyze(#"""
+        func make(_ userDefaults: UserDefaults?) -> UserDefaults {
+            userDefaults
+                ?? UserDefaults(suiteName: "test.Container.\(UUID().uuidString)")
+                ?? .standard
+        }
+        """#)
+        #expect(issues.count == 1)
+        #expect(issues.first?.message.contains("Non-injected nondeterminism") == true)
+    }
+
+    @Test("parentheses around the fallback do not hide it")
+    func parenthesesAroundTheFallbackDoNotHideIt() {
+        // The other half of the gate: `(Date())` is still the fallback, so the walk has to climb
+        // through parentheses while refusing call arguments — both parse as a `TupleExpr`.
+        let issues = analyze("func stamp(_ recorded: Date?) -> Date { recorded ?? (Date()) }")
+        #expect(issues.count == 1)
+        #expect(issues.first?.message.contains("Fabricated fallback") == true)
+    }
 }
