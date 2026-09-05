@@ -77,4 +77,19 @@ class MyViewModel {
 }
 ```
 
+### Known Limitations
+
+- **A `typealias` for a function type is never reported.** `typealias CommandRunner = @Sendable
+  ([String]) async throws -> Data` names a closure, and a property typed with it is already
+  injected — a test substitutes another closure. Asking for a protocol around it would replace a
+  working seam with a heavier one.
+- **…but only when the alias is declared in the analyzed sources.** The exemption comes from a
+  project-wide prescan, so a property typed with an alias published by *another* package is still
+  reported: the declaration that would exempt it is out of scope. Measured — `CLIToolCommandRunner`
+  is exempt inside LintStudioUI, which declares it, and still flagged in SwiftLintRuleStudio, which
+  imports it. Same boundary as `unused-protocol-abstraction`'s, for the same reason.
+- **A value type used as a seam still reads as concrete.** A `struct DateProvider` wrapping a
+  closure is an injection point, but the rule sees a concrete nominal type and asks for a protocol.
+  That is advice worth refusing rather than a defect the rule can detect.
+
 ---

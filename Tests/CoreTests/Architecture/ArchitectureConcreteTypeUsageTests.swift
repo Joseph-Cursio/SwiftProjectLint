@@ -19,11 +19,13 @@ private func analyzeSource(
     _ source: String,
     observableTypes: Set<String> = [],
     protocolTypes: Set<String> = [],
+    functionTypeAliases: Set<String> = [],
     filePath: String = "SourceFile.swift"
 ) -> [LintIssue] {
     let visitor = ConcreteTypeUsageVisitor(patternCategory: .architecture)
     visitor.knownObservableTypes = observableTypes
     visitor.knownProtocolTypes = protocolTypes
+    visitor.knownFunctionTypeAliases = functionTypeAliases
     let syntax = Parser.parse(source: source)
     let converter = SourceLocationConverter(fileName: filePath, tree: syntax)
     visitor.setSourceLocationConverter(converter)
@@ -407,4 +409,44 @@ struct ArchitectureConcreteTypeUsageTests {
         let issue = try #require(issues.first)
         #expect(issue.message.contains("ResourceMetricsProvider"))
     }
+
+    // MARK: - A closure typealias is already the seam
+
+    // `CLIToolCommandRunner = @Sendable ([String], Data?) async throws -> (Data, Data, Int32)`
+    // is a function type. A property typed with it is injected by handing in another closure,
+    // which is exactly what a test does — asking for "a protocol abstraction" around it swaps a
+    // working seam for a heavier one. Reported against LintStudioUI's `CLIToolActor`.
+
+    @Test
+    func closureTypeAliasPropertyIsNotFlagged() {
+        let issues = analyzeSource("""
+        final class CLIToolActor {
+            private let commandRunner: CLIToolCommandRunner?
+        }
+        """, functionTypeAliases: ["CLIToolCommandRunner"])
+        #expect(issues.isEmpty)
+    }
+
+    @Test
+    func closureTypeAliasParameterIsNotFlagged() {
+        let issues = analyzeSource("""
+        final class CLIToolActor {
+            init(commandRunner: CLIToolCommandRunner? = nil) {}
+        }
+        """, functionTypeAliases: ["CLIToolCommandRunner"])
+        #expect(issues.isEmpty)
+    }
+
+    @Test
+    func aRealServiceTypeIsStillFlagged() {
+        // The control. Without it this change could silence the rule entirely and the suite
+        // would not notice — the catalog is empty in most tests.
+        let issues = analyzeSource("""
+        final class Client {
+            private let networkService: NetworkService?
+        }
+        """, functionTypeAliases: ["CLIToolCommandRunner"])
+        #expect(issues.isEmpty == false)
+    }
+
 }

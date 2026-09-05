@@ -118,6 +118,13 @@ class ConcreteTypeUsageVisitor: BasePatternVisitor {
               !name.hasSuffix("Interface")
         else { return nil }
 
+        // A `typealias` for a function type is already the seam. `CLIToolCommandRunner =
+        // @Sendable ([String], Data?) async throws -> (Data, Data, Int32)` is a closure: a
+        // property typed with it is injected by handing in another closure, which is what a
+        // test does. Asking for a protocol around it replaces a working seam with a heavier
+        // one. Requires the project-wide typealias prescan.
+        if knownFunctionTypeAliases.contains(name) { return nil }
+
         // System types that are concrete by design
         if Self.systemConcreteTypes.contains(name) { return nil }
 
