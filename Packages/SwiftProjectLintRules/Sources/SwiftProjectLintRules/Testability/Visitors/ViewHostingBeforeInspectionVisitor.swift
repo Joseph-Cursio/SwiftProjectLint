@@ -78,6 +78,8 @@ final class ViewHostingBeforeInspectionVisitor: BasePatternVisitor {
             return .visitChildren
         }
 
+        guard exercisesAViewThatCanTrap(node) else { return .visitChildren }
+
         addIssue(
             severity: .error,
             message: "ViewHosting.host(…) runs before the view is inspected — inspect after "
@@ -91,6 +93,46 @@ final class ViewHostingBeforeInspectionVisitor: BasePatternVisitor {
         )
         return .visitChildren
     }
+
+    // MARK: - The trap precondition
+
+    /// Whether this test touches a view that can actually trap out-of-tree.
+    ///
+    /// The ordering this rule detects is only dangerous for a view reading
+    /// `@Environment(SomeType.self)`, which has no default and traps inside
+    /// `EnvironmentValues.subscript.getter` when the body is evaluated outside SwiftUI.
+    /// Every other view inspects out-of-tree perfectly well — that is ViewInspector's
+    /// ordinary mode — so reporting the ordering alone means reporting an error against
+    /// tests that pass and will keep passing.
+    ///
+    /// The catalog arrives from a project-wide pre-scan. When it is `nil` nobody looked,
+    /// and the rule keeps its previous behaviour rather than going silent on a
+    /// single-file run that has no way to know better. When it is present but empty the
+    /// project genuinely has no such view, and silence is the right answer.
+    ///
+    /// Matching is per **file**, not per function: the view under test is often built by a
+    /// helper elsewhere in the same test file, so a function-scoped check would miss the
+    /// cases that matter. A test file naming one of these views anywhere is enough.
+    private func exercisesAViewThatCanTrap(_ node: FunctionDeclSyntax) -> Bool {
+        guard let catalog = knownObservableEnvironmentViews else { return true }
+        guard !catalog.isEmpty else { return false }
+        return !identifiersInFile(containing: node).isDisjoint(with: catalog)
+    }
+
+    /// Every identifier token in the file, computed once per visitor instance.
+    private func identifiersInFile(containing node: FunctionDeclSyntax) -> Set<String> {
+        if let cached = cachedFileIdentifiers { return cached }
+        var found: Set<String> = []
+        for token in node.root.tokens(viewMode: .sourceAccurate) {
+            if case .identifier(let text) = token.tokenKind {
+                found.insert(text)
+            }
+        }
+        cachedFileIdentifiers = found
+        return found
+    }
+
+    private var cachedFileIdentifiers: Set<String>?
 
     // MARK: - Detection
 

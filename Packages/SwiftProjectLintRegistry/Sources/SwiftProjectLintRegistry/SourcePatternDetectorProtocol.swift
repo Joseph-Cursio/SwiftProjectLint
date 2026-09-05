@@ -33,6 +33,9 @@ public protocol SourcePatternDetectorProtocol {
     var knownObservableTypes: Set<String> { get set }
 
     /// Type names known to be declared as protocols across the project.
+    /// `View` names reading `@Environment(SomeType.self)`; `nil` when no pre-scan ran.
+    var knownObservableEnvironmentViews: Set<String>? { get set }
+
     var knownProtocolTypes: Set<String> { get set }
 
     /// Type names known to be `Equatable` across the project (Equatable /

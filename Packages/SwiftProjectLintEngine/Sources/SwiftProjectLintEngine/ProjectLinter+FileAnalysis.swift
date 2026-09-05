@@ -147,6 +147,8 @@ extension ProjectLinter {
         let categories: [PatternCategory]?
         let ruleIdentifiers: [RuleIdentifier]?
         let identifiableTypes: Set<String>
+        /// `View` names reading `@Environment(SomeType.self)`; `nil` when no pre-scan ran.
+        let observableEnvironmentViews: Set<String>?
         let enumTypes: Set<String>
         let actorTypes: Set<String>
         let localTypes: Set<String>
@@ -179,6 +181,7 @@ extension ProjectLinter {
             categories: env.categories,
             ruleIdentifiers: env.ruleIdentifiers,
             identifiableTypes: env.identifiableTypes,
+            observableEnvironmentViews: env.observableEnvironmentViews,
             enumTypes: env.enumTypes,
             actorTypes: env.actorTypes,
             localTypes: env.localTypes,
@@ -201,6 +204,7 @@ extension ProjectLinter {
         categories: [PatternCategory]?,
         ruleIdentifiers: [RuleIdentifier]?,
         identifiableTypes: Set<String> = [],
+        observableEnvironmentViews: Set<String>? = nil,
         enumTypes: Set<String> = [],
         actorTypes: Set<String> = [],
         localTypes: Set<String> = [],
@@ -226,6 +230,7 @@ extension ProjectLinter {
         let parsedAST = Parser.parse(source: content)
         let det = SourcePatternDetector(registry: registry)
         det.knownIdentifiableTypes = identifiableTypes
+        det.knownObservableEnvironmentViews = observableEnvironmentViews
         det.knownEnumTypes = enumTypes
         det.knownActorTypes = actorTypes
         det.knownLocalTypeNames = localTypes
