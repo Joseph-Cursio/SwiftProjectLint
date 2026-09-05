@@ -119,7 +119,8 @@ class ComputedPropertyViewVisitor: BasePatternVisitor {
         let buttonCollections = namesUsedAsButtonCollections(in: memberBlock)
 
         return members.viewProperties.filter { name in
-            guard !buttonCollections.contains(name) else { return false }
+            guard !buttonCollections.contains(name),
+                  !requiresCapture(name, in: members) else { return false }
             let depends = resolvedDependencies(
                 of: name, computed: members.computedReferences, stored: members.stored
             )
@@ -127,10 +128,92 @@ class ComputedPropertyViewVisitor: BasePatternVisitor {
         }
     }
 
+    /// Whether extracting this property would force a `Binding` or a capturing closure across the
+    /// boundary — in which case SwiftUI cannot skip the child and the extraction buys nothing.
+    ///
+    /// **Measured, not assumed.** A harness counting `body` evaluations while changing state no
+    /// child reads (iOS 26.5, three changes): a child with no inputs, a value input, or a
+    /// *non-capturing* closure re-rendered **0** times; a child holding a `@Binding` or a
+    /// *capturing* closure re-rendered **3** — once per change, exactly as often as the inlined
+    /// property it replaced.
+    ///
+    /// The distinction is capture, not closures. `action: { }` compiles to one static function and
+    /// compares equal; `action: { showingSheet = true }` allocates a fresh context on every parent
+    /// body run, so the child value never compares equal. A `Binding` carries a getter and setter
+    /// and behaves the same way.
+    ///
+    /// Three shapes force it: reading a stored property's projected value (`$name`), assigning to
+    /// one, or calling one of the type's own methods. Followed transitively — a property composing
+    /// children that each need a binding needs to pass those bindings down.
+    private static func requiresCapture(_ name: String, in members: TypeProperties) -> Bool {
+        var seen: Set<String> = []
+        var pending = [name]
+
+        while let current = pending.popLast() {
+            guard seen.insert(current).inserted else { continue }
+            let captures = members.capturesFor[current] ?? []
+            if !captures.isDisjoint(with: members.stored) { return true }
+            let referenced = members.computedReferences[current] ?? []
+            if !referenced.isDisjoint(with: members.instanceMethods) { return true }
+            pending.append(contentsOf: referenced.filter { members.computedReferences[$0] != nil })
+        }
+        return false
+    }
+
+    /// The names on the left of the first `=` in an unfolded operator sequence.
+    private static func assignedNames(in sequence: SequenceExprSyntax) -> Set<String> {
+        var names: Set<String> = []
+        for element in sequence.elements {
+            if element.is(AssignmentExprSyntax.self) { return names }
+            names.formUnion(referencedNames(in: Syntax(element)))
+            if let reference = element.as(DeclReferenceExprSyntax.self) {
+                names.insert(stripped(reference.baseName.text))
+            }
+            if let member = element.as(MemberAccessExprSyntax.self) {
+                names.insert(member.declName.baseName.text)
+            }
+        }
+        return []
+    }
+
+    /// Names used as a projected value (`$name`) or written to.
+    ///
+    /// `referencedNames` cannot answer this: it strips the `$` so that `$isExpanded` counts as a
+    /// dependency on `isExpanded`, which is right for the narrowing gate and loses exactly the
+    /// distinction needed here.
+    private static func projectedAndAssignedNames(in node: Syntax) -> Set<String> {
+        var names: Set<String> = []
+        for child in node.children(viewMode: .sourceAccurate) {
+            if let reference = child.as(DeclReferenceExprSyntax.self),
+               reference.baseName.text.hasPrefix("$") {
+                names.insert(String(reference.baseName.text.dropFirst()))
+            }
+            // `showing = true` parses as an *unfolded* `SequenceExprSyntax` — the plain parser
+            // does not fold operators, so `InfixOperatorExprSyntax` never appears here. The names
+            // before the first `=` are the ones being written to.
+            if let sequence = child.as(SequenceExprSyntax.self) {
+                names.formUnion(assignedNames(in: sequence))
+            }
+            if let call = child.as(FunctionCallExprSyntax.self),
+               let member = call.calledExpression.as(MemberAccessExprSyntax.self),
+               member.declName.baseName.text == "toggle", let base = member.base {
+                names.formUnion(referencedNames(in: Syntax(base)))
+            }
+            names.formUnion(projectedAndAssignedNames(in: child))
+        }
+        return names
+    }
+
     private struct TypeProperties {
         var stored: Set<String> = []
         var computedReferences: [String: Set<String>] = [:]
         var viewProperties: Set<String> = []
+        /// Non-static methods of the enclosing type. Referencing one means the extracted child
+        /// would have to be handed a closure that captures the parent.
+        var instanceMethods: Set<String> = []
+        /// Per computed property: the names it uses as a projected value (`$name`) and the names
+        /// it assigns to. Both force a `Binding` or a capturing closure across the boundary.
+        var capturesFor: [String: Set<String>] = [:]
     }
 
     /// The type's stored inputs, what each computed property references, and which of them return
@@ -138,6 +221,10 @@ class ComputedPropertyViewVisitor: BasePatternVisitor {
     private static func properties(of memberBlock: MemberBlockSyntax) -> TypeProperties {
         var result = TypeProperties()
         for member in memberBlock.members {
+            if let function = member.decl.as(FunctionDeclSyntax.self),
+               !function.modifiers.contains(where: { $0.name.tokenKind == .keyword(.static) }) {
+                result.instanceMethods.insert(function.name.text)
+            }
             guard let varDecl = member.decl.as(VariableDeclSyntax.self) else { continue }
             let isStatic = varDecl.modifiers.contains { $0.name.tokenKind == .keyword(.static) }
             for binding in varDecl.bindings {
@@ -159,6 +246,7 @@ class ComputedPropertyViewVisitor: BasePatternVisitor {
             return
         }
         result.computedReferences[name] = referencedNames(in: Syntax(accessor))
+        result.capturesFor[name] = projectedAndAssignedNames(in: Syntax(accessor))
         if name != "body", returnsSomeViewType(binding.typeAnnotation) {
             result.viewProperties.insert(name)
         }
