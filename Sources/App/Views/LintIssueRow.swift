@@ -89,44 +89,11 @@ struct LintIssueRow: View {
     }
 
     private var severityIcon: some View {
-        Image(systemName: severityIconName)
-            .foregroundStyle(severityColor)
+        let style = IssueSeverityStyle(issue.severity)
+        return Image(systemName: style.iconName)
+            .foregroundStyle(style.color)
             .font(.title2)
-            .accessibilityLabel(severityAccessibilityLabel)
-    }
-
-    private var severityAccessibilityLabel: String {
-        switch issue.severity {
-        case .error: return "Error"
-        case .warning: return "Warning"
-        case .info: return "Info"
-        }
-    }
-
-    private var severityIconName: String {
-        switch issue.severity {
-        case .error:
-            return "xmark.circle.fill"
-
-        case .warning:
-            return "exclamationmark.triangle.fill"
-
-        case .info:
-            return "info.circle.fill"
-        }
-    }
-
-    private var severityColor: Color {
-        switch issue.severity {
-        case .error:
-            return .red
-
-        case .warning:
-            return .orange
-
-        case .info:
-            return .blue
-        }
+            .accessibilityLabel(style.accessibilityLabel)
     }
 }
 
