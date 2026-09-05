@@ -98,6 +98,15 @@ open class BasePatternVisitor: SyntaxVisitor, PatternVisitorProtocol {
     /// closure — from one that is merely **forwarding to a function the reader already extracted**,
     /// `{ search.matches(name: $0.name) }`. The two are syntactically identical, so without this the
     /// rule re-reports its own advice and the extraction loop never terminates.
+    /// `View` names reading `@Environment(SomeType.self)`, or `nil` when no project-wide
+    /// pre-scan ran.
+    ///
+    /// The optionality is the point. An empty set means "the project was scanned and no view
+    /// reads the observable form", which is a reason to stay silent; `nil` means "nobody
+    /// looked", which is not. A rule gating on this must treat the two differently or it goes
+    /// quiet in exactly the single-file case where it has no way to know better.
+    public var knownObservableEnvironmentViews: Set<String>?
+
     public var knownProjectFunctions: Set<String> = []
 
     /// Types whose initialiser has DEFAULTED parameters — built by `DefaultedInitializerCollector`.

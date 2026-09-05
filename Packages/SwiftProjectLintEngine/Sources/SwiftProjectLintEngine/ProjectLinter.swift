@@ -231,6 +231,9 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
         let values: Set<String>
         let functions: Set<String>
         let defaultedInitializers: Set<String>
+        /// `View` names reading `@Environment(SomeType.self)`. See
+        /// `ObservableEnvironmentViewCollector` for why the keypath form is excluded.
+        let observableEnvironmentViews: Set<String>
         /// Per type, the sibling methods that are themselves functions of their inputs. Unlike the
         /// name sets above this needs the parsed bodies, not just declarations, so it is resolved
         /// by its own fixpoint rather than by `collectTypes`.
@@ -267,6 +270,9 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
                 defaultedInitializers: collectTypes(
                     DefaultedInitializerCollector.self, from: filePaths
                 ),
+                observableEnvironmentViews: collectTypes(
+                    ObservableEnvironmentViewCollector.self, from: filePaths
+                ),
                 cleanInstanceMethods: CleanInstanceMethodCatalog.build(from: parsed),
                 impurePackageFunctions: PackagePurityJoin(sources: parsed).settledImpureNames
             )
@@ -285,6 +291,7 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
         resolved.knownActorTypes = collected.actors
         resolved.knownLocalTypeNames = collected.local
         resolved.knownObservableTypes = collected.observable
+        resolved.knownObservableEnvironmentViews = collected.observableEnvironmentViews
         resolved.knownProtocolTypes = collected.protocols
         resolved.knownEquatableTypes = collected.equatable
         resolved.knownValueTypes = collected.values
@@ -312,6 +319,7 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
             categories: categories,
             ruleIdentifiers: ruleIdentifiers,
             identifiableTypes: collected.identifiable,
+            observableEnvironmentViews: collected.observableEnvironmentViews,
             enumTypes: collected.enums,
             actorTypes: collected.actors,
             localTypes: collected.local,
