@@ -39,12 +39,38 @@ in the same file.
    (`"state-management"`), leading-dot members (`.stateManagement`), or type references
    (`StateManagement`). A mixed-kind array is a data structure, not an enumeration, and is
    skipped. The list is named after the binding it belongs to (`let packs = [...]` → `packs`).
-3. **Runs of consecutive registration calls** — the shape
+3. **Runs of consecutive calls**, in two shapes.
+
+   The first is a run of **registration calls** — the shape
    [Manual Registration List](manual-registration-list.md) detects, read for its contents.
    The distinguishing name is taken from the call's trailing closure when it has one
    (`registerFactory { _, _ in StateManagement(…) }` → `StateManagement`), otherwise from the
    first name-like argument (`register("fetch")` → `fetch`). Both rules share the verb
    vocabulary in `RegistrationVerb`, so a verb added for one is honoured by the other.
+
+   The second is a run of **sibling calls whose actions each name a distinct case**:
+
+   ```swift
+   Button("Rules")   { selection = .rules }
+   Button("Reports") { selection = .reports }
+   ```
+
+   A menu built this way is an enumeration transcribed by hand. There is no verb to gate on and
+   none is needed, because the leading-dot member is its own signal — this is not "any run of
+   calls with the same callee", which would read every repeated view builder as a roster.
+
+   **Only the action closure is searched, never the arguments.** A roster entry is what the item
+   *does*, not how it is *styled*. Reading arguments too collected `.red`, `.green` and
+   `.primary` out of lists of summary tiles, so two unrelated views drawing four tiles apiece
+   paired on three shared colour names and reported drift against each other — two false
+   positives, both gone once arguments were excluded. An action naming two members contributes
+   nothing, since it cannot supply one entry without choosing arbitrarily between them.
+
+   This carrier exists because of a defect the rule could not see. A title menu was eleven
+   `Button`s against a twelve-case enum and silently omitted one destination, reachable from the
+   sidebar and nowhere else. Written as `[.rules, .reports, …]` this rule reported it and named
+   the missing case; written as eleven calls it saw nothing. Measured across the corpus, the
+   carrier adds **no findings to code that does not have the defect** — 17 before, 17 after.
 
 Names are **normalized** before comparison — lowercased with separators stripped — so
 `UIPatterns`, `uiPatterns` and `"ui-patterns"` all compare equal. Messages quote the original
