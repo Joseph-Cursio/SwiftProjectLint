@@ -160,46 +160,12 @@ final class NonInjectedNondeterminismVisitor: BasePatternVisitor {
 
         guard !isIdentifiableIdentity(node),
               !isScratchDirectoryName(node, kind: source.kind) else { return }
+
+        if let property = computedPropertyName(containing: node) {
+            flagFreshReadPerAccess(source.marker, property: property, at: node)
+            return
+        }
         flag(source.marker, at: node)
-    }
-
-    private func flag(_ source: String, at node: Syntax) {
-        addIssue(
-            severity: .warning,
-            message: "Non-injected nondeterminism: `\(source)` makes this code unpredictable, so a "
-                + "property-based test can't pin the value or reproduce a failure",
-            filePath: getFilePath(for: node),
-            lineNumber: getLineNumber(for: node),
-            suggestion: "Inject the source (a clock `() -> Date`, a `RandomNumberGenerator`, a UUID "
-                + "provider) so tests can control it. Worth doing where the value feeds a DECISION — "
-                + "a name, a bound, a branch, a retry window. A value that is only stored and shown "
-                + "needs no seam: a test can construct the record with whatever value it wants.",
-            ruleName: .nonInjectedNondeterminism
-        )
-    }
-
-    /// Reports the fabrication fault: a nondeterministic source standing in for
-    /// a value that was absent.
-    ///
-    /// Deliberately does not mention injection. Injecting a clock here would
-    /// make the invented instant reproducible without making it true, and a
-    /// reader who takes this rule's usual advice on this shape ends up with a
-    /// seam threaded through every call site and the defect still in place.
-    private func flagFabrication(_ source: String, at node: Syntax) {
-        addIssue(
-            severity: .warning,
-            message: "Fabricated fallback: `\(source)` invents a value where one was missing, and "
-                + "nothing downstream can tell the invented value from a recorded one",
-            filePath: getFilePath(for: node),
-            lineNumber: getLineNumber(for: node),
-            suggestion: "This is not the testability fault the rest of this rule reports, and "
-                + "injecting a source will not fix it — it makes the invention reproducible. "
-                + "`Date()` is the largest instant in the system and `UUID()` matches no row, so a "
-                + "fabricated value wins every comparison it enters: a `max`, a `>`, a `newest` "
-                + "sort, an is-this-stale check. Propagate the `nil` so callers can say `unknown`, "
-                + "or refuse outright the way `try requireID()` does.",
-            ruleName: .nonInjectedNondeterminism
-        )
     }
 
     /// A nondeterministic source sitting as the fallback of a `??`, together
@@ -613,23 +579,5 @@ final class NonInjectedNondeterminismVisitor: BasePatternVisitor {
         if let decl = syntax.as(ActorDeclSyntax.self) { return decl.inheritanceClause }
         if let decl = syntax.as(EnumDeclSyntax.self) { return decl.inheritanceClause }
         return nil
-    }
-
-    /// True when `node` sits in a function/initializer parameter's default
-    /// value — `init(id: UUID = UUID())` is the injection seam, not inline
-    /// nondeterminism. Stops at a closure / code block so a call inside a
-    /// default closure body is still flagged.
-    private func isParameterDefaultValue(_ node: Syntax) -> Bool {
-        var current = node.parent
-        while let syntax = current {
-            if syntax.is(ClosureExprSyntax.self) || syntax.is(CodeBlockSyntax.self) {
-                return false
-            }
-            if syntax.is(FunctionParameterSyntax.self) {
-                return true
-            }
-            current = syntax.parent
-        }
-        return false
     }
 }

@@ -16,12 +16,13 @@ A property-based test re-runs logic against many randomized inputs and, when it 
 - The C RNG family: `arc4random`, `arc4random_uniform`, `drand48`, and `CFAbsoluteTimeGetCurrent`
 - Ambient clock/locale reads: `Date.now`, `Locale.current`, `TimeZone.current`
 
-Uses in a parameter *default value* position are exempt (a defaulted `clock: () -> Date = { Date() }` is itself the injection seam), as are test files.
+Uses in a parameter *default value* position are exempt — a defaulted `clock: () -> Date = { Date() }`
+is itself the injection seam — as are test files.
 
-### Two faults, one trigger
+### Three faults, one trigger
 
-The same marker witnesses two different problems, and only one of them is about testability. The
-rule reports both, with different messages.
+The same marker witnesses three different problems, and only one of them is about testability. The
+rule reports all three, with different messages.
 
 **Cannot control the value.** A clock or an RNG read inline, feeding a bound, a branch or a retry
 window. The value is real; a test cannot pin it. The discriminator this fault wants — does the
@@ -83,6 +84,68 @@ These are **reclassified, not silenced.** They fall through to the rule's ordina
 true of them — a test still cannot pin the id — so the gate moves the corpus count by zero. The
 gate stays shut when the `??` falls back from a call or a literal, because there is no storage a
 later statement could be matched against.
+
+#### Fresh read per access
+
+A read that is the body of a computed property happens once per **access**, not once:
+
+```swift
+// One reference instant for every state resolution in a render pass
+private var now: Date { Date() }
+```
+
+That comment is from `WaiversView`, and the declaration under it could not deliver what it claimed.
+The view took seventeen reads of `now` in one pass — six across the summary tiles, four building
+the groups below, one per waiver inside each filter — so a waiver crossing its expiry between the
+tile count and the list underneath was counted "Active" above and shown under "Expired" below.
+
+The rule already reported that line, as a value a test could not pin. That is true and is not what
+was wrong with it: **the disagreement survives injection**, because a provider read seventeen times
+still answers seventeen times. A reader who takes the ordinary advice threads a clock through every
+call site and leaves the defect exactly where it was, which is why this shape gets its own sentence.
+
+A name promises a value. `let` delivers one and `var … { }` does not, and the gap is invisible at
+every use site — `now` reads identically either way. The fix is to read once at the top of the
+operation that needs it and pass it down: `body` computes `let now = Date()`, the helpers take
+`asOf: now`.
+
+**The getter must be a single expression**, and that requirement came from the corpus rather than
+from the tests. Without it the check reported `WaiversView` *after* the fix — `let now = Date()`
+followed by a `return` — naming the remedy as the fault. A multi-statement getter has already given
+the value a name, which is the whole repair; what is left is the shape where the property *is* the
+read. Scoped to properties, not to zero-argument functions: `now()` reads as work at every call
+site, `now` reads as a value, and only the second one misleads.
+
+Like the lazy-creation gate, this **changes what the rule says and not what it counts** — 5 sites
+across the sweep corpus, all already reported, all still reported.
+
+### A closure parameter default is a seam too
+
+The default-value exemption used to stop at any closure, so this was reported:
+
+```swift
+init(clock: @escaping @Sendable () -> Date = { Date() }) { … }
+```
+
+That is the shape this page offers as the fix, and the shape a reader who takes its advice ends up
+writing. The corpus said so plainly: **three sites across two repositories carried a hand-written
+`swiftprojectlint:disable:next` for this rule**, each with a comment beside it making the same
+point — *"The seam itself, and the one place in this type that reads a clock. The rule is right that
+this default reads ambient time — that is what a default is for."* Nobody had traced the
+suppressions back here.
+
+A default value is substitutable by construction, and it makes no difference whether what is handed
+over is the instant (`= Date()`) or the capability that reads it (`= { Date() }`). A test passes
+`{ fixedDate }` to either.
+
+**The line held is `defaultValue`, not "is a closure."** A closure argument at a call site stays
+reported: `items.map { Date() }` runs immediately, and `queue.async { stamp = Date() }` runs later
+with nothing able to replace it. Only a parameter guarantees substitutability. A provider constant
+like `DateProvider { Date() }` is outside it too — the substitutability there comes from the type
+being a provider, which this rule cannot see, and the one in the corpus stays declined in writing
+beside the code.
+
+Corpus effect: **one finding**, and three suppression comments that no longer suppress anything.
 
 ### Two gates on the declines
 
