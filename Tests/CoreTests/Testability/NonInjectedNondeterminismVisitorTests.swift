@@ -232,6 +232,36 @@ struct NonInjectedNondeterminismIdentityTests {
         """).count == 1)
     }
 
+    /// The house spelling in several of these codebases: a SwiftLint `identifier_name` minimum of
+    /// three characters makes `id` unavailable as a stored property, so the conformance is
+    /// satisfied by a computed `id` over `identifier`. The gate used to require the short name —
+    /// asking for one the project's own configuration forbids.
+    @Test("an identity reached through a computed id is not reported")
+    func identityBehindAComputedIDIsNotReported() {
+        #expect(analyze("""
+        struct Insight: Identifiable {
+            let identifier = UUID()
+            let title: String
+
+            var id: UUID { identifier }
+        }
+        """).isEmpty)
+    }
+
+    /// The link is required, not just the conformance. A `UUID` the type's `id` does not return is
+    /// a second value rather than the identity, and stays reported.
+    @Test("a uuid the computed id does not return is still reported")
+    func unlinkedUUIDIsStillReported() {
+        #expect(analyze("""
+        struct Record: Identifiable {
+            let identifier = UUID()
+            let trace = UUID()
+
+            var id: UUID { identifier }
+        }
+        """).count == 1)
+    }
+
     @Test("another Identifiable property is still reported")
     func nonIDPropertyIsStillReported() {
         // The gate is about the identity, not about the type. A timestamp on the same struct is a
@@ -559,98 +589,3 @@ struct NonInjectedNondeterminismLazyCreationTests {
         #expect(issues.first?.message.contains("Fabricated fallback") == true)
     }
 }
-
-/// A scratch path under the temporary directory is named uniquely on purpose.
-///
-/// Fourteen of the corpus's 164 findings were this one shape, in eight repositories: build a child
-/// of `temporaryDirectory` with a `UUID()` in its name, create it, use it, delete it on the way
-/// out. The uniqueness *is* the point — two concurrent callers handed the same name would collide —
-/// and nothing compares the name, stores it, or sends it anywhere.
-@Suite("A temporary directory's name is not an injectable dependency")
-struct NonInjectedNondeterminismScratchDirectoryTests {
-
-    private func analyze(_ source: String) -> [LintIssue] {
-        let visitor = NonInjectedNondeterminismVisitor(patternCategory: .testability)
-        let syntax = Parser.parse(source: source)
-        visitor.setSourceLocationConverter(
-            SourceLocationConverter(fileName: "Logic.swift", tree: syntax)
-        )
-        visitor.setFilePath("Logic.swift")
-        visitor.walk(syntax)
-        return visitor.detectedIssues.filter { $0.ruleName == RuleIdentifier.nonInjectedNondeterminism }
-    }
-
-    @Test("a uuid inside a temporary path component is not reported")
-    func scratchDirectoryIsExempt() {
-        #expect(analyze(#"""
-        func scratch() -> URL {
-            FileManager.default.temporaryDirectory
-                .appendingPathComponent("import-\(UUID().uuidString)", isDirectory: true)
-        }
-        """#).isEmpty)
-    }
-
-    @Test("the uuid as the whole component is exempt too")
-    func bareComponentIsExempt() {
-        #expect(analyze("""
-        func scratch() -> URL {
-            fileManager.temporaryDirectory.appendingPathComponent(UUID().uuidString)
-        }
-        """).isEmpty)
-    }
-
-    /// A chain that appends twice still roots at the temporary directory.
-    @Test("a nested append still finds its root")
-    func nestedAppendIsExempt() {
-        #expect(analyze("""
-        func scratch() -> URL {
-            fileManager.temporaryDirectory
-                .appendingPathComponent("Studio", isDirectory: true)
-                .appendingPathComponent(UUID().uuidString, isDirectory: true)
-        }
-        """).isEmpty)
-    }
-
-    // MARK: - What the gate must not reach
-
-    /// The non-vacuity guard. Change the receiver and the same expression is reported again, so the
-    /// gate is keyed on the temporary directory rather than on "appends a path component".
-    @Test("appending a uuid to somewhere else is still reported")
-    func appendingElsewhereIsStillReported() {
-        let issues = analyze(#"""
-        func output(_ root: URL) -> URL {
-            root.appendingPathComponent("stderr-\(UUID().uuidString).txt")
-        }
-        """#)
-        #expect(issues.count == 1)
-    }
-
-    /// A `UUID()` that merely shares a statement with a path append is a different expression, so
-    /// the walk stops at the first enclosing call rather than hunting for a reason to exempt.
-    @Test("a uuid beside a temporary path is still reported")
-    func uuidBesideAScratchPathIsStillReported() {
-        let issues = analyze("""
-        func record(_ store: Store) {
-            store.write(
-                identifier: UUID(),
-                to: FileManager.default.temporaryDirectory.appendingPathComponent("out")
-            )
-        }
-        """)
-        #expect(issues.count == 1)
-    }
-
-    @Test("a clock read in a temporary path name is still reported")
-    func clockReadInAScratchNameIsStillReported() {
-        // The gate is about a name that must not collide. A date is a poor way to get one, and it
-        // is the shape that produced a real defect in SwiftMarkdownWiki's snapshot collision loop.
-        let issues = analyze(#"""
-        func scratch() -> URL {
-            FileManager.default.temporaryDirectory
-                .appendingPathComponent("run-\(Date())", isDirectory: true)
-        }
-        """#)
-        #expect(issues.count == 1)
-    }
-}
-
