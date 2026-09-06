@@ -84,6 +84,57 @@ true of them — a test still cannot pin the id — so the gate moves the corpus
 gate stays shut when the `??` falls back from a call or a literal, because there is no storage a
 later statement could be matched against.
 
+### Two gates on the declines
+
+Both were measured against the 26-repository sweep before being written, and together they remove
+**21 of 164 findings**.
+
+**A scratch path's name** (14 findings, eight repositories):
+
+```swift
+FileManager.default.temporaryDirectory
+    .appendingPathComponent("import-\(UUID().uuidString)", isDirectory: true)
+```
+
+The uniqueness *is* the point — two concurrent callers handed the same name would collide — and
+every one of these sites creates the directory, uses it, and deletes it on the way out. Nothing
+compares the name, stores it, or sends it anywhere, so there is no second value for it to disagree
+with, which is the same test the fabrication branch applies.
+
+**Only an identity source**, and the first draft got that wrong: it exempted anything
+nondeterministic in a temporary path name, which would have silenced `"run-\(Date())"` — and a
+clock read used to make a name unique is the shape that produced a real defect in SwiftMarkdownWiki's
+snapshot collision loop, which terminated *only* because the format carried milliseconds. A UUID is
+a name that cannot collide; a timestamp is a name that usually does not, which is a different claim.
+
+**A test-support target** (7 findings, one directory). `isTestOrFixtureFile()` already matched
+`Tests/` and `FooTests/` folders; it now also matches folders ending `TestSupport`, `TestHelpers`,
+`TestKit` and `TestFixtures`. Those are shipped library products rather than test targets, so
+nothing about the path said "test" — but every symbol in them exists to be called from a test, and
+their helpers are *deliberately* nondeterministic: a per-test `UserDefaults` suite name, a
+per-process scratch root, a unique directory per call.
+
+That check is shared with other rules, so the change was scoped by measurement rather than by
+argument: across the corpus it matches four directories and 39 files, and it removed exactly seven
+findings (all this rule's) and three candidate-census entries. No other rule moved.
+
+### Why bare `.now` is not flagged
+
+`Date.now` is reported; a leading-dot `.now` is not, and that is a decision rather than a gap.
+
+Without type resolution the base is unknown, and the corpus contains
+`ContinuousClock.Instant = .now` — a monotonic read this rule
+[deliberately excludes](contradicted-clock-determinism.md). Classifying bare `.now` as a wall-clock
+read would trade a false negative for a false positive of exactly the kind the scope note refuses.
+
+`TupleEqualityWithUnstableComponentsVisitor` reached the same conclusion independently: *"Un-based
+`.now` (leading-dot syntax with inferred base) is NOT flagged — without type resolution the base is
+unknown."*
+
+The practical consequence is worth stating, because it can be mistaken for progress: writing
+`generatedAt: .now` instead of `Date.now` moves a clock read somewhere the tool cannot see, and the
+rule's count falls. **A read the tool reports where it belongs is better than one it cannot find.**
+
 ### What this rule deliberately does not flag
 
 `ContinuousClock()`, `SuspendingClock()`, `Task.sleep(for:)`, `DispatchTime.now()`, the monotonic C functions (`mach_absolute_time`, `clock_gettime`), and `Date(timeIntervalSinceNow:)` all read a clock, and none of them are reported here.

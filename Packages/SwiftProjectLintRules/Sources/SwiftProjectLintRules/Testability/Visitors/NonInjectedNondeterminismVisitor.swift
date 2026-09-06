@@ -158,7 +158,8 @@ final class NonInjectedNondeterminismVisitor: BasePatternVisitor {
             return
         }
 
-        guard !isIdentifiableIdentity(node) else { return }
+        guard !isIdentifiableIdentity(node),
+              !isScratchDirectoryName(node, kind: source.kind) else { return }
         flag(source.marker, at: node)
     }
 
@@ -433,6 +434,79 @@ final class NonInjectedNondeterminismVisitor: BasePatternVisitor {
         }
         return false
     }
+
+    /// True when `node` names a scratch path under the temporary directory —
+    /// `tmp.appendingPathComponent("import-\(UUID().uuidString)")`.
+    ///
+    /// The uniqueness *is* the point, and it is the one shape where a deterministic source would be
+    /// actively wrong: two concurrent imports handed the same name would collide, and every one of
+    /// these sites creates the directory, uses it, and deletes it on the way out. Nothing compares
+    /// the name, stores it, or sends it anywhere, so there is no second value for it to disagree
+    /// with — the test the fabrication branch applies, reached here from the other direction.
+    ///
+    /// Measured before the gate: 14 of 164 findings across the corpus, in eight repositories. That
+    /// is the whole of what this buys, and it is worth having because a reader triaging the rest
+    /// should not be shown fourteen findings the rule could have known were fine.
+    ///
+    /// **Only an identity source, and the first draft of this got that wrong.** It exempted
+    /// anything nondeterministic in a temporary path name, which would have silenced
+    /// `"run-\(Date())"` — and a clock read used to make a name unique is the shape that produced a
+    /// real defect in SwiftMarkdownWiki's snapshot collision loop, which terminated *only* because
+    /// the format carried milliseconds. A UUID is a name that cannot collide; a timestamp is a name
+    /// that usually does not, which is a different claim.
+    ///
+    /// **Deliberately not `NSTemporaryDirectory()` or a hard-coded `/tmp`.** Neither appears in the
+    /// corpus, and a gate is worth exactly the shapes it was measured against.
+    private func isScratchDirectoryName(_ node: Syntax, kind: NondeterminismSources.Kind) -> Bool {
+        guard kind == .identity else { return false }
+        var current = node
+        while let parent = current.parent {
+            if parent.is(ClosureExprSyntax.self) || parent.is(CodeBlockSyntax.self) { return false }
+            // The *first* enclosing call decides. Walking past it would exempt a `UUID()` that
+            // merely shares a statement with a path append, which is a different expression.
+            if let call = parent.as(FunctionCallExprSyntax.self) {
+                return Self.appendsToTemporaryDirectory(call)
+            }
+            current = parent
+        }
+        return false
+    }
+
+    /// True when `call` appends a path component to a chain rooted at a temporary directory.
+    private static func appendsToTemporaryDirectory(_ call: FunctionCallExprSyntax) -> Bool {
+        guard let callee = call.calledExpression.as(MemberAccessExprSyntax.self),
+              pathAppendingMethods.contains(callee.declName.baseName.text),
+              let base = callee.base else {
+            return false
+        }
+        return rootsAtTemporaryDirectory(base)
+    }
+
+    /// Walks a receiver chain looking for a `temporaryDirectory` member.
+    ///
+    /// Descends through further calls as well as member accesses, so a chain that appends twice —
+    /// `tmp.appendingPathComponent("A").appendingPathComponent(id)` — still finds its root.
+    private static func rootsAtTemporaryDirectory(_ expression: ExprSyntax) -> Bool {
+        var current: ExprSyntax? = expression
+        while let node = current {
+            if let member = node.as(MemberAccessExprSyntax.self) {
+                if member.declName.baseName.text == "temporaryDirectory" { return true }
+                current = member.base
+                continue
+            }
+            if let call = node.as(FunctionCallExprSyntax.self) {
+                current = call.calledExpression
+                continue
+            }
+            return false
+        }
+        return false
+    }
+
+    /// The `URL` members that build a child path from a parent.
+    private static let pathAppendingMethods: Set<String> = [
+        "appendingPathComponent", "appending", "appendingPathExtension"
+    ]
 
     /// True when `node` is the `id` of an `Identifiable` type — `let id = UUID()`.
     ///
