@@ -611,6 +611,19 @@ struct NonInjectedNondeterminismScratchDirectoryTests {
         """).isEmpty)
     }
 
+    /// The corpus writes this across two lines, which is how the first version of the gate came to
+    /// claim `NSTemporaryDirectory()` did not appear in it. The call sits inside a `URL`
+    /// initialiser rather than at the head of a member chain.
+    @Test("the C-function spelling of the temporary directory counts too")
+    func nsTemporaryDirectoryIsExempt() {
+        #expect(analyze(#"""
+        func scratch() -> URL {
+            URL(fileURLWithPath: NSTemporaryDirectory())
+                .appendingPathComponent("spm-\(UUID().uuidString)")
+        }
+        """#).isEmpty)
+    }
+
     // MARK: - What the gate must not reach
 
     /// The non-vacuity guard. Change the receiver and the same expression is reported again, so the

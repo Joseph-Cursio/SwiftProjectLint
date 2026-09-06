@@ -455,8 +455,12 @@ final class NonInjectedNondeterminismVisitor: BasePatternVisitor {
     /// the format carried milliseconds. A UUID is a name that cannot collide; a timestamp is a name
     /// that usually does not, which is a different claim.
     ///
-    /// **Deliberately not `NSTemporaryDirectory()` or a hard-coded `/tmp`.** Neither appears in the
-    /// corpus, and a gate is worth exactly the shapes it was measured against.
+    /// **`NSTemporaryDirectory()` counts, and the first version said it did not.** That claim came
+    /// from a grep that searched a line at a time, and the corpus writes the call across two —
+    /// `URL(fileURLWithPath: NSTemporaryDirectory())` on one line, the appended component on the
+    /// next. One production site, and exempting `temporaryDirectory` but not the same intent
+    /// spelled another way is arbitrary rather than conservative. A hard-coded `/tmp` still does
+    /// not count: it does not appear, and that was checked with a pattern that can see it.
     private func isScratchDirectoryName(_ node: Syntax, kind: NondeterminismSources.Kind) -> Bool {
         guard kind == .identity else { return false }
         var current = node
@@ -487,6 +491,7 @@ final class NonInjectedNondeterminismVisitor: BasePatternVisitor {
     /// Descends through further calls as well as member accesses, so a chain that appends twice —
     /// `tmp.appendingPathComponent("A").appendingPathComponent(id)` — still finds its root.
     private static func rootsAtTemporaryDirectory(_ expression: ExprSyntax) -> Bool {
+        if callsTemporaryDirectoryFunction(Syntax(expression)) { return true }
         var current: ExprSyntax? = expression
         while let node = current {
             if let member = node.as(MemberAccessExprSyntax.self) {
@@ -501,6 +506,23 @@ final class NonInjectedNondeterminismVisitor: BasePatternVisitor {
             return false
         }
         return false
+    }
+
+    /// True when `syntax` contains a call to `NSTemporaryDirectory()`.
+    ///
+    /// A subtree scan rather than a chain walk, because the call sits inside a `URL` initialiser
+    /// rather than at the head of a member chain: `URL(fileURLWithPath: NSTemporaryDirectory())`.
+    /// Scanning the *receiver* of a path append is bounded — anything in it that names the
+    /// temporary directory means the path being built is under it.
+    private static func callsTemporaryDirectoryFunction(_ syntax: Syntax) -> Bool {
+        if let call = syntax.as(FunctionCallExprSyntax.self),
+           call.calledExpression.as(DeclReferenceExprSyntax.self)?
+               .baseName.text == "NSTemporaryDirectory" {
+            return true
+        }
+        return syntax.children(viewMode: .sourceAccurate).contains {
+            callsTemporaryDirectoryFunction($0)
+        }
     }
 
     /// The `URL` members that build a child path from a parent.
