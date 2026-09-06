@@ -617,17 +617,47 @@ final class NonInjectedNondeterminismVisitor: BasePatternVisitor {
 
     /// True when `node` sits in a function/initializer parameter's default
     /// value — `init(id: UUID = UUID())` is the injection seam, not inline
-    /// nondeterminism. Stops at a closure / code block so a call inside a
-    /// default closure body is still flagged.
+    /// nondeterminism.
+    ///
+    /// ## A closure default is a seam too
+    ///
+    /// This used to stop at any `ClosureExprSyntax`, so
+    /// `clock: () -> Date = { Date() }` was reported — the exact shape this
+    /// rule's own documentation offers as the fix, and the shape a reader who
+    /// takes its advice ends up writing. The corpus said so plainly: three
+    /// sites across two repositories carried a hand-written
+    /// `swiftprojectlint:disable:next` for this rule, each with a comment
+    /// saying the same thing — *"the seam itself... that is what a default is
+    /// for."* Nobody traced the suppressions back here.
+    ///
+    /// A default value is substitutable by construction, and it makes no
+    /// difference whether the value handed over is the instant (`= Date()`) or
+    /// the capability that reads it (`= { Date() }`). A test passes
+    /// `{ fixedDate }` to either. The closure is not invoked at the seam; it is
+    /// the production implementation of one.
+    ///
+    /// The distinction that is *not* generalised: a closure argument at a
+    /// call site. `items.map { Date() }` runs immediately and
+    /// `queue.async { stamp = Date() }` runs later with nothing able to replace
+    /// it, so the substitutability has to come from the parameter, which is why
+    /// this stays keyed on `defaultValue` rather than on being a closure.
+    ///
+    /// The walk requires the node to sit *inside* the parameter's default-value
+    /// clause rather than merely to have a parameter ancestor, and a function
+    /// or accessor body between the two ends it — a nested declaration's body
+    /// is code that runs, not a value being handed over.
     private func isParameterDefaultValue(_ node: Syntax) -> Bool {
+        var child = node
         var current = node.parent
         while let syntax = current {
-            if syntax.is(ClosureExprSyntax.self) || syntax.is(CodeBlockSyntax.self) {
+            if syntax.is(CodeBlockSyntax.self) || syntax.is(AccessorBlockSyntax.self) {
                 return false
             }
-            if syntax.is(FunctionParameterSyntax.self) {
-                return true
+            if let parameter = syntax.as(FunctionParameterSyntax.self) {
+                guard let defaultValue = parameter.defaultValue else { return false }
+                return Syntax(defaultValue).id == child.id
             }
+            child = syntax
             current = syntax.parent
         }
         return false

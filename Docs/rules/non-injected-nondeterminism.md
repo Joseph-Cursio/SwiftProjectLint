@@ -16,7 +16,8 @@ A property-based test re-runs logic against many randomized inputs and, when it 
 - The C RNG family: `arc4random`, `arc4random_uniform`, `drand48`, and `CFAbsoluteTimeGetCurrent`
 - Ambient clock/locale reads: `Date.now`, `Locale.current`, `TimeZone.current`
 
-Uses in a parameter *default value* position are exempt (a defaulted `clock: () -> Date = { Date() }` is itself the injection seam), as are test files.
+Uses in a parameter *default value* position are exempt — a defaulted `clock: () -> Date = { Date() }`
+is itself the injection seam — as are test files.
 
 ### Two faults, one trigger
 
@@ -83,6 +84,34 @@ These are **reclassified, not silenced.** They fall through to the rule's ordina
 true of them — a test still cannot pin the id — so the gate moves the corpus count by zero. The
 gate stays shut when the `??` falls back from a call or a literal, because there is no storage a
 later statement could be matched against.
+
+### A closure parameter default is a seam too
+
+The default-value exemption used to stop at any closure, so this was reported:
+
+```swift
+init(clock: @escaping @Sendable () -> Date = { Date() }) { … }
+```
+
+That is the shape this page offers as the fix, and the shape a reader who takes its advice ends up
+writing. The corpus said so plainly: **three sites across two repositories carried a hand-written
+`swiftprojectlint:disable:next` for this rule**, each with a comment beside it making the same
+point — *"The seam itself, and the one place in this type that reads a clock. The rule is right that
+this default reads ambient time — that is what a default is for."* Nobody had traced the
+suppressions back here.
+
+A default value is substitutable by construction, and it makes no difference whether what is handed
+over is the instant (`= Date()`) or the capability that reads it (`= { Date() }`). A test passes
+`{ fixedDate }` to either.
+
+**The line held is `defaultValue`, not "is a closure."** A closure argument at a call site stays
+reported: `items.map { Date() }` runs immediately, and `queue.async { stamp = Date() }` runs later
+with nothing able to replace it. Only a parameter guarantees substitutability. A provider constant
+like `DateProvider { Date() }` is outside it too — the substitutability there comes from the type
+being a provider, which this rule cannot see, and the one in the corpus stays declined in writing
+beside the code.
+
+Corpus effect: **one finding**, and three suppression comments that no longer suppress anything.
 
 ### Two gates on the declines
 
