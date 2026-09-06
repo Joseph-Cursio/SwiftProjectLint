@@ -547,7 +547,7 @@ final class NonInjectedNondeterminismVisitor: BasePatternVisitor {
     /// looks like it wants** — see the note on `report`.
     private func isIdentifiableIdentity(_ node: Syntax) -> Bool {
         var current = node.parent
-        var isStoredIDBinding = false
+        var storedName: String?
 
         while let syntax = current {
             // A local inside a function or closure is not a stored identity, whatever it is named.
@@ -555,18 +555,56 @@ final class NonInjectedNondeterminismVisitor: BasePatternVisitor {
 
             if let binding = syntax.as(PatternBindingSyntax.self) {
                 guard binding.accessorBlock == nil,
-                      binding.pattern.as(IdentifierPatternSyntax.self)?.identifier.text == "id"
+                      let name = binding.pattern.as(IdentifierPatternSyntax.self)?.identifier.text
                 else { return false }
-                isStoredIDBinding = true
+                storedName = name
             }
-            if isStoredIDBinding, let inheritance = inheritanceClause(of: syntax) {
-                return inheritance.inheritedTypes.contains {
+            if let storedName, let inheritance = inheritanceClause(of: syntax) {
+                guard inheritance.inheritedTypes.contains(where: {
                     $0.type.trimmedDescription == "Identifiable"
-                }
+                }) else { return false }
+                return storedName == "id" || Self.declaresIdentity(named: storedName, in: syntax)
             }
             current = syntax.parent
         }
         return false
+    }
+
+    /// True when the type declares `var id: … { name }` — the stored property *is* the identity,
+    /// under a different spelling.
+    ///
+    /// The gate used to require the stored property be called `id`, which is a name several
+    /// codebases here cannot use: a SwiftLint `identifier_name` minimum of three characters makes
+    /// `identifier` the house spelling, and `var id: UUID { identifier }` is how the conformance is
+    /// then satisfied. Requiring the short name asked for one the project's own configuration
+    /// forbids, which is the tool failing to read an intent the author stated in the language.
+    ///
+    /// Two findings in the corpus, both of that exact shape. The conformance is still required, and
+    /// so is the link: a `UUID` on an `Identifiable` type that its `id` does *not* return stays
+    /// reported, because then it is a second value rather than the identity.
+    private static func declaresIdentity(named name: String, in typeDecl: Syntax) -> Bool {
+        guard let members = memberBlock(of: typeDecl) else { return false }
+        for member in members.members {
+            guard let variable = member.decl.as(VariableDeclSyntax.self) else { continue }
+            for binding in variable.bindings
+            where binding.pattern.as(IdentifierPatternSyntax.self)?.identifier.text == "id" {
+                guard case .getter(let body)? = binding.accessorBlock?.accessors,
+                      body.count == 1,
+                      let only = body.first?.item.as(ExprSyntax.self),
+                      only.as(DeclReferenceExprSyntax.self)?.baseName.text == name
+                else { continue }
+                return true
+            }
+        }
+        return false
+    }
+
+    private static func memberBlock(of syntax: Syntax) -> MemberBlockSyntax? {
+        if let decl = syntax.as(StructDeclSyntax.self) { return decl.memberBlock }
+        if let decl = syntax.as(ClassDeclSyntax.self) { return decl.memberBlock }
+        if let decl = syntax.as(ActorDeclSyntax.self) { return decl.memberBlock }
+        if let decl = syntax.as(EnumDeclSyntax.self) { return decl.memberBlock }
+        return nil
     }
 
     private func inheritanceClause(of syntax: Syntax) -> InheritanceClauseSyntax? {

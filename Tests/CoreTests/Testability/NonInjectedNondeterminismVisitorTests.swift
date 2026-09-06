@@ -232,6 +232,36 @@ struct NonInjectedNondeterminismIdentityTests {
         """).count == 1)
     }
 
+    /// The house spelling in several of these codebases: a SwiftLint `identifier_name` minimum of
+    /// three characters makes `id` unavailable as a stored property, so the conformance is
+    /// satisfied by a computed `id` over `identifier`. The gate used to require the short name —
+    /// asking for one the project's own configuration forbids.
+    @Test("an identity reached through a computed id is not reported")
+    func identityBehindAComputedIDIsNotReported() {
+        #expect(analyze("""
+        struct Insight: Identifiable {
+            let identifier = UUID()
+            let title: String
+
+            var id: UUID { identifier }
+        }
+        """).isEmpty)
+    }
+
+    /// The link is required, not just the conformance. A `UUID` the type's `id` does not return is
+    /// a second value rather than the identity, and stays reported.
+    @Test("a uuid the computed id does not return is still reported")
+    func unlinkedUUIDIsStillReported() {
+        #expect(analyze("""
+        struct Record: Identifiable {
+            let identifier = UUID()
+            let trace = UUID()
+
+            var id: UUID { identifier }
+        }
+        """).count == 1)
+    }
+
     @Test("another Identifiable property is still reported")
     func nonIDPropertyIsStillReported() {
         // The gate is about the identity, not about the type. A timestamp on the same struct is a
