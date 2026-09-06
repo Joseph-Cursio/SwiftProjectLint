@@ -74,9 +74,24 @@ That correction came out of the measurement itself. The harness's first version 
 and reported the opposite conclusion — a shape no real app contains would otherwise have decided
 the design.
 
-Three shapes force capture: reading a stored property's projected value (`$name`), assigning to one,
-or calling one of the type's own methods. Followed transitively, since a property composing children
-that each need a binding has to pass those bindings down.
+Four shapes force capture: reading a stored property's projected value (`$name`), assigning to one,
+calling `toggle()` on one, or calling one of the type's own methods. Followed transitively, since a
+property composing children that each need a binding has to pass those bindings down.
+
+> **`toggle()` was in the gate from the start and never fired.** The helper that resolved its
+> receiver inspected a node's children and not the node itself, so it was handed `isExpanded` and
+> returned nothing — `isExpanded = true` was gated while `isExpanded.toggle()` was reported, the
+> same mutation under two spellings. Found by re-classifying the file the gate was calibrated
+> against and noticing one property still fired.
+
+**A mutating method other than `toggle()` is a known miss.** `selection.remove(id)` and
+`selection.insert(id)` on a `@State Set` require a `Binding` exactly as `toggle()` does, and are
+still reported — one finding in the corpus, in `ComparisonView`. Closing it means choosing between a
+hand-maintained list of mutating method names, which is arbitrary, and the principled rule — *a call
+in statement position whose receiver is stored state* — which over-gates without type resolution,
+because it cannot tell `selection.remove(id)` on a value type from `viewModel.reload()` on a
+reference type. Neither has a defence strong enough to ship on one finding, so the miss is recorded
+rather than closed.
 
 #### What the rule still cannot see
 
