@@ -214,4 +214,68 @@ struct ComputedPropertyViewCaptureTests {
         """)
         #expect(issues.count == 1)
     }
+
+    /// A callback the view is *handed* crosses the boundary exactly as one it *makes*.
+    ///
+    /// The gate caught a closure a property creates and missed one it forwards, which is the same
+    /// closure arriving by a different route. `Button("ok", action: onConfirm)` puts `onConfirm`
+    /// into the child, and whether that child can ever compare equal is decided by the call site
+    /// that supplied it — invisible from here, and in every corpus instance it captures.
+    ///
+    /// Measured before the gate was written: 13 findings across six repositories, 0 newly
+    /// reported. Two of the thirteen had already been declined by hand in the code they name,
+    /// which is the calibration — the gate silences the properties a reader had independently
+    /// judged not worth extracting.
+    @Test("a property forwarding a closure input is not worth extracting")
+    func forwardedClosureCountsAsCapture() {
+        #expect(filteredIssues("""
+        struct Sheet: View {
+            let title: String
+            let onConfirm: () -> Void
+            private var footer: some View { Button("ok", action: onConfirm) }
+            var body: some View { VStack { footer; Text(title) } }
+        }
+        """).isEmpty)
+    }
+
+    @Test("an optional closure input counts too")
+    func optionalClosureInputCountsAsCapture() {
+        // `(() -> Void)?` parses as an optional wrapping a *parenthesised* function type, which is
+        // a one-element tuple. The corpus writes callbacks this way as often as the plain form.
+        #expect(filteredIssues("""
+        struct Row: View {
+            let title: String
+            var onTap: (() -> Void)?
+            private var button: some View { Button("x") { onTap?() } }
+            var body: some View { VStack { button; Text(title) } }
+        }
+        """).isEmpty)
+    }
+
+    @Test("an attributed closure input counts too")
+    func attributedClosureInputCountsAsCapture() {
+        #expect(filteredIssues("""
+        struct Row: View {
+            let title: String
+            let onApply: @Sendable (Int) -> Void
+            private var button: some View { Button("a") { onApply(1) } }
+            var body: some View { VStack { button; Text(title) } }
+        }
+        """).isEmpty)
+    }
+
+    /// The non-vacuity guard. A stored property that is *not* a closure does not gate, or this
+    /// would silence every property that reads any input.
+    @Test("a value input is still reported")
+    func valueInputIsStillReported() {
+        let issues = filteredIssues("""
+        struct Row: View {
+            let title: String
+            let onConfirm: () -> Void
+            private var heading: some View { Text(title) }
+            var body: some View { VStack { heading; Button("ok", action: onConfirm) } }
+        }
+        """)
+        #expect(issues.count == 1)
+    }
 }
