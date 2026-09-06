@@ -63,6 +63,23 @@ repositories**, 2 of them live defects and 2 more already unreachable by constru
 inside this rule rather than promoted to its own, because every one of these sites was already
 reported here and moving them would hand new findings to anyone who had disabled the rule.
 
+#### The identity may be reached through a computed `id`
+
+The exemption used to require a stored binding literally named `id`. Several codebases cannot spell
+it that way: a SwiftLint `identifier_name` minimum of three characters makes `id` unavailable as a
+stored property, so the conformance is satisfied by
+
+```swift
+let identifier = UUID()
+var id: UUID { identifier }
+```
+
+The gate was asking for a name the project's own configuration forbids. It now resolves a computed
+`id` to the property it returns.
+
+**The link is required, not just the conformance.** A second `UUID` on the same type that `id` does
+not return is a different value — it may be a database key or a wire value — and stays reported.
+
 The fabrication check runs *before* the `Identifiable` identity exemption, and that order matters:
 `struct Response: Identifiable { let id = model.id ?? UUID() }` satisfies the exemption exactly, and
 is also the shape of the four DTO defects that motivated the split.
@@ -163,6 +180,17 @@ The uniqueness *is* the point — two concurrent callers handed the same name wo
 every one of these sites creates the directory, uses it, and deletes it on the way out. Nothing
 compares the name, stores it, or sends it anywhere, so there is no second value for it to disagree
 with, which is the same test the fabrication branch applies.
+
+**Both spellings of the temporary directory count.** The gate matched
+`FileManager.default.temporaryDirectory` at the head of a member chain, and the corpus also writes
+
+```swift
+URL(fileURLWithPath: NSTemporaryDirectory())
+    .appendingPathComponent("spm-\(UUID().uuidString)")
+```
+
+where the call sits inside a `URL` initialiser instead. Same scratch path, same reason it needs no
+seam, and the first version of the gate did not see it.
 
 **Only an identity source**, and the first draft got that wrong: it exempted anything
 nondeterministic in a temporary path name, which would have silenced `"run-\(Date())"` — and a

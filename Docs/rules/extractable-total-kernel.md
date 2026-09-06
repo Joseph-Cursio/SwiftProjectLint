@@ -25,6 +25,26 @@ contains it; the method is `private`, `async` and `throws`, and calling it means
 session and a server. So the part of the code that can actually be **wrong** — the counting, the
 offsets, the fractions — is the part nothing can reach.
 
+### A binding that reads ambient state is not a kernel
+
+The rule's message tells the author a binding *"depends only on its parameters and locals"*. A clock
+read makes that claim false, so any binding whose value reads ambient state is refused outright,
+whatever shape it has below.
+
+This was a defect, and the shape of it is worth keeping. `let elapsed = ContinuousClock.now - lastActivityAt`
+satisfies the rule's shape test — a derived binding, then a comparison that uses it — so three
+findings in SwiftAssist told their author exactly the thing that was not true of them: an idle
+check, a staleness check and a stream deadline.
+
+**The purity oracle already knew.** `ContinuousClock` was classified as a nondeterminism source all
+along; the rule simply never asked it. It survived because the check it *did* run walks call
+expressions, and `ContinuousClock.now` is a member access with no call in it — while `Date()` **is**
+a call and was refused from the start. So the obvious probe passed and only the clock-property
+spelling ever got through.
+
+The general lesson is worth more than the fix: **a rule can be blind to something the tool it is
+built on already knows.** Nothing was missing from the classifier.
+
 ### Discussion
 
 The case this rule was built for:

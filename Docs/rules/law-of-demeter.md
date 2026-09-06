@@ -16,6 +16,36 @@ The idiomatic fix is to add a method on the *immediate* collaborator that encaps
 
 Member-access chains of **3 or more dots** (i.e., four or more components: `a.b.c.d`) where the root is a plain identifier — not `self`, a type name, or the result of a function call. The rule reports the full chain in the message so the violation is immediately visible.
 
+### One finding per reach-through, not per occurrence
+
+A finding is reported once per **(enclosing declaration, reach-through target)**, where the target is
+the *penultimate* component — the thing being reached into. A second chain into the same target from
+the same declaration is the same problem and the same fix, so it is not reported again.
+
+**The old count was not merely noisy, it was backwards.** Measured on two repositories before this
+changed: five sort comparators in SwiftInferProperties produced **48 findings for one missing
+`Comparable` conformance**, while eleven DTO-flattening constructors in SwiftAssist produced eleven
+for zero problems — flattening a nested `Range` into flat wire fields is what a DTO is *for*.
+
+Ranking by occurrence therefore put the largest cluster on the page at the top, and that cluster was
+the *cheapest* fix — one conformance, one line — while the single-digit findings were the ones
+needing judgement. The ranking sent a reader to the easy work and called it the biggest thing there.
+
+**The key is the penultimate hop rather than the root**, because that is where the encapsulation
+goes. `lhs.member.location.file` and `rhs.member.location.line` are one problem with `location`;
+keyed on the root they would be two, splitting one fix in half.
+
+Re-measured against source that still contained those clusters: **90 occurrences, 40
+reach-throughs.** Expect reductions on this rule to look smaller and mean more.
+
+> **What the count is good for is finding the file, not sizing the work.** Worked across three
+> repositories, the defect sat *beside* the chain every time rather than in it — five comparators
+> that all ignored `column`, so two declarations on one line compared equal and their order fell to
+> a sort Swift does not promise is stable; a second path format built from
+> `context.jail.root.path`, so one file had two names; a private colour switch four lines under an
+> exempt chain that disagreed with the shared one on four of five categories. One finding in a
+> three-finding repository was worth more than the forty-eight one conformance cleared.
+
 ### Exempt patterns
 
 Several common patterns look like deep chains but are not object-graph coupling. The rule suppresses all of the following:
