@@ -155,6 +155,7 @@ class ComputedPropertyViewVisitor: BasePatternVisitor {
             if !captures.isDisjoint(with: members.stored) { return true }
             let referenced = members.computedReferences[current] ?? []
             if !referenced.isDisjoint(with: members.instanceMethods) { return true }
+            if !referenced.isDisjoint(with: members.closureInputs) { return true }
             pending.append(contentsOf: referenced.filter { members.computedReferences[$0] != nil })
         }
         return false
@@ -214,6 +215,10 @@ class ComputedPropertyViewVisitor: BasePatternVisitor {
         /// Per computed property: the names it uses as a projected value (`$name`) and the names
         /// it assigns to. Both force a `Binding` or a capturing closure across the boundary.
         var capturesFor: [String: Set<String>] = [:]
+        /// Stored properties whose declared type is a function — the callbacks a view is handed.
+        /// Forwarding one to a child puts that closure across the boundary just as creating one
+        /// does.
+        var closureInputs: Set<String> = []
     }
 
     /// The type's stored inputs, what each computed property references, and which of them return
@@ -242,7 +247,10 @@ class ComputedPropertyViewVisitor: BasePatternVisitor {
         guard let accessor = binding.accessorBlock else {
             // A stored property. `static let` is a constant, not an input the view re-renders on,
             // so it is not part of the surface.
-            if !isStatic { result.stored.insert(name) }
+            if !isStatic {
+                result.stored.insert(name)
+                if isFunctionType(binding.typeAnnotation?.type) { result.closureInputs.insert(name) }
+            }
             return
         }
         result.computedReferences[name] = referencedNames(in: Syntax(accessor))
@@ -363,6 +371,29 @@ class ComputedPropertyViewVisitor: BasePatternVisitor {
             == .keyword(.self) {
             names.insert(member.declName.baseName.text)
         }
+    }
+
+    /// Whether `type` is a function type, seeing through the wrappers a callback is usually
+    /// declared with.
+    ///
+    /// `() -> Void`, `(() -> Void)?` and `@escaping (Template) -> Void` are all the same thing for
+    /// this purpose, and the corpus writes all three. An optional wraps a *parenthesised* function
+    /// type, which parses as a one-element tuple, so the tuple case is what makes the optional
+    /// spelling work rather than an accident.
+    private static func isFunctionType(_ type: TypeSyntax?) -> Bool {
+        guard let type else { return false }
+        if type.is(FunctionTypeSyntax.self) { return true }
+        if let optional = type.as(OptionalTypeSyntax.self) {
+            return isFunctionType(optional.wrappedType)
+        }
+        if let attributed = type.as(AttributedTypeSyntax.self) {
+            return isFunctionType(attributed.baseType)
+        }
+        if let tuple = type.as(TupleTypeSyntax.self), tuple.elements.count == 1,
+           let only = tuple.elements.first {
+            return isFunctionType(only.type)
+        }
+        return false
     }
 
     /// `$isExpanded` and `isExpanded` are the same input.

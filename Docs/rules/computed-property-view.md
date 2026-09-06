@@ -74,9 +74,28 @@ That correction came out of the measurement itself. The harness's first version 
 and reported the opposite conclusion — a shape no real app contains would otherwise have decided
 the design.
 
-Four shapes force capture: reading a stored property's projected value (`$name`), assigning to one,
-calling `toggle()` on one, or calling one of the type's own methods. Followed transitively, since a
-property composing children that each need a binding has to pass those bindings down.
+Five shapes force capture: reading a stored property's projected value (`$name`), assigning to one,
+calling `toggle()` on one, calling one of the type's own methods, or **forwarding a stored closure
+input**. Followed transitively, since a property composing children that each need a binding has to
+pass those bindings down.
+
+The last of those is the callback a view is *handed* rather than one it makes:
+
+```swift
+let onConfirm: () -> Void
+private var footer: some View { Button("ok", action: onConfirm) }   // not reported
+```
+
+It is the same closure crossing the same boundary, arriving by a different route. Whether the child
+can ever compare equal is decided by the call site that supplied the closure — invisible from
+inside the view, and in every instance the corpus contains, it captures. `() -> Void`,
+`(() -> Void)?` and `@escaping (T) -> Void` all count; an optional wraps a *parenthesised* function
+type, which parses as a one-element tuple, so all three spellings resolve to the same test.
+
+Measured before it shipped: **13 findings across six repositories, 0 newly reported.** Two of the
+thirteen had already been declined by hand, in comments written into the code they name, by a
+reader working the rule earlier the same day — the gate silences exactly the properties someone had
+independently judged not worth extracting.
 
 > **`toggle()` was in the gate from the start and never fired.** The helper that resolved its
 > receiver inspected a node's children and not the node itself, so it was handed `isExpanded` and

@@ -33,9 +33,8 @@ struct ConfigDiffPreviewSheet: View {
     /// to re-render exactly as often as the inlined property it replaced. There is no update for
     /// it to skip.
     ///
-    /// `Computed Property View` still reports this. Its capture gate sees a closure the property
-    /// *creates*, not one it is *handed*, and closing that is a decision with its own evidence to
-    /// gather.
+    /// The rule agrees now. Its capture gate saw a closure a property *creates* and not one it is
+    /// *handed*; this property was one of the thirteen that closing the gap silenced.
     private var footer: some View {
         HStack {
             Spacer()
