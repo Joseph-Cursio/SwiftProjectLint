@@ -132,8 +132,7 @@ final class ParallelListDriftVisitor: CrossFileVisitorBase, CrossFilePatternVisi
         }
 
         for item in list {
-            guard let call = RegistrationVerb.call(in: item),
-                  let name = registeredName(from: call) else {
+            guard let (call, name) = runEntry(in: item) else {
                 flush()
                 continue
             }
@@ -148,6 +147,64 @@ final class ParallelListDriftVisitor: CrossFileVisitorBase, CrossFilePatternVisi
             }
         }
         flush()
+    }
+
+    /// One entry of a run, from either of the two shapes that carry a roster.
+    ///
+    /// The registration shape — `register("fetch")` — is the original, and is gated on
+    /// `RegistrationVerb` so that arbitrary calls are not read as a list.
+    ///
+    /// The second shape has no verb to gate on and needs none, because its own signal is
+    /// stronger: a run of sibling calls that each mention a **distinct leading-dot member**.
+    ///
+    /// ```swift
+    /// Button("Rules")   { selection = .rules }
+    /// Button("Reports") { selection = .reports }
+    /// ```
+    ///
+    /// A menu built this way is an enumeration transcribed by hand, and it is exactly the carrier
+    /// that was missing. The real instance: a title menu of eleven `Button`s against a twelve-case
+    /// enum, silently omitting one destination. Written as `[.rules, .reports, …]` this rule
+    /// reported it and named the missing case; written as eleven calls it saw nothing, because
+    /// `Button` is not a registration verb and the first name-like argument is the *label*
+    /// (`"Enabled Rule Violations"`), which normalizes nowhere near the case name it belongs to.
+    ///
+    /// Requiring a leading-dot member is what keeps this narrow. It is not "any run of calls with
+    /// the same callee" — that would read every repeated view builder as a roster.
+    private func runEntry(in item: CodeBlockItemSyntax) -> (FunctionCallExprSyntax, String)? {
+        if let call = RegistrationVerb.call(in: item), let name = registeredName(from: call) {
+            return (call, name)
+        }
+        guard case .expr(let expr) = item.item,
+              let call = expr.as(FunctionCallExprSyntax.self),
+              let name = leadingDotMemberName(in: call) else { return nil }
+        return (call, name)
+    }
+
+    /// The single leading-dot member `call`'s **action closure** mentions, or `nil`.
+    ///
+    /// Only the trailing closure is searched, and that restriction is the whole precision of this
+    /// carrier. A roster entry is what the item *does*, not how it is *styled*: reading arguments
+    /// too collected `.red`, `.green` and `.primary` from lists of summary tiles, so two unrelated
+    /// views drawing four tiles apiece paired on three shared colour names and reported drift
+    /// against each other. Both were false positives, and both are gone with arguments excluded.
+    ///
+    /// Several members is as disqualifying as none: `Button("x") { mode = .a; other = .b }` names
+    /// two things and cannot contribute one entry without choosing arbitrarily between them.
+    private func leadingDotMemberName(in call: FunctionCallExprSyntax) -> String? {
+        guard let closure = call.trailingClosure else { return nil }
+        var found: Set<String> = []
+        collectLeadingDotMembers(in: Syntax(closure), into: &found)
+        return found.count == 1 ? found.first : nil
+    }
+
+    private func collectLeadingDotMembers(in node: Syntax, into found: inout Set<String>) {
+        for child in node.children(viewMode: .sourceAccurate) {
+            if let member = child.as(MemberAccessExprSyntax.self), member.base == nil {
+                found.insert(member.declName.baseName.text)
+            }
+            collectLeadingDotMembers(in: child, into: &found)
+        }
     }
 
     /// The distinguishing name a registration call contributes. Checks the trailing

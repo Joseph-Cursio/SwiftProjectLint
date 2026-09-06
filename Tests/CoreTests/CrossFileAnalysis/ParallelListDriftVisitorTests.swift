@@ -222,3 +222,117 @@ struct ParallelListDriftVisitorTests {
         #expect(issues.isEmpty)
     }
 }
+
+/// A menu built as sibling calls is an enumeration transcribed by hand.
+///
+/// This carrier exists because of a real defect the rule could not see. A title menu was eleven
+/// `Button`s against a twelve-case enum and silently omitted one destination — reachable from the
+/// sidebar and from nowhere else. Written as `[.rules, .reports, …]` the rule reported it and
+/// named the missing case; written as eleven calls it saw nothing.
+///
+/// Two things had to change. `Button` is not a `RegistrationVerb`, so the run was never collected;
+/// and the first name-like argument is the *label* (`"Enabled Rule Violations"`), which normalizes
+/// nowhere near the case name it belongs to. The entry has to come from the action.
+@Suite("A run of sibling calls carries the roster its actions name")
+struct ParallelListDriftActionRunTests {
+
+    private func analyze(files: [String: String]) -> [LintIssue] {
+        var cache: [String: SourceFileSyntax] = [:]
+        for (name, source) in files {
+            cache[name] = Parser.parse(source: source)
+        }
+        let visitor = ParallelListDriftVisitor(fileCache: cache)
+        visitor.setPattern(ParallelListDrift().pattern)
+        for (name, ast) in cache {
+            visitor.setFilePath(name)
+            visitor.setSourceLocationConverter(SourceLocationConverter(fileName: name, tree: ast))
+            visitor.walk(ast)
+        }
+        visitor.finalizeAnalysis()
+        return visitor.detectedIssues.filter { $0.ruleName == .parallelListDrift }
+    }
+
+    private static let sections = """
+    enum AppSection {
+        case rules, violations, exportReport, dashboard, ruleAudit
+        case versionHistory, compareConfigs, versionCheck, importConfig
+        case branchDiff, migration, configMap
+    }
+    """
+
+    @Test("a menu missing one case is reported, and the missing case is named")
+    func menuMissingOneCaseIsReported() {
+        let issues = analyze(files: [
+            "Section.swift": Self.sections,
+            "Menu.swift": """
+            struct TitleMenu: View {
+                var body: some View {
+                    Button("Rules") { selection = .rules }
+                    Button("Violations") { selection = .violations }
+                    Button("Export") { selection = .exportReport }
+                    Button("Dashboard") { selection = .dashboard }
+                    Button("Audit") { selection = .ruleAudit }
+                    Button("History") { selection = .versionHistory }
+                    Button("Compare") { selection = .compareConfigs }
+                    Button("Check") { selection = .versionCheck }
+                    Button("Import") { selection = .importConfig }
+                    Button("Diff") { selection = .branchDiff }
+                    Button("Migration") { selection = .migration }
+                }
+            }
+            """
+        ])
+        #expect(issues.count == 1)
+        #expect(issues.first?.message.contains("configMap") == true)
+    }
+
+    /// The precision lever, and the reason arguments are not searched.
+    ///
+    /// Reading arguments too collected `.red`, `.green` and `.primary` out of lists of summary
+    /// tiles, so two unrelated views drawing four tiles apiece paired on three shared colour names
+    /// and reported drift against each other. Both were false positives. A roster entry is what
+    /// the item *does*, not how it is *styled*.
+    @Test("styling arguments are not roster entries")
+    func stylingArgumentsAreNotEntries() {
+        #expect(analyze(files: [
+            "Left.swift": """
+            struct Left: View {
+                var body: some View {
+                    summaryItem(count: a, label: "Only in Left", color: .red)
+                    summaryItem(count: b, label: "Only in Right", color: .green)
+                    summaryItem(count: c, label: "Changed", color: .orange)
+                    summaryItem(count: d, label: "Same", color: .primary)
+                }
+            }
+            """,
+            "Right.swift": """
+            struct Right: View {
+                var body: some View {
+                    SummaryCard(title: "TOTAL", color: .primary)
+                    SummaryCard(title: "ERRORS", color: .red)
+                    SummaryCard(title: "WARNINGS", color: .orange)
+                    SummaryCard(title: "PASSED", color: .green)
+                }
+            }
+            """
+        ]).isEmpty)
+    }
+
+    /// An action naming two things cannot contribute one entry without choosing between them.
+    @Test("an action naming two members contributes nothing")
+    func ambiguousActionContributesNothing() {
+        #expect(analyze(files: [
+            "Section.swift": Self.sections,
+            "Menu.swift": """
+            struct TitleMenu: View {
+                var body: some View {
+                    Button("A") { selection = .rules; mode = .compact }
+                    Button("B") { selection = .violations; mode = .compact }
+                    Button("C") { selection = .exportReport; mode = .compact }
+                    Button("D") { selection = .dashboard; mode = .compact }
+                }
+            }
+            """
+        ]).isEmpty)
+    }
+}
