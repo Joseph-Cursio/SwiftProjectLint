@@ -276,6 +276,9 @@ open class BasePatternVisitor: SyntaxVisitor, PatternVisitorProtocol {
             if component == "Tests" || component.hasSuffix("Tests") {
                 return true // SPM `Tests/` and Xcode `FooTests/` target folders
             }
+            if Self.testSupportDirectorySuffixes.contains(where: component.hasSuffix) {
+                return true
+            }
             if Self.fixtureDirectoryNames.contains(component) {
                 return true
             }
@@ -304,6 +307,23 @@ open class BasePatternVisitor: SyntaxVisitor, PatternVisitorProtocol {
             return next.isUppercase
         }
     }
+
+    /// Suffixes of folder names whose whole contents exist to serve tests, even
+    /// though the folder is a shipped target rather than a test target.
+    ///
+    /// `SwiftLintRuleStudioCoreTestSupport` is a library product — it compiles into
+    /// the app graph and is not a `Tests/` folder — but every symbol in it exists
+    /// to be called from a test, and its helpers are *deliberately* nondeterministic:
+    /// a per-test `UserDefaults` suite name, a per-process scratch root, a unique
+    /// directory per call. Reporting those is the tool failing to read an intent the
+    /// author stated in the target's name.
+    ///
+    /// Suffix-matched rather than exact, so `FooTestSupport` and `TestSupport` both
+    /// count, and split from `fixtureDirectoryNames` because that set is exact-match
+    /// and adding open-ended names to it would widen every entry.
+    private static let testSupportDirectorySuffixes = [
+        "TestSupport", "TestHelpers", "TestKit", "TestFixtures"
+    ]
 
     /// Folder names whose contents are test fixtures, samples, or doubles rather
     /// than production code. Matched against whole path components.
