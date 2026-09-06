@@ -209,6 +209,66 @@ That check is shared with other rules, so the change was scoped by measurement r
 argument: across the corpus it matches four directories and 39 files, and it removed exactly seven
 findings (all this rule's) and three candidate-census entries. No other rule moved.
 
+### A composition-root read stays reported, and that is deliberate
+
+**The count for this rule is a census of clock reads, not a backlog of clock problems.** Every
+finding it makes is a real read of a real clock. Some of those reads are in the right place, and
+they are still reported.
+
+That is the intended end state for most of them. The fix for an inline clock read is almost never to
+delete it — the program does need to know the time — it is to *move* it to the edge, where a caller
+supplies it and everything underneath becomes a function of its arguments. The read survives the
+refactor by design:
+
+```swift
+var body: some View {
+    let now = Date()              // still reported, and correct
+    return VStack {
+        summary(asOf: now)        // pure, testable, fed one instant
+        content(asOf: now)
+    }
+}
+```
+
+The numbers say it plainly. Fixing `WaiversView`'s seventeen-reads-per-render defect moved that
+repository from **20 findings to 20** — one read instead of seventeen, in the right place. Working
+MacCloud_client_iOS took it from 13 to 6, and **all six survivors are composition roots**: two
+account-creation stamps, an upload instant the server does not supply, a sign-in time, and two photo
+names.
+
+**Do not suppress these.** A `swiftprojectlint:disable` at a composition root buys a smaller number
+and loses the inventory — and the inventory is what this rule is for. If you want to know where a
+program touches the clock, this list is the answer, and a suppressed entry is a lie about the
+program rather than a decline of a finding.
+
+#### When a suppression *is* right
+
+Suppress where the rule is wrong about the site permanently, not where it is right and you have
+already acted. Four sites in the corpus qualify, and they share a shape: **the nondeterminism is the
+declared purpose of the code, and no caller could supply it instead.**
+
+```swift
+// The production half of an injection seam. Its whole job is to read the clock;
+// the type exists so that tests can pass the other half.
+// swiftprojectlint:disable:next non-injected-nondeterminism
+public static let system = DateProvider { Date() }
+
+// A scratch filename that is created, used, and deleted inside one call.
+// Nothing compares it, stores it, or sends it anywhere.
+// swiftprojectlint:disable:next non-injected-nondeterminism
+let tempName = "\(destination.lastPathComponent).\(UUID().uuidString).tmp"
+```
+
+Both are cases where a reader arriving at the finding would otherwise re-derive the same conclusion
+every sweep. Write the reasoning beside the directive — a bare suppression is worse than the
+finding, because the next reader cannot tell a decision from a dismissal.
+
+**And re-check a suppression when the rule changes.** Three directives in this corpus were written
+because the rule reported `clock: () -> Date = { Date() }`, the shape its own documentation
+prescribes. When that was corrected the directives suppressed nothing, and each still read as an
+active disagreement with the rule. They were removed. `grep -rn "swiftprojectlint:disable"` after a
+rule change is the cheapest audit available.
+
 ### Why bare `.now` is not flagged
 
 `Date.now` is reported; a leading-dot `.now` is not, and that is a decision rather than a gap.
