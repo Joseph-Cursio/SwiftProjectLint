@@ -328,20 +328,41 @@ class ComputedPropertyViewVisitor: BasePatternVisitor {
         return result
     }
 
+    /// Every name referenced in `node`, **including `node` itself**.
+    ///
+    /// The self-inclusion is the whole point, and it was missing. This walked only the children, so
+    /// a caller handing it a bare `DeclReferenceExprSyntax` got back the empty set — the node it
+    /// asked about was the one node never examined.
+    ///
+    /// Every other caller passes a container (an accessor block, an argument list, a closure), for
+    /// which a root that is itself a reference is impossible, so the gap was invisible from all of
+    /// them but one. The exception was `requiresCapture`'s `toggle` check, which passes the base of
+    /// `isExpanded.toggle()` and therefore **never once fired** — `isExpanded = true` was gated and
+    /// `isExpanded.toggle()` was reported, the same mutation under two spellings.
+    ///
+    /// `assignedNames` had already hit this and worked around it in place, re-inserting the
+    /// element's own name after calling here. That workaround is now redundant and is kept only
+    /// because it also handles a member access this function deliberately does not.
     private static func referencedNames(in node: Syntax) -> Set<String> {
         var names: Set<String> = []
+        insertReference(at: node, into: &names)
         for child in node.children(viewMode: .sourceAccurate) {
-            if let reference = child.as(DeclReferenceExprSyntax.self) {
-                names.insert(stripped(reference.baseName.text))
-            }
-            if let member = child.as(MemberAccessExprSyntax.self),
-               member.base?.as(DeclReferenceExprSyntax.self)?.baseName.tokenKind
-                == .keyword(.self) {
-                names.insert(member.declName.baseName.text)
-            }
             names.formUnion(referencedNames(in: child))
         }
         return names
+    }
+
+    /// The name `node` refers to, if it refers to one. A member access counts only through
+    /// `self`, because `other.property` is a reference to `other` and not to `property`.
+    private static func insertReference(at node: Syntax, into names: inout Set<String>) {
+        if let reference = node.as(DeclReferenceExprSyntax.self) {
+            names.insert(stripped(reference.baseName.text))
+        }
+        if let member = node.as(MemberAccessExprSyntax.self),
+           member.base?.as(DeclReferenceExprSyntax.self)?.baseName.tokenKind
+            == .keyword(.self) {
+            names.insert(member.declName.baseName.text)
+        }
     }
 
     /// `$isExpanded` and `isExpanded` are the same input.
