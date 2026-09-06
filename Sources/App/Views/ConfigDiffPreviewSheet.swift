@@ -11,7 +11,7 @@ struct ConfigDiffPreviewSheet: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            header
+            DiffSheetHeader()
             Divider()
             UnifiedDiffContentView(
                 before: beforeYAML,
@@ -25,18 +25,17 @@ struct ConfigDiffPreviewSheet: View {
         .frame(minWidth: 600, idealWidth: 700, minHeight: 400, idealHeight: 500)
     }
 
-    private var header: some View {
-        HStack {
-            Image(systemName: "doc.text.magnifyingglass")
-                .foregroundStyle(.secondary)
-                .accessibilityHidden(true)
-            Text("Review Configuration Changes")
-                .font(.headline)
-            Spacer()
-        }
-        .padding()
-    }
-
+    /// Kept inline deliberately, and this is a decline rather than an oversight.
+    ///
+    /// Extracting it would hand a child `onConfirm` and `onCancel`. Both capture `viewModel` at
+    /// the call site in `ContentView`, so they allocate a fresh context on every parent body run
+    /// and the child value never compares equal — a child holding a capturing closure was measured
+    /// to re-render exactly as often as the inlined property it replaced. There is no update for
+    /// it to skip.
+    ///
+    /// `Computed Property View` still reports this. Its capture gate sees a closure the property
+    /// *creates*, not one it is *handed*, and closing that is a decision with its own evidence to
+    /// gather.
     private var footer: some View {
         HStack {
             Spacer()
@@ -45,6 +44,24 @@ struct ConfigDiffPreviewSheet: View {
             Button("Save Changes", action: onConfirm)
                 .buttonStyle(.borderedProminent)
                 .keyboardShortcut(.defaultAction)
+        }
+        .padding()
+    }
+}
+
+/// The sheet's title bar, which depends on nothing.
+///
+/// A child with no inputs compares equal to itself on every parent update, so SwiftUI skips it —
+/// measured at **0** re-renders over three changes, against 3 for the inlined property.
+private struct DiffSheetHeader: View {
+    var body: some View {
+        HStack {
+            Image(systemName: "doc.text.magnifyingglass")
+                .foregroundStyle(.secondary)
+                .accessibilityHidden(true)
+            Text("Review Configuration Changes")
+                .font(.headline)
+            Spacer()
         }
         .padding()
     }
