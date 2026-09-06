@@ -160,46 +160,12 @@ final class NonInjectedNondeterminismVisitor: BasePatternVisitor {
 
         guard !isIdentifiableIdentity(node),
               !isScratchDirectoryName(node, kind: source.kind) else { return }
+
+        if let property = computedPropertyName(containing: node) {
+            flagFreshReadPerAccess(source.marker, property: property, at: node)
+            return
+        }
         flag(source.marker, at: node)
-    }
-
-    private func flag(_ source: String, at node: Syntax) {
-        addIssue(
-            severity: .warning,
-            message: "Non-injected nondeterminism: `\(source)` makes this code unpredictable, so a "
-                + "property-based test can't pin the value or reproduce a failure",
-            filePath: getFilePath(for: node),
-            lineNumber: getLineNumber(for: node),
-            suggestion: "Inject the source (a clock `() -> Date`, a `RandomNumberGenerator`, a UUID "
-                + "provider) so tests can control it. Worth doing where the value feeds a DECISION — "
-                + "a name, a bound, a branch, a retry window. A value that is only stored and shown "
-                + "needs no seam: a test can construct the record with whatever value it wants.",
-            ruleName: .nonInjectedNondeterminism
-        )
-    }
-
-    /// Reports the fabrication fault: a nondeterministic source standing in for
-    /// a value that was absent.
-    ///
-    /// Deliberately does not mention injection. Injecting a clock here would
-    /// make the invented instant reproducible without making it true, and a
-    /// reader who takes this rule's usual advice on this shape ends up with a
-    /// seam threaded through every call site and the defect still in place.
-    private func flagFabrication(_ source: String, at node: Syntax) {
-        addIssue(
-            severity: .warning,
-            message: "Fabricated fallback: `\(source)` invents a value where one was missing, and "
-                + "nothing downstream can tell the invented value from a recorded one",
-            filePath: getFilePath(for: node),
-            lineNumber: getLineNumber(for: node),
-            suggestion: "This is not the testability fault the rest of this rule reports, and "
-                + "injecting a source will not fix it — it makes the invention reproducible. "
-                + "`Date()` is the largest instant in the system and `UUID()` matches no row, so a "
-                + "fabricated value wins every comparison it enters: a `max`, a `>`, a `newest` "
-                + "sort, an is-this-stale check. Propagate the `nil` so callers can say `unknown`, "
-                + "or refuse outright the way `try requireID()` does.",
-            ruleName: .nonInjectedNondeterminism
-        )
     }
 
     /// A nondeterministic source sitting as the fallback of a `??`, together
@@ -613,53 +579,5 @@ final class NonInjectedNondeterminismVisitor: BasePatternVisitor {
         if let decl = syntax.as(ActorDeclSyntax.self) { return decl.inheritanceClause }
         if let decl = syntax.as(EnumDeclSyntax.self) { return decl.inheritanceClause }
         return nil
-    }
-
-    /// True when `node` sits in a function/initializer parameter's default
-    /// value — `init(id: UUID = UUID())` is the injection seam, not inline
-    /// nondeterminism.
-    ///
-    /// ## A closure default is a seam too
-    ///
-    /// This used to stop at any `ClosureExprSyntax`, so
-    /// `clock: () -> Date = { Date() }` was reported — the exact shape this
-    /// rule's own documentation offers as the fix, and the shape a reader who
-    /// takes its advice ends up writing. The corpus said so plainly: three
-    /// sites across two repositories carried a hand-written
-    /// `swiftprojectlint:disable:next` for this rule, each with a comment
-    /// saying the same thing — *"the seam itself... that is what a default is
-    /// for."* Nobody traced the suppressions back here.
-    ///
-    /// A default value is substitutable by construction, and it makes no
-    /// difference whether the value handed over is the instant (`= Date()`) or
-    /// the capability that reads it (`= { Date() }`). A test passes
-    /// `{ fixedDate }` to either. The closure is not invoked at the seam; it is
-    /// the production implementation of one.
-    ///
-    /// The distinction that is *not* generalised: a closure argument at a
-    /// call site. `items.map { Date() }` runs immediately and
-    /// `queue.async { stamp = Date() }` runs later with nothing able to replace
-    /// it, so the substitutability has to come from the parameter, which is why
-    /// this stays keyed on `defaultValue` rather than on being a closure.
-    ///
-    /// The walk requires the node to sit *inside* the parameter's default-value
-    /// clause rather than merely to have a parameter ancestor, and a function
-    /// or accessor body between the two ends it — a nested declaration's body
-    /// is code that runs, not a value being handed over.
-    private func isParameterDefaultValue(_ node: Syntax) -> Bool {
-        var child = node
-        var current = node.parent
-        while let syntax = current {
-            if syntax.is(CodeBlockSyntax.self) || syntax.is(AccessorBlockSyntax.self) {
-                return false
-            }
-            if let parameter = syntax.as(FunctionParameterSyntax.self) {
-                guard let defaultValue = parameter.defaultValue else { return false }
-                return Syntax(defaultValue).id == child.id
-            }
-            child = syntax
-            current = syntax.parent
-        }
-        return false
     }
 }
