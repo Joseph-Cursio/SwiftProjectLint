@@ -35,47 +35,16 @@ struct LintIssueRow: View {
 
     private var summaryRow: some View {
         HStack {
-            severityIcon
-            issueSummary
+            SeverityIcon(severity: issue.severity)
+            IssueSummary(issue: issue)
             Spacer()
             expandToggle
         }
     }
 
-    private var issueSummary: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(issue.message)
-                .font(.headline)
-                .foregroundStyle(.primary)
-                .fixedSize(horizontal: true, vertical: true)
-                .lineLimit(nil)
-            Text(issue.ruleName.rawValue)
-                .font(.caption)
-                .foregroundStyle(.tertiary)
-                .fontDesign(.monospaced)
-            locationLines
-        }
-    }
-
-    @ViewBuilder
-    private var locationLines: some View {
-        if issue.locations.count == 1 {
-            Text("\(issue.locations[0].filePath):\(issue.locations[0].lineNumber)")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .fixedSize(horizontal: false, vertical: true)
-        } else {
-            VStack(alignment: .leading, spacing: 2) {
-                ForEach(Array(issue.locations.enumerated()), id: \.offset) { _, location in
-                    Text("\(location.filePath):\(location.lineNumber)")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-            }
-        }
-    }
-
+    /// Kept inline deliberately. Extracting it would hand a child a `Binding<Bool>`, and a child
+    /// holding a binding re-renders exactly as often as the property it replaced — measured, and
+    /// the reason `Computed Property View` does not report this one.
     private var expandToggle: some View {
         Button {
             withAnimation(.easeInOut(duration: Self.expandAnimationDuration)) {
@@ -87,13 +56,73 @@ struct LintIssueRow: View {
         }
         .accessibilityLabel(isExpanded ? "Collapse details" : "Expand details")
     }
+}
 
-    private var severityIcon: some View {
-        let style = IssueSeverityStyle(issue.severity)
+// MARK: - Summary subviews
+
+/// The severity glyph, which depends on the severity and nothing else.
+///
+/// The narrowest input in this file: `IssueSeverity` is an enum, so two rows showing the same
+/// severity compare equal and SwiftUI can skip this entirely. Expanding a row changes neither the
+/// issue nor its severity, so this no longer re-evaluates when the chevron is tapped.
+private struct SeverityIcon: View {
+    let severity: IssueSeverity
+
+    var body: some View {
+        let style = IssueSeverityStyle(severity)
         return Image(systemName: style.iconName)
             .foregroundStyle(style.color)
             .font(.title2)
             .accessibilityLabel(style.accessibilityLabel)
+    }
+}
+
+/// Message, rule name and locations — everything in the row that depends on the issue.
+///
+/// Its input is a strict subset of the parent's, which is the condition for SwiftUI to skip it:
+/// `LintIssueRow` re-renders on `issue` *or* `isExpanded`, and this depends only on the first.
+private struct IssueSummary: View {
+    let issue: LintIssue
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(issue.message)
+                .font(.headline)
+                .foregroundStyle(.primary)
+                .fixedSize(horizontal: true, vertical: true)
+                .lineLimit(nil)
+            Text(issue.ruleName.rawValue)
+                .font(.caption)
+                .foregroundStyle(.tertiary)
+                .fontDesign(.monospaced)
+            IssueLocationLines(locations: issue.locations)
+        }
+    }
+}
+
+/// One `file:line` when there is a single location, a stacked list when there are several.
+///
+/// Takes the locations rather than the whole issue, so it is untouched by a change to the message
+/// or the rule name.
+private struct IssueLocationLines: View {
+    let locations: [(filePath: String, lineNumber: Int)]
+
+    var body: some View {
+        if locations.count == 1 {
+            Text("\(locations[0].filePath):\(locations[0].lineNumber)")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+        } else {
+            VStack(alignment: .leading, spacing: 2) {
+                ForEach(Array(locations.enumerated()), id: \.offset) { _, location in
+                    Text("\(location.filePath):\(location.lineNumber)")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+        }
     }
 }
 
