@@ -24,6 +24,15 @@ import SwiftSyntax
 /// }
 /// ```
 ///
+/// **Before deleting this rule, read this.** ViewInspector gained `@Observable` environment
+/// injection — `EnvironmentInjection.environmentKeyPaths(for:)` — and its own suite inspects such
+/// a view with `sut.environment(obj).inspect()` and no relay, which makes the rule look obsolete.
+/// It is not. Measured against the pinned revision, three shapes each killed the test process:
+/// `SubjectView().inspect()`, the same with `.environment(store)`, and wrapped in a `VStack`.
+/// ViewInspector's passing case declares the environment **optional** — which returns `nil`
+/// rather than trapping — and reads it in a *child* rather than in its own body. Neither is the
+/// shape this rule reports.
+///
 /// This is advisory rather than a defect: a view nobody inspects needs no hook.
 /// It fires early, at the point the view is written, instead of leaving the
 /// discovery to a process-killing trap whose backtrace names neither
