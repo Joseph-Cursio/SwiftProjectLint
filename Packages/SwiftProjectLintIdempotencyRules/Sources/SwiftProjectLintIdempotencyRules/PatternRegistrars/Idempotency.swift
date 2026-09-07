@@ -1,4 +1,3 @@
-import Foundation
 import SwiftProjectLintRegistry
 
 /// Registers patterns related to idempotency contracts for retry-safe code.
