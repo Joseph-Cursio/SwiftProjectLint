@@ -79,6 +79,13 @@ class AccessibilityVisitor: BasePatternVisitor {
     private lazy var imageChecker = ImageAccessibilityChecker(visitor: self)
     private lazy var textChecker = TextAccessibilityChecker(visitor: self)
     private lazy var colorChecker = ColorAccessibilityChecker(visitor: self)
+    // The fifth sibling, and the only one the rule still reports: the other four take
+    // `visitor: self` and are exempt because a helper handed its owner cannot be injected
+    // into that owner. This one needs nothing from the visitor, so it takes no arguments —
+    // which is a smaller coupling than its siblings, not a larger one. It has no stored state
+    // and no collaborators; injecting it would mean routing a stateless checker in from
+    // outside to check that this visitor checks custom controls.
+    // swiftprojectlint:disable:next direct-instantiation
     private lazy var customControlChecker = CustomControlAccessibilityChecker()
 
     // MARK: - Initializers
