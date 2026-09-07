@@ -36,6 +36,7 @@ public final class SourcePatternDetector: SourcePatternDetectorProtocol, @unchec
     /// `typealias` names whose underlying type is a function type.
     /// Member names declared under `@_spi(...)`.
     public var knownSPIMembers: Set<String> = []
+    public var knownUnderscoredMembers: Set<String> = []
 
     public var knownFunctionTypeAliases: Set<String> = []
 
@@ -200,6 +201,7 @@ public final class SourcePatternDetector: SourcePatternDetectorProtocol, @unchec
             visitor.setSourceLocationConverter(converter)
             visitor.knownObservableEnvironmentViews = knownObservableEnvironmentViews
             visitor.knownSPIMembers = knownSPIMembers
+            visitor.knownUnderscoredMembers = knownUnderscoredMembers
             visitor.knownFunctionTypeAliases = knownFunctionTypeAliases
             visitor.knownIdentifiableTypes = knownIdentifiableTypes
             visitor.knownEnumTypes = knownEnumTypes

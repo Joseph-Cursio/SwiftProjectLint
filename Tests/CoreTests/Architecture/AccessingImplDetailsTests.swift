@@ -23,6 +23,68 @@ struct AccessingImplDetailsTests {
         return visitor.detectedIssues
     }
 
+    /// As above, but with the project-wide prescan supplied.
+    private func analyzeSource(
+        _ source: String,
+        declaredUnderscoredMembers: Set<String>,
+        filePath: String = "TestFile.swift"
+    ) -> [LintIssue] {
+        let visitor = AccessingImplementationDetailsVisitor(patternCategory: .architecture)
+        visitor.knownUnderscoredMembers = declaredUnderscoredMembers
+        let syntax = Parser.parse(source: source)
+        let converter = SourceLocationConverter(fileName: filePath, tree: syntax)
+        visitor.setSourceLocationConverter(converter)
+        visitor.setFilePath(filePath)
+        visitor.walk(syntax)
+        return visitor.detectedIssues
+    }
+
+    // MARK: - Intra-module underscore access
+
+    /// A member the project itself declares is the module's own convention, not a caller
+    /// reaching past an interface — the same idea as the `@_spi` exemption, one scope wider
+    /// than `enclosingTypeDeclares`, which only reaches the declaring type.
+    ///
+    /// Measured on 1.78M lines of Apple / swiftlang / Swift server WG code this rule reported
+    /// 5,600 findings at 3.14 per 1,000 lines against 0.01 here. `swift-atomics` alone gave
+    /// 927 — the highest density any repository has produced for any rule in this tool.
+    @Test func aMemberTheProjectDeclaresIsNotAnImplementationDetail() {
+        let source = """
+        struct Slot { var _value: Int }
+        struct Other {
+            func read(_ slot: Slot) -> Int { slot._value }
+        }
+        """
+        let issues = analyzeSource(source, declaredUnderscoredMembers: ["_value"])
+        #expect(issues.filter { $0.ruleName == .accessingImplementationDetails }.isEmpty)
+    }
+
+    /// The case the rule exists for, and the one the exemption must not swallow: a name the
+    /// project never declares is somebody else's internal.
+    @Test func aMemberTheProjectDoesNotDeclareIsStillReported() throws {
+        let source = """
+        struct Other {
+            func read(_ dep: SomeDependency) -> Int { dep._internalCounter }
+        }
+        """
+        let issues = analyzeSource(source, declaredUnderscoredMembers: ["_value"])
+        let violation = try #require(issues.first { $0.ruleName == .accessingImplementationDetails })
+        #expect(violation.message.contains("_internalCounter"))
+    }
+
+    /// Without the prescan the rule behaves exactly as before — the exemption is additive, so
+    /// an empty catalog cannot silence anything.
+    @Test func anEmptyPrescanChangesNothing() throws {
+        let source = """
+        struct Slot { var _value: Int }
+        struct Other {
+            func read(_ slot: Slot) -> Int { slot._value }
+        }
+        """
+        let issues = analyzeSource(source, declaredUnderscoredMembers: [])
+        #expect(issues.contains { $0.ruleName == .accessingImplementationDetails })
+    }
+
     // MARK: - Underscore-prefix heuristic
 
     @Test func testDetectsUnderscoreMemberOnOtherObject() throws {

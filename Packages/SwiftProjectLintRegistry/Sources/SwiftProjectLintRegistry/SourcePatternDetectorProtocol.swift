@@ -37,6 +37,7 @@ public protocol SourcePatternDetectorProtocol {
     var knownObservableEnvironmentViews: Set<String>? { get set }
 
     var knownSPIMembers: Set<String> { get set }
+    var knownUnderscoredMembers: Set<String> { get set }
 
     var knownFunctionTypeAliases: Set<String> { get set }
 
