@@ -14,6 +14,12 @@ class DirectInstantiationVisitor: BasePatternVisitor {
     /// spelling — and a flag would be cleared by whichever closed first.
     private var insidePreviewOrDebug = 0
 
+    /// Depth inside the program's designated entry point. See `insideEntryPoint`.
+    private var insideEntryPoint = 0
+
+    /// Whether the type currently being visited carries `@main`.
+    private var mainAttributedTypeDepth: [Bool] = []
+
     /// Names of the types this file declares `private` or `fileprivate`, gathered in one
     /// pass over the file before any finding is reported. No project-wide prescan is needed
     /// and none would help: a `private` type is unreachable outside its own file, so the
@@ -53,6 +59,22 @@ class DirectInstantiationVisitor: BasePatternVisitor {
         // the thing this whole sweep is trying to produce — and the rule was reporting their
         // insides as coupling.
         if privatelyDeclaredTypes.contains(typeName) { return nil }
+
+        // A helper handed its own owner cannot be injected into that owner. `self` does not
+        // exist before the initializer that would receive the substitute has run, so the
+        // advice needs two-phase initialization — an optional stored property, filled after
+        // construction — to buy a substitution nobody can use, because the helper is bound to
+        // this owner anyway.
+        //
+        // Five of the corpus's findings are one file: `AccessibilityVisitor` splits its five
+        // element checks into `lazy var buttonChecker = ButtonAccessibilityChecker(visitor:
+        // self)` and four siblings, which is the ordinary way to keep a 900-line visitor from
+        // being one type.
+        if call.arguments.contains(where: { $0.expression.is(DeclReferenceExprSyntax.self)
+            && $0.expression.as(DeclReferenceExprSyntax.self)?.baseName.tokenKind
+                == .keyword(.self) }) {
+            return nil
+        }
 
         return typeName
     }
@@ -98,14 +120,28 @@ class DirectInstantiationVisitor: BasePatternVisitor {
         return false
     }
 
+    // MARK: - File-local access-level pre-pass
+
+    override func visit(_ node: SourceFileSyntax) -> SyntaxVisitorContinueKind {
+        let collector = PrivateTypeDeclarationCollector(viewMode: .sourceAccurate)
+        collector.walk(node)
+        privatelyDeclaredTypes = collector.names
+        if isMainSwiftFile { insideEntryPoint += 1 }
+        return .visitChildren
+    }
+
     // MARK: - Stored property / local variable detection
 
     override func visit(_ node: VariableDeclSyntax) -> SyntaxVisitorContinueKind {
-        // `#Preview` and `#if DEBUG` are composition contexts: the whole point of a
-        // preview is to build a concrete object graph to look at, and a debug block is
-        // scaffolding that never ships. Injecting a dependency there would mean routing
-        // it in from somewhere, which is what the preview exists to avoid.
-        guard insidePreviewOrDebug == 0 else { return .visitChildren }
+        // The program's entry point is the composition root the language designates. There is
+        // exactly one per program, everything else is reached from it, and it has nowhere
+        // further out to push a construction.
+        //
+        // `#Preview` and `#if DEBUG` are composition contexts for a different reason: the
+        // whole point of a preview is to build a concrete object graph to look at, and a debug
+        // block is scaffolding that never ships. Injecting a dependency there would mean
+        // routing it in from somewhere, which is what the preview exists to avoid.
+        guard insideEntryPoint == 0, insidePreviewOrDebug == 0 else { return .visitChildren }
 
         // Inside a function or closure: local variable — no wrapper check needed
         // Outside (stored property): skip if it has a property wrapper
@@ -114,48 +150,67 @@ class DirectInstantiationVisitor: BasePatternVisitor {
         }
 
         for binding in node.bindings {
-            guard let initializer = binding.initializer else { continue }
-            if let typeName = isServiceLikeCall(initializer.value) {
-                // Exempt a type that vends an instance of itself as a `static`
-                // member — `static let shared = Foo()` *inside* `Foo`. Publishing
-                // your own `.shared` by instantiating yourself is the singleton
-                // idiom (and the same shape covers namespaced constants like
-                // `static let live = Client()`); it is a definition, not an
-                // injectable dependency. The coupling worth flagging is the
-                // `.shared` *access* at call sites, which `SingletonUsage` covers.
-                if isStatic(node), typeNameStack.last == typeName {
-                    continue
-                }
-                // A composition root is allowed to know every concrete type it wires.
-                if insideCompositionRoot(Syntax(node)) { continue }
-
-                let paramName: String
-                if let pattern = binding.pattern.as(IdentifierPatternSyntax.self) {
-                    paramName = pattern.identifier.text
-                } else {
-                    paramName = "dependency"
-                }
-                _ = paramName // suppress unused warning — message uses typeName
-                addIssue(
-                    severity: .warning,
-                    message: "Direct instantiation of '\(typeName)' detected — prefer dependency injection",
-                    filePath: currentFilePath,
-                    lineNumber: getLineNumber(for: Syntax(node)),
-                    suggestion: "Inject '\(typeName)' through the initializer or use @StateObject/@EnvironmentObject",
-                    ruleName: .directInstantiation
-                )
-            }
+            guard let initializer = binding.initializer,
+                  let typeName = isServiceLikeCall(initializer.value),
+                  !isExemptDefinitionSite(typeName, on: node) else { continue }
+            report(typeName, at: node)
         }
         return .visitChildren
     }
 
-    // MARK: - File-local access-level pre-pass
+    /// Whether a construction is a *definition* rather than a consumption.
+    ///
+    /// Two cases, and they are unrelated except in being the wrong end of the seam.
+    ///
+    /// A type that vends an instance of *itself* as a `static` member — `static let shared =
+    /// Foo()` inside `Foo` — is defining the singleton (and the same shape covers namespaced
+    /// constants like `static let live = Client()`). The coupling worth flagging is the
+    /// `.shared` *access* at call sites, which `Singleton Usage` covers. The exemption is
+    /// deliberately narrow: a `static` member instantiating a *different* service type, or a
+    /// non-`static` member instantiating the enclosing type, is still reported.
+    ///
+    /// A composition root is allowed to know every concrete type it wires together, because
+    /// the whole benefit of injecting everywhere else is that there is exactly one such place.
+    private func isExemptDefinitionSite(_ typeName: String, on node: VariableDeclSyntax) -> Bool {
+        if isStatic(node), typeNameStack.last == typeName { return true }
+        return insideCompositionRoot(Syntax(node))
+    }
 
-    override func visit(_ node: SourceFileSyntax) -> SyntaxVisitorContinueKind {
-        let collector = PrivateTypeDeclarationCollector(viewMode: .sourceAccurate)
-        collector.walk(node)
-        privatelyDeclaredTypes = collector.names
-        return .visitChildren
+    private func report(_ typeName: String, at node: VariableDeclSyntax) {
+        addIssue(
+            severity: .warning,
+            message: "Direct instantiation of '\(typeName)' detected — prefer dependency injection",
+            filePath: currentFilePath,
+            lineNumber: getLineNumber(for: Syntax(node)),
+            suggestion: "Inject '\(typeName)' through the initializer or use @StateObject/@EnvironmentObject",
+            ruleName: .directInstantiation
+        )
+    }
+
+    // MARK: - Static-member detection
+
+    private func isStatic(_ node: VariableDeclSyntax) -> Bool {
+        node.modifiers.contains { $0.name.tokenKind == .keyword(.static) }
+    }
+
+    // MARK: - Program entry point
+
+    /// `main.swift` holds top-level code, which Swift permits in no other file: it *is* the
+    /// program. Tracked by file name because there is no syntax to look at — the statements
+    /// are simply at the top of the file.
+    private var isMainSwiftFile: Bool {
+        (currentFilePath as NSString).lastPathComponent == "main.swift"
+    }
+
+    /// Whether a function declaration is the entry point of an `@main` type.
+    ///
+    /// Both spellings. `static func main()` is the one `@main` calls, and a SwiftUI `App`\'s
+    /// `init()` is where its `@State` containers are seeded — the Explorer target\'s file
+    /// header describes exactly that as "its composition root injects the in-process SwiftLint
+    /// backend instead of the subprocess one".
+    private func isEntryPointMember(named name: String, isStatic: Bool) -> Bool {
+        guard mainAttributedTypeDepth.last == true else { return false }
+        return name == "main" && isStatic
     }
 
     // MARK: - Composition roots
@@ -223,59 +278,95 @@ class DirectInstantiationVisitor: BasePatternVisitor {
         return nil
     }
 
-    // MARK: - Static-member detection
-
-    private func isStatic(_ node: VariableDeclSyntax) -> Bool {
-        node.modifiers.contains { $0.name.tokenKind == .keyword(.static) }
-    }
-
     // MARK: - Enclosing-type context tracking
 
     override func visit(_ node: ClassDeclSyntax) -> SyntaxVisitorContinueKind {
         typeNameStack.append(node.name.text)
+        mainAttributedTypeDepth.append(Self.carriesMainAttribute(node.attributes))
         return .visitChildren
     }
 
     override func visitPost(_ _: ClassDeclSyntax) {
         typeNameStack.removeLast()
+        mainAttributedTypeDepth.removeLast()
     }
 
     override func visit(_ node: StructDeclSyntax) -> SyntaxVisitorContinueKind {
         typeNameStack.append(node.name.text)
+        mainAttributedTypeDepth.append(Self.carriesMainAttribute(node.attributes))
         return .visitChildren
     }
 
     override func visitPost(_ _: StructDeclSyntax) {
         typeNameStack.removeLast()
+        mainAttributedTypeDepth.removeLast()
     }
 
     override func visit(_ node: EnumDeclSyntax) -> SyntaxVisitorContinueKind {
         typeNameStack.append(node.name.text)
+        mainAttributedTypeDepth.append(Self.carriesMainAttribute(node.attributes))
         return .visitChildren
     }
 
     override func visitPost(_ _: EnumDeclSyntax) {
         typeNameStack.removeLast()
+        mainAttributedTypeDepth.removeLast()
     }
 
     override func visit(_ node: ActorDeclSyntax) -> SyntaxVisitorContinueKind {
         typeNameStack.append(node.name.text)
+        mainAttributedTypeDepth.append(Self.carriesMainAttribute(node.attributes))
         return .visitChildren
     }
 
     override func visitPost(_ _: ActorDeclSyntax) {
         typeNameStack.removeLast()
+        mainAttributedTypeDepth.removeLast()
     }
 
     // MARK: - Function / closure context tracking
 
-    override func visit(_ _: FunctionDeclSyntax) -> SyntaxVisitorContinueKind {
+    override func visit(_ node: FunctionDeclSyntax) -> SyntaxVisitorContinueKind {
         insideFunctionOrClosure += 1
+        if isEntryPointMember(
+            named: node.name.text,
+            isStatic: node.modifiers.contains { $0.name.tokenKind == .keyword(.static) }
+        ) {
+            insideEntryPoint += 1
+        }
         return .visitChildren
     }
 
-    override func visitPost(_ _: FunctionDeclSyntax) {
+    override func visitPost(_ node: FunctionDeclSyntax) {
         insideFunctionOrClosure -= 1
+        if isEntryPointMember(
+            named: node.name.text,
+            isStatic: node.modifiers.contains { $0.name.tokenKind == .keyword(.static) }
+        ) {
+            insideEntryPoint -= 1
+        }
+    }
+
+    /// A SwiftUI `App`\'s `init()` seeds the containers the whole program reads from. It is
+    /// the same role `static func main()` plays for a command-line `@main`, and the two
+    /// spellings are the two ways Swift writes an entry point.
+    override func visit(_ _: InitializerDeclSyntax) -> SyntaxVisitorContinueKind {
+        insideFunctionOrClosure += 1
+        if mainAttributedTypeDepth.last == true { insideEntryPoint += 1 }
+        return .visitChildren
+    }
+
+    override func visitPost(_ _: InitializerDeclSyntax) {
+        insideFunctionOrClosure -= 1
+        if mainAttributedTypeDepth.last == true { insideEntryPoint -= 1 }
+    }
+
+    /// Whether a declaration carries `@main`.
+    private static func carriesMainAttribute(_ attributes: AttributeListSyntax) -> Bool {
+        attributes.contains { attribute in
+            attribute.as(AttributeSyntax.self)?
+                .attributeName.as(IdentifierTypeSyntax.self)?.name.text == "main"
+        }
     }
 
     override func visit(_ _: ClosureExprSyntax) -> SyntaxVisitorContinueKind {

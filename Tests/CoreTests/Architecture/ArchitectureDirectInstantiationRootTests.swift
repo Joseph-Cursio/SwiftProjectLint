@@ -127,4 +127,126 @@ struct ArchitectureDirectInstantiationRootTests {
         let issues = analyzeSource(source).filter { $0.ruleName == .directInstantiation }
         #expect(issues.count == 3)
     }
+
+    // MARK: - The program entry point
+
+    @Test func testTopLevelCodeInMainSwiftIsNotReported() {
+        // `main.swift` holds top-level code, which Swift permits in no other file: it *is* the
+        // program. There is nowhere further out to push a construction.
+        let source = """
+        let store = PaymentStore()
+
+        let runtime = LambdaRuntime { event, context in
+            try await handleSQSBatch(event, store: store)
+        }
+        """
+        let issues = analyzeSource(source, filePath: "main.swift")
+            .filter { $0.ruleName == .directInstantiation }
+        #expect(issues.isEmpty)
+    }
+
+    @Test func testTheSameCodeInAnotherFileIsReported() throws {
+        let source = """
+        let store = PaymentStore()
+        """
+        let issues = analyzeSource(source, filePath: "Boot.swift")
+            .filter { $0.ruleName == .directInstantiation }
+        let issue = try #require(issues.first)
+        #expect(issue.message.contains("PaymentStore"))
+    }
+
+    @Test func testStaticMainOfAMainTypeIsNotReported() {
+        let source = """
+        @main
+        struct SpikeApp {
+            static func main() async throws {
+                let store = PaymentStore()
+                let profiles = ProfileStore()
+                try await Application(store: store, profiles: profiles).run()
+            }
+        }
+        """
+        let issues = analyzeSource(source).filter { $0.ruleName == .directInstantiation }
+        #expect(issues.isEmpty)
+    }
+
+    @Test func testInitOfAMainAppIsNotReported() {
+        // A SwiftUI `App`'s `init()` seeds the containers the whole program reads from — the
+        // same role `static func main()` plays for a command-line `@main`.
+        let source = """
+        @main
+        struct StudioApp: App {
+            @State private var registry: RuleRegistry
+
+            init() {
+                let cacheManager = CacheManager()
+                _registry = State(initialValue: RuleRegistry(cacheManager: cacheManager))
+            }
+
+            var body: some Scene { WindowGroup { ContentView() } }
+        }
+        """
+        let issues = analyzeSource(source).filter { $0.ruleName == .directInstantiation }
+        #expect(issues.isEmpty)
+    }
+
+    @Test func testOtherMembersOfAMainTypeAreStillReported() throws {
+        // The gate is the entry point, not the whole type. A `@main` type's other methods
+        // are ordinary code and hard-wiring a dependency in one is an ordinary finding.
+        let source = """
+        @main
+        struct StudioApp: App {
+            static func main() { StudioApp.main() }
+
+            func refresh() {
+                let manager = CacheManager()
+                _ = manager
+            }
+        }
+        """
+        let issues = analyzeSource(source).filter { $0.ruleName == .directInstantiation }
+        let issue = try #require(issues.first)
+        #expect(issue.message.contains("CacheManager"))
+    }
+
+    @Test func testStaticMainWithoutTheMainAttributeIsStillReported() throws {
+        let source = """
+        struct NotTheEntryPoint {
+            static func main() {
+                let store = PaymentStore()
+                _ = store
+            }
+        }
+        """
+        let issues = analyzeSource(source).filter { $0.ruleName == .directInstantiation }
+        let issue = try #require(issues.first)
+        #expect(issue.message.contains("PaymentStore"))
+    }
+
+    // MARK: - Helpers handed their own owner
+
+    @Test func testHelperConstructedWithSelfIsNotReported() {
+        // `self` does not exist before the initializer that would receive a substitute has
+        // run, so the advice needs two-phase initialization to buy a substitution nobody can
+        // use — the helper is bound to this owner anyway.
+        let source = """
+        class AccessibilityVisitor {
+            private lazy var buttonChecker = ButtonAccessibilityChecker(visitor: self)
+            private lazy var imageChecker = ImageAccessibilityChecker(visitor: self)
+        }
+        """
+        let issues = analyzeSource(source).filter { $0.ruleName == .directInstantiation }
+        #expect(issues.isEmpty)
+    }
+
+    @Test func testAnOrdinaryArgumentIsStillReported() throws {
+        let source = """
+        class Loader {
+            private let runner = SwiftLintRunner(configPath: configPath)
+        }
+        """
+        let issues = analyzeSource(source).filter { $0.ruleName == .directInstantiation }
+        let issue = try #require(issues.first)
+        #expect(issue.message.contains("SwiftLintRunner"))
+    }
 }
