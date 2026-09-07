@@ -36,6 +36,12 @@ final class UnreachableEffectClosureVisitor: BasePatternVisitor {
     private var fileIsTestOrFixture = false
     private let purityInferrer = PurityInferrer()
 
+    /// Per type, the names of its `@State` and `@FocusState` properties. See `writesOnlyViewState`.
+    private var viewLocalState: [String: Set<String>] = [:]
+
+    /// The nominal types currently being visited, innermost last.
+    private var typeNameStack: [String] = []
+
     required init(pattern: SyntaxPattern, viewMode: SyntaxTreeViewMode = .sourceAccurate) {
         super.init(pattern: pattern, viewMode: viewMode)
     }
@@ -45,12 +51,20 @@ final class UnreachableEffectClosureVisitor: BasePatternVisitor {
         fileIsTestOrFixture = isTestOrFixtureFile()
     }
 
+    override func visit(_ node: SourceFileSyntax) -> SyntaxVisitorContinueKind {
+        let collector = ViewLocalStateCollector(viewMode: .sourceAccurate)
+        collector.walk(node)
+        viewLocalState = collector.byType
+        return .visitChildren
+    }
+
     override func visit(_ node: FunctionCallExprSyntax) -> SyntaxVisitorContinueKind {
         guard !fileIsTestOrFixture,
               let surface = CallbackSurface(call: node),
               let closure = surface.callbackClosure(in: node),
               isWorthExtracting(closure),
-              purityInferrer.mutatesCapturedState(closure) else {
+              purityInferrer.mutatesCapturedState(closure),
+              !writesOnlyViewState(closure) else {
             return .visitChildren
         }
 
@@ -67,6 +81,61 @@ final class UnreachableEffectClosureVisitor: BasePatternVisitor {
         )
         return .visitChildren
     }
+
+    /// Condition 4 — the effect has somewhere to be observed from.
+    ///
+    /// The rule's promise is a testability one, in its own description: *"no test can reach its
+    /// effect … naming it gives the effect one."* For a write to the enclosing view's own `@State`
+    /// that promise is false, and `Tests/AppTests/StateSeamHarnessTests.swift` is the measurement
+    /// rather than the argument.
+    ///
+    /// `@State`'s storage is allocated when SwiftUI installs the view. Before that the setter has
+    /// nowhere to write and the getter answers from the initial value, so calling the extracted
+    /// method leaves the property unchanged — and so does firing the button through ViewInspector,
+    /// which the harness checks as its control because without it the result is only "nothing
+    /// works". The one route that does observe the state is `ViewHosting.host`, and it goes through
+    /// SwiftUI's storage rather than through the name, so it works identically for the inline body
+    /// and the extracted method. **The seam a test uses is the button, and the button exists in
+    /// both forms.**
+    ///
+    /// Deliberately narrow, because the harness also shows where the promise holds:
+    ///
+    /// - `@Binding` — the storage belongs to the parent, and a test supplies its own
+    ///   `Binding(get:set:)` and reads the write back. Fifteen corpus write targets. Reported.
+    /// - `@AppStorage` — the setter writes straight through to the defaults store, which a test
+    ///   reads with no view at all. Four corpus write targets. Reported.
+    /// - A member write (`viewModel.query = ""`, `items.append(x)`) — the object outlives the
+    ///   view, so the method can move onto it and be called directly. Reported.
+    ///
+    /// So a single non-`@State` write anywhere in the body keeps the finding: the gate needs
+    /// *every* write to be a direct assignment to view-local storage.
+    ///
+    /// `@FocusState` is included on measurement, not on mechanism — no corpus finding writes one,
+    /// and the harness covers it anyway because that was cheaper than arguing about it.
+    private func writesOnlyViewState(_ closure: ClosureExprSyntax) -> Bool {
+        guard let enclosing = typeNameStack.last,
+              let stateNames = viewLocalState[enclosing] else { return false }
+        let collector = ClosureWriteTargetCollector(viewMode: .sourceAccurate)
+        collector.walk(closure.statements)
+        guard !collector.directWrites.isEmpty, collector.otherWrites.isEmpty else { return false }
+        return collector.directWrites.isSubset(of: stateNames)
+    }
+
+    // MARK: - Enclosing-type tracking
+
+    override func visit(_ node: StructDeclSyntax) -> SyntaxVisitorContinueKind {
+        typeNameStack.append(node.name.text)
+        return .visitChildren
+    }
+
+    override func visitPost(_ _: StructDeclSyntax) { typeNameStack.removeLast() }
+
+    override func visit(_ node: ClassDeclSyntax) -> SyntaxVisitorContinueKind {
+        typeNameStack.append(node.name.text)
+        return .visitChildren
+    }
+
+    override func visitPost(_ _: ClassDeclSyntax) { typeNameStack.removeLast() }
 
     /// Condition 3 — the body is more than a single call, so there is something to name.
     ///
@@ -220,5 +289,118 @@ enum CallbackSurface {
             .filter { $0.label?.text == label }
             .compactMap { $0.expression.as(ClosureExprSyntax.self) }
             .first
+    }
+}
+
+/// Per type, the `@State` and `@FocusState` property names a file declares.
+///
+/// Keyed by type rather than gathered per file: two views in one file routinely use the same
+/// property name for different storage, and a file-wide set would let one view's `@State private
+/// var text` gate another view's `@Binding var text`.
+private final class ViewLocalStateCollector: SyntaxVisitor {
+
+    private(set) var byType: [String: Set<String>] = [:]
+
+    private static let viewLocalWrappers: Set<String> = ["State", "FocusState"]
+
+    private var typeNameStack: [String] = []
+
+    override func visit(_ node: StructDeclSyntax) -> SyntaxVisitorContinueKind {
+        typeNameStack.append(node.name.text)
+        return .visitChildren
+    }
+
+    override func visitPost(_ _: StructDeclSyntax) { typeNameStack.removeLast() }
+
+    override func visit(_ node: ClassDeclSyntax) -> SyntaxVisitorContinueKind {
+        typeNameStack.append(node.name.text)
+        return .visitChildren
+    }
+
+    override func visitPost(_ _: ClassDeclSyntax) { typeNameStack.removeLast() }
+
+    override func visit(_ node: VariableDeclSyntax) -> SyntaxVisitorContinueKind {
+        guard let type = typeNameStack.last else { return .visitChildren }
+        let wrapped = node.attributes.contains { attribute in
+            guard let name = attribute.as(AttributeSyntax.self)?
+                .attributeName.as(IdentifierTypeSyntax.self)?.name.text else { return false }
+            return Self.viewLocalWrappers.contains(name)
+        }
+        guard wrapped else { return .visitChildren }
+        for binding in node.bindings {
+            if let identifier = binding.pattern.as(IdentifierPatternSyntax.self) {
+                byType[type, default: []].insert(identifier.identifier.text)
+            }
+        }
+        return .visitChildren
+    }
+}
+
+/// What a closure body writes to, split by whether the write lands in view-local storage.
+///
+/// `directWrites` are bare-identifier assignments and `toggle()` — the shapes that reach a
+/// `@State` property itself. `otherWrites` is everything else that mutates: a member assignment
+/// (`viewModel.error = nil`), or a mutating call on a receiver (`items.append(x)`). One entry in
+/// `otherWrites` disqualifies the whole closure, because the gate's claim is about the *only*
+/// thing the body does.
+private final class ClosureWriteTargetCollector: SyntaxVisitor {
+
+    private(set) var directWrites: Set<String> = []
+    private(set) var otherWrites: Set<String> = []
+
+    /// Calls that mutate their receiver. An allowlist, for the reason `CallbackSurface` gives:
+    /// an unlisted name is a missed disqualification and so a kept finding, which is the safe
+    /// direction, while a wrong inference gates something real.
+    private static let mutatingCalls: Set<String> = [
+        "append", "insert", "remove", "removeAll", "removeFirst", "removeLast", "removeValue",
+        "sort", "reverse", "popLast", "formUnion", "subtract"
+    ]
+
+    /// Assignment is read off `SequenceExprSyntax`, not `InfixOperatorExprSyntax`: an unfolded
+    /// tree — what `Parser.parse` produces and what every visitor here walks — represents
+    /// `flag = true` as a three-element sequence. `InfixOperatorExprSyntax` appears only after
+    /// operator folding, which the linter never does.
+    override func visit(_ node: SequenceExprSyntax) -> SyntaxVisitorContinueKind {
+        let elements = Array(node.elements)
+        guard elements.count >= 2, Self.isAssignment(elements[1]) else { return .visitChildren }
+        record(target: elements[0])
+        return .visitChildren
+    }
+
+    override func visit(_ node: FunctionCallExprSyntax) -> SyntaxVisitorContinueKind {
+        guard let member = node.calledExpression.as(MemberAccessExprSyntax.self),
+              let receiver = member.base?.as(DeclReferenceExprSyntax.self) else {
+            return .visitChildren
+        }
+        let name = member.declName.baseName.text
+        if name == "toggle" {
+            directWrites.insert(receiver.baseName.text)
+        } else if Self.mutatingCalls.contains(name) {
+            otherWrites.insert(receiver.baseName.text)
+        }
+        return .visitChildren
+    }
+
+    private func record(target: ExprSyntax) {
+        if let reference = target.as(DeclReferenceExprSyntax.self) {
+            directWrites.insert(reference.baseName.text)
+            return
+        }
+        if let member = target.as(MemberAccessExprSyntax.self) {
+            otherWrites.insert(member.description.trimmingCharacters(in: .whitespaces))
+            return
+        }
+        // A subscript, a tuple destructuring, anything else — treat as a write that is not a
+        // plain `@State` assignment rather than ignoring it.
+        otherWrites.insert(target.description.trimmingCharacters(in: .whitespaces))
+    }
+
+    /// `=` is an `AssignmentExprSyntax`; `+=` and friends are binary operators whose text ends
+    /// in `=` without being a comparison.
+    private static func isAssignment(_ element: ExprSyntax) -> Bool {
+        if element.is(AssignmentExprSyntax.self) { return true }
+        guard let binary = element.as(BinaryOperatorExprSyntax.self) else { return false }
+        let text = binary.operator.text
+        return text.hasSuffix("=") && !["==", "!=", "<=", ">=", "==="].contains(text)
     }
 }
