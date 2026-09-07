@@ -34,7 +34,14 @@ The measurement that prompted it: across seven repositories the rule reported **
 
 What the corpus *does* contain is one repository that took the advice, and it is the argument for keeping the rule rather than deleting it. SwiftMarkdownWiki's `ContentView` and `EditorView` carry the relay and are genuinely inspected through it (`sut.inspection.inspect { … }`), and its vendored `Inspection.swift` records why the type lives in the app target. **The advice works end to end; it was taken exactly where someone wanted the test.** Which is also when the gated rule fires.
 
-The gate does not trade the "fires early" property away. A developer writing `import ViewInspector` and naming the view gets the finding *before the test is ever run* — earlier than the trap, not later.
+**The gate keeps most of the "fires early" property, and the claim needs stating carefully.** The finding becomes *available* the moment a file imports ViewInspector and names the view, which is before that test could pass. It does not follow that anyone sees it then: in an ordinary edit-run loop the test is run before the linter is, so the trap comes first and the finding explains it afterwards. The rule is early relative to the *test being written*, not necessarily relative to the trap being hit.
+
+What does hold unconditionally is that the trigger works in **both** authoring orders, which is the part that could have sunk the design:
+
+- Write the naive test — `SettingsView().inspect()` — and it compiles, traps at runtime, and the rule fires on the view.
+- Write the relay-style test first, referencing `sut.inspection` before the relay exists, and **the file does not compile — and the rule still fires**, because the linter parses with SwiftSyntax and never builds. Verified on a throwaway package rather than assumed.
+
+So there is no chicken-and-egg: you do not need the relay in place for the rule to tell you to add the relay.
 
 **Do not answer this question with `grep`.** Asked that way over this corpus it reports four inspected views. Three are a doc comment listing views the file does not touch, and the fourth is a comment recording that the author hit the trap and chose to stop descending. `InspectedTypeNameCollector` walks syntax, so it sees none of them, and there is a test pinning exactly that.
 
