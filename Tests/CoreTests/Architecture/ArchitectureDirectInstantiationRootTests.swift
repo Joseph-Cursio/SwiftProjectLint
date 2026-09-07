@@ -249,4 +249,68 @@ struct ArchitectureDirectInstantiationRootTests {
         let issue = try #require(issues.first)
         #expect(issue.message.contains("SwiftLintRunner"))
     }
+
+    // MARK: - Types the runtime constructs
+
+    @Test func testParsableCommandIsNotReported() {
+        // ArgumentParser builds a command out of argv and calls `run()`. The synthesized
+        // initializer takes only the decoded `@Option`/`@Argument`/`@Flag` values, so there is
+        // no parameter for a dependency — and the one remaining spelling, a stored property
+        // with an inline default, is the shape this rule reports. Every form of the fix is
+        // either impossible or itself a finding.
+        let source = """
+        struct IndexCodeCommand: AsyncParsableCommand {
+            @Option var path: String?
+
+            func run() async throws {
+                let indexer = CorpusIndexer(backend: OllamaBackend())
+                try await indexer.index(path: path)
+            }
+        }
+        """
+        let issues = analyzeSource(source).filter { $0.ruleName == .directInstantiation }
+        #expect(issues.isEmpty)
+    }
+
+    @Test func testCommandHelpersAreCoveredToo() {
+        // Not only `run()`. `BootstrapSkillsCommand.makeDetector()` assembles a registry, an
+        // anti-pattern store, a knowledge graph and a builder in a private helper; the
+        // constraint that makes the advice unreachable belongs to the command type, not to one
+        // of its methods.
+        let source = """
+        struct BootstrapSkillsCommand: AsyncParsableCommand {
+            func run() async throws { _ = try await makeDetector() }
+
+            private func makeDetector() async throws -> SkillGapDetector {
+                let antiPatternStore = AntiPatternStore()
+                await antiPatternStore.loadLoggingFailures()
+                return SkillGapDetector(store: antiPatternStore)
+            }
+        }
+        """
+        let issues = analyzeSource(source).filter { $0.ruleName == .directInstantiation }
+        #expect(issues.isEmpty)
+    }
+
+    @Test func testAnOrdinaryTypeInTheSameFileIsStillReported() throws {
+        let source = """
+        struct IndexCodeCommand: AsyncParsableCommand {
+            func run() async throws {
+                let indexer = CorpusIndexer()
+                _ = indexer
+            }
+        }
+
+        struct Helper {
+            func work() {
+                let indexer = CorpusIndexer()
+                _ = indexer
+            }
+        }
+        """
+        let issues = analyzeSource(source).filter { $0.ruleName == .directInstantiation }
+        #expect(issues.count == 1)
+        let issue = try #require(issues.first)
+        #expect(issue.message.contains("CorpusIndexer"))
+    }
 }
