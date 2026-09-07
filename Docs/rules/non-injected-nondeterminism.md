@@ -136,6 +136,76 @@ site, `now` reads as a value, and only the second one misleads.
 Like the lazy-creation gate, this **changes what the rule says and not what it counts** — 5 sites
 across the sweep corpus, all already reported, all still reported.
 
+### Two shapes where the finding is right and "inject the source" is wrong
+
+The three faults above each carry their own message, because each is a local syntactic shape the
+visitor can recognise. These two are not. They report under the ordinary message and they cannot do
+better, because nothing at the expression tells them apart — you find them by reading the enclosing
+function, or by grepping for a reader that does not exist. They are documented here because a
+reader who takes the ordinary advice at either one does real work and fixes nothing.
+
+Both came out of working the rule file-by-file down its concentration list, and together they
+accounted for **17 of the 25 findings in the two densest files in the corpus**.
+
+#### The value is a placeholder for a feature that does not exist
+
+`AdminRoutes.swift` held **12 findings — the largest single cluster this rule has produced** — and
+every one sat inside a stub:
+
+```swift
+static func getActivityLog(req _: Request) async throws -> ActivityLogResponse {
+    // For now, we'll return a simple activity log
+    // In a real implementation, you'd have an ActivityLog model
+    let activities = [
+        ActivityLogEntry(id: UUID(), userId: UUID(), action: "file_upload", timestamp: Date()),
+        …
+```
+
+Four registered, admin-authenticated endpoints answering with invented data: an activity log of two
+hardcoded rows, a **100 MB backup that does not exist** reported as `completed`, and a restore that
+returned `.ok` for any id including one never issued. Three of the four ignore their `Request`
+entirely and none touches the database.
+
+Injecting a clock and a UUID provider clears all twelve findings and leaves every one of those
+behaviours in place. The fix is `501 Not Implemented` — or an implementation. The tells are in the
+file already: a `req _:` parameter, a comment beginning *"For now"* or *"In a real
+implementation"*, and a handler that constructs its whole response from literals.
+
+#### The value has no reader
+
+`SyncError.timestamp` was filled by five clock reads at five construction sites, and read by **no
+view, no log, and no test**. The type's own documentation called it *"for logging"*; nothing logs
+it. Five reads to populate a field that no code consumes.
+
+The fabrication branch above says of its examples that *"they are stored and shown"*. This is
+weaker than that — it is stored and **not** shown, which puts it outside every disposition on this
+page. Injecting makes five unread values reproducible.
+
+The fix is to delete the field. If the value is wanted, it needs a reader first — a log line, an
+ordered error list — and then one instant per operation rather than five independent reads. The
+same call was made once before on this type, recorded in its own docstring: the file field used to
+be a `MacCloudFile?` that the two failing paths could not supply.
+
+A stored-property default is the same shape when nothing has happened yet:
+
+```swift
+var lastSyncTime = Date()   // a cold start reports "Last sync: now"
+```
+
+`SyncStatusCard` renders that relative, so a freshly launched app claims a sync that never ran. It
+is `Date?` now, `nil` until one completes.
+
+#### And a fault recurs at its call sites after the fix exists
+
+The fabrication table above lists SwiftMarkdownWiki's note-date defect as found. What it does not
+say is that `NoteFile.read(at:)` — the helper written to prevent it, carrying the reasoning in its
+docstring — was still being bypassed by **five call sites** constructing
+`NoteFile(url:modifiedDate: Date())` directly, each immediately after writing the file, where the
+real modification date was there to be read.
+
+A fixed fault is fixed at the sites that existed when it was fixed. `grep` for the constructor the
+helper replaced is worth a minute after any repair of this kind.
+
 ### A closure parameter default is a seam too
 
 The default-value exemption used to stop at any closure, so this was reported:
@@ -235,6 +305,14 @@ repository from **20 findings to 20** — one read instead of seventeen, in the 
 MacCloud_client_iOS took it from 13 to 6, and **all six survivors are composition roots**: two
 account-creation stamps, an upload instant the server does not supply, a sign-in time, and two photo
 names.
+
+A later pass down the concentration list took the corpus from **113 findings to 75**: MacCloud_server
+20&nbsp;→&nbsp;8, SwiftMarkdownWiki 14&nbsp;→&nbsp;1, MacCloud_client_MacOS 8&nbsp;→&nbsp;1,
+SwiftAssist 17&nbsp;→&nbsp;11. Of the five files worked, **injection was the right fix in one** —
+`GitAdapter`, whose `commitMessage` was already an injectable `(Date) -> String` so a test could
+control the *format* of an auto-commit subject but not the instant inside it, which is the part that
+lands in the git log. The other four were the shapes above. SwiftLintRuleStudioTeam stayed at 20,
+unchanged and correctly so: all twenty are composition roots.
 
 **Do not suppress these.** A `swiftprojectlint:disable` at a composition root buys a smaller number
 and loses the inventory — and the inventory is what this rule is for. If you want to know where a
