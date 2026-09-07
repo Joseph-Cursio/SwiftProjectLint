@@ -334,9 +334,29 @@ public static let system = DateProvider { Date() }
 let tempName = "\(destination.lastPathComponent).\(UUID().uuidString).tmp"
 ```
 
-Both are cases where a reader arriving at the finding would otherwise re-derive the same conclusion
-every sweep. Write the reasoning beside the directive — a bare suppression is worse than the
-finding, because the next reader cannot tell a decision from a dismissal.
+A third shape belongs here, and it is the one where taking this page's advice does harm rather than
+nothing: **the value is a nonce.**
+
+```swift
+// This is a nonce. A caller that could supply it is the property the value exists
+// to deny, so an injection seam here is a security regression, not a testability win.
+// swiftprojectlint:disable:next non-injected-nondeterminism
+let tokenId = UUID().uuidString
+```
+
+`AuthRoutes.generateRefreshToken` reads unpredictably *on purpose*. It also has no reader — no
+revocation store keys on it yet — which is the shape two sections above, whose disposition is
+deletion. Both of that section's tells were present and both conclusions were wrong: the claim is
+inside signed tokens already issued, and it is the exact claim a revocation store would key on.
+
+The discriminator is not "is the value read?" but **"would a caller supplying it be a bug?"** For a
+clock or a fixture the answer is no, which is why injection works. For a nonce, a session id, a
+CSRF token or a salt the answer is yes, and no amount of unread-ness changes it.
+
+Both of the first two are cases where a reader arriving at the finding would otherwise re-derive the
+same conclusion every sweep; the third is a case where a reader who does the re-derivation and acts
+on it makes the program worse. Write the reasoning beside the directive — a bare suppression is
+worse than the finding, because the next reader cannot tell a decision from a dismissal.
 
 **And re-check a suppression when the rule changes.** Three directives were written here
 because the rule reported `clock: () -> Date = { Date() }`, the shape its own documentation
