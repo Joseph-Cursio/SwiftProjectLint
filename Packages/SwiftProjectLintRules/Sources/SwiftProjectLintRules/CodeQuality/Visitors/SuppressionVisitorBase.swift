@@ -64,9 +64,16 @@ class SuppressionVisitorBase: BasePatternVisitor {
 
         // Check most-specific directives first — "disable" alone would also match
         // the qualified forms.
+        //
+        // The directive must START the comment, which is the same line `InlineSuppressionParser`
+        // draws: it requires `hasPrefix("// swiftprojectlint:")` before it will suppress anything.
+        // This used to be a `range(of:)` search, so a comment that merely *mentioned* a directive
+        // in prose was inventoried as one — and prose about suppression directives is written by
+        // exactly the people who go looking for this rule's output. Every following word became a
+        // "suppressed rule": one sentence produced four entries, none of which suppressed anything.
         for directive in directives {
-            guard let range = cleaned.range(of: directive) else { continue }
-            let remainder = cleaned[range.upperBound...]
+            guard cleaned.hasPrefix(directive) else { continue }
+            let remainder = cleaned.dropFirst(directive.count)
                 .trimmingCharacters(in: .whitespaces)
             guard remainder.isEmpty == false else { continue }
 
