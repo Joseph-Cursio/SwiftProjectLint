@@ -14,6 +14,9 @@ class DirectInstantiationVisitor: BasePatternVisitor {
     /// spelling — and a flag would be cleared by whichever closed first.
     private var insidePreviewOrDebug = 0
 
+    /// Depth inside a SwiftUI `View`. See `isObservableViewState`.
+    private var insideSwiftUIView = 0
+
     /// Depth inside the program's designated entry point. See `insideEntryPoint`.
     private var insideEntryPoint = 0
 
@@ -59,6 +62,25 @@ class DirectInstantiationVisitor: BasePatternVisitor {
         // the thing this whole sweep is trying to produce — and the rule was reporting their
         // insides as coupling.
         if privatelyDeclaredTypes.contains(typeName) { return nil }
+
+        // An `@Observable` model a view owns is view *state*, not a dependency. That is
+        // already why `@State private var model = Model()` is exempt; this is the same
+        // ownership one step deferred.
+        //
+        // The deferral is forced, not stylistic. An `@Environment` value cannot be read from a
+        // property initializer, so a model that needs one is built in `.task` and stored into
+        // an optional `@State`:
+        //
+        //     @Environment(AppState.self) private var appState
+        //     @State private var viewModel: BeadsViewModel?
+        //     ...
+        //     .task { if viewModel == nil { viewModel = BeadsViewModel(appState: appState) } }
+        //
+        // That construction *is* the injection — `appState` arrives from the environment — and
+        // the rule's suggestion names the pre-Observation API for a problem Observation does
+        // not have. Seven of the corpus's findings were this pattern, written identically
+        // seven times.
+        if insideSwiftUIView > 0, knownObservableTypes.contains(typeName) { return nil }
 
         // A helper handed its own owner cannot be injected into that owner. `self` does not
         // exist before the initializer that would receive the substitute has run, so the
@@ -319,6 +341,7 @@ class DirectInstantiationVisitor: BasePatternVisitor {
         typeNameStack.append(node.name.text)
         mainAttributedTypeDepth.append(Self.carriesMainAttribute(node.attributes))
         if Self.isRuntimeConstructed(node.inheritanceClause) { insideEntryPoint += 1 }
+        if isSwiftUIViewOnly(node) { insideSwiftUIView += 1 }
         return .visitChildren
     }
 
@@ -326,6 +349,7 @@ class DirectInstantiationVisitor: BasePatternVisitor {
         typeNameStack.removeLast()
         mainAttributedTypeDepth.removeLast()
         if Self.isRuntimeConstructed(node.inheritanceClause) { insideEntryPoint -= 1 }
+        if isSwiftUIViewOnly(node) { insideSwiftUIView -= 1 }
     }
 
     override func visit(_ node: EnumDeclSyntax) -> SyntaxVisitorContinueKind {
