@@ -96,7 +96,7 @@ struct PBTSeedEffectTests {
     /// SwiftEffectInference already share; a second spelling in the manifest
     /// would be a fourth dialect of a vocabulary that has one too many.
     @Test("tiers are spelled as the annotation grammar spells them")
-    func tiersUseGrammarSpelling() throws {
+    func tiersUseGrammarSpelling() {
         let json = PBTSeedsFormatter().format(issues: [
             violation(effect: PBTSeedEffect(
                 declared: .externallyIdempotent, resolved: .nonIdempotent, provenance: .declared
@@ -109,7 +109,7 @@ struct PBTSeedEffectTests {
     }
 
     @Test("provenance is spelled in the manifest's kebab-case style")
-    func provenanceUsesKebabCase() throws {
+    func provenanceUsesKebabCase() {
         let json = PBTSeedsFormatter().format(issues: [
             violation(effect: PBTSeedEffect(
                 declared: .idempotent, resolved: .nonIdempotent,
@@ -251,7 +251,7 @@ struct PBTSeedAnchorTests {
     @Test("the other provenances omit the key entirely", arguments: [
         PBTSeedEffect.Provenance.declared, .inferredDownward
     ])
-    func otherProvenancesOmitAnchor(provenance: PBTSeedEffect.Provenance) throws {
+    func otherProvenancesOmitAnchor(provenance: PBTSeedEffect.Provenance) {
         let json = PBTSeedsFormatter().format(issues: [seed(PBTSeedEffect(
             declared: .idempotent, resolved: .nonIdempotent, provenance: provenance
         ))])

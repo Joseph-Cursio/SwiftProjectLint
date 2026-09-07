@@ -449,7 +449,6 @@ struct ArchitectureConcreteTypeUsageTests {
         #expect(issues.isEmpty == false)
     }
 
-
     // MARK: - A generic type is already parameterised
 
     // `Generator<[Element], Shrinker>` cannot usefully take the advice: `any GeneratorProtocol`
@@ -497,5 +496,4 @@ struct ArchitectureConcreteTypeUsageTests {
         """)
         #expect(issues.isEmpty == false)
     }
-
 }

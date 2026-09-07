@@ -215,7 +215,7 @@ final class DuplicateEnumMappingVisitor: CrossFileVisitorBase, CrossFilePatternV
 
             // If one site is the enum's own `switch self` mapping, it is the canonical home;
             // the others duplicate it and should call it.
-            let canonical = distinct.first(where: { isCentralized($0) })
+            let canonical = distinct.first { isCentralized($0) }
 
             for site in distinct where !(canonical.map { isSameLocation($0, site) } ?? false) {
                 let peers = distinct
@@ -292,8 +292,10 @@ final class DuplicateEnumMappingVisitor: CrossFileVisitorBase, CrossFilePatternV
         switch subjects.count {
         case 0:
             return "enum (cases \(labels.sorted().joined(separator: ", ")))"
+
         case 1:
             return "`\(subjects[0])`"
+
         default:
             return "enum \(subjects.sorted().map { "`\($0)`" }.joined(separator: " / "))"
         }

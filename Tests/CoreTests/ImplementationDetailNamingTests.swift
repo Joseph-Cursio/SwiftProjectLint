@@ -224,5 +224,4 @@ struct ImplementationDetailNamingTests {
         """, spiMembers: ["_snapshotBox"])
         #expect(issues.isEmpty == false)
     }
-
 }

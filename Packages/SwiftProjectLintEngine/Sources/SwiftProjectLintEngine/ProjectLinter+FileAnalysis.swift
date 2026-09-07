@@ -57,7 +57,7 @@ extension ProjectLinter {
             return true
         }
         guard let handle = FileHandle(forReadingAtPath: filePath) else { return false }
-        let data = handle.readData(ofLength: 1024)
+        let data = handle.readData(ofLength: 1_024)
         guard let header = String(bytes: data, encoding: .utf8) else { return false }
         let firstLines = header
             .components(separatedBy: .newlines)

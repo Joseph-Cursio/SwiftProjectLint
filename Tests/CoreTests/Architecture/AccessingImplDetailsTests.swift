@@ -74,7 +74,7 @@ struct AccessingImplDetailsTests {
 
     /// Without the prescan the rule behaves exactly as before — the exemption is additive, so
     /// an empty catalog cannot silence anything.
-    @Test func anEmptyPrescanChangesNothing() throws {
+    @Test func anEmptyPrescanChangesNothing() {
         let source = """
         struct Slot { var _value: Int }
         struct Other {

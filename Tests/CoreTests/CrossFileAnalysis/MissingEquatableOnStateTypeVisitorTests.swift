@@ -274,5 +274,4 @@ struct MissingEquatableOnStateTypeVisitorTests {
         #expect(issues.count == 1)
         #expect(issues.first?.message.contains("'AnnotationTarget'") == true)
     }
-
 }

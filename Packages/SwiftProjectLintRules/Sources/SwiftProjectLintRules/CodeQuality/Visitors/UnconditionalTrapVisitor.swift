@@ -57,10 +57,9 @@ final class UnconditionalTrapVisitor: BasePatternVisitor {
         var current = node.parent
         while let candidate = current {
             if let initializer = candidate.as(InitializerDeclSyntax.self) {
-                let takesCoder = initializer.signature.parameterClause.parameters.contains { parameter in
+                return initializer.signature.parameterClause.parameters.contains { parameter in
                     parameter.firstName.text == "coder"
                 }
-                return takesCoder
             }
             current = candidate.parent
         }

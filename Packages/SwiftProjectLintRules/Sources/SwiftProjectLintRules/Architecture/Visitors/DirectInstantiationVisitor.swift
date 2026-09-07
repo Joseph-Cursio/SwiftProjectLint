@@ -14,6 +14,12 @@ class DirectInstantiationVisitor: BasePatternVisitor {
     /// spelling — and a flag would be cleared by whichever closed first.
     private var insidePreviewOrDebug = 0
 
+    /// Names of the types this file declares `private` or `fileprivate`, gathered in one
+    /// pass over the file before any finding is reported. No project-wide prescan is needed
+    /// and none would help: a `private` type is unreachable outside its own file, so the
+    /// declaration is always here if it is anywhere.
+    private var privatelyDeclaredTypes: Set<String> = []
+
     /// Names of the nominal types currently being visited, innermost last.
     /// Used to recognise a type that instantiates *itself* as a static member —
     /// the canonical singleton definition site, which is not a coupling smell.
@@ -34,6 +40,20 @@ class DirectInstantiationVisitor: BasePatternVisitor {
               let typeName = Self.constructedTypeName(of: call.calledExpression) else { return nil }
         guard ServiceTypeSuffix.matches(typeName),
               !MockTypeName.matches(typeName) else { return nil }
+
+        // A `private` or `fileprivate` type cannot be injected: no caller outside the file
+        // that declares it can name the type, so there is nowhere for a substitute to come
+        // from and no test that could supply one. Taking the advice would mean *widening*
+        // the type's access level in order to hide it — exporting an implementation detail
+        // to make it injectable, which is the opposite trade from the one the rule offers.
+        //
+        // The shape this reaches is the single-use accumulator: a `private final class
+        // Checker: SyntaxVisitor` constructed, walked, read for one flag and discarded, three
+        // lines down from the pure function that owns it. Those functions are total kernels —
+        // the thing this whole sweep is trying to produce — and the rule was reporting their
+        // insides as coupling.
+        if privatelyDeclaredTypes.contains(typeName) { return nil }
+
         return typeName
     }
 
@@ -123,6 +143,15 @@ class DirectInstantiationVisitor: BasePatternVisitor {
                 )
             }
         }
+        return .visitChildren
+    }
+
+    // MARK: - File-local access-level pre-pass
+
+    override func visit(_ node: SourceFileSyntax) -> SyntaxVisitorContinueKind {
+        let collector = PrivateTypeDeclarationCollector(viewMode: .sourceAccurate)
+        collector.walk(node)
+        privatelyDeclaredTypes = collector.names
         return .visitChildren
     }
 
@@ -232,5 +261,44 @@ class DirectInstantiationVisitor: BasePatternVisitor {
     /// function rather than the condition written twice.
     private static func isDebugBlock(_ node: IfConfigDeclSyntax) -> Bool {
         node.clauses.contains { $0.condition?.description.contains("DEBUG") == true }
+    }
+}
+
+/// Collects the names of every type a single file declares `private` or `fileprivate`.
+///
+/// A separate walk rather than bookkeeping inside the main visit, because the declaration can
+/// follow the use: `AmbientStateReads.occur` builds its `Checker` on line 26 and the
+/// `private final class Checker` sits on line 34, so a visitor that learned the access level
+/// as it went would have already reported the construction by the time it read the
+/// declaration.
+private final class PrivateTypeDeclarationCollector: SyntaxVisitor {
+
+    private(set) var names: Set<String> = []
+
+    override func visit(_ node: ClassDeclSyntax) -> SyntaxVisitorContinueKind {
+        record(node.name.text, node.modifiers)
+        return .visitChildren
+    }
+
+    override func visit(_ node: StructDeclSyntax) -> SyntaxVisitorContinueKind {
+        record(node.name.text, node.modifiers)
+        return .visitChildren
+    }
+
+    override func visit(_ node: EnumDeclSyntax) -> SyntaxVisitorContinueKind {
+        record(node.name.text, node.modifiers)
+        return .visitChildren
+    }
+
+    override func visit(_ node: ActorDeclSyntax) -> SyntaxVisitorContinueKind {
+        record(node.name.text, node.modifiers)
+        return .visitChildren
+    }
+
+    private func record(_ name: String, _ modifiers: DeclModifierListSyntax) {
+        let isFileLocal = modifiers.contains {
+            $0.name.tokenKind == .keyword(.private) || $0.name.tokenKind == .keyword(.fileprivate)
+        }
+        if isFileLocal { names.insert(name) }
     }
 }
