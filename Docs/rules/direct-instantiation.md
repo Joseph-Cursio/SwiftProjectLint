@@ -28,6 +28,19 @@ Because a `private` type can only be *used* in the file that declares it, the ch
 
 The gate is the entry point, not the whole type: a `@main` type's other methods are ordinary code and hard-wiring a dependency in one is an ordinary finding. Six findings across four repositories went, five of them a spike's `PaymentStore()`/`ProfileStore()` two lines into `static func main()`.
 
+**An `@Observable` model a view owns is not flagged.** That is already why `@State private var model = Model()` is exempt; this is the same ownership one step deferred, and the deferral is forced rather than stylistic. An `@Environment` value cannot be read from a property initializer, so a model that needs one is built in `.task` and stored into an optional `@State`:
+
+```swift
+@Environment(AppState.self) private var appState
+@State private var viewModel: BeadsViewModel?
+...
+.task { if viewModel == nil { viewModel = BeadsViewModel(appState: appState) } }
+```
+
+That construction *is* the injection — `appState` arrives from the environment — and the rule's suggestion, "use `@StateObject`/`@EnvironmentObject`", names the pre-Observation API for a problem Observation does not have. Seven of the corpus's findings were this pattern, written identically seven times in one app.
+
+Two things keep it narrow. It applies only inside a `View` — the same `@Observable` type built by a coordinator is an ordinary dependency of that coordinator — and only to types the project-wide `@Observable` prescan knows about, so a plain service reached for inside a view body is still the case the rule exists for.
+
 **A type the runtime constructs is not flagged.** `ParsableCommand`, `AsyncParsableCommand` and `ParsableArguments` conformers are built by ArgumentParser out of argv and then run. The synthesized initializer takes only the decoded `@Option`/`@Argument`/`@Flag` values, so there is no parameter to inject through, and the one remaining spelling — a stored property with an inline default — is exactly the shape this rule reports. Inside a command, every form of the fix the rule recommends is either impossible or itself a finding, which is what "advice with no reachable end state" means.
 
 The gate covers the command type rather than its `run()`, because the constraint belongs to the type: `BootstrapSkillsCommand.makeDetector()` assembles a registry, an anti-pattern store, a knowledge graph and a builder in a private helper, and it is no more injectable there. Eight findings across two repositories, four of them CLI subcommands reaching for a diagram generator whose protocol seam already exists and is already used — `DiagramViewModel` takes `any ClassDiagramGenerating = ClassDiagramGenerator()`, the defaulted-parameter shape this rule documents as the seam, and the test target has doubles for it.
