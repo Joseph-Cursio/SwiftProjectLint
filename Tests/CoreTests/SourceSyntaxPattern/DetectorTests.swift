@@ -76,9 +76,23 @@ struct DetectorTests {
     @Test func testCrossFilePatternDetection() {
         let detector = CrossFileAnalysisEngine()
 
+        // Both views declare the same @State variable — the shape
+        // .relatedDuplicateStateVariable looks for. The weaker fixture this
+        // replaces used two stateless views, so it could not have
+        // distinguished "the rule is quiet here" from "the rule never fires".
         let projectFiles = [
-            ProjectFile(name: "View1.swift", content: "struct View1: View { var body: some View { Text(\"A\") } }"),
-            ProjectFile(name: "View2.swift", content: "struct View2: View { var body: some View { Text(\"B\") } }")
+            ProjectFile(name: "View1.swift", content: """
+                struct View1: View {
+                    @State private var isLoading = false
+                    var body: some View { Text("View1") }
+                }
+                """),
+            ProjectFile(name: "View2.swift", content: """
+                struct View2: View {
+                    @State private var isLoading = false
+                    var body: some View { Text("View2") }
+                }
+                """)
         ]
 
         let issues = detector.detectCrossFilePatterns(
@@ -94,6 +108,21 @@ struct DetectorTests {
 
         #expect(registry != nil)
         // #expect(detector.registry != nil) // This line was removed as per the edit hint.
+    }
+
+    @Test func testEmptySourceCode() {
+        let detector = SourcePatternDetector()
+        let issues = detector.detectPatterns(in: "", filePath: "/test/Empty.swift")
+        #expect(issues.isEmpty)
+    }
+
+    @Test func testInvalidSwiftCode() {
+        let detector = SourcePatternDetector()
+        let issues = detector.detectPatterns(
+            in: "This is not valid Swift code {",
+            filePath: "/test/Invalid.swift"
+        )
+        #expect(issues.isEmpty)
     }
 
     // MARK: - Error Handling and Edge Cases
