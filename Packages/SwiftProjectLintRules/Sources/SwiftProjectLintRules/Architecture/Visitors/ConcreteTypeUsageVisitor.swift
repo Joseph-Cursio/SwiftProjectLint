@@ -34,10 +34,6 @@ class ConcreteTypeUsageVisitor: BasePatternVisitor {
     ]
 
     /// Type-name suffixes indicating a mock/stub/fake, which are concrete by design.
-    private static let mockSuffixes = [
-        "Mock", "Stub", "Fake", "Spy", "Dummy"
-    ]
-
     required init(pattern: SyntaxPattern, viewMode: SyntaxTreeViewMode = .sourceAccurate) {
         super.init(pattern: pattern, viewMode: viewMode)
     }
@@ -146,10 +142,8 @@ class ConcreteTypeUsageVisitor: BasePatternVisitor {
         // System types that are concrete by design
         if Self.systemConcreteTypes.contains(name) { return nil }
 
-        // Mock/stub/fake types
-        if Self.mockSuffixes.contains(where: { name.hasPrefix($0) || name.contains($0) }) {
-            return nil
-        }
+        // Mock/stub/fake types. Shared with `DirectInstantiation` via `MockTypeName`.
+        if MockTypeName.matches(name) { return nil }
 
         // Enum types — value types that cannot meaningfully be protocol-abstracted
         // in the same way as a service class. Requires the project-wide enum prescan.

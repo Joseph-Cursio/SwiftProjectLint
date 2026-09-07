@@ -240,5 +240,4 @@ struct UnusedProtocolAbstractionVisitorTests {
         ])
         #expect(issues.isEmpty)
     }
-
 }

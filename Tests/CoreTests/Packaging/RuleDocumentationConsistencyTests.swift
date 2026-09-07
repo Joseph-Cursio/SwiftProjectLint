@@ -103,7 +103,7 @@ struct RuleDocumentationConsistencyTests {
     // MARK: - The per-rule pages
 
     @Test("every rule page states the severity the registry declares")
-    func testDocumentedSeverityMatchesRegistry() throws {
+    func testDocumentedSeverityMatchesRegistry() {
         for pattern in Self.registeredPatterns {
             let file = Self.documentationFile(for: pattern.name)
             guard let page = try? String(contentsOf: file, encoding: .utf8) else { continue }
@@ -118,7 +118,7 @@ struct RuleDocumentationConsistencyTests {
     }
 
     @Test("every rule page states the category the registry declares")
-    func testDocumentedCategoryMatchesRegistry() throws {
+    func testDocumentedCategoryMatchesRegistry() {
         for pattern in Self.registeredPatterns {
             let file = Self.documentationFile(for: pattern.name)
             guard let page = try? String(contentsOf: file, encoding: .utf8) else { continue }

@@ -1,5 +1,5 @@
-@testable import CLI
 import ArgumentParser
+@testable import CLI
 import Core
 import Testing
 
