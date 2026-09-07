@@ -108,26 +108,13 @@ final class NonIdempotentInRetryContextVisitor: CrossFileVisitorBase, CrossFileP
     }
 
     func finalizeAnalysis() {
-        // Phase-2.3 upward inference — see IdempotencyViolationVisitor for
-        // rationale. Runs before the body walk so every lookup in
-        // analyzeCall can consult upward-inferred entries. `multiHop: true`
-        // enables fixed-point propagation across chains of un-annotated
-        // helpers between the `@context replayable` boundary and the
-        // non-idempotent leaf.
-        //
-        // Round-14: the heuristic callback is now import-aware. We
-        // precompute per-source imports once and look them up on each
-        // call so framework allowlists only fire in files that actually
-        // import the relevant module.
-        let allSources = orderedSources
-        let enabledFrameworks = self.enabledFrameworkAllowlists
-        symbolTable.applyBodyInference(to: allSources, multiHop: true) { call, source in
-            HeuristicEffectInferrer.infer(
-                call: call,
-                imports: SwiftProjectLintVisitors.ImportCollector.imports(in: source),
-                enabledFrameworks: enabledFrameworks
-            )
-        }
+        // Runs before the body walk so every lookup in analyzeCall can consult
+        // upward-inferred entries — chains of un-annotated helpers between the
+        // `@context replayable` boundary and the non-idempotent leaf.
+        symbolTable.applyImportAwareBodyInference(
+            to: orderedSources,
+            enabledFrameworks: enabledFrameworkAllowlists
+        )
 
         for site in analysisSites {
             analyzeBody(site.body, site: site)
@@ -135,39 +122,8 @@ final class NonIdempotentInRetryContextVisitor: CrossFileVisitorBase, CrossFileP
     }
 
     private func analyzeBody(_ syntax: Syntax, site: AnalysisSite) {
-        if syntax.is(FunctionDeclSyntax.self) { return }
-        // Nested closure-initialised variable bindings that carry their
-        // own `@lint.context` annotation are independent analysis sites.
-        // Don't descend — calls inside would otherwise be attributed to
-        // the outer context. Unannotated closure-bound bindings keep the
-        // old behaviour: they inherit the outer site's context and are
-        // walked through.
-        if let varDecl = syntax.as(VariableDeclSyntax.self),
-           varDecl.closureInitializer != nil,
-           ContextAnnotationParser.parseContext(declaration: varDecl) != nil {
-            return
-        }
-        // Same rule for annotated trailing-closure sites: the outer walk
-        // must not descend into a call whose closure is its own analysis
-        // site, or the inner calls would be attributed to the outer
-        // context twice. Must mirror the `visit` method's trivia lookup
-        // (call site + enclosing statement) or prefix-statement annotated
-        // sites get walked twice.
-        if let call = syntax.as(FunctionCallExprSyntax.self),
-           call.trailingClosure != nil,
-           ContextAnnotationParser.parseContextAtCallSite(of: call) != nil {
-            return
-        }
-        if let closure = syntax.as(ClosureExprSyntax.self), EscapingClosurePolicy.isEscaping(closure) {
-            return
-        }
-
-        if let call = syntax.as(FunctionCallExprSyntax.self) {
+        AnalysisBodyWalk.walk(syntax, skipping: AnalysisBodyWalk.carriesOwnContextAnnotation) { call in
             analyzeCall(call, site: site)
-        }
-
-        for child in syntax.children(viewMode: .sourceAccurate) {
-            analyzeBody(child, site: site)
         }
     }
 
