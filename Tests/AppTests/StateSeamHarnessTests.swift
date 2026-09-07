@@ -168,4 +168,31 @@ struct StateSeamHarnessTests {
 
         #expect(view.isFocused == false)
     }
+
+    @MainActor
+    private final class Inspector {
+        var sortOption: String = "file"
+        var error: String?
+    }
+
+    @Test("A property on a model is already a seam — extraction adds no reachability")
+    func aModelPropertyIsAlreadyReachable() {
+        // The other half of the corpus after condition 4: fourteen findings are a single statement
+        // storing an already-available value into a property of an object the view does not own —
+        // `viewModel.sortOption = option`, `viewModel.error = nil`.
+        //
+        // Condition 3 exempts a single *call* because a call is a named seam. A member assignment
+        // is a call to a named setter, and unlike view-local `@State` the property is readable —
+        // so the effect is assertable with no extraction at all, which is what this shows.
+        let inspector = Inspector()
+
+        inspector.sortOption = "severity"
+        inspector.error = nil
+
+        #expect(inspector.sortOption == "severity")
+        #expect(inspector.error == nil)
+
+        // What extraction cannot give either way is the button-to-effect linkage. That needs
+        // `ViewHosting.host` whether the body is inline or named, exactly as for `@State`.
+    }
 }
