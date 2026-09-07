@@ -202,6 +202,28 @@ class DirectInstantiationVisitor: BasePatternVisitor {
         (currentFilePath as NSString).lastPathComponent == "main.swift"
     }
 
+    /// Protocols whose conformers the runtime constructs, leaving no initializer to inject
+    /// through.
+    ///
+    /// `ArgumentParser` builds a command out of argv and calls `run()`. The synthesized
+    /// initializer takes only the decoded `@Option`/`@Argument`/`@Flag` values, so there is no
+    /// parameter for a dependency, and the one remaining spelling — a stored property with an
+    /// inline default — is the shape this rule reports. Inside a command, every form of the
+    /// fix the rule recommends is either impossible or itself a finding, which is the
+    /// definition of advice with no reachable end state.
+    private static let runtimeConstructedProtocols: Set<String> = [
+        "ParsableCommand", "AsyncParsableCommand", "ParsableArguments"
+    ]
+
+    private static func isRuntimeConstructed(_ inheritance: InheritanceClauseSyntax?) -> Bool {
+        guard let inheritance else { return false }
+        return inheritance.inheritedTypes.contains { inherited in
+            guard let name = inherited.type.as(IdentifierTypeSyntax.self)?.name.text
+            else { return false }
+            return runtimeConstructedProtocols.contains(name)
+        }
+    }
+
     /// Whether a function declaration is the entry point of an `@main` type.
     ///
     /// Both spellings. `static func main()` is the one `@main` calls, and a SwiftUI `App`\'s
@@ -283,45 +305,53 @@ class DirectInstantiationVisitor: BasePatternVisitor {
     override func visit(_ node: ClassDeclSyntax) -> SyntaxVisitorContinueKind {
         typeNameStack.append(node.name.text)
         mainAttributedTypeDepth.append(Self.carriesMainAttribute(node.attributes))
+        if Self.isRuntimeConstructed(node.inheritanceClause) { insideEntryPoint += 1 }
         return .visitChildren
     }
 
-    override func visitPost(_ _: ClassDeclSyntax) {
+    override func visitPost(_ node: ClassDeclSyntax) {
         typeNameStack.removeLast()
         mainAttributedTypeDepth.removeLast()
+        if Self.isRuntimeConstructed(node.inheritanceClause) { insideEntryPoint -= 1 }
     }
 
     override func visit(_ node: StructDeclSyntax) -> SyntaxVisitorContinueKind {
         typeNameStack.append(node.name.text)
         mainAttributedTypeDepth.append(Self.carriesMainAttribute(node.attributes))
+        if Self.isRuntimeConstructed(node.inheritanceClause) { insideEntryPoint += 1 }
         return .visitChildren
     }
 
-    override func visitPost(_ _: StructDeclSyntax) {
+    override func visitPost(_ node: StructDeclSyntax) {
         typeNameStack.removeLast()
         mainAttributedTypeDepth.removeLast()
+        if Self.isRuntimeConstructed(node.inheritanceClause) { insideEntryPoint -= 1 }
     }
 
     override func visit(_ node: EnumDeclSyntax) -> SyntaxVisitorContinueKind {
         typeNameStack.append(node.name.text)
         mainAttributedTypeDepth.append(Self.carriesMainAttribute(node.attributes))
+        if Self.isRuntimeConstructed(node.inheritanceClause) { insideEntryPoint += 1 }
         return .visitChildren
     }
 
-    override func visitPost(_ _: EnumDeclSyntax) {
+    override func visitPost(_ node: EnumDeclSyntax) {
         typeNameStack.removeLast()
         mainAttributedTypeDepth.removeLast()
+        if Self.isRuntimeConstructed(node.inheritanceClause) { insideEntryPoint -= 1 }
     }
 
     override func visit(_ node: ActorDeclSyntax) -> SyntaxVisitorContinueKind {
         typeNameStack.append(node.name.text)
         mainAttributedTypeDepth.append(Self.carriesMainAttribute(node.attributes))
+        if Self.isRuntimeConstructed(node.inheritanceClause) { insideEntryPoint += 1 }
         return .visitChildren
     }
 
-    override func visitPost(_ _: ActorDeclSyntax) {
+    override func visitPost(_ node: ActorDeclSyntax) {
         typeNameStack.removeLast()
         mainAttributedTypeDepth.removeLast()
+        if Self.isRuntimeConstructed(node.inheritanceClause) { insideEntryPoint -= 1 }
     }
 
     // MARK: - Function / closure context tracking
