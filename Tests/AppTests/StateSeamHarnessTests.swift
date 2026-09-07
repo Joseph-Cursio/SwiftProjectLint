@@ -101,4 +101,71 @@ struct StateSeamHarnessTests {
         selection.clear()
         #expect(selection.chosen == nil)
     }
+
+    // MARK: - Which wrappers the finding actually holds
+
+    private struct BindingSubject: View {
+        @Binding var flag: Bool
+        func present() { flag = true }
+        var body: some View { Button("go", action: present) }
+    }
+
+    @Test("A @Binding write IS observable, so it must not be gated")
+    func bindingWriteIsObservable() {
+        // Fifteen of the corpus write targets are `@Binding`. A binding is the parent's storage,
+        // and a test supplies its own — so the write lands somewhere the test owns and can read.
+        // This is the case that keeps the gate from being "any property wrapper".
+        final class Box: @unchecked Sendable { var value = false }
+        let box = Box()
+        let view = BindingSubject(
+            flag: Binding(get: { box.value }, set: { box.value = $0 })
+        )
+
+        view.present()
+
+        #expect(box.value == true)
+    }
+
+    private struct StorageSubject: View {
+        @AppStorage("uec.harness.flag") private var flag = false
+        var isOn: Bool { flag }
+        func present() { flag = true }
+        var body: some View { Button("go", action: present) }
+    }
+
+    @Test("An @AppStorage write IS observable, so it must not be gated either")
+    func appStorageWriteIsObservable() {
+        // Four of the corpus write targets are `@AppStorage`. Unlike `@State`, its setter writes
+        // straight through to the defaults store, which a test reads without any view at all.
+        UserDefaults.standard.removeObject(forKey: "uec.harness.flag")
+        defer { UserDefaults.standard.removeObject(forKey: "uec.harness.flag") }
+
+        let view = StorageSubject()
+        #expect(view.isOn == false)
+
+        view.present()
+
+        #expect(UserDefaults.standard.bool(forKey: "uec.harness.flag") == true)
+        #expect(view.isOn == true)
+    }
+
+    private struct FocusSubject: View {
+        private enum Field: Hashable { case name }
+        @FocusState private var focus: Field?
+        var isFocused: Bool { focus == .name }
+        func focusName() { focus = .name }
+        var body: some View { TextField("name", text: .constant("")).focused($focus, equals: .name) }
+    }
+
+    @Test("@FocusState behaves like @State, measured rather than assumed")
+    func focusStateWriteIsNotObservable() {
+        // No corpus finding writes `@FocusState`, so this is the one wrapper the gate covers on
+        // mechanism rather than on evidence. Measuring it is cheaper than arguing about it.
+        let view = FocusSubject()
+        #expect(view.isFocused == false)
+
+        view.focusName()
+
+        #expect(view.isFocused == false)
+    }
 }
