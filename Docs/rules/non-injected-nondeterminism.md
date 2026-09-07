@@ -361,6 +361,20 @@ The practical consequence is worth stating, because it can be mistaken for progr
 `generatedAt: .now` instead of `Date.now` moves a clock read somewhere the tool cannot see, and the
 rule's count falls. **A read the tool reports where it belongs is better than one it cannot find.**
 
+### Preview fixtures are not flagged
+
+A `#Preview` never ships, and the values in one are fixtures rather than program state. `Date()`
+beside a hardcoded violation count and a literal version string is part of the fixture, and there is
+no caller who could supply it — the preview *is* the caller. Asking for an injected clock there
+means routing one in from somewhere, which is what a preview exists to avoid.
+
+Both spellings are skipped: `#Preview { }` parses as a declaration among other declarations and as
+an *expression* when it is the only item in a file, which is exactly the file a preview tends to
+live in. A preview nested inside `#if DEBUG` is covered by the same counter.
+
+**The gate is the preview, not the file.** A view and its preview live together, and the view's own
+clock reads are the case this rule exists for.
+
 ### What this rule deliberately does not flag
 
 `ContinuousClock()`, `SuspendingClock()`, `Task.sleep(for:)`, `DispatchTime.now()`, the monotonic C functions (`mach_absolute_time`, `clock_gettime`), and `Date(timeIntervalSinceNow:)` all read a clock, and none of them are reported here.
