@@ -246,4 +246,81 @@ struct UnreachableEffectClosureViewStateTests {
         let issue = try #require(issues.first)
         #expect(issue.symbol == "body")
     }
+
+    // MARK: - Condition 5: a single store through a setter
+
+    @Test("a single store into a model property is not reported")
+    func singleStoreThroughASetterIsNotReported() {
+        // The property is readable, so a test asserts on this effect today with no extraction.
+        // Condition 3 exempts a single call because a call is a named seam; a member assignment
+        // is a call to a named setter.
+        let issues = analyze("""
+        struct SortMenu: View {
+            let viewModel: InspectorViewModel
+
+            var body: some View {
+                Button("Severity") {
+                    viewModel.sortOption = option
+                }
+            }
+        }
+        """)
+        #expect(issues.isEmpty)
+    }
+
+    @Test("a store whose right-hand side computes is still reported")
+    func computedRightHandSideIsReported() {
+        // The rule's own motivating shape. `hitNode(at:)` is computation the closure owns and
+        // nothing else can reach, which is exactly what naming it makes assertable.
+        let issues = analyze("""
+        struct Canvas: View {
+            let viewport: Viewport
+
+            var body: some View {
+                Rectangle().onHover { _ in
+                    viewport.hoveredNodeId = hitNode(at: location)?.id
+                }
+            }
+        }
+        """)
+        #expect(issues.count == 1)
+    }
+
+    @Test("two stores that must happen together are still reported")
+    func twoStoresAreReported() {
+        // One write is plumbing; two writes that belong together are a contract worth naming, and
+        // `clearSearch()` on the model is a sentence a test can state.
+        let issues = analyze("""
+        struct SearchBar: View {
+            let viewModel: SearchViewModel
+
+            var body: some View {
+                Button("Clear") {
+                    viewModel.searchQuery = ""
+                    viewModel.searchResults = []
+                }
+            }
+        }
+        """)
+        #expect(issues.count == 1)
+    }
+
+    @Test("a bare assignment is not a store through a setter")
+    func bareAssignmentIsStillReported() {
+        // `serverURL = "http://localhost:8080"` writes a `@Binding`, whose storage the parent owns
+        // and a test supplies. There is no member setter being named here, and the literal is a
+        // fact only this closure knows — so it keeps reporting.
+        let issues = analyze("""
+        struct QuickSetup: View {
+            @Binding var serverURL: String
+
+            var body: some View {
+                Button("Local Development") {
+                    serverURL = "http://localhost:8080"
+                }
+            }
+        }
+        """)
+        #expect(issues.count == 1)
+    }
 }

@@ -45,7 +45,7 @@ That extraction has since landed in that project, which gave the rule an end-to-
 
 ### Discussion
 
-`UnreachableEffectClosureVisitor` reports a `ClosureExprSyntax` when all four hold.
+`UnreachableEffectClosureVisitor` reports a `ClosureExprSyntax` when all five hold.
 
 **1. Registered, not called.** Two surfaces, matched by an explicit allowlist:
 
@@ -90,6 +90,19 @@ So *one* non-`@State` write anywhere in the body keeps the whole finding. The ga
 
 The `@State` set is keyed **per type, not per file**. Two views in one file routinely use the same property name for different storage, and a file-wide set would let one view's `@State private var text` gate another view's `@Binding var text`.
 
+**5. The body is more than a single store through a setter.** `Button { viewModel.sortOption = option }` is **not** reported.
+
+Condition 3 exempts a body that is exactly one *call*, on the grounds that a call is already a named seam. A member assignment is a call to a named setter — and unlike view-local `@State`, the property it writes is readable, so a test asserts on that effect today with no extraction at all. The harness records it in three lines, because the claim is that small.
+
+This is the doc's own defended asymmetry, corrected one step. *"A single assignment is not a call and does report"* was right about `{ selectedId = nil }` on view-local state, where there genuinely is no seam. It generalised too far: where the target is a readable property of an object the view does not own, the seam already exists.
+
+Two things keep the finding, and both are in the corpus:
+
+- **The right-hand side computes.** `viewport.hoveredNodeId = hitNode(at: location)?.id` — the rule's own motivating shape. A call on the right is work the closure owns and nothing else can reach, which is precisely what naming it makes assertable.
+- **More than one statement.** One write is plumbing; two writes that must happen together are a contract worth naming. `viewModel.searchQuery = ""` beside `viewModel.searchResults = []` is `clearSearch()`, and a test asserting that it empties both is a real sentence.
+
+A *bare* assignment is not a store through a setter and is unaffected: `serverURL = "http://localhost:8080"` writes a `@Binding` whose storage a test supplies, and the literal is a fact only that closure knows.
+
 ### Refutations
 
 - **Single-call bodies** — the fixed form.
@@ -97,6 +110,7 @@ The `@State` set is keyed **per type, not per file**. Two views in one file rout
 - **Read-only closures** — no captured write. That is the pure sibling's territory when pure, and nobody's when it merely reads.
 - **Local-only writes** — writes to a `var` declared inside the closure never escape, and neither do writes to a closure parameter, including an `inout` accumulator in a nested `reduce(into:)`.
 - **Writes to nothing but the view's own `@State` / `@FocusState`** — condition 4. Measured, not assumed.
+- **A single store through a setter** — condition 5. The property is already readable, so the effect is already assertable.
 - **Test files** — the same skip the other testability visitors apply.
 - **`Button` bodies that are a single no-argument call** — [Button Closure Wrapping](button-closure-wrapping.md) owns that exact shape, and condition 3 already excludes it here, so the two cannot double-report.
 - **`onAppear` / `onDisappear`** — see below.

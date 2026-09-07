@@ -64,7 +64,8 @@ final class UnreachableEffectClosureVisitor: BasePatternVisitor {
               let closure = surface.callbackClosure(in: node),
               isWorthExtracting(closure),
               purityInferrer.mutatesCapturedState(closure),
-              !writesOnlyViewState(closure) else {
+              !writesOnlyViewState(closure),
+              !isBareStoreThroughASetter(closure) else {
             return .visitChildren
         }
 
@@ -119,6 +120,40 @@ final class UnreachableEffectClosureVisitor: BasePatternVisitor {
         collector.walk(closure.statements)
         guard !collector.directWrites.isEmpty, collector.otherWrites.isEmpty else { return false }
         return collector.directWrites.isSubset(of: stateNames)
+    }
+
+    /// Condition 5 — a single store through a setter is already a named seam.
+    ///
+    /// Condition 3 exempts a body that is exactly one *call*, because a call is a name a test can
+    /// reach. A member assignment is a call to a named setter, and unlike view-local `@State` the
+    /// property it writes is readable — so `Button { viewModel.sortOption = option }` writes state
+    /// a test asserts on today, with no extraction at all. `StateSeamHarnessTests` records that as
+    /// three lines, because the claim is that small.
+    ///
+    /// The doc's defended asymmetry — *"a single assignment is not a call and does report"* — was
+    /// right about `{ selectedId = nil }` on view-local state, where there genuinely is no seam,
+    /// and it generalised one step too far. Condition 4 removed that case for a different reason;
+    /// this removes the case where the seam already exists.
+    ///
+    /// **The right-hand side has to be a value the caller already has.** A call on the right is
+    /// computation the closure owns and nothing else can reach —
+    /// `viewport.hoveredNodeId = hitNode(at: location)?.id` is the rule's own motivating shape, and
+    /// it keeps reporting. So does anything with more than one statement: two writes that must
+    /// happen together are a contract worth naming, which one write is not.
+    private func isBareStoreThroughASetter(_ closure: ClosureExprSyntax) -> Bool {
+        let statements = closure.statements
+        guard statements.count == 1, let only = statements.first,
+              case .expr(let expression) = only.item,
+              let sequence = expression.as(SequenceExprSyntax.self) else { return false }
+        let elements = Array(sequence.elements)
+        guard elements.count == 3, elements[1].is(AssignmentExprSyntax.self),
+              elements[0].is(MemberAccessExprSyntax.self) else { return false }
+        return !Self.containsCall(elements[2])
+    }
+
+    /// Whether an expression computes anything, as opposed to naming a value that already exists.
+    private static func containsCall(_ expression: ExprSyntax) -> Bool {
+        CallFinder(viewMode: .sourceAccurate).foundCall(in: Syntax(expression))
     }
 
     // MARK: - Enclosing-type tracking
@@ -402,5 +437,23 @@ private final class ClosureWriteTargetCollector: SyntaxVisitor {
         guard let binary = element.as(BinaryOperatorExprSyntax.self) else { return false }
         let text = binary.operator.text
         return text.hasSuffix("=") && !["==", "!=", "<=", ">=", "==="].contains(text)
+    }
+}
+
+/// Whether a subtree contains a call — the test condition 5 uses for "the closure computes
+/// something the caller cannot already reach".
+private final class CallFinder: SyntaxVisitor {
+
+    private var found = false
+
+    func foundCall(in node: Syntax) -> Bool {
+        found = false
+        walk(node)
+        return found
+    }
+
+    override func visit(_ _: FunctionCallExprSyntax) -> SyntaxVisitorContinueKind {
+        found = true
+        return .skipChildren
     }
 }
