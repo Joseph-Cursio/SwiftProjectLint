@@ -46,7 +46,7 @@ invention *reproducible*, not correct.
 
 The harm is specific. `Date()` is the largest instant in the system and `UUID()` matches no row, so
 an invented value does not merely differ from the real one: **it wins every comparison it enters.**
-Three independent instances found across the corpus, one failure mode each time:
+Three independent instances, one failure mode each time:
 
 | Where | What the fabricated value did |
 | --- | --- |
@@ -58,8 +58,9 @@ The fix is to propagate the `nil` so callers can say *unknown*, or to refuse —
 `try requireID()` is the idiom.
 
 This fault *is* a local syntactic shape, which is the only reason it can be separated from the
-first. Measured across the sweep corpus before the split: **7 production occurrences in 23
-repositories**, 2 of them live defects and 2 more already unreachable by construction. It is kept
+first. **It is also rare, and worth knowing that before you go looking**: across 23 Swift
+repositories it occurred 7 times in production code, 2 of them live defects and 2 more already
+unreachable by construction. It is kept
 inside this rule rather than promoted to its own, because every one of these sites was already
 reported here and moving them would hand new findings to anyone who had disabled the rule.
 
@@ -98,7 +99,7 @@ is written back into the thing that was missing, there is no counterpart left to
 *becomes* the answer. The one-statement form `current = current ?? UUID()` is the same thing.
 
 These are **reclassified, not silenced.** They fall through to the rule's ordinary message, which is
-true of them — a test still cannot pin the id — so the gate moves the corpus count by zero. The
+true of them — a test still cannot pin the id — so the reported count does not change. The
 gate stays shut when the `??` falls back from a call or a literal, because there is no storage a
 later statement could be matched against.
 
@@ -126,15 +127,15 @@ every use site — `now` reads identically either way. The fix is to read once a
 operation that needs it and pass it down: `body` computes `let now = Date()`, the helpers take
 `asOf: now`.
 
-**The getter must be a single expression**, and that requirement came from the corpus rather than
-from the tests. Without it the check reported `WaiversView` *after* the fix — `let now = Date()`
-followed by a `return` — naming the remedy as the fault. A multi-statement getter has already given
+**The getter must be a single expression.** Without that requirement the check reports a view
+*after* it has been fixed — `let now = Date()` followed by a `return` — naming the remedy as the
+fault. A multi-statement getter has already given
 the value a name, which is the whole repair; what is left is the shape where the property *is* the
 read. Scoped to properties, not to zero-argument functions: `now()` reads as work at every call
 site, `now` reads as a value, and only the second one misleads.
 
-Like the lazy-creation gate, this **changes what the rule says and not what it counts** — 5 sites
-across the sweep corpus, all already reported, all still reported.
+Like the lazy-creation gate, this **changes what the rule says and not what it counts**: the same
+sites are reported, with a message that names the fault they actually have.
 
 ### Two shapes where the finding is right and "inject the source" is wrong
 
@@ -144,8 +145,8 @@ better, because nothing at the expression tells them apart — you find them by 
 function, or by grepping for a reader that does not exist. They are documented here because a
 reader who takes the ordinary advice at either one does real work and fixes nothing.
 
-Both came out of working the rule file-by-file down its concentration list, and together they
-accounted for **17 of the 25 findings in the two densest files in the corpus**.
+Between them these two shapes account for most of what a dense file reports, so recognising them
+is worth more than working such a file line by line.
 
 #### The value is a placeholder for a feature that does not exist
 
@@ -197,7 +198,7 @@ is `Date?` now, `nil` until one completes.
 
 #### And a fault recurs at its call sites after the fix exists
 
-The fabrication table above lists SwiftMarkdownWiki's note-date defect as found. What it does not
+The fabrication table above lists the note-date defect as found. What it does not
 say is that `NoteFile.read(at:)` — the helper written to prevent it, carrying the reasoning in its
 docstring — was still being bypassed by **five call sites** constructing
 `NoteFile(url:modifiedDate: Date())` directly, each immediately after writing the file, where the
@@ -215,7 +216,7 @@ init(clock: @escaping @Sendable () -> Date = { Date() }) { … }
 ```
 
 That is the shape this page offers as the fix, and the shape a reader who takes its advice ends up
-writing. The corpus said so plainly: **three sites across two repositories carried a hand-written
+writing — and readers said so before the rule was corrected: **three sites carried a hand-written
 `swiftprojectlint:disable:next` for this rule**, each with a comment beside it making the same
 point — *"The seam itself, and the one place in this type that reads a clock. The rule is right that
 this default reads ambient time — that is what a default is for."* Nobody had traced the
@@ -229,10 +230,10 @@ over is the instant (`= Date()`) or the capability that reads it (`= { Date() }`
 reported: `items.map { Date() }` runs immediately, and `queue.async { stamp = Date() }` runs later
 with nothing able to replace it. Only a parameter guarantees substitutability. A provider constant
 like `DateProvider { Date() }` is outside it too — the substitutability there comes from the type
-being a provider, which this rule cannot see, and the one in the corpus stays declined in writing
-beside the code.
+being a provider, which this rule cannot see, so that shape stays declined in writing beside the
+code.
 
-Corpus effect: **one finding**, and three suppression comments that no longer suppress anything.
+The effect on any count is negligible; what changes is that three hand-written suppressions no longer suppress anything, because the rule stopped reporting what they were written for.
 
 ### Two gates on the declines
 
@@ -252,7 +253,7 @@ compares the name, stores it, or sends it anywhere, so there is no second value 
 with, which is the same test the fabrication branch applies.
 
 **Both spellings of the temporary directory count.** The gate matched
-`FileManager.default.temporaryDirectory` at the head of a member chain, and the corpus also writes
+`FileManager.default.temporaryDirectory` at the head of a member chain, and real code also writes
 
 ```swift
 URL(fileURLWithPath: NSTemporaryDirectory())
@@ -264,7 +265,7 @@ seam, and the first version of the gate did not see it.
 
 **Only an identity source**, and the first draft got that wrong: it exempted anything
 nondeterministic in a temporary path name, which would have silenced `"run-\(Date())"` — and a
-clock read used to make a name unique is the shape that produced a real defect in SwiftMarkdownWiki's
+clock read used to make a name unique is the shape that produced a real defect in a vault app's
 snapshot collision loop, which terminated *only* because the format carried milliseconds. A UUID is
 a name that cannot collide; a timestamp is a name that usually does not, which is a different claim.
 
@@ -275,9 +276,9 @@ nothing about the path said "test" — but every symbol in them exists to be cal
 their helpers are *deliberately* nondeterministic: a per-test `UserDefaults` suite name, a
 per-process scratch root, a unique directory per call.
 
-That check is shared with other rules, so the change was scoped by measurement rather than by
-argument: across the corpus it matches four directories and 39 files, and it removed exactly seven
-findings (all this rule's) and three candidate-census entries. No other rule moved.
+That check is shared with other rules, so its blast radius is worth measuring before changing it —
+a widened definition of "test support" silences findings under rules that have nothing to do with
+this one.
 
 ### A composition-root read stays reported, and that is deliberate
 
@@ -300,19 +301,15 @@ var body: some View {
 }
 ```
 
-The numbers say it plainly. Fixing `WaiversView`'s seventeen-reads-per-render defect moved that
-repository from **20 findings to 20** — one read instead of seventeen, in the right place. Working
-MacCloud_client_iOS took it from 13 to 6, and **all six survivors are composition roots**: two
-account-creation stamps, an upload instant the server does not supply, a sign-in time, and two photo
-names.
+**Expect the count not to move when you fix one of these.** Repairing a view that read the clock
+seventeen times per render leaves one read, in the right place, and one finding — which is correct.
+A codebase that has done the work everywhere still reports one finding per composition root, and
+that list is the point rather than a backlog.
 
-A later pass down the concentration list took the corpus from **113 findings to 75**: MacCloud_server
-20&nbsp;→&nbsp;8, SwiftMarkdownWiki 14&nbsp;→&nbsp;1, MacCloud_client_MacOS 8&nbsp;→&nbsp;1,
-SwiftAssist 17&nbsp;→&nbsp;11. Of the five files worked, **injection was the right fix in one** —
-`GitAdapter`, whose `commitMessage` was already an injectable `(Date) -> String` so a test could
-control the *format* of an auto-commit subject but not the instant inside it, which is the part that
-lands in the git log. The other four were the shapes above. SwiftLintRuleStudioTeam stayed at 20,
-unchanged and correctly so: all twenty are composition roots.
+Injection is occasionally the right fix, and the shape to look for is a seam that stops one step
+short: `GitAdapter`'s `commitMessage` was already an injectable `(Date) -> String`, so a test could
+control the *format* of an auto-commit subject but not the instant inside it — which is the part
+that lands in the git log.
 
 **Do not suppress these.** A `swiftprojectlint:disable` at a composition root buys a smaller number
 and loses the inventory — and the inventory is what this rule is for. If you want to know where a
@@ -322,8 +319,8 @@ program rather than a decline of a finding.
 #### When a suppression *is* right
 
 Suppress where the rule is wrong about the site permanently, not where it is right and you have
-already acted. Four sites in the corpus qualify, and they share a shape: **the nondeterminism is the
-declared purpose of the code, and no caller could supply it instead.**
+already acted. The sites that qualify share a shape: **the nondeterminism is the declared purpose
+of the code, and no caller could supply it instead.**
 
 ```swift
 // The production half of an injection seam. Its whole job is to read the clock;
@@ -341,7 +338,7 @@ Both are cases where a reader arriving at the finding would otherwise re-derive 
 every sweep. Write the reasoning beside the directive — a bare suppression is worse than the
 finding, because the next reader cannot tell a decision from a dismissal.
 
-**And re-check a suppression when the rule changes.** Three directives in this corpus were written
+**And re-check a suppression when the rule changes.** Three directives were written here
 because the rule reported `clock: () -> Date = { Date() }`, the shape its own documentation
 prescribes. When that was corrected the directives suppressed nothing, and each still read as an
 active disagreement with the rule. They were removed. `grep -rn "swiftprojectlint:disable"` after a
@@ -351,7 +348,7 @@ rule change is the cheapest audit available.
 
 `Date.now` is reported; a leading-dot `.now` is not, and that is a decision rather than a gap.
 
-Without type resolution the base is unknown, and the corpus contains
+Without type resolution the base is unknown, and real code contains
 `ContinuousClock.Instant = .now` — a monotonic read this rule
 [deliberately excludes](contradicted-clock-determinism.md). Classifying bare `.now` as a wall-clock
 read would trade a false negative for a false positive of exactly the kind the scope note refuses.

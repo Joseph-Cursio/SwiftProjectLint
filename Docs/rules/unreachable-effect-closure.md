@@ -39,9 +39,9 @@ func updateHover(_ phase: HoverPhase) { … }
 func clearSelection() -> KeyPress.Result { … }
 ```
 
-Measured in SwiftUMLStudio (`NativeDiagramView`, `NativeSequenceDiagramView`), where both files sat at **0% coverage**: `ImageRenderer` drives a real draw pass but never fires gestures or key presses, and ViewInspector cannot traverse those views at all — their bodies are `GeometryReader`s. After extraction, three real contracts became assertable: tapping empty canvas clears the selection, the pointer leaving the canvas clears the hover highlight, and an arrow key on an empty graph returns `.ignored` rather than being swallowed. None could be stated as a test before; all three are one careless edit from regressing.
+A canvas view is the clearest case. `ImageRenderer` drives a real draw pass but never fires gestures or key presses, and ViewInspector cannot traverse a body that is a `GeometryReader` at all — so a file of hover and key-press handlers can sit at 0% coverage with no way to raise it. After extraction, contracts like *tapping empty canvas clears the selection* and *an arrow key on an empty graph returns `.ignored` rather than being swallowed* become sentences a test can state.
 
-That extraction has since landed in that project, which gave the rule an end-to-end check: **17 findings before, 11 after, and all 6 in the two extracted files gone.** Take the advice and the rule stops reporting.
+**Taking the advice stops the rule reporting**, which is what condition 3 is for: an extracted one-call body is the fixed form.
 
 ### Discussion
 
@@ -64,44 +64,32 @@ This is what makes the rule converge. `.onKeyPress(.escape) { clearSelection() }
 
 A single **assignment** is not a call and does report. That asymmetry with `{ clear() }` is deliberate rather than an oversight: `{ selectedId = nil }` has no name either, and naming it is exactly the fix — *provided the state it writes is somewhere a test can reach*, which is condition 4.
 
-**4. The effect has somewhere to be observed from.** A closure whose every write is a direct assignment to the enclosing view's own `@State` or `@FocusState` is **not** reported, because for that storage the rule's promise is false.
+**4. The effect has somewhere to be observed from.** A closure whose every write is a direct assignment to the enclosing view's own `@State` or `@FocusState` is **not** reported.
 
-This is the one condition on the rule that was measured rather than reasoned about, and it had to be: 50 of the rule's 87 corpus findings wrote nothing but view-local `@State`, so more than half of what it asked for turned on whether naming such a write creates a seam. `Tests/AppTests/StateSeamHarnessTests.swift` builds both forms — the reported body and the extraction the suggestion describes — and tries every route a test has to the state afterwards:
+`@State`'s storage is allocated when SwiftUI installs the view; before that the setter has nowhere to write. So naming such a write buys no seam — calling the extracted method, reading the property back through the rendered body, and firing the button through ViewInspector all leave it unchanged, for the inline and the extracted form alike. The seam a test uses is the button, and the button exists in both forms. `Tests/AppTests/StateSeamHarnessTests.swift` is the measurement.
 
-| Route | Result |
-| --- | --- |
-| Call the extracted method on the view | property unchanged |
-| Read it back through the rendered body | unchanged |
-| Fire the button through ViewInspector | unchanged, for **both** the inline and the extracted button |
+Where the write lands somewhere a test can read, the finding stays:
 
-`@State`'s storage is allocated when SwiftUI installs the view. Before that the setter has nowhere to write and the getter answers from the initial value. The one route that observes the property is `ViewHosting.host`, and it goes through SwiftUI's storage rather than through the name — so it works identically either way. **The seam a test uses is the button, and the button exists in both forms.** The method exists in one and adds nothing.
+| Write target | Reported | Because |
+| --- | --- | --- |
+| `@State`, `@FocusState` | no | Storage is not installed outside a hosted render. |
+| `@Binding` | yes | The parent owns the storage, and a test supplies its own. |
+| `@AppStorage` | yes | The setter writes through to the defaults store. |
+| A member — `viewModel.query = ""` | yes | The object outlives the view. |
+| `@GestureState` | yes | Same mechanism as `@State`, but not covered by the harness — left reporting rather than exempted on a theory. |
 
-The third row is what makes the other two mean anything. Without it the harness shows only that nothing works, which is not a finding.
-
-**The gate is narrow because the same harness shows where the promise holds.** Three write targets stay reported, each measured:
-
-- **`@Binding`** — the storage belongs to the parent, and a test supplies its own `Binding(get:set:)` and reads the write back. 15 corpus write targets.
-- **`@AppStorage`** — the setter writes straight through to the defaults store, which a test reads with no view at all. 4 corpus write targets.
-- **A member write** — `viewModel.searchQuery = ""`, `model.extraArguments = new`. The object outlives the view, so the method moves onto it and a test calls it directly. 17 corpus write targets.
-
-So *one* non-`@State` write anywhere in the body keeps the whole finding. The gate's claim is about the only thing the body does, and under-gating is the safe direction.
-
-`@FocusState` is included on measurement rather than on mechanism: no corpus finding writes one, and the harness covers it because that was cheaper than arguing about it. `@GestureState` is **not** included — same storage mechanism, no corpus instance, and no harness case, so it is left reporting rather than gated on a theory.
-
-The `@State` set is keyed **per type, not per file**. Two views in one file routinely use the same property name for different storage, and a file-wide set would let one view's `@State private var text` gate another view's `@Binding var text`.
+**One non-`@State` write anywhere in the body keeps the whole finding.** The gate's claim is about the only thing the body does, and under-gating is the safe direction.
 
 **5. The body is more than a single store through a setter.** `Button { viewModel.sortOption = option }` is **not** reported.
 
-Condition 3 exempts a body that is exactly one *call*, on the grounds that a call is already a named seam. A member assignment is a call to a named setter — and unlike view-local `@State`, the property it writes is readable, so a test asserts on that effect today with no extraction at all. The harness records it in three lines, because the claim is that small.
+Condition 3 exempts a body that is exactly one *call*, on the grounds that a call is already a named seam. A member assignment is a call to a named setter — and unlike view-local `@State`, the property it writes is readable, so a test asserts on that effect today with no extraction at all.
 
-This is the doc's own defended asymmetry, corrected one step. *"A single assignment is not a call and does report"* was right about `{ selectedId = nil }` on view-local state, where there genuinely is no seam. It generalised too far: where the target is a readable property of an object the view does not own, the seam already exists.
+Two things keep the finding:
 
-Two things keep the finding, and both are in the corpus:
+- **The right-hand side computes.** `viewport.hoveredNodeId = hitNode(at: location)?.id` — a call on the right is work the closure owns and nothing else can reach, which is what naming it makes assertable.
+- **More than one statement.** One write is plumbing; two writes that must happen together are a contract worth naming. `viewModel.searchQuery = ""` beside `viewModel.searchResults = []` is `clearSearch()`.
 
-- **The right-hand side computes.** `viewport.hoveredNodeId = hitNode(at: location)?.id` — the rule's own motivating shape. A call on the right is work the closure owns and nothing else can reach, which is precisely what naming it makes assertable.
-- **More than one statement.** One write is plumbing; two writes that must happen together are a contract worth naming. `viewModel.searchQuery = ""` beside `viewModel.searchResults = []` is `clearSearch()`, and a test asserting that it empties both is a real sentence.
-
-A *bare* assignment is not a store through a setter and is unaffected: `serverURL = "http://localhost:8080"` writes a `@Binding` whose storage a test supplies, and the literal is a fact only that closure knows.
+A *bare* assignment is not a store through a setter and is unaffected — `serverURL = "http://localhost:8080"` writes a `@Binding` a test supplies, and the literal is a fact only that closure knows.
 
 ### Refutations
 
@@ -119,9 +107,9 @@ A *bare* assignment is not a store through a setter and is unaffected: `serverUR
 
 **[Impure Call in View Body](impure-call-in-view-body.md)** is why `onAppear` and `onDisappear` are absent from the allowlist. That rule's suggestion is *"move it out of `body` — an action / `onAppear` for effects"*, so listing `onAppear` here would hand a reader straight from that rule's fix into this rule's finding. Two rules passing someone back and forth is how a whole category gets disabled. The lifecycle modifiers are also usually one-liners, which condition 3 mostly refutes anyway, so the exclusion costs little.
 
-**[Could Be Private Member](could-be-private-member.md)** pulls the other way: the method you extract is called from one place in production, so it becomes a candidate for `private` — which would undo the seam you just made. Measured against SwiftUMLStudio after its extraction, it does **not** misfire: 39 findings project-wide and none on the four extracted handlers, because the cross-file visitor counts the test-file references as usages.
+**[Could Be Private Member](could-be-private-member.md)** pulls the other way: the method you extract is called from one place in production, so it becomes a candidate for `private` — which would undo the seam you just made. It does not misfire in practice, because that rule's cross-file visitor counts the test-file references as usages.
 
-**That result depends on analysis scope.** Analyse the app directory alone, with test files out of scope, and the count rises to 46 and two of the handlers *are* reported. The protection comes from usage counting, not from that rule's property-test exemption — which is gated on a *pure* shape these handlers do not have. If you lint an app target without its tests, expect to be told to make the method you just extracted `private` again.
+**That protection depends on analysis scope.** Lint the app directory alone, with test files out of scope, and the extracted handlers *are* reported. The protection comes from usage counting, not from that rule's property-test exemption, which is gated on a *pure* shape these handlers do not have. If you lint an app target without its tests, expect to be told to make the method you just extracted `private` again.
 
 **[Button Closure Wrapping](button-closure-wrapping.md)** covers the complementary Button shape, as described in the refutations.
 
@@ -129,7 +117,7 @@ A *bare* assignment is not a store through a setter and is unaffected: `serverUR
 
 The bound-name set backing condition 2 is **flat — scopes are not tracked**. A genuine captured write to `total` goes unrecorded if some unrelated nested closure also binds a `total`. That errs toward *not* reporting, which is the right direction for a rule making a positive claim, but it is a real hole.
 
-**Condition 2 detects assignments only, so a body of nothing but mutating calls is never reported.** `PurityInferrer.mutatesCapturedState(_:)` walks `SequenceExprSyntax` for an assignment operator, so `.onTapGesture { items.append(x); items.sort() }` mutates captured state, has no name, and has never appeared in a count. Closing it would *raise* the number, which is why it is written down here rather than done quietly. Condition 4's own collector does recognise those calls, but only as a disqualifier — reachable when the body also contains an assignment, and never on its own.
+**Condition 2 detects assignments only, so a body of nothing but mutating calls is never reported.** `PurityInferrer.mutatesCapturedState(_:)` walks for an assignment operator, so `.onTapGesture { items.append(x); items.sort() }` mutates captured state, has no name, and is silent. Condition 4's own collector does recognise those calls, but only as a disqualifier — reachable when the body also contains an assignment, never on its own.
 
 **Condition 4 cannot tell a value the view owns from an object it references.** `@State private var draft = Draft()` writing `draft.title = x` is a member write on an object that outlives the view, and `@State private var items: [Int]` writing `items.append(x)` is a mutation of view-local storage. Both are `name.member(…)` and neither is gated. Under-gating, which is the direction this rule chooses everywhere else.
 
