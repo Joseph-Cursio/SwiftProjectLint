@@ -246,4 +246,20 @@ struct ArchitectureDirectInstantiationTests {
         let issue = try #require(directIssues.first)
         #expect(issue.message.contains(typeName))
     }
+
+    // MARK: - Test doubles
+
+    @Test func testMockTypeIsNotReported() {
+        // A double is already the substitute an injection would supply. `ConcreteTypeUsage` —
+        // the rule that counts the same seam from the declaration end — has exempted these
+        // since its own correction; this rule never had the vocabulary, so `MockGenerator` was
+        // exempt where it was declared and reported where it was built.
+        let source = """
+        func lift() {
+            let generator = MockGenerator(typeName: name)
+        }
+        """
+        let issues = analyzeSource(source).filter { $0.ruleName == .directInstantiation }
+        #expect(issues.isEmpty)
+    }
 }

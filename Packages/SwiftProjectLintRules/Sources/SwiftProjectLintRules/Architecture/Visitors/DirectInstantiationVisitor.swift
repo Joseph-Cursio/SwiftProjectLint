@@ -33,7 +33,8 @@ class DirectInstantiationVisitor: BasePatternVisitor {
         guard let call = expr.as(FunctionCallExprSyntax.self) else { return nil }
         let callee = call.calledExpression.description.trimmingCharacters(in: .whitespaces)
         guard callee.first?.isUppercase == true,
-              ServiceTypeSuffix.matches(callee) else { return nil }
+              ServiceTypeSuffix.matches(callee),
+              !MockTypeName.matches(callee) else { return nil }
         return callee
     }
 
