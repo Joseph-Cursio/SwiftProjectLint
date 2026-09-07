@@ -103,6 +103,17 @@ class AccessingImplementationDetailsVisitor: BasePatternVisitor {
             if knownSPIMembers.contains(memberName) {
                 return .visitChildren
             }
+            // Skip a member this project declares anywhere. Inside one module there is no
+            // public interface to reach past — `other._value` on a type the same module
+            // defines is that module using its own convention, exactly as `self._value` is.
+            // The standard library's underscore members exist because a symbol must be
+            // `public` to be `@inlinable` while staying internal by intent, and reporting
+            // their use inside the library that declares them is reporting the convention.
+            // Requires the project-wide prescan; a use of a name the project never declares
+            // is still reported, which is the case the rule was written for.
+            if knownUnderscoredMembers.contains(memberName) {
+                return .visitChildren
+            }
             // Skip a member the *enclosing type itself* declares. The shape is
             // `other._value` inside that type's own initializer, which is how an
             // `Equatable`-style comparison against another instance is written — a type

@@ -111,6 +111,8 @@ open class BasePatternVisitor: SyntaxVisitor, PatternVisitorProtocol {
     /// is already injected — the closure is the seam.
     /// Member names declared under `@_spi(...)` — published deliberately, not leaked.
     public var knownSPIMembers: Set<String> = []
+    /// Underscore-prefixed members this project declares. See `UnderscoredMemberCollector`.
+    public var knownUnderscoredMembers: Set<String> = []
 
     public var knownFunctionTypeAliases: Set<String> = []
 
