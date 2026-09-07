@@ -107,6 +107,12 @@ open class BasePatternVisitor: SyntaxVisitor, PatternVisitorProtocol {
     /// quiet in exactly the single-file case where it has no way to know better.
     public var knownObservableEnvironmentViews: Set<String>?
 
+    /// Type names referenced from a file importing ViewInspector. `nil` when no project-wide
+    /// prescan ran — a visitor driven directly by a unit test — in which case a rule that
+    /// consults it must report rather than gate, so its own tests keep meaning what they say.
+    /// See `InspectedTypeNameCollector`.
+    public var knownInspectedTypeNames: Set<String>?
+
     /// `typealias` names whose underlying type is a function type. A property typed with one
     /// is already injected — the closure is the seam.
     /// Member names declared under `@_spi(...)` — published deliberately, not leaked.

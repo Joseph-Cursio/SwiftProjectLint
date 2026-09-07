@@ -178,7 +178,8 @@ extension ProjectLinter {
         let ruleIdentifiers: [RuleIdentifier]?
         let identifiableTypes: Set<String>
         /// `View` names reading `@Environment(SomeType.self)`; `nil` when no pre-scan ran.
-        let observableEnvironmentViews: Set<String>?
+        let observableEnvironmentViews: Set<String>
+        let inspectedTypeNames: Set<String>?
         let functionTypeAliases: Set<String>
         let spiMembers: Set<String>
         let underscoredMembers: Set<String>
@@ -215,6 +216,7 @@ extension ProjectLinter {
             ruleIdentifiers: env.ruleIdentifiers,
             identifiableTypes: env.identifiableTypes,
             observableEnvironmentViews: env.observableEnvironmentViews,
+            inspectedTypeNames: env.inspectedTypeNames,
             functionTypeAliases: env.functionTypeAliases,
             spiMembers: env.spiMembers,
             underscoredMembers: env.underscoredMembers,
@@ -241,6 +243,7 @@ extension ProjectLinter {
         ruleIdentifiers: [RuleIdentifier]?,
         identifiableTypes: Set<String> = [],
         observableEnvironmentViews: Set<String>? = nil,
+        inspectedTypeNames: Set<String>? = nil,
         functionTypeAliases: Set<String> = [],
         spiMembers: Set<String> = [],
         underscoredMembers: Set<String> = [],
@@ -270,6 +273,7 @@ extension ProjectLinter {
         let det = SourcePatternDetector(registry: registry)
         det.knownIdentifiableTypes = identifiableTypes
         det.knownObservableEnvironmentViews = observableEnvironmentViews
+        det.knownInspectedTypeNames = inspectedTypeNames
         det.knownFunctionTypeAliases = functionTypeAliases
         det.knownSPIMembers = spiMembers
         det.knownUnderscoredMembers = underscoredMembers

@@ -234,6 +234,7 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
         /// `View` names reading `@Environment(SomeType.self)`. See
         /// `ObservableEnvironmentViewCollector` for why the keypath form is excluded.
         let observableEnvironmentViews: Set<String>
+        let inspectedTypeNames: Set<String>
         /// `typealias` names whose underlying type is a function type.
         let functionTypeAliases: Set<String>
         /// Member names declared under `@_spi(...)`.
@@ -278,6 +279,9 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
                 observableEnvironmentViews: collectTypes(
                     ObservableEnvironmentViewCollector.self, from: filePaths
                 ),
+                inspectedTypeNames: collectTypes(
+                    InspectedTypeNameCollector.self, from: filePaths
+                ),
                 functionTypeAliases: collectTypes(FunctionTypeAliasCollector.self, from: filePaths),
                 spiMembers: collectTypes(SPIMemberCollector.self, from: filePaths),
                 underscoredMembers: collectTypes(UnderscoredMemberCollector.self, from: filePaths),
@@ -300,6 +304,7 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
         resolved.knownLocalTypeNames = collected.local
         resolved.knownObservableTypes = collected.observable
         resolved.knownObservableEnvironmentViews = collected.observableEnvironmentViews
+        resolved.knownInspectedTypeNames = collected.inspectedTypeNames
         resolved.knownSPIMembers = collected.spiMembers
         resolved.knownUnderscoredMembers = collected.underscoredMembers
         resolved.knownFunctionTypeAliases = collected.functionTypeAliases
@@ -331,6 +336,7 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
             ruleIdentifiers: ruleIdentifiers,
             identifiableTypes: collected.identifiable,
             observableEnvironmentViews: collected.observableEnvironmentViews,
+            inspectedTypeNames: collected.inspectedTypeNames,
             functionTypeAliases: collected.functionTypeAliases,
             spiMembers: collected.spiMembers,
             underscoredMembers: collected.underscoredMembers,

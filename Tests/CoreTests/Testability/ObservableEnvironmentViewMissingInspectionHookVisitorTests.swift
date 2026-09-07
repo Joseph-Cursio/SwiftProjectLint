@@ -112,4 +112,54 @@ struct ObservableEnvironmentViewMissingInspectionHookVisitorTests {
 
         #expect(visitor.detectedIssues.isEmpty)
     }
+
+    // MARK: - Is anybody inspecting it?
+
+    private func run(_ source: String, inspected: Set<String>?) -> [LintIssue] {
+        let pattern = SyntaxPattern(
+            name: .observableEnvironmentViewMissingInspectionHook,
+            visitor: ObservableEnvironmentViewMissingInspectionHookVisitor.self,
+            severity: .info,
+            category: .testability,
+            messageTemplate: "",
+            suggestion: "",
+            description: ""
+        )
+        let visitor = ObservableEnvironmentViewMissingInspectionHookVisitor(pattern: pattern)
+        visitor.knownInspectedTypeNames = inspected
+        visitor.walk(Parser.parse(source: source))
+        return visitor.detectedIssues
+    }
+
+    private static let subject = """
+    struct SettingsView: View {
+        @Environment(VaultManager.self) private var vault
+        var body: some View { Text(vault.name) }
+    }
+    """
+
+    @Test("A view no ViewInspector file names is not flagged")
+    func uninspectedViewIsNotFlagged() {
+        // The rule's own scope, which it stated and did not implement: "a view nobody inspects
+        // needs no hook." All 58 corpus findings were this case.
+        #expect(run(Self.subject, inspected: []).isEmpty)
+    }
+
+    @Test("A view some ViewInspector file names is flagged")
+    func inspectedViewIsFlagged() {
+        #expect(run(Self.subject, inspected: ["SettingsView"]).count == 1)
+    }
+
+    @Test("Another view being inspected does not implicate this one")
+    func gateIsPerView() {
+        #expect(run(Self.subject, inspected: ["SomeOtherView"]).isEmpty)
+    }
+
+    @Test("With no prescan the rule reports, so its own unit tests keep meaning what they say")
+    func nilCatalogReports() {
+        // `nil` is "nobody ran a project-wide scan", not "nobody inspects anything". A visitor
+        // driven straight by a unit test has no catalog, and gating on absence would quietly
+        // turn every other test in this suite into a tautology.
+        #expect(run(Self.subject, inspected: nil).count == 1)
+    }
 }
