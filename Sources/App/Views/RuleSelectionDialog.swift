@@ -132,17 +132,39 @@ struct RuleSelectionDialog: View {
 
     @ViewBuilder
     private var bulkActionButtons: some View {
-        Button("Select All") {
-            enabledRuleNames = allRuleNames
-        }
-        Button("Deselect All") {
-            selectedRule = nil
-            enabledRuleNames = []
-        }
-        Button("Reset to Default") {
-            enabledRuleNames = Set(RuleIdentifier.allCases)
-            ruleExclusions = [:]
-        }
+        Button("Select All") { selectAll() }
+        Button("Deselect All") { deselectAll() }
+        Button("Reset to Default") { resetToDefault() }
+    }
+
+    /// Enable every rule **this dialog is showing**.
+    ///
+    /// Not the same set as `resetToDefault()`, and the difference is the reason both exist.
+    /// `allRuleNames` comes from `allPatternsByCategory`, which is whatever the caller handed in;
+    /// `RuleIdentifier.allCases` is every rule the linter has. A rule with no registered pattern
+    /// is enabled by Reset and not by Select All.
+    private func selectAll() {
+        enabledRuleNames = allRuleNames
+    }
+
+    /// Disable every rule, and drop the detail pane's selection with them.
+    ///
+    /// The second write is the one that needs saying: the detail pane renders from
+    /// `selectedRule`, so leaving it set after emptying the enabled set shows the configuration
+    /// of a rule the list no longer offers.
+    private func deselectAll() {
+        selectedRule = nil
+        enabledRuleNames = []
+    }
+
+    /// Return to the shipped configuration: every rule enabled, no per-rule exclusions.
+    ///
+    /// The exclusions half had no test until this method existed — the dialog's suite passed
+    /// `.constant([:])` for that binding, so a Reset that forgot to clear them would have gone
+    /// unnoticed.
+    private func resetToDefault() {
+        enabledRuleNames = Set(RuleIdentifier.allCases)
+        ruleExclusions = [:]
     }
 
     private var listAndDetail: some View {
