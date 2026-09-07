@@ -87,7 +87,13 @@ struct SwiftProjectLintSuppressionVisitorTests {
         "// This is a normal comment\nlet value = 42",
         "// swiftlint:disable force_cast\nlet val = 1",
         "let disable = \"swiftprojectlint:disable\"\nlet val = 1",
-        "// swiftprojectlint:enable force-try\nlet val = 1"
+        "// swiftprojectlint:enable force-try\nlet val = 1",
+        // Prose that mentions a directive is not a directive. `InlineSuppressionParser`
+        // requires the comment to start with one before it will suppress anything, so
+        // inventorying these was reporting suppressions that suppress nothing — and every
+        // word after the token counted as a separate "suppressed rule".
+        "// A note about swiftprojectlint:disable:next force-try written in prose.\nlet val = 1",
+        "// See swiftprojectlint:disable force-try for the reasoning.\nlet val = 1"
     ])
     func noIssueForNonSuppressionComment(source: String) {
         let visitor = makeVisitor()
