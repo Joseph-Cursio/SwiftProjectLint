@@ -108,26 +108,10 @@ final class IdempotencyViolationVisitor: CrossFileVisitorBase, CrossFilePatternV
     // MARK: - Finalize phase: emit issues
 
     func finalizeAnalysis() {
-        // Phase-2.3: after all files have merged declared effects into the
-        // symbol table, run body-based upward inference. Must happen here
-        // (not during walk) because upward inference uses cross-file
-        // declared effects and heuristic-downward resolution, both of which
-        // are only complete at finalize time.
-        //
-        // `multiHop: true` enables fixed-point propagation across chains
-        // of un-annotated functions. A function whose body calls another
-        // un-annotated function whose own body has a non-idempotent leaf
-        // is now inferred non-idempotent itself. One-hop catches only the
-        // direct caller of the leaf.
-        let allSources = orderedSources
-        let enabledFrameworks = self.enabledFrameworkAllowlists
-        symbolTable.applyBodyInference(to: allSources, multiHop: true) { call, source in
-            HeuristicEffectInferrer.infer(
-                call: call,
-                imports: SwiftProjectLintVisitors.ImportCollector.imports(in: source),
-                enabledFrameworks: enabledFrameworks
-            )
-        }
+        symbolTable.applyImportAwareBodyInference(
+            to: orderedSources,
+            enabledFrameworks: enabledFrameworkAllowlists
+        )
 
         for site in analysisSites {
             analyzeBody(site.body, site: site)
@@ -135,29 +119,22 @@ final class IdempotencyViolationVisitor: CrossFileVisitorBase, CrossFilePatternV
     }
 
     private func analyzeBody(_ syntax: Syntax, site: AnalysisSite) {
-        if syntax.is(FunctionDeclSyntax.self) { return }
-        // Nested closure-initialised variable bindings that carry their
-        // own `@lint.effect` annotation are independent analysis sites.
-        // Don't descend — calls inside would otherwise be attributed to
-        // the outer effect. Unannotated closure-bound bindings keep the
-        // old behaviour: they inherit the outer site's effect and are
-        // walked through.
-        if let varDecl = syntax.as(VariableDeclSyntax.self),
-           varDecl.closureInitializer != nil,
-           EffectAnnotationParser.parseEffect(declaration: varDecl) != nil {
-            return
-        }
-        if let closure = syntax.as(ClosureExprSyntax.self), EscapingClosurePolicy.isEscaping(closure) {
-            return
-        }
-
-        if let call = syntax.as(FunctionCallExprSyntax.self) {
+        AnalysisBodyWalk.walk(syntax, skipping: carriesOwnEffectAnnotation) { call in
             analyzeCall(call, site: site)
         }
+    }
 
-        for child in syntax.children(viewMode: .sourceAccurate) {
-            analyzeBody(child, site: site)
+    /// Nested closure-initialised variable bindings that carry their own
+    /// `@lint.effect` annotation are independent analysis sites. Don't descend
+    /// — calls inside would otherwise be attributed to the outer effect.
+    /// Unannotated closure-bound bindings keep the old behaviour: they inherit
+    /// the outer site's effect and are walked through.
+    private func carriesOwnEffectAnnotation(_ syntax: Syntax) -> Bool {
+        guard let varDecl = syntax.as(VariableDeclSyntax.self),
+              varDecl.closureInitializer != nil else {
+            return false
         }
+        return EffectAnnotationParser.parseEffect(declaration: varDecl) != nil
     }
 
     /// Resolves a call's callee effect via the symbol table, falling back to

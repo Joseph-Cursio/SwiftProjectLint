@@ -108,15 +108,10 @@ final class UnannotatedInStrictReplayableContextVisitor:
     }
 
     func finalizeAnalysis() {
-        let allSources = orderedSources
-        let enabledFrameworks = self.enabledFrameworkAllowlists
-        symbolTable.applyBodyInference(to: allSources, multiHop: true) { call, source in
-            HeuristicEffectInferrer.infer(
-                call: call,
-                imports: SwiftProjectLintVisitors.ImportCollector.imports(in: source),
-                enabledFrameworks: enabledFrameworks
-            )
-        }
+        symbolTable.applyImportAwareBodyInference(
+            to: orderedSources,
+            enabledFrameworks: enabledFrameworkAllowlists
+        )
 
         for site in analysisSites {
             analyzeBody(site.body, site: site)
@@ -124,34 +119,8 @@ final class UnannotatedInStrictReplayableContextVisitor:
     }
 
     private func analyzeBody(_ syntax: Syntax, site: AnalysisSite) {
-        if syntax.is(FunctionDeclSyntax.self) { return }
-        // Nested closure-initialised variable bindings that carry their
-        // own `@lint.context` annotation are independent analysis sites;
-        // don't descend.
-        if let varDecl = syntax.as(VariableDeclSyntax.self),
-           varDecl.closureInitializer != nil,
-           ContextAnnotationParser.parseContext(declaration: varDecl) != nil {
-            return
-        }
-        // Same rule for annotated trailing-closure sites (round-11). Use
-        // the call-site variant so prefix-statement annotations don't get
-        // double-walked — see NonIdempotentInRetryContextVisitor's matching
-        // guard.
-        if let call = syntax.as(FunctionCallExprSyntax.self),
-           call.trailingClosure != nil,
-           ContextAnnotationParser.parseContextAtCallSite(of: call) != nil {
-            return
-        }
-        if let closure = syntax.as(ClosureExprSyntax.self), EscapingClosurePolicy.isEscaping(closure) {
-            return
-        }
-
-        if let call = syntax.as(FunctionCallExprSyntax.self) {
+        AnalysisBodyWalk.walk(syntax, skipping: AnalysisBodyWalk.carriesOwnContextAnnotation) { call in
             analyzeCall(call, site: site)
-        }
-
-        for child in syntax.children(viewMode: .sourceAccurate) {
-            analyzeBody(child, site: site)
         }
     }
 
