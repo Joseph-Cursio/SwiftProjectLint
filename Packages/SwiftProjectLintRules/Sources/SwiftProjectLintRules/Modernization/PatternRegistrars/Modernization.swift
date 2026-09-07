@@ -1,4 +1,3 @@
-import Foundation
 import SwiftProjectLintRegistry
 
 /// Registers patterns related to API modernization.
