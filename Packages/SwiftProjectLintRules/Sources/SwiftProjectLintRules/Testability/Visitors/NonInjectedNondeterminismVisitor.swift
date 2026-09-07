@@ -101,6 +101,11 @@ final class NonInjectedNondeterminismVisitor: BasePatternVisitor {
 
     private var fileIsTestOrFixture = false
 
+    /// Depth inside a `#Preview` macro. A counter rather than a flag because previews nest —
+    /// a `#Preview` inside `#if DEBUG` is the ordinary spelling — and a flag would be cleared
+    /// by whichever closed first.
+    private var insidePreview = 0
+
     required init(pattern: SyntaxPattern, viewMode: SyntaxTreeViewMode = .sourceAccurate) {
         super.init(pattern: pattern, viewMode: viewMode)
     }
@@ -151,7 +156,9 @@ final class NonInjectedNondeterminismVisitor: BasePatternVisitor {
     /// first would silence them.
     private func report(_ source: NondeterminismSources.Source?, at node: Syntax) {
         guard let source, Self.reportedKinds.contains(source.kind) else { return }
-        guard !fileIsTestOrFixture, !isParameterDefaultValue(node) else { return }
+        guard !fileIsTestOrFixture, insidePreview == 0, !isParameterDefaultValue(node) else {
+            return
+        }
 
         if let fallback = nilCoalescingFallback(containing: node), !isLazyCreation(fallback) {
             flagFabrication(source.marker, at: node)
@@ -579,5 +586,36 @@ final class NonInjectedNondeterminismVisitor: BasePatternVisitor {
         if let decl = syntax.as(ActorDeclSyntax.self) { return decl.inheritanceClause }
         if let decl = syntax.as(EnumDeclSyntax.self) { return decl.inheritanceClause }
         return nil
+    }
+
+    // MARK: - Preview scaffolding
+
+    /// A `#Preview` never ships, and the values in one are fixtures rather than program state.
+    /// `Date()` beside a hardcoded violation count and a literal version string is part of the
+    /// fixture, and there is no caller who could supply it — the preview *is* the caller.
+    ///
+    /// `Direct Instantiation` has skipped previews since it was written; this rule never did,
+    /// which is the same vocabulary gap that left `MockGenerator` exempt where it was declared
+    /// and reported where it was built.
+    ///
+    /// Both spellings are tracked. `#Preview { }` parses as a *declaration* among other
+    /// declarations and as an *expression* when it is the only item in the file, and handling
+    /// only the declaration form leaves a file containing nothing but a preview still reporting.
+    override func visit(_ node: MacroExpansionDeclSyntax) -> SyntaxVisitorContinueKind {
+        if node.macroName.text == "Preview" { insidePreview += 1 }
+        return .visitChildren
+    }
+
+    override func visitPost(_ node: MacroExpansionDeclSyntax) {
+        if node.macroName.text == "Preview" { insidePreview -= 1 }
+    }
+
+    override func visit(_ node: MacroExpansionExprSyntax) -> SyntaxVisitorContinueKind {
+        if node.macroName.text == "Preview" { insidePreview += 1 }
+        return .visitChildren
+    }
+
+    override func visitPost(_ node: MacroExpansionExprSyntax) {
+        if node.macroName.text == "Preview" { insidePreview -= 1 }
     }
 }
