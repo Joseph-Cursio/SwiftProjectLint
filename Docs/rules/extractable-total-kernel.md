@@ -149,14 +149,9 @@ comparison containing an arithmetic operator, whatever names it mentions; since 
 concatenation, reusing it here vouched for derivations it had nothing to do with. The path shape
 requires the comparison to actually name the binding.
 
-**Measured, on two codebases:**
-
-| Corpus | Before | After | Lost |
-|---|---|---|---|
-| SwiftProjectLint (876 findings) | 0 | 2 | 0 |
-| SwiftInferProperties (2421 findings) | 1 | 9 | 0 |
-
-Eight of the nine new findings are the same `findPackageRoot` walk-up, inlined in eight files. The
+The change is a net gain in findings rather than a narrowing: tightening the path shape lost
+nothing and surfaced kernels the looser test had been talking past. Most of what it surfaced was
+one shape — a `findPackageRoot` walk-up, inlined in eight files. The
 law is that the walk **terminates**, and it is unreachable from a test because the derivation is
 welded to a hardcoded `FileManager.default`. The threshold of two derivations is a cheap guard, not
 the thing providing the precision: relaxing it to one changes nothing on either corpus.
