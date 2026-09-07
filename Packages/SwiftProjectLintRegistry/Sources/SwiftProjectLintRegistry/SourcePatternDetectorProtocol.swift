@@ -35,6 +35,7 @@ public protocol SourcePatternDetectorProtocol {
     /// Type names known to be declared as protocols across the project.
     /// `View` names reading `@Environment(SomeType.self)`; `nil` when no pre-scan ran.
     var knownObservableEnvironmentViews: Set<String>? { get set }
+    var knownInspectedTypeNames: Set<String>? { get set }
 
     var knownSPIMembers: Set<String> { get set }
     var knownUnderscoredMembers: Set<String> { get set }

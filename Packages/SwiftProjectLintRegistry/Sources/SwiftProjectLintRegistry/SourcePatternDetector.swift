@@ -32,6 +32,7 @@ public final class SourcePatternDetector: SourcePatternDetectorProtocol, @unchec
     /// Set by `ProjectLinter` after a pre-scan phase and passed through to visitors.
     /// `View` names reading `@Environment(SomeType.self)`; `nil` when no pre-scan ran.
     public var knownObservableEnvironmentViews: Set<String>?
+    public var knownInspectedTypeNames: Set<String>?
 
     /// `typealias` names whose underlying type is a function type.
     /// Member names declared under `@_spi(...)`.
@@ -200,6 +201,7 @@ public final class SourcePatternDetector: SourcePatternDetectorProtocol, @unchec
             let visitor = entry.type.init(pattern: entry.patterns[0])
             visitor.setSourceLocationConverter(converter)
             visitor.knownObservableEnvironmentViews = knownObservableEnvironmentViews
+            visitor.knownInspectedTypeNames = knownInspectedTypeNames
             visitor.knownSPIMembers = knownSPIMembers
             visitor.knownUnderscoredMembers = knownUnderscoredMembers
             visitor.knownFunctionTypeAliases = knownFunctionTypeAliases

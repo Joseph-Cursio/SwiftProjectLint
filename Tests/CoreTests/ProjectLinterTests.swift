@@ -324,6 +324,28 @@ struct ProjectLinterNestedPackageTests {
         #expect(concrete.contains { $0.message.contains("PlainService") })
     }
 
+    /// End-to-end: the ViewInspector pre-scan must reach
+    /// `ObservableEnvironmentViewMissingInspectionHook`, so a view somebody inspects is asked for
+    /// a relay and one nobody inspects is left alone.
+    ///
+    /// This test exists because the unit tests could not have caught the bug it was written
+    /// after. Seven of the eight wiring hops were done, the parameter carrying the eighth had a
+    /// `nil` default, the package built, 3,537 tests passed — and the gate removed nothing from
+    /// the corpus. The visitor was correct in isolation the whole time.
+    @Test func testInspectionHookGateReachesTheVisitorEndToEnd() async {
+        let root = makeProjectWithInspectedAndUninspectedViews()
+        let linter = ProjectLinter()
+        let system = PatternRegistryFactory.createConfiguredSystem()
+
+        let issues = await linter.analyzeProject(at: root, detector: system.detector)
+        let hooks = issues.filter { $0.ruleName == .observableEnvironmentViewMissingInspectionHook }
+
+        // The view a test names in code is asked for the relay...
+        #expect(hooks.contains { $0.message.contains("InspectedView") })
+        // ...and the one named only in a comment is not, which is the whole gate.
+        #expect(hooks.contains { $0.message.contains("UninspectedView") } == false)
+    }
+
     /// Excluding a test directory must not hide the mock conformers that justify a
     /// DI-seam protocol. `excludedPaths` is a *reporting* filter, not an *evidence*
     /// filter: the excluded `MockDataParsing` is still walked for cross-file evidence,
@@ -534,6 +556,37 @@ struct ProjectLinterNestedPackageTests {
     /// Package with an `@Observable` model and a plain service, each referenced as a
     /// stored property in a non-view coordinator. Exercises the observable exemption
     /// (SessionStore) against the active rule (PlainService).
+    private func makeProjectWithInspectedAndUninspectedViews() -> String {
+        let root = makeTempPackageRoot(named: "InspectionHook")
+        writeFile(at: "\(root)/Sources/Root/InspectedView.swift", """
+        struct InspectedView: View {
+            @Environment(AppState.self) private var appState
+            var body: some View { Text(appState.title) }
+        }
+        """)
+        writeFile(at: "\(root)/Sources/Root/UninspectedView.swift", """
+        struct UninspectedView: View {
+            @Environment(AppState.self) private var appState
+            var body: some View { Text(appState.title) }
+        }
+        """)
+        // Names `InspectedView` in code and `UninspectedView` only in a comment. The comment must
+        // not count — a `grep` for this question over the real corpus reported four inspected
+        // views and three of them were prose.
+        writeFile(at: "\(root)/Tests/RootTests/InspectedViewTests.swift", """
+        import ViewInspector
+        import XCTest
+
+        // UninspectedView is deliberately named here in prose only.
+        final class InspectedViewTests: XCTestCase {
+            func testBody() throws {
+                _ = try InspectedView().inspect()
+            }
+        }
+        """)
+        return root
+    }
+
     private func makeProjectWithObservableAndPlainService() -> String {
         let root = makeTempPackageRoot(named: "ObservableExemption")
         writeFile(at: "\(root)/Sources/Root/SessionStore.swift", """
