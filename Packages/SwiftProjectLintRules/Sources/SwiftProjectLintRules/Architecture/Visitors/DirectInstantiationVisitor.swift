@@ -30,12 +30,39 @@ class DirectInstantiationVisitor: BasePatternVisitor {
     // MARK: - Service-like call heuristic
 
     private func isServiceLikeCall(_ expr: ExprSyntax) -> String? {
-        guard let call = expr.as(FunctionCallExprSyntax.self) else { return nil }
-        let callee = call.calledExpression.description.trimmingCharacters(in: .whitespaces)
-        guard callee.first?.isUppercase == true,
-              ServiceTypeSuffix.matches(callee),
-              !MockTypeName.matches(callee) else { return nil }
-        return callee
+        guard let call = expr.as(FunctionCallExprSyntax.self),
+              let typeName = Self.constructedTypeName(of: call.calledExpression) else { return nil }
+        guard ServiceTypeSuffix.matches(typeName),
+              !MockTypeName.matches(typeName) else { return nil }
+        return typeName
+    }
+
+    /// The name of the type an expression constructs, or `nil` when the expression is not a
+    /// type reference at all.
+    ///
+    /// The suffix test used to run against `calledExpression.description` whole, which reads a
+    /// *member call* as an instantiation whenever the member's own name happens to end in a
+    /// service suffix. `DerivationStrategist.composedGenerator(forTypeName:)` is a `static func`
+    /// returning a value; it was reported as "direct instantiation of
+    /// 'DerivationStrategist.composedGenerator'", advice with no referent — there is no such
+    /// type to inject. The last component decides, and it has to look like a type: `Module.Type()`
+    /// is a construction, `Type.method()` is not.
+    private static func constructedTypeName(of expr: ExprSyntax) -> String? {
+        // `Foo<Bar>()` — the specialization wraps the type reference.
+        if let specialized = expr.as(GenericSpecializationExprSyntax.self) {
+            return constructedTypeName(of: specialized.expression)
+        }
+        // `Foo()`
+        if let reference = expr.as(DeclReferenceExprSyntax.self) {
+            let name = reference.baseName.text
+            return name.first?.isUppercase == true ? name : nil
+        }
+        // `Module.Foo()` — a construction only if the trailing component names a type.
+        if let member = expr.as(MemberAccessExprSyntax.self) {
+            let name = member.declName.baseName.text
+            return name.first?.isUppercase == true ? name : nil
+        }
+        return nil
     }
 
     // MARK: - Property wrapper detection

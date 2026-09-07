@@ -262,4 +262,45 @@ struct ArchitectureDirectInstantiationTests {
         let issues = analyzeSource(source).filter { $0.ruleName == .directInstantiation }
         #expect(issues.isEmpty)
     }
+
+    // MARK: - Callee must name a type
+
+    @Test func testStaticMemberCallIsNotAnInstantiation() {
+        // `DerivationStrategist.composedGenerator(forTypeName:)` is a `static func` returning a
+        // value. The suffix test used to run against the whole callee text, so the *member's*
+        // name ending in "Generator" was read as a type name and the finding read "direct
+        // instantiation of 'DerivationStrategist.composedGenerator' — prefer dependency
+        // injection", naming something that does not exist and cannot be injected.
+        let source = """
+        func resolve() {
+            let result = DerivationStrategist.composedGenerator(forTypeName: name)
+        }
+        """
+        let issues = analyzeSource(source).filter { $0.ruleName == .directInstantiation }
+        #expect(issues.isEmpty)
+    }
+
+    @Test func testModuleQualifiedConstructionIsStillReported() throws {
+        // The other half of the same change: dropping every member access would go too far,
+        // because `Module.Type()` is an ordinary construction written with a qualifier.
+        let source = """
+        func boot() {
+            let svc = Networking.NetworkService()
+        }
+        """
+        let issues = analyzeSource(source).filter { $0.ruleName == .directInstantiation }
+        let issue = try #require(issues.first)
+        #expect(issue.message.contains("NetworkService"))
+    }
+
+    @Test func testGenericSpecializationIsStillReported() throws {
+        let source = """
+        func boot() {
+            let svc = NetworkService<Int>()
+        }
+        """
+        let issues = analyzeSource(source).filter { $0.ruleName == .directInstantiation }
+        let issue = try #require(issues.first)
+        #expect(issue.message.contains("NetworkService"))
+    }
 }
