@@ -510,6 +510,21 @@ struct LawOfDemeterValueTerminalTests {
         """).isEmpty)
     }
 
+    @Test("a range's bounds are exempt under either spelling")
+    func rangeBoundsAreExempt() {
+        // `lowerBound` and `upperBound` were already exempt as Range value accessors. LSP and
+        // SourceKit spell the same two fields `start` and `end`, and the coupling in
+        // `diag.range.start` is one hop either way.
+        #expect(analyze("""
+        struct DiagnosticDTO {
+            init(from diag: Diagnostic) {
+                self.file = diag.range.start.file
+                self.endLine = diag.range.end.line
+            }
+        }
+        """).isEmpty)
+    }
+
     @Test("lastPathComponent is a URL-to-String terminal")
     func lastPathComponentIsExempt() {
         #expect(analyze("""
