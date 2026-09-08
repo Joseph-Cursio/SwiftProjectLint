@@ -52,14 +52,18 @@ class LawOfDemeterVisitor: BasePatternVisitor {
     /// - `range.lowerBound` / `range.upperBound` — standard Range value accessors
     /// - `memberAccess.declName.baseName.text` — SwiftSyntax token text accessor
     /// - `node.body.statements.isEmpty` — collection membership test
+    /// - `report.totals.regions.count` — a scalar count, on the same footing as `isEmpty`
+    /// - `directory.absoluteURL.standardizedFileURL` — Foundation URL normalisation, URL to URL
     private static let valueTransformMembers: Set<String> = [
         "rawValue", "hashValue", "capitalized", "uppercased", "lowercased",
         "description", "debugDescription", "trimmedDescription",
         "color", "lowerBound", "upperBound",
         // SwiftSyntax token/trivia accessors
         "text", "baseName", "tokenKind",
-        // Boolean terminals — scalar results, not graph traversal
-        "isEmpty", "isNotEmpty",
+        // Scalar terminals — a number or a flag, not another object to traverse
+        "isEmpty", "isNotEmpty", "count",
+        // URL value normalisations — URL -> URL, and URL -> String
+        "absoluteURL", "standardizedFileURL", "lastPathComponent",
         // Trivia terminals
         "containsComments", "isNotSingleSpaceWithoutComments",
         "withTrailingEmptyLineRemoved", "splitBlocks",

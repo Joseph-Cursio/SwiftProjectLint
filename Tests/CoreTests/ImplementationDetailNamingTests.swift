@@ -35,7 +35,7 @@ struct ImplementationDetailNamingTests {
     func underscoreRootedChainIsExempt() {
         let issues = demeterIssues("""
         struct Buffer {
-            func count() -> Int { _storage.buffer.header.count }
+            func owner() -> Owner { _storage.buffer.header.owner }
         }
         """)
 
@@ -44,11 +44,14 @@ struct ImplementationDetailNamingTests {
 
     /// Control: the same chain shape without the underscore is still a violation, so the
     /// exemption is the underscore's doing rather than the chain being too short.
+    ///
+    /// The pair used to end in `.count`, which now falls under the scalar-terminal exemption —
+    /// so the control was about to start proving the underscore mattered when the terminal did.
     @Test("control — the same chain shape without an underscore still fires")
     func plainRootedChainStillFires() {
         let issues = demeterIssues("""
         struct Buffer {
-            func count() -> Int { storage.buffer.header.count }
+            func owner() -> Owner { storage.buffer.header.owner }
         }
         """)
 
