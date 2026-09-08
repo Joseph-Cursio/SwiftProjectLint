@@ -67,14 +67,26 @@ final class PureClosureCandidateVisitor: BasePatternVisitor {
             return .visitChildren
         }
 
+        // A comparator whose keys this can read gets a name in the suggestion.
+        // Silent for every other shape — see `ComparatorName` for why a name a
+        // reader has to check is worse than no name at all.
+        let suggestedName = operation.kind == .comparator
+            ? ComparatorName.derived(from: closure)
+            : nil
+        let suggestion = suggestedName.map {
+            "Lift it into `static func \($0)(_ lhs: …, _ rhs: …) -> Bool` and pass it by name. "
+                + "The name states the whole ordering, including the tiebreak the closure body "
+                + "makes you read four lines to find."
+        } ?? "Lift it into a named function. Anything it captures becomes a parameter, "
+            + "and what is left is a pure function you can generate inputs for."
+
         addIssue(
             severity: .info,
             message: "The closure passed to `\(operation.name)` is pure — a property-based-test "
                 + "candidate with no name to test. \(operation.law)",
             filePath: getFilePath(for: Syntax(closure)),
             lineNumber: getLineNumber(for: Syntax(closure)),
-            suggestion: "Lift it into a named function. Anything it captures becomes a parameter, "
-                + "and what is left is a pure function you can generate inputs for.",
+            suggestion: suggestion,
             ruleName: .pureClosureCandidate,
             symbol: enclosingDeclarationName(of: node) ?? operation.name,
             role: operation.kind.seedRole
@@ -150,7 +162,7 @@ final class PureClosureCandidateVisitor: BasePatternVisitor {
 private struct CollectionOperation {
 
     /// What the closure *is*, which is what decides whether naming it buys anything.
-    enum Kind {
+    enum Kind: Equatable {
         case comparator
         case predicate
         case transform
