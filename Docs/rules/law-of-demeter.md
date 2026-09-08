@@ -69,13 +69,15 @@ Several common patterns look like deep chains but are not object-graph coupling.
 | Geometry/layout chains | Chain contains `frame`, `size`, `bounds`, `origin`, `width`, `height`, etc. |
 | Framework API chains | Chain passes through known framework structural members (SwiftSyntax: `signature`, `parameterClause`, `parameters`, `leadingTrivia`, etc.) |
 
-**Recognized value-transform members:** `rawValue`, `hashValue`, `capitalized`, `uppercased`, `lowercased`, `description`, `debugDescription`, `trimmedDescription`, `color`, `lowerBound`, `upperBound`, `text`, `baseName`, `isEmpty`, `count`, `absoluteURL`, `standardizedFileURL`, `lastPathComponent`
+**Recognized value-transform members:** `rawValue`, `hashValue`, `capitalized`, `uppercased`, `lowercased`, `description`, `debugDescription`, `trimmedDescription`, `color`, `lowerBound`, `upperBound`, `start`, `end`, `text`, `baseName`, `isEmpty`, `count`, `absoluteURL`, `standardizedFileURL`, `lastPathComponent`
 
 > **Note on `text` and `baseName`:** These are included because SwiftSyntax nodes expose token text through a fixed `node.declName.baseName.text` accessor chain that is idiomatic framework API, not object-graph navigation. The chain ends at a `String` value and does not expose further structural knowledge.
 
 > **Note on `isEmpty` and `count`:** Both are terminal exemptions at depth 3. Asking a collection how many elements it holds, or whether it holds any, is a scalar result; it does not chain further into internal structure. At depth 4+ neither is exempt, because the preceding four-component chain is already a violation regardless of the terminal.
 >
 > **`count` was added five months after `isEmpty`, and the gap was the finding.** The two are the same shape and the same argument — `report.totals.regions.isEmpty` was waved through while `report.totals.regions.count` was reported — so the rule was answering one question two ways depending on which scalar the caller happened to want. It cost five findings across the corpus, and it also cost the rule's own documentation: `manager.service.data.count` stood as the flagship *violating* example here and in two tests, and is a chain the rule's own exemption principle says should never have fired. The violating examples below now end in a member of the object graph, which is what the rule is actually about.
+
+> **Note on `start` and `end`:** These are `lowerBound` and `upperBound` under the names LSP and SourceKit give them. A `Range`'s bounds were already exempt as "standard Range value accessors"; a protocol that spells the same two fields `start` and `end` was not, so `diag.range.start.file` was reported and `chunk.lineRange.lowerBound` was not. Measured over the 26-repo corpus the exemption removes **five findings and moves nothing else** — all five are constructors flattening a nested source range into flat wire fields, which is what the rule's own note below calls "what a DTO is *for*".
 
 > **Note on the URL members:** `absoluteURL` and `standardizedFileURL` are URL-to-URL normalisations and `lastPathComponent` is URL-to-String. In `sources.absoluteURL.standardizedFileURL.path` the object-graph coupling is `sources.absoluteURL` — one hop — and every component after it operates on a normalised value. Foundation's URL API is written as a chain by design; treating each normalisation as a hop into someone's internals mistakes a value pipeline for an object graph.
 
@@ -148,6 +150,10 @@ items.sorted { $0.category.name.count < $1.category.name.count }
 
 // Method-call chain — outermost member is a function call target
 let filtered = structNode.memberBlock.members.contains { $0.name == target }
+
+// Range bounds, under either spelling
+let startLine = diagnostic.range.start.line
+let endLine = diagnostic.range.end.line
 
 // Value-transform terminal at depth 3 — .capitalized, .lowerBound, .isEmpty
 let label = violation.severity.rawValue.capitalized

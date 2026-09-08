@@ -50,6 +50,7 @@ class LawOfDemeterVisitor: BasePatternVisitor {
     /// - `node.extendedType.description.trimmingCharacters` — description converts to String
     /// - `status.color.opacity` — color maps enum to a SwiftUI Color value
     /// - `range.lowerBound` / `range.upperBound` — standard Range value accessors
+    /// - `range.start` / `range.end` — the same two bounds, as LSP and SourceKit spell them
     /// - `memberAccess.declName.baseName.text` — SwiftSyntax token text accessor
     /// - `node.body.statements.isEmpty` — collection membership test
     /// - `report.totals.regions.count` — a scalar count, on the same footing as `isEmpty`
@@ -57,7 +58,7 @@ class LawOfDemeterVisitor: BasePatternVisitor {
     private static let valueTransformMembers: Set<String> = [
         "rawValue", "hashValue", "capitalized", "uppercased", "lowercased",
         "description", "debugDescription", "trimmedDescription",
-        "color", "lowerBound", "upperBound",
+        "color", "lowerBound", "upperBound", "start", "end",
         // SwiftSyntax token/trivia accessors
         "text", "baseName", "tokenKind",
         // Scalar terminals — a number or a flag, not another object to traverse
