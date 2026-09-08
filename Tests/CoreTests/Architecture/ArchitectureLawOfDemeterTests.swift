@@ -460,8 +460,8 @@ struct LawOfDemeterCollapsingTests {
     }
 }
 
-/// The scalar terminal, added when the corpus showed the rule flagging `.count` while exempting
-/// `.isEmpty` — the same shape, the same argument, opposite answers.
+/// The scalar and URL value terminals, added when the corpus showed the rule flagging `.count`
+/// while exempting `.isEmpty` — the same shape, the same argument, opposite answers.
 @Suite("Law of Demeter exempts scalar and URL value terminals")
 struct LawOfDemeterValueTerminalTests {
     private func analyze(_ source: String) -> [LintIssue] {
@@ -495,5 +495,27 @@ struct LawOfDemeterValueTerminalTests {
             func summarise(_ report: Report) -> Int { report.totals.regions.spans.count }
         }
         """).count == 1)
+    }
+
+    @Test("URL normalisation is a value transform, not a hop")
+    func urlNormalisationIsExempt() {
+        // `absoluteURL` and `standardizedFileURL` are URL-to-URL: the coupling is
+        // `sources.absoluteURL`, and everything after it operates on a normalised value.
+        #expect(analyze("""
+        class Resolver {
+            func path(for sources: URL) -> String {
+                sources.absoluteURL.standardizedFileURL.path
+            }
+        }
+        """).isEmpty)
+    }
+
+    @Test("lastPathComponent is a URL-to-String terminal")
+    func lastPathComponentIsExempt() {
+        #expect(analyze("""
+        class Namer {
+            func name(for input: Input) -> String { input.task.workspaceRoot.lastPathComponent }
+        }
+        """).isEmpty)
     }
 }

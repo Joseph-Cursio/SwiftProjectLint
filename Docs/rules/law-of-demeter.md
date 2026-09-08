@@ -69,13 +69,15 @@ Several common patterns look like deep chains but are not object-graph coupling.
 | Geometry/layout chains | Chain contains `frame`, `size`, `bounds`, `origin`, `width`, `height`, etc. |
 | Framework API chains | Chain passes through known framework structural members (SwiftSyntax: `signature`, `parameterClause`, `parameters`, `leadingTrivia`, etc.) |
 
-**Recognized value-transform members:** `rawValue`, `hashValue`, `capitalized`, `uppercased`, `lowercased`, `description`, `debugDescription`, `trimmedDescription`, `color`, `lowerBound`, `upperBound`, `text`, `baseName`, `isEmpty`, `count`
+**Recognized value-transform members:** `rawValue`, `hashValue`, `capitalized`, `uppercased`, `lowercased`, `description`, `debugDescription`, `trimmedDescription`, `color`, `lowerBound`, `upperBound`, `text`, `baseName`, `isEmpty`, `count`, `absoluteURL`, `standardizedFileURL`, `lastPathComponent`
 
 > **Note on `text` and `baseName`:** These are included because SwiftSyntax nodes expose token text through a fixed `node.declName.baseName.text` accessor chain that is idiomatic framework API, not object-graph navigation. The chain ends at a `String` value and does not expose further structural knowledge.
 
 > **Note on `isEmpty` and `count`:** Both are terminal exemptions at depth 3. Asking a collection how many elements it holds, or whether it holds any, is a scalar result; it does not chain further into internal structure. At depth 4+ neither is exempt, because the preceding four-component chain is already a violation regardless of the terminal.
 >
 > **`count` was added five months after `isEmpty`, and the gap was the finding.** The two are the same shape and the same argument — `report.totals.regions.isEmpty` was waved through while `report.totals.regions.count` was reported — so the rule was answering one question two ways depending on which scalar the caller happened to want. It cost five findings across the corpus, and it also cost the rule's own documentation: `manager.service.data.count` stood as the flagship *violating* example here and in two tests, and is a chain the rule's own exemption principle says should never have fired. The violating examples below now end in a member of the object graph, which is what the rule is actually about.
+
+> **Note on the URL members:** `absoluteURL` and `standardizedFileURL` are URL-to-URL normalisations and `lastPathComponent` is URL-to-String. In `sources.absoluteURL.standardizedFileURL.path` the object-graph coupling is `sources.absoluteURL` — one hop — and every component after it operates on a normalised value. Foundation's URL API is written as a chain by design; treating each normalisation as a hop into someone's internals mistakes a value pipeline for an object graph.
 
 ### Fixing a violation
 
@@ -160,6 +162,10 @@ Color.clear.background(item.severity.color.opacity(0.06))
 
 // Scalar terminal at depth 3 — .count, on the same footing as .isEmpty
 let regions = report.totals.regions.count
+
+// URL normalisation — absoluteURL and standardizedFileURL are URL -> URL value transforms
+let resolved = sources.absoluteURL.standardizedFileURL.path
+let name = input.task.workspaceRoot.lastPathComponent
 ```
 
 ### Violating examples
