@@ -39,6 +39,7 @@ public final class SourcePatternDetector: SourcePatternDetectorProtocol, @unchec
     public var knownSPIMembers: Set<String> = []
     public var knownUnderscoredMembers: Set<String> = []
     public var knownExtensionMembers = ExtensionMemberCatalog.empty
+    public var knownClosureWrapperTypes = ClosureWrapperTypeCatalog.empty
 
     public var knownFunctionTypeAliases: Set<String> = []
 
@@ -206,6 +207,7 @@ public final class SourcePatternDetector: SourcePatternDetectorProtocol, @unchec
             visitor.knownSPIMembers = knownSPIMembers
             visitor.knownUnderscoredMembers = knownUnderscoredMembers
             visitor.knownExtensionMembers = knownExtensionMembers
+            visitor.knownClosureWrapperTypes = knownClosureWrapperTypes
             visitor.knownFunctionTypeAliases = knownFunctionTypeAliases
             visitor.knownIdentifiableTypes = knownIdentifiableTypes
             visitor.knownEnumTypes = knownEnumTypes
