@@ -57,6 +57,14 @@
       "expected": "killed",
       "test": "sameFileExtensionIsMerged",
       "label": "hiddenMembers stops subtracting the extensions in the file under analysis \u2014 every type with a same-file extension goes silent, an over-gate introduced by the fix for an under-gate"
+    },
+    {
+      "id": "prescan-catalog-built-then-dropped",
+      "patch": "patches/prescan-catalog-built-then-dropped.patch",
+      "shape": "engine-wiring",
+      "expected": "killed",
+      "test": "everyCatalogIsInjectedPerFile",
+      "label": "the pre-scan's clean-instance-method catalog is built and then never assigned to the per-file detector \u2014 the linter reports fewer property-test candidates, correctly formatted, with no error anywhere"
     }
   ]
 }

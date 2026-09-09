@@ -127,7 +127,7 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
                 categories: effectiveRules != nil ? nil : categories,
                 ruleIdentifiers: effectiveRules,
                 collected: collected,
-                layerPolicies: effectiveConfiguration.architecturalLayers
+                configuration: effectiveConfiguration
             )
         )
         var issues = perFile.issues
@@ -334,7 +334,7 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
         categories: [PatternCategory]?,
         ruleIdentifiers: [RuleIdentifier]?,
         collected: CollectedTypes,
-        layerPolicies: [LayerPolicy]
+        configuration: LintConfiguration
     ) -> FileAnalysisEnvironment {
         FileAnalysisEnvironment(
             projectRoot: projectRoot,
@@ -358,7 +358,9 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
             impurePackageFunctions: collected.impurePackageFunctions,
             defaultedInitializerTypes: collected.defaultedInitializers,
             extensionMembers: collected.extensionMembers,
-            layerPolicies: layerPolicies
+            cleanInstanceMethods: collected.cleanInstanceMethods,
+            enabledFrameworkAllowlists: configuration.enabledFrameworkAllowlists,
+            layerPolicies: configuration.architecturalLayers
         )
     }
 
