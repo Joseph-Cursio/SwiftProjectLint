@@ -12,6 +12,17 @@ construction.
 
 ## Run
 
+**Rebuild before measuring anything with the binary afterwards.** The runner reverts each mutant's
+*source* and moves on, so the build products left behind belong to the **last mutant**, not to
+`main`. A corpus measurement taken straight after a run is a measurement of that mutant.
+
+This is not hypothetical: a sweep run immediately after `kernel-storage-test-inverted-to-denylist`
+reported two repositories lower than the truth — exactly that mutant's two false exemptions — and
+the number was one step from being published. It was caught only because the shortfall matched the
+mutant's own documented effect. `rm -f .build/build.db && swift build --product CLI` first, or copy
+the binary *before* running the corpus.
+
+
 ```sh
 mutants/run-mutants.sh                       # all mutants
 mutants/run-mutants.sh kernel-threshold-too-high
