@@ -160,10 +160,12 @@ struct PackagePurityJoinTests {
     /// the oracle saying *I cannot see past this*, not *this is impure*. Retracting
     /// a candidate on that basis would withdraw advice on no evidence.
     ///
-    /// This is also the measured limit of the build: `PurityVerdict` carries no
-    /// witness, so the only witness establishable from public API is
-    /// *refuted AND does not throw*. A throwing callee is therefore never joined
-    /// on, which under-refutes rather than over-refutes.
+    /// **This now tests the real thing rather than a proxy for it.** While
+    /// `PurityVerdict` carried no witness, the only witness establishable from
+    /// public API was *refuted AND does not throw*, so every throwing callee was
+    /// treated as ignorance and the rule under-refuted. `loadContents` below is
+    /// `.propagatedTry` for real, and the twin test asserts the half the proxy got
+    /// wrong.
     @Test("a throwing callee does NOT sink the caller — that refutation may be ignorance")
     func doesNotPropagateIgnorance() {
         let found = gatedSymbols([
@@ -180,6 +182,37 @@ struct PackagePurityJoinTests {
         #expect(
             found.contains("lengthOf"),
             "a `propagatedTry` refutation is the oracle's ignorance and must not retract advice"
+        )
+    }
+
+    /// The other half of the split, and the row the old proxy could not see.
+    ///
+    /// `loadContents` **throws and carries a marker**, so its refutation is
+    /// `.sideEffectMarker("print")` — evidence, named by the oracle, reached before
+    /// the `throws` clause is even consulted. The arithmetic proxy classified every
+    /// throwing callee as possible ignorance and let the caller through; asking for
+    /// the reason settles it.
+    ///
+    /// Paired with `doesNotPropagateIgnorance` deliberately: the two fixtures differ
+    /// only in whether the throwing callee names an effect, which is the entire
+    /// content of the evidence/ignorance rule.
+    @Test("a throwing callee that names an effect DOES sink the caller")
+    func propagatesEvidenceFromAThrowingCallee() {
+        let found = gatedSymbols([
+            "Throwy.swift": """
+            func loadContents(_ path: String) throws -> String {
+                print(path)
+                throw LoadError.missing
+            }
+
+            func lengthOf(_ path: String) -> Int {
+                (try? loadContents(path))?.count ?? 0
+            }
+            """
+        ])
+        #expect(
+            found.contains("lengthOf") == false,
+            "the callee prints; `throws` does not make a named effect unknowable"
         )
     }
 

@@ -72,4 +72,43 @@ public struct PurityInferrer: Sendable {
     public func isPure(_ accessor: AccessorBlockSyntax) -> Bool {
         underlying.isPure(accessor)
     }
+
+    /// **Why** purity was refuted, or `nil` when it was not.
+    ///
+    /// `nil` covers `.pure` **and** `.pureButPartial`: a function that raises only its own errors
+    /// has been narrowed, not refuted, so it has no witness — ask `verdict(for:)` for that
+    /// distinction.
+    ///
+    /// The forwarder carries this because a consumer that only gates on purity needs a `Bool` and a
+    /// consumer that *reports* on it needs the reason. `PackagePurityJoin` is the first: it used to
+    /// establish its witness by arithmetic over the signature, because the reason was private to
+    /// SEI, and now asks.
+    public func refutation(for function: FunctionDeclSyntax) -> PurityRefutation? {
+        underlying.refutation(for: function)
+    }
+
+    /// **Why** a closure literal is not referentially transparent, or `nil` when it is.
+    ///
+    /// The witness matters more for a closure than anywhere else, because a closure has no name: a
+    /// report saying *this predicate is impure* and not what makes it so leaves the reader to
+    /// re-derive the analysis from the one line the diagnostic points at.
+    public func refutation(for closure: ClosureExprSyntax) -> PurityRefutation? {
+        underlying.refutation(for: closure)
+    }
 }
+
+/// The witness type, re-exported under this package's own name.
+///
+/// Same reasoning as the forwarder above: `MemberImportVisibility` requires the *using* module to
+/// import the member's defining module, and a consumer naming `PurityRefutation` in a signature
+/// would otherwise need a direct `SwiftEffectInference` dependency it does not have.
+///
+/// **A typealias is enough to name the type and NOT enough to match on it**, which is worth knowing
+/// before the next consumer arrives. Measured while building this: a `switch` over the cases from a
+/// module that imports only this package fails with *"enum case 'noBody' is not available due to
+/// missing import of defining module 'SwiftEffectInference'"* — the same feature, reaching one level
+/// deeper than the forwarder pattern anticipated. `PackagePurityJoin` is unaffected because it lives
+/// in this module. A rule in `SwiftProjectLintRules` that wants to group findings by cause will need
+/// either its own SEI dependency or a rendering this package exposes; that decision belongs with the
+/// rule (SwiftProjectLint#186), not pre-empted here.
+public typealias PurityRefutation = SwiftEffectInference.PurityRefutation
