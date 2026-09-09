@@ -34,24 +34,58 @@ import SwiftSyntax
 /// spreading ignorance upward would retract candidates on the grounds that
 /// *something might* be impure, which is the Daikon trap through a new door.
 ///
-/// **`PurityVerdict` carries no witness** — it is `pure` / `pureButPartial` /
-/// `refuted`, and the reason is `private` to SEI. That is open-threads item 31's
-/// complaint (*"nothing can name the callee that blocked a verdict"*) arriving as
-/// a constraint on this build rather than as a wish.
+/// **SEI now publishes the reason, so the rule asks instead of inferring.**
+/// `PurityInferrer.refutation(for:)` returns a `PurityRefutation`, and the
+/// evidence/ignorance split is a `switch` over it: everything that names a
+/// construct is evidence, and `.propagatedTry` — plus `.noBody`, which names
+/// nothing because there was nothing to read — is not. The switch is exhaustive
+/// and deliberately has no `default`, so a refuter added upstream is a compile
+/// error here rather than a silent classification.
 ///
-/// So the witness is established from public API only, and soundly:
-/// **`propagatedTry` requires a `throws` clause by definition, so a callee that is
-/// `.refuted` and does NOT throw cannot be an ignorance-only refutation.** It must
-/// carry one of the evidence causes. No marker set is replicated here, which is the
-/// point — a second copy of SEI's refuters in this repo is exactly the drift
-/// `PurityInferrer`'s relocation was done to end.
+/// **What this replaced, and it is worth keeping because the shape recurs.** The
+/// first build could not ask, so it established the witness from public API by
+/// arithmetic: *`propagatedTry` requires a `throws` clause by definition, so a
+/// callee that is `.refuted` and does NOT throw cannot be ignorance-only.* Sound,
+/// and one-sided in a known direction — a **throwing** callee that also carries a
+/// marker is a genuine witness that proxy could not see, so the rule under-refuted
+/// and its own doc said so. That was open-threads item 31 arriving as a constraint
+/// on a build rather than as a wish, and closing it widened this rule with no new
+/// analysis here.
 ///
-/// The cost is real and one-sided: a *throwing* callee that also carries a marker
-/// is a genuine witness this rule cannot see, so it under-refutes. That is the safe
-/// direction for a gate that suppresses advice — the failure mode is continuing to
-/// offer a candidate, which is today's behaviour, rather than withdrawing a true
-/// one. **If SEI ever publishes the refutation reason, this rule gets wider for
-/// free**, and that is the argument for item 31 that this build supplies.
+/// No marker set is replicated here, which remains the point: a second copy of
+/// SEI's refuters in this repo is exactly the drift `PurityInferrer`'s relocation
+/// was done to end. The proxy was arithmetic over a public signature; this is a
+/// question put to the oracle.
+///
+/// ## What the widening was worth, measured, and it is not what the old doc predicted
+///
+/// The old note said *"if SEI ever publishes the refutation reason, this rule gets
+/// wider for free"*. It got wider. Wider bought nothing.
+///
+/// Over 22 corpus repositories, **settled names went 2,175 → 6,586 — 3.0×**, and
+/// the reported findings did not move by one. The control that makes that a
+/// statement rather than an absence: with the join disabled entirely the corpus
+/// reports **4,592** `pure-function-candidate` findings, and with it enabled
+/// **4,566** under *either* rule. The join suppresses 26 candidates, the same 26
+/// before and after.
+///
+/// The reason is visible in what the widening freed. The 4,411 new names are
+/// dominated by **throwing test functions** — `testLoadViolations`,
+/// `testAtomicWrite`, `anyCodableCodable` — which are throwing and carry a marker
+/// or a trap, so they are evidence, and which no production candidate calls
+/// free-shape. The two populations do not meet.
+///
+/// **So this is a correctness and clarity change, not a yield change**, and it is
+/// worth having on those terms: the rule now asks the question it means instead of
+/// deriving it from a signature, the evidence/ignorance split is a `switch` a
+/// future refuter cannot slip past, and the documented under-refutation is closed
+/// in principle. What the corpus says is that the gap was never being exercised —
+/// not that closing it was unnecessary.
+///
+/// It also bounds the risk, which runs the other way for a rule that *suppresses*
+/// advice: a 3× wider settled set is 3× more opportunity to withdraw a true
+/// candidate. Zero moved, so that opportunity is currently unrealised. The
+/// one-pure-overload rule below is what keeps it bounded, and it is unchanged.
 ///
 /// ## Resolution is name-keyed, and a name must be settled
 ///
@@ -77,28 +111,56 @@ public struct PackagePurityJoin: Sendable {
     ///   hash-seed-dependent the way the idempotency family's hop counts once did.
     public init(sources: [SourceFileSyntax]) {
         let inferrer = PurityInferrer()
-        var byName: [String: [(verdict: PurityVerdict, throwsClause: Bool)]] = [:]
+        var byName: [String: [PurityRefutation?]] = [:]
         for source in sources {
             let collector = PackageFunctionCollector(viewMode: .sourceAccurate)
             collector.walk(source)
             for declaration in collector.declarations {
-                byName[declaration.name.text, default: []].append(
-                    (
-                        inferrer.verdict(for: declaration),
-                        declaration.signature.effectSpecifiers?.throwsClause != nil
-                    )
-                )
+                byName[declaration.name.text, default: []].append(inferrer.refutation(for: declaration))
             }
         }
 
         var settled: Set<String> = []
-        for (name, declarations) in byName where !declarations.isEmpty {
-            // Settled impure: every declaration refuted, and every one of them
-            // non-throwing so the refutation cannot be `propagatedTry` ignorance.
-            let allSettled = declarations.allSatisfy { $0.verdict == .refuted && !$0.throwsClause }
-            if allSettled { settled.insert(name) }
+        for (name, refutations) in byName where !refutations.isEmpty {
+            // Settled impure: every declaration refuted, and every refutation names
+            // a construct rather than reporting the oracle's own blindness.
+            if refutations.allSatisfy(Self.namesEvidence) { settled.insert(name) }
         }
         self.settledImpureNames = settled
+    }
+
+    /// Whether a refutation is **evidence** — it names a construct that makes the
+    /// function impure — rather than **ignorance**.
+    ///
+    /// Only two things are ignorance. `.propagatedTry` is the oracle saying *I
+    /// cannot see past this callee*, which is a fact about a leaf's view rather
+    /// than about the function; retracting a candidate on it would withdraw advice
+    /// on the grounds that something *might* be impure, which is the Daikon trap
+    /// through a new door. `.noBody` names nothing because there was nothing to
+    /// read — and it is also unreachable here, since `PackageFunctionCollector`
+    /// skips body-less declarations, so classifying it as ignorance costs nothing
+    /// and is the safe answer if that ever changes.
+    ///
+    /// `nil` — not refuted at all — is not evidence either: the function is `.pure`
+    /// or `.pureButPartial`, and neither says anything impure about it.
+    ///
+    /// **Exhaustive with no `default` on purpose.** A refuter added to SEI must be
+    /// classified here deliberately; the alternative is a new cause silently
+    /// landing on whichever side the `default` happened to take, which for this
+    /// rule means either withdrawing true advice or keeping false advice, with no
+    /// diff to notice it in.
+    private static func namesEvidence(_ refutation: PurityRefutation?) -> Bool {
+        guard let refutation else { return false }
+        switch refutation {
+        case .propagatedTry, .noBody:
+            return false
+
+        case .declaredAsync, .declaredThrows,
+             .sideEffectMarker, .nondeterministicMarker, .nondeterminismSource,
+             .fileRead, .partiality, .refutingDefaultArgument,
+             .mutatesCapturedState, .notAGetter:
+            return true
+        }
     }
 
     /// The name of the first settled-impure package function `function`'s body calls,
