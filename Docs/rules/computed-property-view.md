@@ -153,8 +153,21 @@ silently.
 
 #### Open, and why
 
-Three shapes are recorded rather than closed. Each would take a measurement this project cannot
+Two shapes are recorded rather than closed. Each would take a measurement this project cannot
 make from source alone.
+
+**A third was recorded and should not have been.** `TemplateLibraryView.projectTypeSection` was
+declined here on the theory that a `View` struct between a `.tag()` and its `List(selection:)`
+breaks selection — the Gate 2 argument, reached by analogy. **That question had already been
+settled by a harness**: three lists (tags inline, tags inside an extracted `View`, a tagless
+negative control) with tag values 101 and 202 rather than 1 and 2, so a SwiftUI falling back to
+positional identity could not have produced the right answer by accident. An extracted tag resolves
+exactly as an inline one does. The property is extracted and the marker is gone.
+
+That is the fifth time a decline on this rule has been wrong in the same direction — assuming a
+finding is less useful than it is — and the first where the measurement that refuted it already
+existed. Reaching for the analogy was cheaper than looking, which is precisely the failure the rest
+of this document is a record of avoiding.
 
 **A mutating method other than `toggle()`.** `selection.remove(id)` and `selection.insert(id)` on a
 `@State Set` require a `Binding` exactly as `toggle()` does, and are still reported — one finding
@@ -163,12 +176,6 @@ in the corpus, `ComparisonView.repoSelector` in SwiftLintRuleStudioTeam, now car
 names, which is arbitrary, and the principled rule — *a call in statement position whose receiver is
 stored state* — which over-gates without type resolution, because it cannot tell
 `selection.remove(id)` on a value type from `viewModel.reload()` on a reference type.
-
-**A `Section` whose rows carry `.tag()`, inside a selectable `List`.** One finding,
-`TemplateLibraryView.projectTypeSection`, also marked in place. Whether a tag survives being moved
-into a child `View`'s body is a question about SwiftUI's selection machinery, and the cost of
-guessing wrong is a sidebar that stops selecting. It belongs with the Gate 2 family if it belongs
-anywhere, and it needs a running app to settle.
 
 **Whether a property whose body is a *single view value* benefits at all.** `emptyState` returning
 one `ContentUnavailableView(…)` already produces a node with its own identity, and SwiftUI's own
