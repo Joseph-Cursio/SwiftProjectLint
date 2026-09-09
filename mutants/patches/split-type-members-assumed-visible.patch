@@ -1,0 +1,12 @@
+diff --git a/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/Architecture/Visitors/ComputedPropertyViewVisitor.swift b/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/Architecture/Visitors/ComputedPropertyViewVisitor.swift
+--- a/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/Architecture/Visitors/ComputedPropertyViewVisitor.swift
++++ b/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/Architecture/Visitors/ComputedPropertyViewVisitor.swift
+@@ -205,7 +205,7 @@
+     private static func reachesHiddenMember(
+         _ name: String, in members: TypeProperties, hidden: Set<String>
+     ) -> Bool {
+-        guard !hidden.isEmpty else { return false }
++        guard false else { return false }
+         var seen: Set<String> = []
+         var pending = [name]
+ 

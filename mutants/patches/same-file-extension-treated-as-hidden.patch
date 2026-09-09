@@ -1,0 +1,14 @@
+diff --git a/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/Architecture/Visitors/ComputedPropertyViewVisitor.swift b/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/Architecture/Visitors/ComputedPropertyViewVisitor.swift
+--- a/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/Architecture/Visitors/ComputedPropertyViewVisitor.swift
++++ b/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/Architecture/Visitors/ComputedPropertyViewVisitor.swift
+@@ -76,9 +76,7 @@
+     private func hiddenMembers(of typeName: String) -> Set<String> {
+         let elsewhere = knownExtensionMembers.members(on: typeName)
+         guard !elsewhere.isEmpty else { return [] }
+-        let here = (fileExtensions[typeName] ?? [])
+-            .reduce(into: Set<String>()) { $0.formUnion(ExtensionMemberCollector.memberNames(in: $1)) }
+-        return elsewhere.subtracting(here)
++        return elsewhere
+     }
+ 
+     /// Every member block that makes up `typeName` in this file: its declaration and its

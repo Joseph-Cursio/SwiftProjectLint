@@ -1,0 +1,13 @@
+diff --git a/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/Architecture/Visitors/ComputedPropertyViewVisitor+Gates.swift b/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/Architecture/Visitors/ComputedPropertyViewVisitor+Gates.swift
+--- a/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/Architecture/Visitors/ComputedPropertyViewVisitor+Gates.swift
++++ b/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/Architecture/Visitors/ComputedPropertyViewVisitor+Gates.swift
+@@ -36,8 +36,7 @@
+     /// properties and the rule reported all three — marked `info` for carrying `@ViewBuilder`,
+     /// which is not the same thing as declining to report them.
+     static let decomposingContainers: Set<String> = [
+-        "confirmationDialog", "alert", "actionSheet", "Menu", "contextMenu",
+-        "ToolbarItem", "ToolbarItemGroup", "toolbar"
++        "confirmationDialog", "alert", "actionSheet", "Menu", "contextMenu"
+     ]
+ 
+     /// Property names referenced inside one of those containers.

@@ -21,7 +21,7 @@ Requires a clean working tree.
 
 ## The corpus (`manifest.json`)
 
-All four target the `ExtractableTotalKernelVisitor` — the §15.2.5 "a total kernel is
+Two shapes. The first four target the `ExtractableTotalKernelVisitor` — the §15.2.5 "a total kernel is
 trapped in this impure method; lift it" rule — on both sides of the
 precision/recall line:
 
@@ -59,3 +59,20 @@ corpus shows up as a failing run, never as a passing one.
 
 1. Make the buggy edit; 2. `git diff -- <file> > mutants/patches/<id>.patch`;
 3. `git checkout -- <file>`; 4. add an entry to `manifest.json`.
+
+### The `ComputedPropertyViewVisitor` gates
+
+Three more, added when the rule was worked from 63 findings to 0 across the corpus. All three are
+about a gate rather than about detection: each leaves the rule reporting, and changes only *which*
+properties it declines.
+
+| id | shape | expected | killer |
+|---|---|---|---|
+| `toolbar-not-a-decomposing-container` | detector-precision | killed | `toolbarItemGroupContentsAreNotReported` |
+| `split-type-members-assumed-visible` | detector-precision | killed | `siblingInAnotherFileIsNotReported` |
+| `same-file-extension-treated-as-hidden` | detector-recall | killed | `sameFileExtensionIsMerged` |
+
+The third is the one worth having. It is the over-gate that the *fix* for an under-gate can
+introduce: `hiddenMembers` stops subtracting the extensions visible in the file being analysed, so
+every type with a same-file extension goes silent. Nothing about the rule's output looks wrong —
+it simply reports less — which is the character of every finding in this shape.
