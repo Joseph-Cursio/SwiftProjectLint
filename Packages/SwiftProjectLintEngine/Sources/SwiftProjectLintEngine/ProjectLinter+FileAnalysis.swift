@@ -199,6 +199,10 @@ extension ProjectLinter {
 
         /// Types whose initialiser has defaulted parameters — the gate for `lossyStructRebuild`.
         let defaultedInitializerTypes: Set<String>
+
+        /// Per type, the member names its `extension` blocks declare — the pre-scan's answer to
+        /// "is part of this type in another file?". See `ExtensionMemberCatalog`.
+        let extensionMembers: ExtensionMemberCatalog
         let layerPolicies: [LayerPolicy]
     }
 
@@ -230,6 +234,7 @@ extension ProjectLinter {
             projectFunctions: env.projectFunctions,
             impurePackageFunctions: env.impurePackageFunctions,
             defaultedInitializerTypes: env.defaultedInitializerTypes,
+            extensionMembers: env.extensionMembers,
             layerPolicies: env.layerPolicies
         )
     }
@@ -257,6 +262,7 @@ extension ProjectLinter {
         projectFunctions: Set<String> = [],
         impurePackageFunctions: Set<String> = [],
         defaultedInitializerTypes: Set<String> = [],
+        extensionMembers: ExtensionMemberCatalog = .empty,
         layerPolicies: [LayerPolicy] = []
     ) -> (file: ProjectFile, issues: [LintIssue], parsedAST: SourceFileSyntax)? {
         guard !Task.isCancelled else { return nil }
@@ -287,6 +293,7 @@ extension ProjectLinter {
         det.knownProjectFunctions = projectFunctions
         det.knownImpurePackageFunctions = impurePackageFunctions
         det.knownDefaultedInitializerTypes = defaultedInitializerTypes
+        det.knownExtensionMembers = extensionMembers
         det.layerPolicies = layerPolicies
 
         let rawIssues: [LintIssue]

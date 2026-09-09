@@ -38,6 +38,7 @@ public final class SourcePatternDetector: SourcePatternDetectorProtocol, @unchec
     /// Member names declared under `@_spi(...)`.
     public var knownSPIMembers: Set<String> = []
     public var knownUnderscoredMembers: Set<String> = []
+    public var knownExtensionMembers = ExtensionMemberCatalog.empty
 
     public var knownFunctionTypeAliases: Set<String> = []
 
@@ -204,6 +205,7 @@ public final class SourcePatternDetector: SourcePatternDetectorProtocol, @unchec
             visitor.knownInspectedTypeNames = knownInspectedTypeNames
             visitor.knownSPIMembers = knownSPIMembers
             visitor.knownUnderscoredMembers = knownUnderscoredMembers
+            visitor.knownExtensionMembers = knownExtensionMembers
             visitor.knownFunctionTypeAliases = knownFunctionTypeAliases
             visitor.knownIdentifiableTypes = knownIdentifiableTypes
             visitor.knownEnumTypes = knownEnumTypes

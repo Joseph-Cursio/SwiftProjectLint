@@ -245,6 +245,11 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
         /// by its own fixpoint rather than by `collectTypes`.
         let cleanInstanceMethods: CleanInstanceMethodCatalog
 
+        /// Per type, the member names its `extension` blocks declare. A per-file visitor that
+        /// reasons about what a type's members read needs this to know when it is looking at
+        /// only part of the type — see `ExtensionMemberCatalog`.
+        let extensionMembers: ExtensionMemberCatalog
+
         /// Package function names this project's own purity oracle refutes with an
         /// establishable witness — the one-hop callee join. Needs parsed bodies for the
         /// same reason `cleanInstanceMethods` does, and shares the single parse below.
@@ -286,6 +291,7 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
                 spiMembers: collectTypes(SPIMemberCollector.self, from: filePaths),
                 underscoredMembers: collectTypes(UnderscoredMemberCollector.self, from: filePaths),
                 cleanInstanceMethods: CleanInstanceMethodCatalog.build(from: parsed),
+                extensionMembers: ExtensionMemberCatalog.build(from: parsed),
                 impurePackageFunctions: PackagePurityJoin(sources: parsed).settledImpureNames
             )
         }
@@ -312,6 +318,7 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
         resolved.knownEquatableTypes = collected.equatable
         resolved.knownValueTypes = collected.values
         resolved.knownCleanInstanceMethods = collected.cleanInstanceMethods
+        resolved.knownExtensionMembers = collected.extensionMembers
         resolved.knownImpurePackageFunctions = collected.impurePackageFunctions
         resolved.knownProjectFunctions = collected.functions
         resolved.knownDefaultedInitializerTypes = collected.defaultedInitializers
@@ -350,6 +357,7 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
             projectFunctions: collected.functions,
             impurePackageFunctions: collected.impurePackageFunctions,
             defaultedInitializerTypes: collected.defaultedInitializers,
+            extensionMembers: collected.extensionMembers,
             layerPolicies: layerPolicies
         )
     }

@@ -39,6 +39,7 @@ public protocol SourcePatternDetectorProtocol {
 
     var knownSPIMembers: Set<String> { get set }
     var knownUnderscoredMembers: Set<String> { get set }
+    var knownExtensionMembers: ExtensionMemberCatalog { get set }
 
     var knownFunctionTypeAliases: Set<String> { get set }
 

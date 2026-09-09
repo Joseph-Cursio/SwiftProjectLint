@@ -1,6 +1,6 @@
 {
   "kind": "spm",
-  "note": "Private mutation/regression corpus for SwiftProjectLint (a SwiftPM monorepo — rules live under Packages/*). Mutants live in a detector's own source; each is killed by the root package's CoreTests. Run via `swift test --filter`. Not a scored benchmark. Target: the ExtractableTotalKernelVisitor (the §15.2.5 'lift the trapped kernel' rule).",
+  "note": "Private mutation/regression corpus for SwiftProjectLint (a SwiftPM monorepo \u2014 rules live under Packages/*). Mutants live in a detector's own source; each is killed by the root package's CoreTests. Run via `swift test --filter`. Not a scored benchmark. Two shapes: the ExtractableTotalKernelVisitor (the \u00a715.2.5 'lift the trapped kernel' rule) and the ComputedPropertyViewVisitor's gates.",
   "mutants": [
     {
       "id": "kernel-governs-always-false",
@@ -8,7 +8,7 @@
       "shape": "detector-recall",
       "expected": "killed",
       "test": "chunkingKernelIsCandidate",
-      "label": "isWorthExtracting's `governs` is forced false — a genuine chunking kernel is never surfaced"
+      "label": "isWorthExtracting's `governs` is forced false \u2014 a genuine chunking kernel is never surfaced"
     },
     {
       "id": "kernel-scans-pure-functions",
@@ -16,7 +16,7 @@
       "shape": "detector-precision",
       "expected": "killed",
       "test": "pureFunctionIsNotReported",
-      "label": "the purity guard is inverted — the rule scans pure functions (which ARE the kernel) instead of the impure methods that trap one"
+      "label": "the purity guard is inverted \u2014 the rule scans pure functions (which ARE the kernel) instead of the impure methods that trap one"
     },
     {
       "id": "kernel-worth-extracting-always-true",
@@ -24,7 +24,7 @@
       "shape": "detector-precision",
       "expected": "killed",
       "test": "arithmeticWithoutAGoverningUseIsNotReported",
-      "label": "isWorthExtracting returns true unconditionally — merely-stored arithmetic (assigned, not governing) is falsely flagged"
+      "label": "isWorthExtracting returns true unconditionally \u2014 merely-stored arithmetic (assigned, not governing) is falsely flagged"
     },
     {
       "id": "kernel-ignores-ambient-state",
@@ -32,7 +32,31 @@
       "shape": "detector-precision",
       "expected": "killed",
       "test": "continuousClockElapsedIsNotAKernel",
-      "label": "the ambient-state guard is removed — a clock read (`ContinuousClock.now - lastActivityAt`) is reported as a kernel that 'depends only on its parameters and locals'"
+      "label": "the ambient-state guard is removed \u2014 a clock read (`ContinuousClock.now - lastActivityAt`) is reported as a kernel that 'depends only on its parameters and locals'"
+    },
+    {
+      "id": "toolbar-not-a-decomposing-container",
+      "patch": "patches/toolbar-not-a-decomposing-container.patch",
+      "shape": "detector-precision",
+      "expected": "killed",
+      "test": "toolbarItemGroupContentsAreNotReported",
+      "label": "the toolbar names are dropped from decomposingContainers \u2014 the rule again advises wrapping a ToolbarItemGroup's two buttons in one View struct, which places one toolbar item where there were two"
+    },
+    {
+      "id": "split-type-members-assumed-visible",
+      "patch": "patches/split-type-members-assumed-visible.patch",
+      "shape": "detector-precision",
+      "expected": "killed",
+      "test": "siblingInAnotherFileIsNotReported",
+      "label": "reachesHiddenMember always returns false \u2014 a property forwarding to a sibling declared in another file reads as depending on nothing, which is the strongest possible pass of the narrowing gate"
+    },
+    {
+      "id": "same-file-extension-treated-as-hidden",
+      "patch": "patches/same-file-extension-treated-as-hidden.patch",
+      "shape": "detector-recall",
+      "expected": "killed",
+      "test": "sameFileExtensionIsMerged",
+      "label": "hiddenMembers stops subtracting the extensions in the file under analysis \u2014 every type with a same-file extension goes silent, an over-gate introduced by the fix for an under-gate"
     }
   ]
 }
