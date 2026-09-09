@@ -49,7 +49,21 @@ public struct ClosureWrapperTypeCatalog: Sendable, Equatable {
         self.names = names
     }
 
-    public func contains(_ name: String) -> Bool { names.contains(name) }
+    /// Whether `name` is one of them.
+    ///
+    /// **Named `wraps` rather than `contains` on purpose, and the reason is measured.** While it
+    /// was `contains(_:)`, that labelled name entered `knownProjectFunctions` — and
+    /// `PureClosureCandidateVisitor`'s forwarding check suppresses any single-expression closure
+    /// calling a project-declared name, keying on the *member* name plus labels. So a one-line
+    /// method here silenced every closure in the package that calls `.contains(…)`:
+    /// `{ stylingModifierNames.contains($0) }`, `{ $0.description.contains("#Preview") }`, and 47
+    /// others. **The closure census went 249 → 200 because of this method's name**, measured both
+    /// ways.
+    ///
+    /// The rename is a workaround and is recorded as one — the defect is that the forwarding check
+    /// resolves a callee by bare name through a member access, which `PackagePurityJoin` in this
+    /// same package already refuses to do and documents at length. Filed as SwiftProjectLint#185.
+    public func wraps(_ name: String) -> Bool { names.contains(name) }
 
     public var isEmpty: Bool { names.isEmpty }
 

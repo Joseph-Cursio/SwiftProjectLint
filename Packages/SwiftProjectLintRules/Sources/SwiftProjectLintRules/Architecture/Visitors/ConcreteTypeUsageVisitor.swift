@@ -260,7 +260,7 @@ class ConcreteTypeUsageVisitor: BasePatternVisitor {
             // The nominal form is if anything better than the alias: it can carry named
             // factories, and `DateProvider.system` is the one place in its package allowed to
             // read a clock. Requires the project-wide closure-wrapper prescan.
-            Exemption { self.knownClosureWrapperTypes.contains($0) },
+            Exemption { self.knownClosureWrapperTypes.wraps($0) },
 
             // An `Equatable` type is a value, and a value is substituted by constructing a
             // different one. Nothing in this corpus that is genuinely a dependency conforms:
