@@ -1,0 +1,12 @@
+diff --git a/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/Architecture/Visitors/ConcreteTypeUsageVisitor.swift b/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/Architecture/Visitors/ConcreteTypeUsageVisitor.swift
+--- a/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/Architecture/Visitors/ConcreteTypeUsageVisitor.swift
++++ b/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/Architecture/Visitors/ConcreteTypeUsageVisitor.swift
+@@ -53,7 +53,7 @@
+     ///
+     /// Paired with `knownLocalTypeNames`, so a project that declares its own `UIStateManager`
+     /// keeps the finding. The declaration is what decides, not the spelling.
+-    private static let appKitOrUIKitPrefixes = ["NS", "UI"]
++    private static let appKitOrUIKitPrefixes = ["NS", "UI", "CL", "CG", "AV"]
+ 
+     private func isPlatformFrameworkType(_ name: String) -> Bool {
+         guard !knownLocalTypeNames.contains(name) else { return false }
