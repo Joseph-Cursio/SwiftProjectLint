@@ -145,7 +145,7 @@ class DirectInstantiationVisitor: BasePatternVisitor {
     // MARK: - File-local access-level pre-pass
 
     override func visit(_ node: SourceFileSyntax) -> SyntaxVisitorContinueKind {
-        let collector = PrivateTypeDeclarationCollector(viewMode: .sourceAccurate)
+        let collector = FileLocalTypeCollector(viewMode: .sourceAccurate)
         collector.walk(node)
         privatelyDeclaredTypes = collector.names
         if isMainSwiftFile { insideEntryPoint += 1 }
@@ -474,45 +474,6 @@ class DirectInstantiationVisitor: BasePatternVisitor {
     /// function rather than the condition written twice.
     private static func isDebugBlock(_ node: IfConfigDeclSyntax) -> Bool {
         node.clauses.contains { $0.condition?.description.contains("DEBUG") == true }
-    }
-}
-
-/// Collects the names of every type a single file declares `private` or `fileprivate`.
-///
-/// A separate walk rather than bookkeeping inside the main visit, because the declaration can
-/// follow the use: `AmbientStateReads.occur` builds its `Checker` on line 26 and the
-/// `private final class Checker` sits on line 34, so a visitor that learned the access level
-/// as it went would have already reported the construction by the time it read the
-/// declaration.
-private final class PrivateTypeDeclarationCollector: SyntaxVisitor {
-
-    private(set) var names: Set<String> = []
-
-    override func visit(_ node: ClassDeclSyntax) -> SyntaxVisitorContinueKind {
-        record(node.name.text, node.modifiers)
-        return .visitChildren
-    }
-
-    override func visit(_ node: StructDeclSyntax) -> SyntaxVisitorContinueKind {
-        record(node.name.text, node.modifiers)
-        return .visitChildren
-    }
-
-    override func visit(_ node: EnumDeclSyntax) -> SyntaxVisitorContinueKind {
-        record(node.name.text, node.modifiers)
-        return .visitChildren
-    }
-
-    override func visit(_ node: ActorDeclSyntax) -> SyntaxVisitorContinueKind {
-        record(node.name.text, node.modifiers)
-        return .visitChildren
-    }
-
-    private func record(_ name: String, _ modifiers: DeclModifierListSyntax) {
-        let isFileLocal = modifiers.contains {
-            $0.name.tokenKind == .keyword(.private) || $0.name.tokenKind == .keyword(.fileprivate)
-        }
-        if isFileLocal { names.insert(name) }
     }
 }
 
