@@ -23,8 +23,90 @@ The following patterns are exempt because they do not represent real coupling is
 - **Enum types** — a project-wide pre-scan identifies all declared enums; enum-typed parameters and properties are exempt because enums are value types and cannot be protocol-abstracted in the same way as a service class
 - **Actor types** — a project-wide pre-scan identifies all declared actors; actor-typed parameters and properties are exempt because an actor's serial-executor isolation contract is load-bearing in Swift 6 strict concurrency. Protocol-abstracting an actor strips that contract from every call site — the caller loses the compiler-enforced `await` requirement and the guarantee of serialized access
 - **Init parameters mirroring a flagged stored property** — when a stored property is flagged, its matching initializer parameter represents the same coupling point and is suppressed to avoid duplicate reports
+- **AppKit and UIKit classes** — recognised by the `NS`/`UI` prefix convention rather than enumerated, and only when the project does not declare a type of that name
+- **`private` / `fileprivate` types** — a protocol around one could only be conformed to in the file that declares it
+- **Closure wrapper types** — a `struct` or `final class` whose only stored property is a closure is already the seam
+- **`Equatable` types** — a value is substituted by constructing a different one
 
 Replacing `APIService` with `APIServiceProtocol` — or using `some NetworkProtocol` — resolves the issue.
+
+### Four exemptions added after one pass of applying the rule
+
+The rule ran at 41 findings across ten repositories. Reading all of them found four shapes where
+the advice has no reachable end state, and **`ConcreteTypeUsage` had reported every one of them
+while its own twin already knew better about two.** Each was measured over the corpus before
+shipping; together they took the rule **41 → 22**, with nothing else moving.
+
+#### AppKit and UIKit classes (7)
+
+The system-type list above is hand-maintained because Swift 3 dropped the `NS` prefix from
+Foundation, so there is no convention left to read `FileManager` and `URLSession` off. AppKit and
+UIKit kept theirs, so their classes can be recognised by the rule that generates them rather than
+added one name per sweep.
+
+`NSLayoutManager` is a system type in exactly the sense `FileManager` is; it was reported only
+because nobody had hit it before. And most of the corpus's instances are worse than merely
+unabstractable — they are **parameters of protocol requirements**, where the signature is not the
+author's to change at all: a `UIImagePickerControllerDelegate` callback, an
+`NSLayoutManagerDelegate` glyph hook, a `UIViewControllerRepresentable`'s `updateUIViewController`.
+
+**Restricted to `NS` and `UI` deliberately.** The obvious generalisation — every Apple two-letter
+prefix — is refuted by this corpus: `CLIToolCommandRunner` begins with `CL` followed by an
+uppercase letter, so a CoreLocation prefix would have silenced it for a reason that has nothing to
+do with why it should be silent. That case is pinned as a test. The gate is also paired with
+`knownLocalTypeNames`, so a project declaring its own `UIStateManager` keeps the finding: **the
+declaration decides, not the spelling.**
+
+#### `private` and `fileprivate` types (1)
+
+No caller outside the declaring file can name the type, so a protocol around it could only ever be
+conformed to there and no test could supply an alternative conformer. Taking the advice means
+*widening* the access level in order to abstract it.
+
+**`DirectInstantiation` has had this exemption for two sweeps.** The two rules fire on the same
+seam from opposite ends — the construction site and the declared type — and this was the third
+vocabulary one had and the other did not, after `ServiceTypeSuffix` and `MockTypeName`. The walk
+now lives in `FileLocalTypeCollector`, shared, which is the only thing that stops a fourth.
+
+The shape it reaches is the single-use accumulator: `ToolInvocation`'s `private struct Builder`,
+eight optional fields and no methods, filled by a parsing loop and read once by the initializer
+that owns it.
+
+#### Closure wrapper types (8)
+
+A `typealias` for a function type has been exempt for a while, on the reasoning that a property
+typed with it is injected by handing in another closure. The same argument holds for the nominal
+form, and the corpus prefers the nominal form:
+
+```swift
+public struct DateProvider: Sendable {
+    private let make: @Sendable () -> Date
+    public static let system = Self { Date() }
+    public var now: Date { make() }
+}
+```
+
+A test substitutes it by writing `DateProvider { fixedInstant }` — the same substitution the alias
+offers, plus a named production default the alias cannot carry.
+
+**These are seams this sweep itself asked for.** `DateProvider` and `IDProvider` exist because
+*Non-Injected Nondeterminism* reported the inline clock and id reads they replaced; its own header
+says *"this one is the seam they were moved to"*. Reporting them asked a reader to undo a repair
+the same sweep had requested, one rule over.
+
+Exactly one stored property, and it must be function-typed. `static` members are factories over the
+type rather than its content, and computed properties are not storage — `var now: Date { make() }`
+is the wrapper's whole point and must not disqualify it. Two closures is a small protocol wearing a
+struct, and the advice starts being worth hearing again.
+
+#### `Equatable` types (2)
+
+A value is substituted by constructing a different one. Nothing in this corpus that is genuinely a
+dependency conforms — a service is identified, not compared — so what the suffix list catches
+instead are records that merely *end* in a service word:
+`struct EnumCaseGenerator: Sendable, Equatable { let caseName: String }` describes an enum case and
+generates nothing. `Hashable` and `Comparable` both refine `Equatable`, so the existing prescan
+covers all three spellings and the inline and `extension` forms alike.
 
 ### Non-Violating Examples
 ```swift
@@ -93,8 +175,24 @@ class MyViewModel {
   reported: the declaration that would exempt it is out of scope. Measured — `CLIToolCommandRunner`
   is exempt inside LintStudioUI, which declares it, and still flagged in SwiftLintRuleStudio, which
   imports it. Same boundary as `unused-protocol-abstraction`'s, for the same reason.
-- **A value type used as a seam still reads as concrete.** A `struct DateProvider` wrapping a
-  closure is an injection point, but the rule sees a concrete nominal type and asks for a protocol.
-  That is advice worth refusing rather than a defect the rule can detect.
+- **~~A value type used as a seam still reads as concrete.~~** Closed by the closure-wrapper
+  exemption above. The limitation was recorded as *"advice worth refusing rather than a defect the
+  rule can detect"* — which was wrong on the second half. It is detectable, by the same prescan
+  shape the function-`typealias` exemption already used, and the entry stood for two sweeps because
+  nobody asked whether the nominal form of an exempt shape was also exempt.
+
+- **A stateless, effect-free type is still reported.** Seven of the remaining findings name a type
+  that holds nothing a test could not supply: `PromptBuilder` and `ThinkingAnalyzer` have no stored
+  properties at all, and `EffectAnnotationParser` stores only a value struct of attribute-name sets
+  it is meant to be reconfigured with. Asking for a protocol in front of a pure function is the
+  opposite of what this sweep is for.
+
+  This is **SwiftProjectLint#163**, filed against `DirectInstantiation` and applying equally here.
+  The discriminator is stated there and both cheap approximations are already refuted by
+  measurement: *value type* is wrong (`CacheManager` is a struct doing file I/O) and *no-argument
+  initializer* is wrong (`AntiPatternStore()` talks to disk). The real test needs the purity oracle
+  the project already runs — `PackagePurityJoin` and `CleanInstanceMethodCatalog` — and no rule
+  consults it. Deliberately not built here: it is a fourth prescan and it belongs to that issue's
+  scope rather than to a pass of applying this rule.
 
 ---

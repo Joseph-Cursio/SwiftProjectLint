@@ -19,13 +19,50 @@ class ConcreteTypeUsageVisitor: BasePatternVisitor {
     /// Whether the visitor is currently inside an initializer body.
     private var isInsideInitializer: Bool = false
 
+    /// Names of the types this file declares `private` or `fileprivate`, gathered in one pass
+    /// before any finding is reported. No project-wide prescan is needed and none would help:
+    /// a file-local type is unreachable outside its own file, so the declaration is always here
+    /// if it is anywhere.
+    private var fileLocalTypes: Set<String> = []
+
     /// Foundation / system types that are concrete by design and cannot
     /// reasonably be protocol-abstracted.
+    ///
+    /// Hand-maintained because Swift 3 dropped the `NS` prefix from Foundation, so there is no
+    /// convention left to read these off. `appKitOrUIKitPrefixes` covers the two frameworks that
+    /// kept theirs.
     private static let systemConcreteTypes: Set<String> = [
         "FileManager", "NotificationCenter", "UserDefaults",
         "URLSession", "ProcessInfo", "Bundle",
         "UNUserNotificationCenter", "NSWorkspace"
     ]
+
+    /// AppKit and UIKit kept their prefixes, so their class names can be recognised by
+    /// convention rather than enumerated.
+    ///
+    /// This is the list above, expressed as the rule that generates it. `NSLayoutManager` is a
+    /// system type of exactly the kind `FileManager` is; it was reported only because nobody had
+    /// hit it before and added it by hand. Growing a list one name per sweep is the arbitrary
+    /// half of the choice this rule already refuses elsewhere.
+    ///
+    /// **Restricted to `NS` and `UI` deliberately.** The obvious generalisation — every Apple
+    /// two-letter prefix — is refuted by this corpus: `CLIToolCommandRunner` begins with `CL`
+    /// followed by an uppercase letter, so a `CoreLocation` prefix would have silenced it for a
+    /// reason that has nothing to do with why it should be silent. Two prefixes cover every
+    /// instance the corpus has; the rest can be added when something needs them.
+    ///
+    /// Paired with `knownLocalTypeNames`, so a project that declares its own `UIStateManager`
+    /// keeps the finding. The declaration is what decides, not the spelling.
+    private static let appKitOrUIKitPrefixes = ["NS", "UI"]
+
+    private func isPlatformFrameworkType(_ name: String) -> Bool {
+        guard !knownLocalTypeNames.contains(name) else { return false }
+        return Self.appKitOrUIKitPrefixes.contains { prefix in
+            name.count > prefix.count
+                && name.hasPrefix(prefix)
+                && name[name.index(name.startIndex, offsetBy: prefix.count)].isUppercase
+        }
+    }
 
     /// Type-name suffixes that indicate a DI container or composition root,
     /// where holding concrete types is the whole point.
@@ -40,6 +77,15 @@ class ConcreteTypeUsageVisitor: BasePatternVisitor {
 
     override func setFilePath(_ filePath: String) {
         self.currentFilePath = filePath
+    }
+
+    // MARK: - File-local access-level pre-pass
+
+    override func visit(_ node: SourceFileSyntax) -> SyntaxVisitorContinueKind {
+        let collector = FileLocalTypeCollector(viewMode: .sourceAccurate)
+        collector.walk(node)
+        fileLocalTypes = collector.names
+        return .visitChildren
     }
 
     // MARK: - Scope tracking
@@ -124,6 +170,12 @@ class ConcreteTypeUsageVisitor: BasePatternVisitor {
     }
 
     /// Returns the name if it's service-like and not a protocol indicator, else nil.
+    ///
+    /// The exemptions are a table rather than a ladder of `if`s. They grew past
+    /// `cyclomatic_complexity` when the seam gates were added, and a ladder of nine independent
+    /// early returns has no ordering to read anyway — every one of them is "this is not a
+    /// concrete dependency", and none depends on another having run first. Each reason carries
+    /// the argument for it, because the argument is the part worth keeping.
     private func qualifying(_ name: String) -> String? {
         guard name.first?.isUppercase == true,
               ServiceTypeSuffix.matches(name),
@@ -132,43 +184,102 @@ class ConcreteTypeUsageVisitor: BasePatternVisitor {
               !name.hasSuffix("Interface")
         else { return nil }
 
-        // A `typealias` for a function type is already the seam. `CLIToolCommandRunner =
-        // @Sendable ([String], Data?) async throws -> (Data, Data, Int32)` is a closure: a
-        // property typed with it is injected by handing in another closure, which is what a
-        // test does. Asking for a protocol around it replaces a working seam with a heavier
-        // one. Requires the project-wide typealias prescan.
-        if knownFunctionTypeAliases.contains(name) { return nil }
+        let exempt = exemptions.contains { $0.applies(name) }
+        return exempt ? nil : name
+    }
 
-        // System types that are concrete by design
-        if Self.systemConcreteTypes.contains(name) { return nil }
+    /// One reason a service-like name is not a concrete dependency.
+    private struct Exemption {
+        let applies: (String) -> Bool
+    }
 
-        // Mock/stub/fake types. Shared with `DirectInstantiation` via `MockTypeName`.
-        if MockTypeName.matches(name) { return nil }
+    private var exemptions: [Exemption] {
+        [
+            // A `typealias` for a function type is already the seam. `CLIToolCommandRunner =
+            // @Sendable ([String], Data?) async throws -> (Data, Data, Int32)` is a closure: a
+            // property typed with it is injected by handing in another closure, which is what a
+            // test does. Asking for a protocol around it replaces a working seam with a heavier
+            // one. Requires the project-wide typealias prescan.
+            Exemption { self.knownFunctionTypeAliases.contains($0) },
 
-        // Enum types — value types that cannot meaningfully be protocol-abstracted
-        // in the same way as a service class. Requires the project-wide enum prescan.
-        if knownEnumTypes.contains(name) { return nil }
+            // Foundation types that are concrete by design.
+            Exemption { Self.systemConcreteTypes.contains($0) },
 
-        // Actor types — their isolation contract is load-bearing in Swift 6 strict
-        // concurrency. Protocol-abstracting an actor loses the serial executor guarantee
-        // at every call site. Requires the project-wide actor prescan.
-        if knownActorTypes.contains(name) { return nil }
+            // AppKit / UIKit classes, recognised by the prefix convention rather than by name.
+            // `NSLayoutManager` and `UIImagePickerController` are system types in exactly the
+            // sense the list above means, and most of the corpus's instances are worse than
+            // merely unabstractable: they are parameters of protocol requirements — a
+            // `UIImagePickerControllerDelegate` callback, a `UIViewControllerRepresentable`'s
+            // `updateUIViewController` — where the signature is not the author's to change.
+            Exemption { self.isPlatformFrameworkType($0) },
 
-        // @Observable / ObservableObject types — protocol-abstracting a SwiftUI
-        // observation model severs change tracking: through `any SomeProtocol` the view
-        // can no longer see the concrete observable storage and stops re-rendering. The
-        // concrete type is load-bearing. Requires the project-wide observable prescan.
-        if knownObservableTypes.contains(name) { return nil }
+            // Mock/stub/fake types. Shared with `DirectInstantiation` via `MockTypeName`.
+            Exemption { MockTypeName.matches($0) },
 
-        // Protocol types — already an abstraction. A protocol used as a bare
-        // existential (`let provider: ResourceMetricsProvider`) is not a concrete
-        // dependency, but the name-based check above only recognises the
-        // `Protocol`/`Type`/`Interface` naming conventions. The project-wide protocol
-        // prescan catches the rest, so we don't tell users to "prefer a protocol
-        // abstraction" for something that already is one.
-        if knownProtocolTypes.contains(name) { return nil }
+            // Enum types — value types that cannot meaningfully be protocol-abstracted in the
+            // same way as a service class. Requires the project-wide enum prescan.
+            Exemption { self.knownEnumTypes.contains($0) },
 
-        return name
+            // Actor types — their isolation contract is load-bearing in Swift 6 strict
+            // concurrency. Protocol-abstracting an actor loses the serial executor guarantee at
+            // every call site. Requires the project-wide actor prescan.
+            Exemption { self.knownActorTypes.contains($0) },
+
+            // @Observable / ObservableObject types — protocol-abstracting a SwiftUI observation
+            // model severs change tracking: through `any SomeProtocol` the view can no longer see
+            // the concrete observable storage and stops re-rendering. The concrete type is
+            // load-bearing. Requires the project-wide observable prescan.
+            Exemption { self.knownObservableTypes.contains($0) },
+
+            // A `private` or `fileprivate` type cannot be substituted: no caller outside the file
+            // that declares it can name the type, so a protocol around it could only ever be
+            // conformed to there, and no test could supply an alternative conformer. Taking the
+            // advice would mean *widening* the access level in order to abstract it — exporting
+            // an implementation detail to make it substitutable, which is the opposite trade from
+            // the one the rule offers.
+            //
+            // `DirectInstantiation` — this rule's twin, firing on the same seam from the
+            // construction site rather than the declared type — has had this exemption since the
+            // shape was found there. The two share `ServiceTypeSuffix` and `MockTypeName` for the
+            // same reason and after the same kind of mistake; this was the third vocabulary one
+            // of them had and the other did not, which is why the walk now lives in
+            // `FileLocalTypeCollector` rather than in either.
+            //
+            // The shape it reaches is the single-use accumulator: `ToolInvocation`'s
+            // `private struct Builder`, eight optional fields and no methods, filled by a parsing
+            // loop and read once by the initializer that owns it.
+            Exemption { self.fileLocalTypes.contains($0) },
+
+            // A value type whose whole content is one closure is already the seam, exactly as a
+            // `typealias` for a function type is. `struct DateProvider { let make: () -> Date }`
+            // is substituted by handing in another closure — `DateProvider { fixedInstant }` —
+            // and its own header says so: *"this one is the seam they were moved to"*. Asking for
+            // a protocol around it replaces a working seam with a heavier one, and would undo the
+            // repair `Non-Injected Nondeterminism` asked for in the first place.
+            //
+            // The nominal form is if anything better than the alias: it can carry named
+            // factories, and `DateProvider.system` is the one place in its package allowed to
+            // read a clock. Requires the project-wide closure-wrapper prescan.
+            Exemption { self.knownClosureWrapperTypes.contains($0) },
+
+            // An `Equatable` type is a value, and a value is substituted by constructing a
+            // different one. Nothing in this corpus that is genuinely a dependency conforms:
+            // a service is identified, not compared. What the suffix list catches instead are
+            // records that merely *end* in a service word —
+            // `struct EnumCaseGenerator: Sendable, Equatable { let caseName: String }` describes
+            // an enum case and generates nothing; `ComposedGenerator` wraps a plan value.
+            //
+            // `Hashable` and `Comparable` both refine `Equatable`, so the prescan's set already
+            // covers all three spellings and the inline and `extension` forms alike.
+            Exemption { self.knownEquatableTypes.contains($0) },
+
+            // Protocol types — already an abstraction. A protocol used as a bare existential
+            // (`let provider: ResourceMetricsProvider`) is not a concrete dependency, but the
+            // name-based check above only recognises the `Protocol`/`Type`/`Interface` naming
+            // conventions. The project-wide protocol prescan catches the rest, so we don't tell
+            // users to "prefer a protocol abstraction" for something that already is one.
+            Exemption { self.knownProtocolTypes.contains($0) }
+        ]
     }
 
     // MARK: - Property wrapper detection
