@@ -20,7 +20,7 @@ identity boundary.
 and the rule used to report it unconditionally — 341 findings across nine repositories, of which a
 hand audit found many that could not benefit at all. Three gates now stand between a property and a
 finding, and every one of them was measured against a 26-repository corpus rather than argued for.
-The count is **134**.
+The count is **57**.
 
 #### Gate 1 — the property must take a narrower input than its parent
 
@@ -41,18 +41,30 @@ gains little either way — but it is the condition the rule can check. A proper
 of five inputs still passes and its benefit is marginal; no threshold has a principled defence, so
 none was invented.
 
-#### Gate 2 — dialog and menu builders are left alone
+#### Gate 2 — containers that decompose their contents are left alone
 
-`confirmationDialog(actions:)`, `alert(actions:)` and `Menu(content:)` read a *collection of
-buttons* out of the closure they are handed. A `View` struct wrapping those buttons is a container
-they are not specified to accept, so following this rule there could change **what the app does**
-rather than only how it redraws. It is the one shape with that risk, and it is now silent.
+Two families, one argument. `confirmationDialog(actions:)`, `alert(actions:)` and `Menu(content:)`
+read a *collection of buttons* out of the closure they are handed. `ToolbarItem(content:)`,
+`ToolbarItemGroup(content:)` and `.toolbar` read a *collection of toolbar items* out of theirs. In
+both cases a `View` struct wrapping the contents is a container the API is not specified to accept,
+so following this rule there could change **what the app does** rather than only how it redraws.
+These are the shapes with that risk, and they are now silent.
+
+The toolbar half is visible in the corpus rather than argued. `ViolationInspectorView` composes
+five properties into one `ToolbarItemGroup`; one of them, `navigationButtons`, is a `Group` of two
+`Button`s and therefore places **two** items. Wrapped in a `View` struct it is one view, and the
+group places **one**. `actionsMenu` is worse — an `if` around a `Menu`, so the item count already
+varies with the condition.
 
 The search covers a builder's arguments and trailing closures but never the called expression —
 for a modifier that holds the receiver, which is the entire view it is applied to. It is
 deliberately coarse in one direction: a name appearing in `alert`'s `message:` closure is spared
-along with the ones in `actions:`. Sparing a property costs a finding; reporting one whose
-extraction breaks a dialog costs a working app.
+along with the ones in `actions:`, and a property that happens to be the *only* view in its
+`ToolbarItem` — `GraphSheetView.searchField` is the corpus's one instance — is spared along with
+the groups. Sparing a property costs a finding; reporting one whose extraction breaks a dialog or
+drops a toolbar button costs a working app.
+
+Measured before it shipped: **6 findings across two repositories, 0 newly reported.**
 
 #### Gate 3 — a child that requires capture cannot be skipped
 

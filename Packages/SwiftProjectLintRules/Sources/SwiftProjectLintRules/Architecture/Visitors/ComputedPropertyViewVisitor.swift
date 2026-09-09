@@ -116,10 +116,10 @@ class ComputedPropertyViewVisitor: BasePatternVisitor {
         let members = properties(of: memberBlock)
         guard !members.stored.isEmpty else { return [] }
 
-        let buttonCollections = namesUsedAsButtonCollections(in: memberBlock)
+        let decomposed = namesUsedByDecomposingContainers(in: memberBlock)
 
         return members.viewProperties.filter { name in
-            guard !buttonCollections.contains(name),
+            guard !decomposed.contains(name),
                   !requiresCapture(name, in: members) else { return false }
             let depends = resolvedDependencies(
                 of: name, computed: members.computedReferences, stored: members.stored
@@ -260,22 +260,36 @@ class ComputedPropertyViewVisitor: BasePatternVisitor {
         }
     }
 
-    /// APIs whose closure is a **collection of buttons**, not an arbitrary view.
+    /// APIs that **decompose** the closure they are handed instead of rendering it as one view.
     ///
-    /// `confirmationDialog(actions:)`, `alert(actions:)`, `Menu(content:)` and `contextMenu` read
-    /// the buttons out of the builder they are handed. A `View` struct wrapping those buttons is a
-    /// container these APIs are not specified to accept, so "extract this into its own View" is not
-    /// behaviour-preserving here — it is the one place where following this rule can change what
-    /// the app does rather than only how it redraws.
+    /// Two families, one argument. `confirmationDialog(actions:)`, `alert(actions:)`,
+    /// `Menu(content:)` and `contextMenu` read a *collection of buttons* out of the builder.
+    /// `ToolbarItem(content:)`, `ToolbarItemGroup(content:)` and `.toolbar` read a *collection of
+    /// toolbar items* out of theirs. In both cases a `View` struct wrapping the contents is a
+    /// container the API is not specified to accept, so "extract this into its own View" is not
+    /// behaviour-preserving — it is the one place where following this rule can change what the app
+    /// does rather than only how it redraws.
     ///
-    /// Found on MacCloud_client_iOS, where `FileListView` had three such properties and the rule
-    /// reported all three. It marked them `info` for carrying `@ViewBuilder`, which is not the same
-    /// thing as declining to report them.
-    private static let buttonCollectionBuilders: Set<String> = [
-        "confirmationDialog", "alert", "actionSheet", "Menu", "contextMenu"
+    /// The toolbar half is visible in the corpus rather than argued: `ViolationInspectorView`'s
+    /// `navigationButtons` is a `Group` of two `Button`s inside a `ToolbarItemGroup`, which places
+    /// **two** items. Wrapped in a `View` struct it is one view, and the group places **one**.
+    /// `actionsMenu` is worse — an `if` around a `Menu`, so extraction also fixes the item count
+    /// that the condition currently varies.
+    ///
+    /// Deliberately coarse in the same direction as the dialog half: a property that happens to be
+    /// the *only* view in its `ToolbarItem` could be extracted safely, and is spared anyway. A
+    /// spared property costs a finding; a reported one whose extraction drops a toolbar button
+    /// costs a working app.
+    ///
+    /// The dialog half was found on MacCloud_client_iOS, where `FileListView` had three such
+    /// properties and the rule reported all three — marked `info` for carrying `@ViewBuilder`,
+    /// which is not the same thing as declining to report them.
+    private static let decomposingContainers: Set<String> = [
+        "confirmationDialog", "alert", "actionSheet", "Menu", "contextMenu",
+        "ToolbarItem", "ToolbarItemGroup", "toolbar"
     ]
 
-    /// Property names referenced inside one of those builders.
+    /// Property names referenced inside one of those containers.
     ///
     /// Only the *arguments and trailing closures* are searched, never the called expression. For a
     /// modifier the called expression holds the receiver — the entire view it is applied to — and
@@ -283,17 +297,17 @@ class ComputedPropertyViewVisitor: BasePatternVisitor {
     ///
     /// Deliberately coarse in one direction: a name appearing in `alert`'s `message:` closure is
     /// spared along with the ones in `actions:`. Sparing a property costs a finding; reporting one
-    /// whose extraction breaks a dialog costs a working app, so the imprecision is pointed the safe
-    /// way.
-    private static func namesUsedAsButtonCollections(in memberBlock: MemberBlockSyntax) -> Set<String> {
+    /// whose extraction breaks a dialog or drops a toolbar button costs a working app, so the
+    /// imprecision is pointed the safe way.
+    private static func namesUsedByDecomposingContainers(in memberBlock: MemberBlockSyntax) -> Set<String> {
         var found: Set<String> = []
-        collectButtonCollectionNames(in: Syntax(memberBlock), into: &found)
+        collectDecomposedNames(in: Syntax(memberBlock), into: &found)
         return found
     }
 
-    private static func collectButtonCollectionNames(in node: Syntax, into found: inout Set<String>) {
+    private static func collectDecomposedNames(in node: Syntax, into found: inout Set<String>) {
         for child in node.children(viewMode: .sourceAccurate) {
-            if let call = child.as(FunctionCallExprSyntax.self), isButtonCollection(call) {
+            if let call = child.as(FunctionCallExprSyntax.self), isDecomposingContainer(call) {
                 found.formUnion(referencedNames(in: Syntax(call.arguments)))
                 if let trailing = call.trailingClosure {
                     found.formUnion(referencedNames(in: Syntax(trailing)))
@@ -302,16 +316,16 @@ class ComputedPropertyViewVisitor: BasePatternVisitor {
                     found.formUnion(referencedNames(in: Syntax(extra.closure)))
                 }
             }
-            collectButtonCollectionNames(in: child, into: &found)
+            collectDecomposedNames(in: child, into: &found)
         }
     }
 
-    private static func isButtonCollection(_ call: FunctionCallExprSyntax) -> Bool {
+    private static func isDecomposingContainer(_ call: FunctionCallExprSyntax) -> Bool {
         if let member = call.calledExpression.as(MemberAccessExprSyntax.self) {
-            return buttonCollectionBuilders.contains(member.declName.baseName.text)
+            return decomposingContainers.contains(member.declName.baseName.text)
         }
         if let reference = call.calledExpression.as(DeclReferenceExprSyntax.self) {
-            return buttonCollectionBuilders.contains(reference.baseName.text)
+            return decomposingContainers.contains(reference.baseName.text)
         }
         return false
     }
