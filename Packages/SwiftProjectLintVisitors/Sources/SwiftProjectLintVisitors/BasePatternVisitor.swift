@@ -89,6 +89,14 @@ open class BasePatternVisitor: SyntaxVisitor, PatternVisitorProtocol {
 
     public var knownCleanInstanceMethods = CleanInstanceMethodCatalog.empty
 
+    /// Member names each type declares in `extension` blocks, project-wide.
+    ///
+    /// Answers the one question a per-file visitor cannot ask about a type split across files:
+    /// *is there a member here I cannot see?* Built by `ExtensionMemberCatalog.build` in the
+    /// pre-scan. Empty in unit tests that drive a visitor directly, which is correct — a single
+    /// file hides nothing from itself.
+    public var knownExtensionMembers = ExtensionMemberCatalog.empty
+
     /// Functions **this project declares**, as bare names and labelled names (`matches(name:)`).
     /// Built by `DeclaredFunctionCollector` in `ProjectLinter`'s pre-scan.
     ///

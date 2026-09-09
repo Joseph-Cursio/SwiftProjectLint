@@ -32,6 +32,14 @@ class ComputedPropertyViewVisitor: BasePatternVisitor {
     /// Computed once per type, because the answer depends on the type's other members.
     private var firingNames: Set<String> = []
 
+    /// The member blocks of every `extension` in the file under analysis, keyed by extended type.
+    ///
+    /// A type's members are routinely spread over `Foo.swift` and `Foo+Sections.swift`, and the
+    /// gate below needs the whole type: a property forwarding to a sibling it cannot see reads as
+    /// depending on *nothing*, which is the strongest possible pass. This closes the half of that
+    /// gap visible from one file; `knownExtensionMembers` closes the other half by declining.
+    private var fileExtensions: [String: [MemberBlockSyntax]] = [:]
+
     required init(pattern: SyntaxPattern, viewMode: SyntaxTreeViewMode = .sourceAccurate) {
         super.init(pattern: pattern, viewMode: viewMode)
     }
@@ -40,12 +48,54 @@ class ComputedPropertyViewVisitor: BasePatternVisitor {
         self.currentFilePath = filePath
     }
 
+    /// The file's own extensions, gathered before any type is visited.
+    ///
+    /// `SourceFileSyntax` is the root, so this runs first and `fileExtensions` is populated by the
+    /// time any `struct` or `class` is reached — including one declared after the extension.
+    override func visit(_ node: SourceFileSyntax) -> SyntaxVisitorContinueKind {
+        fileExtensions = [:]
+        collectExtensions(in: Syntax(node))
+        return .visitChildren
+    }
+
+    private func collectExtensions(in node: Syntax) {
+        for child in node.children(viewMode: .sourceAccurate) {
+            if let extensionDecl = child.as(ExtensionDeclSyntax.self),
+               let name = ExtensionMemberCollector.extendedTypeName(extensionDecl.extendedType) {
+                fileExtensions[name, default: []].append(extensionDecl.memberBlock)
+            }
+            collectExtensions(in: child)
+        }
+    }
+
+    /// The members of `typeName` this file cannot see: declared in an extension somewhere in the
+    /// project, and not in any extension here.
+    ///
+    /// Empty when no pre-scan ran, which is the right answer for a visitor driven by a unit test —
+    /// one file hides nothing from itself.
+    private func hiddenMembers(of typeName: String) -> Set<String> {
+        let elsewhere = knownExtensionMembers.members(on: typeName)
+        guard !elsewhere.isEmpty else { return [] }
+        let here = (fileExtensions[typeName] ?? [])
+            .reduce(into: Set<String>()) { $0.formUnion(ExtensionMemberCollector.memberNames(in: $1)) }
+        return elsewhere.subtracting(here)
+    }
+
+    /// Every member block that makes up `typeName` in this file: its declaration and its
+    /// same-file extensions.
+    private func memberBlocks(for typeName: String, declaration: MemberBlockSyntax) -> [MemberBlockSyntax] {
+        [declaration] + (fileExtensions[typeName] ?? [])
+    }
+
     // MARK: - Track View-conforming types
 
     override func visit(_ node: StructDeclSyntax) -> SyntaxVisitorContinueKind {
         if conformsToView(node.inheritanceClause) || hasBodySomeView(node.memberBlock) {
             isInsideViewType = true
-            firingNames = Self.propertiesWorthExtracting(in: node.memberBlock)
+            firingNames = Self.propertiesWorthExtracting(
+                in: memberBlocks(for: node.name.text, declaration: node.memberBlock),
+                hiddenMembers: hiddenMembers(of: node.name.text)
+            )
         }
         return .visitChildren
     }
@@ -58,7 +108,10 @@ class ComputedPropertyViewVisitor: BasePatternVisitor {
     override func visit(_ node: ClassDeclSyntax) -> SyntaxVisitorContinueKind {
         if conformsToView(node.inheritanceClause) || hasBodySomeView(node.memberBlock) {
             isInsideViewType = true
-            firingNames = Self.propertiesWorthExtracting(in: node.memberBlock)
+            firingNames = Self.propertiesWorthExtracting(
+                in: memberBlocks(for: node.name.text, declaration: node.memberBlock),
+                hiddenMembers: hiddenMembers(of: node.name.text)
+            )
         }
         return .visitChildren
     }
@@ -112,20 +165,57 @@ class ComputedPropertyViewVisitor: BasePatternVisitor {
     /// *strict* subset of those stored properties. A property depending on all of them re-renders
     /// exactly when its parent does, so a child struct changes nothing; a type with no stored
     /// properties at all has nothing to narrow, and yields nothing.
-    static func propertiesWorthExtracting(in memberBlock: MemberBlockSyntax) -> Set<String> {
-        let members = properties(of: memberBlock)
+    static func propertiesWorthExtracting(
+        in memberBlocks: [MemberBlockSyntax],
+        hiddenMembers: Set<String> = []
+    ) -> Set<String> {
+        let members = properties(of: memberBlocks)
         guard !members.stored.isEmpty else { return [] }
 
-        let decomposed = namesUsedByDecomposingContainers(in: memberBlock)
+        let decomposed = memberBlocks.reduce(into: Set<String>()) {
+            $0.formUnion(namesUsedByDecomposingContainers(in: $1))
+        }
 
         return members.viewProperties.filter { name in
             guard !decomposed.contains(name),
-                  !requiresCapture(name, in: members) else { return false }
+                  !requiresCapture(name, in: members),
+                  !reachesHiddenMember(name, in: members, hidden: hiddenMembers) else { return false }
             let depends = resolvedDependencies(
                 of: name, computed: members.computedReferences, stored: members.stored
             )
             return depends.isSubset(of: members.stored) && depends.count < members.stored.count
         }
+    }
+
+    /// Whether the property reaches a member declared in an extension this file cannot see.
+    ///
+    /// **The gate's premise is that the dependency set is known**, and for a type split across
+    /// files it is not. Worse, the failure is silent and one-directional: an unseen sibling
+    /// contributes no dependencies, so a property that forwards to one reads as depending on
+    /// nothing — the strongest possible pass. The rule was most confident exactly where it knew
+    /// least.
+    ///
+    /// Measured on SwiftLintRuleStudio: 7 of 20 findings sat in types split across files.
+    /// `RuleAuditView.auditResultsView` composes two extension properties that between them read
+    /// six stored properties and call four instance methods — with the whole type in view the
+    /// capture gate declines it outright.
+    ///
+    /// Followed transitively, for the same reason the other two gates are: a wrapper that forwards
+    /// to a wrapper that forwards to an unseen sibling knows no more than the sibling does.
+    private static func reachesHiddenMember(
+        _ name: String, in members: TypeProperties, hidden: Set<String>
+    ) -> Bool {
+        guard !hidden.isEmpty else { return false }
+        var seen: Set<String> = []
+        var pending = [name]
+
+        while let current = pending.popLast() {
+            guard seen.insert(current).inserted else { continue }
+            let referenced = members.computedReferences[current] ?? []
+            if !referenced.isDisjoint(with: hidden) { return true }
+            pending.append(contentsOf: referenced.filter { members.computedReferences[$0] != nil })
+        }
+        return false
     }
 
     /// Whether extracting this property would force a `Binding` or a capturing closure across the
@@ -223,9 +313,9 @@ class ComputedPropertyViewVisitor: BasePatternVisitor {
 
     /// The type's stored inputs, what each computed property references, and which of them return
     /// `some View`.
-    private static func properties(of memberBlock: MemberBlockSyntax) -> TypeProperties {
+    private static func properties(of memberBlocks: [MemberBlockSyntax]) -> TypeProperties {
         var result = TypeProperties()
-        for member in memberBlock.members {
+        for member in memberBlocks.flatMap(\.members) {
             if let function = member.decl.as(FunctionDeclSyntax.self),
                !function.modifiers.contains(where: { $0.name.tokenKind == .keyword(.static) }) {
                 result.instanceMethods.insert(function.name.text)
@@ -258,172 +348,6 @@ class ComputedPropertyViewVisitor: BasePatternVisitor {
         if name != "body", returnsSomeViewType(binding.typeAnnotation) {
             result.viewProperties.insert(name)
         }
-    }
-
-    /// APIs that **decompose** the closure they are handed instead of rendering it as one view.
-    ///
-    /// Two families, one argument. `confirmationDialog(actions:)`, `alert(actions:)`,
-    /// `Menu(content:)` and `contextMenu` read a *collection of buttons* out of the builder.
-    /// `ToolbarItem(content:)`, `ToolbarItemGroup(content:)` and `.toolbar` read a *collection of
-    /// toolbar items* out of theirs. In both cases a `View` struct wrapping the contents is a
-    /// container the API is not specified to accept, so "extract this into its own View" is not
-    /// behaviour-preserving — it is the one place where following this rule can change what the app
-    /// does rather than only how it redraws.
-    ///
-    /// The toolbar half is visible in the corpus rather than argued: `ViolationInspectorView`'s
-    /// `navigationButtons` is a `Group` of two `Button`s inside a `ToolbarItemGroup`, which places
-    /// **two** items. Wrapped in a `View` struct it is one view, and the group places **one**.
-    /// `actionsMenu` is worse — an `if` around a `Menu`, so extraction also fixes the item count
-    /// that the condition currently varies.
-    ///
-    /// Deliberately coarse in the same direction as the dialog half: a property that happens to be
-    /// the *only* view in its `ToolbarItem` could be extracted safely, and is spared anyway. A
-    /// spared property costs a finding; a reported one whose extraction drops a toolbar button
-    /// costs a working app.
-    ///
-    /// The dialog half was found on MacCloud_client_iOS, where `FileListView` had three such
-    /// properties and the rule reported all three — marked `info` for carrying `@ViewBuilder`,
-    /// which is not the same thing as declining to report them.
-    private static let decomposingContainers: Set<String> = [
-        "confirmationDialog", "alert", "actionSheet", "Menu", "contextMenu",
-        "ToolbarItem", "ToolbarItemGroup", "toolbar"
-    ]
-
-    /// Property names referenced inside one of those containers.
-    ///
-    /// Only the *arguments and trailing closures* are searched, never the called expression. For a
-    /// modifier the called expression holds the receiver — the entire view it is applied to — and
-    /// walking it would sweep up every name in `body`.
-    ///
-    /// Deliberately coarse in one direction: a name appearing in `alert`'s `message:` closure is
-    /// spared along with the ones in `actions:`. Sparing a property costs a finding; reporting one
-    /// whose extraction breaks a dialog or drops a toolbar button costs a working app, so the
-    /// imprecision is pointed the safe way.
-    private static func namesUsedByDecomposingContainers(in memberBlock: MemberBlockSyntax) -> Set<String> {
-        var found: Set<String> = []
-        collectDecomposedNames(in: Syntax(memberBlock), into: &found)
-        return found
-    }
-
-    private static func collectDecomposedNames(in node: Syntax, into found: inout Set<String>) {
-        for child in node.children(viewMode: .sourceAccurate) {
-            if let call = child.as(FunctionCallExprSyntax.self), isDecomposingContainer(call) {
-                found.formUnion(referencedNames(in: Syntax(call.arguments)))
-                if let trailing = call.trailingClosure {
-                    found.formUnion(referencedNames(in: Syntax(trailing)))
-                }
-                for extra in call.additionalTrailingClosures {
-                    found.formUnion(referencedNames(in: Syntax(extra.closure)))
-                }
-            }
-            collectDecomposedNames(in: child, into: &found)
-        }
-    }
-
-    private static func isDecomposingContainer(_ call: FunctionCallExprSyntax) -> Bool {
-        if let member = call.calledExpression.as(MemberAccessExprSyntax.self) {
-            return decomposingContainers.contains(member.declName.baseName.text)
-        }
-        if let reference = call.calledExpression.as(DeclReferenceExprSyntax.self) {
-            return decomposingContainers.contains(reference.baseName.text)
-        }
-        return false
-    }
-
-    /// The stored properties a computed property reaches, following the type's other computed
-    /// properties. A wrapper that reads nothing itself still depends on whatever it calls.
-    private static func resolvedDependencies(
-        of name: String,
-        computed: [String: Set<String>],
-        stored: Set<String>
-    ) -> Set<String> {
-        var seen: Set<String> = [name]
-        var pending = Array(computed[name] ?? [])
-        var result: Set<String> = []
-
-        while let next = pending.popLast() {
-            if stored.contains(next) { result.insert(next) }
-            guard !seen.contains(next) else { continue }
-            seen.insert(next)
-            if let further = computed[next] { pending.append(contentsOf: further) }
-        }
-        return result
-    }
-
-    /// Every name referenced in `node`, **including `node` itself**.
-    ///
-    /// The self-inclusion is the whole point, and it was missing. This walked only the children, so
-    /// a caller handing it a bare `DeclReferenceExprSyntax` got back the empty set — the node it
-    /// asked about was the one node never examined.
-    ///
-    /// Every other caller passes a container (an accessor block, an argument list, a closure), for
-    /// which a root that is itself a reference is impossible, so the gap was invisible from all of
-    /// them but one. The exception was `requiresCapture`'s `toggle` check, which passes the base of
-    /// `isExpanded.toggle()` and therefore **never once fired** — `isExpanded = true` was gated and
-    /// `isExpanded.toggle()` was reported, the same mutation under two spellings.
-    ///
-    /// `assignedNames` had already hit this and worked around it in place, re-inserting the
-    /// element's own name after calling here. That workaround is now redundant and is kept only
-    /// because it also handles a member access this function deliberately does not.
-    private static func referencedNames(in node: Syntax) -> Set<String> {
-        var names: Set<String> = []
-        insertReference(at: node, into: &names)
-        for child in node.children(viewMode: .sourceAccurate) {
-            names.formUnion(referencedNames(in: child))
-        }
-        return names
-    }
-
-    /// The name `node` refers to, if it refers to one. A member access counts only through
-    /// `self`, because `other.property` is a reference to `other` and not to `property`.
-    private static func insertReference(at node: Syntax, into names: inout Set<String>) {
-        if let reference = node.as(DeclReferenceExprSyntax.self) {
-            names.insert(stripped(reference.baseName.text))
-        }
-        if let member = node.as(MemberAccessExprSyntax.self),
-           member.base?.as(DeclReferenceExprSyntax.self)?.baseName.tokenKind
-            == .keyword(.self) {
-            names.insert(member.declName.baseName.text)
-        }
-    }
-
-    /// Whether `type` is a function type, seeing through the wrappers a callback is usually
-    /// declared with.
-    ///
-    /// `() -> Void`, `(() -> Void)?` and `@escaping (Template) -> Void` are all the same thing for
-    /// this purpose, and the corpus writes all three. An optional wraps a *parenthesised* function
-    /// type, which parses as a one-element tuple, so the tuple case is what makes the optional
-    /// spelling work rather than an accident.
-    private static func isFunctionType(_ type: TypeSyntax?) -> Bool {
-        guard let type else { return false }
-        if type.is(FunctionTypeSyntax.self) { return true }
-        if let optional = type.as(OptionalTypeSyntax.self) {
-            return isFunctionType(optional.wrappedType)
-        }
-        if let attributed = type.as(AttributedTypeSyntax.self) {
-            return isFunctionType(attributed.baseType)
-        }
-        if let tuple = type.as(TupleTypeSyntax.self), tuple.elements.count == 1,
-           let only = tuple.elements.first {
-            return isFunctionType(only.type)
-        }
-        return false
-    }
-
-    /// `$isExpanded` and `isExpanded` are the same input.
-    ///
-    /// The projected value of a `@State` or `@Binding` parses as its own identifier, so a property
-    /// that writes through `$isExpanded` reads as depending on nothing. That is not academic: a
-    /// `Toggle(_:isOn:)` is the ordinary way to touch that state, and without this every wrapper
-    /// around one looked input-free and fired.
-    private static func stripped(_ name: String) -> String {
-        name.hasPrefix("$") ? String(name.dropFirst()) : name
-    }
-
-    private static func returnsSomeViewType(_ annotation: TypeAnnotationSyntax?) -> Bool {
-        guard let annotation,
-              let someType = annotation.type.as(SomeOrAnyTypeSyntax.self) else { return false }
-        return someType.constraint.trimmedDescription == "View"
     }
 
     // MARK: - Helpers

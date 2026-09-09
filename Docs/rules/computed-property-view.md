@@ -18,9 +18,18 @@ identity boundary.
 
 **It does not report all of them.** The mechanism above is real but its benefit is *conditional*,
 and the rule used to report it unconditionally — 341 findings across nine repositories, of which a
-hand audit found many that could not benefit at all. Three gates now stand between a property and a
+hand audit found many that could not benefit at all. Four gates now stand between a property and a
 finding, and every one of them was measured against a 26-repository corpus rather than argued for.
-The count is **57**.
+
+**The corpus count is 0.** 341 → 63 by narrowing, then 63 → 0 in one pass across seven
+repositories: the toolbar half of Gate 2 removed 6 and the whole of Gate 4 removed 5, all 11 the
+rule's fault; **48** properties were extracted into `View` structs or inlined at their call sites;
+and **4** were declined in place, each with a written reason and a `swiftprojectlint:disable:next`
+marker. No other rule's count moved in any of the seven, so the refactoring introduced nothing.
+
+The split is worth reading beside the four rules worked before this one, which averaged about half
+their findings being the rule's fault. Here it is **17%** — the lowest yet — and the reason is that
+this rule had already been narrowed four times before anyone applied it.
 
 #### Gate 1 — the property must take a narrower input than its parent
 
@@ -115,14 +124,62 @@ independently judged not worth extracting.
 > same mutation under two spellings. Found by re-classifying the file the gate was calibrated
 > against and noticing one property still fired.
 
-**A mutating method other than `toggle()` is a known miss.** `selection.remove(id)` and
-`selection.insert(id)` on a `@State Set` require a `Binding` exactly as `toggle()` does, and are
-still reported — one finding in the corpus, in `ComparisonView`. Closing it means choosing between a
-hand-maintained list of mutating method names, which is arbitrary, and the principled rule — *a call
-in statement position whose receiver is stored state* — which over-gates without type resolution,
-because it cannot tell `selection.remove(id)` on a value type from `viewModel.reload()` on a
-reference type. Neither has a defence strong enough to ship on one finding, so the miss is recorded
-rather than closed.
+**A mutating method other than `toggle()` is a known miss** — see *Open, and why* below.
+
+#### Gate 4 — a type split across files is only partly known
+
+Gate 1's premise is that the dependency set is **known**. For a type whose members live in
+`Foo.swift` and `Foo+Sections.swift` it is not, and the failure runs one way: an unseen sibling
+contributes no dependencies, so a property that forwards to one reads as depending on *nothing* —
+the strongest possible pass of the gate. **The rule was at its most confident exactly where it knew
+least.**
+
+`ExtensionMemberCatalog`, a project pre-scan, records the member names each type declares in
+`extension` blocks. The visitor merges the extensions it can see in the file under analysis and
+declines any property whose transitive reference closure reaches one of the rest. Precise rather
+than blanket: a property in a split type that touches nothing unseen is still reported.
+
+Measured on SwiftLintRuleStudio, the corpus's worst case: **7 of 20 findings sat in types split
+across files, and the catalog removed 5** — the other two reach no hidden member and still fire.
+`RuleAuditView.auditResultsView` is the clearest. It composes two properties from
+`RuleAuditView+Subviews.swift` that between them read six stored properties and call four instance
+methods, so with the whole type in view Gate 3 declines it outright.
+
+**An extension's own view properties are still not reported.** Merging feeds the dependency walk;
+it does not put the extension's members in scope for reporting, because `isInsideViewType` is set
+by entering the type declaration. That is a coverage *increase* on a rule this pass was narrowing,
+so it is pinned as a decision by `extensionDeclaredPropertyIsNotItselfReported` rather than made
+silently.
+
+#### Open, and why
+
+Three shapes are recorded rather than closed. Each would take a measurement this project cannot
+make from source alone.
+
+**A mutating method other than `toggle()`.** `selection.remove(id)` and `selection.insert(id)` on a
+`@State Set` require a `Binding` exactly as `toggle()` does, and are still reported — one finding
+in the corpus, `ComparisonView.repoSelector` in SwiftLintRuleStudioTeam, now carrying a
+`disable:next` marker. Closing it means choosing between a hand-maintained list of mutating method
+names, which is arbitrary, and the principled rule — *a call in statement position whose receiver is
+stored state* — which over-gates without type resolution, because it cannot tell
+`selection.remove(id)` on a value type from `viewModel.reload()` on a reference type.
+
+**A `Section` whose rows carry `.tag()`, inside a selectable `List`.** One finding,
+`TemplateLibraryView.projectTypeSection`, also marked in place. Whether a tag survives being moved
+into a child `View`'s body is a question about SwiftUI's selection machinery, and the cost of
+guessing wrong is a sidebar that stops selecting. It belongs with the Gate 2 family if it belongs
+anywhere, and it needs a running app to settle.
+
+**Whether a property whose body is a *single view value* benefits at all.** `emptyState` returning
+one `ContentUnavailableView(…)` already produces a node with its own identity, and SwiftUI's own
+value diffing skips an unchanged subtree without help. If that is enough, the extraction saves only
+the construction of one struct and roughly a dozen corpus findings were never worth reporting; if
+it is not, they were. **The `body`-evaluation harness that settled Gate 3 was not kept**, and
+rebuilding it is the only way to answer this. Two of the corpus instances need no harness and were
+handled by deleting the property instead: `ConfigDiffPreviewView.fullDiffView` and
+`RuleBrowserListView.searchAndFiltersSection` were one-line aliases for `View` structs the app
+already declares, so the boundary the rule asks for was already there and the suggested extraction
+would have produced a struct whose body is the same call.
 
 #### What the rule still cannot see
 
