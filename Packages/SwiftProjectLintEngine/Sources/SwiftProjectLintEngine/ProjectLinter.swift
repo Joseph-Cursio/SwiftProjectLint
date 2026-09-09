@@ -294,7 +294,9 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
                 functionTypeAliases: collectTypes(FunctionTypeAliasCollector.self, from: filePaths),
                 spiMembers: collectTypes(SPIMemberCollector.self, from: filePaths),
                 underscoredMembers: collectTypes(UnderscoredMemberCollector.self, from: filePaths),
-                cleanInstanceMethods: CleanInstanceMethodCatalog.build(from: parsed),
+                cleanInstanceMethods: CleanInstanceMethodCatalog.build(
+                    from: parsed, enumTypes: collectTypes(EnumTypeCollector.self, from: filePaths)
+                ),
                 extensionMembers: ExtensionMemberCatalog.build(from: parsed),
                 closureWrapperTypes: ClosureWrapperTypeCatalog.build(from: parsed),
                 impurePackageFunctions: PackagePurityJoin(sources: parsed).settledImpureNames

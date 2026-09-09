@@ -81,6 +81,14 @@
       "expected": "killed",
       "test": "closureWrapperIsNotReported",
       "label": "the closure-wrapper collector counts computed properties as storage \u2014 `var now: Date { make() }` is the wrapper's whole point, so every real instance stops qualifying and the exemption reaches nothing"
+    },
+    {
+      "id": "kernel-storage-test-inverted-to-denylist",
+      "patch": "patches/kernel-storage-test-inverted-to-denylist.patch",
+      "shape": "detector-recall",
+      "expected": "killed",
+      "test": "storedCollaboratorDisqualifiesEvenWhenUnnamedInBodies",
+      "label": "the pure-kernel storage test becomes a denylist (only unreadable spellings disqualify) \u2014 the first implementation, which exempted a type storing UserDefaults and one storing a SwiftData ModelContainer"
     }
   ]
 }

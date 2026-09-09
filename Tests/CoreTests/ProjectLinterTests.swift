@@ -595,9 +595,15 @@ struct ProjectLinterNestedPackageTests {
             var token = ""
         }
         """)
+        // The control has state on purpose. It used to be `final class PlainService { func run() { } }`
+        // — no storage, one empty method — which is a *pure kernel* under the exemption added for
+        // SwiftProjectLint#163, so the control started passing the rule for a reason that had
+        // nothing to do with what this test is about. A service that holds something a second
+        // instance would hold differently is what "still flagged" is supposed to mean.
         writeFile(at: "\(root)/Sources/Root/PlainService.swift", """
         final class PlainService {
-            func run() { }
+            var callCount = 0
+            func run() { callCount += 1 }
         }
         """)
         writeFile(at: "\(root)/Sources/Root/Coordinator.swift", """

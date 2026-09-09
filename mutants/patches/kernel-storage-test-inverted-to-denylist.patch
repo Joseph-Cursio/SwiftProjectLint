@@ -1,0 +1,21 @@
+diff --git a/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/CleanInstanceMethodCatalog.swift b/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/CleanInstanceMethodCatalog.swift
+--- a/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/CleanInstanceMethodCatalog.swift
++++ b/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/CleanInstanceMethodCatalog.swift
+@@ -158,7 +158,7 @@
+         var found: Set<String> = []
+         for (name, members) in types where !members.isActor {
+             guard members.declaredStorage.allSatisfy({ storage in
+-                !storage.isMutable && storage.isValue(givenEnums: enumTypes)
++                !storage.isMutable && !storage.isCollaboratorDenylisted
+             }) else { continue }
+             let cleanHere = clean[name] ?? []
+             guard members.methods.keys.allSatisfy({ cleanHere.contains($0) }) else { continue }
+@@ -237,6 +237,8 @@
+         /// optional of one. Collections are values whatever they contain, because replacing the
+         /// contents is what constructing a different one means.
+         let isSyntacticValue: Bool
++
++        var isCollaboratorDenylisted: Bool { typeName == nil }
+ 
+         func isValue(givenEnums enums: Set<String>) -> Bool {
+             if isSyntacticValue { return true }

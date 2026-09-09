@@ -12,6 +12,17 @@ construction.
 
 ## Run
 
+**Rebuild before measuring anything with the binary afterwards.** The runner reverts each mutant's
+*source* and moves on, so the build products left behind belong to the **last mutant**, not to
+`main`. A corpus measurement taken straight after a run is a measurement of that mutant.
+
+This is not hypothetical: a sweep run immediately after `kernel-storage-test-inverted-to-denylist`
+reported two repositories lower than the truth — exactly that mutant's two false exemptions — and
+the number was one step from being published. It was caught only because the shortfall matched the
+mutant's own documented effect. `rm -f .build/build.db && swift build --product CLI` first, or copy
+the binary *before* running the corpus.
+
+
 ```sh
 mutants/run-mutants.sh                       # all mutants
 mutants/run-mutants.sh kernel-threshold-too-high
@@ -111,3 +122,23 @@ uppercase letter. The second is subtler — counting a computed property as stor
 `var now: Date { make() }` disqualify the very type the exemption was written for, so the catalog
 comes back empty and every finding returns. A first, cruder version of the detector did exactly
 that.
+
+### The pure-kernel discriminator
+
+One mutant, and it reproduces a mistake that actually shipped into a corpus run before the
+measurement caught it.
+
+| id | shape | expected | killer |
+|---|---|---|---|
+| `kernel-storage-test-inverted-to-denylist` | detector-recall | killed | `storedCollaboratorDisqualifiesEvenWhenUnnamedInBodies` |
+
+`isPureKernel(_:)` asks whether every stored property is a **value** — a positive test. The mutant
+turns it back into the denylist the first implementation used: only spellings the walker cannot
+read disqualify. That exempts a type storing `UserDefaults` and one storing a SwiftData
+`ModelContainer`, which is exactly what the first corpus run produced — two false exemptions out of
+six.
+
+Worth having because the failure is invisible from the rule's output *and* from the purity oracle.
+`UserDefaults` is one of the oracle's own side-effect markers, and the method that uses it reads
+`defaults.data(forKey:)` — the property's name, never its type. A dependency held as storage does
+not name itself where it is used.

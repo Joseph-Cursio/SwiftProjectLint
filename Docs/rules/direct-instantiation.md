@@ -87,4 +87,29 @@ final class ProjectParser {
 }
 ```
 
+
+### A type that holds nothing a test could supply
+
+Constructing one is not a coupling point. A test that wants different behaviour from
+`PromptBuilder` passes different arguments, not a different instance — there is no state for a
+second instance to hold differently and no effect for a double to intercept.
+
+`CleanInstanceMethodCatalog.isPureKernel(_:)` decides it, shared with `ConcreteTypeUsage`, which
+asks the same question from the declared type rather than the construction site. Three conditions:
+every method is a function of its inputs under the purity fixpoint this project already resolved,
+no stored property is mutable, and every stored property is a value — a stdlib value type, a
+project enum, or a collection or optional of one.
+
+**Both cheap approximations were measured and refused.** *Value type* fails on `CacheManager`, a
+`public struct` doing file I/O. *No-argument initializer* fails on `AntiPatternStore()` and
+`SourceKitClient()`, which take no arguments and talk to disk and to `sourcekitd`.
+
+**And the storage test is positive rather than negative for a measured reason.** Asked as a
+denylist — is any stored property a closure or an existential? — it produced two false exemptions
+on its first corpus run, including a type storing `UserDefaults`. That type's method reads
+`defaults.data(forKey:)`, the property's name; the type appears only in the declaration. A
+dependency held as storage does not name itself where it is used, so the oracle that reads bodies
+cannot see it and only the declaration can.
+
+
 ---
