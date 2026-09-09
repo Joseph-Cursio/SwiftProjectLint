@@ -250,6 +250,10 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
         /// only part of the type — see `ExtensionMemberCatalog`.
         let extensionMembers: ExtensionMemberCatalog
 
+        /// Value types whose whole content is one closure — already a seam. See
+        /// `ClosureWrapperTypeCatalog`.
+        let closureWrapperTypes: ClosureWrapperTypeCatalog
+
         /// Package function names this project's own purity oracle refutes with an
         /// establishable witness — the one-hop callee join. Needs parsed bodies for the
         /// same reason `cleanInstanceMethods` does, and shares the single parse below.
@@ -292,6 +296,7 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
                 underscoredMembers: collectTypes(UnderscoredMemberCollector.self, from: filePaths),
                 cleanInstanceMethods: CleanInstanceMethodCatalog.build(from: parsed),
                 extensionMembers: ExtensionMemberCatalog.build(from: parsed),
+                closureWrapperTypes: ClosureWrapperTypeCatalog.build(from: parsed),
                 impurePackageFunctions: PackagePurityJoin(sources: parsed).settledImpureNames
             )
         }
@@ -319,6 +324,7 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
         resolved.knownValueTypes = collected.values
         resolved.knownCleanInstanceMethods = collected.cleanInstanceMethods
         resolved.knownExtensionMembers = collected.extensionMembers
+        resolved.knownClosureWrapperTypes = collected.closureWrapperTypes
         resolved.knownImpurePackageFunctions = collected.impurePackageFunctions
         resolved.knownProjectFunctions = collected.functions
         resolved.knownDefaultedInitializerTypes = collected.defaultedInitializers
@@ -358,6 +364,7 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
             impurePackageFunctions: collected.impurePackageFunctions,
             defaultedInitializerTypes: collected.defaultedInitializers,
             extensionMembers: collected.extensionMembers,
+            closureWrapperTypes: collected.closureWrapperTypes,
             cleanInstanceMethods: collected.cleanInstanceMethods,
             enabledFrameworkAllowlists: configuration.enabledFrameworkAllowlists,
             layerPolicies: configuration.architecturalLayers

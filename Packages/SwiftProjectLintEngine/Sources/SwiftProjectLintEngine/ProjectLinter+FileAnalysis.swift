@@ -203,6 +203,7 @@ extension ProjectLinter {
         /// Per type, the member names its `extension` blocks declare — the pre-scan's answer to
         /// "is part of this type in another file?". See `ExtensionMemberCatalog`.
         let extensionMembers: ExtensionMemberCatalog
+        let closureWrapperTypes: ClosureWrapperTypeCatalog
         let cleanInstanceMethods: CleanInstanceMethodCatalog
 
         /// Which framework allowlists the heuristic effect inferrer applies. `nil` means all of
@@ -241,6 +242,7 @@ extension ProjectLinter {
             impurePackageFunctions: env.impurePackageFunctions,
             defaultedInitializerTypes: env.defaultedInitializerTypes,
             extensionMembers: env.extensionMembers,
+            closureWrapperTypes: env.closureWrapperTypes,
             cleanInstanceMethods: env.cleanInstanceMethods,
             enabledFrameworkAllowlists: env.enabledFrameworkAllowlists,
             layerPolicies: env.layerPolicies
@@ -271,6 +273,7 @@ extension ProjectLinter {
         impurePackageFunctions: Set<String> = [],
         defaultedInitializerTypes: Set<String> = [],
         extensionMembers: ExtensionMemberCatalog = .empty,
+        closureWrapperTypes: ClosureWrapperTypeCatalog = .empty,
         cleanInstanceMethods: CleanInstanceMethodCatalog = .empty,
         enabledFrameworkAllowlists: Set<String>? = nil,
         layerPolicies: [LayerPolicy] = []
@@ -304,6 +307,7 @@ extension ProjectLinter {
         det.knownImpurePackageFunctions = impurePackageFunctions
         det.knownDefaultedInitializerTypes = defaultedInitializerTypes
         det.knownExtensionMembers = extensionMembers
+        det.knownClosureWrapperTypes = closureWrapperTypes
         det.knownCleanInstanceMethods = cleanInstanceMethods
         det.enabledFrameworkAllowlists = enabledFrameworkAllowlists
         det.layerPolicies = layerPolicies

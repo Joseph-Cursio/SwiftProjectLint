@@ -97,6 +97,11 @@ open class BasePatternVisitor: SyntaxVisitor, PatternVisitorProtocol {
     /// file hides nothing from itself.
     public var knownExtensionMembers = ExtensionMemberCatalog.empty
 
+    /// Value types whose entire content is a single closure — already an injection seam.
+    /// Built by `ClosureWrapperTypeCatalog.build` in the pre-scan; empty in unit tests that
+    /// drive a visitor directly, which correctly reads as "nothing is a closure wrapper".
+    public var knownClosureWrapperTypes = ClosureWrapperTypeCatalog.empty
+
     /// Functions **this project declares**, as bare names and labelled names (`matches(name:)`).
     /// Built by `DeclaredFunctionCollector` in `ProjectLinter`'s pre-scan.
     ///

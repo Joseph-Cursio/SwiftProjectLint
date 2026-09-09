@@ -65,6 +65,22 @@
       "expected": "killed",
       "test": "everyCatalogIsInjectedPerFile",
       "label": "the pre-scan's clean-instance-method catalog is built and then never assigned to the per-file detector \u2014 the linter reports fewer property-test candidates, correctly formatted, with no error anywhere"
+    },
+    {
+      "id": "platform-prefix-set-widened",
+      "patch": "patches/platform-prefix-set-widened.patch",
+      "shape": "detector-recall",
+      "expected": "killed",
+      "test": "twoLetterPrefixCollisionIsPinned",
+      "label": "the AppKit/UIKit prefix set grows to every Apple two-letter prefix \u2014 CLIToolCommandRunner begins CL + uppercase and goes silent for a reason unrelated to why it should be silent"
+    },
+    {
+      "id": "computed-property-counts-as-storage",
+      "patch": "patches/computed-property-counts-as-storage.patch",
+      "shape": "detector-recall",
+      "expected": "killed",
+      "test": "closureWrapperIsNotReported",
+      "label": "the closure-wrapper collector counts computed properties as storage \u2014 `var now: Date { make() }` is the wrapper's whole point, so every real instance stops qualifying and the exemption reaches nothing"
     }
   ]
 }

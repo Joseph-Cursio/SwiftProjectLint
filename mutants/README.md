@@ -93,3 +93,21 @@ is indistinguishable from a corpus that has fewer candidates in it. That is why 
 is a structural test over the two functions' source rather than an assertion about any
 finding: it is the one bug shape in this corpus that no assertion about a rule's output
 could catch.
+
+### The `ConcreteTypeUsage` seam exemptions
+
+Two more, from the pass that took that rule 41 → 22. Both are **recall** mutants: they widen or
+narrow an exemption so the rule reports *more*, which is the direction nobody checks. A gate that
+stops exempting looks exactly like a corpus that grew.
+
+| id | shape | expected | killer |
+|---|---|---|---|
+| `platform-prefix-set-widened` | detector-recall | killed | `twoLetterPrefixCollisionIsPinned` |
+| `computed-property-counts-as-storage` | detector-recall | killed | `closureWrapperIsNotReported` |
+
+The first is the generalisation that looks obviously right and is refuted by this corpus: every
+Apple two-letter prefix, which silences `CLIToolCommandRunner` because it begins `CL` followed by an
+uppercase letter. The second is subtler — counting a computed property as storage makes
+`var now: Date { make() }` disqualify the very type the exemption was written for, so the catalog
+comes back empty and every finding returns. A first, cruder version of the detector did exactly
+that.

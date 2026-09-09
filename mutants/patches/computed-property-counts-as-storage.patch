@@ -1,0 +1,13 @@
+diff --git a/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/ClosureWrapperTypeCollector.swift b/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/ClosureWrapperTypeCollector.swift
+--- a/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/ClosureWrapperTypeCollector.swift
++++ b/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/ClosureWrapperTypeCollector.swift
+@@ -95,8 +95,7 @@
+             for binding in variable.bindings {
+                 // Computed properties are not storage. `var now: Date { make() }` is the
+                 // wrapper's whole point and must not disqualify it.
+-                guard binding.accessorBlock == nil,
+-                      let type = binding.typeAnnotation?.type else { continue }
++                guard let type = binding.typeAnnotation?.type else { continue }
+                 storedTypes.append(type)
+             }
+         }
