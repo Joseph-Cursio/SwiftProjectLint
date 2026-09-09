@@ -273,6 +273,17 @@ class ConcreteTypeUsageVisitor: BasePatternVisitor {
             // covers all three spellings and the inline and `extension` forms alike.
             Exemption { self.knownEquatableTypes.contains($0) },
 
+            // A type that holds nothing a test could not supply. `PromptBuilder` has no stored
+            // properties and one pure method; `EffectAnnotationParser` stores a single value
+            // struct of attribute-name sets its own documentation says to reconfigure. A protocol
+            // in front of either is a seam around a pure function — the opposite of what this
+            // sweep is for.
+            //
+            // The oracle that decides this was already running project-wide with no rule
+            // consulting it (SwiftProjectLint#163). It is shared with `DirectInstantiation`,
+            // which asks the same question from the construction site.
+            Exemption { self.knownCleanInstanceMethods.isPureKernel($0) },
+
             // Protocol types — already an abstraction. A protocol used as a bare existential
             // (`let provider: ResourceMetricsProvider`) is not a concrete dependency, but the
             // name-based check above only recognises the `Protocol`/`Type`/`Interface` naming

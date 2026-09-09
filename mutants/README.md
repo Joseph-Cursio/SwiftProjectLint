@@ -111,3 +111,23 @@ uppercase letter. The second is subtler — counting a computed property as stor
 `var now: Date { make() }` disqualify the very type the exemption was written for, so the catalog
 comes back empty and every finding returns. A first, cruder version of the detector did exactly
 that.
+
+### The pure-kernel discriminator
+
+One mutant, and it reproduces a mistake that actually shipped into a corpus run before the
+measurement caught it.
+
+| id | shape | expected | killer |
+|---|---|---|---|
+| `kernel-storage-test-inverted-to-denylist` | detector-recall | killed | `storedCollaboratorDisqualifiesEvenWhenUnnamedInBodies` |
+
+`isPureKernel(_:)` asks whether every stored property is a **value** — a positive test. The mutant
+turns it back into the denylist the first implementation used: only spellings the walker cannot
+read disqualify. That exempts a type storing `UserDefaults` and one storing a SwiftData
+`ModelContainer`, which is exactly what the first corpus run produced — two false exemptions out of
+six.
+
+Worth having because the failure is invisible from the rule's output *and* from the purity oracle.
+`UserDefaults` is one of the oracle's own side-effect markers, and the method that uses it reads
+`defaults.data(forKey:)` — the property's name, never its type. A dependency held as storage does
+not name itself where it is used.

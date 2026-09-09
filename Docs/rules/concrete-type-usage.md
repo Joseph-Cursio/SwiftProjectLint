@@ -181,18 +181,27 @@ class MyViewModel {
   shape the function-`typealias` exemption already used, and the entry stood for two sweeps because
   nobody asked whether the nominal form of an exempt shape was also exempt.
 
-- **A stateless, effect-free type is still reported.** Seven of the remaining findings name a type
-  that holds nothing a test could not supply: `PromptBuilder` and `ThinkingAnalyzer` have no stored
-  properties at all, and `EffectAnnotationParser` stores only a value struct of attribute-name sets
-  it is meant to be reconfigured with. Asking for a protocol in front of a pure function is the
-  opposite of what this sweep is for.
+- **~~A stateless, effect-free type is still reported.~~** Closed by the pure-kernel exemption,
+  which is SwiftProjectLint#163 and is shared with `DirectInstantiation` — see
+  `CleanInstanceMethodCatalog.isPureKernel(_:)`. It removed four: `PromptBuilder` at three sites
+  and `ThinkingAnalyzer` at one.
 
-  This is **SwiftProjectLint#163**, filed against `DirectInstantiation` and applying equally here.
-  The discriminator is stated there and both cheap approximations are already refuted by
-  measurement: *value type* is wrong (`CacheManager` is a struct doing file I/O) and *no-argument
-  initializer* is wrong (`AntiPatternStore()` talks to disk). The real test needs the purity oracle
-  the project already runs — `PackagePurityJoin` and `CleanInstanceMethodCatalog` — and no rule
-  consults it. Deliberately not built here: it is a fourth prescan and it belongs to that issue's
-  scope rather than to a pass of applying this rule.
+  **It removed two more that it should not have, and that is the part worth keeping.** The first
+  implementation asked whether any stored property was a closure or an existential — a denylist —
+  and exempted `PluginPermissionGrantsStore`, which stores a `UserDefaults`, and
+  `PersistenceController`, which stores a SwiftData `ModelContainer`. Neither is a closure, an
+  existential, or service-suffixed, so no denylist available here would have caught either.
+
+  The method-cleanliness clause did not catch them either. `UserDefaults` *is* one of the purity
+  oracle's side-effect markers, but `PluginPermissionGrantsStore.load()` reads
+  `defaults.data(forKey: key)` — the stored property's **name**, never its type. **A dependency
+  held as storage does not spell its own type in the method that uses it**, so a body-scanning
+  oracle cannot see it. The storage test is positive for that reason: a kernel may hold only
+  values, and an unrecognised stored type disqualifies.
+
+- **`EffectAnnotationParser` is still reported, and the exemption was expected to reach it.** It
+  stores one `AttributeRecognition` value struct and its methods parse syntax, so it looked like a
+  kernel; the oracle refutes at least one of its methods. Whether that refusal is right has not
+  been checked, and the three findings stand until it is.
 
 ---

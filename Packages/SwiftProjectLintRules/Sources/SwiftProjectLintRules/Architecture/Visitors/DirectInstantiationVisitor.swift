@@ -50,6 +50,12 @@ class DirectInstantiationVisitor: BasePatternVisitor {
         guard ServiceTypeSuffix.matches(typeName),
               !MockTypeName.matches(typeName) else { return nil }
 
+        // A type that holds nothing a test could not supply has nothing to inject: a test that
+        // wants different behaviour passes different arguments, not a different instance. See
+        // `CleanInstanceMethodCatalog.isPureKernel(_:)` and SwiftProjectLint#163 — the issue this
+        // closes, filed against this rule, and answered for both twins at once.
+        if knownCleanInstanceMethods.isPureKernel(typeName) { return nil }
+
         // A `private` or `fileprivate` type cannot be injected: no caller outside the file
         // that declares it can name the type, so there is nowhere for a substitute to come
         // from and no test that could supply one. Taking the advice would mean *widening*
