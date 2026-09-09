@@ -203,6 +203,12 @@ extension ProjectLinter {
         /// Per type, the member names its `extension` blocks declare — the pre-scan's answer to
         /// "is part of this type in another file?". See `ExtensionMemberCatalog`.
         let extensionMembers: ExtensionMemberCatalog
+        let cleanInstanceMethods: CleanInstanceMethodCatalog
+
+        /// Which framework allowlists the heuristic effect inferrer applies. `nil` means all of
+        /// them, which is also the visitor's default — so this being dropped was invisible until
+        /// somebody set it.
+        let enabledFrameworkAllowlists: Set<String>?
         let layerPolicies: [LayerPolicy]
     }
 
@@ -235,6 +241,8 @@ extension ProjectLinter {
             impurePackageFunctions: env.impurePackageFunctions,
             defaultedInitializerTypes: env.defaultedInitializerTypes,
             extensionMembers: env.extensionMembers,
+            cleanInstanceMethods: env.cleanInstanceMethods,
+            enabledFrameworkAllowlists: env.enabledFrameworkAllowlists,
             layerPolicies: env.layerPolicies
         )
     }
@@ -263,6 +271,8 @@ extension ProjectLinter {
         impurePackageFunctions: Set<String> = [],
         defaultedInitializerTypes: Set<String> = [],
         extensionMembers: ExtensionMemberCatalog = .empty,
+        cleanInstanceMethods: CleanInstanceMethodCatalog = .empty,
+        enabledFrameworkAllowlists: Set<String>? = nil,
         layerPolicies: [LayerPolicy] = []
     ) -> (file: ProjectFile, issues: [LintIssue], parsedAST: SourceFileSyntax)? {
         guard !Task.isCancelled else { return nil }
@@ -294,6 +304,8 @@ extension ProjectLinter {
         det.knownImpurePackageFunctions = impurePackageFunctions
         det.knownDefaultedInitializerTypes = defaultedInitializerTypes
         det.knownExtensionMembers = extensionMembers
+        det.knownCleanInstanceMethods = cleanInstanceMethods
+        det.enabledFrameworkAllowlists = enabledFrameworkAllowlists
         det.layerPolicies = layerPolicies
 
         let rawIssues: [LintIssue]

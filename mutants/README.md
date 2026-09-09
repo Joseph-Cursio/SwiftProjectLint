@@ -76,3 +76,20 @@ The third is the one worth having. It is the over-gate that the *fix* for an und
 introduce: `hiddenMembers` stops subtracting the extensions visible in the file being analysed, so
 every type with a same-file extension goes silent. Nothing about the rule's output looks wrong —
 it simply reports less — which is the character of every finding in this shape.
+
+### Engine wiring
+
+One mutant in a third shape, and the only one here that is not about a detector's
+judgement at all.
+
+| id | shape | expected | killer |
+|---|---|---|---|
+| `prescan-catalog-built-then-dropped` | engine-wiring | killed | `everyCatalogIsInjectedPerFile` |
+
+It removes one assignment, so a catalog the pre-scan spent real time building never
+reaches the visitor that reads it. **Nothing about the output looks wrong** — the linter
+reports fewer property-test candidates, correctly formatted, with no error anywhere, which
+is indistinguishable from a corpus that has fewer candidates in it. That is why its killer
+is a structural test over the two functions' source rather than an assertion about any
+finding: it is the one bug shape in this corpus that no assertion about a rule's output
+could catch.
