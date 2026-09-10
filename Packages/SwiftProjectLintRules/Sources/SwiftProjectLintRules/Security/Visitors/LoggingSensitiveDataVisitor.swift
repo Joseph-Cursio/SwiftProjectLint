@@ -28,10 +28,6 @@ final class LoggingSensitiveDataVisitor: BasePatternVisitor {
         "NSLog"
     ]
 
-    private static let osLogMethods: Set<String> = [
-        "log", "debug", "info", "notice", "error", "fault", "warning", "critical", "trace"
-    ]
-
     private var insideIfDebug = false
 
     required init(pattern: SyntaxPattern, viewMode: SyntaxTreeViewMode = .sourceAccurate) {
@@ -64,7 +60,7 @@ final class LoggingSensitiveDataVisitor: BasePatternVisitor {
             isLoggingCall = Self.loggingFunctions.contains(declRef.baseName.text)
                 || Self.nsLogFunctions.contains(declRef.baseName.text)
         } else if let memberAccess = node.calledExpression.as(MemberAccessExprSyntax.self) {
-            isLoggingCall = Self.osLogMethods.contains(memberAccess.declName.baseName.text)
+            isLoggingCall = LoggingMethod.osLogger.contains(memberAccess.declName.baseName.text)
         } else {
             isLoggingCall = false
         }
