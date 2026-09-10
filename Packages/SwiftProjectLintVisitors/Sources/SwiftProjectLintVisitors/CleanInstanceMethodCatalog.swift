@@ -257,7 +257,7 @@ public struct CleanInstanceMethodCatalog: Sendable, Equatable {
         guard !method.modifiers.contains(where: { $0.name.tokenKind == .keyword(.mutating) })
         else { return false }
 
-        guard inferrer.verdict(for: method) != .refuted else { return false }
+        guard isCleanIgnoringSuppliedAsync(method, inferrer: inferrer) else { return false }
 
         return SelfAccessAnalyzer.access(
             of: method,
@@ -265,6 +265,153 @@ public struct CleanInstanceMethodCatalog: Sendable, Equatable {
             enclosingIsValueType: members.isValueType,
             cleanMethods: known
         ) != .unresolvedOrMutable
+    }
+
+    /// The purity verdict, except that an `async` whose every `await` is reached **through one of
+    /// the method's own parameters** does not refute it.
+    ///
+    /// `declaredAsync` is a refutation about the *signature* — the oracle stops there rather than
+    /// reading the body, because an `async` body awaits some effect and, unlike `throws`, there is
+    /// no sub-domain on which it is referentially transparent. That is the right call for the
+    /// question the oracle is asked. It is the wrong call for the question *this* catalog asks,
+    /// which is **does the type hold anything a test could not supply?**
+    ///
+    /// `BuildErrorInterpreter` is the corpus instance and has **no stored properties at all**:
+    ///
+    /// ```swift
+    /// public func interpret(diagnostics: […], knowledgeGraph: KnowledgeGraph) async throws -> … {
+    ///     … try await knowledgeGraph.skills.errorProvenance(diagnosticText: …) …
+    /// }
+    /// ```
+    ///
+    /// The awaited effect is the **caller's** collaborator. Nothing is held, so nothing can be
+    /// substituted; a test that wants different behaviour passes a different `KnowledgeGraph`.
+    /// Refusing it made two rules ask for a protocol seam in front of a type whose every input is
+    /// already a parameter.
+    ///
+    /// **Zero storage is not the gate, and that is why this reads the awaits rather than the
+    /// storage.** A stateless struct can still reach out on its own:
+    ///
+    /// ```swift
+    /// struct Purger {
+    ///     func purge(_ path: URL) async { await globalCoordinator.delete(path) }
+    /// }
+    /// ```
+    ///
+    /// That is a dependency — no argument controls it — and `globalCoordinator` is not a parameter,
+    /// so it stays refuted. The distinction is where the awaited thing comes from, which is the
+    /// same distinction `non-injected-nondeterminism`'s composition-root arm turns on.
+    ///
+    /// **Both halves are required, and the second one is measured rather than reasoned about.**
+    /// `declaredAsync` is reported *before* the oracle reads the body, so a parameter-rooted-await
+    /// check on its own would admit a method that also calls `print` or reaches
+    /// `FileManager.default`. The method is therefore re-asked with its effect specifiers removed,
+    /// which lets the oracle reach the body it skipped.
+    ///
+    /// Removing **both** `async` and `throws` is what makes that re-ask a clean question, and the
+    /// four shapes were run through the oracle before this was written:
+    ///
+    /// | body | `async` removed | `async` and `throws` removed |
+    /// | --- | --- | --- |
+    /// | `try await graph.load()` | `propagatedTry` | **not refuted** |
+    /// | `print(…)` beside it | `sideEffectMarker("print")` | `sideEffectMarker("print")` |
+    /// | `FileManager.default` beside it | `sideEffectMarker("FileManager")` | same |
+    /// | `Date()` beside it | `nondeterministicMarker("Date")` | same |
+    ///
+    /// Markers outrank `propagatedTry`, so "not refuted once the specifiers are gone" means "this
+    /// body names no effect of its own". Stripping only `async` would have left the legitimate case
+    /// refuted for its `try`, and accepting `propagatedTry` instead would have depended on the
+    /// oracle's internal ordering — which is the kind of dependency this project has been burned by.
+    ///
+    /// Scoped to `declaredAsync`. A method refuted for `declaredThrows` alone is left where it is;
+    /// that shape has not come up and widening on none is how the approximations this condition
+    /// already refuted got written.
+    private static func isCleanIgnoringSuppliedAsync(
+        _ method: FunctionDeclSyntax,
+        inferrer: PurityInferrer
+    ) -> Bool {
+        guard inferrer.verdict(for: method) == .refuted else { return true }
+        guard inferrer.refutation(for: method) == .declaredAsync else { return false }
+        guard everyEffectfulExpressionIsParameterRooted(method) else { return false }
+        return inferrer.verdict(for: withoutEffectSpecifiers(method)) != .refuted
+    }
+
+    /// `method` with `async` and `throws` removed, so the oracle reads the body rather than
+    /// short-circuiting on the signature. Nothing else about the declaration changes.
+    private static func withoutEffectSpecifiers(_ method: FunctionDeclSyntax) -> FunctionDeclSyntax {
+        method.with(\.signature, method.signature.with(\.effectSpecifiers, nil))
+    }
+
+    /// Whether every `await` and every `try` in the body is applied to something rooted at one of
+    /// `method`'s own parameters.
+    ///
+    /// `try` counts as well as `await`, and has to: `try FileManager.default.removeItem(at: path)`
+    /// is the type reaching out on its own, and it carries no `await` to be caught by.
+    ///
+    /// Deliberately strict about what counts as rooted: the base of the chain must be a bare
+    /// reference to a parameter name. An effect on `self`, on a global, on a bare function call, or
+    /// on a local that merely *came from* a parameter all fail — the first three because they are
+    /// not supplied, the last because following it would be dataflow, and one missed reassignment
+    /// turns a dependency into a kernel.
+    ///
+    /// A body with no `await` at all returns `false`: an `async` signature with nothing awaited is
+    /// not a shape to reason about from here, and refusing it leaves the verdict where it was.
+    private static func everyEffectfulExpressionIsParameterRooted(
+        _ method: FunctionDeclSyntax
+    ) -> Bool {
+        guard let body = method.body else { return false }
+        let parameters = Set(
+            method.signature.parameterClause.parameters.map { ($0.secondName ?? $0.firstName).text }
+        )
+        guard !parameters.isEmpty else { return false }
+
+        var awaited: [ExprSyntax] = []
+        var tried: [ExprSyntax] = []
+        collectEffectfulExpressions(in: Syntax(body), awaited: &awaited, tried: &tried)
+        guard !awaited.isEmpty else { return false }
+
+        return (awaited + tried).allSatisfy { parameters.contains(rootName(of: $0) ?? "") }
+    }
+
+    private static func collectEffectfulExpressions(
+        in node: Syntax,
+        awaited: inout [ExprSyntax],
+        tried: inout [ExprSyntax]
+    ) {
+        for child in node.children(viewMode: .sourceAccurate) {
+            if let expression = child.as(AwaitExprSyntax.self) { awaited.append(expression.expression) }
+            if let expression = child.as(TryExprSyntax.self) { tried.append(expression.expression) }
+            collectEffectfulExpressions(in: child, awaited: &awaited, tried: &tried)
+        }
+    }
+
+    /// The bare identifier a member chain or call is rooted at, or `nil` when the root is anything
+    /// else — `self`, a literal, a subscript, another call.
+    private static func rootName(of expression: ExprSyntax) -> String? {
+        if let reference = expression.as(DeclReferenceExprSyntax.self) {
+            return reference.baseName.text
+        }
+        if let member = expression.as(MemberAccessExprSyntax.self) {
+            return member.base.flatMap(rootName(of:))
+        }
+        if let call = expression.as(FunctionCallExprSyntax.self) {
+            return rootName(of: call.calledExpression)
+        }
+        if let tryExpression = expression.as(TryExprSyntax.self) {
+            return rootName(of: tryExpression.expression)
+        }
+        // `try await x` nests the await inside the try, so the `try`'s operand is an
+        // `AwaitExprSyntax` rather than the chain itself.
+        if let awaitExpression = expression.as(AwaitExprSyntax.self) {
+            return rootName(of: awaitExpression.expression)
+        }
+        if let optionalChain = expression.as(OptionalChainingExprSyntax.self) {
+            return rootName(of: optionalChain.expression)
+        }
+        if let forced = expression.as(ForceUnwrapExprSyntax.self) {
+            return rootName(of: forced.expression)
+        }
+        return nil
     }
 
     // MARK: - Gathering
