@@ -8,11 +8,6 @@ final class TapTargetTooSmallVisitor: BasePatternVisitor {
 
     private static let minimumTapTarget: Double = 44.0
 
-    private static let interactiveElements: Set<String> = [
-        "Button", "Toggle", "Stepper", "Slider",
-        "Link", "NavigationLink", "Menu"
-    ]
-
     required init(pattern: SyntaxPattern, viewMode: SyntaxTreeViewMode = .sourceAccurate) {
         super.init(pattern: pattern, viewMode: viewMode)
     }
@@ -95,7 +90,7 @@ final class TapTargetTooSmallVisitor: BasePatternVisitor {
             // Check if current is an interactive element call
             if let call = current.as(FunctionCallExprSyntax.self),
                let declRef = call.calledExpression.as(DeclReferenceExprSyntax.self),
-               Self.interactiveElements.contains(declRef.baseName.text) {
+               InteractiveView.matches(declRef.baseName.text) {
                 return true
             }
             break

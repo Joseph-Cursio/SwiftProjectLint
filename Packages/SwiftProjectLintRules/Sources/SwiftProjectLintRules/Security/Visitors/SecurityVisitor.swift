@@ -198,16 +198,19 @@ class SecurityVisitor: BasePatternVisitor {
     }
 
     /// Sensitive name check for entropy-based detection.
-    /// Uses compound keywords to avoid false positives on "cacheKey", "sortKey", etc.
+    ///
+    /// Reads `secretKeywords` — the same list the literal-assignment check uses, matched the
+    /// same case-insensitive-substring way. It used to be a second, lowercased copy declared
+    /// inside this function, and the copy had fallen three entries behind: it lacked
+    /// `apiSecret`, `clientSecret` and `secretAccessKey`. Those three cost nothing, because
+    /// `secret` is a substring of all of them — which is the point. The duplicate was
+    /// invisible to review precisely because it *could* drift without changing an answer, so
+    /// nothing would have caught the entry that did.
+    ///
+    /// Every keyword is compound (`apiKey`, not `key`), which is what keeps `cacheKey` and
+    /// `sortKey` from matching.
     private func isSensitiveVariableName(_ name: String) -> Bool {
-        let lower = name.lowercased()
-        let compoundTerms = [
-            "apikey", "secretkey", "authkey", "privatekey",
-            "encryptionkey", "signingkey", "accesskey",
-            "secret", "token", "password", "passwd",
-            "credential", "bearer", "passphrase"
-        ]
-        return compoundTerms.contains { lower.contains($0) }
+        Self.secretKeywords.contains { name.localizedCaseInsensitiveContains($0) }
     }
 
     /// Computes Shannon entropy in bits per character.

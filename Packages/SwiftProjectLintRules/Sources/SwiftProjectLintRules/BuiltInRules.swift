@@ -31,6 +31,19 @@ public enum BuiltInRules {
     /// The category factories themselves. Split out so the locked region stays
     /// readable; it must only ever be called with `lock` held.
     private static func registerCategoryFactories() {
+        // `ParallelListDrift` reports this run against `PatternCategory` — twelve of the
+        // fourteen cases have a factory here, `idempotency` and `other` do not — and it is
+        // right to: two lists that agree on twelve entries and disagree on two is exactly the
+        // shape that is usually a forgotten registration. This pair is the exception, and the
+        // reason is not readable from either file. `idempotency`'s factories are registered by
+        // `SwiftProjectLintIdempotencyRules`, a separate package with its own entry point, and
+        // `other` is the catch-all a rule falls into when it has no category — there is no
+        // factory for it to have. Neither omission can be fixed by adding a line here.
+        //
+        // `ParallelListDriftDogfoodTests` still pins the raw finding, because suppression is
+        // applied by the engine and not by the visitor. So the rule's behaviour stays under
+        // test while the corpus stops re-asking a question that has an answer.
+        // swiftprojectlint:disable:next parallel-list-drift
         SourcePatternRegistry.registerFactory { registry, visitorRegistry in
             StateManagement(registry: registry, visitorRegistry: visitorRegistry)
         }

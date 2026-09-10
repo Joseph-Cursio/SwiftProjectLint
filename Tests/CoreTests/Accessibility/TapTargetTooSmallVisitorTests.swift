@@ -73,6 +73,18 @@ struct TapTargetTooSmallVisitorTests {
         #expect(issues.count == 1)
     }
 
+    /// `Picker` was absent from this rule's own list while its twin,
+    /// `IsButtonTraitWithoutActionVisitor`, already had it — so a picker squeezed below the
+    /// 44pt minimum was reported by nothing. Both rules now read `InteractiveView`.
+    @Test func testFlagsPicker() {
+        let source = """
+        Picker("Mode", selection: $mode) { Text("A").tag(0) }
+            .frame(width: 30, height: 30)
+        """
+        let issues = filteredIssues(source)
+        #expect(issues.count == 1)
+    }
+
     // MARK: - Negative: should NOT flag
 
     @Test func testNoIssueForMeetsMinimum() {

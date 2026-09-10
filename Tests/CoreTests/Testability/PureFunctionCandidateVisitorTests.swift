@@ -463,6 +463,15 @@ struct PureFunctionCandidateGateTests {
         #expect(analyze("func half(_ x: Int) -> Double { Double(x) / 2 }").count == 1)
     }
 
+    /// The five Foundation value types this gate had never been told about. All are
+    /// `Equatable`, all were already on `CleanInstanceMethodCatalog`'s twin list, and a
+    /// function returning one was refused as a candidate for no reason anyone had chosen.
+    /// Both lists now read `StdlibTypeNames`.
+    @Test(arguments: ["Calendar", "Locale", "TimeZone", "IndexSet", "IndexPath"])
+    func keepsFoundationEquatableReturns(typeName: String) {
+        #expect(analyze("func pick(_ x: Int) -> \(typeName) { .current }").count == 1)
+    }
+
     @Test func keepsOptionalAndArrayOfEquatable() {
         #expect(analyze("func maybe(_ x: Int) -> Int? { x > 0 ? x : nil }").count == 1)
         #expect(analyze("func dupe(_ x: Int) -> [Int] { [x, x] }").count == 1)

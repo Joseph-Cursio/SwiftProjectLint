@@ -116,6 +116,14 @@ is named: the same fix resolves all of them, and any remainder re-surfaces on th
   happens to cover most of a twelve-entry canonical one still fires. This is the rule's residual
   false positive and part of why it is `Info`. Suppress with
   `// swiftprojectlint:disable Parallel List Drift`.
+- **Two lists over one closed vocabulary read as drift however they were written.** The sharper
+  form of the above, and the one the corpus sweep actually produced: when two lists enumerate
+  the same fixed vocabulary — Swift's scalar type names, a log level's spellings, the verbs of
+  set algebra — for two *different* capabilities, they overlap heavily because there is only one
+  such vocabulary, not because either was copied. `randomReceiverTypeNames` (types you can call
+  `.random(in:)` on) against `trivialValueTypes` (types too common to be a distinctive
+  dictionary value) is the clearest instance. The rule matches on names and cannot see that the
+  predicates differ, so no threshold closes this. See issue #190.
 - **Test and fixture files are excluded entirely** — a test enumerating a deliberate subset is
   the most common instance of the above.
 - **Very common names are ignored when generating candidate pairs.** A name appearing in more
@@ -187,24 +195,70 @@ SourcePatternRegistry.registerFactory { registry, visitorRegistry in
 cannot drift again. When the counterpart is an enum, iterating `CaseIterable` replaces the
 hand-maintained copy outright and makes the next omission a compile error.
 
+Taking that advice also silences the finding, and by construction rather than by concession:
+a derived list is written `canonical.subtracting([…])` or `A.union(B)`, which is no longer an
+array literal of names for Phase 1 to catalog. Six of the thirteen findings in the corpus
+sweep closed this way. When the two lists genuinely differ on purpose there is nothing to
+derive, and then a directive with the reasoning beside it is the right answer — that is what
+the surviving three are.
+
 #### Real-world discovery
-Run against SwiftProjectLint itself (`--include-nested-packages`), the rule reports **14**
-findings, led by the case that motivated it:
+
+The rule's first run against SwiftProjectLint itself (`--include-nested-packages`) reported
+**14** findings, led by the case that motivated it:
 
 > `SourcePatternRegistry.registerFactory(…)` (registration run, 12 entries) agrees with
 > `PatternCategory` (enum, PatternCategory.swift:23) on 12 entries but is missing 2:
 > `idempotency`, `other`.
 
-Both omissions turn out to be intentional — `idempotency` factories are registered by a
-separate package, and `other` is a catch-all with no factory — which is the rule working as
-designed: it cannot know intent, so it surfaces the discrepancy for a human to confirm or fix.
-`Tests/CoreTests/CrossFileAnalysis/ParallelListDriftDogfoodTests.swift` pins this finding
+Both omissions are intentional — `idempotency` factories are registered by a separate
+package, and `other` is a catch-all with no factory. That is the rule working as designed:
+it cannot know intent, so it surfaces the discrepancy for a human to confirm or fix.
+`Tests/CoreTests/CrossFileAnalysis/ParallelListDriftDogfoodTests.swift` pins the finding
 against the checked-in sources, so if the two lists are ever reconciled the test records it.
+Inline suppression is applied by the **engine**, not the visitor, so the directive now
+sitting at `registerAll` silences the corpus report without touching that test.
 
-#### Measured precision on that run
+#### The corpus sweep: 13 → 0, and what each finding turned out to be
 
-All 14 findings were read individually. They are roughly **10 distinct pairs** (four are the same
-pair reported from both sides), of which **three are actionable**:
+A later sweep over 26 repositories reported **13** findings in three of them — 11 here, one
+in SwiftInferProperties, one in SwiftPropertyLaws. All 13 were read individually and every
+one is now dispositioned. **Three were real defects, four were real duplication, and the rest
+were decisions nobody had written down.**
+
+| # | Pair | Verdict |
+|---|---|---|
+| 1, 2 | `nonStableGeneratorTypes` ↔ `clockLikeTypeNames` | **Defect, both ways.** One knew `Clock` and not `DispatchTime`, the other the reverse. Hoisted to `FreshTimestampType`. |
+| 4, 5 | `activatableViews` ↔ `interactiveElements` | **Defect, both ways.** A `Slider` with a redundant `.isButton` was reported as unactionable; a `Picker` below 44pt was reported by nothing. Hoisted to `InteractiveView`. |
+| 10, 11 | `stdlibValueTypes` ↔ `equatableStdlibTypes` | **Defect one way.** Five Foundation `Equatable` types were missing from the assertability gate, so a pure function returning a `TimeZone` was refused as a candidate. Hoisted to `StdlibTypeNames`. |
+| 3 | `randomReceiverTypeNames` ↔ `trivialValueTypes` | Dissolved by fixing #6 — it paired against a literal that no longer exists. |
+| 6 | `trivialValueTypes` ⊂ `primitiveCarriers` | Duplication. The second list was the first minus four names, said in prose. Now `subtracting`. |
+| 8 | `osLogMethods` ⊂ `loggingMethodNames` | Duplication with a real difference, unnamed. Now `LoggingMethod.osLogger` / `.anyLogger`. |
+| 9 | `compoundTerms` ⊂ `secretKeywords` | Duplication. A lowercased copy declared inside a function body, three entries behind. Deleted. |
+| 7 | `registerAll` ↔ `PatternCategory` | Correct and intentional. Suppressed **with the reasoning at the declaration**. |
+| 12 | `SetOperation` ↔ `setCombinationVerbs` | Correct and intentional; its two neighbours already carried directives and it did not. Directive added, plus a test pinning the duplication that *is* exact. |
+| 13 | `RawType` ⊂ `MinimalCodableValue` | Correct and intentional. Two enumerations of Swift's scalar type names, serving unrelated purposes. Suppressed with reasoning. |
+
+**Following the rule's own suggestion removes the finding, and that is not a coincidence.**
+Six of the thirteen were closed by deriving one list from the other or by hoisting both to a
+shared constant — and in every case the report disappeared as a *side effect*, because a
+derived list is no longer an array literal of names for Phase 1 to catalog. The rule's advice
+and the rule's silence agree. A reader who suppresses instead gets to keep the finding as a
+decision on the record; a reader who derives gets neither, which is the right trade.
+
+**The residual false positive has a sharper name than "deliberate subset".** Five of the
+thirteen — 3, 6, 8, 12, 13 — are two lists quantifying over the **same closed vocabulary**
+for **different capabilities**: the names of Swift's scalar types, the spellings of a log
+level, the verbs of set algebra. `randomReceiverTypeNames` and `trivialValueTypes` both
+enumerate Swift's numeric types because there is only one such list to enumerate, not because
+one was copied from the other. The rule matches on name overlap and has no way to see that
+the *predicate* differs, so this class is not closable by tuning a threshold. It is filed as
+issue #190 rather than patched.
+
+#### Measured precision on the first run
+
+All 14 findings of the first run were read individually. They were roughly **10 distinct
+pairs** (four are the same pair reported from both sides), of which **three were actionable**:
 
 1. **`animationFactories`** — a real defect. `AnimationPerformanceVisitor` knew five SwiftUI
    animation factories and `HardcodedAnimationValuesVisitor` seven, so the duration check was
@@ -212,6 +266,7 @@ pair reported from both sides), of which **three are actionable**:
    rules one `AnimationFactory` list. This is the first real bug the rule found.
 2. **`nonStableGeneratorTypes` vs `clockLikeTypeNames`** — a genuine disagreement: each holds
    something the other lacks (`Clock` vs `DispatchTime`) while describing the same concept.
+   Closed in the sweep above; it is `FreshTimestampType` now.
 3. **`osLogMethods` / `loggerLevelMethods`** — surfaced sideways. The real finding is that the
    two are byte-identical, which is [Parallel Enum Shape](parallel-enum-shape.md)'s job.
 
@@ -231,7 +286,7 @@ strict-subset floor** (see Phase 2 above). A three-repo sweep before and after t
 | SwiftProjectLint | 13 | **8** | dropped `systemViews`, `conflictingModifiers`, the `primitiveCarriers`/Equatable pair |
 | SwiftLintRuleStudio | 2 | **2** | one genuine *mutual-divergence* pair (`modeledReservedKeys` vs `defaultTopLevelKeyOrder`) — unaffected |
 
-The eight that survive on SwiftProjectLint are mutual divergences and near-complete subsets
+The eight that survived on SwiftProjectLint were mutual divergences and near-complete subsets
 (`registerAll` at 0.86, the logging lists at 0.82). The one real finding in RuleStudio is
 mutual and never depended on the subset path. So the floor removed a whole noise class without
 touching the signal — precision rose on all three codebases at once.

@@ -41,11 +41,6 @@ final class IsButtonTraitWithoutActionVisitor: BasePatternVisitor {
         "simultaneousGesture"
     ]
 
-    /// Views that already carry an action, where `.isButton` is merely redundant.
-    private static let activatableViews: Set<String> = [
-        "Button", "NavigationLink", "Link", "Menu", "Toggle", "Stepper", "Picker"
-    ]
-
     required init(pattern: SyntaxPattern, viewMode: SyntaxTreeViewMode = .sourceAccurate) {
         super.init(pattern: pattern, viewMode: viewMode)
     }
@@ -62,7 +57,7 @@ final class IsButtonTraitWithoutActionVisitor: BasePatternVisitor {
         if node.calledExpression.is(MemberAccessExprSyntax.self) { return }
 
         if let callee = node.calledExpression.as(DeclReferenceExprSyntax.self),
-           Self.activatableViews.contains(callee.baseName.text) {
+           InteractiveView.matches(callee.baseName.text) {
             return
         }
 

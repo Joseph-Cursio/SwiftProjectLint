@@ -97,11 +97,6 @@ final class CatchWithoutHandlingVisitor: BasePatternVisitor {
 
     // MARK: - Logging Call Detection
 
-    private static let loggingMethodNames: Set<String> = [
-        "log", "error", "warning", "warn", "debug", "info",
-        "critical", "fault", "verbose", "trace", "notice"
-    ]
-
     private static let loggingFunctionNames: Set<String> = [
         "print", "debugPrint", "NSLog", "os_log", "os_signpost"
     ]
@@ -115,7 +110,7 @@ final class CatchWithoutHandlingVisitor: BasePatternVisitor {
             }
             // Method calls: logger.error(...), os.log.debug(...), etc.
             if let member = call.calledExpression.as(MemberAccessExprSyntax.self),
-               Self.loggingMethodNames.contains(member.declName.baseName.text) {
+               LoggingMethod.anyLogger.contains(member.declName.baseName.text) {
                 return true
             }
         }
