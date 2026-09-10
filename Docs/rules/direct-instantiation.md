@@ -98,7 +98,17 @@ second instance to hold differently and no effect for a double to intercept.
 asks the same question from the declared type rather than the construction site. Three conditions:
 every method is a function of its inputs under the purity fixpoint this project already resolved,
 no stored property is mutable, and every stored property is a value — a stdlib value type, a
-project enum, or a collection or optional of one.
+project enum, a collection or optional of one, **or another kernel**.
+
+**That last clause and the fixpoint under condition (1) were both added after
+`EffectAnnotationParser` refused to qualify**, and neither alone would have admitted it. It holds
+one `AttributeRecognition` — five `Set<String>` — which was itself admitted while the type holding
+it was not, so storage now resolves to a fixpoint rather than one pass. And four of its methods
+are recursive: two `combinedDocTrivia` overloads share a name key and so call themselves, and
+`parseEffect` and `resolveDeclEffect` call each other. The purity fixpoint used to promote a
+method only once its callees were *already* clean, so a cycle never started — and **recursion is
+not an effect**. It now assumes and demotes instead. See `ConcreteTypeUsage`'s notes for the full
+account.
 
 **Both cheap approximations were measured and refused.** *Value type* fails on `CacheManager`, a
 `public struct` doing file I/O. *No-argument initializer* fails on `AntiPatternStore()` and

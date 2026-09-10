@@ -199,9 +199,43 @@ class MyViewModel {
   oracle cannot see it. The storage test is positive for that reason: a kernel may hold only
   values, and an unrecognised stored type disqualifies.
 
-- **`EffectAnnotationParser` is still reported, and the exemption was expected to reach it.** It
-  stores one `AttributeRecognition` value struct and its methods parse syntax, so it looked like a
-  kernel; the oracle refutes at least one of its methods. Whether that refusal is right has not
-  been checked, and the three findings stand until it is.
+- **~~`EffectAnnotationParser` is still reported, and the exemption was expected to reach it.~~**
+  Checked, and the refusal was wrong **twice over**. The two causes are independent, and neither
+  fix alone exempts the type — which is why the first shipped measured at zero.
+
+  **It held a kernel.** Condition (3) accepted a stdlib value type or a project enum as storage
+  and refused a project *struct* that is itself a bag of values. `AttributeRecognition` is five
+  `Set<String>`; it was admitted, and the parser holding it was not. Storage now resolves to a
+  fixpoint, for the reason `SendableProtocols` already gives about refinement chains: one extra
+  pass reaches depth two and stops.
+
+  **And four of its methods were recursive.** `resolve` promoted a method only once every method
+  it calls was *already* known clean, so a cycle could never start: `combinedDocTrivia`'s
+  two-argument overloads call its four-argument one — overloads share a name key, so the name
+  calls itself — and `parseEffect` and `resolveDeclEffect` call each other. The loop's comment
+  said those *"stay out, correctly"*. **Recursion is not an effect**, and the four refused methods
+  are the purest in the file: the deepest one appends `TriviaPiece`s to a local array and returns
+  a `Trivia`.
+
+  So the loop runs the other way now — assume every method clean, demote on evidence that owes
+  nothing to the assumption — and the old test that pinned the limitation as a requirement is
+  replaced by four that pin what actually matters, including that a cycle with an impure member
+  still fails.
+
+  **The scope of that fix is much wider than three findings, and the corpus says how much wider.**
+  The same catalog decides the property-test census, so every recursive helper had been
+  suppressing its callers too. Measured across all 26 repositories, with the two changes swept
+  separately so the attribution is not a guess:
+
+  | | Concrete Type Usage | census |
+  |---|---|---|
+  | run 31 | 18 | 4,572 |
+  | + storage fixpoint | 18 | 4,572 |
+  | + recursion fix | **15** | **4,661** |
+
+  **89 pure functions this project had never been able to see**, and the storage half contributes
+  exactly zero to that column — which is what makes the split measured rather than asserted.
+  `Extractable Total Kernel` and `Direct Instantiation` share the machinery and were checked
+  rather than assumed: both unmoved.
 
 ---

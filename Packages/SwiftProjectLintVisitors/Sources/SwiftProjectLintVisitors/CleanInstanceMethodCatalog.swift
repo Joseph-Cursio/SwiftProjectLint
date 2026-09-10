@@ -184,36 +184,65 @@ public struct CleanInstanceMethodCatalog: Sendable, Equatable {
         }
     }
 
-    /// Promotes method names until a pass promotes nothing new.
+    /// Demotes method names until a pass demotes nothing, starting from every method assumed
+    /// clean.
     ///
-    /// The loop is what lets `serialize` qualify on the pass after `orderedTopLevelPairs` did, so
-    /// declaration order — and file order — does not decide the answer.
+    /// **This runs the other way round from the obvious direction, and it has to, because
+    /// recursion is not an effect.** The first version promoted: a method qualified once every
+    /// method it calls was *already* known clean. That is sound and it cannot resolve a cycle —
+    /// `combinedDocTrivia`'s two-argument overloads call its four-argument one, so the name calls
+    /// itself and could never go first; `parseEffect` and `resolveDeclEffect` call each other and
+    /// neither could. The loop's comment claimed those *"stay out, correctly"*. They are the
+    /// purest functions in the file they live in: the deepest one appends `TriviaPiece`s to a
+    /// local array and returns a `Trivia`.
+    ///
+    /// So the assumption is optimistic and the evidence is a **refutation**. A declaration is
+    /// demoted for a reason that has nothing to do with the assumption — it is `mutating`, the
+    /// purity oracle refutes it outright, or it touches `self` in a way that is not a read of
+    /// immutable storage or a call to a sibling still believed clean — and a demotion can only
+    /// cause further demotions. Nothing is ever promoted, so the set shrinks monotonically from a
+    /// finite start and the loop terminates.
+    ///
+    /// A mutually recursive pair whose only unresolved references are to each other therefore
+    /// survives, which is the right answer: two pure bodies calling each other are pure, and the
+    /// worst a cycle with no other content can do is fail to terminate — which is not an effect
+    /// this catalog models. A pair where one member reads a clock or the file system does not
+    /// survive: that member is refuted on its own, and its partner follows on the next pass.
+    ///
+    /// The old direction's one virtue is preserved: declaration order and file order still do not
+    /// decide the answer, because the loop runs to stability either way.
     private static func resolve(_ types: [String: TypeMembers]) -> [String: Set<String>] {
         let inferrer = PurityInferrer()
         var clean: [String: Set<String>] = [:]
+        for (typeName, members) in types where !members.isActor {
+            clean[typeName] = Set(members.methods.keys)
+        }
 
         while true {
-            var promotedThisPass = false
+            var demotedThisPass = false
 
             for (typeName, members) in types where !members.isActor {
                 var known = clean[typeName] ?? []
 
-                for (methodName, declarations) in members.methods where !known.contains(methodName) {
+                for (methodName, declarations) in members.methods where known.contains(methodName) {
+                    // Read against the set as it stands, so a demotion earlier in this pass is
+                    // seen immediately. That only reaches the fixpoint sooner; it cannot change
+                    // which one, because demotions never reverse.
                     guard declarations.allSatisfy({
                         isClean($0, in: members, given: known, inferrer: inferrer)
                     }) else {
+                        known.remove(methodName)
+                        demotedThisPass = true
                         continue
                     }
-                    known.insert(methodName)
-                    promotedThisPass = true
                 }
 
                 clean[typeName] = known
             }
 
-            // A pass that promotes nothing will promote nothing next time either: only a newly
-            // promoted name can change a verdict. Cycles land here and stay out, correctly.
-            guard promotedThisPass else { return clean }
+            // A pass that demotes nothing will demote nothing next time either: only a newly
+            // demoted name can change a verdict.
+            guard demotedThisPass else { return clean }
         }
     }
 
