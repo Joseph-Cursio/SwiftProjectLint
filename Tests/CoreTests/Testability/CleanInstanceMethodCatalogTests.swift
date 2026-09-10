@@ -95,13 +95,59 @@ struct CleanInstanceMethodCatalogTests {
         """).isEmpty)
     }
 
-    @Test func neverPromotesACycle() {
-        // Mutual recursion has no base case to promote from; the fixpoint must terminate with both
-        // out rather than spinning.
+    /// **This test used to assert the opposite, and the comment above it said why: "mutual
+    /// recursion has no base case to promote from; the fixpoint must terminate with both out."**
+    /// The second half of that sentence was a fact about the loop's direction written up as a
+    /// requirement. Both of these are functions of their argument — the only thing either does is
+    /// hand `text` to the other — and refusing them cost their whole enclosing type its kernel
+    /// status, which is how three `Concrete Type Usage` findings came to ask for a protocol seam
+    /// in front of a parser (SwiftProjectLint#195).
+    ///
+    /// What the old test was right about is termination, and that is still pinned: this returns.
+    @Test func aPureCycleIsClean() {
         #expect(clean("""
         struct Engine {
             func ping(_ text: String) -> String { pong(text) }
             func pong(_ text: String) -> String { ping(text) }
+        }
+        """) == ["ping", "pong"])
+    }
+
+    /// The direction that makes the optimistic start safe. One member is refuted on evidence that
+    /// owes nothing to the assumption — the purity oracle sees the clock — and the other follows
+    /// on the next pass because its only unresolved reference is to a name no longer believed
+    /// clean. Assume-then-refute reaches the same answer as the old loop wherever the old loop had
+    /// an answer.
+    @Test func aCycleWithAnImpureMemberIsNotClean() {
+        #expect(clean("""
+        struct Engine {
+            func ping(_ text: String) -> String { pong(text) }
+            func pong(_ text: String) -> String { ping(text + Date().description) }
+        }
+        """).isEmpty)
+    }
+
+    /// A self-call under one name, which is what overload groups produce: the catalog keys methods
+    /// by name, so a two-argument form delegating to a four-argument one is a name that calls
+    /// itself. This is the exact shape of `EffectAnnotationParser.combinedDocTrivia`.
+    @Test func anOverloadDelegatingToItsSiblingIsClean() {
+        #expect(clean("""
+        struct Engine {
+            func render(_ text: String) -> String { render(text, width: 80) }
+            func render(_ text: String, width: Int) -> String { String(text.prefix(width)) }
+        }
+        """) == ["render"])
+    }
+
+    /// A cycle where one member reads mutable storage. Storage access is judged without reference
+    /// to the assumed set, so this demotes on the first pass whatever the loop believes about
+    /// sibling calls.
+    @Test func aCycleReadingMutableStateIsNotClean() {
+        #expect(clean("""
+        struct Engine {
+            var count: Int = 0
+            func ping(_ text: String) -> String { pong(text) }
+            func pong(_ text: String) -> String { text + String(count) }
         }
         """).isEmpty)
     }
