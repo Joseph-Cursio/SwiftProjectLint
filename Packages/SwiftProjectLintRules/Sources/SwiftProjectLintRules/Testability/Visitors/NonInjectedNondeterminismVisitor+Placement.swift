@@ -124,6 +124,117 @@ extension NonInjectedNondeterminismVisitor {
     /// clause rather than merely to have a parameter ancestor, and a function
     /// or accessor body between the two ends it — a nested declaration's body
     /// is code that runs, not a value being handed over.
+    /// Whether the read is **handed straight on** — its value becomes a call argument and this
+    /// scope never looks at it.
+    ///
+    /// This is the shape the rest of this rule's own advice produces. "Move the clock read to the
+    /// edge and pass the instant down" is what the ordinary message asks for, and a reader who does
+    /// it lands here: `resolve(asOf: Date())`, `store.approve(on: Date())`,
+    /// `EvalReport(startedAt: Date(), …)`. The finding is still true — nothing can pin *this line* —
+    /// but the sentence attached to it was not: everything that decides takes the instant as a
+    /// parameter, so a test pins the decision at the callee's boundary. Telling a reader their code
+    /// is untestable when the untestable part is a single unexamined expression is how a rule talks
+    /// someone out of a repair it asked for.
+    ///
+    /// **Argument position only, and that restriction is the whole precision.** A receiver is not
+    /// handing the value on, it is *using* it: `Date().addingTimeInterval(timeout)` is a deadline,
+    /// `Date().timeIntervalSince(start)` is an elapsed time, `Date.now.timeIntervalSince1970` is a
+    /// number this scope computed. Every real defect this rule has produced across the corpus —
+    /// the subprocess timeout, the benchmark timings, the rate limiters, the snapshot collision
+    /// loop — reads the clock into a receiver or an operand, never into a bare argument.
+    ///
+    /// **The bound spelling counts too, and it had to.** `let now = Date()` at the top of a `body`,
+    /// then `header(asOf: now)` and `content(asOf: now)`, is the archetype — it is the shape the
+    /// repositories worked on earlier runs were left in, and an arm that could not label it would
+    /// miss the case it exists for. Measured before shipping: the inline form alone reached 20 of
+    /// 37 findings and the bound form takes it to 25, and every one of the five it adds carries a
+    /// hand-written comment above it recording the defect that moving the read there fixed.
+    ///
+    /// The bound form demands that **every** reference to the binding is itself handed straight on.
+    /// One comparison, one piece of arithmetic, one `return`, and the binding fails — which is the
+    /// safe direction: a shadowed name can only add a reference that must also pass, never excuse
+    /// one that does not. It is scoped to a local `let`; a stored property's initial value is not a
+    /// composition root, because the read happens once per instance and the uses are elsewhere.
+    func isHandedStraightOn(_ node: Syntax) -> Bool {
+        if isArgumentPosition(node) { return true }
+        return isBoundAndOnlyPassedOn(node)
+    }
+
+    /// The `let name = <read>` case: a local binding whose every use is an argument.
+    private func isBoundAndOnlyPassedOn(_ node: Syntax) -> Bool {
+        guard let clause = node.parent?.as(InitializerClauseSyntax.self),
+              Syntax(clause.value).id == node.id,
+              let binding = clause.parent?.as(PatternBindingSyntax.self),
+              let declaration = binding.parent?.parent?.as(VariableDeclSyntax.self),
+              declaration.bindingSpecifier.text == "let",
+              // A stored property is not a composition root: the read happens per instance and
+              // the uses are in other members, where this walk cannot see them.
+              declaration.parent?.parent?.is(CodeBlockItemListSyntax.self) == true,
+              let name = binding.pattern.as(IdentifierPatternSyntax.self)?.identifier.text,
+              let scope = enclosingScope(of: Syntax(declaration)) else { return false }
+
+        var references = 0
+        var allPassedOn = true
+        walkReferences(named: name, in: scope) { reference in
+            references += 1
+            if !self.isArgumentPosition(reference) { allPassedOn = false }
+        }
+        return references > 0 && allPassedOn
+    }
+
+    /// The nearest enclosing block, which is as far as a local binding can be seen.
+    private func enclosingScope(of node: Syntax) -> Syntax? {
+        var current = node.parent
+        while let syntax = current {
+            if syntax.is(CodeBlockSyntax.self) || syntax.is(AccessorBlockSyntax.self) {
+                return syntax
+            }
+            current = syntax.parent
+        }
+        return nil
+    }
+
+    private func walkReferences(named name: String, in scope: Syntax, _ visit: (Syntax) -> Void) {
+        for child in scope.children(viewMode: .sourceAccurate) {
+            if let reference = child.as(DeclReferenceExprSyntax.self),
+               reference.baseName.text == name {
+                visit(Syntax(reference))
+            }
+            walkReferences(named: name, in: child, visit)
+        }
+    }
+
+    private func isArgumentPosition(_ node: Syntax) -> Bool {
+        var child = node
+        var current = node.parent
+        while let syntax = current {
+            // A receiver, not an argument: this scope is about to do something with the value.
+            if let member = syntax.as(MemberAccessExprSyntax.self) {
+                return member.base.map { Syntax($0).id == child.id } == false
+            }
+            if let element = syntax.as(LabeledExprSyntax.self),
+               let list = element.parent?.as(LabeledExprListSyntax.self),
+               let call = list.parent?.as(FunctionCallExprSyntax.self) {
+                // The callee itself is not an argument.
+                return Syntax(call.calledExpression).id != child.id
+            }
+            if syntax.is(CodeBlockSyntax.self) || syntax.is(AccessorBlockSyntax.self) { return false }
+            guard isTransparentPassthrough(syntax) else { return false }
+            child = syntax
+            current = syntax.parent
+        }
+        return false
+    }
+
+    /// Wrappers that do not change what is being done with the value.
+    ///
+    /// Narrower than the `??`-chain walk's `isTransparentWrapper`, which also steps through tuple
+    /// elements: a tuple *is* a value this scope built, so stepping through one would read
+    /// `f((Date(), x))` as handing the instant on when what was handed on is the pair.
+    private func isTransparentPassthrough(_ syntax: Syntax) -> Bool {
+        syntax.is(TryExprSyntax.self) || syntax.is(AwaitExprSyntax.self)
+    }
+
     func isParameterDefaultValue(_ node: Syntax) -> Bool {
         var child = node
         var current = node.parent

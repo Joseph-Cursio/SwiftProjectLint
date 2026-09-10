@@ -172,6 +172,13 @@ final class NonInjectedNondeterminismVisitor: BasePatternVisitor {
             flagFreshReadPerAccess(source.marker, property: property, at: node)
             return
         }
+        // Checked last: the fresh-read arm is about *where the read is declared* and this one is
+        // about what the surrounding expression does with it, so a computed property whose body
+        // hands a fresh read on is the first fault and not this one.
+        if isHandedStraightOn(node) {
+            flagCompositionRoot(source.marker, at: node)
+            return
+        }
         flag(source.marker, at: node)
     }
 
