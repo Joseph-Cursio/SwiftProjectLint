@@ -53,14 +53,7 @@ public enum PropertyTestCandidacy {
     /// Standard-library types whose values are `Equatable` out of the box. Container names are
     /// `Equatable` when their elements are; `baseTypeName` unwraps `[T]` to `T` so a custom element
     /// is still checked against the project's conformance index.
-    private static let equatableStdlibTypes: Set<String> = [
-        "Int", "Int8", "Int16", "Int32", "Int64",
-        "UInt", "UInt8", "UInt16", "UInt32", "UInt64",
-        "Double", "Float", "Float16", "CGFloat", "Decimal",
-        "Bool", "String", "Character", "Substring", "StaticString",
-        "Date", "UUID", "URL", "Data", "TimeInterval",
-        "Array", "Set", "Dictionary", "Range", "ClosedRange"
-    ]
+    private static let equatableStdlibTypes: Set<String> = StdlibTypeNames.equatable
 
     /// What `function` is a function of, or `nil` when it is not a property-test candidate.
     ///

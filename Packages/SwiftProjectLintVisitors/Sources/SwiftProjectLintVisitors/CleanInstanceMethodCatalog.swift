@@ -108,15 +108,9 @@ public struct CleanInstanceMethodCatalog: Sendable, Equatable {
     /// data the caller already supplies, not a collaborator it would want to replace.
     ///
     /// Collections, optionals and tuples are recognised by syntax rather than by name, so the list
-    /// carries only the nominal leaves.
-    static let stdlibValueTypes: Set<String> = [
-        "String", "Substring", "Character", "Bool",
-        "Int", "Int8", "Int16", "Int32", "Int64",
-        "UInt", "UInt8", "UInt16", "UInt32", "UInt64",
-        "Double", "Float", "CGFloat", "Decimal",
-        "URL", "Data", "UUID", "Date", "TimeInterval", "Range", "ClosedRange",
-        "IndexSet", "IndexPath", "Locale", "TimeZone", "Calendar"
-    ]
+    /// carries only the nominal leaves — which is why it reads `valueLeaves` and not the whole of
+    /// `StdlibTypeNames.equatable`.
+    static let stdlibValueTypes: Set<String> = StdlibTypeNames.valueLeaves
 
     /// The clean method names declared on `typeName`, or none for a free function.
     public func cleanMethods(on typeName: String?) -> Set<String> {
