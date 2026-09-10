@@ -56,6 +56,20 @@ class Testability: BasePatternRegistrar {
                     + "declaration-based rules cannot see because they have no name to point at."
             ),
             SyntaxPattern(
+                name: .impureClosureInventory,
+                visitor: ImpureClosureVisitor.self,
+                severity: .info,
+                category: .testability,
+                messageTemplate: "An impure closure — what is standing between this call site and a "
+                    + "property test",
+                suggestion: "Separate the effect from the decision, or inject the source.",
+                description: "The complement of `Pure Closure Property-Test Candidate` over the "
+                    + "same call sites: the closures the purity oracle refuses, grouped by why — "
+                    + "an effect, a nondeterministic source, a trap, a captured write, or a "
+                    + "declared `async`/`throws`. A census of what blocks a property test, not a "
+                    + "defect report."
+            ),
+            SyntaxPattern(
                 name: .extractableTotalKernel,
                 visitor: ExtractableTotalKernelVisitor.self,
                 severity: .info,

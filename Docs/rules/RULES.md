@@ -1,6 +1,6 @@
 # SwiftProjectLint Rules Reference
 
-SwiftProjectLint is a static analysis tool for SwiftUI projects. It parses Swift source files using SwiftSyntax AST visitors to detect anti-patterns spanning state management, performance, animations, architecture, code quality, security, accessibility, memory management, networking, UI patterns, modernization, and idempotency. This reference documents all 205 lint rules, organized by category.
+SwiftProjectLint is a static analysis tool for SwiftUI projects. It parses Swift source files using SwiftSyntax AST visitors to detect anti-patterns spanning state management, performance, animations, architecture, code quality, security, accessibility, memory management, networking, UI patterns, modernization, and idempotency. This reference documents all 206 lint rules, organized by category.
 
 Rules marked **opt-in** are disabled by default and must be explicitly listed under `enabled_only` in `.swiftprojectlint.yml`.
 
@@ -268,6 +268,7 @@ Rules marked **opt-in** are disabled by default and must be explicitly listed un
 | [Non-Injected Nondeterminism](non-injected-nondeterminism.md) | Warning |
 | [Pure Function Property-Test Candidate](pure-function-candidate.md) | Info |
 | [Pure Closure Property-Test Candidate](pure-closure-candidate.md) | Info |
+| [Impure Closure Inventory](impure-closure-inventory.md) | Info |
 | [Extractable Total Kernel](extractable-total-kernel.md) | Info |
 | [Missing Equatable on State Type](missing-equatable-on-state-type.md) | Info |
 | [Impure Call in View Body](impure-call-in-view-body.md) | Warning |
