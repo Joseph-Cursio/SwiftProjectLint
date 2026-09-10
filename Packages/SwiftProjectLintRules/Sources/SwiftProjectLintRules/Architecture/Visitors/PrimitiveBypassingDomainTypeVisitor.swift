@@ -35,17 +35,20 @@ final class PrimitiveBypassingDomainTypeVisitor: CrossFileVisitorBase, CrossFile
         "UUID", "URL", "Data", "Decimal"
     ]
 
+    /// The carriers distinctive enough that a `[…: T]` map matching a `[W: T]` one is worth
+    /// trusting. A `[…: Data]` or `[…: UUID]` map says something; a `[…: String]` one does not.
+    private static let richCarriers: Set<String> = ["UUID", "URL", "Data", "Decimal"]
+
     /// Value types too ubiquitous for the value-type guard to mean anything: a `[…: String]` or
-    /// `[…: Int]` map is everywhere, so matching one against `[W: String]` is coincidence. The
-    /// richer primitives (`UUID`, `URL`, `Data`, `Decimal`) are *not* here — a `[…: Data]` map is
-    /// distinctive enough to trust. Measured: 58 `String` + 13 `Int` false hits vs 1 real
-    /// (`[…: MediaType]`) across 32 projects.
-    private static let trivialValueTypes: Set<String> = [
-        "String", "Substring", "Character",
-        "Int", "Int8", "Int16", "Int32", "Int64",
-        "UInt", "UInt8", "UInt16", "UInt32", "UInt64",
-        "Double", "Float", "Bool"
-    ]
+    /// `[…: Int]` map is everywhere, so matching one against `[W: String]` is coincidence.
+    /// Measured: 58 `String` + 13 `Int` false hits vs 1 real (`[…: MediaType]`) across 32
+    /// projects.
+    ///
+    /// Derived rather than restated. This is `primitiveCarriers` minus the four rich ones, and
+    /// it used to be a second literal saying so — which meant a carrier added above and not
+    /// below would silently become a trusted value type. Written this way the relationship is
+    /// the code, and a new carrier joins both sides at once.
+    private static let trivialValueTypes: Set<String> = primitiveCarriers.subtracting(richCarriers)
 
     private struct DictUsage {
         let key: String
