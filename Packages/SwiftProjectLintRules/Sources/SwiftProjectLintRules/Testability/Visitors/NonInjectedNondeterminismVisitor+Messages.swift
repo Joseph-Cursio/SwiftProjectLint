@@ -84,6 +84,45 @@ extension NonInjectedNondeterminismVisitor {
     ///
     /// This changes what the rule *says* and not what it counts — these sites
     /// were already reported, and still are.
+    /// Reports the fourth shape: the read is handed straight to something that takes it as a
+    /// parameter, and this scope never examines it.
+    ///
+    /// **This is what following the rest of this rule's advice looks like**, which is why it needed
+    /// its own sentence. The ordinary message says a property-based test cannot pin the value — and
+    /// at a composition root that is false in the way that matters: the decision is in the callee,
+    /// the callee takes the instant as a parameter, and a test pins it there. `WaiversView` went
+    /// 20 findings to 20 by moving every clock read to the top of `body`, and every one of the
+    /// survivors was still being told it blocked a test.
+    ///
+    /// **It does not say the line is fine, and that distinction is load-bearing.** The corpus's one
+    /// live defect of this shape is `EvalReport(gitSHA:, startedAt: Date(), results: results)`,
+    /// written *after* the fixture loop — so the eval history table's `started_at` column and every
+    /// report filename carried the instant the run **finished**. Nothing there is untestable and
+    /// nothing is fabricated; the read is simply taken at the wrong moment. A message that said
+    /// "composition root, no action" would have closed that finding. So the sentence asks the one
+    /// question this shape can still get wrong.
+    ///
+    /// Same severity and still counted. The list is the answer to *where does this program touch
+    /// the clock?*, and suppressing the entries that answer it correctly would leave a census that
+    /// only contains mistakes.
+    func flagCompositionRoot(_ source: String, at node: Syntax) {
+        addIssue(
+            severity: .warning,
+            message: "Clock/RNG read at a composition root: `\(source)` is handed straight on as an "
+                + "argument and never examined here, so the only thing a test cannot pin is this "
+                + "expression",
+            filePath: getFilePath(for: node),
+            lineNumber: getLineNumber(for: node),
+            suggestion: "Nothing to inject — whatever decides takes this value as a parameter and "
+                + "is testable there. This is the end state the rest of this rule asks for, and it "
+                + "stays listed so the set of places the program reads ambient state is visible. "
+                + "The one thing still worth checking: is the value read at the moment its label "
+                + "claims? A `startedAt:` filled in after the work is done is not a testability "
+                + "problem and is still wrong.",
+            ruleName: .nonInjectedNondeterminism
+        )
+    }
+
     func flagFreshReadPerAccess(_ source: String, property: String, at node: Syntax) {
         addIssue(
             severity: .warning,

@@ -19,10 +19,10 @@ A property-based test re-runs logic against many randomized inputs and, when it 
 Uses in a parameter *default value* position are exempt — a defaulted `clock: () -> Date = { Date() }`
 is itself the injection seam — as are test files.
 
-### Three faults, one trigger
+### Four faults, one trigger
 
-The same marker witnesses three different problems, and only one of them is about testability. The
-rule reports all three, with different messages.
+The same marker witnesses four different situations, and only one of them is a testability problem
+you can fix by injecting anything. The rule reports all four, with different messages.
 
 **Cannot control the value.** A clock or an RNG read inline, feeding a bound, a branch or a retry
 window. The value is real; a test cannot pin it. The discriminator this fault wants — does the
@@ -136,6 +136,81 @@ site, `now` reads as a value, and only the second one misleads.
 
 Like the lazy-creation gate, this **changes what the rule says and not what it counts**: the same
 sites are reported, with a message that names the fault they actually have.
+
+#### Handed straight on — a composition-root read
+
+The read's value becomes a call argument and this scope never looks at it again:
+
+```swift
+store.approve(proposalID: id, by: reviewer, on: Date())
+
+let now = Date()
+summary(asOf: now)
+content(asOf: now)
+```
+
+**This is what following the rest of this rule's advice produces**, which is why it needed its own
+sentence rather than a gate. The ordinary message says a property-based test cannot pin the value.
+At a composition root that is false about everything that decides: the callee takes the instant as
+a parameter and a test pins it there. The only unpinnable thing is the expression itself, which
+contains no logic. A reader who moved every clock read to the edge — exactly what this rule asked
+for — was still being told their code was untestable.
+
+So the message changes and the count does not. These sites were already reported and still are;
+see [A composition-root read stays reported](#a-composition-root-read-stays-reported-and-that-is-deliberate)
+for why suppressing them would be worse than reporting them.
+
+**Argument position only, and that restriction is the whole precision.** A receiver is not handing
+the value on, it is *using* it — and every real defect this rule has produced across the corpus
+reads the clock into a receiver or an operand, never into a bare argument:
+
+| Shape | What the scope did with it |
+| --- | --- |
+| `Date().addingTimeInterval(timeout)` | a subprocess deadline |
+| `Date().timeIntervalSince(start)` | the entire output of a benchmark |
+| `Date.now.timeIntervalSince1970` | a number bound into SQL |
+| `"probe_\(UUID().uuidString).swift"` | a filename this scope composed |
+
+The bound spelling counts too — `let now = Date()` then only `f(asOf: now)` — and it demands that
+**every** reference to the binding is itself an argument. One comparison, one piece of arithmetic,
+one `return`, and the binding keeps the ordinary message. That is the safe direction: a shadowed
+name can only add a reference that must also pass, never excuse one that does not. A stored
+property's initial value is *not* a composition root, because the read happens once per instance
+and the uses are in members this walk cannot see — `WaiverRequestSheet`'s
+`@State private var openedAt = Date()` is the corpus instance, and it feeds arithmetic two lines
+below.
+
+**The message does not say "no action", and that distinction is load-bearing.** The corpus's one
+live defect of this shape was
+
+```swift
+for entry in filtered { … }                       // the whole eval run
+let report = EvalReport(gitSHA: sha, startedAt: Date(), results: results)
+```
+
+— `startedAt` read *after* the loop, so the `started_at` column of `swift-assist-eval history` and
+every report filename carried the instant each run **finished**. Nothing there is untestable and
+nothing is fabricated; the read is simply taken at the wrong moment. A message that closed the
+finding would have hidden it, so the suggestion asks the one question this shape can still get
+wrong: *is the value read at the moment its label claims?*
+
+**Measured before shipping, and the estimate was wrong in the usual direction.** Reading all 37
+corpus findings by hand suggested the arm would reach about 34. The inline form alone reached
+**20 of 37**; adding the bound form took it to **25**. That is the fifth time a prediction about a
+rule on this project has come in high, and the second on this rule.
+
+**The arm reclassifies and never removes**, which is asserted by a test rather than assumed: the
+corpus reported 37 before and 37 after, with 20 of them carrying the new sentence. The rule now
+reports 34 across the corpus, and the missing three are declines merged separately — an edge-case
+generator whose filler is arbitrary by design, and a deliberately broken `Hashable` conformance in
+a book chapter that exists to be falsified. Both are the shape
+[the decline section](#when-a-suppression-is-right) names.
+
+The nine that keep the ordinary message are worth listing, because they are what the arm is
+*not* claiming: two stamps assigned to storage, a lazy-created session id, a `@State` initial
+value that feeds arithmetic, and four receivers — `Date.now.formatted(…)`,
+`Date.now.timeIntervalSince1970`, `UUID().uuidString`, and a `UUID()` interpolated into a probe
+filename.
 
 ### Two shapes where the finding is right and "inject the source" is wrong
 
