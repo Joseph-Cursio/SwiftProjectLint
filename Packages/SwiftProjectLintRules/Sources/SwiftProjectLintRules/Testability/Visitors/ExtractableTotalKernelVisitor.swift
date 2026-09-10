@@ -624,13 +624,63 @@ private struct Collector {
         return found
     }
 
-    /// `Double(a) / Double(b)` — a division with a numeric conversion in it. This is the progress
-    /// shape, and every progress bug in this codebase is a case of it not reaching 1.0.
+    /// `a / Double(b)` — a division whose **divisor** carries a numeric conversion. This is the
+    /// progress shape, and every progress bug in this codebase is a case of it not reaching 1.0.
+    ///
+    /// **The divisor, because that is where a fraction differs from a rate.** The first version
+    /// asked only whether a conversion appeared anywhere in the expression, and that is true of
+    /// `Double(totalTokens) / totalSeconds` — tokens per second, which is unbounded. Three of the
+    /// corpus's seven "progress" findings were rates and layout coordinates being told that
+    /// *"progress should be monotonic, stay within 0...1, and terminate at 1.0"*, which sends a
+    /// reader to clamp a number that must not be clamped.
+    ///
+    /// A fraction's denominator is **the whole**: a count, so it had to be converted. A rate's
+    /// denominator is a duration, which is already floating-point and needs no conversion:
+    ///
+    /// | expression | divisor converted | what it is |
+    /// | --- | --- | --- |
+    /// | `Double(data.count) / Double(expectedBytes)` | yes | download progress |
+    /// | `CGFloat(iteration) / CGFloat(max(iterations - 1, 1))` | yes | layout-pass progress |
+    /// | `acceptedAll / Double(totalAll)` | yes | an acceptance rate in `0...1` |
+    /// | `Double(totalTokens) / totalSeconds` | **no** | tokens per second |
+    /// | `Double(chunks) / genTime` | **no** | chunks per second |
+    ///
+    /// **A first attempt required a conversion on *both* sides and was measured to be worse.** It
+    /// rejected the two rates correctly and also dropped `acceptedAll / Double(totalAll)`, a genuine
+    /// bounded fraction whose numerator is already a `Double` — and dropping it cost the whole
+    /// finding rather than just the label, because a kernel has to govern something and the fraction
+    /// was what it governed. Reading only the divisor keeps all three fractions and rejects both
+    /// rates.
     private func isFraction(_ node: Syntax) -> Bool {
-        guard operators(in: node).contains("/") else { return false }
-        return node.tokens(viewMode: .sourceAccurate).contains { token in
-            Self.pureConversions.contains(token.text)
+        guard let division = divisionOperands(in: node) else { return false }
+        return containsConversion(division.divisor)
+    }
+
+    /// The two sides of the first `/` in `node`, or `nil` when there is no division.
+    ///
+    /// Handles both spellings: `SwiftParser` leaves `a / b` unfolded as a `SequenceExprSyntax` of
+    /// three elements, and a caller that has folded operators hands over an
+    /// `InfixOperatorExprSyntax`.
+    private func divisionOperands(in node: Syntax) -> (dividend: Syntax, divisor: Syntax)? {
+        if let infix = node.as(InfixOperatorExprSyntax.self),
+           infix.operator.as(BinaryOperatorExprSyntax.self)?.operator.text == "/" {
+            return (Syntax(infix.leftOperand), Syntax(infix.rightOperand))
         }
+        if let sequence = node.as(SequenceExprSyntax.self) {
+            let elements = Array(sequence.elements)
+            for index in elements.indices.dropFirst().dropLast()
+            where elements[index].as(BinaryOperatorExprSyntax.self)?.operator.text == "/" {
+                return (Syntax(elements[index - 1]), Syntax(elements[index + 1]))
+            }
+        }
+        for child in node.children(viewMode: .sourceAccurate) {
+            if let found = divisionOperands(in: child) { return found }
+        }
+        return nil
+    }
+
+    private func containsConversion(_ node: Syntax) -> Bool {
+        node.tokens(viewMode: .sourceAccurate).contains { Self.pureConversions.contains($0.text) }
     }
 
     /// Any call that is not a numeric conversion refutes the binding. Conservative on purpose: the
