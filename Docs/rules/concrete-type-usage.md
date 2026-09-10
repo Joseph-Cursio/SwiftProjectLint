@@ -170,11 +170,31 @@ class MyViewModel {
   ([String]) async throws -> Data` names a closure, and a property typed with it is already
   injected — a test substitutes another closure. Asking for a protocol around it would replace a
   working seam with a heavier one.
-- **…but only when the alias is declared in the analyzed sources.** The exemption comes from a
-  project-wide prescan, so a property typed with an alias published by *another* package is still
-  reported: the declaration that would exempt it is out of scope. Measured — `CLIToolCommandRunner`
-  is exempt inside LintStudioUI, which declares it, and still flagged in SwiftLintRuleStudio, which
-  imports it. Same boundary as `unused-protocol-abstraction`'s, for the same reason.
+- **~~…but only when the alias is declared in the analyzed sources.~~** This was recorded for two
+  sweeps as a package boundary — `CLIToolCommandRunner` exempt inside LintStudioUI, which declares
+  it, and flagged in SwiftLintRuleStudio and SwiftFormatRuleStudio, which import it.
+
+  It did not have to be a boundary, because **the evidence is local**:
+
+  ```swift
+  var bridgedRunner: CLIToolCommandRunner?
+  if let commandRunner {
+      bridgedRunner = { arguments, _ in … }        // ← only a function type accepts this
+  }
+  ```
+
+  Assigning a closure literal to a binding *proves* its declared type is a function type — the
+  compiler rejects it otherwise. That is a fact rather than a heuristic, and it holds whoever
+  declares the alias and wherever. The prescan now records both shapes: a declaration initialised
+  with a closure, and a declaration filled by a later assignment in the same body. Measured:
+  SwiftLintRuleStudio 2 → 1 and SwiftFormatRuleStudio 3 → 2, and nothing else moved.
+
+  Scoped to one function or initializer body, so an unrelated `runner` elsewhere in the file cannot
+  lend its name to a type it has nothing to do with. A nested shadow inside the same body could
+  still mislead; that residual is worth less than the boundary it removes. **The test that matters
+  is the negative one** — `client = OllamaHTTPClient(baseURL: url)` is an assignment too, and
+  keying on the assignment rather than on the assigned *value* would have exempted every service
+  built in an initializer.
 - **~~A value type used as a seam still reads as concrete.~~** Closed by the closure-wrapper
   exemption above. The limitation was recorded as *"advice worth refusing rather than a defect the
   rule can detect"* — which was wrong on the second half. It is detectable, by the same prescan
