@@ -144,21 +144,44 @@ public struct CleanInstanceMethodCatalog: Sendable, Equatable {
     }
 
     /// The types that hold nothing a test could not supply. See ``isPureKernel(_:)``.
+    ///
+    /// **A fixpoint, because a kernel may hold another kernel**, and the single-pass version could
+    /// not see it. `EffectAnnotationParser` is a `public struct` whose one stored property is an
+    /// `AttributeRecognition` — itself a struct of five `Set<String>` — and every method takes
+    /// syntax and returns an `Effect?`. Nothing there is substitutable: a test wanting different
+    /// behaviour passes a different `AttributeRecognition`, which is a *value*, not a different
+    /// conformance. It was refused because its storage was neither a stdlib value nor a project
+    /// enum, so three findings across two rules asked for a protocol seam in front of a pure
+    /// function — the exact shape SwiftProjectLint#163 exists to prevent, one level of nesting
+    /// down.
+    ///
+    /// One pass would only reach depth one, which is the same reason `SendableProtocols` resolves
+    /// its refinement set this way rather than with two passes.
+    ///
+    /// **Monotone and therefore safe in the direction that matters.** The set starts empty and
+    /// only ever grows, so a type is admitted only once everything it holds has been admitted on
+    /// its own evidence. A reference cycle simply never promotes — which is a refusal, not a wrong
+    /// answer — and a type holding `UserDefaults` never promotes, so nothing holding *it* does
+    /// either.
     private static func kernels(
         in types: [String: TypeMembers],
         given clean: [String: Set<String>],
         enumTypes: Set<String>
     ) -> Set<String> {
         var found: Set<String> = []
-        for (name, members) in types where !members.isActor {
-            guard members.declaredStorage.allSatisfy({ storage in
-                !storage.isMutable && storage.isValue(givenEnums: enumTypes)
-            }) else { continue }
-            let cleanHere = clean[name] ?? []
-            guard members.methods.keys.allSatisfy({ cleanHere.contains($0) }) else { continue }
-            found.insert(name)
+        while true {
+            var promotedThisPass = false
+            for (name, members) in types where !members.isActor && !found.contains(name) {
+                guard members.declaredStorage.allSatisfy({ storage in
+                    !storage.isMutable && storage.isValue(givenEnums: enumTypes, kernels: found)
+                }) else { continue }
+                let cleanHere = clean[name] ?? []
+                guard members.methods.keys.allSatisfy({ cleanHere.contains($0) }) else { continue }
+                found.insert(name)
+                promotedThisPass = true
+            }
+            guard promotedThisPass else { return found }
         }
-        return found
     }
 
     /// Promotes method names until a pass promotes nothing new.
@@ -232,10 +255,15 @@ public struct CleanInstanceMethodCatalog: Sendable, Equatable {
         /// contents is what constructing a different one means.
         let isSyntacticValue: Bool
 
-        func isValue(givenEnums enums: Set<String>) -> Bool {
+        /// `kernels` is the set admitted so far, which is what makes a kernel holding a kernel a
+        /// kernel. It grows between passes and is never read for a type not yet admitted on its
+        /// own evidence, so the recursion bottoms out at stdlib values and project enums.
+        func isValue(givenEnums enums: Set<String>, kernels: Set<String>) -> Bool {
             if isSyntacticValue { return true }
             guard let typeName else { return false }
-            return stdlibValueTypes.contains(typeName) || enums.contains(typeName)
+            return stdlibValueTypes.contains(typeName)
+                || enums.contains(typeName)
+                || kernels.contains(typeName)
         }
     }
 
