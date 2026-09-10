@@ -189,7 +189,7 @@ final class MissingIdempotencyKeyVisitor: CrossFileVisitorBase, CrossFilePattern
             // `Date.now` — the classic "timestamp as idempotency key" mistake.
             if let base = member.base,
                let baseRef = base.as(DeclReferenceExprSyntax.self),
-               Self.nonStableGeneratorTypes.contains(baseRef.baseName.text),
+               FreshTimestampType.matches(baseRef.baseName.text),
                member.declName.baseName.text == "now" {
                 return "`\(baseRef.baseName.text).now` (a fresh timestamp)"
             }
@@ -206,14 +206,6 @@ final class MissingIdempotencyKeyVisitor: CrossFileVisitorBase, CrossFilePattern
         "arc4random",
         "arc4random_uniform",
         "CFUUIDCreate"
-    ]
-
-    /// Types whose `.now` property is a fresh-per-call timestamp.
-    private static let nonStableGeneratorTypes: Set<String> = [
-        "Date",
-        "Clock",
-        "ContinuousClock",
-        "SuspendingClock"
     ]
 
     private func calleeBaseName(of expr: ExprSyntax) -> String? {

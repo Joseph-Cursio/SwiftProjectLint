@@ -146,7 +146,7 @@ final class TupleEqualityWithUnstableComponentsVisitor: BasePatternVisitor {
         let methodName = member.declName.baseName.text
         let baseName = base.baseName.text
         if methodName == "now",
-           Self.clockLikeTypeNames.contains(baseName),
+           FreshTimestampType.matches(baseName),
            call.arguments.isEmpty {
             return "\(baseName).now()"
         }
@@ -163,7 +163,7 @@ final class TupleEqualityWithUnstableComponentsVisitor: BasePatternVisitor {
     private func unstableReason(forMemberAccess member: MemberAccessExprSyntax) -> String? {
         guard member.declName.baseName.text == "now",
               let base = member.base?.as(DeclReferenceExprSyntax.self),
-              Self.clockLikeTypeNames.contains(base.baseName.text) else {
+              FreshTimestampType.matches(base.baseName.text) else {
             return nil
         }
         return "\(base.baseName.text).now"
@@ -186,13 +186,6 @@ final class TupleEqualityWithUnstableComponentsVisitor: BasePatternVisitor {
     private static let unstableZeroArgFunctions: Set<String> = [
         "CFAbsoluteTimeGetCurrent",
         "mach_absolute_time"
-    ]
-
-    private static let clockLikeTypeNames: Set<String> = [
-        "Date",
-        "DispatchTime",
-        "ContinuousClock",
-        "SuspendingClock"
     ]
 
     private static let randomReceiverTypeNames: Set<String> = [
