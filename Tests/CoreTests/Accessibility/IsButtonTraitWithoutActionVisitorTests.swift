@@ -94,6 +94,29 @@ struct IsButtonTraitWithoutActionVisitorTests {
         #expect(visitor.detectedIssues.count == 1)
     }
 
+    /// `Slider` was absent from this rule's own list while its twin,
+    /// `TapTargetTooSmallVisitor`, already had it — so a slider carrying a redundant
+    /// `.isButton` was reported as having nothing to activate. Both rules now read
+    /// `InteractiveView`.
+    @Test
+    func noIssueForSliderWhichCarriesItsOwnAction() {
+        let source = """
+        import SwiftUI
+
+        struct MyView: View {
+            var body: some View {
+                Slider(value: $amount, in: 0 ... 1)
+                    .accessibilityAddTraits(.isButton)
+            }
+        }
+        """
+
+        let visitor = makeVisitor()
+        runVisitor(visitor, source: source)
+
+        #expect(visitor.detectedIssues.isEmpty)
+    }
+
     // MARK: - Negative Cases
 
     @Test("No issue when the element is activatable", arguments: [
