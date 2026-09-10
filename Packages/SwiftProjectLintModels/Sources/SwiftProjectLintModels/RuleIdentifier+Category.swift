@@ -134,7 +134,7 @@ extension RuleIdentifier {
              .pureClosureCandidate, .extractableTotalKernel, .missingEquatableOnStateType,
              .impureCallInViewBody, .viewHostingBeforeInspection,
              .observableEnvironmentViewMissingInspectionHook, .unreachableEffectClosure,
-             .contradictedClockDeterminism:
+             .contradictedClockDeterminism, .impureClosureInventory:
             return .testability
 
             // Other/System Rules

@@ -245,6 +245,15 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
     /// impure twin of `pureClosureCandidate`, which refutes exactly this shape.
     case unreachableEffectClosure = "Unreachable Effect Closure"
 
+    /// The complement of `pureClosureCandidate` over the same call sites: the
+    /// closures the purity oracle refuses, grouped by **why**.
+    ///
+    /// A census rather than a defect report, and deliberately **not** a seed —
+    /// nothing downstream should point analysis at it. The census counts what is
+    /// already testable; this counts what is standing in the way, which is the
+    /// half a reader adopting property-based testing acts on. SwiftProjectLint#186.
+    case impureClosureInventory = "Impure Closure Inventory"
+
     /// A function claiming `@ClockDeterministic` whose own body reaches for a
     /// clock nobody passed in. The only rule in the family that reports a
     /// *contradiction* rather than a smell: the author stated the property, so
