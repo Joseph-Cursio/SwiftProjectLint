@@ -143,6 +143,7 @@ in a plain `=` to it. Arms that merely happen to end by assigning the same varia
   the same function, unreported. So the count is a census of *spelling* as much as of
   coupling. Extending to ternaries is tracked separately; most of what it would add looks like
   gate-5 value selection, which is the thing worth measuring before widening the rule.
+  Tracked as issue #208.
 - **Platform-convention flags** (`animated:`, `reversed:`, `ascending:`) rarely trip the
   two-substantial-arms gate, so they seldom fire — but if one genuinely branches two
   algorithms, it will, and that's usually correct.
