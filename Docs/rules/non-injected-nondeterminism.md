@@ -366,6 +366,24 @@ URL(fileURLWithPath: NSTemporaryDirectory())
 where the call sits inside a `URL` initialiser instead. Same scratch path, same reason it needs no
 seam, and the first version of the gate did not see it.
 
+**A `defer` that deletes the file counts too, and that is what `temporaryDirectory` was standing in
+for.** The location was a proxy for the claim that actually matters — the file does not outlive the
+scope, so nothing outside it can have compared or stored its name. A tool that must write *into the
+directory it is working on* cannot use the temporary directory and still satisfies the claim:
+
+```swift
+let probeURL = targetDirectory.appendingPathComponent("_SwiftLintProbe_\(UUID().uuidString).swift")
+try probe.triggeringSource.write(to: probeURL, atomically: true, encoding: .utf8)
+defer { try? FileManager.default.removeItem(at: probeURL) }
+```
+
+A probe that lints one rule against one snippet has to sit where `swiftlint` will find it, and the
+uniqueness is load-bearing rather than incidental: a fixed name would let two concurrent
+verifications clobber each other's probe. The second arm asks for a bound local, a `defer` in the
+same body, and one of `removeItem` / `trashItem` / `unlinkItem` taking that local — narrow on
+purpose, because a `defer` that logs, closes a handle or releases a lock says nothing about whether
+the file survives. Measured: one finding in the 26-repository sweep, none in the third-party set.
+
 **Only an identity source**, and the first draft got that wrong: it exempted anything
 nondeterministic in a temporary path name, which would have silenced `"run-\(Date())"` — and a
 clock read used to make a name unique is the shape that produced a real defect in a vault app's
