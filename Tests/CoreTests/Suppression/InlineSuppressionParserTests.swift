@@ -35,6 +35,44 @@ struct InlineSuppressionParserTests {
         #expect(directives[0].rules == [.forceTry, .forceUnwrap, .magicNumber])
     }
 
+    // MARK: - Unrecognized names
+
+    @Test func testUnrecognizedNameIsKeptAndDoesNotTargetAllRules() {
+        // The bug this records: an empty `rules` used to mean "all rules", so a
+        // directive naming only an unknown rule became a blanket disable.
+        let source = "// swiftprojectlint:disable totally-fictional-rule"
+        let directives = InlineSuppressionParser.parse(fileContent: source)
+        #expect(directives.count == 1)
+        #expect(directives[0].rules.isEmpty)
+        #expect(directives[0].unrecognizedNames == ["totally-fictional-rule"])
+        #expect(directives[0].targetsAllRules == false)
+    }
+
+    @Test func testNamingNothingStillTargetsAllRules() {
+        let directives = InlineSuppressionParser.parse(fileContent: "// swiftprojectlint:disable")
+        #expect(directives[0].unrecognizedNames.isEmpty)
+        #expect(directives[0].targetsAllRules)
+    }
+
+    @Test func testUnknownNameAlongsideAKnownOneLeavesTheKnownOne() {
+        // Forward compatibility: a file naming a rule a newer build has must keep
+        // working on an older one, which is why unknown tokens are ignored *as
+        // rules*. That behaviour is unchanged; only the all-unknown case moved.
+        let source = "// swiftprojectlint:disable force-try rule-from-the-future"
+        let directives = InlineSuppressionParser.parse(fileContent: source)
+        #expect(directives[0].rules == [.forceTry])
+        #expect(directives[0].unrecognizedNames == ["rule-from-the-future"])
+        #expect(directives[0].targetsAllRules == false)
+    }
+
+    @Test func testUnrecognizedNamesKeepSourceOrderAndSpelling() {
+        // The audit quotes these back to the user, so case and order are the
+        // author's, not the parser's.
+        let source = "// swiftprojectlint:disable Zebra-Rule alpha-rule"
+        let directives = InlineSuppressionParser.parse(fileContent: source)
+        #expect(directives[0].unrecognizedNames == ["Zebra-Rule", "alpha-rule"])
+    }
+
     // MARK: - enable
 
     @Test func testEnableRule() {

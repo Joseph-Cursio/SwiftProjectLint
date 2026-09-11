@@ -7,10 +7,10 @@ import SwiftUI
 /// (ViewInspector only supports `@EnvironmentObject` injection, not `@Environment(Type.self)`.)
 /// Migration to @Observable is blocked until ViewInspector supports @Environment(Type.self) injection.
 @MainActor
-// swiftprojectlint:disable:next legacy-observable-object ios17-observation-migration
+// swiftprojectlint:disable:next legacy-observableobject ios-17-observation-migration
 class SystemComponents: ObservableObject {
     private(set) var visitorRegistry: PatternVisitorRegistry?
-    // swiftprojectlint:disable:next legacy-observable-object
+    // swiftprojectlint:disable:next legacy-observableobject
     @Published private(set) var patternRegistry: SourcePatternRegistry?
     private(set) var detector: SourcePatternDetector?
 

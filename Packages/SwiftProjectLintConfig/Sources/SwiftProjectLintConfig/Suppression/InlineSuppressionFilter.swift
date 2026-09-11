@@ -46,8 +46,11 @@ public struct InlineSuppressionFilter {
         var openDisables: [RuleIdentifier?: Int] = [:]
 
         for directive in directives.sorted(by: { $0.line < $1.line }) {
-            // An empty rules set targets all rules, represented by a nil dictionary key.
-            let keys: [RuleIdentifier?] = directive.rules.isEmpty
+            // A directive that named nothing targets all rules, represented by a nil
+            // dictionary key. One whose every name failed to resolve targets nothing
+            // and yields no keys, so it suppresses nothing — `SuppressionAudit` is
+            // what tells the user their comment is inert.
+            let keys: [RuleIdentifier?] = directive.targetsAllRules
                 ? [nil]
                 : directive.rules.map { Optional($0) }
             applyDirective(
