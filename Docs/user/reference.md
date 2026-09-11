@@ -319,6 +319,21 @@ Omit the rule name to target every rule:
 // swiftprojectlint:enable
 ```
 
+### An unrecognised rule name disables everything
+
+A directive whose names are all unrecognised is indistinguishable from one that
+names none, so it suppresses **every** rule for its scope:
+
+```swift
+// swiftprojectlint:disable:next Boolean Control Coupling   // ← three unknown tokens
+// swiftprojectlint:disable:next totally-fictional-rule     // ← one unknown token
+```
+
+Both silence the following line entirely. Get the kebab-case spelling right — it is
+the doc file name under `Docs/rules/`, and the display name with spaces is **not** it.
+Twelve rule docs used to show the display-name spelling in their own suppression advice;
+they were corrected, and no suppression in the corpus that taught this had ever used it.
+
 ### Scope
 
 Inline suppression applies **per-file only**. Cross-file issues (e.g. `Related Duplicate State Variable`, which spans multiple files) are not affected by single-file suppression comments.

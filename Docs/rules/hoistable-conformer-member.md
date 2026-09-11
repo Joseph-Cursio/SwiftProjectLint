@@ -65,7 +65,7 @@ When several protocols qualify, the most specific (fewest requirements) is repor
   makes the compile guard *stricter* (a false negative), never looser, so a reported hoist is
   safe to perform — but a deliberately type-specific implementation that merely *looks*
   identical may be suggested for hoisting. The rule is `Info` and opt-in for that reason;
-  suppress per-type with `// swiftprojectlint:disable Hoistable Conformer Member`.
+  suppress per-type with `// swiftprojectlint:disable hoistable-conformer-member`.
 - **Mixed accessor styles.** A computed property written `{ … }` in one type and `{ get { … } }`
   in another will not cluster (different normalized body).
 

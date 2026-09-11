@@ -82,7 +82,7 @@ detection is by inheritance-clause name, so a `View` conformance added through a
 - **Deliberately separate types.** Some structurally-identical types are kept apart on
   purpose (a wire-format DTO vs. a domain model that happen to coincide today but evolve
   independently). The rule cannot know intent; it is `Info` severity and opt-in for exactly
-  this reason. Suppress per-type with `// swiftprojectlint:disable Duplicate Struct Shape`.
+  this reason. Suppress per-type with `// swiftprojectlint:disable duplicate-struct-shape`.
 - **Type aliases and generics.** `normalizedType` must canonicalize `Array<T>`/`[T]`,
   `Optional<T>`/`T?`, and resolve same-module type aliases, or near-twins will be missed.
 - **Property order is irrelevant** — fingerprints are sets, so reordered declarations still

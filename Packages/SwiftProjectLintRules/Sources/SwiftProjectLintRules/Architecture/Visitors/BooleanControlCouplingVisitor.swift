@@ -14,6 +14,25 @@ import SwiftSyntax
 /// callee-side: it fires only when the parameter actually drives an `if`/`else`
 /// with two non-trivial arms. Swift's argument labels already make the call site
 /// readable, so the value here is in the *body*, not the call.
+///
+/// **"Non-trivial" is the whole rule, and it used to be stated two ways.** The
+/// gate read "two or more statements, *or* contains a call", which makes a
+/// single call non-trivial — and a single call is a *name*, which is precisely
+/// what the rule asks the code to produce. Across the 26-repository corpus that
+/// disagreement was not an edge case: six of the eight findings were a branch
+/// choosing a value or an already-named operation, and at four of them the
+/// suggested remedy was not merely unnecessary but impossible. The rule's own
+/// documentation carried the proof — its canonical violating example is
+/// `if isPremium { return premiumPrice() } else { return standardPrice() }`, and
+/// the fix printed underneath it is "call `premiumPrice()` / `standardPrice()`
+/// directly", naming the two functions the example already has.
+///
+/// So `isSubstantialArm` is now one of three gates, and the other two say what
+/// the branch must *not* be: `isNamedDispatch` (both arms one statement) and
+/// `isDeferredValueSelection` (both arms initializing one `let`). What survives
+/// all three is a branch whose arms do unnamed work of visibly different shape —
+/// the `export(asPDF:)` example in the rule doc, one line against five in
+/// `pbt-book`'s `tokenizeStreaming`.
 final class BooleanControlCouplingVisitor: BasePatternVisitor {
 
     /// The set of `Bool` parameter names in scope for each enclosing function /
@@ -81,6 +100,16 @@ final class BooleanControlCouplingVisitor: BasePatternVisitor {
         // Both arms must be substantial — this is what separates "two strategies"
         // from "optional embellishment" (`if verbose { log() }`).
         guard isSubstantialArm(node.body), isSubstantialArm(elseBody) else {
+            return .visitChildren
+        }
+
+        // The two paths already have names — nothing left to split.
+        guard isNamedDispatch(node.body, elseBody) == false else {
+            return .visitChildren
+        }
+
+        // The branch computes one value, it just needs statements to do it.
+        guard isDeferredValueSelection(node, elseBody: elseBody) == false else {
             return .visitChildren
         }
 
@@ -160,11 +189,116 @@ final class BooleanControlCouplingVisitor: BasePatternVisitor {
         return nil
     }
 
+    /// Both arms are exactly one statement, so each path is already a single
+    /// named thing and the `if` is the one dispatch point that has to exist
+    /// somewhere. This rule's own remedy — "split into two named functions" —
+    /// has already been applied here; re-applying it is not possible.
+    ///
+    /// Measured across the 26-repository corpus this matched **five of the
+    /// eight** findings: `config.enableRule(name)` / `disableRule(name)`,
+    /// `renderStats(…)` / `render(…)`, `recordLayoutNumber(…)` /
+    /// `recordMagicNumber(…)` twice, and `context.fill(path, …)` /
+    /// `context.stroke(path, …)` — the last a SwiftUI `GraphicsContext` pair
+    /// that cannot be restructured at all. The rule was reporting the residue
+    /// of its own advice.
+    ///
+    /// The symmetry is what carries the argument, which is why this tests both
+    /// arms rather than putting a floor under each one. A genuine two-algorithm
+    /// branch is lopsided — one line against five — and a floor on both arms
+    /// would silence it while leaving the dispatch pairs untouched.
+    private func isNamedDispatch(_ thenBody: CodeBlockSyntax, _ elseBody: CodeBlockSyntax) -> Bool {
+        thenBody.statements.count == 1 && elseBody.statements.count == 1
+    }
+
+    /// Swift's deferred-initialization idiom: a `let`/`var` declared with a type
+    /// and no value immediately before the `if`, assigned as the final statement
+    /// of each arm. The branch selects a **value**, not a behavior — which this
+    /// rule already declines when the value fits in one `return` (`return .red`).
+    /// Needing three statements to build a string does not turn a value into a
+    /// strategy; Swift simply offers no other spelling for a `let` whose value
+    /// takes work.
+    ///
+    /// Deliberately narrow. It requires the declaration to sit immediately
+    /// before the `if`, to carry no initializer, and each arm to end in a plain
+    /// `=` to that binding. Arms that merely happen to end by assigning the same
+    /// variable — `result += 10` / `result += 20` against a `var result = 0` —
+    /// are not this idiom and still fire; a compound assignment is accumulation,
+    /// not initialization.
+    private func isDeferredValueSelection(_ node: IfExprSyntax, elseBody: CodeBlockSyntax) -> Bool {
+        guard let target = deferredBindingPrecedingStatement(node) else {
+            return false
+        }
+        return assignsAsFinalStatement(node.body, to: target)
+            && assignsAsFinalStatement(elseBody, to: target)
+    }
+
+    /// The name bound by an uninitialized, explicitly typed, single-binding
+    /// `let`/`var` immediately preceding `node` in its enclosing block.
+    private func deferredBindingPrecedingStatement(_ node: IfExprSyntax) -> String? {
+        var current = Syntax(node)
+        while let parent = current.parent, current.is(CodeBlockItemSyntax.self) == false {
+            current = parent
+        }
+        guard let item = current.as(CodeBlockItemSyntax.self),
+              let list = item.parent?.as(CodeBlockItemListSyntax.self),
+              let index = list.index(of: item),
+              index != list.startIndex else {
+            return nil
+        }
+        let previous = list[list.index(before: index)]
+        guard let declaration = previous.item.as(VariableDeclSyntax.self),
+              declaration.bindings.count == 1,
+              let binding = declaration.bindings.first,
+              binding.initializer == nil,
+              binding.typeAnnotation != nil,
+              let pattern = binding.pattern.as(IdentifierPatternSyntax.self) else {
+            return nil
+        }
+        return pattern.identifier.text
+    }
+
+    /// Whether `block`'s last statement is a plain `name = …` assignment.
+    ///
+    /// `SwiftParser` leaves binary expressions unfolded, so `a = b` arrives as a
+    /// `SequenceExprSyntax` of `[a, =, b]` rather than an `InfixOperatorExprSyntax`
+    /// — folding needs an operator table this visitor does not have. The infix
+    /// shape is accepted too, for a caller that hands over a folded tree.
+    ///
+    /// `AssignmentExprSyntax` is the `=` token itself, so `+=` — which arrives as
+    /// a `BinaryOperatorExprSyntax` in the same position — does not match. That
+    /// is what keeps accumulation out of the deferred-initialization gate.
+    private func assignsAsFinalStatement(_ block: CodeBlockSyntax, to name: String) -> Bool {
+        guard let last = block.statements.last,
+              let expression = last.item.as(ExprSyntax.self) else {
+            return false
+        }
+        if let sequence = expression.as(SequenceExprSyntax.self) {
+            var elements = sequence.elements.makeIterator()
+            guard let target = elements.next()?.as(DeclReferenceExprSyntax.self),
+                  elements.next()?.is(AssignmentExprSyntax.self) == true else {
+                return false
+            }
+            return target.baseName.text == name
+        }
+        if let infix = expression.as(InfixOperatorExprSyntax.self) {
+            guard infix.operator.is(AssignmentExprSyntax.self),
+                  let target = infix.leftOperand.as(DeclReferenceExprSyntax.self) else {
+                return false
+            }
+            return target.baseName.text == name
+        }
+        return false
+    }
+
     /// An arm is "substantial" — i.e. real work, not a trivial value selection —
     /// when it has two or more statements, or contains a function/method call.
     /// This deliberately treats single literal/value returns (`return .red`,
     /// `return 0`) as *not* substantial: a boolean→value map is not the
     /// control-coupling smell this rule targets.
+    ///
+    /// On its own this is the weakest of the three gates, because a single call
+    /// clears it. `isNamedDispatch` is what stops that from being the rule's
+    /// dominant behavior; the two are meant to be read together.
     private func isSubstantialArm(_ block: CodeBlockSyntax) -> Bool {
         if block.statements.count >= 2 {
             return true

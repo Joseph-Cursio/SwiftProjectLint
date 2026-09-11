@@ -57,7 +57,7 @@ natural home for the centralized mapping.
 - **Name-keyed, not type-keyed.** Two unrelated enums sharing a 3+ case-name set and the
   same return kind would group. With ≥ 3 matching labels plus a matching return kind/member
   set, coincidence is low — but possible. The rule is `Info` and opt-in; suppress with
-  `// swiftprojectlint:disable Scattered Enum Mapping`.
+  `// swiftprojectlint:disable scattered-enum-mapping`.
 - **`String` mappings are noisier** than typed ones (display strings legitimately vary per
   site; a `String`-rawValue enum already has `.rawValue`).
 - **Nested enums are named by their simple name** (`Severity`, not `ValidationResult.Severity`)
