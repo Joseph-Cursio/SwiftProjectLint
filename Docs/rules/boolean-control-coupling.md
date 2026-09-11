@@ -149,7 +149,7 @@ in a plain `=` to it. Arms that merely happen to end by assigning the same varia
 - **Only `Bool`/`Bool?` parameters.** A flag smuggled through an enum with two cases is a
   different (and better) shape and is out of scope here.
 
-Suppress a deliberate instance with `// swiftprojectlint:disable Boolean Control Coupling`.
+Suppress a deliberate instance with `// swiftprojectlint:disable boolean-control-coupling`.
 
 ### Non-Violating Examples
 ```swift

@@ -63,7 +63,7 @@ every `status: String` into a finding.
 - **Exact name match only.** `idempotencyKey: String` matches `IdempotencyKey`, but `key: String`
   inside an idempotency-flavored type does not — the broader contains/context heuristic is noisier
   and deferred to Variant C.
-- Suppress with `// swiftprojectlint:disable Primitive Named For Its Domain Type`.
+- Suppress with `// swiftprojectlint:disable primitive-named-for-its-domain-type`.
 
 ### Non-Violating Examples
 ```swift

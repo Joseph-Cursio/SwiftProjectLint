@@ -44,7 +44,7 @@ Constraints that keep the signal high:
   satisfies the property shape but not an inherited non-property requirement.
 - A coincidental match remains possible — two unrelated concepts can share a property set.
   The rule is `Info` and opt-in for this reason; suppress with
-  `// swiftprojectlint:disable Could Adopt Protocol`.
+  `// swiftprojectlint:disable could-adopt-protocol`.
 
 ### Non-Violating Examples
 ```swift

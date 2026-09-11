@@ -80,7 +80,7 @@ conformance (a real domain protocol like `SeverityDisplaying`) suppresses it.
 #### Known limitations / false-positive posture
 - **Distinct domains can share case names** (`{north, south, east, west}` as both a compass
   and a wind direction). The rule cannot know intent; it is `Info` and opt-in. Suppress with
-  `// swiftprojectlint:disable Parallel Enum Shape`.
+  `// swiftprojectlint:disable parallel-enum-shape`.
 - **Exact-set clustering only.** Two lists where one is a superset of the other are not
   clustered here — that is [Parallel List Drift](parallel-list-drift.md)'s finding, and it
   carries the more urgent message because the divergence has already happened.

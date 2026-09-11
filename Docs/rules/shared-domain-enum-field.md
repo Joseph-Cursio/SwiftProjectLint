@@ -59,7 +59,7 @@ alone.
   weaker domain-axis signal and complicates the suggested requirement, so it is left out for
   now.
 - **Nested types report by simple name.** A nested `ValidationResult.Issue` is reported as
-  `Issue`. Suppress per-type with `// swiftprojectlint:disable Shared Domain-Enum Field`.
+  `Issue`. Suppress per-type with `// swiftprojectlint:disable shared-domain-enum-field`.
 - **Deliberately separate types.** Two types may share a domain enum yet be kept apart on
   purpose; the rule is `Info` and opt-in for that reason.
 

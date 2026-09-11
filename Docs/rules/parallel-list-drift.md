@@ -115,7 +115,7 @@ is named: the same fix resolves all of them, and any remainder re-surfaces on th
   floor suppresses low-coverage curated subsets, but a curated "the ten we support" list that
   happens to cover most of a twelve-entry canonical one still fires. This is the rule's residual
   false positive and part of why it is `Info`. Suppress with
-  `// swiftprojectlint:disable Parallel List Drift`.
+  `// swiftprojectlint:disable parallel-list-drift`.
 - **Two lists over one closed vocabulary read as drift however they were written.** The sharper
   form of the above, and the one the corpus sweep actually produced: when two lists enumerate
   the same fixed vocabulary — Swift's scalar type names, a log level's spellings, the verbs of

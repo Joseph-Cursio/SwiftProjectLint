@@ -60,7 +60,7 @@ suggestion ("*if* these collections hold `Element: P`").
 - **No type resolution.** A two-member match over a collection whose element does *not* conform
   to the matched protocol is a false positive. The conditional suggestion makes that case a
   no-op for the reader rather than a wrong instruction. Suppress with
-  `// swiftprojectlint:disable Hoistable Sequence Operation`.
+  `// swiftprojectlint:disable hoistable-sequence-operation`.
 - **Exact closure text.** Sites cluster by normalized body; a reordered comparison or renamed
   parameter splits the group.
 

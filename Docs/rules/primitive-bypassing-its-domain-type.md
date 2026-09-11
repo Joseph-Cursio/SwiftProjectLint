@@ -71,7 +71,7 @@ safe here because Variant A's value-type guard still applies — a `[Currency: R
   stored primitive) are not recognized — the conformance's raw type isn't visible syntactically.
 - **Value-type match is textual.** Two maps whose value types are both a common type (`Bool`,
   `Int`) can match coincidentally; the rule is `Info` and opt-in for exactly this residue.
-- Suppress a deliberate raw keying with `// swiftprojectlint:disable Primitive Bypassing Its Domain Type`.
+- Suppress a deliberate raw keying with `// swiftprojectlint:disable primitive-bypassing-its-domain-type`.
 
 ### Non-Violating Examples
 ```swift

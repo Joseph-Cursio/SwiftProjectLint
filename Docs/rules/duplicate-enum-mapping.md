@@ -67,7 +67,7 @@ that mapping copied"). Otherwise every site in the group is reported as an un-ex
 - **Implicit-member values (`.red`) are compared as bare text.** Two switches returning `.red`
   for the same cases group even if their result types differ — the exact-text match is the
   design, and the residual risk is why the rule is `Info` and opt-in. Suppress with
-  `// swiftprojectlint:disable Duplicate Enum Mapping` (or the deliberate-boundary case is the
+  `// swiftprojectlint:disable duplicate-enum-mapping` (or the deliberate-boundary case is the
   natural home for a future `linked-to` sync contract).
 - Thresholds (3 labels / 2 sites) are compile-time constants; per-rule YAML is a planned
   follow-up, matching the other Architecture cross-file rules.
