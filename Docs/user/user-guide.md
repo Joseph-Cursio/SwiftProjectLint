@@ -146,6 +146,12 @@ let b = result!
 | `// swiftprojectlint:disable:next rule-name` | Suppress the next line only |
 | `// swiftprojectlint:disable:this rule-name` | Suppress this line only |
 
+Rule keys are the doc file name under `Docs/rules/` — the lowercased display name with
+spaces replaced by hyphens, which is not always the spelling you would guess
+(`legacy-observableobject`, not `legacy-observable-object`). A name that matches no rule
+suppresses nothing and is reported on stderr with the key it probably meant. See
+[reference.md](reference.md#getting-the-spelling-right).
+
 Omit the rule name to target all rules. Multiple rule names can appear space-separated on one line. Rule names use kebab-case (e.g. `force-try`, `magic-number`, `fat-view-detection`).
 
 ---

@@ -144,6 +144,16 @@ struct SwiftProjectLintCLI: AsyncParsableCommand {
             Self.printToStandardError(Self.nestedPackagesSkippedNotice)
         }
 
+        // A suppression comment naming a rule that does not exist used to disable
+        // *every* rule for its scope, because "named nothing" and "named only
+        // unknown things" were the same empty set. It now suppresses nothing, which
+        // is the conservative reading — and silent either way without this, since a
+        // suppression that stops working reports more findings rather than fewer.
+        // Five such comments existed in this repository alone, and 26 of the 208
+        // rule keys are not the spelling a reader would guess, so the notice carries
+        // the key it thinks was meant. Same stderr channel and reasoning as above.
+        Self.reportUnrecognizedSuppressionNames(projectRoot: absolutePath, configuration: configuration)
+
         // A seed-bearing finding with no resolved symbol cannot become a seed, so the manifest is
         // shorter than the run that produced it — silently, and while still exiting 0. That is the
         // shape of a confident zero, and it has happened: a lossy `LintIssue` rebuild once emptied
@@ -208,6 +218,44 @@ struct SwiftProjectLintCLI: AsyncParsableCommand {
         return TextFormatter(
             withheld: split.withheld, skippedNestedPackages: skippedNestedPackages
         ).format(issues: split.listed)
+    }
+
+    /// Audits the project's suppression comments and writes a notice when any name
+    /// matches no rule. Nothing is written when they all resolve.
+    private static func reportUnrecognizedSuppressionNames(projectRoot: String, configuration: LintConfiguration) {
+        let unrecognized = unrecognizedSuppressionNames(projectRoot: projectRoot, configuration: configuration)
+        guard !unrecognized.isEmpty else { return }
+        printToStandardError(SuppressionAudit.notice(for: unrecognized))
+    }
+
+    /// Audits the project's suppression comments for names that match no rule.
+    ///
+    /// A second walk of the tree rather than a value threaded out of `analyzeProject`,
+    /// matching how `skippedNestedPackages` above is obtained: the linter's return type
+    /// is `[LintIssue]` and has 59 call sites, so widening it to carry a diagnostic
+    /// costs more than reading the files again. The pass reads and scans lines — no
+    /// parsing — and the files are already in the page cache from the run above.
+    static func unrecognizedSuppressionNames(
+        projectRoot: String,
+        configuration: LintConfiguration
+    ) -> [UnrecognizedSuppressionName] {
+        let root = ProjectRoot(projectRoot)
+        return FileAnalysisUtils.findSwiftFiles(
+            in: projectRoot,
+            excludedPaths: configuration.excludedPaths,
+            excludedFilenames: configuration.excludedFilenames,
+            includeNestedPackages: configuration.includeNestedPackages
+        )
+        .sorted()
+        .flatMap { path -> [UnrecognizedSuppressionName] in
+            guard let content = try? String(contentsOfFile: path, encoding: .utf8) else { return [] }
+            // A file outside the root has no relative spelling, so the notice names
+            // the absolute path rather than a shortened one that would be wrong.
+            return SuppressionAudit.unrecognizedNames(
+                in: content,
+                filePath: root.relativePath(of: path)?.value ?? path
+            )
+        }
     }
 
     private static func printToStandardError(_ message: String) {

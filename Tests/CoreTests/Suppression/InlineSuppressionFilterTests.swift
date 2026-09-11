@@ -17,6 +17,54 @@ struct InlineSuppressionFilterTests {
         )
     }
 
+    // MARK: - Unrecognized names
+
+    @Test func testDirectiveNamingOnlyUnknownRulesSuppressesNothing() {
+        // The regression. `rules.isEmpty` meant "all rules", so this comment —
+        // which reads as targeting one rule — disabled every rule on the next
+        // line. Five such comments existed in this repository, and one of them
+        // was hiding the rule whose job is to report suppression comments.
+        // Written with escaped newlines rather than a multi-line literal, and every
+        // unknown-key fixture below is. `InlineSuppressionParser` scans lines, so it
+        // cannot tell a comment from a line inside a string literal — a triple-quoted
+        // fixture here is a directive *in this file* as far as the parser and the new
+        // audit are concerned, and the audit would report this repository's own tests
+        // on every run. Valid-key fixtures elsewhere stay multi-line; only the
+        // deliberately-wrong ones produce a notice.
+        let source = "// swiftprojectlint:disable:next totally-fictional-rule\ntry! riskyCall()"
+        let issues = [issue(rule: .forceTry, line: 2), issue(rule: .magicNumber, line: 2)]
+        let result = InlineSuppressionFilter.filter(issues, fileContent: source)
+        #expect(result.count == 2)
+    }
+
+    @Test func testDirectiveNamingNothingStillSuppressesEverything() {
+        // The control. Without it the test above passes for a filter that has
+        // simply stopped honouring blanket disables.
+        let source = """
+        // swiftprojectlint:disable:next
+        try! riskyCall()
+        """
+        let issues = [issue(rule: .forceTry, line: 2), issue(rule: .magicNumber, line: 2)]
+        let result = InlineSuppressionFilter.filter(issues, fileContent: source)
+        #expect(result.isEmpty)
+    }
+
+    @Test func testUnknownNameAlongsideAKnownOneSuppressesOnlyTheKnownOne() {
+        let source = "// swiftprojectlint:disable:next force-try rule-from-the-future\ntry! riskyCall()"
+        let issues = [issue(rule: .forceTry, line: 2), issue(rule: .magicNumber, line: 2)]
+        let result = InlineSuppressionFilter.filter(issues, fileContent: source)
+        #expect(result.map(\.ruleName) == [.magicNumber])
+    }
+
+    @Test func testUnknownNameDoesNotOpenABlanketDisableRegion() {
+        // `disable` opens a region to end of file, so getting this wrong is the
+        // widest version of the bug: every rule silenced from here down.
+        let source = "// swiftprojectlint:disable totally-fictional-rule\ntry! riskyCall()\nlet value = 42"
+        let issues = [issue(rule: .forceTry, line: 2), issue(rule: .magicNumber, line: 3)]
+        let result = InlineSuppressionFilter.filter(issues, fileContent: source)
+        #expect(result.count == 2)
+    }
+
     // MARK: - disable:this
 
     @Test func testDisableThisRemovesIssueOnSameLine() {

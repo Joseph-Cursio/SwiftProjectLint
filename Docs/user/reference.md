@@ -319,20 +319,44 @@ Omit the rule name to target every rule:
 // swiftprojectlint:enable
 ```
 
-### An unrecognised rule name disables everything
+### An unrecognised rule name suppresses nothing, and says so
 
-A directive whose names are all unrecognised is indistinguishable from one that
-names none, so it suppresses **every** rule for its scope:
+A directive whose names all fail to resolve targets **no** rule:
 
 ```swift
-// swiftprojectlint:disable:next Boolean Control Coupling   // ← three unknown tokens
-// swiftprojectlint:disable:next totally-fictional-rule     // ← one unknown token
+// swiftprojectlint:disable:next totally-fictional-rule
+try! riskyCall()          // still reported
 ```
 
-Both silence the following line entirely. Get the kebab-case spelling right — it is
-the doc file name under `Docs/rules/`, and the display name with spaces is **not** it.
-Twelve rule docs used to show the display-name spelling in their own suppression advice;
-they were corrected, and no suppression in the corpus that taught this had ever used it.
+and the run writes a notice to stderr naming the file, the line, the token, and the
+key it thinks you meant:
+
+```
+Warning: 1 suppression comment names a rule that does not exist.
+  Sources/App/Model.swift:28: unknown rule 'legacy-observable-object' — did you mean
+  'legacy-observableobject'? This directive now suppresses nothing.
+```
+
+A name that resolves alongside one that doesn't still works: the resolved rules are
+suppressed, the unknown one is reported. That keeps a file naming a rule from a newer
+build working on an older one, which is why unknown names are ignored rather than fatal.
+
+**This used to be the opposite.** An empty rule set meant "all rules", and a directive
+whose every name failed to resolve produced an empty set — so it silenced *everything*
+on its target line, silently. Five such comments existed in this repository, and one of
+them was hiding [SwiftProjectLint Suppression](../rules/swiftprojectlint-suppression.md),
+the rule whose whole job is to report suppression comments.
+
+### Getting the spelling right
+
+The key is the lowercased display name with spaces replaced by hyphens — which is the
+doc file name under `Docs/rules/`. It is **not** always what you would guess: the display
+name decides where the hyphens fall, so `Legacy ObservableObject` gives
+`legacy-observableobject`, not `legacy-observable-object`. 26 of the 208 keys differ from
+the kebab-case of the rule's own identifier this way.
+
+Both real mistakes found in this codebase were hyphen placement alone, which is why the
+notice above can suggest an exact key rather than a near miss.
 
 ### Scope
 
