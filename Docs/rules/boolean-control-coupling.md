@@ -137,13 +137,39 @@ in a plain `=` to it. Arms that merely happen to end by assigning the same varia
   dominant behavior — five of eight findings — which is a limitation large enough to be the
   rule not working. Gate 4 now handles it, and this entry is kept as the record of a
   known limitation that was bigger than it looked.
-- **Spelling sensitivity: ternaries are invisible.** The rule sees `if`/`else` blocks only.
-  In `LiftedTestEmitter+Determinism.swift:53` an `isAsync` flag selects between two paths via
-  `isAsync ? … : …` on the line above the reported `isThrows` branch — the same coupling, in
-  the same function, unreported. So the count is a census of *spelling* as much as of
-  coupling. Extending to ternaries is tracked separately; most of what it would add looks like
-  gate-5 value selection, which is the thing worth measuring before widening the rule.
-  Tracked as issue #208.
+- **Ternaries are invisible, and measurement says leave it that way.** The rule sees
+  `if`/`else` blocks only, so `flag ? a : b` never reaches it. A census over the same
+  26-repository corpus (2,940 non-test files) found **57 ternaries whose condition
+  references a `Bool` parameter of the enclosing function**, and every one of them
+  produces a value:
+
+  | position | count | | operand | count |
+  |---|---|---|---|---|
+  | assigned to a `let` | 38 | | literal | 40 |
+  | passed as an argument | 6 | | reference | 9 |
+  | bare statement | 5 | | call | 8 |
+  | `return` | 4 | | | |
+  | implicit return | 3 | | | |
+  | collection element | 1 | | | |
+
+  **The decisive bucket — call operands evaluated for effect in statement position — is
+  empty.** All eight call operands build a value: seven initialize a `let`, one is a
+  single-expression function body. So every one of the 57 is the boolean→value selection
+  gates 3 and 5 already decline, and visiting ternaries would add **zero** findings after
+  the existing gates. The count being a census of spelling is true and costs nothing.
+
+  The motivating example was `LiftedTestEmitter+Determinism.swift`, where an `isAsync`
+  ternary sits inside a reported `isThrows` branch. That shape — one flag of a function
+  `if`-branched while another is ternary-branched — occurs **twice** corpus-wide, both at
+  that one site, and both are `let` initializations.
+
+  **If this is ever revisited, note that `TernaryExprSyntax` is not what the parser
+  produces.** `a ? b : c` arrives as a `SequenceExprSyntax` of
+  `[condition…, UnresolvedTernaryExprSyntax, else…]`; folding needs an operator table a
+  lint visitor does not have. A `visit(_: TernaryExprSyntax)` override compiles, runs, and
+  never fires — the census tool did exactly that and reported 0 across all 2,940 files
+  before the shape was checked. It is the same trap that `assignsAsFinalStatement` has to
+  work around for `=`. Measured in #208, which this closes.
 - **Platform-convention flags** (`animated:`, `reversed:`, `ascending:`) rarely trip the
   two-substantial-arms gate, so they seldom fire — but if one genuinely branches two
   algorithms, it will, and that's usually correct.
