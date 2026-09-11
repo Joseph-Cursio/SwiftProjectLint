@@ -158,6 +158,8 @@ private struct KernelScan {
     /// and both were unreachable from a test because the derivation was welded to a `FileManager`
     /// enumeration.
     private var derivedPathBindings: [String] = []
+    private var pathSpecificBindings: [String] = []
+    private var bodyMentionsAPath = false
 
     /// `dropFirst(prefix.count)` — a slice driven by a **count** rather than by an arithmetic
     /// expression. `hasSlicingArithmetic` requires an operator, so it does not see this.
@@ -187,6 +189,8 @@ private struct KernelScan {
         hasResumableIndex = collector.hasResumableIndex
 
         derivedPathBindings = collector.derivedPathBindings
+        pathSpecificBindings = collector.pathSpecificBindings
+        bodyMentionsAPath = PathEvidence.occurs(in: Syntax(body))
         hasCountDrivenSlice = collector.hasCountDrivenSlice
         hasGoverningMembershipTest =
             collector.membershipTestReferences(collector.derivedPathBindings)
@@ -247,8 +251,66 @@ private struct KernelScan {
     /// "monotone and terminates at 1.0" is not one of the roles this vocabulary names, and inventing
     /// a role to fill the field would be worse than leaving it empty.
     var role: PBTSeedRole? {
-        if !isArithmeticKernel, isPathKernel { return .normalizer }
+        if !isArithmeticKernel, isPathKernel {
+            // `.normalizer` is "derives one value from another in the same domain… owes a
+            // round-trip and an idempotent normalisation". Without path-specific evidence the
+            // shape does not entail that: `output.split(maxSplits: 1)` leaves the same domain,
+            // and `path.lowercased()` is idempotent but lossy, so it cannot round-trip. Claiming
+            // the role anyway would put a derivation in the seed manifest under a law it does not
+            // owe. `nil` is the same answer a fraction-only kernel gets, for the same reason —
+            // inventing a role to fill the field is worse than leaving it empty.
+            return hasPathSpecificEvidence ? .normalizer : nil
+        }
         return hasSlicingArithmetic ? .partition : nil
+    }
+
+    /// What a derived string that governs a decision owes when nothing says it is a *path*.
+    ///
+    /// Deliberately does not choose between round-trip and idempotence, because the corpus shows
+    /// both shapes here and the gate cannot tell them apart: `output.split(maxSplits: 1)` into a
+    /// name and a body owes that the parts rejoin to the whole; `path.lowercased()` used as a
+    /// dedup key owes idempotence and does **not** round-trip, lowercasing being lossy. Naming
+    /// both as conditional is weaker than the path arm's advice and is the honest strength.
+    ///
+    /// What it does state unconditionally is the boundary set, because that is what actually
+    /// catches these: `"a\n".components(separatedBy: "\n").count` is 2, a `split(maxSplits: 1)`
+    /// on input with no separator yields one part where the reader expected two, and a trailing
+    /// separator is the difference between every off-by-one in this shape and none.
+    static let stringDerivationLaw =
+        "the derivation should be TOTAL over the strings it names — an answer, not a trap or a "
+        + "wrong one, for the empty string, for input with no separator, for a separator at the "
+        + "very end, and for repeated separators. Then whichever applies: if it cuts a whole into "
+        + "parts, the parts should RECOMBINE into what you started with; if it canonicalises, it "
+        + "should be IDEMPOTENT. Note these are not both true of every derivation — a lossy "
+        + "canonicalisation like `lowercased()` is idempotent and does not round-trip."
+
+    static let stringDerivationSuggestion =
+        "Extract the derivation into a free function over the strings alone, named for what it "
+        + "produces rather than for the method it came from. Strings in, strings out is "
+        + "constructible in a test with no I/O, which is the whole point: the boundary cases above "
+        + "can then be generated against rather than eyeballed. Do NOT lift the decision this "
+        + "feeds — a `Set.contains` or a `count >` is already correct by construction, and the law "
+        + "is over the value being DERIVED, not over the test applied to it."
+
+    /// Named when only *some* of the bindings are path-derived, because the root law is not
+    /// about the others and the summary lists them all.
+    ///
+    /// `EditTools.swift:120` is the measured case: `parent = url.deletingLastPathComponent()`
+    /// beside `lineCount = content.components(separatedBy: "\n").count`. Two unrelated
+    /// derivations in one method, one finding, and a reader told to check round-trip from a root
+    /// is being told it about a line count. The empty string for the whole-shape case keeps the
+    /// message unchanged where the advice was already exactly right.
+    private var mixedShapeCaveat: String {
+        // Silent unless the path evidence is attached to *named bindings* and covers only some of
+        // them. When the evidence is elsewhere in the body — `scanSync`, whose bindings are all
+        // generic string operations and whose `lastPathComponent` is on the following line —
+        // there is no subset to name, and guessing one would be worse than saying nothing.
+        guard !pathSpecificBindings.isEmpty,
+              pathSpecificBindings.count < derivedPathBindings.count else { return "" }
+        let named = pathSpecificBindings.prefix(3).map { "`\($0)`" }.joined(separator: ", ")
+        return " That law is over \(named); the other names here derive strings that are not "
+            + "paths, and what those owe is totality at the boundaries — the empty string, no "
+            + "separator, a trailing separator."
     }
 
     var summary: String {
@@ -262,12 +324,31 @@ private struct KernelScan {
         return hasUnnamedFraction ? "\(named) and the progress fraction" : named
     }
 
+    /// Whether the derivation used an operation that identifies a **path**, which is what
+    /// licenses advice about a root.
+    ///
+    /// The gate for the shape is a *string* derivation that governs a decision, and the advice
+    /// used to talk about a path under a root regardless. Measured over 26 repositories: of the
+    /// six findings on this arm, two derived no path at all — `path.lowercased()` used as a
+    /// dedup key, and `output.split(separator: "\n", maxSplits: 1)` cut into a name and a body.
+    /// Telling a reader to check round-trip *from the root* at either is advice specific enough
+    /// to follow and pointing at nothing.
+    ///
+    /// This is not hypothetical. `AgentRunner+ProjectGuidance.swift:14` carried the path advice
+    /// naming a binding called `url`, while the kernel two lines below was a byte budget whose
+    /// guard counted UTF-8 bytes and whose truncation counted `Character`s — a 16 KB cap that
+    /// passed 410 KB of emoji. A reader who wrote the suggested round-trip laws would have proved
+    /// something true about `url` and walked past the bug.
+    private var hasPathSpecificEvidence: Bool { bodyMentionsAPath }
+
     var law: String {
         if !isArithmeticKernel, isPathKernel {
+            guard hasPathSpecificEvidence else { return Self.stringDerivationLaw }
             return "the derivation should ROUND-TRIP — rebuilding the whole from the root and the "
                 + "derived part should give back what you started with — and normalising should be "
                 + "IDEMPOTENT: applying it twice must equal applying it once. Both are checkable "
                 + "over generated roots and paths, and both are where off-by-one prefix bugs live."
+                + mixedShapeCaveat
         }
         if hasFraction, hasSlicingArithmetic {
             return "the parts should tile the whole exactly, and progress should terminate at 1.0 — "
@@ -304,6 +385,7 @@ private struct KernelScan {
     /// then, so a plain `var i = 0` tiler with no resume concept keeps the shorter advice.
     var suggestion: String {
         if !isArithmeticKernel, isPathKernel {
+            guard hasPathSpecificEvidence else { return Self.stringDerivationSuggestion }
             return "Extract the derivation into a free function or value type over the strings "
                 + "alone — `func relativePath(of item: String, under root: String) -> String` — and "
                 + "let the method keep the enumeration and ask it what to call each item. Two "
@@ -334,6 +416,44 @@ private struct KernelScan {
                 + "the clamp is the property the tiler owes."
         }
         return advice
+    }
+}
+
+/// Operations that identify a **path**, as opposed to any string.
+///
+/// `Collector.pathCalls` is the gate for the *shape*, and it is deliberately broad —
+/// `lowercased`, `split`, `joined`, `trimmingCharacters` are string operations that happen to be
+/// how paths get built. This narrower set is what licenses the *advice* to talk about a root.
+///
+/// **Looked for across the whole body, not only in the derived bindings.** The canonical fixture
+/// is `DirectoryScanner.scanSync`, and its two bindings are
+/// `prefix = rootPath.hasSuffix("/") ? rootPath : rootPath + "/"` and
+/// `relativePath = item.hasPrefix(prefix) ? String(item.dropFirst(prefix.count)) : item` — both
+/// built entirely from generic string operations. What makes it a path derivation is the
+/// `(relativePath as NSString).lastPathComponent` on the next line. A binding-scoped check gets
+/// the most canonical case in the corpus wrong, which is how this scope was chosen.
+enum PathEvidence {
+
+    static let names: Set<String> = [
+        "appendingPathComponent", "appendingPathExtension", "deletingLastPathComponent",
+        "deletingPathExtension", "standardizingPath", "standardizedFileURL",
+        "lastPathComponent", "pathExtension", "pathComponents", "relativePath",
+        "resolvingSymlinksInPath", "absoluteString"
+    ]
+
+    /// Deliberately descends into closures, unlike the kernel walk. A closure body belongs to a
+    /// different rule *as a kernel*; as **evidence that this method handles paths** it counts —
+    /// `excludedPath.contains { url.deletingLastPathComponent().relativePath.hasPrefix($0) }` is
+    /// the whole shape the path advice is for, and all of it sits inside the closure.
+    static func occurs(in node: Syntax) -> Bool {
+        if let member = node.as(MemberAccessExprSyntax.self),
+           names.contains(member.declName.baseName.text) {
+            return true
+        }
+        for child in node.children(viewMode: .sourceAccurate) where occurs(in: child) {
+            return true
+        }
+        return false
     }
 }
 
@@ -383,6 +503,10 @@ private struct Collector {
     // MARK: - The path/string shape
 
     private(set) var derivedPathBindings: [String] = []
+
+    /// The subset of `derivedPathBindings` whose derivation used an operation that
+    /// identifies a **path** rather than any string — see `pathSpecificNames`.
+    private(set) var pathSpecificBindings: [String] = []
     private(set) var hasCountDrivenSlice = false
 
     /// Identifiers passed to a membership test — `dirName` in `skipped.contains(dirName)`.
@@ -486,6 +610,7 @@ private struct Collector {
         _ name: String, value: ExprSyntax, at declaration: VariableDeclSyntax
     ) {
         guard containsPathOperation(Syntax(value)), onlyPathSafeCalls(Syntax(value)) else { return }
+        if PathEvidence.occurs(in: Syntax(value)) { pathSpecificBindings.append(name) }
         derivedPathBindings.append(name)
         if firstArithmeticSite == nil { firstArithmeticSite = Syntax(declaration) }
     }

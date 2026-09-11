@@ -132,7 +132,7 @@ Gates 1 and 2 apply to both shapes; gate 3 is what each shape has to satisfy.
 |---|---|---|
 | Derivation | `let total = (count + size - 1) / size` | `let prefix = root.hasSuffix("/") ? root : root + "/"` |
 | Governing use | loop bound, index, slice with an operator, fraction | slice driven by a `.count`, membership test, or a comparison **naming** the binding |
-| Law it owes | the parts tile the whole; progress terminates at 1.0 | the derivation round-trips; normalisation is idempotent |
+| Law it owes | the parts tile the whole; progress terminates at 1.0 | see **Which law the string shape is told it owes** below |
 | Bug it catches | off-by-one counts, unclamped resume index | off-by-one prefixes, a suffix stripped from the wrong end |
 
 The second shape exists because the rule was run over a 60k-line linter and reported **nothing at
@@ -148,6 +148,49 @@ Its governing test is deliberately stricter than the arithmetic shape's. That on
 comparison containing an arithmetic operator, whatever names it mentions; since `+` on strings is
 concatenation, reusing it here vouched for derivations it had nothing to do with. The path shape
 requires the comparison to actually name the binding.
+
+### Which law the string shape is told it owes
+
+**The gate is a string derivation; the advice used to be about a path under a root regardless.**
+Those are not the same set. Measured over the 26-repository corpus, of the six findings on this
+arm two derive no path at all:
+
+| site | what it derives | law it owes |
+|---|---|---|
+| `Scan.swift:73` | exclusion by path prefix | round-trip from the root |
+| `SkillLinter.swift:79` | files under a directory | round-trip from the root |
+| `XcodeIntegrationService.swift:134` | walk up from a directory | round-trip from the root |
+| `EditTools.swift:120` | a parent directory **and** a line count | round-trip, for `parent` only |
+| `AppleDocsIngester.swift:159` | `path.lowercased()` as a dedup key | idempotence — and **not** round-trip |
+| `SkillConflictDetector+Pipeline.swift:144` | first line / rest | recombination — but no root |
+
+So the advice splits on whether a **path-specific** operation appears —
+`appendingPathComponent`, `deletingLastPathComponent`, `lastPathComponent`, `standardizingPath`
+and the rest. With one, the message is unchanged. Without, it states what the shape actually owes:
+**totality at the boundaries** — the empty string, no separator, a trailing separator, repeated
+separators — and then, conditionally, recombination *or* idempotence. It names both as conditional
+because the corpus contains both and the gate cannot tell them apart: a lossy canonicalisation
+like `lowercased()` is idempotent and does **not** round-trip.
+
+**This was not cosmetic.** An earlier run carried this advice at
+`AgentRunner+ProjectGuidance.swift:14`, naming a binding called `url`, while the kernel two lines
+below was a byte budget whose guard counted UTF-8 bytes and whose truncation counted `Character`s —
+a 16 KB cap that passed 410 KB of emoji. A reader who wrote the suggested round-trip laws would
+have proved something true about `url` and walked past the bug. Advice specific enough to follow,
+pointing away from the defect, is worse than silence.
+
+**The evidence is looked for across the whole body, not just in the derived bindings**, and the
+canonical fixture is why. `DirectoryScanner.scanSync` binds
+`prefix = rootPath.hasSuffix("/") ? rootPath : rootPath + "/"` and
+`relativePath = item.hasPrefix(prefix) ? String(item.dropFirst(prefix.count)) : item` — every
+operation generic. What makes it a path derivation is the `lastPathComponent` on the next line. A
+binding-scoped check gets the most canonical case in the corpus wrong. The search also descends
+into closures, unlike the kernel walk: in `Sitrep.detectFiles` the entire derivation sits inside a
+`contains { … }`.
+
+**When only some bindings are path-derived, the message says which.** `EditTools.swift:120` derives
+a parent directory and a line count in one method, and one finding covers both; without the caveat
+a reader is told to check round-trip from a root about a line count.
 
 The change is a net gain in findings rather than a narrowing: tightening the path shape lost
 nothing and surfaced kernels the looser test had been talking past. Most of what it surfaced was
@@ -240,6 +283,11 @@ A finding contributes a seed whose `role` names the kernel's shape: a tiler is a
 derivation is a `normalizer`. A progress-only kernel claims **no** role — "monotone and terminates
 at 1.0" is not one of the vocabulary's names, and inventing one to fill the field would have the
 consumer act on a classification nobody made.
+
+**A string derivation with no path evidence claims no role either, for the same reason.**
+`normalizer` is "derives one value from another in the same domain… owes a round-trip and an
+idempotent normalisation". A head/tail split leaves the domain, and `lowercased()` is idempotent
+but lossy, so it cannot round-trip. Neither owes what the role names.
 
 `partition` is role-*entailed*: a partition owes a tiling by virtue of being one, so a correct
 implementation cannot fail that law. `normalizer` is a conjecture — its round-trip and idempotence
