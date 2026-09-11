@@ -156,8 +156,24 @@ extension NonInjectedNondeterminismVisitor {
     /// one that does not. It is scoped to a local `let`; a stored property's initial value is not a
     /// composition root, because the read happens once per instance and the uses are elsewhere.
     func isHandedStraightOn(_ node: Syntax) -> Bool {
-        if isArgumentPosition(node) { return true }
-        return isBoundAndOnlyPassedOn(node)
+        // Reach through any member chain that only restates the value, so both spellings below ask
+        // about the same expression: `bind(Date.now.timeIntervalSince1970, …)` is the argument form
+        // and `let stamp = Date.now.formatted(…)` is the bound one.
+        let effective = outermostRepresentation(of: node)
+        if isArgumentPosition(effective) { return true }
+        return isBoundAndOnlyPassedOn(effective)
+    }
+
+    /// `node` with every re-presenting member applied — the outermost expression that is still only
+    /// the same fact in another type. Returns `node` itself when the first member does something.
+    private func outermostRepresentation(of node: Syntax) -> Syntax {
+        var outer = node
+        while let member = outer.parent?.as(MemberAccessExprSyntax.self),
+              member.base.map({ Syntax($0).id == outer.id }) == true,
+              let next = representation(of: member) {
+            outer = next
+        }
+        return outer
     }
 
     /// The `let name = <read>` case: a local binding whose every use is an argument.
@@ -209,6 +225,8 @@ extension NonInjectedNondeterminismVisitor {
         var current = node.parent
         while let syntax = current {
             // A receiver, not an argument: this scope is about to do something with the value.
+            // Re-presenting members were already stepped past by `outermostRepresentation(of:)`, so
+            // anything still in receiver position here is combining.
             if let member = syntax.as(MemberAccessExprSyntax.self) {
                 return member.base.map { Syntax($0).id == child.id } == false
             }
@@ -224,6 +242,67 @@ extension NonInjectedNondeterminismVisitor {
             current = syntax.parent
         }
         return false
+    }
+
+    /// The outermost expression of a **re-presenting** member access, or `nil` when the member is
+    /// doing something with the value rather than restating it.
+    ///
+    /// A receiver is normally where this rule's precision comes from: every defect it has produced
+    /// across the corpus reads the clock into one. But four of the nine sites the composition-root
+    /// arm could not reach were receivers that merely change the value's *type* and then hand it on:
+    ///
+    /// ```swift
+    /// let stamp = Date.now.formatted(date: .abbreviated, time: .shortened)  // …timestamp: stamp
+    /// statement.bind(Date.now.timeIntervalSince1970, at: 1)
+    /// UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: nil)
+    /// ```
+    ///
+    /// None of those is a decision. The instant or the identity is the same fact in a `String` or a
+    /// `Double`, handed to something that takes it as a parameter — which is the shape this arm
+    /// exists to name.
+    ///
+    /// **The distinction is whether the member's arguments reach into the scope.** Combining the
+    /// value with a local or a parameter produces a *new* fact, and that is where every defect lives:
+    ///
+    /// | expression | arguments | what it is |
+    /// | --- | --- | --- |
+    /// | `.uuidString` | none | the same identity as text |
+    /// | `.timeIntervalSince1970` | none | the same instant as a number |
+    /// | `.formatted(date: .abbreviated, time: .shortened)` | leading-dot style options | the same instant, formatted |
+    /// | `.addingTimeInterval(timeout)` | **`timeout`** | a deadline |
+    /// | `.timeIntervalSince(start)` | **`start`** | an elapsed time — a benchmark's whole output |
+    ///
+    /// Deliberately strict about what counts as inert: an argument may contain literals and
+    /// leading-dot members and **nothing else**. One bare identifier and the member is treated as
+    /// combining, because resolving whether that identifier is a local, a parameter or a static
+    /// constant is a scope walk, and guessing it wrong turns a deadline into an end state.
+    private func representation(of member: MemberAccessExprSyntax) -> Syntax? {
+        guard let call = member.parent?.as(FunctionCallExprSyntax.self),
+              Syntax(call.calledExpression).id == Syntax(member).id else {
+            // A bare member with no call: `.uuidString`, `.timeIntervalSince1970`. Nothing was
+            // supplied, so nothing was combined.
+            return Syntax(member)
+        }
+        guard call.arguments.allSatisfy({ Self.isInert($0.expression) }),
+              call.trailingClosure == nil,
+              call.additionalTrailingClosures.isEmpty else { return nil }
+        return Syntax(call)
+    }
+
+    /// An argument that supplies no value from the surrounding scope.
+    ///
+    /// The leading-dot test is written out rather than as
+    /// `expression.as(MemberAccessExprSyntax.self)?.base == nil`, which reads correctly and is
+    /// wrong: optional-chaining a non-member expression yields `nil`, and `nil == nil` is `true`, so
+    /// that spelling calls **every** argument inert. It shipped for one build and the negative test
+    /// for `Date().addingTimeInterval(timeout)` caught it — a deadline reported as an end state,
+    /// which is the one direction this arm must never fail in.
+    private static func isInert(_ expression: ExprSyntax) -> Bool {
+        if let member = expression.as(MemberAccessExprSyntax.self), member.base == nil { return true }
+        return !expression.tokens(viewMode: .sourceAccurate).contains { token in
+            if case .identifier = token.tokenKind { return true }
+            return false
+        }
     }
 
     /// Wrappers that do not change what is being done with the value.

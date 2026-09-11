@@ -171,6 +171,34 @@ reads the clock into a receiver or an operand, never into a bare argument:
 | `Date.now.timeIntervalSince1970` | a number bound into SQL |
 | `"probe_\(UUID().uuidString).swift"` | a filename this scope composed |
 
+**A member that only re-presents the value is reached through.** A receiver is normally the scope
+*using* the value, and that is where every defect this rule has produced lives — but four of the nine
+sites this arm could not reach were receivers that merely change the value's type and then hand it on:
+`Date.now.formatted(date: .abbreviated, time: .shortened)` bound and passed as a `timestamp:`,
+`bind(Date.now.timeIntervalSince1970, at: 1)`, `R(identifier: UUID().uuidString, …)`. None of those is
+a decision.
+
+The distinction is whether the member's arguments **reach into the scope**:
+
+| expression | arguments | what it is |
+| --- | --- | --- |
+| `.uuidString` | none | the same identity as text |
+| `.timeIntervalSince1970` | none | the same instant as a number |
+| `.httpHeader` | none | the same instant as an RFC1123 header |
+| `.formatted(date: .abbreviated, time: .shortened)` | leading-dot style options | the same instant, formatted |
+| `.addingTimeInterval(timeout)` | **`timeout`** | a deadline |
+| `.timeIntervalSince(start)` | **`start`** | an elapsed time — a benchmark's whole output |
+
+An argument may contain literals and leading-dot members and nothing else; one bare identifier and the
+member counts as combining, because resolving whether that identifier is a local, a parameter or a
+static constant is a scope walk, and guessing it wrong turns a deadline into an end state. A trailing
+closure is never inert.
+
+**Re-presentation alone is not enough** — the result still has to be handed on. A formatted instant
+that is *returned* rather than passed keeps the ordinary message, as does one interpolated into a
+string. Measured: 3 of our 34 findings reclassified and 2 of 37 in third-party checkouts, with none
+added or removed in either set.
+
 The bound spelling counts too — `let now = Date()` then only `f(asOf: now)` — and it demands that
 **every** reference to the binding is itself an argument. One comparison, one piece of arithmetic,
 one `return`, and the binding keeps the ordinary message. That is the safe direction: a shadowed

@@ -110,18 +110,67 @@ struct NonInjectedNondeterminismCompositionRootTests {
     // MARK: - Receivers are uses, not hand-offs
 
     /// Every real defect this rule has produced across the corpus reads the clock into a receiver
-    /// or an operand: a deadline, an elapsed time, a rate-limit window. None of them is an
-    /// argument, and that is the whole precision of the arm.
-    @Test("a receiver is the scope using the value, not passing it", arguments: [
+    /// **and combines it with something from the scope** — a deadline, an elapsed time, a rate-limit
+    /// window. That combination is the precision of the arm, not the receiver itself.
+    @Test("combining the value with a local or parameter is not a hand-off", arguments: [
         "func f(_ t: TimeInterval) { let deadline = Date().addingTimeInterval(t); wait(until: deadline) }",
-        "func f(_ start: Date) -> Double { Date().timeIntervalSince(start) }",
-        "func f() { bind(Date.now.timeIntervalSince1970, at: 1) }",
+        "func f(_ start: Date) -> Double { Date().timeIntervalSince(start) }"
+    ])
+    func combiningReceiverIsNotACompositionRoot(source: String) {
+        #expect(analyze(source).count == 1)
+        #expect(!isCompositionRoot(source))
+    }
+
+    /// Re-presenting the value and then *not* handing it on is still not a composition root: these
+    /// return or interpolate the result rather than passing it to anything.
+    @Test("re-presentation alone is not enough — it still has to be handed on", arguments: [
         "func f() -> String { Date.now.formatted(date: .abbreviated, time: .shortened) }",
         "func f() -> String { \"probe_\\(UUID().uuidString).swift\" }"
     ])
-    func receiverIsNotACompositionRoot(source: String) {
+    func representationWithoutAHandOffIsNotACompositionRoot(source: String) {
         #expect(analyze(source).count == 1)
         #expect(!isCompositionRoot(source))
+    }
+
+    // MARK: - Re-presentation is reached through
+
+    /// **This test asserted the opposite when the arm shipped**, on the reasoning that a receiver is
+    /// always the scope using the value. `.timeIntervalSince1970` takes no argument: it is the same
+    /// instant as a number, handed to `bind` as an argument. Four of the nine sites the arm could not
+    /// reach were this shape (SwiftProjectLint#193), and the distinction is not the receiver but
+    /// whether its arguments reach into the scope.
+    @Test("a zero-argument member re-presents the value and is reached through", arguments: [
+        "func f() { bind(Date.now.timeIntervalSince1970, at: 1) }",
+        "func f(_ content: C) { schedule(R(identifier: UUID().uuidString, content: content)) }"
+    ])
+    func zeroArgumentMemberIsReachedThrough(source: String) {
+        #expect(analyze(source).count == 1)
+        #expect(isCompositionRoot(source))
+    }
+
+    /// Arguments that are leading-dot style options supply nothing from the scope, so the instant is
+    /// still only being restated — here into a `String` that is then handed on.
+    @Test func formattedThenPassedOnIsACompositionRoot() {
+        let source = """
+        func export(report: R, as format: F) {
+            let stamp = Date.now.formatted(date: .abbreviated, time: .shortened)
+            write(Exporter.export(report, as: format, timestamp: stamp))
+        }
+        """
+        #expect(analyze(source).count == 1)
+        #expect(isCompositionRoot(source))
+    }
+
+    /// One bare identifier in the arguments and the member is treated as combining, because
+    /// resolving whether it is a local, a parameter or a static constant is a scope walk — and
+    /// guessing it wrong turns a deadline into an end state.
+    @Test func anIdentifierArgumentIsNotInert() {
+        #expect(!isCompositionRoot("func f(_ s: S) { send(Date().addingTimeInterval(s.window)) }"))
+    }
+
+    /// A trailing closure can run anything, so a member carrying one is never re-presentation.
+    @Test func aTrailingClosureIsNotInert() {
+        #expect(!isCompositionRoot("func f() { send(Date.now.transformed { $0 }) }"))
     }
 
     // MARK: - Arm order
