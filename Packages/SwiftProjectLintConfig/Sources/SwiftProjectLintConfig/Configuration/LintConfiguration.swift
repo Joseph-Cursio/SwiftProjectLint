@@ -193,18 +193,19 @@ public struct LintConfiguration: Sendable {
         // Build a lookup from basename → full relative path for path matching.
         // Issue file paths are basenames; excluded_paths patterns match relative paths.
         var basenameToRelativePath: [String: String] = [:]
-        if let root = projectRoot {
-            let allFiles = FileAnalysisUtils.findSwiftFiles(in: root)
-            // Resolve symlinks so the prefix matches the canonical paths returned by findSwiftFiles.
-            // FileManager.enumerator resolves symlinks in item paths (e.g. /var → /private/var on
-            // macOS), so an unresolved root prefix would fail the hasPrefix check.
-            let resolvedRoot = FileAnalysisUtils.realPath(root)
-            let prefix = resolvedRoot.hasSuffix("/") ? resolvedRoot : resolvedRoot + "/"
+        if let givenRoot = projectRoot {
+            let allFiles = FileAnalysisUtils.findSwiftFiles(in: givenRoot)
+            // Canonicalised so the prefix matches the paths `findSwiftFiles` returns: the enumerator
+            // spells item paths with the resolved root even when handed an unresolved one
+            // (`/var` → `/private/var` on macOS). See `ProjectRoot`.
+            let root = ProjectRoot(givenRoot)
             for fullPath in allFiles {
                 let basename = (fullPath as NSString).lastPathComponent
-                let relative = fullPath.hasPrefix(prefix)
-                    ? String(fullPath.dropFirst(prefix.count))
-                    : fullPath
+                // Not under the root: match against the absolute path, which is the widest thing a
+                // pattern can be tried on. A third fallback, and now a stated one -- the other two
+                // callers of this derivation answer differently, because an exclusion that matches
+                // too little is safer here than one that matches the wrong relative path.
+                let relative = root.relativePath(of: fullPath)?.value ?? fullPath
                 basenameToRelativePath[basename] = relative
             }
         }
