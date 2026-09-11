@@ -30,32 +30,31 @@ public struct DirectoryScanner {
         rootPath: String, maxDepth: Int = 4
     ) -> DirectoryNode {
         let fileManager = FileManager.default
-        let rootURL = URL(fileURLWithPath: rootPath, isDirectory: true)
-        let resolvedRoot = FileAnalysisUtils.realPath(rootURL.path)
+        let root = ProjectRoot(rootPath)
         let rootName = (rootPath as NSString).lastPathComponent
 
-        let root = DirectoryNode(
+        let rootNode = DirectoryNode(
             identifier: "",
             name: rootName,
             depth: 0
         )
 
-        var lookup: [String: DirectoryNode] = ["": root]
+        var lookup: [String: DirectoryNode] = ["": rootNode]
 
         guard let enumerator = fileManager.enumerator(
-            at: rootURL,
+            at: root.url,
             includingPropertiesForKeys: [.isDirectoryKey],
             options: .skipsHiddenFiles
         ) else {
-            return root
+            return rootNode
         }
 
-        let prefix = resolvedRoot.hasSuffix("/")
-            ? resolvedRoot
-            : resolvedRoot + "/"
-
         while let itemURL = enumerator.nextObject() as? URL {
-            let resolvedPath = FileAnalysisUtils.realPath(itemURL.path)
+            // The item path is canonicalised as well as the root, which is a decision rather than
+            // symmetry: a symlinked *subdirectory* resolves to somewhere outside the root, so it
+            // lands on the fallback below instead of being placed in the tree at a path that does
+            // not contain it. `ProjectRoot` deliberately leaves this to the caller.
+            let resolvedPath = ProjectRoot.canonical(itemURL.path)
 
             guard let resourceValues = try? itemURL.resourceValues(
                 forKeys: [.isDirectoryKey]
@@ -63,11 +62,14 @@ public struct DirectoryScanner {
                 continue
             }
 
-            let relativePath = resolvedPath.hasPrefix(prefix)
-                ? String(resolvedPath.dropFirst(prefix.count))
-                : (resolvedPath as NSString).lastPathComponent
-
-            let dirName = (relativePath as NSString).lastPathComponent
+            // Not under the root: keep the directory's own name, so a resolved symlink still appears
+            // as a child of the root rather than disappearing. This tree is a display of the project
+            // layout, so a shallow placement is better than an omission -- the opposite call from
+            // `FileAnalysisUtils`, which drives exclusion matching and must skip instead.
+            let relative = root.relativePath(of: resolvedPath)
+                ?? RelativePath((resolvedPath as NSString).lastPathComponent)
+            let relativePath = relative.value
+            let dirName = relative.lastComponent
 
             // Skip build artifacts, VCS directories, and Xcode project bundles
             if FileAnalysisUtils.skippedDirectories.contains(dirName)
@@ -87,7 +89,7 @@ public struct DirectoryScanner {
                 continue
             }
 
-            let depth = relativePath.components(separatedBy: "/").count
+            let depth = relative.depth
             if depth > maxDepth {
                 enumerator.skipDescendants()
                 continue
@@ -99,9 +101,10 @@ public struct DirectoryScanner {
                 depth: depth
             )
 
-            // Find parent
-            let parentPath = (relativePath as NSString).deletingLastPathComponent
-            let parentKey = parentPath == "." ? "" : parentPath
+            // Find parent. `components` has no empty entries, so dropping the last one gives the
+            // parent key directly -- and the "." that `deletingLastPathComponent` can return, which
+            // this line used to map to "", cannot arise from a normalised relative path.
+            let parentKey = relative.components.dropLast().joined(separator: "/")
             if let parentNode = lookup[parentKey] {
                 node.parent = parentNode
                 parentNode.children.append(node)
@@ -111,9 +114,9 @@ public struct DirectoryScanner {
         }
 
         // Sort children alphabetically at every level
-        sortChildren(of: root)
+        sortChildren(of: rootNode)
 
-        return root
+        return rootNode
     }
 
     private static func sortChildren(of node: DirectoryNode) {

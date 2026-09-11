@@ -177,13 +177,13 @@ public struct FileAnalysisUtils {
     ) -> [String] {
         let fileManager = FileManager.default
         var swiftFiles: [String] = []
-        let rootURL = URL(fileURLWithPath: path, isDirectory: true)
-        // FileManager.enumerator resolves symlinks in item paths (e.g. /var → /private/var on
-        // macOS). Use realpath() to canonicalise the root so dropFirst offsets are correct.
-        let resolvedRootPath = Self.realPath(rootURL.path)
+        // Canonicalised once, and enumerated at the canonical URL rather than the given one: a root
+        // that is itself a symlink to a directory makes `enumerator(at:)` yield zero items, so a
+        // project linted through a symlinked path reported no files and exit 0. See `ProjectRoot`.
+        let root = ProjectRoot(path)
 
         guard let enumerator = fileManager.enumerator(
-            at: rootURL,
+            at: root.url,
             includingPropertiesForKeys: [.isDirectoryKey],
             options: .skipsHiddenFiles
         ) else {
@@ -192,33 +192,25 @@ public struct FileAnalysisUtils {
 
         for case let itemURL as URL in enumerator {
             let isDirectory = (try? itemURL.resourceValues(forKeys: [.isDirectoryKey]).isDirectory) ?? false
-            // Compute the path relative to the project root for matching.
-            let relativePath = String(itemURL.path.dropFirst(resolvedRootPath.count + 1))
-            let components = relativePath.components(separatedBy: "/")
-
-            // If any path component is a directory we should skip, prune the
-            // entire subtree with skipDescendants() rather than filtering each
-            // file individually — this avoids walking thousands of build artefacts.
-            if components.contains(where: { skippedDirectories.contains($0) }) {
+            // An item the enumerator produced is under the root, so `nil` means something changed
+            // underfoot. Skipping it is the only safe answer: the previous unguarded `dropFirst`
+            // carried on with a tail of the wrong length, and that tail drove both the skip check
+            // below and the user's `excluded_paths` — an exclusion that silently stops excluding.
+            guard let relative = root.relativePath(of: itemURL.path) else {
                 if isDirectory { enumerator.skipDescendants() }
                 continue
             }
 
-            // Skip directories that contain their own Package.swift — they are
-            // separate Swift packages and are normally linted only when the tool
-            // is invoked with that directory as root. Opting in with
-            // `includeNestedPackages` keeps them in scope so cross-file rules can
-            // span the boundary; build artefacts and resolved dependencies (under
-            // .build / Pods / Carthage) are already pruned above, so this reaches
-            // first-party local packages without pulling in third-party code.
-            if !includeNestedPackages, isDirectory,
-               fileManager.fileExists(atPath: itemURL.appendingPathComponent("Package.swift").path) {
-                enumerator.skipDescendants()
-                continue
-            }
-
-            // Check user-configured excluded paths
-            if !excludedPaths.isEmpty, excludedPaths.contains(where: { relativePath.contains($0) }) {
+            if isPruned(
+                relative: relative,
+                itemURL: itemURL,
+                isDirectory: isDirectory,
+                excludedPaths: excludedPaths,
+                includeNestedPackages: includeNestedPackages
+            ) {
+                // Prune the entire subtree rather than filtering each file individually — this
+                // avoids walking thousands of build artefacts. A pruned *file* has no descendants,
+                // which is why the call is gated.
                 if isDirectory { enumerator.skipDescendants() }
                 continue
             }
@@ -229,6 +221,38 @@ public struct FileAnalysisUtils {
         }
 
         return swiftFiles
+    }
+
+    /// Whether the item at `relative` should be skipped along with anything below it.
+    ///
+    /// The three reasons a subtree is dropped, in one place: a skipped directory anywhere in the
+    /// path, a nested Swift package, and a user-configured exclusion. They were three branches in
+    /// the walk, each repeating the `skipDescendants()` gate; collapsing them leaves the walk with
+    /// one decision and puts the policy where it can be read on its own.
+    private static func isPruned(
+        relative: RelativePath,
+        itemURL: URL,
+        isDirectory: Bool,
+        excludedPaths: [String],
+        includeNestedPackages: Bool
+    ) -> Bool {
+        if relative.components.contains(where: { skippedDirectories.contains($0) }) { return true }
+
+        // A directory with its own Package.swift is a separate Swift package, normally linted only
+        // when the tool is invoked with that directory as root. Opting in with
+        // `includeNestedPackages` keeps them in scope so cross-file rules can span the boundary;
+        // build artefacts and resolved dependencies (under .build / Pods / Carthage) are already
+        // pruned above, so this reaches first-party local packages without pulling in third-party
+        // code.
+        if !includeNestedPackages, isDirectory,
+           FileManager.default.fileExists(
+               atPath: itemURL.appendingPathComponent("Package.swift").path
+           ) {
+            return true
+        }
+
+        return !excludedPaths.isEmpty
+            && excludedPaths.contains { relative.value.contains($0) }
     }
 
     /// Whether `url` is a Swift file the caller asked to keep.
