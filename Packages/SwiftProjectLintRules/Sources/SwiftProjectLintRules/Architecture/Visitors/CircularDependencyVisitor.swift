@@ -90,28 +90,46 @@ final class CircularDependencyVisitor: CrossFileVisitorBase, CrossFilePatternVis
 
     // MARK: - Phase 2: Detect cycles
 
+    /// Reports each cycle once, at its lexicographically smaller end.
+    ///
+    /// **A cycle has two ends and the rule has to pick one, so the pick must come from the code
+    /// rather than from the walk.** `typeReferences` is a `Dictionary`, and Swift seeds its hashing
+    /// per process, so iterating it directly reached `A ↔ B` from whichever side came up first —
+    /// which decided the reported file, the reported line, and the order of the two names in the
+    /// message. Measured: five runs of one binary over one unchanged repository gave three different
+    /// answers for the same two cycles, `MacCloudFile ↔ MacCloudShare` landing on its `MacCloudFile`
+    /// end in some runs and its `MacCloudShare` end in others.
+    ///
+    /// Nothing about that is a judgement the rule is entitled to make — the arrow is symmetric, and
+    /// neither end is more the cause than the other — so the tie is broken by name. That makes the
+    /// output a function of the source, which is what a baseline diff needs: before the fix, two
+    /// sweeps with no intervening code change produced phantom `REMOVED`/`ADDED` pairs, and a reader
+    /// comparing them had to rule out a real movement by hand.
+    ///
+    /// The outer walk is sorted for the same reason, so the *sequence* of issues is stable too.
     func finalizeAnalysis() {
         var reported: Set<String> = []
 
-        for (typeA, refs) in typeReferences {
-            for ref in refs {
+        for typeA in typeReferences.keys.sorted() {
+            for ref in typeReferences[typeA] ?? [] {
                 guard reportableCycleTarget(from: typeA, ref: ref) != nil else { continue }
                 let typeB = ref.target
 
                 // Avoid duplicate reports (A↔B and B↔A)
-                let cycleKey = [typeA, typeB].sorted().joined(separator: "↔")
+                let ends = [typeA, typeB].sorted()
+                let cycleKey = ends.joined(separator: "↔")
                 guard reported.contains(cycleKey) == false else { continue }
                 reported.insert(cycleKey)
 
-                let infoA = typeDeclarations[typeA]
-                let fileA = infoA?.file ?? currentFilePath
+                let (named, partner) = (ends[0], ends[1])
+                let info = typeDeclarations[named]
 
                 addIssue(
                     severity: .warning,
                     message: "Circular dependency detected: "
-                        + "'\(typeA)' \u{2194} '\(typeB)'",
-                    filePath: fileA,
-                    lineNumber: infoA.map { getLineNumber(for: $0.node) } ?? 0,
+                        + "'\(named)' \u{2194} '\(partner)'",
+                    filePath: info?.file ?? currentFilePath,
+                    lineNumber: info.map { getLineNumber(for: $0.node) } ?? 0,
                     suggestion: "Break the cycle by introducing a protocol for "
                         + "one side, using a mediator/coordinator pattern, "
                         + "or merging the types if they represent a single concern.",
