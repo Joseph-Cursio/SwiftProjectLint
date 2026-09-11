@@ -140,6 +140,26 @@ struct SeedRoleEmissionTests {
         """) == nil)
     }
 
+    @Test("a string derivation with no path evidence claims no role")
+    func stringKernelWithoutPathEvidenceHasNoRole() {
+        // `.normalizer` is "derives one value from another in the same domain… owes a round-trip
+        // and an idempotent normalisation". `path.lowercased()` used as a dedup key is idempotent
+        // and **lossy**, so it cannot round-trip; claiming the role would put it in the manifest
+        // under a law it does not owe. Same answer as the progress kernel above, same reason.
+        #expect(kernelRole("""
+        func crawl(_ framework: String) async throws {
+            var visited: Set<String> = []
+            var queue: [(path: String, depth: Int)] = [("/documentation/" + framework.lowercased(), 0)]
+            while !queue.isEmpty {
+                let (path, depth) = queue.removeFirst()
+                let normalizedPath = path.lowercased()
+                guard !visited.contains(normalizedPath) else { continue }
+                visited.insert(normalizedPath)
+            }
+        }
+        """) == nil)
+    }
+
     // MARK: - How many rules classify, and which
 
     /// The third classifier, and the one this suite had no coverage for.
