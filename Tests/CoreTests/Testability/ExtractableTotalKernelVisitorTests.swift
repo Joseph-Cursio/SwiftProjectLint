@@ -223,7 +223,7 @@ struct ExtractableTotalKernelVisitorTests {
         """).first)
 
         let suggestion = try #require(issue.suggestion)
-        #expect(suggestion.contains("Extract the arithmetic into a value type"))
+        #expect(suggestion.contains("Extract the arithmetic into a free function or value type"))
         #expect(suggestion.contains("maps a part INDEX to its slice") == false)
     }
 

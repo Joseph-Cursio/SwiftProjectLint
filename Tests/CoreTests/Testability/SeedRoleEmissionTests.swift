@@ -160,6 +160,77 @@ struct SeedRoleEmissionTests {
         """) == nil)
     }
 
+    // MARK: - The message and the role must agree
+
+    private func kernelIssue(_ source: String) -> LintIssue? {
+        let visitor = ExtractableTotalKernelVisitor(patternCategory: .testability)
+        let syntax = Parser.parse(source: source)
+        visitor.setSourceLocationConverter(SourceLocationConverter(fileName: "S.swift", tree: syntax))
+        visitor.setFilePath("S.swift")
+        visitor.walk(syntax)
+        return visitor.detectedIssues.first { $0.ruleName == .extractableTotalKernel }
+    }
+
+    /// **The message states a law if and only if the role claims it.**
+    ///
+    /// These two came apart inside one type and stayed apart. `role` returned `nil` whenever
+    /// `hasSlicingArithmetic` was false — "I will not call this a partition" — while `law` fell
+    /// through to *"the parts should tile the whole exactly … `ceil(total / size)`"* on the same
+    /// branch. Measured over 26 repositories, **7 of 20 findings** were in that state: a size
+    /// threshold, a bounds check, a diff of two counts, a binary search. The seed manifest was
+    /// right and the sentence the reader acts on was wrong.
+    ///
+    /// Stated as a biconditional over one fixture per arm, because either direction alone passes
+    /// against a rule that has stopped claiming anything at all.
+    @Test func theLawAndTheRoleAgreeAboutWhatTheKernelIs() throws {
+        let fixtures: [(name: String, source: String)] = [
+            ("tiler", """
+            func upload(_ data: Data, chunkSize: Int) async throws {
+                let totalChunks = (data.count + chunkSize - 1) / chunkSize
+                var index = 0
+                while index < totalChunks {
+                    _ = try await send(data.dropFirst(index * chunkSize).prefix(chunkSize))
+                    index += 1
+                }
+            }
+            """),
+            ("threshold", """
+            func listSwiftFiles(in directory: URL) throws -> [URL] {
+                let enumerator = FileManager.default.enumerator(at: directory, includingPropertiesForKeys: nil)
+                let maxFileSize = 512 * 1_024
+                var found: [URL] = []
+                for case let fileURL as URL in enumerator! {
+                    guard let attrs = try? FileManager.default.attributesOfItem(atPath: fileURL.path) else { continue }
+                    let size = (attrs[.size] as? Int) ?? 0
+                    if size > maxFileSize { continue }
+                    found.append(fileURL)
+                }
+                return found
+            }
+            """),
+            ("path", """
+            func scanSync(rootPath: String) -> DirectoryNode {
+                let enumerator = FileManager.default.enumerator(atPath: rootPath)
+                let prefix = rootPath.hasSuffix("/") ? rootPath : rootPath + "/"
+                while let item = enumerator?.nextObject() as? String {
+                    let relativePath = item.hasPrefix(prefix) ? String(item.dropFirst(prefix.count)) : item
+                    let dirName = (relativePath as NSString).lastPathComponent
+                    if skipped.contains(dirName) { continue }
+                }
+                return root
+            }
+            """)
+        ]
+
+        for fixture in fixtures {
+            let issue = try #require(kernelIssue(fixture.source), "\(fixture.name) stopped firing")
+            let claimsTiling = issue.message.contains("tile the whole exactly")
+            let claimsRoot = issue.message.contains("rebuilding the whole from the root")
+            #expect(claimsTiling == (issue.role == .partition), "\(fixture.name): tiling vs .partition")
+            #expect(claimsRoot == (issue.role == .normalizer), "\(fixture.name): root vs .normalizer")
+        }
+    }
+
     // MARK: - How many rules classify, and which
 
     /// The third classifier, and the one this suite had no coverage for.

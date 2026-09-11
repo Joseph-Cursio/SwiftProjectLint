@@ -132,7 +132,7 @@ Gates 1 and 2 apply to both shapes; gate 3 is what each shape has to satisfy.
 |---|---|---|
 | Derivation | `let total = (count + size - 1) / size` | `let prefix = root.hasSuffix("/") ? root : root + "/"` |
 | Governing use | loop bound, index, slice with an operator, fraction | slice driven by a `.count`, membership test, or a comparison **naming** the binding |
-| Law it owes | the parts tile the whole; progress terminates at 1.0 | see **Which law the string shape is told it owes** below |
+| Law it owes | see **Which law each shape is told it owes** below | see **Which law each shape is told it owes** below |
 | Bug it catches | off-by-one counts, unclamped resume index | off-by-one prefixes, a suffix stripped from the wrong end |
 
 The second shape exists because the rule was run over a 60k-line linter and reported **nothing at
@@ -149,7 +149,7 @@ comparison containing an arithmetic operator, whatever names it mentions; since 
 concatenation, reusing it here vouched for derivations it had nothing to do with. The path shape
 requires the comparison to actually name the binding.
 
-### Which law the string shape is told it owes
+### Which law each shape is told it owes
 
 **The gate is a string derivation; the advice used to be about a path under a root regardless.**
 Those are not the same set. Measured over the 26-repository corpus, of the six findings on this
@@ -171,6 +171,33 @@ and the rest. With one, the message is unchanged. Without, it states what the sh
 separators — and then, conditionally, recombination *or* idempotence. It names both as conditional
 because the corpus contains both and the gate cannot tell them apart: a lossy canonicalisation
 like `lowercased()` is idempotent and does **not** round-trip.
+
+**The arithmetic shape had the same defect, and a wider one.** Its law fell through to *"the
+parts should tile the whole exactly — no gap, no overlap — and the count should be exactly
+`ceil(total / size)`"* whenever there was no fraction — **including where `hasSlicingArithmetic`
+is false, which is exactly when `role` returns `nil` rather than `.partition`.** The two disagreed
+inside one type: the seed manifest declined to call it a partition while the sentence the reader
+acts on said it owed a tiling. Measured, **7 of 20 findings** were in that state:
+
+| site | what it derives | what it is |
+|---|---|---|
+| `GitCloneHelper.swift:67` | `512 * 1_024` against a file size | a threshold |
+| `SnapshotManager.swift:81` | `summary.totalTypes - snapshot.typeCount` ×4 | a difference |
+| `ToolInvocation.swift:115` | `index + 1` against `arguments.count` | a bounds check |
+| `Enumeration.swift:147` | `(low + high + 1) / 2` | a binary search |
+| `MLXRunCommand.swift:65`, `VerifyInteractionSurvey.swift:203`, `HTMLReportGenerator.swift:213` | — | — |
+
+None cuts anything up. That branch now states what arithmetic governing a **comparison** owes:
+totality — an answer for every input including an empty collection, a zero bound and a negative
+difference — and correctness **at** the boundary, plus antisymmetry where it is a difference of two
+measurements. `SnapshotManager.computeDiff` is the case that shows why this matters: its real law
+is antisymmetry and a zero at equality, and its real hazard is iterating one side's keys instead of
+the union, so a removed entry vanishes instead of showing as negative. The tiling law names none of
+that.
+
+`SeedRoleEmissionTests.theLawAndTheRoleAgreeAboutWhatTheKernelIs` now pins the biconditional:
+the message states the tiling law **if and only if** the role is `.partition`, and the root law if
+and only if the role is `.normalizer`.
 
 **This was not cosmetic.** An earlier run carried this advice at
 `AgentRunner+ProjectGuidance.swift:14`, naming a binding called `url`, while the kernel two lines

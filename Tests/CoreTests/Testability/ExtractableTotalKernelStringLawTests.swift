@@ -148,4 +148,68 @@ struct ExtractableTotalKernelStringLawTests {
 
         #expect(issue.message.contains("rebuilding the whole from the root"))
     }
+
+    // MARK: - The arithmetic arm does not claim a tiling it cannot see
+
+    @Test("a threshold comparison is not told the parts tile the whole")
+    func thresholdGetsTheComparisonLaw() throws {
+        // `GitCloneHelper.listSwiftFiles`. `maxFileSize` is a bound, and nothing is cut up.
+        let issue = try #require(analyze("""
+        func listSwiftFiles(in directory: URL) throws -> [URL] {
+            let enumerator = FileManager.default.enumerator(at: directory, includingPropertiesForKeys: nil)
+            let maxFileSize = 512 * 1_024
+            var found: [URL] = []
+            for case let fileURL as URL in enumerator! {
+                guard let attrs = try? FileManager.default.attributesOfItem(atPath: fileURL.path) else { continue }
+                let size = (attrs[.size] as? Int) ?? 0
+                if size > maxFileSize { continue }
+                found.append(fileURL)
+            }
+            return found
+        }
+        """).first)
+
+        #expect(issue.message.contains("right AT the boundary"))
+        #expect(issue.message.contains("tile the whole") == false)
+        #expect(issue.message.contains("ceil(total / size)") == false)
+    }
+
+    @Test("a difference of two measurements is told it owes antisymmetry")
+    func differenceGetsTheComparisonLaw() throws {
+        // `SnapshotManager.computeDiff`. The law worth writing here is antisymmetry and a zero at
+        // equality; the bug worth catching is iterating one side's keys instead of the union, so a
+        // removed entry disappears from the diff instead of showing as negative.
+        let issue = try #require(analyze("""
+        func report(current summary: ProjectSummary, previous snapshot: ProjectSnapshot) throws {
+            let typeDelta = summary.totalTypes - snapshot.typeCount
+            let fileDelta = summary.totalFiles - snapshot.fileCount
+            if typeDelta != 0 || fileDelta != 0 {
+                let data = try Data(contentsOf: reportURL)
+                try data.write(to: reportURL, options: .atomic)
+            }
+        }
+        """).first)
+
+        #expect(issue.message.contains("ANTISYMMETRY"))
+        #expect(issue.message.contains("tile the whole") == false)
+    }
+
+    @Test("a real tiler still owes the tiling")
+    func slicingArithmeticKeepsTheTilingLaw() throws {
+        // The control. Without it the two above pass against a rule that has simply stopped
+        // stating the tiling law at all.
+        let issue = try #require(analyze("""
+        func upload(_ data: Data, chunkSize: Int) async throws {
+            let totalChunks = (data.count + chunkSize - 1) / chunkSize
+            var index = 0
+            while index < totalChunks {
+                _ = try await send(data.dropFirst(index * chunkSize).prefix(chunkSize))
+                index += 1
+            }
+        }
+        """).first)
+
+        #expect(issue.message.contains("tile the whole exactly"))
+        #expect(issue.message.contains("ceil(total / size)"))
+    }
 }
