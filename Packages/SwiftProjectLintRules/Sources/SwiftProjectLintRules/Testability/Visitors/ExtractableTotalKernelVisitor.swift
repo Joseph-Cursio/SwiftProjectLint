@@ -358,9 +358,33 @@ private struct KernelScan {
             return "progress should be monotonic, stay within 0...1, and terminate at 1.0 — "
                 + "including for an empty input."
         }
+        guard hasSlicingArithmetic else { return Self.boundedComparisonLaw }
         return "the parts should tile the whole exactly — no gap, no overlap — and the count should "
             + "be exactly `ceil(total / size)`."
     }
+
+    /// What arithmetic that governs a **comparison** owes, as opposed to arithmetic that cuts a
+    /// whole into parts.
+    ///
+    /// The tiling law used to be the fallback for the arithmetic shape, claimed whenever there was
+    /// no fraction — including where `hasSlicingArithmetic` is false, which is exactly when `role`
+    /// declines to say `.partition`. **The two disagreed inside this type**: the seed manifest said
+    /// "I will not call this a partition" while the message told the reader it owed a tiling.
+    ///
+    /// Measured over the 26-repository corpus: **7 of 20 findings** were on this branch. None of
+    /// them cuts anything up. `GitCloneHelper.listSwiftFiles` derives `maxFileSize = 512 * 1_024`
+    /// and compares a file size against it — a threshold. `SnapshotManager.computeDiff` derives
+    /// `summary.totalTypes - snapshot.typeCount` and four siblings — a difference, whose real law
+    /// is antisymmetry and a zero at equality, and whose real bug is iterating one side's keys
+    /// instead of the union. `ToolInvocation.requireValue` derives `index + 1` and bounds-checks
+    /// it. "The count should be exactly `ceil(total / size)`" is not a statement about any of them.
+    static let boundedComparisonLaw =
+        "the derivation should be TOTAL — an answer for every input the types admit, including an "
+        + "empty collection, a zero bound, and a negative difference — and the decision it governs "
+        + "should be right AT the boundary, which is where the off-by-one lives: a value exactly "
+        + "equal to the bound, a count of zero, a count of one. If it is a difference of two "
+        + "measurements, it also owes ANTISYMMETRY — swapping the operands negates it — and zero "
+        + "when they agree."
 
     /// What to actually build — and for a **tiler**, the shape matters as much as the fact.
     ///
@@ -396,8 +420,9 @@ private struct KernelScan {
                 + "not over the lookup."
         }
         guard hasSlicingArithmetic else {
-            return "Extract the arithmetic into a value type constructed from those inputs alone. "
-                + "The method keeps the I/O and asks the value type where the bytes are."
+            return "Extract the arithmetic into a free function or value type constructed from "
+                + "those inputs alone, so the boundary cases can be generated against rather than "
+                + "eyeballed. The method keeps the I/O and asks the value type for the answer."
         }
         var advice = "Extract a value type whose key method maps a part INDEX to its slice of the "
             + "whole — `func chunk(of whole: …, at index: Int) -> …` returning the part, or "
