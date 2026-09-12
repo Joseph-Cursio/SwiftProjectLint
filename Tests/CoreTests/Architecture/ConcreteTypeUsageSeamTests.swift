@@ -70,7 +70,7 @@ struct ConcreteTypeUsageSeamTests {
     @Test("a property typed with a closure wrapper is not reported")
     func closureWrapperIsNotReported() {
         let built = catalog(providerSource)
-        #expect(built.wraps("DateProvider"))
+        #expect(built.contains("DateProvider"))
         #expect(issues(providerSource, wrappers: built).isEmpty)
     }
 
@@ -90,7 +90,7 @@ struct ConcreteTypeUsageSeamTests {
         // every real instance of this shape fail to qualify — which is exactly what a first,
         // cruder version of the detector did.
         let built = catalog(providerSource)
-        #expect(built.wraps("DateProvider"))
+        #expect(built.contains("DateProvider"))
     }
 
     @Test("two closures is not a wrapper")
@@ -103,7 +103,7 @@ struct ConcreteTypeUsageSeamTests {
             let save: @Sendable (Data) -> Void
         }
         """)
-        #expect(!built.wraps("EditingService"))
+        #expect(!built.contains("EditingService"))
     }
 
     @Test("a struct holding a value is not a wrapper")
@@ -111,7 +111,7 @@ struct ConcreteTypeUsageSeamTests {
         let built = catalog("""
         struct SnapshotManager { let root: URL }
         """)
-        #expect(!built.wraps("SnapshotManager"))
+        #expect(!built.contains("SnapshotManager"))
     }
 
     @Test("a non-final class is not a wrapper")
@@ -121,7 +121,7 @@ struct ConcreteTypeUsageSeamTests {
         let built = catalog("""
         class DiffLoader { let load: () -> Data }
         """)
-        #expect(!built.wraps("DiffLoader"))
+        #expect(!built.contains("DiffLoader"))
     }
 
     // MARK: - The file-local type

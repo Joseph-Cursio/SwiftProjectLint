@@ -51,19 +51,22 @@ public struct ClosureWrapperTypeCatalog: Sendable, Equatable {
 
     /// Whether `name` is one of them.
     ///
-    /// **Named `wraps` rather than `contains` on purpose, and the reason is measured.** While it
-    /// was `contains(_:)`, that labelled name entered `knownProjectFunctions` — and
-    /// `PureClosureCandidateVisitor`'s forwarding check suppresses any single-expression closure
-    /// calling a project-declared name, keying on the *member* name plus labels. So a one-line
-    /// method here silenced every closure in the package that calls `.contains(…)`:
-    /// `{ stylingModifierNames.contains($0) }`, `{ $0.description.contains("#Preview") }`, and 47
-    /// others. **The closure census went 249 → 200 because of this method's name**, measured both
-    /// ways.
+    /// **This was renamed to `wraps` for a while, and the rename is now retired.** While it was
+    /// `contains(_:)` the first time, that labelled name entered `knownProjectFunctions` — and
+    /// `PureClosureCandidateVisitor`'s forwarding check suppressed any single-expression closure
+    /// calling a project-declared name, keying on the *member* name plus labels. A one-line method
+    /// here silenced every closure in the package calling `.contains(…)`:
+    /// `{ stylingModifierNames.contains($0) }`, `{ $0.description.contains("#Preview") }` and 47
+    /// others. **The closure census went 249 → 200 because of this method's name.**
     ///
-    /// The rename is a workaround and is recorded as one — the defect is that the forwarding check
-    /// resolves a callee by bare name through a member access, which `PackagePurityJoin` in this
-    /// same package already refuses to do and documents at length. Filed as SwiftProjectLint#185.
-    public func wraps(_ name: String) -> Bool { names.contains(name) }
+    /// The rename was recorded as a workaround rather than a fix, and #185 fixed the defect: the
+    /// forwarding check no longer keys on an unlabelled member call against a lowercase base, so
+    /// `set.contains(x)` and this are no longer the same key. Verified by renaming back — the
+    /// census holds at 255 with `contains(_:)` restored, where it used to fall.
+    ///
+    /// Left here as the record. A workaround kept after its reason is gone reads as a constraint
+    /// that still binds, and the next person to touch this name would have no way to know.
+    public func contains(_ name: String) -> Bool { names.contains(name) }
 
     public var isEmpty: Bool { names.isEmpty }
 
