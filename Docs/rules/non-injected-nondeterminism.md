@@ -178,26 +178,45 @@ sites this arm could not reach were receivers that merely change the value's typ
 `bind(Date.now.timeIntervalSince1970, at: 1)`, `R(identifier: UUID().uuidString, …)`. None of those is
 a decision.
 
-The distinction is whether the member's arguments **reach into the scope**:
+The gate is a **named set of members**, and everything outside it is combining:
 
-| expression | arguments | what it is |
-| --- | --- | --- |
-| `.uuidString` | none | the same identity as text |
-| `.timeIntervalSince1970` | none | the same instant as a number |
-| `.httpHeader` | none | the same instant as an RFC1123 header |
-| `.formatted(date: .abbreviated, time: .shortened)` | leading-dot style options | the same instant, formatted |
-| `.addingTimeInterval(timeout)` | **`timeout`** | a deadline |
-| `.timeIntervalSince(start)` | **`start`** | an elapsed time — a benchmark's whole output |
+| member | what it is |
+| --- | --- |
+| `.uuidString`, `.uuid` | the same identity in another type |
+| `.timeIntervalSince1970`, `.timeIntervalSinceReferenceDate` | the same instant as a number, measured from a constant |
+| `.formatted(…)`, `.ISO8601Format()`, `.description`, `.debugDescription` | the same instant as text |
+| `.addingTimeInterval(…)` | a deadline |
+| `.timeIntervalSince(…)`, `.timeIntervalSinceNow` | an elapsed time — a benchmark's whole output |
+| `.hashValue` | a *second* nondeterministic value; Swift seeds hashing per process |
+| anything else | unknown, so treated as combining |
 
-An argument may contain literals and leading-dot members and nothing else; one bare identifier and the
-member counts as combining, because resolving whether that identifier is a local, a parameter or a
-static constant is a scope walk, and guessing it wrong turns a deadline into an end state. A trailing
-closure is never inert.
+The two `timeIntervalSince` prefixes are the boundary worth reading twice. `…1970` and
+`…ReferenceDate` measure from a constant, so they restate the instant; `…Now` measures from a
+**second read of the clock** and `…(start)` from whatever the scope supplied.
+
+**The first version of this gate asked a different question and it leaked.** It tested whether the
+member's *arguments* reached into the scope, taking argument-inertness as a proxy for
+re-presentation. `Date().addingTimeInterval(3_600)` is the table's own counterexample with the
+timeout spelled as a literal — and a literal changes nothing about who decided to add an hour —
+while `Date().timeIntervalSinceNow` takes no arguments at all, because the value it combines with
+is the clock. Both were labelled composition roots.
+
+A curated vocabulary is a maintenance cost and this is one, so the default is **refusal**: an
+unlisted member that really does only re-present gets this rule's ordinary message, which is what
+it got before the arm existed. A list drifting the other way would tell a reader a deadline is
+nothing to worry about. Measured cost of the stricter gate: our corpus 31 → 31 with no
+reclassification, third-party 37 → 37 with two moving back to the ordinary message —
+Hummingbird's `Date.now.httpHeader`, that library's own extension on `Date`, which no syntactic
+rule can distinguish from `timeIntervalSinceNow`.
+
+Inertness is still required **on top of** the name. An argument may contain literals and
+leading-dot members and nothing else; one bare identifier and the member counts as combining,
+because resolving whether that identifier is a local, a parameter or a static constant is a scope
+walk. A trailing closure is never inert.
 
 **Re-presentation alone is not enough** — the result still has to be handed on. A formatted instant
 that is *returned* rather than passed keeps the ordinary message, as does one interpolated into a
-string. Measured: 3 of our 34 findings reclassified and 2 of 37 in third-party checkouts, with none
-added or removed in either set.
+string.
 
 The bound spelling counts too — `let now = Date()` then only `f(asOf: now)` — and it demands that
 **every** reference to the binding is itself an argument. One comparison, one piece of arithmetic,
