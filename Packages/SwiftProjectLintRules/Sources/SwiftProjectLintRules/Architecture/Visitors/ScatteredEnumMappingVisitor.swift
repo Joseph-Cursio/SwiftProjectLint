@@ -227,7 +227,8 @@ final class ScatteredEnumMappingVisitor: CrossFileVisitorBase, CrossFilePatternV
             groups[groupKey(for: site), default: []].append(site)
         }
 
-        for group in groups.values {
+        // Ordered by key so the walk is a fact about the code — see `AggregationDeterminismTests`.
+        for (_, group) in groups.sorted(by: { $0.key < $1.key }) {
             let scattered = group.filter { !isCentralized($0) }
             let files = Set(scattered.map(\.file))
             guard scattered.count >= Self.minSites, files.count >= Self.minFiles else { continue }

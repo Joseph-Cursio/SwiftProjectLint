@@ -33,6 +33,14 @@ final class SharedDomainEnumFieldVisitor: CrossFileVisitorBase, CrossFilePattern
     private struct FieldSignature: Hashable {
         let propertyName: String
         let typeName: String
+
+        /// A total order over the cluster keys, so the walk that emits findings has a stated one.
+        /// Not a `Comparable` conformance: nothing about these signatures is ordered in the domain,
+        /// and the only thing this ordering owes is being a fact about the code rather than about
+        /// the run.
+        static func precedes(_ lhs: Self, _ rhs: Self) -> Bool {
+            (lhs.propertyName, lhs.typeName) < (rhs.propertyName, rhs.typeName)
+        }
     }
 
     private struct TypeShape {
@@ -135,7 +143,9 @@ final class SharedDomainEnumFieldVisitor: CrossFileVisitorBase, CrossFilePattern
             }
         }
 
-        for (signature, members) in clusters where members.count >= Self.minimumCluster {
+        // Ordered by key so the walk is a fact about the code — see `AggregationDeterminismTests`.
+        for (signature, members) in clusters.sorted(by: { FieldSignature.precedes($0.key, $1.key) })
+        where members.count >= Self.minimumCluster {
             // A type already conforming to a protocol that declares this property is
             // abstracted — drop it before deciding whether a cluster remains.
             let reportable = members.filter {

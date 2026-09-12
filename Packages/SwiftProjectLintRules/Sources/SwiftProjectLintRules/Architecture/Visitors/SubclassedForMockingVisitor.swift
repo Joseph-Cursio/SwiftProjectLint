@@ -80,7 +80,8 @@ final class SubclassedForMockingVisitor: CrossFileVisitorBase, CrossFilePatternV
             }
         }
 
-        for (baseName, mockName) in flagged {
+        // Ordered by key so the walk is a fact about the code — see `AggregationDeterminismTests`.
+        for (baseName, mockName) in flagged.sorted(by: { $0.key < $1.key }) {
             guard let base = classByName[baseName] else { continue }
             addIssue(
                 severity: .info,

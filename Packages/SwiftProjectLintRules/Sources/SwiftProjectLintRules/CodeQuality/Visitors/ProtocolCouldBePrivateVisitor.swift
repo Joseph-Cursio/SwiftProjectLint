@@ -96,7 +96,8 @@ final class ProtocolCouldBePrivateVisitor: CrossFileVisitorBase, CrossFilePatter
     func finalizeAnalysis() {
         // Reverse the inheritance map once: parent → the protocols refining it.
         var protocolChildren: [String: Set<String>] = [:]
-        for (child, parents) in protocolInheritsFrom {
+        // Ordered by key so the walk is a fact about the code — see `AggregationDeterminismTests`.
+        for (child, parents) in protocolInheritsFrom.sorted(by: { $0.key < $1.key }) {
             for parent in parents {
                 protocolChildren[parent, default: []].insert(child)
             }

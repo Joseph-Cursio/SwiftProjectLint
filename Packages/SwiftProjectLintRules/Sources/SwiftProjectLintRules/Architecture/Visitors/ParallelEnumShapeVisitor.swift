@@ -192,7 +192,9 @@ final class ParallelEnumShapeVisitor: CrossFileVisitorBase, CrossFilePatternVisi
             clusters[info.cases.sorted().joined(separator: "|"), default: []].append(info)
         }
 
-        for cluster in clusters.values where cluster.count >= Self.minClusterSize {
+        // Ordered by key so the walk is a fact about the code — see `AggregationDeterminismTests`.
+        for (_, cluster) in clusters.sorted(by: { $0.key < $1.key })
+        where cluster.count >= Self.minClusterSize {
             // Suppress when every member already shares a domain protocol — they are
             // unified, so there is nothing to suggest.
             let sharedProtocols = cluster.dropFirst().reduce(domainConformances(of: cluster[0])) {

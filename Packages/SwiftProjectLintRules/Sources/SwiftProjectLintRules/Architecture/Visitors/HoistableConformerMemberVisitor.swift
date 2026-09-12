@@ -135,7 +135,8 @@ final class HoistableConformerMemberVisitor: CrossFileVisitorBase, CrossFilePatt
             groups[record.signatureKey + "\u{1}" + record.body, default: []].append(record)
         }
 
-        for group in groups.values {
+        // Ordered by key so the walk is a fact about the code — see `AggregationDeterminismTests`.
+        for (_, group) in groups.sorted(by: { $0.key < $1.key }) {
             let owners = Set(group.map(\.owner))
             guard owners.count >= Self.minimumTypes else { continue }
             guard let sample = group.first else { continue }

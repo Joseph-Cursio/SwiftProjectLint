@@ -182,7 +182,9 @@ final class DuplicateStructShapeVisitor: CrossFileVisitorBase, CrossFilePatternV
         var clusters: [Int: [Int]] = [:]
         for index in shapes.indices { clusters[find(index), default: []].append(index) }
 
-        for indices in clusters.values where indices.count >= Self.minimumClusterSize {
+        // Ordered by key so the walk is a fact about the code — see `AggregationDeterminismTests`.
+        for (_, indices) in clusters.sorted(by: { $0.key < $1.key })
+        where indices.count >= Self.minimumClusterSize {
             let members = indices.map { shapes[$0] }
             let core = members.dropFirst().reduce(members[0].signatures) {
                 $0.intersection($1.signatures)
