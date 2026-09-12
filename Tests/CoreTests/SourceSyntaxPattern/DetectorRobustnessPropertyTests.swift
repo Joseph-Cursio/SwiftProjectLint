@@ -72,8 +72,21 @@ private enum RobustnessFixtures {
 /// must satisfy for *any* input, which fixed-snippet example tests can't span.
 ///
 /// 1. **Determinism** — analyzing the same source twice yields identical issues,
-///    in the same order. Guards nondeterministic aggregation (set/dict iteration
-///    leaking into output) and AST-cache staleness.
+///    in the same order. Guards a detector that carries state between runs: a
+///    visitor that accumulates instead of resetting, or a stale AST cache.
+///
+///    **It does not guard nondeterministic aggregation, which its own wording
+///    used to claim** (*"set/dict iteration leaking into output"*). Two reasons,
+///    and the second holds however far the law is widened. It calls
+///    `detectPatterns(in:filePath:)`, which never reaches `finalizeAnalysis()`,
+///    so every cross-file rule is outside it. And both halves run in one
+///    process, where Swift's hash seed is fixed — a rule whose output depends on
+///    that seed is perfectly self-consistent within a run and differs between
+///    runs, which is exactly how SwiftProjectLint#202 behaved. Calling the
+///    detector twice cannot vary the thing that varies.
+///
+///    `AggregationDeterminismTests` covers that class instead, and covers it
+///    statically, because no in-process comparison can.
 /// 2. **In-bounds locations** — every issue's line number lies within the file
 ///    (`1 ... lineCount`). Guards off-by-one / past-EOF location reporting.
 /// 3. **No crash on malformed input** — truncated or adversarial source must
