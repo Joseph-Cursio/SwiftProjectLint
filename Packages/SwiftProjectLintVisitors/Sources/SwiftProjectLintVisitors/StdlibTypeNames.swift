@@ -35,4 +35,16 @@ enum StdlibTypeNames {
 
     /// Every stdlib name whose values a test can compare.
     static let equatable: Set<String> = valueLeaves.union(equatableContainers)
+
+    /// The names above that are `struct`s or `enum`s — types whose `self` **is** the value.
+    ///
+    /// A third question, close enough to the other two to live here and different enough to be
+    /// stated: *"when an `extension` names a type this project does not declare, is reading `self`
+    /// a read of a value or a reach into a shared object?"* `PropertyTestCandidacy` asked it of
+    /// `knownValueTypes`, which holds project declarations only, so every stdlib carrier answered
+    /// "no" and a member reading bare `self` was refused (SwiftProjectLint#214).
+    ///
+    /// `Optional` is here and not above because it is not a *leaf* — its equatability is its
+    /// wrapped type's — but it is an `enum`, which is the only thing this question asks.
+    static let valueTypes: Set<String> = equatable.union(["Optional"])
 }

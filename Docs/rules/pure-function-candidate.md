@@ -99,6 +99,21 @@ tied to a parameter, a local, or a type is assumed to be instance state — even
 Under-suggesting costs a missed test; over-suggesting costs a generated test that runs impure code
 and lies about the result.
 
+**A stdlib carrier is a value type, and the analyzer says so.** `extension String { … }` extends a
+`struct`, so reading the string it extends is a read of a value and the table above applies. This
+used to be decided from the set of *project* declarations alone, so every stdlib carrier answered
+"not a value type" and the reference-type path refused any member touching `self`. Measured before
+the fix: **0 of 88** parameterless members of extensions on foreign carriers were seeds, across 23
+repositories, against 51.4% for extensions on carriers the project declares. Restoring the answer
+recovered **7 seeds of 4,947, none lost** — mostly `switch self` over `extension Optional where
+Wrapped == …`, plus `String.globPatternToRegex()`.
+
+Only `self` *as a whole value* is admitted. A member reached through it — `self.count` on a
+`String` — still refuses, because the project declares no stored properties for a type it does not
+own, and admitting an arbitrary member of a foreign type would be a general relaxation rather than
+an answer the analyzer already had. A carrier that is neither a project declaration nor a known
+stdlib value type — `extension NSTextView` — refuses as before.
+
 **Swift 5.7's shorthand optional binding is a read, not a binding.** `if let tagFilter` — with no
 `=` — introduces nothing; it takes its value from whatever `tagFilter` already meant. So the name is
 resolved rather than assumed local, and the table above applies to it: a shorthand-bound stored
