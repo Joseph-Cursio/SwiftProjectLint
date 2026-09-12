@@ -176,4 +176,105 @@ struct SecurityVisitorTests {
         let secretIss = allIssues.filter { $0.ruleName == .hardcodedSecret }
         #expect(secretIss.count == 1) // "token" keyword match
     }
+
+    // MARK: - Interpolation is not a secret (#111)
+
+    /// **A literal with interpolation has no fixed value, and a secret is a fixed value.**
+    ///
+    /// `let token = "<<<\\(tokens.count)>>>"` is a glob placeholder in a brace-expansion parser —
+    /// `<<<0>>>`, `<<<1>>>` — and `token` is the parser's vocabulary, not a credential. It was the
+    /// **only error** in a 2,880-finding run, so under `--threshold error` this single false
+    /// positive decided the exit code: 2 before, 0 after.
+    @Test
+    func ignoresInterpolatedValue() {
+        let issues = secretIssues("""
+        func expand(_ paths: inout String) {
+            let token = "<<<\\(tokens.count)>>>"
+            tokens[token] = "x"
+        }
+        """)
+        #expect(issues.isEmpty)
+    }
+
+    /// The name-keyword arm reports without consulting the value at all, so the interpolation
+    /// check has to come before it — and before `extractStringValue`, which drops interpolated
+    /// segments and would hand the later heuristics `"<<<>>>"`, a string that was never written.
+    @Test
+    func ignoresInterpolationEvenWhenTheNameIsASecretKeyword() {
+        for name in ["apiKey", "password", "secretKey", "accessToken"] {
+            let issues = secretIssues("""
+            func make(_ count: Int) -> String {
+                let \(name) = "prefix-\\(count)"
+                return \(name)
+            }
+            """)
+            #expect(issues.isEmpty, "\(name) holds an interpolated value")
+        }
+    }
+
+    @Test
+    func ignoresEmptyStringValue() {
+        let issues = secretIssues("""
+        struct Config {
+            let secret = ""
+        }
+        """)
+        #expect(issues.isEmpty)
+    }
+
+    /// **The reason there is no minimum-length guard**, which the issue also proposed. A real
+    /// hardcoded password can be short: `"hunter2"` is 7 characters and so is `"<<<0>>>"`, so
+    /// length cannot separate them. Interpolation can.
+    @Test
+    func stillFlagsAShortLiteralPassword() {
+        let issues = secretIssues("""
+        struct Config {
+            let password = "hunter2"
+        }
+        """)
+        #expect(issues.count == 1)
+    }
+
+    /// The value is a made-up token rather than a real-shaped provider key. An earlier draft used
+    /// Stripe's documentation example, and **GitHub Push Protection rejected the push of this very
+    /// file** — a hardcoded-secret test tripping a hardcoded-secret scanner. The name-keyword arm
+    /// fires on `apiKey` alone, so the prefix was never needed to exercise it.
+    @Test
+    func stillFlagsAFixedCredential() {
+        let issues = secretIssues("""
+        struct Config {
+            let apiKey = "Zm9vYmFyLWJheg1234567890"
+        }
+        """)
+        #expect(issues.count == 1)
+    }
+
+    /// **A credential is never a substring of the name that holds it.** `token`, `key`, `secret`
+    /// and `auth` are ordinary words in a parser or a lexer, and the name-keyword arm reports
+    /// without consulting the value at all — so `hashToken = "hash"`, the token identifying a hash
+    /// function, was an `error` in SwiftInferProperties.
+    @Test
+    func ignoresAValueThatEchoesItsOwnName() {
+        for (name, value) in [("hashToken", "hash"), ("authToken", "auth"), ("secretKey", "key")] {
+            let issues = secretIssues("""
+            struct Config {
+                let \(name) = "\(value)"
+            }
+            """)
+            #expect(issues.isEmpty, "\(name) = \"\(value)\" is vocabulary, not a credential")
+        }
+    }
+
+    /// The guard is narrow on purpose: `hunter2` appears nowhere in `password`, so it is still
+    /// reported. That is the discrimination a length or wordiness test could not make.
+    @Test
+    func stillFlagsAValueUnrelatedToItsName() {
+        let issues = secretIssues("""
+        struct Config {
+            let password = "hunter2"
+            let apiKey = "Zm9vYmFyLWJheg1234567890"
+        }
+        """)
+        #expect(issues.count == 2)
+    }
 }
