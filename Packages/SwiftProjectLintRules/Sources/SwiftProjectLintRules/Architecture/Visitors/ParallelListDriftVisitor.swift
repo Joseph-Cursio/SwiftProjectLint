@@ -89,12 +89,45 @@ final class ParallelListDriftVisitor: CrossFileVisitorBase, CrossFilePatternVisi
         // Unlike `ParallelEnumShape`, associated values are *not* disqualifying: this rule
         // compares the roster of names, and `case failure(Error)` still contributes the
         // name `failure` that a parallel list is expected to carry.
+        //
+        // A tagged union over *types* is the exception, and it is a different shape rather than a
+        // threshold on the same one. When the case names ARE their payloads' type names —
+        // `bool(Bool)`, `int(Int)`, `int8(Int8)` — the roster is not a vocabulary anybody chose;
+        // it is Swift's scalar types, spelled once per case because the enum is a value tree over
+        // them. Comparing that against a list of type names finds an overlap guaranteed by the
+        // language, which is what `MinimalCodableValue` against `RawType` was (#190).
+        //
+        // `failure(Error)` keeps contributing, because `failure` is not `Error`.
+        guard !Self.isTaggedUnionOverTypes(node) else { return .visitChildren }
+
         let names = node.memberBlock.members.flatMap { member -> [String] in
             guard let caseDecl = member.decl.as(EnumCaseDeclSyntax.self) else { return [] }
             return caseDecl.elements.map(\.name.text)
         }
         record(names, owner: node.name.text, carrier: .enumCases, node: Syntax(node))
         return .visitChildren
+    }
+
+    /// Whether the enum's cases name their own payload types — a value tree rather than a
+    /// vocabulary.
+    ///
+    /// Judged on a **majority** of the payload-carrying cases, so one odd constructor does not
+    /// decide it, and it requires at least two such cases: a single `int(Int)` is a coincidence,
+    /// not a shape.
+    private static func isTaggedUnionOverTypes(_ node: EnumDeclSyntax) -> Bool {
+        let elements = node.memberBlock.members
+            .compactMap { $0.decl.as(EnumCaseDeclSyntax.self) }
+            .flatMap(\.elements)
+
+        let withPayload = elements.filter { $0.parameterClause?.parameters.count == 1 }
+        guard withPayload.count >= 2 else { return false }
+
+        let echoing = withPayload.filter { element in
+            guard let parameter = element.parameterClause?.parameters.first else { return false }
+            let payload = parameter.type.trimmedDescription
+            return payload.lowercased() == element.name.text.lowercased()
+        }
+        return echoing.count * 2 > withPayload.count
     }
 
     // MARK: - Phase 1: carrier 2 — array literals
