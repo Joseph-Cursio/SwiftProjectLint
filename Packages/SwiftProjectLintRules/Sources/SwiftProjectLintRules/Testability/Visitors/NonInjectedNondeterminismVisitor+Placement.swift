@@ -259,24 +259,48 @@ extension NonInjectedNondeterminismVisitor {
     ///
     /// None of those is a decision. The instant or the identity is the same fact in a `String` or a
     /// `Double`, handed to something that takes it as a parameter — which is the shape this arm
-    /// exists to name.
+    /// exists to name. What separates them from the members that must not be reached through is
+    /// whether a new fact was produced:
     ///
-    /// **The distinction is whether the member's arguments reach into the scope.** Combining the
-    /// value with a local or a parameter produces a *new* fact, and that is where every defect lives:
+    /// | expression | what it is |
+    /// | --- | --- |
+    /// | `.uuidString` | the same identity as text |
+    /// | `.timeIntervalSince1970` | the same instant as a number |
+    /// | `.formatted(date: .abbreviated, time: .shortened)` | the same instant, formatted |
+    /// | `.addingTimeInterval(timeout)` | a deadline |
+    /// | `.timeIntervalSince(start)` | an elapsed time — a benchmark's whole output |
     ///
-    /// | expression | arguments | what it is |
-    /// | --- | --- | --- |
-    /// | `.uuidString` | none | the same identity as text |
-    /// | `.timeIntervalSince1970` | none | the same instant as a number |
-    /// | `.formatted(date: .abbreviated, time: .shortened)` | leading-dot style options | the same instant, formatted |
-    /// | `.addingTimeInterval(timeout)` | **`timeout`** | a deadline |
-    /// | `.timeIntervalSince(start)` | **`start`** | an elapsed time — a benchmark's whole output |
+    /// ## The member is named, and the default is refusal
     ///
-    /// Deliberately strict about what counts as inert: an argument may contain literals and
-    /// leading-dot members and **nothing else**. One bare identifier and the member is treated as
-    /// combining, because resolving whether that identifier is a local, a parameter or a static
-    /// constant is a scope walk, and guessing it wrong turns a deadline into an end state.
+    /// The first version of this gate asked **whether the member's arguments reach into the
+    /// scope** and took argument-inertness as a proxy for re-presentation. The proxy leaks, and it
+    /// leaks toward accepting:
+    ///
+    /// ```swift
+    /// expire(at: Date().addingTimeInterval(3_600))   // a deadline — and the table above says so
+    /// record(elapsed: Date().timeIntervalSinceNow)   // an elapsed time, second read ambient
+    /// ```
+    ///
+    /// Both were labelled composition roots. The first is the table's own counterexample with the
+    /// timeout spelled as a literal instead of a binding, and the literal changes nothing about
+    /// who decided to add an hour. The second needs no arguments at all, because the value it
+    /// combines with is the clock — so a rule that inspects arguments cannot see it.
+    ///
+    /// So the question is *which member*, not *what it was given*. `restatingMembers` is the set
+    /// that only re-presents; anything else is combining until someone shows otherwise.
+    ///
+    /// **A curated vocabulary, and the direction it fails in is the reason it is spelled this
+    /// way.** SwiftProjectLint#193 called this move out as the kind of hand-maintained list this
+    /// project keeps finding drifted, and it is one. An unlisted member that really does only
+    /// re-present gets this rule's ordinary message, which is what it got before the arm existed.
+    /// A denylist drifting the other way tells a reader a deadline is nothing to worry about.
+    ///
+    /// Inertness is still required *on top of* the name, so `.formatted(date: style)` stays
+    /// refused: an argument may contain literals and leading-dot members and **nothing else**. One
+    /// bare identifier and the member is treated as combining, because resolving whether that
+    /// identifier is a local, a parameter or a static constant is a scope walk.
     private func representation(of member: MemberAccessExprSyntax) -> Syntax? {
+        guard Self.restatingMembers.contains(member.declName.baseName.text) else { return nil }
         guard let call = member.parent?.as(FunctionCallExprSyntax.self),
               Syntax(call.calledExpression).id == Syntax(member).id else {
             // A bare member with no call: `.uuidString`, `.timeIntervalSince1970`. Nothing was
@@ -288,6 +312,29 @@ extension NonInjectedNondeterminismVisitor {
               call.additionalTrailingClosures.isEmpty else { return nil }
         return Syntax(call)
     }
+
+    /// Members of a clock or identity value that answer with the same fact in another type.
+    ///
+    /// Everything Foundation offers on `Date` and `UUID` that restates rather than computes. The
+    /// two epochs are the boundary worth reading twice: `timeIntervalSince1970` and
+    /// `timeIntervalSinceReferenceDate` measure from a constant, so they are the instant as a
+    /// number, while `timeIntervalSinceNow` measures from a *second clock read* and
+    /// `timeIntervalSince(_:)` from whatever the scope supplied. Same prefix, three different
+    /// things, and only the first two are on this list.
+    ///
+    /// `hashValue` is deliberately absent even though it takes nothing and reads like a
+    /// projection. Swift seeds hashing per process, so it is a second source of nondeterminism
+    /// layered on the first rather than a restatement of it.
+    private static let restatingMembers: Set<String> = [
+        "uuidString",
+        "uuid",
+        "timeIntervalSince1970",
+        "timeIntervalSinceReferenceDate",
+        "formatted",
+        "ISO8601Format",
+        "description",
+        "debugDescription"
+    ]
 
     /// An argument that supplies no value from the surrounding scope.
     ///

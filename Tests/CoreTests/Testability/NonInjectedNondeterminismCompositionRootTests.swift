@@ -173,6 +173,47 @@ struct NonInjectedNondeterminismCompositionRootTests {
         #expect(!isCompositionRoot("func f() { send(Date.now.transformed { $0 }) }"))
     }
 
+    // MARK: - The member is named, and the default is refusal
+
+    /// **Argument-inertness was the wrong question and these are the two shapes that show it**
+    /// (SwiftProjectLint#193). The first is the arm's own documented counterexample —
+    /// `.addingTimeInterval(timeout)` is a deadline — with the timeout spelled as a literal, and a
+    /// literal changes nothing about who decided to add an hour. The second combines the read with
+    /// a *second clock read*, so it needs no arguments at all and a rule that inspects arguments
+    /// cannot see it. Both were reported as composition roots until the gate started naming the
+    /// member.
+    @Test("a member that computes is refused however inert its arguments", arguments: [
+        "func f() { expire(at: Date().addingTimeInterval(3_600)) }",
+        "func f() { record(elapsed: Date().timeIntervalSinceNow) }",
+        "func f() { schedule(Date().addingTimeInterval(60 * 60)) }"
+    ])
+    func computingMemberIsNotACompositionRoot(source: String) {
+        #expect(analyze(source).count == 1)
+        #expect(!isCompositionRoot(source))
+    }
+
+    /// `timeIntervalSince1970` measures from a constant and is on the list; `timeIntervalSinceNow`
+    /// measures from a second read of the clock and is not. Same prefix, and the whole difference
+    /// between restating a value and computing one.
+    @Test func theTwoTimeIntervalPrefixesAreSeparated() {
+        #expect(isCompositionRoot("func f() { bind(Date().timeIntervalSince1970, at: 1) }"))
+        #expect(!isCompositionRoot("func f() { bind(Date().timeIntervalSinceNow, at: 1) }"))
+    }
+
+    /// The default is refusal, which is what makes the list safe to maintain: an unlisted member
+    /// that really does only re-present gets this rule's ordinary message — what it got before the
+    /// arm existed — rather than being told there is nothing to inject.
+    @Test func anUnlistedMemberIsRefused() {
+        #expect(!isCompositionRoot("func f(_ c: C) { store(DateContainer(date: Date.now.httpHeader), in: c) }"))
+    }
+
+    /// `hashValue` takes nothing and reads like a projection, and is deliberately off the list:
+    /// Swift seeds hashing per process, so it layers a second source of nondeterminism on the
+    /// first rather than restating it.
+    @Test func hashValueIsNotARestatement() {
+        #expect(!isCompositionRoot("func f() { bucket(UUID().hashValue) }"))
+    }
+
     // MARK: - Arm order
 
     /// The fresh-read arm is about where the read is *declared*; this one is about what the
