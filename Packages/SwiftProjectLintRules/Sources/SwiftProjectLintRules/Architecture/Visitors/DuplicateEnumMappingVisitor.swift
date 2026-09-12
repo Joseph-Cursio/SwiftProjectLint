@@ -203,7 +203,8 @@ final class DuplicateEnumMappingVisitor: CrossFileVisitorBase, CrossFilePatternV
             groups[groupKey(for: site), default: []].append(site)
         }
 
-        for group in groups.values {
+        // Ordered by key so the walk is a fact about the code — see `AggregationDeterminismTests`.
+        for (_, group) in groups.sorted(by: { $0.key < $1.key }) {
             // Distinct source locations — the same switch is never counted twice.
             let distinct = dedupedByLocation(group)
             guard distinct.count >= Self.minSites else { continue }
