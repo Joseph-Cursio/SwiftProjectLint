@@ -151,9 +151,11 @@ public struct LintConfiguration: Sendable {
             return cliRuleIdentifiers
         }
 
-        var rules = Set(RuleIdentifier.allCases)
-        rules.remove(.unknown)
-        rules.remove(.fileParsingError)
+        // `selectableRules` is `allCases` minus the sentinels, and it exists so that the
+        // definition of "a rule" is written once — its own doc records the README disagreeing
+        // with the code by a quarter when it was re-derived inline. This was one of the sites
+        // re-deriving it.
+        var rules = RuleIdentifier.selectableRules
 
         // enabled_only restricts to a specific set
         if let enabledOnly = enabledOnlyRules {
@@ -172,10 +174,19 @@ public struct LintConfiguration: Sendable {
             rules = rules.filter { cliCategories.contains($0.category) }
         }
 
-        // nil means "no filtering" — return nil if we haven't actually restricted anything
-        let allRules = RuleIdentifier.selectableRules
-            .subtracting(Self.optInRules)
-        if rules == allRules, cliCategories == nil {
+        // `nil` means "no filtering" to the caller — `ProjectLinter` passes it straight through
+        // as `ruleIdentifiers`, where a nil runs every registered rule. So it may only be
+        // returned when the resolved set really is every selectable rule.
+        //
+        // It used to compare against `selectableRules.subtracting(Self.optInRules)` — a set that
+        // has already had the opt-in rules removed — so the test was true **precisely when the
+        // set had been restricted**, by removing them, and the caller then ran the 25 rules it
+        // was meant to exclude. A Swift-package root was immune only by accident:
+        // `ProjectLinter+FileAnalysis` rebuilds the configuration with `.publicInAppTarget`
+        // disabled, and that one insertion was enough to make the comparison false. An
+        // Xcode-project root got no such rebuild and ran every opt-in rule by default —
+        // 62% of one subject's findings (#217).
+        if rules == RuleIdentifier.selectableRules, cliCategories == nil {
             return nil
         }
 

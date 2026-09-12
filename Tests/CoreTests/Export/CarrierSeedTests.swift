@@ -45,7 +45,15 @@ struct CarrierSeedTests {
             )
         }
         let system = PatternRegistryFactory.createConfiguredSystem()
-        return await ProjectLinter().analyzeProject(at: root.path, detector: system.detector)
+        // `primitiveNamedForItsDomainType` is opt-in, so a default run does not include it and
+        // this fixture would find nothing. It used to be reached anyway, because `resolveRules`
+        // returned "no filtering" for a default configuration and every opt-in rule ran (#217).
+        // Naming the rule is what this suite always meant; relying on the default was the bug.
+        return await ProjectLinter().analyzeProject(
+            at: root.path,
+            ruleIdentifiers: [.primitiveNamedForItsDomainType, .primitiveBypassingItsDomainType],
+            detector: system.detector
+        )
     }
 
     @Test("the finding names the domain type as its symbol")
