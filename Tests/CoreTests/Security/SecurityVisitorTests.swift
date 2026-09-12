@@ -277,4 +277,19 @@ struct SecurityVisitorTests {
         """)
         #expect(issues.count == 2)
     }
+
+    /// **Separators are spelling, not meaning.** A Keychain account is written `encryption_key`
+    /// and the property holding it `encryptionKeyAccount`; comparing the two verbatim missed the
+    /// pair and left an `error` on MacCloud_client_MacOS — on the *correct* pattern, since the
+    /// identifier a secret is stored UNDER is not the secret.
+    @Test
+    func ignoresASeparatorSpellingOfItsOwnName() {
+        let issues = secretIssues("""
+        class SecurityManager {
+            let encryptionKeyAccount = "encryption_key"
+            let keychainAccount = "auth_token"
+        }
+        """)
+        #expect(issues.isEmpty)
+    }
 }
