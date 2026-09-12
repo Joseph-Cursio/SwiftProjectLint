@@ -218,7 +218,20 @@ class SecurityVisitor: BasePatternVisitor {
     /// `password` — which is the discrimination a length or wordiness test could not make.
     private func valueEchoesItsOwnName(_ value: String, variableName: String) -> Bool {
         guard !value.isEmpty else { return true }
-        return variableName.localizedCaseInsensitiveContains(value)
+        // Separators are spelling, not meaning: a Keychain account is written `encryption_key`
+        // and its property `encryptionKeyAccount`. Comparing verbatim missed that pair and left
+        // an `error` on the CORRECT pattern — the identifier a secret is stored UNDER is not the
+        // secret. Found on MacCloud_client_MacOS after #111 shipped.
+        let normalisedValue = Self.alphanumericsOnly(value)
+        // A value with no alphanumerics left is not an echo of anything — fall through and let the
+        // remaining heuristics judge it. Returning `true` here silently skipped `apiKey = "12345"`,
+        // because an earlier draft filtered on `isLetter` and normalised every digit away.
+        guard !normalisedValue.isEmpty else { return false }
+        return Self.alphanumericsOnly(variableName).contains(normalisedValue)
+    }
+
+    private static func alphanumericsOnly(_ text: String) -> String {
+        text.lowercased().filter { $0.isLetter || $0.isNumber }
     }
 
     private func isPlaceholder(_ value: String) -> Bool {
