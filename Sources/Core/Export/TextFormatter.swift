@@ -91,8 +91,13 @@ public struct TextFormatter: IssueFormatterProtocol {
             "  They are an inventory of what COULD be property-tested — a pure function is not a "
                 + "defect, and there is nothing to fix per line.",
             "  See them:  --categories testability",
-            "  Use them:  --format pbt-seeds > .pbt/seeds.json   "
-                + "(then `swift-infer discover --seeds .pbt/seeds.json`)"
+            // `discover` requires exactly one of --target / --sources in addition to --seeds, so
+            // the command as printed used to fail: "no `Sources/` here, so there is no layout to
+            // infer." Its error is a good one — it names the fix and says why guessing would be
+            // worse — but a hint that sends a reader into an error is a hint that was not run.
+            "  Use them:  --format pbt-seeds > .pbt/seeds.json",
+            "             then `swift-infer discover --seeds .pbt/seeds.json --target <Target>`",
+            "             (or --sources <dir> for an Xcode project, which has no SwiftPM target)"
         ]
     }
 

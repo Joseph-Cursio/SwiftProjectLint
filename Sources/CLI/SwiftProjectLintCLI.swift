@@ -202,6 +202,13 @@ struct SwiftProjectLintCLI: AsyncParsableCommand {
         selectedCategories: [PatternCategory]?,
         skippedNestedPackages: [String] = []
     ) -> String {
+        // `pbt-seeds` is a machine channel and the only one a consumer reads, so the skip has to
+        // travel as DATA. The text formatter's caveat and stderr's notice both reach a human and
+        // neither reaches `swift-infer discover --seeds`, which is the thing that acts on the file.
+        guard format != .pbtSeeds else {
+            return PBTSeedsFormatter(skippedNestedPackages: skippedNestedPackages)
+                .format(issues: issues)
+        }
         guard format == .text else {
             return format.formatter.format(issues: issues)
         }
