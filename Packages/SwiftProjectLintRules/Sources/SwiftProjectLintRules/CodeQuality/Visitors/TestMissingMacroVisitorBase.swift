@@ -91,8 +91,8 @@ class TestMissingMacroVisitorBase: CrossFileVisitorBase, CrossFilePatternVisitor
         if hasTestAttribute(node) {
             if containsRecognizedMacro(in: Syntax(body)) {
                 // Has a recognised macro — not a candidate.
-            } else if isThrowing(node), containsDiscardedTry(in: Syntax(body)) {
-                // Uses _ = try as assertion (e.g. ViewInspector presence checks) — not a candidate.
+            } else if isThrowing(node), containsThrowAsAssertion(in: Syntax(body)) {
+                // The throw IS the assertion — not a candidate. See `containsThrowAsAssertion`.
             } else if warrantsReport(body) {
                 // Tentatively flag — may be cleared in finalizeAnalysis if a
                 // called helper turns out to contain assertions.
@@ -160,6 +160,45 @@ class TestMissingMacroVisitorBase: CrossFileVisitorBase, CrossFilePatternVisitor
     /// Returns true if the function is declared with `throws`.
     private func isThrowing(_ node: FunctionDeclSyntax) -> Bool {
         node.signature.effectSpecifiers?.throwsClause != nil
+    }
+
+    /// Returns true if the body uses a plain `try` whose **result is discarded** — either
+    /// `_ = try expr` or a bare `try expr` statement. Not `try?` or `try!`, neither of which
+    /// propagates a failure.
+    ///
+    /// Discarding the value is what makes it an assertion: the call is made for its success, and
+    /// an unhandled throw in a Swift Testing test is a failure. `try await command.run()` over a
+    /// real fixture verifies that the command parses and runs end to end, and `#expect(true)`
+    /// beside it would assert strictly less.
+    ///
+    /// **Only when the value is discarded**, which is the line this draws and the reason it is not
+    /// "any `try` in a `throws` test". `let dir = try makeTempDir()` is setup — it binds a value
+    /// the test goes on to use — and a test containing only that really does assert nothing. That
+    /// distinction is what keeps the rule's true positives (#110).
+    private func containsThrowAsAssertion(in node: Syntax) -> Bool {
+        containsBareTryStatement(in: node) || containsDiscardedTry(in: node)
+    }
+
+    /// A bare `try expr` **statement** anywhere in the body: an item of a code block whose value
+    /// nothing binds.
+    private func containsBareTryStatement(in node: Syntax) -> Bool {
+        if let item = node.as(CodeBlockItemSyntax.self),
+           case .expr(let expression) = item.item,
+           isPlainTry(expression) {
+            return true
+        }
+        for child in node.children(viewMode: .sourceAccurate)
+            where containsBareTryStatement(in: child) {
+            return true
+        }
+        return false
+    }
+
+    /// Whether `expression` is a plain `try` — unwrapping `await` and any enclosing parentheses,
+    /// so `try await command.run()` is recognised as readily as `try command.run()`.
+    private func isPlainTry(_ expression: ExprSyntax) -> Bool {
+        guard let tryExpr = expression.as(TryExprSyntax.self) else { return false }
+        return tryExpr.questionOrExclamationMark == nil
     }
 
     /// Returns true if the body contains `_ = try expr` (plain `try`, not `try?`/`try!`).
