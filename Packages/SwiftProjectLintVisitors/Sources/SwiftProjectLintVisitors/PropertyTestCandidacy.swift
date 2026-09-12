@@ -407,12 +407,20 @@ public enum PropertyTestCandidacy {
             if let extensionDecl = current.as(ExtensionDeclSyntax.self) {
                 // The extended type's kind is not in the extension's syntax; the cross-file index
                 // is what says whether `extension OrderedSet` extends a value type.
+                //
+                // A stdlib carrier answers the same question without the index. `knownValueTypes`
+                // holds *project* declarations, so `extension String` used to report "not a value
+                // type" — and the bare-`self` branch then refused every member that reads the
+                // string it extends. That is not conservatism about something unknown; `String`
+                // is a struct, and the analyzer was answering a question it had the answer to
+                // (SwiftProjectLint#214).
                 let extendedBase = baseTypeName(extensionDecl.extendedType)
                     ?? extensionDecl.extendedType.trimmedDescription
                 return container(
                     named: extensionDecl.extendedType.trimmedDescription,
                     isActor: false,
-                    isValueType: knownValueTypes.contains(extendedBase),
+                    isValueType: knownValueTypes.contains(extendedBase)
+                        || StdlibTypeNames.valueTypes.contains(extendedBase),
                     from: function
                 )
             }
