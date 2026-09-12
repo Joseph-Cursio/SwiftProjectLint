@@ -335,4 +335,94 @@ struct ParallelListDriftActionRunTests {
             """
         ]).isEmpty)
     }
+
+    // MARK: - A tagged union over types is not a vocabulary (#190)
+
+    /// **Two lists over one closed vocabulary answer different questions**, and nothing about name
+    /// overlap distinguishes that from drift — the difference lives in what the list *is*.
+    ///
+    /// When an enum's case names are their own payloads' type names, the roster is not a
+    /// vocabulary anybody chose: it is Swift's scalar types, spelled once per case because the
+    /// enum is a value tree over them. Comparing it against a list of type names finds an overlap
+    /// the language guarantees. That is `MinimalCodableValue` against `RawType`, which agreed on
+    /// fourteen names and had nothing to do with each other.
+    @Test("an enum whose cases name their payload types is not compared")
+    func taggedUnionOverTypesIsNotAList() {
+        let issues = analyze(files: [
+            "Tree.swift": """
+            enum JSONValue {
+                case null
+                case bool(Bool)
+                case int(Int)
+                case double(Double)
+                case string(String)
+            }
+            """,
+            "Table.swift": """
+            struct Scalars {
+                static let supported = ["bool", "int", "double", "string", "float", "int8"]
+            }
+            """
+        ])
+        #expect(issues.isEmpty)
+    }
+
+    /// **What the narrowing must not lose**, and the reason it is not "associated values
+    /// disqualify". The rule compares a roster of names, and `failure` is not `Error` — that case
+    /// still contributes the name a parallel list is expected to carry.
+    @Test("an enum with associated values that are not its case names is still compared")
+    func associatedValuesAloneDoNotExempt() {
+        let issues = analyze(files: [
+            "Outcome.swift": """
+            enum Outcome {
+                case success(Payload)
+                case failure(Error)
+                case cancelled(Reason)
+                case timedOut(Duration)
+                case retried(Attempt)
+                case skipped(Cause)
+                case deferred(Until)
+                case rejected(Rule)
+            }
+            """,
+            "Labels.swift": """
+            struct Labels {
+                static let all = [
+                    "success", "failure", "cancelled", "timedOut",
+                    "retried", "skipped", "deferred"
+                ]
+            }
+            """
+        ])
+        #expect(!issues.isEmpty)
+    }
+
+    /// A single echoing case is a coincidence rather than a shape, so two are required before the
+    /// enum is read as a value tree.
+    @Test("one case naming its payload type does not exempt an enum")
+    func oneEchoingCaseIsNotEnough() {
+        let issues = analyze(files: [
+            "Mixed.swift": """
+            enum Mixed {
+                case int(Int)
+                case failure(Error)
+                case cancelled(Reason)
+                case retried(Attempt)
+                case skipped(Cause)
+                case deferred(Until)
+                case rejected(Rule)
+                case timedOut(Duration)
+            }
+            """,
+            "Labels.swift": """
+            struct Labels {
+                static let all = [
+                    "int", "failure", "cancelled", "retried",
+                    "skipped", "deferred", "rejected"
+                ]
+            }
+            """
+        ])
+        #expect(!issues.isEmpty)
+    }
 }
