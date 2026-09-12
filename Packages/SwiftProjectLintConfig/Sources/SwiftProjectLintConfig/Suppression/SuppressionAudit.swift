@@ -37,10 +37,11 @@ public enum SuppressionAudit {
     /// **Two linters disagree about this body and SwiftLint wins**, because it is
     /// the pre-commit gate. SwiftProjectLint's own `Map Used For Side Effects`
     /// reports the implicitly-returned `flatMap` here as a discarded result;
-    /// SwiftLint's `implicit_return` rejects the explicit `return` that silences
-    /// it. The SwiftProjectLint rule is wrong — it cannot see that a lone
-    /// expression in a body *is* the return value — and the two findings this
-    /// leaves are tracked rather than worked around.
+    /// This carried a note that `Map Used For Side Effects` was wrong here — that it could not
+    /// see a lone expression in a body *is* the return value — and that the two findings it left
+    /// were tracked rather than worked around, because SwiftLint's `implicit_return` rejects the
+    /// explicit `return` that would have silenced them. The rule now makes that distinction
+    /// (#107), so the findings are gone and there is nothing left to track.
     public static func unrecognizedNames(in fileContent: String, filePath: String) -> [UnrecognizedSuppressionName] {
         InlineSuppressionParser.parse(fileContent: fileContent).flatMap { directive in
             directive.unrecognizedNames.map { name in

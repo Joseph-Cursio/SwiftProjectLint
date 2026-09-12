@@ -15,7 +15,8 @@ struct MapUsedForSideEffects: PatternRegistrarProtocol {
                 + "or assign the result to a variable.",
             description: "Detects map, compactMap, and flatMap calls used as bare statements "
                 + "where the transformed collection is immediately discarded. Almost always a "
-                + "mistake — use forEach for side effects."
+                + "mistake — use forEach for side effects. An implicit return is not a discard "
+                + "and is not flagged."
         )
     }
 }
