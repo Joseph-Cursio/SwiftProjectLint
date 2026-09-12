@@ -103,12 +103,15 @@ class SecurityVisitor: BasePatternVisitor {
               let stringLiteral = initializer.value.as(StringLiteralExprSyntax.self) else { return }
 
         let variableName = pattern.identifier.text
+        guard canHoldASecret(stringLiteral) else { return }
+
         let stringValue = extractStringValue(stringLiteral)
 
         if isPlaceholder(stringValue) { return }
         if isTestFile(), stringValue.count < 20 { return }
 
-        if Self.secretKeywords.contains(where: { variableName.localizedCaseInsensitiveContains($0) }) {
+        if Self.secretKeywords.contains(where: { variableName.localizedCaseInsensitiveContains($0) }),
+           !valueEchoesItsOwnName(stringValue, variableName: variableName) {
             reportHardcodedSecret(variableName: variableName, node: node)
             return
         }
@@ -173,10 +176,49 @@ class SecurityVisitor: BasePatternVisitor {
         )
     }
 
+    /// Whether this literal could hold a credential at all, judged on the literal rather than on
+    /// its text — which is the distinction the name-keyword arm below never makes.
+    ///
+    /// **Interpolation is decisive.** A secret is a fixed value; an interpolated literal is
+    /// computed per evaluation. `let token = "<<<\(tokens.count)>>>"` is a glob placeholder in a
+    /// brace-expansion parser, and it was the ONLY error in a 2,880-finding run — so under
+    /// `--threshold error` that single false positive decided the exit code, 2 against 0 (#111).
+    ///
+    /// It must be asked **before** `extractStringValue`, which drops interpolated segments: that
+    /// literal reaches the heuristics as `"<<<>>>"`, a string never written, with the evidence
+    /// that would exonerate it removed.
+    ///
+    /// There is deliberately **no minimum-length guard**, which was also proposed. A real
+    /// hardcoded password can be short — `"hunter2"` is seven characters and so is `"<<<0>>>"` —
+    /// so length cannot separate them and would buy quiet at the cost of the findings that matter.
+    private func canHoldASecret(_ literal: StringLiteralExprSyntax) -> Bool {
+        if literal.segments.contains(where: { $0.is(ExpressionSegmentSyntax.self) }) { return false }
+        // An empty literal is not a credential under any heuristic, the name match included.
+        return !extractStringValue(literal).isEmpty
+    }
+
+    /// The literal's static text. **Interpolated segments are dropped**, so callers must rule out
+    /// interpolation first — a partial string judged as a whole one is how `"<<<\(n)>>>"` became
+    /// `"<<<>>>"` and then a reported secret.
     private func extractStringValue(_ literal: StringLiteralExprSyntax) -> String {
         literal.segments.compactMap { segment -> String? in
             segment.as(StringSegmentSyntax.self)?.content.text
         }.joined()
+    }
+
+    /// Whether the value is a piece of its own variable's name — `let hashToken = "hash"`.
+    ///
+    /// The name-keyword arm reports without consulting the value, and `token`, `key`, `secret` and
+    /// `auth` are ordinary words in a parser, a lexer or a dictionary. This is the narrowest guard
+    /// that separates that vocabulary from a credential: **no secret is a substring of the name
+    /// that holds it.** `hashToken = "hash"` is the token identifying a hash function; it was an
+    /// `error` in SwiftInferProperties, found while fixing the interpolated case (#111).
+    ///
+    /// Narrow on purpose. `password = "hunter2"` is reported, because `hunter2` is nowhere in
+    /// `password` — which is the discrimination a length or wordiness test could not make.
+    private func valueEchoesItsOwnName(_ value: String, variableName: String) -> Bool {
+        guard !value.isEmpty else { return true }
+        return variableName.localizedCaseInsensitiveContains(value)
     }
 
     private func isPlaceholder(_ value: String) -> Bool {
