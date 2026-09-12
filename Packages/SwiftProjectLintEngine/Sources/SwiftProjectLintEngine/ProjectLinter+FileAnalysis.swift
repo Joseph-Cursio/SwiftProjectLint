@@ -136,8 +136,22 @@ extension ProjectLinter {
             ? LibraryPackageDetector.libraryPackagePaths(in: path)
             : []
 
+        // Executable sources, from the root manifest AND from nested packages. `print` to stdout
+        // is a CLI's interface, not logging, and routing it to `os.Logger` would print nothing.
+        //
+        // Computed here for the reason the comment above gives about `publicInAppTarget`: it used
+        // to sit after the early return, so an app root — an `.xcodeproj` with a package beside it
+        // — never reached it. Five findings on `swiftumlbridge` for output the user asked for
+        // (#112). The precedent this file cites for the library-path fix had the same defect.
+        let execPaths = ExecutableTargetDetector.executableSourcePaths(in: path)
+            + (configuration.includeNestedPackages
+                ? ExecutableTargetDetector.nestedExecutableSourcePaths(in: path)
+                : [])
+
         guard isLibrary else {
-            return Self.excludingPublicInAppTarget(libraryPaths, from: configuration)
+            return Self.excluding(
+                libraryPaths: libraryPaths, executablePaths: execPaths, from: configuration
+            )
         }
 
         var disabledRules = configuration.disabledRules
@@ -155,7 +169,6 @@ extension ProjectLinter {
             disabledRules.insert(.unusedProtocolAbstraction)
         }
 
-        let execPaths = ExecutableTargetDetector.executableSourcePaths(in: path)
         var overrides = configuration.ruleOverrides
         if execPaths.isEmpty == false {
             let existing = overrides[.printStatement]
@@ -187,18 +200,28 @@ extension ProjectLinter {
     /// Path exclusion rather than a per-file target type: the rule is already suppressed by path
     /// for executables (`printStatement`), the mechanism is tested, and the alternative — resolving
     /// a `TargetType` per file — would put a filesystem walk behind every visitor.
-    private static func excludingPublicInAppTarget(
-        _ libraryPaths: [String],
+    private static func excluding(
+        libraryPaths: [String],
+        executablePaths: [String],
         from configuration: LintConfiguration
     ) -> LintConfiguration {
-        guard !libraryPaths.isEmpty else { return configuration }
+        guard !libraryPaths.isEmpty || !executablePaths.isEmpty else { return configuration }
 
         var overrides = configuration.ruleOverrides
-        let existing = overrides[.publicInAppTarget]
-        overrides[.publicInAppTarget] = LintConfiguration.RuleOverride(
-            severity: existing?.severity,
-            excludedPaths: (existing?.excludedPaths ?? []) + libraryPaths
-        )
+        if !libraryPaths.isEmpty {
+            let existing = overrides[.publicInAppTarget]
+            overrides[.publicInAppTarget] = LintConfiguration.RuleOverride(
+                severity: existing?.severity,
+                excludedPaths: (existing?.excludedPaths ?? []) + libraryPaths
+            )
+        }
+        if !executablePaths.isEmpty {
+            let existing = overrides[.printStatement]
+            overrides[.printStatement] = LintConfiguration.RuleOverride(
+                severity: existing?.severity,
+                excludedPaths: (existing?.excludedPaths ?? []) + executablePaths
+            )
+        }
         return LintConfiguration(
             disabledRules: configuration.disabledRules,
             enabledOnlyRules: configuration.enabledOnlyRules,
