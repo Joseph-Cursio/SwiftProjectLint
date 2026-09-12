@@ -382,11 +382,43 @@ enum ForwardingCall {
         }
     }
 
-    /// Reconstruct the callee's Swift name from the call site: `search.matches(name: x)` →
-    /// `matches(name:)`, `FileListing.precedes(a, b)` → `precedes(_:_:)`.
+    /// Reconstruct the callee's Swift name from the call site: `precedes(a, b)` → `precedes(_:_:)`.
+    ///
+    /// **Free-shape callees only** (`foo(…)`, not `base.foo(…)`), which is the same restriction
+    /// `PackagePurityJoin` placed on itself for the same reason, in this package, next door:
+    ///
+    /// > name-keying has been the dominant defect in three separate measurements of this seam,
+    /// > most sharply when a cascade let one refuted `classify` speak for six unrelated ones.
+    ///
+    /// A member call cannot be resolved here — this is a per-file visitor with no type
+    /// information — so `set.contains(x)` and `myCatalog.contains(x)` were the same key. Adding
+    /// `ClosureWrapperTypeCatalog.contains(_:)` to an unrelated file removed **49 closure
+    /// candidates** from this repository's census, silently, with a falling number as the only
+    /// symptom (#185).
+    ///
+    /// ## The cost, measured before choosing
+    ///
+    /// Restricting to free shape restores **86** closures across three repositories — 3 here, 61 in
+    /// SwiftInferProperties, 22 in SwiftAssist. Reading what they forward to:
+    ///
+    /// | name | count | |
+    /// |---|---|---|
+    /// | `contains` | 53 | the standard library's |
+    /// | `first`, `lowercased`, `map`, `min`, `sorted` | ~24 | also the standard library's |
+    /// | `matches`, `isCollection`, `isOptional`, … | ~13 | genuinely project-declared |
+    ///
+    /// So the member arm was **roughly six collisions for every genuine forward**. The ~13 lose
+    /// their exemption and are reported again, which is the honest price: a closure forwarding to
+    /// a distinctively-named project method now earns a "consider extracting" it does not need.
+    /// The alternative was 77 candidates hidden by a name nobody chose for that reason.
+    ///
+    /// A denylist of standard-library names was the other candidate and is **not** taken: the
+    /// `ConcreteTypeUsage` pass found denylists failing twice on exactly this kind of question,
+    /// and a list needs an entry for every collision anyone will ever write.
     private static func labelledName(of call: FunctionCallExprSyntax) -> String? {
         let base: String
         if let member = call.calledExpression.as(MemberAccessExprSyntax.self) {
+            guard memberCallIsResolvable(member, call: call) else { return nil }
             base = member.declName.baseName.text
         } else if let reference = call.calledExpression.as(DeclReferenceExprSyntax.self) {
             base = reference.baseName.text
@@ -396,6 +428,32 @@ enum ForwardingCall {
 
         let labels = call.arguments.map { "\($0.label?.text ?? "_"):" }.joined()
         return "\(base)(\(labels))"
+    }
+
+    /// Whether a member call names something specific enough to key on.
+    ///
+    /// `set.contains(x)` and `myCatalog.contains(x)` produce the same key, and this is a per-file
+    /// visitor with no type information to tell them apart. Two shapes are specific enough:
+    ///
+    /// - **A capitalized base** — `FileOrdering.precedes(a, b)` is a static call on a type, and a
+    ///   type name is not something a value happens to share with `Set`.
+    /// - **At least one argument label** — `search.matches(name: $0.name)` is `matches(name:)`,
+    ///   which the project must also declare for the exemption to apply. A labelled name is a far
+    ///   narrower coincidence than a bare one.
+    ///
+    /// What is excluded is the unlabelled call on a lowercase base — `contains(_:)`, `map(_:)`,
+    /// `lowercased()` — which is where every collision in #185 lived. Adding
+    /// `ClosureWrapperTypeCatalog.contains(_:)` to an unrelated file removed 49 closure candidates
+    /// from this repository's census, silently.
+    private static func memberCallIsResolvable(
+        _ member: MemberAccessExprSyntax,
+        call: FunctionCallExprSyntax
+    ) -> Bool {
+        if let base = member.base?.as(DeclReferenceExprSyntax.self),
+           base.baseName.text.first?.isUppercase == true {
+            return true
+        }
+        return call.arguments.contains { $0.label != nil }
     }
 
     /// An argument passed straight through: `$0`, `$0.name`, `file.path`, a capture, a literal —
