@@ -229,4 +229,41 @@ struct PBTSeedsFormatterTests {
         // draws the boundary. Narrowing to it would report a confident zero.
         #expect(manifest.analysableSeeds.isEmpty)
     }
+
+    // MARK: - Skipped-package scope (#95)
+
+    /// The manifest is the only channel a consumer reads, so a partial run must say so **in the
+    /// JSON**. The text caveat and the stderr notice both reach a human and neither reaches
+    /// `swift-infer discover --seeds`, which is the thing that acts on the file.
+    @Test func aPartialRunNamesTheSkippedPackagesInTheManifest() throws {
+        let json = PBTSeedsFormatter(skippedNestedPackages: ["Core", "Extras"])
+            .format(issues: [candidate(symbol: "add")])
+        let manifest = try JSONDecoder().decode(PBTSeedManifest.self, from: Data(json.utf8))
+
+        #expect(manifest.skippedPackages == ["Core", "Extras"])
+        #expect(manifest.seeds.count == 1, "the seeds themselves are unaffected")
+    }
+
+    /// A complete run writes a manifest byte-identical to one written before the field existed.
+    /// That is the whole compatibility argument for shipping it without a version bump, so it is
+    /// asserted on the text rather than on the decoded value — an empty array that encodes as
+    /// `"skippedPackages": []` would decode equal and still break an older consumer's expectations.
+    @Test func aCompleteRunWritesNoSkippedPackagesKeyAtAll() throws {
+        let json = PBTSeedsFormatter().format(issues: [candidate(symbol: "add")])
+
+        #expect(!json.contains("skippedPackages"))
+        let manifest = try JSONDecoder().decode(PBTSeedManifest.self, from: Data(json.utf8))
+        #expect(manifest.skippedPackages.isEmpty)
+        #expect(manifest.version == PBTSeedManifest.currentVersion)
+    }
+
+    /// A manifest written before this field existed still decodes, with the absence read as
+    /// "nothing was skipped" rather than as a parse error.
+    @Test func aManifestWithoutTheKeyStillDecodes() throws {
+        let legacy = #"{"version":2,"seeds":[]}"#
+        let manifest = try JSONDecoder().decode(PBTSeedManifest.self, from: Data(legacy.utf8))
+
+        #expect(manifest.skippedPackages.isEmpty)
+        #expect(manifest.version == 2)
+    }
 }
