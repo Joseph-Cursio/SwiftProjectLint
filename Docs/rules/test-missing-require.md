@@ -5,73 +5,65 @@
 **Identifier:** `Test Missing Require`
 **Category:** Code Quality
 **Severity:** Info
+**Opt-in:** yes — enable with `enabled_only` or `--rules`
 
 ### Rationale
-In design-by-contract style testing, `#require` validates preconditions before the actual assertion. When a precondition fails, `#require` stops the test immediately with a clear diagnostic pointing at the broken assumption — rather than letting the test cascade into a confusing `#expect` failure downstream.
+A `@Test` that force-unwraps, `try!`s or `as!`s **traps** when the value is not what the test assumed — and a trap takes the whole test process down, every other test with it, with no diagnostic naming the test that did it. `try #require(…)` fails that one test, says why, and is a one-line replacement.
 
-For example, if a test unwraps an optional and then checks a property on it, using `#require` for the unwrap makes it obvious whether the failure was "the value was nil" versus "the value existed but had the wrong property."
+### What this rule is not
+It does **not** flag a test for using only `#expect`. The two macros are not interchangeable and the choice is not a quality signal:
 
-### Scope
-- Flags `@Test` functions whose body contains no `#require` macro call
-- Searches the entire function body, including nested scopes (loops, closures, etc.)
-- Does not flag non-test functions, even if they have "test" in the name
-- Does not flag `@Test` functions that already contain at least one `#require`
-- **Cross-file aware:** does not flag tests that delegate to a helper function containing `#require`, even if that helper is defined in a different file
-- **`_ = try` aware:** does not flag `throws` test functions that use `_ = try expr` as their precondition — the throw-as-assertion idiom used by ViewInspector and similar frameworks, where a thrown error directly communicates a failed precondition
+- `#expect` records a failure and **continues** — correct for assertions about the result under test.
+- `#require` **throws and halts** — correct when continuing would be meaningless or would crash.
+
+A test whose assertions are independent observations should use `#expect` throughout. Adding `#require` to satisfy a rule would make those tests worse, since a first failure would then hide the rest.
+
+The rule previously flagged every `@Test` containing no `#require`, which is the normal shape: **1,341 findings on one subject, 47% of that run**, against a suite with no defect it was pointing at.
+
+### Discussion
+`TestMissingRequireVisitor` flags a `@Test` with no `#require` **and** at least one trapping construct: a force unwrap, `try!`, or `as!`. The message names which one it found, since a rule that fires on a subset owes the reader why it picked this test out of the suite.
+
+Measured over 13,200 `@Test` functions without `#require` across fifteen repositories: **101** carry one of these shapes, 0.8%.
+
+**Index subscripting is deliberately excluded.** It was proposed as a fourth shape and measured: 448 of those 13,200 subscript by a literal index — more than all three trapping shapes combined. In a test the collection is usually one the test just built as a literal, where it cannot trap, and syntax cannot tell that apart from an unchecked access on a fetched one.
+
+The honest caveat: `#expect(items.count == 3)` does **not** halt, so a subscript after it still traps when the expectation fails. Those cases are real and this rule does not find them.
+
+Source inside a string literal is text, not code — a linter's own suite is full of embedded Swift fixtures, and they are not flagged.
 
 ### Non-Violating Examples
 ```swift
-@Test
-func testItemCreation() throws {
-    let item = try #require(createItem())  // precondition: item must exist
-    #expect(item.name == "Expected")
+@Test func hasVersion() {                    // #expect alone — the normal shape
+    #expect(CLI.configuration.version.isEmpty == false)
 }
 
-@Test
-func testCollectionProcessing() throws {
-    let items = fetchItems()
-    let first = try #require(items.first)  // precondition: must have at least one
-    #expect(first.isValid)
+@Test func unwrapsSafely() throws {          // already halts with a diagnostic
+    let snapshot = try #require(fetchSnapshots().first)
+    #expect(snapshot.id == 1)
 }
 
-// Verification helper in another file — not flagged
-func verifyNonEmpty(_ collection: [Item]) throws {
-    let first = try #require(collection.first)
-    #expect(first.isValid)
-}
-
-@Test
-func testResults() throws {
-    let items = fetchItems()
-    try verifyNonEmpty(items)              // delegates to helper — not flagged
-}
-
-// ViewInspector presence check — not flagged
-@Test
-func testSectionExists() throws {
-    let view = MyView()
-    let inspected = try view.inspect()
-    _ = try inspected.find(MySectionView.self)  // throws if absent — not flagged
+@Test func optionalHandling() throws {       // `try?` and `as?` do not trap
+    let value = try? decode()
+    #expect(value?.isEmpty == false)
 }
 ```
 
 ### Violating Examples
 ```swift
-@Test
-func testWithoutPreconditions() {
-    let result = compute()
-    #expect(result == 42)  // no #require to validate setup
+@Test func snapshot() throws {
+    let snapshot = fetchSnapshots().first!   // empty → traps the whole process
+    #expect(snapshot.id == 1)
 }
 
-@Test
-func testEmptyBody() {
-    // no assertions at all
+@Test func decodes() {
+    let value = try! decode()                // throws → traps
+    #expect(value == 1)
+}
+
+@Test func casts() {
+    let typed = anything() as! Int           // wrong type → traps
+    #expect(typed == 1)
 }
 ```
-
-### Known Limitations
-- **Helper detection is name-based.** If a helper function shares its name with another function in the project that does not contain `#require`, the rule may incorrectly suppress a violation.
-- **`_ = try` requires `throws`.** The discarded-try pattern is only recognised in `throws` test functions.
-- **Bare `try` is not suppressed.** Only `_ = try expr` (result explicitly discarded) is treated as a throw-as-precondition. A plain `try setup()` with no binding is considered setup, not a precondition check.
 
 ---

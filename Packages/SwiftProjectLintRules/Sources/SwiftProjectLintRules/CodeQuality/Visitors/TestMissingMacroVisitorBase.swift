@@ -49,6 +49,20 @@ class TestMissingMacroVisitorBase: CrossFileVisitorBase, CrossFilePatternVisitor
     /// `"add #expect or #require to verify behavior"`.
     var remedyPhrase: String { "" }
 
+    /// Whether this rule has anything to say about a `@Test` that lacks its macros.
+    ///
+    /// Defaults to `true`, which is the right answer for "this test asserts nothing" — a test
+    /// with no assertion is a defect whatever it contains. It is the wrong answer for "this test
+    /// has no `#require`", where using only `#expect` is the correct and normal shape; that
+    /// subclass narrows to the bodies where `#require` genuinely beats what is there.
+    func warrantsReport(_: CodeBlockSyntax) -> Bool { true }
+
+    /// A clause naming what was found, appended after `remedyPhrase`. `nil` for none.
+    ///
+    /// A rule that fires on a *subset* owes the reader the reason it picked this test out of the
+    /// suite — otherwise the message is the same sentence the unfiltered rule printed 1,341 times.
+    func reportDetail(_: CodeBlockSyntax) -> String? { nil }
+
     // MARK: - Shared state
 
     /// Function names whose bodies contain at least one recognised macro.
@@ -56,7 +70,17 @@ class TestMissingMacroVisitorBase: CrossFileVisitorBase, CrossFilePatternVisitor
 
     /// @Test functions with no direct recognised macro, held for deferred
     /// reporting in `finalizeAnalysis`.
-    private var candidateTests: [(name: String, filePath: String, node: Syntax)] = []
+    private var candidateTests: [Candidate] = []
+
+    /// A `@Test` held for deferred reporting. A struct rather than a tuple since `detail` made it
+    /// a fourth member.
+    private struct Candidate {
+        let name: String
+        let filePath: String
+        let node: Syntax
+        /// A clause naming what the rule found, when it fires on a subset. `nil` for none.
+        let detail: String?
+    }
 
     // MARK: - Phase 1: Walk
 
@@ -69,10 +93,15 @@ class TestMissingMacroVisitorBase: CrossFileVisitorBase, CrossFilePatternVisitor
                 // Has a recognised macro — not a candidate.
             } else if isThrowing(node), containsDiscardedTry(in: Syntax(body)) {
                 // Uses _ = try as assertion (e.g. ViewInspector presence checks) — not a candidate.
-            } else {
+            } else if warrantsReport(body) {
                 // Tentatively flag — may be cleared in finalizeAnalysis if a
                 // called helper turns out to contain assertions.
-                candidateTests.append((name: name, filePath: currentFilePath, node: Syntax(node)))
+                candidateTests.append(Candidate(
+                    name: name,
+                    filePath: currentFilePath,
+                    node: Syntax(node),
+                    detail: reportDetail(body)
+                ))
             }
         } else if containsRecognizedMacro(in: Syntax(body)) {
             // Non-test function: record if it contains recognised assertions.
@@ -94,10 +123,11 @@ class TestMissingMacroVisitorBase: CrossFileVisitorBase, CrossFilePatternVisitor
                 continue
             }
 
+            let detail = candidate.detail.map { " (\($0))" } ?? ""
             addIssue(
                 severity: issueSeverity,
                 message: "@Test function '\(candidate.name)' has no \(missingMacroDescription) — "
-                    + remedyPhrase,
+                    + remedyPhrase + detail,
                 filePath: candidate.filePath,
                 lineNumber: getLineNumber(for: candidate.node),
                 suggestion: issueSuggestion,
