@@ -126,7 +126,19 @@ extension ProjectLinter {
                 atPath: (path as NSString).appendingPathComponent("Package.swift")
             )
         }
-        guard isLibrary else { return configuration }
+        // A nested package that publishes a `.library` product is a library whatever the ROOT is,
+        // and `include_nested_packages` pulls it into a run classified from the root. Excluding its
+        // paths from `publicInAppTarget` is the same move the `printStatement` override below makes
+        // for executable sources, and it has to happen before the library-root early return —
+        // otherwise an app root (an `.xcodeproj` with a package beside it) never reaches it, which
+        // is exactly the 462-finding case in #108.
+        let libraryPaths = configuration.includeNestedPackages
+            ? LibraryPackageDetector.libraryPackagePaths(in: path)
+            : []
+
+        guard isLibrary else {
+            return Self.excludingPublicInAppTarget(libraryPaths, from: configuration)
+        }
 
         var disabledRules = configuration.disabledRules
         disabledRules.insert(.publicInAppTarget)
@@ -164,6 +176,37 @@ extension ProjectLinter {
             // package-specific rule defaults. Omitting it reset the flag to its `false`
             // default, silently making `--include-nested-packages` a no-op for every
             // Swift-package project (the only projects that reach this branch).
+            includeNestedPackages: configuration.includeNestedPackages
+        )
+    }
+
+    /// Narrows `publicInAppTarget` to the paths it applies to, by excluding nested library
+    /// packages. Returns `configuration` untouched when there are none, so the common case pays
+    /// nothing and an existing run's behaviour is unchanged.
+    ///
+    /// Path exclusion rather than a per-file target type: the rule is already suppressed by path
+    /// for executables (`printStatement`), the mechanism is tested, and the alternative — resolving
+    /// a `TargetType` per file — would put a filesystem walk behind every visitor.
+    private static func excludingPublicInAppTarget(
+        _ libraryPaths: [String],
+        from configuration: LintConfiguration
+    ) -> LintConfiguration {
+        guard !libraryPaths.isEmpty else { return configuration }
+
+        var overrides = configuration.ruleOverrides
+        let existing = overrides[.publicInAppTarget]
+        overrides[.publicInAppTarget] = LintConfiguration.RuleOverride(
+            severity: existing?.severity,
+            excludedPaths: (existing?.excludedPaths ?? []) + libraryPaths
+        )
+        return LintConfiguration(
+            disabledRules: configuration.disabledRules,
+            enabledOnlyRules: configuration.enabledOnlyRules,
+            excludedPaths: configuration.excludedPaths,
+            excludedFilenames: configuration.excludedFilenames,
+            ruleOverrides: overrides,
+            architecturalLayers: configuration.architecturalLayers,
+            enabledFrameworkAllowlists: configuration.enabledFrameworkAllowlists,
             includeNestedPackages: configuration.includeNestedPackages
         )
     }
