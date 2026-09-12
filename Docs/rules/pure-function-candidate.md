@@ -99,6 +99,25 @@ tied to a parameter, a local, or a type is assumed to be instance state — even
 Under-suggesting costs a missed test; over-suggesting costs a generated test that runs impure code
 and lies about the result.
 
+**Swift 5.7's shorthand optional binding is a read, not a binding.** `if let tagFilter` — with no
+`=` — introduces nothing; it takes its value from whatever `tagFilter` already meant. So the name is
+resolved rather than assumed local, and the table above applies to it: a shorthand-bound stored
+`let` is a function of `self`, a shorthand-bound stored `var` is not a candidate, and a name this
+file cannot see refutes. Rebinding a local still works, because the local's own `let` or `var` is
+what bound the name.
+
+Treating it as a fresh local admitted methods that read mutable instance state. The three arms below
+are the same logic, and only the first was a candidate:
+
+```swift
+if let tagFilter, !item.tags.contains(tagFilter) { return false }        // was a candidate
+if let filter = self.tagFilter, !item.tags.contains(filter) { … }       // correctly refused
+guard let value = tagFilter else { return true }                        // correctly refused
+```
+
+Measured across 13 repositories: **five seeds withdrawn of 4,670**, including `EditorFormatter`'s
+`selectedText`, which shorthand-binds a `weak var textView: NSTextView?` — a live view object.
+
 ### Throwing candidates: pure but partial
 
 A `throws` function can be a candidate. `throws` refutes **totality**, not referential transparency,
