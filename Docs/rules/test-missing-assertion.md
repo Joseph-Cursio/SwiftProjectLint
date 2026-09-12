@@ -19,6 +19,20 @@ Unlike `testMissingRequire` (which nudges toward precondition checks), this rule
 - **Cross-file aware:** does not flag tests that delegate to a helper function containing assertions, even if that helper is defined in a different file
 - **`_ = try` aware:** does not flag `throws` test functions that use `_ = try expr` as their assertion — the throw-as-assertion idiom used by ViewInspector and similar frameworks
 
+### The throw-as-assertion pattern
+A `throws` test whose assertion **is** the throw is not flagged. A plain `try` whose result is discarded — either `_ = try expr` or a bare `try expr` statement — makes the call for its success, and an unhandled throw in a Swift Testing test is a failure:
+
+```swift
+@Test func runsClassDiagram() async throws {
+    var command = try Cmd.parse(["Models"])
+    try await command.run()          // the assertion: it parses and runs without throwing
+}
+```
+
+`#expect(true)` beside that would assert strictly less.
+
+**Only when the value is discarded.** `let dir = try makeTempDirectory()` binds a value the test goes on to use — that is setup, and a test containing only setup really does assert nothing. The rule still reports it. `try?` and `try!` do not propagate a failure, so neither counts either (and `try!` traps, which `Test Missing Require` reports separately).
+
 ### Non-Violating Examples
 ```swift
 @Test
