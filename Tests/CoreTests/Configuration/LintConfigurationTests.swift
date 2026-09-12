@@ -7,11 +7,20 @@ struct LintConfigurationTests {
 
     // MARK: - resolveRules
 
+    /// The default configuration **is** restricted: it removes the 25 opt-in rules. `nil` means
+    /// "no filtering" to `ProjectLinter`, so returning it here ran every opt-in rule by default
+    /// on any project whose root is not a Swift package (#217).
+    ///
+    /// This asserted `nil` and passed for as long as the defect existed.
     @Test
-    func testDefaultConfigReturnsNil() {
+    func testDefaultConfigIsRestrictedToNonOptInRules() throws {
         let config = LintConfiguration.default
-        let rules = config.resolveRules()
-        #expect(rules == nil, "Default config should return nil (no filtering)")
+        let rules = try #require(
+            config.resolveRules(),
+            "the default config removes the opt-in rules, so it must not report 'no filtering'"
+        )
+        #expect(Set(rules) == RuleIdentifier.selectableRules.subtracting(LintConfiguration.optInRules))
+        #expect(Set(rules).isDisjoint(with: LintConfiguration.optInRules))
     }
 
     @Test

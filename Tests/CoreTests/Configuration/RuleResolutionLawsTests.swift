@@ -67,20 +67,38 @@ struct RuleResolutionLawsTests {
 
     /// **L6.6 — `nil` means exactly "nothing was restricted".**
     ///
-    /// The duplicated-expression law described above. A default configuration
-    /// with no CLI narrowing must return `nil`; any configuration that *does*
-    /// narrow must not.
+    /// The law is unchanged; what changed is the answer for the default configuration, which
+    /// **does** restrict — it removes the 25 opt-in rules, as `expectedDefaultSet` above has
+    /// always said. So it must not return `nil`.
+    ///
+    /// It used to, and this test asserted it. The comment on the next law states the hazard
+    /// exactly — *"a `nil` here would mean 'run everything'"* — having reasoned it through for
+    /// disabled rules and not for the opt-in rules the same function removes. On any project
+    /// whose root is not a Swift package, every opt-in rule ran by default: 62% of one subject's
+    /// findings (#217).
     @Test
-    func defaultConfigurationIsUnrestricted() {
-        #expect(LintConfiguration.default.resolveRules() == nil)
+    func theDefaultConfigurationIsRestrictedToNonOptInRules() throws {
+        let resolved = try #require(
+            LintConfiguration.default.resolveRules(),
+            "the default configuration removes the opt-in rules, so it restricts"
+        )
+        #expect(Set(resolved) == Self.expectedDefaultSet)
 
-        // And the two spellings agree on *what* the default set is: asking for
-        // every category explicitly forces the non-nil branch, and that answer
-        // must equal the independently-stated reference set.
+        // Both spellings agree on *what* the default set is: asking for every category
+        // explicitly must give the same answer as asking for none.
         let viaCategories = LintConfiguration.default.resolveRules(
             cliCategories: PatternCategory.allCases
         )
         #expect(Set(viaCategories ?? []) == Self.expectedDefaultSet)
+    }
+
+    /// The other half of L6.6, and the half that has no caller today: `nil` is still reachable,
+    /// and still means "every selectable rule". Without this the fix would read as "never return
+    /// nil", which is a different contract from the one the law states.
+    @Test
+    func nilIsReturnedOnlyWhenNothingWasRemoved() {
+        let everything = LintConfiguration(enabledOnlyRules: RuleIdentifier.selectableRules)
+        #expect(everything.resolveRules() == nil)
     }
 
     /// Any non-empty `disabledRules` genuinely restricts, so the result must be
@@ -94,8 +112,9 @@ struct RuleResolutionLawsTests {
             let resolved = LintConfiguration(disabledRules: disabled).resolveRules()
 
             if effective.isEmpty {
-                // Disabling only opt-in or sentinel rules changes nothing.
-                #expect(resolved == nil)
+                // Disabling only opt-in or sentinel rules changes nothing — but the default
+                // set is itself restricted, so the answer is that set rather than `nil`.
+                #expect(Set(try #require(resolved)) == Self.expectedDefaultSet)
             } else {
                 let result = try #require(resolved)
                 #expect(Set(result) == Self.expectedDefaultSet.subtracting(effective))
