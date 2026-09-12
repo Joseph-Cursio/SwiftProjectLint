@@ -173,29 +173,58 @@ final class PrimitiveNamedForDomainTypeVisitor: CrossFileVisitorBase, CrossFileP
 
     // MARK: - Phase 2: match + emit
 
+    /// Matches each position against the wrappers whose name it echoes, and reports every
+    /// candidate rather than one of them.
+    ///
+    /// **Two wrapper names that differ only in case are two types and collide here**, because the
+    /// match is case-insensitive by design: a position spelled `userId` should be caught whether
+    /// the type is written `UserID` or `UserId`. The index used to be built by walking `wrappers`
+    /// — a `Dictionary` — and assigning into a `[String: …]` keyed on the lowercased name, so a
+    /// collision was resolved last-write-wins **by Swift's per-process hash seed**. Measured over
+    /// `UserID` / `UserId` / `let userId: String`: the finding named `UserId` in 8 of 12 processes
+    /// and `UserID` in the other 4, on identical source. The choice reaches the message, the
+    /// suggestion, and `symbol`, which the `pbt-seeds` manifest carries into `swift-infer`.
+    ///
+    /// Sorting the walk would make it a decision, but it would still be the wrong shape of answer:
+    /// neither spelling is more the domain type than the other, and advising a reader to type
+    /// their property as `UserID` when they meant `UserId` is a worse failure than saying both
+    /// exist. So the index keeps every candidate, and the message names them all — which is
+    /// exactly what the sibling rule in this directory already does when several wrappers share a
+    /// carrier (see `PrimitiveBypassingDomainTypeVisitor`, whose seed likewise takes the smallest
+    /// in sorted order because a manifest names one subject).
     func finalizeAnalysis() {
         guard wrappers.isEmpty == false, positions.isEmpty == false else { return }
 
-        var byLoweredName: [String: (name: String, carrier: String)] = [:]
-        for (name, carrier) in wrappers { byLoweredName[name.lowercased()] = (name, carrier) }
+        // Sorted so the candidate list is in a stated order rather than the walk's, which is what
+        // makes `first` below the lexicographically smallest rather than the hash's choice.
+        var byLoweredName: [String: [(name: String, carrier: String)]] = [:]
+        for name in wrappers.keys.sorted() {
+            guard let carrier = wrappers[name] else { continue }
+            byLoweredName[name.lowercased(), default: []].append((name, carrier))
+        }
 
         for position in positions {
-            guard let wrapper = byLoweredName[position.name.lowercased()],
-                  wrapper.carrier == position.carrier else { continue }
+            let candidates = byLoweredName[position.name.lowercased(), default: []]
+                .filter { $0.carrier == position.carrier }
+            guard let wrapper = candidates.first else { continue }
             // Don't flag the wrapper's own backing field (`struct Percentage { let percentage: Int }`).
+            // Every candidate shares the position's lowercased name, so asking this of `wrapper`
+            // asks it of all of them.
             if position.enclosingType?.lowercased() == wrapper.name.lowercased() { continue }
 
+            let spelled = candidates.map { "'\($0.name)'" }.joined(separator: " / ")
             addIssue(
                 severity: .info,
                 message: "'\(position.name)' is typed '\(position.carrier)' but names the domain "
-                    + "type '\(wrapper.name)', a newtype over '\(position.carrier)'.",
+                    + "type \(spelled), a newtype over '\(position.carrier)'.",
                 filePath: position.file,
                 lineNumber: position.line,
-                suggestion: "Type '\(position.name)' as '\(wrapper.name)' so the identity is "
+                suggestion: "Type '\(position.name)' as \(spelled) so the identity is "
                     + "enforced by the type instead of a bare '\(position.carrier)'.",
                 ruleName: .primitiveNamedForItsDomainType,
                 // The domain type, not the mistyped property: it is the type that owes the laws
-                // the raw primitive cannot state. Exported as a `carrier` seed.
+                // the raw primitive cannot state. Exported as a `carrier` seed, which names one
+                // subject — the smallest of the candidates, picked by name rather than by hash.
                 symbol: wrapper.name
             )
         }

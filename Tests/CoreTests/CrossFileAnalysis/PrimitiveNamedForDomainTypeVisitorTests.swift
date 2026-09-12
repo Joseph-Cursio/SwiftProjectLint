@@ -39,6 +39,42 @@ struct PrimitiveNamedForDomainTypeVisitorTests {
         #expect(issue.message.contains("idempotencyKey"))
     }
 
+    /// **Two wrapper names differing only in case are two types, and the finding used to name
+    /// whichever the hash seed offered last** — `UserId` in 8 of 12 processes and `UserID` in the
+    /// other 4, on this exact source (SwiftProjectLint#203). A single run cannot catch that, so
+    /// this test does not try: it asserts the answer the rule now owes on *every* run, which is
+    /// that both spellings are named and the seed takes the smaller.
+    @Test
+    func namesEveryWrapperSpellingWhenTwoDifferOnlyInCase() throws {
+        let issues = analyze(files: [
+            "A.swift": "struct UserID { let value: String }",
+            "B.swift": "struct UserId { let value: String }",
+            "C.swift": "struct Session { let userId: String }"
+        ])
+
+        #expect(issues.count == 1)
+        let issue = try #require(issues.first)
+        #expect(issue.message.contains("'UserID' / 'UserId'"))
+        #expect(issue.suggestion?.contains("'UserID' / 'UserId'") == true)
+        // A manifest names one subject, and it is the smaller name rather than the hash's pick.
+        #expect(issue.symbol == "UserID")
+    }
+
+    /// The ordinary case still reads as one name — the candidate list is a list of one, and the
+    /// message must not start rendering `'UserID' / ` for it.
+    @Test
+    func aSingleWrapperIsStillNamedAlone() throws {
+        let issues = analyze(files: [
+            "ID.swift": "struct UserID { let raw: UUID }",
+            "Session.swift": "struct Session { let userID: UUID }"
+        ])
+
+        let issue = try #require(issues.first)
+        #expect(issue.message.contains("'UserID',"))
+        #expect(issue.message.contains("/") == false)
+        #expect(issue.symbol == "UserID")
+    }
+
     /// A stored property named for the wrapper, cross-file, typed as the carrier.
     @Test
     func propertyNamedForWrapperFlags() {
