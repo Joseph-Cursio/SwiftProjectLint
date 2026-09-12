@@ -19,6 +19,18 @@ public struct ExecutableTargetDetector {
         return parseExecutableTargets(from: content)
     }
 
+    /// The same, for every **nested** package, with each result made relative to `projectRoot`.
+    ///
+    /// `executableSourcePaths(in:)` reads the manifest at the analysed root and nothing else. An
+    /// Xcode project has no manifest there, so a CLI living in a package beside the app was never
+    /// found and `print` — the program's actual output — was reported as production logging: five
+    /// findings in `swiftumlbridge` on one subject (#112).
+    public static func nestedExecutableSourcePaths(in projectRoot: String) -> [String] {
+        NestedPackageWalker.packageDirectories(in: projectRoot).flatMap { relative, absolute in
+            executableSourcePaths(in: absolute).map { relative + $0 }
+        }
+    }
+
     private static func parseExecutableTargets(from content: String) -> [String] {
         guard let markerRegex = try? NSRegularExpression(
             pattern: #"\.executableTarget\s*\("#
