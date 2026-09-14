@@ -34,6 +34,8 @@ struct ImplicitCodableRawValueTests {
         #expect(issue.message == "Codable enum 'Status' uses implicit raw values for 'active', 'archived', "
             + "'pending' — renaming a case changes its encoded value")
         #expect(issue.suggestion?.contains(#"case active = "active""#) == true)
+        // SwiftLint's redundant_string_enum_value rejects that fix, so the alternative is offered too.
+        #expect(issue.suggestion?.contains("pin the raw values in a test") == true)
     }
 
     @Test func eachCodableProtocolAndQualifiedSpellingCounts() {

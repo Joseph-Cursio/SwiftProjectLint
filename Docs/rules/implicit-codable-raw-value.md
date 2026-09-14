@@ -30,6 +30,27 @@ enum Status: String, Codable {
 }
 ```
 
+#### If you use SwiftLint
+
+SwiftLint's default rule `redundant_string_enum_value` reports exactly that fix: an explicit raw value equal to the case name. If you run both tools, pin the raw values in a test instead. The test fails when a case is renamed or its value is edited, which gives the same protection:
+
+```swift
+@Test func statusWireFormat() {
+    #expect(Status.allCases.map(\.rawValue) == ["active", "inactive"])
+}
+```
+
+Then exclude the file from this rule in `.swiftprojectlint.yml`, noting where the test is:
+
+```yaml
+rules:
+  "Implicit Codable Raw Value":
+    excluded_paths:
+      - "Models/Status.swift"   # raw values pinned by StatusWireFormatTests
+```
+
+Prefer the config exclusion to an inline `swiftprojectlint:disable` comment, which the [SwiftProjectLint Suppression](swiftprojectlint-suppression.md) rule reports as a warning.
+
 ### Discussion
 
 `ImplicitCodableRawValueVisitor` reports an enum when all of the following are true:
