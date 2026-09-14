@@ -13,3 +13,12 @@ rules:
   "Discarded Try Result":
     excluded_paths:
       - "Tests/"
+  # These enums are written out by value (--format json, the pbt-seeds manifest), so their raw
+  # values are a wire format. Explicit raw values equal to the case names would satisfy this rule
+  # but trip SwiftLint's default redundant_string_enum_value; instead the values are pinned by
+  # Tests/CoreTests/Models/WireFormatRawValueTests.swift, which fails on a rename or an edited value.
+  "Implicit Codable Raw Value":
+    excluded_paths:
+      - "SwiftProjectLintModels/IssueSeverity.swift"
+      - "SwiftProjectLintModels/PBTSeedEffect.swift"
+      - "SwiftProjectLintModels/PBTSeedRole.swift"
