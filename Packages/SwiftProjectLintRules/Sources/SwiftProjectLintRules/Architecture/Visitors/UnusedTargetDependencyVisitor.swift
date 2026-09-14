@@ -2,8 +2,8 @@ import SwiftProjectLintModels
 import SwiftProjectLintVisitors
 import SwiftSyntax
 
-/// Cross-file visitor that reports a declared sibling-target dependency that nothing in the target
-/// imports.
+/// Cross-file visitor that reports a declared dependency — a sibling target, or a product of a local
+/// path package — that nothing in the target imports.
 ///
 /// The mirror of ``UndeclaredTargetDependencyVisitor``. A stale entry in `dependencies:` does not
 /// break a build, but it keeps one: the target is rebuilt whenever the dependency changes, and the
@@ -22,7 +22,10 @@ import SwiftSyntax
 /// - The dependency is an executable, plugin, system library or binary target. A test target can
 ///   depend on an executable only to have it built, and the other three are not imported by their
 ///   target name.
-/// - `.product(name:package:)` entries, whose modules are listed in another manifest.
+/// - A product of a package outside the run (remote, or a path the graph cannot follow), or of a
+///   local package whose product cannot be matched.
+/// - A local package's product any of whose targets has no Swift files in the run, for the same
+///   module-map reason as a C sibling target.
 final class UnusedTargetDependencyVisitor: CrossFileVisitorBase, CrossFilePatternVisitorProtocol {
 
     func finalizeAnalysis() {
@@ -46,25 +49,62 @@ final class UnusedTargetDependencyVisitor: CrossFileVisitorBase, CrossFilePatter
             let imported = Set((imports.sitesByTarget[target.name] ?? []).map(\.module))
             let used = graph.withReexports(of: imported).union(externalMacroModules(in: files))
 
-            for dependency in dependencies where dependency.isPackageProduct == false {
-                guard let dependencyTarget = imports.targetsByName[dependency.name],
-                      isJudgeable(dependencyTarget, in: package),
-                      used.contains(dependencyTarget.moduleName) == false else {
+            for dependency in dependencies {
+                guard let unused = unusedDependency(dependency, resolvedIn: node, graph: graph, used: used) else {
                     continue
                 }
-
                 addIssue(
                     severity: .info,
-                    message: "Target '\(target.name)' declares a dependency on "
-                        + "'\(dependencyTarget.name)' but never imports it",
+                    message: "Target '\(target.name)' declares a dependency on \(unused.description) "
+                        + "but never imports it",
                     filePath: manifestPath,
                     lineNumber: getLineNumber(for: dependency.node),
-                    suggestion: "Remove \"\(dependencyTarget.name)\" from the dependencies of "
-                        + "'\(target.name)', or import it where it is used. An unused dependency still "
-                        + "rebuilds '\(target.name)' whenever it changes.",
+                    suggestion: "Remove \(unused.entry) from the dependencies of '\(target.name)', or import "
+                        + "it where it is used. An unused dependency still rebuilds '\(target.name)' "
+                        + "whenever it changes.",
                     ruleName: .unusedTargetDependency
                 )
             }
+        }
+    }
+
+    /// How a judged, unused dependency is named in the finding: as prose, and as the manifest entry.
+    private struct UnusedDependency {
+        let description: String
+        let entry: String
+    }
+
+    private func unusedDependency(
+        _ dependency: PackageManifest.Dependency,
+        resolvedIn node: PackageGraph.Node,
+        graph: PackageGraph,
+        used: Set<String>
+    ) -> UnusedDependency? {
+        switch graph.resolve(dependency, in: node) {
+        case .localTarget(let dependencyTarget):
+            guard isJudgeable(dependencyTarget, in: node.package),
+                  used.contains(dependencyTarget.moduleName) == false else {
+                return nil
+            }
+            return UnusedDependency(description: "'\(dependencyTarget.name)'", entry: "\"\(dependencyTarget.name)\"")
+
+        case let .product(product, modules, package):
+            let productTargets = product.targets.compactMap { package.imports.targetsByName[$0] }
+            guard productTargets.count == product.targets.count,
+                  productTargets.allSatisfy({ isJudgeable($0, in: package.package) }),
+                  modules.isDisjoint(with: used) else {
+                return nil
+            }
+            let reference = graph.packageReference(to: package, from: node)
+            return UnusedDependency(
+                description: "product '\(product.name)' of '\(reference)'",
+                entry: dependency.isPackageProduct
+                    ? ".product(name: \"\(product.name)\", package: \"\(dependency.package ?? reference)\")"
+                    : "\"\(product.name)\""
+            )
+
+        case .unresolvedProduct, .external:
+            return nil
         }
     }
 
