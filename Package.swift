@@ -91,7 +91,14 @@ let package = Package(
         .target(
             name: "Core",
             dependencies: [
+                // Core re-exports these (Exports.swift) and imports them directly, so it
+                // declares each rather than relying on Engine to build them first.
+                "SwiftProjectLintConfig",
                 "SwiftProjectLintEngine",
+                "SwiftProjectLintModels",
+                "SwiftProjectLintRegistry",
+                "SwiftProjectLintRules",
+                "SwiftProjectLintVisitors",
                 .product(name: "LintStudioCore", package: "LintStudioUI")
             ],
             path: "Sources/Core",
