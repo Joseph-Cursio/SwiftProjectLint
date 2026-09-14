@@ -22,6 +22,10 @@ These entries accumulate quietly. A refactor removes the last `import Persistenc
 
 The finding is reported on the dependency's line in `Package.swift`.
 
+### Local packages
+
+A declared product of a `.package(path:)` dependency is judged the same way when that package's manifest is part of the run, meaning the package is inside the analysed directory and `include_nested_packages: true` is set. The product counts as used if the target imports any of the modules it vends, directly or through a re-export.
+
 ### Limitations
 
 Calling a dependency unused is a claim about every file of the declaring target and about the dependency's module name, so the rule declines whenever either is in doubt:
@@ -29,7 +33,8 @@ Calling a dependency unused is a claim about every file of the declaring target 
 - **The declaring target has no Swift files in the run**, for example because its directory is in `excluded_paths`. If you exclude only *part* of a target, a dependency used only in the excluded files will be reported.
 - **The dependency has no Swift files in the run.** A C target's module name comes from its module map rather than its target name, so `import zlib` can be how `CZlib` is used.
 - **The dependency is an executable, plugin, system library or binary target.** A test target often depends on an executable only so that it gets built, and the other three are not imported by their target name.
-- **The dependency is a `.product(name:package:)`**, whose modules are listed in another package's manifest.
+- **The dependency is a product the rule cannot see into**: a product of a remote package, of a path package outside the run, or of a local package whose product list is computed or has no product of that name.
+- **A local product includes a target with no Swift files in the run**, for the same module-map reason as a C sibling target.
 - **The manifest or the target's dependency list cannot be read literally.** See [Undeclared Target Dependency](undeclared-target-dependency.md#limitations).
 
 ### Non-Violating Examples

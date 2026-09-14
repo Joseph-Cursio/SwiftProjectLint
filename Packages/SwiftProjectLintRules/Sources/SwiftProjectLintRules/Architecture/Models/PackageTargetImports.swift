@@ -1,10 +1,10 @@
 import SwiftSyntax
 
-/// The imports each target of one package makes, and the modules each target re-exports.
+/// The imports each target of one package makes.
 ///
-/// Both halves of the manifest-versus-source comparison need the same facts — which modules a target
-/// imports, and which modules come along with another through `@_exported import` — so they are
-/// collected once here rather than twice in the two rules that ask.
+/// Both halves of the manifest-versus-source comparison need the same facts about which modules a
+/// target imports, so they are collected once here rather than twice in the two rules that ask.
+/// Re-exports are followed by ``PackageGraph``, since `@_exported import` crosses packages.
 struct PackageTargetImports {
 
     struct Site {
@@ -41,7 +41,6 @@ struct PackageTargetImports {
     let sitesByTarget: [String: [Site]]
     let targetsByModule: [String: PackageManifest.Target]
     let targetsByName: [String: PackageManifest.Target]
-    private let reexportsByModule: [String: Set<String>]
 
     init(package: PackageTargetSources.Package, fileCache: [String: SourceFileSyntax]) {
         let targets = package.manifest.targets
@@ -50,14 +49,12 @@ struct PackageTargetImports {
         targetsByName = Dictionary(targets.map { ($0.name, $0) }) { first, _ in first }
 
         var sitesByTarget: [String: [Site]] = [:]
-        var reexportsByModule: [String: Set<String>] = [:]
         for target in targets {
-            let sites = Self.imports(in: package.filesByTarget[target.name] ?? [], fileCache: fileCache)
-            sitesByTarget[target.name] = sites
-            reexportsByModule[target.moduleName] = Set(sites.filter(\.isExported).map(\.module))
+            sitesByTarget[target.name] = Self.imports(
+                in: package.filesByTarget[target.name] ?? [], fileCache: fileCache
+            )
         }
         self.sitesByTarget = sitesByTarget
-        self.reexportsByModule = reexportsByModule
     }
 
     /// The module names of the same-package targets `target` declares; `nil` when its dependency
@@ -69,19 +66,6 @@ struct PackageTargetImports {
                 .filter { $0.isPackageProduct == false }
                 .compactMap { targetsByName[$0.name]?.moduleName }
         )
-    }
-
-    /// `modules` plus every module re-exported, transitively, by a module already in the set.
-    func withReexports(of modules: Set<String>) -> Set<String> {
-        var reachable = modules
-        var pending = Array(modules)
-        while let module = pending.popLast() {
-            for reexported in reexportsByModule[module] ?? [] where reachable.contains(reexported) == false {
-                reachable.insert(reexported)
-                pending.append(reexported)
-            }
-        }
-        return reachable
     }
 
     private static func imports(in files: [String], fileCache: [String: SourceFileSyntax]) -> [Site] {

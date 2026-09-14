@@ -42,6 +42,8 @@ struct PackageManifest {
         /// `.product(name:package:)` names a product of another package. Which modules that product
         /// vends is written in the other package's manifest, so it never matches a local target.
         let isPackageProduct: Bool
+        /// The literal `package:` of a `.product(name:package:)`; `nil` for any other entry.
+        let package: String?
         let node: Syntax
     }
 
@@ -65,9 +67,42 @@ struct PackageManifest {
         }
     }
 
+    /// A `.library` product: the only product kind another package's targets can import.
+    struct LibraryProduct {
+        let name: String
+        let targets: [String]
+    }
+
+    /// A `.package(path:)` dependency — the one kind whose manifest can sit inside the analysed tree.
+    struct PathDependency {
+        /// The literal `path:`, relative to this manifest's directory.
+        let path: String
+        /// The literal `name:` of the older `.package(name:path:)` spelling.
+        let name: String?
+
+        /// SwiftPM's identity for a path dependency: the last component of the directory it names,
+        /// lowercased. It is what `.product(name:package:)` names. `nil` when the path ends in `.`
+        /// or `..`, whose directory name the literal does not state.
+        var identity: String? {
+            guard let last = path.split(separator: "/").last.map(String.init),
+                  last != ".", last != ".." else {
+                return nil
+            }
+            return last.lowercased()
+        }
+    }
+
     /// The root-relative directory holding the manifest, with a trailing `/`, or `""` at the root.
     let directory: String
     let targets: [Target]
+    /// The literal `name:` given to `Package(...)`.
+    let packageName: String?
+    /// `nil` when any `.library` declaration is not literal, since a product that cannot be read
+    /// could vend any of the package's modules.
+    let libraryProducts: [LibraryProduct]?
+    /// The `.package(path:)` dependencies with a literal path. One with a computed path is left out,
+    /// and so is everything reached only through it.
+    let pathDependencies: [PathDependency]
 
     /// Reads the targets declared in `source`, or returns `nil` when any declaration is not literal.
     init?(source: SourceFileSyntax, directory: String) {
@@ -76,6 +111,12 @@ struct PackageManifest {
         guard collector.isReadable else { return nil }
         self.directory = directory
         self.targets = collector.targets
+
+        let packageCollector = PackageDeclarationCollector(viewMode: .sourceAccurate)
+        packageCollector.walk(source)
+        packageName = packageCollector.packageName
+        libraryProducts = packageCollector.productsAreReadable ? packageCollector.libraryProducts : nil
+        pathDependencies = packageCollector.pathDependencies
     }
 
     /// Whether `relativePath` names a manifest file — `Package.swift`, or a version-specific
@@ -180,32 +221,32 @@ private final class TargetDeclarationCollector: SyntaxVisitor {
         _ call: FunctionCallExprSyntax,
         kind: PackageManifest.TargetKind
     ) -> PackageManifest.Target? {
-        guard let nameExpression = argument("name", of: call),
-              let name = literalString(nameExpression) else {
+        guard let nameExpression = ManifestLiterals.argument("name", of: call),
+              let name = ManifestLiterals.string(nameExpression) else {
             return nil
         }
 
         var path: String?
-        if let pathExpression = argument("path", of: call) {
-            guard let literal = literalString(pathExpression) else { return nil }
+        if let pathExpression = ManifestLiterals.argument("path", of: call) {
+            guard let literal = ManifestLiterals.string(pathExpression) else { return nil }
             path = literal
         }
 
         var sources: [String]?
-        if let sourcesExpression = argument("sources", of: call) {
-            guard let literal = literalStrings(sourcesExpression) else { return nil }
+        if let sourcesExpression = ManifestLiterals.argument("sources", of: call) {
+            guard let literal = ManifestLiterals.strings(sourcesExpression) else { return nil }
             sources = literal
         }
 
         var exclude: [String] = []
-        if let excludeExpression = argument("exclude", of: call) {
-            guard let literal = literalStrings(excludeExpression) else { return nil }
+        if let excludeExpression = ManifestLiterals.argument("exclude", of: call) {
+            guard let literal = ManifestLiterals.strings(excludeExpression) else { return nil }
             exclude = literal
         }
 
         // No `dependencies:` argument declares none; one that cannot be enumerated declares unknown.
         var dependencies: [PackageManifest.Dependency]? = []
-        if let dependenciesExpression = argument("dependencies", of: call) {
+        if let dependenciesExpression = ManifestLiterals.argument("dependencies", of: call) {
             dependencies = readDependencies(dependenciesExpression)
         }
 
@@ -232,47 +273,31 @@ private final class TargetDeclarationCollector: SyntaxVisitor {
     }
 
     private func readDependency(_ expression: ExprSyntax) -> PackageManifest.Dependency? {
-        if let name = literalString(expression) {
-            return PackageManifest.Dependency(name: name, isPackageProduct: false, node: Syntax(expression))
+        if let name = ManifestLiterals.string(expression) {
+            return PackageManifest.Dependency(
+                name: name, isPackageProduct: false, package: nil, node: Syntax(expression)
+            )
         }
         guard let call = expression.as(FunctionCallExprSyntax.self),
               let member = call.calledExpression.as(MemberAccessExprSyntax.self),
-              let nameExpression = argument("name", of: call),
-              let name = literalString(nameExpression) else {
+              let nameExpression = ManifestLiterals.argument("name", of: call),
+              let name = ManifestLiterals.string(nameExpression) else {
             return nil
         }
         switch member.declName.baseName.text {
         case "target", "byName":
-            return PackageManifest.Dependency(name: name, isPackageProduct: false, node: Syntax(expression))
+            return PackageManifest.Dependency(
+                name: name, isPackageProduct: false, package: nil, node: Syntax(expression)
+            )
 
         case "product":
-            return PackageManifest.Dependency(name: name, isPackageProduct: true, node: Syntax(expression))
+            let package = ManifestLiterals.argument("package", of: call).flatMap(ManifestLiterals.string)
+            return PackageManifest.Dependency(
+                name: name, isPackageProduct: true, package: package, node: Syntax(expression)
+            )
 
         default:
             return nil
         }
-    }
-
-    private func argument(_ label: String, of call: FunctionCallExprSyntax) -> ExprSyntax? {
-        call.arguments.first { $0.label?.text == label }?.expression
-    }
-
-    private func literalString(_ expression: ExprSyntax) -> String? {
-        guard let literal = expression.as(StringLiteralExprSyntax.self),
-              literal.segments.count == 1,
-              let segment = literal.segments.first?.as(StringSegmentSyntax.self) else {
-            return nil
-        }
-        return segment.content.text
-    }
-
-    private func literalStrings(_ expression: ExprSyntax) -> [String]? {
-        guard let array = expression.as(ArrayExprSyntax.self) else { return nil }
-        var strings: [String] = []
-        for element in array.elements {
-            guard let string = literalString(element.expression) else { return nil }
-            strings.append(string)
-        }
-        return strings
     }
 }
