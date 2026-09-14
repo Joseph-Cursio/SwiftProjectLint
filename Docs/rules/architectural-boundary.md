@@ -45,7 +45,7 @@ architectural_layers:
     forbidden_types:   ["URLSession", "NSManagedObject"]
 ```
 
-Each layer entry maps a set of path prefixes to its forbidden imports and types. Files that don't match any declared layer are silently ignored. When a file matches more than one layer, for example `Features/` in one and `Features/Payments/` in another, the layer with the longer matching path applies.
+Each layer entry maps a set of path prefixes to its forbidden imports and types. Files that don't match any declared layer are silently ignored. When a file matches more than one layer, for example `Features/` in one and `Features/Payments/` in another, the layer with the longer matching path applies. If a layer path matches no analysed file, the CLI warns on stderr, because a misspelled path would otherwise leave the layer unchecked without a word.
 
 #### Allowlisting imports
 

@@ -34,6 +34,12 @@ architectural_layers:
 - A layer without `may_depend_on` is not checked by this rule.
 - Files outside every layer, such as a composition root in `App/`, are never judged.
 
+The CLI warns on stderr about configuration mistakes that would otherwise make a clean run look like a clean architecture:
+
+- a layer path that matches no analysed file;
+- a `may_depend_on` entry naming a layer that doesn't exist;
+- layers that may depend on each other in a cycle, and so aren't really layered.
+
 ### Discussion
 
 `LayerDependencyVisitor` is a cross-file rule. It records the top-level types (structs, classes, enums, actors, protocols and typealiases) declared in each layer's files. Then, in every layer that sets `may_depend_on`, it finds references to those names: type annotations, inheritance and extension clauses, and capitalised names in expressions such as `CoreDataOrderStore()` or `OrderStore.shared`.
