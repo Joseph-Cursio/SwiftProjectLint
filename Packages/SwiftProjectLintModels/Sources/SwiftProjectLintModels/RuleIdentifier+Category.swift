@@ -78,7 +78,7 @@ extension RuleIdentifier {
              .swallowedInjectionDowncast, .discardableResultMisuse,
              .stringSwitchOverEnum, .effectCycle, .fontWeightBold,
              .globalActorMismatch, .nestedGenericComplexity,
-             .magicBooleanParameter:
+             .magicBooleanParameter, .implicitCodableRawValue:
             return .codeQuality
 
             // Security Rules
