@@ -430,6 +430,7 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
         crossFileEngine.enabledFrameworkAllowlists = configuration.enabledFrameworkAllowlists
         crossFileEngine.executableSourcePaths =
             ExecutableTargetDetector.executableSourcePaths(in: projectRoot)
+        crossFileEngine.layerPolicies = configuration.architecturalLayers
 
         let rawCrossFileIssues: [LintIssue]
         if let effectiveRules {

@@ -78,6 +78,7 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
     case parallelListDrift = "Parallel List Drift"
     case undeclaredTargetDependency = "Undeclared Target Dependency"
     case unusedTargetDependency = "Unused Target Dependency"
+    case layerDependency = "Layer Dependency"
 
     // Code Quality Rules
     case magicNumber = "Magic Number"

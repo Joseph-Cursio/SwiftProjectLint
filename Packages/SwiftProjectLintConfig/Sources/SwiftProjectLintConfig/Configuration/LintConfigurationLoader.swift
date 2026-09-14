@@ -107,12 +107,14 @@ public struct LintConfigurationLoader {
             // A list — even an empty one — is an allowlist; absent, null or malformed is none. An
             // allowlist that admits nothing is a real configuration, so it must not be the fallback.
             let allowedImports = (layerDict["allowed_imports"] as? [String]).map(Set.init)
+            let mayDependOn = (layerDict["may_depend_on"] as? [String]).map(Set.init)
             return LayerPolicy(
                 name: name,
                 paths: paths,
                 forbiddenImports: forbiddenImports,
                 forbiddenTypes: forbiddenTypes,
-                allowedImports: allowedImports
+                allowedImports: allowedImports,
+                mayDependOn: mayDependOn
             )
         }
     }

@@ -69,6 +69,8 @@ import Alamofire   // ← violation: 'Alamofire' is not an allowed import in the
 - `allowed_imports: []` allows no framework at all. Omitting the key sets no allowlist.
 - A module that is both forbidden and missing from the allowlist is reported once, as forbidden.
 
+To control which *layers* a layer may use, as opposed to which frameworks, add `may_depend_on` and see [Layer Dependency](layer-dependency.md).
+
 ### Non-Violating Examples
 
 ```swift

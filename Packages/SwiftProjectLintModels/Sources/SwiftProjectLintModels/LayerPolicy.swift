@@ -14,6 +14,7 @@
 ///     forbidden_imports: ["CoreData", "SwiftData", "UIKit"]
 ///     forbidden_types:   ["URLSession", "UserDefaults"]
 ///     allowed_imports:   ["Foundation"]
+///     may_depend_on:     ["core"]
 /// ```
 public struct LayerPolicy: Sendable {
     /// Human-readable name for this layer (e.g. "domain", "presentation").
@@ -35,18 +36,24 @@ public struct LayerPolicy: Sendable {
     /// layer did not agree to is reported until the list is changed on purpose.
     public let allowedImports: Set<String>?
 
+    /// The other layers whose types files in this layer may reference, or `nil` when the layer
+    /// sets no such constraint. Checked by the `Layer Dependency` rule.
+    public let mayDependOn: Set<String>?
+
     public init(
         name: String,
         paths: [String],
         forbiddenImports: Set<String> = [],
         forbiddenTypes: Set<String> = [],
-        allowedImports: Set<String>? = nil
+        allowedImports: Set<String>? = nil,
+        mayDependOn: Set<String>? = nil
     ) {
         self.name = name
         self.paths = paths
         self.forbiddenImports = forbiddenImports
         self.forbiddenTypes = forbiddenTypes
         self.allowedImports = allowedImports
+        self.mayDependOn = mayDependOn
     }
 
     /// Whether this layer's allowlist admits `modulePath` — the dotted path of an import, such as

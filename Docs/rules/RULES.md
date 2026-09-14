@@ -1,6 +1,6 @@
 # SwiftProjectLint Rules Reference
 
-SwiftProjectLint is a static analysis tool for SwiftUI projects. It parses Swift source files using SwiftSyntax AST visitors to detect anti-patterns spanning state management, performance, animations, architecture, code quality, security, accessibility, memory management, networking, UI patterns, modernization, and idempotency. This reference documents all 208 lint rules, organized by category.
+SwiftProjectLint is a static analysis tool for SwiftUI projects. It parses Swift source files using SwiftSyntax AST visitors to detect anti-patterns spanning state management, performance, animations, architecture, code quality, security, accessibility, memory management, networking, UI patterns, modernization, and idempotency. This reference documents all 209 lint rules, organized by category.
 
 Rules marked **opt-in** are disabled by default and must be explicitly listed under `enabled_only` in `.swiftprojectlint.yml`.
 
@@ -96,6 +96,7 @@ Rules marked **opt-in** are disabled by default and must be explicitly listed un
 | [Parallel List Drift](parallel-list-drift.md) | Info |
 | [Undeclared Target Dependency](undeclared-target-dependency.md) | Warning |
 | [Unused Target Dependency](unused-target-dependency.md) | Info |
+| [Layer Dependency](layer-dependency.md) | Warning |
 
 ## Code Quality
 
