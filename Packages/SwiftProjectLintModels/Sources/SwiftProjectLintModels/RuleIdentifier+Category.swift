@@ -54,7 +54,7 @@ extension RuleIdentifier {
              .viewModelDirectDBAccess, .circularDependency,
              .architecturalBoundary, .booleanControlCoupling,
              .manualRegistrationList, .parallelListDrift,
-             .undeclaredTargetDependency:
+             .undeclaredTargetDependency, .unusedTargetDependency:
             return .architecture
 
             // Code Quality Rules
