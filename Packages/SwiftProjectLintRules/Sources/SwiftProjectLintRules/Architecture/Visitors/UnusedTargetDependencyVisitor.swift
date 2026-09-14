@@ -26,13 +26,15 @@ import SwiftSyntax
 final class UnusedTargetDependencyVisitor: CrossFileVisitorBase, CrossFilePatternVisitorProtocol {
 
     func finalizeAnalysis() {
-        for package in PackageTargetSources(fileCache: fileCache).packages {
-            analyze(PackageTargetImports(package: package, fileCache: fileCache))
+        let graph = PackageGraph(fileCache: fileCache)
+        for node in graph.nodes {
+            analyze(node, in: graph)
         }
     }
 
-    private func analyze(_ imports: PackageTargetImports) {
-        let package = imports.package
+    private func analyze(_ node: PackageGraph.Node, in graph: PackageGraph) {
+        let imports = node.imports
+        let package = node.package
         let manifestPath = package.manifest.directory + "Package.swift"
 
         for target in package.manifest.targets where target.kind != .plugin {
@@ -42,7 +44,7 @@ final class UnusedTargetDependencyVisitor: CrossFileVisitorBase, CrossFilePatter
             }
 
             let imported = Set((imports.sitesByTarget[target.name] ?? []).map(\.module))
-            let used = imports.withReexports(of: imported).union(externalMacroModules(in: files))
+            let used = graph.withReexports(of: imported).union(externalMacroModules(in: files))
 
             for dependency in dependencies where dependency.isPackageProduct == false {
                 guard let dependencyTarget = imports.targetsByName[dependency.name],

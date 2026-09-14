@@ -27,15 +27,17 @@ import SwiftSyntax
 final class UndeclaredTargetDependencyVisitor: CrossFileVisitorBase, CrossFilePatternVisitorProtocol {
 
     func finalizeAnalysis() {
-        for package in PackageTargetSources(fileCache: fileCache).packages {
-            analyze(PackageTargetImports(package: package, fileCache: fileCache))
+        let graph = PackageGraph(fileCache: fileCache)
+        for node in graph.nodes {
+            analyze(node, in: graph)
         }
     }
 
-    private func analyze(_ imports: PackageTargetImports) {
-        for target in imports.package.manifest.targets where target.kind != .plugin {
+    private func analyze(_ node: PackageGraph.Node, in graph: PackageGraph) {
+        let imports = node.imports
+        for target in node.manifest.targets where target.kind != .plugin {
             guard let declared = imports.declaredLocalModules(of: target) else { continue }
-            let reachable = imports.withReexports(of: declared)
+            let reachable = graph.withReexports(of: declared)
 
             let undeclared = (imports.sitesByTarget[target.name] ?? []).filter { site in
                 site.module != target.moduleName
