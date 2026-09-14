@@ -23,6 +23,7 @@ struct PackageManifestPackageLevelTests {
             dependencies: [
                 .package(path: "../Models"),
                 .package(name: "Legacy", path: "Vendor/legacy-kit"),
+                .package(path: "../.."),
                 .package(url: "https://github.com/apple/swift-argument-parser.git", from: "1.3.0")
             ],
             targets: [.target(name: "KitCore"), .target(name: "KitUI"), .executableTarget(name: "KitTool")]
@@ -32,9 +33,10 @@ struct PackageManifestPackageLevelTests {
         #expect(manifest.packageName == "Kit")
         #expect(manifest.libraryProducts?.map(\.name) == ["Kit", "KitDynamic"])
         #expect(manifest.libraryProducts?.first?.targets == ["KitCore", "KitUI"])
-        #expect(manifest.pathDependencies.map(\.path) == ["../Models", "Vendor/legacy-kit"])
-        #expect(manifest.pathDependencies.map(\.name) == [nil, "Legacy"])
-        #expect(manifest.pathDependencies.map(\.identity) == ["models", "legacy-kit"])
+        #expect(manifest.pathDependencies.map(\.path) == ["../Models", "Vendor/legacy-kit", "../.."])
+        #expect(manifest.pathDependencies.map(\.name) == [nil, "Legacy", nil])
+        // `../..` names a directory the literal never spells, so it has no identity to read.
+        #expect(manifest.pathDependencies.map(\.identity) == ["models", "legacy-kit", nil])
     }
 
     @Test func readsThePackageOfAProductDependency() throws {

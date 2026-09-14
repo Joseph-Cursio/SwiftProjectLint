@@ -125,6 +125,31 @@ struct PackageGraph {
         return reachable
     }
 
+    /// How `node`'s manifest names `package` in a `.product(name:package:)`: the spelling it already
+    /// uses for that package, else the path dependency's identity, else the identity of the directory
+    /// the author would add a dependency on.
+    func packageReference(to package: Node, from node: Node) -> String {
+        let direct = directPathPackages(of: node).first {
+            $0.package.manifest.directory == package.manifest.directory
+        }
+        if let direct {
+            let spellings = node.manifest.targets
+                .flatMap { $0.dependencies ?? [] }
+                .compactMap(\.package)
+            if let spelling = spellings.first(where: { Self.names($0, direct.dependency, package.manifest) }) {
+                return spelling
+            }
+            if let identity = direct.dependency.identity {
+                return identity
+            }
+        }
+        // Not yet a dependency: the path the author would add ends in the package's directory, which
+        // is its identity. Only the analysed root has no directory name to read.
+        return package.manifest.directory.split(separator: "/").last.map { $0.lowercased() }
+            ?? package.manifest.packageName
+            ?? ""
+    }
+
     // MARK: - Helpers
 
     /// Whether `package:` in a product dependency names this path dependency: its SwiftPM identity,
@@ -134,7 +159,7 @@ struct PackageGraph {
         _ dependency: PackageManifest.PathDependency,
         _ manifest: PackageManifest
     ) -> Bool {
-        package.lowercased() == dependency.identity
+        (dependency.identity.map { package.lowercased() == $0 } ?? false)
             || package == dependency.name
             || package == manifest.packageName
     }

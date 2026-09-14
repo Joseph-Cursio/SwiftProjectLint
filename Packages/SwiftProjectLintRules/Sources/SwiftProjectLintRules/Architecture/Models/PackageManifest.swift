@@ -80,10 +80,15 @@ struct PackageManifest {
         /// The literal `name:` of the older `.package(name:path:)` spelling.
         let name: String?
 
-        /// SwiftPM's identity for a path dependency: the last path component, lowercased. It is
-        /// what `.product(name:package:)` names.
-        var identity: String {
-            (path.split(separator: "/").last.map(String.init) ?? path).lowercased()
+        /// SwiftPM's identity for a path dependency: the last component of the directory it names,
+        /// lowercased. It is what `.product(name:package:)` names. `nil` when the path ends in `.`
+        /// or `..`, whose directory name the literal does not state.
+        var identity: String? {
+            guard let last = path.split(separator: "/").last.map(String.init),
+                  last != ".", last != ".." else {
+                return nil
+            }
+            return last.lowercased()
         }
     }
 
