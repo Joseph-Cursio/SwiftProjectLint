@@ -104,11 +104,15 @@ public struct LintConfigurationLoader {
             guard !paths.isEmpty else { return nil }
             let forbiddenImports = Set(parseStringList(layerDict["forbidden_imports"]))
             let forbiddenTypes = Set(parseStringList(layerDict["forbidden_types"]))
+            // A list — even an empty one — is an allowlist; absent, null or malformed is none. An
+            // allowlist that admits nothing is a real configuration, so it must not be the fallback.
+            let allowedImports = (layerDict["allowed_imports"] as? [String]).map(Set.init)
             return LayerPolicy(
                 name: name,
                 paths: paths,
                 forbiddenImports: forbiddenImports,
-                forbiddenTypes: forbiddenTypes
+                forbiddenTypes: forbiddenTypes,
+                allowedImports: allowedImports
             )
         }
     }

@@ -193,6 +193,8 @@ architectural_layers:
       - URLSession
       - UserDefaults
       - NSManagedObject
+    allowed_imports:        # optional: any other import is reported
+      - Foundation
   presentation:
     paths:
       - "ViewModels/"

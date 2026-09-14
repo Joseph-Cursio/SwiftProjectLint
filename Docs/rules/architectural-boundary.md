@@ -45,7 +45,29 @@ architectural_layers:
     forbidden_types:   ["URLSession", "NSManagedObject"]
 ```
 
-Each layer entry maps a set of path prefixes to its forbidden imports and types. Files that don't match any declared layer are silently ignored.
+Each layer entry maps a set of path prefixes to its forbidden imports and types. Files that don't match any declared layer are silently ignored. When a file matches more than one layer, for example `Features/` in one and `Features/Payments/` in another, the layer with the longer matching path applies.
+
+#### Allowlisting imports
+
+`forbidden_imports` catches only the frameworks someone thought to forbid; any other framework, including one added next month, is allowed by default. To reverse that, give a layer `allowed_imports`. Any import not on that list is then reported:
+
+```yaml
+architectural_layers:
+  domain:
+    paths: ["Domain/"]
+    allowed_imports: ["Foundation"]
+```
+
+```swift
+// Domain/OrderService.swift
+import Foundation
+import Alamofire   // ← violation: 'Alamofire' is not an allowed import in the 'domain' layer
+```
+
+- A submodule is allowed when its top-level module is, so `allowed_imports: ["UIKit"]` also permits `import UIKit.UIGestureRecognizerSubclass`.
+- `import Swift` is always allowed, since every file imports the standard library implicitly.
+- `allowed_imports: []` allows no framework at all. Omitting the key sets no allowlist.
+- A module that is both forbidden and missing from the allowlist is reported once, as forbidden.
 
 ### Non-Violating Examples
 
