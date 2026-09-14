@@ -154,6 +154,11 @@ struct SwiftProjectLintCLI: AsyncParsableCommand {
         // the key it thinks was meant. Same stderr channel and reasoning as above.
         Self.reportUnrecognizedSuppressionNames(projectRoot: absolutePath, configuration: configuration)
 
+        // A misspelled layer path or `may_depend_on` entry does not error: the layer rules simply
+        // check less, and a clean result over a layer containing no files looks exactly like a clean
+        // architecture. Same stderr channel and reasoning as above.
+        Self.reportLayerConfigurationProblems(projectRoot: absolutePath, configuration: configuration)
+
         // A seed-bearing finding with no resolved symbol cannot become a seed, so the manifest is
         // shorter than the run that produced it — silently, and while still exiting 0. That is the
         // shape of a confident zero, and it has happened: a lossy `LintIssue` rebuild once emptied
@@ -263,6 +268,30 @@ struct SwiftProjectLintCLI: AsyncParsableCommand {
                 filePath: root.relativePath(of: path)?.value ?? path
             )
         }
+    }
+
+    private static func reportLayerConfigurationProblems(projectRoot: String, configuration: LintConfiguration) {
+        let problems = layerConfigurationProblems(projectRoot: projectRoot, configuration: configuration)
+        guard problems.isEmpty == false else { return }
+        printToStandardError(LayerConfigurationAudit.notice(for: problems))
+    }
+
+    /// Audits `architectural_layers` against the files the run analysed. Walks the tree only when
+    /// layers are configured, and names files by the same root-relative paths the layers match.
+    static func layerConfigurationProblems(
+        projectRoot: String,
+        configuration: LintConfiguration
+    ) -> [LayerConfigurationAudit.Problem] {
+        guard configuration.architecturalLayers.isEmpty == false else { return [] }
+        let root = ProjectRoot(projectRoot)
+        let files = FileAnalysisUtils.findSwiftFiles(
+            in: projectRoot,
+            excludedPaths: configuration.excludedPaths,
+            excludedFilenames: configuration.excludedFilenames,
+            includeNestedPackages: configuration.includeNestedPackages
+        )
+        .compactMap { root.relativePath(of: $0)?.value }
+        return LayerConfigurationAudit.problems(in: configuration.architecturalLayers, analysedFiles: files)
     }
 
     private static func printToStandardError(_ message: String) {

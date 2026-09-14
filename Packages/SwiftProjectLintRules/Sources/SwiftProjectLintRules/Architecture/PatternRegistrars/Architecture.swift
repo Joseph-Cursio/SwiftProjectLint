@@ -117,7 +117,8 @@ class Architecture: BasePatternRegistrar {
             ManualRegistrationList(),
             ParallelListDrift(),
             UndeclaredTargetDependency(),
-            UnusedTargetDependency()
+            UnusedTargetDependency(),
+            LayerDependency()
         ]
     }
 }

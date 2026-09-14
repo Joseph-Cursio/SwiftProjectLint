@@ -21,6 +21,11 @@ public protocol CrossFileAnalyzerProtocol: AnyObject {
     /// library API.
     var executableSourcePaths: [String] { get set }
 
+    /// The `architectural_layers` policies, set by `ProjectLinter` from the configuration and
+    /// forwarded to each cross-file visitor. Rules that relate files in different layers need
+    /// every file at once, which only the cross-file pass has.
+    var layerPolicies: [LayerPolicy] { get set }
+
     /// Detects cross-file patterns filtered by category.
     func detectCrossFilePatterns(
         projectFiles: [ProjectFile],

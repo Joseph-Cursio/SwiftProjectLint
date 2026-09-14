@@ -11,7 +11,8 @@ import SwiftSyntax
 /// checks each file against the `architectural_layers` config and flags:
 ///
 /// - **Import violations** — `import` statements for frameworks forbidden in that layer
-///   (e.g. `CoreData` in a `Domain/` file).
+///   (e.g. `CoreData` in a `Domain/` file), or, when the layer sets `allowed_imports`, for any
+///   framework not on that list.
 /// - **Type violations** — references to specific type names forbidden in that layer
 ///   (e.g. `URLSession` in `Domain/` — Foundation is widely imported so the import
 ///   check alone won't catch this).
@@ -28,27 +29,37 @@ final class ArchitecturalBoundaryVisitor: BasePatternVisitor {
 
     override func setFilePath(_ filePath: String) {
         currentFilePath = filePath
-        currentPolicy = layerPolicies.first { $0.contains(relativePath: filePath) }
+        currentPolicy = LayerPolicy.layer(for: filePath, in: layerPolicies)
     }
 
     // MARK: - Import-based check
 
     override func visit(_ node: ImportDeclSyntax) -> SyntaxVisitorContinueKind {
-        guard let policy = currentPolicy, !policy.forbiddenImports.isEmpty else {
-            return .visitChildren
-        }
+        guard let policy = currentPolicy else { return .visitChildren }
         let moduleName = node.path.map(\.name.text).joined(separator: ".")
-        guard policy.forbiddenImports.contains(moduleName) else { return .visitChildren }
 
-        addIssue(
-            severity: .warning,
-            message: "'\(moduleName)' must not be imported in the '\(policy.name)' layer",
-            filePath: currentFilePath,
-            lineNumber: getLineNumber(for: Syntax(node)),
-            suggestion: "Move '\(moduleName)' usage to an appropriate layer "
-                + "and expose it through a protocol or service.",
-            ruleName: .architecturalBoundary
-        )
+        if policy.forbiddenImports.contains(moduleName) {
+            addIssue(
+                severity: .warning,
+                message: "'\(moduleName)' must not be imported in the '\(policy.name)' layer",
+                filePath: currentFilePath,
+                lineNumber: getLineNumber(for: Syntax(node)),
+                suggestion: "Move '\(moduleName)' usage to an appropriate layer "
+                    + "and expose it through a protocol or service.",
+                ruleName: .architecturalBoundary
+            )
+        } else if policy.allowsImport(of: moduleName) == false {
+            // One finding per import: a module both forbidden and unlisted is reported as forbidden.
+            addIssue(
+                severity: .warning,
+                message: "'\(moduleName)' is not an allowed import in the '\(policy.name)' layer",
+                filePath: currentFilePath,
+                lineNumber: getLineNumber(for: Syntax(node)),
+                suggestion: "Move this code to a layer that may use '\(moduleName)', or add it to the "
+                    + "'\(policy.name)' layer's allowed_imports if the dependency is intended.",
+                ruleName: .architecturalBoundary
+            )
+        }
         return .visitChildren
     }
 

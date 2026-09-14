@@ -59,6 +59,7 @@ struct ProjectLinterInjectionTests {
     private final class FakeCrossFileAnalyzer: CrossFileAnalyzerProtocol, @unchecked Sendable {
         var enabledFrameworkAllowlists: Set<String>?
         var executableSourcePaths: [String] = []
+        var layerPolicies: [LayerPolicy] = []
 
         let issues: [LintIssue]
         private let lock = NSLock()

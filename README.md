@@ -8,7 +8,7 @@ Many of these rules exist just so I can explore the effects. Some rules are bad 
 
 # Swift Project Linter
 
-A static analysis tool for SwiftUI projects that detects architectural issues, performance problems, and code quality concerns. Parses Swift source files using SwiftSyntax AST visitors to identify anti-patterns across 208 rules in 13 categories.
+A static analysis tool for SwiftUI projects that detects architectural issues, performance problems, and code quality concerns. Parses Swift source files using SwiftSyntax AST visitors to identify anti-patterns across 209 rules in 13 categories.
 
 The origin of this project began with a limitation of SwiftLint: it processes a single file at a time and cannot identify cross-file issues.
 
@@ -18,7 +18,7 @@ Motivating example: I was watching the "Quality Coding" channel on YouTube. Jon 
 
 - **SwiftSyntax AST Analysis**: Precise, AST-based pattern detection — no regex
 - **Cross-File Analysis**: Detects issues spanning multiple files (duplicate state, view hierarchies)
-- **208 Lint Rules** across 13 categories
+- **209 Lint Rules** across 13 categories
 - **Three delivery targets**: macOS app GUI, CLI for CI/CD, and a reusable Core library
 - **YAML configuration**: `.swiftprojectlint.yml` for per-project rule customization
 - **Inline suppression**: `// swiftprojectlint:disable` comments for per-line control
@@ -49,14 +49,14 @@ swift run CLI /path/to/project --categories stateManagement,performance --thresh
 
 ## Rules
 
-208 rules across 13 categories. See [Docs/rules/RULES.md](Docs/rules/RULES.md) for the full reference.
+209 rules across 13 categories. See [Docs/rules/RULES.md](Docs/rules/RULES.md) for the full reference.
 
 | Category | Rules |
 |----------|-------|
 | State Management | 13 |
 | Performance | 14 |
 | Animation | 10 |
-| Architecture | 34 |
+| Architecture | 35 |
 | Code Quality | 54 |
 | Security | 5 |
 | Accessibility | 21 |
@@ -179,9 +179,9 @@ rules:
     excluded_paths:
       - "LegacyViews/"
 
-# Architectural layer boundaries
+# Architectural layer boundaries — a map keyed by layer name
 architectural_layers:
-  - name: domain
+  domain:
     paths:
       - "Domain/"
     forbidden_imports:
@@ -193,11 +193,16 @@ architectural_layers:
       - URLSession
       - UserDefaults
       - NSManagedObject
-  - name: presentation
+    allowed_imports:        # optional: any other import is reported
+      - Foundation
+    may_depend_on: []       # optional: see the Layer Dependency rule
+  presentation:
     paths:
       - "ViewModels/"
     forbidden_imports:
       - CoreData
+    may_depend_on:
+      - domain
 ```
 
 ## Inline Suppression

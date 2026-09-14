@@ -97,17 +97,24 @@ public struct LintConfigurationLoader {
 
     private static func parseArchitecturalLayers(_ value: Any?) -> [LayerPolicy] {
         guard let dict = value as? [String: Any] else { return [] }
-        return dict.compactMap { name, layerValue -> LayerPolicy? in
+        // Sorted by name: a YAML map has no order, and nothing downstream should inherit a hash seed.
+        return dict.sorted { $0.key < $1.key }.compactMap { name, layerValue -> LayerPolicy? in
             guard let layerDict = layerValue as? [String: Any] else { return nil }
             let paths = parseStringList(layerDict["paths"])
             guard !paths.isEmpty else { return nil }
             let forbiddenImports = Set(parseStringList(layerDict["forbidden_imports"]))
             let forbiddenTypes = Set(parseStringList(layerDict["forbidden_types"]))
+            // A list — even an empty one — is an allowlist; absent, null or malformed is none. An
+            // allowlist that admits nothing is a real configuration, so it must not be the fallback.
+            let allowedImports = (layerDict["allowed_imports"] as? [String]).map(Set.init)
+            let mayDependOn = (layerDict["may_depend_on"] as? [String]).map(Set.init)
             return LayerPolicy(
                 name: name,
                 paths: paths,
                 forbiddenImports: forbiddenImports,
-                forbiddenTypes: forbiddenTypes
+                forbiddenTypes: forbiddenTypes,
+                allowedImports: allowedImports,
+                mayDependOn: mayDependOn
             )
         }
     }
