@@ -42,4 +42,23 @@ public struct LayerPolicy: Sendable {
     public func contains(relativePath: String) -> Bool {
         paths.contains { relativePath.hasPrefix($0) }
     }
+
+    /// The length of the longest of this layer's paths that `relativePath` falls under, or `nil`.
+    public func matchLength(for relativePath: String) -> Int? {
+        paths.filter { relativePath.hasPrefix($0) }.map(\.count).max()
+    }
+
+    /// The layer a file belongs to: the one whose matching path is most specific.
+    ///
+    /// Layers are read from a YAML map, so they arrive in no particular order, and taking the first
+    /// layer that contains the file made an overlap — `Features/` in one layer, `Features/Payments/`
+    /// in another — resolve by hash seed, differently from run to run. The longest matching path
+    /// wins instead, which is also what the nesting means; an exact tie falls to the layer name, so
+    /// the answer never depends on the order `policies` came in.
+    public static func layer(for relativePath: String, in policies: [Self]) -> Self? {
+        policies
+            .compactMap { policy in policy.matchLength(for: relativePath).map { (policy, $0) } }
+            .min { lhs, rhs in lhs.1 != rhs.1 ? lhs.1 > rhs.1 : lhs.0.name < rhs.0.name }?
+            .0
+    }
 }

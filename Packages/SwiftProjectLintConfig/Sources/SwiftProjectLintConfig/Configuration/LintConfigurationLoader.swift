@@ -97,7 +97,8 @@ public struct LintConfigurationLoader {
 
     private static func parseArchitecturalLayers(_ value: Any?) -> [LayerPolicy] {
         guard let dict = value as? [String: Any] else { return [] }
-        return dict.compactMap { name, layerValue -> LayerPolicy? in
+        // Sorted by name: a YAML map has no order, and nothing downstream should inherit a hash seed.
+        return dict.sorted { $0.key < $1.key }.compactMap { name, layerValue -> LayerPolicy? in
             guard let layerDict = layerValue as? [String: Any] else { return nil }
             let paths = parseStringList(layerDict["paths"])
             guard !paths.isEmpty else { return nil }

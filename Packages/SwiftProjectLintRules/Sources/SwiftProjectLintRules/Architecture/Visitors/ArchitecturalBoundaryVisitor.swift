@@ -28,7 +28,7 @@ final class ArchitecturalBoundaryVisitor: BasePatternVisitor {
 
     override func setFilePath(_ filePath: String) {
         currentFilePath = filePath
-        currentPolicy = layerPolicies.first { $0.contains(relativePath: filePath) }
+        currentPolicy = LayerPolicy.layer(for: filePath, in: layerPolicies)
     }
 
     // MARK: - Import-based check
