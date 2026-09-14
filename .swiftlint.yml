@@ -13,6 +13,8 @@ excluded:
   - .xcode
   - "**/.build"
   - "**/.build-coverage"
+  # swift-infer's generated verifier packages (gitignored), which carry long lines
+  - "**/.swiftinfer"
   - Sources/SwiftProjectLint/ExampleViews
   - Sources/App/ExampleViews
   - ExampleCode

@@ -76,6 +76,8 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
     case booleanControlCoupling = "Boolean Control Coupling"
     case manualRegistrationList = "Manual Registration List"
     case parallelListDrift = "Parallel List Drift"
+    case undeclaredTargetDependency = "Undeclared Target Dependency"
+    case unusedTargetDependency = "Unused Target Dependency"
 
     // Code Quality Rules
     case magicNumber = "Magic Number"

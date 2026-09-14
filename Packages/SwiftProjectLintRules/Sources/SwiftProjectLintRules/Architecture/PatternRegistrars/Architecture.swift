@@ -85,7 +85,12 @@ class Architecture: BasePatternRegistrar {
         )
         registry.register(patterns: [lawOfDemeterPattern])
 
-        registry.register(registrars: [
+        registry.register(registrars: leafRegistrars)
+    }
+
+    /// The rules with a single-purpose visitor, each supplying its own pattern.
+    private var leafRegistrars: [any PatternRegistrarProtocol] {
+        [
             ComputedPropertyView(),
             FatProtocol(),
             SingleImplementationProtocol(),
@@ -110,7 +115,9 @@ class Architecture: BasePatternRegistrar {
             ArchitecturalBoundary(),
             BooleanControlCoupling(),
             ManualRegistrationList(),
-            ParallelListDrift()
-        ])
+            ParallelListDrift(),
+            UndeclaredTargetDependency(),
+            UnusedTargetDependency()
+        ]
     }
 }
