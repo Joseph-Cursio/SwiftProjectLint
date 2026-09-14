@@ -26,54 +26,28 @@ import SwiftSyntax
 /// fix is one line in `Package.swift` however many files import it.
 final class UndeclaredTargetDependencyVisitor: CrossFileVisitorBase, CrossFilePatternVisitorProtocol {
 
-    private struct ImportSite {
-        let file: String
-        let node: ImportDeclSyntax
-        let module: String
-    }
-
     func finalizeAnalysis() {
         for package in PackageTargetSources(fileCache: fileCache).packages {
-            analyze(package)
+            analyze(PackageTargetImports(package: package, fileCache: fileCache))
         }
     }
 
-    private func analyze(_ package: PackageTargetSources.Package) {
-        let targets = package.manifest.targets
-        let targetsByModule = Dictionary(targets.map { ($0.moduleName, $0) }) { first, _ in first }
-        let moduleByTargetName = Dictionary(targets.map { ($0.name, $0.moduleName) }) { first, _ in first }
+    private func analyze(_ imports: PackageTargetImports) {
+        for target in imports.package.manifest.targets where target.kind != .plugin {
+            guard let declared = imports.declaredLocalModules(of: target) else { continue }
+            let reachable = imports.withReexports(of: declared)
 
-        var importsByTarget: [String: [ImportSite]] = [:]
-        var reexportsByModule: [String: Set<String>] = [:]
-        for target in targets {
-            let sites = imports(in: package.filesByTarget[target.name] ?? [])
-            importsByTarget[target.name] = sites
-            reexportsByModule[target.moduleName] = Set(
-                sites.filter { isExported($0.node) }.map(\.module)
-            )
-        }
-
-        for target in targets where target.kind != .plugin {
-            guard let dependencies = target.dependencies else { continue }
-
-            let declared = Set(
-                dependencies
-                    .filter { $0.isPackageProduct == false }
-                    .compactMap { moduleByTargetName[$0.name] }
-            )
-            let reachable = closure(of: declared, reexports: reexportsByModule)
-
-            let undeclared = (importsByTarget[target.name] ?? []).filter { site in
+            let undeclared = (imports.sitesByTarget[target.name] ?? []).filter { site in
                 site.module != target.moduleName
-                    && targetsByModule[site.module] != nil
+                    && imports.targetsByModule[site.module] != nil
                     && reachable.contains(site.module) == false
-                    && isGuardedByCanImport(site.node, module: site.module) == false
+                    && site.isGuardedByCanImport == false
             }
             report(undeclared, in: target)
         }
     }
 
-    private func report(_ sites: [ImportSite], in target: PackageManifest.Target) {
+    private func report(_ sites: [PackageTargetImports.Site], in target: PackageManifest.Target) {
         let sitesByModule = Dictionary(grouping: sites, by: \.module)
         for module in sitesByModule.keys.sorted() {
             guard let moduleSites = sitesByModule[module], let first = moduleSites.first else { continue }
@@ -92,63 +66,5 @@ final class UndeclaredTargetDependencyVisitor: CrossFileVisitorBase, CrossFilePa
                 ruleName: .undeclaredTargetDependency
             )
         }
-    }
-
-    // MARK: - Imports
-
-    /// Every import in `files`, in path order then source order.
-    private func imports(in files: [String]) -> [ImportSite] {
-        files.flatMap { file -> [ImportSite] in
-            guard let source = fileCache[file] else { return [] }
-            let collector = ImportCollector(viewMode: .sourceAccurate)
-            collector.walk(source)
-            return collector.imports.compactMap { node in
-                node.path.first.map { ImportSite(file: file, node: node, module: $0.name.text) }
-            }
-        }
-    }
-
-    private func isExported(_ node: ImportDeclSyntax) -> Bool {
-        node.attributes.contains { element in
-            element.as(AttributeSyntax.self)?.attributeName.trimmedDescription == "_exported"
-        }
-    }
-
-    /// `declared` plus every module re-exported, transitively, by a module already in the set.
-    private func closure(of declared: Set<String>, reexports: [String: Set<String>]) -> Set<String> {
-        var reachable = declared
-        var pending = Array(declared)
-        while let module = pending.popLast() {
-            for reexported in reexports[module] ?? [] where reachable.contains(reexported) == false {
-                reachable.insert(reexported)
-                pending.append(reexported)
-            }
-        }
-        return reachable
-    }
-
-    private func isGuardedByCanImport(_ node: ImportDeclSyntax, module: String) -> Bool {
-        // `canImport(Module)` or `canImport(Module, _version: …)`, but not `canImport(ModuleKit)`.
-        let spellings = ["canImport(\(module))", "canImport(\(module),"]
-        var ancestor = node.parent
-        while let current = ancestor {
-            if let clause = current.as(IfConfigClauseSyntax.self),
-               let condition = clause.condition?.trimmedDescription.filter({ $0.isWhitespace == false }),
-               spellings.contains(where: { condition.contains($0) }) {
-                return true
-            }
-            ancestor = current.parent
-        }
-        return false
-    }
-}
-
-/// Collects import declarations at any depth, including inside `#if` blocks.
-private final class ImportCollector: SyntaxVisitor {
-    private(set) var imports: [ImportDeclSyntax] = []
-
-    override func visit(_ node: ImportDeclSyntax) -> SyntaxVisitorContinueKind {
-        imports.append(node)
-        return .skipChildren
     }
 }
