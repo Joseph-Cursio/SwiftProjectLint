@@ -12,6 +12,10 @@ import SwiftSyntax
 /// already on disk or in a server response fail to decode. An explicit `= "inactive"` decouples
 /// the Swift name from the wire format, which is the whole fix.
 ///
+/// **Two fixes, because of SwiftLint.** An explicit raw value equal to the case name is exactly what
+/// SwiftLint's default `redundant_string_enum_value` reports, so the suggestion also offers the
+/// alternative that satisfies both tools: a test pinning the raw values, which fails on a rename.
+///
 /// **Codable is the scope, not all enums.** SwiftLint's opt-in `explicit_enum_raw_value` asks for
 /// raw values everywhere, which is noise on enums that are never persisted. Conformance to
 /// `Codable`, `Encodable` or `Decodable` — on the declaration, or through an extension in the same
@@ -81,7 +85,8 @@ final class ImplicitCodableRawValueVisitor: BasePatternVisitor {
             filePath: getFilePath(for: Syntax(node)),
             lineNumber: getLineNumber(for: Syntax(node.name)),
             suggestion: "Give each case an explicit raw value, e.g. `case \(example.name.text) = \"\(rawValues[0])\"`, "
-                + "so a rename keeps the stored format.",
+                + "so a rename keeps the stored format — or, where SwiftLint's redundant_string_enum_value "
+                + "forbids that, pin the raw values in a test.",
             ruleName: .implicitCodableRawValue
         )
         return .visitChildren
