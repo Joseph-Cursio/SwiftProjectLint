@@ -179,9 +179,9 @@ rules:
     excluded_paths:
       - "LegacyViews/"
 
-# Architectural layer boundaries
+# Architectural layer boundaries — a map keyed by layer name
 architectural_layers:
-  - name: domain
+  domain:
     paths:
       - "Domain/"
     forbidden_imports:
@@ -193,7 +193,7 @@ architectural_layers:
       - URLSession
       - UserDefaults
       - NSManagedObject
-  - name: presentation
+  presentation:
     paths:
       - "ViewModels/"
     forbidden_imports:
