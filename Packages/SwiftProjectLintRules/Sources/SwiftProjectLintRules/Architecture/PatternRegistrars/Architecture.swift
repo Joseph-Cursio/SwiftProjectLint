@@ -110,7 +110,8 @@ class Architecture: BasePatternRegistrar {
             ArchitecturalBoundary(),
             BooleanControlCoupling(),
             ManualRegistrationList(),
-            ParallelListDrift()
+            ParallelListDrift(),
+            UndeclaredTargetDependency()
         ])
     }
 }

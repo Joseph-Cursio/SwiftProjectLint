@@ -53,7 +53,8 @@ extension RuleIdentifier {
              .swiftDataUniqueAttributeCloudKit, .godViewModel,
              .viewModelDirectDBAccess, .circularDependency,
              .architecturalBoundary, .booleanControlCoupling,
-             .manualRegistrationList, .parallelListDrift:
+             .manualRegistrationList, .parallelListDrift,
+             .undeclaredTargetDependency:
             return .architecture
 
             // Code Quality Rules
