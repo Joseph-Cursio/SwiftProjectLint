@@ -134,6 +134,7 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
     case globalActorMismatch = "Global Actor Mismatch"
     case nestedGenericComplexity = "Nested Generic Complexity"
     case magicBooleanParameter = "Magic Boolean Parameter"
+    case implicitCodableRawValue = "Implicit Codable Raw Value"
     case formatterInViewBody = "Formatter In View Body"
     case geometryReaderOveruse = "GeometryReader Overuse"
     case unboundedTaskGroup = "Unbounded Task Group"
