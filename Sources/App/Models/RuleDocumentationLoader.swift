@@ -44,7 +44,7 @@ struct RuleDocumentationLoader {
     /// `ios17ObservationMigration` becomes `ios17-observation-migration`
     /// (the doc filename keeps `ios17` glued because the rawValue token
     /// `iOS 17` collapses on doc-author convention).
-    private static func camelCaseToKebab(_ input: String) -> String {
+    static func camelCaseToKebab(_ input: String) -> String {
         var result = ""
         let chars = Array(input)
         for idx in 0..<chars.count {

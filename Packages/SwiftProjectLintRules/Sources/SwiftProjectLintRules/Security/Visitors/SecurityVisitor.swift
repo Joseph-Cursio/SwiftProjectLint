@@ -230,7 +230,7 @@ class SecurityVisitor: BasePatternVisitor {
         return Self.alphanumericsOnly(variableName).contains(normalisedValue)
     }
 
-    private static func alphanumericsOnly(_ text: String) -> String {
+    static func alphanumericsOnly(_ text: String) -> String {
         text.lowercased().filter { $0.isLetter || $0.isNumber }
     }
 

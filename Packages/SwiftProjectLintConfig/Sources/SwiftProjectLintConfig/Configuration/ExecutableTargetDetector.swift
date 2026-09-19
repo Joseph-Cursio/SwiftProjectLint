@@ -31,7 +31,7 @@ public struct ExecutableTargetDetector {
         }
     }
 
-    private static func parseExecutableTargets(from content: String) -> [String] {
+    static func parseExecutableTargets(from content: String) -> [String] {
         guard let markerRegex = try? NSRegularExpression(
             pattern: #"\.executableTarget\s*\("#
         ) else { return [] }

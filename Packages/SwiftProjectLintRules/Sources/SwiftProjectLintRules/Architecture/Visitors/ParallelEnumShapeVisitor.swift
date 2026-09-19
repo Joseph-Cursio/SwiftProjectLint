@@ -255,7 +255,7 @@ final class ParallelEnumShapeVisitor: CrossFileVisitorBase, CrossFilePatternVisi
             + "conform to — a natural home for any per-case mapping (see Scattered Enum Mapping)."
     }
 
-    private static func shortName(_ path: String) -> String {
+    static func shortName(_ path: String) -> String {
         (path as NSString).lastPathComponent
     }
 
