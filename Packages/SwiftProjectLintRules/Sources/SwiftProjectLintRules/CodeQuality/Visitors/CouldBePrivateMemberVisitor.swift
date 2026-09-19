@@ -328,7 +328,7 @@ final class CouldBePrivateMemberVisitor: CrossFileVisitorBase, CrossFilePatternV
     ///
     /// Applied at all three sites — the declaration and both reference collectors — since
     /// normalising only one side would leave the mismatch exactly as it was.
-    private static func stripBackticks(_ text: String) -> String {
+    static func stripBackticks(_ text: String) -> String {
         text.hasPrefix("`") && text.hasSuffix("`") && text.count >= 2
             ? String(text.dropFirst().dropLast())
             : text

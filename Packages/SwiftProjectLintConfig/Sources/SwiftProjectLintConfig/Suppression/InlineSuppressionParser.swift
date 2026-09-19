@@ -92,7 +92,7 @@ public struct InlineSuppressionParser {
 
     // MARK: - Private
 
-    private static func parseKindAndRules(from rest: String) -> (SuppressionDirective.Kind, String)? {
+    static func parseKindAndRules(from rest: String) -> (SuppressionDirective.Kind, String)? {
         let directives: [(String, SuppressionDirective.Kind)] = [
             ("disable:next", .disableNext),
             ("disable:this", .disableThis),
@@ -120,7 +120,7 @@ public struct InlineSuppressionParser {
     /// forgotten: a directive left with no rules and some unrecognised names is
     /// a different thing from one that named nothing, and `targetsAllRules`
     /// keeps them apart.
-    private static func parseRules(
+    static func parseRules(
         from rulesPart: String
     ) -> (rules: Set<RuleIdentifier>, unrecognized: [String]) {
         let tokens = rulesPart.components(separatedBy: .whitespaces).filter { !$0.isEmpty }

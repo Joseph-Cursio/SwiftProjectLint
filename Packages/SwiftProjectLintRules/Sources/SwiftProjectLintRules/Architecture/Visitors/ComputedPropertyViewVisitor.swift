@@ -202,7 +202,7 @@ class ComputedPropertyViewVisitor: BasePatternVisitor {
     ///
     /// Followed transitively, for the same reason the other two gates are: a wrapper that forwards
     /// to a wrapper that forwards to an unseen sibling knows no more than the sibling does.
-    private static func reachesHiddenMember(
+    static func reachesHiddenMember(
         _ name: String, in members: TypeProperties, hidden: Set<String>
     ) -> Bool {
         guard !hidden.isEmpty else { return false }
@@ -235,7 +235,7 @@ class ComputedPropertyViewVisitor: BasePatternVisitor {
     /// Three shapes force it: reading a stored property's projected value (`$name`), assigning to
     /// one, or calling one of the type's own methods. Followed transitively — a property composing
     /// children that each need a binding needs to pass those bindings down.
-    private static func requiresCapture(_ name: String, in members: TypeProperties) -> Bool {
+    static func requiresCapture(_ name: String, in members: TypeProperties) -> Bool {
         var seen: Set<String> = []
         var pending = [name]
 
@@ -295,7 +295,7 @@ class ComputedPropertyViewVisitor: BasePatternVisitor {
         return names
     }
 
-    private struct TypeProperties {
+    struct TypeProperties {
         var stored: Set<String> = []
         var computedReferences: [String: Set<String>] = [:]
         var viewProperties: Set<String> = []

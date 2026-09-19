@@ -275,7 +275,7 @@ public struct LintConfiguration: Sendable {
     /// - `**/` prefix glob: `**/*View.swift` matches any file ending in `View.swift`
     /// - `*` glob without `**/`: matched via `fnmatch` against the relative path
     /// - Plain string: matched via `contains` against the relative path (e.g., `Tests/`)
-    private static func pathMatches(relativePath: String, basename: String, pattern: String) -> Bool {
+    static func pathMatches(relativePath: String, basename: String, pattern: String) -> Bool {
         if pattern.hasPrefix("**/") {
             // Strip **/ and match the remainder against the basename using fnmatch
             let basenamePattern = String(pattern.dropFirst(3))

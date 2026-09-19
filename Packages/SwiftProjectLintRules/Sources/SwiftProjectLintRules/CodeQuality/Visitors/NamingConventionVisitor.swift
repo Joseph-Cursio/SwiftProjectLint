@@ -22,7 +22,7 @@ class NamingConventionVisitor: BasePatternVisitor {
     /// English agent-noun suffixes (-er, -or, -ar) indicating a type that performs an action.
     /// Used by the `actorAgentName` rule to distinguish passive-sounding actor names
     /// (e.g. `VectorStore`) from names that already convey agency (e.g. `WorkspaceIndexer`).
-    private static func hasAgentNounSuffix(_ name: String) -> Bool {
+    static func hasAgentNounSuffix(_ name: String) -> Bool {
         name.hasSuffix("er") || name.hasSuffix("or") || name.hasSuffix("ar")
     }
 

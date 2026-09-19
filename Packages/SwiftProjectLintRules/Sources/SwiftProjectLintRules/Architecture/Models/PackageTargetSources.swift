@@ -122,7 +122,7 @@ struct PackageTargetSources {
         entry.isEmpty || path == entry || path.hasPrefix(entry + "/")
     }
 
-    private static func normalized(_ path: String) -> String {
+    static func normalized(_ path: String) -> String {
         var result = path
         while result.hasPrefix("./") {
             result.removeFirst(2)

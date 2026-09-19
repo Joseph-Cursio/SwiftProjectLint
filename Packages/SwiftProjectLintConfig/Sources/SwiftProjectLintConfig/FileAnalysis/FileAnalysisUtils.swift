@@ -261,7 +261,7 @@ public struct FileAnalysisUtils {
     /// budget. The filename comparison is against the basename alone and is exact:
     /// `excludedPaths` already covers location and name-shaped globs, so this is for a
     /// filename that recurs across the tree.
-    private static func isCollectableSwiftFile(
+    static func isCollectableSwiftFile(
         _ url: URL,
         excludedFilenames: [String]
     ) -> Bool {
