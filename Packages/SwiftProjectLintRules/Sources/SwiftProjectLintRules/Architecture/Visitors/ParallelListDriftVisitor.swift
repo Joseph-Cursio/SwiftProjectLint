@@ -114,7 +114,7 @@ final class ParallelListDriftVisitor: CrossFileVisitorBase, CrossFilePatternVisi
     /// Judged on a **majority** of the payload-carrying cases, so one odd constructor does not
     /// decide it, and it requires at least two such cases: a single `int(Int)` is a coincidence,
     /// not a shape.
-    private static func isTaggedUnionOverTypes(_ node: EnumDeclSyntax) -> Bool {
+    static func isTaggedUnionOverTypes(_ node: EnumDeclSyntax) -> Bool {
         let elements = node.memberBlock.members
             .compactMap { $0.decl.as(EnumCaseDeclSyntax.self) }
             .flatMap(\.elements)

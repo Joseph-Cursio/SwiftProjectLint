@@ -269,14 +269,14 @@ public enum PropertyTestCandidacy {
         return list.contains { $0.effectSpecifiers?.throwsClause != nil }
     }
 
-    private static func isStatic(_ property: VariableDeclSyntax) -> Bool {
+    static func isStatic(_ property: VariableDeclSyntax) -> Bool {
         property.modifiers.contains {
             $0.name.tokenKind == .keyword(.static) || $0.name.tokenKind == .keyword(.class)
         }
     }
 
     /// The assertability check over a bare type, shared with the signature form.
-    private static func typeIsAssertable(
+    static func typeIsAssertable(
         _ type: TypeSyntax,
         enclosingTypeName: String?,
         knownEquatableTypes: Set<String>
@@ -290,7 +290,7 @@ public enum PropertyTestCandidacy {
 
     // MARK: - Signature
 
-    private static func returnIsAssertable(
+    static func returnIsAssertable(
         _ signature: FunctionSignatureSyntax,
         enclosingTypeName: String?,
         knownEquatableTypes: Set<String>
@@ -325,7 +325,7 @@ public enum PropertyTestCandidacy {
         return nil
     }
 
-    private static func hasInputs(_ signature: FunctionSignatureSyntax) -> Bool {
+    static func hasInputs(_ signature: FunctionSignatureSyntax) -> Bool {
         !signature.parameterClause.parameters.isEmpty
     }
 
@@ -357,11 +357,11 @@ public enum PropertyTestCandidacy {
         function.modifiers.contains { $0.name.tokenKind == .keyword(.static) }
     }
 
-    private static func isMutating(_ function: FunctionDeclSyntax) -> Bool {
+    static func isMutating(_ function: FunctionDeclSyntax) -> Bool {
         function.modifiers.contains { $0.name.tokenKind == .keyword(.mutating) }
     }
 
-    private static func isFileScope(_ function: FunctionDeclSyntax) -> Bool {
+    static func isFileScope(_ function: FunctionDeclSyntax) -> Bool {
         guard let item = function.parent?.as(CodeBlockItemSyntax.self),
               let list = item.parent?.as(CodeBlockItemListSyntax.self) else {
             return false

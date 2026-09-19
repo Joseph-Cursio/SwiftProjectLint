@@ -61,12 +61,12 @@ extension NonInjectedNondeterminismVisitor {
     }
 
     /// Whether `call` is one of the path-appending methods, whatever it is rooted at.
-    private static func appendsToAPath(_ call: FunctionCallExprSyntax) -> Bool {
+    static func appendsToAPath(_ call: FunctionCallExprSyntax) -> Bool {
         guard let callee = call.calledExpression.as(MemberAccessExprSyntax.self) else { return false }
         return pathAppendingMethods.contains(callee.declName.baseName.text)
     }
 
-    private static func rootsAtTemporaryDirectory(_ call: FunctionCallExprSyntax) -> Bool {
+    static func rootsAtTemporaryDirectory(_ call: FunctionCallExprSyntax) -> Bool {
         guard let base = call.calledExpression.as(MemberAccessExprSyntax.self)?.base else {
             return false
         }
@@ -120,7 +120,7 @@ extension NonInjectedNondeterminismVisitor {
     }
 
     /// Whether some `defer` inside `body` passes `name` to a removal call.
-    private static func deletes(_ name: String, somewhereInADeferIn body: Syntax) -> Bool {
+    static func deletes(_ name: String, somewhereInADeferIn body: Syntax) -> Bool {
         var found = false
         forEachDefer(in: body) { deferred in
             if mentions(name, asArgumentOfARemovalIn: deferred) { found = true }
@@ -135,7 +135,7 @@ extension NonInjectedNondeterminismVisitor {
         }
     }
 
-    private static func mentions(
+    static func mentions(
         _ name: String,
         asArgumentOfARemovalIn node: Syntax
     ) -> Bool {
@@ -185,7 +185,7 @@ extension NonInjectedNondeterminismVisitor {
     /// rather than at the head of a member chain: `URL(fileURLWithPath: NSTemporaryDirectory())`.
     /// Scanning the *receiver* of a path append is bounded — anything in it that names the
     /// temporary directory means the path being built is under it.
-    private static func callsTemporaryDirectoryFunction(_ syntax: Syntax) -> Bool {
+    static func callsTemporaryDirectoryFunction(_ syntax: Syntax) -> Bool {
         if let call = syntax.as(FunctionCallExprSyntax.self),
            call.calledExpression.as(DeclReferenceExprSyntax.self)?
                .baseName.text == "NSTemporaryDirectory" {

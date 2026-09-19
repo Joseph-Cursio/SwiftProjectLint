@@ -86,7 +86,7 @@ class DocumentationVisitor: BasePatternVisitor {
     ///   ExtensionMacro / FreestandingMacro family. All require a static
     ///   `expansion(...)` method; the body is typically a thin shim.
     /// - `func encode(to:)` — `Encodable` protocol method. Required signature.
-    private static func isProtocolRequiredStub(_ node: FunctionDeclSyntax) -> Bool {
+    static func isProtocolRequiredStub(_ node: FunctionDeclSyntax) -> Bool {
         let name = node.name.text
         let isStatic = node.modifiers.contains { $0.name.text == "static" }
 

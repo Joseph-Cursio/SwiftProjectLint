@@ -428,7 +428,7 @@ enum SelfAccessAnalyzer {
         /// genuine new binding and stays in `names`: there the name on the left is the author's
         /// choice and the thing being read is spelled out on the right, where it is classified on
         /// its own.
-        private static func isShorthandOptionalBinding(_ node: IdentifierPatternSyntax) -> Bool {
+        static func isShorthandOptionalBinding(_ node: IdentifierPatternSyntax) -> Bool {
             guard let condition = node.parent?.as(OptionalBindingConditionSyntax.self),
                   Syntax(condition.pattern).id == Syntax(node).id else { return false }
             return condition.initializer == nil

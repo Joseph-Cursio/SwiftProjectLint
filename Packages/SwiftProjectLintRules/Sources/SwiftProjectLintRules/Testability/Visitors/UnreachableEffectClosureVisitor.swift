@@ -152,7 +152,7 @@ final class UnreachableEffectClosureVisitor: BasePatternVisitor {
     }
 
     /// Whether an expression computes anything, as opposed to naming a value that already exists.
-    private static func containsCall(_ expression: ExprSyntax) -> Bool {
+    static func containsCall(_ expression: ExprSyntax) -> Bool {
         CallFinder(viewMode: .sourceAccurate).foundCall(in: Syntax(expression))
     }
 
@@ -432,7 +432,7 @@ private final class ClosureWriteTargetCollector: SyntaxVisitor {
 
     /// `=` is an `AssignmentExprSyntax`; `+=` and friends are binary operators whose text ends
     /// in `=` without being a comparison.
-    private static func isAssignment(_ element: ExprSyntax) -> Bool {
+    static func isAssignment(_ element: ExprSyntax) -> Bool {
         if element.is(AssignmentExprSyntax.self) { return true }
         guard let binary = element.as(BinaryOperatorExprSyntax.self) else { return false }
         let text = binary.operator.text

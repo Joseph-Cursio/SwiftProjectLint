@@ -134,7 +134,7 @@ class AccessibilityTreeTraverser {
         return false
     }
 
-    private static func groupsChildren(_ arguments: LabeledExprListSyntax) -> Bool {
+    static func groupsChildren(_ arguments: LabeledExprListSyntax) -> Bool {
         arguments.contains { argument in
             guard argument.label?.text == "children",
                   let member = argument.expression.as(MemberAccessExprSyntax.self) else {

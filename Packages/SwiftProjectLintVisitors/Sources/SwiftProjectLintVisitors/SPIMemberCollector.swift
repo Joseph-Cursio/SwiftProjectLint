@@ -42,7 +42,7 @@ public final class SPIMemberCollector: SyntaxVisitor, TypeCollectorProtocol {
         return .visitChildren
     }
 
-    private static func isSPI(_ attributes: AttributeListSyntax) -> Bool {
+    static func isSPI(_ attributes: AttributeListSyntax) -> Bool {
         attributes.contains { element in
             guard let attribute = element.as(AttributeSyntax.self) else { return false }
             return attribute.attributeName.trimmedDescription == "_spi"

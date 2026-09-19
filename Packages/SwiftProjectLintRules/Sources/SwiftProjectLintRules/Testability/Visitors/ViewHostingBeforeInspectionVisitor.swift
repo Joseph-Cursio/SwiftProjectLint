@@ -137,7 +137,7 @@ final class ViewHostingBeforeInspectionVisitor: BasePatternVisitor {
     // MARK: - Detection
 
     /// Whether the statement calls `ViewHosting.host(…)` anywhere within it.
-    private static func containsViewHosting(_ statement: CodeBlockItemSyntax) -> Bool {
+    static func containsViewHosting(_ statement: CodeBlockItemSyntax) -> Bool {
         SyntaxSearch.firstCall(in: Syntax(statement)) { call in
             guard let member = call.calledExpression.as(MemberAccessExprSyntax.self),
                   member.declName.baseName.text == "host",

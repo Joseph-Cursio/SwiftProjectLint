@@ -40,7 +40,7 @@ enum DependencyConsumption {
 
     /// Stored, instance-level, non-computed property. `static`/`class`/`lazy` and
     /// computed properties are not dependency-holding instance state.
-    private static func isStoredInstanceProperty(_ varDecl: VariableDeclSyntax) -> Bool {
+    static func isStoredInstanceProperty(_ varDecl: VariableDeclSyntax) -> Bool {
         for modifier in varDecl.modifiers
         where ["static", "class", "lazy"].contains(modifier.name.text) {
             return false
