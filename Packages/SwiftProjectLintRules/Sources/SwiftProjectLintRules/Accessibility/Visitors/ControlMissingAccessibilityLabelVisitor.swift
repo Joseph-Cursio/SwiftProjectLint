@@ -101,7 +101,7 @@ final class ControlMissingAccessibilityLabelVisitor: BasePatternVisitor {
     }
 
     /// True for `{ }` and for a closure whose only content is `EmptyView()`.
-    private func isEmptyClosure(_ closure: ClosureExprSyntax) -> Bool {
+    func isEmptyClosure(_ closure: ClosureExprSyntax) -> Bool {
         let statements = closure.statements
         if statements.isEmpty { return true }
         guard statements.count == 1,
@@ -113,7 +113,7 @@ final class ControlMissingAccessibilityLabelVisitor: BasePatternVisitor {
     }
 
     /// True for `""` and a literal made only of empty string segments (no interpolation).
-    private func isEmptyStringLiteral(_ expression: ExprSyntax) -> Bool {
+    func isEmptyStringLiteral(_ expression: ExprSyntax) -> Bool {
         guard let literal = expression.as(StringLiteralExprSyntax.self) else { return false }
         if literal.segments.isEmpty { return true }
         return literal.segments.allSatisfy { segment in

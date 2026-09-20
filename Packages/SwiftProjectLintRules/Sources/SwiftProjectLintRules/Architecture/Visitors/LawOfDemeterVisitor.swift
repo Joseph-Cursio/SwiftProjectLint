@@ -228,7 +228,7 @@ class LawOfDemeterVisitor: BasePatternVisitor {
         return (ordered, dotCount)
     }
 
-    private func isNonExemptRoot(_ root: ExprSyntax) -> Bool {
+    func isNonExemptRoot(_ root: ExprSyntax) -> Bool {
         if let rootRef = root.as(DeclReferenceExprSyntax.self),
            rootRef.baseName.text == "self" { return false }
         if root.is(SuperExprSyntax.self) { return false }
@@ -240,7 +240,7 @@ class LawOfDemeterVisitor: BasePatternVisitor {
         return true
     }
 
-    private func isInsideKeyPath(_ node: ExprSyntax) -> Bool {
+    func isInsideKeyPath(_ node: ExprSyntax) -> Bool {
         var current: Syntax? = Syntax(node)
         while let parent = current?.parent {
             if parent.is(KeyPathExprSyntax.self) { return true }
@@ -258,13 +258,13 @@ class LawOfDemeterVisitor: BasePatternVisitor {
     /// convention for the implementation domain — a private stored property behind a
     /// computed one, or a library's own SPI. Demeter is about coupling to a *collaborator's*
     /// internals; reaching through your own storage is not that.
-    private func hasExemptRoot(_ orderedComponents: [String]) -> Bool {
+    func hasExemptRoot(_ orderedComponents: [String]) -> Bool {
         guard let rootName = orderedComponents.first else { return false }
         if rootName.hasPrefix("_") { return true }
         return Self.environmentRoots.contains(rootName.lowercased())
     }
 
-    private func isNonExemptChain(
+    func isNonExemptChain(
         _ orderedComponents: [String], dotCount: Int
     ) -> Bool {
         if isTypePrefixedChain(orderedComponents) { return false }
@@ -301,7 +301,7 @@ class LawOfDemeterVisitor: BasePatternVisitor {
     /// type-prefix shapes that the Law-of-Demeter rule deliberately
     /// exempts. Folded into one helper so the main predicate stays
     /// within the cyclomatic-complexity budget.
-    private func isTypePrefixedChain(_ orderedComponents: [String]) -> Bool {
+    func isTypePrefixedChain(_ orderedComponents: [String]) -> Bool {
         guard let rootName = orderedComponents.first,
               rootName.first?.isUppercase == true else { return false }
         if orderedComponents.count > 1,
@@ -318,7 +318,7 @@ class LawOfDemeterVisitor: BasePatternVisitor {
     /// True when the chain touches a framework/system API member
     /// (`SwiftSyntax` traversals, geometry/layout accessors) that the
     /// rule treats as legitimately long.
-    private func hasExemptMember(in components: [String]) -> Bool {
+    func hasExemptMember(in components: [String]) -> Bool {
         if components.contains(where: { Self.frameworkAPIMembers.contains($0) }) {
             return true
         }

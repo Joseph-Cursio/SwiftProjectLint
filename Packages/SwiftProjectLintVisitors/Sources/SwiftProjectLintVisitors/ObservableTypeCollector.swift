@@ -32,13 +32,13 @@ public final class ObservableTypeCollector: SyntaxVisitor, TypeCollectorProtocol
         return .visitChildren
     }
 
-    private func hasObservableAttribute(_ attributes: AttributeListSyntax) -> Bool {
+    func hasObservableAttribute(_ attributes: AttributeListSyntax) -> Bool {
         attributes.contains { element in
             element.as(AttributeSyntax.self)?.attributeName.trimmedDescription == "Observable"
         }
     }
 
-    private func declaresObservableObject(_ inheritance: InheritanceClauseSyntax?) -> Bool {
+    func declaresObservableObject(_ inheritance: InheritanceClauseSyntax?) -> Bool {
         guard let inheritance else { return false }
         return inheritance.inheritedTypes.contains { inherited in
             inherited.type.as(IdentifierTypeSyntax.self)?.name.text == "ObservableObject"

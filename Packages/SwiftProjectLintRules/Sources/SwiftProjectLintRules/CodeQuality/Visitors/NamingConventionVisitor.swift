@@ -180,7 +180,7 @@ class NamingConventionVisitor: BasePatternVisitor {
         )
     }
 
-    private func isSwiftUIComponent(_ inheritanceClause: InheritanceClauseSyntax?) -> Bool {
+    func isSwiftUIComponent(_ inheritanceClause: InheritanceClauseSyntax?) -> Bool {
         guard let inheritanceClause else { return false }
         return inheritanceClause.inheritedTypes.contains { inherited in
             guard let identifier = inherited.type.as(IdentifierTypeSyntax.self) else { return false }

@@ -54,7 +54,7 @@ final class MissingDynamicTypeSupportVisitor: BasePatternVisitor {
 
     // MARK: - Helpers
 
-    private func isLineLimitOne(_ arguments: LabeledExprListSyntax) -> Bool {
+    func isLineLimitOne(_ arguments: LabeledExprListSyntax) -> Bool {
         guard let firstArg = arguments.first,
               firstArg.label == nil,
               let intLit = firstArg.expression.as(IntegerLiteralExprSyntax.self),
@@ -65,7 +65,7 @@ final class MissingDynamicTypeSupportVisitor: BasePatternVisitor {
     }
 
     /// Checks if a modifier with the given name wraps this node (is a parent).
-    private func hasParentModifier(
+    func hasParentModifier(
         _ node: FunctionCallExprSyntax,
         named name: String
     ) -> Bool {
@@ -107,7 +107,7 @@ final class MissingDynamicTypeSupportVisitor: BasePatternVisitor {
 
     /// Returns true if the expression is a `Text(...)` call with dynamic content
     /// (variable reference or string interpolation), not a short static label.
-    private func isTextWithDynamicContent(_ expr: ExprSyntax) -> Bool {
+    func isTextWithDynamicContent(_ expr: ExprSyntax) -> Bool {
         guard let call = expr.as(FunctionCallExprSyntax.self),
               let declRef = call.calledExpression.as(DeclReferenceExprSyntax.self),
               declRef.baseName.text == "Text",

@@ -59,13 +59,13 @@ final class IOS17ObservationMigrationVisitor: BasePatternVisitor {
 
     // MARK: - Helpers
 
-    private func conformsToObservableObject(_ node: ClassDeclSyntax) -> Bool {
+    func conformsToObservableObject(_ node: ClassDeclSyntax) -> Bool {
         node.inheritanceClause?.inheritedTypes.contains { inherited in
             inherited.type.trimmedDescription == "ObservableObject"
         } ?? false
     }
 
-    private func inheritsFromNSObject(_ node: ClassDeclSyntax) -> Bool {
+    func inheritsFromNSObject(_ node: ClassDeclSyntax) -> Bool {
         node.inheritanceClause?.inheritedTypes.contains { inherited in
             inherited.type.trimmedDescription == "NSObject"
         } ?? false
@@ -85,7 +85,7 @@ final class IOS17ObservationMigrationVisitor: BasePatternVisitor {
     }
 
     /// Detects `objectWillChange.send()` calls inside the class body.
-    private func detectsManualObjectWillChange(
+    func detectsManualObjectWillChange(
         _ memberBlock: MemberBlockSyntax
     ) -> Bool {
         let finder = PatternFinder(pattern: "objectWillChange")
@@ -95,7 +95,7 @@ final class IOS17ObservationMigrationVisitor: BasePatternVisitor {
 
     /// Detects Combine publisher usage: `$property` (projected value) references
     /// or `objectWillChange` used as a publisher (chained with Combine operators).
-    private func detectsCombinePublisherUsage(
+    func detectsCombinePublisherUsage(
         _ memberBlock: MemberBlockSyntax
     ) -> Bool {
         let finder = CombineUsageFinder()

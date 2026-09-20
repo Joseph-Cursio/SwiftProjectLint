@@ -73,13 +73,13 @@ final class UnlabeledControlVisitor: BasePatternVisitor {
 
     /// True when the control reports a value worth naming. A bare `ProgressView()`
     /// spinner is excluded: it is usually decorative and explained by nearby text.
-    private func carriesAValue(_ node: FunctionCallExprSyntax) -> Bool {
+    func carriesAValue(_ node: FunctionCallExprSyntax) -> Bool {
         node.arguments.contains { $0.label?.text == "value" }
     }
 
     /// True when no label is supplied in any spelling — no string title, no trailing
     /// closure, no explicit `label:`.
-    private func hasNoLabel(_ node: FunctionCallExprSyntax) -> Bool {
+    func hasNoLabel(_ node: FunctionCallExprSyntax) -> Bool {
         if node.trailingClosure != nil { return false }
         if node.arguments.contains(where: { $0.label?.text == "label" }) { return false }
         // A leading positional argument is the control's title.

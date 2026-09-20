@@ -36,7 +36,7 @@ public final class IdentifiableTypeCollector: SyntaxVisitor, TypeCollectorProtoc
         return .visitChildren
     }
 
-    private func conformsToIdentifiable(_ clause: InheritanceClauseSyntax?) -> Bool {
+    func conformsToIdentifiable(_ clause: InheritanceClauseSyntax?) -> Bool {
         guard let clause else { return false }
         return clause.inheritedTypes.contains { inherited in
             inherited.type.as(IdentifierTypeSyntax.self)?.name.text == "Identifiable"

@@ -137,7 +137,7 @@ class DirectInstantiationVisitor: BasePatternVisitor {
 
     // MARK: - Property wrapper detection
 
-    private func hasPropertyWrapper(_ node: VariableDeclSyntax) -> Bool {
+    func hasPropertyWrapper(_ node: VariableDeclSyntax) -> Bool {
         for attribute in node.attributes {
             if let attr = attribute.as(AttributeSyntax.self),
                let name = attr.attributeName.as(IdentifierTypeSyntax.self)?.name.text,
@@ -199,7 +199,7 @@ class DirectInstantiationVisitor: BasePatternVisitor {
     ///
     /// A composition root is allowed to know every concrete type it wires together, because
     /// the whole benefit of injecting everywhere else is that there is exactly one such place.
-    private func isExemptDefinitionSite(_ typeName: String, on node: VariableDeclSyntax) -> Bool {
+    func isExemptDefinitionSite(_ typeName: String, on node: VariableDeclSyntax) -> Bool {
         if isStatic(node), typeNameStack.last == typeName { return true }
         return insideCompositionRoot(Syntax(node))
     }
@@ -217,7 +217,7 @@ class DirectInstantiationVisitor: BasePatternVisitor {
 
     // MARK: - Static-member detection
 
-    private func isStatic(_ node: VariableDeclSyntax) -> Bool {
+    func isStatic(_ node: VariableDeclSyntax) -> Bool {
         node.modifiers.contains { $0.name.tokenKind == .keyword(.static) }
     }
 
@@ -258,7 +258,7 @@ class DirectInstantiationVisitor: BasePatternVisitor {
     /// `init()` is where its `@State` containers are seeded — the Explorer target\'s file
     /// header describes exactly that as "its composition root injects the in-process SwiftLint
     /// backend instead of the subprocess one".
-    private func isEntryPointMember(named name: String, isStatic: Bool) -> Bool {
+    func isEntryPointMember(named name: String, isStatic: Bool) -> Bool {
         guard mainAttributedTypeDepth.last == true else { return false }
         return name == "main" && isStatic
     }
@@ -285,7 +285,7 @@ class DirectInstantiationVisitor: BasePatternVisitor {
     /// differently for the same construction depending on how many siblings it has is drawing
     /// the line on syntax rather than substance — which is the fault this rule's own
     /// documentation already records having corrected once, over defaulted parameters.
-    private func insideCompositionRoot(_ node: Syntax) -> Bool {
+    func insideCompositionRoot(_ node: Syntax) -> Bool {
         guard let body = Self.enclosingBody(of: node) else { return false }
         let counter = ServiceConstructionCounter(viewMode: .sourceAccurate)
         counter.walk(body)

@@ -78,7 +78,7 @@ final class LegacyFormatterVisitor: BasePatternVisitor {
 
     // MARK: - Helpers
 
-    private func isInsideViewStruct(_ node: VariableDeclSyntax) -> Bool {
+    func isInsideViewStruct(_ node: VariableDeclSyntax) -> Bool {
         var current: Syntax? = Syntax(node)
         while let parent = current?.parent {
             if let structDecl = parent.as(StructDeclSyntax.self) {
@@ -89,7 +89,7 @@ final class LegacyFormatterVisitor: BasePatternVisitor {
         return false
     }
 
-    private func conformsToView(_ clause: InheritanceClauseSyntax?) -> Bool {
+    func conformsToView(_ clause: InheritanceClauseSyntax?) -> Bool {
         guard let clause else { return false }
         return clause.inheritedTypes.contains { inherited in
             inherited.type.trimmedDescription == "View"

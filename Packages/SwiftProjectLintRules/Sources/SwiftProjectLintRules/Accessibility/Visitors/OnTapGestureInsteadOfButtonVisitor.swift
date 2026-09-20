@@ -53,14 +53,14 @@ class OnTapGestureInsteadOfButtonVisitor: BasePatternVisitor {
 
     // MARK: - Allowed form detection
 
-    private func hasMultiTapCount(_ node: FunctionCallExprSyntax) -> Bool {
+    func hasMultiTapCount(_ node: FunctionCallExprSyntax) -> Bool {
         guard let countArg = node.arguments.first(where: { $0.label?.text == "count" }),
               let intExpr = countArg.expression.as(IntegerLiteralExprSyntax.self),
               let count = Int(intExpr.literal.text) else { return false }
         return count > 1
     }
 
-    private func hasLocationAwareness(_ node: FunctionCallExprSyntax) -> Bool {
+    func hasLocationAwareness(_ node: FunctionCallExprSyntax) -> Bool {
         if node.arguments.contains(where: { $0.label?.text == "coordinateSpace" }) {
             return true
         }
@@ -100,7 +100,7 @@ class OnTapGestureInsteadOfButtonVisitor: BasePatternVisitor {
     }
 
     /// Returns true if the closure signature declares at least one parameter.
-    private func hasClosureParameters(_ signature: ClosureSignatureSyntax) -> Bool {
+    func hasClosureParameters(_ signature: ClosureSignatureSyntax) -> Bool {
         guard let paramClause = signature.parameterClause else { return false }
         switch paramClause {
         case .simpleInput(let params):

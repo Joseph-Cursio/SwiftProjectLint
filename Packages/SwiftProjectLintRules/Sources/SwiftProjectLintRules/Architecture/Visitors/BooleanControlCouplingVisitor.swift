@@ -160,7 +160,7 @@ final class BooleanControlCouplingVisitor: BasePatternVisitor {
         return names
     }
 
-    private func isBoolType(_ type: TypeSyntax) -> Bool {
+    func isBoolType(_ type: TypeSyntax) -> Bool {
         if type.as(IdentifierTypeSyntax.self)?.name.text == "Bool" {
             return true
         }
@@ -267,7 +267,7 @@ final class BooleanControlCouplingVisitor: BasePatternVisitor {
     /// `AssignmentExprSyntax` is the `=` token itself, so `+=` — which arrives as
     /// a `BinaryOperatorExprSyntax` in the same position — does not match. That
     /// is what keeps accumulation out of the deferred-initialization gate.
-    private func assignsAsFinalStatement(_ block: CodeBlockSyntax, to name: String) -> Bool {
+    func assignsAsFinalStatement(_ block: CodeBlockSyntax, to name: String) -> Bool {
         guard let last = block.statements.last,
               let expression = last.item.as(ExprSyntax.self) else {
             return false
@@ -299,14 +299,14 @@ final class BooleanControlCouplingVisitor: BasePatternVisitor {
     /// On its own this is the weakest of the three gates, because a single call
     /// clears it. `isNamedDispatch` is what stops that from being the rule's
     /// dominant behavior; the two are meant to be read together.
-    private func isSubstantialArm(_ block: CodeBlockSyntax) -> Bool {
+    func isSubstantialArm(_ block: CodeBlockSyntax) -> Bool {
         if block.statements.count >= 2 {
             return true
         }
         return containsCall(Syntax(block.statements))
     }
 
-    private func containsCall(_ node: Syntax) -> Bool {
+    func containsCall(_ node: Syntax) -> Bool {
         if node.is(FunctionCallExprSyntax.self) {
             return true
         }

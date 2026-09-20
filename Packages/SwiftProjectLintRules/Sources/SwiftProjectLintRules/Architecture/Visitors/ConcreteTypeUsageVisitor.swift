@@ -55,7 +55,7 @@ class ConcreteTypeUsageVisitor: BasePatternVisitor {
     /// keeps the finding. The declaration is what decides, not the spelling.
     private static let appKitOrUIKitPrefixes = ["NS", "UI"]
 
-    private func isPlatformFrameworkType(_ name: String) -> Bool {
+    func isPlatformFrameworkType(_ name: String) -> Bool {
         guard !knownLocalTypeNames.contains(name) else { return false }
         return Self.appKitOrUIKitPrefixes.contains { prefix in
             name.count > prefix.count
@@ -164,7 +164,7 @@ class ConcreteTypeUsageVisitor: BasePatternVisitor {
     /// Measured on SwiftPropertyLaws, whose every law takes a generator: 215 of its 218
     /// findings named `Generator`, and 263 of the 267 uses in that package carry generic
     /// arguments.
-    private func qualifying(_ identifier: IdentifierTypeSyntax) -> String? {
+    func qualifying(_ identifier: IdentifierTypeSyntax) -> String? {
         guard identifier.genericArgumentClause == nil else { return nil }
         return qualifying(identifier.name.text)
     }
@@ -302,7 +302,7 @@ class ConcreteTypeUsageVisitor: BasePatternVisitor {
         PropertyWrapper.stateStorageAttributeNames
             .union([PropertyWrapper.environment.rawValue, "Bindable"])
 
-    private func hasPropertyWrapper(_ node: VariableDeclSyntax) -> Bool {
+    func hasPropertyWrapper(_ node: VariableDeclSyntax) -> Bool {
         for attribute in node.attributes {
             if let attr = attribute.as(AttributeSyntax.self),
                let name = attr.attributeName.as(IdentifierTypeSyntax.self)?.name.text,

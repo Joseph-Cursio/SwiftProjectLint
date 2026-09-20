@@ -35,7 +35,7 @@ final class DisfavoredOverloadVisitor: BasePatternVisitor {
         return .visitChildren
     }
 
-    private func hasDisfavoredOverload(_ attributes: AttributeListSyntax) -> Bool {
+    func hasDisfavoredOverload(_ attributes: AttributeListSyntax) -> Bool {
         attributes.contains { element in
             guard let attribute = element.as(AttributeSyntax.self) else { return false }
             return attribute.attributeName.trimmedDescription == "_disfavoredOverload"

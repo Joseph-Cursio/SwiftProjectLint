@@ -89,17 +89,17 @@ final class InsecureTransportVisitor: BasePatternVisitor {
         StringLiteralValue.of(literal)
     }
 
-    private func isInsecureScheme(_ urlString: String) -> Bool {
+    func isInsecureScheme(_ urlString: String) -> Bool {
         let lowered = urlString.lowercased()
         return Self.insecureSchemes.contains { lowered.hasPrefix($0) }
     }
 
-    private func isLocalhost(_ urlString: String) -> Bool {
+    func isLocalhost(_ urlString: String) -> Bool {
         guard let afterScheme = stripScheme(urlString) else { return false }
         return Self.localhostHosts.contains { afterScheme.hasPrefix($0) }
     }
 
-    private func isReservedDomain(_ urlString: String) -> Bool {
+    func isReservedDomain(_ urlString: String) -> Bool {
         guard let afterScheme = stripScheme(urlString) else { return false }
         return Self.reservedDomains.contains { domain in
             afterScheme.hasPrefix(domain) || afterScheme.contains(".\(domain)")
@@ -114,13 +114,13 @@ final class InsecureTransportVisitor: BasePatternVisitor {
         return nil
     }
 
-    private func isNonTestFile(_ path: String) -> Bool {
+    func isNonTestFile(_ path: String) -> Bool {
         let hasTests = path.contains("/Tests/") || path.hasPrefix("Tests/")
         let hasXCTests = path.contains("/XCTests/") || path.hasPrefix("XCTests/")
         return !hasTests && !hasXCTests
     }
 
-    private func truncateURL(_ urlString: String) -> String {
+    func truncateURL(_ urlString: String) -> String {
         if urlString.count > 60 {
             return String(urlString.prefix(57)) + "..."
         }

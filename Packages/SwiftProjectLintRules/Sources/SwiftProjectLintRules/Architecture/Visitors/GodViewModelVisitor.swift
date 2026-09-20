@@ -54,7 +54,7 @@ final class GodViewModelVisitor: BasePatternVisitor {
 
     // MARK: - Helpers
 
-    private func conformsToObservableObject(
+    func conformsToObservableObject(
         _ clause: InheritanceClauseSyntax?
     ) -> Bool {
         guard let clause else { return false }
@@ -63,7 +63,7 @@ final class GodViewModelVisitor: BasePatternVisitor {
         }
     }
 
-    private func hasObservableAttribute(_ attributes: AttributeListSyntax) -> Bool {
+    func hasObservableAttribute(_ attributes: AttributeListSyntax) -> Bool {
         attributes.contains { attr in
             guard let attrSyntax = attr.as(AttributeSyntax.self) else { return false }
             return attrSyntax.attributeName.trimmedDescription == "Observable"

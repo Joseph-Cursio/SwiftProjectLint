@@ -61,14 +61,14 @@ final class SwiftDataUniqueAttributeCloudKitVisitor: BasePatternVisitor {
 
     // MARK: - Helpers
 
-    private func hasModelAttribute(_ attributes: AttributeListSyntax) -> Bool {
+    func hasModelAttribute(_ attributes: AttributeListSyntax) -> Bool {
         attributes.contains { attr in
             guard let attrSyntax = attr.as(AttributeSyntax.self) else { return false }
             return attrSyntax.attributeName.trimmedDescription == "Model"
         }
     }
 
-    private func hasUniqueAttribute(_ attributes: AttributeListSyntax) -> Bool {
+    func hasUniqueAttribute(_ attributes: AttributeListSyntax) -> Bool {
         attributes.contains { attr in
             guard let attrSyntax = attr.as(AttributeSyntax.self),
                   attrSyntax.attributeName.trimmedDescription == "Attribute",

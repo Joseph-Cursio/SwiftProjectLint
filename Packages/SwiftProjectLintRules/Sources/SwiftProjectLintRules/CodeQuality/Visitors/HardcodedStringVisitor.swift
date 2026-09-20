@@ -85,7 +85,7 @@ class HardcodedStringVisitor: BasePatternVisitor {
 
     // MARK: - Private helpers
 
-    private func isInUserFacingContext(_ node: StringLiteralExprSyntax) -> Bool {
+    func isInUserFacingContext(_ node: StringLiteralExprSyntax) -> Bool {
         var current = Syntax(node)
         while let parent = current.parent {
             if let labeledArg = parent.as(LabeledExprSyntax.self),
@@ -118,7 +118,7 @@ class HardcodedStringVisitor: BasePatternVisitor {
         isTestOrFixtureFile()
     }
 
-    private func looksLikeSFSymbolName(_ string: String) -> Bool {
+    func looksLikeSFSymbolName(_ string: String) -> Bool {
         guard string.contains("."),
               !string.contains(" "),
               !string.hasPrefix("."),

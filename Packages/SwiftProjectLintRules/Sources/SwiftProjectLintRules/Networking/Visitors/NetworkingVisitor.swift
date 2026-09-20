@@ -48,7 +48,7 @@ class NetworkingVisitor: BasePatternVisitor {
     /// Checks for synchronous Data(contentsOf:) calls and reports them as errors.
     /// Skips calls where the URL argument is obviously a local file path.
     /// - Returns: true if a synchronous Data call was found, false otherwise
-    private func checkSynchronousDataCall(_ node: FunctionCallExprSyntax) -> Bool {
+    func checkSynchronousDataCall(_ node: FunctionCallExprSyntax) -> Bool {
         guard let calledExpr = node.calledExpression.as(DeclReferenceExprSyntax.self),
               calledExpr.baseName.text == "Data" else {
             return false
@@ -83,7 +83,7 @@ class NetworkingVisitor: BasePatternVisitor {
     ///
     /// `URL(string:)` is the canonical way to construct network URLs and is treated as NOT local.
     /// Variable names with no local or network hints default to local to avoid false positives.
-    private func isLikelyLocalURL(_ expr: ExprSyntax) -> Bool {
+    func isLikelyLocalURL(_ expr: ExprSyntax) -> Bool {
         let text = expr.description.trimmingCharacters(in: .whitespacesAndNewlines)
 
         // URL(...) initializers: only URL(string:) is a network URL constructor
@@ -153,7 +153,7 @@ class NetworkingVisitor: BasePatternVisitor {
 
     /// Checks if error handling exists in the closure
     /// - Returns: true if error is properly handled, false otherwise
-    private func checkErrorHandlingInClosure(_ closure: ClosureExprSyntax, node: FunctionCallExprSyntax) -> Bool {
+    func checkErrorHandlingInClosure(_ closure: ClosureExprSyntax, node: FunctionCallExprSyntax) -> Bool {
         guard let signature = closure.signature,
               let paramClause = signature.parameterClause?.as(ClosureParameterClauseSyntax.self) else {
             return checkErrorHandlingInBody(closure.statements.description)
@@ -182,7 +182,7 @@ class NetworkingVisitor: BasePatternVisitor {
     }
 
     /// Checks if error parameter is handled in the closure body
-    private func checkErrorHandlingForErrorParameter(_ bodyText: String) -> Bool {
+    func checkErrorHandlingForErrorParameter(_ bodyText: String) -> Bool {
         bodyText.contains("if let error")
             || bodyText.contains("guard let error")
             || bodyText.contains("error != nil")
@@ -193,7 +193,7 @@ class NetworkingVisitor: BasePatternVisitor {
     }
 
     /// Checks if error handling exists in body text (for cases without error parameter)
-    private func checkErrorHandlingInBody(_ bodyText: String) -> Bool {
+    func checkErrorHandlingInBody(_ bodyText: String) -> Bool {
         bodyText.contains("if let error")
             || bodyText.contains("guard let error")
             || bodyText.contains("error != nil")

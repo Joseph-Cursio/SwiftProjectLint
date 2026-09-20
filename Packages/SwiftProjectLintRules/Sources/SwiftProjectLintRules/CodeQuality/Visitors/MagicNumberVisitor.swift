@@ -183,7 +183,7 @@ class MagicNumberVisitor: BasePatternVisitor {
 
     // MARK: - Private helpers
 
-    private func isInsidePreviewMacro(_ node: Syntax) -> Bool {
+    func isInsidePreviewMacro(_ node: Syntax) -> Bool {
         var current: Syntax? = node
         while let ancestor = current {
             if let macro = ancestor.as(MacroExpansionExprSyntax.self),

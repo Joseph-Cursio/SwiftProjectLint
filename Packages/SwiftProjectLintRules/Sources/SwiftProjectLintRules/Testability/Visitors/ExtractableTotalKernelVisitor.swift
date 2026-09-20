@@ -667,7 +667,7 @@ private struct Collector {
 
     /// Whether the expression reads a `.count` — what makes `dropFirst(prefix.count)` a derived
     /// slice rather than a constant one. `dropFirst(1)` is not a kernel.
-    private func referencesCount(_ node: Syntax) -> Bool {
+    func referencesCount(_ node: Syntax) -> Bool {
         node.children(viewMode: .sourceAccurate).contains { child in
             if let member = child.as(MemberAccessExprSyntax.self),
                member.declName.baseName.text == "count" {
@@ -694,7 +694,7 @@ private struct Collector {
         return comparisons.contains { references(Syntax($0), anyOf: derived) }
     }
 
-    private func containsPathOperation(_ node: Syntax) -> Bool {
+    func containsPathOperation(_ node: Syntax) -> Bool {
         for child in node.children(viewMode: .sourceAccurate) {
             if let member = child.as(MemberAccessExprSyntax.self) {
                 let name = member.declName.baseName.text
@@ -708,7 +708,7 @@ private struct Collector {
     /// Every call in the subtree must be a known string derivation or a type conversion. Same
     /// posture as `onlyPureCalls`: the rule will not vouch for work it cannot see, so one unknown
     /// helper call disqualifies the binding.
-    private func onlyPathSafeCalls(_ node: Syntax) -> Bool {
+    func onlyPathSafeCalls(_ node: Syntax) -> Bool {
         for child in node.children(viewMode: .sourceAccurate) {
             if let call = child.as(FunctionCallExprSyntax.self) {
                 if let member = call.calledExpression.as(MemberAccessExprSyntax.self) {
@@ -760,7 +760,7 @@ private struct Collector {
         return found
     }
 
-    private func containsArithmetic(_ node: Syntax) -> Bool {
+    func containsArithmetic(_ node: Syntax) -> Bool {
         !operators(in: node).isDisjoint(with: Self.arithmeticOperators)
     }
 
@@ -801,7 +801,7 @@ private struct Collector {
     /// finding rather than just the label, because a kernel has to govern something and the fraction
     /// was what it governed. Reading only the divisor keeps all three fractions and rejects both
     /// rates.
-    private func isFraction(_ node: Syntax) -> Bool {
+    func isFraction(_ node: Syntax) -> Bool {
         guard let division = divisionOperands(in: node) else { return false }
         return containsConversion(division.divisor)
     }
@@ -829,13 +829,13 @@ private struct Collector {
         return nil
     }
 
-    private func containsConversion(_ node: Syntax) -> Bool {
+    func containsConversion(_ node: Syntax) -> Bool {
         node.tokens(viewMode: .sourceAccurate).contains { Self.pureConversions.contains($0.text) }
     }
 
     /// Any call that is not a numeric conversion refutes the binding. Conservative on purpose: the
     /// kernel must be arithmetic the rule can *see*, not a call it would have to trust.
-    private func onlyPureCalls(_ node: Syntax) -> Bool {
+    func onlyPureCalls(_ node: Syntax) -> Bool {
         for call in node.children(viewMode: .sourceAccurate).compactMap({
             $0.as(FunctionCallExprSyntax.self)
         }) {
@@ -845,7 +845,7 @@ private struct Collector {
         return node.children(viewMode: .sourceAccurate).allSatisfy { onlyPureCalls($0) }
     }
 
-    private func references(_ node: Syntax, anyOf names: Set<String>) -> Bool {
+    func references(_ node: Syntax, anyOf names: Set<String>) -> Bool {
         guard !names.isEmpty else { return false }
         return node.tokens(viewMode: .sourceAccurate).contains { names.contains($0.text) }
     }

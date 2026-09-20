@@ -64,7 +64,7 @@ final class DiscardedTryResultVisitor: BasePatternVisitor {
     /// True when `item` is the LAST statement of a closure passed to a
     /// value-transforming method (`map`/`compactMap`/`flatMap`), so the
     /// statement's value is the closure's result rather than a discard.
-    private func isTransformClosureResult(_ item: CodeBlockItemSyntax) -> Bool {
+    func isTransformClosureResult(_ item: CodeBlockItemSyntax) -> Bool {
         guard let itemList = item.parent?.as(CodeBlockItemListSyntax.self),
               let closure = itemList.parent?.as(ClosureExprSyntax.self),
               itemList.last?.id == item.id

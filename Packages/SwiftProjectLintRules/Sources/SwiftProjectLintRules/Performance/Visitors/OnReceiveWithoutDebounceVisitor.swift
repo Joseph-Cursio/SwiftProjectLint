@@ -66,7 +66,7 @@ final class OnReceiveWithoutDebounceVisitor: BasePatternVisitor {
     }
 
     /// Checks if a Timer.publish(every:) call has an interval < 1.0 second.
-    private func isSubSecondTimer(_ expr: ExprSyntax) -> Bool {
+    func isSubSecondTimer(_ expr: ExprSyntax) -> Bool {
         let finder = TimerIntervalFinder()
         finder.walk(expr)
         return finder.isSubSecond
@@ -75,7 +75,7 @@ final class OnReceiveWithoutDebounceVisitor: BasePatternVisitor {
     // MARK: - Rate-limiting check
 
     /// Walks the publisher expression chain looking for debounce/throttle/collect.
-    private func hasRateLimiting(_ expr: ExprSyntax) -> Bool {
+    func hasRateLimiting(_ expr: ExprSyntax) -> Bool {
         let finder = RateLimitingFinder()
         finder.walk(expr)
         return finder.found

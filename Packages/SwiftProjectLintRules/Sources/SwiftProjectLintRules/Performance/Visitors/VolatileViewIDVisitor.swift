@@ -101,7 +101,7 @@ final class VolatileViewIDVisitor: BasePatternVisitor {
 
     /// True for `=` and the compound assignments (`+=`, `-=`, …), false for
     /// comparisons (`==`, `!=`, `<=`, `>=`).
-    private func isAssignmentOperator(_ operatorExpr: ExprSyntax) -> Bool {
+    func isAssignmentOperator(_ operatorExpr: ExprSyntax) -> Bool {
         if operatorExpr.is(AssignmentExprSyntax.self) { return true }
         guard let binary = operatorExpr.as(BinaryOperatorExprSyntax.self) else { return false }
         let text = binary.operator.text

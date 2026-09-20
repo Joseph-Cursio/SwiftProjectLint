@@ -113,7 +113,7 @@ final class MultipleTypesPerFileVisitor: BasePatternVisitor {
     /// - `ParsedRuleDocumentation` in `RuleDocumentationParser.swift` → shares
     ///   "Documentation" → coupled, though the common prefix is empty
     /// - `TemplateError` in `ConfigurationTemplateManager.swift` → shares "Template"
-    private func isTightlyCoupled(_ secondaryName: String) -> Bool {
+    func isTightlyCoupled(_ secondaryName: String) -> Bool {
         let anchors = [primaryTypeName, fileNameStem].compactMap(\.self)
 
         for anchor in anchors {

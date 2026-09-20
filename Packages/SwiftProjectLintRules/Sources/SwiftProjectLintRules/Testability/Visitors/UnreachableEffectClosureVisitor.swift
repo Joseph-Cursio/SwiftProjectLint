@@ -113,7 +113,7 @@ final class UnreachableEffectClosureVisitor: BasePatternVisitor {
     ///
     /// `@FocusState` is included on measurement, not on mechanism — no corpus finding writes one,
     /// and the harness covers it anyway because that was cheaper than arguing about it.
-    private func writesOnlyViewState(_ closure: ClosureExprSyntax) -> Bool {
+    func writesOnlyViewState(_ closure: ClosureExprSyntax) -> Bool {
         guard let enclosing = typeNameStack.last,
               let stateNames = viewLocalState[enclosing] else { return false }
         let collector = ClosureWriteTargetCollector(viewMode: .sourceAccurate)
@@ -140,7 +140,7 @@ final class UnreachableEffectClosureVisitor: BasePatternVisitor {
     /// `viewport.hoveredNodeId = hitNode(at: location)?.id` is the rule's own motivating shape, and
     /// it keeps reporting. So does anything with more than one statement: two writes that must
     /// happen together are a contract worth naming, which one write is not.
-    private func isBareStoreThroughASetter(_ closure: ClosureExprSyntax) -> Bool {
+    func isBareStoreThroughASetter(_ closure: ClosureExprSyntax) -> Bool {
         let statements = closure.statements
         guard statements.count == 1, let only = statements.first,
               case .expr(let expression) = only.item,
@@ -183,7 +183,7 @@ final class UnreachableEffectClosureVisitor: BasePatternVisitor {
     /// A single *assignment* is not a call and does report. That is deliberate: `{ selectedId = nil
     /// }` has no name either, and naming it is exactly the fix. The asymmetry with `{ clear() }` is
     /// the point rather than an oversight — one has a seam, the other does not.
-    private func isWorthExtracting(_ closure: ClosureExprSyntax) -> Bool {
+    func isWorthExtracting(_ closure: ClosureExprSyntax) -> Bool {
         let statements = closure.statements
         guard let only = statements.first, statements.count == 1 else {
             return !statements.isEmpty
@@ -192,7 +192,7 @@ final class UnreachableEffectClosureVisitor: BasePatternVisitor {
     }
 
     /// A statement that is exactly one call expression, with or without `return`.
-    private func isSingleCall(_ statement: CodeBlockItemSyntax) -> Bool {
+    func isSingleCall(_ statement: CodeBlockItemSyntax) -> Bool {
         let expression: ExprSyntax?
         switch statement.item {
         case .expr(let expr):
