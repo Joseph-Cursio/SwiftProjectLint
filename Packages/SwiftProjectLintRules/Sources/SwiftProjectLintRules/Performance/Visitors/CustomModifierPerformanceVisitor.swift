@@ -91,7 +91,7 @@ class CustomModifierPerformanceVisitor: BasePatternVisitor {
         return .visitChildren
     }
 
-    private func isViewModifier(_ node: StructDeclSyntax) -> Bool {
+    func isViewModifier(_ node: StructDeclSyntax) -> Bool {
         guard let inheritanceClause = node.inheritanceClause else { return false }
         for inheritance in inheritanceClause.inheritedTypes {
             if let name = inheritance.type.as(IdentifierTypeSyntax.self)?.name.text,

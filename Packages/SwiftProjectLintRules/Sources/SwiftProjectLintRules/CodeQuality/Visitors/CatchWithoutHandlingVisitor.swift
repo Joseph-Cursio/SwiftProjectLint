@@ -88,7 +88,7 @@ final class CatchWithoutHandlingVisitor: BasePatternVisitor {
 
     // MARK: - Throw Detection (does not cross closure/function boundaries)
 
-    private func containsThrow(in syntax: Syntax) -> Bool {
+    func containsThrow(in syntax: Syntax) -> Bool {
         if syntax.is(ThrowStmtSyntax.self) { return true }
         if syntax.is(ClosureExprSyntax.self) { return false }
         if syntax.is(FunctionDeclSyntax.self) { return false }
@@ -101,7 +101,7 @@ final class CatchWithoutHandlingVisitor: BasePatternVisitor {
         "print", "debugPrint", "NSLog", "os_log", "os_signpost"
     ]
 
-    private func containsLoggingCall(in syntax: Syntax) -> Bool {
+    func containsLoggingCall(in syntax: Syntax) -> Bool {
         if let call = syntax.as(FunctionCallExprSyntax.self) {
             // Direct functions: print(...), NSLog(...), etc.
             if let declRef = call.calledExpression.as(DeclReferenceExprSyntax.self),
@@ -140,7 +140,7 @@ final class CatchWithoutHandlingVisitor: BasePatternVisitor {
     ///
     /// Receiver-gated on the `Issue` type identifier to avoid collision with
     /// adopter-defined `record(...)` methods on unrelated types.
-    private func containsTestingDiagnosticCall(in syntax: Syntax) -> Bool {
+    func containsTestingDiagnosticCall(in syntax: Syntax) -> Bool {
         if let call = syntax.as(FunctionCallExprSyntax.self),
            let member = call.calledExpression.as(MemberAccessExprSyntax.self),
            member.declName.baseName.text == "record",
@@ -158,7 +158,7 @@ final class CatchWithoutHandlingVisitor: BasePatternVisitor {
         "assertionFailure", "fatalError", "preconditionFailure"
     ]
 
-    private func containsTerminatingCall(in syntax: Syntax) -> Bool {
+    func containsTerminatingCall(in syntax: Syntax) -> Bool {
         if let call = syntax.as(FunctionCallExprSyntax.self),
            let declRef = call.calledExpression.as(DeclReferenceExprSyntax.self),
            Self.terminatingFunctionNames.contains(declRef.baseName.text) {
@@ -169,7 +169,7 @@ final class CatchWithoutHandlingVisitor: BasePatternVisitor {
 
     // MARK: - Error Variable Reference Detection (crosses closures, not nested functions)
 
-    private func containsReference(to name: String, in syntax: Syntax) -> Bool {
+    func containsReference(to name: String, in syntax: Syntax) -> Bool {
         if let ref = syntax.as(DeclReferenceExprSyntax.self), ref.baseName.text == name {
             return true
         }

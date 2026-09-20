@@ -44,7 +44,7 @@ final class NonisolatedUnsafeVisitor: BasePatternVisitor {
     ///
     /// Detection covers both explicit type annotations (`let lock: NSLock`)
     /// and inferred types from initializer calls (`let lock = NSLock()`).
-    private func enclosingTypeHasLock(for node: VariableDeclSyntax) -> Bool {
+    func enclosingTypeHasLock(for node: VariableDeclSyntax) -> Bool {
         var current: Syntax? = Syntax(node).parent
         while let syntax = current {
             if let memberBlock = syntax.as(MemberBlockSyntax.self) {

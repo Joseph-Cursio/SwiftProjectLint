@@ -59,7 +59,7 @@ final class MutuallyExclusivePresentationStateVisitor: BasePatternVisitor {
 
     /// Returns `true` when the property carries `@Presents` or
     /// `@PresentationState`.
-    private func hasPresentationAttribute(_ varDecl: VariableDeclSyntax) -> Bool {
+    func hasPresentationAttribute(_ varDecl: VariableDeclSyntax) -> Bool {
         varDecl.attributes.contains { element in
             guard case let .attribute(attribute) = element,
                   let identifier = attribute.attributeName.as(IdentifierTypeSyntax.self) else {
@@ -71,7 +71,7 @@ final class MutuallyExclusivePresentationStateVisitor: BasePatternVisitor {
     }
 
     /// Returns `true` when any binding's declared type is Optional (`T?`).
-    private func hasOptionalBinding(_ varDecl: VariableDeclSyntax) -> Bool {
+    func hasOptionalBinding(_ varDecl: VariableDeclSyntax) -> Bool {
         varDecl.bindings.contains { binding in
             binding.typeAnnotation?.type.is(OptionalTypeSyntax.self) ?? false
         }

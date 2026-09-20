@@ -104,7 +104,7 @@ final class FlagOptionalPairStateVisitor: BasePatternVisitor {
     }
 
     /// Optional (`T?`) or collection (`[T]` / `Array<T>` / `IdentifiedArrayOf<T>`).
-    private func isPairableType(_ type: TypeSyntax) -> Bool {
+    func isPairableType(_ type: TypeSyntax) -> Bool {
         if type.is(OptionalTypeSyntax.self) { return true }
         if type.is(ArrayTypeSyntax.self) { return true }
         if let ident = type.as(IdentifierTypeSyntax.self) {
@@ -118,7 +118,7 @@ final class FlagOptionalPairStateVisitor: BasePatternVisitor {
 
     /// Name heuristic for an in-flight / transition flag. `interactive` and
     /// `inactive` are excluded so they don't trip the `active` match.
-    private func isTransitionFlagName(_ name: String) -> Bool {
+    func isTransitionFlagName(_ name: String) -> Bool {
         let lower = name.lowercased()
         if lower.contains("loading") || lower.contains("fetching") || lower.contains("refreshing") {
             return true
@@ -146,7 +146,7 @@ final class FlagOptionalPairStateVisitor: BasePatternVisitor {
     /// Returns `true` when the binding's type is `Bool` — either by explicit
     /// annotation or, for an inferred type, by a boolean-literal initializer
     /// (`var isLoading = false`).
-    private func isBoolBinding(_ binding: PatternBindingSyntax) -> Bool {
+    func isBoolBinding(_ binding: PatternBindingSyntax) -> Bool {
         if let typeAnnotation = binding.typeAnnotation {
             return typeAnnotation.type.as(IdentifierTypeSyntax.self)?.name.text == "Bool"
         }

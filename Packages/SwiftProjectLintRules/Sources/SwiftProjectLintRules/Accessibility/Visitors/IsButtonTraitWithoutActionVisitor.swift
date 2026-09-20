@@ -84,7 +84,7 @@ final class IsButtonTraitWithoutActionVisitor: BasePatternVisitor {
     }
 
     /// True when the call adds `.isButton`, either bare or inside a trait array.
-    private func addsIsButtonTrait(_ call: FunctionCallExprSyntax) -> Bool {
+    func addsIsButtonTrait(_ call: FunctionCallExprSyntax) -> Bool {
         call.arguments.contains { argument in
             if isButtonTrait(argument.expression) { return true }
             guard let array = argument.expression.as(ArrayExprSyntax.self) else { return false }
@@ -92,7 +92,7 @@ final class IsButtonTraitWithoutActionVisitor: BasePatternVisitor {
         }
     }
 
-    private func isButtonTrait(_ expression: ExprSyntax) -> Bool {
+    func isButtonTrait(_ expression: ExprSyntax) -> Bool {
         expression.as(MemberAccessExprSyntax.self)?.declName.baseName.text == "isButton"
     }
 

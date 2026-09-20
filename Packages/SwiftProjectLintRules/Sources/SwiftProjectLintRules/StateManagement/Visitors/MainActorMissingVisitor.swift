@@ -30,14 +30,14 @@ final class MainActorMissingVisitor: MainActorMissingVisitorBase {
         conformsToObservableObject(node) && hasPublishedProperties(node)
     }
 
-    private func conformsToObservableObject(_ node: ClassDeclSyntax) -> Bool {
+    func conformsToObservableObject(_ node: ClassDeclSyntax) -> Bool {
         guard let clause = node.inheritanceClause else { return false }
         return clause.inheritedTypes.contains {
             $0.type.as(IdentifierTypeSyntax.self)?.name.text == "ObservableObject"
         }
     }
 
-    private func hasPublishedProperties(_ node: ClassDeclSyntax) -> Bool {
+    func hasPublishedProperties(_ node: ClassDeclSyntax) -> Bool {
         node.memberBlock.members.contains { member in
             guard let varDecl = member.decl.as(VariableDeclSyntax.self) else { return false }
             return hasAttribute(varDecl.attributes, named: "Published")

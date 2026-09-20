@@ -89,7 +89,7 @@ final class NonIdempotentActionNameVisitor: BasePatternVisitor {
         return nil
     }
 
-    private func soundsIdempotent(_ name: String) -> Bool {
+    func soundsIdempotent(_ name: String) -> Bool {
         if Self.exactWitnesses.contains(name) { return true }
         return Self.prefixWitnesses.contains { name.hasPrefix($0) }
     }
