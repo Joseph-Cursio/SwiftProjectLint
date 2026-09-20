@@ -47,7 +47,7 @@ final class SwallowedTaskErrorVisitor: BasePatternVisitor {
     /// - `try await Task { ... }.value`
     /// - `Task { ... }.result`
     /// - `let task = Task { ... }` (stored for later `.value`/`.result` access)
-    private func isTaskResultConsumed(_ node: FunctionCallExprSyntax) -> Bool {
+    func isTaskResultConsumed(_ node: FunctionCallExprSyntax) -> Bool {
         guard let parent = node.parent else { return false }
 
         // Pattern 1: Task { ... }.value  or  Task { ... }.result
@@ -86,11 +86,11 @@ final class SwallowedTaskErrorVisitor: BasePatternVisitor {
     // MARK: - Recursive Node Search
 
     /// Checks if the statements contain a bare `try` (not `try?` or `try!`).
-    private func containsBareTry(in statements: CodeBlockItemListSyntax) -> Bool {
+    func containsBareTry(in statements: CodeBlockItemListSyntax) -> Bool {
         statements.contains { containsBareTryNode(in: Syntax($0)) }
     }
 
-    private func containsBareTryNode(in syntax: Syntax) -> Bool {
+    func containsBareTryNode(in syntax: Syntax) -> Bool {
         if let tryExpr = syntax.as(TryExprSyntax.self) {
             // Only bare `try` — questionOrExclamationMark is nil
             if tryExpr.questionOrExclamationMark == nil { return true }

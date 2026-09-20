@@ -32,7 +32,7 @@ final class DispatchSemaphoreInAsyncVisitor: BasePatternVisitor {
         )
     }
 
-    private func isInsideAsyncContext(_ syntax: Syntax) -> Bool {
+    func isInsideAsyncContext(_ syntax: Syntax) -> Bool {
         var current = syntax
         while let parent = current.parent {
             if let funcDecl = parent.as(FunctionDeclSyntax.self) {

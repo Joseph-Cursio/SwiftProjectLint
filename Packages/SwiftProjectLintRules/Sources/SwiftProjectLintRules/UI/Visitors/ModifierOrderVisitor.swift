@@ -121,12 +121,12 @@ class ModifierOrderVisitor: BasePatternVisitor {
     }
 
     /// Returns true if this function call is a dot-member-style modifier call.
-    private func isModifierCall(_ node: FunctionCallExprSyntax) -> Bool {
+    func isModifierCall(_ node: FunctionCallExprSyntax) -> Bool {
         node.calledExpression.is(MemberAccessExprSyntax.self)
     }
 
     /// Returns true if this node's parent is also a modifier call (meaning we're not the outermost).
-    private func isNestedInModifierCall(_ node: FunctionCallExprSyntax) -> Bool {
+    func isNestedInModifierCall(_ node: FunctionCallExprSyntax) -> Bool {
         // Walk up: parent might be a MemberAccessExpr whose parent is a FunctionCallExpr
         guard let parent = node.parent else { return false }
         if let memberAccess = parent.as(MemberAccessExprSyntax.self),

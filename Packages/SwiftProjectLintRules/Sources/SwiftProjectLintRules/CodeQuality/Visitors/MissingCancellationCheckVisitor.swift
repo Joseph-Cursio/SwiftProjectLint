@@ -41,11 +41,11 @@ final class MissingCancellationCheckVisitor: BasePatternVisitor {
 
     // MARK: - Task Creation Detection
 
-    private func containsTaskCreation(in syntax: Syntax) -> Bool {
+    func containsTaskCreation(in syntax: Syntax) -> Bool {
         containsNode(in: syntax, matching: isTaskCreation)
     }
 
-    private func isTaskCreation(_ syntax: Syntax) -> Bool {
+    func isTaskCreation(_ syntax: Syntax) -> Bool {
         guard let call = syntax.as(FunctionCallExprSyntax.self) else { return false }
 
         // Task { }
@@ -67,11 +67,11 @@ final class MissingCancellationCheckVisitor: BasePatternVisitor {
 
     // MARK: - Cancellation Check Detection
 
-    private func containsCancellationCheck(in syntax: Syntax) -> Bool {
+    func containsCancellationCheck(in syntax: Syntax) -> Bool {
         containsNode(in: syntax, matching: isCancellationCheck)
     }
 
-    private func isCancellationCheck(_ syntax: Syntax) -> Bool {
+    func isCancellationCheck(_ syntax: Syntax) -> Bool {
         // Task.isCancelled  (property access, not a call)
         if let member = syntax.as(MemberAccessExprSyntax.self),
            let base = member.base?.as(DeclReferenceExprSyntax.self),

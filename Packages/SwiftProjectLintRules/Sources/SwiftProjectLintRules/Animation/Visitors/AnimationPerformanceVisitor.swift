@@ -137,7 +137,7 @@ final class AnimationPerformanceVisitor: BasePatternVisitor {
     }
 
     /// Checks if the call is an `.animation(...)` modifier.
-    private func isAnimationModifierCall(_ node: FunctionCallExprSyntax) -> Bool {
+    func isAnimationModifierCall(_ node: FunctionCallExprSyntax) -> Bool {
         guard let memberAccess = node.calledExpression.as(MemberAccessExprSyntax.self) else {
             return false
         }
@@ -145,7 +145,7 @@ final class AnimationPerformanceVisitor: BasePatternVisitor {
     }
 
     /// Walks the modifier chain inward looking for high-frequency callback names.
-    private func isNearHighFrequencyCallback(_ node: FunctionCallExprSyntax) -> Bool {
+    func isNearHighFrequencyCallback(_ node: FunctionCallExprSyntax) -> Bool {
         let highFrequencyCallbacks: Set<String> = ["onReceive", "onChange", "task"]
 
         guard let memberAccess = node.calledExpression.as(MemberAccessExprSyntax.self) else {

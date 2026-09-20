@@ -73,7 +73,7 @@ final class UncheckedSendableVisitor: BasePatternVisitor {
     /// In the SwiftSyntax AST, `@unchecked Sendable` is represented as an
     /// `InheritedTypeSyntax` whose `type` is an `AttributedTypeSyntax` with
     /// `@unchecked` in its attribute list and `Sendable` as its base type.
-    private func hasUncheckedSendable(_ clause: InheritanceClauseSyntax?) -> Bool {
+    func hasUncheckedSendable(_ clause: InheritanceClauseSyntax?) -> Bool {
         guard let clause else { return false }
         return clause.inheritedTypes.contains { inherited in
             guard let attributed = inherited.type.as(AttributedTypeSyntax.self) else { return false }

@@ -81,7 +81,7 @@ final class StringSwitchOverEnumVisitor: BasePatternVisitor {
     /// Heuristically determines whether the base expression of `.rawValue` is
     /// likely an enum. Uses `knownEnumTypes` when populated by cross-file
     /// analysis; otherwise falls back to structural heuristics.
-    private func isLikelyEnumBase(_ base: ExprSyntax) -> Bool {
+    func isLikelyEnumBase(_ base: ExprSyntax) -> Bool {
         let baseName = extractBaseName(base)
 
         // If cross-file analysis populated knownEnumTypes, check it
@@ -132,12 +132,12 @@ final class StringSwitchOverEnumVisitor: BasePatternVisitor {
         return false
     }
 
-    private func paramLooksLikeDecoder(_ param: FunctionParameterSyntax) -> Bool {
+    func paramLooksLikeDecoder(_ param: FunctionParameterSyntax) -> Bool {
         let typeText = param.type.trimmedDescription
         return typeText == "Decoder" || typeText.hasSuffix(".Decoder")
     }
 
-    private func paramLooksLikeEncoder(_ param: FunctionParameterSyntax) -> Bool {
+    func paramLooksLikeEncoder(_ param: FunctionParameterSyntax) -> Bool {
         let typeText = param.type.trimmedDescription
         return typeText == "Encoder" || typeText.hasSuffix(".Encoder")
     }

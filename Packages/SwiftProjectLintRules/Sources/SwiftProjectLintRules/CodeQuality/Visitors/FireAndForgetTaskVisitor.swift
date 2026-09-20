@@ -58,7 +58,7 @@ final class FireAndForgetTaskVisitor: BasePatternVisitor {
     /// - `existingHandle = Task { ... }` — assigned to an existing property/var
     /// - `try await Task { ... }.value` — errors propagate to the caller
     /// - `Task { ... }.result` — result captured by the caller
-    private func isResultConsumed(_ node: FunctionCallExprSyntax) -> Bool {
+    func isResultConsumed(_ node: FunctionCallExprSyntax) -> Bool {
         guard let parent = node.parent else { return false }
 
         // Pattern: let task = Task { ... }
@@ -80,7 +80,7 @@ final class FireAndForgetTaskVisitor: BasePatternVisitor {
 
     /// `Task { ... }.value` / `.result` — the handle's value is consumed,
     /// possibly behind `try`/`await` wrappers.
-    private func isValueOrResultAccess(_ syntax: Syntax) -> Bool {
+    func isValueOrResultAccess(_ syntax: Syntax) -> Bool {
         guard let member = syntax.as(MemberAccessExprSyntax.self) else { return false }
         let name = member.declName.baseName.text
         return name == "value" || name == "result"
@@ -90,7 +90,7 @@ final class FireAndForgetTaskVisitor: BasePatternVisitor {
     /// variable (e.g. `analysisTask = Task { }`). Unfolded parse trees model this
     /// as a SequenceExpr containing an AssignmentExpr; folded trees as an
     /// InfixOperatorExpr with `=`.
-    private func isHandleAssignment(_ syntax: Syntax) -> Bool {
+    func isHandleAssignment(_ syntax: Syntax) -> Bool {
         if let sequence = syntax.as(SequenceExprSyntax.self),
            sequence.elements.contains(where: { $0.is(AssignmentExprSyntax.self) }) {
             return true

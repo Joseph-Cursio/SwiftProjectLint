@@ -88,7 +88,7 @@ class ViewBuilderComplexityVisitor: BasePatternVisitor {
         }
     }
 
-    private func hasViewBuilderAttribute(_ attributes: AttributeListSyntax) -> Bool {
+    func hasViewBuilderAttribute(_ attributes: AttributeListSyntax) -> Bool {
         for attribute in attributes {
             if let attributeSyntax = attribute.as(AttributeSyntax.self),
                let attributeName = attributeSyntax.attributeName.as(IdentifierTypeSyntax.self),

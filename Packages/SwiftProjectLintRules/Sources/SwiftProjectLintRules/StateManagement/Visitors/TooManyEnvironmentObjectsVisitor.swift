@@ -58,7 +58,7 @@ class TooManyEnvironmentObjectsVisitor: BasePatternVisitor {
         viewNode = nil
     }
 
-    private func hasEnvironmentObjectWrapper(_ node: VariableDeclSyntax) -> Bool {
+    func hasEnvironmentObjectWrapper(_ node: VariableDeclSyntax) -> Bool {
         for attribute in node.attributes {
             if let attributeSyntax = attribute.as(AttributeSyntax.self),
                let attributeName = attributeSyntax.attributeName.as(IdentifierTypeSyntax.self),

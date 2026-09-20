@@ -28,7 +28,7 @@ final class TaskInOnAppearVisitor: BasePatternVisitor {
         )
     }
 
-    private func isTaskCall(_ node: FunctionCallExprSyntax) -> Bool {
+    func isTaskCall(_ node: FunctionCallExprSyntax) -> Bool {
         if let declRef = node.calledExpression.as(DeclReferenceExprSyntax.self),
            declRef.baseName.text == "Task" {
             return true
@@ -42,7 +42,7 @@ final class TaskInOnAppearVisitor: BasePatternVisitor {
         return false
     }
 
-    private func isInsideOnAppearClosure(_ syntax: Syntax) -> Bool {
+    func isInsideOnAppearClosure(_ syntax: Syntax) -> Bool {
         var current = syntax
         while let parent = current.parent {
             // Stop at function declaration boundaries

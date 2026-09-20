@@ -221,7 +221,7 @@ final class VariableShadowingVisitor: BasePatternVisitor {
     /// Returns `true` when `binding`'s initializer contains a reference to `name`.
     /// Used to distinguish ambiguous shadows (e.g. `let config = config.cleaned()`)
     /// from clear-cut ones (e.g. `let config = 42`).
-    private func initializerReferences(name: String, in binding: PatternBindingSyntax) -> Bool {
+    func initializerReferences(name: String, in binding: PatternBindingSyntax) -> Bool {
         guard let initializer = binding.initializer else { return false }
         return initializer.value.tokens(viewMode: .sourceAccurate).contains { token in
             token.tokenKind == .identifier(name)
@@ -230,7 +230,7 @@ final class VariableShadowingVisitor: BasePatternVisitor {
 
     /// Returns `true` when a for-loop's sequence expression references `name`.
     /// Used to skip `for x in x` patterns (analogous to `if let x = x`).
-    private func sequenceReferences(name: String, in sequence: ExprSyntax) -> Bool {
+    func sequenceReferences(name: String, in sequence: ExprSyntax) -> Bool {
         sequence.tokens(viewMode: .sourceAccurate).contains { token in
             token.tokenKind == .identifier(name)
         }
