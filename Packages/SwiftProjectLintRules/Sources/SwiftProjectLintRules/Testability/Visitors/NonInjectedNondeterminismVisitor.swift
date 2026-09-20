@@ -260,7 +260,7 @@ final class NonInjectedNondeterminismVisitor: BasePatternVisitor {
     /// the arity and label checks are what separate `(Date())` from
     /// `f(at: Date())`. Without them this would re-admit every call argument and
     /// the walk would be unrestricted again.
-    private func isTransparentWrapper(_ syntax: Syntax) -> Bool {
+    func isTransparentWrapper(_ syntax: Syntax) -> Bool {
         if syntax.is(TryExprSyntax.self) || syntax.is(AwaitExprSyntax.self) { return true }
         if let tuple = syntax.as(TupleExprSyntax.self) { return tuple.elements.count == 1 }
         if let element = syntax.as(LabeledExprSyntax.self) {
@@ -292,7 +292,7 @@ final class NonInjectedNondeterminismVisitor: BasePatternVisitor {
         return nil
     }
 
-    private func isNilCoalescing(_ expression: ExprSyntax) -> Bool {
+    func isNilCoalescing(_ expression: ExprSyntax) -> Bool {
         expression.as(BinaryOperatorExprSyntax.self)?.operator.text == "??"
     }
 
@@ -350,7 +350,7 @@ final class NonInjectedNondeterminismVisitor: BasePatternVisitor {
 
     /// True for `target = target ?? …` — an assignment whose left-hand side is
     /// the operand the `??` falls back from, in the same flat sequence.
-    private func assigns(to target: String, in elements: ExprListSyntax) -> Bool {
+    func assigns(to target: String, in elements: ExprListSyntax) -> Bool {
         var previous: ExprSyntax?
         for expression in elements {
             if expression.is(AssignmentExprSyntax.self), reference(previous) == target {
@@ -385,7 +385,7 @@ final class NonInjectedNondeterminismVisitor: BasePatternVisitor {
     /// The whole subtree rather than the top-level statements, because the
     /// write-back is as likely to sit inside an `if`, a `do` or a `defer` as it
     /// is to sit flat in the body.
-    private func writesBack(_ name: String, to target: String, in scope: Syntax) -> Bool {
+    func writesBack(_ name: String, to target: String, in scope: Syntax) -> Bool {
         if let elements = scope.as(ExprListSyntax.self),
            isWriteBack(name, to: target, in: elements) { return true }
 
@@ -400,7 +400,7 @@ final class NonInjectedNondeterminismVisitor: BasePatternVisitor {
         return false
     }
 
-    private func isWriteBack(_ name: String, to target: String, in elements: ExprListSyntax) -> Bool {
+    func isWriteBack(_ name: String, to target: String, in elements: ExprListSyntax) -> Bool {
         var previous: ExprSyntax?
         var beforePrevious: ExprSyntax?
         for expression in elements {
@@ -430,7 +430,7 @@ final class NonInjectedNondeterminismVisitor: BasePatternVisitor {
     /// Measured across the seven-run sweep corpus: 14 of 198 findings are `let id = UUID()`, and 13
     /// of those carry the conformance. **This is a 7% narrowing, not the wholesale one the rule
     /// looks like it wants** — see the note on `report`.
-    private func isIdentifiableIdentity(_ node: Syntax) -> Bool {
+    func isIdentifiableIdentity(_ node: Syntax) -> Bool {
         var current = node.parent
         var storedName: String?
 

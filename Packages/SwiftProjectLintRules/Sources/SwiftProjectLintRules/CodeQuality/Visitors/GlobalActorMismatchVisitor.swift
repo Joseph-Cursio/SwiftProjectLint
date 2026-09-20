@@ -178,7 +178,7 @@ final class GlobalActorMismatchVisitor: BasePatternVisitor {
         return nil
     }
 
-    private func isAwaitPreceding(_ node: FunctionCallExprSyntax) -> Bool {
+    func isAwaitPreceding(_ node: FunctionCallExprSyntax) -> Bool {
         // Walk up to find an AwaitExprSyntax wrapping this call
         var current: Syntax? = Syntax(node)
         while let parent = current?.parent {

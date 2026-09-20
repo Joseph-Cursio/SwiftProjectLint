@@ -57,7 +57,7 @@ final class PreconcurrencyConformanceVisitor: BasePatternVisitor {
 
     // MARK: - Private
 
-    private func hasPreconcurrency(_ attributes: AttributeListSyntax) -> Bool {
+    func hasPreconcurrency(_ attributes: AttributeListSyntax) -> Bool {
         attributes.contains { element in
             guard let attr = element.as(AttributeSyntax.self) else { return false }
             return attr.attributeName.trimmedDescription == "preconcurrency"

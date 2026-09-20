@@ -191,7 +191,7 @@ class SecurityVisitor: BasePatternVisitor {
     /// There is deliberately **no minimum-length guard**, which was also proposed. A real
     /// hardcoded password can be short — `"hunter2"` is seven characters and so is `"<<<0>>>"` —
     /// so length cannot separate them and would buy quiet at the cost of the findings that matter.
-    private func canHoldASecret(_ literal: StringLiteralExprSyntax) -> Bool {
+    func canHoldASecret(_ literal: StringLiteralExprSyntax) -> Bool {
         if literal.segments.contains(where: { $0.is(ExpressionSegmentSyntax.self) }) { return false }
         // An empty literal is not a credential under any heuristic, the name match included.
         return !extractStringValue(literal).isEmpty
@@ -216,7 +216,7 @@ class SecurityVisitor: BasePatternVisitor {
     ///
     /// Narrow on purpose. `password = "hunter2"` is reported, because `hunter2` is nowhere in
     /// `password` — which is the discrimination a length or wordiness test could not make.
-    private func valueEchoesItsOwnName(_ value: String, variableName: String) -> Bool {
+    func valueEchoesItsOwnName(_ value: String, variableName: String) -> Bool {
         guard !value.isEmpty else { return true }
         // Separators are spelling, not meaning: a Keychain account is written `encryption_key`
         // and its property `encryptionKeyAccount`. Comparing verbatim missed that pair and left
@@ -234,7 +234,7 @@ class SecurityVisitor: BasePatternVisitor {
         text.lowercased().filter { $0.isLetter || $0.isNumber }
     }
 
-    private func isPlaceholder(_ value: String) -> Bool {
+    func isPlaceholder(_ value: String) -> Bool {
         let upper = value.uppercased()
         return Self.placeholderValues.contains { upper.contains($0.uppercased()) }
     }
@@ -243,7 +243,7 @@ class SecurityVisitor: BasePatternVisitor {
         isTestOrFixtureFile()
     }
 
-    private func looksLikeJWT(_ value: String) -> Bool {
+    func looksLikeJWT(_ value: String) -> Bool {
         value.hasPrefix("eyJ")
             && value.split(separator: ".").count == 3
     }
@@ -264,12 +264,12 @@ class SecurityVisitor: BasePatternVisitor {
     ///
     /// Every keyword is compound (`apiKey`, not `key`), which is what keeps `cacheKey` and
     /// `sortKey` from matching.
-    private func isSensitiveVariableName(_ name: String) -> Bool {
+    func isSensitiveVariableName(_ name: String) -> Bool {
         Self.secretKeywords.contains { name.localizedCaseInsensitiveContains($0) }
     }
 
     /// Computes Shannon entropy in bits per character.
-    private func shannonEntropy(_ string: String) -> Double {
+    func shannonEntropy(_ string: String) -> Double {
         guard string.isEmpty == false else { return 0 }
         var frequency: [Character: Int] = [:]
         for char in string {

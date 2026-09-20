@@ -80,7 +80,7 @@ extension NonInjectedNondeterminismVisitor {
     /// `{ get { Date() } }` carries it in the `get` accessor's body. A getter
     /// that reached its value in several steps has already bound it to a name,
     /// and binding it is the fix.
-    private func isSingleExpressionGetter(_ accessors: AccessorBlockSyntax) -> Bool {
+    func isSingleExpressionGetter(_ accessors: AccessorBlockSyntax) -> Bool {
         switch accessors.accessors {
         case .getter(let items):
             return items.count == 1
@@ -177,7 +177,7 @@ extension NonInjectedNondeterminismVisitor {
     }
 
     /// The `let name = <read>` case: a local binding whose every use is an argument.
-    private func isBoundAndOnlyPassedOn(_ node: Syntax) -> Bool {
+    func isBoundAndOnlyPassedOn(_ node: Syntax) -> Bool {
         guard let clause = node.parent?.as(InitializerClauseSyntax.self),
               Syntax(clause.value).id == node.id,
               let binding = clause.parent?.as(PatternBindingSyntax.self),
@@ -220,7 +220,7 @@ extension NonInjectedNondeterminismVisitor {
         }
     }
 
-    private func isArgumentPosition(_ node: Syntax) -> Bool {
+    func isArgumentPosition(_ node: Syntax) -> Bool {
         var child = node
         var current = node.parent
         while let syntax = current {
@@ -299,7 +299,7 @@ extension NonInjectedNondeterminismVisitor {
     /// refused: an argument may contain literals and leading-dot members and **nothing else**. One
     /// bare identifier and the member is treated as combining, because resolving whether that
     /// identifier is a local, a parameter or a static constant is a scope walk.
-    private func representation(of member: MemberAccessExprSyntax) -> Syntax? {
+    func representation(of member: MemberAccessExprSyntax) -> Syntax? {
         guard Self.restatingMembers.contains(member.declName.baseName.text) else { return nil }
         guard let call = member.parent?.as(FunctionCallExprSyntax.self),
               Syntax(call.calledExpression).id == Syntax(member).id else {
@@ -357,7 +357,7 @@ extension NonInjectedNondeterminismVisitor {
     /// Narrower than the `??`-chain walk's `isTransparentWrapper`, which also steps through tuple
     /// elements: a tuple *is* a value this scope built, so stepping through one would read
     /// `f((Date(), x))` as handing the instant on when what was handed on is the pair.
-    private func isTransparentPassthrough(_ syntax: Syntax) -> Bool {
+    func isTransparentPassthrough(_ syntax: Syntax) -> Bool {
         syntax.is(TryExprSyntax.self) || syntax.is(AwaitExprSyntax.self)
     }
 

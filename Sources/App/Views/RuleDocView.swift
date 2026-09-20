@@ -34,7 +34,7 @@ struct RuleDocView: View {
 
     // MARK: - Markdown blocks
 
-    private enum Block {
+    enum Block {
         case heading2(String)
         case heading3(String)
         case codeBlock(String)
@@ -43,7 +43,7 @@ struct RuleDocView: View {
         case spacer
     }
 
-    private func parseBlocks(_ text: String) -> [Block] {
+    func parseBlocks(_ text: String) -> [Block] {
         var blocks: [Block] = []
         let lines = text.components(separatedBy: "\n")
         var lineIndex = 0
@@ -91,7 +91,7 @@ struct RuleDocView: View {
     /// Single-line block recognisers: headings, dividers, and the empty
     /// spacer. Folded out of `parseBlocks` so the main loop only handles
     /// multi-line shapes (fenced code, paragraphs) and the back-nav skip.
-    private func singleLineBlock(from line: String) -> Block? {
+    func singleLineBlock(from line: String) -> Block? {
         if line.hasPrefix("## ") { return .heading2(String(line.dropFirst(3))) }
         if line.hasPrefix("### ") { return .heading3(String(line.dropFirst(4))) }
         if line == "---" { return .divider }

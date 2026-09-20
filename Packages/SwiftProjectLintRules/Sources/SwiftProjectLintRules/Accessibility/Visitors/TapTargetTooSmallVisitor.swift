@@ -77,7 +77,7 @@ final class TapTargetTooSmallVisitor: BasePatternVisitor {
     }
 
     /// Walks the modifier chain backwards to check if the root is an interactive element.
-    private func hasInteractiveRoot(from node: FunctionCallExprSyntax) -> Bool {
+    func hasInteractiveRoot(from node: FunctionCallExprSyntax) -> Bool {
         var current = ExprSyntax(node)
 
         while true {
@@ -99,7 +99,7 @@ final class TapTargetTooSmallVisitor: BasePatternVisitor {
     }
 
     /// Checks if a `.padding()` modifier wraps this `.frame()` call.
-    private func hasPaddingParent(_ node: FunctionCallExprSyntax) -> Bool {
+    func hasPaddingParent(_ node: FunctionCallExprSyntax) -> Bool {
         var current: Syntax? = Syntax(node).parent
         while let parent = current {
             if let call = parent.as(FunctionCallExprSyntax.self),

@@ -75,7 +75,7 @@ final class ViewModelDirectDBAccessVisitor: BasePatternVisitor {
 
     // MARK: - Helpers
 
-    private func isViewModelClass(_ node: ClassDeclSyntax, name: String) -> Bool {
+    func isViewModelClass(_ node: ClassDeclSyntax, name: String) -> Bool {
         // Name-based: ends in ViewModel or VM
         if name.hasSuffix("ViewModel") || name.hasSuffix("VM") {
             return true
@@ -96,7 +96,7 @@ final class ViewModelDirectDBAccessVisitor: BasePatternVisitor {
         }
     }
 
-    private func isRepositoryClass(_ name: String) -> Bool {
+    func isRepositoryClass(_ name: String) -> Bool {
         Self.repositorySuffixes.contains { name.contains($0) }
     }
 

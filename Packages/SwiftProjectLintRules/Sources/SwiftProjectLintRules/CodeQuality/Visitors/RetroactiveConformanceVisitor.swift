@@ -64,7 +64,7 @@ final class RetroactiveConformanceVisitor: BasePatternVisitor {
     /// Detection is name-based: the type must exactly match a known well-used
     /// framework type. Generic specializations like `Array<Foo>` are stripped
     /// to their base name (`Array`) before checking.
-    private func isHighRiskFrameworkType(_ typeName: String) -> Bool {
+    func isHighRiskFrameworkType(_ typeName: String) -> Bool {
         // Strip generic arguments: "Array<String>" -> "Array"
         let baseName = typeName.components(separatedBy: "<").first ?? typeName
         return Self.highRiskFrameworkTypes.contains(baseName.trimmingCharacters(in: .whitespaces))

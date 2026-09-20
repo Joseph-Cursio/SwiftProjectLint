@@ -129,7 +129,7 @@ final class IdempotencyViolationVisitor: CrossFileVisitorBase, CrossFilePatternV
     /// — calls inside would otherwise be attributed to the outer effect.
     /// Unannotated closure-bound bindings keep the old behaviour: they inherit
     /// the outer site's effect and are walked through.
-    private func carriesOwnEffectAnnotation(_ syntax: Syntax) -> Bool {
+    func carriesOwnEffectAnnotation(_ syntax: Syntax) -> Bool {
         guard let varDecl = syntax.as(VariableDeclSyntax.self),
               varDecl.closureInitializer != nil else {
             return false

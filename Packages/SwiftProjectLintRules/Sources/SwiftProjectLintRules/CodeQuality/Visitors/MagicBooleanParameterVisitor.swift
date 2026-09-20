@@ -63,7 +63,7 @@ final class MagicBooleanParameterVisitor: BasePatternVisitor {
 
     // MARK: - Helpers
 
-    private func isBooleanLiteral(_ expr: ExprSyntax) -> Bool {
+    func isBooleanLiteral(_ expr: ExprSyntax) -> Bool {
         guard let boolExpr = expr.as(BooleanLiteralExprSyntax.self) else {
             return false
         }

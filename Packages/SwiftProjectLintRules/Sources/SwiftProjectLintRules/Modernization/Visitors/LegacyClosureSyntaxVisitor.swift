@@ -52,7 +52,7 @@ final class LegacyClosureSyntaxVisitor: BasePatternVisitor {
     // MARK: - Helpers
 
     /// Checks if the closure signature has explicit type annotations on parameters.
-    private func hasExplicitTypeAnnotations(
+    func hasExplicitTypeAnnotations(
         _ signature: ClosureSignatureSyntax
     ) -> Bool {
         guard let paramClause = signature.parameterClause else { return false }
@@ -70,7 +70,7 @@ final class LegacyClosureSyntaxVisitor: BasePatternVisitor {
     }
 
     /// Checks if the closure is a trailing closure on a known inferrable method.
-    private func isInInferrableContext(_ node: ClosureExprSyntax) -> Bool {
+    func isInInferrableContext(_ node: ClosureExprSyntax) -> Bool {
         // Walk up to find the enclosing function call
         var current: Syntax? = Syntax(node).parent
         while let parent = current {
@@ -91,7 +91,7 @@ final class LegacyClosureSyntaxVisitor: BasePatternVisitor {
         return false
     }
 
-    private func isInferrableCall(_ call: FunctionCallExprSyntax) -> Bool {
+    func isInferrableCall(_ call: FunctionCallExprSyntax) -> Bool {
         if let memberAccess = call.calledExpression.as(MemberAccessExprSyntax.self) {
             return Self.inferrableContexts
                 .contains(memberAccess.declName.baseName.text)

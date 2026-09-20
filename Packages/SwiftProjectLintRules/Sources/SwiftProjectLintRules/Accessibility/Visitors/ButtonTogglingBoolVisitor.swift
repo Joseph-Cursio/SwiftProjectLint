@@ -74,7 +74,7 @@ final class ButtonTogglingBoolVisitor: BasePatternVisitor {
     }
 
     /// Checks whether a closure contains a `.toggle()` call.
-    private func containsToggleCall(in closure: ClosureExprSyntax) -> Bool {
+    func containsToggleCall(in closure: ClosureExprSyntax) -> Bool {
         for statement in closure.statements
             where hasToggleCall(in: Syntax(statement)) {
             return true
@@ -83,7 +83,7 @@ final class ButtonTogglingBoolVisitor: BasePatternVisitor {
     }
 
     /// Recursively checks for a `.toggle()` member function call.
-    private func hasToggleCall(in syntax: Syntax) -> Bool {
+    func hasToggleCall(in syntax: Syntax) -> Bool {
         if let call = syntax.as(FunctionCallExprSyntax.self),
            let member = call.calledExpression.as(MemberAccessExprSyntax.self),
            member.declName.baseName.text == "toggle",

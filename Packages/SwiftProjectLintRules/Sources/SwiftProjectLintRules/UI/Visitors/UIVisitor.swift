@@ -169,7 +169,7 @@ class UIVisitor: BasePatternVisitor {
     }
 
     /// Returns true if the view is private or fileprivate.
-    private func hasRestrictedAccess(_ node: StructDeclSyntax) -> Bool {
+    func hasRestrictedAccess(_ node: StructDeclSyntax) -> Bool {
         node.modifiers.contains { modifier in
             let text = modifier.name.text
             return text == "private" || text == "fileprivate"
@@ -206,7 +206,7 @@ class UIVisitor: BasePatternVisitor {
         return .visitChildren
     }
 
-    private func analyzeAccessorBlock(_ accessorBlock: AccessorBlockSyntax?, for node: VariableDeclSyntax) -> Bool {
+    func analyzeAccessorBlock(_ accessorBlock: AccessorBlockSyntax?, for node: VariableDeclSyntax) -> Bool {
         guard let accessorBlock else { return false }
         for child in accessorBlock.accessors.children(viewMode: .all) {
             if let accessor = child.as(AccessorDeclSyntax.self), let body = accessor.body {
@@ -217,7 +217,7 @@ class UIVisitor: BasePatternVisitor {
         return false
     }
 
-    private func analyzeInitializer(_ initializer: InitializerClauseSyntax?, for node: VariableDeclSyntax) -> Bool {
+    func analyzeInitializer(_ initializer: InitializerClauseSyntax?, for node: VariableDeclSyntax) -> Bool {
         guard let initializer else { return false }
         if let closure = initializer.value.as(ClosureExprSyntax.self) {
             analyzeBodyTextForErrorHandling(closure.statements.description, node: node)
@@ -251,7 +251,7 @@ class UIVisitor: BasePatternVisitor {
     /// or has a property whose type name contains "ViewModel". Views with these
     /// dependencies require non-trivial mock setup for previews, so the missing-preview
     /// rule only flags leaf components without them.
-    private func hasComplexDependencies(_ node: StructDeclSyntax) -> Bool {
+    func hasComplexDependencies(_ node: StructDeclSyntax) -> Bool {
         let complexWrappers: Set<String> = ["Environment", "EnvironmentObject", "Bindable"]
 
         for member in node.memberBlock.members {

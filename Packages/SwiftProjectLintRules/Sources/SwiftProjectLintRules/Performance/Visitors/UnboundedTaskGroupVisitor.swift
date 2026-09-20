@@ -127,11 +127,11 @@ final class UnboundedTaskGroupVisitor: BasePatternVisitor {
 
     // MARK: - Helpers
 
-    private func isTaskGroupFunction(_ name: String) -> Bool {
+    func isTaskGroupFunction(_ name: String) -> Bool {
         name == "withTaskGroup" || name == "withThrowingTaskGroup"
     }
 
-    private func isAddTaskCall(_ node: FunctionCallExprSyntax) -> Bool {
+    func isAddTaskCall(_ node: FunctionCallExprSyntax) -> Bool {
         guard let memberAccess = node.calledExpression.as(MemberAccessExprSyntax.self),
               memberAccess.declName.baseName.text == "addTask",
               let base = memberAccess.base?.as(DeclReferenceExprSyntax.self) else {
@@ -140,7 +140,7 @@ final class UnboundedTaskGroupVisitor: BasePatternVisitor {
         return taskGroupParamNames.contains(base.baseName.text)
     }
 
-    private func isNextCall(_ node: FunctionCallExprSyntax) -> Bool {
+    func isNextCall(_ node: FunctionCallExprSyntax) -> Bool {
         guard let memberAccess = node.calledExpression.as(MemberAccessExprSyntax.self),
               memberAccess.declName.baseName.text == "next",
               let base = memberAccess.base?.as(DeclReferenceExprSyntax.self) else {
@@ -149,7 +149,7 @@ final class UnboundedTaskGroupVisitor: BasePatternVisitor {
         return taskGroupParamNames.contains(base.baseName.text)
     }
 
-    private func isGroupReference(_ expr: ExprSyntax) -> Bool {
+    func isGroupReference(_ expr: ExprSyntax) -> Bool {
         guard let declRef = expr.as(DeclReferenceExprSyntax.self) else { return false }
         return taskGroupParamNames.contains(declRef.baseName.text)
     }

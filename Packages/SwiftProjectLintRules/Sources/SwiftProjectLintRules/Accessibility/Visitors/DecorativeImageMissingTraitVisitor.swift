@@ -62,7 +62,7 @@ final class DecorativeImageMissingTraitVisitor: BasePatternVisitor {
     // MARK: - Helpers
 
     /// Returns true if this is `Image("name")` (asset image), not `Image(systemName:)`.
-    private func isAssetImage(_ node: FunctionCallExprSyntax) -> Bool {
+    func isAssetImage(_ node: FunctionCallExprSyntax) -> Bool {
         // systemName: means SF Symbol — skip
         if node.arguments.contains(where: { $0.label?.text == "systemName" }) {
             return false
@@ -82,7 +82,7 @@ final class DecorativeImageMissingTraitVisitor: BasePatternVisitor {
     }
 
     /// Heuristic: is this image likely decorative?
-    private func isLikelyDecorative(
+    func isLikelyDecorative(
         _ node: FunctionCallExprSyntax,
         imageName: String
     ) -> Bool {
@@ -107,7 +107,7 @@ final class DecorativeImageMissingTraitVisitor: BasePatternVisitor {
     }
 
     /// Checks the modifier chain and parent modifiers for accessibility handling.
-    private func hasAccessibilityHandling(_ node: FunctionCallExprSyntax) -> Bool {
+    func hasAccessibilityHandling(_ node: FunctionCallExprSyntax) -> Bool {
         let modifiers = collectAllModifiers(from: node)
         return modifiers.contains("accessibilityHidden")
             || modifiers.contains("accessibilityLabel")
@@ -141,7 +141,7 @@ final class DecorativeImageMissingTraitVisitor: BasePatternVisitor {
         return modifiers
     }
 
-    private func isInsideModifier(_ node: FunctionCallExprSyntax, named name: String) -> Bool {
+    func isInsideModifier(_ node: FunctionCallExprSyntax, named name: String) -> Bool {
         var current: Syntax? = Syntax(node).parent
         while let parent = current {
             if let call = parent.as(FunctionCallExprSyntax.self),
@@ -155,7 +155,7 @@ final class DecorativeImageMissingTraitVisitor: BasePatternVisitor {
         return false
     }
 
-    private func isInsideInteractiveElement(_ node: FunctionCallExprSyntax) -> Bool {
+    func isInsideInteractiveElement(_ node: FunctionCallExprSyntax) -> Bool {
         var current: Syntax? = Syntax(node).parent
         while let parent = current {
             if let call = parent.as(FunctionCallExprSyntax.self),
@@ -169,7 +169,7 @@ final class DecorativeImageMissingTraitVisitor: BasePatternVisitor {
     }
 
     /// Checks if `.opacity()` with a value < 1.0 is in the modifier chain.
-    private func hasLowOpacity(_ node: FunctionCallExprSyntax) -> Bool {
+    func hasLowOpacity(_ node: FunctionCallExprSyntax) -> Bool {
         var current: Syntax? = Syntax(node).parent
         while let parent = current {
             if let call = parent.as(FunctionCallExprSyntax.self),

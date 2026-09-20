@@ -52,13 +52,13 @@ final class GlobalMutableStateVisitor: BasePatternVisitor {
         return .visitChildren
     }
 
-    private func isStatic(_ node: VariableDeclSyntax) -> Bool {
+    func isStatic(_ node: VariableDeclSyntax) -> Bool {
         node.modifiers.contains { $0.name.tokenKind == .keyword(.static) }
     }
 
     /// True when the declaration sits directly at file scope:
     /// `SourceFile > CodeBlockItemList > CodeBlockItem > VariableDecl`.
-    private func isFileScope(_ node: VariableDeclSyntax) -> Bool {
+    func isFileScope(_ node: VariableDeclSyntax) -> Bool {
         guard let item = node.parent?.as(CodeBlockItemSyntax.self),
               let list = item.parent?.as(CodeBlockItemListSyntax.self) else {
             return false

@@ -42,7 +42,7 @@ final class PreconcurrencyImportVisitor: BasePatternVisitor {
         return .visitChildren
     }
 
-    private func hasPreconcurrencyAttribute(_ attributes: AttributeListSyntax) -> Bool {
+    func hasPreconcurrencyAttribute(_ attributes: AttributeListSyntax) -> Bool {
         attributes.contains { element in
             element.as(AttributeSyntax.self)?.attributeName.trimmedDescription == "preconcurrency"
         }

@@ -69,7 +69,7 @@ class SingletonUsageVisitor: BasePatternVisitor {
     /// True when `node` sits directly in a function/initializer parameter's default
     /// value (e.g. `init(x: P = Type.shared)`). Walking stops at a closure or code
     /// block so a `.shared` *call* inside a default closure body is still flagged.
-    private func isParameterDefaultValue(_ node: MemberAccessExprSyntax) -> Bool {
+    func isParameterDefaultValue(_ node: MemberAccessExprSyntax) -> Bool {
         var current = node.parent
         while let syntax = current {
             if syntax.is(ClosureExprSyntax.self) || syntax.is(CodeBlockSyntax.self) {

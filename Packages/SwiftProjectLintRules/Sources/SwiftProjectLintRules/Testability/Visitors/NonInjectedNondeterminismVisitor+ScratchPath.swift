@@ -99,7 +99,7 @@ extension NonInjectedNondeterminismVisitor {
     /// timestamp name is one that *usually* does not collide, and the snapshot collision loop that
     /// terminated only because its format carried milliseconds is the defect that requirement exists
     /// for.
-    private func isRemovedInADefer(_ call: FunctionCallExprSyntax) -> Bool {
+    func isRemovedInADefer(_ call: FunctionCallExprSyntax) -> Bool {
         guard let clause = call.parent?.as(InitializerClauseSyntax.self),
               Syntax(clause.value).id == Syntax(call).id,
               let binding = clause.parent?.as(PatternBindingSyntax.self),

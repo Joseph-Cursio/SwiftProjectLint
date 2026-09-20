@@ -116,7 +116,7 @@ final class SwallowedInjectionDowncastVisitor: BasePatternVisitor {
 
     /// True when `type`, after unwrapping `Optional` / IUO and parentheses, is an
     /// existential (`any P`) or a nominal type whose name ends in `Protocol`.
-    private func isAbstractionType(_ type: TypeSyntax) -> Bool {
+    func isAbstractionType(_ type: TypeSyntax) -> Bool {
         let unwrapped = unwrap(type)
         if unwrapped.is(SomeOrAnyTypeSyntax.self) {
             // `any P` / `some P` — treat the existential form as an abstraction.

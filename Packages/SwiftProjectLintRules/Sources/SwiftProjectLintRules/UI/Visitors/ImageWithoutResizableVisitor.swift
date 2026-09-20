@@ -76,7 +76,7 @@ final class ImageWithoutResizableVisitor: BasePatternVisitor {
     }
 
     /// Returns true if the expression is an `Image(...)` or `Image(systemName:)` call.
-    private func isImageCall(_ expr: ExprSyntax) -> Bool {
+    func isImageCall(_ expr: ExprSyntax) -> Bool {
         guard let call = expr.as(FunctionCallExprSyntax.self),
               let declRef = call.calledExpression.as(DeclReferenceExprSyntax.self) else {
             return false

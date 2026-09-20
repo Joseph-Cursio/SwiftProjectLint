@@ -70,7 +70,7 @@ final class DiscardableResultMisuseVisitor: BasePatternVisitor {
 
     // MARK: - Private
 
-    private func hasDiscardableResult(_ attributes: AttributeListSyntax) -> Bool {
+    func hasDiscardableResult(_ attributes: AttributeListSyntax) -> Bool {
         attributes.contains { element in
             guard let attr = element.as(AttributeSyntax.self) else { return false }
             return attr.attributeName.trimmedDescription == "discardableResult"
@@ -79,7 +79,7 @@ final class DiscardableResultMisuseVisitor: BasePatternVisitor {
 
     /// Returns true when the return type or function name suggests the result
     /// carries meaningful outcome information that should not be silently ignored.
-    private func isMeaningfulReturnType(_ returnType: String, functionName: String) -> Bool {
+    func isMeaningfulReturnType(_ returnType: String, functionName: String) -> Bool {
         // Signal 1: explicit Result<_, _> type
         if returnType.hasPrefix("Result<") { return true }
 
@@ -101,7 +101,7 @@ final class DiscardableResultMisuseVisitor: BasePatternVisitor {
         return hasSuspiciousName(functionName)
     }
 
-    private func hasSuspiciousName(_ name: String) -> Bool {
+    func hasSuspiciousName(_ name: String) -> Bool {
         let lowercased = name.lowercased()
         return Self.suspiciousNameFragments.contains { lowercased.contains($0) }
     }

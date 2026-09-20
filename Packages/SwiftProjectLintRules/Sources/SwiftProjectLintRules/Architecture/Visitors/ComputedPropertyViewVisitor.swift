@@ -352,14 +352,14 @@ class ComputedPropertyViewVisitor: BasePatternVisitor {
 
     // MARK: - Helpers
 
-    private func conformsToView(_ clause: InheritanceClauseSyntax?) -> Bool {
+    func conformsToView(_ clause: InheritanceClauseSyntax?) -> Bool {
         guard let clause else { return false }
         return clause.inheritedTypes.contains { inherited in
             inherited.type.trimmedDescription == "View"
         }
     }
 
-    private func hasBodySomeView(_ memberBlock: MemberBlockSyntax) -> Bool {
+    func hasBodySomeView(_ memberBlock: MemberBlockSyntax) -> Bool {
         for member in memberBlock.members {
             guard let varDecl = member.decl.as(VariableDeclSyntax.self) else { continue }
             for binding in varDecl.bindings {
@@ -374,7 +374,7 @@ class ComputedPropertyViewVisitor: BasePatternVisitor {
         return false
     }
 
-    private func returnsSomeView(_ annotation: TypeAnnotationSyntax?) -> Bool {
+    func returnsSomeView(_ annotation: TypeAnnotationSyntax?) -> Bool {
         guard let annotation else { return false }
         guard let someType = annotation.type.as(SomeOrAnyTypeSyntax.self) else { return false }
         return someType.constraint.trimmedDescription == "View"

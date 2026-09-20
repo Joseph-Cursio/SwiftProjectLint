@@ -86,7 +86,7 @@ final class URLSessionUnhandledErrorVisitor: BasePatternVisitor {
 
     // MARK: - Reference Detection
 
-    private func containsReference(to name: String, in syntax: Syntax) -> Bool {
+    func containsReference(to name: String, in syntax: Syntax) -> Bool {
         if let ref = syntax.as(DeclReferenceExprSyntax.self), ref.baseName.text == name {
             return true
         }

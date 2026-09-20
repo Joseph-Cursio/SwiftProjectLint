@@ -57,7 +57,7 @@ final class ToggleButtonMissingSelectedTraitVisitor: BasePatternVisitor {
 
     /// Returns true if the button's label closure or arguments contain
     /// a ternary expression, suggesting visual state changes.
-    private func containsTernary(in node: FunctionCallExprSyntax) -> Bool {
+    func containsTernary(in node: FunctionCallExprSyntax) -> Bool {
         // Check trailing closure (the label body)
         if let trailing = node.trailingClosure {
             if hasTernary(in: Syntax(trailing)) {
@@ -83,7 +83,7 @@ final class ToggleButtonMissingSelectedTraitVisitor: BasePatternVisitor {
     }
 
     /// Recursively checks whether a syntax subtree contains a TernaryExpr.
-    private func hasTernary(in syntax: Syntax) -> Bool {
+    func hasTernary(in syntax: Syntax) -> Bool {
         // Parser produces UnresolvedTernaryExprSyntax (operator precedence
         // is not resolved at parse time), so check for that type.
         if syntax.is(UnresolvedTernaryExprSyntax.self) {

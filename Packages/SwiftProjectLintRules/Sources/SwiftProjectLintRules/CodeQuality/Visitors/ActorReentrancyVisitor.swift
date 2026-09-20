@@ -170,7 +170,7 @@ final class ActorReentrancyVisitor: BasePatternVisitor {
 
     /// Returns true if `syntax` contains an `AwaitExprSyntax` at any depth,
     /// without descending into nested functions or closures.
-    private func syntaxContainsAwait(_ syntax: Syntax) -> Bool {
+    func syntaxContainsAwait(_ syntax: Syntax) -> Bool {
         if syntax.is(AwaitExprSyntax.self) { return true }
         if syntax.is(FunctionDeclSyntax.self) || syntax.is(ClosureExprSyntax.self) { return false }
         return syntax.children(viewMode: .sourceAccurate).contains { syntaxContainsAwait($0) }
