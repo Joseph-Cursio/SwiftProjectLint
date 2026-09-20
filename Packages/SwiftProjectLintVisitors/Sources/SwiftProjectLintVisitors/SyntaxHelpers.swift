@@ -59,7 +59,7 @@ public func isSwiftUIViewOnly(_ node: StructDeclSyntax) -> Bool {
     conformsToAny(node, protocols: [SwiftUIProtocol.view.rawValue])
 }
 
-private func conformsToAny(_ node: StructDeclSyntax, protocols: Set<String>) -> Bool {
+func conformsToAny(_ node: StructDeclSyntax, protocols: Set<String>) -> Bool {
     for inheritance in node.inheritanceClause?.inheritedTypes ?? [] {
         if let name = inheritance.type.as(IdentifierTypeSyntax.self)?.name.text,
            protocols.contains(name) {

@@ -467,7 +467,7 @@ final class NonInjectedNondeterminismVisitor: BasePatternVisitor {
     /// Two findings in the corpus, both of that exact shape. The conformance is still required, and
     /// so is the link: a `UUID` on an `Identifiable` type that its `id` does *not* return stays
     /// reported, because then it is a second value rather than the identity.
-    private static func declaresIdentity(named name: String, in typeDecl: Syntax) -> Bool {
+    static func declaresIdentity(named name: String, in typeDecl: Syntax) -> Bool {
         guard let members = memberBlock(of: typeDecl) else { return false }
         for member in members.members {
             guard let variable = member.decl.as(VariableDeclSyntax.self) else { continue }

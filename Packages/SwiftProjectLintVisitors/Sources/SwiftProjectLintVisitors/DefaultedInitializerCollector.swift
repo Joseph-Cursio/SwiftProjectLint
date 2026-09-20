@@ -70,7 +70,7 @@ public final class DefaultedInitializerCollector: SyntaxVisitor, TypeCollectorPr
         }
     }
 
-    private static func hasDefaultedInitializer(in members: MemberBlockItemListSyntax) -> Bool {
+    static func hasDefaultedInitializer(in members: MemberBlockItemListSyntax) -> Bool {
         members.contains { member in
             guard let initializer = member.decl.as(InitializerDeclSyntax.self) else { return false }
             return initializer.signature.parameterClause.parameters
@@ -78,13 +78,13 @@ public final class DefaultedInitializerCollector: SyntaxVisitor, TypeCollectorPr
         }
     }
 
-    private static func declaresNoInitializer(in members: MemberBlockItemListSyntax) -> Bool {
+    static func declaresNoInitializer(in members: MemberBlockItemListSyntax) -> Bool {
         !members.contains { $0.decl.is(InitializerDeclSyntax.self) }
     }
 
     /// `var count: Int = 0` — stored, with an initialiser. A computed property has an accessor block
     /// and is not a memberwise parameter at all.
-    private static func hasDefaultedStoredProperty(in members: MemberBlockItemListSyntax) -> Bool {
+    static func hasDefaultedStoredProperty(in members: MemberBlockItemListSyntax) -> Bool {
         members.contains { member in
             guard let variable = member.decl.as(VariableDeclSyntax.self) else { return false }
             return variable.bindings.contains { binding in

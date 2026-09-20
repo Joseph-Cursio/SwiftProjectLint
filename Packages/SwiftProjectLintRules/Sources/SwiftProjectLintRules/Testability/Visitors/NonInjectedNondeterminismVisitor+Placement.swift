@@ -344,7 +344,7 @@ extension NonInjectedNondeterminismVisitor {
     /// that spelling calls **every** argument inert. It shipped for one build and the negative test
     /// for `Date().addingTimeInterval(timeout)` caught it — a deadline reported as an end state,
     /// which is the one direction this arm must never fail in.
-    private static func isInert(_ expression: ExprSyntax) -> Bool {
+    static func isInert(_ expression: ExprSyntax) -> Bool {
         if let member = expression.as(MemberAccessExprSyntax.self), member.base == nil { return true }
         return !expression.tokens(viewMode: .sourceAccurate).contains { token in
             if case .identifier = token.tokenKind { return true }

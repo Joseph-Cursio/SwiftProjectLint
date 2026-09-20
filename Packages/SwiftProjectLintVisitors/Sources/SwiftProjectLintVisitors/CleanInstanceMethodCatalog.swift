@@ -326,7 +326,7 @@ public struct CleanInstanceMethodCatalog: Sendable, Equatable {
     /// Scoped to `declaredAsync`. A method refuted for `declaredThrows` alone is left where it is;
     /// that shape has not come up and widening on none is how the approximations this condition
     /// already refuted got written.
-    private static func isCleanIgnoringSuppliedAsync(
+    static func isCleanIgnoringSuppliedAsync(
         _ method: FunctionDeclSyntax,
         inferrer: PurityInferrer
     ) -> Bool {
@@ -338,7 +338,7 @@ public struct CleanInstanceMethodCatalog: Sendable, Equatable {
 
     /// `method` with `async` and `throws` removed, so the oracle reads the body rather than
     /// short-circuiting on the signature. Nothing else about the declaration changes.
-    private static func withoutEffectSpecifiers(_ method: FunctionDeclSyntax) -> FunctionDeclSyntax {
+    static func withoutEffectSpecifiers(_ method: FunctionDeclSyntax) -> FunctionDeclSyntax {
         method.with(\.signature, method.signature.with(\.effectSpecifiers, nil))
     }
 
@@ -356,7 +356,7 @@ public struct CleanInstanceMethodCatalog: Sendable, Equatable {
     ///
     /// A body with no `await` at all returns `false`: an `async` signature with nothing awaited is
     /// not a shape to reason about from here, and refusing it leaves the verdict where it was.
-    private static func everyEffectfulExpressionIsParameterRooted(
+    static func everyEffectfulExpressionIsParameterRooted(
         _ method: FunctionDeclSyntax
     ) -> Bool {
         guard let body = method.body else { return false }

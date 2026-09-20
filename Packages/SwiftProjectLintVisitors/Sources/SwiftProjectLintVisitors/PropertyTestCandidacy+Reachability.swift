@@ -64,13 +64,13 @@ extension PropertyTestCandidacy {
         return nil
     }
 
-    private static func hasUnreachableModifier(_ declaration: DeclSyntax) -> Bool {
+    static func hasUnreachableModifier(_ declaration: DeclSyntax) -> Bool {
         if let function = declaration.as(FunctionDeclSyntax.self) { return isUnreachable(function.modifiers) }
         if let property = declaration.as(VariableDeclSyntax.self) { return isUnreachable(property.modifiers) }
         return false
     }
 
-    private static func isUnreachable(_ modifiers: DeclModifierListSyntax) -> Bool {
+    static func isUnreachable(_ modifiers: DeclModifierListSyntax) -> Bool {
         modifiers.contains { unreachableModifiers.contains($0.name.text) }
     }
 }

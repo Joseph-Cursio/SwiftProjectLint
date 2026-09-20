@@ -243,7 +243,7 @@ class DirectInstantiationVisitor: BasePatternVisitor {
         "ParsableCommand", "AsyncParsableCommand", "ParsableArguments"
     ]
 
-    private static func isRuntimeConstructed(_ inheritance: InheritanceClauseSyntax?) -> Bool {
+    static func isRuntimeConstructed(_ inheritance: InheritanceClauseSyntax?) -> Bool {
         guard let inheritance else { return false }
         return inheritance.inheritedTypes.contains { inherited in
             guard let name = inherited.type.as(IdentifierTypeSyntax.self)?.name.text
@@ -422,7 +422,7 @@ class DirectInstantiationVisitor: BasePatternVisitor {
     }
 
     /// Whether a declaration carries `@main`.
-    private static func carriesMainAttribute(_ attributes: AttributeListSyntax) -> Bool {
+    static func carriesMainAttribute(_ attributes: AttributeListSyntax) -> Bool {
         attributes.contains { attribute in
             attribute.as(AttributeSyntax.self)?
                 .attributeName.as(IdentifierTypeSyntax.self)?.name.text == "main"

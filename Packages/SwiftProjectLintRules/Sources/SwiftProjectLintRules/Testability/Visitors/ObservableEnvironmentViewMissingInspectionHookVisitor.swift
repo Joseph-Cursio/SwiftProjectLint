@@ -95,7 +95,7 @@ final class ObservableEnvironmentViewMissingInspectionHookVisitor: BasePatternVi
 
     // MARK: - Detection
 
-    private static func conformsToView(_ node: StructDeclSyntax) -> Bool {
+    static func conformsToView(_ node: StructDeclSyntax) -> Bool {
         node.inheritanceClause?.inheritedTypes.contains { inherited in
             inherited.type.as(IdentifierTypeSyntax.self)?.name.text == "View"
         } ?? false
@@ -123,7 +123,7 @@ final class ObservableEnvironmentViewMissingInspectionHookVisitor: BasePatternVi
     }
 
     /// Whether the struct declares a stored property named `inspection`.
-    private static func hasInspectionHook(_ node: StructDeclSyntax) -> Bool {
+    static func hasInspectionHook(_ node: StructDeclSyntax) -> Bool {
         node.memberBlock.members.contains { member in
             guard let variable = member.decl.as(VariableDeclSyntax.self) else { return false }
             return variable.bindings.contains { binding in

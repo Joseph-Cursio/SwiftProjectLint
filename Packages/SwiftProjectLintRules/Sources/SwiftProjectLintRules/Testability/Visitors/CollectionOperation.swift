@@ -172,7 +172,7 @@ enum FreeDecision {
     /// A *relational* comparison is a different matter and still fires. `{ $0.count > 0 }` and
     /// `{ $0.updated < $0.created }` express thresholds and orderings, and those are exactly the
     /// decisions that come out one boundary wrong.
-    private static func isPlainEquality(_ expression: ExprSyntax) -> Bool {
+    static func isPlainEquality(_ expression: ExprSyntax) -> Bool {
         guard let comparison = Comparison(expression),
               comparison.symbol == "==" || comparison.symbol == "!=" else {
             return false
@@ -182,7 +182,7 @@ enum FreeDecision {
 
     /// A stored path (`$0.status`), an implicit member (`.uploading`), or a literal. Anything else —
     /// a call above all — is doing work, and work can be wrong.
-    private static func isPlainOperand(_ expression: ExprSyntax) -> Bool {
+    static func isPlainOperand(_ expression: ExprSyntax) -> Bool {
         if ClosureBody.memberPath(of: expression) != nil { return true }
 
         // `.uploading` — an implicit member reference has no base, so it has no member path.
@@ -196,7 +196,7 @@ enum FreeDecision {
     }
 
     /// `!$0.isHidden` decides nothing that `$0.isHidden` does not.
-    private static func withoutNegation(_ expression: ExprSyntax) -> ExprSyntax {
+    static func withoutNegation(_ expression: ExprSyntax) -> ExprSyntax {
         guard let prefixed = expression.as(PrefixOperatorExprSyntax.self),
               prefixed.operator.text == "!" else {
             return expression
@@ -350,7 +350,7 @@ enum ForwardingCall {
     /// What this still cannot catch is a *reversed* projection — `precedes(Key(b…), Key(a…))` — and
     /// that is deliberate: it is indistinguishable from a descending sort, which is a thing people
     /// legitimately write.
-    private static func usesEveryParameter(
+    static func usesEveryParameter(
         of closure: ClosureExprSyntax,
         in call: FunctionCallExprSyntax
     ) -> Bool {
@@ -445,7 +445,7 @@ enum ForwardingCall {
     /// `lowercased()` — which is where every collision in #185 lived. Adding
     /// `ClosureWrapperTypeCatalog.contains(_:)` to an unrelated file removed 49 closure candidates
     /// from this repository's census, silently.
-    private static func memberCallIsResolvable(
+    static func memberCallIsResolvable(
         _ member: MemberAccessExprSyntax,
         call: FunctionCallExprSyntax
     ) -> Bool {
@@ -461,7 +461,7 @@ enum ForwardingCall {
     ///
     /// Anything that *computes* — an operator, `uppercased()` — is the closure doing work of its own,
     /// and work can be wrong.
-    private static func isForwarded(_ expression: ExprSyntax) -> Bool {
+    static func isForwarded(_ expression: ExprSyntax) -> Bool {
         if ClosureBody.memberPath(of: expression) != nil { return true }
         if expression.is(DeclReferenceExprSyntax.self) { return true }
 
@@ -498,7 +498,7 @@ enum ForwardingCall {
     /// So the exemption holds only while every field comes from the **same** source. Mix two
     /// parameters inside one projection and the closure is expressing a relation again — it fires,
     /// and it should.
-    private static func isCoherentProjection(_ call: FunctionCallExprSyntax) -> Bool {
+    static func isCoherentProjection(_ call: FunctionCallExprSyntax) -> Bool {
         var bases: Set<String> = []
 
         for argument in call.arguments {
@@ -613,7 +613,7 @@ enum EnclosingDeclaration {
     /// A member declaration sits directly in a type's `MemberBlockItemList`; a local binding sits in
     /// a `CodeBlockItemList`. That parent is the only thing that distinguishes them — the two share a
     /// syntax node — so it is what the check asks about.
-    private static func isMemberDeclaration(_ variable: VariableDeclSyntax) -> Bool {
+    static func isMemberDeclaration(_ variable: VariableDeclSyntax) -> Bool {
         variable.parent?.is(MemberBlockItemSyntax.self) ?? false
     }
 }

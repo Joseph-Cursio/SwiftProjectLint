@@ -32,7 +32,7 @@ public final class ObservableEnvironmentViewCollector: SyntaxVisitor, TypeCollec
         return .visitChildren
     }
 
-    private static func conformsToView(_ node: StructDeclSyntax) -> Bool {
+    static func conformsToView(_ node: StructDeclSyntax) -> Bool {
         guard let inheritance = node.inheritanceClause else { return false }
         return inheritance.inheritedTypes.contains { inherited in
             inherited.type.as(IdentifierTypeSyntax.self)?.name.text == "View"
@@ -44,7 +44,7 @@ public final class ObservableEnvironmentViewCollector: SyntaxVisitor, TypeCollec
     /// The argument has to be a member access ending in `.self` on a capitalised base —
     /// `@Environment(\.dependencies)` is a keypath expression and does not match, which is
     /// the case this collector exists to exclude.
-    private static func readsObservableEnvironment(_ node: StructDeclSyntax) -> Bool {
+    static func readsObservableEnvironment(_ node: StructDeclSyntax) -> Bool {
         for member in node.memberBlock.members {
             guard let variable = member.decl.as(VariableDeclSyntax.self) else { continue }
             for attribute in variable.attributes {

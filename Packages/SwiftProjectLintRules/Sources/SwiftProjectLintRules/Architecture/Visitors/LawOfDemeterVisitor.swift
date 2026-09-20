@@ -149,7 +149,7 @@ class LawOfDemeterVisitor: BasePatternVisitor {
 
     /// The declarations a reach-through is scoped to. Split out from the walk above so the walk
     /// stays under the cyclomatic-complexity limit these five `is` checks pushed it over.
-    private static func isDeclarationBoundary(_ syntax: Syntax) -> Bool {
+    static func isDeclarationBoundary(_ syntax: Syntax) -> Bool {
         syntax.is(FunctionDeclSyntax.self) || syntax.is(InitializerDeclSyntax.self)
             || syntax.is(AccessorDeclSyntax.self) || syntax.is(VariableDeclSyntax.self)
             || syntax.is(SubscriptDeclSyntax.self)

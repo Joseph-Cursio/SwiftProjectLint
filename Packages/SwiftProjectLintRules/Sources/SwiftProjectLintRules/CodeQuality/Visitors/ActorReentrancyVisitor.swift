@@ -404,7 +404,7 @@ final class ActorReentrancyVisitor: BasePatternVisitor {
     /// an assignment to the LHS. Covers plain `=` (an AssignmentExprSyntax
     /// node) and compound-assignment operators (a BinaryOperatorExprSyntax
     /// whose token text is in `compoundAssignmentOperators`).
-    private static func isAssignmentOperator(_ element: ExprSyntax) -> Bool {
+    static func isAssignmentOperator(_ element: ExprSyntax) -> Bool {
         if element.is(AssignmentExprSyntax.self) { return true }
         if let binary = element.as(BinaryOperatorExprSyntax.self) {
             return compoundAssignmentOperators.contains(binary.operator.text)

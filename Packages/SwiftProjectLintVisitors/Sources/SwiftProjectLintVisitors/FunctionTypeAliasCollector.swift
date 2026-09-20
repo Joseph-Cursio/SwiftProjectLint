@@ -130,7 +130,7 @@ public final class FunctionTypeAliasCollector: SyntaxVisitor, TypeCollectorProto
     }
 
     /// A closure literal, seeing through the wrappers an assignment may carry.
-    private static func isClosure(_ expression: ExprSyntax) -> Bool {
+    static func isClosure(_ expression: ExprSyntax) -> Bool {
         if expression.is(ClosureExprSyntax.self) { return true }
         if let tuple = expression.as(TupleExprSyntax.self), tuple.elements.count == 1,
            let only = tuple.elements.first {
@@ -154,7 +154,7 @@ public final class FunctionTypeAliasCollector: SyntaxVisitor, TypeCollectorProto
     ///
     /// `@Sendable (Int) -> Void` arrives as an `AttributedTypeSyntax`, and a parenthesised
     /// signature — the form an optional alias needs — as a `TupleTypeSyntax` of one element.
-    private static func resolvesToFunctionType(_ type: TypeSyntax) -> Bool {
+    static func resolvesToFunctionType(_ type: TypeSyntax) -> Bool {
         if type.is(FunctionTypeSyntax.self) { return true }
         if let attributed = type.as(AttributedTypeSyntax.self) {
             return resolvesToFunctionType(attributed.baseType)

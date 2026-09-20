@@ -73,7 +73,7 @@ final class MapUsedForSideEffectsVisitor: BasePatternVisitor {
     ///   `if`/`switch` itself sits. That recursion is what stops
     ///   `func f() -> [T] { if c { a.map { … } } else { [] } }` from being the same false positive
     ///   one level down.
-    private static func valueIsUsed(of item: CodeBlockItemSyntax) -> Bool {
+    static func valueIsUsed(of item: CodeBlockItemSyntax) -> Bool {
         guard let list = item.parent?.as(CodeBlockItemListSyntax.self),
               list.count == 1,
               let owner = list.parent else {
@@ -104,7 +104,7 @@ final class MapUsedForSideEffectsVisitor: BasePatternVisitor {
 
     /// Whether an `if`/`switch` used as a value has its own value used — asked of whatever
     /// encloses it, so a branch inherits the answer rather than guessing one.
-    private static func deferToEnclosingExpression(of node: Syntax) -> Bool {
+    static func deferToEnclosingExpression(of node: Syntax) -> Bool {
         var current: Syntax? = node
         while let candidate = current {
             if let item = candidate.as(CodeBlockItemSyntax.self) { return valueIsUsed(of: item) }
