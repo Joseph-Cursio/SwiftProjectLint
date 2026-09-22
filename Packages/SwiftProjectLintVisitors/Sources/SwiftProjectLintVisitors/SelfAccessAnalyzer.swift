@@ -395,7 +395,7 @@ enum SelfAccessAnalyzer {
         return names
     }
 
-    private final class LocalBindingCollector: SyntaxVisitor {
+    final class LocalBindingCollector: SyntaxVisitor {
         var names: Set<String> = []
 
         /// **A shorthand optional binding is not a binding, it is a read.**
