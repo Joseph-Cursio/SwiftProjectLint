@@ -443,7 +443,7 @@ public struct CleanInstanceMethodCatalog: Sendable, Equatable {
         }
     }
 
-    private struct TypeMembers {
+    struct TypeMembers {
         var isValueType = false
         var isActor = false
         var declaredStorage: [DeclaredStorage] = []
@@ -462,7 +462,7 @@ public struct CleanInstanceMethodCatalog: Sendable, Equatable {
         }
     }
 
-    private final class TypeMemberCollector: SyntaxVisitor {
+    final class TypeMemberCollector: SyntaxVisitor {
         var types: [String: TypeMembers] = [:]
 
         override func visit(_ node: StructDeclSyntax) -> SyntaxVisitorContinueKind {
