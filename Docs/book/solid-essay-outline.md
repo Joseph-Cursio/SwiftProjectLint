@@ -342,10 +342,13 @@ Every branch builds. The contract-test branches add a test target and
 4. **Interface segregation by use.** A cross-file rule that reports protocol
    requirements no client of a given conformer calls. This is the principled
    version of `Fat Protocol`. Idea only.
-5. **`Concrete Type Usage`'s actor exemption.** It assumes a protocol would
-   drop the actor's isolation contract. That's false when every requirement
-   the actor satisfies is `async`: callers still `await`. Consider exempting
-   actors only when some requirement they satisfy is synchronous.
+5. **`Concrete Type Usage`'s actor exemption.** Its reason is that a
+   protocol would hide the actor's isolation contract. That doesn't hold when
+   every requirement is `async` (callers still `await`), and where a
+   requirement is synchronous, Swift 6 makes the actor satisfy it with a
+   `nonisolated` member, so the trade-off is visible in the conformance anyway.
+   Consider narrowing the exemption. Check against Swift 6.2's
+   isolated-conformance rules (SE-0470) first.
 
 ## To do before drafting
 
