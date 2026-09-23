@@ -58,10 +58,13 @@ remarkably strong one. What those have in common is that the *language* decided
 what to check. This essay is about the characteristics the language can't see
 in a typical app, and how to make them fail a build anyway.
 
-The examples all come from one small app, **Checkout**. Its repository has a
-`main` branch where everything is clean and one branch per section where a
-single fitness function is broken, so you can check out a branch, run the
-tools, and see exactly the output quoted here.
+The examples all come from one small app, **Checkout**, which I wrote for this
+essay. Its repository has a `main` branch where everything is clean and one
+branch per section where a single fitness function is broken, so you can check
+out a branch, run the tools, and see exactly the output quoted here. Most of
+the checks come from SwiftProjectLint, a static analyser for Swift that I
+maintain, so read its appearances here with that in mind. I've tried to show
+where it falls short as well as where it works.
 
 ---
 
@@ -87,7 +90,7 @@ this:
 The third row is the important one. In a modular codebase, `Domain` is its own
 target, and if it tries to `import Persistence` without declaring the
 dependency, the build fails. The compiler *is* the layering fitness function,
-and you should not write a lint rule to repeat it. SwiftProjectLint's own
+and you should not write a lint rule to repeat it. My own linter's
 documentation for its boundary rule says so: if you've split your app into
 targets, skip this rule, because the compiler does it better.
 
@@ -579,8 +582,8 @@ best advice for an enum and an array. That's worth improving.)
 
 ## 6. Fitness over time: what `git` knows that the code doesn't
 
-Section 5 made the fix sound obvious. It isn't always. When the author ran
-these duplication rules across about thirty of their own Swift projects, every
+Section 5 made the fix sound obvious. It isn't always. When I ran these
+duplication rules across about thirty of my own Swift projects, every
 single finding had to be read by hand before anything could be done about it,
 because the same signal, "these two lists match", turned out to call for five
 different responses:
@@ -624,14 +627,14 @@ settings screen, in any commit. That rules out the one explanation that would
 make adding it risky: that someone added it, hit a problem, and took it out on
 purpose. What's left is an omission, and fixing it is safe.
 
-This isn't a contrived example. The technique was first used on a real
-codebase, the author's SwiftInferProperties, where two hand-kept type lists
+This isn't a contrived example. I first used the technique on a real
+codebase, my SwiftInferProperties library, where two hand-kept type lists
 each turned out to be missing a member their sibling had (`UInt32` in one,
 `Swift.Float80` in the other). In both cases the pickaxe came back empty. One
 was added. The other was deliberately left out, for a reason the history
 couldn't know (`Float80` doesn't exist on Apple silicon). The empty result
-didn't make the decision; it removed the scary hypothesis, so the decision
-could be made on its merits.
+didn't make the decision for me; it removed the scary hypothesis, so I could
+decide on the merits.
 
 **An empty pickaxe isn't a null result. It's the answer.**
 
@@ -665,15 +668,15 @@ weeks, they skim past the three as well.
 
 ### An unread finding
 
-SwiftProjectLint once ran a structured test against its own code. It turned up
-a real bug: a function that rebuilt an issue record without copying one of its
+I once ran a structured test of SwiftProjectLint against its own code. It
+turned up a real bug: a function that rebuilt an issue record without copying one of its
 fields, which quietly dropped data further down the pipeline. There were
 nearly three thousand passing tests at the time, and none of them caught it.
 
 What *should* have caught it was the linter itself. Its `Lossy Struct Rebuild`
 rule, whose whole job is "you rebuilt a struct and left out a field", flagged
 that exact line on a default run. The finding was there. It was one line among
-many, and nobody read it.
+many, and I didn't read it.
 
 That's not a detection failure. It's a signal-to-noise failure, and it's the
 more common one. The lesson for anyone building fitness functions: **measure
@@ -683,7 +686,7 @@ your checks' precision the way you'd measure the system's.**
 
 Here's what that looks like in practice. `Manual Registration List` flags five
 or more consecutive calls like `registry.register(…)`, since a hand-maintained
-list loses entries silently. Run across the author's projects, it produced 23
+list loses entries silently. Run across my projects, it produced 23
 findings, of which **5** were worth acting on. Reading the other 18 showed they
 had one cause: code that builds text line by line (`lines.append("…")`) looks
 exactly like a registration list, but each line is unique output, not a
@@ -822,8 +825,8 @@ keep what it does honest. You want both.
   "temporal" category to mean history-based evidence, which it doesn't.
 - **§1 hook:** the "dozen places" outcome is illustrative, not measured. Either
   keep it clearly hypothetical or replace it with a real migration story.
-- **§6 and §7 use third person** ("the author") for the dogfooding stories.
-  Switch to first person if it's published under your name.
+- **Voice:** first person throughout, matching the SOLID essay. §1 discloses
+  that I maintain SwiftProjectLint.
 - **§5 mentions a possible rule-message improvement** (`Parallel Enum Shape`'s
   suggestion for enum + array pairs). If that ships before publication, update
   the sentence.
