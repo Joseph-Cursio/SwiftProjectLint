@@ -388,13 +388,83 @@ you most of the way.
 
 ### A better signal, outside the code
 
-If you want evidence about "reasons to change", look where changes are
-recorded. Files that are always modified in the same commits share a reason
-to change, whatever their size, and two halves of a large type that are
-*never* modified together probably don't. `git log` records exactly what
-syntax can't. Change coupling of this kind is well studied, and it's the most
-honest signal for single responsibility there is. It isn't a lint rule today,
-and it would need history rather than a snapshot to become one.
+If "reason to change" is the principle, the best evidence is a record of
+actual changes, and every repository has one. Two files that keep being
+modified in the same commits share a reason to change, however far apart they
+sit. Two halves of one large type that are never modified together probably
+don't, however big the type is. This is *change coupling*, and Adam Tornhill's
+work (*Your Code as a Crime Scene*, and his open-source Code Maat tool) made
+it practical.
+
+Checkout's history is too short to say anything, so here's SwiftProjectLint's
+own, about 1,100 commits. The analysis is a few lines of script: for each
+commit, list the Swift files it touched; count how often each pair of files
+appears together; divide by the number of commits that touched the less
+frequently changed file of the pair. I left out tests, and commits touching
+more than eight files, because those are mostly sweeps: renames, lint fixes,
+package moves. That leaves 710 commits.
+
+```bash
+git log --no-merges --format='@@' --name-only -- '*.swift' \
+  | python3 change_coupling.py --max-files 8 --exclude Tests/
+```
+
+**[publish `change_coupling.py` alongside the essay, or inline it.]**
+
+Three of the strongest pairs tell three different stories.
+
+**Three visitors with one reason to change.** The idempotency rules have three
+visitors, each in its own file:
+`IdempotencyViolationVisitor`, `NonIdempotentInRetryContextVisitor` and
+`UnannotatedInStrictReplayableContextVisitor`. In those 710 commits, every
+change to the third also touched the second (6 of 6), and most changes to the
+second also touched the first (6 of 7). By size, none of them is remarkable.
+By history, they are one responsibility in three files.
+
+The commit log confirms it. Of the twelve commits, of any size, that touched
+both of the last two, four were sweeps: a package move, a rename, a lint fix,
+unused imports. The other eight were about logic they share. Three changed
+behaviour in all of them at once ("Match context and effect lookups by call
+shape, not bare signature"). Five pulled shared code out:
+
+- "Extract EscapingClosurePolicy and SiteImportCache from idempotency visitors"
+- "Extract CrossFileVisitorBase; migrate 15 cross-file visitors"
+- "Extract CapturedSiteLocation from the five idempotency visitors"
+- "Hoist the identical analyze() into a CrossFilePatternVisitorProtocol default"
+- "Share one body walk between the three effect visitors"
+
+That's what a shared responsibility looks like over time. The coupling showed
+up, and it was paid down, one extraction at a time, over five months. No size
+rule would have noticed. Every file stayed a reasonable length the whole time.
+
+**One reason to change, spread across files.** `RuleIdentifier.swift` and the
+file listing the architecture rules' categories changed together in 24 of 26
+commits (92%), and the pattern repeats for every rule category. The reason is
+simple: adding a rule means adding an identifier, assigning its category, and
+registering its visitor, in three places. That's single responsibility's
+mirror image, one reason to change touching many files, which is usually
+called *shotgun surgery*. Here it's deliberate: the registry design trades
+spread for type safety, and the project's contributor notes list the
+touchpoints. Change coupling can't tell a deliberate trade from an accident.
+It shows you where to look.
+
+**A hub, not a responsibility.** `BasePatternVisitor` and the pattern-detector
+protocol also changed together often: 16 times, every change to the protocol.
+But the commit messages have nothing in common: "Thread layerPolicies through
+BasePatternVisitor", "Lossy Struct Rebuild — a field you forget takes its
+default", "Stop reporting an SPI the author declared as one". This is
+infrastructure every rule passes through, and it changes for as many reasons
+as there are rules. High coupling here doesn't mean one responsibility. It
+means a lot of responsibilities depend on the same thing.
+
+So change coupling isn't a verdict either. It's better evidence than size,
+because it measures the thing the principle actually talks about. But it still
+needs someone to read the commit messages and decide which of the three
+stories they're looking at. It also needs history, so it can't be a
+conventional lint rule that reads one snapshot of the code. It could be a
+fitness function that runs over the log: "these files changed together in 90%
+of their commits and share no type; is that a responsibility waiting to be
+named?"
 
 ---
 
@@ -673,7 +743,9 @@ the rest.
 
 ## Drafting notes (remove before publishing)
 
-- **Word count:** about 4,100 of prose, under the 5–6k target. §3 and §5 are the thinnest; §5 could show one real change-coupling query against Checkout's history.
+- **Word count:** about 5,000 of prose after expanding §5, within the 5–6k target. §3 is now the thinnest.
+- **§5 change-coupling numbers** come from SwiftProjectLint's history on 2026-09-22 (commits of 8 or fewer Swift files, tests excluded). Re-run before publishing; they'll drift as the repo grows.
+- **Open item:** publish `change_coupling.py` (§5), or inline it.
 - **Verified 2026-09-22:** the actor-conformance claim, by compiling the
   cases with Swift 6.3.3 (§2; SE-0470's isolated conformances don't apply to
   actors, and `@MainActor` on the conformance also errors); the Tornhill
