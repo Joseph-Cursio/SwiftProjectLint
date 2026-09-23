@@ -34,8 +34,9 @@ isn't written down anywhere a tool can read. And one is a claim about
 **behaviour**, which can be checked, just not by reading the code.
 
 I didn't start out to make that argument. I got there by tagging the rules in
-SwiftProjectLint, a static analyser for Swift projects, with the SOLID
-principle each one serves. The result came out lopsided: fourteen rules for
+SwiftProjectLint, a static analyser for Swift that I maintain, with the SOLID
+principle each one serves. (Since it's my tool, I've tried to show its misses
+here as plainly as its catches.) The result came out lopsided: fourteen rules for
 dependency inversion, one for Liskov substitution. That lopsidedness isn't a
 gap in the tool. It's a map of which principles are checkable at all.
 
@@ -50,9 +51,9 @@ least**, which reverses the acronym:
 | Single responsibility | Proxies only | Meaning |
 | Liskov substitution | Only its outline | Behaviour |
 
-The examples all come from **Checkout**, a deliberately small SwiftUI shop app
-with `Domain/`, `Persistence/` and `Presentation/` folders and an `App/`
-composition root. Its repository has one branch per principle, each adding a
+The examples all come from **Checkout**, a deliberately small SwiftUI shop app I
+wrote as a sample, with `Domain/`, `Persistence/` and `Presentation/` folders
+and an `App/` composition root. Its repository has one branch per principle, each adding a
 single violation, and every piece of tool output below comes from running the
 tools on those branches.
 
@@ -686,10 +687,8 @@ the rest.
 - **§1 claims "fourteen rules for dependency inversion, one for Liskov":**
   that matches the `RULES.md` index (including the one rule tagged with both).
   Recount if the tags change.
-- **Voice:** this draft uses first person ("I didn't plant this bug"), because
-  that story is stronger told by the person it happened to. The
-  fitness-functions draft uses third person for its dogfooding stories; make
-  the two consistent.
+- **Voice:** first person throughout, matching the fitness-functions essay.
+  §1 discloses that I maintain SwiftProjectLint.
 - **Seed:** the §6 output is from one run, and its seed is quoted so readers
   can reproduce it. If the generator or the laws change, re-capture.
 - **Follow-ups referred to in the text** (composition-root false positive,
