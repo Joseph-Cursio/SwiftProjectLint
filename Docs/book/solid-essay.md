@@ -235,12 +235,16 @@ protocol's scope has grown
 Becoming a Prison*](https://swiftandmemes.com/interface-segregation-principle-in-ios-how-to-prevent-protocol-from-becoming-a-prison)).
 Both are reasonable, and neither is the principle.
 
-Size-based checks also run out of things to say. When I added `Fat Protocol`
-to SwiftProjectLint, I ran it across my own projects and split the protocols
-it found. It now reports nothing across them. **[confirm with the survey run
-before publishing.]** That clean run means every protocol is under ten
-requirements. It doesn't mean every client uses what it depends on, which is
-the question the principle actually asks.
+Size-based checks also say less than they seem to after you've acted on them.
+When I added `Fat Protocol` to SwiftProjectLint, I ran it across my own
+projects and split the protocols it found. Running it again for this essay, it
+still reports two: the storage interface for SwiftAssist's knowledge graph
+(15 requirements), and SwiftProjectLint's own pattern-detector protocol (24).
+Both sit at the centre of their projects, which is typically where protocols
+grow and where splitting them costs most. Every other protocol passes. But
+passing only means those protocols have fewer than ten requirements. It doesn't
+mean their clients use what they depend on, which is the question the
+principle actually asks.
 
 So measure use instead. For each requirement, ask which code calls it
 *through the protocol*, meaning via something typed `any OrderStore`,
@@ -735,11 +739,78 @@ trustworthy stand-in, and the contract test keeps it that way: add a third
 store (CloudKit, a server), and it has to pass the same laws before any test
 can rely on it.
 
+### What about real code?
+
+Checkout is a sample. So I looked at my own projects, to see how often a test
+double stands in for a real implementation, and how often anything checks that
+it's a faithful stand-in.
+
+Across about a dozen repositories there are 94 test-double types (names
+starting `Mock`, `Fake`, `Stub`, `Spy` or `InMemory`), and they stand in for
+51 abstractions that also have at least one production conformer. For 23 of
+those, some test file mentions both the double and a real conformer. That's an
+upper bound, not a count of contract tests, because mentioning two types in one
+file doesn't mean testing them the same way. I read one case closely.
+
+The closest match to Checkout is in SwiftAssist, another of my projects. Its
+knowledge graph sits behind a `GraphDatabaseProtocol` with three conformers:
+SQLite, Kuzu, and an `InMemoryGraphDatabase` that other tests use in place of
+a real database. The SQLite database has a thorough suite of its own, thirteen tests
+that exercise the protocol (plus one about reopening a file on disk, which is
+specific to SQLite). The in-memory double has no such suite. The tests that
+use it assume it behaves like the real thing.
+
+So I ran the SQLite suite against the in-memory double, changing nothing but
+the line that creates the database. **All thirteen passed,** including the
+subtle ones: creating a duplicate edge keeps the first; traversing a missing
+table returns nothing instead of throwing. The double is faithful.
+
+That's the good outcome, and it's worth being precise about what it shows.
+The double is faithful today because whoever wrote it was careful, not because
+anything requires it. The next change to SQLite's behaviour will update
+SQLite's tests, and nothing will tell the double. The fix is cheap, because
+the contract already exists: it's SQLite's test suite. Parameterise it over
+the conformers, as Checkout's contract test does, and those thirteen tests
+start checking all three. (Kuzu, the third conformer, is the one I haven't
+tried.)
+
+### Substitutable isn't the same as right
+
 Writing laws also forces questions the protocol never answered. Should saving
-the same order twice produce one order or two? `OrderStore` doesn't say. The
-in-memory store appends; a database with a unique key would upsert. Neither is
-wrong until someone decides. A contract test can't be written until someone
-does, and that's a feature.
+the same order twice produce one order or two? `OrderStore` doesn't say. So I
+wrote the law I think a shop needs, on `solid/l-save-twice`:
+
+```swift
+@Test("saving the same order twice stores it once", arguments: StoreKind.allCases)
+func saveTwiceStoresOnce(kind: StoreKind) async throws {
+    await propertyCheck(input: OrderGen.order) { order in
+        let store = kind.makeStore()
+        try await store.save(order)
+        try await store.save(order)
+        let copies = try await store.recentOrders().filter { $0.identifier == order.identifier }
+        #expect(copies.count == 1)
+    }
+}
+```
+
+Both stores fail it, on the very first generated order:
+
+```
+✘ … kind → inMemory: Expectation failed: (copies.count → 2) == 1
+✘ … kind → coreData: Expectation failed: (copies.count → 2) == 1
+```
+
+The in-memory store appends, and so does Core Data, which inserts a new record
+every time. So the two stores *are* substitutable here: they agree perfectly.
+They're just both wrong. A customer who taps "Place order" twice, or a save
+retried after a timeout, gets two orders.
+
+That's the limit of Liskov substitution as a principle, and it's worth being
+clear about. Substitution asks whether conformers behave *like each other*. A
+contract test asks whether they behave *as specified*, which is stronger, and
+only possible once someone writes the specification down. Until then, a store
+that duplicates orders and a test double that duplicates them in the same way
+will pass every test together.
 
 ### Standard protocols have laws too
 
@@ -836,7 +907,9 @@ the rest.
 
 ## Drafting notes (remove before publishing)
 
-- **Word count:** about 5,000 of prose after expanding §5, within the 5–6k target. §3 is now the thinnest.
+- **Word count:** about 6,150 of prose after expanding §3, §5 and §6, slightly over the 5–6k target. §6 is the longest; trim there first if needed.
+- **§6 save-twice law** is on Checkout's `solid/l-save-twice` branch (built on the fixed store), where it fails for both stores as quoted.
+- **§6 real-code numbers** (94 doubles, 51 abstractions, 23 co-mentions; the SwiftAssist probe) are from 2026-09-22. The probe was run in a temporary file that was deleted afterwards; to publish it, parameterise SwiftAssist's suite for real.
 - **§5 change-coupling numbers** come from SwiftProjectLint's history on 2026-09-22 (commits of 8 or fewer Swift files, tests excluded). Re-run before publishing; they'll drift as the repo grows.
 - **Open item:** publish `change_coupling.py` (§5), or inline it.
 - **Verified 2026-09-22:** the actor-conformance claim, by compiling the
