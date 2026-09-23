@@ -92,9 +92,34 @@ where*.
   publishing, or use the contradiction honestly: naming conventions are team
   choices, not principles, and belong in `enabled_only` decisions. **Decide
   which.**
-- **Branch:** `solid/d-concrete-dependency`. The view model's initializer takes
-  `CoreDataOrderStore` instead of `any OrderStore`. Expected: `Concrete Type
-  Usage`. **[verify the rule fires on this shape.]**
+- **Branch result, better than planned:** `solid/d-concrete-dependency`. The
+  view model stores and takes `CoreDataOrderStore` instead of `any OrderStore`.
+  The expected rule, `Concrete Type Usage`, **stays silent**: it deliberately
+  exempts actors, on the grounds that hiding an actor behind a protocol loses
+  the compile-time `await`. Instead, the two rules that push *back* fire:
+
+  ```
+  Sources/Checkout/Domain/OrderStore.swift:3: info: [Single Implementation Protocol]
+    Protocol 'OrderStore' has only one conformer ('CoreDataOrderStore') —
+    consider removing the abstraction.
+  Sources/Checkout/Domain/OrderStore.swift:3: info: [Unused Protocol Abstraction]
+    Protocol 'OrderStore' is conformed to by 1 type but never used as a type —
+    no parameter, property, constraint, or existential references it.
+  ```
+
+  So on a dependency-inversion violation, the linter's advice is to **delete
+  the abstraction**. Both findings are correct: once nothing depends on
+  `OrderStore`, it *is* unused. What they can't know is which direction the
+  fix should go, whether the view model should return to the protocol or the
+  protocol should go. That's a design decision, and the rules only report the
+  inconsistency. Use this as the section's central example: a linter can tell
+  you the code and its abstractions disagree, not which one is right.
+- **The actor exemption is a Swift-specific DIP tension worth a paragraph.**
+  In Swift 6, isolation is part of a type's contract, and a protocol can drop
+  it. But `OrderStore`'s requirements are all `async`, so calls through
+  `any OrderStore` still need `await`, and the exemption's reason doesn't hold
+  for this protocol. Present both sides, and note it as a possible rule
+  refinement (see *Follow-ups*).
 
 ## 3. Interface segregation: moderate (~700 words)
 
@@ -112,8 +137,11 @@ where*.
 - **Swift-specific angle:** protocol composition (`Readable & Writable`) makes
   segregation cheap in Swift, so the cost of a fat protocol is harder to
   excuse than in languages without it.
-- **Branch:** `solid/i-fat-store`. `OrderStore` grows to 10+ requirements
-  (refunds, receipts, analytics). Expected: `Fat Protocol`.
+- **Branch:** `solid/i-fat-store`. `OrderStore` grows to 10 requirements
+  (lookup, cancel, refund, receipt text, CSV export, count, delete-all,
+  analytics), which `CoreDataOrderStore` implements in an extension. Actual:
+  `Fat Protocol`: "Protocol 'OrderStore' has 10 requirements — consider
+  splitting into smaller protocols."
 
 ## 4. Open/closed, rethought for Swift (~900 words)
 
@@ -139,7 +167,9 @@ where*.
     so one change has to be made in N places.
 - **Branch:** `solid/o-string-switch`. A receipt formatter switches on
   `paymentMethod.rawValue` with a `default:` arm. Adding `.applePay` then
-  prints "Other" on the receipt. Expected: `String Switch Over Enum`.
+  prints "Other" on the receipt. Actual: `String Switch Over Enum`: "Switch
+  on '.rawValue' loses exhaustiveness checking — switch on the enum
+  directly".
 
 ## 5. Single responsibility: proxies only (~900 words)
 
@@ -168,8 +198,9 @@ where*.
   is a candidate for a future history-aware rule. Say so, without promising it.
 - **Branch:** `solid/s-flag-parameter`. `placeOrder(isGift: Bool)` where
   the flag chooses between two substantial paths (wrap and ship to a
-  recipient vs. ship to the buyer). Expected: `Boolean Control Coupling`.
-  **[verify the gates: two substantial arms.]**
+  recipient vs. ship to the buyer). Actual: `Boolean Control Coupling`
+  (warning): "Boolean parameter 'isGift' selects between two code paths — this
+  is control coupling (the caller decides which behavior runs)."
 
 ## 6. Liskov substitution: where static analysis hands over (~1,300 words)
 
@@ -186,7 +217,11 @@ identical signatures and different behaviour.
   - `Unconditional Trap` in a conformance: `fatalError("not supported")` is the
     textbook LSP violation. (The rule flags traps generally, not only in
     conformances. Say so.)
-  - **Branch:** `solid/l-downcast`. Expected: `Swallowed Injection Downcast`.
+  - **Branch:** `solid/l-downcast`. The view model sets
+    `canExportHistory = (store as? CoreDataOrderStore) != nil`. Actual:
+    `Swallowed Injection Downcast`: "…this honors only one type and silently
+    drops the rest (e.g. test doubles)". The message names test doubles
+    itself, which sets up the next point.
 - **What it can't see, from a real bug in the sample.** Checkout's
   `CoreDataOrderStore.recentOrders()` rebuilds each `Order` with `items: []`
   and `discount: nil`. Only the identifier and the payment method survive the
@@ -210,9 +245,26 @@ identical signatures and different behaviour.
   - *fetch doesn't invent:* everything returned was saved;
   - *idempotent save*, if that's the intended contract (a design decision the
     test forces you to make explicitly).
-  Parameterise one Swift Testing suite over `[InMemoryOrderStore(),
-  CoreDataOrderStore()]`. The first law fails for Core Data with a shrunk
-  counterexample: one order, one line item.
+  One Swift Testing suite, parameterised over a `StoreKind` enum
+  (`.inMemory`, `.coreData`), runs the first two laws with
+  `propertyCheck`. (Idempotent save isn't written: the contract doesn't
+  decide it yet, and the essay can say that writing laws forces the question.)
+  **Actual result:** the in-memory store passes both laws; Core Data fails
+  round-tripping, with the failing input shrunk automatically:
+
+  ```
+  ✘ Expectation failed: (fetched?.discount → nil) == (order.discount → DiscountCode(value: "B"))
+  ↳ Failure occured with input Order(identifier: 00000000-0000-0000-0000-000000000000,
+      items: [], paymentMethod: bankTransfer, discount: Optional(DiscountCode(value: "B"))).
+    (shrunk down from Order(… items: [LineItem(name: "Pk", …), LineItem(name: "I8sYnTwACa", …)],
+      … discount: Optional(DiscountCode(value: "B"))) after 3 iterations)
+  ```
+
+  The shrinker removed both line items and kept the discount, which shows the
+  smallest input that still fails. The line-item loss is a second instance of
+  the same bug, so describe the shrunk case as *one* minimal failure, not the
+  whole defect. The random inputs differ per run, so re-capture with a
+  `.fixedSeed(…)` before quoting.
 - **Standard-library protocols have laws too.** `Money: Comparable, Hashable`:
   a wrong `<` or a `hash(into:)` that ignores a field breaks `sort`, `Set` and
   `Dictionary` in ways that look like UI bugs. SwiftPropertyLaws checks the
@@ -220,12 +272,13 @@ identical signatures and different behaviour.
   `@PropertyLawSuite` macro). One short example, then back to the domain
   protocol, which is the essay's point: *your* protocols have laws too,
   and nobody writes them down.
-- **Branch:** `solid/l-contract-test`, on `main`. Adds `InMemoryOrderStore`,
-  a generator for `Order`, and the parameterised contract suite. The suite
-  **fails on `main`**, deliberately, because the Core Data store is lossy.
-  Pair it with a fix branch, or a follow-up commit, that stores line items
-  and makes the law pass. **Decide:** fix `main`, or leave the bug in `main`
-  as a standing exhibit.
+- **Branches:** `solid/l-contract-test` adds the test target,
+  `InMemoryOrderStore`, the `Order` generator and the contract suite, which
+  fails. `solid/l-contract-test-fixed` stores line items (JSON) and the
+  discount code, and both laws pass for both stores (checked over five runs).
+  The fix is small, so show its diff: the whole bug was two missing
+  attributes. **Decided:** Checkout's `main` keeps the lossy store as the
+  standing example.
 
 ## 7. Closing: what the lopsidedness teaches (~500 words)
 
@@ -252,23 +305,26 @@ identical signatures and different behaviour.
 New branches in [Joseph-Cursio/Checkout](https://github.com/Joseph-Cursio/Checkout),
 named `solid/…` so they don't mix with the `essay/…` branches:
 
-| Branch | Section | Change | Expected finding |
+**Built 2026-09-22** and pushed to
+[Joseph-Cursio/Checkout](https://github.com/Joseph-Cursio/Checkout). The rules
+live in `.swiftprojectlint-solid.yml`, added through Checkout PR #1, so the
+fitness-functions essay's quoted output is unchanged. On `main`, that config
+reports one finding: the `Direct Instantiation` false positive at the
+composition root (Follow-up 1).
+
+| Branch | Section | Change | Actual result |
 |---|---|---|---|
-| `solid/d-concrete-dependency` | §2 | View model takes `CoreDataOrderStore` | `Concrete Type Usage` **[verify]** |
-| `solid/i-fat-store` | §3 | `OrderStore` grows to 10+ requirements | `Fat Protocol` |
+| `solid/d-concrete-dependency` | §2 | View model takes `CoreDataOrderStore` | `Single Implementation Protocol` + `Unused Protocol Abstraction`; `Concrete Type Usage` silent (actor exemption) |
+| `solid/i-fat-store` | §3 | `OrderStore` grows to 10 requirements | `Fat Protocol` |
 | `solid/o-string-switch` | §4 | Receipt formatter switches on `rawValue` with `default:` | `String Switch Over Enum` |
-| `solid/s-flag-parameter` | §5 | `placeOrder(isGift: Bool)` with two substantial arms | `Boolean Control Coupling` **[verify]** |
+| `solid/s-flag-parameter` | §5 | `placeOrder(isGift: Bool)` with two substantial arms | `Boolean Control Coupling` (warning) |
 | `solid/l-downcast` | §6 | Injected `any OrderStore` downcast to `CoreDataOrderStore` | `Swallowed Injection Downcast` |
-| `solid/l-contract-test` | §6 | In-memory store, `Order` generator, parameterised contract suite | Test failure with a shrunk counterexample |
+| `solid/l-contract-test` | §6 | Test target, in-memory store, `Order` generator, contract suite | `swift test` fails for Core Data only, with a shrunk counterexample |
+| `solid/l-contract-test-fixed` | §6 | Core Data stores line items and discount codes | `swift test` passes for both stores |
 
-The config's `enabled_only` list will need the §2–§6 rules added for these
-branches. **Decide:** a second config file (`.swiftprojectlint-solid.yml`,
-passed with `--config`) keeps the first essay's outputs unchanged. That's the
-safer option.
-
-The contract-test branch needs a test target, which Checkout doesn't have yet,
-and a dependency on `swift-property-based`. That's a real change to the
-sample's `Package.swift`, so it's worth its own PR.
+Every branch builds. The contract-test branches add a test target and
+`swift-property-based` 1.2.0 (the version SwiftProjectLint uses), with
+`Package.resolved` committed.
 
 ## Follow-ups this outline surfaced (outside the essay)
 
@@ -280,19 +336,24 @@ sample's `Package.swift`, so it's worth its own PR.
    `OrderStoreProtocol`, the other treats `FooServiceProtocol` as the smell's
    signature. Decide whether that's a real conflict or a documented team
    choice, and say so in both docs.
-3. **Checkout's lossy `recentOrders()`.** A genuine bug in the sample. Either
-   fix it (after the contract test exists, so the fix is test-driven) or keep
-   it as the §6 exhibit.
+3. **Checkout's lossy `recentOrders()`.** Kept on Checkout's `main` as the
+   §6 exhibit; fixed on `solid/l-contract-test-fixed`. Merging that branch
+   fixes `main` whenever the essay no longer needs the bug.
 4. **Interface segregation by use.** A cross-file rule that reports protocol
    requirements no client of a given conformer calls. This is the principled
    version of `Fat Protocol`. Idea only.
+5. **`Concrete Type Usage`'s actor exemption.** It assumes a protocol would
+   drop the actor's isolation contract. That's false when every requirement
+   the actor satisfies is `async`: callers still `await`. Consider exempting
+   actors only when some requirement they satisfy is synchronous.
 
 ## To do before drafting
 
 | Item | Status |
 |---|---|
-| Build the six `solid/` branches and capture real output | To do |
-| Add a test target and `swift-property-based` to Checkout for §6 | To do |
+| Build the `solid/` branches and capture real output | **Done** (seven branches, including the fix) |
+| Add a test target and `swift-property-based` to Checkout for §6 | **Done**, on the contract-test branches only |
+| Decide on a separate config file for the `solid/` branches | **Done**: `.swiftprojectlint-solid.yml` |
+| Decide whether `main` keeps the lossy store | **Decided**: yes, as the standing example |
+| Re-capture the §6 test output with a fixed seed, for a stable quote | To do |
 | Decide the §2 naming-suffix question | Open |
-| Decide whether `main` keeps the lossy store | Open |
-| Decide on a separate config file for the `solid/` branches | Recommended: yes |
