@@ -5,6 +5,7 @@
 **Identifier:** `Large View Body`
 **Category:** Performance
 **Severity:** Warning
+**Principle:** Single Responsibility (SOLID), by size proxy
 
 ### Rationale
 A view body with more than 25 statements is difficult to comprehend and slows Xcode's type-checker. SwiftUI's type inference is applied to the entire `body` expression at once; very large bodies can cause compilation timeouts and degraded editor responsiveness.

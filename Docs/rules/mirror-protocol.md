@@ -5,6 +5,7 @@
 **Identifier:** `Mirror Protocol`
 **Category:** Architecture
 **Severity:** Info
+**Principle:** Dependency Inversion (SOLID), guarding against over-application
 
 ### Rationale
 A "mirror protocol" is one that duplicates a concrete type's entire public interface — typically named `FooServiceProtocol` for a class `FooService`, with every method and property copied verbatim. This pattern, common in Java-style codebases, adds a layer of indirection without enabling meaningful abstraction. In Swift, protocols are most valuable when they describe a focused capability, not when they mirror a type 1:1.

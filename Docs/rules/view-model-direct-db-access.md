@@ -5,6 +5,7 @@
 **Identifier:** `View Model Direct DB Access`
 **Category:** Architecture
 **Severity:** Info *(opt-in)*
+**Principle:** Dependency Inversion (SOLID)
 
 ### Rationale
 View models that directly import and use persistence frameworks (`CoreData`, `SwiftData`, `GRDB`, `RealmSwift`, `SQLite`) violate the separation of concerns principle. Direct database access in view models makes them hard to test, hard to migrate, and couples business logic to storage implementation.

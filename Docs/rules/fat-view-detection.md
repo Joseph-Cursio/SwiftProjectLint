@@ -5,6 +5,7 @@
 **Identifier:** `Fat View Detection`
 **Category:** Architecture
 **Severity:** Warning
+**Principle:** Single Responsibility (SOLID), by size proxy
 
 ### Rationale
 This is the architecture-category counterpart to the state-management `fatView` rule. A SwiftUI view with more than five `@State` or `@StateObject` declarations has accumulated business logic that belongs in a ViewModel. The architecture perspective focuses on the separation-of-concerns violation.

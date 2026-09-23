@@ -5,6 +5,7 @@
 **Identifier:** `Singleton Usage`
 **Category:** Architecture
 **Severity:** Warning
+**Principle:** Dependency Inversion (SOLID)
 
 ### Rationale
 Accessing a service through a `.shared` singleton creates a global dependency that is invisible in function signatures and impossible to replace in tests. Code that calls `DataManager.shared.fetch()` is permanently coupled to the `DataManager` implementation and cannot be tested without running the real implementation.

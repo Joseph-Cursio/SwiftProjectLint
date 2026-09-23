@@ -5,6 +5,7 @@
 **Identifier:** `Unused Protocol Abstraction`
 **Category:** Architecture
 **Severity:** Info
+**Principle:** Dependency Inversion (SOLID), guarding against over-application
 
 ### Rationale
 A protocol earns its keep by being *used* — as a generic constraint, an existential

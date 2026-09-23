@@ -5,6 +5,7 @@
 **Identifier:** `Manual Registration List`
 **Category:** Architecture
 **Severity:** Info
+**Principle:** Open/Closed (SOLID)
 
 ### Rationale
 A run of consecutive statements that each register one item — `register…`, `add…`, `append`,

@@ -5,6 +5,7 @@
 **Identifier:** `Layer Dependency`
 **Category:** Architecture
 **Severity:** Warning
+**Principle:** Dependency Inversion (SOLID)
 
 ### Rationale
 

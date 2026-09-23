@@ -5,6 +5,7 @@
 **Identifier:** `ViewBuilder Complexity`
 **Category:** Performance
 **Severity:** Warning
+**Principle:** Single Responsibility (SOLID), by size proxy
 
 ### Rationale
 `@ViewBuilder` functions and computed properties that grow beyond 30 lines or 15 statements become difficult to read and may hide unnecessary re-computation. Large builders should be split into smaller subviews or helper functions for clarity and performance.

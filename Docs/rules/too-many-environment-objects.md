@@ -5,6 +5,7 @@
 **Identifier:** `Too Many Environment Objects`
 **Category:** State Management
 **Severity:** Warning
+**Principle:** Interface Segregation (SOLID)
 
 ### Rationale
 When a SwiftUI view declares four or more `@EnvironmentObject` properties, it signals that the view depends on too many external state sources. This makes the view harder to reason about, test, and reuse because every parent must supply every expected object.

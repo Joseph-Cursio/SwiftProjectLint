@@ -5,6 +5,7 @@
 **Identifier:** `Missing Dependency Injection`
 **Category:** Architecture
 **Severity:** Info
+**Principle:** Dependency Inversion (SOLID)
 
 ### Rationale
 Views and objects that create their dependencies internally cannot be tested in isolation. A view with an empty initializer, or a view that instantiates an `ObservableObject` inline with `@StateObject var vm = MyViewModel()`, ties itself to a concrete type that cannot be swapped for a test double.

@@ -5,6 +5,7 @@
 **Identifier:** `Fat Protocol`
 **Category:** Architecture
 **Severity:** Info
+**Principle:** Interface Segregation (SOLID)
 
 ### Rationale
 A protocol with 10 or more requirements violates the Interface Segregation Principle. Swift encourages small, composable protocols (like `Equatable`, `Identifiable`, `Hashable`). A fat protocol forces every conformer to implement a large surface area, even when only a subset is needed.

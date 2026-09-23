@@ -5,6 +5,7 @@
 **Identifier:** `Parallel List Drift`
 **Category:** Architecture
 **Severity:** Info
+**Principle:** Open/Closed (SOLID)
 
 ### Rationale
 Two lists of names that *almost* agree are usually one enumeration maintained in two places,

@@ -5,6 +5,7 @@
 **Identifier:** `Fat View`
 **Category:** State Management
 **Severity:** Warning
+**Principle:** Single Responsibility (SOLID), by size proxy
 
 ### Rationale
 A view with more than five `@State` or `@StateObject` properties is doing too much work. It is managing business logic and data transformation that should live in a ViewModel. This makes the view hard to test, hard to read, and fragile when requirements change.
