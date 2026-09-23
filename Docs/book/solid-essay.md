@@ -4,8 +4,8 @@
 
 *Draft 1, 2026-09-22. Outline: [`solid-essay-outline.md`](solid-essay-outline.md).
 Sample code: [Joseph-Cursio/Checkout](https://github.com/Joseph-Cursio/Checkout),
-`solid/` branches. Items marked **[verify]** must be checked before
-publication.*
+`solid/` branches. All [verify] items were checked on 2026-09-22; see the
+drafting notes.*
 
 ---
 
@@ -150,13 +150,22 @@ sees only a protocol sees only what the protocol promises.
 
 For `OrderStore`, though, the protocol promises the same thing. Every
 requirement is `async`, so calls through `any OrderStore` still need `await`.
-And where a protocol *does* have a synchronous requirement, an actor can only
-satisfy it with a `nonisolated` member, so the compiler makes that trade-off
-visible in the conformance rather than letting it slip by. **[verify this
-against Swift 6.2's isolated-conformance rules (SE-0470) before publishing.]**
-Either way, the exemption is broader than its reason. A better version would
-exempt actors only when abstracting them would cost something the protocol
-can't express. The point generalises: in a language where isolation is part of
+And where a protocol *does* have a synchronous requirement, the compiler
+refuses the conformance outright:
+
+```
+error: conformance of 'Store' to protocol 'SyncStore' crosses into
+  actor-isolated code and can cause data races
+note: mark all declarations used in the conformance 'nonisolated'
+note: turn data races into runtime errors with '@preconcurrency'
+```
+
+The two ways out are a `nonisolated` implementation, which can't touch the
+actor's state, or `@preconcurrency`, which is exactly the kind of escape hatch
+the companion essay recommends counting. Either way the trade-off is written
+into the conformance, not slipped past the caller. So the exemption is broader
+than its reason. A better version would exempt actors only when abstracting
+them would cost something the protocol can't express. The point generalises: in a language where isolation is part of
 the type system, "depend on an abstraction" has to ask what the abstraction
 preserves, not only what it decouples.
 
@@ -370,9 +379,11 @@ This isn't a proxy. A `Bool` parameter that picks between two substantial code
 paths is, quite literally, one function doing two jobs, with the caller
 choosing which. The rule only fires when both branches do real work, so a flag
 that tweaks one value doesn't count. Its documentation cites Adam Tornhill's
-*Hidden Design Decisions: Refactoring Control Coupling*, and the remedy is the
-same: replace the flag with two named functions, or pass in the behaviour.
-**[verify the essay's summary of Tornhill against the original.]**
+*Hidden Design Decisions: Refactoring Control Coupling*. Tornhill's remedy is
+the Strategy pattern: give each branch its own named object and pass that in,
+so the call site says what it wants instead of passing `true`. For a function
+this small, two named functions (`placeOrder()` and `placeGiftOrder()`) get
+you most of the way.
 
 ### A better signal, outside the code
 
@@ -571,21 +582,41 @@ does, and that's a feature.
 The same idea applies to Swift's own protocols, which have documented laws
 the compiler never checks. `Equatable` must be symmetric and transitive.
 `Hashable` values that are equal must hash equally. `Comparable` must be a
-total order. Checkout's `Money` is `Hashable` and `Comparable`. A `hash(into:)`
-that ignores a field, or a `<` that isn't consistent with `==`, breaks `Set`,
-`Dictionary` and `sort` in ways that surface as baffling UI bugs.
+total order. Break one and `Set`, `Dictionary` or `sort` misbehave in ways that
+surface as baffling UI bugs.
+
+Suppose someone decides that two `Money` values are equal if they're the same
+number of whole dollars, and writes `==` accordingly, but leaves the
+synthesized `hash(into:)` hashing every cent. Equal values now hash
+differently, and a `Set<Money>` can hold two "equal" amounts.
 [SwiftPropertyLaws](https://github.com/Joseph-Cursio/SwiftPropertyLaws) checks
-those laws with generated inputs:
+the standard laws with generated inputs:
 
 ```swift
+enum MoneyGen {
+    static let money = Gen<Int>.int(in: 0...299).map(Money.init(cents:))
+}
+
 @Test func moneyLaws() async throws {
-    try await checkComparablePropertyLaws(for: Money.self, using: MoneyGen.money)
+    try await checkHashablePropertyLaws(for: Money.self, using: MoneyGen.money)
 }
 ```
 
-**[verify: compile this against Checkout. The signature is confirmed from
-source (`checkComparablePropertyLaws(for:using:)`, `async throws`, returns
-`[CheckResult]`); `MoneyGen.money` doesn't exist yet.]**
+```
+✗ Hashable.equalityConsistency  [Strict, 1 trials]
+  Counterexample: x = Money(cents: 261), y = Money(cents: 240); x == y but
+  hashValues differ (-3583346736510550776 vs -3786061081799059570)
+  Replay with seed: aGryZj8qCalR1Lh3O0FfwdbZnVoryGASpazfeG2JN0s=
+  (Empirical evidence, not a proof.)
+```
+
+Look at the generator's range: `0...299`. With amounts drawn from ±1,000,000
+cents instead, the same check **passes**. Two independent random amounts are
+almost never the same number of dollars, so "equal values hash equally" never
+meets a pair of equal values to test. A law check only finds the bugs its
+generator can reach. Writing the generator is part of writing the contract,
+and it deserves as much thought as the laws. (The library's own last line
+says it well: empirical evidence, not a proof.)
 
 But the standard protocols are the easy case, because their laws are written
 down. The harder, more valuable point is that **your protocols have laws too**,
@@ -642,10 +673,16 @@ the rest.
 ## Drafting notes (remove before publishing)
 
 - **Word count:** about 4,100 of prose, under the 5–6k target. §3 and §5 are the thinnest; §5 could show one real change-coupling query against Checkout's history.
-- **[verify] items:** actor conformances to synchronous requirements under
-  Swift 6.2 (§2); the Tornhill summary (§5); compiling the
-  SwiftPropertyLaws snippet for `Money` (§6), which needs a `MoneyGen`
-  generator.
+- **Verified 2026-09-22:** the actor-conformance claim, by compiling the
+  cases with Swift 6.3.3 (§2; SE-0470's isolated conformances don't apply to
+  actors, and `@MainActor` on the conformance also errors); the Tornhill
+  summary, against the article (§5); the `Money` example, compiled and run
+  against Checkout with SwiftPropertyLaws 4.7.0 (§6). Output is from a real
+  run with a planted `==` bug.
+- **§6 dependency note:** SwiftPropertyLaws 4.7 needs `swift-property-based`
+  2.x, while Checkout's contract-test branches pin 1.2.0. The contract tests
+  were confirmed to build and pass unchanged on 2.x, so bump Checkout before
+  adding the `Money` example to a branch.
 - **§1 claims "fourteen rules for dependency inversion, one for Liskov":**
   that matches the `RULES.md` index (including the one rule tagged with both).
   Recount if the tags change.
