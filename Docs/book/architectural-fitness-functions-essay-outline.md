@@ -111,14 +111,46 @@ The practical core for this audience.
 
 ## 4. Isolation is architecture (~1,200 words)
 
-- For an app, the main architectural boundary *is* the main actor. UI state
-  lives there; I/O and heavy work don't. Swift 6 checks this, which makes it the
-  strongest fitness function most app developers have. But it only checks
-  what isn't opted out.
-- **Escape hatches are architecture debt with a label on it:**
+- For an app, the main actor is an architectural boundary: UI state lives
+  there, and anything crossing it must be `await`ed and `Sendable`. Swift 6
+  enforces that contract at compile time, which makes it the strongest fitness
+  function most app developers have. But it enforces less than it seems. It
+  prevents data races, not slow work on the main thread (that's lint's job).
+  And it only checks code that hasn't opted out through `@unchecked Sendable`,
+  `nonisolated(unsafe)` or `@preconcurrency`.
+- **Show the boundary in Checkout:** `CheckoutViewModel` (`@MainActor`) calls
+  `await store.save(order)` on `CoreDataOrderStore` (an `actor`). The `await`
+  is the seam, and `Order: Sendable` is the contract across it. Isolation
+  decides which part of the app owns which state and what form data takes when
+  it moves. That's architecture, not just thread safety.
+- **Why it's the strongest rung:** it runs on every build, needs no config,
+  blocks rather than reports, and uses real type information. Evidence from the
+  sample: the clean app's first build failed on a `static let` holding an
+  `NSManagedObjectModel`, a hazard nobody wrote a rule for.
+- **What the compiler doesn't check: where slow work runs.** `Data(contentsOf:)`
+  in a `@MainActor` view model compiles cleanly. It's a hang, not a race, and a
+  hang isn't a type error. Swift 6.2 makes this more pressing: new Xcode 26 app
+  targets default to main-actor isolation (SE-0466), so unannotated code
+  lands on the main actor unless marked `@concurrent` or moved into an actor.
+  This is the lint side of the same boundary: `synchronous-network-call`,
+  `thread-sleep`, `dispatch-semaphore-in-async`,
+  `expensive-operation-in-view-body`.
+- **Escape hatches turn a proof into a promise.** Each one tells the compiler
+  to stop checking, and afterwards it says nothing, ever again:
   `unchecked-sendable` (and why a lock-guarded type *isn't* flagged: a real
   safety mechanism is present), `nonisolated-unsafe`, `preconcurrency-import`,
-  `preconcurrency-conformance`.
+  `preconcurrency-conformance`. Also mention `MainActor.assumeIsolated` (a
+  runtime trap instead of a compile-time proof) and per-target Swift 5 mode.
+- **They're the path of least resistance.** In the sample, the compiler's own
+  diagnostic for the `static let` suggested `@preconcurrency import CoreData`.
+  The escape hatch was offered as *the fix*. Take it under deadline and the
+  error goes away; the race doesn't. `essay/s4-escape-hatch` shows the end
+  state: an unguarded dictionary in `ReceiptCache: @unchecked Sendable` that
+  builds cleanly.
+- **So the fitness function isn't "are there data races?"** The compiler
+  answers that wherever it's allowed to. It's "how many places have we told
+  the compiler not to check, and is that number going up?" That's the question
+  the ratchet below answers.
 - **App-specific isolation rules:** `main-actor-missing-on-ui-code`,
   `observable-main-actor-missing`, `task-in-on-appear`,
   `fire-and-forget-task`, `swallowed-task-error`.
