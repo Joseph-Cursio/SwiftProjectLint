@@ -3,7 +3,7 @@
 *Draft 1, 2026-09-22. Outline:
 [`architectural-fitness-functions-essay-outline.md`](architectural-fitness-functions-essay-outline.md).
 Sample code: [Joseph-Cursio/Checkout](https://github.com/Joseph-Cursio/Checkout).
-Items marked **[verify]** must be checked before publication.*
+All [verify] items were checked on 2026-09-22; see the drafting notes.*
 
 ---
 
@@ -42,8 +42,7 @@ The fix isn't more discipline. It's giving the diagram a way to fail.
 *Building Evolutionary Architectures* by Neal Ford, Rebecca Parsons, Patrick
 Kua and Pramod Sadalage has a name for that: an **architectural fitness
 function**, meaning any mechanism that gives an objective assessment of whether
-the system still has some architectural characteristic you care about. **[verify
-the definition's wording against the 2nd edition; paraphrase, don't quote.]**
+the system still has some architectural characteristic you care about.
 The term comes from evolutionary computing, where a fitness function decides
 which variants survive. In an architecture, it decides which changes get
 merged.
@@ -273,13 +272,22 @@ import Testing
 @Test func presentationDoesNotImportPersistenceFrameworks() {
     Harmonize.on("Sources/Checkout/Presentation")
         .sources()
-        .assertTrue(message: "Presentation must not import a persistence framework") {
+        .assertTrue(
+            message: "Presentation must not import a persistence framework",
+            strict: true
+        ) {
             $0.imports().withName(["CoreData", "SwiftData"]).isEmpty
         }
 }
 ```
 
-**[verify: compile and run this against Checkout before publishing.]**
+Add `import CoreData` to a file in `Presentation/` and this test fails, naming
+the file. Notice `strict: true`, though. Without it, a misspelled folder
+(`"Presentaton"`) matches no files, and the assertion passes, because there's
+nothing to fail on. It's the same trap as the misconfigured layer earlier in
+this section, found independently in a different tool. `strict: true` makes an
+empty match a failure. Whatever tool you use, check how it handles a rule that
+matches nothing.
 
 The two styles suit different teams. Rules as tests are as expressive as
 Swift, live next to the code they protect, and are owned by the team that
@@ -361,8 +369,8 @@ That's a hang, not a race, and a hang isn't a type error. "UI state lives on
 the main actor; I/O doesn't" is a design intention the compiler doesn't
 enforce. Swift 6.2 makes the gap more pressing: new app targets in Xcode 26
 default to main-actor isolation, so unannotated code runs on the main actor
-unless someone marks it `@concurrent` or moves it into an actor. **[verify
-SE-0466 defaults against current Xcode.]** This is where lint is the right
+unless someone marks it `@concurrent` or moves it into an actor. (The build
+setting is `SWIFT_DEFAULT_ACTOR_ISOLATION`, from SE-0466.) This is where lint is the right
 tool: `Synchronous Network Call`, `Thread Sleep`, `Dispatch Semaphore in
 Async` and `Expensive Operation in View Body` all patrol the same boundary from
 the side the compiler doesn't cover.
@@ -639,9 +647,12 @@ not a feature. Once someone has classified a pair (these two are a deliberate
 bridge; these two should be derived), that decision could be *recorded* next
 to the code, and checked on every later change: edit one side of a recorded
 pair and the check asks about the other. That turns a one-off investigation
-into a standing fitness function, and it's one the *Building Evolutionary
-Architectures* taxonomy has a category for: a fitness function that's about
-how the system changes over time, not just how it looks today.
+into a standing fitness function, one that uses the system's *history* as
+evidence rather than only its current state. (*Building Evolutionary
+Architectures* has a "temporal" category, but it means something narrower: a
+check with a time element, such as a test that deliberately breaks when a
+dependency is upgraded, so someone has to look. Using history as evidence
+isn't one of the book's categories.)
 
 ---
 
@@ -803,9 +814,12 @@ keep what it does honest. You want both.
   tests via Liskov substitution. Consider tightening the closing paragraph so
   the two don't repeat each other.
 - **Word count:** about 5,100 of prose before the SOLID sidebar (~420 words). Under the 6–7k target; §3 and §6 have the most room to grow.
-- **[verify] items:** the book's definition and taxonomy terms (§1); the
-  Harmonize snippet, compiled against Checkout (§3); the Swift 6.2 / SE-0466
-  default-isolation claim (§4).
+- **Verified 2026-09-22:** the book's definition and category terms (§1, via
+  secondary sources, since the O'Reilly text was unreachable; the categories
+  are scope, cadence, result, invocation and proactivity); the Harmonize snippet,
+  compiled and run against Checkout (§3), including the empty-match behaviour;
+  the SE-0466 Xcode 26 default (§4). **Corrected:** §6 had used the book's
+  "temporal" category to mean history-based evidence, which it doesn't.
 - **§1 hook:** the "dozen places" outcome is illustrative, not measured. Either
   keep it clearly hypothetical or replace it with a real migration story.
 - **§6 and §7 use third person** ("the author") for the dogfooding stories.
