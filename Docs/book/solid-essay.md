@@ -224,23 +224,116 @@ properties, which almost certainly uses only part of each.
 
 But the principle isn't really about size. It's about **use**. A protocol with
 twelve requirements whose every client calls all twelve is fine. A protocol
-with four, where each client calls a different one, is not. The fat
-`OrderStore` above is a problem because the checkout screen needs `save`, the
-order history screen needs `recentOrders`, the admin tools need `refund` and
-`exportCSV`, and analytics needs one method, yet each of them depends on all
-ten, and every test double has to implement all ten.
+with four, where each client calls a different one, is not. A requirement
+count can't tell those apart, which is why `Fat Protocol` needs a threshold
+and why the threshold is arbitrary: at nine requirements, this `OrderStore`
+would pass. Published advice doesn't agree on the number either. The rule warns
+at ten. Paweł Kozielecki argues for five, reasoning that create, read, update
+and delete account for four, so a fifth requirement is the first sign the
+protocol's scope has grown
+([*Interface Segregation Principle in iOS: How to Prevent a Protocol from
+Becoming a Prison*](https://swiftandmemes.com/interface-segregation-principle-in-ios-how-to-prevent-protocol-from-becoming-a-prison)).
+Both are reasonable, and neither is the principle.
 
-Checking *that* needs a different analysis: for each client of the protocol,
-which requirements does it actually call? That's a cross-file question, but
-it's still a question about names, so it's within reach of a static tool.
-SwiftProjectLint doesn't do it yet. It's the principled version of `Fat
-Protocol`, and until it exists, a requirement count is the proxy.
+Size-based checks also run out of things to say. When I added `Fat Protocol`
+to SwiftProjectLint, I ran it across my own projects and split the protocols
+it found. It now reports nothing across them. **[confirm with the survey run
+before publishing.]** That clean run means every protocol is under ten
+requirements. It doesn't mean every client uses what it depends on, which is
+the question the principle actually asks.
 
-Swift makes the fix unusually cheap. Protocol composition lets you split
-`OrderStore` into `OrderSaving`, `OrderHistory` and `OrderAdministration`,
-and write `any OrderSaving & OrderHistory` wherever a client really needs
-both. In a language where segregation costs one `&`, a fat protocol is harder
-to excuse.
+So measure use instead. For each requirement, ask which code calls it
+*through the protocol*, meaning via something typed `any OrderStore`,
+`some OrderStore` or `T: OrderStore`. Calls on the concrete store don't count,
+because they don't depend on the abstraction. In Checkout that takes a minute
+with search:
+
+| Requirement | Called through `OrderStore` by |
+|---|---|
+| `save(_:)` | `CheckoutViewModel.placeOrder()` |
+| the other nine | nothing |
+
+`CheckoutViewModel` is the protocol's only client, and it uses one requirement
+of ten. The other nine exist because each feature that touched orders added
+a method to the nearest protocol. Some of them are called, but only inside
+`CoreDataOrderStore` itself (`receiptText(for:)` calls `order(withIdentifier:)`
+on `self`), which is the concrete type talking to itself, not a client
+depending on an abstraction.
+
+That table is a question about names, so a tool could build it: find every
+binding typed as the protocol, record which members are called on it, and
+report the requirements nothing calls. SwiftProjectLint doesn't do this yet,
+and it's the principled version of `Fat Protocol`: it would have reported
+the nine unused requirements at *any* size, including the nine-requirement
+version that passes the threshold. **[Update if Unused Protocol Requirement
+ships before publication.]**
+
+### Split by the clients you have
+
+Swift makes the fix unusually cheap. Protocol composition means a protocol can
+be split into roles, and a client that needs several writes them with `&`. On
+`solid/i-split-store`:
+
+```swift
+/// Saving new orders. What checkout needs.
+protocol OrderSaving: Sendable {
+    func save(_ order: Order) async throws
+}
+
+/// Reading past orders. What order history and receipts need.
+protocol OrderHistory: Sendable { … }        // four requirements
+
+/// Changing or removing orders after the fact. What admin tools need.
+protocol OrderAdministration: Sendable { … } // four requirements
+
+/// Recording analytics events.
+protocol AnalyticsRecording: Sendable { … }  // one requirement
+
+/// Everything a full storage backend provides.
+typealias OrderStore = OrderSaving & OrderHistory & OrderAdministration & AnalyticsRecording
+```
+
+The view model now asks for exactly what it uses:
+
+```swift
+private let store: any OrderSaving
+```
+
+A test double for it implements one method instead of ten. `Fat Protocol` goes
+quiet. And the linter reports something new:
+
+```
+Sources/Checkout/Domain/OrderStore.swift:13: info: [Single Implementation Protocol]
+  Protocol 'OrderHistory' has only one conformer ('CoreDataOrderStore') —
+  consider removing the abstraction.
+Sources/Checkout/Domain/OrderStore.swift:21: info: [Single Implementation Protocol]
+  Protocol 'OrderAdministration' has only one conformer ('CoreDataOrderStore') —
+  consider removing the abstraction.
+Sources/Checkout/Domain/OrderStore.swift:29: info: [Single Implementation Protocol]
+  Protocol 'AnalyticsRecording' has only one conformer ('CoreDataOrderStore') —
+  consider removing the abstraction.
+```
+
+`OrderSaving` isn't on the list, because it has a client. The other three roles
+don't. I named them after screens Checkout doesn't have: order history, admin
+tools, analytics. The split was right about the *shape* of the roles and wrong
+about whether they were needed. They're abstractions waiting for clients, and
+the rule that pushes back against over-applied dependency inversion (§2)
+catches them just as it caught the unused protocol there.
+
+So the finished version is smaller still: keep `OrderSaving`, and leave the
+other nine methods on `CoreDataOrderStore` until a client needs them. When an
+order-history screen appears, give it an `OrderHistory` protocol containing
+exactly what that screen calls. That's the practical form of interface
+segregation: **split by the clients you have, not the ones you imagine.**
+Protocols shaped by real clients stay small without anyone counting their
+requirements.
+
+(A smaller lesson from the same branch: I first wrote the store's conformance
+as `actor CoreDataOrderStore: OrderStore`, through the typealias. The linter
+then reported all four roles as having *no* conformers, because it doesn't
+expand typealiased compositions. Checkable, again, doesn't mean perfectly
+checked.)
 
 ---
 
