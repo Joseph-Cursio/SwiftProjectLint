@@ -5,6 +5,7 @@
 **Identifier:** `Direct Instantiation`
 **Category:** Architecture
 **Severity:** Warning
+**Principle:** Dependency Inversion (SOLID)
 
 ### Rationale
 

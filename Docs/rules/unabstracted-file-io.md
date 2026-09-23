@@ -5,6 +5,7 @@
 **Identifier:** `Unabstracted File IO`
 **Category:** Architecture
 **Severity:** Info
+**Principle:** Dependency Inversion (SOLID)
 
 ### Rationale
 An orchestration type — a `…Model`, `…ViewModel`, or `…Service` whose job is to coordinate work and whose other dependencies are already injected — defeats its own testability the moment it reaches straight for the filesystem. A call like `String(contentsOfFile:)` or `someText.write(to:)` welds the type to real files on disk: a unit test can no longer exercise the surrounding logic without staging fixture files and tolerating I/O failure modes that have nothing to do with the behaviour under test. This is the dual of [Concrete Type Usage](concrete-type-usage.md): that rule flags a *property or parameter* typed as a concrete service class, whereas this one flags the raw I/O *call* that has no type annotation to catch but is exactly the dependency that should sit behind an injected seam.

@@ -6,6 +6,7 @@
 **Category:** Architecture
 **Severity:** Warning
 **Status:** Implemented
+**Principle:** Dependency Inversion (SOLID)
 
 > **Single-target projects only.** If your project is split into separate SPM targets or modules, skip this rule — the Swift compiler already enforces layer boundaries at build time, and no linter can improve on that. Tools like [Periphery](https://github.com/peripheryapp/periphery), [swift-dependencies](https://github.com/pointfreeco/swift-dependencies), and Tuist's project validation are better suited to modular architectures.
 

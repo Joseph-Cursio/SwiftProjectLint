@@ -5,6 +5,7 @@
 **Identifier:** `Swallowed Injection Downcast`
 **Category:** Code Quality
 **Severity:** Info
+**Principle:** Liskov Substitution and Dependency Inversion (SOLID)
 
 ### Rationale
 An initializer that accepts a dependency through a protocol *advertises* that any conforming type will do — that's the whole point of injecting an abstraction, and it's what lets tests pass a mock. When the body then downcasts that parameter to one specific concrete type with `as?` / `as!`, the seam is a fiction: anything that isn't that exact type is silently discarded (an `as?` falls back to a default; an `as!` crashes). A substituted test double compiles, runs, and has **no effect** — the most expensive kind of bug, because the tests look like they exercise the injected behavior but don't.

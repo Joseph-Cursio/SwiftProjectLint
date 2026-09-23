@@ -283,4 +283,60 @@ Rules marked **opt-in** are disabled by default and must be explicitly listed un
 
 ---
 
+## Rules by SOLID Principle
+
+Some rules check a SOLID principle, or catch the result of breaking one. Each rule's page names its principle in the header. Coverage is uneven by design: some principles need knowledge about what the code *means* or how it *behaves*, and a syntax tree has neither.
+
+### Single Responsibility
+
+A responsibility is a judgement about meaning, which syntax can't show. `Boolean Control Coupling` checks it directly (one flag choosing between two behaviours is two jobs); the others use size as a proxy.
+
+- [Boolean Control Coupling](boolean-control-coupling.md)
+- [Fat View Detection](fat-view-detection.md) (by size proxy)
+- [Fat View](fat-view.md) (by size proxy)
+- [God View Model](god-view-model.md) (by size proxy)
+- [Large View Body](large-view-body.md) (by size proxy)
+- [ViewBuilder Complexity](view-builder-complexity.md) (by size proxy)
+
+### Open/Closed
+
+Swift enums are closed on purpose: when adding a case makes the compiler list every `switch` to update, that's working as intended. These rules catch changes that are required but that the compiler *can't* point to.
+
+- [Manual Registration List](manual-registration-list.md)
+- [Parallel List Drift](parallel-list-drift.md)
+- [Scattered Enum Mapping](scattered-enum-mapping.md)
+- [String Switch Over Enum](string-switch-over-enum.md)
+
+### Liskov Substitution
+
+Substitutability is about behaviour, so static analysis sees only its outline. The full check is dynamic: property tests of a protocol's laws against every conformer.
+
+- [Swallowed Injection Downcast](swallowed-injection-downcast.md) (also Dependency Inversion)
+
+### Interface Segregation
+
+- [Fat Protocol](fat-protocol.md)
+- [Too Many Environment Objects](too-many-environment-objects.md)
+
+### Dependency Inversion
+
+The last three rules below push the other way: they flag protocols that nothing substitutes, so the principle is applied where it pays rather than everywhere.
+
+- [Architectural Boundary](architectural-boundary.md)
+- [Concrete Type Usage](concrete-type-usage.md)
+- [Direct Instantiation](direct-instantiation.md)
+- [Layer Dependency](layer-dependency.md)
+- [Missing Dependency Injection](missing-dependency-injection.md)
+- [Non-Injected Nondeterminism](non-injected-nondeterminism.md)
+- [Singleton Usage](singleton-usage.md)
+- [Subclassed For Mocking](subclassed-for-mocking.md)
+- [Unabstracted File IO](unabstracted-file-io.md)
+- [View Model Direct DB Access](view-model-direct-db-access.md)
+- [Swallowed Injection Downcast](swallowed-injection-downcast.md) (also Liskov Substitution)
+- [Mirror Protocol](mirror-protocol.md) (guarding against over-application)
+- [Single Implementation Protocol](single-implementation-protocol.md) (guarding against over-application)
+- [Unused Protocol Abstraction](unused-protocol-abstraction.md) (guarding against over-application)
+
+---
+
 *Generated from visitor source code and test cases in SwiftProjectLint. To contribute a rule correction or new rule, see the [contributor guide](../CONTRIBUTING.md).*

@@ -5,6 +5,7 @@
 **Identifier:** `String Switch Over Enum`
 **Category:** Code Quality
 **Severity:** Info
+**Principle:** Open/Closed (SOLID)
 **Opt-in:** Yes
 
 ### Rationale

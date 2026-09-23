@@ -5,6 +5,7 @@
 **Identifier:** `Scattered Enum Mapping`
 **Category:** Architecture
 **Severity:** Info *(opt-in)*
+**Principle:** Open/Closed (SOLID)
 
 ### Rationale
 When the same enum is exhaustively `switch`ed in several places and every arm returns a

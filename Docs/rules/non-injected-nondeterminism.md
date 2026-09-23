@@ -5,6 +5,7 @@
 **Identifier:** `Non-Injected Nondeterminism`
 **Category:** Testability
 **Severity:** Warning
+**Principle:** Dependency Inversion (SOLID)
 
 ### Rationale
 A property-based test re-runs logic against many randomized inputs and, when it finds a failure, replays the exact same case to shrink it. That contract breaks if the code under test reads a nondeterministic source inline — the current time, a fresh UUID, a random number. Two runs with identical inputs produce different results, so failures can't be reproduced and shrinking is meaningless. Injecting the source (a clock, a `RandomNumberGenerator`, a UUID provider) lets a test pin it to a fixed value.

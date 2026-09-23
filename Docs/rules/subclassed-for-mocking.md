@@ -5,6 +5,7 @@
 **Identifier:** `Subclassed For Mocking`
 **Category:** Architecture
 **Severity:** Info
+**Principle:** Dependency Inversion (SOLID)
 
 ### Rationale
 When a test substitutes a concrete production class by **subclassing** it — `class MockFooService: FooService` overriding the methods under test — that is the anti-pattern protocols exist to eliminate. The subclass must call the real `super.init` (inheriting any side effects the production initializer carries, such as file or network access), and a new method added to the production class silently escapes the override, so the mock drifts out of sync without a compiler error. If the only reason a class is subclassed is to fake it in tests, and the class exposes no protocol abstraction, extracting a protocol lets the test supply a lightweight conformer instead.

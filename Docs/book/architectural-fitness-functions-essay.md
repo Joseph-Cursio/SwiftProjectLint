@@ -723,6 +723,51 @@ A few practical rules follow:
 
 ---
 
+> ### Sidebar: what about SOLID?
+>
+> SOLID is the checklist most Swift developers already have for "good
+> design", so it's fair to ask which of its five principles a linter can
+> check. The answer is uneven, and the unevenness is instructive.
+>
+> **Dependency inversion** is well covered, and you've already seen it:
+> `OrderStore` is a protocol owned by `Domain`, implemented in `Persistence`
+> and wired up in `App/`, and `may_depend_on` is its fitness function. Rules
+> like `Direct Instantiation` and `Concrete Type Usage` push toward
+> abstraction. Less obviously, `Single Implementation Protocol`, `Mirror
+> Protocol` and `Unused Protocol Abstraction` push *back*, against protocols
+> that nothing ever substitutes. The goal is inversion where it pays, not a
+> protocol in front of every class.
+>
+> **Interface segregation** has direct checks: `Fat Protocol`, and `Too Many
+> Environment Objects` for views that depend on everything.
+>
+> **Open/closed** needs rethinking for Swift. Enums are closed on purpose:
+> adding a case and letting the compiler list every `switch` to update is the
+> language working as intended, even though it "modifies" existing code. The
+> Swift form of the violation is a change that's *required but invisible*:
+> a `switch` on a raw string that falls through to `default`, or a hand-kept
+> list that doesn't learn about `.applePay`. That's §5, seen through a
+> different lens.
+>
+> **Single responsibility** can only be approximated. A responsibility is a
+> judgement about meaning, and syntax doesn't show meaning. Size rules (`God
+> View Model`, `Large View Body`) are proxies. `Boolean Control Coupling`
+> comes closest to checking it directly: a flag parameter that chooses
+> between two code paths is one function doing two jobs.
+>
+> **Liskov substitution** is the weakest statically, because it's about
+> behaviour. `Swallowed Injection Downcast` catches its outline: a function
+> that accepts any `OrderStore` and then does `as? CoreDataOrderStore` is
+> admitting that not every conformer can really stand in. But the full check
+> is dynamic: generate inputs and verify that every conformer obeys the
+> protocol's laws. That's a property-based test, and it's where static
+> analysis hands over to testing.
+>
+> SwiftProjectLint's rule reference lists the rules for each principle, and
+> each rule's page names its principle in its header.
+
+---
+
 ## 8. Monday morning
 
 If you take one thing from this essay into your own app, make it this list:
@@ -754,7 +799,10 @@ keep what it does honest. You want both.
 
 ## Drafting notes (remove before publishing)
 
-- **Word count:** about 5,100 of prose. Under the 6–7k target; §3 and §6 have the most room to grow.
+- **SOLID sidebar** (after §7) sets up the closing's hand-off to property
+  tests via Liskov substitution. Consider tightening the closing paragraph so
+  the two don't repeat each other.
+- **Word count:** about 5,100 of prose before the SOLID sidebar (~420 words). Under the 6–7k target; §3 and §6 have the most room to grow.
 - **[verify] items:** the book's definition and taxonomy terms (§1); the
   Harmonize snippet, compiled against Checkout (§3); the Swift 6.2 / SE-0466
   default-isolation claim (§4).

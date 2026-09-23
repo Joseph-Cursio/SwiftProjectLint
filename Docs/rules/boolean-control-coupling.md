@@ -5,6 +5,7 @@
 **Identifier:** `Boolean Control Coupling`
 **Category:** Architecture
 **Severity:** Warning
+**Principle:** Single Responsibility (SOLID)
 
 ### Rationale
 A `Bool` parameter that the function body uses to *choose between two code paths* is

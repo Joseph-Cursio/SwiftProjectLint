@@ -5,6 +5,7 @@
 **Identifier:** `God View Model`
 **Category:** Architecture
 **Severity:** Warning
+**Principle:** Single Responsibility (SOLID), by size proxy
 
 ### Rationale
 View models with many `@Published` properties become god objects — they manage too much state, are hard to test, and couple unrelated concerns. This is the MVVM equivalent of the `fatView` rule. When a view model exceeds 10 published properties, it's a strong signal that it should be split into focused sub-view-models.

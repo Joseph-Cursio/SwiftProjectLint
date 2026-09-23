@@ -5,6 +5,7 @@
 **Identifier:** `Concrete Type Usage`
 **Category:** Architecture
 **Severity:** Info
+**Principle:** Dependency Inversion (SOLID)
 
 ### Rationale
 A function parameter or stored property typed as a concrete service class (e.g., `func configure(service: APIService)`) cannot be substituted with a test double or alternative implementation without modifying the function signature. Protocol abstractions allow callers to pass any conforming type.

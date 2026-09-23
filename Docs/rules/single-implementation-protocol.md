@@ -5,6 +5,7 @@
 **Identifier:** `Single Implementation Protocol`
 **Category:** Architecture
 **Severity:** Info
+**Principle:** Dependency Inversion (SOLID), guarding against over-application
 
 ### Rationale
 A protocol that is only adopted by one concrete type provides no polymorphism. Unless the protocol exists to enable test mocking, the extra layer of indirection adds cognitive load without architectural benefit. This is sometimes called "protocol soup" — unnecessary abstraction that obscures the actual implementation.
