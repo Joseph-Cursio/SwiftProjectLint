@@ -82,6 +82,15 @@ struct RuleDocView: View {
             }
             if !paragraphLines.isEmpty {
                 blocks.append(.paragraph(paragraphLines.joined(separator: "\n")))
+            } else {
+                // Every iteration must consume a line. The paragraph loop stops on any `#`, blank,
+                // fence, `---` or `[←` line without consuming it, so a line that `singleLineBlock`
+                // does not recognise AND that stops the paragraph loop was seen forever — which is
+                // what a `#### ` heading did, freezing the app on 29 of the bundled rule docs.
+                // Rendering it as a one-line paragraph makes termination a property of this loop
+                // rather than of the two stop lists agreeing.
+                blocks.append(.paragraph(line))
+                lineIndex += 1
             }
         }
 
@@ -94,9 +103,24 @@ struct RuleDocView: View {
     func singleLineBlock(from line: String) -> Block? {
         if line.hasPrefix("## ") { return .heading2(String(line.dropFirst(3))) }
         if line.hasPrefix("### ") { return .heading3(String(line.dropFirst(4))) }
+        // Every other ATX heading level: `# Title` (H1) and `####`–`######`. Only a real heading —
+        // 1–6 `#` then a space or the end of the line — so `#hashtag` stays paragraph text.
+        if let heading = Self.otherHeading(line) { return heading }
         if line == "---" { return .divider }
         if line.trimmingCharacters(in: .whitespaces).isEmpty { return .spacer }
         return nil
+    }
+
+    /// An H1 or H4–H6 heading as the nearest block this view renders, or `nil` for anything else.
+    /// A heading with no text — a bare `#` — is a spacer.
+    static func otherHeading(_ line: String) -> Block? {
+        let level = line.prefix { $0 == "#" }.count
+        guard (1...6).contains(level) else { return nil }
+        let rest = line.dropFirst(level)
+        guard rest.isEmpty || rest.first == " " else { return nil }
+        let text = rest.trimmingCharacters(in: .whitespaces)
+        if text.isEmpty { return .spacer }
+        return level == 1 ? .heading2(text) : .heading3(text)
     }
 
     /// Parses a fenced code block starting at the opening ``` line and
