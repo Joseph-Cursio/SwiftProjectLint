@@ -1,6 +1,6 @@
 # SwiftProjectLint Rules Reference
 
-SwiftProjectLint is a static analysis tool for SwiftUI projects. It parses Swift source files using SwiftSyntax AST visitors to detect anti-patterns spanning state management, performance, animations, architecture, code quality, security, accessibility, memory management, networking, UI patterns, modernization, and idempotency. This reference documents all 210 lint rules, organized by category.
+SwiftProjectLint is a static analysis tool for SwiftUI projects. It parses Swift source files using SwiftSyntax AST visitors to detect anti-patterns spanning state management, performance, animations, architecture, code quality, security, accessibility, memory management, networking, UI patterns, modernization, and idempotency. This reference documents all 211 lint rules, organized by category.
 
 Rules marked **opt-in** are disabled by default and must be explicitly listed under `enabled_only` in `.swiftprojectlint.yml`.
 
@@ -69,6 +69,7 @@ Rules marked **opt-in** are disabled by default and must be explicitly listed un
 | [Accessing Implementation Details](accessing-implementation-details.md) | Warning |
 | [Singleton Usage](singleton-usage.md) | Warning |
 | [Law of Demeter](law-of-demeter.md) | Info |
+| [Wide Reach-Through](wide-reach-through.md) | Info |
 | [Fat Protocol](fat-protocol.md) | Info |
 | [Single Implementation Protocol](single-implementation-protocol.md) | Info |
 | [Mirror Protocol](mirror-protocol.md) | Info |

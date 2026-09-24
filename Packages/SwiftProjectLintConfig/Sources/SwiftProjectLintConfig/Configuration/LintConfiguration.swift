@@ -112,6 +112,7 @@ public struct LintConfiguration: Sendable {
         .testMissingExpect,
         .testMissingRequire,
         .duplicateStructShape,
+        .wideReachThrough,
         .sharedDomainEnumField,
         .primitiveBypassingItsDomainType,
         .primitiveNamedForItsDomainType,

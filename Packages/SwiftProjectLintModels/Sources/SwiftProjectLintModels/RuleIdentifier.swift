@@ -51,6 +51,7 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
     case accessingImplementationDetails = "Accessing Implementation Details"
     case singletonUsage = "Singleton Usage"
     case lawOfDemeter = "Law of Demeter"
+    case wideReachThrough = "Wide Reach-Through"
     case fatProtocol = "Fat Protocol"
     case singleImplementationProtocol = "Single Implementation Protocol"
     case mirrorProtocol = "Mirror Protocol"
