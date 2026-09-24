@@ -52,7 +52,7 @@ final class UndeclaredTargetDependencyVisitor: CrossFileVisitorBase, CrossFilePa
     private func analyze(_ node: PackageGraph.Node, in graph: PackageGraph) {
         let reachablePackages = graph.reachablePathPackages(of: node)
 
-        for target in node.manifest.targets where target.kind != .plugin {
+        for target in node.targets where target.kind != .plugin {
             guard let dependencies = target.dependencies else { continue }
 
             let declaration = declaration(of: dependencies, in: node, graph: graph)
@@ -86,7 +86,7 @@ final class UndeclaredTargetDependencyVisitor: CrossFileVisitorBase, CrossFilePa
                 declaration.declared.formUnion(modules)
 
             case .unresolvedProduct(let packages):
-                declaration.unmatchedPackages.formUnion(packages.map(\.manifest.directory))
+                declaration.unmatchedPackages.formUnion(packages.map(\.directory))
 
             case .external:
                 break
@@ -103,14 +103,14 @@ final class UndeclaredTargetDependencyVisitor: CrossFileVisitorBase, CrossFilePa
         unmatched: Set<String>
     ) -> (origins: [String: Origin], exempt: Set<String>) {
         var origins: [String: Origin] = [:]
-        for local in node.manifest.targets {
+        for local in node.targets {
             origins[local.moduleName] = .localTarget
         }
 
         var exempt: Set<String> = []
         for package in reachablePackages {
-            let modules = package.manifest.targets.map(\.moduleName)
-            guard unmatched.contains(package.manifest.directory) == false else {
+            let modules = package.targets.map(\.moduleName)
+            guard unmatched.contains(package.directory) == false else {
                 exempt.formUnion(modules)
                 continue
             }
@@ -172,12 +172,12 @@ final class UndeclaredTargetDependencyVisitor: CrossFileVisitorBase, CrossFilePa
         graph: PackageGraph
     ) -> String {
         let direct = graph.directPathPackages(of: node).first {
-            $0.package.manifest.directory == package.manifest.directory
+            $0.package.directory == package.directory
         }
         let identity = graph.packageReference(to: package, from: node)
 
         // Prefer a product named after the module, then the smallest product that vends it.
-        let vending = (package.manifest.libraryProducts ?? [])
+        let vending = (package.libraryProducts ?? [])
             .filter { product in
                 product.targets.contains { package.imports.targetsByName[$0]?.moduleName == module }
             }
