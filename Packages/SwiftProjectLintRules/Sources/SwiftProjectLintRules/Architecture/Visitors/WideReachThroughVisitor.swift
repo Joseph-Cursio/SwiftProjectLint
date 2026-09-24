@@ -93,6 +93,13 @@ final class WideReachThroughVisitor: CrossFileVisitorBase, CrossFilePatternVisit
     ///
     /// So the callee's *base* is analysed instead. When there is no base — `foo.bar()` — there is
     /// nothing but the method name, and the answer is `nil`.
+    ///
+    /// ``LawOfDemeterVisitor`` still discards these chains outright, so the two rules disagree
+    /// here on purpose. Fixing it there was measured and closed (PR #261): at its three-dot
+    /// threshold a chain needs four components *and* a trailing call *and* no other exemption to
+    /// newly fire, which did not occur once across three repositories. The divergence is recorded
+    /// rather than resolved because making the rules agree would have changed a default-enabled
+    /// rule for no measured gain. It pays at two dots, which is why it lives here.
     private func dataAccess(in node: MemberAccessExprSyntax) -> MemberAccessExprSyntax? {
         guard let call = node.parent?.as(FunctionCallExprSyntax.self),
               call.calledExpression.as(MemberAccessExprSyntax.self)?.id == node.id
