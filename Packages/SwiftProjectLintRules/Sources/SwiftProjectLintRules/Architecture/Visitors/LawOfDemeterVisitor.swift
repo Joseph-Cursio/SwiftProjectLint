@@ -160,12 +160,9 @@ class LawOfDemeterVisitor: BasePatternVisitor {
         if node.parent?.is(MemberAccessExprSyntax.self) == true {
             return .visitChildren
         }
-        // Skip chains that are the callee of a function call
-        if node.parent?.is(FunctionCallExprSyntax.self) == true {
-            return .visitChildren
-        }
+        guard let access = dataAccess(in: node) else { return .visitChildren }
 
-        guard let (orderedComponents, dotCount) = qualifyingChain(from: node) else {
+        guard let (orderedComponents, dotCount) = qualifyingChain(from: access) else {
             return .visitChildren
         }
         guard dotCount >= Self.minChainDepth else { return .visitChildren }
@@ -196,6 +193,28 @@ class LawOfDemeterVisitor: BasePatternVisitor {
             ruleName: .lawOfDemeter
         )
         return .visitChildren
+    }
+
+    /// The part of `node` that navigates the object graph, or `nil` when it navigates none.
+    ///
+    /// A chain that is a call's callee ends in a *method name*: the `.first` of
+    /// `a.b.c.d.first(where:)` is an invocation, not a fifth hop, and counting it would inflate
+    /// every chain that ends in a call. Discarding the whole chain was the opposite error, and the
+    /// one this rule shipped with — `a.b.c.d` is four levels deep whatever is done with the result,
+    /// and `.map` on the end made it invisible.
+    ///
+    /// So the callee's *base* is measured instead. A chain whose base is itself a call —
+    /// `Text("x").frame(…).background(…)` — still exempts itself, because a `FunctionCallExpr`
+    /// root is not object-graph navigation.
+    ///
+    /// When the callee has no base worth reading — `foo.bar()` — the answer is `nil`.
+    private func dataAccess(in node: MemberAccessExprSyntax) -> MemberAccessExprSyntax? {
+        guard let call = node.parent?.as(FunctionCallExprSyntax.self),
+              call.calledExpression.as(MemberAccessExprSyntax.self)?.id == node.id
+        else {
+            return node
+        }
+        return node.base?.as(MemberAccessExprSyntax.self)
     }
 
     /// The chain's components root-first and its depth, or `nil` when it is exempt or too shallow.

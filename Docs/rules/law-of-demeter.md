@@ -14,7 +14,7 @@ The idiomatic fix is to add a method on the *immediate* collaborator that encaps
 
 ### What the rule detects
 
-Member-access chains of **3 or more dots** (i.e., four or more components: `a.b.c.d`) where the root is a plain identifier — not `self`, a type name, or the result of a function call. The rule reports the full chain in the message so the violation is immediately visible.
+Member-access chains of **3 or more dots** (i.e., four or more components: `a.b.c.d`) where the root is a plain identifier — not `self`, a type name, or the result of a function call. A chain that ends in a method call is measured by the part before the method name, so `a.b.c.d.map { }` counts as the four-component `a.b.c.d`. The rule reports the full chain in the message so the violation is immediately visible.
 
 ### One finding per reach-through, not per occurrence
 
@@ -56,7 +56,7 @@ Several common patterns look like deep chains but are not object-graph coupling.
 | `super.a.b.c` | Same rationale as `self` |
 | Modifier/fluent chains | The root is a function call: `Text("x").frame(width:).padding()` |
 | Closure parameter chains | `$0`, `$1`, etc.: `items.sorted { $0.category.name < $1.category.name }` |
-| Method-call chains | The outermost member is being called as a function: `collection.filter { }.sorted { }` |
+| Method names | A trailing call is an invocation, not a hop. `a.b.c.d()` is measured as `a.b.c` and exempt; `collection.filter { }.sorted { }` is exempt because the base of `.sorted` is itself a call. The chain *before* the name is still measured, so `a.b.c.d.map { }` reports `a.b.c.d`. |
 | Singleton / static accessors | Root is capitalized + second component is `default`, `shared`, `main`, `current`, `processInfo`, or `standard` |
 | Nested type / enum access | Two consecutive capitalized components: `ValidationResult.ConfigField.optInRules` |
 | Known Foundation prefixes | `FileManager.default.temporaryDirectory`, `ProcessInfo.processInfo.arguments`, `URLSession.shared.data`, etc. |
@@ -148,7 +148,8 @@ let desc = ValidationResult.ConfigField.optInRules.description
 // Closure parameter chain — root is $0
 items.sorted { $0.category.name.count < $1.category.name.count }
 
-// Method-call chain — outermost member is a function call target
+// `.contains` is a method name, not a fourth hop — and the three components before it are
+// SwiftSyntax framework members, which are exempt in their own right
 let filtered = structNode.memberBlock.members.contains { $0.name == target }
 
 // Range bounds, under either spelling

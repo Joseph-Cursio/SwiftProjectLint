@@ -112,6 +112,34 @@ struct ArchitectureLawOfDemeterTests {
         #expect(lodIssues.count == 1)
     }
 
+    @Test("a deep chain is still deep when the next thing done with it is a call")
+    func deepChainEndingInACallIsMeasuredByItsBase() throws {
+        // `owner.service.data.items` is four levels whatever is done with the result. The
+        // trailing `.map` used to discard the whole chain as an invocation.
+        let source = """
+        class Owner {
+            func run() { let _ = owner.service.data.items.map { $0 } }
+        }
+        """
+        let issues = analyzeSource(source)
+        let issue = try #require(issues.filter { $0.ruleName == .lawOfDemeter }.first)
+        #expect(issue.message.contains("owner.service.data.items"))
+        // The method name is not counted as a hop.
+        #expect(issue.message.contains("map") == false)
+    }
+
+    @Test("the method name is not counted as a level")
+    func methodNameIsNotAHop() {
+        // `a.b.c` is three levels and exempt; `.d()` is a call, not a fourth level.
+        let source = """
+        class Owner {
+            func run() { let _ = a.b.c.d() }
+        }
+        """
+        let issues = analyzeSource(source)
+        #expect(issues.filter { $0.ruleName == .lawOfDemeter }.isEmpty)
+    }
+
     @Test func testNoIssueForFunctionCallChain() {
         // root is a FunctionCallExpr — SwiftUI modifier chain
         let source = """
