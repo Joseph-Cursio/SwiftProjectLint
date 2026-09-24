@@ -118,7 +118,8 @@ class Architecture: BasePatternRegistrar {
             ParallelListDrift(),
             UndeclaredTargetDependency(),
             UnusedTargetDependency(),
-            LayerDependency()
+            LayerDependency(),
+            WideReachThrough()
         ]
     }
 }

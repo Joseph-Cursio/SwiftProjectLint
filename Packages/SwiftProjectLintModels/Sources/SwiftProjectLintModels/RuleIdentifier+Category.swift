@@ -39,7 +39,7 @@ extension RuleIdentifier {
             // Architecture Rules
         case .missingDependencyInjection, .fatViewDetection, .directInstantiation,
              .concreteTypeUsage, .accessingImplementationDetails,
-             .singletonUsage, .lawOfDemeter, .fatProtocol,
+             .singletonUsage, .lawOfDemeter, .wideReachThrough, .fatProtocol,
              .singleImplementationProtocol, .mirrorProtocol,
              .duplicateStructShape, .sharedDomainEnumField,
              .primitiveBypassingItsDomainType, .primitiveNamedForItsDomainType,
