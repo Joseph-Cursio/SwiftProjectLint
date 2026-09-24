@@ -14,6 +14,20 @@ struct PackageGraph {
         let imports: PackageTargetImports
 
         var manifest: PackageManifest { package.manifest }
+
+        // The manifest fields the graph reads, forwarded so that walking the graph does not also
+        // mean knowing which of a node's parts each fact is stored on. `manifest` itself stays
+        // available for the places that pass the whole thing along, such as `names(_:_:_:)`.
+
+        /// The root-relative directory holding the manifest, with a trailing `/`, or `""` at the root.
+        var directory: String { manifest.directory }
+        var targets: [PackageManifest.Target] { manifest.targets }
+        /// `nil` when any `.library` declaration is not literal — see `PackageManifest`.
+        var libraryProducts: [PackageManifest.LibraryProduct]? { manifest.libraryProducts }
+        /// The literal `name:` given to `Package(...)`.
+        var packageName: String? { manifest.packageName }
+        /// The `.package(path:)` dependencies with a literal path.
+        var pathDependencies: [PackageManifest.PathDependency] { manifest.pathDependencies }
     }
 
     /// What one entry of a target's `dependencies:` turns out to name.
@@ -39,11 +53,11 @@ struct PackageGraph {
         nodes = PackageTargetSources(fileCache: fileCache).packages.map { package in
             Node(package: package, imports: PackageTargetImports(package: package, fileCache: fileCache))
         }
-        nodesByDirectory = Dictionary(nodes.map { ($0.manifest.directory, $0) }) { first, _ in first }
+        nodesByDirectory = Dictionary(nodes.map { ($0.directory, $0) }) { first, _ in first }
 
         var reexports: [String: Set<String>] = [:]
         for node in nodes {
-            for target in node.manifest.targets {
+            for target in node.targets {
                 let exported = (node.imports.sitesByTarget[target.name] ?? []).filter(\.isExported)
                 reexports[target.moduleName, default: []].formUnion(exported.map(\.module))
             }
@@ -55,8 +69,8 @@ struct PackageGraph {
 
     /// The packages `node` declares as `.package(path:)` dependencies and the run contains.
     func directPathPackages(of node: Node) -> [(dependency: PackageManifest.PathDependency, package: Node)] {
-        node.manifest.pathDependencies.compactMap { dependency in
-            Self.resolve(dependency.path, from: node.manifest.directory)
+        node.pathDependencies.compactMap { dependency in
+            Self.resolve(dependency.path, from: node.directory)
                 .flatMap { nodesByDirectory[$0] }
                 .map { (dependency: dependency, package: $0) }
         }
@@ -64,18 +78,18 @@ struct PackageGraph {
 
     /// Every package reachable from `node` through path dependencies, not including `node`.
     func reachablePathPackages(of node: Node) -> [Node] {
-        var visited: Set<String> = [node.manifest.directory]
+        var visited: Set<String> = [node.directory]
         var reached: [Node] = []
         var pending = [node]
         while let current = pending.popLast() {
             for (_, package) in directPathPackages(of: current)
-            where visited.contains(package.manifest.directory) == false {
-                visited.insert(package.manifest.directory)
+            where visited.contains(package.directory) == false {
+                visited.insert(package.directory)
                 reached.append(package)
                 pending.append(package)
             }
         }
-        return reached.sorted { $0.manifest.directory < $1.manifest.directory }
+        return reached.sorted { $0.directory < $1.directory }
     }
 
     // MARK: - Dependencies
@@ -94,7 +108,7 @@ struct PackageGraph {
 
         var unmatched: [Node] = []
         for (_, package) in candidates {
-            guard let products = package.manifest.libraryProducts else {
+            guard let products = package.libraryProducts else {
                 unmatched.append(package)
                 continue
             }
@@ -130,10 +144,10 @@ struct PackageGraph {
     /// the author would add a dependency on.
     func packageReference(to package: Node, from node: Node) -> String {
         let direct = directPathPackages(of: node).first {
-            $0.package.manifest.directory == package.manifest.directory
+            $0.package.directory == package.directory
         }
         if let direct {
-            let spellings = node.manifest.targets
+            let spellings = node.targets
                 .flatMap { $0.dependencies ?? [] }
                 .compactMap(\.package)
             if let spelling = spellings.first(where: { Self.names($0, direct.dependency, package.manifest) }) {
@@ -145,8 +159,8 @@ struct PackageGraph {
         }
         // Not yet a dependency: the path the author would add ends in the package's directory, which
         // is its identity. Only the analysed root has no directory name to read.
-        return package.manifest.directory.split(separator: "/").last.map { $0.lowercased() }
-            ?? package.manifest.packageName
+        return package.directory.split(separator: "/").last.map { $0.lowercased() }
+            ?? package.packageName
             ?? ""
     }
 
