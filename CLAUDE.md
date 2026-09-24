@@ -115,7 +115,11 @@ Rules are identified by the `RuleIdentifier` enum (not strings). Each rule maps 
 - `.security`, `.accessibility`, `.memoryManagement`, `.networking`
 - `.uiPatterns`, `.animation`, `.other`
 
-Pattern registration uses `SwiftSyntaxPatternRegistry` (singleton) and `SourcePatternRegistry`.
+Pattern registration uses `SourcePatternRegistry` and `PatternVisitorRegistry`, both in
+`Packages/SwiftProjectLintRegistry/` and both offering a `.shared` singleton alongside a plain
+`init` for injection. `SourcePatternRegistry` drives `initialize()` and category-factory
+registration (`registerFactory`), and delegates all pattern storage to `PatternVisitorRegistry`,
+which indexes visitors by `PatternCategory`.
 
 ### Key Entry Points
 
