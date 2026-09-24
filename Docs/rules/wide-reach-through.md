@@ -39,9 +39,17 @@ flagged by the other for no reason a reader could discover.
 filter contributes one `(file, target, member)` fact. The *target* is the penultimate
 component — the thing being reached into — and the *member* is what was asked of it. In
 `inputs.candidate.carrierKind` the target is `candidate` and the member is `carrierKind`.
-Chains that are the callee of a call are skipped, since those are method invocations rather
-than reaches for data, and only the outermost access of a chain is read so `a.b.c` counts once
-rather than once per hop.
+Only the outermost access of a chain is read, so `a.b.c` counts once rather than once per hop.
+
+**A chain that is a call's callee is not discarded — its base is read instead.** The final
+component of `node.manifest.pathDependencies.compactMap { … }` is a *method name*, and counting
+`compactMap` as a member of `pathDependencies` would be wrong. But everything before it is an
+ordinary reach for data, and throwing the chain away loses that. This is not a hypothetical
+refinement: `PackageGraph` reaches through `manifest` for five members, and an earlier version of
+this rule reported four — `pathDependencies` was invisible purely because the next thing the code
+did with it was `compactMap`. Mapping or filtering what you just reached for is common enough
+that skipping those chains undercounts across the board. When the callee has no base —
+`foo.bar()` — there is nothing but the method name, and nothing is recorded.
 
 **Phase 2 (`finalizeAnalysis`).** Facts are grouped by `(file, target)`. A pair reports when it
 has at least **3 distinct members** and is not an idiom.
@@ -74,8 +82,10 @@ it buys one trivial fix at the cost of every value-navigation false positive in 
 - **A wide but legitimate aggregate still fires.** A type whose whole job is to be read
   field-by-field — a parsed manifest, a decoded response — will report, and the answer may
   legitimately be "yes, and that is fine." This is part of why the rule is `Info` and opt-in.
-- **Members reached through a call are invisible.** `inputs.candidate().carrierKind` does not
-  contribute, since function-call roots are exempt.
+- **A member reached through a call's *result* is invisible.** `inputs.candidate().carrierKind`
+  does not contribute, since function-call roots are exempt. This is the mirror image of the
+  callee handling above: what a call *returns* is not a member of anything this rule can name,
+  whereas what a call is invoked *on* still is.
 - **Test and fixture files are excluded entirely.**
 
 ### Non-Violating Examples
@@ -142,14 +152,14 @@ Three repositories, first-party sources only, the rule as it ships:
 |---|---|---|
 | SwiftProjectLint | 518 | **2** — both `manifest`, in `PackageGraph` and `UndeclaredTargetDependencyVisitor` |
 | SwiftPropertyLaws | 366 | **0** |
-| SwiftInferProperties | ~690 | **24** |
+| SwiftInferProperties | ~690 | **26** |
 
 SwiftPropertyLaws returning zero is the expected shape rather than a failure: it is a library of
 property-law definitions over stdlib value types, which is not code that accumulates knowledge of
 an object graph.
 
 **The threshold measurement.** Dropping `minDistinctMembers` to 2 and re-running
-SwiftInferProperties gives **59** findings against the shipped **24**. All 35 additions are
+SwiftInferProperties gives **64** findings against the shipped **26**. All 38 additions are
 exactly-two-member pairs, and they are dominated by the class the threshold exists to exclude:
 
 ```
@@ -168,6 +178,6 @@ surface.(includesAlgebraic, includesInteraction)
 [Law of Demeter](law-of-demeter.md) at a two-dot threshold and grouping its output. That
 undercounts: that rule emits one finding per `(declaration, target)`, so it samples a single
 member per declaration rather than every member a file reads. It put SwiftInferProperties at 13
-where the real rule reports 24. The figures above are all from the rule as it ships.
+where the real rule reports 26. The figures above are all from the rule as it ships.
 
 ---

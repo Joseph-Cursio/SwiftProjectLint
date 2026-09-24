@@ -55,13 +55,13 @@ final class WideReachThroughVisitor: CrossFileVisitorBase, CrossFilePatternVisit
     override func visit(_ node: MemberAccessExprSyntax) -> SyntaxVisitorContinueKind {
         // Only the outermost access in a chain, so `a.b.c` is read once and not once per hop.
         if node.parent?.is(MemberAccessExprSyntax.self) == true { return .visitChildren }
-        // A chain that is the callee of a call is a method invocation, not a reach for data.
-        if node.parent?.is(FunctionCallExprSyntax.self) == true { return .visitChildren }
         // Test and fixture files are full of deliberately shaped sample code.
         if isTestOrFixtureFile() { return .visitChildren }
 
+        guard let access = dataAccess(in: node) else { return .visitChildren }
+
         guard let (components, _) = DemeterChainFilter.qualifyingChain(
-            from: node, minChainDepth: Self.minChainDepth
+            from: access, minChainDepth: Self.minChainDepth
         ), components.count >= 2 else {
             return .visitChildren
         }
@@ -77,6 +77,29 @@ final class WideReachThroughVisitor: CrossFileVisitorBase, CrossFilePatternVisit
             )
         )
         return .visitChildren
+    }
+
+    /// The part of `node` that reads data, or `nil` when it reads none.
+    ///
+    /// A chain that is a call's callee ends in a *method name*, not a member:
+    /// `.compactMap` in `node.manifest.pathDependencies.compactMap { … }` is an invocation, and
+    /// counting it as a member of `pathDependencies` would be wrong. But everything before that
+    /// name is an ordinary reach for data, and discarding the whole chain loses it.
+    ///
+    /// This mattered in practice rather than in principle. `PackageGraph` reached through
+    /// `manifest` for five members, and the rule reported four: `pathDependencies` was invisible
+    /// purely because the next thing the code did with it was `compactMap`. Mapping or filtering
+    /// what you reached for is common enough that skipping those chains undercounts everywhere.
+    ///
+    /// So the callee's *base* is analysed instead. When there is no base — `foo.bar()` — there is
+    /// nothing but the method name, and the answer is `nil`.
+    private func dataAccess(in node: MemberAccessExprSyntax) -> MemberAccessExprSyntax? {
+        guard let call = node.parent?.as(FunctionCallExprSyntax.self),
+              call.calledExpression.as(MemberAccessExprSyntax.self)?.id == node.id
+        else {
+            return node
+        }
+        return node.base?.as(MemberAccessExprSyntax.self)
     }
 
     func finalizeAnalysis() {

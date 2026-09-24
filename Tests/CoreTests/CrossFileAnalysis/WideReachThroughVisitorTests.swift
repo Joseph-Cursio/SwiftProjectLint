@@ -108,6 +108,58 @@ struct WideReachThroughVisitorTests {
         #expect(issue.message.contains("3 of its members"))
     }
 
+    // MARK: - Members that are immediately mapped or filtered
+
+    @Test("a member is still a member when the next thing done with it is a call")
+    func memberReadThroughACalleeCounts() throws {
+        // Each chain ends in a method, so the whole access used to be discarded as an
+        // invocation — losing the reach for `targets`, `pathDependencies` and `libraryProducts`
+        // underneath it. This is the PackageGraph case that motivated the fix.
+        let source = """
+        struct Graph {
+            func run(node: Node) -> [String] {
+                let a = node.manifest.targets.map(\\.name)
+                let b = node.manifest.pathDependencies.compactMap(\\.path)
+                let c = node.manifest.libraryProducts.filter(\\.isPublic)
+                return a + b + c
+            }
+        }
+        """
+        let issue = try #require(analyze(["Graph.swift": source]).first)
+        #expect(issue.message.contains("'manifest'"))
+        #expect(issue.message.contains("3 of its members"))
+        #expect(issue.message.contains("pathDependencies"))
+    }
+
+    @Test("the method name itself is not counted as a member")
+    func methodNameIsNotAMember() {
+        // Three calls on one target. If `.first`, `.last` and `.map` were counted as members of
+        // `items`, this would report — they are invocations, and it must not.
+        let source = """
+        struct Caller {
+            func run(box: Box) -> String {
+                let a = box.items.first()
+                let b = box.items.last()
+                let c = box.items.map()
+                return a + b + c
+            }
+        }
+        """
+        #expect(analyze(["Caller.swift": source]).isEmpty)
+    }
+
+    @Test("a bare method call on a root contributes nothing")
+    func bareMethodCallContributesNothing() {
+        let source = """
+        struct Caller {
+            func run(service: Service) -> String {
+                service.fetch() + service.reload() + service.reset()
+            }
+        }
+        """
+        #expect(analyze(["Caller.swift": source]).isEmpty)
+    }
+
     // MARK: - The idiom filter
 
     @Test("a member set repeated identically across three files is an idiom, not three faults")
