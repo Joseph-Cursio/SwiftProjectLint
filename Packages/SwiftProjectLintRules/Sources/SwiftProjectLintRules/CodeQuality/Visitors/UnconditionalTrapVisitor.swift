@@ -53,7 +53,7 @@ final class UnconditionalTrapVisitor: BasePatternVisitor {
     /// A type inheriting from `NSCoding` must declare it, no property test will ever call it,
     /// and `fatalError` is what Xcode's own template puts in the body. Flagging it would put an
     /// unfixable finding in front of every UIKit-derived type in a project.
-    private func isInsideRequiredCoderInitializer(_ node: FunctionCallExprSyntax) -> Bool {
+    func isInsideRequiredCoderInitializer(_ node: FunctionCallExprSyntax) -> Bool {
         var current = node.parent
         while let candidate = current {
             if let initializer = candidate.as(InitializerDeclSyntax.self) {

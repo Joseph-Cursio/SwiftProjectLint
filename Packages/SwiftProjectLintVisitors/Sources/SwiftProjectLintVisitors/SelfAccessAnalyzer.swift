@@ -538,7 +538,7 @@ struct StoredProperty: Sendable, Equatable {
 
     /// Whether every name the getter reads is a local, a type, a pure stdlib call, or a property
     /// already known immutable.
-    private static func readsOnlyKnownImmutable(
+    static func readsOnlyKnownImmutable(
         _ accessor: AccessorBlockSyntax,
         given properties: [String: Self]
     ) -> Bool {

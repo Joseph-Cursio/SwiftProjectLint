@@ -48,7 +48,7 @@ final class CatchWithoutHandlingVisitor: BasePatternVisitor {
 
     // MARK: - Handled Check
 
-    private func isCatchHandled(_ node: CatchClauseSyntax) -> Bool {
+    func isCatchHandled(_ node: CatchClauseSyntax) -> Bool {
         let bodySyntax = Syntax(node.body)
 
         if containsThrow(in: bodySyntax) { return true }

@@ -149,7 +149,7 @@ public struct PackagePurityJoin: Sendable {
     /// landing on whichever side the `default` happened to take, which for this
     /// rule means either withdrawing true advice or keeping false advice, with no
     /// diff to notice it in.
-    private static func namesEvidence(_ refutation: PurityRefutation?) -> Bool {
+    static func namesEvidence(_ refutation: PurityRefutation?) -> Bool {
         guard let refutation else { return false }
         switch refutation {
         case .propagatedTry, .noBody:

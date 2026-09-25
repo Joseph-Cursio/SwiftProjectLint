@@ -88,7 +88,7 @@ final class ObservableEnvironmentViewMissingInspectionHookVisitor: BasePatternVi
     /// fifty-odd views on the chance that somebody might one day.
     ///
     /// `nil` — no project-wide prescan, so a visitor driven straight by a unit test — reports.
-    private func isInspected(_ viewName: String) -> Bool {
+    func isInspected(_ viewName: String) -> Bool {
         guard let inspected = knownInspectedTypeNames else { return true }
         return inspected.contains(viewName)
     }

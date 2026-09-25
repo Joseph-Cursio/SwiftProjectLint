@@ -85,7 +85,7 @@ final class CouldAdoptProtocolVisitor: CrossFileVisitorBase, CrossFilePatternVis
         return .visitChildren
     }
 
-    private func hasObservableAttribute(_ attributes: AttributeListSyntax) -> Bool {
+    func hasObservableAttribute(_ attributes: AttributeListSyntax) -> Bool {
         attributes.contains { element in
             element.as(AttributeSyntax.self)?.attributeName.trimmedDescription == "Observable"
         }
@@ -159,7 +159,7 @@ final class CouldAdoptProtocolVisitor: CrossFileVisitorBase, CrossFilePatternVis
         return type.as(IdentifierTypeSyntax.self)?.name.text
     }
 
-    private func isStoredInstanceProperty(_ varDecl: VariableDeclSyntax) -> Bool {
+    func isStoredInstanceProperty(_ varDecl: VariableDeclSyntax) -> Bool {
         for modifier in varDecl.modifiers
         where ["static", "class", "lazy"].contains(modifier.name.text) {
             return false
@@ -170,7 +170,7 @@ final class CouldAdoptProtocolVisitor: CrossFileVisitorBase, CrossFilePatternVis
         return true
     }
 
-    private func isComputed(_ binding: PatternBindingSyntax) -> Bool {
+    func isComputed(_ binding: PatternBindingSyntax) -> Bool {
         guard let accessorBlock = binding.accessorBlock else { return false }
         switch accessorBlock.accessors {
         case .getter:

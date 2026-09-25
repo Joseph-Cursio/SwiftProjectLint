@@ -47,7 +47,7 @@ final class EffectCycleVisitor: BasePatternVisitor {
     // MARK: - Reducer recognition
 
     /// Returns `true` when the switch subject is the bare identifier `action`.
-    private func isActionSwitch(_ node: SwitchExprSyntax) -> Bool {
+    func isActionSwitch(_ node: SwitchExprSyntax) -> Bool {
         node.subject.as(DeclReferenceExprSyntax.self)?.baseName.text == "action"
     }
 

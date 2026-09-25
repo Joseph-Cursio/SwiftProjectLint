@@ -254,7 +254,7 @@ final class HoistableConformerMemberVisitor: CrossFileVisitorBase, CrossFilePatt
 
     /// Instance-level only — `static`/`class`/`lazy` members are not protocol-extension
     /// candidates in the same way and would change semantics if hoisted.
-    private func isInstance(_ modifiers: DeclModifierListSyntax) -> Bool {
+    func isInstance(_ modifiers: DeclModifierListSyntax) -> Bool {
         modifiers.contains { ["static", "class", "lazy"].contains($0.name.text) } == false
     }
 

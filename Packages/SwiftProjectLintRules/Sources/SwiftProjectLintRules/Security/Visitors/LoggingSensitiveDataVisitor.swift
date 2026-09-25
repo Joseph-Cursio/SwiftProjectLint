@@ -96,7 +96,7 @@ final class LoggingSensitiveDataVisitor: BasePatternVisitor {
 
     /// Walks expressions looking for references to variables with sensitive names.
     /// Skips references that use `privacy: .private` in string interpolation.
-    private final class SensitiveReferenceFinder: SyntaxVisitor {
+    final class SensitiveReferenceFinder: SyntaxVisitor {
         var sensitiveNames: [String] = []
 
         init() { super.init(viewMode: .sourceAccurate) }
@@ -110,7 +110,7 @@ final class LoggingSensitiveDataVisitor: BasePatternVisitor {
         }
 
         /// Checks if this reference is inside a string interpolation with `privacy: .private`.
-        private func hasPrivacyRedaction(_ node: DeclReferenceExprSyntax) -> Bool {
+        func hasPrivacyRedaction(_ node: DeclReferenceExprSyntax) -> Bool {
             var current: Syntax? = Syntax(node)
             while let parent = current?.parent {
                 if let exprSegment = parent.as(ExpressionSegmentSyntax.self) {
@@ -126,7 +126,7 @@ final class LoggingSensitiveDataVisitor: BasePatternVisitor {
             return false
         }
 
-        private func containsSensitiveWord(_ name: String) -> Bool {
+        func containsSensitiveWord(_ name: String) -> Bool {
             let components = camelCaseComponents(name)
             // Check individual components
             if components.contains(where: { LoggingSensitiveDataVisitor.sensitiveWords.contains($0) }) {

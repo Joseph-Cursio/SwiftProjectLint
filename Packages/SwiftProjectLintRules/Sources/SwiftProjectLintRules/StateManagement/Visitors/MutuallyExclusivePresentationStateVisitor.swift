@@ -46,7 +46,7 @@ final class MutuallyExclusivePresentationStateVisitor: BasePatternVisitor {
     /// Counts stored properties in `node` that are both annotated with a
     /// presentation wrapper (`@Presents` / `@PresentationState`) and of
     /// Optional type.
-    private func presentationSlotCount(in node: StructDeclSyntax) -> Int {
+    func presentationSlotCount(in node: StructDeclSyntax) -> Int {
         node.memberBlock.members.reduce(into: 0) { count, member in
             guard let varDecl = member.decl.as(VariableDeclSyntax.self),
                   hasPresentationAttribute(varDecl),

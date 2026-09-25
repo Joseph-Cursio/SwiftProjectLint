@@ -117,7 +117,7 @@ class ButtonAccessibilityChecker {
     }
 
     /// True if the subtree contains `Image(systemName:)` naming a navigation chevron.
-    private func containsNavigationChevron(in syntax: Syntax) -> Bool {
+    func containsNavigationChevron(in syntax: Syntax) -> Bool {
         if let call = syntax.as(FunctionCallExprSyntax.self),
            let callee = call.calledExpression.as(DeclReferenceExprSyntax.self),
            callee.baseName.text == SwiftUIViewType.image.rawValue {
@@ -140,12 +140,12 @@ class ButtonAccessibilityChecker {
     /// single-file check can't inspect — e.g. an injected `@ViewBuilder content`
     /// view. Such a view may render the button's text itself, so its presence rules
     /// out an "icon-only" verdict.
-    private func containsOpaqueContentView(_ node: FunctionCallExprSyntax) -> Bool {
+    func containsOpaqueContentView(_ node: FunctionCallExprSyntax) -> Bool {
         AccessibilityTreeTraverser.containsBareViewReference(in: Syntax(node))
     }
 
     /// Checks if the function call contains an Image element
-    private func containsImage(_ node: FunctionCallExprSyntax) -> Bool {
+    func containsImage(_ node: FunctionCallExprSyntax) -> Bool {
         // Search recursively through the entire Button node
         if AccessibilityTreeTraverser.containsImage(in: Syntax(node)) {
             return true
@@ -178,7 +178,7 @@ class ButtonAccessibilityChecker {
     }
 
     /// Checks if a closure contains an Image element
-    private func containsImageInClosure(_ closure: ClosureExprSyntax) -> Bool {
+    func containsImageInClosure(_ closure: ClosureExprSyntax) -> Bool {
         for statement in closure.statements
             where AccessibilityTreeTraverser.containsImage(in: Syntax(statement.item)) {
             return true
@@ -187,7 +187,7 @@ class ButtonAccessibilityChecker {
     }
 
     /// Checks if the function call contains a Text element
-    private func containsText(_ node: FunctionCallExprSyntax) -> Bool {
+    func containsText(_ node: FunctionCallExprSyntax) -> Bool {
         // Search recursively through the entire Button node
         if AccessibilityTreeTraverser.containsText(in: Syntax(node)) {
             return true
@@ -213,7 +213,7 @@ class ButtonAccessibilityChecker {
     }
 
     /// Checks if a closure contains a Text element
-    private func containsTextInClosure(_ closure: ClosureExprSyntax) -> Bool {
+    func containsTextInClosure(_ closure: ClosureExprSyntax) -> Bool {
         for statement in closure.statements
             where AccessibilityTreeTraverser.containsText(in: Syntax(statement.item)) {
             return true
@@ -222,7 +222,7 @@ class ButtonAccessibilityChecker {
     }
 
     /// Checks if the function call contains a Label element
-    private func containsLabel(_ node: FunctionCallExprSyntax) -> Bool {
+    func containsLabel(_ node: FunctionCallExprSyntax) -> Bool {
         if AccessibilityTreeTraverser.containsLabel(in: Syntax(node)) {
             return true
         }

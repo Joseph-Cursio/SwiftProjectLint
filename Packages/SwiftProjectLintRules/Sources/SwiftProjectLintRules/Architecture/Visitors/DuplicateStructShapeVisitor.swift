@@ -30,13 +30,13 @@ final class DuplicateStructShapeVisitor: CrossFileVisitorBase, CrossFilePatternV
     private static let skippedConformances: Set<String> = ["View", "ViewModifier"]
 
     /// One stored property's identity. `Hashable` so a `Set` of these forms the fingerprint.
-    private struct PropertySignature: Hashable {
+    struct PropertySignature: Hashable {
         let name: String
         let type: String       // normalized: `Optional<T>`/`T?` unwrapped, whitespace-stripped
         let isOptional: Bool
     }
 
-    private struct TypeShape {
+    struct TypeShape {
         let name: String
         let file: String
         let line: Int          // captured during the walk — converter is correct per-file
@@ -109,7 +109,7 @@ final class DuplicateStructShapeVisitor: CrossFileVisitorBase, CrossFilePatternV
     }
 
     /// Stored, instance-level, non-computed. `willSet`/`didSet` observers still count as stored.
-    private func isStoredInstanceProperty(_ varDecl: VariableDeclSyntax) -> Bool {
+    func isStoredInstanceProperty(_ varDecl: VariableDeclSyntax) -> Bool {
         for modifier in varDecl.modifiers
         where ["static", "class", "lazy"].contains(modifier.name.text) {
             return false
@@ -129,7 +129,7 @@ final class DuplicateStructShapeVisitor: CrossFileVisitorBase, CrossFilePatternV
         return type.as(IdentifierTypeSyntax.self)?.name.text
     }
 
-    private func isComputed(_ binding: PatternBindingSyntax) -> Bool {
+    func isComputed(_ binding: PatternBindingSyntax) -> Bool {
         guard let accessorBlock = binding.accessorBlock else { return false }
         switch accessorBlock.accessors {
         case .getter:
@@ -219,7 +219,7 @@ final class DuplicateStructShapeVisitor: CrossFileVisitorBase, CrossFilePatternV
 
     /// True when this type already conforms to a protocol whose requirements cover the core —
     /// the abstraction is present for this type, so there is nothing to extract.
-    private func conformsToCovering(_ shape: TypeShape, coreNames: Set<String>) -> Bool {
+    func conformsToCovering(_ shape: TypeShape, coreNames: Set<String>) -> Bool {
         shape.conformances.contains { protocolName in
             (protocolRequirementNames[protocolName] ?? []).isSuperset(of: coreNames)
         }

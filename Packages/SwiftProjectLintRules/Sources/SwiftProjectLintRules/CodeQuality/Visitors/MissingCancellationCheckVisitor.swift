@@ -96,7 +96,7 @@ final class MissingCancellationCheckVisitor: BasePatternVisitor {
 
     /// Walks the syntax tree looking for a node that satisfies `predicate`.
     /// Does not descend into nested function declarations (separate scope).
-    private func containsNode(in syntax: Syntax, matching predicate: (Syntax) -> Bool) -> Bool {
+    func containsNode(in syntax: Syntax, matching predicate: (Syntax) -> Bool) -> Bool {
         if predicate(syntax) { return true }
         // Stop at nested function declarations — they are a separate scope
         if syntax.is(FunctionDeclSyntax.self) { return false }

@@ -70,7 +70,7 @@ final class GodViewModelVisitor: BasePatternVisitor {
         }
     }
 
-    private func countPublishedProperties(_ memberBlock: MemberBlockSyntax) -> Int {
+    func countPublishedProperties(_ memberBlock: MemberBlockSyntax) -> Int {
         var count = 0
         for member in memberBlock.members {
             guard let varDecl = member.decl.as(VariableDeclSyntax.self) else { continue }
@@ -85,7 +85,7 @@ final class GodViewModelVisitor: BasePatternVisitor {
         return count
     }
 
-    private func countVarProperties(_ memberBlock: MemberBlockSyntax) -> Int {
+    func countVarProperties(_ memberBlock: MemberBlockSyntax) -> Int {
         var count = 0
         for member in memberBlock.members {
             guard let varDecl = member.decl.as(VariableDeclSyntax.self),

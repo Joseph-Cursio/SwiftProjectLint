@@ -24,7 +24,7 @@ final class ScatteredEnumMappingVisitor: CrossFileVisitorBase, CrossFilePatternV
     private static let minFiles = 2    // the cross-file requirement is the whole point
 
     /// A single hand-written enum→value mapping switch.
-    private struct MappingSite {
+    struct MappingSite {
         let labels: Set<String>            // the `.case` labels switched over
         let returnKind: String             // uniform kind of every arm body (see classify)
         let members: [String]              // for `implicit-member` kind: the sorted `.member` set
@@ -288,7 +288,7 @@ final class ScatteredEnumMappingVisitor: CrossFileVisitorBase, CrossFilePatternV
 
     /// A site is the centralized (good) mapping when it switches `self` inside the very
     /// enum whose cases it maps — that is the single source of truth, not a scattered copy.
-    private func isCentralized(_ site: MappingSite) -> Bool {
+    func isCentralized(_ site: MappingSite) -> Bool {
         guard site.isSelfSubject, let enclosing = site.enclosingType else { return false }
         return enumCases[enclosing] == site.labels
     }

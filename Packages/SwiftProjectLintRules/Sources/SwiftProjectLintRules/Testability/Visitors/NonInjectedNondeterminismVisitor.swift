@@ -190,7 +190,7 @@ final class NonInjectedNondeterminismVisitor: BasePatternVisitor {
     /// the invented one back where it belongs. It is empty when the left
     /// operand is not a plain reference, because a call or a literal is not
     /// something a later statement can write into.
-    private struct Fallback {
+    struct Fallback {
         let missing: String
         /// The `??` chain's element list when the tree is unfolded; `nil` for a
         /// folded tree, where the self-assignment form cannot be read off a
@@ -337,7 +337,7 @@ final class NonInjectedNondeterminismVisitor: BasePatternVisitor {
     /// rule's ordinary message, which is the true one. A test cannot pin the
     /// id; it just is not being invented. That is why this gate moved the
     /// corpus count by zero.
-    private func isLazyCreation(_ fallback: Fallback) -> Bool {
+    func isLazyCreation(_ fallback: Fallback) -> Bool {
         guard !fallback.missing.isEmpty else { return false }
 
         if let elements = fallback.elements, assigns(to: fallback.missing, in: elements) {

@@ -378,7 +378,7 @@ private final class ViewLocalStateCollector: SyntaxVisitor {
 /// (`viewModel.error = nil`), or a mutating call on a receiver (`items.append(x)`). One entry in
 /// `otherWrites` disqualifies the whole closure, because the gate's claim is about the *only*
 /// thing the body does.
-private final class ClosureWriteTargetCollector: SyntaxVisitor {
+final class ClosureWriteTargetCollector: SyntaxVisitor {
 
     private(set) var directWrites: Set<String> = []
     private(set) var otherWrites: Set<String> = []
@@ -442,7 +442,7 @@ private final class ClosureWriteTargetCollector: SyntaxVisitor {
 
 /// Whether a subtree contains a call — the test condition 5 uses for "the closure computes
 /// something the caller cannot already reach".
-private final class CallFinder: SyntaxVisitor {
+final class CallFinder: SyntaxVisitor {
 
     private var found = false
 

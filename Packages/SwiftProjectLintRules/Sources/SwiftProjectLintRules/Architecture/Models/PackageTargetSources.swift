@@ -96,7 +96,7 @@ struct PackageTargetSources {
             .first { candidate in localFiles.contains { $0.hasPrefix(candidate + "/") } }
     }
 
-    private static func compiles(
+    static func compiles(
         _ localFile: String,
         target: PackageManifest.Target,
         directory: String

@@ -22,7 +22,7 @@ class NetworkingVisitor: BasePatternVisitor {
         self.sourceLocationConverter = converter
     }
 
-    private func lineNumber(for node: SyntaxProtocol) -> Int {
+    func lineNumber(for node: SyntaxProtocol) -> Int {
         guard let converter = sourceLocationConverter else { return 0 }
         let pos = node.positionAfterSkippingLeadingTrivia
         return converter.location(for: pos).line

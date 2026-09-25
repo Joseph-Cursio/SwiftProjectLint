@@ -45,7 +45,7 @@ class TextAccessibilityChecker {
     }
 
     /// Determines if the given text is considered "long" based on the configuration threshold.
-    private func isLongText(_ text: String) -> Bool {
+    func isLongText(_ text: String) -> Bool {
         text.count > visitor.config.minTextLengthForHint
     }
 }

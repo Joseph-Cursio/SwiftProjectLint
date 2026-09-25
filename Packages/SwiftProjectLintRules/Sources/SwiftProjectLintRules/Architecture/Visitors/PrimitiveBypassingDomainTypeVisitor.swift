@@ -198,7 +198,7 @@ final class PrimitiveBypassingDomainTypeVisitor: CrossFileVisitorBase, CrossFile
 
     /// Stored, instance-level, non-computed. `static`/`class`/`lazy` and computed properties
     /// are not the newtype's carrier.
-    private func isStoredInstanceProperty(_ varDecl: VariableDeclSyntax) -> Bool {
+    func isStoredInstanceProperty(_ varDecl: VariableDeclSyntax) -> Bool {
         for modifier in varDecl.modifiers
         where ["static", "class", "lazy"].contains(modifier.name.text) {
             return false

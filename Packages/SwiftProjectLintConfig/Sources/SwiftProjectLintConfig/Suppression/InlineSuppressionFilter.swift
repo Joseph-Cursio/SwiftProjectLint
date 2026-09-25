@@ -34,7 +34,7 @@ public struct InlineSuppressionFilter {
     // MARK: - Private
 
     /// Maps a rule (nil = all rules) to the closed line ranges where it is suppressed.
-    private typealias SuppressedRanges = [RuleIdentifier?: [(start: Int, end: Int)]]
+    typealias SuppressedRanges = [RuleIdentifier?: [(start: Int, end: Int)]]
 
     private static func buildSuppressedRanges(
         from directives: [SuppressionDirective],
@@ -156,7 +156,7 @@ public struct InlineSuppressionFilter {
         ranges[key, default: []].append((start: start, end: end))
     }
 
-    private static func isSuppressed(
+    static func isSuppressed(
         line: Int,
         rule: RuleIdentifier,
         in ranges: SuppressedRanges

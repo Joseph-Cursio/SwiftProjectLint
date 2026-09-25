@@ -83,7 +83,7 @@ final class NestedGenericComplexityVisitor: BasePatternVisitor {
 
     /// Measures the maximum nesting depth of generic arguments.
     /// `Result<Array<Optional<T>>, Error>` has depth 3.
-    private func measureNestingDepth(_ clause: GenericArgumentClauseSyntax) -> Int {
+    func measureNestingDepth(_ clause: GenericArgumentClauseSyntax) -> Int {
         var maxDepth = 1
         for arg in clause.arguments {
             // Walk the argument's children to find nested generic clauses
@@ -94,7 +94,7 @@ final class NestedGenericComplexityVisitor: BasePatternVisitor {
     }
 
     /// Recursively measures generic nesting depth by walking the syntax tree.
-    private func measureSyntaxDepth(_ syntax: Syntax) -> Int {
+    func measureSyntaxDepth(_ syntax: Syntax) -> Int {
         var maxChildDepth = 0
         for child in syntax.children(viewMode: .sourceAccurate) {
             if let genericClause = child.as(GenericArgumentClauseSyntax.self) {
