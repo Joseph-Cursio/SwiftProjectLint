@@ -224,7 +224,7 @@ final class BooleanControlCouplingVisitor: BasePatternVisitor {
     /// variable — `result += 10` / `result += 20` against a `var result = 0` —
     /// are not this idiom and still fire; a compound assignment is accumulation,
     /// not initialization.
-    private func isDeferredValueSelection(_ node: IfExprSyntax, elseBody: CodeBlockSyntax) -> Bool {
+    func isDeferredValueSelection(_ node: IfExprSyntax, elseBody: CodeBlockSyntax) -> Bool {
         guard let target = deferredBindingPrecedingStatement(node) else {
             return false
         }

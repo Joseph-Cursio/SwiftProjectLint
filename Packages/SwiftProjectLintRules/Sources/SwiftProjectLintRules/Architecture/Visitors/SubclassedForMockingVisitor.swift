@@ -21,7 +21,7 @@ import SwiftSyntax
 /// production superclass when that superclass has no protocol abstraction.
 final class SubclassedForMockingVisitor: CrossFileVisitorBase, CrossFilePatternVisitorProtocol {
 
-    private struct ClassRecord {
+    struct ClassRecord {
         let name: String
         let file: String
         let line: Int
@@ -100,13 +100,13 @@ final class SubclassedForMockingVisitor: CrossFileVisitorBase, CrossFilePatternV
     /// A class is a test double if its name carries a mock marker (matched at a
     /// camelCase boundary, so `MockFoo`/`FooMock` qualify but `MockingbirdRunner`
     /// does not) or it is declared in a test/fixture file.
-    private func isTestDouble(_ record: ClassRecord) -> Bool {
+    func isTestDouble(_ record: ClassRecord) -> Bool {
         record.isTestDoubleLocation || ProtocolExemption.isTestDoubleName(record.name)
     }
 
     /// A base class is flaggable only when it is a production type with no
     /// existing protocol abstraction — extracting one is then the real fix.
-    private func isFlaggableBase(_ base: ClassRecord) -> Bool {
+    func isFlaggableBase(_ base: ClassRecord) -> Bool {
         if isTestDouble(base) { return false }
         // Already conforms to a protocol — the test should mock through it, not subclass.
         if base.inheritedNames.contains(where: { protocolNames.contains($0) }) { return false }

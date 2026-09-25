@@ -168,7 +168,7 @@ struct PackageGraph {
 
     /// Whether `package:` in a product dependency names this path dependency: its SwiftPM identity,
     /// the `name:` of the older `.package(name:path:)` spelling, or the manifest's own package name.
-    private static func names(
+    static func names(
         _ package: String,
         _ dependency: PackageManifest.PathDependency,
         _ manifest: PackageManifest

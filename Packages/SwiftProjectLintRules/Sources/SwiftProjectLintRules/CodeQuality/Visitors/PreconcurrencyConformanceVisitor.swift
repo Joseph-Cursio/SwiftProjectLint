@@ -66,7 +66,7 @@ final class PreconcurrencyConformanceVisitor: BasePatternVisitor {
 
     /// Strips generic arguments and optional-chaining from a type name.
     /// `"MyView<Foo>"` → `"MyView"`, `"Optional<Bar>"` → `"Optional"`.
-    private func baseTypeName(from typeName: String) -> String {
+    func baseTypeName(from typeName: String) -> String {
         let stripped = typeName.components(separatedBy: "<").first ?? typeName
         return stripped.trimmingCharacters(in: .whitespaces)
     }

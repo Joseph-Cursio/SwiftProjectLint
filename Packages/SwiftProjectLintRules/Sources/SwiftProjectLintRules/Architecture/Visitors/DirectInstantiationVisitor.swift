@@ -478,7 +478,7 @@ class DirectInstantiationVisitor: BasePatternVisitor {
     /// answer whether the block is debug-only scaffolding. The same predicate must be used
     /// by `visit` and `visitPost` or the counter unbalances, which is why it is one
     /// function rather than the condition written twice.
-    private static func isDebugBlock(_ node: IfConfigDeclSyntax) -> Bool {
+    static func isDebugBlock(_ node: IfConfigDeclSyntax) -> Bool {
         node.clauses.contains { $0.condition?.description.contains("DEBUG") == true }
     }
 }

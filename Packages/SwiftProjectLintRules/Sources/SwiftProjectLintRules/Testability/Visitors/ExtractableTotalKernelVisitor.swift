@@ -116,7 +116,7 @@ final class ExtractableTotalKernelVisitor: BasePatternVisitor {
 /// point: the reader draws the boundary, the rule only has to say *there is one here, and here is
 /// what it is made of*. What the scan must get right is the **precision**, and precision comes from
 /// demanding that arithmetic reach a governing position, not from tracing it exactly.
-private struct KernelScan {
+struct KernelScan {
 
     /// A local `let`/`var` whose initialiser is arithmetic over locals, parameters and members —
     /// `let totalChunks = (data.count + chunkSize - 1) / chunkSize`.
@@ -231,7 +231,7 @@ private struct KernelScan {
         derivedPathBindings.count >= 2 && (hasCountDrivenSlice || hasGoverningMembershipTest)
     }
 
-    private var signalCount: Int {
+    var signalCount: Int {
         var count = derivedBindings.count
         if hasFraction { count += 1 }
         if hasGoverningComparison { count += 1 }
@@ -485,7 +485,7 @@ enum PathEvidence {
 /// Walks a function body gathering the four signals, and **stops at a closure**: a kernel that lives
 /// wholly inside one is `pureClosureCandidate`'s finding, and reporting it twice would teach the
 /// reader that the two rules disagree when they do not.
-private struct Collector {
+struct Collector {
 
     private(set) var derivedBindings: [String] = []
     private(set) var hasFraction = false

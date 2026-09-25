@@ -138,14 +138,14 @@ class TestMissingMacroVisitorBase: CrossFileVisitorBase, CrossFilePatternVisitor
 
     // MARK: - Helpers
 
-    private func hasTestAttribute(_ node: FunctionDeclSyntax) -> Bool {
+    func hasTestAttribute(_ node: FunctionDeclSyntax) -> Bool {
         node.attributes.contains { element in
             guard case .attribute(let attribute) = element else { return false }
             return attribute.attributeName.as(IdentifierTypeSyntax.self)?.name.text == "Test"
         }
     }
 
-    private func containsRecognizedMacro(in node: Syntax) -> Bool {
+    func containsRecognizedMacro(in node: Syntax) -> Bool {
         if let macro = node.as(MacroExpansionExprSyntax.self),
            recognizedMacros.contains(macro.macroName.text) {
             return true
@@ -158,7 +158,7 @@ class TestMissingMacroVisitorBase: CrossFileVisitorBase, CrossFilePatternVisitor
     }
 
     /// Returns true if the function is declared with `throws`.
-    private func isThrowing(_ node: FunctionDeclSyntax) -> Bool {
+    func isThrowing(_ node: FunctionDeclSyntax) -> Bool {
         node.signature.effectSpecifiers?.throwsClause != nil
     }
 
@@ -175,13 +175,13 @@ class TestMissingMacroVisitorBase: CrossFileVisitorBase, CrossFilePatternVisitor
     /// "any `try` in a `throws` test". `let dir = try makeTempDir()` is setup — it binds a value
     /// the test goes on to use — and a test containing only that really does assert nothing. That
     /// distinction is what keeps the rule's true positives (#110).
-    private func containsThrowAsAssertion(in node: Syntax) -> Bool {
+    func containsThrowAsAssertion(in node: Syntax) -> Bool {
         containsBareTryStatement(in: node) || containsDiscardedTry(in: node)
     }
 
     /// A bare `try expr` **statement** anywhere in the body: an item of a code block whose value
     /// nothing binds.
-    private func containsBareTryStatement(in node: Syntax) -> Bool {
+    func containsBareTryStatement(in node: Syntax) -> Bool {
         if let item = node.as(CodeBlockItemSyntax.self),
            case .expr(let expression) = item.item,
            isPlainTry(expression) {
@@ -196,7 +196,7 @@ class TestMissingMacroVisitorBase: CrossFileVisitorBase, CrossFilePatternVisitor
 
     /// Whether `expression` is a plain `try` — unwrapping `await` and any enclosing parentheses,
     /// so `try await command.run()` is recognised as readily as `try command.run()`.
-    private func isPlainTry(_ expression: ExprSyntax) -> Bool {
+    func isPlainTry(_ expression: ExprSyntax) -> Bool {
         guard let tryExpr = expression.as(TryExprSyntax.self) else { return false }
         return tryExpr.questionOrExclamationMark == nil
     }
@@ -205,7 +205,7 @@ class TestMissingMacroVisitorBase: CrossFileVisitorBase, CrossFilePatternVisitor
     ///
     /// This pattern explicitly discards the return value while requiring the call
     /// to succeed — a throw causes test failure, making it a throw-as-assertion idiom.
-    private func containsDiscardedTry(in node: Syntax) -> Bool {
+    func containsDiscardedTry(in node: Syntax) -> Bool {
         if let seq = node.as(SequenceExprSyntax.self) {
             var hasDiscard = false
             var hasPlainTry = false
@@ -224,7 +224,7 @@ class TestMissingMacroVisitorBase: CrossFileVisitorBase, CrossFilePatternVisitor
     }
 
     /// Returns true if the body calls any function known to contain a recognised macro.
-    private func callsAssertionFunction(in node: Syntax) -> Bool {
+    func callsAssertionFunction(in node: Syntax) -> Bool {
         if let call = node.as(FunctionCallExprSyntax.self),
            let callee = call.calledExpression.as(DeclReferenceExprSyntax.self),
            assertionFunctions.contains(callee.baseName.text) {

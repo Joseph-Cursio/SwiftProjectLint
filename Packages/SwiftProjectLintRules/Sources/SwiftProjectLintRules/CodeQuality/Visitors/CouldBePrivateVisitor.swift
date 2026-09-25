@@ -207,7 +207,7 @@ final class CouldBePrivateVisitor: CrossFileVisitorBase, CrossFilePatternVisitor
     /// A `private` type puts every one of its members beyond `@testable import`, so narrowing the
     /// type costs exactly what narrowing each member would. Advising it without saying so would
     /// take away the property tests by a side door.
-    private func declaresPropertyTestCandidate(_ node: Syntax) -> Bool {
+    func declaresPropertyTestCandidate(_ node: Syntax) -> Bool {
         let collector = CandidateFunctionCollector(
             knownEquatableTypes: knownEquatableTypes,
             viewMode: .sourceAccurate
@@ -238,7 +238,7 @@ final class CouldBePrivateVisitor: CrossFileVisitorBase, CrossFilePatternVisitor
         declaredTypeNames.insert(name)
     }
 
-    private func isPrivate(_ modifiers: DeclModifierListSyntax) -> Bool {
+    func isPrivate(_ modifiers: DeclModifierListSyntax) -> Bool {
         modifiers.contains { $0.name.text == "private" || $0.name.text == "fileprivate" }
     }
 
@@ -279,13 +279,13 @@ final class CouldBePrivateVisitor: CrossFileVisitorBase, CrossFilePatternVisitor
         }
     }
 
-    private func isSwiftUIApp(_ node: StructDeclSyntax) -> Bool {
+    func isSwiftUIApp(_ node: StructDeclSyntax) -> Bool {
         node.inheritanceClause?.inheritedTypes.contains { inherited in
             inherited.type.as(IdentifierTypeSyntax.self)?.name.text == "App"
         } ?? false
     }
 
-    private func hasMainAttribute(_ attributes: AttributeListSyntax) -> Bool {
+    func hasMainAttribute(_ attributes: AttributeListSyntax) -> Bool {
         attributes.contains { element in
             element.as(AttributeSyntax.self)?.attributeName
                 .as(IdentifierTypeSyntax.self)?.name.text == "main"
@@ -304,7 +304,7 @@ final class CouldBePrivateVisitor: CrossFileVisitorBase, CrossFilePatternVisitor
         }
     }
 
-    private func isTopLevel(_ node: Syntax) -> Bool {
+    func isTopLevel(_ node: Syntax) -> Bool {
         guard let parent = node.parent,
               parent.is(CodeBlockItemSyntax.self),
               let grandparent = parent.parent,

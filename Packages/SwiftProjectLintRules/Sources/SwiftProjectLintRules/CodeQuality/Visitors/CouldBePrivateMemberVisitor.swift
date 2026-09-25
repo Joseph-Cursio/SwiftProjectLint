@@ -338,7 +338,7 @@ final class CouldBePrivateMemberVisitor: CrossFileVisitorBase, CrossFilePatternV
     /// are out of scope for the "could be private" rule: explicit access
     /// is the author's stated intent, `override` participates in a vtable,
     /// and `@objc` may be reached via selector.
-    private func hasDisqualifyingModifiers(_ modifiers: DeclModifierListSyntax, node: Syntax) -> Bool {
+    func hasDisqualifyingModifiers(_ modifiers: DeclModifierListSyntax, node: Syntax) -> Bool {
         if modifiers.hasExplicitAccessControl { return true }
         if modifiers.contains(where: { $0.name.text == "override" }) { return true }
         return node.as(FunctionDeclSyntax.self)?.attributes.contains {
@@ -349,7 +349,7 @@ final class CouldBePrivateMemberVisitor: CrossFileVisitorBase, CrossFilePatternV
     /// Disqualifies decls whose *shape* (rather than modifiers) keeps them
     /// from being legitimately privatised: property-wrapped vars, struct
     /// memberwise-init stored properties, and protocol-style operators.
-    private func hasDisqualifyingDeclShape(_ node: Syntax) -> Bool {
+    func hasDisqualifyingDeclShape(_ node: Syntax) -> Bool {
         if let varDecl = node.as(VariableDeclSyntax.self) {
             let hasWrapper = varDecl.attributes.contains {
                 $0.as(AttributeSyntax.self) != nil
@@ -368,7 +368,7 @@ final class CouldBePrivateMemberVisitor: CrossFileVisitorBase, CrossFilePatternV
 
     /// Returns true if this is a stored property on a struct with no default value.
     /// These are part of the memberwise initializer and cannot be private.
-    private func isStructStoredPropertyWithoutDefault(_ varDecl: VariableDeclSyntax) -> Bool {
+    func isStructStoredPropertyWithoutDefault(_ varDecl: VariableDeclSyntax) -> Bool {
         // Must be inside a struct (check parent chain for StructDeclSyntax)
         var current: Syntax? = Syntax(varDecl)
         var isInStruct = false
@@ -404,7 +404,7 @@ final class CouldBePrivateMemberVisitor: CrossFileVisitorBase, CrossFilePatternV
     }
 
     /// Returns true if the node is inside a type that is already `private`.
-    private func isInsidePrivateType(_ node: Syntax) -> Bool {
+    func isInsidePrivateType(_ node: Syntax) -> Bool {
         var current: Syntax? = node.parent
         while let ancestor = current {
             if let structDecl = ancestor.as(StructDeclSyntax.self) {

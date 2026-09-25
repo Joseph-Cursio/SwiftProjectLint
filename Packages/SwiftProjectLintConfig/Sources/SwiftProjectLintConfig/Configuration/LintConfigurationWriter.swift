@@ -40,7 +40,7 @@ public struct LintConfigurationWriter {
         return lines.joined(separator: "\n")
     }
 
-    private static func ruleOverrideLines(
+    static func ruleOverrideLines(
         _ overrides: [RuleIdentifier: LintConfiguration.RuleOverride]
     ) -> [String] {
         guard !overrides.isEmpty else { return [] }

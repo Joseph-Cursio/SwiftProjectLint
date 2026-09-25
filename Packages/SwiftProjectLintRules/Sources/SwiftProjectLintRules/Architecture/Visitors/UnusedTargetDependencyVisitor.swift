@@ -108,7 +108,7 @@ final class UnusedTargetDependencyVisitor: CrossFileVisitorBase, CrossFilePatter
         }
     }
 
-    private func isJudgeable(
+    func isJudgeable(
         _ dependency: PackageManifest.Target,
         in package: PackageTargetSources.Package
     ) -> Bool {

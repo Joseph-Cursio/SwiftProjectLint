@@ -65,7 +65,7 @@ final class UnusedProtocolAbstractionVisitor: CrossFileVisitorBase, CrossFilePat
     /// True when this type reference is an entry in the inheritance clause of a concrete type
     /// declaration (struct/class/enum/actor) or an extension — i.e. a conformance, not a use.
     /// A protocol's own inheritance clause (refinement) is treated as a use.
-    private func isConcreteConformancePosition(_ node: Syntax) -> Bool {
+    func isConcreteConformancePosition(_ node: Syntax) -> Bool {
         var current: Syntax? = node.parent
         while let candidate = current {
             if let clause = candidate.as(InheritanceClauseSyntax.self) {

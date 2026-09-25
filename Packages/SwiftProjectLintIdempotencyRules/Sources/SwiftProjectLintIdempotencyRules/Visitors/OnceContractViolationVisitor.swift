@@ -194,7 +194,7 @@ final class OnceContractViolationVisitor: CrossFileVisitorBase, CrossFilePattern
     /// `RepeatWhileStmtSyntax`. Iteration sources / loop conditions are
     /// not counted — they evaluate once per loop entry, not once per
     /// iteration.
-    private func isInsideLoopBody(
+    func isInsideLoopBody(
         call: FunctionCallExprSyntax,
         withinFunctionBody body: CodeBlockSyntax?
     ) -> Bool {
@@ -209,7 +209,7 @@ final class OnceContractViolationVisitor: CrossFileVisitorBase, CrossFilePattern
     }
 
     /// `true` if `node` is the `body` member of an enclosing loop statement.
-    private func isLoopBody(_ node: Syntax) -> Bool {
+    func isLoopBody(_ node: Syntax) -> Bool {
         guard let parent = node.parent else { return false }
         if let forStmt = parent.as(ForStmtSyntax.self),
            node.id == Syntax(forStmt.body).id {

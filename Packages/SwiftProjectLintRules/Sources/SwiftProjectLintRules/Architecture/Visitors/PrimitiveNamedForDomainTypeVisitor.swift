@@ -232,7 +232,7 @@ final class PrimitiveNamedForDomainTypeVisitor: CrossFileVisitorBase, CrossFileP
 
     // MARK: - Shared helpers
 
-    private func isStoredInstanceProperty(_ varDecl: VariableDeclSyntax) -> Bool {
+    func isStoredInstanceProperty(_ varDecl: VariableDeclSyntax) -> Bool {
         for modifier in varDecl.modifiers
         where ["static", "class", "lazy"].contains(modifier.name.text) {
             return false
@@ -245,7 +245,7 @@ final class PrimitiveNamedForDomainTypeVisitor: CrossFileVisitorBase, CrossFileP
 
     /// Stored properties and constants, excluding computed ones (an accessor block means the
     /// value is derived, not a field that should carry the domain type).
-    private func isStoredOrConstant(_ varDecl: VariableDeclSyntax) -> Bool {
+    func isStoredOrConstant(_ varDecl: VariableDeclSyntax) -> Bool {
         for binding in varDecl.bindings where binding.accessorBlock != nil {
             return false
         }

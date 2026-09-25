@@ -113,7 +113,7 @@ final class ViewHostingBeforeInspectionVisitor: BasePatternVisitor {
     /// Matching is per **file**, not per function: the view under test is often built by a
     /// helper elsewhere in the same test file, so a function-scoped check would miss the
     /// cases that matter. A test file naming one of these views anywhere is enough.
-    private func exercisesAViewThatCanTrap(_ node: FunctionDeclSyntax) -> Bool {
+    func exercisesAViewThatCanTrap(_ node: FunctionDeclSyntax) -> Bool {
         guard let catalog = knownObservableEnvironmentViews else { return true }
         guard !catalog.isEmpty else { return false }
         return !identifiersInFile(containing: node).isDisjoint(with: catalog)

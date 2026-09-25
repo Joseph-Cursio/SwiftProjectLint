@@ -236,7 +236,7 @@ class StateVariableVisitor: SyntaxVisitor {
     }
 
     /// Cleans up type strings for better readability
-    private func cleanTypeString(_ typeString: String) -> String {
+    func cleanTypeString(_ typeString: String) -> String {
         var cleaned = typeString
 
         // Remove unnecessary whitespace around angle brackets
@@ -290,7 +290,7 @@ class StateVariableVisitor: SyntaxVisitor {
     }
 
     /// Calculates line number for a given position with caching for performance
-    private func calculateLineNumber(for position: AbsolutePosition) -> Int {
+    func calculateLineNumber(for position: AbsolutePosition) -> Int {
         if let cached = lineNumberCache[position] {
             return cached
         }

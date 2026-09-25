@@ -71,7 +71,7 @@ final class IOS17ObservationMigrationVisitor: BasePatternVisitor {
         } ?? false
     }
 
-    private func countPublishedProperties(_ memberBlock: MemberBlockSyntax) -> Int {
+    func countPublishedProperties(_ memberBlock: MemberBlockSyntax) -> Int {
         var count = 0
         for member in memberBlock.members {
             guard let varDecl = member.decl.as(VariableDeclSyntax.self) else { continue }

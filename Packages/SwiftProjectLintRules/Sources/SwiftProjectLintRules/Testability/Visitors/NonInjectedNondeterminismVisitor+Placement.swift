@@ -166,7 +166,7 @@ extension NonInjectedNondeterminismVisitor {
 
     /// `node` with every re-presenting member applied — the outermost expression that is still only
     /// the same fact in another type. Returns `node` itself when the first member does something.
-    private func outermostRepresentation(of node: Syntax) -> Syntax {
+    func outermostRepresentation(of node: Syntax) -> Syntax {
         var outer = node
         while let member = outer.parent?.as(MemberAccessExprSyntax.self),
               member.base.map({ Syntax($0).id == outer.id }) == true,

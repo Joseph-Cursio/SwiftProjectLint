@@ -29,7 +29,7 @@ final class DuplicateEnumMappingVisitor: CrossFileVisitorBase, CrossFilePatternV
     private static let minSites = 2    // exact-value match makes a *pair* conclusive
 
     /// One enum→value mapping `switch`, reduced to the value it returns per case.
-    private struct MappingSite {
+    struct MappingSite {
         let caseValues: [String: String]   // case label → trimmed value-expression text
         let defaultValue: String?          // value text of a `default:` arm, if any
         let file: String
@@ -156,7 +156,7 @@ final class DuplicateEnumMappingVisitor: CrossFileVisitorBase, CrossFilePatternV
     /// (`Color(...)`). Arbitrary expressions (function calls on lowercase callees, operators,
     /// interpolations, …) are not a constant map and disqualify the switch — the same gate
     /// `Scattered Enum Mapping` uses, so the two rules recognise the same shape.
-    private func isValueExpression(_ expr: ExprSyntax) -> Bool {
+    func isValueExpression(_ expr: ExprSyntax) -> Bool {
         if expr.is(StringLiteralExprSyntax.self)
             || expr.is(IntegerLiteralExprSyntax.self)
             || expr.is(FloatLiteralExprSyntax.self) {
@@ -280,7 +280,7 @@ final class DuplicateEnumMappingVisitor: CrossFileVisitorBase, CrossFilePatternV
 
     /// A site is the centralized (canonical) mapping when it switches `self` inside the very
     /// enum whose cases it maps — the single source of truth the duplicates should call.
-    private func isCentralized(_ site: MappingSite) -> Bool {
+    func isCentralized(_ site: MappingSite) -> Bool {
         guard site.isSelfSubject, let enclosing = site.enclosingType else { return false }
         return enumCases[enclosing] == site.labels
     }

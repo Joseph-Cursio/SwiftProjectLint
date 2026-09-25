@@ -212,7 +212,7 @@ final class IdempotencyViolationVisitor: CrossFileVisitorBase, CrossFilePatternV
     /// Caller effects whose bodies are analysed by this rule. `nonIdempotent`
     /// is excluded — a non-idempotent caller makes no stronger claim than its
     /// callees, so there is nothing to violate.
-    private func isTriageableCaller(_ effect: DeclaredEffect) -> Bool {
+    func isTriageableCaller(_ effect: DeclaredEffect) -> Bool {
         switch effect {
         case .pure, .idempotent, .observational, .externallyIdempotent: return true
         case .nonIdempotent: return false
@@ -244,7 +244,7 @@ final class IdempotencyViolationVisitor: CrossFileVisitorBase, CrossFilePatternV
     /// may call *only* other pure functions. Any callee at a higher tier
     /// (`observational` and up) introduces a side effect or an observation the
     /// pure contract forbids, so every `pure → non-pure` pairing violates.
-    private func violates(caller: DeclaredEffect, callee: DeclaredEffect) -> Bool {
+    func violates(caller: DeclaredEffect, callee: DeclaredEffect) -> Bool {
         switch (caller, callee) {
         // Phase 3: a pure caller may call only pure callees; anything else
         // (observational/idempotent/externallyIdempotent/nonIdempotent) breaks

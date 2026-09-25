@@ -141,7 +141,7 @@ struct PackageManifest {
 // MARK: - Reading the syntax
 
 /// Finds the `Target` factory calls in a manifest and reads each one's literal arguments.
-private final class TargetDeclarationCollector: SyntaxVisitor {
+final class TargetDeclarationCollector: SyntaxVisitor {
 
     private(set) var targets: [PackageManifest.Target] = []
     private(set) var isReadable = true
@@ -210,7 +210,7 @@ private final class TargetDeclarationCollector: SyntaxVisitor {
         return .unknown
     }
 
-    private func isTargetFactoryBase(_ base: ExprSyntax?) -> Bool {
+    func isTargetFactoryBase(_ base: ExprSyntax?) -> Bool {
         guard let base else { return true }
         return base.as(DeclReferenceExprSyntax.self)?.baseName.text == "Target"
     }

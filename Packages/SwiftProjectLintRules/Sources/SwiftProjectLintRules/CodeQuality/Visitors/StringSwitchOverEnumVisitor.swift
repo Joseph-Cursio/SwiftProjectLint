@@ -32,7 +32,7 @@ final class StringSwitchOverEnumVisitor: BasePatternVisitor {
 
     /// Returns `true` when the switch subject is `<expr>.rawValue` and at least
     /// one case arm uses a string literal pattern.
-    private func isRawValueSwitch(_ node: SwitchExprSyntax) -> Bool {
+    func isRawValueSwitch(_ node: SwitchExprSyntax) -> Bool {
         guard let memberAccess = node.subject.as(MemberAccessExprSyntax.self),
               memberAccess.declName.baseName.text == "rawValue",
               let base = memberAccess.base else {
@@ -47,7 +47,7 @@ final class StringSwitchOverEnumVisitor: BasePatternVisitor {
     // MARK: - Detection: String(describing:)
 
     /// Returns `true` when the switch subject is `String(describing: <expr>)`.
-    private func isStringDescribingSwitch(_ node: SwitchExprSyntax) -> Bool {
+    func isStringDescribingSwitch(_ node: SwitchExprSyntax) -> Bool {
         guard let call = node.subject.as(FunctionCallExprSyntax.self),
               let callee = call.calledExpression.as(DeclReferenceExprSyntax.self),
               callee.baseName.text == "String" else {
@@ -65,7 +65,7 @@ final class StringSwitchOverEnumVisitor: BasePatternVisitor {
 
     /// Returns `true` when at least one case arm in the switch uses a string
     /// literal pattern (e.g. `case "active":`).
-    private func hasStringLiteralCase(_ node: SwitchExprSyntax) -> Bool {
+    func hasStringLiteralCase(_ node: SwitchExprSyntax) -> Bool {
         node.cases.contains { switchCase in
             guard let caseItem = switchCase.as(SwitchCaseSyntax.self),
                   let caseLabel = caseItem.label.as(SwitchCaseLabelSyntax.self) else {
@@ -110,7 +110,7 @@ final class StringSwitchOverEnumVisitor: BasePatternVisitor {
 
     /// Returns `true` when the switch is inside a `Codable` method
     /// (`init(from decoder: Decoder)` or `encode(to encoder: Encoder)`).
-    private func isInsideCodableMethod(_ node: SwitchExprSyntax) -> Bool {
+    func isInsideCodableMethod(_ node: SwitchExprSyntax) -> Bool {
         var current: Syntax? = Syntax(node)
         while let parent = current?.parent {
             if let initDecl = parent.as(InitializerDeclSyntax.self) {

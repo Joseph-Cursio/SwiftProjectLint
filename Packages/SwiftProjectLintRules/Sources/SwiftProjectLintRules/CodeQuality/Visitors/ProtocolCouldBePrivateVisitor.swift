@@ -142,7 +142,7 @@ final class ProtocolCouldBePrivateVisitor: CrossFileVisitorBase, CrossFilePatter
     /// A child absent from `declarations` was skipped as a declaration for being `public`
     /// or living in a test file. Its references are then all treated as external, which is
     /// the conservative reading: a public refinement makes the parent reachable outright.
-    private func hasExternallyReferencedDescendant(
+    func hasExternallyReferencedDescendant(
         _ protocolName: String,
         children: [String: Set<String>],
         visited: inout Set<String>

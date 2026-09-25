@@ -130,7 +130,7 @@ final class SwallowedInjectionDowncastVisitor: BasePatternVisitor {
 
     /// Strips `Optional` (`T?`), implicitly-unwrapped optionals (`T!`), and tuple
     /// parentheses (`(any P)?` → `any P`) down to the underlying type.
-    private func unwrap(_ type: TypeSyntax) -> TypeSyntax {
+    func unwrap(_ type: TypeSyntax) -> TypeSyntax {
         if let optional = type.as(OptionalTypeSyntax.self) {
             return unwrap(optional.wrappedType)
         }

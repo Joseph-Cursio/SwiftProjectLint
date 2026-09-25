@@ -30,7 +30,7 @@ class FatProtocolVisitor: BasePatternVisitor {
         return .visitChildren
     }
 
-    private func countRequirements(_ node: ProtocolDeclSyntax) -> Int {
+    func countRequirements(_ node: ProtocolDeclSyntax) -> Int {
         var count = 0
         for member in node.memberBlock.members {
             let decl = member.decl

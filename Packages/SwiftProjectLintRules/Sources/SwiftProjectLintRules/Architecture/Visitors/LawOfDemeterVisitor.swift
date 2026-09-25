@@ -51,7 +51,7 @@ class LawOfDemeterVisitor: BasePatternVisitor {
 
     /// The declaration a node sits in, identified by position. Chains in different functions are
     /// different problems even when they name the same target; chains in one function are one.
-    private func enclosingDeclarationPosition(of node: Syntax) -> Int {
+    func enclosingDeclarationPosition(of node: Syntax) -> Int {
         var current: Syntax? = node.parent
         while let syntax = current {
             if Self.isDeclarationBoundary(syntax) {

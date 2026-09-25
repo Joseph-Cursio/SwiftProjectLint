@@ -30,7 +30,7 @@ final class SharedDomainEnumFieldVisitor: CrossFileVisitorBase, CrossFilePattern
     /// SwiftUI types carry state-shaped fields by design; clustering them is noise.
     private static let skippedConformances: Set<String> = ["View", "ViewModifier"]
 
-    private struct FieldSignature: Hashable {
+    struct FieldSignature: Hashable {
         let propertyName: String
         let typeName: String
 
@@ -43,7 +43,7 @@ final class SharedDomainEnumFieldVisitor: CrossFileVisitorBase, CrossFilePattern
         }
     }
 
-    private struct TypeShape {
+    struct TypeShape {
         let name: String
         let file: String
         let line: Int
@@ -179,7 +179,7 @@ final class SharedDomainEnumFieldVisitor: CrossFileVisitorBase, CrossFilePattern
 
     /// True when the type already conforms to a protocol whose requirements include the
     /// shared property — the abstraction is present, so there is nothing to extract.
-    private func conformsToCovering(_ shape: TypeShape, propertyName: String) -> Bool {
+    func conformsToCovering(_ shape: TypeShape, propertyName: String) -> Bool {
         shape.conformances.contains { protocolName in
             (protocolRequirementNames[protocolName] ?? []).contains(propertyName)
         }
@@ -189,7 +189,7 @@ final class SharedDomainEnumFieldVisitor: CrossFileVisitorBase, CrossFilePattern
 
     /// Stored, instance-level, non-computed. `static`/`class`/`lazy` and computed
     /// properties are not domain state.
-    private func isStoredInstanceProperty(_ varDecl: VariableDeclSyntax) -> Bool {
+    func isStoredInstanceProperty(_ varDecl: VariableDeclSyntax) -> Bool {
         for modifier in varDecl.modifiers
         where ["static", "class", "lazy"].contains(modifier.name.text) {
             return false

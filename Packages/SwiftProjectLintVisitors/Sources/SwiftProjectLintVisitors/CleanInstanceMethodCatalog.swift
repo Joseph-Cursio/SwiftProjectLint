@@ -246,7 +246,7 @@ public struct CleanInstanceMethodCatalog: Sendable, Equatable {
         }
     }
 
-    private static func isClean(
+    static func isClean(
         _ method: FunctionDeclSyntax,
         in members: TypeMembers,
         given known: Set<String>,

@@ -117,7 +117,7 @@ extension RuleDocView {
     private static let typePattern =
         #"\b("# + types.joined(separator: "|") + #")\b"#
 
-    private func tokenizeLine(_ line: String, colors: SyntaxColors) -> AttributedString {
+    func tokenizeLine(_ line: String, colors: SyntaxColors) -> AttributedString {
         // Patterns in priority order: earlier patterns win when ranges overlap.
         let patterns: [(String, Color, Bool)] = [
             // (pattern, color, isComment)

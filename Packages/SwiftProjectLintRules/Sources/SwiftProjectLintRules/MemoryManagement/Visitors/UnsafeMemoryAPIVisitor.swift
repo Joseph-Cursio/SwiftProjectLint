@@ -83,7 +83,7 @@ final class UnsafeMemoryAPIVisitor: BasePatternVisitor {
     }
 
     /// True for `Unmanaged.<factory>(…)` calls (base is the `Unmanaged` type itself).
-    private func isUnmanagedFactory(_ call: FunctionCallExprSyntax) -> Bool {
+    func isUnmanagedFactory(_ call: FunctionCallExprSyntax) -> Bool {
         guard let member = call.calledExpression.as(MemberAccessExprSyntax.self),
               let base = member.base?.as(DeclReferenceExprSyntax.self) else { return false }
         return base.baseName.text == "Unmanaged"

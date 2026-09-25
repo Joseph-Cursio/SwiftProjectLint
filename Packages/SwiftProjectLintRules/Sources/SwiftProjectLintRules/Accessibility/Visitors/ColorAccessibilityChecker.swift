@@ -91,7 +91,7 @@ class ColorAccessibilityChecker {
 
     /// Checks whether the Color member access is wrapped in a `.opacity()` call
     /// with a value at or below the background tint threshold.
-    private func isLowOpacityUsage(_ node: MemberAccessExprSyntax) -> Bool {
+    func isLowOpacityUsage(_ node: MemberAccessExprSyntax) -> Bool {
         // Walk up: Color.red -> MemberAccessExpr for .opacity -> FunctionCallExpr for .opacity(0.1)
         // The parent of Color.red is the MemberAccessExpr for the whole `Color.red` expression,
         // which may be the base of another MemberAccessExpr `.opacity`, which is the calledExpression

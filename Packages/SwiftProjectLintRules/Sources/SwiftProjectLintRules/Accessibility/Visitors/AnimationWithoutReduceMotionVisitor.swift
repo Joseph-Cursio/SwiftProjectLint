@@ -69,7 +69,7 @@ final class AnimationWithoutReduceMotionVisitor: BasePatternVisitor {
 /// Collects, from one view's members, whether it animates and whether it ever
 /// consults Reduce Motion. Nested type declarations are skipped so each view is
 /// judged on its own body.
-private final class MotionScanner: SyntaxVisitor {
+final class MotionScanner: SyntaxVisitor {
 
     struct Trigger {
         let description: String
@@ -133,7 +133,7 @@ private final class MotionScanner: SyntaxVisitor {
     }
 
     /// False for `.opacity` and `.identity`, which change no position or size.
-    private func carriesMotion(_ expression: ExprSyntax) -> Bool {
+    func carriesMotion(_ expression: ExprSyntax) -> Bool {
         guard let member = expression.as(MemberAccessExprSyntax.self),
               member.base == nil else { return true }
         return Self.motionlessTransitions.contains(member.declName.baseName.text) == false

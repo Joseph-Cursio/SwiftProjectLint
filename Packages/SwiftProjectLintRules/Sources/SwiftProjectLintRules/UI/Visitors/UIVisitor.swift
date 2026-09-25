@@ -177,7 +177,7 @@ class UIVisitor: BasePatternVisitor {
     }
 
     /// Counts the approximate source lines of the body property.
-    private func countBodyLines(_ node: StructDeclSyntax) -> Int {
+    func countBodyLines(_ node: StructDeclSyntax) -> Int {
         for member in node.memberBlock.members {
             guard let varDecl = member.decl.as(VariableDeclSyntax.self) else { continue }
             for binding in varDecl.bindings {

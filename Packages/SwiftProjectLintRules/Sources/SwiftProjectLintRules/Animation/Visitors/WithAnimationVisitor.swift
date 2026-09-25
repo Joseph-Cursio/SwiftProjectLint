@@ -87,7 +87,7 @@ final class WithAnimationVisitor: BasePatternVisitor {
     // MARK: - Helpers
 
     /// Checks if the call is `onAppear` (a member access modifier).
-    private func isOnAppearCall(_ node: FunctionCallExprSyntax) -> Bool {
+    func isOnAppearCall(_ node: FunctionCallExprSyntax) -> Bool {
         guard let memberAccess = node.calledExpression.as(MemberAccessExprSyntax.self) else {
             return false
         }
@@ -95,7 +95,7 @@ final class WithAnimationVisitor: BasePatternVisitor {
     }
 
     /// Checks if the call is `withAnimation` (a free function call).
-    private func isWithAnimationCall(_ node: FunctionCallExprSyntax) -> Bool {
+    func isWithAnimationCall(_ node: FunctionCallExprSyntax) -> Bool {
         if let declRef = node.calledExpression.as(DeclReferenceExprSyntax.self) {
             return declRef.baseName.text == "withAnimation"
         }
