@@ -75,7 +75,8 @@ public protocol SourcePatternDetectorProtocol {
     /// (round-14). `nil` = all frameworks active subject to import gating.
     var enabledFrameworkAllowlists: Set<String>? { get set }
 
-    /// Detects patterns filtered by category.
+    /// Detects patterns filtered by category. Single-file rules only; cross-file
+    /// rules are run by `CrossFileAnalysisEngine`.
     func detectPatterns(
         in sourceCode: String,
         filePath: String,
@@ -83,7 +84,8 @@ public protocol SourcePatternDetectorProtocol {
         parsedAST: SourceFileSyntax?
     ) -> [LintIssue]
 
-    /// Detects patterns filtered by specific rule identifiers.
+    /// Detects patterns filtered by specific rule identifiers. Single-file rules
+    /// only; cross-file rules are run by `CrossFileAnalysisEngine`.
     func detectPatterns(
         in sourceCode: String,
         filePath: String,

@@ -87,6 +87,9 @@ public final class SourcePatternDetector: SourcePatternDetectorProtocol, @unchec
 
     /// Detects patterns in a single Swift source file using SwiftSyntax analysis.
     ///
+    /// Runs single-file rules only. Cross-file rules need every file of the project and are
+    /// run by `CrossFileAnalysisEngine`.
+    ///
     /// - Parameters:
     ///   - sourceCode: The Swift source code to analyze.
     ///   - filePath: The file path for the source code (used for issue reporting).
@@ -115,6 +118,9 @@ public final class SourcePatternDetector: SourcePatternDetectorProtocol, @unchec
     }
 
     /// Detects specific patterns in the given source code.
+    ///
+    /// Runs single-file rules only; requested cross-file rules are skipped, since they need
+    /// every file of the project and are run by `CrossFileAnalysisEngine`.
     ///
     /// - Parameters:
     ///   - sourceCode: The Swift source code to analyze.
@@ -171,16 +177,19 @@ public final class SourcePatternDetector: SourcePatternDetectorProtocol, @unchec
     ) -> [LintIssue] {
         let sourceFile = parsedAST ?? Parser.parse(source: sourceCode)
         let converter = SourceLocationConverter(fileName: filePath, tree: sourceFile)
-        let isTestFile = filePath.contains("Tests")
-            || filePath.contains("Test")
-            || filePath.hasSuffix("Test.swift")
-            || filePath.hasSuffix("Tests.swift")
+        // Classified by path component, not substring: `filePath.contains("Test")` used to
+        // sweep in production files such as `Sources/Testing/…` or `TestableView.swift`.
+        let isTestFile = BasePatternVisitor.isTestOrFixturePath(filePath)
 
         // Group patterns by visitor type so each visitor walks the AST only once.
         // Use ObjectIdentifier on the metatype as the grouping key.
         var visitorTypeToPatterns: [ObjectIdentifier: (type: BasePatternVisitor.Type, patterns: [SyntaxPattern])] = [:]
         for pattern in patterns {
             guard let visitorType = pattern.visitor as? BasePatternVisitor.Type else { continue }
+            // Cross-file visitors report from `finalizeAnalysis()` once every file has been
+            // walked, which only `CrossFileAnalysisEngine` does. Walking one here per file
+            // would collect state that is then thrown away.
+            if visitorType is CrossFilePatternVisitorProtocol.Type { continue }
             let key = ObjectIdentifier(visitorType)
             visitorTypeToPatterns[key, default: (type: visitorType, patterns: [])].patterns.append(pattern)
         }

@@ -286,6 +286,13 @@ open class BasePatternVisitor: SyntaxVisitor, PatternVisitorProtocol {
     /// fixture, mock, or sample file that should generally be excluded from
     /// lint rules.
     public func isTestOrFixtureFile() -> Bool {
+        Self.isTestOrFixturePath(filePath)
+    }
+
+    /// Returns `true` if `filePath` indicates a test, example, fixture, mock, or
+    /// sample file. The one definition of "test file" — rules reach it through
+    /// `isTestOrFixtureFile()`, and `SourcePatternDetector` calls it directly.
+    public static func isTestOrFixturePath(_ filePath: String) -> Bool {
         let pathString = filePath as NSString
 
         // Directory-based: a *containing folder* is a test target or fixture root.

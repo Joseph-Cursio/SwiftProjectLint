@@ -66,6 +66,22 @@ private enum RobustnessFixtures {
     static func lineCount(of source: String) -> Int {
         max(1, source.components(separatedBy: "\n").count)
     }
+
+    /// Runs every cross-file rule over `malformed` alongside a well-formed companion
+    /// file, so the visitors both walk a broken tree and correlate it with a sound one
+    /// in `finalizeAnalysis()`. Returns each issue with the line count of its file.
+    @MainActor
+    static func crossFileIssues(malformed: String) -> [(issue: LintIssue, bound: Int)] {
+        let engine = CrossFileAnalysisEngine(registry: TestRegistryManager.getSharedVisitorRegistry())
+        let files = [
+            ProjectFile(name: "Malformed.swift", content: malformed, relativePath: "Malformed.swift"),
+            ProjectFile(name: "Companion.swift", content: fullSource, relativePath: "Companion.swift")
+        ]
+        let bounds = Dictionary(uniqueKeysWithValues: files.map { ($0.relativePath, lineCount(of: $0.content)) })
+        return engine.detectCrossFilePatterns(projectFiles: files).map { issue in
+            (issue: issue, bound: bounds[issue.filePath] ?? 0)
+        }
+    }
 }
 
 /// Base robustness laws for the detection surface — properties every linting run
@@ -92,7 +108,8 @@ private enum RobustnessFixtures {
 /// 3. **No crash on malformed input** — truncated or adversarial source must
 ///    never trap the detector; the run completes and locations stay in bounds.
 ///    Exercises SwiftSyntax error recovery and the visitors' tolerance of
-///    partial trees.
+///    partial trees. The detector runs single-file rules only, so the
+///    `crossFile…` twins put the same inputs through `CrossFileAnalysisEngine`.
 @Suite
 @MainActor
 struct DetectorRobustnessPropertyTests {
@@ -146,6 +163,28 @@ struct DetectorRobustnessPropertyTests {
         let issues = detector.detectPatterns(in: source, filePath: RobustnessFixtures.filePath)
         for issue in issues {
             #expect(issue.lineNumber >= 1 && issue.lineNumber <= bound)
+        }
+    }
+
+    @Test
+    func crossFileTruncatedInput_neverCrashes_andStaysInBounds() async {
+        await propertyCheck(input: RobustnessFixtures.truncatedGen) { source in
+            for (issue, bound) in RobustnessFixtures.crossFileIssues(malformed: source) {
+                #expect(
+                    issue.lineNumber >= 1 && issue.lineNumber <= bound,
+                    "[\(issue.ruleName.rawValue)] \(issue.filePath):\(issue.lineNumber) out of 1...\(bound)"
+                )
+            }
+        }
+    }
+
+    @Test(arguments: RobustnessFixtures.adversarial)
+    func crossFileAdversarialConstants_neverCrash(_ source: String) {
+        for (issue, bound) in RobustnessFixtures.crossFileIssues(malformed: source) {
+            #expect(
+                issue.lineNumber >= 1 && issue.lineNumber <= bound,
+                "[\(issue.ruleName.rawValue)] \(issue.filePath):\(issue.lineNumber) out of 1...\(bound)"
+            )
         }
     }
 }

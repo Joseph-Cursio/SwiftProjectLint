@@ -15,8 +15,7 @@ func makeStateVariableVisitor(for source: String) -> StateVariableVisitor {
     let syntax = Parser.parse(source: source)
     let visitor = StateVariableVisitor(
         viewName: "TestView",
-        filePath: "/test/TestView.swift",
-        sourceContents: source
+        filePath: "/test/TestView.swift"
     )
     visitor.walk(syntax)
     return visitor

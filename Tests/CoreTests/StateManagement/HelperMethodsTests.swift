@@ -121,8 +121,7 @@ struct HelperMethodsTests {
         let syntax = Parser.parse(source: source)
         let visitor = StateVariableVisitor(
             viewName: "MyCustomView",
-            filePath: "/custom/path.swift",
-            sourceContents: source
+            filePath: "/custom/path.swift"
         )
         visitor.walk(syntax)
 
