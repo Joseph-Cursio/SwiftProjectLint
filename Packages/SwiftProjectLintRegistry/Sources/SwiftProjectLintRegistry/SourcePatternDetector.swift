@@ -87,6 +87,9 @@ public final class SourcePatternDetector: SourcePatternDetectorProtocol, @unchec
 
     /// Detects patterns in a single Swift source file using SwiftSyntax analysis.
     ///
+    /// Runs single-file rules only. Cross-file rules need every file of the project and are
+    /// run by `CrossFileAnalysisEngine`.
+    ///
     /// - Parameters:
     ///   - sourceCode: The Swift source code to analyze.
     ///   - filePath: The file path for the source code (used for issue reporting).
@@ -115,6 +118,9 @@ public final class SourcePatternDetector: SourcePatternDetectorProtocol, @unchec
     }
 
     /// Detects specific patterns in the given source code.
+    ///
+    /// Runs single-file rules only; requested cross-file rules are skipped, since they need
+    /// every file of the project and are run by `CrossFileAnalysisEngine`.
     ///
     /// - Parameters:
     ///   - sourceCode: The Swift source code to analyze.
@@ -181,6 +187,10 @@ public final class SourcePatternDetector: SourcePatternDetectorProtocol, @unchec
         var visitorTypeToPatterns: [ObjectIdentifier: (type: BasePatternVisitor.Type, patterns: [SyntaxPattern])] = [:]
         for pattern in patterns {
             guard let visitorType = pattern.visitor as? BasePatternVisitor.Type else { continue }
+            // Cross-file visitors report from `finalizeAnalysis()` once every file has been
+            // walked, which only `CrossFileAnalysisEngine` does. Walking one here per file
+            // would collect state that is then thrown away.
+            if visitorType is CrossFilePatternVisitorProtocol.Type { continue }
             let key = ObjectIdentifier(visitorType)
             visitorTypeToPatterns[key, default: (type: visitorType, patterns: [])].patterns.append(pattern)
         }
