@@ -24,12 +24,12 @@ import SwiftSyntax
 class StateVariableVisitor: SyntaxVisitor {
     private let viewName: String
     private let filePath: String
-    private let sourceContents: String
     private let config: VisitorConfig
     var stateVariables: [StateVariable] = []
 
-    // Cache for line number calculations to improve performance
-    private var lineNumberCache: [AbsolutePosition: Int] = [:]
+    /// Line table for the tree being walked, keyed by that tree's root so a visitor
+    /// reused on another tree builds a fresh one.
+    private var lineTable: (root: SyntaxIdentifier, converter: SourceLocationConverter)?
 
     struct VisitorConfig {
         let strictTypeChecking: Bool
@@ -38,12 +38,10 @@ class StateVariableVisitor: SyntaxVisitor {
     init(
         viewName: String,
         filePath: String,
-        sourceContents: String,
         config: VisitorConfig = VisitorConfig(strictTypeChecking: false)
     ) {
         self.viewName = viewName
         self.filePath = filePath
-        self.sourceContents = sourceContents
         self.config = config
         super.init(viewMode: .sourceAccurate)
     }
@@ -58,7 +56,7 @@ class StateVariableVisitor: SyntaxVisitor {
                 if let propertyWrapper = extractPropertyWrapper(from: node.attributes) {
                     // Use the new type inference logic
                     let typeString = extractTypeString(from: binding.typeAnnotation, initializer: binding.initializer)
-                    let lineNumber = calculateLineNumber(for: node.positionAfterSkippingLeadingTrivia)
+                    let lineNumber = startLine(of: node)
 
                     // Validate property wrapper usage
                     _ = validatePropertyWrapperUsage(
@@ -289,17 +287,21 @@ class StateVariableVisitor: SyntaxVisitor {
         return ["\(label) should only be used with ObservableObject types"]
     }
 
-    /// Calculates line number for a given position with caching for performance
-    func calculateLineNumber(for position: AbsolutePosition) -> Int {
-        if let cached = lineNumberCache[position] {
-            return cached
+    /// The 1-based line `node` starts on.
+    ///
+    /// Tree positions are UTF-8 byte offsets, so they have to be resolved against the tree's
+    /// own line table: counting them as `Character`s over-reads past any multi-byte text or
+    /// CRLF, and splitting on `.newlines` counts a CRLF as two lines.
+    func startLine(of node: some SyntaxProtocol) -> Int {
+        let root = node.root
+        let converter: SourceLocationConverter
+        if let lineTable, lineTable.root == root.id {
+            converter = lineTable.converter
+        } else {
+            converter = SourceLocationConverter(fileName: filePath, tree: root)
+            lineTable = (root: root.id, converter: converter)
         }
-
-        let offset = position.utf8Offset
-        let prefix = String(sourceContents.prefix(offset))
-        let lineNumber = prefix.components(separatedBy: .newlines).count
-        lineNumberCache[position] = lineNumber
-        return lineNumber
+        return converter.location(for: node.positionAfterSkippingLeadingTrivia).line
     }
 
     // MARK: - Public Helper Methods
