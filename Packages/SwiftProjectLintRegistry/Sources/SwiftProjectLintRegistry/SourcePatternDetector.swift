@@ -177,10 +177,9 @@ public final class SourcePatternDetector: SourcePatternDetectorProtocol, @unchec
     ) -> [LintIssue] {
         let sourceFile = parsedAST ?? Parser.parse(source: sourceCode)
         let converter = SourceLocationConverter(fileName: filePath, tree: sourceFile)
-        let isTestFile = filePath.contains("Tests")
-            || filePath.contains("Test")
-            || filePath.hasSuffix("Test.swift")
-            || filePath.hasSuffix("Tests.swift")
+        // Classified by path component, not substring: `filePath.contains("Test")` used to
+        // sweep in production files such as `Sources/Testing/…` or `TestableView.swift`.
+        let isTestFile = BasePatternVisitor.isTestOrFixturePath(filePath)
 
         // Group patterns by visitor type so each visitor walks the AST only once.
         // Use ObjectIdentifier on the metatype as the grouping key.
