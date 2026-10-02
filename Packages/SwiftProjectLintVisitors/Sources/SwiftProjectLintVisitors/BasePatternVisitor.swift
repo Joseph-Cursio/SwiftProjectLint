@@ -137,6 +137,11 @@ open class BasePatternVisitor: SyntaxVisitor, PatternVisitorProtocol {
 
     public var knownProjectFunctions: Set<String> = []
 
+    /// Base names of every `mutating func` this project declares. Built by
+    /// `MutatingMethodCollector` in `ProjectLinter`'s pre-scan, so the Actor Reentrancy rule can
+    /// read `gate.recordAttempt(at:)` as a write when `RunGate` is declared in another file.
+    public var knownMutatingMethods: Set<String> = []
+
     /// Types whose initialiser has DEFAULTED parameters — built by `DefaultedInitializerCollector`.
     ///
     /// The load-bearing half of `lossyStructRebuild`: a field-by-field rebuild is only a bug when a

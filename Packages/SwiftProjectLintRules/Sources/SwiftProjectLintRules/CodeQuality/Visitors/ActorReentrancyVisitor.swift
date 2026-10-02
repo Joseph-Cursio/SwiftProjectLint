@@ -16,6 +16,13 @@ import SwiftSyntax
 /// `connection` (the bound name) is the receiver of the subsequent `await connection.send(…)`.
 /// Scheduling sentinels of the form `if let lastRun = lastRunDate { … await work() }` are
 /// still flagged, because `lastRun` does not appear in the `await` operand.
+///
+/// ## What counts as an update
+/// An assignment (`=` or a compound operator), or a call on the property to a method that mutates
+/// it: a standard-library mutator (`insert`, `append`, …), or any `mutating func` the project
+/// declares (`gate.recordAttempt(at:)` on a `RunGate` struct). Project methods come from
+/// `knownMutatingMethods`, filled by the pre-scan, plus this file's own declarations, so the
+/// visitor is also right on its own when the gate type sits next to the actor.
 final class ActorReentrancyVisitor: BasePatternVisitor {
 
     required init(pattern: SyntaxPattern, viewMode: SyntaxTreeViewMode = .sourceAccurate) {
@@ -32,14 +39,30 @@ final class ActorReentrancyVisitor: BasePatternVisitor {
     private func analyzeActor(_ actor: ActorDeclSyntax) {
         let storedVarNames = collectStoredVarNames(from: actor)
         guard !storedVarNames.isEmpty else { return }
+        let mutatingMethods = mutatingMethodNames(visibleFrom: actor)
 
         for member in actor.memberBlock.members {
             guard let funcDecl = member.decl.as(FunctionDeclSyntax.self),
                   funcDecl.signature.effectSpecifiers?.asyncSpecifier != nil,
                   let body = funcDecl.body else { continue }
 
-            analyzeAsyncFunction(funcDecl: funcDecl, body: body, storedVarNames: storedVarNames)
+            analyzeAsyncFunction(
+                funcDecl: funcDecl,
+                body: body,
+                storedVarNames: storedVarNames,
+                mutatingMethods: mutatingMethods
+            )
         }
+    }
+
+    /// The standard-library mutators, the project's `mutating func`s from the pre-scan, and those
+    /// declared in this file — which the pre-scan also holds, but a visitor driven alone has not run it.
+    private func mutatingMethodNames(visibleFrom actor: ActorDeclSyntax) -> Set<String> {
+        let sameFile = MutatingMethodCollector()
+        sameFile.walk(actor.root)
+        return Self.standardLibraryMutatingMethods
+            .union(knownMutatingMethods)
+            .union(sameFile.collectedTypes)
     }
 
     private func collectStoredVarNames(from actor: ActorDeclSyntax) -> Set<String> {
@@ -63,7 +86,8 @@ final class ActorReentrancyVisitor: BasePatternVisitor {
     private func analyzeAsyncFunction(
         funcDecl: FunctionDeclSyntax,
         body: CodeBlockSyntax,
-        storedVarNames: Set<String>
+        storedVarNames: Set<String>,
+        mutatingMethods: Set<String>
     ) {
         let bodySyntax = Syntax(body)
 
@@ -85,7 +109,12 @@ final class ActorReentrancyVisitor: BasePatternVisitor {
 
         // 2. Collect assignments to those properties
         var assignments: [(name: String, position: AbsolutePosition)] = []
-        collectAssignments(in: bodySyntax, propertyNames: checkedNames, into: &assignments)
+        collectAssignments(
+            in: bodySyntax,
+            propertyNames: checkedNames,
+            mutatingMethods: mutatingMethods,
+            into: &assignments
+        )
 
         // 3. Collect await positions
         var awaitPositions: [AbsolutePosition] = []
@@ -296,24 +325,10 @@ final class ActorReentrancyVisitor: BasePatternVisitor {
 
     // MARK: - Assignment Detection
 
-    /// Standard-library mutating method names recognised as writes to a stored property
-    /// when called on it as a receiver. Kept as a allowlist so that non-mutating reads
-    /// (`processedIDs.contains(id)`, `X.isEmpty`, `X.count`) are not mistaken for writes.
-    private static let mutatingMethodNames: Set<String> = [
-        // Set / Array / OrderedSet
-        "insert", "append", "add", "update", "updateValue",
-        // Removal (still counts as state change between check and await)
-        "remove", "removeAll", "removeFirst", "removeLast", "removeValue",
-        "popLast", "popFirst",
-        // Set-algebra mutation
-        "formUnion", "formIntersection", "subtract", "formSymmetricDifference",
-        // Dictionary-style merge
-        "merge", "replace"
-    ]
-
     private func collectAssignments(
         in syntax: Syntax,
         propertyNames: Set<String>,
+        mutatingMethods: Set<String>,
         into results: inout [(name: String, position: AbsolutePosition)]
     ) {
         if syntax.is(FunctionDeclSyntax.self) || syntax.is(ClosureExprSyntax.self) {
@@ -339,18 +354,24 @@ final class ActorReentrancyVisitor: BasePatternVisitor {
         // Mutating-method calls on a tracked stored property are also writes:
         //   processedIDs.insert(id)        → base = DeclRef("processedIDs")
         //   self.processedIDs.insert(id)   → base = MemberAccess(self, "processedIDs")
-        // Only method names in `mutatingMethodNames` qualify; this keeps
-        // `processedIDs.contains(id)` from being mistaken for a write.
+        //   gate.recordAttempt(at: now)    → a project `mutating func`
+        // Only method names in `mutatingMethods` qualify; this keeps
+        // `processedIDs.contains(id)` and `gate.isDue(at:)` from being mistaken for writes.
         if let call = syntax.as(FunctionCallExprSyntax.self),
            let method = call.calledExpression.as(MemberAccessExprSyntax.self),
-           Self.mutatingMethodNames.contains(method.declName.baseName.text),
+           mutatingMethods.contains(method.declName.baseName.text),
            let base = method.base,
            let matched = trackedPropertyName(lhs: base, in: propertyNames) {
             results.append((matched, call.position))
         }
 
         for child in syntax.children(viewMode: .sourceAccurate) {
-            collectAssignments(in: child, propertyNames: propertyNames, into: &results)
+            collectAssignments(
+                in: child,
+                propertyNames: propertyNames,
+                mutatingMethods: mutatingMethods,
+                into: &results
+            )
         }
     }
 
@@ -382,34 +403,6 @@ final class ActorReentrancyVisitor: BasePatternVisitor {
             return trackedPropertyName(lhs: subscriptExpr.calledExpression, in: propertyNames)
         }
         return nil
-    }
-
-    /// Compound-assignment operator tokens recognised as writes. Plain `=` is
-    /// an AssignmentExprSyntax node (not a BinaryOperatorExprSyntax), so it
-    /// is handled separately in `isAssignmentOperator(_:)`.
-    ///
-    /// Kept as an explicit allowlist rather than an "ends-in-`=`" heuristic so
-    /// that comparison operators (`==`, `!=`, `<=`, `>=`, `===`, `!==`) and
-    /// hypothetical user-defined operators ending in `=` cannot be mistaken
-    /// for writes.
-    private static let compoundAssignmentOperators: Set<String> = [
-        "+=", "-=", "*=", "/=", "%=",
-        "<<=", ">>=",
-        "&=", "|=", "^=",
-        "&+=", "&-=", "&*=",
-        "&<<=", "&>>="
-    ]
-
-    /// True when `element` is the operator slot of a SequenceExpr representing
-    /// an assignment to the LHS. Covers plain `=` (an AssignmentExprSyntax
-    /// node) and compound-assignment operators (a BinaryOperatorExprSyntax
-    /// whose token text is in `compoundAssignmentOperators`).
-    static func isAssignmentOperator(_ element: ExprSyntax) -> Bool {
-        if element.is(AssignmentExprSyntax.self) { return true }
-        if let binary = element.as(BinaryOperatorExprSyntax.self) {
-            return compoundAssignmentOperators.contains(binary.operator.text)
-        }
-        return false
     }
 
     // MARK: - Await Detection

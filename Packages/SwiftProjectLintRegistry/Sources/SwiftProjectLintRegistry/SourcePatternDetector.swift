@@ -63,6 +63,10 @@ public final class SourcePatternDetector: SourcePatternDetectorProtocol, @unchec
     /// pre-scan and passed through to visitors.
     public var knownProjectFunctions: Set<String> = []
 
+    /// Base names of every `mutating func` this project declares. Set by `ProjectLinter` after a
+    /// pre-scan.
+    public var knownMutatingMethods: Set<String> = []
+
     /// Types whose initialiser has defaulted parameters. Set by `ProjectLinter` after a pre-scan.
     public var knownDefaultedInitializerTypes: Set<String> = []
 
@@ -220,6 +224,7 @@ public final class SourcePatternDetector: SourcePatternDetectorProtocol, @unchec
             visitor.knownImpurePackageFunctions = knownImpurePackageFunctions
             visitor.knownCleanInstanceMethods = knownCleanInstanceMethods
             visitor.knownProjectFunctions = knownProjectFunctions
+            visitor.knownMutatingMethods = knownMutatingMethods
             visitor.knownDefaultedInitializerTypes = knownDefaultedInitializerTypes
             visitor.layerPolicies = layerPolicies
             visitor.enabledFrameworkAllowlists = enabledFrameworkAllowlists
