@@ -48,6 +48,18 @@ The rule does not report:
 - **Imports guarded by `#if canImport(Module)`**, which are written to compile without the module.
 - **Plugin targets**, which cannot import the package's targets.
 
+### SwiftPM's own import check
+
+`swift build --explicit-target-dependency-import-check error` sounds like the same check, but it does not catch what this rule reports. It compares a target's imports with everything its dependencies bring in, transitively, so an import that relies on a dependency's dependency passes. Tested with Swift 6.4, on both the default build system and `--build-system native`:
+
+| Import | Without the flag | With the flag |
+|---|---|---|
+| `Checkout` imports `Persistence`, declared only through `Domain` | builds | builds |
+| The same, two dependencies away | builds | builds |
+| A module that no dependency brings in | fails ("no such module") | fails; on `native` the error names the missing dependency |
+
+The flag catches only the last case, which the build already rejects. The first two are this rule's findings. They build today, so only this rule reports them.
+
 ### Limitations
 
 A manifest is a program, and only what it states literally can be read. When a target's name, `path:`, `sources:` or `exclude:` is computed, or when a bare `.target(name:)` call appears where it could be either a target or a dependency, the whole manifest is skipped. One unread target could own files that would otherwise be attributed to a neighbour, and every finding about them would be wrong. A target whose `dependencies:` list alone is computed, for example `shared + ["Networking"]`, is skipped on its own.
