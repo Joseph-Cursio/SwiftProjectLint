@@ -170,6 +170,7 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
     case legacyArrayInit = "Legacy Array Init"
     case legacyClosureSyntax = "Legacy Closure Syntax"
     case ios17ObservationMigration = "iOS 17 Observation Migration"
+    case memberImportVisibilityNotEnabled = "Member Import Visibility Not Enabled"
 
     // Security Rules
     case hardcodedSecret = "Hardcoded Secret"

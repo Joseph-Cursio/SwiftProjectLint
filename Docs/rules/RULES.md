@@ -1,6 +1,6 @@
 # SwiftProjectLint Rules Reference
 
-SwiftProjectLint is a static analysis tool for SwiftUI projects. It parses Swift source files using SwiftSyntax AST visitors to detect anti-patterns spanning state management, performance, animations, architecture, code quality, security, accessibility, memory management, networking, UI patterns, modernization, and idempotency. This reference documents all 211 lint rules, organized by category.
+SwiftProjectLint is a static analysis tool for SwiftUI projects. It parses Swift source files using SwiftSyntax AST visitors to detect anti-patterns spanning state management, performance, animations, architecture, code quality, security, accessibility, memory management, networking, UI patterns, modernization, and idempotency. This reference documents all 212 lint rules, organized by category.
 
 Rules marked **opt-in** are disabled by default and must be explicitly listed under `enabled_only` in `.swiftprojectlint.yml`.
 
@@ -252,6 +252,7 @@ Rules marked **opt-in** are disabled by default and must be explicitly listed un
 | [Legacy Array Init](legacy-array-init.md) | Info *(opt-in)* |
 | [Legacy Closure Syntax](legacy-closure-syntax.md) | Info *(opt-in)* |
 | [iOS 17 Observation Migration](ios17-observation-migration.md) | Info *(opt-in)* |
+| [Member Import Visibility Not Enabled](member-import-visibility-not-enabled.md) | Info |
 
 ## Idempotency
 

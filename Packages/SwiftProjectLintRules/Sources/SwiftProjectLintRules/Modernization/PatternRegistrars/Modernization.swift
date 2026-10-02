@@ -31,7 +31,8 @@ class Modernization: BasePatternRegistrar {
             ScrollViewShowsIndicators(),
             LegacyArrayInit(),
             LegacyClosureSyntax(),
-            IOS17ObservationMigration()
+            IOS17ObservationMigration(),
+            MemberImportVisibilityNotEnabled()
         ])
     }
 }

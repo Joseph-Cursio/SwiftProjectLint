@@ -122,7 +122,8 @@ extension RuleIdentifier {
              .legacyReplacingOccurrences, .tabItemDeprecated,
              .legacyFormatter, .legacyImageRenderer,
              .scrollViewShowsIndicators, .legacyArrayInit,
-             .legacyClosureSyntax, .ios17ObservationMigration:
+             .legacyClosureSyntax, .ios17ObservationMigration,
+             .memberImportVisibilityNotEnabled:
             return .modernization
 
             // Idempotency Rules
