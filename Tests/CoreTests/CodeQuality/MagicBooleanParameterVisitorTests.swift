@@ -116,4 +116,18 @@ struct MagicBooleanParameterVisitorTests {
         let issues = filteredIssues(source)
         #expect(issues.isEmpty)
     }
+
+    // MARK: - Message wording
+
+    // The count and the noun must agree. Mutation testing changed the plural's condition and
+    // swapped its branches, and no test noticed: none read the noun.
+    @Test func testOneUnlabeledBoolIsSingular() throws {
+        let issue = try #require(filteredIssues("setFlag(item, true)").first)
+        #expect(issue.message.contains("1 unlabeled boolean parameter —"))
+    }
+
+    @Test func testSeveralUnlabeledBoolsArePlural() throws {
+        let issue = try #require(filteredIssues("configure(true, false)").first)
+        #expect(issue.message.contains("2 unlabeled boolean parameters —"))
+    }
 }

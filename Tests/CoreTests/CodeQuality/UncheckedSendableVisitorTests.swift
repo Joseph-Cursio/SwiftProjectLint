@@ -226,4 +226,26 @@ struct UncheckedSendableVisitorTests {
         #expect(visitor.detectedIssues.count == 1)
         #expect(visitor.detectedIssues[0].message.contains("Unsafe"))
     }
+
+    // MARK: - Only the `@unchecked Sendable` pair
+
+    // Both attribute and protocol must match. Each of these compiles (with a "has no effect" or
+    // "has no meaning" warning), and neither is an unchecked Sendable conformance.
+    @Test("Not flagged: an attribute other than @unchecked on Sendable")
+    func ignoresOtherAttributeOnSendable() {
+        let visitor = makeVisitor()
+        runVisitor(visitor, source: "struct Settings: @preconcurrency Sendable {}")
+        #expect(visitor.detectedIssues.isEmpty)
+    }
+
+    @Test("Not flagged: @unchecked on a protocol other than Sendable")
+    func ignoresUncheckedOnOtherProtocol() {
+        let visitor = makeVisitor()
+        runVisitor(visitor, source: """
+        final class Token: @unchecked Equatable {
+            static func == (lhs: Token, rhs: Token) -> Bool { lhs === rhs }
+        }
+        """)
+        #expect(visitor.detectedIssues.isEmpty)
+    }
 }
