@@ -62,7 +62,7 @@ When `ProjectLinter.analyzeProject(at:)` is called, the following stages run in 
 5. LintConfiguration        — apply per-rule severity overrides and path exclusions
 ```
 
-Steps 1-3 happen in `ProjectLinter.swift` (SwiftProjectLintEngine). Steps 4-5 happen after the task group collects all per-file results.
+Steps 1-3 happen in `ProjectLinter.swift` (SwiftProjectLintEngine); the pre-scan catalogs, and how they reach each file's detector, are in `ProjectLinter+PreScan.swift`. Steps 4-5 happen after the task group collects all per-file results.
 
 ---
 
@@ -98,6 +98,7 @@ SwiftProjectLintVisitors/Sources/
 ├── EnumTypeCollector.swift          │ type collectors for pre-scan phase
 ├── IdentifiableTypeCollector.swift  │
 ├── LocalTypeCollector.swift         │ (collects all local class/struct/enum/actor names)
+├── MutatingMethodCollector.swift    │ (`mutating func` names, for Actor Reentrancy)
 └── TypeCollectorProtocol.swift     ─┘
 ```
 
@@ -188,6 +189,7 @@ Top-level orchestration. Depends on all other local packages.
 ```
 SwiftProjectLintEngine/Sources/
 ├── ProjectLinter.swift             — top-level analysis orchestrator
+├── ProjectLinter+PreScan.swift     — pre-scan catalogs and their injection
 ├── PatternRegistryFactory.swift    — factory for creating configured systems
 ├── ProjectAnalyzerProtocol.swift
 └── CrossFileAnalysis/

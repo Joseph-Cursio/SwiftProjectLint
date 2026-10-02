@@ -65,6 +65,10 @@ public protocol SourcePatternDetectorProtocol {
     /// closure that still hides logic from one merely forwarding to a function already extracted.
     var knownProjectFunctions: Set<String> { get set }
 
+    /// Base names of every `mutating func` this project declares — lets the Actor Reentrancy rule
+    /// recognise a project-defined gate update (`gate.recordAttempt(at:)`) as a write.
+    var knownMutatingMethods: Set<String> { get set }
+
     /// Types whose initialiser has defaulted parameters — the gate for `lossyStructRebuild`.
     var knownDefaultedInitializerTypes: Set<String> { get set }
 

@@ -260,6 +260,9 @@ extension ProjectLinter {
         /// Functions this project declares — lets the Pure Closure rule tell a closure that still
         /// hides logic from one merely forwarding to a function the reader already extracted.
         let projectFunctions: Set<String>
+        /// Base names of every `mutating func` — lets Actor Reentrancy see a project-defined gate
+        /// update as a write.
+        let mutatingMethods: Set<String>
         /// The one-hop callee join, resolved once in the pre-scan. See `PackagePurityJoin`.
         let impurePackageFunctions: Set<String>
 
@@ -305,6 +308,7 @@ extension ProjectLinter {
             equatableTypes: env.equatableTypes,
             valueTypes: env.valueTypes,
             projectFunctions: env.projectFunctions,
+            mutatingMethods: env.mutatingMethods,
             impurePackageFunctions: env.impurePackageFunctions,
             defaultedInitializerTypes: env.defaultedInitializerTypes,
             extensionMembers: env.extensionMembers,
@@ -336,6 +340,7 @@ extension ProjectLinter {
         equatableTypes: Set<String> = [],
         valueTypes: Set<String> = [],
         projectFunctions: Set<String> = [],
+        mutatingMethods: Set<String> = [],
         impurePackageFunctions: Set<String> = [],
         defaultedInitializerTypes: Set<String> = [],
         extensionMembers: ExtensionMemberCatalog = .empty,
@@ -370,6 +375,7 @@ extension ProjectLinter {
         det.knownEquatableTypes = equatableTypes
         det.knownValueTypes = valueTypes
         det.knownProjectFunctions = projectFunctions
+        det.knownMutatingMethods = mutatingMethods
         det.knownImpurePackageFunctions = impurePackageFunctions
         det.knownDefaultedInitializerTypes = defaultedInitializerTypes
         det.knownExtensionMembers = extensionMembers

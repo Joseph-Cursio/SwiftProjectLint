@@ -38,7 +38,8 @@ struct PrescanCatalogInjectionTests {
     @Test("what configuredDetector primes, analyzeFile primes too")
     func everyCatalogIsInjectedPerFile() throws {
         let primedOnce = try assignedFields(
-            in: "Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/ProjectLinter.swift",
+            in: "Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/"
+                + "ProjectLinter+PreScan.swift",
             after: "var resolved = detector ?? SourcePatternDetector()",
             receiver: "resolved."
         )
