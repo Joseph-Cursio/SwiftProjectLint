@@ -84,7 +84,7 @@ final class ExtractableTotalKernelVisitor: BasePatternVisitor {
         guard !fileIsTestOrFixture,
               let body = node.body,
               // Gate 1: a *pure* function has no trapped kernel — it IS the kernel, and
-              // `pureFunctionCandidate` reports it.
+              // `pureFunctionCandidate` reports it when a test can compare its result.
               !purityInferrer.isPure(node) else {
             return .visitChildren
         }

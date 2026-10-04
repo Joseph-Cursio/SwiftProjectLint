@@ -62,6 +62,27 @@ struct CouldBePrivateVsTestabilityTests {
         #expect(finding.suggestion?.contains("extract the logic into a type of its own") == true)
     }
 
+    /// A tuple return is assertable, so the same cost applies. Before tuples were, this rule gave a
+    /// pure tuple-returning function the plain advice — and narrowing it hid a real subject.
+    @Test("narrowing a tuple-returning candidate names the cost too")
+    func tupleCandidateNarrowingNamesTheCost() throws {
+        let source = """
+        struct Window {
+            let lo: Int
+            let hi: Int
+
+            func bounds(_ pad: Int) -> (lower: Int, upper: Int) {
+                (lo - pad, hi + pad)
+            }
+        }
+        """
+        let issues = run(source, filePath: "Window.swift")
+        let finding = try #require(issues.first { $0.message.contains("bounds") })
+
+        #expect(finding.message.contains("property-based-test candidate"))
+        #expect(finding.suggestion?.contains("extract the logic into a type of its own") == true)
+    }
+
     @Test("narrowing an ordinary member still gets the plain advice")
     func nonCandidateNarrowingIsUnchanged() throws {
         // `render` reads a mutable var, so it is not a function of anything a test can pin down —

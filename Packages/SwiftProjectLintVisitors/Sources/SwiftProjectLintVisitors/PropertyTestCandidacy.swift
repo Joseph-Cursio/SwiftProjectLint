@@ -52,8 +52,9 @@ public enum PropertyTestCandidacy {
 
     /// Standard-library types whose values are `Equatable` out of the box. Container names are
     /// `Equatable` when their elements are; `baseTypeName` unwraps `[T]` to `T` so a custom element
-    /// is still checked against the project's conformance index.
-    private static let equatableStdlibTypes: Set<String> = StdlibTypeNames.equatable
+    /// is still checked against the project's conformance index. A tuple is not a name and is not
+    /// here: `typeIsAssertable` checks each of its elements against this set instead.
+    static let equatableStdlibTypes: Set<String> = StdlibTypeNames.equatable
 
     /// What `function` is a function of, or `nil` when it is not a property-test candidate.
     ///
@@ -83,7 +84,8 @@ public enum PropertyTestCandidacy {
     /// - Parameters:
     ///   - function: the declaration to judge.
     ///   - knownEquatableTypes: project types the pre-scan found declaring `Equatable` /
-    ///     `Hashable` / `Comparable`. A candidate must return something a test can compare.
+    ///     `Hashable` / `Comparable`. A candidate must return something a test can compare with
+    ///     `==`: an `Equatable` type, or a tuple of two to six of them (`typeIsAssertable`).
     ///   - knownValueTypes: project types declared as `struct` or `enum`. Lets a method in an
     ///     `extension OrderedSet { … }` know its `self` is a value even though the extension's
     ///     syntax never repeats the `struct` keyword — the gate for reading a bare `self`.
@@ -275,37 +277,7 @@ public enum PropertyTestCandidacy {
         }
     }
 
-    /// The assertability check over a bare type, shared with the signature form.
-    static func typeIsAssertable(
-        _ type: TypeSyntax,
-        enclosingTypeName: String?,
-        knownEquatableTypes: Set<String>
-    ) -> Bool {
-        let text = type.trimmedDescription
-        guard text != "Void", text != "()" else { return false }
-        guard let rawBase = baseTypeName(type) else { return false }
-        let base = (rawBase == "Self") ? (enclosingTypeName ?? rawBase) : rawBase
-        return equatableStdlibTypes.contains(base) || knownEquatableTypes.contains(base)
-    }
-
     // MARK: - Signature
-
-    static func returnIsAssertable(
-        _ signature: FunctionSignatureSyntax,
-        enclosingTypeName: String?,
-        knownEquatableTypes: Set<String>
-    ) -> Bool {
-        guard let returnType = signature.returnClause?.type else { return false }
-        let text = returnType.trimmedDescription
-        guard text != "Void", text != "()" else { return false }
-        guard let rawBase = baseTypeName(returnType) else { return false }
-        // A `Self` return resolves to the enclosing type — check ITS equatability,
-        // so the idiomatic value-semantic `func f(...) -> Self` (SetAlgebra /
-        // OrderedSet's `union` / `intersection`) is seeded rather than dropped for
-        // an unrecognized `"Self"` base name (B26 reach fix).
-        let base = (rawBase == "Self") ? (enclosingTypeName ?? rawBase) : rawBase
-        return equatableStdlibTypes.contains(base) || knownEquatableTypes.contains(base)
-    }
 
     /// The bare name of the type (or extended type) `function` is declared in, or
     /// `nil` for a free function. Used to resolve a `Self` return to its concrete
@@ -330,9 +302,15 @@ public enum PropertyTestCandidacy {
     }
 
     /// The underlying nominal name of a type, unwrapping optionals and arrays: `Foo?` → `Foo`,
-    /// `[Foo]` → `Foo`, `Foo<Bar>` → `Foo`. `[K: V]` resolves to `Dictionary`. Tuples and closures
-    /// have no nominal base and yield `nil`.
-    private static func baseTypeName(_ type: TypeSyntax) -> String? {
+    /// `[Foo]` → `Foo`, `Foo<Bar>` → `Foo`. `[K: V]` resolves to `Dictionary`, and `V` is not
+    /// looked at. Parentheses are not a type, so `(Foo)` → `Foo`.
+    ///
+    /// A real tuple yields `nil`, as a closure does: neither has a name to look up. That `nil` is
+    /// what keeps `(A, B)?`, `[(A, B)]` and a tuple nested in a tuple refused, and rightly — a
+    /// tuple is never `Equatable`, so an Optional or Array of one has no `==`. A tuple that is the
+    /// *whole* type never gets here; `typeIsAssertable` judges it element by element.
+    static func baseTypeName(_ type: TypeSyntax) -> String? {
+        let type = unparenthesized(type)
         if let optional = type.as(OptionalTypeSyntax.self) {
             return baseTypeName(optional.wrappedType)
         }

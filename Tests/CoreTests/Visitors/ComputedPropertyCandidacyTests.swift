@@ -150,6 +150,34 @@ struct ComputedPropertyCandidacyTests {
         #expect(candidate(source, named: "opaque", equatable: [], valueTypes: ["Holder"]) == nil)
     }
 
+    /// A tuple of `Equatable` values is assertable on this path too — the two paths share one
+    /// check, and `==` is defined on tuples of two to six `Equatable` elements.
+    @Test
+    func aTupleTypedPropertyIsACandidate() throws {
+        let source = """
+        struct Span {
+            let lo: Int
+            let hi: Int
+            var bounds: (lower: Int, upper: Int) { (lo, hi) }
+        }
+        """
+        let found = try #require(candidate(source, named: "bounds", equatable: [], valueTypes: ["Span"]))
+        #expect(found.shape == .ofSelfAndInputs)
+    }
+
+    /// An Optional of a tuple has no `==`, because a tuple is never `Equatable` itself.
+    @Test
+    func anOptionalTupleTypedPropertyIsNotACandidate() {
+        let source = """
+        struct Span {
+            let lo: Int
+            let hi: Int
+            var bounds: (Int, Int)? { lo < hi ? (lo, hi) : nil }
+        }
+        """
+        #expect(candidate(source, named: "bounds", equatable: [], valueTypes: ["Span"]) == nil)
+    }
+
     /// Reading *mutable* stored state is not a function of the value.
     @Test
     func aPropertyReadingMutableStateIsNotACandidate() {

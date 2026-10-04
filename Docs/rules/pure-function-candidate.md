@@ -13,7 +13,7 @@ Most testability rules flag what makes code *hard* to test. This one is the posi
 `PureFunctionCandidateVisitor` flags a `FunctionDeclSyntax` that:
 - is free (top-level) or `static` — instance methods can read mutable `self`, so they're excluded,
 - takes at least one parameter,
-- returns a non-`Void` value,
+- returns a value a test can compare with `==` (see [What a test can assert on](#what-a-test-can-assert-on)),
 - is not `async`,
 - has a body with no obvious impurity markers — `print`, `NSLog`, `FileManager`, `URLSession`, `UserDefaults`, `NotificationCenter`, `DispatchQueue`, the `arc4random` family, `.random` / `.randomElement` / `.shuffled`, and
 - if it `throws`, raises only its **own** errors — see [Throwing candidates](#throwing-candidates-pure-but-partial).
@@ -51,6 +51,12 @@ extension Widget { func scaled(_ n: Int) -> Int { hidden * n } }
 // THROWS by propagation — the error comes from a callee this rule cannot see, and so does
 // whatever else that callee does. Doubt refutes.
 func read(_ url: URL) throws -> String { try String(contentsOf: url, encoding: .utf8) }
+
+// An OPTIONAL tuple — a tuple is never Equatable, so an Optional of one has no `==`
+func split(_ line: String) -> (String, String)? { nil }
+
+// A tuple NESTED in a tuple — the outer `==` needs Equatable elements, and the inner tuple is not one
+func tagged(_ x: Int) -> ((Int, Int), String) { ((x, x), "pair") }
 ```
 
 ### Violating Examples
@@ -78,7 +84,49 @@ func parse(_ text: String) throws -> Int {
     guard let value = Int(text) else { throw ParseError.bad }
     return value
 }
+
+// A TUPLE of Equatable values — `==` compares it element by element.
+// e.g. property: minMax(a, b) == minMax(b, a)
+func minMax(_ a: Int, _ b: Int) -> (min: Int, max: Int) { a < b ? (a, b) : (b, a) }
 ```
+
+### What a test can assert on
+
+A candidate is only worth seeding if a test can compare two of its results with `==` — that is
+what every law `swift-infer` writes ends in. Whether it can is read off the return type (or a
+computed property's annotation; both go through one check):
+
+| the result type | assertable |
+|---|---|
+| a stdlib `Equatable` type — `Int`, `String`, `Bool`, `Double`, `Date`, `URL`, `Data`, … | yes |
+| a project type declaring `Equatable` / `Hashable` / `Comparable`, or an enum with no associated values | yes |
+| `T?`, `T!` or `[T]` of one of those | yes |
+| `Self` | when the enclosing type is one of those |
+| a tuple of **two to six** of those, labelled or not — `(text: String, didTruncate: Bool)` | yes |
+| `(T)` | as `T` — parentheses are not a tuple |
+| `Void` / `()` | no — nothing to assert on |
+| an Optional or Array *of* a tuple — `(A, B)?`, `[(A, B)]` | no |
+| a tuple nested in a tuple, or with a `Void` element | no |
+| a tuple of seven or more | no — Swift's tuple `==` stops at six |
+| a closure, an existential (`any P`), a typealias, `Outer.Inner`, a type the project index does not know | no |
+
+The tuple rows are Swift's own: the standard library overloads `==` for tuples of two to six
+`Equatable` elements, but a tuple never conforms to `Equatable` itself. So a tuple is assertable only
+as the **whole** result — wrap it in an Optional or an Array, or nest it in another tuple, and there
+is no `==` left to call.
+
+Tuples were refused from the gate's first day (a4427b8c), grouped with closures as having *"no
+nominal base"*. That is true of the lookup, and not of `==`. Admitting them added **13 seeds of
+1,210, none lost**, across SwiftAssist, SwiftCloneDetector, SwiftMarkdownWiki and SwiftUMLStudio —
+every one a pair, such as `(hash: UInt64, mass: Int)` or `(text: String, spans: [MathSpan])`, and
+six of them `private`. SwiftAssist's
+`String.prefix(utf8Bytes:) -> (text: String, didTruncate: Bool)` motivated the change — and is
+still not a candidate, for a different reason: it reads `isEmpty` and `utf8` without `self.`, a
+member of a carrier the project does not declare (see [Instance methods](#instance-methods)).
+
+Generic arguments are not checked. `Array<Widget>`, `Set<T>` and a dictionary's value type pass on
+the container's name, so `[String: (Int, Int)]` is admitted although it has no `==`. That predates
+tuples, and checking it would narrow the gate.
 
 ### Instance methods
 
@@ -140,6 +188,11 @@ and only one of those makes a function untestable: a function that rejects the i
 is a deterministic function of its inputs on all the rest. The message says *"looks pure but
 partial"* and the suggestion tells you to narrow the law's domain — compare `try? f(x)` on both
 sides, so an input in the throwing domain is a no-op for the property rather than a failure.
+
+For a tuple result that comparison does not compile: `(try? f(x)) == (try? f(x))` compares two
+Optionals of a tuple, and an Optional has `==` only when what it wraps is `Equatable`, which a tuple
+never is. So a throwing tuple candidate is told to bind both results with `if let` and compare the
+unwrapped tuples instead.
 
 **But only when the function throws its own errors.** A `try` into a callee refutes:
 

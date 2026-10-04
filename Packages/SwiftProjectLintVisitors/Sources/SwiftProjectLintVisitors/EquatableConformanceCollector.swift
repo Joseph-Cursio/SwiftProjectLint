@@ -9,7 +9,8 @@ import SwiftSyntax
 /// Per-file visitors can't see conformances declared elsewhere, so this set is
 /// built once and injected. The Pure Function Property-Test Candidate rule uses
 /// it to gate seeds: a candidate is only useful to `swift-infer` if its result
-/// can be asserted on, which requires the return type to be `Equatable`.
+/// can be compared with `==`, which requires the return type to be `Equatable`
+/// — or a tuple of two to six `Equatable` elements, each looked up here.
 public final class EquatableConformanceCollector: SyntaxVisitor, TypeCollectorProtocol {
 
     public var collectedTypes: Set<String> { equatableTypes }

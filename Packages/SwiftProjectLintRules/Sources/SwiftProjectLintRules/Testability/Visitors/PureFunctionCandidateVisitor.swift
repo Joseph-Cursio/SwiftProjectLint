@@ -68,9 +68,10 @@ final class PureFunctionCandidateVisitor: BasePatternVisitor {
                 + "wherever it returns"
             : "looks pure and total"
         if candidate.isPartial {
-            advice += " Narrow the law's domain to the inputs that do not throw — compare "
-                + "`try? \(node.name.text)(…)` on both sides, so a throwing input is a no-op "
-                + "for the property rather than a failure."
+            advice += Self.narrowedDomainAdvice(
+                for: node.name.text,
+                returnsTuple: PropertyTestCandidacy.returnsTuple(node)
+            )
         }
 
         // The callee join: a candidate whose body reaches a package function this same
@@ -176,6 +177,25 @@ final class PureFunctionCandidateVisitor: BasePatternVisitor {
             in: Syntax(body),
             settledImpureNames: knownImpurePackageFunctions
         )
+    }
+
+    /// How to narrow a throwing candidate's law to the inputs that return.
+    ///
+    /// For most results that is "compare `try? f(…)` on both sides". For a tuple it is not: `==`
+    /// compares a tuple of `Equatable` elements one element at a time, but a tuple never conforms
+    /// to `Equatable`, so the two `try?` results — Optionals of a tuple — have no `==` and the
+    /// suggested comparison does not compile. Unwrapping both first does.
+    static func narrowedDomainAdvice(for name: String, returnsTuple: Bool) -> String {
+        guard returnsTuple else {
+            return " Narrow the law's domain to the inputs that do not throw — compare "
+                + "`try? \(name)(…)` on both sides, so a throwing input is a no-op "
+                + "for the property rather than a failure."
+        }
+        return " Narrow the law's domain to the inputs that do not throw — bind both "
+            + "`try? \(name)(…)` results with `if let` and compare the unwrapped tuples, so a "
+            + "throwing input is a no-op for the property rather than a failure. Comparing the two "
+            + "`try?` results directly does not compile: Swift's `==` takes the tuple, not an "
+            + "Optional of it."
     }
 
     /// Appended to the message when no test can reach the declaration.
