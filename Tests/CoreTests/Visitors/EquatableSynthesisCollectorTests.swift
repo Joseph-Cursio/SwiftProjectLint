@@ -9,7 +9,8 @@ import Testing
 /// ## Why this matters more than it looks
 ///
 /// The set gates seeding. `PropertyTestCandidacy.returnIsAssertable` refuses a
-/// candidate whose return type is not known-`Equatable`, on the sound reasoning
+/// candidate whose return type (or, for a tuple, any element of it) is not
+/// known-`Equatable`, on the sound reasoning
 /// that a test must be able to assert on the result. So a type missing from this
 /// index does not produce a worse suggestion — it produces **no suggestion**, and
 /// the function disappears from the seed manifest without a word.

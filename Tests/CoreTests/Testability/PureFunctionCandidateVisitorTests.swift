@@ -499,9 +499,10 @@ struct PureFunctionCandidateGateTests {
         #expect(analyze("func widgets(_ n: Int) -> [Widget] { [] }", equatableTypes: ["Widget"]).count == 1)
     }
 
-    @Test func dropsTupleReturn() {
-        // A tuple has no nominal base to look up — treated as non-assertable.
-        #expect(analyze("func pair(_ x: Int) -> (Int, Int) { (x, x) }").isEmpty)
+    @Test func keepsTupleOfEquatableReturn() {
+        // `==` is defined on tuples of two to six Equatable elements. This used to be dropped only
+        // because a tuple has no nominal base to look up. More in TupleReturnCandidacyTests.
+        #expect(analyze("func pair(_ x: Int) -> (Int, Int) { (x, x) }").count == 1)
     }
 
     // MARK: - The extracted value type must be seedable (B9)
