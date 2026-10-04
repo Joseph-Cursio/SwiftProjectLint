@@ -248,4 +248,21 @@ struct ComputedPropertyCandidacyTests {
         )
         #expect(result.isPartial)
     }
+
+    /// …but not when it returns a tuple. A partial subject is compared through `try?`, and an
+    /// Optional of a tuple has no `==` — the same refusal a throwing function returning a tuple
+    /// gets, because the two paths share one check.
+    @Test
+    func aThrowingTupleGetterIsNotACandidate() {
+        let source = """
+        struct Span {
+            let lo: Int
+            let hi: Int
+            var bounds: (Int, Int) {
+                get throws { if lo > hi { throw SpanError.inverted }; return (lo, hi) }
+            }
+        }
+        """
+        #expect(candidate(source, named: "bounds", equatable: [], valueTypes: ["Span"]) == nil)
+    }
 }

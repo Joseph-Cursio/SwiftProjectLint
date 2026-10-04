@@ -17,8 +17,9 @@ import Testing
 ///
 /// The rule is the standard library's own. `==` is overloaded for tuples of **two to six**
 /// `Equatable` elements and for nothing wider, and a tuple never conforms to `Equatable` itself — so
-/// an Optional, an Array or a nested tuple *of* a tuple has no `==` and stays refused. A
-/// parenthesized type is not a tuple at all: `(Int)` is `Int`.
+/// an Optional, an Array or a nested tuple *of* a tuple has no `==` and stays refused. So does a
+/// tuple returned by a function that throws: its law compares two `try?` results, which are
+/// Optionals of the tuple. A parenthesized type is not a tuple at all: `(Int)` is `Int`.
 ///
 /// What this does **not** do is seed `prefix(utf8Bytes:)`. Its body reads `isEmpty` and `utf8`
 /// without `self.`, and `SelfAccessAnalyzer` refuses a member of a carrier the project does not
@@ -35,26 +36,48 @@ struct TupleReturnCandidacyTests {
         "(Int, Int, Int, Int, Int, Int)",
         "((Int, Int))",
         "((Int), String)",
-        "(Int)"
+        "(Int)",
+        // An element's generic arguments are looked through, and these are all `Equatable`.
+        "(Array<Int>, Set<String>)",
+        "([String: Int], Dictionary<String, [Bool]>)"
     ]
 
     /// Spellings with no `==`, each for a reason the stdlib states.
     static let refused = [
+        // No value to assert on.
         "()",
         "Void",
         "(())",
         "(Int, ())",
         "(Int, Void)",
+        // Swift's tuple `==` stops at six elements, and a tuple is never `Equatable`, so nothing
+        // that wraps one has `==`.
         "(Int, Int, Int, Int, Int, Int, Int)",
         "((Int, Int), String)",
         "(Int, Int)?",
         "(Int, Int)!",
         "[(Int, Int)]",
+        // Refused, but not by the tuple rule: `Optional` is not a name in the stdlib set, which is
+        // also why `Optional<Int>` is refused. Kept so that adding the name cannot admit this.
         "Optional<(Int, Int)>",
+        // An element with no `==`.
         "(Int, any Error)",
         "(Int, () -> Int)",
         "(Int, Widget)",
+        // An element whose generic argument has no `==`: `Widget` is not known `Equatable` here,
+        // so neither is an Array of it or a Dictionary with it as the value, however it is spelled.
+        "([Widget], Int)",
+        "(Array<Widget>, Int)",
+        "([String: Widget], Int)",
+        "(Dictionary<String, Widget>, Int)",
+        "([Array<Widget>], Int)",
+        "([String: [Widget]], Int)",
+        // Variadic: `(Int...)` is not a parenthesized `Int`, and a variadic element is not a value.
         "(Int...)",
+        "(Int, String...)",
+        // swift-syntax reads `inout Int` as an attributed type, which has no name to look up.
+        "(inout Int, Int)",
+        // A function type is not a tuple, whatever it returns.
         "(Int) -> (Int, Int)"
     ]
 
@@ -83,13 +106,30 @@ struct TupleReturnCandidacyTests {
         #expect(try returnVerdict("(Self, Bool)", enclosingTypeName: "Ring") == false)
     }
 
-    /// **Not a decision of the tuple rule — an imprecision it inherits.** A dictionary resolves to
-    /// the name `Dictionary` and its value type is never looked at, so `[String: Widget]` passes for
-    /// a non-`Equatable` `Widget`, and `[String: (Int, Int)]` passes although it has no `==`. It was
-    /// admitted before tuples were and still is. Pinned so the rule page's statement of it stays
-    /// true; checking a container's arguments would narrow the gate and needs its own measurement.
-    @Test func aDictionaryValueIsNotLookedInto() throws {
-        #expect(try returnVerdict("[String: (Int, Int)]"))
+    /// A partial subject's law compares `try?` results, Optionals of the return type, and an
+    /// Optional of a tuple has no `==`. That refuses a tuple however it is spelled.
+    @Test(arguments: ["(Int, Int)", "(text: String, didTruncate: Bool)", "((Int, Int))"])
+    func aPartialTupleIsRefused(spelling: String) throws {
+        #expect(try returnVerdict(spelling, isPartial: true) == false)
+    }
+
+    /// …and leaves every nominal verdict as it was. An Optional of an `Equatable` type is
+    /// `Equatable`, so the law's `Int?` compares exactly as `Int` would.
+    @Test(arguments: ["Int", "(Int)", "[Int]", "String?"])
+    func aPartialNominalResultKeepsItsVerdict(spelling: String) throws {
+        #expect(try returnVerdict(spelling, isPartial: true))
+    }
+
+    /// **Not a decision of the tuple rule — an imprecision it inherits.** For a *whole* result, a
+    /// container is read by its name: a dictionary resolves to `Dictionary` and its value type is
+    /// never looked at, and `Array<T>` spelled generically resolves to `Array` without looking at
+    /// `T`. So `[String: (Int, Int)]` and `Array<(Int, Int)>` pass although neither has `==`. Both
+    /// were admitted before tuples were and still are. Pinned so the rule page's statement of it
+    /// stays true; checking a whole result's arguments would narrow the gate and needs its own
+    /// measurement. (Inside a tuple they are checked — see `refused`.)
+    @Test(arguments: ["[String: (Int, Int)]", "Array<(Int, Int)>"])
+    func aWholeResultIsReadByItsContainerName(spelling: String) throws {
+        #expect(try returnVerdict(spelling))
     }
 
     /// The function and computed-property paths used to carry byte-identical copies of the check.
@@ -100,7 +140,8 @@ struct TupleReturnCandidacyTests {
         let propertyVerdict = PropertyTestCandidacy.typeIsAssertable(
             returnType,
             enclosingTypeName: nil,
-            knownEquatableTypes: []
+            knownEquatableTypes: [],
+            isPartial: false
         )
         #expect(try propertyVerdict == returnVerdict(spelling))
     }
@@ -128,7 +169,8 @@ struct TupleReturnCandidacyTests {
         #expect(PropertyTestCandidacy.returnIsAssertable(
             declaration.signature,
             enclosingTypeName: "String",
-            knownEquatableTypes: []
+            knownEquatableTypes: [],
+            isPartial: false
         ))
         #expect(shape(Self.prefixUTF8Bytes, method: "prefix") == nil)
     }
@@ -203,21 +245,61 @@ struct TupleReturnCandidacyTests {
         #expect(findings(source, equatableTypes: ["Widget"]).count == 1)
     }
 
-    /// **A throwing tuple candidate is told to unwrap, not to compare the `try?` results.** The
-    /// advice every other throwing candidate gets — compare `try? f(…)` on both sides — does not
-    /// compile here: the two sides are Optionals of a tuple, and an Optional has `==` only when its
-    /// wrapped type is `Equatable`, which a tuple never is. Checked against Swift 6.4.
-    @Test func aThrowingTupleCandidateIsToldToUnwrapBothResults() throws {
-        let issue = try #require(findings("""
+    /// Throwing functions whose result is a tuple, in the spellings a project writes them.
+    static let throwingTupleSources = [
+        """
         func parsePair(_ s: String) throws -> (Int, Int) {
             guard let value = Int(s) else { throw ParseError.bad }
             return (value, value)
         }
+        """,
+        """
+        func typed(_ s: String) throws(ParseError) -> (a: Int, b: Int) {
+            guard let value = Int(s) else { throw ParseError.bad }
+            return (value, value)
+        }
+        """,
+        """
+        func wrapped(_ s: String) throws -> ((Int, Int)) {
+            guard let value = Int(s) else { throw ParseError.bad }
+            return (value, value)
+        }
+        """
+    ]
+
+    /// **A throwing function returning a tuple is not a candidate.** A partial candidate's law
+    /// narrows its domain with `try?`, so what it compares is two Optionals of the result —
+    /// `(try? f(x)) == (try? f(x))`, which `swift-infer` writes for every throwing seed. An
+    /// Optional has `==` only when its wrapped type is `Equatable`, and a tuple never is, so for a
+    /// tuple that law does not compile (Swift 6.4: "binary operator '==' cannot be applied to two
+    /// '(a: Int, b: Int)?' operands"). This is the gate's own row, an Optional of a tuple, reached
+    /// through `throws` instead of `?`.
+    @Test(arguments: throwingTupleSources)
+    func aThrowingTupleReturnIsNotSeeded(source: String) {
+        #expect(findings(source).isEmpty)
+    }
+
+    /// The control: partiality alone still does not refuse. A throwing function with a scalar
+    /// result — parenthesized or not — is seeded as partial and told to compare `try?` on both
+    /// sides, which compiles because `Int?` is `Equatable`.
+    @Test(arguments: ["Int", "(Int)"])
+    func aThrowingScalarReturnIsStillSeededAsPartial(spelling: String) throws {
+        let issue = try #require(findings("""
+        func parse(_ s: String) throws -> \(spelling) {
+            guard let value = Int(s) else { throw ParseError.bad }
+            return value
+        }
         """).first)
         #expect(issue.message.contains("pure but partial"))
         let suggestion = try #require(issue.suggestion)
-        #expect(suggestion.contains("if let"))
-        #expect(suggestion.contains("compare `try? parsePair(…)` on both sides") == false)
+        #expect(suggestion.contains("compare `try? parse(…)` on both sides"))
+    }
+
+    /// A `Set`'s element is `Hashable`, so it is `Equatable` whether or not the project index has
+    /// heard of it, and its argument is not looked into. Pinned so the element check that refuses
+    /// `(Array<Widget>, Int)` cannot start refusing this.
+    @Test func aSetElementIsNotLookedInto() throws {
+        #expect(try returnVerdict("(Set<Widget>, Int)"))
     }
 
     /// The `(T) -> T` normalizer guess is read off the signature text, so it now reaches a tuple
@@ -238,13 +320,15 @@ struct TupleReturnCandidacyTests {
     private func returnVerdict(
         _ spelling: String,
         enclosingTypeName: String? = nil,
-        knownEquatableTypes: Set<String> = []
+        knownEquatableTypes: Set<String> = [],
+        isPartial: Bool = false
     ) throws -> Bool {
         let signature = try signature(returning: spelling)
         return PropertyTestCandidacy.returnIsAssertable(
             signature,
             enclosingTypeName: enclosingTypeName,
-            knownEquatableTypes: knownEquatableTypes
+            knownEquatableTypes: knownEquatableTypes,
+            isPartial: isPartial
         )
     }
 

@@ -22,6 +22,12 @@ public enum PropertyTestShape: Sendable, Equatable {
 ///
 /// So partiality is *reported*, not used to refuse. A reader who is told a candidate is partial can
 /// write the narrowed law; a reader who is told nothing writes no test at all.
+///
+/// The one exception is a result the narrowed law cannot compare. `try?` makes each side an Optional
+/// of the result, and an Optional has `==` only when what it wraps is `Equatable`. Every nominal
+/// result that passes the gate is; a tuple, which has `==` without conforming, is not. So a throwing
+/// function returning a tuple is refused (`typeIsAssertable`'s `isPartial`) rather than seeded with a
+/// law that does not compile.
 public struct PropertyTestCandidate: Sendable, Equatable {
     /// What the function is a function of.
     public let shape: PropertyTestShape
@@ -85,7 +91,8 @@ public enum PropertyTestCandidacy {
     ///   - function: the declaration to judge.
     ///   - knownEquatableTypes: project types the pre-scan found declaring `Equatable` /
     ///     `Hashable` / `Comparable`. A candidate must return something a test can compare with
-    ///     `==`: an `Equatable` type, or a tuple of two to six of them (`typeIsAssertable`).
+    ///     `==`: an `Equatable` type, or a tuple of two to six of them (`typeIsAssertable`) from a
+    ///     function that does not throw.
     ///   - knownValueTypes: project types declared as `struct` or `enum`. Lets a method in an
     ///     `extension OrderedSet { … }` know its `self` is a value even though the extension's
     ///     syntax never repeats the `struct` keyword — the gate for reading a bare `self`.
@@ -112,6 +119,7 @@ public enum PropertyTestCandidacy {
 
         guard let shape = assertableShape(
             of: function,
+            isPartial: isPartial,
             knownEquatableTypes: knownEquatableTypes,
             knownValueTypes: knownValueTypes,
             cleanInstanceMethods: cleanInstanceMethods
@@ -121,9 +129,11 @@ public enum PropertyTestCandidacy {
         return PropertyTestCandidate(shape: shape, isPartial: isPartial)
     }
 
-    /// The shape half of candidacy — everything after the purity verdict.
+    /// The shape half of candidacy — everything after the purity verdict, which still decides
+    /// whether a law can compare the result (`isPartial`).
     private static func assertableShape(
         of function: FunctionDeclSyntax,
+        isPartial: Bool,
         knownEquatableTypes: Set<String>,
         knownValueTypes: Set<String>,
         cleanInstanceMethods: CleanInstanceMethodCatalog
@@ -131,7 +141,8 @@ public enum PropertyTestCandidacy {
         guard returnIsAssertable(
             function.signature,
             enclosingTypeName: enclosingTypeName(of: function),
-            knownEquatableTypes: knownEquatableTypes
+            knownEquatableTypes: knownEquatableTypes,
+            isPartial: isPartial
         ) else {
             return nil
         }
@@ -211,10 +222,12 @@ public enum PropertyTestCandidacy {
             return nil
         }
         guard PurityInferrer().isPure(accessor) else { return nil }
+        let isPartial = accessorThrows(accessor)
         guard typeIsAssertable(
             annotation,
             enclosingTypeName: enclosingTypeName(of: property),
-            knownEquatableTypes: knownEquatableTypes
+            knownEquatableTypes: knownEquatableTypes,
+            isPartial: isPartial
         ) else {
             return nil
         }
@@ -228,7 +241,7 @@ public enum PropertyTestCandidacy {
               ) else {
             return nil
         }
-        return PropertyTestCandidate(shape: .ofSelfAndInputs, isPartial: accessorThrows(accessor))
+        return PropertyTestCandidate(shape: .ofSelfAndInputs, isPartial: isPartial)
     }
 
     /// The single binding of `var x: T { … }`. A multi-binding line cannot carry an accessor, so
