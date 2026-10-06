@@ -205,7 +205,9 @@ class MyViewModel {
 - **~~A stateless, effect-free type is still reported.~~** Closed by the pure-kernel exemption,
   which is SwiftProjectLint#163 and is shared with `DirectInstantiation` — see
   `CleanInstanceMethodCatalog.isPureKernel(_:)`. It removed four: `PromptBuilder` at three sites
-  and `ThinkingAnalyzer` at one.
+  and `ThinkingAnalyzer` at one. Its purity test now sees what constructing a package type runs, so
+  a type whose method builds an identity-minting value stops qualifying; on the eight repositories
+  re-measured when that was wired, no finding moved.
 
   **It removed two more that it should not have, and that is the part worth keeping.** The first
   implementation asked whether any stored property was a closure or an existential — a denylist —

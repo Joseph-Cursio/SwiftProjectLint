@@ -77,8 +77,9 @@ open class BasePatternVisitor: SyntaxVisitor, PatternVisitorProtocol {
     /// spread across its extensions and a single-file answer would miss most of them.
     /// Package function names the purity oracle refutes with an establishable witness.
     ///
-    /// The one-hop callee join. `PurityInferrer` decides each declaration alone, so a
-    /// one-line function whose helper spawns a subprocess reads as pure — the callee's
+    /// The one-hop callee join. `PurityInferrer` decides each declaration alone — apart
+    /// from what constructing a package type runs, which `PackagePurity` hands it — so a
+    /// one-line function whose helper spawns a subprocess reads as pure: the callee's
     /// verdict is computed and then never consulted. A rule that offers purity
     /// candidates consults this to avoid offering that caller.
     ///
@@ -306,7 +307,7 @@ open class BasePatternVisitor: SyntaxVisitor, PatternVisitorProtocol {
         // `.../SubclassedForMockingVisitor.swift`, where "Mocking" contains "Mock" —
         // is not mistaken for a fixture.
         for component in pathString.pathComponents.dropLast() {
-            if component == "Tests" || component.hasSuffix("Tests") {
+            if ConstructionUniverse.isTestTargetDirectory(component) {
                 return true // SPM `Tests/` and Xcode `FooTests/` target folders
             }
             if Self.testSupportDirectorySuffixes.contains(where: component.hasSuffix) {

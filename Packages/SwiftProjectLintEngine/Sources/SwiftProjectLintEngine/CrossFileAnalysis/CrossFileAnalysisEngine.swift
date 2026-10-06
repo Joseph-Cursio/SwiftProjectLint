@@ -192,6 +192,9 @@ public class CrossFileAnalysisEngine: CrossFileAnalyzerProtocol {
         return allIssues
     }
     /// Detects patterns in the given project path and categories.
+    ///
+    /// A standalone entry: no pre-scan and no `PackagePurity` binding, so the purity oracle runs
+    /// unconfigured here. `ProjectLinter.analyzeProject` is the path that configures it.
     public func detectPatterns(
         in projectPath: String,
         categories: [PatternCategory]? = nil

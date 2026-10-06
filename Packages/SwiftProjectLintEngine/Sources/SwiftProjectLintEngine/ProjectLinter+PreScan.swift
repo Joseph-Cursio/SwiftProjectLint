@@ -61,11 +61,16 @@ extension ProjectLinter {
         /// tried: 377 candidate symbols dropped out.
         let impurePackageFunctions: Set<String>
 
-        static func collect(from filePaths: [String]) -> Self {
+        /// Runs inside the run's `PackagePurity` binding, which is what makes the two
+        /// purity-judging catalogs below — `CleanInstanceMethodCatalog` and
+        /// `PackagePurityJoin` — construction-aware: each creates its `PurityInferrer()` here.
+        static func collect(from filePaths: [String], sources: [String: SharedSource] = [:]) -> Self {
             // Parsed once and shared: both body-needing collectors below walk the same
             // trees, and parsing a project twice to build two catalogs is the kind of
             // cost that does not show up until someone points the linter at a large tree.
-            let parsed = parseAll(filePaths)
+            // The trees are the run's shared parse — the ones the purity facts were built
+            // from and the per-file visitors walk — in discovery order.
+            let parsed = filePaths.compactMap { sources[$0]?.tree ?? parseAll([$0]).first }
             return Self(
                 identifiable: collectTypes(IdentifiableTypeCollector.self, from: filePaths),
                 enums: collectTypes(EnumTypeCollector.self, from: filePaths),
@@ -138,7 +143,8 @@ extension ProjectLinter {
         categories: [PatternCategory]?,
         ruleIdentifiers: [RuleIdentifier]?,
         collected: CollectedTypes,
-        configuration: LintConfiguration
+        configuration: LintConfiguration,
+        shared: [String: SharedSource] = [:]
     ) -> FileAnalysisEnvironment {
         FileAnalysisEnvironment(
             projectRoot: projectRoot,
@@ -166,7 +172,8 @@ extension ProjectLinter {
             closureWrapperTypes: collected.closureWrapperTypes,
             cleanInstanceMethods: collected.cleanInstanceMethods,
             enabledFrameworkAllowlists: configuration.enabledFrameworkAllowlists,
-            layerPolicies: configuration.architecturalLayers
+            layerPolicies: configuration.architecturalLayers,
+            shared: shared
         )
     }
 }

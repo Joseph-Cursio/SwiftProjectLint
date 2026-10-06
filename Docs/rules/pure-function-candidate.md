@@ -227,6 +227,62 @@ predates this change and that the refusal had been hiding:
   order varies from process to process. The oracle has no model of order that depends on hash
   seeding.
 
+### Constructions: what building a value runs
+
+**A function that builds a value of a package type runs that type's construction**, and its body
+does not show it. `public struct HealthRecommendation: Identifiable { public let id = UUID(); … }`
+mints an identity on every `HealthRecommendation(title:)`, so a function returning one fails
+`f(x) == f(x)` on correct code. The purity oracle used to judge each declaration alone and called
+such a function pure.
+
+It now knows what constructing each of the package's types runs — stored-property defaults, the
+initializer the call reaches and its defaulted parameters, a superclass's construction — through
+SwiftEffectInference's `ConstructionFacts`, built once per run by `PackagePurity` and read by every
+oracle the run creates. A function that constructs a refuted type is refused, with a witness naming
+the step (`SimulationIssue.init(id:severity:message:affectedKey:suggestion:): id's default: UUID`).
+As with every refuter, any doubt refutes: a function that builds an `Item` and returns only its
+`n` is refused too. The one-hop callee join counts the witness as evidence, so a caller of such a
+function is withdrawn as well.
+
+**Which files' types count** is `ConstructionUniverse`, a rule shared word for word with
+SwiftInferProperties (the agreed rows are in [`Docs/construction-universe.tsv`](../construction-universe.tsv)):
+every `.swift` file under the lint root except a manifest and anything under a test-target folder
+(`Tests/`, `*Tests/`), a hidden directory or a build-product directory. **No reporting filter
+applies.** `excluded_paths`, `include_nested_packages` and the generated-file filter decide what is
+reported, not what is compiled, so a type declared in a nested package, a generated file or a
+directory you excluded still refutes the production code that builds it. Test-support targets,
+`Mocks/` and `Examples/` are kept too: they compile, and dropping a type production constructs
+would call its construction pure — the unsound direction.
+
+What it still does not see:
+
+- **Types outside the lint root** — a dependency's, Foundation's (`URL(fileURLWithPath:)` above is
+  judged by its name, not by what it runs), or a sibling package linted on its own. Lint the package
+  root to put every first-party type in the universe.
+- **What SwiftEffectInference leaves out by design**: an unlabelled `.init(…)` with no type context,
+  a generic parameter or metatype constructed (`T()`, `type(of: x).init()`), literal conversion
+  through `ExpressibleBy…Literal`, an enum case's associated-value default, a `deinit`, a property
+  wrapper the package does not declare, and a `lazy` or `static` default — which run on first access
+  or once per process, not on construction.
+- **Witness order, not verdicts.** Which witness is reported first among several declarations of
+  one name depends on the order the table reads them; the universe is sorted by path, so it is
+  stable from run to run and the same in both consumers. Which types refute does not depend on
+  order. Until SwiftEffectInference `9d0bf6d` it did: a typealias name declared twice resolved to
+  the first declaration read, so `typealias Stamp = UUID` in one type and `typealias Stamp =
+  String` in another could leave a construction unrefuted. SEI now follows every alias a name may
+  mean, and reads one its own type declares in that type.
+
+Measured with the release CLI at `main` and with the facts wired, JSON output, nine runs over eight
+repositories: **16 candidates withdrawn from SwiftCompilerFlagStudio** (default rules) and **1 from
+SwiftAssist** (`makeInsight`). Thirteen of the 17 build a model whose initializer defaults
+`id: UUID = UUID()`, or whose stored `id` does — `validate` constructs a `ValidationResult.Issue`,
+`computeDiff` a `SettingDiff`. The other four (`diffConfigurations`, `diffTargets`,
+`effectiveSettings`, `redundantSettings`) build nothing themselves and were withdrawn by the one-hop
+join, each calling one of the thirteen. Nothing was added, and SwiftProjectLint, SwiftLintRuleStudio (with and without its nested packages),
+SwiftUMLStudio, SwiftInferProperties and SwiftFormatRuleStudio did not move for this rule. The case
+that motivated the facts, SwiftLintRuleStudio's `generateRecommendations`, was never offered here:
+`HealthRecommendation` is not `Equatable`, so the assertable-return gate already withheld it.
+
 ### Throwing candidates: pure but partial
 
 A `throws` function can be a candidate. `throws` refutes **totality**, not referential transparency,
@@ -279,8 +335,8 @@ you to narrow the very function this rule just flagged. That rule now names the 
 
 ### Not listed in the default report
 
-This rule is a **census**, and on a real codebase it is a large one: 464 findings here, alongside
-208 from [Pure Closure Property-Test Candidate](pure-closure-candidate.md) — together **76% of
+This rule is a **census**, and on a real codebase it is a large one: 787 findings here, alongside
+287 from [Pure Closure Property-Test Candidate](pure-closure-candidate.md) — together **66% of
 everything the linter prints**. A pure function is not a defect and there is nothing to fix per
 line, so enumerating them buries the findings that *are* defects. During this project's own road
 test the linter found a real bug in its configuration code, reported it correctly, and the finding
@@ -290,9 +346,9 @@ So `--format text` counts these findings in its summary and names them in a foot
 print one line each:
 
 ```
-Found 884 issues (82 warnings, 802 info)
+Found 1635 issues (128 warnings, 1507 info)
 
-672 of these are property-test candidates, not listed above (464 Pure Function …, 208 Pure Closure …).
+1074 of these are property-test candidates, not listed above (787 Pure Function …, 287 Pure Closure …).
   See them:  --categories testability
   Use them:  --format pbt-seeds > .pbt/seeds.json
 ```

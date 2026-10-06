@@ -115,6 +115,13 @@ written, and each gate below exists because that audit turned up a case that nee
    Without this gate the rule fires on `isValidFolderName`, an already-named pure function with
    nothing to extract. A rule that re-reports another rule's findings teaches the reader that the two
    disagree.
+
+   *Impure* includes what constructing a value runs. A function whose only effect is building a
+   value of a package type that mints an identity — `Insight(…)` where `Insight` has
+   `let identifier = UUID()` — is refuted by the oracle's construction facts and so is scanned here, while
+   the function rule withdraws it. Measured when the facts were wired: SwiftUMLStudio's
+   `InsightEngine` gained two findings (`extra` at line 32, `suffix` at line 113), and no other
+   repository of the eight re-measured moved.
 2. **Closure bodies are skipped.** A kernel living wholly inside a `filter` predicate belongs to
    [Pure Closure Property-Test Candidate](pure-closure-candidate.md), reported once.
 3. **The derivation must govern a decision.** A derived value that is merely *stored* is not a

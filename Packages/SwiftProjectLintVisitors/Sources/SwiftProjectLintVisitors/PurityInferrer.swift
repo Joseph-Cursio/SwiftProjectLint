@@ -14,12 +14,33 @@ import SwiftSyntax
 /// force every consumer package (`SwiftProjectLintRules`) to add a direct SEI
 /// dependency. Forwarding keeps the public members defined here, so existing
 /// call sites need no change and no new dependency edge.
+///
+/// ## Configuration comes from the run, not from the call site
+///
+/// The one piece of configuration SEI's oracle takes is the package's `ConstructionFacts`, and SEI
+/// asks that **every** inferrer in a run get the same table. So `init()` reads the table bound for
+/// the current task — `PackagePurity.current`, which `ProjectLinter.analyzeProject` binds once
+/// around its pre-scan, per-file and cross-file phases — rather than taking it as an argument. The
+/// nine call sites that create one — four stored per-visitor inferrers, three static helpers and the
+/// two pre-scan catalogs — are configured without being touched, and so is the next one. Outside a
+/// binding the table is empty and every answer is the unconfigured one.
+///
+/// `init(context:)` exists for tests that compare a configured oracle with SEI's directly. Nothing
+/// in `Sources/` may call it — `PurityOracleEntryTests` checks — because an explicit context is a
+/// way to judge with a table other than the run's.
 public struct PurityInferrer: Sendable {
 
-    private let underlying = SwiftEffectInference.PurityInferrer()
+    private let underlying: SwiftEffectInference.PurityInferrer
 
+    /// The oracle configured with the package purity bound for the current task.
     public init() {
-        // No configuration: the underlying oracle is stateless.
+        self.init(context: PackagePurity.current)
+    }
+
+    /// The oracle configured with `context`, whatever is bound. For tests; see the type's
+    /// documentation.
+    public init(context: PackagePurity) {
+        underlying = SwiftEffectInference.PurityInferrer(constructionFacts: context.constructionFacts)
     }
 
     /// Convenience boolean form of `inferredEffect(for:)`.

@@ -157,7 +157,8 @@ final class PureFunctionCandidateVisitor: BasePatternVisitor {
     /// The settled-impure package callee that disqualifies `node`, if any.
     ///
     /// **A function is not a purity candidate because its callee was never consulted.**
-    /// `PurityInferrer` decides each declaration alone, so `standardOutputViaEnv` —
+    /// `PurityInferrer` decides each declaration alone (apart from what constructing a
+    /// package type runs — see `PackagePurity`), so `standardOutputViaEnv` —
     /// whose one-line body calls a `standardOutput` that spawns a subprocess and drains
     /// two pipes — read as pure and was offered here. Offering a false candidate is
     /// worse than offering none: this rule is what seeds `swift-infer`, so a wrong seed

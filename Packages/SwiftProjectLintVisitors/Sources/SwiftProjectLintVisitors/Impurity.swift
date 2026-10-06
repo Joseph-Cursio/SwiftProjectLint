@@ -3,8 +3,8 @@ import SwiftSyntax
 
 /// **What makes a piece of code impure, grouped the way a reader has to act on it.**
 ///
-/// `PurityRefutation` is SEI's vocabulary: twelve cases, one per refuter, each naming the construct
-/// it found. That is the right shape for an oracle and the wrong shape for a work list. Five of those
+/// `PurityRefutation` is SEI's vocabulary: one case per refuter, each naming the construct it
+/// found. That is the right shape for an oracle and the wrong shape for a work list. Five of those
 /// cases are two pieces of advice between them — a bare `Date` token and an AST-classified
 /// `mach_absolute_time()` are both *inject the source*, and `print` and `String(contentsOf:)` are both
 /// *separate the effect from the decision*.

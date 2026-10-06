@@ -79,6 +79,14 @@ What no extraction rescues is a closure that **writes** to what it captured; its
 effect, and that one is refuted by the purity oracle
 (`SwiftEffectInference.PurityInferrer`, the same one the function rule uses).
 
+**Nor does extraction rescue a closure that builds an identity.** The oracle knows what constructing
+each package type runs (see [Constructions](pure-function-candidate.md#constructions-what-building-a-value-runs)),
+so `issues.compactMap { … LintIssue(…) … }` over a `LintIssue` whose `id` defaults to `UUID()` is
+refuted with that witness, and reported by [Impure Closure Inventory](impure-closure-inventory.md)
+instead. Measured when the oracle learned this: one closure moved here, in
+`LintConfiguration.applyOverrides`, and three in SwiftCompilerFlagStudio (default rules), each building
+a `SimulationIssue` or a `SettingConflict`.
+
 The rule fires on a pure closure passed to a **fixed list** of higher-order operations — the ones whose
 closure arguments are *supposed* to be functions — and each one names the law worth stating once the
 closure has a name:
@@ -249,8 +257,8 @@ never as *"reachable"*.
 
 ### Not listed in the default report
 
-This rule is a **census**, and on a real codebase it is a large one: 208 findings here, alongside
-464 from [Pure Function Property-Test Candidate](pure-function-candidate.md) — together **76% of
+This rule is a **census**, and on a real codebase it is a large one: 287 findings here, alongside
+787 from [Pure Function Property-Test Candidate](pure-function-candidate.md) — together **66% of
 everything the linter prints**. A pure function is not a defect and there is nothing to fix per
 line, so enumerating them buries the findings that *are* defects. During this project's own road
 test the linter found a real bug in its configuration code, reported it correctly, and the finding
@@ -260,9 +268,9 @@ So `--format text` counts these findings in its summary and names them in a foot
 print one line each:
 
 ```
-Found 884 issues (82 warnings, 802 info)
+Found 1635 issues (128 warnings, 1507 info)
 
-672 of these are property-test candidates, not listed above (464 Pure Function …, 208 Pure Closure …).
+1074 of these are property-test candidates, not listed above (787 Pure Function …, 287 Pure Closure …).
   See them:  --categories testability
   Use them:  --format pbt-seeds > .pbt/seeds.json
 ```

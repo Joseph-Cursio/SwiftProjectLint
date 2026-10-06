@@ -1,0 +1,13 @@
+diff --git a/Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/ProjectLinter.swift b/Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/ProjectLinter.swift
+index c7327303..78054120 100755
+--- a/Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/ProjectLinter.swift
++++ b/Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/ProjectLinter.swift
+@@ -123,7 +123,7 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
+ 
+         // Bound once, around the pre-scan, the per-file task group and cross-file analysis: every
+         // `PurityInferrer()` any of them creates reads it, so one run judges with one table.
+-        return await PackagePurity.$current.withValue(purity) {
++        return await PackagePurity.$current.withValue(.unconfigured) {
+             await analyzeDiscovered(project)
+         }
+     }

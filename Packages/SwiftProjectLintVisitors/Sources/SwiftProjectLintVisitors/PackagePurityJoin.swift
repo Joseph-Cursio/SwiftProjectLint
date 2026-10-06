@@ -4,7 +4,8 @@ import SwiftSyntax
 /// **The one-hop callee join: a function that calls a package function this same
 /// oracle refutes is not a purity candidate.**
 ///
-/// `PurityInferrer` decides each declaration in isolation. So
+/// `PurityInferrer` decides each declaration in isolation — apart from what
+/// constructing a package type runs, which `PackagePurity` hands it. So
 /// `standardOutputViaEnv`, whose one-line body calls a `standardOutput` that
 /// spawns a subprocess and drains two pipes, is judged `.pure` — the callee's
 /// verdict is computed and then never consulted. This type consults it.
@@ -86,6 +87,15 @@ import SwiftSyntax
 /// advice: a 3× wider settled set is 3× more opportunity to withdraw a true
 /// candidate. Zero moved, so that opportunity is currently unrealised. The
 /// one-pure-overload rule below is what keeps it bounded, and it is unchanged.
+///
+/// **These corpus figures predate the construction facts and were not re-taken.**
+/// The oracle here now refutes a function that builds a package type whose
+/// construction runs an effect, and `.refutingConstruction` is evidence, so the
+/// settled set can only have grown — it can turn a `.propagatedTry` witness into
+/// evidence, never the reverse. Over the eight repositories re-measured when the
+/// facts were wired, the join withdrew 4 of the 17 candidates that moved, each a
+/// caller of a function a construction refutes (SwiftCompilerFlagStudio's
+/// `diffConfigurations` and `diffTargets` through `computeDiff`).
 ///
 /// ## Resolution is name-keyed, and a name must be settled
 ///

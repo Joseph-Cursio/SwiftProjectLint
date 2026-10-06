@@ -101,33 +101,60 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
             for: path, base: configuration, targetType: targetType
         )
 
-        let (filePaths, evidenceOnlyFilePaths) = await discoverFiles(
-            at: path, configuration: effectiveConfiguration
+        let files = await discoverFiles(at: path, configuration: effectiveConfiguration)
+
+        // Every file is read and parsed once, and the package purity is built from those same
+        // trees: SEI matches by node identity, so the facts and the verdicts that consult them
+        // must share a parse.
+        let (purity, shared) = await Self.sharedParse(files, projectRoot: path)
+        let project = DiscoveredProject(
+            path: path,
+            files: files,
+            configuration: effectiveConfiguration,
+            categories: categories,
+            ruleIdentifiers: ruleIdentifiers,
+            detector: detector,
+            shared: shared
         )
+
+        // Bound once, around the pre-scan, the per-file task group and cross-file analysis: every
+        // `PurityInferrer()` any of them creates reads it, so one run judges with one table.
+        return await PackagePurity.$current.withValue(purity) {
+            await analyzeDiscovered(project)
+        }
+    }
+
+    /// The pre-scan, per-file and cross-file phases over files already discovered and parsed.
+    /// Runs inside the run's `PackagePurity` binding; see `analyzeProject`.
+    private func analyzeDiscovered(_ project: DiscoveredProject) async -> [LintIssue] {
+        let path = project.path
+        let effectiveConfiguration = project.configuration
+        let categories = project.categories
 
         // Resolve effective rules from configuration + CLI overrides
         let effectiveRules = effectiveConfiguration.resolveRules(
             cliCategories: categories,
-            cliRuleIdentifiers: ruleIdentifiers
+            cliRuleIdentifiers: project.ruleIdentifiers
         )
 
         // Pre-scan: collect cross-file type metadata needed by visitors.
-        let collected = CollectedTypes.collect(from: filePaths)
+        let collected = CollectedTypes.collect(from: project.files.reportable, sources: project.shared)
 
         // Resolve the registry once so each task can create its own detector
         let registry = Self.configuredDetector(
-            detector, collected: collected, configuration: effectiveConfiguration
+            project.detector, collected: collected, configuration: effectiveConfiguration
         ).registry
 
         let perFile = await Self.runPerFileAnalysis(
-            filePaths: filePaths,
+            filePaths: project.files.reportable,
             env: Self.makeEnvironment(
                 projectRoot: path,
                 registry: registry,
                 categories: effectiveRules != nil ? nil : categories,
                 ruleIdentifiers: effectiveRules,
                 collected: collected,
-                configuration: effectiveConfiguration
+                configuration: effectiveConfiguration,
+                shared: project.shared
             )
         )
         var issues = perFile.issues
@@ -138,7 +165,7 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
         // the issue set below — so they can exonerate (e.g. a mock conformer) without
         // ever being a reported location.
         let evidenceFiles = Self.parseEvidenceFiles(
-            at: evidenceOnlyFilePaths, projectRoot: path
+            at: project.files.evidenceOnly, projectRoot: path, sources: project.shared
         )
         var crossFileCache = perFile.astCache
         for entry in evidenceFiles {
@@ -171,8 +198,8 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
             .sortedForReporting()
     }
 
-    /// Splits discovery into the files that may be *reported on* and the files that may only
-    /// serve as *evidence*.
+    /// Splits discovery into the files that may be *reported on*, the files that may only
+    /// serve as *evidence*, and the construction universe.
     ///
     /// `excludedPaths` is a reporting filter, not an evidence filter. Files the user excluded
     /// (commonly a test directory) still inform cross-file analysis: a `MockFoo: FooParsing` in
@@ -183,10 +210,17 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
     ///
     /// Generated files (`.pb.swift`, `.generated.swift`, "do not edit" headers) are dropped from
     /// both sets — linting machine-generated code produces noise with no actionable signal.
+    ///
+    /// The construction universe ignores every one of those filters, and the nested-package
+    /// setting too: what is reported says nothing about what is compiled, and a type in a nested
+    /// package, a generated file or an excluded directory is still constructed by production code.
+    /// See `ConstructionUniverse`. It reuses a walk that already had its arguments — the reportable
+    /// walk when nothing is excluded, the exclusion-free one otherwise — and only a run that leaves
+    /// nested packages out pays for one more, issued last.
     private func discoverFiles(
         at path: String,
         configuration: LintConfiguration
-    ) async -> (reportable: [String], evidenceOnly: [String]) {
+    ) async -> DiscoveredFiles {
         let reportableFilePaths = await fileDiscovery.findSwiftFiles(
             in: path,
             excludedPaths: configuration.excludedPaths,
@@ -199,20 +233,37 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
         // rules reason about whole-project usage, so dropping the file outright would
         // make anything only used there look unused. Filename exclusions take the same
         // second pass as path exclusions for that reason.
-        guard !configuration.excludedPaths.isEmpty
-            || !configuration.excludedFilenames.isEmpty else { return (filePaths, []) }
-
-        let allFilePaths = await fileDiscovery.findSwiftFiles(
-            in: path,
-            excludedPaths: [],
-            excludedFilenames: [],
-            includeNestedPackages: configuration.includeNestedPackages
-        )
-        let reportableSet = Set(filePaths)
-        let evidenceOnly = allFilePaths.filter {
-            !reportableSet.contains($0) && !Self.isGeneratedFile(at: $0)
+        let unexcludedFilePaths: [String]
+        let evidenceOnly: [String]
+        if configuration.excludedPaths.isEmpty, configuration.excludedFilenames.isEmpty {
+            unexcludedFilePaths = reportableFilePaths
+            evidenceOnly = []
+        } else {
+            unexcludedFilePaths = await fileDiscovery.findSwiftFiles(
+                in: path,
+                excludedPaths: [],
+                excludedFilenames: [],
+                includeNestedPackages: configuration.includeNestedPackages
+            )
+            let reportableSet = Set(filePaths)
+            evidenceOnly = unexcludedFilePaths.filter {
+                !reportableSet.contains($0) && !Self.isGeneratedFile(at: $0)
+            }
         }
-        return (filePaths, evidenceOnly)
+
+        let constructionUniverse: [String]
+        if configuration.includeNestedPackages {
+            constructionUniverse = unexcludedFilePaths
+        } else {
+            constructionUniverse = await fileDiscovery.findSwiftFiles(
+                in: path, excludedPaths: [], excludedFilenames: [], includeNestedPackages: true
+            )
+        }
+        return DiscoveredFiles(
+            reportable: filePaths,
+            evidenceOnly: evidenceOnly,
+            constructionUniverse: constructionUniverse
+        )
     }
 
     /// Per-file I/O and analysis — throttled to avoid memory exhaustion on large projects by

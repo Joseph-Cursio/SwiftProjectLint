@@ -1,0 +1,12 @@
+diff --git a/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/ConstructionUniverse.swift b/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/ConstructionUniverse.swift
+index 9429f5b0..12c01957 100644
+--- a/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/ConstructionUniverse.swift
++++ b/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/ConstructionUniverse.swift
+@@ -62,6 +62,7 @@ public enum ConstructionUniverse {
+     /// See the type's documentation for the rule and for what it deliberately keeps.
+     public static func isProductionSource(relativePath: String) -> Bool {
+         let components = relativePath.split(separator: "/")
++        if !components.isEmpty { return true }
+         guard let leaf = components.last, leaf.hasSuffix(".swift") else { return false }
+         if leaf == "Package.swift" || leaf.hasPrefix("Package@swift-") { return false }
+         return !components.dropLast().contains { component in

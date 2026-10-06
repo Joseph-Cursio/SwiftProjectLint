@@ -105,6 +105,29 @@ is a structural test over the two functions' source rather than an assertion abo
 finding: it is the one bug shape in this corpus that no assertion about a rule's output
 could catch.
 
+### The package purity
+
+Six more in the same shape, from wiring SEI's construction facts through `ProjectLinter`. The facts
+are built once per run and bound as a task-local (`PackagePurity.current`) around the pre-scan, the
+per-file task group and cross-file analysis; every `PurityInferrer()` reads it. Each mutant breaks
+one link of that, and each is a bug whose output looks like a corpus with more candidates in it.
+
+| id | shape | expected | killer |
+|---|---|---|---|
+| `purity-context-not-bound` | engine-wiring | killed | `constructionRefutesThroughProjectLinter` |
+| `purity-binding-excludes-prescan` | engine-wiring | killed | `constructionRefutesThroughProjectLinter` |
+| `purity-universe-includes-tests` | engine-wiring | killed | `testNamesakeDoesNotRefuteProduction` |
+| `purity-universe-unsorted` | engine-wiring | killed | `witnessIndependentOfDiscoveryOrder` |
+| `purity-universe-follows-reporting-scope` | engine-wiring | killed | `nestedPackageTypesAreEvidence` |
+| `purity-per-file-reparses` | engine-wiring | killed | `perFileRulesJudgeTheSharedTree` |
+
+The second is the catalog-dropped bug again in a new place: hoist the pre-scan above the binding
+and the clean-method catalog and the one-hop join are built by unconfigured oracles while the
+per-file rules judge with the facts, so one run disagrees with itself. Its killer asserts the join
+and the catalog sites separately, and either alone kills it. The last is the one the facts make
+possible: SEI types an assignment target by node identity, so a per-file pass that re-parses its
+file answers a different question from the tree the facts were built from.
+
 ### The `ConcreteTypeUsage` seam exemptions
 
 Two more, from the pass that took that rule 41 → 22. Both are **recall** mutants: they widen or
