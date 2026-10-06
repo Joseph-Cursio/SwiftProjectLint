@@ -321,6 +321,15 @@ enum SelfAccessAnalyzer {
     /// Every identifier the body *reads*, excluding the member names of accesses on something
     /// other than `self` — in `file.name`, `file` is a reference and `name` is not, because `name`
     /// belongs to `file`, not to us.
+    ///
+    /// The same holds for the components of a key path. In `rules.filter(\.value.enabled)`,
+    /// `value` and `enabled` are members of the key path's root type — here, the element the
+    /// closure would have received — and never a read of `self`. They used to be collected as
+    /// bare references, fall through to `resolveSelfProperty`, and disqualify the method. One
+    /// `filter(\.isEnabled)` therefore removed a method from the manifest *and*, through the
+    /// clean-method catalog, every sibling that called it: in SwiftLintRuleStudio a single
+    /// `config.rules.filter(\.value.enabled)` in `calculateRulesCoverage` is what kept the public
+    /// `ConfigurationHealthAnalyzer.analyze` from being seeded, two calls up.
     private static func freeReferences(in body: CodeBlockSyntax) -> [Reference] {
         let collector = ReferenceCollector(viewMode: .sourceAccurate)
         collector.walk(body)
@@ -332,6 +341,14 @@ enum SelfAccessAnalyzer {
 
         override func visit(_ node: DeclReferenceExprSyntax) -> SyntaxVisitorContinueKind {
             let name = node.baseName.text
+
+            // A key-path component's *name* — `value` in `\.value` — belongs to the key path's
+            // root type. Only the name is skipped: the arguments of a subscript component
+            // (`\.[index]`) are separate children and are still genuine reads, so they are still
+            // collected.
+            if Self.isKeyPathComponentName(node) {
+                return .visitChildren
+            }
 
             if let member = node.parent?.as(MemberAccessExprSyntax.self) {
                 // `x.y` — only the base is ours. `.y` with no base is a contextual member
@@ -358,6 +375,19 @@ enum SelfAccessAnalyzer {
                 )
             )
             return .visitChildren
+        }
+
+        /// Whether `node` is the name of a key-path component, as opposed to an argument inside one.
+        ///
+        /// Property components only. Method components (`\.uppercased()`) are an experimental
+        /// language feature behind swift-syntax's `ExperimentalLanguageFeatures` SPI, and the
+        /// default parser does not produce them: it reads `\.uppercased()` as a call applied to
+        /// the property key path `\.uppercased`, which this already covers.
+        private static func isKeyPathComponentName(_ node: DeclReferenceExprSyntax) -> Bool {
+            guard let property = node.parent?.as(KeyPathPropertyComponentSyntax.self) else {
+                return false
+            }
+            return property.declName.id == Syntax(node).id
         }
 
         /// Whether `node` sits inside a `catch` clause that names no pattern, and so binds `error`.
