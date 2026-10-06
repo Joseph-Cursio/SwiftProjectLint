@@ -1,0 +1,15 @@
+diff --git a/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/CodeQuality/Visitors/ActorReentrancyVisitor.swift b/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/CodeQuality/Visitors/ActorReentrancyVisitor.swift
+index a85c8b7a..63827541 100644
+--- a/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/CodeQuality/Visitors/ActorReentrancyVisitor.swift
++++ b/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/CodeQuality/Visitors/ActorReentrancyVisitor.swift
+@@ -195,9 +195,7 @@ final class ActorReentrancyVisitor: BasePatternVisitor {
+     /// actor's, so it must not mark the actor's `isLoading` as a resource the await consumes. It
+     /// used to, and the plain-condition filter then dropped a true `guard !isLoading` finding.
+     private func collectDeclRefNames(in syntax: Syntax, into names: inout Set<String>) {
+-        if let declRef = syntax.as(DeclReferenceExprSyntax.self),
+-           declRef.isKeyPathComponentName == false,
+-           declRef.isMemberNameOfOtherBase == false {
++        if let declRef = syntax.as(DeclReferenceExprSyntax.self) {
+             names.insert(declRef.baseName.text)
+         }
+         for child in syntax.children(viewMode: .sourceAccurate) {

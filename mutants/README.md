@@ -161,3 +161,42 @@ The second is the over-correction the fix has to avoid. Skipping *everything* un
 `KeyPathExprSyntax` also skips the argument of a subscript component, so `rows.map(\.[index])`
 stops reading `index`, and a method reading mutable state through one is admitted as a function of
 its inputs.
+
+Both were re-expressed when the check moved into the shared `isKeyPathComponentName` predicate
+(`DeclReferenceExprSyntax+NamePosition.swift`). The first now deletes the call in
+`ReferenceCollector`. The second now widens the shared predicate, so it reaches every rule that
+asks it; its killer is unchanged.
+
+### Key-path components and other values' members
+
+Eleven mutants from the sweep that found eight rules making the self-access analyzer's mistake:
+reading a key-path component (`\.name`) or the member half of `job.name` as a use of the
+parameter, local or stored property called `name`. Each of the first ten puts one rule's bug back.
+
+| id | shape | expected | killer |
+|---|---|---|---|
+| `boolean-coupling-key-path-read-as-the-flag` | detector-precision | killed | `ignoresKeyPathComponentSharingParameterName` |
+| `actor-reentrancy-key-path-read-as-the-gate` | detector-precision | killed | `keyPathComponentInConditionIsNotTheGate` |
+| `actor-reentrancy-key-path-operand-hides-the-gate` | detector-recall | killed | `keyPathComponentInAwaitOperandDoesNotHideTheGate` |
+| `computed-view-key-path-counted-as-dependency` | detector-recall | killed | `keyPathComponentIsNotADependency` |
+| `composition-root-key-path-counted-as-use` | detector-recall | killed | `keyPathComponentSharingTheBindingsNameIsNotAUse` |
+| `shadowing-key-path-counted-as-rebinding` | detector-recall | killed | `keyPathComponentDoesNotExemptTheShadow` |
+| `catch-key-path-counted-as-caught-error` | detector-recall | killed | `flagsNameThatIsNotTheCaughtError` |
+| `urlsession-key-path-counted-as-error-parameter` | detector-recall | killed | `detectsNameThatIsNotTheErrorParameter` |
+| `impure-marker-matched-on-any-member` | detector-precision | killed | `ignoresKeyPathComponentNamedLikeAMarker` |
+| `shorthand-parameter-read-as-projected-value` | detector-recall | killed | `testShorthandClosureParametersAreNotCombine` |
+| `member-of-self-read-as-other-base` | detector-precision | killed | `thePropertyItselfInAnAwaitOperandStillSuppresses` |
+
+Most of them are recall mutants, and that is the shape the bug mostly took: a name that only
+matched was read as the thing being looked for. A catch then looks handled, a shadow looks like
+a rebinding, and a property seems to read every input. The rule reports less, and nothing in its
+output says so.
+
+`shorthand-parameter-read-as-projected-value` is the one unrelated to key paths. Found in the
+same sweep, it is the same kind of mistake: a `$` prefix taken for a projected value, when `$0`
+is a closure parameter.
+
+The last is the over-correction, on the member side. A stored property is reached bare or
+through `self`, so `isMemberNameOfOtherBase` must not count `self` as another base. The mutant
+makes it count. `self.connection` in an `await` then stops being the actor's property, and a
+resource guard is reported as a reentrancy risk.

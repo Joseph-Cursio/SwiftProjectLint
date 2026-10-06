@@ -1,0 +1,14 @@
+diff --git a/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/Modernization/Visitors/IOS17ObservationMigrationVisitor.swift b/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/Modernization/Visitors/IOS17ObservationMigrationVisitor.swift
+index cd875231..20d922a3 100644
+--- a/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/Modernization/Visitors/IOS17ObservationMigrationVisitor.swift
++++ b/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/Modernization/Visitors/IOS17ObservationMigrationVisitor.swift
+@@ -165,8 +165,7 @@ final class IOS17ObservationMigrationVisitor: BasePatternVisitor {
+         /// class that uses none. The lexer already tells them apart: `$` followed only by digits is
+         /// a `.dollarIdentifier`, and `$` followed by a name is an ordinary `.identifier`.
+         static func isProjectedValue(_ token: TokenSyntax?) -> Bool {
+-            guard case .identifier(let text)? = token?.tokenKind else { return false }
+-            return text.hasPrefix("$")
++            token?.text.hasPrefix("$") ?? false
+         }
+     }
+ }

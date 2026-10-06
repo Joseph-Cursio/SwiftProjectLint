@@ -1,0 +1,13 @@
+diff --git a/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/Testability/Visitors/ImpureCallInViewBodyVisitor.swift b/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/Testability/Visitors/ImpureCallInViewBodyVisitor.swift
+index f0563e83..d4e6fc72 100644
+--- a/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/Testability/Visitors/ImpureCallInViewBodyVisitor.swift
++++ b/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/Testability/Visitors/ImpureCallInViewBodyVisitor.swift
+@@ -105,7 +105,7 @@ final class ImpureCallInViewBodyVisitor: BasePatternVisitor {
+ 
+         override func visit(_ node: DeclReferenceExprSyntax) -> SyntaxVisitorContinueKind {
+             let name = node.baseName.text
+-            if markers.contains(name), Self.namesTheMarker(node) {
++            if markers.contains(name) {
+                 findings.append((marker: name, node: Syntax(node)))
+             }
+             return .visitChildren

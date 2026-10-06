@@ -1,0 +1,14 @@
+diff --git a/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/Networking/Visitors/URLSessionUnhandledErrorVisitor.swift b/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/Networking/Visitors/URLSessionUnhandledErrorVisitor.swift
+index cc7032de..24cacd8d 100644
+--- a/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/Networking/Visitors/URLSessionUnhandledErrorVisitor.swift
++++ b/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/Networking/Visitors/URLSessionUnhandledErrorVisitor.swift
+@@ -92,8 +92,7 @@ final class URLSessionUnhandledErrorVisitor: BasePatternVisitor {
+     /// path reads each row's `error`, and `response.error` is a member of something else; neither
+     /// checks whether the request failed, and both used to count as doing so.
+     func containsReference(to name: String, in syntax: Syntax) -> Bool {
+-        if let ref = syntax.as(DeclReferenceExprSyntax.self), ref.baseName.text == name,
+-           ref.isLexicalReference {
++        if let ref = syntax.as(DeclReferenceExprSyntax.self), ref.baseName.text == name {
+             return true
+         }
+         return syntax.children(viewMode: .sourceAccurate)

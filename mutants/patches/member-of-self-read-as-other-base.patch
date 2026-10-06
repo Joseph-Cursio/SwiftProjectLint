@@ -1,0 +1,18 @@
+diff --git a/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/DeclReferenceExprSyntax+NamePosition.swift b/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/DeclReferenceExprSyntax+NamePosition.swift
+index 05d976b2..9a4dc2e4 100644
+--- a/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/DeclReferenceExprSyntax+NamePosition.swift
++++ b/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/DeclReferenceExprSyntax+NamePosition.swift
+@@ -53,12 +53,7 @@ extension DeclReferenceExprSyntax {
+         guard let access = parent?.as(MemberAccessExprSyntax.self), access.declName.id == id else {
+             return false
+         }
+-        guard var base = access.base else { return true }
+-        while let unwrapped = base.as(OptionalChainingExprSyntax.self)?.expression
+-            ?? base.as(ForceUnwrapExprSyntax.self)?.expression {
+-            base = unwrapped
+-        }
+-        return base.as(DeclReferenceExprSyntax.self)?.baseName.tokenKind != .keyword(.self)
++        return true
+     }
+ 
+     /// Whether this names something looked up in lexical scope — a local, a parameter, or a

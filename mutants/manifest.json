@@ -105,6 +105,94 @@
       "expected": "killed",
       "test": "aSubscriptComponentsArgumentIsStillARead",
       "label": "the key-path skip is widened to everything under a KeyPathExprSyntax \u2014 `rows.map(\\.[index])` stops reading `index`, so a method reading mutable state through a subscript component is admitted"
+    },
+    {
+      "id": "boolean-coupling-key-path-read-as-the-flag",
+      "patch": "patches/boolean-coupling-key-path-read-as-the-flag.patch",
+      "shape": "detector-precision",
+      "expected": "killed",
+      "test": "ignoresKeyPathComponentSharingParameterName",
+      "label": "BooleanControlCoupling skips only member names again, not key-path components \u2014 `rules.contains(where: \\.verbose)` reads as a branch on the `verbose` parameter and is reported as control coupling"
+    },
+    {
+      "id": "actor-reentrancy-key-path-read-as-the-gate",
+      "patch": "patches/actor-reentrancy-key-path-read-as-the-gate.patch",
+      "shape": "detector-precision",
+      "expected": "killed",
+      "test": "keyPathComponentInConditionIsNotTheGate",
+      "label": "ActorReentrancy's condition scan matches any name again \u2014 `guard !jobs.contains(where: \\.isLoading)` and `guard !job.isLoading` read as checks of the actor's own `isLoading` and are reported"
+    },
+    {
+      "id": "actor-reentrancy-key-path-operand-hides-the-gate",
+      "patch": "patches/actor-reentrancy-key-path-operand-hides-the-gate.patch",
+      "shape": "detector-recall",
+      "expected": "killed",
+      "test": "keyPathComponentInAwaitOperandDoesNotHideTheGate",
+      "label": "ActorReentrancy's await-operand scan matches any name again \u2014 `await send(jobs.map(\\.isLoading))` reads as consuming the actor's `isLoading`, and a genuine unguarded `guard !isLoading` is dropped"
+    },
+    {
+      "id": "computed-view-key-path-counted-as-dependency",
+      "patch": "patches/computed-view-key-path-counted-as-dependency.patch",
+      "shape": "detector-recall",
+      "expected": "killed",
+      "test": "keyPathComponentIsNotADependency",
+      "label": "ComputedPropertyView counts every DeclReferenceExpr as a dependency again \u2014 `List(messages, id: \\.title)` reads as depending on the view's `title`, so the property seems to read every input and is never reported"
+    },
+    {
+      "id": "composition-root-key-path-counted-as-use",
+      "patch": "patches/composition-root-key-path-counted-as-use.patch",
+      "shape": "detector-recall",
+      "expected": "killed",
+      "test": "keyPathComponentSharingTheBindingsNameIsNotAUse",
+      "label": "NonInjectedNondeterminism counts a key-path component as a use of the local binding again \u2014 `let id = UUID(); Order(id: id, lineIDs: lines.map(\\.id))` loses the composition-root message"
+    },
+    {
+      "id": "shadowing-key-path-counted-as-rebinding",
+      "patch": "patches/shadowing-key-path-counted-as-rebinding.patch",
+      "shape": "detector-recall",
+      "expected": "killed",
+      "test": "keyPathComponentDoesNotExemptTheShadow",
+      "label": "VariableShadowing's rebinding check matches any identifier token again \u2014 `let total = orders.map(\\.total).reduce(0, +)` passes as a rebinding of `total` and the shadow goes unreported"
+    },
+    {
+      "id": "catch-key-path-counted-as-caught-error",
+      "patch": "patches/catch-key-path-counted-as-caught-error.patch",
+      "shape": "detector-recall",
+      "expected": "killed",
+      "test": "flagsNameThatIsNotTheCaughtError",
+      "label": "CatchWithoutHandling counts any `error` spelling as the caught error again \u2014 `filter(\\.error)`, `result.error` and `self.error = nil` read as handling it, and the swallowing catch is not reported"
+    },
+    {
+      "id": "urlsession-key-path-counted-as-error-parameter",
+      "patch": "patches/urlsession-key-path-counted-as-error-parameter.patch",
+      "shape": "detector-recall",
+      "expected": "killed",
+      "test": "detectsNameThatIsNotTheErrorParameter",
+      "label": "URLSessionUnhandledError counts any `error` spelling as the parameter again \u2014 `decode(data).filter(\\.error)` reads as checking the request's error, and the unchecked handler is not reported"
+    },
+    {
+      "id": "impure-marker-matched-on-any-member",
+      "patch": "patches/impure-marker-matched-on-any-member.patch",
+      "shape": "detector-precision",
+      "expected": "killed",
+      "test": "ignoresKeyPathComponentNamedLikeAMarker",
+      "label": "ImpureCallInViewBody matches a marker's spelling anywhere again \u2014 `jobs.filter(\\.print)` and `doc.print` in a view body are reported as calls to `print`"
+    },
+    {
+      "id": "shorthand-parameter-read-as-projected-value",
+      "patch": "patches/shorthand-parameter-read-as-projected-value.patch",
+      "shape": "detector-recall",
+      "expected": "killed",
+      "test": "testShorthandClosureParametersAreNotCombine",
+      "label": "IOS17ObservationMigration takes any `$` prefix for a projected value again \u2014 `items.reduce(0) { $0 + $1 }` reads as Combine use and a plain @Published store gets no migration suggestion"
+    },
+    {
+      "id": "member-of-self-read-as-other-base",
+      "patch": "patches/member-of-self-read-as-other-base.patch",
+      "shape": "detector-precision",
+      "expected": "killed",
+      "test": "thePropertyItselfInAnAwaitOperandStillSuppresses",
+      "label": "the shared isMemberNameOfOtherBase treats `self` as another base \u2014 the over-correction: `self.connection` stops counting as the actor's property in an await operand, and a resource guard `guard connection != nil` is reported"
     }
   ]
 }
