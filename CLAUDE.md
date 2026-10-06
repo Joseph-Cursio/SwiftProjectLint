@@ -90,7 +90,7 @@ swift test --filter CLITests
 6. **Cross-File Analysis**: `CrossFileAnalysisEngine` detects issues spanning multiple files (duplicate state, view hierarchies)
 7. **Issue Aggregation**: Results collected into `LintIssue` objects
 
-Never create a `PurityInferrer` another way (SEI's directly, or `init(context:)` in `Sources/`), move analysis work off the task tree (`Task.detached`, dispatch queues), or keep an oracle in a `static`: each makes some verdicts in a run ignore the run's facts. `PurityOracleEntryTests` checks all three. The universe rule and `Docs/construction-universe.tsv` are shared with SwiftInferProperties — change both together.
+Never create a `PurityInferrer` another way (SEI's directly, or `init(context:)` in `Sources/`), move analysis work off the task tree (`Task.detached`, dispatch queues), or keep an oracle in a `static`: each makes some verdicts in a run ignore the run's facts. `PurityOracleEntryTests` checks all three. Its one named exception is `LargeStackWorkers`, the 64 MB-stack threads that run only the shared parse and the facts build, before the binding: a deep file (a 1,000-arm `else if`, a 10,000-link member chain) overflows a cooperative thread's 512 KB and kills the process. The universe rule and `Docs/construction-universe.tsv` are shared with SwiftInferProperties — change both together.
 
 ### Visitor Architecture
 

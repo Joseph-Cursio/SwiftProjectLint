@@ -53,12 +53,16 @@ extension ProjectLinter {
         let shared: [String: SharedSource]
     }
 
-    /// Reads and parses every file the run needs, once, in a bounded task group.
+    /// Reads and parses every file the run needs, once, one thread per core.
     ///
     /// Reportable and evidence-only files keep their text; files only in the construction universe
     /// are parsed only when they are production source, and their text is dropped. Unreadable files
     /// are skipped, as every phase skipped them before. Keyed by discovery path, which is how the
     /// pre-scan, the per-file tasks and the evidence pass look files up.
+    ///
+    /// On `LargeStackWorkers`, not the task group it once was: the parser recurses as deep as the
+    /// source nests, and the universe brings in files no run read before — a dependency package's
+    /// 1,000-arm `else if` overflowed a 512 KB cooperative-pool stack and took the run down.
     static func parseOnce(_ files: DiscoveredFiles, projectRoot: String) async -> [String: SharedSource] {
         var jobs: [ParseJob] = []
         var seen: Set<String> = []
@@ -69,23 +73,14 @@ extension ProjectLinter {
             jobs.append(ParseJob(path: path, keepsContent: false))
         }
 
-        let maxConcurrency = max(ProcessInfo.processInfo.activeProcessorCount, 1)
-        return await withTaskGroup(of: (path: String, source: SharedSource)?.self) { group in
-            var iterator = jobs.makeIterator()
-            for _ in 0..<maxConcurrency {
-                guard let job = iterator.next() else { break }
-                group.addTask { read(job, projectRoot: projectRoot) }
-            }
-
-            var shared: [String: SharedSource] = [:]
-            for await result in group {
-                if let result { shared[result.path] = result.source }
-                if let job = iterator.next() {
-                    group.addTask { read(job, projectRoot: projectRoot) }
-                }
-            }
-            return shared
+        let parsed = await LargeStackWorkers.map(jobs.count) { [jobs] index in
+            read(jobs[index], projectRoot: projectRoot)
         }
+        var shared: [String: SharedSource] = [:]
+        for case let result?? in parsed {
+            shared[result.path] = result.source
+        }
+        return shared
     }
 
     /// Parses every file once and builds the run's package purity from those trees.
@@ -98,7 +93,9 @@ extension ProjectLinter {
         projectRoot: String
     ) async -> (purity: PackagePurity, analysable: [String: SharedSource]) {
         let shared = await parseOnce(files, projectRoot: projectRoot)
-        let purity = PackagePurity.build(from: constructionSources(files.constructionUniverse, in: shared))
+        let sources = constructionSources(files.constructionUniverse, in: shared)
+        // The build walks every tree, as deep as it nests, so it gets the parse's stack.
+        let purity = await LargeStackWorkers.run { PackagePurity.build(from: sources) }
         return (purity, shared.filter { $0.value.content != nil })
     }
 
@@ -202,7 +199,6 @@ extension ProjectLinter {
     /// lenient read, which detects UTF-16 by its BOM, is kept only for a file the run reports on or
     /// uses as evidence — reporting is unchanged — and such a file then has no universe path.
     private static func read(_ job: ParseJob, projectRoot: String) -> (path: String, source: SharedSource)? {
-        guard !Task.isCancelled else { return nil }
         let universePath = universePath(for: job.path, projectRoot: projectRoot)
         if !job.keepsContent {
             guard let universePath,

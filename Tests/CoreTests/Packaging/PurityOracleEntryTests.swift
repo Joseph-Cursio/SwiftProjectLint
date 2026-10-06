@@ -89,7 +89,10 @@ struct PurityOracleEntryTests {
             let tokens = file.identifierSequence
             for (index, token) in tokens.enumerated() {
                 let detached = token == "Task" && index + 1 < tokens.count && tokens[index + 1] == "detached"
-                if escapes.contains(token) || detached {
+                // The one exception, by name and by token: the large-stack helper starts `Thread`s
+                // and nothing else, and `largeStackThreadsRunOnlyTheSharedParse` bounds who calls it.
+                let sanctioned = file.path == Self.largeStackWorkers && token == "Thread"
+                if escapes.contains(token) || detached, !sanctioned {
                     offenders.append("\(file.path): \(detached ? "Task.detached" : token)")
                 }
             }
@@ -98,6 +101,26 @@ struct PurityOracleEntryTests {
 
         // A guard on the reader: the scan must have seen the analysis sources at all.
         #expect(Self.sources.filter { Self.analysisPackages.contains(where: $0.path.hasPrefix) }.count > 200)
+    }
+
+    @Test("large-stack threads run only the shared parse and the facts build, before the binding")
+    func largeStackThreadsRunOnlyTheSharedParse() throws {
+        // `LargeStackWorkers` leaves the task tree on purpose: the parser and the facts build recurse
+        // as deep as the source nests, and a cooperative thread's 512 KB stack overflows on a deep
+        // dependency file. That is safe only while its callers run before `PackagePurity.current` is
+        // bound and create no oracle — so only `ProjectLinter+Purity.swift`'s shared parse may call it.
+        var callers: Set<String> = []
+        for file in Self.sources where file.identifierSequence.contains("LargeStackWorkers") {
+            callers.insert(file.path)
+        }
+        #expect(callers == [Self.largeStackWorkers, Self.purityParse], "found \(callers.sorted())")
+
+        // Inside the shared parse, the helper serves `parseOnce` and `sharedParse` and nothing else.
+        let parse = try #require(Self.sources.first { $0.path == Self.purityParse })
+        let finder = CallingFunctionFinder(callee: "LargeStackWorkers", viewMode: .sourceAccurate)
+        finder.walk(parse.tree)
+        #expect(finder.callers == ["parseOnce", "sharedParse"], "found \(finder.callers.sorted())")
+        #expect(parse.identifierSequence.contains("PurityInferrer") == false)
     }
 
     // MARK: - Statics
@@ -130,8 +153,10 @@ struct PurityOracleEntryTests {
     private static let visitorsSources = "Packages/SwiftProjectLintVisitors/Sources/"
     private static let wrapper = visitorsSources + "SwiftProjectLintVisitors/PurityInferrer.swift"
     private static let packagePurity = visitorsSources + "SwiftProjectLintVisitors/PackagePurity.swift"
-    private static let projectLinter =
-        "Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/ProjectLinter.swift"
+    private static let engineSources = "Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/"
+    private static let projectLinter = engineSources + "ProjectLinter.swift"
+    private static let purityParse = engineSources + "ProjectLinter+Purity.swift"
+    private static let largeStackWorkers = engineSources + "LargeStackWorkers.swift"
 
     /// Where the per-run analysis executes. Config and the App are left out: their detached work
     /// (the directory-tree scan, registry setup) is off the analysis path.
@@ -210,6 +235,24 @@ struct PurityOracleEntryTests {
             .deletingLastPathComponent()   // CoreTests
             .deletingLastPathComponent()   // Tests
             .deletingLastPathComponent()   // repository root
+    }
+}
+
+/// The names of the functions whose bodies mention `callee`.
+private final class CallingFunctionFinder: SyntaxVisitor {
+
+    private(set) var callers: Set<String> = []
+    private let callee: String
+
+    init(callee: String, viewMode: SyntaxTreeViewMode) {
+        self.callee = callee
+        super.init(viewMode: viewMode)
+    }
+
+    override func visit(_ node: FunctionDeclSyntax) -> SyntaxVisitorContinueKind {
+        let mentions = node.body?.tokens(viewMode: .sourceAccurate).contains { $0.text == callee } ?? false
+        if mentions { callers.insert(node.name.text) }
+        return .skipChildren
     }
 }
 
