@@ -56,7 +56,8 @@ When `ProjectLinter.analyzeProject(at:)` is called, the following stages run in 
                               files skipped), the evidence-only set, and the construction universe
                               (every .swift file under the root, no reporting filter at all)
 2. Shared parse             — every file read and parsed once (bounded task group); every stage
-                              below walks these trees
+                              below walks these trees — the facts, every pre-scan collector,
+                              per-file and cross-file analysis
 3. Package purity           — ConstructionFacts built from the universe's production sources,
                               sorted, then bound as `PackagePurity.current` around stages 4-6
 4. Pre-scans                — collect cross-file type metadata (Identifiable, enum, actor types, all

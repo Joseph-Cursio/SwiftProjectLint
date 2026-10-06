@@ -65,37 +65,38 @@ extension ProjectLinter {
         /// purity-judging catalogs below — `CleanInstanceMethodCatalog` and
         /// `PackagePurityJoin` — construction-aware: each creates its `PurityInferrer()` here.
         static func collect(from filePaths: [String], sources: [String: SharedSource] = [:]) -> Self {
-            // Parsed once and shared: both body-needing collectors below walk the same
-            // trees, and parsing a project twice to build two catalogs is the kind of
-            // cost that does not show up until someone points the linter at a large tree.
-            // The trees are the run's shared parse — the ones the purity facts were built
-            // from and the per-file visitors walk — in discovery order.
+            // Parsed once and shared: every collector below — the name sets and the
+            // body-needing catalogs alike — walks the same trees, and re-parsing a project
+            // once per collector is the kind of cost that does not show up until someone
+            // points the linter at a large tree. The trees are the run's shared parse — the
+            // ones the purity facts were built from and the per-file visitors walk — in
+            // discovery order. (`parseAll` covers only a caller that passes no shared parse.)
             let parsed = filePaths.compactMap { sources[$0]?.tree ?? parseAll([$0]).first }
             return Self(
-                identifiable: collectTypes(IdentifiableTypeCollector.self, from: filePaths),
-                enums: collectTypes(EnumTypeCollector.self, from: filePaths),
-                actors: collectTypes(ActorTypeCollector.self, from: filePaths),
-                local: collectTypes(LocalTypeCollector.self, from: filePaths),
-                observable: collectTypes(ObservableTypeCollector.self, from: filePaths),
-                protocols: collectTypes(ProtocolTypeCollector.self, from: filePaths),
-                equatable: collectTypes(EquatableConformanceCollector.self, from: filePaths),
-                values: collectTypes(ValueTypeCollector.self, from: filePaths),
-                functions: collectTypes(DeclaredFunctionCollector.self, from: filePaths),
-                mutatingMethods: collectTypes(MutatingMethodCollector.self, from: filePaths),
+                identifiable: collectTypes(IdentifiableTypeCollector.self, in: parsed),
+                enums: collectTypes(EnumTypeCollector.self, in: parsed),
+                actors: collectTypes(ActorTypeCollector.self, in: parsed),
+                local: collectTypes(LocalTypeCollector.self, in: parsed),
+                observable: collectTypes(ObservableTypeCollector.self, in: parsed),
+                protocols: collectTypes(ProtocolTypeCollector.self, in: parsed),
+                equatable: collectTypes(EquatableConformanceCollector.self, in: parsed),
+                values: collectTypes(ValueTypeCollector.self, in: parsed),
+                functions: collectTypes(DeclaredFunctionCollector.self, in: parsed),
+                mutatingMethods: collectTypes(MutatingMethodCollector.self, in: parsed),
                 defaultedInitializers: collectTypes(
-                    DefaultedInitializerCollector.self, from: filePaths
+                    DefaultedInitializerCollector.self, in: parsed
                 ),
                 observableEnvironmentViews: collectTypes(
-                    ObservableEnvironmentViewCollector.self, from: filePaths
+                    ObservableEnvironmentViewCollector.self, in: parsed
                 ),
                 inspectedTypeNames: collectTypes(
-                    InspectedTypeNameCollector.self, from: filePaths
+                    InspectedTypeNameCollector.self, in: parsed
                 ),
-                functionTypeAliases: collectTypes(FunctionTypeAliasCollector.self, from: filePaths),
-                spiMembers: collectTypes(SPIMemberCollector.self, from: filePaths),
-                underscoredMembers: collectTypes(UnderscoredMemberCollector.self, from: filePaths),
+                functionTypeAliases: collectTypes(FunctionTypeAliasCollector.self, in: parsed),
+                spiMembers: collectTypes(SPIMemberCollector.self, in: parsed),
+                underscoredMembers: collectTypes(UnderscoredMemberCollector.self, in: parsed),
                 cleanInstanceMethods: CleanInstanceMethodCatalog.build(
-                    from: parsed, enumTypes: collectTypes(EnumTypeCollector.self, from: filePaths)
+                    from: parsed, enumTypes: collectTypes(EnumTypeCollector.self, in: parsed)
                 ),
                 extensionMembers: ExtensionMemberCatalog.build(from: parsed),
                 closureWrapperTypes: ClosureWrapperTypeCatalog.build(from: parsed),

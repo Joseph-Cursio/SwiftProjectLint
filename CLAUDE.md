@@ -83,7 +83,7 @@ swift test --filter CLITests
 ### Core Analysis Pipeline
 
 1. **File Discovery**: `FileAnalysisUtils` finds Swift files in a project — the reportable set, the evidence-only set (excluded paths), and the construction universe (every Swift file, no reporting filter)
-2. **AST Parsing**: SwiftSyntax parses each file once (`ProjectLinter.parseOnce`); every later phase walks those same trees
+2. **AST Parsing**: SwiftSyntax parses each file once (`ProjectLinter.parseOnce`); every later phase walks those same trees — the package purity, every pre-scan collector (`collectTypes` and the body-needing catalogs), per-file and cross-file analysis
 3. **Package Purity**: `PackagePurity.build` turns the universe's production sources (`ConstructionUniverse`) into SEI's `ConstructionFacts`, bound as the task-local `PackagePurity.current` around phases 4-6 — every `PurityInferrer()` created inside reads it
 4. **Pre-scan**: `CollectedTypes.collect` builds the cross-file catalogs (`ProjectLinter+PreScan.swift`)
 5. **Pattern Detection**: Specialized visitors traverse the AST detecting issues
@@ -207,4 +207,4 @@ struct MyViewTests {
 Per project documentation:
 - Some property wrapper and view type detection still uses string comparisons (migration in progress)
 - Several large files need splitting (see `__refactor.md`)
-- Async/await conversion complete; AST caching implemented (in-memory, per-analysis-run): one parse per file per run, shared by the package purity, the pre-scan's body-needing catalogs, per-file analysis and cross-file analysis. The name-set pre-scan collectors (`collectTypes`) still re-read and re-parse each file once per collector
+- Async/await conversion complete; AST caching implemented (in-memory, per-analysis-run): one parse per file per run, shared by the package purity, every pre-scan collector (the `collectTypes` name sets and the body-needing catalogs), per-file analysis and cross-file analysis
