@@ -142,3 +142,22 @@ Worth having because the failure is invisible from the rule's output *and* from 
 `UserDefaults` is one of the oracle's own side-effect markers, and the method that uses it reads
 `defaults.data(forKey:)` — the property's name, never its type. A dependency held as storage does
 not name itself where it is used.
+
+### The self-access analyzer's key-path components
+
+Two mutants, one on each side of the line the fix draws.
+
+| id | shape | expected | killer |
+|---|---|---|---|
+| `key-path-component-read-as-self` | detector-recall | killed | `aKeyPathPropertyComponentNoLongerRefutes` |
+| `key-path-skip-reaches-subscript-arguments` | detector-precision | killed | `aSubscriptComponentsArgumentIsStillARead` |
+
+The first puts the bug back: `ReferenceCollector` collects the names of key-path components, so
+`rules.filter(\.value.enabled)` reads as `self.value` and the method is refused, along with every
+caller the clean-method catalog would have cleared. That is how SwiftLintRuleStudio's public
+`analyze` went unseeded two calls away from the key path.
+
+The second is the over-correction the fix has to avoid. Skipping *everything* under a
+`KeyPathExprSyntax` also skips the argument of a subscript component, so `rows.map(\.[index])`
+stops reading `index`, and a method reading mutable state through one is admitted as a function of
+its inputs.

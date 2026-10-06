@@ -89,6 +89,22 @@
       "expected": "killed",
       "test": "storedCollaboratorDisqualifiesEvenWhenUnnamedInBodies",
       "label": "the pure-kernel storage test becomes a denylist (only unreadable spellings disqualify) \u2014 the first implementation, which exempted a type storing UserDefaults and one storing a SwiftData ModelContainer"
+    },
+    {
+      "id": "key-path-component-read-as-self",
+      "patch": "patches/key-path-component-read-as-self.patch",
+      "shape": "detector-recall",
+      "expected": "killed",
+      "test": "aKeyPathPropertyComponentNoLongerRefutes",
+      "label": "SelfAccessAnalyzer collects key-path component names again \u2014 `rules.filter(\\.value.enabled)` reads as `self.value` and refuses the method, and through the clean-method catalog every caller"
+    },
+    {
+      "id": "key-path-skip-reaches-subscript-arguments",
+      "patch": "patches/key-path-skip-reaches-subscript-arguments.patch",
+      "shape": "detector-precision",
+      "expected": "killed",
+      "test": "aSubscriptComponentsArgumentIsStillARead",
+      "label": "the key-path skip is widened to everything under a KeyPathExprSyntax \u2014 `rows.map(\\.[index])` stops reading `index`, so a method reading mutable state through a subscript component is admitted"
     }
   ]
 }

@@ -1,0 +1,20 @@
+diff --git a/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/SelfAccessAnalyzer.swift b/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/SelfAccessAnalyzer.swift
+index 0e8ed9bd..746a8fbe 100644
+--- a/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/SelfAccessAnalyzer.swift
++++ b/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/SelfAccessAnalyzer.swift
+@@ -384,10 +384,12 @@ enum SelfAccessAnalyzer {
+         /// default parser does not produce them: it reads `\.uppercased()` as a call applied to
+         /// the property key path `\.uppercased`, which this already covers.
+         private static func isKeyPathComponentName(_ node: DeclReferenceExprSyntax) -> Bool {
+-            guard let property = node.parent?.as(KeyPathPropertyComponentSyntax.self) else {
+-                return false
++            var cursor: Syntax? = Syntax(node).parent
++            while let current = cursor {
++                if current.is(KeyPathExprSyntax.self) { return true }
++                cursor = current.parent
+             }
+-            return property.declName.id == Syntax(node).id
++            return false
+         }
+ 
+         /// Whether `node` sits inside a `catch` clause that names no pattern, and so binds `error`.
