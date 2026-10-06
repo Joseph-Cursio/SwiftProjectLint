@@ -264,7 +264,7 @@
       "shape": "engine-wiring",
       "expected": "killed",
       "test": "witnessIndependentOfDiscoveryOrder",
-      "label": "PackagePurity.build no longer sorts the universe — SEI reports the first of two declarations' witnesses in input order, so the message depends on the order the file system enumerates"
+      "label": "PackagePurity.build no longer puts the universe in ConstructionUniverse.buildOrder — SEI reports the first of two declarations' witnesses in input order, so the message depends on the order the file system enumerates"
     },
     {
       "id": "purity-universe-follows-reporting-scope",

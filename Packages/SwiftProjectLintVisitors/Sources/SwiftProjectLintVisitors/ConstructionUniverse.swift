@@ -20,9 +20,9 @@
 /// **This rule is shared with SwiftInferProperties, word for word.** Both consumers pin the same
 /// SEI revision, and an equal pin gives equal verdicts only when both build the table from the same
 /// files in the same order. The golden table at `Docs/construction-universe.tsv` holds the agreed
-/// rows; `ConstructionUniverseTests` asserts this predicate on every one of them, and
-/// SwiftInferProperties keeps a byte-identical copy that its cross-repo pin test diffs against this
-/// one.
+/// rows, and `Docs/construction-universe-cases.json` the agreed manifest readings and build order;
+/// `ConstructionUniverseTests` asserts every row and case, and SwiftInferProperties keeps
+/// byte-identical copies that its cross-repo pin test diffs against these.
 ///
 /// ## Why not `BasePatternVisitor.isTestOrFixturePath`
 ///
@@ -65,6 +65,17 @@ public enum ConstructionUniverse {
     /// Xcode-style `FooTests/`.
     public static func isTestTargetDirectory(_ name: String) -> Bool {
         name == "Tests" || name.hasSuffix("Tests")
+    }
+
+    /// The order the table is built in: `relativePaths` sorted with Swift's `String <`.
+    ///
+    /// Named, and shared word for word with SwiftInferProperties (the shared spec's amendment 2),
+    /// because the order is part of the agreement: SEI reports the first witness among several
+    /// declarations of one name in its input order, and `PackagePurity.build` uses exactly this
+    /// rather than a sort of its own. `Docs/construction-universe-cases.json` holds a list both
+    /// repositories assert it on.
+    public static func buildOrder(_ relativePaths: [String]) -> [String] {
+        relativePaths.sorted { $0 < $1 }
     }
 
     /// Whether the file at `relativePath` is production source whose types belong in the table.

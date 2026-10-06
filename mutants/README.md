@@ -149,6 +149,11 @@ when it was found: with nested packages reported, the universe reuses a walk the
 and every universe test ran with them off. `excludedPathIsEvidence` and `generatedFileIsEvidence`
 now run both ways, and either kills it.
 
+`purity-universe-unsorted` was re-expressed when the shared spec's second amendment named the order:
+`PackagePurity.build` takes it from `ConstructionUniverse.buildOrder`, the function both consumers
+expose and assert on `Docs/construction-universe-cases.json`, so the mutant now drops that call
+rather than a sort of the build's own.
+
 ### The `ConcreteTypeUsage` seam exemptions
 
 Two more, from the pass that took that rule 41 → 22. Both are **recall** mutants: they widen or

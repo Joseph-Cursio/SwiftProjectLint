@@ -1,0 +1,56 @@
+{
+  "comment": "Shared construction-universe cases. Byte-identical in SwiftProjectLint (Docs/construction-universe-cases.json) and SwiftInferProperties (docs/construction-universe-cases.json). Both repos assert every case; SwiftInferProperties' SEICrossRepoPinTests byte-compares the two files.",
+  "localPackageDependencies": [
+    {
+      "manifest": "let package = Package(name: \"P\", dependencies: [.package(path: \"Packages/A\")])",
+      "expected": [
+        "Packages/A"
+      ]
+    },
+    {
+      "manifest": "let package = Package(name: \"P\", dependencies: [.package(name: \"B\", path: \"../B\")])",
+      "expected": [
+        "../B"
+      ]
+    },
+    {
+      "manifest": "let package = Package(\n    name: \"P\",\n    dependencies: [\n        .package(\n            path: \"Core\"\n        )\n    ]\n)",
+      "expected": [
+        "Core"
+      ]
+    },
+    {
+      "manifest": "let package = Package(name: \"P\", dependencies: [.package(url: \"https://x/y.git\", from: \"1.0.0\")])",
+      "expected": []
+    },
+    {
+      "manifest": "let root = \"Packages\"\nlet package = Package(name: \"P\", dependencies: [.package(path: root + \"/Core\")])",
+      "expected": null
+    },
+    {
+      "manifest": "let package = Package(name: \"P\", targets: [.target(name: \"X\")])",
+      "expected": []
+    },
+    {
+      "manifest": "let package = Package(name: \"P\", targets: [.target(name: \"X\", path: \"Sources/X\")])",
+      "expected": []
+    },
+    {
+      "manifest": "let package = Package(name: \"P\", dependencies: [.package(path: \"Packages/A\"), .package(url: \"https://x/z.git\", branch: \"main\"), .package(path: \"Packages/B\")])",
+      "expected": [
+        "Packages/A",
+        "Packages/B"
+      ]
+    }
+  ],
+  "buildOrder": [
+    "Sources/B/B.swift",
+    "Sources/F10/X.swift",
+    "Sources/F2/Y.swift",
+    "Sources/Z/Z.swift",
+    "Sources/a/A.swift",
+    "Sources/a/a.swift",
+    "Sources/a10.swift",
+    "Sources/a2.swift"
+  ]
+}

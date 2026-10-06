@@ -2,25 +2,14 @@
 import Testing
 
 /// Which nested packages the universe takes: those the root compiles — the shared spec's
-/// amendment B. The first test's cases are the spec's own list, which SwiftInferProperties runs
-/// too; the rest pin the closure, the doubt rule and which package a file belongs to.
+/// amendment B. The spec's own manifest cases are in `Docs/construction-universe-cases.json`, which
+/// `ConstructionUniverseTests` asserts and SwiftInferProperties asserts too; these add whole
+/// manifests and computed paths, then pin the closure, the doubt rule and which package a file
+/// belongs to.
 @Suite("The construction universe's nested-package bound")
 struct ConstructionUniverseNestedPackageTests {
 
     // MARK: - Reading a manifest
-
-    @Test("the shared cases of localPackageDependencies(manifest:)", arguments: [
-        (#".package(path: "Packages/A")"#, ["Packages/A"]),
-        (#".package(name: "B", path: "../B")"#, ["../B"]),
-        (".package(\n  path: \"Core\"\n)", ["Core"]),
-        (#".package(url: "https://x/y.git", from: "1.0.0")"#, []),
-        (#".package(path: root + "/Core")"#, nil),
-        ("let package = Package(name: \"X\")", []),
-        (#".target(name: "X", path: "Sources/X")"#, [])
-    ] as [(String, [String]?)])
-    func sharedCases(manifest: String, expected: [String]?) {
-        #expect(ConstructionUniverse.localPackageDependencies(manifest: manifest) == expected)
-    }
 
     @Test("a whole manifest: literals in source order, comments and other paths ignored")
     func wholeManifest() {
