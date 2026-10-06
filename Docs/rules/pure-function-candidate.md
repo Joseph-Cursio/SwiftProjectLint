@@ -199,6 +199,34 @@ guard let value = tagFilter else { return true }                        // corre
 Measured across 13 repositories: **five seeds withdrawn of 4,670**, including `EditorFormatter`'s
 `selectedText`, which shorthand-binds a `weak var textView: NSTextView?` — a live view object.
 
+**A key-path component is a member of its root, not of `self`.** In `rules.filter(\.value.enabled)`,
+`value` and `enabled` name members of the dictionary's element, and in `words.map(\.count)` of the
+string. The analyzer used to collect them as bare identifiers, find no local and no stored property
+by that name, and refuse the method as reading instance state it could not see. Through the
+clean-method catalog the refusal then reached every sibling that called it. Only the component's
+name is skipped: the argument of a subscript component is a real read, so a method doing
+`rows.map(\.[index])` over a stored `var index` is still refused.
+
+Measured across 23 repositories: **52 seeds added of 6,527, none withdrawn**. Every one of the 52
+had a key path as its only blocker, directly or in a sibling it calls. Read by hand, 45 are
+functions of their inputs and their own immutable state. Seven are not, each through a limit that
+predates this change and that the refusal had been hiding:
+
+- **A `let` holding a reference type.** `PreviewChangesView.rulesSummary` reads `model.changes`
+  through `let model: LivePreviewModel`, an `@Observable` class whose `changes` an asynchronous lint
+  pass rewrites. A `let` binding is treated as immutable whatever its type; the same view's
+  `addedCount` and `removedCount` were already seeds for the same reason.
+- **A protocol requirement as callee.** SwiftMutator's `MuterProcess.find` (both overloads),
+  `findExecutable` and `which` reach `runProcess(url:arguments:)`, a protocol requirement that
+  spawns `/usr/bin/find` or `/usr/bin/which`. The clean-method catalog reads no protocol
+  declarations, and a same-named overload makes the call look like one it has cleared.
+- **A Foundation initializer that reads the environment.** `HTMLFormatter.detailedListSection`
+  calls `URL(fileURLWithPath:)`, which resolves a relative path against the current directory and
+  asks the filesystem whether it is a directory. The purity oracle treats it as a value initializer.
+- **Hash-ordered output.** `SwiftUIManagementVisitor.findRelatedViews` returns `Array(Set(…))`, whose
+  order varies from process to process. The oracle has no model of order that depends on hash
+  seeding.
+
 ### Throwing candidates: pure but partial
 
 A `throws` function can be a candidate. `throws` refutes **totality**, not referential transparency,
