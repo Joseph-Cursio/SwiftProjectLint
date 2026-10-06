@@ -88,7 +88,10 @@ struct VariableShadowingKeyPathTests {
 
     @Test("a genuine rebinding is still exempt", arguments: [
         "let total = total + orders.count",
-        "let total = rows.map(\\.[total]).count"
+        "let total = rows.map(\\.[total]).count",
+        // A capture list names the outer binding bare: `[total]` captures it.
+        "let total = { [total] in run() }",
+        "let total = { [weak total] in run() }"
     ])
     func genuineRebindingIsExempt(rebinding: String) {
         let issues = shadowingIssues("""

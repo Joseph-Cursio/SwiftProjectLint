@@ -154,7 +154,12 @@ struct CatchWithoutHandlingVisitorTests {
         "do { try work() } catch { failed = jobs.filter(\\.error) }",
         "do { try work() } catch { failed = result.error }",
         "do { try work() } catch { self.error = nil }",
-        "do { try work() } catch let failure { message = response.failure }"
+        "do { try work() } catch let failure { message = response.failure }",
+        // An implicit member spelled `error` is a case of some other type.
+        "do { try work() } catch { state = .error }",
+        "do { try work() } catch is CancellationError { state = .error }",
+        // A bound name nothing reads does not handle the error either.
+        "do { try work() } catch AppError.invalid(let message) { state = .error }"
     ])
     func flagsNameThatIsNotTheCaughtError(source: String) {
         let visitor = makeVisitor()
@@ -173,6 +178,22 @@ struct CatchWithoutHandlingVisitorTests {
     func caughtErrorBesideSameNamedKeyPathIsHandling() {
         let visitor = makeVisitor()
         run(visitor, source: "do { try work() } catch { failed = jobs.filter(\\.error); last = error }")
+        #expect(visitor.detectedIssues.isEmpty)
+    }
+
+    /// A typed arm binds the error, or a payload of it, under its own names; using any of them
+    /// uses what was caught. These were handled on main only because the body happened to
+    /// contain a member spelled `error`.
+    @Test("Using a name the catch pattern binds is handling", arguments: [
+        "do { try work() } catch let e as DecodingError { self.lastError = e }",
+        "do { try work() } catch let e as DecodingError { self.error = e }",
+        "do { try work() } catch AppError.invalid(let message) { status = message }",
+        "do { try work() } catch let AppError.invalid(message) { status = message }",
+        "do { try work() } catch AppError.a(let x), AppError.b(let x) { status = x }"
+    ])
+    func usingABoundNameIsHandling(source: String) {
+        let visitor = makeVisitor()
+        run(visitor, source: source)
         #expect(visitor.detectedIssues.isEmpty)
     }
 

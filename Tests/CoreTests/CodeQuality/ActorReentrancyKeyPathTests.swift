@@ -127,13 +127,69 @@ struct ActorReentrancyKeyPathTests {
 
             func report(_ jobs: [Job]) async {
                 guard !isLoading else { return }
-                await send(jobs.map { j in j.flag })
+                await send(jobs.map { j in j.isLoading })
             }
 
             private func send(_ flags: [Bool]) async {}
         }
         """
         #expect(issues(source).count == 1)
+    }
+
+    @Test
+    func anotherValuesMemberInAwaitOperandDoesNotHideTheGate() {
+        let source = """
+        actor Loader {
+            var isLoading = false
+
+            func report(_ job: Job) async {
+                guard !isLoading else { return }
+                await send(job.isLoading)
+            }
+
+            private func send(_ flag: Bool) async {}
+        }
+        """
+        #expect(issues(source).count == 1)
+    }
+
+    /// `(self)` is this instance as surely as `self` is.
+    @Test
+    func aParenthesizedSelfIsStillTheGate() {
+        let source = """
+        actor Loader {
+            var isLoading = false
+
+            func refresh() async {
+                guard !(self).isLoading else { return }
+                await fetch()
+            }
+
+            private func fetch() async {}
+        }
+        """
+        #expect(issues(source).count == 1)
+    }
+
+    /// The bound-name side: `conn` read as another value's member is not the binding, so the
+    /// await does not consume what the guard bound, and the guard is not a resource guard.
+    @Test
+    func aBoundNameSpelledAsAnotherValuesMemberIsNotTheResource() {
+        func pool(awaiting operand: String) -> String {
+            """
+            actor Pool {
+                var connection: Connection?
+                let pool: PoolRef
+
+                func f() async {
+                    guard let conn = connection else { return }
+                    await \(operand)
+                }
+            }
+            """
+        }
+        #expect(issues(pool(awaiting: "pool.conn.send()")).count == 1)
+        #expect(issues(pool(awaiting: "conn.send()")).isEmpty)
     }
 
     @Test

@@ -245,8 +245,14 @@ final class VariableShadowingVisitor: BasePatternVisitor {
     /// (`f(total: 1)`) are the same spelling for the same reason. A subscript
     /// component's argument (`\.[total]`) is a genuine use and still counts.
     private func isReference(_ token: TokenSyntax, to name: String) -> Bool {
-        guard token.tokenKind == .identifier(name),
-              let reference = token.parent?.as(DeclReferenceExprSyntax.self) else { return false }
+        guard token.tokenKind == .identifier(name) else { return false }
+        // `{ [handler] in … }` captures the outer `handler`; the capture list spells it as a bare
+        // name, not as an expression.
+        if let capture = token.parent?.as(ClosureCaptureSyntax.self), capture.name.id == token.id,
+           capture.initializer == nil {
+            return true
+        }
+        guard let reference = token.parent?.as(DeclReferenceExprSyntax.self) else { return false }
         return reference.isLexicalReference
     }
 }

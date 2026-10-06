@@ -47,18 +47,28 @@ extension DeclReferenceExprSyntax {
     /// `name` in `job.name`, `Self.name`, or the implicit `.name`.
     ///
     /// The right question for a stored property, which a body reaches either bare or through
-    /// `self` — including `self?.name` in a `[weak self]` closure. A member of anything else
-    /// belongs to that other value or type, and a static member is not instance state.
+    /// `self` — including `self?.name` in a `[weak self]` closure, and `(self).name`. A member of
+    /// anything else belongs to that other value or type, and a static member is not instance
+    /// state.
     public var isMemberNameOfOtherBase: Bool {
         guard let access = parent?.as(MemberAccessExprSyntax.self), access.declName.id == id else {
             return false
         }
         guard var base = access.base else { return true }
         while let unwrapped = base.as(OptionalChainingExprSyntax.self)?.expression
-            ?? base.as(ForceUnwrapExprSyntax.self)?.expression {
+            ?? base.as(ForceUnwrapExprSyntax.self)?.expression
+            ?? Self.parenthesized(base) {
             base = unwrapped
         }
         return base.as(DeclReferenceExprSyntax.self)?.baseName.tokenKind != .keyword(.self)
+    }
+
+    /// The expression inside `(expression)` — a one-element tuple with no label, which is how
+    /// swift-syntax spells parentheses.
+    private static func parenthesized(_ expression: ExprSyntax) -> ExprSyntax? {
+        guard let tuple = expression.as(TupleExprSyntax.self), tuple.elements.count == 1,
+              let only = tuple.elements.first, only.label == nil else { return nil }
+        return only.expression
     }
 
     /// Whether this names something looked up in lexical scope — a local, a parameter, or a

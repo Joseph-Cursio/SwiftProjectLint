@@ -61,7 +61,7 @@ struct DeclReferenceNamePositionTests {
 
     @Test func aMemberOfSelfIsAMemberButNotOfAnotherBase() {
         // A stored property read through `self` is still this instance's; a local is not.
-        for source in ["self.total", "self?.total", "self!.total"] {
+        for source in ["self.total", "self?.total", "self!.total", "(self).total", "((self))?.total"] {
             let found = references(named: "total", in: source)
             #expect(found.first?.isMemberName == true, "\(source)")
             #expect(found.first?.isMemberNameOfOtherBase == false, "\(source)")
@@ -73,6 +73,8 @@ struct DeclReferenceNamePositionTests {
         for source in ["Self.total", "let x: Row = .total"] {
             let found = references(named: "total", in: source)
             #expect(found.first?.isMemberNameOfOtherBase == true, "\(source)")
+            #expect(found.first?.isMemberName == true, "\(source)")
+            #expect(found.first?.isLexicalReference == false, "\(source)")
         }
     }
 

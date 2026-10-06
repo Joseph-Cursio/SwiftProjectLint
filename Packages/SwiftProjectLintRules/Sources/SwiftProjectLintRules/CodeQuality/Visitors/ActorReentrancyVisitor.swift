@@ -10,8 +10,10 @@ import SwiftSyntax
 ///
 /// ## False-positive suppression
 /// Optional-binding conditions (`guard let x = prop`) are only flagged when the bound
-/// name is NOT used as a direct operand of an `await` expression (or as the sequence of
-/// a `for-in` whose body contains `await`). Resource guards of the form
+/// name is NOT read in an `await` expression (or as the sequence of a `for-in` whose body
+/// contains `await`) — read as the binding itself: bare, as a receiver or as an argument,
+/// not as another value's member (`pool.x`) or a key-path component (`\.x`) that only
+/// shares its spelling. Resource guards of the form
 /// `guard let connection = connection else { throw }` are therefore suppressed, because
 /// `connection` (the bound name) is the receiver of the subsequent `await connection.send(…)`.
 /// Scheduling sentinels of the form `if let lastRun = lastRunDate { … await work() }` are
