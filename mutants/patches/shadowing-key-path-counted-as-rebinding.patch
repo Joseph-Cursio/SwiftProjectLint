@@ -1,14 +1,13 @@
 diff --git a/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/CodeQuality/Visitors/VariableShadowingVisitor.swift b/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/CodeQuality/Visitors/VariableShadowingVisitor.swift
-index 0d101b18..927d6d2f 100644
+index 3c8aa6e2..de06c7a3 100644
 --- a/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/CodeQuality/Visitors/VariableShadowingVisitor.swift
 +++ b/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/CodeQuality/Visitors/VariableShadowingVisitor.swift
-@@ -245,8 +245,6 @@ final class VariableShadowingVisitor: BasePatternVisitor {
-     /// (`f(total: 1)`) are the same spelling for the same reason. A subscript
-     /// component's argument (`\.[total]`) is a genuine use and still counts.
-     private func isReference(_ token: TokenSyntax, to name: String) -> Bool {
--        guard token.tokenKind == .identifier(name),
--              let reference = token.parent?.as(DeclReferenceExprSyntax.self) else { return false }
+@@ -252,7 +252,6 @@ final class VariableShadowingVisitor: BasePatternVisitor {
+            capture.initializer == nil {
+             return true
+         }
+-        guard let reference = token.parent?.as(DeclReferenceExprSyntax.self) else { return false }
 -        return reference.isLexicalReference
-+        token.tokenKind == .identifier(name)
++        return true
      }
  }
