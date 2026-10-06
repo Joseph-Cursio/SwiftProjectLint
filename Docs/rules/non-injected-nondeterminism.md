@@ -222,7 +222,9 @@ string.
 The bound spelling counts too — `let now = Date()` then only `f(asOf: now)` — and it demands that
 **every** reference to the binding is itself an argument. One comparison, one piece of arithmetic,
 one `return`, and the binding keeps the ordinary message. That is the safe direction: a shadowed
-name can only add a reference that must also pass, never excuse one that does not. A stored
+name can only add a reference that must also pass, never excuse one that does not. Only the
+binding itself is a reference: a key-path component or a member spelled the same (`\.id` in
+`lines.map(\.id)`, `line.id`) reads another value and neither counts nor disqualifies. A stored
 property's initial value is *not* a composition root, because the read happens once per instance
 and the uses are in members this walk cannot see — `WaiverRequestSheet`'s
 `@State private var openedAt = Date()` is the corpus instance, and it feeds arithmetic two lines

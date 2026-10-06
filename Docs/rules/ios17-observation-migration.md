@@ -15,7 +15,7 @@ The `@Observable` macro (iOS 17+) replaces the `ObservableObject` protocol + `@P
 - **Medium readiness**: Uses `objectWillChange.send()` manually (needs removal during migration).
 - **Low readiness**: No `@Published` properties (may be using `objectWillChange` for other purposes).
 
-Classes that use Combine publisher features (`$property` projected values, `objectWillChange` chained with `.sink`/`.assign`) are suppressed since `@Observable` doesn't provide Combine publishers. NSObject subclasses are also suppressed since they can't use the `@Observable` macro.
+Classes that use Combine publisher features (`$property` projected values, `objectWillChange` chained with `.sink`/`.assign`) are suppressed since `@Observable` doesn't provide Combine publishers. A closure's shorthand parameters (`$0`, `$1`) are not projected values and do not suppress the suggestion. NSObject subclasses are also suppressed since they can't use the `@Observable` macro.
 
 This is an opt-in companion to the simpler `legacyObservableObject` rule, providing actionable migration prioritization.
 

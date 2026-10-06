@@ -53,7 +53,8 @@ for an `if` statement that:
 
 1. **references one of those parameters** in its condition — directly (`if flag`), negated
    (`if !flag`), or as part of a compound condition (`if flag && ready`). An `obj.flag` member
-   access that merely shares the name does **not** count; and
+   access or a `\.flag` key path that merely shares the name does **not** count —
+   `rules.contains(where: \.verbose)` reads each rule's `verbose`, not the parameter; and
 2. has a plain **`else { … }`** block — an `if` with no `else` is *optional behavior*
    (`if verbose { log() }`), not a choice between two strategies; and
 3. has **two substantial arms**. An arm is substantial when it has **two or more statements**,

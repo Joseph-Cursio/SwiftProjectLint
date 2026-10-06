@@ -152,6 +152,8 @@ actor InsightsEngine {
 
 **Detection mechanism:** after finding an optional-binding condition (`guard let x = prop`), the rule checks whether the bound name `x` appears as a direct token in any `await` expression in the function, or as the sequence of a `for-in` whose body contains `await`. If it does, the condition is suppressed as a resource guard. The same suppression applies to expression conditions (`guard x != nil`) when the property name itself appears directly in an `await` operand.
 
+**Only the actor's own property counts, on both sides.** A key-path component or another value's member that shares the property's name is not the property: `guard !jobs.contains(where: \.isLoading)` and `guard !job.isLoading` are not checks of the actor's `isLoading`, and `await send(jobs.map(\.isLoading))` does not consume it, so it does not suppress a genuine `guard !isLoading`. The property read bare or through `self` (`self.isLoading`) is.
+
 **Residual false positive — indirect resource use:** the suppression only works when the property or its bound name appears as a *direct token* in the `await` expression. If the property is consumed one call-stack level below — e.g. `guard connection != nil` followed by `await self.send(request)` where `send()` internally uses `connection` — the visitor cannot detect the relationship without semantic data-flow analysis. These cases remain flagged. A practical workaround is to add a `// swiftprojectlint:disable actor-reentrancy` comment on the line.
 
 ### Architectural Scope

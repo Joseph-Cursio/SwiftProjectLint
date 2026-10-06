@@ -18,7 +18,7 @@ A `catch` block that doesn't rethrow, log, or propagate the error is a silent fa
 | **Rethrow** | `throw error`, `throw e` (not crossing closure/function boundaries) |
 | **Logging** | `print(error)`, `NSLog(...)`, `os_log(...)`, `logger.error(...)`, `Logger.shared.debug(...)`, any method call with a logging-suggestive name (`log`, `error`, `warning`, `warn`, `debug`, `info`, `critical`, `fault`, `verbose`, `trace`, `notice`) |
 | **Swift Testing diagnostic** | `Issue.record(...)` — receiver-gated on the `Issue` type identifier so adopter-defined `record(...)` methods on unrelated types still fire |
-| **Error variable reference** | The implicit `error` binding (or the typed catch pattern name) appears anywhere in the body — covers `self.lastError = error`, `completion(.failure(error))`, `"Failed: \(error)"`, error captured in a closure |
+| **Error variable reference** | The implicit `error` binding (or the typed catch pattern name) appears anywhere in the body — covers `self.lastError = error`, `completion(.failure(error))`, `"Failed: \(error)"`, error captured in a closure. It must be the binding itself: a member or key path spelled the same (`result.error`, `self.error = nil`, `jobs.filter(\.error)`) belongs to another value and does not count |
 | **Explicit termination** | `assertionFailure(...)`, `fatalError(...)`, `preconditionFailure(...)` |
 
 **Rethrow boundary**: a `throw` inside a nested closure or function does not satisfy the check — that throw belongs to the inner scope, not the catch body.

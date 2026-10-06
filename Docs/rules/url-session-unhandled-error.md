@@ -10,7 +10,7 @@
 `dataTask`, `downloadTask`, and `uploadTask` completion handlers receive an `Error?` as their last parameter. This is the only reliable signal that a network request failed — the HTTP status code lives in `URLResponse` and requires separate validation. Ignoring the error parameter means failures are silently swallowed and data may be processed from a failed request.
 
 ### Discussion
-`URLSessionUnhandledErrorVisitor` checks every `FunctionCallExprSyntax` whose member name is `dataTask`, `downloadTask`, or `uploadTask`. For each, it extracts the completion closure (trailing or labeled `completionHandler:`), reads the last parameter name from the closure signature, and verifies that name appears somewhere in the closure body.
+`URLSessionUnhandledErrorVisitor` checks every `FunctionCallExprSyntax` whose member name is `dataTask`, `downloadTask`, or `uploadTask`. For each, it extracts the completion closure (trailing or labeled `completionHandler:`), reads the last parameter name from the closure signature, and verifies that name appears somewhere in the closure body. It has to be the parameter itself: a member or key path spelled the same (`decode(data).error`, `rows.filter(\.error)`) belongs to another value and does not count.
 
 Not flagged when:
 - The error parameter is explicitly `_` (developer opted out — suppress if intentional)
