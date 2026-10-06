@@ -297,6 +297,14 @@
       "expected": "killed",
       "test": "unrelatedNestedPackageDoesNotRefute",
       "label": "the universe drops the nested-package bound and takes every nested package — an unrelated Demo/ package's refuting Row refutes the app's own plain Row(n:), withdraws two candidates and takes ReportBuilder's pure-kernel exemption, so Direct Instantiation warns and the default CLI exits 1"
+    },
+    {
+      "id": "purity-universe-nested-on-drops-filtered",
+      "patch": "patches/purity-universe-nested-on-drops-filtered.patch",
+      "shape": "engine-wiring",
+      "expected": "killed",
+      "test": "excludedPathIsEvidence",
+      "label": "with include_nested_packages on, the universe reuses the reportable list instead of the walk the run already made without exclusions — an excluded directory's and a generated file's types drop out of the table, and constructing them reads as pure, only when nested packages are reported"
     }
   ]
 }

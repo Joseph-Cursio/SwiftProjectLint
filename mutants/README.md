@@ -138,12 +138,16 @@ with what the compiler builds.
 |---|---|---|---|
 | `purity-universe-classifies-symlink-target` | engine-wiring | killed | `linkIntoInRootTestsRefutes` |
 | `purity-universe-takes-every-nested-package` | engine-wiring | killed | `unrelatedNestedPackageDoesNotRefute` |
+| `purity-universe-nested-on-drops-filtered` | engine-wiring | killed | `excludedPathIsEvidence` |
 
 The first classifies a symlinked file at its target again: `Sources/Lib/Item.swift` linking to a
 file under `Tests/` is dropped as a test file, though SwiftPM compiles it into `Lib`. The second
 takes every nested package again, not only those the root compiles, and is the one whose output
 looks *worse* rather than merely smaller: an unrelated `Demo/` package's namesake costs a pure kernel
-its Direct Instantiation exemption, and the run gains a warning.
+its Direct Instantiation exemption, and the run gains a warning. The third survived the whole suite
+when it was found: with nested packages reported, the universe reuses a walk the run already made,
+and every universe test ran with them off. `excludedPathIsEvidence` and `generatedFileIsEvidence`
+now run both ways, and either kills it.
 
 ### The `ConcreteTypeUsage` seam exemptions
 

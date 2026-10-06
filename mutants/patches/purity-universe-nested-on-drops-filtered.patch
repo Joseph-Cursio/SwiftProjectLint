@@ -1,0 +1,13 @@
+diff --git a/Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/ProjectLinter.swift b/Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/ProjectLinter.swift
+index 0fbc53d0..a35f1b7a 100755
+--- a/Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/ProjectLinter.swift
++++ b/Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/ProjectLinter.swift
+@@ -255,7 +255,7 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
+ 
+         let constructionUniverse: [String]
+         if configuration.includeNestedPackages {
+-            constructionUniverse = unexcludedFilePaths
++            constructionUniverse = filePaths
+         } else {
+             constructionUniverse = await fileDiscovery.findSwiftFiles(
+                 in: path, excludedPaths: [], excludedFilenames: [], includeNestedPackages: true
