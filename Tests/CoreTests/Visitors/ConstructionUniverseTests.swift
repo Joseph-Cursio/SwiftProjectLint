@@ -78,10 +78,11 @@ struct ConstructionUniverseTests {
 
     @Test("two same-named typealiases resolve the same way whatever order the files arrive in")
     func aliasCollisionIsDeterministic() {
-        // SEI follows only the first target of a typealias name, and keys aliases by bare name
-        // across the package, so the refuted set depends on which declaration it reads first. The
-        // order the build passes them in is therefore part of the answer, and this pins that the
-        // order is the sorted one rather than whatever discovery returned.
+        // Until SEI 9d0bf6d this pair was order-sensitive: aliases were keyed by bare name and the
+        // first target won, so A's `String` could hide B's `UUID` or charge A for it. SEI now reads
+        // each `Stamp` in its own type, so only B refutes, in either order. What still depends on
+        // order is which witness comes first among one name's declarations, and
+        // `witnessIndependentOfDiscoveryOrder` is the test that fails when the sort goes.
         let first = (relativePath: "Sources/X/A.swift", tree: Parser.parse(source: """
         struct A { typealias Stamp = String; var s: Stamp = .init() }
         """))
@@ -92,6 +93,7 @@ struct ConstructionUniverseTests {
 
         let forward = PackagePurity.build(from: [first, second])
         let reversed = PackagePurity.build(from: [second, first])
+        #expect(forward.refutedTypes.map { $0.prefix { $0 != ":" } } == ["B"])
         #expect(forward.refutedTypes == reversed.refutedTypes)
         #expect(forward.universe == reversed.universe)
     }

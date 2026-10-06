@@ -66,10 +66,11 @@ public struct PackagePurity: Sendable {
     /// and the rest are sorted by `relativePath` with `String <`.
     ///
     /// **The sort is load-bearing, not tidiness.** SEI's table is not order-free: which witness is
-    /// reported first among several declarations of one name depends on input order, and so —
-    /// through its alias resolution, which follows only the first target of a typealias name — does
-    /// which types are refuted at all. A fixed order makes the table a function of the files, and
-    /// the shared order is what makes SwiftProjectLint and SwiftInferProperties build the same one.
+    /// reported first among several declarations of one name depends on input order, and that
+    /// witness is part of ``refutedTypes``. Which types are refuted does not, since SEI `9d0bf6d`
+    /// follows every alias a name may mean; before it, alias resolution took the first target, so
+    /// that depended on order too. A fixed order makes the table a function of the files, and the
+    /// shared order is what makes SwiftProjectLint and SwiftInferProperties build the same one.
     ///
     /// - Parameter files: each file's path relative to the universe root, with the tree the run
     ///   will judge. Pass the **same** `SourceFileSyntax` instances every consumer then walks: SEI

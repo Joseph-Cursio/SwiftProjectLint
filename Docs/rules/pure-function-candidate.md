@@ -264,11 +264,13 @@ What it still does not see:
   through `ExpressibleBy…Literal`, an enum case's associated-value default, a `deinit`, a property
   wrapper the package does not declare, and a `lazy` or `static` default — which run on first access
   or once per process, not on construction.
-- **One order dependence SwiftEffectInference has not fixed.** A typealias name declared twice
-  resolves to the first declaration the table reads, so `typealias Stamp = UUID` in one type and
-  `typealias Stamp = String` in another can leave a construction unrefuted. The universe is sorted
-  by path, which makes the answer stable from run to run and the same in both consumers; it does
-  not make it complete.
+- **Witness order, not verdicts.** Which witness is reported first among several declarations of
+  one name depends on the order the table reads them; the universe is sorted by path, so it is
+  stable from run to run and the same in both consumers. Which types refute does not depend on
+  order. Until SwiftEffectInference `9d0bf6d` it did: a typealias name declared twice resolved to
+  the first declaration read, so `typealias Stamp = UUID` in one type and `typealias Stamp =
+  String` in another could leave a construction unrefuted. SEI now follows every alias a name may
+  mean, and reads one its own type declares in that type.
 
 Measured with the release CLI at `main` and with the facts wired, JSON output, nine runs over eight
 repositories: **16 candidates withdrawn from SwiftCompilerFlagStudio** (default rules) and **1 from
