@@ -1,4 +1,5 @@
 import PropertyBased
+import SwiftEffectInference
 import SwiftParser
 @testable import SwiftProjectLintIdempotencyRules
 @testable import SwiftProjectLintVisitors
@@ -207,6 +208,67 @@ struct PurityOracleLawsTests {
         // `reduce(into:)` accumulator, whose parameter is a local and not a capture.
         #expect(mutates.first == true)
         #expect(mutates.dropFirst().contains(true) == false)
+    }
+
+    /// A package whose `Item` mints an identity on every construction, with one subject of each
+    /// kind the oracle judges: a function, a closure and a getter, each constructing it.
+    private static let constructingPackage = """
+    import Foundation
+    struct Item: Equatable { let id = UUID(); let n: Int }
+    func countOf(_ n: Int) -> Int { Item(n: n).n }
+    struct Calc { let base: Int; var total: Int { Item(n: base).n } }
+    let counts = values.map { value in Item(n: value).n }
+    """
+
+    /// The forwarder answers what the shared oracle answers **when configured**, too.
+    ///
+    /// The check above covers the one member that never consults the construction facts. These
+    /// three do, and the forwarder's `init(context:)` is the hand-written line that hands the facts
+    /// on — so it gets the same module-boundary check, against SEI's own
+    /// `PurityInferrer(constructionFacts:)` over the same tree.
+    @Test
+    func theConfiguredForwarderAgreesWithTheSharedOracle() throws {
+        let tree = Parser.parse(source: Self.constructingPackage)
+        let context = PackagePurity.build(from: [(relativePath: "Sources/Lib/Item.swift", tree: tree)])
+        let shared = SwiftEffectInference.PurityInferrer(constructionFacts: .build(from: [tree]))
+        let forwarder = SwiftProjectLintVisitors.PurityInferrer(context: context)
+
+        let function = try #require(
+            Self.descendants(of: FunctionDeclSyntax.self, in: tree).first { $0.name.text == "countOf" }
+        )
+        let closure = try #require(Self.descendants(of: ClosureExprSyntax.self, in: tree).first)
+        let accessor = try #require(Self.descendants(of: AccessorBlockSyntax.self, in: tree).first)
+
+        #expect(forwarder.verdict(for: function) == shared.verdict(for: function))
+        #expect(forwarder.refutation(for: function) == shared.refutation(for: function))
+        #expect(forwarder.isPure(function) == shared.isPure(function))
+        #expect(forwarder.refutation(for: closure) == shared.refutation(for: closure))
+        #expect(forwarder.isPure(closure) == shared.isPure(closure))
+        #expect(forwarder.isPure(accessor) == shared.isPure(accessor))
+
+        // Not vacuous: the facts refute all three, which an unconfigured forwarder would not.
+        #expect(forwarder.isPure(function) == false)
+        #expect(forwarder.isPure(closure) == false)
+        #expect(forwarder.isPure(accessor) == false)
+    }
+
+    /// `init()` is `init(context:)` with the bound context, and the unconfigured oracle outside one.
+    @Test
+    func aPlainInitReadsTheBoundContext() throws {
+        let tree = Parser.parse(source: Self.constructingPackage)
+        let context = PackagePurity.build(from: [(relativePath: "Sources/Lib/Item.swift", tree: tree)])
+        let function = try #require(
+            Self.descendants(of: FunctionDeclSyntax.self, in: tree).first { $0.name.text == "countOf" }
+        )
+
+        let bound = PackagePurity.$current.withValue(context) {
+            SwiftProjectLintVisitors.PurityInferrer().refutation(for: function)
+        }
+        #expect(bound != nil)
+        #expect(bound == SwiftProjectLintVisitors.PurityInferrer(context: context).refutation(for: function))
+
+        #expect(SwiftProjectLintVisitors.PurityInferrer().verdict(for: function) == .pure)
+        #expect(SwiftProjectLintVisitors.PurityInferrer(context: .unconfigured).verdict(for: function) == .pure)
     }
 
     /// A concrete anchor for the agreement, on the shape the contract is about: a closure passed to
