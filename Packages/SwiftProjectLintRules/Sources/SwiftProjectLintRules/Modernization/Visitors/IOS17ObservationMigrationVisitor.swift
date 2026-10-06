@@ -135,7 +135,7 @@ final class IOS17ObservationMigrationVisitor: BasePatternVisitor {
         override func visit(_ node: MemberAccessExprSyntax) -> SyntaxVisitorContinueKind {
             // Detect $property (projected value) usage
             if let base = node.base,
-               base.trimmedDescription.hasPrefix("$") {
+               Self.isProjectedValue(base.firstToken(viewMode: .sourceAccurate)) {
                 found = true
             }
             // Detect objectWillChange chained with Combine operators
@@ -152,10 +152,21 @@ final class IOS17ObservationMigrationVisitor: BasePatternVisitor {
 
         override func visit(_ node: DeclReferenceExprSyntax) -> SyntaxVisitorContinueKind {
             // Detect $property standalone references
-            if node.baseName.text.hasPrefix("$") {
+            if Self.isProjectedValue(node.baseName) {
                 found = true
             }
             return .visitChildren
+        }
+
+        /// Whether `token` spells a projected value such as `$items`.
+        ///
+        /// A closure's shorthand parameter (`$0`, `$1`) starts with `$` too, and a `$` prefix
+        /// alone took `items.reduce(0) { $0 + $1 }` for Combine and withheld the suggestion from a
+        /// class that uses none. The lexer already tells them apart: `$` followed only by digits is
+        /// a `.dollarIdentifier`, and `$` followed by a name is an ordinary `.identifier`.
+        static func isProjectedValue(_ token: TokenSyntax?) -> Bool {
+            guard case .identifier(let text)? = token?.tokenKind else { return false }
+            return text.hasPrefix("$")
         }
     }
 }
