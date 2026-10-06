@@ -30,8 +30,9 @@ extension ProjectLinter {
 
     /// A file read and parsed once, shared by everything in the run that walks it.
     struct SharedSource: Sendable {
-        /// Where the file sits under the lint root — the path `ConstructionUniverse` classifies and
-        /// the facts are sorted by. `nil` for a file that does not sit under the root at all.
+        /// Where the file sits under the lint root — for a symlink, where the **link** is — the path
+        /// `ConstructionUniverse` classifies and the facts are sorted by. `nil` for a file that does
+        /// not sit under the root at all. See `universePath(for:projectRoot:)`.
         let universePath: String?
         /// The text, kept only for files the run analyses or uses as evidence: a file that is only
         /// in the construction universe is never reported on, and its tree is all the facts need.
@@ -101,27 +102,46 @@ extension ProjectLinter {
         return (purity, shared.filter { $0.value.content != nil })
     }
 
-    /// The universe's `(path, tree)` pairs for `PackagePurity.build`, which filters and sorts them.
+    /// The universe's `(path, tree)` pairs for `PackagePurity.build`, which sorts them: production
+    /// sources only, and one entry per file on disk.
+    ///
+    /// Each file is classified where the walk reached it (``universePath(for:projectRoot:)``), and
+    /// only then are entries that resolve to the same file collapsed — a link and its target, or
+    /// two links to one file — keeping the **smallest** universe path under `String <`. Classifying
+    /// first matters: collapsing first could keep a link under `FooTests/` and then drop the file
+    /// its production twin compiles. Smallest rather than first-seen makes the choice independent of
+    /// the order discovery returns files in. Both rules are the shared spec's (amendment A), so
+    /// SwiftInferProperties keeps the same entry.
     static func constructionSources(
         _ universe: [String],
         in shared: [String: SharedSource]
     ) -> [(relativePath: String, tree: SourceFileSyntax)] {
-        universe.compactMap { filePath in
-            guard let source = shared[filePath], let universePath = source.universePath else { return nil }
-            return (relativePath: universePath, tree: source.tree)
+        var byFile: [String: (relativePath: String, tree: SourceFileSyntax)] = [:]
+        for filePath in universe {
+            guard let source = shared[filePath], let universePath = source.universePath,
+                  ConstructionUniverse.isProductionSource(relativePath: universePath) else { continue }
+            let file = URL(fileURLWithPath: filePath).resolvingSymlinksInPath().path
+            if let kept = byFile[file], kept.relativePath < universePath { continue }
+            byFile[file] = (relativePath: universePath, tree: source.tree)
         }
+        return Array(byFile.values)
     }
 
-    /// Where `filePath` sits under `projectRoot`, as the universe classifies it.
+    /// Where `filePath` sits under `projectRoot`, as the universe classifies it: where the walk
+    /// reached it, so for a symlinked file **where the link is**, never where its target is.
     ///
-    /// `relativePath(for:projectRoot:)` resolves symlinks on the file, so a symlinked file whose
-    /// target lies outside the root comes back absolute. The compiler sees such a file where the
-    /// link is, so that is where it is classified: under the canonical root the walk spells every
-    /// path with. A path under neither is not in the universe.
+    /// The compiler sees a symlinked file where the link is — `Sources/Lib/Item.swift` linking to
+    /// `Tests/Shared/Item.swift` or to `.shared/Item.swift` is compiled into `Lib` — so that is where
+    /// it is classified, wherever the target lives, inside the root or out. The walk spells every
+    /// path under the canonical root, so the unresolved spelling answers for every walked file. Only
+    /// a path the walk did not produce — one a caller injected with another spelling of the root —
+    /// falls back to the symlink-resolved path, and a path under neither is not in the universe.
     static func universePath(for filePath: String, projectRoot: String) -> String? {
-        let relative = relativePath(for: filePath, projectRoot: projectRoot)
-        guard relative.hasPrefix("/") else { return relative }
-        return ProjectRoot(projectRoot).relativePath(of: filePath)?.value
+        if let atLink = ProjectRoot(projectRoot).relativePath(of: filePath), !atLink.isRoot {
+            return atLink.value
+        }
+        let resolved = relativePath(for: filePath, projectRoot: projectRoot)
+        return resolved.hasPrefix("/") ? nil : resolved
     }
 
     private struct ParseJob: Sendable {

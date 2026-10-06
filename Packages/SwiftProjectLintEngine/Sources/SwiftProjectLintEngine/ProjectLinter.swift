@@ -217,7 +217,7 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
     /// See `ConstructionUniverse`. It reuses a walk that already had its arguments — the reportable
     /// walk when nothing is excluded, the exclusion-free one otherwise — and only a run that leaves
     /// nested packages out pays for one more, issued last.
-    private func discoverFiles(
+    func discoverFiles(
         at path: String,
         configuration: LintConfiguration
     ) async -> DiscoveredFiles {

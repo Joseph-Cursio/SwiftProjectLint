@@ -128,6 +128,19 @@ and the catalog sites separately, and either alone kills it. The last is the one
 possible: SEI types an assignment target by node identity, so a per-file pass that re-parses its
 file answers a different question from the tree the facts were built from.
 
+### The universe's edges
+
+More in the same shape, from the adversarial review of that wiring and the shared spec's first
+amendment, which both consumers implement identically. Each puts back a way the universe disagreed
+with what the compiler builds.
+
+| id | shape | expected | killer |
+|---|---|---|---|
+| `purity-universe-classifies-symlink-target` | engine-wiring | killed | `linkIntoInRootTestsRefutes` |
+
+The first classifies a symlinked file at its target again: `Sources/Lib/Item.swift` linking to a
+file under `Tests/` is dropped as a test file, though SwiftPM compiles it into `Lib`.
+
 ### The `ConcreteTypeUsage` seam exemptions
 
 Two more, from the pass that took that rule 41 → 22. Both are **recall** mutants: they widen or

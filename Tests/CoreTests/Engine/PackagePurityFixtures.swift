@@ -1,5 +1,6 @@
 @testable import Core
 import Foundation
+@testable import SwiftProjectLintEngine
 import Testing
 
 /// What the package-purity wiring suites share: the `Item` fixture pair, the subjects, and a lint
@@ -98,6 +99,23 @@ enum PackagePurityFixtures {
 
     static func symbols(_ issues: [LintIssue]) -> Set<String> {
         Set(issues.filter { $0.ruleName == .pureFunctionCandidate }.compactMap(\.symbol))
+    }
+
+    // MARK: - The universe itself
+
+    /// The universe paths a run over `path` builds its table from — discovery and the shared parse
+    /// exactly as `analyzeProject` runs them, stopped before the analysis phases.
+    static func universe(at path: String, configuration: LintConfiguration = .default) async -> [String] {
+        let files = await ProjectLinter().discoverFiles(at: path, configuration: configuration)
+        return await ProjectLinter.sharedParse(files, projectRoot: path).purity.universe
+    }
+
+    /// Creates a symbolic link at `link` (relative to `root`) whose destination is `destination`,
+    /// written as given — relative destinations resolve from the link's own directory.
+    static func symlink(_ link: String, to destination: String, in root: String) throws {
+        let url = URL(fileURLWithPath: root).appendingPathComponent(link)
+        try FileManager.default.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
+        try FileManager.default.createSymbolicLink(atPath: url.path, withDestinationPath: destination)
     }
 }
 

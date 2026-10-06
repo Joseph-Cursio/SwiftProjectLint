@@ -281,6 +281,14 @@
       "expected": "killed",
       "test": "perFileRulesJudgeTheSharedTree",
       "label": "per-file analysis parses its own copy instead of judging the shared tree — SEI types an assignment target by node identity, so on a re-parse an assignment to a property declared twice under #if is typed by both declarations and refutes"
+    },
+    {
+      "id": "purity-universe-classifies-symlink-target",
+      "patch": "patches/purity-universe-classifies-symlink-target.patch",
+      "shape": "engine-wiring",
+      "expected": "killed",
+      "test": "linkIntoInRootTestsRefutes",
+      "label": "universePath classifies a symlinked file at its target again whenever the target is inside the root — Sources/Lib/Item.swift linking to Tests/Shared/Item.swift is read as a test file and dropped, so constructing the Item SwiftPM compiles into Lib reads as pure"
     }
   ]
 }
