@@ -206,7 +206,7 @@ class MyViewModel {
   which is SwiftProjectLint#163 and is shared with `DirectInstantiation` — see
   `CleanInstanceMethodCatalog.isPureKernel(_:)`. It removed four: `PromptBuilder` at three sites
   and `ThinkingAnalyzer` at one. Its purity test now sees what constructing a package type runs, so
-  a type whose method builds an identity-minting value stops qualifying; on the eight repositories
+  a type whose method builds an identity-minting value stops qualifying; on the seven repositories
   re-measured when that was wired, no finding moved.
 
   **It removed two more that it should not have, and that is the part worth keeping.** The first

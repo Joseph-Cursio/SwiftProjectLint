@@ -257,8 +257,8 @@ never as *"reachable"*.
 
 ### Not listed in the default report
 
-This rule is a **census**, and on a real codebase it is a large one: 287 findings here, alongside
-787 from [Pure Function Property-Test Candidate](pure-function-candidate.md) — together **66% of
+This rule is a **census**, and on a real codebase it is a large one: 288 findings here, alongside
+794 from [Pure Function Property-Test Candidate](pure-function-candidate.md) — together **66% of
 everything the linter prints**. A pure function is not a defect and there is nothing to fix per
 line, so enumerating them buries the findings that *are* defects. During this project's own road
 test the linter found a real bug in its configuration code, reported it correctly, and the finding
@@ -268,9 +268,9 @@ So `--format text` counts these findings in its summary and names them in a foot
 print one line each:
 
 ```
-Found 1635 issues (128 warnings, 1507 info)
+Found 1644 issues (128 warnings, 1516 info)
 
-1074 of these are property-test candidates, not listed above (787 Pure Function …, 287 Pure Closure …).
+1082 of these are property-test candidates, not listed above (794 Pure Function …, 288 Pure Closure …).
   See them:  --categories testability
   Use them:  --format pbt-seeds > .pbt/seeds.json
 ```

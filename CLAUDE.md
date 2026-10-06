@@ -82,7 +82,7 @@ swift test --filter CLITests
 
 ### Core Analysis Pipeline
 
-1. **File Discovery**: `FileAnalysisUtils` finds Swift files in a project — the reportable set, the evidence-only set (excluded paths), and the construction universe (every Swift file, no reporting filter)
+1. **File Discovery**: `FileAnalysisUtils` finds Swift files in a project — the reportable set, the evidence-only set (excluded paths), and the construction universe (every Swift file the root compiles, no reporting filter: a nested package only when the root's `.package(path:)` closure reaches it or the root has no manifest; a symlink classified where the link is; strict UTF-8 only)
 2. **AST Parsing**: SwiftSyntax parses each file once (`ProjectLinter.parseOnce`); every later phase walks those same trees — the package purity, every pre-scan collector (`collectTypes` and the body-needing catalogs), per-file and cross-file analysis
 3. **Package Purity**: `PackagePurity.build` turns the universe's production sources (`ConstructionUniverse`) into SEI's `ConstructionFacts`, bound as the task-local `PackagePurity.current` around phases 4-6 — every `PurityInferrer()` created inside reads it
 4. **Pre-scan**: `CollectedTypes.collect` builds the cross-file catalogs (`ProjectLinter+PreScan.swift`)
@@ -90,7 +90,7 @@ swift test --filter CLITests
 6. **Cross-File Analysis**: `CrossFileAnalysisEngine` detects issues spanning multiple files (duplicate state, view hierarchies)
 7. **Issue Aggregation**: Results collected into `LintIssue` objects
 
-Never create a `PurityInferrer` another way (SEI's directly, or `init(context:)` in `Sources/`), move analysis work off the task tree (`Task.detached`, dispatch queues), or keep an oracle in a `static`: each makes some verdicts in a run ignore the run's facts. `PurityOracleEntryTests` checks all three. Its one named exception is `LargeStackWorkers`, the 64 MB-stack threads that run only the shared parse and the facts build, before the binding: a deep file (a 1,000-arm `else if`, a 10,000-link member chain) overflows a cooperative thread's 512 KB and kills the process. The universe rule and `Docs/construction-universe.tsv` are shared with SwiftInferProperties — change both together.
+Never create a `PurityInferrer` another way (SEI's directly, or `init(context:)` in `Sources/`), move analysis work off the task tree (`Task.detached`, dispatch queues), or keep an oracle in a `static`: each makes some verdicts in a run ignore the run's facts. `PurityOracleEntryTests` checks all three. Its one named exception is `LargeStackWorkers`, the 64 MB-stack threads that run only the shared parse and the facts build, before the binding: a deep file (a 1,000-arm `else if`, a 10,000-link member chain) overflows a cooperative thread's 512 KB and kills the process. The universe rule and `Docs/construction-universe.tsv` are shared with SwiftInferProperties — change both together; that includes the spec's amendment 1 (`ConstructionUniverse.localPackageDependencies(manifest:)` and the nested-package bound, link-location classification, strict UTF-8).
 
 ### Visitor Architecture
 

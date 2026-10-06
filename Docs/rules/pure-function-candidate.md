@@ -249,16 +249,32 @@ SwiftInferProperties (the agreed rows are in [`Docs/construction-universe.tsv`](
 every `.swift` file under the lint root except a manifest and anything under a test-target folder
 (`Tests/`, `*Tests/`), a hidden directory or a build-product directory. **No reporting filter
 applies.** `excluded_paths`, `include_nested_packages` and the generated-file filter decide what is
-reported, not what is compiled, so a type declared in a nested package, a generated file or a
-directory you excluded still refutes the production code that builds it. Test-support targets,
-`Mocks/` and `Examples/` are kept too: they compile, and dropping a type production constructs
-would call its construction pure — the unsound direction.
+reported, not what is compiled, so a type declared in a nested package the root depends on, a
+generated file or a directory you excluded still refutes the production code that builds it.
+Test-support targets, `Mocks/` and `Examples/` are kept too: they compile, and dropping a type
+production constructs would call its construction pure — the unsound direction.
+
+**What bounds it is what the root compiles.** A nested package — a directory below the root with
+its own `Package.swift` — counts only when the root reaches it through `.package(path:)`
+dependencies, followed transitively. A manifest that computes a dependency's path counts every
+nested package, and so does a root with no `Package.swift` (an Xcode project, a workspace folder),
+since nothing cheap says what those compile. Leaving an unrelated package out is not tidiness:
+over-refuting is not harmless here. A `Demo/` package's own `Row`, minting a `UUID`, refuted the
+app's plain `Row(n:)`; that withdrew two candidates and cost the app's `ReportBuilder` its
+[Direct Instantiation](direct-instantiation.md) pure-kernel exemption, a new warning, in a run that
+had said it was not analysing `Demo/`. Three smaller rules complete it: a symlinked file counts
+**where the link is**, wherever its target lives; two paths to one file count once, as the smaller
+path; and a file that is not strict UTF-8 does not count, since no compiler reads it.
 
 What it still does not see:
 
 - **Types outside the lint root** — a dependency's, Foundation's (`URL(fileURLWithPath:)` above is
   judged by its name, not by what it runs), or a sibling package linted on its own. Lint the package
   root to put every first-party type in the universe.
+- **A symlinked directory's files.** The walk does not follow a link to a directory (a link to a
+  file it does follow), and neither does SwiftInferProperties'.
+- **A dependency declared only in a version-specific manifest** (`Package@swift-6.0.swift`): the
+  bound reads each package's `Package.swift`.
 - **What SwiftEffectInference leaves out by design**: an unlabelled `.init(…)` with no type context,
   a generic parameter or metatype constructed (`T()`, `type(of: x).init()`), literal conversion
   through `ExpressibleBy…Literal`, an enum case's associated-value default, a `deinit`, a property
@@ -272,15 +288,18 @@ What it still does not see:
   String` in another could leave a construction unrefuted. SEI now follows every alias a name may
   mean, and reads one its own type declares in that type.
 
-Measured with the release CLI at `main` and with the facts wired, JSON output, nine runs over eight
-repositories: **16 candidates withdrawn from SwiftCompilerFlagStudio** (default rules) and **1 from
-SwiftAssist** (`makeInsight`). Thirteen of the 17 build a model whose initializer defaults
-`id: UUID = UUID()`, or whose stored `id` does — `validate` constructs a `ValidationResult.Issue`,
-`computeDiff` a `SettingDiff`. The other four (`diffConfigurations`, `diffTargets`,
-`effectiveSettings`, `redundantSettings`) build nothing themselves and were withdrawn by the one-hop
-join, each calling one of the thirteen. Nothing was added, and SwiftProjectLint, SwiftLintRuleStudio (with and without its nested packages),
-SwiftUMLStudio, SwiftInferProperties and SwiftFormatRuleStudio did not move for this rule. The case
-that motivated the facts, SwiftLintRuleStudio's `generateRecommendations`, was never offered here:
+Measured with the release CLI at `main` and with the facts wired, JSON output, nine runs over seven
+repositories: **16 candidates withdrawn from SwiftCompilerFlagStudio** (default rules, through an
+empty `--config`) and **1 from SwiftAssist** (`makeInsight`). Thirteen of the 17 build a model whose
+initializer defaults `id: UUID = UUID()`, or whose stored `id` does — `validate` constructs a
+`ValidationResult.Issue`, `computeDiff` a `SettingDiff`. The other four (`diffConfigurations`,
+`diffTargets`, `effectiveSettings`, `redundantSettings`) build nothing themselves and were withdrawn
+by the one-hop join, each calling one of the thirteen. Nothing was added, and SwiftProjectLint,
+SwiftLintRuleStudio (with and without its nested packages), SwiftUMLStudio, SwiftInferProperties and
+SwiftFormatRuleStudio did not move for this rule; nor did SwiftCompilerFlagStudio under its own
+`.swiftprojectlint.yml`, which enables three rules and reports nothing on `main` or with the facts.
+The nested-package bound, link-location classification and the UTF-8 rule were re-measured over the
+same nine runs and moved no row of any rule. The case that motivated the facts, SwiftLintRuleStudio's `generateRecommendations`, was never offered here:
 `HealthRecommendation` is not `Equatable`, so the assertable-return gate already withheld it.
 
 ### Throwing candidates: pure but partial
@@ -335,8 +354,8 @@ you to narrow the very function this rule just flagged. That rule now names the 
 
 ### Not listed in the default report
 
-This rule is a **census**, and on a real codebase it is a large one: 787 findings here, alongside
-287 from [Pure Closure Property-Test Candidate](pure-closure-candidate.md) — together **66% of
+This rule is a **census**, and on a real codebase it is a large one: 794 findings here, alongside
+288 from [Pure Closure Property-Test Candidate](pure-closure-candidate.md) — together **66% of
 everything the linter prints**. A pure function is not a defect and there is nothing to fix per
 line, so enumerating them buries the findings that *are* defects. During this project's own road
 test the linter found a real bug in its configuration code, reported it correctly, and the finding
@@ -346,9 +365,9 @@ So `--format text` counts these findings in its summary and names them in a foot
 print one line each:
 
 ```
-Found 1635 issues (128 warnings, 1507 info)
+Found 1644 issues (128 warnings, 1516 info)
 
-1074 of these are property-test candidates, not listed above (787 Pure Function …, 287 Pure Closure …).
+1082 of these are property-test candidates, not listed above (794 Pure Function …, 288 Pure Closure …).
   See them:  --categories testability
   Use them:  --format pbt-seeds > .pbt/seeds.json
 ```
