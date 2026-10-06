@@ -116,4 +116,48 @@ struct ImpureCallInViewBodyVisitorTests {
         """)
         #expect(issues.count == 3)
     }
+
+    // MARK: - A marker's spelling on another value is not the marker
+
+    /// `doc.print` is a document's print action and `\.print` reads each job's `print`; neither
+    /// is a write to standard output. Both used to be reported as one.
+    @Test
+    func ignoresAnotherValuesMemberNamedLikeAMarker() {
+        let issues = analyze("""
+        struct ContentView: View {
+            let doc: Document
+            var body: some View {
+                Button("Print", action: doc.print)
+            }
+        }
+        """)
+        #expect(issues.isEmpty)
+    }
+
+    @Test
+    func ignoresKeyPathComponentNamedLikeAMarker() {
+        let issues = analyze("""
+        struct ContentView: View {
+            let jobs: [Job]
+            var body: some View {
+                Text("\\(jobs.filter(\\.print).count)")
+            }
+        }
+        """)
+        #expect(issues.isEmpty)
+    }
+
+    @Test
+    func flagsModuleQualifiedMarkers() {
+        // A module qualifier names the marker itself, so it is still reported.
+        let issues = analyze("""
+        struct ContentView: View {
+            var body: some View {
+                let _ = Swift.print("a")
+                Text("\\(Foundation.UserDefaults.standard.integer(forKey: "count"))")
+            }
+        }
+        """)
+        #expect(issues.count == 2)
+    }
 }

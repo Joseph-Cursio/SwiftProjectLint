@@ -160,6 +160,26 @@ struct ArchitectureBooleanControlCouplingViolationTests {
         #expect(analyzeBooleanControlCoupling(source).isEmpty == false)
     }
 
+    @Test func flagsBranchOnFlagWhoseArmsUseKeyPaths() throws {
+        // The flag itself still selects the path; key paths elsewhere do not hide that.
+        let source = """
+        struct Report {
+            func summary(of rules: [Rule], verbose: Bool) -> String {
+                if verbose {
+                    let lines = rules.map(\\.name)
+                    return lines.joined(separator: "\\n")
+                } else {
+                    return rules.map(\\.id).joined()
+                }
+            }
+        }
+        """
+        let issues = analyzeBooleanControlCoupling(source)
+        #expect(issues.count == 1)
+        let issue = try #require(issues.first)
+        #expect(issue.message.contains("'verbose'"))
+    }
+
     @Test func flagsElseIfBranchOnFlag() {
         // The flag drives the inner if of an else-if chain.
         let source = """

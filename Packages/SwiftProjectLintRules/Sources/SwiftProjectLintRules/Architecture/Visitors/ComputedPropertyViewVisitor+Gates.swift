@@ -127,8 +127,16 @@ extension ComputedPropertyViewVisitor {
 
     /// The name `node` refers to, if it refers to one. A member access counts only through
     /// `self`, because `other.property` is a reference to `other` and not to `property`.
+    ///
+    /// A key-path component is not a reference either. In `List(messages, id: \.title)`, `title`
+    /// is each message's, and counting it as the view's own `title` made `list` look as if it read
+    /// every input — so the one property worth extracting was the one never reported. The member
+    /// half of `m.title` leaked the same way: it is spelled with a `DeclReferenceExprSyntax`, so the
+    /// first branch below counted it whatever its base, contradicting the sentence above.
     static func insertReference(at node: Syntax, into names: inout Set<String>) {
-        if let reference = node.as(DeclReferenceExprSyntax.self) {
+        if let reference = node.as(DeclReferenceExprSyntax.self),
+           reference.isKeyPathComponentName == false,
+           reference.isMemberNameOfOtherBase == false {
             names.insert(stripped(reference.baseName.text))
         }
         if let member = node.as(MemberAccessExprSyntax.self),

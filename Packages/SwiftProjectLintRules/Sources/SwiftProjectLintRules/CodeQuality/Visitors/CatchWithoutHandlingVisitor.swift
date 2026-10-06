@@ -17,7 +17,9 @@ import SwiftSyntax
 ///   explicit handling — the test's framework consumes the recorded issue.
 /// - **References the error variable**: the implicit `error` binding (or the typed
 ///   catch pattern name) appears anywhere in the body — covers assignment to error
-///   state, passing to callbacks, string interpolation, etc.
+///   state, passing to callbacks, string interpolation, etc. It has to be the binding
+///   itself: a member or key-path component spelled the same (`result.error`,
+///   `\.error`) belongs to another value and does not count.
 /// - **Terminates explicitly**: calls `assertionFailure`, `fatalError`, or
 ///   `preconditionFailure`
 ///
@@ -169,8 +171,14 @@ final class CatchWithoutHandlingVisitor: BasePatternVisitor {
 
     // MARK: - Error Variable Reference Detection (crosses closures, not nested functions)
 
+    /// Whether `syntax` uses the caught error by name.
+    ///
+    /// Only a name looked up in scope is the caught error. `jobs.filter(\.error)` reads each
+    /// job's `error`, `result.error` reads the result's and `self.error` is a stored property;
+    /// none of them touches what was caught, and each used to count as handling it.
     func containsReference(to name: String, in syntax: Syntax) -> Bool {
-        if let ref = syntax.as(DeclReferenceExprSyntax.self), ref.baseName.text == name {
+        if let ref = syntax.as(DeclReferenceExprSyntax.self), ref.baseName.text == name,
+           ref.isLexicalReference {
             return true
         }
         // Don't cross into nested function declarations (separate scope / separate error)

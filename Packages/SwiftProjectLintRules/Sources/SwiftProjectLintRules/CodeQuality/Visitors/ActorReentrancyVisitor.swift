@@ -187,9 +187,17 @@ final class ActorReentrancyVisitor: BasePatternVisitor {
         }
     }
 
-    /// Collects all `DeclReferenceExprSyntax` base names reachable from `syntax`.
+    /// Collects the names reachable from `syntax` that can refer to a local or to one of the
+    /// actor's own properties.
+    ///
+    /// A key-path component and a member of some other value are skipped: in
+    /// `await send(jobs.map(\.isLoading))` the operand reads each job's `isLoading`, not the
+    /// actor's, so it must not mark the actor's `isLoading` as a resource the await consumes. It
+    /// used to, and the plain-condition filter then dropped a true `guard !isLoading` finding.
     private func collectDeclRefNames(in syntax: Syntax, into names: inout Set<String>) {
-        if let declRef = syntax.as(DeclReferenceExprSyntax.self) {
+        if let declRef = syntax.as(DeclReferenceExprSyntax.self),
+           declRef.isKeyPathComponentName == false,
+           declRef.isMemberNameOfOtherBase == false {
             names.insert(declRef.baseName.text)
         }
         for child in syntax.children(viewMode: .sourceAccurate) {
@@ -298,10 +306,18 @@ final class ActorReentrancyVisitor: BasePatternVisitor {
         return found
     }
 
+    /// The stored properties `syntax` reads, bare (`isLoading`) or through `self`
+    /// (`self.isLoading`).
+    ///
+    /// A name that merely matches is not enough. `jobs.contains(where: \.isLoading)` reads each
+    /// job's `isLoading` and `job.isLoading` reads one job's; neither is the actor's gate, and both
+    /// used to be reported as a check of it.
     private func findPropertyReferences(in syntax: Syntax, matching names: Set<String>) -> Set<String> {
         var found: Set<String> = []
 
-        if let declRef = syntax.as(DeclReferenceExprSyntax.self) {
+        if let declRef = syntax.as(DeclReferenceExprSyntax.self),
+           declRef.isKeyPathComponentName == false,
+           declRef.isMemberNameOfOtherBase == false {
             if names.contains(declRef.baseName.text) {
                 found.insert(declRef.baseName.text)
             }

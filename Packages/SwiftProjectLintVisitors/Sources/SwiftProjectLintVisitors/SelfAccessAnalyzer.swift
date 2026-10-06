@@ -346,7 +346,7 @@ enum SelfAccessAnalyzer {
             // root type. Only the name is skipped: the arguments of a subscript component
             // (`\.[index]`) are separate children and are still genuine reads, so they are still
             // collected.
-            if Self.isKeyPathComponentName(node) {
+            if node.isKeyPathComponentName {
                 return .visitChildren
             }
 
@@ -375,19 +375,6 @@ enum SelfAccessAnalyzer {
                 )
             )
             return .visitChildren
-        }
-
-        /// Whether `node` is the name of a key-path component, as opposed to an argument inside one.
-        ///
-        /// Property components only. Method components (`\.uppercased()`) are an experimental
-        /// language feature behind swift-syntax's `ExperimentalLanguageFeatures` SPI, and the
-        /// default parser does not produce them: it reads `\.uppercased()` as a call applied to
-        /// the property key path `\.uppercased`, which this already covers.
-        private static func isKeyPathComponentName(_ node: DeclReferenceExprSyntax) -> Bool {
-            guard let property = node.parent?.as(KeyPathPropertyComponentSyntax.self) else {
-                return false
-            }
-            return property.declName.id == Syntax(node).id
         }
 
         /// Whether `node` sits inside a `catch` clause that names no pattern, and so binds `error`.

@@ -95,6 +95,9 @@ final class ImpureCallInViewBodyVisitor: BasePatternVisitor {
         let markers: Set<String>
         var findings: [(marker: String, node: Syntax)] = []
 
+        /// Module names a marker may be qualified with and still be the marker.
+        private static let moduleQualifiers: Set<String> = ["Swift", "Foundation", "Dispatch"]
+
         init(markers: Set<String>) {
             self.markers = markers
             super.init(viewMode: .sourceAccurate)
@@ -102,10 +105,24 @@ final class ImpureCallInViewBodyVisitor: BasePatternVisitor {
 
         override func visit(_ node: DeclReferenceExprSyntax) -> SyntaxVisitorContinueKind {
             let name = node.baseName.text
-            if markers.contains(name) {
+            if markers.contains(name), Self.namesTheMarker(node) {
                 findings.append((marker: name, node: Syntax(node)))
             }
             return .visitChildren
+        }
+
+        /// Whether `node` is the marker itself rather than something that shares its spelling.
+        ///
+        /// Every marker is a type or a free function, reached bare or module-qualified
+        /// (`Swift.print`, `Foundation.FileManager`). A member of anything else is that value's
+        /// own: `doc.print` is a document's print action, not a write to standard output. A
+        /// key-path component is a member of the key path's root, so `jobs.filter(\.print)` is
+        /// not one either. Both used to be reported.
+        private static func namesTheMarker(_ node: DeclReferenceExprSyntax) -> Bool {
+            if node.isKeyPathComponentName { return false }
+            guard node.isMemberName else { return true }
+            let base = node.parent?.as(MemberAccessExprSyntax.self)?.base?.as(DeclReferenceExprSyntax.self)
+            return base.map { moduleQualifiers.contains($0.baseName.text) } ?? false
         }
     }
 }

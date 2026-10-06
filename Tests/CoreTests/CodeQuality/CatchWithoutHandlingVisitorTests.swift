@@ -146,6 +146,36 @@ struct CatchWithoutHandlingVisitorTests {
         #expect(visitor.detectedIssues.isEmpty)
     }
 
+    // MARK: - Positive Cases: the same spelling is not the caught error
+
+    /// A key-path component or a member spelled `error` belongs to another value, so it does not
+    /// touch what was caught. Each of these used to count as handling it.
+    @Test("Flags catch whose only `error` is a key path or a member", arguments: [
+        "do { try work() } catch { failed = jobs.filter(\\.error) }",
+        "do { try work() } catch { failed = result.error }",
+        "do { try work() } catch { self.error = nil }",
+        "do { try work() } catch let failure { message = response.failure }"
+    ])
+    func flagsNameThatIsNotTheCaughtError(source: String) {
+        let visitor = makeVisitor()
+        run(visitor, source: source)
+        #expect(visitor.detectedIssues.count == 1)
+    }
+
+    @Test("A key path naming any other member is flagged, as it always was")
+    func flagsKeyPathNamingAnotherMember() {
+        let visitor = makeVisitor()
+        run(visitor, source: "do { try work() } catch { failed = jobs.filter(\\.failed) }")
+        #expect(visitor.detectedIssues.count == 1)
+    }
+
+    @Test("The caught error beside a same-named key path is still handling")
+    func caughtErrorBesideSameNamedKeyPathIsHandling() {
+        let visitor = makeVisitor()
+        run(visitor, source: "do { try work() } catch { failed = jobs.filter(\\.error); last = error }")
+        #expect(visitor.detectedIssues.isEmpty)
+    }
+
     @Test("Respects typed catch pattern name")
     func respectsTypedCatchPatternName() {
         let source = """

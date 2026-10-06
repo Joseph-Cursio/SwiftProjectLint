@@ -86,8 +86,14 @@ final class URLSessionUnhandledErrorVisitor: BasePatternVisitor {
 
     // MARK: - Reference Detection
 
+    /// Whether `syntax` uses the closure's error parameter by name.
+    ///
+    /// Only a name looked up in scope is the parameter. In `decode(data).filter(\.error)` the key
+    /// path reads each row's `error`, and `response.error` is a member of something else; neither
+    /// checks whether the request failed, and both used to count as doing so.
     func containsReference(to name: String, in syntax: Syntax) -> Bool {
-        if let ref = syntax.as(DeclReferenceExprSyntax.self), ref.baseName.text == name {
+        if let ref = syntax.as(DeclReferenceExprSyntax.self), ref.baseName.text == name,
+           ref.isLexicalReference {
             return true
         }
         return syntax.children(viewMode: .sourceAccurate)

@@ -172,14 +172,15 @@ final class BooleanControlCouplingVisitor: BasePatternVisitor {
     }
 
     /// Returns the name of a parameter referenced as a value inside `node`,
-    /// ignoring identifiers that are the member half of an `obj.member` access
-    /// (so `config.flag` does not match a parameter named `flag`).
+    /// ignoring identifiers that only share its name: the member half of an
+    /// `obj.member` access (so `config.flag` does not match a parameter named
+    /// `flag`), and a key-path component (so `rules.contains(where: \.verbose)`
+    /// does not match a parameter named `verbose` — it reads each rule's own
+    /// `verbose`, exactly as `{ $0.verbose }` would).
     private func referencedParameter(in node: Syntax, names: Set<String>) -> String? {
-        if let ref = node.as(DeclReferenceExprSyntax.self), names.contains(ref.baseName.text) {
-            let isMemberRHS = node.parent?.as(MemberAccessExprSyntax.self)?.declName == ref
-            if isMemberRHS == false {
-                return ref.baseName.text
-            }
+        if let ref = node.as(DeclReferenceExprSyntax.self), names.contains(ref.baseName.text),
+           ref.isLexicalReference {
+            return ref.baseName.text
         }
         for child in node.children(viewMode: .sourceAccurate) {
             if let found = referencedParameter(in: child, names: names) {

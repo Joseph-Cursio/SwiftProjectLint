@@ -224,7 +224,7 @@ final class VariableShadowingVisitor: BasePatternVisitor {
     func initializerReferences(name: String, in binding: PatternBindingSyntax) -> Bool {
         guard let initializer = binding.initializer else { return false }
         return initializer.value.tokens(viewMode: .sourceAccurate).contains { token in
-            token.tokenKind == .identifier(name)
+            isReference(token, to: name)
         }
     }
 
@@ -232,7 +232,21 @@ final class VariableShadowingVisitor: BasePatternVisitor {
     /// Used to skip `for x in x` patterns (analogous to `if let x = x`).
     func sequenceReferences(name: String, in sequence: ExprSyntax) -> Bool {
         sequence.tokens(viewMode: .sourceAccurate).contains { token in
-            token.tokenKind == .identifier(name)
+            isReference(token, to: name)
         }
+    }
+
+    /// Whether `token` is a use of the outer `name`, not merely the same spelling.
+    ///
+    /// Both checks above used to accept any identifier token, so `let total =
+    /// orders.map(\.total).reduce(0, +)` read as a rebinding of `total` and the
+    /// shadow went unreported: the key path reads each order's `total`, never the
+    /// outer one. A member name (`order.total`) and an argument label
+    /// (`f(total: 1)`) are the same spelling for the same reason. A subscript
+    /// component's argument (`\.[total]`) is a genuine use and still counts.
+    private func isReference(_ token: TokenSyntax, to name: String) -> Bool {
+        guard token.tokenKind == .identifier(name),
+              let reference = token.parent?.as(DeclReferenceExprSyntax.self) else { return false }
+        return reference.isLexicalReference
     }
 }
