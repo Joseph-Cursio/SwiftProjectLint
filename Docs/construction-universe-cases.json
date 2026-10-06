@@ -41,6 +41,16 @@
         "Packages/A",
         "Packages/B"
       ]
+    },
+    {
+      "manifest": "// .package(path: \"Old\"),\nlet package = Package(name: \"P\", dependencies: [\n    /* .package(path: \"Older\"), */\n    .package(path: \"New\")\n])",
+      "expected": [
+        "New"
+      ]
+    },
+    {
+      "manifest": "let name = \"Core\"\nlet package = Package(name: \"P\", dependencies: [.package(path: \"Packages/\\(name)\")])",
+      "expected": null
     }
   ],
   "buildOrder": [
