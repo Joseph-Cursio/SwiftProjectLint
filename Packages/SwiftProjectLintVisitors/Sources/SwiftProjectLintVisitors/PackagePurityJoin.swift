@@ -157,8 +157,10 @@ public struct PackagePurityJoin: Sendable {
 
         case .declaredAsync, .declaredThrows,
              .sideEffectMarker, .nondeterministicMarker, .nondeterminismSource,
-             .fileRead, .partiality, .refutingDefaultArgument,
+             .fileRead, .partiality, .refutingDefaultArgument, .refutingConstruction,
              .mutatesCapturedState, .notAGetter:
+            // `.refutingConstruction` names the type and the stored default, initializer or
+            // superclass that runs the effect — a construct, not the oracle's blindness.
             return true
         }
     }

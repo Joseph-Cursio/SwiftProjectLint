@@ -3,7 +3,7 @@ import SwiftSyntax
 
 /// **What makes a piece of code impure, grouped the way a reader has to act on it.**
 ///
-/// `PurityRefutation` is SEI's vocabulary: eleven cases, one per refuter, each naming the construct
+/// `PurityRefutation` is SEI's vocabulary: twelve cases, one per refuter, each naming the construct
 /// it found. That is the right shape for an oracle and the wrong shape for a work list. Five of those
 /// cases are two pieces of advice between them — a bare `Date` token and an AST-classified
 /// `mach_absolute_time()` are both *inject the source*, and `print` and `String(contentsOf:)` are both
@@ -122,6 +122,11 @@ public struct Impurity: Sendable, Equatable {
             // scanning for; the parameter survives in the witness, which is where to look.
             return cause(of: underlying)
 
+        case .refutingConstruction(_, _, let underlying):
+            // The same reasoning: constructing a type is a place the effect is reached from, not a
+            // kind of effect. `let id = UUID()` in the type is nondeterminism wherever it is built.
+            return cause(of: underlying)
+
         case .propagatedTry, .noBody, .notAGetter:
             return .opaque
         }
@@ -149,8 +154,26 @@ public struct Impurity: Sendable, Equatable {
         case let .refutingDefaultArgument(parameter, underlying):
             return "\(parameter)'s default: \(witness(of: underlying))"
 
+        case let .refutingConstruction(type, step, underlying):
+            return "\(constructionStep(type, step)): \(witness(of: underlying))"
+
         case .propagatedTry, .noBody, .notAGetter:
             return ""
+        }
+    }
+
+    /// Where constructing `type` reached the effect, as a reader would point at it:
+    /// `HealthRecommendation.id's default`, `Event.init(now:)`, `Sub, a subclass of Base`.
+    private static func constructionStep(_ type: String, _ step: PurityRefutation.ConstructionStep) -> String {
+        switch step {
+        case .storedProperty(let property):
+            return "\(type).\(property)'s default"
+
+        case .initializer(let signature):
+            return "\(type).\(signature)"
+
+        case .superclass(let superclass):
+            return "\(type), a subclass of \(superclass)"
         }
     }
 }
