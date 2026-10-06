@@ -1,0 +1,14 @@
+diff --git a/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/DeclReferenceExprSyntax+NamePosition.swift b/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/DeclReferenceExprSyntax+NamePosition.swift
+index c3e9a875..30c1fba7 100644
+--- a/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/DeclReferenceExprSyntax+NamePosition.swift
++++ b/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/DeclReferenceExprSyntax+NamePosition.swift
+@@ -56,8 +56,7 @@ extension DeclReferenceExprSyntax {
+         }
+         guard var base = access.base else { return true }
+         while let unwrapped = base.as(OptionalChainingExprSyntax.self)?.expression
+-            ?? base.as(ForceUnwrapExprSyntax.self)?.expression
+-            ?? Self.parenthesized(base) {
++            ?? base.as(ForceUnwrapExprSyntax.self)?.expression {
+             base = unwrapped
+         }
+         return base.as(DeclReferenceExprSyntax.self)?.baseName.tokenKind != .keyword(.self)

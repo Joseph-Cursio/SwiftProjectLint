@@ -186,6 +186,11 @@ parameter, local or stored property called `name`. Each of the first ten puts on
 | `impure-marker-matched-on-any-member` | detector-precision | killed | `ignoresKeyPathComponentNamedLikeAMarker` |
 | `shorthand-parameter-read-as-projected-value` | detector-recall | killed | `testShorthandClosureParametersAreNotCombine` |
 | `member-of-self-read-as-other-base` | detector-precision | killed | `thePropertyItselfInAnAwaitOperandStillSuppresses` |
+| `actor-reentrancy-member-operand-hides-the-gate` | detector-recall | killed | `anotherValuesMemberInAwaitOperandDoesNotHideTheGate` |
+| `parenthesized-self-read-as-other-base` | detector-recall | killed | `aParenthesizedSelfIsStillTheGate` |
+| `catch-pattern-bindings-ignored` | detector-precision | killed | `usingABoundNameIsHandling` |
+| `catch-implicit-member-counted-as-caught-error` | detector-recall | killed | `flagsNameThatIsNotTheCaughtError` |
+| `shadowing-capture-list-not-a-use` | detector-precision | killed | `genuineRebindingIsExempt` |
 
 Most of them are recall mutants, and that is the shape the bug mostly took: a name that only
 matched was read as the thing being looked for. A catch then looks handled, a shadow looks like

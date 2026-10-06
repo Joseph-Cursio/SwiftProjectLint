@@ -1,0 +1,14 @@
+diff --git a/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/CodeQuality/Visitors/ActorReentrancyVisitor.swift b/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/CodeQuality/Visitors/ActorReentrancyVisitor.swift
+index 5c44e563..1dd246b3 100644
+--- a/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/CodeQuality/Visitors/ActorReentrancyVisitor.swift
++++ b/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/CodeQuality/Visitors/ActorReentrancyVisitor.swift
+@@ -198,8 +198,7 @@ final class ActorReentrancyVisitor: BasePatternVisitor {
+     /// used to, and the plain-condition filter then dropped a true `guard !isLoading` finding.
+     private func collectDeclRefNames(in syntax: Syntax, into names: inout Set<String>) {
+         if let declRef = syntax.as(DeclReferenceExprSyntax.self),
+-           declRef.isKeyPathComponentName == false,
+-           declRef.isMemberNameOfOtherBase == false {
++           declRef.isKeyPathComponentName == false {
+             names.insert(declRef.baseName.text)
+         }
+         for child in syntax.children(viewMode: .sourceAccurate) {

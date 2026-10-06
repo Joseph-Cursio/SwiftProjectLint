@@ -1,6 +1,6 @@
 {
   "kind": "spm",
-  "note": "Private mutation/regression corpus for SwiftProjectLint (a SwiftPM monorepo \u2014 rules live under Packages/*). Mutants live in a detector's own source; each is killed by the root package's CoreTests. Run via `swift test --filter`. Not a scored benchmark. Two shapes: the ExtractableTotalKernelVisitor (the \u00a715.2.5 'lift the trapped kernel' rule) and the ComputedPropertyViewVisitor's gates.",
+  "note": "Private mutation/regression corpus for SwiftProjectLint (a SwiftPM monorepo — rules live under Packages/*). Mutants live in a detector's own source; each is killed by the root package's CoreTests. Run via `swift test --filter`. Not a scored benchmark. Two shapes: the ExtractableTotalKernelVisitor (the §15.2.5 'lift the trapped kernel' rule) and the ComputedPropertyViewVisitor's gates.",
   "mutants": [
     {
       "id": "kernel-governs-always-false",
@@ -8,7 +8,7 @@
       "shape": "detector-recall",
       "expected": "killed",
       "test": "chunkingKernelIsCandidate",
-      "label": "isWorthExtracting's `governs` is forced false \u2014 a genuine chunking kernel is never surfaced"
+      "label": "isWorthExtracting's `governs` is forced false — a genuine chunking kernel is never surfaced"
     },
     {
       "id": "kernel-scans-pure-functions",
@@ -16,7 +16,7 @@
       "shape": "detector-precision",
       "expected": "killed",
       "test": "pureFunctionIsNotReported",
-      "label": "the purity guard is inverted \u2014 the rule scans pure functions (which ARE the kernel) instead of the impure methods that trap one"
+      "label": "the purity guard is inverted — the rule scans pure functions (which ARE the kernel) instead of the impure methods that trap one"
     },
     {
       "id": "kernel-worth-extracting-always-true",
@@ -24,7 +24,7 @@
       "shape": "detector-precision",
       "expected": "killed",
       "test": "arithmeticWithoutAGoverningUseIsNotReported",
-      "label": "isWorthExtracting returns true unconditionally \u2014 merely-stored arithmetic (assigned, not governing) is falsely flagged"
+      "label": "isWorthExtracting returns true unconditionally — merely-stored arithmetic (assigned, not governing) is falsely flagged"
     },
     {
       "id": "kernel-ignores-ambient-state",
@@ -32,7 +32,7 @@
       "shape": "detector-precision",
       "expected": "killed",
       "test": "continuousClockElapsedIsNotAKernel",
-      "label": "the ambient-state guard is removed \u2014 a clock read (`ContinuousClock.now - lastActivityAt`) is reported as a kernel that 'depends only on its parameters and locals'"
+      "label": "the ambient-state guard is removed — a clock read (`ContinuousClock.now - lastActivityAt`) is reported as a kernel that 'depends only on its parameters and locals'"
     },
     {
       "id": "toolbar-not-a-decomposing-container",
@@ -40,7 +40,7 @@
       "shape": "detector-precision",
       "expected": "killed",
       "test": "toolbarItemGroupContentsAreNotReported",
-      "label": "the toolbar names are dropped from decomposingContainers \u2014 the rule again advises wrapping a ToolbarItemGroup's two buttons in one View struct, which places one toolbar item where there were two"
+      "label": "the toolbar names are dropped from decomposingContainers — the rule again advises wrapping a ToolbarItemGroup's two buttons in one View struct, which places one toolbar item where there were two"
     },
     {
       "id": "split-type-members-assumed-visible",
@@ -48,7 +48,7 @@
       "shape": "detector-precision",
       "expected": "killed",
       "test": "siblingInAnotherFileIsNotReported",
-      "label": "reachesHiddenMember always returns false \u2014 a property forwarding to a sibling declared in another file reads as depending on nothing, which is the strongest possible pass of the narrowing gate"
+      "label": "reachesHiddenMember always returns false — a property forwarding to a sibling declared in another file reads as depending on nothing, which is the strongest possible pass of the narrowing gate"
     },
     {
       "id": "same-file-extension-treated-as-hidden",
@@ -56,7 +56,7 @@
       "shape": "detector-recall",
       "expected": "killed",
       "test": "sameFileExtensionIsMerged",
-      "label": "hiddenMembers stops subtracting the extensions in the file under analysis \u2014 every type with a same-file extension goes silent, an over-gate introduced by the fix for an under-gate"
+      "label": "hiddenMembers stops subtracting the extensions in the file under analysis — every type with a same-file extension goes silent, an over-gate introduced by the fix for an under-gate"
     },
     {
       "id": "prescan-catalog-built-then-dropped",
@@ -64,7 +64,7 @@
       "shape": "engine-wiring",
       "expected": "killed",
       "test": "everyCatalogIsInjectedPerFile",
-      "label": "the pre-scan's clean-instance-method catalog is built and then never assigned to the per-file detector \u2014 the linter reports fewer property-test candidates, correctly formatted, with no error anywhere"
+      "label": "the pre-scan's clean-instance-method catalog is built and then never assigned to the per-file detector — the linter reports fewer property-test candidates, correctly formatted, with no error anywhere"
     },
     {
       "id": "platform-prefix-set-widened",
@@ -72,7 +72,7 @@
       "shape": "detector-recall",
       "expected": "killed",
       "test": "twoLetterPrefixCollisionIsPinned",
-      "label": "the AppKit/UIKit prefix set grows to every Apple two-letter prefix \u2014 CLIToolCommandRunner begins CL + uppercase and goes silent for a reason unrelated to why it should be silent"
+      "label": "the AppKit/UIKit prefix set grows to every Apple two-letter prefix — CLIToolCommandRunner begins CL + uppercase and goes silent for a reason unrelated to why it should be silent"
     },
     {
       "id": "computed-property-counts-as-storage",
@@ -80,7 +80,7 @@
       "shape": "detector-recall",
       "expected": "killed",
       "test": "closureWrapperIsNotReported",
-      "label": "the closure-wrapper collector counts computed properties as storage \u2014 `var now: Date { make() }` is the wrapper's whole point, so every real instance stops qualifying and the exemption reaches nothing"
+      "label": "the closure-wrapper collector counts computed properties as storage — `var now: Date { make() }` is the wrapper's whole point, so every real instance stops qualifying and the exemption reaches nothing"
     },
     {
       "id": "kernel-storage-test-inverted-to-denylist",
@@ -88,7 +88,7 @@
       "shape": "detector-recall",
       "expected": "killed",
       "test": "storedCollaboratorDisqualifiesEvenWhenUnnamedInBodies",
-      "label": "the pure-kernel storage test becomes a denylist (only unreadable spellings disqualify) \u2014 the first implementation, which exempted a type storing UserDefaults and one storing a SwiftData ModelContainer"
+      "label": "the pure-kernel storage test becomes a denylist (only unreadable spellings disqualify) — the first implementation, which exempted a type storing UserDefaults and one storing a SwiftData ModelContainer"
     },
     {
       "id": "key-path-component-read-as-self",
@@ -96,7 +96,7 @@
       "shape": "detector-recall",
       "expected": "killed",
       "test": "aKeyPathPropertyComponentNoLongerRefutes",
-      "label": "SelfAccessAnalyzer collects key-path component names again \u2014 `rules.filter(\\.value.enabled)` reads as `self.value` and refuses the method, and through the clean-method catalog every caller"
+      "label": "SelfAccessAnalyzer collects key-path component names again — `rules.filter(\\.value.enabled)` reads as `self.value` and refuses the method, and through the clean-method catalog every caller"
     },
     {
       "id": "key-path-skip-reaches-subscript-arguments",
@@ -104,7 +104,7 @@
       "shape": "detector-precision",
       "expected": "killed",
       "test": "aSubscriptComponentsArgumentIsStillARead",
-      "label": "the key-path skip is widened to everything under a KeyPathExprSyntax \u2014 `rows.map(\\.[index])` stops reading `index`, so a method reading mutable state through a subscript component is admitted"
+      "label": "the key-path skip is widened to everything under a KeyPathExprSyntax — `rows.map(\\.[index])` stops reading `index`, so a method reading mutable state through a subscript component is admitted"
     },
     {
       "id": "boolean-coupling-key-path-read-as-the-flag",
@@ -112,7 +112,7 @@
       "shape": "detector-precision",
       "expected": "killed",
       "test": "ignoresKeyPathComponentSharingParameterName",
-      "label": "BooleanControlCoupling skips only member names again, not key-path components \u2014 `rules.contains(where: \\.verbose)` reads as a branch on the `verbose` parameter and is reported as control coupling"
+      "label": "BooleanControlCoupling skips only member names again, not key-path components — `rules.contains(where: \\.verbose)` reads as a branch on the `verbose` parameter and is reported as control coupling"
     },
     {
       "id": "actor-reentrancy-key-path-read-as-the-gate",
@@ -120,7 +120,7 @@
       "shape": "detector-precision",
       "expected": "killed",
       "test": "keyPathComponentInConditionIsNotTheGate",
-      "label": "ActorReentrancy's condition scan matches any name again \u2014 `guard !jobs.contains(where: \\.isLoading)` and `guard !job.isLoading` read as checks of the actor's own `isLoading` and are reported"
+      "label": "ActorReentrancy's condition scan matches any name again — `guard !jobs.contains(where: \\.isLoading)` and `guard !job.isLoading` read as checks of the actor's own `isLoading` and are reported"
     },
     {
       "id": "actor-reentrancy-key-path-operand-hides-the-gate",
@@ -128,7 +128,7 @@
       "shape": "detector-recall",
       "expected": "killed",
       "test": "keyPathComponentInAwaitOperandDoesNotHideTheGate",
-      "label": "ActorReentrancy's await-operand scan matches any name again \u2014 `await send(jobs.map(\\.isLoading))` reads as consuming the actor's `isLoading`, and a genuine unguarded `guard !isLoading` is dropped"
+      "label": "ActorReentrancy's await-operand scan matches any name again — `await send(jobs.map(\\.isLoading))` reads as consuming the actor's `isLoading`, and a genuine unguarded `guard !isLoading` is dropped"
     },
     {
       "id": "computed-view-key-path-counted-as-dependency",
@@ -136,7 +136,7 @@
       "shape": "detector-recall",
       "expected": "killed",
       "test": "keyPathComponentIsNotADependency",
-      "label": "ComputedPropertyView counts every DeclReferenceExpr as a dependency again \u2014 `List(messages, id: \\.title)` reads as depending on the view's `title`, so the property seems to read every input and is never reported"
+      "label": "ComputedPropertyView counts every DeclReferenceExpr as a dependency again — `List(messages, id: \\.title)` reads as depending on the view's `title`, so the property seems to read every input and is never reported"
     },
     {
       "id": "composition-root-key-path-counted-as-use",
@@ -144,7 +144,7 @@
       "shape": "detector-recall",
       "expected": "killed",
       "test": "keyPathComponentSharingTheBindingsNameIsNotAUse",
-      "label": "NonInjectedNondeterminism counts a key-path component as a use of the local binding again \u2014 `let id = UUID(); Order(id: id, lineIDs: lines.map(\\.id))` loses the composition-root message"
+      "label": "NonInjectedNondeterminism counts a key-path component as a use of the local binding again — `let id = UUID(); Order(id: id, lineIDs: lines.map(\\.id))` loses the composition-root message"
     },
     {
       "id": "shadowing-key-path-counted-as-rebinding",
@@ -152,7 +152,7 @@
       "shape": "detector-recall",
       "expected": "killed",
       "test": "keyPathComponentDoesNotExemptTheShadow",
-      "label": "VariableShadowing's rebinding check matches any identifier token again \u2014 `let total = orders.map(\\.total).reduce(0, +)` passes as a rebinding of `total` and the shadow goes unreported"
+      "label": "VariableShadowing's rebinding check matches any identifier token again — `let total = orders.map(\\.total).reduce(0, +)` passes as a rebinding of `total` and the shadow goes unreported"
     },
     {
       "id": "catch-key-path-counted-as-caught-error",
@@ -160,7 +160,7 @@
       "shape": "detector-recall",
       "expected": "killed",
       "test": "flagsNameThatIsNotTheCaughtError",
-      "label": "CatchWithoutHandling counts any `error` spelling as the caught error again \u2014 `filter(\\.error)`, `result.error` and `self.error = nil` read as handling it, and the swallowing catch is not reported"
+      "label": "CatchWithoutHandling counts any `error` spelling as the caught error again — `filter(\\.error)`, `result.error` and `self.error = nil` read as handling it, and the swallowing catch is not reported"
     },
     {
       "id": "urlsession-key-path-counted-as-error-parameter",
@@ -168,7 +168,7 @@
       "shape": "detector-recall",
       "expected": "killed",
       "test": "detectsNameThatIsNotTheErrorParameter",
-      "label": "URLSessionUnhandledError counts any `error` spelling as the parameter again \u2014 `decode(data).filter(\\.error)` reads as checking the request's error, and the unchecked handler is not reported"
+      "label": "URLSessionUnhandledError counts any `error` spelling as the parameter again — `decode(data).filter(\\.error)` reads as checking the request's error, and the unchecked handler is not reported"
     },
     {
       "id": "impure-marker-matched-on-any-member",
@@ -176,7 +176,7 @@
       "shape": "detector-precision",
       "expected": "killed",
       "test": "ignoresKeyPathComponentNamedLikeAMarker",
-      "label": "ImpureCallInViewBody matches a marker's spelling anywhere again \u2014 `jobs.filter(\\.print)` and `doc.print` in a view body are reported as calls to `print`"
+      "label": "ImpureCallInViewBody matches a marker's spelling anywhere again — `jobs.filter(\\.print)` and `doc.print` in a view body are reported as calls to `print`"
     },
     {
       "id": "shorthand-parameter-read-as-projected-value",
@@ -184,7 +184,7 @@
       "shape": "detector-recall",
       "expected": "killed",
       "test": "testShorthandClosureParametersAreNotCombine",
-      "label": "IOS17ObservationMigration takes any `$` prefix for a projected value again \u2014 `items.reduce(0) { $0 + $1 }` reads as Combine use and a plain @Published store gets no migration suggestion"
+      "label": "IOS17ObservationMigration takes any `$` prefix for a projected value again — `items.reduce(0) { $0 + $1 }` reads as Combine use and a plain @Published store gets no migration suggestion"
     },
     {
       "id": "member-of-self-read-as-other-base",
@@ -192,7 +192,47 @@
       "shape": "detector-precision",
       "expected": "killed",
       "test": "thePropertyItselfInAnAwaitOperandStillSuppresses",
-      "label": "the shared isMemberNameOfOtherBase treats `self` as another base \u2014 the over-correction: `self.connection` stops counting as the actor's property in an await operand, and a resource guard `guard connection != nil` is reported"
+      "label": "the shared isMemberNameOfOtherBase treats `self` as another base — the over-correction: `self.connection` stops counting as the actor's property in an await operand, and a resource guard `guard connection != nil` is reported"
+    },
+    {
+      "id": "actor-reentrancy-member-operand-hides-the-gate",
+      "patch": "patches/actor-reentrancy-member-operand-hides-the-gate.patch",
+      "shape": "detector-recall",
+      "expected": "killed",
+      "test": "anotherValuesMemberInAwaitOperandDoesNotHideTheGate",
+      "label": "Actor Reentrancy counts another value's member in an await operand as the actor's property — `await send(job.isLoading)` marks `isLoading` as a consumed resource and a genuine `guard !isLoading` is dropped"
+    },
+    {
+      "id": "parenthesized-self-read-as-other-base",
+      "patch": "patches/parenthesized-self-read-as-other-base.patch",
+      "shape": "detector-recall",
+      "expected": "killed",
+      "test": "aParenthesizedSelfIsStillTheGate",
+      "label": "isMemberNameOfOtherBase does not see through parentheses — `guard !(self).isLoading` stops being the actor's gate"
+    },
+    {
+      "id": "catch-pattern-bindings-ignored",
+      "patch": "patches/catch-pattern-bindings-ignored.patch",
+      "shape": "detector-precision",
+      "expected": "killed",
+      "test": "usingABoundNameIsHandling",
+      "label": "Catch Without Handling reads only `error` — `catch let e as DecodingError { self.lastError = e }` and `catch AppError.invalid(let message) { status = message }` are reported though they use what was caught"
+    },
+    {
+      "id": "catch-implicit-member-counted-as-caught-error",
+      "patch": "patches/catch-implicit-member-counted-as-caught-error.patch",
+      "shape": "detector-recall",
+      "expected": "killed",
+      "test": "flagsNameThatIsNotTheCaughtError",
+      "label": "Catch Without Handling counts an implicit member spelled `error` as the caught error — `catch { state = .error }` looks handled"
+    },
+    {
+      "id": "shadowing-capture-list-not-a-use",
+      "patch": "patches/shadowing-capture-list-not-a-use.patch",
+      "shape": "detector-precision",
+      "expected": "killed",
+      "test": "genuineRebindingIsExempt",
+      "label": "Variable Shadowing does not read a capture list — `let handler = { [handler] in … }` captures the outer `handler` and is reported as a shadow"
     }
   ]
 }
