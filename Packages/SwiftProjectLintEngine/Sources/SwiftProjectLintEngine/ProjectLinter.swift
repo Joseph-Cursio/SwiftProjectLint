@@ -105,12 +105,8 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
 
         // Every file is read and parsed once, and the package purity is built from those same
         // trees: SEI matches by node identity, so the facts and the verdicts that consult them
-        // must share a parse. The table then holds the universe-only trees it needs; the map
-        // keeps only what the phases below walk.
-        let shared = await Self.parseOnce(files, projectRoot: path)
-        let purity = PackagePurity.build(
-            from: Self.constructionSources(files.constructionUniverse, in: shared)
-        )
+        // must share a parse.
+        let (purity, shared) = await Self.sharedParse(files, projectRoot: path)
         let project = DiscoveredProject(
             path: path,
             files: files,
@@ -118,7 +114,7 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
             categories: categories,
             ruleIdentifiers: ruleIdentifiers,
             detector: detector,
-            shared: shared.filter { $0.value.content != nil }
+            shared: shared
         )
 
         // Bound once, around the pre-scan, the per-file task group and cross-file analysis: every

@@ -87,6 +87,20 @@ extension ProjectLinter {
         }
     }
 
+    /// Parses every file once and builds the run's package purity from those trees.
+    ///
+    /// Returns the analysable files' sources only. The universe-only trees the facts need stay
+    /// alive inside the facts; the rest — a nested package's files that declare no type, say — are
+    /// released when this returns rather than held for the whole run.
+    static func sharedParse(
+        _ files: DiscoveredFiles,
+        projectRoot: String
+    ) async -> (purity: PackagePurity, analysable: [String: SharedSource]) {
+        let shared = await parseOnce(files, projectRoot: projectRoot)
+        let purity = PackagePurity.build(from: constructionSources(files.constructionUniverse, in: shared))
+        return (purity, shared.filter { $0.value.content != nil })
+    }
+
     /// The universe's `(path, tree)` pairs for `PackagePurity.build`, which filters and sorts them.
     static func constructionSources(
         _ universe: [String],
