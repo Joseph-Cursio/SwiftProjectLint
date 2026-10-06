@@ -4,7 +4,8 @@ import SwiftSyntax
 /// **The one-hop callee join: a function that calls a package function this same
 /// oracle refutes is not a purity candidate.**
 ///
-/// `PurityInferrer` decides each declaration in isolation. So
+/// `PurityInferrer` decides each declaration in isolation — apart from what
+/// constructing a package type runs, which `PackagePurity` hands it. So
 /// `standardOutputViaEnv`, whose one-line body calls a `standardOutput` that
 /// spawns a subprocess and drains two pipes, is judged `.pure` — the callee's
 /// verdict is computed and then never consulted. This type consults it.

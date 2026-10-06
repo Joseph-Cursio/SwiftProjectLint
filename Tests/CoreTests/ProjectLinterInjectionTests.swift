@@ -121,7 +121,15 @@ struct ProjectLinterInjectionTests {
         #expect(analyzer.callCount == 1)
         let call = try #require(discovery.recordedCalls.first)
         #expect(call.directory == "/tmp/project-under-test")
-        #expect(discovery.recordedCalls.count == 1)
+
+        // The default config leaves nested packages out of reporting, so the construction
+        // universe — every Swift file, no reporting filter at all — takes one more walk, last.
+        #expect(discovery.recordedCalls.count == 2)
+        let universe = try #require(discovery.recordedCalls.last)
+        #expect(universe.directory == "/tmp/project-under-test")
+        #expect(universe.excludedPaths.isEmpty)
+        #expect(universe.excludedFilenames.isEmpty)
+        #expect(universe.includeNestedPackages)
     }
 
     /// Per-file analysis covers exactly the files discovery returns: a returned file
@@ -180,5 +188,9 @@ struct ProjectLinterInjectionTests {
         let call = try #require(discovery.recordedCalls.first)
         #expect(call.includeNestedPackages)
         #expect(call.excludedPaths.contains("Generated"))
+
+        // With nested packages in scope, the exclusion-free evidence walk is also the
+        // construction universe, so no third walk is taken.
+        #expect(discovery.recordedCalls.count == 2)
     }
 }

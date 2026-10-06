@@ -280,6 +280,10 @@ extension ProjectLinter {
         /// somebody set it.
         let enabledFrameworkAllowlists: Set<String>?
         let layerPolicies: [LayerPolicy]
+
+        /// The run's one parse, by discovery path — the trees the package purity was built from.
+        /// A file analysed from here is judged on the tree the facts know, not on a re-parse.
+        let shared: [String: SharedSource]
     }
 
     /// Convenience wrapper around `analyzeFile(at:projectRoot:...)` that
@@ -315,7 +319,8 @@ extension ProjectLinter {
             closureWrapperTypes: env.closureWrapperTypes,
             cleanInstanceMethods: env.cleanInstanceMethods,
             enabledFrameworkAllowlists: env.enabledFrameworkAllowlists,
-            layerPolicies: env.layerPolicies
+            layerPolicies: env.layerPolicies,
+            shared: env.shared[filePath]
         )
     }
 
@@ -347,10 +352,11 @@ extension ProjectLinter {
         closureWrapperTypes: ClosureWrapperTypeCatalog = .empty,
         cleanInstanceMethods: CleanInstanceMethodCatalog = .empty,
         enabledFrameworkAllowlists: Set<String>? = nil,
-        layerPolicies: [LayerPolicy] = []
+        layerPolicies: [LayerPolicy] = [],
+        shared: SharedSource? = nil
     ) -> (file: ProjectFile, issues: [LintIssue], parsedAST: SourceFileSyntax)? {
         guard !Task.isCancelled else { return nil }
-        guard let content = try? String(contentsOfFile: filePath) else { return nil }
+        guard let content = shared?.content ?? (try? String(contentsOfFile: filePath)) else { return nil }
 
         let relativePath = Self.relativePath(for: filePath, projectRoot: projectRoot)
 
@@ -359,7 +365,7 @@ extension ProjectLinter {
             content: content,
             relativePath: relativePath
         )
-        let parsedAST = Parser.parse(source: content)
+        let parsedAST = shared?.tree ?? Parser.parse(source: content)
         let det = SourcePatternDetector(registry: registry)
         det.knownIdentifiableTypes = identifiableTypes
         det.knownObservableEnvironmentViews = observableEnvironmentViews
@@ -417,18 +423,23 @@ extension ProjectLinter {
     /// running per-file detection: they contribute to the cross-file walk but cannot
     /// produce reported issues (see the call site for why exclusion is a reporting
     /// filter, not an evidence filter). Unreadable files are skipped.
+    ///
+    /// A file in `sources` — the run's shared parse — is taken from there, so the cross-file walk
+    /// sees the same tree the package purity was built from.
     static func parseEvidenceFiles(
         at filePaths: [String],
-        projectRoot: String
+        projectRoot: String,
+        sources: [String: SharedSource] = [:]
     ) -> [(file: ProjectFile, ast: SourceFileSyntax)] {
         filePaths.compactMap { filePath in
-            guard let content = try? String(contentsOfFile: filePath) else { return nil }
+            let source = sources[filePath]
+            guard let content = source?.content ?? (try? String(contentsOfFile: filePath)) else { return nil }
             let file = ProjectFile(
                 name: (filePath as NSString).lastPathComponent,
                 content: content,
                 relativePath: Self.relativePath(for: filePath, projectRoot: projectRoot)
             )
-            return (file: file, ast: Parser.parse(source: content))
+            return (file: file, ast: source?.tree ?? Parser.parse(source: content))
         }
     }
 

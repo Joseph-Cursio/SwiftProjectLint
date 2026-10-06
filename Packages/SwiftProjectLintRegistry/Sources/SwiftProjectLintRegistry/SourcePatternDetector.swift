@@ -94,6 +94,10 @@ public final class SourcePatternDetector: SourcePatternDetectorProtocol, @unchec
     /// Runs single-file rules only. Cross-file rules need every file of the project and are
     /// run by `CrossFileAnalysisEngine`.
     ///
+    /// Called on its own, with no package around the file, the purity oracle runs unconfigured —
+    /// `PackagePurity.current` is bound only by `ProjectLinter.analyzeProject` — just as the
+    /// `known*` catalogs are empty unless that pre-scan set them.
+    ///
     /// - Parameters:
     ///   - sourceCode: The Swift source code to analyze.
     ///   - filePath: The file path for the source code (used for issue reporting).
