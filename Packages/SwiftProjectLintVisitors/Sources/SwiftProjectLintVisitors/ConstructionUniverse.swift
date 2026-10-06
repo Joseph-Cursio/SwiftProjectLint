@@ -49,8 +49,9 @@
 /// What the root **compiles**. A nested package is in only when the root reaches it through local
 /// path dependencies, or when the root has no manifest to say — see
 /// ``compiledNestedPackages(_:rootHasManifest:rootPath:manifest:)``. A symlinked file is classified
-/// where the link is, and two entries that are one file on disk are one entry. Both are the shared
-/// spec's first amendment.
+/// where the link is, and two entries that are one file on disk are one entry. A file that does not
+/// decode as strict UTF-8 is out, since no compiler reads it. All three are the shared spec's first
+/// amendment.
 public enum ConstructionUniverse {
 
     /// Directory names whose contents are build products or third-party checkouts. The walk in

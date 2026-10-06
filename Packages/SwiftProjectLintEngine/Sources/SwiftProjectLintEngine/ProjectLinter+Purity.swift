@@ -195,6 +195,12 @@ extension ProjectLinter {
         let keepsContent: Bool
     }
 
+    /// Reads and parses one file.
+    ///
+    /// **Universe membership needs strict UTF-8** (the shared spec's amendment C): `swiftc` rejects
+    /// a UTF-16 source outright, so no target compiles one, and SwiftInferProperties skips it. The
+    /// lenient read, which detects UTF-16 by its BOM, is kept only for a file the run reports on or
+    /// uses as evidence — reporting is unchanged — and such a file then has no universe path.
     private static func read(_ job: ParseJob, projectRoot: String) -> (path: String, source: SharedSource)? {
         guard !Task.isCancelled else { return nil }
         let universePath = universePath(for: job.path, projectRoot: projectRoot)
@@ -202,9 +208,11 @@ extension ProjectLinter {
             guard let universePath,
                   ConstructionUniverse.isProductionSource(relativePath: universePath) else { return nil }
         }
-        guard let content = try? String(contentsOfFile: job.path) else { return nil }
+        let strict = try? String(contentsOfFile: job.path, encoding: .utf8)
+        let lenient = strict == nil && job.keepsContent ? try? String(contentsOfFile: job.path) : nil
+        guard let content = strict ?? lenient else { return nil }
         let source = SharedSource(
-            universePath: universePath,
+            universePath: strict == nil ? nil : universePath,
             content: job.keepsContent ? content : nil,
             tree: Parser.parse(source: content)
         )
