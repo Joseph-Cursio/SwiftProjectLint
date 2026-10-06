@@ -105,6 +105,46 @@ struct IOS17ObservationMigrationVisitorTests {
         #expect(issues.isEmpty)
     }
 
+    /// `$0` and `$1` are a closure's shorthand parameters, not projected values. A bare `$` prefix
+    /// took them for Combine and withheld the suggestion from a class that uses none.
+    @Test func testShorthandClosureParametersAreNotCombine() throws {
+        let source = """
+        final class Store: ObservableObject {
+            @Published var items: [Int] = []
+            var total: Int { items.reduce(0) { $0 + $1 } }
+            var labels: [String] { items.map { $0.description } }
+        }
+        """
+        let issues = filteredIssues(source)
+        let issue = try #require(issues.first)
+        #expect(issues.count == 1)
+        #expect(issue.message.contains("high"))
+    }
+
+    @Test func testNamedClosureParametersAreNotCombine() throws {
+        let source = """
+        final class Store: ObservableObject {
+            @Published var items: [Int] = []
+            var total: Int { items.reduce(0) { sum, item in sum + item } }
+        }
+        """
+        let issues = filteredIssues(source)
+        let issue = try #require(issues.first)
+        #expect(issues.count == 1)
+        #expect(issue.message.contains("high"))
+    }
+
+    @Test func testProjectedValueAsMemberBaseIsStillCombine() {
+        let source = """
+        final class Store: ObservableObject {
+            @Published var items: [Int] = []
+            var count: Int { items.reduce(0) { $0 + $1 } }
+            func watch() { _ = $items.dropFirst() }
+        }
+        """
+        #expect(filteredIssues(source).isEmpty)
+    }
+
     @Test func testSuppressesNSObjectSubclass() {
         let source = """
         class LegacyModel: NSObject, ObservableObject {

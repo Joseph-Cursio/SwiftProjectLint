@@ -57,6 +57,38 @@ struct URLSessionUnhandledErrorVisitorTests {
         #expect(visitor.detectedIssues.count == 1)
     }
 
+    /// A key-path component or another value's member spelled like the parameter does not check
+    /// whether the request failed. Both used to count as doing so.
+    @Test("Detects a handler whose only `error` is a key path or another value's member", arguments: [
+        """
+        URLSession.shared.dataTask(with: url) { data, response, error in
+            self.rows = decode(data).filter(\\.error)
+        }.resume()
+        """,
+        """
+        URLSession.shared.dataTask(with: url) { data, response, error in
+            self.status = decode(data).error
+        }.resume()
+        """
+    ])
+    func detectsNameThatIsNotTheErrorParameter(source: String) {
+        let visitor = makeVisitor()
+        run(visitor, source: source)
+        #expect(visitor.detectedIssues.count == 1)
+    }
+
+    @Test
+    func detectsKeyPathNamingAnotherMember() {
+        let source = """
+        URLSession.shared.dataTask(with: url) { data, response, error in
+            self.rows = decode(data).filter(\\.failed)
+        }.resume()
+        """
+        let visitor = makeVisitor()
+        run(visitor, source: source)
+        #expect(visitor.detectedIssues.count == 1)
+    }
+
     // MARK: - Negative Cases
 
     @Test("No issue when error parameter is checked", arguments: [

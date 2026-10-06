@@ -1,0 +1,13 @@
+diff --git a/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/Architecture/Visitors/BooleanControlCouplingVisitor.swift b/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/Architecture/Visitors/BooleanControlCouplingVisitor.swift
+index 04ee1c20..e2251780 100644
+--- a/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/Architecture/Visitors/BooleanControlCouplingVisitor.swift
++++ b/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/Architecture/Visitors/BooleanControlCouplingVisitor.swift
+@@ -179,7 +179,7 @@ final class BooleanControlCouplingVisitor: BasePatternVisitor {
+     /// `verbose`, exactly as `{ $0.verbose }` would).
+     private func referencedParameter(in node: Syntax, names: Set<String>) -> String? {
+         if let ref = node.as(DeclReferenceExprSyntax.self), names.contains(ref.baseName.text),
+-           ref.isLexicalReference {
++           ref.isMemberName == false {
+             return ref.baseName.text
+         }
+         for child in node.children(viewMode: .sourceAccurate) {

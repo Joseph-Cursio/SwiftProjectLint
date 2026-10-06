@@ -1,0 +1,13 @@
+diff --git a/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/CodeQuality/Visitors/VariableShadowingVisitor.swift b/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/CodeQuality/Visitors/VariableShadowingVisitor.swift
+index 3c8aa6e2..de06c7a3 100644
+--- a/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/CodeQuality/Visitors/VariableShadowingVisitor.swift
++++ b/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/CodeQuality/Visitors/VariableShadowingVisitor.swift
+@@ -252,7 +252,6 @@ final class VariableShadowingVisitor: BasePatternVisitor {
+            capture.initializer == nil {
+             return true
+         }
+-        guard let reference = token.parent?.as(DeclReferenceExprSyntax.self) else { return false }
+-        return reference.isLexicalReference
++        return true
+     }
+ }

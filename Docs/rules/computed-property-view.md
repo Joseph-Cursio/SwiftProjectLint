@@ -45,6 +45,11 @@ Dependencies are followed **transitively** through the type's other computed pro
 that reads nothing itself but calls one that reads `isExpanded` depends on `isExpanded`. Without
 that, every wrapper property looks input-free and all of them fire.
 
+A dependency is an input the property reads, bare or through `self`. A key-path component or
+another value's member that shares an input's name is not one: in `List(messages, id: \.title)`
+or `Text(message.title)`, `title` is the message's. Counting it made such a property look as if it
+read every input, so the one most worth extracting went unreported.
+
 This is a *necessary* condition for the diffing benefit, not a sufficient one — a two-line `Text`
 gains little either way — but it is the condition the rule can check. A property depending on four
 of five inputs still passes and its benefit is marginal; no threshold has a principled defence, so

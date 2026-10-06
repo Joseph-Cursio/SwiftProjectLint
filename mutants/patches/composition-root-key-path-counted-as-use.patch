@@ -1,0 +1,14 @@
+diff --git a/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/Testability/Visitors/NonInjectedNondeterminismVisitor+Placement.swift b/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/Testability/Visitors/NonInjectedNondeterminismVisitor+Placement.swift
+index fac244e5..8b527950 100644
+--- a/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/Testability/Visitors/NonInjectedNondeterminismVisitor+Placement.swift
++++ b/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/Testability/Visitors/NonInjectedNondeterminismVisitor+Placement.swift
+@@ -219,8 +219,7 @@ extension NonInjectedNondeterminismVisitor {
+     private func walkReferences(named name: String, in scope: Syntax, _ visit: (Syntax) -> Void) {
+         for child in scope.children(viewMode: .sourceAccurate) {
+             if let reference = child.as(DeclReferenceExprSyntax.self),
+-               reference.baseName.text == name,
+-               reference.isLexicalReference {
++               reference.baseName.text == name {
+                 visit(Syntax(reference))
+             }
+             walkReferences(named: name, in: child, visit)

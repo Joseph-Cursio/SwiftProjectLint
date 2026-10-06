@@ -210,10 +210,17 @@ extension NonInjectedNondeterminismVisitor {
         return nil
     }
 
+    /// Every use of the local `name` in `scope`.
+    ///
+    /// Only a name looked up in scope is a use. In `Order(id: id, lineIDs: lines.map(\.id))` the
+    /// key path reads each line's `id`, and counting it as a use of the binding put a use in a
+    /// position that is not an argument, so the composition root lost its message to a key path
+    /// that never touched the read. A member name (`line.id`) is not a use of the binding either.
     private func walkReferences(named name: String, in scope: Syntax, _ visit: (Syntax) -> Void) {
         for child in scope.children(viewMode: .sourceAccurate) {
             if let reference = child.as(DeclReferenceExprSyntax.self),
-               reference.baseName.text == name {
+               reference.baseName.text == name,
+               reference.isLexicalReference {
                 visit(Syntax(reference))
             }
             walkReferences(named: name, in: child, visit)

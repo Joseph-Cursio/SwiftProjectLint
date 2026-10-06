@@ -107,6 +107,32 @@ struct NonInjectedNondeterminismCompositionRootTests {
         #expect(!isCompositionRoot(source))
     }
 
+    /// A key-path component spelled like the binding is not a use of it. `\.id` reads each line's
+    /// `id`, and counting it put a use of the binding outside an argument, so the read lost this
+    /// message to an expression that never touched it.
+    @Test func keyPathComponentSharingTheBindingsNameIsNotAUse() {
+        let source = """
+        func make(_ lines: [Line]) -> Order {
+            let id = UUID()
+            return Order(id: id, lineIDs: lines.map(\\.id))
+        }
+        """
+        #expect(analyze(source).count == 1)
+        #expect(isCompositionRoot(source))
+    }
+
+    /// The closure spelling of the same expression, which always kept the message.
+    @Test func closureReadingAMemberSharingTheBindingsNameIsNotAUse() {
+        let source = """
+        func make(_ lines: [Line]) -> Order {
+            let id = UUID()
+            return Order(id: id, lineIDs: lines.map { $0.id })
+        }
+        """
+        #expect(analyze(source).count == 1)
+        #expect(isCompositionRoot(source))
+    }
+
     // MARK: - Receivers are uses, not hand-offs
 
     /// Every real defect this rule has produced across the corpus reads the clock into a receiver

@@ -1,0 +1,13 @@
+diff --git a/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/CodeQuality/Visitors/CatchWithoutHandlingVisitor.swift b/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/CodeQuality/Visitors/CatchWithoutHandlingVisitor.swift
+index 634b4e02..aed479b5 100644
+--- a/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/CodeQuality/Visitors/CatchWithoutHandlingVisitor.swift
++++ b/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/CodeQuality/Visitors/CatchWithoutHandlingVisitor.swift
+@@ -79,7 +79,7 @@ final class CatchWithoutHandlingVisitor: BasePatternVisitor {
+             guard let pattern = item.pattern else { continue }
+             Self.collectBoundNames(in: Syntax(pattern), into: &names)
+         }
+-        return names.isEmpty ? ["error"] : names
++        return ["error"]
+     }
+ 
+     private static func collectBoundNames(in syntax: Syntax, into names: inout Set<String>) {

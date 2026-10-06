@@ -15,9 +15,13 @@ import SwiftSyntax
 ///   `} catch is ExpectedError { … }` followed by `Issue.record(...)` for the
 ///   unhandled-shape case. The presence of `Issue.record` in the catch body is
 ///   explicit handling — the test's framework consumes the recorded issue.
-/// - **References the error variable**: the implicit `error` binding (or the typed
-///   catch pattern name) appears anywhere in the body — covers assignment to error
-///   state, passing to callbacks, string interpolation, etc.
+/// - **References the error variable**: the implicit `error` binding, or any name the
+///   catch pattern binds (`catch let e as DecodingError`, `catch AppError.invalid(let
+///   message)`), appears anywhere in the body — covers assignment to error state,
+///   passing to callbacks, string interpolation, etc. It has to be the binding itself:
+///   a member, implicit member or key-path component spelled the same
+///   (`result.error`, `state = .error`, `\.error`) belongs to another value and does
+///   not count.
 /// - **Terminates explicitly**: calls `assertionFailure`, `fatalError`, or
 ///   `preconditionFailure`
 ///
@@ -56,34 +60,36 @@ final class CatchWithoutHandlingVisitor: BasePatternVisitor {
         if containsTestingDiagnosticCall(in: bodySyntax) { return true }
         if containsTerminatingCall(in: bodySyntax) { return true }
 
-        let errorVar = catchErrorVariableName(node)
-        if containsReference(to: errorVar, in: bodySyntax) { return true }
+        let names = caughtNames(node)
+        if names.contains(where: { containsReference(to: $0, in: bodySyntax) }) { return true }
 
         return false
     }
 
-    // MARK: - Error Variable Name
+    // MARK: - Error Variable Names
 
-    /// Returns the name of the error variable bound in the catch clause.
-    /// Defaults to `"error"` for untyped `catch { }` blocks.
-    private func catchErrorVariableName(_ node: CatchClauseSyntax) -> String {
-        guard let firstItem = node.catchItems.first,
-              let pattern = firstItem.pattern else {
-            return "error"
+    /// Every name the catch clause binds: `error` for an untyped `catch { }`, and otherwise each
+    /// name its patterns bind — `e` in `catch let e as SomeError`, `message` in
+    /// `catch AppError.invalid(let message)`. Using any of them uses what was caught. A typed arm
+    /// that binds nothing (`catch is CancellationError`) falls back to `error`, which it does not
+    /// bind, so only rethrowing, logging or terminating handles it.
+    private func caughtNames(_ node: CatchClauseSyntax) -> Set<String> {
+        var names: Set<String> = []
+        for item in node.catchItems {
+            guard let pattern = item.pattern else { continue }
+            Self.collectBoundNames(in: Syntax(pattern), into: &names)
         }
+        return names.isEmpty ? ["error"] : names
+    }
 
-        // catch let name  /  catch let name as SomeError
-        if let binding = pattern.as(ValueBindingPatternSyntax.self),
-           let identifier = binding.pattern.as(IdentifierPatternSyntax.self) {
-            return identifier.identifier.text
+    private static func collectBoundNames(in syntax: Syntax, into names: inout Set<String>) {
+        if let identifier = syntax.as(IdentifierPatternSyntax.self) {
+            names.insert(identifier.identifier.text)
+            return
         }
-
-        // catch name (no `let`)
-        if let identifier = pattern.as(IdentifierPatternSyntax.self) {
-            return identifier.identifier.text
+        for child in syntax.children(viewMode: .sourceAccurate) {
+            collectBoundNames(in: child, into: &names)
         }
-
-        return "error"
     }
 
     // MARK: - Throw Detection (does not cross closure/function boundaries)
@@ -169,8 +175,14 @@ final class CatchWithoutHandlingVisitor: BasePatternVisitor {
 
     // MARK: - Error Variable Reference Detection (crosses closures, not nested functions)
 
+    /// Whether `syntax` uses the caught error by name.
+    ///
+    /// Only a name looked up in scope is the caught error. `jobs.filter(\.error)` reads each
+    /// job's `error`, `result.error` reads the result's and `self.error` is a stored property;
+    /// none of them touches what was caught, and each used to count as handling it.
     func containsReference(to name: String, in syntax: Syntax) -> Bool {
-        if let ref = syntax.as(DeclReferenceExprSyntax.self), ref.baseName.text == name {
+        if let ref = syntax.as(DeclReferenceExprSyntax.self), ref.baseName.text == name,
+           ref.isLexicalReference {
             return true
         }
         // Don't cross into nested function declarations (separate scope / separate error)

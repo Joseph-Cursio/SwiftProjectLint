@@ -1,12 +1,12 @@
 diff --git a/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/SelfAccessAnalyzer.swift b/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/SelfAccessAnalyzer.swift
-index 0e8ed9bd..530a10d0 100644
+index 8ac434e0..02477522 100644
 --- a/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/SelfAccessAnalyzer.swift
 +++ b/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/SelfAccessAnalyzer.swift
 @@ -346,10 +346,6 @@ enum SelfAccessAnalyzer {
              // root type. Only the name is skipped: the arguments of a subscript component
              // (`\.[index]`) are separate children and are still genuine reads, so they are still
              // collected.
--            if Self.isKeyPathComponentName(node) {
+-            if node.isKeyPathComponentName {
 -                return .visitChildren
 -            }
 -

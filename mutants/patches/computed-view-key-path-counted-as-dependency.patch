@@ -1,0 +1,15 @@
+diff --git a/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/Architecture/Visitors/ComputedPropertyViewVisitor+Gates.swift b/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/Architecture/Visitors/ComputedPropertyViewVisitor+Gates.swift
+index bcb1cf19..8641c752 100644
+--- a/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/Architecture/Visitors/ComputedPropertyViewVisitor+Gates.swift
++++ b/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/Architecture/Visitors/ComputedPropertyViewVisitor+Gates.swift
+@@ -134,9 +134,7 @@ extension ComputedPropertyViewVisitor {
+     /// half of `m.title` leaked the same way: it is spelled with a `DeclReferenceExprSyntax`, so the
+     /// first branch below counted it whatever its base, contradicting the sentence above.
+     static func insertReference(at node: Syntax, into names: inout Set<String>) {
+-        if let reference = node.as(DeclReferenceExprSyntax.self),
+-           reference.isKeyPathComponentName == false,
+-           reference.isMemberNameOfOtherBase == false {
++        if let reference = node.as(DeclReferenceExprSyntax.self) {
+             names.insert(stripped(reference.baseName.text))
+         }
+         if let member = node.as(MemberAccessExprSyntax.self),

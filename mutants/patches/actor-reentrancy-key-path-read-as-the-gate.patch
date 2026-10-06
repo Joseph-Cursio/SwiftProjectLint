@@ -1,0 +1,15 @@
+diff --git a/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/CodeQuality/Visitors/ActorReentrancyVisitor.swift b/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/CodeQuality/Visitors/ActorReentrancyVisitor.swift
+index a85c8b7a..69a751bc 100644
+--- a/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/CodeQuality/Visitors/ActorReentrancyVisitor.swift
++++ b/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/CodeQuality/Visitors/ActorReentrancyVisitor.swift
+@@ -315,9 +315,7 @@ final class ActorReentrancyVisitor: BasePatternVisitor {
+     private func findPropertyReferences(in syntax: Syntax, matching names: Set<String>) -> Set<String> {
+         var found: Set<String> = []
+ 
+-        if let declRef = syntax.as(DeclReferenceExprSyntax.self),
+-           declRef.isKeyPathComponentName == false,
+-           declRef.isMemberNameOfOtherBase == false {
++        if let declRef = syntax.as(DeclReferenceExprSyntax.self) {
+             if names.contains(declRef.baseName.text) {
+                 found.insert(declRef.baseName.text)
+             }

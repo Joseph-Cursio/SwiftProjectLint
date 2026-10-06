@@ -1,0 +1,19 @@
+diff --git a/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/DeclReferenceExprSyntax+NamePosition.swift b/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/DeclReferenceExprSyntax+NamePosition.swift
+index c3e9a875..61000908 100644
+--- a/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/DeclReferenceExprSyntax+NamePosition.swift
++++ b/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/DeclReferenceExprSyntax+NamePosition.swift
+@@ -54,13 +54,7 @@ extension DeclReferenceExprSyntax {
+         guard let access = parent?.as(MemberAccessExprSyntax.self), access.declName.id == id else {
+             return false
+         }
+-        guard var base = access.base else { return true }
+-        while let unwrapped = base.as(OptionalChainingExprSyntax.self)?.expression
+-            ?? base.as(ForceUnwrapExprSyntax.self)?.expression
+-            ?? Self.parenthesized(base) {
+-            base = unwrapped
+-        }
+-        return base.as(DeclReferenceExprSyntax.self)?.baseName.tokenKind != .keyword(.self)
++        return true
+     }
+ 
+     /// The expression inside `(expression)` — a one-element tuple with no label, which is how

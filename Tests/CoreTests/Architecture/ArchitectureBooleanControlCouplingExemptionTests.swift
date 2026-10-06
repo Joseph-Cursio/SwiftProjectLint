@@ -100,6 +100,41 @@ struct ArchitectureBooleanControlCouplingExemptionTests {
         #expect(analyzeBooleanControlCoupling(source).isEmpty)
     }
 
+    @Test func ignoresKeyPathComponentSharingParameterName() {
+        // `\.verbose` reads each rule's own `verbose`, as `{ $0.verbose }` would. The
+        // parameter is never read, so nothing here is selected by the caller.
+        let source = """
+        struct Report {
+            func summary(of rules: [Rule], verbose: Bool) -> String {
+                if rules.contains(where: \\.verbose) {
+                    let lines = rules.map(\\.name)
+                    return lines.joined(separator: "\\n")
+                } else {
+                    return rules.map(\\.id).joined()
+                }
+            }
+        }
+        """
+        #expect(analyzeBooleanControlCoupling(source).isEmpty)
+    }
+
+    @Test func ignoresClosureReadingAMemberSharingParameterName() {
+        // The closure spelling of the same condition, which was never reported.
+        let source = """
+        struct Report {
+            func summary(of rules: [Rule], verbose: Bool) -> String {
+                if rules.contains(where: { $0.verbose }) {
+                    let lines = rules.map(\\.name)
+                    return lines.joined(separator: "\\n")
+                } else {
+                    return rules.map(\\.id).joined()
+                }
+            }
+        }
+        """
+        #expect(analyzeBooleanControlCoupling(source).isEmpty)
+    }
+
     @Test func ignoresStdlibCapacityConventionFlag() {
         // `keepCapacity` mirrors `removeAll(keepingCapacity:)` — exempt even
         // though it branches two ways.

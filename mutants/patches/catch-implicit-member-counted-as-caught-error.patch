@@ -1,0 +1,13 @@
+diff --git a/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/CodeQuality/Visitors/CatchWithoutHandlingVisitor.swift b/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/CodeQuality/Visitors/CatchWithoutHandlingVisitor.swift
+index 634b4e02..bf3acd23 100644
+--- a/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/CodeQuality/Visitors/CatchWithoutHandlingVisitor.swift
++++ b/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/CodeQuality/Visitors/CatchWithoutHandlingVisitor.swift
+@@ -182,7 +182,7 @@ final class CatchWithoutHandlingVisitor: BasePatternVisitor {
+     /// none of them touches what was caught, and each used to count as handling it.
+     func containsReference(to name: String, in syntax: Syntax) -> Bool {
+         if let ref = syntax.as(DeclReferenceExprSyntax.self), ref.baseName.text == name,
+-           ref.isLexicalReference {
++           ref.isLexicalReference || ref.isMemberNameOfOtherBase && ref.parent?.as(MemberAccessExprSyntax.self)?.base == nil {
+             return true
+         }
+         // Don't cross into nested function declarations (separate scope / separate error)
