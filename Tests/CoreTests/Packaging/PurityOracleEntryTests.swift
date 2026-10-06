@@ -118,6 +118,15 @@ struct PurityOracleEntryTests {
 
     // MARK: - The scan
 
+    @Test("the scan reads repository-relative paths, wherever the checkout lives")
+    func scannedPathsAreRepositoryRelative() {
+        // Every rule above matches on these paths; one spelled wrong makes each of them fail for
+        // a reason that has nothing to do with the rule. This names the actual fault once.
+        let misread = Self.sources.map(\.path).filter { !($0.hasPrefix("Sources/") || $0.hasPrefix("Packages/")) }
+        #expect(misread.isEmpty, "paths not relative to the repository root: \(misread.prefix(3))")
+        #expect(Self.sources.contains { $0.path == Self.projectLinter }, "the scan did not see ProjectLinter.swift")
+    }
+
     private static let visitorsSources = "Packages/SwiftProjectLintVisitors/Sources/"
     private static let wrapper = visitorsSources + "SwiftProjectLintVisitors/PurityInferrer.swift"
     private static let packagePurity = visitorsSources + "SwiftProjectLintVisitors/PackagePurity.swift"
@@ -146,21 +155,29 @@ struct PurityOracleEntryTests {
     }
 
     /// Every Swift file under `Sources/` and `Packages/*/Sources/`, parsed once for the suite.
+    ///
+    /// Each path is built from a prefix this scan names (`Sources`, `Packages/<name>/Sources`) and
+    /// the path the walker reports **relative to the directory it walks** — never by slicing one
+    /// spelling of the root off another. That slicing broke in any checkout under a symlinked
+    /// directory: `#filePath` resolved to `/tmp/…` while the walker spelled `/private/tmp/…`, every
+    /// path came out as `/branch/Packages/…`, and all five tests failed.
     private static let sources: [SourceFile] = {
         let root = repositoryRoot
-        var roots = [root.appendingPathComponent("Sources")]
+        var roots = [(relative: "Sources", directory: root.appendingPathComponent("Sources"))]
         let packages = root.appendingPathComponent("Packages")
         let names = (try? FileManager.default.contentsOfDirectory(atPath: packages.path)) ?? []
-        roots += names.sorted().map { packages.appendingPathComponent($0).appendingPathComponent("Sources") }
+        roots += names.sorted().map { name in
+            (relative: "Packages/\(name)/Sources",
+             directory: packages.appendingPathComponent(name).appendingPathComponent("Sources"))
+        }
 
         var files: [SourceFile] = []
-        for directory in roots {
-            guard let walker = FileManager.default.enumerator(at: directory, includingPropertiesForKeys: nil) else {
-                continue
-            }
-            for case let url as URL in walker where url.pathExtension == "swift" {
+        for (relative, directory) in roots {
+            guard let walker = FileManager.default.enumerator(atPath: directory.path) else { continue }
+            for case let inner as String in walker where inner.hasSuffix(".swift") {
+                let url = directory.appendingPathComponent(inner)
                 guard let text = try? String(contentsOf: url, encoding: .utf8) else { continue }
-                files.append(scanned(text, path: String(url.path.dropFirst(root.path.count + 1))))
+                files.append(scanned(text, path: relative + "/" + inner))
             }
         }
         return files.sorted { $0.path < $1.path }
@@ -193,7 +210,6 @@ struct PurityOracleEntryTests {
             .deletingLastPathComponent()   // CoreTests
             .deletingLastPathComponent()   // Tests
             .deletingLastPathComponent()   // repository root
-            .resolvingSymlinksInPath()
     }
 }
 
