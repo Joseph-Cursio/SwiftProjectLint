@@ -1,0 +1,12 @@
+diff --git a/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/PackagePurity.swift b/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/PackagePurity.swift
+index f41dc2a8..b5a1e6e8 100644
+--- a/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/PackagePurity.swift
++++ b/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/PackagePurity.swift
+@@ -78,7 +78,6 @@ public struct PackagePurity: Sendable {
+     public static func build(from files: [(relativePath: String, tree: SourceFileSyntax)]) -> Self {
+         let kept = files
+             .filter { ConstructionUniverse.isProductionSource(relativePath: $0.relativePath) }
+-            .sorted { $0.relativePath < $1.relativePath }
+         return Self(
+             universe: kept.map(\.relativePath),
+             constructionFacts: .build(from: kept.map(\.tree))

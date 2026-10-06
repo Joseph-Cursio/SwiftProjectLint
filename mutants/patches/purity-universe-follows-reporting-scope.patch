@@ -1,0 +1,13 @@
+diff --git a/Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/ProjectLinter.swift b/Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/ProjectLinter.swift
+index c7327303..1d27540e 100755
+--- a/Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/ProjectLinter.swift
++++ b/Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/ProjectLinter.swift
+@@ -260,7 +260,7 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
+             constructionUniverse = unexcludedFilePaths
+         } else {
+             constructionUniverse = await fileDiscovery.findSwiftFiles(
+-                in: path, excludedPaths: [], excludedFilenames: [], includeNestedPackages: true
++                in: path, excludedPaths: [], excludedFilenames: [], includeNestedPackages: configuration.includeNestedPackages
+             )
+         }
+         return DiscoveredFiles(

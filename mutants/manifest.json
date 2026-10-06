@@ -233,6 +233,54 @@
       "expected": "killed",
       "test": "genuineRebindingIsExempt",
       "label": "Variable Shadowing does not read a capture list — `let handler = { [handler] in … }` captures the outer `handler` and is reported as a shadow"
+    },
+    {
+      "id": "purity-context-not-bound",
+      "patch": "patches/purity-context-not-bound.patch",
+      "shape": "engine-wiring",
+      "expected": "killed",
+      "test": "constructionRefutesThroughProjectLinter",
+      "label": "ProjectLinter builds the package purity and binds .unconfigured instead — every oracle in the run judges each declaration alone again, and the linter reports more candidates, correctly formatted, with no error anywhere"
+    },
+    {
+      "id": "purity-binding-excludes-prescan",
+      "patch": "patches/purity-binding-excludes-prescan.patch",
+      "shape": "engine-wiring",
+      "expected": "killed",
+      "test": "constructionRefutesThroughProjectLinter",
+      "label": "the pre-scan is hoisted above the binding — the clean-method catalog and the one-hop join are built by unconfigured oracles while the per-file rules judge with the facts, so one run disagrees with itself"
+    },
+    {
+      "id": "purity-universe-includes-tests",
+      "patch": "patches/purity-universe-includes-tests.patch",
+      "shape": "engine-wiring",
+      "expected": "killed",
+      "test": "testNamesakeDoesNotRefuteProduction",
+      "label": "isProductionSource admits every path — a test target's `struct Item { let id = UUID() }` refutes a production `Item(n:)` it is not"
+    },
+    {
+      "id": "purity-universe-unsorted",
+      "patch": "patches/purity-universe-unsorted.patch",
+      "shape": "engine-wiring",
+      "expected": "killed",
+      "test": "witnessIndependentOfDiscoveryOrder",
+      "label": "PackagePurity.build no longer sorts the universe — SEI reports the first of two declarations' witnesses in input order, so the message depends on the order the file system enumerates"
+    },
+    {
+      "id": "purity-universe-follows-reporting-scope",
+      "patch": "patches/purity-universe-follows-reporting-scope.patch",
+      "shape": "engine-wiring",
+      "expected": "killed",
+      "test": "nestedPackageTypesAreEvidence",
+      "label": "the universe walk follows include_nested_packages — a type declared in a nested local package is invisible by default, so constructing it from the root reads as pure"
+    },
+    {
+      "id": "purity-per-file-reparses",
+      "patch": "patches/purity-per-file-reparses.patch",
+      "shape": "engine-wiring",
+      "expected": "killed",
+      "test": "perFileRulesJudgeTheSharedTree",
+      "label": "per-file analysis parses its own copy instead of judging the shared tree — SEI types an assignment target by node identity, so on a re-parse an assignment to a property declared twice under #if is typed by both declarations and refutes"
     }
   ]
 }

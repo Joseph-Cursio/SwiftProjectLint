@@ -1,0 +1,32 @@
+diff --git a/Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/ProjectLinter.swift b/Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/ProjectLinter.swift
+index c7327303..ebe63709 100755
+--- a/Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/ProjectLinter.swift
++++ b/Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/ProjectLinter.swift
+@@ -123,14 +123,15 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
+ 
+         // Bound once, around the pre-scan, the per-file task group and cross-file analysis: every
+         // `PurityInferrer()` any of them creates reads it, so one run judges with one table.
++        let collected = CollectedTypes.collect(from: project.files.reportable, sources: project.shared)
+         return await PackagePurity.$current.withValue(purity) {
+-            await analyzeDiscovered(project)
++            await analyzeDiscovered(project, collected: collected)
+         }
+     }
+ 
+     /// The pre-scan, per-file and cross-file phases over files already discovered and parsed.
+     /// Runs inside the run's `PackagePurity` binding; see `analyzeProject`.
+-    private func analyzeDiscovered(_ project: DiscoveredProject) async -> [LintIssue] {
++    private func analyzeDiscovered(_ project: DiscoveredProject, collected: CollectedTypes) async -> [LintIssue] {
+         let path = project.path
+         let effectiveConfiguration = project.configuration
+         let categories = project.categories
+@@ -141,9 +142,6 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
+             cliRuleIdentifiers: project.ruleIdentifiers
+         )
+ 
+-        // Pre-scan: collect cross-file type metadata needed by visitors.
+-        let collected = CollectedTypes.collect(from: project.files.reportable, sources: project.shared)
+-
+         // Resolve the registry once so each task can create its own detector
+         let registry = Self.configuredDetector(
+             project.detector, collected: collected, configuration: effectiveConfiguration

@@ -1,0 +1,13 @@
+diff --git a/Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/ProjectLinter+FileAnalysis.swift b/Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/ProjectLinter+FileAnalysis.swift
+index 828eb2d5..316f1861 100644
+--- a/Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/ProjectLinter+FileAnalysis.swift
++++ b/Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/ProjectLinter+FileAnalysis.swift
+@@ -365,7 +365,7 @@ extension ProjectLinter {
+             content: content,
+             relativePath: relativePath
+         )
+-        let parsedAST = shared?.tree ?? Parser.parse(source: content)
++        let parsedAST = Parser.parse(source: content)
+         let det = SourcePatternDetector(registry: registry)
+         det.knownIdentifiableTypes = identifiableTypes
+         det.knownObservableEnvironmentViews = observableEnvironmentViews
