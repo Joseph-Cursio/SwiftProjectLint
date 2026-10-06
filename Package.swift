@@ -83,7 +83,7 @@ let package = Package(
         // swift-syntax exact 602.0.0, so there is no version conflict.
         .package(
             url: "https://github.com/Joseph-Cursio/SwiftEffectInference.git",
-            revision: "9d0bf6d273a2180dd832ef76cf2c1ebbb7b4c818"
+            revision: "64a905c38c063ef678ac478c531fbe1475ce71fe"
         )
     ],
     targets: [
