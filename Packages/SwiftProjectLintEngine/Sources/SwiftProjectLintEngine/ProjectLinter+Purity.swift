@@ -109,19 +109,29 @@ extension ProjectLinter {
     /// its production twin compiles. Smallest rather than first-seen makes the choice independent of
     /// the order discovery returns files in. Both rules are the shared spec's (amendment A), so
     /// SwiftInferProperties keeps the same entry.
+    ///
+    /// The pairs come back in discovery order, not a hash table's: the build's own order is the
+    /// one that counts, and an order that changed from process to process would hide a build that
+    /// stopped imposing it (`purity-universe-unsorted`).
     static func constructionSources(
         _ universe: [String],
         in shared: [String: SharedSource]
     ) -> [(relativePath: String, tree: SourceFileSyntax)] {
-        var byFile: [String: (relativePath: String, tree: SourceFileSyntax)] = [:]
+        var kept: [(relativePath: String, tree: SourceFileSyntax)] = []
+        var slotOfFile: [String: Int] = [:]
         for filePath in universe {
             guard let source = shared[filePath], let universePath = source.universePath,
                   ConstructionUniverse.isProductionSource(relativePath: universePath) else { continue }
+            let entry = (relativePath: universePath, tree: source.tree)
             let file = URL(fileURLWithPath: filePath).resolvingSymlinksInPath().path
-            if let kept = byFile[file], kept.relativePath < universePath { continue }
-            byFile[file] = (relativePath: universePath, tree: source.tree)
+            if let slot = slotOfFile[file] {
+                if universePath < kept[slot].relativePath { kept[slot] = entry }
+            } else {
+                slotOfFile[file] = kept.count
+                kept.append(entry)
+            }
         }
-        return Array(byFile.values)
+        return kept
     }
 
     /// Where `filePath` sits under `projectRoot`, as the universe classifies it: where the walk
