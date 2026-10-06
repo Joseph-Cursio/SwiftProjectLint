@@ -38,7 +38,7 @@ import SwiftSyntax
 ///
 /// ## What each cause is worth, which is why the message leads with it
 ///
-/// `Impurity.Cause` groups the oracle's eleven refuters into five, on the test of whether a reader
+/// `Impurity.Cause` groups the oracle's refuters into five, on the test of whether a reader
 /// does something different about them. The advice differs per cause and the message says so:
 /// `.partiality` is the one most likely to be a latent bug, `.capturedWrite` is the one where the
 /// honest advice is *nothing — the write is the closure's job*, and `.nondeterminism` usually has a
