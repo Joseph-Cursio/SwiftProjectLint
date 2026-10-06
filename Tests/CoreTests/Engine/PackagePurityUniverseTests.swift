@@ -40,14 +40,21 @@ struct PackagePurityUniverseTests {
 
     @Test("a nested package's types are evidence even when nested packages are not reported")
     func nestedPackageTypesAreEvidence() async throws {
+        // The root depends on `Core`, so it compiles it: only then is a nested package in the
+        // universe (`PackagePurityNestedPackageTests` pins the bound).
+        let manifest = """
+        // swift-tools-version:6.2
+        import PackageDescription
+        let package = Package(name: "App", dependencies: [.package(path: "Core")])
+        """
         let refuting = try await PackagePurityFixtures.candidates(in: [
-            "Package.swift": "// swift-tools-version:6.2\n",
+            "Package.swift": manifest,
             "Core/Package.swift": "// swift-tools-version:6.2\n",
             "Core/Sources/Core/Item.swift": PackagePurityFixtures.refutingItem,
             "Sources/App/Callers.swift": PackagePurityFixtures.callers
         ])
         let control = try await PackagePurityFixtures.candidates(in: [
-            "Package.swift": "// swift-tools-version:6.2\n",
+            "Package.swift": manifest,
             "Core/Package.swift": "// swift-tools-version:6.2\n",
             "Core/Sources/Core/Item.swift": PackagePurityFixtures.plainItem,
             "Sources/App/Callers.swift": PackagePurityFixtures.callers

@@ -137,9 +137,13 @@ with what the compiler builds.
 | id | shape | expected | killer |
 |---|---|---|---|
 | `purity-universe-classifies-symlink-target` | engine-wiring | killed | `linkIntoInRootTestsRefutes` |
+| `purity-universe-takes-every-nested-package` | engine-wiring | killed | `unrelatedNestedPackageDoesNotRefute` |
 
 The first classifies a symlinked file at its target again: `Sources/Lib/Item.swift` linking to a
-file under `Tests/` is dropped as a test file, though SwiftPM compiles it into `Lib`.
+file under `Tests/` is dropped as a test file, though SwiftPM compiles it into `Lib`. The second
+takes every nested package again, not only those the root compiles, and is the one whose output
+looks *worse* rather than merely smaller: an unrelated `Demo/` package's namesake costs a pure kernel
+its Direct Instantiation exemption, and the run gains a warning.
 
 ### The `ConcreteTypeUsage` seam exemptions
 

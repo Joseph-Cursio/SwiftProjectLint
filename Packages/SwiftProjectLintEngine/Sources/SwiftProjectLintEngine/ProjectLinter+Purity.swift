@@ -22,9 +22,9 @@ extension ProjectLinter {
         /// Files excluded from reporting by `excluded_paths` / `excluded_filenames` that still
         /// inform cross-file analysis.
         let evidenceOnly: [String]
-        /// Every Swift file under the root with no reporting filter at all — nested packages and
-        /// generated files included. `PackagePurity` keeps the production sources among them; see
-        /// `ConstructionUniverse`.
+        /// Every Swift file under the root with no reporting filter at all — generated and excluded
+        /// files included, and the nested packages the root compiles (`compiledByRoot`).
+        /// `PackagePurity` keeps the production sources among them; see `ConstructionUniverse`.
         let constructionUniverse: [String]
     }
 
@@ -142,6 +142,52 @@ extension ProjectLinter {
         }
         let resolved = relativePath(for: filePath, projectRoot: projectRoot)
         return resolved.hasPrefix("/") ? nil : resolved
+    }
+
+    /// The walked files the root compiles: its own package's, and those of the nested packages it
+    /// reaches through local path dependencies — the shared spec's amendment B. See
+    /// `ConstructionUniverse.compiledNestedPackages` for the rule, and why an unrelated nested
+    /// package must not refute the root's namesakes.
+    ///
+    /// A nested package is found where it is defined, on disk: a directory between the root and a
+    /// walked file that holds a `Package.swift`. Files are placed by their universe path, so a
+    /// symlinked file belongs to the package its link sits in. A file with no universe path is
+    /// dropped here, as it would be by the parse.
+    static func compiledByRoot(_ walk: [String], projectRoot: String) -> [String] {
+        let root = ProjectRoot(projectRoot)
+        var holdsManifest: [String: Bool] = [:]
+        func manifestPath(_ directory: String) -> String {
+            root.absolutePath(of: RelativePath(directory)) + "/Package.swift"
+        }
+        func isPackage(_ directory: String) -> Bool {
+            if let known = holdsManifest[directory] { return known }
+            let found = FileManager.default.fileExists(atPath: manifestPath(directory))
+            holdsManifest[directory] = found
+            return found
+        }
+
+        var located: [(filePath: String, universePath: String)] = []
+        var nestedPackages: Set<String> = []
+        for filePath in walk {
+            guard let universePath = universePath(for: filePath, projectRoot: projectRoot) else { continue }
+            located.append((filePath: filePath, universePath: universePath))
+            var directory = ""
+            for component in universePath.split(separator: "/").dropLast() {
+                directory += directory.isEmpty ? String(component) : "/" + component
+                if isPackage(directory) { nestedPackages.insert(directory) }
+            }
+        }
+        guard !nestedPackages.isEmpty else { return located.map(\.filePath) }
+
+        let compiled = ConstructionUniverse.compiledNestedPackages(
+            nestedPackages, rootHasManifest: isPackage(""), rootPath: root.path
+        ) { directory in
+            try? String(contentsOfFile: manifestPath(directory), encoding: .utf8)
+        }
+        return located.filter { file in
+            ConstructionUniverse.owningPackage(of: file.universePath, among: nestedPackages)
+                .map(compiled.contains) ?? true
+        }.map(\.filePath)
     }
 
     private struct ParseJob: Sendable {

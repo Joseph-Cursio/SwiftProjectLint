@@ -289,6 +289,14 @@
       "expected": "killed",
       "test": "linkIntoInRootTestsRefutes",
       "label": "universePath classifies a symlinked file at its target again whenever the target is inside the root — Sources/Lib/Item.swift linking to Tests/Shared/Item.swift is read as a test file and dropped, so constructing the Item SwiftPM compiles into Lib reads as pure"
+    },
+    {
+      "id": "purity-universe-takes-every-nested-package",
+      "patch": "patches/purity-universe-takes-every-nested-package.patch",
+      "shape": "engine-wiring",
+      "expected": "killed",
+      "test": "unrelatedNestedPackageDoesNotRefute",
+      "label": "the universe drops the nested-package bound and takes every nested package — an unrelated Demo/ package's refuting Row refutes the app's own plain Row(n:), withdraws two candidates and takes ReportBuilder's pure-kernel exemption, so Direct Instantiation warns and the default CLI exits 1"
     }
   ]
 }
