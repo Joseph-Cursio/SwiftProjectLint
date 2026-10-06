@@ -354,7 +354,7 @@ you to narrow the very function this rule just flagged. That rule now names the 
 
 ### Not listed in the default report
 
-This rule is a **census**, and on a real codebase it is a large one: 794 findings here, alongside
+This rule is a **census**, and on a real codebase it is a large one: 795 findings here, alongside
 288 from [Pure Closure Property-Test Candidate](pure-closure-candidate.md) — together **66% of
 everything the linter prints**. A pure function is not a defect and there is nothing to fix per
 line, so enumerating them buries the findings that *are* defects. During this project's own road
@@ -365,9 +365,9 @@ So `--format text` counts these findings in its summary and names them in a foot
 print one line each:
 
 ```
-Found 1644 issues (128 warnings, 1516 info)
+Found 1646 issues (128 warnings, 1518 info)
 
-1082 of these are property-test candidates, not listed above (794 Pure Function …, 288 Pure Closure …).
+1083 of these are property-test candidates, not listed above (795 Pure Function …, 288 Pure Closure …).
   See them:  --categories testability
   Use them:  --format pbt-seeds > .pbt/seeds.json
 ```
