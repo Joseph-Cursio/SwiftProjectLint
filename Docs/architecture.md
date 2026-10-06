@@ -52,17 +52,25 @@ SwiftProjectLintEngine
 When `ProjectLinter.analyzeProject(at:)` is called, the following stages run in order:
 
 ```
-1. FileAnalysisUtils        — discover .swift files, skip excluded paths and generated files
-2. Pre-scans                — collect cross-file type metadata (Identifiable, enum, actor types, all local type names)
-3. Per-file analysis        — concurrent task group, one task per file:
-       Parser.parse()             parse source into SourceFileSyntax (AST)
-       SourcePatternDetector      run visitors against the AST
+1. FileAnalysisUtils        — discover .swift files: the reportable set (excluded paths and generated
+                              files skipped), the evidence-only set, and the construction universe
+                              (every .swift file under the root, no reporting filter at all)
+2. Shared parse             — every file read and parsed once (bounded task group); every stage
+                              below walks these trees
+3. Package purity           — ConstructionFacts built from the universe's production sources,
+                              sorted, then bound as `PackagePurity.current` around stages 4-6
+4. Pre-scans                — collect cross-file type metadata (Identifiable, enum, actor types, all
+                              local type names) and the purity catalogs (clean methods, the callee join)
+5. Per-file analysis        — concurrent task group, one task per file:
+       SourcePatternDetector      run visitors against the shared AST
        InlineSuppressionFilter    remove issues suppressed by comments
-4. CrossFileAnalysisEngine  — detect issues that span multiple files
-5. LintConfiguration        — apply per-rule severity overrides and path exclusions
+6. CrossFileAnalysisEngine  — detect issues that span multiple files
+7. LintConfiguration        — apply per-rule severity overrides and path exclusions
 ```
 
-Steps 1-3 happen in `ProjectLinter.swift` (SwiftProjectLintEngine); the pre-scan catalogs, and how they reach each file's detector, are in `ProjectLinter+PreScan.swift`. Steps 4-5 happen after the task group collects all per-file results.
+Steps 1-5 happen in `ProjectLinter.swift` (SwiftProjectLintEngine); the shared parse and the universe are in `ProjectLinter+Purity.swift`, and the pre-scan catalogs, and how they reach each file's detector, are in `ProjectLinter+PreScan.swift`. Steps 6-7 happen after the task group collects all per-file results.
+
+**Package purity.** On its own, SEI's purity oracle judges one declaration at a time, so `Item(n: n)` reads as pure even when `struct Item { let id = UUID() }` mints an identity on every construction. `PackagePurity` (SwiftProjectLintVisitors) holds SEI's `ConstructionFacts` — what constructing each package type runs — and is a task-local: `ProjectLinter.analyzeProject` binds it once, and every `PurityInferrer()` created inside the binding reads it, which is how the closure and kernel rules, the static candidacy helpers, the cross-file Could Be Private path and the two pre-scan catalogs all judge with one table. Which files count is `ConstructionUniverse`, a rule shared word for word with SwiftInferProperties (golden rows in `Docs/construction-universe.tsv`): production sources only, with no reporting filter — a nested package, a generated file or an excluded directory is still compiled code whose types production constructs. Outside a binding (a single-file `SourcePatternDetector` run, a visitor test) the oracle is unconfigured.
 
 ---
 

@@ -55,6 +55,14 @@ population.**
 | Partiality | 4 | `!` (3), `preconditionFailure` (1) |
 | Nondeterminism | 2 | `random`, `UUID` |
 
+That census predates the oracle's construction facts and has not been re-taken over the 26. Since
+then a closure that builds a value whose type mints an identity is impure too, so expect the
+Nondeterminism row to rise. Re-measured on eight repositories when the facts were wired, four
+closures moved here from Pure Closure Property-Test Candidate, every one Nondeterminism through a
+construction: `LintIssue.id's default: UUID` in this repository's `LintConfiguration.applyOverrides`,
+and in SwiftCompilerFlagStudio (default rules) two `SimulationIssue.init(…): id's default: UUID` and
+one `SettingConflict.init(…): id's default: UUID`.
+
 The issue that asked for this rule guessed at *"you have 400 untestable closures"*. The real number
 is 31, and the reason is worth stating because it is a fact about the design rather than about the
 corpus: **the shared gate already excludes the call sites where effects live.**
