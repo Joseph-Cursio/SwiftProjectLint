@@ -244,6 +244,15 @@ As with every refuter, any doubt refutes: a function that builds an `Item` and r
 `n` is refused too. The one-hop callee join counts the witness as evidence, so a caller of such a
 function is withdrawn as well.
 
+**When the facts are built.** Only when a rule the run executes reads them: this one and eight
+others (Pure Closure Property-Test Candidate, Impure Closure Inventory, Extractable Total Kernel,
+Unreachable Effect Closure, Could Be Private, Could Be Private Member, Direct Instantiation and
+Concrete Type Usage). A run narrowed to rules that read none of it — by `enabled_only`,
+`disabled_rules` or `--categories` — skips the universe walk, the manifest reads, the parse of files
+outside the reporting set and the facts themselves. Turning this rule off alone skips nothing while
+any of the other eight is enabled, and the findings of the rules that do run are the same either way
+(see the purity gate in [`Docs/architecture.md`](../architecture.md)).
+
 **Which files' types count** is `ConstructionUniverse`, a rule shared word for word with
 SwiftInferProperties (the agreed rows are in [`Docs/construction-universe.tsv`](../construction-universe.tsv)):
 every `.swift` file under the lint root except a manifest and anything under a test-target folder
@@ -404,8 +413,8 @@ you to narrow the very function this rule just flagged. That rule now names the 
 
 ### Not listed in the default report
 
-This rule is a **census**, and on a real codebase it is a large one: 805 findings here, alongside
-290 from [Pure Closure Property-Test Candidate](pure-closure-candidate.md) — together **66% of
+This rule is a **census**, and on a real codebase it is a large one: 820 findings here, alongside
+292 from [Pure Closure Property-Test Candidate](pure-closure-candidate.md) — together **67% of
 everything the linter prints**. A pure function is not a defect and there is nothing to fix per
 line, so enumerating them buries the findings that *are* defects. During this project's own road
 test the linter found a real bug in its configuration code, reported it correctly, and the finding
@@ -415,9 +424,9 @@ So `--format text` counts these findings in its summary and names them in a foot
 print one line each:
 
 ```
-Found 1656 issues (126 warnings, 1530 info)
+Found 1658 issues (127 warnings, 1531 info)
 
-1095 of these are property-test candidates, not listed above (805 Pure Function …, 290 Pure Closure …).
+1112 of these are property-test candidates, not listed above (820 Pure Function …, 292 Pure Closure …).
   See them:  --categories testability
   Use them:  --format pbt-seeds > .pbt/seeds.json
 ```

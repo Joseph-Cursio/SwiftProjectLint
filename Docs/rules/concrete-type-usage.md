@@ -207,7 +207,8 @@ class MyViewModel {
   `CleanInstanceMethodCatalog.isPureKernel(_:)`. It removed four: `PromptBuilder` at three sites
   and `ThinkingAnalyzer` at one. Its purity test now sees what constructing a package type runs, so
   a type whose method builds an identity-minting value stops qualifying; on the seven repositories
-  re-measured when that was wired, no finding moved.
+  re-measured when that was wired, no finding moved. So enabling this rule builds the construction
+  universe, the facts and the clean-method catalog, even in a run narrowed to it.
 
   **It removed two more that it should not have, and that is the part worth keeping.** The first
   implementation asked whether any stored property was a closure or an existential — a denylist —

@@ -88,7 +88,9 @@ Pricing.swift:8: [Pure Function Property-Test Candidate] `discounted(…)` … a
 Both findings are right. Composed, they are advice to test a function and to hide the only type that
 can reach it — and hiding wins.
 
-So when the type declares a property-test candidate, this rule **says so**:
+So when the type declares a property-test candidate, this rule **says so**. Telling a candidate
+takes the purity oracle, so this rule reads the package purity: enabling it builds the
+construction universe and the facts (see [when the facts are built](pure-function-candidate.md#constructions-what-building-a-value-runs)).
 
 > `'Pricing'` is only used in its declaring file and could be private — but it declares a
 > property-based-test candidate, and a `private` type is beyond `@testable import`, which reaches

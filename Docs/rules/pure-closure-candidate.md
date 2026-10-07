@@ -85,7 +85,8 @@ so `issues.compactMap { … LintIssue(…) … }` over a `LintIssue` whose `id` 
 refuted with that witness, and reported by [Impure Closure Inventory](impure-closure-inventory.md)
 instead. Measured when the oracle learned this: one closure moved here, in
 `LintConfiguration.applyOverrides`, and three in SwiftCompilerFlagStudio (default rules), each building
-a `SimulationIssue` or a `SettingConflict`.
+a `SimulationIssue` or a `SettingConflict`. So this rule reads the package purity: enabling it builds
+the construction universe and the facts (see [when the facts are built](pure-function-candidate.md#constructions-what-building-a-value-runs)).
 
 The rule fires on a pure closure passed to a **fixed list** of higher-order operations — the ones whose
 closure arguments are *supposed* to be functions — and each one names the law worth stating once the
@@ -257,8 +258,8 @@ never as *"reachable"*.
 
 ### Not listed in the default report
 
-This rule is a **census**, and on a real codebase it is a large one: 290 findings here, alongside
-805 from [Pure Function Property-Test Candidate](pure-function-candidate.md) — together **66% of
+This rule is a **census**, and on a real codebase it is a large one: 292 findings here, alongside
+820 from [Pure Function Property-Test Candidate](pure-function-candidate.md) — together **67% of
 everything the linter prints**. A pure function is not a defect and there is nothing to fix per
 line, so enumerating them buries the findings that *are* defects. During this project's own road
 test the linter found a real bug in its configuration code, reported it correctly, and the finding
@@ -268,9 +269,9 @@ So `--format text` counts these findings in its summary and names them in a foot
 print one line each:
 
 ```
-Found 1656 issues (126 warnings, 1530 info)
+Found 1658 issues (127 warnings, 1531 info)
 
-1095 of these are property-test candidates, not listed above (805 Pure Function …, 290 Pure Closure …).
+1112 of these are property-test candidates, not listed above (820 Pure Function …, 292 Pure Closure …).
   See them:  --categories testability
   Use them:  --format pbt-seeds > .pbt/seeds.json
 ```

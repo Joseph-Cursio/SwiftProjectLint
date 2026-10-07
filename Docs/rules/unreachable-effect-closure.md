@@ -113,6 +113,8 @@ A *bare* assignment is not a store through a setter and is unaffected — `serve
 
 **[Button Closure Wrapping](button-closure-wrapping.md)** covers the complementary Button shape, as described in the refutations.
 
+**The package purity.** This rule asks its oracle only `mutatesCapturedState`, which SwiftEffectInference answers without the construction facts today. It is declared as reading them anyway (`PackagePurityConsumer`), so enabling it builds the construction universe and the facts even in a run narrowed to it. That costs a narrow run the build, but nothing then rests on which of SEI's queries consult the facts staying the same across SEI versions (see [when the facts are built](pure-function-candidate.md#constructions-what-building-a-value-runs)).
+
 ### Known limitations
 
 The bound-name set backing condition 2 is **flat — scopes are not tracked**. A genuine captured write to `total` goes unrecorded if some unrelated nested closure also binds a `total`. That errs toward *not* reporting, which is the right direction for a rule making a positive claim, but it is a real hole.
