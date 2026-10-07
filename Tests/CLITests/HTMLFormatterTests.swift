@@ -86,6 +86,39 @@ struct HTMLFormatterTests {
         #expect(html.contains("Total Issues"))
     }
 
+    /// The header timestamp comes from the injected clock, not the wall clock. Byte-comparing
+    /// laws (`ReportOrderDeterminismLawsTests`) pin it this way; if the seam stopped reaching the
+    /// header they would go back to failing only when a run straddles a minute boundary.
+    @Test
+    func rendersTheInjectedGenerationTime() {
+        let instant = Date(timeIntervalSince1970: 1_800_000_000)
+        let formatter = HTMLFormatter { instant }
+        let html = formatter.format(issues: [])
+        let expected = DateFormatter.localizedString(from: instant, dateStyle: .long, timeStyle: .short)
+
+        #expect(html.contains("Generated \(expected)"))
+    }
+
+    /// HTML is the one formatter that reorders what it is given — files sorted, then rows within a
+    /// file — so the order it imposes has to be total. Ordering rows by line alone left two
+    /// findings on the same line in arrival order, which only an unguaranteed stable sort kept.
+    @Test
+    func sameLineFindingsRenderInOneOrderWhateverOrderTheyArriveIn() {
+        let sameLine = [
+            LintIssue(
+                severity: .warning, message: "Force unwrap", filePath: "A.swift",
+                lineNumber: 7, suggestion: nil, ruleName: .forceUnwrap
+            ),
+            LintIssue(
+                severity: .error, message: "Force try", filePath: "A.swift",
+                lineNumber: 7, suggestion: nil, ruleName: .forceTry
+            )
+        ]
+        let formatter = HTMLFormatter { Date(timeIntervalSince1970: 1_800_000_000) }
+
+        #expect(formatter.format(issues: sameLine) == formatter.format(issues: sameLine.reversed()))
+    }
+
     @Test
     func includesEmbeddedCSS() {
         let html = HTMLFormatter().format(issues: [])

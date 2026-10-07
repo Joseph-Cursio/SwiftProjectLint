@@ -1,4 +1,5 @@
 @testable import Core
+import Foundation
 import PropertyBased
 import SwiftProjectLintModels
 import Testing
@@ -101,6 +102,15 @@ struct ReportOrderDeterminismLawsTests {
         ]
     }
 
+    /// The instant every `HTMLFormatter` in these laws reports as its generation time.
+    ///
+    /// The report header's timestamp is the one rendered field that is not a function of the
+    /// findings. Read from the wall clock, a run that crossed a minute boundary between the
+    /// reference render and a shuffled one failed L3 — with a message blaming a tie under
+    /// `precedes` that did not exist. Pinning it leaves the laws comparing exactly what the
+    /// findings decide, so a genuine ordering drift still fails them.
+    private static let generationTime = Date(timeIntervalSince1970: 1_800_000_000)
+
     // MARK: - L1 — every rendered field is compared
 
     /// **L1 — the comparator separates each witness pair.** Exactly one of the two precedes the
@@ -171,7 +181,8 @@ struct ReportOrderDeterminismLawsTests {
     func everyFormatRendersTheSameBytesForAnyArrivalOrder() async {
         let pool = Self.witnesses().flatMap(\.pair)
         let formatters: [any IssueFormatterProtocol] = [
-            TextFormatter(), JSONFormatter(), CSVFormatter(), HTMLFormatter(), PBTSeedsFormatter()
+            TextFormatter(), JSONFormatter(), CSVFormatter(),
+            HTMLFormatter { Self.generationTime }, PBTSeedsFormatter()
         ]
         let reference = formatters.map { $0.format(issues: pool.sortedForReporting()) }
 
