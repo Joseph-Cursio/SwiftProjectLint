@@ -81,24 +81,26 @@ struct RuleDocumentationConsistencyTests {
             .trimmingCharacters(in: .whitespaces) ?? header
     }
 
-    private static func displayName(for category: PatternCategory) -> String {
-        switch category {
-        case .stateManagement: return "State Management"
-        case .performance: return "Performance"
-        case .architecture: return "Architecture"
-        case .codeQuality: return "Code Quality"
-        case .security: return "Security"
-        case .accessibility: return "Accessibility"
-        case .memoryManagement: return "Memory Management"
-        case .networking: return "Networking"
-        case .uiPatterns: return "UI Patterns"
-        case .animation: return "Animation"
-        case .modernization: return "Modernization"
-        case .idempotency: return "Idempotency"
-        case .testability: return "Testability"
-        case .other: return "Other"
-        }
-    }
+    /// How each category is spelled in a rule page's header.
+    ///
+    /// A table rather than a `switch`, matching `READMERuleCountTests`: a category with no entry
+    /// fails the lookup in `testDocumentedCategoryMatchesRegistry`, which is the reminder to add one.
+    private static let displayNames: [PatternCategory: String] = [
+        .stateManagement: "State Management",
+        .performance: "Performance",
+        .architecture: "Architecture",
+        .codeQuality: "Code Quality",
+        .security: "Security",
+        .accessibility: "Accessibility",
+        .memoryManagement: "Memory Management",
+        .networking: "Networking",
+        .uiPatterns: "UI Patterns",
+        .animation: "Animation",
+        .modernization: "Modernization",
+        .idempotency: "Idempotency",
+        .testability: "Testability",
+        .other: "Other"
+    ]
 
     // MARK: - The per-rule pages
 
@@ -118,13 +120,15 @@ struct RuleDocumentationConsistencyTests {
     }
 
     @Test("every rule page states the category the registry declares")
-    func testDocumentedCategoryMatchesRegistry() {
+    func testDocumentedCategoryMatchesRegistry() throws {
         for pattern in Self.registeredPatterns {
             let file = Self.documentationFile(for: pattern.name)
             guard let page = try? String(contentsOf: file, encoding: .utf8) else { continue }
             guard let stated = Self.headerField("Category", in: page) else { continue }
 
-            let expected = Self.displayName(for: pattern.category)
+            let expected = try #require(
+                Self.displayNames[pattern.category], "no display name for \(pattern.category)"
+            )
             #expect(
                 Self.categoryNamed(in: stated) == expected,
                 "\(file.lastPathComponent) says \(stated); the registry declares \(expected)"

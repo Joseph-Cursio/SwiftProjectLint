@@ -64,7 +64,7 @@ final class ObservableEnvironmentViewMissingInspectionHookVisitor: BasePatternVi
             suggestion: "If this view is inspected in tests, add `internal let inspection = "
                 + "Inspection<Self>()` and `.onReceive(inspection.notice) { inspection.visit(self, $0) }` "
                 + "to its body, then host it in the test rather than inspecting directly.",
-            ruleName: .observableEnvironmentViewMissingInspectionHook
+            ruleName: .observableEnvViewMissingInspectionHook
         )
         return .visitChildren
     }
