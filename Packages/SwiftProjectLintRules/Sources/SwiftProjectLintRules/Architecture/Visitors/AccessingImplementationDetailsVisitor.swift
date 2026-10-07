@@ -74,51 +74,7 @@ class AccessingImplementationDetailsVisitor: BasePatternVisitor {
 
         // Heuristic A: underscore-prefix member on a non-self/super base
         if memberName.hasPrefix("_") {
-            // Skip test files — test code commonly accesses internals
-            if isTestOrFixtureFile() {
-                return .visitChildren
-            }
-            // Skip self._member and Self._member — accessing own type's internals is fine
-            if let ref = base.as(DeclReferenceExprSyntax.self),
-               ref.baseName.text == "self" || ref.baseName.text == "Self" {
-                return .visitChildren
-            }
-            // Skip super._member
-            if base.is(SuperExprSyntax.self) {
-                return .visitChildren
-            }
-            // Skip `_base._member` — the base is underscored too, so both sides are in the
-            // implementation domain. The rule is about a caller reaching past a type's
-            // public interface; a type reaching through its own SPI is the convention
-            // working as intended, and library code does it routinely.
-            if let baseReference = base.as(DeclReferenceExprSyntax.self),
-               baseReference.baseName.text.hasPrefix("_") {
-                return .visitChildren
-            }
-            // Skip a member the project publishes under `@_spi(...)`. That attribute is
-            // Swift's own way of saying "public symbol, deliberately not public API", and the
-            // underscore is the naming convention that accompanies it rather than an accident.
-            // Reporting it tells the author something they already said, in the language's own
-            // vocabulary. Requires the project-wide SPI prescan.
-            if knownSPIMembers.contains(memberName) {
-                return .visitChildren
-            }
-            // Skip a member this project declares anywhere. Inside one module there is no
-            // public interface to reach past — `other._value` on a type the same module
-            // defines is that module using its own convention, exactly as `self._value` is.
-            // The standard library's underscore members exist because a symbol must be
-            // `public` to be `@inlinable` while staying internal by intent, and reporting
-            // their use inside the library that declares them is reporting the convention.
-            // Requires the project-wide prescan; a use of a name the project never declares
-            // is still reported, which is the case the rule was written for.
-            if knownUnderscoredMembers.contains(memberName) {
-                return .visitChildren
-            }
-            // Skip a member the *enclosing type itself* declares. The shape is
-            // `other._value` inside that type's own initializer, which is how an
-            // `Equatable`-style comparison against another instance is written — a type
-            // reaching into its own kind, not a caller reaching past an interface.
-            if enclosingTypeDeclares(memberName, from: node) {
+            if isExempt(memberName, on: base, at: node) {
                 return .visitChildren
             }
             let baseDesc = base.as(DeclReferenceExprSyntax.self)?.baseName.text ?? "object"
@@ -150,6 +106,56 @@ class AccessingImplementationDetailsVisitor: BasePatternVisitor {
     }
 
     // MARK: - Helpers
+
+    /// Whether Heuristic A leaves this underscored access alone: each case is a shape where the
+    /// underscore is a convention working as intended, not a caller reaching past an interface.
+    private func isExempt(_ memberName: String, on base: ExprSyntax, at node: MemberAccessExprSyntax) -> Bool {
+        // Skip test files — test code commonly accesses internals
+        if isTestOrFixtureFile() {
+            return true
+        }
+        // Skip self._member and Self._member — accessing own type's internals is fine
+        if let ref = base.as(DeclReferenceExprSyntax.self),
+           ref.baseName.text == "self" || ref.baseName.text == "Self" {
+            return true
+        }
+        // Skip super._member
+        if base.is(SuperExprSyntax.self) {
+            return true
+        }
+        // Skip `_base._member` — the base is underscored too, so both sides are in the
+        // implementation domain. The rule is about a caller reaching past a type's
+        // public interface; a type reaching through its own SPI is the convention
+        // working as intended, and library code does it routinely.
+        if let baseReference = base.as(DeclReferenceExprSyntax.self),
+           baseReference.baseName.text.hasPrefix("_") {
+            return true
+        }
+        // Skip a member the project publishes under `@_spi(...)`. That attribute is
+        // Swift's own way of saying "public symbol, deliberately not public API", and the
+        // underscore is the naming convention that accompanies it rather than an accident.
+        // Reporting it tells the author something they already said, in the language's own
+        // vocabulary. Requires the project-wide SPI prescan.
+        if knownSPIMembers.contains(memberName) {
+            return true
+        }
+        // Skip a member this project declares anywhere. Inside one module there is no
+        // public interface to reach past — `other._value` on a type the same module
+        // defines is that module using its own convention, exactly as `self._value` is.
+        // The standard library's underscore members exist because a symbol must be
+        // `public` to be `@inlinable` while staying internal by intent, and reporting
+        // their use inside the library that declares them is reporting the convention.
+        // Requires the project-wide prescan; a use of a name the project never declares
+        // is still reported, which is the case the rule was written for.
+        if knownUnderscoredMembers.contains(memberName) {
+            return true
+        }
+        // Skip a member the *enclosing type itself* declares. The shape is
+        // `other._value` inside that type's own initializer, which is how an
+        // `Equatable`-style comparison against another instance is written — a type
+        // reaching into its own kind, not a caller reaching past an interface.
+        return enclosingTypeDeclares(memberName, from: node)
+    }
 
     /// Searches the base expression's text for an `as!` cast to a service-like type.
     /// Uses textual inspection because sub-walking non-root nodes crashes in SwiftSyntax 601.
