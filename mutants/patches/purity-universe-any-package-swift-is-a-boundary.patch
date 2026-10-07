@@ -1,0 +1,17 @@
+diff --git a/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/ConstructionUniverse+Manifest.swift b/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/ConstructionUniverse+Manifest.swift
+index a17f2aa2..f355f4a6 100644
+--- a/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/ConstructionUniverse+Manifest.swift
++++ b/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/ConstructionUniverse+Manifest.swift
+@@ -57,10 +57,9 @@ extension ConstructionUniverse {
+     /// The manifest the file at `path` is, if it is one.
+     private static func read(file path: String) -> Manifest {
+         // `stat` follows links: a dangling one fails, and a link to a regular file is that file.
+-        var status = stat()
+-        guard stat(path, &status) == 0, status.st_mode & S_IFMT == S_IFREG else { return .absent }
++        guard FileManager.default.fileExists(atPath: path) else { return .absent }
+         guard let text = try? String(contentsOfFile: path, encoding: .utf8) else { return .unreadable }
+-        return isManifest(text) ? .text(text) : .absent
++        return .text(text)
+     }
+ 
+     private static func joined(_ directory: String, _ name: String) -> String {

@@ -1,0 +1,13 @@
+diff --git a/Packages/SwiftProjectLintConfig/Sources/SwiftProjectLintConfig/FileAnalysis/FileAnalysisUtils.swift b/Packages/SwiftProjectLintConfig/Sources/SwiftProjectLintConfig/FileAnalysis/FileAnalysisUtils.swift
+index 9f3031f3..17ebed9e 100644
+--- a/Packages/SwiftProjectLintConfig/Sources/SwiftProjectLintConfig/FileAnalysis/FileAnalysisUtils.swift
++++ b/Packages/SwiftProjectLintConfig/Sources/SwiftProjectLintConfig/FileAnalysis/FileAnalysisUtils.swift
+@@ -200,7 +200,7 @@ public struct FileAnalysisUtils {
+         guard let enumerator = fileManager.enumerator(
+             at: root.url,
+             includingPropertiesForKeys: [.isDirectoryKey],
+-            options: []
++            options: .skipsHiddenFiles
+         ) else {
+             return swiftFiles
+         }

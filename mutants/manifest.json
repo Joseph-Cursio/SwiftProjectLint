@@ -329,6 +329,94 @@
       "expected": "killed",
       "test": "linkIntoUncompiledPackageCountsWhereTheLinkIs",
       "label": "compiledByRoot places a symlinked file in the package its target sits in — Sources/Lib/Item.swift linking into an uncompiled Demo/ leaves with Demo, though SwiftPM compiles it into Lib"
+    },
+    {
+      "id": "purity-universe-order-per-component",
+      "patch": "patches/purity-universe-order-per-component.patch",
+      "shape": "engine-wiring",
+      "expected": "killed",
+      "test": "sharedBuildOrder",
+      "label": "ConstructionUniverse.buildOrder sorts by path component rather than with String < — Sources/A-B/X.swift and Sources/A/X.swift swap, so SEI reads one name's declarations in another order than SwiftInferProperties and can report another witness"
+    },
+    {
+      "id": "purity-universe-any-package-swift-is-a-boundary",
+      "patch": "patches/purity-universe-any-package-swift-is-a-boundary.patch",
+      "shape": "engine-wiring",
+      "expected": "killed",
+      "test": "sourceFileNamedPackageIsNoBoundary",
+      "label": "any existing entry named Package.swift makes a package boundary again (amendment F) — a source file of that name in Sources/App/Models/ takes every file beside it out of the universe, so building the Item SwiftPM compiles into App reads as pure"
+    },
+    {
+      "id": "purity-universe-ignores-xcode-project",
+      "patch": "patches/purity-universe-ignores-xcode-project.patch",
+      "shape": "engine-wiring",
+      "expected": "killed",
+      "test": "xcodeProjectBesideTheManifestTakesEveryPackage",
+      "label": "an .xcodeproj beside the root manifest no longer counts as doubt (amendment G) — the manifest's closure bounds the universe, and a local package only the Xcode app target links leaves the table"
+    },
+    {
+      "id": "purity-manifest-reader-takes-source-text",
+      "patch": "patches/purity-manifest-reader-takes-source-text.patch",
+      "shape": "engine-wiring",
+      "expected": "killed",
+      "test": "dependencyPathIsReadAsSwiftPMReadsIt",
+      "label": "the manifest reader takes a path literal's source text instead of its value (amendment H) — .package(path: \"Packages/\\u{55}til\") names no package, and the Util package the root compiles leaves the table"
+    },
+    {
+      "id": "purity-universe-matches-by-spelling",
+      "patch": "patches/purity-universe-matches-by-spelling.patch",
+      "shape": "engine-wiring",
+      "expected": "killed",
+      "test": "dependencyThroughALinkedDirectory",
+      "label": "references and nested packages are matched by spelling rather than by canonical location (amendments H and Q) — a dependency through a link to the walked package's directory, through /tmp for /private/tmp, or in another letter case reaches nothing"
+    },
+    {
+      "id": "purity-closure-stops-at-unwalked-package",
+      "patch": "patches/purity-closure-stops-at-unwalked-package.patch",
+      "shape": "engine-wiring",
+      "expected": "killed",
+      "test": "closureThroughNonProductionPackage",
+      "label": "the closure follows a dependency only into a directory the walk recorded as a package (amendment I) — a root depending on .support or Pods/Support, which depends on Shared, stops there, and Shared's types leave the table"
+    },
+    {
+      "id": "purity-universe-drops-reported-packages",
+      "patch": "patches/purity-universe-drops-reported-packages.patch",
+      "shape": "engine-wiring",
+      "expected": "killed",
+      "test": "reportedNestedPackageIsJudgedWithItsOwnTypes",
+      "label": "a nested package the run reports on is no longer taken into the universe (amendment J) — with --include-nested-packages its own functions are judged without its own types, tokenCount is offered and TokenBuilder passes as a pure kernel"
+    },
+    {
+      "id": "purity-manifests-read-on-cooperative-stack",
+      "patch": "patches/purity-manifests-read-on-cooperative-stack.patch",
+      "shape": "engine-wiring",
+      "expected": "killed",
+      "test": "deepDependencyManifestIsSurvived",
+      "label": "the bound's manifest reads run on the cooperative pool again (amendment K) — a dependency's Package.swift holding a 1,000-arm else if overflows the 512 KB stack and the run dies with SIGBUS"
+    },
+    {
+      "id": "walk-skips-hidden-flag",
+      "patch": "patches/walk-skips-hidden-flag.patch",
+      "shape": "engine-wiring",
+      "expected": "killed",
+      "test": "hiddenFlagIsNoReasonToSkip",
+      "label": "the file walk skips anything carrying macOS's UF_HIDDEN flag again (amendment M) — a flagged source SwiftPM compiles leaves the universe, and building its type reads as pure"
+    },
+    {
+      "id": "purity-closure-reads-package-swift-only",
+      "patch": "patches/purity-closure-reads-package-swift-only.patch",
+      "shape": "engine-wiring",
+      "expected": "killed",
+      "test": "versionSpecificManifestDependency",
+      "label": "the closure reads each directory's Package.swift and ignores its Package@swift-*.swift manifests (amendment O) — a dependency named only in Package@swift-6.0.swift leaves the table"
+    },
+    {
+      "id": "purity-closure-ignores-target-paths",
+      "patch": "patches/purity-closure-ignores-target-paths.patch",
+      "shape": "engine-wiring",
+      "expected": "killed",
+      "test": "targetPathIntoNestedPackage",
+      "label": "the closure ignores target path: arguments (amendment P) — a root target whose sources lie in Core/ no longer reaches the Core package, and Core's types leave the table"
     }
   ]
 }

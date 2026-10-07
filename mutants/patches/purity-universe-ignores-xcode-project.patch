@@ -1,0 +1,13 @@
+diff --git a/Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/ProjectLinter+Purity.swift b/Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/ProjectLinter+Purity.swift
+index 30e091f6..26568087 100644
+--- a/Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/ProjectLinter+Purity.swift
++++ b/Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/ProjectLinter+Purity.swift
+@@ -208,7 +208,7 @@ extension ProjectLinter {
+         let compiled = ConstructionUniverse.compiledNestedPackages(
+             nestedPackages,
+             reported: reportedPackages,
+-            rootHasManifest: isPackage("") && !ConstructionUniverse.holdsXcodeProject(directory: root.path),
++            rootHasManifest: isPackage(""),
+             rootPath: root.path,
+             // `realpath(3)`: links resolved and the on-disk letter case, so a reference and a
+             // package match by location (the shared spec's amendments H and Q).

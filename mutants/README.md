@@ -173,6 +173,33 @@ needs a test folder that sorts *before* `Sources/` — `AppTests/`, not `Tests/`
 entry to be the test-folder link. The third needs a link from the root's sources into a nested
 package the root does not compile.
 
+And one for each rule of the shared spec's amendments 3 and 3b, the second review's fixes. Each
+puts back a way the universe disagreed with what SwiftPM compiles. All but two read as a corpus
+with more candidates in it; the order mutant moves a witness, and the stack mutant kills the run.
+
+| id | shape | expected | killer |
+|---|---|---|---|
+| `purity-universe-order-per-component` | engine-wiring | killed | `sharedBuildOrder` |
+| `purity-universe-any-package-swift-is-a-boundary` | engine-wiring | killed | `sourceFileNamedPackageIsNoBoundary` |
+| `purity-universe-ignores-xcode-project` | engine-wiring | killed | `xcodeProjectBesideTheManifestTakesEveryPackage` |
+| `purity-manifest-reader-takes-source-text` | engine-wiring | killed | `dependencyPathIsReadAsSwiftPMReadsIt` |
+| `purity-universe-matches-by-spelling` | engine-wiring | killed | `dependencyThroughALinkedDirectory` |
+| `purity-closure-stops-at-unwalked-package` | engine-wiring | killed | `closureThroughNonProductionPackage` |
+| `purity-universe-drops-reported-packages` | engine-wiring | killed | `reportedNestedPackageIsJudgedWithItsOwnTypes` |
+| `purity-manifests-read-on-cooperative-stack` | engine-wiring | killed | `deepDependencyManifestIsSurvived` |
+| `walk-skips-hidden-flag` | engine-wiring | killed | `hiddenFlagIsNoReasonToSkip` |
+| `purity-closure-reads-package-swift-only` | engine-wiring | killed | `versionSpecificManifestDependency` |
+| `purity-closure-ignores-target-paths` | engine-wiring | killed | `targetPathIntoNestedPackage` |
+
+The first survived until the shared cases file gained `Sources/A-B/X.swift` beside
+`Sources/A/X.swift`: `-` sorts before `/` under `String <` and after it per component, and none of
+the eight paths before it told the two apart. `purity-universe-matches-by-spelling` is the one for
+amendments H and Q together, since one resolver serves both: identity there misses the critic's
+`s11` (a link to the package's directory), an absolute path through `/tmp`, and `packages/core`
+for `Packages/Core`. `purity-manifests-read-on-cooperative-stack` is killed by a crash, not an
+assertion — the killer's process dies with `SIGBUS` — which the runner counts as killed, as it
+should.
+
 `purity-universe-takes-every-nested-package` was re-expressed when discovery started awaiting the
 bound on a large-stack thread (`compiledUniverse`): it now skips that call.
 

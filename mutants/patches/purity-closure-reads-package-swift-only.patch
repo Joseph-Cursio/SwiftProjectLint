@@ -1,0 +1,13 @@
+diff --git a/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/ConstructionUniverse+Manifest.swift b/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/ConstructionUniverse+Manifest.swift
+index a17f2aa2..33180134 100644
+--- a/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/ConstructionUniverse+Manifest.swift
++++ b/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/ConstructionUniverse+Manifest.swift
+@@ -51,7 +51,7 @@ extension ConstructionUniverse {
+     public static func manifests(inDirectory directory: String) -> [Manifest] {
+         let names = (try? FileManager.default.contentsOfDirectory(atPath: directory)) ?? []
+         let versioned = names.filter { $0.hasPrefix("Package@swift-") && $0.hasSuffix(".swift") }.sorted()
+-        return [manifest(inDirectory: directory)] + versioned.map { read(file: joined(directory, $0)) }
++        return [manifest(inDirectory: directory)] + versioned.prefix(0).map { read(file: joined(directory, $0)) }
+     }
+ 
+     /// The manifest the file at `path` is, if it is one.

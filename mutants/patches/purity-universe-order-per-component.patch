@@ -1,0 +1,13 @@
+diff --git a/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/ConstructionUniverse.swift b/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/ConstructionUniverse.swift
+index dd051965..d75b6f26 100644
+--- a/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/ConstructionUniverse.swift
++++ b/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/ConstructionUniverse.swift
+@@ -75,7 +75,7 @@ public enum ConstructionUniverse {
+     /// rather than a sort of its own. `Docs/construction-universe-cases.json` holds a list both
+     /// repositories assert it on.
+     public static func buildOrder(_ relativePaths: [String]) -> [String] {
+-        relativePaths.sorted { $0 < $1 }
++        relativePaths.sorted { $0.split(separator: "/").lexicographicallyPrecedes($1.split(separator: "/")) }
+     }
+ 
+     /// Whether the file at `relativePath` is production source whose types belong in the table.
