@@ -112,7 +112,7 @@ public struct FileAnalysisUtils {
         guard let enumerator = fileManager.enumerator(
             at: rootURL,
             includingPropertiesForKeys: [.isDirectoryKey],
-            options: .skipsHiddenFiles
+            options: []
         ) else {
             return []
         }
@@ -122,7 +122,7 @@ public struct FileAnalysisUtils {
             let isDirectory = (try? itemURL.resourceValues(forKeys: [.isDirectoryKey]).isDirectory) ?? false
             guard isDirectory else { continue }
 
-            if skippedDirectories.contains(itemURL.lastPathComponent) {
+            if isSkippedName(itemURL.lastPathComponent) {
                 enumerator.skipDescendants()
                 continue
             }
@@ -142,7 +142,7 @@ public struct FileAnalysisUtils {
         guard let enumerator = fileManager.enumerator(
             at: rootURL,
             includingPropertiesForKeys: [.isDirectoryKey],
-            options: .skipsHiddenFiles
+            options: []
         ) else {
             return false
         }
@@ -151,7 +151,7 @@ public struct FileAnalysisUtils {
             let isDirectory = (try? itemURL.resourceValues(forKeys: [.isDirectoryKey]).isDirectory) ?? false
             guard isDirectory else { continue }
 
-            if skippedDirectories.contains(itemURL.lastPathComponent) {
+            if isSkippedName(itemURL.lastPathComponent) {
                 enumerator.skipDescendants()
                 continue
             }
@@ -169,6 +169,19 @@ public struct FileAnalysisUtils {
         ".hg", ".svn", "node_modules", "Carthage"
     ]
 
+    /// Whether a file or directory named `name` is skipped with everything below it: one of
+    /// ``skippedDirectories``, or a hidden name — one that starts with `.`.
+    ///
+    /// **Hidden means the name, not the flag.** The walks once enumerated with `.skipsHiddenFiles`,
+    /// which also drops anything carrying macOS's `UF_HIDDEN` flag (`chflags hidden`, or a Finder
+    /// "hide"). SwiftPM compiles a flagged source like any other, so the construction universe lost
+    /// its types and under-refuted; SwiftInferProperties' walk never skipped them. Now a flagged file
+    /// is walked, universe and reporting alike, and a dot-prefixed one is skipped as before (the
+    /// shared spec's amendment 3, M).
+    static func isSkippedName(_ name: String) -> Bool {
+        name.hasPrefix(".") || skippedDirectories.contains(name)
+    }
+
     private static func enumerateSwiftFiles(
         in path: String,
         excludedPaths: [String] = [],
@@ -182,10 +195,12 @@ public struct FileAnalysisUtils {
         // project linted through a symlinked path reported no files and exit 0. See `ProjectRoot`.
         let root = ProjectRoot(path)
 
+        // No `.skipsHiddenFiles`: a dot-prefixed name is pruned below, but the `UF_HIDDEN` flag is
+        // no reason to skip a file the compiler builds (`isSkippedName`).
         guard let enumerator = fileManager.enumerator(
             at: root.url,
             includingPropertiesForKeys: [.isDirectoryKey],
-            options: .skipsHiddenFiles
+            options: []
         ) else {
             return swiftFiles
         }
@@ -225,8 +240,8 @@ public struct FileAnalysisUtils {
 
     /// Whether the item at `relative` should be skipped along with anything below it.
     ///
-    /// The three reasons a subtree is dropped, in one place: a skipped directory anywhere in the
-    /// path, a nested Swift package, and a user-configured exclusion. They were three branches in
+    /// The three reasons a subtree is dropped, in one place: a skipped or hidden name anywhere in
+    /// the path, a nested Swift package, and a user-configured exclusion. They were three branches in
     /// the walk, each repeating the `skipDescendants()` gate; collapsing them leaves the walk with
     /// one decision and puts the policy where it can be read on its own.
     private static func isPruned(
@@ -236,7 +251,7 @@ public struct FileAnalysisUtils {
         excludedPaths: [String],
         includeNestedPackages: Bool
     ) -> Bool {
-        if relative.components.contains(where: { skippedDirectories.contains($0) }) { return true }
+        if relative.components.contains(where: isSkippedName) { return true }
 
         // A directory with its own Package.swift is a separate Swift package, normally linted only
         // when the tool is invoked with that directory as root. Opting in with

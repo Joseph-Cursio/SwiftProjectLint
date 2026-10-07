@@ -122,6 +122,57 @@ struct PackagePurityUniverseTests {
         #expect(refuting.contains("countOf") == false)
     }
 
+    // The next two need the macOS hidden flag (`chflags hidden`), which Finder sets to hide a file
+    // and SwiftPM ignores: a flagged source is compiled. The walk once skipped flagged files with
+    // `.skipsHiddenFiles`, so their types left the table; SwiftInferProperties kept them.
+
+    @Test(
+        "a file or directory with the macOS hidden flag is in the universe",
+        .enabled(if: HiddenFlag.isSupported),
+        arguments: ["Sources/Lib/Item.swift", "Sources/Shared"]
+    )
+    func hiddenFlagIsNoReasonToSkip(flagged: String) async throws {
+        let item = flagged.hasSuffix(".swift") ? flagged : flagged + "/Item.swift"
+        let root = try PackagePurityFixtures.makeProject([
+            item: PackagePurityFixtures.refutingItem,
+            "Sources/Lib/Callers.swift": PackagePurityFixtures.callers
+        ])
+        defer { try? FileManager.default.removeItem(atPath: root) }
+        try #require(HiddenFlag.set(on: root + "/" + flagged))
+
+        #expect(await PackagePurityFixtures.universe(at: root) == [item, "Sources/Lib/Callers.swift"].sorted())
+        let found = await PackagePurityFixtures.candidateSymbols(at: root)
+        #expect(found.contains("sentinelAdd"))
+        #expect(found.contains("countOf") == false, "the flagged \(flagged) left the table")
+    }
+
+    @Test("a flagged package in the middle of a dependency chain keeps its files and passes the chain on",
+          .enabled(if: HiddenFlag.isSupported))
+    func hiddenFlaggedPackageInAChain() async throws {
+        let root = try PackagePurityFixtures.makeProject([
+            "Package.swift": """
+            // swift-tools-version:6.0
+            import PackageDescription
+            let package = Package(name: "App", dependencies: [.package(path: "Flagged")])
+            """,
+            "Flagged/Package.swift": """
+            // swift-tools-version:6.0
+            import PackageDescription
+            let package = Package(name: "Flagged", dependencies: [.package(path: "../Next")])
+            """,
+            "Flagged/Sources/Flagged/Item.swift": PackagePurityFixtures.refutingItem,
+            "Next/Package.swift": "// swift-tools-version:6.0\n",
+            "Next/Sources/Next/Stamp.swift": "import Foundation\nstruct Stamp { let at = Date(); let n: Int }\n",
+            "Sources/App/Callers.swift": PackagePurityFixtures.callers
+        ])
+        defer { try? FileManager.default.removeItem(atPath: root) }
+        try #require(HiddenFlag.set(on: root + "/Flagged"))
+
+        #expect(await PackagePurityFixtures.universe(at: root) == [
+            "Flagged/Sources/Flagged/Item.swift", "Next/Sources/Next/Stamp.swift", "Sources/App/Callers.swift"
+        ])
+    }
+
     @Test("the witness in a message does not depend on the order discovery returns files in")
     func witnessIndependentOfDiscoveryOrder() async throws {
         // Two declarations of one name, each refuting with its own witness. SEI reports the first
@@ -168,4 +219,28 @@ struct PackagePurityUniverseTests {
         #expect(messages[0].count == 1)
         #expect(messages[0] == messages[1])
     }
+}
+
+/// macOS's `UF_HIDDEN` file flag — what `chflags hidden` sets — on a fixture file.
+enum HiddenFlag {
+
+    /// Sets the flag on `path`, and says whether it is now set.
+    static func set(on path: String) -> Bool {
+        chflags(path, UInt32(UF_HIDDEN)) == 0 && isSet(on: path)
+    }
+
+    static func isSet(on path: String) -> Bool {
+        var status = stat()
+        return stat(path, &status) == 0 && status.st_flags & UInt32(UF_HIDDEN) != 0
+    }
+
+    /// Whether the temporary directory's volume keeps the flag. APFS does; elsewhere the tests that
+    /// need it are skipped rather than passed vacuously.
+    static let isSupported: Bool = {
+        let probe = FileManager.default.temporaryDirectory
+            .appendingPathComponent("HiddenFlagProbe-\(UUID().uuidString)").path
+        guard FileManager.default.createFile(atPath: probe, contents: Data()) else { return false }
+        defer { try? FileManager.default.removeItem(atPath: probe) }
+        return set(on: probe)
+    }()
 }
