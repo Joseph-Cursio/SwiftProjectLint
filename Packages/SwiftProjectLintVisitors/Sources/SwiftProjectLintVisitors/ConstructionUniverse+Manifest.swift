@@ -80,17 +80,24 @@ extension ConstructionUniverse {
 
     /// Whether `text` is a manifest as SwiftPM reads one, after an optional UTF-8 byte-order mark:
     ///
-    /// - **(a)** its first non-blank line — blank meaning spaces and tabs only — is a tools-version
-    ///   line, `^[ \t]*//[ \t]*swift-tools-version` with the label in any case, whatever version
-    ///   follows; or
+    /// - **(a)** its first non-blank line — blank meaning whitespace only — is a tools-version line,
+    ///   `^\h*//\h*swift-tools-version` with the label in any case, whatever version follows; or
     /// - **(b)** a later line is one, with a version of 6.0 or later: from 6.0 SwiftPM finds the
     ///   comment below a license header, a block comment, even code, and below 6.0 it rejects that.
     ///
-    /// `///` is not a tools-version line, as SwiftPM agrees. This was a first-line test, which
-    /// called a manifest opening with a blank line no manifest: a reached package's then passed
-    /// nothing on, so the package behind it left the table, and a root's left the root unbounded.
-    /// Lines split on `Character.isNewline`, so `\r\n` and a lone `\r` end one too. The shared
-    /// cases file's `isManifest` section is the arbiter.
+    /// Spacing is any horizontal whitespace (`\h`, `Character.isWhitespace`), as in SwiftPM's own
+    /// parser: `//\u{00A0}swift-tools-version:5.9` loads, and a version of this test that allowed
+    /// only spaces and tabs called it no manifest. `///` is not a tools-version line, as SwiftPM
+    /// agrees. Lines split on `Character.isNewline`, so `\r\n` and a lone `\r` end one too. Rule (a)
+    /// takes blank lines before the comment at any version; SwiftPM takes truly empty ones at any
+    /// version but lines of whitespace, CRLF blank lines included, only from 5.4 — harmless, since
+    /// such a package cannot build. A later line is matched only when it starts with `//` and the
+    /// label: the regex costs far more than that check, and a long `Package.swift` source file has a
+    /// line to test for every line it has.
+    ///
+    /// This was a first-line test, which called a manifest opening with a blank line no manifest: a
+    /// reached package's then passed nothing on, so the package behind it left the table, and a
+    /// root's left the root unbounded. The shared cases file's `isManifest` section is the arbiter.
     ///
     /// Accepted: a `// swift-tools-version:6…` line inside a string literal below the first line —
     /// a code generator's template in `Sources/Gen/Package.swift` — makes that file a manifest.
@@ -98,14 +105,17 @@ extension ConstructionUniverse {
         var body = Substring(text)
         if body.first == "\u{FEFF}" { body = body.dropFirst() }
         let lines = body.split(omittingEmptySubsequences: false, whereSeparator: \.isNewline)
-        guard let first = lines.firstIndex(where: { !$0.allSatisfy { $0 == " " || $0 == "\t" } }) else {
-            return false
-        }
-        if lines[first].prefixMatch(of: #/[ \t]*//[ \t]*(?i:swift-tools-version)/#) != nil { return true }
+        guard let first = lines.firstIndex(where: { !$0.allSatisfy(\.isWhitespace) }) else { return false }
+        if lines[first].prefixMatch(of: #/\h*//\h*(?i:swift-tools-version)/#) != nil { return true }
         return lines[lines.index(after: first)...].contains { line in
-            guard let match = line.prefixMatch(
-                of: #/[ \t]*//[ \t]*(?i:swift-tools-version)[ \t]*:[ \t]*([0-9]+)/#
-            ) else { return false }
+            // Only a line that names the label can match; skip the regex, which costs far more, for the rest.
+            let marker = line.drop(while: \.isWhitespace)
+            guard marker.hasPrefix("//"),
+                  marker.dropFirst(2).drop(while: \.isWhitespace).prefix(19).lowercased() == "swift-tools-version"
+            else { return false }
+            guard let match = line.prefixMatch(of: #/\h*//\h*(?i:swift-tools-version)\h*:\h*([0-9]+)/#) else {
+                return false
+            }
             return (Int(match.1) ?? 0) >= 6
         }
     }

@@ -457,6 +457,22 @@
       "expected": "killed",
       "test": "rootTargetAtTheRootReachesEveryPackage",
       "label": "the target-path comparison loses its `location.isEmpty` clause (amendment T′) — a root target's `path: \".\"` resolves to the root, \"\", which no hasPrefix matches, so it reaches no nested package and Packages/A, whose sources that target compiles, leaves the table"
+    },
+    {
+      "id": "manifest-spacing-spaces-and-tabs-only",
+      "patch": "patches/manifest-spacing-spaces-and-tabs-only.patch",
+      "shape": "engine-wiring",
+      "expected": "killed",
+      "test": "sharedManifestRecognitionCases",
+      "label": "isManifest's first-line test takes only spaces and tabs around the marker again (amendment 4b, S′) — `//\\u{00A0}swift-tools-version:5.9`, which SwiftPM loads, is no manifest, so a dependency's closure is dropped or a root is left unbounded"
+    },
+    {
+      "id": "manifest-prefilter-case-sensitive",
+      "patch": "patches/manifest-prefilter-case-sensitive.patch",
+      "shape": "engine-wiring",
+      "expected": "killed",
+      "test": "sharedManifestRecognitionCases",
+      "label": "the later-line prefilter compares the label without lowercasing it (amendment 4b, S′) — a 6.0 `// SWIFT-TOOLS-VERSION` below a header never reaches the case-insensitive regex, and the manifest SwiftPM loads is none"
     }
   ]
 }

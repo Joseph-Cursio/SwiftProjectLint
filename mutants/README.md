@@ -207,10 +207,11 @@ for `Packages/Core`. `purity-manifests-read-on-cooperative-stack` is killed by a
 assertion — the killer's process dies with `SIGBUS` — which the runner counts as killed, as it
 should.
 
-Five more from the shared spec's amendment 4, the final review of #276. Three are the ways rule F's
-first-line test refused a manifest SwiftPM loads; each kills exactly its own case of the killer,
-whose three arguments open a dependency's manifest with a blank line, an upper-case label and a
-license header above a 6.0 comment. The fourth is a target path that holds nested packages.
+Seven more from the shared spec's amendments 4 and 4b — the final review of #276 and the review of
+#277. Three are the ways rule F's first-line test refused a manifest SwiftPM loads; each kills
+exactly its own case of the killer, whose three arguments open a dependency's manifest with a blank
+line, an upper-case label and a license header above a 6.0 comment. The fourth is a target path
+that holds nested packages.
 
 | id | shape | expected | killer |
 |---|---|---|---|
@@ -219,10 +220,21 @@ license header above a 6.0 comment. The fourth is a target path that holds neste
 | `manifest-tools-version-only-at-the-top` | engine-wiring | killed | `manifestAsSwiftPMReadsItKeepsTheClosure` |
 | `purity-closure-target-path-misses-packages-under-it` | engine-wiring | killed | `targetPathOverNestedPackage` |
 | `purity-closure-root-target-path-reaches-nothing` | engine-wiring | killed | `rootTargetAtTheRootReachesEveryPackage` |
+| `manifest-spacing-spaces-and-tabs-only` | engine-wiring | killed | `sharedManifestRecognitionCases` |
+| `manifest-prefilter-case-sensitive` | engine-wiring | killed | `sharedManifestRecognitionCases` |
 
 The fifth is the follow-up T′: locations are relative to the root, which is `""`, so a root target's
 `path: "."` resolved to a location no `hasPrefix` matched and reached nothing until the comparison
 gained `location.isEmpty`. The fourth was re-expressed against the comparison's new line break.
+
+The last two are amendment 4b (S′), from the review of #277. The first puts back the regression
+amendment 4 had introduced: spacing that is only spaces and tabs, where SwiftPM takes any horizontal
+whitespace, so `//\u{00A0}swift-tools-version:5.9` loads in SwiftPM and was no manifest here. The
+second guards the prefilter that now spares a long `Package.swift` a regex per line: compare its
+label without lowercasing and a header above `// SWIFT-TOOLS-VERSION:6.0` is filtered out before
+the case-insensitive regex can see it. The shared cases file's `isManifest` section kills both. The
+three amendment-4 manifest mutants were re-expressed against the new `isManifest`, and their killer
+still fails exactly their own case.
 
 `purity-universe-takes-every-nested-package` was re-expressed when discovery started awaiting the
 bound on a large-stack thread (`compiledUniverse`): it now skips that call.

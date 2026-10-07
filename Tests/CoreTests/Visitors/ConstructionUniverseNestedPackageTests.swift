@@ -54,12 +54,15 @@ struct ConstructionUniverseNestedPackageTests {
         "  \t// swift-tools-version: 6.0\n",
         "\u{FEFF}// swift-tools-version:6.0\n",
         "// swift-tools-version:5.9\r\nimport PackageDescription\r\n",
-        // Blank lines first, at any version: SwiftPM loads these, and a first-line test did not.
+        // Blank lines first: SwiftPM loads these (empty ones at any version, whitespace and CRLF
+        // ones from 5.4), and a first-line test did not.
         "\n// swift-tools-version:6.0\n",
         "\n\n// swift-tools-version:5.9\nimport PackageDescription\n",
         "\r\n// swift-tools-version:5.9\n",
-        // The label in any case.
+        // The label in any case, and any horizontal whitespace around the marker.
         "// Swift-Tools-Version: 5.9\n",
+        "//\u{00A0}swift-tools-version:5.9\n",
+        "\u{00A0}\n// swift-tools-version:5.9\n",
         // From 6.0, below other lines.
         "import PackageDescription\n// swift-tools-version:6.0\n",
         "// Licensed under Apache 2.0\n//\n// swift-tools-version:6.2\n"

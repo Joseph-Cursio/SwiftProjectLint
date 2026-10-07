@@ -188,6 +188,46 @@
     {
       "text": "",
       "expected": false
+    },
+    {
+      "text": "//\u00a0swift-tools-version:5.9\n",
+      "expected": true
+    },
+    {
+      "text": "\u00a0// swift-tools-version:5.9\n",
+      "expected": true
+    },
+    {
+      "text": "//\u3000swift-tools-version:5.9\n",
+      "expected": true
+    },
+    {
+      "text": "\u00a0\n// swift-tools-version:5.9\n",
+      "expected": true
+    },
+    {
+      "text": "\r\n// swift-tools-version:5.9\r\n",
+      "expected": true
+    },
+    {
+      "text": "// Copyright 2026 Example\r\n// swift-tools-version:6.0\r\n",
+      "expected": true
+    },
+    {
+      "text": "// Copyright 2026 Example\r// swift-tools-version:6.0\r",
+      "expected": true
+    },
+    {
+      "text": "// Copyright 2026 Example\n// SWIFT-TOOLS-VERSION:6.0\n",
+      "expected": true
+    },
+    {
+      "text": "// Copyright 2026 Example\n//\u00a0swift-tools-version:6.0\n",
+      "expected": true
+    },
+    {
+      "text": "// Copyright 2026 Example\n  // swift-tools-version:6.0\n",
+      "expected": true
     }
   ]
 }
