@@ -48,12 +48,21 @@ struct ConstructionUniverseNestedPackageTests {
 
     // MARK: - What a manifest is
 
-    @Test("a manifest's first line is a tools-version comment", arguments: [
+    @Test("a tools-version comment where SwiftPM looks for one makes a manifest", arguments: [
         "// swift-tools-version:6.2\nimport PackageDescription\n",
         "//swift-tools-version:5.9",
         "  \t// swift-tools-version: 6.0\n",
         "\u{FEFF}// swift-tools-version:6.0\n",
-        "// swift-tools-version:5.9\r\nimport PackageDescription\r\n"
+        "// swift-tools-version:5.9\r\nimport PackageDescription\r\n",
+        // Blank lines first, at any version: SwiftPM loads these, and a first-line test did not.
+        "\n// swift-tools-version:6.0\n",
+        "\n\n// swift-tools-version:5.9\nimport PackageDescription\n",
+        "\r\n// swift-tools-version:5.9\n",
+        // The label in any case.
+        "// Swift-Tools-Version: 5.9\n",
+        // From 6.0, below other lines.
+        "import PackageDescription\n// swift-tools-version:6.0\n",
+        "// Licensed under Apache 2.0\n//\n// swift-tools-version:6.2\n"
     ])
     func toolsVersionLineIsAManifest(text: String) {
         #expect(ConstructionUniverse.isManifest(text))
@@ -61,9 +70,11 @@ struct ConstructionUniverseNestedPackageTests {
 
     @Test("a file without one is a source file, however it is named", arguments: [
         "struct Package: Equatable { let name: String }\n",
-        "import PackageDescription\n// swift-tools-version:6.0\n",
-        "\n// swift-tools-version:6.0\n",
+        // Below 6.0, SwiftPM wants the comment first.
+        "import PackageDescription\n// swift-tools-version:5.9\n",
         "/* swift-tools-version:6.0 */\n",
+        "/// swift-tools-version:6.0\n",
+        "  \n\t\n",
         ""
     ])
     func noToolsVersionLineIsNoManifest(text: String) {

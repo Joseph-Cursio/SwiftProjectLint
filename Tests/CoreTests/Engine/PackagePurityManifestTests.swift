@@ -56,6 +56,49 @@ struct PackagePurityManifestTests {
         #expect(await PackagePurityFixtures.universe(at: root).contains("Demo/Sources/Demo/Row.swift") == false)
     }
 
+    @Test("a manifest SwiftPM loads passes its dependencies on, however its tools-version line is placed", arguments: [
+        "\n// swift-tools-version:5.9\n",
+        "// SWIFT-TOOLS-VERSION:5.9\n",
+        "// Copyright 2026 Example\n// swift-tools-version:6.0\n"
+    ])
+    func manifestAsSwiftPMReadsItKeepsTheClosure(head: String) async throws {
+        // The reviewer's f2, and its two siblings: root → `Packages/A` → `../B`. A's manifest opens
+        // with a blank line, an upper-case label or a license header; SwiftPM loads each and compiles
+        // `B`. A first-line test called A no package at all, so it passed nothing on, `B` left the
+        // table, and `tokenCount`, building B's UUID-minting `Tok`, was offered — where 2610ba4a
+        // refuted it.
+        try await Self.expectTokenCountRefutes(tokAt: "Packages/B/Sources/B/Tok.swift", files: [
+            "Package.swift": """
+            // swift-tools-version:5.9
+            import PackageDescription
+            let package = Package(name: "Root", dependencies: [.package(path: "Packages/A")], \
+            targets: [.target(name: "App", dependencies: [.product(name: "A", package: "A")])])
+            """,
+            "Packages/A/Package.swift": head + """
+            import PackageDescription
+            let package = Package(name: "A", products: [.library(name: "A", targets: ["A"])], \
+            dependencies: [.package(path: "../B")], \
+            targets: [.target(name: "A", dependencies: [.product(name: "B", package: "B")])])
+            """,
+            "Packages/A/Sources/A/A.swift": "public struct Plain { public let n: Int }\n",
+            "Packages/B/Package.swift": Self.libraryManifest("B")
+        ], subject: Self.app(importing: "B"))
+    }
+
+    @Test("a root manifest opening with a blank line still bounds the nested packages")
+    func rootManifestAfterABlankLineBoundsTheUniverse() async throws {
+        // The reviewer's f15: read as no manifest, the root took every nested package, and the
+        // unrelated `Demo/`'s refuting `Row` came in with it.
+        let root = try PackagePurityFixtures.makeProject([
+            "Package.swift": "\n" + Self.rootManifest(dependencies: ""),
+            "Demo/Package.swift": "// swift-tools-version:5.9\n",
+            "Demo/Sources/Demo/Row.swift": Self.demoRow,
+            "Sources/App/Callers.swift": PackagePurityFixtures.callers
+        ])
+        defer { try? FileManager.default.removeItem(atPath: root) }
+        #expect(await PackagePurityFixtures.universe(at: root) == ["Sources/App/Callers.swift"])
+    }
+
     @Test("an unreadable manifest is a boundary, and doubt where the closure reads it")
     func unreadableManifestIsABoundaryAndDoubt() async throws {
         let root = try PackagePurityFixtures.makeProject([
