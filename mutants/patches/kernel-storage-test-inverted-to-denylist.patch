@@ -1,21 +1,22 @@
 diff --git a/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/CleanInstanceMethodCatalog.swift b/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/CleanInstanceMethodCatalog.swift
+index 087101b7..449cd904 100644
 --- a/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/CleanInstanceMethodCatalog.swift
 +++ b/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/CleanInstanceMethodCatalog.swift
-@@ -158,7 +158,7 @@
-         var found: Set<String> = []
-         for (name, members) in types where !members.isActor {
-             guard members.declaredStorage.allSatisfy({ storage in
--                !storage.isMutable && storage.isValue(givenEnums: enumTypes)
-+                !storage.isMutable && !storage.isCollaboratorDenylisted
-             }) else { continue }
-             let cleanHere = clean[name] ?? []
-             guard members.methods.keys.allSatisfy({ cleanHere.contains($0) }) else { continue }
-@@ -237,6 +237,8 @@
-         /// optional of one. Collections are values whatever they contain, because replacing the
+@@ -173,7 +173,7 @@ public struct CleanInstanceMethodCatalog: Sendable, Equatable {
+             var promotedThisPass = false
+             for (name, members) in types where !members.isActor && !found.contains(name) {
+                 guard members.declaredStorage.allSatisfy({ storage in
+-                    !storage.isMutable && storage.isValue(givenEnums: enumTypes, kernels: found)
++                    !storage.isMutable && !storage.isCollaboratorDenylisted
+                 }) else { continue }
+                 let cleanHere = clean[name] ?? []
+                 guard members.methods.keys.allSatisfy({ cleanHere.contains($0) }) else { continue }
+@@ -431,6 +431,8 @@ public struct CleanInstanceMethodCatalog: Sendable, Equatable {
          /// contents is what constructing a different one means.
          let isSyntacticValue: Bool
-+
-+        var isCollaboratorDenylisted: Bool { typeName == nil }
  
-         func isValue(givenEnums enums: Set<String>) -> Bool {
-             if isSyntacticValue { return true }
++        var isCollaboratorDenylisted: Bool { typeName == nil }
++
+         /// `kernels` is the set admitted so far, which is what makes a kernel holding a kernel a
+         /// kernel. It grows between passes and is never read for a type not yet admitted on its
+         /// own evidence, so the recursion bottoms out at stdlib values and project enums.
