@@ -176,15 +176,15 @@ extension ProjectLinter {
     /// (amendment J). The cost, accepted, is that its namesakes then refute the root's too.
     static func compiledByRoot(_ walk: [String], reported: [String], projectRoot: String) -> [String] {
         let root = ProjectRoot(projectRoot)
-        var manifests: [String: ConstructionUniverse.Manifest] = [:]
-        func manifest(_ directory: String) -> ConstructionUniverse.Manifest {
-            if let known = manifests[directory] { return known }
-            let found = ConstructionUniverse.manifest(inDirectory: root.absolutePath(of: RelativePath(directory)))
-            manifests[directory] = found
+        var holdsManifest: [String: Bool] = [:]
+        func isPackage(_ directory: String) -> Bool {
+            if let known = holdsManifest[directory] { return known }
+            let found = ConstructionUniverse.manifest(inDirectory: absolutePath(directory)) != .absent
+            holdsManifest[directory] = found
             return found
         }
-        func isPackage(_ directory: String) -> Bool {
-            manifest(directory) != .absent
+        func absolutePath(_ directory: String) -> String {
+            root.absolutePath(of: RelativePath(directory))
         }
 
         var located: [(filePath: String, universePath: String)] = []
@@ -211,7 +211,7 @@ extension ProjectLinter {
             rootHasManifest: isPackage("") && !ConstructionUniverse.holdsXcodeProject(directory: root.path),
             rootPath: root.path,
             resolvingSymlinks: { ProjectRoot($0).path },
-            manifest: manifest
+            manifests: { ConstructionUniverse.manifests(inDirectory: absolutePath($0)) }
         )
         return located.filter { file in
             ConstructionUniverse.owningPackage(of: file.universePath, among: nestedPackages)

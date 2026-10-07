@@ -111,6 +111,16 @@ struct ConstructionUniverseNestedPackageTests {
         try FileManager.default.setAttributes([.posixPermissions: 0], ofItemAtPath: locked + "/Package.swift")
         try #require(FileManager.default.isReadableFile(atPath: locked + "/Package.swift") == false, "running as root?")
         #expect(ConstructionUniverse.manifest(inDirectory: locked) == .unreadable)
+
+        // Beside `Package.swift`, each `Package@swift-*.swift`, read the same way, in name order.
+        let versioned = "// swift-tools-version:6.0\nlet package = Package(name: \"V\")\n"
+        try versioned.write(toFile: real + "/Package@swift-6.0.swift", atomically: true, encoding: .utf8)
+        try "struct NotAManifest {}\n"
+            .write(toFile: real + "/Package@swift-5.9.swift", atomically: true, encoding: .utf8)
+        try versioned.write(toFile: source + "/Package@swift-6.0.swift", atomically: true, encoding: .utf8)
+        #expect(ConstructionUniverse.manifests(inDirectory: real) == [.text(manifest), .absent, .text(versioned)])
+        #expect(ConstructionUniverse.manifests(inDirectory: source) == [.absent, .text(versioned)])
+        #expect(ConstructionUniverse.manifests(inDirectory: empty) == [.absent])
     }
 
     // MARK: - The closure
@@ -119,6 +129,7 @@ struct ConstructionUniverseNestedPackageTests {
 
     private static func compiled(
         _ manifests: [String: String],
+        versioned: [String: [String]] = [:],
         unreadable: Set<String> = [],
         reported: Set<String> = [],
         rootHasManifest: Bool = true
@@ -129,18 +140,20 @@ struct ConstructionUniverseNestedPackageTests {
             rootHasManifest: rootHasManifest,
             rootPath: "/work/App",
             resolvingSymlinks: { $0 },
-            manifest: reading(manifests, unreadable: unreadable)
+            manifests: reading(manifests, versioned: versioned, unreadable: unreadable)
         )
     }
 
-    /// A directory's manifest from `manifests`, `.unreadable` for one in `unreadable`, and `.absent`
-    /// for any other.
+    /// A directory's `Package.swift` from `manifests` — `.unreadable` for one in `unreadable`,
+    /// `.absent` for any other — then its `versioned` manifests' texts.
     private static func reading(
-        _ manifests: [String: String], unreadable: Set<String> = []
-    ) -> (String) -> ConstructionUniverse.Manifest {
+        _ manifests: [String: String], versioned: [String: [String]] = [:], unreadable: Set<String> = []
+    ) -> (String) -> [ConstructionUniverse.Manifest] {
         { directory in
-            if unreadable.contains(directory) { return .unreadable }
-            return manifests[directory].map(ConstructionUniverse.Manifest.text) ?? .absent
+            let primary: ConstructionUniverse.Manifest = unreadable.contains(directory)
+                ? .unreadable
+                : manifests[directory].map(ConstructionUniverse.Manifest.text) ?? .absent
+            return [primary] + (versioned[directory] ?? []).map(ConstructionUniverse.Manifest.text)
         }
     }
 
@@ -154,6 +167,17 @@ struct ConstructionUniverseNestedPackageTests {
         ])
         // C depends on Demo, but nothing the root compiles depends on C.
         #expect(reached == ["Packages/A", "Packages/B"])
+    }
+
+    @Test("a directory's version-specific manifests add their dependencies, and their doubt")
+    func versionSpecificManifestsAreUnioned() {
+        // `Package.swift` names nothing; `Package@swift-6.0.swift`, which a 6.x toolchain builds
+        // with, names `Packages/A`.
+        let manifests = ["": "", "Packages/A": ""]
+        let toA = #".package(path: "Packages/A")"#
+        #expect(Self.compiled(manifests).isEmpty)
+        #expect(Self.compiled(manifests, versioned: ["": [toA]]) == ["Packages/A"])
+        #expect(Self.compiled(manifests, versioned: ["": [toA], "Packages/A": [".package(path: p)"]]) == Self.packages)
     }
 
     @Test("a package the run reports on is in, with its own closure")
@@ -225,7 +249,7 @@ struct ConstructionUniverseNestedPackageTests {
                 rootHasManifest: true,
                 rootPath: rootPath,
                 resolvingSymlinks: resolve,
-                manifest: Self.reading(manifests)
+                manifests: Self.reading(manifests)
             )
             #expect(reached == ["Vendor/Lib", "Demo"], "root spelled \(rootPath)")
         }

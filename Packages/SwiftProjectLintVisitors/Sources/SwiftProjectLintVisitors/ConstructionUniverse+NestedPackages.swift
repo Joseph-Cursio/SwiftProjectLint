@@ -10,7 +10,8 @@ import SwiftSyntax
 /// own files are always in the universe, and a nested package's are only when the root reaches it:
 ///
 /// - **The root has a manifest**: the closure of its local path dependencies. Each
-///   manifest's `.package(path:)` literals are read for their value, as SwiftPM reads them
+///   manifest's `.package(path:)` literals — a directory's manifests are its `Package.swift` and
+///   every `Package@swift-*.swift`, taken together (amendment O) — are read for their value, as SwiftPM reads them
 ///   (escapes decoded, raw strings allowed), resolved from that manifest's directory, standardised,
 ///   then symlink-resolved, and followed transitively; a package is matched by where it resolves,
 ///   so `/tmp/x` and `/private/tmp/x` name one directory (amendment H). Each dependency is followed
@@ -63,15 +64,17 @@ extension ConstructionUniverse {
     ///     both are resolved.
     ///   - resolvingSymlinks: an absolute path with its symlinks resolved (`realpath(3)`), or the path
     ///     itself when it does not resolve.
-    ///   - manifest: what a directory, given relative to the resolved root (`""` is the root), holds
-    ///     at `Package.swift`. An unreadable manifest is doubt, so every nested package is in.
+    ///   - manifests: every manifest a directory, given relative to the resolved root (`""` is the
+    ///     root), holds — `Package.swift` and each `Package@swift-*.swift` (`manifests(inDirectory:)`).
+    ///     Their dependencies are taken together, and doubt in any one — an unreadable manifest, a
+    ///     `path:` that is not a literal — is doubt, so every nested package is in.
     public static func compiledNestedPackages(
         _ nestedPackages: Set<String>,
         reported: Set<String>,
         rootHasManifest: Bool,
         rootPath: String,
         resolvingSymlinks: (String) -> String,
-        manifest: (String) -> Manifest
+        manifests: (String) -> [Manifest]
     ) -> Set<String> {
         guard rootHasManifest, !nestedPackages.isEmpty else { return nestedPackages }
         let root = resolvingSymlinks(rootPath)
@@ -96,7 +99,7 @@ extension ConstructionUniverse {
             enter(location)
         }
         while let directory = pending.popLast() {
-            guard let dependencies = dependencies(of: manifest(directory)) else { return nestedPackages }
+            guard let dependencies = dependencies(of: manifests(directory)) else { return nestedPackages }
             for literal in dependencies {
                 if let location = resolve(literal, from: directory, root: root, resolvingSymlinks: resolvingSymlinks) {
                     enter(location)
@@ -106,14 +109,18 @@ extension ConstructionUniverse {
         return reached
     }
 
-    /// The dependency literals of `manifest`: none when there is no manifest, `nil` for doubt — an
-    /// unreadable manifest, or a `path:` that is not a literal.
-    private static func dependencies(of manifest: Manifest) -> [String]? {
-        switch manifest {
-        case .absent: []
-        case .text(let text): localPackageDependencies(manifest: text)
-        case .unreadable: nil
+    /// The dependency literals of every one of `manifests`, in order: none from a file that is no
+    /// manifest, and `nil` for doubt in any — an unreadable manifest, or a `path:` that is not a
+    /// literal.
+    private static func dependencies(of manifests: [Manifest]) -> [String]? {
+        var literals: [String] = []
+        for manifest in manifests {
+            if manifest == .unreadable { return nil }
+            guard case .text(let text) = manifest else { continue }
+            guard let read = localPackageDependencies(manifest: text) else { return nil }
+            literals += read
         }
+        return literals
     }
 
     /// The nested package `relativePath` belongs to — the nearest of `nestedPackages` above it —

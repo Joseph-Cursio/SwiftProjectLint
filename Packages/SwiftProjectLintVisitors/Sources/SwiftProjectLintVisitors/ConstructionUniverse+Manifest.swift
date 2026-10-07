@@ -34,14 +34,37 @@ extension ConstructionUniverse {
         case unreadable
     }
 
-    /// What the directory at the absolute path `directory` holds at `Package.swift`.
+    /// What the directory at the absolute path `directory` holds at `Package.swift` — what makes it
+    /// a package.
     public static func manifest(inDirectory directory: String) -> Manifest {
-        let path = (directory.hasSuffix("/") ? directory : directory + "/") + "Package.swift"
+        read(file: joined(directory, "Package.swift"))
+    }
+
+    /// Every manifest the directory at the absolute path `directory` holds: its `Package.swift`, then
+    /// each `Package@swift-*.swift` beside it in name order, each read as ``manifest(inDirectory:)``
+    /// reads one (amendment O).
+    ///
+    /// The bound takes the **union** of their dependencies. SwiftPM builds a package with whichever
+    /// one the toolchain selects, and nothing cheap says which: a root whose `Package.swift` names no
+    /// dependency and whose `Package@swift-6.0.swift` names `Packages/A` compiles `A` on every
+    /// toolchain this linter runs on, yet reading `Package.swift` alone left `A` out.
+    public static func manifests(inDirectory directory: String) -> [Manifest] {
+        let names = (try? FileManager.default.contentsOfDirectory(atPath: directory)) ?? []
+        let versioned = names.filter { $0.hasPrefix("Package@swift-") && $0.hasSuffix(".swift") }.sorted()
+        return [manifest(inDirectory: directory)] + versioned.map { read(file: joined(directory, $0)) }
+    }
+
+    /// The manifest the file at `path` is, if it is one.
+    private static func read(file path: String) -> Manifest {
         // `stat` follows links: a dangling one fails, and a link to a regular file is that file.
         var status = stat()
         guard stat(path, &status) == 0, status.st_mode & S_IFMT == S_IFREG else { return .absent }
         guard let text = try? String(contentsOfFile: path, encoding: .utf8) else { return .unreadable }
         return isManifest(text) ? .text(text) : .absent
+    }
+
+    private static func joined(_ directory: String, _ name: String) -> String {
+        (directory.hasSuffix("/") ? directory : directory + "/") + name
     }
 
     /// Whether the directory at the absolute path `directory` has an Xcode project or workspace —

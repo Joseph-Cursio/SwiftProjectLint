@@ -108,7 +108,88 @@ struct PackagePurityManifestTests {
         await Self.expectItemRefutes(at: root, holding: ["LocalPackages/Feature/Sources/Feature/Item.swift"])
     }
 
+    // MARK: - The joint review critic's fixtures
+
+    // Each is `critic/<name>` from the review, file for file: `tokenCount` builds a `Tok` that
+    // mints a `UUID`, declared in a package the root compiles by a route the bound did not read.
+    // Each runs with a plain `Tok` too, so a candidate that vanishes vanished for the `UUID`.
+
+    @Test("s6v: a dependency named only in Package@swift-6.0.swift is compiled")
+    func versionSpecificManifestDependency() async throws {
+        try await Self.expectTokenCountRefutes(tokAt: "Packages/A/Sources/A/Tok.swift", files: [
+            "Package.swift": """
+            // swift-tools-version:5.9
+            import PackageDescription
+            let package = Package(name: "Root", targets: [.target(name: "App")])
+            """,
+            "Package@swift-6.0.swift": Self.dependsOnA,
+            "Packages/A/Package.swift": Self.libraryManifest("A")
+        ])
+    }
+
+    @Test("s6c: the same dependency in Package.swift is compiled")
+    func plainManifestDependency() async throws {
+        try await Self.expectTokenCountRefutes(tokAt: "Packages/A/Sources/A/Tok.swift", files: [
+            "Package.swift": Self.dependsOnA,
+            "Packages/A/Package.swift": Self.libraryManifest("A")
+        ])
+    }
+
     // MARK: - Fixtures
+
+    /// The critic's subject, `Sources/App/App.swift`.
+    static let tokenCount = """
+    import A
+    public func tokenCount(_ n: Int) -> Int {
+        Tok(n: n).n * 2
+    }
+    """
+
+    static let dependsOnA = """
+    // swift-tools-version:6.0
+    import PackageDescription
+    let package = Package(name: "Root", dependencies: [.package(path: "Packages/A")], \
+    targets: [.target(name: "App", dependencies: [.product(name: "A", package: "A")])])
+    """
+
+    static func libraryManifest(_ name: String) -> String {
+        """
+        // swift-tools-version:5.9
+        import PackageDescription
+        let package = Package(name: "\(name)", products: [.library(name: "\(name)", targets: ["\(name)"])], \
+        targets: [.target(name: "\(name)")])
+        """
+    }
+
+    /// `files`, `Sources/App/App.swift` and a `Tok` at `tokAt`: `tokenCount` is a candidate when the
+    /// `Tok` is plain and is not when it mints a `UUID`. `links` are `(link, destination)` pairs.
+    static func expectTokenCountRefutes(
+        tokAt tokPath: String,
+        files: [String: String],
+        links: [(link: String, destination: String)] = [],
+        subject: String = tokenCount,
+        sourceLocation: SourceLocation = #_sourceLocation
+    ) async throws {
+        let refuting = "import Foundation\npublic struct Tok { public let id = UUID(); public let n: Int; "
+            + "public init(n: Int) { self.n = n } }\n"
+        let plain = "public struct Tok { public let n: Int; public init(n: Int) { self.n = n } }\n"
+        var found: [String: Set<String>] = [:]
+        for (name, tok) in [("refuting", refuting), ("plain", plain)] {
+            var project = files
+            project["Sources/App/App.swift"] = subject
+            project[tokPath] = tok
+            let root = try PackagePurityFixtures.makeProject(project)
+            defer { try? FileManager.default.removeItem(atPath: root) }
+            for link in links {
+                try PackagePurityFixtures.symlink(link.link, to: link.destination, in: root)
+            }
+            found[name] = await PackagePurityFixtures.candidateSymbols(at: root)
+        }
+        #expect(found["plain"]?.contains("tokenCount") == true, "control lost the subject",
+                sourceLocation: sourceLocation)
+        #expect(found["refuting"]?.contains("tokenCount") == false, "Tok left the table",
+                sourceLocation: sourceLocation)
+    }
 
     static func rootManifest(dependencies: String) -> String {
         """
