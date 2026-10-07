@@ -157,20 +157,21 @@ extension ProjectLinter {
     /// package must not refute the root's namesakes.
     ///
     /// A nested package is found where it is defined, on disk: a directory between the root and a
-    /// walked file that holds a `Package.swift`. Files are placed by their universe path, so a
-    /// symlinked file belongs to the package its link sits in. A file with no universe path is
+    /// walked file that holds a manifest (`ConstructionUniverse.manifest(inDirectory:)`) — not
+    /// merely a file or directory named `Package.swift`. Files are placed by their universe path,
+    /// so a symlinked file belongs to the package its link sits in. A file with no universe path is
     /// dropped here, as it would be by the parse.
     static func compiledByRoot(_ walk: [String], projectRoot: String) -> [String] {
         let root = ProjectRoot(projectRoot)
-        var holdsManifest: [String: Bool] = [:]
-        func manifestPath(_ directory: String) -> String {
-            root.absolutePath(of: RelativePath(directory)) + "/Package.swift"
+        var manifests: [String: ConstructionUniverse.Manifest] = [:]
+        func manifest(_ directory: String) -> ConstructionUniverse.Manifest {
+            if let known = manifests[directory] { return known }
+            let found = ConstructionUniverse.manifest(inDirectory: root.absolutePath(of: RelativePath(directory)))
+            manifests[directory] = found
+            return found
         }
         func isPackage(_ directory: String) -> Bool {
-            if let known = holdsManifest[directory] { return known }
-            let found = FileManager.default.fileExists(atPath: manifestPath(directory))
-            holdsManifest[directory] = found
-            return found
+            manifest(directory) != .absent
         }
 
         var located: [(filePath: String, universePath: String)] = []
@@ -191,7 +192,7 @@ extension ProjectLinter {
             rootHasManifest: isPackage(""),
             rootPath: root.path,
             resolvingSymlinks: { ProjectRoot($0).path },
-            manifest: { try? String(contentsOfFile: manifestPath($0), encoding: .utf8) }
+            manifest: manifest
         )
         return located.filter { file in
             ConstructionUniverse.owningPackage(of: file.universePath, among: nestedPackages)

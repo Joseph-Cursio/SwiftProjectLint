@@ -5,11 +5,11 @@ import SwiftSyntax
 /// the shared spec's amendment B, implemented word for word in SwiftInferProperties too.
 ///
 /// A *nested package* is a directory below the root (never the root itself) that holds a
-/// `Package.swift`. Every file belongs to the nearest one above it, or to the root's own package
-/// when there is none; the root's own files are always in the universe, and a nested package's
-/// are only when the root reaches it:
+/// manifest — a `Package.swift` that is one, by amendment F (`manifest(inDirectory:)`). Every file
+/// belongs to the nearest one above it, or to the root's own package when there is none; the root's
+/// own files are always in the universe, and a nested package's are only when the root reaches it:
 ///
-/// - **The root has a `Package.swift`**: the closure of its local path dependencies. Each
+/// - **The root has a manifest**: the closure of its local path dependencies. Each
 ///   manifest's `.package(path:)` literals are read for their value, as SwiftPM reads them
 ///   (escapes decoded, raw strings allowed), resolved from that manifest's directory, standardised,
 ///   then symlink-resolved, and followed transitively; a package is matched by where it resolves,
@@ -46,21 +46,20 @@ extension ConstructionUniverse {
     /// The nested packages, of `nestedPackages`, whose files are in the universe.
     ///
     /// - Parameters:
-    ///   - nestedPackages: root-relative directories (no trailing `/`) that hold a `Package.swift`.
-    ///   - rootHasManifest: whether the root itself holds a `Package.swift`.
+    ///   - nestedPackages: root-relative directories (no trailing `/`) that hold a manifest.
+    ///   - rootHasManifest: whether the root itself holds a manifest.
     ///   - rootPath: the root's absolute path, which an absolute dependency path must lie under once
     ///     both are resolved.
     ///   - resolvingSymlinks: an absolute path with its symlinks resolved (`realpath(3)`), or the path
     ///     itself when it does not resolve.
-    ///   - manifest: the text of the `Package.swift` in a directory given relative to the resolved
-    ///     root (`""` is the root), or `nil` when it cannot be read — which is doubt, so every nested
-    ///     package is in.
+    ///   - manifest: what a directory, given relative to the resolved root (`""` is the root), holds
+    ///     at `Package.swift`. An unreadable manifest is doubt, so every nested package is in.
     public static func compiledNestedPackages(
         _ nestedPackages: Set<String>,
         rootHasManifest: Bool,
         rootPath: String,
         resolvingSymlinks: (String) -> String,
-        manifest: (String) -> String?
+        manifest: (String) -> Manifest
     ) -> Set<String> {
         guard rootHasManifest, !nestedPackages.isEmpty else { return nestedPackages }
         let root = resolvingSymlinks(rootPath)
@@ -74,8 +73,7 @@ extension ConstructionUniverse {
         var reached: Set<String> = []
         var pending = [""]
         while let directory = pending.popLast() {
-            guard let text = manifest(directory),
-                  let dependencies = localPackageDependencies(manifest: text) else { return nestedPackages }
+            guard let dependencies = dependencies(of: manifest(directory)) else { return nestedPackages }
             for literal in dependencies {
                 guard let resolved = resolve(
                           literal, from: directory, root: root, resolvingSymlinks: resolvingSymlinks
@@ -86,6 +84,16 @@ extension ConstructionUniverse {
             }
         }
         return reached
+    }
+
+    /// The dependency literals of `manifest`: none when there is no manifest, `nil` for doubt — an
+    /// unreadable manifest, or a `path:` that is not a literal.
+    private static func dependencies(of manifest: Manifest) -> [String]? {
+        switch manifest {
+        case .absent: []
+        case .text(let text): localPackageDependencies(manifest: text)
+        case .unreadable: nil
+        }
     }
 
     /// The nested package `relativePath` belongs to — the nearest of `nestedPackages` above it —

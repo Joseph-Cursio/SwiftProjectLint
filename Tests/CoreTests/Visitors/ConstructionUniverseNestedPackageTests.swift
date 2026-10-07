@@ -1,3 +1,4 @@
+import Foundation
 @testable import SwiftProjectLintVisitors
 import Testing
 
@@ -45,20 +46,98 @@ struct ConstructionUniverseNestedPackageTests {
         #expect(ConstructionUniverse.localPackageDependencies(manifest: manifest) == nil)
     }
 
+    // MARK: - What a manifest is
+
+    @Test("a manifest's first line is a tools-version comment", arguments: [
+        "// swift-tools-version:6.2\nimport PackageDescription\n",
+        "//swift-tools-version:5.9",
+        "  \t// swift-tools-version: 6.0\n",
+        "\u{FEFF}// swift-tools-version:6.0\n",
+        "// swift-tools-version:5.9\r\nimport PackageDescription\r\n"
+    ])
+    func toolsVersionLineIsAManifest(text: String) {
+        #expect(ConstructionUniverse.isManifest(text))
+    }
+
+    @Test("a file without one is a source file, however it is named", arguments: [
+        "struct Package: Equatable { let name: String }\n",
+        "import PackageDescription\n// swift-tools-version:6.0\n",
+        "\n// swift-tools-version:6.0\n",
+        "/* swift-tools-version:6.0 */\n",
+        ""
+    ])
+    func noToolsVersionLineIsNoManifest(text: String) {
+        #expect(ConstructionUniverse.isManifest(text) == false)
+    }
+
+    @Test("only a readable or unreadable regular file named Package.swift is a manifest")
+    func manifestOnDisk() throws {
+        let root = FileManager.default.temporaryDirectory
+            .appendingPathComponent("ConstructionUniverseManifest-\(UUID().uuidString)")
+        defer { try? FileManager.default.removeItem(at: root) }
+        func directory(_ name: String) throws -> String {
+            let url = root.appendingPathComponent(name)
+            try FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
+            return url.path
+        }
+        let manifest = "// swift-tools-version:6.0\nimport PackageDescription\n"
+
+        let real = try directory("Real")
+        try manifest.write(toFile: real + "/Package.swift", atomically: true, encoding: .utf8)
+        let source = try directory("Source")
+        try "struct Package { let name: String }\n"
+            .write(toFile: source + "/Package.swift", atomically: true, encoding: .utf8)
+        let nested = try directory("Nested")
+        _ = try directory("Nested/Package.swift")
+        let dangling = try directory("Dangling")
+        try FileManager.default.createSymbolicLink(
+            atPath: dangling + "/Package.swift", withDestinationPath: "/nonexistent/Package.swift"
+        )
+        let linked = try directory("Linked")
+        try FileManager.default.createSymbolicLink(
+            atPath: linked + "/Package.swift", withDestinationPath: real + "/Package.swift"
+        )
+        let empty = try directory("Empty")
+
+        #expect(ConstructionUniverse.manifest(inDirectory: real) == .text(manifest))
+        #expect(ConstructionUniverse.manifest(inDirectory: linked) == .text(manifest))
+        #expect(ConstructionUniverse.manifest(inDirectory: source) == .absent)
+        #expect(ConstructionUniverse.manifest(inDirectory: nested) == .absent)
+        #expect(ConstructionUniverse.manifest(inDirectory: dangling) == .absent)
+        #expect(ConstructionUniverse.manifest(inDirectory: empty) == .absent)
+
+        let locked = try directory("Locked")
+        try manifest.write(toFile: locked + "/Package.swift", atomically: true, encoding: .utf8)
+        try FileManager.default.setAttributes([.posixPermissions: 0], ofItemAtPath: locked + "/Package.swift")
+        try #require(FileManager.default.isReadableFile(atPath: locked + "/Package.swift") == false, "running as root?")
+        #expect(ConstructionUniverse.manifest(inDirectory: locked) == .unreadable)
+    }
+
     // MARK: - The closure
 
     private static let packages: Set<String> = ["Packages/A", "Packages/B", "Packages/C", "Demo", "Vendor/Lib"]
 
     private static func compiled(
-        _ manifests: [String: String], rootHasManifest: Bool = true
+        _ manifests: [String: String], unreadable: Set<String> = [], rootHasManifest: Bool = true
     ) -> Set<String> {
         ConstructionUniverse.compiledNestedPackages(
             packages,
             rootHasManifest: rootHasManifest,
             rootPath: "/work/App",
             resolvingSymlinks: { $0 },
-            manifest: { manifests[$0] }
+            manifest: reading(manifests, unreadable: unreadable)
         )
+    }
+
+    /// A directory's manifest from `manifests`, `.unreadable` for one in `unreadable`, and `.absent`
+    /// for any other.
+    private static func reading(
+        _ manifests: [String: String], unreadable: Set<String> = []
+    ) -> (String) -> ConstructionUniverse.Manifest {
+        { directory in
+            if unreadable.contains(directory) { return .unreadable }
+            return manifests[directory].map(ConstructionUniverse.Manifest.text) ?? .absent
+        }
     }
 
     @Test("the root's local path dependencies, followed transitively")
@@ -109,8 +188,9 @@ struct ConstructionUniverseNestedPackageTests {
                 Self.packages,
                 rootHasManifest: true,
                 rootPath: rootPath,
-                resolvingSymlinks: resolve
-            ) { manifests[$0] }
+                resolvingSymlinks: resolve,
+                manifest: Self.reading(manifests)
+            )
             #expect(reached == ["Vendor/Lib", "Demo"], "root spelled \(rootPath)")
         }
     }
@@ -124,7 +204,7 @@ struct ConstructionUniverseNestedPackageTests {
         #expect(computed == Self.packages)
 
         // A manifest the closure reaches but cannot read is doubt too.
-        let unreadable = Self.compiled(["": #".package(path: "Packages/A")"#])
+        let unreadable = Self.compiled(["": #".package(path: "Packages/A")"#], unreadable: ["Packages/A"])
         #expect(unreadable == Self.packages)
 
         // Doubt outside the closure is not: nothing the root compiles reads that manifest.
