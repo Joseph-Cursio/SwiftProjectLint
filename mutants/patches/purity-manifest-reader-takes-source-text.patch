@@ -1,0 +1,18 @@
+diff --git a/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/ConstructionUniverse+NestedPackages.swift b/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/ConstructionUniverse+NestedPackages.swift
+index e76ba8c7..c914fde5 100644
+--- a/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/ConstructionUniverse+NestedPackages.swift
++++ b/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/ConstructionUniverse+NestedPackages.swift
+@@ -274,6 +274,12 @@ private final class PathArgumentCollector: SyntaxVisitor {
+     /// The value, not the source text: `"Packages/\u{55}til"` names `Packages/Util` to SwiftPM, and
+     /// read as written it named no package at all, so the one the root compiles left the table.
+     private static func literal(_ expression: ExprSyntax) -> String? {
+-        expression.as(StringLiteralExprSyntax.self)?.representedLiteralValue
++        guard let literal = expression.as(StringLiteralExprSyntax.self) else { return nil }
++        var text = ""
++        for segment in literal.segments {
++            guard let piece = segment.as(StringSegmentSyntax.self) else { return nil }
++            text += piece.content.text
++        }
++        return text
+     }
+ }

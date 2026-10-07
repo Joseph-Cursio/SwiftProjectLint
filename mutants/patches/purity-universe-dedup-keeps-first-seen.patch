@@ -1,0 +1,13 @@
+diff --git a/Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/ProjectLinter+Purity.swift b/Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/ProjectLinter+Purity.swift
+index 30e091f6..8d30ace5 100644
+--- a/Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/ProjectLinter+Purity.swift
++++ b/Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/ProjectLinter+Purity.swift
+@@ -125,7 +125,7 @@ extension ProjectLinter {
+             let entry = (relativePath: universePath, tree: source.tree)
+             let file = URL(fileURLWithPath: filePath).resolvingSymlinksInPath().path
+             if let slot = slotOfFile[file] {
+-                if universePath < kept[slot].relativePath { kept[slot] = entry }
++                _ = slot
+             } else {
+                 slotOfFile[file] = kept.count
+                 kept.append(entry)

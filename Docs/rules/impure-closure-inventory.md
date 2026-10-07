@@ -57,7 +57,7 @@ population.**
 
 That census predates the oracle's construction facts and has not been re-taken over the 26. Since
 then a closure that builds a value whose type mints an identity is impure too, so expect the
-Nondeterminism row to rise. Re-measured on eight repositories when the facts were wired, four
+Nondeterminism row to rise. Re-measured on seven repositories when the facts were wired, four
 closures moved here from Pure Closure Property-Test Candidate, every one Nondeterminism through a
 construction: `LintIssue.id's default: UUID` in this repository's `LintConfiguration.applyOverrides`,
 and in SwiftCompilerFlagStudio (default rules) two `SimulationIssue.init(…): id's default: UUID` and
@@ -106,7 +106,7 @@ what makes it so. `PurityRefutation` publishes the reason, and this rule is the 
 ### The five causes, and what each one is worth
 
 The oracle's `PurityRefutation` has thirteen cases at the SwiftEffectInference revision this package
-pins (`f2ea8d6`). They are grouped into five on one test: **does a reader do something different
+pins (`64a905c`). They are grouped into five on one test: **does a reader do something different
 about this than about the others?** Where the answer was no, the cases were merged — which is why the
 two nondeterminism refuters collapse to one row, and the two side-effect refuters to another. A
 default argument or a construction that refutes is filed under the cause of the effect it reaches.

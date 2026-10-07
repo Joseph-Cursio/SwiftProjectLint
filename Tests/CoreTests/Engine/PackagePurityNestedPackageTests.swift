@@ -1,0 +1,201 @@
+@testable import Core
+import Foundation
+import Testing
+
+/// A nested package's types are in the table only when the root compiles that package — the
+/// shared spec's amendment B — checked through `ProjectLinter`.
+///
+/// The case that forced the bound: an app whose `ReportBuilder` is a pure kernel building the
+/// app's plain `Row`, beside an unrelated `Demo/` package that declares its own `Row` minting a
+/// `UUID`. With every nested package in the table, SEI read the app's `Row(n:)` as that namesake,
+/// so `rows` stopped being a function of its inputs, `ReportBuilder` lost Direct Instantiation's
+/// pure-kernel exemption, and the run gained a warning — exit 1 at the default threshold — though
+/// it said it had not analysed `Demo/`.
+@Suite("The package purity takes the nested packages the root compiles")
+struct PackagePurityNestedPackageTests {
+
+    @Test("an unrelated nested package's namesake neither refutes nor costs an exemption")
+    func unrelatedNestedPackageDoesNotRefute() async throws {
+        let issues = try await PackagePurityFixtures.lint(Self.app(manifest: Self.manifest(dependencies: "")))
+        #expect(Self.warnsAboutReportBuilder(issues) == false, "Demo's Row took ReportBuilder's exemption")
+        #expect(PackagePurityFixtures.symbols(issues).isSuperset(of: ["rowCount", "rows", "render"]))
+    }
+
+    @Test("the same package, listed as a local dependency, is in the table")
+    func dependedOnNestedPackageRefutes() async throws {
+        let issues = try await PackagePurityFixtures.lint(
+            Self.app(manifest: Self.manifest(dependencies: #".package(path: "Demo")"#))
+        )
+        let candidates = PackagePurityFixtures.symbols(issues)
+        #expect(candidates.contains("render"), "the rule produced nothing, so the absences prove nothing")
+        #expect(candidates.contains("rowCount") == false)
+        #expect(candidates.contains("rows") == false)
+        #expect(Self.warnsAboutReportBuilder(issues))
+    }
+
+    @Test("a nested package the run reports on is judged with its own types")
+    func reportedNestedPackageIsJudgedWithItsOwnTypes() async throws {
+        // With nested packages reported, `Demo/`'s own functions are judged; bounded to what the
+        // root compiles, the table held none of `Demo`'s types, so `tokenCount` was offered and
+        // `TokenBuilder`, building a `Token` that mints a `UUID`, passed as a pure kernel — the
+        // run lost a Direct Instantiation warning.
+        var files = Self.app(manifest: Self.manifest(dependencies: ""))
+        files["Demo/Sources/Demo/Token.swift"] = """
+        import Foundation
+        struct Token: Equatable { let id = UUID(); let n: Int }
+        """
+        files["Demo/Sources/Demo/Make.swift"] = """
+        func tokenCount(_ n: Int) -> Int { Token(n: n).n * 3 }
+        func demoAdd(_ first: Int, _ second: Int) -> Int { first + second }
+        struct TokenBuilder {
+            func tokens(_ values: [Int]) -> [Token] { values.map { Token(n: $0) } }
+        }
+        final class TokenScreen {
+            let builder = TokenBuilder()
+            func render(_ values: [Int]) -> Int { builder.tokens(values).count }
+        }
+        """
+        let reported = try await PackagePurityFixtures.lint(
+            files, configuration: LintConfiguration(includeNestedPackages: true)
+        )
+        let candidates = PackagePurityFixtures.symbols(reported)
+        #expect(candidates.contains("demoAdd"), "Demo was not reported, so the absences prove nothing")
+        #expect(candidates.contains("tokenCount") == false, "Demo was judged without its own Token")
+        #expect(reported.contains { $0.ruleName == .directInstantiation && $0.message.contains("TokenBuilder") })
+
+        // Not reported, `Demo/` stays out, and the root keeps its verdicts and its exemption.
+        let unreported = try await PackagePurityFixtures.lint(files)
+        #expect(PackagePurityFixtures.symbols(unreported).isSuperset(of: ["rowCount", "rows", "render"]))
+        #expect(Self.warnsAboutReportBuilder(unreported) == false)
+    }
+
+    @Test("a root with no manifest takes every nested package, as SwiftLintRuleStudio's does")
+    func rootWithoutManifestIncludesEveryNestedPackage() async throws {
+        var files = Self.app(manifest: nil)
+        files["Core/Package.swift"] = Self.manifest(dependencies: "")
+        files["Core/Sources/Core/Item.swift"] = PackagePurityFixtures.refutingItem
+        files["App/Callers.swift"] = PackagePurityFixtures.callers
+        let candidates = PackagePurityFixtures.symbols(try await PackagePurityFixtures.lint(files))
+        #expect(candidates.contains("sentinelAdd"))
+        #expect(candidates.contains("countOf") == false, "Core/ was left out of an Xcode-style root's table")
+        #expect(candidates.contains("rowCount") == false, "Demo/ was left out of an Xcode-style root's table")
+    }
+
+    @Test("the closure passes through a package whose files are not production", arguments: [
+        "Tests/Support", "IntegrationTests", ".support", "Pods/Support"
+    ])
+    func closureThroughNonProductionPackage(middle: String) async throws {
+        // The root depends on `<middle>`, which depends on `Shared`; SwiftPM compiles `Shared`. The
+        // middle package's own files stay out — a test folder, a hidden or a pruned directory —
+        // but its manifest is read by path, so the walk need not have reached it.
+        let climb = Array(repeating: "..", count: middle.split(separator: "/").count).joined(separator: "/")
+        let root = try PackagePurityFixtures.makeProject([
+            "Package.swift": Self.manifest(dependencies: ".package(path: \"\(middle)\")"),
+            "\(middle)/Package.swift": """
+            // swift-tools-version:6.0
+            import PackageDescription
+            let package = Package(name: "Support", dependencies: [.package(path: "\(climb)/Shared")])
+            """,
+            "\(middle)/Sources/Support/Support.swift": "struct SupportOnly { let n: Int }\n",
+            "Shared/Package.swift": "// swift-tools-version:6.0\n",
+            "Shared/Sources/Shared/Item.swift": PackagePurityFixtures.refutingItem,
+            "Sources/App/Callers.swift": PackagePurityFixtures.callers
+        ])
+        defer { try? FileManager.default.removeItem(atPath: root) }
+        #expect(await PackagePurityFixtures.universe(at: root) == [
+            "Shared/Sources/Shared/Item.swift", "Sources/App/Callers.swift"
+        ])
+        let found = await PackagePurityFixtures.candidateSymbols(at: root)
+        #expect(found.contains("sentinelAdd"))
+        #expect(found.contains("countOf") == false, "the closure stopped at \(middle)")
+    }
+
+    /// How the root's manifest spells its one dependency, `Packages/Util`.
+    enum DependencySpelling: String, CaseIterable {
+        /// `"Packages/\u{55}til"`: SwiftPM decodes the escape.
+        case escaped
+        /// The absolute path through a link to the root, as `/tmp/…` is to `/private/tmp/…`.
+        case throughALink
+        /// The absolute path with every link resolved.
+        case resolved
+    }
+
+    @Test("a dependency path is read for its value and matched where it resolves", arguments: DependencySpelling.allCases)
+    func dependencyPathIsReadAsSwiftPMReadsIt(spelling: DependencySpelling) async throws {
+        // Read as source text, the escape named no package; compared lexically against the
+        // resolved root, a path through a link was outside it. Either way `Util` left the table
+        // and `countOf` was offered, though the root compiles the `Item` it builds.
+        let root = try PackagePurityFixtures.makeProject([
+            "Packages/Util/Package.swift": "// swift-tools-version:6.0\n",
+            "Packages/Util/Sources/Util/Item.swift": PackagePurityFixtures.refutingItem,
+            "Sources/App/Callers.swift": PackagePurityFixtures.callers
+        ])
+        let alias = root + "-alias"
+        try FileManager.default.createSymbolicLink(atPath: alias, withDestinationPath: root)
+        defer {
+            try? FileManager.default.removeItem(atPath: alias)
+            try? FileManager.default.removeItem(atPath: root)
+        }
+        let literal = switch spelling {
+        case .escaped: #""Packages/\u{55}til""#
+        case .throughALink: "\"\(alias)/Packages/Util\""
+        case .resolved: "\"\(ProjectRoot(root).path)/Packages/Util\""
+        }
+        try Self.manifest(dependencies: ".package(path: \(literal))")
+            .write(toFile: root + "/Package.swift", atomically: true, encoding: .utf8)
+
+        // Linted through either spelling of the root, the answer is the same.
+        for lintPath in [root, alias] {
+            let found = await PackagePurityFixtures.candidateSymbols(at: lintPath)
+            #expect(found.contains("sentinelAdd"), "\(spelling) via \(lintPath): the rule produced nothing")
+            #expect(found.contains("countOf") == false, "\(spelling) via \(lintPath): Util left the table")
+        }
+    }
+
+    // MARK: - Fixtures
+
+    /// The probe the review ran: an executable `App`, its plain `Row`, a pure kernel building it, a
+    /// screen holding the kernel, and an unrelated `Demo/` package declaring a refuting `Row`.
+    private static func app(manifest: String?) -> [String: String] {
+        var files = [
+            "Sources/App/Row.swift": "struct Row: Equatable { let n: Int }\n",
+            "Sources/App/ReportBuilder.swift": """
+            struct ReportBuilder {
+                func rows(_ values: [Int]) -> [Row] { values.map { Row(n: $0) } }
+            }
+            """,
+            "Sources/App/Report.swift": """
+            final class ReportScreen {
+                let builder = ReportBuilder()
+                func render(_ values: [Int]) -> Int { builder.rows(values).count }
+            }
+            func rowCount(_ n: Int) -> Int { Row(n: n).n * 2 }
+            """,
+            "Sources/App/main.swift": "print(ReportScreen().render([1, 2]))\n",
+            "Demo/Package.swift": """
+            // swift-tools-version:6.0
+            import PackageDescription
+            let package = Package(name: "Demo", targets: [.target(name: "Demo")])
+            """,
+            "Demo/Sources/Demo/Row.swift": "import Foundation\nstruct Row { let id = UUID(); let n: Int }\n"
+        ]
+        if let manifest { files["Package.swift"] = manifest }
+        return files
+    }
+
+    private static func manifest(dependencies: String) -> String {
+        """
+        // swift-tools-version:6.0
+        import PackageDescription
+        let package = Package(
+            name: "App",
+            dependencies: [\(dependencies)],
+            targets: [.executableTarget(name: "App")]
+        )
+        """
+    }
+
+    private static func warnsAboutReportBuilder(_ issues: [LintIssue]) -> Bool {
+        issues.contains { $0.ruleName == .directInstantiation && $0.message.contains("ReportBuilder") }
+    }
+}

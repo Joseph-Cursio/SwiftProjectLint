@@ -264,7 +264,7 @@
       "shape": "engine-wiring",
       "expected": "killed",
       "test": "witnessIndependentOfDiscoveryOrder",
-      "label": "PackagePurity.build no longer sorts the universe — SEI reports the first of two declarations' witnesses in input order, so the message depends on the order the file system enumerates"
+      "label": "PackagePurity.build no longer puts the universe in ConstructionUniverse.buildOrder — SEI reports the first of two declarations' witnesses in input order, so the message depends on the order the file system enumerates"
     },
     {
       "id": "purity-universe-follows-reporting-scope",
@@ -281,6 +281,142 @@
       "expected": "killed",
       "test": "perFileRulesJudgeTheSharedTree",
       "label": "per-file analysis parses its own copy instead of judging the shared tree — SEI types an assignment target by node identity, so on a re-parse an assignment to a property declared twice under #if is typed by both declarations and refutes"
+    },
+    {
+      "id": "purity-universe-classifies-symlink-target",
+      "patch": "patches/purity-universe-classifies-symlink-target.patch",
+      "shape": "engine-wiring",
+      "expected": "killed",
+      "test": "linkIntoInRootTestsRefutes",
+      "label": "universePath classifies a symlinked file at its target again whenever the target is inside the root — Sources/Lib/Item.swift linking to Tests/Shared/Item.swift is read as a test file and dropped, so constructing the Item SwiftPM compiles into Lib reads as pure"
+    },
+    {
+      "id": "purity-universe-takes-every-nested-package",
+      "patch": "patches/purity-universe-takes-every-nested-package.patch",
+      "shape": "engine-wiring",
+      "expected": "killed",
+      "test": "unrelatedNestedPackageDoesNotRefute",
+      "label": "the universe drops the nested-package bound and takes every nested package — an unrelated Demo/ package's refuting Row refutes the app's own plain Row(n:), withdraws two candidates and takes ReportBuilder's pure-kernel exemption, so Direct Instantiation warns and the default CLI exits 1"
+    },
+    {
+      "id": "purity-universe-nested-on-drops-filtered",
+      "patch": "patches/purity-universe-nested-on-drops-filtered.patch",
+      "shape": "engine-wiring",
+      "expected": "killed",
+      "test": "excludedPathIsEvidence",
+      "label": "with include_nested_packages on, the universe reuses the reportable list instead of the walk the run already made without exclusions — an excluded directory's and a generated file's types drop out of the table, and constructing them reads as pure, only when nested packages are reported"
+    },
+    {
+      "id": "purity-universe-dedup-keeps-first-seen",
+      "patch": "patches/purity-universe-dedup-keeps-first-seen.patch",
+      "shape": "engine-wiring",
+      "expected": "killed",
+      "test": "duplicateKeepsTheSmallestPath",
+      "label": "two universe entries that are one file on disk keep the first one discovery returned rather than the smallest path, so which spelling SEI reads — and the witness it reports — depends on the file system's listing order, and differs from SwiftInferProperties'"
+    },
+    {
+      "id": "purity-universe-collapses-before-classifying",
+      "patch": "patches/purity-universe-collapses-before-classifying.patch",
+      "shape": "engine-wiring",
+      "expected": "killed",
+      "test": "testTargetLinkToProductionIsOneEntry",
+      "label": "constructionSources collapses a file's entries before classifying them — AppTests/Item.swift, a link to Sources/Lib/Item.swift, is the smaller path, stands for the file, and is then dropped as a test file, taking the Item SwiftPM compiles into Lib out of the table"
+    },
+    {
+      "id": "purity-universe-places-links-at-their-target",
+      "patch": "patches/purity-universe-places-links-at-their-target.patch",
+      "shape": "engine-wiring",
+      "expected": "killed",
+      "test": "linkIntoUncompiledPackageCountsWhereTheLinkIs",
+      "label": "compiledByRoot places a symlinked file in the package its target sits in — Sources/Lib/Item.swift linking into an uncompiled Demo/ leaves with Demo, though SwiftPM compiles it into Lib"
+    },
+    {
+      "id": "purity-universe-order-per-component",
+      "patch": "patches/purity-universe-order-per-component.patch",
+      "shape": "engine-wiring",
+      "expected": "killed",
+      "test": "sharedBuildOrder",
+      "label": "ConstructionUniverse.buildOrder sorts by path component rather than with String < — Sources/A-B/X.swift and Sources/A/X.swift swap, so SEI reads one name's declarations in another order than SwiftInferProperties and can report another witness"
+    },
+    {
+      "id": "purity-universe-any-package-swift-is-a-boundary",
+      "patch": "patches/purity-universe-any-package-swift-is-a-boundary.patch",
+      "shape": "engine-wiring",
+      "expected": "killed",
+      "test": "sourceFileNamedPackageIsNoBoundary",
+      "label": "any existing entry named Package.swift makes a package boundary again (amendment F) — a source file of that name in Sources/App/Models/ takes every file beside it out of the universe, so building the Item SwiftPM compiles into App reads as pure"
+    },
+    {
+      "id": "purity-universe-ignores-xcode-project",
+      "patch": "patches/purity-universe-ignores-xcode-project.patch",
+      "shape": "engine-wiring",
+      "expected": "killed",
+      "test": "xcodeProjectBesideTheManifestTakesEveryPackage",
+      "label": "an .xcodeproj beside the root manifest no longer counts as doubt (amendment G) — the manifest's closure bounds the universe, and a local package only the Xcode app target links leaves the table"
+    },
+    {
+      "id": "purity-manifest-reader-takes-source-text",
+      "patch": "patches/purity-manifest-reader-takes-source-text.patch",
+      "shape": "engine-wiring",
+      "expected": "killed",
+      "test": "dependencyPathIsReadAsSwiftPMReadsIt",
+      "label": "the manifest reader takes a path literal's source text instead of its value (amendment H) — .package(path: \"Packages/\\u{55}til\") names no package, and the Util package the root compiles leaves the table"
+    },
+    {
+      "id": "purity-universe-matches-by-spelling",
+      "patch": "patches/purity-universe-matches-by-spelling.patch",
+      "shape": "engine-wiring",
+      "expected": "killed",
+      "test": "dependencyThroughALinkedDirectory",
+      "label": "references and nested packages are matched by spelling rather than by canonical location (amendments H and Q) — a dependency through a link to the walked package's directory, through /tmp for /private/tmp, or in another letter case reaches nothing"
+    },
+    {
+      "id": "purity-closure-stops-at-unwalked-package",
+      "patch": "patches/purity-closure-stops-at-unwalked-package.patch",
+      "shape": "engine-wiring",
+      "expected": "killed",
+      "test": "closureThroughNonProductionPackage",
+      "label": "the closure follows a dependency only into a directory the walk recorded as a package (amendment I) — a root depending on .support or Pods/Support, which depends on Shared, stops there, and Shared's types leave the table"
+    },
+    {
+      "id": "purity-universe-drops-reported-packages",
+      "patch": "patches/purity-universe-drops-reported-packages.patch",
+      "shape": "engine-wiring",
+      "expected": "killed",
+      "test": "reportedNestedPackageIsJudgedWithItsOwnTypes",
+      "label": "a nested package the run reports on is no longer taken into the universe (amendment J) — with --include-nested-packages its own functions are judged without its own types, tokenCount is offered and TokenBuilder passes as a pure kernel"
+    },
+    {
+      "id": "purity-manifests-read-on-cooperative-stack",
+      "patch": "patches/purity-manifests-read-on-cooperative-stack.patch",
+      "shape": "engine-wiring",
+      "expected": "killed",
+      "test": "deepDependencyManifestIsSurvived",
+      "label": "the bound's manifest reads run on the cooperative pool again (amendment K) — a dependency's Package.swift holding a 1,000-arm else if overflows the 512 KB stack and the run dies with SIGBUS"
+    },
+    {
+      "id": "walk-skips-hidden-flag",
+      "patch": "patches/walk-skips-hidden-flag.patch",
+      "shape": "engine-wiring",
+      "expected": "killed",
+      "test": "hiddenFlagIsNoReasonToSkip",
+      "label": "the file walk skips anything carrying macOS's UF_HIDDEN flag again (amendment M) — a flagged source SwiftPM compiles leaves the universe, and building its type reads as pure"
+    },
+    {
+      "id": "purity-closure-reads-package-swift-only",
+      "patch": "patches/purity-closure-reads-package-swift-only.patch",
+      "shape": "engine-wiring",
+      "expected": "killed",
+      "test": "versionSpecificManifestDependency",
+      "label": "the closure reads each directory's Package.swift and ignores its Package@swift-*.swift manifests (amendment O) — a dependency named only in Package@swift-6.0.swift leaves the table"
+    },
+    {
+      "id": "purity-closure-ignores-target-paths",
+      "patch": "patches/purity-closure-ignores-target-paths.patch",
+      "shape": "engine-wiring",
+      "expected": "killed",
+      "test": "targetPathIntoNestedPackage",
+      "label": "the closure ignores target path: arguments (amendment P) — a root target whose sources lie in Core/ no longer reaches the Core package, and Core's types leave the table"
     }
   ]
 }

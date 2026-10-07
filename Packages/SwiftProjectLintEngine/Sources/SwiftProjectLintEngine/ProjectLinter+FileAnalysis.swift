@@ -67,21 +67,20 @@ extension ProjectLinter {
         return generatedHeaderMarkers.contains { firstLines.contains($0) }
     }
 
-    /// Scans all project files with a `TypeCollectorProtocol`-conforming visitor
-    /// and returns the union of collected type names.
+    /// Walks every tree with a fresh `TypeCollectorProtocol`-conforming visitor and returns the
+    /// union of collected type names.
     ///
-    /// This generic pre-scan eliminates duplication across the three collector types
-    /// (Identifiable, Enum, Actor). Each collector walks the AST once per file and
-    /// the results are merged into a single set.
+    /// The trees are the run's shared parse, so the pre-scan's name-set collectors read no file
+    /// and parse nothing. This took a list of paths and read and parsed each file once per
+    /// collector — seventeen parses per file before per-file analysis could start. The result is
+    /// a union, so the order of `trees` does not matter.
     static func collectTypes<T: TypeCollectorProtocol>(
-        _ _: T.Type, from filePaths: [String]
+        _ _: T.Type, in trees: [SourceFileSyntax]
     ) -> Set<String> {
         var allTypes: Set<String> = []
-        for filePath in filePaths {
-            guard let content = try? String(contentsOfFile: filePath) else { continue }
-            let syntax = Parser.parse(source: content)
+        for tree in trees {
             let collector = T()
-            collector.walk(syntax)
+            collector.walk(tree)
             allTypes.formUnion(collector.collectedTypes)
         }
         return allTypes

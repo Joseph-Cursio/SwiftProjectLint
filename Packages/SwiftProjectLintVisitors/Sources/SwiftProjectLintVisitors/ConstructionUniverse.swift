@@ -20,9 +20,9 @@
 /// **This rule is shared with SwiftInferProperties, word for word.** Both consumers pin the same
 /// SEI revision, and an equal pin gives equal verdicts only when both build the table from the same
 /// files in the same order. The golden table at `Docs/construction-universe.tsv` holds the agreed
-/// rows; `ConstructionUniverseTests` asserts this predicate on every one of them, and
-/// SwiftInferProperties keeps a byte-identical copy that its cross-repo pin test diffs against this
-/// one.
+/// rows, and `Docs/construction-universe-cases.json` the agreed manifest readings and build order;
+/// `ConstructionUniverseTests` asserts every row and case, and SwiftInferProperties keeps
+/// byte-identical copies that its cross-repo pin test diffs against these.
 ///
 /// ## Why not `BasePatternVisitor.isTestOrFixturePath`
 ///
@@ -39,10 +39,28 @@
 ///
 /// `excluded_paths`, `excluded_filenames`, `include_nested_packages`, the generated-file filter,
 /// per-rule exclusions and the App's *Exclude Tests/* toggle decide what is **reported**. They say
-/// nothing about what is **compiled**: a nested local package, a generated `.pb.swift` and a
+/// nothing about what is **compiled** (though a nested package that is reported is judged with its
+/// own types, so it joins the universe; see below): a nested local package, a generated `.pb.swift` and a
 /// vendored directory the user excluded are all production code whose types a function in the
 /// project can construct. As `ProjectLinter.discoverFiles` puts it, `excludedPaths` "is a reporting
 /// filter, not an evidence filter" — and this universe is evidence.
+///
+/// ## What does bound it
+///
+/// What the root **compiles**. A nested package — a directory whose `Package.swift` is a manifest,
+/// with a `// swift-tools-version` first line (``manifest(inDirectory:)``) — is in only when it is
+/// reached: through the closure of the root's manifests' `.package(path:)` values and target
+/// `path:`s, matched by canonical location; because the run reports on its files; or because the
+/// root gives no bound — no manifest, an Xcode project beside it, or doubt. See
+/// ``compiledNestedPackages(_:reported:rootHasManifest:rootPath:resolvingSymlinks:manifests:)``. A
+/// symlinked file is classified where the link is, and two entries that are one file on disk are
+/// one entry. A file that does not decode as strict UTF-8 is out, since no compiler reads it. The
+/// shared spec's first amendment set these three; its third, the rest.
+///
+/// What it does not see, accepted in both consumers: a symlinked directory's files (the walk does
+/// not follow one); a `Package.swift` or a `Tests`/`*Tests` folder an Xcode app target compiles,
+/// which this predicate drops wherever it is; and namesakes across modules, which the table, one
+/// name space, reads as one type — a refuting one refutes both.
 public enum ConstructionUniverse {
 
     /// Directory names whose contents are build products or third-party checkouts. The walk in
@@ -56,6 +74,17 @@ public enum ConstructionUniverse {
     /// Xcode-style `FooTests/`.
     public static func isTestTargetDirectory(_ name: String) -> Bool {
         name == "Tests" || name.hasSuffix("Tests")
+    }
+
+    /// The order the table is built in: `relativePaths` sorted with Swift's `String <`.
+    ///
+    /// Named, and shared word for word with SwiftInferProperties (the shared spec's amendment 2),
+    /// because the order is part of the agreement: SEI reports the first witness among several
+    /// declarations of one name in its input order, and `PackagePurity.build` uses exactly this
+    /// rather than a sort of its own. `Docs/construction-universe-cases.json` holds a list both
+    /// repositories assert it on.
+    public static func buildOrder(_ relativePaths: [String]) -> [String] {
+        relativePaths.sorted { $0 < $1 }
     }
 
     /// Whether the file at `relativePath` is production source whose types belong in the table.

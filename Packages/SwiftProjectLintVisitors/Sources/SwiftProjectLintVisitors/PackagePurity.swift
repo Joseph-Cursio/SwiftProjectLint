@@ -63,7 +63,8 @@ public struct PackagePurity: Sendable {
     ///
     /// Selection and order live here, so no caller can hand SEI a test file or an unsorted list:
     /// files that are not ``ConstructionUniverse/isProductionSource(relativePath:)`` are dropped,
-    /// and the rest are sorted by `relativePath` with `String <`.
+    /// and the rest are put in ``ConstructionUniverse/buildOrder(_:)`` — `String <` on
+    /// `relativePath`.
     ///
     /// **The sort is load-bearing, not tidiness.** SEI's table is not order-free: which witness is
     /// reported first among several declarations of one name depends on input order, and that
@@ -77,13 +78,20 @@ public struct PackagePurity: Sendable {
     ///   types an assignment target by node identity, so judging a re-parsed copy answers a
     ///   different question.
     public static func build(from files: [(relativePath: String, tree: SourceFileSyntax)]) -> Self {
-        let kept = files
-            .filter { ConstructionUniverse.isProductionSource(relativePath: $0.relativePath) }
-            .sorted { $0.relativePath < $1.relativePath }
-        return Self(
-            universe: kept.map(\.relativePath),
-            constructionFacts: .build(from: kept.map(\.tree))
-        )
+        let kept = files.filter { ConstructionUniverse.isProductionSource(relativePath: $0.relativePath) }
+        // The shared order, not a sort of this type's own: `buildOrder` is what both consumers
+        // agreed on. Each path then takes its tree back; a path given twice, its trees in the
+        // order they came.
+        let universe = ConstructionUniverse.buildOrder(kept.map(\.relativePath))
+        var treesByPath: [String: [SourceFileSyntax]] = [:]
+        for file in kept { treesByPath[file.relativePath, default: []].append(file.tree) }
+        var taken: [String: Int] = [:]
+        let trees = universe.compactMap { path -> SourceFileSyntax? in
+            let index = taken[path, default: 0]
+            taken[path] = index + 1
+            return treesByPath[path]?[index]
+        }
+        return Self(universe: universe, constructionFacts: .build(from: trees))
     }
 
     /// Whether the table refutes nothing — the oracle then answers exactly as unconfigured.

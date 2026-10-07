@@ -216,8 +216,11 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
     /// package, a generated file or an excluded directory is still constructed by production code.
     /// See `ConstructionUniverse`. It reuses a walk that already had its arguments — the reportable
     /// walk when nothing is excluded, the exclusion-free one otherwise — and only a run that leaves
-    /// nested packages out pays for one more, issued last.
-    private func discoverFiles(
+    /// nested packages out pays for one more, issued last. What it does bound by is what the root
+    /// **compiles**: a nested package is in only when the root reaches it through local path
+    /// dependencies, when the run reports on its files, or when the root has no manifest to say
+    /// (`compiledByRoot`, on a large-stack worker since it parses manifests).
+    func discoverFiles(
         at path: String,
         configuration: LintConfiguration
     ) async -> DiscoveredFiles {
@@ -262,7 +265,9 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
         return DiscoveredFiles(
             reportable: filePaths,
             evidenceOnly: evidenceOnly,
-            constructionUniverse: constructionUniverse
+            constructionUniverse: await Self.compiledUniverse(
+                constructionUniverse, reported: filePaths, projectRoot: path
+            )
         )
     }
 

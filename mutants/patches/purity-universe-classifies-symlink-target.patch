@@ -1,0 +1,19 @@
+diff --git a/Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/ProjectLinter+Purity.swift b/Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/ProjectLinter+Purity.swift
+index c32b8049..55e312c3 100644
+--- a/Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/ProjectLinter+Purity.swift
++++ b/Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/ProjectLinter+Purity.swift
+@@ -134,11 +134,9 @@ extension ProjectLinter {
+     /// a path the walk did not produce — one a caller injected with another spelling of the root —
+     /// falls back to the symlink-resolved path, and a path under neither is not in the universe.
+     static func universePath(for filePath: String, projectRoot: String) -> String? {
+-        if let atLink = ProjectRoot(projectRoot).relativePath(of: filePath), !atLink.isRoot {
+-            return atLink.value
+-        }
+-        let resolved = relativePath(for: filePath, projectRoot: projectRoot)
+-        return resolved.hasPrefix("/") ? nil : resolved
++        let relative = relativePath(for: filePath, projectRoot: projectRoot)
++        guard relative.hasPrefix("/") else { return relative }
++        return ProjectRoot(projectRoot).relativePath(of: filePath)?.value
+     }
+ 
+     /// The walked files the root compiles: its own package's, and those of the nested packages it

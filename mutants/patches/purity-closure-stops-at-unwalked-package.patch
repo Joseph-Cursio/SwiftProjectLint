@@ -1,0 +1,15 @@
+diff --git a/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/ConstructionUniverse+NestedPackages.swift b/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/ConstructionUniverse+NestedPackages.swift
+index e76ba8c7..307bd467 100644
+--- a/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/ConstructionUniverse+NestedPackages.swift
++++ b/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/ConstructionUniverse+NestedPackages.swift
+@@ -137,7 +137,9 @@ extension ConstructionUniverse {
+         /// reached still compiles what it depends on.
+         mutating func enter(_ location: String) {
+             if let package = packageAt[location] { reached.insert(package) }
+-            if visited.insert(location).inserted { pending.append(location) }
++            if location.isEmpty || packageAt[location] != nil, visited.insert(location).inserted {
++                pending.append(location)
++            }
+         }
+ 
+         /// Follows what the manifests of `directory` reference: each dependency, and each nested

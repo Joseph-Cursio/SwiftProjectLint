@@ -1,0 +1,115 @@
+{
+  "comment": "Shared construction-universe cases. Byte-identical in SwiftProjectLint (Docs/construction-universe-cases.json) and SwiftInferProperties (docs/construction-universe-cases.json). Both repos assert every case; SwiftInferProperties' SEICrossRepoPinTests byte-compares the two files.",
+  "localPackageDependencies": [
+    {
+      "manifest": "let package = Package(name: \"P\", dependencies: [.package(path: \"Packages/A\")])",
+      "expected": [
+        "Packages/A"
+      ]
+    },
+    {
+      "manifest": "let package = Package(name: \"P\", dependencies: [.package(name: \"B\", path: \"../B\")])",
+      "expected": [
+        "../B"
+      ]
+    },
+    {
+      "manifest": "let package = Package(\n    name: \"P\",\n    dependencies: [\n        .package(\n            path: \"Core\"\n        )\n    ]\n)",
+      "expected": [
+        "Core"
+      ]
+    },
+    {
+      "manifest": "let package = Package(name: \"P\", dependencies: [.package(url: \"https://x/y.git\", from: \"1.0.0\")])",
+      "expected": []
+    },
+    {
+      "manifest": "let root = \"Packages\"\nlet package = Package(name: \"P\", dependencies: [.package(path: root + \"/Core\")])",
+      "expected": null
+    },
+    {
+      "manifest": "let package = Package(name: \"P\", targets: [.target(name: \"X\")])",
+      "expected": []
+    },
+    {
+      "manifest": "let package = Package(name: \"P\", targets: [.target(name: \"X\", path: \"Sources/X\")])",
+      "expected": []
+    },
+    {
+      "manifest": "let package = Package(name: \"P\", dependencies: [.package(path: \"Packages/A\"), .package(url: \"https://x/z.git\", branch: \"main\"), .package(path: \"Packages/B\")])",
+      "expected": [
+        "Packages/A",
+        "Packages/B"
+      ]
+    },
+    {
+      "manifest": "// .package(path: \"Old\"),\nlet package = Package(name: \"P\", dependencies: [\n    /* .package(path: \"Older\"), */\n    .package(path: \"New\")\n])",
+      "expected": [
+        "New"
+      ]
+    },
+    {
+      "manifest": "let name = \"Core\"\nlet package = Package(name: \"P\", dependencies: [.package(path: \"Packages/\\(name)\")])",
+      "expected": null
+    },
+    {
+      "manifest": "let package = Package(name: \"P\", dependencies: [.package(path: \"Pack\\u{61}ges/A\")])",
+      "expected": [
+        "Packages/A"
+      ]
+    },
+    {
+      "manifest": "let package = Package(name: \"P\", dependencies: [.package(path: #\"Packages/B\"#)])",
+      "expected": [
+        "Packages/B"
+      ]
+    }
+  ],
+  "buildOrder": [
+    "Sources/A-B/X.swift",
+    "Sources/A/X.swift",
+    "Sources/B/B.swift",
+    "Sources/F10/X.swift",
+    "Sources/F2/Y.swift",
+    "Sources/Z/Z.swift",
+    "Sources/a/A.swift",
+    "Sources/a/a.swift",
+    "Sources/a10.swift",
+    "Sources/a2.swift"
+  ],
+  "localTargetPaths": [
+    {
+      "manifest": "let package = Package(name: \"Root\", targets: [.target(name: \"Core\", path: \"Core/Sources/Core\"), .target(name: \"App\", dependencies: [\"Core\"])])",
+      "expected": [
+        "Core/Sources/Core"
+      ]
+    },
+    {
+      "manifest": "let package = Package(name: \"P\", targets: [.target(name: \"X\")])",
+      "expected": []
+    },
+    {
+      "manifest": "let package = Package(name: \"P\", targets: [\n    .executableTarget(name: \"T\", path: \"Tools/T\"),\n    .testTarget(name: \"XTests\", path: \"Tests/XTests\"),\n    .plugin(name: \"P\", capability: .buildTool(), path: \"Plugins/P\"),\n    .macro(name: \"M\", path: \"Macros/M\")\n])",
+      "expected": [
+        "Tools/T",
+        "Tests/XTests",
+        "Plugins/P",
+        "Macros/M"
+      ]
+    },
+    {
+      "manifest": "let base = \"Sources\"\nlet package = Package(name: \"P\", targets: [.target(name: \"X\", path: base + \"/X\")])",
+      "expected": null
+    },
+    {
+      "manifest": "let package = Package(name: \"P\", dependencies: [.package(path: \"Packages/A\")], targets: [.target(name: \"X\")])",
+      "expected": []
+    },
+    {
+      "manifest": "// .target(name: \"Old\", path: \"Old\"),\nlet package = Package(name: \"P\", targets: [.target(name: \"X\", path: #\"Lib/X\"#)])",
+      "expected": [
+        "Lib/X"
+      ]
+    }
+  ]
+}

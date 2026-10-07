@@ -7,9 +7,10 @@ import Testing
 /// Which files' types the purity oracle's construction facts are built from, and in what order.
 ///
 /// The rule is shared with SwiftInferProperties word for word, and the agreed rows live in
-/// `Docs/construction-universe.tsv` — a file SwiftInferProperties keeps a byte-identical copy of and
-/// diffs against this one. So the golden rows are read from that file rather than restated here: a
-/// row added for one consumer is asserted in both.
+/// `Docs/construction-universe.tsv`, the agreed manifest readings and build order in
+/// `Docs/construction-universe-cases.json` — files SwiftInferProperties keeps byte-identical copies
+/// of and diffs against these. So the golden rows and cases are read from those files rather than
+/// restated here: one added for one consumer is asserted in both.
 @Suite("The construction universe")
 struct ConstructionUniverseTests {
 
@@ -35,6 +36,66 @@ struct ConstructionUniverseTests {
                 ConstructionUniverse.isProductionSource(relativePath: path) == expected,
                 "\(path) should be \(expected ? "production" : "excluded")"
             )
+        }
+    }
+
+    // MARK: - The shared cases
+
+    /// `Docs/construction-universe-cases.json`, which SwiftInferProperties keeps byte-identical and
+    /// asserts too (the shared spec's amendment 2).
+    private struct SharedCases: Decodable {
+        struct ManifestCase: Decodable {
+            let manifest: String
+            let expected: [String]?
+        }
+        let localPackageDependencies: [ManifestCase]
+        let buildOrder: [String]
+        let localTargetPaths: [ManifestCase]
+    }
+
+    private static func sharedCases() throws -> SharedCases {
+        let url = repositoryRoot.appendingPathComponent("Docs/construction-universe-cases.json")
+        return try JSONDecoder().decode(SharedCases.self, from: Data(contentsOf: url))
+    }
+
+    @Test("every localPackageDependencies case of Docs/construction-universe-cases.json")
+    func sharedManifestCases() throws {
+        let cases = try Self.sharedCases().localPackageDependencies
+        // A guard on the reader, and on the file: both the literal and the doubt answer are there.
+        #expect(cases.count >= 8, "found \(cases.count) cases — has the file moved?")
+        #expect(cases.contains { $0.expected == nil } && cases.contains { $0.expected?.isEmpty == false })
+        for sharedCase in cases {
+            #expect(
+                ConstructionUniverse.localPackageDependencies(manifest: sharedCase.manifest) == sharedCase.expected,
+                "\(sharedCase.manifest)"
+            )
+        }
+    }
+
+    @Test("every localTargetPaths case of Docs/construction-universe-cases.json")
+    func sharedTargetPathCases() throws {
+        let cases = try Self.sharedCases().localTargetPaths
+        // A guard on the reader, and on the file: literals, none, and the doubt answer are all there.
+        #expect(cases.count >= 6, "found \(cases.count) cases — has the file moved?")
+        #expect(cases.contains { $0.expected == nil } && cases.contains { $0.expected?.isEmpty == false })
+        #expect(cases.contains { $0.expected?.isEmpty == true })
+        for sharedCase in cases {
+            #expect(
+                ConstructionUniverse.localTargetPaths(manifest: sharedCase.manifest) == sharedCase.expected,
+                "\(sharedCase.manifest)"
+            )
+        }
+    }
+
+    @Test("buildOrder puts the shared list back in its order from any arrangement")
+    func sharedBuildOrder() throws {
+        let order = try Self.sharedCases().buildOrder
+        #expect(order.count >= 8, "found \(order.count) paths — has the file moved?")
+        #expect(ConstructionUniverse.buildOrder(order) == order)
+        #expect(ConstructionUniverse.buildOrder(order.reversed()) == order)
+        var generator = SplitMix64(seed: 0x5EED)
+        for _ in 0..<20 {
+            #expect(ConstructionUniverse.buildOrder(order.shuffled(using: &generator)) == order)
         }
     }
 
@@ -108,6 +169,19 @@ struct ConstructionUniverseTests {
                 next.insert(head, at: index)
                 return next
             }
+        }
+    }
+
+    /// A seeded generator, so a shuffle that fails fails the same way on the next run.
+    private struct SplitMix64: RandomNumberGenerator {
+        var state: UInt64
+        init(seed: UInt64) { state = seed }
+        mutating func next() -> UInt64 {
+            state &+= 0x9E37_79B9_7F4A_7C15
+            var mixed = state
+            mixed = (mixed ^ (mixed >> 30)) &* 0xBF58_476D_1CE4_E5B9
+            mixed = (mixed ^ (mixed >> 27)) &* 0x94D0_49BB_1331_11EB
+            return mixed ^ (mixed >> 31)
         }
     }
 

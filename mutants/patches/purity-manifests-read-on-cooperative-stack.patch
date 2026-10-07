@@ -1,0 +1,13 @@
+diff --git a/Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/ProjectLinter+Purity.swift b/Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/ProjectLinter+Purity.swift
+index 30e091f6..d5e5608b 100644
+--- a/Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/ProjectLinter+Purity.swift
++++ b/Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/ProjectLinter+Purity.swift
+@@ -139,7 +139,7 @@ extension ProjectLinter {
+     /// dependency package's 1,000-arm `else if` in its `Package.swift` overflowed a cooperative
+     /// thread's stack in the manifest reader and took the run down.
+     static func compiledUniverse(_ walk: [String], reported: [String], projectRoot: String) async -> [String] {
+-        await LargeStackWorkers.run { compiledByRoot(walk, reported: reported, projectRoot: projectRoot) }
++        compiledByRoot(walk, reported: reported, projectRoot: projectRoot)
+     }
+ 
+     /// Where `filePath` sits under `projectRoot`, as the universe classifies it: where the walk

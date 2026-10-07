@@ -41,6 +41,9 @@ let package = Package(
             dependencies: [
                 "SwiftProjectLintModels",
                 .product(name: "SwiftSyntax", package: "swift-syntax"),
+                // `ConstructionUniverse.localPackageDependencies(manifest:)` reads a manifest's
+                // text, so comments and string contents are never mistaken for a dependency.
+                .product(name: "SwiftParser", package: "swift-syntax"),
                 .product(name: "SwiftEffectInference", package: "SwiftEffectInference")
             ],
             path: "Sources/SwiftProjectLintVisitors",

@@ -128,6 +128,81 @@ and the catalog sites separately, and either alone kills it. The last is the one
 possible: SEI types an assignment target by node identity, so a per-file pass that re-parses its
 file answers a different question from the tree the facts were built from.
 
+### The universe's edges
+
+More in the same shape, from the adversarial review of that wiring and the shared spec's first
+amendment, which both consumers implement identically. Each puts back a way the universe disagreed
+with what the compiler builds.
+
+| id | shape | expected | killer |
+|---|---|---|---|
+| `purity-universe-classifies-symlink-target` | engine-wiring | killed | `linkIntoInRootTestsRefutes` |
+| `purity-universe-takes-every-nested-package` | engine-wiring | killed | `unrelatedNestedPackageDoesNotRefute` |
+| `purity-universe-nested-on-drops-filtered` | engine-wiring | killed | `excludedPathIsEvidence` |
+
+The first classifies a symlinked file at its target again: `Sources/Lib/Item.swift` linking to a
+file under `Tests/` is dropped as a test file, though SwiftPM compiles it into `Lib`. The second
+takes every nested package again, not only those the root compiles, and is the one whose output
+looks *worse* rather than merely smaller: an unrelated `Demo/` package's namesake costs a pure kernel
+its Direct Instantiation exemption, and the run gains a warning. The third survived the whole suite
+when it was found: with nested packages reported, the universe reuses a walk the run already made,
+and every universe test ran with them off. `excludedPathIsEvidence` and `generatedFileIsEvidence`
+now run both ways, and either kills it.
+
+`purity-universe-unsorted` was re-expressed when the shared spec's second amendment named the order:
+`PackagePurity.build` takes it from `ConstructionUniverse.buildOrder`, the function both consumers
+expose and assert on `Docs/construction-universe-cases.json`, so the mutant now drops that call
+rather than a sort of the build's own.
+
+### The universe's order of operations
+
+Three more from the joint follow-up review, each a rule the code's own comments stated and no test
+pinned: the whole suite passed with any one of them put back.
+
+| id | shape | expected | killer |
+|---|---|---|---|
+| `purity-universe-dedup-keeps-first-seen` | engine-wiring | killed | `duplicateKeepsTheSmallestPath` |
+| `purity-universe-collapses-before-classifying` | engine-wiring | killed | `testTargetLinkToProductionIsOneEntry` |
+| `purity-universe-places-links-at-their-target` | engine-wiring | killed | `linkIntoUncompiledPackageCountsWhereTheLinkIs` |
+
+The first survived because both of the test's layouts put the smaller path first on disk as well:
+APFS lists `Sources/A` before `Sources/B`, so first-seen and smallest agreed. The test now adds a
+layout where they disagree (`Sources/Lib` lists before `Sources/B`) and a twin that hands
+`constructionSources` both orders itself, so it does not lean on the file system at all. The second
+needs a test folder that sorts *before* `Sources/` — `AppTests/`, not `Tests/` — for the collapsed
+entry to be the test-folder link. The third needs a link from the root's sources into a nested
+package the root does not compile.
+
+And one for each rule of the shared spec's amendments 3 and 3b, the second review's fixes. Each
+puts back a way the universe disagreed with what SwiftPM compiles. All but two read as a corpus
+with more candidates in it; the order mutant moves a witness, and the stack mutant kills the run.
+
+| id | shape | expected | killer |
+|---|---|---|---|
+| `purity-universe-order-per-component` | engine-wiring | killed | `sharedBuildOrder` |
+| `purity-universe-any-package-swift-is-a-boundary` | engine-wiring | killed | `sourceFileNamedPackageIsNoBoundary` |
+| `purity-universe-ignores-xcode-project` | engine-wiring | killed | `xcodeProjectBesideTheManifestTakesEveryPackage` |
+| `purity-manifest-reader-takes-source-text` | engine-wiring | killed | `dependencyPathIsReadAsSwiftPMReadsIt` |
+| `purity-universe-matches-by-spelling` | engine-wiring | killed | `dependencyThroughALinkedDirectory` |
+| `purity-closure-stops-at-unwalked-package` | engine-wiring | killed | `closureThroughNonProductionPackage` |
+| `purity-universe-drops-reported-packages` | engine-wiring | killed | `reportedNestedPackageIsJudgedWithItsOwnTypes` |
+| `purity-manifests-read-on-cooperative-stack` | engine-wiring | killed | `deepDependencyManifestIsSurvived` |
+| `walk-skips-hidden-flag` | engine-wiring | killed | `hiddenFlagIsNoReasonToSkip` |
+| `purity-closure-reads-package-swift-only` | engine-wiring | killed | `versionSpecificManifestDependency` |
+| `purity-closure-ignores-target-paths` | engine-wiring | killed | `targetPathIntoNestedPackage` |
+
+The first survived until the shared cases file gained `Sources/A-B/X.swift` beside
+`Sources/A/X.swift`: `-` sorts before `/` under `String <` and after it per component, and none of
+the eight paths before it told the two apart. `purity-universe-matches-by-spelling` is the one for
+amendments H and Q together, since one resolver serves both: identity there misses the critic's
+`s11` (a link to the package's directory), an absolute path through `/tmp`, and `packages/core`
+for `Packages/Core`. `purity-manifests-read-on-cooperative-stack` is killed by a crash, not an
+assertion — the killer's process dies with `SIGBUS` — which the runner counts as killed, as it
+should.
+
+`purity-universe-takes-every-nested-package` was re-expressed when discovery started awaiting the
+bound on a large-stack thread (`compiledUniverse`): it now skips that call.
+
 ### The `ConcreteTypeUsage` seam exemptions
 
 Two more, from the pass that took that rule 41 → 22. Both are **recall** mutants: they widen or

@@ -92,7 +92,7 @@ import SwiftSyntax
 /// The oracle here now refutes a function that builds a package type whose
 /// construction runs an effect, and `.refutingConstruction` is evidence, so the
 /// settled set can only have grown — it can turn a `.propagatedTry` witness into
-/// evidence, never the reverse. Over the eight repositories re-measured when the
+/// evidence, never the reverse. Over the seven repositories re-measured when the
 /// facts were wired, the join withdrew 4 of the 17 candidates that moved, each a
 /// caller of a function a construction refutes (SwiftCompilerFlagStudio's
 /// `diffConfigurations` and `diffTargets` through `computeDiff`).

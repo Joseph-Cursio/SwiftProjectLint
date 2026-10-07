@@ -89,7 +89,10 @@ struct PurityOracleEntryTests {
             let tokens = file.identifierSequence
             for (index, token) in tokens.enumerated() {
                 let detached = token == "Task" && index + 1 < tokens.count && tokens[index + 1] == "detached"
-                if escapes.contains(token) || detached {
+                // The one exception, by name and by token: the large-stack helper starts `Thread`s
+                // and nothing else, and `largeStackThreadsRunOnlyTheSharedParse` bounds who calls it.
+                let sanctioned = file.path == Self.largeStackWorkers && token == "Thread"
+                if escapes.contains(token) || detached, !sanctioned {
                     offenders.append("\(file.path): \(detached ? "Task.detached" : token)")
                 }
             }
@@ -98,6 +101,28 @@ struct PurityOracleEntryTests {
 
         // A guard on the reader: the scan must have seen the analysis sources at all.
         #expect(Self.sources.filter { Self.analysisPackages.contains(where: $0.path.hasPrefix) }.count > 200)
+    }
+
+    @Test("large-stack threads run only the shared parse, the facts build and the manifest reads, before the binding")
+    func largeStackThreadsRunOnlyTheSharedParse() throws {
+        // `LargeStackWorkers` leaves the task tree on purpose: the parser and the facts build recurse
+        // as deep as the source nests, and a cooperative thread's 512 KB stack overflows on a deep
+        // dependency file or manifest. That is safe only while its callers run before
+        // `PackagePurity.current` is bound and create no oracle — so only `ProjectLinter+Purity.swift`'s
+        // shared parse and the universe's manifest reads may call it.
+        var callers: Set<String> = []
+        for file in Self.sources where file.identifierSequence.contains("LargeStackWorkers") {
+            callers.insert(file.path)
+        }
+        #expect(callers == [Self.largeStackWorkers, Self.purityParse], "found \(callers.sorted())")
+
+        // Inside it, the helper serves `parseOnce`, `sharedParse` and `compiledUniverse`, which
+        // discovery awaits before the binding, and nothing else.
+        let parse = try #require(Self.sources.first { $0.path == Self.purityParse })
+        let finder = CallingFunctionFinder(callee: "LargeStackWorkers", viewMode: .sourceAccurate)
+        finder.walk(parse.tree)
+        #expect(finder.callers == ["compiledUniverse", "parseOnce", "sharedParse"], "found \(finder.callers.sorted())")
+        #expect(parse.identifierSequence.contains("PurityInferrer") == false)
     }
 
     // MARK: - Statics
@@ -118,11 +143,22 @@ struct PurityOracleEntryTests {
 
     // MARK: - The scan
 
+    @Test("the scan reads repository-relative paths, wherever the checkout lives")
+    func scannedPathsAreRepositoryRelative() {
+        // Every rule above matches on these paths; one spelled wrong makes each of them fail for
+        // a reason that has nothing to do with the rule. This names the actual fault once.
+        let misread = Self.sources.map(\.path).filter { !($0.hasPrefix("Sources/") || $0.hasPrefix("Packages/")) }
+        #expect(misread.isEmpty, "paths not relative to the repository root: \(misread.prefix(3))")
+        #expect(Self.sources.contains { $0.path == Self.projectLinter }, "the scan did not see ProjectLinter.swift")
+    }
+
     private static let visitorsSources = "Packages/SwiftProjectLintVisitors/Sources/"
     private static let wrapper = visitorsSources + "SwiftProjectLintVisitors/PurityInferrer.swift"
     private static let packagePurity = visitorsSources + "SwiftProjectLintVisitors/PackagePurity.swift"
-    private static let projectLinter =
-        "Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/ProjectLinter.swift"
+    private static let engineSources = "Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/"
+    private static let projectLinter = engineSources + "ProjectLinter.swift"
+    private static let purityParse = engineSources + "ProjectLinter+Purity.swift"
+    private static let largeStackWorkers = engineSources + "LargeStackWorkers.swift"
 
     /// Where the per-run analysis executes. Config and the App are left out: their detached work
     /// (the directory-tree scan, registry setup) is off the analysis path.
@@ -146,21 +182,29 @@ struct PurityOracleEntryTests {
     }
 
     /// Every Swift file under `Sources/` and `Packages/*/Sources/`, parsed once for the suite.
+    ///
+    /// Each path is built from a prefix this scan names (`Sources`, `Packages/<name>/Sources`) and
+    /// the path the walker reports **relative to the directory it walks** — never by slicing one
+    /// spelling of the root off another. That slicing broke in any checkout under a symlinked
+    /// directory: `#filePath` resolved to `/tmp/…` while the walker spelled `/private/tmp/…`, every
+    /// path came out as `/branch/Packages/…`, and all five tests failed.
     private static let sources: [SourceFile] = {
         let root = repositoryRoot
-        var roots = [root.appendingPathComponent("Sources")]
+        var roots = [(relative: "Sources", directory: root.appendingPathComponent("Sources"))]
         let packages = root.appendingPathComponent("Packages")
         let names = (try? FileManager.default.contentsOfDirectory(atPath: packages.path)) ?? []
-        roots += names.sorted().map { packages.appendingPathComponent($0).appendingPathComponent("Sources") }
+        roots += names.sorted().map { name in
+            (relative: "Packages/\(name)/Sources",
+             directory: packages.appendingPathComponent(name).appendingPathComponent("Sources"))
+        }
 
         var files: [SourceFile] = []
-        for directory in roots {
-            guard let walker = FileManager.default.enumerator(at: directory, includingPropertiesForKeys: nil) else {
-                continue
-            }
-            for case let url as URL in walker where url.pathExtension == "swift" {
+        for (relative, directory) in roots {
+            guard let walker = FileManager.default.enumerator(atPath: directory.path) else { continue }
+            for case let inner as String in walker where inner.hasSuffix(".swift") {
+                let url = directory.appendingPathComponent(inner)
                 guard let text = try? String(contentsOf: url, encoding: .utf8) else { continue }
-                files.append(scanned(text, path: String(url.path.dropFirst(root.path.count + 1))))
+                files.append(scanned(text, path: relative + "/" + inner))
             }
         }
         return files.sorted { $0.path < $1.path }
@@ -193,7 +237,24 @@ struct PurityOracleEntryTests {
             .deletingLastPathComponent()   // CoreTests
             .deletingLastPathComponent()   // Tests
             .deletingLastPathComponent()   // repository root
-            .resolvingSymlinksInPath()
+    }
+}
+
+/// The names of the functions whose bodies mention `callee`.
+private final class CallingFunctionFinder: SyntaxVisitor {
+
+    private(set) var callers: Set<String> = []
+    private let callee: String
+
+    init(callee: String, viewMode: SyntaxTreeViewMode) {
+        self.callee = callee
+        super.init(viewMode: viewMode)
+    }
+
+    override func visit(_ node: FunctionDeclSyntax) -> SyntaxVisitorContinueKind {
+        let mentions = node.body?.tokens(viewMode: .sourceAccurate).contains { $0.text == callee } ?? false
+        if mentions { callers.insert(node.name.text) }
+        return .skipChildren
     }
 }
 
