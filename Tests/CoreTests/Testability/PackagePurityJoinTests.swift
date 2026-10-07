@@ -35,7 +35,7 @@ struct PackagePurityJoinTests {
         var issues: [LintIssue] = []
         for entry in parsed {
             let visitor = PureFunctionCandidateVisitor(patternCategory: .testability)
-            visitor.knownImpurePackageFunctions = join.settledImpureNames
+            visitor.knownImpurePackageFunctions = ImpurePackageFunctions(join.settledImpureNames)
             visitor.setSourceLocationConverter(
                 SourceLocationConverter(fileName: entry.path, tree: entry.tree)
             )

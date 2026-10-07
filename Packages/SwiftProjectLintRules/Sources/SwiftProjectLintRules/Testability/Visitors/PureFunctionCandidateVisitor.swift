@@ -131,7 +131,7 @@ final class PureFunctionCandidateVisitor: BasePatternVisitor {
         if let accessor = binding.accessorBlock,
            PackagePurityJoin.impureCallee(
                in: Syntax(accessor),
-               settledImpureNames: knownImpurePackageFunctions
+               settledImpureNames: knownImpurePackageFunctions.settledNames
            ) != nil {
             return .visitChildren
         }
@@ -172,11 +172,9 @@ final class PureFunctionCandidateVisitor: BasePatternVisitor {
     /// Suppression is silent. The over-claim is worth reporting on its own terms, and
     /// that is a separate rule rather than a second job for this one.
     private func impureCallee(of node: FunctionDeclSyntax) -> String? {
-        guard !knownImpurePackageFunctions.isEmpty, let body = node.body else { return nil }
-        return PackagePurityJoin.impureCallee(
-            in: Syntax(body),
-            settledImpureNames: knownImpurePackageFunctions
-        )
+        let settled = knownImpurePackageFunctions.settledNames
+        guard !settled.isEmpty, let body = node.body else { return nil }
+        return PackagePurityJoin.impureCallee(in: Syntax(body), settledImpureNames: settled)
     }
 
     /// Appended to the message when no test can reach the declaration.

@@ -59,7 +59,7 @@ extension ProjectLinter {
         /// the `known*` catalogs at all, so a rule that moved onto it would silently lose
         /// the type knowledge its candidacy test depends on. Measured, when that route was
         /// tried: 377 candidate symbols dropped out.
-        let impurePackageFunctions: Set<String>
+        let impurePackageFunctions: ImpurePackageFunctions
 
         /// Runs inside the run's `PackagePurity` binding, which is what makes the two
         /// purity-judging catalogs below — `CleanInstanceMethodCatalog` and
@@ -100,7 +100,7 @@ extension ProjectLinter {
                 ),
                 extensionMembers: ExtensionMemberCatalog.build(from: parsed),
                 closureWrapperTypes: ClosureWrapperTypeCatalog.build(from: parsed),
-                impurePackageFunctions: PackagePurityJoin(sources: parsed).settledImpureNames
+                impurePackageFunctions: ImpurePackageFunctions(PackagePurityJoin(sources: parsed).settledImpureNames)
             )
         }
     }

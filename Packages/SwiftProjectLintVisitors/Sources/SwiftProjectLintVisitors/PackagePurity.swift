@@ -48,15 +48,42 @@ public struct PackagePurity: Sendable {
     /// The package purity in force for the current task. See the type's documentation.
     @TaskLocal public static var current: PackagePurity = .unconfigured
 
-    /// The universe-relative paths whose trees fed the table, in the order they were passed:
-    /// production sources only, sorted with `String <`.
-    public let universe: [String]
+    /// What one build produced. Kept in a ``Withholdable``, so every read — the oracle's, and each
+    /// accessor below — goes through the one point that trips a withheld table.
+    struct Table: Sendable {
+        let universe: [String]
+        let constructionFacts: SwiftEffectInference.ConstructionFacts
+    }
 
-    let constructionFacts: SwiftEffectInference.ConstructionFacts
+    private let storage: Withholdable<Table>
 
     init(universe: [String], constructionFacts: SwiftEffectInference.ConstructionFacts) {
-        self.universe = universe
-        self.constructionFacts = constructionFacts
+        storage = .built(Table(universe: universe, constructionFacts: constructionFacts))
+    }
+
+    private init(withheldBy tripwire: PurityTripwire) {
+        storage = .withheld(.oracle, by: tripwire, answering: Table(universe: [], constructionFacts: .empty))
+    }
+
+    /// Not built, because no visitor the run executes declares that it reads package purity (see
+    /// ``PackagePurityConsumer``). Unlike ``unconfigured`` — the honest answer when there is no
+    /// package — reading this one trips `tripwire`: creating an oracle under it does, since the
+    /// oracle takes its table at creation. The run that bound it is then redone with the table built.
+    public static func withheld(by tripwire: PurityTripwire) -> Self {
+        Self(withheldBy: tripwire)
+    }
+
+    /// Whether the run withheld the table. Asking is not a read.
+    public var isWithheld: Bool { storage.isWithheld }
+
+    /// The universe-relative paths whose trees fed the table, in the order they were passed:
+    /// production sources only, sorted with `String <`.
+    public var universe: [String] { storage.read("PackagePurity.universe").universe }
+
+    /// The table an oracle is configured with — read once per oracle, when it is created, so
+    /// creating one under a withheld table trips, naming `site`.
+    func constructionFacts(creatingOracleAt site: @autoclosure () -> String) -> SwiftEffectInference.ConstructionFacts {
+        storage.read("PurityInferrer() at \(site())").constructionFacts
     }
 
     /// Builds the table from a package's files.
@@ -95,15 +122,16 @@ public struct PackagePurity: Sendable {
     }
 
     /// Whether the table refutes nothing — the oracle then answers exactly as unconfigured.
-    public var isEmpty: Bool { constructionFacts.isEmpty }
+    public var isEmpty: Bool { storage.read("PackagePurity.isEmpty").constructionFacts.isEmpty }
 
     /// Every refuted type with its witness, `"Name: witness"`, sorted by name.
     ///
     /// The comparable digest of a table, since the table itself compares by node identity. The
     /// format is shared with SwiftInferProperties.
     public var refutedTypes: [String] {
-        constructionFacts.refutedTypeNames.map {
-            "\($0): \(constructionFacts.refutation(constructing: $0)?.description ?? "?")"
+        let facts = storage.read("PackagePurity.refutedTypes").constructionFacts
+        return facts.refutedTypeNames.map {
+            "\($0): \(facts.refutation(constructing: $0)?.description ?? "?")"
         }
     }
 }

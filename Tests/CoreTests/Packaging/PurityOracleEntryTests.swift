@@ -259,12 +259,13 @@ private final class CallingFunctionFinder: SyntaxVisitor {
 }
 
 /// Stored `static`/`class` properties, and file-scope globals, whose declared type or initializer
-/// names `PurityInferrer` or `PackagePurity`. A computed one is re-evaluated on every read, so it
-/// reads the binding in force at the time and is not collected.
+/// names `PurityInferrer` or `PackagePurity` — or `PurityTripwire` or `Withholdable`, which belong
+/// to one run just as the table does. A computed one is re-evaluated on every read, so it reads the
+/// binding in force at the time and is not collected.
 private final class StoredStaticFinder: SyntaxVisitor {
 
     private(set) var offenders: [String] = []
-    private static let held: Set<String> = ["PurityInferrer", "PackagePurity"]
+    private static let held: Set<String> = ["PurityInferrer", "PackagePurity", "PurityTripwire", "Withholdable"]
 
     override func visit(_ node: VariableDeclSyntax) -> SyntaxVisitorContinueKind {
         let isStatic = node.modifiers.contains {

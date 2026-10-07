@@ -257,3 +257,41 @@ private final class FreeCalleeCollector: SyntaxVisitor {
         return .visitChildren
     }
 }
+
+/// The join's settled-impure names as a run hands them to the visitors — `knownImpurePackageFunctions`.
+///
+/// A type rather than the bare `Set<String>` it wraps so the pre-scan can **withhold** it: a run
+/// none of whose visitors declares ``PackagePurityInputs/impurePackageFunctions`` does not build the
+/// join, and a read of the withheld value trips the run's ``PurityTripwire`` instead of answering
+/// with an empty set nobody can tell from a real one. Copying it — the detector handing it to each
+/// visitor — is not a read.
+public struct ImpurePackageFunctions: Sendable, Equatable, ExpressibleByArrayLiteral {
+
+    private let storage: Withholdable<Set<String>>
+
+    /// What a visitor driven directly, with no pre-scan, gets: no callee is settled impure.
+    public static let empty = Self([])
+
+    public init(_ names: Set<String>) {
+        storage = .built(names)
+    }
+
+    public init(arrayLiteral elements: String...) {
+        self.init(Set(elements))
+    }
+
+    private init(withheldBy tripwire: PurityTripwire) {
+        storage = .withheld(.impurePackageFunctions, by: tripwire, answering: [])
+    }
+
+    /// Not built; every read trips `tripwire` and answers as ``empty``.
+    public static func withheld(by tripwire: PurityTripwire) -> Self {
+        Self(withheldBy: tripwire)
+    }
+
+    /// Whether the run withheld the join. Asking is not a read.
+    public var isWithheld: Bool { storage.isWithheld }
+
+    /// The settled-impure names — ``PackagePurityJoin/settledImpureNames`` of the run's join.
+    public var settledNames: Set<String> { storage.read("knownImpurePackageFunctions") }
+}

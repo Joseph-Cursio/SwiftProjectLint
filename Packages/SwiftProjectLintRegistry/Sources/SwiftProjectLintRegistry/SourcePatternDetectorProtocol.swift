@@ -57,7 +57,7 @@ public protocol SourcePatternDetectorProtocol {
     /// Package function names the purity oracle refutes with an establishable witness —
     /// the one-hop callee join, resolved once in the pre-scan. See
     /// `PackagePurityJoin` and `BasePatternVisitor.knownImpurePackageFunctions`.
-    var knownImpurePackageFunctions: Set<String> { get set }
+    var knownImpurePackageFunctions: ImpurePackageFunctions { get set }
 
     var knownCleanInstanceMethods: CleanInstanceMethodCatalog { get set }
 
