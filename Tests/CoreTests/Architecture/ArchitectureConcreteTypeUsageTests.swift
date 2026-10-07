@@ -376,6 +376,15 @@ struct ArchitectureConcreteTypeUsageTests {
         #expect(ServiceTypeSuffix.matches("BuildErrorInterpreter"))
         #expect(ServiceTypeSuffix.matches("PlainValue") == false)
     }
+}
+
+/// A type that is already abstracted is not asked for a protocol.
+///
+/// Three spellings of a seam that is already there: a protocol whose name gives no hint, used as
+/// a bare existential; a closure typealias; and a generic type, whose parameters a protocol
+/// would erase. Each exemption has a control, so a change that silences the rule outright fails.
+@Suite
+struct ArchitectureConcreteTypeUsageAbstractionTests {
 
     // MARK: - Known-protocol exemption (bare existentials)
 
