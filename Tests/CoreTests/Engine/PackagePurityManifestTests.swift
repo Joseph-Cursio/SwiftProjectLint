@@ -153,6 +153,23 @@ struct PackagePurityManifestTests {
         ], subject: Self.app(importing: "Core"))
     }
 
+    @Test("f11: a target whose path holds a nested package compiles that package's files")
+    func targetPathOverNestedPackage() async throws {
+        // `swift build` compiles `Packages/A/Sources/A` into `All`, excluding only A's manifest. The
+        // bound looked for a package holding `Packages` and found none.
+        try await Self.expectTokenCountRefutes(tokAt: "Packages/A/Sources/A/Tok.swift", files: [
+            "Package.swift": """
+            // swift-tools-version:5.9
+            import PackageDescription
+            let package = Package(name: "R", targets: [
+                .target(name: "All", path: "Packages", exclude: ["A/Package.swift"])
+            ])
+            """,
+            "Packages/A/Package.swift": Self.libraryManifest("A"),
+            "Packages/Loose/L.swift": "struct Loose { let n: Int }\n"
+        ], subject: Self.app(importing: "All"))
+    }
+
     @Test("s11: a dependency through a link reaches the walked package the link points to")
     func dependencyThroughALinkedDirectory() async throws {
         // `Packages/Core` links to `Vendor/Core`. The walk does not follow a linked directory, so

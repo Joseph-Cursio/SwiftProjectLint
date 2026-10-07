@@ -13,10 +13,10 @@ import SwiftSyntax
 ///   transitively through every manifest reached. A directory's manifests are its `Package.swift`
 ///   and each `Package@swift-*.swift`, taken together (O). Each `.package(path:)` literal is read
 ///   for its value, as SwiftPM reads it — escapes decoded, raw strings allowed (H) — and each
-///   target's `path:` too: a nested package holding one is reached (P). A literal is resolved from
-///   its manifest's directory, standardised, then canonicalised — symlinks resolved, and on a
-///   case-insensitive volume the on-disk letter case — and matched to a package by where both
-///   resolve, so `/tmp/x` and `/private/tmp/x`, a link to a package's directory, and `packages/core`
+///   target's `path:` too: a nested package holding one, or lying under one, is reached (P, T). A
+///   literal is resolved from its manifest's directory, standardised, then canonicalised — symlinks
+///   resolved, and on a case-insensitive volume the on-disk letter case — and matched to a package
+///   by where both resolve, so `/tmp/x` and `/private/tmp/x`, a link to a package's directory, and `packages/core`
 ///   for `Packages/Core` each name it (H, Q). A dependency is followed to its `Package.swift` on
 ///   disk whether or not the walk reached it: a package under `Tests/`, a hidden or a pruned
 ///   directory still passes its own dependencies on, though the predicate keeps its files out (I).
@@ -141,7 +141,9 @@ extension ConstructionUniverse {
         }
 
         /// Follows what the manifests of `directory` reference: each dependency, and each nested
-        /// package holding a target path — a target whose sources lie there compiles its files.
+        /// package a target path lies in or contains — a target compiles every source under its
+        /// path, a nested package's included, so `path: "Packages"` reaches `Packages/A` (and
+        /// `path: "."` every package, which over-includes, the sound direction).
         mutating func follow(
             _ read: (dependencies: [String], targetPaths: [String]),
             from directory: String,
@@ -156,7 +158,8 @@ extension ConstructionUniverse {
                 guard let location = resolve(
                     literal, from: directory, root: root, resolvingSymlinks: resolvingSymlinks
                 ) else { continue }
-                for package in packageAt.keys where location == package || location.hasPrefix(package + "/") {
+                for package in packageAt.keys
+                where location == package || location.hasPrefix(package + "/") || package.hasPrefix(location + "/") {
                     enter(package)
                 }
             }

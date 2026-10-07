@@ -180,16 +180,22 @@ struct ConstructionUniverseNestedPackageTests {
         #expect(Self.compiled(manifests, versioned: ["": [toA], "Packages/A": [".package(path: p)"]]) == Self.packages)
     }
 
-    @Test("a nested package holding a closure manifest's target path is in, with its own closure")
+    @Test("a nested package holding a closure manifest's target path, or under it, is in, with its own closure")
     func targetPathReachesItsPackage() {
-        let manifests = [
-            "": #"[.target(name: "Lib", path: "Vendor/Lib/Sources/Lib"), .target(name: "App", path: "Packages")]"#,
+        // `Vendor/Lib` holds the root's `Lib` sources, and its closure brings `Demo`.
+        #expect(Self.compiled([
+            "": #"[.target(name: "Lib", path: "Vendor/Lib/Sources/Lib")]"#,
             "Vendor/Lib": #".package(path: "../../Demo")"#,
             "Demo": ""
-        ]
-        // `Vendor/Lib` holds the root's `Lib` sources, and its closure brings `Demo`; `Packages`
-        // holds packages but lies in none of them, so it reaches none.
-        #expect(Self.compiled(manifests) == ["Vendor/Lib", "Demo"])
+        ]) == ["Vendor/Lib", "Demo"])
+        // `Packages` lies in no package but holds three, and SwiftPM compiles their sources into
+        // `All` (amendment T); `Packages/C`'s closure brings `Demo`. Not `Vendor/Lib`.
+        #expect(Self.compiled([
+            "": #"[.target(name: "All", path: "Packages")]"#,
+            "Packages/C": #".package(path: "../../Demo")"#
+        ]) == ["Packages/A", "Packages/B", "Packages/C", "Demo"])
+        // A path is matched by component: `Pack` holds nothing.
+        #expect(Self.compiled(["": #".target(name: "X", path: "Pack")"#]).isEmpty)
         // A target path that is not a literal is doubt.
         #expect(Self.compiled(["": #".target(name: "X", path: base + "/X")"#]) == Self.packages)
     }
