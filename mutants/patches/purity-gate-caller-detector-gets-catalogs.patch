@@ -1,0 +1,12 @@
+diff --git a/Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/ProjectLinter+PreScan.swift b/Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/ProjectLinter+PreScan.swift
+index 585ba268..700940c7 100644
+--- a/Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/ProjectLinter+PreScan.swift
++++ b/Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/ProjectLinter+PreScan.swift
+@@ -142,6 +142,7 @@ extension ProjectLinter {
+         resolved.knownProtocolTypes = collected.protocols
+         resolved.knownEquatableTypes = collected.equatable
+         resolved.knownValueTypes = collected.values
++        resolved.knownCleanInstanceMethods = collected.cleanInstanceMethods
+         resolved.knownExtensionMembers = collected.extensionMembers
+         resolved.knownClosureWrapperTypes = collected.closureWrapperTypes
+         resolved.knownProjectFunctions = collected.functions

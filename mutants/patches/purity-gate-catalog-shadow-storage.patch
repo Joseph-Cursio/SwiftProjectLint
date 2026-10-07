@@ -1,0 +1,21 @@
+diff --git a/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/CleanInstanceMethodCatalog.swift b/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/CleanInstanceMethodCatalog.swift
+index 2dcfc26b..24dc630d 100644
+--- a/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/CleanInstanceMethodCatalog.swift
++++ b/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/CleanInstanceMethodCatalog.swift
+@@ -49,6 +49,7 @@ public struct CleanInstanceMethodCatalog: Sendable, Equatable {
+     }
+ 
+     private let storage: Withholdable<Tables>
++    private let shadowKernels: Set<String> = []
+ 
+     /// The catalog a caller with no pre-scan gets: nothing is clean, so every callee stays refused
+     /// and behaviour matches the analyzer as it was before the catalog existed.
+@@ -121,7 +122,7 @@ public struct CleanInstanceMethodCatalog: Sendable, Equatable {
+     /// Actors are excluded outright: an actor's isolation contract is load-bearing, which is the
+     /// same reason `ConcreteTypeUsage` exempts them from the other direction.
+     public func isPureKernel(_ typeName: String) -> Bool {
+-        storage.read("isPureKernel(\(typeName))").pureKernelTypes.contains(typeName)
++        storage.isWithheld ? shadowKernels.contains(typeName) : storage.read("").pureKernelTypes.contains(typeName)
+     }
+ 
+     /// Stdlib types whose values a test constructs directly. A stored property of one of these is

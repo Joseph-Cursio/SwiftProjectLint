@@ -1,0 +1,13 @@
+diff --git a/Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/ProjectLinter.swift b/Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/ProjectLinter.swift
+index 1482c604..2fe89e67 100755
+--- a/Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/ProjectLinter.swift
++++ b/Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/ProjectLinter.swift
+@@ -170,7 +170,7 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
+         // second pass returns what a cancelled ungated run would, never the first pass's — and redo
+         // the run without a gate.
+         purityRerunNotice?(Self.undeclaredReadMessage(first.trips))
+-        let second = await pass(request, demand: .everything)
++        let second = await pass(request, demand: demand)
+         precondition(second.trips.isEmpty, "a run that withholds nothing tripped: \(second.trips)")
+         return LintRun(issues: second.issues, demand: demand, trips: first.trips)
+     }

@@ -239,6 +239,81 @@ still fails exactly their own case.
 `purity-universe-takes-every-nested-package` was re-expressed when discovery started awaiting the
 bound on a large-stack thread (`compiledUniverse`): it now skips that call.
 
+### The purity gate
+
+Twenty in the same shape, one per mechanism of the gate that builds the construction universe, the
+facts and the two purity catalogs only when a visitor the run executes declares that it reads them
+(`PackagePurityConsumer`), withholds the rest, and redoes a pass that read something it withheld.
+Each puts back a way the gate could report a finding the ungated run would not, cost a narrow run
+what it was meant to save, or fail to say that it happened.
+
+| id | shape | expected | killer |
+|---|---|---|---|
+| `purity-gate-declaration-dropped` | engine-wiring | killed | `declarationInventory` |
+| `purity-gate-unreachable-effect-closure-undeclared` | engine-wiring | killed | `purityReadersDeclareWhatTheyRead` |
+| `purity-gate-nil-plan-demands-nothing` | engine-wiring | killed | `demandIsPerVisitor` |
+| `purity-gate-demand-from-cli-ids-only` | engine-wiring | killed | `narrowRunsSkipTheUniverseWalk` |
+| `purity-gate-universe-always-resolved` | engine-wiring | killed | `narrowRunWithholds` |
+| `purity-gate-unresolved-universe-builds-empty-table` | engine-wiring | killed | `narrowRunWithholds` |
+| `purity-gate-withheld-pass-binds-unconfigured` | engine-wiring | killed | `narrowRunWithholds` |
+| `purity-gate-read-does-not-trip` | engine-wiring | killed | `withheldTableTripsAtOracleCreation` |
+| `purity-gate-catalog-shadow-storage` | engine-wiring | killed | `surfacesKeepOnlyWithholdableStorage` |
+| `purity-gate-equality-bypasses-read` | engine-wiring | killed | `withheldCatalogsTrip` |
+| `purity-gate-tripwire-records-nothing` | engine-wiring | killed | `undeclaredReadFallsBack` |
+| `purity-gate-tripwire-shared-across-passes` | engine-wiring | killed | `tripwiresArePerRun` |
+| `purity-gate-clean-catalog-built-on-the-join-bit` | engine-wiring | killed | `everyRuleAloneReadsOnlyWhatItDeclares` |
+| `purity-gate-clean-catalog-empty-not-withheld` | engine-wiring | killed | `everyDeclaredInputIsRead` |
+| `purity-gate-join-empty-not-withheld` | engine-wiring | killed | `prescanWithholdsEveryOracleBuiltCatalog` |
+| `purity-gate-no-rerun` | engine-wiring | killed | `undeclaredReadFallsBack` |
+| `purity-gate-rerun-reuses-derived-demand` | engine-wiring | killed | `undeclaredReadFallsBack` |
+| `purity-gate-cancelled-run-returns-first-pass` | engine-wiring | killed | `cancelledTrippedRunNeverReturnsTheFirstPass` |
+| `purity-gate-caller-detector-gets-catalogs` | engine-wiring | killed | `theCallersDetectorKeepsNoPurityCatalog` |
+| `purity-gate-rerun-not-reported` | engine-wiring | killed | `rerunIsReported` |
+
+The first two are the declarations. Dropping one is the mistake the gate is built to survive: the
+findings stay right and the run takes twice as long, so no assertion about a finding can catch it,
+and the killers are an inventory and a source scan instead. The scan is the one that matters for a
+rule added later: Unreachable Effect Closure asks its oracle only `mutatesCapturedState`, which SEI
+answers without the table today, and its mutant is killed by the file naming `PurityInferrer`,
+whatever any corpus reaches.
+
+The next five are the demand and what it decides. `purity-gate-demand-from-cli-ids-only` takes the
+demand from the flags rather than the resolved rules, so `enabled_only` and `disabled_rules` stop
+narrowing what is built; it is why the rules are resolved before discovery. The two after
+`universe-always-resolved` are the unsound ones: a run that resolved no universe answers with an
+empty or unconfigured table instead of a withheld one, so an undeclared read is answered silently
+and nothing reruns.
+
+The read point, the storage and equality are the three ways round `Withholdable.read`. The shadow
+storage one is the case the compiler cannot see — a second stored property beside the private
+state — so its killer is the structural pin that each surface stores one `Withholdable` and nothing
+else.
+
+The tripwire and the catalogs: recording nothing; sharing one tripwire across passes, which the
+`precondition` stops when a rerun that withholds nothing inherits the first pass's trips; building
+the clean-method catalog on the join's bit; and an `.empty` catalog where a withheld one belongs. An empty catalog looks exactly like a project with no kernels and no impure callees,
+which is why `prescanWithholdsEveryOracleBuiltCatalog` reads the pre-scan's source rather than a
+finding.
+
+The last five are the rerun: returning the tripped pass, rerunning with the demand that tripped
+(stopped by the `precondition`), returning the first pass of a run cancelled meanwhile, handing the
+caller's long-lived detector a catalog that outlives its run, and dropping the notice the CLI prints.
+
+Removing the debug `assert` in `analyzeProject` is an equivalent mutant and is not listed: it only
+reports a rerun that has already happened, so no test can tell it is gone.
+
+The gate moved two earlier mutants' sites. `purity-binding-excludes-prescan` was re-anchored when the
+rules started being resolved before discovery, and again with `purity-context-not-bound` when the
+binding moved into `ProjectLinter.pass`. Each makes the same mutation as before, and each is still
+killed by `constructionRefutesThroughProjectLinter`.
+
+And it took one killer's reach away. `everyCatalogIsInjectedPerFile` took the catalogs owed per file
+from what `configuredDetector` primes, and the gate stopped priming the caller's detector with the
+two purity catalogs, so `prescan-catalog-built-then-dropped` survived the first run of the corpus
+on the gate. The test now names those two catalogs, owed per file and never primed once, and kills
+it again — though by then the gate's own tests did too: a catalog dropped per file is never read, so
+`everyDeclaredInputIsRead` finds the declaration stale.
+
 ### The `ConcreteTypeUsage` seam exemptions
 
 Two more, from the pass that took that rule 41 → 22. Both are **recall** mutants: they widen or

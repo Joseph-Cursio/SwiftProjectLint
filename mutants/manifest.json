@@ -473,6 +473,166 @@
       "expected": "killed",
       "test": "sharedManifestRecognitionCases",
       "label": "the later-line prefilter compares the label without lowercasing it (amendment 4b, S′) — a 6.0 `// SWIFT-TOOLS-VERSION` below a header never reaches the case-insensitive regex, and the manifest SwiftPM loads is none"
+    },
+    {
+      "id": "purity-gate-declaration-dropped",
+      "patch": "patches/purity-gate-declaration-dropped.patch",
+      "shape": "engine-wiring",
+      "expected": "killed",
+      "test": "declarationInventory",
+      "label": "Direct Instantiation drops its PackagePurityConsumer conformance — a run of that rule alone withholds the clean-method catalog its kernel exemption reads, trips, and is redone in full: right findings, twice the time"
+    },
+    {
+      "id": "purity-gate-unreachable-effect-closure-undeclared",
+      "patch": "patches/purity-gate-unreachable-effect-closure-undeclared.patch",
+      "shape": "engine-wiring",
+      "expected": "killed",
+      "test": "purityReadersDeclareWhatTheyRead",
+      "label": "Unreachable Effect Closure is left undeclared, resting on SEI answering mutatesCapturedState without the table — its stored oracle is created under a withheld table and trips"
+    },
+    {
+      "id": "purity-gate-nil-plan-demands-nothing",
+      "patch": "patches/purity-gate-nil-plan-demands-nothing.patch",
+      "shape": "engine-wiring",
+      "expected": "killed",
+      "test": "demandIsPerVisitor",
+      "label": "a nil plan (every registered rule) demands nothing instead of every declaration — a default run withholds what every reading rule then reads"
+    },
+    {
+      "id": "purity-gate-demand-from-cli-ids-only",
+      "patch": "patches/purity-gate-demand-from-cli-ids-only.patch",
+      "shape": "engine-wiring",
+      "expected": "killed",
+      "test": "narrowRunsSkipTheUniverseWalk",
+      "label": "the demand is taken from the CLI rule ids rather than the resolved rules — enabled_only and disabled_rules no longer narrow what a run builds"
+    },
+    {
+      "id": "purity-gate-universe-always-resolved",
+      "patch": "patches/purity-gate-universe-always-resolved.patch",
+      "shape": "engine-wiring",
+      "expected": "killed",
+      "test": "narrowRunWithholds",
+      "label": "discovery resolves the construction universe whatever the demand — a narrow run walks, reads manifests and builds the table it never reads"
+    },
+    {
+      "id": "purity-gate-unresolved-universe-builds-empty-table",
+      "patch": "patches/purity-gate-unresolved-universe-builds-empty-table.patch",
+      "shape": "engine-wiring",
+      "expected": "killed",
+      "test": "narrowRunWithholds",
+      "label": "a nil universe builds an empty table instead of withholding it — an undeclared oracle reader gets the unconfigured answer silently, and nothing reruns"
+    },
+    {
+      "id": "purity-gate-withheld-pass-binds-unconfigured",
+      "patch": "patches/purity-gate-withheld-pass-binds-unconfigured.patch",
+      "shape": "engine-wiring",
+      "expected": "killed",
+      "test": "narrowRunWithholds",
+      "label": "the shared parse binds .unconfigured where it should withhold — a read of the table nobody built answers without tripping"
+    },
+    {
+      "id": "purity-gate-read-does-not-trip",
+      "patch": "patches/purity-gate-read-does-not-trip.patch",
+      "shape": "engine-wiring",
+      "expected": "killed",
+      "test": "withheldTableTripsAtOracleCreation",
+      "label": "Withholdable.read answers a withheld value without tripping — every surface reads as unconfigured and no run is ever redone"
+    },
+    {
+      "id": "purity-gate-catalog-shadow-storage",
+      "patch": "patches/purity-gate-catalog-shadow-storage.patch",
+      "shape": "engine-wiring",
+      "expected": "killed",
+      "test": "surfacesKeepOnlyWithholdableStorage",
+      "label": "the clean-method catalog keeps a second, unwrapped stored property and answers isPureKernel from it when withheld — the compiler cannot see it; only the storage pin does"
+    },
+    {
+      "id": "purity-gate-equality-bypasses-read",
+      "patch": "patches/purity-gate-equality-bypasses-read.patch",
+      "shape": "engine-wiring",
+      "expected": "killed",
+      "test": "withheldCatalogsTrip",
+      "label": "Withholdable's == compares only whether each side is withheld — comparing a withheld catalog reads it without tripping"
+    },
+    {
+      "id": "purity-gate-tripwire-records-nothing",
+      "patch": "patches/purity-gate-tripwire-records-nothing.patch",
+      "shape": "engine-wiring",
+      "expected": "killed",
+      "test": "undeclaredReadFallsBack",
+      "label": "PurityTripwire.trip records nothing — every withheld read is lost, and the first pass's findings are reported as if nothing were missing"
+    },
+    {
+      "id": "purity-gate-tripwire-shared-across-passes",
+      "patch": "patches/purity-gate-tripwire-shared-across-passes.patch",
+      "shape": "engine-wiring",
+      "expected": "killed",
+      "test": "tripwiresArePerRun",
+      "label": "every pass shares one static tripwire — a clean run reports another run's trips, and a read after the first seal fails the late-read assert"
+    },
+    {
+      "id": "purity-gate-clean-catalog-built-on-the-join-bit",
+      "patch": "patches/purity-gate-clean-catalog-built-on-the-join-bit.patch",
+      "shape": "engine-wiring",
+      "expected": "killed",
+      "test": "everyRuleAloneReadsOnlyWhatItDeclares",
+      "label": "the pre-scan builds the clean-method catalog when the join is demanded, not when the catalog is — Direct Instantiation alone gets it withheld and trips"
+    },
+    {
+      "id": "purity-gate-clean-catalog-empty-not-withheld",
+      "patch": "patches/purity-gate-clean-catalog-empty-not-withheld.patch",
+      "shape": "engine-wiring",
+      "expected": "killed",
+      "test": "everyDeclaredInputIsRead",
+      "label": "an undemanded clean-method catalog is .empty instead of withheld — an undeclared kernel reader is answered 'no kernel' silently"
+    },
+    {
+      "id": "purity-gate-join-empty-not-withheld",
+      "patch": "patches/purity-gate-join-empty-not-withheld.patch",
+      "shape": "engine-wiring",
+      "expected": "killed",
+      "test": "prescanWithholdsEveryOracleBuiltCatalog",
+      "label": "an undemanded join is .empty instead of withheld — an undeclared reader is told no callee is impure, silently"
+    },
+    {
+      "id": "purity-gate-no-rerun",
+      "patch": "patches/purity-gate-no-rerun.patch",
+      "shape": "engine-wiring",
+      "expected": "killed",
+      "test": "undeclaredReadFallsBack",
+      "label": "a tripped pass is returned instead of redone — the findings of a run that read a withheld surface are reported"
+    },
+    {
+      "id": "purity-gate-rerun-reuses-derived-demand",
+      "patch": "patches/purity-gate-rerun-reuses-derived-demand.patch",
+      "shape": "engine-wiring",
+      "expected": "killed",
+      "test": "undeclaredReadFallsBack",
+      "label": "the rerun reuses the derived demand instead of .everything — it withholds what the first pass read, trips again, and the precondition stops the run"
+    },
+    {
+      "id": "purity-gate-cancelled-run-returns-first-pass",
+      "patch": "patches/purity-gate-cancelled-run-returns-first-pass.patch",
+      "shape": "engine-wiring",
+      "expected": "killed",
+      "test": "cancelledTrippedRunNeverReturnsTheFirstPass",
+      "label": "a tripped run that was cancelled meanwhile returns its first pass — findings judged without the table escape"
+    },
+    {
+      "id": "purity-gate-caller-detector-gets-catalogs",
+      "patch": "patches/purity-gate-caller-detector-gets-catalogs.patch",
+      "shape": "engine-wiring",
+      "expected": "killed",
+      "test": "theCallersDetectorKeepsNoPurityCatalog",
+      "label": "configuredDetector hands the caller's detector the clean-method catalog again — the macOS app's long-lived detector keeps a withheld catalog past its run"
+    },
+    {
+      "id": "purity-gate-rerun-not-reported",
+      "patch": "patches/purity-gate-rerun-not-reported.patch",
+      "shape": "engine-wiring",
+      "expected": "killed",
+      "test": "rerunIsReported",
+      "label": "the rerun notice is dropped — a release build redoes the run and the CLI says nothing about the missing declaration"
     }
   ]
 }

@@ -1,0 +1,13 @@
+diff --git a/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/Withholdable.swift b/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/Withholdable.swift
+index bdc8a3ad..704ad760 100644
+--- a/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/Withholdable.swift
++++ b/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/Withholdable.swift
+@@ -44,7 +44,7 @@ public struct Withholdable<Value: Sendable>: Sendable {
+             return value
+ 
+         case let .withheld(tripwire, surface, placeholder):
+-            tripwire.trip(surface, query())
++            _ = (tripwire, surface)
+             return placeholder
+         }
+     }
