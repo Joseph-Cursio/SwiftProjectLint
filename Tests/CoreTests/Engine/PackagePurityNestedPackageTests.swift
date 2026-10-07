@@ -45,6 +45,35 @@ struct PackagePurityNestedPackageTests {
         #expect(candidates.contains("rowCount") == false, "Demo/ was left out of an Xcode-style root's table")
     }
 
+    @Test("the closure passes through a package whose files are not production", arguments: [
+        "Tests/Support", "IntegrationTests", ".support", "Pods/Support"
+    ])
+    func closureThroughNonProductionPackage(middle: String) async throws {
+        // The root depends on `<middle>`, which depends on `Shared`; SwiftPM compiles `Shared`. The
+        // middle package's own files stay out — a test folder, a hidden or a pruned directory —
+        // but its manifest is read by path, so the walk need not have reached it.
+        let climb = Array(repeating: "..", count: middle.split(separator: "/").count).joined(separator: "/")
+        let root = try PackagePurityFixtures.makeProject([
+            "Package.swift": Self.manifest(dependencies: ".package(path: \"\(middle)\")"),
+            "\(middle)/Package.swift": """
+            // swift-tools-version:6.0
+            import PackageDescription
+            let package = Package(name: "Support", dependencies: [.package(path: "\(climb)/Shared")])
+            """,
+            "\(middle)/Sources/Support/Support.swift": "struct SupportOnly { let n: Int }\n",
+            "Shared/Package.swift": "// swift-tools-version:6.0\n",
+            "Shared/Sources/Shared/Item.swift": PackagePurityFixtures.refutingItem,
+            "Sources/App/Callers.swift": PackagePurityFixtures.callers
+        ])
+        defer { try? FileManager.default.removeItem(atPath: root) }
+        #expect(await PackagePurityFixtures.universe(at: root) == [
+            "Shared/Sources/Shared/Item.swift", "Sources/App/Callers.swift"
+        ])
+        let found = await PackagePurityFixtures.candidateSymbols(at: root)
+        #expect(found.contains("sentinelAdd"))
+        #expect(found.contains("countOf") == false, "the closure stopped at \(middle)")
+    }
+
     /// How the root's manifest spells its one dependency, `Packages/Util`.
     enum DependencySpelling: String, CaseIterable {
         /// `"Packages/\u{55}til"`: SwiftPM decodes the escape.

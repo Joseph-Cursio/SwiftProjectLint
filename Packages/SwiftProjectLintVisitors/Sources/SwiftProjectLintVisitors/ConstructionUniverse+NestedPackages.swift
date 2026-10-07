@@ -13,7 +13,10 @@ import SwiftSyntax
 ///   manifest's `.package(path:)` literals are read for their value, as SwiftPM reads them
 ///   (escapes decoded, raw strings allowed), resolved from that manifest's directory, standardised,
 ///   then symlink-resolved, and followed transitively; a package is matched by where it resolves,
-///   so `/tmp/x` and `/private/tmp/x` name one directory (amendment H). A manifest in the closure
+///   so `/tmp/x` and `/private/tmp/x` name one directory (amendment H). Each dependency is followed
+///   to its `Package.swift` on disk, whether or not the walk reached it: a package under `Tests/`,
+///   a hidden or a pruned directory still passes its own dependencies on, though the predicate
+///   keeps its files out (amendment I). A manifest in the closure
 ///   that passes `path:` anything but a string literal may depend on any of them, so then
 ///   **every** nested package is in (any doubt includes). A path that leaves the root is ignored:
 ///   the universe never does.
@@ -71,6 +74,7 @@ extension ConstructionUniverse {
             if let resolved = relative(location, under: root) { packageAt[resolved] = package }
         }
         var reached: Set<String> = []
+        var visited: Set<String> = [""]
         var pending = [""]
         while let directory = pending.popLast() {
             guard let dependencies = dependencies(of: manifest(directory)) else { return nestedPackages }
@@ -78,8 +82,10 @@ extension ConstructionUniverse {
                 guard let resolved = resolve(
                           literal, from: directory, root: root, resolvingSymlinks: resolvingSymlinks
                       ),
-                      let package = packageAt[resolved],
-                      reached.insert(package).inserted else { continue }
+                      visited.insert(resolved).inserted else { continue }
+                // Followed by path, nested package or not: one the walk never reached still
+                // compiles what it depends on.
+                if let package = packageAt[resolved] { reached.insert(package) }
                 pending.append(resolved)
             }
         }

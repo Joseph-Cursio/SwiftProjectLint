@@ -152,6 +152,22 @@ struct ConstructionUniverseNestedPackageTests {
         #expect(reached == ["Packages/A", "Packages/B"])
     }
 
+    @Test("a dependency the walk never reached is still followed, by its path")
+    func unwalkedDependencyIsFollowed() {
+        // `Tests/Support` and `.tools/Gen` are not among the walk's packages — pruned or hidden —
+        // but the root compiles them, and so what they depend on.
+        let reached = Self.compiled([
+            "": #"[.package(path: "Tests/Support"), .package(path: ".tools/Gen")]"#,
+            "Tests/Support": #".package(path: "../../Packages/B")"#,
+            ".tools/Gen": #".package(path: "../../Demo")"#
+        ])
+        #expect(reached == ["Packages/B", "Demo"])
+
+        // With nothing there to read, it passes nothing on, and is no doubt; unreadable, it is.
+        #expect(Self.compiled(["": #".package(path: "Missing")"#]).isEmpty)
+        #expect(Self.compiled(["": #".package(path: ".tools/Gen")"#], unreadable: [".tools/Gen"]) == Self.packages)
+    }
+
     @Test("paths are standardised as absolute paths and kept only under the root")
     func pathsAreStandardisedAgainstTheRoot() {
         let reached = Self.compiled([
@@ -180,7 +196,7 @@ struct ConstructionUniverseNestedPackageTests {
         }
         let manifests = [
             "": #".package(path: "/alias/App/Vendor/Lib")"#,
-            "Vendor/Lib": #".package(path: "/work/App/Demo"), .package(path: "/alias/Other/Lib")"#,
+            "Vendor/Lib": #"[.package(path: "/work/App/Demo"), .package(path: "/alias/Other/Lib")]"#,
             "Demo": ""
         ]
         for rootPath in ["/work/App", "/alias/App"] {
