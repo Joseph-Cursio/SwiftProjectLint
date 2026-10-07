@@ -338,7 +338,7 @@ struct ProjectLinterNestedPackageTests {
         let system = PatternRegistryFactory.createConfiguredSystem()
 
         let issues = await linter.analyzeProject(at: root, detector: system.detector)
-        let hooks = issues.filter { $0.ruleName == .observableEnvironmentViewMissingInspectionHook }
+        let hooks = issues.filter { $0.ruleName == .observableEnvViewMissingInspectionHook }
 
         // The view a test names in code is asked for the relay...
         #expect(hooks.contains { $0.message.contains("InspectedView") })

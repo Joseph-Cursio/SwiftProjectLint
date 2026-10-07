@@ -136,7 +136,7 @@ extension RuleIdentifier {
         case .globalMutableState, .nonInjectedNondeterminism, .pureFunctionCandidate,
              .pureClosureCandidate, .extractableTotalKernel, .missingEquatableOnStateType,
              .impureCallInViewBody, .viewHostingBeforeInspection,
-             .observableEnvironmentViewMissingInspectionHook, .unreachableEffectClosure,
+             .observableEnvViewMissingInspectionHook, .unreachableEffectClosure,
              .contradictedClockDeterminism, .impureClosureInventory:
             return .testability
 

@@ -11,7 +11,7 @@ struct ObservableEnvironmentViewMissingInspectionHook: PatternRegistrarProtocol 
 
     var pattern: SyntaxPattern {
         SyntaxPattern(
-            name: .observableEnvironmentViewMissingInspectionHook,
+            name: .observableEnvViewMissingInspectionHook,
             visitor: ObservableEnvironmentViewMissingInspectionHookVisitor.self,
             severity: .info,
             category: .testability,

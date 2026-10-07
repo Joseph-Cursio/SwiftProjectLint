@@ -29,9 +29,11 @@ struct RuleDocumentationLoader {
         // Special cases — the algorithmic kebab-conversion can't recover these
         // because the doc filenames intentionally keep multi-word Apple brand
         // names glued together (`SwiftData` → `swiftdata`, `CloudKit` →
-        // `cloudkit`).
+        // `cloudkit`), or because the case name was shortened to fit SwiftLint's
+        // `identifier_name` limit while the page keeps the rule's full name.
         switch rule {
         case .swiftDataUniqueAttributeCloudKit: return "swiftdata-unique-attribute-cloudkit"
+        case .observableEnvViewMissingInspectionHook: return "observable-environment-view-missing-inspection-hook"
         default: break
         }
         return camelCaseToKebab(String(describing: rule))

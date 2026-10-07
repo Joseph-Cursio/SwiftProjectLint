@@ -9,7 +9,7 @@ struct ObservableEnvironmentViewMissingInspectionHookVisitorTests {
 
     private func run(_ source: String) -> ObservableEnvironmentViewMissingInspectionHookVisitor {
         let pattern = SyntaxPattern(
-            name: .observableEnvironmentViewMissingInspectionHook,
+            name: .observableEnvViewMissingInspectionHook,
             visitor: ObservableEnvironmentViewMissingInspectionHookVisitor.self,
             severity: .info,
             category: .testability,
@@ -37,7 +37,7 @@ struct ObservableEnvironmentViewMissingInspectionHookVisitorTests {
         """)
 
         #expect(visitor.detectedIssues.count == 1)
-        #expect(visitor.detectedIssues.first?.ruleName == .observableEnvironmentViewMissingInspectionHook)
+        #expect(visitor.detectedIssues.first?.ruleName == .observableEnvViewMissingInspectionHook)
     }
 
     @Test("message names every offending environment type")
@@ -117,7 +117,7 @@ struct ObservableEnvironmentViewMissingInspectionHookVisitorTests {
 
     private func run(_ source: String, inspected: Set<String>?) -> [LintIssue] {
         let pattern = SyntaxPattern(
-            name: .observableEnvironmentViewMissingInspectionHook,
+            name: .observableEnvViewMissingInspectionHook,
             visitor: ObservableEnvironmentViewMissingInspectionHookVisitor.self,
             severity: .info,
             category: .testability,

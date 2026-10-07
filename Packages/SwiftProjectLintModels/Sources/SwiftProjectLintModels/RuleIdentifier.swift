@@ -245,7 +245,7 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
 
     /// A view reading `@Environment(SomeType.self)` with no inspection relay —
     /// so it cannot be inspected without trapping.
-    case observableEnvironmentViewMissingInspectionHook = "Observable Environment View Missing Inspection Hook"
+    case observableEnvViewMissingInspectionHook = "Observable Environment View Missing Inspection Hook"
 
     /// A closure registered as a callback that writes to what it captured — the
     /// impure twin of `pureClosureCandidate`, which refutes exactly this shape.
