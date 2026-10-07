@@ -48,12 +48,21 @@ struct ConstructionUniverseNestedPackageTests {
 
     // MARK: - What a manifest is
 
-    @Test("a manifest's first line is a tools-version comment", arguments: [
+    @Test("a tools-version comment where SwiftPM looks for one makes a manifest", arguments: [
         "// swift-tools-version:6.2\nimport PackageDescription\n",
         "//swift-tools-version:5.9",
         "  \t// swift-tools-version: 6.0\n",
         "\u{FEFF}// swift-tools-version:6.0\n",
-        "// swift-tools-version:5.9\r\nimport PackageDescription\r\n"
+        "// swift-tools-version:5.9\r\nimport PackageDescription\r\n",
+        // Blank lines first, at any version: SwiftPM loads these, and a first-line test did not.
+        "\n// swift-tools-version:6.0\n",
+        "\n\n// swift-tools-version:5.9\nimport PackageDescription\n",
+        "\r\n// swift-tools-version:5.9\n",
+        // The label in any case.
+        "// Swift-Tools-Version: 5.9\n",
+        // From 6.0, below other lines.
+        "import PackageDescription\n// swift-tools-version:6.0\n",
+        "// Licensed under Apache 2.0\n//\n// swift-tools-version:6.2\n"
     ])
     func toolsVersionLineIsAManifest(text: String) {
         #expect(ConstructionUniverse.isManifest(text))
@@ -61,9 +70,11 @@ struct ConstructionUniverseNestedPackageTests {
 
     @Test("a file without one is a source file, however it is named", arguments: [
         "struct Package: Equatable { let name: String }\n",
-        "import PackageDescription\n// swift-tools-version:6.0\n",
-        "\n// swift-tools-version:6.0\n",
+        // Below 6.0, SwiftPM wants the comment first.
+        "import PackageDescription\n// swift-tools-version:5.9\n",
         "/* swift-tools-version:6.0 */\n",
+        "/// swift-tools-version:6.0\n",
+        "  \n\t\n",
         ""
     ])
     func noToolsVersionLineIsNoManifest(text: String) {
@@ -180,16 +191,34 @@ struct ConstructionUniverseNestedPackageTests {
         #expect(Self.compiled(manifests, versioned: ["": [toA], "Packages/A": [".package(path: p)"]]) == Self.packages)
     }
 
-    @Test("a nested package holding a closure manifest's target path is in, with its own closure")
+    @Test("a nested package holding a closure manifest's target path, or under it, is in, with its own closure")
     func targetPathReachesItsPackage() {
-        let manifests = [
-            "": #"[.target(name: "Lib", path: "Vendor/Lib/Sources/Lib"), .target(name: "App", path: "Packages")]"#,
+        // `Vendor/Lib` holds the root's `Lib` sources, and its closure brings `Demo`.
+        #expect(Self.compiled([
+            "": #"[.target(name: "Lib", path: "Vendor/Lib/Sources/Lib")]"#,
             "Vendor/Lib": #".package(path: "../../Demo")"#,
             "Demo": ""
-        ]
-        // `Vendor/Lib` holds the root's `Lib` sources, and its closure brings `Demo`; `Packages`
-        // holds packages but lies in none of them, so it reaches none.
-        #expect(Self.compiled(manifests) == ["Vendor/Lib", "Demo"])
+        ]) == ["Vendor/Lib", "Demo"])
+        // `Packages` lies in no package but holds three, and SwiftPM compiles their sources into
+        // `All` (amendment T); `Packages/C`'s closure brings `Demo`. Not `Vendor/Lib`.
+        #expect(Self.compiled([
+            "": #"[.target(name: "All", path: "Packages")]"#,
+            "Packages/C": #".package(path: "../../Demo")"#
+        ]) == ["Packages/A", "Packages/B", "Packages/C", "Demo"])
+        // A path is matched by component: `Pack` holds nothing.
+        #expect(Self.compiled(["": #".target(name: "X", path: "Pack")"#]).isEmpty)
+        // The root's `path: "."` resolves to the root, `""`, and holds every package.
+        #expect(Self.compiled(["": #".target(name: "App", path: ".")"#]) == Self.packages)
+        // A nested package's `path: "."` holds itself and the packages under it, and no other.
+        let nested = ConstructionUniverse.compiledNestedPackages(
+            ["A", "A/B", "C"],
+            reported: [],
+            rootHasManifest: true,
+            rootPath: "/work/App",
+            resolvingSymlinks: { $0 },
+            manifests: Self.reading(["": #".package(path: "A")"#, "A": #".target(name: "A", path: ".")"#])
+        )
+        #expect(nested == ["A", "A/B"])
         // A target path that is not a literal is doubt.
         #expect(Self.compiled(["": #".target(name: "X", path: base + "/X")"#]) == Self.packages)
     }

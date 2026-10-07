@@ -111,5 +111,83 @@
         "Lib/X"
       ]
     }
+  ],
+  "isManifest": [
+    {
+      "text": "// swift-tools-version:5.9\n",
+      "expected": true
+    },
+    {
+      "text": "// swift-tools-version: 6.0\n",
+      "expected": true
+    },
+    {
+      "text": "\n// swift-tools-version:5.9\n",
+      "expected": true
+    },
+    {
+      "text": "\n\n  \t\n// swift-tools-version:5.9\n",
+      "expected": true
+    },
+    {
+      "text": "   // swift-tools-version:6.0\n",
+      "expected": true
+    },
+    {
+      "text": "// SWIFT-TOOLS-VERSION:5.9\n",
+      "expected": true
+    },
+    {
+      "text": "//Swift-Tools-Version: 5.9\n",
+      "expected": true
+    },
+    {
+      "text": "// swift-tools-version:5.9\r\n",
+      "expected": true
+    },
+    {
+      "text": "// Copyright 2026 Example\n// swift-tools-version:6.0\n",
+      "expected": true
+    },
+    {
+      "text": "/* License */\n// swift-tools-version:6.1\n",
+      "expected": true
+    },
+    {
+      "text": "let x = 1\n// swift-tools-version: 6.0\n",
+      "expected": true
+    },
+    {
+      "text": "// Copyright 2026 Example\n// swift-tools-version:5.9\n",
+      "expected": false
+    },
+    {
+      "text": "/// swift-tools-version:5.9\n",
+      "expected": false
+    },
+    {
+      "text": "let x = 1\n",
+      "expected": false
+    },
+    {
+      "text": "\ufeff// swift-tools-version:5.9\n",
+      "expected": true
+    },
+    {
+      "text": "struct Package {\n    let name: String\n}\n",
+      "expected": false
+    },
+    {
+      "text": "let template = \"\"\"\n// swift-tools-version:5.9\nimport PackageDescription\n\"\"\"\n",
+      "expected": false
+    },
+    {
+      "text": "let template = \"\"\"\n// swift-tools-version:6.0\nimport PackageDescription\n\"\"\"\n",
+      "expected": true
+    },
+    {
+      "text": "",
+      "expected": false
+    }
   ]
 }

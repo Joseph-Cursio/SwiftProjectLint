@@ -1,12 +1,13 @@
 import Foundation
 
-/// What makes a directory a package: a **manifest** — the shared spec's amendment F, implemented
-/// word for word in SwiftInferProperties too.
+/// What makes a directory a package: a **manifest** — the shared spec's amendments F and 4 (S),
+/// implemented word for word in SwiftInferProperties too.
 ///
 /// A directory holds a manifest when it contains a regular file (a link to one counts) named
-/// exactly `Package.swift` whose first line is a `// swift-tools-version` comment, after an
-/// optional UTF-8 byte-order mark — the line SwiftPM itself requires. Anything else of that name
-/// makes no package boundary:
+/// exactly `Package.swift` whose text has a `// swift-tools-version` comment where SwiftPM looks
+/// for one (``isManifest(_:)``): the first non-blank line, in any letter case, or — at tools
+/// version 6.0 or later — any later line, below a license header or other code. Anything else of
+/// that name makes no package boundary:
 ///
 /// - a **source file** named `Package.swift` — `struct Package { … }` in an app's `Models/` — which
 ///   its target compiles along with everything beside it. Read as a boundary, it took every one of
@@ -25,8 +26,8 @@ extension ConstructionUniverse {
 
     /// What a directory holds at `Package.swift`.
     public enum Manifest: Equatable, Sendable {
-        /// No manifest: nothing of that name, or a directory, a dangling link, or a file whose first
-        /// line is not a tools-version comment.
+        /// No manifest: nothing of that name, or a directory, a dangling link, or a file with no
+        /// tools-version comment where SwiftPM looks for one.
         case absent
         /// A manifest, and its text.
         case text(String)
@@ -77,11 +78,35 @@ extension ConstructionUniverse {
         return names.contains { $0.hasSuffix(".xcodeproj") || $0.hasSuffix(".xcworkspace") }
     }
 
-    /// Whether `text` begins as a manifest does: a first line matching
-    /// `^\s*//\s*swift-tools-version`, after an optional UTF-8 byte-order mark.
+    /// Whether `text` is a manifest as SwiftPM reads one, after an optional UTF-8 byte-order mark:
+    ///
+    /// - **(a)** its first non-blank line — blank meaning spaces and tabs only — is a tools-version
+    ///   line, `^[ \t]*//[ \t]*swift-tools-version` with the label in any case, whatever version
+    ///   follows; or
+    /// - **(b)** a later line is one, with a version of 6.0 or later: from 6.0 SwiftPM finds the
+    ///   comment below a license header, a block comment, even code, and below 6.0 it rejects that.
+    ///
+    /// `///` is not a tools-version line, as SwiftPM agrees. This was a first-line test, which
+    /// called a manifest opening with a blank line no manifest: a reached package's then passed
+    /// nothing on, so the package behind it left the table, and a root's left the root unbounded.
+    /// Lines split on `Character.isNewline`, so `\r\n` and a lone `\r` end one too. The shared
+    /// cases file's `isManifest` section is the arbiter.
+    ///
+    /// Accepted: a `// swift-tools-version:6…` line inside a string literal below the first line —
+    /// a code generator's template in `Sources/Gen/Package.swift` — makes that file a manifest.
     public static func isManifest(_ text: String) -> Bool {
-        var firstLine = text.prefix { $0 != "\n" && $0 != "\r\n" }
-        if firstLine.first == "\u{FEFF}" { firstLine = firstLine.dropFirst() }
-        return firstLine.prefixMatch(of: #/\s*//\s*swift-tools-version/#) != nil
+        var body = Substring(text)
+        if body.first == "\u{FEFF}" { body = body.dropFirst() }
+        let lines = body.split(omittingEmptySubsequences: false, whereSeparator: \.isNewline)
+        guard let first = lines.firstIndex(where: { !$0.allSatisfy { $0 == " " || $0 == "\t" } }) else {
+            return false
+        }
+        if lines[first].prefixMatch(of: #/[ \t]*//[ \t]*(?i:swift-tools-version)/#) != nil { return true }
+        return lines[lines.index(after: first)...].contains { line in
+            guard let match = line.prefixMatch(
+                of: #/[ \t]*//[ \t]*(?i:swift-tools-version)[ \t]*:[ \t]*([0-9]+)/#
+            ) else { return false }
+            return (Int(match.1) ?? 0) >= 6
+        }
     }
 }

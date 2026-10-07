@@ -255,12 +255,13 @@ Test-support targets, `Mocks/` and `Examples/` are kept too: they compile, and d
 production constructs would call its construction pure — the unsound direction.
 
 **What bounds it is what the root compiles.** A nested package is a directory below the root whose
-`Package.swift` is a manifest — its first line a `// swift-tools-version` comment, as SwiftPM
-requires. A source file named `Package.swift` (a `struct Package` in an app's `Models/`), a directory
-or a dangling link of that name is not one, and takes nothing out. A nested package counts only when
+`Package.swift` is a manifest as SwiftPM reads one: a `// swift-tools-version` comment on its first
+non-blank line, the label in any case, or — from tools version 6.0 — on a later line, below a license
+header or code. A source file named `Package.swift` (a `struct Package` in an app's `Models/`), a
+directory or a dangling link of that name is not one, and takes nothing out. A nested package counts only when
 it is reached: through the root's `.package(path:)` dependencies, followed transitively through
 every manifest reached — a directory's `Package.swift` together with its `Package@swift-*.swift`
-files; through a target whose `path:` lies inside it; or because the run reports on its files, so
+files; through a target whose `path:` lies inside it or holds it; or because the run reports on its files, so
 `--include-nested-packages` judges a package with its own types. Paths are read for their value, as
 SwiftPM reads them (escapes decoded, raw strings allowed), and matched where they resolve, so
 `/tmp/x` and `/private/tmp/x`, a link to a package's directory, and `packages/core` for
@@ -288,10 +289,19 @@ What it still does not see, or sees too much of:
   root to put every first-party type in the universe.
 - **A symlinked directory's files.** The walk does not follow a link to a directory (a link to a
   file it does follow), and neither does SwiftInferProperties'.
-- **A `Package.swift` or a `Tests`/`*Tests` folder inside an Xcode app target.** The universe drops
-  every file named `Package.swift` and everything under a folder named like a test target, wherever
-  it is — right for SwiftPM, where neither is compiled into a production target; an Xcode target
-  can compile both.
+- **A `Package.swift` source file, or a `Tests`/`*Tests` folder, inside a production target.** The
+  universe drops every file named `Package.swift` and everything under a folder named like a test
+  target, wherever it is. That is a gap, accepted: SwiftPM compiles
+  `Sources/App/Models/Package.swift` and `Sources/App/HelperTests/H.swift` into `App`, and an Xcode
+  target can compile both too, so a type declared there is missing from the table.
+- **A tools-version comment inside a string.** A `Package.swift` whose `// swift-tools-version:6…`
+  line sits in a string literal below its first line — a code generator's template in
+  `Sources/Gen/Package.swift` — counts as a manifest, so its directory is a package boundary.
+- **A symlinked package's own relative dependencies** are resolved from the link's target, not from
+  where the link sits, as SwiftPM resolves them. With `Packages/Core` a link to `../Vendor/Core`
+  and Core depending on `../Util`, the bound looks for `Vendor/Util` where SwiftPM builds
+  `Packages/Util`; with the target outside the root, the link's sub-closure is dropped. Rare, and
+  no regression.
 - **An Xcode project below the root** (`Apps/iOS/App.xcodeproj`): only one directly beside the
   root's manifest counts as doubt.
 - **Namesakes across modules.** The table is one name space: two modules' `Row`s in one universe are
@@ -321,7 +331,7 @@ SwiftLintRuleStudio (with and without its nested packages), SwiftUMLStudio, Swif
 SwiftFormatRuleStudio did not move for this rule; nor did SwiftCompilerFlagStudio under its own
 `.swiftprojectlint.yml`, which enables three rules and reports nothing on `main` or with the facts.
 The nested-package bound, link-location classification and the UTF-8 rule were re-measured over the
-same nine runs and moved no row of any rule; so, again, did the shared spec's third amendment — what
+same nine runs and moved no row of any rule; nor, again, did the shared spec's third amendment — what
 a manifest is, an Xcode project beside it, dependency values and canonical matching, the closure by
 path, reported packages, version-specific manifests and target paths, and the hidden flag. What it
 fixed shows on the joint review's own fixtures instead, each a false candidate withdrawn: an
@@ -329,7 +339,8 @@ absolute dependency through `/tmp`, an escaped one, an Xcode-built local package
 source file, a reported `Demo/` package's own functions (its Direct Instantiation warning restored),
 and the critic's `Package@swift-6.0.swift`, target-path and linked-directory cases; and a deep
 manifest in a dependency no longer crashes the run. One candidate was added, rightly: a fixture's
-`IntegrationTests/Package.swift` puts a `let` above its tools-version line, so it is no manifest,
+`IntegrationTests/Package.swift` puts a `let` above its 5.9 tools-version line, which SwiftPM
+rejects below 6.0, so it is no manifest,
 its computed path is no doubt, and an unrelated `Demo/`'s `Row` no longer refutes the app's. The
 case that motivated the facts, SwiftLintRuleStudio's `generateRecommendations`, was never offered
 here:
@@ -388,7 +399,7 @@ you to narrow the very function this rule just flagged. That rule now names the 
 ### Not listed in the default report
 
 This rule is a **census**, and on a real codebase it is a large one: 804 findings here, alongside
-290 from [Pure Closure Property-Test Candidate](pure-closure-candidate.md) — together **66% of
+291 from [Pure Closure Property-Test Candidate](pure-closure-candidate.md) — together **66% of
 everything the linter prints**. A pure function is not a defect and there is nothing to fix per
 line, so enumerating them buries the findings that *are* defects. During this project's own road
 test the linter found a real bug in its configuration code, reported it correctly, and the finding
@@ -398,9 +409,9 @@ So `--format text` counts these findings in its summary and names them in a foot
 print one line each:
 
 ```
-Found 1656 issues (127 warnings, 1529 info)
+Found 1657 issues (127 warnings, 1530 info)
 
-1094 of these are property-test candidates, not listed above (804 Pure Function …, 290 Pure Closure …).
+1095 of these are property-test candidates, not listed above (804 Pure Function …, 291 Pure Closure …).
   See them:  --categories testability
   Use them:  --format pbt-seeds > .pbt/seeds.json
 ```

@@ -200,6 +200,23 @@ for `Packages/Core`. `purity-manifests-read-on-cooperative-stack` is killed by a
 assertion — the killer's process dies with `SIGBUS` — which the runner counts as killed, as it
 should.
 
+Five more from the shared spec's amendment 4, the final review of #276. Three are the ways rule F's
+first-line test refused a manifest SwiftPM loads; each kills exactly its own case of the killer,
+whose three arguments open a dependency's manifest with a blank line, an upper-case label and a
+license header above a 6.0 comment. The fourth is a target path that holds nested packages.
+
+| id | shape | expected | killer |
+|---|---|---|---|
+| `manifest-tools-version-on-the-very-first-line` | engine-wiring | killed | `manifestAsSwiftPMReadsItKeepsTheClosure` |
+| `manifest-label-case-sensitive` | engine-wiring | killed | `manifestAsSwiftPMReadsItKeepsTheClosure` |
+| `manifest-tools-version-only-at-the-top` | engine-wiring | killed | `manifestAsSwiftPMReadsItKeepsTheClosure` |
+| `purity-closure-target-path-misses-packages-under-it` | engine-wiring | killed | `targetPathOverNestedPackage` |
+| `purity-closure-root-target-path-reaches-nothing` | engine-wiring | killed | `rootTargetAtTheRootReachesEveryPackage` |
+
+The fifth is the follow-up T′: locations are relative to the root, which is `""`, so a root target's
+`path: "."` resolved to a location no `hasPrefix` matched and reached nothing until the comparison
+gained `location.isEmpty`. The fourth was re-expressed against the comparison's new line break.
+
 `purity-universe-takes-every-nested-package` was re-expressed when discovery started awaiting the
 bound on a large-stack thread (`compiledUniverse`): it now skips that call.
 

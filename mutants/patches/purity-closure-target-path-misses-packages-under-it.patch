@@ -1,0 +1,13 @@
+diff --git a/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/ConstructionUniverse+NestedPackages.swift b/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/ConstructionUniverse+NestedPackages.swift
+index d93348bc..212038af 100644
+--- a/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/ConstructionUniverse+NestedPackages.swift
++++ b/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/ConstructionUniverse+NestedPackages.swift
+@@ -162,7 +162,7 @@ extension ConstructionUniverse {
+                 // resolves to it, and it holds every package.
+                 for package in packageAt.keys
+                 where location.isEmpty || location == package
+-                    || location.hasPrefix(package + "/") || package.hasPrefix(location + "/") {
++                    || location.hasPrefix(package + "/") {
+                     enter(package)
+                 }
+             }
