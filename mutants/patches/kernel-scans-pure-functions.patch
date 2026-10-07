@@ -1,11 +1,11 @@
 diff --git a/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/Testability/Visitors/ExtractableTotalKernelVisitor.swift b/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/Testability/Visitors/ExtractableTotalKernelVisitor.swift
-index db7997e..7fa96ef 100644
+index b6603352..6df0f8c0 100644
 --- a/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/Testability/Visitors/ExtractableTotalKernelVisitor.swift
 +++ b/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/Testability/Visitors/ExtractableTotalKernelVisitor.swift
-@@ -67,7 +67,7 @@ final class ExtractableTotalKernelVisitor: BasePatternVisitor {
+@@ -85,7 +85,7 @@ final class ExtractableTotalKernelVisitor: BasePatternVisitor {
                let body = node.body,
                // Gate 1: a *pure* function has no trapped kernel — it IS the kernel, and
-               // `pureFunctionCandidate` reports it.
+               // `pureFunctionCandidate` reports it when a test can compare its result.
 -              !purityInferrer.isPure(node) else {
 +              purityInferrer.isPure(node) else {
              return .visitChildren
