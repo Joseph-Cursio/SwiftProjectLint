@@ -150,7 +150,7 @@ struct PackagePurityManifestTests {
             )
             """,
             "Core/Package.swift": Self.libraryManifest("Core")
-        ], subject: Self.tokenCount.replacingOccurrences(of: "import A", with: "import Core"))
+        ], subject: Self.app(importing: "Core"))
     }
 
     @Test("s11: a dependency through a link reaches the walked package the link points to")
@@ -164,7 +164,7 @@ struct PackagePurityManifestTests {
                 "Vendor/Core/Package.swift": Self.libraryManifest("Core")
             ],
             links: [(link: "Packages/Core", destination: "../Vendor/Core")],
-            subject: Self.tokenCount.replacingOccurrences(of: "import A", with: "import Core")
+            subject: Self.app(importing: "Core")
         )
     }
 
@@ -179,19 +179,21 @@ struct PackagePurityManifestTests {
                 "Package.swift": Self.dependsOnCore(spelled: "packages/core"),
                 "Packages/Core/Package.swift": Self.libraryManifest("Core")
             ],
-            subject: Self.tokenCount.replacingOccurrences(of: "import A", with: "import Core")
+            subject: Self.app(importing: "Core")
         )
     }
 
     // MARK: - Fixtures
 
-    /// The critic's subject, `Sources/App/App.swift`.
-    static let tokenCount = """
-    import A
-    public func tokenCount(_ n: Int) -> Int {
-        Tok(n: n).n * 2
+    /// The critic's subject, `Sources/App/App.swift`, importing the module that declares `Tok`.
+    static func app(importing module: String) -> String {
+        """
+        import \(module)
+        public func tokenCount(_ n: Int) -> Int {
+            Tok(n: n).n * 2
+        }
+        """
     }
-    """
 
     static let dependsOnA = """
     // swift-tools-version:6.0
@@ -215,9 +217,8 @@ struct PackagePurityManifestTests {
         let probe = FileManager.default.temporaryDirectory.appendingPathComponent("CaseProbe-\(UUID().uuidString)")
         guard FileManager.default.createFile(atPath: probe.path, contents: Data()) else { return false }
         defer { try? FileManager.default.removeItem(at: probe) }
-        return FileManager.default.fileExists(atPath: probe.path.lowercased().replacingOccurrences(
-            of: probe.lastPathComponent.lowercased(), with: probe.lastPathComponent.uppercased()
-        ))
+        let otherCase = probe.deletingLastPathComponent().appendingPathComponent(probe.lastPathComponent.uppercased())
+        return FileManager.default.fileExists(atPath: otherCase.path)
     }()
 
     static func libraryManifest(_ name: String) -> String {
@@ -235,7 +236,7 @@ struct PackagePurityManifestTests {
         tokAt tokPath: String,
         files: [String: String],
         links: [(link: String, destination: String)] = [],
-        subject: String = tokenCount,
+        subject: String = app(importing: "A"),
         sourceLocation: SourceLocation = #_sourceLocation
     ) async throws {
         let refuting = "import Foundation\npublic struct Tok { public let id = UUID(); public let n: Int; "

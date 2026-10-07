@@ -178,7 +178,7 @@ public struct FileAnalysisUtils {
     /// its types and under-refuted; SwiftInferProperties' walk never skipped them. Now a flagged file
     /// is walked, universe and reporting alike, and a dot-prefixed one is skipped as before (the
     /// shared spec's amendment 3, M).
-    static func isSkippedName(_ name: String) -> Bool {
+    private static func isSkippedName(_ name: String) -> Bool {
         name.hasPrefix(".") || skippedDirectories.contains(name)
     }
 
