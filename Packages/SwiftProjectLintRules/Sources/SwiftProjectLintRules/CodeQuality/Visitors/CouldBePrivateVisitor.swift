@@ -9,7 +9,10 @@ import SwiftSyntax
 /// across every file.
 /// **Phase 2 (finalizeAnalysis):** Compares declarations against references. Types that
 /// are never referenced outside their declaring file are flagged.
-final class CouldBePrivateVisitor: CrossFileVisitorBase, CrossFilePatternVisitorProtocol {
+final class CouldBePrivateVisitor: CrossFileVisitorBase, CrossFilePatternVisitorProtocol, PackagePurityConsumer {
+
+    /// `PropertyTestCandidacy.shape`, for the property-test caveat in the message.
+    static let packagePurityInputs: PackagePurityInputs = [.oracle]
 
     /// Tracks where each type name is declared: typeName → fileName
     private var declarations: [(name: String, file: String, node: Syntax)] = []

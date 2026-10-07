@@ -152,17 +152,22 @@ struct PurityOracleEntryTests {
         #expect(Self.sources.contains { $0.path == Self.projectLinter }, "the scan did not see ProjectLinter.swift")
     }
 
-    private static let visitorsSources = "Packages/SwiftProjectLintVisitors/Sources/"
-    private static let wrapper = visitorsSources + "SwiftProjectLintVisitors/PurityInferrer.swift"
-    private static let packagePurity = visitorsSources + "SwiftProjectLintVisitors/PackagePurity.swift"
-    private static let engineSources = "Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/"
-    private static let projectLinter = engineSources + "ProjectLinter.swift"
-    private static let purityParse = engineSources + "ProjectLinter+Purity.swift"
-    private static let largeStackWorkers = engineSources + "LargeStackWorkers.swift"
+    static let visitorsSources = "Packages/SwiftProjectLintVisitors/Sources/"
+    static let wrapper = visitorsSources + "SwiftProjectLintVisitors/PurityInferrer.swift"
+    static let packagePurity = visitorsSources + "SwiftProjectLintVisitors/PackagePurity.swift"
+    static let engineSources = "Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/"
+    static let projectLinter = engineSources + "ProjectLinter.swift"
+    static let purityParse = engineSources + "ProjectLinter+Purity.swift"
+    static let largeStackWorkers = engineSources + "LargeStackWorkers.swift"
+    static let rulePackages = [
+        "Packages/SwiftProjectLintRules/Sources/",
+        "Packages/SwiftProjectLintIdempotencyRules/Sources/",
+        "Sources/"
+    ]
 
     /// Where the per-run analysis executes. Config and the App are left out: their detached work
     /// (the directory-tree scan, registry setup) is off the analysis path.
-    private static let analysisPackages = [
+    static let analysisPackages = [
         "Packages/SwiftProjectLintEngine/Sources/",
         "Packages/SwiftProjectLintRegistry/Sources/",
         "Packages/SwiftProjectLintVisitors/Sources/",
@@ -188,7 +193,7 @@ struct PurityOracleEntryTests {
     /// spelling of the root off another. That slicing broke in any checkout under a symlinked
     /// directory: `#filePath` resolved to `/tmp/…` while the walker spelled `/private/tmp/…`, every
     /// path came out as `/branch/Packages/…`, and all five tests failed.
-    private static let sources: [SourceFile] = {
+    static let sources: [SourceFile] = {
         let root = repositoryRoot
         var roots = [(relative: "Sources", directory: root.appendingPathComponent("Sources"))]
         let packages = root.appendingPathComponent("Packages")

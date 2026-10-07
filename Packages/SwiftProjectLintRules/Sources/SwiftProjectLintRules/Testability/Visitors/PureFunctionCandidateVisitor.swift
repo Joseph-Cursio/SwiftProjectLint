@@ -22,7 +22,11 @@ import SwiftSyntax
 ///
 /// Conservative by design — it under-suggests rather than flag an impure function. `info` severity;
 /// opt-in.
-final class PureFunctionCandidateVisitor: BasePatternVisitor {
+final class PureFunctionCandidateVisitor: BasePatternVisitor, PackagePurityConsumer {
+
+    /// The oracle through `PropertyTestCandidacy.candidate`, the clean-method catalog it is handed,
+    /// and the one-hop join.
+    static let packagePurityInputs: PackagePurityInputs = [.oracle, .cleanInstanceMethods, .impurePackageFunctions]
 
     private var fileIsTestOrFixture = false
 

@@ -5,7 +5,10 @@ import SwiftSyntax
 
 /// A SwiftSyntax visitor that detects direct instantiation of concrete service-like types
 /// where dependency injection would improve testability and reduce coupling.
-class DirectInstantiationVisitor: BasePatternVisitor {
+class DirectInstantiationVisitor: BasePatternVisitor, PackagePurityConsumer {
+
+    /// `isPureKernel`, the kernel exemption.
+    static let packagePurityInputs: PackagePurityInputs = [.cleanInstanceMethods]
     private var currentFilePath: String = ""
     private var insideFunctionOrClosure = 0
 

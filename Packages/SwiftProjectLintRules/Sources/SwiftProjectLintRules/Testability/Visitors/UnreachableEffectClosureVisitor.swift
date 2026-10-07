@@ -31,7 +31,11 @@ import SwiftSyntax
 /// that the *effect* acquires a name a test can invoke.
 ///
 /// `info` severity. Reports a refactor, not a defect: the code works, it is simply unobservable.
-final class UnreachableEffectClosureVisitor: BasePatternVisitor {
+final class UnreachableEffectClosureVisitor: BasePatternVisitor, PackagePurityConsumer {
+
+    /// Its stored oracle. It asks only `mutatesCapturedState`, which SEI answers without the table
+    /// today; declared anyway, so the gate does not rest on that staying true across SEI bumps.
+    static let packagePurityInputs: PackagePurityInputs = [.oracle]
 
     private var fileIsTestOrFixture = false
     private let purityInferrer = PurityInferrer()

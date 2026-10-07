@@ -5,7 +5,10 @@ import SwiftSyntax
 
 /// A SwiftSyntax visitor that detects type annotations using concrete service-like types
 /// where a protocol abstraction would improve testability and reduce coupling.
-class ConcreteTypeUsageVisitor: BasePatternVisitor {
+class ConcreteTypeUsageVisitor: BasePatternVisitor, PackagePurityConsumer {
+
+    /// `isPureKernel`, the kernel exemption.
+    static let packagePurityInputs: PackagePurityInputs = [.cleanInstanceMethods]
     private var currentFilePath: String = ""
 
     /// Whether the current struct/class looks like a DI container.
