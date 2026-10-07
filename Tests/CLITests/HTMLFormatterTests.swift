@@ -86,6 +86,19 @@ struct HTMLFormatterTests {
         #expect(html.contains("Total Issues"))
     }
 
+    /// The header timestamp comes from the injected clock, not the wall clock. Byte-comparing
+    /// laws (`ReportOrderDeterminismLawsTests`) pin it this way; if the seam stopped reaching the
+    /// header they would go back to failing only when a run straddles a minute boundary.
+    @Test
+    func rendersTheInjectedGenerationTime() {
+        let instant = Date(timeIntervalSince1970: 1_800_000_000)
+        let formatter = HTMLFormatter { instant }
+        let html = formatter.format(issues: [])
+        let expected = DateFormatter.localizedString(from: instant, dateStyle: .long, timeStyle: .short)
+
+        #expect(html.contains("Generated \(expected)"))
+    }
+
     @Test
     func includesEmbeddedCSS() {
         let html = HTMLFormatter().format(issues: [])

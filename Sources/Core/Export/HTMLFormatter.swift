@@ -4,7 +4,20 @@ import SwiftProjectLintModels
 
 /// Formats lint issues as an HTML report using the shared LintStudioCore template.
 public struct HTMLFormatter: IssueFormatterProtocol {
-    public init() { /* no-op */ }
+
+    /// Supplies the "Generated …" timestamp in the report header.
+    ///
+    /// Injected because it is the one thing in the report that is not a function of the
+    /// findings. Read inline, it made `ReportOrderDeterminismLawsTests` flaky: the law renders a
+    /// reference and then re-renders shuffled arrival orders, and a run that crossed a minute
+    /// boundary printed a different time — reported as two findings tying under
+    /// `LintIssue.precedes`, which no tie was. A clock rather than a `Date` so the timestamp
+    /// still records when the report was rendered, not when the formatter was built.
+    private let clock: () -> Date
+
+    public init(clock: @escaping () -> Date = { Date.now }) {
+        self.clock = clock
+    }
 
     public func format(issues: [LintIssue]) -> String {
         let errorCount = issues.filter { $0.severity == .error }.count
@@ -13,7 +26,7 @@ public struct HTMLFormatter: IssueFormatterProtocol {
         let fileCount = Set(issues.map(\.filePath)).count
         let ruleCount = Set(issues.map(\.ruleName.rawValue)).count
         let timestamp = DateFormatter.localizedString(
-            from: Date.now,
+            from: clock(),
             dateStyle: .long,
             timeStyle: .short
         )
