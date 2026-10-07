@@ -39,19 +39,28 @@
 ///
 /// `excluded_paths`, `excluded_filenames`, `include_nested_packages`, the generated-file filter,
 /// per-rule exclusions and the App's *Exclude Tests/* toggle decide what is **reported**. They say
-/// nothing about what is **compiled**: a nested local package, a generated `.pb.swift` and a
+/// nothing about what is **compiled** (though a nested package that is reported is judged with its
+/// own types, so it joins the universe; see below): a nested local package, a generated `.pb.swift` and a
 /// vendored directory the user excluded are all production code whose types a function in the
 /// project can construct. As `ProjectLinter.discoverFiles` puts it, `excludedPaths` "is a reporting
 /// filter, not an evidence filter" — and this universe is evidence.
 ///
 /// ## What does bound it
 ///
-/// What the root **compiles**. A nested package is in only when the root reaches it through local
-/// path dependencies, or when the root has no manifest to say — see
-/// ``compiledNestedPackages(_:rootHasManifest:rootPath:manifest:)``. A symlinked file is classified
-/// where the link is, and two entries that are one file on disk are one entry. A file that does not
-/// decode as strict UTF-8 is out, since no compiler reads it. All three are the shared spec's first
-/// amendment.
+/// What the root **compiles**. A nested package — a directory whose `Package.swift` is a manifest,
+/// with a `// swift-tools-version` first line (``manifest(inDirectory:)``) — is in only when it is
+/// reached: through the closure of the root's manifests' `.package(path:)` values and target
+/// `path:`s, matched by canonical location; because the run reports on its files; or because the
+/// root gives no bound — no manifest, an Xcode project beside it, or doubt. See
+/// ``compiledNestedPackages(_:reported:rootHasManifest:rootPath:resolvingSymlinks:manifests:)``. A
+/// symlinked file is classified where the link is, and two entries that are one file on disk are
+/// one entry. A file that does not decode as strict UTF-8 is out, since no compiler reads it. The
+/// shared spec's first amendment set these three; its third, the rest.
+///
+/// What it does not see, accepted in both consumers: a symlinked directory's files (the walk does
+/// not follow one); a `Package.swift` or a `Tests`/`*Tests` folder an Xcode app target compiles,
+/// which this predicate drops wherever it is; and namesakes across modules, which the table, one
+/// name space, reads as one type — a refuting one refutes both.
 public enum ConstructionUniverse {
 
     /// Directory names whose contents are build products or third-party checkouts. The walk in

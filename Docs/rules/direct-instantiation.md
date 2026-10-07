@@ -107,7 +107,9 @@ its inputs, and its type is no longer a kernel. Re-measured on seven repositorie
 wired, it moved no finding of this rule or of `ConcreteTypeUsage`. Only the packages the root
 compiles feed those facts (see [which files' types count](pure-function-candidate.md#constructions-what-building-a-value-runs)):
 before that bound, an unrelated nested package's namesake took a kernel's exemption away and added a
-warning.
+warning. A nested package the run reports on feeds them too, so with `--include-nested-packages` its
+own kernels are judged with its own types — and its namesakes can take a root kernel's exemption,
+the accepted cost of judging it at all.
 
 **That last clause and the fixpoint under condition (1) were both added after
 `EffectAnnotationParser` refused to qualify**, and neither alone would have admitted it. It holds
