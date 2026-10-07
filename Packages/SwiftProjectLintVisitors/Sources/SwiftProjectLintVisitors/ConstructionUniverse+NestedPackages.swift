@@ -2,30 +2,32 @@ import SwiftParser
 import SwiftSyntax
 
 /// Which nested packages' files are in the construction universe: **those the root compiles** —
-/// the shared spec's amendment B, implemented word for word in SwiftInferProperties too.
+/// the shared spec's amendments B, 3 and 3b, implemented word for word in SwiftInferProperties too.
 ///
 /// A *nested package* is a directory below the root (never the root itself) that holds a
 /// manifest — a `Package.swift` that is one, by amendment F (`manifest(inDirectory:)`). Every file
 /// belongs to the nearest one above it, or to the root's own package when there is none; the root's
-/// own files are always in the universe, and a nested package's are only when the root reaches it:
+/// own files are always in the universe, and a nested package's are only when it is reached:
 ///
-/// - **The root has a manifest**: the closure of its local path dependencies. Each
-///   manifest's `.package(path:)` literals — a directory's manifests are its `Package.swift` and
-///   every `Package@swift-*.swift`, taken together (amendment O) — are read for their value, as SwiftPM reads them
-///   (escapes decoded, raw strings allowed), resolved from that manifest's directory, standardised,
-///   then symlink-resolved, and followed transitively; a package is matched by where it resolves,
-///   so `/tmp/x` and `/private/tmp/x` name one directory (amendment H). Each dependency is followed
-///   to its `Package.swift` on disk, whether or not the walk reached it: a package under `Tests/`,
-///   a hidden or a pruned directory still passes its own dependencies on, though the predicate
-///   keeps its files out (amendment I). A manifest in the closure
-///   that passes `path:` anything but a string literal may depend on any of them, so then
-///   **every** nested package is in (any doubt includes). A path that leaves the root is ignored:
-///   the universe never does.
-/// - **A nested package holding a file the run reports on** is in too, with its own closure
-///   (amendment J), so `--include-nested-packages` judges it with its own types.
+/// - **The root has a manifest**: the closure of what its manifests reference, followed
+///   transitively through every manifest reached. A directory's manifests are its `Package.swift`
+///   and each `Package@swift-*.swift`, taken together (O). Each `.package(path:)` literal is read
+///   for its value, as SwiftPM reads it — escapes decoded, raw strings allowed (H) — and each
+///   target's `path:` too: a nested package holding one is reached (P). A literal is resolved from
+///   its manifest's directory, standardised, then canonicalised — symlinks resolved, and on a
+///   case-insensitive volume the on-disk letter case — and matched to a package by where both
+///   resolve, so `/tmp/x` and `/private/tmp/x`, a link to a package's directory, and `packages/core`
+///   for `Packages/Core` each name it (H, Q). A dependency is followed to its `Package.swift` on
+///   disk whether or not the walk reached it: a package under `Tests/`, a hidden or a pruned
+///   directory still passes its own dependencies on, though the predicate keeps its files out (I).
+///   A manifest in the closure that cannot be read, or passes `path:` anything but a string literal,
+///   may depend on any of them, so then **every** nested package is in (any doubt includes). A path
+///   that leaves the root is ignored: the universe never does.
+/// - **A nested package holding a file the run reports on** is reached too, with its own closure
+///   (J), so `--include-nested-packages` judges it with its own types.
 /// - **It has none** — an Xcode project, a workspace folder — and nothing cheap says what it
 ///   compiles, so every nested package is in. So too when an `.xcodeproj` or `.xcworkspace` sits
-///   beside the root's manifest (amendment G): the Xcode project may compile local packages the
+///   directly beside the root's manifest (G): the Xcode project may compile local packages the
 ///   manifest never names.
 ///
 /// ## Why bound it
@@ -85,8 +87,8 @@ extension ConstructionUniverse {
     ///     false beside an Xcode project (`holdsXcodeProject(directory:)`).
     ///   - rootPath: the root's absolute path, which an absolute dependency path must lie under once
     ///     both are resolved.
-    ///   - resolvingSymlinks: an absolute path with its symlinks resolved (`realpath(3)`), or the path
-    ///     itself when it does not resolve.
+    ///   - resolvingSymlinks: an absolute path's canonical form — symlinks resolved and the on-disk
+    ///     letter case, as `realpath(3)` gives it — or the path itself when it does not resolve.
     ///   - manifests: every manifest a directory, given relative to the resolved root (`""` is the
     ///     root), holds — `Package.swift` and each `Package@swift-*.swift` (`manifests(inDirectory:)`).
     ///     Their dependencies are taken together, and doubt in any one — an unreadable manifest, a
@@ -196,9 +198,10 @@ extension ConstructionUniverse {
     /// `..` folded over the whole absolute path) and then symlink-resolved, as a path relative to
     /// `root` without a trailing `/`; `nil` when the result is not under the root.
     ///
-    /// Standardised first, as SwiftPM folds a dependency path; resolved after, so the comparison is
-    /// by location: an absolute literal spelled `/tmp/…` names the package under a root that
-    /// resolves to `/private/tmp/…`, and the other way round.
+    /// Standardised first, as SwiftPM folds a dependency path; canonicalised after, so the comparison
+    /// is by location: an absolute literal spelled `/tmp/…` names the package under a root that
+    /// resolves to `/private/tmp/…`, and the other way round; a link to a package's directory names
+    /// the package; and `packages/core` names `Packages/Core` where the volume ignores case.
     static func resolve(
         _ literal: String, from directory: String, root: String, resolvingSymlinks: (String) -> String
     ) -> String? {

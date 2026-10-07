@@ -153,6 +153,36 @@ struct PackagePurityManifestTests {
         ], subject: Self.tokenCount.replacingOccurrences(of: "import A", with: "import Core"))
     }
 
+    @Test("s11: a dependency through a link reaches the walked package the link points to")
+    func dependencyThroughALinkedDirectory() async throws {
+        // `Packages/Core` links to `Vendor/Core`. The walk does not follow a linked directory, so
+        // the package it finds is `Vendor/Core`; matched by spelling, `Packages/Core` named none.
+        try await Self.expectTokenCountRefutes(
+            tokAt: "Vendor/Core/Sources/Core/Tok.swift",
+            files: [
+                "Package.swift": Self.dependsOnCore(spelled: "Packages/Core"),
+                "Vendor/Core/Package.swift": Self.libraryManifest("Core")
+            ],
+            links: [(link: "Packages/Core", destination: "../Vendor/Core")],
+            subject: Self.tokenCount.replacingOccurrences(of: "import A", with: "import Core")
+        )
+    }
+
+    @Test(
+        "a dependency spelled in another letter case reaches its package on a case-insensitive volume",
+        .enabled(if: Self.temporaryVolumeIgnoresCase)
+    )
+    func dependencyInAnotherCase() async throws {
+        try await Self.expectTokenCountRefutes(
+            tokAt: "Packages/Core/Sources/Core/Tok.swift",
+            files: [
+                "Package.swift": Self.dependsOnCore(spelled: "packages/core"),
+                "Packages/Core/Package.swift": Self.libraryManifest("Core")
+            ],
+            subject: Self.tokenCount.replacingOccurrences(of: "import A", with: "import Core")
+        )
+    }
+
     // MARK: - Fixtures
 
     /// The critic's subject, `Sources/App/App.swift`.
@@ -169,6 +199,26 @@ struct PackagePurityManifestTests {
     let package = Package(name: "Root", dependencies: [.package(path: "Packages/A")], \
     targets: [.target(name: "App", dependencies: [.product(name: "A", package: "A")])])
     """
+
+    static func dependsOnCore(spelled path: String) -> String {
+        """
+        // swift-tools-version:5.9
+        import PackageDescription
+        let package = Package(name: "Root", dependencies: [.package(path: "\(path)")], \
+        targets: [.target(name: "App", dependencies: [.product(name: "Core", package: "Core")])])
+        """
+    }
+
+    /// Whether the temporary directory's volume finds a path in either letter case, as APFS does
+    /// by default.
+    static let temporaryVolumeIgnoresCase: Bool = {
+        let probe = FileManager.default.temporaryDirectory.appendingPathComponent("CaseProbe-\(UUID().uuidString)")
+        guard FileManager.default.createFile(atPath: probe.path, contents: Data()) else { return false }
+        defer { try? FileManager.default.removeItem(at: probe) }
+        return FileManager.default.fileExists(atPath: probe.path.lowercased().replacingOccurrences(
+            of: probe.lastPathComponent.lowercased(), with: probe.lastPathComponent.uppercased()
+        ))
+    }()
 
     static func libraryManifest(_ name: String) -> String {
         """

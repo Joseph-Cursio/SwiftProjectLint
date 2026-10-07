@@ -210,6 +210,8 @@ extension ProjectLinter {
             reported: reportedPackages,
             rootHasManifest: isPackage("") && !ConstructionUniverse.holdsXcodeProject(directory: root.path),
             rootPath: root.path,
+            // `realpath(3)`: links resolved and the on-disk letter case, so a reference and a
+            // package match by location (the shared spec's amendments H and Q).
             resolvingSymlinks: { ProjectRoot($0).path },
             manifests: { ConstructionUniverse.manifests(inDirectory: absolutePath($0)) }
         )
