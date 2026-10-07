@@ -101,6 +101,14 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
             for: path, base: configuration, targetType: targetType
         )
 
+        // Which rules run is settled by the flags and the configuration alone — no file is read for
+        // it — so it is settled here, once, before discovery, and carried: every phase executes the
+        // same value.
+        let effectiveRules = effectiveConfiguration.resolveRules(
+            cliCategories: categories,
+            cliRuleIdentifiers: ruleIdentifiers
+        )
+
         let files = await discoverFiles(at: path, configuration: effectiveConfiguration)
 
         // Every file is read and parsed once, and the package purity is built from those same
@@ -112,7 +120,7 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
             files: files,
             configuration: effectiveConfiguration,
             categories: categories,
-            ruleIdentifiers: ruleIdentifiers,
+            effectiveRules: effectiveRules,
             detector: detector,
             shared: shared
         )
@@ -130,12 +138,7 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
         let path = project.path
         let effectiveConfiguration = project.configuration
         let categories = project.categories
-
-        // Resolve effective rules from configuration + CLI overrides
-        let effectiveRules = effectiveConfiguration.resolveRules(
-            cliCategories: categories,
-            cliRuleIdentifiers: project.ruleIdentifiers
-        )
+        let effectiveRules = project.effectiveRules
 
         // Pre-scan: collect cross-file type metadata needed by visitors.
         let collected = CollectedTypes.collect(from: project.files.reportable, sources: project.shared)

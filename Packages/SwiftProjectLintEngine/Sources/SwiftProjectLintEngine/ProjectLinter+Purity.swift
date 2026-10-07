@@ -47,7 +47,8 @@ extension ProjectLinter {
         let files: DiscoveredFiles
         let configuration: LintConfiguration
         let categories: [PatternCategory]?
-        let ruleIdentifiers: [RuleIdentifier]?
+        /// `LintConfiguration.resolveRules` for this run; `nil` runs every registered rule.
+        let effectiveRules: [RuleIdentifier]?
         let detector: (any SourcePatternDetectorProtocol)?
         /// Analysable files only, by discovery path.
         let shared: [String: SharedSource]
