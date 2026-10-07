@@ -1,13 +1,13 @@
 diff --git a/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/ConstructionUniverse+Manifest.swift b/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/ConstructionUniverse+Manifest.swift
-index 8635f587..964b1ff2 100644
+index bf98d6f6..b8d66fac 100644
 --- a/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/ConstructionUniverse+Manifest.swift
 +++ b/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/ConstructionUniverse+Manifest.swift
-@@ -101,7 +101,7 @@ extension ConstructionUniverse {
-         guard let first = lines.firstIndex(where: { !$0.allSatisfy { $0 == " " || $0 == "\t" } }) else {
-             return false
-         }
--        if lines[first].prefixMatch(of: #/[ \t]*//[ \t]*(?i:swift-tools-version)/#) != nil { return true }
-+        if lines[first].prefixMatch(of: #/[ \t]*//[ \t]*swift-tools-version/#) != nil { return true }
+@@ -106,7 +106,7 @@ extension ConstructionUniverse {
+         if body.first == "\u{FEFF}" { body = body.dropFirst() }
+         let lines = body.split(omittingEmptySubsequences: false, whereSeparator: \.isNewline)
+         guard let first = lines.firstIndex(where: { !$0.allSatisfy(\.isWhitespace) }) else { return false }
+-        if lines[first].prefixMatch(of: #/\h*//\h*(?i:swift-tools-version)/#) != nil { return true }
++        if lines[first].prefixMatch(of: #/\h*//\h*swift-tools-version/#) != nil { return true }
          return lines[lines.index(after: first)...].contains { line in
-             guard let match = line.prefixMatch(
-                 of: #/[ \t]*//[ \t]*(?i:swift-tools-version)[ \t]*:[ \t]*([0-9]+)/#
+             // Only a line that names the label can match; skip the regex, which costs far more, for the rest.
+             let marker = line.drop(while: \.isWhitespace)
