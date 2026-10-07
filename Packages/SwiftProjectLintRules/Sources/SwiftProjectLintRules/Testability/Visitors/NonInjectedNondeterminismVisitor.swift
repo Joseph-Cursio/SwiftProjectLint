@@ -394,8 +394,8 @@ final class NonInjectedNondeterminismVisitor: BasePatternVisitor {
            reference(infix.leftOperand) == target,
            reference(infix.rightOperand) == name { return true }
 
-        for child in scope.children(viewMode: .sourceAccurate) {
-            if writesBack(name, to: target, in: child) { return true }
+        for child in scope.children(viewMode: .sourceAccurate) where writesBack(name, to: target, in: child) {
+            return true
         }
         return false
     }

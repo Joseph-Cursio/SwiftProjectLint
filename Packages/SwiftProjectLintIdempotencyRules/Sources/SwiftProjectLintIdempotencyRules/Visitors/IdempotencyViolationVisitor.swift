@@ -298,7 +298,7 @@ final class IdempotencyViolationVisitor: CrossFileVisitorBase, CrossFilePatternV
             calleeClaim = "which is declared `@lint.effect \(calleeTier)`"
             overrideHint = ""
 
-        case .inferredUpward(let depth, let chainAnchor):
+        case let .inferredUpward(depth, chainAnchor):
             let chainHint = depth > 1 ? " via \(depth)-hop chain of un-annotated callees" : ""
             // Say what the chain bottoms out on. A reader deciding whether to
             // trust a multi-hop inference is asking exactly this, and until the
