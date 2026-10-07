@@ -224,6 +224,10 @@
     {
       "text": "// Copyright 2026 Example\n//\u00a0swift-tools-version:6.0\n",
       "expected": true
+    },
+    {
+      "text": "// Copyright 2026 Example\n  // swift-tools-version:6.0\n",
+      "expected": true
     }
   ]
 }
