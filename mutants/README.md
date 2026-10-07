@@ -154,6 +154,28 @@ now run both ways, and either kills it.
 expose and assert on `Docs/construction-universe-cases.json`, so the mutant now drops that call
 rather than a sort of the build's own.
 
+### The universe's order of operations
+
+Three more from the joint follow-up review, each a rule the code's own comments stated and no test
+pinned: the whole suite passed with any one of them put back.
+
+| id | shape | expected | killer |
+|---|---|---|---|
+| `purity-universe-dedup-keeps-first-seen` | engine-wiring | killed | `duplicateKeepsTheSmallestPath` |
+| `purity-universe-collapses-before-classifying` | engine-wiring | killed | `testTargetLinkToProductionIsOneEntry` |
+| `purity-universe-places-links-at-their-target` | engine-wiring | killed | `linkIntoUncompiledPackageCountsWhereTheLinkIs` |
+
+The first survived because both of the test's layouts put the smaller path first on disk as well:
+APFS lists `Sources/A` before `Sources/B`, so first-seen and smallest agreed. The test now adds a
+layout where they disagree (`Sources/Lib` lists before `Sources/B`) and a twin that hands
+`constructionSources` both orders itself, so it does not lean on the file system at all. The second
+needs a test folder that sorts *before* `Sources/` — `AppTests/`, not `Tests/` — for the collapsed
+entry to be the test-folder link. The third needs a link from the root's sources into a nested
+package the root does not compile.
+
+`purity-universe-takes-every-nested-package` was re-expressed when discovery started awaiting the
+bound on a large-stack thread (`compiledUniverse`): it now skips that call.
+
 ### The `ConcreteTypeUsage` seam exemptions
 
 Two more, from the pass that took that rule 41 → 22. Both are **recall** mutants: they widen or

@@ -1,0 +1,15 @@
+diff --git a/Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/ProjectLinter+Purity.swift b/Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/ProjectLinter+Purity.swift
+index 30e091f6..729b842b 100644
+--- a/Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/ProjectLinter+Purity.swift
++++ b/Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/ProjectLinter+Purity.swift
+@@ -216,7 +216,9 @@ extension ProjectLinter {
+             manifests: { ConstructionUniverse.manifests(inDirectory: absolutePath($0)) }
+         )
+         return located.filter { file in
+-            ConstructionUniverse.owningPackage(of: file.universePath, among: nestedPackages)
++            ConstructionUniverse.owningPackage(
++                of: relativePath(for: file.filePath, projectRoot: projectRoot), among: nestedPackages
++            )
+                 .map(compiled.contains) ?? true
+         }.map(\.filePath)
+     }

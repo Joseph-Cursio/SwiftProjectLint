@@ -1,0 +1,23 @@
+diff --git a/Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/ProjectLinter+Purity.swift b/Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/ProjectLinter+Purity.swift
+index 30e091f6..ddc8395c 100644
+--- a/Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/ProjectLinter+Purity.swift
++++ b/Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/ProjectLinter+Purity.swift
+@@ -120,8 +120,7 @@ extension ProjectLinter {
+         var kept: [(relativePath: String, tree: SourceFileSyntax)] = []
+         var slotOfFile: [String: Int] = [:]
+         for filePath in universe {
+-            guard let source = shared[filePath], let universePath = source.universePath,
+-                  ConstructionUniverse.isProductionSource(relativePath: universePath) else { continue }
++            guard let source = shared[filePath], let universePath = source.universePath else { continue }
+             let entry = (relativePath: universePath, tree: source.tree)
+             let file = URL(fileURLWithPath: filePath).resolvingSymlinksInPath().path
+             if let slot = slotOfFile[file] {
+@@ -131,7 +130,7 @@ extension ProjectLinter {
+                 kept.append(entry)
+             }
+         }
+-        return kept
++        return kept.filter { ConstructionUniverse.isProductionSource(relativePath: $0.relativePath) }
+     }
+ 
+     /// `compiledByRoot` on a large-stack worker, which is where every manifest the bound reads is

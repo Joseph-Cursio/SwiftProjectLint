@@ -1,5 +1,6 @@
 @testable import Core
 import Foundation
+@testable import SwiftProjectLintEngine
 import Testing
 
 /// A symlinked source file is classified **where the link is** — the shared spec's amendment A —
@@ -56,30 +57,39 @@ struct PackagePuritySymlinkTests {
         #expect(refuting.contains("countOf") == false, "the link was classified at its outside target")
     }
 
-    @Test("a test target's link to a production file adds no second universe entry")
-    func testTargetLinkToProductionIsOneEntry() async throws {
+    @Test("a test folder's link to a production file adds no entry, wherever the folder sorts", arguments: [
+        (link: "Tests/LibTests/Item.swift", destination: "../../Sources/Lib/Item.swift"),
+        (link: "AppTests/Item.swift", destination: "../Sources/Lib/Item.swift"),
+        (link: "ATests/Shared/Item.swift", destination: "../../Sources/Lib/Item.swift")
+    ])
+    func testTargetLinkToProductionIsOneEntry(link: String, destination: String) async throws {
         let root = try PackagePurityFixtures.makeProject([
             "Sources/Lib/Item.swift": PackagePurityFixtures.refutingItem,
             "Sources/Lib/Callers.swift": PackagePurityFixtures.callers
         ])
         defer { try? FileManager.default.removeItem(atPath: root) }
-        try PackagePurityFixtures.symlink("Tests/LibTests/Item.swift", to: "../../Sources/Lib/Item.swift", in: root)
+        try PackagePurityFixtures.symlink(link, to: destination, in: root)
 
-        // Classified at its target, the link came in as a second `Sources/Lib/Item.swift`.
+        // Classified at its target, the link came in as a second `Sources/Lib/Item.swift`. And
+        // classify, *then* collapse: collapsed first, `AppTests/Item.swift` — the smaller path —
+        // would stand for the file, and then be dropped as a test file, taking `Item` with it.
         let universe = await PackagePurityFixtures.universe(at: root)
-        #expect(universe == ["Sources/Lib/Callers.swift", "Sources/Lib/Item.swift"])
+        #expect(universe == ["Sources/Lib/Callers.swift", "Sources/Lib/Item.swift"], "link at \(link)")
         let found = await PackagePurityFixtures.candidateSymbols(at: root)
         #expect(found.contains("sentinelAdd"))
-        #expect(found.contains("countOf") == false)
+        #expect(found.contains("countOf") == false, "link at \(link)")
     }
 
     @Test("two production paths to one file keep the smaller path, whichever one is the link")
     func duplicateKeepsTheSmallestPath() async throws {
         // Smallest under `String <`, not first-seen: the entry must not depend on walk order, and
-        // SwiftInferProperties keeps the same one.
+        // SwiftInferProperties keeps the same one. The `Lib` pairs are there because APFS lists
+        // `Lib` before `B`, so first-seen and smallest disagree on the disk itself.
         let layouts = [
             (file: "Sources/A/Item.swift", link: "Sources/B/Item.swift"),
-            (file: "Sources/B/Item.swift", link: "Sources/A/Item.swift")
+            (file: "Sources/B/Item.swift", link: "Sources/A/Item.swift"),
+            (file: "Sources/B/Item.swift", link: "Sources/Lib/Item.swift"),
+            (file: "Sources/Lib/Item.swift", link: "Sources/B/Item.swift")
         ]
         for (file, link) in layouts {
             let root = try PackagePurityFixtures.makeProject([
@@ -92,8 +102,65 @@ struct PackagePuritySymlinkTests {
             try PackagePurityFixtures.symlink(link, to: "../\(directory)/\(target)", in: root)
 
             let universe = await PackagePurityFixtures.universe(at: root)
-            #expect(universe == ["Sources/A/Item.swift", "Sources/Lib/Callers.swift"], "real file at \(file)")
+            #expect(universe == [min(file, link), "Sources/Lib/Callers.swift"], "real file at \(file), link at \(link)")
         }
+    }
+
+    @Test("the smaller path wins in either discovery order")
+    func duplicateKeepsTheSmallestPathInEitherOrder() async throws {
+        // The same rule with the order in hand rather than the file system's: a first-seen dedup
+        // keeps `Sources/B/Item.swift` from the second order.
+        let root = try PackagePurityFixtures.makeProject([
+            "Sources/A/Item.swift": PackagePurityFixtures.refutingItem,
+            "Sources/Lib/Callers.swift": PackagePurityFixtures.callers
+        ])
+        defer { try? FileManager.default.removeItem(atPath: root) }
+        try PackagePurityFixtures.symlink("Sources/B/Item.swift", to: "../A/Item.swift", in: root)
+        let canonical = ProjectRoot(root).path
+        let real = canonical + "/Sources/A/Item.swift"
+        let link = canonical + "/Sources/B/Item.swift"
+        let callers = canonical + "/Sources/Lib/Callers.swift"
+
+        let shared = await ProjectLinter.parseOnce(
+            .init(reportable: [], evidenceOnly: [], constructionUniverse: [real, link, callers]), projectRoot: root
+        )
+        for order in [[real, link, callers], [link, real, callers]] {
+            let kept = ProjectLinter.constructionSources(order, in: shared).map(\.relativePath)
+            #expect(kept.sorted() == ["Sources/A/Item.swift", "Sources/Lib/Callers.swift"], "order \(order)")
+        }
+    }
+
+    @Test("a link into an uncompiled nested package belongs to the package its link sits in")
+    func linkIntoUncompiledPackageCountsWhereTheLinkIs() async throws {
+        // `Demo/` is a nested package the root does not depend on, so its own files are out; the
+        // link `Sources/Lib/Item.swift` is compiled into `Lib`, so it is in. Placed by where it
+        // resolves, the link went out with `Demo/`.
+        func project(linked: Bool) throws -> String {
+            let root = try PackagePurityFixtures.makeProject([
+                "Package.swift": PackagePurityManifestTests.rootManifest(dependencies: ""),
+                "Demo/Package.swift": "// swift-tools-version:6.0\n",
+                "Demo/Sources/Demo/Item.swift": PackagePurityFixtures.refutingItem,
+                "Sources/Lib/Callers.swift": PackagePurityFixtures.callers
+            ])
+            if linked {
+                try PackagePurityFixtures.symlink(
+                    "Sources/Lib/Item.swift", to: "../../Demo/Sources/Demo/Item.swift", in: root
+                )
+            }
+            return root
+        }
+        let control = try project(linked: false)
+        defer { try? FileManager.default.removeItem(atPath: control) }
+        let uncompiled = await PackagePurityFixtures.candidateSymbols(at: control)
+        #expect(uncompiled.contains("countOf"), "control: Demo is not compiled")
+
+        let root = try project(linked: true)
+        defer { try? FileManager.default.removeItem(atPath: root) }
+        let universe = await PackagePurityFixtures.universe(at: root)
+        #expect(universe == ["Sources/Lib/Callers.swift", "Sources/Lib/Item.swift"])
+        let found = await PackagePurityFixtures.candidateSymbols(at: root)
+        #expect(found.contains("sentinelAdd"))
+        #expect(found.contains("countOf") == false, "the link was placed in Demo, where its target is")
     }
 
     // MARK: - Helpers

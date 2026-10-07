@@ -305,6 +305,30 @@
       "expected": "killed",
       "test": "excludedPathIsEvidence",
       "label": "with include_nested_packages on, the universe reuses the reportable list instead of the walk the run already made without exclusions — an excluded directory's and a generated file's types drop out of the table, and constructing them reads as pure, only when nested packages are reported"
+    },
+    {
+      "id": "purity-universe-dedup-keeps-first-seen",
+      "patch": "patches/purity-universe-dedup-keeps-first-seen.patch",
+      "shape": "engine-wiring",
+      "expected": "killed",
+      "test": "duplicateKeepsTheSmallestPath",
+      "label": "two universe entries that are one file on disk keep the first one discovery returned rather than the smallest path, so which spelling SEI reads — and the witness it reports — depends on the file system's listing order, and differs from SwiftInferProperties'"
+    },
+    {
+      "id": "purity-universe-collapses-before-classifying",
+      "patch": "patches/purity-universe-collapses-before-classifying.patch",
+      "shape": "engine-wiring",
+      "expected": "killed",
+      "test": "testTargetLinkToProductionIsOneEntry",
+      "label": "constructionSources collapses a file's entries before classifying them — AppTests/Item.swift, a link to Sources/Lib/Item.swift, is the smaller path, stands for the file, and is then dropped as a test file, taking the Item SwiftPM compiles into Lib out of the table"
+    },
+    {
+      "id": "purity-universe-places-links-at-their-target",
+      "patch": "patches/purity-universe-places-links-at-their-target.patch",
+      "shape": "engine-wiring",
+      "expected": "killed",
+      "test": "linkIntoUncompiledPackageCountsWhereTheLinkIs",
+      "label": "compiledByRoot places a symlinked file in the package its target sits in — Sources/Lib/Item.swift linking into an uncompiled Demo/ leaves with Demo, though SwiftPM compiles it into Lib"
     }
   ]
 }
