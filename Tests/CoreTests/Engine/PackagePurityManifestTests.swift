@@ -213,6 +213,17 @@ struct PackagePurityManifestTests {
         ], subject: Self.app(importing: "All"))
     }
 
+    @Test("a root target at the root itself compiles every nested package's files")
+    func rootTargetAtTheRootReachesEveryPackage() async throws {
+        // `path: "."` resolves to the root, `""`, which no `hasPrefix` matched: `Packages/A`, which
+        // the root names nowhere else, left the table, though that target's sources include it.
+        try await Self.expectTokenCountRefutes(tokAt: "Packages/A/Sources/A/Tok.swift", files: [
+            "Package.swift": "// swift-tools-version:5.9\nimport PackageDescription\n"
+                + #"let package = Package(name: "R", targets: [.target(name: "App", path: ".")])"#,
+            "Packages/A/Package.swift": Self.libraryManifest("A")
+        ], subject: Self.app(importing: "A"))
+    }
+
     @Test("s11: a dependency through a link reaches the walked package the link points to")
     func dependencyThroughALinkedDirectory() async throws {
         // `Packages/Core` links to `Vendor/Core`. The walk does not follow a linked directory, so

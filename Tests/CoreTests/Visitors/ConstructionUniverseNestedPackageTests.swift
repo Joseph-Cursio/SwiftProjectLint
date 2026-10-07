@@ -207,6 +207,18 @@ struct ConstructionUniverseNestedPackageTests {
         ]) == ["Packages/A", "Packages/B", "Packages/C", "Demo"])
         // A path is matched by component: `Pack` holds nothing.
         #expect(Self.compiled(["": #".target(name: "X", path: "Pack")"#]).isEmpty)
+        // The root's `path: "."` resolves to the root, `""`, and holds every package.
+        #expect(Self.compiled(["": #".target(name: "App", path: ".")"#]) == Self.packages)
+        // A nested package's `path: "."` holds itself and the packages under it, and no other.
+        let nested = ConstructionUniverse.compiledNestedPackages(
+            ["A", "A/B", "C"],
+            reported: [],
+            rootHasManifest: true,
+            rootPath: "/work/App",
+            resolvingSymlinks: { $0 },
+            manifests: Self.reading(["": #".package(path: "A")"#, "A": #".target(name: "A", path: ".")"#])
+        )
+        #expect(nested == ["A", "A/B"])
         // A target path that is not a literal is doubt.
         #expect(Self.compiled(["": #".target(name: "X", path: base + "/X")"#]) == Self.packages)
     }

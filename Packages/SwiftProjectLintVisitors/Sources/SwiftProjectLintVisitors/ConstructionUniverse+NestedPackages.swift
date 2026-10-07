@@ -158,8 +158,11 @@ extension ConstructionUniverse {
                 guard let location = resolve(
                     literal, from: directory, root: root, resolvingSymlinks: resolvingSymlinks
                 ) else { continue }
+                // The root is `""`, which no `hasPrefix` matches: a root target's `path: "."`
+                // resolves to it, and it holds every package.
                 for package in packageAt.keys
-                where location == package || location.hasPrefix(package + "/") || package.hasPrefix(location + "/") {
+                where location.isEmpty || location == package
+                    || location.hasPrefix(package + "/") || package.hasPrefix(location + "/") {
                     enter(package)
                 }
             }
