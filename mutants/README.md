@@ -62,6 +62,13 @@ site would have forced only the arithmetic half true and quietly tested less tha
 label claims. When a patch fails to apply, re-read what the mutant is supposed to say
 and re-express it against the current shape — do not just re-anchor it.
 
+Re-anchoring is right only after that check. `kernel-scans-pure-functions`,
+`split-type-members-assumed-visible` and `platform-prefix-set-widened` later stopped
+applying on context alone: a comment was rewritten beside the guard, and helpers were
+widened from `private` for generated tests. The logic under each was unchanged, so each
+makes the same edit on the same line. `kernel-storage-test-inverted-to-denylist`, which
+went stale at the same time, needed re-expressing (see its section).
+
 The runner is loud about this rather than silent: an apply failure is reported as
 `APPLY FAILED`, recorded with outcome `apply-failed`, and exits non-zero. A stale
 corpus shows up as a failing run, never as a passing one.
@@ -269,6 +276,12 @@ Worth having because the failure is invisible from the rule's output *and* from 
 `UserDefaults` is one of the oracle's own side-effect markers, and the method that uses it reads
 `defaults.data(forKey:)` — the property's name, never its type. A dependency held as storage does
 not name itself where it is used.
+
+It was re-expressed when the kernel set became a fixpoint, because a kernel may hold another
+kernel: the denylist now replaces `isValue(givenEnums:kernels:)` inside the loop. A denylist makes
+the `kernels` argument moot, since every type the walker can read passes whether it is a kernel or
+not. Like the original, it also refuses a collection of values, because `[String]` has no nominal
+name. So `syntacticValuesQualify` fails beside the killer, which is unaffected.
 
 ### The self-access analyzer's key-path components
 
