@@ -14,7 +14,8 @@ struct UnconditionalTrap: PatternRegistrarProtocol {
             visitor: UnconditionalTrapVisitor.self,
             severity: .warning,
             category: .codeQuality,
-            messageTemplate: "Unconditional trap makes the function partial — it kills the process rather than returning",
+            messageTemplate: "Unconditional trap makes the function partial — it kills the process "
+                + "rather than returning",
             suggestion: "Handle the case instead: cover every enum case so the trap is unreachable, "
                 + "return an optional, or throw an error the caller can catch.",
             description: "Detects fatalError and preconditionFailure calls. Both trap unconditionally, "

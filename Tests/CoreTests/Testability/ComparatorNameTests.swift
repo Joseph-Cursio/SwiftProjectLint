@@ -62,7 +62,6 @@ struct ComparatorNameTests {
         #expect(ComparatorName.derived(from: sut) == "byValueDescendingThenKey")
     }
 
-
     /// Every multi-key comparator this rule found silent on the real corpus was
     /// silent for one reason: a nested key. Because a single unaccounted clause
     /// silences the whole closure, one `identity.normalized` cost the entire name.
@@ -83,7 +82,6 @@ struct ComparatorNameTests {
             """)
         #expect(ComparatorName.derived(from: sut) == "byMembersCountDescendingThenShapeCanonicalLabelKey")
     }
-
 
     @Test("a guard-style tiebreak names both keys in order")
     func guardStyleTwoKeys() throws {

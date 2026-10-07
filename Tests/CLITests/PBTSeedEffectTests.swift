@@ -20,8 +20,8 @@ struct PBTSeedEffectTests {
     // MARK: - Helpers
 
     private func violation(
-        symbol: String = "confirmOrder",
-        effect: PBTSeedEffect?
+        effect: PBTSeedEffect?,
+        symbol: String = "confirmOrder"
     ) -> LintIssue {
         LintIssue(
             severity: .error,
@@ -252,9 +252,10 @@ struct PBTSeedAnchorTests {
         PBTSeedEffect.Provenance.declared, .inferredDownward
     ])
     func otherProvenancesOmitAnchor(provenance: PBTSeedEffect.Provenance) {
-        let json = PBTSeedsFormatter().format(issues: [seed(PBTSeedEffect(
+        let effect = PBTSeedEffect(
             declared: .idempotent, resolved: .nonIdempotent, provenance: provenance
-        ))])
+        )
+        let json = PBTSeedsFormatter().format(issues: [seed(effect)])
         #expect(!json.contains("anchor"))
     }
 

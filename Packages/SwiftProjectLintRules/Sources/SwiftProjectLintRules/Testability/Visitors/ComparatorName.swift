@@ -82,7 +82,7 @@ enum ComparatorName {
         guard let signature = closure.signature else { return ("$0", "$1") }
         guard case let .simpleInput(parameters)? = signature.parameterClause,
               parameters.count == 2 else { return nil }
-        let names = parameters.map { $0.name.text }
+        let names = parameters.map(\.name.text)
         return (names[0], names[1])
     }
 
@@ -116,8 +116,8 @@ enum ComparatorName {
     private final class ComparisonCollector: SyntaxVisitor {
         private let lhs: String
         private let rhs: String
-        fileprivate var keys: [Key] = []
-        fileprivate var isAccountedFor = true
+        private(set) var keys: [Key] = []
+        private(set) var isAccountedFor = true
 
         init(lhs: String, rhs: String, viewMode: SyntaxTreeViewMode) {
             self.lhs = lhs
@@ -126,7 +126,7 @@ enum ComparatorName {
         }
 
         override func visit(_ node: InfixOperatorExprSyntax) -> SyntaxVisitorContinueKind {
-            record(left: node.leftOperand, op: node.operator, right: node.rightOperand)
+            record(left: node.leftOperand, binaryOperator: node.operator, right: node.rightOperand)
             return .visitChildren
         }
 
@@ -139,13 +139,13 @@ enum ComparatorName {
             let elements = Array(node.elements)
             for index in elements.indices where index > 0 && index + 1 < elements.count {
                 guard elements[index].is(BinaryOperatorExprSyntax.self) else { continue }
-                record(left: elements[index - 1], op: elements[index], right: elements[index + 1])
+                record(left: elements[index - 1], binaryOperator: elements[index], right: elements[index + 1])
             }
             return .visitChildren
         }
 
-        private func record(left: ExprSyntax, op: ExprSyntax, right: ExprSyntax) {
-            guard let symbol = op.as(BinaryOperatorExprSyntax.self)?.operator.text else { return }
+        private func record(left: ExprSyntax, binaryOperator: ExprSyntax, right: ExprSyntax) {
+            guard let symbol = binaryOperator.as(BinaryOperatorExprSyntax.self)?.operator.text else { return }
             switch symbol {
             case "<", ">":
                 guard let resolved = resolve(left, right) else {

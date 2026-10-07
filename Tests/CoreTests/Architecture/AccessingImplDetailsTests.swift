@@ -56,7 +56,7 @@ struct AccessingImplDetailsTests {
         }
         """
         let issues = analyzeSource(source, declaredUnderscoredMembers: ["_value"])
-        #expect(issues.filter { $0.ruleName == .accessingImplementationDetails }.isEmpty)
+        #expect(issues.contains { $0.ruleName == .accessingImplementationDetails } == false)
     }
 
     /// The case the rule exists for, and the one the exemption must not swallow: a name the
