@@ -180,6 +180,20 @@ struct ConstructionUniverseNestedPackageTests {
         #expect(Self.compiled(manifests, versioned: ["": [toA], "Packages/A": [".package(path: p)"]]) == Self.packages)
     }
 
+    @Test("a nested package holding a closure manifest's target path is in, with its own closure")
+    func targetPathReachesItsPackage() {
+        let manifests = [
+            "": #"[.target(name: "Lib", path: "Vendor/Lib/Sources/Lib"), .target(name: "App", path: "Packages")]"#,
+            "Vendor/Lib": #".package(path: "../../Demo")"#,
+            "Demo": ""
+        ]
+        // `Vendor/Lib` holds the root's `Lib` sources, and its closure brings `Demo`; `Packages`
+        // holds packages but lies in none of them, so it reaches none.
+        #expect(Self.compiled(manifests) == ["Vendor/Lib", "Demo"])
+        // A target path that is not a literal is doubt.
+        #expect(Self.compiled(["": #".target(name: "X", path: base + "/X")"#]) == Self.packages)
+    }
+
     @Test("a package the run reports on is in, with its own closure")
     func reportedPackageIsInWithItsClosure() {
         let manifests = [

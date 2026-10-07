@@ -46,7 +46,30 @@ extension ConstructionUniverse {
     /// inside a string, is not a dependency. A `path:` belonging to anything else — a target's
     /// `.target(name:path:)` — is not one either.
     public static func localPackageDependencies(manifest: String) -> [String]? {
-        let collector = PathDependencyCollector(viewMode: .sourceAccurate)
+        pathArguments(of: ["package"], in: manifest)
+    }
+
+    /// The literal `path:` values of `manifest`'s targets, in source order — `.target`,
+    /// `.executableTarget`, `.testTarget`, `.plugin`, `.macro`, `.systemLibrary` and `.binaryTarget`
+    /// — or `nil` when one passes `path:` something that is not a plain string literal (doubt).
+    ///
+    /// A target can take its sources from inside a nested package: a root's
+    /// `.target(name: "Core", path: "Core/Sources/Core")` compiles `Core/`'s files though no
+    /// `.package(path:)` names it, so the bound counts a nested package holding a target path as
+    /// reached (amendment P). Read the way dependencies are, so a commented-out target is none.
+    public static func localTargetPaths(manifest: String) -> [String]? {
+        pathArguments(of: targetCallees, in: manifest)
+    }
+
+    /// The member names of the target-declaring calls ``localTargetPaths(manifest:)`` reads.
+    static let targetCallees: Set<String> = [
+        "target", "executableTarget", "testTarget", "plugin", "macro", "systemLibrary", "binaryTarget"
+    ]
+
+    /// The literal `path:` values of `manifest`'s `.<callee>(…)` calls, or `nil` for one that is
+    /// not a literal.
+    private static func pathArguments(of callees: Set<String>, in manifest: String) -> [String]? {
+        let collector = PathArgumentCollector(callees: callees)
         collector.walk(Parser.parse(source: manifest))
         return collector.isReadable ? collector.paths : nil
     }
@@ -77,50 +100,84 @@ extension ConstructionUniverse {
         manifests: (String) -> [Manifest]
     ) -> Set<String> {
         guard rootHasManifest, !nestedPackages.isEmpty else { return nestedPackages }
-        let root = resolvingSymlinks(rootPath)
-        // Each nested package by where it resolves, so a dependency matches it by location rather
-        // than by spelling.
-        var packageAt: [String: String] = [:]
-        for package in nestedPackages {
-            let location = resolvingSymlinks(joined(rootPath, package))
-            if let resolved = relative(location, under: root) { packageAt[resolved] = package }
+        var closure = Closure(nestedPackages, rootPath: rootPath, resolvingSymlinks: resolvingSymlinks)
+        closure.enter("")
+        for (location, package) in closure.packageAt where reported.contains(package) {
+            closure.enter(location)
         }
-        var reached: Set<String> = []
-        var visited: Set<String> = []
+        while let directory = closure.pending.popLast() {
+            guard let read = references(of: manifests(directory)) else { return nestedPackages }
+            closure.follow(read, from: directory, resolvingSymlinks: resolvingSymlinks)
+        }
+        return closure.reached
+    }
+
+    /// The closure's state: where each nested package resolves, which are reached, and which
+    /// directories are still to read. Directories are relative to the resolved root.
+    private struct Closure {
+        let root: String
+        /// Each nested package by where it resolves, so a reference matches it by location rather
+        /// than by spelling.
+        private(set) var packageAt: [String: String] = [:]
+        private(set) var reached: Set<String> = []
+        private var visited: Set<String> = []
         var pending: [String] = []
-        // Followed by path, nested package or not: one the walk never reached still compiles what
-        // it depends on.
-        func enter(_ location: String) {
+
+        init(_ nestedPackages: Set<String>, rootPath: String, resolvingSymlinks: (String) -> String) {
+            root = resolvingSymlinks(rootPath)
+            for package in nestedPackages {
+                let location = resolvingSymlinks(joined(rootPath, package))
+                if let resolved = relative(location, under: root) { packageAt[resolved] = package }
+            }
+        }
+
+        /// Reaches `location`, and queues its manifests — nested package or not: one the walk never
+        /// reached still compiles what it depends on.
+        mutating func enter(_ location: String) {
             if let package = packageAt[location] { reached.insert(package) }
             if visited.insert(location).inserted { pending.append(location) }
         }
-        enter("")
-        for (location, package) in packageAt where reported.contains(package) {
-            enter(location)
-        }
-        while let directory = pending.popLast() {
-            guard let dependencies = dependencies(of: manifests(directory)) else { return nestedPackages }
-            for literal in dependencies {
+
+        /// Follows what the manifests of `directory` reference: each dependency, and each nested
+        /// package holding a target path — a target whose sources lie there compiles its files.
+        mutating func follow(
+            _ read: (dependencies: [String], targetPaths: [String]),
+            from directory: String,
+            resolvingSymlinks: (String) -> String
+        ) {
+            for literal in read.dependencies {
                 if let location = resolve(literal, from: directory, root: root, resolvingSymlinks: resolvingSymlinks) {
                     enter(location)
                 }
             }
+            for literal in read.targetPaths {
+                guard let location = resolve(
+                    literal, from: directory, root: root, resolvingSymlinks: resolvingSymlinks
+                ) else { continue }
+                for package in packageAt.keys where location == package || location.hasPrefix(package + "/") {
+                    enter(package)
+                }
+            }
         }
-        return reached
     }
 
-    /// The dependency literals of every one of `manifests`, in order: none from a file that is no
-    /// manifest, and `nil` for doubt in any — an unreadable manifest, or a `path:` that is not a
-    /// literal.
-    private static func dependencies(of manifests: [Manifest]) -> [String]? {
-        var literals: [String] = []
+    /// The dependency and target-path literals of every one of `manifests`, in order: none from a
+    /// file that is no manifest, and `nil` for doubt in any — an unreadable manifest, or a `path:`
+    /// that is not a literal.
+    private static func references(
+        of manifests: [Manifest]
+    ) -> (dependencies: [String], targetPaths: [String])? {
+        var dependencies: [String] = []
+        var targetPaths: [String] = []
         for manifest in manifests {
             if manifest == .unreadable { return nil }
             guard case .text(let text) = manifest else { continue }
-            guard let read = localPackageDependencies(manifest: text) else { return nil }
-            literals += read
+            guard let packages = localPackageDependencies(manifest: text),
+                  let targets = localTargetPaths(manifest: text) else { return nil }
+            dependencies += packages
+            targetPaths += targets
         }
-        return literals
+        return (dependencies, targetPaths)
     }
 
     /// The nested package `relativePath` belongs to — the nearest of `nestedPackages` above it —
@@ -181,16 +238,22 @@ extension ConstructionUniverse {
     }
 }
 
-/// The `path:` arguments of a manifest's `.package(…)` calls, in source order.
-private final class PathDependencyCollector: SyntaxVisitor {
+/// The `path:` arguments of a manifest's `.<callee>(…)` calls, in source order.
+private final class PathArgumentCollector: SyntaxVisitor {
 
+    private let callees: Set<String>
     private(set) var paths: [String] = []
-    /// False once a `.package(…)` call passes `path:` something that is not a plain literal.
+    /// False once such a call passes `path:` something that is not a plain literal.
     private(set) var isReadable = true
+
+    init(callees: Set<String>) {
+        self.callees = callees
+        super.init(viewMode: .sourceAccurate)
+    }
 
     override func visit(_ node: FunctionCallExprSyntax) -> SyntaxVisitorContinueKind {
         guard let member = node.calledExpression.as(MemberAccessExprSyntax.self),
-              member.declName.baseName.text == "package",
+              callees.contains(member.declName.baseName.text),
               let path = node.arguments.first(where: { $0.label?.text == "path" }) else {
             return .visitChildren
         }

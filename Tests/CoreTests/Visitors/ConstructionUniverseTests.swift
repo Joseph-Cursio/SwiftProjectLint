@@ -50,6 +50,7 @@ struct ConstructionUniverseTests {
         }
         let localPackageDependencies: [ManifestCase]
         let buildOrder: [String]
+        let localTargetPaths: [ManifestCase]
     }
 
     private static func sharedCases() throws -> SharedCases {
@@ -66,6 +67,21 @@ struct ConstructionUniverseTests {
         for sharedCase in cases {
             #expect(
                 ConstructionUniverse.localPackageDependencies(manifest: sharedCase.manifest) == sharedCase.expected,
+                "\(sharedCase.manifest)"
+            )
+        }
+    }
+
+    @Test("every localTargetPaths case of Docs/construction-universe-cases.json")
+    func sharedTargetPathCases() throws {
+        let cases = try Self.sharedCases().localTargetPaths
+        // A guard on the reader, and on the file: literals, none, and the doubt answer are all there.
+        #expect(cases.count >= 6, "found \(cases.count) cases — has the file moved?")
+        #expect(cases.contains { $0.expected == nil } && cases.contains { $0.expected?.isEmpty == false })
+        #expect(cases.contains { $0.expected?.isEmpty == true })
+        for sharedCase in cases {
+            #expect(
+                ConstructionUniverse.localTargetPaths(manifest: sharedCase.manifest) == sharedCase.expected,
                 "\(sharedCase.manifest)"
             )
         }

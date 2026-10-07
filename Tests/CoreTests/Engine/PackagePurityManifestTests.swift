@@ -135,6 +135,24 @@ struct PackagePurityManifestTests {
         ])
     }
 
+    @Test("s7: a root target whose path lies in a nested package compiles that package's files")
+    func targetPathIntoNestedPackage() async throws {
+        try await Self.expectTokenCountRefutes(tokAt: "Core/Sources/Core/Tok.swift", files: [
+            "Package.swift": """
+            // swift-tools-version:5.9
+            import PackageDescription
+            let package = Package(
+                name: "Root",
+                targets: [
+                    .target(name: "Core", path: "Core/Sources/Core"),
+                    .target(name: "App", dependencies: ["Core"])
+                ]
+            )
+            """,
+            "Core/Package.swift": Self.libraryManifest("Core")
+        ], subject: Self.tokenCount.replacingOccurrences(of: "import A", with: "import Core"))
+    }
+
     // MARK: - Fixtures
 
     /// The critic's subject, `Sources/App/App.swift`.

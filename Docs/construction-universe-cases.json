@@ -76,5 +76,40 @@
     "Sources/a/a.swift",
     "Sources/a10.swift",
     "Sources/a2.swift"
+  ],
+  "localTargetPaths": [
+    {
+      "manifest": "let package = Package(name: \"Root\", targets: [.target(name: \"Core\", path: \"Core/Sources/Core\"), .target(name: \"App\", dependencies: [\"Core\"])])",
+      "expected": [
+        "Core/Sources/Core"
+      ]
+    },
+    {
+      "manifest": "let package = Package(name: \"P\", targets: [.target(name: \"X\")])",
+      "expected": []
+    },
+    {
+      "manifest": "let package = Package(name: \"P\", targets: [\n    .executableTarget(name: \"T\", path: \"Tools/T\"),\n    .testTarget(name: \"XTests\", path: \"Tests/XTests\"),\n    .plugin(name: \"P\", capability: .buildTool(), path: \"Plugins/P\"),\n    .macro(name: \"M\", path: \"Macros/M\")\n])",
+      "expected": [
+        "Tools/T",
+        "Tests/XTests",
+        "Plugins/P",
+        "Macros/M"
+      ]
+    },
+    {
+      "manifest": "let base = \"Sources\"\nlet package = Package(name: \"P\", targets: [.target(name: \"X\", path: base + \"/X\")])",
+      "expected": null
+    },
+    {
+      "manifest": "let package = Package(name: \"P\", dependencies: [.package(path: \"Packages/A\")], targets: [.target(name: \"X\")])",
+      "expected": []
+    },
+    {
+      "manifest": "// .target(name: \"Old\", path: \"Old\"),\nlet package = Package(name: \"P\", targets: [.target(name: \"X\", path: #\"Lib/X\"#)])",
+      "expected": [
+        "Lib/X"
+      ]
+    }
   ]
 }
