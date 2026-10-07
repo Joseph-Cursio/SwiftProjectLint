@@ -76,4 +76,30 @@ struct PackagePurityRobustnessTests {
         #expect(found.contains("sentinelAdd"), "\(name): the rule produced nothing")
         #expect(found.contains("countOf") == false, "\(name): the deep file did not reach the facts")
     }
+
+    @Test("a deep manifest in a dependency package does not take the run down", arguments: ["else-if chain", "member chain"])
+    func deepDependencyManifestIsSurvived(name: String) async throws {
+        let source = try #require(Self.deepSources[name])
+        // The bound parses every manifest its closure reads, and that parse ran on the cooperative
+        // pool after every other parse had moved off it — `SIGBUS` in the manifest reader, in a run
+        // that reports on nothing in `Packages/Dep/`. The refuting `Item` beside it proves the
+        // manifest was read and its package taken.
+        let found = try await PackagePurityFixtures.candidates(in: [
+            "Package.swift": """
+            // swift-tools-version:6.0
+            import PackageDescription
+            let package = Package(name: "App", dependencies: [.package(path: "Packages/Dep")])
+            """,
+            "Packages/Dep/Package.swift": """
+            // swift-tools-version:6.0
+            import PackageDescription
+            let package = Package(name: "Dep")
+
+            """ + source,
+            "Packages/Dep/Sources/Dep/Item.swift": PackagePurityFixtures.refutingItem,
+            "Sources/App/Callers.swift": PackagePurityFixtures.callers
+        ])
+        #expect(found.contains("sentinelAdd"), "\(name): the rule produced nothing")
+        #expect(found.contains("countOf") == false, "\(name): the dependency left the table")
+    }
 }

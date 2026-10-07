@@ -103,23 +103,25 @@ struct PurityOracleEntryTests {
         #expect(Self.sources.filter { Self.analysisPackages.contains(where: $0.path.hasPrefix) }.count > 200)
     }
 
-    @Test("large-stack threads run only the shared parse and the facts build, before the binding")
+    @Test("large-stack threads run only the shared parse, the facts build and the manifest reads, before the binding")
     func largeStackThreadsRunOnlyTheSharedParse() throws {
         // `LargeStackWorkers` leaves the task tree on purpose: the parser and the facts build recurse
         // as deep as the source nests, and a cooperative thread's 512 KB stack overflows on a deep
-        // dependency file. That is safe only while its callers run before `PackagePurity.current` is
-        // bound and create no oracle — so only `ProjectLinter+Purity.swift`'s shared parse may call it.
+        // dependency file or manifest. That is safe only while its callers run before
+        // `PackagePurity.current` is bound and create no oracle — so only `ProjectLinter+Purity.swift`'s
+        // shared parse and the universe's manifest reads may call it.
         var callers: Set<String> = []
         for file in Self.sources where file.identifierSequence.contains("LargeStackWorkers") {
             callers.insert(file.path)
         }
         #expect(callers == [Self.largeStackWorkers, Self.purityParse], "found \(callers.sorted())")
 
-        // Inside the shared parse, the helper serves `parseOnce` and `sharedParse` and nothing else.
+        // Inside it, the helper serves `parseOnce`, `sharedParse` and `compiledUniverse`, which
+        // discovery awaits before the binding, and nothing else.
         let parse = try #require(Self.sources.first { $0.path == Self.purityParse })
         let finder = CallingFunctionFinder(callee: "LargeStackWorkers", viewMode: .sourceAccurate)
         finder.walk(parse.tree)
-        #expect(finder.callers == ["parseOnce", "sharedParse"], "found \(finder.callers.sorted())")
+        #expect(finder.callers == ["compiledUniverse", "parseOnce", "sharedParse"], "found \(finder.callers.sorted())")
         #expect(parse.identifierSequence.contains("PurityInferrer") == false)
     }
 

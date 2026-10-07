@@ -14,16 +14,18 @@ import Foundation
 /// `ConstructionFacts.build`. Neither file is reported on — before the universe, no run read it.
 /// SwiftInferProperties met the same trap on GCD's workers and answered it the same way.
 ///
-/// So the shared parse and the facts build run here, on `Thread`s with ``stackSize``, and nowhere
-/// else: per-file analysis still walks reported files on the task tree, as it always has.
+/// So the shared parse, the facts build and the universe's manifest reads run here, on `Thread`s
+/// with ``stackSize``, and nowhere else: per-file analysis still walks reported files on the task
+/// tree, as it always has. The manifests came last: a nested dependency's `Package.swift` with a
+/// 1,000-arm `else if` crashed the bound's manifest reader just as a source file crashed the parse.
 ///
 /// ## Why this is safe for the run's task-local
 ///
 /// A thread does not inherit `PackagePurity.current`, which is why `PurityOracleEntryTests` forbids
-/// leaving the task tree. Both callers run **before** `analyzeProject` binds it, and neither
-/// creates an oracle that reads it: the parse creates none, and `ConstructionFacts.build` is SEI's
-/// own pass. The test names this file as its one exception and checks that only the shared parse
-/// uses it.
+/// leaving the task tree. Every caller runs **before** `analyzeProject` binds it, and none creates
+/// an oracle that reads it: the parse and the manifest reads create none, and
+/// `ConstructionFacts.build` is SEI's own pass. The test names this file as its one exception and
+/// checks that only those callers use it.
 enum LargeStackWorkers {
 
     /// Eight times the main thread's 8 MB. In a debug build the two regression fixtures

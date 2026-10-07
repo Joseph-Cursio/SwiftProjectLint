@@ -134,6 +134,14 @@ extension ProjectLinter {
         return kept
     }
 
+    /// `compiledByRoot` on a large-stack worker, which is where every manifest the bound reads is
+    /// parsed (the shared spec's amendment K): a manifest nests as deep as any source, and a
+    /// dependency package's 1,000-arm `else if` in its `Package.swift` overflowed a cooperative
+    /// thread's stack in the manifest reader and took the run down.
+    static func compiledUniverse(_ walk: [String], reported: [String], projectRoot: String) async -> [String] {
+        await LargeStackWorkers.run { compiledByRoot(walk, reported: reported, projectRoot: projectRoot) }
+    }
+
     /// Where `filePath` sits under `projectRoot`, as the universe classifies it: where the walk
     /// reached it, so for a symlinked file **where the link is**, never where its target is.
     ///
