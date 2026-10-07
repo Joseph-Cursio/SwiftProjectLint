@@ -1,0 +1,13 @@
+diff --git a/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/ConstructionUniverse+Manifest.swift b/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/ConstructionUniverse+Manifest.swift
+index 8635f587..208b8e59 100644
+--- a/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/ConstructionUniverse+Manifest.swift
++++ b/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/ConstructionUniverse+Manifest.swift
+@@ -98,7 +98,7 @@ extension ConstructionUniverse {
+         var body = Substring(text)
+         if body.first == "\u{FEFF}" { body = body.dropFirst() }
+         let lines = body.split(omittingEmptySubsequences: false, whereSeparator: \.isNewline)
+-        guard let first = lines.firstIndex(where: { !$0.allSatisfy { $0 == " " || $0 == "\t" } }) else {
++        guard let first = lines.indices.first else {
+             return false
+         }
+         if lines[first].prefixMatch(of: #/[ \t]*//[ \t]*(?i:swift-tools-version)/#) != nil { return true }

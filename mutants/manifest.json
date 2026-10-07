@@ -417,6 +417,38 @@
       "expected": "killed",
       "test": "targetPathIntoNestedPackage",
       "label": "the closure ignores target path: arguments (amendment P) — a root target whose sources lie in Core/ no longer reaches the Core package, and Core's types leave the table"
+    },
+    {
+      "id": "manifest-tools-version-on-the-very-first-line",
+      "patch": "patches/manifest-tools-version-on-the-very-first-line.patch",
+      "shape": "engine-wiring",
+      "expected": "killed",
+      "test": "manifestAsSwiftPMReadsItKeepsTheClosure",
+      "label": "isManifest looks for the tools-version comment on the very first line again, not the first non-blank one (amendment S a) — a dependency's manifest opening with a blank line is no manifest, passes nothing on, and the package behind it leaves the table"
+    },
+    {
+      "id": "manifest-label-case-sensitive",
+      "patch": "patches/manifest-label-case-sensitive.patch",
+      "shape": "engine-wiring",
+      "expected": "killed",
+      "test": "manifestAsSwiftPMReadsItKeepsTheClosure",
+      "label": "isManifest compares the swift-tools-version label case-sensitively on the first non-blank line (amendment S a) — `// SWIFT-TOOLS-VERSION:5.9`, which SwiftPM loads, is no manifest, and the closure stops there"
+    },
+    {
+      "id": "manifest-tools-version-only-at-the-top",
+      "patch": "patches/manifest-tools-version-only-at-the-top.patch",
+      "shape": "engine-wiring",
+      "expected": "killed",
+      "test": "manifestAsSwiftPMReadsItKeepsTheClosure",
+      "label": "isManifest drops the later-line clause (amendment S b) — a 6.0 manifest below a license header, which SwiftPM loads, is no manifest, and the package behind it leaves the table"
+    },
+    {
+      "id": "purity-closure-target-path-misses-packages-under-it",
+      "patch": "patches/purity-closure-target-path-misses-packages-under-it.patch",
+      "shape": "engine-wiring",
+      "expected": "killed",
+      "test": "targetPathOverNestedPackage",
+      "label": "a target path reaches only the nested packages that hold it again, not those under it (amendment T) — `.target(name: \"All\", path: \"Packages\")` compiles Packages/A's sources, yet A leaves the table"
     }
   ]
 }

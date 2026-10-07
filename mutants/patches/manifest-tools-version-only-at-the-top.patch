@@ -1,0 +1,13 @@
+diff --git a/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/ConstructionUniverse+Manifest.swift b/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/ConstructionUniverse+Manifest.swift
+index 8635f587..7d92dd0c 100644
+--- a/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/ConstructionUniverse+Manifest.swift
++++ b/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/ConstructionUniverse+Manifest.swift
+@@ -102,7 +102,7 @@ extension ConstructionUniverse {
+             return false
+         }
+         if lines[first].prefixMatch(of: #/[ \t]*//[ \t]*(?i:swift-tools-version)/#) != nil { return true }
+-        return lines[lines.index(after: first)...].contains { line in
++        return lines[lines.index(after: first)...].prefix(0).contains { line in
+             guard let match = line.prefixMatch(
+                 of: #/[ \t]*//[ \t]*(?i:swift-tools-version)[ \t]*:[ \t]*([0-9]+)/#
+             ) else { return false }
