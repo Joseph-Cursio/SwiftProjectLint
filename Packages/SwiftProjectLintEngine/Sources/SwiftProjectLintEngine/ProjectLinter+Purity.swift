@@ -152,7 +152,8 @@ extension ProjectLinter {
     }
 
     /// The walked files the root compiles: its own package's, and those of the nested packages it
-    /// reaches through local path dependencies — the shared spec's amendment B. See
+    /// reaches through local path dependencies — the shared spec's amendment B — or every nested
+    /// package's, when the root has no manifest or an Xcode project beside it. See
     /// `ConstructionUniverse.compiledNestedPackages` for the rule, and why an unrelated nested
     /// package must not refute the root's namesakes.
     ///
@@ -189,7 +190,7 @@ extension ProjectLinter {
 
         let compiled = ConstructionUniverse.compiledNestedPackages(
             nestedPackages,
-            rootHasManifest: isPackage(""),
+            rootHasManifest: isPackage("") && !ConstructionUniverse.holdsXcodeProject(directory: root.path),
             rootPath: root.path,
             resolvingSymlinks: { ProjectRoot($0).path },
             manifest: manifest

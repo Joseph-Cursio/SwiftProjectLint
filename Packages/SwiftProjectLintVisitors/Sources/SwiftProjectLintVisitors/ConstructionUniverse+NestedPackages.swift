@@ -21,7 +21,9 @@ import SwiftSyntax
 ///   **every** nested package is in (any doubt includes). A path that leaves the root is ignored:
 ///   the universe never does.
 /// - **It has none** — an Xcode project, a workspace folder — and nothing cheap says what it
-///   compiles, so every nested package is in.
+///   compiles, so every nested package is in. So too when an `.xcodeproj` or `.xcworkspace` sits
+///   beside the root's manifest (amendment G): the Xcode project may compile local packages the
+///   manifest never names.
 ///
 /// ## Why bound it
 ///
@@ -50,7 +52,8 @@ extension ConstructionUniverse {
     ///
     /// - Parameters:
     ///   - nestedPackages: root-relative directories (no trailing `/`) that hold a manifest.
-    ///   - rootHasManifest: whether the root itself holds a manifest.
+    ///   - rootHasManifest: whether the root itself holds a manifest and nothing else builds it —
+    ///     false beside an Xcode project (`holdsXcodeProject(directory:)`).
     ///   - rootPath: the root's absolute path, which an absolute dependency path must lie under once
     ///     both are resolved.
     ///   - resolvingSymlinks: an absolute path with its symlinks resolved (`realpath(3)`), or the path

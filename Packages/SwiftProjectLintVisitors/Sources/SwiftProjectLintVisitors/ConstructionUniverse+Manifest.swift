@@ -16,6 +16,11 @@ import Foundation
 ///
 /// A `Package.swift` that exists but cannot be read is a manifest — it may well be one — and
 /// reading it is doubt, so a closure that reaches it takes every nested package.
+///
+/// A root manifest bounds the nested packages only when it is all that builds the root: an Xcode
+/// project or workspace beside it (``holdsXcodeProject(directory:)``, amendment G) may compile local
+/// packages the manifest never names, so the bound then takes every nested package, as for a root
+/// with no manifest at all.
 extension ConstructionUniverse {
 
     /// What a directory holds at `Package.swift`.
@@ -37,6 +42,16 @@ extension ConstructionUniverse {
         guard stat(path, &status) == 0, status.st_mode & S_IFMT == S_IFREG else { return .absent }
         guard let text = try? String(contentsOfFile: path, encoding: .utf8) else { return .unreadable }
         return isManifest(text) ? .text(text) : .absent
+    }
+
+    /// Whether the directory at the absolute path `directory` has an Xcode project or workspace —
+    /// an entry named `*.xcodeproj` or `*.xcworkspace` — directly inside it.
+    ///
+    /// A direct child only: the package a SwiftPM manifest makes keeps its own workspace under
+    /// `.swiftpm/`, which is no evidence of another build.
+    public static func holdsXcodeProject(directory: String) -> Bool {
+        let names = (try? FileManager.default.contentsOfDirectory(atPath: directory)) ?? []
+        return names.contains { $0.hasSuffix(".xcodeproj") || $0.hasSuffix(".xcworkspace") }
     }
 
     /// Whether `text` begins as a manifest does: a first line matching

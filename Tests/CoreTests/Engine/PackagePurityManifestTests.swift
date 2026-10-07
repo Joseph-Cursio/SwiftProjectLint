@@ -81,6 +81,33 @@ struct PackagePurityManifestTests {
         #expect(await PackagePurityFixtures.universe(at: root) == ["Sources/App/Callers.swift"])
     }
 
+    @Test("an Xcode project beside the root manifest takes every nested package", arguments: [
+        "App.xcodeproj", "App.xcworkspace"
+    ])
+    func xcodeProjectBesideTheManifestTakesEveryPackage(container: String) async throws {
+        // The manifest builds a command-line tool and names no local package; the Xcode project
+        // builds the app, and its app target links `LocalPackages/Feature`. Bounded by the
+        // manifest alone, `Feature` left the table and `countOf` was offered.
+        let files = [
+            "Package.swift": """
+            // swift-tools-version:6.0
+            import PackageDescription
+            let package = Package(name: "Tool", targets: [.executableTarget(name: "Tool")])
+            """,
+            "LocalPackages/Feature/Package.swift": "// swift-tools-version:6.0\n",
+            "LocalPackages/Feature/Sources/Feature/Item.swift": PackagePurityFixtures.refutingItem,
+            "App/Callers.swift": PackagePurityFixtures.callers
+        ]
+        let control = try await PackagePurityFixtures.candidates(in: files)
+        #expect(control.contains("countOf"), "control: without the Xcode project, Feature is not compiled")
+
+        var withXcode = files
+        withXcode["\(container)/project.pbxproj"] = "// !$*UTF8*$!\n"
+        let root = try PackagePurityFixtures.makeProject(withXcode)
+        defer { try? FileManager.default.removeItem(atPath: root) }
+        await Self.expectItemRefutes(at: root, holding: ["LocalPackages/Feature/Sources/Feature/Item.swift"])
+    }
+
     // MARK: - Fixtures
 
     static func rootManifest(dependencies: String) -> String {
