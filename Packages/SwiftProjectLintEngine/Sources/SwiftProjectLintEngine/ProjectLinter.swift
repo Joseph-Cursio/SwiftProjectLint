@@ -20,11 +20,23 @@ import SwiftSyntax
 public final class ProjectLinter: ProjectAnalyzerProtocol {
     private let fileDiscovery: any FileDiscoveryProtocol
     private let crossFileAnalyzerFactory: @Sendable (PatternVisitorRegistry) -> any CrossFileAnalyzerProtocol
+    /// Told when a run read package purity it had withheld and was redone with everything built.
+    /// The findings are right either way; this is how a release build says the gate mispredicted.
+    private let purityRerunNotice: (@Sendable (String) -> Void)?
 
     /// Creates a linter with default production dependencies.
     public init() {
         self.fileDiscovery = DefaultFileDiscovery()
         self.crossFileAnalyzerFactory = { CrossFileAnalysisEngine(registry: $0) }
+        self.purityRerunNotice = nil
+    }
+
+    /// Creates a linter with default production dependencies that reports a purity-gate rerun to
+    /// `purityRerunNotice` — the CLI passes one that writes to standard error.
+    @preconcurrency public init(purityRerunNotice: @escaping @Sendable (String) -> Void) {
+        self.fileDiscovery = DefaultFileDiscovery()
+        self.crossFileAnalyzerFactory = { CrossFileAnalysisEngine(registry: $0) }
+        self.purityRerunNotice = purityRerunNotice
     }
 
     /// Creates a linter with injectable dependencies for testing.
@@ -39,6 +51,7 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
     ) {
         self.fileDiscovery = fileDiscovery
         self.crossFileAnalyzerFactory = crossFileAnalyzerFactory
+        self.purityRerunNotice = nil
     }
 
     /// Analyzes a SwiftUI project at the specified file system path.
@@ -156,6 +169,7 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
         // with the table. Discard them — even when the run was cancelled meanwhile: a cancelled
         // second pass returns what a cancelled ungated run would, never the first pass's — and redo
         // the run without a gate.
+        purityRerunNotice?(Self.undeclaredReadMessage(first.trips))
         let second = await pass(request, demand: .everything)
         precondition(second.trips.isEmpty, "a run that withholds nothing tripped: \(second.trips)")
         return LintRun(issues: second.issues, demand: demand, trips: first.trips)

@@ -107,7 +107,9 @@ struct SwiftProjectLintCLI: AsyncParsableCommand {
         }
 
         let system = PatternRegistryFactory.createConfiguredSystem()
-        let linter = ProjectLinter()
+        // A run that read package purity it had not built is redone with it built, so the findings
+        // are right; say so, because it doubles the run and means a rule's declaration is missing.
+        let linter = ProjectLinter { Self.printToStandardError("warning: " + $0) }
 
         let issues = await linter.analyzeProject(
             at: absolutePath,

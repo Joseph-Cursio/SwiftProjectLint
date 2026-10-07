@@ -229,6 +229,19 @@ struct PurityGateDeclarationTests {
         #expect(detector.knownCleanInstanceMethods.isWithheld == false)
         #expect(detector.knownImpurePackageFunctions.isWithheld == false)
     }
+
+    @Test("a rerun is reported to the linter's notice, naming what was read")
+    func rerunIsReported() async throws {
+        let path = try PurityGateCorpus.makeProject()
+        defer { try? FileManager.default.removeItem(atPath: path) }
+        let notices = NoticeBox()
+        _ = await ProjectLinter { notices.append($0) }.lint(
+            at: path, targetType: .auto, categories: nil, ruleIdentifiers: [.printStatement],
+            detector: UndeclaredReader.oracle.detector(), configuration: .default
+        )
+        #expect(notices.all.count == 1)
+        #expect(notices.all.first?.contains("PurityInferrer()") == true, "\(notices.all)")
+    }
 }
 
 /// Collects notices from a `@Sendable` closure.
