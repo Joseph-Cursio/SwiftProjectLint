@@ -119,7 +119,10 @@ public struct HTMLFormatter: IssueFormatterProtocol {
                   <tbody>
             """
 
-            for issue in fileIssues.sorted(by: { $0.lineNumber < $1.lineNumber }) {
+            // The full reporting order, not just the line: sorting by line alone leaves two
+            // findings on one line in the order they were passed in, kept only by a stability
+            // `sorted(by:)` does not promise.
+            for issue in fileIssues.sortedForReporting() {
                 let severityClass = severityCSSClass(issue.severity)
                 let severityLabel = issue.severity.rawValue.capitalized
                 html += """
