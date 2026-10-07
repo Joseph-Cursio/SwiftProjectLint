@@ -97,43 +97,119 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
         detector: (any SourcePatternDetectorProtocol)? = nil,
         configuration: LintConfiguration = .default
     ) async -> [LintIssue] {
+        let run = await lint(
+            at: path,
+            targetType: targetType,
+            categories: categories,
+            ruleIdentifiers: ruleIdentifiers,
+            detector: detector,
+            configuration: configuration
+        )
+        // Sound either way — the findings are the rerun's — but a missing declaration is a bug, and
+        // a debug build says so at the first test that reaches it.
+        assert(run.trips.isEmpty, Self.undeclaredReadMessage(run.trips))
+        return run.issues
+    }
+
+    /// One run, and what its purity gate did. `analyzeProject` is this minus the report.
+    ///
+    /// At most two passes, and the second only when the first tripped: it builds `.everything`, so
+    /// it withholds nothing and cannot trip in turn.
+    ///
+    /// - Parameter forced: the demand to build regardless of the declarations; `nil` derives it.
+    func lint(
+        at path: String,
+        targetType: TargetType,
+        categories: [PatternCategory]?,
+        ruleIdentifiers: [RuleIdentifier]?,
+        detector: (any SourcePatternDetectorProtocol)?,
+        configuration: LintConfiguration,
+        demand forced: PurityDemand? = nil
+    ) async -> LintRun {
         let effectiveConfiguration = Self.resolveConfiguration(
             for: path, base: configuration, targetType: targetType
         )
+        // One detector, so the registry the demand is derived from is the registry the run executes.
+        let detector = detector ?? SourcePatternDetector()
 
         // Which rules run is settled by the flags and the configuration alone — no file is read for
-        // it — so it is settled here, once, before discovery, and carried: every phase executes the
-        // same value.
+        // it — so it is settled here, once, and carried: the set the gate is derived from and the set
+        // the phases execute are one value.
         let effectiveRules = effectiveConfiguration.resolveRules(
             cliCategories: categories,
             cliRuleIdentifiers: ruleIdentifiers
         )
-
-        let files = await discoverFiles(at: path, configuration: effectiveConfiguration)
-
-        // Every file is read and parsed once, and the package purity is built from those same
-        // trees: SEI matches by node identity, so the facts and the verdicts that consult them
-        // must share a parse.
-        let (purity, shared) = await Self.sharedParse(files, projectRoot: path)
-        let project = DiscoveredProject(
+        let request = RunRequest(
             path: path,
-            files: files,
             configuration: effectiveConfiguration,
             categories: categories,
             effectiveRules: effectiveRules,
-            detector: detector,
-            shared: shared
+            detector: detector
+        )
+        let demand = forced ?? PurityDemand(planned: effectiveRules, registry: detector.registry)
+
+        let first = await pass(request, demand: demand)
+        guard !first.trips.isEmpty else {
+            return LintRun(issues: first.issues, demand: demand, trips: [])
+        }
+        // A visitor read what it did not declare, so the first pass's findings may differ from a run
+        // with the table. Discard them — even when the run was cancelled meanwhile: a cancelled
+        // second pass returns what a cancelled ungated run would, never the first pass's — and redo
+        // the run without a gate.
+        let second = await pass(request, demand: .everything)
+        precondition(second.trips.isEmpty, "a run that withholds nothing tripped: \(second.trips)")
+        return LintRun(issues: second.issues, demand: demand, trips: first.trips)
+    }
+
+    /// Everything one pass needs that does not depend on the demand.
+    private struct RunRequest {
+        let path: String
+        let configuration: LintConfiguration
+        let categories: [PatternCategory]?
+        let effectiveRules: [RuleIdentifier]?
+        let detector: any SourcePatternDetectorProtocol
+    }
+
+    /// Discovery, the shared parse, and the analysis inside the purity binding, building `demand`
+    /// and withholding the rest. Returns what tripped.
+    private func pass(
+        _ request: RunRequest,
+        demand: PurityDemand
+    ) async -> (issues: [LintIssue], trips: [PurityTripwire.Trip]) {
+        let tripwire = PurityTripwire()
+        let files = await discoverFiles(
+            at: request.path, configuration: request.configuration, resolvingUniverse: demand.buildsTable
+        )
+
+        // Every file is read and parsed once, and the package purity is built from those same
+        // trees: SEI matches by node identity, so the facts and the verdicts that consult them
+        // must share a parse. When discovery resolved no universe, the table is withheld instead.
+        let (purity, shared) = await Self.sharedParse(files, projectRoot: request.path, withholdingBy: tripwire)
+        let project = DiscoveredProject(
+            path: request.path,
+            files: files,
+            configuration: request.configuration,
+            categories: request.categories,
+            effectiveRules: request.effectiveRules,
+            detector: request.detector,
+            shared: shared,
+            demand: demand,
+            tripwire: tripwire
         )
 
         // Bound once, around the pre-scan, the per-file task group and cross-file analysis: every
         // `PurityInferrer()` any of them creates reads it, so one run judges with one table.
-        return await PackagePurity.$current.withValue(purity) {
+        let issues = await PackagePurity.$current.withValue(purity) {
             await analyzeDiscovered(project)
         }
+
+        // Every read of a withheld surface happened inside the binding: the task group is awaited,
+        // cross-file analysis is synchronous, and nothing leaves the task tree.
+        return (issues, tripwire.seal())
     }
 
     /// The pre-scan, per-file and cross-file phases over files already discovered and parsed.
-    /// Runs inside the run's `PackagePurity` binding; see `analyzeProject`.
+    /// Runs inside the run's `PackagePurity` binding; see `lint`.
     private func analyzeDiscovered(_ project: DiscoveredProject) async -> [LintIssue] {
         let path = project.path
         let effectiveConfiguration = project.configuration
@@ -141,7 +217,12 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
         let effectiveRules = project.effectiveRules
 
         // Pre-scan: collect cross-file type metadata needed by visitors.
-        let collected = CollectedTypes.collect(from: project.files.reportable, sources: project.shared)
+        let collected = CollectedTypes.collect(
+            from: project.files.reportable,
+            sources: project.shared,
+            demand: project.demand,
+            tripwire: project.tripwire
+        )
 
         // Resolve the registry once so each task can create its own detector
         let registry = Self.configuredDetector(
@@ -223,9 +304,14 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
     /// **compiles**: a nested package is in only when the root reaches it through local path
     /// dependencies, when the run reports on its files, or when the root has no manifest to say
     /// (`compiledByRoot`, on a large-stack worker since it parses manifests).
+    ///
+    /// `resolvingUniverse` false — no visitor the run executes declared a purity input — leaves the
+    /// universe `nil`, not resolved: no extra walk, no manifest is read, no universe-only file is
+    /// parsed, and the shared parse withholds the table rather than building an empty one.
     func discoverFiles(
         at path: String,
-        configuration: LintConfiguration
+        configuration: LintConfiguration,
+        resolvingUniverse: Bool = true
     ) async -> DiscoveredFiles {
         let reportableFilePaths = await fileDiscovery.findSwiftFiles(
             in: path,
@@ -255,6 +341,10 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
             evidenceOnly = unexcludedFilePaths.filter {
                 !reportableSet.contains($0) && !Self.isGeneratedFile(at: $0)
             }
+        }
+
+        guard resolvingUniverse else {
+            return DiscoveredFiles(reportable: filePaths, evidenceOnly: evidenceOnly, constructionUniverse: nil)
         }
 
         let constructionUniverse: [String]

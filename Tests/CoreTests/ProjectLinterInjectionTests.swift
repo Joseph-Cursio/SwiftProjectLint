@@ -115,15 +115,37 @@ struct ProjectLinterInjectionTests {
         let analyzer = FakeCrossFileAnalyzer(issues: [sentinelIssue()])
         let linter = ProjectLinter(fileDiscovery: discovery) { _ in analyzer }
 
-        let issues = await linter.analyzeProject(at: "/tmp/project-under-test")
+        // An empty registry of its own, not `.shared`: which visitors `.shared` holds depends on
+        // which tests ran first, and the purity gate reads the registry to decide the walks.
+        let issues = await linter.analyzeProject(
+            at: "/tmp/project-under-test", detector: PatternRegistryFactory.createTestSystem().detector
+        )
 
         #expect(issues.contains { $0.message == "cross-file sentinel" })
         #expect(analyzer.callCount == 1)
         let call = try #require(discovery.recordedCalls.first)
         #expect(call.directory == "/tmp/project-under-test")
 
-        // The default config leaves nested packages out of reporting, so the construction
-        // universe — every Swift file, no reporting filter at all — takes one more walk, last.
+        // No registered visitor declares a package-purity input, so the construction universe is
+        // not walked: the reporting walk is the only one.
+        #expect(discovery.recordedCalls.count == 1)
+    }
+
+    /// A run whose visitors read package purity walks the construction universe — every Swift
+    /// file, no reporting filter at all — once more, last, when nested packages are left out of
+    /// reporting.
+    @Test
+    func aPurityConsumingRunWalksTheUniverseLast() async throws {
+        let discovery = FakeFileDiscovery(files: [])
+        let analyzer = FakeCrossFileAnalyzer(issues: [])
+        let linter = ProjectLinter(fileDiscovery: discovery) { _ in analyzer }
+
+        _ = await linter.analyzeProject(
+            at: "/tmp/project-under-test",
+            ruleIdentifiers: [.directInstantiation],
+            detector: PatternRegistryFactory.createConfiguredSystem().detector
+        )
+
         #expect(discovery.recordedCalls.count == 2)
         let universe = try #require(discovery.recordedCalls.last)
         #expect(universe.directory == "/tmp/project-under-test")

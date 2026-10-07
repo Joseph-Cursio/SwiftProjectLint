@@ -64,7 +64,15 @@ extension ProjectLinter {
         /// Runs inside the run's `PackagePurity` binding, which is what makes the two
         /// purity-judging catalogs below — `CleanInstanceMethodCatalog` and
         /// `PackagePurityJoin` — construction-aware: each creates its `PurityInferrer()` here.
-        static func collect(from filePaths: [String], sources: [String: SharedSource] = [:]) -> Self {
+        ///
+        /// A catalog `demand` does not build is withheld by `tripwire`: no visitor the run executes
+        /// declared it, and a read of it trips the run instead of answering with an empty catalog.
+        static func collect(
+            from filePaths: [String],
+            sources: [String: SharedSource] = [:],
+            demand: PurityDemand = .everything,
+            tripwire: PurityTripwire = PurityTripwire()
+        ) -> Self {
             // Parsed once and shared: every collector below — the name sets and the
             // body-needing catalogs alike — walks the same trees, and re-parsing a project
             // once per collector is the kind of cost that does not show up until someone
@@ -95,17 +103,26 @@ extension ProjectLinter {
                 functionTypeAliases: collectTypes(FunctionTypeAliasCollector.self, in: parsed),
                 spiMembers: collectTypes(SPIMemberCollector.self, in: parsed),
                 underscoredMembers: collectTypes(UnderscoredMemberCollector.self, in: parsed),
-                cleanInstanceMethods: CleanInstanceMethodCatalog.build(
-                    from: parsed, enumTypes: collectTypes(EnumTypeCollector.self, in: parsed)
-                ),
+                cleanInstanceMethods: demand.builds(.cleanInstanceMethods)
+                    ? CleanInstanceMethodCatalog.build(
+                        from: parsed, enumTypes: collectTypes(EnumTypeCollector.self, in: parsed)
+                    )
+                    : .withheld(by: tripwire),
                 extensionMembers: ExtensionMemberCatalog.build(from: parsed),
                 closureWrapperTypes: ClosureWrapperTypeCatalog.build(from: parsed),
-                impurePackageFunctions: ImpurePackageFunctions(PackagePurityJoin(sources: parsed).settledImpureNames)
+                impurePackageFunctions: demand.builds(.impurePackageFunctions)
+                    ? ImpurePackageFunctions(PackagePurityJoin(sources: parsed).settledImpureNames)
+                    : .withheld(by: tripwire)
             )
         }
     }
 
     /// The caller's detector (or a fresh one) primed with the pre-scan catalogs and config.
+    ///
+    /// The two purity catalogs are left out on purpose. The run takes only `.registry` from this
+    /// detector — every per-file detector is primed from `FileAnalysisEnvironment` — and the caller
+    /// keeps it: the macOS app reuses one across runs, so a catalog a gated run withheld would
+    /// outlive the run that could have been redone, holding a sealed tripwire.
     static func configuredDetector(
         _ detector: (any SourcePatternDetectorProtocol)?,
         collected: CollectedTypes,
@@ -125,10 +142,8 @@ extension ProjectLinter {
         resolved.knownProtocolTypes = collected.protocols
         resolved.knownEquatableTypes = collected.equatable
         resolved.knownValueTypes = collected.values
-        resolved.knownCleanInstanceMethods = collected.cleanInstanceMethods
         resolved.knownExtensionMembers = collected.extensionMembers
         resolved.knownClosureWrapperTypes = collected.closureWrapperTypes
-        resolved.knownImpurePackageFunctions = collected.impurePackageFunctions
         resolved.knownProjectFunctions = collected.functions
         resolved.knownMutatingMethods = collected.mutatingMethods
         resolved.knownDefaultedInitializerTypes = collected.defaultedInitializers

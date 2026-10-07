@@ -1,20 +1,27 @@
 diff --git a/Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/ProjectLinter.swift b/Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/ProjectLinter.swift
-index 72ad2dd3..12909017 100755
+index 73bbbb40..5d832103 100755
 --- a/Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/ProjectLinter.swift
 +++ b/Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/ProjectLinter.swift
-@@ -127,22 +127,20 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
+@@ -199,8 +199,14 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
  
          // Bound once, around the pre-scan, the per-file task group and cross-file analysis: every
          // `PurityInferrer()` any of them creates reads it, so one run judges with one table.
-+        let collected = CollectedTypes.collect(from: project.files.reportable, sources: project.shared)
-         return await PackagePurity.$current.withValue(purity) {
++        let collected = CollectedTypes.collect(
++            from: project.files.reportable,
++            sources: project.shared,
++            demand: project.demand,
++            tripwire: project.tripwire
++        )
+         let issues = await PackagePurity.$current.withValue(purity) {
 -            await analyzeDiscovered(project)
 +            await analyzeDiscovered(project, collected: collected)
          }
-     }
+ 
+         // Every read of a withheld surface happened inside the binding: the task group is awaited,
+@@ -210,20 +216,12 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
  
      /// The pre-scan, per-file and cross-file phases over files already discovered and parsed.
-     /// Runs inside the run's `PackagePurity` binding; see `analyzeProject`.
+     /// Runs inside the run's `PackagePurity` binding; see `lint`.
 -    private func analyzeDiscovered(_ project: DiscoveredProject) async -> [LintIssue] {
 +    private func analyzeDiscovered(_ project: DiscoveredProject, collected: CollectedTypes) async -> [LintIssue] {
          let path = project.path
@@ -23,7 +30,12 @@ index 72ad2dd3..12909017 100755
          let effectiveRules = project.effectiveRules
  
 -        // Pre-scan: collect cross-file type metadata needed by visitors.
--        let collected = CollectedTypes.collect(from: project.files.reportable, sources: project.shared)
+-        let collected = CollectedTypes.collect(
+-            from: project.files.reportable,
+-            sources: project.shared,
+-            demand: project.demand,
+-            tripwire: project.tripwire
+-        )
 -
          // Resolve the registry once so each task can create its own detector
          let registry = Self.configuredDetector(

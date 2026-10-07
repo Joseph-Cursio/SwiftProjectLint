@@ -159,6 +159,8 @@ struct PurityOracleEntryTests {
     static let projectLinter = engineSources + "ProjectLinter.swift"
     static let purityParse = engineSources + "ProjectLinter+Purity.swift"
     static let largeStackWorkers = engineSources + "LargeStackWorkers.swift"
+    static let preScan = engineSources + "ProjectLinter+PreScan.swift"
+    static let withholdable = visitorsSources + "SwiftProjectLintVisitors/Withholdable.swift"
     static let rulePackages = [
         "Packages/SwiftProjectLintRules/Sources/",
         "Packages/SwiftProjectLintIdempotencyRules/Sources/",
