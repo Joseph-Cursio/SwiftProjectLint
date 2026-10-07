@@ -449,6 +449,14 @@
       "expected": "killed",
       "test": "targetPathOverNestedPackage",
       "label": "a target path reaches only the nested packages that hold it again, not those under it (amendment T) — `.target(name: \"All\", path: \"Packages\")` compiles Packages/A's sources, yet A leaves the table"
+    },
+    {
+      "id": "purity-closure-root-target-path-reaches-nothing",
+      "patch": "patches/purity-closure-root-target-path-reaches-nothing.patch",
+      "shape": "engine-wiring",
+      "expected": "killed",
+      "test": "rootTargetAtTheRootReachesEveryPackage",
+      "label": "the target-path comparison loses its `location.isEmpty` clause (amendment T′) — a root target's `path: \".\"` resolves to the root, \"\", which no hasPrefix matches, so it reaches no nested package and Packages/A, whose sources that target compiles, leaves the table"
     }
   ]
 }
