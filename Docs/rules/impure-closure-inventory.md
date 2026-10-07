@@ -106,7 +106,7 @@ what makes it so. `PurityRefutation` publishes the reason, and this rule is the 
 ### The five causes, and what each one is worth
 
 The oracle's `PurityRefutation` has thirteen cases at the SwiftEffectInference revision this package
-pins (`64a905c`). They are grouped into five on one test: **does a reader do something different
+pins (`4aa91cf`). They are grouped into five on one test: **does a reader do something different
 about this than about the others?** Where the answer was no, the cases were merged — which is why the
 two nondeterminism refuters collapse to one row, and the two side-effect refuters to another. A
 default argument or a construction that refutes is filed under the cause of the effect it reaches.
