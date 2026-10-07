@@ -256,8 +256,8 @@ production constructs would call its construction pure — the unsound direction
 
 **What bounds it is what the root compiles.** A nested package is a directory below the root whose
 `Package.swift` is a manifest as SwiftPM reads one: a `// swift-tools-version` comment on its first
-non-blank line, the label in any case, or — from tools version 6.0 — on a later line, below a license
-header or code. A source file named `Package.swift` (a `struct Package` in an app's `Models/`), a
+non-blank line, the label in any case and any horizontal whitespace around the `//`, or — from tools
+version 6.0 — on a later line, below a license header or code. A source file named `Package.swift` (a `struct Package` in an app's `Models/`), a
 directory or a dangling link of that name is not one, and takes nothing out. A nested package counts only when
 it is reached: through the root's `.package(path:)` dependencies, followed transitively through
 every manifest reached — a directory's `Package.swift` together with its `Package@swift-*.swift`
@@ -304,6 +304,12 @@ What it still does not see, or sees too much of:
   no regression.
 - **An Xcode project below the root** (`Apps/iOS/App.xcodeproj`): only one directly beside the
   root's manifest counts as doubt.
+- **A nested package a target reaches without a literal `path:`.** A target is followed through its
+  `path:` argument only. One with none takes SwiftPM's default, `Sources/<name>`, and a nested
+  package inside that directory (its `Package.swift` excluded by the target) is compiled into it but
+  not reached here. Nor is a package walked elsewhere that a symlink below a target path points to:
+  `path: "Packages"` with `Packages/A` a link to `../Real/A` misses `Real/A`. Neither is a
+  regression, and no local checkout has either layout.
 - **Namesakes across modules.** The table is one name space: two modules' `Row`s in one universe are
   one `Row`, and if either refutes, both do. The bound keeps an unrelated package's out; a
   reported one's, and a dependency's, stay in.

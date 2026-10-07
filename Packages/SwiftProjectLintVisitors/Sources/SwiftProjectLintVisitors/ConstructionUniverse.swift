@@ -62,8 +62,10 @@
 /// not follow one); a `Package.swift` source file or a `Tests`/`*Tests` folder inside a production
 /// target, which SwiftPM and Xcode both compile and this predicate drops wherever it is; a symlinked
 /// package's relative dependencies as SwiftPM resolves them — from where the link sits, where the
-/// bound uses the link's target; and namesakes across modules, which the table, one name space,
-/// reads as one type — a refuting one refutes both.
+/// bound uses the link's target; a nested package inside a target with no `path:` (SwiftPM's
+/// default `Sources/<name>`), or one a symlink below a target path points to, since a target is
+/// followed through its literal `path:` alone; and namesakes across modules, which the table, one
+/// name space, reads as one type — a refuting one refutes both.
 public enum ConstructionUniverse {
 
     /// Directory names whose contents are build products or third-party checkouts. The walk in
