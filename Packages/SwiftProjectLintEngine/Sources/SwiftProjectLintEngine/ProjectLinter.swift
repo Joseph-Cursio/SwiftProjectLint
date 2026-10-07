@@ -218,7 +218,8 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
     /// walk when nothing is excluded, the exclusion-free one otherwise — and only a run that leaves
     /// nested packages out pays for one more, issued last. What it does bound by is what the root
     /// **compiles**: a nested package is in only when the root reaches it through local path
-    /// dependencies, or when the root has no manifest to say (`compiledByRoot`).
+    /// dependencies, when the run reports on its files, or when the root has no manifest to say
+    /// (`compiledByRoot`).
     func discoverFiles(
         at path: String,
         configuration: LintConfiguration
@@ -264,7 +265,7 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
         return DiscoveredFiles(
             reportable: filePaths,
             evidenceOnly: evidenceOnly,
-            constructionUniverse: Self.compiledByRoot(constructionUniverse, projectRoot: path)
+            constructionUniverse: Self.compiledByRoot(constructionUniverse, reported: filePaths, projectRoot: path)
         )
     }
 

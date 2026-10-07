@@ -118,10 +118,14 @@ struct ConstructionUniverseNestedPackageTests {
     private static let packages: Set<String> = ["Packages/A", "Packages/B", "Packages/C", "Demo", "Vendor/Lib"]
 
     private static func compiled(
-        _ manifests: [String: String], unreadable: Set<String> = [], rootHasManifest: Bool = true
+        _ manifests: [String: String],
+        unreadable: Set<String> = [],
+        reported: Set<String> = [],
+        rootHasManifest: Bool = true
     ) -> Set<String> {
         ConstructionUniverse.compiledNestedPackages(
             packages,
+            reported: reported,
             rootHasManifest: rootHasManifest,
             rootPath: "/work/App",
             resolvingSymlinks: { $0 },
@@ -150,6 +154,21 @@ struct ConstructionUniverseNestedPackageTests {
         ])
         // C depends on Demo, but nothing the root compiles depends on C.
         #expect(reached == ["Packages/A", "Packages/B"])
+    }
+
+    @Test("a package the run reports on is in, with its own closure")
+    func reportedPackageIsInWithItsClosure() {
+        let manifests = [
+            "": #".package(path: "Packages/A")"#,
+            "Packages/A": "",
+            "Packages/C": #".package(path: "../../Demo")"#,
+            "Demo": ""
+        ]
+        #expect(Self.compiled(manifests) == ["Packages/A"])
+        // Reporting on `Packages/C` brings it in, and `Demo`, which it depends on; not `Packages/B`.
+        #expect(Self.compiled(manifests, reported: ["Packages/C"]) == ["Packages/A", "Packages/C", "Demo"])
+        // Its doubt is doubt for the run.
+        #expect(Self.compiled(manifests, unreadable: ["Packages/C"], reported: ["Packages/C"]) == Self.packages)
     }
 
     @Test("a dependency the walk never reached is still followed, by its path")
@@ -202,6 +221,7 @@ struct ConstructionUniverseNestedPackageTests {
         for rootPath in ["/work/App", "/alias/App"] {
             let reached = ConstructionUniverse.compiledNestedPackages(
                 Self.packages,
+                reported: [],
                 rootHasManifest: true,
                 rootPath: rootPath,
                 resolvingSymlinks: resolve,

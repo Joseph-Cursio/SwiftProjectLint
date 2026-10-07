@@ -162,7 +162,11 @@ extension ProjectLinter {
     /// merely a file or directory named `Package.swift`. Files are placed by their universe path,
     /// so a symlinked file belongs to the package its link sits in. A file with no universe path is
     /// dropped here, as it would be by the parse.
-    static func compiledByRoot(_ walk: [String], projectRoot: String) -> [String] {
+    ///
+    /// `reported` is the run's reportable files: a nested package holding one is in, with what it
+    /// compiles, so a package linted with `--include-nested-packages` is judged with its own types
+    /// (amendment J). The cost, accepted, is that its namesakes then refute the root's too.
+    static func compiledByRoot(_ walk: [String], reported: [String], projectRoot: String) -> [String] {
         let root = ProjectRoot(projectRoot)
         var manifests: [String: ConstructionUniverse.Manifest] = [:]
         func manifest(_ directory: String) -> ConstructionUniverse.Manifest {
@@ -188,8 +192,14 @@ extension ProjectLinter {
         }
         guard !nestedPackages.isEmpty else { return located.map(\.filePath) }
 
+        let reportedPackages = Set(reported.compactMap { filePath in
+            universePath(for: filePath, projectRoot: projectRoot).flatMap {
+                ConstructionUniverse.owningPackage(of: $0, among: nestedPackages)
+            }
+        })
         let compiled = ConstructionUniverse.compiledNestedPackages(
             nestedPackages,
+            reported: reportedPackages,
             rootHasManifest: isPackage("") && !ConstructionUniverse.holdsXcodeProject(directory: root.path),
             rootPath: root.path,
             resolvingSymlinks: { ProjectRoot($0).path },

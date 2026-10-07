@@ -33,6 +33,42 @@ struct PackagePurityNestedPackageTests {
         #expect(Self.warnsAboutReportBuilder(issues))
     }
 
+    @Test("a nested package the run reports on is judged with its own types")
+    func reportedNestedPackageIsJudgedWithItsOwnTypes() async throws {
+        // With nested packages reported, `Demo/`'s own functions are judged; bounded to what the
+        // root compiles, the table held none of `Demo`'s types, so `tokenCount` was offered and
+        // `TokenBuilder`, building a `Token` that mints a `UUID`, passed as a pure kernel — the
+        // run lost a Direct Instantiation warning.
+        var files = Self.app(manifest: Self.manifest(dependencies: ""))
+        files["Demo/Sources/Demo/Token.swift"] = """
+        import Foundation
+        struct Token: Equatable { let id = UUID(); let n: Int }
+        """
+        files["Demo/Sources/Demo/Make.swift"] = """
+        func tokenCount(_ n: Int) -> Int { Token(n: n).n * 3 }
+        func demoAdd(_ first: Int, _ second: Int) -> Int { first + second }
+        struct TokenBuilder {
+            func tokens(_ values: [Int]) -> [Token] { values.map { Token(n: $0) } }
+        }
+        final class TokenScreen {
+            let builder = TokenBuilder()
+            func render(_ values: [Int]) -> Int { builder.tokens(values).count }
+        }
+        """
+        let reported = try await PackagePurityFixtures.lint(
+            files, configuration: LintConfiguration(includeNestedPackages: true)
+        )
+        let candidates = PackagePurityFixtures.symbols(reported)
+        #expect(candidates.contains("demoAdd"), "Demo was not reported, so the absences prove nothing")
+        #expect(candidates.contains("tokenCount") == false, "Demo was judged without its own Token")
+        #expect(reported.contains { $0.ruleName == .directInstantiation && $0.message.contains("TokenBuilder") })
+
+        // Not reported, `Demo/` stays out, and the root keeps its verdicts and its exemption.
+        let unreported = try await PackagePurityFixtures.lint(files)
+        #expect(PackagePurityFixtures.symbols(unreported).isSuperset(of: ["rowCount", "rows", "render"]))
+        #expect(Self.warnsAboutReportBuilder(unreported) == false)
+    }
+
     @Test("a root with no manifest takes every nested package, as SwiftLintRuleStudio's does")
     func rootWithoutManifestIncludesEveryNestedPackage() async throws {
         var files = Self.app(manifest: nil)

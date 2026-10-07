@@ -20,6 +20,8 @@ import SwiftSyntax
 ///   that passes `path:` anything but a string literal may depend on any of them, so then
 ///   **every** nested package is in (any doubt includes). A path that leaves the root is ignored:
 ///   the universe never does.
+/// - **A nested package holding a file the run reports on** is in too, with its own closure
+///   (amendment J), so `--include-nested-packages` judges it with its own types.
 /// - **It has none** — an Xcode project, a workspace folder — and nothing cheap says what it
 ///   compiles, so every nested package is in. So too when an `.xcodeproj` or `.xcworkspace` sits
 ///   beside the root's manifest (amendment G): the Xcode project may compile local packages the
@@ -52,6 +54,9 @@ extension ConstructionUniverse {
     ///
     /// - Parameters:
     ///   - nestedPackages: root-relative directories (no trailing `/`) that hold a manifest.
+    ///   - reported: those of `nestedPackages` holding a file the run reports on. Each is in, with
+    ///     its own closure (amendment J): a package judged without its own types reads every
+    ///     construction of them as pure.
     ///   - rootHasManifest: whether the root itself holds a manifest and nothing else builds it —
     ///     false beside an Xcode project (`holdsXcodeProject(directory:)`).
     ///   - rootPath: the root's absolute path, which an absolute dependency path must lie under once
@@ -62,6 +67,7 @@ extension ConstructionUniverse {
     ///     at `Package.swift`. An unreadable manifest is doubt, so every nested package is in.
     public static func compiledNestedPackages(
         _ nestedPackages: Set<String>,
+        reported: Set<String>,
         rootHasManifest: Bool,
         rootPath: String,
         resolvingSymlinks: (String) -> String,
@@ -77,19 +83,24 @@ extension ConstructionUniverse {
             if let resolved = relative(location, under: root) { packageAt[resolved] = package }
         }
         var reached: Set<String> = []
-        var visited: Set<String> = [""]
-        var pending = [""]
+        var visited: Set<String> = []
+        var pending: [String] = []
+        // Followed by path, nested package or not: one the walk never reached still compiles what
+        // it depends on.
+        func enter(_ location: String) {
+            if let package = packageAt[location] { reached.insert(package) }
+            if visited.insert(location).inserted { pending.append(location) }
+        }
+        enter("")
+        for (location, package) in packageAt where reported.contains(package) {
+            enter(location)
+        }
         while let directory = pending.popLast() {
             guard let dependencies = dependencies(of: manifest(directory)) else { return nestedPackages }
             for literal in dependencies {
-                guard let resolved = resolve(
-                          literal, from: directory, root: root, resolvingSymlinks: resolvingSymlinks
-                      ),
-                      visited.insert(resolved).inserted else { continue }
-                // Followed by path, nested package or not: one the walk never reached still
-                // compiles what it depends on.
-                if let package = packageAt[resolved] { reached.insert(package) }
-                pending.append(resolved)
+                if let location = resolve(literal, from: directory, root: root, resolvingSymlinks: resolvingSymlinks) {
+                    enter(location)
+                }
             }
         }
         return reached
