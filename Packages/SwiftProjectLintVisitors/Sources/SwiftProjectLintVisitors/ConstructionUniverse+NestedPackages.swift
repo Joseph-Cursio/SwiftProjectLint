@@ -10,10 +10,13 @@ import SwiftSyntax
 /// are only when the root reaches it:
 ///
 /// - **The root has a `Package.swift`**: the closure of its local path dependencies. Each
-///   manifest's `.package(path:)` literals are resolved from that manifest's directory and
-///   followed transitively. A manifest in the closure that passes `path:` anything but a string
-///   literal may depend on any of them, so then **every** nested package is in (any doubt
-///   includes). A path that leaves the root is ignored: the universe never does.
+///   manifest's `.package(path:)` literals are read for their value, as SwiftPM reads them
+///   (escapes decoded, raw strings allowed), resolved from that manifest's directory, standardised,
+///   then symlink-resolved, and followed transitively; a package is matched by where it resolves,
+///   so `/tmp/x` and `/private/tmp/x` name one directory (amendment H). A manifest in the closure
+///   that passes `path:` anything but a string literal may depend on any of them, so then
+///   **every** nested package is in (any doubt includes). A path that leaves the root is ignored:
+///   the universe never does.
 /// - **It has none** — an Xcode project, a workspace folder — and nothing cheap says what it
 ///   compiles, so every nested package is in.
 ///
@@ -45,25 +48,40 @@ extension ConstructionUniverse {
     /// - Parameters:
     ///   - nestedPackages: root-relative directories (no trailing `/`) that hold a `Package.swift`.
     ///   - rootHasManifest: whether the root itself holds a `Package.swift`.
-    ///   - rootPath: the root's absolute path, which an absolute dependency path must lie under.
-    ///   - manifest: the text of the `Package.swift` in a root-relative directory (`""` is the root),
-    ///     or `nil` when it cannot be read — which is doubt, so every nested package is in.
+    ///   - rootPath: the root's absolute path, which an absolute dependency path must lie under once
+    ///     both are resolved.
+    ///   - resolvingSymlinks: an absolute path with its symlinks resolved (`realpath(3)`), or the path
+    ///     itself when it does not resolve.
+    ///   - manifest: the text of the `Package.swift` in a directory given relative to the resolved
+    ///     root (`""` is the root), or `nil` when it cannot be read — which is doubt, so every nested
+    ///     package is in.
     public static func compiledNestedPackages(
         _ nestedPackages: Set<String>,
         rootHasManifest: Bool,
         rootPath: String,
+        resolvingSymlinks: (String) -> String,
         manifest: (String) -> String?
     ) -> Set<String> {
         guard rootHasManifest, !nestedPackages.isEmpty else { return nestedPackages }
+        let root = resolvingSymlinks(rootPath)
+        // Each nested package by where it resolves, so a dependency matches it by location rather
+        // than by spelling.
+        var packageAt: [String: String] = [:]
+        for package in nestedPackages {
+            let location = resolvingSymlinks(joined(rootPath, package))
+            if let resolved = relative(location, under: root) { packageAt[resolved] = package }
+        }
         var reached: Set<String> = []
         var pending = [""]
         while let directory = pending.popLast() {
             guard let text = manifest(directory),
                   let dependencies = localPackageDependencies(manifest: text) else { return nestedPackages }
             for literal in dependencies {
-                guard let resolved = resolve(literal, from: directory, rootPath: rootPath),
-                      nestedPackages.contains(resolved),
-                      reached.insert(resolved).inserted else { continue }
+                guard let resolved = resolve(
+                          literal, from: directory, root: root, resolvingSymlinks: resolvingSymlinks
+                      ),
+                      let package = packageAt[resolved],
+                      reached.insert(package).inserted else { continue }
                 pending.append(resolved)
             }
         }
@@ -82,16 +100,35 @@ extension ConstructionUniverse {
         return nil
     }
 
-    /// `literal` resolved from the root-relative `directory` and standardised (`.` and `..` folded
-    /// over the whole absolute path), as a root-relative path without a trailing `/`; `nil` when the
-    /// result is not under the root. Lexical, as SwiftPM's own path resolution is: no symlink is
-    /// followed.
-    static func resolve(_ literal: String, from directory: String, rootPath: String) -> String? {
-        let root = rootPath.split(separator: "/").map(String.init)
-        let base = literal.hasPrefix("/") ? [] : root + directory.split(separator: "/").map(String.init)
-        guard let absolute = standardised(base + literal.split(separator: "/").map(String.init)),
-              absolute.starts(with: root) else { return nil }
-        return absolute.dropFirst(root.count).joined(separator: "/")
+    /// `literal` resolved from `directory` (relative to the resolved `root`), standardised (`.` and
+    /// `..` folded over the whole absolute path) and then symlink-resolved, as a path relative to
+    /// `root` without a trailing `/`; `nil` when the result is not under the root.
+    ///
+    /// Standardised first, as SwiftPM folds a dependency path; resolved after, so the comparison is
+    /// by location: an absolute literal spelled `/tmp/…` names the package under a root that
+    /// resolves to `/private/tmp/…`, and the other way round.
+    static func resolve(
+        _ literal: String, from directory: String, root: String, resolvingSymlinks: (String) -> String
+    ) -> String? {
+        let base = literal.hasPrefix("/") ? [] : components(root) + components(directory)
+        guard let folded = standardised(base + components(literal)) else { return nil }
+        return relative(resolvingSymlinks("/" + folded.joined(separator: "/")), under: root)
+    }
+
+    /// `path` relative to `root`, both absolute, or `nil` when it is not under it; `""` for the root.
+    private static func relative(_ path: String, under root: String) -> String? {
+        let rootComponents = components(root)
+        let pathComponents = components(path)
+        guard pathComponents.starts(with: rootComponents) else { return nil }
+        return pathComponents.dropFirst(rootComponents.count).joined(separator: "/")
+    }
+
+    private static func joined(_ root: String, _ relative: String) -> String {
+        relative.isEmpty ? root : (root.hasSuffix("/") ? root : root + "/") + relative
+    }
+
+    private static func components(_ path: String) -> [String] {
+        path.split(separator: "/").map(String.init)
     }
 
     /// `components` with `.` dropped and `..` folded, or `nil` when `..` climbs above `/`.
@@ -130,14 +167,12 @@ private final class PathDependencyCollector: SyntaxVisitor {
         return .visitChildren
     }
 
-    /// The text of a string literal with no interpolation, or `nil` for anything computed.
+    /// The value of a string literal with no interpolation — escapes decoded, a raw or multi-line
+    /// literal joined, as the compiler reads it — or `nil` for anything computed or malformed.
+    ///
+    /// The value, not the source text: `"Packages/\u{55}til"` names `Packages/Util` to SwiftPM, and
+    /// read as written it named no package at all, so the one the root compiles left the table.
     private static func literal(_ expression: ExprSyntax) -> String? {
-        guard let literal = expression.as(StringLiteralExprSyntax.self) else { return nil }
-        var text = ""
-        for segment in literal.segments {
-            guard let piece = segment.as(StringSegmentSyntax.self) else { return nil }
-            text += piece.content.text
-        }
-        return text
+        expression.as(StringLiteralExprSyntax.self)?.representedLiteralValue
     }
 }

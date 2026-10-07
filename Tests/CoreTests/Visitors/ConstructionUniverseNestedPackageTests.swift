@@ -53,8 +53,12 @@ struct ConstructionUniverseNestedPackageTests {
         _ manifests: [String: String], rootHasManifest: Bool = true
     ) -> Set<String> {
         ConstructionUniverse.compiledNestedPackages(
-            packages, rootHasManifest: rootHasManifest, rootPath: "/work/App"
-        ) { manifests[$0] }
+            packages,
+            rootHasManifest: rootHasManifest,
+            rootPath: "/work/App",
+            resolvingSymlinks: { $0 },
+            manifest: { manifests[$0] }
+        )
     }
 
     @Test("the root's local path dependencies, followed transitively")
@@ -85,6 +89,30 @@ struct ConstructionUniverseNestedPackageTests {
         ])
         // `../App/Demo` climbs out and back in: it names `/work/App/Demo`, which is under the root.
         #expect(reached == ["Vendor/Lib", "Demo", "Packages/C"])
+    }
+
+    @Test("a dependency matches a package where both resolve, however either is spelled")
+    func dependenciesMatchByResolvedLocation() {
+        // `/alias` links to `/work`, as `/tmp` does to `/private/tmp`: one directory, two spellings.
+        // SwiftProjectLint passes a resolved root and SwiftInferProperties the one it was given, so
+        // the match must hold for a root spelled either way.
+        let resolve: (String) -> String = { path in
+            path.hasPrefix("/alias/") ? "/work/" + path.dropFirst("/alias/".count) : path
+        }
+        let manifests = [
+            "": #".package(path: "/alias/App/Vendor/Lib")"#,
+            "Vendor/Lib": #".package(path: "/work/App/Demo"), .package(path: "/alias/Other/Lib")"#,
+            "Demo": ""
+        ]
+        for rootPath in ["/work/App", "/alias/App"] {
+            let reached = ConstructionUniverse.compiledNestedPackages(
+                Self.packages,
+                rootHasManifest: true,
+                rootPath: rootPath,
+                resolvingSymlinks: resolve
+            ) { manifests[$0] }
+            #expect(reached == ["Vendor/Lib", "Demo"], "root spelled \(rootPath)")
+        }
     }
 
     @Test("doubt anywhere in the closure includes every nested package")

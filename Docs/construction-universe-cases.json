@@ -51,9 +51,23 @@
     {
       "manifest": "let name = \"Core\"\nlet package = Package(name: \"P\", dependencies: [.package(path: \"Packages/\\(name)\")])",
       "expected": null
+    },
+    {
+      "manifest": "let package = Package(name: \"P\", dependencies: [.package(path: \"Pack\\u{61}ges/A\")])",
+      "expected": [
+        "Packages/A"
+      ]
+    },
+    {
+      "manifest": "let package = Package(name: \"P\", dependencies: [.package(path: #\"Packages/B\"#)])",
+      "expected": [
+        "Packages/B"
+      ]
     }
   ],
   "buildOrder": [
+    "Sources/A-B/X.swift",
+    "Sources/A/X.swift",
     "Sources/B/B.swift",
     "Sources/F10/X.swift",
     "Sources/F2/Y.swift",

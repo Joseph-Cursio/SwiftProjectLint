@@ -187,10 +187,12 @@ extension ProjectLinter {
         guard !nestedPackages.isEmpty else { return located.map(\.filePath) }
 
         let compiled = ConstructionUniverse.compiledNestedPackages(
-            nestedPackages, rootHasManifest: isPackage(""), rootPath: root.path
-        ) { directory in
-            try? String(contentsOfFile: manifestPath(directory), encoding: .utf8)
-        }
+            nestedPackages,
+            rootHasManifest: isPackage(""),
+            rootPath: root.path,
+            resolvingSymlinks: { ProjectRoot($0).path },
+            manifest: { try? String(contentsOfFile: manifestPath($0), encoding: .utf8) }
+        )
         return located.filter { file in
             ConstructionUniverse.owningPackage(of: file.universePath, among: nestedPackages)
                 .map(compiled.contains) ?? true

@@ -45,6 +45,48 @@ struct PackagePurityNestedPackageTests {
         #expect(candidates.contains("rowCount") == false, "Demo/ was left out of an Xcode-style root's table")
     }
 
+    /// How the root's manifest spells its one dependency, `Packages/Util`.
+    enum DependencySpelling: String, CaseIterable {
+        /// `"Packages/\u{55}til"`: SwiftPM decodes the escape.
+        case escaped
+        /// The absolute path through a link to the root, as `/tmp/…` is to `/private/tmp/…`.
+        case throughALink
+        /// The absolute path with every link resolved.
+        case resolved
+    }
+
+    @Test("a dependency path is read for its value and matched where it resolves", arguments: DependencySpelling.allCases)
+    func dependencyPathIsReadAsSwiftPMReadsIt(spelling: DependencySpelling) async throws {
+        // Read as source text, the escape named no package; compared lexically against the
+        // resolved root, a path through a link was outside it. Either way `Util` left the table
+        // and `countOf` was offered, though the root compiles the `Item` it builds.
+        let root = try PackagePurityFixtures.makeProject([
+            "Packages/Util/Package.swift": "// swift-tools-version:6.0\n",
+            "Packages/Util/Sources/Util/Item.swift": PackagePurityFixtures.refutingItem,
+            "Sources/App/Callers.swift": PackagePurityFixtures.callers
+        ])
+        let alias = root + "-alias"
+        try FileManager.default.createSymbolicLink(atPath: alias, withDestinationPath: root)
+        defer {
+            try? FileManager.default.removeItem(atPath: alias)
+            try? FileManager.default.removeItem(atPath: root)
+        }
+        let literal = switch spelling {
+        case .escaped: #""Packages/\u{55}til""#
+        case .throughALink: "\"\(alias)/Packages/Util\""
+        case .resolved: "\"\(ProjectRoot(root).path)/Packages/Util\""
+        }
+        try Self.manifest(dependencies: ".package(path: \(literal))")
+            .write(toFile: root + "/Package.swift", atomically: true, encoding: .utf8)
+
+        // Linted through either spelling of the root, the answer is the same.
+        for lintPath in [root, alias] {
+            let found = await PackagePurityFixtures.candidateSymbols(at: lintPath)
+            #expect(found.contains("sentinelAdd"), "\(spelling) via \(lintPath): the rule produced nothing")
+            #expect(found.contains("countOf") == false, "\(spelling) via \(lintPath): Util left the table")
+        }
+    }
+
     // MARK: - Fixtures
 
     /// The probe the review ran: an executable `App`, its plain `Row`, a pure kernel building it, a
