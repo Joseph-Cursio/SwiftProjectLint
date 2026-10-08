@@ -22,7 +22,7 @@ The following patterns are exempt because they do not represent real coupling is
 - **Test files** — test code and test helpers use concrete types by necessity
 - **SwiftUI property wrapper properties** — `@State`, `@StateObject`, `@ObservedObject`, `@EnvironmentObject`, `@Binding`, `@Published`, `@AppStorage`, `@SceneStorage`, `@Bindable`, `@Environment`
 - **Enum types** — a project-wide pre-scan identifies all declared enums; enum-typed parameters and properties are exempt because enums are value types and cannot be protocol-abstracted in the same way as a service class
-- **Actor types** — a project-wide pre-scan identifies all declared actors; actor-typed parameters and properties are exempt because an actor's serial-executor isolation contract is load-bearing in Swift 6 strict concurrency. Protocol-abstracting an actor strips that contract from every call site — the caller loses the compiler-enforced `await` requirement and the guarantee of serialized access
+- **Actor types with no all-`async` protocol** — a project-wide pre-scan identifies every declared actor and the project protocols it conforms to. An actor's serial-executor isolation contract is load-bearing in Swift 6 strict concurrency, and a protocol *can* strip it: a synchronous requirement is satisfiable only by a `nonisolated` member or a `@preconcurrency` conformance, and either way a caller reaches it without `await`. So an actor that conforms to no project protocol, or only to protocols with a synchronous requirement, stays exempt. One that conforms to a project protocol whose every instance requirement is `async` is reported, and the suggestion names that protocol — see [the section below](#actors-that-already-have-an-all-async-protocol)
 - **Init parameters mirroring a flagged stored property** — when a stored property is flagged, its matching initializer parameter represents the same coupling point and is suppressed to avoid duplicate reports
 - **AppKit and UIKit classes** — recognised by the `NS`/`UI` prefix convention rather than enumerated, and only when the project does not declare a type of that name
 - **`private` / `fileprivate` types** — a protocol around one could only be conformed to in the file that declares it
@@ -109,6 +109,84 @@ instead are records that merely *end* in a service word:
 generates nothing. `Hashable` and `Comparable` both refine `Equatable`, so the existing prescan
 covers all three spellings and the inline and `extension` forms alike.
 
+### Actors that already have an all-`async` protocol
+
+The actor exemption used to cover every actor, on the reasoning that a protocol strips the
+isolation contract from every call site. **That holds for some protocols and not others, and the
+compiler already tells them apart.**
+
+A protocol *can* strip it. A synchronous requirement is satisfiable only by a `nonisolated` member
+or a `@preconcurrency` conformance — Swift 6 rejects an actor-isolated member there, because the
+conformance *"crosses into actor-isolated code and can cause data races"* — and either way a caller
+reaches that member without `await`. So the exemption stays for an actor that conforms to no project
+protocol, or only to protocols with a synchronous requirement.
+
+A protocol whose every instance requirement is `async` cannot. Callers going through it still
+`await`, and the conformance cannot quietly weaken that, for the same compiler reason. When the
+actor conforms to one, it has already been abstracted with nothing lost, and naming the actor
+instead is exactly the coupling this rule is for:
+
+```swift
+protocol OrderStore: Sendable {
+    func save(_ order: Order) async throws
+    func recentOrders() async throws -> [Order]
+}
+actor CoreDataOrderStore: OrderStore { … }
+
+@MainActor @Observable
+final class CheckoutViewModel {
+    private let store: CoreDataOrderStore   // ← reported
+    init(store: CoreDataOrderStore) { … }   // same coupling point, folded into the line above
+}
+```
+
+This is Checkout's `solid/d-concrete-dependency` branch, built as a dependency-inversion example,
+where the rule stayed silent. It now reports the property, and the suggestion names the protocol
+rather than asking for a new one: *"Use 'OrderStore' as the property type — 'CoreDataOrderStore'
+already conforms, and every requirement is async, so callers still await"*.
+
+Swift 6.2's isolated conformances (SE-0470) do not change this: a conformance can be isolated to a
+*global* actor, not to an `actor` instance, so a synchronous requirement still needs `nonisolated`.
+
+**What counts as all-`async`.** The pre-scan (`ActorTypeCatalog`) joins three facts that are rarely
+in one file: the actor, the protocol, and the conformance, which is as often an
+`extension CoreDataOrderStore: OrderStore {}` elsewhere. The protocol must be declared in the
+analysed sources and not be `private` or `fileprivate`, and it must have at least one `async`
+instance requirement and no synchronous one — a `{ get async }` property counts as `async`, and a
+`{ get }` one does not. Requirements inherited from other project protocols count, and so does a
+`where Self: …` clause. A parent outside the project counts as synchronous, because its
+requirements are not visible here, unless it is a marker that carries none (`Sendable`, `Actor`,
+`AnyObject`, and so on). `init`, `static` members and associated types are never isolated to an
+instance, so they neither qualify a protocol nor disqualify one; a protocol with nothing else is a
+marker, and `any` of it would give a caller nothing to call. An actor conforming to
+`CountingOrderStore: OrderStore`, where the child adds a synchronous `count`, still conforms to
+`OrderStore` and is reported against it.
+
+**Not inside the actor itself.** An actor named inside its own declaration or one of its
+extensions — by its own methods, or by a type nested in it — stays exempt. The protocol exists for
+callers, and code inside the actor is its implementation. The corpus showed why:
+`swift-aws-lambda-runtime`'s `LambdaRuntimeClient.Writer` holds its owning actor and calls `write`
+and `writeAndFinish` on it, while `LambdaRuntimeClientProtocol` offers only `nextInvocation()`.
+That was the only finding the narrowing produced besides Checkout's, and nobody could fix it by
+abstracting. Classes have the same shape and are still reported for it — four Hummingbird findings,
+a copy initialiser and nested types holding their owner — which is older than this change and left
+to its own.
+
+**Measured** with debug CLIs built from `main` and from this change, JSON output,
+`--categories architecture`, over the repository root of every sibling Swift repository (35, the
+two `_mutated` mutation-testing copies left out). Each repository ran with its own config, plus
+three runs with the rule switched on where that config leaves it off: Checkout `main` and the
+`solid/d-concrete-dependency` branch under `.swiftprojectlint-solid.yml`, and
+SwiftCompilerFlagStudio with the default rules.
+
+| | Concrete Type Usage | other architecture findings |
+|---|---|---|
+| before | 73 | 286 |
+| narrowed | 75 | 286 |
+| + not inside the actor itself | **74** | 286 |
+
+The one finding the change adds is Checkout's, and none is removed.
+
 ### Non-Violating Examples
 ```swift
 // Using a protocol-named type
@@ -144,6 +222,15 @@ struct MyView: View {
     @ObservedObject var viewModel: MyViewModel
     var body: some View { Text("") }
 }
+
+// Actor with no all-async protocol — exempt; a protocol could strip its isolation
+actor ImageStore {
+    func image(for url: URL) async -> Image? { nil }
+}
+final class Gallery {
+    let store: ImageStore
+    init(store: ImageStore) { self.store = store }
+}
 ```
 
 ### Violating Examples
@@ -157,6 +244,18 @@ class Setup {
 class MyViewModel {
     var repo: UserRepository  // concrete type, no initializer
     init(repo: UserRepository) { self.repo = repo }
+}
+
+// Actor typed concretely beside an all-async protocol it conforms to
+protocol OrderStore: Sendable {
+    func save(_ order: Order) async throws
+}
+actor CoreDataOrderStore: OrderStore {
+    func save(_ order: Order) async throws { }
+}
+final class CheckoutViewModel {
+    private let store: CoreDataOrderStore  // use 'OrderStore' — callers still await
+    init(store: CoreDataOrderStore) { self.store = store }
 }
 ```
 
