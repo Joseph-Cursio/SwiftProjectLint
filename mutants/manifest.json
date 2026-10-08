@@ -683,12 +683,60 @@
       "label": "Withholdable gains subscript(unchecked:), which reads the private state without tripping, and isPureKernel answers through it — a withheld catalog says 'no kernel' silently"
     },
     {
+      "id": "purity-gate-oracle-created-by-dot-init",
+      "patch": "patches/purity-gate-oracle-created-by-dot-init.patch",
+      "shape": "engine-wiring",
+      "expected": "killed",
+      "test": "oracleEntryPointsAreKnown",
+      "label": "a new public PropertyTestCandidacy.isPure(closure:) creates its oracle as `let oracle: PurityInferrer = .init()`, and the undeclared Global Mutable State calls it on closures over 50 statements — a scan that matches only `PurityInferrer(` sees no entry point"
+    },
+    {
+      "id": "purity-gate-unlabelled-helper-reads-for-another-visitor",
+      "patch": "patches/purity-gate-unlabelled-helper-reads-for-another-visitor.patch",
+      "shape": "engine-wiring",
+      "expected": "killed",
+      "test": "purityReadersDeclareWhatTheyRead",
+      "label": "a ClosureOracle class in Pure Closure's file stores an oracle, and the undeclared Global Mutable State builds one with `ClosureOracle()` — a scan that leaves out unlabelled initializers, so as not to take a registrar's `X.self` for a call, misses the construction"
+    },
+    {
+      "id": "purity-gate-read-overload-bypasses-read",
+      "patch": "patches/purity-gate-read-overload-bypasses-read.patch",
+      "shape": "engine-wiring",
+      "expected": "killed",
+      "test": "withholdableStateIsReadOnlyThroughRead",
+      "label": "Withholdable gains read(unchecked:), which reads the private state without tripping, and isPureKernel answers through it — a scan that names functions by base name takes it for read(_:)"
+    },
+    {
+      "id": "purity-gate-empty-constant-built-by-the-join",
+      "patch": "patches/purity-gate-empty-constant-built-by-the-join.patch",
+      "shape": "engine-wiring",
+      "expected": "killed",
+      "test": "noStaticHoldsAnOracle",
+      "label": "ImpurePackageFunctions.empty is spelled as the join of no sources, `Self(PackagePurityJoin(sources: []).settledImpureNames)` — the constant creates an oracle under whichever pass first touches it, and a scan that sanctions `empty` by name and `let` lets it pass"
+    },
+    {
+      "id": "purity-gate-detector-kept-in-a-static",
+      "patch": "patches/purity-gate-detector-kept-in-a-static.patch",
+      "shape": "engine-wiring",
+      "expected": "killed",
+      "test": "noStaticHoldsAnOracle",
+      "label": "SourcePatternDetector keeps the last detector that configured a visitor in `static var lastConfigured: SourcePatternDetector?` — it holds that pass's catalogs, withheld ones included, past the seal, and a held set without the detector lets it pass"
+    },
+    {
       "id": "purity-gate-cli-drops-rerun-warning",
       "patch": "patches/purity-gate-cli-drops-rerun-warning.patch",
       "shape": "engine-wiring",
       "expected": "killed",
       "test": "cliReportsAPurityRerunAsAWarning",
-      "label": "the CLI builds its linter with ProjectLinter() again — the linter has no notice to call, and a release build redoes a mispredicted run in silence"
+      "label": "makeLinter builds its linter with ProjectLinter(), dropping the notice — the linter run() takes from it has nothing to call on a rerun, and a release build redoes a mispredicted run in silence; the killer holds makeLinter's linter, not run()'s use of it"
+    },
+    {
+      "id": "purity-gate-cli-run-bypasses-make-linter",
+      "patch": "patches/purity-gate-cli-run-bypasses-make-linter.patch",
+      "shape": "engine-wiring",
+      "expected": "killed",
+      "test": "cliBuildsItsLinterOnlyThroughMakeLinter",
+      "label": "run() builds its own ProjectLinter() and leaves makeLinter unused — makeLinter's linter still warns, so the runtime test passes, and the CLI says nothing about a rerun"
     }
   ]
 }

@@ -298,8 +298,8 @@ finding.
 The last five are the rerun: returning the tripped pass, rerunning with the demand that tripped
 (stopped by the `precondition`), returning the first pass of a run cancelled meanwhile, handing the
 caller's long-lived detector a catalog that outlives its run, and dropping the call to the notice in
-`lint`, which the CLI prints. (The CLI's own half, building a linter that has a notice, is
-`purity-gate-cli-drops-rerun-warning` below.)
+`lint`, which the CLI prints. (The CLI's own half, building and using a linter that has a notice, is
+under "The CLI's rerun warning" below.)
 
 Removing the debug `assert` in `analyzeProject` is an equivalent mutant and is not listed: it only
 reports a rerun that has already happened, so no test can tell it is gone.
@@ -318,12 +318,13 @@ it again — though by then the gate's own tests did too: a catalog dropped per 
 
 ### The gate's source scans
 
-Seven more, from the review of the gate. A missing declaration costs the gate a second pass, never
-a finding, so the runtime tests catch it only on a shape some corpus reaches. The structural scans
-in `PurityOracleEntryTests` are there for the rest: they read the source. Each mutant below is code
-that one of those scans missed before the review, and each survives the scans as they were at
-0c701ba7. Each also has a probe in `PurityScanProbeTests`, which hands the scan the same shape as a
-string, so a scan that loses its reach fails there even with no mutant applied.
+Eleven more, from the two reviews of the gate. A missing declaration costs the gate a second pass,
+never a finding, so the runtime tests catch it only on a shape some corpus reaches. The structural
+scans in `PurityOracleEntryTests` are there for the rest: they read the source. Each mutant below is
+code that one of those scans missed: the first six survive the scans as they were at 0c701ba7, the
+last five the scans as they were at 9112617a. Each also has a probe in `PurityScanProbeTests`, which
+hands the scan the same shape as a string, so a scan that loses its reach fails there even with no
+mutant applied.
 
 | id | shape | expected | killer |
 |---|---|---|---|
@@ -333,7 +334,11 @@ string, so a scan that loses its reach fails there even with no mutant applied.
 | `purity-gate-read-in-an-undeclared-visitors-extension` | engine-wiring | killed | `purityReadersDeclareWhatTheyRead` |
 | `purity-gate-rule-helper-reads-for-another-visitor` | engine-wiring | killed | `purityReadersDeclareWhatTheyRead` |
 | `purity-gate-subscript-bypasses-read` | engine-wiring | killed | `withholdableStateIsReadOnlyThroughRead` |
-| `purity-gate-cli-drops-rerun-warning` | engine-wiring | killed | `cliReportsAPurityRerunAsAWarning` |
+| `purity-gate-oracle-created-by-dot-init` | engine-wiring | killed | `oracleEntryPointsAreKnown` |
+| `purity-gate-unlabelled-helper-reads-for-another-visitor` | engine-wiring | killed | `purityReadersDeclareWhatTheyRead` |
+| `purity-gate-read-overload-bypasses-read` | engine-wiring | killed | `withholdableStateIsReadOnlyThroughRead` |
+| `purity-gate-empty-constant-built-by-the-join` | engine-wiring | killed | `noStaticHoldsAnOracle` |
+| `purity-gate-detector-kept-in-a-static` | engine-wiring | killed | `noStaticHoldsAnOracle` |
 
 The first two keep a catalog in a static. The scan used to match only the oracle, the table, the
 tripwire and `Withholdable` by name. `CleanInstanceMethodCatalog` and `ImpurePackageFunctions` each
@@ -354,9 +359,43 @@ files that call it.
 listed functions, initializers and computed properties, and a subscript reached the private state
 without tripping. The scan now names whatever declaration each `state` token sits in.
 
-The last is the CLI. `purity-gate-rerun-not-reported` drops the call in `lint`; this one keeps the
-call and drops the listener. The CLI's notice is the only sign a release build gives of a
-mispredicted declaration, and no test held it before.
+The last five are what the second review found the scans still read past. `oracle-created-by-dot-init`
+creates the oracle as `let oracle: PurityInferrer = .init()`, which a scan for `PurityInferrer (`
+does not see; a declaration that names `PurityInferrer` beside a `.init` now creates one.
+`unlabelled-helper-reads-for-another-visitor` is the gap the reader scan used to document: a helper
+class that stores an oracle, built with `ClosureOracle()` in an undeclared visitor's file. Unlabelled
+initializers were left out because, by identifier tokens alone, that call reads like a registrar's
+`ClosureOracle.self`; they are now matched with their punctuation. `read-overload-bypasses-read` is
+the subscript mutant's sibling: an overload named `read` passed a scan that named functions by base
+name, and functions are now named by their full signature. The last two are the static scan: a
+sanctioned name whose constant is built from a run (a sanctioned constant must now be built from
+literals and the empty constants alone), and a held set without the detector — and without the
+visitors, which it now holds too, found from the source.
+
+The static scan still matches names. A static whose type is inferred from a call, or a type that
+stores a held value and is not listed, passes it; that is its documented limit, and no mutant is
+listed for it.
+
+### The CLI's rerun warning
+
+Two more, one per half of the CLI's notice.
+
+| id | shape | expected | killer |
+|---|---|---|---|
+| `purity-gate-cli-drops-rerun-warning` | engine-wiring | killed | `cliReportsAPurityRerunAsAWarning` |
+| `purity-gate-cli-run-bypasses-make-linter` | engine-wiring | killed | `cliBuildsItsLinterOnlyThroughMakeLinter` |
+
+`purity-gate-rerun-not-reported` drops the call in `lint`; these keep the call and lose the
+listener. The CLI's notice is the only sign a release build gives of a mispredicted declaration.
+
+The first builds `makeLinter`'s linter with `ProjectLinter()`. Its killer runs that linter over a
+visitor that creates an oracle undeclared and expects one `warning:` line, so it holds `makeLinter`,
+not `run()`. The second leaves `makeLinter` alone and has `run()` build its own `ProjectLinter()`,
+which every runtime test passes: the configured rules never trip, and a debug `analyzeProject`
+asserts on a run that does, so `run()` cannot be exercised for it. Its killer reads `Sources/CLI`
+instead: only `makeLinter` may name `ProjectLinter`, and the one `analyzeProject` call must be made
+in `run()` on a constant bound to `makeLinter` with standard error. Neither is a purity scan, and
+neither has a probe in `PurityScanProbeTests`: the CLI's check lives in the CLI's test target.
 
 ### The `ConcreteTypeUsage` seam exemptions
 

@@ -1,0 +1,13 @@
+diff --git a/Sources/CLI/SwiftProjectLintCLI.swift b/Sources/CLI/SwiftProjectLintCLI.swift
+index 3337787e..c240fad2 100644
+--- a/Sources/CLI/SwiftProjectLintCLI.swift
++++ b/Sources/CLI/SwiftProjectLintCLI.swift
+@@ -107,7 +107,7 @@ struct SwiftProjectLintCLI: AsyncParsableCommand {
+         }
+ 
+         let system = PatternRegistryFactory.createConfiguredSystem()
+-        let linter = Self.makeLinter { Self.printToStandardError($0) }
++        let linter = ProjectLinter()
+ 
+         let issues = await linter.analyzeProject(
+             at: absolutePath,
