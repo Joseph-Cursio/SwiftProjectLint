@@ -237,8 +237,8 @@ such a function pure.
 
 It now knows what constructing each of the package's types runs — stored-property defaults, the
 initializer the call reaches and its defaulted parameters, a superclass's construction — through
-SwiftEffectInference's `ConstructionFacts`, built once per run by `PackagePurity` and read by every
-oracle the run creates. A function that constructs a refuted type is refused, with a witness naming
+SwiftEffectInference's `ConstructionFacts`, built by `PackagePurity` for every run that needs them
+(see below) and read by every oracle the run creates. A function that constructs a refuted type is refused, with a witness naming
 the step (`SimulationIssue.init(id:severity:message:affectedKey:suggestion:): id's default: UUID`).
 As with every refuter, any doubt refutes: a function that builds an `Item` and returns only its
 `n` is refused too. The one-hop callee join counts the witness as evidence, so a caller of such a
@@ -248,10 +248,12 @@ function is withdrawn as well.
 others (Pure Closure Property-Test Candidate, Impure Closure Inventory, Extractable Total Kernel,
 Unreachable Effect Closure, Could Be Private, Could Be Private Member, Direct Instantiation and
 Concrete Type Usage). A run narrowed to rules that read none of it — by `enabled_only`,
-`disabled_rules` or `--categories` — skips the universe walk, the manifest reads, the parse of files
-outside the reporting set and the facts themselves. Turning this rule off alone skips nothing while
-any of the other eight is enabled, and the findings of the rules that do run are the same either way
-(see the purity gate in [`Docs/architecture.md`](../architecture.md)).
+`disabled_rules` or `--categories` — skips the universe walk, the manifest reads, the parse of the
+files only the universe holds (generated files, and the nested packages the run does not report on;
+files under `excluded_paths` are parsed regardless, as evidence) and the facts themselves. Turning
+this rule off alone, while any of the other eight is enabled, skips only the one-hop callee join,
+which no other rule reads. The findings of the rules that do run are the same either way (see the
+purity gate in [`Docs/architecture.md`](../architecture.md)).
 
 **Which files' types count** is `ConstructionUniverse`, a rule shared word for word with
 SwiftInferProperties (the agreed rows are in [`Docs/construction-universe.tsv`](../construction-universe.tsv)):

@@ -115,6 +115,16 @@ struct PurityGateDeclarationTests {
         #expect(Demand(planned: nil, registry: PatternVisitorRegistry()).inputs.isEmpty)
     }
 
+    /// What `Docs/rules/pure-function-candidate.md` says: with the other eight readers on, turning
+    /// Pure Function off skips the one-hop join and nothing else.
+    @Test("without Pure Function the other readers still build the table and the clean-method catalog")
+    func onlyPureFunctionReadsTheJoin() {
+        let others = Self.declaredRules.filter { $0 != .pureFunctionCandidate }
+        let registry = PatternRegistryFactory.createConfiguredSystem().visitorRegistry
+        let demand = ProjectLinter.PurityDemand(planned: others, registry: registry)
+        #expect(demand.inputs == [.oracle, .cleanInstanceMethods])
+    }
+
     // MARK: - The fallback
 
     @Test("an undeclared read is redone with everything built, whichever surface it reads", arguments: [

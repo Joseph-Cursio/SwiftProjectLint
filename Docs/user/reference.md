@@ -272,8 +272,10 @@ Nine rules read the *package purity* — what constructing each of the project's
 Function Property-Test Candidate, Pure Closure Property-Test Candidate, Impure Closure Inventory,
 Extractable Total Kernel, Unreachable Effect Closure, Could Be Private, Could Be Private Member,
 Direct Instantiation and Concrete Type Usage. Building it means walking every Swift file the root
-compiles, reading the manifests of the nested packages it depends on, parsing the files outside the
-reporting set and resolving the whole package, which is a large share of a narrow run's time.
+compiles, reading the manifests of the nested packages it depends on, parsing the files no run
+reports on — generated files, and nested packages left out of scope — and resolving the whole
+package, which is a large share of a narrow run's time. (Files under `excluded_paths` are parsed
+either way: cross-file rules read them as evidence.)
 
 A run that executes none of the nine skips all of that: `enabled_only` listing only other rules,
 `disabled_rules` naming all nine, or a `--categories` selection that contains none of them, such as
