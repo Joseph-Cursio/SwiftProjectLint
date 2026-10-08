@@ -166,6 +166,28 @@ struct ConcreteTypeUsageGenericParameterTests {
         #expect(issue.message.contains("'SessionStore'"))
     }
 
+    @Test("a concrete FileProvider stored in a type generic over something else is still reported")
+    func concreteProviderInGenericTypeIsReported() throws {
+        // Hummingbird's `FileMiddleware` with the provider made concrete: the type is still
+        // generic, but over `Context` alone, so `FileProvider` names the class.
+        let source = """
+        final class FileProvider {
+            private let fileManager: FileManager
+            init(fileManager: FileManager) { self.fileManager = fileManager }
+        }
+        public struct FileMiddleware<Context: RequestContext>: RouterMiddleware {
+            let fileProvider: FileProvider
+            public init(fileProvider: FileProvider) { self.fileProvider = fileProvider }
+        }
+        """
+        let found = issues(source)
+        // The property and its mirroring init parameter are one coupling point, reported once.
+        let issue = try #require(found.first)
+        #expect(found.count == 1)
+        #expect(issue.lineNumber == 6)
+        #expect(issue.message.contains("concrete type 'FileProvider'"))
+    }
+
     @Test("a conforming type does not inherit the protocol's associated types")
     func conformingTypeIsReported() throws {
         // Inside a conformer, `Client` names the witness the conformer bound, which is concrete.
