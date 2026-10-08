@@ -5,6 +5,7 @@
 **Identifier:** `Test Missing Expect`
 **Category:** Code Quality
 **Severity:** Info
+**Opt-in:** yes — enable via `enabled_only`
 
 ### Rationale
 In design-by-contract testing, `#require` validates preconditions and `#expect` verifies postconditions. A test with `#require` but no `#expect` confirms that setup is valid but never asserts anything about the behavior under test.

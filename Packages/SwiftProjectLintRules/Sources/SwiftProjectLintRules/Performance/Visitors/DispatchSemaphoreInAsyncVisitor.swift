@@ -18,7 +18,7 @@ final class DispatchSemaphoreInAsyncVisitor: BasePatternVisitor {
         guard let declRef = node.calledExpression.as(DeclReferenceExprSyntax.self),
               declRef.baseName.text == "DispatchSemaphore" else { return }
 
-        guard isInsideAsyncContext(Syntax(node)) else { return }
+        guard Self.isInsideAsyncContext(Syntax(node)) else { return }
 
         addIssue(
             severity: .warning,
@@ -32,7 +32,10 @@ final class DispatchSemaphoreInAsyncVisitor: BasePatternVisitor {
         )
     }
 
-    func isInsideAsyncContext(_ syntax: Syntax) -> Bool {
+    /// Whether `syntax` sits in an async function or async closure, stopping at the first
+    /// function or closure boundary. Static so `Blocking I/O On Main Actor` can leave this
+    /// rule's findings to it.
+    static func isInsideAsyncContext(_ syntax: Syntax) -> Bool {
         var current = syntax
         while let parent = current.parent {
             if let funcDecl = parent.as(FunctionDeclSyntax.self) {

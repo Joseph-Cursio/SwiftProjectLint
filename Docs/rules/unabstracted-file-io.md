@@ -24,6 +24,9 @@ Because the rule keys off both the call shape and the enclosing type's role, it 
 
 **Scope note:** the rule reasons about a single file's syntax; it does not verify that the enclosing type actually injects its *other* dependencies. The suffix allowlist is the heuristic standing in for "this is an orchestration layer that should delegate I/O."
 
+### Related
+In a main-actor view model, [Blocking I/O On Main Actor](blocking-io-on-main-actor.md) can report the same call, for a different reason: the read freezes the UI. Fixing this rule doesn't fix that one, because a synchronous seam called on the main actor still blocks it. Make the seam `async` and `await` it to fix both.
+
 ### Non-Violating Examples
 ```swift
 // The seam type itself performs the raw I/O — that is its job.

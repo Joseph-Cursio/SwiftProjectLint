@@ -54,7 +54,7 @@ swift run CLI /path/to/project --categories stateManagement,performance --thresh
 | Category | Rules |
 |----------|-------|
 | State Management | 13 |
-| Performance | 14 |
+| Performance | 15 |
 | Animation | 10 |
 | Architecture | 36 |
 | Code Quality | 56 |

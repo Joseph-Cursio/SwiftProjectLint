@@ -20,8 +20,8 @@ class DirectInstantiationVisitor: BasePatternVisitor {
     /// Depth inside the program's designated entry point. See `insideEntryPoint`.
     private var insideEntryPoint = 0
 
-    /// Whether the type currently being visited carries `@main`.
-    private var mainAttributedTypeDepth: [Bool] = []
+    /// Whether each type being visited, innermost last, is an entry type. See `isEntryType`.
+    private var entryTypeStack: [Bool] = []
 
     /// Names of the types this file declares `private` or `fileprivate`, gathered in one
     /// pass over the file before any finding is reported. No project-wide prescan is needed
@@ -161,6 +161,8 @@ class DirectInstantiationVisitor: BasePatternVisitor {
     // MARK: - Stored property / local variable detection
 
     override func visit(_ node: VariableDeclSyntax) -> SyntaxVisitorContinueKind {
+        if isRuntimeDrivenMember(node) { insideEntryPoint += 1 }
+
         // The program's entry point is the composition root the language designates. There is
         // exactly one per program, everything else is reached from it, and it has nowhere
         // further out to push a construction.
@@ -184,6 +186,10 @@ class DirectInstantiationVisitor: BasePatternVisitor {
             report(typeName, at: node)
         }
         return .visitChildren
+    }
+
+    override func visitPost(_ node: VariableDeclSyntax) {
+        if isRuntimeDrivenMember(node) { insideEntryPoint -= 1 }
     }
 
     /// Whether a construction is a *definition* rather than a consumption.
@@ -252,15 +258,78 @@ class DirectInstantiationVisitor: BasePatternVisitor {
         }
     }
 
-    /// Whether a function declaration is the entry point of an `@main` type.
+    /// Whether a function declaration is the entry point of an entry type (see `isEntryType`).
     ///
     /// Both spellings. `static func main()` is the one `@main` calls, and a SwiftUI `App`\'s
     /// `init()` is where its `@State` containers are seeded — the Explorer target\'s file
     /// header describes exactly that as "its composition root injects the in-process SwiftLint
     /// backend instead of the subprocess one".
     func isEntryPointMember(named name: String, isStatic: Bool) -> Bool {
-        guard mainAttributedTypeDepth.last == true else { return false }
+        guard entryTypeStack.last == true else { return false }
         return name == "main" && isStatic
+    }
+
+    /// Whether a member variable of an entry type runs on the runtime's own path into the
+    /// program, rather than being code the program calls.
+    ///
+    /// Two kinds. An instance stored property's initializer runs as part of every initializer,
+    /// and an entry type's `init()` is exempt — so `init() { store = CoreDataOrderStore() }` was
+    /// silent while `private let store = CoreDataOrderStore()`, the same construction at the same
+    /// moment, was reported. That is the Checkout sample app's `CheckoutApp`, and the way most
+    /// small SwiftUI apps are wired: one service in a stored property, short of the three a
+    /// composition root needs. And an `App`\'s `body` is read by the runtime; no caller could
+    /// pass it anything, so a model built there from the stored service is the wiring itself.
+    ///
+    /// A `static` stored property is neither. No initializer fills it: it is a global every file
+    /// can reach as `Server.store`, and building it in `main()` and passing it down is an
+    /// injection. Any other computed property is ordinary code the app calls, like its methods.
+    func isRuntimeDrivenMember(_ node: VariableDeclSyntax) -> Bool {
+        guard entryTypeStack.last == true,
+              node.parent?.is(MemberBlockItemSyntax.self) == true,
+              !node.modifiers.contains(where: { modifier in
+                  modifier.name.tokenKind == .keyword(.static) || modifier.name.tokenKind == .keyword(.class)
+              })
+        else { return false }
+        return node.bindings.allSatisfy { binding in
+            Self.isStored(binding) || Self.isBody(binding)
+        }
+    }
+
+    /// Whether a binding has storage: no accessors, or only `willSet`/`didSet` observing it.
+    private static func isStored(_ binding: PatternBindingSyntax) -> Bool {
+        guard let accessors = binding.accessorBlock?.accessors else { return true }
+        guard case .accessors(let list) = accessors else { return false }
+        return list.allSatisfy { accessor in
+            accessor.accessorSpecifier.tokenKind == .keyword(.willSet)
+                || accessor.accessorSpecifier.tokenKind == .keyword(.didSet)
+        }
+    }
+
+    private static func isBody(_ binding: PatternBindingSyntax) -> Bool {
+        binding.pattern.as(IdentifierPatternSyntax.self)?.identifier.text == "body"
+    }
+
+    /// Whether a type is one the runtime constructs and enters: it carries `@main`, or it is a
+    /// SwiftUI `App`.
+    ///
+    /// `App` without `@main` is the launcher spelling — an `@main enum` whose `main()` picks the
+    /// real `App` or a bare one for a unit-test host. The `App` it picks is still built by
+    /// `App.main()` through `init()`, so no caller reaches its initializer either. All fifteen
+    /// `App`s in the sibling corpus carry `@main`; this is here because the reason is the same,
+    /// not because a finding asked for it.
+    static func isEntryType(_ attributes: AttributeListSyntax, _ inheritance: InheritanceClauseSyntax?) -> Bool {
+        if carriesMainAttribute(attributes) { return true }
+        guard let inheritance else { return false }
+        return inheritance.inheritedTypes.contains { inherited in
+            if let identifier = inherited.type.as(IdentifierTypeSyntax.self) {
+                return identifier.name.text == "App"
+            }
+            if let member = inherited.type.as(MemberTypeSyntax.self) {
+                return member.name.text == "App"
+                    && member.baseType.as(IdentifierTypeSyntax.self)?.name.text == "SwiftUI"
+            }
+            return false
+        }
     }
 
     // MARK: - Composition roots
@@ -332,20 +401,20 @@ class DirectInstantiationVisitor: BasePatternVisitor {
 
     override func visit(_ node: ClassDeclSyntax) -> SyntaxVisitorContinueKind {
         typeNameStack.append(node.name.text)
-        mainAttributedTypeDepth.append(Self.carriesMainAttribute(node.attributes))
+        entryTypeStack.append(Self.isEntryType(node.attributes, node.inheritanceClause))
         if Self.isRuntimeConstructed(node.inheritanceClause) { insideEntryPoint += 1 }
         return .visitChildren
     }
 
     override func visitPost(_ node: ClassDeclSyntax) {
         typeNameStack.removeLast()
-        mainAttributedTypeDepth.removeLast()
+        entryTypeStack.removeLast()
         if Self.isRuntimeConstructed(node.inheritanceClause) { insideEntryPoint -= 1 }
     }
 
     override func visit(_ node: StructDeclSyntax) -> SyntaxVisitorContinueKind {
         typeNameStack.append(node.name.text)
-        mainAttributedTypeDepth.append(Self.carriesMainAttribute(node.attributes))
+        entryTypeStack.append(Self.isEntryType(node.attributes, node.inheritanceClause))
         if Self.isRuntimeConstructed(node.inheritanceClause) { insideEntryPoint += 1 }
         if isSwiftUIViewOnly(node) { insideSwiftUIView += 1 }
         return .visitChildren
@@ -353,34 +422,34 @@ class DirectInstantiationVisitor: BasePatternVisitor {
 
     override func visitPost(_ node: StructDeclSyntax) {
         typeNameStack.removeLast()
-        mainAttributedTypeDepth.removeLast()
+        entryTypeStack.removeLast()
         if Self.isRuntimeConstructed(node.inheritanceClause) { insideEntryPoint -= 1 }
         if isSwiftUIViewOnly(node) { insideSwiftUIView -= 1 }
     }
 
     override func visit(_ node: EnumDeclSyntax) -> SyntaxVisitorContinueKind {
         typeNameStack.append(node.name.text)
-        mainAttributedTypeDepth.append(Self.carriesMainAttribute(node.attributes))
+        entryTypeStack.append(Self.isEntryType(node.attributes, node.inheritanceClause))
         if Self.isRuntimeConstructed(node.inheritanceClause) { insideEntryPoint += 1 }
         return .visitChildren
     }
 
     override func visitPost(_ node: EnumDeclSyntax) {
         typeNameStack.removeLast()
-        mainAttributedTypeDepth.removeLast()
+        entryTypeStack.removeLast()
         if Self.isRuntimeConstructed(node.inheritanceClause) { insideEntryPoint -= 1 }
     }
 
     override func visit(_ node: ActorDeclSyntax) -> SyntaxVisitorContinueKind {
         typeNameStack.append(node.name.text)
-        mainAttributedTypeDepth.append(Self.carriesMainAttribute(node.attributes))
+        entryTypeStack.append(Self.isEntryType(node.attributes, node.inheritanceClause))
         if Self.isRuntimeConstructed(node.inheritanceClause) { insideEntryPoint += 1 }
         return .visitChildren
     }
 
     override func visitPost(_ node: ActorDeclSyntax) {
         typeNameStack.removeLast()
-        mainAttributedTypeDepth.removeLast()
+        entryTypeStack.removeLast()
         if Self.isRuntimeConstructed(node.inheritanceClause) { insideEntryPoint -= 1 }
     }
 
@@ -412,13 +481,13 @@ class DirectInstantiationVisitor: BasePatternVisitor {
     /// spellings are the two ways Swift writes an entry point.
     override func visit(_ _: InitializerDeclSyntax) -> SyntaxVisitorContinueKind {
         insideFunctionOrClosure += 1
-        if mainAttributedTypeDepth.last == true { insideEntryPoint += 1 }
+        if entryTypeStack.last == true { insideEntryPoint += 1 }
         return .visitChildren
     }
 
     override func visitPost(_ _: InitializerDeclSyntax) {
         insideFunctionOrClosure -= 1
-        if mainAttributedTypeDepth.last == true { insideEntryPoint -= 1 }
+        if entryTypeStack.last == true { insideEntryPoint -= 1 }
     }
 
     /// Whether a declaration carries `@main`.

@@ -27,7 +27,7 @@ extension RuleIdentifier {
              .viewBuilderComplexity,
              .customModifierPerformance, .formatterInViewBody,
              .geometryReaderOveruse, .unboundedTaskGroup,
-             .onReceiveWithoutDebounce:
+             .onReceiveWithoutDebounce, .blockingIOOnMainActor:
             return .performance
 
         case .deprecatedAnimation, .animationInHighFrequencyUpdate, .excessiveSpringAnimations,

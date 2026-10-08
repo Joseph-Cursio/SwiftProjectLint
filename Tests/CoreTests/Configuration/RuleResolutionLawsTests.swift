@@ -68,7 +68,7 @@ struct RuleResolutionLawsTests {
     /// **L6.6 — `nil` means exactly "nothing was restricted".**
     ///
     /// The law is unchanged; what changed is the answer for the default configuration, which
-    /// **does** restrict — it removes the 25 opt-in rules, as `expectedDefaultSet` above has
+    /// **does** restrict — it removes the opt-in rules, as `expectedDefaultSet` above has
     /// always said. So it must not return `nil`.
     ///
     /// It used to, and this test asserted it. The comment on the next law states the hazard
