@@ -1,10 +1,10 @@
 diff --git a/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/CleanInstanceMethodCatalog.swift b/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/CleanInstanceMethodCatalog.swift
-index 2dcfc26b..9d530e80 100644
+index ede3126..715468f 100644
 --- a/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/CleanInstanceMethodCatalog.swift
 +++ b/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/CleanInstanceMethodCatalog.swift
-@@ -121,7 +121,7 @@ public struct CleanInstanceMethodCatalog: Sendable, Equatable {
-     /// Actors are excluded outright: an actor's isolation contract is load-bearing, which is the
-     /// same reason `ConcreteTypeUsage` exempts them from the other direction.
+@@ -122,7 +122,7 @@ public struct CleanInstanceMethodCatalog: Sendable, Equatable {
+     /// same reason `ConcreteTypeUsage` exempts them from the other direction — there, until an
+     /// all-`async` project protocol already abstracts the actor (see `ActorTypeCatalog`).
      public func isPureKernel(_ typeName: String) -> Bool {
 -        storage.read("isPureKernel(\(typeName))").pureKernelTypes.contains(typeName)
 +        storage[unchecked: ()].pureKernelTypes.contains(typeName)
@@ -12,7 +12,7 @@ index 2dcfc26b..9d530e80 100644
  
      /// Stdlib types whose values a test constructs directly. A stored property of one of these is
 diff --git a/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/Withholdable.swift b/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/Withholdable.swift
-index bdc8a3ad..aa1a2f28 100644
+index bdc8a3a..aa1a2f2 100644
 --- a/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/Withholdable.swift
 +++ b/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/Withholdable.swift
 @@ -62,3 +62,13 @@ extension Withholdable: Equatable where Value: Equatable {

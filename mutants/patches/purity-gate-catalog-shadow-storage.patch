@@ -1,5 +1,5 @@
 diff --git a/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/CleanInstanceMethodCatalog.swift b/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/CleanInstanceMethodCatalog.swift
-index 2dcfc26b..24dc630d 100644
+index ede3126..b4cde09 100644
 --- a/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/CleanInstanceMethodCatalog.swift
 +++ b/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/CleanInstanceMethodCatalog.swift
 @@ -49,6 +49,7 @@ public struct CleanInstanceMethodCatalog: Sendable, Equatable {
@@ -10,9 +10,9 @@ index 2dcfc26b..24dc630d 100644
  
      /// The catalog a caller with no pre-scan gets: nothing is clean, so every callee stays refused
      /// and behaviour matches the analyzer as it was before the catalog existed.
-@@ -121,7 +122,7 @@ public struct CleanInstanceMethodCatalog: Sendable, Equatable {
-     /// Actors are excluded outright: an actor's isolation contract is load-bearing, which is the
-     /// same reason `ConcreteTypeUsage` exempts them from the other direction.
+@@ -122,7 +123,7 @@ public struct CleanInstanceMethodCatalog: Sendable, Equatable {
+     /// same reason `ConcreteTypeUsage` exempts them from the other direction — there, until an
+     /// all-`async` project protocol already abstracts the actor (see `ActorTypeCatalog`).
      public func isPureKernel(_ typeName: String) -> Bool {
 -        storage.read("isPureKernel(\(typeName))").pureKernelTypes.contains(typeName)
 +        storage.isWithheld ? shadowKernels.contains(typeName) : storage.read("").pureKernelTypes.contains(typeName)
