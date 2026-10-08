@@ -36,6 +36,9 @@ func fetchData() async {
 }
 ```
 
+### Related
+On the main actor, the `wait()` is a hang as well as a pool stall. [Blocking I/O On Main Actor](blocking-io-on-main-actor.md) leaves a wait to this rule when the same async function or closure creates the semaphore. It reports the waits this rule can't see: a wait in synchronous main-actor code, or a wait on a semaphore created elsewhere.
+
 ### Non-Violating Examples
 ```swift
 // Synchronous function — semaphore is appropriate

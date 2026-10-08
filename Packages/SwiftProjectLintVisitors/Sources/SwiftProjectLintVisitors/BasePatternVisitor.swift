@@ -174,6 +174,17 @@ open class BasePatternVisitor: SyntaxVisitor, PatternVisitorProtocol {
     /// app target unless explicitly populated.
     public var executableSourcePaths: [String] = []
 
+    /// Root-relative paths compiled with default MainActor isolation (SE-0466): a folder ending in
+    /// `/` covers every file below it, any other path names one file. Set by `ProjectLinter` from
+    /// `DefaultIsolationDetector` on cross-file visitors. Empty by default, so no file is taken to
+    /// run on the main actor unless a build setting says so.
+    public var defaultMainActorSourcePaths: [String] = []
+
+    /// Whether the file at root-relative `path` is compiled with default MainActor isolation.
+    public func isDefaultMainActorSource(_ path: String) -> Bool {
+        defaultMainActorSourcePaths.contains { $0.hasSuffix("/") ? path.hasPrefix($0) : path == $0 }
+    }
+
     /// Placeholder pattern used for cross-file visitors that set their pattern after initialization.
     public static let placeholderPattern = SyntaxPattern(
         name: .unknown,
