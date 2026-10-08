@@ -103,6 +103,7 @@ class Architecture: BasePatternRegistrar {
             DuplicateEnumMapping(),
             ParallelEnumShape(),
             UnusedProtocolAbstraction(),
+            UnusedProtocolRequirement(),
             CouldAdoptProtocol(),
             HoistableConformerMember(),
             HoistableSequenceOperation(),

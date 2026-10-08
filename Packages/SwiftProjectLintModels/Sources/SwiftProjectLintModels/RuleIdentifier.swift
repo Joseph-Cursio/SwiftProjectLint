@@ -63,6 +63,7 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
     case duplicateEnumMapping = "Duplicate Enum Mapping"
     case parallelEnumShape = "Parallel Enum Shape"
     case unusedProtocolAbstraction = "Unused Protocol Abstraction"
+    case unusedProtocolRequirement = "Unused Protocol Requirement"
     case couldAdoptProtocol = "Could Adopt Protocol"
     case hoistableConformerMember = "Hoistable Conformer Member"
     case hoistableSequenceOperation = "Hoistable Sequence Operation"

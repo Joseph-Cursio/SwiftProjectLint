@@ -49,4 +49,10 @@ protocol KitchenSinkProtocol {
 }
 ```
 
+### See also
+
+- [Unused Protocol Requirement](unused-protocol-requirement.md) (opt-in) — the use-based check this
+  rule is a proxy for: it reports the requirements no client calls through the protocol, at any size,
+  including a protocol below this rule's threshold.
+
 ---

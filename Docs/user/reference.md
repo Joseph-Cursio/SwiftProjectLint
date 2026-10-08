@@ -253,6 +253,7 @@ These rules are **off by default** and must be listed under `enabled_only` to ru
 | `String Switch Over Enum` | Operates without full type info; uses structural heuristic |
 | `Nested Generic Complexity` | Generic-heavy code is sometimes necessary in frameworks |
 | `View Model Direct DB Access` | Many small apps use `@Query` directly per Apple tutorials |
+| `Unused Protocol Requirement` | Name-based resolution of protocol clients; precision measured only on the author's projects so far |
 | `Legacy Array Init` | Pure style preference |
 | `Legacy Closure Syntax` | Some teams prefer explicit closure types |
 | `iOS 17 Observation Migration` | Companion to `legacyObservableObject` for migration planning |
