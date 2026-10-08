@@ -1,4 +1,5 @@
 @testable import Core
+import Foundation
 import SwiftParser
 @testable import SwiftProjectLintRules
 import SwiftSyntax
@@ -82,5 +83,68 @@ struct MainActorMissingDefaultIsolationTests {
         )
 
         #expect(found.map(\.filePath) == ["Sources/App/Model.swift"])
+    }
+}
+
+/// End to end: the setting is read from the manifest and reaches both rules.
+@Suite
+struct MainActorMissingDefaultIsolationEndToEndTests {
+
+    @Test
+    func modelsInATargetWithDefaultIsolationInItsManifestAreNotReported() async {
+        let root = (FileManager.default.temporaryDirectory.path as NSString)
+            .appendingPathComponent("MainActorMissingDefault-\(UUID().uuidString)")
+        write("""
+        // swift-tools-version:6.2
+        import PackageDescription
+
+        let package = Package(
+            name: "Demo",
+            targets: [
+                .target(name: "Core"),
+                .executableTarget(
+                    name: "App",
+                    dependencies: ["Core"],
+                    swiftSettings: [.defaultIsolation(MainActor.self)]
+                )
+            ]
+        )
+        """, to: "\(root)/Package.swift")
+        let models = """
+        import Combine
+        import Observation
+
+        class CounterViewModel: ObservableObject {
+            @Published var count = 0
+        }
+
+        @Observable
+        class CounterModel {
+            var count = 0
+        }
+        """
+        write(models, to: "\(root)/Sources/App/Models.swift")
+        write(models, to: "\(root)/Sources/Core/Models.swift")
+        defer { try? FileManager.default.removeItem(atPath: root) }
+
+        let system = PatternRegistryFactory.createConfiguredSystem()
+        let issues = await ProjectLinter().analyzeProject(at: root, detector: system.detector)
+        let reported = issues
+            .filter { [.mainActorMissingOnUICode, .observableMainActorMissing].contains($0.ruleName) }
+            .map { "\($0.ruleName.rawValue) @ \($0.filePath)" }
+            .sorted()
+
+        #expect(reported == [
+            "Main Actor Missing On UI Code @ Sources/Core/Models.swift",
+            "Observable Main Actor Missing @ Sources/Core/Models.swift"
+        ])
+    }
+
+    private func write(_ content: String, to path: String) {
+        try? FileManager.default.createDirectory(
+            atPath: (path as NSString).deletingLastPathComponent,
+            withIntermediateDirectories: true
+        )
+        try? content.write(toFile: path, atomically: true, encoding: .utf8)
     }
 }
