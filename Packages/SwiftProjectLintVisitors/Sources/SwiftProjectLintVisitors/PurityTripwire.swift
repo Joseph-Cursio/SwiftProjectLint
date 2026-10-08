@@ -9,7 +9,7 @@ import Foundation
 /// its findings and redoes the run with everything built, under a fresh tripwire. The answer a
 /// withheld surface gives — the unconfigured one — is therefore never reported.
 ///
-/// **Never store one in a `static`**, for the reason `PackagePurity` gives: it belongs to one run.
+/// **Never store one in a `static`**, for the reason `PackagePurity` gives: it belongs to one pass.
 public final class PurityTripwire: @unchecked Sendable {
 
     /// One withheld read: which surface, and the query that made it.
@@ -37,11 +37,11 @@ public final class PurityTripwire: @unchecked Sendable {
             if !trips.contains(trip), trips.count < Self.kept || firstOfItsInput { trips.append(trip) }
             return isSealed
         }
-        // After the run there is nothing to redo: a withheld catalog was kept past it and read.
+        // After the pass there is nothing to redo: a withheld catalog was kept past it and read.
         assert(!late, "package purity read after the run that withheld it: \(trip)")
     }
 
-    /// Ends the run: returns what tripped, and makes any later read an assertion failure.
+    /// Ends the pass: returns what tripped, and makes any later read an assertion failure.
     public func seal() -> [Trip] {
         lock.withLock {
             isSealed = true

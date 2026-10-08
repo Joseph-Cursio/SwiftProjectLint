@@ -210,4 +210,4 @@ struct MyViewTests {
 Per project documentation:
 - Some property wrapper and view type detection still uses string comparisons (migration in progress)
 - Several large files need splitting (see `__refactor.md`)
-- Async/await conversion complete; AST caching implemented (in-memory, per-analysis-run): one parse per file per run, shared by the package purity, every pre-scan collector (the `collectTypes` name sets and the body-needing catalogs), per-file analysis and cross-file analysis
+- Async/await conversion complete; AST caching implemented (in-memory, per pass): one parse per file per pass — a run the purity gate redoes parses again in its second pass — shared by the package purity, every pre-scan collector (the `collectTypes` name sets and the body-needing catalogs), per-file analysis and cross-file analysis

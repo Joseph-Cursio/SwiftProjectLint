@@ -223,7 +223,7 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
     }
 
     /// The pre-scan, per-file and cross-file phases over files already discovered and parsed.
-    /// Runs inside the run's `PackagePurity` binding; see `lint`.
+    /// Runs inside the pass's `PackagePurity` binding; see `pass`.
     private func analyzeDiscovered(_ project: DiscoveredProject) async -> [LintIssue] {
         let path = project.path
         let effectiveConfiguration = project.configuration

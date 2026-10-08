@@ -6,7 +6,8 @@ import SwiftProjectLintRegistry
 import SwiftProjectLintVisitors
 import SwiftSyntax
 
-/// One parse per file per run, and the package purity built from those very trees.
+/// One parse per file per pass, and the package purity built from those very trees. A run that
+/// trips its purity gate is redone in a second pass, which parses again.
 ///
 /// `PackagePurity` gives the oracle what constructing each package type runs, and SEI matches an
 /// assignment target by **node identity**, so the facts and every verdict that consults them must
