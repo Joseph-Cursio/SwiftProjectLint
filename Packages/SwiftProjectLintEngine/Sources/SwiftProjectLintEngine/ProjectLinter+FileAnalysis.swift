@@ -249,7 +249,7 @@ extension ProjectLinter {
         let spiMembers: Set<String>
         let underscoredMembers: Set<String>
         let enumTypes: Set<String>
-        let actorTypes: Set<String>
+        let actorTypes: ActorTypeCatalog
         let localTypes: Set<String>
         let observableTypes: Set<String>
         let protocolTypes: Set<String>
@@ -337,7 +337,7 @@ extension ProjectLinter {
         spiMembers: Set<String> = [],
         underscoredMembers: Set<String> = [],
         enumTypes: Set<String> = [],
-        actorTypes: Set<String> = [],
+        actorTypes: ActorTypeCatalog = .empty,
         localTypes: Set<String> = [],
         observableTypes: Set<String> = [],
         protocolTypes: Set<String> = [],

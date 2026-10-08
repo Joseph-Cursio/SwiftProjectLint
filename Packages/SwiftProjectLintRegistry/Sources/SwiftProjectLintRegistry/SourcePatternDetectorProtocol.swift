@@ -23,8 +23,8 @@ public protocol SourcePatternDetectorProtocol {
     /// Type names known to be declared as enums across the project.
     var knownEnumTypes: Set<String> { get set }
 
-    /// Type names known to be declared as actors across the project.
-    var knownActorTypes: Set<String> { get set }
+    /// The project's actors and the all-`async` project protocols each conforms to.
+    var knownActorTypes: ActorTypeCatalog { get set }
 
     /// All type names (class, struct, enum, actor) declared anywhere in the project.
     var knownLocalTypeNames: Set<String> { get set }
