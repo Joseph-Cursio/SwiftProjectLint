@@ -34,28 +34,21 @@ enum ManifestText {
     }
 
     /// Each top-level `let`/`var` with the text of its value, in source order. A value runs from
-    /// its `=` to the next top-level statement.
+    /// its `=` to the next top-level statement. A declaration with no `=` before that statement
+    /// is left out: `let dependencies: [Target.Dependency]`, assigned later inside an `#if`.
     static func topLevelDeclarations(in code: String) -> [(name: String, value: String)] {
         let chars = Array(code)
         let masked = maskingStrings(chars)
-        var declarations: [(name: String, value: String)] = []
-        var open: (name: String, valueStart: Int)?
-        var depth = 0
-        for index in masked.indices {
-            depth += depthChange(masked[index])
-            guard depth == 0, let keyword = statementKeyword(in: masked, at: index) else { continue }
-            if let current = open {
-                declarations.append((current.name, String(chars[current.valueStart..<index])))
-                open = nil
-            }
-            if keyword == "let" || keyword == "var" {
-                open = declarationStart(in: masked, after: index + keyword.count)
-            }
+        let statements = topLevelStatements(in: masked)
+        return statements.indices.compactMap { position in
+            let statement = statements[position]
+            guard statement.keyword == "let" || statement.keyword == "var" else { return nil }
+            let end = position + 1 < statements.count ? statements[position + 1].start : chars.count
+            guard let declaration = declarationStart(
+                in: masked, from: statement.start + statement.keyword.count, to: end
+            ) else { return nil }
+            return (declaration.name, String(chars[declaration.valueStart..<end]))
         }
-        if let current = open {
-            declarations.append((current.name, String(chars[current.valueStart...])))
-        }
-        return declarations
     }
 
     /// The text of the argument labeled `label` at the top level of `arguments` — the inside of
@@ -156,14 +149,31 @@ enum ManifestText {
         statementKeywords.first { isWord(Array($0), in: chars, at: index) }
     }
 
-    /// The name declared after `let`/`var` and where its value starts, past the `=`.
-    private static func declarationStart(in chars: [Character], after index: Int) -> (name: String, valueStart: Int)? {
-        guard let nameStart = nextNonSpace(in: chars, from: index) else { return nil }
+    /// Where each top-level statement starts, with its keyword, in source order.
+    private static func topLevelStatements(in chars: [Character]) -> [(keyword: String, start: Int)] {
+        var statements: [(keyword: String, start: Int)] = []
+        var depth = 0
+        for index in chars.indices {
+            depth += depthChange(chars[index])
+            if depth == 0, let keyword = statementKeyword(in: chars, at: index) {
+                statements.append((keyword, index))
+            }
+        }
+        return statements
+    }
+
+    /// The name declared after `let`/`var` and where its value starts, past the `=`. The name and
+    /// the `=` are looked for only in `start..<end`, the rest of the statement, so the value never
+    /// starts past the statement's end.
+    private static func declarationStart(
+        in chars: [Character], from start: Int, to end: Int
+    ) -> (name: String, valueStart: Int)? {
+        guard let nameStart = nextNonSpace(in: chars, from: start) else { return nil }
         var nameEnd = nameStart
-        while nameEnd < chars.count, isIdentifierCharacter(chars[nameEnd]) { nameEnd += 1 }
+        while nameEnd < end, isIdentifierCharacter(chars[nameEnd]) { nameEnd += 1 }
         guard nameEnd > nameStart else { return nil }
         var depth = 0
-        for position in nameEnd..<chars.count {
+        for position in nameEnd..<end {
             depth += depthChange(chars[position])
             if depth == 0, chars[position] == "=", position + 1 < chars.count, chars[position + 1] != "=" {
                 return (String(chars[nameStart..<nameEnd]), position + 1)

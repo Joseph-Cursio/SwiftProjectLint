@@ -109,6 +109,30 @@ struct DefaultIsolationDetectorTests {
     }
 
     @Test
+    func skipsALetAssignedInsideIfConfig() {
+        let manifest = Self.deferredInitializationManifest
+
+        let declarations = ManifestText.topLevelDeclarations(in: ManifestText.strippingComments(manifest))
+
+        // `pluginDependencies` has no `=` before the `#if`, so it has no value to read.
+        #expect(declarations.map(\.name) == ["uiSettings", "package"])
+        let package = declarations.last?.value.trimmingCharacters(in: .whitespacesAndNewlines)
+        #expect(package?.hasPrefix("Package(") == true)
+        #expect(package?.hasSuffix(")") == true)
+        #expect(DefaultIsolationDetector.targetPaths(manifest: manifest) == ["Sources/UI/"])
+    }
+
+    @Test
+    func readsAManifestCutOffAfterAnyLineWithoutTrapping() {
+        // Every manifest in the tree is read before any rule runs, so a trap loses the whole run.
+        // Cut off, a manifest ends with a `let` that has no value, an open `#if` or an open call.
+        let lines = Self.deferredInitializationManifest.split(separator: "\n", omittingEmptySubsequences: false)
+        for count in 0...lines.count {
+            _ = DefaultIsolationDetector.targetPaths(manifest: lines.prefix(count).joined(separator: "\n"))
+        }
+    }
+
+    @Test
     func readsThisRepositorysOwnManifest() throws {
         let manifestURL = Self.repositoryRoot.appendingPathComponent("Package.swift")
         let manifest = try String(contentsOf: manifestURL, encoding: .utf8)
@@ -205,6 +229,28 @@ struct DefaultIsolationDetectorTests {
     private static let repositoryRoot = URL(fileURLWithPath: #filePath)
         .deletingLastPathComponent().deletingLastPathComponent()
         .deletingLastPathComponent().deletingLastPathComponent()
+
+    /// SwiftLint's manifest shape: a typed `let` with no `=`, assigned in each branch of an `#if`.
+    private static let deferredInitializationManifest = """
+    let uiSettings: [SwiftSetting] = [.defaultIsolation(MainActor.self)]
+
+    let pluginDependencies: [Target.Dependency]
+
+    // Workaround for a download issue on Linux with Swift 5.10.
+    #if !os(Windows) && (compiler(>=6) || compiler(<5.10) || !os(Linux))
+    pluginDependencies = [.target(name: "SwiftLintBinary")]
+    #else
+    pluginDependencies = [.target(name: "swiftlint")]
+    #endif
+
+    let package = Package(
+        name: "Demo",
+        targets: [
+            .target(name: "UI", swiftSettings: uiSettings),
+            .plugin(name: "Plugin", capability: .buildTool(), dependencies: pluginDependencies)
+        ]
+    )
+    """
 
     /// A minimal `project.pbxproj` with a project `P`, its main group `MG`, and `targets`.
     private static func pbxproj(
