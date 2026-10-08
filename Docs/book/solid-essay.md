@@ -264,13 +264,36 @@ a method to the nearest protocol. Some of them are called, but only inside
 on `self`), which is the concrete type talking to itself, not a client
 depending on an abstraction.
 
-That table is a question about names, so a tool could build it: find every
+That table is a question about names, so a tool can build it: find every
 binding typed as the protocol, record which members are called on it, and
-report the requirements nothing calls. SwiftProjectLint doesn't do this yet,
-and it's the principled version of `Fat Protocol`: it would have reported
-the nine unused requirements at *any* size, including the nine-requirement
-version that passes the threshold. **[Update if Unused Protocol Requirement
-ships before publication.]**
+report the requirements nothing calls. SwiftProjectLint's `Unused Protocol
+Requirement` rule does exactly that. It's the principled version of `Fat
+Protocol`, and it reports the nine unused requirements at *any* size,
+including the nine-requirement version that passes the threshold:
+
+```
+Sources/Checkout/Domain/OrderStore.swift:9: info: [Unused Protocol Requirement]
+  Requirement 'recentOrders()' of protocol 'OrderStore' is never called through
+  the protocol — its clients use 1 of its 10 requirements.
+Sources/Checkout/Domain/OrderStore.swift:10: info: [Unused Protocol Requirement]
+  Requirement 'order(withIdentifier:)' of protocol 'OrderStore' is never called
+  through the protocol — its clients use 1 of its 10 requirements.
+```
+
+and seven more like them, one per requirement. It applies the table's rule
+about concrete calls, too. If `CheckoutViewModel` builds its own
+`CoreDataOrderStore` and calls `recentOrders()` on that, the requirement is
+still reported, because that call depends on the store rather than on
+`OrderStore`.
+
+Use is harder to check than size, and the rule shows where. It follows a
+value only by name. Pass `store` to a function whose parameter isn't typed as
+the protocol, or put it in an array, and the rule can no longer see which
+requirements get called, so it assumes all of them might be and says nothing
+about that protocol. That keeps its findings trustworthy at the cost of
+staying quiet on code that passes its dependencies around, and it's why the
+rule is opt-in. Across my own 24 repositories it reports two requirements,
+Checkout's `recentOrders()` among them, and both are right.
 
 ### Split by the clients you have
 
@@ -930,8 +953,14 @@ the rest.
 - **Seed:** the §6 output is from one run, and its seed is quoted so readers
   can reproduce it. If the generator or the laws change, re-capture.
 - **Follow-ups referred to in the text** (composition-root false positive,
-  actor exemption, interface segregation by use) are described as current
-  behaviour. If any ships before publication, update the section.
+  actor exemption) are described as current behaviour. If any ships before
+  publication, update the section.
+- **§3 `Unused Protocol Requirement`** has shipped (opt-in), and §3 now
+  describes it. Its quoted output is from a run on `solid/i-fat-store` with
+  only that rule enabled. Checkout's `.swiftprojectlint-solid.yml` doesn't list
+  it yet; add it under "Interface segregation" so readers can reproduce the
+  output with the config the README gives. The "24 repositories, two findings"
+  figure is from 2026-10-07; the rule's page has the breakdown.
 - **§2's naming-suffix tension** (`Protocol Naming Suffix` vs. `Mirror
   Protocol`) was left out of this draft to keep §2 focused. Add it back only
   if it's been resolved one way or the other.
