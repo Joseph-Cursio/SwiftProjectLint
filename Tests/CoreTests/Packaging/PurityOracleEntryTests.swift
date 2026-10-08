@@ -25,7 +25,8 @@ import Testing
 ///
 /// **Known limit.** The static scan matches type names (`heldByOneRun`): a static whose type is
 /// inferred from a call — `static var last = makeCatalog()` — names nothing it can match, and a type
-/// that stores a held value is held only once it is listed there.
+/// that stores a held value is held only once it is listed there, which `DiscoveredProject`, for one,
+/// is not.
 @Suite("One purity oracle per run, configured at one place")
 struct PurityOracleEntryTests {
 
@@ -140,14 +141,16 @@ struct PurityOracleEntryTests {
     /// What a static must not hold, by type name: the oracle and the table; the tripwire and
     /// `Withholdable`; every type that can be withheld from a pass — found from the source, as
     /// `surfacesKeepOnlyWithholdableStorage` finds them, so a fourth is covered the day it is added;
-    /// and the types this repository has that store one of those: the join and `CollectedTypes`, the
-    /// detector, and `BasePatternVisitor` with every class that inherits from it, found from the
-    /// source too. `PackagePurityJoin`'s settled names are plain storage derived from the oracle, so a
-    /// static one would carry one run's answer into the next just as a static oracle would.
+    /// and some of the types that store one of those: the join and `CollectedTypes`, the detector,
+    /// and `BasePatternVisitor` with every class that inherits from it, found from the source too.
+    /// `PackagePurityJoin`'s settled names are plain storage derived from the oracle, so a static one
+    /// would carry one run's answer into the next just as a static oracle would.
     ///
-    /// **The scan matches names, and that is its limit.** A type added later that stores one of these
-    /// is not held until it is listed here, and a static whose type is inferred from a call —
-    /// `static var last = makeCatalog()` — names no type for the scan to match.
+    /// **The scan matches names, and that is its limit.** A type that stores one of these is held only
+    /// once it is listed here, and these are not: `DiscoveredProject`, which stores the tripwire;
+    /// `PatternDetectionSystem` and `any SourcePatternDetectorProtocol`, which hold a detector; and
+    /// `FileAnalysisEnvironment`, which holds both catalogs. A static whose type is inferred from a
+    /// call (`static var last = makeCatalog()`) names no type for the scan to match at all.
     static func heldByOneRun(in files: [SourceFile]) -> Set<String> {
         let named: Set<String> = [
             "PurityInferrer", "PackagePurity", "PurityTripwire", "Withholdable",
