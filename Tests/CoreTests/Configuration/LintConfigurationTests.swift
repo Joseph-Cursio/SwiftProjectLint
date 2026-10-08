@@ -7,7 +7,7 @@ struct LintConfigurationTests {
 
     // MARK: - resolveRules
 
-    /// The default configuration **is** restricted: it removes the 25 opt-in rules. `nil` means
+    /// The default configuration **is** restricted: it removes the opt-in rules. `nil` means
     /// "no filtering" to `ProjectLinter`, so returning it here ran every opt-in rule by default
     /// on any project whose root is not a Swift package (#217).
     ///

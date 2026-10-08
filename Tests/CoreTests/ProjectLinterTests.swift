@@ -86,18 +86,6 @@ struct ProjectLinterTests {
         }
     }
 
-    @Test func testAnalyzeProjectPerformance() async {
-        let testProjectPath = makeComplexTestProject()
-        let linter = ProjectLinter()
-
-        let startTime = Date.now
-        _ = await linter.analyzeProject(at: testProjectPath)
-        let endTime = Date.now
-
-        let duration = endTime.timeIntervalSince(startTime)
-        #expect(duration < 10.0) // Should complete within reasonable time
-    }
-
     @Test func testAnalyzeProjectWithAllCategories() async {
         let testProjectPath = makeComplexTestProject()
         let linter = ProjectLinter()

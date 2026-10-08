@@ -172,7 +172,8 @@ preserves, not only what it decouples.
 
 ### The composition root
 
-One more finding, and it's on Checkout's clean `main` branch:
+One more finding. It was on Checkout's clean `main` branch while I drafted
+this essay:
 
 ```
 Sources/Checkout/App/CheckoutApp.swift:7: warning: [Direct Instantiation]
@@ -180,12 +181,23 @@ Sources/Checkout/App/CheckoutApp.swift:7: warning: [Direct Instantiation]
 ```
 
 This is the composition root: the one place where constructing the concrete
-store is *correct*, because something has to. The rule knows that, and
-exempts composition roots, but it recognises one by its shape: an `@main`
+store is *correct*, because something has to. The rule knew that, and
+exempted composition roots, but it recognised one by its shape: an `@main`
 type's `init()`, or a type wiring three or more services. Checkout creates one
-service in a stored property, which is how many small apps look. It's a false
-positive, and it's here because checkable doesn't mean perfectly checked.
-Precision is work that never finishes.
+service in a stored property, which is how many small apps look. It was a
+false positive, a reminder that checkable doesn't mean perfectly checked.
+
+It's fixed now, and how it was fixed says something about what precision work
+looks like. Counting fewer services wasn't the answer: at two, a function that
+reaches for a store and its index, the case the rule exists for, goes quiet
+too. The real fault was that the rule answered one question two ways. A stored property's initializer runs as part
+of `init()`, which was already exempt, so `private let store =
+CoreDataOrderStore()` and `init() { store = CoreDataOrderStore() }` were the
+same construction, reported in one spelling and not the other. The rule now
+exempts an `App`'s stored properties and its `body` along with `init()`. Across
+the 33 repositories I measured it on, Checkout's line was the only finding that
+changed. Precision is work that never finishes, and it gets done one false
+positive at a time.
 
 ---
 
@@ -929,9 +941,13 @@ the rest.
   §1 discloses that I maintain SwiftProjectLint.
 - **Seed:** the §6 output is from one run, and its seed is quoted so readers
   can reproduce it. If the generator or the laws change, re-capture.
-- **Follow-ups referred to in the text** (composition-root false positive,
-  actor exemption, interface segregation by use) are described as current
-  behaviour. If any ships before publication, update the section.
+- **Follow-ups referred to in the text** (actor exemption, interface
+  segregation by use) are described as current behaviour. If any ships before
+  publication, update the section. The composition-root false positive has
+  shipped, and §2 now tells it as reported, then fixed; its quoted output is
+  from before the fix.
 - **§2's naming-suffix tension** (`Protocol Naming Suffix` vs. `Mirror
   Protocol`) was left out of this draft to keep §2 focused. Add it back only
-  if it's been resolved one way or the other.
+  if it's been resolved one way or the other. It now has been: the suffix
+  rule is opt-in, as a team convention, so a default run on Checkout no
+  longer reports `OrderStore`.
