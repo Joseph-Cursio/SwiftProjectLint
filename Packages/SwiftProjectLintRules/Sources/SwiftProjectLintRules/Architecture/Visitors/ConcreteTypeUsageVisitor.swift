@@ -408,6 +408,47 @@ class ConcreteTypeUsageVisitor: BasePatternVisitor {
         return []
     }
 
+    /// Whether `typeName` names a generic parameter or an associated type that an enclosing
+    /// declaration introduces: the generic parameter clause of a type, function, initializer or
+    /// subscript, or the body of the protocol that declares the associated type.
+    ///
+    /// Such a name is not a concrete type at all. In `struct FileMiddleware<Context:
+    /// RequestContext, Provider: FileProvider>`, `Provider` is a placeholder the caller fills,
+    /// constrained to the protocol `FileProvider`. So `let fileProvider: Provider` is already the
+    /// abstraction the advice asks for, and a test substitutes its own conformer as the generic
+    /// argument. The suffix list read the placeholder's name as if it were a class's: Hummingbird's
+    /// `FileMiddleware.fileProvider` and `EditedResponse<Generator:
+    /// ResponseGenerator>.responseGenerator` were both reported.
+    ///
+    /// Every enclosing declaration counts, not only the nearest. A type nested in a generic type
+    /// sees its outer parameters, and a method's own clause adds to its type's. An extension is not
+    /// read: it has no clause of its own, and the declaration that introduces the names in scope
+    /// there — the extended type's clause, or the extended protocol's associated types — is in
+    /// whichever file declares it. `isNamedInsideItself` can read extensions because the name it
+    /// needs is in the extension's own header; the names needed here are not.
+    private func isGenericParameterInScope(_ typeName: String, _ node: some SyntaxProtocol) -> Bool {
+        var current = Syntax(node)
+        while let parent = current.parent {
+            if abstractTypeNames(introducedBy: parent).contains(typeName) { return true }
+            current = parent
+        }
+        return false
+    }
+
+    /// The generic parameters `node` declares, or the associated types of a protocol. Empty for
+    /// any other node.
+    private func abstractTypeNames(introducedBy node: Syntax) -> [String] {
+        if let decl = node.asProtocol(WithGenericParametersSyntax.self) {
+            return decl.genericParameterClause?.parameters.map(\.name.text) ?? []
+        }
+        if let decl = node.as(ProtocolDeclSyntax.self) {
+            return decl.memberBlock.members.compactMap {
+                $0.decl.as(AssociatedTypeDeclSyntax.self)?.name.text
+            }
+        }
+        return []
+    }
+
     // MARK: - Function/initializer parameters
 
     override func visit(_ node: FunctionParameterSyntax) -> SyntaxVisitorContinueKind {
@@ -416,7 +457,10 @@ class ConcreteTypeUsageVisitor: BasePatternVisitor {
         if node.type.is(SomeOrAnyTypeSyntax.self) {
             return .visitChildren
         }
-        guard let typeName = extractServiceTypeName(from: node.type) else {
+        // A generic parameter is the abstraction the advice asks for, not a concrete type.
+        guard let typeName = extractServiceTypeName(from: node.type),
+              !isGenericParameterInScope(typeName, node)
+        else {
             return .visitChildren
         }
         // Skip all concrete types in SwiftUI views — @Observable requires
@@ -457,7 +501,10 @@ class ConcreteTypeUsageVisitor: BasePatternVisitor {
             // Skip if there's also a service-like initializer (caught by DirectInstantiationVisitor)
             if binding.initializer != nil { continue }
 
-            guard let typeName = extractServiceTypeName(from: typeAnnotation.type) else { continue }
+            // A generic parameter is the abstraction the advice asks for, not a concrete type.
+            guard let typeName = extractServiceTypeName(from: typeAnnotation.type),
+                  !isGenericParameterInScope(typeName, node)
+            else { continue }
             // Skip all concrete types in SwiftUI views — @Observable requires
             // concrete types for SwiftUI's observation tracking to work — and a type named
             // inside its own declaration.
