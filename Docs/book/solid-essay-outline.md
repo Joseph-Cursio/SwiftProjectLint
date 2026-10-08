@@ -349,6 +349,13 @@ Every branch builds. The contract-test branches add a test target and
    `nonisolated` member, so the trade-off is visible in the conformance anyway.
    Consider narrowing the exemption. Check against Swift 6.2's
    isolated-conformance rules (SE-0470) first.
+   **Done:** an actor conforming to an all-`async` project protocol is now
+   reported when typed concretely (SE-0470 isolates conformances only to global
+   actors, so it does not change the argument). `solid/d-concrete-dependency`
+   now gets a `Concrete Type Usage` finding on `CheckoutViewModel.store` naming
+   `OrderStore`, so §2's branch result and the branch table above need
+   re-capturing. See the rule page's *Actors that already have an all-`async`
+   protocol*.
 
 ## To do before drafting
 
