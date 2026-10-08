@@ -11,7 +11,7 @@
 A function parameter or stored property typed as a concrete service class (e.g., `func configure(service: APIService)`) cannot be substituted with a test double or alternative implementation without modifying the function signature. Protocol abstractions allow callers to pass any conforming type.
 
 ### Discussion
-`ConcreteTypeUsageVisitor` checks type annotations in function parameters and stored properties (without initializers) for names ending in service-like suffixes (`Manager`, `Service`, `Store`, `Provider`, `Client`, `Repository`, `Handler`, `Controller`, `Factory`, `Adapter`, `ViewModel`, `Coordinator`, `Generator`, `Analyzer`, `Simulator`, `Engine`, `Checker`). It skips types ending in `Protocol`, `Type`, or `Interface` (which are already abstractions), any other protocol the project declares (a project-wide pre-scan, so a role-noun protocol like `OrderStore` needs no suffix), types annotated with a SwiftUI property wrapper, and parameters typed with `some Protocol` (opaque types).
+`ConcreteTypeUsageVisitor` checks type annotations in function parameters and stored properties (without initializers) — members of a class, struct, enum, actor, protocol or extension, not variables in a code block — for names ending in service-like suffixes (`Manager`, `Service`, `Store`, `Provider`, `Client`, `Repository`, `Handler`, `Controller`, `Factory`, `Adapter`, `ViewModel`, `Coordinator`, `Generator`, `Analyzer`, `Simulator`, `Engine`, `Checker`). It skips types ending in `Protocol`, `Type`, or `Interface` (which are already abstractions), any other protocol the project declares (a project-wide pre-scan, so a role-noun protocol like `OrderStore` needs no suffix), types annotated with a SwiftUI property wrapper, and parameters typed with `some Protocol` (opaque types).
 
 The following patterns are exempt because they do not represent real coupling issues:
 
@@ -23,7 +23,7 @@ The following patterns are exempt because they do not represent real coupling is
 - **SwiftUI property wrapper properties** — `@State`, `@StateObject`, `@ObservedObject`, `@EnvironmentObject`, `@Binding`, `@Published`, `@AppStorage`, `@SceneStorage`, `@Bindable`, `@Environment`
 - **Enum types** — a project-wide pre-scan identifies all declared enums; enum-typed parameters and properties are exempt because enums are value types and cannot be protocol-abstracted in the same way as a service class
 - **Actor types with no all-`async` protocol** — a project-wide pre-scan identifies every declared actor and the project protocols it conforms to. An actor's serial-executor isolation contract is load-bearing in Swift 6 strict concurrency, and a protocol *can* strip it: a synchronous requirement is satisfiable only by a `nonisolated` member or a `@preconcurrency` conformance, and either way a caller reaches it without `await`. So an actor that conforms to no project protocol, or only to protocols with a synchronous requirement, stays exempt. One that conforms to a project protocol whose every instance requirement is `async` is reported, and the suggestion names that protocol — see [the section below](#actors-that-already-have-an-all-async-protocol)
-- **Init parameters mirroring a flagged stored property** — when a stored property is flagged, its matching initializer parameter represents the same coupling point and is suppressed to avoid duplicate reports
+- **Init parameters mirroring a flagged stored property** — when a stored property is flagged, its matching initializer parameter represents the same coupling point and is suppressed to avoid duplicate reports. A local never counts as that property
 - **AppKit and UIKit classes** — recognised by the `NS`/`UI` prefix convention rather than enumerated, and only when the project does not declare a type of that name
 - **`private` / `fileprivate` types** — a protocol around one could only be conformed to in the file that declares it
 - **Closure wrapper types** — a `struct` or `final class` whose only stored property is a closure is already the seam
@@ -31,6 +31,7 @@ The following patterns are exempt because they do not represent real coupling is
 - **Protocols, and the `typealias`es that stand for them** — a project-wide pre-scan identifies every declared protocol, plus every `typealias` that composes protocols (`typealias OrderStore = OrderSaving & OrderHistory`) or renames one. `let store: OrderStore` is already an abstraction; read by its `Store` suffix alone, it was reported as a concrete service
 - **A type named inside its own declaration** — a parameter or property typed with `T` inside `T`'s own `class`, `struct`, `enum` or `actor` declaration, an `extension T`, or a type nested in either is `T`'s implementation, not a caller depending on it — see [the section below](#a-type-named-inside-its-own-declaration)
 - **A generic parameter in scope** — a parameter or property typed with a generic parameter of an enclosing type, function, initializer or subscript, or with an associated type inside the protocol that declares it, is a placeholder rather than a concrete type — see [the section below](#a-generic-parameter-in-scope)
+- **Local and file-scope variables** — a `var` or `let` declared in a function, initializer, accessor or closure body is not a property and not a dependency of anything, and neither is one at file scope; only a member of a type is read — see [the section below](#a-local-variable-is-not-a-property)
 
 Depending on a protocol resolves the issue, whatever the protocol is called. One option is to name the protocol for the role, `protocol APIService`, and rename the class for what it is, such as `URLSessionAPIService`; parameters keep the type name `APIService` (written `any APIService` under `ExistentialAny`), and only construction sites change. A suffixed `APIServiceProtocol` or an opaque `some NetworkProtocol` works too, but a suffixed protocol that copies `APIService` member for member is what [Mirror Protocol](mirror-protocol.md) reports.
 
@@ -324,6 +325,70 @@ No remaining finding is typed with a generic parameter. The corpus declares a se
 parameter or associated type only in those two repositories, in a SwiftUMLStudio view the rule
 already skips as SwiftUI, and in test files.
 
+### A local variable is not a property
+
+The rule reads stored properties, and it read every `var` and `let` with a type annotation and no
+initializer, wherever one stood. **A local is not a dependency of anything.** It lives for one call,
+and no protocol in its annotation would change what the type around it depends on. Hummingbird's
+`URI` has both in one type:
+
+```swift
+public struct URI {
+    private let _scheme: Parser?        // what URI holds — reported
+    private let _host: Parser?
+    …
+    public init(_ string: String) {
+        var scheme: Parser?             // a local the parse fills — was reported too
+        var host: Parser?
+        …
+        self._scheme = scheme
+    }
+}
+```
+
+The five stored properties are the coupling and stay reported. The five locals beside them were
+reported as `Property 'scheme' declares concrete type 'Parser'`. The sixth was
+`swift-aws-lambda-runtime`'s `Deployer.deploy(arguments:)`, which declares
+`let credentialProvider: CredentialProviderFactory`, fills it from an `if`/`else`, and passes it
+straight to `AWSClient(credentialProvider:)`. Both are the one shape a local could reach the rule
+in, because one with an initializer was already skipped: **declared first, filled later**.
+
+**Only a member of a type is read now**, meaning a declaration directly in the member block of a
+class, struct, enum, actor, protocol or extension. That includes a type declared inside a function,
+and a property behind `#if`, whose clauses keep their declarations as members.
+
+**A file-scope variable is not a member either.** One with no initializer compiles only in top-level
+code, the `main.swift` entry point [Direct Instantiation](direct-instantiation.md) exempts because
+there is nowhere further out to push construction. A computed one is an accessor, and the rule
+reads no return types. **A protocol requirement still counts**: `var store: FeedStore { get }` makes
+every conformer expose that service, so the dependency is in the abstraction itself. The corpus has
+none of either, so neither choice moved anything.
+
+**A local no longer folds an initializer parameter away.** The fold drops a parameter whose type the
+same scope already reported as a stored property, and a reported local counted as one. So a method
+declaring a local above `init(cache: CacheManager)` hid that parameter behind a finding that was
+itself false. Nothing in the corpus had that shape: no finding was added.
+
+**Measured** the same way as the sections above, over the same 38 runs, with debug CLIs built from
+`main` (`f092ec4b`) and from this change:
+
+| | Concrete Type Usage | other architecture findings |
+|---|---|---|
+| before | 70 | 285 |
+| + type members only | **64** | 285 |
+
+The six removed are the six above, and nothing else moved. SwiftLint's run crashes at that `main`
+on both binaries, in the manifest reader that Blocking I/O On Main Actor added, before any rule
+runs. Its row was taken with CLIs built from the self-reference commit (`1d30f25c`) and from that
+commit plus this change, whose architecture rules match `main`'s: 0 → 0 Concrete Type Usage, 19 →
+19 other. The other column reads 285 rather than the self-reference table's 284 because the corpus
+includes this repository, and that rule brought a Law of Demeter chain in with it.
+
+This predates both the generic-parameter exemption above and the protocol-`typealias` one, and
+neither can reach these six: `Parser` and `CredentialProviderFactory` are concrete types, not
+generic parameters or protocol aliases. The generic-parameter section's eleven are stored
+properties and parameters, none of them a local, so the two changes remove disjoint sets.
+
 ### Non-Violating Examples
 ```swift
 // Using a protocol-named type
@@ -381,6 +446,14 @@ struct RequestParser {
 extension RequestParser {
     struct Iterator {
         var parser: RequestParser
+    }
+}
+
+// A local — declared in a code block, not a member of the type
+struct Route {
+    init(_ path: String) {
+        var segments: SegmentParser?
+        segments = SegmentParser(path)
     }
 }
 ```
