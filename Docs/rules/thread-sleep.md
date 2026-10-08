@@ -20,6 +20,9 @@ Thread.sleep(forTimeInterval: 1.0)
 try await Task.sleep(for: .seconds(1))
 ```
 
+### Related
+This rule reports `Thread.sleep` wherever it appears, so [Blocking I/O On Main Actor](blocking-io-on-main-actor.md) leaves it alone even on the main actor, where a sleep is a hang. That rule reports the C `sleep`/`usleep` calls, which this one doesn't match.
+
 ### Non-Violating Examples
 ```swift
 // Task.sleep — cooperative suspension

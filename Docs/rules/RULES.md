@@ -1,6 +1,6 @@
 # SwiftProjectLint Rules Reference
 
-SwiftProjectLint is a static analysis tool for SwiftUI projects. It parses Swift source files using SwiftSyntax AST visitors to detect anti-patterns spanning state management, performance, animations, architecture, code quality, security, accessibility, memory management, networking, UI patterns, modernization, and idempotency. This reference documents all 212 lint rules, organized by category.
+SwiftProjectLint is a static analysis tool for SwiftUI projects. It parses Swift source files using SwiftSyntax AST visitors to detect anti-patterns spanning state management, performance, animations, architecture, code quality, security, accessibility, memory management, networking, UI patterns, modernization, and idempotency. This reference documents all 213 lint rules, organized by category.
 
 Rules marked **opt-in** are disabled by default and must be explicitly listed under `enabled_only` in `.swiftprojectlint.yml`.
 
@@ -42,6 +42,7 @@ Rules marked **opt-in** are disabled by default and must be explicitly listed un
 | [GeometryReader Overuse](geometry-reader-overuse.md) | Info *(opt-in)* |
 | [Unbounded Task Group](unbounded-task-group.md) | Warning |
 | [onReceive Without Debounce](on-receive-without-debounce.md) | Info *(opt-in)* |
+| [Blocking I/O On Main Actor](blocking-io-on-main-actor.md) | Warning |
 
 ## Animation
 

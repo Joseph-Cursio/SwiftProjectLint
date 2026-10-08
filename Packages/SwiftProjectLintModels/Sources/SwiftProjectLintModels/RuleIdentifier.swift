@@ -140,6 +140,7 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
     case geometryReaderOveruse = "GeometryReader Overuse"
     case unboundedTaskGroup = "Unbounded Task Group"
     case onReceiveWithoutDebounce = "onReceive Without Debounce"
+    case blockingIOOnMainActor = "Blocking I/O On Main Actor"
     case mainActorMissingOnUICode = "Main Actor Missing On UI Code"
     case observableMainActorMissing = "Observable Main Actor Missing"
 
