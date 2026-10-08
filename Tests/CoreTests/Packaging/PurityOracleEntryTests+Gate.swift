@@ -106,7 +106,7 @@ extension PurityOracleEntryTests {
     }
 
     /// Corpus-free: a rule file that names a purity surface must declare it on every registered
-    /// visitor it declares, so a read on a shape no test corpus reaches still fails a test.
+    /// visitor it declares or extends, so a read on a shape no test corpus reaches still fails a test.
     @Test("every rule file that names a purity surface declares it on its visitor")
     func purityReadersDeclareWhatTheyRead() {
         let rules = Self.sources.filter { file in Self.rulePackages.contains(where: file.path.hasPrefix) }
@@ -127,7 +127,8 @@ extension PurityOracleEntryTests {
     }
 
     /// The rule files among `files` that name a purity surface some visitor in them does not declare,
-    /// and how many name one at all.
+    /// and how many name one at all. A file's visitors are the registered ones it declares a class
+    /// for **or extends** — a visitor's code split into `Visitor+Part.swift` is still that visitor's.
     static func undeclaredReads(
         in files: [SourceFile],
         declared: [String: PackagePurityInputs],
@@ -143,7 +144,7 @@ extension PurityOracleEntryTests {
             classes.walk(file.tree)
             let visitors = classes.names.filter { declared[$0] != nil }
             if visitors.isEmpty {
-                offenders.append("\(file.path) names \(needed) but declares no registered visitor")
+                offenders.append("\(file.path) names \(needed) but declares or extends no registered visitor")
             }
             for visitor in visitors.sorted() where declared[visitor]?.isSuperset(of: needed) != true {
                 offenders.append("\(visitor) (\(file.path)) reads \(needed), declares \(declared[visitor] ?? [])")
@@ -293,12 +294,17 @@ private final class StateReaderFinder: SyntaxVisitor {
     }
 }
 
-/// Every class declared in a file, by name.
+/// Every class a file declares, and every type it extends, by name.
 private final class ClassNameFinder: SyntaxVisitor {
     private(set) var names: Set<String> = []
 
     override func visit(_ node: ClassDeclSyntax) -> SyntaxVisitorContinueKind {
         names.insert(node.name.text)
+        return .visitChildren
+    }
+
+    override func visit(_ node: ExtensionDeclSyntax) -> SyntaxVisitorContinueKind {
+        names.insert(PurityOracleEntryTests.typeName(of: node.extendedType))
         return .visitChildren
     }
 }

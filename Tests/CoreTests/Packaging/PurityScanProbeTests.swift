@@ -125,4 +125,40 @@ struct PurityScanProbeTests {
         #expect(scan.offenders.count == 1, "\(scan.offenders)")
         #expect(scan.offenders.first?.hasPrefix("GlobalMutableStateVisitor") == true, "\(scan.offenders)")
     }
+
+    // MARK: - Readers' files
+
+    @Test("a visitor's code moved into an extension file is still that visitor's")
+    func extensionFileBelongsToItsVisitor() {
+        let probe = Scan.scanned("""
+        extension PureFunctionCandidateVisitor {
+            func impureCallee(of function: FunctionDeclSyntax) -> String? {
+                knownImpurePackageFunctions.settledNames.isEmpty ? nil : function.name.text
+            }
+        }
+        """, path: Self.rules + "Testability/Visitors/PureFunctionCandidateVisitor+Join.swift")
+        let scan = Scan.undeclaredReads(
+            in: [probe], declared: Scan.registeredDeclarations(), entryPoints: Scan.oracleEntryPoints
+        )
+        #expect(scan.readers == 1)
+        #expect(scan.offenders.isEmpty, "\(scan.offenders)")
+    }
+
+    @Test("an undeclared visitor's extension in a declared visitor's file is checked against its own declaration")
+    func extensionOfAnUndeclaredVisitorIsChecked() {
+        let probe = Scan.scanned("""
+        final class PureClosureCandidateVisitor: BasePatternVisitor, PackagePurityConsumer {
+            static let packagePurityInputs: PackagePurityInputs = [.oracle]
+            private let purityInferrer = PurityInferrer()
+        }
+        extension GlobalMutableStateVisitor {
+            func reviewProbeIsPure(_ node: ClosureExprSyntax) -> Bool { PurityInferrer().isPure(node) }
+        }
+        """, path: Self.rules + "Testability/Visitors/PureClosureCandidateVisitor.swift")
+        let scan = Scan.undeclaredReads(
+            in: [probe], declared: Scan.registeredDeclarations(), entryPoints: Scan.oracleEntryPoints
+        )
+        #expect(scan.offenders.count == 1, "\(scan.offenders)")
+        #expect(scan.offenders.first?.hasPrefix("GlobalMutableStateVisitor") == true, "\(scan.offenders)")
+    }
 }
