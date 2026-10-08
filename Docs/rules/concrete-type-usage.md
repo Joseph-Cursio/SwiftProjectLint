@@ -28,6 +28,7 @@ The following patterns are exempt because they do not represent real coupling is
 - **`private` / `fileprivate` types** — a protocol around one could only be conformed to in the file that declares it
 - **Closure wrapper types** — a `struct` or `final class` whose only stored property is a closure is already the seam
 - **`Equatable` types** — a value is substituted by constructing a different one
+- **A type named inside its own declaration** — a parameter or property typed with `T` inside `T`'s own `class`, `struct`, `enum` or `actor` declaration, an `extension T`, or a type nested in either is `T`'s implementation, not a caller depending on it — see [the section below](#a-type-named-inside-its-own-declaration)
 
 Depending on a protocol resolves the issue, whatever the protocol is called. One option is to name the protocol for the role, `protocol APIService`, and rename the class for what it is, such as `URLSessionAPIService`; parameters keep the type name `APIService` (written `any APIService` under `ExistentialAny`), and only construction sites change. A suffixed `APIServiceProtocol` or an opaque `some NetworkProtocol` works too, but a suffixed protocol that copies `APIService` member for member is what [Mirror Protocol](mirror-protocol.md) reports.
 
@@ -168,9 +169,9 @@ callers, and code inside the actor is its implementation. The corpus showed why:
 `swift-aws-lambda-runtime`'s `LambdaRuntimeClient.Writer` holds its owning actor and calls `write`
 and `writeAndFinish` on it, while `LambdaRuntimeClientProtocol` offers only `nextInvocation()`.
 That was the only finding the narrowing produced besides Checkout's, and nobody could fix it by
-abstracting. Classes have the same shape and are still reported for it — four Hummingbird findings,
-a copy initialiser and nested types holding their owner — which is older than this change and left
-to its own.
+abstracting. Classes have the same shape — four Hummingbird findings, a copy initialiser and nested
+types holding their owner — which was older than this change and left to its own; that change
+[gave every type the guard](#a-type-named-inside-its-own-declaration).
 
 **Measured** with debug CLIs built from `main` and from this change, JSON output,
 `--categories architecture`, over the repository root of every sibling Swift repository (35, the
@@ -186,6 +187,61 @@ SwiftCompilerFlagStudio with the default rules.
 | + not inside the actor itself | **74** | 286 |
 
 The one finding the change adds is Checkout's, and none is removed.
+
+### A type named inside its own declaration
+
+The advice is for a caller, which could name a protocol instead. **Code inside a type's own
+declaration is not a caller.** Its methods, its extensions and the types nested in it are the
+type's implementation, and they reach members no protocol would carry. A protocol in front of the
+type would be conformed to by that one type, for the benefit of that type's own code, so the
+finding had no end state to reach.
+
+The guard began with actors, when their exemption was narrowed (above), and stopped there on
+purpose: the findings of the same shape for other types were older than that change. All four are
+Hummingbird's:
+
+```swift
+extension Parser {
+    private init(_ parser: Parser, range: Range<Int>) { … }   // a sub-parser over a slice
+}
+extension Parser: Sequence {
+    public struct Iterator: IteratorProtocol {
+        var parser: Parser                                    // the parser it walks
+    }
+}
+extension HTTP2ServerConnectionManager {
+    struct LoopBoundHandler: @unchecked Sendable {
+        let handler: HTTP2ServerConnectionManager             // its owner, to call back into
+    }
+}
+```
+
+The fourth is `HTTP2StreamDelegate`, nested in another extension of the manager and holding its
+`handler` the same way. The guard now reads every enclosing `class`, `struct`, `enum` and `actor`
+declaration and every `extension`, and skips a parameter or property typed with any of them. The
+actor-only version is gone rather than kept beside it.
+
+**An extension of a nested type is read by every component of its name.** `extension
+Parser.Iterator` is inside `Parser` exactly as `struct Iterator` written in `Parser`'s body is;
+reading only `Iterator` would exempt the property written inline and report it once moved into the
+extension. The corpus has no instance of that spelling, so it moved nothing, and a test pins it.
+
+**Only enclosing types count.** Hummingbird's `URI` stores a `Parser` too and is still reported: it
+is a caller. So is a type naming a type nested in it — that is the outer type depending on a
+helper, not the helper's own implementation.
+
+**Measured** the same way as the actor narrowing above, over the same 38 runs, with debug CLIs
+built from `main` and from this change:
+
+| | Concrete Type Usage | other architecture findings |
+|---|---|---|
+| before | 74 | 284 |
+| + every type, not inside itself | **70** | 284 |
+
+The four removed are the four above, and nothing else moved. The other column reads 284 rather than
+the actor table's 286 because Direct Instantiation's app-root exemption landed between the two
+measurements and took one finding from each Checkout `solid` run; Concrete Type Usage stood at 74 on
+both sides of it.
 
 ### Non-Violating Examples
 ```swift
@@ -231,6 +287,16 @@ final class Gallery {
     let store: ImageStore
     init(store: ImageStore) { self.store = store }
 }
+
+// A type named inside its own declaration — its implementation, not a caller
+struct RequestParser {
+    init(_ parser: RequestParser) { }
+}
+extension RequestParser {
+    struct Iterator {
+        var parser: RequestParser
+    }
+}
 ```
 
 ### Violating Examples
@@ -266,6 +332,11 @@ final class CheckoutViewModel {
   form — `any GeneratorProtocol` erases the element type and the shrinker, which is the whole of
   what the type carries. A bare foreign service is different and is still reported: it takes no
   parameters, and wrapping it behind your own protocol is the canonical advice.
+- **A type that links to its own kind is not reported.** `final class RequestHandler { var next:
+  RequestHandler? }` is a chain of responsibility, and there a protocol *would* have an end state:
+  links of different kinds. The self-reference guard cannot tell that from `Parser.Iterator`
+  holding the parser it walks — both name the enclosing type from inside it. The corpus has no
+  instance; the guard's measurement removed the four Hummingbird findings and nothing else.
 - **A `typealias` for a function type is never reported.** `typealias CommandRunner = @Sendable
   ([String]) async throws -> Data` names a closure, and a property typed with it is already
   injected — a test substitutes another closure. Asking for a protocol around it would replace a

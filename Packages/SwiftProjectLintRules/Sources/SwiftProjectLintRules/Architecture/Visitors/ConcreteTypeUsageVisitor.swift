@@ -358,34 +358,54 @@ class ConcreteTypeUsageVisitor: BasePatternVisitor {
         return false
     }
 
-    /// Whether `typeName` is an actor named from inside its own declaration or one of its
-    /// extensions — by its own methods, or by a type nested in it.
+    /// Whether `typeName` is named from inside its own declaration or one of its extensions — by
+    /// its own methods, or by a type nested in it.
     ///
-    /// An actor with an all-`async` protocol is reported because a *caller* that names it could
-    /// name the protocol instead. Code inside the actor is not a caller: it is the actor's own
-    /// implementation, and reaches members the protocol was never meant to carry.
-    /// `swift-aws-lambda-runtime`'s `LambdaRuntimeClient.Writer` holds its owning actor and calls
-    /// `write` and `writeAndFinish` on it; the protocol, `LambdaRuntimeClientProtocol`, offers
-    /// only `nextInvocation()`. That was the one finding the narrowed exemption produced besides
-    /// the Checkout reproduction, and it was not a coupling anyone could fix by abstracting.
+    /// The advice is for a *caller*, which could name an abstraction instead. Code inside the type
+    /// is not a caller: it is the type's own implementation, and it reaches members a protocol
+    /// would never carry. Hummingbird's `Parser` takes another `Parser` in a sub-parser
+    /// initialiser and its nested `Iterator` holds the parser it walks;
+    /// `HTTP2ServerConnectionManager`'s nested `LoopBoundHandler` and `HTTP2StreamDelegate` hold
+    /// their owner to call back into it. A protocol in front of any of them would be conformed to
+    /// by the one type, for the benefit of that type's own code.
     ///
-    /// Classes have the same shape — a nested type holding its owner, a copy initialiser taking
-    /// its own type — and this rule still reports it for them. That is older than the actor
-    /// narrowing and is left to its own change; this keeps the narrowing from adding to it.
-    private func isActorNamedInsideItself(_ typeName: String, _ node: some SyntaxProtocol) -> Bool {
-        guard knownActorTypes.contains(typeName) else { return false }
+    /// This began as an actor-only guard, when the actor exemption was narrowed to report an actor
+    /// beside an all-`async` protocol: `swift-aws-lambda-runtime`'s `LambdaRuntimeClient.Writer`
+    /// holds its owning actor and calls `write` and `writeAndFinish` on it, which
+    /// `LambdaRuntimeClientProtocol` does not offer. The four Hummingbird findings were the same
+    /// shape, older, and the reason holds for every kind of type.
+    private func isNamedInsideItself(_ typeName: String, _ node: some SyntaxProtocol) -> Bool {
         var current = Syntax(node)
         while let parent = current.parent {
-            if parent.as(ActorDeclSyntax.self)?.name.text == typeName { return true }
-            if let extensionDecl = parent.as(ExtensionDeclSyntax.self) {
-                let extended = extensionDecl.extendedType
-                let name = extended.as(IdentifierTypeSyntax.self)?.name.text
-                    ?? extended.as(MemberTypeSyntax.self)?.name.text
-                if name == typeName { return true }
-            }
+            if implementedTypeNames(of: parent).contains(typeName) { return true }
             current = parent
         }
         return false
+    }
+
+    /// The types whose implementation the body of `node` is: the type it declares, or the type it
+    /// extends together with every type that one is nested in. Empty for any other node.
+    private func implementedTypeNames(of node: Syntax) -> [String] {
+        if let decl = node.as(ClassDeclSyntax.self) { return [decl.name.text] }
+        if let decl = node.as(StructDeclSyntax.self) { return [decl.name.text] }
+        if let decl = node.as(EnumDeclSyntax.self) { return [decl.name.text] }
+        if let decl = node.as(ActorDeclSyntax.self) { return [decl.name.text] }
+        if let decl = node.as(ExtensionDeclSyntax.self) {
+            return qualifiedNameComponents(of: decl.extendedType)
+        }
+        return []
+    }
+
+    /// `Parser.Iterator` as `["Parser", "Iterator"]`. An extension of a nested type is inside the
+    /// type it is nested in, exactly as the nested declaration is; reading only the last component
+    /// would exempt `struct Iterator { var parser: Parser }` written inside `Parser` and report
+    /// the same property moved to `extension Parser.Iterator`.
+    private func qualifiedNameComponents(of type: TypeSyntax) -> [String] {
+        if let identifier = type.as(IdentifierTypeSyntax.self) { return [identifier.name.text] }
+        if let member = type.as(MemberTypeSyntax.self) {
+            return qualifiedNameComponents(of: member.baseType) + [member.name.text]
+        }
+        return []
     }
 
     // MARK: - Function/initializer parameters
@@ -400,9 +420,9 @@ class ConcreteTypeUsageVisitor: BasePatternVisitor {
             return .visitChildren
         }
         // Skip all concrete types in SwiftUI views — @Observable requires
-        // concrete types for SwiftUI's observation tracking to work — and an actor named
+        // concrete types for SwiftUI's observation tracking to work — and a type named
         // inside its own declaration.
-        if isInsideSwiftUIView(node) || isActorNamedInsideItself(typeName, node) {
+        if isInsideSwiftUIView(node) || isNamedInsideItself(typeName, node) {
             return .visitChildren
         }
         // Suppress init parameters whose type was already flagged as a stored property
@@ -439,9 +459,9 @@ class ConcreteTypeUsageVisitor: BasePatternVisitor {
 
             guard let typeName = extractServiceTypeName(from: typeAnnotation.type) else { continue }
             // Skip all concrete types in SwiftUI views — @Observable requires
-            // concrete types for SwiftUI's observation tracking to work — and an actor named
+            // concrete types for SwiftUI's observation tracking to work — and a type named
             // inside its own declaration.
-            if isInsideSwiftUIView(node) || isActorNamedInsideItself(typeName, node) {
+            if isInsideSwiftUIView(node) || isNamedInsideItself(typeName, node) {
                 continue
             }
             let propName: String
