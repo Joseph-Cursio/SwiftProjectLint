@@ -83,13 +83,28 @@ public enum PBTSeedKind: String, Codable, Sendable, CaseIterable {
     /// knowing is not the same as refusing.
     case restrictedFunction = "restricted-function"
 
+    /// A pure function that returns **nothing** and changes exactly one value — an `inout` argument,
+    /// or a `mutating` method's `self` — named by the seed's `mutates`.
+    ///
+    /// Its own kind rather than a `pure-function` with a field, because a consumer that ignored the
+    /// field would **misread** the seed: it would take a `Void` function for one returning a result
+    /// and write `f(x) == f(x)` over nothing. That is the misreading a kind exists to prevent, and
+    /// why `role` and `requires` are fields while this is not. A consumer built before this case
+    /// decodes it as unrecognised and skips it loudly, exactly as with `carrier`, so no schema bump.
+    ///
+    /// **Analysable, and never demoted.** Its laws are stated over the mutated value — copy it,
+    /// apply the mutator, compare — so a consumer may narrow onto it. A private one is not demoted to
+    /// `restricted-function`, which promises a function with a result; it keeps this kind and carries
+    /// `restriction` instead, which is presence-keyed on the consumer's side.
+    case pureMutator = "pure-mutator"
+
     /// Whether a consumer may point analysis at this seed's symbol.
     ///
     /// `false` means: report it to the reader as work to do, and **do not** narrow discovery to it.
     /// The symbol is a location, not a subject.
     public var isAnalysable: Bool {
         switch self {
-        case .pureFunction, .idempotency, .restrictedFunction, .carrier:
+        case .pureFunction, .idempotency, .restrictedFunction, .carrier, .pureMutator:
             return true
 
         case .extractableKernel:
@@ -158,6 +173,21 @@ public struct PBTSeed: Codable, Sendable {
     /// of the difference crossed the manifest boundary.
     public let effect: PBTSeedEffect?
 
+    /// The conformances the symbol is still waiting on — see `PBTSeedRequirement`.
+    ///
+    /// Only `missingEquatableOnPureResult` sets it: a pure function refused as a candidate solely
+    /// because its result is not `Equatable`, when a bare conformance would synthesize. A consumer
+    /// that ignores it sees an ordinary `pure-function` whose result has no `==` — the case
+    /// `swift-infer` already caveats — so absence loses the remedy and misreads nothing. Encoded only
+    /// when present, so every other seed stays byte-identical to one written before this field
+    /// existed.
+    public let requires: PBTSeedRequirement?
+
+    /// What a `pure-mutator` writes: `"self"`, or the internal name of its one `inout` parameter —
+    /// the argument a consumer passes with `&`. Only that kind carries it, and it is encoded only
+    /// when present, so every other seed stays byte-identical.
+    public let mutates: String?
+
     public init(
         file: String,
         line: Int,
@@ -166,7 +196,9 @@ public struct PBTSeed: Codable, Sendable {
         kind: PBTSeedKind,
         role: PBTSeedRole? = nil,
         restriction: TestRestriction? = nil,
-        effect: PBTSeedEffect? = nil
+        effect: PBTSeedEffect? = nil,
+        requires: PBTSeedRequirement? = nil,
+        mutates: String? = nil
     ) {
         self.file = file
         self.line = line
@@ -176,6 +208,8 @@ public struct PBTSeed: Codable, Sendable {
         self.role = role
         self.restriction = restriction
         self.effect = effect
+        self.requires = requires
+        self.mutates = mutates
     }
 
     /// `kind` is **required**, mirroring the consumer.
@@ -204,6 +238,10 @@ public struct PBTSeed: Codable, Sendable {
         // position, so absence is an honest "this kind of seed has none" rather
         // than a value to guess at.
         self.effect = try container.decodeIfPresent(PBTSeedEffect.self, forKey: .effect)
+        // Same reasoning as `role`: only a near-miss carries one, and absent is "nothing required".
+        self.requires = try container.decodeIfPresent(PBTSeedRequirement.self, forKey: .requires)
+        // Only a `pure-mutator` carries one; absent is "returns its result".
+        self.mutates = try container.decodeIfPresent(String.self, forKey: .mutates)
     }
 }
 
@@ -306,6 +344,11 @@ public struct PBTSeedsFormatter: IssueFormatterProtocol {
     /// finding the pipeline does not have.**
     static let seedKinds: [RuleIdentifier: PBTSeedKind] = [
         .pureFunctionCandidate: .pureFunction,
+        .pureMutatorCandidate: .pureMutator,
+        // A pure function waiting on an `Equatable` conformance: a function seed like any other,
+        // with the conformance it needs in `requires` — or a mutator one, when the issue says what
+        // it `mutates` (see `declaredKind(of:)`).
+        .missingEquatableOnPureResult: .pureFunction,
         .idempotencyViolation: .idempotency,
         .extractableTotalKernel: .extractableKernel,
         .pureClosureCandidate: .extractableKernel,
@@ -314,6 +357,16 @@ public struct PBTSeedsFormatter: IssueFormatterProtocol {
         .primitiveNamedForItsDomainType: .carrier,
         .sharedDomainEnumField: .carrier
     ]
+
+    /// The kind `issue`'s rule seeds, made a `pure-mutator` when the issue names what it mutates.
+    ///
+    /// `missingEquatableOnPureResult` reports both shapes of near miss — a function whose result
+    /// needs the conformance and a mutator whose mutated value does — and the two must not share a
+    /// kind: a consumer reading a mutator as a `pure-function` would write a law over `Void`.
+    static func declaredKind(of issue: LintIssue) -> PBTSeedKind? {
+        guard let kind = seedKinds[issue.ruleName] else { return nil }
+        return issue.mutates != nil && kind == .pureFunction ? .pureMutator : kind
+    }
 
     /// Demote an otherwise-analysable seed whose symbol no test can call.
     ///
@@ -330,7 +383,10 @@ public struct PBTSeedsFormatter: IssueFormatterProtocol {
         // A private *type* is a real obstacle and deserves saying, but it needs its own vocabulary,
         // not this one. No domain-type rule computes reachability today, so nothing is lost now;
         // the guard is here so that adding one later fails visibly instead of mislabelling.
-        guard declared.isAnalysable, declared != .carrier, reachability.isUnreachable else {
+        // `.pureMutator` likewise: `restricted-function` promises a function with a result, and a
+        // mutator has none. It keeps its kind and carries the restriction as a field.
+        guard declared.isAnalysable, declared != .carrier, declared != .pureMutator,
+              reachability.isUnreachable else {
             return declared
         }
         return .restrictedFunction
@@ -402,7 +458,7 @@ public struct PBTSeedsFormatter: IssueFormatterProtocol {
 
     public func format(issues: [LintIssue]) -> String {
         let seeds: [PBTSeed] = issues.compactMap { issue in
-            guard let declaredKind = Self.seedKinds[issue.ruleName],
+            guard let declaredKind = Self.declaredKind(of: issue),
                   let symbol = issue.symbol,
                   symbol.isEmpty == false
             else { return nil }
@@ -415,7 +471,9 @@ public struct PBTSeedsFormatter: IssueFormatterProtocol {
                 kind: kind,
                 role: issue.role,
                 restriction: issue.testReachability.restriction,
-                effect: issue.effect
+                effect: issue.effect,
+                requires: issue.requires,
+                mutates: issue.mutates
             )
         }
 

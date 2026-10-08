@@ -237,8 +237,16 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
     case nonInjectedNondeterminism = "Non-Injected Nondeterminism"
     case pureFunctionCandidate = "Pure Function Property-Test Candidate"
     case pureClosureCandidate = "Pure Closure Property-Test Candidate"
+
+    /// A pure function that returns nothing and changes one value — an `inout` argument, or a
+    /// `mutating` method's `self` — as a function of its inputs.
+    case pureMutatorCandidate = "Pure Mutator Property-Test Candidate"
     case extractableTotalKernel = "Extractable Total Kernel"
     case missingEquatableOnStateType = "Missing Equatable on State Type"
+
+    /// A pure function refused as a property-test candidate only because its result is not
+    /// `Equatable` — and a bare conformance would be synthesized.
+    case missingEquatableOnPureResult = "Missing Equatable on Pure Function Result"
     case impureCallInViewBody = "Impure Call in View Body"
 
     /// A ViewInspector test that hosts a view and only *then* inspects it. The

@@ -57,6 +57,17 @@ public struct LintIssue: Identifiable, Sendable {
     /// KIND here instead would push a `pbt-seeds` concern into every rule that ever sets it.
     public let testReachability: TestReachability
 
+    /// What the symbol still needs before a law over it compiles — the `Equatable` conformances a
+    /// near-miss candidate is waiting on. `nil` for every finding that needs nothing, which is
+    /// every finding except `missingEquatableOnPureResult`'s. See `PBTSeedRequirement`.
+    public let requires: PBTSeedRequirement?
+
+    /// What a **mutator** writes, when the symbol is one: `"self"` for a `mutating` method, or the
+    /// internal name of its one `inout` parameter. A mutator returns nothing, so a law states what it
+    /// leaves behind in the value it mutates — and a consumer cannot write `f(&x)` without knowing
+    /// which argument `x` is. `nil` for every finding about a function that returns its result.
+    public let mutates: String?
+
     /// Returns the file path of the first location, or an empty string if no locations exist.
     public var filePath: String {
         locations.first?.filePath ?? ""
@@ -84,7 +95,9 @@ public struct LintIssue: Identifiable, Sendable {
         symbol: String? = nil,
         role: PBTSeedRole? = nil,
         effect: PBTSeedEffect? = nil,
-        testReachability: TestReachability = .unknown
+        testReachability: TestReachability = .unknown,
+        requires: PBTSeedRequirement? = nil,
+        mutates: String? = nil
     ) {
         self.severity = severity
         self.message = message
@@ -95,6 +108,8 @@ public struct LintIssue: Identifiable, Sendable {
         self.role = role
         self.effect = effect
         self.testReachability = testReachability
+        self.requires = requires
+        self.mutates = mutates
     }
 
     /// Initializes a lint issue with a single location.
@@ -117,7 +132,9 @@ public struct LintIssue: Identifiable, Sendable {
         symbol: String? = nil,
         role: PBTSeedRole? = nil,
         effect: PBTSeedEffect? = nil,
-        testReachability: TestReachability = .unknown
+        testReachability: TestReachability = .unknown,
+        requires: PBTSeedRequirement? = nil,
+        mutates: String? = nil
     ) {
         self.severity = severity
         self.message = message
@@ -128,5 +145,7 @@ public struct LintIssue: Identifiable, Sendable {
         self.role = role
         self.effect = effect
         self.testReachability = testReachability
+        self.requires = requires
+        self.mutates = mutates
     }
 }

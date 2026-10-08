@@ -40,6 +40,7 @@ public final class SourcePatternDetector: SourcePatternDetectorProtocol, @unchec
     public var knownUnderscoredMembers: Set<String> = []
     public var knownExtensionMembers = ExtensionMemberCatalog.empty
     public var knownClosureWrapperTypes = ClosureWrapperTypeCatalog.empty
+    public var knownEquatableRemedies = EquatableRemedyCatalog.empty
 
     public var knownFunctionTypeAliases: Set<String> = []
 
@@ -225,6 +226,7 @@ public final class SourcePatternDetector: SourcePatternDetectorProtocol, @unchec
             visitor.knownUnderscoredMembers = knownUnderscoredMembers
             visitor.knownExtensionMembers = knownExtensionMembers
             visitor.knownClosureWrapperTypes = knownClosureWrapperTypes
+            visitor.knownEquatableRemedies = knownEquatableRemedies
             visitor.knownFunctionTypeAliases = knownFunctionTypeAliases
             visitor.knownIdentifiableTypes = knownIdentifiableTypes
             visitor.knownEnumTypes = knownEnumTypes

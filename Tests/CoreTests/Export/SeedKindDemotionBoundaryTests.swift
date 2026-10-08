@@ -77,6 +77,18 @@ struct SeedKindDemotionBoundaryTests {
         #expect(PBTSeedsFormatter.effectiveKind(.carrier, reachability: reachability) == .carrier)
     }
 
+    /// A pure mutator does not demote, for the carrier's reason in a different shape:
+    /// `restrictedFunction` promises a function with a *result*, and a mutator returns nothing. A
+    /// consumer handed one under that kind would write a law over `Void`. It keeps its kind and
+    /// carries `restriction` as a field.
+    @Test("pure-mutator never demotes", arguments: [
+        TestReachability.reachable, .unknown,
+        .unreachable(.declaration), .unreachable(.enclosingType)
+    ])
+    func testPureMutatorsNeverDemote(reachability: TestReachability) {
+        #expect(PBTSeedsFormatter.effectiveKind(.pureMutator, reachability: reachability) == .pureMutator)
+    }
+
     /// Guards the claim the tests above split on, so adding a kind forces a decision about whether
     /// the demotion should reach it rather than inheriting one silently.
     ///
@@ -89,7 +101,7 @@ struct SeedKindDemotionBoundaryTests {
         let refactorPending = PBTSeedKind.allCases.filter { !$0.isAnalysable }
             .map(\.rawValue).sorted()
 
-        #expect(analysable == ["carrier", "idempotency", "pure-function", "restricted-function"])
+        #expect(analysable == ["carrier", "idempotency", "pure-function", "pure-mutator", "restricted-function"])
         #expect(refactorPending == ["extractable-kernel"])
     }
 

@@ -41,6 +41,7 @@ public protocol SourcePatternDetectorProtocol {
     var knownUnderscoredMembers: Set<String> { get set }
     var knownExtensionMembers: ExtensionMemberCatalog { get set }
     var knownClosureWrapperTypes: ClosureWrapperTypeCatalog { get set }
+    var knownEquatableRemedies: EquatableRemedyCatalog { get set }
 
     var knownFunctionTypeAliases: Set<String> { get set }
 

@@ -146,7 +146,20 @@ public enum PropertyTestCandidacy {
         ) else {
             return nil
         }
+        return callShape(
+            of: function,
+            knownValueTypes: knownValueTypes,
+            cleanInstanceMethods: cleanInstanceMethods
+        )
+    }
 
+    /// What `function` is a function *of*, with the result already judged: inputs alone, `self`
+    /// and inputs, or neither. Shared with `equatableNearMiss`, which judges the result differently.
+    static func callShape(
+        of function: FunctionDeclSyntax,
+        knownValueTypes: Set<String>,
+        cleanInstanceMethods: CleanInstanceMethodCatalog
+    ) -> PropertyTestShape? {
         if isStatic(function) || isFileScope(function) {
             // A free or static function with no inputs is a constant, not a property.
             guard hasInputs(function.signature) else { return nil }
@@ -295,7 +308,7 @@ public enum PropertyTestCandidacy {
     /// The bare name of the type (or extended type) `function` is declared in, or
     /// `nil` for a free function. Used to resolve a `Self` return to its concrete
     /// type. Mirrors `enclosingTypeContainer`'s ancestor walk.
-    private static func enclosingTypeName(of function: some SyntaxProtocol) -> String? {
+    static func enclosingTypeName(of function: some SyntaxProtocol) -> String? {
         var cursor: Syntax? = Syntax(function).parent
         while let current = cursor {
             if let structDecl = current.as(StructDeclSyntax.self) { return structDecl.name.text }
