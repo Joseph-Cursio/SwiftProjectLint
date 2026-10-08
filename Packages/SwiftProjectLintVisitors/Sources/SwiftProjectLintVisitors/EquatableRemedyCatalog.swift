@@ -40,8 +40,9 @@ import SwiftSyntax
 /// - **Classes and actors** never synthesize `Equatable`; they block.
 /// - **Closures, existentials, tuples and metatypes** have no synthesized `==`; they block.
 ///
-/// A type declared outside the scanned sources is not in the catalog, so it blocks too: its
-/// conformances cannot be seen, and nothing here can add one.
+/// A type declared outside the scanned sources is not in the catalog, so it blocks too — unless a
+/// **resolved dependency** declares it `Equatable` (`vouching(for:)`): nothing here can add a
+/// conformance to it, but one it already has can be read from the package's checkout.
 public struct EquatableRemedyCatalog: Sendable, Equatable {
 
     /// What a declared type's synthesized `==` would need.
@@ -59,11 +60,39 @@ public struct EquatableRemedyCatalog: Sendable, Equatable {
 
     private let shapes: [String: Shape]
 
+    /// Names a **resolved dependency** declares `Equatable` — `Yams.Node`, read from the package's
+    /// checkout. See `vouching(for:)`.
+    private let dependencyEquatable: Set<String>
+
     /// The catalog a caller with no pre-scan gets: no remedy is known, so nothing is reported.
     public static let empty = Self(shapes: [:])
 
-    init(shapes: [String: Shape]) {
+    init(shapes: [String: Shape], dependencyEquatable: Set<String> = []) {
         self.shapes = shapes
+        self.dependencyEquatable = dependencyEquatable
+    }
+
+    /// The names a synthesizable project type compares that **neither the project nor the standard
+    /// library declares** — the names a remedy cannot resolve without looking in the project's
+    /// dependencies. Usually a handful; it is what decides which dependency files are read at all.
+    public var unresolvedNames: Set<String> {
+        var names: Set<String> = []
+        for case .synthesizable(let members) in shapes.values {
+            names.formUnion(members.filter { shapes[$0] == nil && !StdlibTypeNames.equatable.contains($0) })
+        }
+        return names
+    }
+
+    /// This catalog, trusting `names` as `Equatable` where the project does not declare them.
+    ///
+    /// SwiftLintRuleStudio's `YAMLConfig` stores `[String: Node]`, and `Node` is Yams':
+    /// `public enum Node: Hashable`. Without this, a type the project does not declare could only
+    /// block, so `MigrationAssistant.applyMigration(_:to: inout YAMLConfig)` — whose remedy is two
+    /// keywords — was never seeded. The names come from `DependencyConformances`, which vouches only
+    /// for a name every dependency declaration of agrees on. A **project** declaration of the same
+    /// name still wins: `shapes` is consulted first.
+    public func vouching(for names: Set<String>) -> Self {
+        Self(shapes: shapes, dependencyEquatable: dependencyEquatable.union(names))
     }
 
     public var isEmpty: Bool { shapes.isEmpty }
@@ -91,8 +120,9 @@ public struct EquatableRemedyCatalog: Sendable, Equatable {
         func satisfies(_ name: String) -> Bool {
             switch shapes[name] {
             case nil:
-                // Not declared in the project: only a stdlib name can be vouched for.
-                return StdlibTypeNames.equatable.contains(name)
+                // Not declared in the project: a stdlib name, or one a resolved dependency declares
+                // `Equatable` (`vouching(for:)`).
+                return StdlibTypeNames.equatable.contains(name) || dependencyEquatable.contains(name)
 
             case .ambiguous:
                 // **Checked before the conformance index, which is keyed by simple name too.**
@@ -140,6 +170,8 @@ public struct EquatableRemedyCatalog: Sendable, Equatable {
             return nil
         }
         guard let arguments = identifier.genericArgumentClause?.arguments else {
+            // `Any` and `AnyObject` are existentials spelled as names: no `==`, ever.
+            if identifier.name.text == "Any" || identifier.name.text == "AnyObject" { return nil }
             return [identifier.name.text]
         }
         return genericDemands(identifier.name.text, arguments.compactMap { $0.argument.as(TypeSyntax.self) })

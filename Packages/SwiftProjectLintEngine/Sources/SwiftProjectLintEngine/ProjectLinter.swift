@@ -233,6 +233,7 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
         // Pre-scan: collect cross-file type metadata needed by visitors.
         let collected = CollectedTypes.collect(
             from: project.files.reportable,
+            projectRoot: path,
             sources: project.shared,
             demand: project.demand,
             tripwire: project.tripwire

@@ -21,7 +21,9 @@ It fires only when a bare `: Equatable` would be **synthesized**. `EquatableReme
 - a generic type (`Box<T>` conforms conditionally — a different patch);
 - a stored property with an attribute (a property wrapper's storage is what synthesis compares, and `Published<Int>` is not `Equatable`);
 - a stored property with no annotation, unless its initializer names the type (`= Foo(…)` or a literal);
-- a type name declared twice in the project, or declared outside it.
+- a type name declared twice in the project, or declared outside it — **unless a resolved dependency declares it `Equatable`** (below).
+
+**Dependency types.** A member whose type comes from a SwiftPM dependency — SwiftLintRuleStudio's `YAMLConfig` stores Yams' `Node` — is read from the dependency's checkout (`DependencyConformances`): `.build/checkouts/*` under the lint root and under each local package directly below it, and only `Sources/<Module>` for a module the project imports. A name is vouched for when exactly one non-generic declaration of it is found there, with `Equatable`, `Hashable` or `Comparable` declared on it or on an unconditional extension; a project declaration of the same name always wins. The checkouts are read as text, never parsed or linted, and only files that mention a name a remedy is missing. An unresolved package (no `.build`) and Xcode's `DerivedData` checkouts are not read, so the type stays blocked as before. Measured on SwiftLintRuleStudioCore: 21 findings became 32 seeds with `requires`, among them `applyMigration(_:to:)`, and every stated remedy still compiles.
 
 The same holds for a **mutator** — a function with one `inout` parameter, or a `mutating` method — whose mutated value is what a law compares: it is reported here when the mutated value needs the conformance, and seeded as a `pure-mutator` carrying both `requires` and `mutates`. A mutator whose value is already comparable is a [Pure Mutator Property-Test Candidate](pure-mutator-candidate.md).
 

@@ -22,7 +22,7 @@ SwiftLintRuleStudio's `MigrationAssistant.applyMigration(_:to:)` is the shape th
 
 Either must be pure by the shared oracle, not `async`, and not reach an impure package function in one hop. The oracle already reads a write to an `inout` parameter or to a `mutating` method's `self` as the function's own output, and still refutes a clock read or a `print` beside it. A `throws` mutator is reported as partial, as a throwing function is.
 
-The mutated value must be comparable. When it is not but a bare `: Equatable` would make it so, the function is reported by [Missing Equatable on Pure Function Result](missing-equatable-on-pure-result.md) instead, so the two never name the same declaration. A mutator whose value needs a hand-written `==` — or holds a type from another package, which the linter cannot vouch for — is not reported.
+The mutated value must be comparable. When it is not but a bare `: Equatable` would make it so, the function is reported by [Missing Equatable on Pure Function Result](missing-equatable-on-pure-result.md) instead, so the two never name the same declaration. A mutator whose value needs a hand-written `==` — or holds a type from another package that its resolved checkout does not declare `Equatable` — is not reported.
 
 Like the other candidate rules this is a **census**: there is nothing to do per item, so a default report counts these findings rather than listing them (`--categories testability` lists them). Each one seeds the manifest (`--format pbt-seeds`) as a **`pure-mutator`**, a kind of its own, naming what it `mutates` — `"self"` or the `inout` parameter's internal name — so a consumer can write the `&` call:
 
