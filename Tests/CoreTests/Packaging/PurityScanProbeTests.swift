@@ -80,6 +80,57 @@ struct PurityScanProbeTests {
         ])
     }
 
+    @Test("an oracle created with .init is found, as an entry point and in a rule helper")
+    func oracleCreatedWithInitIsFound() {
+        let probe = Scan.scanned("""
+        import SwiftSyntax
+
+        extension PropertyTestCandidacy {
+            public static func reviewProbeByInit(_ node: ClosureExprSyntax) -> Bool {
+                PurityInferrer.init().isPure(node)
+            }
+            public static func reviewProbeByImplicitInit(_ node: ClosureExprSyntax) -> Bool {
+                let oracle: PurityInferrer = .init()
+                return oracle.isPure(node)
+            }
+            public static func reviewProbeGivenOne(_ oracle: PurityInferrer, _ node: ClosureExprSyntax) -> Bool {
+                oracle.isPure(node)
+            }
+        }
+        """, path: Self.visitors + "PropertyTestCandidacy+ReviewProbe.swift")
+        let visitorFiles = Scan.sources.filter { $0.path.hasPrefix(Scan.visitorsSources) }
+        let found = Scan.publicOracleEntryPoints(in: visitorFiles + [probe]).subtracting(Scan.oracleEntryPoints)
+        #expect(found.map(\.declaration).sorted() == [
+            "PropertyTestCandidacy.reviewProbeByImplicitInit", "PropertyTestCandidacy.reviewProbeByInit"
+        ])
+
+        let helper = Scan.scanned("""
+        final class PureClosureCandidateVisitor: BasePatternVisitor, PackagePurityConsumer {
+            static let packagePurityInputs: PackagePurityInputs = [.oracle]
+        }
+        enum ClosureJudge {
+            static func isPure(_ node: ClosureExprSyntax) -> Bool {
+                let oracle: PurityInferrer = .init()
+                return oracle.isPure(node)
+            }
+        }
+        """, path: Self.rules + "Testability/Visitors/PureClosureCandidateVisitor.swift")
+        let caller = Scan.scanned("""
+        final class GlobalMutableStateVisitor: BasePatternVisitor {
+            override func visit(_ node: ClosureExprSyntax) -> SyntaxVisitorContinueKind {
+                _ = ClosureJudge.isPure(node)
+                return .visitChildren
+            }
+        }
+        """, path: Self.rules + "CodeQuality/Visitors/GlobalMutableStateVisitor.swift")
+        let files = [helper, caller]
+        let scan = Scan.undeclaredReads(
+            in: files, declared: Scan.registeredDeclarations(), entryPoints: Scan.readerEntryPoints(in: files)
+        )
+        #expect(scan.offenders.count == 1, "\(scan.offenders)")
+        #expect(scan.offenders.first?.hasPrefix("GlobalMutableStateVisitor") == true, "\(scan.offenders)")
+    }
+
     @Test("a rule-package helper that creates an oracle makes its callers readers, in any file")
     func ruleHelperMakesItsCallersReaders() {
         let helper = Scan.scanned("""

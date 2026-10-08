@@ -56,11 +56,13 @@ extension PurityOracleEntryTests {
     /// The declarations in `files` that create an oracle when they run and that code outside the
     /// package can call: public, in types that are public all the way out.
     ///
-    /// A declaration creates an oracle when its tokens hold `PurityInferrer(`, a call to another
-    /// declaration that does — by its type's name from anywhere (`PropertyTestCandidacy.candidate`),
-    /// or by its own name from inside the same type — or, for an initializer, when a stored property
-    /// of its type is initialized with one. That is run to a fixpoint, so a public function reaching
-    /// an oracle through private and internal helpers, in any file of the package, is found.
+    /// A declaration creates an oracle when its tokens hold `PurityInferrer(` or name `PurityInferrer`
+    /// beside a `.init` (`PurityInferrer.init()`, `let o: PurityInferrer = .init()`); when they hold a
+    /// call to another declaration that does — by its type's name from anywhere
+    /// (`PropertyTestCandidacy.candidate`), or by its own name from inside the same type; or, for an
+    /// initializer, when a stored property of its type is initialized with one. That is run to a
+    /// fixpoint, so a public function reaching an oracle through private and internal helpers, in any
+    /// file of the package, is found.
     static func publicOracleEntryPoints(in files: [SourceFile]) -> Set<OracleEntryPoint> {
         let scan = OracleReachScan(files)
         return Set(scan.reaching.filter(scan.isCallableOutsideThePackage).map(\.entryPoint))
@@ -159,6 +161,13 @@ private struct ScannedMember {
         return .init(declaration: declaration, tokens: tokens)
     }
 
+    /// Creates an oracle itself: `PurityInferrer(…)`, or `PurityInferrer` named beside a `.init`,
+    /// which is how `PurityInferrer.init()` and `let o: PurityInferrer = .init()` spell it.
+    var createsAnOracle: Bool {
+        guard tokenSet.contains("PurityInferrer") else { return false }
+        return spells(["PurityInferrer", "("]) || spells([".", "init"])
+    }
+
     func spells(_ pattern: [String]) -> Bool {
         guard let first = pattern.first, tokenSet.contains(first) else { return false }
         let width = pattern.count
@@ -205,7 +214,7 @@ private struct OracleReachScan {
         var changed = true
         while changed {
             changed = false
-            var external = [["PurityInferrer", "("]]
+            var external: [[String]] = []
             var scoped: [String: [[String]]] = [:]
             var storing: Set<String> = []
             for index in reaching {
@@ -217,7 +226,8 @@ private struct OracleReachScan {
             for index in members.indices where !reaching.contains(index) {
                 let member = members[index]
                 let byStorage = member.kind == .initializer && storing.contains(member.type)
-                if byStorage || (external + (scoped[member.scope] ?? [])).contains(where: member.spells) {
+                let reaches = member.createsAnOracle || byStorage
+                if reaches || (external + (scoped[member.scope] ?? [])).contains(where: member.spells) {
                     reaching.insert(index)
                     changed = true
                 }
