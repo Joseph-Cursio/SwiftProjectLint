@@ -432,13 +432,37 @@ class ConcreteTypeUsageVisitor: BasePatternVisitor, PackagePurityConsumer {
     /// there — the extended type's clause, or the extended protocol's associated types — is in
     /// whichever file declares it. `isNamedInsideItself` can read extensions because the name it
     /// needs is in the extension's own header; the names needed here are not.
+    ///
+    /// The nearest declaration of the name decides, as it does for the compiler. A type or
+    /// `typealias` nested in a type *between* the use and the clause shadows the parameter:
+    /// in `struct Outer<Provider: FileProvider> { struct Inner { final class Provider { };
+    /// let provider: Provider } }` the property holds `Inner.Provider`, a class. Within one
+    /// declaration the order is the other way round: its own generic parameter shadows its own
+    /// nested type of the same name, so each declaration's clause is read before its members.
     private func isGenericParameterInScope(_ typeName: String, _ node: some SyntaxProtocol) -> Bool {
         var current = Syntax(node)
         while let parent = current.parent {
             if abstractTypeNames(introducedBy: parent).contains(typeName) { return true }
+            if nestedTypeNames(declaredIn: parent).contains(typeName) { return false }
             current = parent
         }
         return false
+    }
+
+    /// The types and `typealias`es declared directly in `node`'s member block. Empty for any node
+    /// without one. A code block needs no counterpart: Swift rejects a local type anywhere a
+    /// generic parameter is in scope.
+    private func nestedTypeNames(declaredIn node: Syntax) -> [String] {
+        guard let members = node.asProtocol(DeclGroupSyntax.self)?.memberBlock.members else { return [] }
+        return members.compactMap { member in
+            let decl = member.decl
+            if let nested = decl.as(StructDeclSyntax.self) { return nested.name.text }
+            if let nested = decl.as(ClassDeclSyntax.self) { return nested.name.text }
+            if let nested = decl.as(EnumDeclSyntax.self) { return nested.name.text }
+            if let nested = decl.as(ActorDeclSyntax.self) { return nested.name.text }
+            if let nested = decl.as(ProtocolDeclSyntax.self) { return nested.name.text }
+            return decl.as(TypeAliasDeclSyntax.self)?.name.text
+        }
     }
 
     /// The generic parameters `node` declares, or the associated types of a protocol. Empty for
