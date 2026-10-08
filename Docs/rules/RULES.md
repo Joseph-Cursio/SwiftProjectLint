@@ -10,9 +10,9 @@ Rules marked **opt-in** are disabled by default and must be explicitly listed un
 
 | Rule | Severity |
 |------|----------|
-| [Flag Optional Pair State](flag-optional-pair-state.md) | Info |
-| [Mutually Exclusive Presentation State](mutually-exclusive-presentation-state.md) | Info |
-| [Redundant Derived Property](redundant-derived-property.md) | Info |
+| [Flag Optional Pair State](flag-optional-pair-state.md) | Info *(opt-in)* |
+| [Mutually Exclusive Presentation State](mutually-exclusive-presentation-state.md) | Info *(opt-in)* |
+| [Redundant Derived Property](redundant-derived-property.md) | Info *(opt-in)* |
 | [Related Duplicate State Variable](related-duplicate-state-variable.md) | Warning |
 | [Unrelated Duplicate State Variable](unrelated-duplicate-state-variable.md) | Info |
 | [Uninitialized State Variable](uninitialized-state-variable.md) | Error |
@@ -39,9 +39,9 @@ Rules marked **opt-in** are disabled by default and must be explicitly listed un
 | [ViewBuilder Complexity](view-builder-complexity.md) | Warning |
 | [Custom Modifier Performance](custom-modifier-performance.md) | Warning |
 | [Formatter In View Body](formatter-in-view-body.md) | Warning |
-| [GeometryReader Overuse](geometry-reader-overuse.md) | Info *(opt-in)* |
+| [GeometryReader Overuse](geometry-reader-overuse.md) | Info |
 | [Unbounded Task Group](unbounded-task-group.md) | Warning |
-| [onReceive Without Debounce](on-receive-without-debounce.md) | Info *(opt-in)* |
+| [onReceive Without Debounce](on-receive-without-debounce.md) | Info |
 
 ## Animation
 
@@ -69,7 +69,7 @@ Rules marked **opt-in** are disabled by default and must be explicitly listed un
 | [Accessing Implementation Details](accessing-implementation-details.md) | Warning |
 | [Singleton Usage](singleton-usage.md) | Warning |
 | [Law of Demeter](law-of-demeter.md) | Info |
-| [Wide Reach-Through](wide-reach-through.md) | Info |
+| [Wide Reach-Through](wide-reach-through.md) | Info *(opt-in)* |
 | [Fat Protocol](fat-protocol.md) | Info |
 | [Single Implementation Protocol](single-implementation-protocol.md) | Info |
 | [Mirror Protocol](mirror-protocol.md) | Info |
@@ -89,7 +89,7 @@ Rules marked **opt-in** are disabled by default and must be explicitly listed un
 | [Computed Property View](computed-property-view.md) | Warning |
 | [SwiftData Unique Attribute CloudKit](swiftdata-unique-attribute-cloudkit.md) | Warning |
 | [God View Model](god-view-model.md) | Warning |
-| [View Model Direct DB Access](view-model-direct-db-access.md) | Info *(opt-in)* |
+| [View Model Direct DB Access](view-model-direct-db-access.md) | Info |
 | [Circular Dependency](circular-dependency.md) | Warning |
 | [Architectural Boundary](architectural-boundary.md) | Warning |
 | [Boolean Control Coupling](boolean-control-coupling.md) | Warning |
@@ -114,9 +114,9 @@ Rules marked **opt-in** are disabled by default and must be explicitly listed un
 | [Non-Actor Agent Suffix](non-actor-agent-suffix.md) | Info *(opt-in)* |
 | [Property Wrapper Naming Suffix](property-wrapper-naming-suffix.md) | Info |
 | [Macro Negation](macro-negation.md) | Warning |
-| [Test Missing Require](test-missing-require.md) | Info |
-| [Test Missing Assertion](test-missing-assertion.md) | Warning |
-| [Test Missing Expect](test-missing-expect.md) | Info |
+| [Test Missing Require](test-missing-require.md) | Info *(opt-in)* |
+| [Test Missing Assertion](test-missing-assertion.md) | Warning *(opt-in)* |
+| [Test Missing Expect](test-missing-expect.md) | Info *(opt-in)* |
 | [Lowercased Contains](lowercased-contains.md) | Warning |
 | [Multiple Types Per File](multiple-types-per-file.md) | Info |
 | [Actor Reentrancy](actor-reentrancy.md) | Warning |
@@ -150,12 +150,12 @@ Rules marked **opt-in** are disabled by default and must be explicitly listed un
 | [Preconcurrency Import](preconcurrency-import.md) | Info |
 | [Swallowed Injection Downcast](swallowed-injection-downcast.md) | Info |
 | [Discardable Result Misuse](discardable-result-misuse.md) | Info |
-| [String Switch Over Enum](string-switch-over-enum.md) | Info *(opt-in)* |
+| [String Switch Over Enum](string-switch-over-enum.md) | Info |
 | [SwiftLint Suppression](swiftlint-suppression.md) | Warning |
 | [SwiftProjectLint Suppression](swiftprojectlint-suppression.md) | Warning |
 | [Font Weight Bold](font-weight-bold.md) | Info |
 | [Global Actor Mismatch](global-actor-mismatch.md) | Warning |
-| [Nested Generic Complexity](nested-generic-complexity.md) | Info *(opt-in)* |
+| [Nested Generic Complexity](nested-generic-complexity.md) | Info |
 | [Magic Boolean Parameter](magic-boolean-parameter.md) | Info |
 | [Implicit Codable Raw Value](implicit-codable-raw-value.md) | Info |
 
@@ -180,8 +180,8 @@ Rules marked **opt-in** are disabled by default and must be explicitly listed un
 | [Navigation Button Should Be Link](navigation-button-should-be-link.md) | Warning |
 | [Control Missing Accessibility Label](control-missing-accessibility-label.md) | Warning |
 | [isButton Trait Without Action](is-button-trait-without-action.md) | Warning |
-| [Animation Without Reduce Motion](animation-without-reduce-motion.md) | Info |
-| [Unlabeled Control](unlabeled-control.md) | Warning |
+| [Animation Without Reduce Motion](animation-without-reduce-motion.md) | Info *(opt-in)* |
+| [Unlabeled Control](unlabeled-control.md) | Warning *(opt-in)* |
 | [Long Text Accessibility](long-text-accessibility.md) | Info |
 | [Hardcoded Font Size](hardcoded-font-size.md) | Warning |
 | [onTapGesture Instead of Button](on-tap-gesture-instead-of-button.md) | Warning |
@@ -249,9 +249,9 @@ Rules marked **opt-in** are disabled by default and must be explicitly listed un
 | [Legacy Formatter](legacy-formatter.md) | Info |
 | [Legacy Image Renderer](legacy-image-renderer.md) | Info |
 | [ScrollView showsIndicators](scroll-view-shows-indicators.md) | Info |
-| [Legacy Array Init](legacy-array-init.md) | Info *(opt-in)* |
-| [Legacy Closure Syntax](legacy-closure-syntax.md) | Info *(opt-in)* |
-| [iOS 17 Observation Migration](ios17-observation-migration.md) | Info *(opt-in)* |
+| [Legacy Array Init](legacy-array-init.md) | Info |
+| [Legacy Closure Syntax](legacy-closure-syntax.md) | Info |
+| [iOS 17 Observation Migration](ios17-observation-migration.md) | Info |
 | [Member Import Visibility Not Enabled](member-import-visibility-not-enabled.md) | Info |
 
 ## Idempotency
