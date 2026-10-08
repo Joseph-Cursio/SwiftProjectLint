@@ -260,6 +260,7 @@ These rules are **off by default** and must be listed under `enabled_only` to ru
 | `Magic Layout Number` | Inline layout numbers like `.padding(16)` are idiomatic SwiftUI; enable it to enforce design tokens |
 | `Hardcoded Strings` | False positives with String Catalogs (`.xcstrings`) — localization keys look like hardcoded text |
 | `Non-Actor Agent Suffix` | Many codebases give plain classes agent-noun names intentionally and without confusion |
+| `Protocol Naming Suffix` | Team naming convention; Swift's guidelines name a role-noun protocol `OrderStore`, not `OrderStoreProtocol` |
 | `Test Missing Require` | A test-style rule (`try #require` over a trapping `!`, `try!` or `as!`), opt-in like its two siblings |
 | `Test Missing Assertion` | A "does it crash" test is occasionally intentional (setup that must not throw) |
 | `Test Missing Expect` | Enforces the design-by-contract style (`#require` and `#expect` in every test), which not every team uses |

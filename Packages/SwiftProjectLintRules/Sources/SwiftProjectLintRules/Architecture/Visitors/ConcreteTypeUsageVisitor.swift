@@ -220,10 +220,23 @@ class ConcreteTypeUsageVisitor: BasePatternVisitor {
             // same way as a service class. Requires the project-wide enum prescan.
             Exemption { self.knownEnumTypes.contains($0) },
 
-            // Actor types — their isolation contract is load-bearing in Swift 6 strict
-            // concurrency. Protocol-abstracting an actor loses the serial executor guarantee at
-            // every call site. Requires the project-wide actor prescan.
-            Exemption { self.knownActorTypes.contains($0) },
+            // Actor types, until the project has already abstracted one without losing anything.
+            // An actor's isolation contract is load-bearing in Swift 6 strict concurrency, and a
+            // protocol *can* strip it: a synchronous requirement is satisfiable only by a
+            // `nonisolated` member or a `@preconcurrency` conformance, and either way a caller
+            // reaches it without `await`.
+            //
+            // A project protocol whose every instance requirement is `async` cannot. Callers
+            // through it still `await`, and Swift 6 rejects an actor-isolated member satisfying a
+            // synchronous requirement, so the conformance cannot quietly weaken that. When the
+            // actor conforms to one, naming the actor instead is the coupling this rule reports —
+            // and the suggestion names the protocol. Reported against Checkout's
+            // `CheckoutViewModel`, which stored `CoreDataOrderStore` beside an `OrderStore` whose
+            // two requirements are both `async`. Requires the project-wide actor prescan.
+            Exemption {
+                self.knownActorTypes.contains($0)
+                    && self.knownActorTypes.asyncProtocols(conformedToBy: $0).isEmpty
+            },
 
             // @Observable / ObservableObject types — protocol-abstracting a SwiftUI observation
             // model severs change tracking: through `any SomeProtocol` the view can no longer see
@@ -293,6 +306,19 @@ class ConcreteTypeUsageVisitor: BasePatternVisitor {
         ]
     }
 
+    /// The fix to offer. An actor reaching this point already conforms to an all-`async`
+    /// project protocol — otherwise it would have been exempt — so the abstraction exists and the
+    /// suggestion is to use it rather than to define one.
+    private func suggestion(for typeName: String, asThe position: String) -> String {
+        let existing = knownActorTypes.asyncProtocols(conformedToBy: typeName)
+        guard !existing.isEmpty else {
+            return "Define a protocol for '\(typeName)' and use the protocol as the \(position) type"
+        }
+        let names = existing.map { "'\($0)'" }.joined(separator: " or ")
+        return "Use \(names) as the \(position) type — '\(typeName)' already conforms, and every "
+            + "requirement is async, so callers still await"
+    }
+
     // MARK: - Property wrapper detection
 
     // The shared state-storage set plus two this rule also treats as wrapped
@@ -332,6 +358,36 @@ class ConcreteTypeUsageVisitor: BasePatternVisitor {
         return false
     }
 
+    /// Whether `typeName` is an actor named from inside its own declaration or one of its
+    /// extensions — by its own methods, or by a type nested in it.
+    ///
+    /// An actor with an all-`async` protocol is reported because a *caller* that names it could
+    /// name the protocol instead. Code inside the actor is not a caller: it is the actor's own
+    /// implementation, and reaches members the protocol was never meant to carry.
+    /// `swift-aws-lambda-runtime`'s `LambdaRuntimeClient.Writer` holds its owning actor and calls
+    /// `write` and `writeAndFinish` on it; the protocol, `LambdaRuntimeClientProtocol`, offers
+    /// only `nextInvocation()`. That was the one finding the narrowed exemption produced besides
+    /// the Checkout reproduction, and it was not a coupling anyone could fix by abstracting.
+    ///
+    /// Classes have the same shape — a nested type holding its owner, a copy initialiser taking
+    /// its own type — and this rule still reports it for them. That is older than the actor
+    /// narrowing and is left to its own change; this keeps the narrowing from adding to it.
+    private func isActorNamedInsideItself(_ typeName: String, _ node: some SyntaxProtocol) -> Bool {
+        guard knownActorTypes.contains(typeName) else { return false }
+        var current = Syntax(node)
+        while let parent = current.parent {
+            if parent.as(ActorDeclSyntax.self)?.name.text == typeName { return true }
+            if let extensionDecl = parent.as(ExtensionDeclSyntax.self) {
+                let extended = extensionDecl.extendedType
+                let name = extended.as(IdentifierTypeSyntax.self)?.name.text
+                    ?? extended.as(MemberTypeSyntax.self)?.name.text
+                if name == typeName { return true }
+            }
+            current = parent
+        }
+        return false
+    }
+
     // MARK: - Function/initializer parameters
 
     override func visit(_ node: FunctionParameterSyntax) -> SyntaxVisitorContinueKind {
@@ -344,8 +400,9 @@ class ConcreteTypeUsageVisitor: BasePatternVisitor {
             return .visitChildren
         }
         // Skip all concrete types in SwiftUI views — @Observable requires
-        // concrete types for SwiftUI's observation tracking to work
-        if isInsideSwiftUIView(node) {
+        // concrete types for SwiftUI's observation tracking to work — and an actor named
+        // inside its own declaration.
+        if isInsideSwiftUIView(node) || isActorNamedInsideItself(typeName, node) {
             return .visitChildren
         }
         // Suppress init parameters whose type was already flagged as a stored property
@@ -360,7 +417,7 @@ class ConcreteTypeUsageVisitor: BasePatternVisitor {
             message: "Parameter '\(paramName)' uses concrete type '\(typeName)' — prefer a protocol abstraction",
             filePath: currentFilePath,
             lineNumber: getLineNumber(for: Syntax(node)),
-            suggestion: "Define a protocol for '\(typeName)' and use the protocol as the parameter type",
+            suggestion: suggestion(for: typeName, asThe: "parameter"),
             ruleName: .concreteTypeUsage
         )
         return .visitChildren
@@ -382,8 +439,9 @@ class ConcreteTypeUsageVisitor: BasePatternVisitor {
 
             guard let typeName = extractServiceTypeName(from: typeAnnotation.type) else { continue }
             // Skip all concrete types in SwiftUI views — @Observable requires
-            // concrete types for SwiftUI's observation tracking to work
-            if isInsideSwiftUIView(node) {
+            // concrete types for SwiftUI's observation tracking to work — and an actor named
+            // inside its own declaration.
+            if isInsideSwiftUIView(node) || isActorNamedInsideItself(typeName, node) {
                 continue
             }
             let propName: String
@@ -398,7 +456,7 @@ class ConcreteTypeUsageVisitor: BasePatternVisitor {
                 message: "Property '\(propName)' declares concrete type '\(typeName)' — prefer a protocol abstraction",
                 filePath: currentFilePath,
                 lineNumber: getLineNumber(for: Syntax(node)),
-                suggestion: "Define a protocol for '\(typeName)' and use the protocol as the property type",
+                suggestion: suggestion(for: typeName, asThe: "property"),
                 ruleName: .concreteTypeUsage
             )
         }

@@ -8,7 +8,7 @@ import SwiftSyntax
 /// A SwiftSyntax visitor that detects naming convention issues in Swift code.
 ///
 /// Checks:
-/// - Protocol names should be suffixed with "Protocol"
+/// - Protocol names should be suffixed with "Protocol" (protocolNamingSuffix, opt-in)
 /// - Actor names should be suffixed with "Actor" (actorNamingSuffix)
 /// - Actor names should convey agency via an agent-noun suffix or "Actor" (actorAgentName)
 /// - Class/struct with agent-noun name should end in "Agent" if not a Swift actor (nonActorAgentSuffix, opt-in)
