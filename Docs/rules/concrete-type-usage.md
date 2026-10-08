@@ -30,6 +30,7 @@ The following patterns are exempt because they do not represent real coupling is
 - **`Equatable` types** — a value is substituted by constructing a different one
 - **Protocols, and the `typealias`es that stand for them** — a project-wide pre-scan identifies every declared protocol, plus every `typealias` that composes protocols (`typealias OrderStore = OrderSaving & OrderHistory`) or renames one. `let store: OrderStore` is already an abstraction; read by its `Store` suffix alone, it was reported as a concrete service
 - **A type named inside its own declaration** — a parameter or property typed with `T` inside `T`'s own `class`, `struct`, `enum` or `actor` declaration, an `extension T`, or a type nested in either is `T`'s implementation, not a caller depending on it — see [the section below](#a-type-named-inside-its-own-declaration)
+- **A generic parameter in scope** — a parameter or property typed with a generic parameter of an enclosing type, function, initializer or subscript, or with an associated type inside the protocol that declares it, is a placeholder rather than a concrete type — see [the section below](#a-generic-parameter-in-scope)
 
 Depending on a protocol resolves the issue, whatever the protocol is called. One option is to name the protocol for the role, `protocol APIService`, and rename the class for what it is, such as `URLSessionAPIService`; parameters keep the type name `APIService` (written `any APIService` under `ExistentialAny`), and only construction sites change. A suffixed `APIServiceProtocol` or an opaque `some NetworkProtocol` works too, but a suffixed protocol that copies `APIService` member for member is what [Mirror Protocol](mirror-protocol.md) reports.
 
@@ -247,6 +248,82 @@ the actor table's 286 because Direct Instantiation's app-root exemption landed b
 measurements and took one finding from each Checkout `solid` run; Concrete Type Usage stood at 74 on
 both sides of it.
 
+### A generic parameter in scope
+
+The suffix list reads a type's *name*, and a generic parameter has one. Two of the findings that
+produced, both Hummingbird's:
+
+```swift
+public struct FileMiddleware<Context: RequestContext, Provider: FileProvider>: RouterMiddleware {
+    let fileProvider: Provider                // "declares concrete type 'Provider'"
+}
+public struct EditedResponse<Generator: ResponseGenerator>: ResponseGenerator {
+    public var responseGenerator: Generator   // "declares concrete type 'Generator'"
+}
+```
+
+**Neither is a concrete type.** `Provider` is a placeholder the caller fills, constrained to the
+protocol `FileProvider`. That is the abstraction the advice asks for, in its static form: a test
+supplies its own conformer as the generic argument, just as it would pass one to an
+`any FileProvider`, and needs no existential to do it. The finding asked the author to replace a
+protocol-constrained placeholder with a protocol.
+
+The rule now skips a parameter or property whose type is named by a generic parameter in scope,
+meaning one declared in the generic parameter clause of *any* enclosing type, function,
+initializer or subscript. "Any" matters: a type nested in a generic type sees the outer
+parameters, and a method's own clause adds to its type's. Whether the constraint is written inline
+or in a `where` clause makes no difference, because the name is what is matched. The negative
+controls matter as much. The same name outside that scope can be a concrete type, so
+`final class StaticSite { let fileProvider: Provider }` beside `FileMiddleware` is still reported,
+and so is a sibling of a generic method that names the method's parameter.
+
+**Associated types count where the declaration is in view.** An associated type is a protocol's
+generic parameter. Inside the protocol's own body, `associatedtype Client: TestClientProtocol`
+followed by `var client: Client { get }` names a placeholder the conformer fills, and the same walk
+reads it off the enclosing protocol. A conforming type is different and is still reported: there,
+`Client` names the witness the conformer bound, which is concrete. Inside a protocol *extension*
+the name is `Self.Client`, also a placeholder, but the extension does not declare it. Neither does
+`extension FileMiddleware` declare `Provider`. That case is left open, and
+[Known Limitations](#known-limitations) says why.
+
+**Measured** the same way as the actor narrowing above, over the same 38 runs: debug CLIs built
+from `main` and from this change, JSON output, `--categories architecture`, over the repository
+root of all 35 sibling Swift repositories, plus Checkout `main` and its
+`solid/d-concrete-dependency` branch under `.swiftprojectlint-solid.yml`, and
+SwiftCompilerFlagStudio with the default rules. `main` moved while this was measured, so the
+measurement was taken twice: once without the self-reference guard above, and once with it.
+
+| | Concrete Type Usage | other architecture findings |
+|---|---|---|
+| before, without the self-reference guard | 74 | 284 |
+| + a generic parameter in scope | 63 | 284 |
+| before, with it | 70 | 266 |
+| + a generic parameter in scope | **59** | 266 |
+
+The second pair covers 37 runs. With the default-isolation detector, which landed alongside the
+guard, the CLI traps on SwiftLint's manifest, both on `main` and on this change, so SwiftLint's 19
+other findings are missing from both sides. SwiftLint has no Concrete Type Usage finding, and in
+the first pair it moved nothing. The other column also gains one on its own: the SwiftProjectLint
+checkout in the corpus moved forward between the pairs and brought one Law of Demeter finding with
+it. Both pairs predate the protocol-`typealias` exemption, which cannot reach these eleven: none of
+their names is a protocol `typealias` anywhere in the corpus.
+
+The same eleven were removed both times. They are every generic-parameter finding in the corpus,
+and nothing else moved:
+
+- **Hummingbird, 3.** The two above, and `Application`'s `init<ResponderBuilder:
+  HTTPResponderBuilder>(router: ResponderBuilder, …)`.
+- **swift-aws-lambda-runtime, 8.** `LambdaManagedRuntime<Handler>` stores `handler: Handler`, and a
+  static method of `LambdaRuntime<Handler>` takes one. `LambdaHandlerAdapter` and
+  `LambdaCodableAdapter`, both generic over `Handler`, store one each.
+  `Lambda.runLoop<RuntimeClient: LambdaRuntimeClientProtocol, Handler>` takes both, and two
+  `LambdaManagedRuntime` convenience initialisers take `lambdaHandler: LHandler`, a parameter of
+  their own clause.
+
+No remaining finding is typed with a generic parameter. The corpus declares a service-named generic
+parameter or associated type only in those two repositories, in a SwiftUMLStudio view the rule
+already skips as SwiftUI, and in test files.
+
 ### Non-Violating Examples
 ```swift
 // Using a protocol-named type
@@ -258,6 +335,11 @@ class Owner {
 // Opaque type
 class Owner {
     func foo(service: some NetworkProtocol) { }
+}
+
+// Generic parameter — a placeholder the caller fills, not a concrete type
+struct FileMiddleware<Provider: FileProvider> {
+    let fileProvider: Provider
 }
 
 // DI container — concrete types are correct here
@@ -434,5 +516,19 @@ final class CheckoutViewModel {
   exactly zero to that column — which is what makes the split measured rather than asserted.
   `Extractable Total Kernel` and `Direct Instantiation` share the machinery and were checked
   rather than assumed: both unmoved.
+
+- **A generic parameter or associated type named inside an extension is still reported.**
+  `extension FileMiddleware { func serve(from provider: Provider) }` has the type's `Provider` in
+  scope, and `extension ApplicationTester { func reset(_ client: Client) }` has the protocol's
+  `Client`. Neither extension declares the name. The declaration that does is usually in another
+  file, so recognising it would take a project-wide catalog of every type's generic parameters and
+  every protocol's associated types, threaded through the pre-scan like the others. A protocol
+  extension is no exception: only the protocol's own body is covered.
+
+  **The corpus has no instance.** None of the eleven generic-parameter findings was in an
+  extension, and no remaining finding is typed with a generic parameter, so the catalog would move
+  nothing today. Its one associated type with a service name, Hummingbird's `associatedtype Client`
+  in `ApplicationTester`, is in a test target the rule skips. A test pins the current behaviour, so
+  the change that adds the catalog updates it on purpose.
 
 ---
