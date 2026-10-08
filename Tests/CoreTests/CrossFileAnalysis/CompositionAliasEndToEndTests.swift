@@ -30,6 +30,37 @@ struct CompositionAliasEndToEndTests {
         ])
     }
 
+    @Test
+    func aPropertyTypedWithTheAliasIsAnAbstraction() async {
+        var files = Self.splitStore
+        files["Sources/Checkout/Presentation/ReceiptPrinter.swift"] = """
+        final class ReceiptPrinter {
+            private let store: OrderStore
+            private let disk: DiskOrderStore
+            init(store: OrderStore, disk: DiskOrderStore) {
+                self.store = store
+                self.disk = disk
+            }
+        }
+
+        final class DiskOrderStore {
+            private var orders: [Order] = []
+            func save(_ order: Order) { orders.append(order) }
+        }
+        """
+        let root = makePackage(named: "AliasProperty", files: files)
+        defer { try? FileManager.default.removeItem(atPath: root) }
+
+        let concrete = await analyze(root)
+            .filter { $0.ruleName == .concreteTypeUsage }
+            .map(\.message)
+
+        // `Store` is a service suffix, so the alias read as a concrete service. The control
+        // beside it shows the rule is live in this run.
+        #expect(concrete.contains { $0.contains("'OrderStore'") } == false)
+        #expect(concrete.contains { $0.contains("'DiskOrderStore'") })
+    }
+
     // MARK: - Fixture
 
     private static let splitStore: [String: String] = [

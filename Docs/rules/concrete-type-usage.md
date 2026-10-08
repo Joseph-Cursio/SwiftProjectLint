@@ -28,6 +28,7 @@ The following patterns are exempt because they do not represent real coupling is
 - **`private` / `fileprivate` types** — a protocol around one could only be conformed to in the file that declares it
 - **Closure wrapper types** — a `struct` or `final class` whose only stored property is a closure is already the seam
 - **`Equatable` types** — a value is substituted by constructing a different one
+- **Protocols, and the `typealias`es that stand for them** — a project-wide pre-scan identifies every declared protocol, plus every `typealias` that composes protocols (`typealias OrderStore = OrderSaving & OrderHistory`) or renames one. `let store: OrderStore` is already an abstraction; read by its `Store` suffix alone, it was reported as a concrete service
 
 Replacing `APIService` with `APIServiceProtocol` — or using `some NetworkProtocol` — resolves the issue.
 

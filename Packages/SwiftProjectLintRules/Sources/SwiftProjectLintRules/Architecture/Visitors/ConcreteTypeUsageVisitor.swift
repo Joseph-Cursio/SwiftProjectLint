@@ -289,6 +289,9 @@ class ConcreteTypeUsageVisitor: BasePatternVisitor {
             // name-based check above only recognises the `Protocol`/`Type`/`Interface` naming
             // conventions. The project-wide protocol prescan catches the rest, so we don't tell
             // users to "prefer a protocol abstraction" for something that already is one.
+            // The prescan includes the `typealias`es standing for protocols, so
+            // `let store: OrderStore` with `typealias OrderStore = OrderSaving & OrderHistory`
+            // is not reported either: `Store` is a service suffix, and the alias read as one.
             Exemption { self.knownProtocolTypes.contains($0) }
         ]
     }
