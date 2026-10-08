@@ -61,7 +61,7 @@ The setting lives in the build configuration, not the source, so the rule reads 
 - **SwiftPM:** a target in the root `Package.swift` or a nested package's whose `swiftSettings` contain `.defaultIsolation(MainActor.self)`. The setting can be written inline, or through a top-level `let` the manifest declares (`let uiSettings: [SwiftSetting] = [...]`, including `base + [...]`). The target's files are those under its `path:`, or `Sources/<name>` without one.
 - **Xcode:** a native target whose build settings, or the project's, set `SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor`. Its files are the folders it synchronizes (Xcode 16 and later) and the files its Sources build phase lists.
 
-Not read: settings from `.xcconfig` files, a synchronized folder's per-target exceptions, a manifest that sets `swiftSettings` in a loop after creating the package, and SwiftPM's other default source folders (`Source/`, `src/`). The manifest is read as text, with comments and strings handled, so the setting must be spelled out, not assembled by a function.
+Not read: settings from `.xcconfig` files, a synchronized folder's per-target exceptions, a manifest that sets `swiftSettings` in a loop after creating the package, a `let` declared without a value and assigned later (`let settings: [SwiftSetting]`, then set inside `#if`), and SwiftPM's other default source folders (`Source/`, `src/`). The manifest is read as text, with comments and strings handled, so the setting must be spelled out, not assembled by a function.
 
 ### Known Limitations
 - **Receivers are matched by method name, not type.** `contentsOfDirectory(atPath:)` is assumed to be `FileManager`, and `wait()` a blocking wait. An `async` method with the same name is fine as long as it is awaited.
