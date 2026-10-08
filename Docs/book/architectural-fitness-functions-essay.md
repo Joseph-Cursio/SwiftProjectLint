@@ -374,9 +374,14 @@ enforce. Swift 6.2 makes the gap more pressing: new app targets in Xcode 26
 default to main-actor isolation, so unannotated code runs on the main actor
 unless someone marks it `@concurrent` or moves it into an actor. (The build
 setting is `SWIFT_DEFAULT_ACTOR_ISOLATION`, from SE-0466.) This is where lint is the right
-tool: `Synchronous Network Call`, `Thread Sleep`, `Dispatch Semaphore in
-Async` and `Expensive Operation in View Body` all patrol the same boundary from
-the side the compiler doesn't cover.
+tool. `Blocking I/O On Main Actor` reports exactly this call: a synchronous
+read, write, network request or wait in code that runs on the main actor,
+whether an annotation, a SwiftUI view or the target's default isolation put it
+there. Three older rules each report one kind of blocking call without regard
+to the main actor (`Synchronous Network Call`, `Thread Sleep` and `Dispatch
+Semaphore in Async`), and the main-actor rule leaves those calls to them, so
+each hang is reported once. `Expensive Operation in View Body` covers the CPU
+side of the same boundary: sorting and filtering inside `body`.
 
 ### Escape hatches turn a proof into a promise
 

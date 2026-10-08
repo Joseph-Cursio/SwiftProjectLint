@@ -22,6 +22,9 @@ However, `Data(contentsOf:)` is perfectly appropriate for reading local files. T
 ### Known Limitation
 When the URL is stored in a generically-named variable (e.g., `url`) that actually points to a local file, the rule cannot determine this statically and may still flag it.
 
+### Related
+[Blocking I/O On Main Actor](blocking-io-on-main-actor.md) leaves this rule's findings alone and reports the calls it skips when they run on the main actor. That covers `Data(contentsOf:)` with a local or ambiguous URL, `String(contentsOf:)`, and the other `contentsOf:` initializers.
+
 ### Non-Violating Examples
 ```swift
 // Async with URLSession — correct approach for remote data

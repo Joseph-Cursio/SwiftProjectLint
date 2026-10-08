@@ -22,16 +22,13 @@ enum DependencyConsumption {
             if let varDecl = member.decl.as(VariableDeclSyntax.self),
                isStoredInstanceProperty(varDecl) {
                 for binding in varDecl.bindings {
-                    if let type = binding.typeAnnotation?.type,
-                       let name = baseTypeName(type) {
-                        names.insert(name)
+                    if let type = binding.typeAnnotation?.type {
+                        names.formUnion(baseTypeNames(type))
                     }
                 }
             } else if let initDecl = member.decl.as(InitializerDeclSyntax.self) {
                 for parameter in initDecl.signature.parameterClause.parameters {
-                    if let name = baseTypeName(parameter.type) {
-                        names.insert(name)
-                    }
+                    names.formUnion(baseTypeNames(parameter.type))
                 }
             }
         }
@@ -51,30 +48,43 @@ enum DependencyConsumption {
         return true
     }
 
-    /// The base type name of a dependency annotation, unwrapping `any`/`some`,
+    /// The base type names of a dependency annotation, unwrapping `any`/`some`,
     /// optionals, and a single array layer (`[any P]` — plugin-list injection) so the
     /// existential `any DataParsing` and the bare `DataParsing` both resolve to
-    /// `DataParsing`. Returns `nil` for tuples, functions, and other non-nominal types.
-    static func baseTypeName(_ type: TypeSyntax) -> String? {
+    /// `DataParsing`. Empty for tuples, functions, and other non-nominal types.
+    ///
+    /// A composition names every protocol in it: `any OrderSaving & OrderHistory` is a
+    /// dependency on both roles, which is how a client asks for more than one. (Returning one
+    /// name per annotation dropped the composition entirely.) A *typealiased* composition comes
+    /// back as the alias's name; callers expand it through `CompositionAliasCatalog`.
+    static func baseTypeNames(_ type: TypeSyntax) -> [String] {
         if let someOrAny = type.as(SomeOrAnyTypeSyntax.self) {
-            return baseTypeName(someOrAny.constraint)
+            return baseTypeNames(someOrAny.constraint)
+        }
+        if let composition = type.as(CompositionTypeSyntax.self) {
+            return composition.elements.flatMap { baseTypeNames($0.type) }
         }
         if let optional = type.as(OptionalTypeSyntax.self) {
-            return baseTypeName(optional.wrappedType)
+            return baseTypeNames(optional.wrappedType)
         }
         if let implicit = type.as(ImplicitlyUnwrappedOptionalTypeSyntax.self) {
-            return baseTypeName(implicit.wrappedType)
+            return baseTypeNames(implicit.wrappedType)
         }
         if let array = type.as(ArrayTypeSyntax.self) {
-            return baseTypeName(array.element)
+            return baseTypeNames(array.element)
+        }
+        if let tuple = type.as(TupleTypeSyntax.self), tuple.elements.count == 1,
+           let only = tuple.elements.first {
+            // `(any OrderSaving & OrderHistory)?` — the parentheses an optional composition needs.
+            return baseTypeNames(only.type)
         }
         if let ident = type.as(IdentifierTypeSyntax.self) {
             if ident.name.text == "Optional",
                let inner = ident.genericArgumentClause?.arguments.first?.argument.as(TypeSyntax.self) {
-                return baseTypeName(inner)
+                return baseTypeNames(inner)
             }
-            return ident.name.text
+            return [ident.name.text]
         }
-        return nil
+        return []
     }
 }

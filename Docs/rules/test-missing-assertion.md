@@ -5,6 +5,7 @@
 **Identifier:** `Test Missing Assertion`
 **Category:** Code Quality
 **Severity:** Warning
+**Opt-in:** yes — enable via `enabled_only`
 
 ### Rationale
 A `@Test` function that contains neither `#expect` nor `#require` is effectively a "does it crash" test. While this is occasionally intentional (verifying that setup completes without throwing), it usually indicates a forgotten assertion. The test exercises a code path but never checks the result.

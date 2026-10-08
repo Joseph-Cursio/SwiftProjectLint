@@ -57,7 +57,8 @@ class CodeQuality: BasePatternRegistrar {
                 category: .codeQuality,
                 messageTemplate: "Protocol '{protocolName}' is not suffixed with 'Protocol'",
                 suggestion: "Rename to '{protocolName}Protocol' to improve clarity",
-                description: "Detects protocols whose names don't end with 'Protocol' suffix"
+                description: "Opt-in: enforces a team convention that protocol names "
+                    + "end with 'Protocol'."
             ),
             SyntaxPattern(
                 name: .actorNamingSuffix,
@@ -150,6 +151,7 @@ class CodeQuality: BasePatternRegistrar {
             FireAndForgetTask(),
             DiscardedTryResult(),
             LossyStructRebuild(),
+            LossyRoundTrip(),
             MapUsedForSideEffects(),
             DisfavoredOverload(),
             RetroactiveConformance(),

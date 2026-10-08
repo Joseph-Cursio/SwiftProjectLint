@@ -220,10 +220,23 @@ class ConcreteTypeUsageVisitor: BasePatternVisitor {
             // same way as a service class. Requires the project-wide enum prescan.
             Exemption { self.knownEnumTypes.contains($0) },
 
-            // Actor types — their isolation contract is load-bearing in Swift 6 strict
-            // concurrency. Protocol-abstracting an actor loses the serial executor guarantee at
-            // every call site. Requires the project-wide actor prescan.
-            Exemption { self.knownActorTypes.contains($0) },
+            // Actor types, until the project has already abstracted one without losing anything.
+            // An actor's isolation contract is load-bearing in Swift 6 strict concurrency, and a
+            // protocol *can* strip it: a synchronous requirement is satisfiable only by a
+            // `nonisolated` member or a `@preconcurrency` conformance, and either way a caller
+            // reaches it without `await`.
+            //
+            // A project protocol whose every instance requirement is `async` cannot. Callers
+            // through it still `await`, and Swift 6 rejects an actor-isolated member satisfying a
+            // synchronous requirement, so the conformance cannot quietly weaken that. When the
+            // actor conforms to one, naming the actor instead is the coupling this rule reports —
+            // and the suggestion names the protocol. Reported against Checkout's
+            // `CheckoutViewModel`, which stored `CoreDataOrderStore` beside an `OrderStore` whose
+            // two requirements are both `async`. Requires the project-wide actor prescan.
+            Exemption {
+                self.knownActorTypes.contains($0)
+                    && self.knownActorTypes.asyncProtocols(conformedToBy: $0).isEmpty
+            },
 
             // @Observable / ObservableObject types — protocol-abstracting a SwiftUI observation
             // model severs change tracking: through `any SomeProtocol` the view can no longer see
@@ -289,8 +302,24 @@ class ConcreteTypeUsageVisitor: BasePatternVisitor {
             // name-based check above only recognises the `Protocol`/`Type`/`Interface` naming
             // conventions. The project-wide protocol prescan catches the rest, so we don't tell
             // users to "prefer a protocol abstraction" for something that already is one.
+            // The prescan includes the `typealias`es standing for protocols, so
+            // `let store: OrderStore` with `typealias OrderStore = OrderSaving & OrderHistory`
+            // is not reported either: `Store` is a service suffix, and the alias read as one.
             Exemption { self.knownProtocolTypes.contains($0) }
         ]
+    }
+
+    /// The fix to offer. An actor reaching this point already conforms to an all-`async`
+    /// project protocol — otherwise it would have been exempt — so the abstraction exists and the
+    /// suggestion is to use it rather than to define one.
+    private func suggestion(for typeName: String, asThe position: String) -> String {
+        let existing = knownActorTypes.asyncProtocols(conformedToBy: typeName)
+        guard !existing.isEmpty else {
+            return "Define a protocol for '\(typeName)' and use the protocol as the \(position) type"
+        }
+        let names = existing.map { "'\($0)'" }.joined(separator: " or ")
+        return "Use \(names) as the \(position) type — '\(typeName)' already conforms, and every "
+            + "requirement is async, so callers still await"
     }
 
     // MARK: - Property wrapper detection
@@ -332,6 +361,56 @@ class ConcreteTypeUsageVisitor: BasePatternVisitor {
         return false
     }
 
+    /// Whether `typeName` is named from inside its own declaration or one of its extensions — by
+    /// its own methods, or by a type nested in it.
+    ///
+    /// The advice is for a *caller*, which could name an abstraction instead. Code inside the type
+    /// is not a caller: it is the type's own implementation, and it reaches members a protocol
+    /// would never carry. Hummingbird's `Parser` takes another `Parser` in a sub-parser
+    /// initialiser and its nested `Iterator` holds the parser it walks;
+    /// `HTTP2ServerConnectionManager`'s nested `LoopBoundHandler` and `HTTP2StreamDelegate` hold
+    /// their owner to call back into it. A protocol in front of any of them would be conformed to
+    /// by the one type, for the benefit of that type's own code.
+    ///
+    /// This began as an actor-only guard, when the actor exemption was narrowed to report an actor
+    /// beside an all-`async` protocol: `swift-aws-lambda-runtime`'s `LambdaRuntimeClient.Writer`
+    /// holds its owning actor and calls `write` and `writeAndFinish` on it, which
+    /// `LambdaRuntimeClientProtocol` does not offer. The four Hummingbird findings were the same
+    /// shape, older, and the reason holds for every kind of type.
+    private func isNamedInsideItself(_ typeName: String, _ node: some SyntaxProtocol) -> Bool {
+        var current = Syntax(node)
+        while let parent = current.parent {
+            if implementedTypeNames(of: parent).contains(typeName) { return true }
+            current = parent
+        }
+        return false
+    }
+
+    /// The types whose implementation the body of `node` is: the type it declares, or the type it
+    /// extends together with every type that one is nested in. Empty for any other node.
+    private func implementedTypeNames(of node: Syntax) -> [String] {
+        if let decl = node.as(ClassDeclSyntax.self) { return [decl.name.text] }
+        if let decl = node.as(StructDeclSyntax.self) { return [decl.name.text] }
+        if let decl = node.as(EnumDeclSyntax.self) { return [decl.name.text] }
+        if let decl = node.as(ActorDeclSyntax.self) { return [decl.name.text] }
+        if let decl = node.as(ExtensionDeclSyntax.self) {
+            return qualifiedNameComponents(of: decl.extendedType)
+        }
+        return []
+    }
+
+    /// `Parser.Iterator` as `["Parser", "Iterator"]`. An extension of a nested type is inside the
+    /// type it is nested in, exactly as the nested declaration is; reading only the last component
+    /// would exempt `struct Iterator { var parser: Parser }` written inside `Parser` and report
+    /// the same property moved to `extension Parser.Iterator`.
+    private func qualifiedNameComponents(of type: TypeSyntax) -> [String] {
+        if let identifier = type.as(IdentifierTypeSyntax.self) { return [identifier.name.text] }
+        if let member = type.as(MemberTypeSyntax.self) {
+            return qualifiedNameComponents(of: member.baseType) + [member.name.text]
+        }
+        return []
+    }
+
     // MARK: - Function/initializer parameters
 
     override func visit(_ node: FunctionParameterSyntax) -> SyntaxVisitorContinueKind {
@@ -344,8 +423,9 @@ class ConcreteTypeUsageVisitor: BasePatternVisitor {
             return .visitChildren
         }
         // Skip all concrete types in SwiftUI views — @Observable requires
-        // concrete types for SwiftUI's observation tracking to work
-        if isInsideSwiftUIView(node) {
+        // concrete types for SwiftUI's observation tracking to work — and a type named
+        // inside its own declaration.
+        if isInsideSwiftUIView(node) || isNamedInsideItself(typeName, node) {
             return .visitChildren
         }
         // Suppress init parameters whose type was already flagged as a stored property
@@ -360,7 +440,7 @@ class ConcreteTypeUsageVisitor: BasePatternVisitor {
             message: "Parameter '\(paramName)' uses concrete type '\(typeName)' — prefer a protocol abstraction",
             filePath: currentFilePath,
             lineNumber: getLineNumber(for: Syntax(node)),
-            suggestion: "Define a protocol for '\(typeName)' and use the protocol as the parameter type",
+            suggestion: suggestion(for: typeName, asThe: "parameter"),
             ruleName: .concreteTypeUsage
         )
         return .visitChildren
@@ -382,8 +462,9 @@ class ConcreteTypeUsageVisitor: BasePatternVisitor {
 
             guard let typeName = extractServiceTypeName(from: typeAnnotation.type) else { continue }
             // Skip all concrete types in SwiftUI views — @Observable requires
-            // concrete types for SwiftUI's observation tracking to work
-            if isInsideSwiftUIView(node) {
+            // concrete types for SwiftUI's observation tracking to work — and a type named
+            // inside its own declaration.
+            if isInsideSwiftUIView(node) || isNamedInsideItself(typeName, node) {
                 continue
             }
             let propName: String
@@ -398,7 +479,7 @@ class ConcreteTypeUsageVisitor: BasePatternVisitor {
                 message: "Property '\(propName)' declares concrete type '\(typeName)' — prefer a protocol abstraction",
                 filePath: currentFilePath,
                 lineNumber: getLineNumber(for: Syntax(node)),
-                suggestion: "Define a protocol for '\(typeName)' and use the protocol as the property type",
+                suggestion: suggestion(for: typeName, asThe: "property"),
                 ruleName: .concreteTypeUsage
             )
         }

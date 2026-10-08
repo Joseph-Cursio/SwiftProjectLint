@@ -21,6 +21,10 @@ public protocol CrossFileAnalyzerProtocol: AnyObject {
     /// library API.
     var executableSourcePaths: [String] { get set }
 
+    /// Root-relative paths compiled with default MainActor isolation, set by `ProjectLinter` from
+    /// `DefaultIsolationDetector` and forwarded to each cross-file visitor.
+    var defaultMainActorSourcePaths: [String] { get set }
+
     /// The `architectural_layers` policies, set by `ProjectLinter` from the configuration and
     /// forwarded to each cross-file visitor. Rules that relate files in different layers need
     /// every file at once, which only the cross-file pass has.

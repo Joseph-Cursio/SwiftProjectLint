@@ -10,6 +10,8 @@ import SwiftSyntax
 ///
 /// **Phase 1 (walk):** record protocol declarations; for every type reference, classify it as
 /// a concrete-conformance position (bumps the conformer count) or any other position (a *use*).
+/// A composition `typealias` is expanded first, so conforming to or using `OrderStore =
+/// OrderSaving & OrderHistory` conforms to or uses both, and the alias's own definition is neither.
 /// **Phase 2 (finalize):** a protocol with at least one conformer and zero uses fires.
 ///
 /// Only protocols declared in the analyzed sources are considered, so framework protocols
@@ -52,13 +54,26 @@ final class UnusedProtocolAbstractionVisitor: CrossFileVisitorBase, CrossFilePat
         return .visitChildren
     }
 
+    /// A composition alias's own right-hand side is a definition, not a use. It names the
+    /// protocols so that conformances and uses *through* the alias can be credited to them, which
+    /// `visit(IdentifierTypeSyntax)` does. Counting the definition as well made every protocol an
+    /// alias composes look used, whether or not anything ever named the alias.
+    override func visit(_ node: TypeAliasDeclSyntax) -> SyntaxVisitorContinueKind {
+        compositionAliases.isAlias(node.name.text) ? .skipChildren : .visitChildren
+    }
+
     override func visit(_ node: IdentifierTypeSyntax) -> SyntaxVisitorContinueKind {
-        let name = node.name.text
+        // Naming `OrderStore = OrderSaving & OrderHistory` conforms to, or uses, both roles.
+        let names = compositionAliases.expand(node.name.text)
         // A protocol's own inheritance clause (refinement) is a use, not a conformance.
         if ProtocolTypePosition.isConcreteConformance(Syntax(node)) {
-            conformerFiles[name, default: []].append(currentFilePath)
+            for name in names {
+                conformerFiles[name, default: []].append(currentFilePath)
+            }
         } else {
-            useFiles[name, default: []].insert(currentFilePath)
+            for name in names {
+                useFiles[name, default: []].insert(currentFilePath)
+            }
         }
         return .visitChildren
     }

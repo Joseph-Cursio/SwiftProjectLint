@@ -63,14 +63,19 @@ final class ProtocolCouldBePrivateVisitor: CrossFileVisitorBase, CrossFilePatter
 
     // MARK: - Collect References
 
+    // Every reference goes through `compositionAliases`: naming `OrderStore = OrderSaving &
+    // OrderHistory` in another file references both roles there. Without it, a role named only
+    // by the alias beside it read as file-local — and narrowing it stops the alias compiling.
+
     // Inheritance clauses: struct Foo: MyProtocol, and protocol Q: P
     override func visit(_ node: InheritedTypeSyntax) -> SyntaxVisitorContinueKind {
         if let ident = node.type.as(IdentifierTypeSyntax.self) {
-            let parentName = ident.name.text
-            references[parentName, default: []].insert(currentFilePath)
-            // Inside `protocol Q: P`, currentProtocolName is "Q" and parentName is "P".
-            if !currentProtocolName.isEmpty {
-                protocolInheritsFrom[currentProtocolName, default: []].insert(parentName)
+            for parentName in compositionAliases.expand(ident.name.text) {
+                references[parentName, default: []].insert(currentFilePath)
+                // Inside `protocol Q: P`, currentProtocolName is "Q" and parentName is "P".
+                if !currentProtocolName.isEmpty {
+                    protocolInheritsFrom[currentProtocolName, default: []].insert(parentName)
+                }
             }
         }
         return .visitChildren
@@ -78,7 +83,9 @@ final class ProtocolCouldBePrivateVisitor: CrossFileVisitorBase, CrossFilePatter
 
     // Type annotations: let delegate: MyProtocol
     override func visit(_ node: IdentifierTypeSyntax) -> SyntaxVisitorContinueKind {
-        references[node.name.text, default: []].insert(currentFilePath)
+        for name in compositionAliases.expand(node.name.text) {
+            references[name, default: []].insert(currentFilePath)
+        }
         return .visitChildren
     }
 
@@ -86,7 +93,9 @@ final class ProtocolCouldBePrivateVisitor: CrossFileVisitorBase, CrossFilePatter
     override func visit(_ node: DeclReferenceExprSyntax) -> SyntaxVisitorContinueKind {
         let name = node.baseName.text
         if let first = name.first, first.isUppercase {
-            references[name, default: []].insert(currentFilePath)
+            for referenced in compositionAliases.expand(name) {
+                references[referenced, default: []].insert(currentFilePath)
+            }
         }
         return .visitChildren
     }

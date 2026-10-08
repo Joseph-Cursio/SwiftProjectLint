@@ -45,7 +45,9 @@ The visitor proceeds in three passes:
 
 3. **Filter and report.** A cluster is suppressed when the types *already* share the common
    core through an existing protocol or superclass that declares those members — the
-   abstraction is present, so there is nothing to extract. Surviving clusters fire once,
+   abstraction is present, so there is nothing to extract. A conformance written through a
+   composition `typealias` (`struct AlphaSetting: Setting`, with `typealias Setting = Identity
+   & Sendable`) counts as conforming to each protocol the alias composes. Surviving clusters fire once,
    reported at the location of each participating type, naming the other members of the
    cluster and the shared property set.
 

@@ -55,7 +55,7 @@ class NetworkingVisitor: BasePatternVisitor {
         }
 
         for arg in node.arguments where arg.label?.text == "contentsOf" {
-            if isLikelyLocalURL(arg.expression) {
+            if Self.isLikelyLocalURL(arg.expression) {
                 return false
             }
 
@@ -83,7 +83,9 @@ class NetworkingVisitor: BasePatternVisitor {
     ///
     /// `URL(string:)` is the canonical way to construct network URLs and is treated as NOT local.
     /// Variable names with no local or network hints default to local to avoid false positives.
-    func isLikelyLocalURL(_ expr: ExprSyntax) -> Bool {
+    ///
+    /// Static so `Blocking I/O On Main Actor` can leave this rule's findings to it.
+    static func isLikelyLocalURL(_ expr: ExprSyntax) -> Bool {
         let text = expr.description.trimmingCharacters(in: .whitespacesAndNewlines)
 
         // URL(...) initializers: only URL(string:) is a network URL constructor

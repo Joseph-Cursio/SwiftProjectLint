@@ -277,7 +277,9 @@ final class HoistableConformerMemberVisitor: CrossFileVisitorBase, CrossFilePatt
     private func conformanceNames(_ inheritance: InheritanceClauseSyntax?) -> Set<String> {
         guard let inheritance else { return [] }
         return inheritance.inheritedTypes.reduce(into: Set<String>()) { acc, inherited in
-            if let name = conformanceName(inherited.type) { acc.insert(name) }
+            if let name = conformanceName(inherited.type) {
+                acc.formUnion(compositionAliases.expand(name))
+            }
         }
     }
 

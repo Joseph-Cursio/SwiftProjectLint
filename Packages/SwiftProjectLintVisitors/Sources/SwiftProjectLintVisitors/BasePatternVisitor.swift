@@ -30,12 +30,12 @@ open class BasePatternVisitor: SyntaxVisitor, PatternVisitorProtocol {
     /// that only apply to class/struct service types (e.g. Concrete Type Usage).
     public var knownEnumTypes: Set<String> = []
 
-    /// Type names known to be declared as actors across the project.
-    /// Populated by a pre-scan phase in `ProjectLinter` so that per-file
-    /// visitors can exempt actor-typed parameters and properties from rules like
-    /// "Concrete Type Usage". An actor's isolation contract is load-bearing in
-    /// Swift 6 strict concurrency — protocol-abstracting it weakens that contract.
-    public var knownActorTypes: Set<String> = []
+    /// The project's actors, and for each the all-`async` project protocols it already conforms
+    /// to. Built by `ActorTypeCatalog.build` in the pre-scan. "Concrete Type Usage" exempts an
+    /// actor-typed parameter or property — a protocol can strip an actor's isolation contract —
+    /// unless such a protocol exists, since callers through it still `await`. Empty in unit tests
+    /// that drive a visitor directly, which reads as "nothing is an actor".
+    public var knownActorTypes = ActorTypeCatalog.empty
 
     /// All type names (class, struct, enum, actor) declared anywhere in the project.
     /// Populated by a pre-scan phase in `ProjectLinter` using `LocalTypeCollector`.
@@ -55,6 +55,10 @@ open class BasePatternVisitor: SyntaxVisitor, PatternVisitorProtocol {
     /// protocol apart from a concrete service type — e.g. so "Concrete Type Usage"
     /// does not flag a property typed as a bare-existential protocol whose name does
     /// not end in `Protocol`/`Type`/`Interface`.
+    ///
+    /// Includes the `typealias`es that stand for protocols: a composition such as
+    /// `typealias OrderStore = OrderSaving & OrderHistory`, or a rename of a declared
+    /// protocol. `let store: OrderStore` is as much an abstraction as `let store: OrderSaving`.
     public var knownProtocolTypes: Set<String> = []
 
     /// Type names known to be `Equatable` (declaring `Equatable`, `Hashable`, or
@@ -173,6 +177,17 @@ open class BasePatternVisitor: SyntaxVisitor, PatternVisitorProtocol {
     /// seam) from genuine library API. Empty by default, so nothing is treated as an
     /// app target unless explicitly populated.
     public var executableSourcePaths: [String] = []
+
+    /// Root-relative paths compiled with default MainActor isolation (SE-0466): a folder ending in
+    /// `/` covers every file below it, any other path names one file. Set by `ProjectLinter` from
+    /// `DefaultIsolationDetector` on cross-file visitors. Empty by default, so no file is taken to
+    /// run on the main actor unless a build setting says so.
+    public var defaultMainActorSourcePaths: [String] = []
+
+    /// Whether the file at root-relative `path` is compiled with default MainActor isolation.
+    public func isDefaultMainActorSource(_ path: String) -> Bool {
+        defaultMainActorSourcePaths.contains { $0.hasSuffix("/") ? path.hasPrefix($0) : path == $0 }
+    }
 
     /// Placeholder pattern used for cross-file visitors that set their pattern after initialization.
     public static let placeholderPattern = SyntaxPattern(
