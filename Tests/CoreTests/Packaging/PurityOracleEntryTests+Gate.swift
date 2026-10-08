@@ -82,13 +82,41 @@ extension PurityOracleEntryTests {
     @Test("Withholdable's state is reached only by read, by isWithheld and by its own initializer")
     func withholdableStateIsReadOnlyThroughRead() throws {
         let file = try #require(Self.sources.first { $0.path == Self.withholdable })
-        let finder = StateReaderFinder()
-        finder.walk(file.tree)
-        // `built` and `withheld` name `state` only as the label they construct with.
+        let readers = Self.stateReaders(in: file)
+        // `state` is the stored property itself, and `built` and `withheld` name it only as the
+        // label they construct with.
         #expect(
-            finder.readers == ["init(state:)", "built", "withheld", "read", "isWithheld"],
-            "found \(finder.readers.sorted())"
+            readers == ["state", "init(state:)", "built", "withheld", "read", "isWithheld"],
+            "found \(readers.sorted())"
         )
+    }
+
+    /// The declaration each `state` token in `file` sits in, by name — whatever kind of declaration
+    /// it is, so a subscript, an accessor or a closure-valued property is named like a function.
+    static func stateReaders(in file: SourceFile) -> Set<String> {
+        Set(file.tree.tokens(viewMode: .sourceAccurate)
+            .filter { $0.tokenKind == .identifier("state") }
+            .map(enclosingDeclarationName))
+    }
+
+    private static func enclosingDeclarationName(of token: TokenSyntax) -> String {
+        var node = token.parent
+        while let current = node {
+            if let function = current.as(FunctionDeclSyntax.self) { return function.name.text }
+            if let initializer = current.as(InitializerDeclSyntax.self) {
+                return "init(\(labels(initializer.signature.parameterClause.parameters)))"
+            }
+            if let subscriptDecl = current.as(SubscriptDeclSyntax.self) {
+                return "subscript(\(labels(subscriptDecl.parameterClause.parameters)))"
+            }
+            if let binding = current.as(PatternBindingSyntax.self) { return binding.pattern.trimmedDescription }
+            node = current.parent
+        }
+        return "<\(token.parent.map { "\($0.kind)" } ?? "file")>"
+    }
+
+    private static func labels(_ parameters: FunctionParameterListSyntax) -> String {
+        parameters.map { $0.firstName.text + ":" }.joined()
     }
 
     @Test("only the engine withholds, and only in the shared parse and the pre-scan")
@@ -258,39 +286,6 @@ private final class StoredInstancePropertyFinder: SyntaxVisitor {
             }
         }
         return .skipChildren
-    }
-}
-
-/// The members of `Withholdable` (and its extensions) that name `state`, by name.
-private final class StateReaderFinder: SyntaxVisitor {
-
-    private(set) var readers: Set<String> = []
-
-    init() {
-        super.init(viewMode: .sourceAccurate)
-    }
-
-    override func visit(_ node: FunctionDeclSyntax) -> SyntaxVisitorContinueKind {
-        if Self.namesState(node) { readers.insert(node.name.text) }
-        return .skipChildren
-    }
-
-    override func visit(_ node: InitializerDeclSyntax) -> SyntaxVisitorContinueKind {
-        if Self.namesState(node) {
-            let labels = node.signature.parameterClause.parameters.map { $0.firstName.text + ":" }.joined()
-            readers.insert("init(\(labels))")
-        }
-        return .skipChildren
-    }
-
-    override func visit(_ node: VariableDeclSyntax) -> SyntaxVisitorContinueKind {
-        guard let binding = node.bindings.first, binding.accessorBlock != nil else { return .skipChildren }
-        if Self.namesState(node) { readers.insert(binding.pattern.trimmedDescription) }
-        return .skipChildren
-    }
-
-    private static func namesState(_ node: some SyntaxProtocol) -> Bool {
-        node.tokens(viewMode: .sourceAccurate).contains { $0.text == "state" }
     }
 }
 

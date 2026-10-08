@@ -50,6 +50,25 @@ struct PurityScanProbeTests {
         #expect(Scan.staticOffenders(in: [mutable]) == [Self.visitors + "CleanInstanceMethodCatalog.swift: empty"])
     }
 
+    // MARK: - Withholdable's state
+
+    @Test("a subscript that reaches Withholdable's state is named")
+    func subscriptReachingStateIsNamed() throws {
+        let file = try #require(Scan.sources.first { $0.path == Scan.withholdable })
+        let probe = Scan.scanned(file.tree.description + """
+
+        extension Withholdable {
+            subscript(reviewProbe _: Void) -> Value {
+                switch state {
+                case .built(let value): value
+                case let .withheld(_, _, placeholder): placeholder
+                }
+            }
+        }
+        """, path: Scan.withholdable)
+        #expect(Scan.stateReaders(in: probe).subtracting(Scan.stateReaders(in: file)) == ["subscript(reviewProbe:)"])
+    }
+
     // MARK: - Oracle entry points
 
     @Test("a new public entry point is found in a listed file, through a helper, and from another type")
