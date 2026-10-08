@@ -86,13 +86,14 @@ extension PurityOracleEntryTests {
         // `state` is the stored property itself, and `built` and `withheld` name it only as the
         // label they construct with.
         #expect(
-            readers == ["state", "init(state:)", "built", "withheld", "read", "isWithheld"],
+            readers == ["state", "init(state:)", "built(_:)", "withheld(_:by:answering:)", "read(_:)", "isWithheld"],
             "found \(readers.sorted())"
         )
     }
 
-    /// The declaration each `state` token in `file` sits in, by name — whatever kind of declaration
-    /// it is, so a subscript, an accessor or a closure-valued property is named like a function.
+    /// The declaration each `state` token in `file` sits in, by its full name — whatever kind of
+    /// declaration it is, so a subscript, an accessor or a closure-valued property is named like a
+    /// function, and an overload such as `read(silently:)` is not taken for `read(_:)`.
     static func stateReaders(in file: SourceFile) -> Set<String> {
         Set(file.tree.tokens(viewMode: .sourceAccurate)
             .filter { $0.tokenKind == .identifier("state") }
@@ -102,7 +103,9 @@ extension PurityOracleEntryTests {
     private static func enclosingDeclarationName(of token: TokenSyntax) -> String {
         var node = token.parent
         while let current = node {
-            if let function = current.as(FunctionDeclSyntax.self) { return function.name.text }
+            if let function = current.as(FunctionDeclSyntax.self) {
+                return "\(function.name.text)(\(labels(function.signature.parameterClause.parameters)))"
+            }
             if let initializer = current.as(InitializerDeclSyntax.self) {
                 return "init(\(labels(initializer.signature.parameterClause.parameters)))"
             }
