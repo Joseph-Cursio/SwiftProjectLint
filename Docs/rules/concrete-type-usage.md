@@ -305,7 +305,8 @@ guard, the CLI traps on SwiftLint's manifest, both on `main` and on this change,
 other findings are missing from both sides. SwiftLint has no Concrete Type Usage finding, and in
 the first pair it moved nothing. The other column also gains one on its own: the SwiftProjectLint
 checkout in the corpus moved forward between the pairs and brought one Law of Demeter finding with
-it.
+it. Both pairs predate the protocol-`typealias` exemption, which cannot reach these eleven: none of
+their names is a protocol `typealias` anywhere in the corpus.
 
 The same eleven were removed both times. They are every generic-parameter finding in the corpus,
 and nothing else moved:
