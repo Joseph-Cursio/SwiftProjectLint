@@ -55,6 +55,10 @@ open class BasePatternVisitor: SyntaxVisitor, PatternVisitorProtocol {
     /// protocol apart from a concrete service type — e.g. so "Concrete Type Usage"
     /// does not flag a property typed as a bare-existential protocol whose name does
     /// not end in `Protocol`/`Type`/`Interface`.
+    ///
+    /// Includes the `typealias`es that stand for protocols: a composition such as
+    /// `typealias OrderStore = OrderSaving & OrderHistory`, or a rename of a declared
+    /// protocol. `let store: OrderStore` is as much an abstraction as `let store: OrderSaving`.
     public var knownProtocolTypes: Set<String> = []
 
     /// Type names known to be `Equatable` (declaring `Equatable`, `Hashable`, or

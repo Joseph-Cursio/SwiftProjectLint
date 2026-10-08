@@ -22,7 +22,9 @@ type simply hasn't adopted it.
 whose every requirement is a property — recording each requirement as a
 `(name, normalizedType, isOptional)` signature, and it collects concrete types with their
 stored-property signatures and declared conformances (unwrapping isolated conformances such
-as `: @MainActor P`). In `finalizeAnalysis`, a type is reported for protocol `P` when its
+as `: @MainActor P`, and expanding a composition `typealias` into the protocols it composes, so
+`struct Landmark: Place` with `typealias Place = Located & Named` already conforms to
+`Located`). In `finalizeAnalysis`, a type is reported for protocol `P` when its
 stored-property signatures are a **superset** of `P`'s requirements and it does not already
 conform to `P`.
 

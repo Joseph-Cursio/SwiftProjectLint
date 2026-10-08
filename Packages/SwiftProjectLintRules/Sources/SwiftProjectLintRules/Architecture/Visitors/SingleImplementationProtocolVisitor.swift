@@ -158,10 +158,14 @@ final class SingleImplementationProtocolVisitor: CrossFileVisitorBase, CrossFile
               let inheritanceClause else { return }
 
         for inherited in inheritanceClause.inheritedTypes {
-            if let ident = inherited.type.as(IdentifierTypeSyntax.self) {
-                conformances[ident.name.text, default: []].insert(typeName)
-                conformerFiles[typeName] = currentFilePath
+            guard let ident = inherited.type.as(IdentifierTypeSyntax.self) else { continue }
+            // `actor Store: OrderStore`, where `OrderStore = OrderSaving & OrderHistory`,
+            // conforms to both roles. Reading the alias's own name credited neither, and
+            // every role it composes was reported as having no conformers.
+            for protocolName in compositionAliases.expand(ident.name.text) {
+                conformances[protocolName, default: []].insert(typeName)
             }
+            conformerFiles[typeName] = currentFilePath
         }
     }
 
@@ -177,6 +181,11 @@ final class SingleImplementationProtocolVisitor: CrossFileVisitorBase, CrossFile
     // MARK: - Finalize
 
     func finalizeAnalysis() {
+        // Holding `any OrderStore`, where `OrderStore = OrderSaving & OrderHistory`, consumes
+        // both roles.
+        let consumedProtocolNames = Set(dependencyConsumedTypeNames.flatMap {
+            compositionAliases.expand($0)
+        })
         for decl in declarations {
             let conformers = conformances[decl.name] ?? []
 
@@ -213,7 +222,7 @@ final class SingleImplementationProtocolVisitor: CrossFileVisitorBase, CrossFile
                 // Name-agnostic, so gerund capability protocols the DI-suffix list
                 // misses are still exempt. A zero-conformer protocol gets no such pass —
                 // nothing implements it, so it is dead regardless of where it is named.
-                if dependencyConsumedTypeNames.contains(decl.name) {
+                if consumedProtocolNames.contains(decl.name) {
                     continue
                 }
 

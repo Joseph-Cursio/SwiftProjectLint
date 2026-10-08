@@ -28,6 +28,7 @@ The following patterns are exempt because they do not represent real coupling is
 - **`private` / `fileprivate` types** — a protocol around one could only be conformed to in the file that declares it
 - **Closure wrapper types** — a `struct` or `final class` whose only stored property is a closure is already the seam
 - **`Equatable` types** — a value is substituted by constructing a different one
+- **Protocols, and the `typealias`es that stand for them** — a project-wide pre-scan identifies every declared protocol, plus every `typealias` that composes protocols (`typealias OrderStore = OrderSaving & OrderHistory`) or renames one. `let store: OrderStore` is already an abstraction; read by its `Store` suffix alone, it was reported as a concrete service
 - **A type named inside its own declaration** — a parameter or property typed with `T` inside `T`'s own `class`, `struct`, `enum` or `actor` declaration, an `extension T`, or a type nested in either is `T`'s implementation, not a caller depending on it — see [the section below](#a-type-named-inside-its-own-declaration)
 
 Depending on a protocol resolves the issue, whatever the protocol is called. One option is to name the protocol for the role, `protocol APIService`, and rename the class for what it is, such as `URLSessionAPIService`; parameters keep the type name `APIService` (written `any APIService` under `ExistentialAny`), and only construction sites change. A suffixed `APIServiceProtocol` or an opaque `some NetworkProtocol` works too, but a suffixed protocol that copies `APIService` member for member is what [Mirror Protocol](mirror-protocol.md) reports.
@@ -155,7 +156,10 @@ in one file: the actor, the protocol, and the conformance, which is as often an
 analysed sources and not be `private` or `fileprivate`, and it must have at least one `async`
 instance requirement and no synchronous one — a `{ get async }` property counts as `async`, and a
 `{ get }` one does not. Requirements inherited from other project protocols count, and so does a
-`where Self: …` clause. A parent outside the project counts as synchronous, because its
+`where Self: …` clause. A conformance or refinement written through a composition `typealias`
+counts for each protocol it composes: `actor CoreDataOrderStore: OrderStore`, with
+`typealias OrderStore = OrderSaving & OrderHistory`, conforms to both roles. Read by the alias's
+name, it conformed to nothing the pre-scan knew, and kept its exemption. A parent outside the project counts as synchronous, because its
 requirements are not visible here, unless it is a marker that carries none (`Sendable`, `Actor`,
 `AnyObject`, and so on). `init`, `static` members and associated types are never isolated to an
 instance, so they neither qualify a protocol nor disqualify one; a protocol with nothing else is a
