@@ -13,6 +13,8 @@ A protocol that is only adopted by one concrete type provides no polymorphism. U
 ### Discussion
 `SingleImplementationProtocolVisitor` uses cross-file analysis to count how many types conform to each protocol across the entire project. It flags protocols with zero conformers (dead code) or exactly one conformer (unnecessary abstraction).
 
+A conformance counts wherever Swift lets it be written: in the type's own declaration, in a separate `extension Foo: P {}`, and through a `typealias`. A type conforming to `typealias OrderStore = OrderSaving & OrderHistory` conforms to both protocols, and is counted as a conformer of each. The expansion is transitive, so an alias that composes another alias is followed through. Reading the alias by its own name used to credit neither protocol, so every role it composed was reported as having *no* conformers. An alias name declared more than one way in the project (two different nested `typealias Element`s, or an alias sharing its name with a type) is not expanded, because the rule cannot tell which declaration a conformance means.
+
 To reduce false positives, the rule applies several exemptions:
 - **Mock conformers:** If any conformer's name contains "Mock", "Fake", "Stub", or "Spy", the protocol is not flagged — the abstraction exists for testability.
 - **Test-file conformers:** Conformers in files matching `Tests/`, `Mocks/`, `Fakes/`, `Stubs/` are treated as test conformers. A protocol with 1 production conformer + 1 test conformer is suppressed.
@@ -31,6 +33,14 @@ struct LocalRepository: Repository { func fetch() { } }
 protocol NetworkClient { func request() }
 struct URLSessionClient: NetworkClient { func request() { } }
 struct MockNetworkClient: NetworkClient { func request() { } }
+
+// Two conformers, both through a composition typealias. Each conforms to
+// OrderSaving and OrderHistory, exactly as if it had listed them.
+protocol OrderSaving { func save() }
+protocol OrderHistory { func recent() }
+typealias OrderStore = OrderSaving & OrderHistory
+actor CoreDataOrderStore: OrderStore { /* … */ }
+struct InMemoryOrderStore: OrderStore { /* … */ }
 
 // Single-conformer public protocol in a STANDALONE LIBRARY (the project declares
 // no executable target) — exempt, since an external module may provide another

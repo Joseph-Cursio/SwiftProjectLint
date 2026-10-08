@@ -158,10 +158,14 @@ final class SingleImplementationProtocolVisitor: CrossFileVisitorBase, CrossFile
               let inheritanceClause else { return }
 
         for inherited in inheritanceClause.inheritedTypes {
-            if let ident = inherited.type.as(IdentifierTypeSyntax.self) {
-                conformances[ident.name.text, default: []].insert(typeName)
-                conformerFiles[typeName] = currentFilePath
+            guard let ident = inherited.type.as(IdentifierTypeSyntax.self) else { continue }
+            // `actor Store: OrderStore`, where `OrderStore = OrderSaving & OrderHistory`,
+            // conforms to both roles. Reading the alias's own name credited neither, and
+            // every role it composes was reported as having no conformers.
+            for protocolName in compositionAliases.expand(ident.name.text) {
+                conformances[protocolName, default: []].insert(typeName)
             }
+            conformerFiles[typeName] = currentFilePath
         }
     }
 
