@@ -61,6 +61,27 @@ struct CompositionAliasEndToEndTests {
         #expect(concrete.contains { $0.contains("'DiskOrderStore'") })
     }
 
+    @Test
+    func anActorConformingThroughTheAliasIsReportedWhenHeldConcretely() async {
+        // Every role is all-`async`, so the actor already has protocols to be typed as. Read by the
+        // alias's name, it had none, and kept the actor exemption.
+        var files = Self.splitStore
+        files["Sources/Checkout/Presentation/ReceiptViewModel.swift"] = """
+        final class ReceiptViewModel {
+            private let store: CoreDataOrderStore
+            init(store: CoreDataOrderStore) { self.store = store }
+        }
+        """
+        let root = makePackage(named: "AliasActor", files: files)
+        defer { try? FileManager.default.removeItem(atPath: root) }
+
+        let concrete = await analyze(root).filter { $0.ruleName == .concreteTypeUsage }
+
+        #expect(concrete.count == 1)
+        #expect(concrete.first?.message.contains("'CoreDataOrderStore'") == true)
+        #expect(concrete.first?.suggestion?.contains("'OrderSaving'") == true)
+    }
+
     // MARK: - Fixture
 
     private static let splitStore: [String: String] = [

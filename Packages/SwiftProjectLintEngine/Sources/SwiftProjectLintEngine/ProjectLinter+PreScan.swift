@@ -82,7 +82,7 @@ extension ProjectLinter {
             return Self(
                 identifiable: collectTypes(IdentifiableTypeCollector.self, in: parsed),
                 enums: collectTypes(EnumTypeCollector.self, in: parsed),
-                actors: ActorTypeCatalog.build(from: parsed),
+                actors: ActorTypeCatalog.build(from: parsed, aliases: aliases),
                 local: collectTypes(LocalTypeCollector.self, in: parsed),
                 observable: collectTypes(ObservableTypeCollector.self, in: parsed),
                 protocols: declaredProtocols.union(
