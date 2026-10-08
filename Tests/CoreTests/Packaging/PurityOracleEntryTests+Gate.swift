@@ -105,48 +105,38 @@ extension PurityOracleEntryTests {
         #expect(callers == [Self.purityParse, Self.preScan], "found \(callers.sorted())")
     }
 
-    /// The oracle-creating entry points a rule can call, and the file each lives in. A rule file
-    /// that names one must declare `.oracle` on its visitor (`purityReadersDeclareWhatTheyRead`).
-    /// `oracleCreationSitesAreKnown` fails when a new file creates an oracle, so this list cannot go
-    /// stale without a test saying so.
-    static let oracleEntryPoints: [(file: String, tokens: [String])] = [
-        ("PurityInferrer.swift", ["PurityInferrer"]),
-        ("PropertyTestCandidacy.swift", ["PropertyTestCandidacy", "candidate"]),
-        ("PropertyTestCandidacy.swift", ["PropertyTestCandidacy", "shape"]),
-        ("CleanInstanceMethodCatalog.swift", ["CleanInstanceMethodCatalog", "build"]),
-        ("PackagePurityJoin.swift", ["PackagePurityJoin", "sources"]),
-        // Internal to the Visitors package; reached only through the two above.
-        ("SelfAccessAnalyzer.swift", [])
-    ]
-
-    @Test("the Visitors package creates an oracle only in the files whose entry points are listed")
-    func oracleCreationSitesAreKnown() {
-        var sites: Set<String> = []
-        for file in Self.sources where file.path.hasPrefix(Self.visitorsSources) && file.path != Self.wrapper {
-            let tokens = file.tokens
-            for index in tokens.indices.dropLast() where tokens[index] == "PurityInferrer" && tokens[index + 1] == "(" {
-                sites.insert(URL(fileURLWithPath: file.path).lastPathComponent)
-            }
-        }
-        let listed = Set(Self.oracleEntryPoints.map(\.file)).subtracting(["PurityInferrer.swift"])
-        #expect(
-            sites == listed,
-            "oracle sites \(sites.sorted()) — list a new one's public entry points in oracleEntryPoints"
-        )
-    }
-
     /// Corpus-free: a rule file that names a purity surface must declare it on every registered
     /// visitor it declares, so a read on a shape no test corpus reaches still fails a test.
     @Test("every rule file that names a purity surface declares it on its visitor")
     func purityReadersDeclareWhatTheyRead() {
+        let rules = Self.sources.filter { file in Self.rulePackages.contains(where: file.path.hasPrefix) }
+        let scan = Self.undeclaredReads(
+            in: rules, declared: Self.registeredDeclarations(), entryPoints: Self.readerEntryPoints(in: Self.sources)
+        )
+        #expect(scan.offenders.isEmpty, "conform the visitor to PackagePurityConsumer: \(scan.offenders)")
+        #expect(scan.readers >= 9, "found \(scan.readers) reader files — has the scan stopped seeing them?")
+    }
+
+    /// What every registered visitor declares, by its type's name.
+    static func registeredDeclarations() -> [String: PackagePurityInputs] {
         var declared: [String: PackagePurityInputs] = [:]
         for pattern in PatternRegistryFactory.createConfiguredSystem().visitorRegistry.getAllPatterns() {
             declared[String(describing: pattern.visitor), default: []].formUnion(pattern.packagePurityInputs)
         }
+        return declared
+    }
+
+    /// The rule files among `files` that name a purity surface some visitor in them does not declare,
+    /// and how many name one at all.
+    static func undeclaredReads(
+        in files: [SourceFile],
+        declared: [String: PackagePurityInputs],
+        entryPoints: Set<OracleEntryPoint>
+    ) -> (offenders: [String], readers: Int) {
         var offenders: [String] = []
         var readers = 0
-        for file in Self.sources where Self.rulePackages.contains(where: file.path.hasPrefix) {
-            let needed = Self.surfacesNamed(by: file.identifierSequence)
+        for file in files {
+            let needed = surfacesNamed(by: file.identifierSequence, entryPoints: entryPoints)
             guard !needed.isEmpty else { continue }
             readers += 1
             let classes = ClassNameFinder(viewMode: .sourceAccurate)
@@ -155,19 +145,21 @@ extension PurityOracleEntryTests {
             if visitors.isEmpty {
                 offenders.append("\(file.path) names \(needed) but declares no registered visitor")
             }
-            for visitor in visitors where declared[visitor]?.isSuperset(of: needed) != true {
+            for visitor in visitors.sorted() where declared[visitor]?.isSuperset(of: needed) != true {
                 offenders.append("\(visitor) (\(file.path)) reads \(needed), declares \(declared[visitor] ?? [])")
             }
         }
-        #expect(offenders.isEmpty, "conform the visitor to PackagePurityConsumer: \(offenders)")
-        #expect(readers >= 9, "found \(readers) reader files — has the scan stopped seeing them?")
+        return (offenders, readers)
     }
 
-    static func surfacesNamed(by identifiers: [String]) -> PackagePurityInputs {
+    static func surfacesNamed(
+        by identifiers: [String],
+        entryPoints: Set<OracleEntryPoint> = oracleEntryPoints
+    ) -> PackagePurityInputs {
         var needed: PackagePurityInputs = []
         if identifiers.contains("knownCleanInstanceMethods") { needed.insert(.cleanInstanceMethods) }
         if identifiers.contains("knownImpurePackageFunctions") { needed.insert(.impurePackageFunctions) }
-        for entry in oracleEntryPoints where !entry.tokens.isEmpty {
+        for entry in entryPoints where !entry.tokens.isEmpty {
             let width = entry.tokens.count
             let named = identifiers.indices.dropLast(width - 1).contains {
                 Array(identifiers[$0..<($0 + width)]) == entry.tokens
