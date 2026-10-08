@@ -30,12 +30,12 @@ open class BasePatternVisitor: SyntaxVisitor, PatternVisitorProtocol {
     /// that only apply to class/struct service types (e.g. Concrete Type Usage).
     public var knownEnumTypes: Set<String> = []
 
-    /// Type names known to be declared as actors across the project.
-    /// Populated by a pre-scan phase in `ProjectLinter` so that per-file
-    /// visitors can exempt actor-typed parameters and properties from rules like
-    /// "Concrete Type Usage". An actor's isolation contract is load-bearing in
-    /// Swift 6 strict concurrency — protocol-abstracting it weakens that contract.
-    public var knownActorTypes: Set<String> = []
+    /// The project's actors, and for each the all-`async` project protocols it already conforms
+    /// to. Built by `ActorTypeCatalog.build` in the pre-scan. "Concrete Type Usage" exempts an
+    /// actor-typed parameter or property — a protocol can strip an actor's isolation contract —
+    /// unless such a protocol exists, since callers through it still `await`. Empty in unit tests
+    /// that drive a visitor directly, which reads as "nothing is an actor".
+    public var knownActorTypes = ActorTypeCatalog.empty
 
     /// All type names (class, struct, enum, actor) declared anywhere in the project.
     /// Populated by a pre-scan phase in `ProjectLinter` using `LocalTypeCollector`.
