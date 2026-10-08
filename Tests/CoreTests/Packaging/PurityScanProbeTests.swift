@@ -50,6 +50,25 @@ struct PurityScanProbeTests {
         #expect(Scan.staticOffenders(in: [mutable]) == [Self.visitors + "CleanInstanceMethodCatalog.swift: empty"])
     }
 
+    @Test("a type that can be withheld is held the day it is added, without editing the list")
+    func newSurfaceIsHeld() {
+        let surface = Scan.scanned("""
+        public struct ReviewProbeSurface: Sendable {
+            private let storage: Withholdable<Int>
+            static func withheld(by tripwire: PurityTripwire) -> Self {
+                Self(storage: .withheld(.oracle, by: tripwire, answering: 0))
+            }
+        }
+        """, path: Self.visitors + "ReviewProbeSurface.swift")
+        let cache = Scan.scanned("""
+        enum ReviewProbeSurfaceCache {
+            nonisolated(unsafe) static var last: ReviewProbeSurface?
+        }
+        """, path: Self.rules + "ReviewProbeSurfaceCache.swift")
+        #expect(Scan.heldByOneRun(in: [surface]).contains("ReviewProbeSurface"))
+        #expect(Scan.staticOffenders(in: [surface, cache]) == [Self.rules + "ReviewProbeSurfaceCache.swift: last"])
+    }
+
     // MARK: - Withholdable's state
 
     @Test("a subscript that reaches Withholdable's state is named")
