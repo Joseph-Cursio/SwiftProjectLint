@@ -90,8 +90,9 @@ where*.
   pushes *toward* the `FooProtocol` naming that `Mirror Protocol`'s doc
   names as the smell's signature. Either reconcile the two rules before
   publishing, or use the contradiction honestly: naming conventions are team
-  choices, not principles, and belong in `enabled_only` decisions. **Decide
-  which.**
+  choices, not principles, and belong in `enabled_only` decisions.
+  **Decided: the second.** `Protocol Naming Suffix` is now opt-in, so a
+  default run no longer reports `OrderStore`; both rule docs explain why.
 - **Branch result, better than planned:** `solid/d-concrete-dependency`. The
   view model stores and takes `CoreDataOrderStore` instead of `any OrderStore`.
   The expected rule, `Concrete Type Usage`, **stays silent**: it deliberately
@@ -335,7 +336,8 @@ Every branch builds. The contract-test branches add a test target and
 2. **`Protocol Naming Suffix` vs. `Mirror Protocol`.** One asks for
    `OrderStoreProtocol`, the other treats `FooServiceProtocol` as the smell's
    signature. Decide whether that's a real conflict or a documented team
-   choice, and say so in both docs.
+   choice, and say so in both docs. **Done:** a team choice, so the suffix
+   rule is opt-in, and both docs say so.
 3. **Checkout's lossy `recentOrders()`.** Kept on Checkout's `main` as the
    §6 exhibit; fixed on `solid/l-contract-test-fixed`. Merging that branch
    fixes `main` whenever the essay no longer needs the bug.
@@ -359,4 +361,4 @@ Every branch builds. The contract-test branches add a test target and
 | Decide on a separate config file for the `solid/` branches | **Done**: `.swiftprojectlint-solid.yml` |
 | Decide whether `main` keeps the lossy store | **Decided**: yes, as the standing example |
 | Re-capture the §6 test output with a fixed seed, for a stable quote | To do |
-| Decide the §2 naming-suffix question | Open |
+| Decide the §2 naming-suffix question | **Decided**: `Protocol Naming Suffix` is opt-in |

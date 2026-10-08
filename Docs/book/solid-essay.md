@@ -934,4 +934,6 @@ the rest.
   behaviour. If any ships before publication, update the section.
 - **§2's naming-suffix tension** (`Protocol Naming Suffix` vs. `Mirror
   Protocol`) was left out of this draft to keep §2 focused. Add it back only
-  if it's been resolved one way or the other.
+  if it's been resolved one way or the other. It now has been: the suffix
+  rule is opt-in, as a team convention, so a default run on Checkout no
+  longer reports `OrderStore`.
