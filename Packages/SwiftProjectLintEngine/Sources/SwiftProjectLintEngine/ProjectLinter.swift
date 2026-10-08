@@ -320,8 +320,10 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
     /// (`compiledByRoot`, on a large-stack worker since it parses manifests).
     ///
     /// `resolvingUniverse` false — no visitor the run executes declared a purity input — leaves the
-    /// universe `nil`, not resolved: no extra walk, no manifest is read, no universe-only file is
-    /// parsed, and the shared parse withholds the table rather than building an empty one.
+    /// universe `nil`, not resolved: no extra walk, no manifest is parsed for the universe's bound,
+    /// no universe-only file is parsed, and the shared parse withholds the table rather than
+    /// building an empty one. (The cross-file engine's default-isolation check,
+    /// `DefaultIsolationDetector`, still reads each nested manifest's text on every pass.)
     func discoverFiles(
         at path: String,
         configuration: LintConfiguration,
