@@ -19,11 +19,14 @@ import SwiftSyntax
 /// superclass is not in that set, suppressing false positives for subclasses that
 /// inherit `@MainActor` isolation from a base class defined in another file.
 ///
+/// **Default MainActor isolation:** in a target built with `SWIFT_DEFAULT_ACTOR_ISOLATION =
+/// MainActor` (Xcode) or `swiftSettings: [.defaultIsolation(MainActor.self)]` (SwiftPM), an
+/// unannotated class already is `@MainActor`, so the base skips it. A class that opts out of
+/// the default with `nonisolated` is still flagged.
+///
 /// **Known limitation:** Suppression covers one level of inheritance only (direct superclass).
 /// Multi-level chains and base classes from external frameworks or SPM packages are not
-/// in the file cache and cannot be suppressed automatically. Teams using
-/// `swiftSettings: [.defaultIsolation(MainActor.self)]` in `Package.swift` will see
-/// false positives; they should disable this rule for those targets.
+/// in the file cache and cannot be suppressed automatically.
 final class MainActorMissingVisitor: MainActorMissingVisitorBase {
 
     override func isCandidate(_ node: ClassDeclSyntax) -> Bool {

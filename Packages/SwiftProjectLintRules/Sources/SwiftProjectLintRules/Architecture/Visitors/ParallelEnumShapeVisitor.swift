@@ -97,7 +97,7 @@ final class ParallelEnumShapeVisitor: CrossFileVisitorBase, CrossFilePatternVisi
         if let inheritance = node.inheritanceClause {
             for inherited in inheritance.inheritedTypes {
                 if let name = conformanceName(inherited.type) {
-                    conformances.insert(name)
+                    conformances.formUnion(compositionAliases.expand(name))
                 }
             }
         }
@@ -163,7 +163,7 @@ final class ParallelEnumShapeVisitor: CrossFileVisitorBase, CrossFilePatternVisi
         var conformances: Set<String> = []
         for inherited in inheritance.inheritedTypes {
             if let name = conformanceName(inherited.type) {
-                conformances.insert(name)
+                conformances.formUnion(compositionAliases.expand(name))
             }
         }
         if !conformances.isEmpty {

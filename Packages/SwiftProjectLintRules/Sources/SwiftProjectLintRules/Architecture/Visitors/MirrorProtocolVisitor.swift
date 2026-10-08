@@ -109,7 +109,7 @@ final class MirrorProtocolVisitor: CrossFileVisitorBase, CrossFilePatternVisitor
         if let inheritanceClause {
             for inherited in inheritanceClause.inheritedTypes {
                 if let ident = inherited.type.as(IdentifierTypeSyntax.self) {
-                    conformances.insert(ident.name.text)
+                    conformances.formUnion(compositionAliases.expand(ident.name.text))
                 }
             }
         }
@@ -147,6 +147,10 @@ final class MirrorProtocolVisitor: CrossFileVisitorBase, CrossFilePatternVisitor
     // MARK: - Finalize
 
     func finalizeAnalysis() {
+        // Holding a composition alias consumes every protocol it composes.
+        let consumedProtocolNames = Set(dependencyConsumedTypeNames.flatMap {
+            compositionAliases.expand($0)
+        })
         for proto in protocols {
             guard proto.requirementNames.isEmpty == false else { continue }
 
@@ -154,7 +158,7 @@ final class MirrorProtocolVisitor: CrossFileVisitorBase, CrossFilePatternVisitor
             // stored property or received as an init parameter). The mirror backs a
             // real DI seam, so "use the concrete type" is the wrong advice. Parity with
             // SingleImplementationProtocol, via the shared DependencyConsumption detector.
-            if dependencyConsumedTypeNames.contains(proto.name) {
+            if consumedProtocolNames.contains(proto.name) {
                 continue
             }
 

@@ -172,7 +172,8 @@ preserves, not only what it decouples.
 
 ### The composition root
 
-One more finding, and it's on Checkout's clean `main` branch:
+One more finding. It was on Checkout's clean `main` branch while I drafted
+this essay:
 
 ```
 Sources/Checkout/App/CheckoutApp.swift:7: warning: [Direct Instantiation]
@@ -180,12 +181,23 @@ Sources/Checkout/App/CheckoutApp.swift:7: warning: [Direct Instantiation]
 ```
 
 This is the composition root: the one place where constructing the concrete
-store is *correct*, because something has to. The rule knows that, and
-exempts composition roots, but it recognises one by its shape: an `@main`
+store is *correct*, because something has to. The rule knew that, and
+exempted composition roots, but it recognised one by its shape: an `@main`
 type's `init()`, or a type wiring three or more services. Checkout creates one
-service in a stored property, which is how many small apps look. It's a false
-positive, and it's here because checkable doesn't mean perfectly checked.
-Precision is work that never finishes.
+service in a stored property, which is how many small apps look. It was a
+false positive, a reminder that checkable doesn't mean perfectly checked.
+
+It's fixed now, and how it was fixed says something about what precision work
+looks like. Counting fewer services wasn't the answer: at two, a function that
+reaches for a store and its index, the case the rule exists for, goes quiet
+too. The real fault was that the rule answered one question two ways. A stored property's initializer runs as part
+of `init()`, which was already exempt, so `private let store =
+CoreDataOrderStore()` and `init() { store = CoreDataOrderStore() }` were the
+same construction, reported in one spelling and not the other. The rule now
+exempts an `App`'s stored properties and its `body` along with `init()`. Across
+the 33 repositories I measured it on, Checkout's line was the only finding that
+changed. Precision is work that never finishes, and it gets done one false
+positive at a time.
 
 ---
 
@@ -264,13 +276,36 @@ a method to the nearest protocol. Some of them are called, but only inside
 on `self`), which is the concrete type talking to itself, not a client
 depending on an abstraction.
 
-That table is a question about names, so a tool could build it: find every
+That table is a question about names, so a tool can build it: find every
 binding typed as the protocol, record which members are called on it, and
-report the requirements nothing calls. SwiftProjectLint doesn't do this yet,
-and it's the principled version of `Fat Protocol`: it would have reported
-the nine unused requirements at *any* size, including the nine-requirement
-version that passes the threshold. **[Update if Unused Protocol Requirement
-ships before publication.]**
+report the requirements nothing calls. SwiftProjectLint's `Unused Protocol
+Requirement` rule does exactly that. It's the principled version of `Fat
+Protocol`, and it reports the nine unused requirements at *any* size,
+including the nine-requirement version that passes the threshold:
+
+```
+Sources/Checkout/Domain/OrderStore.swift:9: info: [Unused Protocol Requirement]
+  Requirement 'recentOrders()' of protocol 'OrderStore' is never called through
+  the protocol — its clients use 1 of its 10 requirements.
+Sources/Checkout/Domain/OrderStore.swift:10: info: [Unused Protocol Requirement]
+  Requirement 'order(withIdentifier:)' of protocol 'OrderStore' is never called
+  through the protocol — its clients use 1 of its 10 requirements.
+```
+
+and seven more like them, one per requirement. It applies the table's rule
+about concrete calls, too. If `CheckoutViewModel` builds its own
+`CoreDataOrderStore` and calls `recentOrders()` on that, the requirement is
+still reported, because that call depends on the store rather than on
+`OrderStore`.
+
+Use is harder to check than size, and the rule shows where. It follows a
+value only by name. Pass `store` to a function whose parameter isn't typed as
+the protocol, or put it in an array, and the rule can no longer see which
+requirements get called, so it assumes all of them might be and says nothing
+about that protocol. That keeps its findings trustworthy at the cost of
+staying quiet on code that passes its dependencies around, and it's why the
+rule is opt-in. Across my own 24 repositories it reports two requirements,
+Checkout's `recentOrders()` among them, and both are right.
 
 ### Split by the clients you have
 
@@ -310,20 +345,29 @@ quiet. And the linter reports something new:
 Sources/Checkout/Domain/OrderStore.swift:13: info: [Single Implementation Protocol]
   Protocol 'OrderHistory' has only one conformer ('CoreDataOrderStore') —
   consider removing the abstraction.
+Sources/Checkout/Domain/OrderStore.swift:13: info: [Unused Protocol Abstraction]
+  Protocol 'OrderHistory' is conformed to by 1 type but never used as a type —
+  no parameter, property, constraint, or existential references it.
 Sources/Checkout/Domain/OrderStore.swift:21: info: [Single Implementation Protocol]
   Protocol 'OrderAdministration' has only one conformer ('CoreDataOrderStore') —
   consider removing the abstraction.
+Sources/Checkout/Domain/OrderStore.swift:21: info: [Unused Protocol Abstraction]
+  Protocol 'OrderAdministration' is conformed to by 1 type but never used as a type —
+  no parameter, property, constraint, or existential references it.
 Sources/Checkout/Domain/OrderStore.swift:29: info: [Single Implementation Protocol]
   Protocol 'AnalyticsRecording' has only one conformer ('CoreDataOrderStore') —
   consider removing the abstraction.
+Sources/Checkout/Domain/OrderStore.swift:29: info: [Unused Protocol Abstraction]
+  Protocol 'AnalyticsRecording' is conformed to by 1 type but never used as a type —
+  no parameter, property, constraint, or existential references it.
 ```
 
 `OrderSaving` isn't on the list, because it has a client. The other three roles
 don't. I named them after screens Checkout doesn't have: order history, admin
 tools, analytics. The split was right about the *shape* of the roles and wrong
 about whether they were needed. They're abstractions waiting for clients, and
-the rule that pushes back against over-applied dependency inversion (§2)
-catches them just as it caught the unused protocol there.
+the rules that push back against over-applied dependency inversion (§2)
+catch them just as they caught the unused protocol there.
 
 So the finished version is smaller still: keep `OrderSaving`, and leave the
 other nine methods on `CoreDataOrderStore` until a client needs them. When an
@@ -335,9 +379,9 @@ requirements.
 
 (A smaller lesson from the same branch: I first wrote the store's conformance
 as `actor CoreDataOrderStore: OrderStore`, through the typealias. The linter
-then reported all four roles as having *no* conformers, because it doesn't
-expand typealiased compositions. Checkable, again, doesn't mean perfectly
-checked.)
+then reported all four roles as having *no* conformers, because it didn't
+expand typealiased compositions. It does now, and both spellings give the
+output above. Checkable, again, doesn't mean perfectly checked.)
 
 ---
 
@@ -929,9 +973,18 @@ the rest.
   §1 discloses that I maintain SwiftProjectLint.
 - **Seed:** the §6 output is from one run, and its seed is quoted so readers
   can reproduce it. If the generator or the laws change, re-capture.
-- **Follow-ups referred to in the text** (composition-root false positive,
-  actor exemption, interface segregation by use) are described as current
-  behaviour. If any ships before publication, update the section.
+- **Follow-ups referred to in the text** (actor exemption) are described as
+  current behaviour. If it ships before publication, update the section. The
+  composition-root false positive has shipped, and §2 now tells it as
+  reported, then fixed; its quoted output is from before the fix.
+- **§3 `Unused Protocol Requirement`** has shipped (opt-in), and §3 now
+  describes it. Its quoted output is from a run on `solid/i-fat-store` with
+  only that rule enabled. Checkout's `.swiftprojectlint-solid.yml` doesn't list
+  it yet; add it under "Interface segregation" so readers can reproduce the
+  output with the config the README gives. The "24 repositories, two findings"
+  figure is from 2026-10-07; the rule's page has the breakdown.
 - **§2's naming-suffix tension** (`Protocol Naming Suffix` vs. `Mirror
   Protocol`) was left out of this draft to keep §2 focused. Add it back only
-  if it's been resolved one way or the other.
+  if it's been resolved one way or the other. It now has been: the suffix
+  rule is opt-in, as a team convention, so a default run on Checkout no
+  longer reports `OrderStore`.

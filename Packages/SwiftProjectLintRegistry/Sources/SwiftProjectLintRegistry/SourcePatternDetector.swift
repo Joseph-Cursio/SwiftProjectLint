@@ -16,9 +16,9 @@ public final class SourcePatternDetector: SourcePatternDetectorProtocol, @unchec
     /// Set by `ProjectLinter` after a pre-scan phase and passed through to visitors.
     public var knownEnumTypes: Set<String> = []
 
-    /// Type names known to be declared as actors across the project.
+    /// The project's actors and the all-`async` project protocols each conforms to.
     /// Set by `ProjectLinter` after a pre-scan phase and passed through to visitors.
-    public var knownActorTypes: Set<String> = []
+    public var knownActorTypes = ActorTypeCatalog.empty
 
     /// All type names (class, struct, enum, actor) declared anywhere in the project.
     /// Set by `ProjectLinter` after a pre-scan phase using `LocalTypeCollector`.

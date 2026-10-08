@@ -28,7 +28,7 @@ It fires for stored property initializers, local variable declarations, and clos
 | A callee that does not name a type — `Strategist.composedGenerator(…)` | A `static func` is not a construction; there is no type to inject. |
 | A `private` or `fileprivate` type | Unreachable outside its file, so nothing could supply a substitute. Taking the advice means *widening* the access level in order to hide the type. |
 | A test double — `MockGenerator(…)`, `StubClient(…)` | A double is already the substitute an injection would supply. |
-| The program's entry point — `main.swift`, an `@main` type's `main()` or `init()` | There is nowhere further out to push the construction. |
+| The program's entry point — `main.swift`; in an `@main` type or a SwiftUI `App`, its `main()`, initializers, instance stored properties and `body` | There is nowhere further out to push the construction. See [the app's own root](#the-apps-own-root). |
 | A `ParsableCommand` conformer | ArgumentParser builds it from argv; the synthesized initializer has no parameter to inject through. |
 | A helper handed `self` — `Checker(visitor: self)` | `self` does not exist before the initializer that would receive a substitute has run. |
 | An `@Observable` model a view owns | The `.task` construction *is* the injection — the environment value it takes cannot be read from a property initializer. |
@@ -37,6 +37,59 @@ It fires for stored property initializers, local variable declarations, and clos
 | A type vending itself — `static let shared = Foo()` inside `Foo` | That defines the singleton. `Singleton Usage` covers the *access* sites. |
 
 Each exemption's evidence — what it was measured against and what nearly went wrong — is in the doc comment on the code that implements it, where someone changing that code will meet it.
+
+### The app's own root
+
+Most small SwiftUI apps wire themselves in a stored property of the `App`, not in `init()`:
+
+```swift
+@main
+struct CheckoutApp: App {
+    private let store = CoreDataOrderStore()
+
+    var body: some Scene {
+        WindowGroup { CheckoutView(model: CheckoutViewModel(store: store)) }
+    }
+}
+```
+
+That `store` used to be reported while `init() { store = CoreDataOrderStore() }` was not, though a
+stored property's initializer runs as part of every initializer: the same construction at the same
+moment, answered two ways by spelling. And it is `init()` that has the right answer. The runtime
+builds an `App` through `init()`, so no caller can hand it a substitute, and whatever it holds in
+production is built inside it. The exemption therefore covers every member on the runtime's own
+path into the program:
+
+- `static func main()` and the initializers;
+- instance stored properties, `lazy` ones included;
+- `body`, which only the runtime reads.
+
+The type is an `@main` type — a SwiftUI `App`, an application delegate, a tool — or a SwiftUI `App`
+without `@main`. That last is the launcher spelling: an `@main enum` whose `main()` picks the real
+`App` or a bare one for a unit-test host, and the `App` it picks is still built by `App.main()`
+through `init()`. A tool whose own `main()` builds `Self()` is the one entry type with a caller,
+which could pass its services in; its stored properties follow its `init()`, which was exempt
+first, rather than split the two spellings again.
+
+Still reported, because each has an edit that satisfies the advice:
+
+- **A `static` stored property.** No initializer fills it. It is a global every file can reach as
+  `Server.store`; building it in `main()` and passing it down is an injection.
+- **Any other method or computed property.** Ordinary code the app calls, which can take what it
+  needs as a parameter or read it from the root's stored property.
+- **A type nested inside the `App`, or a `Scene` it builds.** The app's own code constructs it, and
+  can pass it the store.
+
+This is not the composition-root count lowered. A root that is not the entry type still needs three
+services: at two, a function that reaches for a store and its index — the case the rule exists for —
+would go silent. The `App` is exempt for what it is, not for how much it builds.
+
+Measured on 33 repository roots — the sibling projects, pulled to `origin/main`, and this one — each
+run with only this rule enabled, so a repository's own `enabled_only` list could not hide it: 39
+findings before, 38 after. The one removed is `CheckoutApp.swift:7`, and none of the remaining 38
+sits in an entry type. None of the other thirteen `App`s in those repositories keeps a service in a
+plain stored property: they hold it in `@State`, exempt already as a property wrapper, build it in
+`init()`, or construct none.
 
 ### The fix
 

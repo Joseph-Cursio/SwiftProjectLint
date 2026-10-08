@@ -27,7 +27,7 @@ extension RuleIdentifier {
              .viewBuilderComplexity,
              .customModifierPerformance, .formatterInViewBody,
              .geometryReaderOveruse, .unboundedTaskGroup,
-             .onReceiveWithoutDebounce:
+             .onReceiveWithoutDebounce, .blockingIOOnMainActor:
             return .performance
 
         case .deprecatedAnimation, .animationInHighFrequencyUpdate, .excessiveSpringAnimations,
@@ -44,7 +44,7 @@ extension RuleIdentifier {
              .duplicateStructShape, .sharedDomainEnumField,
              .primitiveBypassingItsDomainType, .primitiveNamedForItsDomainType,
              .scatteredEnumMapping, .duplicateEnumMapping, .parallelEnumShape,
-             .unusedProtocolAbstraction,
+             .unusedProtocolAbstraction, .unusedProtocolRequirement,
              .couldAdoptProtocol, .hoistableConformerMember,
              .hoistableSequenceOperation,
              .subclassedForMocking,
@@ -70,7 +70,7 @@ extension RuleIdentifier {
              .taskDetached, .asyncLetUnused, .buttonClosureWrapping,
              .nonisolatedUnsafe, .taskYieldOffload, .swallowedTaskError,
              .missingCancellationCheck, .fireAndForgetTask,
-             .discardedTryResult, .lossyStructRebuild, .mapUsedForSideEffects,
+             .discardedTryResult, .lossyStructRebuild, .lossyRoundTrip, .mapUsedForSideEffects,
              .couldBePrivate, .publicInAppTarget, .couldBePrivateMember,
              .protocolCouldBePrivate, .variableShadowing, .uncheckedSendable,
              .disfavoredOverload, .retroactiveConformance,

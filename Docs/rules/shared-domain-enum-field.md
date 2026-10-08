@@ -38,7 +38,8 @@ The visitor proceeds in two phases:
    `minimumCluster` (default **3**) types fires once per participating type, naming the peers
    and the shared field. A type that already conforms to a protocol declaring that property is
    dropped first — the abstraction is present, so there is nothing to extract; if that drops
-   the cluster below threshold, nothing is reported.
+   the cluster below threshold, nothing is reported. A conformance written through a
+   composition `typealias` counts as conforming to each protocol the alias composes.
 
 #### The project-enum requirement is the false-positive guard
 Lowering Duplicate Struct Shape's threshold to one field would drown in noise: nearly every

@@ -63,6 +63,7 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
     case duplicateEnumMapping = "Duplicate Enum Mapping"
     case parallelEnumShape = "Parallel Enum Shape"
     case unusedProtocolAbstraction = "Unused Protocol Abstraction"
+    case unusedProtocolRequirement = "Unused Protocol Requirement"
     case couldAdoptProtocol = "Could Adopt Protocol"
     case hoistableConformerMember = "Hoistable Conformer Member"
     case hoistableSequenceOperation = "Hoistable Sequence Operation"
@@ -140,6 +141,7 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
     case geometryReaderOveruse = "GeometryReader Overuse"
     case unboundedTaskGroup = "Unbounded Task Group"
     case onReceiveWithoutDebounce = "onReceive Without Debounce"
+    case blockingIOOnMainActor = "Blocking I/O On Main Actor"
     case mainActorMissingOnUICode = "Main Actor Missing On UI Code"
     case observableMainActorMissing = "Observable Main Actor Missing"
 
@@ -269,6 +271,10 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
     /// A value rebuilt field-by-field from one you already have, where the initialiser has
     /// defaulted parameters — so a forgotten field takes its default SILENTLY.
     case lossyStructRebuild = "Lossy Struct Rebuild"
+
+    /// A type that takes a value apart into storage and rebuilds it, hard-coding an empty value for
+    /// a field on the way back — so that field never survives the round trip.
+    case lossyRoundTrip = "Lossy Round Trip"
 
     // Other/System Rules
     case fileParsingError = "File Parsing Error"

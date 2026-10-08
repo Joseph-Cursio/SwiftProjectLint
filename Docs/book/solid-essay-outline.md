@@ -84,14 +84,16 @@ where*.
   or an `@main` type's `init()`/`main()`). Checkout's root is one service in a
   stored-property initializer, which is how most small apps look. Use it as a
   live example of the precision problem, and as a possible rule refinement
-  (see *Follow-ups*).
+  (see *Follow-ups*). **Since fixed** (Follow-up 1), so §2 tells it as
+  reported, then fixed.
 - **Real tension in the sample:** the same default run reports `Protocol
   Naming Suffix` on `OrderStore` ("not suffixed with 'Protocol'"), which
   pushes *toward* the `FooProtocol` naming that `Mirror Protocol`'s doc
   names as the smell's signature. Either reconcile the two rules before
   publishing, or use the contradiction honestly: naming conventions are team
-  choices, not principles, and belong in `enabled_only` decisions. **Decide
-  which.**
+  choices, not principles, and belong in `enabled_only` decisions.
+  **Decided: the second.** `Protocol Naming Suffix` is now opt-in, so a
+  default run no longer reports `OrderStore`; both rule docs explain why.
 - **Branch result, better than planned:** `solid/d-concrete-dependency`. The
   view model stores and takes `CoreDataOrderStore` instead of `any OrderStore`.
   The expected rule, `Concrete Type Usage`, **stays silent**: it deliberately
@@ -309,8 +311,8 @@ named `solid/…` so they don't mix with the `essay/…` branches:
 [Joseph-Cursio/Checkout](https://github.com/Joseph-Cursio/Checkout). The rules
 live in `.swiftprojectlint-solid.yml`, added through Checkout PR #1, so the
 fitness-functions essay's quoted output is unchanged. On `main`, that config
-reports one finding: the `Direct Instantiation` false positive at the
-composition root (Follow-up 1).
+reported one finding: the `Direct Instantiation` false positive at the
+composition root. It reports none since Follow-up 1 shipped.
 
 | Branch | Section | Change | Actual result |
 |---|---|---|---|
@@ -331,11 +333,14 @@ Every branch builds. The contract-test branches add a test target and
 1. **`Direct Instantiation` at a small composition root.** A single service
    created in a stored-property initializer of an `@main` type isn't
    recognised as the composition root. Consider exempting stored-property
-   initializers on the `@main` type.
+   initializers on the `@main` type. **Done:** an `@main` type's or a
+   SwiftUI `App`'s instance stored properties and `body` are now exempt, like
+   its `init()`. See *The app's own root* in `Docs/rules/direct-instantiation.md`.
 2. **`Protocol Naming Suffix` vs. `Mirror Protocol`.** One asks for
    `OrderStoreProtocol`, the other treats `FooServiceProtocol` as the smell's
    signature. Decide whether that's a real conflict or a documented team
-   choice, and say so in both docs.
+   choice, and say so in both docs. **Done:** a team choice, so the suffix
+   rule is opt-in, and both docs say so.
 3. **Checkout's lossy `recentOrders()`.** Kept on Checkout's `main` as the
    §6 exhibit; fixed on `solid/l-contract-test-fixed`. Merging that branch
    fixes `main` whenever the essay no longer needs the bug.
@@ -349,6 +354,13 @@ Every branch builds. The contract-test branches add a test target and
    `nonisolated` member, so the trade-off is visible in the conformance anyway.
    Consider narrowing the exemption. Check against Swift 6.2's
    isolated-conformance rules (SE-0470) first.
+   **Done:** an actor conforming to an all-`async` project protocol is now
+   reported when typed concretely (SE-0470 isolates conformances only to global
+   actors, so it does not change the argument). `solid/d-concrete-dependency`
+   now gets a `Concrete Type Usage` finding on `CheckoutViewModel.store` naming
+   `OrderStore`, so §2's branch result and the branch table above need
+   re-capturing. See the rule page's *Actors that already have an all-`async`
+   protocol*.
 
 ## To do before drafting
 
@@ -359,4 +371,4 @@ Every branch builds. The contract-test branches add a test target and
 | Decide on a separate config file for the `solid/` branches | **Done**: `.swiftprojectlint-solid.yml` |
 | Decide whether `main` keeps the lossy store | **Decided**: yes, as the standing example |
 | Re-capture the §6 test output with a fixed seed, for a stable quote | To do |
-| Decide the §2 naming-suffix question | Open |
+| Decide the §2 naming-suffix question | **Decided**: `Protocol Naming Suffix` is opt-in |

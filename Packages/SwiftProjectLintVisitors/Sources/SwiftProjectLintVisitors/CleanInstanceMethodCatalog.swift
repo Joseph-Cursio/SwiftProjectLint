@@ -119,7 +119,8 @@ public struct CleanInstanceMethodCatalog: Sendable, Equatable {
     /// costs a seam nobody is told about, and a missed one costs a finding.
     ///
     /// Actors are excluded outright: an actor's isolation contract is load-bearing, which is the
-    /// same reason `ConcreteTypeUsage` exempts them from the other direction.
+    /// same reason `ConcreteTypeUsage` exempts them from the other direction — there, until an
+    /// all-`async` project protocol already abstracts the actor (see `ActorTypeCatalog`).
     public func isPureKernel(_ typeName: String) -> Bool {
         storage.read("isPureKernel(\(typeName))").pureKernelTypes.contains(typeName)
     }

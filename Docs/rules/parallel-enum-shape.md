@@ -93,7 +93,11 @@ conformance (a real domain protocol like `SeverityDisplaying`) suppresses it.
   conformances added in a separate `extension Foo: P {}` (collected cross-file and merged in
   Phase 2). It does not resolve a protocol that is itself only reachable through a chain of
   refinements, and it keys on the extended type's simple name (so `extension Outer.Severity: P`
-  is attributed to `Severity`).
+  is attributed to `Severity`). A composition `typealias` in either place is expanded into its
+  components first. `enum Severity: RankedLevel`, with `typealias RankedLevel = Ranked &
+  CaseIterable`, shares `Ranked` with an enum declaring `Ranked` directly. An alias of
+  ubiquitous protocols only (`typealias Listable = CaseIterable & Codable`) unifies nothing;
+  read by its own name, it looked like a domain protocol and silenced the rule.
 - Nested enums are named by their simple name (`Severity`, not `ValidationResult.Severity`).
 
 ### Non-Violating Examples

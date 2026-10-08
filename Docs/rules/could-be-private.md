@@ -36,7 +36,7 @@ The rule flags top-level types with default (`internal`) access that are never r
 - **Nested types** — only top-level declarations are checked; types nested inside another type are out of scope
 - **Test files** — any file whose path contains `Tests/` or ends in `Test.swift`
 - **Example/fixture directories** — files in `ExampleCode/`, `Fixtures/`, `Resources/`, `Examples/`, `Samples/`
-- **Project-protocol conformers** — types conforming to a protocol defined within the project are suppressed, since they are likely used polymorphically (metatype registration, dependency injection) even if not directly referenced by name
+- **Project-protocol conformers** — types conforming to a protocol defined within the project are suppressed, since they are likely used polymorphically (metatype registration, dependency injection) even if not directly referenced by name. A conformance written through a composition `typealias` (`struct Banner: Widget`, with `typealias Widget = Rendering & Sendable`) counts as conforming to each protocol the alias composes
 - **`App`-conforming structs** — the SwiftUI app entry point (`struct MyApp: App`) cannot be `private`
 - **`@main`-annotated types** — the compiler-designated entry point for a target cannot be `private`
 
