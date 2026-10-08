@@ -19,8 +19,12 @@ Annotating an `ObservableObject` class `@MainActor` makes this constraint explic
 
 Only `class` declarations are inspected; structs and enums cannot meaningfully conform to `ObservableObject` as a base type and are ignored. Types using the `@Observable` macro (Swift 5.9+) are not `ObservableObject` conformers and are never flagged.
 
+**Default MainActor isolation.** In a target built with `SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor` (Xcode) or `swiftSettings: [.defaultIsolation(MainActor.self)]` (SwiftPM), SE-0466 makes an unannotated class `@MainActor` already, so the rule doesn't flag it. The rule reads both build settings, as described in [Where default isolation is read](blocking-io-on-main-actor.md#where-default-isolation-is-read). A class that opts out of the default with `nonisolated` is still flagged.
+
 ### Known Limitation
-Suppression covers **one level of inheritance** only. Multi-level chains (grandparent `@MainActor` → parent (no annotation) → child) are not traversed. Superclasses from external SPM packages or frameworks (not in the file cache) cannot be suppressed. Teams using `swiftSettings: [.defaultIsolation(MainActor.self)]` in `Package.swift` should disable this rule for that target, as target-level isolation is not visible in Swift source AST.
+Suppression covers **one level of inheritance** only. Multi-level chains (grandparent `@MainActor` → parent (no annotation) → child) are not traversed. Superclasses from external SPM packages or frameworks (not in the file cache) cannot be suppressed. Only an explicit `@MainActor` suppresses a subclass: a superclass that is main-actor through its own target's default doesn't suppress a subclass in a target without that default.
+
+Default isolation set where the rule doesn't read it, such as an `.xcconfig` file, isn't seen, so classes in that target are still flagged.
 
 ### Non-Violating Examples
 ```swift
@@ -52,6 +56,11 @@ class DerivedViewModel: BaseViewModel {
 class CounterModel {
     var count = 0
 }
+
+// In a target built with default MainActor isolation — already @MainActor, not flagged
+class FeedViewModel: ObservableObject {
+    @Published var posts: [Post] = []
+}
 ```
 
 ### Violating Examples
@@ -78,6 +87,12 @@ class NetworkViewModel: ObservableObject {
         // ...
         isLoading = false
     }
+}
+
+// FLAGGED even in a target built with default MainActor isolation:
+// `nonisolated` opts the class out of the default
+nonisolated class FeedViewModel: ObservableObject {
+    @Published var posts: [Post] = []
 }
 ```
 
