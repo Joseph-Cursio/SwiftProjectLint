@@ -11,7 +11,7 @@
 A function parameter or stored property typed as a concrete service class (e.g., `func configure(service: APIService)`) cannot be substituted with a test double or alternative implementation without modifying the function signature. Protocol abstractions allow callers to pass any conforming type.
 
 ### Discussion
-`ConcreteTypeUsageVisitor` checks type annotations in function parameters and stored properties (without initializers) for names ending in service-like suffixes (`Manager`, `Service`, `Store`, `Provider`, `Client`, `Repository`, `Handler`, `Controller`, `Factory`, `Adapter`, `ViewModel`, `Coordinator`, `Generator`, `Analyzer`, `Simulator`, `Engine`, `Checker`). It skips types ending in `Protocol`, `Type`, or `Interface` (which are already abstractions), types annotated with a SwiftUI property wrapper, and parameters typed with `some Protocol` (opaque types).
+`ConcreteTypeUsageVisitor` checks type annotations in function parameters and stored properties (without initializers) for names ending in service-like suffixes (`Manager`, `Service`, `Store`, `Provider`, `Client`, `Repository`, `Handler`, `Controller`, `Factory`, `Adapter`, `ViewModel`, `Coordinator`, `Generator`, `Analyzer`, `Simulator`, `Engine`, `Checker`). It skips types ending in `Protocol`, `Type`, or `Interface` (which are already abstractions), any other protocol the project declares (a project-wide pre-scan, so a role-noun protocol like `OrderStore` needs no suffix), types annotated with a SwiftUI property wrapper, and parameters typed with `some Protocol` (opaque types).
 
 The following patterns are exempt because they do not represent real coupling issues:
 
@@ -29,7 +29,7 @@ The following patterns are exempt because they do not represent real coupling is
 - **Closure wrapper types** — a `struct` or `final class` whose only stored property is a closure is already the seam
 - **`Equatable` types** — a value is substituted by constructing a different one
 
-Replacing `APIService` with `APIServiceProtocol` — or using `some NetworkProtocol` — resolves the issue.
+Depending on a protocol resolves the issue, whatever the protocol is called. One option is to name the protocol for the role, `protocol APIService`, and rename the class for what it is, such as `URLSessionAPIService`; parameters keep the type name `APIService` (written `any APIService` under `ExistentialAny`), and only construction sites change. A suffixed `APIServiceProtocol` or an opaque `some NetworkProtocol` works too, but a suffixed protocol that copies `APIService` member for member is what [Mirror Protocol](mirror-protocol.md) reports.
 
 ### Four exemptions added after one pass of applying the rule
 
