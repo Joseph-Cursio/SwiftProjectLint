@@ -31,7 +31,7 @@ present-tense defect rather than a refactoring opportunity.
 `ParallelListDriftVisitor` runs cross-file, because the two copies of a list are almost never
 in the same file.
 
-**Phase 1 (walk).** It catalogs every *name list*, read from three carriers:
+**Phase 1 (walk).** It catalogs every *name list*, read from four carriers:
 
 1. **`enum` case names.** Unlike Parallel Enum Shape, associated values are not
    disqualifying — this rule compares the roster of names, and `case failure(Error)` still
@@ -72,6 +72,35 @@ in the same file.
    sidebar and nowhere else. Written as `[.rules, .reports, …]` this rule reported it and named
    the missing case; written as eleven calls it saw nothing. Measured across the corpus, the
    carrier adds **no findings to code that does not have the defect** — 17 before, 17 after.
+
+4. **Member runs** — one operation applied, member by member, to a run of one value's members:
+
+   ```swift
+   if validationErrors.isEmpty
+       && parsedConfig.rules.isEmpty
+       && parsedConfig.disabledRules == nil
+       && parsedConfig.optInRules == nil
+       && parsedConfig.onlyRules == nil { … }       // `analyzerRules` forgotten
+   ```
+
+   A run is read from an `&&` or `||` chain (or a condition list) whose operands each read one
+   member of the value; from consecutive statements identical but for the member they read and
+   the names they bind (`if let x = config.optInRules { ids.formUnion(x) }`, ×4), absorbing a
+   single-member statement on either side (`var ids = Set(config.rules.keys)` seeds the run);
+   and from an array of member reads. A member is a property read off a lowercase identifier —
+   not `self`, not a type, not a method call, and not an assignment target.
+
+   Member runs are compared **only with each other**, and fire under three extra conditions:
+   the deficient run is a **strict subset** of its counterpart; the two are not the same
+   construct (`copy.a = source.a` is one list, not two); and **at least two other runs agree
+   exactly** on the family it falls short of. That last gate is what keeps the carrier
+   precise — see the measurement below.
+
+   This carrier exists because of a defect mutation testing found and no carrier could see.
+   SwiftLintRuleStudio's import check above warned a config defining only analyzer rules that
+   it defined none; all four of its `&&` mutants survived. Two `collectAllRuleIds` in the same
+   module enumerate all five rule fields, and the rule now reports the check against them,
+   naming `analyzerRules`.
 
 Names are **normalized** before comparison — lowercased with separators stripped — so
 `UIPatterns`, `uiPatterns` and `"ui-patterns"` all compare equal. Messages quote the original
@@ -291,6 +320,33 @@ The eight that survived on SwiftProjectLint were mutual divergences and near-com
 (`registerAll` at 0.86, the logging lists at 0.82). The one real finding in RuleStudio is
 mutual and never depended on the subset path. So the floor removed a whole noise class without
 touching the signal — precision rose on all three codebases at once.
+
+#### Member runs: measured
+
+The fourth carrier was measured over 55 local repositories with Swift sources, against the rule
+as it stood. **The three existing carriers report the same 227 findings, line for line**; member
+runs add 7 findings.
+
+Its gates were set by what the first pass reported. Ungated, it reported **27** findings, and
+almost none were forgotten members:
+
+| Gate | What it removed |
+|---|---|
+| never pair two values of one construct | `existingFile.x = apiFile.x` upserts and `copy.x = source.x` copies, compared with themselves |
+| an assignment target is not a read | view setup — `label.isBezeled = false`, ×4 — paired between two setup methods |
+| at least two runs agree on the family | one-off supersets |
+| missing members come from the counterpart's **core** — the members it read by one operation | gates over `FunctionSummary` reported missing `parameters` or `name`, read *beside* their `!summary.isAsync && !summary.isThrows` |
+
+The 7 that remain are all in SwiftInferProperties: template gates that exclude three of the
+four effect flags (`isStatic`, `isMutating`, `isThrows`, `isAsync`) where sibling gates exclude
+all four. Three are deliberate: the additive and multiplicative measures want free and static
+functions, and an `==` is never `mutating`. Four are plausible gaps: comparator, equivalence
+and predicate gates that admit a `mutating` method, and a partition gate that admits a
+`throws` one. They are the shape the carrier is for, and none is verified. The fix the
+suggestion names, one `FunctionSummary` property for "has no effects", would close all seven.
+
+On SwiftLintRuleStudioCore before its fix, the carrier reported one finding, and it was the
+defect: the import check missing `analyzerRules`.
 
 Read each surviving finding before acting; it remains `Info`. Its exact-match sibling still
 scores better — five for five on this codebase — because "these lists agree exactly" has far
