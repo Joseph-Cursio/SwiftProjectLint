@@ -48,7 +48,7 @@ struct AliasFixture: Sendable, CustomTestStringConvertible {
     static let all: [Self] = [
         mirrorProtocol, couldAdoptProtocol, parallelEnumShapeSharedProtocol,
         parallelEnumShapeUbiquitousOnly, duplicateStructShape, sharedDomainEnumField,
-        hoistableConformerMember
+        hoistableConformerMember, couldBePrivate, couldBePrivateMember, protocolCouldBePrivate
     ]
 
     /// A mirror reached only through the alias was missed: the conformer did not conform.
@@ -252,5 +252,75 @@ struct AliasFixture: Sendable, CustomTestStringConvertible {
             func matches(_ query: String) -> Bool { rawKey.contains(query) || name.contains(query) }
         }
         """
+    }
+
+    /// A type conforming to a project protocol through the alias is used polymorphically.
+    static let couldBePrivate = Self(
+        testDescription: "Could Be Private",
+        files: [
+            "Rendering.swift": """
+            protocol Rendering {}
+            typealias Widget = Rendering & Sendable
+            """,
+            "Banner.swift": """
+            struct Banner: {conformance} {}
+            func showBanner() { _ = Banner() }
+            """
+        ],
+        alias: "Widget",
+        spelledOut: "Rendering, Sendable",
+        expectedFindings: 0
+    ) { files, follow in
+        CrossFileVisitorTestSupport.issues(
+            of: CouldBePrivateVisitor.self, pattern: CouldBePrivate().pattern,
+            files: files, followingAliases: follow
+        )
+    }
+
+    /// `save()` witnesses a requirement adopted through the alias. Making it private would not
+    /// compile.
+    static let couldBePrivateMember = Self(
+        testDescription: "Could Be Private Member",
+        files: [
+            "Saving.swift": """
+            protocol Saving { func save() }
+            typealias Store = Saving & Sendable
+            """,
+            "DiskStore.swift": "struct DiskStore: {conformance} { func save() {} }"
+        ],
+        alias: "Store",
+        spelledOut: "Saving, Sendable",
+        expectedFindings: 0
+    ) { files, follow in
+        CrossFileVisitorTestSupport.issues(
+            of: CouldBePrivateMemberVisitor.self, pattern: CouldBePrivateMember().pattern,
+            files: files, followingAliases: follow
+        )
+    }
+
+    /// The roles are named outside their file only through the alias, which still names them.
+    static let protocolCouldBePrivate = Self(
+        testDescription: "Protocol Could Be Private",
+        files: [
+            "Roles.swift": """
+            protocol Reading { func read() }
+            protocol Writing { func write() }
+            typealias Storage = Reading & Writing
+            """,
+            "Disk.swift": """
+            struct DiskStorage: {conformance} {
+                func read() {}
+                func write() {}
+            }
+            """
+        ],
+        alias: "Storage",
+        spelledOut: "Reading, Writing",
+        expectedFindings: 0
+    ) { files, follow in
+        CrossFileVisitorTestSupport.issues(
+            of: ProtocolCouldBePrivateVisitor.self, pattern: ProtocolCouldBePrivate().pattern,
+            files: files, followingAliases: follow
+        )
     }
 }
