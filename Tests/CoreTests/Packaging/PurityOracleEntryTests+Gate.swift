@@ -13,6 +13,13 @@ import Testing
 /// run's tripwire, and it saves time only if every visitor that reads one says so
 /// (`PackagePurityConsumer`). `PurityGateDeclarationTests` checks both by running rules; these check
 /// the source, so a read on a shape no corpus reaches still fails a test.
+///
+/// **Known limit.** The entry-point and reader scans recognise a construction spelled `Type(`,
+/// `PurityInferrer.init` or `= .init` for the oracle itself, and `Type.init` for an unlabelled
+/// helper. A labelled `.init` spelling — `Helper.init(seed:)`, `let box: Helper = .init(0)`,
+/// `PackagePurityJoin.init(sources:)` — is not seen. As with every gap in these scans, a read they
+/// miss costs a run a second pass, never a wrong finding, and
+/// `everyRuleAloneReadsOnlyWhatItDeclares` still catches it wherever a test corpus reaches it.
 extension PurityOracleEntryTests {
 
     @Test("the run's binding is read in one place, the oracle wrapper")
