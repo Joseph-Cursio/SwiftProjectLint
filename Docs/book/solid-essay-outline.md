@@ -84,7 +84,8 @@ where*.
   or an `@main` type's `init()`/`main()`). Checkout's root is one service in a
   stored-property initializer, which is how most small apps look. Use it as a
   live example of the precision problem, and as a possible rule refinement
-  (see *Follow-ups*).
+  (see *Follow-ups*). **Since fixed** (Follow-up 1), so §2 tells it as
+  reported, then fixed.
 - **Real tension in the sample:** the same default run reports `Protocol
   Naming Suffix` on `OrderStore` ("not suffixed with 'Protocol'"), which
   pushes *toward* the `FooProtocol` naming that `Mirror Protocol`'s doc
@@ -309,8 +310,8 @@ named `solid/…` so they don't mix with the `essay/…` branches:
 [Joseph-Cursio/Checkout](https://github.com/Joseph-Cursio/Checkout). The rules
 live in `.swiftprojectlint-solid.yml`, added through Checkout PR #1, so the
 fitness-functions essay's quoted output is unchanged. On `main`, that config
-reports one finding: the `Direct Instantiation` false positive at the
-composition root (Follow-up 1).
+reported one finding: the `Direct Instantiation` false positive at the
+composition root. It reports none since Follow-up 1 shipped.
 
 | Branch | Section | Change | Actual result |
 |---|---|---|---|
@@ -331,7 +332,9 @@ Every branch builds. The contract-test branches add a test target and
 1. **`Direct Instantiation` at a small composition root.** A single service
    created in a stored-property initializer of an `@main` type isn't
    recognised as the composition root. Consider exempting stored-property
-   initializers on the `@main` type.
+   initializers on the `@main` type. **Done:** an `@main` type's or a
+   SwiftUI `App`'s instance stored properties and `body` are now exempt, like
+   its `init()`. See *The app's own root* in `Docs/rules/direct-instantiation.md`.
 2. **`Protocol Naming Suffix` vs. `Mirror Protocol`.** One asks for
    `OrderStoreProtocol`, the other treats `FooServiceProtocol` as the smell's
    signature. Decide whether that's a real conflict or a documented team
