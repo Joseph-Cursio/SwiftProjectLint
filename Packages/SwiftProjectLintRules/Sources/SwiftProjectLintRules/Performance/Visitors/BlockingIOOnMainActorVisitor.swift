@@ -35,6 +35,7 @@ final class BlockingIOOnMainActorVisitor: CrossFileVisitorBase, CrossFilePattern
     }
 
     func finalizeAnalysis() {
+        table.compositionAliases = compositionAliases
         for file in walkedFiles {
             let scanner = MainActorBlockingCallScanner(
                 table: table, fileDefaultsToMainActor: isDefaultMainActorSource(file.path)

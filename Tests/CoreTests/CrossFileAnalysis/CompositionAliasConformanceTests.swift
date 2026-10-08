@@ -48,7 +48,8 @@ struct AliasFixture: Sendable, CustomTestStringConvertible {
     static let all: [Self] = [
         mirrorProtocol, couldAdoptProtocol, parallelEnumShapeSharedProtocol,
         parallelEnumShapeUbiquitousOnly, duplicateStructShape, sharedDomainEnumField,
-        hoistableConformerMember, couldBePrivate, couldBePrivateMember, protocolCouldBePrivate
+        hoistableConformerMember, couldBePrivate, couldBePrivateMember, protocolCouldBePrivate,
+        blockingIOOnMainActor
     ]
 
     /// A mirror reached only through the alias was missed: the conformer did not conform.
@@ -294,6 +295,36 @@ struct AliasFixture: Sendable, CustomTestStringConvertible {
     ) { files, follow in
         CrossFileVisitorTestSupport.issues(
             of: CouldBePrivateMemberVisitor.self, pattern: CouldBePrivateMember().pattern,
+            files: files, followingAliases: follow
+        )
+    }
+
+    /// A view conforming through the alias conforms to `View`, so its members run on the main
+    /// actor and a synchronous file read in one blocks it.
+    static let blockingIOOnMainActor = Self(
+        testDescription: "Blocking IO On Main Actor",
+        files: [
+            "Sources/App/TestableView.swift": """
+            import SwiftUI
+            protocol ViewInspectorHook {}
+            typealias TestableView = View & ViewInspectorHook
+            """,
+            "Sources/App/ContentView.swift": """
+            import SwiftUI
+            struct ContentView: {conformance} {
+                func load(from path: String) -> String {
+                    (try? String(contentsOfFile: path, encoding: .utf8)) ?? ""
+                }
+                var body: some View { Text("") }
+            }
+            """
+        ],
+        alias: "TestableView",
+        spelledOut: "View, ViewInspectorHook",
+        expectedFindings: 1
+    ) { files, follow in
+        CrossFileVisitorTestSupport.issues(
+            of: BlockingIOOnMainActorVisitor.self, pattern: BlockingIOOnMainActor().pattern,
             files: files, followingAliases: follow
         )
     }

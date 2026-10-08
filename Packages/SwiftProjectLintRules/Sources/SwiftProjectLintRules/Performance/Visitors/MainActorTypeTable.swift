@@ -1,3 +1,4 @@
+import SwiftProjectLintVisitors
 import SwiftSyntax
 
 /// What a type's declaration says about where its members run.
@@ -53,6 +54,12 @@ struct MainActorTypeTable {
     }
 
     private var records: [String: Record] = [:]
+
+    /// The project's composition aliases. `struct ContentView: TestableView`, with
+    /// `typealias TestableView = View & ViewInspectorHook`, conforms to `View`, and is
+    /// `@MainActor` because of it. Read by name alone, the alias was neither a protocol nor a class
+    /// the table knew, so nothing said where the view's members run.
+    var compositionAliases = CompositionAliasCatalog.empty
 
     /// Records every type declared in `tree`.
     mutating func collect(from tree: SourceFileSyntax, defaultsToMainActor: Bool) {
@@ -110,7 +117,7 @@ struct MainActorTypeTable {
         named name: String,
         visiting: Set<String>
     ) -> TypeIsolation? {
-        for parent in inherited {
+        for parent in inherited.flatMap(compositionAliases.expand) {
             if Self.mainActorProtocols.contains(parent) {
                 return .mainActor("'\(name)' conforms to \(parent), which is @MainActor")
             }
