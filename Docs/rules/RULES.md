@@ -108,7 +108,7 @@ Rules marked **opt-in** are disabled by default and must be explicitly listed un
 | [Magic Layout Number](magic-layout-number.md) | Info *(opt-in)* |
 | [Hardcoded Strings](hardcoded-strings.md) | Info *(opt-in)* |
 | [Missing Documentation](missing-documentation.md) | Info |
-| [Protocol Naming Suffix](protocol-naming-suffix.md) | Info |
+| [Protocol Naming Suffix](protocol-naming-suffix.md) | Info *(opt-in)* |
 | [Actor Naming Suffix](actor-naming-suffix.md) | Info |
 | [Actor Agent Name](actor-agent-name.md) | Info |
 | [Non-Actor Agent Suffix](non-actor-agent-suffix.md) | Info *(opt-in)* |

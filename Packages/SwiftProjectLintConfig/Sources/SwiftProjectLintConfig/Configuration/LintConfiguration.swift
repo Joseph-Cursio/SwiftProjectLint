@@ -136,7 +136,12 @@ public struct LintConfiguration: Sendable {
         .decorativeImageMissingTrait,
         // Opt-in: `Slider(value:in:)` is the ordinary spelling, so this would fire
         // across most codebases on a default run.
-        .unlabeledControl
+        .unlabeledControl,
+        // Opt-in: a team naming convention, not a design principle. Run by default, it
+        // asked for `OrderStoreProtocol` — the naming `Mirror Protocol` treats as the
+        // smell's signature — against Swift's own guidelines, which name a role-noun
+        // protocol `OrderStore`. See Docs/rules/protocol-naming-suffix.md.
+        .protocolNamingSuffix
     ]
 
     /// Default configuration — all rules enabled, no exclusions.
