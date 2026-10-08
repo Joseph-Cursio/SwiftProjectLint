@@ -76,8 +76,12 @@ extension ProjectLinter {
         ///
         /// A catalog `demand` does not build is withheld by `tripwire`: no visitor the run executes
         /// declared it, and a read of it trips the run instead of answering with an empty catalog.
+        ///
+        /// `projectRoot`, when given, is where `DependencyConformances` looks for resolved
+        /// checkouts, to vouch for the dependency types a remedy names (`Yams.Node`).
         static func collect(
             from filePaths: [String],
+            projectRoot: String? = nil,
             sources: [String: SharedSource] = [:],
             demand: PurityDemand = .everything,
             tripwire: PurityTripwire = PurityTripwire()
@@ -91,6 +95,16 @@ extension ProjectLinter {
             let parsed = filePaths.compactMap { sources[$0]?.tree ?? parseAll([$0]).first }
             let declaredProtocols = collectTypes(ProtocolTypeCollector.self, in: parsed)
             let aliases = CompositionAliasCatalog.build(from: parsed)
+            let remedies = EquatableRemedyCatalog.build(from: parsed)
+            let dependencyEquatable = projectRoot.map { root in
+                DependencyConformances.equatableNames(
+                    among: remedies.unresolvedNames,
+                    root: root,
+                    importedModules: DependencyConformances.importedModules(
+                        in: filePaths.compactMap { sources[$0]?.content }
+                    )
+                )
+            } ?? []
             return Self(
                 identifiable: collectTypes(IdentifiableTypeCollector.self, in: parsed),
                 enums: collectTypes(EnumTypeCollector.self, in: parsed),
@@ -123,7 +137,7 @@ extension ProjectLinter {
                     : .withheld(by: tripwire),
                 extensionMembers: ExtensionMemberCatalog.build(from: parsed),
                 closureWrapperTypes: ClosureWrapperTypeCatalog.build(from: parsed),
-                equatableRemedies: EquatableRemedyCatalog.build(from: parsed),
+                equatableRemedies: remedies.vouching(for: dependencyEquatable),
                 impurePackageFunctions: demand.builds(.impurePackageFunctions)
                     ? ImpurePackageFunctions(PackagePurityJoin(sources: parsed).settledImpureNames)
                     : .withheld(by: tripwire)
