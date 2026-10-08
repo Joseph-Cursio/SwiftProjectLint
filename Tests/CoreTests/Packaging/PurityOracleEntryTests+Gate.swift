@@ -37,12 +37,7 @@ extension PurityOracleEntryTests {
     func surfacesKeepOnlyWithholdableStorage() {
         // The surfaces are the types that can be withheld — every type in the Visitors package that
         // declares `static func withheld(by:)` — so a fourth one is covered the day it is added.
-        var surfaces: [(path: String, type: String)] = []
-        for file in Self.sources where file.path.hasPrefix(Self.visitorsSources) {
-            let finder = WithheldFactoryFinder(viewMode: .sourceAccurate)
-            finder.walk(file.tree)
-            surfaces += finder.types.map { (file.path, $0) }
-        }
+        let surfaces = Self.withheldSurfaces(in: Self.sources)
         let known: Set<String> = ["PackagePurity", "CleanInstanceMethodCatalog", "ImpurePackageFunctions"]
         #expect(Set(surfaces.map(\.type)).isSuperset(of: known), "found \(surfaces.map(\.type))")
         for surface in surfaces {
@@ -54,6 +49,17 @@ extension PurityOracleEntryTests {
                 "\(surface.type) stores \(finder.storedTypes); its one stored property must be a Withholdable"
             )
         }
+    }
+
+    /// Every type in the Visitors package that declares `static func withheld(by:)`, with its file.
+    static func withheldSurfaces(in files: [SourceFile]) -> [(path: String, type: String)] {
+        var surfaces: [(path: String, type: String)] = []
+        for file in files where file.path.hasPrefix(visitorsSources) {
+            let finder = WithheldFactoryFinder(viewMode: .sourceAccurate)
+            finder.walk(file.tree)
+            surfaces += finder.types.map { (file.path, $0) }
+        }
+        return surfaces
     }
 
     /// A catalog the pre-scan builds with the oracle and a run may not need must be withheld, not

@@ -127,18 +127,47 @@ struct PurityOracleEntryTests {
 
     // MARK: - Statics
 
-    @Test("no static holds an oracle or a package purity")
+    @Test("no static holds an oracle, a package purity or a value withheld from a pass")
     func noStaticHoldsAnOracle() {
+        let offenders = Self.staticOffenders(in: Self.sources)
+        #expect(offenders.isEmpty, "a static outlives the run that bound it: \(offenders)")
+    }
+
+    /// What a static must not hold: the oracle and the table; the tripwire and `Withholdable`; every
+    /// type that can be withheld from a pass — found from the source, as `surfacesKeepOnlyWithholdableStorage`
+    /// finds them, so a fourth is covered the day it is added; and the types that store those
+    /// directly. `PackagePurityJoin`'s settled names are plain storage derived from the oracle, so a
+    /// static one would carry one run's answer into the next just as a static oracle would.
+    static func heldByOneRun(in files: [SourceFile]) -> Set<String> {
+        let named: Set<String> = [
+            "PurityInferrer", "PackagePurity", "PurityTripwire", "Withholdable",
+            "CleanInstanceMethodCatalog", "ImpurePackageFunctions", "PackagePurityJoin", "CollectedTypes"
+        ]
+        return named.union(withheldSurfaces(in: files).map(\.type))
+    }
+
+    /// The statics that may hold one: the task-local binding itself, and the built, empty `let`
+    /// constants that stand for "no package" — derived from no run, and holding no tripwire.
+    static let sanctionedStatics: [String: Set<String>] = [
+        packagePurity: ["current", "unconfigured"],
+        visitorsSources + "SwiftProjectLintVisitors/CleanInstanceMethodCatalog.swift": ["empty"],
+        visitorsSources + "SwiftProjectLintVisitors/PackagePurityJoin.swift": ["empty"]
+    ]
+
+    /// Every stored static in `files` that holds something one run owns, as `path: name`.
+    static func staticOffenders(in files: [SourceFile]) -> [String] {
+        let held = heldByOneRun(in: files)
         var offenders: [String] = []
-        for file in Self.sources {
-            let finder = StoredStaticFinder(viewMode: .sourceAccurate)
+        for file in files {
+            let finder = StoredStaticFinder(held: held)
             finder.walk(file.tree)
-            for name in finder.offenders {
-                let sanctioned = file.path == Self.packagePurity && ["current", "unconfigured"].contains(name)
-                if !sanctioned { offenders.append("\(file.path): \(name)") }
+            for found in finder.offenders {
+                let named = sanctionedStatics[file.path]?.contains(found.name) == true
+                let sanctioned = named && found.isConstantOrTaskLocal
+                if !sanctioned { offenders.append("\(file.path): \(found.name)") }
             }
         }
-        #expect(offenders.isEmpty, "a static outlives the run that bound it: \(offenders)")
+        return offenders
     }
 
     // MARK: - The scan
@@ -217,7 +246,15 @@ struct PurityOracleEntryTests {
         return files.sorted { $0.path < $1.path }
     }()
 
-    private static func scanned(_ text: String, path: String) -> SourceFile {
+    /// The name a type is declared under, the last component: `Bar` for `Bar`, `Foo.Bar` and `Bar<T>`.
+    static func typeName(of type: TypeSyntax) -> String {
+        if let member = type.as(MemberTypeSyntax.self) { return member.name.text }
+        if let identifier = type.as(IdentifierTypeSyntax.self) { return identifier.name.text }
+        return type.trimmedDescription
+    }
+
+    /// `text` scanned as the suite scans a file at `path`. The probes in `PurityScanProbeTests` use it.
+    static func scanned(_ text: String, path: String) -> SourceFile {
         let tree = Parser.parse(source: text)
         let all = Array(tree.tokens(viewMode: .sourceAccurate))
         let named = all.filter {
@@ -266,13 +303,45 @@ private final class CallingFunctionFinder: SyntaxVisitor {
 }
 
 /// Stored `static`/`class` properties, and file-scope globals, whose declared type or initializer
-/// names `PurityInferrer` or `PackagePurity` — or `PurityTripwire` or `Withholdable`, which belong
-/// to one run just as the table does. A computed one is re-evaluated on every read, so it reads the
-/// binding in force at the time and is not collected.
+/// names a type in `held` — or, inside a held type or an extension of one, `Self`, which names it
+/// just as well. A computed one is re-evaluated on every read, so it reads the binding in force at
+/// the time and is not collected.
 private final class StoredStaticFinder: SyntaxVisitor {
 
-    private(set) var offenders: [String] = []
-    private static let held: Set<String> = ["PurityInferrer", "PackagePurity", "PurityTripwire", "Withholdable"]
+    struct Offender {
+        let name: String
+        /// A `let`, or a `@TaskLocal`, whose value only `withValue` changes, for one scope.
+        let isConstantOrTaskLocal: Bool
+    }
+
+    private(set) var offenders: [Offender] = []
+    private let held: Set<String>
+    /// The enclosing types, innermost last.
+    private var types: [String] = []
+
+    init(held: Set<String>) {
+        self.held = held
+        super.init(viewMode: .sourceAccurate)
+    }
+
+    override func visit(_ node: StructDeclSyntax) -> SyntaxVisitorContinueKind { enter(node.name.text) }
+    override func visit(_ node: ClassDeclSyntax) -> SyntaxVisitorContinueKind { enter(node.name.text) }
+    override func visit(_ node: EnumDeclSyntax) -> SyntaxVisitorContinueKind { enter(node.name.text) }
+    override func visit(_ node: ActorDeclSyntax) -> SyntaxVisitorContinueKind { enter(node.name.text) }
+    override func visit(_ node: ExtensionDeclSyntax) -> SyntaxVisitorContinueKind {
+        enter(PurityOracleEntryTests.typeName(of: node.extendedType))
+    }
+
+    override func visitPost(_: StructDeclSyntax) { types.removeLast() }
+    override func visitPost(_: ClassDeclSyntax) { types.removeLast() }
+    override func visitPost(_: EnumDeclSyntax) { types.removeLast() }
+    override func visitPost(_: ActorDeclSyntax) { types.removeLast() }
+    override func visitPost(_: ExtensionDeclSyntax) { types.removeLast() }
+
+    private func enter(_ type: String) -> SyntaxVisitorContinueKind {
+        types.append(type)
+        return .visitChildren
+    }
 
     override func visit(_ node: VariableDeclSyntax) -> SyntaxVisitorContinueKind {
         let isStatic = node.modifiers.contains {
@@ -281,11 +350,18 @@ private final class StoredStaticFinder: SyntaxVisitor {
         let isGlobal = node.parent?.parent?.parent?.is(SourceFileSyntax.self) == true
         guard isStatic || isGlobal else { return .skipChildren }
 
+        let selfIsHeld = types.last.map(held.contains) ?? false
+        let isTaskLocal = node.attributes.contains {
+            $0.as(AttributeSyntax.self)?.attributeName.trimmedDescription == "TaskLocal"
+        }
         for binding in node.bindings where Self.isStored(binding) {
-            let typeNames = binding.typeAnnotation.map { Self.names(in: Syntax($0)) } ?? []
-            let valueNames = binding.initializer.map { Self.names(in: Syntax($0)) } ?? []
-            if !typeNames.union(valueNames).isDisjoint(with: Self.held) {
-                offenders.append(binding.pattern.trimmedDescription)
+            var names = binding.typeAnnotation.map { Self.names(in: Syntax($0)) } ?? []
+            names.formUnion(binding.initializer.map { Self.names(in: Syntax($0)) } ?? [])
+            if !names.isDisjoint(with: held) || (selfIsHeld && names.contains("Self")) {
+                offenders.append(Offender(
+                    name: binding.pattern.trimmedDescription,
+                    isConstantOrTaskLocal: node.bindingSpecifier.tokenKind == .keyword(.let) || isTaskLocal
+                ))
             }
         }
         return .skipChildren
@@ -299,10 +375,14 @@ private final class StoredStaticFinder: SyntaxVisitor {
         }
     }
 
+    /// The identifiers, and `Self`, that `syntax` names.
     private static func names(in syntax: Syntax) -> Set<String> {
         Set(syntax.tokens(viewMode: .sourceAccurate).compactMap {
-            if case .identifier(let name) = $0.tokenKind { return name }
-            return nil
+            switch $0.tokenKind {
+            case .identifier(let name): name
+            case .keyword(.Self): "Self"
+            default: nil
+            }
         })
     }
 }
