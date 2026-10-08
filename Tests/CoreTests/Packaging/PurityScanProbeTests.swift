@@ -164,6 +164,37 @@ struct PurityScanProbeTests {
         #expect(scan.offenders.first?.hasPrefix("GlobalMutableStateVisitor") == true, "\(scan.offenders)")
     }
 
+    @Test("a visitor that stores an oracle does not make its registrar a reader; a labelled helper still counts")
+    func storedOracleKeysOnlyLabelledInitializers() {
+        let visitor = Scan.scanned("""
+        final class PureClosureCandidateVisitor: BasePatternVisitor, PackagePurityConsumer {
+            static let packagePurityInputs: PackagePurityInputs = [.oracle]
+            private let purityInferrer = PurityInferrer()
+        }
+        final class ClosureJudge {
+            private let purityInferrer = PurityInferrer()
+            init(strict: Bool) {}
+        }
+        """, path: Self.rules + "Testability/Visitors/PureClosureCandidateVisitor.swift")
+        let registrar = Scan.scanned("""
+        enum ReviewProbeRegistrar {
+            static let visitor: BasePatternVisitor.Type = PureClosureCandidateVisitor.self
+        }
+        """, path: Self.rules + "Testability/PatternRegistrars/ReviewProbeRegistrar.swift")
+        let caller = Scan.scanned("""
+        final class GlobalMutableStateVisitor: BasePatternVisitor {
+            private let judge = ClosureJudge(strict: true)
+        }
+        """, path: Self.rules + "CodeQuality/Visitors/GlobalMutableStateVisitor.swift")
+        let files = [visitor, registrar, caller]
+        let scan = Scan.undeclaredReads(
+            in: files, declared: Scan.registeredDeclarations(), entryPoints: Scan.readerEntryPoints(in: files)
+        )
+        #expect(scan.readers == 2, "\(scan.offenders)")
+        #expect(scan.offenders.count == 1, "\(scan.offenders)")
+        #expect(scan.offenders.first?.hasPrefix("GlobalMutableStateVisitor") == true, "\(scan.offenders)")
+    }
+
     // MARK: - Readers' files
 
     @Test("a visitor's code moved into an extension file is still that visitor's")

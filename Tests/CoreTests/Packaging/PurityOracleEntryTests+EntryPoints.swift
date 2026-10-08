@@ -66,14 +66,25 @@ extension PurityOracleEntryTests {
         return Set(scan.reaching.filter(scan.isCallableOutsideThePackage).map(\.entryPoint))
     }
 
-    /// The entry points a rule file can name: the listed ones, and every static member, initializer
-    /// or file-scope function declared in a rule package that reaches an oracle — a helper in one
-    /// visitor's file creates an oracle for every visitor that calls it, in whatever file.
+    /// The entry points a rule file can name: the listed ones, and every static member, labelled
+    /// initializer or file-scope function declared in a rule package that reaches an oracle — a
+    /// helper in one visitor's file creates an oracle for every visitor that calls it, in whatever
+    /// file.
+    ///
+    /// An initializer a call makes without a label — `init()`, `init(_:)`, the implicit one — would
+    /// be keyed by the type's bare name, which a registrar names too (`visitor: X.self`). The registry
+    /// creates visitors from their metatype, never by a call, so counting the name would make every
+    /// registrar of a visitor that stores an oracle a reader. Those are left out. The gap that leaves
+    /// is a helper class built with one in another visitor's file, which only the corpus-driven
+    /// `everyRuleAloneReadsOnlyWhatItDeclares` sees.
     static func readerEntryPoints(in files: [SourceFile]) -> Set<OracleEntryPoint> {
         let scan = OracleReachScan(files.filter { file in
             file.path.hasPrefix(visitorsSources) || rulePackages.contains(where: file.path.hasPrefix)
         })
-        let rules = scan.reaching.filter { member in rulePackages.contains(where: member.file.hasPrefix) }
+        let rules = scan.reaching.filter { member in
+            let unlabelledInitializer = member.kind == .initializer && member.callLabel == nil
+            return rulePackages.contains(where: member.file.hasPrefix) && !unlabelledInitializer
+        }
         return oracleEntryPoints.union(rules.map(\.entryPoint).filter { !$0.tokens.isEmpty })
     }
 }
@@ -219,11 +230,15 @@ private struct OracleReachScan {
     /// Swift's implicit initializers are internal — but a call to one inside the package counts.
     private static func implicitInitializers(of members: [ScannedMember]) -> [ScannedMember] {
         let initialized = Set(members.filter { $0.kind == .initializer }.map(\.enclosingTypes))
-        let storing = Set(members.filter { $0.kind == .storedInstanceProperty }.map(\.enclosingTypes))
-        return storing.subtracting(initialized).map {
+        var storing: [[String]: String] = [:]
+        for member in members where member.kind == .storedInstanceProperty {
+            guard !initialized.contains(member.enclosingTypes) else { continue }
+            storing[member.enclosingTypes] = storing[member.enclosingTypes] ?? member.file
+        }
+        return storing.map { types, file in
             ScannedMember(
-                file: "", kind: .initializer, name: "init()", enclosingTypes: $0, isStatic: true, isPublic: false,
-                callLabel: nil, tokens: [], tokenSet: []
+                file: file, kind: .initializer, name: "init()", enclosingTypes: types, isStatic: true,
+                isPublic: false, callLabel: nil, tokens: [], tokenSet: []
             )
         }
     }
