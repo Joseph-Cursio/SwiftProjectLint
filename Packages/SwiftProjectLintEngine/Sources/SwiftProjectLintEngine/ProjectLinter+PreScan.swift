@@ -15,7 +15,10 @@ extension ProjectLinter {
     struct CollectedTypes: Sendable {
         let identifiable: Set<String>
         let enums: Set<String>
-        let actors: Set<String>
+        /// Actor names, and the all-`async` project protocols each conforms to — a join across
+        /// files, so built by its own catalog rather than by `collectTypes`. See
+        /// `ActorTypeCatalog`.
+        let actors: ActorTypeCatalog
         let local: Set<String>
         let observable: Set<String>
         let protocols: Set<String>
@@ -75,7 +78,7 @@ extension ProjectLinter {
             return Self(
                 identifiable: collectTypes(IdentifiableTypeCollector.self, in: parsed),
                 enums: collectTypes(EnumTypeCollector.self, in: parsed),
-                actors: collectTypes(ActorTypeCollector.self, in: parsed),
+                actors: ActorTypeCatalog.build(from: parsed),
                 local: collectTypes(LocalTypeCollector.self, in: parsed),
                 observable: collectTypes(ObservableTypeCollector.self, in: parsed),
                 protocols: collectTypes(ProtocolTypeCollector.self, in: parsed),
