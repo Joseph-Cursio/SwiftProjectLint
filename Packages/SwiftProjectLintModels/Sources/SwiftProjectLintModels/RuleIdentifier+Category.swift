@@ -70,7 +70,7 @@ extension RuleIdentifier {
              .taskDetached, .asyncLetUnused, .buttonClosureWrapping,
              .nonisolatedUnsafe, .taskYieldOffload, .swallowedTaskError,
              .missingCancellationCheck, .fireAndForgetTask,
-             .discardedTryResult, .lossyStructRebuild, .mapUsedForSideEffects,
+             .discardedTryResult, .lossyStructRebuild, .lossyRoundTrip, .mapUsedForSideEffects,
              .couldBePrivate, .publicInAppTarget, .couldBePrivateMember,
              .protocolCouldBePrivate, .variableShadowing, .uncheckedSendable,
              .disfavoredOverload, .retroactiveConformance,
