@@ -165,7 +165,7 @@ extension PurityOracleEntryTests {
         var offenders: [String] = []
         var readers = 0
         for file in files {
-            let needed = surfacesNamed(by: file.identifierSequence, entryPoints: entryPoints)
+            let needed = surfacesNamed(by: file.identifierSequence, tokens: file.tokens, entryPoints: entryPoints)
             guard !needed.isEmpty else { continue }
             readers += 1
             let classes = ClassNameFinder(viewMode: .sourceAccurate)
@@ -181,17 +181,21 @@ extension PurityOracleEntryTests {
         return (offenders, readers)
     }
 
+    /// What `identifiers` name of the purity surfaces. A punctuated entry point is looked for in
+    /// `tokens`, the same file's tokens with their punctuation kept.
     static func surfacesNamed(
         by identifiers: [String],
+        tokens: [String] = [],
         entryPoints: Set<OracleEntryPoint> = oracleEntryPoints
     ) -> PackagePurityInputs {
         var needed: PackagePurityInputs = []
         if identifiers.contains("knownCleanInstanceMethods") { needed.insert(.cleanInstanceMethods) }
         if identifiers.contains("knownImpurePackageFunctions") { needed.insert(.impurePackageFunctions) }
         for entry in entryPoints where !entry.tokens.isEmpty {
+            let sequence = entry.punctuated ? tokens : identifiers
             let width = entry.tokens.count
-            let named = identifiers.indices.dropLast(width - 1).contains {
-                Array(identifiers[$0..<($0 + width)]) == entry.tokens
+            let named = sequence.indices.dropLast(width - 1).contains {
+                Array(sequence[$0..<($0 + width)]) == entry.tokens
             }
             if named { needed.insert(.oracle) }
         }

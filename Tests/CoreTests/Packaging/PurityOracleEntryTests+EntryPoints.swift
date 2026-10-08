@@ -20,6 +20,9 @@ extension PurityOracleEntryTests {
         /// `PackagePurityJoin`, `sources`. Empty for an instance member, which a call reaches through
         /// a value no token names.
         let tokens: [String]
+        /// `tokens` are every token a call spells, punctuation included — `Judge`, `(` — and are
+        /// matched against `SourceFile.tokens`, so a registrar's `Judge.self` is no call.
+        var punctuated = false
 
         var description: String { "\(declaration) \(tokens)" }
     }
@@ -68,26 +71,30 @@ extension PurityOracleEntryTests {
         return Set(scan.reaching.filter(scan.isCallableOutsideThePackage).map(\.entryPoint))
     }
 
-    /// The entry points a rule file can name: the listed ones, and every static member, labelled
-    /// initializer or file-scope function declared in a rule package that reaches an oracle — a
-    /// helper in one visitor's file creates an oracle for every visitor that calls it, in whatever
-    /// file.
+    /// The entry points a rule file can name: the listed ones, and every static member, initializer
+    /// or file-scope function declared in a rule package that reaches an oracle — a helper in one
+    /// visitor's file creates an oracle for every visitor that calls it, in whatever file.
     ///
-    /// An initializer a call makes without a label — `init()`, `init(_:)`, the implicit one — would
-    /// be keyed by the type's bare name, which a registrar names too (`visitor: X.self`). The registry
-    /// creates visitors from their metatype, never by a call, so counting the name would make every
-    /// registrar of a visitor that stores an oracle a reader. Those are left out. The gap that leaves
-    /// is a helper class built with one in another visitor's file, which only the corpus-driven
-    /// `everyRuleAloneReadsOnlyWhatItDeclares` sees.
+    /// An initializer a call makes without a label — `init()`, `init(_:)`, the implicit one — is
+    /// matched with its punctuation, as `Type(` or `Type.init`: by its bare name it would match a
+    /// registrar's `visitor: X.self` too, and the registry creates visitors from their metatype,
+    /// never by a call, so every registrar of a visitor that stores an oracle would be a reader.
     static func readerEntryPoints(in files: [SourceFile]) -> Set<OracleEntryPoint> {
         let scan = OracleReachScan(files.filter { file in
             file.path.hasPrefix(visitorsSources) || rulePackages.contains(where: file.path.hasPrefix)
         })
-        let rules = scan.reaching.filter { member in
-            let unlabelledInitializer = member.kind == .initializer && member.callLabel == nil
-            return rulePackages.contains(where: member.file.hasPrefix) && !unlabelledInitializer
+        var entryPoints = oracleEntryPoints
+        for member in scan.reaching where rulePackages.contains(where: member.file.hasPrefix) {
+            if member.kind == .initializer, member.callLabel == nil {
+                let declaration = member.entryPoint.declaration
+                for call in [[member.type, "("], [member.type, ".", "init"]] {
+                    entryPoints.insert(.init(declaration: declaration, tokens: call, punctuated: true))
+                }
+            } else if !member.entryPoint.tokens.isEmpty {
+                entryPoints.insert(member.entryPoint)
+            }
         }
-        return oracleEntryPoints.union(rules.map(\.entryPoint).filter { !$0.tokens.isEmpty })
+        return entryPoints
     }
 }
 
