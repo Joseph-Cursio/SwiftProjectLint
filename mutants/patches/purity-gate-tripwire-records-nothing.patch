@@ -10,4 +10,4 @@ index 214172f4..59f55e2e 100644
 +            _ = firstOfItsInput
              return isSealed
          }
-         // After the run there is nothing to redo: a withheld catalog was kept past it and read.
+         // After the pass there is nothing to redo: a withheld catalog was kept past it and read.
