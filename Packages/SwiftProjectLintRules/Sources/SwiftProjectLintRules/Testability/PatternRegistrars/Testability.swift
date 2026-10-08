@@ -89,6 +89,7 @@ class Testability: BasePatternRegistrar {
             ViewHostingBeforeInspection(),
             ObservableEnvironmentViewMissingInspectionHook(),
             MissingEquatableOnStateType(),
+            MissingEquatableOnPureResult(),
             ImpureCallInViewBody(),
             UnreachableEffectClosure(),
             ContradictedClockDeterminism()

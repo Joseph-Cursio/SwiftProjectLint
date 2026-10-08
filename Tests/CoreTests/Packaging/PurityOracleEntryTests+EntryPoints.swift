@@ -39,6 +39,10 @@ extension PurityOracleEntryTests {
         ),
         OracleEntryPoint(declaration: "PropertyTestCandidacy.shape", tokens: ["PropertyTestCandidacy", "shape"]),
         OracleEntryPoint(
+            declaration: "PropertyTestCandidacy.equatableNearMiss",
+            tokens: ["PropertyTestCandidacy", "equatableNearMiss"]
+        ),
+        OracleEntryPoint(
             declaration: "CleanInstanceMethodCatalog.build", tokens: ["CleanInstanceMethodCatalog", "build"]
         ),
         OracleEntryPoint(declaration: "PackagePurityJoin.init(sources:)", tokens: ["PackagePurityJoin", "sources"])

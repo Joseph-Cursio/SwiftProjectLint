@@ -158,6 +158,16 @@ public struct PBTSeed: Codable, Sendable {
     /// of the difference crossed the manifest boundary.
     public let effect: PBTSeedEffect?
 
+    /// The conformances the symbol is still waiting on — see `PBTSeedRequirement`.
+    ///
+    /// Only `missingEquatableOnPureResult` sets it: a pure function refused as a candidate solely
+    /// because its result is not `Equatable`, when a bare conformance would synthesize. A consumer
+    /// that ignores it sees an ordinary `pure-function` whose result has no `==` — the case
+    /// `swift-infer` already caveats — so absence loses the remedy and misreads nothing. Encoded only
+    /// when present, so every other seed stays byte-identical to one written before this field
+    /// existed.
+    public let requires: PBTSeedRequirement?
+
     public init(
         file: String,
         line: Int,
@@ -166,7 +176,8 @@ public struct PBTSeed: Codable, Sendable {
         kind: PBTSeedKind,
         role: PBTSeedRole? = nil,
         restriction: TestRestriction? = nil,
-        effect: PBTSeedEffect? = nil
+        effect: PBTSeedEffect? = nil,
+        requires: PBTSeedRequirement? = nil
     ) {
         self.file = file
         self.line = line
@@ -176,6 +187,7 @@ public struct PBTSeed: Codable, Sendable {
         self.role = role
         self.restriction = restriction
         self.effect = effect
+        self.requires = requires
     }
 
     /// `kind` is **required**, mirroring the consumer.
@@ -204,6 +216,8 @@ public struct PBTSeed: Codable, Sendable {
         // position, so absence is an honest "this kind of seed has none" rather
         // than a value to guess at.
         self.effect = try container.decodeIfPresent(PBTSeedEffect.self, forKey: .effect)
+        // Same reasoning as `role`: only a near-miss carries one, and absent is "nothing required".
+        self.requires = try container.decodeIfPresent(PBTSeedRequirement.self, forKey: .requires)
     }
 }
 
@@ -306,6 +320,9 @@ public struct PBTSeedsFormatter: IssueFormatterProtocol {
     /// finding the pipeline does not have.**
     static let seedKinds: [RuleIdentifier: PBTSeedKind] = [
         .pureFunctionCandidate: .pureFunction,
+        // A pure function waiting on an `Equatable` conformance: a function seed like any other,
+        // with the conformance it needs in `requires`.
+        .missingEquatableOnPureResult: .pureFunction,
         .idempotencyViolation: .idempotency,
         .extractableTotalKernel: .extractableKernel,
         .pureClosureCandidate: .extractableKernel,
@@ -415,7 +432,8 @@ public struct PBTSeedsFormatter: IssueFormatterProtocol {
                 kind: kind,
                 role: issue.role,
                 restriction: issue.testReachability.restriction,
-                effect: issue.effect
+                effect: issue.effect,
+                requires: issue.requires
             )
         }
 

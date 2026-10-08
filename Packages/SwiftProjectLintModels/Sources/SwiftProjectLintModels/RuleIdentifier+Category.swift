@@ -135,6 +135,7 @@ extension RuleIdentifier {
             // Testability / PBT-readiness Rules
         case .globalMutableState, .nonInjectedNondeterminism, .pureFunctionCandidate,
              .pureClosureCandidate, .extractableTotalKernel, .missingEquatableOnStateType,
+             .missingEquatableOnPureResult,
              .impureCallInViewBody, .viewHostingBeforeInspection,
              .observableEnvViewMissingInspectionHook, .unreachableEffectClosure,
              .contradictedClockDeterminism, .impureClosureInventory:

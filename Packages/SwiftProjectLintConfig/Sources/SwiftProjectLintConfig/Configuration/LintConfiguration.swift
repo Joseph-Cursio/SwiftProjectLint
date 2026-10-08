@@ -270,7 +270,8 @@ public struct LintConfiguration: Sendable {
                     symbol: issue.symbol,
                     role: issue.role,
                     effect: issue.effect,
-                    testReachability: issue.testReachability
+                    testReachability: issue.testReachability,
+                    requires: issue.requires
                 )
             }
 

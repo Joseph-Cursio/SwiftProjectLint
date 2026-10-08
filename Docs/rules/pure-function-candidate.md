@@ -119,6 +119,13 @@ computed property's annotation; both go through one check):
 | a tuple of seven or more | no — Swift's tuple `==` stops at six |
 | a closure, an existential (`any P`), a typealias, `Outer.Inner`, a type the project index does not know | no |
 
+A refusal here is silent, so a function one conformance away from a seed looked exactly like one
+with nothing to offer. When the result is a project `struct`/`enum` that would get a **synthesized**
+`Equatable` from a bare `: Equatable` — every member already comparable, or another such type —
+[Missing Equatable on Pure Function Result](missing-equatable-on-pure-result.md) reports the
+function instead, names every type to change, and seeds it with the conformance it is waiting on
+(`requires`). The two rules never report the same declaration.
+
 The tuple rows are Swift's own: the standard library overloads `==` for tuples of two to six
 `Equatable` elements, but a tuple never conforms to `Equatable` itself. So a tuple is assertable only
 as the **whole** result — wrap it in an Optional or an Array, or nest it in another tuple, and there
@@ -244,15 +251,17 @@ As with every refuter, any doubt refutes: a function that builds an `Item` and r
 `n` is refused too. The one-hop callee join counts the witness as evidence, so a caller of such a
 function is withdrawn as well.
 
-**When the facts are built.** Only when a rule the run executes reads them: this one and eight
-others (Pure Closure Property-Test Candidate, Impure Closure Inventory, Extractable Total Kernel,
-Unreachable Effect Closure, Could Be Private, Could Be Private Member, Direct Instantiation and
-Concrete Type Usage). A run narrowed to rules that read none of it — by `enabled_only`,
+**When the facts are built.** Only when a rule the run executes reads them: this one and nine
+others (Missing Equatable on Pure Function Result, Pure Closure Property-Test Candidate, Impure
+Closure Inventory, Extractable Total Kernel, Unreachable Effect Closure, Could Be Private, Could Be
+Private Member, Direct Instantiation and Concrete Type Usage). A run narrowed to rules that read none of it — by `enabled_only`,
 `disabled_rules` or `--categories` — skips the universe walk, the manifest reads, the parse of the
 files only the universe holds (generated files, and the nested packages the run does not report on;
 files under `excluded_paths` are parsed regardless, as evidence) and the facts themselves. Turning
-this rule off while any of the other eight is enabled still builds the universe and the facts, and
-skips the one-hop callee join, which no other rule reads. It skips the clean-instance-method catalog
+this rule and Missing Equatable on Pure Function Result off while any of the other eight is enabled
+still builds the universe and the facts, and skips the one-hop callee join, which only those two
+read — the second asks this rule's question with the result's `Equatable` gate moved, so it reads
+the same three inputs. It skips the clean-instance-method catalog
 as well unless Direct Instantiation or Concrete Type Usage is enabled: those two are the only other
 rules that read it, and the other six (Pure Closure, Impure Closure Inventory, Extractable Total
 Kernel, Unreachable Effect Closure, Could Be Private and Could Be Private Member) read only the

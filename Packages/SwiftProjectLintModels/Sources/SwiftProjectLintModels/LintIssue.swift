@@ -57,6 +57,11 @@ public struct LintIssue: Identifiable, Sendable {
     /// KIND here instead would push a `pbt-seeds` concern into every rule that ever sets it.
     public let testReachability: TestReachability
 
+    /// What the symbol still needs before a law over it compiles — the `Equatable` conformances a
+    /// near-miss candidate is waiting on. `nil` for every finding that needs nothing, which is
+    /// every finding except `missingEquatableOnPureResult`'s. See `PBTSeedRequirement`.
+    public let requires: PBTSeedRequirement?
+
     /// Returns the file path of the first location, or an empty string if no locations exist.
     public var filePath: String {
         locations.first?.filePath ?? ""
@@ -84,7 +89,8 @@ public struct LintIssue: Identifiable, Sendable {
         symbol: String? = nil,
         role: PBTSeedRole? = nil,
         effect: PBTSeedEffect? = nil,
-        testReachability: TestReachability = .unknown
+        testReachability: TestReachability = .unknown,
+        requires: PBTSeedRequirement? = nil
     ) {
         self.severity = severity
         self.message = message
@@ -95,6 +101,7 @@ public struct LintIssue: Identifiable, Sendable {
         self.role = role
         self.effect = effect
         self.testReachability = testReachability
+        self.requires = requires
     }
 
     /// Initializes a lint issue with a single location.
@@ -117,7 +124,8 @@ public struct LintIssue: Identifiable, Sendable {
         symbol: String? = nil,
         role: PBTSeedRole? = nil,
         effect: PBTSeedEffect? = nil,
-        testReachability: TestReachability = .unknown
+        testReachability: TestReachability = .unknown,
+        requires: PBTSeedRequirement? = nil
     ) {
         self.severity = severity
         self.message = message
@@ -128,5 +136,6 @@ public struct LintIssue: Identifiable, Sendable {
         self.role = role
         self.effect = effect
         self.testReachability = testReachability
+        self.requires = requires
     }
 }

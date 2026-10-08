@@ -53,6 +53,10 @@ extension ProjectLinter {
         /// `ClosureWrapperTypeCatalog`.
         let closureWrapperTypes: ClosureWrapperTypeCatalog
 
+        /// Per non-`Equatable` value type, the conformances a bare `: Equatable` would need to
+        /// synthesize. See `EquatableRemedyCatalog`.
+        let equatableRemedies: EquatableRemedyCatalog
+
         /// Package function names this project's own purity oracle refutes with an
         /// establishable witness — the one-hop callee join. Needs parsed bodies for the
         /// same reason `cleanInstanceMethods` does, and shares the single parse below.
@@ -119,6 +123,7 @@ extension ProjectLinter {
                     : .withheld(by: tripwire),
                 extensionMembers: ExtensionMemberCatalog.build(from: parsed),
                 closureWrapperTypes: ClosureWrapperTypeCatalog.build(from: parsed),
+                equatableRemedies: EquatableRemedyCatalog.build(from: parsed),
                 impurePackageFunctions: demand.builds(.impurePackageFunctions)
                     ? ImpurePackageFunctions(PackagePurityJoin(sources: parsed).settledImpureNames)
                     : .withheld(by: tripwire)
@@ -153,6 +158,7 @@ extension ProjectLinter {
         resolved.knownValueTypes = collected.values
         resolved.knownExtensionMembers = collected.extensionMembers
         resolved.knownClosureWrapperTypes = collected.closureWrapperTypes
+        resolved.knownEquatableRemedies = collected.equatableRemedies
         resolved.knownProjectFunctions = collected.functions
         resolved.knownMutatingMethods = collected.mutatingMethods
         resolved.knownDefaultedInitializerTypes = collected.defaultedInitializers
@@ -195,6 +201,7 @@ extension ProjectLinter {
             defaultedInitializerTypes: collected.defaultedInitializers,
             extensionMembers: collected.extensionMembers,
             closureWrapperTypes: collected.closureWrapperTypes,
+            equatableRemedies: collected.equatableRemedies,
             cleanInstanceMethods: collected.cleanInstanceMethods,
             enabledFrameworkAllowlists: configuration.enabledFrameworkAllowlists,
             layerPolicies: configuration.architecturalLayers,

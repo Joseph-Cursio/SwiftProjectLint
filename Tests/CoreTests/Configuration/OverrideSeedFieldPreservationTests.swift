@@ -99,6 +99,23 @@ struct OverrideSeedFieldPreservationTests {
         #expect(effect.depth == 3)
     }
 
+    /// Added with `missingEquatableOnPureResult`: the conformances a near-miss seed is waiting on.
+    @Test("the requirement survives")
+    func requirementSurvives() throws {
+        let issue = LintIssue(
+            severity: .info,
+            message: "`detectMigrations(…)` looks pure and total, but no property test can compare its result",
+            filePath: "MigrationAssistant.swift",
+            lineNumber: 98,
+            suggestion: "Add `Equatable` to `MigrationPlan` and `MigrationStep`",
+            ruleName: .idempotencyViolation,
+            symbol: "detectMigrations",
+            requires: PBTSeedRequirement(equatable: ["MigrationPlan", "MigrationStep"])
+        )
+        let result = try #require(overridden(issue))
+        #expect(result.requires == issue.requires)
+    }
+
     /// An issue that passes through untouched keeps everything by construction —
     /// pinned so a future refactor cannot make the no-override path lossy while
     /// the override path stays correct.

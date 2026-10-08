@@ -107,6 +107,12 @@ open class BasePatternVisitor: SyntaxVisitor, PatternVisitorProtocol {
     /// drive a visitor directly, which correctly reads as "nothing is a closure wrapper".
     public var knownClosureWrapperTypes = ClosureWrapperTypeCatalog.empty
 
+    /// For each project value type that is not `Equatable`, whether a bare `: Equatable` would
+    /// synthesize — and which other types would have to conform with it. Built by
+    /// `EquatableRemedyCatalog.build` in the pre-scan; empty in unit tests that drive a visitor
+    /// directly, which reads as "no remedy is known" and reports nothing.
+    public var knownEquatableRemedies = EquatableRemedyCatalog.empty
+
     /// Functions **this project declares**, as bare names and labelled names (`matches(name:)`).
     /// Built by `DeclaredFunctionCollector` in `ProjectLinter`'s pre-scan.
     ///
@@ -408,7 +414,8 @@ open class BasePatternVisitor: SyntaxVisitor, PatternVisitorProtocol {
         symbol: String? = nil,
         role: PBTSeedRole? = nil,
         effect: PBTSeedEffect? = nil,
-        testReachability: TestReachability = .unknown
+        testReachability: TestReachability = .unknown,
+        requires: PBTSeedRequirement? = nil
     ) {
         let issue = LintIssue(
             severity: severity,
@@ -420,7 +427,8 @@ open class BasePatternVisitor: SyntaxVisitor, PatternVisitorProtocol {
             symbol: symbol,
             role: role,
             effect: effect,
-            testReachability: testReachability
+            testReachability: testReachability,
+            requires: requires
         )
         detectedIssues.append(issue)
     }
