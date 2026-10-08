@@ -54,27 +54,13 @@ final class UnusedProtocolAbstractionVisitor: CrossFileVisitorBase, CrossFilePat
 
     override func visit(_ node: IdentifierTypeSyntax) -> SyntaxVisitorContinueKind {
         let name = node.name.text
-        if isConcreteConformancePosition(Syntax(node)) {
+        // A protocol's own inheritance clause (refinement) is a use, not a conformance.
+        if ProtocolTypePosition.isConcreteConformance(Syntax(node)) {
             conformerFiles[name, default: []].append(currentFilePath)
         } else {
             useFiles[name, default: []].insert(currentFilePath)
         }
         return .visitChildren
-    }
-
-    /// True when this type reference is an entry in the inheritance clause of a concrete type
-    /// declaration (struct/class/enum/actor) or an extension — i.e. a conformance, not a use.
-    /// A protocol's own inheritance clause (refinement) is treated as a use.
-    func isConcreteConformancePosition(_ node: Syntax) -> Bool {
-        var current: Syntax? = node.parent
-        while let candidate = current {
-            if let clause = candidate.as(InheritanceClauseSyntax.self) {
-                guard let owner = clause.parent else { return true }
-                return owner.is(ProtocolDeclSyntax.self) == false
-            }
-            current = candidate.parent
-        }
-        return false
     }
 
     // MARK: - Phase 2: report
