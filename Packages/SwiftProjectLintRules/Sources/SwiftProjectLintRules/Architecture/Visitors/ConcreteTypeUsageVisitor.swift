@@ -492,8 +492,30 @@ class ConcreteTypeUsageVisitor: BasePatternVisitor {
 
     // MARK: - Stored properties with type annotations
 
+    /// Whether `node` is a member of a type — a class, struct, enum, actor, protocol or extension,
+    /// including one declared inside a function — rather than a variable in a code block.
+    ///
+    /// A local is not a dependency of anything. Hummingbird's `URI.init(_:)` fills
+    /// `var scheme: Parser?` and four siblings while it parses, then copies them into the stored
+    /// `_scheme` and its siblings. The stored five are the coupling, and are reported; the five
+    /// locals were reported beside them, and no protocol changes what a local is. Counting one
+    /// also let it fold away a later initializer parameter of its type, as though it were the
+    /// stored property that parameter fills.
+    ///
+    /// A file-scope variable is not a member either. One without an initializer compiles only in
+    /// top-level code — `main.swift`, the entry point `DirectInstantiation` exempts — and a
+    /// computed one is an accessor, whose return type this rule does not read anywhere else.
+    ///
+    /// A protocol's member block counts: a requirement typed with a concrete service makes every
+    /// conformer expose that service, which is a dependency of the abstraction itself. And `#if`
+    /// inside a member block keeps its clauses' declarations wrapped as members, so a property
+    /// behind a platform check is still read.
+    private func isTypeMember(_ node: VariableDeclSyntax) -> Bool {
+        node.parent?.is(MemberBlockItemSyntax.self) == true
+    }
+
     override func visit(_ node: VariableDeclSyntax) -> SyntaxVisitorContinueKind {
-        if shouldSkipFile() || isInsideDIContainer { return .visitChildren }
+        if shouldSkipFile() || isInsideDIContainer || !isTypeMember(node) { return .visitChildren }
         // Skip if property has a reactive/injection wrapper
         if hasPropertyWrapper(node) {
             return .visitChildren
