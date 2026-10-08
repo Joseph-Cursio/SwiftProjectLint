@@ -86,7 +86,8 @@ class Performance: BasePatternRegistrar {
             AnyViewUsage(),
             GeometryReaderOveruse(),
             UnboundedTaskGroup(),
-            OnReceiveWithoutDebounce()
+            OnReceiveWithoutDebounce(),
+            BlockingIOOnMainActor()
         ])
     }
 }

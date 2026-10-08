@@ -5,7 +5,7 @@
 **Identifier:** `Test Missing Require`
 **Category:** Code Quality
 **Severity:** Info
-**Opt-in:** yes — enable with `enabled_only` or `--rules`
+**Opt-in:** yes — enable via `enabled_only`
 
 ### Rationale
 A `@Test` that force-unwraps, `try!`s or `as!`s **traps** when the value is not what the test assumed — and a trap takes the whole test process down, every other test with it, with no diagnostic naming the test that did it. `try #require(…)` fails that one test, says why, and is a one-line replacement.
