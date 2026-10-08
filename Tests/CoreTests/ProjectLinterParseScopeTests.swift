@@ -66,7 +66,13 @@ struct ProjectLinterParseScopeTests {
 
         let discovery = RecordingFileDiscovery()
         let linter = ProjectLinter(fileDiscovery: discovery) { CrossFileAnalysisEngine(registry: $0) }
-        _ = await linter.analyzeProject(at: directory.path)
+        // Every rule, so the run reads package purity and walks the construction universe too: a
+        // run that plans no purity reader skips that walk (the purity gate), and an empty
+        // `.shared` registry plans none, so without a configured detector this test would stop
+        // covering the walk most likely to escape the root.
+        _ = await linter.analyzeProject(
+            at: directory.path, detector: PatternRegistryFactory.createConfiguredSystem().detector
+        )
 
         let parsed = discovery.returnedPaths
         #expect(parsed.count == Self.fixtureFiles.count)
@@ -81,8 +87,10 @@ struct ProjectLinterParseScopeTests {
     /// The production file discovery, recording every path it hands the linter.
     ///
     /// `ProjectLinter.parseOnce` parses exactly the union of what discovery returns (the
-    /// reportable walk, the evidence walk and the construction universe, deduplicated by path),
-    /// so this set is the set of files a run parsed.
+    /// reportable walk, the evidence walk and, when the run reads package purity, the construction
+    /// universe, deduplicated by path), so this set is the set of files a pass parsed. A purity
+    /// rerun's second pass returns the same paths, so it does not show here; the debug `assert` in
+    /// `analyzeProject` stops a tripped run first.
     private final class RecordingFileDiscovery: FileDiscoveryProtocol, @unchecked Sendable {
         private let production = DefaultFileDiscovery()
         private let lock = NSLock()
