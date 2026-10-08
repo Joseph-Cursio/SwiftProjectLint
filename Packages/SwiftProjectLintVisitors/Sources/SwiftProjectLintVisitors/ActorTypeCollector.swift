@@ -34,7 +34,10 @@ import SwiftSyntax
 ///
 /// The actor's conformances are its inheritance clause and every `extension` of it, widened to
 /// the project protocols those inherit from: an actor conforming to `RichStore: OrderStore`
-/// conforms to `OrderStore` too, and can be typed as it.
+/// conforms to `OrderStore` too, and can be typed as it. A composition `typealias` in either
+/// place stands for the protocols it composes (see `CompositionAliasCatalog`):
+/// `actor CoreDataOrderStore: OrderStore`, with `typealias OrderStore = OrderSaving &
+/// OrderHistory`, conforms to both roles.
 public struct ActorTypeCatalog: Sendable, Equatable {
 
     private let actors: Set<String>
@@ -58,13 +61,17 @@ public struct ActorTypeCatalog: Sendable, Equatable {
         asyncProtocolsByActor[name] ?? []
     }
 
-    /// Builds the catalog over every parsed source in the project.
-    public static func build(from sources: [SourceFileSyntax]) -> Self {
+    /// Builds the catalog over every parsed source in the project, reading a conformance written
+    /// through one of `aliases` as a conformance to each protocol it composes.
+    public static func build(
+        from sources: [SourceFileSyntax],
+        aliases: CompositionAliasCatalog = .empty
+    ) -> Self {
         let collector = ActorTypeCollector()
         for source in sources {
             collector.walk(source)
         }
-        return collector.resolved()
+        return collector.resolved(aliases: aliases)
     }
 }
 
@@ -79,6 +86,11 @@ public final class ActorTypeCollector: SyntaxVisitor {
     private var conformances: [String: Set<String>] = [:]
 
     private var protocols: [String: ProtocolIsolationShape] = [:]
+
+    /// The project's composition aliases, set when resolving. A protocol may refine one
+    /// (`protocol RichStore: OrderStore`), and an unexpanded alias would read as a parent this run
+    /// cannot see — synchronous by assumption.
+    private var aliases = CompositionAliasCatalog.empty
 
     /// Parents outside the project that add no requirement an actor's isolation could leak
     /// through. `Actor`'s one requirement, `unownedExecutor`, is `nonisolated` and synthesised.
@@ -110,11 +122,14 @@ public final class ActorTypeCollector: SyntaxVisitor {
         return .skipChildren
     }
 
-    func resolved() -> ActorTypeCatalog {
+    func resolved(aliases: CompositionAliasCatalog = .empty) -> ActorTypeCatalog {
+        self.aliases = aliases
         var asyncProtocolsByActor: [String: [String]] = [:]
         for actor in actors {
             let reachable = (conformances[actor] ?? []).reduce(into: Set<String>()) { found, name in
-                collectAncestors(of: name, into: &found)
+                for protocolName in aliases.expand(name) {
+                    collectAncestors(of: protocolName, into: &found)
+                }
             }
             let qualifying = reachable.filter(isAllAsync).sorted()
             if !qualifying.isEmpty {
@@ -127,7 +142,7 @@ public final class ActorTypeCollector: SyntaxVisitor {
     /// `name` and every project protocol it inherits from, transitively.
     private func collectAncestors(of name: String, into found: inout Set<String>) {
         guard let shape = protocols[name], found.insert(name).inserted else { return }
-        for parent in shape.inherited {
+        for parent in shape.inherited.flatMap(aliases.expand) {
             collectAncestors(of: parent, into: &found)
         }
     }
@@ -151,7 +166,7 @@ public final class ActorTypeCollector: SyntaxVisitor {
         }
         guard visited.insert(name).inserted else { return ProtocolIsolationShape() }
         var total = shape
-        for parent in shape.inherited {
+        for parent in shape.inherited.flatMap(aliases.expand) {
             total.merge(requirements(of: parent, visited: &visited))
         }
         return total

@@ -21,6 +21,8 @@ extension ProjectLinter {
         let actors: ActorTypeCatalog
         let local: Set<String>
         let observable: Set<String>
+        /// Declared protocols, plus the `typealias`es that stand for them — see
+        /// `CompositionAliasCatalog.abstractionAliases(protocols:)`.
         let protocols: Set<String>
         let equatable: Set<String>
         let values: Set<String>
@@ -75,13 +77,17 @@ extension ProjectLinter {
             // ones the purity facts were built from and the per-file visitors walk — in
             // discovery order. (`parseAll` covers only a caller that passes no shared parse.)
             let parsed = filePaths.compactMap { sources[$0]?.tree ?? parseAll([$0]).first }
+            let declaredProtocols = collectTypes(ProtocolTypeCollector.self, in: parsed)
+            let aliases = CompositionAliasCatalog.build(from: parsed)
             return Self(
                 identifiable: collectTypes(IdentifiableTypeCollector.self, in: parsed),
                 enums: collectTypes(EnumTypeCollector.self, in: parsed),
-                actors: ActorTypeCatalog.build(from: parsed),
+                actors: ActorTypeCatalog.build(from: parsed, aliases: aliases),
                 local: collectTypes(LocalTypeCollector.self, in: parsed),
                 observable: collectTypes(ObservableTypeCollector.self, in: parsed),
-                protocols: collectTypes(ProtocolTypeCollector.self, in: parsed),
+                protocols: declaredProtocols.union(
+                    aliases.abstractionAliases(protocols: declaredProtocols)
+                ),
                 equatable: collectTypes(EquatableConformanceCollector.self, in: parsed),
                 values: collectTypes(ValueTypeCollector.self, in: parsed),
                 functions: collectTypes(DeclaredFunctionCollector.self, in: parsed),

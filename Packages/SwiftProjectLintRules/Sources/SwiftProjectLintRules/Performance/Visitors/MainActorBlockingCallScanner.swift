@@ -1,3 +1,4 @@
+import SwiftProjectLintVisitors
 import SwiftSyntax
 
 /// Where the code at one point in a file runs.
@@ -125,6 +126,7 @@ final class MainActorBlockingCallScanner: SyntaxVisitor {
         }
         // A conformance added here isolates the members declared here.
         let added = MainActorTypeTable.inheritedNames(node.inheritanceClause)
+            .flatMap(table.compositionAliases.expand)
         if let conformance = added.first(where: table.isMainActorProtocol) {
             return .mainActor("this extension conforms '\(name)' to \(conformance), which is @MainActor")
         }

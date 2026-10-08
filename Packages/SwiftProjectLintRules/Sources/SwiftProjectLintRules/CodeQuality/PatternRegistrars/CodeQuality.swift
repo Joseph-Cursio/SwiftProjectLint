@@ -151,6 +151,7 @@ class CodeQuality: BasePatternRegistrar {
             FireAndForgetTask(),
             DiscardedTryResult(),
             LossyStructRebuild(),
+            LossyRoundTrip(),
             MapUsedForSideEffects(),
             DisfavoredOverload(),
             RetroactiveConformance(),

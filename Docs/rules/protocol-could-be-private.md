@@ -15,6 +15,8 @@ This is a **cross-file rule**. It scans all project files in two phases:
 1. **Collection phase:** Records all protocol declarations without explicit access modifiers, and tracks every reference to protocol names (inheritance clauses, type annotations, generic constraints, identifier expressions).
 2. **Analysis phase:** Flags protocols whose name does not appear in any file other than the one where they are declared.
 
+A reference through a composition `typealias` is a reference to each protocol the alias composes. With `typealias Storage = Reading & Writing` declared beside the two protocols and `struct DiskStorage: Storage` in another file, both protocols are named in that file, through the alias. Read by its own name, the alias left them looking file-local, and narrowing them would stop the alias compiling.
+
 Note: protocols defined for testability (e.g., `ServiceProtocol` with a mock in test files) may be flagged because test files are excluded from the scan. These are intentional false positives — the protocol is `internal` so test targets can conform to it.
 
 ### Scope

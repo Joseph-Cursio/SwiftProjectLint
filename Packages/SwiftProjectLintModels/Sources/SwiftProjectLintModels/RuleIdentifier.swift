@@ -271,6 +271,10 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
     /// defaulted parameters — so a forgotten field takes its default SILENTLY.
     case lossyStructRebuild = "Lossy Struct Rebuild"
 
+    /// A type that takes a value apart into storage and rebuilds it, hard-coding an empty value for
+    /// a field on the way back — so that field never survives the round trip.
+    case lossyRoundTrip = "Lossy Round Trip"
+
     // Other/System Rules
     case fileParsingError = "File Parsing Error"
     case unknown = "Unknown"

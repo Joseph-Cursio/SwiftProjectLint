@@ -398,7 +398,8 @@ final class CouldBePrivateMemberVisitor: CrossFileVisitorBase, CrossFilePatternV
         guard let inheritance else { return }
         for inherited in inheritance.inheritedTypes {
             if let ident = inherited.type.as(IdentifierTypeSyntax.self) {
-                typeConformanceNames[name, default: []].insert(ident.name.text)
+                typeConformanceNames[name, default: []]
+                    .formUnion(compositionAliases.expand(ident.name.text))
             }
         }
     }

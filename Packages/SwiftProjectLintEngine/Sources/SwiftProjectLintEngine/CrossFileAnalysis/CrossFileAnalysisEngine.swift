@@ -35,6 +35,11 @@ public class CrossFileAnalysisEngine: CrossFileAnalyzerProtocol {
     public var defaultMainActorSourcePaths: [String] = []
     public var layerPolicies: [LayerPolicy] = []
 
+    /// The run's composition aliases (see `CompositionAliasCatalog`), built from `fileCache` the
+    /// first time a visitor needs them and handed to every visitor after it. Without the share,
+    /// each visitor that reads an inheritance clause would build its own from the same trees.
+    private var compositionAliases: CompositionAliasCatalog?
+
     /// Initializes a new SwiftSyntax pattern detector.
     ///
     /// - Parameter registry: The pattern visitor registry to use. Defaults to the shared registry.
@@ -77,6 +82,7 @@ public class CrossFileAnalysisEngine: CrossFileAnalyzerProtocol {
                 fileCache[file.relativePath] = sourceFile
             }
         }
+        compositionAliases = nil
 
         // Get visitors that support cross-file analysis
         let visitors = getVisitorsForCategories(categories)
@@ -89,6 +95,7 @@ public class CrossFileAnalysisEngine: CrossFileAnalyzerProtocol {
             if let crossFileVisitor = visitorType as? CrossFilePatternVisitorProtocol.Type {
                 let visitor = crossFileVisitor.init(fileCache: fileCache)
                 configureBaseVisitor(visitor, visitorType: visitorType, categories: categories)
+                shareCompositionAliases(with: visitor)
 
                 for (fileName, sourceFile) in orderedFileCache {
                     if let baseVisitor = visitor as? BasePatternVisitor {
@@ -135,6 +142,14 @@ public class CrossFileAnalysisEngine: CrossFileAnalyzerProtocol {
         baseVisitor.layerPolicies = layerPolicies
     }
 
+    /// Hands the run's alias catalog to a cross-file visitor, building it on first use.
+    private func shareCompositionAliases(with visitor: CrossFilePatternVisitorProtocol) {
+        guard let crossFileVisitor = visitor as? CrossFileVisitorBase else { return }
+        let aliases = compositionAliases ?? .build(from: orderedFileCache.map(\.sourceFile))
+        compositionAliases = aliases
+        crossFileVisitor.compositionAliases = aliases
+    }
+
     /// Detects patterns across multiple Swift files using specific rule identifiers.
     ///
     /// This method analyzes multiple files and can detect patterns that span
@@ -160,6 +175,7 @@ public class CrossFileAnalysisEngine: CrossFileAnalyzerProtocol {
                 fileCache[file.relativePath] = sourceFile
             }
         }
+        compositionAliases = nil
 
         // Get specific patterns by rule identifier
         let allPatterns = registry.getAllPatterns()
@@ -177,6 +193,7 @@ public class CrossFileAnalysisEngine: CrossFileAnalyzerProtocol {
                     baseVisitor.defaultMainActorSourcePaths = defaultMainActorSourcePaths
                     baseVisitor.layerPolicies = layerPolicies
                 }
+                shareCompositionAliases(with: visitor)
                 for (fileName, sourceFile) in orderedFileCache {
                     if let baseVisitor = visitor as? BasePatternVisitor {
                         baseVisitor.setFilePath(fileName)

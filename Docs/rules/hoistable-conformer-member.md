@@ -28,7 +28,8 @@ The visitor proceeds in two phases:
 
 1. **Collect.** Record each protocol's requirement names and the members provided by its
    extensions; and, per concrete type (aggregated across its primary declaration *and* its
-   extensions), record its conformances, all member names, and every *hoistable member* — an
+   extensions), record its conformances (a composition `typealias` expanded into the protocols
+   it composes), all member names, and every *hoistable member* — an
    instance method with a body, or a computed instance property. For each it captures a
    normalized body (whitespace stripped, the optional `self.` receiver dropped) and the set of
    identifiers the body references. Stored properties, `static`/`class`/`lazy` members are

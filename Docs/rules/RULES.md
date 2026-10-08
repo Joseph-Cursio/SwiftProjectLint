@@ -1,6 +1,6 @@
 # SwiftProjectLint Rules Reference
 
-SwiftProjectLint is a static analysis tool for SwiftUI projects. It parses Swift source files using SwiftSyntax AST visitors to detect anti-patterns spanning state management, performance, animations, architecture, code quality, security, accessibility, memory management, networking, UI patterns, modernization, and idempotency. This reference documents all 213 lint rules, organized by category.
+SwiftProjectLint is a static analysis tool for SwiftUI projects. It parses Swift source files using SwiftSyntax AST visitors to detect anti-patterns spanning state management, performance, animations, architecture, code quality, security, accessibility, memory management, networking, UI patterns, modernization, and idempotency. This reference documents all 214 lint rules, organized by category.
 
 Rules marked **opt-in** are disabled by default and must be explicitly listed under `enabled_only` in `.swiftprojectlint.yml`.
 
@@ -138,6 +138,7 @@ Rules marked **opt-in** are disabled by default and must be explicitly listed un
 | [Fire And Forget Task](fire-and-forget-task.md) | Warning |
 | [Discarded Try Result](discarded-try-result.md) | Warning |
 | [Lossy Struct Rebuild](lossy-struct-rebuild.md) | Warning |
+| [Lossy Round Trip](lossy-round-trip.md) | Warning |
 | [Map Used For Side Effects](map-used-for-side-effects.md) | Warning |
 | [Could Be Private](could-be-private.md) | Info |
 | [Public in App Target](public-in-app-target.md) | Info |

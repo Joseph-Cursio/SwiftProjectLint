@@ -21,6 +21,10 @@ Protocols with names that do not end in "Protocol" are not checked. A capability
 
 **Mock-conformer exemption.** If a mock/test double conforms to the protocol — a conformer whose name contains `Mock`, `Fake`, `Stub`, or `Spy`, or one declared in a `Tests`/`Mocks`/`Fakes`/`Stubs` file — the protocol is **not** flagged, even if it mirrors the type 1:1. Such a protocol is a justified dependency-injection seam: it exists so tests can substitute a fake, and removing it would remove that seam. This exemption is shared with [Single Implementation Protocol](single-implementation-protocol.md) via a common `ProtocolExemption` predicate, so the two rules can no longer disagree about the same protocol. Unlike that rule, Mirror Protocol does **not** exempt on the dependency-injection *name suffix* alone — every mirror protocol ends in `Protocol`, so a suffix exemption would silence the rule entirely; only a real mock conformer justifies a 1:1 mirror.
 
+**Dependency-injection exemption.** A mirror protocol held as a stored property or received as an initializer parameter is a deliberate seam, and is not flagged. A dependency typed with a composition consumes each protocol in it, whether written inline (`any FooServiceProtocol & Sendable`) or through a `typealias`.
+
+**Conformances through a `typealias`.** A conformance written through a composition alias (`struct OrderService: AuditedOrderService`, with `typealias AuditedOrderService = OrderServiceProtocol & Auditing`) counts as conforming to each protocol the alias composes, for the match and the mock exemption alike.
+
 ### Non-Violating Examples
 ```swift
 // Focused capability protocol — not a mirror
