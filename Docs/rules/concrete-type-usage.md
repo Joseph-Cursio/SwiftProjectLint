@@ -30,7 +30,7 @@ The following patterns are exempt because they do not represent real coupling is
 - **`Equatable` types** — a value is substituted by constructing a different one
 - **Protocols, and the `typealias`es that stand for them** — a project-wide pre-scan identifies every declared protocol, plus every `typealias` that composes protocols (`typealias OrderStore = OrderSaving & OrderHistory`) or renames one. `let store: OrderStore` is already an abstraction; read by its `Store` suffix alone, it was reported as a concrete service
 - **A type named inside its own declaration** — a parameter or property typed with `T` inside `T`'s own `class`, `struct`, `enum` or `actor` declaration, an `extension T`, or a type nested in either is `T`'s implementation, not a caller depending on it — see [the section below](#a-type-named-inside-its-own-declaration)
-- **A generic parameter in scope** — a parameter or property typed with a generic parameter of an enclosing type, function, initializer or subscript, or with an associated type inside the protocol that declares it, is a placeholder rather than a concrete type — see [the section below](#a-generic-parameter-in-scope)
+- **A generic parameter in scope** — a parameter or property typed with a generic parameter of an enclosing type, function, initializer or subscript, or with an associated type inside the protocol that declares it, is a placeholder rather than a concrete type. A type or `typealias` of the same name nested closer to the use shadows the parameter, as it does for the compiler, and is reported — see [the section below](#a-generic-parameter-in-scope)
 - **Local and file-scope variables** — a `var` or `let` declared in a function, initializer, accessor or closure body is not a property and not a dependency of anything, and neither is one at file scope; only a member of a type is read — see [the section below](#a-local-variable-is-not-a-property)
 
 Depending on a protocol resolves the issue, whatever the protocol is called. One option is to name the protocol for the role, `protocol APIService`, and rename the class for what it is, such as `URLSessionAPIService`; parameters keep the type name `APIService` (written `any APIService` under `ExistentialAny`), and only construction sites change. A suffixed `APIServiceProtocol` or an opaque `some NetworkProtocol` works too, but a suffixed protocol that copies `APIService` member for member is what [Mirror Protocol](mirror-protocol.md) reports.
@@ -325,6 +325,43 @@ No remaining finding is typed with a generic parameter. The corpus declares a se
 parameter or associated type only in those two repositories, in a SwiftUMLStudio view the rule
 already skips as SwiftUI, and in test files.
 
+**The nearest declaration of the name decides.** The first version matched the name against every
+enclosing clause, so it also exempted a concrete type that shadows the parameter:
+
+```swift
+struct Outer<Provider: FileProvider> {
+    struct Inner {
+        final class Provider { … }   // or `typealias Provider = LocalFileProvider`
+        let provider: Provider       // Inner.Provider, a class — reported again
+    }
+}
+```
+
+The compiler resolves `Provider` to the nearest declaration of it, and `Inner` declares one before
+the walk reaches `Outer`'s clause. So each enclosing declaration is now read in two steps: its own
+generic parameters, then the types and `typealias`es declared directly in its body, and the first
+match decides. **The order within one declaration is the compiler's too.** In
+`struct Outer<Provider: FileProvider> { final class Provider { }; let provider: Provider }`, the
+property holds the parameter, not the nested class, and so does a type nested in `Outer` that
+declares nothing of the name. Every shape in the tests was type-checked under `-swift-version 6`,
+calling a member only one of the two candidates has. A code block needs no step of its own: Swift
+rejects a local type anywhere a generic parameter is in scope.
+
+**Measured** the same way, over the same 38 runs, with debug CLIs built from `main` (`fab60e8b`)
+and from this change:
+
+| | Concrete Type Usage | other architecture findings |
+|---|---|---|
+| before | 54 | 281 |
+| + the nearest declaration decides | **54** | 281 |
+
+Nothing moved: the corpus has no reportable concrete type shadowing a generic parameter. The
+change is correctness only, and the tests are what hold it. All 38 runs completed on both sides;
+SwiftLint, which the manifest-reader trap kept out of the earlier pairs, runs again and has no
+Concrete Type Usage finding. The before column is lower than the 59 above because local variables
+stopped being read since then (the section below), and this repository's checkout in the corpus
+brought one finding of its own.
+
 ### A local variable is not a property
 
 The rule reads stored properties, and it read every `var` and `let` with a type annotation and no
@@ -604,5 +641,11 @@ final class CheckoutViewModel {
   nothing today. Its one associated type with a service name, Hummingbird's `associatedtype Client`
   in `ApplicationTester`, is in a test target the rule skips. A test pins the current behaviour, so
   the change that adds the catalog updates it on purpose.
+- **A declaration behind `#if`, or in an extension, neither introduces a name nor shadows one.**
+  Both steps of the generic-parameter walk read a member block's own declarations. An
+  `associatedtype` inside `#if` in a protocol body is not seen, so a requirement typed with it is
+  reported. A nested type of the parameter's name declared behind `#if`, or in a separate
+  `extension Outer.Inner`, does not shadow it, so a property typed with that concrete type stays
+  exempt. No remaining corpus finding is typed with an associated type or generic parameter.
 
 ---

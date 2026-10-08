@@ -206,6 +206,85 @@ struct ConcreteTypeUsageGenericParameterTests {
         #expect(issue.lineNumber == 6)
     }
 
+    // MARK: - Shadowing
+
+    // Each source below was type-checked with `swiftc`, calling a member only one of the two
+    // candidate declarations has, to learn which one the name resolves to.
+
+    @Test(
+        "a type or typealias nested between the use and the clause shadows the parameter",
+        arguments: [
+            "final class Provider { }",
+            "typealias Provider = LocalFileProvider"
+        ]
+    )
+    func nestedDeclarationShadowsOuterParameter(shadow: String) throws {
+        let source = """
+        struct Outer<Provider: FileProvider> {
+            struct Inner {
+                \(shadow)
+                let provider: Provider
+            }
+        }
+        """
+        let found = issues(source)
+        let issue = try #require(found.first)
+        #expect(found.count == 1)
+        #expect(issue.lineNumber == 4)
+        #expect(issue.message.contains("concrete type 'Provider'"))
+    }
+
+    @Test("a shadow two levels up still hides the parameter from a type nested below it")
+    func shadowReachesDeeperTypes() throws {
+        let source = """
+        struct Outer<Provider: FileProvider> {
+            struct Inner {
+                typealias Provider = LocalFileProvider
+                struct Deeper {
+                    let provider: Provider
+                }
+            }
+        }
+        """
+        let found = issues(source)
+        let issue = try #require(found.first)
+        #expect(found.count == 1)
+        #expect(issue.lineNumber == 5)
+    }
+
+    @Test("a declaration's own generic parameter shadows its own nested type")
+    func ownClauseShadowsOwnMembers() {
+        // The compiler resolves `Provider` to the parameter in both: from the declaration's body,
+        // and from a type nested in it that declares nothing of the name.
+        let inBody = """
+        struct Outer<Provider: FileProvider> {
+            final class Provider { }
+            let provider: Provider
+        }
+        """
+        let fromNested = """
+        struct Outer<Provider: FileProvider> {
+            final class Provider { }
+            struct Inner {
+                let provider: Provider
+            }
+        }
+        """
+        #expect(issues(inBody).isEmpty)
+        #expect(issues(fromNested).isEmpty)
+    }
+
+    @Test("a method's own generic parameter shadows a nested type of the type around it")
+    func methodClauseShadowsEnclosingMembers() {
+        let source = """
+        struct Server {
+            typealias Provider = LocalFileProvider
+            func serve<Provider: FileProvider>(from provider: Provider) { }
+        }
+        """
+        #expect(issues(source).isEmpty)
+    }
+
     // MARK: - Known limitation
 
     @Test("a generic parameter or associated type named inside an extension is still reported")
