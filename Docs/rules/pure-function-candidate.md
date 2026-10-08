@@ -117,7 +117,8 @@ computed property's annotation; both go through one check):
 | a tuple nested in a tuple, or with a `Void` or variadic element | no |
 | a tuple element whose generic argument has no `==` — `(Array<Widget>, Int)`, `([String: Widget], Int)` | no, as `([Widget], Int)` is not |
 | a tuple of seven or more | no — Swift's tuple `==` stops at six |
-| a closure, an existential (`any P`), a typealias, `Outer.Inner`, a type the project index does not know | no |
+| `Outer.Inner`, not generic | as `Inner` — the index keys nested types by their simple name, as it does every other |
+| a closure, an existential (`any P`), a typealias, a type the project index does not know | no |
 
 A refusal here is silent, so a function one conformance away from a seed looked exactly like one
 with nothing to offer. When the result is a project `struct`/`enum` that would get a **synthesized**
