@@ -193,8 +193,34 @@ extension PropertyTestCandidacy {
         }
     }
 
+    /// The name the conformance index is asked about for `type`: `baseTypeName`'s answer, and a
+    /// non-generic `Outer.Inner` read by its last component.
+    ///
+    /// **A nested type used to be refused outright**, for no reason but that `baseTypeName` has no
+    /// case for it — and the index it is looked up in already keys nested types by their simple
+    /// name (`extension Outer.Inner: Equatable` records `Inner`). SwiftLintRuleStudio's
+    /// `applyMigration(_:to: inout YAMLConfigurationEngine.YAMLConfig)` showed the cost: while
+    /// `YAMLConfig` was not `Equatable` the function was a near miss, and once it was declared
+    /// `Equatable` it dropped out of the manifest altogether. Reading it by its last component is
+    /// exactly as exposed to a namesake as reading a bare name already is.
+    ///
+    /// Local to this check on purpose: `baseTypeName` also names extended types and enclosing
+    /// containers, and widening it would move those answers too.
+    static func comparedNominalName(_ type: TypeSyntax) -> String? {
+        let type = unparenthesized(type)
+        if let optional = type.as(OptionalTypeSyntax.self) { return comparedNominalName(optional.wrappedType) }
+        if let implicit = type.as(ImplicitlyUnwrappedOptionalTypeSyntax.self) {
+            return comparedNominalName(implicit.wrappedType)
+        }
+        if let array = type.as(ArrayTypeSyntax.self) { return comparedNominalName(array.element) }
+        if let member = type.as(MemberTypeSyntax.self) {
+            return member.genericArgumentClause == nil ? member.name.text : nil
+        }
+        return baseTypeName(type)
+    }
+
     /// A type assertable by name: a stdlib `Equatable` type or a project type the conformance index
-    /// knows, after unwrapping `T?`, `T!` and `[T]`.
+    /// knows, after unwrapping `T?`, `T!` and `[T]`, with a nested type read by its last component.
     private static func nominalIsAssertable(
         _ type: TypeSyntax,
         enclosingTypeName: String?,
@@ -202,7 +228,7 @@ extension PropertyTestCandidacy {
     ) -> Bool {
         let text = type.trimmedDescription
         guard text != "Void", text != "()" else { return false }
-        guard let rawBase = baseTypeName(type) else { return false }
+        guard let rawBase = comparedNominalName(type) else { return false }
         // A `Self` return resolves to the enclosing type — check ITS equatability,
         // so the idiomatic value-semantic `func f(...) -> Self` (SetAlgebra /
         // OrderedSet's `union` / `intersection`) is seeded rather than dropped for
