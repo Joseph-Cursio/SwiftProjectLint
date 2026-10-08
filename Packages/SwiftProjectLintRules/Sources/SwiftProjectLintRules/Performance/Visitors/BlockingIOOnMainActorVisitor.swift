@@ -18,6 +18,9 @@ import SwiftSyntax
 /// `extension ContentView` in one file is `@MainActor` because `ContentView: View` is declared
 /// in a different one. The walk records every type (`MainActorTypeTable`); `finalizeAnalysis`
 /// then scans each file with the whole table in hand (`MainActorBlockingCallScanner`).
+///
+/// A file in a target built with default MainActor isolation (`defaultMainActorSourcePaths`)
+/// starts on the main actor: there, code that says nothing runs on it.
 final class BlockingIOOnMainActorVisitor: CrossFileVisitorBase, CrossFilePatternVisitorProtocol {
 
     private var table = MainActorTypeTable()
@@ -27,13 +30,15 @@ final class BlockingIOOnMainActorVisitor: CrossFileVisitorBase, CrossFilePattern
         let path = currentFilePath
         guard Self.isExempt(path) == false else { return .skipChildren }
         walkedFiles.append((path, node))
-        table.collect(from: node, defaultsToMainActor: false)
+        table.collect(from: node, defaultsToMainActor: isDefaultMainActorSource(path))
         return .skipChildren
     }
 
     func finalizeAnalysis() {
         for file in walkedFiles {
-            let scanner = MainActorBlockingCallScanner(table: table, fileDefaultsToMainActor: false)
+            let scanner = MainActorBlockingCallScanner(
+                table: table, fileDefaultsToMainActor: isDefaultMainActorSource(file.path)
+            )
             scanner.walk(file.tree)
             for finding in scanner.findings {
                 report(finding, filePath: file.path)

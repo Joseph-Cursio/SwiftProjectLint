@@ -14,11 +14,12 @@ The gap matters more from Swift 6.2 on. Xcode 26 app targets default to main-act
 ### What counts as running on the main actor
 The rule tracks isolation the way the compiler does: scope by scope. A member takes its type's isolation unless it opts out. A nested type does **not** take its outer type's.
 
+- **Default MainActor isolation.** In a target built with `SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor` (Xcode) or `swiftSettings: [.defaultIsolation(MainActor.self)]` (SwiftPM), code that says nothing runs on the main actor. The rule reads both build settings; see [Where default isolation is read](#where-default-isolation-is-read).
 - **`@MainActor`** on a type, an extension, a function, an initializer or a property.
 - **SDK types that are `@MainActor`.** A type conforming to `View`, `App`, `Scene`, `ViewModifier` or the `…Representable` protocols, or to an app or scene delegate protocol. A subclass of `UIViewController`, `UIView`, `NSViewController`, `NSView`, `NSWindowController`, the hosting controllers, or any other `UIResponder`/`NSResponder`.
 - **The project's own `@MainActor` declarations, across files.** A conformance to a `@MainActor` protocol. A subclass of a project class that is `@MainActor`, at any depth. An `extension` of any of these, even when the type is declared in another file.
 - **Closures that run on the main actor wherever they are written.** `MainActor.run { }`, `MainActor.assumeIsolated { }`, `DispatchQueue.main.async/sync/asyncAfter { }`, `OperationQueue.main.addOperation { }`, and `{ @MainActor in }`.
-- **`@Observable` and `ObservableObject` models**, even without `@MainActor`, but only their *synchronous* members. SwiftUI calls those from the main actor: a button action, `onAppear`, a `body` read. An unannotated model's `async` methods and `Task { }` blocks run on the global executor, so they are not reported. [Observable Main Actor Missing](observable-main-actor-missing.md) and [Main Actor Missing On UI Code](main-actor-missing-on-ui-code.md) ask for the annotation itself.
+- **`@Observable` and `ObservableObject` models**, even without `@MainActor` (and outside a MainActor-default target), but only their *synchronous* members. SwiftUI calls those from the main actor: a button action, `onAppear`, a `body` read. An unannotated model's `async` methods and `Task { }` blocks run on the global executor, so they are not reported. [Observable Main Actor Missing](observable-main-actor-missing.md) and [Main Actor Missing On UI Code](main-actor-missing-on-ui-code.md) ask for the annotation itself.
 
 Two things people expect to move work off the main actor do not:
 - **`async`.** A `@MainActor` async function still runs on the main actor between suspension points, so a synchronous read inside it blocks.
@@ -53,8 +54,15 @@ Some blocking calls are already reported everywhere they appear by another rule.
 
 [Expensive Operation in View Body](expensive-operation-in-view-body.md) reports CPU work in `body`, such as `sorted` and `filter`, and doesn't overlap with this rule's I/O and waits. [Unabstracted File IO](unabstracted-file-io.md) can fire on the same line in a `…ViewModel`, but for a different reason: it asks for a seam so the model can be tested. A seam alone doesn't fix this rule's finding, because a synchronous seam called on the main actor still blocks it. Make the seam `async` and await it.
 
+### Where default isolation is read
+The setting lives in the build configuration, not the source, so the rule reads it from both build systems under the analysed folder. A file counts if either one compiles it with the setting.
+
+- **SwiftPM:** a target in the root `Package.swift` or a nested package's whose `swiftSettings` contain `.defaultIsolation(MainActor.self)`. The setting can be written inline, or through a top-level `let` the manifest declares (`let uiSettings: [SwiftSetting] = [...]`, including `base + [...]`). The target's files are those under its `path:`, or `Sources/<name>` without one.
+- **Xcode:** a native target whose build settings, or the project's, set `SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor`. Its files are the folders it synchronizes (Xcode 16 and later) and the files its Sources build phase lists.
+
+Not read: settings from `.xcconfig` files, a synchronized folder's per-target exceptions, a manifest that sets `swiftSettings` in a loop after creating the package, and SwiftPM's other default source folders (`Source/`, `src/`). The manifest is read as text, with comments and strings handled, so the setting must be spelled out, not assembled by a function.
+
 ### Known Limitations
-- **Default MainActor isolation is not detected.** A target built with `SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor` or `.defaultIsolation(MainActor.self)` runs its unannotated code on the main actor, but nothing in the source says so, and this rule does not read build settings.
 - **Receivers are matched by method name, not type.** `contentsOfDirectory(atPath:)` is assumed to be `FileManager`, and `wait()` a blocking wait. An `async` method with the same name is fine as long as it is awaited.
 - **Closures passed to other APIs are assumed to run in place.** A completion handler that an API calls on a background queue, other than the URLSession ones above, is reported as if it ran on the main actor. Mark it `@Sendable` or suppress it with `// swiftprojectlint:disable:next blocking-io-on-main-actor`.
 - **Only synchronous `@Observable`/`ObservableObject` members are inferred.** With Swift 6.2's `NonisolatedNonsendingByDefault`, an unannotated model's `async` method runs on its caller's actor, often the main one. The rule can't see that setting, so those calls are not reported.

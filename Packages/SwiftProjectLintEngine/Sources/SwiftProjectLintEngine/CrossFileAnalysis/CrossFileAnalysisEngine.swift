@@ -30,6 +30,9 @@ public class CrossFileAnalysisEngine: CrossFileAnalyzerProtocol {
     /// cross-file visitor before it walks. Set by `ProjectLinter` from
     /// `ExecutableTargetDetector`. Empty means "no app targets known."
     public var executableSourcePaths: [String] = []
+    /// Root-relative paths compiled with default MainActor isolation, forwarded to each
+    /// cross-file visitor. Set by `ProjectLinter` from `DefaultIsolationDetector`.
+    public var defaultMainActorSourcePaths: [String] = []
     public var layerPolicies: [LayerPolicy] = []
 
     /// Initializes a new SwiftSyntax pattern detector.
@@ -128,6 +131,7 @@ public class CrossFileAnalysisEngine: CrossFileAnalyzerProtocol {
         }
         baseVisitor.enabledFrameworkAllowlists = enabledFrameworkAllowlists
         baseVisitor.executableSourcePaths = executableSourcePaths
+        baseVisitor.defaultMainActorSourcePaths = defaultMainActorSourcePaths
         baseVisitor.layerPolicies = layerPolicies
     }
 
@@ -170,6 +174,7 @@ public class CrossFileAnalysisEngine: CrossFileAnalyzerProtocol {
                     baseVisitor.setPattern(pattern)
                     baseVisitor.enabledFrameworkAllowlists = enabledFrameworkAllowlists
                     baseVisitor.executableSourcePaths = executableSourcePaths
+                    baseVisitor.defaultMainActorSourcePaths = defaultMainActorSourcePaths
                     baseVisitor.layerPolicies = layerPolicies
                 }
                 for (fileName, sourceFile) in orderedFileCache {
