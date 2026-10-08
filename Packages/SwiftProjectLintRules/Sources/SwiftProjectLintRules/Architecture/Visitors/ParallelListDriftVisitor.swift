@@ -14,12 +14,14 @@ import SwiftSyntax
 /// the single-file `ManualRegistrationList`, which flags the hazardous *shape*; this one
 /// flags a list that has already lost the race.
 ///
-/// **Phase 1 (walk).** Catalogs every "name list" from three carriers:
+/// **Phase 1 (walk).** Catalogs every "name list" from four carriers:
 ///   1. `enum` case names,
 ///   2. array literals whose elements are uniformly name-like (string literals,
 ///      leading-dot members, or type references),
 ///   3. runs of consecutive registration calls (`register…`/`add…`/…) from which a
-///      distinguishing name can be read — the shape of `BuiltInRules.registerAll`.
+///      distinguishing name can be read — the shape of `BuiltInRules.registerAll`,
+///   4. member runs — one operation applied to a run of one value's members
+///      (`MemberRunReader`), compared only with each other.
 ///
 /// **Phase 2 (`finalizeAnalysis`).** Names are normalized (case- and separator-free) so
 /// `UIPatterns`, `uiPatterns` and `"ui-patterns"` compare equal. An inverted index yields
@@ -52,6 +54,14 @@ final class ParallelListDriftVisitor: CrossFileVisitorBase, CrossFilePatternVisi
     /// `.enumeration([...])` value lists, each flagged at 0.75 against one four-entry canonical
     /// list — all false positives.
     private static let subsetSimilarity = 0.8
+    /// A member run is reported only when this many other runs agree **exactly** on the family it
+    /// falls short of. One superset is weak evidence: a type's members are selected from for many
+    /// reasons, and over 40 repositories most single-superset findings were two gates that test
+    /// different flags of one value on purpose — `summary.isStatic` here, `summary.isMutating`
+    /// there. Two places that agree on the whole family, and a third that is one short, is the
+    /// shape a forgotten member leaves: SwiftLintRuleStudio's two `collectAllRuleIds` against an
+    /// import check missing `analyzerRules`.
+    private static let memberRunCorroboration = 2
     /// A name appearing in more than this many lists is a generic word (`name`, `value`),
     /// not a distinguishing entry. Ignoring it for candidate generation also bounds the
     /// pair count, keeping Phase 2 near-linear instead of quadratic in list count.
@@ -65,6 +75,7 @@ final class ParallelListDriftVisitor: CrossFileVisitorBase, CrossFilePatternVisi
         case enumCases = "enum"
         case arrayLiteral = "array"
         case callRun = "registration run"
+        case memberRun = "member run"
     }
 
     private struct NameList {
@@ -74,6 +85,8 @@ final class ParallelListDriftVisitor: CrossFileVisitorBase, CrossFilePatternVisi
         let display: [String: String]      // normalized → original spelling
         let file: String
         let line: Int
+        /// For a member run, the members read by one operation — see `MemberRunReader.Run`.
+        let core: Set<String>
 
         /// Original spellings for `names`, sorted, for use in messages.
         func spellings(of subset: Set<String>) -> [String] {
@@ -133,6 +146,10 @@ final class ParallelListDriftVisitor: CrossFileVisitorBase, CrossFilePatternVisi
     // MARK: - Phase 1: carrier 2 — array literals
 
     override func visit(_ node: ArrayExprSyntax) -> SyntaxVisitorContinueKind {
+        if let run = MemberRunReader.run(inArrayLiteral: node) {
+            recordMemberRun(run)
+            return .visitChildren
+        }
         guard let names = NameListReader.names(inArrayLiteral: node) else { return .visitChildren }
         record(names, owner: NameListReader.bindingName(of: node) ?? "array literal",
                carrier: .arrayLiteral, node: Syntax(node))
@@ -143,7 +160,26 @@ final class ParallelListDriftVisitor: CrossFileVisitorBase, CrossFilePatternVisi
 
     override func visit(_ node: CodeBlockItemListSyntax) -> SyntaxVisitorContinueKind {
         collectCallRuns(in: node)
+        MemberRunReader.runs(inStatements: node).forEach(recordMemberRun)
         return .visitChildren
+    }
+
+    // MARK: - Phase 1: carrier 4 — member runs
+
+    override func visit(_ node: SequenceExprSyntax) -> SyntaxVisitorContinueKind {
+        MemberRunReader.runs(inLogicalChain: node).forEach(recordMemberRun)
+        return .visitChildren
+    }
+
+    override func visit(_ node: ConditionElementListSyntax) -> SyntaxVisitorContinueKind {
+        MemberRunReader.runs(inConditions: node).forEach(recordMemberRun)
+        return .visitChildren
+    }
+
+    /// One operation applied to a run of one value's members — see `MemberRunReader`.
+    private func recordMemberRun(_ run: MemberRunReader.Run) {
+        let place = MemberRunReader.enclosingDeclarationName(of: run.node).map { " in \($0)" } ?? ""
+        record(run.members, owner: "\(run.base)\(place)", carrier: .memberRun, node: run.node, core: run.core)
     }
 
     /// Scan a statement list for maximal runs of consecutive registration calls to the
@@ -258,7 +294,13 @@ final class ParallelListDriftVisitor: CrossFileVisitorBase, CrossFilePatternVisi
 
     /// Adds a collected list, applying the length floor and dropping test/fixture files —
     /// a test that enumerates a deliberate subset is the rule's most common false positive.
-    private func record(_ raw: [String], owner: String, carrier: Carrier, node: Syntax) {
+    private func record(
+        _ raw: [String],
+        owner: String,
+        carrier: Carrier,
+        node: Syntax,
+        core: Set<String> = []
+    ) {
         guard !isTestOrFixtureFile() else { return }
         var names: Set<String> = []
         var display: [String: String] = [:]
@@ -275,7 +317,8 @@ final class ParallelListDriftVisitor: CrossFileVisitorBase, CrossFilePatternVisi
             names: names,
             display: display,
             file: currentFilePath,
-            line: getLineNumber(for: node)
+            line: getLineNumber(for: node),
+            core: Set(core.map(NameListReader.normalize))
         ))
     }
 
@@ -295,6 +338,7 @@ final class ParallelListDriftVisitor: CrossFileVisitorBase, CrossFilePatternVisi
         // closest counterpart: the same fix (reconcile with the nearest list) resolves all
         // of them, and the remaining pairs re-surface on the next run if it does not.
         var best: [Int: Match] = [:]
+        let memberRunAgreement = memberRunAgreementCounts()
 
         func offer(deficient: Int, counterpart: Int, shared: Int, similarity: Double) {
             let deficientNames = lists[deficient].names
@@ -307,6 +351,20 @@ final class ParallelListDriftVisitor: CrossFileVisitorBase, CrossFilePatternVisi
             // divergence (the deficient list also has entries the counterpart lacks) is strong
             // evidence and keeps the base threshold already applied upstream.
             let deficientIsStrictSubset = deficientNames.subtracting(counterpartNames).isEmpty
+            // Two member runs that each read something the other does not are, far more often
+            // than drift, two different types sharing field names — `id`, `name`, `path` — or
+            // two deliberately different selections from one. Only a run wholly contained in
+            // another is the forgotten-member shape.
+            if lists[deficient].carrier == .memberRun {
+                // What the counterpart enumerated by one operation is what can be forgotten; a
+                // member it reads beside that — a gate's `parameters.count == 1` beside its
+                // `!isAsync && !isThrows` — is a different condition, not a missing entry.
+                let missing = counterpartNames.subtracting(deficientNames)
+                guard deficientIsStrictSubset,
+                      missing.isSubset(of: lists[counterpart].core),
+                      memberRunAgreement[counterpartNames, default: 0] >= Self.memberRunCorroboration
+                else { return }
+            }
             if deficientIsStrictSubset, similarity < Self.subsetSimilarity { return }
 
             let candidate = Match(counterpart: counterpart, shared: shared, similarity: similarity)
@@ -322,6 +380,12 @@ final class ParallelListDriftVisitor: CrossFileVisitorBase, CrossFilePatternVisi
         for (first, second) in candidatePairs() {
             let left = lists[first]
             let right = lists[second]
+
+            // A member run lists a type's members; an enum or a name array lists values. Members
+            // are compared only with members — and never two values read in one construct, as
+            // `copy.a = source.a` reads `source` and writes `copy`, which is one list, not two.
+            guard (left.carrier == .memberRun) == (right.carrier == .memberRun),
+                  left.file != right.file || left.line != right.line else { continue }
 
             // Anchor on the longer list: the pair must describe a substantial enumeration,
             // but the deficient side is free to be shorter than the floor.
@@ -349,6 +413,15 @@ final class ParallelListDriftVisitor: CrossFileVisitorBase, CrossFilePatternVisi
                 shared: match.shared
             )
         }
+    }
+
+    /// How many member runs, at distinct places, read exactly each set of members.
+    private func memberRunAgreementCounts() -> [Set<String>: Int] {
+        var places: [Set<String>: Set<String>] = [:]
+        for list in lists where list.carrier == .memberRun {
+            places[list.names, default: []].insert("\(list.file):\(list.line)")
+        }
+        return places.mapValues(\.count)
     }
 
     /// Index-derived candidate pairs sharing at least `minShared` entries. Building
@@ -398,12 +471,24 @@ final class ParallelListDriftVisitor: CrossFileVisitorBase, CrossFilePatternVisi
                 + "but is missing \(missing.count): \(missingList).",
             filePath: deficient.file,
             lineNumber: deficient.line,
-            suggestion: "These two lists look like the same enumeration maintained in two "
-                + "places. Add the missing \(missing.count == 1 ? "entry" : "entries"), or "
-                + "derive one list from the other so they cannot drift again — if the "
-                + "counterpart is an enum, iterate `CaseIterable` instead of restating it.",
+            suggestion: deficient.carrier == .memberRun
+                ? Self.memberRunSuggestion(missing: missing.count)
+                : "These two lists look like the same enumeration maintained in two "
+                    + "places. Add the missing \(missing.count == 1 ? "entry" : "entries"), or "
+                    + "derive one list from the other so they cannot drift again — if the "
+                    + "counterpart is an enum, iterate `CaseIterable` instead of restating it.",
             ruleName: .parallelListDrift
         )
+    }
+
+    /// For a member run, "derive one list from the other" has a concrete form: the type names the
+    /// family once, and every enumeration reads that.
+    private static func memberRunSuggestion(missing: Int) -> String {
+        "Both read the same family of one type's members, and this one reads fewer. If it means "
+            + "the whole family, add the missing \(missing == 1 ? "member" : "members") — better, "
+            + "give the type one computed property that enumerates the family and read that in "
+            + "both places, so a member added later reaches every enumeration at once. If the "
+            + "subset is deliberate, say why in a comment: the next reader will ask."
     }
 
     private func shortName(_ path: String) -> String {

@@ -15,10 +15,11 @@ struct ParallelListDrift: PatternRegistrarProtocol {
             messageTemplate: "This list nearly matches another one but is missing entries",
             suggestion: "Add the missing entries, or derive one list from the other so they "
                 + "cannot drift again.",
-            description: "Detects two name lists — enum cases, an array literal of names, or a "
-                + "run of registration calls — that overlap heavily but not exactly. Such lists "
-                + "are usually one enumeration maintained in two places, where adding an entry "
-                + "to one and forgetting the other is not a compile error."
+            description: "Detects two name lists — enum cases, an array literal of names, a run "
+                + "of registration calls, or a run of one value's members — that overlap heavily "
+                + "but not exactly. Such lists are usually one enumeration maintained in two "
+                + "places, where adding an entry to one and forgetting the other is not a compile "
+                + "error."
         )
     }
 }
