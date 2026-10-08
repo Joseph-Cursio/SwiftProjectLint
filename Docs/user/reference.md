@@ -243,19 +243,30 @@ These rules are **off by default** and must be listed under `enabled_only` to ru
 
 | Rule | Reason |
 |------|--------|
-| `Magic Layout Number` | High false-positive rate in many codebases |
-| `Non-Actor Agent Suffix` | Project-specific naming convention |
+| `Flag Optional Pair State` | A refactor suggestion: the flag + optional pairs it finds are usually not buggy |
+| `Mutually Exclusive Presentation State` | A refactor suggestion: UI modality already keeps "two modals at once" unreachable |
+| `Redundant Derived Property` | A refactor suggestion: make a stored string derived from sibling fields a computed property |
+| `Wide Reach-Through` | A wide but legitimate aggregate (a parsed manifest, a decoded response) still fires |
+| `Duplicate Struct Shape` | Some structurally identical types are kept apart on purpose (a wire DTO vs. a domain model) |
+| `Shared Domain-Enum Field` | Two types may share a domain enum yet be kept apart on purpose |
+| `Primitive Bypassing Its Domain Type` | Value types are matched as text, so common ones (`Bool`, `Int`) can match by coincidence |
+| `Primitive Named For Its Domain Type` | The name heuristic has a false-positive tail; separate so the keying rule can be adopted alone |
+| `Scattered Enum Mapping` | Matched by case name, so two unrelated enums sharing 3+ case names can group |
+| `Duplicate Enum Mapping` | Implicit-member values (`.red`) are compared as bare text, even across result types |
+| `Parallel Enum Shape` | Distinct domains can share case names (a compass and a wind direction) |
+| `Could Adopt Protocol` | Two unrelated concepts can share a property set |
+| `Hoistable Conformer Member` | A deliberately type-specific implementation that only *looks* identical may be flagged |
+| `Hoistable Sequence Operation` | A heuristic, not a proof: a member set can match a protocol by coincidence |
+| `Magic Layout Number` | Inline layout numbers like `.padding(16)` are idiomatic SwiftUI; enable it to enforce design tokens |
 | `Hardcoded Strings` | False positives with String Catalogs (`.xcstrings`) — localization keys look like hardcoded text |
-| `GeometryReader Overuse` | Sometimes legitimately necessary |
-| `onReceive Without Debounce` | Intentional high-frequency updates would false-positive |
+| `Non-Actor Agent Suffix` | Many codebases give plain classes agent-noun names intentionally and without confusion |
+| `Test Missing Require` | A test-style rule (`try #require` over a trapping `!`, `try!` or `as!`), opt-in like its two siblings |
+| `Test Missing Assertion` | A "does it crash" test is occasionally intentional (setup that must not throw) |
+| `Test Missing Expect` | Enforces the design-by-contract style (`#require` and `#expect` in every test), which not every team uses |
 | `Missing Dynamic Type Support` | `.lineLimit(1)` is legitimate in many UI designs |
 | `Decorative Image Missing Trait` | Determining "decorative" from AST alone is heuristic |
-| `String Switch Over Enum` | Operates without full type info; uses structural heuristic |
-| `Nested Generic Complexity` | Generic-heavy code is sometimes necessary in frameworks |
-| `View Model Direct DB Access` | Many small apps use `@Query` directly per Apple tutorials |
-| `Legacy Array Init` | Pure style preference |
-| `Legacy Closure Syntax` | Some teams prefer explicit closure types |
-| `iOS 17 Observation Migration` | Companion to `legacyObservableObject` for migration planning |
+| `Animation Without Reduce Motion` | Most views animate and few consult Reduce Motion, so a first run would be buried in findings |
+| `Unlabeled Control` | `Slider(value:in:)` is the ordinary spelling, so it would fire across most codebases |
 
 ### Precedence
 
