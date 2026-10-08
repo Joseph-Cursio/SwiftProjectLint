@@ -79,7 +79,7 @@ final class DuplicateStructShapeVisitor: CrossFileVisitorBase, CrossFilePatternV
         if let inheritance {
             for inherited in inheritance.inheritedTypes {
                 if let name = conformanceName(inherited.type) {
-                    conformances.insert(name)
+                    conformances.formUnion(compositionAliases.expand(name))
                 }
             }
         }

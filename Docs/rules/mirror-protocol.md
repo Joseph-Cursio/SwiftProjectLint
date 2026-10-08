@@ -21,6 +21,8 @@ Protocols with names that do not end in "Protocol" are not checked — naming co
 
 **Dependency-injection exemption.** A mirror protocol held as a stored property or received as an initializer parameter is a deliberate seam, and is not flagged. A dependency typed with a composition consumes each protocol in it, whether written inline (`any FooServiceProtocol & Sendable`) or through a `typealias`.
 
+**Conformances through a `typealias`.** A conformance written through a composition alias (`struct OrderService: AuditedOrderService`, with `typealias AuditedOrderService = OrderServiceProtocol & Auditing`) counts as conforming to each protocol the alias composes, for the match and the mock exemption alike.
+
 ### Non-Violating Examples
 ```swift
 // Focused capability protocol — not a mirror

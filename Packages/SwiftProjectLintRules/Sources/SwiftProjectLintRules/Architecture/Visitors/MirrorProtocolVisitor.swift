@@ -109,7 +109,7 @@ final class MirrorProtocolVisitor: CrossFileVisitorBase, CrossFilePatternVisitor
         if let inheritanceClause {
             for inherited in inheritanceClause.inheritedTypes {
                 if let ident = inherited.type.as(IdentifierTypeSyntax.self) {
-                    conformances.insert(ident.name.text)
+                    conformances.formUnion(compositionAliases.expand(ident.name.text))
                 }
             }
         }

@@ -101,7 +101,7 @@ final class CouldAdoptProtocolVisitor: CrossFileVisitorBase, CrossFilePatternVis
         if let inheritance {
             for inherited in inheritance.inheritedTypes {
                 if let conformanceName = conformanceName(inherited.type) {
-                    conformances.insert(conformanceName)
+                    conformances.formUnion(compositionAliases.expand(conformanceName))
                 }
             }
         }
