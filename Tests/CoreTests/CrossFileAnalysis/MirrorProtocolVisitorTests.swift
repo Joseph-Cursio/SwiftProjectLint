@@ -278,6 +278,39 @@ struct MirrorProtocolVisitorTests {
         #expect(issues.isEmpty)
     }
 
+    /// A composition names each protocol in it, so a dependency typed with one consumes them
+    /// all — written inline, or through a `typealias`.
+    @Test(arguments: [
+        "any ReportFormatterProtocol & Sendable",
+        "(any ReportFormatterProtocol & Sendable)?",
+        "any SendableFormatter",
+        "SendableFormatter"
+    ])
+    func mirrorConsumedThroughACompositionExempt(dependency: String) {
+        let issues = analyze(files: [
+            "Protocol.swift": """
+            protocol ReportFormatterProtocol {
+                func format()
+                func finalize()
+            }
+            typealias SendableFormatter = ReportFormatterProtocol & Sendable
+            """,
+            "Impl.swift": """
+            struct ReportFormatter: ReportFormatterProtocol {
+                func format() { }
+                func finalize() { }
+            }
+            """,
+            "Consumer.swift": """
+            final class ReportBuilder {
+                private let formatter: \(dependency)
+            }
+            """
+        ])
+
+        #expect(issues.isEmpty)
+    }
+
     @Test
     func propertyMirrorFlags() {
         let issues = analyze(files: [

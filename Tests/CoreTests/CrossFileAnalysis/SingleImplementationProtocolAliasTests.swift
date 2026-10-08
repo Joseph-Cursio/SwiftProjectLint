@@ -74,6 +74,37 @@ struct SingleImplementationProtocolAliasTests {
         #expect(throughAlias.map(\.message).sorted() == writtenOut.map(\.message).sorted())
     }
 
+    @Test(arguments: [
+        "any OrderStore",
+        "OrderStore",
+        "(any OrderStore)?",
+        "any OrderSaving & OrderHistory & OrderAdministration & AnalyticsRecording"
+    ])
+    func aDependencyTypedWithTheCompositionConsumesEveryRole(dependency: String) {
+        var files = checkout(conformance: "OrderStore")
+        files["Presentation/AdminViewModel.swift"] = """
+        final class AdminViewModel {
+            private let store: \(dependency)
+            init(store: \(dependency)) { self.store = store }
+        }
+        """
+        #expect(analyze(files).isEmpty)
+    }
+
+    @Test
+    func anInlineCompositionConsumesOnlyTheProtocolsItNames() {
+        var files = checkout(conformance: "OrderStore")
+        files["Presentation/HistoryViewModel.swift"] = """
+        final class HistoryViewModel {
+            private let store: any OrderSaving & OrderHistory
+        }
+        """
+        let messages = analyze(files).map(\.message).sorted()
+        #expect(messages.count == 2)
+        #expect(messages.first?.contains("'AnalyticsRecording'") == true)
+        #expect(messages.last?.contains("'OrderAdministration'") == true)
+    }
+
     @Test
     func anExtensionConformingThroughTheAliasCounts() {
         let issues = analyze([

@@ -23,7 +23,7 @@ struct ExtractorLawsTests {
 
     // MARK: - 1. Unwrapping a type is invariant under wrapping
 
-    /// `baseTypeName` strips `some` / `any` / `?` / `!` recursively.
+    /// `baseTypeNames` strips `some` / `any` / `?` / `!` recursively.
     ///
     /// The law needs no name and no docstring: wrapping a type in any combination of those markers
     /// must not change the base name it resolves to. Refutable by any implementation that stops at
@@ -36,7 +36,7 @@ struct ExtractorLawsTests {
             // `some`/`any` bind outermost and cannot stack; optionals attach to the inner type.
             let text = marker + base + wrappers.joined()
             guard let type = Self.parseTypeAnnotation("let x: \(text) = y") else { return }
-            #expect(DependencyConsumption.baseTypeName(type) == base,
+            #expect(DependencyConsumption.baseTypeNames(type) == [base],
                     "\(marker)\(base)\(wrappers.joined()) did not resolve to \(base)")
         }
     }

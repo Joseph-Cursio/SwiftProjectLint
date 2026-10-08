@@ -181,6 +181,11 @@ final class SingleImplementationProtocolVisitor: CrossFileVisitorBase, CrossFile
     // MARK: - Finalize
 
     func finalizeAnalysis() {
+        // Holding `any OrderStore`, where `OrderStore = OrderSaving & OrderHistory`, consumes
+        // both roles.
+        let consumedProtocolNames = Set(dependencyConsumedTypeNames.flatMap {
+            compositionAliases.expand($0)
+        })
         for decl in declarations {
             let conformers = conformances[decl.name] ?? []
 
@@ -217,7 +222,7 @@ final class SingleImplementationProtocolVisitor: CrossFileVisitorBase, CrossFile
                 // Name-agnostic, so gerund capability protocols the DI-suffix list
                 // misses are still exempt. A zero-conformer protocol gets no such pass —
                 // nothing implements it, so it is dead regardless of where it is named.
-                if dependencyConsumedTypeNames.contains(decl.name) {
+                if consumedProtocolNames.contains(decl.name) {
                     continue
                 }
 
