@@ -115,14 +115,27 @@ struct PurityGateDeclarationTests {
         #expect(Demand(planned: nil, registry: PatternVisitorRegistry()).inputs.isEmpty)
     }
 
-    /// What `Docs/rules/pure-function-candidate.md` says: with the other eight readers on, turning
-    /// Pure Function off skips the one-hop join and nothing else.
-    @Test("without Pure Function the other readers still build the table and the clean-method catalog")
+    /// What `Docs/rules/pure-function-candidate.md` says: with any other reader on, turning Pure
+    /// Function off still builds the table and skips the one-hop join; it skips the clean-method
+    /// catalog too unless Direct Instantiation or Concrete Type Usage is on, since the other six read
+    /// only the oracle.
+    @Test("without Pure Function the join is skipped, and the clean-method catalog unless its two readers run")
     func onlyPureFunctionReadsTheJoin() {
         let others = Self.declaredRules.filter { $0 != .pureFunctionCandidate }
         let registry = PatternRegistryFactory.createConfiguredSystem().visitorRegistry
-        let demand = ProjectLinter.PurityDemand(planned: others, registry: registry)
-        #expect(demand.inputs == [.oracle, .cleanInstanceMethods])
+        func demand(_ rules: [RuleIdentifier]) -> PackagePurityInputs {
+            ProjectLinter.PurityDemand(planned: rules, registry: registry).inputs
+        }
+        #expect(demand(others) == [.oracle, .cleanInstanceMethods])
+
+        let catalogReaders = Set(others.filter { Self.declared($0).contains(.cleanInstanceMethods) })
+        #expect(catalogReaders == [.directInstantiation, .concreteTypeUsage])
+        let oracleOnly = others.filter { !catalogReaders.contains($0) }
+        #expect(oracleOnly.count == 6)
+        #expect(demand(oracleOnly) == [.oracle])
+        for reader in oracleOnly {
+            #expect(demand([reader]) == [.oracle], "\(reader.rawValue)")
+        }
     }
 
     // MARK: - The fallback

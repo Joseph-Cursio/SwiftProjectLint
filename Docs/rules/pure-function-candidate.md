@@ -251,9 +251,13 @@ Concrete Type Usage). A run narrowed to rules that read none of it — by `enabl
 `disabled_rules` or `--categories` — skips the universe walk, the manifest reads, the parse of the
 files only the universe holds (generated files, and the nested packages the run does not report on;
 files under `excluded_paths` are parsed regardless, as evidence) and the facts themselves. Turning
-this rule off alone, while any of the other eight is enabled, skips only the one-hop callee join,
-which no other rule reads. The findings of the rules that do run are the same either way (see the
-purity gate in [`Docs/architecture.md`](../architecture.md)).
+this rule off while any of the other eight is enabled still builds the universe and the facts, and
+skips the one-hop callee join, which no other rule reads. It skips the clean-instance-method catalog
+as well unless Direct Instantiation or Concrete Type Usage is enabled: those two are the only other
+rules that read it, and the other six (Pure Closure, Impure Closure Inventory, Extractable Total
+Kernel, Unreachable Effect Closure, Could Be Private and Could Be Private Member) read only the
+oracle. The findings of the rules that do run are the same either way (see the purity gate in
+[`Docs/architecture.md`](../architecture.md)).
 
 **Which files' types count** is `ConstructionUniverse`, a rule shared word for word with
 SwiftInferProperties (the agreed rows are in [`Docs/construction-universe.tsv`](../construction-universe.tsv)):
