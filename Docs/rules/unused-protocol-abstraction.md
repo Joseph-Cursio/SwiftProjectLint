@@ -38,6 +38,21 @@ Refinement and extension count as uses deliberately: a protocol that backs a ref
 hierarchy (`protocol Q: P`) or carries default implementations (`extension P { … }`) is
 providing value even without a direct existential, so it is kept.
 
+#### Composition typealiases
+A `typealias` that composes protocols (`typealias OrderStore = OrderSaving & OrderHistory`,
+the way the standard library defines `Codable`) is expanded wherever it is named. Conforming
+through it (`actor CoreDataOrderStore: OrderStore`) is a conformance to each protocol it
+composes; using it as a type (`let store: any OrderStore`, `<S: OrderStore>`,
+`protocol Q: OrderStore`) is a use of each. The expansion is transitive.
+
+The alias's own definition is **neither**. It names the protocols so that conformances and
+uses *through* it can be credited to them. Counting it as a use as well made every protocol it
+composes look used for as long as the alias existed, whether or not anything ever named the
+alias. That is a behaviour change: a protocol whose only "use" was appearing in a composition
+alias is now reported if nothing consumes it. An alias name declared more than one way in the
+project (two different nested `typealias Element`s, or an alias sharing its name with a type)
+is not expanded, and its definition still counts as a use.
+
 Matching is scoped by visibility. A `private`/`fileprivate` protocol is invisible outside
 its declaring file, so only conformers and uses **in that same file** are credited to it —
 a same-named, unrelated type referenced in another file can no longer mask it (a false
