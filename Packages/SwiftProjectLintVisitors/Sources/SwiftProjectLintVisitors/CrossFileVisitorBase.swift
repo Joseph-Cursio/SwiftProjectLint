@@ -40,6 +40,15 @@ open class CrossFileVisitorBase: BasePatternVisitor {
         fileCache.sorted { $0.key < $1.key }.map(\.value)
     }
 
+    /// The project's composition and rename aliases, so a visitor reading an inheritance clause
+    /// can see that `actor Store: OrderStore` conforms to every protocol `OrderStore` composes.
+    /// See `CompositionAliasCatalog`.
+    ///
+    /// The cross-file engine builds it once per run and hands it to every visitor before the
+    /// walk. A visitor driven directly, as unit tests do, builds it from its own `fileCache` on
+    /// first use. Both read the same trees, so the two routes give the same catalog.
+    public lazy var compositionAliases: CompositionAliasCatalog = .build(from: orderedSources)
+
     public required init(fileCache: [String: SourceFileSyntax]) {
         self.fileCache = fileCache
         super.init(pattern: BasePatternVisitor.placeholderPattern, viewMode: .sourceAccurate)
