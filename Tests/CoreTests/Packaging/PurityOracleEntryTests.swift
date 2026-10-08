@@ -22,6 +22,10 @@ import Testing
 /// None of those changes an output a rule test would notice. So this test is structural, over the
 /// source, and reads identifier tokens rather than text: a string literal or a comment that names
 /// one of these is not a use of it.
+///
+/// **Known limit.** The static scan matches type names (`heldByOneRun`): a static whose type is
+/// inferred from a call — `static var last = makeCatalog()` — names nothing it can match, and a type
+/// that stores a held value is held only once it is listed there.
 @Suite("One purity oracle per run, configured at one place")
 struct PurityOracleEntryTests {
 
@@ -133,21 +137,48 @@ struct PurityOracleEntryTests {
         #expect(offenders.isEmpty, "a static outlives the run that bound it: \(offenders)")
     }
 
-    /// What a static must not hold: the oracle and the table; the tripwire and `Withholdable`; every
-    /// type that can be withheld from a pass — found from the source, as `surfacesKeepOnlyWithholdableStorage`
-    /// finds them, so a fourth is covered the day it is added; and the types that store those
-    /// directly. `PackagePurityJoin`'s settled names are plain storage derived from the oracle, so a
+    /// What a static must not hold, by type name: the oracle and the table; the tripwire and
+    /// `Withholdable`; every type that can be withheld from a pass — found from the source, as
+    /// `surfacesKeepOnlyWithholdableStorage` finds them, so a fourth is covered the day it is added;
+    /// and the types this repository has that store one of those: the join and `CollectedTypes`, the
+    /// detector, and `BasePatternVisitor` with every class that inherits from it, found from the
+    /// source too. `PackagePurityJoin`'s settled names are plain storage derived from the oracle, so a
     /// static one would carry one run's answer into the next just as a static oracle would.
+    ///
+    /// **The scan matches names, and that is its limit.** A type added later that stores one of these
+    /// is not held until it is listed here, and a static whose type is inferred from a call —
+    /// `static var last = makeCatalog()` — names no type for the scan to match.
     static func heldByOneRun(in files: [SourceFile]) -> Set<String> {
         let named: Set<String> = [
             "PurityInferrer", "PackagePurity", "PurityTripwire", "Withholdable",
-            "CleanInstanceMethodCatalog", "ImpurePackageFunctions", "PackagePurityJoin", "CollectedTypes"
+            "CleanInstanceMethodCatalog", "ImpurePackageFunctions", "PackagePurityJoin", "CollectedTypes",
+            "SourcePatternDetector"
         ]
-        return named.union(withheldSurfaces(in: files).map(\.type))
+        return named.union(withheldSurfaces(in: files).map(\.type)).union(visitorClasses(in: files))
+    }
+
+    /// `BasePatternVisitor` and every class in `files` that inherits from it, directly or not.
+    static func visitorClasses(in files: [SourceFile]) -> Set<String> {
+        var inherited: [String: Set<String>] = [:]
+        for file in files {
+            let finder = InheritanceFinder(viewMode: .sourceAccurate)
+            finder.walk(file.tree)
+            inherited.merge(finder.inherited) { $0.union($1) }
+        }
+        var visitors: Set<String> = ["BasePatternVisitor"]
+        var changed = true
+        while changed {
+            let found = inherited.filter { !visitors.contains($0.key) && !$0.value.isDisjoint(with: visitors) }.keys
+            visitors.formUnion(found)
+            changed = !found.isEmpty
+        }
+        return visitors
     }
 
     /// The statics that may hold one: the task-local binding itself, and the built, empty `let`
-    /// constants that stand for "no package" — derived from no run, and holding no tripwire.
+    /// constants that stand for "no package" — derived from no run, and holding no tripwire. Each is
+    /// an exception only while it is built from nothing (`StoredStaticFinder.Offender.isBuiltFromNothing`),
+    /// so `static let empty = Self(inferrer: PurityInferrer())` is no exception.
     static let sanctionedStatics: [String: Set<String>] = [
         packagePurity: ["current", "unconfigured"],
         visitorsSources + "SwiftProjectLintVisitors/CleanInstanceMethodCatalog.swift": ["empty"],
@@ -163,7 +194,7 @@ struct PurityOracleEntryTests {
             finder.walk(file.tree)
             for found in finder.offenders {
                 let named = sanctionedStatics[file.path]?.contains(found.name) == true
-                let sanctioned = named && found.isConstantOrTaskLocal
+                let sanctioned = named && found.isConstantOrTaskLocal && found.isBuiltFromNothing
                 if !sanctioned { offenders.append("\(file.path): \(found.name)") }
             }
         }
@@ -302,16 +333,31 @@ private final class CallingFunctionFinder: SyntaxVisitor {
     }
 }
 
+/// Every class a file declares, with the names of the types it inherits from.
+private final class InheritanceFinder: SyntaxVisitor {
+    private(set) var inherited: [String: Set<String>] = [:]
+
+    override func visit(_ node: ClassDeclSyntax) -> SyntaxVisitorContinueKind {
+        let names = node.inheritanceClause?.inheritedTypes.map { PurityOracleEntryTests.typeName(of: $0.type) } ?? []
+        inherited[node.name.text, default: []].formUnion(names)
+        return .visitChildren
+    }
+}
+
 /// Stored `static`/`class` properties, and file-scope globals, whose declared type or initializer
 /// names a type in `held` — or, inside a held type or an extension of one, `Self`, which names it
-/// just as well. A computed one is re-evaluated on every read, so it reads the binding in force at
-/// the time and is not collected.
+/// just as well. A metatype (`X.self`, `X.Type`) holds no instance and is not a mention. A computed
+/// one is re-evaluated on every read, so it reads the binding in force at the time and is not
+/// collected.
 private final class StoredStaticFinder: SyntaxVisitor {
 
     struct Offender {
         let name: String
         /// A `let`, or a `@TaskLocal`, whose value only `withValue` changes, for one scope.
         let isConstantOrTaskLocal: Bool
+        /// Initialized from literals and the `empty` and `unconfigured` constants alone, by `Self(…)`,
+        /// its own type's name or a member reference: it can have created no oracle and read no run.
+        let isBuiltFromNothing: Bool
     }
 
     private(set) var offenders: [Offender] = []
@@ -360,11 +406,28 @@ private final class StoredStaticFinder: SyntaxVisitor {
             if !names.isDisjoint(with: held) || (selfIsHeld && names.contains("Self")) {
                 offenders.append(Offender(
                     name: binding.pattern.trimmedDescription,
-                    isConstantOrTaskLocal: node.bindingSpecifier.tokenKind == .keyword(.let) || isTaskLocal
+                    isConstantOrTaskLocal: node.bindingSpecifier.tokenKind == .keyword(.let) || isTaskLocal,
+                    isBuiltFromNothing: binding.initializer.map { isBuiltFromNothing($0.value) } ?? false
                 ))
             }
         }
         return .skipChildren
+    }
+
+    /// Whether every name `value` spells, its argument labels aside, is `Self`, the enclosing type,
+    /// `empty` or `unconfigured`.
+    private func isBuiltFromNothing(_ value: ExprSyntax) -> Bool {
+        let allowed = Set(["Self", "empty", "unconfigured"] + types.suffix(1))
+        return value.tokens(viewMode: .sourceAccurate).allSatisfy { token in
+            switch token.tokenKind {
+            case .identifier, .keyword:
+                let isLabel = token.parent?.as(LabeledExprSyntax.self)?.label?.id == token.id
+                return isLabel || allowed.contains(token.text)
+
+            default:
+                return true
+            }
+        }
     }
 
     private static func isStored(_ binding: PatternBindingSyntax) -> Bool {
@@ -375,13 +438,17 @@ private final class StoredStaticFinder: SyntaxVisitor {
         }
     }
 
-    /// The identifiers, and `Self`, that `syntax` names.
+    /// The identifiers, and `Self`, that `syntax` names — a metatype's aside.
     private static func names(in syntax: Syntax) -> Set<String> {
-        Set(syntax.tokens(viewMode: .sourceAccurate).compactMap {
-            switch $0.tokenKind {
-            case .identifier(let name): name
-            case .keyword(.Self): "Self"
-            default: nil
+        let tokens = Array(syntax.tokens(viewMode: .sourceAccurate))
+        return Set(tokens.indices.compactMap { index -> String? in
+            let isMetatype = index + 2 < tokens.count && tokens[index + 1].text == "."
+                && ["self", "Type", "Protocol"].contains(tokens[index + 2].text)
+            guard !isMetatype else { return nil }
+            switch tokens[index].tokenKind {
+            case .identifier(let name): return name
+            case .keyword(.Self): return "Self"
+            default: return nil
             }
         })
     }
