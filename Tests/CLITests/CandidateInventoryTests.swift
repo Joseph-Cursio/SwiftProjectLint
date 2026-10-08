@@ -29,6 +29,8 @@ struct CandidateInventoryTests {
             issue(.pureFunctionCandidate),
             issue(.pureFunctionCandidate),
             issue(.pureClosureCandidate),
+            issue(.pureMutatorCandidate),
+            issue(.missingEquatableOnPureResult),
             issue(.extractableTotalKernel),
             issue(.globalMutableState, severity: .warning),
             issue(.idempotencyViolation, severity: .error)
@@ -37,11 +39,21 @@ struct CandidateInventoryTests {
 
     // MARK: - What gets withheld
 
-    @Test("only the two candidate rules are withheld")
+    @Test("only the three candidate rules are withheld")
     func onlyCandidatesAreWithheld() {
         let split = CandidateInventory.split(corpus(), collapsing: true)
-        #expect(split.withheld.count == 3)
-        #expect(Set(split.withheld.map(\.ruleName)) == [.pureFunctionCandidate, .pureClosureCandidate])
+        #expect(split.withheld.count == 4)
+        #expect(
+            Set(split.withheld.map(\.ruleName))
+                == [.pureFunctionCandidate, .pureClosureCandidate, .pureMutatorCandidate]
+        )
+    }
+
+    /// It seeds the same pipeline, but it names a conformance to add — an edit, not a census.
+    @Test("the missing-Equatable near miss stays listed")
+    func nearMissStaysListed() {
+        let listed = CandidateInventory.split(corpus(), collapsing: true).listed
+        #expect(listed.map(\.ruleName).contains(.missingEquatableOnPureResult))
     }
 
     @Test("a diagnosing rule in the same category stays listed")
@@ -84,9 +96,9 @@ struct CandidateInventoryTests {
         let output = TextFormatter(withheld: split.withheld).format(issues: split.listed)
 
         // The whole reason `withheld` is held by the formatter rather than filtered by the caller.
-        // "Found 3 issues" for a run that found 6 is the same species of lie as a confident zero.
-        #expect(output.contains("Found 6 issues"))
-        #expect(output.contains("3 of these are property-test candidates, not listed above"))
+        // "Found 4 issues" for a run that found 8 is the same species of lie as a confident zero.
+        #expect(output.contains("Found 8 issues"))
+        #expect(output.contains("4 of these are property-test candidates, not listed above"))
         #expect(output.contains("--categories testability"))
         #expect(output.contains("--format pbt-seeds"))
     }
@@ -112,7 +124,7 @@ struct CandidateInventoryTests {
             corpus(), format: .text, selectedCategories: [.testability]
         )
         #expect(output.contains("not listed above") == false)
-        #expect(output.contains("Found 6 issues"))
+        #expect(output.contains("Found 8 issues"))
     }
 
     @Test("selecting an unrelated category still collapses")

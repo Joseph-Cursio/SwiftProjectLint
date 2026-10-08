@@ -20,9 +20,13 @@ import SwiftSyntax
 /// It **diagnoses** rather than nominates — there is a specific edit to make — which is why it is
 /// not one of `CandidateInventory`'s collapsed census rules.
 ///
-/// The finding also seeds the manifest as a `pure-function` carrying `requires`, so `swift-infer`
-/// can name the conformance in the stub it writes rather than proposing a law that does not
-/// compile. See `PBTSeedRequirement`.
+/// The same holds for a **mutator** — a function with one `inout` parameter, or a `mutating`
+/// method — whose mutated value is what a law compares: `applyMigration(_:to: inout YAMLConfig)`
+/// is a near miss when `YAMLConfig` is. See `PureMutatorCandidateVisitor`.
+///
+/// The finding also seeds the manifest carrying `requires` — as a `pure-function`, or a
+/// `pure-mutator` with what it `mutates` — so `swift-infer` can name the conformance in the stub it
+/// writes rather than proposing a law that does not compile. See `PBTSeedRequirement`.
 final class MissingEquatableOnPureResultVisitor: BasePatternVisitor, PackagePurityConsumer {
 
     /// The oracle through `PropertyTestCandidacy.equatableNearMiss`, the clean-method catalog it is
@@ -43,28 +47,19 @@ final class MissingEquatableOnPureResultVisitor: BasePatternVisitor, PackagePuri
 
     override func visit(_ node: FunctionDeclSyntax) -> SyntaxVisitorContinueKind {
         guard !fileIsTestOrFixture,
-              let nearMiss = PropertyTestCandidacy.equatableNearMiss(
-                  of: node,
-                  knownEquatableTypes: knownEquatableTypes,
-                  equatableRemedies: knownEquatableRemedies,
-                  knownValueTypes: knownValueTypes,
-                  cleanInstanceMethods: knownCleanInstanceMethods
+              let found = nearMiss(node),
+              !PureMutatorCandidateVisitor.reachesImpureCallee(
+                  node, settled: knownImpurePackageFunctions.settledNames
               ) else {
             return .visitChildren
         }
 
-        // The same one-hop join `pureFunctionCandidate` applies: a body reaching a package function
-        // the oracle refutes is not pure, whatever the declaration alone says.
-        let settled = knownImpurePackageFunctions.settledNames
-        if let body = node.body, !settled.isEmpty,
-           PackagePurityJoin.impureCallee(in: Syntax(body), settledImpureNames: settled) != nil {
-            return .visitChildren
-        }
-
         let name = node.name.text
-        let types = nearMiss.equatable
+        let types = found.equatable
         let restriction = PropertyTestCandidacy.restriction(of: node)
-        let claim = nearMiss.candidate.isPartial ? "looks pure but partial" : "looks pure and total"
+        let claim = found.isPartial ? "looks pure but partial" : "looks pure and total"
+        let compared = found.mutates.map { $0 == "self" ? "what it leaves in `self`" : "what it leaves in `\($0)`" }
+            ?? "its result"
         var suggestion = "Add `Equatable` to \(Self.list(types)). Every stored property and "
             + "associated value \(types.count == 1 ? "it holds" : "they hold") is already `Equatable`"
             + "\(types.count == 1 ? "" : " or on this list"), so the compiler synthesizes the "
@@ -75,7 +70,7 @@ final class MissingEquatableOnPureResultVisitor: BasePatternVisitor, PackagePuri
 
         addIssue(
             severity: .info,
-            message: "`\(name)(…)` \(claim), but no property test can compare its result: "
+            message: "`\(name)(…)` \(claim), but no property test can compare \(compared): "
                 + "`\(types[0])` is not `Equatable`"
                 + "\(restriction == nil ? "" : PureFunctionCandidateVisitor.unreachableClause)",
             filePath: getFilePath(for: Syntax(node)),
@@ -83,11 +78,38 @@ final class MissingEquatableOnPureResultVisitor: BasePatternVisitor, PackagePuri
             suggestion: suggestion,
             ruleName: .missingEquatableOnPureResult,
             symbol: name,
-            role: DeclaredRoleClassifier.role(of: node, isPartial: nearMiss.candidate.isPartial),
+            role: found.mutates == nil ? DeclaredRoleClassifier.role(of: node, isPartial: found.isPartial) : nil,
             testReachability: restriction.map(TestReachability.unreachable) ?? .reachable,
-            requires: PBTSeedRequirement(equatable: types)
+            requires: PBTSeedRequirement(equatable: types),
+            mutates: found.mutates
         )
         return .visitChildren
+    }
+
+    /// A near miss of either kind: a function whose result needs the conformance, or a mutator
+    /// whose mutated value does. At most one applies — a mutator returns nothing.
+    private func nearMiss(_ node: FunctionDeclSyntax) -> (equatable: [String], isPartial: Bool, mutates: String?)? {
+        if let result = PropertyTestCandidacy.equatableNearMiss(
+            of: node,
+            knownEquatableTypes: knownEquatableTypes,
+            equatableRemedies: knownEquatableRemedies,
+            knownValueTypes: knownValueTypes,
+            cleanInstanceMethods: knownCleanInstanceMethods
+        ) {
+            return (result.equatable, result.candidate.isPartial, nil)
+        }
+        guard !knownEquatableRemedies.isEmpty,
+              let mutator = PropertyTestCandidacy.mutatorCandidate(
+                  of: node,
+                  knownEquatableTypes: knownEquatableTypes,
+                  equatableRemedies: knownEquatableRemedies,
+                  knownValueTypes: knownValueTypes,
+                  cleanInstanceMethods: knownCleanInstanceMethods
+              ),
+              !mutator.equatable.isEmpty else {
+            return nil
+        }
+        return (mutator.equatable, mutator.candidate.isPartial, mutator.mutates)
     }
 
     /// `A`, `A` and `B`, or `A`, `B` and `C` — each in backticks.

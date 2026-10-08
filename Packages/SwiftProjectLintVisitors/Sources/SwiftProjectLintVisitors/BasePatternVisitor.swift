@@ -415,7 +415,8 @@ open class BasePatternVisitor: SyntaxVisitor, PatternVisitorProtocol {
         role: PBTSeedRole? = nil,
         effect: PBTSeedEffect? = nil,
         testReachability: TestReachability = .unknown,
-        requires: PBTSeedRequirement? = nil
+        requires: PBTSeedRequirement? = nil,
+        mutates: String? = nil
     ) {
         let issue = LintIssue(
             severity: severity,
@@ -428,7 +429,8 @@ open class BasePatternVisitor: SyntaxVisitor, PatternVisitorProtocol {
             role: role,
             effect: effect,
             testReachability: testReachability,
-            requires: requires
+            requires: requires,
+            mutates: mutates
         )
         detectedIssues.append(issue)
     }

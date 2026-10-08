@@ -27,7 +27,11 @@ import SwiftProjectLintModels
 /// So the candidates are still found, still counted in the summary, still exported, and still
 /// exit-code relevant. They are simply not printed one per line in a report a person reads.
 ///
-/// ## Why these two rules and not the whole category
+/// ## Why these rules and not the whole category
+///
+/// `.pureMutatorCandidate` joined the two later, on the same terms: it nominates mutators the
+/// function rule cannot, and there is nothing to do per item. `.missingEquatableOnPureResult` seeds
+/// the same pipeline and is **not** here — it names a conformance to add, which is an edit.
 ///
 /// `.extractableTotalKernel` stays listed, and the distinction is what the rule *asks of the reader*
 /// rather than how many there are. A candidate rule **nominates**: "this is pure, it could be
@@ -41,13 +45,14 @@ public enum CandidateInventory {
 
     /// Rules that nominate rather than diagnose.
     ///
-    /// Deliberately **not** derived from `PBTSeedsFormatter.seedKinds`, even though it would catch
-    /// three of these four. `.idempotencyViolation` seeds the pipeline too and is an *error* about
+    /// Deliberately **not** derived from `PBTSeedsFormatter.seedKinds`, even though every one of
+    /// these is in it. `.idempotencyViolation` seeds the pipeline too and is an *error* about
     /// a contract that is already broken; collapsing it would hide a defect. Seeding the pipeline
     /// and being a census are different properties, and only one of them is about volume.
     public static let inventoryRules: Set<RuleIdentifier> = [
         .pureFunctionCandidate,
-        .pureClosureCandidate
+        .pureClosureCandidate,
+        .pureMutatorCandidate
     ]
 
     /// The report split into what a reader should see and what should be counted but not listed.

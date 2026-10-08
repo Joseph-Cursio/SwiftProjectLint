@@ -23,6 +23,8 @@ It fires only when a bare `: Equatable` would be **synthesized**. `EquatableReme
 - a stored property with no annotation, unless its initializer names the type (`= Foo(…)` or a literal);
 - a type name declared twice in the project, or declared outside it.
 
+The same holds for a **mutator** — a function with one `inout` parameter, or a `mutating` method — whose mutated value is what a law compares: it is reported here when the mutated value needs the conformance, and seeded as a `pure-mutator` carrying both `requires` and `mutates`. A mutator whose value is already comparable is a [Pure Mutator Property-Test Candidate](pure-mutator-candidate.md).
+
 The finding is raised at the **function**, not the type: what earns a conformance is a pure function waiting on it. A blanket "this struct could be `Equatable`" would fire on most value types in a project, and a conformance nothing compares is API surface with no return. The sibling [Missing Equatable on State Type](missing-equatable-on-state-type.md) makes the same argument for SwiftUI state.
 
 Unlike the two candidate census rules, it is **listed** in a default report rather than collapsed: it diagnoses — there is a specific edit to make.

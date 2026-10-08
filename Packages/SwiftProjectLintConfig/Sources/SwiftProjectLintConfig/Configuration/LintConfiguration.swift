@@ -271,7 +271,8 @@ public struct LintConfiguration: Sendable {
                     role: issue.role,
                     effect: issue.effect,
                     testReachability: issue.testReachability,
-                    requires: issue.requires
+                    requires: issue.requires,
+                    mutates: issue.mutates
                 )
             }
 

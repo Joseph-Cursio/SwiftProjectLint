@@ -56,6 +56,20 @@ class Testability: BasePatternRegistrar {
                     + "declaration-based rules cannot see because they have no name to point at."
             ),
             SyntaxPattern(
+                name: .pureMutatorCandidate,
+                visitor: PureMutatorCandidateVisitor.self,
+                severity: .info,
+                category: .testability,
+                messageTemplate: "A pure mutator — a property-based-test candidate whose result is the "
+                    + "value it changes",
+                suggestion: "Copy the value, apply it, and compare: twice for idempotence, two copies "
+                    + "for determinism.",
+                description: "Surfaces functions that return nothing and change exactly one value — "
+                    + "one `inout` argument, or a `mutating` method's `self` — as a function of their "
+                    + "inputs. Pure Function Property-Test Candidate needs a returned result and "
+                    + "refuses them all."
+            ),
+            SyntaxPattern(
                 name: .impureClosureInventory,
                 visitor: ImpureClosureVisitor.self,
                 severity: .info,

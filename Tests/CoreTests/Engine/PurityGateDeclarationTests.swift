@@ -32,6 +32,7 @@ struct PurityGateDeclarationTests {
     static let expectedDeclarations: [RuleIdentifier: PackagePurityInputs] = [
         .pureFunctionCandidate: [.oracle, .cleanInstanceMethods, .impurePackageFunctions],
         .missingEquatableOnPureResult: [.oracle, .cleanInstanceMethods, .impurePackageFunctions],
+        .pureMutatorCandidate: [.oracle, .cleanInstanceMethods, .impurePackageFunctions],
         .pureClosureCandidate: [.oracle],
         .impureClosureInventory: [.oracle],
         .extractableTotalKernel: [.oracle],
@@ -48,7 +49,7 @@ struct PurityGateDeclarationTests {
         registered.filter { $0.name == rule }.reduce(into: []) { $0.formUnion($1.packagePurityInputs) }
     }
 
-    @Test("the declarations are the reviewed ten")
+    @Test("the declarations are the reviewed eleven")
     func declarationInventory() {
         var declared: [RuleIdentifier: PackagePurityInputs] = [:]
         for rule in Self.ruleNames where !Self.declared(rule).isEmpty {
@@ -117,12 +118,14 @@ struct PurityGateDeclarationTests {
     }
 
     /// What `Docs/rules/pure-function-candidate.md` says: with any other reader on, turning Pure
-    /// Function and Missing Equatable on Pure Function Result off still builds the table and skips the
-    /// one-hop join; it skips the clean-method catalog too unless Direct Instantiation or Concrete Type
-    /// Usage is on, since the other six read only the oracle.
-    @Test("without the two candidate rules the join is skipped, and the clean-method catalog unless its two readers run")
+    /// Function, Pure Mutator and Missing Equatable on Pure Function Result off still builds the table
+    /// and skips the one-hop join; it skips the clean-method catalog too unless Direct Instantiation
+    /// or Concrete Type Usage is on, since the other six read only the oracle.
+    @Test("without the three candidate rules the join is skipped, and the clean-method catalog unless its two readers run")
     func onlyTheCandidateRulesReadTheJoin() {
-        let joinReaders: Set<RuleIdentifier> = [.pureFunctionCandidate, .missingEquatableOnPureResult]
+        let joinReaders: Set<RuleIdentifier> = [
+            .pureFunctionCandidate, .missingEquatableOnPureResult, .pureMutatorCandidate
+        ]
         let others = Self.declaredRules.filter { !joinReaders.contains($0) }
         let registry = PatternRegistryFactory.createConfiguredSystem().visitorRegistry
         func demand(_ rules: [RuleIdentifier]) -> PackagePurityInputs {
@@ -472,6 +475,16 @@ enum PurityGateCorpus {
         struct Planner {
             let base: Int
             func plan(_ n: Int) -> Plan { Plan(steps: [n * base]) }
+        }
+
+        // A pure mutator for `pureMutatorCandidate`, read the same way: an instance method, found.
+        struct Tally: Equatable {
+            var n: Int
+        }
+
+        struct Adder {
+            let step: Int
+            func add(to tally: inout Tally) { tally.n += step }
         }
         """,
         "Sources/Lib/Engine.swift": """

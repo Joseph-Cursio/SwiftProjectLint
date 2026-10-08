@@ -251,17 +251,17 @@ As with every refuter, any doubt refutes: a function that builds an `Item` and r
 `n` is refused too. The one-hop callee join counts the witness as evidence, so a caller of such a
 function is withdrawn as well.
 
-**When the facts are built.** Only when a rule the run executes reads them: this one and nine
-others (Missing Equatable on Pure Function Result, Pure Closure Property-Test Candidate, Impure
+**When the facts are built.** Only when a rule the run executes reads them: this one and ten
+others (Missing Equatable on Pure Function Result, Pure Mutator Property-Test Candidate, Pure Closure Property-Test Candidate, Impure
 Closure Inventory, Extractable Total Kernel, Unreachable Effect Closure, Could Be Private, Could Be
 Private Member, Direct Instantiation and Concrete Type Usage). A run narrowed to rules that read none of it — by `enabled_only`,
 `disabled_rules` or `--categories` — skips the universe walk, the manifest reads, the parse of the
 files only the universe holds (generated files, and the nested packages the run does not report on;
 files under `excluded_paths` are parsed regardless, as evidence) and the facts themselves. Turning
-this rule and Missing Equatable on Pure Function Result off while any of the other eight is enabled
-still builds the universe and the facts, and skips the one-hop callee join, which only those two
-read — the second asks this rule's question with the result's `Equatable` gate moved, so it reads
-the same three inputs. It skips the clean-instance-method catalog
+this rule, Pure Mutator and Missing Equatable on Pure Function Result off while any of the other
+eight is enabled still builds the universe and the facts, and skips the one-hop callee join, which
+only those three read — the other two ask this rule's question of a mutator, or with the result's
+`Equatable` gate moved, so they read the same three inputs. It skips the clean-instance-method catalog
 as well unless Direct Instantiation or Concrete Type Usage is enabled: those two are the only other
 rules that read it, and the other six (Pure Closure, Impure Closure Inventory, Extractable Total
 Kernel, Unreachable Effect Closure, Could Be Private and Could Be Private Member) read only the
