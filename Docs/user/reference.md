@@ -255,6 +255,7 @@ These rules are **off by default** and must be listed under `enabled_only` to ru
 | `Duplicate Enum Mapping` | Implicit-member values (`.red`) are compared as bare text, even across result types |
 | `Parallel Enum Shape` | Distinct domains can share case names (a compass and a wind direction) |
 | `Could Adopt Protocol` | Two unrelated concepts can share a property set |
+| `Unused Protocol Requirement` | Calls are resolved by name, not type, and any value it cannot follow silences the protocol; its precision has been read only on the author's projects |
 | `Hoistable Conformer Member` | A deliberately type-specific implementation that only *looks* identical may be flagged |
 | `Hoistable Sequence Operation` | A heuristic, not a proof: a member set can match a protocol by coincidence |
 | `Magic Layout Number` | Inline layout numbers like `.padding(16)` are idiomatic SwiftUI; enable it to enforce design tokens |

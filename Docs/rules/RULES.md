@@ -1,6 +1,6 @@
 # SwiftProjectLint Rules Reference
 
-SwiftProjectLint is a static analysis tool for SwiftUI projects. It parses Swift source files using SwiftSyntax AST visitors to detect anti-patterns spanning state management, performance, animations, architecture, code quality, security, accessibility, memory management, networking, UI patterns, modernization, and idempotency. This reference documents all 214 lint rules, organized by category.
+SwiftProjectLint is a static analysis tool for SwiftUI projects. It parses Swift source files using SwiftSyntax AST visitors to detect anti-patterns spanning state management, performance, animations, architecture, code quality, security, accessibility, memory management, networking, UI patterns, modernization, and idempotency. This reference documents all 215 lint rules, organized by category.
 
 Rules marked **opt-in** are disabled by default and must be explicitly listed under `enabled_only` in `.swiftprojectlint.yml`.
 
@@ -82,6 +82,7 @@ Rules marked **opt-in** are disabled by default and must be explicitly listed un
 | [Duplicate Enum Mapping](duplicate-enum-mapping.md) | Info *(opt-in)* |
 | [Parallel Enum Shape](parallel-enum-shape.md) | Info *(opt-in)* |
 | [Unused Protocol Abstraction](unused-protocol-abstraction.md) | Info |
+| [Unused Protocol Requirement](unused-protocol-requirement.md) | Info *(opt-in)* |
 | [Could Adopt Protocol](could-adopt-protocol.md) | Info *(opt-in)* |
 | [Hoistable Conformer Member](hoistable-conformer-member.md) | Info *(opt-in)* |
 | [Hoistable Sequence Operation](hoistable-sequence-operation.md) | Info *(opt-in)* |
@@ -319,8 +320,11 @@ Substitutability is about behaviour, so static analysis sees only its outline. T
 
 ### Interface Segregation
 
-- [Fat Protocol](fat-protocol.md)
-- [Too Many Environment Objects](too-many-environment-objects.md)
+The principle is about what clients use, not how big an interface is. `Unused Protocol Requirement` checks use directly (a requirement no client calls through the protocol); the others use size as a proxy.
+
+- [Unused Protocol Requirement](unused-protocol-requirement.md)
+- [Fat Protocol](fat-protocol.md) (by size proxy)
+- [Too Many Environment Objects](too-many-environment-objects.md) (by size proxy)
 
 ### Dependency Inversion
 

@@ -44,7 +44,7 @@ extension RuleIdentifier {
              .duplicateStructShape, .sharedDomainEnumField,
              .primitiveBypassingItsDomainType, .primitiveNamedForItsDomainType,
              .scatteredEnumMapping, .duplicateEnumMapping, .parallelEnumShape,
-             .unusedProtocolAbstraction,
+             .unusedProtocolAbstraction, .unusedProtocolRequirement,
              .couldAdoptProtocol, .hoistableConformerMember,
              .hoistableSequenceOperation,
              .subclassedForMocking,

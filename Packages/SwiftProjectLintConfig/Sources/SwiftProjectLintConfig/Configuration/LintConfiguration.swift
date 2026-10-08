@@ -120,6 +120,9 @@ public struct LintConfiguration: Sendable {
         .duplicateEnumMapping,
         .parallelEnumShape,
         .couldAdoptProtocol,
+        // Opt-in until its precision has been read on more than the author's projects — see
+        // Docs/rules/unused-protocol-requirement.md.
+        .unusedProtocolRequirement,
         .hoistableConformerMember,
         .hoistableSequenceOperation,
         .mutuallyExclusivePresentationState,
