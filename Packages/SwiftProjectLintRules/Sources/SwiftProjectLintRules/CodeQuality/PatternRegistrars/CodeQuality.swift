@@ -152,6 +152,7 @@ class CodeQuality: BasePatternRegistrar {
             DiscardedTryResult(),
             LossyStructRebuild(),
             LossyRoundTrip(),
+            SubsumedCondition(),
             MapUsedForSideEffects(),
             DisfavoredOverload(),
             RetroactiveConformance(),

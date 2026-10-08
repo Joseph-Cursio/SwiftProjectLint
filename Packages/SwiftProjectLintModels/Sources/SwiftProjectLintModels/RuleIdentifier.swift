@@ -284,6 +284,10 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
     /// a field on the way back — so that field never survives the round trip.
     case lossyRoundTrip = "Lossy Round Trip"
 
+    /// An operand of an `||` or `&&` chain that can never change its result, because another
+    /// operand implies it or is implied by it — `x.contains("a") || x.contains("ab")`.
+    case subsumedCondition = "Subsumed Condition"
+
     // Other/System Rules
     case fileParsingError = "File Parsing Error"
     case unknown = "Unknown"
