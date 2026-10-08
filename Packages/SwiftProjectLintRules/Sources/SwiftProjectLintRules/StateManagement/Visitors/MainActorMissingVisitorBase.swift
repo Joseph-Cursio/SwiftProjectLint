@@ -13,6 +13,12 @@ import SwiftSyntax
 ///
 /// The only difference is *which* classes are candidates — subclasses override
 /// ``isCandidate(_:)``. The base applies the `@MainActor`-absence check itself.
+///
+/// A class in a file compiled with default MainActor isolation (SE-0466, read from the build
+/// settings into `defaultMainActorSourcePaths`) already is `@MainActor`, so it is not a candidate
+/// unless it opts out of the default with `nonisolated`. The suppression set still holds explicit
+/// annotations only: a superclass that is `@MainActor` through its target's default does not
+/// suppress a subclass in a target without it.
 class MainActorMissingVisitorBase: CrossFileVisitorBase, CrossFilePatternVisitorProtocol {
 
     /// All class names explicitly annotated `@MainActor`, collected across all files.
@@ -41,15 +47,17 @@ class MainActorMissingVisitorBase: CrossFileVisitorBase, CrossFilePatternVisitor
             mainActorClassNames.insert(typeName)
         }
 
+        let filePath = getFilePath(for: Syntax(node))
         guard isCandidate(node),
-              !hasAttribute(node.attributes, named: "MainActor") else {
+              !hasAttribute(node.attributes, named: "MainActor"),
+              !isMainActorByDefault(node, filePath: filePath) else {
             return .visitChildren
         }
 
         candidates.append(Candidate(
             typeName: typeName,
             inheritedTypeNames: inheritedTypeNames(from: node.inheritanceClause),
-            filePath: getFilePath(for: Syntax(node)),
+            filePath: filePath,
             lineNumber: getLineNumber(for: Syntax(node))
         ))
 
@@ -88,6 +96,13 @@ class MainActorMissingVisitorBase: CrossFileVisitorBase, CrossFilePatternVisitor
         attributes.contains { element in
             element.as(AttributeSyntax.self)?.attributeName.trimmedDescription == name
         }
+    }
+
+    /// Whether `node` is `@MainActor` through its target's default isolation: its file is compiled
+    /// with default MainActor isolation and the class does not opt out with `nonisolated`.
+    private func isMainActorByDefault(_ node: ClassDeclSyntax, filePath: String) -> Bool {
+        isDefaultMainActorSource(filePath)
+            && !node.modifiers.contains { $0.name.tokenKind == .keyword(.nonisolated) }
     }
 
     private func inheritedTypeNames(from clause: InheritanceClauseSyntax?) -> [String] {

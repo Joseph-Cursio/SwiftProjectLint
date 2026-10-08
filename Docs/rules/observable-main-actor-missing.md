@@ -24,9 +24,13 @@ Annotating an `@Observable` class `@MainActor` makes the threading contract expl
 
 Only `class` declarations are inspected; structs annotated `@Observable` cannot be subclassed and actor isolation is less relevant.
 
+**Default MainActor isolation.** In a target built with `SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor` (Xcode) or `swiftSettings: [.defaultIsolation(MainActor.self)]` (SwiftPM), SE-0466 makes an unannotated class `@MainActor` already, so the rule doesn't flag it. The rule reads both build settings, as described in [Where default isolation is read](blocking-io-on-main-actor.md#where-default-isolation-is-read). A class that opts out of the default with `nonisolated` is still flagged.
+
 ### Known Limitation
 
-Suppression covers **one level of inheritance** only. Multi-level chains (grandparent `@MainActor` → parent (no annotation) → child) are not traversed. Superclasses from external SPM packages or frameworks (not in the file cache) cannot be suppressed. Teams using `swiftSettings: [.defaultIsolation(MainActor.self)]` in `Package.swift` should disable this rule for that target, as target-level isolation is not visible in Swift source AST.
+Suppression covers **one level of inheritance** only. Multi-level chains (grandparent `@MainActor` → parent (no annotation) → child) are not traversed. Superclasses from external SPM packages or frameworks (not in the file cache) cannot be suppressed. Only an explicit `@MainActor` suppresses a subclass: a superclass that is main-actor through its own target's default doesn't suppress a subclass in a target without that default.
+
+Default isolation set where the rule doesn't read it, such as an `.xcconfig` file, isn't seen, so classes in that target are still flagged.
 
 ### Relationship to `main-actor-missing-on-ui-code`
 
@@ -67,6 +71,12 @@ class DerivedModel: BaseModel {
 class DataService {
     var items: [String] = []
 }
+
+// In a target built with default MainActor isolation — already @MainActor, not flagged
+@Observable
+class FeedModel {
+    var posts: [Post] = []
+}
 ```
 
 ### Violating Examples
@@ -95,6 +105,13 @@ class FeedModel {
     func refresh() async {
         posts = await fetchPosts()  // ⚠️ Called from any actor
     }
+}
+
+// FLAGGED even in a target built with default MainActor isolation:
+// `nonisolated` opts the class out of the default
+@Observable
+nonisolated class SettingsModel {
+    var isDarkMode = false
 }
 ```
 
