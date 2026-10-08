@@ -2,12 +2,12 @@ import Foundation
 
 /// Records every read of a package-purity surface the run withheld.
 ///
-/// One per run, created by `ProjectLinter` and carried by whatever the run withholds: the
-/// `PackagePurity` it binds when no visitor declared a purity input, and each pre-scan catalog no
-/// visitor declared. A read of any of them lands here; `ProjectLinter` seals the tripwire once the
-/// analysis has returned and, if anything tripped, discards the run's findings and redoes it with
-/// everything built. The answer a withheld surface gives — the unconfigured one — is therefore
-/// never reported.
+/// One per analysis pass, created by `ProjectLinter.pass` and carried by whatever the pass
+/// withholds: the `PackagePurity` it binds when no visitor declared a purity input, and each
+/// pre-scan catalog no visitor declared. A read of any of them lands here; the pass seals the
+/// tripwire once the analysis has returned and, if anything tripped, `ProjectLinter.lint` discards
+/// its findings and redoes the run with everything built, under a fresh tripwire. The answer a
+/// withheld surface gives — the unconfigured one — is therefore never reported.
 ///
 /// **Never store one in a `static`**, for the reason `PackagePurity` gives: it belongs to one run.
 public final class PurityTripwire: @unchecked Sendable {

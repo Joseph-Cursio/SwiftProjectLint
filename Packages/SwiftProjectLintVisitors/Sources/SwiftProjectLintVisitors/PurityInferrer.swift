@@ -19,7 +19,7 @@ import SwiftSyntax
 ///
 /// The one piece of configuration SEI's oracle takes is the package's `ConstructionFacts`, and SEI
 /// asks that **every** inferrer in a run get the same table. So `init()` reads the table bound for
-/// the current task — `PackagePurity.current`, which `ProjectLinter.analyzeProject` binds once
+/// the current task — `PackagePurity.current`, which `ProjectLinter.pass` binds once per pass
 /// around its pre-scan, per-file and cross-file phases — rather than taking it as an argument. The
 /// nine call sites that create one — four stored per-visitor inferrers, three static helpers and the
 /// two pre-scan catalogs — are configured without being touched, and so is the next one. Outside a

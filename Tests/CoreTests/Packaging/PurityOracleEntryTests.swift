@@ -5,7 +5,7 @@ import Testing
 
 /// Every purity oracle in a lint run is configured with that run's package purity, and stays so.
 ///
-/// `PackagePurity.current` is a task-local: `ProjectLinter.analyzeProject` binds it once, and every
+/// `PackagePurity.current` is a task-local: `ProjectLinter.pass` binds it once per pass, and every
 /// `PurityInferrer()` created inside the binding reads it. That reaches the nine places that create
 /// an oracle today without touching them, and it has exactly three ways to fail quietly — each the
 /// shape that already cost this repository a catalog built and then dropped

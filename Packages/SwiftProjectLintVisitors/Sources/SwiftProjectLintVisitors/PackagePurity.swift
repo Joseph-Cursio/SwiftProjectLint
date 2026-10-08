@@ -2,8 +2,8 @@ import SwiftEffectInference
 import SwiftSyntax
 
 /// What the purity oracle knows about the package as a whole: SEI's `ConstructionFacts`, built
-/// once per lint run from the ``ConstructionUniverse`` and read by every `PurityInferrer` the run
-/// creates.
+/// from the ``ConstructionUniverse`` at most once per analysis pass and read by every
+/// `PurityInferrer` the pass creates.
 ///
 /// ## Why it exists
 ///
@@ -16,8 +16,10 @@ import SwiftSyntax
 ///
 /// ## The task-local contract
 ///
-/// `ProjectLinter.analyzeProject` builds this once, after discovery, and binds it as
-/// ``current`` around the pre-scan, the per-file task group and cross-file analysis. Every
+/// `ProjectLinter.pass` builds this once per pass, after discovery, and binds it as ``current``
+/// around the pre-scan, the per-file task group and cross-file analysis — or, when no visitor the
+/// run executes declares a purity input (`PackagePurityConsumer`), builds nothing and binds
+/// ``withheld(by:)`` instead. A run is one pass, or two when the first read what it withheld. Every
 /// `PurityInferrer()` created inside that scope reads it — the stored inferrers of the closure and
 /// kernel rules, the static helpers (`PropertyTestCandidacy`, `SelfAccessAnalyzer`), and the
 /// pre-scan catalogs (`CleanInstanceMethodCatalog`, `PackagePurityJoin`). Task groups inherit a

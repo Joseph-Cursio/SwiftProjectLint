@@ -115,8 +115,8 @@ could catch.
 ### The package purity
 
 Six more in the same shape, from wiring SEI's construction facts through `ProjectLinter`. The facts
-are built once per run and bound as a task-local (`PackagePurity.current`) around the pre-scan, the
-per-file task group and cross-file analysis; every `PurityInferrer()` reads it. Each mutant breaks
+are built at most once per pass and bound as a task-local (`PackagePurity.current`) around the
+pre-scan, the per-file task group and cross-file analysis; every `PurityInferrer()` reads it. Each mutant breaks
 one link of that, and each is a bug whose output looks like a corpus with more candidates in it.
 
 | id | shape | expected | killer |
