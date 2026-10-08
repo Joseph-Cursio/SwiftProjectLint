@@ -66,7 +66,10 @@ import SwiftSyntax
 /// with a string, not only bounding a loop with a number.
 ///
 /// `info` severity; opt-in. Reports a refactor, not a defect.
-final class ExtractableTotalKernelVisitor: BasePatternVisitor {
+final class ExtractableTotalKernelVisitor: BasePatternVisitor, PackagePurityConsumer {
+
+    /// `isPure(function)`, the method's first gate.
+    static let packagePurityInputs: PackagePurityInputs = [.oracle]
 
     private var fileIsTestOrFixture = false
     private let purityInferrer = PurityInferrer()

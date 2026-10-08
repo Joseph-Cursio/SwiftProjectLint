@@ -1,0 +1,13 @@
+diff --git a/Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/ProjectLinter.swift b/Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/ProjectLinter.swift
+index 1482c604..58de5d17 100755
+--- a/Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/ProjectLinter.swift
++++ b/Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/ProjectLinter.swift
+@@ -357,7 +357,7 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
+             }
+         }
+ 
+-        guard resolvingUniverse else {
++        guard resolvingUniverse || true else {
+             return DiscoveredFiles(reportable: filePaths, evidenceOnly: evidenceOnly, constructionUniverse: nil)
+         }
+ 

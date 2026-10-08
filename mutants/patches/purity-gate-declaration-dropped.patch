@@ -1,0 +1,16 @@
+diff --git a/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/Architecture/Visitors/DirectInstantiationVisitor.swift b/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/Architecture/Visitors/DirectInstantiationVisitor.swift
+index 5f9ee603..6a82cc6a 100644
+--- a/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/Architecture/Visitors/DirectInstantiationVisitor.swift
++++ b/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/Architecture/Visitors/DirectInstantiationVisitor.swift
+@@ -5,10 +5,7 @@ import SwiftSyntax
+ 
+ /// A SwiftSyntax visitor that detects direct instantiation of concrete service-like types
+ /// where dependency injection would improve testability and reduce coupling.
+-class DirectInstantiationVisitor: BasePatternVisitor, PackagePurityConsumer {
+-
+-    /// `isPureKernel`, the kernel exemption.
+-    static let packagePurityInputs: PackagePurityInputs = [.cleanInstanceMethods]
++class DirectInstantiationVisitor: BasePatternVisitor {
+     private var currentFilePath: String = ""
+     private var insideFunctionOrClosure = 0
+ 

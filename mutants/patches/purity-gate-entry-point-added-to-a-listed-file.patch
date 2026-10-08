@@ -1,0 +1,34 @@
+diff --git a/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/Testability/Visitors/GlobalMutableStateVisitor.swift b/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/Testability/Visitors/GlobalMutableStateVisitor.swift
+index cb764e6e..f1fa6184 100644
+--- a/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/Testability/Visitors/GlobalMutableStateVisitor.swift
++++ b/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/Testability/Visitors/GlobalMutableStateVisitor.swift
+@@ -24,6 +24,13 @@ final class GlobalMutableStateVisitor: BasePatternVisitor {
+         fileIsTestOrFixture = isTestOrFixtureFile()
+     }
+ 
++    /// A closure this long, stored in a global, is a computation a property could test on its own.
++    override func visit(_ node: ClosureExprSyntax) -> SyntaxVisitorContinueKind {
++        guard node.statements.count > 50 else { return .visitChildren }
++        if PropertyTestCandidacy.isPure(closure: node) { addIssue(node: Syntax(node)) }
++        return .visitChildren
++    }
++
+     override func visit(_ node: VariableDeclSyntax) -> SyntaxVisitorContinueKind {
+         // Test/fixture files aren't property-test subjects — a global `var` in a
+         // test is not what this rule is about. Exempt them, as the sibling
+diff --git a/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/PropertyTestCandidacy.swift b/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/PropertyTestCandidacy.swift
+index cae06d94..4c232d4e 100644
+--- a/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/PropertyTestCandidacy.swift
++++ b/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/PropertyTestCandidacy.swift
+@@ -441,6 +441,11 @@ public enum PropertyTestCandidacy {
+             storedProperties: collector.properties
+         )
+     }
++
++    /// Whether a closure is a function of its inputs, for a rule that judges closures one by one.
++    public static func isPure(closure node: ClosureExprSyntax) -> Bool {
++        PurityInferrer().isPure(node)
++    }
+ }
+ 
+ /// Gathers the stored properties a named type declares anywhere in one file — in its primary

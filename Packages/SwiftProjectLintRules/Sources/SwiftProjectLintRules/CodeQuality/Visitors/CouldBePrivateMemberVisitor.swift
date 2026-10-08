@@ -14,7 +14,10 @@ import SwiftSyntax
 /// declaring file, and record every identifier usage per file.
 /// **Phase 2 (finalizeAnalysis):** Flag members whose name only appears in their
 /// declaring file.
-final class CouldBePrivateMemberVisitor: CrossFileVisitorBase, CrossFilePatternVisitorProtocol {
+final class CouldBePrivateMemberVisitor: CrossFileVisitorBase, CrossFilePatternVisitorProtocol, PackagePurityConsumer {
+
+    /// `PropertyTestCandidacy.shape`, for the property-test caveat in the message.
+    static let packagePurityInputs: PackagePurityInputs = [.oracle]
 
     private struct MemberDeclaration {
         let typeName: String

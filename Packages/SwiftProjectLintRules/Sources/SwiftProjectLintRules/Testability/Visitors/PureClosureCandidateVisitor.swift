@@ -43,7 +43,10 @@ import SwiftSyntax
 /// refuted, by the shared purity oracle.
 ///
 /// `info` severity; opt-in. Reports a refactor, not a defect.
-final class PureClosureCandidateVisitor: BasePatternVisitor {
+final class PureClosureCandidateVisitor: BasePatternVisitor, PackagePurityConsumer {
+
+    /// `isPure(closure)` on its stored oracle.
+    static let packagePurityInputs: PackagePurityInputs = [.oracle]
 
     private var fileIsTestOrFixture = false
     private let purityInferrer = PurityInferrer()

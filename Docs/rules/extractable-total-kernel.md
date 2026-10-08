@@ -121,7 +121,8 @@ written, and each gate below exists because that audit turned up a case that nee
    `let identifier = UUID()` — is refuted by the oracle's construction facts and so is scanned here, while
    the function rule withdraws it. Measured when the facts were wired: SwiftUMLStudio's
    `InsightEngine` gained two findings (`extra` at line 32, `suffix` at line 113), and no other
-   repository of the seven re-measured moved.
+   repository of the seven re-measured moved. So this rule reads the package purity: enabling it
+   builds the construction universe and the facts (see [when the facts are built](pure-function-candidate.md#constructions-what-building-a-value-runs)).
 2. **Closure bodies are skipped.** A kernel living wholly inside a `filter` predicate belongs to
    [Pure Closure Property-Test Candidate](pure-closure-candidate.md), reported once.
 3. **The derivation must govern a decision.** A derived value that is merely *stored* is not a

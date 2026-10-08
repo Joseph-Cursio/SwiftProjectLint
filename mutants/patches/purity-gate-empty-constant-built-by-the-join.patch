@@ -1,0 +1,13 @@
+diff --git a/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/PackagePurityJoin.swift b/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/PackagePurityJoin.swift
+index 3c2c4458..d08ab124 100644
+--- a/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/PackagePurityJoin.swift
++++ b/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/PackagePurityJoin.swift
+@@ -270,7 +270,7 @@ public struct ImpurePackageFunctions: Sendable, Equatable, ExpressibleByArrayLit
+     private let storage: Withholdable<Set<String>>
+ 
+     /// What a visitor driven directly, with no pre-scan, gets: no callee is settled impure.
+-    public static let empty = Self([])
++    public static let empty = Self(PackagePurityJoin(sources: []).settledImpureNames)
+ 
+     public init(_ names: Set<String>) {
+         storage = .built(names)

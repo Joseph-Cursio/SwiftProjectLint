@@ -6,7 +6,8 @@ import SwiftProjectLintRegistry
 import SwiftProjectLintVisitors
 import SwiftSyntax
 
-/// One parse per file per run, and the package purity built from those very trees.
+/// One parse per file per pass, and the package purity built from those very trees. A run that
+/// trips its purity gate is redone in a second pass, which parses again.
 ///
 /// `PackagePurity` gives the oracle what constructing each package type runs, and SEI matches an
 /// assignment target by **node identity**, so the facts and every verdict that consults them must
@@ -25,7 +26,11 @@ extension ProjectLinter {
         /// Every Swift file under the root with no reporting filter at all — generated and excluded
         /// files included, and the nested packages the root compiles (`compiledByRoot`).
         /// `PackagePurity` keeps the production sources among them; see `ConstructionUniverse`.
-        let constructionUniverse: [String]
+        ///
+        /// `nil` when the run did not resolve it — no visitor it executes reads package purity — and
+        /// then the one thing that decides that the table is withheld rather than built: an empty
+        /// array is a universe that was resolved and holds nothing, and builds an empty table.
+        let constructionUniverse: [String]?
     }
 
     /// A file read and parsed once, shared by everything in the run that walks it.
@@ -47,10 +52,14 @@ extension ProjectLinter {
         let files: DiscoveredFiles
         let configuration: LintConfiguration
         let categories: [PatternCategory]?
-        let ruleIdentifiers: [RuleIdentifier]?
-        let detector: (any SourcePatternDetectorProtocol)?
+        /// `LintConfiguration.resolveRules` for this run; `nil` runs every registered rule.
+        let effectiveRules: [RuleIdentifier]?
+        let detector: any SourcePatternDetectorProtocol
         /// Analysable files only, by discovery path.
         let shared: [String: SharedSource]
+        /// What the run builds of the package purity; the rest is withheld by `tripwire`.
+        let demand: PurityDemand
+        let tripwire: PurityTripwire
     }
 
     /// Reads and parses every file the run needs, once, one thread per core.
@@ -69,7 +78,7 @@ extension ProjectLinter {
         for path in files.reportable + files.evidenceOnly where seen.insert(path).inserted {
             jobs.append(ParseJob(path: path, keepsContent: true))
         }
-        for path in files.constructionUniverse where seen.insert(path).inserted {
+        for path in files.constructionUniverse ?? [] where seen.insert(path).inserted {
             jobs.append(ParseJob(path: path, keepsContent: false))
         }
 
@@ -88,15 +97,24 @@ extension ProjectLinter {
     /// Returns the analysable files' sources only. The universe-only trees the facts need stay
     /// alive inside the facts; the rest — a nested package's files that declare no type, say — are
     /// released when this returns rather than held for the whole run.
+    ///
+    /// When discovery did not resolve a universe the table is not built: the purity is
+    /// `PackagePurity.withheld(by: tripwire)`, and a read of it trips the run. The universe alone
+    /// decides, so no caller can get a built-but-empty table for a universe nobody resolved.
     static func sharedParse(
         _ files: DiscoveredFiles,
-        projectRoot: String
+        projectRoot: String,
+        withholdingBy tripwire: PurityTripwire
     ) async -> (purity: PackagePurity, analysable: [String: SharedSource]) {
         let shared = await parseOnce(files, projectRoot: projectRoot)
-        let sources = constructionSources(files.constructionUniverse, in: shared)
+        let analysable = shared.filter { $0.value.content != nil }
+        guard let universe = files.constructionUniverse else {
+            return (.withheld(by: tripwire), analysable)
+        }
+        let sources = constructionSources(universe, in: shared)
         // The build walks every tree, as deep as it nests, so it gets the parse's stack.
         let purity = await LargeStackWorkers.run { PackagePurity.build(from: sources) }
-        return (purity, shared.filter { $0.value.content != nil })
+        return (purity, analysable)
     }
 
     /// The universe's `(path, tree)` pairs for `PackagePurity.build`, which sorts them: production

@@ -1,0 +1,13 @@
+diff --git a/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/PurityTripwire.swift b/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/PurityTripwire.swift
+index 214172f4..59f55e2e 100644
+--- a/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/PurityTripwire.swift
++++ b/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/PurityTripwire.swift
+@@ -34,7 +34,7 @@ public final class PurityTripwire: @unchecked Sendable {
+         let late = lock.withLock { () -> Bool in
+             // The first read of each surface is always kept, so the report says every surface read.
+             let firstOfItsInput = !trips.contains { $0.input == trip.input }
+-            if !trips.contains(trip), trips.count < Self.kept || firstOfItsInput { trips.append(trip) }
++            _ = firstOfItsInput
+             return isSealed
+         }
+         // After the pass there is nothing to redo: a withheld catalog was kept past it and read.

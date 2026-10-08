@@ -58,7 +58,10 @@ import SwiftSyntax
 /// misleads badly if that clause is dropped.
 ///
 /// `info` severity; opt-in. A census, like the two it sits beside.
-final class ImpureClosureVisitor: BasePatternVisitor {
+final class ImpureClosureVisitor: BasePatternVisitor, PackagePurityConsumer {
+
+    /// `refutation(for: closure)` on its stored oracle — whether a finding appears, and its witness.
+    static let packagePurityInputs: PackagePurityInputs = [.oracle]
 
     private var fileIsTestOrFixture = false
     private let purityInferrer = PurityInferrer()

@@ -237,12 +237,27 @@ such a function pure.
 
 It now knows what constructing each of the package's types runs — stored-property defaults, the
 initializer the call reaches and its defaulted parameters, a superclass's construction — through
-SwiftEffectInference's `ConstructionFacts`, built once per run by `PackagePurity` and read by every
-oracle the run creates. A function that constructs a refuted type is refused, with a witness naming
+SwiftEffectInference's `ConstructionFacts`, built by `PackagePurity` for every run that needs them
+(see below) and read by every oracle the run creates. A function that constructs a refuted type is refused, with a witness naming
 the step (`SimulationIssue.init(id:severity:message:affectedKey:suggestion:): id's default: UUID`).
 As with every refuter, any doubt refutes: a function that builds an `Item` and returns only its
 `n` is refused too. The one-hop callee join counts the witness as evidence, so a caller of such a
 function is withdrawn as well.
+
+**When the facts are built.** Only when a rule the run executes reads them: this one and eight
+others (Pure Closure Property-Test Candidate, Impure Closure Inventory, Extractable Total Kernel,
+Unreachable Effect Closure, Could Be Private, Could Be Private Member, Direct Instantiation and
+Concrete Type Usage). A run narrowed to rules that read none of it — by `enabled_only`,
+`disabled_rules` or `--categories` — skips the universe walk, the manifest reads, the parse of the
+files only the universe holds (generated files, and the nested packages the run does not report on;
+files under `excluded_paths` are parsed regardless, as evidence) and the facts themselves. Turning
+this rule off while any of the other eight is enabled still builds the universe and the facts, and
+skips the one-hop callee join, which no other rule reads. It skips the clean-instance-method catalog
+as well unless Direct Instantiation or Concrete Type Usage is enabled: those two are the only other
+rules that read it, and the other six (Pure Closure, Impure Closure Inventory, Extractable Total
+Kernel, Unreachable Effect Closure, Could Be Private and Could Be Private Member) read only the
+oracle. The findings of the rules that do run are the same either way (see the purity gate in
+[`Docs/architecture.md`](../architecture.md)).
 
 **Which files' types count** is `ConstructionUniverse`, a rule shared word for word with
 SwiftInferProperties (the agreed rows are in [`Docs/construction-universe.tsv`](../construction-universe.tsv)):
@@ -404,8 +419,8 @@ you to narrow the very function this rule just flagged. That rule now names the 
 
 ### Not listed in the default report
 
-This rule is a **census**, and on a real codebase it is a large one: 805 findings here, alongside
-290 from [Pure Closure Property-Test Candidate](pure-closure-candidate.md) — together **66% of
+This rule is a **census**, and on a real codebase it is a large one: 820 findings here, alongside
+292 from [Pure Closure Property-Test Candidate](pure-closure-candidate.md) — together **67% of
 everything the linter prints**. A pure function is not a defect and there is nothing to fix per
 line, so enumerating them buries the findings that *are* defects. During this project's own road
 test the linter found a real bug in its configuration code, reported it correctly, and the finding
@@ -415,9 +430,9 @@ So `--format text` counts these findings in its summary and names them in a foot
 print one line each:
 
 ```
-Found 1656 issues (126 warnings, 1530 info)
+Found 1658 issues (127 warnings, 1531 info)
 
-1095 of these are property-test candidates, not listed above (805 Pure Function …, 290 Pure Closure …).
+1112 of these are property-test candidates, not listed above (820 Pure Function …, 292 Pure Closure …).
   See them:  --categories testability
   Use them:  --format pbt-seeds > .pbt/seeds.json
 ```

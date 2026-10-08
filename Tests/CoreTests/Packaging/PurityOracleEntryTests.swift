@@ -5,7 +5,7 @@ import Testing
 
 /// Every purity oracle in a lint run is configured with that run's package purity, and stays so.
 ///
-/// `PackagePurity.current` is a task-local: `ProjectLinter.analyzeProject` binds it once, and every
+/// `PackagePurity.current` is a task-local: `ProjectLinter.pass` binds it once per pass, and every
 /// `PurityInferrer()` created inside the binding reads it. That reaches the nine places that create
 /// an oracle today without touching them, and it has exactly three ways to fail quietly — each the
 /// shape that already cost this repository a catalog built and then dropped
@@ -22,6 +22,11 @@ import Testing
 /// None of those changes an output a rule test would notice. So this test is structural, over the
 /// source, and reads identifier tokens rather than text: a string literal or a comment that names
 /// one of these is not a use of it.
+///
+/// **Known limit.** The static scan matches type names (`heldByOneRun`): a static whose type is
+/// inferred from a call — `static var last = makeCatalog()` — names nothing it can match, and a type
+/// that stores a held value is held only once it is listed there, which `DiscoveredProject`, for one,
+/// is not.
 @Suite("One purity oracle per run, configured at one place")
 struct PurityOracleEntryTests {
 
@@ -127,18 +132,76 @@ struct PurityOracleEntryTests {
 
     // MARK: - Statics
 
-    @Test("no static holds an oracle or a package purity")
+    @Test("no static holds an oracle, a package purity or a value withheld from a pass")
     func noStaticHoldsAnOracle() {
-        var offenders: [String] = []
-        for file in Self.sources {
-            let finder = StoredStaticFinder(viewMode: .sourceAccurate)
+        let offenders = Self.staticOffenders(in: Self.sources)
+        #expect(offenders.isEmpty, "a static outlives the run that bound it: \(offenders)")
+    }
+
+    /// What a static must not hold, by type name: the oracle and the table; the tripwire and
+    /// `Withholdable`; every type that can be withheld from a pass — found from the source, as
+    /// `surfacesKeepOnlyWithholdableStorage` finds them, so a fourth is covered the day it is added;
+    /// and some of the types that store one of those: the join and `CollectedTypes`, the detector,
+    /// and `BasePatternVisitor` with every class that inherits from it, found from the source too.
+    /// `PackagePurityJoin`'s settled names are plain storage derived from the oracle, so a static one
+    /// would carry one run's answer into the next just as a static oracle would.
+    ///
+    /// **The scan matches names, and that is its limit.** A type that stores one of these is held only
+    /// once it is listed here, and these are not: `DiscoveredProject`, which stores the tripwire;
+    /// `PatternDetectionSystem` and `any SourcePatternDetectorProtocol`, which hold a detector; and
+    /// `FileAnalysisEnvironment`, which holds both catalogs. A static whose type is inferred from a
+    /// call (`static var last = makeCatalog()`) names no type for the scan to match at all.
+    static func heldByOneRun(in files: [SourceFile]) -> Set<String> {
+        let named: Set<String> = [
+            "PurityInferrer", "PackagePurity", "PurityTripwire", "Withholdable",
+            "CleanInstanceMethodCatalog", "ImpurePackageFunctions", "PackagePurityJoin", "CollectedTypes",
+            "SourcePatternDetector"
+        ]
+        return named.union(withheldSurfaces(in: files).map(\.type)).union(visitorClasses(in: files))
+    }
+
+    /// `BasePatternVisitor` and every class in `files` that inherits from it, directly or not.
+    static func visitorClasses(in files: [SourceFile]) -> Set<String> {
+        var inherited: [String: Set<String>] = [:]
+        for file in files {
+            let finder = InheritanceFinder(viewMode: .sourceAccurate)
             finder.walk(file.tree)
-            for name in finder.offenders {
-                let sanctioned = file.path == Self.packagePurity && ["current", "unconfigured"].contains(name)
-                if !sanctioned { offenders.append("\(file.path): \(name)") }
+            inherited.merge(finder.inherited) { $0.union($1) }
+        }
+        var visitors: Set<String> = ["BasePatternVisitor"]
+        var changed = true
+        while changed {
+            let found = inherited.filter { !visitors.contains($0.key) && !$0.value.isDisjoint(with: visitors) }.keys
+            visitors.formUnion(found)
+            changed = !found.isEmpty
+        }
+        return visitors
+    }
+
+    /// The statics that may hold one: the task-local binding itself, and the built, empty `let`
+    /// constants that stand for "no package" — derived from no run, and holding no tripwire. Each is
+    /// an exception only while it is built from nothing (`StoredStaticFinder.Offender.isBuiltFromNothing`),
+    /// so `static let empty = Self(inferrer: PurityInferrer())` is no exception.
+    static let sanctionedStatics: [String: Set<String>] = [
+        packagePurity: ["current", "unconfigured"],
+        visitorsSources + "SwiftProjectLintVisitors/CleanInstanceMethodCatalog.swift": ["empty"],
+        visitorsSources + "SwiftProjectLintVisitors/PackagePurityJoin.swift": ["empty"]
+    ]
+
+    /// Every stored static in `files` that holds something one run owns, as `path: name`.
+    static func staticOffenders(in files: [SourceFile]) -> [String] {
+        let held = heldByOneRun(in: files)
+        var offenders: [String] = []
+        for file in files {
+            let finder = StoredStaticFinder(held: held)
+            finder.walk(file.tree)
+            for found in finder.offenders {
+                let named = sanctionedStatics[file.path]?.contains(found.name) == true
+                let sanctioned = named && found.isConstantOrTaskLocal && found.isBuiltFromNothing
+                if !sanctioned { offenders.append("\(file.path): \(found.name)") }
             }
         }
-        #expect(offenders.isEmpty, "a static outlives the run that bound it: \(offenders)")
+        return offenders
     }
 
     // MARK: - The scan
@@ -152,17 +215,24 @@ struct PurityOracleEntryTests {
         #expect(Self.sources.contains { $0.path == Self.projectLinter }, "the scan did not see ProjectLinter.swift")
     }
 
-    private static let visitorsSources = "Packages/SwiftProjectLintVisitors/Sources/"
-    private static let wrapper = visitorsSources + "SwiftProjectLintVisitors/PurityInferrer.swift"
-    private static let packagePurity = visitorsSources + "SwiftProjectLintVisitors/PackagePurity.swift"
-    private static let engineSources = "Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/"
-    private static let projectLinter = engineSources + "ProjectLinter.swift"
-    private static let purityParse = engineSources + "ProjectLinter+Purity.swift"
-    private static let largeStackWorkers = engineSources + "LargeStackWorkers.swift"
+    static let visitorsSources = "Packages/SwiftProjectLintVisitors/Sources/"
+    static let wrapper = visitorsSources + "SwiftProjectLintVisitors/PurityInferrer.swift"
+    static let packagePurity = visitorsSources + "SwiftProjectLintVisitors/PackagePurity.swift"
+    static let engineSources = "Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/"
+    static let projectLinter = engineSources + "ProjectLinter.swift"
+    static let purityParse = engineSources + "ProjectLinter+Purity.swift"
+    static let largeStackWorkers = engineSources + "LargeStackWorkers.swift"
+    static let preScan = engineSources + "ProjectLinter+PreScan.swift"
+    static let withholdable = visitorsSources + "SwiftProjectLintVisitors/Withholdable.swift"
+    static let rulePackages = [
+        "Packages/SwiftProjectLintRules/Sources/",
+        "Packages/SwiftProjectLintIdempotencyRules/Sources/",
+        "Sources/"
+    ]
 
     /// Where the per-run analysis executes. Config and the App are left out: their detached work
     /// (the directory-tree scan, registry setup) is off the analysis path.
-    private static let analysisPackages = [
+    static let analysisPackages = [
         "Packages/SwiftProjectLintEngine/Sources/",
         "Packages/SwiftProjectLintRegistry/Sources/",
         "Packages/SwiftProjectLintVisitors/Sources/",
@@ -188,7 +258,7 @@ struct PurityOracleEntryTests {
     /// spelling of the root off another. That slicing broke in any checkout under a symlinked
     /// directory: `#filePath` resolved to `/tmp/…` while the walker spelled `/private/tmp/…`, every
     /// path came out as `/branch/Packages/…`, and all five tests failed.
-    private static let sources: [SourceFile] = {
+    static let sources: [SourceFile] = {
         let root = repositoryRoot
         var roots = [(relative: "Sources", directory: root.appendingPathComponent("Sources"))]
         let packages = root.appendingPathComponent("Packages")
@@ -210,7 +280,15 @@ struct PurityOracleEntryTests {
         return files.sorted { $0.path < $1.path }
     }()
 
-    private static func scanned(_ text: String, path: String) -> SourceFile {
+    /// The name a type is declared under, the last component: `Bar` for `Bar`, `Foo.Bar` and `Bar<T>`.
+    static func typeName(of type: TypeSyntax) -> String {
+        if let member = type.as(MemberTypeSyntax.self) { return member.name.text }
+        if let identifier = type.as(IdentifierTypeSyntax.self) { return identifier.name.text }
+        return type.trimmedDescription
+    }
+
+    /// `text` scanned as the suite scans a file at `path`. The probes in `PurityScanProbeTests` use it.
+    static func scanned(_ text: String, path: String) -> SourceFile {
         let tree = Parser.parse(source: text)
         let all = Array(tree.tokens(viewMode: .sourceAccurate))
         let named = all.filter {
@@ -258,13 +336,61 @@ private final class CallingFunctionFinder: SyntaxVisitor {
     }
 }
 
+/// Every class a file declares, with the names of the types it inherits from.
+private final class InheritanceFinder: SyntaxVisitor {
+    private(set) var inherited: [String: Set<String>] = [:]
+
+    override func visit(_ node: ClassDeclSyntax) -> SyntaxVisitorContinueKind {
+        let names = node.inheritanceClause?.inheritedTypes.map { PurityOracleEntryTests.typeName(of: $0.type) } ?? []
+        inherited[node.name.text, default: []].formUnion(names)
+        return .visitChildren
+    }
+}
+
 /// Stored `static`/`class` properties, and file-scope globals, whose declared type or initializer
-/// names `PurityInferrer` or `PackagePurity`. A computed one is re-evaluated on every read, so it
-/// reads the binding in force at the time and is not collected.
+/// names a type in `held` — or, inside a held type or an extension of one, `Self`, which names it
+/// just as well. A metatype (`X.self`, `X.Type`) holds no instance and is not a mention. A computed
+/// one is re-evaluated on every read, so it reads the binding in force at the time and is not
+/// collected.
 private final class StoredStaticFinder: SyntaxVisitor {
 
-    private(set) var offenders: [String] = []
-    private static let held: Set<String> = ["PurityInferrer", "PackagePurity"]
+    struct Offender {
+        let name: String
+        /// A `let`, or a `@TaskLocal`, whose value only `withValue` changes, for one scope.
+        let isConstantOrTaskLocal: Bool
+        /// Initialized from literals and the `empty` and `unconfigured` constants alone, by `Self(…)`,
+        /// its own type's name or a member reference: it can have created no oracle and read no run.
+        let isBuiltFromNothing: Bool
+    }
+
+    private(set) var offenders: [Offender] = []
+    private let held: Set<String>
+    /// The enclosing types, innermost last.
+    private var types: [String] = []
+
+    init(held: Set<String>) {
+        self.held = held
+        super.init(viewMode: .sourceAccurate)
+    }
+
+    override func visit(_ node: StructDeclSyntax) -> SyntaxVisitorContinueKind { enter(node.name.text) }
+    override func visit(_ node: ClassDeclSyntax) -> SyntaxVisitorContinueKind { enter(node.name.text) }
+    override func visit(_ node: EnumDeclSyntax) -> SyntaxVisitorContinueKind { enter(node.name.text) }
+    override func visit(_ node: ActorDeclSyntax) -> SyntaxVisitorContinueKind { enter(node.name.text) }
+    override func visit(_ node: ExtensionDeclSyntax) -> SyntaxVisitorContinueKind {
+        enter(PurityOracleEntryTests.typeName(of: node.extendedType))
+    }
+
+    override func visitPost(_: StructDeclSyntax) { types.removeLast() }
+    override func visitPost(_: ClassDeclSyntax) { types.removeLast() }
+    override func visitPost(_: EnumDeclSyntax) { types.removeLast() }
+    override func visitPost(_: ActorDeclSyntax) { types.removeLast() }
+    override func visitPost(_: ExtensionDeclSyntax) { types.removeLast() }
+
+    private func enter(_ type: String) -> SyntaxVisitorContinueKind {
+        types.append(type)
+        return .visitChildren
+    }
 
     override func visit(_ node: VariableDeclSyntax) -> SyntaxVisitorContinueKind {
         let isStatic = node.modifiers.contains {
@@ -273,14 +399,38 @@ private final class StoredStaticFinder: SyntaxVisitor {
         let isGlobal = node.parent?.parent?.parent?.is(SourceFileSyntax.self) == true
         guard isStatic || isGlobal else { return .skipChildren }
 
+        let selfIsHeld = types.last.map(held.contains) ?? false
+        let isTaskLocal = node.attributes.contains {
+            $0.as(AttributeSyntax.self)?.attributeName.trimmedDescription == "TaskLocal"
+        }
         for binding in node.bindings where Self.isStored(binding) {
-            let typeNames = binding.typeAnnotation.map { Self.names(in: Syntax($0)) } ?? []
-            let valueNames = binding.initializer.map { Self.names(in: Syntax($0)) } ?? []
-            if !typeNames.union(valueNames).isDisjoint(with: Self.held) {
-                offenders.append(binding.pattern.trimmedDescription)
+            var names = binding.typeAnnotation.map { Self.names(in: Syntax($0)) } ?? []
+            names.formUnion(binding.initializer.map { Self.names(in: Syntax($0)) } ?? [])
+            if !names.isDisjoint(with: held) || (selfIsHeld && names.contains("Self")) {
+                offenders.append(Offender(
+                    name: binding.pattern.trimmedDescription,
+                    isConstantOrTaskLocal: node.bindingSpecifier.tokenKind == .keyword(.let) || isTaskLocal,
+                    isBuiltFromNothing: binding.initializer.map { isBuiltFromNothing($0.value) } ?? false
+                ))
             }
         }
         return .skipChildren
+    }
+
+    /// Whether every name `value` spells, its argument labels aside, is `Self`, the enclosing type,
+    /// `empty` or `unconfigured`.
+    private func isBuiltFromNothing(_ value: ExprSyntax) -> Bool {
+        let allowed = Set(["Self", "empty", "unconfigured"] + types.suffix(1))
+        return value.tokens(viewMode: .sourceAccurate).allSatisfy { token in
+            switch token.tokenKind {
+            case .identifier, .keyword:
+                let isLabel = token.parent?.as(LabeledExprSyntax.self)?.label?.id == token.id
+                return isLabel || allowed.contains(token.text)
+
+            default:
+                return true
+            }
+        }
     }
 
     private static func isStored(_ binding: PatternBindingSyntax) -> Bool {
@@ -291,10 +441,18 @@ private final class StoredStaticFinder: SyntaxVisitor {
         }
     }
 
+    /// The identifiers, and `Self`, that `syntax` names — a metatype's aside.
     private static func names(in syntax: Syntax) -> Set<String> {
-        Set(syntax.tokens(viewMode: .sourceAccurate).compactMap {
-            if case .identifier(let name) = $0.tokenKind { return name }
-            return nil
+        let tokens = Array(syntax.tokens(viewMode: .sourceAccurate))
+        return Set(tokens.indices.compactMap { index -> String? in
+            let isMetatype = index + 2 < tokens.count && tokens[index + 1].text == "."
+                && ["self", "Type", "Protocol"].contains(tokens[index + 2].text)
+            guard !isMetatype else { return nil }
+            switch tokens[index].tokenKind {
+            case .identifier(let name): return name
+            case .keyword(.Self): return "Self"
+            default: return nil
+            }
         })
     }
 }

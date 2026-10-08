@@ -90,7 +90,7 @@ open class BasePatternVisitor: SyntaxVisitor, PatternVisitorProtocol {
     /// Built project-wide by `PackagePurityJoin` in the pre-scan, because the sinking
     /// callee is usually in another file. Empty in unit tests that drive a visitor
     /// directly, which is correct: a single file has no package to join against.
-    public var knownImpurePackageFunctions: Set<String> = []
+    public var knownImpurePackageFunctions = ImpurePackageFunctions.empty
 
     public var knownCleanInstanceMethods = CleanInstanceMethodCatalog.empty
 

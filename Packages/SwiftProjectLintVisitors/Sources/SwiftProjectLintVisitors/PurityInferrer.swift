@@ -19,7 +19,7 @@ import SwiftSyntax
 ///
 /// The one piece of configuration SEI's oracle takes is the package's `ConstructionFacts`, and SEI
 /// asks that **every** inferrer in a run get the same table. So `init()` reads the table bound for
-/// the current task — `PackagePurity.current`, which `ProjectLinter.analyzeProject` binds once
+/// the current task — `PackagePurity.current`, which `ProjectLinter.pass` binds once per pass
 /// around its pre-scan, per-file and cross-file phases — rather than taking it as an argument. The
 /// nine call sites that create one — four stored per-visitor inferrers, three static helpers and the
 /// two pre-scan catalogs — are configured without being touched, and so is the next one. Outside a
@@ -33,14 +33,23 @@ public struct PurityInferrer: Sendable {
     private let underlying: SwiftEffectInference.PurityInferrer
 
     /// The oracle configured with the package purity bound for the current task.
-    public init() {
-        self.init(context: PackagePurity.current)
+    ///
+    /// It takes the table here, once, so creating an oracle is what reads the run's package purity:
+    /// under a table the run withheld (`PackagePurity.withheld(by:)`) this trips the run's tripwire,
+    /// naming the call site, and the run is redone with the table built. The two parameters are the
+    /// call site and are never passed.
+    public init(fileID: StaticString = #fileID, line: UInt = #line) {
+        underlying = SwiftEffectInference.PurityInferrer(
+            constructionFacts: PackagePurity.current.constructionFacts(creatingOracleAt: "\(fileID):\(line)")
+        )
     }
 
     /// The oracle configured with `context`, whatever is bound. For tests; see the type's
     /// documentation.
     public init(context: PackagePurity) {
-        underlying = SwiftEffectInference.PurityInferrer(constructionFacts: context.constructionFacts)
+        underlying = SwiftEffectInference.PurityInferrer(
+            constructionFacts: context.constructionFacts(creatingOracleAt: "init(context:)")
+        )
     }
 
     /// Convenience boolean form of `inferredEffect(for:)`.

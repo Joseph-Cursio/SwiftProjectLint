@@ -61,7 +61,8 @@ Nondeterminism row to rise. Re-measured on seven repositories when the facts wer
 closures moved here from Pure Closure Property-Test Candidate, every one Nondeterminism through a
 construction: `LintIssue.id's default: UUID` in this repository's `LintConfiguration.applyOverrides`,
 and in SwiftCompilerFlagStudio (default rules) two `SimulationIssue.init(…): id's default: UUID` and
-one `SettingConflict.init(…): id's default: UUID`.
+one `SettingConflict.init(…): id's default: UUID`. So this rule reads the package purity: enabling it
+builds the construction universe and the facts (see [when the facts are built](pure-function-candidate.md#constructions-what-building-a-value-runs)).
 
 The issue that asked for this rule guessed at *"you have 400 untestable closures"*. The real number
 is 31, and the reason is worth stating because it is a fact about the design rather than about the

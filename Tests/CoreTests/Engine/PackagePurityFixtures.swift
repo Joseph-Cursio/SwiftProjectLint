@@ -107,7 +107,8 @@ enum PackagePurityFixtures {
     /// exactly as `analyzeProject` runs them, stopped before the analysis phases.
     static func universe(at path: String, configuration: LintConfiguration = .default) async -> [String] {
         let files = await ProjectLinter().discoverFiles(at: path, configuration: configuration)
-        return await ProjectLinter.sharedParse(files, projectRoot: path).purity.universe
+        let (purity, _) = await ProjectLinter.sharedParse(files, projectRoot: path, withholdingBy: PurityTripwire())
+        return purity.universe
     }
 
     /// Creates a symbolic link at `link` (relative to `root`) whose destination is `destination`,

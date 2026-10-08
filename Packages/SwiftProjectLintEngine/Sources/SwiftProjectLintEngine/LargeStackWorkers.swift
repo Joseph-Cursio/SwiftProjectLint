@@ -22,8 +22,8 @@ import Foundation
 /// ## Why this is safe for the run's task-local
 ///
 /// A thread does not inherit `PackagePurity.current`, which is why `PurityOracleEntryTests` forbids
-/// leaving the task tree. Every caller runs **before** `analyzeProject` binds it, and none creates
-/// an oracle that reads it: the parse and the manifest reads create none, and
+/// leaving the task tree. Every caller runs **before** `ProjectLinter.pass` binds it, and none
+/// creates an oracle that reads it: the parse and the manifest reads create none, and
 /// `ConstructionFacts.build` is SEI's own pass. The test names this file as its one exception and
 /// checks that only those callers use it.
 enum LargeStackWorkers {

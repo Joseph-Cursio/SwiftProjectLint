@@ -1,0 +1,13 @@
+diff --git a/Sources/CLI/SwiftProjectLintCLI.swift b/Sources/CLI/SwiftProjectLintCLI.swift
+index 3337787e..2ae989a5 100644
+--- a/Sources/CLI/SwiftProjectLintCLI.swift
++++ b/Sources/CLI/SwiftProjectLintCLI.swift
+@@ -186,7 +186,7 @@ struct SwiftProjectLintCLI: AsyncParsableCommand {
+     /// right; the CLI says so, because it doubles the run and means a rule's declaration is missing.
+     /// In a release build this line is the only sign of it — `analyzeProject`'s `assert` is debug-only.
+     static func makeLinter(warn: @escaping @Sendable (String) -> Void) -> ProjectLinter {
+-        ProjectLinter { warn("warning: " + $0) }
++        ProjectLinter()
+     }
+ 
+     /// Shown when a project has nested first-party packages but they were left out

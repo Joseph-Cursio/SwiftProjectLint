@@ -1,0 +1,31 @@
+diff --git a/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/CleanInstanceMethodCatalog.swift b/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/CleanInstanceMethodCatalog.swift
+index ede3126..bb1fee6 100644
+--- a/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/CleanInstanceMethodCatalog.swift
++++ b/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/CleanInstanceMethodCatalog.swift
+@@ -122,7 +122,7 @@ public struct CleanInstanceMethodCatalog: Sendable, Equatable {
+     /// same reason `ConcreteTypeUsage` exempts them from the other direction — there, until an
+     /// all-`async` project protocol already abstracts the actor (see `ActorTypeCatalog`).
+     public func isPureKernel(_ typeName: String) -> Bool {
+-        storage.read("isPureKernel(\(typeName))").pureKernelTypes.contains(typeName)
++        storage.read(unchecked: ()).pureKernelTypes.contains(typeName)
+     }
+ 
+     /// Stdlib types whose values a test constructs directly. A stored property of one of these is
+diff --git a/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/Withholdable.swift b/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/Withholdable.swift
+index bdc8a3a..57bb2d8 100644
+--- a/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/Withholdable.swift
++++ b/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/Withholdable.swift
+@@ -62,3 +62,13 @@ extension Withholdable: Equatable where Value: Equatable {
+         lhs.read("==") == rhs.read("==")
+     }
+ }
++
++extension Withholdable {
++    /// The value without the trip, for a hot path that has already read it once.
++    func read(unchecked _: Void) -> Value {
++        switch state {
++        case .built(let value): value
++        case let .withheld(_, _, placeholder): placeholder
++        }
++    }
++}

@@ -1,0 +1,13 @@
+diff --git a/Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/ProjectLinter+PreScan.swift b/Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/ProjectLinter+PreScan.swift
+index 585ba268..dce077d4 100644
+--- a/Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/ProjectLinter+PreScan.swift
++++ b/Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/ProjectLinter+PreScan.swift
+@@ -107,7 +107,7 @@ extension ProjectLinter {
+                     ? CleanInstanceMethodCatalog.build(
+                         from: parsed, enumTypes: collectTypes(EnumTypeCollector.self, in: parsed)
+                     )
+-                    : .withheld(by: tripwire),
++                    : .empty,
+                 extensionMembers: ExtensionMemberCatalog.build(from: parsed),
+                 closureWrapperTypes: ClosureWrapperTypeCatalog.build(from: parsed),
+                 impurePackageFunctions: demand.builds(.impurePackageFunctions)

@@ -1,0 +1,21 @@
+diff --git a/Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/ProjectLinter.swift b/Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/ProjectLinter.swift
+index 1482c604..20f4ba2d 100755
+--- a/Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/ProjectLinter.swift
++++ b/Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/ProjectLinter.swift
+@@ -175,6 +175,7 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
+         return LintRun(issues: second.issues, demand: demand, trips: first.trips)
+     }
+ 
++    nonisolated(unsafe) static var runTripwire = PurityTripwire()
+     /// Everything one pass needs that does not depend on the demand.
+     private struct RunRequest {
+         let path: String
+@@ -190,7 +191,7 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
+         _ request: RunRequest,
+         demand: PurityDemand
+     ) async -> (issues: [LintIssue], trips: [PurityTripwire.Trip]) {
+-        let tripwire = PurityTripwire()
++        let tripwire = Self.runTripwire
+         let files = await discoverFiles(
+             at: request.path, configuration: request.configuration, resolvingUniverse: demand.buildsTable
+         )

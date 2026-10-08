@@ -1,0 +1,13 @@
+diff --git a/Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/ProjectLinter+Purity.swift b/Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/ProjectLinter+Purity.swift
+index 37f3eaf7..003dc2fc 100644
+--- a/Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/ProjectLinter+Purity.swift
++++ b/Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/ProjectLinter+Purity.swift
+@@ -108,7 +108,7 @@ extension ProjectLinter {
+         let shared = await parseOnce(files, projectRoot: projectRoot)
+         let analysable = shared.filter { $0.value.content != nil }
+         guard let universe = files.constructionUniverse else {
+-            return (.withheld(by: tripwire), analysable)
++            return (.unconfigured, analysable)
+         }
+         let sources = constructionSources(universe, in: shared)
+         // The build walks every tree, as deep as it nests, so it gets the parse's stack.

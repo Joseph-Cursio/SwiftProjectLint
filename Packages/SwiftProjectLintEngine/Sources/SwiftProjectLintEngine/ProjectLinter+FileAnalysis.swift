@@ -263,7 +263,7 @@ extension ProjectLinter {
         /// update as a write.
         let mutatingMethods: Set<String>
         /// The one-hop callee join, resolved once in the pre-scan. See `PackagePurityJoin`.
-        let impurePackageFunctions: Set<String>
+        let impurePackageFunctions: ImpurePackageFunctions
 
         /// Types whose initialiser has defaulted parameters — the gate for `lossyStructRebuild`.
         let defaultedInitializerTypes: Set<String>
@@ -345,7 +345,7 @@ extension ProjectLinter {
         valueTypes: Set<String> = [],
         projectFunctions: Set<String> = [],
         mutatingMethods: Set<String> = [],
-        impurePackageFunctions: Set<String> = [],
+        impurePackageFunctions: ImpurePackageFunctions = .empty,
         defaultedInitializerTypes: Set<String> = [],
         extensionMembers: ExtensionMemberCatalog = .empty,
         closureWrapperTypes: ClosureWrapperTypeCatalog = .empty,

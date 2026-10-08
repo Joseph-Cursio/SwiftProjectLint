@@ -51,7 +51,9 @@ Pricing.swift:8: [Could Be Private Member]  'Pricing.discounted' … could be pr
 Both findings are right. Composed, they are advice to test a function and to hide it — and hiding
 wins.
 
-So when the member is a property-test candidate, this rule **says so**, and names the resolution:
+So when the member is a property-test candidate, this rule **says so**, and names the resolution.
+Telling a candidate takes the purity oracle, so this rule reads the package purity: enabling it
+builds the construction universe and the facts (see [when the facts are built](pure-function-candidate.md#constructions-what-building-a-value-runs)).
 
 > `'Pricing.discounted'` is only used in its declaring file and could be private — but it is a
 > property-based-test candidate, and `private` puts it beyond `@testable import`, which reaches

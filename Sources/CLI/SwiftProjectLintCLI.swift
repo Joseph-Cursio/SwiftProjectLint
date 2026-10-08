@@ -107,7 +107,7 @@ struct SwiftProjectLintCLI: AsyncParsableCommand {
         }
 
         let system = PatternRegistryFactory.createConfiguredSystem()
-        let linter = ProjectLinter()
+        let linter = Self.makeLinter { Self.printToStandardError($0) }
 
         let issues = await linter.analyzeProject(
             at: absolutePath,
@@ -178,6 +178,15 @@ struct SwiftProjectLintCLI: AsyncParsableCommand {
         if code != 0 {
             throw ExitCode(code)
         }
+    }
+
+    /// The linter a run uses, which reports a purity-gate rerun to `warn` as a `warning:` line.
+    ///
+    /// A run that read package purity it had not built is redone with it built, so the findings are
+    /// right; the CLI says so, because it doubles the run and means a rule's declaration is missing.
+    /// In a release build this line is the only sign of it — `analyzeProject`'s `assert` is debug-only.
+    static func makeLinter(warn: @escaping @Sendable (String) -> Void) -> ProjectLinter {
+        ProjectLinter { warn("warning: " + $0) }
     }
 
     /// Shown when a project has nested first-party packages but they were left out

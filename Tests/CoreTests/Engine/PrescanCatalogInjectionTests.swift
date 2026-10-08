@@ -32,6 +32,11 @@ import Testing
 /// `UpwardInferenceFileOrderTests.testNoVisitorReadsFileCacheValues`: it reads the two functions'
 /// source and asserts that what one primes, the other primes too. A per-catalog behavioural test
 /// would pin the two instances; this pins the shape.
+///
+/// The two purity catalogs are the exception, and the reason the list of what is owed is not only
+/// `configuredDetector`'s. The purity gate leaves them out of the caller's detector on purpose — a
+/// catalog a run withheld must not outlive that run in a detector the app keeps — so they are named
+/// here: owed per file, and never primed once.
 @Suite("Every pre-scan catalog reaches the per-file detector")
 struct PrescanCatalogInjectionTests {
 
@@ -61,12 +66,22 @@ struct PrescanCatalogInjectionTests {
             Comment(rawValue: "found \(primedPerFile.count) fields — has analyzeFile moved?")
         )
 
-        let dropped = primedOnce.subtracting(primedPerFile)
-        let explanation = "primed in configuredDetector and dropped before any visitor sees it: "
+        #expect(
+            primedOnce.isDisjoint(with: Self.purityCatalogs),
+            Comment(rawValue: "configuredDetector primes a purity catalog, which outlives the run there")
+        )
+        // Owed per file: everything `configuredDetector` primes, and the purity catalogs it leaves
+        // out. Without them either could be dropped per file unnoticed — the bug this test is for.
+        let dropped = primedOnce.union(Self.purityCatalogs).subtracting(primedPerFile)
+        let explanation = "built by the pre-scan and dropped before any visitor sees it: "
             + "\(dropped.sorted()). Add each to FileAnalysisEnvironment, thread it through both "
             + "analyzeFile overloads, and assign it beside the others."
         #expect(dropped.isEmpty, Comment(rawValue: explanation))
     }
+
+    /// Built by the pre-scan with the oracle, and withheld when no visitor the run executes reads
+    /// them, so `configuredDetector` does not prime them. See `ProjectLinter+PreScan.swift`.
+    private static let purityCatalogs: Set<String> = ["knownCleanInstanceMethods", "knownImpurePackageFunctions"]
 
     /// The run of assignments made on `receiver` immediately after `anchor`.
     ///

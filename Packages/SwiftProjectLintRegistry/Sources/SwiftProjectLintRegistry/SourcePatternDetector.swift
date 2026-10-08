@@ -55,7 +55,7 @@ public final class SourcePatternDetector: SourcePatternDetectorProtocol, @unchec
 
     /// Per type, sibling methods cleared as functions of their inputs. Set by `ProjectLinter`
     /// after a pre-scan and passed through to visitors.
-    public var knownImpurePackageFunctions: Set<String> = []
+    public var knownImpurePackageFunctions = ImpurePackageFunctions.empty
 
     public var knownCleanInstanceMethods = CleanInstanceMethodCatalog.empty
 

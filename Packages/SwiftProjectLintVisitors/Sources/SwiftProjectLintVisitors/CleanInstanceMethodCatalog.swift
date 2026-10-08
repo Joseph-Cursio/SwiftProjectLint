@@ -40,19 +40,39 @@ import SwiftSyntax
 /// overload of `foo` reads mutable state, `foo` is not clean for any of them.
 public struct CleanInstanceMethodCatalog: Sendable, Equatable {
 
-    private let methodsByType: [String: Set<String>]
+    /// What one resolution produced. In a ``Withholdable``: every accessor below reads it through
+    /// the one point that trips a catalog the run withheld.
+    struct Tables: Sendable, Equatable {
+        let methodsByType: [String: Set<String>]
+        /// Types that hold nothing a test could not supply. See ``isPureKernel(_:)``.
+        let pureKernelTypes: Set<String>
+    }
 
-    /// Types that hold nothing a test could not supply. See ``isPureKernel(_:)``.
-    private let pureKernelTypes: Set<String>
+    private let storage: Withholdable<Tables>
 
     /// The catalog a caller with no pre-scan gets: nothing is clean, so every callee stays refused
     /// and behaviour matches the analyzer as it was before the catalog existed.
     public static let empty = Self(methodsByType: [:])
 
     public init(methodsByType: [String: Set<String>], pureKernelTypes: Set<String> = []) {
-        self.methodsByType = methodsByType
-        self.pureKernelTypes = pureKernelTypes
+        storage = .built(Tables(methodsByType: methodsByType, pureKernelTypes: pureKernelTypes))
     }
+
+    private init(withheldBy tripwire: PurityTripwire) {
+        storage = .withheld(
+            .cleanInstanceMethods, by: tripwire, answering: Tables(methodsByType: [:], pureKernelTypes: [])
+        )
+    }
+
+    /// Not built, because no visitor the run executes declares
+    /// ``PackagePurityInputs/cleanInstanceMethods``. Every read — `==` included — trips
+    /// `tripwire` and answers as ``empty``; the run that withheld it is redone with it built.
+    public static func withheld(by tripwire: PurityTripwire) -> Self {
+        Self(withheldBy: tripwire)
+    }
+
+    /// Whether the run withheld this catalog. Asking is not a read.
+    public var isWithheld: Bool { storage.isWithheld }
 
     /// Whether `typeName` holds nothing a test could not supply — no mutable or collaborator
     /// storage, and every method a function of its inputs.
@@ -102,7 +122,7 @@ public struct CleanInstanceMethodCatalog: Sendable, Equatable {
     /// same reason `ConcreteTypeUsage` exempts them from the other direction — there, until an
     /// all-`async` project protocol already abstracts the actor (see `ActorTypeCatalog`).
     public func isPureKernel(_ typeName: String) -> Bool {
-        pureKernelTypes.contains(typeName)
+        storage.read("isPureKernel(\(typeName))").pureKernelTypes.contains(typeName)
     }
 
     /// Stdlib types whose values a test constructs directly. A stored property of one of these is
@@ -116,10 +136,10 @@ public struct CleanInstanceMethodCatalog: Sendable, Equatable {
     /// The clean method names declared on `typeName`, or none for a free function.
     public func cleanMethods(on typeName: String?) -> Set<String> {
         guard let typeName else { return [] }
-        return methodsByType[typeName] ?? []
+        return storage.read("cleanMethods(on: \(typeName))").methodsByType[typeName] ?? []
     }
 
-    public var isEmpty: Bool { methodsByType.isEmpty }
+    public var isEmpty: Bool { storage.read("CleanInstanceMethodCatalog.isEmpty").methodsByType.isEmpty }
 
     // MARK: - Building
 

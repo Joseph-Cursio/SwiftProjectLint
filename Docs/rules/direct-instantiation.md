@@ -164,6 +164,11 @@ warning. A nested package the run reports on feeds them too, so with `--include-
 own kernels are judged with its own types — and its namesakes can take a root kernel's exemption,
 the accepted cost of judging it at all.
 
+So enabling this rule builds the construction universe, the facts and the clean-method catalog,
+even in a run narrowed to it: the kernel exemption reads the catalog, and the catalog is resolved
+with the facts. A run that enables neither this rule nor any other that reads package purity skips
+all three (see [when the facts are built](pure-function-candidate.md#constructions-what-building-a-value-runs)).
+
 **That last clause and the fixpoint under condition (1) were both added after
 `EffectAnnotationParser` refused to qualify**, and neither alone would have admitted it. It holds
 one `AttributeRecognition` — five `Set<String>` — which was itself admitted while the type holding

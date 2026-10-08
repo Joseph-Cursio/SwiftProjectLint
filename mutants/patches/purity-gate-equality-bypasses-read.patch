@@ -1,0 +1,12 @@
+diff --git a/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/Withholdable.swift b/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/Withholdable.swift
+index bdc8a3ad..49e9a6ef 100644
+--- a/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/Withholdable.swift
++++ b/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/Withholdable.swift
+@@ -59,6 +59,6 @@ public struct Withholdable<Value: Sendable>: Sendable {
+ extension Withholdable: Equatable where Value: Equatable {
+     /// Compares the values, which reads both: comparing a withheld value trips.
+     public static func == (lhs: Self, rhs: Self) -> Bool {
+-        lhs.read("==") == rhs.read("==")
++        lhs.isWithheld == rhs.isWithheld
+     }
+ }

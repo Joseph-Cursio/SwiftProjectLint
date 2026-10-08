@@ -1,0 +1,13 @@
+diff --git a/Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/ProjectLinter.swift b/Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/ProjectLinter.swift
+index 1482c604..808798c6 100755
+--- a/Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/ProjectLinter.swift
++++ b/Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/ProjectLinter.swift
+@@ -159,7 +159,7 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
+             effectiveRules: effectiveRules,
+             detector: detector
+         )
+-        let demand = forced ?? PurityDemand(planned: effectiveRules, registry: detector.registry)
++        let demand = forced ?? PurityDemand(planned: ruleIdentifiers, registry: detector.registry)
+ 
+         let first = await pass(request, demand: demand)
+         guard !first.trips.isEmpty else {

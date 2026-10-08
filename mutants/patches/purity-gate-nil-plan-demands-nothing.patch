@@ -1,0 +1,13 @@
+diff --git a/Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/ProjectLinter+PurityGate.swift b/Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/ProjectLinter+PurityGate.swift
+index 45b1dcde..1f1ca84a 100644
+--- a/Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/ProjectLinter+PurityGate.swift
++++ b/Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/ProjectLinter+PurityGate.swift
+@@ -34,7 +34,7 @@ extension ProjectLinter {
+             let running = planned.map { names in
+                 let names = Set(names)
+                 return patterns.filter { names.contains($0.name) }
+-            } ?? patterns
++            } ?? patterns.filter { _ in false }
+             self.inputs = running.reduce(into: []) { $0.formUnion($1.packagePurityInputs) }
+         }
+ 

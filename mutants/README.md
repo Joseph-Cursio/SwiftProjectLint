@@ -115,8 +115,8 @@ could catch.
 ### The package purity
 
 Six more in the same shape, from wiring SEI's construction facts through `ProjectLinter`. The facts
-are built once per run and bound as a task-local (`PackagePurity.current`) around the pre-scan, the
-per-file task group and cross-file analysis; every `PurityInferrer()` reads it. Each mutant breaks
+are built at most once per pass and bound as a task-local (`PackagePurity.current`) around the
+pre-scan, the per-file task group and cross-file analysis; every `PurityInferrer()` reads it. Each mutant breaks
 one link of that, and each is a bug whose output looks like a corpus with more candidates in it.
 
 | id | shape | expected | killer |
@@ -238,6 +238,164 @@ still fails exactly their own case.
 
 `purity-universe-takes-every-nested-package` was re-expressed when discovery started awaiting the
 bound on a large-stack thread (`compiledUniverse`): it now skips that call.
+
+### The purity gate
+
+Twenty in the same shape, one per mechanism of the gate that builds the construction universe, the
+facts and the two purity catalogs only when a visitor the run executes declares that it reads them
+(`PackagePurityConsumer`), withholds the rest, and redoes a pass that read something it withheld.
+Each puts back a way the gate could report a finding the ungated run would not, cost a narrow run
+what it was meant to save, or fail to say that it happened.
+
+| id | shape | expected | killer |
+|---|---|---|---|
+| `purity-gate-declaration-dropped` | engine-wiring | killed | `declarationInventory` |
+| `purity-gate-unreachable-effect-closure-undeclared` | engine-wiring | killed | `purityReadersDeclareWhatTheyRead` |
+| `purity-gate-nil-plan-demands-nothing` | engine-wiring | killed | `demandIsPerVisitor` |
+| `purity-gate-demand-from-cli-ids-only` | engine-wiring | killed | `narrowRunsSkipTheUniverseWalk` |
+| `purity-gate-universe-always-resolved` | engine-wiring | killed | `narrowRunWithholds` |
+| `purity-gate-unresolved-universe-builds-empty-table` | engine-wiring | killed | `narrowRunWithholds` |
+| `purity-gate-withheld-pass-binds-unconfigured` | engine-wiring | killed | `narrowRunWithholds` |
+| `purity-gate-read-does-not-trip` | engine-wiring | killed | `withheldTableTripsAtOracleCreation` |
+| `purity-gate-catalog-shadow-storage` | engine-wiring | killed | `surfacesKeepOnlyWithholdableStorage` |
+| `purity-gate-equality-bypasses-read` | engine-wiring | killed | `withheldCatalogsTrip` |
+| `purity-gate-tripwire-records-nothing` | engine-wiring | killed | `undeclaredReadFallsBack` |
+| `purity-gate-tripwire-shared-across-passes` | engine-wiring | killed | `tripwiresArePerRun` |
+| `purity-gate-clean-catalog-built-on-the-join-bit` | engine-wiring | killed | `everyRuleAloneReadsOnlyWhatItDeclares` |
+| `purity-gate-clean-catalog-empty-not-withheld` | engine-wiring | killed | `everyDeclaredInputIsRead` |
+| `purity-gate-join-empty-not-withheld` | engine-wiring | killed | `prescanWithholdsEveryOracleBuiltCatalog` |
+| `purity-gate-no-rerun` | engine-wiring | killed | `undeclaredReadFallsBack` |
+| `purity-gate-rerun-reuses-derived-demand` | engine-wiring | killed | `undeclaredReadFallsBack` |
+| `purity-gate-cancelled-run-returns-first-pass` | engine-wiring | killed | `cancelledTrippedRunNeverReturnsTheFirstPass` |
+| `purity-gate-caller-detector-gets-catalogs` | engine-wiring | killed | `theCallersDetectorKeepsNoPurityCatalog` |
+| `purity-gate-rerun-not-reported` | engine-wiring | killed | `rerunIsReported` |
+
+The first two are the declarations. Dropping one is the mistake the gate is built to survive: the
+findings stay right and the run takes twice as long, so no assertion about a finding can catch it,
+and the killers are an inventory and a source scan instead. The scan is the one that matters for a
+rule added later: Unreachable Effect Closure asks its oracle only `mutatesCapturedState`, which SEI
+answers without the table today, and its mutant is killed by the file naming `PurityInferrer`,
+whatever any corpus reaches.
+
+The next five are the demand and what it decides. `purity-gate-demand-from-cli-ids-only` takes the
+demand from the flags rather than the resolved rules, so `enabled_only` and `disabled_rules` stop
+narrowing what is built; it is why the rules are resolved before discovery. The two after
+`universe-always-resolved` are the unsound ones: a run that resolved no universe answers with an
+empty or unconfigured table instead of a withheld one, so an undeclared read is answered silently
+and nothing reruns.
+
+The read point, the storage and equality are the three ways round `Withholdable.read`. The shadow
+storage one is the case the compiler cannot see — a second stored property beside the private
+state — so its killer is the structural pin that each surface stores one `Withholdable` and nothing
+else.
+
+The tripwire and the catalogs: recording nothing; sharing one tripwire across passes, which the
+`precondition` stops when a rerun that withholds nothing inherits the first pass's trips; building
+the clean-method catalog on the join's bit; and an `.empty` catalog where a withheld one belongs. An empty catalog looks exactly like a project with no kernels and no impure callees,
+which is why `prescanWithholdsEveryOracleBuiltCatalog` reads the pre-scan's source rather than a
+finding.
+
+The last five are the rerun: returning the tripped pass, rerunning with the demand that tripped
+(stopped by the `precondition`), returning the first pass of a run cancelled meanwhile, handing the
+caller's long-lived detector a catalog that outlives its run, and dropping the call to the notice in
+`lint`, which the CLI prints. (The CLI's own half, building and using a linter that has a notice, is
+under "The CLI's rerun warning" below.)
+
+Removing the debug `assert` in `analyzeProject` is an equivalent mutant and is not listed: it only
+reports a rerun that has already happened, so no test can tell it is gone.
+
+The gate moved two earlier mutants' sites. `purity-binding-excludes-prescan` was re-anchored when the
+rules started being resolved before discovery, and again with `purity-context-not-bound` when the
+binding moved into `ProjectLinter.pass`. Each makes the same mutation as before, and each is still
+killed by `constructionRefutesThroughProjectLinter`.
+
+And it took one killer's reach away. `everyCatalogIsInjectedPerFile` took the catalogs owed per file
+from what `configuredDetector` primes, and the gate stopped priming the caller's detector with the
+two purity catalogs, so `prescan-catalog-built-then-dropped` survived the first run of the corpus
+on the gate. The test now names those two catalogs, owed per file and never primed once, and kills
+it again — though by then the gate's own tests did too: a catalog dropped per file is never read, so
+`everyDeclaredInputIsRead` finds the declaration stale.
+
+### The gate's source scans
+
+Eleven more, from the two reviews of the gate. A missing declaration costs the gate a second pass,
+never a finding, so the runtime tests catch it only on a shape some corpus reaches. The structural
+scans in `PurityOracleEntryTests` are there for the rest: they read the source. Each mutant below is
+code that one of those scans missed: the first six survive the scans as they were at 0c701ba7, the
+last five the scans as they were at 9112617a. Each also has a probe in `PurityScanProbeTests`, which
+hands the scan the same shape as a string, so a scan that loses its reach fails there even with no
+mutant applied.
+
+| id | shape | expected | killer |
+|---|---|---|---|
+| `purity-gate-catalog-kept-in-a-static` | engine-wiring | killed | `noStaticHoldsAnOracle` |
+| `purity-gate-catalog-kept-in-a-static-as-self` | engine-wiring | killed | `noStaticHoldsAnOracle` |
+| `purity-gate-entry-point-added-to-a-listed-file` | engine-wiring | killed | `oracleEntryPointsAreKnown` |
+| `purity-gate-read-in-an-undeclared-visitors-extension` | engine-wiring | killed | `purityReadersDeclareWhatTheyRead` |
+| `purity-gate-rule-helper-reads-for-another-visitor` | engine-wiring | killed | `purityReadersDeclareWhatTheyRead` |
+| `purity-gate-subscript-bypasses-read` | engine-wiring | killed | `withholdableStateIsReadOnlyThroughRead` |
+| `purity-gate-oracle-created-by-dot-init` | engine-wiring | killed | `oracleEntryPointsAreKnown` |
+| `purity-gate-unlabelled-helper-reads-for-another-visitor` | engine-wiring | killed | `purityReadersDeclareWhatTheyRead` |
+| `purity-gate-read-overload-bypasses-read` | engine-wiring | killed | `withholdableStateIsReadOnlyThroughRead` |
+| `purity-gate-empty-constant-built-by-the-join` | engine-wiring | killed | `noStaticHoldsAnOracle` |
+| `purity-gate-detector-kept-in-a-static` | engine-wiring | killed | `noStaticHoldsAnOracle` |
+
+The first two keep a catalog in a static. The scan used to match only the oracle, the table, the
+tripwire and `Withholdable` by name. `CleanInstanceMethodCatalog` and `ImpurePackageFunctions` each
+wrap a `Withholdable` without naming it, so the first passed. The second names its type only as
+`Self`. Its read after the pass's `seal()` is the one way to a wrong finding the gate has: a release
+build answers the placeholder and nothing reruns.
+
+The next three are reads the reader scan did not count. The entry points were listed by file, so a
+new public function in a file already listed was no new site. The scan now finds them declaration by
+declaration, through helpers, to a fixpoint. A file was checked against the classes it declares, so
+an extension of an undeclared visitor in a declared visitor's file was checked against the wrong
+declaration. (The same fix stops a harmless `Visitor+Part.swift` split from failing with wrong
+advice. That is a false alarm rather than a missed read, so it has a probe and no mutant.) And a
+static helper in a rule package that creates an oracle made only its own file a reader, not the
+files that call it.
+
+`purity-gate-subscript-bypasses-read` is the declaration kind the state scan did not visit: it
+listed functions, initializers and computed properties, and a subscript reached the private state
+without tripping. The scan now names whatever declaration each `state` token sits in.
+
+The last five are what the second review found the scans still read past. `oracle-created-by-dot-init`
+creates the oracle as `let oracle: PurityInferrer = .init()`, which a scan for `PurityInferrer (`
+does not see; a declaration that names `PurityInferrer` beside a `.init` now creates one.
+`unlabelled-helper-reads-for-another-visitor` is the gap the reader scan used to document: a helper
+class that stores an oracle, built with `ClosureOracle()` in an undeclared visitor's file. Unlabelled
+initializers were left out because, by identifier tokens alone, that call reads like a registrar's
+`ClosureOracle.self`; they are now matched with their punctuation. `read-overload-bypasses-read` is
+the subscript mutant's sibling: an overload named `read` passed a scan that named functions by base
+name, and functions are now named by their full signature. The last two are the static scan: a
+sanctioned name whose constant is built from a run (a sanctioned constant must now be built from
+literals and the empty constants alone), and a held set without the detector — and without the
+visitors, which it now holds too, found from the source.
+
+The static scan still matches names. A static whose type is inferred from a call, or a type that
+stores a held value and is not listed, passes it; that is its documented limit, and no mutant is
+listed for it.
+
+### The CLI's rerun warning
+
+Two more, one per half of the CLI's notice.
+
+| id | shape | expected | killer |
+|---|---|---|---|
+| `purity-gate-cli-drops-rerun-warning` | engine-wiring | killed | `cliReportsAPurityRerunAsAWarning` |
+| `purity-gate-cli-run-bypasses-make-linter` | engine-wiring | killed | `cliBuildsItsLinterOnlyThroughMakeLinter` |
+
+`purity-gate-rerun-not-reported` drops the call in `lint`; these keep the call and lose the
+listener. The CLI's notice is the only sign a release build gives of a mispredicted declaration.
+
+The first builds `makeLinter`'s linter with `ProjectLinter()`. Its killer runs that linter over a
+visitor that creates an oracle undeclared and expects one `warning:` line, so it holds `makeLinter`,
+not `run()`. The second leaves `makeLinter` alone and has `run()` build its own `ProjectLinter()`,
+which every runtime test passes: the configured rules never trip, and a debug `analyzeProject`
+asserts on a run that does, so `run()` cannot be exercised for it. Its killer reads `Sources/CLI`
+instead: only `makeLinter` may name `ProjectLinter`, and the one `analyzeProject` call must be made
+in `run()` on a constant bound to `makeLinter` with standard error. Neither is a purity scan, and
+neither has a probe in `PurityScanProbeTests`: the CLI's check lives in the CLI's test target.
 
 ### The `ConcreteTypeUsage` seam exemptions
 
