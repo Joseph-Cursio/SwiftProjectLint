@@ -310,20 +310,29 @@ quiet. And the linter reports something new:
 Sources/Checkout/Domain/OrderStore.swift:13: info: [Single Implementation Protocol]
   Protocol 'OrderHistory' has only one conformer ('CoreDataOrderStore') —
   consider removing the abstraction.
+Sources/Checkout/Domain/OrderStore.swift:13: info: [Unused Protocol Abstraction]
+  Protocol 'OrderHistory' is conformed to by 1 type but never used as a type —
+  no parameter, property, constraint, or existential references it.
 Sources/Checkout/Domain/OrderStore.swift:21: info: [Single Implementation Protocol]
   Protocol 'OrderAdministration' has only one conformer ('CoreDataOrderStore') —
   consider removing the abstraction.
+Sources/Checkout/Domain/OrderStore.swift:21: info: [Unused Protocol Abstraction]
+  Protocol 'OrderAdministration' is conformed to by 1 type but never used as a type —
+  no parameter, property, constraint, or existential references it.
 Sources/Checkout/Domain/OrderStore.swift:29: info: [Single Implementation Protocol]
   Protocol 'AnalyticsRecording' has only one conformer ('CoreDataOrderStore') —
   consider removing the abstraction.
+Sources/Checkout/Domain/OrderStore.swift:29: info: [Unused Protocol Abstraction]
+  Protocol 'AnalyticsRecording' is conformed to by 1 type but never used as a type —
+  no parameter, property, constraint, or existential references it.
 ```
 
 `OrderSaving` isn't on the list, because it has a client. The other three roles
 don't. I named them after screens Checkout doesn't have: order history, admin
 tools, analytics. The split was right about the *shape* of the roles and wrong
 about whether they were needed. They're abstractions waiting for clients, and
-the rule that pushes back against over-applied dependency inversion (§2)
-catches them just as it caught the unused protocol there.
+the rules that push back against over-applied dependency inversion (§2)
+catch them just as they caught the unused protocol there.
 
 So the finished version is smaller still: keep `OrderSaving`, and leave the
 other nine methods on `CoreDataOrderStore` until a client needs them. When an
@@ -335,9 +344,9 @@ requirements.
 
 (A smaller lesson from the same branch: I first wrote the store's conformance
 as `actor CoreDataOrderStore: OrderStore`, through the typealias. The linter
-then reported all four roles as having *no* conformers, because it doesn't
-expand typealiased compositions. Checkable, again, doesn't mean perfectly
-checked.)
+then reported all four roles as having *no* conformers, because it didn't
+expand typealiased compositions. It does now, and both spellings give the
+output above. Checkable, again, doesn't mean perfectly checked.)
 
 ---
 
