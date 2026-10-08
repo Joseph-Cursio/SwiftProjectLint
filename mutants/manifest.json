@@ -633,6 +633,62 @@
       "expected": "killed",
       "test": "rerunIsReported",
       "label": "the rerun notice is dropped — a release build redoes the run and the CLI says nothing about the missing declaration"
+    },
+    {
+      "id": "purity-gate-catalog-kept-in-a-static",
+      "patch": "patches/purity-gate-catalog-kept-in-a-static.patch",
+      "shape": "engine-wiring",
+      "expected": "killed",
+      "test": "noStaticHoldsAnOracle",
+      "label": "SourcePatternDetector keeps the last clean-method catalog and join it handed out in two statics — a gated pass's withheld catalog outlives its seal, and a release build would answer its next read with the empty placeholder, no rerun and no notice"
+    },
+    {
+      "id": "purity-gate-catalog-kept-in-a-static-as-self",
+      "patch": "patches/purity-gate-catalog-kept-in-a-static-as-self.patch",
+      "shape": "engine-wiring",
+      "expected": "killed",
+      "test": "noStaticHoldsAnOracle",
+      "label": "CleanInstanceMethodCatalog keeps its last build in `static var lastBuilt = Self.empty` — the type is named only as Self, so a scan matching type names alone lets one run's catalog reach the next"
+    },
+    {
+      "id": "purity-gate-entry-point-added-to-a-listed-file",
+      "patch": "patches/purity-gate-entry-point-added-to-a-listed-file.patch",
+      "shape": "engine-wiring",
+      "expected": "killed",
+      "test": "oracleEntryPointsAreKnown",
+      "label": "a new public PropertyTestCandidacy.isPure(closure:) creates an oracle in a file already listed, and the undeclared Global Mutable State calls it on closures over 50 statements — no corpus reaches the read, and a scan by file sees no new site"
+    },
+    {
+      "id": "purity-gate-read-in-an-undeclared-visitors-extension",
+      "patch": "patches/purity-gate-read-in-an-undeclared-visitors-extension.patch",
+      "shape": "engine-wiring",
+      "expected": "killed",
+      "test": "purityReadersDeclareWhatTheyRead",
+      "label": "PureClosureCandidateVisitor.swift, which declares the oracle, also extends the undeclared GlobalMutableStateVisitor with a helper that creates one — a scan that counts only the classes a file declares checks the file against Pure Closure's declaration"
+    },
+    {
+      "id": "purity-gate-rule-helper-reads-for-another-visitor",
+      "patch": "patches/purity-gate-rule-helper-reads-for-another-visitor.patch",
+      "shape": "engine-wiring",
+      "expected": "killed",
+      "test": "purityReadersDeclareWhatTheyRead",
+      "label": "a ClosureOracle helper in Pure Closure's file creates an oracle, and the undeclared Global Mutable State calls it from its own file, which never names PurityInferrer"
+    },
+    {
+      "id": "purity-gate-subscript-bypasses-read",
+      "patch": "patches/purity-gate-subscript-bypasses-read.patch",
+      "shape": "engine-wiring",
+      "expected": "killed",
+      "test": "withholdableStateIsReadOnlyThroughRead",
+      "label": "Withholdable gains subscript(unchecked:), which reads the private state without tripping, and isPureKernel answers through it — a withheld catalog says 'no kernel' silently"
+    },
+    {
+      "id": "purity-gate-cli-drops-rerun-warning",
+      "patch": "patches/purity-gate-cli-drops-rerun-warning.patch",
+      "shape": "engine-wiring",
+      "expected": "killed",
+      "test": "cliReportsAPurityRerunAsAWarning",
+      "label": "the CLI builds its linter with ProjectLinter() again — the linter has no notice to call, and a release build redoes a mispredicted run in silence"
     }
   ]
 }

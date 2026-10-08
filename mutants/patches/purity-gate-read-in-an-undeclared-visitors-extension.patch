@@ -1,0 +1,33 @@
+diff --git a/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/Testability/Visitors/GlobalMutableStateVisitor.swift b/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/Testability/Visitors/GlobalMutableStateVisitor.swift
+index cb764e6e..58e71651 100644
+--- a/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/Testability/Visitors/GlobalMutableStateVisitor.swift
++++ b/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/Testability/Visitors/GlobalMutableStateVisitor.swift
+@@ -24,6 +24,13 @@ final class GlobalMutableStateVisitor: BasePatternVisitor {
+         fileIsTestOrFixture = isTestOrFixtureFile()
+     }
+ 
++    /// A closure this long, stored in a global, is a computation a property could test on its own.
++    override func visit(_ node: ClosureExprSyntax) -> SyntaxVisitorContinueKind {
++        guard node.statements.count > 50 else { return .visitChildren }
++        if storesPureClosure(node) { addIssue(node: Syntax(node)) }
++        return .visitChildren
++    }
++
+     override func visit(_ node: VariableDeclSyntax) -> SyntaxVisitorContinueKind {
+         // Test/fixture files aren't property-test subjects — a global `var` in a
+         // test is not what this rule is about. Exempt them, as the sibling
+diff --git a/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/Testability/Visitors/PureClosureCandidateVisitor.swift b/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/Testability/Visitors/PureClosureCandidateVisitor.swift
+index 95820e79..6701ad72 100644
+--- a/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/Testability/Visitors/PureClosureCandidateVisitor.swift
++++ b/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/Testability/Visitors/PureClosureCandidateVisitor.swift
+@@ -104,3 +104,10 @@ final class PureClosureCandidateVisitor: BasePatternVisitor, PackagePurityConsum
+             .first
+     }
+ }
++
++extension GlobalMutableStateVisitor {
++    /// Whether a closure stored in a global is a function of its inputs.
++    func storesPureClosure(_ node: ClosureExprSyntax) -> Bool {
++        PurityInferrer().isPure(node)
++    }
++}

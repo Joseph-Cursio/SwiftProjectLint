@@ -297,7 +297,9 @@ finding.
 
 The last five are the rerun: returning the tripped pass, rerunning with the demand that tripped
 (stopped by the `precondition`), returning the first pass of a run cancelled meanwhile, handing the
-caller's long-lived detector a catalog that outlives its run, and dropping the notice the CLI prints.
+caller's long-lived detector a catalog that outlives its run, and dropping the call to the notice in
+`lint`, which the CLI prints. (The CLI's own half, building a linter that has a notice, is
+`purity-gate-cli-drops-rerun-warning` below.)
 
 Removing the debug `assert` in `analyzeProject` is an equivalent mutant and is not listed: it only
 reports a rerun that has already happened, so no test can tell it is gone.
@@ -313,6 +315,48 @@ two purity catalogs, so `prescan-catalog-built-then-dropped` survived the first 
 on the gate. The test now names those two catalogs, owed per file and never primed once, and kills
 it again — though by then the gate's own tests did too: a catalog dropped per file is never read, so
 `everyDeclaredInputIsRead` finds the declaration stale.
+
+### The gate's source scans
+
+Seven more, from the review of the gate. A missing declaration costs the gate a second pass, never
+a finding, so the runtime tests catch it only on a shape some corpus reaches. The structural scans
+in `PurityOracleEntryTests` are there for the rest: they read the source. Each mutant below is code
+that one of those scans missed before the review, and each survives the scans as they were at
+0c701ba7. Each also has a probe in `PurityScanProbeTests`, which hands the scan the same shape as a
+string, so a scan that loses its reach fails there even with no mutant applied.
+
+| id | shape | expected | killer |
+|---|---|---|---|
+| `purity-gate-catalog-kept-in-a-static` | engine-wiring | killed | `noStaticHoldsAnOracle` |
+| `purity-gate-catalog-kept-in-a-static-as-self` | engine-wiring | killed | `noStaticHoldsAnOracle` |
+| `purity-gate-entry-point-added-to-a-listed-file` | engine-wiring | killed | `oracleEntryPointsAreKnown` |
+| `purity-gate-read-in-an-undeclared-visitors-extension` | engine-wiring | killed | `purityReadersDeclareWhatTheyRead` |
+| `purity-gate-rule-helper-reads-for-another-visitor` | engine-wiring | killed | `purityReadersDeclareWhatTheyRead` |
+| `purity-gate-subscript-bypasses-read` | engine-wiring | killed | `withholdableStateIsReadOnlyThroughRead` |
+| `purity-gate-cli-drops-rerun-warning` | engine-wiring | killed | `cliReportsAPurityRerunAsAWarning` |
+
+The first two keep a catalog in a static. The scan used to match only the oracle, the table, the
+tripwire and `Withholdable` by name. `CleanInstanceMethodCatalog` and `ImpurePackageFunctions` each
+wrap a `Withholdable` without naming it, so the first passed. The second names its type only as
+`Self`. Its read after the pass's `seal()` is the one way to a wrong finding the gate has: a release
+build answers the placeholder and nothing reruns.
+
+The next three are reads the reader scan did not count. The entry points were listed by file, so a
+new public function in a file already listed was no new site. The scan now finds them declaration by
+declaration, through helpers, to a fixpoint. A file was checked against the classes it declares, so
+an extension of an undeclared visitor in a declared visitor's file was checked against the wrong
+declaration. (The same fix stops a harmless `Visitor+Part.swift` split from failing with wrong
+advice. That is a false alarm rather than a missed read, so it has a probe and no mutant.) And a
+static helper in a rule package that creates an oracle made only its own file a reader, not the
+files that call it.
+
+`purity-gate-subscript-bypasses-read` is the declaration kind the state scan did not visit: it
+listed functions, initializers and computed properties, and a subscript reached the private state
+without tripping. The scan now names whatever declaration each `state` token sits in.
+
+The last is the CLI. `purity-gate-rerun-not-reported` drops the call in `lint`; this one keeps the
+call and drops the listener. The CLI's notice is the only sign a release build gives of a
+mispredicted declaration, and no test held it before.
 
 ### The `ConcreteTypeUsage` seam exemptions
 

@@ -1,0 +1,28 @@
+diff --git a/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/CleanInstanceMethodCatalog.swift b/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/CleanInstanceMethodCatalog.swift
+index 2dcfc26b..949f7490 100644
+--- a/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/CleanInstanceMethodCatalog.swift
++++ b/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/CleanInstanceMethodCatalog.swift
+@@ -54,6 +54,9 @@ public struct CleanInstanceMethodCatalog: Sendable, Equatable {
+     /// and behaviour matches the analyzer as it was before the catalog existed.
+     public static let empty = Self(methodsByType: [:])
+ 
++    /// The catalog the last build produced, for a caller that has not run a pre-scan of its own.
++    nonisolated(unsafe) static var lastBuilt = Self.empty
++
+     public init(methodsByType: [String: Set<String>], pureKernelTypes: Set<String> = []) {
+         storage = .built(Tables(methodsByType: methodsByType, pureKernelTypes: pureKernelTypes))
+     }
+@@ -157,10 +160,12 @@ public struct CleanInstanceMethodCatalog: Sendable, Equatable {
+         }
+ 
+         let clean = resolve(types)
+-        return Self(
++        let built = Self(
+             methodsByType: clean,
+             pureKernelTypes: kernels(in: types, given: clean, enumTypes: enumTypes)
+         )
++        Self.lastBuilt = built
++        return built
+     }
+ 
+     /// The types that hold nothing a test could not supply. See ``isPureKernel(_:)``.
