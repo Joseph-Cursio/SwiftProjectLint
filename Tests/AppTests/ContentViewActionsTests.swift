@@ -16,12 +16,9 @@ struct ContentViewActionsTests {
             onAnalyzeProject: {}
         )
         let inspected = try view.inspect()
-        let vStack = try inspected.vStack()
-        // Select Rules button
-        let selectRulesButton = try vStack.button(0)
-        #expect(try selectRulesButton.labelView().text().string() == "Select Rules")
+        #expect(try inspected.selectRulesButton().labelView().text().string() == "Select Rules")
         // Main action button (folder selection)
-        let mainActionButton = try vStack.button(1)
+        let mainActionButton = try inspected.mainActionButton()
         #expect(try mainActionButton.labelView().text().string() == "Run Project Analysis by Selecting a Folder...")
     }
 
@@ -34,13 +31,9 @@ struct ContentViewActionsTests {
             onAnalyzeProject: {}
         )
         let inspected = try view.inspect()
-        let vStack = try inspected.vStack()
-        // Select Rules button
-        let selectRulesButton = try vStack.button(0)
-        #expect(try selectRulesButton.labelView().text().string() == "Select Rules")
+        #expect(try inspected.selectRulesButton().labelView().text().string() == "Select Rules")
         // Main action button (analyze project)
-        let mainActionButton = try vStack.button(1)
-        #expect(try mainActionButton.labelView().text().string() == "Analyze MyProject")
+        #expect(try inspected.mainActionButton().labelView().text().string() == "Analyze MyProject")
     }
 
     @Test("tapping Select Rules button invokes the onSelectRules callback")
@@ -52,9 +45,7 @@ struct ContentViewActionsTests {
             onSelectDirectory: {},
             onAnalyzeProject: {}
         )
-        let inspected = try view.inspect()
-        let selectRulesButton = try inspected.vStack().button(0)
-        try selectRulesButton.tap()
+        try view.inspect().selectRulesButton().tap()
         #expect(callbackCalled, "onSelectRules should be called when the button is tapped")
     }
 
@@ -67,9 +58,7 @@ struct ContentViewActionsTests {
             onSelectDirectory: { callbackCalled = true },
             onAnalyzeProject: {}
         )
-        let inspected = try view.inspect()
-        let mainActionButton = try inspected.vStack().button(1)
-        try mainActionButton.tap()
+        try view.inspect().mainActionButton().tap()
         #expect(callbackCalled, "onSelectDirectory should be called when the button is tapped")
     }
 
@@ -82,9 +71,7 @@ struct ContentViewActionsTests {
             onSelectDirectory: {},
             onAnalyzeProject: { callbackCalled = true }
         )
-        let inspected = try view.inspect()
-        let analyzeButton = try inspected.vStack().button(1)
-        try analyzeButton.tap()
+        try view.inspect().mainActionButton().tap()
         #expect(callbackCalled, "onAnalyzeProject should be called when the button is tapped")
     }
 
@@ -96,9 +83,7 @@ struct ContentViewActionsTests {
             onSelectDirectory: {},
             onAnalyzeProject: {}
         )
-        let inspected = try view.inspect()
-        let analyzeButton = try inspected.vStack().button(1)
-        let buttonText = try analyzeButton.labelView().text().string()
+        let buttonText = try view.inspect().mainActionButton().labelView().text().string()
         #expect(buttonText == "Analyze AwesomeApp")
     }
 

@@ -197,9 +197,7 @@ struct FullScreenResultsViewTests {
         let fullScreen = FullScreenResultsView(issues: issues)
         let inspected = try fullScreen.inspect()
 
-        let navStack = try inspected.navigationStack()
-        let list = try navStack.find(ViewType.List.self)
-        let issuesSection = try list.section(1)
+        let issuesSection = try inspected.issueListSection()
         let dividers = issuesSection.findAll(ViewType.Divider.self)
         // 2 issues -> 1 divider
         #expect(dividers.count == 1)

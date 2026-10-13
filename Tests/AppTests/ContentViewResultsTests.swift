@@ -42,12 +42,8 @@ struct ContentViewResultsTests {
         ]
         let view = ContentViewResults(lintIssues: demoIssues, isAnalyzing: false)
         let inspected = try view.inspect()
-        let vStack = try inspected.vStack()
-        // Header
-        let hStack = try vStack.hStack(0)
-        #expect(try hStack.text(0).string() == "Analysis Results")
-        #expect(try hStack.text(2).string() == "2 issues found")
-        // LintResultsView
-        _ = try vStack.find(LintResultsView.self)
+        #expect(try inspected.resultsTitle() == "Analysis Results")
+        #expect(try inspected.resultsCount() == "2 issues found")
+        _ = try inspected.find(LintResultsView.self)
     }
 }
