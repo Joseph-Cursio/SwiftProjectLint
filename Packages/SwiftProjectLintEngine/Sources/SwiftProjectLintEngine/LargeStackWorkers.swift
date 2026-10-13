@@ -15,22 +15,33 @@ import Foundation
 /// SwiftInferProperties met the same trap on GCD's workers and answered it the same way.
 ///
 /// So the shared parse, the facts build and the universe's manifest reads run here, on `Thread`s
-/// with ``stackSize``, and nowhere else: per-file analysis still walks reported files on the task
-/// tree, as it always has. The manifests came last: a nested dependency's `Package.swift` with a
-/// 1,000-arm `else if` crashed the bound's manifest reader just as a source file crashed the parse.
+/// with ``stackSize`` (``map`` and ``run``). The manifests came last: a nested dependency's
+/// `Package.swift` with a 1,000-arm `else if` crashed the bound's manifest reader just as a source
+/// file crashed the parse.
+///
+/// The analysis after them — the pre-scan, per-file and cross-file phases — walks every reported
+/// file just as deep, and reached the same trap from the other side: a 200-link member chain in a
+/// reported file crashed a debug run in the pre-scan (`FunctionTypeAliasCollector`), whichever rules
+/// were enabled; with that walk out of the way a 500-link one crashed in swift-syntax's own
+/// `RawSyntax.withEachSyntaxText`, and a release build crashed from about 900 links. So it runs on
+/// the same stacks through ``withExecutor``, which, unlike the other two, stays on the task tree.
 ///
 /// ## Why this is safe for the run's task-local
 ///
 /// A thread does not inherit `PackagePurity.current`, which is why `PurityOracleEntryTests` forbids
-/// leaving the task tree. Every caller runs **before** `ProjectLinter.pass` binds it, and none
-/// creates an oracle that reads it: the parse and the manifest reads create none, and
-/// `ConstructionFacts.build` is SEI's own pass. The test names this file as its one exception and
-/// checks that only those callers use it.
+/// leaving the task tree. Every caller of ``map`` and ``run`` runs **before** `ProjectLinter.pass`
+/// binds it, and none creates an oracle that reads it: the parse and the manifest reads create none,
+/// and `ConstructionFacts.build` is SEI's own pass. ``withExecutor`` runs inside the binding, and
+/// may: a task-executor preference moves the task's jobs to other threads, not out of the task, so
+/// the binding is inherited. The test names this file as its one exception, checks that only those
+/// callers use ``map`` and ``run``, and that only `pass` uses ``withExecutor``.
 enum LargeStackWorkers {
 
     /// Eight times the main thread's 8 MB. In a debug build the two regression fixtures
     /// (`PackagePurityRobustnessTests`) crash at 4 MB and pass at 16 MB, so this leaves four times
-    /// that for deeper sources. Reserved, not committed: a thread touches only the pages it uses.
+    /// that for deeper sources; the reported 10,000-link chain the whole analysis walks
+    /// (`DeepReportedFileTests`) crashes at 16 MB and passes at 32 MB, which leaves twice that.
+    /// Reserved, not committed: a thread touches only the pages it uses.
     static let stackSize = 64 << 20
 
     /// `body(index)` for every index in `0..<count`, across up to one thread per active core, each
@@ -59,6 +70,20 @@ enum LargeStackWorkers {
             preconditionFailure("a large-stack worker returned without running")
         }
         return result
+    }
+
+    /// `body`, with every job of the calling task, and of each child task it creates, run on threads
+    /// with ``stackSize``.
+    ///
+    /// Unlike ``map`` and ``run`` this does not leave the task tree. It is a task-executor
+    /// preference (SE-0417): it changes which threads run the task's jobs, not which task they
+    /// belong to, so task-locals (`PackagePurity.current` among them), cancellation and task-group
+    /// children are inherited exactly as on the cooperative pool. The threads, one per active core,
+    /// are this call's own and end with it.
+    static func withExecutor<Result>(_ body: () async -> Result) async -> Result {
+        let executor = Executor(threads: ProcessInfo.processInfo.activeProcessorCount)
+        defer { executor.finish() }
+        return await withTaskExecutorPreference(executor, operation: body)
     }
 
     /// Starts `batch.workers` threads draining `batch`, and returns when the last has finished —
@@ -132,6 +157,58 @@ enum LargeStackWorkers {
                 return continuation
             }
             resume?.resume()
+        }
+    }
+
+    /// The task executor behind ``withExecutor``: a queue of jobs drained by threads with
+    /// ``stackSize``, which end once it is finished and the queue is empty.
+    private final class Executor: TaskExecutor, @unchecked Sendable {
+        private let condition = NSCondition()
+        private var jobs: [UnownedJob] = []
+        private var finished = false
+
+        init(threads: Int) {
+            for _ in 0..<max(threads, 1) { startThread() }
+        }
+
+        func enqueue(_ job: consuming ExecutorJob) {
+            let job = UnownedJob(job)
+            let orphaned: Bool = condition.withLock {
+                jobs.append(job)
+                condition.signal()
+                return finished
+            }
+            // Nothing is enqueued once the preference is gone, but were a job to arrive then, its
+            // own thread runs it rather than nobody.
+            if orphaned { startThread() }
+        }
+
+        /// Lets every thread end once the queue is empty, rather than wait for more.
+        func finish() {
+            condition.withLock {
+                finished = true
+                condition.broadcast()
+            }
+        }
+
+        private func startThread() {
+            let thread = Thread { [self] in
+                while let job = next() { job.runSynchronously(on: asUnownedTaskExecutor()) }
+            }
+            thread.stackSize = LargeStackWorkers.stackSize
+            thread.start()
+        }
+
+        /// The oldest job, waiting for one while the executor is in use; `nil` once it is finished
+        /// and none is left.
+        private func next() -> UnownedJob? {
+            condition.withLock {
+                while jobs.isEmpty {
+                    if finished { return nil }
+                    condition.wait()
+                }
+                return jobs.removeFirst()
+            }
         }
     }
 }

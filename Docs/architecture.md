@@ -62,7 +62,8 @@ When `ProjectLinter.analyzeProject(at:)` is called, the following stages run in 
 3. Package purity           — built or withheld: ConstructionFacts built from the universe's
                               production sources, sorted, or `PackagePurity.withheld(by:)` when
                               no universe was resolved; bound as `PackagePurity.current` around
-                              stages 4-6
+                              stages 4-6, which run on large-stack threads through a task-executor
+                              preference (`LargeStackWorkers.withExecutor`) that stays on the task tree
 4. Pre-scans                — collect cross-file type metadata (Identifiable, enum, actor types, all
                               local type names) and the purity catalogs (clean methods, the callee
                               join), each built or withheld

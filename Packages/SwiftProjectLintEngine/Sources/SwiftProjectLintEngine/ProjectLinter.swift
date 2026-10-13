@@ -212,9 +212,13 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
         )
 
         // Bound once, around the pre-scan, the per-file task group and cross-file analysis: every
-        // `PurityInferrer()` any of them creates reads it, so one run judges with one table.
-        let issues = await PackagePurity.$current.withValue(purity) {
-            await analyzeDiscovered(project)
+        // `PurityInferrer()` any of them creates reads it, so one run judges with one table. Each of
+        // them walks every reported file as deep as it nests, so they run on large stacks — still
+        // on the task tree, which is what carries the binding.
+        let issues = await LargeStackWorkers.withExecutor {
+            await PackagePurity.$current.withValue(purity) {
+                await analyzeDiscovered(project)
+            }
         }
 
         // Every read of a withheld surface happened inside the binding: the task group is awaited,

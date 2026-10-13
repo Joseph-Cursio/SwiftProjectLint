@@ -110,16 +110,17 @@ struct PurityOracleEntryTests {
 
     @Test("large-stack threads run only the shared parse, the facts build and the manifest reads, before the binding")
     func largeStackThreadsRunOnlyTheSharedParse() throws {
-        // `LargeStackWorkers` leaves the task tree on purpose: the parser and the facts build recurse
-        // as deep as the source nests, and a cooperative thread's 512 KB stack overflows on a deep
-        // dependency file or manifest. That is safe only while its callers run before
-        // `PackagePurity.current` is bound and create no oracle — so only `ProjectLinter+Purity.swift`'s
-        // shared parse and the universe's manifest reads may call it.
-        var callers: Set<String> = []
-        for file in Self.sources where file.identifierSequence.contains("LargeStackWorkers") {
-            callers.insert(file.path)
-        }
-        #expect(callers == [Self.largeStackWorkers, Self.purityParse], "found \(callers.sorted())")
+        // `LargeStackWorkers.map` and `.run` leave the task tree on purpose: the parser and the facts
+        // build recurse as deep as the source nests, and a cooperative thread's 512 KB stack
+        // overflows on a deep dependency file or manifest. That is safe only while their callers run
+        // before `PackagePurity.current` is bound and create no oracle — so only
+        // `ProjectLinter+Purity.swift`'s shared parse and the universe's manifest reads may call them.
+        // Its third entry point stays on the tree; see the next test. A fourth must be sorted onto one
+        // side of that line before it is used.
+        let uses = Self.largeStackWorkersUses
+        #expect(Set(uses.keys) == ["map", "run", "withExecutor"], "found \(uses)")
+        #expect(uses["map"] == [Self.purityParse], "found \(uses)")
+        #expect(uses["run"] == [Self.purityParse], "found \(uses)")
 
         // Inside it, the helper serves `parseOnce`, `sharedParse` and `compiledUniverse`, which
         // discovery awaits before the binding, and nothing else.
@@ -128,6 +129,51 @@ struct PurityOracleEntryTests {
         finder.walk(parse.tree)
         #expect(finder.callers == ["compiledUniverse", "parseOnce", "sharedParse"], "found \(finder.callers.sorted())")
         #expect(parse.identifierSequence.contains("PurityInferrer") == false)
+    }
+
+    @Test("the analysis inside the binding runs on the large-stack executor, which stays on the task tree")
+    func boundAnalysisRunsOnLargeStacks() throws {
+        // Every phase inside the binding walks reported files as deep as they nest, and on the
+        // cooperative pool a 200-link member chain took the run down (`DeepReportedFileTests`).
+        // `withExecutor` is a task-executor preference, not a thread hop, so the binding is still
+        // inherited (`LargeStackExecutorTests`). It is used once, by `pass`, and every call of
+        // `analyzeDiscovered` sits inside it.
+        #expect(Self.largeStackWorkersUses["withExecutor"] == [Self.projectLinter])
+        let linter = try #require(Self.sources.first { $0.path == Self.projectLinter })
+        let finder = CallingFunctionFinder(callee: "withExecutor", viewMode: .sourceAccurate)
+        finder.walk(linter.tree)
+        #expect(finder.callers == ["pass"], "found \(finder.callers.sorted())")
+
+        let analyses = linter.tree.tokens(viewMode: .sourceAccurate).filter {
+            $0.text == "analyzeDiscovered" && $0.parent?.is(DeclReferenceExprSyntax.self) == true
+        }
+        #expect(analyses.isEmpty == false, "the scan found no call of analyzeDiscovered")
+        #expect(analyses.allSatisfy(Self.isInsideLargeStackExecutor), "analyzeDiscovered called off the executor")
+    }
+
+    /// Each `LargeStackWorkers` member named outside its own file, with the files that name it.
+    static var largeStackWorkersUses: [String: Set<String>] {
+        var uses: [String: Set<String>] = [:]
+        for file in sources where file.path != largeStackWorkers {
+            let tokens = file.identifierSequence
+            for index in tokens.indices.dropLast() where tokens[index] == "LargeStackWorkers" {
+                uses[tokens[index + 1], default: []].insert(file.path)
+            }
+        }
+        return uses
+    }
+
+    /// Whether `token` is inside the closure or arguments of a `LargeStackWorkers.withExecutor` call.
+    static func isInsideLargeStackExecutor(_ token: TokenSyntax) -> Bool {
+        var cursor = token.parent
+        while let node = cursor {
+            if let call = node.as(FunctionCallExprSyntax.self),
+               call.calledExpression.trimmedDescription == "LargeStackWorkers.withExecutor" {
+                return true
+            }
+            cursor = node.parent
+        }
+        return false
     }
 
     // MARK: - Statics
