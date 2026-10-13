@@ -102,6 +102,7 @@ class Testability: BasePatternRegistrar {
         registry.register(registrars: [
             ViewHostingBeforeInspection(),
             ObservableEnvironmentViewMissingInspectionHook(),
+            PositionalViewLookup(),
             MissingEquatableOnStateType(),
             MissingEquatableOnPureResult(),
             ImpureCallInViewBody(),

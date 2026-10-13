@@ -257,6 +257,10 @@ public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
     /// so it cannot be inspected without trapping.
     case observableEnvViewMissingInspectionHook = "Observable Environment View Missing Inspection Hook"
 
+    /// A ViewInspector test that reaches a view by walking the tree — an index, a second step
+    /// down, a `parent()` — rather than searching for it, so the test is tied to the layout.
+    case positionalViewLookup = "Positional View Lookup"
+
     /// A closure registered as a callback that writes to what it captured — the
     /// impure twin of `pureClosureCandidate`, which refutes exactly this shape.
     case unreachableEffectClosure = "Unreachable Effect Closure"

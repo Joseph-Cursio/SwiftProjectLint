@@ -139,7 +139,8 @@ extension RuleIdentifier {
              .missingEquatableOnStateType,
              .missingEquatableOnPureResult,
              .impureCallInViewBody, .viewHostingBeforeInspection,
-             .observableEnvViewMissingInspectionHook, .unreachableEffectClosure,
+             .observableEnvViewMissingInspectionHook, .positionalViewLookup,
+             .unreachableEffectClosure,
              .contradictedClockDeterminism, .impureClosureInventory:
             return .testability
 

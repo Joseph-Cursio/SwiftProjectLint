@@ -11,12 +11,8 @@ struct ContentViewProgressTests {
     func testProgressWhenAnalyzing() throws {
         let view = ContentViewProgress(isAnalyzing: true)
         let inspected = try view.inspect()
-        let vStack = try inspected.vStack()
-        // ProgressView
-        _ = try vStack.find(ViewType.ProgressView.self)
-        // Status text
-        let statusText = try vStack.text(1)
-        #expect(try statusText.string() == "Analyzing project...")
+        _ = try inspected.find(ViewType.ProgressView.self)
+        #expect(try inspected.analysisStatus() == "Analyzing project...")
     }
 
     @Test

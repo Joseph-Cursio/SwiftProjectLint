@@ -1,0 +1,266 @@
+[← Back to Rules](RULES.md)
+
+## Positional View Lookup
+
+**Identifier:** `Positional View Lookup`
+**Category:** Testability
+**Severity:** Warning
+
+### Rationale
+
+This rule comes from Jon Reid's article
+[Find SwiftUI Views in Unit Tests, the Robust Way](https://qualitycoding.org/find-swiftui-views-unit-tests/)
+on [Quality Coding](https://qualitycoding.org), part of his series on test-driving SwiftUI. Its
+canonical example, its comparison of the three ways to find a view, and its recommendation of
+accessibility identifiers wrapped in intention-revealing finder helpers are his. The rule
+automates the first half of that advice: spotting the lookups that walk.
+
+A ViewInspector test can reach a view two ways: walk to it, or search for it.
+
+```swift
+try sut.inspect().vStack().hStack(1).button(0)                    // walks
+try sut.inspect().find(viewWithAccessibilityIdentifier: "increment") // searches
+```
+
+The walk restates the layout. Swap the two buttons and `button(0)` quietly reaches the other one,
+so the test now checks the wrong view, which is worse than a failing test. Extract the buttons
+into their own view, wrap them in a container, or let the compiler insert a wrapper, and the chain
+breaks even though nothing a user sees has changed. The search depends only on the identifier.
+
+The compiler case has happened. Swift 6.0 (Xcode 16.0–16.2) wrapped every custom view's body in an
+implicit `AnyView`, and every chain that crossed a custom view's body boundary gained a node it did
+not expect. ViewInspector's own fix added `.implicitAnyView()` to 225 lines of its test suite, and
+none of those lines was a `find`. Searches survived; walks needed repair. The library made the same
+kind of change again for iOS 27, where `ViewBuilder` produces `TupleContent` and chains spelling
+`.tupleView(n)` must become `.tupleContentView(n)`.
+
+A test should fail when behaviour breaks, and only then. A walk also fails when the layout changes,
+and when it does not fail it may be checking the wrong view. Tests that break on every refactor
+get refactoring stopped, which is the opposite of what they are for.
+
+### What is reported
+
+A chain is read from an inspected root: `.inspect()`, the parameter of an inspection-relay
+closure (`sut.inspection.inspect { view in … }`, `sut.on(\.didAppear) { view in … }`), `self`
+inside `extension InspectableView`, a parameter or property typed `InspectableView`, or a local
+bound to any of these. Most walks in real tests are split across statements, so locals are
+followed back:
+
+```swift
+let stack = try sut.inspect().vStack()   // one step: not reported
+let button = try stack.button(0)         // reported: an index into the stack
+```
+
+Four shapes are reported, at the first one in each chain:
+
+| Shape | Example | Why |
+|---|---|---|
+| An index | `hStack(1)`, `view(Row.self, 2)`, `hStack[1]`, `vStack().first`, `toolbar().item(2)` | Picks a sibling by its order. Reorder the siblings and the lookup fails, or reaches a different view of the same type. |
+| An ordinal over search matches | `findAll(ViewType.Toggle.self)[1]`, `findAll(…).last`, `find(ViewType.Button.self, skipFound: 2)` | Picks the nth match in tree order. Reorder the views and the test silently checks a different one. |
+| A second structural step since the last search | `inspect().navigationStack().vStack()` | Restates two levels of nesting. Any wrapper in between breaks it. |
+| `parent()` | `find(text: "Name").parent().parent()` | Climbs a fixed number of levels, so it encodes how deeply the view is nested. |
+
+A chain is reported once, at its first positional step. A view picked by position becomes a new
+anchor of its own type: `let row = try stack.hStack(1)` is reported, and `row.text()` afterwards
+is not reported again, though another index such as `row.text(0)` is.
+
+### What is not reported
+
+- **One step after an anchor.** `find(viewWithAccessibilityIdentifier: "count").text()` only
+  asserts the found view's type. ViewInspector spells a cast and a descent the same way: `x()`
+  takes the receiver's single child and asserts it is an `x`, and on a found view that child is
+  the view itself. The same goes for `x(0)` and `view(MyView.self)` on a found view.
+  `inspect().text()` asserts the type of the body's root. It is one level of structure, and it
+  fails loudly instead of retargeting. Reporting it would mean reporting every test of a view
+  whose body is a single `Text`. A style (`ButtonStyle().inspect(isPressed:)`) or a SwiftUI view
+  built in the test (`AnyView(Text("x")).inspect()`) is inspected as itself, so its first
+  accessor is a cast.
+- **Searches.** `find(…)` and `findAll(…)` in all their forms, including `findAll(…).first`,
+  `findAll(…)[0]` and `findAll(…).first { … }`. An unpredicated `find(ViewType.Button.self)`
+  depends on order too when several buttons exist, since it returns the first in the tree. But it
+  is a search, and this rule is about walks; `findAll(…)[0]` is the same lookup spelled
+  differently.
+- **Data indices.** An index after `forEach()`, `find(ViewType.ForEach.self)`, or a parameter
+  typed `InspectableView<ViewType.ForEach>` selects a row, and row order is behaviour. So does an
+  index into an `actionSheet()`'s buttons.
+- **A loop over every position.** `rows[index]` inside `for index in rows.indices`,
+  `for index in 0..<rows.count`, `for (index, name) in expected.enumerated()`,
+  `zip(rows.indices, expected)` or `rows.indices.forEach { index in … }` compares the whole
+  sequence in order, as `rows.map { … } == expected` would. The index has to be the loop's own
+  variable, with no `where` clause and no `if index == 1`, `guard index == 1` or `switch index`
+  around the use, and a range must run to a `count`: `for index in 0..<3` picks three views, and is
+  reported.
+- **Named slots.** `labelView()`, `header()`, `title()`, `sheet()`, `overlay(1)`,
+  `modifier(Card.self)` and the like reach a view by its role. The index on a modifier counts
+  modifiers, not layout.
+- **A subject the test file declares.** `GeometryProbe().inspect().geometryReader().shape()`
+  walks a fixture defined a few lines above. The test owns that layout, and changing it means
+  editing the same file. ViewInspector compatibility probes take this shape. Ownership follows
+  the inspected view's type: only a `View`, modifier or style declared in the file counts, and a
+  walk that reaches an app view inside a test-declared host (`Host().inspect().find(AppView.self)`)
+  is reported. A host whose body builds an app view — a state host wrapping the screen under
+  test — owns its own layout but not the app view's, so a search that does not name its type
+  (`host.inspect().find(ViewType.Form.self)`), a `findAll`, or a `parent()` climb inside it is read
+  as walking the app's layout.
+- **Anything else.** A step the rule does not recognise ends the chain, so a project's own
+  helpers (`sut.inspect().pegColor(1)`) are not read as accessors. A finder helper the file
+  declares in `extension InspectableView` under an accessor's name — `button(.increment)` — is
+  read as the helper when the call fits its parameters, unless it is called with an integer
+  literal: a helper `find(_ id: String)` does not hide `find(ViewType.HStack.self)`. An argument
+  that cannot be an `Int` — a `String`, a name bound to one, an enum case or constant such as
+  `A11y.increment` or `AccessibilityID.Counter.increment`, an enum's `rawValue` unless the file
+  declares the enum with an integer raw type — is not an index either, so a helper declared in
+  another file is not reported.
+
+### Non-Violating Examples
+
+```swift
+// Find by identifier, then one cast: the shape this rule recommends.
+let count = try sut.inspect().find(viewWithAccessibilityIdentifier: "count").text().string()
+
+// Searches by text and by type.
+try sut.inspect().find(button: "+1").tap()
+let icon = try sut.inspect().find(ViewType.Image.self) { try $0.actualImage().name() == "gear" }
+
+// A finder helper wrapping the search, so the test reads in the app's terms.
+private extension InspectableView {
+    func count() throws -> String {
+        try find(viewWithAccessibilityIdentifier: "count").text().string()
+    }
+}
+
+// ForEach rows are data.
+let third = try sut.inspect().find(ViewType.ForEach.self).view(RowView.self, 2)
+```
+
+### Violating Examples
+
+```swift
+// Before: three positional steps
+func testIncrement() throws {
+    let sut = CounterView()
+    try sut.inspect().vStack().hStack(1).button(0).tap()
+}
+
+// After: tag the button in production code…
+Button("+1") { count += 1 }
+    .accessibilityIdentifier("increment")
+
+// …and search for it
+func testIncrement() throws {
+    let sut = CounterView()
+    try sut.inspect().find(viewWithAccessibilityIdentifier: "increment").button().tap()
+}
+```
+
+```swift
+// Climbing from a label to its row, then taking the first button found there
+let label = try sut.inspect().find(text: "Workspace")
+try label.parent().parent().find(ViewType.Button.self).tap()
+
+// Instead: search for the container that holds the text
+try sut.inspect().find(ViewType.HStack.self, containing: "Workspace")
+    .find(ViewType.Button.self).tap()
+```
+
+### Choosing the search
+
+Accessibility identifiers are the most stable choice. They change only when someone changes
+them on purpose, VoiceOver does not read them, and they are often already in place for XCUITest.
+When one is not available, `find(button:)`, `find(text:)`, `find(MyRow.self)` and
+`find(ViewType.X.self, where:)` all survive reordering and wrapping. Wrapping each search in a
+small `private extension InspectableView` helper keeps the identifier string in one place, and
+lets a test say `sut.inspect().count()` rather than spelling out the plumbing.
+
+Searching is not immune to everything. When a new SDK changes a view's internal representation,
+ViewInspector has to learn the new shape before `find` can see through it. The iOS 27 lazy stacks
+were an example. That kind of failure is the library's to fix, not something each test has to
+repair.
+
+### When the position is the point
+
+Sometimes the order is what the test checks: that the tabs appear in a given order, or that a
+leading `Spacer` right-aligns a chat bubble. A search cannot express that, so the walk is the
+right tool and the finding should be suppressed where it stands:
+
+```swift
+// Tab order is the behaviour under test.
+// swiftprojectlint:disable:next positional-view-lookup
+_ = try tabs.view(GeneralPane.self, 0)
+```
+
+A typed lookup like `view(GeneralPane.self, 0)` at least fails loudly on a reorder instead of
+checking the wrong pane, which is the shape to prefer when order is the subject.
+
+### Discussion
+
+ViewInspector's own guide teaches the chain first and presents `find` as an alternative, so this
+rule takes a position beyond the library's documentation. The evidence for that position is the
+library's commit history above and Jon Reid's argument, credited at the top of this page.
+
+**Measured.** Over the ViewInspector tests in 11 repositories (165 files), nine of the author's
+plus two of Jon Reid's held out (TestableView and Mastermind), the rule reported 67 lookups when
+it was written. Each was read by hand against its source: 63 were walks that a layout change would
+break or retarget. The other 4 deliberately assert order (three tabs in one test, a leading
+`Spacer` in another) and want the suppression above. The repositories whose tests already
+searched, including SwiftLintRuleStudioTeam, SwiftFormatRuleStudio and TestableView, reported
+nothing. 54 of the 67 findings sat on a line with no `inspect()` call, mostly a walk continued
+through a local, a `parent()` climb inside a finder helper, or a view handed to a `map { }`
+closure, which is why the rule follows bindings rather than matching one expression at a time.
+Twenty of the walks were in this repository's own `Tests/AppTests`, which now search by
+accessibility identifier instead, leaving 47 findings across the 11 repositories.
+
+On ViewInspector's own test suite the rule reports several hundred lookups. Those are expected:
+the library tests its accessors by walking to them on purpose.
+
+### Known Limitations
+
+- **The step into a `ForEach` is positional.** `list().forEach(0)` is reported even when the
+  `ForEach` is the list's only child, because the index counts the list's children. Reach rows
+  with `find(ViewType.ForEach.self)` instead, after which a row index is not reported.
+- **A `find` predicate is not read.** Its parameter is a candidate under test, not an inspected
+  root. The parameter of a closure iterating views — `findAll(…).map { $0.… }`,
+  `stack.forEach { child in … }` — is followed.
+- **`inspect` is recognised by its shape.** In a file that imports ViewInspector, any
+  `x.inspect()` without arguments, or `x.inspect { item in … }`, is read as ViewInspector's.
+- **Bindings are resolved lexically.** A local reassigned after its declaration is read from its
+  declaration. Ternaries, `??`, `enumerated()` tuples, collection operations such as
+  `dropFirst()` and `reversed()`, typealiases, and properties inherited from a superclass are not
+  followed.
+- **A test-owned subject is recognised by its type name.** A fixture whose type is declared in
+  another file is not recognised. A method called on a test-declared view is read as a modifier,
+  so a factory method on one (`ProbeHost().makeScreen()`) counts as test-owned too. A factory is
+  read from its declared return type, looking first in the types around the call. A SwiftUI view
+  built inline in the test (`HStack { Text("a"); Text("b") }`) is not test-owned: its content can
+  be an app view, and nothing in the chain says when the walk enters it.
+- **A host's app views are found by constructor.** A test-declared view counts as building an
+  app view when a statement in its `body`, or in a member typed `some View`, constructs a type that
+  is neither SwiftUI's nor declared in the file — directly, or handed to `AnyView(…)`, `overlay(…)`,
+  `background(…)` or `mask(…)`. Action closures (`Button`'s, `onAppear`, `task`) build nothing. An
+  app view returned by a function call (`makeEditor()`), or passed in where the host is built
+  (`Wrapper(content: AppEditor())`, a stateful preview wrapper), is not seen, so the host keeps its
+  ownership through searches. Two views of the same name in one file count as a host only when
+  each builds an app view.
+- **Styles and modifiers declared elsewhere are read by name.** `inspect()` on a type whose name
+  ends in `Style` is read as a style, whose body is the view itself, and on one ending in
+  `Modifier` as a modifier, whose body is one level down. A modifier named like a style
+  (`CardStyle: ViewModifier`) declared in another file loses that level, so a two-step walk into
+  its body goes unreported.
+- **An index after a named slot is reported.** `labelView().text(0)` and `header().text(0)` pick
+  the first of the views a `@ViewBuilder` made. When the slot holds one view, write `text()`.
+- **`navigationBarItems()` without an index is not reported.** On a container,
+  `navigationBarItems()` takes the first child, as `navigationBarItems(0)` does, but the rule
+  cannot tell a container from a single-content view there, so only the indexed form is reported.
+- **`#if` branches.** A local declared differently in each branch of an `#if` is read from the
+  first branch.
+- **Very long chains are not read.** A chain of more than 64 links, or about 30 locals each built
+  from the last, is skipped.
+
+### Companion
+
+[ViewHosting Before Inspection](view-hosting-before-inspection.md) and
+[Observable Environment View Missing Inspection Hook](observable-environment-view-missing-inspection-hook.md)
+cover the other ViewInspector hazard this project knows about: a view that traps when inspected
+out of the tree.
+
+---

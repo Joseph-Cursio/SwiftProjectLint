@@ -22,10 +22,12 @@ struct ContentViewResults: View {
                 HStack {
                     Text("Analysis Results")
                         .font(.headline)
+                        .accessibilityIdentifier("resultsTitleLabel")
                     Spacer()
                     Text("\(lintIssues.count) issues found")
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
+                        .accessibilityIdentifier("resultsCountLabel")
                 }
 
                 LintResultsView(issues: lintIssues)

@@ -1,6 +1,6 @@
 # SwiftProjectLint Rules Reference
 
-SwiftProjectLint is a static analysis tool for SwiftUI projects. It parses Swift source files using SwiftSyntax AST visitors to detect anti-patterns spanning state management, performance, animations, architecture, code quality, security, accessibility, memory management, networking, UI patterns, modernization, and idempotency. This reference documents all 218 lint rules, organized by category.
+SwiftProjectLint is a static analysis tool for SwiftUI projects. It parses Swift source files using SwiftSyntax AST visitors to detect anti-patterns spanning state management, performance, animations, architecture, code quality, security, accessibility, memory management, networking, UI patterns, modernization, and idempotency. This reference documents all 219 lint rules, organized by category.
 
 Rules marked **opt-in** are disabled by default and must be explicitly listed under `enabled_only` in `.swiftprojectlint.yml`.
 
@@ -286,6 +286,7 @@ Rules marked **opt-in** are disabled by default and must be explicitly listed un
 | [Impure Call in View Body](impure-call-in-view-body.md) | Warning |
 | [ViewHosting Before Inspection](view-hosting-before-inspection.md) | Error |
 | [Observable Environment View Missing Inspection Hook](observable-environment-view-missing-inspection-hook.md) | Info |
+| [Positional View Lookup](positional-view-lookup.md) | Warning |
 | [Unreachable Effect Closure](unreachable-effect-closure.md) | Info |
 | [Contradicted Clock Determinism](contradicted-clock-determinism.md) | Warning |
 
