@@ -43,6 +43,9 @@ final class UnannotatedInStrictReplayableContextVisitor:
     private var symbolTable = EffectSymbolTable()
     private var analysisSites: [AnalysisSite] = []
 
+    /// The `@lint.context` of every call in the file being walked.
+    private var callSiteContexts = CallSiteContextIndex()
+
     private struct AnalysisSite {
         let callerName: String
         let body: Syntax
@@ -51,6 +54,7 @@ final class UnannotatedInStrictReplayableContextVisitor:
 
     override func visit(_ node: SourceFileSyntax) -> SyntaxVisitorContinueKind {
         symbolTable.merge(source: node)
+        callSiteContexts = CallSiteContextIndex(node)
         return .visitChildren
     }
 
@@ -92,8 +96,7 @@ final class UnannotatedInStrictReplayableContextVisitor:
     /// that visitor's doc comment for the shape rationale and the TCA
     /// adopter round for the prefix-statement gap this helper closes.
     override func visit(_ node: FunctionCallExprSyntax) -> SyntaxVisitorContinueKind {
-        guard ContextAnnotationParser.parseContextAtCallSite(of: node)
-                == .strictReplayable,
+        guard callSiteContexts.context(of: node) == .strictReplayable,
               let closure = node.trailingClosure else {
             return .visitChildren
         }
