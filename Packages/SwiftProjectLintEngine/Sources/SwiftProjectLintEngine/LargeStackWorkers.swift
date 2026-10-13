@@ -15,22 +15,33 @@ import Foundation
 /// SwiftInferProperties met the same trap on GCD's workers and answered it the same way.
 ///
 /// So the shared parse, the facts build and the universe's manifest reads run here, on `Thread`s
-/// with ``stackSize``, and nowhere else: per-file analysis still walks reported files on the task
-/// tree, as it always has. The manifests came last: a nested dependency's `Package.swift` with a
-/// 1,000-arm `else if` crashed the bound's manifest reader just as a source file crashed the parse.
+/// with ``stackSize`` (``map`` and ``run``). The manifests came last: a nested dependency's
+/// `Package.swift` with a 1,000-arm `else if` crashed the bound's manifest reader just as a source
+/// file crashed the parse.
+///
+/// The analysis after them — the pre-scan, per-file and cross-file phases — walks every reported
+/// file just as deep, and reached the same trap from the other side: a 200-link member chain in a
+/// reported file crashed a debug run in the pre-scan (`FunctionTypeAliasCollector`), whichever rules
+/// were enabled; with that walk out of the way a 500-link one crashed in swift-syntax's own
+/// `RawSyntax.withEachSyntaxText`, and a release build crashed from about 900 links. So it runs on
+/// the same stacks through ``withExecutor``, which, unlike the other two, stays on the task tree.
 ///
 /// ## Why this is safe for the run's task-local
 ///
 /// A thread does not inherit `PackagePurity.current`, which is why `PurityOracleEntryTests` forbids
-/// leaving the task tree. Every caller runs **before** `ProjectLinter.pass` binds it, and none
-/// creates an oracle that reads it: the parse and the manifest reads create none, and
-/// `ConstructionFacts.build` is SEI's own pass. The test names this file as its one exception and
-/// checks that only those callers use it.
+/// leaving the task tree. Every caller of ``map`` and ``run`` runs **before** `ProjectLinter.pass`
+/// binds it, and none creates an oracle that reads it: the parse and the manifest reads create none,
+/// and `ConstructionFacts.build` is SEI's own pass. ``withExecutor`` runs inside the binding, and
+/// may: a task-executor preference moves the task's jobs to other threads, not out of the task, so
+/// the binding is inherited. The test names this file as its one exception, checks that only those
+/// callers use ``map`` and ``run``, and that only `pass` uses ``withExecutor``.
 enum LargeStackWorkers {
 
     /// Eight times the main thread's 8 MB. In a debug build the two regression fixtures
     /// (`PackagePurityRobustnessTests`) crash at 4 MB and pass at 16 MB, so this leaves four times
-    /// that for deeper sources. Reserved, not committed: a thread touches only the pages it uses.
+    /// that for deeper sources; the reported 10,000-link chain the whole analysis walks
+    /// (`DeepReportedFileTests`) crashes at 16 MB and passes at 32 MB, which leaves twice that.
+    /// Reserved, not committed: a thread touches only the pages it uses.
     static let stackSize = 64 << 20
 
     /// `body(index)` for every index in `0..<count`, across up to one thread per active core, each
