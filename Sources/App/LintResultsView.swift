@@ -17,6 +17,7 @@ struct IssueListContent: View {
                     }
                 }
             }
+            .accessibilityIdentifier("issueListSection")
         }
         .listStyle(.plain)
     }

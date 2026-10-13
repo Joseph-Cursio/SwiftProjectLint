@@ -22,6 +22,7 @@ struct ContentViewProgress: View {
                 Text("Analyzing project...")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
+                    .accessibilityIdentifier("analysisStatusLabel")
             }
             .padding(.vertical, 20)
         }
