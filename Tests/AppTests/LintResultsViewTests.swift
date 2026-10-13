@@ -173,8 +173,7 @@ struct LintResultsViewCharacterizationTests {
         let view = LintResultsView(issues: issues)
         let inspected = try view.inspect()
 
-        let list = try inspected.find(ViewType.List.self)
-        let issuesSection = try list.section(1)
+        let issuesSection = try inspected.issueListSection()
         let issueTexts = try issuesSection.findAll(ViewType.Text.self).map { try $0.string() }
         #expect(issueTexts.contains("Error issue"))
         #expect(issueTexts.contains("Warning issue"))
@@ -248,8 +247,7 @@ struct LintResultsViewCharacterizationTests {
         let view = LintResultsView(issues: issues)
         let inspected = try view.inspect()
 
-        let list = try inspected.find(ViewType.List.self)
-        let issuesSection = try list.section(1)
+        let issuesSection = try inspected.issueListSection()
         let dividers = issuesSection.findAll(ViewType.Divider.self)
         // 3 issues should have 2 dividers (between 1-2 and 2-3, not after 3)
         #expect(dividers.count == 2)
@@ -267,8 +265,7 @@ struct LintResultsViewCharacterizationTests {
         let view = LintResultsView(issues: issues)
         let inspected = try view.inspect()
 
-        let list = try inspected.find(ViewType.List.self)
-        let issuesSection = try list.section(1)
+        let issuesSection = try inspected.issueListSection()
         let dividers = issuesSection.findAll(ViewType.Divider.self)
         #expect(dividers.isEmpty)
     }

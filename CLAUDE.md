@@ -180,7 +180,7 @@ struct MyViewTests {
 
 ### Common ViewInspector Patterns
 
-- **Finding views**: search, don't walk. Prefer `inspected.find(viewWithAccessibilityIdentifier: "id")` (tag the view with `.accessibilityIdentifier(_:)`), then `find(button:)`, `find(text:)`, `find(ViewType.Button.self)`, `findAll(ViewType.Text.self)`. Positional chains such as `navigationView().vStack()`, `hStack(1)` or `list.section(0)` are reported by the Positional View Lookup rule, which this repo's own `Tests/AppTests` still trip.
+- **Finding views**: search, don't walk. Prefer `inspected.find(viewWithAccessibilityIdentifier: "id")` (tag the view with `.accessibilityIdentifier(_:)`), then `find(button:)`, `find(text:)`, `find(ViewType.Button.self)`, `findAll(ViewType.Text.self)`. Positional chains such as `navigationView().vStack()`, `hStack(1)` or `list.section(0)` are reported by the Positional View Lookup rule. `Tests/AppTests` reaches its views through the identifier finders in `Tests/AppTests/InspectableView+AppFinders.swift`.
 - **Checking text**: `try text.string()` returns the text content
 - **Custom views**: `try inspected.find(MyCustomView.self)`
 - **ForEach rows**: `try inspected.find(ViewType.ForEach.self).view(MyRow.self, 0)`. A row index is data order, so it is not reported.

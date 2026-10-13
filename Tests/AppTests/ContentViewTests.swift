@@ -28,12 +28,11 @@ struct ContentViewTests {
         // NavigationStack
         let navStack = try inspected.find(ViewType.NavigationStack.self)
         #expect(navStack != nil)
-        // VStack with child views
-        let vStack = try inspected.navigationStack().vStack()
-        _ = try vStack.find(ContentViewHeader.self)
-        _ = try vStack.find(ContentViewActions.self)
-        _ = try vStack.find(ContentViewProgress.self)
-        _ = try vStack.find(ContentViewResults.self)
+        // Child views, wherever the layout puts them
+        _ = try inspected.find(ContentViewHeader.self)
+        _ = try inspected.find(ContentViewActions.self)
+        _ = try inspected.find(ContentViewProgress.self)
+        _ = try inspected.find(ContentViewResults.self)
     }
 
     @Test("view displays the app title text")
