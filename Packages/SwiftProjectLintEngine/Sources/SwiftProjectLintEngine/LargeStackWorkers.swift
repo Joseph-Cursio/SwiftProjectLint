@@ -61,6 +61,20 @@ enum LargeStackWorkers {
         return result
     }
 
+    /// `body`, with every job of the calling task, and of each child task it creates, run on threads
+    /// with ``stackSize``.
+    ///
+    /// Unlike ``map`` and ``run`` this does not leave the task tree. It is a task-executor
+    /// preference (SE-0417): it changes which threads run the task's jobs, not which task they
+    /// belong to, so task-locals (`PackagePurity.current` among them), cancellation and task-group
+    /// children are inherited exactly as on the cooperative pool. The threads, one per active core,
+    /// are this call's own and end with it.
+    static func withExecutor<Result>(_ body: () async -> Result) async -> Result {
+        let executor = Executor(threads: ProcessInfo.processInfo.activeProcessorCount)
+        defer { executor.finish() }
+        return await withTaskExecutorPreference(executor, operation: body)
+    }
+
     /// Starts `batch.workers` threads draining `batch`, and returns when the last has finished —
     /// suspended, not blocking: the caller's thread goes back to the pool meanwhile.
     private static func start<Result: Sendable>(
@@ -132,6 +146,58 @@ enum LargeStackWorkers {
                 return continuation
             }
             resume?.resume()
+        }
+    }
+
+    /// The task executor behind ``withExecutor``: a queue of jobs drained by threads with
+    /// ``stackSize``, which end once it is finished and the queue is empty.
+    private final class Executor: TaskExecutor, @unchecked Sendable {
+        private let condition = NSCondition()
+        private var jobs: [UnownedJob] = []
+        private var finished = false
+
+        init(threads: Int) {
+            for _ in 0..<max(threads, 1) { startThread() }
+        }
+
+        func enqueue(_ job: consuming ExecutorJob) {
+            let job = UnownedJob(job)
+            let orphaned: Bool = condition.withLock {
+                jobs.append(job)
+                condition.signal()
+                return finished
+            }
+            // Nothing is enqueued once the preference is gone, but were a job to arrive then, its
+            // own thread runs it rather than nobody.
+            if orphaned { startThread() }
+        }
+
+        /// Lets every thread end once the queue is empty, rather than wait for more.
+        func finish() {
+            condition.withLock {
+                finished = true
+                condition.broadcast()
+            }
+        }
+
+        private func startThread() {
+            let thread = Thread { [self] in
+                while let job = next() { job.runSynchronously(on: asUnownedTaskExecutor()) }
+            }
+            thread.stackSize = LargeStackWorkers.stackSize
+            thread.start()
+        }
+
+        /// The oldest job, waiting for one while the executor is in use; `nil` once it is finished
+        /// and none is left.
+        private func next() -> UnownedJob? {
+            condition.withLock {
+                while jobs.isEmpty {
+                    if finished { return nil }
+                    condition.wait()
+                }
+                return jobs.removeFirst()
+            }
         }
     }
 }
