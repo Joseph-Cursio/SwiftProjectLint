@@ -48,8 +48,9 @@ enum AnalysisBodyWalk {
     /// annotated trailing closure. The call case deliberately uses the
     /// *call-site* lookup (call site plus enclosing statement) so a site
     /// annotated by a prefix statement is not walked twice — once as its own
-    /// site and once as part of its parent.
-    static func carriesOwnContextAnnotation(_ syntax: Syntax) -> Bool {
+    /// site and once as part of its parent. `contexts` is the index of the
+    /// file `syntax` is in, so the lookup does not walk from every call.
+    static func carriesOwnContextAnnotation(_ syntax: Syntax, contexts: CallSiteContextIndex) -> Bool {
         if let varDecl = syntax.as(VariableDeclSyntax.self),
            varDecl.closureInitializer != nil,
            ContextAnnotationParser.parseContext(declaration: varDecl) != nil {
@@ -57,7 +58,7 @@ enum AnalysisBodyWalk {
         }
         if let call = syntax.as(FunctionCallExprSyntax.self),
            call.trailingClosure != nil,
-           ContextAnnotationParser.parseContextAtCallSite(of: call) != nil {
+           contexts.context(of: call) != nil {
             return true
         }
         return false

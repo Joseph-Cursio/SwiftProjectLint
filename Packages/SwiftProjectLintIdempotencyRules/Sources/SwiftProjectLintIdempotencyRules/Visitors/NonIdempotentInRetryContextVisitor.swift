@@ -32,6 +32,8 @@ final class NonIdempotentInRetryContextVisitor: CrossFileVisitorBase, CrossFileP
         let body: Syntax
         let context: ContextEffect
         let location: CapturedSiteLocation
+        /// The call-site contexts of the site's file, to find the sites nested in this one.
+        let callSiteContexts: CallSiteContextIndex
     }
 
     override func visit(_ node: SourceFileSyntax) -> SyntaxVisitorContinueKind {
@@ -50,7 +52,8 @@ final class NonIdempotentInRetryContextVisitor: CrossFileVisitorBase, CrossFileP
                 callerName: node.name.text,
                 body: Syntax(body),
                 context: context,
-                location: captureSiteLocation(rootedAt: node)
+                location: captureSiteLocation(rootedAt: node),
+                callSiteContexts: callSiteContexts
             )
         )
         return .visitChildren
@@ -73,7 +76,8 @@ final class NonIdempotentInRetryContextVisitor: CrossFileVisitorBase, CrossFileP
                 callerName: name,
                 body: Syntax(closure.statements),
                 context: context,
-                location: captureSiteLocation(rootedAt: node)
+                location: captureSiteLocation(rootedAt: node),
+                callSiteContexts: callSiteContexts
             )
         )
         return .visitChildren
@@ -107,7 +111,8 @@ final class NonIdempotentInRetryContextVisitor: CrossFileVisitorBase, CrossFileP
                 callerName: "closure",
                 body: Syntax(closure.statements),
                 context: context,
-                location: captureSiteLocation(rootedAt: node)
+                location: captureSiteLocation(rootedAt: node),
+                callSiteContexts: callSiteContexts
             )
         )
         return .visitChildren
@@ -128,7 +133,8 @@ final class NonIdempotentInRetryContextVisitor: CrossFileVisitorBase, CrossFileP
     }
 
     private func analyzeBody(_ syntax: Syntax, site: AnalysisSite) {
-        AnalysisBodyWalk.walk(syntax, skipping: AnalysisBodyWalk.carriesOwnContextAnnotation) { call in
+        let ownsContext = { AnalysisBodyWalk.carriesOwnContextAnnotation($0, contexts: site.callSiteContexts) }
+        AnalysisBodyWalk.walk(syntax, skipping: ownsContext) { call in
             analyzeCall(call, site: site)
         }
     }
