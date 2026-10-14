@@ -16,8 +16,11 @@ enum ReceiverKind {
     /// its type in place, but when the builder made several views, `x(0)` picks the first.
     case slot
     /// A view with one child it unwraps: a custom view or modifier's body (`View<T>`,
-    /// `ViewModifier<T>`), a relay's view, a sheet's content. `x()` and `x(0)` go one level down.
+    /// `ViewModifier<T>`), a relay's view, a toolbar. `x()` and `x(0)` go one level down.
     case singleChild
+    /// A presented view's content — a sheet's, a popover's, a safe-area inset's. `x()` goes one
+    /// level down to it, but when its `@ViewBuilder` made several views, `x(0)` picks the first.
+    case content
     /// A SwiftUI view, or one the rule cannot name. Its children are its layout.
     case typed
 }

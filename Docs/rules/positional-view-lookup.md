@@ -247,9 +247,10 @@ the library tests its accessors by walking to them on purpose.
   `Modifier` as a modifier, whose body is one level down. A modifier named like a style
   (`CardStyle: ViewModifier`) declared in another file loses that level, so a two-step walk into
   its body goes unreported.
-- **An index after a named slot is reported.** `labelView().text(0)` and `header().text(0)` pick
-  the first of the views a `@ViewBuilder` made, and `toolbar().item(0)` the first of the toolbar's
-  items. When the slot holds one view, write `text()`, or `item()` for a toolbar's only item.
+- **An index after a named slot is reported.** `labelView().text(0)`, `header().text(0)` and
+  `sheet().text(0)` pick the first of the views a `@ViewBuilder` made, and `toolbar().item(0)` the
+  first of the toolbar's items. When the slot holds one view, write `text()`, or `item()` for a
+  toolbar's only item.
 - **A step without an index that takes the first child is not reported as a pick.**
   `toolbar().item()`, `itemGroup()`, `navigationBarItems()` on a container, and `x()` on a
   `NavigationView`, `NavigationStack`, `NavigationSplitView`, `NavigationLink`, `ControlGroup` or

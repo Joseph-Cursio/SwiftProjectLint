@@ -71,7 +71,12 @@ struct InspectionStep {
             return ChainEvaluation(state: same)
         }
         if InspectionVocabulary.namedSlots.contains(name) {
-            let kind: ReceiverKind = InspectionVocabulary.unwrappingSlots.contains(name) ? .singleChild : .slot
+            let kind: ReceiverKind
+            if InspectionVocabulary.presentedContentSlots.contains(name) {
+                kind = .content
+            } else {
+                kind = InspectionVocabulary.unwrappingSlots.contains(name) ? .singleChild : .slot
+            }
             return ChainEvaluation(state: state.reanchored(kind, ownership: state.ownership, after: name))
         }
         if InspectionVocabulary.viewTypeAccessors.contains(name) {
