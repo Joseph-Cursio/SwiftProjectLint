@@ -16,24 +16,31 @@ struct PositionalViewLookupBindingTests {
 
     // MARK: - Slots and items
 
-    @Test("a slot's content may be several views, so x(0) on it picks the first")
+    @Test("a slot's or a sheet's content may be several views, so x(0) on it picks the first")
     func slotContent() {
         let issues = analyzeTest("""
             _ = try sut.inspect().find(ViewType.Button.self).labelView().image(0)
             _ = try sut.inspect().find(ViewType.Button.self).labelView().text().string()
             _ = try sut.inspect().overlay().view(BadgeView.self).text()
+            _ = try sut.inspect().find(ViewType.Button.self).sheet().text(0)
+            _ = try sut.inspect().find(ViewType.Button.self).sheet().vStack()
+            _ = try sut.inspect().find(ViewType.Button.self).popover()[0]
+            _ = try sut.inspect().find(ViewType.Button.self).toolbar().text(0)
         """)
-        #expect(issues.map(\.lineNumber) == [5])
+        #expect(issues.map(\.lineNumber) == [5, 8, 10])
     }
 
-    @Test("a toolbar item holds its views in order; bar items index the container")
+    @Test("item(0) picks the first of a toolbar's items; an item holds its views in order")
     func itemsInOrder() {
         let issues = analyzeTest("""
             let item = try sut.inspect().toolbar().item(0)
             _ = try item.text(0).string()
             _ = try sut.inspect().navigationView().navigationBarItems(0)
+            _ = try sut.inspect().toolbar().item().text()
+            let toolbar = try sut.inspect().toolbar()
+            for (index, title) in titles.enumerated() { _ = try toolbar.item(index).text().string() == title }
         """)
-        #expect(issues.map(\.lineNumber) == [6, 7])
+        #expect(issues.map(\.lineNumber) == [5, 6, 7])
     }
 
     @Test("climbing out of a test-declared view into the app's layout is reported")

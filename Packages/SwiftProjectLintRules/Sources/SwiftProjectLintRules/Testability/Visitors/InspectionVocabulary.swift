@@ -50,9 +50,14 @@ enum InspectionVocabulary {
 
     /// Slots whose result unwraps to its content, so the next accessor goes one level down: a
     /// sheet's content, a popover's, a toolbar's. The others return the slot's view itself.
+    /// `presentedContentSlots` among them hold every view their content builds, so an index picks.
     static let unwrappingSlots: Set<String> = [
         "sheet", "fullScreenCover", "popover", "toolbar", "navigationDestination", "safeAreaInset",
         "safeAreaBar", "touchBar"
+    ]
+
+    static let presentedContentSlots: Set<String> = [
+        "sheet", "fullScreenCover", "popover", "navigationDestination", "safeAreaInset", "safeAreaBar"
     ]
 
     /// Slots whose index counts items in the order they were declared: `toolbar().item(2)` is the

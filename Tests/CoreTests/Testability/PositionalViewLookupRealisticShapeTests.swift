@@ -63,14 +63,14 @@ struct PositionalViewLookupRealisticShapeTests {
         #expect(issues.map(\.lineNumber) == [8])
     }
 
-    @Test("[0] and .first on a custom view reach its body, as x(0) does")
+    @Test("[0] and .first on a custom view reach its body, as x(0) does; on a sheet they pick a view")
     func firstChildOfCustomView() {
         let issues = analyzeTest("""
             _ = try sut.inspect().find(RowView.self)[0]
             _ = try sut.inspect().find(RowView.self).first
             _ = try sut.inspect().find(ViewType.Button.self).sheet()[0]
         """)
-        #expect(issues.isEmpty)
+        #expect(issues.map(\.lineNumber) == [7])
     }
 
     @Test("re-inspecting found views is linear in the chain's length")

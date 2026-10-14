@@ -177,4 +177,21 @@ struct PositionalViewLookupOwnershipTests {
         """)
         #expect(issues.isEmpty)
     }
+
+    @Test("a UIKit wrapper the file declares is a view whose layout it owns")
+    func representablesAreViews() {
+        let issues = analyze("""
+        private struct Wrapped: @preconcurrency UIViewRepresentable & Equatable {
+            func makeUIView(context: Context) -> UILabel { UILabel() }
+            func updateUIView(_ view: UILabel, context: Context) {}
+        }
+
+        func testWrapped() throws {
+            let sut = try AnyView(Wrapped()).inspect().anyView().view(Wrapped.self)
+            _ = try sut.hStack().text(1)
+            _ = try AnyView(AppWrapped()).inspect().anyView().view(AppWrapped.self).hStack().text(1)
+        }
+        """)
+        #expect(issues.map(\.lineNumber) == [11])
+    }
 }

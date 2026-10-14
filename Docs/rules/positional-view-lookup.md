@@ -93,15 +93,16 @@ is not reported again, though another index such as `row.text(0)` is.
 - **Named slots.** `labelView()`, `header()`, `title()`, `sheet()`, `overlay(1)`,
   `modifier(Card.self)` and the like reach a view by its role. The index on a modifier counts
   modifiers, not layout.
-- **A subject the test file declares.** `GeometryProbe().inspect().geometryReader().shape()`
-  walks a fixture defined a few lines above. The test owns that layout, and changing it means
-  editing the same file. ViewInspector compatibility probes take this shape. Ownership follows
-  the inspected view's type: only a `View`, modifier or style declared in the file counts, and a
-  walk that reaches an app view inside a test-declared host (`Host().inspect().find(AppView.self)`)
-  is reported. A host whose body builds an app view — a state host wrapping the screen under
-  test — owns its own layout but not the app view's, so a search that does not name its type
-  (`host.inspect().find(ViewType.Form.self)`), a `findAll`, or a `parent()` climb inside it is read
-  as walking the app's layout.
+- **A subject the test file declares.** `GeometryProbe().inspect().geometryReader().shape()` walks
+  a fixture defined a few lines above. The test owns that layout, and changing it means editing
+  the same file. ViewInspector compatibility probes take this shape. Ownership follows the
+  inspected view's type: only a `View` — a `Shape` or a `UIViewRepresentable`-style wrapper
+  included — or a modifier or style declared in the file counts, and a walk that reaches an app
+  view inside a test-declared host (`Host().inspect().find(AppView.self)`) is reported. A host
+  whose body builds an app view — a state host wrapping the screen under test — owns its own
+  layout but not the app view's, so a search that does not name its type
+  (`host.inspect().find(ViewType.Form.self)`), a `findAll`, or a `parent()` climb inside it is
+  read as walking the app's layout.
 - **Anything else.** A step the rule does not recognise ends the chain, so a project's own
   helpers (`sut.inspect().pegColor(1)`) are not read as accessors. A finder helper the file
   declares in `extension InspectableView` under an accessor's name — `button(.increment)` — is
@@ -226,7 +227,9 @@ the library tests its accessors by walking to them on purpose.
 - **Bindings are resolved lexically.** A local reassigned after its declaration is read from its
   declaration. Ternaries, `??`, `enumerated()` tuples, collection operations such as
   `dropFirst()` and `reversed()`, typealiases, and properties inherited from a superclass are not
-  followed.
+  followed. A closure's parameter takes no type from a property it is assigned to: in
+  `sut.didAppear = { view in … }` the view's type is unknown, so a walk inside a test-declared
+  view reached that way is reported. `sut.on(\.didAppear) { view in … }` is followed.
 - **A test-owned subject is recognised by its type name.** A fixture whose type is declared in
   another file is not recognised. A method called on a test-declared view is read as a modifier,
   so a factory method on one (`ProbeHost().makeScreen()`) counts as test-owned too. A factory is
@@ -246,11 +249,17 @@ the library tests its accessors by walking to them on purpose.
   `Modifier` as a modifier, whose body is one level down. A modifier named like a style
   (`CardStyle: ViewModifier`) declared in another file loses that level, so a two-step walk into
   its body goes unreported.
-- **An index after a named slot is reported.** `labelView().text(0)` and `header().text(0)` pick
-  the first of the views a `@ViewBuilder` made. When the slot holds one view, write `text()`.
-- **`navigationBarItems()` without an index is not reported.** On a container,
-  `navigationBarItems()` takes the first child, as `navigationBarItems(0)` does, but the rule
-  cannot tell a container from a single-content view there, so only the indexed form is reported.
+- **An index after a named slot is reported.** `labelView().text(0)`, `header().text(0)` and
+  `sheet().text(0)` pick the first of the views a `@ViewBuilder` made, and `toolbar().item(0)` the
+  first of the toolbar's items. When the slot holds one view, write `text()`, or `item()` for a
+  toolbar's only item.
+- **A step without an index that takes the first child is not reported as a pick.**
+  `toolbar().item()`, `itemGroup()`, `navigationBarItems()` on a container, and `x()` on a
+  `NavigationView`, `NavigationStack`, `NavigationSplitView`, `NavigationLink`, `ControlGroup` or
+  navigation destination take the first of several children, as an index of 0 would. The rule
+  cannot count the children, and with one child the step only asserts its type, so only the
+  indexed forms are reported as picks. The step still counts as a level:
+  `inspect().navigationStack().vStack()` is reported as a second step.
 - **`#if` branches.** A local declared differently in each branch of an `#if` is read from the
   first branch.
 - **Very long chains are not read.** A chain of more than 64 links, or about 30 locals each built
