@@ -227,7 +227,9 @@ the library tests its accessors by walking to them on purpose.
 - **Bindings are resolved lexically.** A local reassigned after its declaration is read from its
   declaration. Ternaries, `??`, `enumerated()` tuples, collection operations such as
   `dropFirst()` and `reversed()`, typealiases, and properties inherited from a superclass are not
-  followed.
+  followed. A closure's parameter takes no type from a property it is assigned to: in
+  `sut.didAppear = { view in … }` the view's type is unknown, so a walk inside a test-declared
+  view reached that way is reported. `sut.on(\.didAppear) { view in … }` is followed.
 - **A test-owned subject is recognised by its type name.** A fixture whose type is declared in
   another file is not recognised. A method called on a test-declared view is read as a modifier,
   so a factory method on one (`ProbeHost().makeScreen()`) counts as test-owned too. A factory is
