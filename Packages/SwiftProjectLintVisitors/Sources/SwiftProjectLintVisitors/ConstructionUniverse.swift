@@ -10,7 +10,8 @@
 /// 2. its leaf is `Package.swift`, or starts with `Package@swift-` — a manifest, which no target
 ///    compiles;
 /// 3. any **directory** component (every component but the leaf) is a test-target folder
-///    (`Tests`, or a name ending in `Tests`), starts with `.`, or is one of
+///    (`Tests`, or a name ending in `Tests`), a test suite's folder (``testSuiteDirectoryNames``:
+///    `test`, `tests`, `validation-test`), starts with `.`, or is one of
 ///    ``prunedDirectoryNames``.
 ///
 /// The universe's root is the lint path `ProjectLinter.analyzeProject(at:)` was given, and the
@@ -75,6 +76,20 @@ public enum ConstructionUniverse {
         "DerivedData", "Pods", "Carthage", "node_modules"
     ]
 
+    /// Directory names that hold a test suite rather than a target — `test/` and
+    /// `validation-test/` in the swift compiler's tree, and the same in LLVM-style projects, where
+    /// each file is a test program of its own (`// RUN:`). Its types are not what production
+    /// constructs, as a test target's are not, and pooled into one table the compiler's 22,600
+    /// test programs made a namesake of every name: `class A` 1,700 times, and single-letter
+    /// typealiases in hundreds of files, so the facts did not finish building in an hour. The
+    /// shared spec's fifth amendment (W).
+    ///
+    /// Exact names only: a kebab-case `-test` folder can be a production target — SwiftPM's own
+    /// `Sources/swift-test` is the `swift test` executable. And not part of
+    /// ``isTestTargetDirectory(_:)``, which reporting asks too: this decides what is compiled
+    /// alongside production, not what is reported.
+    public static let testSuiteDirectoryNames: Set<String> = ["test", "tests", "validation-test"]
+
     /// Whether a directory named `name` is a test target's folder: SwiftPM's `Tests/`, or an
     /// Xcode-style `FooTests/`.
     public static func isTestTargetDirectory(_ name: String) -> Bool {
@@ -101,6 +116,7 @@ public enum ConstructionUniverse {
         return !components.dropLast().contains { component in
             let name = String(component)
             return isTestTargetDirectory(name)
+                || testSuiteDirectoryNames.contains(name)
                 || name.hasPrefix(".")
                 || prunedDirectoryNames.contains(name)
         }

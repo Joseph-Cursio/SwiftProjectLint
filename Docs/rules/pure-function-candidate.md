@@ -272,7 +272,11 @@ oracle. The findings of the rules that do run are the same either way (see the p
 **Which files' types count** is `ConstructionUniverse`, a rule shared word for word with
 SwiftInferProperties (the agreed rows are in [`Docs/construction-universe.tsv`](../construction-universe.tsv)):
 every `.swift` file under the lint root except a manifest and anything under a test-target folder
-(`Tests/`, `*Tests/`), a hidden directory or a build-product directory. **No reporting filter
+(`Tests/`, `*Tests/`), a test suite's folder (`test/`, `tests/`, `validation-test/`), a hidden
+directory or a build-product directory. A suite's folder holds one test program per file — the
+swift compiler's 22,600, pooled into one table, made a namesake of every name, and the facts did
+not finish building in an hour — so its types are no more what production constructs than a test
+target's are. Only those exact names: SwiftPM's `Sources/swift-test` is a production target. **No reporting filter
 applies.** `excluded_paths`, `include_nested_packages` and the generated-file filter decide what is
 reported, not what is compiled, so a type declared in a nested package the root depends on, a
 generated file or a directory you excluded still refutes the production code that builds it.
@@ -314,9 +318,9 @@ What it still does not see, or sees too much of:
   root to put every first-party type in the universe.
 - **A symlinked directory's files.** The walk does not follow a link to a directory (a link to a
   file it does follow), and neither does SwiftInferProperties'.
-- **A `Package.swift` source file, or a `Tests`/`*Tests` folder, inside a production target.** The
-  universe drops every file named `Package.swift` and everything under a folder named like a test
-  target, wherever it is. That is a gap, accepted: SwiftPM compiles
+- **A `Package.swift` source file, or a `Tests`/`*Tests` or `test`/`tests`/`validation-test`
+  folder, inside a production target.** The universe drops every file named `Package.swift` and
+  everything under a folder named like a test target or a test suite, wherever it is. That is a gap, accepted: SwiftPM compiles
   `Sources/App/Models/Package.swift` and `Sources/App/HelperTests/H.swift` into `App`, and an Xcode
   target can compile both too, so a type declared there is missing from the table.
 - **A tools-version comment inside a string.** A `Package.swift` whose `// swift-tools-version:6…`

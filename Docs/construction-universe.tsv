@@ -13,10 +13,17 @@ Core/Sources/Core/X.swift	true
 Packages/P/Sources/P/X.swift	true
 fixtures/x/Sources/X/Y.swift	true
 X.swift	true
+Sources/swift-test/X.swift	true
+Fixtures/Test/X.swift	true
+Sources/A/test.swift	true
 Tests/ATests/X.swift	false
 App/AppTests/X.swift	false
 Tests/Fixtures/Pkg/Sources/P/X.swift	false
 Packages/P/Tests/PTests/X.swift	false
+test/Parse/X.swift	false
+validation-test/stdlib/X.swift	false
+tests/X.swift	false
+utils/tool/tests/X.swift	false
 Package.swift	false
 Package@swift-5.9.swift	false
 Core/Package.swift	false

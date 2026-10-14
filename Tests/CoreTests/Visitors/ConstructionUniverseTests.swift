@@ -25,7 +25,7 @@ struct ConstructionUniverseTests {
 
         let rows = lines.dropFirst().map { $0.split(separator: "\t", omittingEmptySubsequences: false) }
         // A guard on the reader: a table that parsed to nothing would pass every row below.
-        #expect(rows.count >= 30, "found \(rows.count) rows — has the table moved?")
+        #expect(rows.count >= 37, "found \(rows.count) rows — has the table moved?")
         #expect(rows.contains { $0.last == "true" } && rows.contains { $0.last == "false" })
 
         for row in rows {
