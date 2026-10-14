@@ -64,13 +64,14 @@ struct DeepReportedFileTests {
         // to 5 times as long as it does alone, and the load falls away as the suite finishes, so
         // seconds, or two runs one after the other, measure the machine. The import walk was
         // quadratic in the file's size, nested or not, slowed both halves alike and passes the
-        // ratio; the ceiling is for that, with room for a loaded machine.
+        // ratio; the ceiling is for that. It took about 40 s alone; the ceiling leaves room for a
+        // loaded machine, where a full suite has taken this test up to 18 s.
         async let flatRun = Self.timedLint(Self.flatCalls(count: 2_000))
         async let chainRun = Self.timedLint(Self.memberChain(links: 2_000))
         let (flat, chain) = try await (flatRun, chainRun)
         #expect(chain.issues.contains { $0.ruleName == .forceUnwrap })
         #expect(chain.elapsed < flat.elapsed * 3, "chain \(chain.elapsed), the same calls unnested \(flat.elapsed)")
-        #expect(chain.elapsed < .seconds(20), "chain \(chain.elapsed)")
+        #expect(chain.elapsed < .seconds(30), "chain \(chain.elapsed)")
     }
 
     /// The rules whose visitors cost every link of a chain the chain's depth or length: looking up
