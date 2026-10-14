@@ -248,10 +248,15 @@ the library tests its accessors by walking to them on purpose.
   (`CardStyle: ViewModifier`) declared in another file loses that level, so a two-step walk into
   its body goes unreported.
 - **An index after a named slot is reported.** `labelView().text(0)` and `header().text(0)` pick
-  the first of the views a `@ViewBuilder` made. When the slot holds one view, write `text()`.
-- **`navigationBarItems()` without an index is not reported.** On a container,
-  `navigationBarItems()` takes the first child, as `navigationBarItems(0)` does, but the rule
-  cannot tell a container from a single-content view there, so only the indexed form is reported.
+  the first of the views a `@ViewBuilder` made, and `toolbar().item(0)` the first of the toolbar's
+  items. When the slot holds one view, write `text()`, or `item()` for a toolbar's only item.
+- **A step without an index that takes the first child is not reported as a pick.**
+  `toolbar().item()`, `itemGroup()`, `navigationBarItems()` on a container, and `x()` on a
+  `NavigationView`, `NavigationStack`, `NavigationSplitView`, `NavigationLink`, `ControlGroup` or
+  navigation destination take the first of several children, as an index of 0 would. The rule
+  cannot count the children, and with one child the step only asserts its type, so only the
+  indexed forms are reported as picks. The step still counts as a level:
+  `inspect().navigationStack().vStack()` is reported as a second step.
 - **`#if` branches.** A local declared differently in each branch of an `#if` is read from the
   first branch.
 - **Very long chains are not read.** A chain of more than 64 links, or about 30 locals each built

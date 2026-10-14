@@ -26,14 +26,17 @@ struct PositionalViewLookupBindingTests {
         #expect(issues.map(\.lineNumber) == [5])
     }
 
-    @Test("a toolbar item holds its views in order; bar items index the container")
+    @Test("item(0) picks the first of a toolbar's items; an item holds its views in order")
     func itemsInOrder() {
         let issues = analyzeTest("""
             let item = try sut.inspect().toolbar().item(0)
             _ = try item.text(0).string()
             _ = try sut.inspect().navigationView().navigationBarItems(0)
+            _ = try sut.inspect().toolbar().item().text()
+            let toolbar = try sut.inspect().toolbar()
+            for (index, title) in titles.enumerated() { _ = try toolbar.item(index).text().string() == title }
         """)
-        #expect(issues.map(\.lineNumber) == [6, 7])
+        #expect(issues.map(\.lineNumber) == [5, 6, 7])
     }
 
     @Test("climbing out of a test-declared view into the app's layout is reported")

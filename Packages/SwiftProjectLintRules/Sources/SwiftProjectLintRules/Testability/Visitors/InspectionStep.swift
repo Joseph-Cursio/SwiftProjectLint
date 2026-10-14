@@ -121,8 +121,9 @@ struct InspectionStep {
         return .reporting(PositionalStep(kind: .parent, node: node), from: climbed, leaving: next)
     }
 
-    /// `toolbar().item(2)` picks the third `ToolbarItem` as declared; `item()` is `item(0)`, the
-    /// first, as a slot reaches its content. An item holds its own views in order. On a container,
+    /// `toolbar().item(2)` picks the third `ToolbarItem` as declared, and `item(0)` the first of
+    /// however many there are. `item()` takes the first too, but cannot be told from a toolbar's
+    /// only item, so it is not reported. An item holds its own views in order. On a container,
     /// `navigationBarItems(n)` reads child `n`, exactly as `vStack(n)` does.
     private func orderedSlotStep(from state: InspectionChainState) -> ChainEvaluation {
         let isBarItems = name == "navigationBarItems"
@@ -132,8 +133,11 @@ struct InspectionStep {
             return ChainEvaluation(state: next)
 
         case .index(let index), .metatypeAndIndex(let index):
-            let first = index == "0" && (isBarItems == false || state.hasOnlyChild)
-            guard first == false else { return ChainEvaluation(state: next) }
+            let first = isBarItems && index == "0" && state.hasOnlyChild
+            let everyPosition = call.arguments.last.map {
+                LoopPositions.isLoopOverEveryPosition($0.expression, resolver: resolver)
+            } == true
+            guard first == false, everyPosition == false else { return ChainEvaluation(state: next) }
             return .reporting(PositionalStep(kind: .indexed(written), node: node), from: state, leaving: next)
 
         case .other:
