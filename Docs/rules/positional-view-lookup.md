@@ -93,15 +93,16 @@ is not reported again, though another index such as `row.text(0)` is.
 - **Named slots.** `labelView()`, `header()`, `title()`, `sheet()`, `overlay(1)`,
   `modifier(Card.self)` and the like reach a view by its role. The index on a modifier counts
   modifiers, not layout.
-- **A subject the test file declares.** `GeometryProbe().inspect().geometryReader().shape()`
-  walks a fixture defined a few lines above. The test owns that layout, and changing it means
-  editing the same file. ViewInspector compatibility probes take this shape. Ownership follows
-  the inspected view's type: only a `View`, modifier or style declared in the file counts, and a
-  walk that reaches an app view inside a test-declared host (`Host().inspect().find(AppView.self)`)
-  is reported. A host whose body builds an app view — a state host wrapping the screen under
-  test — owns its own layout but not the app view's, so a search that does not name its type
-  (`host.inspect().find(ViewType.Form.self)`), a `findAll`, or a `parent()` climb inside it is read
-  as walking the app's layout.
+- **A subject the test file declares.** `GeometryProbe().inspect().geometryReader().shape()` walks
+  a fixture defined a few lines above. The test owns that layout, and changing it means editing
+  the same file. ViewInspector compatibility probes take this shape. Ownership follows the
+  inspected view's type: only a `View` — a `Shape` or a `UIViewRepresentable`-style wrapper
+  included — or a modifier or style declared in the file counts, and a walk that reaches an app
+  view inside a test-declared host (`Host().inspect().find(AppView.self)`) is reported. A host
+  whose body builds an app view — a state host wrapping the screen under test — owns its own
+  layout but not the app view's, so a search that does not name its type
+  (`host.inspect().find(ViewType.Form.self)`), a `findAll`, or a `parent()` climb inside it is
+  read as walking the app's layout.
 - **Anything else.** A step the rule does not recognise ends the chain, so a project's own
   helpers (`sut.inspect().pegColor(1)`) are not read as accessors. A finder helper the file
   declares in `extension InspectableView` under an accessor's name — `button(.increment)` — is

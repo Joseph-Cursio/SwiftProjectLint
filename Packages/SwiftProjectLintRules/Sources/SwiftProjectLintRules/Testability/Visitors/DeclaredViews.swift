@@ -3,7 +3,8 @@ import SwiftSyntax
 /// The views a test file declares, whose layouts the test owns, and the finder helpers it
 /// declares in `extension InspectableView`.
 struct DeclaredViews {
-    /// Types adopting `View`, or a modifier or style protocol, at any depth.
+    /// Types adopting `View` — or `Shape`, or a `…Representable` wrapper — or a modifier or style
+    /// protocol, at any depth.
     let names: Set<String>
     /// Declared views whose bodies build only SwiftUI views and other such declared views. A state
     /// host wrapping an app view is declared but not self-contained.
@@ -134,14 +135,33 @@ final class DeclaredViewsCollector: SyntaxVisitor {
         return .visitChildren
     }
 
+    /// `View` and the SwiftUI protocols refining it: a shape, and a UIKit or AppKit view wrapped
+    /// for SwiftUI.
+    private static let viewProtocols: Set<String> = [
+        "View", "Shape", "InsettableShape", "UIViewRepresentable", "NSViewRepresentable",
+        "UIViewControllerRepresentable", "NSViewControllerRepresentable", "WKInterfaceObjectRepresentable"
+    ]
+
     private func record(_ name: String, _ inheritance: InheritanceClauseSyntax?) {
-        let adoptsViewProtocol = inheritance?.inheritedTypes.contains { inherited in
-            let adopted = inherited.type.trimmedDescription.split(separator: ".").last.map(String.init) ?? ""
-            return adopted == "View" || adopted.hasSuffix("Modifier") || adopted.hasSuffix("Style")
-        } ?? false
+        let adopted = inheritance?.inheritedTypes.flatMap { Self.protocolNames(in: $0.type) } ?? []
+        let adoptsViewProtocol = adopted.contains { adopted in
+            Self.viewProtocols.contains(adopted) || adopted.hasSuffix("Modifier") || adopted.hasSuffix("Style")
+        }
         if adoptsViewProtocol {
             names.insert(name)
         }
+    }
+
+    /// `SwiftUI.View` → `View`; `UIViewRepresentable & Equatable` → both; `@preconcurrency View` →
+    /// `View`.
+    private static func protocolNames(in type: TypeSyntax) -> [String] {
+        if let attributed = type.as(AttributedTypeSyntax.self) {
+            return protocolNames(in: attributed.baseType)
+        }
+        if let composition = type.as(CompositionTypeSyntax.self) {
+            return composition.elements.flatMap { protocolNames(in: $0.type) }
+        }
+        return [type.trimmedDescription.split(separator: ".").last.map(String.init) ?? ""]
     }
 
     /// Declared views that build nothing but SwiftUI views and other self-contained declared
