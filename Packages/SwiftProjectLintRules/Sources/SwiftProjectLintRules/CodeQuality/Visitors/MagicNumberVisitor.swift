@@ -102,6 +102,13 @@ class MagicNumberVisitor: BasePatternVisitor {
 
     override func visit(_ node: FunctionCallExprSyntax) -> SyntaxVisitorContinueKind {
         if shouldSkipFile() { return .visitChildren }
+        // Only a numeric-literal argument is ever recorded, and the preview check walks to the
+        // root, so it runs only for a call that has one. Run first, it cost every call in a
+        // member chain the chain's depth.
+        let hasNumericArgument = node.arguments.contains {
+            $0.expression.is(IntegerLiteralExprSyntax.self) || $0.expression.is(FloatLiteralExprSyntax.self)
+        }
+        guard hasNumericArgument else { return .visitChildren }
         if isInsidePreviewMacro(Syntax(node)) { return .visitChildren }
 
         let calledName = extractCalledName(node.calledExpression)

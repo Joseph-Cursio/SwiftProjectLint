@@ -48,8 +48,9 @@ enum AnalysisBodyWalk {
     /// annotated trailing closure. The call case deliberately uses the
     /// *call-site* lookup (call site plus enclosing statement) so a site
     /// annotated by a prefix statement is not walked twice — once as its own
-    /// site and once as part of its parent.
-    static func carriesOwnContextAnnotation(_ syntax: Syntax) -> Bool {
+    /// site and once as part of its parent. `contexts` is the index of the
+    /// file `syntax` is in, so the lookup does not walk from every call.
+    static func carriesOwnContextAnnotation(_ syntax: Syntax, contexts: CallSiteContextIndex) -> Bool {
         if let varDecl = syntax.as(VariableDeclSyntax.self),
            varDecl.closureInitializer != nil,
            ContextAnnotationParser.parseContext(declaration: varDecl) != nil {
@@ -57,7 +58,7 @@ enum AnalysisBodyWalk {
         }
         if let call = syntax.as(FunctionCallExprSyntax.self),
            call.trailingClosure != nil,
-           ContextAnnotationParser.parseContextAtCallSite(of: call) != nil {
+           contexts.context(of: call) != nil {
             return true
         }
         return false
@@ -78,15 +79,23 @@ extension EffectSymbolTable {
     /// would miss.
     ///
     /// Imports are computed per source and looked up on each call so framework
-    /// allowlists only fire in files that actually import the module.
+    /// allowlists only fire in files that actually import the module. They are
+    /// collected before the passes, not in the per-call closure: collecting walks
+    /// the whole file, so doing it for every call made a file's inference
+    /// quadratic in its size — and the passes stop at a wall-clock budget, so a
+    /// large enough file lost inferences rather than only time.
     mutating func applyImportAwareBodyInference(
         to sources: [SourceFileSyntax],
         enabledFrameworks: Set<String>?
     ) {
+        let importsBySource = Dictionary(
+            sources.map { (Syntax($0).id, SwiftProjectLintVisitors.ImportCollector.imports(in: $0)) }
+        ) { first, _ in first }
         applyBodyInference(to: sources, multiHop: true) { call, source in
             HeuristicEffectInferrer.infer(
                 call: call,
-                imports: SwiftProjectLintVisitors.ImportCollector.imports(in: source),
+                imports: importsBySource[Syntax(source).id]
+                    ?? SwiftProjectLintVisitors.ImportCollector.imports(in: source),
                 enabledFrameworks: enabledFrameworks
             )
         }

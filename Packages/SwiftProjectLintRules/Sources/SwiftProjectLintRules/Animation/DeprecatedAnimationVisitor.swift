@@ -33,17 +33,18 @@ final class DeprecatedAnimationVisitor: BasePatternVisitor {
 
     override func visit(_ node: FunctionCallExprSyntax) -> SyntaxVisitorContinueKind {
         // Ensure the function call is a member access expression (e.g., `view.animation(...)`)
+        // and the deprecated `.animation()` modifier. Both come before the base's text, which
+        // costs the base's size: every call in a member chain has the rest of the chain as
+        // its base, so building it first made the chain cost the square of its length.
         guard let calledExpression = node.calledExpression.as(MemberAccessExprSyntax.self),
               let base = calledExpression.base,
+              calledExpression.declName.baseName.text == "animation",
+              node.arguments.count == 1,
               !base.description.hasSuffix("Binding") else {
             return .visitChildren
         }
 
-        // Check if the function call is the deprecated `.animation()` modifier
-        if calledExpression.declName.baseName.text == "animation", node.arguments.count == 1 {
-            addIssue(node: Syntax(node))
-        }
-
+        addIssue(node: Syntax(node))
         return .visitChildren
     }
 }

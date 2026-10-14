@@ -117,8 +117,18 @@ final class GlobalActorMismatchVisitor: BasePatternVisitor {
     // MARK: - Detect cross-actor calls without await
 
     override func visit(_ node: FunctionCallExprSyntax) -> SyntaxVisitorContinueKind {
-        guard isAwaitPreceding(node) == false else { return .visitChildren }
+        // The `await` check walks up to the statement, so it runs only for a call that would
+        // otherwise be reported. Run first, it cost every call in a member chain the chain's
+        // depth.
+        if let mismatch = crossActorCallee(of: node), isAwaitPreceding(node) == false {
+            reportMismatch(functionName: mismatch.functionName, calleeActor: mismatch.calleeActor, node: node)
+        }
+        return .visitChildren
+    }
 
+    /// The callee `node` names and the global actor it is isolated to, when that actor is not
+    /// the current context's.
+    private func crossActorCallee(of node: FunctionCallExprSyntax) -> (functionName: String, calleeActor: String)? {
         // Case 1: Static call like ActorType.method()
         if let memberAccess = node.calledExpression.as(MemberAccessExprSyntax.self),
            let baseRef = memberAccess.base?.as(DeclReferenceExprSyntax.self) {
@@ -128,24 +138,14 @@ final class GlobalActorMismatchVisitor: BasePatternVisitor {
             // Static call on actor-annotated type
             if let calleeActor = actorAnnotatedTypes[baseName],
                calleeActor != currentIsolation {
-                reportMismatch(
-                    functionName: "\(baseName).\(methodName)",
-                    calleeActor: calleeActor,
-                    node: node
-                )
-                return .visitChildren
+                return ("\(baseName).\(methodName)", calleeActor)
             }
 
             // Instance call on a variable with known actor-annotated type
             if let varType = variableTypes[baseName],
                let calleeActor = actorAnnotatedTypes[varType],
                calleeActor != currentIsolation {
-                reportMismatch(
-                    functionName: "\(baseName).\(methodName)",
-                    calleeActor: calleeActor,
-                    node: node
-                )
-                return .visitChildren
+                return ("\(baseName).\(methodName)", calleeActor)
             }
         }
 
@@ -154,15 +154,11 @@ final class GlobalActorMismatchVisitor: BasePatternVisitor {
             let funcName = declRef.baseName.text
             if let calleeActor = actorAnnotatedFunctions[funcName],
                calleeActor != currentIsolation {
-                reportMismatch(
-                    functionName: funcName,
-                    calleeActor: calleeActor,
-                    node: node
-                )
+                return (funcName, calleeActor)
             }
         }
 
-        return .visitChildren
+        return nil
     }
 
     // MARK: - Helpers

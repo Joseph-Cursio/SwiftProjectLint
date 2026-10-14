@@ -9,6 +9,10 @@ import SwiftSyntax
 class AccessingImplementationDetailsVisitor: BasePatternVisitor {
     private var currentFilePath: String = ""
 
+    /// Whether the file being walked contains `as! ` anywhere; true when no file is being walked.
+    /// See `extractForceCastTypeName(from:)`.
+    private var fileMentionsForceCast = true
+
     required init(pattern: SyntaxPattern, viewMode: SyntaxTreeViewMode = .sourceAccurate) {
         super.init(pattern: pattern, viewMode: viewMode)
     }
@@ -63,6 +67,15 @@ class AccessingImplementationDetailsVisitor: BasePatternVisitor {
             }
         }
         return names
+    }
+
+    override func visit(_ node: SourceFileSyntax) -> SyntaxVisitorContinueKind {
+        fileMentionsForceCast = node.description.contains(Self.forceCastMarker)
+        return .visitChildren
+    }
+
+    override func visitPost(_: SourceFileSyntax) {
+        fileMentionsForceCast = true
     }
 
     // MARK: - MemberAccessExprSyntax
@@ -157,12 +170,20 @@ class AccessingImplementationDetailsVisitor: BasePatternVisitor {
         return enclosingTypeDeclares(memberName, from: node)
     }
 
+    private static let forceCastMarker = "as! "
+
     /// Searches the base expression's text for an `as!` cast to a service-like type.
     /// Uses textual inspection because sub-walking non-root nodes crashes in SwiftSyntax 601.
+    ///
+    /// Building that text costs the size of the base, and every link of a member chain is a
+    /// member access whose base is the rest of the chain, so a chain cost the square of its
+    /// length. A base's text is a slice of its file's, so a file that never contains the
+    /// marker has no base that does, and the text is built only when the file has one.
     private func extractForceCastTypeName(from expr: ExprSyntax) -> String? {
+        guard fileMentionsForceCast else { return nil }
         let text = expr.trimmedDescription
         // Find "as! TypeName" — extract the identifier that follows
-        guard let castRange = text.range(of: "as! ") else { return nil }
+        guard let castRange = text.range(of: Self.forceCastMarker) else { return nil }
         let afterCast = text[castRange.upperBound...]
         let typeName = String(afterCast.prefix { $0.isLetter || $0.isNumber || $0 == "_" })
         return qualifyingServiceName(typeName)
