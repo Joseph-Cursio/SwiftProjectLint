@@ -200,19 +200,25 @@ rule takes a position beyond the library's documentation. The evidence for that 
 library's commit history above and Jon Reid's argument, credited at the top of this page.
 
 **Measured.** Over the ViewInspector tests in 11 repositories (165 files), nine of the author's
-plus two of Jon Reid's held out (TestableView and Mastermind), the rule reported 67 lookups when
-it was written. Each was read by hand against its source: 63 were walks that a layout change would
-break or retarget. The other 4 deliberately assert order (three tabs in one test, a leading
-`Spacer` in another) and want the suppression above. The repositories whose tests already
-searched, including SwiftLintRuleStudioTeam, SwiftFormatRuleStudio and TestableView, reported
-nothing. 54 of the 67 findings sat on a line with no `inspect()` call, mostly a walk continued
-through a local, a `parent()` climb inside a finder helper, or a view handed to a `map { }`
-closure, which is why the rule follows bindings rather than matching one expression at a time.
-Twenty of the walks were in this repository's own `Tests/AppTests`, which now search by
-accessibility identifier instead, leaving 47 findings across the 11 repositories.
+plus two of Jon Reid's held out (TestableView and Mastermind), the rule reports 47 lookups. Each
+was read by hand against its source: 43 are walks that a layout change would break or retarget.
+The other 4 deliberately assert order (three tabs in one test, a leading `Spacer` in another) and
+want the suppression above. The repositories whose tests already search, including
+SwiftLintRuleStudioTeam, SwiftFormatRuleStudio and TestableView, report nothing. 34 of the 47 sit
+on a line with no `inspect()` call, mostly a walk continued through a local, a `parent()` climb
+inside a finder helper, or a view handed to a `map { }` closure, which is why the rule follows
+bindings rather than matching one expression at a time. When the rule was written the count was
+67: the other 20 were walks in this repository's own `Tests/AppTests`, which now search by
+accessibility identifier instead.
 
-On ViewInspector's own test suite the rule reports several hundred lookups. Those are expected:
-the library tests its accessors by walking to them on purpose.
+On ViewInspector's own test suite the rule reports 362 lookups. Those are expected: the library
+tests its accessors by walking to them on purpose, mostly through SwiftUI views it builds inline
+in the test. On an older copy of the suite (333 lookups) every one was checked against its source
+and ViewInspector's API, and each is a real positional step: 330 are reported because a SwiftUI
+view built inline is not test-owned, and 3 because of the `didAppear` gap under Known Limitations.
+Across the 86 repositories of a held-out corpus (57,825 Swift files, including GRDB, IceCubesApp,
+The Composable Architecture and swift-nio), the rule reports nothing beyond that suite and
+Mastermind's one walk.
 
 ### Known Limitations
 
