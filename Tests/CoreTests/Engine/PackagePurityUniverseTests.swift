@@ -38,6 +38,34 @@ struct PackagePurityUniverseTests {
         #expect(found.contains("viaJoin"))
     }
 
+    /// The swift compiler's `test/` and `validation-test/` hold one test program per file, and
+    /// pooled into the table they made a namesake of every name. A suite's folder is test code, as
+    /// a test target's is — by its exact name, so a production `Sources/swift-test` still counts.
+    @Test(
+        "a refuting namesake declared only in a test suite does not refute production",
+        arguments: ["test/Parse", "validation-test/stdlib", "tests", "utils/tool/tests"]
+    )
+    func testSuiteNamesakeDoesNotRefuteProduction(suite: String) async throws {
+        let found = try await PackagePurityFixtures.candidates(in: [
+            "Sources/Lib/Item.swift": PackagePurityFixtures.plainItem,
+            "Sources/Lib/Callers.swift": PackagePurityFixtures.callers,
+            "\(suite)/ItemFixture.swift": PackagePurityFixtures.refutingItem
+        ])
+        #expect(found.contains("countOf"))
+        #expect(found.contains("viaJoin"))
+    }
+
+    @Test("a refuting namesake in a production folder named like a suite still refutes")
+    func productionFolderNamedLikeASuiteRefutes() async throws {
+        let found = try await PackagePurityFixtures.candidates(in: [
+            "Sources/Lib/Item.swift": PackagePurityFixtures.plainItem,
+            "Sources/Lib/Callers.swift": PackagePurityFixtures.callers,
+            "Sources/swift-test/ItemFixture.swift": PackagePurityFixtures.refutingItem
+        ])
+        #expect(found.contains("countOf") == false)
+        #expect(found.contains("viaJoin") == false)
+    }
+
     @Test("a nested package's types are evidence even when nested packages are not reported")
     func nestedPackageTypesAreEvidence() async throws {
         // The root depends on `Core`, so it compiles it: only then is a nested package in the
