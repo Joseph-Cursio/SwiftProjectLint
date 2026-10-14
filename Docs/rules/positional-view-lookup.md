@@ -216,9 +216,14 @@ tests its accessors by walking to them on purpose, mostly through SwiftUI views 
 in the test. On an older copy of the suite (333 lookups) every one was checked against its source
 and ViewInspector's API, and each is a real positional step: 330 are reported because a SwiftUI
 view built inline is not test-owned, and 3 because of the `didAppear` gap under Known Limitations.
-Across the 86 repositories of a held-out corpus (57,825 Swift files, including GRDB, IceCubesApp,
-The Composable Architecture and swift-nio), the rule reports nothing beyond that suite and
-Mastermind's one walk.
+Across the 86 repositories of a held-out corpus (48,307 Swift files outside `.build/`, including
+GRDB, IceCubesApp, The Composable Architecture, swift-nio and the swift compiler's own tree), the
+rule reports 334 lookups: the older copy's 333 and Mastermind's one walk, nothing else. The compiler's
+tree is 23,845 of those files and reports none. That figure covers the whole corpus since
+SwiftProjectLint `5b83f22f` (SEI `f34cee3`), the first build that finished the compiler's tree: 63 s,
+where earlier runs passed an hour. Every run before covered the other 85, and their output is
+byte-identical at `8257d6a9` (SEI `cfbb250`) and at `5b83f22f` (re-run 2026-10-14, release CLI,
+`--format json`, an empty config).
 
 ### Known Limitations
 
