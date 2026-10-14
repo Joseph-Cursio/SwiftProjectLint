@@ -52,12 +52,13 @@ struct DeepReportedFileTests {
 
     @Test("with every default rule, the visitors survive a 2,000-link chain, in seconds and about the time its calls take unnested")
     func everyDefaultRule() async throws {
-        // 2,000 links rather than 10,000: some work is still quadratic in a chain (purity inference
-        // classifies each call from a position it finds by descending to the chain's first token).
-        // More of it was: two idempotency visitors walked from every call up to its statement for
-        // its `@lint.context`, other rules built the text of every link's base or walked up from
-        // it, and body inference collected the file's imports for every call. The chain took 55 s
-        // in a debug build; it takes about 2.6 s, about 1.15 times the same calls one per line.
+        // 2,000 links rather than 10,000 to keep the suite quick: alone, every default rule takes
+        // about 6.5 s on 10,000 links in a debug build, and the calls unnested about 11 s. Once each
+        // link cost the chain's depth or length: two idempotency visitors walked from every call
+        // up to its statement for its `@lint.context`, other rules built the text of every link's
+        // base or walked up from it, purity inference descended to the chain's first token to
+        // locate every call, and body inference collected the file's imports for every call. The
+        // chain took 55 s; it takes about 2.4 s, 0.6 to 0.8 times the same calls one per line.
         //
         // Two bounds, because the costs were of two kinds. Nesting is measured against the same
         // calls unnested, linted side by side: in a full parallel `swift test` this lint takes up
