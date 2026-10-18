@@ -1,24 +1,26 @@
 diff --git a/Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/ProjectLinter.swift b/Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/ProjectLinter.swift
-index 73bbbb40..5d832103 100755
+index 063d0e14..78a4e6cf 100755
 --- a/Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/ProjectLinter.swift
 +++ b/Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/ProjectLinter.swift
-@@ -199,8 +199,14 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
- 
-         // Bound once, around the pre-scan, the per-file task group and cross-file analysis: every
-         // `PurityInferrer()` any of them creates reads it, so one run judges with one table.
+@@ -216,9 +216,16 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
+         // `PurityInferrer()` any of them creates reads it, so one run judges with one table. Each of
+         // them walks every reported file as deep as it nests, so they run on large stacks — still
+         // on the task tree, which is what carries the binding.
 +        let collected = CollectedTypes.collect(
 +            from: project.files.reportable,
++            projectRoot: request.path,
 +            sources: project.shared,
 +            demand: project.demand,
 +            tripwire: project.tripwire
 +        )
-         let issues = await PackagePurity.$current.withValue(purity) {
--            await analyzeDiscovered(project)
-+            await analyzeDiscovered(project, collected: collected)
+         let issues = await LargeStackWorkers.withExecutor {
+             await PackagePurity.$current.withValue(purity) {
+-                await analyzeDiscovered(project)
++                await analyzeDiscovered(project, collected: collected)
+             }
          }
  
-         // Every read of a withheld surface happened inside the binding: the task group is awaited,
-@@ -210,20 +216,12 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
+@@ -229,21 +236,12 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
  
      /// The pre-scan, per-file and cross-file phases over files already discovered and parsed.
      /// Runs inside the pass's `PackagePurity` binding; see `pass`.
@@ -32,6 +34,7 @@ index 73bbbb40..5d832103 100755
 -        // Pre-scan: collect cross-file type metadata needed by visitors.
 -        let collected = CollectedTypes.collect(
 -            from: project.files.reportable,
+-            projectRoot: path,
 -            sources: project.shared,
 -            demand: project.demand,
 -            tripwire: project.tripwire
