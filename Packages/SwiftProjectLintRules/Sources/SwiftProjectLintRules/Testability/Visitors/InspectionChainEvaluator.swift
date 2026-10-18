@@ -59,7 +59,7 @@ final class InspectionChainEvaluator {
         }
         guard let reference = call.calledExpression.as(DeclReferenceExprSyntax.self) else { return .unrelated }
         let name = reference.baseName.text
-        if let root = Self.inspectableExtensionRoot(of: Syntax(call)) {
+        if let root = Self.inspectableExtensionRoot(of: Syntax(call), ownership: declaredViews.ownership(of:)) {
             return step(name, call: call, node: Syntax(reference)).apply(to: root)
         }
         if name == "inspect", InspectionVocabulary.isRootInspect(call) {
@@ -161,7 +161,7 @@ final class InspectionChainEvaluator {
     private func state(of reference: DeclReferenceExprSyntax, depth: Int) -> InspectionChainState? {
         let name = reference.baseName.text
         if name == "self" {
-            return Self.inspectableExtensionRoot(of: Syntax(reference))
+            return Self.inspectableExtensionRoot(of: Syntax(reference), ownership: declaredViews.ownership(of:))
         }
         // A capitalised name is a type — `ViewType`, `Color` — not a value worth resolving.
         guard name.first?.isUppercase == false else { return nil }

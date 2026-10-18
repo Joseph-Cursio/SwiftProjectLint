@@ -184,6 +184,21 @@ struct PositionalViewLookupReceiverKindTests {
         #expect(issues.map(\.lineNumber) == [4])
     }
 
+    /// The same extension over a view the test file declares walks the test's own layout, as a
+    /// parameter typed `InspectableView<ViewType.View<ProbeView>>` does.
+    @Test("an extension on View<T> for a test-declared T reports nothing")
+    func typedBodyExtensionOwned() {
+        let issues = analyze("""
+        private struct ProbeView: View { var body: some View { Text("a"); Text("b") } }
+
+        extension InspectableView where View == ViewType.View<ProbeView> {
+            func first() throws -> String { try text(0).string() }
+            func second() throws -> String { try self.text(1).string() }
+        }
+        """)
+        #expect(issues.isEmpty)
+    }
+
     /// ViewInspector hands back `View<Row>` for a row `view(Row.self, n)` reaches and for each match
     /// of `findAll(Row.self)`. The row index is data, but an index into the row's body is layout.
     @Test("a custom-view row or match holds its body's views: the row index is data, x(0) picks")
