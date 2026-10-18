@@ -39,4 +39,21 @@ struct ForEachIdentifiableLookupTests {
         """
         #expect(forEachWithoutIDLines(source, identifiableTypes: ["Entry", "Feed.Entry"]) == [6])
     }
+
+    /// `ForEach(PreviewData.insights)`: the inference guesses the uppercase base, `PreviewData`,
+    /// which is not Identifiable; the catalog still knows `insights` is an array of one.
+    @Test func staticMemberOfANonIdentifiableTypeConsultsTheCatalog() {
+        let source = """
+        struct PreviewView: View {
+            var body: some View {
+                ForEach(PreviewData.insights) { insight in Text("i") }
+                ForEach(PreviewData.names) { name in Text(name) }
+            }
+        }
+        """
+        let lines = forEachWithoutIDLines(
+            source, identifiableTypes: ["Insight"], identifiableCollectionProperties: ["insights"]
+        )
+        #expect(lines == [4])
+    }
 }
