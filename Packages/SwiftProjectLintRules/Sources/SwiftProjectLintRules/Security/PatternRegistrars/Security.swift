@@ -33,9 +33,9 @@ class Security: BasePatternRegistrar {
                 visitor: SecurityVisitor.self,
                 severity: .warning,
                 category: .security,
-                messageTemplate: "Unsafe URL construction with string interpolation detected",
+                messageTemplate: "Unsafe URL construction with string interpolation or concatenation detected",
                 suggestion: "Use URL components or proper URL encoding",
-                description: "Detects potentially unsafe URL construction using string interpolation"
+                description: "Detects potentially unsafe URL construction using string interpolation or concatenation"
             ),
             SyntaxPattern(
                 name: .userDefaultsSensitiveData,

@@ -11,7 +11,7 @@ import SwiftSyntax
 /// - JWT tokens (eyJ... pattern)
 /// - Known API key prefixes (sk-, ghp_, AKIA, AIza, etc.)
 /// - High-entropy strings assigned to sensitive variables
-/// - Unsafe URL construction with string interpolation
+/// - Unsafe URL construction with string interpolation or concatenation
 class SecurityVisitor: BasePatternVisitor {
     private var currentFilePath: String = ""
     private var insideIfDebug = false
@@ -139,22 +139,21 @@ class SecurityVisitor: BasePatternVisitor {
     override func visit(_ node: FunctionCallExprSyntax) -> SyntaxVisitorContinueKind {
         if let calledExpr = node.calledExpression.as(DeclReferenceExprSyntax.self),
            calledExpr.baseName.text == "URL" {
-            // Only `URL(string:)` parses its text as a URL, where interpolation can change the
-            // scheme, host or query. `URL(fileURLWithPath:)` and `URL(filePath:)` take a path,
-            // and every character of it stays part of the path.
+            // Only `URL(string:)` parses its text as a URL, where text spliced in at run time can
+            // change the scheme, host or query. `URL(fileURLWithPath:)` and `URL(filePath:)` take
+            // a path, and every character of it stays part of the path.
             for argument in node.arguments where argument.label?.text == "string" {
-                if let stringLiteral = argument.expression.as(StringLiteralExprSyntax.self) {
-                    let urlString = stringLiteral.description
-                    if urlString.contains("\\(") || urlString.contains("+") {
-                        addIssue(
-                            severity: .warning,
-                            message: "Unsafe URL construction with string interpolation",
-                            filePath: currentFilePath,
-                            lineNumber: getLineNumber(for: Syntax(node)),
-                            suggestion: "Use URLComponents to build URLs safely",
-                            ruleName: .unsafeURL
-                        )
-                    }
+                // Interpolation or `+` concatenation, read off the tree: a `+` that is a character
+                // of a constant (`"tel:+1…"`) is neither. See `URLStringConstruction`.
+                if let construction = URLStringConstruction(argument.expression) {
+                    addIssue(
+                        severity: .warning,
+                        message: "Unsafe URL construction with \(construction.phrase)",
+                        filePath: currentFilePath,
+                        lineNumber: getLineNumber(for: Syntax(node)),
+                        suggestion: "Use URLComponents to build URLs safely",
+                        ruleName: .unsafeURL
+                    )
                 }
             }
         }
