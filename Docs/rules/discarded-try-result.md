@@ -17,7 +17,7 @@ One structural exception: a single-expression closure body is *also* a bare `Cod
 Two more places where a bare `try?` statement is not a discard:
 
 - **A `defer` block.** It can neither throw nor hand a value on, so `defer { try? handle.close() }` is the only form best-effort cleanup can take there. The same goes for a `try?` nested in an `if`, loop or `do` inside the defer (`defer { if let handle { try? handle.close() } }`). A closure the defer creates is a different matter — `defer { queue.async { try? handle.close() } }` still fires, since that body runs later and could throw or return.
-- **An implicit return.** The sole expression of a function, getter or subscript with a non-`Void` result is that body's return value: `func makeBookmark(for url: URL) -> Data? { try? url.bookmarkData(…) }`. The same goes for a closure that spells out a non-`Void` return type, and for `Task { try? work() }.value`, whose value is read. A closure with no signature, such as `Button { try? save() }`, is still flagged: whether its value is used depends on a type the syntax does not show. `Void`, `Swift.Void` and `()` all count as `Void`, in parentheses or not (`(Void)`, `(())`); `Void?` is a value the caller can test. A typealias for `Void` is not resolved, so a body returning one is treated as returning a value.
+- **An implicit return.** The sole expression of a function, getter or subscript with a non-`Void` result is that body's return value: `func makeBookmark(for url: URL) -> Data? { try? url.bookmarkData(…) }`. The same goes for a closure that spells out a non-`Void` return type, and for `Task { try? work() }.value`, whose value is read. A closure with no signature, such as `Button { try? save() }`, is still flagged: whether its value is used depends on a type the syntax does not show. `Void`, `Swift.Void` and `()` all count as `Void`, in parentheses or not (`(Void)`, `(())`); `Void?` is a value the caller can test. A typealias for `Void` is not resolved, so a body returning one is treated as returning a value. The branches of an `if` or `switch` expression count as well when that expression is such a body's sole expression (`func load() -> Data? { if fresh { try? fetch() } else { try? cached() } }`), or when its value is assigned or returned (`let data = if fresh { try? fetch() } else { nil }`); an `if` with no final `else` is a statement, so its branches are still checked.
 
 Not flagged:
 - `let x = try? call()` — result captured
@@ -26,6 +26,7 @@ Not flagged:
 - `items.compactMap { try? f($0) }` — `try?` is the transform closure's result
 - `defer { try? FileManager.default.removeItem(at: url) }` — cleanup in a `defer`
 - `func data() -> Data? { try? load() }` — the implicit return value
+- `func data() -> Data? { if fresh { try? fetch() } else { try? load() } }` — the branches of the implicit return value
 - `await Task.detached { try? describe() }.value` — the task's value is read
 - `try call()` / `try! call()` — different operators
 

@@ -130,7 +130,17 @@ struct DiscardedTryResultVisitorTests {
         "let load = { () -> Data? in try? read() }",
         // Task whose value is read
         "func f() async { let result = await Task { try? describe() }.value }",
-        "func f() async { let result = await Task.detached(priority: .userInitiated) { try? describe() }.value }"
+        "func f() async { let result = await Task.detached(priority: .userInitiated) { try? describe() }.value }",
+        // Branches of an if or switch expression that is itself the implicit return value
+        "func load(_ fresh: Bool) -> Data? { if fresh { try? fetch() } else { try? cached() } }",
+        "func load(_ fresh: Bool) -> Data? { if fresh { try? fetch() } else if offline { nil } else { try? cached() } }",
+        "func load(_ source: Source) -> Data? { switch source { case .disk: try? read(); default: try? fetch() } }",
+        "var bookmark: Data? { if stale { try? refresh() } else { try? url.bookmarkData() } }",
+        "let pick = { (fresh: Bool) -> Data? in if fresh { try? fetch() } else { nil } }",
+        "func load() -> Data? { switch source { case .disk: if fresh { try? read() } else { nil }; default: nil } }",
+        // ...or whose value is used where it stands
+        "let data = if fresh { try? fetch() } else { nil }",
+        "func load() -> Data? { return switch source { case .disk: try? read(); default: nil } }"
     ])
     func noIssueForImplicitReturnValue(source: String) {
         let visitor = makeVisitor()
@@ -151,6 +161,12 @@ struct DiscardedTryResultVisitorTests {
         "func f() -> Data? { try? warmUp(); return nil }",
         // A Task whose value is never read
         "func f() { Task { try? save() } }",
+        // An if or switch statement in a Void body — its branches are discarded
+        "func f() { if fresh { try? fetch() } else { cached() } }",
+        "func f() -> Data? { if fresh { try? warmUp() }; return nil }",
+        "func f() { switch source { case .disk: try? read(); default: break } }",
+        // An if with no final else is a statement, never an expression
+        "let pick = { (fresh: Bool) -> Data? in if fresh { try? fetch() } else if stale { nil } }",
         // A closure inside a defer can outlive it — not the defer's own cleanup
         "func f() { defer { queue.async { try? handle.close() } } }",
         // A closure with no signature: whether its value is used is not visible
