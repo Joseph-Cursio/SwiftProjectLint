@@ -292,7 +292,11 @@ have not been re-measured since.
 - **A test-owned subject is recognised by its type name.** A fixture whose type is declared in
   another file is not recognised. A method called on a test-declared view is read as a modifier,
   so a factory method on one (`ProbeHost().makeScreen()`) counts as test-owned too. A factory is
-  read from its declared return type, looking first in the types around the call. A SwiftUI view
+  read from its declared return type, looking first in the types around the call. A loop
+  variable, or the parameter of a closure iterating an array (`forEach`, `map`, …), holds the
+  array's element: `for probe in [Probe(), Probe()]`, or a local bound to such an array, or a
+  parameter typed `[Probe]` or `Probe...`. An array literal mixing types gives no type, so a walk
+  inside it is read as walking the app's layout. A SwiftUI view
   built inline in the test (`HStack { Text("a"); Text("b") }`) is not test-owned: its content can
   be an app view, and nothing in the chain says when the walk enters it.
 - **A host's app views are found by constructor.** A test-declared view counts as building an

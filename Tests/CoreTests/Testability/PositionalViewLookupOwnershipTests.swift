@@ -178,6 +178,25 @@ struct PositionalViewLookupOwnershipTests {
         #expect(issues.isEmpty)
     }
 
+    @Test("a test-declared view reached through a loop variable or an iterating closure stays owned")
+    func ownedThroughIteration() {
+        let issues = analyze("""
+        private struct Probe: View { var body: some View { VStack { Text("a"); Text("b") } } }
+
+        func testProbes(_ variadic: Probe..., typed: [Probe]) throws {
+            for probe in [Probe(), Probe()] { _ = try probe.inspect().vStack().text(1) }
+            [Probe()].forEach { probe in _ = try? probe.inspect().vStack().text(1) }
+            let probes = [Probe()]
+            for probe in probes { _ = try probe.inspect().vStack().text(1) }
+            for probe in variadic { _ = try probe.inspect().vStack().text(1) }
+            _ = try typed.map { try $0.inspect().vStack().text(1) }
+            for screen in [AppScreen()] { _ = try screen.inspect().vStack().text(1) }
+            for view in [Probe(), AppScreen()] { _ = try view.inspect().vStack().text(1) }
+        }
+        """)
+        #expect(issues.map(\.lineNumber) == [12, 13])
+    }
+
     @Test("a UIKit wrapper the file declares is a view whose layout it owns")
     func representablesAreViews() {
         let issues = analyze("""
