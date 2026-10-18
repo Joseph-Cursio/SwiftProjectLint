@@ -228,6 +228,47 @@ struct PositionalViewLookupOwnershipTests {
         #expect(issues.isEmpty)
     }
 
+    @Test("chart axes, keyframes, layouts, animators, tab sections and toolbar spacers are SwiftUI's")
+    func moreBuildingBlocks() {
+        let issues = analyze("""
+        private struct Axes: View {
+            var body: some View {
+                VStack { Text("a"); Chart { LinePlot(x: "x", y: "y") }.chartXAxis { AxisMarks() } }
+            }
+        }
+        private struct Frames: View {
+            var body: some View {
+                VStack { Text("a"); Text("b") }
+                    .keyframeAnimator(initialValue: 0.0) { view, _ in view } keyframes: { _ in
+                    KeyframeTrack(\\.self) { LinearKeyframe(1.0, duration: 1); SpringKeyframe(0.0) }
+                }
+            }
+        }
+        private struct Layouts: View {
+            var body: some View { VStack { Text("a"); HStackLayout { Text("b") } } }
+        }
+        private struct Phases: View {
+            var body: some View { VStack { Text("a"); PhaseAnimator([0, 1]) { _ in Text("b") } } }
+        }
+        private struct Tabs: View {
+            var body: some View { TabView { TabSection("s") { Tab("t", systemImage: "x") { Text("a") } } } }
+        }
+        private struct Spacers: View {
+            var body: some View { VStack { Text("a"); Text("b") }.toolbar { ToolbarSpacer() } }
+        }
+
+        func testBlocks() throws {
+            _ = try Axes().inspect().find(ViewType.VStack.self).text(1)
+            _ = try Frames().inspect().find(ViewType.VStack.self).text(1)
+            _ = try Layouts().inspect().find(ViewType.VStack.self).text(1)
+            _ = try Phases().inspect().find(ViewType.VStack.self).text(1)
+            _ = try Tabs().inspect().find(ViewType.TabView.self).text(1)
+            _ = try Spacers().inspect().find(ViewType.VStack.self).text(1)
+        }
+        """)
+        #expect(issues.isEmpty)
+    }
+
     @Test("a UIKit wrapper the file declares is a view whose layout it owns")
     func representablesAreViews() {
         let issues = analyze("""

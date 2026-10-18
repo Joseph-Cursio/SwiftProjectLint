@@ -17,23 +17,28 @@ enum BuiltViews {
         return Set(built).subtracting(nonViews).subtracting(["Self"])
     }
 
-    /// SwiftUI's own views, and the toolbar items, alerts and shapes that ViewInspector names no
-    /// accessor after.
+    /// SwiftUI's own views, and the toolbar items, tabs, layouts, animators, alerts and shapes that
+    /// ViewInspector names no accessor after.
     static func isSwiftUIView(_ typeName: String) -> Bool {
         InspectionVocabulary.isSwiftUIViewType(typeName) || buildingBlocks.contains(typeName)
     }
 
     private static let buildingBlocks: Set<String> = [
-        "ToolbarItem", "ToolbarItemGroup", "Alert", "ActionSheet", "Rectangle", "RoundedRectangle",
-        "UnevenRoundedRectangle", "Circle", "Capsule", "Ellipse", "ContainerRelativeShape", "Path",
-        "AnyShape", "Table", "TableColumn", "TableRow", "Gauge", "Tab", "TupleView", "ModifiedContent"
+        "ToolbarItem", "ToolbarItemGroup", "ToolbarSpacer", "ToolbarTitleMenu", "DefaultToolbarItem",
+        "Alert", "ActionSheet", "Rectangle", "RoundedRectangle", "UnevenRoundedRectangle", "Circle",
+        "Capsule", "Ellipse", "ContainerRelativeShape", "Path", "AnyShape", "Table", "TableColumn",
+        "TableRow", "Gauge", "Tab", "TabSection", "TupleView", "ModifiedContent", "HStackLayout",
+        "VStackLayout", "ZStackLayout", "AnyLayout", "PhaseAnimator", "KeyframeAnimator",
+        "TextFieldLink", "RenameButton", "HelpLink", "SettingsLink"
     ]
 
-    /// Types a statement in a body constructs that are not views: a task, and the marks a `Chart`
-    /// is built from.
+    /// Types a statement in a body constructs that are not views: a task, the marks, plots and axes
+    /// a `Chart` is built from, and the keyframes a `KeyframeAnimator` is.
     private static let nonViews: Set<String> = [
         "Task", "DispatchWorkItem", "BarMark", "LineMark", "PointMark", "AreaMark", "RuleMark",
-        "RectangleMark", "SectorMark"
+        "RectangleMark", "SectorMark", "BarPlot", "LinePlot", "PointPlot", "AreaPlot", "RulePlot",
+        "RectanglePlot", "AxisMarks", "AxisGridLine", "AxisTick", "AxisValueLabel", "KeyframeTrack",
+        "LinearKeyframe", "SpringKeyframe", "CubicKeyframe", "MoveKeyframe"
     ]
 
     private static func buildsViews(_ decl: DeclSyntax) -> Bool {

@@ -305,7 +305,11 @@ have not been re-measured since.
   app view when a statement in its `body`, or in a member typed `some View`, constructs a type that
   is neither SwiftUI's nor declared in the file — directly, or handed to `AnyView(…)`, `overlay(…)`,
   `background(…)` or `mask(…)`. Action closures (`Button`'s, `onAppear`, `task`) build nothing,
-  and `Self(…)` builds the view itself again, not an app view. An
+  and `Self(…)` builds the view itself again, not an app view. SwiftUI's types are read from a
+  list: ViewInspector's view types, plus what it names no accessor after — toolbar items and
+  spacers, `Tab` and `TabSection`, layouts such as `HStackLayout`, `PhaseAnimator` and
+  `KeyframeAnimator`, shapes, and the marks, plots, axes and keyframes that Charts and keyframe
+  animations are built from. A system type missing from the list is read as an app view. An
   app view returned by a function call (`makeEditor()`), or passed in where the host is built
   (`Wrapper(content: AppEditor())`, a stateful preview wrapper), is not seen, so the host keeps its
   ownership through searches. Two views of the same name in one file count as a host only when
