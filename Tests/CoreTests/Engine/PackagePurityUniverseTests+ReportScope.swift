@@ -61,6 +61,19 @@ extension PackagePurityUniverseTests {
         #expect(onFactory.contains { $0.ruleName == .printStatement })
     }
 
+    @Test("every visitor that declares a purity input reports one rule, so the scope silences only readers")
+    func everyPurityReadingVisitorReportsOneRule() {
+        // The scope takes a reader by its visitor's declaration, and a visitor registered for
+        // several rules would take every one of them off the files the facts leave out, including
+        // a rule that reads none of the purity. None does today; one that should is a design call.
+        let declaring = PurityGateDeclarationTests.registered.filter { !$0.packagePurityInputs.isEmpty }
+        let rulesByVisitor = Dictionary(grouping: declaring) { ObjectIdentifier($0.visitor) }
+            .mapValues { Set($0.map(\.name)) }
+        let shared = rulesByVisitor.values.filter { $0.count > 1 }.map { $0.map(\.rawValue).sorted() }
+        #expect(shared.isEmpty, "one visitor declares a purity input for several rules: \(shared)")
+        #expect(Set(rulesByVisitor.values.joined()) == Self.readers)
+    }
+
     @Test("a reported file the universe drops for its encoding is not judged: its own types are not in the facts")
     func purityReadersSkipAFileThatIsNotUTF8() async throws {
         // `swiftc` rejects a UTF-16 source, so the universe leaves it out (amendment C) wherever it

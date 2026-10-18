@@ -319,7 +319,8 @@ it again — though by then the gate's own tests did too: a catalog dropped per 
 ### The gate's source scans
 
 Eleven more, from the two reviews of the gate. A missing declaration costs the gate a second pass,
-never a finding, so the runtime tests catch it only on a shape some corpus reaches. The structural
+and — since the reporting scope (`withinPurityScope`) follows the declaration — findings on the files
+the table was not built from; the runtime tests catch it only on a shape some corpus reaches. The structural
 scans in `PurityOracleEntryTests` are there for the rest: they read the source. Each mutant below is
 code that one of those scans missed: the first six survive the scans as they were at 0c701ba7, the
 last five the scans as they were at 9112617a. Each also has a probe in `PurityScanProbeTests`, which
