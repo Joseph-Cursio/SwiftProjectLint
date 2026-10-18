@@ -270,10 +270,16 @@ have not been re-measured since.
   ownership through searches. Two views of the same name in one file count as a host only when
   each builds an app view.
 - **Styles and modifiers declared elsewhere are read by name.** `inspect()` on a type whose name
-  ends in `Style` is read as a style, whose body is the view itself, and on one ending in
-  `Modifier` as a modifier, whose body is one level down. A modifier named like a style
-  (`CardStyle: ViewModifier`) declared in another file loses that level, so a two-step walk into
-  its body goes unreported.
+  ends in `Style` is read as a style, which is inspected as itself, and on one ending in
+  `Modifier` as a modifier, whose children are the views its `body(content:)` builds. A modifier
+  declared in another file under any other name is misread, and an index of 0 into its body is
+  not reported. One named like a style (`CardStyle: ViewModifier`) is read as itself, so its body
+  also loses a level and a two-step walk into it goes unreported. One named like a view
+  (`Shimmer: ViewModifier`) is read as an app view, whose `inspect()` resolves `text(0)` as
+  `text()`. So `CardStyle().inspect().text(0)` and `Shimmer().inspect().text(0)` are not
+  reported, while `ShimmerModifier().inspect().text(0)` is. `modifier(Shimmer.self)` and a
+  parameter typed `InspectableView<ViewType.ViewModifier<Shimmer>>` name a modifier whatever it
+  is called, so an index after either is reported.
 - **An index after a named slot is reported.** `labelView().text(0)`, `header().text(0)` and
   `sheet().text(0)` pick the first of the views a `@ViewBuilder` made, and `toolbar().item(0)` the
   first of the toolbar's items. When the slot holds one view, write `text()`, or `item()` for a
@@ -283,9 +289,10 @@ have not been re-measured since.
   `text()`. The rule reads one test file at a time and does not see the bodies of the app's views,
   so it cannot tell that body from one of several top-level views, where `text(0)` silently takes
   the first. Write `text()`, which fails loudly if the body gains a second view. The same holds
-  for a modifier's `body(content:)`. A view the test file declares is test-owned, so nothing in
-  its layout is reported either way. A bare `inspect()` is the opposite case: `inspect().text()`
-  and `inspect().text(0)` are not reported, and on a body of several views both take the first.
+  for a modifier's `body(content:)`, wherever the rule knows it is a modifier (see the bullet on
+  names above). A view the test file declares is test-owned, so nothing in its layout is
+  reported either way. A bare `inspect()` is the opposite case: `inspect().text()` and
+  `inspect().text(0)` are not reported, and on a body of several views both take the first.
 - **A step without an index that takes the first child is not reported as a pick.**
   `toolbar().item()`, `itemGroup()`, `navigationBarItems()` on a container, and `x()` on a
   `NavigationView`, `NavigationStack`, `NavigationSplitView`, `NavigationLink`, `ControlGroup` or

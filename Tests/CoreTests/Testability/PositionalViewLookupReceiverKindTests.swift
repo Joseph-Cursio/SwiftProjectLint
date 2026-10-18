@@ -121,6 +121,30 @@ struct PositionalViewLookupReceiverKindTests {
         #expect(issues.map(\.lineNumber) == [5, 6, 7, 8])
     }
 
+    /// `Shimmer` and `CardStyle` are modifiers declared in an app file the rule does not read, so
+    /// their own `inspect()` is read by name: `CardStyle` as a style, inspected as itself, and
+    /// `Shimmer` as an app view, whose `inspect()` resolves `x(0)` as `x()`. ViewInspector hands
+    /// both back as `ViewModifier<T>`, so these pin a known limitation. `modifier(T.self)` and a
+    /// `ViewModifier<T>` parameter say what `T` is, whatever it is called.
+    @Test("a modifier's own inspect() is known by its name, so other names lose the index-0 pick")
+    func modifierReadByName() {
+        let issues = analyze("""
+        func testModifiers(sut: AppScreen) throws {
+            _ = try Shimmer().inspect().text(0)
+            _ = try CardStyle().inspect().text(0)
+            _ = try ShimmerModifier().inspect().text(0)
+            _ = try sut.inspect().modifier(Shimmer.self).text(0)
+            _ = try Shimmer().inspect().hStack().text()
+            _ = try CardStyle().inspect().hStack().text()
+        }
+
+        func badge(_ shimmer: InspectableView<ViewType.ViewModifier<Shimmer>>) throws -> String {
+            try shimmer.text(0).string()
+        }
+        """)
+        #expect(issues.map(\.lineNumber) == [6, 7, 8, 13])
+    }
+
     @Test("a relay's view holds the body's views: an index picks, x() goes one level down")
     func relayIndex() {
         let issues = analyzeTest("""
