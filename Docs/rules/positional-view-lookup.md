@@ -128,7 +128,9 @@ a pick.
   modifiers, not layout.
 - **A subject the test file declares.** `GeometryProbe().inspect().geometryReader().shape()` walks
   a fixture defined a few lines above. The test owns that layout, and changing it means editing
-  the same file. ViewInspector compatibility probes take this shape. Ownership follows the
+  the same file. ViewInspector compatibility probes take this shape. An `inspect()` called without
+  a receiver inside an extension of such a view inspects that view, and is test-owned too; inside
+  an extension of an app view it inspects the app's layout. Ownership follows the
   inspected view's type: only a `View` — a `Shape` or a `UIViewRepresentable`-style wrapper
   included — or a modifier or style declared in the file counts, and a walk that reaches an app
   view inside a test-declared host (`Host().inspect().find(AppView.self)`) is reported. A host

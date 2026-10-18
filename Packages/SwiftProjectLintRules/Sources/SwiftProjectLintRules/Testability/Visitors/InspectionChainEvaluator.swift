@@ -63,8 +63,9 @@ final class InspectionChainEvaluator {
             return step(name, call: call, node: Syntax(reference)).apply(to: root)
         }
         if name == "inspect", InspectionVocabulary.isRootInspect(call) {
-            // A view's own extension calling `inspect()` on itself.
-            return ChainEvaluation(state: .root(.root, ownership: .app))
+            // A view's own extension calling `inspect()` on itself: the enclosing type's layout.
+            let typeName = Self.enclosingTypeNames(of: Syntax(call)).first
+            return ChainEvaluation(state: rootState(of: call, inspectingType: typeName))
         }
         return .unrelated
     }
@@ -81,7 +82,10 @@ final class InspectionChainEvaluator {
         inspecting subject: ExprSyntax,
         depth: Int
     ) -> InspectionChainState {
-        let typeName = subjectType(of: subject, depth: depth)
+        rootState(of: call, inspectingType: subjectType(of: subject, depth: depth))
+    }
+
+    private func rootState(of call: FunctionCallExprSyntax, inspectingType typeName: String?) -> InspectionChainState {
         let kind: ReceiverKind
         if InspectionVocabulary.isStyleInspect(call) || typeName?.hasSuffix("Style") == true
             || typeName.map(InspectionVocabulary.isSwiftUIViewType) == true {

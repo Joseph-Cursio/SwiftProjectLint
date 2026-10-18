@@ -197,6 +197,20 @@ struct PositionalViewLookupOwnershipTests {
         #expect(issues.map(\.lineNumber) == [12, 13])
     }
 
+    @Test("inspect() called inside an extension of a test-declared view walks that view's layout")
+    func unqualifiedInspectInOwnedExtension() {
+        let issues = analyze("""
+        private struct Probe: View { var body: some View { VStack { Text("a"); Text("b") } } }
+        extension Probe {
+            func check() throws { _ = try inspect().vStack().text(1) }
+        }
+        extension AppScreen {
+            func check() throws { _ = try inspect().vStack().text(1) }
+        }
+        """)
+        #expect(issues.map(\.lineNumber) == [8])
+    }
+
     @Test("a UIKit wrapper the file declares is a view whose layout it owns")
     func representablesAreViews() {
         let issues = analyze("""
