@@ -25,8 +25,8 @@ import SwiftSyntax
 ///   in an `if`/`for`/`do` inside it too, but not in a closure the defer creates.
 /// - `func data() -> Data? { try? load() }` — the sole expression of a function, getter or
 ///   subscript with a non-`Void` result is its implicit return value. The same holds for a
-///   closure that spells out a non-`Void` return type, and for `Task { try? work() }.value`,
-///   whose result is read. A branch of an `if`/`switch` expression in such a body, or one whose
+///   closure that spells out a non-`Void` return type, for `Task { try? work() }.value`,
+///   whose result is read, and for a `Task<Data?, Never> { … }`, whose result is a value. A branch of an `if`/`switch` expression in such a body, or one whose
 ///   value is assigned or returned, counts too. (A closure with no signature is left alone:
 ///   whether its value is used depends on a type the syntax does not show.)
 final class DiscardedTryResultVisitor: BasePatternVisitor {
@@ -104,8 +104,9 @@ final class DiscardedTryResultVisitor: BasePatternVisitor {
 
     /// True when `item` is the only statement of a body whose value is returned implicitly:
     /// a function, getter or subscript with a non-`Void` result, a closure that spells out a
-    /// non-`Void` return type, or a `Task { … }` whose `.value` is read. A branch of an `if` or
-    /// `switch` expression counts when that expression's own value is used or returned this way.
+    /// non-`Void` return type, or a `Task { … }` whose `.value` is read or whose generic `Success`
+    /// is a value. A branch of an `if` or `switch` expression counts when that expression's own
+    /// value is used or returned this way.
     func isImplicitReturnValue(_ item: CodeBlockItemSyntax) -> Bool {
         guard let list = item.parent?.as(CodeBlockItemListSyntax.self), list.count == 1,
               let owner = list.parent
@@ -121,7 +122,7 @@ final class DiscardedTryResultVisitor: BasePatternVisitor {
             if let returnType = closure.signature?.returnClause?.type {
                 return Self.isValueType(returnType)
             }
-            return isReadTaskValue(closure)
+            return isKeptTaskResult(closure)
         }
         return Self.isValueType(Self.declaredResultType(ofBody: owner))
     }
@@ -184,26 +185,28 @@ final class DiscardedTryResultVisitor: BasePatternVisitor {
         return true
     }
 
-    /// True for the closure of `Task { … }.value` or `Task.detached { … }.value`.
-    private func isReadTaskValue(_ closure: ClosureExprSyntax) -> Bool {
+    /// True for the closure of a `Task` whose result is kept: `Task { … }.value` or
+    /// `Task.detached { … }.value`, or a `Task<Success, Failure>` that spells out a non-`Void`
+    /// `Success`, whether or not its `.value` is read right there.
+    private func isKeptTaskResult(_ closure: ClosureExprSyntax) -> Bool {
         guard let call = closure.parent?.as(FunctionCallExprSyntax.self)
                 ?? closure.parent?.as(LabeledExprSyntax.self)?
                     .parent?.as(LabeledExprListSyntax.self)?
-                    .parent?.as(FunctionCallExprSyntax.self),
-              let read = call.parent?.as(MemberAccessExprSyntax.self),
-              read.declName.baseName.text == "value"
+                    .parent?.as(FunctionCallExprSyntax.self)
         else {
             return false
         }
-        let callee = call.calledExpression
-        if callee.as(DeclReferenceExprSyntax.self)?.baseName.text == "Task" {
-            return true
+        var task = call.calledExpression
+        if let member = task.as(MemberAccessExprSyntax.self), let base = member.base,
+           member.declName.baseName.text == "detached" {
+            task = base
         }
-        if let member = callee.as(MemberAccessExprSyntax.self),
-           member.base?.as(DeclReferenceExprSyntax.self)?.baseName.text == "Task" {
-            return member.declName.baseName.text == "detached"
+        if let specialized = task.as(GenericSpecializationExprSyntax.self),
+           specialized.expression.as(DeclReferenceExprSyntax.self)?.baseName.text == "Task" {
+            return Self.isValueType(specialized.genericArgumentClause.arguments.first?.argument.as(TypeSyntax.self))
         }
-        return false
+        return task.as(DeclReferenceExprSyntax.self)?.baseName.text == "Task"
+            && call.parent?.as(MemberAccessExprSyntax.self)?.declName.baseName.text == "value"
     }
 
     /// The method name of the call this closure is an argument to — whether it

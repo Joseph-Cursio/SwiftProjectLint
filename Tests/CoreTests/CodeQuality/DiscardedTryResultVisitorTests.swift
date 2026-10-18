@@ -140,7 +140,12 @@ struct DiscardedTryResultVisitorTests {
         "func load() -> Data? { switch source { case .disk: if fresh { try? read() } else { nil }; default: nil } }",
         // ...or whose value is used where it stands
         "let data = if fresh { try? fetch() } else { nil }",
-        "func load() -> Data? { return switch source { case .disk: try? read(); default: nil } }"
+        "func load() -> Data? { return switch source { case .disk: try? read(); default: nil } }",
+        // A Task whose explicit Success type is a value, whether or not .value is read here
+        "func f() async { let result = await Task<Data?, Never> { try? describe() }.value }",
+        "func f() { let task = Task<Data?, Never> { try? describe() } }",
+        "func f() { let task = Task<Data?, Never>.detached(priority: .low) { try? describe() } }",
+        "func f() { let task = Task<Data?, Never>(operation: { try? describe() }) }"
     ])
     func noIssueForImplicitReturnValue(source: String) {
         let visitor = makeVisitor()
@@ -161,6 +166,9 @@ struct DiscardedTryResultVisitorTests {
         "func f() -> Data? { try? warmUp(); return nil }",
         // A Task whose value is never read
         "func f() { Task { try? save() } }",
+        // A Task whose explicit Success type is Void
+        "func f() async { await Task<Void, Never> { try? save() }.value }",
+        "func f() { Task<(), Never>.detached { try? save() } }",
         // An if or switch statement in a Void body — its branches are discarded
         "func f() { if fresh { try? fetch() } else { cached() } }",
         "func f() -> Data? { if fresh { try? warmUp() }; return nil }",
