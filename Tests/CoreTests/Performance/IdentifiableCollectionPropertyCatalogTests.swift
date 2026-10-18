@@ -38,6 +38,24 @@ struct IdentifiableCollectionPropertyCatalogTests {
         #expect(names.isEmpty)
     }
 
+    /// A qualified element type is matched on its full path: `Feed.Entry` is listed, so
+    /// `entries` counts, while `Other.Entry` is not, so `others` keeps the warning.
+    @Test func matchesAQualifiedElementTypeOnItsPath() {
+        let names = catalog(
+            [
+                """
+                final class Model {
+                    var entries: [Feed.Entry] = []
+                    var drafts: Array<Feed.Entry> = []
+                    var others: [Other.Entry] = []
+                }
+                """
+            ],
+            identifiable: ["Entry", "Feed.Entry"]
+        )
+        #expect(names == ["entries", "drafts"])
+    }
+
     /// A local in some function body is not the property a view reads through `model.items`.
     @Test func ignoresLocalVariables() {
         let names = catalog(

@@ -49,16 +49,17 @@ final class CollectionPropertyCollector: SyntaxVisitor {
         return .skipChildren
     }
 
-    /// `T` for `[T]` or `Array<T>`; `nil` for anything else.
+    /// `T` for `[T]` or `Array<T>`, qualified as written (`Feed.Entry` for `[Feed.Entry]`, which
+    /// `IdentifiableTypeCollector` lists under that path); `nil` for anything else.
     static func arrayElementType(of type: TypeSyntax) -> String? {
         if let array = type.as(ArrayTypeSyntax.self) {
-            return array.element.as(IdentifierTypeSyntax.self)?.name.text
+            return qualifiedTypeName(array.element)
         }
         if let generic = type.as(IdentifierTypeSyntax.self),
            generic.name.text == "Array",
            let argument = generic.genericArgumentClause?.arguments.first,
            generic.genericArgumentClause?.arguments.count == 1 {
-            return argument.argument.as(TypeSyntax.self)?.as(IdentifierTypeSyntax.self)?.name.text
+            return argument.argument.as(TypeSyntax.self).flatMap(qualifiedTypeName)
         }
         return nil
     }
