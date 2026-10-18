@@ -292,6 +292,12 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
             files: perFile.files
         ))
 
+        // A rule that reads the package purity says nothing about a file the universe leaves out —
+        // a `tests/` folder's, say — since the facts know none of the types that file declares.
+        issues = Self.withinPurityScope(
+            issues, reportable: project.files.reportable, projectRoot: path, registry: registry
+        )
+
         // Apply per-rule overrides (severity changes, per-rule path exclusions), then put the
         // findings in reporting order. Per-file analysis collects results as tasks *complete*, so
         // without this the same project yields the same findings in a different sequence on every

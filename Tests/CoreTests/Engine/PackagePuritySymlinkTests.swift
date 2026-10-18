@@ -163,6 +163,25 @@ struct PackagePuritySymlinkTests {
         #expect(found.contains("countOf") == false, "the link was placed in Demo, where its target is")
     }
 
+    @Test("a production link to a test suite's file keeps the file judged by the rules that read the purity")
+    func productionLinkToASuiteFileIsJudged() async throws {
+        // Alone, the file is out of the universe, and the readers say nothing about it. Linked from
+        // `Sources/App/`, it is compiled where the link is, so its types are in the facts — and its
+        // findings still name it by its target, which on its own spelling the universe leaves out.
+        let root = try PackagePurityFixtures.makeProject([
+            "tests/Support/Factory.swift": PackagePurityFixtures.probeFactory
+        ])
+        defer { try? FileManager.default.removeItem(atPath: root) }
+        #expect(await PackagePurityFixtures.candidateSymbols(at: root).isEmpty, "the suite's file was judged")
+
+        try PackagePurityFixtures.symlink(
+            "Sources/App/Factory.swift", to: "../../tests/Support/Factory.swift", in: root
+        )
+        let found = await PackagePurityFixtures.candidateSymbols(at: root)
+        #expect(found.contains("sentinelAdd"), "the linked file was taken for one the universe leaves out")
+        #expect(found.contains("probeValue") == false, "Probe, compiled at the link, did not refute")
+    }
+
     // MARK: - Helpers
 
     /// The candidates of a project whose `Sources/Lib/Item.swift` is a link to `item`, written at

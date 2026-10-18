@@ -53,6 +53,30 @@ enum PackagePurityFixtures {
     }
     """
 
+    /// A type whose initializer prints, so building one is a side effect, and a function and a
+    /// closure that each build one — with the pure sentinel beside them. Judged without `Probe`, the
+    /// oracle calls building one pure, and both builders become candidates.
+    static let probeFactory = """
+    struct Probe {
+        let n: Int
+        init(n: Int) {
+            print("built \\(n)")
+            self.n = n
+        }
+    }
+
+    func probeValue(_ n: Int) -> Int { Probe(n: n).n }
+
+    func probeTotals(_ values: [Int]) -> [Int] {
+        values.map { value in
+            let probe = Probe(n: value)
+            return probe.n * 2 + 1
+        }
+    }
+
+    func sentinelAdd(_ first: Int, _ second: Int) -> Int { first + second }
+    """
+
     // MARK: - Linting a scratch project
 
     static func makeProject(_ files: [String: String]) throws -> String {
