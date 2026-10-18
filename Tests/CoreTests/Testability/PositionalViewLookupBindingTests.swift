@@ -215,6 +215,23 @@ struct PositionalViewLookupBindingTests {
         #expect(issues.map(\.lineNumber) == [7, 8, 9])
     }
 
+    @Test("Optional's map and flatMap hand their closure the view itself, not its children")
+    func optionalMap() {
+        let issues = analyze("""
+        func testMap(found: InspectableView<ViewType.VStack>!) throws {
+            let stack = try? CounterView().inspect().vStack()
+            _ = try stack.map { try $0.hStack(0) }
+            _ = try stack.flatMap { view in try view.hStack(0) }
+            _ = try CounterView().inspect().findAll(ViewType.HStack.self).first.map { try $0.text(0) }
+            _ = try (CounterView().inspect().vStack() as? InspectableView<ViewType.VStack>).map { try $0.text(0) }
+            _ = try found.map { try $0.text(0) }
+            _ = try stack?.map { try $0.text(0) }
+            _ = try CounterView().inspect().find(ViewType.VStack.self).map { try $0.text(0) }
+        }
+        """)
+        #expect(issues.map(\.lineNumber) == [5, 6, 7, 8, 9])
+    }
+
     @Test("a view made a View by an extension is test-owned by its own name")
     func qualifiedViewExtension() {
         let issues = analyze("""

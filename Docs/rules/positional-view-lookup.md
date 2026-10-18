@@ -273,7 +273,12 @@ have not been re-measured since.
   with `find(ViewType.ForEach.self)` instead, after which a row index is not reported.
 - **A `find` predicate is not read.** Its parameter is a candidate under test, not an inspected
   root. The parameter of a closure iterating views — `findAll(…).map { $0.… }`,
-  `stack.forEach { child in … }` — is followed.
+  `stack.forEach { child in … }` — is followed. `map` and `flatMap` on a value the syntax shows to
+  be optional — `try? …`, `… as? …`, `.first`, `.last`, `first(where:)`, or a name bound to one
+  or annotated `T?` or `T!` — are `Optional`'s, whose closure is handed the view itself, so
+  `(try? sut.inspect().vStack()).map { try $0.hStack(0) }` is reported as `vStack().hStack(0)`
+  is. An optional the syntax does not show, such as a function's result, is read as a sequence,
+  and its closure's parameter as one of its children.
 - **`inspect` is recognised by its shape.** In a file that imports ViewInspector, any
   `x.inspect()` without arguments, or `x.inspect { item in … }`, is read as ViewInspector's.
 - **Bindings are resolved lexically.** A local reassigned after its declaration is read from its

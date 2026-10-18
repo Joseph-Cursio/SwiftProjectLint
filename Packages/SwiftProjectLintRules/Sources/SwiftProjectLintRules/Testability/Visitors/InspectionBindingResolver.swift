@@ -114,7 +114,7 @@ final class InspectionBindingResolver {
         if let closure = scope.as(ClosureExprSyntax.self) {
             // A capture's initializer — `x` in `[x = x]` — is read outside the closure.
             guard closure.signature?.id != child.id else { return nil }
-            return Self.closureParameter(name, of: closure)
+            return closureParameter(name, of: closure)
         }
         if let parameter = Self.declarationParameter(name, of: scope) {
             return parameter
@@ -394,8 +394,11 @@ struct InspectableViewType {
     let subjectType: String?
     /// A variadic parameter of this type: an array of such views, in the order they were passed.
     var isArgumentList = false
+    /// Spelled `InspectableView<…>?` or `InspectableView<…>!`.
+    let isOptional: Bool
 
     init(_ type: TypeSyntax) {
+        isOptional = InspectionBindingResolver.isOptionalType(type)
         let current = Self.unwrapped(type)
         let generics: GenericArgumentClauseSyntax?
         if let identifier = current.as(IdentifierTypeSyntax.self), identifier.name.text == "InspectableView" {
