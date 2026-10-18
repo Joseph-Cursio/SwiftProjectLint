@@ -114,7 +114,7 @@ final class InspectionBindingResolver {
         if let closure = scope.as(ClosureExprSyntax.self) {
             // A capture's initializer — `x` in `[x = x]` — is read outside the closure.
             guard closure.signature?.id != child.id else { return nil }
-            return Self.closureParameter(name, of: closure)
+            return closureParameter(name, of: closure)
         }
         if let parameter = Self.declarationParameter(name, of: scope) {
             return parameter
@@ -313,10 +313,12 @@ final class InspectionBindingResolver {
     private static func conditionBindings(_ element: ConditionElementSyntax) -> [(String, InspectionBinding)] {
         switch element.condition {
         case .optionalBinding(let optional):
-            // A shorthand `if let x` rebinds the outer `x`, so it binds nothing new here.
-            guard let name = identifier(of: optional.pattern), let value = optional.initializer?.value else {
-                return []
+            // `if let (a, b) = pair` binds names the rule cannot read, shadowing outer ones.
+            guard let name = identifier(of: optional.pattern) else {
+                return boundNames(in: optional.pattern).map { ($0, .opaque) }
             }
+            // A shorthand `if let x` rebinds the outer `x`, so it binds nothing new here.
+            guard let value = optional.initializer?.value else { return [] }
             return [(name, .value(value, annotation: optional.typeAnnotation?.type))]
 
         case .matchingPattern(let matching):
@@ -390,8 +392,13 @@ struct InspectableViewType {
     let viewType: String?
     /// `T` in `InspectableView<ViewType.View<T>>`: the view whose layout is walked.
     let subjectType: String?
+    /// A variadic parameter of this type: an array of such views, in the order they were passed.
+    var isArgumentList = false
+    /// Spelled `InspectableView<…>?` or `InspectableView<…>!`.
+    let isOptional: Bool
 
     init(_ type: TypeSyntax) {
+        isOptional = InspectionBindingResolver.isOptionalType(type)
         let current = Self.unwrapped(type)
         let generics: GenericArgumentClauseSyntax?
         if let identifier = current.as(IdentifierTypeSyntax.self), identifier.name.text == "InspectableView" {

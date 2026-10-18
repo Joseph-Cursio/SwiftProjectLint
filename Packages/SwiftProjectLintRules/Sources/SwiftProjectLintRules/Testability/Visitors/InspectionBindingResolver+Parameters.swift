@@ -25,22 +25,28 @@ extension InspectionBindingResolver {
         guard let match = clause.parameters.first(where: { ($0.secondName ?? $0.firstName).text == name }) else {
             return nil
         }
-        return declaredBinding(match.type)
+        guard match.ellipsis != nil else { return declaredBinding(match.type) }
+        // `_ views: InspectableView<…>...` is the caller's arguments, in the caller's order: an
+        // index into them picks an argument, not a child.
+        var inspectable = InspectableViewType(match.type)
+        guard inspectable.isInspectableView else { return .declared(TypeSyntax(ArrayTypeSyntax(element: match.type))) }
+        inspectable.isArgumentList = true
+        return .inspectableView(inspectable)
     }
 
-    static func closureParameter(_ name: String, of closure: ClosureExprSyntax) -> InspectionBinding? {
+    func closureParameter(_ name: String, of closure: ClosureExprSyntax) -> InspectionBinding? {
         // `[row = other]` binds a new name; `[stack]` and `[weak self]` capture the outer one.
         if let capture = closure.signature?.capture?.items.first(where: { $0.name.text == name }),
            let value = capture.initializer?.value {
             return .value(value, annotation: nil)
         }
-        let parameters = closureParameters(closure)
+        let parameters = Self.closureParameters(closure)
         let position = parameters.firstIndex { $0.name == name } ?? (parameters.isEmpty && name == "$0" ? 0 : nil)
         guard let position else { return nil }
         let declared = parameters.indices.contains(position) ? parameters[position].type : nil
-        let type = declared ?? contextualParameterType(of: closure, at: position)
+        let type = declared ?? Self.contextualParameterType(of: closure, at: position)
         if let type, InspectableViewType(type).isInspectableView {
-            return declaredBinding(type)
+            return Self.declaredBinding(type)
         }
         if let relay = InspectionRelay(closure) {
             return .relayParameter(subject: relay.subject)
@@ -49,8 +55,10 @@ extension InspectionBindingResolver {
         if let type {
             return .declared(type)
         }
-        if let sequence = iteratedSequence(of: closure), parameters.count <= 1 {
-            return .element(sequence)
+        if let (method, receiver) = Self.iteration(of: closure), parameters.count <= 1 {
+            // `Optional.map` hands over the wrapped value itself, not its elements.
+            let unwraps = Self.optionalMethods.contains(method) && isCertainlyOptional(receiver, depth: 0)
+            return unwraps ? .value(receiver, annotation: nil) : .element(receiver)
         }
         return .opaque
     }
@@ -82,15 +90,82 @@ extension InspectionBindingResolver {
         "forEach", "map", "compactMap", "flatMap", "filter", "allSatisfy", "contains", "first", "last"
     ]
 
-    /// `matches.forEach { row in … }`, `stack.map { $0.… }`: the receiver whose elements the
-    /// closure is handed. A `find` predicate is not one; its parameter is a candidate.
-    private static func iteratedSequence(of closure: ClosureExprSyntax) -> ExprSyntax? {
+    /// The methods `Optional` shares with a sequence, whose closure takes the wrapped value.
+    private static let optionalMethods: Set<String> = ["map", "flatMap"]
+
+    /// `matches.forEach { row in … }`, `stack.map { $0.… }`: the method and the receiver whose
+    /// elements the closure is handed. A `find` predicate is not one; its parameter is a candidate.
+    private static func iteration(of closure: ClosureExprSyntax) -> (method: String, receiver: ExprSyntax)? {
         guard let call = InspectionRelay.enclosingCall(of: closure),
               let member = call.calledExpression.as(MemberAccessExprSyntax.self),
-              iterations.contains(member.declName.baseName.text) else {
+              iterations.contains(member.declName.baseName.text), let base = member.base else {
             return nil
         }
-        return member.base
+        return (member.declName.baseName.text, base)
+    }
+
+    /// `try? x`, `x as? T`, `rows.first`, `rows.last(where:)`, or a name bound to one or annotated
+    /// `T?` or `T!`: a value whose `map` is `Optional`'s. `x?.map` and `x!.map` are the wrapped
+    /// value's own.
+    private func isCertainlyOptional(_ expr: ExprSyntax, depth: Int) -> Bool {
+        guard depth < InspectionChainEvaluator.maxDepth else { return false }
+        if let inner = Self.keepingOptionality(expr) {
+            return isCertainlyOptional(inner, depth: depth + 1)
+        }
+        guard let reference = expr.as(DeclReferenceExprSyntax.self) else { return Self.spellsOptional(expr) }
+        switch resolve(reference.baseName.text, from: Syntax(reference)) {
+        case let .value(value, annotation):
+            return annotation.map(Self.isOptionalType) ?? isCertainlyOptional(value, depth: depth + 1)
+
+        case .declared(let type):
+            return Self.isOptionalType(type)
+
+        case .inspectableView(let declared):
+            return declared.isOptional
+
+        default:
+            return false
+        }
+    }
+
+    /// `try x`, `await x`, `(x)`: optional exactly when `x` is.
+    private static func keepingOptionality(_ expr: ExprSyntax) -> ExprSyntax? {
+        if let tryExpr = expr.as(TryExprSyntax.self), tryExpr.questionOrExclamationMark == nil {
+            return tryExpr.expression
+        }
+        if let awaitExpr = expr.as(AwaitExprSyntax.self) {
+            return awaitExpr.expression
+        }
+        return expr.as(TupleExprSyntax.self).flatMap { InspectionChainEvaluator.onlyUnlabeled($0.elements) }
+    }
+
+    /// `try? x`, `x as? T`, `rows.first`, `rows.last(where:)`.
+    private static func spellsOptional(_ expr: ExprSyntax) -> Bool {
+        if let tryExpr = expr.as(TryExprSyntax.self) {
+            return tryExpr.questionOrExclamationMark?.tokenKind == .postfixQuestionMark
+        }
+        if let cast = expr.as(AsExprSyntax.self) {
+            return cast.questionOrExclamationMark?.tokenKind == .postfixQuestionMark
+        }
+        if let sequence = expr.as(SequenceExprSyntax.self), sequence.elements.count == 3,
+           let cast = Array(sequence.elements)[1].as(UnresolvedAsExprSyntax.self) {
+            return cast.questionOrExclamationMark?.tokenKind == .postfixQuestionMark
+        }
+        if let member = expr.as(MemberAccessExprSyntax.self) {
+            return member.base != nil && ["first", "last"].contains(member.declName.baseName.text)
+        }
+        guard let call = expr.as(FunctionCallExprSyntax.self) else { return false }
+        let name = call.calledExpression.as(MemberAccessExprSyntax.self)?.declName.baseName.text
+        return ["first", "last"].contains(name) && InspectionChainEvaluator.passesClosure(call)
+    }
+
+    static func isOptionalType(_ type: TypeSyntax) -> Bool {
+        var current = type
+        while let attributed = current.as(AttributedTypeSyntax.self) {
+            current = attributed.baseType
+        }
+        return current.is(OptionalTypeSyntax.self) || current.is(ImplicitlyUnwrappedOptionalTypeSyntax.self)
+            || current.as(IdentifierTypeSyntax.self)?.name.text == "Optional"
     }
 
     static func closureParameters(_ closure: ClosureExprSyntax) -> [(name: String, type: TypeSyntax?)] {

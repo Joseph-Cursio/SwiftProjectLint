@@ -185,6 +185,53 @@ struct PositionalViewLookupBindingTests {
         #expect(issues.isEmpty)
     }
 
+    @Test("a tuple bound by if let, guard let or while let shadows an inspected name")
+    func tuplePatternsShadow() {
+        let issues = analyze("""
+        func testTuples(stack: InspectableView<ViewType.VStack>, pair: (Wrapper, Wrapper)?) throws {
+            if let (stack, other) = pair { _ = try stack.hStack(1) }
+            while let (stack, _) = next() { _ = try stack.hStack(2) }
+            if case let (stack, _)? = pair { _ = try stack.hStack(3) }
+            _ = try stack.hStack(4)
+            guard let (stack, other) = pair else { return }
+            _ = try stack.hStack(5)
+        }
+        """)
+        #expect(issues.map(\.lineNumber) == [7])
+    }
+
+    @Test("an index into a variadic parameter picks an argument; each argument is the declared view")
+    func variadicParameter() {
+        let issues = analyze("""
+        func check(_ views: InspectableView<ViewType.VStack>...) throws {
+            _ = try views[1].hStack()
+            _ = try views.first?.hStack()
+            _ = try views.last?.hStack()
+            _ = try views[0].hStack(2)
+            for view in views { _ = try view.hStack(3) }
+            _ = try views.map { try $0.hStack(4) }
+        }
+        """)
+        #expect(issues.map(\.lineNumber) == [7, 8, 9])
+    }
+
+    @Test("Optional's map and flatMap hand their closure the view itself, not its children")
+    func optionalMap() {
+        let issues = analyze("""
+        func testMap(found: InspectableView<ViewType.VStack>!) throws {
+            let stack = try? CounterView().inspect().vStack()
+            _ = try stack.map { try $0.hStack(0) }
+            _ = try stack.flatMap { view in try view.hStack(0) }
+            _ = try CounterView().inspect().findAll(ViewType.HStack.self).first.map { try $0.text(0) }
+            _ = try (CounterView().inspect().vStack() as? InspectableView<ViewType.VStack>).map { try $0.text(0) }
+            _ = try found.map { try $0.text(0) }
+            _ = try stack?.map { try $0.text(0) }
+            _ = try CounterView().inspect().find(ViewType.VStack.self).map { try $0.text(0) }
+        }
+        """)
+        #expect(issues.map(\.lineNumber) == [5, 6, 7, 8, 9])
+    }
+
     @Test("a view made a View by an extension is test-owned by its own name")
     func qualifiedViewExtension() {
         let issues = analyze("""

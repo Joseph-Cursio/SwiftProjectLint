@@ -63,8 +63,9 @@ final class InspectionChainEvaluator {
             return step(name, call: call, node: Syntax(reference)).apply(to: root)
         }
         if name == "inspect", InspectionVocabulary.isRootInspect(call) {
-            // A view's own extension calling `inspect()` on itself.
-            return ChainEvaluation(state: .root(.root, ownership: .app))
+            // A view's own extension calling `inspect()` on itself: the enclosing type's layout.
+            let typeName = Self.enclosingTypeNames(of: Syntax(call)).first
+            return ChainEvaluation(state: rootState(of: call, inspectingType: typeName))
         }
         return .unrelated
     }
@@ -81,7 +82,10 @@ final class InspectionChainEvaluator {
         inspecting subject: ExprSyntax,
         depth: Int
     ) -> InspectionChainState {
-        let typeName = subjectType(of: subject, depth: depth)
+        rootState(of: call, inspectingType: subjectType(of: subject, depth: depth))
+    }
+
+    private func rootState(of call: FunctionCallExprSyntax, inspectingType typeName: String?) -> InspectionChainState {
         let kind: ReceiverKind
         if InspectionVocabulary.isStyleInspect(call) || typeName?.hasSuffix("Style") == true
             || typeName.map(InspectionVocabulary.isSwiftUIViewType) == true {
@@ -101,7 +105,7 @@ final class InspectionChainEvaluator {
         if state.isMatchList {
             // `[0]` is `.first`, the match an unpredicated `find` returns. The order of the matches
             // is the receiver's layout, so the receiver's ownership decides.
-            guard index != "0", key.map(isLoopOverEveryPosition) != true else {
+            guard index != "0", key.map(isLoopOverEveryPosition) != true, state.isArgumentList == false else {
                 return receiver.then(ChainEvaluation(state: state.element))
             }
             return receiver.then(.reporting(step, from: state, leaving: state.element))
@@ -139,7 +143,9 @@ final class InspectionChainEvaluator {
         guard let state = receiver.state, name == "first" || name == "last" else { return receiver.ended }
         let node = Syntax(member.declName)
         if state.isMatchList {
-            guard name == "last" else { return receiver.then(ChainEvaluation(state: state.element)) }
+            guard name == "last", state.isArgumentList == false else {
+                return receiver.then(ChainEvaluation(state: state.element))
+            }
             let step = PositionalStep(kind: .matchIndex(".last"), node: node)
             return receiver.then(.reporting(step, from: state, leaving: state.element))
         }
@@ -193,6 +199,14 @@ final class InspectionChainEvaluator {
     }
 
     private func state(declaredAs declared: InspectableViewType) -> InspectionChainState {
-        .root(declared.kind, ownership: declaredViews.ownership(of: declared.subjectType), after: declared.viewType)
+        let ownership = declaredViews.ownership(of: declared.subjectType)
+        var state = InspectionChainState.root(declared.kind, ownership: ownership, after: declared.viewType)
+        if declared.isArgumentList {
+            // Each argument is a view of the declared type; `element` hands one back as it is.
+            state.isMatchList = true
+            state.matchesOwnership = ownership
+            state.isArgumentList = true
+        }
+        return state
     }
 }

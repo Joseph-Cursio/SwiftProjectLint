@@ -68,6 +68,9 @@ struct InspectionChainState {
     /// and the only positional moves left are an ordinal: `[n]`, `.last`.
     var isMatchList = false
     var matchesOwnership = LayoutOwnership.app
+    /// The list is a variadic parameter's arguments, not a search's matches. Their order is the
+    /// caller's, so `[n]` and `.last` pick an argument, not a view by its place in a layout.
+    var isArgumentList = false
 
     /// The layout walked is one the test file declares.
     var ownsLayout: Bool {

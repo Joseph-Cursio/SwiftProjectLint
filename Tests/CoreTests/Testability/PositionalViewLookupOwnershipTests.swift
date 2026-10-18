@@ -178,6 +178,97 @@ struct PositionalViewLookupOwnershipTests {
         #expect(issues.isEmpty)
     }
 
+    @Test("a test-declared view reached through a loop variable or an iterating closure stays owned")
+    func ownedThroughIteration() {
+        let issues = analyze("""
+        private struct Probe: View { var body: some View { VStack { Text("a"); Text("b") } } }
+
+        func testProbes(_ variadic: Probe..., typed: [Probe]) throws {
+            for probe in [Probe(), Probe()] { _ = try probe.inspect().vStack().text(1) }
+            [Probe()].forEach { probe in _ = try? probe.inspect().vStack().text(1) }
+            let probes = [Probe()]
+            for probe in probes { _ = try probe.inspect().vStack().text(1) }
+            for probe in variadic { _ = try probe.inspect().vStack().text(1) }
+            _ = try typed.map { try $0.inspect().vStack().text(1) }
+            for screen in [AppScreen()] { _ = try screen.inspect().vStack().text(1) }
+            for view in [Probe(), AppScreen()] { _ = try view.inspect().vStack().text(1) }
+        }
+        """)
+        #expect(issues.map(\.lineNumber) == [12, 13])
+    }
+
+    @Test("inspect() called inside an extension of a test-declared view walks that view's layout")
+    func unqualifiedInspectInOwnedExtension() {
+        let issues = analyze("""
+        private struct Probe: View { var body: some View { VStack { Text("a"); Text("b") } } }
+        extension Probe {
+            func check() throws { _ = try inspect().vStack().text(1) }
+        }
+        extension AppScreen {
+            func check() throws { _ = try inspect().vStack().text(1) }
+        }
+        """)
+        #expect(issues.map(\.lineNumber) == [8])
+    }
+
+    @Test("Self(…) in a declared view's body builds that view again, not an app view")
+    func selfInBody() {
+        let issues = analyze("""
+        private struct Nested: View {
+            var depth = 0
+            var body: some View { VStack { Text("a"); if depth < 1 { Self(depth: depth + 1) } } }
+        }
+        private struct Again: View { var body: some View { HStack { Text("b"); Self.init() } } }
+
+        func testNested() throws {
+            _ = try Nested().inspect().find(ViewType.VStack.self).text(1)
+            _ = try Again().inspect().find(ViewType.HStack.self).text(1)
+        }
+        """)
+        #expect(issues.isEmpty)
+    }
+
+    @Test("chart axes, keyframes, layouts, animators, tab sections and toolbar spacers are SwiftUI's")
+    func moreBuildingBlocks() {
+        let issues = analyze("""
+        private struct Axes: View {
+            var body: some View {
+                VStack { Text("a"); Chart { LinePlot(x: "x", y: "y") }.chartXAxis { AxisMarks() } }
+            }
+        }
+        private struct Frames: View {
+            var body: some View {
+                VStack { Text("a"); Text("b") }
+                    .keyframeAnimator(initialValue: 0.0) { view, _ in view } keyframes: { _ in
+                    KeyframeTrack(\\.self) { LinearKeyframe(1.0, duration: 1); SpringKeyframe(0.0) }
+                }
+            }
+        }
+        private struct Layouts: View {
+            var body: some View { VStack { Text("a"); HStackLayout { Text("b") } } }
+        }
+        private struct Phases: View {
+            var body: some View { VStack { Text("a"); PhaseAnimator([0, 1]) { _ in Text("b") } } }
+        }
+        private struct Tabs: View {
+            var body: some View { TabView { TabSection("s") { Tab("t", systemImage: "x") { Text("a") } } } }
+        }
+        private struct Spacers: View {
+            var body: some View { VStack { Text("a"); Text("b") }.toolbar { ToolbarSpacer() } }
+        }
+
+        func testBlocks() throws {
+            _ = try Axes().inspect().find(ViewType.VStack.self).text(1)
+            _ = try Frames().inspect().find(ViewType.VStack.self).text(1)
+            _ = try Layouts().inspect().find(ViewType.VStack.self).text(1)
+            _ = try Phases().inspect().find(ViewType.VStack.self).text(1)
+            _ = try Tabs().inspect().find(ViewType.TabView.self).text(1)
+            _ = try Spacers().inspect().find(ViewType.VStack.self).text(1)
+        }
+        """)
+        #expect(issues.isEmpty)
+    }
+
     @Test("a UIKit wrapper the file declares is a view whose layout it owns")
     func representablesAreViews() {
         let issues = analyze("""

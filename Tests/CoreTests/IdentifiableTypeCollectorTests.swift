@@ -95,6 +95,40 @@ struct IdentifiableTypeCollectorTests {
         #expect(collect(from: source) == ["Item"])
     }
 
+    /// `@retroactive` wraps the conformance in an attributed type; it is still `Identifiable`.
+    @Test func testCollectsRetroactiveConformanceInAnExtension() {
+        let source = """
+        extension Tag: @retroactive Identifiable {}
+        extension Version: @retroactive Swift.Identifiable {}
+        """
+        #expect(collect(from: source) == ["Tag", "Version"])
+    }
+
+    /// A nested type is listed under its leaf and every qualified spelling of it, whether the
+    /// conformance is declared in place, inside an extension of the outer type, or on a
+    /// qualified extension.
+    @Test func testCollectsNestedTypesUnderTheirQualifiedPaths() {
+        let source = """
+        enum Feed { struct Entry { let id: UUID } }
+        extension Feed.Entry: Identifiable {}
+        struct Outer { enum Middle { class Inner: Identifiable { let id = 0 } } }
+        extension Store { struct Row: Identifiable { let id: Int } }
+        """
+        #expect(collect(from: source) == [
+            "Entry", "Feed.Entry",
+            "Inner", "Middle.Inner", "Outer.Middle.Inner",
+            "Row", "Store.Row"
+        ])
+    }
+
+    /// A type local to a function is not reachable through its enclosing type's name.
+    @Test func testLocalTypeIsListedByItsOwnNameOnly() {
+        let source = """
+        struct Screen { func rows() { struct Row: Identifiable { let id: Int } } }
+        """
+        #expect(collect(from: source) == ["Row"])
+    }
+
     @Test func testIgnoresOtherAttributesAndExtensions() {
         let source = """
         @Observable

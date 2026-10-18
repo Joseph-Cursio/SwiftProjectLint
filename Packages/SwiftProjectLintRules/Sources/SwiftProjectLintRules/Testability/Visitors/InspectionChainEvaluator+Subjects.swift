@@ -8,7 +8,8 @@ extension InspectionChainEvaluator {
     /// The type of the view an expression builds or holds, as far as syntax says: a constructor
     /// call — through any modifiers applied to it — a factory, a local, or a property or parameter's
     /// annotation. `find(Row.self).actualView()` holds a `Row`. A method on a view is read as a
-    /// modifier, so a factory method on a test-declared view counts as that view.
+    /// modifier, so a factory method on a test-declared view counts as that view. A loop variable,
+    /// or an iterating closure's parameter, holds an element of what it iterates.
     func subjectType(of subject: ExprSyntax, depth: Int) -> String? {
         guard depth < Self.maxDepth else { return nil }
         let subject = Self.unwrapped(subject)
@@ -22,9 +23,47 @@ extension InspectionChainEvaluator {
         case .declared(let type):
             return Self.typeName(of: type)
 
+        case .element(let sequence):
+            return elementType(of: sequence, depth: depth + 1)
+
         default:
             return nil
         }
+    }
+
+    /// `[Probe(), Probe()]`, or a name bound to one or typed `[Probe]`: the type of every element,
+    /// when they all have the same one.
+    private func elementType(of sequence: ExprSyntax, depth: Int) -> String? {
+        guard depth < Self.maxDepth else { return nil }
+        let sequence = Self.unwrapped(sequence)
+        if let array = sequence.as(ArrayExprSyntax.self) {
+            let types = Set(array.elements.map { subjectType(of: $0.expression, depth: depth + 1) })
+            guard types.count == 1, let only = types.first else { return nil }
+            return only
+        }
+        switch binding(named: sequence) {
+        case let .value(value, annotation):
+            return elementType(of: value, depth: depth + 1) ?? annotation.flatMap(Self.arrayElementTypeName(of:))
+
+        case .declared(let type):
+            return Self.arrayElementTypeName(of: type)
+
+        default:
+            return nil
+        }
+    }
+
+    /// `[Probe]`, `Array<Probe>?` → `Probe`.
+    private static func arrayElementTypeName(of type: TypeSyntax) -> String? {
+        let unwrapped = InspectableViewType.unwrapped(type)
+        if let array = unwrapped.as(ArrayTypeSyntax.self) {
+            return typeName(of: array.element)
+        }
+        guard let generic = unwrapped.as(IdentifierTypeSyntax.self), generic.name.text == "Array",
+              let element = generic.genericArgumentClause?.arguments.first?.argument.as(TypeSyntax.self) else {
+            return nil
+        }
+        return typeName(of: element)
     }
 
     func subjectType(ofCall call: FunctionCallExprSyntax, depth: Int) -> String? {

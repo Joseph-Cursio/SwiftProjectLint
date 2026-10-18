@@ -109,19 +109,28 @@ a pick.
   over the `ForEach` is a found view, so `x(0)` on it is read as a cast and only `x(1)` and above
   is reported; for a custom `Row`, ViewInspector resolves that `x(0)` through the row's body's
   first view, as it does for a bare `inspect()` (see Known Limitations).
+- **An index into a variadic parameter.** In `func check(_ views: InspectableView<ViewType.VStack>...)`,
+  `views[1]`, `views.first` and `views.last` pick one of the caller's arguments, in the order the
+  caller passed them, not a child. Each argument is read as the declared view, so
+  `views[1].hStack(2)` is still reported.
 - **A loop over every position.** `rows[index]` inside `for index in rows.indices`,
-  `for index in 0..<rows.count`, `for (index, name) in expected.enumerated()`,
-  `zip(rows.indices, expected)` or `rows.indices.forEach { index in … }` compares the whole
-  sequence in order, as `rows.map { … } == expected` would. The index has to be the loop's own
-  variable, with no `where` clause and no `if index == 1`, `guard index == 1` or `switch index`
-  around the use, and a range must run to a `count`: `for index in 0..<3` picks three views, and is
-  reported.
+  `for index in 0..<rows.count`, `for index in 0...(rows.count - 1)`,
+  `for (index, name) in expected.enumerated()`, `zip(rows.indices, expected)`, `zip(0..., expected)`
+  or `rows.indices.forEach { index in … }` compares the whole sequence in order, as
+  `rows.map { … } == expected` would; so does `find(…, skipFound: index)` in such a loop, the same
+  lookup as `findAll(…)[index]`. The index has to be the loop's own variable, with no `where`
+  clause; no `if index == 1`, `if (index > 0)`, `if case 1 = index`, `guard index != 0` or
+  `switch index` around the use; and no `if index == 0 { continue }` before it. A condition on the
+  data, such as `if expected[index] == "b"`, keeps the exemption. A range must run to a `count`:
+  `for index in 0..<3` picks three views, and is reported.
 - **Named slots.** `labelView()`, `header()`, `title()`, `sheet()`, `overlay(1)`,
   `modifier(Card.self)` and the like reach a view by its role. The index on a modifier counts
   modifiers, not layout.
 - **A subject the test file declares.** `GeometryProbe().inspect().geometryReader().shape()` walks
   a fixture defined a few lines above. The test owns that layout, and changing it means editing
-  the same file. ViewInspector compatibility probes take this shape. Ownership follows the
+  the same file. ViewInspector compatibility probes take this shape. An `inspect()` called without
+  a receiver inside an extension of such a view inspects that view, and is test-owned too; inside
+  an extension of an app view it inspects the app's layout. Ownership follows the
   inspected view's type: only a `View` — a `Shape` or a `UIViewRepresentable`-style wrapper
   included — or a modifier or style declared in the file counts, and a walk that reaches an app
   view inside a test-declared host (`Host().inspect().find(AppView.self)`) is reported. A host
@@ -132,8 +141,12 @@ a pick.
 - **Anything else.** A step the rule does not recognise ends the chain, so a project's own
   helpers (`sut.inspect().pegColor(1)`) are not read as accessors. A finder helper the file
   declares in `extension InspectableView` under an accessor's name — `button(.increment)` — is
-  read as the helper when the call fits its parameters, unless it is called with an integer
-  literal: a helper `find(_ id: String)` does not hide `find(ViewType.HStack.self)`. An argument
+  read as the helper when the call fits its parameters, unless its argument is an `Int` for
+  certain — an integer literal, a name bound to one or declared `Int`, an element of a range or
+  `indices`, or arithmetic on one such as `second + 1` — where the helper takes none: a helper
+  `find(_ id: String)` does not hide `find(ViewType.HStack.self)`. A comparison, a ternary or a
+  concatenation is not arithmetic, so `button(pages > 1 ? "Next" : "Done")` and a title from
+  `primary + extra` still fit a `button(_ title: String)` helper. An argument
   that cannot be an `Int` — a `String`, a name bound to one, an enum case or constant such as
   `A11y.increment` or `AccessibilityID.Counter.increment`, an enum's `rawValue` unless the file
   declares the enum with an integer raw type — is not an index either, so a helper declared in
@@ -262,25 +275,41 @@ have not been re-measured since.
   with `find(ViewType.ForEach.self)` instead, after which a row index is not reported.
 - **A `find` predicate is not read.** Its parameter is a candidate under test, not an inspected
   root. The parameter of a closure iterating views — `findAll(…).map { $0.… }`,
-  `stack.forEach { child in … }` — is followed.
+  `stack.forEach { child in … }` — is followed. `map` and `flatMap` on a value the syntax shows to
+  be optional — `try? …`, `… as? …`, `.first`, `.last`, `first(where:)`, or a name bound to one
+  or annotated `T?` or `T!` — are `Optional`'s, whose closure is handed the view itself, so
+  `(try? sut.inspect().vStack()).map { try $0.hStack(0) }` is reported as `vStack().hStack(0)`
+  is. An optional the syntax does not show, such as a function's result, is read as a sequence,
+  and its closure's parameter as one of its children.
 - **`inspect` is recognised by its shape.** In a file that imports ViewInspector, any
   `x.inspect()` without arguments, or `x.inspect { item in … }`, is read as ViewInspector's.
 - **Bindings are resolved lexically.** A local reassigned after its declaration is read from its
   declaration. Ternaries, `??`, `enumerated()` tuples, collection operations such as
   `dropFirst()` and `reversed()`, typealiases, and properties inherited from a superclass are not
-  followed. A closure's parameter takes no type from a property it is assigned to: in
+  followed. A name a pattern binds — in a tuple (`if let (stack, other) = pair`, also with `guard`
+  and `while`), a `case let` or a `catch` — is not read either, but it hides any outer binding of
+  the same name, so `stack.hStack(1)` inside that `if` is not reported. A closure's parameter takes no type from a property it is assigned to: in
   `sut.didAppear = { view in … }` the view's type is unknown, so a walk inside a test-declared
   view reached that way is reported. `sut.on(\.didAppear) { view in … }` is followed.
 - **A test-owned subject is recognised by its type name.** A fixture whose type is declared in
   another file is not recognised. A method called on a test-declared view is read as a modifier,
   so a factory method on one (`ProbeHost().makeScreen()`) counts as test-owned too. A factory is
-  read from its declared return type, looking first in the types around the call. A SwiftUI view
+  read from its declared return type, looking first in the types around the call. A loop
+  variable, or the parameter of a closure iterating an array (`forEach`, `map`, …), holds the
+  array's element: `for probe in [Probe(), Probe()]`, or a local bound to such an array, or a
+  parameter typed `[Probe]` or `Probe...`. An array literal mixing types gives no type, so a walk
+  inside it is read as walking the app's layout. A SwiftUI view
   built inline in the test (`HStack { Text("a"); Text("b") }`) is not test-owned: its content can
   be an app view, and nothing in the chain says when the walk enters it.
 - **A host's app views are found by constructor.** A test-declared view counts as building an
   app view when a statement in its `body`, or in a member typed `some View`, constructs a type that
   is neither SwiftUI's nor declared in the file — directly, or handed to `AnyView(…)`, `overlay(…)`,
-  `background(…)` or `mask(…)`. Action closures (`Button`'s, `onAppear`, `task`) build nothing. An
+  `background(…)` or `mask(…)`. Action closures (`Button`'s, `onAppear`, `task`) build nothing,
+  and `Self(…)` builds the view itself again, not an app view. SwiftUI's types are read from a
+  list: ViewInspector's view types, plus what it names no accessor after — toolbar items and
+  spacers, `Tab` and `TabSection`, layouts such as `HStackLayout`, `PhaseAnimator` and
+  `KeyframeAnimator`, shapes, and the marks, plots, axes and keyframes that Charts and keyframe
+  animations are built from. A system type missing from the list is read as an app view. An
   app view returned by a function call (`makeEditor()`), or passed in where the host is built
   (`Wrapper(content: AppEditor())`, a stateful preview wrapper), is not seen, so the host keeps its
   ownership through searches. Two views of the same name in one file count as a host only when

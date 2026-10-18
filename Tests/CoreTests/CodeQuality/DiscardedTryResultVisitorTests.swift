@@ -102,7 +102,11 @@ struct DiscardedTryResultVisitorTests {
 
     @Test("No issue for best-effort cleanup in a defer block", arguments: [
         "func f() { defer { try? handle.close() } }",
-        "func f() { defer { try? FileManager.default.removeItem(at: url) } }"
+        "func f() { defer { try? FileManager.default.removeItem(at: url) } }",
+        // Nested in a statement inside the defer — still cleanup the defer cannot hand on
+        "func f() { defer { if let handle { try? handle.close() } } }",
+        "func f() { defer { for url in scratch { try? FileManager.default.removeItem(at: url) } } }",
+        "func f() { defer { do { try? first() } } }"
     ])
     func noIssueForDeferredCleanup(source: String) {
         let visitor = makeVisitor()
@@ -119,11 +123,29 @@ struct DiscardedTryResultVisitorTests {
         "var bookmark: Data? { get { try? url.bookmarkData() } }",
         // Subscript
         "subscript(index: Int) -> Data? { try? load(index) }",
+        // A parenthesized value type, and an optional Void — a value the caller can test
+        "func load() -> (Data?) { try? read() }",
+        "func ping() -> Void? { try? send() }",
         // Closure that spells out its return type
         "let load = { () -> Data? in try? read() }",
         // Task whose value is read
         "func f() async { let result = await Task { try? describe() }.value }",
-        "func f() async { let result = await Task.detached(priority: .userInitiated) { try? describe() }.value }"
+        "func f() async { let result = await Task.detached(priority: .userInitiated) { try? describe() }.value }",
+        // Branches of an if or switch expression that is itself the implicit return value
+        "func load(_ fresh: Bool) -> Data? { if fresh { try? fetch() } else { try? cached() } }",
+        "func load(_ fresh: Bool) -> Data? { if fresh { try? fetch() } else if offline { nil } else { try? cached() } }",
+        "func load(_ source: Source) -> Data? { switch source { case .disk: try? read(); default: try? fetch() } }",
+        "var bookmark: Data? { if stale { try? refresh() } else { try? url.bookmarkData() } }",
+        "let pick = { (fresh: Bool) -> Data? in if fresh { try? fetch() } else { nil } }",
+        "func load() -> Data? { switch source { case .disk: if fresh { try? read() } else { nil }; default: nil } }",
+        // ...or whose value is used where it stands
+        "let data = if fresh { try? fetch() } else { nil }",
+        "func load() -> Data? { return switch source { case .disk: try? read(); default: nil } }",
+        // A Task whose explicit Success type is a value, whether or not .value is read here
+        "func f() async { let result = await Task<Data?, Never> { try? describe() }.value }",
+        "func f() { let task = Task<Data?, Never> { try? describe() } }",
+        "func f() { let task = Task<Data?, Never>.detached(priority: .low) { try? describe() } }",
+        "func f() { let task = Task<Data?, Never>(operation: { try? describe() }) }"
     ])
     func noIssueForImplicitReturnValue(source: String) {
         let visitor = makeVisitor()
@@ -135,10 +157,26 @@ struct DiscardedTryResultVisitorTests {
         // A Void function's sole statement is discarded
         "func remove() { try? FileManager.default.removeItem(at: root) }",
         "func remove() -> Void { try? FileManager.default.removeItem(at: root) }",
+        // Other spellings of Void
+        "func remove() -> Swift.Void { try? FileManager.default.removeItem(at: root) }",
+        "func remove() -> (Void) { try? FileManager.default.removeItem(at: root) }",
+        "func remove() -> (()) { try? FileManager.default.removeItem(at: root) }",
+        "var cleanup: Swift.Void { try? FileManager.default.removeItem(at: root) }",
         // Not the only statement, so not an implicit return
         "func f() -> Data? { try? warmUp(); return nil }",
         // A Task whose value is never read
         "func f() { Task { try? save() } }",
+        // A Task whose explicit Success type is Void
+        "func f() async { await Task<Void, Never> { try? save() }.value }",
+        "func f() { Task<(), Never>.detached { try? save() } }",
+        // An if or switch statement in a Void body — its branches are discarded
+        "func f() { if fresh { try? fetch() } else { cached() } }",
+        "func f() -> Data? { if fresh { try? warmUp() }; return nil }",
+        "func f() { switch source { case .disk: try? read(); default: break } }",
+        // An if with no final else is a statement, never an expression
+        "let pick = { (fresh: Bool) -> Data? in if fresh { try? fetch() } else if stale { nil } }",
+        // A closure inside a defer can outlive it — not the defer's own cleanup
+        "func f() { defer { queue.async { try? handle.close() } } }",
         // A closure with no signature: whether its value is used is not visible
         "Button(\"Save\") { try? save() }"
     ])

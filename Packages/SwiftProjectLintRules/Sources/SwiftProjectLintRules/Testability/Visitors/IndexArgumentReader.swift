@@ -154,7 +154,7 @@ struct IndexArgumentReader {
             return true
         }
         if let sequence = expr.as(SequenceExprSyntax.self) {
-            return sequence.elements.contains { isCertainlyInteger($0, depth: depth + 1) }
+            return isIntegerArithmetic(sequence, depth: depth)
         }
         guard let resolver, let reference = expr.as(DeclReferenceExprSyntax.self) else { return false }
         switch resolver.resolve(reference.baseName.text, from: Syntax(reference)) {
@@ -166,12 +166,48 @@ struct IndexArgumentReader {
 
         case .element(let sequence):
             let sequence = InspectionChainEvaluator.unwrapped(sequence)
-            return sequence.is(SequenceExprSyntax.self)
+            return Self.isRange(sequence)
                 || sequence.as(MemberAccessExprSyntax.self)?.declName.baseName.text == "indices"
 
         default:
             return false
         }
+    }
+
+    /// `second + 1`, `row * 2`, `1 + 2`: only arithmetic operators, and an operand that is an `Int`
+    /// for certain — a typed one, since Swift never mixes `Int` with another type there, or else
+    /// every one a literal (`1 + scale` may be a `Double`). A comparison, a ternary or a cast is not
+    /// arithmetic: `pages > 1 ? "Next" : "Done"` is a `String`.
+    private func isIntegerArithmetic(_ sequence: SequenceExprSyntax, depth: Int) -> Bool {
+        var operands: [ExprSyntax] = []
+        for (position, element) in sequence.elements.enumerated() {
+            guard position.isMultiple(of: 2) == false else {
+                operands.append(element)
+                continue
+            }
+            let operatorName = element.as(BinaryOperatorExprSyntax.self)?.operator.text ?? ""
+            if Self.arithmeticOperators.contains(operatorName) == false {
+                return false
+            }
+        }
+        let literals = operands.filter { InspectionChainEvaluator.unwrapped($0).is(IntegerLiteralExprSyntax.self) }
+        if literals.count == operands.count {
+            return true
+        }
+        return operands.contains { operand in
+            InspectionChainEvaluator.unwrapped(operand).is(IntegerLiteralExprSyntax.self) == false
+                && isCertainlyInteger(operand, depth: depth + 1)
+        }
+    }
+
+    private static let arithmeticOperators: Set<String> = [
+        "+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", "&+", "&-", "&*", "&<<", "&>>"
+    ]
+
+    /// `0..<3`, `1...count`: a range, whose elements are integers when its bounds are.
+    private static func isRange(_ sequence: ExprSyntax) -> Bool {
+        guard let elements = sequence.as(SequenceExprSyntax.self)?.elements else { return false }
+        return elements.contains { ["..<", "..."].contains($0.as(BinaryOperatorExprSyntax.self)?.operator.text) }
     }
 
     private static func isNeverAnInt(_ expr: ExprSyntax) -> Bool {

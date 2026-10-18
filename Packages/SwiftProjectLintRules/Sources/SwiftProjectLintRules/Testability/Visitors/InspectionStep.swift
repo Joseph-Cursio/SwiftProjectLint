@@ -88,13 +88,15 @@ struct InspectionStep {
     // MARK: - Searches
 
     /// A search resets the walk. `skipFound: n` is the one form that still picks by order: the
-    /// (n+1)th match, as `findAll(…)[n]` would — in the layout the search covers.
+    /// (n+1)th match, as `findAll(…)[n]` would — in the layout the search covers. Like that
+    /// subscript, a loop's index over every position compares the matches in order instead.
     private func findStep(from state: InspectionChainState) -> ChainEvaluation {
         let next = state.reanchored(
             searchedKind, ownership: searchOwnership(from: state), after: searchedAccessor ?? name
         )
         guard let skip = call.arguments.first(where: { $0.label?.text == "skipFound" }),
-              skip.expression.trimmedDescription != "0" else {
+              skip.expression.trimmedDescription != "0",
+              LoopPositions.isLoopOverEveryPosition(skip.expression, resolver: resolver) == false else {
             return ChainEvaluation(state: next)
         }
         var searched = state
