@@ -236,7 +236,8 @@ byte-identical at `8257d6a9` (SEI `cfbb250`) and at `5b83f22f` (re-run 2026-10-1
 `--format json`, an empty config).
 
 *Note, 2026-10-17:* the figures above predate reporting an index of 0, `[0]` and `.first` on a
-custom view or modifier. They have not been re-measured since.
+custom view or modifier, and counting `navigationBarItems()` on a container as a level. They
+have not been re-measured since.
 
 ### Known Limitations
 
@@ -290,8 +291,17 @@ custom view or modifier. They have not been re-measured since.
   `NavigationView`, `NavigationStack`, `NavigationSplitView`, `NavigationLink`, `ControlGroup` or
   navigation destination take the first of several children, as an index of 0 would. The rule
   cannot count the children, and with one child the step only asserts its type, so only the
-  indexed forms are reported as picks. The step still counts as a level:
-  `inspect().navigationStack().vStack()` is reported as a second step.
+  indexed forms are reported as picks. `x()` on those containers reaches a child of the receiver,
+  so the step counts as a level, as `vStack()` does: `inspect().navigationStack().vStack()` is
+  reported as a second step. So is `inspect().navigationView().navigationBarItems().list()`:
+  despite its name, `navigationBarItems()` never reaches the bar items. It strips the wrapper
+  `.navigationBarItems(…)` put around the receiver's child and returns the view the modifier was
+  applied to, which on a container is its first child, one level down. On a found view, a slot or
+  a bare `inspect()` that child is the receiver itself, so there the step unwraps in place and
+  starts a new anchor. `item()` and `itemGroup()` start a new anchor too, as the `toolbar()` they
+  are read from does: an item is the toolbar's content, not a level of layout.
+  `toolbar().item().text()` is not reported, and the item's own views are counted from it, so
+  `toolbar().item().vStack().text()` is a second step.
 - **`#if` branches.** A local declared differently in each branch of an `#if` is read from the
   first branch.
 - **Very long chains are not read.** A chain of more than 64 links, or about 30 locals each built

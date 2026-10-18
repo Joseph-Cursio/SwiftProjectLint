@@ -201,6 +201,43 @@ struct PositionalViewLookupChainShapeTests {
         #expect(issues.map(\.lineNumber) == [5, 7])
     }
 
+    /// `navigationBarItems()` never reaches the bar items: it strips the wrapper
+    /// `.navigationBarItems(…)` put around the receiver's child and returns the view the modifier
+    /// was applied to — on a container its first child, the view `navigationBarItems(0)` reaches —
+    /// so it moves a level as `form()` does, and the accessor after it casts that view in place, as
+    /// `list()` does here. `item()` and `itemGroup()` start a new anchor instead, as `orderedSlots`
+    /// pins.
+    @Test("navigationBarItems() reaches a container's child, so it counts as a level")
+    func barItemsCountAsALevel() {
+        let issues = analyzeTest("""
+            _ = try sut.inspect().navigationView().navigationBarItems().list()
+            _ = try sut.inspect().vStack().navigationBarItems().hStack()
+            _ = try sut.inspect().vStack().navigationBarItems(AnyView.self).hStack()
+            _ = try sut.inspect().find(ViewType.NavigationView.self).navigationBarItems().list()
+            _ = try sut.inspect().find(viewWithAccessibilityIdentifier: "list").navigationBarItems().hStack().text()
+            _ = try sut.inspect().navigationView().navigationBarItems(0)
+            _ = try sut.inspect().find(ViewType.NavigationStack.self).toolbar().item().vStack().text()
+            _ = try sut.inspect().toolbar().itemGroup().text()
+        """)
+        #expect(issues.map(\.lineNumber) == [5, 6, 7, 10, 11])
+        #expect(issues.first?.message.contains("`.navigationBarItems()` walks a further level") == true)
+    }
+
+    /// `inspect()` hands back the inspected view itself, and `navigationBarItems()` takes its only
+    /// child without the fallback to an app view's body that `x()` has: on a SwiftUI view a
+    /// factory built, the step unwraps in place, as on a found view. An index past 0 still picks.
+    @Test("navigationBarItems() on a bare inspect() unwraps in place")
+    func barItemsOnRootUnwrapInPlace() {
+        let issues = analyzeTest("""
+            _ = try sut.inspect().navigationBarItems().list().text()
+            _ = try makeScreen().inspect().navigationBarItems(VStack<Text>.self).vStack().text()
+            _ = try sut.inspect().navigationBarItems(0).list().text()
+            _ = try sut.inspect().navigationBarItems().list().text(1)
+            _ = try sut.inspect().navigationBarItems(1)
+        """)
+        #expect(issues.map(\.lineNumber) == [8, 9])
+    }
+
     @Test("modifier(T.self) is a slot and the walk after it is read")
     func modifierSlot() {
         let issues = analyzeTest("    _ = try sut.inspect().modifier(CardModifier.self).hStack().text(1)")

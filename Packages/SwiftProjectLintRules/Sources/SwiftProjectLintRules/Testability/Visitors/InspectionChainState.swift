@@ -99,6 +99,12 @@ struct InspectionChainState {
         return reanchored(kind, ownership: matchesOwnership, after: lastStep)
     }
 
+    /// `x()` checks this view's own type rather than moving: the only child of a found view, and of
+    /// a slot, is the view itself.
+    var castsInPlace: Bool {
+        kind == .found || kind == .slot
+    }
+
     /// Child 0 of a found view or root is the view itself.
     var isItsOwnFirstChild: Bool {
         kind == .found || kind == .root
