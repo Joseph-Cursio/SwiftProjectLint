@@ -72,10 +72,18 @@ extension SecurityVisitorTests {
         #expect(unsafeURLIssues(source).isEmpty)
     }
 
+    /// The constant is judged by the strings its own `+` joins, not by the rest of the argument:
+    /// a `??` fallback before it does not make it a computed string.
+    @Test func testConcatenatedConstantsBehindAFallbackAreNotUnsafe() {
+        let source = """
+        let fallback = URL(string: configured ?? "https://example.com/" + "v2")
+        let chosen = URL(string: flag ? "https://example.com/" + "v1" : "https://example.com/" + "v2")
+        """
+        #expect(unsafeURLIssues(source).isEmpty)
+    }
+
     /// **Arithmetic is not concatenation.** A `+` inside a subscript, a call or another argument
-    /// is not one of the `string:` argument's own operators, and a `+` mixed with other operators
-    /// is concatenation only when a string literal is among its operands — in a ternary's
-    /// condition it is arithmetic.
+    /// is not one of the `string:` argument's own operators.
     @Test func testArithmeticIsNotConcatenation() {
         let source = """
         let page = URL(string: pages[index + 1])
@@ -86,14 +94,59 @@ extension SecurityVisitorTests {
         #expect(unsafeURLIssues(source).isEmpty)
     }
 
-    /// A mixed expression whose operands include a string literal is text being joined, whatever
-    /// else it does: `??` binds looser than `+`, so the fallback is the concatenation.
-    @Test func testMixedOperatorsWithALiteralAreConcatenation() {
+    /// **A ternary's condition is never the URL's text**, whatever its branches hold. A string
+    /// literal in a branch, or in the comparison itself, used to count as evidence that the
+    /// condition's `+` joined strings — but only the branches become the URL.
+    @Test func testArithmeticInATernaryConditionIsNotConcatenation() {
+        let source = """
+        let backup = URL(string: retries + 1 < maxRetries ? primaryURL : "https://backup.example.com")
+        let end = URL(string: index + 1 < count ? pages[index + 1] : "https://example.com/end")
+        let constant = URL(string: page + 1 == 1 ? "https://example.com/first" : "https://example.com/rest")
+        let compared = URL(string: env + suffix == "prod" ? prodURL : stagingURL)
+        let nested = URL(string: offset + 1 == total ? base : fallback ?? "https://example.com")
+        let parenthesised = URL(string: (index + 1) < count ? next : "about:blank")
+        """
+        #expect(unsafeURLIssues(source).isEmpty)
+    }
+
+    /// **The text is read wherever it becomes the URL**: either side of a `??`, either branch of
+    /// a `?:`, and inside parentheses at each of them. `??` binds looser than `+`, so in
+    /// `configured ?? base + path` the fallback is the concatenation — no literal needed.
+    @Test func testConcatenationUnderFallbackOrTernaryIsUnsafe() {
         let source = """
         let fallback = URL(string: configured ?? "https://example.com/" + path)
+        let bare = URL(string: configured ?? base + path)
+        let wrapped = URL(string: configured ?? ("https://example.com/" + path))
+        let otherwise = URL(string: flag ? fallback : "https://example.com/" + path)
+        let then = URL(string: flag ? "https://example.com/" + path : fallback)
+        let grouped = URL(string: flag ? fallback : ("https://example.com/" + path))
+        let cast = URL(string: value as? String ?? base + path)
         """
         let issues = unsafeURLIssues(source)
-        #expect(issues.count == 1)
-        #expect(issues.first?.message == "Unsafe URL construction with string concatenation")
+        #expect(issues.map(\.lineNumber) == [1, 2, 3, 4, 5, 6, 7])
+        #expect(issues.allSatisfy { $0.message == "Unsafe URL construction with string concatenation" })
+    }
+
+    /// An interpolated literal is reported in the same places a concatenation is, with its own
+    /// message.
+    @Test func testInterpolationUnderFallbackOrTernaryIsUnsafe() {
+        let source = """
+        let fallback = URL(string: configured ?? "https://example.com/\\(path)")
+        let chosen = URL(string: flag ? "https://example.com/\\(path)" : fallback)
+        let otherwise = URL(string: flag ? fallback : ("https://example.com/\\(path)"))
+        """
+        let issues = unsafeURLIssues(source)
+        #expect(issues.map(\.lineNumber) == [1, 2, 3])
+        #expect(issues.allSatisfy { $0.message == "Unsafe URL construction with string interpolation" })
+    }
+
+    /// A fallback, a choice or a cast with no `+` and no interpolation joins nothing.
+    @Test func testFallbackAndChoiceWithoutJoiningAreNotUnsafe() {
+        let source = """
+        let fallback = URL(string: configured ?? "https://example.com/")
+        let chosen = URL(string: flag ? primaryURL : "https://example.com/")
+        let cast = URL(string: value as? String ?? "https://example.com/")
+        """
+        #expect(unsafeURLIssues(source).isEmpty)
     }
 }
