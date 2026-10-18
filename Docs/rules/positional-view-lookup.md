@@ -110,12 +110,15 @@ a pick.
   is reported; for a custom `Row`, ViewInspector resolves that `x(0)` through the row's body's
   first view, as it does for a bare `inspect()` (see Known Limitations).
 - **A loop over every position.** `rows[index]` inside `for index in rows.indices`,
-  `for index in 0..<rows.count`, `for (index, name) in expected.enumerated()`,
-  `zip(rows.indices, expected)` or `rows.indices.forEach { index in … }` compares the whole
-  sequence in order, as `rows.map { … } == expected` would. The index has to be the loop's own
-  variable, with no `where` clause and no `if index == 1`, `guard index == 1` or `switch index`
-  around the use, and a range must run to a `count`: `for index in 0..<3` picks three views, and is
-  reported.
+  `for index in 0..<rows.count`, `for index in 0...(rows.count - 1)`,
+  `for (index, name) in expected.enumerated()`, `zip(rows.indices, expected)`, `zip(0..., expected)`
+  or `rows.indices.forEach { index in … }` compares the whole sequence in order, as
+  `rows.map { … } == expected` would; so does `find(…, skipFound: index)` in such a loop, the same
+  lookup as `findAll(…)[index]`. The index has to be the loop's own variable, with no `where`
+  clause; no `if index == 1`, `if (index > 0)`, `if case 1 = index`, `guard index != 0` or
+  `switch index` around the use; and no `if index == 0 { continue }` before it. A condition on the
+  data, such as `if expected[index] == "b"`, keeps the exemption. A range must run to a `count`:
+  `for index in 0..<3` picks three views, and is reported.
 - **Named slots.** `labelView()`, `header()`, `title()`, `sheet()`, `overlay(1)`,
   `modifier(Card.self)` and the like reach a view by its role. The index on a modifier counts
   modifiers, not layout.
