@@ -211,6 +211,23 @@ struct PositionalViewLookupOwnershipTests {
         #expect(issues.map(\.lineNumber) == [8])
     }
 
+    @Test("Self(…) in a declared view's body builds that view again, not an app view")
+    func selfInBody() {
+        let issues = analyze("""
+        private struct Nested: View {
+            var depth = 0
+            var body: some View { VStack { Text("a"); if depth < 1 { Self(depth: depth + 1) } } }
+        }
+        private struct Again: View { var body: some View { HStack { Text("b"); Self.init() } } }
+
+        func testNested() throws {
+            _ = try Nested().inspect().find(ViewType.VStack.self).text(1)
+            _ = try Again().inspect().find(ViewType.HStack.self).text(1)
+        }
+        """)
+        #expect(issues.isEmpty)
+    }
+
     @Test("a UIKit wrapper the file declares is a view whose layout it owns")
     func representablesAreViews() {
         let issues = analyze("""

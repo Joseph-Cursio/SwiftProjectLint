@@ -13,7 +13,8 @@ enum BuiltViews {
             statements.walk(member.decl)
         }
         let built = statements.expressions.filter { runsAsAction($0) == false }.flatMap(constructedTypes(by:))
-        return Set(built).subtracting(nonViews)
+        // `Self(…)` builds the declaring view again, which hosts nothing it does not already host.
+        return Set(built).subtracting(nonViews).subtracting(["Self"])
     }
 
     /// SwiftUI's own views, and the toolbar items, alerts and shapes that ViewInspector names no

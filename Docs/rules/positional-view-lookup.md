@@ -304,7 +304,8 @@ have not been re-measured since.
 - **A host's app views are found by constructor.** A test-declared view counts as building an
   app view when a statement in its `body`, or in a member typed `some View`, constructs a type that
   is neither SwiftUI's nor declared in the file — directly, or handed to `AnyView(…)`, `overlay(…)`,
-  `background(…)` or `mask(…)`. Action closures (`Button`'s, `onAppear`, `task`) build nothing. An
+  `background(…)` or `mask(…)`. Action closures (`Button`'s, `onAppear`, `task`) build nothing,
+  and `Self(…)` builds the view itself again, not an app view. An
   app view returned by a function call (`makeEditor()`), or passed in where the host is built
   (`Wrapper(content: AppEditor())`, a stateful preview wrapper), is not seen, so the host keeps its
   ownership through searches. Two views of the same name in one file count as a host only when
