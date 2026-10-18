@@ -139,7 +139,10 @@ class SecurityVisitor: BasePatternVisitor {
     override func visit(_ node: FunctionCallExprSyntax) -> SyntaxVisitorContinueKind {
         if let calledExpr = node.calledExpression.as(DeclReferenceExprSyntax.self),
            calledExpr.baseName.text == "URL" {
-            for argument in node.arguments {
+            // Only `URL(string:)` parses its text as a URL, where interpolation can change the
+            // scheme, host or query. `URL(fileURLWithPath:)` and `URL(filePath:)` take a path,
+            // and every character of it stays part of the path.
+            for argument in node.arguments where argument.label?.text == "string" {
                 if let stringLiteral = argument.expression.as(StringLiteralExprSyntax.self) {
                     let urlString = stringLiteral.description
                     if urlString.contains("\\(") || urlString.contains("+") {

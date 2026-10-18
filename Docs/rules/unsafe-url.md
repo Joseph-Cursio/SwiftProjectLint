@@ -10,7 +10,7 @@
 Constructing URLs with string interpolation — `URL(string: "https://example.com/\(path)")` — is unsafe for two reasons: user-controlled input may contain characters that break URL parsing, leading to unexpected behavior; and without percent-encoding, the resulting URL may be malformed or bypass server-side validation.
 
 ### Discussion
-`SecurityVisitor` detects `URL(string:)` calls where the string argument contains `\(` (string interpolation) or `+` (concatenation). The safe alternative is `URLComponents`, which applies correct percent-encoding to each component independently and makes the URL structure explicit.
+`SecurityVisitor` detects `URL(string:)` calls where the string argument contains `\(` (string interpolation) or `+` (concatenation). Only the `string:` argument is checked: `URL(fileURLWithPath:)` and `URL(filePath:)` take a path, and interpolating into a path cannot change a scheme, host or query. The safe alternative is `URLComponents`, which applies correct percent-encoding to each component independently and makes the URL structure explicit.
 
 ### Non-Violating Examples
 ```swift
@@ -21,6 +21,9 @@ let url = components.url
 
 // Plain string literal — no interpolation
 let url = URL(string: "https://example.com/api")
+
+// A file path is not parsed as a URL: interpolation stays part of the path
+let scratch = URL(fileURLWithPath: "/tmp/run-\(UUID().uuidString)")
 ```
 
 ### Violating Examples
