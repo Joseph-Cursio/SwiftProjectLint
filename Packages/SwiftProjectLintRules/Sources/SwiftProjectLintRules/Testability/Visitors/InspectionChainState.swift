@@ -6,8 +6,8 @@ import SwiftSyntax
 /// child and asserts it is an `x`, and `x(0)` takes child 0. Which child that is depends on the
 /// receiver, so the receiver's kind — not the accessor's name — says whether a step walks.
 enum ReceiverKind {
-    /// `inspect()` on an app view. `view(MyView.self)` names its own type, but `x()` falls back to
-    /// the body's root.
+    /// `inspect()` on an app view. `view(MyView.self)` names its own type, while `x()` and `x(0)`
+    /// both resolve through the body's first view (`implicitCustomViewChild`).
     case root
     /// A found view — a `ClassifiedView` or `ParentView` — whose only child is itself:
     /// `x()`, `x(0)`, `[0]` and `view(T.self)` check its type in place.

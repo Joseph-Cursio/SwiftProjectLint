@@ -91,9 +91,10 @@ a pick.
   asserts the found view's type. ViewInspector spells a cast and a descent the same way: `x()`
   takes the receiver's single child and asserts it is an `x`, and on a found view that child is
   the view itself. The same goes for `x(0)` and `view(MyView.self)` on a found view.
-  `inspect().text()` asserts the type of the body's root. It is one level of structure, and it
-  fails loudly instead of retargeting. Reporting it would mean reporting every test of a view
-  whose body is a single `Text`. A style (`ButtonStyle().inspect(isPressed:)`) or a SwiftUI view
+  `inspect().text()` reaches the body's first view and asserts it is a `Text`. It is one level of
+  structure, and on a body of one view it fails loudly when that view changes type. Reporting it
+  would mean reporting every test of a view whose body is a single `Text`. On a body of several
+  views it takes the first, as `inspect().text(0)` does; see Known Limitations. A style (`ButtonStyle().inspect(isPressed:)`) or a SwiftUI view
   built in the test (`AnyView(Text("x")).inspect()`) is inspected as itself, so its first
   accessor is a cast.
 - **Searches.** `find(…)` and `findAll(…)` in all their forms, including `findAll(…).first`,
@@ -103,8 +104,11 @@ a pick.
   differently.
 - **Data indices.** An index after `forEach()`, `find(ViewType.ForEach.self)`, or a parameter
   typed `InspectableView<ViewType.ForEach>` selects a row, and row order is behaviour. So does an
-  index into an `actionSheet()`'s buttons. An index into the selected row is layout again, and is
-  reported, as above.
+  index into an `actionSheet()`'s buttons. An index into a row reached with `view(Row.self, n)`
+  is layout again, and is reported, as above. A row reached by a subscript, `.first` or iteration
+  over the `ForEach` is a found view, so `x(0)` on it is read as a cast and only `x(1)` and above
+  is reported; for a custom `Row`, ViewInspector resolves that `x(0)` through the row's body's
+  first view, as it does for a bare `inspect()` (see Known Limitations).
 - **A loop over every position.** `rows[index]` inside `for index in rows.indices`,
   `for index in 0..<rows.count`, `for (index, name) in expected.enumerated()`,
   `zip(rows.indices, expected)` or `rows.indices.forEach { index in … }` compares the whole
@@ -304,7 +308,8 @@ have not been re-measured since.
   for a modifier's `body(content:)`, wherever the rule knows it is a modifier (see the bullet on
   names above). A view the test file declares is test-owned, so nothing in its layout is
   reported either way. A bare `inspect()` is the opposite case: `inspect().text()` and
-  `inspect().text(0)` are not reported, and on a body of several views both take the first.
+  `inspect().text(0)` are not reported, and on a body of several views both take the first. So
+  is a custom row reached by a subscript, `.first` or iteration over a `ForEach`.
 - **A step without an index that takes the first child is not reported as a pick.**
   `toolbar().item()`, `itemGroup()`, `navigationBarItems()` on a container, and `x()` on a
   `NavigationView`, `NavigationStack`, `NavigationSplitView`, `NavigationLink`, `ControlGroup` or
