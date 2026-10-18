@@ -10,8 +10,10 @@ import Testing
 /// A run builds the construction universe, the table and the two pre-scan catalogs only when a
 /// visitor it executes declares that it reads them (`PackagePurityConsumer`). Everything it does
 /// not build it withholds, and a read of a withheld surface trips the run, which is then redone with
-/// everything built — so a wrong declaration can cost time, never a finding. These tests keep the
-/// declarations right, so the time is not lost either:
+/// everything built — so what a wrong declaration leaves unbuilt costs time, never a finding. A
+/// missing one does cost findings elsewhere: the declaration also keeps a reader off the files the
+/// table was not built from (`ProjectLinter.withinPurityScope`), and an undeclared reader judges
+/// them without their own types. These tests keep the declarations right, so neither is lost:
 ///
 /// - every registered rule runs **alone** with exactly the demand its declaration derives, and must
 ///   not trip — an undeclared read fails here, naming the rule;
@@ -195,15 +197,19 @@ struct PurityGateDeclarationTests {
         #expect(gated.reportable == open.reportable)
 
         let tripwire = PurityTripwire()
-        let (purity, shared) = await ProjectLinter.sharedParse(gated, projectRoot: path, withholdingBy: tripwire)
+        let (purity, shared, judged) = await ProjectLinter.sharedParse(
+            gated, projectRoot: path, withholdingBy: tripwire
+        )
         #expect(purity.isWithheld)
+        #expect(judged == nil, "a withheld table was built from no files, which is not the same as none")
         #expect(shared.keys.contains { $0.hasSuffix("Stamp.swift") } == false)
         #expect(tripwire.recorded.isEmpty)
 
         // A resolved universe that holds nothing builds an empty table; it is not withheld.
         let empty = ProjectLinter.DiscoveredFiles(reportable: [], evidenceOnly: [], constructionUniverse: [])
-        let (built, _) = await ProjectLinter.sharedParse(empty, projectRoot: path, withholdingBy: tripwire)
+        let (built, _, builtFrom) = await ProjectLinter.sharedParse(empty, projectRoot: path, withholdingBy: tripwire)
         #expect(built.isWithheld == false)
+        #expect(builtFrom?.isEmpty == true, "a resolved universe that holds nothing was built from no file")
     }
 
     @Test("a run narrowed by flags or by configuration takes no universe walk; one that reads purity does")

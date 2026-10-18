@@ -1,18 +1,18 @@
 diff --git a/Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/ProjectLinter+Purity.swift b/Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/ProjectLinter+Purity.swift
-index 30e091f6..ddc8395c 100644
+index 2a8ed8fe..0777856c 100644
 --- a/Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/ProjectLinter+Purity.swift
 +++ b/Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/ProjectLinter+Purity.swift
-@@ -120,8 +120,7 @@ extension ProjectLinter {
-         var kept: [(relativePath: String, tree: SourceFileSyntax)] = []
+@@ -149,8 +149,7 @@ extension ProjectLinter {
+         var kept: [(relativePath: String, file: String, tree: SourceFileSyntax)] = []
          var slotOfFile: [String: Int] = [:]
          for filePath in universe {
 -            guard let source = shared[filePath], let universePath = source.universePath,
 -                  ConstructionUniverse.isProductionSource(relativePath: universePath) else { continue }
 +            guard let source = shared[filePath], let universePath = source.universePath else { continue }
-             let entry = (relativePath: universePath, tree: source.tree)
              let file = URL(fileURLWithPath: filePath).resolvingSymlinksInPath().path
+             let entry = (relativePath: universePath, file: file, tree: source.tree)
              if let slot = slotOfFile[file] {
-@@ -131,7 +130,7 @@ extension ProjectLinter {
+@@ -160,7 +159,7 @@ extension ProjectLinter {
                  kept.append(entry)
              }
          }

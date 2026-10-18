@@ -2,8 +2,9 @@
 import Testing
 
 /// Whether an accessor moves depends on what it is called on: a found view's only child is
-/// itself, a custom view's is its body, a SwiftUI container's are its layout. These pin the
-/// receiver each ViewInspector step hands back, from a second review round's fixtures.
+/// itself, a custom view's children are the views its body builds, a SwiftUI container's are its
+/// layout. These pin the receiver each ViewInspector step hands back, from a second review round's
+/// fixtures.
 @Suite
 struct PositionalViewLookupReceiverKindTests {
 
@@ -39,13 +40,191 @@ struct PositionalViewLookupReceiverKindTests {
 
     // MARK: - Custom views and relays
 
-    @Test("a custom view's only child is its body, so x(0) is x()")
+    /// ViewInspector declares `View<T>` a `MultipleViewContent` whose children are the views `T`'s
+    /// body builds at the top level, as a sheet's are. This test used to pin `x(0)` as `x()`.
+    @Test("a custom view's children are its body's top-level views, so x(0) picks the first")
     func customViewIndexZero() {
         let issues = analyzeTest("""
             _ = try sut.inspect().find(Row.self).vStack(0)
             _ = try sut.inspect().view(CounterView.self).vStack(0)
+            _ = try sut.inspect().find(Row.self).view(Child.self, 0)
+            _ = try sut.inspect().find(Row.self).navigationBarItems(0)
+        """)
+        #expect(issues.map(\.lineNumber) == [5, 6, 7, 8])
+    }
+
+    @Test("x() on a custom view reaches its body's only view in one level")
+    func customViewOnlyChild() {
+        let issues = analyzeTest("""
+            _ = try sut.inspect().find(Row.self).vStack()
+            _ = try sut.inspect().find(Row.self).view(Child.self)
+            _ = try sut.inspect().view(CounterView.self).vStack()
+            _ = try sut.inspect().find(Row.self).text().string()
         """)
         #expect(issues.isEmpty)
+    }
+
+    @Test("on a body of several views, the first is picked by position as much as the second")
+    func multiViewBody() {
+        let issues = analyzeTest("""
+            let header = try sut.inspect().find(HeaderView.self)
+            _ = try header.text(0).string()
+            _ = try header.text(1).string()
+            _ = try header[0].text().string()
+            _ = try header.first?.text().string()
+        """)
+        #expect(issues.map(\.lineNumber) == [6, 7, 8, 9])
+    }
+
+    /// `TitleView`'s body is one `Text`, in an app file the rule does not read: `text(0)` reaches
+    /// the view `text()` does, but the rule cannot tell this body from one of several views.
+    @Test("an app view's body is out of sight, so x(0) is a pick even on a one-view body")
+    func singleViewBodyIndexZero() {
+        let issues = analyzeTest("""
+            _ = try sut.inspect().find(TitleView.self).text(0).string()
+            _ = try sut.inspect().find(TitleView.self).text().string()
+        """)
+        #expect(issues.map(\.lineNumber) == [5])
+    }
+
+    @Test("a body the test file declares is the test's own layout, one view or several")
+    func ownedBodies() {
+        let issues = analyze("""
+        private struct OwnedTitle: View { var body: some View { Text("a") } }
+        private struct OwnedPair: View {
+            var body: some View {
+                Text("a")
+                Text("b")
+            }
+        }
+
+        func testOwned(app: AppScreen) throws {
+            _ = try app.inspect().find(OwnedTitle.self).text(0)
+            _ = try app.inspect().find(OwnedPair.self).text(0)
+            _ = try app.inspect().find(OwnedPair.self)[1]
+            _ = try OwnedPair().inspect().text(1)
+        }
+        """)
+        #expect(issues.isEmpty)
+    }
+
+    @Test("a modifier's children are the views its body(content:) builds")
+    func modifierBody() {
+        let issues = analyzeTest("""
+            _ = try CardModifier().inspect().text(0)
+            _ = try sut.inspect().modifier(CardModifier.self).hStack(0)
+            _ = try sut.inspect().modifier(CardModifier.self)[0]
+            _ = try sut.inspect().modifier(CardModifier.self).first
+            _ = try CardModifier().inspect().hStack()
+            _ = try sut.inspect().modifier(CardModifier.self).hStack()
+        """)
+        #expect(issues.map(\.lineNumber) == [5, 6, 7, 8])
+    }
+
+    /// `Shimmer` and `CardStyle` are modifiers declared in an app file the rule does not read, so
+    /// their own `inspect()` is read by name: `CardStyle` as a style, inspected as itself, and
+    /// `Shimmer` as an app view, whose `inspect()` resolves `x(0)` as `x()`. ViewInspector hands
+    /// both back as `ViewModifier<T>`, so these pin a known limitation. `modifier(T.self)` and a
+    /// `ViewModifier<T>` parameter say what `T` is, whatever it is called.
+    @Test("a modifier's own inspect() is known by its name, so other names lose the index-0 pick")
+    func modifierReadByName() {
+        let issues = analyze("""
+        func testModifiers(sut: AppScreen) throws {
+            _ = try Shimmer().inspect().text(0)
+            _ = try CardStyle().inspect().text(0)
+            _ = try ShimmerModifier().inspect().text(0)
+            _ = try sut.inspect().modifier(Shimmer.self).text(0)
+            _ = try Shimmer().inspect().hStack().text()
+            _ = try CardStyle().inspect().hStack().text()
+        }
+
+        func badge(_ shimmer: InspectableView<ViewType.ViewModifier<Shimmer>>) throws -> String {
+            try shimmer.text(0).string()
+        }
+        """)
+        #expect(issues.map(\.lineNumber) == [6, 7, 8, 13])
+    }
+
+    @Test("a relay's view holds the body's views: an index picks, x() goes one level down")
+    func relayIndex() {
+        let issues = analyzeTest("""
+            sut.inspection.inspect { view in _ = try view.text(0) }
+            sut.inspection.inspect { view in _ = try view[0].text() }
+            sut.on(\\.didAppear) { view in _ = try view.first?.text() }
+            sut.inspection.inspect { view in _ = try view.text().string() }
+            sut.on(\\.didAppear) { view in _ = try view.vStack() }
+        """)
+        #expect(issues.map(\.lineNumber) == [5, 6, 7])
+    }
+
+    @Test("a parameter typed View<T> or ViewModifier<T> holds the body's views")
+    func typedBodyParameters() {
+        let issues = analyze("""
+        func title(_ header: InspectableView<ViewType.View<HeaderView>>) throws -> String {
+            try header.text(0).string()
+        }
+        func subtitle(_ header: InspectableView<ViewType.View<HeaderView>>) throws -> String {
+            try header.text().string()
+        }
+        func badge(_ card: InspectableView<ViewType.ViewModifier<CardModifier>>) throws -> String {
+            try card.first!.text().string()
+        }
+        """)
+        #expect(issues.map(\.lineNumber) == [4, 10])
+    }
+
+    @Test("an extension on View<T> holds the body's views")
+    func typedBodyExtension() {
+        let issues = analyze("""
+        extension InspectableView where View == ViewType.View<HeaderView> {
+            func title() throws -> String { try text(0).string() }
+            func subtitle() throws -> String { try text().string() }
+        }
+        """)
+        #expect(issues.map(\.lineNumber) == [4])
+    }
+
+    /// The same extension over a view the test file declares walks the test's own layout, as a
+    /// parameter typed `InspectableView<ViewType.View<ProbeView>>` does.
+    @Test("an extension on View<T> for a test-declared T reports nothing")
+    func typedBodyExtensionOwned() {
+        let issues = analyze("""
+        private struct ProbeView: View { var body: some View { Text("a"); Text("b") } }
+
+        extension InspectableView where View == ViewType.View<ProbeView> {
+            func first() throws -> String { try text(0).string() }
+            func second() throws -> String { try self.text(1).string() }
+        }
+        """)
+        #expect(issues.isEmpty)
+    }
+
+    /// ViewInspector hands back `View<Row>` for a row `view(Row.self, n)` reaches and for each match
+    /// of `findAll(Row.self)`. The row index is data, but an index into the row's body is layout.
+    @Test("a custom-view row or match holds its body's views: the row index is data, x(0) picks")
+    func rowsAndMatchesOfCustomViews() {
+        let issues = analyzeTest("""
+            _ = try sut.inspect().find(ViewType.ForEach.self).view(Row.self, 2).text(0)
+            for row in try sut.inspect().findAll(Row.self) { _ = try row.text(0) }
+            _ = try sut.inspect().findAll(Row.self).first?.text(0)
+            try sut.inspect().findAll(Row.self).forEach { row in _ = try row[0].text() }
+            _ = try sut.inspect().find(ViewType.ForEach.self).view(Row.self, 2).text()
+            _ = try sut.inspect().findAll(Row.self).first?.text()
+            _ = try sut.inspect().find(ViewType.ForEach.self).view(Row.self, 2)
+        """)
+        #expect(issues.map(\.lineNumber) == [5, 6, 7, 8])
+    }
+
+    @Test("inspect() resolves x() and x(0) alike, through the body's first view")
+    func rootIndexZero() {
+        let issues = analyzeTest("""
+            _ = try sut.inspect().text(0)
+            _ = try sut.inspect()[0].text()
+            _ = try sut.inspect().first?.text()
+            _ = try sut.inspect().view(CounterView.self, 0)
+            _ = try sut.inspect().text(1)
+        """)
+        #expect(issues.map(\.lineNumber) == [9])
     }
 
     @Test("a relay's view and a modifier root unwrap to their body")

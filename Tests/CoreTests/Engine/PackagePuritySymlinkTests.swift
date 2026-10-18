@@ -163,6 +163,89 @@ struct PackagePuritySymlinkTests {
         #expect(found.contains("countOf") == false, "the link was placed in Demo, where its target is")
     }
 
+    @Test("a production link to a test suite's file keeps the file judged by the rules that read the purity")
+    func productionLinkToASuiteFileIsJudged() async throws {
+        // Alone, the file is out of the universe, and the readers say nothing about it. Linked from
+        // `Sources/App/`, it is compiled where the link is, so its types are in the facts — and its
+        // findings still name it by its target, which on its own spelling the universe leaves out.
+        let root = try PackagePurityFixtures.makeProject([
+            "tests/Support/Factory.swift": PackagePurityFixtures.probeFactory
+        ])
+        defer { try? FileManager.default.removeItem(atPath: root) }
+        #expect(await PackagePurityFixtures.candidateSymbols(at: root).isEmpty, "the suite's file was judged")
+
+        try PackagePurityFixtures.symlink(
+            "Sources/App/Factory.swift", to: "../../tests/Support/Factory.swift", in: root
+        )
+        let found = await PackagePurityFixtures.candidateSymbols(at: root)
+        #expect(found.contains("sentinelAdd"), "the linked file was taken for one the universe leaves out")
+        #expect(found.contains("probeValue") == false, "Probe, compiled at the link, did not refute")
+    }
+
+    /// A link the run reaches but does not report on, between a file under `tests/` and production.
+    struct UnreportedLink: Sendable, CustomTestStringConvertible {
+        let testDescription: String
+        /// Where `probeFactory` is written; findings on it name this path, whichever path reached it.
+        let file: String
+        let link: String
+        let destination: String
+        var excludedPaths: [String] = []
+        var files: [String: String] = [:]
+    }
+
+    static let unreportedLinks = [
+        UnreportedLink(
+            testDescription: "a production link under excluded_paths",
+            file: "tests/Support/Factory.swift",
+            link: "Sources/Linked/Factory.swift", destination: "../../tests/Support/Factory.swift",
+            excludedPaths: ["Sources/Linked/"]
+        ),
+        UnreportedLink(
+            testDescription: "a link under tests/ to an excluded production file",
+            file: "Sources/Core/Factory.swift",
+            link: "tests/Support/Factory.swift", destination: "../../Sources/Core/Factory.swift",
+            excludedPaths: ["Sources/Core/"]
+        ),
+        UnreportedLink(
+            testDescription: "a production link in a nested package the root compiles but the run does not report",
+            file: "tests/Support/Factory.swift",
+            link: "Sub/Sources/Sub/Factory.swift", destination: "../../../tests/Support/Factory.swift",
+            files: [
+                "Package.swift": """
+                // swift-tools-version:5.9
+                import PackageDescription
+                let package = Package(
+                    name: "App", dependencies: [.package(path: "Sub")], targets: [.target(name: "App")]
+                )
+                """,
+                "Sub/Package.swift": "// swift-tools-version:5.9\n"
+            ]
+        )
+    ]
+
+    @Test("a production link the run does not report on still keeps its file judged", arguments: unreportedLinks)
+    func unreportedProductionLinkKeepsTheFileJudged(link: UnreportedLink) async throws {
+        // The universe ignores every reporting filter, so the link puts the file's types in the
+        // facts though no reported path to the file is production. What the facts hold decides.
+        var files = link.files
+        files[link.file] = PackagePurityFixtures.probeFactory
+        files["Sources/App/Lib.swift"] = "func appSum(_ first: Int, _ second: Int) -> Int { first + second }\n"
+        let root = try PackagePurityFixtures.makeProject(files)
+        defer { try? FileManager.default.removeItem(atPath: root) }
+        try PackagePurityFixtures.symlink(link.link, to: link.destination, in: root)
+
+        let issues = await ProjectLinter().analyzeProject(
+            at: root,
+            ruleIdentifiers: [.pureFunctionCandidate],
+            detector: PatternRegistryFactory.createConfiguredSystem().detector,
+            configuration: LintConfiguration(excludedPaths: link.excludedPaths)
+        )
+        let found = PackagePurityFixtures.symbols(issues.filter { $0.filePath == link.file })
+        #expect(PackagePurityFixtures.symbols(issues).contains("appSum"), "the rule did not run")
+        #expect(found.contains("sentinelAdd"), "a file whose types are in the facts was taken for unjudged")
+        #expect(found.contains("probeValue") == false, "Probe, compiled at the link, did not refute")
+    }
+
     // MARK: - Helpers
 
     /// The candidates of a project whose `Sources/Lib/Item.swift` is a link to `item`, written at

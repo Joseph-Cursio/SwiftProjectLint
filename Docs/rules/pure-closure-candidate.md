@@ -87,6 +87,10 @@ instead. Measured when the oracle learned this: one closure moved here, in
 `LintConfiguration.applyOverrides`, and three in SwiftCompilerFlagStudio (default rules), each building
 a `SimulationIssue` or a `SettingConflict`. So this rule reads the package purity: enabling it builds
 the construction universe and the facts (see [when the facts are built](pure-function-candidate.md#constructions-what-building-a-value-runs)).
+And like every rule that reads it, it reports nothing in a file the universe leaves out — a `test/`,
+`tests/` or `validation-test/` folder's, a manifest, or a file that is not strict UTF-8 — since it would judge that file without the
+types it declares: a closure building one of them would pass as pure (see
+[a file the universe leaves out](pure-function-candidate.md#constructions-what-building-a-value-runs)).
 
 The rule fires on a pure closure passed to a **fixed list** of higher-order operations — the ones whose
 closure arguments are *supposed* to be functions — and each one names the law worth stating once the
@@ -177,7 +181,8 @@ let flags = items.map { item in
     return item.isValid
 }
 
-// Test files are skipped entirely.
+// Test files are skipped entirely, and so is every file the construction universe leaves out:
+// anything under a `test/`, `tests/` or `validation-test/` folder, a manifest, and a file that is not strict UTF-8.
 ```
 
 ### Violating Examples

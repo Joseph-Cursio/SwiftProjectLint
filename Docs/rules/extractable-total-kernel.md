@@ -123,6 +123,9 @@ written, and each gate below exists because that audit turned up a case that nee
    `InsightEngine` gained two findings (`extra` at line 32, `suffix` at line 113), and no other
    repository of the seven re-measured moved. So this rule reads the package purity: enabling it
    builds the construction universe and the facts (see [when the facts are built](pure-function-candidate.md#constructions-what-building-a-value-runs)).
+   And like every rule that reads it, it reports nothing on a file the universe leaves out — a
+   `test/`, `tests/` or `validation-test/` folder's, a manifest, or a file that is not strict UTF-8 — which it would judge without
+   the types that file declares (see [a file the universe leaves out](pure-function-candidate.md#constructions-what-building-a-value-runs)).
 2. **Closure bodies are skipped.** A kernel living wholly inside a `filter` predicate belongs to
    [Pure Closure Property-Test Candidate](pure-closure-candidate.md), reported once.
 3. **The derivation must govern a decision.** A derived value that is merely *stored* is not a

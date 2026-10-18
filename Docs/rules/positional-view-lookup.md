@@ -55,7 +55,7 @@ Four shapes are reported, at the first one in each chain:
 
 | Shape | Example | Why |
 |---|---|---|
-| An index | `hStack(1)`, `view(Row.self, 2)`, `hStack[1]`, `vStack().first`, `toolbar().item(2)` | Picks a sibling by its order. Reorder the siblings and the lookup fails, or reaches a different view of the same type. |
+| An index | `hStack(1)`, `view(Row.self, 2)`, `hStack[1]`, `vStack().first`, `toolbar().item(2)`, `find(Row.self).text(0)` | Picks a sibling by its order. Reorder the siblings and the lookup fails, or reaches a different view of the same type. |
 | An ordinal over search matches | `findAll(ViewType.Toggle.self)[1]`, `findAll(…).last`, `find(ViewType.Button.self, skipFound: 2)` | Picks the nth match in tree order. Reorder the views and the test silently checks a different one. |
 | A second structural step since the last search | `inspect().navigationStack().vStack()` | Restates two levels of nesting. Any wrapper in between breaks it. |
 | `parent()` | `find(text: "Name").parent().parent()` | Climbs a fixed number of levels, so it encodes how deeply the view is nested. |
@@ -64,15 +64,37 @@ A chain is reported once, at its first positional step. A view picked by positio
 anchor of its own type: `let row = try stack.hStack(1)` is reported, and `row.text()` afterwards
 is not reported again, though another index such as `row.text(0)` is.
 
+An index counts the receiver's children, so what it picks depends on the receiver. A custom view
+or modifier has as its children every view its body builds at the top level, as a sheet's content
+does. ViewInspector hands back such a receiver, typed `View<Row>` or `ViewModifier<Card>`, for:
+
+- a view reached by `find(Row.self)` or `view(Row.self)`, a `ForEach` row reached by
+  `view(Row.self, 2)`, and each match of `findAll(Row.self)`;
+- a modifier reached by `modifier(Card.self)`, or inspected itself (`CardModifier().inspect()`,
+  which the rule recognises by name: see Known Limitations);
+- the `view` an inspection relay hands its closure;
+- a parameter typed `InspectableView<ViewType.View<Row>>` or
+  `InspectableView<ViewType.ViewModifier<Card>>`, and `self` in
+  `extension InspectableView where View == ViewType.View<Row>`.
+
+With a body of `Text("Title")` and `Text("Subtitle")`, `find(HeaderView.self).text(0)` picks the
+title as `text(1)` picks the subtitle, and both are reported, as are `[0]` and `.first`. `text()`
+reaches the body's only view and is one level. A row index is data and is not reported, but an
+index into the row is layout: in `find(ViewType.ForEach.self).view(Row.self, 2).text(0)` only
+`text(0)` is reported. A bare `inspect()` is resolved differently: ViewInspector reaches the
+body's first view for `inspect().text()` and `inspect().text(0)` alike, so neither is reported as
+a pick.
+
 ### What is not reported
 
 - **One step after an anchor.** `find(viewWithAccessibilityIdentifier: "count").text()` only
   asserts the found view's type. ViewInspector spells a cast and a descent the same way: `x()`
   takes the receiver's single child and asserts it is an `x`, and on a found view that child is
   the view itself. The same goes for `x(0)` and `view(MyView.self)` on a found view.
-  `inspect().text()` asserts the type of the body's root. It is one level of structure, and it
-  fails loudly instead of retargeting. Reporting it would mean reporting every test of a view
-  whose body is a single `Text`. A style (`ButtonStyle().inspect(isPressed:)`) or a SwiftUI view
+  `inspect().text()` reaches the body's first view and asserts it is a `Text`. It is one level of
+  structure, and on a body of one view it fails loudly when that view changes type. Reporting it
+  would mean reporting every test of a view whose body is a single `Text`. On a body of several
+  views it takes the first, as `inspect().text(0)` does; see Known Limitations. A style (`ButtonStyle().inspect(isPressed:)`) or a SwiftUI view
   built in the test (`AnyView(Text("x")).inspect()`) is inspected as itself, so its first
   accessor is a cast.
 - **Searches.** `find(…)` and `findAll(…)` in all their forms, including `findAll(…).first`,
@@ -82,7 +104,11 @@ is not reported again, though another index such as `row.text(0)` is.
   differently.
 - **Data indices.** An index after `forEach()`, `find(ViewType.ForEach.self)`, or a parameter
   typed `InspectableView<ViewType.ForEach>` selects a row, and row order is behaviour. So does an
-  index into an `actionSheet()`'s buttons.
+  index into an `actionSheet()`'s buttons. An index into a row reached with `view(Row.self, n)`
+  is layout again, and is reported, as above. A row reached by a subscript, `.first` or iteration
+  over the `ForEach` is a found view, so `x(0)` on it is read as a cast and only `x(1)` and above
+  is reported; for a custom `Row`, ViewInspector resolves that `x(0)` through the row's body's
+  first view, as it does for a bare `inspect()` (see Known Limitations).
 - **A loop over every position.** `rows[index]` inside `for index in rows.indices`,
   `for index in 0..<rows.count`, `for (index, name) in expected.enumerated()`,
   `zip(rows.indices, expected)` or `rows.indices.forEach { index in … }` compares the whole
@@ -225,6 +251,10 @@ where earlier runs passed an hour. Every run before covered the other 85, and th
 byte-identical at `8257d6a9` (SEI `cfbb250`) and at `5b83f22f` (re-run 2026-10-14, release CLI,
 `--format json`, an empty config).
 
+*Note, 2026-10-17:* the figures above predate reporting an index of 0, `[0]` and `.first` on a
+custom view or modifier, and counting `navigationBarItems()` on a container as a level. They
+have not been re-measured since.
+
 ### Known Limitations
 
 - **The step into a `ForEach` is positional.** `list().forEach(0)` is reported even when the
@@ -256,21 +286,46 @@ byte-identical at `8257d6a9` (SEI `cfbb250`) and at `5b83f22f` (re-run 2026-10-1
   ownership through searches. Two views of the same name in one file count as a host only when
   each builds an app view.
 - **Styles and modifiers declared elsewhere are read by name.** `inspect()` on a type whose name
-  ends in `Style` is read as a style, whose body is the view itself, and on one ending in
-  `Modifier` as a modifier, whose body is one level down. A modifier named like a style
-  (`CardStyle: ViewModifier`) declared in another file loses that level, so a two-step walk into
-  its body goes unreported.
+  ends in `Style` is read as a style, which is inspected as itself, and on one ending in
+  `Modifier` as a modifier, whose children are the views its `body(content:)` builds. A modifier
+  declared in another file under any other name is misread, and an index of 0 into its body is
+  not reported. One named like a style (`CardStyle: ViewModifier`) is read as itself, so its body
+  also loses a level and a two-step walk into it goes unreported. One named like a view
+  (`Shimmer: ViewModifier`) is read as an app view, whose `inspect()` resolves `text(0)` as
+  `text()`. So `CardStyle().inspect().text(0)` and `Shimmer().inspect().text(0)` are not
+  reported, while `ShimmerModifier().inspect().text(0)` is. `modifier(Shimmer.self)` and a
+  parameter typed `InspectableView<ViewType.ViewModifier<Shimmer>>` name a modifier whatever it
+  is called, so an index after either is reported.
 - **An index after a named slot is reported.** `labelView().text(0)`, `header().text(0)` and
   `sheet().text(0)` pick the first of the views a `@ViewBuilder` made, and `toolbar().item(0)` the
   first of the toolbar's items. When the slot holds one view, write `text()`, or `item()` for a
   toolbar's only item.
+- **An index of 0 on a custom view is reported even when its body is one view.** When
+  `TitleView`'s body is a single `Text`, `find(TitleView.self).text(0)` reaches the same view as
+  `text()`. The rule reads one test file at a time and does not see the bodies of the app's views,
+  so it cannot tell that body from one of several top-level views, where `text(0)` silently takes
+  the first. Write `text()`, which fails loudly if the body gains a second view. The same holds
+  for a modifier's `body(content:)`, wherever the rule knows it is a modifier (see the bullet on
+  names above). A view the test file declares is test-owned, so nothing in its layout is
+  reported either way. A bare `inspect()` is the opposite case: `inspect().text()` and
+  `inspect().text(0)` are not reported, and on a body of several views both take the first. So
+  is a custom row reached by a subscript, `.first` or iteration over a `ForEach`.
 - **A step without an index that takes the first child is not reported as a pick.**
   `toolbar().item()`, `itemGroup()`, `navigationBarItems()` on a container, and `x()` on a
   `NavigationView`, `NavigationStack`, `NavigationSplitView`, `NavigationLink`, `ControlGroup` or
   navigation destination take the first of several children, as an index of 0 would. The rule
   cannot count the children, and with one child the step only asserts its type, so only the
-  indexed forms are reported as picks. The step still counts as a level:
-  `inspect().navigationStack().vStack()` is reported as a second step.
+  indexed forms are reported as picks. `x()` on those containers reaches a child of the receiver,
+  so the step counts as a level, as `vStack()` does: `inspect().navigationStack().vStack()` is
+  reported as a second step. So is `inspect().navigationView().navigationBarItems().list()`:
+  despite its name, `navigationBarItems()` never reaches the bar items. It strips the wrapper
+  `.navigationBarItems(…)` put around the receiver's child and returns the view the modifier was
+  applied to, which on a container is its first child, one level down. On a found view, a slot or
+  a bare `inspect()` that child is the receiver itself, so there the step unwraps in place and
+  starts a new anchor. `item()` and `itemGroup()` start a new anchor too, as the `toolbar()` they
+  are read from does: an item is the toolbar's content, not a level of layout.
+  `toolbar().item().text()` is not reported, and the item's own views are counted from it, so
+  `toolbar().item().vStack().text()` is a second step.
 - **`#if` branches.** A local declared differently in each branch of an `#if` is read from the
   first branch.
 - **Very long chains are not read.** A chain of more than 64 links, or about 30 locals each built

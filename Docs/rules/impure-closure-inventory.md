@@ -64,6 +64,12 @@ and in SwiftCompilerFlagStudio (default rules) two `SimulationIssue.init(…): i
 one `SettingConflict.init(…): id's default: UUID`. So this rule reads the package purity: enabling it
 builds the construction universe and the facts (see [when the facts are built](pure-function-candidate.md#constructions-what-building-a-value-runs)).
 
+Like every rule that reads it, this one lists nothing in a file the universe leaves out — anything
+under a `test/`, `tests/` or `validation-test/` folder, a manifest, and a file that is not strict UTF-8. Such a file would be judged
+without the types it declares, so a closure building one of them would be counted pure and go
+missing from this list (see [a file the universe leaves out](pure-function-candidate.md#constructions-what-building-a-value-runs)).
+Both counts above predate that change (2026-10-17) and were not re-taken.
+
 The issue that asked for this rule guessed at *"you have 400 untestable closures"*. The real number
 is 31, and the reason is worth stating because it is a fact about the design rather than about the
 corpus: **the shared gate already excludes the call sites where effects live.**
@@ -86,8 +92,8 @@ available beforehand was a grep, and the grep was off by 3.5× in one direction 
 
 This rule runs the *identical* gate as `Pure Closure Property-Test Candidate` — the same fixed list
 of higher-order operations, the same "does this hide a law worth stating" filter, the same forwarding
-check, the same test-file exclusion — and differs in **one clause**: where the census requires the
-purity oracle to return no refutation, this requires it to return one.
+check, the same test-file exclusion, the same files left unjudged — and differs in **one clause**:
+where the census requires the purity oracle to return no refutation, this requires it to return one.
 
 That is what makes the two numbers complements rather than two unrelated counts. It is also why the
 vocabulary those gates are written in now lives in its own file (`CollectionOperation`) instead

@@ -27,24 +27,31 @@
 ///
 /// ## Why not `BasePatternVisitor.isTestOrFixturePath`
 ///
-/// That is the one definition of *test file* for **reporting**, and it is deliberately wider: it
-/// also matches `…TestSupport`, `Mocks/`, `Examples/`, `ExampleCode/`, and file names such as
-/// `MockClient.swift` or `SpeedTest.swift`. Several of those are shipped targets —
-/// `SwiftLintRuleStudioCoreTestSupport` is a library product in an app's graph — and their types
-/// are constructed by production code. Dropping a compiled production type from this table
+/// That is the one definition of *test file* for **reporting**, and the two differ both ways. It is
+/// deliberately wider: it also matches `…TestSupport`, `Mocks/`, `Examples/`, `ExampleCode/`, and
+/// file names such as `MockClient.swift` or `SpeedTest.swift`. Several of those are shipped
+/// targets — `SwiftLintRuleStudioCoreTestSupport` is a library product in an app's graph — and their
+/// types are constructed by production code. Dropping a compiled production type from this table
 /// **under-refutes**: a construction of it is judged pure when it is not, which is the unsound
 /// direction for an oracle whose every consumer trusts a `.pure`. Only the shared test-target clause
 /// (``isTestTargetDirectory(_:)``) is common to both, and `isTestOrFixturePath` now asks it.
+///
+/// And it is narrower by the suite clause (``testSuiteDirectoryNames``) and the manifest clause: a
+/// file under `test/`, `tests/` or `validation-test/`, or a manifest, is out of this table but
+/// reported as production. Judged against this table, such a file is under-refuted the same way —
+/// its own types are what the table lacks — so the rules that read the table report nothing on it
+/// (`ProjectLinter.withinPurityScope`), while every other rule reports on it as on any file.
 ///
 /// ## Why no reporting filter applies
 ///
 /// `excluded_paths`, `excluded_filenames`, `include_nested_packages`, the generated-file filter,
 /// per-rule exclusions and the App's *Exclude Tests/* toggle decide what is **reported**. They say
-/// nothing about what is **compiled** (though a nested package that is reported is judged with its
-/// own types, so it joins the universe; see below): a nested local package, a generated `.pb.swift` and a
-/// vendored directory the user excluded are all production code whose types a function in the
-/// project can construct. As `ProjectLinter.discoverFiles` puts it, `excludedPaths` "is a reporting
-/// filter, not an evidence filter" — and this universe is evidence.
+/// nothing about what is **compiled** (though a nested package that is reported joins the universe,
+/// so that its production sources are judged with their own types; see below): a nested local
+/// package, a generated `.pb.swift` and a vendored directory the user excluded are all production
+/// code whose types a function in the project can construct. As `ProjectLinter.discoverFiles` puts
+/// it, `excludedPaths` "is a reporting filter, not an evidence filter" — and this universe is
+/// evidence.
 ///
 /// ## What does bound it
 ///
@@ -87,7 +94,9 @@ public enum ConstructionUniverse {
     /// Exact names only: a kebab-case `-test` folder can be a production target — SwiftPM's own
     /// `Sources/swift-test` is the `swift test` executable. And not part of
     /// ``isTestTargetDirectory(_:)``, which reporting asks too: this decides what is compiled
-    /// alongside production, not what is reported.
+    /// alongside production, not what is reported. A file under one is still reported as
+    /// production — but not by a rule that reads this table, which would judge it without the
+    /// types it declares (`ProjectLinter.withinPurityScope`).
     public static let testSuiteDirectoryNames: Set<String> = ["test", "tests", "validation-test"]
 
     /// Whether a directory named `name` is a test target's folder: SwiftPM's `Tests/`, or an

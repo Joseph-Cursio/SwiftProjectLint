@@ -160,8 +160,13 @@ extension InspectionChainEvaluator {
 
     /// Inside `extension InspectableView`, `self` — and so an unqualified `find(…)` or `vStack(0)`
     /// — is an inspected view: the shape of a test's own finder helpers. A `where View ==
-    /// ViewType.X` clause says which view; without one it could be any.
-    static func inspectableExtensionRoot(of node: Syntax) -> InspectionChainState? {
+    /// ViewType.X` clause says which view; without one it could be any. For `ViewType.View<T>`,
+    /// `ownership` says whose layout `T`'s body is, as it does for a parameter of that type: a
+    /// view the test file declares is the test's own.
+    static func inspectableExtensionRoot(
+        of node: Syntax,
+        ownership: (String?) -> LayoutOwnership = { _ in .app }
+    ) -> InspectionChainState? {
         var current = node.parent
         while let scope = current {
             if let extensionDecl = scope.as(ExtensionDeclSyntax.self) {
@@ -169,8 +174,8 @@ extension InspectionChainEvaluator {
                 let requirement = extensionDecl.genericWhereClause?.requirements.lazy.compactMap { requirement in
                     requirement.requirement.as(SameTypeRequirementSyntax.self).flatMap(Self.viewTypeRequirement)
                 }.first
-                let (kind, viewType, _) = InspectableViewType.read(viewTypeArgument: requirement ?? "")
-                return .root(kind, ownership: .app, after: viewType)
+                let (kind, viewType, subjectType) = InspectableViewType.read(viewTypeArgument: requirement ?? "")
+                return .root(kind, ownership: ownership(subjectType), after: viewType)
             }
             if scope.is(StructDeclSyntax.self) || scope.is(ClassDeclSyntax.self)
                 || scope.is(EnumDeclSyntax.self) || scope.is(ActorDeclSyntax.self) {

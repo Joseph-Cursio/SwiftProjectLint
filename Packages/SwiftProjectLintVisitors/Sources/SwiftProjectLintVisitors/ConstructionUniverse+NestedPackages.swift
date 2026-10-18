@@ -24,7 +24,9 @@ import SwiftSyntax
 ///   may depend on any of them, so then **every** nested package is in (any doubt includes). A path
 ///   that leaves the root is ignored: the universe never does.
 /// - **A nested package holding a file the run reports on** is reached too, with its own closure
-///   (J), so `--include-nested-packages` judges it with its own types.
+///   (J), so `--include-nested-packages` judges its production sources with their own types. A
+///   file in it this table leaves out, such as one under its `tests/`, is not judged at all: the
+///   rules that read the table report nothing on it (`ProjectLinter.withinPurityScope`).
 /// - **It has none** — an Xcode project, a workspace folder — and nothing cheap says what it
 ///   compiles, so every nested package is in. So too when an `.xcodeproj` or `.xcworkspace` sits
 ///   directly beside the root's manifest (G): the Xcode project may compile local packages the

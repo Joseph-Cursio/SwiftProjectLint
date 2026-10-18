@@ -198,7 +198,7 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
         // Every file is read and parsed once, and the package purity is built from those same
         // trees: SEI matches by node identity, so the facts and the verdicts that consult them
         // must share a parse. When discovery resolved no universe, the table is withheld instead.
-        let (purity, shared) = await Self.sharedParse(files, projectRoot: request.path, withholdingBy: tripwire)
+        let (purity, shared, judged) = await Self.sharedParse(files, projectRoot: request.path, withholdingBy: tripwire)
         let project = DiscoveredProject(
             path: request.path,
             files: files,
@@ -208,7 +208,8 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
             detector: request.detector,
             shared: shared,
             demand: demand,
-            tripwire: tripwire
+            tripwire: tripwire,
+            judgedFiles: judged
         )
 
         // Bound once, around the pre-scan, the per-file task group and cross-file analysis: every
@@ -291,6 +292,12 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
             to: crossFilePatternIssues,
             files: perFile.files
         ))
+
+        // A rule that reads the package purity says nothing about a file the facts were not built
+        // from — a `tests/` folder's, say — since they know none of the types that file declares.
+        issues = Self.withinPurityScope(
+            issues, judgedFiles: project.judgedFiles, projectRoot: path, registry: registry
+        )
 
         // Apply per-rule overrides (severity changes, per-rule path exclusions), then put the
         // findings in reporting order. Per-file analysis collects results as tasks *complete*, so

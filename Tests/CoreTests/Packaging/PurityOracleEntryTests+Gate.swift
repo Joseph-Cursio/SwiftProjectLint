@@ -18,7 +18,8 @@ import Testing
 /// `PurityInferrer.init` or `= .init` for the oracle itself, and `Type.init` for an unlabelled
 /// helper. A labelled `.init` spelling — `Helper.init(seed:)`, `let box: Helper = .init(0)`,
 /// `PackagePurityJoin.init(sources:)` — is not seen. As with every gap in these scans, a read they
-/// miss costs a run a second pass, never a wrong finding, and
+/// miss costs a run a second pass, and leaves the undeclared reader reporting on files the table
+/// was not built from (`ProjectLinter.withinPurityScope`) — a wrong finding there — and
 /// `everyRuleAloneReadsOnlyWhatItDeclares` still catches it wherever a test corpus reaches it.
 extension PurityOracleEntryTests {
 

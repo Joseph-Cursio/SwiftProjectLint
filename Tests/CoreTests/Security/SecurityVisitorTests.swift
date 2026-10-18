@@ -14,6 +14,9 @@ struct SecurityVisitorTests {
         let sourceFile = Parser.parse(source: source)
         let visitor = SecurityVisitor(patternCategory: .security)
         visitor.setFilePath(filePath)
+        // Without a converter every finding reports line 1, and a test cannot tell which call it
+        // came from.
+        visitor.setSourceLocationConverter(SourceLocationConverter(fileName: filePath, tree: sourceFile))
         visitor.walk(sourceFile)
         return visitor.detectedIssues
     }
@@ -156,7 +159,12 @@ struct SecurityVisitorTests {
         #expect(issues.isEmpty)
     }
 
-    // MARK: - Unsafe URL construction (unchanged)
+    // MARK: - Unsafe URL construction
+
+    /// Shared with `SecurityVisitorTests+UnsafeURL.swift`.
+    func unsafeURLIssues(_ source: String) -> [LintIssue] {
+        analyzeSource(source).filter { $0.ruleName == .unsafeURL }
+    }
 
     @Test func testUnsafeURLConstruction() {
         let source = """

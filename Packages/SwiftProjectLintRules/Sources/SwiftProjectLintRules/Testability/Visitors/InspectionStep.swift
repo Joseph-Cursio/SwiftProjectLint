@@ -40,7 +40,7 @@ struct InspectionStep {
         case "modifier":
             // `modifier(Card.self)` reaches a custom modifier by type; SwiftUI's takes an instance.
             guard metatypeName(call.arguments.first) != nil else { return .unrelated }
-            let reached = state.reanchored(.singleChild, ownership: stepOwnership(from: state), after: name)
+            let reached = state.reanchored(.content, ownership: stepOwnership(from: state), after: name)
             return ChainEvaluation(state: reached)
 
         default:
@@ -104,11 +104,11 @@ struct InspectionStep {
     }
 
     /// What a search returns: `find(ViewType.X.self)` an `X`, `find(Row.self)` the custom view
-    /// `Row`, `find(text:)` a `Text`; every other form — an identifier, a predicate, a relation —
-    /// the found view itself.
+    /// `Row` — whose children are its body's views — `find(text:)` a `Text`; every other form — an
+    /// identifier, a predicate, a relation — the found view itself.
     private var searchedKind: ReceiverKind {
         if let typeName = metatypeName(call.arguments.first) {
-            return InspectionVocabulary.isViewTypeName(typeName) ? .typed : .singleChild
+            return InspectionVocabulary.isViewTypeName(typeName) ? .typed : .content
         }
         let labels = call.arguments.compactMap { $0.label?.text }
         return labels.contains(where: InspectionVocabulary.typedFindLabels.contains) ? .typed : .found
@@ -128,21 +128,28 @@ struct InspectionStep {
 
     /// `toolbar().item(2)` picks the third `ToolbarItem` as declared, and `item(0)` the first of
     /// however many there are. `item()` takes the first too, but cannot be told from a toolbar's
-    /// only item, so it is not reported. An item holds its own views in order. On a container,
-    /// `navigationBarItems(n)` reads child `n`, exactly as `vStack(n)` does.
+    /// only item, so it is not reported; like a named slot, it starts a new anchor, from which the
+    /// item's own views are counted in order. ViewInspector's own tests read `toolbar().item().text()`.
+    ///
+    /// `navigationBarItems` never reaches the bar items: it takes one of the receiver's children,
+    /// strips the wrapper `.navigationBarItems(…)` put around it, and returns the view the modifier
+    /// was applied to. So it is not a slot of the receiver: on a container, `navigationBarItems(n)`
+    /// reads child `n`, exactly as `vStack(n)` does, and without an index the child `x()` would.
     private func orderedSlotStep(from state: InspectionChainState) -> ChainEvaluation {
         let isBarItems = name == "navigationBarItems"
         let next = state.reanchored(isBarItems ? .slot : .typed, ownership: state.ownership, after: name)
         switch AccessorArguments(call, resolver: resolver) {
         case .noArguments, .metatype:
-            return ChainEvaluation(state: next)
+            return isBarItems ? barItemsOfOnlyChild(from: state) : ChainEvaluation(state: next)
 
         case .index(let index), .metatypeAndIndex(let index):
-            let first = isBarItems && index == "0" && state.hasOnlyChild
+            if isBarItems, index == "0", state.hasOnlyChild {
+                return barItemsOfOnlyChild(from: state)
+            }
             let everyPosition = call.arguments.last.map {
                 LoopPositions.isLoopOverEveryPosition($0.expression, resolver: resolver)
             } == true
-            guard first == false, everyPosition == false else { return ChainEvaluation(state: next) }
+            guard everyPosition == false else { return ChainEvaluation(state: next) }
             return .reporting(PositionalStep(kind: .indexed(written), node: node), from: state, leaving: next)
 
         case .other:
@@ -150,10 +157,28 @@ struct InspectionStep {
         }
     }
 
+    /// `navigationBarItems()` — or `navigationBarItems(0)` where `x(0)` is `x()` — unwraps the
+    /// receiver's only child. On a found view, a slot or a bare `inspect()` that child is the
+    /// receiver itself — unlike `x()`, ViewInspector does not fall back to an app view's body here —
+    /// so the step unwraps in place and starts a new anchor. Anywhere else the child is one level
+    /// down, the first of a container's, and a second level since the anchor is a walk, as
+    /// `navigationView().form()` is. It is not reported as a pick: the rule cannot count a
+    /// container's children, and with one child the step only asserts which view the modifier was
+    /// applied to.
+    private func barItemsOfOnlyChild(from state: InspectionChainState) -> ChainEvaluation {
+        guard state.castsInPlace == false, state.kind != .root else {
+            return ChainEvaluation(state: state.reanchored(.slot, ownership: state.ownership, after: name))
+        }
+        return Self.oneLevelDown(
+            from: state, to: .slot, ownership: state.ownership, step: name, written: written, node: node
+        )
+    }
+
     // MARK: - View-type accessors
 
-    /// `x()` and `x(0)` take the receiver's only child; `x(n)` picks a sibling. `view(T.self)`
-    /// does the same as `x()` but leaves a custom view `T`, whose only child is its body.
+    /// `x()` takes the receiver's only child; `x(n)` picks a sibling, and so does `x(0)` unless the
+    /// receiver has only one child (`hasOnlyChild`). `view(T.self)` does the same as `x()` but
+    /// leaves a custom view `T`, whose children are its body's views.
     private func accessorStep(from state: InspectionChainState) -> ChainEvaluation {
         let isView = name == "view"
         switch AccessorArguments(call, resolver: resolver) {
@@ -161,15 +186,15 @@ struct InspectionStep {
             return onlyChild(of: state, becoming: .typed)
 
         case .metatype where isView:
-            return onlyChild(of: state, becoming: .singleChild)
+            return onlyChild(of: state, becoming: .content)
 
         case .index(let index) where isView == false:
             if index == "0", state.hasOnlyChild { return onlyChild(of: state, becoming: .typed) }
             return indexedStep(from: state, becoming: .typed)
 
         case .metatypeAndIndex(let index) where isView:
-            if index == "0", state.hasOnlyChild { return onlyChild(of: state, becoming: .singleChild) }
-            return indexedStep(from: state, becoming: .singleChild)
+            if index == "0", state.hasOnlyChild { return onlyChild(of: state, becoming: .content) }
+            return indexedStep(from: state, becoming: .content)
 
         default:
             return .unrelated
@@ -180,7 +205,7 @@ struct InspectionStep {
     /// root, `view(MyView.self)` names the subject's own type. Anywhere else it goes one level down,
     /// and a second level since the anchor is a walk.
     private func onlyChild(of state: InspectionChainState, becoming kind: ReceiverKind) -> ChainEvaluation {
-        let isCast = state.kind == .found || state.kind == .slot || (state.kind == .root && kind == .singleChild)
+        let isCast = state.castsInPlace || (state.kind == .root && name == "view")
         if isCast {
             var cast = state
             cast.kind = kind

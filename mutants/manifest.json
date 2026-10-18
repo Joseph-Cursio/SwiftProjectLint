@@ -320,7 +320,7 @@
       "shape": "engine-wiring",
       "expected": "killed",
       "test": "testTargetLinkToProductionIsOneEntry",
-      "label": "constructionSources collapses a file's entries before classifying them — AppTests/Item.swift, a link to Sources/Lib/Item.swift, is the smaller path, stands for the file, and is then dropped as a test file, taking the Item SwiftPM compiles into Lib out of the table"
+      "label": "constructionSources collapses a file's entries before classifying them — AppTests/Item.swift, a link to Sources/Lib/Item.swift, is the smaller path, stands for the file, and is then dropped as a test file, taking the Item SwiftPM compiles into Lib out of the table, and its file out of the files the table was built from (judgedFiles)"
     },
     {
       "id": "purity-universe-places-links-at-their-target",
