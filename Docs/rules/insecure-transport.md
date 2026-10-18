@@ -23,7 +23,7 @@ Using plaintext transport schemes transmits data without encryption, making it v
 | `redis://` | `rediss://` |
 | `ldap://` | `ldaps://` |
 
-It complements the `unsafeURL` rule, which catches interpolated URL construction — this rule covers literal URL strings.
+It complements the `unsafeURL` rule, which catches URL strings built by interpolation or concatenation — this rule covers literal URL strings.
 
 The following are suppressed to reduce false positives:
 - **Localhost addresses:** `localhost`, `127.0.0.1`, `[::1]` (local development).
