@@ -65,7 +65,7 @@ one `SettingConflict.init(…): id's default: UUID`. So this rule reads the pack
 builds the construction universe and the facts (see [when the facts are built](pure-function-candidate.md#constructions-what-building-a-value-runs)).
 
 Like every rule that reads it, this one lists nothing in a file the universe leaves out — anything
-under a `test/`, `tests/` or `validation-test/` folder, and a manifest. Such a file would be judged
+under a `test/`, `tests/` or `validation-test/` folder, a manifest, and a file that is not strict UTF-8. Such a file would be judged
 without the types it declares, so a closure building one of them would be counted pure and go
 missing from this list (see [a file the universe leaves out](pure-function-candidate.md#constructions-what-building-a-value-runs)).
 Both counts above predate that change (2026-10-17) and were not re-taken.

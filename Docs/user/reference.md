@@ -281,25 +281,26 @@ These rules are **off by default** and must be listed under `enabled_only` to ru
 
 ### Narrow Runs
 
-Nine rules read the *package purity* — what constructing each of the project's types runs: Pure
-Function Property-Test Candidate, Pure Closure Property-Test Candidate, Impure Closure Inventory,
-Extractable Total Kernel, Unreachable Effect Closure, Could Be Private, Could Be Private Member,
-Direct Instantiation and Concrete Type Usage. Building it means walking every Swift file the root
+Eleven rules read the *package purity* — what constructing each of the project's types runs: Pure
+Function Property-Test Candidate, Pure Closure Property-Test Candidate, Pure Mutator Property-Test
+Candidate, Missing Equatable on Pure Function Result, Impure Closure Inventory, Extractable Total
+Kernel, Unreachable Effect Closure, Could Be Private, Could Be Private Member, Direct Instantiation
+and Concrete Type Usage. Building it means walking every Swift file the root
 compiles, parsing the manifests of the nested packages it depends on, parsing the files no run
 reports on — generated files, and nested packages left out of scope — and resolving the whole
 package, which is a large share of a narrow run's time. (Files under `excluded_paths` are parsed
 either way: cross-file rules read them as evidence.)
 
-A run that executes none of the nine skips all of that: `enabled_only` listing only other rules,
-`disabled_rules` naming all nine, or a `--categories` selection that contains none of them, such as
+A run that executes none of the eleven skips all of that: `enabled_only` listing only other rules,
+`disabled_rules` naming all eleven, or a `--categories` selection that contains none of them, such as
 `--categories security`. A run that executes any of them builds it, so a default run always does:
-all nine are on by default. The findings do not depend on it. A run that skips the work reports
+all eleven are on by default. The findings do not depend on it. A run that skips the work reports
 exactly what the full run would. (Every run still scans each nested manifest's text for a default
 `MainActor` isolation setting, which the main-actor rules use; that is a text search, not a parse.)
 
 The rules that read the package purity report nothing on a file whose types it leaves out: anything
-under a `test/`, `tests/` or `validation-test/` folder, a manifest (`Package.swift`,
-`Package@swift-*.swift`), and a file that is not UTF-8. They would judge such a file without the
+under a `test/`, `tests/` or `validation-test/` folder, any file named `Package.swift` or
+`Package@swift-*.swift`, and a file that is not strict UTF-8. They would judge such a file without the
 types it declares, and building a type they do not know looks pure. Every other rule reports on
 those files as usual. A file under one of those folders is still judged when a production link
 points to it, even a link under `excluded_paths`. See

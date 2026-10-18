@@ -88,7 +88,7 @@ instead. Measured when the oracle learned this: one closure moved here, in
 a `SimulationIssue` or a `SettingConflict`. So this rule reads the package purity: enabling it builds
 the construction universe and the facts (see [when the facts are built](pure-function-candidate.md#constructions-what-building-a-value-runs)).
 And like every rule that reads it, it reports nothing in a file the universe leaves out — a `test/`,
-`tests/` or `validation-test/` folder's, or a manifest — since it would judge that file without the
+`tests/` or `validation-test/` folder's, a manifest, or a file that is not strict UTF-8 — since it would judge that file without the
 types it declares: a closure building one of them would pass as pure (see
 [a file the universe leaves out](pure-function-candidate.md#constructions-what-building-a-value-runs)).
 
@@ -182,7 +182,7 @@ let flags = items.map { item in
 }
 
 // Test files are skipped entirely, and so is every file the construction universe leaves out:
-// anything under a `test/`, `tests/` or `validation-test/` folder, and a manifest.
+// anything under a `test/`, `tests/` or `validation-test/` folder, a manifest, and a file that is not strict UTF-8.
 ```
 
 ### Violating Examples

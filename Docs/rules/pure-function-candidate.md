@@ -285,7 +285,8 @@ production constructs would call its construction pure — the unsound direction
 
 **A file the universe leaves out is not judged.** What is reported does not follow the universe
 everywhere: reporting's test-file classifier matches `Tests/` and `*Tests/` but not `test/`, `tests/`
-or `validation-test/`, so a suite's files are reported as production, and so is a manifest, and a
+or `validation-test/`, so a suite's files are reported as production, and so is a manifest — any
+file named `Package.swift` or `Package@swift-*.swift`, wherever it sits — and a
 file that is not strict UTF-8 (see below), which is still read for reporting. Judged, such a file
 would be judged without the types it declares itself, and a construction of a type the table does
 not know is judged pure — the unsound direction again. Under `tests/Support/`, beside a `struct

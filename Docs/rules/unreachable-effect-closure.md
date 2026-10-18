@@ -100,7 +100,7 @@ A *bare* assignment is not a store through a setter and is unaffected — `serve
 - **Writes to nothing but the view's own `@State` / `@FocusState`** — condition 4. Measured, not assumed.
 - **A single store through a setter** — condition 5. The property is already readable, so the effect is already assertable.
 - **Test files** — the same skip the other testability visitors apply.
-- **Files the construction universe leaves out** — anything under a `test/`, `tests/` or `validation-test/` folder, and a manifest; see the package purity below.
+- **Files the construction universe leaves out** — anything under a `test/`, `tests/` or `validation-test/` folder, a manifest, and a file that is not strict UTF-8; see the package purity below.
 - **`Button` bodies that are a single no-argument call** — [Button Closure Wrapping](button-closure-wrapping.md) owns that exact shape, and condition 3 already excludes it here, so the two cannot double-report.
 - **`onAppear` / `onDisappear`** — see below.
 

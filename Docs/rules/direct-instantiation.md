@@ -163,7 +163,7 @@ before that bound, an unrelated nested package's namesake took a kernel's exempt
 warning. A nested package the run reports on feeds them too, so with `--include-nested-packages` its
 own kernels are judged with its own types — and its namesakes can take a root kernel's exemption,
 the accepted cost of judging it at all. A file the universe leaves out — a `test/`, `tests/` or
-`validation-test/` folder's, or a manifest, in the root or in a nested package — feeds nothing, and
+`validation-test/` folder's, a manifest, or a file that is not strict UTF-8, in the root or in a nested package — feeds nothing, and
 so is not reported on: like every rule that reads the package purity, this one would judge it
 without the types it declares (see [a file the universe leaves out](pure-function-candidate.md#constructions-what-building-a-value-runs)).
 
