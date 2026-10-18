@@ -2,13 +2,14 @@
 import Foundation
 import Testing
 
-/// What the universe leaves out, the rules that read it do not report on.
+/// What the facts were not built from, the rules that read them do not report on.
 ///
 /// A test suite's folder — `test/`, `tests/`, `validation-test/` — is out of the universe but
 /// reported as production. Its files were judged without the types they declare, and constructing a
 /// type the facts do not know is judged pure: `probeValue`, building a `Probe` whose initializer
 /// prints, was a Pure Function Property-Test Candidate under `tests/` and nothing under `prod/`.
-/// `ProjectLinter.withinPurityScope` now drops the readers' findings on such a file, and only theirs.
+/// `ProjectLinter.withinPurityScope` now drops the readers' findings on such a file, and only theirs;
+/// on a manifest and a file that is not UTF-8 too, which the universe leaves out wherever they sit.
 extension PackagePurityUniverseTests {
 
     /// The suites of `testSuiteNamesakeDoesNotRefuteProduction`: each suite name, at the root and
@@ -58,6 +59,35 @@ extension PackagePurityUniverseTests {
         #expect(onFactory.contains { $0.ruleName == .impureClosureInventory })
         #expect(onFactory.contains { $0.ruleName == .pureClosureCandidate } == false)
         #expect(onFactory.contains { $0.ruleName == .printStatement })
+    }
+
+    @Test("a reported file the universe drops for its encoding is not judged: its own types are not in the facts")
+    func purityReadersSkipAFileThatIsNotUTF8() async throws {
+        // `swiftc` rejects a UTF-16 source, so the universe leaves it out (amendment C) wherever it
+        // sits, while the lenient read still reports on it. Its path alone says production; the
+        // run's facts say otherwise, and they decide.
+        let factory = "Sources/App/Factory.swift"
+        func lint(_ text: Data) async throws -> [LintIssue] {
+            let root = try PackagePurityFixtures.makeProject(["Sources/App/Lib.swift": Self.appLib])
+            defer { try? FileManager.default.removeItem(atPath: root) }
+            try text.write(to: URL(fileURLWithPath: root).appendingPathComponent(factory))
+            return await ProjectLinter().analyzeProject(
+                at: root,
+                ruleIdentifiers: Self.probeRules,
+                detector: PatternRegistryFactory.createConfiguredSystem().detector
+            )
+        }
+        let utf16 = try #require(PackagePurityFixtures.probeFactory.data(using: .utf16))
+        #expect(utf16.starts(with: [0xFF, 0xFE]) || utf16.starts(with: [0xFE, 0xFF]), "no byte-order mark")
+        let control = try await lint(Data(PackagePurityFixtures.probeFactory.utf8))
+        let issues = try await lint(utf16)
+
+        let judged = control.filter { $0.filePath == factory }
+        #expect(PackagePurityFixtures.symbols(judged).contains("sentinelAdd"), "control: UTF-8 here is judged")
+        let onFactory = issues.filter { $0.filePath == factory }
+        #expect(onFactory.contains { Self.readers.contains($0.ruleName) } == false, "\(onFactory.map(\.message))")
+        #expect(onFactory.contains { $0.ruleName == .printStatement }, "the lenient read no longer reports on it")
+        #expect(PackagePurityFixtures.symbols(issues).contains("appSum"), "the readers did not run")
     }
 
     @Test("a manifest is not judged either: no target compiles it, so the facts do not know its types")

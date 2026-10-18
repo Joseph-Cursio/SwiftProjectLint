@@ -1,9 +1,10 @@
+import Foundation
 import SwiftProjectLintModels
 import SwiftProjectLintRegistry
 import SwiftProjectLintVisitors
 
-/// What the rules that read the package purity may report on: no file the construction universe
-/// leaves out, because the facts were built without the types that file declares.
+/// What the rules that read the package purity may report on: only a file the facts were built
+/// from, because of any other the facts do not know the types it declares.
 extension ProjectLinter {
 
     /// `issues` without the findings of a rule that reads the package purity on a file the run
@@ -14,8 +15,9 @@ extension ProjectLinter {
     /// A test suite's folder — `test/`, `tests/`, `validation-test/` — is out of the universe (the
     /// shared spec's amendment W) yet reported as production, since reporting's test-file
     /// classifier (`BasePatternVisitor.isTestOrFixturePath`) shares only the test-target clause; a
-    /// manifest is out too. Such a file was judged without the types it declares itself, and the
-    /// oracle judges constructing a type it does not know as pure — the unsound direction.
+    /// manifest is out too, and so is a file that is not strict UTF-8 (amendment C), which the
+    /// lenient read still reports on. Such a file was judged without the types it declares itself,
+    /// and the oracle judges constructing a type it does not know as pure — the unsound direction.
     /// `struct Probe` printing in its `init`, beside `func probeValue(_ n: Int) -> Int { Probe(n: n).n }`
     /// in `tests/Support/`, made `probeValue` a Pure Function Property-Test Candidate, and a `map`
     /// closure building a `Probe` a Pure Closure one, missing from Impure Closure Inventory. Under
@@ -33,52 +35,46 @@ extension ProjectLinter {
     /// how a finding leans on the purity: Could Be Private reads it only for a caveat in its message,
     /// and Direct Instantiation for an exemption, and both would still phrase or exempt by an
     /// unsound verdict. The whole file is dropped for a reader, including a finding that no unknown
-    /// construction moved, since nothing short of the facts says which those are.
+    /// construction moved, since nothing short of the facts says which those are. So the
+    /// declaration now decides where a reader reports too: one that forgets it still costs only a
+    /// second pass in what is built, but reports on these files as if it read nothing.
     ///
-    /// **Which files.** Classified where the walk reached them (`universePath(for:projectRoot:)`),
-    /// as the universe classifies them, and matched as findings name them
-    /// (`relativePath(for:projectRoot:)`, links resolved). A file is out only when every path the run
-    /// reached it by is: a production link to a file under `tests/` puts that file's types in the
-    /// facts, at the link, so it is judged. A file with no universe path at all — not under the root —
-    /// is left as it was.
+    /// **Which files.** The run's own answer, not a second classification: `judgedFiles`, the files
+    /// on disk whose trees the facts were built from, links resolved (`constructionSources`), matched
+    /// against the file a finding names (`relativePath(for:projectRoot:)`, which resolves links the
+    /// same way). Every path the universe reached a file by counts, reported or not, so a production
+    /// link to a file under `tests/` keeps that file judged even when `excluded_paths` hides the
+    /// link or it sits in a nested package the root compiles but the run does not report on. A run
+    /// that resolved no universe (`judgedFiles` `nil`) is left as it was: its purity was withheld,
+    /// and a reader that read it tripped the pass, whose findings are discarded, so a reader
+    /// finding that stands read none of it.
     static func withinPurityScope(
         _ issues: [LintIssue],
-        reportable: [String],
+        judgedFiles: Set<String>?,
         projectRoot: String,
         registry: PatternVisitorRegistry
     ) -> [LintIssue] {
+        guard let judgedFiles else { return issues }
         let readers = Set(registry.getAllPatterns().filter { !$0.packagePurityInputs.isEmpty }.map(\.name))
         let named = Set(issues.filter { readers.contains($0.ruleName) }.map(\.filePath))
-        // A run with no reader finding — every narrow run of other rules — classifies nothing.
+        // A run with no reader finding — every narrow run of other rules — matches nothing.
         guard !named.isEmpty else { return issues }
-        let unjudged = filesOutsideTheUniverse(reportable, projectRoot: projectRoot, among: named)
+        let unjudged = unjudgedFiles(among: named, judgedFiles: judgedFiles, projectRoot: projectRoot)
         guard !unjudged.isEmpty else { return issues }
         return issues.filter { !readers.contains($0.ruleName) || !unjudged.contains($0.filePath) }
     }
 
-    /// Which of `named` — files as findings name them — are reported files that no path the run
-    /// reached them by puts among the construction universe's production sources.
+    /// Which of `named` — files as findings name them — are not among `judgedFiles`.
     ///
-    /// Resolving every production path, to see whether one is a link to a left-out file, is the one
-    /// costly step, so it is taken only when a left-out file is named at all. A default run on a
-    /// package always has one left out, its manifest, and seldom a finding on it.
-    static func filesOutsideTheUniverse(
-        _ reportable: [String],
-        projectRoot: String,
-        among named: Set<String>
-    ) -> Set<String> {
-        var production: [String] = []
-        var outside: Set<String> = []
-        for filePath in reportable {
-            guard let universePath = universePath(for: filePath, projectRoot: projectRoot) else { continue }
-            if ConstructionUniverse.isProductionSource(relativePath: universePath) {
-                production.append(filePath)
-            } else {
-                outside.insert(relativePath(for: filePath, projectRoot: projectRoot))
-            }
+    /// A finding names its file as `relativePath(for:projectRoot:)` does: links resolved on both
+    /// sides and the resolved root dropped, or the whole resolved path for a file outside the root.
+    /// Undoing that takes one resolution, the root's; the facts' files were resolved already, by the
+    /// shared parse that collapsed a link and its target into one entry.
+    static func unjudgedFiles(among named: Set<String>, judgedFiles: Set<String>, projectRoot: String) -> Set<String> {
+        let resolvedRoot = URL(fileURLWithPath: projectRoot).resolvingSymlinksInPath().path
+        let prefix = resolvedRoot.hasSuffix("/") ? resolvedRoot : resolvedRoot + "/"
+        return named.filter { name in
+            !judgedFiles.contains(name.hasPrefix("/") ? name : prefix + name)
         }
-        outside.formIntersection(named)
-        guard !outside.isEmpty else { return [] }
-        return outside.subtracting(production.map { relativePath(for: $0, projectRoot: projectRoot) })
     }
 }

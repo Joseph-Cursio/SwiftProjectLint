@@ -131,7 +131,7 @@ enum PackagePurityFixtures {
     /// exactly as `analyzeProject` runs them, stopped before the analysis phases.
     static func universe(at path: String, configuration: LintConfiguration = .default) async -> [String] {
         let files = await ProjectLinter().discoverFiles(at: path, configuration: configuration)
-        let (purity, _) = await ProjectLinter.sharedParse(files, projectRoot: path, withholdingBy: PurityTripwire())
+        let (purity, _, _) = await ProjectLinter.sharedParse(files, projectRoot: path, withholdingBy: PurityTripwire())
         return purity.universe
     }
 

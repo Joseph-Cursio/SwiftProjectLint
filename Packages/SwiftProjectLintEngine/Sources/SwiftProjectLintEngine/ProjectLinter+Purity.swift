@@ -60,6 +60,11 @@ extension ProjectLinter {
         /// What the run builds of the package purity; the rest is withheld by `tripwire`.
         let demand: PurityDemand
         let tripwire: PurityTripwire
+        /// The files on disk whose trees the package purity was built from, symlinks resolved
+        /// (`constructionSources`): the files whose own types the facts know, and so the only ones
+        /// the rules that read them report on (`withinPurityScope`). `nil` when the run resolved no
+        /// universe.
+        let judgedFiles: Set<String>?
     }
 
     /// Reads and parses every file the run needs, once, one thread per core.
@@ -101,23 +106,27 @@ extension ProjectLinter {
     /// When discovery did not resolve a universe the table is not built: the purity is
     /// `PackagePurity.withheld(by: tripwire)`, and a read of it trips the run. The universe alone
     /// decides, so no caller can get a built-but-empty table for a universe nobody resolved.
+    ///
+    /// `judged` is the files on disk the table was built from (`DiscoveredProject.judgedFiles`),
+    /// `nil` exactly when the purity is withheld.
     static func sharedParse(
         _ files: DiscoveredFiles,
         projectRoot: String,
         withholdingBy tripwire: PurityTripwire
-    ) async -> (purity: PackagePurity, analysable: [String: SharedSource]) {
+    ) async -> (purity: PackagePurity, analysable: [String: SharedSource], judged: Set<String>?) {
         let shared = await parseOnce(files, projectRoot: projectRoot)
         let analysable = shared.filter { $0.value.content != nil }
         guard let universe = files.constructionUniverse else {
-            return (.withheld(by: tripwire), analysable)
+            return (.withheld(by: tripwire), analysable, nil)
         }
         let sources = constructionSources(universe, in: shared)
+        let trees = sources.map { (relativePath: $0.relativePath, tree: $0.tree) }
         // The build walks every tree, as deep as it nests, so it gets the parse's stack.
-        let purity = await LargeStackWorkers.run { PackagePurity.build(from: sources) }
-        return (purity, analysable)
+        let purity = await LargeStackWorkers.run { PackagePurity.build(from: trees) }
+        return (purity, analysable, Set(sources.map(\.file)))
     }
 
-    /// The universe's `(path, tree)` pairs for `PackagePurity.build`, which sorts them: production
+    /// The universe's `(path, file, tree)` entries for `PackagePurity.build`, which sorts them: production
     /// sources only, and one entry per file on disk.
     ///
     /// Each file is classified where the walk reached it (``universePath(for:projectRoot:)``), and
@@ -128,20 +137,22 @@ extension ProjectLinter {
     /// the order discovery returns files in. Both rules are the shared spec's (amendment A), so
     /// SwiftInferProperties keeps the same entry.
     ///
-    /// The pairs come back in discovery order, not a hash table's: the build's own order is the
+    /// The entries come back in discovery order, not a hash table's: the build's own order is the
     /// one that counts, and an order that changed from process to process would hide a build that
-    /// stopped imposing it (`purity-universe-unsorted`).
+    /// stopped imposing it (`purity-universe-unsorted`). Each carries its `file` on disk, resolved
+    /// as `relativePath(for:projectRoot:)` resolves a finding's: the run matches the readers'
+    /// findings against those (`withinPurityScope`).
     static func constructionSources(
         _ universe: [String],
         in shared: [String: SharedSource]
-    ) -> [(relativePath: String, tree: SourceFileSyntax)] {
-        var kept: [(relativePath: String, tree: SourceFileSyntax)] = []
+    ) -> [(relativePath: String, file: String, tree: SourceFileSyntax)] {
+        var kept: [(relativePath: String, file: String, tree: SourceFileSyntax)] = []
         var slotOfFile: [String: Int] = [:]
         for filePath in universe {
             guard let source = shared[filePath], let universePath = source.universePath,
                   ConstructionUniverse.isProductionSource(relativePath: universePath) else { continue }
-            let entry = (relativePath: universePath, tree: source.tree)
             let file = URL(fileURLWithPath: filePath).resolvingSymlinksInPath().path
+            let entry = (relativePath: universePath, file: file, tree: source.tree)
             if let slot = slotOfFile[file] {
                 if universePath < kept[slot].relativePath { kept[slot] = entry }
             } else {

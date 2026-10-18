@@ -298,9 +298,11 @@ exactly what the full run would. (Every run still scans each nested manifest's t
 `MainActor` isolation setting, which the main-actor rules use; that is a text search, not a parse.)
 
 The rules that read the package purity report nothing on a file whose types it leaves out: anything
-under a `test/`, `tests/` or `validation-test/` folder, and a manifest (`Package.swift`,
-`Package@swift-*.swift`). They would judge such a file without the types it declares, and building a
-type they do not know looks pure. Every other rule reports on those files as usual. See
+under a `test/`, `tests/` or `validation-test/` folder, a manifest (`Package.swift`,
+`Package@swift-*.swift`), and a file that is not UTF-8. They would judge such a file without the
+types it declares, and building a type they do not know looks pure. Every other rule reports on
+those files as usual. A file under one of those folders is still judged when a production link
+points to it, even a link under `excluded_paths`. See
 [Pure Function Property-Test Candidate](../rules/pure-function-candidate.md#constructions-what-building-a-value-runs).
 
 ---

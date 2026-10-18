@@ -285,15 +285,18 @@ production constructs would call its construction pure — the unsound direction
 
 **A file the universe leaves out is not judged.** What is reported does not follow the universe
 everywhere: reporting's test-file classifier matches `Tests/` and `*Tests/` but not `test/`, `tests/`
-or `validation-test/`, so a suite's files are reported as production, and so is a manifest. Judged,
-such a file would be judged without the types it declares itself, and a construction of a type the
-table does not know is judged pure — the unsound direction again. Under `tests/Support/`, beside a
-`struct Probe` whose initializer prints, `func probeValue(_ n: Int) -> Int { Probe(n: n).n }` was
-offered as a candidate; under `prod/Support/` it was not. So this rule, and every other rule that
-reads the package purity, reports nothing on a file the universe leaves out, and every other rule
-reports on it as before. A file is judged when any path the walk reached it by is in the universe,
-so a production link to a file under `tests/` keeps that file judged. Putting the suites back into
-the universe is not the remedy: they are why the facts did not finish building.
+or `validation-test/`, so a suite's files are reported as production, and so is a manifest, and a
+file that is not strict UTF-8 (see below), which is still read for reporting. Judged, such a file
+would be judged without the types it declares itself, and a construction of a type the table does
+not know is judged pure — the unsound direction again. Under `tests/Support/`, beside a `struct
+Probe` whose initializer prints, `func probeValue(_ n: Int) -> Int { Probe(n: n).n }` was offered as
+a candidate; under `prod/Support/` it was not. So this rule, and every other rule that reads the
+package purity, reports nothing on a file the table was not built from, and every other rule
+reports on it as before. What decides is the table itself, not a second look at the file's path: a
+file is judged when any path the universe reached it by counts, reported or not, so a production
+link to a file under `tests/` keeps that file judged — even when `excluded_paths` hides the link,
+or it sits in a nested package the root compiles but the run does not report on. Putting the
+suites back into the universe is not the remedy: they are why the facts did not finish building.
 
 **What bounds it is what the root compiles.** A nested package is a directory below the root whose
 `Package.swift` is a manifest as SwiftPM reads one: a `// swift-tools-version` comment on its first
