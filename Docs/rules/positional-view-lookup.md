@@ -275,7 +275,9 @@ have not been re-measured since.
 - **Bindings are resolved lexically.** A local reassigned after its declaration is read from its
   declaration. Ternaries, `??`, `enumerated()` tuples, collection operations such as
   `dropFirst()` and `reversed()`, typealiases, and properties inherited from a superclass are not
-  followed. A closure's parameter takes no type from a property it is assigned to: in
+  followed. A name a pattern binds — in a tuple (`if let (stack, other) = pair`, also with `guard`
+  and `while`), a `case let` or a `catch` — is not read either, but it hides any outer binding of
+  the same name, so `stack.hStack(1)` inside that `if` is not reported. A closure's parameter takes no type from a property it is assigned to: in
   `sut.didAppear = { view in … }` the view's type is unknown, so a walk inside a test-declared
   view reached that way is reported. `sut.on(\.didAppear) { view in … }` is followed.
 - **A test-owned subject is recognised by its type name.** A fixture whose type is declared in

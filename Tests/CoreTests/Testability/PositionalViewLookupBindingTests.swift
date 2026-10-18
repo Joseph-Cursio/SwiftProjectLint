@@ -185,6 +185,21 @@ struct PositionalViewLookupBindingTests {
         #expect(issues.isEmpty)
     }
 
+    @Test("a tuple bound by if let, guard let or while let shadows an inspected name")
+    func tuplePatternsShadow() {
+        let issues = analyze("""
+        func testTuples(stack: InspectableView<ViewType.VStack>, pair: (Wrapper, Wrapper)?) throws {
+            if let (stack, other) = pair { _ = try stack.hStack(1) }
+            while let (stack, _) = next() { _ = try stack.hStack(2) }
+            if case let (stack, _)? = pair { _ = try stack.hStack(3) }
+            _ = try stack.hStack(4)
+            guard let (stack, other) = pair else { return }
+            _ = try stack.hStack(5)
+        }
+        """)
+        #expect(issues.map(\.lineNumber) == [7])
+    }
+
     @Test("a view made a View by an extension is test-owned by its own name")
     func qualifiedViewExtension() {
         let issues = analyze("""

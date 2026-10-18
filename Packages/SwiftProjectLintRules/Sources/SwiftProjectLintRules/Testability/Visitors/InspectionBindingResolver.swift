@@ -313,10 +313,12 @@ final class InspectionBindingResolver {
     private static func conditionBindings(_ element: ConditionElementSyntax) -> [(String, InspectionBinding)] {
         switch element.condition {
         case .optionalBinding(let optional):
-            // A shorthand `if let x` rebinds the outer `x`, so it binds nothing new here.
-            guard let name = identifier(of: optional.pattern), let value = optional.initializer?.value else {
-                return []
+            // `if let (a, b) = pair` binds names the rule cannot read, shadowing outer ones.
+            guard let name = identifier(of: optional.pattern) else {
+                return boundNames(in: optional.pattern).map { ($0, .opaque) }
             }
+            // A shorthand `if let x` rebinds the outer `x`, so it binds nothing new here.
+            guard let value = optional.initializer?.value else { return [] }
             return [(name, .value(value, annotation: optional.typeAnnotation?.type))]
 
         case .matchingPattern(let matching):
