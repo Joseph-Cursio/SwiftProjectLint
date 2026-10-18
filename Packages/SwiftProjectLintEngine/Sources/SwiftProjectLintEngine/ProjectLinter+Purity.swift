@@ -191,7 +191,9 @@ extension ProjectLinter {
     ///
     /// `reported` is the run's reportable files: a nested package holding one is in, with what it
     /// compiles, so a package linted with `--include-nested-packages` is judged with its own types
-    /// (amendment J). The cost, accepted, is that its namesakes then refute the root's too.
+    /// (amendment J) — its production sources are; a file in it the universe leaves out, such as one
+    /// under its `tests/`, is not judged at all (`withinPurityScope`). The cost, accepted, is that its
+    /// namesakes then refute the root's too.
     static func compiledByRoot(_ walk: [String], reported: [String], projectRoot: String) -> [String] {
         let root = ProjectRoot(projectRoot)
         var holdsManifest: [String: Bool] = [:]
