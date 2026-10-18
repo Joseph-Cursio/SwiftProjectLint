@@ -109,6 +109,10 @@ a pick.
   over the `ForEach` is a found view, so `x(0)` on it is read as a cast and only `x(1)` and above
   is reported; for a custom `Row`, ViewInspector resolves that `x(0)` through the row's body's
   first view, as it does for a bare `inspect()` (see Known Limitations).
+- **An index into a variadic parameter.** In `func check(_ views: InspectableView<ViewType.VStack>...)`,
+  `views[1]`, `views.first` and `views.last` pick one of the caller's arguments, in the order the
+  caller passed them, not a child. Each argument is read as the declared view, so
+  `views[1].hStack(2)` is still reported.
 - **A loop over every position.** `rows[index]` inside `for index in rows.indices`,
   `for index in 0..<rows.count`, `for index in 0...(rows.count - 1)`,
   `for (index, name) in expected.enumerated()`, `zip(rows.indices, expected)`, `zip(0..., expected)`

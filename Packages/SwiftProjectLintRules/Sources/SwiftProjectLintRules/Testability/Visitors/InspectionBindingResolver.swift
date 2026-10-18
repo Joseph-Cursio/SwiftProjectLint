@@ -392,6 +392,8 @@ struct InspectableViewType {
     let viewType: String?
     /// `T` in `InspectableView<ViewType.View<T>>`: the view whose layout is walked.
     let subjectType: String?
+    /// A variadic parameter of this type: an array of such views, in the order they were passed.
+    var isArgumentList = false
 
     init(_ type: TypeSyntax) {
         let current = Self.unwrapped(type)

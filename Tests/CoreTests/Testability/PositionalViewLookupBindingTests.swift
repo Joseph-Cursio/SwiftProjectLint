@@ -200,6 +200,21 @@ struct PositionalViewLookupBindingTests {
         #expect(issues.map(\.lineNumber) == [7])
     }
 
+    @Test("an index into a variadic parameter picks an argument; each argument is the declared view")
+    func variadicParameter() {
+        let issues = analyze("""
+        func check(_ views: InspectableView<ViewType.VStack>...) throws {
+            _ = try views[1].hStack()
+            _ = try views.first?.hStack()
+            _ = try views.last?.hStack()
+            _ = try views[0].hStack(2)
+            for view in views { _ = try view.hStack(3) }
+            _ = try views.map { try $0.hStack(4) }
+        }
+        """)
+        #expect(issues.map(\.lineNumber) == [7, 8, 9])
+    }
+
     @Test("a view made a View by an extension is test-owned by its own name")
     func qualifiedViewExtension() {
         let issues = analyze("""

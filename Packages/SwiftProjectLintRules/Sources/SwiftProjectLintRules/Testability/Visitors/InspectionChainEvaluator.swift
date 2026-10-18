@@ -101,7 +101,7 @@ final class InspectionChainEvaluator {
         if state.isMatchList {
             // `[0]` is `.first`, the match an unpredicated `find` returns. The order of the matches
             // is the receiver's layout, so the receiver's ownership decides.
-            guard index != "0", key.map(isLoopOverEveryPosition) != true else {
+            guard index != "0", key.map(isLoopOverEveryPosition) != true, state.isArgumentList == false else {
                 return receiver.then(ChainEvaluation(state: state.element))
             }
             return receiver.then(.reporting(step, from: state, leaving: state.element))
@@ -139,7 +139,9 @@ final class InspectionChainEvaluator {
         guard let state = receiver.state, name == "first" || name == "last" else { return receiver.ended }
         let node = Syntax(member.declName)
         if state.isMatchList {
-            guard name == "last" else { return receiver.then(ChainEvaluation(state: state.element)) }
+            guard name == "last", state.isArgumentList == false else {
+                return receiver.then(ChainEvaluation(state: state.element))
+            }
             let step = PositionalStep(kind: .matchIndex(".last"), node: node)
             return receiver.then(.reporting(step, from: state, leaving: state.element))
         }
@@ -193,6 +195,14 @@ final class InspectionChainEvaluator {
     }
 
     private func state(declaredAs declared: InspectableViewType) -> InspectionChainState {
-        .root(declared.kind, ownership: declaredViews.ownership(of: declared.subjectType), after: declared.viewType)
+        let ownership = declaredViews.ownership(of: declared.subjectType)
+        var state = InspectionChainState.root(declared.kind, ownership: ownership, after: declared.viewType)
+        if declared.isArgumentList {
+            // Each argument is a view of the declared type; `element` hands one back as it is.
+            state.isMatchList = true
+            state.matchesOwnership = ownership
+            state.isArgumentList = true
+        }
+        return state
     }
 }

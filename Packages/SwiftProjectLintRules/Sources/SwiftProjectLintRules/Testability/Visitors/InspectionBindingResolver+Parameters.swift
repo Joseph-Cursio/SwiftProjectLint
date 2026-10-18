@@ -25,7 +25,13 @@ extension InspectionBindingResolver {
         guard let match = clause.parameters.first(where: { ($0.secondName ?? $0.firstName).text == name }) else {
             return nil
         }
-        return declaredBinding(match.type)
+        guard match.ellipsis != nil else { return declaredBinding(match.type) }
+        // `_ views: InspectableView<…>...` is the caller's arguments, in the caller's order: an
+        // index into them picks an argument, not a child.
+        var inspectable = InspectableViewType(match.type)
+        guard inspectable.isInspectableView else { return .declared(TypeSyntax(ArrayTypeSyntax(element: match.type))) }
+        inspectable.isArgumentList = true
+        return .inspectableView(inspectable)
     }
 
     static func closureParameter(_ name: String, of closure: ClosureExprSyntax) -> InspectionBinding? {
