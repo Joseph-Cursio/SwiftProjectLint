@@ -16,7 +16,7 @@ One structural exception: a single-expression closure body is *also* a bare `Cod
 
 Two more places where a bare `try?` statement is not a discard:
 
-- **A `defer` block.** It can neither throw nor hand a value on, so `defer { try? handle.close() }` is the only form best-effort cleanup can take there.
+- **A `defer` block.** It can neither throw nor hand a value on, so `defer { try? handle.close() }` is the only form best-effort cleanup can take there. The same goes for a `try?` nested in an `if`, loop or `do` inside the defer (`defer { if let handle { try? handle.close() } }`). A closure the defer creates is a different matter — `defer { queue.async { try? handle.close() } }` still fires, since that body runs later and could throw or return.
 - **An implicit return.** The sole expression of a function, getter or subscript with a non-`Void` result is that body's return value: `func makeBookmark(for url: URL) -> Data? { try? url.bookmarkData(…) }`. The same goes for a closure that spells out a non-`Void` return type, and for `Task { try? work() }.value`, whose value is read. A closure with no signature, such as `Button { try? save() }`, is still flagged: whether its value is used depends on a type the syntax does not show.
 
 Not flagged:

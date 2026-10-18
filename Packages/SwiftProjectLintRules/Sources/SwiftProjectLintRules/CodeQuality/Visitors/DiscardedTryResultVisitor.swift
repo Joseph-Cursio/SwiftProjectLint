@@ -21,7 +21,8 @@ import SwiftSyntax
 ///   closure such as `Button { try? save() }` still fires — its last expression
 ///   is genuinely discarded.)
 /// - `defer { try? handle.close() }` — a `defer` block can neither throw nor hand a
-///   value on, so best-effort cleanup is all it can do.
+///   value on, so best-effort cleanup is all it can do. That holds for a `try?` nested
+///   in an `if`/`for`/`do` inside it too, but not in a closure the defer creates.
 /// - `func data() -> Data? { try? load() }` — the sole expression of a function, getter or
 ///   subscript with a non-`Void` result is its implicit return value. The same holds for a
 ///   closure that spells out a non-`Void` return type, and for `Task { try? work() }.value`,
@@ -87,11 +88,17 @@ final class DiscardedTryResultVisitor: BasePatternVisitor {
 
     // MARK: - Defer and implicit-return detection
 
-    /// True when `item` is a statement of a `defer` block.
+    /// True when `item` runs as part of a `defer` block — one of its statements, or nested in
+    /// an `if`/`for`/`do` inside it. A closure or declaration in between ends the search: its
+    /// body can run after the defer, and may throw or return.
     func isDeferredCleanup(_ item: CodeBlockItemSyntax) -> Bool {
-        item.parent?.as(CodeBlockItemListSyntax.self)?
-            .parent?.as(CodeBlockSyntax.self)?
-            .parent?.is(DeferStmtSyntax.self) == true
+        var ancestor = item.parent
+        while let node = ancestor {
+            if node.is(DeferStmtSyntax.self) { return true }
+            if node.is(ClosureExprSyntax.self) || node.is(DeclSyntax.self) { return false }
+            ancestor = node.parent
+        }
+        return false
     }
 
     /// True when `item` is the only statement of a body whose value is returned implicitly:

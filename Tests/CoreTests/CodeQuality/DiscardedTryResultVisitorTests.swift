@@ -102,7 +102,11 @@ struct DiscardedTryResultVisitorTests {
 
     @Test("No issue for best-effort cleanup in a defer block", arguments: [
         "func f() { defer { try? handle.close() } }",
-        "func f() { defer { try? FileManager.default.removeItem(at: url) } }"
+        "func f() { defer { try? FileManager.default.removeItem(at: url) } }",
+        // Nested in a statement inside the defer — still cleanup the defer cannot hand on
+        "func f() { defer { if let handle { try? handle.close() } } }",
+        "func f() { defer { for url in scratch { try? FileManager.default.removeItem(at: url) } } }",
+        "func f() { defer { do { try? first() } } }"
     ])
     func noIssueForDeferredCleanup(source: String) {
         let visitor = makeVisitor()
@@ -139,6 +143,8 @@ struct DiscardedTryResultVisitorTests {
         "func f() -> Data? { try? warmUp(); return nil }",
         // A Task whose value is never read
         "func f() { Task { try? save() } }",
+        // A closure inside a defer can outlive it — not the defer's own cleanup
+        "func f() { defer { queue.async { try? handle.close() } } }",
         // A closure with no signature: whether its value is used is not visible
         "Button(\"Save\") { try? save() }"
     ])
