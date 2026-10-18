@@ -26,9 +26,10 @@ import SwiftSyntax
 /// - `func data() -> Data? { try? load() }` — the sole expression of a function, getter or
 ///   subscript with a non-`Void` result is its implicit return value. The same holds for a
 ///   closure that spells out a non-`Void` return type, for `Task { try? work() }.value`,
-///   whose result is read, and for a `Task<Data?, Never> { … }`, whose result is a value. A branch of an `if`/`switch` expression in such a body, or one whose
-///   value is assigned or returned, counts too. (A closure with no signature is left alone:
-///   whether its value is used depends on a type the syntax does not show.)
+///   whose result is read, and for a `Task<Data?, Never> { … }`, whose result is a value. A
+///   branch of an `if`/`switch` expression in such a body, or one whose value is assigned or
+///   returned, counts too. (A closure with no signature is left alone: whether its value is
+///   used depends on a type the syntax does not show.)
 final class DiscardedTryResultVisitor: BasePatternVisitor {
 
     /// Sequence transforms whose closure returns a value the caller collects.
