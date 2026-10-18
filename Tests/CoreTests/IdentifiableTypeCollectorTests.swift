@@ -74,4 +74,33 @@ struct IdentifiableTypeCollectorTests {
         let types = collect(from: source)
         #expect(types == ["ItemA", "Status"])
     }
+    /// SwiftData's `@Model` makes a class a `PersistentModel`, which refines `Identifiable`.
+    @Test func testCollectsSwiftDataModelClass() {
+        let source = """
+        @Model
+        final class DiagramEntity {
+            var name: String = ""
+        }
+        """
+        #expect(collect(from: source) == ["DiagramEntity"])
+    }
+
+    @Test func testCollectsConformanceDeclaredInAnExtension() {
+        let source = """
+        struct Item {
+            let id: UUID
+        }
+        extension Item: Identifiable {}
+        """
+        #expect(collect(from: source) == ["Item"])
+    }
+
+    @Test func testIgnoresOtherAttributesAndExtensions() {
+        let source = """
+        @Observable
+        final class Store {}
+        extension Store: Equatable {}
+        """
+        #expect(collect(from: source).isEmpty)
+    }
 }

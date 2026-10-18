@@ -1,7 +1,9 @@
 import SwiftSyntax
 
 /// A fast SyntaxVisitor that collects the names of all types (struct, class, enum)
-/// that declare conformance to `Identifiable` in their inheritance clause.
+/// that declare conformance to `Identifiable` — in their inheritance clause, in an
+/// `extension Type: Identifiable`, or, for a class, through SwiftData's `@Model`, which
+/// makes it a `PersistentModel` and so `Identifiable`.
 ///
 /// Used as a project-wide pre-scan so that per-file visitors can suppress
 /// false-positive "ForEach without ID" warnings when the element type is Identifiable.
@@ -23,7 +25,7 @@ public final class IdentifiableTypeCollector: SyntaxVisitor, TypeCollectorProtoc
     }
 
     override public func visit(_ node: ClassDeclSyntax) -> SyntaxVisitorContinueKind {
-        if conformsToIdentifiable(node.inheritanceClause) {
+        if conformsToIdentifiable(node.inheritanceClause) || isSwiftDataModel(node.attributes) {
             identifiableTypes.insert(node.name.text)
         }
         return .visitChildren
@@ -34,6 +36,20 @@ public final class IdentifiableTypeCollector: SyntaxVisitor, TypeCollectorProtoc
             identifiableTypes.insert(node.name.text)
         }
         return .visitChildren
+    }
+
+    override public func visit(_ node: ExtensionDeclSyntax) -> SyntaxVisitorContinueKind {
+        if conformsToIdentifiable(node.inheritanceClause),
+           let name = node.extendedType.as(IdentifierTypeSyntax.self)?.name.text {
+            identifiableTypes.insert(name)
+        }
+        return .visitChildren
+    }
+
+    func isSwiftDataModel(_ attributes: AttributeListSyntax) -> Bool {
+        attributes.contains { element in
+            element.as(AttributeSyntax.self)?.attributeName.as(IdentifierTypeSyntax.self)?.name.text == "Model"
+        }
     }
 
     func conformsToIdentifiable(_ clause: InheritanceClauseSyntax?) -> Bool {

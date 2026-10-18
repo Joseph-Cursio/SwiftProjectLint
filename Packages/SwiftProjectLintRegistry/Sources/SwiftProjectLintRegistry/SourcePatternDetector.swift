@@ -12,6 +12,10 @@ public final class SourcePatternDetector: SourcePatternDetectorProtocol, @unchec
     /// Set by `ProjectLinter` after a pre-scan phase and passed through to visitors.
     public var knownIdentifiableTypes: Set<String> = []
 
+    /// Property names that are arrays of `Identifiable` types across the project.
+    /// Set by `ProjectLinter` after a pre-scan phase and passed through to visitors.
+    public var knownIdentifiableCollectionProperties: Set<String> = []
+
     /// Type names known to be declared as enums across the project.
     /// Set by `ProjectLinter` after a pre-scan phase and passed through to visitors.
     public var knownEnumTypes: Set<String> = []
@@ -229,6 +233,7 @@ public final class SourcePatternDetector: SourcePatternDetectorProtocol, @unchec
             visitor.knownEquatableRemedies = knownEquatableRemedies
             visitor.knownFunctionTypeAliases = knownFunctionTypeAliases
             visitor.knownIdentifiableTypes = knownIdentifiableTypes
+            visitor.knownIdentifiableCollectionProperties = knownIdentifiableCollectionProperties
             visitor.knownEnumTypes = knownEnumTypes
             visitor.knownActorTypes = knownActorTypes
             visitor.knownLocalTypeNames = knownLocalTypeNames

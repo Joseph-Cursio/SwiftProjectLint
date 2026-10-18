@@ -242,6 +242,7 @@ extension ProjectLinter {
         let categories: [PatternCategory]?
         let ruleIdentifiers: [RuleIdentifier]?
         let identifiableTypes: Set<String>
+        let identifiableCollectionProperties: Set<String>
         /// `View` names reading `@Environment(SomeType.self)`; `nil` when no pre-scan ran.
         let observableEnvironmentViews: Set<String>
         let inspectedTypeNames: Set<String>?
@@ -299,6 +300,7 @@ extension ProjectLinter {
             categories: env.categories,
             ruleIdentifiers: env.ruleIdentifiers,
             identifiableTypes: env.identifiableTypes,
+            identifiableCollectionProperties: env.identifiableCollectionProperties,
             observableEnvironmentViews: env.observableEnvironmentViews,
             inspectedTypeNames: env.inspectedTypeNames,
             functionTypeAliases: env.functionTypeAliases,
@@ -333,6 +335,7 @@ extension ProjectLinter {
         categories: [PatternCategory]?,
         ruleIdentifiers: [RuleIdentifier]?,
         identifiableTypes: Set<String> = [],
+        identifiableCollectionProperties: Set<String> = [],
         observableEnvironmentViews: Set<String>? = nil,
         inspectedTypeNames: Set<String>? = nil,
         functionTypeAliases: Set<String> = [],
@@ -370,6 +373,7 @@ extension ProjectLinter {
         let parsedAST = shared?.tree ?? Parser.parse(source: content)
         let det = SourcePatternDetector(registry: registry)
         det.knownIdentifiableTypes = identifiableTypes
+        det.knownIdentifiableCollectionProperties = identifiableCollectionProperties
         det.knownObservableEnvironmentViews = observableEnvironmentViews
         det.knownInspectedTypeNames = inspectedTypeNames
         det.knownFunctionTypeAliases = functionTypeAliases
