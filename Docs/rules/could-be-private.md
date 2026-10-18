@@ -36,6 +36,7 @@ The rule flags top-level types with default (`internal`) access that are never r
 - **Nested types** — only top-level declarations are checked; types nested inside another type are out of scope
 - **Test files** — any file whose path contains `Tests/` or ends in `Test.swift`
 - **Example/fixture directories** — files in `ExampleCode/`, `Fixtures/`, `Resources/`, `Examples/`, `Samples/`
+- **Files the construction universe leaves out** — anything under a `test/`, `tests/` or `validation-test/` folder, and a manifest. Telling a property-test candidate takes the package purity, which knows none of such a file's types, so this rule, like every rule that reads it, reports nothing there (see [a file the universe leaves out](pure-function-candidate.md#constructions-what-building-a-value-runs)). A reference written in such a file still counts as a use
 - **Project-protocol conformers** — types conforming to a protocol defined within the project are suppressed, since they are likely used polymorphically (metatype registration, dependency injection) even if not directly referenced by name. A conformance written through a composition `typealias` (`struct Banner: Widget`, with `typealias Widget = Rendering & Sendable`) counts as conforming to each protocol the alias composes
 - **`App`-conforming structs** — the SwiftUI app entry point (`struct MyApp: App`) cannot be `private`
 - **`@main`-annotated types** — the compiler-designated entry point for a target cannot be `private`

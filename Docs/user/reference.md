@@ -297,6 +297,12 @@ all nine are on by default. The findings do not depend on it. A run that skips t
 exactly what the full run would. (Every run still scans each nested manifest's text for a default
 `MainActor` isolation setting, which the main-actor rules use; that is a text search, not a parse.)
 
+The rules that read the package purity report nothing on a file whose types it leaves out: anything
+under a `test/`, `tests/` or `validation-test/` folder, and a manifest (`Package.swift`,
+`Package@swift-*.swift`). They would judge such a file without the types it declares, and building a
+type they do not know looks pure. Every other rule reports on those files as usual. See
+[Pure Function Property-Test Candidate](../rules/pure-function-candidate.md#constructions-what-building-a-value-runs).
+
 ---
 
 ## Inline Suppression

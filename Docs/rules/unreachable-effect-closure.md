@@ -100,6 +100,7 @@ A *bare* assignment is not a store through a setter and is unaffected — `serve
 - **Writes to nothing but the view's own `@State` / `@FocusState`** — condition 4. Measured, not assumed.
 - **A single store through a setter** — condition 5. The property is already readable, so the effect is already assertable.
 - **Test files** — the same skip the other testability visitors apply.
+- **Files the construction universe leaves out** — anything under a `test/`, `tests/` or `validation-test/` folder, and a manifest; see the package purity below.
 - **`Button` bodies that are a single no-argument call** — [Button Closure Wrapping](button-closure-wrapping.md) owns that exact shape, and condition 3 already excludes it here, so the two cannot double-report.
 - **`onAppear` / `onDisappear`** — see below.
 
@@ -113,7 +114,7 @@ A *bare* assignment is not a store through a setter and is unaffected — `serve
 
 **[Button Closure Wrapping](button-closure-wrapping.md)** covers the complementary Button shape, as described in the refutations.
 
-**The package purity.** This rule asks its oracle only `mutatesCapturedState`, which SwiftEffectInference answers without the construction facts today. It is declared as reading them anyway (`PackagePurityConsumer`), so enabling it builds the construction universe and the facts even in a run narrowed to it. That costs a narrow run the build, but nothing then rests on which of SEI's queries consult the facts staying the same across SEI versions (see [when the facts are built](pure-function-candidate.md#constructions-what-building-a-value-runs)).
+**The package purity.** This rule asks its oracle only `mutatesCapturedState`, which SwiftEffectInference answers without the construction facts today. It is declared as reading them anyway (`PackagePurityConsumer`), so enabling it builds the construction universe and the facts even in a run narrowed to it. That costs a narrow run the build, but nothing then rests on which of SEI's queries consult the facts staying the same across SEI versions (see [when the facts are built](pure-function-candidate.md#constructions-what-building-a-value-runs)). The declaration also decides where it reports: like every rule that reads the purity, it reports nothing on a file the universe leaves out, whose own types the facts do not know (see [a file the universe leaves out](pure-function-candidate.md#constructions-what-building-a-value-runs)). Its one query would judge such a file soundly today, but, as with the build, the declaration decides rather than the query.
 
 ### Known limitations
 

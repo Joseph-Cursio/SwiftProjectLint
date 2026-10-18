@@ -18,7 +18,7 @@ Most testability rules flag what makes code *hard* to test. This one is the posi
 - has a body with no obvious impurity markers — `print`, `NSLog`, `FileManager`, `URLSession`, `UserDefaults`, `NotificationCenter`, `DispatchQueue`, the `arc4random` family, `.random` / `.randomElement` / `.shuffled`, and
 - if it `throws`, raises only its **own** errors — see [Throwing candidates](#throwing-candidates-pure-but-partial).
 
-The rule is deliberately conservative: it would rather stay silent than label an impure function pure. It is `info` severity (a suggestion, not a problem) and skips test files.
+The rule is deliberately conservative: it would rather stay silent than label an impure function pure. It is `info` severity (a suggestion, not a problem) and skips test files, and every other file the construction universe leaves out (see [a file the universe leaves out](#constructions-what-building-a-value-runs)).
 
 ```swift
 // Flagged — a clean property-test candidate
@@ -283,6 +283,18 @@ generated file or a directory you excluded still refutes the production code tha
 Test-support targets, `Mocks/` and `Examples/` are kept too: they compile, and dropping a type
 production constructs would call its construction pure — the unsound direction.
 
+**A file the universe leaves out is not judged.** What is reported does not follow the universe
+everywhere: reporting's test-file classifier matches `Tests/` and `*Tests/` but not `test/`, `tests/`
+or `validation-test/`, so a suite's files are reported as production, and so is a manifest. Judged,
+such a file would be judged without the types it declares itself, and a construction of a type the
+table does not know is judged pure — the unsound direction again. Under `tests/Support/`, beside a
+`struct Probe` whose initializer prints, `func probeValue(_ n: Int) -> Int { Probe(n: n).n }` was
+offered as a candidate; under `prod/Support/` it was not. So this rule, and every other rule that
+reads the package purity, reports nothing on a file the universe leaves out, and every other rule
+reports on it as before. A file is judged when any path the walk reached it by is in the universe,
+so a production link to a file under `tests/` keeps that file judged. Putting the suites back into
+the universe is not the remedy: they are why the facts did not finish building.
+
 **What bounds it is what the root compiles.** A nested package is a directory below the root whose
 `Package.swift` is a manifest as SwiftPM reads one: a `// swift-tools-version` comment on its first
 non-blank line, the label in any case and any horizontal whitespace around the `//`, or — from tools
@@ -291,7 +303,8 @@ directory or a dangling link of that name is not one, and takes nothing out. A n
 it is reached: through the root's `.package(path:)` dependencies, followed transitively through
 every manifest reached — a directory's `Package.swift` together with its `Package@swift-*.swift`
 files; through a target whose `path:` lies inside it or holds it; or because the run reports on its files, so
-`--include-nested-packages` judges a package with its own types. Paths are read for their value, as
+`--include-nested-packages` judges a package with its own types — all but a file the universe
+leaves out, which is not judged at all (see above). Paths are read for their value, as
 SwiftPM reads them (escapes decoded, raw strings allowed), and matched where they resolve, so
 `/tmp/x` and `/private/tmp/x`, a link to a package's directory, and `packages/core` for
 `Packages/Core` on a case-insensitive volume each name the package. A dependency is followed by its
@@ -322,7 +335,8 @@ What it still does not see, or sees too much of:
   folder, inside a production target.** The universe drops every file named `Package.swift` and
   everything under a folder named like a test target or a test suite, wherever it is. That is a gap, accepted: SwiftPM compiles
   `Sources/App/Models/Package.swift` and `Sources/App/HelperTests/H.swift` into `App`, and an Xcode
-  target can compile both too, so a type declared there is missing from the table.
+  target can compile both too, so a type declared there is missing from the table. The file itself
+  is not judged: the rules that read the purity report nothing on it (see above).
 - **A tools-version comment inside a string.** A `Package.swift` whose `// swift-tools-version:6…`
   line sits in a string literal below its first line — a code generator's template in
   `Sources/Gen/Package.swift` — counts as a manifest, so its directory is a package boundary.
@@ -380,6 +394,8 @@ its computed path is no doubt, and an unrelated `Demo/`'s `Row` no longer refute
 case that motivated the facts, SwiftLintRuleStudio's `generateRecommendations`, was never offered
 here:
 `HealthRecommendation` is not `Equatable`, so the assertable-return gate already withheld it.
+These figures predate 2026-10-17, when the rules that read the purity stopped reporting on a file
+the universe leaves out; they were not re-taken.
 
 ### Throwing candidates: pure but partial
 

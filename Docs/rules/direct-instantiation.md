@@ -162,7 +162,10 @@ compiles feed those facts (see [which files' types count](pure-function-candidat
 before that bound, an unrelated nested package's namesake took a kernel's exemption away and added a
 warning. A nested package the run reports on feeds them too, so with `--include-nested-packages` its
 own kernels are judged with its own types — and its namesakes can take a root kernel's exemption,
-the accepted cost of judging it at all.
+the accepted cost of judging it at all. A file the universe leaves out — a `test/`, `tests/` or
+`validation-test/` folder's, or a manifest, in the root or in a nested package — feeds nothing, and
+so is not reported on: like every rule that reads the package purity, this one would judge it
+without the types it declares (see [a file the universe leaves out](pure-function-candidate.md#constructions-what-building-a-value-runs)).
 
 So enabling this rule builds the construction universe, the facts and the clean-method catalog,
 even in a run narrowed to it: the kernel exemption reads the catalog, and the catalog is resolved

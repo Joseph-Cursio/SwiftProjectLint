@@ -30,6 +30,7 @@ Because SwiftSyntax has no type resolution, the rule uses a conservative strateg
 - Does **not** flag framework delegate hooks (`body`, `init`, `makeBody`, `sizeThatFits`, `applicationDidFinishLaunching`, `userNotificationCenter`, etc.)
 - Does **not** flag members in test files
 - Does **not** flag members in example/fixture directories (`ExampleCode/`, `Fixtures/`, `Resources/`, `Examples/`, `Samples/`)
+- Does **not** flag members in a file the construction universe leaves out — anything under a `test/`, `tests/` or `validation-test/` folder, and a manifest. Telling a property-test candidate takes the package purity, which knows none of such a file's types, so this rule, like every rule that reads it, reports nothing there (see [a file the universe leaves out](pure-function-candidate.md#constructions-what-building-a-value-runs)). A reference written in such a file still counts as a use
 - Does **not** flag members on types conforming to project-defined protocols — these may be protocol requirements that cannot be private. That includes a conformance written through a composition `typealias` (`struct DiskStore: Store`, with `typealias Store = Saving & Sendable`); read by the alias's own name, `DiskStore.save()` was suggested as `private`, which would not compile
 
 ### Testability: what narrowing costs
