@@ -123,6 +123,9 @@ struct DiscardedTryResultVisitorTests {
         "var bookmark: Data? { get { try? url.bookmarkData() } }",
         // Subscript
         "subscript(index: Int) -> Data? { try? load(index) }",
+        // A parenthesized value type, and an optional Void — a value the caller can test
+        "func load() -> (Data?) { try? read() }",
+        "func ping() -> Void? { try? send() }",
         // Closure that spells out its return type
         "let load = { () -> Data? in try? read() }",
         // Task whose value is read
@@ -139,6 +142,11 @@ struct DiscardedTryResultVisitorTests {
         // A Void function's sole statement is discarded
         "func remove() { try? FileManager.default.removeItem(at: root) }",
         "func remove() -> Void { try? FileManager.default.removeItem(at: root) }",
+        // Other spellings of Void
+        "func remove() -> Swift.Void { try? FileManager.default.removeItem(at: root) }",
+        "func remove() -> (Void) { try? FileManager.default.removeItem(at: root) }",
+        "func remove() -> (()) { try? FileManager.default.removeItem(at: root) }",
+        "var cleanup: Swift.Void { try? FileManager.default.removeItem(at: root) }",
         // Not the only statement, so not an implicit return
         "func f() -> Data? { try? warmUp(); return nil }",
         // A Task whose value is never read

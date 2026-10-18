@@ -140,11 +140,21 @@ final class DiscardedTryResultVisitor: BasePatternVisitor {
         return accessorBlock.parent?.as(SubscriptDeclSyntax.self)?.returnClause.type
     }
 
-    /// True for a written type other than `Void` or `()`.
+    /// True for a written type other than `Void`, `Swift.Void` or `()`, in any parentheses.
     private static func isValueType(_ type: TypeSyntax?) -> Bool {
         guard let type else { return false }
         if type.as(IdentifierTypeSyntax.self)?.name.text == "Void" { return false }
-        if let tuple = type.as(TupleTypeSyntax.self), tuple.elements.isEmpty { return false }
+        if let member = type.as(MemberTypeSyntax.self), member.name.text == "Void",
+           member.baseType.as(IdentifierTypeSyntax.self)?.name.text == "Swift" {
+            return false
+        }
+        if let tuple = type.as(TupleTypeSyntax.self) {
+            if tuple.elements.isEmpty { return false }
+            // `(Void)` and `(())` are the type in parentheses, not a one-element tuple.
+            if tuple.elements.count == 1, let only = tuple.elements.first, only.firstName == nil {
+                return isValueType(only.type)
+            }
+        }
         return true
     }
 
