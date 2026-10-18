@@ -173,6 +173,33 @@ struct PositionalViewLookupReceiverKindTests {
         #expect(issues.map(\.lineNumber) == [4, 10])
     }
 
+    @Test("an extension on View<T> holds the body's views")
+    func typedBodyExtension() {
+        let issues = analyze("""
+        extension InspectableView where View == ViewType.View<HeaderView> {
+            func title() throws -> String { try text(0).string() }
+            func subtitle() throws -> String { try text().string() }
+        }
+        """)
+        #expect(issues.map(\.lineNumber) == [4])
+    }
+
+    /// ViewInspector hands back `View<Row>` for a row `view(Row.self, n)` reaches and for each match
+    /// of `findAll(Row.self)`. The row index is data, but an index into the row's body is layout.
+    @Test("a custom-view row or match holds its body's views: the row index is data, x(0) picks")
+    func rowsAndMatchesOfCustomViews() {
+        let issues = analyzeTest("""
+            _ = try sut.inspect().find(ViewType.ForEach.self).view(Row.self, 2).text(0)
+            for row in try sut.inspect().findAll(Row.self) { _ = try row.text(0) }
+            _ = try sut.inspect().findAll(Row.self).first?.text(0)
+            try sut.inspect().findAll(Row.self).forEach { row in _ = try row[0].text() }
+            _ = try sut.inspect().find(ViewType.ForEach.self).view(Row.self, 2).text()
+            _ = try sut.inspect().findAll(Row.self).first?.text()
+            _ = try sut.inspect().find(ViewType.ForEach.self).view(Row.self, 2)
+        """)
+        #expect(issues.map(\.lineNumber) == [5, 6, 7, 8])
+    }
+
     @Test("inspect() resolves x() and x(0) alike, through the body's first view")
     func rootIndexZero() {
         let issues = analyzeTest("""

@@ -65,14 +65,25 @@ anchor of its own type: `let row = try stack.hStack(1)` is reported, and `row.te
 is not reported again, though another index such as `row.text(0)` is.
 
 An index counts the receiver's children, so what it picks depends on the receiver. A custom view
-or modifier — reached by `find(Row.self)`, `view(Row.self)` or `modifier(Card.self)`, handed to an
-inspection relay as its `view`, or typed `InspectableView<ViewType.View<Row>>` — has as its
-children every view its body builds at the top level, as a sheet's content does. With a body of
-`Text("Title")` and `Text("Subtitle")`, `find(HeaderView.self).text(0)` picks the title as
-`text(1)` picks the subtitle, and both are reported, as are `[0]` and `.first`. `text()` reaches
-the body's only view and is one level. A bare `inspect()` is resolved differently: ViewInspector
-reaches the body's first view for `inspect().text()` and `inspect().text(0)` alike, so neither is
-reported as a pick.
+or modifier has as its children every view its body builds at the top level, as a sheet's content
+does. ViewInspector hands back such a receiver, typed `View<Row>` or `ViewModifier<Card>`, for:
+
+- a view reached by `find(Row.self)` or `view(Row.self)`, a `ForEach` row reached by
+  `view(Row.self, 2)`, and each match of `findAll(Row.self)`;
+- a modifier reached by `modifier(Card.self)`, or inspected itself (`CardModifier().inspect()`,
+  which the rule recognises by name: see Known Limitations);
+- the `view` an inspection relay hands its closure;
+- a parameter typed `InspectableView<ViewType.View<Row>>` or
+  `InspectableView<ViewType.ViewModifier<Card>>`, and `self` in
+  `extension InspectableView where View == ViewType.View<Row>`.
+
+With a body of `Text("Title")` and `Text("Subtitle")`, `find(HeaderView.self).text(0)` picks the
+title as `text(1)` picks the subtitle, and both are reported, as are `[0]` and `.first`. `text()`
+reaches the body's only view and is one level. A row index is data and is not reported, but an
+index into the row is layout: in `find(ViewType.ForEach.self).view(Row.self, 2).text(0)` only
+`text(0)` is reported. A bare `inspect()` is resolved differently: ViewInspector reaches the
+body's first view for `inspect().text()` and `inspect().text(0)` alike, so neither is reported as
+a pick.
 
 ### What is not reported
 
@@ -92,7 +103,8 @@ reported as a pick.
   differently.
 - **Data indices.** An index after `forEach()`, `find(ViewType.ForEach.self)`, or a parameter
   typed `InspectableView<ViewType.ForEach>` selects a row, and row order is behaviour. So does an
-  index into an `actionSheet()`'s buttons.
+  index into an `actionSheet()`'s buttons. An index into the selected row is layout again, and is
+  reported, as above.
 - **A loop over every position.** `rows[index]` inside `for index in rows.indices`,
   `for index in 0..<rows.count`, `for (index, name) in expected.enumerated()`,
   `zip(rows.indices, expected)` or `rows.indices.forEach { index in … }` compares the whole
