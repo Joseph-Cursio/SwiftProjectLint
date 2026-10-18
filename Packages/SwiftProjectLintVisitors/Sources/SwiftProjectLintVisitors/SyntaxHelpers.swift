@@ -172,17 +172,10 @@ private func findArrayProperty(named varName: String, in members: MemberBlockIte
 }
 
 /// Extracts the element type name from an array type like `[Foo]` or `[Outer.Inner]`.
-/// Returns the **leaf** type name (e.g. `"Inner"` for `[Outer.Inner]`) since that is
-/// the type that must conform to `Identifiable`.
+/// Returns the name as written (`"Outer.Inner"`), not its leaf: `IdentifiableTypeCollector`
+/// lists a nested type under its qualified path too, and matching `"Inner"` would let an
+/// unrelated `Other.Inner` borrow `Outer.Inner`'s conformance.
 private func extractArrayElementTypeName(from typeSyntax: TypeSyntax) -> String? {
     guard let arrayType = typeSyntax.as(ArrayTypeSyntax.self) else { return nil }
-    // Simple identifier: [Foo]
-    if let ident = arrayType.element.as(IdentifierTypeSyntax.self) {
-        return ident.name.text
-    }
-    // Member type: [Outer.Inner]
-    if let memberType = arrayType.element.as(MemberTypeSyntax.self) {
-        return memberType.name.text
-    }
-    return nil
+    return qualifiedTypeName(arrayType.element)
 }
