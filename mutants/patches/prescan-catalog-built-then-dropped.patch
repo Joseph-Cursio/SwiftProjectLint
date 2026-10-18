@@ -1,10 +1,11 @@
 diff --git a/Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/ProjectLinter+FileAnalysis.swift b/Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/ProjectLinter+FileAnalysis.swift
+index 52ca82a2..fde9d5d5 100644
 --- a/Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/ProjectLinter+FileAnalysis.swift
 +++ b/Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/ProjectLinter+FileAnalysis.swift
-@@ -308,7 +308,6 @@
-         det.knownDefaultedInitializerTypes = defaultedInitializerTypes
+@@ -393,7 +393,6 @@ extension ProjectLinter {
          det.knownExtensionMembers = extensionMembers
          det.knownClosureWrapperTypes = closureWrapperTypes
+         det.knownEquatableRemedies = equatableRemedies
 -        det.knownCleanInstanceMethods = cleanInstanceMethods
          det.enabledFrameworkAllowlists = enabledFrameworkAllowlists
          det.layerPolicies = layerPolicies
