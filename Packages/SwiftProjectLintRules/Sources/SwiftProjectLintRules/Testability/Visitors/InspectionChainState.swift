@@ -15,11 +15,16 @@ enum ReceiverKind {
     /// A slot's content — a label, a header, an overlay — built by a `@ViewBuilder`: `x()` checks
     /// its type in place, but when the builder made several views, `x(0)` picks the first.
     case slot
-    /// A view with one child it unwraps: a custom view or modifier's body (`View<T>`,
-    /// `ViewModifier<T>`), a relay's view, a toolbar. `x()` and `x(0)` go one level down.
+    /// A view with one child it unwraps: a toolbar, a touch bar. `x()` and `x(0)` go one level down.
     case singleChild
-    /// A presented view's content — a sheet's, a popover's, a safe-area inset's. `x()` goes one
-    /// level down to it, but when its `@ViewBuilder` made several views, `x(0)` picks the first.
+    /// What a `@ViewBuilder` built, whose children are every view it built at the top level: a
+    /// custom view's or modifier's body (`View<T>`, `ViewModifier<T>` — `find(Row.self)`,
+    /// `view(Row.self)`, `modifier(Card.self)`, a relay's view), and a presented view's content — a
+    /// sheet's, a popover's, a safe-area inset's. `x()` goes one level down to it, but when the
+    /// builder made several views, `x(0)`, `[0]` and `.first` pick the first.
+    ///
+    /// A body with one top-level view would make `x(0)` the same step as `x()`, but the rule reads
+    /// one test file, not the app's: an app view's body is out of sight, so an index is a pick.
     case content
     /// A SwiftUI view, or one the rule cannot name. Its children are its layout.
     case typed
@@ -99,8 +104,10 @@ struct InspectionChainState {
         kind == .found || kind == .root
     }
 
-    /// `x(0)` reaches the only child, as `x()` does: on a found view, a root or a custom view's
-    /// body. On a slot or a SwiftUI container it picks the first of several.
+    /// `x(0)` reaches the only child, as `x()` does: on a found view, a root, a toolbar or a touch
+    /// bar. On a slot, a custom view's body, a sheet's content or a SwiftUI container it picks the
+    /// first of several. A root is the exception among bodies: ViewInspector resolves `x()` and
+    /// `x(0)` on `inspect()` alike, through the body's first view (`implicitCustomViewChild`).
     var hasOnlyChild: Bool {
         kind == .found || kind == .root || kind == .singleChild
     }

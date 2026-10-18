@@ -2,8 +2,9 @@
 import Testing
 
 /// Whether an accessor moves depends on what it is called on: a found view's only child is
-/// itself, a custom view's is its body, a SwiftUI container's are its layout. These pin the
-/// receiver each ViewInspector step hands back, from a second review round's fixtures.
+/// itself, a custom view's children are the views its body builds, a SwiftUI container's are its
+/// layout. These pin the receiver each ViewInspector step hands back, from a second review round's
+/// fixtures.
 @Suite
 struct PositionalViewLookupReceiverKindTests {
 
@@ -39,13 +40,125 @@ struct PositionalViewLookupReceiverKindTests {
 
     // MARK: - Custom views and relays
 
-    @Test("a custom view's only child is its body, so x(0) is x()")
+    /// ViewInspector declares `View<T>` a `MultipleViewContent` whose children are the views `T`'s
+    /// body builds at the top level, as a sheet's are. This test used to pin `x(0)` as `x()`.
+    @Test("a custom view's children are its body's top-level views, so x(0) picks the first")
     func customViewIndexZero() {
         let issues = analyzeTest("""
             _ = try sut.inspect().find(Row.self).vStack(0)
             _ = try sut.inspect().view(CounterView.self).vStack(0)
+            _ = try sut.inspect().find(Row.self).view(Child.self, 0)
+            _ = try sut.inspect().find(Row.self).navigationBarItems(0)
+        """)
+        #expect(issues.map(\.lineNumber) == [5, 6, 7, 8])
+    }
+
+    @Test("x() on a custom view reaches its body's only view in one level")
+    func customViewOnlyChild() {
+        let issues = analyzeTest("""
+            _ = try sut.inspect().find(Row.self).vStack()
+            _ = try sut.inspect().find(Row.self).view(Child.self)
+            _ = try sut.inspect().view(CounterView.self).vStack()
+            _ = try sut.inspect().find(Row.self).text().string()
         """)
         #expect(issues.isEmpty)
+    }
+
+    @Test("on a body of several views, the first is picked by position as much as the second")
+    func multiViewBody() {
+        let issues = analyzeTest("""
+            let header = try sut.inspect().find(HeaderView.self)
+            _ = try header.text(0).string()
+            _ = try header.text(1).string()
+            _ = try header[0].text().string()
+            _ = try header.first?.text().string()
+        """)
+        #expect(issues.map(\.lineNumber) == [6, 7, 8, 9])
+    }
+
+    /// `TitleView`'s body is one `Text`, in an app file the rule does not read: `text(0)` reaches
+    /// the view `text()` does, but the rule cannot tell this body from one of several views.
+    @Test("an app view's body is out of sight, so x(0) is a pick even on a one-view body")
+    func singleViewBodyIndexZero() {
+        let issues = analyzeTest("""
+            _ = try sut.inspect().find(TitleView.self).text(0).string()
+            _ = try sut.inspect().find(TitleView.self).text().string()
+        """)
+        #expect(issues.map(\.lineNumber) == [5])
+    }
+
+    @Test("a body the test file declares is the test's own layout, one view or several")
+    func ownedBodies() {
+        let issues = analyze("""
+        private struct OwnedTitle: View { var body: some View { Text("a") } }
+        private struct OwnedPair: View {
+            var body: some View {
+                Text("a")
+                Text("b")
+            }
+        }
+
+        func testOwned(app: AppScreen) throws {
+            _ = try app.inspect().find(OwnedTitle.self).text(0)
+            _ = try app.inspect().find(OwnedPair.self).text(0)
+            _ = try app.inspect().find(OwnedPair.self)[1]
+            _ = try OwnedPair().inspect().text(1)
+        }
+        """)
+        #expect(issues.isEmpty)
+    }
+
+    @Test("a modifier's children are the views its body(content:) builds")
+    func modifierBody() {
+        let issues = analyzeTest("""
+            _ = try CardModifier().inspect().text(0)
+            _ = try sut.inspect().modifier(CardModifier.self).hStack(0)
+            _ = try sut.inspect().modifier(CardModifier.self)[0]
+            _ = try sut.inspect().modifier(CardModifier.self).first
+            _ = try CardModifier().inspect().hStack()
+            _ = try sut.inspect().modifier(CardModifier.self).hStack()
+        """)
+        #expect(issues.map(\.lineNumber) == [5, 6, 7, 8])
+    }
+
+    @Test("a relay's view holds the body's views: an index picks, x() goes one level down")
+    func relayIndex() {
+        let issues = analyzeTest("""
+            sut.inspection.inspect { view in _ = try view.text(0) }
+            sut.inspection.inspect { view in _ = try view[0].text() }
+            sut.on(\\.didAppear) { view in _ = try view.first?.text() }
+            sut.inspection.inspect { view in _ = try view.text().string() }
+            sut.on(\\.didAppear) { view in _ = try view.vStack() }
+        """)
+        #expect(issues.map(\.lineNumber) == [5, 6, 7])
+    }
+
+    @Test("a parameter typed View<T> or ViewModifier<T> holds the body's views")
+    func typedBodyParameters() {
+        let issues = analyze("""
+        func title(_ header: InspectableView<ViewType.View<HeaderView>>) throws -> String {
+            try header.text(0).string()
+        }
+        func subtitle(_ header: InspectableView<ViewType.View<HeaderView>>) throws -> String {
+            try header.text().string()
+        }
+        func badge(_ card: InspectableView<ViewType.ViewModifier<CardModifier>>) throws -> String {
+            try card.first!.text().string()
+        }
+        """)
+        #expect(issues.map(\.lineNumber) == [4, 10])
+    }
+
+    @Test("inspect() resolves x() and x(0) alike, through the body's first view")
+    func rootIndexZero() {
+        let issues = analyzeTest("""
+            _ = try sut.inspect().text(0)
+            _ = try sut.inspect()[0].text()
+            _ = try sut.inspect().first?.text()
+            _ = try sut.inspect().view(CounterView.self, 0)
+            _ = try sut.inspect().text(1)
+        """)
+        #expect(issues.map(\.lineNumber) == [9])
     }
 
     @Test("a relay's view and a modifier root unwrap to their body")

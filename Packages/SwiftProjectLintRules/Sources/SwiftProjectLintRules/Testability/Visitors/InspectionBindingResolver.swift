@@ -430,8 +430,8 @@ struct InspectableViewType {
     }
 
     /// `ViewType.ClassifiedView` is a found view; `ViewType.View<T>` and `ViewType.ViewModifier<T>`
-    /// unwrap to `T`'s body; `ViewType.X` is a SwiftUI view; anything else — a generic `V` — is
-    /// unknown, and read as a SwiftUI view.
+    /// have `T`'s body's views as children; `ViewType.X` is a SwiftUI view; anything else — a
+    /// generic `V` — is unknown, and read as a SwiftUI view.
     static func read(viewTypeArgument text: String) -> (ReceiverKind, String?, String?) {
         let unqualified = text.hasPrefix("ViewInspector.") ? String(text.dropFirst("ViewInspector.".count)) : text
         guard unqualified.hasPrefix("ViewType.") else { return (.typed, nil, nil) }
@@ -441,7 +441,7 @@ struct InspectableViewType {
         }
         for wrapper in ["View<", "ViewModifier<"] where name.hasPrefix(wrapper) && name.hasSuffix(">") {
             let subject = name.dropFirst(wrapper.count).dropLast()
-            return (.singleChild, nil, InspectionVocabulary.typeName(String(subject)))
+            return (.content, nil, InspectionVocabulary.typeName(String(subject)))
         }
         return (.typed, InspectionVocabulary.accessorName(forViewType: name), nil)
     }

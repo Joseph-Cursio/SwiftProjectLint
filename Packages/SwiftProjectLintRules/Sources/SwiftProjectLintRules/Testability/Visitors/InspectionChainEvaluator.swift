@@ -73,8 +73,9 @@ final class InspectionChainEvaluator {
         InspectionStep(name: name, call: call, node: node, declaredViews: declaredViews, resolver: resolver)
     }
 
-    /// `inspect()` on an app view is a root; on a modifier it is `ViewModifier<Self>`, whose only
-    /// child is its body. On a style, or on a SwiftUI view built in the test, it is the view itself.
+    /// `inspect()` on an app view is a root; on a modifier it is `ViewModifier<Self>`, whose
+    /// children are the views `body(content:)` builds. On a style, or on a SwiftUI view built in the
+    /// test, it is the view itself.
     private func rootState(
         of call: FunctionCallExprSyntax,
         inspecting subject: ExprSyntax,
@@ -86,7 +87,7 @@ final class InspectionChainEvaluator {
             || typeName.map(InspectionVocabulary.isSwiftUIViewType) == true {
             kind = .found
         } else {
-            kind = typeName?.hasSuffix("Modifier") == true ? .singleChild : .root
+            kind = typeName?.hasSuffix("Modifier") == true ? .content : .root
         }
         return .root(kind, ownership: declaredViews.ownership(of: typeName))
     }
@@ -105,6 +106,7 @@ final class InspectionChainEvaluator {
             }
             return receiver.then(.reporting(step, from: state, leaving: state.element))
         }
+        // A toolbar's only child. On a custom view's body `[0]` is the first of its views, below.
         if state.kind == .singleChild, index == "0" {
             return receiver.then(InspectionStep.oneLevelDown(
                 from: state, to: .found, ownership: state.ownership, step: "[0]", written: "[0]", node: step.node
@@ -124,8 +126,9 @@ final class InspectionChainEvaluator {
     }
 
     /// `.first` on a list of matches is `find` by another name; `.last` is an ordinal. On a
-    /// container both are children by position, except a `ForEach`'s rows and a found view, whose
-    /// only child is itself. `self.x` reads a property. Any other property ends the chain.
+    /// container — a custom view's body among them — both are children by position, except a
+    /// `ForEach`'s rows and a found view, whose only child is itself, and a toolbar's only child.
+    /// `self.x` reads a property. Any other property ends the chain.
     private func evaluateProperty(_ member: MemberAccessExprSyntax, of base: ExprSyntax, depth: Int) -> ChainEvaluation {
         let name = member.declName.baseName.text
         if Self.namesEnclosingType(Self.unwrapped(base), from: Syntax(member)) {
@@ -177,9 +180,9 @@ final class InspectionChainEvaluator {
             return evaluate(sequence, depth: depth + 1).state?.element
 
         case .relayParameter(let subject):
-            // ViewInspector hands the relay `View<Subject>`, whose child is the body.
+            // ViewInspector hands the relay `View<Subject>`, whose children are the body's views.
             let typeName = subject.flatMap { subjectType(of: $0, depth: depth + 1) }
-            return .root(.singleChild, ownership: declaredViews.ownership(of: typeName))
+            return .root(.content, ownership: declaredViews.ownership(of: typeName))
 
         case .inspectableView(let declared):
             return state(declaredAs: declared)

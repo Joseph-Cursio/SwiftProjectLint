@@ -40,7 +40,7 @@ struct InspectionStep {
         case "modifier":
             // `modifier(Card.self)` reaches a custom modifier by type; SwiftUI's takes an instance.
             guard metatypeName(call.arguments.first) != nil else { return .unrelated }
-            let reached = state.reanchored(.singleChild, ownership: stepOwnership(from: state), after: name)
+            let reached = state.reanchored(.content, ownership: stepOwnership(from: state), after: name)
             return ChainEvaluation(state: reached)
 
         default:
@@ -104,11 +104,11 @@ struct InspectionStep {
     }
 
     /// What a search returns: `find(ViewType.X.self)` an `X`, `find(Row.self)` the custom view
-    /// `Row`, `find(text:)` a `Text`; every other form — an identifier, a predicate, a relation —
-    /// the found view itself.
+    /// `Row` — whose children are its body's views — `find(text:)` a `Text`; every other form — an
+    /// identifier, a predicate, a relation — the found view itself.
     private var searchedKind: ReceiverKind {
         if let typeName = metatypeName(call.arguments.first) {
-            return InspectionVocabulary.isViewTypeName(typeName) ? .typed : .singleChild
+            return InspectionVocabulary.isViewTypeName(typeName) ? .typed : .content
         }
         let labels = call.arguments.compactMap { $0.label?.text }
         return labels.contains(where: InspectionVocabulary.typedFindLabels.contains) ? .typed : .found
@@ -152,8 +152,9 @@ struct InspectionStep {
 
     // MARK: - View-type accessors
 
-    /// `x()` and `x(0)` take the receiver's only child; `x(n)` picks a sibling. `view(T.self)`
-    /// does the same as `x()` but leaves a custom view `T`, whose only child is its body.
+    /// `x()` takes the receiver's only child; `x(n)` picks a sibling, and so does `x(0)` unless the
+    /// receiver has only one child (`hasOnlyChild`). `view(T.self)` does the same as `x()` but
+    /// leaves a custom view `T`, whose children are its body's views.
     private func accessorStep(from state: InspectionChainState) -> ChainEvaluation {
         let isView = name == "view"
         switch AccessorArguments(call, resolver: resolver) {
@@ -161,15 +162,15 @@ struct InspectionStep {
             return onlyChild(of: state, becoming: .typed)
 
         case .metatype where isView:
-            return onlyChild(of: state, becoming: .singleChild)
+            return onlyChild(of: state, becoming: .content)
 
         case .index(let index) where isView == false:
             if index == "0", state.hasOnlyChild { return onlyChild(of: state, becoming: .typed) }
             return indexedStep(from: state, becoming: .typed)
 
         case .metatypeAndIndex(let index) where isView:
-            if index == "0", state.hasOnlyChild { return onlyChild(of: state, becoming: .singleChild) }
-            return indexedStep(from: state, becoming: .singleChild)
+            if index == "0", state.hasOnlyChild { return onlyChild(of: state, becoming: .content) }
+            return indexedStep(from: state, becoming: .content)
 
         default:
             return .unrelated
@@ -180,7 +181,7 @@ struct InspectionStep {
     /// root, `view(MyView.self)` names the subject's own type. Anywhere else it goes one level down,
     /// and a second level since the anchor is a walk.
     private func onlyChild(of state: InspectionChainState, becoming kind: ReceiverKind) -> ChainEvaluation {
-        let isCast = state.kind == .found || state.kind == .slot || (state.kind == .root && kind == .singleChild)
+        let isCast = state.kind == .found || state.kind == .slot || (state.kind == .root && name == "view")
         if isCast {
             var cast = state
             cast.kind = kind

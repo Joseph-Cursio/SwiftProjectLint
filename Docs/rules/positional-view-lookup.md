@@ -55,7 +55,7 @@ Four shapes are reported, at the first one in each chain:
 
 | Shape | Example | Why |
 |---|---|---|
-| An index | `hStack(1)`, `view(Row.self, 2)`, `hStack[1]`, `vStack().first`, `toolbar().item(2)` | Picks a sibling by its order. Reorder the siblings and the lookup fails, or reaches a different view of the same type. |
+| An index | `hStack(1)`, `view(Row.self, 2)`, `hStack[1]`, `vStack().first`, `toolbar().item(2)`, `find(Row.self).text(0)` | Picks a sibling by its order. Reorder the siblings and the lookup fails, or reaches a different view of the same type. |
 | An ordinal over search matches | `findAll(ViewType.Toggle.self)[1]`, `findAll(…).last`, `find(ViewType.Button.self, skipFound: 2)` | Picks the nth match in tree order. Reorder the views and the test silently checks a different one. |
 | A second structural step since the last search | `inspect().navigationStack().vStack()` | Restates two levels of nesting. Any wrapper in between breaks it. |
 | `parent()` | `find(text: "Name").parent().parent()` | Climbs a fixed number of levels, so it encodes how deeply the view is nested. |
@@ -63,6 +63,16 @@ Four shapes are reported, at the first one in each chain:
 A chain is reported once, at its first positional step. A view picked by position becomes a new
 anchor of its own type: `let row = try stack.hStack(1)` is reported, and `row.text()` afterwards
 is not reported again, though another index such as `row.text(0)` is.
+
+An index counts the receiver's children, so what it picks depends on the receiver. A custom view
+or modifier — reached by `find(Row.self)`, `view(Row.self)` or `modifier(Card.self)`, handed to an
+inspection relay as its `view`, or typed `InspectableView<ViewType.View<Row>>` — has as its
+children every view its body builds at the top level, as a sheet's content does. With a body of
+`Text("Title")` and `Text("Subtitle")`, `find(HeaderView.self).text(0)` picks the title as
+`text(1)` picks the subtitle, and both are reported, as are `[0]` and `.first`. `text()` reaches
+the body's only view and is one level. A bare `inspect()` is resolved differently: ViewInspector
+reaches the body's first view for `inspect().text()` and `inspect().text(0)` alike, so neither is
+reported as a pick.
 
 ### What is not reported
 
@@ -225,6 +235,9 @@ where earlier runs passed an hour. Every run before covered the other 85, and th
 byte-identical at `8257d6a9` (SEI `cfbb250`) and at `5b83f22f` (re-run 2026-10-14, release CLI,
 `--format json`, an empty config).
 
+*Note, 2026-10-17:* the figures above predate reporting an index of 0, `[0]` and `.first` on a
+custom view or modifier. They have not been re-measured since.
+
 ### Known Limitations
 
 - **The step into a `ForEach` is positional.** `list().forEach(0)` is reported even when the
@@ -264,6 +277,14 @@ byte-identical at `8257d6a9` (SEI `cfbb250`) and at `5b83f22f` (re-run 2026-10-1
   `sheet().text(0)` pick the first of the views a `@ViewBuilder` made, and `toolbar().item(0)` the
   first of the toolbar's items. When the slot holds one view, write `text()`, or `item()` for a
   toolbar's only item.
+- **An index of 0 on a custom view is reported even when its body is one view.** When
+  `TitleView`'s body is a single `Text`, `find(TitleView.self).text(0)` reaches the same view as
+  `text()`. The rule reads one test file at a time and does not see the bodies of the app's views,
+  so it cannot tell that body from one of several top-level views, where `text(0)` silently takes
+  the first. Write `text()`, which fails loudly if the body gains a second view. The same holds
+  for a modifier's `body(content:)`. A view the test file declares is test-owned, so nothing in
+  its layout is reported either way. A bare `inspect()` is the opposite case: `inspect().text()`
+  and `inspect().text(0)` are not reported, and on a body of several views both take the first.
 - **A step without an index that takes the first child is not reported as a pick.**
   `toolbar().item()`, `itemGroup()`, `navigationBarItems()` on a container, and `x()` on a
   `NavigationView`, `NavigationStack`, `NavigationSplitView`, `NavigationLink`, `ControlGroup` or
