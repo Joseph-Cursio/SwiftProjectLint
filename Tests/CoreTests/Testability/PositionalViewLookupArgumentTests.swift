@@ -153,6 +153,29 @@ struct PositionalViewLookupArgumentTests {
         #expect(issues.map(\.lineNumber) == [12, 13, 14])
     }
 
+    @Test("a comparison, a ternary or a concatenation is not certainly an Int, so a String helper still fits")
+    func helperTakesNonArithmeticSequence() {
+        let issues = analyze("""
+        extension InspectableView {
+            func button(_ title: String) throws -> InspectableView<ViewType.Button> {
+                try find(button: title)
+            }
+        }
+
+        func testHelpers(pages: Int) throws {
+            let stack = try sut.inspect().find(ViewType.VStack.self)
+            let primary = ["Save"]
+            let extra = ["Cancel"]
+            _ = try stack.button(pages > 1 ? "Next" : "Done")
+            for title in primary + extra { _ = try stack.button(title) }
+            _ = try stack.button(pages * 2)
+            _ = try stack.button(pages + 1)
+            for index in 1...3 { _ = try stack.button(index) }
+        }
+        """)
+        #expect(issues.map(\.lineNumber) == [15, 16, 17])
+    }
+
     @Test("an element of an array of closures handed to forEach is a function")
     func closureElementsToForEach() {
         let issues = analyzeTest("""

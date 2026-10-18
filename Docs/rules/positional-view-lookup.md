@@ -132,8 +132,12 @@ a pick.
 - **Anything else.** A step the rule does not recognise ends the chain, so a project's own
   helpers (`sut.inspect().pegColor(1)`) are not read as accessors. A finder helper the file
   declares in `extension InspectableView` under an accessor's name — `button(.increment)` — is
-  read as the helper when the call fits its parameters, unless it is called with an integer
-  literal: a helper `find(_ id: String)` does not hide `find(ViewType.HStack.self)`. An argument
+  read as the helper when the call fits its parameters, unless its argument is an `Int` for
+  certain — an integer literal, a name bound to one or declared `Int`, an element of a range or
+  `indices`, or arithmetic on one such as `second + 1` — where the helper takes none: a helper
+  `find(_ id: String)` does not hide `find(ViewType.HStack.self)`. A comparison, a ternary or a
+  concatenation is not arithmetic, so `button(pages > 1 ? "Next" : "Done")` and a title from
+  `primary + extra` still fit a `button(_ title: String)` helper. An argument
   that cannot be an `Int` — a `String`, a name bound to one, an enum case or constant such as
   `A11y.increment` or `AccessibilityID.Counter.increment`, an enum's `rawValue` unless the file
   declares the enum with an integer raw type — is not an index either, so a helper declared in
