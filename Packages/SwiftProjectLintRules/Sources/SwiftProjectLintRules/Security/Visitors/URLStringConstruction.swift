@@ -50,6 +50,9 @@ enum URLStringConstruction {
         if let ternary = expression.as(TernaryExprSyntax.self) {
             return construction(of: ternary.thenExpression) ?? construction(of: ternary.elseExpression)
         }
+        if let cast = expression.as(AsExprSyntax.self) {
+            return construction(of: cast.expression)
+        }
         if let infix = expression.as(InfixOperatorExprSyntax.self) {
             if isNilCoalescing(infix.operator) {
                 return construction(of: infix.leftOperand) ?? construction(of: infix.rightOperand)
@@ -94,12 +97,32 @@ enum URLStringConstruction {
     }
 
     /// How one side of a `??` builds its text: a lone operand is read as a whole expression, so a
-    /// parenthesised one is opened; a chain of `+` is concatenation.
+    /// parenthesised one is opened; a chain of `+` is concatenation. A cast is read through first,
+    /// so `base + path as String` and `(base + path) as String` are concatenations, and
+    /// `value as? String` is whatever `value` is.
     private static func construction(ofSide side: [ExprSyntax]) -> Self? {
+        let side = withoutCasts(side)
         if side.count == 1 { return construction(of: side[0]) }
-        // A side with a cast, `value as? String`, joins nothing.
         guard operators(of: side).allSatisfy(isPlus) else { return nil }
         return concatenation(of: operands(of: side))
+    }
+
+    /// `elements` with each cast dropped. A cast binds tighter than `+` and `??`, so `as String`
+    /// applies to the operand just before it, and that operand's text is the text the cast gives:
+    /// `[base, +, path, as, String]` is `[base, +, path]`. The parser spells a cast as an `as`
+    /// in an operator position followed by its type in the next operand position.
+    private static func withoutCasts(_ elements: [ExprSyntax]) -> [ExprSyntax] {
+        var kept: [ExprSyntax] = []
+        var index = 0
+        while index < elements.count {
+            if index.isMultiple(of: 2) == false, elements[index].is(UnresolvedAsExprSyntax.self) {
+                index += 2
+                continue
+            }
+            kept.append(elements[index])
+            index += 1
+        }
+        return kept
     }
 
     // MARK: - Concatenation
@@ -120,8 +143,12 @@ enum URLStringConstruction {
             if let infix = operand.as(InfixOperatorExprSyntax.self), isPlus(infix.operator) {
                 return joinedOperands([infix.leftOperand, infix.rightOperand])
             }
+            if let cast = operand.as(AsExprSyntax.self) {
+                return joinedOperands([cast.expression])
+            }
             if let sequence = operand.as(SequenceExprSyntax.self) {
-                let elements = Array(sequence.elements)
+                let elements = withoutCasts(Array(sequence.elements))
+                if elements.count == 1 { return joinedOperands(elements) }
                 if operators(of: elements).allSatisfy(isPlus) {
                     return joinedOperands(Self.operands(of: elements))
                 }

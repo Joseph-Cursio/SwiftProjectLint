@@ -35,6 +35,19 @@ extension SecurityVisitorTests {
         #expect(issues.allSatisfy { $0.severity == .warning })
     }
 
+    /// A cast binds tighter than `+`, so it applies to one operand and leaves the chain a
+    /// concatenation, written with or without parentheses around the chain. A cast over a fixed
+    /// literal chain, or over a plain value behind a `??`, still builds nothing.
+    @Test func testCastOverConcatenationIsUnsafe() {
+        let source = """
+        let trailing = URL(string: base + path as String)
+        let wrapped = URL(string: (base + path) as String)
+        let fallback = URL(string: value as? String ?? "https://example.com")
+        let constant = URL(string: ("https://example.com/" + "v2") as String)
+        """
+        #expect(unsafeURLIssues(source).map(\.lineNumber) == [1, 2])
+    }
+
     /// The parser leaves a parenthesised operand as a tuple holding its own sequence, and an
     /// interpolated literal inside a chain still makes the chain a concatenation.
     @Test func testParenthesisedConcatenationIsUnsafe() {

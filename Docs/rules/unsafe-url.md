@@ -25,7 +25,7 @@ Only the `string:` argument is checked: `URL(fileURLWithPath:)` and `URL(filePat
 
 ### Known Limitations
 - **Only the argument itself is read.** A string built on an earlier line and passed by name — `let text = base + path` then `URL(string: text)` — is not reported, nor is one built by a call such as `base.appending(path)`.
-- **Only `+`, `??`, casts and `?:` are taken apart.** Settling any other operator needs its precedence, so a part of the argument that holds one is not read: neither `base + path as String` nor `base <> path`, with a custom operator, is reported.
+- **Only `+`, `??`, casts and `?:` are taken apart.** A cast is read through, so `base + path as String` and `(base + path) as String` are reported as concatenation. Settling any other operator needs its precedence, so a part of the argument that holds one is not read: `base <> path`, with a custom operator, is not reported.
 
 ### Non-Violating Examples
 ```swift
