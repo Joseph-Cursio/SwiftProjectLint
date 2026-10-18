@@ -137,9 +137,13 @@ class PerformanceVisitor: BasePatternVisitor {
             }
 
             if !hasExplicitID {
-                // Suppress when the element type is known to be Identifiable
+                // Suppress when the element type is known to be Identifiable — from a type
+                // annotation this file can see, or, for `ForEach(model.items)`, from the
+                // project-wide catalog of array properties of an Identifiable type.
                 let elementType = inferForEachElementType(node)
-                let isIdentifiable = elementType.map { knownIdentifiableTypes.contains($0) } ?? false
+                let isIdentifiable = elementType.map { knownIdentifiableTypes.contains($0) }
+                    ?? forEachCollectionPropertyName(node).map(knownIdentifiableCollectionProperties.contains)
+                    ?? false
 
                 if !isIdentifiable {
                     addIssue(

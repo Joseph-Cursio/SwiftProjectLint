@@ -20,6 +20,9 @@ public protocol SourcePatternDetectorProtocol {
     /// Type names known to conform to `Identifiable` across the project.
     var knownIdentifiableTypes: Set<String> { get set }
 
+    /// Property names that are arrays of `Identifiable` types across the project.
+    var knownIdentifiableCollectionProperties: Set<String> { get set }
+
     /// Type names known to be declared as enums across the project.
     var knownEnumTypes: Set<String> { get set }
 

@@ -177,6 +177,18 @@ struct SecurityVisitorTests {
         #expect(secretIss.count == 1) // "token" keyword match
     }
 
+    /// A file path is not parsed as a URL, so interpolating into one cannot change a scheme,
+    /// host or query.
+    @Test func testFilePathURLIsNotUnsafe() {
+        let source = """
+        let scratch = URL(fileURLWithPath: "/tmp/run-\\(UUID().uuidString)")
+        let file = URL(filePath: "/tmp/\\(name).swift")
+        let joined = URL(fileURLWithPath: base + "/Sources")
+        """
+        let urlIssues = analyzeSource(source).filter { $0.ruleName == .unsafeURL }
+        #expect(urlIssues.isEmpty)
+    }
+
     // MARK: - Interpolation is not a secret (#111)
 
     /// **A literal with interpolation has no fixed value, and a secret is a fixed value.**

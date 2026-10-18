@@ -24,6 +24,11 @@ open class BasePatternVisitor: SyntaxVisitor, PatternVisitorProtocol {
     /// when the element type is `Identifiable`).
     public var knownIdentifiableTypes: Set<String> = []
 
+    /// Property names whose every declaration in the project is an array of an `Identifiable`
+    /// type — see `IdentifiableCollectionPropertyCatalog`. Lets the ForEach check accept
+    /// `ForEach(viewModel.insights)` when `insights` is declared in another file.
+    public var knownIdentifiableCollectionProperties: Set<String> = []
+
     /// Type names known to be declared as enums across the project.
     /// Populated by a pre-scan phase in `ProjectLinter` so that per-file
     /// visitors can exempt enum-typed parameters and properties from rules

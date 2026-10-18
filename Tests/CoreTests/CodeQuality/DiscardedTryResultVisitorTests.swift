@@ -100,6 +100,54 @@ struct DiscardedTryResultVisitorTests {
         #expect(visitor.detectedIssues.isEmpty == false)
     }
 
+    @Test("No issue for best-effort cleanup in a defer block", arguments: [
+        "func f() { defer { try? handle.close() } }",
+        "func f() { defer { try? FileManager.default.removeItem(at: url) } }"
+    ])
+    func noIssueForDeferredCleanup(source: String) {
+        let visitor = makeVisitor()
+        run(visitor, source: source)
+        #expect(visitor.detectedIssues.isEmpty)
+    }
+
+    @Test("No issue when try? is the implicit return value of its body", arguments: [
+        // Function with a non-Void result
+        "func deflate(_ text: String) -> NSData? { try? compress(text) }",
+        // Computed property shorthand
+        "var bookmark: Data? { try? url.bookmarkData() }",
+        // Explicit getter
+        "var bookmark: Data? { get { try? url.bookmarkData() } }",
+        // Subscript
+        "subscript(index: Int) -> Data? { try? load(index) }",
+        // Closure that spells out its return type
+        "let load = { () -> Data? in try? read() }",
+        // Task whose value is read
+        "func f() async { let result = await Task { try? describe() }.value }",
+        "func f() async { let result = await Task.detached(priority: .userInitiated) { try? describe() }.value }"
+    ])
+    func noIssueForImplicitReturnValue(source: String) {
+        let visitor = makeVisitor()
+        run(visitor, source: source)
+        #expect(visitor.detectedIssues.isEmpty)
+    }
+
+    @Test("Still flags try? whose body returns nothing, or whose value is not shown to be read", arguments: [
+        // A Void function's sole statement is discarded
+        "func remove() { try? FileManager.default.removeItem(at: root) }",
+        "func remove() -> Void { try? FileManager.default.removeItem(at: root) }",
+        // Not the only statement, so not an implicit return
+        "func f() -> Data? { try? warmUp(); return nil }",
+        // A Task whose value is never read
+        "func f() { Task { try? save() } }",
+        // A closure with no signature: whether its value is used is not visible
+        "Button(\"Save\") { try? save() }"
+    ])
+    func stillFlagsDiscardWithoutAReturnValue(source: String) {
+        let visitor = makeVisitor()
+        run(visitor, source: source)
+        #expect(visitor.detectedIssues.count == 1)
+    }
+
     @Test("No issue for bare try or try!")
     func noIssueForOtherTryForms() {
         let visitor = makeVisitor()

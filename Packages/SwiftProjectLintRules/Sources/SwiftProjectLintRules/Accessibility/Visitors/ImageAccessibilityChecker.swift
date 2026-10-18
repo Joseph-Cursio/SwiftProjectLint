@@ -32,7 +32,11 @@ class ImageAccessibilityChecker {
                 lineNumber: visitor.getLineNumber(for: Syntax(node)),
                 suggestion: "Add .accessibilityLabel(\"descriptive text\") to make the image accessible " +
                             "to screen readers",
-                ruleName: visitor.currentPattern?.name
+                // Named outright, not `visitor.currentPattern?.name`: the detector builds one
+                // `AccessibilityVisitor` per file from the first of its enabled rules, so the
+                // current pattern was whichever rule sorted first — often Icon-Only Button
+                // Missing Label, which then reported every unlabelled decorative image.
+                ruleName: .missingAccessibilityLabel
             )
         }
     }

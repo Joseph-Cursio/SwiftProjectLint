@@ -14,6 +14,9 @@ extension ProjectLinter {
     /// type and nothing else.
     struct CollectedTypes: Sendable {
         let identifiable: Set<String>
+        /// Property names that are arrays of an `Identifiable` type — see
+        /// `IdentifiableCollectionPropertyCatalog`.
+        let identifiableCollectionProperties: Set<String>
         let enums: Set<String>
         /// Actor names, and the all-`async` project protocols each conforms to — a join across
         /// files, so built by its own catalog rather than by `collectTypes`. See
@@ -105,8 +108,12 @@ extension ProjectLinter {
                     )
                 )
             } ?? []
+            let identifiable = collectTypes(IdentifiableTypeCollector.self, in: parsed)
             return Self(
-                identifiable: collectTypes(IdentifiableTypeCollector.self, in: parsed),
+                identifiable: identifiable,
+                identifiableCollectionProperties: IdentifiableCollectionPropertyCatalog.build(
+                    from: parsed, identifiable: identifiable
+                ),
                 enums: collectTypes(EnumTypeCollector.self, in: parsed),
                 actors: ActorTypeCatalog.build(from: parsed, aliases: aliases),
                 local: collectTypes(LocalTypeCollector.self, in: parsed),
@@ -158,6 +165,7 @@ extension ProjectLinter {
     ) -> any SourcePatternDetectorProtocol {
         var resolved = detector ?? SourcePatternDetector()
         resolved.knownIdentifiableTypes = collected.identifiable
+        resolved.knownIdentifiableCollectionProperties = collected.identifiableCollectionProperties
         resolved.knownEnumTypes = collected.enums
         resolved.knownActorTypes = collected.actors
         resolved.knownLocalTypeNames = collected.local
@@ -197,6 +205,7 @@ extension ProjectLinter {
             categories: categories,
             ruleIdentifiers: ruleIdentifiers,
             identifiableTypes: collected.identifiable,
+            identifiableCollectionProperties: collected.identifiableCollectionProperties,
             observableEnvironmentViews: collected.observableEnvironmentViews,
             inspectedTypeNames: collected.inspectedTypeNames,
             functionTypeAliases: collected.functionTypeAliases,

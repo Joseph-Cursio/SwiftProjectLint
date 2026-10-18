@@ -18,10 +18,12 @@ struct ForEachAndBodyTests {
     private func analyzeSource(
         _ source: String,
         filePath: String = "TestView.swift",
-        identifiableTypes: Set<String> = []
+        identifiableTypes: Set<String> = [],
+        identifiableCollectionProperties: Set<String> = []
     ) -> [LintIssue] {
         let visitor = createVisitor()
         visitor.knownIdentifiableTypes = identifiableTypes
+        visitor.knownIdentifiableCollectionProperties = identifiableCollectionProperties
         let syntax = Parser.parse(source: source)
         let converter = SourceLocationConverter(fileName: filePath, tree: syntax)
         visitor.setSourceLocationConverter(converter)
@@ -31,6 +33,75 @@ struct ForEachAndBodyTests {
     }
 
     // MARK: - ForEach Without ID Tests
+
+    /// `insights` is declared on the view model, in another file; the pre-scan's catalog says
+    /// every `insights` property in the project is an array of an Identifiable type.
+    @Test func testNoForEachWithoutIDForIdentifiableMemberDeclaredElsewhere() {
+        let source = """
+        struct Sidebar: View {
+            let viewModel: DiagramViewModel
+            var body: some View {
+                List { ForEach(viewModel.insights) { insight in Text(insight.title) } }
+            }
+        }
+        """
+        let issues = analyzeSource(source, identifiableCollectionProperties: ["insights"])
+        #expect(issues.contains { $0.ruleName == .forEachWithoutID } == false)
+    }
+
+    /// Through the whole linter: the pre-scan reads `insights` and `history` from the view
+    /// model's file, and `DiagramEntity` is Identifiable through SwiftData's `@Model`.
+    @Test func testProjectLinterKnowsIdentifiableMembersFromOtherFiles() async {
+        let root = FileManager.default.temporaryDirectory
+            .appendingPathComponent("ForEachCrossFile-\(UUID().uuidString)")
+        try? FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let files = [
+            "Insight.swift": "struct Insight: Identifiable { let id: UUID; let title: String }",
+            "DiagramEntity.swift": "@Model final class DiagramEntity { var name: String = \"\" }",
+            "DiagramViewModel.swift": """
+            @Observable final class DiagramViewModel {
+                var insights: [Insight] = []
+                var history: [DiagramEntity] = []
+                var names: [String] = []
+            }
+            """,
+            "Sidebar.swift": """
+            struct Sidebar: View {
+                let viewModel: DiagramViewModel
+                var body: some View {
+                    List {
+                        ForEach(viewModel.insights) { insight in Text(insight.title) }
+                        ForEach(viewModel.history) { entity in Text(entity.name) }
+                        ForEach(viewModel.names) { name in Text(name) }
+                    }
+                }
+            }
+            """
+        ]
+        for (name, source) in files {
+            try? source.write(to: root.appendingPathComponent(name), atomically: true, encoding: .utf8)
+        }
+        let system = PatternRegistryFactory.createConfiguredSystem()
+        let issues = await ProjectLinter().analyzeProject(
+            at: root.path, ruleIdentifiers: [.forEachWithoutID], detector: system.detector
+        )
+        // Only `names`, an array of String.
+        #expect(issues.map(\.lineNumber) == [7])
+    }
+
+    @Test func testForEachWithoutIDForMemberNotInTheCatalog() {
+        let source = """
+        struct Sidebar: View {
+            let viewModel: DiagramViewModel
+            var body: some View {
+                List { ForEach(viewModel.names) { name in Text(name) } }
+            }
+        }
+        """
+        let issues = analyzeSource(source, identifiableCollectionProperties: ["insights"])
+        #expect(issues.filter { $0.ruleName == .forEachWithoutID }.count == 1)
+    }
 
     @Test func testDetectsForEachWithoutID() throws {
         let source = """

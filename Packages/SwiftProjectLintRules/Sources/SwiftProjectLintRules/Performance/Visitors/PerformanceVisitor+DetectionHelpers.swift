@@ -7,6 +7,13 @@ import SwiftSyntax
 extension PerformanceVisitor {
     // MARK: - Detection Methods
 
+    /// `items` for `ForEach(model.items)`: the property name to look up in
+    /// `knownIdentifiableCollectionProperties` when the element type isn't visible here.
+    func forEachCollectionPropertyName(_ node: FunctionCallExprSyntax) -> String? {
+        let collection = node.arguments.first { $0.label?.text != "id" }
+        return collection?.expression.as(MemberAccessExprSyntax.self)?.declName.baseName.text
+    }
+
     private static let unsafeIDPatterns: [(pattern: String, message: String)] = [
         ("\\.self", "Using \\.self as id in ForEach can cause performance issues"),
         ("\\.hashValue",

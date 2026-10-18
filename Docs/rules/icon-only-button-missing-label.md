@@ -16,6 +16,7 @@ A `Button` containing only an `Image` and no text is completely invisible to Voi
 - Does **not** flag buttons that use `Label` — `Label` provides accessible text automatically
 - Does **not** flag buttons with an `.accessibilityLabel()` modifier
 - Does **not** flag buttons with `.accessibilityHidden(true)` — hidden elements are invisible to VoiceOver
+- Does **not** flag an `Image` outside any `Button` — an unlabelled standalone image is [Missing Accessibility Label](missing-accessibility-label.md), reported under that rule whichever accessibility rules a run enables
 - Warning severity reflects that this is a functional accessibility failure, not a style suggestion
 
 ### Non-Violating Examples

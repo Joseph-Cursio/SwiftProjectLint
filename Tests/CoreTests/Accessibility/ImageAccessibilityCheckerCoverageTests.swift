@@ -252,4 +252,35 @@ struct ImageAccessibilityCheckerCoverageTests {
         }
         #expect(imageIssues.count == 1)
     }
+    // MARK: - Rule name
+
+    /// The detector builds one `AccessibilityVisitor` per file from the first of its enabled
+    /// rules. The image check used to report under that rule — so a run of Icon-Only Button
+    /// Missing Label alone flagged every unlabelled decorative image beside a `Text`.
+    @Test("an unlabelled image is reported as Missing Accessibility Label, whichever rule runs")
+    func imageIssueKeepsItsOwnRuleName() {
+        let source = """
+        struct Banner: View {
+            var body: some View {
+                HStack {
+                    Image(systemName: "square.grid.3x3")
+                    Text("Laid out on a grid")
+                }
+            }
+        }
+        """
+        let detector = PatternRegistryFactory.createConfiguredSystem().detector
+
+        let iconOnly = detector.detectPatterns(
+            in: source, filePath: "Banner.swift", ruleIdentifiers: [.iconOnlyButtonMissingLabel]
+        )
+        #expect(iconOnly.isEmpty)
+
+        let both = detector.detectPatterns(
+            in: source,
+            filePath: "Banner.swift",
+            ruleIdentifiers: [.iconOnlyButtonMissingLabel, .missingAccessibilityLabel]
+        )
+        #expect(both.map(\.ruleName) == [.missingAccessibilityLabel])
+    }
 }
