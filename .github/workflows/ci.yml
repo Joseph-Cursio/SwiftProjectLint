@@ -1,6 +1,16 @@
 name: CI
 
+# Both jobs run on standard GitHub-hosted runners (macos-26, ubuntu-latest),
+# which are free and unlimited because this repository is public. Minutes
+# become billable if the repository goes private (macOS at a 10x multiplier)
+# or if a job moves to a larger runner such as macos-26-xlarge, which is
+# billed even on public repositories. Revisit the push / pull_request
+# triggers before making either change.
 on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 
 jobs:
