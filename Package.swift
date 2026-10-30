@@ -45,7 +45,7 @@ let package = Package(
         .package(path: "Packages/SwiftProjectLintIdempotencyRules"),
         .package(path: "Packages/SwiftProjectLintConfig"),
         .package(path: "Packages/SwiftProjectLintEngine"),
-        .package(url: "https://github.com/swiftlang/swift-syntax.git", exact: "602.0.0"),
+        .package(url: "https://github.com/swiftlang/swift-syntax.git", exact: "603.0.2"),
         // Pinned to the exact commit that fixes ViewInspector on macOS 27
         // (nalexn/ViewInspector#421, merged 2026-08-09). There is no 0.10.4 tag
         // yet — 0.10.4 is the default branch — so a revision pin is the only way
@@ -55,7 +55,7 @@ let package = Package(
             revision: "6be008f348a757e7c0c6901c2dde983e5bba069f"
         ),
         .package(url: "https://github.com/apple/swift-argument-parser.git", from: "1.3.0"),
-        .package(url: "https://github.com/x-sheep/swift-property-based.git", from: "1.0.0"),
+        .package(url: "https://github.com/x-sheep/swift-property-based.git", from: "2.0.0"),
         // The conformance-law catalog, test-only. This package already had the
         // generator *engine* (`swift-property-based`, above) and used it for
         // hand-written property suites, but nothing ran the laws the standard
@@ -70,7 +70,7 @@ let package = Package(
         // opposite direction from the one the toolchain's dependency graph has,
         // where the two leaves meet only at SwiftEffectInference. Running the
         // laws is the value; feeding the verdicts back is a separate decision.
-        .package(url: "https://github.com/Joseph-Cursio/SwiftPropertyLaws.git", from: "3.28.0"),
+        .package(url: "https://github.com/Joseph-Cursio/SwiftPropertyLaws.git", from: "4.11.0"),
         .package(url: "https://github.com/Joseph-Cursio/LintStudioUI.git", from: "1.3.0"),
         // The leaf effect-lattice library — now the single source of truth for
         // the `Effect` type and its `lub`. SPL's `DeclaredEffect` is a typealias
@@ -80,10 +80,10 @@ let package = Package(
         // root-level declaration also backs CoreTests' direct `import` of the
         // lattice laws. Pinned by revision because SEI carries no version tags
         // yet; keep this SHA aligned with the nested packages' pins. Both pin
-        // swift-syntax exact 602.0.0, so there is no version conflict.
+        // swift-syntax exact 603.0.2, so there is no version conflict.
         .package(
             url: "https://github.com/Joseph-Cursio/SwiftEffectInference.git",
-            revision: "f34cee3df22710de75f952ac021debdb19a14a1b"
+            revision: "5fbee6f7fa984b5f2990a9cce0c8b049a3d8e45b"
         )
     ],
     targets: [
