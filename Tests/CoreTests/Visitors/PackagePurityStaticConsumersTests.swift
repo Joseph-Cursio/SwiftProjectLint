@@ -51,16 +51,17 @@ struct PackagePurityStaticConsumersTests {
         // The table refutes `Item`, so the questions below can move.
         #expect(purity.refutedTypes.map { $0.prefix { $0 != ":" } } == ["Item"])
 
-        let function = try #require(function("countOf"))
-        let property = try #require(property("total"))
+        // Not named `function` and `property`, which would shadow the helpers `#require` calls for Swift 6.2.
+        let countOf = try #require(function("countOf"))
+        let total = try #require(property("total"))
         let equatable: Set<String> = ["Item"]
 
-        #expect(PropertyTestCandidacy.candidate(of: function, knownEquatableTypes: equatable) != nil)
-        #expect(PropertyTestCandidacy.candidate(of: property, knownEquatableTypes: equatable) != nil)
+        #expect(PropertyTestCandidacy.candidate(of: countOf, knownEquatableTypes: equatable) != nil)
+        #expect(PropertyTestCandidacy.candidate(of: total, knownEquatableTypes: equatable) != nil)
 
         PackagePurity.$current.withValue(purity) {
-            #expect(PropertyTestCandidacy.candidate(of: function, knownEquatableTypes: equatable) == nil)
-            #expect(PropertyTestCandidacy.candidate(of: property, knownEquatableTypes: equatable) == nil)
+            #expect(PropertyTestCandidacy.candidate(of: countOf, knownEquatableTypes: equatable) == nil)
+            #expect(PropertyTestCandidacy.candidate(of: total, knownEquatableTypes: equatable) == nil)
         }
     }
 
