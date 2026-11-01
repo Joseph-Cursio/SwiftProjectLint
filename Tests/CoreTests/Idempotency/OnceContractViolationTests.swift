@@ -9,20 +9,29 @@ import Testing
 /// Shared test helpers for the once-contract suites. Each suite below
 /// drives the rule through this same harness; the splits exist only to
 /// keep individual suites under SwiftLint's 300-line type-body cap.
+///
+/// The files are walked in every order (`WalkOrders`), each of which must find the same issues, and the visitor of the
+/// sorted order is returned: walked in the cache's own order, the result came from the hash seed.
 private func runOnceContractRule(
     _ files: [String: String]
 ) -> OnceContractViolationVisitor {
     let cache: [String: SourceFileSyntax] = files.mapValues { Parser.parse(source: $0) }
-    let visitor = OnceContractViolationVisitor(fileCache: cache)
-    for (path, source) in cache {
-        visitor.setFilePath(path)
-        visitor.setSourceLocationConverter(
-            SourceLocationConverter(fileName: path, tree: source)
-        )
-        visitor.walk(source)
+    let visitors = WalkOrders.of(Array(cache.keys)).map { order in
+        let visitor = OnceContractViolationVisitor(fileCache: cache)
+        for path in order {
+            guard let source = cache[path] else { continue }
+            visitor.setFilePath(path)
+            visitor.setSourceLocationConverter(
+                SourceLocationConverter(fileName: path, tree: source)
+            )
+            visitor.walk(source)
+        }
+        visitor.finalizeAnalysis()
+        return visitor
     }
-    visitor.finalizeAnalysis()
-    return visitor
+    let signatures = visitors.map { WalkOrders.signature(of: $0.detectedIssues) }
+    #expect(Set(signatures).count == 1, "The issues depend on the order the files are walked in: \(signatures)")
+    return visitors[0]
 }
 
 /// Positive-trigger fixtures: every test here expects the rule to fire.

@@ -127,7 +127,9 @@ struct StateSeamHarnessTests {
     }
 
     private struct StorageSubject: View {
-        @AppStorage("uec.harness.flag") private var flag = false
+        /// Not `.standard`, which other test processes share (`IsolatedDefaults`).
+        static let store = IsolatedDefaults()
+        @AppStorage("uec.harness.flag", store: Self.store.defaults) private var flag = false
         var isOn: Bool { flag }
         func present() { flag = true }
         var body: some View { Button("go", action: present) }
@@ -137,15 +139,16 @@ struct StateSeamHarnessTests {
     func appStorageWriteIsObservable() {
         // Four of the corpus write targets are `@AppStorage`. Unlike `@State`, its setter writes
         // straight through to the defaults store, which a test reads without any view at all.
-        UserDefaults.standard.removeObject(forKey: "uec.harness.flag")
-        defer { UserDefaults.standard.removeObject(forKey: "uec.harness.flag") }
+        let defaults = StorageSubject.store.defaults
+        defaults.removeObject(forKey: "uec.harness.flag")
+        defer { defaults.removePersistentDomain(forName: StorageSubject.store.suiteName) }
 
         let view = StorageSubject()
         #expect(view.isOn == false)
 
         view.present()
 
-        #expect(UserDefaults.standard.bool(forKey: "uec.harness.flag") == true)
+        #expect(defaults.bool(forKey: "uec.harness.flag") == true)
         #expect(view.isOn == true)
     }
 
