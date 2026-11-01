@@ -7,6 +7,8 @@ import Testing
 @Suite("ContentViewModel Tests")
 @MainActor
 struct ContentViewModelTests {
+    /// The saved rules' store: never `.standard`, which other test processes share (`IsolatedDefaults`).
+    private let store = IsolatedDefaults()
 
     /// A unique, empty directory for a test to analyze.
     ///
@@ -31,45 +33,45 @@ struct ContentViewModelTests {
 
     @Test("initial state has empty selected directory")
     func initialSelectedDirectoryIsEmpty() {
-        let viewModel = ContentViewModel()
+        let viewModel = ContentViewModel(defaults: store.defaults)
         #expect(viewModel.selectedDirectory.isEmpty)
     }
 
     @Test("initial state is not analyzing")
     func initialIsAnalyzingIsFalse() {
-        let viewModel = ContentViewModel()
+        let viewModel = ContentViewModel(defaults: store.defaults)
         #expect(viewModel.isAnalyzing == false)
     }
 
     @Test("initial state has no lint issues")
     func initialLintIssuesIsEmpty() {
-        let viewModel = ContentViewModel()
+        let viewModel = ContentViewModel(defaults: store.defaults)
         #expect(viewModel.lintIssues.isEmpty)
     }
 
     @Test("initial state has rule selector hidden")
     func initialShowRuleSelectorIsFalse() {
-        let viewModel = ContentViewModel()
+        let viewModel = ContentViewModel(defaults: store.defaults)
         #expect(viewModel.showRuleSelector == false)
     }
 
     @Test("initial state has directory picker hidden")
     func initialShowingDirectoryPickerIsFalse() {
-        let viewModel = ContentViewModel()
+        let viewModel = ContentViewModel(defaults: store.defaults)
         #expect(viewModel.showingDirectoryPicker == false)
     }
 
     @Test("initial state has no analysis task")
     func initialAnalysisTaskIsNil() {
-        let viewModel = ContentViewModel()
+        let viewModel = ContentViewModel(defaults: store.defaults)
         #expect(viewModel.analysisTask == nil)
     }
 
     @Test("initial enabled rules defaults to all rules")
     func initialEnabledRulesDefault() {
         // Clear any saved rules to test default
-        UserDefaults.standard.removeObject(forKey: "enabledLintRules")
-        let viewModel = ContentViewModel()
+        store.defaults.removeObject(forKey: ContentViewModel.enabledRulesKey)
+        let viewModel = ContentViewModel(defaults: store.defaults)
         let allRules = Set(RuleIdentifier.allCases)
         #expect(viewModel.enabledRuleNames == allRules,
                 "Default should enable all rules, not a subset")
@@ -79,17 +81,17 @@ struct ContentViewModelTests {
     func enabledRulesLoadedFromUserDefaults() throws {
         let testRules: Set<RuleIdentifier> = [.missingStateObject, .fatView, .uninitializedStateVariable]
         let data = try JSONEncoder().encode(testRules)
-        UserDefaults.standard.set(data, forKey: "enabledLintRules")
-        let viewModel = ContentViewModel()
+        store.defaults.set(data, forKey: ContentViewModel.enabledRulesKey)
+        let viewModel = ContentViewModel(defaults: store.defaults)
         #expect(viewModel.enabledRuleNames == testRules)
-        UserDefaults.standard.removeObject(forKey: "enabledLintRules")
+        store.defaults.removeObject(forKey: ContentViewModel.enabledRulesKey)
     }
 
     // MARK: - selectDirectory
 
     @Test("selectDirectory sets showingDirectoryPicker to true")
     func selectDirectorySetsShowingPicker() {
-        let viewModel = ContentViewModel()
+        let viewModel = ContentViewModel(defaults: store.defaults)
         viewModel.selectDirectory()
         #expect(viewModel.showingDirectoryPicker)
     }
@@ -98,7 +100,7 @@ struct ContentViewModelTests {
 
     @Test("analyzeProject guards when directory is empty")
     func analyzeProjectGuardsEmptyDirectory() {
-        let viewModel = ContentViewModel()
+        let viewModel = ContentViewModel(defaults: store.defaults)
         viewModel.analyzeProject()
         #expect(viewModel.isAnalyzing == false)
     }
@@ -108,7 +110,7 @@ struct ContentViewModelTests {
         let directory = try makeIsolatedDirectory()
         defer { try? FileManager.default.removeItem(atPath: directory) }
 
-        let viewModel = ContentViewModel()
+        let viewModel = ContentViewModel(defaults: store.defaults)
         viewModel.selectedDirectory = directory
         viewModel.enabledRuleNames = [.relatedDuplicateStateVariable]
         viewModel.analyzeProject()
@@ -123,7 +125,7 @@ struct ContentViewModelTests {
         let directory = try makeIsolatedDirectory()
         defer { try? FileManager.default.removeItem(atPath: directory) }
 
-        let viewModel = ContentViewModel()
+        let viewModel = ContentViewModel(defaults: store.defaults)
         viewModel.selectedDirectory = directory
         viewModel.enabledRuleNames = [.relatedDuplicateStateVariable]
         viewModel.analyzeProject()
@@ -140,7 +142,7 @@ struct ContentViewModelTests {
         let directory = try makeIsolatedDirectory()
         defer { try? FileManager.default.removeItem(atPath: directory) }
 
-        let viewModel = ContentViewModel()
+        let viewModel = ContentViewModel(defaults: store.defaults)
         viewModel.selectedDirectory = directory
         viewModel.enabledRuleNames = [] // no rules → no categories → skips linter
         viewModel.analyzeProject()
@@ -151,7 +153,7 @@ struct ContentViewModelTests {
 
     @Test("analyzeProject resets isAnalyzing to false on completion")
     func analyzeProjectResetsIsAnalyzingOnCompletion() async {
-        let viewModel = ContentViewModel()
+        let viewModel = ContentViewModel(defaults: store.defaults)
         // Use a directory with no Swift files so analysis is fast
         let emptyDir = FileManager.default.temporaryDirectory
             .appendingPathComponent("ContentViewModelTest_\(UUID().uuidString)").path
@@ -168,7 +170,7 @@ struct ContentViewModelTests {
 
     @Test("cancelAnalysis cancels the task")
     func cancelAnalysisCancelsTask() {
-        let viewModel = ContentViewModel()
+        let viewModel = ContentViewModel(defaults: store.defaults)
         viewModel.analysisTask = Task { }
         viewModel.cancelAnalysis()
         #expect(viewModel.analysisTask?.isCancelled == true)
@@ -178,25 +180,25 @@ struct ContentViewModelTests {
 
     @Test("saveEnabledRules persists to UserDefaults and loads back")
     func saveAndLoadEnabledRules() throws {
-        let viewModel = ContentViewModel()
+        let viewModel = ContentViewModel(defaults: store.defaults)
         let testRules: Set<RuleIdentifier> = [.missingStateObject, .fatView]
         viewModel.enabledRuleNames = testRules
         viewModel.saveEnabledRules()
 
         // Read back from UserDefaults
-        let data = try #require(UserDefaults.standard.data(forKey: "enabledLintRules"))
+        let data = try #require(store.defaults.data(forKey: ContentViewModel.enabledRulesKey))
         let loaded = try JSONDecoder().decode(Set<RuleIdentifier>.self, from: data)
         #expect(loaded == testRules)
 
         // Clean up
-        UserDefaults.standard.removeObject(forKey: "enabledLintRules")
+        store.defaults.removeObject(forKey: ContentViewModel.enabledRulesKey)
     }
 
     // MARK: - getEnabledCategories
 
     @Test("getEnabledCategories returns empty when registry is nil")
     func getEnabledCategoriesWithNilRegistry() {
-        let viewModel = ContentViewModel()
+        let viewModel = ContentViewModel(defaults: store.defaults)
         viewModel.patternRegistry = nil
         let categories = viewModel.getEnabledCategories()
         #expect(categories.isEmpty)
@@ -206,7 +208,7 @@ struct ContentViewModelTests {
     func getEnabledCategoriesWithRegistry() async {
         let systemComponents = SystemComponents()
         await systemComponents.initialize()
-        let viewModel = ContentViewModel()
+        let viewModel = ContentViewModel(defaults: store.defaults)
         viewModel.patternRegistry = systemComponents.patternRegistry
         viewModel.enabledRuleNames = [.relatedDuplicateStateVariable]
         let categories = viewModel.getEnabledCategories()
@@ -219,7 +221,7 @@ struct ContentViewModelTests {
 
     @Test("filterIssuesByEnabledRules returns empty when no rules enabled")
     func filterWithNoRulesEnabled() {
-        let viewModel = ContentViewModel()
+        let viewModel = ContentViewModel(defaults: store.defaults)
         viewModel.enabledRuleNames = []
         let issues = [
             LintIssue(
@@ -233,7 +235,7 @@ struct ContentViewModelTests {
 
     @Test("filterIssuesByEnabledRules keeps only matching rules")
     func filterKeepsMatchingRules() throws {
-        let viewModel = ContentViewModel()
+        let viewModel = ContentViewModel(defaults: store.defaults)
         viewModel.enabledRuleNames = [.missingStateObject]
         let issues = [
             LintIssue(
@@ -276,7 +278,7 @@ struct ContentViewModelTests {
         let systemComponents = SystemComponents()
         await systemComponents.initialize()
 
-        let viewModel = ContentViewModel()
+        let viewModel = ContentViewModel(defaults: store.defaults)
         viewModel.detector = systemComponents.detector
         viewModel.selectedDirectory = tempDir.path
         viewModel.enabledRuleNames = Set(RuleIdentifier.allCases)
@@ -308,7 +310,7 @@ struct ContentViewModelTests {
         }
         """.write(to: sourceFile, atomically: true, encoding: .utf8)
 
-        let viewModel = ContentViewModel()
+        let viewModel = ContentViewModel(defaults: store.defaults)
         // Deliberately do NOT set viewModel.detector
         viewModel.selectedDirectory = tempDir.path
         viewModel.enabledRuleNames = Set(RuleIdentifier.allCases)
@@ -328,12 +330,14 @@ struct ContentViewModelTests {
 @Suite("ContentViewModel Pattern Tests")
 @MainActor
 struct ContentViewModelPatternTests {
+    /// The saved rules' store: never `.standard`, which other test processes share (`IsolatedDefaults`).
+    private let store = IsolatedDefaults()
 
     // MARK: - allPatternsByCategory
 
     @Test("allPatternsByCategory returns empty when registry is nil")
     func allPatternsByCategoryNilRegistry() {
-        let viewModel = ContentViewModel()
+        let viewModel = ContentViewModel(defaults: store.defaults)
         viewModel.patternRegistry = nil
         #expect(viewModel.allPatternsByCategory.isEmpty)
     }
@@ -342,7 +346,7 @@ struct ContentViewModelPatternTests {
     func allPatternsByCategoryWithRegistry() async {
         let systemComponents = SystemComponents()
         await systemComponents.initialize()
-        let viewModel = ContentViewModel()
+        let viewModel = ContentViewModel(defaults: store.defaults)
         viewModel.patternRegistry = systemComponents.patternRegistry
         let patterns = viewModel.allPatternsByCategory
         #expect(patterns.isEmpty == false)

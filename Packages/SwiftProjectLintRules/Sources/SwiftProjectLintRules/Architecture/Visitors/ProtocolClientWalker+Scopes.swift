@@ -195,13 +195,15 @@ extension ProtocolClientWalker {
         case .parameterClause(let list):
             for parameter in list.parameters {
                 let name = (parameter.secondName ?? parameter.firstName).text
-                let protocols = parameter.type.map { protocols(in: $0) } ?? []
-                guard protocols.isEmpty == false else {
+                // Not named `protocols`: a constant named for the function its initializer's closure calls
+                // shadows that function in the closure for the Swift 6.2 compiler, which then rejects the call.
+                let typeProtocols = parameter.type.map { protocols(in: $0) } ?? []
+                guard typeProtocols.isEmpty == false else {
                     bind(name, to: .other)
                     continue
                 }
                 let client = addClient(
-                    .parameter, name: "closure parameter '\(name)'", protocols: protocols, at: Syntax(parameter)
+                    .parameter, name: "closure parameter '\(name)'", protocols: typeProtocols, at: Syntax(parameter)
                 )
                 bind(name, to: .clients([client]))
             }
