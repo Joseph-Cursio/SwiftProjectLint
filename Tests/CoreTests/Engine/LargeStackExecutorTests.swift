@@ -41,9 +41,9 @@ struct LargeStackExecutorTests {
             await LargeStackWorkers.withExecutor {
                 await withTaskGroup(of: Observation.self) { group in
                     for _ in 0..<16 { group.addTask { Observation.here } }
-                    var seen = [Observation.here]
-                    for await child in group { seen.append(child) }
-                    return seen
+                    var observed = [Observation.here]
+                    for await child in group { observed.append(child) }
+                    return observed
                 }
             }
         }

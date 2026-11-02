@@ -227,7 +227,7 @@ let b = result!
 
 ## Dependencies
 
-- [swift-syntax](https://github.com/apple/swift-syntax) `602.0.0` — AST parsing
+- [swift-syntax](https://github.com/apple/swift-syntax) `603.0.2` — AST parsing
 - [swift-argument-parser](https://github.com/apple/swift-argument-parser) `1.3.0+` — CLI
 - [ViewInspector](https://github.com/nalexn/ViewInspector) `0.9.5+` — SwiftUI view testing
 - [Yams](https://github.com/jpsim/Yams) `5.0.0+` — YAML config parsing

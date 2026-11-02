@@ -21,15 +21,7 @@ class ContentViewModel {
     var isAnalyzing: Bool = false
     var lintIssues: [LintIssue] = []
     var showRuleSelector: Bool = false
-    var enabledRuleNames: Set<RuleIdentifier> = {
-        let userDefaultsKey = "enabledLintRules"
-        if let data = UserDefaults.standard.data(forKey: userDefaultsKey),
-           let saved = try? JSONDecoder().decode(Set<RuleIdentifier>.self, from: data),
-           !saved.isEmpty {
-            return saved
-        }
-        return Set(RuleIdentifier.allCases)
-    }()
+    var enabledRuleNames: Set<RuleIdentifier>
     var showingDirectoryPicker: Bool = false
     var analysisTask: Task<Void, Never>?
 
@@ -76,7 +68,27 @@ class ContentViewModel {
     /// Incremented on every tree toggle to force SwiftUI refresh.
     var treeVersion: Int = 0
 
-    private let userDefaultsKey = "enabledLintRules"
+    /// Where the enabled rules are saved, under `enabledRulesKey`: `.standard` in the app. A test gives a store of its
+    /// own, as every test process on the machine shares `.standard`, and a parallel run's processes overwrite each
+    /// other's rules.
+    private let defaults: UserDefaults
+
+    static let enabledRulesKey = "enabledLintRules"
+
+    init(defaults: UserDefaults = .standard) {
+        self.defaults = defaults
+        enabledRuleNames = Self.savedRules(in: defaults)
+    }
+
+    /// The rules saved in `defaults`, or every rule when none are.
+    private static func savedRules(in defaults: UserDefaults) -> Set<RuleIdentifier> {
+        if let data = defaults.data(forKey: enabledRulesKey),
+           let saved = try? JSONDecoder().decode(Set<RuleIdentifier>.self, from: data),
+           !saved.isEmpty {
+            return saved
+        }
+        return Set(RuleIdentifier.allCases)
+    }
 
     // MARK: - Computed Properties
 
@@ -90,7 +102,7 @@ class ContentViewModel {
     /// Save enabled rules to UserDefaults.
     func saveEnabledRules() {
         if let data = try? JSONEncoder().encode(enabledRuleNames) {
-            UserDefaults.standard.set(data, forKey: userDefaultsKey)
+            defaults.set(data, forKey: Self.enabledRulesKey)
         }
     }
 

@@ -9,10 +9,12 @@ import Testing
 @Suite("ContentViewModel Configuration Tests")
 @MainActor
 struct ContentViewModelConfigTests {
+    /// The saved rules' store: never `.standard`, which other test processes share (`IsolatedDefaults`).
+    private let store = IsolatedDefaults()
 
     @Test("analysis with mock analyzer returns mock issues without filesystem")
     func analysisWithMockAnalyzer() async {
-        let viewModel = ContentViewModel()
+        let viewModel = ContentViewModel(defaults: store.defaults)
         viewModel.selectedDirectory = "/fake/path"
         viewModel.analyzer = MockProjectAnalyzer(issues: [
             LintIssue(
@@ -34,7 +36,7 @@ struct ContentViewModelConfigTests {
 
     @Test("analysis with mock analyzer returning empty issues works")
     func analysisWithEmptyMockAnalyzer() async {
-        let viewModel = ContentViewModel()
+        let viewModel = ContentViewModel(defaults: store.defaults)
         viewModel.selectedDirectory = "/fake/path"
         viewModel.analyzer = MockProjectAnalyzer(issues: [])
         viewModel.analyzeProject()
@@ -48,7 +50,7 @@ struct ContentViewModelConfigTests {
 
     @Test("loadConfigFromProject guards when directory is empty")
     func loadConfigGuardsEmptyDirectory() {
-        let viewModel = ContentViewModel()
+        let viewModel = ContentViewModel(defaults: store.defaults)
         viewModel.loadConfigFromProject()
         #expect(viewModel.ruleExclusions.isEmpty)
         #expect(viewModel.configIsDirty == false)
@@ -75,7 +77,7 @@ struct ContentViewModelConfigTests {
         let configPath = tempDir.appendingPathComponent(".swiftprojectlint.yml")
         try yamlContent.write(to: configPath, atomically: true, encoding: .utf8)
 
-        let viewModel = ContentViewModel()
+        let viewModel = ContentViewModel(defaults: store.defaults)
         viewModel.selectedDirectory = tempDir.path
         viewModel.loadConfigFromProject()
 
@@ -93,7 +95,7 @@ struct ContentViewModelConfigTests {
         )
         defer { try? FileManager.default.removeItem(at: tempDir) }
 
-        let viewModel = ContentViewModel()
+        let viewModel = ContentViewModel(defaults: store.defaults)
         viewModel.selectedDirectory = tempDir.path
         viewModel.loadConfigFromProject()
         #expect(viewModel.ruleExclusions.isEmpty)
@@ -103,7 +105,7 @@ struct ContentViewModelConfigTests {
 
     @Test("saveConfigToProject guards when directory is empty")
     func saveConfigGuardsEmptyDirectory() {
-        let viewModel = ContentViewModel()
+        let viewModel = ContentViewModel(defaults: store.defaults)
         viewModel.saveConfigToProject()
         // Should not crash; no file written
     }
@@ -117,7 +119,7 @@ struct ContentViewModelConfigTests {
         )
         defer { try? FileManager.default.removeItem(at: tempDir) }
 
-        let viewModel = ContentViewModel()
+        let viewModel = ContentViewModel(defaults: store.defaults)
         viewModel.selectedDirectory = tempDir.path
         viewModel.ruleExclusions = [
             .forceTry: RuleExclusions(excludeTests: true, excludeViews: false)
@@ -139,7 +141,7 @@ struct ContentViewModelConfigTests {
             .appendingPathComponent("Missing_\(UUID().uuidString)")
             .appendingPathComponent("nested")
 
-        let viewModel = ContentViewModel()
+        let viewModel = ContentViewModel(defaults: store.defaults)
         viewModel.selectedDirectory = missingDir.path
         viewModel.ruleExclusions = [
             .forceTry: RuleExclusions(excludeTests: true, excludeViews: false)
@@ -156,14 +158,14 @@ struct ContentViewModelConfigTests {
 
     @Test("updateDirtyState is clean when no config loaded and no exclusions")
     func updateDirtyStateCleanNoConfig() {
-        let viewModel = ContentViewModel()
+        let viewModel = ContentViewModel(defaults: store.defaults)
         viewModel.updateDirtyState()
         #expect(viewModel.configIsDirty == false)
     }
 
     @Test("updateDirtyState is dirty when exclusions set without loaded config")
     func updateDirtyStateDirtyWithExclusions() {
-        let viewModel = ContentViewModel()
+        let viewModel = ContentViewModel(defaults: store.defaults)
         viewModel.ruleExclusions = [
             .forceTry: RuleExclusions(excludeTests: true, excludeViews: false)
         ]
@@ -187,7 +189,7 @@ struct ContentViewModelConfigTests {
         let configPath = tempDir.appendingPathComponent(".swiftprojectlint.yml")
         try yamlContent.write(to: configPath, atomically: true, encoding: .utf8)
 
-        let viewModel = ContentViewModel()
+        let viewModel = ContentViewModel(defaults: store.defaults)
         viewModel.selectedDirectory = tempDir.path
         viewModel.loadConfigFromProject()
 
@@ -213,7 +215,7 @@ struct ContentViewModelConfigTests {
         let configPath = tempDir.appendingPathComponent(".swiftprojectlint.yml")
         try yamlContent.write(to: configPath, atomically: true, encoding: .utf8)
 
-        let viewModel = ContentViewModel()
+        let viewModel = ContentViewModel(defaults: store.defaults)
         viewModel.selectedDirectory = tempDir.path
         viewModel.loadConfigFromProject()
 
@@ -234,7 +236,7 @@ struct ContentViewModelConfigTests {
         )
         defer { try? FileManager.default.removeItem(at: tempDir) }
 
-        let viewModel = ContentViewModel()
+        let viewModel = ContentViewModel(defaults: store.defaults)
         viewModel.selectedDirectory = tempDir.path
         viewModel.ruleExclusions = [
             .forceTry: RuleExclusions(excludeTests: true, excludeViews: true)
@@ -242,7 +244,7 @@ struct ContentViewModelConfigTests {
         viewModel.saveConfigToProject()
 
         // Reload and verify the round-trip
-        let reloaded = ContentViewModel()
+        let reloaded = ContentViewModel(defaults: store.defaults)
         reloaded.selectedDirectory = tempDir.path
         reloaded.loadConfigFromProject()
         #expect(reloaded.ruleExclusions[.forceTry]?.excludeTests == true)
@@ -268,7 +270,7 @@ struct ContentViewModelConfigTests {
         let configPath = tempDir.appendingPathComponent(".swiftprojectlint.yml")
         try yamlContent.write(to: configPath, atomically: true, encoding: .utf8)
 
-        let viewModel = ContentViewModel()
+        let viewModel = ContentViewModel(defaults: store.defaults)
         viewModel.selectedDirectory = tempDir.path
         viewModel.loadConfigFromProject()
 
@@ -299,7 +301,7 @@ struct ContentViewModelConfigTests {
         let configPath = tempDir.appendingPathComponent(".swiftprojectlint.yml")
         try yamlContent.write(to: configPath, atomically: true, encoding: .utf8)
 
-        let viewModel = ContentViewModel()
+        let viewModel = ContentViewModel(defaults: store.defaults)
         viewModel.selectedDirectory = tempDir.path
         viewModel.loadConfigFromProject()
 
