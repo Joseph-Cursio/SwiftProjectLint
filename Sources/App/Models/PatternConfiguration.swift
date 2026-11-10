@@ -23,6 +23,23 @@ struct PatternCategoryInfo {
 @MainActor
 enum PatternConfiguration {
 
+    /// The categories the rule selector shows, in display order, with their display names.
+    private static let displayedCategories: [(PatternCategory, String)] = [
+        (.stateManagement, "State Management"),
+        (.performance, "Performance"),
+        (.architecture, "Architecture"),
+        (.codeQuality, "Code Quality"),
+        (.security, "Security"),
+        (.accessibility, "Accessibility"),
+        (.memoryManagement, "Memory Management"),
+        (.networking, "Networking"),
+        (.uiPatterns, "UI Patterns"),
+        (.animation, "Animation"),
+        (.modernization, "Modernization"),
+        (.idempotency, "Idempotency"),
+        (.testability, "Testability"),
+    ]
+
     /// Pattern configuration that uses SwiftSyntax for all categories.
     /// This computed property dynamically pulls patterns from the registry to ensure
     /// the UI always reflects the actual registry state.
@@ -43,86 +60,14 @@ enum PatternConfiguration {
             return []
         }
 
-        return [
+        return displayedCategories.map { category, display in
             PatternCategoryInfo(
-                category: .stateManagement,
-                display: "State Management",
-                patterns: convertToDetectionPatterns(patternRegistry.getPatterns(for: .stateManagement)),
+                category: category,
+                display: display,
+                patterns: convertToDetectionPatterns(patternRegistry.getPatterns(for: category)),
                 useSwiftSyntax: true
-            ),
-            PatternCategoryInfo(
-                category: .performance,
-                display: "Performance",
-                patterns: convertToDetectionPatterns(patternRegistry.getPatterns(for: .performance)),
-                useSwiftSyntax: true
-            ),
-            PatternCategoryInfo(
-                category: .architecture,
-                display: "Architecture",
-                patterns: convertToDetectionPatterns(patternRegistry.getPatterns(for: .architecture)),
-                useSwiftSyntax: true
-            ),
-            PatternCategoryInfo(
-                category: .codeQuality,
-                display: "Code Quality",
-                patterns: convertToDetectionPatterns(patternRegistry.getPatterns(for: .codeQuality)),
-                useSwiftSyntax: true
-            ),
-            PatternCategoryInfo(
-                category: .security,
-                display: "Security",
-                patterns: convertToDetectionPatterns(patternRegistry.getPatterns(for: .security)),
-                useSwiftSyntax: true
-            ),
-            PatternCategoryInfo(
-                category: .accessibility,
-                display: "Accessibility",
-                patterns: convertToDetectionPatterns(patternRegistry.getPatterns(for: .accessibility)),
-                useSwiftSyntax: true
-            ),
-            PatternCategoryInfo(
-                category: .memoryManagement,
-                display: "Memory Management",
-                patterns: convertToDetectionPatterns(patternRegistry.getPatterns(for: .memoryManagement)),
-                useSwiftSyntax: true
-            ),
-            PatternCategoryInfo(
-                category: .networking,
-                display: "Networking",
-                patterns: convertToDetectionPatterns(patternRegistry.getPatterns(for: .networking)),
-                useSwiftSyntax: true
-            ),
-            PatternCategoryInfo(
-                category: .uiPatterns,
-                display: "UI Patterns",
-                patterns: convertToDetectionPatterns(patternRegistry.getPatterns(for: .uiPatterns)),
-                useSwiftSyntax: true
-            ),
-            PatternCategoryInfo(
-                category: .animation,
-                display: "Animation",
-                patterns: convertToDetectionPatterns(patternRegistry.getPatterns(for: .animation)),
-                useSwiftSyntax: true
-            ),
-            PatternCategoryInfo(
-                category: .modernization,
-                display: "Modernization",
-                patterns: convertToDetectionPatterns(patternRegistry.getPatterns(for: .modernization)),
-                useSwiftSyntax: true
-            ),
-            PatternCategoryInfo(
-                category: .idempotency,
-                display: "Idempotency",
-                patterns: convertToDetectionPatterns(patternRegistry.getPatterns(for: .idempotency)),
-                useSwiftSyntax: true
-            ),
-            PatternCategoryInfo(
-                category: .testability,
-                display: "Testability",
-                patterns: convertToDetectionPatterns(patternRegistry.getPatterns(for: .testability)),
-                useSwiftSyntax: true
-            ),
-        ]
+            )
+        }
     }
 
     /// Converts SwiftSyntax patterns to DetectionPatterns for UI compatibility.

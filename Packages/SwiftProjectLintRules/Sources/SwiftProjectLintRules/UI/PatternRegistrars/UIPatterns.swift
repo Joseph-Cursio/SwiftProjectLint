@@ -6,57 +6,59 @@ import SwiftProjectLintVisitors
 /// This registrar handles patterns for navigation, ForEach usage, styling, and error handling.
 
 class UIPatterns: BasePatternRegistrar {
+    /// The UI patterns registered as one table; leaf rules register below.
+    private static let categoryPatterns: [SyntaxPattern] = [
+        SyntaxPattern(
+            name: .nestedNavigationView,
+            visitor: UIVisitor.self,
+            severity: .warning,
+            category: .uiPatterns,
+            messageTemplate: "Nested NavigationView detected, this can cause issues",
+            suggestion: "Use NavigationStack or NavigationSplitView instead",
+            description: "Detects nested NavigationView usage which can cause navigation issues"
+        ),
+        SyntaxPattern(
+            name: .missingPreview,
+            visitor: UIVisitor.self,
+            severity: .info,
+            category: .uiPatterns,
+            messageTemplate: "Consider adding a preview for {viewName}",
+            suggestion: "Add a PreviewProvider to help with development and testing",
+            description: "Detects SwiftUI views missing preview providers"
+        ),
+        SyntaxPattern(
+            name: .forEachWithSelfID,
+            visitor: ForEachSelfIDVisitor.self,
+            severity: .warning,
+            category: .uiPatterns,
+            messageTemplate: "ForEach using unsafe ID keypath (.self or .hashValue)"
+                + " can cause performance issues or incorrect view updates",
+            suggestion: "Use a stable, unique identifier like \\.id."
+                + " Conform the element to Identifiable if possible",
+            description: "Detects .self or .hashValue as the id parameter in ForEach"
+        ),
+        SyntaxPattern(
+            name: .inconsistentStyling,
+            visitor: UIVisitor.self,
+            severity: .info,
+            category: .uiPatterns,
+            messageTemplate: "Inconsistent styling detected in {context}",
+            suggestion: "Use consistent styling patterns and consider creating reusable style components",
+            description: "Detects inconsistent styling patterns across the UI"
+        ),
+        SyntaxPattern(
+            name: .basicErrorHandling,
+            visitor: UIVisitor.self,
+            severity: .info,
+            category: .uiPatterns,
+            messageTemplate: "Consider adding error handling for {operation}",
+            suggestion: "Add proper error handling and user feedback for better UX",
+            description: "Detects operations that could benefit from error handling"
+        ),
+    ]
+
     override func registerPatterns() {
-        let patterns = [
-            SyntaxPattern(
-                name: .nestedNavigationView,
-                visitor: UIVisitor.self,
-                severity: .warning,
-                category: .uiPatterns,
-                messageTemplate: "Nested NavigationView detected, this can cause issues",
-                suggestion: "Use NavigationStack or NavigationSplitView instead",
-                description: "Detects nested NavigationView usage which can cause navigation issues"
-            ),
-            SyntaxPattern(
-                name: .missingPreview,
-                visitor: UIVisitor.self,
-                severity: .info,
-                category: .uiPatterns,
-                messageTemplate: "Consider adding a preview for {viewName}",
-                suggestion: "Add a PreviewProvider to help with development and testing",
-                description: "Detects SwiftUI views missing preview providers"
-            ),
-            SyntaxPattern(
-                name: .forEachWithSelfID,
-                visitor: ForEachSelfIDVisitor.self,
-                severity: .warning,
-                category: .uiPatterns,
-                messageTemplate: "ForEach using unsafe ID keypath (.self or .hashValue)"
-                    + " can cause performance issues or incorrect view updates",
-                suggestion: "Use a stable, unique identifier like \\.id."
-                    + " Conform the element to Identifiable if possible",
-                description: "Detects .self or .hashValue as the id parameter in ForEach"
-            ),
-            SyntaxPattern(
-                name: .inconsistentStyling,
-                visitor: UIVisitor.self,
-                severity: .info,
-                category: .uiPatterns,
-                messageTemplate: "Inconsistent styling detected in {context}",
-                suggestion: "Use consistent styling patterns and consider creating reusable style components",
-                description: "Detects inconsistent styling patterns across the UI"
-            ),
-            SyntaxPattern(
-                name: .basicErrorHandling,
-                visitor: UIVisitor.self,
-                severity: .info,
-                category: .uiPatterns,
-                messageTemplate: "Consider adding error handling for {operation}",
-                suggestion: "Add proper error handling and user feedback for better UX",
-                description: "Detects operations that could benefit from error handling"
-            ),
-        ]
-        registry.register(patterns: patterns)
+        registry.register(patterns: Self.categoryPatterns)
         registry.register(registrars: [ModifierOrder(), ImageWithoutResizable()])
     }
 }

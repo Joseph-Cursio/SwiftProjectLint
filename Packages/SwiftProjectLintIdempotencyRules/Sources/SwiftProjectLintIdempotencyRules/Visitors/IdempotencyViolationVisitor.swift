@@ -278,19 +278,14 @@ final class IdempotencyViolationVisitor: CrossFileVisitorBase, CrossFilePatternV
         }
     }
 
-    private func emitViolation(
-        call: FunctionCallExprSyntax,
-        site: AnalysisSite,
-        calleeName: String,
-        calleeEffect: DeclaredEffect,
-        provenance: EffectProvenance
-    ) {
-        let callerName = site.callerName
-        let callerTier = effectLabel(site.effect)
-        let calleeTier = effectLabel(calleeEffect)
-        // Two prose fragments covering the same semantic point: the callee's
-        // effect is `calleeTier`. Declared is authoritative; inferred credits
-        // the heuristic and tells the user how to override.
+    /// Two prose fragments covering the same semantic point: the callee's effect is
+    /// `calleeTier`. Declared is authoritative; inferred credits the heuristic and tells the
+    /// user how to override.
+    private static func calleeProse(
+        provenance: EffectProvenance,
+        calleeTier: String,
+        calleeName: String
+    ) -> (claim: String, overrideHint: String) {
         let calleeClaim: String
         let overrideHint: String
         switch provenance {
@@ -318,10 +313,22 @@ final class IdempotencyViolationVisitor: CrossFileVisitorBase, CrossFilePatternV
             overrideHint = " If the inference is wrong, annotate '\(calleeName)' "
                 + "explicitly with `/// @lint.effect <tier>` to override."
         }
+        return (calleeClaim, overrideHint)
+    }
 
+    /// The diagnostic's headline and suggestion for a caller declared `effect` that calls a
+    /// callee described by `calleeProse`; `nil` for an effect with no contract to break.
+    private static func contractProse(
+        for effect: DeclaredEffect,
+        callerName: String,
+        callerTier: String,
+        calleeName: String,
+        calleeProse: (claim: String, overrideHint: String)
+    ) -> (headline: String, suggestion: String)? {
         let headline: String
         let suggestion: String
-        switch site.effect {
+        let (calleeClaim, overrideHint) = calleeProse
+        switch effect {
         case .pure:
             headline = "Purity violation: '\(callerName)' is declared "
                 + "`@lint.effect pure` but calls '\(calleeName)', \(calleeClaim). "
@@ -358,8 +365,32 @@ final class IdempotencyViolationVisitor: CrossFileVisitorBase, CrossFilePatternV
                 + "`@lint.effect non_idempotent`."
 
         default:
-            return
+            return nil
         }
+        return (headline, suggestion)
+    }
+
+    private func emitViolation(
+        call: FunctionCallExprSyntax,
+        site: AnalysisSite,
+        calleeName: String,
+        calleeEffect: DeclaredEffect,
+        provenance: EffectProvenance
+    ) {
+        let callerName = site.callerName
+        let callerTier = effectLabel(site.effect)
+        let calleeTier = effectLabel(calleeEffect)
+        let (calleeClaim, overrideHint) = Self.calleeProse(
+            provenance: provenance, calleeTier: calleeTier, calleeName: calleeName
+        )
+
+        guard let (headline, suggestion) = Self.contractProse(
+            for: site.effect,
+            callerName: callerName,
+            callerTier: callerTier,
+            calleeName: calleeName,
+            calleeProse: (calleeClaim, overrideHint)
+        ) else { return }
         let line = site.location.line(of: call)
         addIssue(
             severity: pattern.severity,

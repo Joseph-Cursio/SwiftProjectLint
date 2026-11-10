@@ -73,6 +73,25 @@ extension ProjectLinter {
         /// tried: 377 candidate symbols dropped out.
         let impurePackageFunctions: ImpurePackageFunctions
 
+        /// The dependency types among `remedies`' unresolved names that a resolved checkout
+        /// under `projectRoot` vouches `Equatable` for; none without a root.
+        private static func dependencyEquatableNames(
+            for remedies: EquatableRemedyCatalog,
+            in filePaths: [String],
+            projectRoot: String?,
+            sources: [String: SharedSource]
+        ) -> Set<String> {
+            projectRoot.map { root in
+                DependencyConformances.equatableNames(
+                    among: remedies.unresolvedNames,
+                    root: root,
+                    importedModules: DependencyConformances.importedModules(
+                        in: filePaths.compactMap { sources[$0]?.content }
+                    )
+                )
+            } ?? []
+        }
+
         /// Runs inside the run's `PackagePurity` binding, which is what makes the two
         /// purity-judging catalogs below — `CleanInstanceMethodCatalog` and
         /// `PackagePurityJoin` — construction-aware: each creates its `PurityInferrer()` here.
@@ -99,15 +118,9 @@ extension ProjectLinter {
             let declaredProtocols = collectTypes(ProtocolTypeCollector.self, in: parsed)
             let aliases = CompositionAliasCatalog.build(from: parsed)
             let remedies = EquatableRemedyCatalog.build(from: parsed)
-            let dependencyEquatable = projectRoot.map { root in
-                DependencyConformances.equatableNames(
-                    among: remedies.unresolvedNames,
-                    root: root,
-                    importedModules: DependencyConformances.importedModules(
-                        in: filePaths.compactMap { sources[$0]?.content }
-                    )
-                )
-            } ?? []
+            let dependencyEquatable = dependencyEquatableNames(
+                for: remedies, in: filePaths, projectRoot: projectRoot, sources: sources
+            )
             let identifiableTypes = collectTypes(IdentifiableTypeCollector.self, in: parsed)
             return Self(
                 identifiable: identifiableTypes,

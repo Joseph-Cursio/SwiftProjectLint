@@ -7,96 +7,98 @@ import SwiftProjectLintVisitors
 /// nondeterminism), plus the positive `pureFunctionCandidate` signal that
 /// seeds the lint → infer → verify pipeline.
 class Testability: BasePatternRegistrar {
+    /// The testability patterns registered as one table; single-visitor rules register below.
+    private static let categoryPatterns: [SyntaxPattern] = [
+        SyntaxPattern(
+            name: .globalMutableState,
+            visitor: GlobalMutableStateVisitor.self,
+            severity: .warning,
+            category: .testability,
+            messageTemplate: "Global mutable state — a top-level or `static var` can't be "
+                + "reset between property-test trials, so it leaks state across runs",
+            suggestion: "Move the mutable state behind an injected, instance-scoped owner "
+                + "the test can construct fresh.",
+            description: "Detects stored top-level `var` and `static var` declarations, which "
+                + "defeat property-based-test isolation."
+        ),
+        SyntaxPattern(
+            name: .nonInjectedNondeterminism,
+            visitor: NonInjectedNondeterminismVisitor.self,
+            severity: .warning,
+            category: .testability,
+            messageTemplate: "Non-injected nondeterminism — an inline `Date()` / `UUID()` / "
+                + "`.random` / `Date.now` can't be pinned or reproduced by a property test",
+            suggestion: "Inject the source (a clock, `RandomNumberGenerator`, or UUID provider) "
+                + "so tests can control it.",
+            description: "Detects nondeterministic sources used inline in logic rather than "
+                + "injected as a dependency."
+        ),
+        SyntaxPattern(
+            name: .pureFunctionCandidate,
+            visitor: PureFunctionCandidateVisitor.self,
+            severity: .info,
+            category: .testability,
+            messageTemplate: "Looks pure and total — a good property-based-test candidate",
+            suggestion: "Run `swift-infer discover` on it, or add a PropertyLawKit test.",
+            description: "Surfaces functions — free, `static`, or instance methods that read no "
+                + "mutable state — which take inputs, return a value, aren't async, and show no "
+                + "obvious impurity. The seeds for the PBT pipeline."
+        ),
+        SyntaxPattern(
+            name: .pureClosureCandidate,
+            visitor: PureClosureCandidateVisitor.self,
+            severity: .info,
+            category: .testability,
+            messageTemplate: "A pure closure — a property-based-test candidate with no name",
+            suggestion: "Lift it into a named function; its captures become parameters.",
+            description: "Surfaces pure closures passed to `filter`, `sorted(by:)`, `map` and "
+                + "the rest — pure functions in everything but syntax, which the "
+                + "declaration-based rules cannot see because they have no name to point at."
+        ),
+        SyntaxPattern(
+            name: .pureMutatorCandidate,
+            visitor: PureMutatorCandidateVisitor.self,
+            severity: .info,
+            category: .testability,
+            messageTemplate: "A pure mutator — a property-based-test candidate whose result is the "
+                + "value it changes",
+            suggestion: "Copy the value, apply it, and compare: twice for idempotence, two copies "
+                + "for determinism.",
+            description: "Surfaces functions that return nothing and change exactly one value — "
+                + "one `inout` argument, or a `mutating` method's `self` — as a function of their "
+                + "inputs. Pure Function Property-Test Candidate needs a returned result and "
+                + "refuses them all."
+        ),
+        SyntaxPattern(
+            name: .impureClosureInventory,
+            visitor: ImpureClosureVisitor.self,
+            severity: .info,
+            category: .testability,
+            messageTemplate: "An impure closure — what is standing between this call site and a "
+                + "property test",
+            suggestion: "Separate the effect from the decision, or inject the source.",
+            description: "The complement of `Pure Closure Property-Test Candidate` over the "
+                + "same call sites: the closures the purity oracle refuses, grouped by why — "
+                + "an effect, a nondeterministic source, a trap, a captured write, or a "
+                + "declared `async`/`throws`. A census of what blocks a property test, not a "
+                + "defect report."
+        ),
+        SyntaxPattern(
+            name: .extractableTotalKernel,
+            visitor: ExtractableTotalKernelVisitor.self,
+            severity: .info,
+            category: .testability,
+            messageTemplate: "A total kernel is trapped inside an impure method",
+            suggestion: "Lift the arithmetic into a value type built from its inputs alone; "
+                + "the method keeps the I/O.",
+            description: "Surfaces arithmetic that governs a loop bound, an index, a slice or a "
+                + "progress fraction while inlined in a method that also performs I/O — a pure "
+                + "function with no boundary drawn around it, which no test can reach."
+        ),
+    ]
+
     override func registerPatterns() {
-        let patterns = [
-            SyntaxPattern(
-                name: .globalMutableState,
-                visitor: GlobalMutableStateVisitor.self,
-                severity: .warning,
-                category: .testability,
-                messageTemplate: "Global mutable state — a top-level or `static var` can't be "
-                    + "reset between property-test trials, so it leaks state across runs",
-                suggestion: "Move the mutable state behind an injected, instance-scoped owner "
-                    + "the test can construct fresh.",
-                description: "Detects stored top-level `var` and `static var` declarations, which "
-                    + "defeat property-based-test isolation."
-            ),
-            SyntaxPattern(
-                name: .nonInjectedNondeterminism,
-                visitor: NonInjectedNondeterminismVisitor.self,
-                severity: .warning,
-                category: .testability,
-                messageTemplate: "Non-injected nondeterminism — an inline `Date()` / `UUID()` / "
-                    + "`.random` / `Date.now` can't be pinned or reproduced by a property test",
-                suggestion: "Inject the source (a clock, `RandomNumberGenerator`, or UUID provider) "
-                    + "so tests can control it.",
-                description: "Detects nondeterministic sources used inline in logic rather than "
-                    + "injected as a dependency."
-            ),
-            SyntaxPattern(
-                name: .pureFunctionCandidate,
-                visitor: PureFunctionCandidateVisitor.self,
-                severity: .info,
-                category: .testability,
-                messageTemplate: "Looks pure and total — a good property-based-test candidate",
-                suggestion: "Run `swift-infer discover` on it, or add a PropertyLawKit test.",
-                description: "Surfaces functions — free, `static`, or instance methods that read no "
-                    + "mutable state — which take inputs, return a value, aren't async, and show no "
-                    + "obvious impurity. The seeds for the PBT pipeline."
-            ),
-            SyntaxPattern(
-                name: .pureClosureCandidate,
-                visitor: PureClosureCandidateVisitor.self,
-                severity: .info,
-                category: .testability,
-                messageTemplate: "A pure closure — a property-based-test candidate with no name",
-                suggestion: "Lift it into a named function; its captures become parameters.",
-                description: "Surfaces pure closures passed to `filter`, `sorted(by:)`, `map` and "
-                    + "the rest — pure functions in everything but syntax, which the "
-                    + "declaration-based rules cannot see because they have no name to point at."
-            ),
-            SyntaxPattern(
-                name: .pureMutatorCandidate,
-                visitor: PureMutatorCandidateVisitor.self,
-                severity: .info,
-                category: .testability,
-                messageTemplate: "A pure mutator — a property-based-test candidate whose result is the "
-                    + "value it changes",
-                suggestion: "Copy the value, apply it, and compare: twice for idempotence, two copies "
-                    + "for determinism.",
-                description: "Surfaces functions that return nothing and change exactly one value — "
-                    + "one `inout` argument, or a `mutating` method's `self` — as a function of their "
-                    + "inputs. Pure Function Property-Test Candidate needs a returned result and "
-                    + "refuses them all."
-            ),
-            SyntaxPattern(
-                name: .impureClosureInventory,
-                visitor: ImpureClosureVisitor.self,
-                severity: .info,
-                category: .testability,
-                messageTemplate: "An impure closure — what is standing between this call site and a "
-                    + "property test",
-                suggestion: "Separate the effect from the decision, or inject the source.",
-                description: "The complement of `Pure Closure Property-Test Candidate` over the "
-                    + "same call sites: the closures the purity oracle refuses, grouped by why — "
-                    + "an effect, a nondeterministic source, a trap, a captured write, or a "
-                    + "declared `async`/`throws`. A census of what blocks a property test, not a "
-                    + "defect report."
-            ),
-            SyntaxPattern(
-                name: .extractableTotalKernel,
-                visitor: ExtractableTotalKernelVisitor.self,
-                severity: .info,
-                category: .testability,
-                messageTemplate: "A total kernel is trapped inside an impure method",
-                suggestion: "Lift the arithmetic into a value type built from its inputs alone; "
-                    + "the method keeps the I/O.",
-                description: "Surfaces arithmetic that governs a loop bound, an index, a slice or a "
-                    + "progress fraction while inlined in a method that also performs I/O — a pure "
-                    + "function with no boundary drawn around it, which no test can reach."
-            ),
-        ]
-        registry.register(patterns: patterns)
+        registry.register(patterns: Self.categoryPatterns)
 
         // Single-purpose-visitor rules get their own leaf registrars.
         registry.register(registrars: [
