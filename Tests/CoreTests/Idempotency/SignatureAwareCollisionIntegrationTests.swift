@@ -183,7 +183,7 @@ struct SignatureAwareCollisionIntegrationTests {
                 emit("metric")                 // observational — no diagnostic
                 emit("metric", "payload")      // non_idempotent — should flag
             }
-            """
+            """,
         ]
 
         let issues = runCrossFileContext(files: files).detectedIssues
@@ -211,7 +211,7 @@ struct SignatureAwareCollisionIntegrationTests {
                 record(for: "tick")            // observational — silent
                 record(to: "db")               // non_idempotent — flag
             }
-            """
+            """,
         ]
 
         let issues = runCrossFileContext(files: files).detectedIssues
@@ -256,7 +256,7 @@ struct SignatureAwareCollisionIntegrationTests {
             func handleWebhook(driver: MemoryPersistDriver) async throws {
                 try await driver.create(key: "id", value: "v", expires: nil)
             }
-            """
+            """,
         ]
 
         let issues = runCrossFileContext(files: files).detectedIssues
@@ -290,7 +290,7 @@ struct SignatureAwareCollisionIntegrationTests {
             "DatabaseB.swift": """
             /// @lint.effect idempotent
             func insert(_ id: Int) async throws {}
-            """
+            """,
         ]
 
         // Both `insert(_:)` declarations share signature; conflicting effects
@@ -314,7 +314,7 @@ struct SignatureAwareCollisionIntegrationTests {
             "DatabaseB.swift": """
             /// @lint.effect non_idempotent
             func insert(_ id: Int) async throws {}
-            """
+            """,
         ]
 
         let issues = runCrossFileEffect(files: files).detectedIssues

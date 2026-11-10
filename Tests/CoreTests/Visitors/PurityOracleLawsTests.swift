@@ -48,7 +48,7 @@ struct PurityOracleLawsTests {
         // Malformed on purpose.
         "func half(_ x: Int) -> Int { x +",
         "struct Broken { var v: Int {",
-        ""
+        "",
     ] as [String]).map { $0 ?? "" }
 
     // MARK: - Totality
@@ -111,7 +111,7 @@ struct PurityOracleLawsTests {
         "func now() -> Date { Date() }",
         "func identifier() -> UUID { UUID() }",
         "func pick(_ xs: [Int]) -> Int? { xs.randomElement() }",
-        "func shout(_ s: String) { print(s) }"
+        "func shout(_ s: String) { print(s) }",
     ])
     func nonDeterministicBodiesAreRefused(source: String) throws {
         let function = try #require(
@@ -178,7 +178,7 @@ struct PurityOracleLawsTests {
     @Test(arguments: [
         "let logged = items.map { item in print(item) }",     // impurity marker
         "let stamped = items.map { item in Date() }",         // nondeterminism
-        "let names = items.map { item in item.name! }"        // partiality
+        "let names = items.map { item in item.name! }",        // partiality
     ])
     func theCaptureClauseIsIndependentOfTheOtherRefuters(source: String) throws {
         let closure = try #require(

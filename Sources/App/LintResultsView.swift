@@ -110,7 +110,7 @@ struct LintResultsView: View {
             lineNumber: 22,
             suggestion: "Use @StateObject instead of @ObservedObject for properties that should be owned by this view.",
             ruleName: .missingStateObject
-        )
+        ),
     ]
 
     LintResultsContainerView(issues: sampleIssues)

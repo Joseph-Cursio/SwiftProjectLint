@@ -45,7 +45,7 @@ enum ProtocolExemption {
     /// firing. Only role words — which describe a swappable dependency — qualify.
     static let diSuffixes = [
         "Providing", "Service", "Repository",
-        "DataSource", "Client", "Networking"
+        "DataSource", "Client", "Networking",
     ]
 
     /// Path fragments that mark a file as test / fixture support.

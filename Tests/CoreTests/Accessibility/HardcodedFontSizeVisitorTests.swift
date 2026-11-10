@@ -154,7 +154,7 @@ struct HardcodedFontSizeVisitorTests {
                     .font(.system(.body))
             }
         }
-        """
+        """,
     ])
     func noIssue(source: String) {
         let visitor = makeVisitor()

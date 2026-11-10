@@ -91,7 +91,7 @@ extension RuleDocView {
         "convenience", "required", "optional", "indirect",
         "get", "set", "willSet", "didSet", "defer",
         "precondition", "assert", "nonisolated",
-        "consuming", "borrowing", "sending"
+        "consuming", "borrowing", "sending",
     ]
 
     private static let types = [
@@ -109,7 +109,7 @@ extension RuleDocView {
         "VStack", "HStack", "ZStack",
         "Int8", "Int16", "Int32", "Int64",
         "UInt", "UInt8", "UInt16", "UInt32", "UInt64",
-        "CGFloat", "CGPoint", "CGSize", "CGRect", "NSObject"
+        "CGFloat", "CGPoint", "CGSize", "CGRect", "NSObject",
     ]
 
     private static let keywordPattern =
@@ -126,7 +126,7 @@ extension RuleDocView {
             (Self.keywordPattern, colors.keyword, false),
             (Self.typePattern, colors.type, false),
             (#"\b\d[\d_.]*\b"#, colors.number, false),
-            (#"//.*$"#, colors.comment, true)
+            (#"//.*$"#, colors.comment, true),
         ]
 
         var result = AttributedString()

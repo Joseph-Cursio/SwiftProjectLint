@@ -46,7 +46,7 @@ class Security: BasePatternRegistrar {
                 suggestion: "Use the Keychain (via Security framework or a wrapper like "
                     + "KeychainAccess) to store passwords, tokens, and API keys",
                 description: "Detects sensitive data stored in UserDefaults, which is unencrypted"
-            )
+            ),
         ]
         registry.register(patterns: patterns)
 

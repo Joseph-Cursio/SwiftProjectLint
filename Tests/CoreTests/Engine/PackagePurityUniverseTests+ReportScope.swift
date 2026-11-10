@@ -142,7 +142,7 @@ extension PackagePurityUniverseTests {
         // Per-file and cross-file readers, and one that reads the purity only for an exemption.
         #expect(readersInProduction.isSuperset(of: [
             .pureFunctionCandidate, .pureClosureCandidate, .impureClosureInventory, .couldBePrivate,
-            .directInstantiation
+            .directInstantiation,
         ]), "the corpus no longer moves the readers: \(readersInProduction)")
         let readersInSuite = suite.filter { Self.readers.contains($0.ruleName) && $0.filePath.hasPrefix("tests/") }
         #expect(readersInSuite.isEmpty, "\(PurityGateCorpus.rendered(readersInSuite))")

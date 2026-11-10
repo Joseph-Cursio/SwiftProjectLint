@@ -37,7 +37,7 @@ extension ComputedPropertyViewVisitor {
     /// which is not the same thing as declining to report them.
     static let decomposingContainers: Set<String> = [
         "confirmationDialog", "alert", "actionSheet", "Menu", "contextMenu",
-        "ToolbarItem", "ToolbarItemGroup", "toolbar"
+        "ToolbarItem", "ToolbarItemGroup", "toolbar",
     ]
 
     /// Property names referenced inside one of those containers.

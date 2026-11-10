@@ -102,7 +102,7 @@ struct OnChangeOldAPIVisitorTests {
             .onReceive(publisher) { value in
                 handle(value)
             }
-        """
+        """,
     ])
     func noIssue(source: String) {
         let visitor = makeVisitor()

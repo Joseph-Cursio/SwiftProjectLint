@@ -141,7 +141,7 @@ enum ManifestText {
 
     private static let statementKeywords = [
         "let", "var", "func", "import", "for", "if", "guard", "while", "switch",
-        "struct", "class", "enum", "extension", "#if"
+        "struct", "class", "enum", "extension", "#if",
     ]
 
     /// The statement keyword starting at `index`, if one does.

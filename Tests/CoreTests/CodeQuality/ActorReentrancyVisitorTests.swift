@@ -348,7 +348,7 @@ struct ActorReentrancyVisitorTests {
 
             private func runAnalysis() async throws -> [String] { [] }
         }
-        """
+        """,
     ])
     func noIssue(source: String) {
         let visitor = makeVisitor()

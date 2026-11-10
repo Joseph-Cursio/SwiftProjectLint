@@ -23,7 +23,7 @@ class FatProtocolVisitor: BasePatternVisitor {
                 node: Syntax(node),
                 variables: [
                     "protocolName": node.name.text,
-                    "count": "\(requirementCount)"
+                    "count": "\(requirementCount)",
                 ]
             )
         }

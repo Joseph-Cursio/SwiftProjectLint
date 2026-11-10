@@ -21,7 +21,7 @@ class AccessibilityTreeTraverser {
         "accessibilityAction",
         "accessibilityAdjustableAction",
         "accessibilityCustomAction",
-        "accessibilityRespondsToUserInteraction"
+        "accessibilityRespondsToUserInteraction",
     ]
 
     /// Checks if the given modifier exists in the SwiftUI modifier chain

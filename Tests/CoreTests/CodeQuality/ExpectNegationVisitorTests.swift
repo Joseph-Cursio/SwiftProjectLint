@@ -110,7 +110,7 @@ struct ExpectNegationVisitorTests {
         """
         let flag = !isVisible
         if !isLoading { }
-        """
+        """,
     ])
     func noIssue(source: String) {
         let visitor = makeVisitor()

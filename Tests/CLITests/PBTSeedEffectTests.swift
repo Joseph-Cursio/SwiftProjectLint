@@ -48,7 +48,7 @@ struct PBTSeedEffectTests {
         let seeds = try decodedSeeds([
             violation(effect: PBTSeedEffect(
                 declared: .idempotent, resolved: .nonIdempotent, provenance: .declared
-            ))
+            )),
         ])
         let effect = try #require(seeds.first?.effect)
         #expect(effect.declared == .idempotent)
@@ -66,7 +66,7 @@ struct PBTSeedEffectTests {
             violation(effect: PBTSeedEffect(
                 declared: .idempotent, resolved: .nonIdempotent,
                 provenance: .inferredUpward, depth: 3
-            ))
+            )),
         ])
         let effect = try #require(seeds.first?.effect)
         #expect(effect.provenance == .inferredUpward)
@@ -81,7 +81,7 @@ struct PBTSeedEffectTests {
             violation(effect: PBTSeedEffect(
                 declared: .idempotent, resolved: .nonIdempotent,
                 provenance: .inferredDownward, reason: "from the callee name `save`"
-            ))
+            )),
         ])
         let effect = try #require(seeds.first?.effect)
         #expect(effect.provenance == .inferredDownward)
@@ -100,7 +100,7 @@ struct PBTSeedEffectTests {
         let json = PBTSeedsFormatter().format(issues: [
             violation(effect: PBTSeedEffect(
                 declared: .externallyIdempotent, resolved: .nonIdempotent, provenance: .declared
-            ))
+            )),
         ])
         #expect(json.contains("\"externally_idempotent\""))
         #expect(json.contains("\"non_idempotent\""))
@@ -114,7 +114,7 @@ struct PBTSeedEffectTests {
             violation(effect: PBTSeedEffect(
                 declared: .idempotent, resolved: .nonIdempotent,
                 provenance: .inferredUpward, depth: 1
-            ))
+            )),
         ])
         #expect(json.contains("\"inferred-upward\""))
     }

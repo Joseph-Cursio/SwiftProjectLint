@@ -23,7 +23,7 @@ final class StackAccessibilityGroupingVisitor: BasePatternVisitor {
     private static let interactiveViews: Set<String> = [
         "Button", "Toggle", "Slider", "Stepper", "Picker",
         "DatePicker", "ColorPicker", "TextField", "SecureField",
-        "TextEditor", "Link", "NavigationLink", "Menu"
+        "TextEditor", "Link", "NavigationLink", "Menu",
     ]
 
     /// Stack view names to check.

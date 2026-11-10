@@ -49,7 +49,7 @@ struct ControlMissingAccessibilityLabelVisitorTests {
         // Slider, Stepper and Picker all take a title as their first positional argument.
         let sources = [
             #"struct V: View { var body: some View { Picker("", selection: $c) { Text("A") } } }"#,
-            #"struct V: View { var body: some View { Stepper("", value: $n) } }"#
+            #"struct V: View { var body: some View { Stepper("", value: $n) } }"#,
         ]
         for source in sources {
             #expect(analyze(source).count == 1, "expected one issue for: \(source)")

@@ -41,7 +41,7 @@ struct ProjectLinterParseScopeTests {
         struct Item {
             let title: String
         }
-        """)
+        """),
     ]
 
     /// A run parses each of the project's Swift files once, and nothing else.

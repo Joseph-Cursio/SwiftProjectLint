@@ -73,7 +73,7 @@ struct MemberImportVisibilityNotEnabledVisitorTests {
             "Package.swift": manifest(
                 settings: #", swiftSettings: [.enableUpcomingFeature("MemberImportVisibility")]"#
             ),
-            "Benchmarks/Package.swift": manifest()
+            "Benchmarks/Package.swift": manifest(),
         ])
         let issue = try #require(issues.first)
         #expect(issues.count == 1)
@@ -101,7 +101,7 @@ struct MemberImportVisibilityNotEnabledVisitorTests {
         // As a compiler flag in one string.
         #", swiftSettings: [.unsafeFlags(["-enable-upcoming-feature MemberImportVisibility"])]"#,
         // As a compiler flag split across two strings.
-        #", swiftSettings: [.unsafeFlags(["-enable-upcoming-feature", "MemberImportVisibility"])]"#
+        #", swiftSettings: [.unsafeFlags(["-enable-upcoming-feature", "MemberImportVisibility"])]"#,
     ])
     func enabledOnTarget(settings: String) {
         #expect(analyze(["Package.swift": manifest(settings: settings)]).isEmpty)
@@ -153,7 +153,7 @@ struct MemberImportVisibilityNotEnabledVisitorTests {
             "Package.swift": manifest(toolsVersion: "6.0"),
             "Package@swift-6.1.swift": manifest(
                 settings: #", swiftSettings: [.enableUpcomingFeature("MemberImportVisibility")]"#
-            )
+            ),
         ])
         #expect(issues.isEmpty)
     }
@@ -193,7 +193,7 @@ struct MemberImportVisibilityNotEnabledVisitorTests {
         "Fixtures/Miscellaneous/Simple/Package.swift",
         "Tests/SPM/Package.swift",
         "IntegrationTests/allocation-counter/Package.swift",
-        "Examples/hello-world/Package.swift"
+        "Examples/hello-world/Package.swift",
     ])
     func fixturePackageIsSkipped(path: String) {
         #expect(analyze([path: manifest()]).isEmpty)

@@ -48,7 +48,7 @@ struct ParallelListDriftDogfoodTests {
     func registerAllDriftsFromPatternCategory() throws {
         let issues = try analyze(realFiles: [
             "Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/BuiltInRules.swift",
-            "Packages/SwiftProjectLintModels/Sources/SwiftProjectLintModels/PatternCategory.swift"
+            "Packages/SwiftProjectLintModels/Sources/SwiftProjectLintModels/PatternCategory.swift",
         ])
 
         let onRegisterAll = try #require(issues.first { $0.filePath.hasSuffix("BuiltInRules.swift") })

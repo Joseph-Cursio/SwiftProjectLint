@@ -37,7 +37,7 @@ struct CouldBePrivateMemberVisitorTests {
             struct Other {
                 func doWork() { }
             }
-            """
+            """,
         ])
 
         let flagged = issues.map(\.message)
@@ -56,7 +56,7 @@ struct CouldBePrivateMemberVisitorTests {
                 let service = Service()
                 func load() { let _ = service.fetchData() }
             }
-            """
+            """,
         ])
 
         let flagged = issues.map(\.message)
@@ -70,7 +70,7 @@ struct CouldBePrivateMemberVisitorTests {
                 private func secretHelper() { }
                 func uniquePublicMethod() { secretHelper() }
             }
-            """
+            """,
         ])
 
         let flagged = issues.map(\.message)
@@ -85,7 +85,7 @@ struct CouldBePrivateMemberVisitorTests {
             class Child: Parent {
                 override func viewDidLoad() { }
             }
-            """
+            """,
         ])
 
         let flagged = issues.map(\.message)
@@ -98,7 +98,7 @@ struct CouldBePrivateMemberVisitorTests {
             struct MyView: View {
                 var body: some View { Text("hi") }
             }
-            """
+            """,
         ])
 
         #expect(issues.isEmpty)
@@ -111,7 +111,7 @@ struct CouldBePrivateMemberVisitorTests {
                 @State var counter: Int = 0
                 var body: some View { Text("hi") }
             }
-            """
+            """,
         ])
 
         let flagged = issues.map(\.message)
@@ -130,7 +130,7 @@ struct CouldBePrivateMemberVisitorTests {
             """,
             "Other.swift": """
             struct Other { }
-            """
+            """,
         ])
 
         let flagged = issues.map(\.message)
@@ -146,7 +146,7 @@ struct CouldBePrivateMemberVisitorTests {
             """,
             "Other.swift": """
             struct Other { }
-            """
+            """,
         ])
 
         let flagged = issues.map(\.message)
@@ -170,7 +170,7 @@ struct CouldBePrivateMemberVisitorTests {
             """,
             "Other.swift": """
             struct Other { }
-            """
+            """,
         ])
 
         let flagged = issues.map(\.message)
@@ -188,7 +188,7 @@ struct CouldBePrivateMemberVisitorTests {
             """,
             "Other.swift": """
             struct Other { }
-            """
+            """,
         ])
 
         let flagged = issues.map(\.message)
@@ -207,7 +207,7 @@ struct CouldBePrivateMemberVisitorTests {
             """,
             "Other.swift": """
             struct Other { }
-            """
+            """,
         ])
 
         let flagged = issues.map(\.message)
@@ -226,7 +226,7 @@ struct CouldBePrivateMemberVisitorTests {
             """,
             "Other.swift": """
             struct Other { }
-            """
+            """,
         ])
 
         let flagged = issues.map(\.message)
@@ -245,7 +245,7 @@ struct CouldBePrivateMemberVisitorTests {
             """,
             "Other.swift": """
             struct Other { }
-            """
+            """,
         ])
 
         let flagged = issues.map(\.message)
@@ -265,7 +265,7 @@ struct CouldBePrivateMemberVisitorTests {
             """,
             "Other.swift": """
             struct Other { }
-            """
+            """,
         ])
 
         let flagged = issues.map(\.message)
@@ -294,7 +294,7 @@ struct CouldBePrivateMemberVisitorTests {
             """,
             "Other.swift": """
             struct Other { }
-            """
+            """,
         ])
 
         let flagged = issues.map(\.message)

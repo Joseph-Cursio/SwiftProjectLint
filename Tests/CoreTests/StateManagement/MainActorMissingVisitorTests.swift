@@ -212,7 +212,7 @@ struct MainActorMissingVisitorTests {
         let derivedFile = Parser.parse(source: derivedSource)
         let fileCache: [String: SourceFileSyntax] = [
             "Base.swift": baseFile,
-            "Derived.swift": derivedFile
+            "Derived.swift": derivedFile,
         ]
 
         let pattern = MainActorMissing().pattern
@@ -246,7 +246,7 @@ struct MainActorMissingVisitorTests {
         let derivedFile = Parser.parse(source: derivedSource)
         let fileCache: [String: SourceFileSyntax] = [
             "Base.swift": baseFile,
-            "Derived.swift": derivedFile
+            "Derived.swift": derivedFile,
         ]
 
         let pattern = MainActorMissing().pattern

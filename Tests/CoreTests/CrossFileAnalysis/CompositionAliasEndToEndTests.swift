@@ -26,7 +26,7 @@ struct CompositionAliasEndToEndTests {
             "Protocol 'OrderAdministration' has only one conformer ('CoreDataOrderStore') — "
                 + "consider removing the abstraction.",
             "Protocol 'OrderHistory' has only one conformer ('CoreDataOrderStore') — "
-                + "consider removing the abstraction."
+                + "consider removing the abstraction.",
         ])
     }
 
@@ -118,7 +118,7 @@ struct CompositionAliasEndToEndTests {
             init(store: any OrderSaving) { self.store = store }
             func checkout() async throws { try await store.save(Order()) }
         }
-        """
+        """,
     ]
 
     private func analyze(_ root: String) async -> [LintIssue] {

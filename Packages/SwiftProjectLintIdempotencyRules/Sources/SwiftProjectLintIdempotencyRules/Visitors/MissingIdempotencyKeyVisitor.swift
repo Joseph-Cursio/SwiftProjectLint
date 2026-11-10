@@ -205,7 +205,7 @@ final class MissingIdempotencyKeyVisitor: CrossFileVisitorBase, CrossFilePattern
         "Date",
         "arc4random",
         "arc4random_uniform",
-        "CFUUIDCreate"
+        "CFUUIDCreate",
     ]
 
     private func calleeBaseName(of expr: ExprSyntax) -> String? {

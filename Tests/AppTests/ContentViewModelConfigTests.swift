@@ -22,7 +22,7 @@ struct ContentViewModelConfigTests {
                 lineNumber: 1,
                 suggestion: nil,
                 ruleName: .forceTry
-            )
+            ),
         ])
         viewModel.analyzeProject()
         await viewModel.analysisTask?.value

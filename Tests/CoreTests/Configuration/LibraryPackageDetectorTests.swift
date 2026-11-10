@@ -101,7 +101,7 @@ struct LibraryPackageDetectorTests {
         let root = try makeTree(nested: [
             ("Zed", Self.libraryManifest),
             ("Alpha", Self.libraryManifest),
-            ("Tool", Self.executableManifest)
+            ("Tool", Self.executableManifest),
         ])
         defer { try? FileManager.default.removeItem(at: root) }
 

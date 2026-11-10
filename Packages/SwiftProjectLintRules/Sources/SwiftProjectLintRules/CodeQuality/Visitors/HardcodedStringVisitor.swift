@@ -42,7 +42,7 @@ class HardcodedStringVisitor: BasePatternVisitor {
         "navigationTitle", "navigationBarTitle",
         "alert", "confirmationDialog",
         "headerProminence", "badge",
-        "help", "toolbarItem"
+        "help", "toolbarItem",
     ]
 
     /// Argument labels that take SF Symbol names or other non-localizable identifiers.

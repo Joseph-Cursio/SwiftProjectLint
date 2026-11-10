@@ -80,7 +80,7 @@ final class MotionScanner: SyntaxVisitor {
     /// counts — reading it at all implies the author considered motion.
     private static let reduceMotionNames: Set<String> = [
         "accessibilityReduceMotion",
-        "isReduceMotionEnabled"
+        "isReduceMotionEnabled",
     ]
 
     /// Transitions that move nothing, so they need no Reduce Motion handling.

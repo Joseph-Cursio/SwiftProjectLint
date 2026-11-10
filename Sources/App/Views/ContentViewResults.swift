@@ -47,7 +47,7 @@ struct ContentViewResults: View {
             lineNumber: 10,
             suggestion: "This is a demo suggestion",
             ruleName: .relatedDuplicateStateVariable
-        )
+        ),
     ]
 
     VStack {

@@ -40,7 +40,7 @@ struct CFAbsoluteTimeVisitorTests {
 
     @Test("Detects CFAbsoluteTimeGetCurrent usage", arguments: [
         "let start = CFAbsoluteTimeGetCurrent()",
-        "let elapsed = CFAbsoluteTimeGetCurrent() - startTime"
+        "let elapsed = CFAbsoluteTimeGetCurrent() - startTime",
     ])
     func detectsCFAbsoluteTimeUsage(source: String) {
         let visitor = makeVisitor()
@@ -67,7 +67,7 @@ struct CFAbsoluteTimeVisitorTests {
     @Test("No issue for non-CFAbsoluteTime code", arguments: [
         "let now = Date.now",
         "let clock = ContinuousClock()\nlet now = clock.now",
-        "let runLoop = CFRunLoopGetCurrent()"
+        "let runLoop = CFRunLoopGetCurrent()",
     ])
     func noIssueForNonCFAbsoluteTime(source: String) {
         let visitor = makeVisitor()

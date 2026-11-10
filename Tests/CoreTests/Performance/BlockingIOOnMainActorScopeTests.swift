@@ -29,7 +29,7 @@ struct BlockingIOOnMainActorScopeTests {
         // A free function.
         """
         func load(url: URL) -> Data? { try? Data(contentsOf: url) }
-        """
+        """,
     ])
     func unisolatedCodeIsNotFlagged(source: String) {
         #expect(BlockingIOHarness.issues(source).isEmpty)
@@ -50,7 +50,7 @@ struct BlockingIOOnMainActorScopeTests {
         @MainActor final class Loader {
             deinit { _ = try? Data(contentsOf: URL(fileURLWithPath: "/tmp/x")) }
         }
-        """
+        """,
     ])
     func memberOptOutIsHonoured(source: String) {
         #expect(BlockingIOHarness.issues(source).isEmpty)
@@ -81,7 +81,7 @@ struct BlockingIOOnMainActorScopeTests {
                 group.addTask { _ = try? Data(contentsOf: url) }
             }
         }
-        """
+        """,
     ])
     func handOffClosuresAreNotFlagged(body: String) {
         let issues = BlockingIOHarness.issues("""
@@ -121,7 +121,7 @@ struct BlockingIOOnMainActorScopeTests {
                 Task { _ = try? Data(contentsOf: url) }
             }
         }
-        """
+        """,
     ])
     func modelAsyncWorkIsNotFlagged(source: String) {
         #expect(BlockingIOHarness.issues(source).isEmpty)
@@ -150,7 +150,7 @@ struct BlockingIOOnMainActorScopeTests {
         let semaphore = DispatchSemaphore(value: 0)
         legacyFetch { semaphore.signal() }
         semaphore.wait()
-        """
+        """,
     ])
     func callsOwnedByAnotherRuleAreSkipped(body: String) {
         let issues = BlockingIOHarness.issues("""

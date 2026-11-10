@@ -22,7 +22,7 @@ final class InsecureTransportVisitor: BasePatternVisitor {
 
     private static let insecureSchemes = [
         "http://", "ws://", "ftp://", "telnet://",
-        "mqtt://", "amqp://", "redis://", "ldap://"
+        "mqtt://", "amqp://", "redis://", "ldap://",
     ]
 
     // MARK: - Localhost & Reserved Domains

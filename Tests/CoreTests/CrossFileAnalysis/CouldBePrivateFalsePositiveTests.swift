@@ -70,7 +70,7 @@ struct CouldBePrivateFalsePositiveTests {
                     cache.entries.values.map(\\.reason).joined()
                 }
             }
-            """
+            """,
         ])
 
         #expect(issues.contains { $0.message.contains("RemovalEntry") } == false)
@@ -94,7 +94,7 @@ struct CouldBePrivateFalsePositiveTests {
             struct CacheConsumer {
                 func describe(_ cache: RemovalCache) -> Int { cache.count }
             }
-            """
+            """,
         ])
 
         #expect(issues.contains { $0.message.contains("RemovalEntry") })
@@ -118,7 +118,7 @@ struct CouldBePrivateFalsePositiveTests {
             struct CacheConsumer {
                 func describe(_ cache: RemovalCache) -> Int { cache.count }
             }
-            """
+            """,
         ])
 
         #expect(issues.contains { $0.message.contains("RemovalEntry") })
@@ -137,7 +137,7 @@ struct CouldBePrivateFalsePositiveTests {
                     return header + "!"
                 }
             }
-            """
+            """,
         ])
 
         #expect(issues.contains { $0.message.contains("header") } == false)
@@ -153,7 +153,7 @@ struct CouldBePrivateFalsePositiveTests {
                 var header = "title"
                 var body: String { header + "!" }
             }
-            """
+            """,
         ])
 
         #expect(issues.contains { $0.message.contains("header") })
@@ -173,7 +173,7 @@ struct CouldBePrivateFalsePositiveTests {
                     }
                 }
             }
-            """
+            """,
         ])
 
         #expect(issues.contains { $0.message.contains("header") } == false)
@@ -195,7 +195,7 @@ struct CouldBePrivateFalsePositiveTests {
             struct ConfigurationUser {
                 func value(_ config: Configuration) -> Int { config.default() }
             }
-            """
+            """,
         ])
 
         #expect(issues.contains { $0.message.contains("default") } == false)
@@ -215,7 +215,7 @@ struct CouldBePrivateFalsePositiveTests {
             struct Unrelated {
                 func run() -> Int { 0 }
             }
-            """
+            """,
         ])
 
         #expect(issues.contains { $0.message.contains("default") })
@@ -243,7 +243,7 @@ struct CouldBePrivateFalsePositiveTests {
                 let capability: any ExtendedCapability
                 func run() { capability.perform() }
             }
-            """
+            """,
         ])
 
         #expect(issues.contains { $0.message.contains("BaseCapability") } == false)
@@ -267,7 +267,7 @@ struct CouldBePrivateFalsePositiveTests {
             struct Unrelated {
                 func run() -> Int { 0 }
             }
-            """
+            """,
         ])
 
         #expect(issues.contains { $0.message.contains("BaseCapability") })
@@ -296,7 +296,7 @@ struct CouldBePrivateFalsePositiveTests {
                 let capability: any TopCapability
                 func run() { capability.perform() }
             }
-            """
+            """,
         ])
 
         #expect(issues.contains { $0.message.contains("BaseCapability") } == false)

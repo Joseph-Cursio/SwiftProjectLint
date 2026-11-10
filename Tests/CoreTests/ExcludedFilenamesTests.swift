@@ -26,7 +26,7 @@ struct ExcludedFilenamesTests {
         for path in [
             "Sources/Alpha/Constants.swift",
             "Sources/Beta/Constants.swift",
-            "Sources/Alpha/Regular.swift"
+            "Sources/Alpha/Regular.swift",
         ] {
             try? body.write(
                 toFile: (root as NSString).appendingPathComponent(path),

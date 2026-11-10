@@ -32,7 +32,7 @@ final class PrimitiveBypassingDomainTypeVisitor: CrossFileVisitorBase, CrossFile
         "Int", "Int8", "Int16", "Int32", "Int64",
         "UInt", "UInt8", "UInt16", "UInt32", "UInt64",
         "Double", "Float", "Bool",
-        "UUID", "URL", "Data", "Decimal"
+        "UUID", "URL", "Data", "Decimal",
     ]
 
     /// The carriers distinctive enough that a `[…: T]` map matching a `[W: T]` one is worth

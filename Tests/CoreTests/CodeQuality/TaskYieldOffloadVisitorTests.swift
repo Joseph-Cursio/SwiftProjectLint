@@ -39,7 +39,7 @@ struct TaskYieldOffloadVisitorTests {
     @Test("Detects Task.yield variant", arguments: [
         """
         Task.yield()
-        """
+        """,
     ])
     func detectsVariant(source: String) {
         let visitor = makeVisitor()
@@ -61,7 +61,7 @@ struct TaskYieldOffloadVisitorTests {
         // Instance task cancel
         """
         task.cancel()
-        """
+        """,
     ])
     func noIssue(source: String) {
         let visitor = makeVisitor()

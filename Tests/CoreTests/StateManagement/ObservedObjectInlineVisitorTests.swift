@@ -93,7 +93,7 @@ struct ObservedObjectInlineVisitorTests {
         struct MyView: View {
             var viewModel: ViewModel
         }
-        """
+        """,
     ])
     func noIssue(source: String) {
         let visitor = makeVisitor()

@@ -25,7 +25,7 @@ final class AccessibilityHiddenConflictVisitor: BasePatternVisitor {
         "accessibilityAction",
         "accessibilityAdjustableAction",
         "accessibilityCustomAction",
-        "accessibilitySortPriority"
+        "accessibilitySortPriority",
     ]
 
     required init(pattern: SyntaxPattern, viewMode: SyntaxTreeViewMode = .sourceAccurate) {

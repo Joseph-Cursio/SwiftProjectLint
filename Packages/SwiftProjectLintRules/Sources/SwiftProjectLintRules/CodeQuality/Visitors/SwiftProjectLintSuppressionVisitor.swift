@@ -11,7 +11,7 @@ final class SwiftProjectLintSuppressionVisitor: SuppressionVisitorBase {
         [
             "swiftprojectlint:disable:next",
             "swiftprojectlint:disable:this",
-            "swiftprojectlint:disable"
+            "swiftprojectlint:disable",
         ]
     }
 

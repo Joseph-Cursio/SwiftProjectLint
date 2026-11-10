@@ -39,7 +39,7 @@ struct TupleReturnCandidacyTests {
         "(Int)",
         // An element's generic arguments are looked through, and these are all `Equatable`.
         "(Array<Int>, Set<String>)",
-        "([String: Int], Dictionary<String, [Bool]>)"
+        "([String: Int], Dictionary<String, [Bool]>)",
     ]
 
     /// Spellings with no `==`, each for a reason the stdlib states.
@@ -78,7 +78,7 @@ struct TupleReturnCandidacyTests {
         // swift-syntax reads `inout Int` as an attributed type, which has no name to look up.
         "(inout Int, Int)",
         // A function type is not a tuple, whatever it returns.
-        "(Int) -> (Int, Int)"
+        "(Int) -> (Int, Int)",
     ]
 
     // MARK: - The gate
@@ -264,7 +264,7 @@ struct TupleReturnCandidacyTests {
             guard let value = Int(s) else { throw ParseError.bad }
             return (value, value)
         }
-        """
+        """,
     ]
 
     /// **A throwing function returning a tuple is not a candidate.** A partial candidate's law

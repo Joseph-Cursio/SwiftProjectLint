@@ -117,7 +117,7 @@ struct IdentifiableTypeCollectorTests {
         #expect(collect(from: source) == [
             "Entry", "Feed.Entry",
             "Inner", "Middle.Inner", "Outer.Middle.Inner",
-            "Row", "Store.Row"
+            "Row", "Store.Row",
         ])
     }
 

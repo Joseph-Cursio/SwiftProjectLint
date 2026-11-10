@@ -75,7 +75,7 @@ struct ProtocolNamingSuffixOptInTests {
                 private let store: any OrderStore
                 init(store: any OrderStore) { self.store = store }
             }
-            """
+            """,
         ]
         for (relativePath, content) in files {
             let path = (root as NSString).appendingPathComponent(relativePath)

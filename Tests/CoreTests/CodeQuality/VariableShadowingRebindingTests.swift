@@ -155,7 +155,7 @@ struct VariableShadowingRebindingTests {
                 }
             }
             """
-        )
+        ),
     ])
     func rebindingExclusion(_ testCase: ExclusionCase) {
         let visitor = makeVisitor()
@@ -212,7 +212,7 @@ struct VariableShadowingSeverityTests {
             }
             """,
             expected: .error
-        )
+        ),
     ])
     func severity(_ testCase: SeverityCase) throws {
         let visitor = makeVisitor()

@@ -38,7 +38,7 @@ final class FormatterInViewBodyVisitor: BasePatternVisitor {
         "MeasurementFormatter",
         "PersonNameComponentsFormatter",
         "JSONDecoder",
-        "JSONEncoder"
+        "JSONEncoder",
     ]
 
     required init(pattern: SyntaxPattern, viewMode: SyntaxTreeViewMode = .sourceAccurate) {
@@ -103,7 +103,7 @@ final class FormatterInViewBodyVisitor: BasePatternVisitor {
         /// Static property accesses that are flagged: type name → property name.
         private static let expensivePropertyAccesses: [String: String] = [
             "Calendar": "current",
-            "Locale": "current"
+            "Locale": "current",
         ]
 
         init(formatterTypes: Set<String>) {

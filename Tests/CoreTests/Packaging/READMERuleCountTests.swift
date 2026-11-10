@@ -126,6 +126,6 @@ struct READMERuleCountTests {
         .animation: "Animation",
         .modernization: "Modernization",
         .idempotency: "Idempotency",
-        .testability: "Testability"
+        .testability: "Testability",
     ]
 }

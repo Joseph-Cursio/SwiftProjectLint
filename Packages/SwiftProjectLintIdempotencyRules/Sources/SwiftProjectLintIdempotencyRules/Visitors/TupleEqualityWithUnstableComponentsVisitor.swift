@@ -185,14 +185,14 @@ final class TupleEqualityWithUnstableComponentsVisitor: BasePatternVisitor {
 
     private static let unstableZeroArgFunctions: Set<String> = [
         "CFAbsoluteTimeGetCurrent",
-        "mach_absolute_time"
+        "mach_absolute_time",
     ]
 
     private static let randomReceiverTypeNames: Set<String> = [
         "Int", "Int8", "Int16", "Int32", "Int64",
         "UInt", "UInt8", "UInt16", "UInt32", "UInt64",
         "Double", "Float", "Float16", "Float32", "Float64",
-        "CGFloat", "Bool"
+        "CGFloat", "Bool",
     ]
 
     private static let unstableIdentifierNames: Set<String> = [

@@ -49,7 +49,7 @@ struct RuleIdentifierFilteringTests {
         let specificRules: [RuleIdentifier] = [
             .relatedDuplicateStateVariable,
             .unusedStateVariable,
-            .missingAccessibilityLabel
+            .missingAccessibilityLabel,
         ]
 
         let specificIssues = detector.detectPatterns(

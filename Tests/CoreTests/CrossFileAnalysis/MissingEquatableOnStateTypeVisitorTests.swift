@@ -35,7 +35,7 @@ struct MissingEquatableOnStateTypeVisitorTests {
             struct ContentView {
                 @State private var settings: Settings
             }
-            """
+            """,
         ])
         #expect(issues.count == 1)
         #expect(issues.first?.message.contains("'Settings'") == true)
@@ -51,7 +51,7 @@ struct MissingEquatableOnStateTypeVisitorTests {
             struct ContentView {
                 @State private var settings: Settings
             }
-            """
+            """,
         ])
         #expect(issues.isEmpty)
     }
@@ -66,7 +66,7 @@ struct MissingEquatableOnStateTypeVisitorTests {
             struct ContentView {
                 @Binding var settings: Settings
             }
-            """
+            """,
         ])
         #expect(issues.isEmpty)
     }
@@ -86,7 +86,7 @@ struct MissingEquatableOnStateTypeVisitorTests {
             struct ContentView {
                 @State var settings: Settings
             }
-            """
+            """,
         ])
         #expect(issues.isEmpty)
     }
@@ -103,7 +103,7 @@ struct MissingEquatableOnStateTypeVisitorTests {
             struct ContentView {
                 @State var settings: Settings
             }
-            """
+            """,
         ])
         #expect(issues.count == 1)
         #expect(issues.first?.message.contains("'Settings'") == true)
@@ -124,7 +124,7 @@ struct MissingEquatableOnStateTypeVisitorTests {
             class ViewModel {
                 @Published var state: LoadState = .idle
             }
-            """
+            """,
         ])
         #expect(issues.count == 1)
         #expect(issues.first?.message.contains("'LoadState'") == true)
@@ -141,7 +141,7 @@ struct MissingEquatableOnStateTypeVisitorTests {
                 @State var selected: Item?
                 @State var items: [Item]
             }
-            """
+            """,
         ])
         // Both bindings reference the same non-Equatable `Item`; one issue at its decl.
         #expect(issues.count == 1)
@@ -157,7 +157,7 @@ struct MissingEquatableOnStateTypeVisitorTests {
                 @State var name: String
                 @State var external: SomeThirdPartyType
             }
-            """
+            """,
         ])
         // Int/String are Equatable stdlib types; SomeThirdPartyType isn't declared
         // in the project, so it can't be judged. No flags.
@@ -175,7 +175,7 @@ struct MissingEquatableOnStateTypeVisitorTests {
                 @StateObject var model: Model
                 @ObservedObject var other: Model
             }
-            """
+            """,
         ])
         // @StateObject / @ObservedObject wrap reference types; not in scope.
         #expect(issues.isEmpty)
@@ -196,7 +196,7 @@ struct MissingEquatableOnStateTypeVisitorTests {
             struct ViewB {
                 @Binding var shared: Shared
             }
-            """
+            """,
         ])
         #expect(issues.count == 1)
     }
@@ -219,7 +219,7 @@ struct MissingEquatableOnStateTypeVisitorTests {
             struct RootView {
                 @State private var section: AppSection
             }
-            """
+            """,
         ])
         #expect(issues.isEmpty)
     }
@@ -237,7 +237,7 @@ struct MissingEquatableOnStateTypeVisitorTests {
             struct FleetView {
                 @State private var order: SortOrder
             }
-            """
+            """,
         ])
         #expect(issues.isEmpty)
     }
@@ -253,7 +253,7 @@ struct MissingEquatableOnStateTypeVisitorTests {
             struct StatusView {
                 @State private var state: LoadState
             }
-            """
+            """,
         ])
         #expect(issues.count == 1)
         #expect(issues.first?.message.contains("'LoadState'") == true)
@@ -269,7 +269,7 @@ struct MissingEquatableOnStateTypeVisitorTests {
             struct DetailView {
                 @State private var target: AnnotationTarget
             }
-            """
+            """,
         ])
         #expect(issues.count == 1)
         #expect(issues.first?.message.contains("'AnnotationTarget'") == true)

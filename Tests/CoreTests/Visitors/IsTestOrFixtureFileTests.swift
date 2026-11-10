@@ -23,7 +23,7 @@ struct IsTestOrFixtureFileTests {
         "/proj/Tests/MyPackageTests/FooTests.swift",
         "/proj/Tests/CoreTests/Bar.swift",
         "/proj/MyAppTests/LoginViewTests.swift",
-        "Tests/Helpers.swift"
+        "Tests/Helpers.swift",
     ])
     func testTargetFolders(path: String) {
         #expect(isFixture(path))
@@ -36,7 +36,7 @@ struct IsTestOrFixtureFileTests {
         "/proj/Sources/App/Fixtures/Sample.swift",
         "/proj/Sources/App/Examples/Demo.swift",
         "/proj/Sources/App/Samples/Demo.swift",
-        "/proj/ExampleCode/Snippet.swift"
+        "/proj/ExampleCode/Snippet.swift",
     ])
     func fixtureFolders(path: String) {
         #expect(isFixture(path))
@@ -53,7 +53,7 @@ struct IsTestOrFixtureFileTests {
         "/proj/Sources/App/ColorExamples.swift",
         "/proj/Sources/App/LayoutSamples.swift",
         "/proj/Sources/App/LoginViewTests.swift",
-        "/proj/Sources/App/LoginViewTest.swift"
+        "/proj/Sources/App/LoginViewTest.swift",
     ])
     func fixtureFileNames(path: String) {
         #expect(isFixture(path))
@@ -72,7 +72,7 @@ struct IsTestOrFixtureFileTests {
         "/proj/Sources/MyPackage/MyType.swift",
         "/proj/Sources/App/TestableView.swift",                   // "Test" but no boundary marker
         "/proj/Sources/App/LatestSnapshot.swift",
-        "/proj/Sources/App/RequestsRouter.swift"
+        "/proj/Sources/App/RequestsRouter.swift",
     ])
     func productionFiles(path: String) {
         #expect(isFixture(path) == false)

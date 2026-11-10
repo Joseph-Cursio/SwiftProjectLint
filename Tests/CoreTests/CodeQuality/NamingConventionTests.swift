@@ -111,7 +111,7 @@ struct NamingConventionTests {
             label: "regular class with agent-noun name fires nonActorAgentSuffix",
             sourceCode: "class Manager { var name: String = \"\" }",
             expectedCount: 1
-        )
+        ),
     ]
 
     @Test("Detects or skips based on naming suffix", arguments: detectionCases)
@@ -141,7 +141,7 @@ struct NamingConventionTests {
             label: "property wrapper suggests Wrapper suffix",
             sourceCode: "@propertyWrapper struct UserDefault<Value> { var wrappedValue: Value }",
             expectedSuggestion: "UserDefaultWrapper"
-        )
+        ),
     ]
 
     @Test("Suggestion contains corrected name", arguments: suggestionCases)

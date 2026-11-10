@@ -99,7 +99,7 @@ struct PackagePurityNestedPackageTests {
             "\(middle)/Sources/Support/Support.swift": "struct SupportOnly { let n: Int }\n",
             "Shared/Package.swift": "// swift-tools-version:6.0\n",
             "Shared/Sources/Shared/Item.swift": PackagePurityFixtures.refutingItem,
-            "Sources/App/Callers.swift": PackagePurityFixtures.callers
+            "Sources/App/Callers.swift": PackagePurityFixtures.callers,
         ])
         defer { try? FileManager.default.removeItem(atPath: root) }
         #expect(await PackagePurityFixtures.universe(at: root) == [
@@ -128,7 +128,7 @@ struct PackagePurityNestedPackageTests {
         let root = try PackagePurityFixtures.makeProject([
             "Packages/Util/Package.swift": "// swift-tools-version:6.0\n",
             "Packages/Util/Sources/Util/Item.swift": PackagePurityFixtures.refutingItem,
-            "Sources/App/Callers.swift": PackagePurityFixtures.callers
+            "Sources/App/Callers.swift": PackagePurityFixtures.callers,
         ])
         let alias = root + "-alias"
         try FileManager.default.createSymbolicLink(atPath: alias, withDestinationPath: root)
@@ -177,7 +177,7 @@ struct PackagePurityNestedPackageTests {
             import PackageDescription
             let package = Package(name: "Demo", targets: [.target(name: "Demo")])
             """,
-            "Demo/Sources/Demo/Row.swift": "import Foundation\nstruct Row { let id = UUID(); let n: Int }\n"
+            "Demo/Sources/Demo/Row.swift": "import Foundation\nstruct Row { let id = UUID(); let n: Int }\n",
         ]
         if let manifest { files["Package.swift"] = manifest }
         return files

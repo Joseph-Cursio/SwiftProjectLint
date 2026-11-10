@@ -49,7 +49,7 @@ struct IssueSummarySectionTests {
             LintIssue(
                 severity: .info, message: "Info 1", filePath: "/file4.swift",
                 lineNumber: 4, suggestion: nil, ruleName: .uninitializedStateVariable
-            )
+            ),
         ]
         let view = IssueSummarySection(issues: issues)
         let inspected = try view.inspect()
@@ -73,7 +73,7 @@ struct IssueSummarySectionTests {
             LintIssue(
                 severity: .warning, message: "Warn 3", filePath: "/file3.swift",
                 lineNumber: 3, suggestion: nil, ruleName: .missingStateObject
-            )
+            ),
         ]
         let view = IssueSummarySection(issues: issues)
         let inspected = try view.inspect()

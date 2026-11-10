@@ -61,7 +61,7 @@ struct SyntaxPredicateTotalityTests {
         // Malformed on purpose.
         "struct Half { var x =",
         "func broken( {",
-        ""
+        "",
     ] as [String]).map { $0 ?? "" }
 
     /// **Totality.** `isSwiftUIView` answers for every struct the parser can

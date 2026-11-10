@@ -34,7 +34,7 @@ final class MutuallyExclusivePresentationStateVisitor: BasePatternVisitor {
                 node: Syntax(node),
                 variables: [
                     "typeName": node.name.text,
-                    "count": String(slots)
+                    "count": String(slots),
                 ]
             )
         }

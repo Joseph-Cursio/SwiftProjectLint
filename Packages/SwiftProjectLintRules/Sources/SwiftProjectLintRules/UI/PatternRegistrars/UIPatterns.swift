@@ -54,7 +54,7 @@ class UIPatterns: BasePatternRegistrar {
                 messageTemplate: "Consider adding error handling for {operation}",
                 suggestion: "Add proper error handling and user feedback for better UX",
                 description: "Detects operations that could benefit from error handling"
-            )
+            ),
         ]
         registry.register(patterns: patterns)
         registry.register(registrars: [ModifierOrder(), ImageWithoutResizable()])

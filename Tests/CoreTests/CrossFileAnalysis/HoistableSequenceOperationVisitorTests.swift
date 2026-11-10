@@ -47,7 +47,7 @@ struct HoistableSequenceOperationVisitorTests {
             func sortB(_ items: [Ranked]) -> [Ranked] {
                 items.sorted { ($0.category, $0.name) < ($1.category, $1.name) }
             }
-            """
+            """,
         ])
 
         #expect(issues.count == 2)
@@ -64,7 +64,7 @@ struct HoistableSequenceOperationVisitorTests {
             func sortA(_ items: [Ranked]) -> [Ranked] {
                 items.sorted { ($0.category, $0.name) < ($1.category, $1.name) }
             }
-            """
+            """,
         ])
 
         #expect(issues.isEmpty)
@@ -79,7 +79,7 @@ struct HoistableSequenceOperationVisitorTests {
             "P.swift": Self.rankedProtocol,
             "A.swift": "func a(_ xs: [Ranked]) -> [Ranked] { xs.sorted { $0.name < $1.name } }",
             "B.swift": "func b(_ xs: [Ranked]) -> [Ranked] { xs.sorted { $0.name < $1.name } }",
-            "C.swift": "func c(_ xs: [Ranked]) -> [Ranked] { xs.sorted { $0.name < $1.name } }"
+            "C.swift": "func c(_ xs: [Ranked]) -> [Ranked] { xs.sorted { $0.name < $1.name } }",
         ])
 
         #expect(issues.isEmpty)
@@ -91,7 +91,7 @@ struct HoistableSequenceOperationVisitorTests {
         let issues = analyze(files: [
             "P.swift": Self.rankedProtocol,
             "A.swift": "func a(_ xs: [T]) -> [T] { xs.sorted { ($0.alpha, $0.beta) < ($1.alpha, $1.beta) } }",
-            "B.swift": "func b(_ xs: [T]) -> [T] { xs.sorted { ($0.alpha, $0.beta) < ($1.alpha, $1.beta) } }"
+            "B.swift": "func b(_ xs: [T]) -> [T] { xs.sorted { ($0.alpha, $0.beta) < ($1.alpha, $1.beta) } }",
         ])
 
         #expect(issues.isEmpty)
@@ -104,7 +104,7 @@ struct HoistableSequenceOperationVisitorTests {
         let issues = analyze(files: [
             "P.swift": Self.rankedProtocol,
             "A.swift": "func a(_ xs: [Ranked]) -> [Ranked] { xs.filter { $0.category == $0.name } }",
-            "B.swift": "func b(_ xs: [Ranked]) -> [Ranked] { xs.filter { $0.category == $0.name } }"
+            "B.swift": "func b(_ xs: [Ranked]) -> [Ranked] { xs.filter { $0.category == $0.name } }",
         ])
 
         #expect(issues.count == 2)

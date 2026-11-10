@@ -320,7 +320,7 @@ struct ConcreteTypeUsageActorTests {
                     self.audit = audit
                 }
             }
-            """
+            """,
         ])
         defer { try? FileManager.default.removeItem(atPath: root) }
 

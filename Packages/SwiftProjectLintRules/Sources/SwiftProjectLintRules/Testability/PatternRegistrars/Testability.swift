@@ -94,7 +94,7 @@ class Testability: BasePatternRegistrar {
                 description: "Surfaces arithmetic that governs a loop bound, an index, a slice or a "
                     + "progress fraction while inlined in a method that also performs I/O — a pure "
                     + "function with no boundary drawn around it, which no test can reach."
-            )
+            ),
         ]
         registry.register(patterns: patterns)
 
@@ -107,7 +107,7 @@ class Testability: BasePatternRegistrar {
             MissingEquatableOnPureResult(),
             ImpureCallInViewBody(),
             UnreachableEffectClosure(),
-            ContradictedClockDeterminism()
+            ContradictedClockDeterminism(),
         ])
     }
 }

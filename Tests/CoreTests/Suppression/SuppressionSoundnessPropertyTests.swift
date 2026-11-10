@@ -66,7 +66,7 @@ struct SuppressionSoundnessPropertyTests {
                 "\(issue.severity)",
                 issue.message,
                 issue.suggestion ?? "",
-                locations
+                locations,
             ].joined(separator: "§")
         }
         .sorted()

@@ -78,7 +78,7 @@ struct SwiftUIManagementVisitorCrossFileTests {
                 lineNumber: 6,
                 hasInitialValue: true,
                 node: nil
-            )
+            ),
         ]
 
         // Find related views

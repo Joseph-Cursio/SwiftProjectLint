@@ -51,7 +51,7 @@ struct UnusedTargetDependencyVisitorTests {
             "Sources/Domain/Order.swift": "struct Order {}",
             "Sources/Persistence/Store.swift": "struct Store {}",
             "Sources/Checkout/A.swift": "import Domain",
-            "Sources/Checkout/B.swift": "import Foundation"
+            "Sources/Checkout/B.swift": "import Foundation",
         ])
 
         let issue = try #require(issues.first)
@@ -71,7 +71,7 @@ struct UnusedTargetDependencyVisitorTests {
             )
             """#,
             "Packages/Kit/Sources/KitCore/Core.swift": "struct Core {}",
-            "Packages/Kit/Sources/KitUI/View.swift": "import SwiftUI"
+            "Packages/Kit/Sources/KitUI/View.swift": "import SwiftUI",
         ])
 
         #expect(issues.map(\.filePath) == ["Packages/Kit/Package.swift"])
@@ -86,7 +86,7 @@ struct UnusedTargetDependencyVisitorTests {
             )
             """,
             "Sources/MacrosImpl/Plugin.swift": "import SwiftCompilerPlugin",
-            "Sources/Macros/Macros.swift": "public struct Nothing {}"
+            "Sources/Macros/Macros.swift": "public struct Nothing {}",
         ])
 
         #expect(issues.count == 1)
@@ -103,7 +103,7 @@ struct UnusedTargetDependencyVisitorTests {
             )
             """,
             "Sources/Checkout/Checkout.swift": "struct Checkout {}",
-            "Tests/CheckoutTests/CheckoutTests.swift": "@testable import Checkout"
+            "Tests/CheckoutTests/CheckoutTests.swift": "@testable import Checkout",
         ])
 
         #expect(issues.isEmpty)
@@ -114,7 +114,7 @@ struct UnusedTargetDependencyVisitorTests {
             "Package.swift": manifest,
             "Sources/Domain/Exports.swift": "@_exported import Persistence",
             "Sources/Persistence/Store.swift": "struct Store {}",
-            "Sources/Checkout/Checkout.swift": "import Domain"
+            "Sources/Checkout/Checkout.swift": "import Domain",
         ])
 
         #expect(issues.isEmpty)
@@ -130,7 +130,7 @@ struct UnusedTargetDependencyVisitorTests {
             #if canImport(Persistence)
             import Persistence
             #endif
-            """
+            """,
         ])
 
         #expect(issues.isEmpty)
@@ -149,7 +149,7 @@ struct UnusedTargetDependencyVisitorTests {
             @freestanding(expression)
             public macro stringify<T>(_ value: T) -> (T, String) =
                 #externalMacro(module: "MacrosImpl", type: "StringifyMacro")
-            """
+            """,
         ])
 
         #expect(issues.isEmpty)
@@ -166,7 +166,7 @@ struct UnusedTargetDependencyVisitorTests {
             )
             """,
             "Sources/tool/main.swift": #"print("hi")"#,
-            "Tests/ToolTests/ToolTests.swift": "import Foundation"
+            "Tests/ToolTests/ToolTests.swift": "import Foundation",
         ])
 
         #expect(issues.isEmpty)
@@ -181,7 +181,7 @@ struct UnusedTargetDependencyVisitorTests {
                 targets: [.target(name: "CZlib"), .target(name: "Compression", dependencies: ["CZlib"])]
             )
             """,
-            "Sources/Compression/Compression.swift": "import zlib"
+            "Sources/Compression/Compression.swift": "import zlib",
         ])
 
         #expect(issues.isEmpty)
@@ -191,7 +191,7 @@ struct UnusedTargetDependencyVisitorTests {
         let issues = analyze(files: [
             "Package.swift": manifest,
             "Sources/Domain/Order.swift": "struct Order {}",
-            "Sources/Persistence/Store.swift": "struct Store {}"
+            "Sources/Persistence/Store.swift": "struct Store {}",
         ])
 
         #expect(issues.isEmpty)
@@ -210,7 +210,7 @@ struct UnusedTargetDependencyVisitorTests {
                 ]
             )
             """,
-            "Sources/Feature/Feature.swift": "import Foundation"
+            "Sources/Feature/Feature.swift": "import Foundation",
         ])
 
         #expect(issues.isEmpty)
@@ -226,7 +226,7 @@ struct UnusedTargetDependencyVisitorTests {
             )
             """,
             "Sources/Persistence/Store.swift": "struct Store {}",
-            "Sources/Checkout/Checkout.swift": "import Foundation"
+            "Sources/Checkout/Checkout.swift": "import Foundation",
         ])
 
         #expect(issues.isEmpty)

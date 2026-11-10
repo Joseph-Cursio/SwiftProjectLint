@@ -31,7 +31,7 @@ struct BlockingIOOnMainActorEndToEndTests {
                 }
             }
         }
-        """
+        """,
         ])
 
         let issues = await analyze(root)
@@ -67,7 +67,7 @@ struct BlockingIOOnMainActorEndToEndTests {
                 try? Data(contentsOf: fileURL)
             }
         }
-        """
+        """,
         ])
 
         let issues = await analyze(root).filter { Self.blockingRules.contains($0.ruleName) }

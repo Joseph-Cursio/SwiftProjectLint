@@ -69,7 +69,7 @@ struct DuplicateStructShapeVisitorTests {
                 let category: String
                 let diffType: String
             }
-            """
+            """,
         ])
 
         #expect(issues.count == 5)
@@ -104,7 +104,7 @@ struct DuplicateStructShapeVisitorTests {
                 let description: String?
                 let category: String
             }
-            """
+            """,
         ])
 
         #expect(issues.count == 3)
@@ -126,7 +126,7 @@ struct DuplicateStructShapeVisitorTests {
                 let name: String
                 let price: Double
             }
-            """
+            """,
         ])
 
         #expect(issues.isEmpty)
@@ -158,7 +158,7 @@ struct DuplicateStructShapeVisitorTests {
                 let category: String
                 let beta: Int
             }
-            """
+            """,
         ])
 
         #expect(issues.isEmpty)
@@ -194,7 +194,7 @@ struct DuplicateStructShapeVisitorTests {
                 let description: String?
                 let category: String
             }
-            """
+            """,
         ])
 
         #expect(issues.count == 2)
@@ -232,7 +232,7 @@ struct DuplicateStructShapeVisitorTests {
                 let category: String
                 let diffType: String
             }
-            """
+            """,
         ])
 
         #expect(issues.isEmpty)
@@ -258,7 +258,7 @@ struct DuplicateStructShapeVisitorTests {
                 let category: String
                 var body: some View { EmptyView() }
             }
-            """
+            """,
         ])
 
         #expect(issues.isEmpty)
@@ -293,7 +293,7 @@ struct DuplicateStructShapeVisitorTests {
                 let delta: String
                 var body: some View { EmptyView() }
             }
-            """
+            """,
         ])
 
         #expect(issues.isEmpty)
@@ -319,7 +319,7 @@ struct DuplicateStructShapeVisitorTests {
                 var category: String { "b" }
                 let stored: Int
             }
-            """
+            """,
         ])
 
         #expect(issues.isEmpty)
@@ -336,7 +336,7 @@ struct DuplicateStructShapeVisitorTests {
         let issues = analyze(files: [
             "A.swift": "struct TypeShape \(shape)",
             "B.swift": "struct TypeShape \(shape)",
-            "C.swift": "struct TypeShape \(shape)"
+            "C.swift": "struct TypeShape \(shape)",
         ])
         #expect(issues.count == 3)
 
@@ -356,7 +356,7 @@ struct DuplicateStructShapeVisitorTests {
         let shape = "{ let alpha: Int; let bravo: Int; let charlie: Int; let delta: Int }"
         let issues = analyze(files: [
             "A.swift": "struct Foo \(shape)",
-            "B.swift": "struct Bar \(shape)"
+            "B.swift": "struct Bar \(shape)",
         ])
         #expect(issues.count == 2)
         let onFoo = try #require(issues.first { $0.filePath == "A.swift" })

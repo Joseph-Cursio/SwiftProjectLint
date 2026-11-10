@@ -29,7 +29,7 @@ enum BuiltViews {
         "Capsule", "Ellipse", "ContainerRelativeShape", "Path", "AnyShape", "Table", "TableColumn",
         "TableRow", "Gauge", "Tab", "TabSection", "TupleView", "ModifiedContent", "HStackLayout",
         "VStackLayout", "ZStackLayout", "AnyLayout", "PhaseAnimator", "KeyframeAnimator",
-        "TextFieldLink", "RenameButton", "HelpLink", "SettingsLink"
+        "TextFieldLink", "RenameButton", "HelpLink", "SettingsLink",
     ]
 
     /// Types a statement in a body constructs that are not views: a task, the marks, plots and axes
@@ -38,7 +38,7 @@ enum BuiltViews {
         "Task", "DispatchWorkItem", "BarMark", "LineMark", "PointMark", "AreaMark", "RuleMark",
         "RectangleMark", "SectorMark", "BarPlot", "LinePlot", "PointPlot", "AreaPlot", "RulePlot",
         "RectanglePlot", "AxisMarks", "AxisGridLine", "AxisTick", "AxisValueLabel", "KeyframeTrack",
-        "LinearKeyframe", "SpringKeyframe", "CubicKeyframe", "MoveKeyframe"
+        "LinearKeyframe", "SpringKeyframe", "CubicKeyframe", "MoveKeyframe",
     ]
 
     private static func buildsViews(_ decl: DeclSyntax) -> Bool {

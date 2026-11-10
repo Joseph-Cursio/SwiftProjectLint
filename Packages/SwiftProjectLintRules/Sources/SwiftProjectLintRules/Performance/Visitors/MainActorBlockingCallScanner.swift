@@ -264,7 +264,7 @@ enum ClosureHandOff: Equatable {
         "DispatchQueue.main.sync": "on DispatchQueue.main",
         "DispatchQueue.main.asyncAndWait": "on DispatchQueue.main",
         "OperationQueue.main.addOperation": "on OperationQueue.main",
-        "RunLoop.main.perform": "on RunLoop.main"
+        "RunLoop.main.perform": "on RunLoop.main",
     ]
 
     /// Members that run their closure somewhere other than the caller. `queue.sync { }` is not
@@ -272,7 +272,7 @@ enum ClosureHandOff: Equatable {
     private static let elsewhereMembers: Set<String> = [
         "detached", "detachNewThread", "addTask", "addTaskUnlessCancelled",
         "async", "asyncAfter", "addOperation", "perform",
-        "dataTask", "downloadTask", "uploadTask"
+        "dataTask", "downloadTask", "uploadTask",
     ]
 
     static func classify(_ closure: ClosureExprSyntax) -> Self {

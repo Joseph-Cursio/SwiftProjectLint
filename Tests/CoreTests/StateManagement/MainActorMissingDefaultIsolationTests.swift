@@ -66,7 +66,7 @@ struct MainActorMissingDefaultIsolationTests {
             rule,
             [
                 "Sources/App/Model.swift": rule.model(),
-                "Sources/Core/Model.swift": rule.model()
+                "Sources/Core/Model.swift": rule.model(),
             ],
             defaultPaths: ["Sources/App/"]
         )
@@ -136,7 +136,7 @@ struct MainActorMissingDefaultIsolationEndToEndTests {
 
         #expect(reported == [
             "Main Actor Missing On UI Code @ Sources/Core/Models.swift",
-            "Observable Main Actor Missing @ Sources/Core/Models.swift"
+            "Observable Main Actor Missing @ Sources/Core/Models.swift",
         ])
     }
 

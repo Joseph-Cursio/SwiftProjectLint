@@ -55,7 +55,7 @@ struct AsyncLetUnusedVisitorTests {
         // Regular variable
         """
         let value = computeResult()
-        """
+        """,
     ])
     func noIssue(source: String) {
         let visitor = makeVisitor()

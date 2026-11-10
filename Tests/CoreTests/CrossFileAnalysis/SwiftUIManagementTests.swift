@@ -15,7 +15,7 @@ struct SwiftUIManagementTests {
 
         let fileCache: [String: SourceFileSyntax] = [
             "View1.swift": file1,
-            "View2.swift": file2
+            "View2.swift": file2,
         ]
 
         let visitor = CrossFileSwiftUIManagementVisitor(fileCache: fileCache)
@@ -74,7 +74,7 @@ struct SwiftUIManagementTests {
         let fileCache: [String: SourceFileSyntax] = [
             "View1.swift": file1,
             "View2.swift": file2,
-            "View3.swift": file3
+            "View3.swift": file3,
         ]
 
         let visitor = CrossFileSwiftUIManagementVisitor(fileCache: fileCache)

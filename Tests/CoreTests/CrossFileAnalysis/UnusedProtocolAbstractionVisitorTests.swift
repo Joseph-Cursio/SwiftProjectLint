@@ -33,7 +33,7 @@ struct UnusedProtocolAbstractionVisitorTests {
             protocol Identity { var id: String { get } }
             struct A: Identity { let id: String }
             struct B: Identity { let id: String }
-            """
+            """,
         ])
 
         #expect(issues.count == 1)
@@ -48,7 +48,7 @@ struct UnusedProtocolAbstractionVisitorTests {
             "Models.swift": """
             protocol Identity { var id: String { get } }
             struct A: @MainActor Identity { let id: String }
-            """
+            """,
         ])
 
         #expect(issues.count == 1)
@@ -62,7 +62,7 @@ struct UnusedProtocolAbstractionVisitorTests {
             protocol Identity { var id: String { get } }
             struct A: Identity { let id: String }
             func describe<T: Identity>(_ value: T) -> String { value.id }
-            """
+            """,
         ])
 
         #expect(issues.isEmpty)
@@ -76,7 +76,7 @@ struct UnusedProtocolAbstractionVisitorTests {
             protocol Identity { var id: String { get } }
             struct A: Identity { let id: String }
             func log(_ value: any Identity) { _ = value.id }
-            """
+            """,
         ])
 
         #expect(issues.isEmpty)
@@ -88,7 +88,7 @@ struct UnusedProtocolAbstractionVisitorTests {
         let issues = analyze(files: [
             "Models.swift": """
             protocol Identity { var id: String { get } }
-            """
+            """,
         ])
 
         #expect(issues.isEmpty)
@@ -103,7 +103,7 @@ struct UnusedProtocolAbstractionVisitorTests {
             protocol Extended: Base { var name: String { get } }
             struct A: Base { let id: String }
             func use(_ value: any Extended) { _ = value.id }
-            """
+            """,
         ])
 
         // `Base` is used via `Extended`'s refinement; `Extended` is used as an existential.
@@ -123,7 +123,7 @@ struct UnusedProtocolAbstractionVisitorTests {
             "B.swift": """
             struct Identity { let id: String }
             func use(_ value: Identity) { _ = value.id }
-            """
+            """,
         ])
 
         #expect(issues.count == 1)
@@ -143,7 +143,7 @@ struct UnusedProtocolAbstractionVisitorTests {
             """,
             "B.swift": """
             func use(_ value: Identity) { _ = value }
-            """
+            """,
         ])
 
         #expect(issues.isEmpty)
@@ -168,7 +168,7 @@ struct UnusedProtocolAbstractionVisitorTests {
             public actor GitServiceActor: GitServiceProtocol {
                 public func currentBranch() async throws -> String { "main" }
             }
-            """
+            """,
         ])
         #expect(issues.isEmpty)
     }
@@ -183,7 +183,7 @@ struct UnusedProtocolAbstractionVisitorTests {
             struct Door: Openable {
                 func open() {}
             }
-            """
+            """,
         ])
         #expect(issues.isEmpty)
     }
@@ -200,7 +200,7 @@ struct UnusedProtocolAbstractionVisitorTests {
             struct Note: Shareable {
                 func share() {}
             }
-            """
+            """,
         ])
         #expect(issues.isEmpty)
     }
@@ -217,7 +217,7 @@ struct UnusedProtocolAbstractionVisitorTests {
             struct Plain: Formatting {
                 func format() -> String { "plain" }
             }
-            """
+            """,
         ])
         #expect(issues.count == 1)
         #expect(issues.first?.message.contains("'Formatting'") == true)
@@ -236,7 +236,7 @@ struct UnusedProtocolAbstractionVisitorTests {
                 func format() -> String { "plain" }
             }
             func render(_ formatter: any Formatting) -> String { formatter.format() }
-            """
+            """,
         ])
         #expect(issues.isEmpty)
     }

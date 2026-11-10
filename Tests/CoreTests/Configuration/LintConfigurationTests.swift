@@ -90,7 +90,7 @@ struct LintConfigurationTests {
                 severity: .warning, message: "Magic number",
                 filePath: "Foo.swift", lineNumber: 10,
                 suggestion: nil, ruleName: .magicNumber
-            )
+            ),
         ]
         let result = config.applyOverrides(to: issues)
         let issue = try #require(result.first)
@@ -112,7 +112,7 @@ struct LintConfigurationTests {
                 severity: .info, message: "print()",
                 filePath: "Sources/Foo.swift", lineNumber: 10,
                 suggestion: nil, ruleName: .printStatement
-            )
+            ),
         ]
         let result = config.applyOverrides(to: issues)
         #expect(result.count == 1)
@@ -128,7 +128,7 @@ struct LintConfigurationTests {
                 severity: .warning, message: "test",
                 filePath: "Foo.swift", lineNumber: 1,
                 suggestion: nil, ruleName: .forceTry
-            )
+            ),
         ]
         let result = config.applyOverrides(to: issues)
         #expect(result.count == 1)
@@ -195,7 +195,7 @@ struct LintConfigurationTests {
                 severity: .warning, message: "Magic number",
                 filePath: "Helper.swift", lineNumber: 1,
                 suggestion: nil, ruleName: .magicNumber
-            )
+            ),
         ]
 
         let result = config.applyOverrides(to: issues, projectRoot: tempDir)
@@ -227,7 +227,7 @@ struct LintConfigurationTests {
                 severity: .info, message: "print()",
                 filePath: "FooTests.swift", lineNumber: 1,
                 suggestion: nil, ruleName: .printStatement
-            )
+            ),
         ]
 
         let result = config.applyOverrides(to: issues, projectRoot: tempDir)
@@ -256,7 +256,7 @@ struct LintConfigurationTests {
                 severity: .error, message: "Force try",
                 filePath: "Thing.swift", lineNumber: 1,
                 suggestion: nil, ruleName: .forceTry
-            )
+            ),
         ]
 
         let result = config.applyOverrides(to: issues, projectRoot: tempDir)
@@ -285,7 +285,7 @@ struct LintConfigurationTests {
                 severity: .error, message: "Magic number in source",
                 filePath: "App.swift", lineNumber: 5,
                 suggestion: nil, ruleName: .magicNumber
-            )
+            ),
         ]
 
         // App.swift doesn't match **/*Test.swift, so it should pass through with severity changed
@@ -307,7 +307,7 @@ struct LintConfigurationTests {
                 severity: .info, message: "print()",
                 filePath: "Tests/FooTests.swift", lineNumber: 5,
                 suggestion: nil, ruleName: .printStatement
-            )
+            ),
         ]
         // Without projectRoot, filePath is used directly — substring "Tests/" matches
         let result = config.applyOverrides(to: issues)

@@ -66,7 +66,7 @@ class MagicNumberVisitor: BasePatternVisitor {
         "font", "system",
         "GridItem", "Spacer", "Divider",
         "RoundedRectangle", "Circle", "Capsule",
-        "UnevenRoundedRectangle"
+        "UnevenRoundedRectangle",
     ]
 
     /// Labeled arguments that are layout/geometry values, regardless of the function name.
@@ -75,7 +75,7 @@ class MagicNumberVisitor: BasePatternVisitor {
         "idealWidth", "idealHeight",
         "horizontal", "vertical", "top", "bottom", "leading", "trailing",
         "minimum", "maximum", "spacing", "radius", "lineWidth",
-        "size", "weight", "min", "ideal", "max"
+        "size", "weight", "min", "ideal", "max",
     ]
 
     /// Function name prefixes where numeric arguments are positional indices, not magic numbers.

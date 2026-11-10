@@ -224,7 +224,7 @@ struct UnannotatedInStrictReplayableContextVisitorTests {
             func handle(_ id: Int) async throws {
                 try await wrapper(id)
             }
-            """
+            """,
         ])
 
         #expect(visitor.detectedIssues.isEmpty)

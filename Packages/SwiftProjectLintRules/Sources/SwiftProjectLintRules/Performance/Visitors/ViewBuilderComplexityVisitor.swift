@@ -82,7 +82,7 @@ class ViewBuilderComplexityVisitor: BasePatternVisitor {
                 variables: [
                     "name": name,
                     "lineCount": "\(lineCount)",
-                    "statementCount": "\(statementCount)"
+                    "statementCount": "\(statementCount)",
                 ]
             )
         }

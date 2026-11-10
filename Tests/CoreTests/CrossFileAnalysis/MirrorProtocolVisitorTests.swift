@@ -41,7 +41,7 @@ struct MirrorProtocolVisitorTests {
                 func saveUser() { }
                 func deleteUser() { }
             }
-            """
+            """,
         ])
 
         #expect(issues.count == 1)
@@ -67,7 +67,7 @@ struct MirrorProtocolVisitorTests {
                 func migrate() { }
                 func backup() { }
             }
-            """
+            """,
         ])
 
         #expect(issues.count == 1)
@@ -87,7 +87,7 @@ struct MirrorProtocolVisitorTests {
                 func load() { }
                 func cancel() { }
             }
-            """
+            """,
         ])
 
         // "Loadable" doesn't end with "Protocol", so not checked as mirror
@@ -114,7 +114,7 @@ struct MirrorProtocolVisitorTests {
                 func export() { }
                 func validate() { }
             }
-            """
+            """,
         ])
 
         // All requirements match — this IS a mirror, so it should flag
@@ -141,7 +141,7 @@ struct MirrorProtocolVisitorTests {
                 func refresh() { }
                 func disconnect() { }
             }
-            """
+            """,
         ])
 
         // This is actually a mirror (5/5 match), should flag
@@ -158,7 +158,7 @@ struct MirrorProtocolVisitorTests {
             """,
             "Other.swift": """
             struct Unrelated { }
-            """
+            """,
         ])
 
         // No type named "Orphan" conforming to "OrphanProtocol"
@@ -189,7 +189,7 @@ struct MirrorProtocolVisitorTests {
                 func load() { }
                 func save() { }
             }
-            """
+            """,
         ])
 
         #expect(issues.isEmpty)
@@ -217,7 +217,7 @@ struct MirrorProtocolVisitorTests {
                 func fetch() { }
                 func cancel() { }
             }
-            """
+            """,
         ])
 
         #expect(issues.isEmpty)
@@ -239,7 +239,7 @@ struct MirrorProtocolVisitorTests {
                 func format() { }
                 func finalize() { }
             }
-            """
+            """,
         ])
 
         #expect(issues.count == 1)
@@ -272,7 +272,7 @@ struct MirrorProtocolVisitorTests {
                     self.formatter = formatter
                 }
             }
-            """
+            """,
         ])
 
         #expect(issues.isEmpty)
@@ -284,7 +284,7 @@ struct MirrorProtocolVisitorTests {
         "any ReportFormatterProtocol & Sendable",
         "(any ReportFormatterProtocol & Sendable)?",
         "any SendableFormatter",
-        "SendableFormatter"
+        "SendableFormatter",
     ])
     func mirrorConsumedThroughACompositionExempt(dependency: String) {
         let issues = analyze(files: [
@@ -305,7 +305,7 @@ struct MirrorProtocolVisitorTests {
             final class ReportBuilder {
                 private let formatter: \(dependency)
             }
-            """
+            """,
         ])
 
         #expect(issues.isEmpty)
@@ -327,7 +327,7 @@ struct MirrorProtocolVisitorTests {
                 var language: String
                 func save() { }
             }
-            """
+            """,
         ])
 
         #expect(issues.count == 1)

@@ -535,7 +535,7 @@ struct HeuristicInferenceIntegrationTests {
             "Database.swift": """
             /// @lint.effect idempotent
             func insert(_ row: Row) async throws {}
-            """
+            """,
         ]
         let cache: [String: SourceFileSyntax] = files.mapValues { Parser.parse(source: $0) }
         let visitor = NonIdempotentInRetryContextVisitor(fileCache: cache)
@@ -635,7 +635,7 @@ struct HeuristicInferenceIntegrationTests {
             "DatabaseB.swift": """
             /// @lint.effect non_idempotent
             func insert(_ id: Int) async throws {}
-            """
+            """,
         ]
         let cache: [String: SourceFileSyntax] = files.mapValues { Parser.parse(source: $0) }
         let visitor = NonIdempotentInRetryContextVisitor(fileCache: cache)

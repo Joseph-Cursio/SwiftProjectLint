@@ -99,7 +99,7 @@ struct NavigationViewDeprecatedVisitorTests {
         TabView {
             Text("Tab 1")
         }
-        """
+        """,
     ])
     func noIssue(source: String) {
         let visitor = makeVisitor()

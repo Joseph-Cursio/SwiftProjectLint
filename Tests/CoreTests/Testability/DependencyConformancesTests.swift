@@ -62,7 +62,7 @@ struct DependencyConformancesTests {
         "public struct Node {}",
         "public struct Node {}\nextension Node: Equatable where Self: Sendable {}",
         "public struct Node<T>: Equatable {}",
-        "public enum Node: Hashable {}\npublic final class Node {}"
+        "public enum Node: Hashable {}\npublic final class Node {}",
     ])
     func notVouched(text: String) {
         #expect(vouched(text).isEmpty)
@@ -96,7 +96,7 @@ struct DependencyConformancesTests {
         }
         """,
         ".build/checkouts/Yams/Sources/Yams/Node.swift": "public enum Node: Hashable { case scalar(String) }",
-        ".build/checkouts/Other/Sources/CodeGeneration/Node.swift": "public class Node {}"
+        ".build/checkouts/Other/Sources/CodeGeneration/Node.swift": "public class Node {}",
     ]
 
     private func analyse(_ files: [String: String]) async throws -> [LintIssue] {

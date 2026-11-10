@@ -51,7 +51,7 @@ struct UnusedProductDependencyTests {
             "Sources/App/App.swift": appSource,
             "Packages/Kit/Package.swift": kitManifest,
             "Packages/Kit/Sources/KitCore/Core.swift": "struct Core {}",
-            "Packages/Kit/Sources/KitUI/View.swift": "import KitCore"
+            "Packages/Kit/Sources/KitUI/View.swift": "import KitCore",
         ]
     }
 

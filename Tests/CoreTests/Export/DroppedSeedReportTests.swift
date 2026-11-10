@@ -60,7 +60,7 @@ struct DroppedSeedReportTests {
         let report = try #require(PBTSeedsFormatter.droppedSeeds(in: [
             issue(.pureFunctionCandidate, symbol: nil, line: 1),
             issue(.pureFunctionCandidate, symbol: nil, line: 2),
-            issue(.extractableTotalKernel, symbol: nil, line: 3)
+            issue(.extractableTotalKernel, symbol: nil, line: 3),
         ]))
         #expect(report.total == 3)
         #expect(report.countsByRule[.pureFunctionCandidate] == 2)
@@ -73,7 +73,7 @@ struct DroppedSeedReportTests {
     func theNoticeLeadsWithTheCountAndNamesEachRule() throws {
         let report = try #require(PBTSeedsFormatter.droppedSeeds(in: [
             issue(.pureFunctionCandidate, symbol: nil),
-            issue(.idempotencyViolation, symbol: nil)
+            issue(.idempotencyViolation, symbol: nil),
         ]))
         let notice = report.notice
         #expect(notice.hasPrefix("Note: 2 seed-bearing findings"))
@@ -97,7 +97,7 @@ struct DroppedSeedReportTests {
     func nothingIsReportedWhenEverySeedResolves() {
         let issues = [
             issue(.pureFunctionCandidate, symbol: "resolveRules"),
-            issue(.extractableTotalKernel, symbol: "applyOverrides")
+            issue(.extractableTotalKernel, symbol: "applyOverrides"),
         ]
         #expect(PBTSeedsFormatter.droppedSeeds(in: issues) == nil)
     }
@@ -124,7 +124,7 @@ struct DroppedSeedReportTests {
             issue(.pureFunctionCandidate, symbol: "kept", line: 1),
             issue(.pureFunctionCandidate, symbol: nil, line: 2),
             issue(.extractableTotalKernel, symbol: "", line: 3),
-            issue(.forceTry, symbol: nil, line: 4)
+            issue(.forceTry, symbol: nil, line: 4),
         ]
         let json = PBTSeedsFormatter().format(issues: issues)
         let emitted = json.components(separatedBy: "\"symbol\"").count - 1

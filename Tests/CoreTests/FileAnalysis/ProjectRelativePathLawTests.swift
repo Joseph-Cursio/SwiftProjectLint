@@ -26,7 +26,7 @@ struct ProjectRelativePathLawTests {
     /// arithmetic is where the hand-written copies differed.
     private static let rootGen = Gen<String?>.element(of: [
         "/projects/app", "/projects/app/", "/", "/a", "/a/b/c",
-        "/Users/someone/My Project", "/nonexistent-root-\(UInt8.max)"
+        "/Users/someone/My Project", "/nonexistent-root-\(UInt8.max)",
     ]).compactMap(\.self)
 
     // MARK: - Round trip
@@ -109,7 +109,7 @@ struct ProjectRelativePathLawTests {
         let anyPath = Gen<String?>.element(of: [
             "/projects/app/Sources/File.swift", "/projects/appendix/Other.swift",
             "/elsewhere/File.swift", "/", "", "/projects/app", "/projects/app/",
-            "relative/not/absolute", "/a", "/projects/app/../app/Sources"
+            "relative/not/absolute", "/a", "/projects/app/../app/Sources",
         ]).compactMap(\.self)
 
         await propertyCheck(input: Self.rootGen, anyPath) { given, itemPath in

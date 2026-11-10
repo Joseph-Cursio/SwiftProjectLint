@@ -55,7 +55,7 @@ struct DirectoryScannerTests {
             "Sources",
             "Sources/App",
             "Sources/Core",
-            "Tests"
+            "Tests",
         ])
         defer { cleanup() }
 
@@ -73,7 +73,7 @@ struct DirectoryScannerTests {
     func scanSyncParentChild() throws {
         let (path, cleanup) = try makeTempProject(subdirs: [
             "Sources",
-            "Sources/App"
+            "Sources/App",
         ])
         defer { cleanup() }
 
@@ -92,7 +92,7 @@ struct DirectoryScannerTests {
         let (path, cleanup) = try makeTempProject(subdirs: [
             "Zebra",
             "Alpha",
-            "Mango"
+            "Mango",
         ])
         defer { cleanup() }
 
@@ -107,7 +107,7 @@ struct DirectoryScannerTests {
             "Parent",
             "Parent/Charlie",
             "Parent/Alice",
-            "Parent/Bob"
+            "Parent/Bob",
         ])
         defer { cleanup() }
 
@@ -122,7 +122,7 @@ struct DirectoryScannerTests {
         let (path, cleanup) = try makeTempProject(subdirs: [
             "Sources",
             "Sources/App",
-            "Sources/App/Views"
+            "Sources/App/Views",
         ])
         defer { cleanup() }
 
@@ -144,7 +144,7 @@ struct DirectoryScannerTests {
         let (path, cleanup) = try makeTempProject(subdirs: [
             "Sources",
             "Sources/App",
-            "Tests"
+            "Tests",
         ])
         defer { cleanup() }
 
@@ -167,7 +167,7 @@ struct DirectoryScannerTests {
     func scanSyncRelativePaths() throws {
         let (path, cleanup) = try makeTempProject(subdirs: [
             "Sources",
-            "Sources/App"
+            "Sources/App",
         ])
         defer { cleanup() }
 
@@ -184,7 +184,7 @@ struct DirectoryScannerTests {
         let (path, cleanup) = try makeTempProject(subdirs: [
             "Sources",
             "Sources/App",
-            "Tests"
+            "Tests",
         ])
         defer { cleanup() }
 
@@ -207,7 +207,7 @@ struct DirectoryScannerFilteringTests {
         let (path, cleanup) = try makeTempProject(subdirs: [
             "Sources",
             ".build",
-            ".build/debug"
+            ".build/debug",
         ])
         defer { cleanup() }
 
@@ -221,7 +221,7 @@ struct DirectoryScannerFilteringTests {
         let (path, cleanup) = try makeTempProject(subdirs: [
             "Sources",
             "DerivedData",
-            "DerivedData/Build"
+            "DerivedData/Build",
         ])
         defer { cleanup() }
 
@@ -236,7 +236,7 @@ struct DirectoryScannerFilteringTests {
         let (path, cleanup) = try makeTempProject(subdirs: [
             "Sources",
             "Pods",
-            "Pods/SomePod"
+            "Pods/SomePod",
         ])
         defer { cleanup() }
 
@@ -249,7 +249,7 @@ struct DirectoryScannerFilteringTests {
     func scanSyncSkipsXcodeproj() throws {
         let (path, cleanup) = try makeTempProject(subdirs: [
             "Sources",
-            "MyApp.xcodeproj"
+            "MyApp.xcodeproj",
         ])
         defer { cleanup() }
 
@@ -262,7 +262,7 @@ struct DirectoryScannerFilteringTests {
     func scanSyncSkipsXcworkspace() throws {
         let (path, cleanup) = try makeTempProject(subdirs: [
             "Sources",
-            "MyApp.xcworkspace"
+            "MyApp.xcworkspace",
         ])
         defer { cleanup() }
 
@@ -278,7 +278,7 @@ struct DirectoryScannerFilteringTests {
             "build",
             "debug_output",
             "xcshareddata",
-            "xcuserdata"
+            "xcuserdata",
         ])
         defer { cleanup() }
 
@@ -295,7 +295,7 @@ struct DirectoryScannerFilteringTests {
         let (path, cleanup) = try makeTempProject(subdirs: [
             "Sources",
             "Carthage",
-            "Carthage/Build"
+            "Carthage/Build",
         ])
         defer { cleanup() }
 
@@ -309,7 +309,7 @@ struct DirectoryScannerFilteringTests {
         let (path, cleanup) = try makeTempProject(subdirs: [
             "Sources",
             "node_modules",
-            "node_modules/some_package"
+            "node_modules/some_package",
         ])
         defer { cleanup() }
 
@@ -323,7 +323,7 @@ struct DirectoryScannerFilteringTests {
         let (path, cleanup) = try makeTempProject(subdirs: [
             "Sources",
             ".hidden",
-            ".git"
+            ".git",
         ])
         defer { cleanup() }
 
@@ -340,7 +340,7 @@ struct DirectoryScannerFilteringTests {
                 "Sources",
                 "Vendor",
                 "Vendor/SomeLib",
-                "Vendor/SomeLib/Sources"
+                "Vendor/SomeLib/Sources",
             ],
             files: [
                 "Vendor/SomeLib/Package.swift": "// swift-tools-version:5.9"
@@ -361,7 +361,7 @@ struct DirectoryScannerFilteringTests {
             "Level1",
             "Level1/Level2",
             "Level1/Level2/Level3",
-            "Level1/Level2/Level3/Level4"
+            "Level1/Level2/Level3/Level4",
         ])
         defer { cleanup() }
 
@@ -380,7 +380,7 @@ struct DirectoryScannerFilteringTests {
         let (path, cleanup) = try makeTempProject(subdirs: [
             "Sources",
             "Sources/App",
-            "Tests"
+            "Tests",
         ])
         defer { cleanup() }
 

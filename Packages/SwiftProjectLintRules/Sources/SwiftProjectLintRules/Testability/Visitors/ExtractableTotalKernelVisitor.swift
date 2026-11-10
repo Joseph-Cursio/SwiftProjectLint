@@ -466,7 +466,7 @@ enum PathEvidence {
         "appendingPathComponent", "appendingPathExtension", "deletingLastPathComponent",
         "deletingPathExtension", "standardizingPath", "standardizedFileURL",
         "lastPathComponent", "pathExtension", "pathComponents", "relativePath",
-        "resolvingSymlinksInPath", "absoluteString"
+        "resolvingSymlinksInPath", "absoluteString",
     ]
 
     /// Deliberately descends into closures, unlike the kernel walk. A closure body belongs to a
@@ -551,13 +551,13 @@ struct Collector {
         "hasPrefix", "hasSuffix", "starts", "dropFirst", "dropLast", "prefix", "suffix",
         "lowercased", "uppercased", "capitalized", "trimmingCharacters", "replacingOccurrences",
         "components", "split", "joined", "appendingPathComponent", "appendingPathExtension",
-        "deletingLastPathComponent", "deletingPathExtension", "standardizingPath"
+        "deletingLastPathComponent", "deletingPathExtension", "standardizingPath",
     ]
 
     /// Property reads that are part of a derivation rather than a call — `path.lastPathComponent`.
     private static let pathMembers: Set<String> = [
         "lastPathComponent", "pathExtension", "deletingLastPathComponent", "deletingPathExtension",
-        "standardizedFileURL", "absoluteString", "count", "isEmpty"
+        "standardizedFileURL", "absoluteString", "count", "isEmpty",
     ]
 
     /// Wrappers that change a string's static type without computing anything.

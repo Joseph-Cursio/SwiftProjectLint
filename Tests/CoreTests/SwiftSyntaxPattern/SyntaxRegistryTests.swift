@@ -97,7 +97,7 @@ struct SyntaxRegistryTests {
                 messageTemplate: "Pattern 2",
                 suggestion: "Suggestion 2",
                 description: "Description 2"
-            )
+            ),
         ]
         registry.register(patterns: patterns)
         #expect(registry.getPatterns(for: .codeQuality).count >= 2)

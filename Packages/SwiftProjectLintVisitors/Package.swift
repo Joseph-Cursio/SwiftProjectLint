@@ -6,20 +6,20 @@ import PackageDescription
 // applied here — this package runs background AST visitors.
 let swiftSettings: [SwiftSetting] = [
     .swiftLanguageMode(.v6),
-    .enableUpcomingFeature("MemberImportVisibility")
+    .enableUpcomingFeature("MemberImportVisibility"),
 ]
 
 let package = Package(
     name: "SwiftProjectLintVisitors",
     platforms: [
         .macOS(.v26),
-        .iOS(.v26)
+        .iOS(.v26),
     ],
     products: [
         .library(
             name: "SwiftProjectLintVisitors",
             targets: ["SwiftProjectLintVisitors"]
-        )
+        ),
     ],
     dependencies: [
         .package(path: "../SwiftProjectLintModels"),
@@ -33,7 +33,7 @@ let package = Package(
         .package(
             url: "https://github.com/Joseph-Cursio/SwiftEffectInference.git",
             revision: "5fbee6f7fa984b5f2990a9cce0c8b049a3d8e45b"
-        )
+        ),
     ],
     targets: [
         .target(
@@ -44,10 +44,10 @@ let package = Package(
                 // `ConstructionUniverse.localPackageDependencies(manifest:)` reads a manifest's
                 // text, so comments and string contents are never mistaken for a dependency.
                 .product(name: "SwiftParser", package: "swift-syntax"),
-                .product(name: "SwiftEffectInference", package: "SwiftEffectInference")
+                .product(name: "SwiftEffectInference", package: "SwiftEffectInference"),
             ],
             path: "Sources/SwiftProjectLintVisitors",
             swiftSettings: swiftSettings
-        )
+        ),
     ]
 )

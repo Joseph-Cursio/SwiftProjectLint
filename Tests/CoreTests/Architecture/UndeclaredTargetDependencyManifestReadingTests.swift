@@ -42,7 +42,7 @@ struct UndeclaredTargetDependencyManifestReadingTests {
             )
             """,
             "Sources/Checkout/Checkout.swift": "import Domain",
-            "Sources/Billing/Billing.swift": "import Persistence"
+            "Sources/Billing/Billing.swift": "import Persistence",
         ])
 
         // Checkout's list cannot be enumerated; Billing's is a literal empty list and still checked.
@@ -62,7 +62,7 @@ struct UndeclaredTargetDependencyManifestReadingTests {
                 ]
             )
             """,
-            "Sources/Checkout/Checkout.swift": "import Persistence"
+            "Sources/Checkout/Checkout.swift": "import Persistence",
         ])
 
         // Reading around the unnamed target would hand its file to `App`, whose path encloses it,
@@ -80,7 +80,7 @@ struct UndeclaredTargetDependencyManifestReadingTests {
                 targets: [.target(name: "Persistence", path: "Lib"), .target(name: "App", path: "Sources")]
             )
             """,
-            "Sources/Checkout/Checkout.swift": "import Persistence"
+            "Sources/Checkout/Checkout.swift": "import Persistence",
         ])
 
         // `.target(name:)` alone could be a Target or a Target.Dependency. Either guess reports a
@@ -92,7 +92,7 @@ struct UndeclaredTargetDependencyManifestReadingTests {
         let issues = analyze(files: [
             "Package.swift": layeredManifest,
             "Package@swift-5.9.swift": layeredManifest,
-            "Sources/Checkout/Checkout.swift": "import Persistence"
+            "Sources/Checkout/Checkout.swift": "import Persistence",
         ])
 
         #expect(issues.isEmpty)
@@ -110,7 +110,7 @@ struct UndeclaredTargetDependencyManifestReadingTests {
             )
             """,
             "Sources/Checkout/Legacy/Old.swift": "import Persistence",
-            "Sources/Checkout/Checkout.swift": "struct Checkout {}"
+            "Sources/Checkout/Checkout.swift": "struct Checkout {}",
         ])
 
         #expect(issues.isEmpty)
@@ -125,7 +125,7 @@ struct UndeclaredTargetDependencyManifestReadingTests {
             )
             """,
             "Vendor/Inner/Package.swift": #"let package = Package(name: "Inner", targets: [.target(name: "Inner")])"#,
-            "Vendor/Inner/Sources/Inner/Inner.swift": "import Persistence"
+            "Vendor/Inner/Sources/Inner/Inner.swift": "import Persistence",
         ])
 
         #expect(issues.isEmpty)

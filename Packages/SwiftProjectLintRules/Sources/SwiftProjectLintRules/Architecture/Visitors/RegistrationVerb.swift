@@ -15,7 +15,7 @@ enum RegistrationVerb {
     /// non-registration calls are excluded by construction.
     static let all = [
         "register", "add", "append", "insert", "put", "record",
-        "bind", "connect", "install", "mount", "wire", "enroll"
+        "bind", "connect", "install", "mount", "wire", "enroll",
     ]
 
     /// The subset of `all` that is *collection building* rather than unambiguous

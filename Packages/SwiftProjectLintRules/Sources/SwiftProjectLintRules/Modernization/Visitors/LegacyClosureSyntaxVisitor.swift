@@ -13,7 +13,7 @@ final class LegacyClosureSyntaxVisitor: BasePatternVisitor {
         "map", "flatMap", "compactMap", "filter", "first", "contains",
         "allSatisfy", "reduce", "sorted", "sort", "forEach",
         "prefix", "drop", "removeAll", "partition",
-        "min", "max"
+        "min", "max",
     ]
 
     /// Maximum closure body lines before suppressing (explicit types aid readability).

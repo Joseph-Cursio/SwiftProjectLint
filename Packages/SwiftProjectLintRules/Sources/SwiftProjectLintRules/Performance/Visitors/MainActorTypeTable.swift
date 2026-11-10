@@ -27,7 +27,7 @@ struct MainActorTypeTable {
         "UIViewRepresentable", "UIViewControllerRepresentable",
         "NSViewRepresentable", "NSViewControllerRepresentable",
         "UIApplicationDelegate", "UISceneDelegate", "UIWindowSceneDelegate",
-        "NSApplicationDelegate"
+        "NSApplicationDelegate",
     ]
 
     /// SDK classes that are `@MainActor`. Every subclass inherits the isolation.
@@ -36,7 +36,7 @@ struct MainActorTypeTable {
         "UIViewController", "UITableViewController", "UICollectionViewController",
         "UINavigationController", "UITabBarController", "UIHostingController",
         "NSResponder", "NSView", "NSViewController", "NSWindow", "NSWindowController",
-        "NSHostingController", "NSHostingView"
+        "NSHostingController", "NSHostingView",
     ]
 
     /// One declaration's own evidence, before anything is inherited.

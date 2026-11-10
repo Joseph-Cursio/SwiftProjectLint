@@ -219,7 +219,7 @@ struct SeedRoleEmissionTests {
                 }
                 return root
             }
-            """)
+            """),
         ]
 
         for fixture in fixtures {

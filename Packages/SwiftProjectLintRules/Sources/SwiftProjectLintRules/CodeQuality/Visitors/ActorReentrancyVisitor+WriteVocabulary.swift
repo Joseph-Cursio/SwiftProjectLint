@@ -16,7 +16,7 @@ extension ActorReentrancyVisitor {
         // Set-algebra mutation
         "formUnion", "formIntersection", "subtract", "formSymmetricDifference",
         // Dictionary-style merge
-        "merge", "replace"
+        "merge", "replace",
     ]
 
     /// Compound-assignment operator tokens recognised as writes. Plain `=` is
@@ -32,7 +32,7 @@ extension ActorReentrancyVisitor {
         "<<=", ">>=",
         "&=", "|=", "^=",
         "&+=", "&-=", "&*=",
-        "&<<=", "&>>="
+        "&<<=", "&>>=",
     ]
 
     /// True when `element` is the operator slot of a SequenceExpr representing

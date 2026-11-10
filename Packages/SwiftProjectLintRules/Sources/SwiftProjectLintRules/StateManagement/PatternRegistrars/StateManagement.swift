@@ -63,7 +63,7 @@ class StateManagement: BasePatternRegistrar {
                 messageTemplate: "View '{viewName}' has too many state variables ({count}), consider MVVM pattern",
                 suggestion: "Extract business logic into an ObservableObject ViewModel",
                 description: "Detects views with excessive state variables that could benefit from MVVM"
-            )
+            ),
         ]
         registry.register(patterns: patterns)
         registry.register(registrars: [
@@ -73,7 +73,7 @@ class StateManagement: BasePatternRegistrar {
             ObservableMainActorMissing(),
             MutuallyExclusivePresentationState(),
             FlagOptionalPairState(),
-            RedundantDerivedProperty()
+            RedundantDerivedProperty(),
         ])
     }
 }

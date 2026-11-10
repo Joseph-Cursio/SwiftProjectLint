@@ -121,7 +121,7 @@ struct PatternConfiguration {
                 display: "Testability",
                 patterns: convertToDetectionPatterns(patternRegistry.getPatterns(for: .testability)),
                 useSwiftSyntax: true
-            )
+            ),
         ]
     }
 

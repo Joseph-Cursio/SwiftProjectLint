@@ -25,7 +25,7 @@ struct ViewBuilderComplexityVisitorTests {
             "",
             "struct MyView: View {",
             "    @ViewBuilder",
-            "    func content() -> some View {"
+            "    func content() -> some View {",
         ]
         for idx in 0..<32 {
             lines.append("        Text(\"Line \\(idx)\")")
@@ -49,7 +49,7 @@ struct ViewBuilderComplexityVisitorTests {
             "",
             "struct MyView: View {",
             "    @ViewBuilder",
-            "    func content() -> some View {"
+            "    func content() -> some View {",
         ]
         for idx in 0..<16 {
             lines.append("        Text(\"Item \\(idx)\")")
@@ -92,7 +92,7 @@ struct ViewBuilderComplexityVisitorTests {
             "import SwiftUI",
             "",
             "struct MyView: View {",
-            "    func doSomething() {"
+            "    func doSomething() {",
         ]
         for idx in 0..<35 {
             lines.append("        print(\"Line \\(idx)\")")
@@ -114,7 +114,7 @@ struct ViewBuilderComplexityVisitorTests {
             "",
             "struct MyView: View {",
             "    @ViewBuilder",
-            "    var header: some View {"
+            "    var header: some View {",
         ]
         for idx in 0..<32 {
             lines.append("        Text(\"Header \\(idx)\")")
@@ -137,7 +137,7 @@ struct ViewBuilderComplexityVisitorTests {
             "",
             "struct MyView: View {",
             "    @ViewBuilder",
-            "    var body: some View {"
+            "    var body: some View {",
         ]
         for idx in 0..<32 {
             lines.append("        Text(\"Body \\(idx)\")")

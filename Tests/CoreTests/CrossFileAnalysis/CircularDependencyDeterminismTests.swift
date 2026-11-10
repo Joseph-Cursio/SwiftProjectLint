@@ -56,7 +56,7 @@ struct CircularDependencyDeterminismTests {
             class Apple {
                 var zebra: Zebra
             }
-            """)
+            """),
         ]
     }
 
@@ -107,7 +107,7 @@ struct CircularDependencyDeterminismTests {
             class Alpha {
                 var bravo: Bravo
             }
-            """)
+            """),
         ]
         let forward = analyze(order: files).map(\.message)
         let reversed = analyze(order: files.reversed()).map(\.message)
@@ -116,7 +116,7 @@ struct CircularDependencyDeterminismTests {
         #expect(forward == reversed)
         #expect(forward == [
             "Circular dependency detected: 'Alpha' ↔ 'Bravo'",
-            "Circular dependency detected: 'Charlie' ↔ 'Delta'"
+            "Circular dependency detected: 'Charlie' ↔ 'Delta'",
         ])
     }
 
@@ -133,7 +133,7 @@ struct CircularDependencyDeterminismTests {
             class Apple {
                 var zebra: Zebra
             }
-            """)
+            """),
         ]
         #expect(analyze(order: files).isEmpty)
         #expect(analyze(order: files.reversed()).isEmpty)

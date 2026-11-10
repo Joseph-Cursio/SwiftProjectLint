@@ -215,7 +215,7 @@ struct ConcreteTypeUsageGenericParameterTests {
         "a type or typealias nested between the use and the clause shadows the parameter",
         arguments: [
             "final class Provider { }",
-            "typealias Provider = LocalFileProvider"
+            "typealias Provider = LocalFileProvider",
         ]
     )
     func nestedDeclarationShadowsOuterParameter(shadow: String) throws {

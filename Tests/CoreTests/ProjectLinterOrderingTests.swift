@@ -53,7 +53,7 @@ struct ProjectLinterOrderingTests {
             makeIssue(filePath: "B.swift", lineNumber: 1, rule: .forceUnwrap),
             makeIssue(filePath: "A.swift", lineNumber: 9, rule: .forceUnwrap),
             makeIssue(filePath: "A.swift", lineNumber: 2, rule: .missingAccessibilityLabel),
-            makeIssue(filePath: "A.swift", lineNumber: 2, rule: .forceUnwrap)
+            makeIssue(filePath: "A.swift", lineNumber: 2, rule: .forceUnwrap),
         ]
 
         let sorted = unsorted.sortedForReporting()
@@ -63,7 +63,7 @@ struct ProjectLinterOrderingTests {
             "A.swift:2:\(RuleIdentifier.forceUnwrap.rawValue)",
             "A.swift:2:\(RuleIdentifier.missingAccessibilityLabel.rawValue)",
             "A.swift:9:\(RuleIdentifier.forceUnwrap.rawValue)",
-            "B.swift:1:\(RuleIdentifier.forceUnwrap.rawValue)"
+            "B.swift:1:\(RuleIdentifier.forceUnwrap.rawValue)",
         ])
     }
 
@@ -74,7 +74,7 @@ struct ProjectLinterOrderingTests {
         let issues = [
             makeIssue(filePath: "A.swift", lineNumber: 1, rule: .forceUnwrap, message: "first"),
             makeIssue(filePath: "A.swift", lineNumber: 1, rule: .forceUnwrap, message: "second"),
-            makeIssue(filePath: "A.swift", lineNumber: 1, rule: .forceUnwrap, message: "third")
+            makeIssue(filePath: "A.swift", lineNumber: 1, rule: .forceUnwrap, message: "third"),
         ]
 
         let expected = issues.sortedForReporting().map(\.message)

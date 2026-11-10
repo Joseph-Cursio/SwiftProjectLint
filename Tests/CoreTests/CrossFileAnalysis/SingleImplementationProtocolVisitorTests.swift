@@ -28,7 +28,7 @@ struct SingleImplementationProtocolVisitorTests {
             struct DataLoader: Loadable {
                 func load() { }
             }
-            """
+            """,
         ])
 
         #expect(issues.count == 1)
@@ -54,7 +54,7 @@ struct SingleImplementationProtocolVisitorTests {
             struct CacheLoader: Loadable {
                 func load() { }
             }
-            """
+            """,
         ])
 
         #expect(issues.isEmpty)
@@ -77,7 +77,7 @@ struct SingleImplementationProtocolVisitorTests {
             struct MockLoader: Loadable {
                 func load() { }
             }
-            """
+            """,
         ])
 
         #expect(issues.isEmpty)
@@ -93,7 +93,7 @@ struct SingleImplementationProtocolVisitorTests {
             """,
             "Other.swift": """
             struct Unrelated { }
-            """
+            """,
         ])
 
         #expect(issues.count == 1)
@@ -114,7 +114,7 @@ struct SingleImplementationProtocolVisitorTests {
             struct Client: PublicAPI {
                 func call() { }
             }
-            """
+            """,
         ])
 
         #expect(issues.isEmpty)
@@ -135,7 +135,7 @@ struct SingleImplementationProtocolVisitorTests {
                 struct Runner: Runnable {
                     func run() { }
                 }
-                """
+                """,
             ],
             executablePaths: ["Sources/CLI/"]
         )
@@ -161,7 +161,7 @@ struct SingleImplementationProtocolVisitorTests {
                 struct Runner: Runnable {
                     func run() { }
                 }
-                """
+                """,
             ],
             executablePaths: []
         )
@@ -185,7 +185,7 @@ struct SingleImplementationProtocolVisitorTests {
                 struct Runner: Runnable {
                     func run() { }
                 }
-                """
+                """,
             ],
             executablePaths: ["Sources/CLI/"]
         )
@@ -216,7 +216,7 @@ struct SingleImplementationProtocolVisitorTests {
                 public struct DefaultFileDiscovery: FileDiscoveryProtocol {
                     public func findSwiftFiles() -> [String] { [] }
                 }
-                """
+                """,
             ],
             executablePaths: ["Sources/CLI/", "Sources/App/"]
         )
@@ -239,7 +239,7 @@ struct SingleImplementationProtocolVisitorTests {
             struct HelperImpl: TestHelper {
                 func setup() { }
             }
-            """
+            """,
         ])
 
         #expect(issues.isEmpty)
@@ -262,7 +262,7 @@ struct SingleImplementationProtocolVisitorTests {
             struct FakeRepository: Repository {
                 func fetch() { }
             }
-            """
+            """,
         ])
 
         #expect(issues.isEmpty)
@@ -287,7 +287,7 @@ struct SingleImplementationProtocolVisitorTests {
             struct InMemoryCache: Cacheable {
                 func cache() { }
             }
-            """
+            """,
         ])
         // 1 prod conformer + 1 test conformer → suppressed
         #expect(issues.isEmpty)
@@ -310,7 +310,7 @@ struct SingleImplementationProtocolVisitorTests {
             struct TestStore: Storable {
                 func store() { }
             }
-            """
+            """,
         ])
         #expect(issues.isEmpty)
     }

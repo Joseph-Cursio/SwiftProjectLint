@@ -68,7 +68,7 @@ struct DispatchSemaphoreInAsyncVisitorTests {
                 }
             }
         }
-        """
+        """,
     ])
     func detectsSemaphoreVariant(source: String) {
         let visitor = makeVisitor()
@@ -127,7 +127,7 @@ struct DispatchSemaphoreInAsyncVisitorTests {
                 }
             }
         }
-        """
+        """,
     ])
     func noIssue(source: String) {
         let visitor = makeVisitor()

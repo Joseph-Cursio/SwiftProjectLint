@@ -92,7 +92,7 @@ struct ProjectLinterTests {
 
         let allCategories: [PatternCategory] = [
             .stateManagement, .accessibility, .performance, .architecture,
-            .codeQuality, .security, .memoryManagement, .networking, .uiPatterns
+            .codeQuality, .security, .memoryManagement, .networking, .uiPatterns,
         ]
 
         let issues = await linter.analyzeProject(at: testProjectPath, categories: allCategories)
@@ -216,7 +216,7 @@ struct ProjectLinterTests {
                     }
                 }
             }
-            """)
+            """),
         ]
 
         for (fileName, content) in files {

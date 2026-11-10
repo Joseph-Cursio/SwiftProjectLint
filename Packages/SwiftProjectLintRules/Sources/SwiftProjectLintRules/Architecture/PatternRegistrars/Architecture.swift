@@ -25,7 +25,7 @@ class Architecture: BasePatternRegistrar {
                 messageTemplate: "View '{viewName}' has too many responsibilities, consider MVVM pattern",
                 suggestion: "Extract business logic into an ObservableObject ViewModel",
                 description: "Detects views that violate single responsibility principle"
-            )
+            ),
         ]
         registry.register(patterns: patterns)
 
@@ -120,7 +120,7 @@ class Architecture: BasePatternRegistrar {
             UndeclaredTargetDependency(),
             UnusedTargetDependency(),
             LayerDependency(),
-            WideReachThrough()
+            WideReachThrough(),
         ]
     }
 }

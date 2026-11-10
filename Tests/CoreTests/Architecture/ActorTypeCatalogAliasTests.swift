@@ -25,7 +25,7 @@ struct ActorTypeCatalogAliasTests {
     @Test(arguments: [
         "actor CoreDataOrderStore: OrderStore {}",
         "actor CoreDataOrderStore: OrderSaving, OrderHistory {}",
-        "actor CoreDataOrderStore {}\nextension CoreDataOrderStore: OrderStore {}"
+        "actor CoreDataOrderStore {}\nextension CoreDataOrderStore: OrderStore {}",
     ])
     func everySpellingConformsToBothRoles(actor: String) {
         let built = catalog(roles, actor)

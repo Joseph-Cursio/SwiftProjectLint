@@ -29,7 +29,7 @@ struct TypeInferenceTests {
         ),
         TypeInferenceCase(declaration: "@State private var point = CGPoint.zero", expectedType: "CGPoint"),
         TypeInferenceCase(declaration: "@State private var color = Color.blue", expectedType: "Color"),
-        TypeInferenceCase(declaration: "@State private var font = Font.title", expectedType: "Font")
+        TypeInferenceCase(declaration: "@State private var font = Font.title", expectedType: "Font"),
     ]
 
     @Test(arguments: cases)

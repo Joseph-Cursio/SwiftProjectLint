@@ -76,7 +76,7 @@ class Performance: BasePatternRegistrar {
                 messageTemplate: "Unnecessary view update detected for '{variableName}'",
                 suggestion: "Consider using @State only when UI changes are needed",
                 description: "Detects state variables that trigger unnecessary view updates"
-            )
+            ),
         ]
         registry.register(patterns: patterns)
         registry.register(registrars: [
@@ -87,7 +87,7 @@ class Performance: BasePatternRegistrar {
             GeometryReaderOveruse(),
             UnboundedTaskGroup(),
             OnReceiveWithoutDebounce(),
-            BlockingIOOnMainActor()
+            BlockingIOOnMainActor(),
         ])
     }
 }

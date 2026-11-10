@@ -76,7 +76,7 @@ struct ActorReentrancyKeyPathTests {
 
     @Test("the gate read bare or through self is still reported", arguments: [
         "guard !isLoading else { return }",
-        "guard !self.isLoading else { return }"
+        "guard !self.isLoading else { return }",
     ])
     func genuineGateIsStillReported(condition: String) throws {
         let source = """

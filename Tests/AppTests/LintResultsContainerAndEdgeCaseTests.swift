@@ -14,7 +14,7 @@ struct LintResultsContainerAndEdgeCaseTests {
             LintIssue(
                 severity: .warning, message: "Test issue", filePath: "/file.swift",
                 lineNumber: 1, suggestion: nil, ruleName: .relatedDuplicateStateVariable
-            )
+            ),
         ]
         let container = LintResultsContainerView(issues: issues)
         let inspected = try container.inspect()
@@ -30,7 +30,7 @@ struct LintResultsContainerAndEdgeCaseTests {
             LintIssue(
                 severity: .error, message: "Error in container", filePath: "/file.swift",
                 lineNumber: 5, suggestion: nil, ruleName: .missingStateObject
-            )
+            ),
         ]
         let container = LintResultsContainerView(issues: issues)
         let inspected = try container.inspect()
@@ -47,7 +47,7 @@ struct LintResultsContainerAndEdgeCaseTests {
             LintIssue(
                 severity: .info, message: "Info", filePath: "/file.swift",
                 lineNumber: 1, suggestion: nil, ruleName: .uninitializedStateVariable
-            )
+            ),
         ]
         let container = LintResultsContainerView(issues: issues)
         let inspected = try container.inspect()
@@ -93,7 +93,7 @@ struct FullScreenResultsViewTests {
             LintIssue(
                 severity: .warning, message: "Full screen warning", filePath: "/file2.swift",
                 lineNumber: 2, suggestion: nil, ruleName: .missingStateObject
-            )
+            ),
         ]
         let fullScreen = FullScreenResultsView(issues: issues)
         let inspected = try fullScreen.inspect()
@@ -110,7 +110,7 @@ struct FullScreenResultsViewTests {
             LintIssue(
                 severity: .error, message: "Error", filePath: "/file.swift",
                 lineNumber: 1, suggestion: nil, ruleName: .relatedDuplicateStateVariable
-            )
+            ),
         ]
         let fullScreen = FullScreenResultsView(issues: issues)
         let inspected = try fullScreen.inspect()
@@ -130,7 +130,7 @@ struct FullScreenResultsViewTests {
             LintIssue(
                 severity: .info, message: "Info", filePath: "/file.swift",
                 lineNumber: 1, suggestion: nil, ruleName: .uninitializedStateVariable
-            )
+            ),
         ]
         let fullScreen = FullScreenResultsView(issues: issues)
         let inspected = try fullScreen.inspect()
@@ -170,7 +170,7 @@ struct FullScreenResultsViewTests {
             LintIssue(
                 severity: .info, message: "Info 1", filePath: "/f4.swift",
                 lineNumber: 4, suggestion: nil, ruleName: .uninitializedStateVariable
-            )
+            ),
         ]
         let fullScreen = FullScreenResultsView(issues: issues)
         let inspected = try fullScreen.inspect()
@@ -192,7 +192,7 @@ struct FullScreenResultsViewTests {
             LintIssue(
                 severity: .warning, message: "Second", filePath: "/f2.swift",
                 lineNumber: 2, suggestion: nil, ruleName: .missingStateObject
-            )
+            ),
         ]
         let fullScreen = FullScreenResultsView(issues: issues)
         let inspected = try fullScreen.inspect()
@@ -262,7 +262,7 @@ about the lint issue that was detected in the codebase during analysis
             LintIssue(
                 severity: .info, message: "Info type", filePath: "/i.swift",
                 lineNumber: 3, suggestion: nil, ruleName: .uninitializedStateVariable
-            )
+            ),
         ]
         let view = LintResultsView(issues: issues)
         let inspected = try view.inspect()

@@ -58,7 +58,7 @@ struct HoistableConformerMemberVisitorTests {
                 let name: String
                 func matches(_ query: String) -> Bool { rawKey.contains(query) || name.contains(query) }
             }
-            """
+            """,
         ])
 
         #expect(issues.count == 3)
@@ -96,7 +96,7 @@ struct HoistableConformerMemberVisitorTests {
                 let tag: String
                 func matches(_ query: String) -> Bool { rawKey.contains(query) || tag.contains(query) }
             }
-            """
+            """,
         ])
 
         #expect(issues.isEmpty)
@@ -120,7 +120,7 @@ struct HoistableConformerMemberVisitorTests {
                 let name: String
                 func label() -> String { rawKey + name }
             }
-            """
+            """,
         ])
 
         #expect(issues.isEmpty)
@@ -158,7 +158,7 @@ struct HoistableConformerMemberVisitorTests {
                 let name: String
                 func matches(_ query: String) -> Bool { rawKey.contains(query) || name.contains(query) }
             }
-            """
+            """,
         ])
 
         #expect(issues.isEmpty)
@@ -185,7 +185,7 @@ struct HoistableConformerMemberVisitorTests {
                 let rawKey: String
                 func describe() -> String { rawKey + "!" }
             }
-            """
+            """,
         ])
 
         #expect(issues.isEmpty)
@@ -216,7 +216,7 @@ struct HoistableConformerMemberVisitorTests {
                 let name: String
                 func label() -> String { rawKey + name }
             }
-            """
+            """,
         ])
 
         #expect(issues.isEmpty)
@@ -247,7 +247,7 @@ struct HoistableConformerMemberVisitorTests {
                 let name: String
                 var summary: String { rawKey + ": " + name }
             }
-            """
+            """,
         ])
 
         #expect(issues.count == 3)

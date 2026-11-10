@@ -102,7 +102,7 @@ struct DefaultIsolationDetectorTests {
         let package = Package(name: "Demo", targets: [
             .target(name: "Core", swiftSettings: [.defaultIsolation(nil)])
         ])
-        """
+        """,
     ])
     func mentionsThatDoNotSetTheDefaultAreIgnored(manifest: String) {
         #expect(DefaultIsolationDetector.targetPaths(manifest: manifest).isEmpty)

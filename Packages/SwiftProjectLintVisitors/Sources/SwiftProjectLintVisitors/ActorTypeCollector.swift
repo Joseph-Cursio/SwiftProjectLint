@@ -96,7 +96,7 @@ public final class ActorTypeCollector: SyntaxVisitor {
     /// through. `Actor`'s one requirement, `unownedExecutor`, is `nonisolated` and synthesised.
     private static let requirementFreeParents: Set<String> = [
         "Sendable", "AnyObject", "Actor", "AnyActor", "SendableMetatype",
-        "Copyable", "Escapable", "BitwiseCopyable"
+        "Copyable", "Escapable", "BitwiseCopyable",
     ]
 
     public init() {

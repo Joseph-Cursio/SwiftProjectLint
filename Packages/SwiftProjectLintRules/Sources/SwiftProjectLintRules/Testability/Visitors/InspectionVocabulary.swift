@@ -20,7 +20,7 @@ enum InspectionVocabulary {
         "disclosureGroup", "labeledContent", "menu", "picker", "controlGroup", "navigationView",
         "navigationStack", "navigationSplitView", "navigationLink", "menuButton", "scrollView",
         "scrollViewReader", "geometryReader", "anyView", "view", "tupleView", "tupleContentView",
-        "chart"
+        "chart",
     ]
 
     private static let leaves: Set<String> = [
@@ -31,7 +31,7 @@ enum InspectionVocabulary {
         "shape", "angularGradient", "linearGradient", "radialGradient", "ellipticalGradient",
         "signInWithAppleButton", "pasteButton", "editButton", "locationButton",
         "viewModifierContent", "styleConfigurationLabel", "styleConfigurationContent",
-        "styleConfigurationTitle", "styleConfigurationIcon", "styleConfigurationCurrentValueLabel"
+        "styleConfigurationTitle", "styleConfigurationIcon", "styleConfigurationCurrentValueLabel",
     ]
 
     /// Accessors that reach a view by its role rather than its position: a control's label, a
@@ -45,7 +45,7 @@ enum InspectionVocabulary {
         "overlay", "background", "mask", "sheet", "fullScreenCover", "popover", "alert",
         "actionSheet", "confirmationDialog", "toolbar", "navigationDestination", "safeAreaInset",
         "safeAreaBar", "listRowBackground", "tabItem", "touchBar",
-        "accessibilityActions", "overlayPreferenceValue", "backgroundPreferenceValue"
+        "accessibilityActions", "overlayPreferenceValue", "backgroundPreferenceValue",
     ]
 
     /// Slots whose result unwraps to its content, so the next accessor goes one level down: a
@@ -53,7 +53,7 @@ enum InspectionVocabulary {
     /// `presentedContentSlots` among them hold every view their content builds, so an index picks.
     static let unwrappingSlots: Set<String> = [
         "sheet", "fullScreenCover", "popover", "toolbar", "navigationDestination", "safeAreaInset",
-        "safeAreaBar", "touchBar"
+        "safeAreaBar", "touchBar",
     ]
 
     static let presentedContentSlots: Set<String> = [

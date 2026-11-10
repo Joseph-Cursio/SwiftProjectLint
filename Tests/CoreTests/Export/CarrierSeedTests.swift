@@ -30,7 +30,7 @@ struct CarrierSeedTests {
             let percentage: Int
             let title: String
         }
-        """
+        """,
     ]
 
     private func analyse() async -> [LintIssue] {

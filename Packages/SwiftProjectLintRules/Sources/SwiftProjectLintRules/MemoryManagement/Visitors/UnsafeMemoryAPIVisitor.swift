@@ -29,7 +29,7 @@ final class UnsafeMemoryAPIVisitor: BasePatternVisitor {
         "UnsafeRawPointer", "UnsafeMutableRawPointer",
         "UnsafeBufferPointer", "UnsafeMutableBufferPointer",
         "UnsafeRawBufferPointer", "UnsafeMutableRawBufferPointer",
-        "OpaquePointer", "Unmanaged"
+        "OpaquePointer", "Unmanaged",
     ]
 
     private static let unsafeCallNames: Set<String> = [
@@ -37,7 +37,7 @@ final class UnsafeMemoryAPIVisitor: BasePatternVisitor {
         "withUnsafePointer", "withUnsafeMutablePointer",
         "withUnsafeBytes", "withUnsafeMutableBytes",
         "withUnsafeTemporaryAllocation",
-        "assumingMemoryBound", "bindMemory", "withMemoryRebound"
+        "assumingMemoryBound", "bindMemory", "withMemoryRebound",
     ]
 
     required init(pattern: SyntaxPattern, viewMode: SyntaxTreeViewMode = .sourceAccurate) {

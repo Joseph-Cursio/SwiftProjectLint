@@ -167,7 +167,7 @@ struct WideReachThroughVisitorTests {
         let issues = analyze([
             "A.swift": identityReader("A"),
             "B.swift": identityReader("B"),
-            "C.swift": identityReader("C")
+            "C.swift": identityReader("C"),
         ])
         #expect(issues.isEmpty)
     }
@@ -176,7 +176,7 @@ struct WideReachThroughVisitorTests {
     func signatureBelowIdiomThresholdReports() {
         let issues = analyze([
             "A.swift": identityReader("A"),
-            "B.swift": identityReader("B")
+            "B.swift": identityReader("B"),
         ])
         #expect(issues.count == 2)
     }
@@ -188,7 +188,7 @@ struct WideReachThroughVisitorTests {
         let issues = analyze([
             "A.swift": identityReader("A"),
             "B.swift": identityReader("B"),
-            "C.swift": identityReader("C", third: "slug")
+            "C.swift": identityReader("C", third: "slug"),
         ])
         #expect(issues.count == 3)
     }

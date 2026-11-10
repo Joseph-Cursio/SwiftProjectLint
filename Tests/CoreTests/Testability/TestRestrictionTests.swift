@@ -108,7 +108,7 @@ struct TestRestrictionTests {
             "func f() -> Int { 1 }",
             "private func f() -> Int { 1 }",
             "private struct S { func f() -> Int { 1 } }",
-            "struct S { private func f() -> Int { 1 } }"
+            "struct S { private func f() -> Int { 1 } }",
         ]
         for source in cases {
             guard let function = firstFunction(source) else { continue }

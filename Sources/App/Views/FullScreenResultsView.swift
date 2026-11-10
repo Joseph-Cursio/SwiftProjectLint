@@ -28,6 +28,6 @@ struct FullScreenResultsView: View {
             lineNumber: 15,
             suggestion: "Move to a shared ObservableObject.",
             ruleName: .relatedDuplicateStateVariable
-        )
+        ),
     ])
 }

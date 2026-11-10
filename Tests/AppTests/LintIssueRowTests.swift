@@ -86,7 +86,7 @@ struct LintIssueRowTests {
             locations: [
                 (filePath: "/path/to/View1.swift", lineNumber: 10),
                 (filePath: "/path/to/View2.swift", lineNumber: 20),
-                (filePath: "/path/to/View3.swift", lineNumber: 30)
+                (filePath: "/path/to/View3.swift", lineNumber: 30),
             ],
             suggestion: "Consolidate state",
             ruleName: .relatedDuplicateStateVariable
@@ -319,7 +319,7 @@ struct LintIssueRowTests {
             message: "Duplicate state",
             locations: [
                 (filePath: "/ViewA.swift", lineNumber: 5),
-                (filePath: "/ViewB.swift", lineNumber: 15)
+                (filePath: "/ViewB.swift", lineNumber: 15),
             ],
             suggestion: "Consolidate",
             ruleName: .relatedDuplicateStateVariable

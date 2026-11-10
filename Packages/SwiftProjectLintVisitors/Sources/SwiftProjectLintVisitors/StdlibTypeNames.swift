@@ -25,7 +25,7 @@ enum StdlibTypeNames {
         "Double", "Float", "Float16", "CGFloat", "Decimal",
         "URL", "Data", "UUID", "Date", "TimeInterval",
         "Range", "ClosedRange",
-        "IndexSet", "IndexPath", "Locale", "TimeZone", "Calendar"
+        "IndexSet", "IndexPath", "Locale", "TimeZone", "Calendar",
     ]
 
     /// Generic containers, `Equatable` exactly when their elements are. Present for the

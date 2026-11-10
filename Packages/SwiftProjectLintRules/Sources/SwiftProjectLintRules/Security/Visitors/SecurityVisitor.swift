@@ -25,7 +25,7 @@ class SecurityVisitor: BasePatternVisitor {
         "token",
         "authKey", "privateKey", "encryptionKey", "signingKey",
         "clientSecret", "accessKey", "secretAccessKey",
-        "credential", "bearer", "passphrase"
+        "credential", "bearer", "passphrase",
     ]
 
     /// Known API key prefixes from common services.
@@ -42,14 +42,14 @@ class SecurityVisitor: BasePatternVisitor {
         "xoxp-",     // Slack user tokens
         "AKIA",      // AWS access keys
         "AIza",      // Google API keys
-        "SG."        // SendGrid
+        "SG.",        // SendGrid
     ]
 
     /// Placeholder values that should not be flagged.
     private static let placeholderValues: Set<String> = [
         "YOUR_API_KEY_HERE", "REPLACE_ME", "TODO", "CHANGEME",
         "your-api-key", "your_api_key", "xxx", "placeholder",
-        "INSERT_KEY_HERE", "API_KEY_HERE"
+        "INSERT_KEY_HERE", "API_KEY_HERE",
     ]
 
     /// Minimum entropy (bits per char) to consider a string a potential secret.

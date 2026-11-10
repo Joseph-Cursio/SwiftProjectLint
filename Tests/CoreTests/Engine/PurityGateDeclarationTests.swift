@@ -42,7 +42,7 @@ struct PurityGateDeclarationTests {
         .concreteTypeUsage: [.cleanInstanceMethods],
         .couldBePrivate: [.oracle],
         .couldBePrivateMember: [.oracle],
-        .unreachableEffectClosure: [.oracle]
+        .unreachableEffectClosure: [.oracle],
     ]
 
     static let declaredRules = expectedDeclarations.keys.sorted { $0.rawValue < $1.rawValue }
@@ -107,7 +107,7 @@ struct PurityGateDeclarationTests {
         registry.register(patterns: [
             pattern(.forceTry, DeclaredSharedReader.self),
             pattern(.forceUnwrap, DeclaredSharedReader.self),
-            pattern(.todoComment, UndeclaredOracleReader.self)
+            pattern(.todoComment, UndeclaredOracleReader.self),
         ])
         typealias Demand = ProjectLinter.PurityDemand
         #expect(Demand(planned: [.forceUnwrap], registry: registry).inputs == [.oracle])
@@ -501,7 +501,7 @@ enum PurityGateCorpus {
                 items.append(Item(n: shown.count + extra.count))
             }
         }
-        """
+        """,
     ]
 
     static func makeProject(item: String = PackagePurityFixtures.refutingItem) throws -> String {

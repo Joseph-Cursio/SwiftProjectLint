@@ -32,7 +32,7 @@ struct SingleImplementationProtocolSuppressionTests {
             struct RealNetworkService: NetworkService {
                 func fetch() { }
             }
-            """
+            """,
         ])
         #expect(issues.isEmpty)
     }
@@ -49,7 +49,7 @@ struct SingleImplementationProtocolSuppressionTests {
             struct SQLiteUserRepository: UserRepository {
                 func getUser() { }
             }
-            """
+            """,
         ])
         #expect(issues.isEmpty)
     }
@@ -66,7 +66,7 @@ struct SingleImplementationProtocolSuppressionTests {
             struct LiveDataProvider: DataProviding {
                 func provide() { }
             }
-            """
+            """,
         ])
         #expect(issues.isEmpty)
     }
@@ -85,7 +85,7 @@ struct SingleImplementationProtocolSuppressionTests {
             struct StripePayment: PaymentProtocol {
                 func charge() { }
             }
-            """
+            """,
         ])
 
         #expect(issues.count == 1)
@@ -110,7 +110,7 @@ struct SingleImplementationProtocolSuppressionTests {
             struct MockingbirdRenderer: Renderer {
                 func render() { }
             }
-            """
+            """,
         ])
 
         #expect(issues.count == 1)
@@ -133,7 +133,7 @@ struct SingleImplementationProtocolSuppressionTests {
             struct AnalyticsService: AnalyticsServiceProtocol {
                 func track() { }
             }
-            """
+            """,
         ])
 
         #expect(issues.count == 1)
@@ -159,7 +159,7 @@ struct SingleImplementationProtocolSuppressionTests {
             extension Node: RowDecodable {
                 func decode() { }
             }
-            """
+            """,
         ])
 
         #expect(issues.count == 1)
@@ -184,7 +184,7 @@ struct SingleImplementationProtocolSuppressionTests {
             struct NodeB { }
             extension NodeA: RowDecodable { func decode() { } }
             extension NodeB: RowDecodable { func decode() { } }
-            """
+            """,
         ])
 
         #expect(issues.isEmpty)
@@ -214,7 +214,7 @@ struct SingleImplementationProtocolSuppressionTests {
             struct Engine {
                 init(parser: DataParsing = RealParser()) { }
             }
-            """
+            """,
         ])
 
         #expect(issues.isEmpty)
@@ -242,7 +242,7 @@ struct SingleImplementationProtocolSuppressionTests {
                 private let parser: any DataParsing
                 init(parser: any DataParsing) { self.parser = parser }
             }
-            """
+            """,
         ])
 
         #expect(issues.isEmpty)
@@ -268,7 +268,7 @@ struct SingleImplementationProtocolSuppressionTests {
             enum Factory {
                 static func make() -> DataParsing { RealParser() }
             }
-            """
+            """,
         ])
 
         #expect(issues.count == 1)
@@ -293,7 +293,7 @@ struct SingleImplementationProtocolSuppressionTests {
             "MockNode.swift": """
             struct MockNode { }
             extension MockNode: RowDecodable { func decode() { } }
-            """
+            """,
         ])
 
         #expect(issues.isEmpty)

@@ -17,7 +17,7 @@ final class ViewModelDirectDBAccessVisitor: BasePatternVisitor {
 
     private static let repositorySuffixes: [String] = [
         "Repository", "Store", "Service", "DataSource", "DAO",
-        "Persistence", "Storage", "Provider"
+        "Persistence", "Storage", "Provider",
     ]
 
     /// Imported persistence frameworks found in this file.

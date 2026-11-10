@@ -60,7 +60,7 @@ struct PBTSeedsFormatterTests {
         // route, and `isAnalysable` is what stops it.
         let json = PBTSeedsFormatter().format(issues: [
             candidate(symbol: "add"),
-            kernel(symbol: "uploadRemainingChunks")
+            kernel(symbol: "uploadRemainingChunks"),
         ])
         let data = try #require(json.data(using: .utf8))
         let manifest = try JSONDecoder().decode(PBTSeedManifest.self, from: data)
@@ -129,7 +129,7 @@ struct PBTSeedsFormatterTests {
             LintIssue(
                 severity: .warning, message: "inline Date()", filePath: "T.swift",
                 lineNumber: 2, suggestion: nil, ruleName: .nonInjectedNondeterminism
-            )
+            ),
         ]
         let json = PBTSeedsFormatter().format(issues: issues)
         let data = try #require(json.data(using: .utf8))
@@ -149,7 +149,7 @@ struct PBTSeedsFormatterTests {
             LintIssue(
                 severity: .warning, message: "Idempotency violation: 'sync' …", filePath: "Sync.swift",
                 lineNumber: 9, suggestion: nil, ruleName: .idempotencyViolation, symbol: "sync"
-            )
+            ),
         ]
         let json = PBTSeedsFormatter().format(issues: issues)
         let data = try #require(json.data(using: .utf8))
@@ -180,7 +180,7 @@ struct PBTSeedsFormatterTests {
     func emitsAllCandidatesPreservingLocations() throws {
         let issues = [
             candidate(symbol: "add", file: "A.swift", line: 1),
-            candidate(symbol: "mul", file: "B.swift", line: 9)
+            candidate(symbol: "mul", file: "B.swift", line: 9),
         ]
         let json = PBTSeedsFormatter().format(issues: issues)
         let data = try #require(json.data(using: .utf8))

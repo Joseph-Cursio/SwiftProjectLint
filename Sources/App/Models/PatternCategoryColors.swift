@@ -29,7 +29,7 @@ enum PatternCategoryColors {
         .animation: .mint,
         .modernization: .yellow,
         .idempotency: .brown,
-        .other: .gray
+        .other: .gray,
     ]
 
     static func color(for category: PatternCategory) -> Color {

@@ -37,7 +37,7 @@ struct ProtocolCouldBePrivateVisitorTests {
             """,
             "Other.swift": """
             struct Other { }
-            """
+            """,
         ])
 
         #expect(issues.count == 1)
@@ -56,7 +56,7 @@ struct ProtocolCouldBePrivateVisitorTests {
             struct DataService: Loadable {
                 func load() { }
             }
-            """
+            """,
         ])
 
         let flagged = issues.map(\.message)
@@ -74,7 +74,7 @@ struct ProtocolCouldBePrivateVisitorTests {
             struct Manager {
                 let fetcher: Fetchable
             }
-            """
+            """,
         ])
 
         let flagged = issues.map(\.message)
@@ -90,7 +90,7 @@ struct ProtocolCouldBePrivateVisitorTests {
             struct Worker: InternalOnly {
                 func work() { }
             }
-            """
+            """,
         ])
 
         #expect(issues.isEmpty)
@@ -105,7 +105,7 @@ struct ProtocolCouldBePrivateVisitorTests {
             struct Client: SharedAPI {
                 func call() { }
             }
-            """
+            """,
         ])
 
         #expect(issues.isEmpty)
@@ -120,7 +120,7 @@ struct ProtocolCouldBePrivateVisitorTests {
             "FileB.swift": """
             protocol BetaProtocol { func beta() }
             struct BetaImpl: BetaProtocol { func beta() { } }
-            """
+            """,
         ])
 
         #expect(issues.count == 2)

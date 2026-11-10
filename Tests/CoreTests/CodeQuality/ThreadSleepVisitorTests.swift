@@ -40,7 +40,7 @@ struct ThreadSleepVisitorTests {
 
     @Test("Detects Thread.sleep variant", arguments: [
         "Thread.sleep(forTimeInterval: 1.0)",
-        "Thread.sleep(until: Date().addingTimeInterval(2.0))"
+        "Thread.sleep(until: Date().addingTimeInterval(2.0))",
     ])
     func detectsThreadSleepVariant(source: String) {
         let visitor = makeVisitor()
@@ -66,7 +66,7 @@ struct ThreadSleepVisitorTests {
     @Test("No issue for non-Thread.sleep code", arguments: [
         "try await Task.sleep(for: .seconds(1))",
         "let isMain = Thread.isMainThread\nlet current = Thread.current",
-        "process.sleep(duration: 5)"
+        "process.sleep(duration: 5)",
     ])
     func noIssueForNonThreadSleep(source: String) {
         let visitor = makeVisitor()

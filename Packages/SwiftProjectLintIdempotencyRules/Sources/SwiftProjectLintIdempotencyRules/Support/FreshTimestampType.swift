@@ -23,7 +23,7 @@ enum FreshTimestampType {
         "Clock",
         "ContinuousClock",
         "SuspendingClock",
-        "DispatchTime"
+        "DispatchTime",
     ]
 
     /// Whether `name` is one of the fresh-timestamp types.

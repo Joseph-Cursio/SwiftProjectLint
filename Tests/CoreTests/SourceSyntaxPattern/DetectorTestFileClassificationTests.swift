@@ -33,7 +33,7 @@ struct DetectorTestFileClassificationTests {
         "Sources/Basics/TestingLibrary.swift",
         "Sources/App/Views/TestableView.swift",
         "Sources/Models/ABTestAssignment.swift",
-        "Packages/Visitors/Sources/Visitors/PropertyTestCandidacy.swift"
+        "Packages/Visitors/Sources/Visitors/PropertyTestCandidacy.swift",
     ])
     func productionFilesKeepTestNoisyRules(filePath: String) {
         #expect(printIssues(at: filePath).count == 1)
@@ -45,7 +45,7 @@ struct DetectorTestFileClassificationTests {
         "Sources/App/RunnerTest.swift",
         "Sources/AppTestSupport/Builders.swift",
         "Sources/App/Mocks/Client.swift",
-        "Examples/Demo/main.swift"
+        "Examples/Demo/main.swift",
     ])
     func testAndFixtureFilesSkipTestNoisyRules(filePath: String) {
         #expect(printIssues(at: filePath).isEmpty)

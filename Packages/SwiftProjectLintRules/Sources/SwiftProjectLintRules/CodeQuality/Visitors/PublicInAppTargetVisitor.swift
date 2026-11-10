@@ -22,7 +22,7 @@ final class PublicInAppTargetVisitor: BasePatternVisitor {
         // WidgetKit
         "Widget", "WidgetConfiguration", "TimelineProvider",
         "IntentTimelineProvider", "AppIntentTimelineProvider",
-        "WidgetBundle", "TimelineEntry"
+        "WidgetBundle", "TimelineEntry",
     ]
 
     /// Tracks which type names conform to public-required protocols.

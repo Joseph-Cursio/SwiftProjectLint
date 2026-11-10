@@ -47,7 +47,7 @@ final class CouldBePrivateMemberVisitor: CrossFileVisitorBase, CrossFilePatternV
         "makeNSView", "updateNSView", "sizeThatFits",
         // NSApplicationDelegate / UNUserNotificationCenterDelegate
         "applicationDidFinishLaunching", "applicationShouldTerminateAfterLastWindowClosed",
-        "applicationDockMenu", "userNotificationCenter"
+        "applicationDockMenu", "userNotificationCenter",
     ]
 
     /// System framework protocols whose members are called by the framework,
@@ -77,7 +77,7 @@ final class CouldBePrivateMemberVisitor: CrossFileVisitorBase, CrossFilePatternV
         // point — there's no Swift-source reference in the package,
         // so the rule's "only used in this file" check fires even
         // though making it private would break the protocol witness.
-        "CompilerPlugin"
+        "CompilerPlugin",
     ]
 
     // MARK: - Track Current Type and Conformances

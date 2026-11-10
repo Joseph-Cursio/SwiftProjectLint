@@ -62,7 +62,7 @@ struct CompletionHandlerDataTaskVisitorTests {
             session.uploadTask(with: request, from: bodyData, completionHandler: handler)
             """,
             "uploadTask"
-        )
+        ),
     ] as [(String, String)])
     func detectsVariant(source: String, expected: String) throws {
         let visitor = makeVisitor()
@@ -91,7 +91,7 @@ struct CompletionHandlerDataTaskVisitorTests {
         // Unrelated method
         """
         let result = processor.dataTask(with: input)
-        """
+        """,
     ])
     func noIssue(source: String) {
         let visitor = makeVisitor()

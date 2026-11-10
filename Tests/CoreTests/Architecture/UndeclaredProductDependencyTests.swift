@@ -46,7 +46,7 @@ struct UndeclaredProductDependencyTests {
             targets: [.target(name: "Models")]
         )
         """,
-        "Packages/Models/Sources/Models/Model.swift": "struct Model {}"
+        "Packages/Models/Sources/Models/Model.swift": "struct Model {}",
     ]
 
     private func workspace(appImports: String, overriding overrides: [String: String] = [:]) -> [String: String] {
@@ -107,7 +107,7 @@ struct UndeclaredProductDependencyTests {
             )
             """,
             "examples/sample/Sources/Sample/Sample.swift": "import Idempotency",
-            "examples/sample/Tests/SampleTests/SampleTests.swift": "import Idempotency"
+            "examples/sample/Tests/SampleTests/SampleTests.swift": "import Idempotency",
         ])
 
         let issue = try #require(issues.first)
@@ -126,7 +126,7 @@ struct UndeclaredProductDependencyTests {
                 dependencies: [.package(path: "Packages/Kit")],
                 targets: [.target(name: "App", dependencies: ["KitUI", .product(name: "KitCore", package: "kit")])]
             )
-            """
+            """,
         ])
 
         #expect(analyze(files: files).isEmpty)
@@ -135,7 +135,7 @@ struct UndeclaredProductDependencyTests {
     @Test func acceptsAModuleReExportedAcrossPackages() {
         let files = workspace(appImports: "import KitUI\nimport KitCore\nimport Models", overriding: [
             "Packages/Kit/Sources/KitCore/Core.swift": "@_exported import Models",
-            "Packages/Kit/Sources/KitUI/View.swift": "@_exported import KitCore"
+            "Packages/Kit/Sources/KitUI/View.swift": "@_exported import KitCore",
         ])
 
         #expect(analyze(files: files).isEmpty)
@@ -156,7 +156,7 @@ struct UndeclaredProductDependencyTests {
                 ]
             )
             """,
-            "Packages/Kit/Sources/KitCore/Core.swift": "@_exported import Models"
+            "Packages/Kit/Sources/KitCore/Core.swift": "@_exported import Models",
         ])
 
         #expect(analyze(files: files).isEmpty)
@@ -181,7 +181,7 @@ struct UndeclaredProductDependencyTests {
                 ],
                 targets: [.target(name: "App", dependencies: [.product(name: "KitUI", package: "kit")])]
             )
-            """
+            """,
         ])
 
         #expect(analyze(files: files).isEmpty)

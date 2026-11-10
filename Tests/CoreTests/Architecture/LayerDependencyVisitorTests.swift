@@ -28,12 +28,12 @@ struct LayerDependencyVisitorTests {
     private let layers = [
         LayerPolicy(name: "domain", paths: ["Domain/"], mayDependOn: []),
         LayerPolicy(name: "persistence", paths: ["Persistence/"], mayDependOn: ["domain"]),
-        LayerPolicy(name: "presentation", paths: ["Presentation/"], mayDependOn: ["domain"])
+        LayerPolicy(name: "presentation", paths: ["Presentation/"], mayDependOn: ["domain"]),
     ]
 
     private let declarations = [
         "Domain/Order.swift": "struct Order {}\nprotocol OrderStore {}",
-        "Persistence/CoreDataOrderStore.swift": "final class CoreDataOrderStore: OrderStore {}"
+        "Persistence/CoreDataOrderStore.swift": "final class CoreDataOrderStore: OrderStore {}",
     ]
 
     private func files(adding extra: [String: String]) -> [String: String] {
@@ -49,7 +49,7 @@ struct LayerDependencyVisitorTests {
                 let order: Order
                 let store: CoreDataOrderStore
             }
-            """
+            """,
         ]), policies: layers)
 
         let issue = try #require(issues.first)
@@ -82,7 +82,7 @@ struct LayerDependencyVisitorTests {
             "Presentation/Many.swift": """
             let first = CoreDataOrderStore()
             let second: CoreDataOrderStore = CoreDataOrderStore()
-            """
+            """,
         ]), policies: layers)
 
         #expect(issues.count == 1)
@@ -94,7 +94,7 @@ struct LayerDependencyVisitorTests {
     @Test func permitsItsOwnAndItsPermittedLayersTypes() {
         let issues = analyze(files(adding: [
             "Presentation/OrderRow.swift": "struct OrderRow { let order: Order }",
-            "Presentation/OrderList.swift": "struct OrderList { let rows: [OrderRow] }"
+            "Presentation/OrderList.swift": "struct OrderList { let rows: [OrderRow] }",
         ]), policies: layers)
 
         #expect(issues.isEmpty)
@@ -111,11 +111,11 @@ struct LayerDependencyVisitorTests {
     @Test func aNameDeclaredInTwoPlacesIsNotAttributed() {
         let ambiguousInLayers = analyze(files(adding: [
             "Presentation/Uses.swift": "let value: CoreDataOrderStore? = nil",
-            "Domain/Duplicate.swift": "struct CoreDataOrderStore {}"
+            "Domain/Duplicate.swift": "struct CoreDataOrderStore {}",
         ]), policies: layers)
         let ambiguousWithUnlayered = analyze(files(adding: [
             "Presentation/Uses.swift": "let value: CoreDataOrderStore? = nil",
-            "Support/Duplicate.swift": "struct CoreDataOrderStore {}"
+            "Support/Duplicate.swift": "struct CoreDataOrderStore {}",
         ]), policies: layers)
 
         #expect(ambiguousInLayers.isEmpty)
@@ -130,7 +130,7 @@ struct LayerDependencyVisitorTests {
                 let store = CoreDataOrderStore()
             }
             func wrap<CoreDataOrderStore>(_ value: CoreDataOrderStore) {}
-            """
+            """,
         ]), policies: layers)
 
         #expect(issues.isEmpty)
@@ -151,7 +151,7 @@ struct LayerDependencyVisitorTests {
         let unconstrained = [
             LayerPolicy(name: "persistence", paths: ["Persistence/"]),
             LayerPolicy(name: "presentation", paths: ["Presentation/"], forbiddenImports: ["CoreData"]),
-            LayerPolicy(name: "domain", paths: ["Domain/"], mayDependOn: [])
+            LayerPolicy(name: "domain", paths: ["Domain/"], mayDependOn: []),
         ]
         let issues = analyze(files(adding: [
             "Presentation/Uses.swift": "let store = CoreDataOrderStore()"
@@ -207,7 +207,7 @@ struct LayerDependencyVisitorTests {
               presentation:
                 paths: ["Presentation/"]
                 may_depend_on: ["domain"]
-            """
+            """,
         ])
         for (relative, content) in project {
             let path = (root as NSString).appendingPathComponent(relative)

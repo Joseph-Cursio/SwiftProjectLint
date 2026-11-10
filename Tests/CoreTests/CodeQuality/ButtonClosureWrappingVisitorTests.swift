@@ -78,7 +78,7 @@ struct ButtonClosureWrappingVisitorTests {
         // Label form
         """
         Button { doSomething() } label: { Text("Save") }
-        """
+        """,
     ])
     func noIssue(source: String) {
         let visitor = makeVisitor()

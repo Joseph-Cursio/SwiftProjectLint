@@ -138,7 +138,7 @@ struct ConstructionUniverseTests {
         ("Sources/Lib/Clock.swift", "import Foundation\nstruct Stamp { let at = Date() }"),
         ("Sources/Lib/Plain.swift", "struct Plain { let n: Int }"),
         ("Tests/LibTests/Fixture.swift", "import Foundation\nstruct Fixture { let id = UUID() }"),
-        ("Package.swift", "// swift-tools-version:6.2\nstruct Manifest { let id = UUID() }")
+        ("Package.swift", "// swift-tools-version:6.2\nstruct Manifest { let id = UUID() }"),
     ]
 
     @Test("the build drops non-production files, sorts, and does not depend on input order")

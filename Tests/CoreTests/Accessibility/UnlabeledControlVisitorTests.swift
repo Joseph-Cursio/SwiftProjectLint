@@ -129,7 +129,7 @@ struct UnlabeledControlVisitorTests {
                 Toggle("Bold", isOn: $on)
             }
         }
-        """
+        """,
     ])
     func noIssue(source: String) {
         #expect(analyze(source).isEmpty)

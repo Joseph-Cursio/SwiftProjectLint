@@ -225,7 +225,7 @@ struct ContentViewModelTests {
             LintIssue(
                 severity: .warning, message: "Test", filePath: "/test.swift",
                 lineNumber: 1, suggestion: nil, ruleName: .relatedDuplicateStateVariable
-            )
+            ),
         ]
         let filtered = viewModel.filterIssuesByEnabledRules(issues)
         #expect(filtered.isEmpty)
@@ -243,7 +243,7 @@ struct ContentViewModelTests {
             LintIssue(
                 severity: .error, message: "Missing @StateObject", filePath: "/test.swift",
                 lineNumber: 5, suggestion: nil, ruleName: .missingStateObject
-            )
+            ),
         ]
         let filtered = viewModel.filterIssuesByEnabledRules(issues)
         let firstFiltered = try #require(filtered.first)

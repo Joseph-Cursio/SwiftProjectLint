@@ -34,7 +34,7 @@ public struct PackagePurityInputs: OptionSet, Sendable, Hashable, CustomStringCo
         let names: [(Self, String)] = [
             (.oracle, "oracle"),
             (.cleanInstanceMethods, "cleanInstanceMethods"),
-            (.impurePackageFunctions, "impurePackageFunctions")
+            (.impurePackageFunctions, "impurePackageFunctions"),
         ]
         return "[" + names.filter { contains($0.0) }.map(\.1).joined(separator: ", ") + "]"
     }

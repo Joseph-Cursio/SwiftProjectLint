@@ -278,10 +278,10 @@ private let previewPatterns: [PatternCategoryInfo] = [
                 message: "Unused State Variable",
                 suggestion: "Remove unused @State variables",
                 category: .stateManagement
-            )
+            ),
         ],
         useSwiftSyntax: true
-    )
+    ),
 ]
 
 #Preview {

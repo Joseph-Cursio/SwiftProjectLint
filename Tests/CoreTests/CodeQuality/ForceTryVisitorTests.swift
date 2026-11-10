@@ -40,7 +40,7 @@ struct ForceTryVisitorTests {
 
     @Test("Detects force try expression", arguments: [
         "let result = try! JSONDecoder().decode(Model.self, from: data)",
-        "let value = try! someFunc()"
+        "let value = try! someFunc()",
     ])
     func detectsForceTry(source: String) {
         let visitor = makeVisitor()
@@ -66,7 +66,7 @@ struct ForceTryVisitorTests {
     @Test("No issue for safe try usage", arguments: [
         "let result = try someFunc()",
         "let result = try? someFunc()",
-        "do {\n    let result = try someFunc()\n} catch {\n    print(error)\n}"
+        "do {\n    let result = try someFunc()\n} catch {\n    print(error)\n}",
     ])
     func noIssueForSafeTry(source: String) {
         let visitor = makeVisitor()

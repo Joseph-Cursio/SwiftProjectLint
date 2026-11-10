@@ -34,7 +34,7 @@ public enum PropertyWrapper: String, CaseIterable, Sendable {
     public static let stateStorageAttributeNames: Set<String> = {
         let cases: [Self] = [
             .state, .stateObject, .observedObject, .environmentObject,
-            .binding, .appStorage, .sceneStorage
+            .binding, .appStorage, .sceneStorage,
         ]
         return Set(cases.map(\.rawValue)).union(["Published"])
     }()

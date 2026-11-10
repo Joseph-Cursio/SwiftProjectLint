@@ -26,7 +26,7 @@ struct TextFormatterTests {
             LintIssue(severity: .warning, message: "warn", filePath: "B.swift",
                       lineNumber: 2, suggestion: nil, ruleName: .fatView),
             LintIssue(severity: .info, message: "note", filePath: "C.swift",
-                      lineNumber: 3, suggestion: nil, ruleName: .fatView)
+                      lineNumber: 3, suggestion: nil, ruleName: .fatView),
         ]
         let summary = TextFormatter().summaryLine(for: issues)
         #expect(summary == "Found 3 issues (1 error, 1 warning, 1 info)")

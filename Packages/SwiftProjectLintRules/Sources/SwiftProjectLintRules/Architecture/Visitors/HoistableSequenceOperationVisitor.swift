@@ -27,7 +27,7 @@ final class HoistableSequenceOperationVisitor: CrossFileVisitorBase, CrossFilePa
     /// Element-wise `Sequence` higher-order methods whose closure reads the element.
     private static let hofNames: Set<String> = [
         "sorted", "sort", "filter", "min", "max", "first", "last", "contains",
-        "firstIndex", "lastIndex", "partition", "allSatisfy", "drop", "prefix"
+        "firstIndex", "lastIndex", "partition", "allSatisfy", "drop", "prefix",
     ]
 
     /// Two members is the precision gate (see type doc); one-member sets are dropped.

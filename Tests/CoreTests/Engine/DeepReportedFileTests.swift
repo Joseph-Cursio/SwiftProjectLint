@@ -80,7 +80,7 @@ struct DeepReportedFileTests {
     /// for an enclosing `await` or `#Preview`.
     static let rulesOnceQuadraticInAChain: [RuleIdentifier] = [
         .nonIdempotentInRetryContext, .unannotatedInStrictReplayableContext,
-        .accessingImplementationDetails, .deprecatedAnimation, .globalActorMismatch, .magicNumber
+        .accessingImplementationDetails, .deprecatedAnimation, .globalActorMismatch, .magicNumber,
     ]
 
     @Test("a rule once quadratic in a chain lints it in about the time its calls take unnested", arguments: rulesOnceQuadraticInAChain)

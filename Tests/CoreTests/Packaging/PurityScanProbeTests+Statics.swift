@@ -45,7 +45,7 @@ extension PurityScanProbeTests {
         let builtFromARun = [
             "Self(inferrer: PurityInferrer())",
             "Self.build(from: [])",
-            "CleanInstanceMethodCatalog(methodsByType: PackagePurity.current.cleanMethods)"
+            "CleanInstanceMethodCatalog(methodsByType: PackagePurity.current.cleanMethods)",
         ]
         for value in builtFromARun {
             let probe = Scan.scanned("""

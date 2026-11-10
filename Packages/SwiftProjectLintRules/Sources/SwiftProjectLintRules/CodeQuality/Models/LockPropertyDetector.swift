@@ -15,7 +15,7 @@ enum LockPropertyDetector {
         "OSAllocatedUnfairLock",
         "Mutex",
         "NSLock",
-        "NSRecursiveLock"
+        "NSRecursiveLock",
     ]
 
     /// Whether `memberBlock` declares a stored property whose type is a

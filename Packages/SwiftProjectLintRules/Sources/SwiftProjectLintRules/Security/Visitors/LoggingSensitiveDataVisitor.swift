@@ -15,7 +15,7 @@ final class LoggingSensitiveDataVisitor: BasePatternVisitor {
     private static let sensitiveWords: Set<String> = [
         "password", "passwd", "token", "secret", "credential", "credentials",
         "auth", "passphrase", "bearer", "authorization", "cookie",
-        "ssn", "socialsecurity", "creditcard", "cvv", "apikey", "privatekey"
+        "ssn", "socialsecurity", "creditcard", "cvv", "apikey", "privatekey",
     ]
 
     // MARK: - Logging function names

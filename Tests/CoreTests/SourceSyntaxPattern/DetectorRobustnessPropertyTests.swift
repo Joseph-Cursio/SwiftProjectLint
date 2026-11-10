@@ -20,7 +20,7 @@ private enum RobustnessFixtures {
         "func handler() { print(\"log line\") }",
         "final class Manager { static let shared = Manager() }",
         "let forced = try! risky()",
-        "enum Kind { case alpha, beta }"
+        "enum Kind { case alpha, beta }",
     ]
 
     static let fullSource = fragments.joined(separator: "\n")
@@ -52,7 +52,7 @@ private enum RobustnessFixtures {
         "\u{0}\u{1}\u{2}",
         String(repeating: "(", count: 400),
         "class C { var x =",
-        "0xZZ + @@@"
+        "0xZZ + @@@",
     ]
 
     /// Order-preserving projection (no sort) so the determinism check also
@@ -75,7 +75,7 @@ private enum RobustnessFixtures {
         let engine = CrossFileAnalysisEngine(registry: TestRegistryManager.getSharedVisitorRegistry())
         let files = [
             ProjectFile(name: "Malformed.swift", content: malformed, relativePath: "Malformed.swift"),
-            ProjectFile(name: "Companion.swift", content: fullSource, relativePath: "Companion.swift")
+            ProjectFile(name: "Companion.swift", content: fullSource, relativePath: "Companion.swift"),
         ]
         let bounds = Dictionary(uniqueKeysWithValues: files.map { ($0.relativePath, lineCount(of: $0.content)) })
         return engine.detectCrossFilePatterns(projectFiles: files).map { issue in

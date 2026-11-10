@@ -83,7 +83,7 @@ struct ConcreteTypeUsageLocalTests {
             "func refresh() { if true { var loader: FeedLoader?; loader = nil; _ = loader } }",
             "func refresh() { let work = { var loader: FeedLoader?; loader = nil; _ = loader } }",
             "func refresh() { defer { var loader: FeedLoader?; loader = nil; _ = loader } }",
-            "func refresh() { let loader: FeedLoader; loader = FeedLoader(); _ = loader }"
+            "func refresh() { let loader: FeedLoader; loader = FeedLoader(); _ = loader }",
         ]
     )
     func localInAnyCodeBlockIsNotReported(body: String) {

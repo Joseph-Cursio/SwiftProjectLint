@@ -13,7 +13,7 @@ final class DecorativeImageMissingTraitVisitor: BasePatternVisitor {
 
     private static let decorativeNamePatterns: Set<String> = [
         "background", "divider", "pattern", "gradient", "separator",
-        "overlay", "decoration", "ornament", "flourish", "texture"
+        "overlay", "decoration", "ornament", "flourish", "texture",
     ]
 
     required init(pattern: SyntaxPattern, viewMode: SyntaxTreeViewMode = .sourceAccurate) {

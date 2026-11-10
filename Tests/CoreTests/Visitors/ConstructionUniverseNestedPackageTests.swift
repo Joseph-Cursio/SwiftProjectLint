@@ -40,7 +40,7 @@ struct ConstructionUniverseNestedPackageTests {
     @Test("an interpolated or computed path is doubt", arguments: [
         #".package(path: "\(root)/Core")"#,
         ".package(path: localPath)",
-        #".package(name: "Core", path: ("Core"))"#
+        #".package(name: "Core", path: ("Core"))"#,
     ])
     func computedPathIsDoubt(manifest: String) {
         #expect(ConstructionUniverse.localPackageDependencies(manifest: manifest) == nil)
@@ -65,7 +65,7 @@ struct ConstructionUniverseNestedPackageTests {
         "\u{00A0}\n// swift-tools-version:5.9\n",
         // From 6.0, below other lines.
         "import PackageDescription\n// swift-tools-version:6.0\n",
-        "// Licensed under Apache 2.0\n//\n// swift-tools-version:6.2\n"
+        "// Licensed under Apache 2.0\n//\n// swift-tools-version:6.2\n",
     ])
     func toolsVersionLineIsAManifest(text: String) {
         #expect(ConstructionUniverse.isManifest(text))
@@ -78,7 +78,7 @@ struct ConstructionUniverseNestedPackageTests {
         "/* swift-tools-version:6.0 */\n",
         "/// swift-tools-version:6.0\n",
         "  \n\t\n",
-        ""
+        "",
     ])
     func noToolsVersionLineIsNoManifest(text: String) {
         #expect(ConstructionUniverse.isManifest(text) == false)
@@ -177,7 +177,7 @@ struct ConstructionUniverseNestedPackageTests {
             "": #".package(path: "Packages/A")"#,
             "Packages/A": #".package(path: "../B")"#,
             "Packages/B": #".package(url: "https://x/y.git", from: "1.0.0")"#,
-            "Packages/C": #".package(path: "../../Demo")"#
+            "Packages/C": #".package(path: "../../Demo")"#,
         ])
         // C depends on Demo, but nothing the root compiles depends on C.
         #expect(reached == ["Packages/A", "Packages/B"])
@@ -200,13 +200,13 @@ struct ConstructionUniverseNestedPackageTests {
         #expect(Self.compiled([
             "": #"[.target(name: "Lib", path: "Vendor/Lib/Sources/Lib")]"#,
             "Vendor/Lib": #".package(path: "../../Demo")"#,
-            "Demo": ""
+            "Demo": "",
         ]) == ["Vendor/Lib", "Demo"])
         // `Packages` lies in no package but holds three, and SwiftPM compiles their sources into
         // `All` (amendment T); `Packages/C`'s closure brings `Demo`. Not `Vendor/Lib`.
         #expect(Self.compiled([
             "": #"[.target(name: "All", path: "Packages")]"#,
-            "Packages/C": #".package(path: "../../Demo")"#
+            "Packages/C": #".package(path: "../../Demo")"#,
         ]) == ["Packages/A", "Packages/B", "Packages/C", "Demo"])
         // A path is matched by component: `Pack` holds nothing.
         #expect(Self.compiled(["": #".target(name: "X", path: "Pack")"#]).isEmpty)
@@ -232,7 +232,7 @@ struct ConstructionUniverseNestedPackageTests {
             "": #".package(path: "Packages/A")"#,
             "Packages/A": "",
             "Packages/C": #".package(path: "../../Demo")"#,
-            "Demo": ""
+            "Demo": "",
         ]
         #expect(Self.compiled(manifests) == ["Packages/A"])
         // Reporting on `Packages/C` brings it in, and `Demo`, which it depends on; not `Packages/B`.
@@ -248,7 +248,7 @@ struct ConstructionUniverseNestedPackageTests {
         let reached = Self.compiled([
             "": #"[.package(path: "Tests/Support"), .package(path: ".tools/Gen")]"#,
             "Tests/Support": #".package(path: "../../Packages/B")"#,
-            ".tools/Gen": #".package(path: "../../Demo")"#
+            ".tools/Gen": #".package(path: "../../Demo")"#,
         ])
         #expect(reached == ["Packages/B", "Demo"])
 
@@ -269,7 +269,7 @@ struct ConstructionUniverseNestedPackageTests {
                 .package(path: "./Packages/A/../C/")
             ]
             """,
-            "Vendor/Lib": "", "Demo": "", "Packages/C": ""
+            "Vendor/Lib": "", "Demo": "", "Packages/C": "",
         ])
         // `../App/Demo` climbs out and back in: it names `/work/App/Demo`, which is under the root.
         #expect(reached == ["Vendor/Lib", "Demo", "Packages/C"])
@@ -286,7 +286,7 @@ struct ConstructionUniverseNestedPackageTests {
         let manifests = [
             "": #".package(path: "/alias/App/Vendor/Lib")"#,
             "Vendor/Lib": #"[.package(path: "/work/App/Demo"), .package(path: "/alias/Other/Lib")]"#,
-            "Demo": ""
+            "Demo": "",
         ]
         for rootPath in ["/work/App", "/alias/App"] {
             let reached = ConstructionUniverse.compiledNestedPackages(
@@ -305,7 +305,7 @@ struct ConstructionUniverseNestedPackageTests {
     func doubtIncludesAll() {
         let computed = Self.compiled([
             "": #".package(path: "Packages/A")"#,
-            "Packages/A": ".package(path: siblingPath)"
+            "Packages/A": ".package(path: siblingPath)",
         ])
         #expect(computed == Self.packages)
 

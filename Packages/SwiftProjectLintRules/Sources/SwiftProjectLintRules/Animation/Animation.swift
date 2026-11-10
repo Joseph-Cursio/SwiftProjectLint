@@ -15,7 +15,7 @@ class Animation: BasePatternRegistrar {
             WithAnimation(),
             AnimationHierarchy(),
             MatchedGeometry(),
-            HardcodedAnimationValues()
+            HardcodedAnimationValues(),
         ])
     }
 }

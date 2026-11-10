@@ -49,7 +49,7 @@ struct AliasFixture: Sendable, CustomTestStringConvertible {
         mirrorProtocol, couldAdoptProtocol, parallelEnumShapeSharedProtocol,
         parallelEnumShapeUbiquitousOnly, duplicateStructShape, sharedDomainEnumField,
         hoistableConformerMember, couldBePrivate, couldBePrivateMember, protocolCouldBePrivate,
-        blockingIOOnMainActor
+        blockingIOOnMainActor,
     ]
 
     /// A mirror reached only through the alias was missed: the conformer did not conform.
@@ -70,7 +70,7 @@ struct AliasFixture: Sendable, CustomTestStringConvertible {
                 func load() {}
                 func audit() {}
             }
-            """
+            """,
         ],
         alias: "AuditedOrderService",
         spelledOut: "OrderServiceProtocol, Auditing",
@@ -102,7 +102,7 @@ struct AliasFixture: Sendable, CustomTestStringConvertible {
                 let altitude: Double
                 let name: String
             }
-            """
+            """,
         ],
         alias: "Place",
         spelledOut: "Located, Named",
@@ -123,7 +123,7 @@ struct AliasFixture: Sendable, CustomTestStringConvertible {
             typealias RankedLevel = Ranked & CaseIterable
             """,
             "Severity.swift": "enum Severity: {conformance} { case low, medium, high }",
-            "Priority.swift": "enum Priority: Ranked, CaseIterable { case low, medium, high }"
+            "Priority.swift": "enum Priority: Ranked, CaseIterable { case low, medium, high }",
         ],
         alias: "RankedLevel",
         spelledOut: "Ranked, CaseIterable",
@@ -142,7 +142,7 @@ struct AliasFixture: Sendable, CustomTestStringConvertible {
         files: [
             "Listable.swift": "typealias Listable = CaseIterable & Codable",
             "Severity.swift": "enum Severity: String, {conformance} { case low, medium, high }",
-            "Priority.swift": "enum Priority: String, {conformance} { case low, medium, high }"
+            "Priority.swift": "enum Priority: String, {conformance} { case low, medium, high }",
         ],
         alias: "Listable",
         spelledOut: "CaseIterable, Codable",
@@ -184,7 +184,7 @@ struct AliasFixture: Sendable, CustomTestStringConvertible {
                 let category: String
                 let beta: Int
             }
-            """
+            """,
         ],
         alias: "Setting",
         spelledOut: "Identity, Sendable",
@@ -207,7 +207,7 @@ struct AliasFixture: Sendable, CustomTestStringConvertible {
             """,
             "Alpha.swift": "struct Alpha: {conformance} { let severity: IssueSeverity }",
             "Beta.swift": "struct Beta: {conformance} { let severity: IssueSeverity }",
-            "Gamma.swift": "struct Gamma: {conformance} { let severity: IssueSeverity }"
+            "Gamma.swift": "struct Gamma: {conformance} { let severity: IssueSeverity }",
         ],
         alias: "RankedItem",
         spelledOut: "Ranked, Sendable",
@@ -233,7 +233,7 @@ struct AliasFixture: Sendable, CustomTestStringConvertible {
             """,
             "Alpha.swift": hoistableConformer("Alpha"),
             "Beta.swift": hoistableConformer("Beta"),
-            "Gamma.swift": hoistableConformer("Gamma")
+            "Gamma.swift": hoistableConformer("Gamma"),
         ],
         alias: "NamedItem",
         spelledOut: "Named, Sendable",
@@ -266,7 +266,7 @@ struct AliasFixture: Sendable, CustomTestStringConvertible {
             "Banner.swift": """
             struct Banner: {conformance} {}
             func showBanner() { _ = Banner() }
-            """
+            """,
         ],
         alias: "Widget",
         spelledOut: "Rendering, Sendable",
@@ -287,7 +287,7 @@ struct AliasFixture: Sendable, CustomTestStringConvertible {
             protocol Saving { func save() }
             typealias Store = Saving & Sendable
             """,
-            "DiskStore.swift": "struct DiskStore: {conformance} { func save() {} }"
+            "DiskStore.swift": "struct DiskStore: {conformance} { func save() {} }",
         ],
         alias: "Store",
         spelledOut: "Saving, Sendable",
@@ -317,7 +317,7 @@ struct AliasFixture: Sendable, CustomTestStringConvertible {
                 }
                 var body: some View { Text("") }
             }
-            """
+            """,
         ],
         alias: "TestableView",
         spelledOut: "View, ViewInspectorHook",
@@ -343,7 +343,7 @@ struct AliasFixture: Sendable, CustomTestStringConvertible {
                 func read() {}
                 func write() {}
             }
-            """
+            """,
         ],
         alias: "Storage",
         spelledOut: "Reading, Writing",

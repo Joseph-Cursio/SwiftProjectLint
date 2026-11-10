@@ -43,7 +43,7 @@ struct TaskDetachedVisitorTests {
         Task.detached(priority: .background) {
             await work()
         }
-        """
+        """,
     ])
     func detectsVariant(source: String) {
         let visitor = makeVisitor()
@@ -69,7 +69,7 @@ struct TaskDetachedVisitorTests {
         // Unrelated member access
         """
         let result = SomeClass.detached()
-        """
+        """,
     ])
     func noIssue(source: String) {
         let visitor = makeVisitor()

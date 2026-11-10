@@ -7,20 +7,20 @@ import PackageDescription
 // groups), so main-actor pinning would defeat their parallelism.
 let swiftSettings: [SwiftSetting] = [
     .swiftLanguageMode(.v6),
-    .enableUpcomingFeature("MemberImportVisibility")
+    .enableUpcomingFeature("MemberImportVisibility"),
 ]
 
 let package = Package(
     name: "SwiftProjectLintIdempotencyRules",
     platforms: [
         .macOS(.v26),
-        .iOS(.v26)
+        .iOS(.v26),
     ],
     products: [
         .library(
             name: "SwiftProjectLintIdempotencyRules",
             targets: ["SwiftProjectLintIdempotencyRules"]
-        )
+        ),
     ],
     dependencies: [
         .package(path: "../SwiftProjectLintModels"),
@@ -35,7 +35,7 @@ let package = Package(
         .package(
             url: "https://github.com/Joseph-Cursio/SwiftEffectInference.git",
             revision: "5fbee6f7fa984b5f2990a9cce0c8b049a3d8e45b"
-        )
+        ),
     ],
     targets: [
         .target(
@@ -45,10 +45,10 @@ let package = Package(
                 "SwiftProjectLintVisitors",
                 "SwiftProjectLintRegistry",
                 .product(name: "SwiftSyntax", package: "swift-syntax"),
-                .product(name: "SwiftEffectInference", package: "SwiftEffectInference")
+                .product(name: "SwiftEffectInference", package: "SwiftEffectInference"),
             ],
             path: "Sources/SwiftProjectLintIdempotencyRules",
             swiftSettings: swiftSettings
-        )
+        ),
     ]
 )

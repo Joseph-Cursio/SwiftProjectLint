@@ -37,7 +37,7 @@ struct DiscardableResultMisuseVisitorTests {
         ("@discardableResult\nfunc validate() -> ValidationResult { .success }", "ValidationResult"),
         ("@discardableResult\nfunc submit() -> SubmitResponse { SubmitResponse() }", "SubmitResponse"),
         ("@discardableResult\nfunc getStatus() -> AuthStatus { .active }", "AuthStatus"),
-        ("@discardableResult\nfunc evaluate() -> EvalOutcome { .pass }", "EvalOutcome")
+        ("@discardableResult\nfunc evaluate() -> EvalOutcome { .pass }", "EvalOutcome"),
     ])
     func detectsMeaningfulSuffix(source: String, returnType _: String) {
         let visitor = makeVisitor()
@@ -50,7 +50,7 @@ struct DiscardableResultMisuseVisitorTests {
         "@discardableResult\nfunc authenticateUser() -> Bool { true }",
         "@discardableResult\nfunc saveRecord() -> Bool { true }",
         "@discardableResult\nfunc submitForm() -> String { \"ok\" }",
-        "@discardableResult\nfunc deleteRecord() -> Int { 1 }"
+        "@discardableResult\nfunc deleteRecord() -> Int { 1 }",
     ])
     func detectsSuspiciousName(source: String) {
         let visitor = makeVisitor()
@@ -68,7 +68,7 @@ struct DiscardableResultMisuseVisitorTests {
         "func save() -> Result<Void, Error> { .success(()) }",
         "func validate() -> Bool { true }",
         // @discardableResult with no return clause
-        "@discardableResult\nfunc fire() {}"
+        "@discardableResult\nfunc fire() {}",
     ])
     func noIssue(source: String) {
         let visitor = makeVisitor()

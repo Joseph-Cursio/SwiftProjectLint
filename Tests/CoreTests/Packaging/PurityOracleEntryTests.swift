@@ -201,7 +201,7 @@ struct PurityOracleEntryTests {
         let named: Set<String> = [
             "PurityInferrer", "PackagePurity", "PurityTripwire", "Withholdable",
             "CleanInstanceMethodCatalog", "ImpurePackageFunctions", "PackagePurityJoin", "CollectedTypes",
-            "SourcePatternDetector"
+            "SourcePatternDetector",
         ]
         return named.union(withheldSurfaces(in: files).map(\.type)).union(visitorClasses(in: files))
     }
@@ -231,7 +231,7 @@ struct PurityOracleEntryTests {
     static let sanctionedStatics: [String: Set<String>] = [
         packagePurity: ["current", "unconfigured"],
         visitorsSources + "SwiftProjectLintVisitors/CleanInstanceMethodCatalog.swift": ["empty"],
-        visitorsSources + "SwiftProjectLintVisitors/PackagePurityJoin.swift": ["empty"]
+        visitorsSources + "SwiftProjectLintVisitors/PackagePurityJoin.swift": ["empty"],
     ]
 
     /// Every stored static in `files` that holds something one run owns, as `path: name`.
@@ -273,7 +273,7 @@ struct PurityOracleEntryTests {
     static let rulePackages = [
         "Packages/SwiftProjectLintRules/Sources/",
         "Packages/SwiftProjectLintIdempotencyRules/Sources/",
-        "Sources/"
+        "Sources/",
     ]
 
     /// Where the per-run analysis executes. Config and the App are left out: their detached work
@@ -283,7 +283,7 @@ struct PurityOracleEntryTests {
         "Packages/SwiftProjectLintRegistry/Sources/",
         "Packages/SwiftProjectLintVisitors/Sources/",
         "Packages/SwiftProjectLintRules/Sources/",
-        "Packages/SwiftProjectLintIdempotencyRules/Sources/"
+        "Packages/SwiftProjectLintIdempotencyRules/Sources/",
     ]
 
     struct SourceFile: Sendable {

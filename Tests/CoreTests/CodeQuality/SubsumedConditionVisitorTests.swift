@@ -57,7 +57,7 @@ struct SubsumedConditionVisitorTests {
         #"x == "abc" && x.contains("b")"#,
         #"x.hasSuffix(".swift") && !x.isEmpty"#,
         #"x.contains("ab") && x.contains("b")"#,
-        #"!x.contains("a") && !x.contains("ab")"#
+        #"!x.contains("a") && !x.contains("ab")"#,
     ])
     func andChain(condition: String) {
         #expect(issues(Self.inFunction("let y = \(condition)")).count == 1, "\(condition)")
@@ -67,7 +67,7 @@ struct SubsumedConditionVisitorTests {
         #"x == "Package.swift" || x.hasSuffix(".swift")"#,
         #"x.hasPrefix("~/") || x.hasPrefix("~")"#,
         #"x == "a" || x == "a""#,
-        #"x.hasSuffix(".xcodeproj") || x != "b""#
+        #"x.hasSuffix(".xcodeproj") || x != "b""#,
     ])
     func orChain(condition: String) {
         #expect(issues(Self.inFunction("let y = \(condition)")).count == 1, "\(condition)")
@@ -92,7 +92,7 @@ struct SubsumedConditionVisitorTests {
         #"x.hasPrefix("<td>") && x.contains("</td>")"#,
         #"x.hasPrefix("a") || !x.hasPrefix("ab")"#,
         #"!x.isEmpty && !x.contains("─")"#,
-        #"x.hasPrefix("ab") || x.hasPrefix("a") && y"#
+        #"x.hasPrefix("ab") || x.hasPrefix("a") && y"#,
     ])
     func independent(condition: String) {
         #expect(issues(Self.inFunction("let y = \(condition)")).isEmpty, "\(condition)")
@@ -139,7 +139,7 @@ struct SubsumedConditionVisitorTests {
         #"func f(_ v: Any) -> Bool { if let s = v as? String, s.contains("ab") || s.contains("a") { return true }; return false }"#,
         #"func f(_ v: String) -> Bool { let s = v.replacingOccurrences(of: " ", with: ""); return s.contains("ab") || s.contains("a") }"#,
         #"func f(_ line: String) -> Bool { line.trimmingCharacters(in: .whitespaces).contains("ab") || line.trimmingCharacters(in: .whitespaces).contains("a") }"#,
-        #"func f(_ s: T) -> Bool { s.hasPrefix("x") || s.contains("ab") || s.contains("a") }"#
+        #"func f(_ s: T) -> Bool { s.hasPrefix("x") || s.contains("ab") || s.contains("a") }"#,
     ])
     func stringEvidence(source: String) {
         #expect(issues(source).count == 1, "\(source)")

@@ -55,7 +55,7 @@ struct DisfavoredOverloadVisitorTests {
             @_disfavoredOverload
             func build(with config: Config) -> Self { self }
         }
-        """
+        """,
     ])
     func detectsMultiple(source: String) {
         let visitor = makeVisitor()
@@ -82,7 +82,7 @@ struct DisfavoredOverloadVisitorTests {
         "func process<T>(_ value: T) {}",
         "func process(_ value: String) {}",
         "@discardableResult func build() -> Self { self }",
-        "@available(iOS 16, *) func newAPI() {}"
+        "@available(iOS 16, *) func newAPI() {}",
     ])
     func noIssue(source: String) {
         let visitor = makeVisitor()

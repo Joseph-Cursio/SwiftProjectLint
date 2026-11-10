@@ -369,7 +369,7 @@ struct VariableShadowingExclusionTests {
                 }
             }
             """
-        )
+        ),
     ])
     func exclusion(_ testCase: ExclusionCase) {
         let visitor = makeVisitor()

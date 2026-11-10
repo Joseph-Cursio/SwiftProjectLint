@@ -233,7 +233,7 @@ extension PurityOracleEntryTests {
             Self.visitorsSources + "SwiftProjectLintVisitors/BasePatternVisitor.swift",
             "Packages/SwiftProjectLintRegistry/Sources/SwiftProjectLintRegistry/SourcePatternDetector.swift",
             "Packages/SwiftProjectLintRegistry/Sources/SwiftProjectLintRegistry/SourcePatternDetectorProtocol.swift",
-            Self.engineSources + "ProjectLinter+FileAnalysis.swift"
+            Self.engineSources + "ProjectLinter+FileAnalysis.swift",
         ], "found \(files.sorted())")
     }
 }

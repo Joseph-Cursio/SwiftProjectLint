@@ -189,7 +189,7 @@ struct AnimationWithoutReduceMotionVisitorTests {
                     .padding()
             }
         }
-        """
+        """,
     ])
     func noIssue(source: String) {
         let visitor = makeVisitor()

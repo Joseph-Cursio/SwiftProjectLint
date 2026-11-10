@@ -84,7 +84,7 @@ struct PatternConfigurationTests {
             LintIssue(
                 severity: .warning, message: "B", filePath: "file.swift", lineNumber: 2,
                 suggestion: "", ruleName: .fatViewDetection
-            )
+            ),
         ]
         let filtered = PatternConfiguration.filterIssuesByEnabledRules(
             issues,
@@ -106,7 +106,7 @@ struct PatternConfigurationTests {
         let expectedCategories: Set<PatternCategory> = [
             .stateManagement, .performance, .architecture, .codeQuality,
             .security, .accessibility, .memoryManagement, .networking,
-            .uiPatterns, .animation, .modernization, .idempotency, .testability
+            .uiPatterns, .animation, .modernization, .idempotency, .testability,
         ]
         #expect(categories == expectedCategories)
     }

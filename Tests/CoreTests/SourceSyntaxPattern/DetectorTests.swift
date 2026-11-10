@@ -92,7 +92,7 @@ struct DetectorTests {
                     @State private var isLoading = false
                     var body: some View { Text("View2") }
                 }
-                """)
+                """),
         ]
 
         let issues = detector.detectCrossFilePatterns(
@@ -172,7 +172,7 @@ struct DetectorTests {
             "relative/path.swift",
             "C:\\Windows\\Style\\Path.swift",
             "/path with spaces/file.swift",
-            "/path/with/unicode/文件.swift"
+            "/path/with/unicode/文件.swift",
         ]
 
         print("📊 File Path Variations:")

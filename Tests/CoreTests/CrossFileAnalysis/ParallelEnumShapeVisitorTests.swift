@@ -31,7 +31,7 @@ struct ParallelEnumShapeVisitorTests {
     func twinEnumsWithNoSharedProtocolFlagsBoth() throws {
         let issues = analyze(files: [
             "Conflict.swift": "enum ConflictSeverity { case error, info, warning }",
-            "Validation.swift": "enum Severity { case error, info, warning }"
+            "Validation.swift": "enum Severity { case error, info, warning }",
         ])
         #expect(issues.count == 2)
         let first = try #require(issues.first)
@@ -46,7 +46,7 @@ struct ParallelEnumShapeVisitorTests {
         // so the rule still fires.
         let issues = analyze(files: [
             "A.swift": "enum A: String, CaseIterable { case error, info, warning }",
-            "B.swift": "enum B: String, Equatable { case error, info, warning }"
+            "B.swift": "enum B: String, Equatable { case error, info, warning }",
         ])
         #expect(issues.count == 2)
     }
@@ -56,7 +56,7 @@ struct ParallelEnumShapeVisitorTests {
         let issues = analyze(files: [
             "A.swift": "enum A { case red, green, blue }",
             "B.swift": "enum B { case red, green, blue }",
-            "C.swift": "enum C { case red, green, blue }"
+            "C.swift": "enum C { case red, green, blue }",
         ])
         #expect(issues.count == 3)
     }
@@ -68,7 +68,7 @@ struct ParallelEnumShapeVisitorTests {
         let issues = analyze(files: [
             "P.swift": "protocol Displayable {}",
             "A.swift": "enum A: Displayable { case error, info, warning }",
-            "B.swift": "enum B: Displayable { case error, info, warning }"
+            "B.swift": "enum B: Displayable { case error, info, warning }",
         ])
         #expect(issues.isEmpty)
     }
@@ -80,7 +80,7 @@ struct ParallelEnumShapeVisitorTests {
         let issues = analyze(files: [
             "P.swift": "protocol Displayable {}",
             "A.swift": "enum A { case error, info, warning }\nextension A: Displayable {}",
-            "B.swift": "enum B { case error, info, warning }\nextension B: Displayable {}"
+            "B.swift": "enum B { case error, info, warning }\nextension B: Displayable {}",
         ])
         #expect(issues.isEmpty)
     }
@@ -95,7 +95,7 @@ struct ParallelEnumShapeVisitorTests {
             "V.swift": """
             struct ValidationResult { enum Severity { case error, info, warning } }
             extension ValidationResult.Severity: SeverityDisplaying {}
-            """
+            """,
         ])
         #expect(issues.isEmpty)
     }
@@ -106,7 +106,7 @@ struct ParallelEnumShapeVisitorTests {
         let issues = analyze(files: [
             "P.swift": "protocol Displayable {}",
             "A.swift": "enum A { case error, info, warning }\nextension A: Displayable {}",
-            "B.swift": "enum B { case error, info, warning }"
+            "B.swift": "enum B { case error, info, warning }",
         ])
         #expect(issues.count == 2)
     }
@@ -117,7 +117,7 @@ struct ParallelEnumShapeVisitorTests {
         // remaining single `B` has no parallel peer.
         let issues = analyze(files: [
             "A.swift": "enum A { case error(Int), info, warning }",
-            "B.swift": "enum B { case error, info, warning }"
+            "B.swift": "enum B { case error, info, warning }",
         ])
         #expect(issues.isEmpty)
     }
@@ -126,7 +126,7 @@ struct ParallelEnumShapeVisitorTests {
     func fewerThanThreeCasesIsBelowThreshold() {
         let issues = analyze(files: [
             "A.swift": "enum A { case on, off }",
-            "B.swift": "enum B { case on, off }"
+            "B.swift": "enum B { case on, off }",
         ])
         #expect(issues.isEmpty)
     }
@@ -135,7 +135,7 @@ struct ParallelEnumShapeVisitorTests {
     func differentCaseSetsDoNotCluster() {
         let issues = analyze(files: [
             "A.swift": "enum A { case error, info, warning }",
-            "B.swift": "enum B { case low, medium, high }"
+            "B.swift": "enum B { case low, medium, high }",
         ])
         #expect(issues.isEmpty)
     }
@@ -154,7 +154,7 @@ struct ParallelEnumShapeVisitorTests {
     func identicalArraysAreFlagged() throws {
         let issues = analyze(files: [
             "A.swift": #"let mockMarkers = ["Mock", "Fake", "Stub", "Spy", "Dummy"]"#,
-            "B.swift": #"let mockSuffixes = ["Mock", "Fake", "Stub", "Spy", "Dummy"]"#
+            "B.swift": #"let mockSuffixes = ["Mock", "Fake", "Stub", "Spy", "Dummy"]"#,
         ])
         #expect(issues.count == 2)
         let issue = try #require(issues.first)
@@ -168,7 +168,7 @@ struct ParallelEnumShapeVisitorTests {
             "Cat.swift": "enum Category { case stateManagement, uiPatterns, codeQuality, animation, security }",
             "Doc.swift": #"""
             let documented = ["state-management", "ui-patterns", "code-quality", "animation", "security"]
-            """#
+            """#,
         ])
         #expect(issues.count == 2)
     }
@@ -177,7 +177,7 @@ struct ParallelEnumShapeVisitorTests {
     func shortArraysAreIgnored() {
         let issues = analyze(files: [
             "A.swift": #"let a = ["one", "two", "three", "four"]"#,
-            "B.swift": #"let b = ["one", "two", "three", "four"]"#
+            "B.swift": #"let b = ["one", "two", "three", "four"]"#,
         ])
         #expect(issues.isEmpty)
     }
@@ -186,7 +186,7 @@ struct ParallelEnumShapeVisitorTests {
     func mixedArraysAreIgnored() {
         let issues = analyze(files: [
             "A.swift": #"let a = ["one", .two, "three", 4, "five"]"#,
-            "B.swift": #"let b = ["one", .two, "three", 4, "five"]"#
+            "B.swift": #"let b = ["one", .two, "three", 4, "five"]"#,
         ])
         #expect(issues.isEmpty)
     }
@@ -195,7 +195,7 @@ struct ParallelEnumShapeVisitorTests {
     func arraysInTestFilesAreIgnored() {
         let issues = analyze(files: [
             "A.swift": #"let markers = ["Mock", "Fake", "Stub", "Spy", "Dummy"]"#,
-            "Tests/ATests.swift": #"let expected = ["Mock", "Fake", "Stub", "Spy", "Dummy"]"#
+            "Tests/ATests.swift": #"let expected = ["Mock", "Fake", "Stub", "Spy", "Dummy"]"#,
         ])
         #expect(issues.isEmpty)
     }
@@ -204,7 +204,7 @@ struct ParallelEnumShapeVisitorTests {
     func nearlyIdenticalArraysDoNotFire() {
         let issues = analyze(files: [
             "A.swift": #"let a = ["Mock", "Fake", "Stub", "Spy", "Dummy"]"#,
-            "B.swift": #"let b = ["Mock", "Fake", "Stub", "Spy", "Phony"]"#
+            "B.swift": #"let b = ["Mock", "Fake", "Stub", "Spy", "Phony"]"#,
         ])
         #expect(issues.isEmpty)
     }
@@ -217,7 +217,7 @@ struct ParallelEnumShapeVisitorTests {
         // the case where knowing the other location matters most.
         let issues = analyze(files: [
             "One.swift": #"let expensiveOperations = ["map", "filter", "reduce", "sorted", "flatMap"]"#,
-            "Two.swift": #"let expensiveOperations = ["map", "filter", "reduce", "sorted", "flatMap"]"#
+            "Two.swift": #"let expensiveOperations = ["map", "filter", "reduce", "sorted", "flatMap"]"#,
         ])
         #expect(issues.count == 2)
         let issue = try #require(issues.first { $0.filePath == "One.swift" })
@@ -229,7 +229,7 @@ struct ParallelEnumShapeVisitorTests {
     func sameNamedEnumsStillReportPeers() throws {
         let issues = analyze(files: [
             "One.swift": "enum FilterType { case all, active, inactive }",
-            "Two.swift": "enum FilterType { case all, active, inactive }"
+            "Two.swift": "enum FilterType { case all, active, inactive }",
         ])
         #expect(issues.count == 2)
         let issue = try #require(issues.first { $0.filePath == "One.swift" })

@@ -60,12 +60,12 @@ struct PackagePuritySymlinkTests {
     @Test("a test folder's link to a production file adds no entry, wherever the folder sorts", arguments: [
         (link: "Tests/LibTests/Item.swift", destination: "../../Sources/Lib/Item.swift"),
         (link: "AppTests/Item.swift", destination: "../Sources/Lib/Item.swift"),
-        (link: "ATests/Shared/Item.swift", destination: "../../Sources/Lib/Item.swift")
+        (link: "ATests/Shared/Item.swift", destination: "../../Sources/Lib/Item.swift"),
     ])
     func testTargetLinkToProductionIsOneEntry(link: String, destination: String) async throws {
         let root = try PackagePurityFixtures.makeProject([
             "Sources/Lib/Item.swift": PackagePurityFixtures.refutingItem,
-            "Sources/Lib/Callers.swift": PackagePurityFixtures.callers
+            "Sources/Lib/Callers.swift": PackagePurityFixtures.callers,
         ])
         defer { try? FileManager.default.removeItem(atPath: root) }
         try PackagePurityFixtures.symlink(link, to: destination, in: root)
@@ -89,12 +89,12 @@ struct PackagePuritySymlinkTests {
             (file: "Sources/A/Item.swift", link: "Sources/B/Item.swift"),
             (file: "Sources/B/Item.swift", link: "Sources/A/Item.swift"),
             (file: "Sources/B/Item.swift", link: "Sources/Lib/Item.swift"),
-            (file: "Sources/Lib/Item.swift", link: "Sources/B/Item.swift")
+            (file: "Sources/Lib/Item.swift", link: "Sources/B/Item.swift"),
         ]
         for (file, link) in layouts {
             let root = try PackagePurityFixtures.makeProject([
                 file: PackagePurityFixtures.refutingItem,
-                "Sources/Lib/Callers.swift": PackagePurityFixtures.callers
+                "Sources/Lib/Callers.swift": PackagePurityFixtures.callers,
             ])
             defer { try? FileManager.default.removeItem(atPath: root) }
             let target = (file as NSString).lastPathComponent
@@ -112,7 +112,7 @@ struct PackagePuritySymlinkTests {
         // keeps `Sources/B/Item.swift` from the second order.
         let root = try PackagePurityFixtures.makeProject([
             "Sources/A/Item.swift": PackagePurityFixtures.refutingItem,
-            "Sources/Lib/Callers.swift": PackagePurityFixtures.callers
+            "Sources/Lib/Callers.swift": PackagePurityFixtures.callers,
         ])
         defer { try? FileManager.default.removeItem(atPath: root) }
         try PackagePurityFixtures.symlink("Sources/B/Item.swift", to: "../A/Item.swift", in: root)
@@ -140,7 +140,7 @@ struct PackagePuritySymlinkTests {
                 "Package.swift": PackagePurityManifestTests.rootManifest(dependencies: ""),
                 "Demo/Package.swift": "// swift-tools-version:6.0\n",
                 "Demo/Sources/Demo/Item.swift": PackagePurityFixtures.refutingItem,
-                "Sources/Lib/Callers.swift": PackagePurityFixtures.callers
+                "Sources/Lib/Callers.swift": PackagePurityFixtures.callers,
             ])
             if linked {
                 try PackagePurityFixtures.symlink(
@@ -218,9 +218,9 @@ struct PackagePuritySymlinkTests {
                     name: "App", dependencies: [.package(path: "Sub")], targets: [.target(name: "App")]
                 )
                 """,
-                "Sub/Package.swift": "// swift-tools-version:5.9\n"
+                "Sub/Package.swift": "// swift-tools-version:5.9\n",
             ]
-        )
+        ),
     ]
 
     @Test("a production link the run does not report on still keeps its file judged", arguments: unreportedLinks)

@@ -31,7 +31,7 @@ struct IdentifiableCollectionPropertyCatalogTests {
             [
                 "final class Model { var history: [Entry] = [] }",
                 "struct Log { var history: [String] }",
-                "struct Cache { var insights = [Insight]() }"
+                "struct Cache { var insights = [Insight]() }",
             ],
             identifiable: ["Entry", "Insight"]
         )
@@ -49,7 +49,7 @@ struct IdentifiableCollectionPropertyCatalogTests {
                     var drafts: Array<Feed.Entry> = []
                     var others: [Other.Entry] = []
                 }
-                """
+                """,
             ],
             identifiable: ["Entry", "Feed.Entry"]
         )
@@ -61,7 +61,7 @@ struct IdentifiableCollectionPropertyCatalogTests {
         let names = catalog(
             [
                 "final class Model { var items: [Item] = [] }",
-                "func build() { let items: [String] = [] }"
+                "func build() { let items: [String] = [] }",
             ],
             identifiable: ["Item"]
         )

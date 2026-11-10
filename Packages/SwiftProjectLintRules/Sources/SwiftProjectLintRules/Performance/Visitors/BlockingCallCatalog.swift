@@ -39,7 +39,7 @@ enum BlockingCallCatalog {
     /// returning.
     private static let contentsInitializerTypes: Set<String> = [
         "Data", "NSData", "String", "NSString", "NSArray", "NSDictionary",
-        "NSImage", "UIImage", "XMLParser"
+        "NSImage", "UIImage", "XMLParser",
     ]
 
     private static let contentsLabels: Set<String> = ["contentsOf", "contentsOfFile"]
@@ -68,7 +68,7 @@ enum BlockingCallCatalog {
         "wait|wallTimeout": .wait,
         "waitUntilExit|": .wait,
         "waitUntilAllOperationsAreFinished|": .wait,
-        "waitUntilFinished|": .wait
+        "waitUntilFinished|": .wait,
     ]
 
     /// Free functions from the C library, each taking one unlabeled argument.

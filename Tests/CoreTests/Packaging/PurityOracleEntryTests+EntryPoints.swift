@@ -49,7 +49,7 @@ extension PurityOracleEntryTests {
         OracleEntryPoint(
             declaration: "CleanInstanceMethodCatalog.build", tokens: ["CleanInstanceMethodCatalog", "build"]
         ),
-        OracleEntryPoint(declaration: "PackagePurityJoin.init(sources:)", tokens: ["PackagePurityJoin", "sources"])
+        OracleEntryPoint(declaration: "PackagePurityJoin.init(sources:)", tokens: ["PackagePurityJoin", "sources"]),
     ]
 
     @Test("every public declaration in the Visitors package that creates an oracle is a listed entry point")

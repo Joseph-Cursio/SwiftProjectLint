@@ -33,7 +33,7 @@ struct ParallelListDriftVisitorTests {
         // enumeration — the "forgot to add the new entry" case — so the strict subset still fires.
         let issues = analyze(files: [
             "Kind.swift": "enum TemplateKind { case header, body, footer, sidebar, hero, banner }",
-            "Emit.swift": #"let emitted = ["header", "body", "footer", "sidebar", "hero"]"#
+            "Emit.swift": #"let emitted = ["header", "body", "footer", "sidebar", "hero"]"#,
         ])
         // Only `emitted` is missing something; the enum is a superset, so it stays quiet.
         #expect(issues.count == 1)
@@ -49,7 +49,7 @@ struct ParallelListDriftVisitorTests {
         // in a larger canonical one (3 of 4 = 0.75) is a curated subset by design, not drift.
         let issues = analyze(files: [
             "A.swift": #"let supported = ["YES", "YES_ERROR", "NO"]"#,
-            "B.swift": #"let canonical = ["DEFAULT", "YES", "YES_ERROR", "NO"]"#
+            "B.swift": #"let canonical = ["DEFAULT", "YES", "YES_ERROR", "NO"]"#,
         ])
         #expect(issues.isEmpty)
     }
@@ -58,7 +58,7 @@ struct ParallelListDriftVisitorTests {
     func mutualDriftFlagsBoth() {
         let issues = analyze(files: [
             "A.swift": "enum Pack { case alpha, bravo, charlie, delta, echo }",
-            "B.swift": #"let names = ["alpha", "bravo", "charlie", "delta", "foxtrot"]"#
+            "B.swift": #"let names = ["alpha", "bravo", "charlie", "delta", "foxtrot"]"#,
         ])
         #expect(issues.count == 2)
         #expect(Set(issues.map(\.filePath)) == ["A.swift", "B.swift"])
@@ -74,7 +74,7 @@ struct ParallelListDriftVisitorTests {
             """,
             "Doc.swift": #"""
             let documented = ["state-management", "ui-patterns", "code-quality", "memory-management", "security"]
-            """#
+            """#,
         ])
         #expect(issues.count == 1)
         let issue = try #require(issues.first)
@@ -114,7 +114,7 @@ struct ParallelListDriftVisitorTests {
                     }
                 }
             }
-            """
+            """,
         ])
         #expect(issues.count == 1)
         let issue = try #require(issues.first)
@@ -134,7 +134,7 @@ struct ParallelListDriftVisitorTests {
                 pipeline.register("validate")
                 pipeline.register("persist")
             }
-            """
+            """,
         ])
         #expect(issues.count == 1)
     }
@@ -148,7 +148,7 @@ struct ParallelListDriftVisitorTests {
             "Near.swift": #"let near = ["alpha", "bravo", "charlie", "delta", "echo", "foxtrot"]"#,
             "Far.swift": #"""
             let far = ["alpha", "bravo", "charlie", "delta", "golf", "hotel", "india"]
-            """#
+            """#,
         ])
         let onShort = issues.filter { $0.filePath == "Short.swift" }
         #expect(onShort.count == 1)
@@ -163,7 +163,7 @@ struct ParallelListDriftVisitorTests {
     func exactAgreementDoesNotFire() {
         let issues = analyze(files: [
             "A.swift": "enum Pack { case alpha, bravo, charlie, delta }",
-            "B.swift": #"let names = ["alpha", "bravo", "charlie", "delta"]"#
+            "B.swift": #"let names = ["alpha", "bravo", "charlie", "delta"]"#,
         ])
         #expect(issues.isEmpty)
     }
@@ -172,7 +172,7 @@ struct ParallelListDriftVisitorTests {
     func shortListsAreIgnored() {
         let issues = analyze(files: [
             "A.swift": "enum Pack { case alpha, bravo, charlie }",
-            "B.swift": #"let names = ["alpha", "bravo"]"#
+            "B.swift": #"let names = ["alpha", "bravo"]"#,
         ])
         #expect(issues.isEmpty)
     }
@@ -183,7 +183,7 @@ struct ParallelListDriftVisitorTests {
         // to mention the same few words.
         let issues = analyze(files: [
             "A.swift": "enum Pack { case alpha, bravo, charlie, delta, echo, foxtrot, golf }",
-            "B.swift": #"let names = ["alpha", "bravo", "charlie", "xray", "yankee", "zulu", "whiskey"]"#
+            "B.swift": #"let names = ["alpha", "bravo", "charlie", "xray", "yankee", "zulu", "whiskey"]"#,
         ])
         #expect(issues.isEmpty)
     }
@@ -192,7 +192,7 @@ struct ParallelListDriftVisitorTests {
     func testFilesAreExcluded() {
         let issues = analyze(files: [
             "Kind.swift": "enum TemplateKind { case header, body, footer, sidebar }",
-            "Tests/KindTests.swift": #"let covered = ["header", "body", "footer"]"#
+            "Tests/KindTests.swift": #"let covered = ["header", "body", "footer"]"#,
         ])
         #expect(issues.isEmpty)
     }
@@ -201,7 +201,7 @@ struct ParallelListDriftVisitorTests {
     func mixedArrayIsNotAList() {
         let issues = analyze(files: [
             "A.swift": "enum Pack { case alpha, bravo, charlie, delta, echo }",
-            "B.swift": #"let mixed = ["alpha", .bravo, "charlie", 42, "delta"]"#
+            "B.swift": #"let mixed = ["alpha", .bravo, "charlie", 42, "delta"]"#,
         ])
         #expect(issues.isEmpty)
     }
@@ -217,7 +217,7 @@ struct ParallelListDriftVisitorTests {
                 pipeline.register("validate")
                 other.add("persist")
             }
-            """
+            """,
         ])
         #expect(issues.isEmpty)
     }
@@ -280,7 +280,7 @@ struct ParallelListDriftActionRunTests {
                     Button("Migration") { selection = .migration }
                 }
             }
-            """
+            """,
         ])
         #expect(issues.count == 1)
         #expect(issues.first?.message.contains("configMap") == true)
@@ -314,7 +314,7 @@ struct ParallelListDriftActionRunTests {
                     SummaryCard(title: "PASSED", color: .green)
                 }
             }
-            """
+            """,
         ]).isEmpty)
     }
 
@@ -332,7 +332,7 @@ struct ParallelListDriftActionRunTests {
                     Button("D") { selection = .dashboard; mode = .compact }
                 }
             }
-            """
+            """,
         ]).isEmpty)
     }
 
@@ -362,7 +362,7 @@ struct ParallelListDriftActionRunTests {
             struct Scalars {
                 static let supported = ["bool", "int", "double", "string", "float", "int8"]
             }
-            """
+            """,
         ])
         #expect(issues.isEmpty)
     }
@@ -392,7 +392,7 @@ struct ParallelListDriftActionRunTests {
                     "retried", "skipped", "deferred"
                 ]
             }
-            """
+            """,
         ])
         #expect(!issues.isEmpty)
     }
@@ -421,7 +421,7 @@ struct ParallelListDriftActionRunTests {
                     "skipped", "deferred", "rejected"
                 ]
             }
-            """
+            """,
         ])
         #expect(!issues.isEmpty)
     }

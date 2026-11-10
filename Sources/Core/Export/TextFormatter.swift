@@ -97,7 +97,7 @@ public struct TextFormatter: IssueFormatterProtocol {
             // worse — but a hint that sends a reader into an error is a hint that was not run.
             "  Use them:  --format pbt-seeds > .pbt/seeds.json",
             "             then `swift-infer discover --seeds .pbt/seeds.json --target <Target>`",
-            "             (or --sources <dir> for an Xcode project, which has no SwiftPM target)"
+            "             (or --sources <dir> for an Xcode project, which has no SwiftPM target)",
         ]
     }
 

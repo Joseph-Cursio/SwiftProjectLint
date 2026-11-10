@@ -31,7 +31,7 @@ struct PackagePurityUniverseTests {
             "Sources/Lib/Item.swift": PackagePurityFixtures.plainItem,
             "Sources/Lib/Callers.swift": PackagePurityFixtures.callers,
             "Sources/Lib/Stamp.swift": stamp,
-            "Tests/LibTests/ItemFixture.swift": PackagePurityFixtures.refutingItem
+            "Tests/LibTests/ItemFixture.swift": PackagePurityFixtures.refutingItem,
         ])
         #expect(found.contains("stampCount") == false, "the facts are not live in this run")
         #expect(found.contains("countOf"))
@@ -49,7 +49,7 @@ struct PackagePurityUniverseTests {
         let found = try await PackagePurityFixtures.candidates(in: [
             "Sources/Lib/Item.swift": PackagePurityFixtures.plainItem,
             "Sources/Lib/Callers.swift": PackagePurityFixtures.callers,
-            "\(suite)/ItemFixture.swift": PackagePurityFixtures.refutingItem
+            "\(suite)/ItemFixture.swift": PackagePurityFixtures.refutingItem,
         ])
         #expect(found.contains("countOf"))
         #expect(found.contains("viaJoin"))
@@ -60,7 +60,7 @@ struct PackagePurityUniverseTests {
         let found = try await PackagePurityFixtures.candidates(in: [
             "Sources/Lib/Item.swift": PackagePurityFixtures.plainItem,
             "Sources/Lib/Callers.swift": PackagePurityFixtures.callers,
-            "Sources/swift-test/ItemFixture.swift": PackagePurityFixtures.refutingItem
+            "Sources/swift-test/ItemFixture.swift": PackagePurityFixtures.refutingItem,
         ])
         #expect(found.contains("countOf") == false)
         #expect(found.contains("viaJoin") == false)
@@ -79,13 +79,13 @@ struct PackagePurityUniverseTests {
             "Package.swift": manifest,
             "Core/Package.swift": "// swift-tools-version:6.2\n",
             "Core/Sources/Core/Item.swift": PackagePurityFixtures.refutingItem,
-            "Sources/App/Callers.swift": PackagePurityFixtures.callers
+            "Sources/App/Callers.swift": PackagePurityFixtures.callers,
         ])
         let control = try await PackagePurityFixtures.candidates(in: [
             "Package.swift": manifest,
             "Core/Package.swift": "// swift-tools-version:6.2\n",
             "Core/Sources/Core/Item.swift": PackagePurityFixtures.plainItem,
-            "Sources/App/Callers.swift": PackagePurityFixtures.callers
+            "Sources/App/Callers.swift": PackagePurityFixtures.callers,
         ])
         #expect(control.contains("countOf"))
         #expect(refuting.contains("sentinelAdd"))
@@ -139,11 +139,11 @@ struct PackagePurityUniverseTests {
         let configuration = LintConfiguration(includeNestedPackages: includeNestedPackages)
         let refuting = try await PackagePurityFixtures.candidates(in: [
             "Sources/Lib/Item.swift": header + PackagePurityFixtures.refutingItem,
-            "Sources/Lib/Callers.swift": PackagePurityFixtures.callers
+            "Sources/Lib/Callers.swift": PackagePurityFixtures.callers,
         ], configuration: configuration)
         let control = try await PackagePurityFixtures.candidates(in: [
             "Sources/Lib/Item.swift": header + PackagePurityFixtures.plainItem,
-            "Sources/Lib/Callers.swift": PackagePurityFixtures.callers
+            "Sources/Lib/Callers.swift": PackagePurityFixtures.callers,
         ], configuration: configuration)
         #expect(control.contains("countOf"))
         #expect(refuting.contains("sentinelAdd"))
@@ -163,7 +163,7 @@ struct PackagePurityUniverseTests {
         let item = flagged.hasSuffix(".swift") ? flagged : flagged + "/Item.swift"
         let root = try PackagePurityFixtures.makeProject([
             item: PackagePurityFixtures.refutingItem,
-            "Sources/Lib/Callers.swift": PackagePurityFixtures.callers
+            "Sources/Lib/Callers.swift": PackagePurityFixtures.callers,
         ])
         defer { try? FileManager.default.removeItem(atPath: root) }
         try #require(HiddenFlag.set(on: root + "/" + flagged))
@@ -191,7 +191,7 @@ struct PackagePurityUniverseTests {
             "Flagged/Sources/Flagged/Item.swift": PackagePurityFixtures.refutingItem,
             "Next/Package.swift": "// swift-tools-version:6.0\n",
             "Next/Sources/Next/Stamp.swift": "import Foundation\nstruct Stamp { let at = Date(); let n: Int }\n",
-            "Sources/App/Callers.swift": PackagePurityFixtures.callers
+            "Sources/App/Callers.swift": PackagePurityFixtures.callers,
         ])
         defer { try? FileManager.default.removeItem(atPath: root) }
         try #require(HiddenFlag.set(on: root + "/Flagged"))
@@ -227,7 +227,7 @@ struct PackagePurityUniverseTests {
                     return doubled + 1
                 }
             }
-            """
+            """,
         ])
         defer { try? FileManager.default.removeItem(atPath: path) }
 

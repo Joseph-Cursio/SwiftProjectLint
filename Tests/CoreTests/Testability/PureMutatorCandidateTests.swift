@@ -102,7 +102,7 @@ struct PureMutatorCandidateTests {
         // A protocol extension's `Self` is not a type a test can build.
         "protocol P { var n: Int { get set } }\nextension P { mutating func probe() { n += 1 } }",
         // A mutated value with no `==` and no synthesized remedy.
-        "struct H { var run: () -> Void }\nfunc probe(_ h: inout H) { h.run = {} }"
+        "struct H { var run: () -> Void }\nfunc probe(_ h: inout H) { h.run = {} }",
     ])
     func refusedShapes(source: String) {
         #expect(mutator("import Foundation\n" + source, function: "probe", knownEquatableTypes: ["C"]) == nil)
@@ -137,7 +137,7 @@ struct PureMutatorCandidateTests {
             }
             public static func fill(_ bag: inout Bag) { bag.items.append("x") }
         }
-        """
+        """,
     ]
 
     private func manifest() async throws -> PBTSeedManifest {

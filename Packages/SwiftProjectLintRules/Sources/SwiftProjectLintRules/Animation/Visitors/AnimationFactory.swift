@@ -13,7 +13,7 @@ enum AnimationFactory {
     /// Factory methods on `Animation` that take timing parameters.
     static let all: Set<String> = [
         "easeIn", "easeOut", "easeInOut", "linear",
-        "spring", "interactiveSpring", "interpolatingSpring"
+        "spring", "interactiveSpring", "interpolatingSpring",
     ]
 
     /// Whether `name` is one of the factories.

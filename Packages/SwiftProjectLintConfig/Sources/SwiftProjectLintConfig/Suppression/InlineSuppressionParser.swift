@@ -97,7 +97,7 @@ public struct InlineSuppressionParser {
             ("disable:next", .disableNext),
             ("disable:this", .disableThis),
             ("disable", .disable),
-            ("enable", .enable)
+            ("enable", .enable),
         ]
         for (keyword, kind) in directives {
             if rest == keyword {

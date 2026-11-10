@@ -79,7 +79,7 @@ struct RegistryTests {
                 messageTemplate: "Message 2",
                 suggestion: "Suggestion 2",
                 description: "Description 2"
-            )
+            ),
         ]
 
         // When

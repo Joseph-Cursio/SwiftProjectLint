@@ -166,7 +166,7 @@ public struct FileAnalysisUtils {
     /// dependency checkouts, and VCS directories that should never be linted.
     static let skippedDirectories: Set<String> = [
         ".build", ".git", ".swiftpm", "DerivedData", "Pods",
-        ".hg", ".svn", "node_modules", "Carthage"
+        ".hg", ".svn", "node_modules", "Carthage",
     ]
 
     /// Whether a file or directory named `name` is skipped with everything below it: one of

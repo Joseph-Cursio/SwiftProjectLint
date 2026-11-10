@@ -267,7 +267,7 @@ enum CallbackSurface {
         "onTapGesture", "onLongPressGesture", "onKeyPress", "onContinuousHover", "onHover",
         "onChange", "onSubmit", "onDrag", "onDrop",
         // Gesture callbacks.
-        "onEnded", "onChanged", "updating"
+        "onEnded", "onChanged", "updating",
     ]
 
     init?(call: FunctionCallExprSyntax) {
@@ -392,7 +392,7 @@ final class ClosureWriteTargetCollector: SyntaxVisitor {
     /// direction, while a wrong inference gates something real.
     private static let mutatingCalls: Set<String> = [
         "append", "insert", "remove", "removeAll", "removeFirst", "removeLast", "removeValue",
-        "sort", "reverse", "popLast", "formUnion", "subtract"
+        "sort", "reverse", "popLast", "formUnion", "subtract",
     ]
 
     /// Assignment is read off `SequenceExprSyntax`, not `InfixOperatorExprSyntax`: an unfolded

@@ -46,7 +46,7 @@ struct FormatterInViewBodyVisitorTests {
         ("MeasurementFormatter", "struct V: View { var body: some View { let f = MeasurementFormatter() } }"),
         ("PersonNameComponentsFormatter", "struct V: View { var body: some View { let f = PersonNameComponentsFormatter() } }"),
         ("JSONDecoder", "struct V: View { var body: some View { let d = JSONDecoder() } }"),
-        ("JSONEncoder", "struct V: View { var body: some View { let e = JSONEncoder() } }")
+        ("JSONEncoder", "struct V: View { var body: some View { let e = JSONEncoder() } }"),
     ])
     func detectsFormatterType(typeName: String, source: String) {
         let visitor = makeVisitor()

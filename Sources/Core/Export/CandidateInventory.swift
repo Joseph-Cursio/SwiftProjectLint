@@ -52,7 +52,7 @@ public enum CandidateInventory {
     public static let inventoryRules: Set<RuleIdentifier> = [
         .pureFunctionCandidate,
         .pureClosureCandidate,
-        .pureMutatorCandidate
+        .pureMutatorCandidate,
     ]
 
     /// The report split into what a reader should see and what should be counted but not listed.

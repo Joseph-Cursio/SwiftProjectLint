@@ -131,7 +131,7 @@ struct MissingEquatableOnPureResultTests {
         "actor Subject { let n: Int = 0 }",
         "enum Subject { case failed(any Error) }",
         "struct Subject { let other: Unknown }",
-        "struct Subject { let n: Int }\nenum Outer { struct Subject { let s: String } }"
+        "struct Subject { let n: Int }\nenum Outer { struct Subject { let s: String } }",
     ])
     func unsynthesizableIsNeverRemedied(source: String) throws {
         #expect(try remedy("Subject", in: source) == nil)
@@ -244,7 +244,7 @@ struct MissingEquatableOnPureResultTests {
             }
             private func hidden(_ ids: [String]) -> MigrationPlan { MigrationPlan(steps: []) }
         }
-        """
+        """,
     ]
 
     private func analyse() async -> [LintIssue] {

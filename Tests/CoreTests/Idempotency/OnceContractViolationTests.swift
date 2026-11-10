@@ -49,7 +49,7 @@ struct OnceContractViolationTests {
                     bootstrap()
                 }
             }
-            """
+            """,
         ]
         let issues = runRule(files).detectedIssues
         #expect(issues.count == 1)
@@ -73,7 +73,7 @@ struct OnceContractViolationTests {
                     keepGoing = false
                 }
             }
-            """
+            """,
         ]
         let issues = runRule(files).detectedIssues
         #expect(issues.count == 1)
@@ -95,7 +95,7 @@ struct OnceContractViolationTests {
                     done = true
                 } while !done
             }
-            """
+            """,
         ]
         let issues = runRule(files).detectedIssues
         #expect(issues.count == 1)
@@ -117,7 +117,7 @@ struct OnceContractViolationTests {
                     print("hi")
                 }
             }
-            """
+            """,
         ]
         // `bootstrap()` runs exactly once (the source of the for-in).
         // No diagnostic.
@@ -143,7 +143,7 @@ struct OnceContractViolationTests {
                     print("hi")
                 }
             }
-            """
+            """,
         ]
         #expect(runRule(files).detectedIssues.isEmpty)
     }
@@ -163,7 +163,7 @@ struct OnceContractViolationTests {
                     }
                 }
             }
-            """
+            """,
         ]
         let issues = runRule(files).detectedIssues
         #expect(issues.count == 1)
@@ -184,7 +184,7 @@ struct OnceContractViolationTests {
             func handle() {
                 bootstrap()
             }
-            """
+            """,
         ]
         let issues = runRule(files).detectedIssues
         #expect(issues.count == 1)
@@ -205,7 +205,7 @@ struct OnceContractViolationTests {
             func handle() {
                 bootstrap()
             }
-            """
+            """,
         ]
         let issues = runRule(files).detectedIssues
         #expect(issues.count == 1)
@@ -228,7 +228,7 @@ struct OnceContractViolationTests {
                     bootstrap()
                 }
             }
-            """
+            """,
         ]
         let issues = runRule(files).detectedIssues
         // One call site → one diagnostic, mentioning both triggers.
@@ -254,7 +254,7 @@ struct OnceContractViolationTests {
                     bootstrap()
                 }
             }
-            """
+            """,
         ]
         let issues = runRule(files).detectedIssues
         #expect(issues.count == 1)
@@ -306,7 +306,7 @@ struct OnceContractViolationQuietTests {
             func main() {
                 bootstrap()
             }
-            """
+            """,
         ]
         #expect(runRule(files).detectedIssues.isEmpty)
     }
@@ -323,7 +323,7 @@ struct OnceContractViolationQuietTests {
                     bootstrap()
                 }
             }
-            """
+            """,
         ]
         #expect(runRule(files).detectedIssues.isEmpty)
     }
@@ -348,7 +348,7 @@ struct OnceContractViolationQuietTests {
                     bootstrap()
                 }
             }
-            """
+            """,
         ]
         #expect(runRule(files).detectedIssues.isEmpty)
     }
@@ -372,7 +372,7 @@ struct OnceContractViolationQuietTests {
                     }
                 }
             }
-            """
+            """,
         ]
         #expect(
             runRule(files).detectedIssues.isEmpty,
@@ -402,7 +402,7 @@ struct OnceContractViolationQuietTests {
                     helper()
                 }
             }
-            """
+            """,
         ]
         let issues = runRule(files).detectedIssues
         #expect(issues.count == 1)

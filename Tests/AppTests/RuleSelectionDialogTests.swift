@@ -48,10 +48,10 @@ struct RuleSelectionDialogTests {
                         message: "Related Duplicate State Variable",
                         suggestion: "Create a shared ObservableObject for state variables",
                         category: .stateManagement
-                    )
+                    ),
                 ],
                 useSwiftSyntax: true
-            )
+            ),
         ]
         @State var enabled: Set<RuleIdentifier> = [.relatedDuplicateStateVariable]
         let view = RuleSelectionDialog(
@@ -78,11 +78,11 @@ struct RuleSelectionDialogTests {
         let patterns = makePatterns(categories: [
             (.stateManagement, "State Management", [
                 (.relatedDuplicateStateVariable, "Consolidate state"),
-                (.missingStateObject, "Use @StateObject")
+                (.missingStateObject, "Use @StateObject"),
             ]),
             (.performance, "Performance", [
                 (.expensiveOperationInViewBody, "Move to onAppear")
-            ])
+            ]),
         ])
         var enabled: Set<RuleIdentifier> = []
         let view = RuleSelectionDialog(
@@ -117,11 +117,11 @@ struct RuleSelectionDialogTests {
             (.stateManagement, "State Management", [
                 (.relatedDuplicateStateVariable, "Fix 1"),
                 (.missingStateObject, "Fix 2"),
-                (.uninitializedStateVariable, "Fix 3")
+                (.uninitializedStateVariable, "Fix 3"),
             ]),
             (.performance, "Performance", [
                 (.expensiveOperationInViewBody, "Fix 4")
-            ])
+            ]),
         ])
         var enabled: Set<RuleIdentifier> = []
         let view = RuleSelectionDialog(
@@ -145,11 +145,11 @@ struct RuleSelectionDialogTests {
         let patterns = makePatterns(categories: [
             (.stateManagement, "State Management", [
                 (.relatedDuplicateStateVariable, "Fix"),
-                (.missingStateObject, "Fix")
+                (.missingStateObject, "Fix"),
             ]),
             (.performance, "Performance", [
                 (.expensiveOperationInViewBody, "Fix")
-            ])
+            ]),
         ])
         var enabled: Set<RuleIdentifier> = []
         let view = RuleSelectionDialog(
@@ -183,8 +183,8 @@ struct RuleSelectionDialogTests {
         let patterns = makePatterns(categories: [
             (.stateManagement, "State Management", [
                 (.relatedDuplicateStateVariable, "Fix"),
-                (.missingStateObject, "Fix")
-            ])
+                (.missingStateObject, "Fix"),
+            ]),
         ])
         var enabled: Set<RuleIdentifier> = [.relatedDuplicateStateVariable, .missingStateObject]
         let view = RuleSelectionDialog(
@@ -215,7 +215,7 @@ struct RuleSelectionDialogTests {
         let patterns = makePatterns(categories: [
             (.stateManagement, "State Management", [
                 (.relatedDuplicateStateVariable, "Fix")
-            ])
+            ]),
         ])
         var enabled: Set<RuleIdentifier> = []
         var saveCalled = false
@@ -246,7 +246,7 @@ struct RuleSelectionDialogTests {
         let patterns = makePatterns(categories: [
             (.stateManagement, "State Management", [
                 (.relatedDuplicateStateVariable, "Fix")
-            ])
+            ]),
         ])
         var enabled: Set<RuleIdentifier> = []
         let view = RuleSelectionDialog(
@@ -274,7 +274,7 @@ struct RuleSelectionDialogTests {
         let patterns = makePatterns(categories: [
             (.stateManagement, "State Management", [
                 (.relatedDuplicateStateVariable, "Fix")
-            ])
+            ]),
         ])
         var enabled: Set<RuleIdentifier> = [.relatedDuplicateStateVariable]
         let view = RuleSelectionDialog(
@@ -346,7 +346,7 @@ struct RuleSelectionDialogTests {
         let patterns = makePatterns(categories: [
             (.codeQuality, "Code Quality", [
                 (.fatView, "Split into smaller views")
-            ])
+            ]),
         ])
         var enabled: Set<RuleIdentifier> = []
         let view = RuleSelectionDialog(

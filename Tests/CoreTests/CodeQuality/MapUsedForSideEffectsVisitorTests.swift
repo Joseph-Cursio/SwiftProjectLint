@@ -37,7 +37,7 @@ struct MapUsedForSideEffectsVisitorTests {
     @Test("Detects all transform methods used for side effects", arguments: [
         "items.map { doWork($0) }",
         "items.compactMap { transform($0) }",
-        "items.flatMap { expand($0) }"
+        "items.flatMap { expand($0) }",
     ])
     func detectsTransformMethodVariants(source: String) {
         let visitor = makeVisitor()
@@ -57,7 +57,7 @@ struct MapUsedForSideEffectsVisitorTests {
         // passed as argument
         "process(items.map { $0.id })",
         // chained
-        "let x = items.map { $0 }.filter { $0 > 0 }"
+        "let x = items.map { $0 }.filter { $0 > 0 }",
     ])
     func noIssueWhenResultCaptured(source: String) {
         let visitor = makeVisitor()
@@ -97,7 +97,7 @@ struct MapUsedForSideEffectsVisitorTests {
         "var doubled: [Int] {\n    items.map { $0 * 2 }\n}",
         "var doubled: [Int] {\n    get { items.map { $0 * 2 } }\n}",
         "func nested(_ items: [Int]) -> [[Int]] {\n    [items].map { $0.map { $1 } }\n}",
-        "func maybe(_ value: Int?) -> Int? {\n    value.map { $0 * 2 }\n}"
+        "func maybe(_ value: Int?) -> Int? {\n    value.map { $0 * 2 }\n}",
     ])
     func noIssueForImplicitReturn(source: String) {
         let visitor = makeVisitor()
@@ -111,7 +111,7 @@ struct MapUsedForSideEffectsVisitorTests {
         "func pick(_ items: [Int], _ flag: Bool) -> [Int] {\n"
             + "    if flag {\n        items.map { $0 * 2 }\n    } else {\n        []\n    }\n}",
         "func pick(_ items: [Int], _ flag: Bool) -> [Int] {\n"
-            + "    switch flag {\n    case true: items.map { $0 * 2 }\n    case false: []\n    }\n}"
+            + "    switch flag {\n    case true: items.map { $0 * 2 }\n    case false: []\n    }\n}",
     ])
     func noIssueForExpressionBranch(source: String) {
         let visitor = makeVisitor()
@@ -128,7 +128,7 @@ struct MapUsedForSideEffectsVisitorTests {
         "init(_ items: [Int]) {\n    items.map { save($0) }\n}",
         "func f(_ rows: [[Int]]) {\n    for row in rows {\n        row.map { save($0) }\n    }\n}",
         "func f(_ items: [Int]) {\n    do {\n        items.map { save($0) }\n    }\n}",
-        "func f(_ items: [Int], _ flag: Bool) {\n    if flag {\n        items.map { save($0) }\n    }\n}"
+        "func f(_ items: [Int], _ flag: Bool) {\n    if flag {\n        items.map { save($0) }\n    }\n}",
     ])
     func stillFlagsAGenuineDiscard(source: String) {
         let visitor = makeVisitor()

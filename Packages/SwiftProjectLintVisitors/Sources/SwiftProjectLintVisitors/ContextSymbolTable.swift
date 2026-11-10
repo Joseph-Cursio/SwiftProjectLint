@@ -316,6 +316,6 @@ enum OnceReachClosurePolicy {
         "withThrowingTaskGroup",
         "withDiscardingTaskGroup",
         "withThrowingDiscardingTaskGroup",
-        "task"
+        "task",
     ]
 }

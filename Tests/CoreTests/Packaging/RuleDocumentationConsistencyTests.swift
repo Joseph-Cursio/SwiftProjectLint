@@ -99,7 +99,7 @@ struct RuleDocumentationConsistencyTests {
         .modernization: "Modernization",
         .idempotency: "Idempotency",
         .testability: "Testability",
-        .other: "Other"
+        .other: "Other",
     ]
 
     // MARK: - The per-rule pages

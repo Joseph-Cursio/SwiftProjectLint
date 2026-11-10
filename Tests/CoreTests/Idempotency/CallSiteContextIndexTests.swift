@@ -84,7 +84,7 @@ struct CallSiteContextIndexTests {
             x.( baz {
             let = qux() quux()
             .run { }
-        """
+        """,
     ]
 
     private static func calls(in tree: SourceFileSyntax) -> [FunctionCallExprSyntax] {

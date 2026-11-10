@@ -59,7 +59,7 @@ struct PackageGraphTests {
         )
         """,
         "Packages/Kit/Sources/KitCore/Core.swift": "@_exported import Models",
-        "Packages/Kit/Sources/KitUI/View.swift": "@_exported import KitCore"
+        "Packages/Kit/Sources/KitUI/View.swift": "@_exported import KitCore",
     ]
 
     private func graph(_ files: [String: String]) -> PackageGraph {

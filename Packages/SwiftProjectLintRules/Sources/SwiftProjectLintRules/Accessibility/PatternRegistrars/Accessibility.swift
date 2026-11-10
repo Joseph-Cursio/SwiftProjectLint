@@ -16,7 +16,7 @@ class Accessibility: BasePatternRegistrar {
             ControlMissingAccessibilityLabel(),
             IsButtonTraitWithoutAction(),
             AnimationWithoutReduceMotion(),
-            UnlabeledControl()
+            UnlabeledControl(),
         ])
     }
 
@@ -78,7 +78,7 @@ class Accessibility: BasePatternRegistrar {
                 messageTemplate: "Long text content may benefit from accessibility features",
                 suggestion: "Add .accessibilityLabel(), .accessibilityHint(), or .accessibilityValue()",
                 description: "Detects long text content that could benefit from accessibility modifiers"
-            )
+            ),
         ]
         registry.register(patterns: patterns)
     }
@@ -153,7 +153,7 @@ class Accessibility: BasePatternRegistrar {
                     + "or .accessibilityLabel() if meaningful.",
                 description: "Detects likely decorative images without "
                     + "accessibility handling. Disabled by default."
-            )
+            ),
         ])
     }
 
@@ -194,7 +194,7 @@ class Accessibility: BasePatternRegistrar {
                     + "VoiceOver reads the label and value together.",
                 description: "Detects VStack/HStack with exactly two Text children "
                     + "and no interactive elements that lack accessibility grouping."
-            )
+            ),
         ])
     }
 
@@ -224,7 +224,7 @@ class Accessibility: BasePatternRegistrar {
                     + "enclosing stack for sort priorities to take effect.",
                 description: "Detects sort priority modifiers inside stacks "
                     + "that lack the required accessibility container modifier."
-            )
+            ),
         ])
     }
 }

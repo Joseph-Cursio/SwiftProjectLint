@@ -18,7 +18,7 @@ struct PackagePurityManifestTests {
             "Package.swift": Self.rootManifest(dependencies: ""),
             "Sources/App/Models/Package.swift": "struct Package: Equatable { let name: String }\n",
             "Sources/App/Models/Item.swift": PackagePurityFixtures.refutingItem,
-            "Sources/App/Callers.swift": PackagePurityFixtures.callers
+            "Sources/App/Callers.swift": PackagePurityFixtures.callers,
         ])
         defer { try? FileManager.default.removeItem(atPath: root) }
         await Self.expectItemRefutes(
@@ -32,7 +32,7 @@ struct PackagePurityManifestTests {
             "Package.swift": Self.rootManifest(dependencies: ""),
             "Odd/Package.swift/README.md": "Not a manifest.\n",
             "Odd/Sources/Odd/Item.swift": PackagePurityFixtures.refutingItem,
-            "Sources/App/Callers.swift": PackagePurityFixtures.callers
+            "Sources/App/Callers.swift": PackagePurityFixtures.callers,
         ])
         defer { try? FileManager.default.removeItem(atPath: root) }
         await Self.expectItemRefutes(at: root, holding: ["Odd/Sources/Odd/Item.swift"])
@@ -48,7 +48,7 @@ struct PackagePurityManifestTests {
             "Ghost/Sources/Ghost/Item.swift": PackagePurityFixtures.refutingItem,
             "Demo/Package.swift": "// swift-tools-version:6.0\n",
             "Demo/Sources/Demo/Row.swift": Self.demoRow,
-            "Sources/App/Callers.swift": PackagePurityFixtures.callers
+            "Sources/App/Callers.swift": PackagePurityFixtures.callers,
         ])
         defer { try? FileManager.default.removeItem(atPath: root) }
         try PackagePurityFixtures.symlink("Ghost/Package.swift", to: "/nonexistent/Package.swift", in: root)
@@ -59,7 +59,7 @@ struct PackagePurityManifestTests {
     @Test("a manifest SwiftPM loads passes its dependencies on, however its tools-version line is placed", arguments: [
         "\n// swift-tools-version:5.9\n",
         "// SWIFT-TOOLS-VERSION:5.9\n",
-        "// Copyright 2026 Example\n// swift-tools-version:6.0\n"
+        "// Copyright 2026 Example\n// swift-tools-version:6.0\n",
     ])
     func manifestAsSwiftPMReadsItKeepsTheClosure(head: String) async throws {
         // The reviewer's f2, and its two siblings: root → `Packages/A` → `../B`. A's manifest opens
@@ -81,7 +81,7 @@ struct PackagePurityManifestTests {
             targets: [.target(name: "A", dependencies: [.product(name: "B", package: "B")])])
             """,
             "Packages/A/Sources/A/A.swift": "public struct Plain { public let n: Int }\n",
-            "Packages/B/Package.swift": Self.libraryManifest("B")
+            "Packages/B/Package.swift": Self.libraryManifest("B"),
         ], subject: Self.app(importing: "B"))
     }
 
@@ -93,7 +93,7 @@ struct PackagePurityManifestTests {
             "Package.swift": "\n" + Self.rootManifest(dependencies: ""),
             "Demo/Package.swift": "// swift-tools-version:5.9\n",
             "Demo/Sources/Demo/Row.swift": Self.demoRow,
-            "Sources/App/Callers.swift": PackagePurityFixtures.callers
+            "Sources/App/Callers.swift": PackagePurityFixtures.callers,
         ])
         defer { try? FileManager.default.removeItem(atPath: root) }
         #expect(await PackagePurityFixtures.universe(at: root) == ["Sources/App/Callers.swift"])
@@ -107,7 +107,7 @@ struct PackagePurityManifestTests {
             "Locked/Sources/Locked/Item.swift": PackagePurityFixtures.refutingItem,
             "Demo/Package.swift": "// swift-tools-version:6.0\n",
             "Demo/Sources/Demo/Row.swift": Self.demoRow,
-            "Sources/App/Callers.swift": PackagePurityFixtures.callers
+            "Sources/App/Callers.swift": PackagePurityFixtures.callers,
         ])
         defer { try? FileManager.default.removeItem(atPath: root) }
         let doubtful = try Self.lock("Locked/Package.swift", in: root)
@@ -139,7 +139,7 @@ struct PackagePurityManifestTests {
             """,
             "LocalPackages/Feature/Package.swift": "// swift-tools-version:6.0\n",
             "LocalPackages/Feature/Sources/Feature/Item.swift": PackagePurityFixtures.refutingItem,
-            "App/Callers.swift": PackagePurityFixtures.callers
+            "App/Callers.swift": PackagePurityFixtures.callers,
         ]
         let control = try await PackagePurityFixtures.candidates(in: files)
         #expect(control.contains("countOf"), "control: without the Xcode project, Feature is not compiled")
@@ -166,7 +166,7 @@ struct PackagePurityManifestTests {
             let package = Package(name: "Root", targets: [.target(name: "App")])
             """,
             "Package@swift-6.0.swift": Self.dependsOnA,
-            "Packages/A/Package.swift": Self.libraryManifest("A")
+            "Packages/A/Package.swift": Self.libraryManifest("A"),
         ])
     }
 
@@ -174,7 +174,7 @@ struct PackagePurityManifestTests {
     func plainManifestDependency() async throws {
         try await Self.expectTokenCountRefutes(tokAt: "Packages/A/Sources/A/Tok.swift", files: [
             "Package.swift": Self.dependsOnA,
-            "Packages/A/Package.swift": Self.libraryManifest("A")
+            "Packages/A/Package.swift": Self.libraryManifest("A"),
         ])
     }
 
@@ -192,7 +192,7 @@ struct PackagePurityManifestTests {
                 ]
             )
             """,
-            "Core/Package.swift": Self.libraryManifest("Core")
+            "Core/Package.swift": Self.libraryManifest("Core"),
         ], subject: Self.app(importing: "Core"))
     }
 
@@ -209,7 +209,7 @@ struct PackagePurityManifestTests {
             ])
             """,
             "Packages/A/Package.swift": Self.libraryManifest("A"),
-            "Packages/Loose/L.swift": "struct Loose { let n: Int }\n"
+            "Packages/Loose/L.swift": "struct Loose { let n: Int }\n",
         ], subject: Self.app(importing: "All"))
     }
 
@@ -220,7 +220,7 @@ struct PackagePurityManifestTests {
         try await Self.expectTokenCountRefutes(tokAt: "Packages/A/Sources/A/Tok.swift", files: [
             "Package.swift": "// swift-tools-version:5.9\nimport PackageDescription\n"
                 + #"let package = Package(name: "R", targets: [.target(name: "App", path: ".")])"#,
-            "Packages/A/Package.swift": Self.libraryManifest("A")
+            "Packages/A/Package.swift": Self.libraryManifest("A"),
         ], subject: Self.app(importing: "A"))
     }
 
@@ -232,7 +232,7 @@ struct PackagePurityManifestTests {
             tokAt: "Vendor/Core/Sources/Core/Tok.swift",
             files: [
                 "Package.swift": Self.dependsOnCore(spelled: "Packages/Core"),
-                "Vendor/Core/Package.swift": Self.libraryManifest("Core")
+                "Vendor/Core/Package.swift": Self.libraryManifest("Core"),
             ],
             links: [(link: "Packages/Core", destination: "../Vendor/Core")],
             subject: Self.app(importing: "Core")
@@ -248,7 +248,7 @@ struct PackagePurityManifestTests {
             tokAt: "Packages/Core/Sources/Core/Tok.swift",
             files: [
                 "Package.swift": Self.dependsOnCore(spelled: "packages/core"),
-                "Packages/Core/Package.swift": Self.libraryManifest("Core")
+                "Packages/Core/Package.swift": Self.libraryManifest("Core"),
             ],
             subject: Self.app(importing: "Core")
         )

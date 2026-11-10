@@ -38,7 +38,7 @@ struct ForwardingCallKeyTests {
     @Test("common standard-library member names do not exempt a closure", arguments: [
         ("map(_:)", "values.filter { transformer.map($0) }"),
         ("first(_:)", "values.filter { registry.first($0) }"),
-        ("hasPrefix(_:)", "values.filter { matcher.hasPrefix($0) }")
+        ("hasPrefix(_:)", "values.filter { matcher.hasPrefix($0) }"),
     ])
     func standardLibraryNamesDoNotExempt(declared: String, body: String) {
         #expect(!analyzeClosureCandidates("""

@@ -77,7 +77,7 @@ struct TaskInOnAppearVisitorTests {
                     })
             }
         }
-        """
+        """,
     ])
     func detectsVariant(source: String) {
         let visitor = makeVisitor()
@@ -147,7 +147,7 @@ struct TaskInOnAppearVisitorTests {
                 }
             }
         }
-        """
+        """,
     ])
     func noIssue(source: String) {
         let visitor = makeVisitor()

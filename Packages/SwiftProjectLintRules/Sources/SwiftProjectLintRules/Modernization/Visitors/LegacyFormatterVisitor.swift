@@ -17,7 +17,7 @@ final class LegacyFormatterVisitor: BasePatternVisitor {
     private static let legacyFormatterTypes: Set<String> = [
         "DateFormatter",
         "NumberFormatter",
-        "MeasurementFormatter"
+        "MeasurementFormatter",
     ]
 
     private var insideViewBody = false

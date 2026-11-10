@@ -73,7 +73,7 @@ struct MultiHopUpwardInferenceTests {
 
             /// @lint.context replayable
             func handler() async throws { try await a() }
-            """
+            """,
         ]
         let issues = runContext(files).detectedIssues
         #expect(issues.count == 1)
@@ -101,7 +101,7 @@ struct MultiHopUpwardInferenceTests {
 
             /// @lint.context replayable
             func handler() async throws { try await a() }
-            """
+            """,
         ]
         let issues = runContext(files).detectedIssues
         #expect(issues.count == 1)
@@ -126,7 +126,7 @@ struct MultiHopUpwardInferenceTests {
 
             /// @lint.effect non_idempotent
             func sink() async throws {}
-            """
+            """,
         ]
         let issues = runContext(files).detectedIssues
         #expect(issues.count == 1)
@@ -153,7 +153,7 @@ struct MultiHopUpwardInferenceTests {
             "Sink.swift": """
             /// @lint.effect non_idempotent
             func sink() async throws {}
-            """
+            """,
         ]
         let issues = runContext(files).detectedIssues
         #expect(issues.count == 1)
@@ -182,7 +182,7 @@ struct MultiHopUpwardInferenceTests {
 
             /// @lint.context replayable
             func handler() async throws { try await a() }
-            """
+            """,
         ]
         let issues = runContext(files).detectedIssues
         // Both `a` and `b` end up upward-inferred non_idempotent (b directly
@@ -211,7 +211,7 @@ struct MultiHopUpwardInferenceTests {
 
             /// @lint.context replayable
             func handler() async throws { try await a() }
-            """
+            """,
         ]
         #expect(runContext(files).detectedIssues.isEmpty)
     }
@@ -238,7 +238,7 @@ struct MultiHopUpwardInferenceTests {
 
             /// @lint.context replayable
             func handler() async throws { try await a() }
-            """
+            """,
         ]
         // handler→a is silent because a is upward-inferred idempotent
         // through b's declared annotation.
@@ -261,7 +261,7 @@ struct MultiHopUpwardInferenceTests {
 
             /// @lint.context replayable
             func handler() async throws { try await top() }
-            """
+            """,
         ]
         let issues = runContext(files).detectedIssues
         #expect(issues.count == 1)
@@ -290,7 +290,7 @@ struct MultiHopUpwardInferenceTests {
 
             /// @lint.effect idempotent
             func process() async throws { try await helper() }
-            """
+            """,
         ]
         let issues = runEffect(files).detectedIssues
         #expect(issues.count == 1)

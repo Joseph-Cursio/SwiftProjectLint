@@ -47,8 +47,8 @@ struct RuleSelectionDialogBulkActionTests {
         let patterns = makeBulkPatterns(categories: [
             (.stateManagement, "State Management", [
                 (.relatedDuplicateStateVariable, "Fix"),
-                (.missingStateObject, "Fix")
-            ])
+                (.missingStateObject, "Fix"),
+            ]),
         ])
         var enabled: Set<RuleIdentifier> = [.relatedDuplicateStateVariable, .missingStateObject]
         let view = RuleSelectionDialog(
@@ -105,8 +105,8 @@ struct RuleSelectionDialogBulkActionTests {
         let patterns = makeBulkPatterns(categories: [
             (.stateManagement, "State Management", [
                 (.relatedDuplicateStateVariable, "Fix"),
-                (.missingStateObject, "Fix")
-            ])
+                (.missingStateObject, "Fix"),
+            ]),
         ])
         var afterSelectAll: Set<RuleIdentifier> = []
         let selectView = RuleSelectionDialog(

@@ -101,7 +101,7 @@ struct UpwardInferenceMonotonicityTests {
         let assignment: [String: Effect] = [
             "alpha": .observational,
             "beta": .nonIdempotent,
-            "gamma": .idempotent
+            "gamma": .idempotent,
         ]
         let result = BodyEffectInferrer.inferEffects(
             in: Self.source,

@@ -108,7 +108,7 @@ struct PackagePurityJoinTests {
             func standardOutputViaEnv(_ arguments: [String]) -> String {
                 standardOutput(arguments)
             }
-            """
+            """,
         ])
         #expect(found.contains("standardOutputViaEnv") == false, "the caller must not be offered")
         #expect(found.contains("standardOutput") == false, "the callee is impure on its own terms")
@@ -127,7 +127,7 @@ struct PackagePurityJoinTests {
             func doubleViaHelper(_ value: Int) -> Int {
                 double(value)
             }
-            """
+            """,
         ])
         #expect(found.contains("doubleViaHelper"), "a pure callee must not sink the caller")
         #expect(found.contains("double"), "the callee itself is a candidate")
@@ -148,7 +148,7 @@ struct PackagePurityJoinTests {
             func lengthViaLog(_ text: String) -> Int {
                 writeLog(text)
             }
-            """
+            """,
         ])
         #expect(found.contains("lengthViaLog") == false, "a callee in another file must still be consulted")
     }
@@ -177,7 +177,7 @@ struct PackagePurityJoinTests {
             func lengthOf(_ path: String) -> Int {
                 (try? loadContents(path))?.count ?? 0
             }
-            """
+            """,
         ])
         #expect(
             found.contains("lengthOf"),
@@ -208,7 +208,7 @@ struct PackagePurityJoinTests {
             func lengthOf(_ path: String) -> Int {
                 (try? loadContents(path))?.count ?? 0
             }
-            """
+            """,
         ])
         #expect(
             found.contains("lengthOf") == false,
@@ -242,7 +242,7 @@ struct PackagePurityJoinTests {
             func classifyViaName(_ value: Int) -> Int {
                 classify(value)
             }
-            """
+            """,
         ])
         #expect(
             found.contains("classifyViaName"),
@@ -269,7 +269,7 @@ struct PackagePurityJoinTests {
             func load() -> Int {
                 42
             }
-            """
+            """,
         ])
         #expect(
             found.contains("loadViaHelper"),
@@ -292,7 +292,7 @@ struct PackagePurityJoinTests {
                 func emit(_ inner: Int) -> Int { inner + 1 }
                 return emit(value)
             }
-            """
+            """,
         ])
         #expect(
             found.contains("computeWithLocalEmit"),
@@ -318,7 +318,7 @@ struct PackagePurityJoinTests {
             func viaMember(_ sink: Sink, _ value: Int) -> Int {
                 sink.drain(value)
             }
-            """
+            """,
         ])
         #expect(
             found.contains("viaMember"),

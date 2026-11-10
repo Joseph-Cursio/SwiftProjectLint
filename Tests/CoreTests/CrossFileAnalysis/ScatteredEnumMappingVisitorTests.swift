@@ -47,7 +47,7 @@ struct ScatteredEnumMappingVisitorTests {
             "Sev.swift": "enum Sev { case error, warning, info }",
             "A.swift": scatteredColorMap("colorA"),
             "B.swift": scatteredColorMap("colorB"),
-            "C.swift": scatteredColorMap("colorC")
+            "C.swift": scatteredColorMap("colorC"),
         ])
         #expect(issues.count == 3)
         let first = try #require(issues.first)
@@ -78,7 +78,7 @@ struct ScatteredEnumMappingVisitorTests {
             "Sev.swift": centralized,
             "A.swift": scatteredColorMap("colorA"),
             "B.swift": scatteredColorMap("colorB"),
-            "C.swift": scatteredColorMap("colorC")
+            "C.swift": scatteredColorMap("colorC"),
         ])
         // The centralized `self` switch is not counted as scatter — 3 scattered remain.
         #expect(issues.count == 3)
@@ -96,7 +96,7 @@ struct ScatteredEnumMappingVisitorTests {
             "Status.swift": "enum Status { case error, warning, info }",
             "A.swift": scatteredColorMap("colorA"),
             "B.swift": scatteredColorMap("colorB"),
-            "C.swift": scatteredColorMap("colorC")
+            "C.swift": scatteredColorMap("colorC"),
         ])
         let first = try #require(issues.first)
         let suggestion = try #require(first.suggestion)
@@ -111,7 +111,7 @@ struct ScatteredEnumMappingVisitorTests {
     func twoCopiesIsBelowThreshold() {
         let issues = analyze(files: [
             "A.swift": scatteredColorMap("colorA"),
-            "B.swift": scatteredColorMap("colorB")
+            "B.swift": scatteredColorMap("colorB"),
         ])
         #expect(issues.isEmpty)
     }
@@ -143,7 +143,7 @@ struct ScatteredEnumMappingVisitorTests {
         let issues = analyze(files: [
             "A.swift": twoCase("a"),
             "B.swift": twoCase("b"),
-            "C.swift": twoCase("c")
+            "C.swift": twoCase("c"),
         ])
         #expect(issues.isEmpty)
     }
@@ -165,7 +165,7 @@ struct ScatteredEnumMappingVisitorTests {
         let issues = analyze(files: [
             "A.swift": mixed("a"),
             "B.swift": mixed("b"),
-            "C.swift": mixed("c")
+            "C.swift": mixed("c"),
         ])
         #expect(issues.isEmpty)
     }
@@ -189,7 +189,7 @@ struct ScatteredEnumMappingVisitorTests {
         let issues = analyze(files: [
             "A.swift": impure("a"),
             "B.swift": impure("b"),
-            "C.swift": impure("c")
+            "C.swift": impure("c"),
         ])
         #expect(issues.isEmpty)
     }

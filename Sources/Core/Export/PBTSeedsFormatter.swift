@@ -355,7 +355,7 @@ public struct PBTSeedsFormatter: IssueFormatterProtocol {
         // The domain-type family. Their symbol is a type name — see `PBTSeedKind.carrier`.
         .primitiveBypassingItsDomainType: .carrier,
         .primitiveNamedForItsDomainType: .carrier,
-        .sharedDomainEnumField: .carrier
+        .sharedDomainEnumField: .carrier,
     ]
 
     /// The kind `issue`'s rule seeds, made a `pure-mutator` when the issue names what it mutates.

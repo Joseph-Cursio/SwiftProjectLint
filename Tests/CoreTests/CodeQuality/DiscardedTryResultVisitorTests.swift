@@ -40,7 +40,7 @@ struct DiscardedTryResultVisitorTests {
         // Inside a function body
         "func f() { try? delete() }",
         // In a loop
-        "for item in items { try? process(item) }"
+        "for item in items { try? process(item) }",
     ])
     func detectsVariant(source: String) {
         let visitor = makeVisitor()
@@ -62,7 +62,7 @@ struct DiscardedTryResultVisitorTests {
         // Passed as argument
         "process(try? call())",
         // Explicit discard — developer intent is clear
-        "_ = try? call()"
+        "_ = try? call()",
     ])
     func noIssueWhenResultUsed(source: String) {
         let visitor = makeVisitor()
@@ -78,7 +78,7 @@ struct DiscardedTryResultVisitorTests {
         // flatMap transform
         "let all = groups.flatMap { try? expand($0) }",
         // last statement of a multi-statement transform closure is the result
-        "let xs = items.map { let y = $0; return try? f(y) }"
+        "let xs = items.map { let y = $0; return try? f(y) }",
     ])
     func noIssueForTransformClosureResult(source: String) {
         let visitor = makeVisitor()
@@ -92,7 +92,7 @@ struct DiscardedTryResultVisitorTests {
         // forEach closure returns Void
         "items.forEach { try? process($0) }",
         // not the last statement of a transform closure — value goes nowhere
-        "let xs = items.map { try? f($0); return $0 }"
+        "let xs = items.map { try? f($0); return $0 }",
     ])
     func stillFlagsDiscardInVoidClosures(source: String) {
         let visitor = makeVisitor()
@@ -106,7 +106,7 @@ struct DiscardedTryResultVisitorTests {
         // Nested in a statement inside the defer — still cleanup the defer cannot hand on
         "func f() { defer { if let handle { try? handle.close() } } }",
         "func f() { defer { for url in scratch { try? FileManager.default.removeItem(at: url) } } }",
-        "func f() { defer { do { try? first() } } }"
+        "func f() { defer { do { try? first() } } }",
     ])
     func noIssueForDeferredCleanup(source: String) {
         let visitor = makeVisitor()
@@ -145,7 +145,7 @@ struct DiscardedTryResultVisitorTests {
         "func f() async { let result = await Task<Data?, Never> { try? describe() }.value }",
         "func f() { let task = Task<Data?, Never> { try? describe() } }",
         "func f() { let task = Task<Data?, Never>.detached(priority: .low) { try? describe() } }",
-        "func f() { let task = Task<Data?, Never>(operation: { try? describe() }) }"
+        "func f() { let task = Task<Data?, Never>(operation: { try? describe() }) }",
     ])
     func noIssueForImplicitReturnValue(source: String) {
         let visitor = makeVisitor()
@@ -178,7 +178,7 @@ struct DiscardedTryResultVisitorTests {
         // A closure inside a defer can outlive it — not the defer's own cleanup
         "func f() { defer { queue.async { try? handle.close() } } }",
         // A closure with no signature: whether its value is used is not visible
-        "Button(\"Save\") { try? save() }"
+        "Button(\"Save\") { try? save() }",
     ])
     func stillFlagsDiscardWithoutAReturnValue(source: String) {
         let visitor = makeVisitor()

@@ -59,7 +59,7 @@ struct BlockingIOOnMainActorDefaultIsolationTests {
         let found = issues(
             [
                 "Sources/App/ReceiptLoader.swift": Self.helper,
-                "Sources/App/Other.swift": Self.helper
+                "Sources/App/Other.swift": Self.helper,
             ],
             defaultPaths: ["Sources/App/ReceiptLoader.swift"]
         )
@@ -72,7 +72,7 @@ struct BlockingIOOnMainActorDefaultIsolationTests {
         "nonisolated struct Loader { func load(url: URL) -> Data? { try? Data(contentsOf: url) } }",
         "struct Loader { nonisolated func load(url: URL) -> Data? { try? Data(contentsOf: url) } }",
         "struct Loader { @concurrent func load(url: URL) async -> Data? { try? Data(contentsOf: url) } }",
-        "actor Loader { func load(url: URL) -> Data? { try? Data(contentsOf: url) } }"
+        "actor Loader { func load(url: URL) -> Data? { try? Data(contentsOf: url) } }",
     ])
     func optOutIsHonoured(source: String) {
         #expect(issues(["Sources/App/Loader.swift": source], defaultPaths: ["Sources/App/"]).isEmpty)
@@ -87,7 +87,7 @@ struct BlockingIOOnMainActorDefaultIsolationTests {
                 extension ReceiptLoader {
                     func load(url: URL) -> Data? { try? Data(contentsOf: url) }
                 }
-                """
+                """,
             ],
             defaultPaths: ["Sources/App/"]
         )

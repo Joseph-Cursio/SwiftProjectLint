@@ -40,7 +40,7 @@ struct NonInjectedNondeterminismCompositionRootTests {
     @Test("every composition root is still reported, exactly once", arguments: [
         "func f() { store.approve(on: Date()) }",
         "func f() -> R { R(capturedAt: Date(), items: items) }",
-        "func f() { let now = Date(); header(asOf: now); footer(asOf: now) }"
+        "func f() { let now = Date(); header(asOf: now); footer(asOf: now) }",
     ])
     func stillReported(source: String) {
         #expect(analyze(source).count == 1)
@@ -140,7 +140,7 @@ struct NonInjectedNondeterminismCompositionRootTests {
     /// window. That combination is the precision of the arm, not the receiver itself.
     @Test("combining the value with a local or parameter is not a hand-off", arguments: [
         "func f(_ t: TimeInterval) { let deadline = Date().addingTimeInterval(t); wait(until: deadline) }",
-        "func f(_ start: Date) -> Double { Date().timeIntervalSince(start) }"
+        "func f(_ start: Date) -> Double { Date().timeIntervalSince(start) }",
     ])
     func combiningReceiverIsNotACompositionRoot(source: String) {
         #expect(analyze(source).count == 1)
@@ -151,7 +151,7 @@ struct NonInjectedNondeterminismCompositionRootTests {
     /// return or interpolate the result rather than passing it to anything.
     @Test("re-presentation alone is not enough — it still has to be handed on", arguments: [
         "func f() -> String { Date.now.formatted(date: .abbreviated, time: .shortened) }",
-        "func f() -> String { \"probe_\\(UUID().uuidString).swift\" }"
+        "func f() -> String { \"probe_\\(UUID().uuidString).swift\" }",
     ])
     func representationWithoutAHandOffIsNotACompositionRoot(source: String) {
         #expect(analyze(source).count == 1)
@@ -167,7 +167,7 @@ struct NonInjectedNondeterminismCompositionRootTests {
     /// whether its arguments reach into the scope.
     @Test("a zero-argument member re-presents the value and is reached through", arguments: [
         "func f() { bind(Date.now.timeIntervalSince1970, at: 1) }",
-        "func f(_ content: C) { schedule(R(identifier: UUID().uuidString, content: content)) }"
+        "func f(_ content: C) { schedule(R(identifier: UUID().uuidString, content: content)) }",
     ])
     func zeroArgumentMemberIsReachedThrough(source: String) {
         #expect(analyze(source).count == 1)
@@ -211,7 +211,7 @@ struct NonInjectedNondeterminismCompositionRootTests {
     @Test("a member that computes is refused however inert its arguments", arguments: [
         "func f() { expire(at: Date().addingTimeInterval(3_600)) }",
         "func f() { record(elapsed: Date().timeIntervalSinceNow) }",
-        "func f() { schedule(Date().addingTimeInterval(60 * 60)) }"
+        "func f() { schedule(Date().addingTimeInterval(60 * 60)) }",
     ])
     func computingMemberIsNotACompositionRoot(source: String) {
         #expect(analyze(source).count == 1)

@@ -16,7 +16,7 @@ struct LintResultsViewTests {
                     lineNumber: 10,
                     suggestion: "Test suggestion",
                     ruleName: .relatedDuplicateStateVariable
-                )
+                ),
             ]
 
             let view = LintResultsView(issues: sampleIssues)
@@ -75,7 +75,7 @@ struct LintResultsViewTests {
                 lineNumber: 10,
                 suggestion: "Note this",
                 ruleName: .uninitializedStateVariable
-            )
+            ),
         ]
     }
 
@@ -89,7 +89,7 @@ struct LintResultsViewTests {
                     lineNumber: 1,
                     suggestion: "Test suggestion",
                     ruleName: .relatedDuplicateStateVariable
-                )
+                ),
             ]
 
             _ = LintResultsView(issues: issues)
@@ -143,7 +143,7 @@ struct LintResultsViewCharacterizationTests {
             LintIssue(
                 severity: .info, message: "Info issue", filePath: "/file3.swift",
                 lineNumber: 3, suggestion: nil, ruleName: .uninitializedStateVariable
-            )
+            ),
         ]
         let view = LintResultsView(issues: issues)
         let inspected = try view.inspect()
@@ -168,7 +168,7 @@ struct LintResultsViewCharacterizationTests {
             LintIssue(
                 severity: .warning, message: "Warning issue", filePath: "/file2.swift",
                 lineNumber: 2, suggestion: nil, ruleName: .missingStateObject
-            )
+            ),
         ]
         let view = LintResultsView(issues: issues)
         let inspected = try view.inspect()
@@ -202,7 +202,7 @@ struct LintResultsViewCharacterizationTests {
             LintIssue(
                 severity: .info, message: "Info 2", filePath: "/file5.swift",
                 lineNumber: 5, suggestion: nil, ruleName: .uninitializedStateVariable
-            )
+            ),
         ]
         let view = LintResultsView(issues: issues)
         let inspected = try view.inspect()
@@ -242,7 +242,7 @@ struct LintResultsViewCharacterizationTests {
             LintIssue(
                 severity: .info, message: "Third", filePath: "/file3.swift",
                 lineNumber: 3, suggestion: nil, ruleName: .uninitializedStateVariable
-            )
+            ),
         ]
         let view = LintResultsView(issues: issues)
         let inspected = try view.inspect()
@@ -260,7 +260,7 @@ struct LintResultsViewCharacterizationTests {
             LintIssue(
                 severity: .warning, message: "Only issue", filePath: "/file.swift",
                 lineNumber: 1, suggestion: nil, ruleName: .relatedDuplicateStateVariable
-            )
+            ),
         ]
         let view = LintResultsView(issues: issues)
         let inspected = try view.inspect()

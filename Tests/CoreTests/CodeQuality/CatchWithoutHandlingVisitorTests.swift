@@ -64,7 +64,7 @@ struct CatchWithoutHandlingVisitorTests {
             isLoading = false
             showAlert = true
         }
-        """
+        """,
     ])
     func flagsUnhandledCatch(source: String) {
         let visitor = makeVisitor()
@@ -87,7 +87,7 @@ struct CatchWithoutHandlingVisitorTests {
 
     @Test("No issue when error is rethrown", arguments: [
         "do { try work() } catch { throw error }",
-        "do { try work() } catch let e { throw e }"
+        "do { try work() } catch let e { throw e }",
     ])
     func noIssueWhenRethrown(source: String) {
         let visitor = makeVisitor()
@@ -118,7 +118,7 @@ struct CatchWithoutHandlingVisitorTests {
         "do { try work() } catch { NSLog(\"%@\", error.localizedDescription) }",
         "do { try work() } catch { logger.error(\"Failed: \\(error)\") }",
         "do { try work() } catch { os_log(\"%@\", error.localizedDescription) }",
-        "do { try work() } catch { Logger.shared.warning(\"\\(error)\") }"
+        "do { try work() } catch { Logger.shared.warning(\"\\(error)\") }",
     ])
     func noIssueWhenLogged(source: String) {
         let visitor = makeVisitor()
@@ -138,7 +138,7 @@ struct CatchWithoutHandlingVisitorTests {
         // Used in string interpolation in alert
         "do { try work() } catch { alertText = \"\\(error)\" }",
         // Error captured in closure
-        "do { try work() } catch { DispatchQueue.main.async { self.lastError = error } }"
+        "do { try work() } catch { DispatchQueue.main.async { self.lastError = error } }",
     ])
     func noIssueWhenErrorReferenced(source: String) {
         let visitor = makeVisitor()
@@ -159,7 +159,7 @@ struct CatchWithoutHandlingVisitorTests {
         "do { try work() } catch { state = .error }",
         "do { try work() } catch is CancellationError { state = .error }",
         // A bound name nothing reads does not handle the error either.
-        "do { try work() } catch AppError.invalid(let message) { state = .error }"
+        "do { try work() } catch AppError.invalid(let message) { state = .error }",
     ])
     func flagsNameThatIsNotTheCaughtError(source: String) {
         let visitor = makeVisitor()
@@ -189,7 +189,7 @@ struct CatchWithoutHandlingVisitorTests {
         "do { try work() } catch let e as DecodingError { self.error = e }",
         "do { try work() } catch AppError.invalid(let message) { status = message }",
         "do { try work() } catch let AppError.invalid(message) { status = message }",
-        "do { try work() } catch AppError.a(let x), AppError.b(let x) { status = x }"
+        "do { try work() } catch AppError.a(let x), AppError.b(let x) { status = x }",
     ])
     func usingABoundNameIsHandling(source: String) {
         let visitor = makeVisitor()
@@ -216,7 +216,7 @@ struct CatchWithoutHandlingVisitorTests {
     @Test("No issue when assertionFailure or fatalError is called", arguments: [
         "do { try work() } catch { assertionFailure(\"Unexpected error\") }",
         "do { try work() } catch { fatalError(\"\\(error)\") }",
-        "do { try work() } catch { preconditionFailure(\"Should not fail\") }"
+        "do { try work() } catch { preconditionFailure(\"Should not fail\") }",
     ])
     func noIssueWhenTerminating(source: String) {
         let visitor = makeVisitor()
@@ -246,7 +246,7 @@ struct CatchWithoutHandlingVisitorTests {
         } catch {
             Issue.record("unexpected: \\(error)")
         }
-        """
+        """,
     ])
     func noIssueWhenIssueRecord(source: String) {
         let visitor = makeVisitor()

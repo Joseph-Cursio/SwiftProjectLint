@@ -44,7 +44,7 @@ struct LowercasedContainsVisitorTests {
             let matches = names.filter { $0.uppercased().contains(search) }
             """,
             "uppercased"
-        )
+        ),
     ] as [(String, String)])
     func detectsVariant(source: String, expected: String) throws {
         let visitor = makeVisitor()
@@ -100,7 +100,7 @@ struct LowercasedContainsVisitorTests {
         // contains(where:) on collection
         """
         let hasMatch = items.contains(where: { $0.isActive })
-        """
+        """,
     ])
     func noIssue(source: String) {
         let visitor = makeVisitor()

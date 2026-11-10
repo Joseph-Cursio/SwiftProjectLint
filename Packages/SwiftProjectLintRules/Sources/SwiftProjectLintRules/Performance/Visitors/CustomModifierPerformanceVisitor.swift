@@ -68,7 +68,7 @@ class CustomModifierPerformanceVisitor: BasePatternVisitor {
                     node: Syntax(node),
                     variables: [
                         "modifierName": currentModifierName,
-                        "operation": methodName
+                        "operation": methodName,
                     ]
                 )
             }
@@ -82,7 +82,7 @@ class CustomModifierPerformanceVisitor: BasePatternVisitor {
                     node: Syntax(node),
                     variables: [
                         "modifierName": currentModifierName,
-                        "operation": functionName
+                        "operation": functionName,
                     ]
                 )
             }

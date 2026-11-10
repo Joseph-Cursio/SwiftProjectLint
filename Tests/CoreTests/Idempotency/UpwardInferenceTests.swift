@@ -248,7 +248,7 @@ struct UpwardInferenceIntegrationTests {
             func handler() async throws {
                 try await helper()
             }
-            """
+            """,
         ]
         let issues = runContext(files).detectedIssues
         #expect(issues.count == 1)
@@ -275,7 +275,7 @@ struct UpwardInferenceIntegrationTests {
             func handler() async throws {
                 try await helper()
             }
-            """
+            """,
         ]
         let issues = runContext(files).detectedIssues
         #expect(issues.count == 1)
@@ -307,7 +307,7 @@ struct UpwardInferenceIntegrationTests {
             func handler() async throws {
                 try await helper()
             }
-            """
+            """,
         ]
         // Two diagnostics expected: the replayable->helper edge is silent
         // (helper is declared idempotent, which is trusted in replayable),
@@ -341,7 +341,7 @@ struct UpwardInferenceIntegrationTests {
             func handler() async throws {
                 try await insert()
             }
-            """
+            """,
         ]
         // `insert` body calls `logger.info(...)` → heuristic-downward
         // observational. Upward: insert is inferred observational. That
@@ -383,7 +383,7 @@ struct UpwardInferenceIntegrationTests {
             func handler() async throws {
                 try await outerHelper()
             }
-            """
+            """,
         ]
         let issues = runContext(files).detectedIssues
         #expect(issues.count == 1)
@@ -415,7 +415,7 @@ struct UpwardInferenceIntegrationTests {
             func handler() async throws {
                 try await helper()
             }
-            """
+            """,
         ]
         #expect(runContext(files).detectedIssues.isEmpty)
     }
@@ -435,7 +435,7 @@ struct UpwardInferenceIntegrationTests {
             func handler() async throws {
                 try await helper()
             }
-            """
+            """,
         ]
         #expect(runContext(files).detectedIssues.isEmpty)
     }
@@ -459,7 +459,7 @@ struct UpwardInferenceIntegrationTests {
             func process() async throws {
                 try await helper()
             }
-            """
+            """,
         ]
         let issues = runEffect(files).detectedIssues
         #expect(issues.count == 1)

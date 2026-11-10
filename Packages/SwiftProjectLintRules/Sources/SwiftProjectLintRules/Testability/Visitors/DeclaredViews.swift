@@ -139,7 +139,7 @@ final class DeclaredViewsCollector: SyntaxVisitor {
     /// for SwiftUI.
     private static let viewProtocols: Set<String> = [
         "View", "Shape", "InsettableShape", "UIViewRepresentable", "NSViewRepresentable",
-        "UIViewControllerRepresentable", "NSViewControllerRepresentable", "WKInterfaceObjectRepresentable"
+        "UIViewControllerRepresentable", "NSViewControllerRepresentable", "WKInterfaceObjectRepresentable",
     ]
 
     private func record(_ name: String, _ inheritance: InheritanceClauseSyntax?) {

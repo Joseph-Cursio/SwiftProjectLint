@@ -37,7 +37,7 @@ class ConcreteTypeUsageVisitor: BasePatternVisitor, PackagePurityConsumer {
     private static let systemConcreteTypes: Set<String> = [
         "FileManager", "NotificationCenter", "UserDefaults",
         "URLSession", "ProcessInfo", "Bundle",
-        "UNUserNotificationCenter", "NSWorkspace"
+        "UNUserNotificationCenter", "NSWorkspace",
     ]
 
     /// AppKit and UIKit kept their prefixes, so their class names can be recognised by
@@ -308,7 +308,7 @@ class ConcreteTypeUsageVisitor: BasePatternVisitor, PackagePurityConsumer {
             // The prescan includes the `typealias`es standing for protocols, so
             // `let store: OrderStore` with `typealias OrderStore = OrderSaving & OrderHistory`
             // is not reported either: `Store` is a service suffix, and the alias read as one.
-            Exemption { self.knownProtocolTypes.contains($0) }
+            Exemption { self.knownProtocolTypes.contains($0) },
         ]
     }
 

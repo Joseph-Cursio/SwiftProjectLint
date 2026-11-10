@@ -59,7 +59,7 @@ struct IssueSummarySection: View {
         LintIssue(
             severity: .info, message: "Info", filePath: "Baz.swift",
             lineNumber: 3, suggestion: nil, ruleName: .dateNow
-        )
+        ),
     ]
     return List { IssueSummarySection(issues: issues) }
 }

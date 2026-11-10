@@ -41,7 +41,7 @@ public enum DeclaredRoleClassifier {
     /// `compareCount` does not, because the head noun has moved.
     public static let orderingNames: Set<String> = [
         "compare", "precedes", "isorderedbefore", "areinincreasingorder",
-        "sortsbefore", "islessthan", "isbefore", "orderedbefore"
+        "sortsbefore", "islessthan", "isbefore", "orderedbefore",
     ]
 
     /// The role a declaration's signature entails, or `nil`.

@@ -77,7 +77,7 @@ struct ForEachAndBodyTests {
                     }
                 }
             }
-            """
+            """,
         ]
         for (name, source) in files {
             try? source.write(to: root.appendingPathComponent(name), atomically: true, encoding: .utf8)

@@ -144,7 +144,7 @@ public struct LintConfiguration: Sendable {
         // asked for `OrderStoreProtocol` — the naming `Mirror Protocol` treats as the
         // smell's signature — against Swift's own guidelines, which name a role-noun
         // protocol `OrderStore`. See Docs/rules/protocol-naming-suffix.md.
-        .protocolNamingSuffix
+        .protocolNamingSuffix,
     ]
 
     /// Default configuration — all rules enabled, no exclusions.

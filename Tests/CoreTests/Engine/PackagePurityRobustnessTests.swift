@@ -10,7 +10,7 @@ struct PackagePurityRobustnessTests {
 
     @Test("a file that is not UTF-8 is not in the universe, though the lenient read decodes it", arguments: [
         (path: "Sources/Lib/Item.generated.swift", excluded: [String]()),   // in the universe only
-        (path: "Vendor/Item.swift", excluded: ["Vendor/"])                    // evidence only
+        (path: "Vendor/Item.swift", excluded: ["Vendor/"]),                    // evidence only
     ])
     func nonUTF8FileIsNotInTheUniverse(path: String, excluded: [String]) async throws {
         // `swiftc` rejects a UTF-16 source, so no target compiles this `Item`; SwiftInferProperties
@@ -71,7 +71,7 @@ struct PackagePurityRobustnessTests {
             """,
             "Sub/Package.swift": "// swift-tools-version:6.0\n",
             "Sub/Sources/Sub/Deep.swift": PackagePurityFixtures.refutingItem + "\n" + source,
-            "Sources/App/Callers.swift": PackagePurityFixtures.callers
+            "Sources/App/Callers.swift": PackagePurityFixtures.callers,
         ])
         #expect(found.contains("sentinelAdd"), "\(name): the rule produced nothing")
         #expect(found.contains("countOf") == false, "\(name): the deep file did not reach the facts")
@@ -97,7 +97,7 @@ struct PackagePurityRobustnessTests {
 
             """ + source,
             "Packages/Dep/Sources/Dep/Item.swift": PackagePurityFixtures.refutingItem,
-            "Sources/App/Callers.swift": PackagePurityFixtures.callers
+            "Sources/App/Callers.swift": PackagePurityFixtures.callers,
         ])
         #expect(found.contains("sentinelAdd"), "\(name): the rule produced nothing")
         #expect(found.contains("countOf") == false, "\(name): the dependency left the table")

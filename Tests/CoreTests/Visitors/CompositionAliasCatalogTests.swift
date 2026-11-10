@@ -102,7 +102,7 @@ struct CompositionAliasCatalogTests {
         "protocol Feature { associatedtype Store }",
         "func make<Store: OrderSaving>(_ store: Store) {}",
         "typealias Store<T> = Box<T>",
-        "typealias Store = () -> Void"
+        "typealias Store = () -> Void",
     ])
     func aNameAlsoDeclaredAnotherWayIsNotExpanded(other: String) {
         let aliases = catalog("struct Outer { typealias Store = OrderSaving & OrderHistory }", other)

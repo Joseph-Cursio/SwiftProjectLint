@@ -26,7 +26,7 @@ struct SourcePatternRegistryConcurrencyTests {
     /// earlier a factory runs, the narrower the window in which it is missing.
     private static let expectedCategories: [PatternCategory] = [
         .stateManagement, .performance, .security,
-        .accessibility, .memoryManagement, .networking
+        .accessibility, .memoryManagement, .networking,
     ]
 
     private func makeRegistry() -> SourcePatternRegistry {

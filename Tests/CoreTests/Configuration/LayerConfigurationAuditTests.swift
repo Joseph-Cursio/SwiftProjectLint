@@ -7,7 +7,7 @@ struct LayerConfigurationAuditTests {
     private let files = [
         "Domain/Order.swift",
         "Persistence/Store.swift",
-        "Presentation/CheckoutViewModel.swift"
+        "Presentation/CheckoutViewModel.swift",
     ]
 
     private func problems(_ layers: [LayerPolicy]) -> [LayerConfigurationAudit.Problem] {
@@ -18,7 +18,7 @@ struct LayerConfigurationAuditTests {
         #expect(problems([
             LayerPolicy(name: "domain", paths: ["Domain/"], mayDependOn: []),
             LayerPolicy(name: "persistence", paths: ["Persistence/"], mayDependOn: ["domain"]),
-            LayerPolicy(name: "presentation", paths: ["Presentation/"], mayDependOn: ["domain", "presentation"])
+            LayerPolicy(name: "presentation", paths: ["Presentation/"], mayDependOn: ["domain", "presentation"]),
         ]).isEmpty)
     }
 
@@ -31,7 +31,7 @@ struct LayerConfigurationAuditTests {
     @Test func reportsADependencyOnALayerThatDoesNotExist() {
         #expect(problems([
             LayerPolicy(name: "domain", paths: ["Domain/"]),
-            LayerPolicy(name: "presentation", paths: ["Presentation/"], mayDependOn: ["domian"])
+            LayerPolicy(name: "presentation", paths: ["Presentation/"], mayDependOn: ["domian"]),
         ]) == [.unknownDependency(layer: "presentation", dependency: "domian")])
     }
 
@@ -39,7 +39,7 @@ struct LayerConfigurationAuditTests {
         let found = problems([
             LayerPolicy(name: "domain", paths: ["Domain/"], mayDependOn: ["persistence"]),
             LayerPolicy(name: "persistence", paths: ["Persistence/"], mayDependOn: ["presentation"]),
-            LayerPolicy(name: "presentation", paths: ["Presentation/"], mayDependOn: ["domain"])
+            LayerPolicy(name: "presentation", paths: ["Presentation/"], mayDependOn: ["domain"]),
         ])
 
         let expected = LayerConfigurationAudit.Problem.cycle(
@@ -58,7 +58,7 @@ struct LayerConfigurationAuditTests {
     @Test func theNoticeNamesEveryProblem() {
         let notice = LayerConfigurationAudit.notice(for: [
             .pathMatchesNoFile(layer: "domain", path: "Domian/"),
-            .cycle(layers: ["a", "b"], path: ["a", "b", "a"])
+            .cycle(layers: ["a", "b"], path: ["a", "b", "a"]),
         ])
 
         #expect(notice.hasPrefix("Warning: architectural_layers has 2 problems"))
