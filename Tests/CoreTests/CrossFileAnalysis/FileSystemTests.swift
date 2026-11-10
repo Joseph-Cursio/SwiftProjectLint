@@ -1,6 +1,9 @@
-@testable import Core
 import Foundation
+import SwiftProjectLintEngine
+import SwiftProjectLintModels
+import SwiftProjectLintRegistry
 @testable import SwiftProjectLintRules
+import SwiftProjectLintVisitors
 import Testing
 
 // MARK: - Tests for detectPatterns(in:) and findSwiftFiles paths

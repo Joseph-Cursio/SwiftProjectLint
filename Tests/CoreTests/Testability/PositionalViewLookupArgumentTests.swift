@@ -1,4 +1,4 @@
-@testable import Core
+import SwiftProjectLintModels
 import Testing
 
 /// What an accessor's argument is: an index, a finder helper's identifier, or a function handed to

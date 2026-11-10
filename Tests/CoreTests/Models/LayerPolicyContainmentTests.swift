@@ -1,5 +1,5 @@
-@testable import Core
 import PropertyBased
+import SwiftProjectLintModels
 import Testing
 
 /// Laws for `LayerPolicy.contains(relativePath:)` — the predicate that decides which architectural

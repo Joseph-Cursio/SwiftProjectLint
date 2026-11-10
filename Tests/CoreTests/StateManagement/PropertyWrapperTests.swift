@@ -1,4 +1,4 @@
-import Core
+import SwiftProjectLintRules
 import Testing
 
 struct PropertyWrapperTests {

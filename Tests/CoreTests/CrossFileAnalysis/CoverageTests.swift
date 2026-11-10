@@ -1,5 +1,8 @@
-@testable import Core
+import SwiftProjectLintEngine
+import SwiftProjectLintModels
+import SwiftProjectLintRegistry
 @testable import SwiftProjectLintRules
+import SwiftProjectLintVisitors
 import Testing
 
 // MARK: - Tests targeting uncovered cross-file visitor loop paths

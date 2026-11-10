@@ -1,5 +1,6 @@
-@testable import Core
 import PropertyBased
+import SwiftProjectLintConfig
+import SwiftProjectLintModels
 import Testing
 
 /// Round-trip laws for `InlineSuppressionParser` — **every directive this

@@ -1,5 +1,5 @@
-@testable import Core
 import Foundation
+import SwiftProjectLintModels
 import Testing
 
 /// The gates a candidate must clear: totality, an assertable return, and a seedable

@@ -1,4 +1,4 @@
-@testable import Core
+import SwiftProjectLintModels
 import Testing
 
 /// A walk is reported; a search, a single type assertion, a data index and a test-owned fixture

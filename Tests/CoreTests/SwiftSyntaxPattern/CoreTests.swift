@@ -1,10 +1,11 @@
-@testable import Core
 ///
 /// NOTE ON TEST ISOLATION
 ///
 /// These tests now use a shared registry for performance while maintaining
 /// test isolation through controlled pattern registration and cleanup.
 ///
+import SwiftProjectLintModels
+import SwiftProjectLintRegistry
 import Testing
 
 enum CoreTests {

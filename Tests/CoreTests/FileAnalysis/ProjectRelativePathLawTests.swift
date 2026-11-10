@@ -1,5 +1,5 @@
 import PropertyBased
-@testable import SwiftProjectLintConfig
+import SwiftProjectLintConfig
 import Testing
 
 /// The laws the Extractable Total Kernel finding predicted for this derivation: the round trip and

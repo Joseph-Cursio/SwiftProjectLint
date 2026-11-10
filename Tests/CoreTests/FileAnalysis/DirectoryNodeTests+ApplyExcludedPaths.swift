@@ -1,4 +1,4 @@
-@testable import Core
+import SwiftProjectLintConfig
 import Testing
 
 extension DirectoryNodeTests {

@@ -1,6 +1,7 @@
-@testable import Core
 import PropertyBased
 import SwiftParser
+import SwiftProjectLintModels
+import SwiftProjectLintRegistry
 import Testing
 
 /// Property-based law: **narrowing the enabled rule set is pure filtering.**

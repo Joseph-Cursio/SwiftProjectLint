@@ -1,5 +1,5 @@
 import enum SwiftEffectInference.Effect
-@testable import SwiftProjectLintVisitors
+import SwiftProjectLintVisitors
 import Testing
 
 /// Slot 22 — `Task.sleep` under the SwiftConcurrency always-active gate.

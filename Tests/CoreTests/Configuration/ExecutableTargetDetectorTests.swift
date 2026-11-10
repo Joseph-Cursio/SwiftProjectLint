@@ -1,5 +1,5 @@
-@testable import Core
 import Foundation
+import SwiftProjectLintConfig
 import Testing
 
 @Suite

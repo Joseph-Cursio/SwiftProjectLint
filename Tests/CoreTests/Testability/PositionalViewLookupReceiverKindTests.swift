@@ -1,4 +1,4 @@
-@testable import Core
+import SwiftProjectLintModels
 import Testing
 
 /// Whether an accessor moves depends on what it is called on: a found view's only child is

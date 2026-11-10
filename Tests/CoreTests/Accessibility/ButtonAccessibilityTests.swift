@@ -1,5 +1,6 @@
-@testable import Core
+import SwiftProjectLintModels
 @testable import SwiftProjectLintRules
+import SwiftProjectLintVisitors
 import Testing
 
 @Suite

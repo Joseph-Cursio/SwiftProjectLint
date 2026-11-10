@@ -1,4 +1,4 @@
-@testable import Core
+import SwiftProjectLintModels
 import Testing
 
 /// One input and what `NSString` answers for its last component, its parent and its stem.

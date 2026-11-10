@@ -1,5 +1,5 @@
 import Foundation
-@testable import SwiftProjectLintVisitors
+import SwiftProjectLintVisitors
 import Testing
 
 /// Which nested packages the universe takes: those the root compiles — the shared spec's

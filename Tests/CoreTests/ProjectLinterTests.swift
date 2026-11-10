@@ -1,5 +1,6 @@
-@testable import Core
 import Foundation
+import SwiftProjectLintEngine
+import SwiftProjectLintModels
 import Testing
 
 /// Core `analyzeProject` behaviour: paths, categories, rule selection, and scale.

@@ -1,5 +1,5 @@
 import SwiftParser
-@testable import SwiftProjectLintVisitors
+import SwiftProjectLintVisitors
 import Testing
 
 /// A type that holds nothing a test could not supply has nothing to substitute.

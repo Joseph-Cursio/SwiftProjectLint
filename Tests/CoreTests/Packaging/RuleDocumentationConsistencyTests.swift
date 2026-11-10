@@ -1,5 +1,7 @@
-@testable import Core
 import Foundation
+import SwiftProjectLintModels
+import SwiftProjectLintRegistry
+import SwiftProjectLintVisitors
 import Testing
 
 /// Laws over the rule documentation — **what `Docs/rules/` says about a rule must be what the code

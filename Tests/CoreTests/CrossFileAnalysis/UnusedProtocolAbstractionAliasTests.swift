@@ -1,4 +1,4 @@
-@testable import Core
+import SwiftProjectLintModels
 @testable import SwiftProjectLintRules
 import Testing
 

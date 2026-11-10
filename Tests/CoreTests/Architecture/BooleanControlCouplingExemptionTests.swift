@@ -1,4 +1,3 @@
-@testable import Core
 import Testing
 
 /// The exemption half of the rule's tests; the shared `analyzeSource` helper and

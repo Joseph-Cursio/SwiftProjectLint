@@ -1,6 +1,7 @@
-@testable import Core
 import Foundation
+import SwiftProjectLintConfig
 @testable import SwiftProjectLintEngine
+import SwiftProjectLintModels
 import Testing
 
 /// A symlinked source file is classified **where the link is** — the shared spec's amendment A —

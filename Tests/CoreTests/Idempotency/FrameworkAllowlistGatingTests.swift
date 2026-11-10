@@ -1,5 +1,5 @@
 import enum SwiftEffectInference.Effect
-@testable import SwiftProjectLintVisitors
+import SwiftProjectLintVisitors
 import Testing
 
 /// Covers the `infer(call:imports:enabledFrameworks:)` API along two axes:

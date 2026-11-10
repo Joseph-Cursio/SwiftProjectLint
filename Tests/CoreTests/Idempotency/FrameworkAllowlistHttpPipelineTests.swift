@@ -1,5 +1,5 @@
 import enum SwiftEffectInference.Effect
-@testable import SwiftProjectLintVisitors
+import SwiftProjectLintVisitors
 import Testing
 
 /// Slot 14 — the HttpPipeline pipeline-primitive allowlist. Covers the

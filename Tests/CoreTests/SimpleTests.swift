@@ -1,4 +1,5 @@
-@testable import Core
+import SwiftProjectLintEngine
+import SwiftProjectLintModels
 import Testing
 
 struct SimpleTests {

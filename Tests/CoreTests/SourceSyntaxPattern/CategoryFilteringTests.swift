@@ -5,7 +5,8 @@
 //  Created by Joseph Cursio on 7/15/25.
 //
 
-@testable import Core
+import SwiftProjectLintModels
+import SwiftProjectLintRegistry
 import Testing
 
 /// Comprehensive Characterization Tests for SourcePatternDetector

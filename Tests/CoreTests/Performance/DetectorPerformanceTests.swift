@@ -1,5 +1,6 @@
-@testable import Core
 import Foundation
+import SwiftProjectLintModels
+import SwiftProjectLintRegistry
 import Testing
 
 @Suite("SyntaxPatternDetectorPerfTests")

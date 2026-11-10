@@ -1,5 +1,7 @@
-@testable import Core
 import Foundation
+import SwiftProjectLintConfig
+import SwiftProjectLintEngine
+import SwiftProjectLintModels
 import Testing
 
 /// `Protocol Naming Suffix` is a team naming convention, so it is opt-in.

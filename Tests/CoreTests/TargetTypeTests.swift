@@ -1,5 +1,5 @@
-@testable import Core
 import Foundation
+import SwiftProjectLintEngine
 import SwiftProjectLintModels
 import Testing
 

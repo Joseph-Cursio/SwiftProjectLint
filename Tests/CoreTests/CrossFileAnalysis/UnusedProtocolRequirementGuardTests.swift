@@ -1,4 +1,3 @@
-@testable import Core
 import Testing
 
 /// Protocol extensions, escaping values, and the guards that keep the rule from reporting a

@@ -1,4 +1,4 @@
-@testable import Core
+import SwiftProjectLintModels
 import Testing
 
 /// The suppression half: the signals that stop a single-conformer protocol from being

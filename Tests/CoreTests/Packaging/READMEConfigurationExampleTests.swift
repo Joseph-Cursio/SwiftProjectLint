@@ -1,5 +1,6 @@
-@testable import Core
 import Foundation
+import SwiftProjectLintConfig
+import SwiftProjectLintModels
 import Testing
 
 /// The README's configuration example must configure what it claims to.

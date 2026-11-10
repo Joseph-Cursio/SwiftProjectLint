@@ -1,5 +1,5 @@
 import enum SwiftEffectInference.Effect
-@testable import SwiftProjectLintVisitors
+import SwiftProjectLintVisitors
 import Testing
 
 /// AWSLambdaRuntime-framework allowlist coverage: the response-writer

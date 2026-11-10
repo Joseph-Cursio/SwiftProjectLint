@@ -1,4 +1,5 @@
-@testable import Core
+import SwiftProjectLintModels
+import SwiftProjectLintVisitors
 import Testing
 
 extension PerformanceVisitorCoverageTests {

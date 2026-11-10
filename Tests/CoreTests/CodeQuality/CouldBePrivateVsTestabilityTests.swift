@@ -1,5 +1,5 @@
-@testable import Core
 import SwiftParser
+import SwiftProjectLintModels
 @testable import SwiftProjectLintRules
 @testable import SwiftProjectLintVisitors
 import SwiftSyntax

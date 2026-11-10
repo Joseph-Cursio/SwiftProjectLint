@@ -1,5 +1,5 @@
 import enum SwiftEffectInference.Effect
-@testable import SwiftProjectLintVisitors
+import SwiftProjectLintVisitors
 import Testing
 
 /// Receiver-type gating fixtures for the heuristic inferrer: stdlib

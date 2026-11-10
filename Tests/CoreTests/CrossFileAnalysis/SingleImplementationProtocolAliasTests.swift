@@ -1,4 +1,4 @@
-@testable import Core
+import SwiftProjectLintModels
 import Testing
 
 /// A conformance written through a composition `typealias` is a conformance to every protocol

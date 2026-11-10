@@ -1,4 +1,4 @@
-import Core
+import SwiftProjectLintModels
 import Testing
 
 struct LintIssueTests {

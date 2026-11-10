@@ -1,4 +1,4 @@
-@testable import Core
+import SwiftProjectLintModels
 import Testing
 
 /// The reproduction target: Checkout's `OrderStore`, on the branches the SOLID essay uses.

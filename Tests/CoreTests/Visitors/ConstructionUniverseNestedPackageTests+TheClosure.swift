@@ -1,4 +1,4 @@
-@testable import SwiftProjectLintVisitors
+import SwiftProjectLintVisitors
 import Testing
 
 extension ConstructionUniverseNestedPackageTests {

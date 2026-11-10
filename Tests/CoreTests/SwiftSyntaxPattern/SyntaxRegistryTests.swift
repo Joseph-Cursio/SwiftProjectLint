@@ -1,6 +1,8 @@
-@testable import Core
 @testable import SwiftProjectLintIdempotencyRules
+import SwiftProjectLintModels
+import SwiftProjectLintRegistry
 @testable import SwiftProjectLintRules
+import SwiftProjectLintVisitors
 import Testing
 
 /// Serialized so that concurrent tests in this suite cannot race on the

@@ -1,6 +1,8 @@
-@testable import Core
 import Foundation
+import SwiftProjectLintConfig
 @testable import SwiftProjectLintEngine
+import SwiftProjectLintModels
+import SwiftProjectLintVisitors
 
 /// Returns the same file list, in the given order, for every discovery call.
 struct FixedFileDiscovery: FileDiscoveryProtocol {

@@ -1,4 +1,4 @@
-@testable import Core
+import SwiftProjectLintModels
 import Testing
 
 /// Code that does not run on the main actor, and blocking calls other rules already report.

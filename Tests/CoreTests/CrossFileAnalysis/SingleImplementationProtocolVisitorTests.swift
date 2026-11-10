@@ -1,4 +1,4 @@
-@testable import Core
+import SwiftProjectLintModels
 import Testing
 
 /// Core detection: how many conformers a protocol has, and where they live.

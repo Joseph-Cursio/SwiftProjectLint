@@ -1,5 +1,6 @@
-@testable import Core
 import PropertyBased
+import SwiftProjectLintConfig
+import SwiftProjectLintModels
 import Testing
 
 /// Property-based laws for `LintConfiguration.applyOverrides(to:projectRoot:)` —

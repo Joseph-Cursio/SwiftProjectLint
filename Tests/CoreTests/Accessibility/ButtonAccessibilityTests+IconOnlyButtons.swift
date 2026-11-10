@@ -1,6 +1,7 @@
-@testable import Core
 import Foundation
 import SwiftParser
+import SwiftProjectLintModels
+import SwiftProjectLintVisitors
 import SwiftSyntax
 import Testing
 

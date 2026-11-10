@@ -1,4 +1,4 @@
-@testable import Core
+import SwiftProjectLintVisitors
 import Testing
 
 extension ActorReentrancyVisitorTests {

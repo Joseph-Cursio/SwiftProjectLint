@@ -1,4 +1,5 @@
-@testable import Core
+import SwiftProjectLintModels
+import SwiftProjectLintRegistry
 import Testing
 
 /// Detection tests for the trap family — `try!`, force unwrap, `as!`, and the unconditional

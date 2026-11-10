@@ -1,4 +1,4 @@
-@testable import Core
+import SwiftProjectLintModels
 import Testing
 
 /// Whose layout a chain walks: a test-declared view reached through a capture or a factory, and a

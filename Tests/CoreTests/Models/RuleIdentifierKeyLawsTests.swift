@@ -1,4 +1,4 @@
-@testable import Core
+import SwiftProjectLintModels
 import Testing
 
 /// Laws over the `RuleIdentifier` → `suppressionKey` mapping — the one place in

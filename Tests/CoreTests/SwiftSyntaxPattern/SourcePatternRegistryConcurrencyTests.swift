@@ -1,6 +1,6 @@
-@testable import Core
-@testable import SwiftProjectLintRegistry
-@testable import SwiftProjectLintRules
+import SwiftProjectLintModels
+import SwiftProjectLintRegistry
+import SwiftProjectLintRules
 import Testing
 
 /// The contract `SourcePatternRegistry.initialize()` has to keep under concurrency:

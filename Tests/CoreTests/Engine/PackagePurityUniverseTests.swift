@@ -1,5 +1,7 @@
-@testable import Core
 import Foundation
+import SwiftProjectLintConfig
+import SwiftProjectLintEngine
+import SwiftProjectLintModels
 import Testing
 
 /// macOS's `UF_HIDDEN` file flag — what `chflags hidden` sets — on a fixture file.

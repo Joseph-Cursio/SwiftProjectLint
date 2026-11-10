@@ -1,4 +1,5 @@
-@testable import Core
+import SwiftProjectLintConfig
+import SwiftProjectLintModels
 import Testing
 
 /// Tests for the diagnostic half of the unresolved-name fix.

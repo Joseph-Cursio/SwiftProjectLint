@@ -1,6 +1,8 @@
-@testable import Core
 import Foundation
+import SwiftProjectLintConfig
 @testable import SwiftProjectLintEngine
+import SwiftProjectLintModels
+import SwiftProjectLintRegistry
 @testable import SwiftProjectLintVisitors
 import Testing
 

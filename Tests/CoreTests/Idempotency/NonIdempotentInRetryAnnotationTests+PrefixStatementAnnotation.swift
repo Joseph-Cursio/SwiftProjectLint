@@ -1,5 +1,5 @@
 import SwiftProjectLintModels
-@testable import SwiftProjectLintVisitors
+import SwiftProjectLintVisitors
 import Testing
 
 extension NonIdempotentInRetryAnnotationTests {

@@ -1,5 +1,6 @@
-import Core
 import Foundation
+import SwiftProjectLintConfig
+import SwiftProjectLintModels
 import Testing
 
 /// The documents that say which rules are off by default must name exactly

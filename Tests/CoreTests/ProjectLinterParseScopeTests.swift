@@ -1,5 +1,6 @@
-@testable import Core
 import Foundation
+import SwiftProjectLintConfig
+import SwiftProjectLintEngine
 import Testing
 
 /// How many files a run parses: the deterministic stand-in for a wall-clock bound.

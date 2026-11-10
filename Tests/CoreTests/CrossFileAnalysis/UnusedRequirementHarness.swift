@@ -1,7 +1,8 @@
-@testable import Core
 import Foundation
 import SwiftParser
+import SwiftProjectLintModels
 @testable import SwiftProjectLintRules
+import SwiftProjectLintVisitors
 import SwiftSyntax
 
 /// Runs `UnusedProtocolRequirementVisitor` over in-memory files and returns the requirements it

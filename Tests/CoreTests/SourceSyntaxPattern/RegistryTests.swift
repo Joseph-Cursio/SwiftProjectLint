@@ -1,11 +1,13 @@
-@testable import Core
 ///
 /// NOTE ON TEST ISOLATION
 ///
 /// These tests use isolated registry instances to ensure complete test isolation
 /// and avoid interference between tests.
 ///
+import SwiftProjectLintModels
+import SwiftProjectLintRegistry
 @testable import SwiftProjectLintRules
+import SwiftProjectLintVisitors
 import Testing
 
 enum RegistryTests {

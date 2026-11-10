@@ -1,4 +1,4 @@
-@testable import Core
+import SwiftProjectLintModels
 import Testing
 
 /// Shapes from realistic test suites that a final review found misread: the finder helpers the

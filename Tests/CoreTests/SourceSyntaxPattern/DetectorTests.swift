@@ -1,5 +1,7 @@
-@testable import Core
 import Foundation
+import SwiftProjectLintEngine
+import SwiftProjectLintModels
+import SwiftProjectLintRegistry
 import Testing
 
 struct DetectorTests {

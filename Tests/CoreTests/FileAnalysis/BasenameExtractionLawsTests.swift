@@ -1,5 +1,5 @@
-@testable import Core
 import PropertyBased
+import SwiftProjectLintConfig
 import Testing
 
 /// Property-based laws for `FileAnalysisUtils.extractSwiftBasename(from:)`,

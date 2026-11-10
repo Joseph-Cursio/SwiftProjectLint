@@ -1,5 +1,6 @@
-@testable import Core
 import Foundation
+import SwiftProjectLintConfig
+import SwiftProjectLintEngine
 import Testing
 
 /// Files the construction universe must skip or survive. The universe reaches files no run used

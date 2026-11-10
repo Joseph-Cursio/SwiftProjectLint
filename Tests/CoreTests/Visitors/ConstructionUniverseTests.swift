@@ -1,6 +1,6 @@
 import Foundation
 import SwiftParser
-@testable import SwiftProjectLintVisitors
+import SwiftProjectLintVisitors
 import Testing
 
 /// Which files' types the purity oracle's construction facts are built from, and in what order.

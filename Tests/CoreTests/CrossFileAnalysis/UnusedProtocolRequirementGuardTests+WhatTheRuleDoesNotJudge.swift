@@ -1,5 +1,7 @@
-@testable import Core
+import SwiftProjectLintConfig
+import SwiftProjectLintModels
 @testable import SwiftProjectLintRules
+import SwiftProjectLintVisitors
 import Testing
 
 extension UnusedProtocolRequirementGuardTests {

@@ -1,4 +1,5 @@
-@testable import Core
+import SwiftProjectLintModels
+import SwiftProjectLintRegistry
 import Testing
 
 /// The detector drops a handful of noisy rules (`print`, magic numbers, …) in test files. Which

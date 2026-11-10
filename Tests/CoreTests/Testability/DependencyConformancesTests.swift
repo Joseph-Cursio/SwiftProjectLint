@@ -1,4 +1,3 @@
-@testable import Core
 import Foundation
 @testable import SwiftProjectLintEngine
 import SwiftProjectLintModels

@@ -1,4 +1,4 @@
-@testable import SwiftProjectLintVisitors
+import SwiftProjectLintVisitors
 import Testing
 
 /// Fixtures for the stdlib-collection exclusion table. Covers every pair

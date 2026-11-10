@@ -1,7 +1,7 @@
-@testable import Core
 import Foundation
-@testable import SwiftProjectLintIdempotencyRules
-@testable import SwiftProjectLintRules
+import SwiftProjectLintIdempotencyRules
+import SwiftProjectLintRegistry
+import SwiftProjectLintRules
 
 /// A struct containing isolated test instances for pattern detection.
 struct IsolatedTestInstances {

@@ -1,5 +1,5 @@
-@testable import Core
 import Foundation
+import SwiftProjectLintModels
 import Testing
 
 /// A type that is already abstracted is not asked for a protocol.

@@ -1,6 +1,8 @@
-@testable import Core
 import Foundation
 import PropertyBased
+import SwiftProjectLintEngine
+import SwiftProjectLintModels
+import SwiftProjectLintRegistry
 import Testing
 
 /// Generators, fixtures, and pure helpers for the robustness laws. Kept out of

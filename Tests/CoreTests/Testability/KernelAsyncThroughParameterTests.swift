@@ -1,5 +1,5 @@
 import SwiftParser
-@testable import SwiftProjectLintVisitors
+import SwiftProjectLintVisitors
 import Testing
 
 /// `declaredAsync` is a refutation about the *signature*. The oracle stops there rather than

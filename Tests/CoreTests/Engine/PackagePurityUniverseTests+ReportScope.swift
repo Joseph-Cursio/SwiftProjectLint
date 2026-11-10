@@ -1,4 +1,4 @@
-@testable import Core
+import Core
 import Foundation
 import Testing
 

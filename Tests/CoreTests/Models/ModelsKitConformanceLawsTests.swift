@@ -31,7 +31,7 @@
 // every small `CaseIterable` enum, because the domain cannot fill 1000 trials with
 // unique hashes. No generator fixes that; the domain is the type.
 import PropertyLawKit
-@testable import SwiftProjectLintModels
+import SwiftProjectLintModels
 import Testing
 
 @Suite("PropertyLawKit conformance laws — SwiftProjectLintModels")

@@ -1,4 +1,4 @@
-@testable import Core
+import SwiftProjectLintModels
 import Testing
 
 /// What the rule refuses to guess: manifests and targets it cannot read, and files it cannot place.

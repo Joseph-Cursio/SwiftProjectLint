@@ -1,4 +1,3 @@
-@testable import Core
 import SwiftParser
 import SwiftProjectLintVisitors
 import Testing

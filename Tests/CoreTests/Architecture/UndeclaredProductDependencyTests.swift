@@ -1,4 +1,4 @@
-@testable import Core
+import SwiftProjectLintModels
 import Testing
 
 /// Undeclared Target Dependency across `.package(path:)` boundaries: imports of modules vended by a

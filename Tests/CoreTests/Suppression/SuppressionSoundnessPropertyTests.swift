@@ -1,6 +1,8 @@
-@testable import Core
 import PropertyBased
 import SwiftParser
+import SwiftProjectLintConfig
+import SwiftProjectLintModels
+import SwiftProjectLintRegistry
 import Testing
 
 /// Property-based law: **inline suppression only removes what it targets.**
