@@ -8,16 +8,22 @@ import Testing
 @Suite
 struct PrimitiveNamedForDomainTypeVisitorTests {
 
+    /// The issues the rule finds in `files`, walked in every order (`WalkOrders`), each of which must find the same.
     private func analyze(files: [String: String]) -> [LintIssue] {
-        var cache: [String: SourceFileSyntax] = [:]
-        for (name, source) in files {
-            cache[name] = Parser.parse(source: source)
-        }
+        let walks = WalkOrders.of(Array(files.keys)).map { analyze(files: files, walkingIn: $0) }
+        let signatures = walks.map(WalkOrders.signature(of:))
+        #expect(Set(signatures).count == 1, "The issues depend on the order the files are walked in: \(signatures)")
+        return walks[0]
+    }
+
+    private func analyze(files: [String: String], walkingIn order: [String]) -> [LintIssue] {
+        let cache = files.mapValues { Parser.parse(source: $0) }
         let pattern = PrimitiveNamedForDomainType().pattern
         let visitor = PrimitiveNamedForDomainTypeVisitor(fileCache: cache)
         visitor.setPattern(pattern)
 
-        for (name, ast) in cache {
+        for name in order {
+            guard let ast = cache[name] else { continue }
             visitor.setFilePath(name)
             visitor.setSourceLocationConverter(SourceLocationConverter(fileName: name, tree: ast))
             visitor.walk(ast)
