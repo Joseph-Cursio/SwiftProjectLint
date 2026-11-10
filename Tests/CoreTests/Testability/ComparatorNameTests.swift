@@ -16,6 +16,7 @@ struct ComparatorNameTests {
         let tree = Parser.parse(source: "let _ = xs.sorted { \(signature)\(body) }")
         final class Finder: SyntaxVisitor {
             var found: ClosureExprSyntax?
+
             override func visit(_ node: ClosureExprSyntax) -> SyntaxVisitorContinueKind {
                 if found == nil { found = node }
                 return .skipChildren

@@ -147,6 +147,7 @@ struct SignatureAwareCollisionIntegrationTests {
         // Dig out the one FunctionCallExprSyntax inside the body.
         final class Finder: SyntaxVisitor {
             var call: FunctionCallExprSyntax?
+
             override func visit(_ node: FunctionCallExprSyntax) -> SyntaxVisitorContinueKind {
                 if call == nil { call = node }
                 return .skipChildren

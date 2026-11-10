@@ -17,6 +17,7 @@ struct ReceiverTypeResolverTests {
         final class Finder: SyntaxVisitor {
             let method: String
             var call: FunctionCallExprSyntax?
+
             init(method: String) {
                 self.method = method
                 super.init(viewMode: .sourceAccurate)
@@ -350,6 +351,7 @@ struct ReceiverTypeResolverTests {
         // `.unresolved` by convention (there's nothing to resolve).
         final class Finder: SyntaxVisitor {
             var call: FunctionCallExprSyntax?
+
             init() { super.init(viewMode: .sourceAccurate) }
             override func visit(_ node: FunctionCallExprSyntax) -> SyntaxVisitorContinueKind {
                 if call == nil { call = node }

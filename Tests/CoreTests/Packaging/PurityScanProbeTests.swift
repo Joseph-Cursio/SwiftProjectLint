@@ -8,6 +8,7 @@ import Testing
 struct PurityScanProbeTests {
 
     typealias Scan = PurityOracleEntryTests
+
     static let visitors = Scan.visitorsSources + "SwiftProjectLintVisitors/"
     static let rules = "Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/"
 

@@ -15,6 +15,7 @@ struct ReceiverTypeR5RepoFixtureTests {
     private func findAppendCall(_ source: String) throws -> FunctionCallExprSyntax {
         final class Finder: SyntaxVisitor {
             var call: FunctionCallExprSyntax?
+
             init() { super.init(viewMode: .sourceAccurate) }
             override func visit(_ node: FunctionCallExprSyntax) -> SyntaxVisitorContinueKind {
                 if call == nil,

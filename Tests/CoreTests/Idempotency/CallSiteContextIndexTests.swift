@@ -90,6 +90,7 @@ struct CallSiteContextIndexTests {
     private static func calls(in tree: SourceFileSyntax) -> [FunctionCallExprSyntax] {
         final class Collector: SyntaxVisitor {
             var found: [FunctionCallExprSyntax] = []
+
             override func visit(_ node: FunctionCallExprSyntax) -> SyntaxVisitorContinueKind {
                 found.append(node)
                 return .visitChildren

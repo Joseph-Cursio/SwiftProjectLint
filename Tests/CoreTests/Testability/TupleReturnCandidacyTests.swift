@@ -356,6 +356,7 @@ struct TupleReturnCandidacyTests {
 
     final class FunctionFinder: SyntaxVisitor {
         var found: [String: FunctionDeclSyntax] = [:]
+
         override func visit(_ node: FunctionDeclSyntax) -> SyntaxVisitorContinueKind {
             found[node.name.text] = node
             return .visitChildren

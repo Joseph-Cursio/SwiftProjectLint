@@ -32,6 +32,7 @@ enum InspectionBinding {
 final class InspectionBindingResolver {
 
     private typealias Entry = (position: AbsolutePosition, binding: InspectionBinding)
+
     private var statementIndex: [SyntaxIdentifier: [String: [Entry]]] = [:]
     private var memberIndex: [SyntaxIdentifier: [String: InspectionBinding]] = [:]
     /// Member lists of every type declaration in the file, by name, so an `extension Tests` finds

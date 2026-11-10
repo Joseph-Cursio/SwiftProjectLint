@@ -282,7 +282,9 @@ struct PurityGateDeclarationTests {
 final class NoticeBox: @unchecked Sendable {
     private let lock = NSLock()
     private var notices: [String] = []
+
     func append(_ notice: String) { lock.withLock { notices.append(notice) } }
+
     var all: [String] { lock.withLock { notices } }
 }
 

@@ -59,6 +59,7 @@ enum DependencyConformances {
     /// One declaration header, as the scan read it.
     struct Declaration: Equatable {
         enum Kind: Equatable { case primary, unconditionalExtension, conditionalExtension }
+
         let kind: Kind
         /// The simple name: the last component of `Outer.Inner`.
         let name: String

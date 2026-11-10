@@ -147,6 +147,8 @@ private final class WarningBox: @unchecked Sendable {
     // Safety: `@unchecked Sendable` — every access to `warnings` holds `lock`.
     private let lock = NSLock()
     private var warnings: [String] = []
+
     func append(_ warning: String) { lock.withLock { warnings.append(warning) } }
+
     var all: [String] { lock.withLock { warnings } }
 }

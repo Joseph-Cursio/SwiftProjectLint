@@ -7,6 +7,7 @@ import Testing
 struct PatternConfigurationTests {
     class MockPatternRegistry: SourcePatternRegistryProtocol {
         var patterns: [PatternCategory: [SyntaxPattern]] = [:]
+
         func getPatterns(for category: PatternCategory) -> [SyntaxPattern] {
             patterns[category] ?? []
         }

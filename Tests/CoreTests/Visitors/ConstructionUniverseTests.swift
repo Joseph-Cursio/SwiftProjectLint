@@ -48,13 +48,16 @@ struct ConstructionUniverseTests {
             let manifest: String
             let expected: [String]?
         }
+
         let localPackageDependencies: [ManifestCase]
         let buildOrder: [String]
         let localTargetPaths: [ManifestCase]
+
         struct RecognitionCase: Decodable {
             let text: String
             let expected: Bool
         }
+
         let isManifest: [RecognitionCase]
     }
 
@@ -194,6 +197,7 @@ struct ConstructionUniverseTests {
     /// A seeded generator, so a shuffle that fails fails the same way on the next run.
     private struct SplitMix64: RandomNumberGenerator {
         var state: UInt64
+
         init(seed: UInt64) { state = seed }
         mutating func next() -> UInt64 {
             state &+= 0x9E37_79B9_7F4A_7C15

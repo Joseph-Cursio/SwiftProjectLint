@@ -16,6 +16,7 @@ struct StrictReplayableContextParsingTests {
     private func firstFunctionDecl(in source: String) throws -> FunctionDeclSyntax {
         final class Finder: SyntaxVisitor {
             var decl: FunctionDeclSyntax?
+
             init() { super.init(viewMode: .sourceAccurate) }
             override func visit(_ node: FunctionDeclSyntax) -> SyntaxVisitorContinueKind {
                 if decl == nil { decl = node }
@@ -30,6 +31,7 @@ struct StrictReplayableContextParsingTests {
     private func allFunctionDecls(in source: String) -> [FunctionDeclSyntax] {
         final class Finder: SyntaxVisitor {
             var decls: [FunctionDeclSyntax] = []
+
             init() { super.init(viewMode: .sourceAccurate) }
             override func visit(_ node: FunctionDeclSyntax) -> SyntaxVisitorContinueKind {
                 decls.append(node)
@@ -44,6 +46,7 @@ struct StrictReplayableContextParsingTests {
     private func firstVariableDecl(in source: String) throws -> VariableDeclSyntax {
         final class Finder: SyntaxVisitor {
             var decl: VariableDeclSyntax?
+
             init() { super.init(viewMode: .sourceAccurate) }
             override func visit(_ node: VariableDeclSyntax) -> SyntaxVisitorContinueKind {
                 if decl == nil { decl = node }

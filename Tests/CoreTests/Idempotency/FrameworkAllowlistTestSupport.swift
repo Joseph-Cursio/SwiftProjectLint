@@ -24,6 +24,7 @@ enum FrameworkAllowlistTestSupport {}
 func firstCall(in source: String) throws -> FunctionCallExprSyntax {
     final class Finder: SyntaxVisitor {
         var call: FunctionCallExprSyntax?
+
         init() { super.init(viewMode: .sourceAccurate) }
         override func visit(_ node: FunctionCallExprSyntax) -> SyntaxVisitorContinueKind {
             if call == nil { call = node }
@@ -43,6 +44,7 @@ func memberCall(method: String, in source: String) throws -> FunctionCallExprSyn
     final class Finder: SyntaxVisitor {
         let method: String
         var call: FunctionCallExprSyntax?
+
         init(method: String) {
             self.method = method
             super.init(viewMode: .sourceAccurate)

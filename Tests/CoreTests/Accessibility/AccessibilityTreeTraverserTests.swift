@@ -16,6 +16,7 @@ struct AccessibilityTreeTraverserTests {
         class CallFinder: SyntaxVisitor {
             let target: String
             var found: FunctionCallExprSyntax?
+
             init(target: String) {
                 self.target = target
                 super.init(viewMode: .sourceAccurate)
