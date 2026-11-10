@@ -157,9 +157,11 @@ enum ComparatorName {
                     // A swapped element reverses the operator for that key alone,
                     // which is the whole reason direction is resolved per element
                     // rather than read off the operator once.
-                    keys.append(Key(property: key.path,
-                                    descending: descending != key.isSwapped,
-                                    position: key.position))
+                    keys.append(Key(
+                        property: key.path,
+                        descending: descending != key.isSwapped,
+                        position: key.position
+                    ))
                 }
 
             case "!=", "==":
@@ -226,14 +228,18 @@ enum ComparatorName {
             if let leftPath = path(of: left, rootedAt: lhs),
                let rightPath = path(of: right, rootedAt: rhs),
                leftPath == rightPath {
-                return Resolved(path: leftPath.joined(separator: "."),
-                                isSwapped: false, position: position)
+                return Resolved(
+                    path: leftPath.joined(separator: "."),
+                    isSwapped: false, position: position
+                )
             }
             if let leftPath = path(of: left, rootedAt: rhs),
                let rightPath = path(of: right, rootedAt: lhs),
                leftPath == rightPath {
-                return Resolved(path: leftPath.joined(separator: "."),
-                                isSwapped: true, position: position)
+                return Resolved(
+                    path: leftPath.joined(separator: "."),
+                    isSwapped: true, position: position
+                )
             }
             return nil
         }

@@ -25,7 +25,11 @@ class MagicNumberVisitor: BasePatternVisitor {
         super.init(pattern: pattern, viewMode: viewMode)
     }
 
-    convenience init(patternCategory: PatternCategory, configuration: Configuration = .default, viewMode: SyntaxTreeViewMode = .sourceAccurate) {
+    convenience init(
+        patternCategory: PatternCategory,
+        configuration: Configuration = .default,
+        viewMode: SyntaxTreeViewMode = .sourceAccurate
+    ) {
         let placeholder = SyntaxPattern(
             name: .unknown,
             visitor: MagicNumberVisitor.self,

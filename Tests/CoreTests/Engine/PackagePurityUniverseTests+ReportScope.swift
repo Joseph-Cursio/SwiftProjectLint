@@ -136,9 +136,11 @@ extension PackagePurityUniverseTests {
         let production = try await lint(placingLibAt: "Sources/Lib/")
         let suite = try await lint(placingLibAt: "tests/Lib/")
 
-        let readersInProduction = Set(production.filter {
-            Self.readers.contains($0.ruleName) && $0.filePath.hasPrefix("Sources/Lib/")
-        }.map(\.ruleName))
+        let readersInProduction = Set(
+            production
+                .filter { Self.readers.contains($0.ruleName) && $0.filePath.hasPrefix("Sources/Lib/") }
+                .map(\.ruleName)
+        )
         // Per-file and cross-file readers, and one that reads the purity only for an exemption.
         #expect(readersInProduction.isSuperset(of: [
             .pureFunctionCandidate, .pureClosureCandidate, .impureClosureInventory, .couldBePrivate,

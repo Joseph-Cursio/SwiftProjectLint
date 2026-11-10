@@ -27,8 +27,10 @@ import Testing
 /// |---|---|---|
 /// | `severity` | no | **text**, JSON, CSV, HTML |
 /// | `locations[1...]` | no — only `locations.first`, via `filePath`/`lineNumber` | JSON, CSV |
-/// | `suggestion` / `symbol`, `nil` vs `""` | no — collapsed by `?? ""` | JSON (synthesized `Codable` omits a `nil` key and emits `""` for empty) |
+/// | `suggestion` / `symbol`, `nil` vs `""` | no — collapsed by `?? ""` | JSON¹ |
 /// | `role`, `effect`, `testReachability` | no | `pbt-seeds` |
+///
+/// ¹ Synthesized `Codable` omits a `nil` key and emits `""` for an empty one.
 ///
 /// The first row is the sharp one. The doc comment above enumerates what the text report prints as
 /// "rule, message, suggestion", but `TextFormatter` renders

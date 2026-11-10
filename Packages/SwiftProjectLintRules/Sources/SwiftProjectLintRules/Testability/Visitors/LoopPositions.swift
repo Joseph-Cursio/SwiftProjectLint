@@ -11,7 +11,11 @@ import SwiftSyntax
 /// views.
 enum LoopPositions {
 
-    static func isLoopOverEveryPosition(_ key: ExprSyntax, resolver: InspectionBindingResolver, depth: Int = 0) -> Bool {
+    static func isLoopOverEveryPosition(
+        _ key: ExprSyntax,
+        resolver: InspectionBindingResolver,
+        depth: Int = 0
+    ) -> Bool {
         guard depth < 4, let reference = InspectionChainEvaluator.unwrapped(key).as(DeclReferenceExprSyntax.self),
               let resolved = resolver.resolveWithScope(reference.baseName.text, from: Syntax(reference)),
               narrowsToOnePosition(reference, below: resolved.scope) == false else {

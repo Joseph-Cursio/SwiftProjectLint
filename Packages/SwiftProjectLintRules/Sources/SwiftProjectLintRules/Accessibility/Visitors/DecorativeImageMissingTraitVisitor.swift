@@ -76,9 +76,11 @@ final class DecorativeImageMissingTraitVisitor: BasePatternVisitor {
               let stringLit = firstArg.expression.as(StringLiteralExprSyntax.self) else {
             return nil
         }
-        return stringLit.segments.compactMap { segment -> String? in
-            segment.as(StringSegmentSyntax.self)?.content.text
-        }.joined()
+        return stringLit.segments
+            .compactMap { segment -> String? in
+                segment.as(StringSegmentSyntax.self)?.content.text
+            }
+            .joined()
     }
 
     /// Heuristic: is this image likely decorative?

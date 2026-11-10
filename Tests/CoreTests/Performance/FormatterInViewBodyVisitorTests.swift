@@ -44,7 +44,9 @@ struct FormatterInViewBodyVisitorTests {
         ("DateComponentsFormatter", "struct V: View { var body: some View { let f = DateComponentsFormatter() } }"),
         ("ByteCountFormatter", "struct V: View { var body: some View { let f = ByteCountFormatter() } }"),
         ("MeasurementFormatter", "struct V: View { var body: some View { let f = MeasurementFormatter() } }"),
-        ("PersonNameComponentsFormatter", "struct V: View { var body: some View { let f = PersonNameComponentsFormatter() } }"),
+        ("PersonNameComponentsFormatter", """
+            struct V: View { var body: some View { let f = PersonNameComponentsFormatter() } }
+            """),
         ("JSONDecoder", "struct V: View { var body: some View { let d = JSONDecoder() } }"),
         ("JSONEncoder", "struct V: View { var body: some View { let e = JSONEncoder() } }"),
     ])

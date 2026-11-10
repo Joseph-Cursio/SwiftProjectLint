@@ -131,9 +131,11 @@ final class MissingDynamicTypeSupportVisitor: BasePatternVisitor {
             if hasInterpolation { return true }
 
             // Pure string — check length
-            let text = stringLit.segments.compactMap { segment -> String? in
-                segment.as(StringSegmentSyntax.self)?.content.text
-            }.joined()
+            let text = stringLit.segments
+                .compactMap { segment -> String? in
+                    segment.as(StringSegmentSyntax.self)?.content.text
+                }
+                .joined()
             return text.count > Self.shortLabelMaxLength
         }
 

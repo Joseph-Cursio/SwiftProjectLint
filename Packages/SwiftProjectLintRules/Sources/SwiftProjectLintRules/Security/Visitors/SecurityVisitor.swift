@@ -203,9 +203,11 @@ class SecurityVisitor: BasePatternVisitor {
     /// interpolation first — a partial string judged as a whole one is how `"<<<\(n)>>>"` became
     /// `"<<<>>>"` and then a reported secret.
     private func extractStringValue(_ literal: StringLiteralExprSyntax) -> String {
-        literal.segments.compactMap { segment -> String? in
-            segment.as(StringSegmentSyntax.self)?.content.text
-        }.joined()
+        literal.segments
+            .compactMap { segment -> String? in
+                segment.as(StringSegmentSyntax.self)?.content.text
+            }
+            .joined()
     }
 
     /// Whether the value is a piece of its own variable's name — `let hashToken = "hash"`.

@@ -105,7 +105,8 @@ struct ComparatorNameTests {
     @Test("the ternary spelling names the same keys as the guard spelling")
     func ternarySpelling() throws {
         let sut = try closure(
-            "lhs.value != rhs.value ? lhs.value > rhs.value : lhs.key < rhs.key")
+            "lhs.value != rhs.value ? lhs.value > rhs.value : lhs.key < rhs.key"
+        )
         #expect(ComparatorName.derived(from: sut) == "byValueDescendingThenKey")
     }
 

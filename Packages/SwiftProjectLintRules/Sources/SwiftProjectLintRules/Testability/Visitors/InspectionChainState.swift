@@ -88,8 +88,10 @@ struct InspectionChainState {
     }
 
     func advanced(by step: String, to kind: ReceiverKind, ownership: LayoutOwnership) -> Self {
-        Self(stepsSinceAnchor: stepsSinceAnchor + 1, rootOwnership: rootOwnership, lastStep: step,
-             kind: kind, ownership: ownership)
+        Self(
+            stepsSinceAnchor: stepsSinceAnchor + 1, rootOwnership: rootOwnership, lastStep: step,
+            kind: kind, ownership: ownership
+        )
     }
 
     var isDataReceiver: Bool {

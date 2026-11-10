@@ -88,7 +88,9 @@ class TestRegistryManager {
 
     /// Measure execution time of an async test operation
     @preconcurrency
-    static func measureExecutionTime<T: Sendable>(_ operation: @Sendable () async throws -> T) async rethrows -> (T, Duration) {
+    static func measureExecutionTime<T: Sendable>(
+        _ operation: @Sendable () async throws -> T
+    ) async rethrows -> (T, Duration) {
         let start = ContinuousClock.now
         let result = try await operation()
         let end = ContinuousClock.now

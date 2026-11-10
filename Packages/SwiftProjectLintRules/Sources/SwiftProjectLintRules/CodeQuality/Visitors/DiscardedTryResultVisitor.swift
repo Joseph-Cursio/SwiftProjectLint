@@ -150,8 +150,8 @@ final class DiscardedTryResultVisitor: BasePatternVisitor {
     /// outermost `if`, and only when the chain ends in a plain `else`, as an `if` expression must.
     private static func branchingExpression(owning owner: Syntax) -> ExprSyntax? {
         if let switchCase = owner.as(SwitchCaseSyntax.self) {
-            return switchCase.parent?.as(SwitchCaseListSyntax.self)?
-                .parent?.as(SwitchExprSyntax.self).map(ExprSyntax.init)
+            let switchExpr = switchCase.parent?.as(SwitchCaseListSyntax.self)?.parent?.as(SwitchExprSyntax.self)
+            return switchExpr.map(ExprSyntax.init)
         }
         guard var outermost = owner.as(CodeBlockSyntax.self)?.parent?.as(IfExprSyntax.self) else { return nil }
         while let outer = outermost.parent?.as(IfExprSyntax.self) { outermost = outer }

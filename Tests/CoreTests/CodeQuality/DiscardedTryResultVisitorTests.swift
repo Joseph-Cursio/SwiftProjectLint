@@ -133,7 +133,11 @@ struct DiscardedTryResultVisitorTests {
         "func f() async { let result = await Task.detached(priority: .userInitiated) { try? describe() }.value }",
         // Branches of an if or switch expression that is itself the implicit return value
         "func load(_ fresh: Bool) -> Data? { if fresh { try? fetch() } else { try? cached() } }",
-        "func load(_ fresh: Bool) -> Data? { if fresh { try? fetch() } else if offline { nil } else { try? cached() } }",
+        """
+        func load(_ fresh: Bool) -> Data? {
+            if fresh { try? fetch() } else if offline { nil } else { try? cached() }
+        }
+        """,
         "func load(_ source: Source) -> Data? { switch source { case .disk: try? read(); default: try? fetch() } }",
         "var bookmark: Data? { if stale { try? refresh() } else { try? url.bookmarkData() } }",
         "let pick = { (fresh: Bool) -> Data? in if fresh { try? fetch() } else { nil } }",

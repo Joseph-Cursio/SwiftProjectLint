@@ -34,22 +34,24 @@ struct PurityOracleLawsTests {
     /// A corpus spanning pure bodies, impure bodies, escaping and non-escaping closures, and
     /// malformed source. The last three parse partially, which is what an analyser is handed on
     /// every keystroke and what a totality law exists for.
-    private static let sourceGen = Gen<String?>.element(of: [
-        "func add(_ a: Int, _ b: Int) -> Int { a + b }",
-        "func now() -> Date { Date() }",
-        "func identifier() -> UUID { UUID() }",
-        "func shout(_ s: String) { print(s) }",
-        "struct S { let base: Int; var doubled: Int { base * 2 } }",
-        "struct T { var clock: Date { Date() } }",
-        "let mapped = items.map { $0 * 2 }",
-        "let deferred = DispatchQueue.main.async { work() }",
-        "func run(_ body: @escaping () -> Void) { body() }",
-        "let nested = outer { inner { $0 + 1 } }",
-        // Malformed on purpose.
-        "func half(_ x: Int) -> Int { x +",
-        "struct Broken { var v: Int {",
-        "",
-    ] as [String]).map { $0 ?? "" }
+    private static let sourceGen = Gen<String?>
+        .element(of: [
+            "func add(_ a: Int, _ b: Int) -> Int { a + b }",
+            "func now() -> Date { Date() }",
+            "func identifier() -> UUID { UUID() }",
+            "func shout(_ s: String) { print(s) }",
+            "struct S { let base: Int; var doubled: Int { base * 2 } }",
+            "struct T { var clock: Date { Date() } }",
+            "let mapped = items.map { $0 * 2 }",
+            "let deferred = DispatchQueue.main.async { work() }",
+            "func run(_ body: @escaping () -> Void) { body() }",
+            "let nested = outer { inner { $0 + 1 } }",
+            // Malformed on purpose.
+            "func half(_ x: Int) -> Int { x +",
+            "struct Broken { var v: Int {",
+            "",
+        ] as [String])
+        .map { $0 ?? "" }
 
     // MARK: - Totality
 

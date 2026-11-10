@@ -136,9 +136,22 @@ struct SubsumedConditionVisitorTests {
     @Test("string evidence: a parameter, a local, a cast, a producing call, or the chain itself", arguments: [
         #"func f(_ s: Substring) -> Bool { s.contains("ab") || s.contains("a") }"#,
         #"func f() -> Bool { let s: String = load(); return s.contains("ab") || s.contains("a") }"#,
-        #"func f(_ v: Any) -> Bool { if let s = v as? String, s.contains("ab") || s.contains("a") { return true }; return false }"#,
-        #"func f(_ v: String) -> Bool { let s = v.replacingOccurrences(of: " ", with: ""); return s.contains("ab") || s.contains("a") }"#,
-        #"func f(_ line: String) -> Bool { line.trimmingCharacters(in: .whitespaces).contains("ab") || line.trimmingCharacters(in: .whitespaces).contains("a") }"#,
+        #"""
+        func f(_ v: Any) -> Bool {
+            if let s = v as? String, s.contains("ab") || s.contains("a") { return true }; return false
+        }
+        """#,
+        #"""
+        func f(_ v: String) -> Bool {
+            let s = v.replacingOccurrences(of: " ", with: ""); return s.contains("ab") || s.contains("a")
+        }
+        """#,
+        #"""
+        func f(_ line: String) -> Bool {
+            line.trimmingCharacters(in: .whitespaces).contains("ab")
+                || line.trimmingCharacters(in: .whitespaces).contains("a")
+        }
+        """#,
         #"func f(_ s: T) -> Bool { s.hasPrefix("x") || s.contains("ab") || s.contains("a") }"#,
     ])
     func stringEvidence(source: String) {

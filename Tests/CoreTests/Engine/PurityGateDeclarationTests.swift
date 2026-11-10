@@ -123,7 +123,7 @@ struct PurityGateDeclarationTests {
     /// Function, Pure Mutator and Missing Equatable on Pure Function Result off still builds the table
     /// and skips the one-hop join; it skips the clean-method catalog too unless Direct Instantiation
     /// or Concrete Type Usage is on, since the other six read only the oracle.
-    @Test("without the three candidate rules the join is skipped, and the clean-method catalog unless its two readers run")
+    @Test("without the three candidate rules the join is skipped, and the catalog too unless its two readers run")
     func onlyTheCandidateRulesReadTheJoin() {
         let joinReaders: Set<RuleIdentifier> = [
             .pureFunctionCandidate, .missingEquatableOnPureResult, .pureMutatorCandidate
@@ -322,9 +322,11 @@ final class CancellingUndeclaredReader: CrossFileVisitorBase, CrossFilePatternVi
         if pure > 0 {
             let message = "\(pure) closures pure"
             Self.emitted.append(message)
-            addIssue(severity: .info, message: message,
-                     filePath: "Sources/Lib/Closures.swift", lineNumber: 1, suggestion: "",
-                     ruleName: .couldBePrivate)
+            addIssue(
+                severity: .info, message: message,
+                filePath: "Sources/Lib/Closures.swift", lineNumber: 1, suggestion: "",
+                ruleName: .couldBePrivate
+            )
         }
     }
 }

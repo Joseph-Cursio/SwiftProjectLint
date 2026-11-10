@@ -144,7 +144,7 @@ struct DefaultIsolationDetectorTests {
 
     @Test
     func readsSynchronizedFoldersOfMainActorTargets() throws {
-        let data = try #require(Self.pbxproj(targets: """
+        let text = Self.pbxproj(targets: """
         T1 = {isa = PBXNativeTarget; buildConfigurationList = L1; fileSystemSynchronizedGroups = (G1); };
         T2 = {isa = PBXNativeTarget; buildConfigurationList = L2; fileSystemSynchronizedGroups = (G2); };
         L1 = {isa = XCConfigurationList; buildConfigurations = (C1); };
@@ -153,7 +153,8 @@ struct DefaultIsolationDetectorTests {
         C2 = {isa = XCBuildConfiguration; buildSettings = {}; };
         G1 = {isa = PBXFileSystemSynchronizedRootGroup; path = MyApp; sourceTree = "<group>"; };
         G2 = {isa = PBXFileSystemSynchronizedRootGroup; path = MyAppTests; sourceTree = "<group>"; };
-        """, targetIDs: "T1, T2", mainGroupChildren: "G1, G2", projectSetting: nil).data(using: .utf8))
+        """, targetIDs: "T1, T2", mainGroupChildren: "G1, G2", projectSetting: nil)
+        let data = try #require(text.data(using: .utf8))
 
         let paths = XcodeDefaultIsolation.sourcePaths(pbxproj: data, projectDirectory: "Apps/")
 
@@ -162,7 +163,7 @@ struct DefaultIsolationDetectorTests {
 
     @Test
     func readsListedFilesAndTheProjectLevelDefault() throws {
-        let data = try #require(Self.pbxproj(targets: """
+        let text = Self.pbxproj(targets: """
         T1 = {isa = PBXNativeTarget; buildConfigurationList = L1; buildPhases = (S1); };
         T2 = {isa = PBXNativeTarget; buildConfigurationList = L2; buildPhases = (S2); };
         L1 = {isa = XCConfigurationList; buildConfigurations = (C1); };
@@ -179,7 +180,8 @@ struct DefaultIsolationDetectorTests {
         F1 = {isa = PBXFileReference; path = Loader.swift; sourceTree = "<group>"; };
         F2 = {isa = PBXFileReference; path = Sources/App/Main.swift; sourceTree = SOURCE_ROOT; };
         F3 = {isa = PBXFileReference; path = Sources/Engine/Engine.swift; sourceTree = SOURCE_ROOT; };
-        """, targetIDs: "T1, T2", mainGroupChildren: "GR", projectSetting: "MainActor").data(using: .utf8))
+        """, targetIDs: "T1, T2", mainGroupChildren: "GR", projectSetting: "MainActor")
+        let data = try #require(text.data(using: .utf8))
 
         let paths = XcodeDefaultIsolation.sourcePaths(pbxproj: data, projectDirectory: "")
 
@@ -227,8 +229,10 @@ struct DefaultIsolationDetectorTests {
     // MARK: - Fixtures
 
     private static let repositoryRoot = URL(fileURLWithPath: #filePath)
-        .deletingLastPathComponent().deletingLastPathComponent()
-        .deletingLastPathComponent().deletingLastPathComponent()
+        .deletingLastPathComponent()
+        .deletingLastPathComponent()
+        .deletingLastPathComponent()
+        .deletingLastPathComponent()
 
     /// SwiftLint's manifest shape: a typed `let` with no `=`, assigned in each branch of an `#if`.
     private static let deferredInitializationManifest = """

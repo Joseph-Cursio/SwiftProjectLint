@@ -246,10 +246,12 @@ extension ProjectLinter {
             resolvingSymlinks: { ProjectRoot($0).path },
             manifests: { ConstructionUniverse.manifests(inDirectory: absolutePath($0)) }
         )
-        return located.filter { file in
-            ConstructionUniverse.owningPackage(of: file.universePath, among: nestedPackages)
-                .map(compiled.contains) ?? true
-        }.map(\.filePath)
+        return located
+            .filter { file in
+                ConstructionUniverse.owningPackage(of: file.universePath, among: nestedPackages)
+                    .map(compiled.contains) ?? true
+            }
+            .map(\.filePath)
     }
 
     private struct ParseJob: Sendable {

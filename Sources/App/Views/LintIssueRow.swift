@@ -7,7 +7,8 @@ import SwiftUI
 /// and file location. Users can expand the row to reveal additional details and suggestions for resolving the issue.
 ///
 /// - Parameters:
-///   - issue: A `LintIssue` instance containing the severity, message, file path, line number, and an optional suggestion.
+///   - issue: A `LintIssue` instance containing the severity, message, file path, line number, and an optional
+///     suggestion.
 ///
 /// The row uses a chevron button to toggle expanded content, which displays the suggestion (if available)
 /// and further file details. Severity is visually indicated using a color-coded SF Symbol.

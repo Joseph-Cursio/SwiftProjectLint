@@ -17,12 +17,14 @@ class TextAccessibilityChecker {
         // Check if the text is long enough to warrant accessibility features
         if let argument = node.arguments.first,
            let stringLiteral = argument.expression.as(StringLiteralExprSyntax.self) {
-            let text = stringLiteral.segments.compactMap { segment in
-                if case .stringSegment(let stringSegment) = segment {
-                    return stringSegment.content.text
+            let text = stringLiteral.segments
+                .compactMap { segment in
+                    if case .stringSegment(let stringSegment) = segment {
+                        return stringSegment.content.text
+                    }
+                    return nil
                 }
-                return nil
-            }.joined()
+                .joined()
 
             if isLongText(text) {
                 if AccessibilityTreeTraverser.hasAccessibilityModifier(in: node, modifierName: "accessibilityLabel") ||

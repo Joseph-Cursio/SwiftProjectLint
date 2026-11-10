@@ -288,10 +288,25 @@ private final class MemberCollector: SyntaxVisitor {
         super.init(viewMode: .sourceAccurate)
     }
 
-    override func visit(_ node: StructDeclSyntax) -> SyntaxVisitorContinueKind { declare(node.name.text, node.modifiers) }
-    override func visit(_ node: ClassDeclSyntax) -> SyntaxVisitorContinueKind { declare(node.name.text, node.modifiers) }
-    override func visit(_ node: EnumDeclSyntax) -> SyntaxVisitorContinueKind { declare(node.name.text, node.modifiers) }
-    override func visit(_ node: ActorDeclSyntax) -> SyntaxVisitorContinueKind { declare(node.name.text, node.modifiers) }
+    override func visit(_ node: StructDeclSyntax) -> SyntaxVisitorContinueKind {
+        declare(node.name.text, node.modifiers)
+    }
+
+
+    override func visit(_ node: ClassDeclSyntax) -> SyntaxVisitorContinueKind {
+        declare(node.name.text, node.modifiers)
+    }
+
+
+    override func visit(_ node: EnumDeclSyntax) -> SyntaxVisitorContinueKind {
+        declare(node.name.text, node.modifiers)
+    }
+
+
+    override func visit(_ node: ActorDeclSyntax) -> SyntaxVisitorContinueKind {
+        declare(node.name.text, node.modifiers)
+    }
+
     /// A requirement has no body to create an oracle in; a protocol extension is an extension.
     override func visit(_: ProtocolDeclSyntax) -> SyntaxVisitorContinueKind { .skipChildren }
 

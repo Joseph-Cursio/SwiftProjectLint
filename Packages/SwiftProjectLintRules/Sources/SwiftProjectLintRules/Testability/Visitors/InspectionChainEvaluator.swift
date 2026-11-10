@@ -133,7 +133,11 @@ final class InspectionChainEvaluator {
     /// container — a custom view's body among them — both are children by position, except a
     /// `ForEach`'s rows and a found view, whose only child is itself, and a toolbar's only child.
     /// `self.x` reads a property. Any other property ends the chain.
-    private func evaluateProperty(_ member: MemberAccessExprSyntax, of base: ExprSyntax, depth: Int) -> ChainEvaluation {
+    private func evaluateProperty(
+        _ member: MemberAccessExprSyntax,
+        of base: ExprSyntax,
+        depth: Int
+    ) -> ChainEvaluation {
         let name = member.declName.baseName.text
         if Self.namesEnclosingType(Self.unwrapped(base), from: Syntax(member)) {
             let binding = resolver.resolveProperty(name, from: Syntax(member))

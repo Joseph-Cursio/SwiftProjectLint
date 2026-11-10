@@ -56,7 +56,13 @@ struct PackagePurityRobustnessTests {
     /// By name, so a failure prints the shape rather than 20 KB of `.b`.
     static let deepSources = ["else-if chain": elseIfChain, "member chain": memberChain]
 
-    @Test("a deep file in a dependency package does not take the run down", arguments: ["else-if chain", "member chain"])
+    @Test(
+
+        "a deep file in a dependency package does not take the run down",
+
+        arguments: ["else-if chain", "member chain"]
+
+    )
     func deepDependencyFileIsSurvived(name: String) async throws {
         let source = try #require(Self.deepSources[name])
         // The run never reports on `Sub/`, yet parses it and walks it into the facts. Both used to
@@ -77,7 +83,13 @@ struct PackagePurityRobustnessTests {
         #expect(found.contains("countOf") == false, "\(name): the deep file did not reach the facts")
     }
 
-    @Test("a deep manifest in a dependency package does not take the run down", arguments: ["else-if chain", "member chain"])
+    @Test(
+
+        "a deep manifest in a dependency package does not take the run down",
+
+        arguments: ["else-if chain", "member chain"]
+
+    )
     func deepDependencyManifestIsSurvived(name: String) async throws {
         let source = try #require(Self.deepSources[name])
         // The bound parses every manifest its closure reads, and that parse ran on the cooperative

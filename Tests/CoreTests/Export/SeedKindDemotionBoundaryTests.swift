@@ -98,8 +98,10 @@ struct SeedKindDemotionBoundaryTests {
     @Test("every seed kind is accounted for by one of the two behaviours")
     func testEveryKindIsClassified() {
         let analysable = PBTSeedKind.allCases.filter(\.isAnalysable).map(\.rawValue).sorted()
-        let refactorPending = PBTSeedKind.allCases.filter { !$0.isAnalysable }
-            .map(\.rawValue).sorted()
+        let refactorPending = PBTSeedKind.allCases
+            .filter { !$0.isAnalysable }
+            .map(\.rawValue)
+            .sorted()
 
         #expect(analysable == ["carrier", "idempotency", "pure-function", "pure-mutator", "restricted-function"])
         #expect(refactorPending == ["extractable-kernel"])

@@ -120,7 +120,13 @@ struct PackagePurityNestedPackageTests {
         case resolved
     }
 
-    @Test("a dependency path is read for its value and matched where it resolves", arguments: DependencySpelling.allCases)
+    @Test(
+
+        "a dependency path is read for its value and matched where it resolves",
+
+        arguments: DependencySpelling.allCases
+
+    )
     func dependencyPathIsReadAsSwiftPMReadsIt(spelling: DependencySpelling) async throws {
         // Read as source text, the escape named no package; compared lexically against the
         // resolved root, a path through a link was outside it. Either way `Util` left the table

@@ -97,7 +97,10 @@ class StateVariableVisitor: SyntaxVisitor {
     }
 
     /// Extracts and formats type information from type annotations or infers from initializer
-    private func extractTypeString(from typeAnnotation: TypeAnnotationSyntax?, initializer: InitializerClauseSyntax?) -> String {
+    private func extractTypeString(
+        from typeAnnotation: TypeAnnotationSyntax?,
+        initializer: InitializerClauseSyntax?
+    ) -> String {
         if let typeAnnotation {
             return extractTypeFromAnnotation(typeAnnotation)
         }

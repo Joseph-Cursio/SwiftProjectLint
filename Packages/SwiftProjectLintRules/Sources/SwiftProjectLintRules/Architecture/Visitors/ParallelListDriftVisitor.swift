@@ -151,8 +151,10 @@ final class ParallelListDriftVisitor: CrossFileVisitorBase, CrossFilePatternVisi
             return .visitChildren
         }
         guard let names = NameListReader.names(inArrayLiteral: node) else { return .visitChildren }
-        record(names, owner: NameListReader.bindingName(of: node) ?? "array literal",
-               carrier: .arrayLiteral, node: Syntax(node))
+        record(
+            names, owner: NameListReader.bindingName(of: node) ?? "array literal",
+            carrier: .arrayLiteral, node: Syntax(node)
+        )
         return .visitChildren
     }
 

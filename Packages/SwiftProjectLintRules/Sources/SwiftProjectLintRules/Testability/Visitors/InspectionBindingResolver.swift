@@ -286,10 +286,16 @@ final class InspectionBindingResolver {
 
     /// `for x in …` binds for its body; `case let`, `catch` and tuple patterns bind names the rule
     /// cannot read, which shadow any outer binding of the same name.
-    private static func localBinding(named name: String, in scope: Syntax, enclosing child: Syntax) -> InspectionBinding? {
+    private static func localBinding(
+        named name: String,
+        in scope: Syntax,
+        enclosing child: Syntax
+    ) -> InspectionBinding? {
         if let bindingList = scope.as(PatternBindingListSyntax.self) {
-            return Array(bindingList).filter { $0.position < child.position }
-                .flatMap { variableBindings($0) }.last { $0.0 == name }?.1
+            return Array(bindingList)
+                .filter { $0.position < child.position }
+                .flatMap { variableBindings($0) }
+                .last { $0.0 == name }?.1
         }
         if let forStmt = scope.as(ForStmtSyntax.self), child.id == forStmt.body.id {
             if identifier(of: forStmt.pattern) == name { return .element(forStmt.sequence) }

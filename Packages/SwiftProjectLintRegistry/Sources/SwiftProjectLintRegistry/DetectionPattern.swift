@@ -22,7 +22,13 @@ public struct DetectionPattern {
     public let suggestion: String
     public let category: PatternCategory
 
-    public init(name: RuleIdentifier, severity: IssueSeverity, message: String, suggestion: String, category: PatternCategory) {
+    public init(
+        name: RuleIdentifier,
+        severity: IssueSeverity,
+        message: String,
+        suggestion: String,
+        category: PatternCategory
+    ) {
         self.name = name
         self.severity = severity
         self.message = message

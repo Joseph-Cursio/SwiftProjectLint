@@ -475,7 +475,12 @@ extension ProtocolClientWalker {
         bind(name, to: localBinding(name, annotation: annotation, value: node.initializer?.value, at: Syntax(node)))
     }
 
-    private func localBinding(_ name: String, annotation: TypeSyntax?, value: ExprSyntax?, at node: Syntax) -> ProtocolBinding {
+    private func localBinding(
+        _ name: String,
+        annotation: TypeSyntax?,
+        value: ExprSyntax?,
+        at node: Syntax
+    ) -> ProtocolBinding {
         if let annotation {
             let protocols = protocols(in: annotation)
             guard protocols.isEmpty == false else { return .other }

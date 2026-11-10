@@ -163,11 +163,13 @@ enum MemberRunReader {
         let memberTokens = Set(memberReads(in: Syntax(item)).map(\.declName.baseName.id))
         guard !memberTokens.isEmpty else { return nil }
         let bound = boundNames(in: Syntax(item))
-        return item.tokens(viewMode: .sourceAccurate).map { token in
-            if memberTokens.contains(token.id) { return "#" }
-            if case .identifier(let name) = token.tokenKind, bound.contains(name) { return "$" }
-            return token.text
-        }.joined(separator: " ")
+        return item.tokens(viewMode: .sourceAccurate)
+            .map { token in
+                if memberTokens.contains(token.id) { return "#" }
+                if case .identifier(let name) = token.tokenKind, bound.contains(name) { return "$" }
+                return token.text
+            }
+            .joined(separator: " ")
     }
 
     /// Names a statement binds — `if let disabled = …`, `let ids = …`, a closure's parameters.

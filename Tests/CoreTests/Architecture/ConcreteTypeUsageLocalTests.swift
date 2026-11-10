@@ -34,8 +34,11 @@ struct ConcreteTypeUsageLocalTests {
     /// of `Property 'name' …` or `Parameter 'name' …`.
     private func reportedNames(_ found: [LintIssue]) -> [String] {
         found.compactMap { issue in
-            issue.message.split(separator: "'", omittingEmptySubsequences: false)
-                .dropFirst().first.map(String.init)
+            issue.message
+                .split(separator: "'", omittingEmptySubsequences: false)
+                .dropFirst()
+                .first
+                .map(String.init)
         }
     }
 

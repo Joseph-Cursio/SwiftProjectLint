@@ -6,7 +6,9 @@ import Testing
 
 struct PerformanceVisitorTests {
 
-    private func makeVisitor(for rule: RuleIdentifier = .excessiveSpringAnimations) throws -> AnimationPerformanceVisitor {
+    private func makeVisitor(
+        for rule: RuleIdentifier = .excessiveSpringAnimations
+    ) throws -> AnimationPerformanceVisitor {
         let patterns = AnimationPerformance().patterns
         let pattern = try #require(patterns.first { $0.name == rule })
         return AnimationPerformanceVisitor(pattern: pattern)

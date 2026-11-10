@@ -6,7 +6,8 @@ import SwiftSyntax
 ///
 /// Detects two patterns based on the `pattern.name` gate:
 /// - `.defaultAnimationCurve`: `.animation(.default, value:)` usage
-/// - `.conflictingAnimations`: Two `.animation(_, value: x)` modifiers with the same `value:` argument chained on the same view
+/// - `.conflictingAnimations`: Two `.animation(_, value: x)` modifiers with the same `value:` argument chained on the
+///   same view
 final class AnimationHierarchyVisitor: BasePatternVisitor {
 
     required init(pattern: SyntaxPattern, viewMode: SyntaxTreeViewMode = .sourceAccurate) {

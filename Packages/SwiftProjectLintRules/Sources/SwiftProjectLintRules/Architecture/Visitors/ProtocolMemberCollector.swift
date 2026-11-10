@@ -274,7 +274,10 @@ final class ProtocolMemberCollector: SyntaxVisitor {
     }
 
     /// Stored (no accessors, or only observers), and not a `let` that is already initialised.
-    private static func isMemberwiseParameter(_ binding: PatternBindingSyntax, in variable: VariableDeclSyntax) -> Bool {
+    private static func isMemberwiseParameter(
+        _ binding: PatternBindingSyntax,
+        in variable: VariableDeclSyntax
+    ) -> Bool {
         if variable.bindingSpecifier.tokenKind == .keyword(.let), binding.initializer != nil {
             return false
         }

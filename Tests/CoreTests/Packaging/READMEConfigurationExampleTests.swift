@@ -28,7 +28,9 @@ struct READMEConfigurationExampleTests {
 
     /// The fenced YAML block that configures `architectural_layers`.
     private static func configurationExample() throws -> String {
-        let blocks = try readme.components(separatedBy: "```yaml").dropFirst()
+        let blocks = try readme
+            .components(separatedBy: "```yaml")
+            .dropFirst()
             .compactMap { $0.components(separatedBy: "```").first }
         return try #require(blocks.first { $0.contains("architectural_layers:") })
     }

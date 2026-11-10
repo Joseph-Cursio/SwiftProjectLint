@@ -14,9 +14,11 @@ struct ProjectRelativePathLawTests {
 
     /// Components that are awkward on purpose: spaces, dots, a leading dot, and a `..` that nothing
     /// here resolves. A generator of tidy identifiers would make every law pass for the wrong reason.
-    private static let componentGen = Gen<String?>.element(of: [
-        "Sources", "Tests", ".build", "a b", "..", ".", "x.swift", "Pods", "node_modules", "é"
-    ]).compactMap(\.self)
+    private static let componentGen = Gen<String?>
+        .element(of: [
+            "Sources", "Tests", ".build", "a b", "..", ".", "x.swift", "Pods", "node_modules", "é"
+        ])
+        .compactMap(\.self)
 
     private static let relativeGen = componentGen
         .array(of: 1 ... 5)
@@ -24,10 +26,12 @@ struct ProjectRelativePathLawTests {
 
     /// Roots spelled several ways, including with a trailing slash and as `/`, because the prefix
     /// arithmetic is where the hand-written copies differed.
-    private static let rootGen = Gen<String?>.element(of: [
-        "/projects/app", "/projects/app/", "/", "/a", "/a/b/c",
-        "/Users/someone/My Project", "/nonexistent-root-\(UInt8.max)",
-    ]).compactMap(\.self)
+    private static let rootGen = Gen<String?>
+        .element(of: [
+            "/projects/app", "/projects/app/", "/", "/a", "/a/b/c",
+            "/Users/someone/My Project", "/nonexistent-root-\(UInt8.max)",
+        ])
+        .compactMap(\.self)
 
     // MARK: - Round trip
 
@@ -106,11 +110,13 @@ struct ProjectRelativePathLawTests {
     /// then derives to a *different* relative path — and the law no longer fails on a correct
     /// implementation.
     @Test func anItemIsEitherRefusedOrNormalisesStably() async {
-        let anyPath = Gen<String?>.element(of: [
-            "/projects/app/Sources/File.swift", "/projects/appendix/Other.swift",
-            "/elsewhere/File.swift", "/", "", "/projects/app", "/projects/app/",
-            "relative/not/absolute", "/a", "/projects/app/../app/Sources",
-        ]).compactMap(\.self)
+        let anyPath = Gen<String?>
+            .element(of: [
+                "/projects/app/Sources/File.swift", "/projects/appendix/Other.swift",
+                "/elsewhere/File.swift", "/", "", "/projects/app", "/projects/app/",
+                "relative/not/absolute", "/a", "/projects/app/../app/Sources",
+            ])
+            .compactMap(\.self)
 
         await propertyCheck(input: Self.rootGen, anyPath) { given, itemPath in
             let root = ProjectRoot(given)
