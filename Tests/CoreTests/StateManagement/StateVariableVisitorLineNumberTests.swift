@@ -1,8 +1,6 @@
 @testable import Core
-import Foundation
 import SwiftParser
 @testable import SwiftProjectLintRules
-import SwiftSyntax
 import Testing
 
 /// `StateVariable.lineNumber` must be the line the declaration starts on, whatever

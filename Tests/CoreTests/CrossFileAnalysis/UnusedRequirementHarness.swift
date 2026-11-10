@@ -3,7 +3,6 @@ import Foundation
 import SwiftParser
 @testable import SwiftProjectLintRules
 import SwiftSyntax
-import Testing
 
 /// Runs `UnusedProtocolRequirementVisitor` over in-memory files and returns the requirements it
 /// reports, as `Protocol.requirement(labels:)`. Shared by the rule's test suites.

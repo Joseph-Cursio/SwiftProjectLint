@@ -1,4 +1,3 @@
-import Foundation
 import SwiftProjectLintVisitors
 
 /// Protocol for simple pattern providers that supply one or more patterns.

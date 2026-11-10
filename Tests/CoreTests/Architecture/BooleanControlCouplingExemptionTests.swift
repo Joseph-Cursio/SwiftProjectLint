@@ -1,8 +1,4 @@
 @testable import Core
-import Foundation
-import SwiftParser
-@testable import SwiftProjectLintRules
-import SwiftSyntax
 import Testing
 
 /// The exemption half of the rule's tests; the shared `analyzeSource` helper and

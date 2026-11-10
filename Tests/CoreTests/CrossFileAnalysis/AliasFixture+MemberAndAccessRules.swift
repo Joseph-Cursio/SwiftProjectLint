@@ -1,8 +1,5 @@
 @testable import Core
-import Foundation
 @testable import SwiftProjectLintRules
-import SwiftProjectLintVisitors
-import Testing
 
 extension AliasFixture {
     /// The shared enum field is already a requirement of a protocol adopted through the alias.

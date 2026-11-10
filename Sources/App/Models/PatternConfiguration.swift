@@ -6,7 +6,6 @@
 //
 
 import Core
-import Foundation
 
 /// Represents pattern category information for UI display.
 struct PatternCategoryInfo {

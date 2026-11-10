@@ -1,5 +1,4 @@
 @testable import Core
-@testable import SwiftProjectLintRules
 import Testing
 
 /// Protocol extensions, escaping values, and the guards that keep the rule from reporting a

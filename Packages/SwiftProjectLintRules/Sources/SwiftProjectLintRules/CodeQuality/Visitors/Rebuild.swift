@@ -1,6 +1,3 @@
-import Foundation
-import SwiftProjectLintModels
-import SwiftProjectLintVisitors
 import SwiftSyntax
 
 /// A call whose arguments are mostly reads from one value — either `other.member`, or a bare

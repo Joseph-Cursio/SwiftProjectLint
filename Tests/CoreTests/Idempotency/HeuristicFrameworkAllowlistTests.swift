@@ -1,7 +1,5 @@
 import enum SwiftEffectInference.Effect
-import SwiftParser
 @testable import SwiftProjectLintVisitors
-import SwiftSyntax
 import Testing
 
 /// Framework-allowlist fixtures for the heuristic inferrer: known-pure

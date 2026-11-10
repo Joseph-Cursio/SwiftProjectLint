@@ -1,5 +1,4 @@
 import SwiftSyntax
-import Testing
 
 /// Every function, initializer, subscript and property in a file, with the types around it.
 final class MemberCollector: SyntaxVisitor {

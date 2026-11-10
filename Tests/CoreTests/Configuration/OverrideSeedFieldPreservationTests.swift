@@ -1,5 +1,4 @@
 import Core
-import Foundation
 import Testing
 
 /// A severity override must not cost a seed the fields a consumer acts on.

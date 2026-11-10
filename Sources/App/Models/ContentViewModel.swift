@@ -6,7 +6,8 @@
 //
 
 import Core
-import SwiftUI
+import Foundation
+import Observation
 
 /// View model that manages state and business logic for ContentView.
 ///

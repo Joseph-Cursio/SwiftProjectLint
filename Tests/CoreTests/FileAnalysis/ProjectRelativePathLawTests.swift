@@ -1,4 +1,3 @@
-import Foundation
 import PropertyBased
 @testable import SwiftProjectLintConfig
 import Testing

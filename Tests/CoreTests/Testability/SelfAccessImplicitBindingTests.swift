@@ -1,5 +1,4 @@
 @testable import Core
-import Foundation
 import SwiftParser
 import SwiftProjectLintVisitors
 import SwiftSyntax

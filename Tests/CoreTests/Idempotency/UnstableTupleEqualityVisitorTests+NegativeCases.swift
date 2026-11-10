@@ -1,8 +1,4 @@
-import SwiftParser
-@testable import SwiftProjectLintIdempotencyRules
-import SwiftProjectLintModels
 import SwiftProjectLintVisitors
-import SwiftSyntax
 import Testing
 
 extension UnstableTupleEqualityVisitorTests {

@@ -6,7 +6,6 @@
 //
 
 @testable import Core
-import Foundation
 import Testing
 
 /// Comprehensive Characterization Tests for SourcePatternDetector

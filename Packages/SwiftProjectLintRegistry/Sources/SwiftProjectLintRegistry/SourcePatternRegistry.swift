@@ -1,7 +1,6 @@
 import Foundation
 import SwiftProjectLintModels
 import SwiftProjectLintVisitors
-import SwiftSyntax
 
 // Safety: @unchecked Sendable — `state` is protected by `stateCondition` (NSCondition),
 // which also lets callers wait out an in-flight initialization rather than observe a

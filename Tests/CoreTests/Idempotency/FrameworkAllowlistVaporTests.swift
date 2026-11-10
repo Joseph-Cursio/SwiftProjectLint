@@ -1,7 +1,5 @@
 import enum SwiftEffectInference.Effect
-import SwiftParser
 @testable import SwiftProjectLintVisitors
-import SwiftSyntax
 import Testing
 
 /// Vapor-framework allowlist coverage: routing DSL (slot 17 —

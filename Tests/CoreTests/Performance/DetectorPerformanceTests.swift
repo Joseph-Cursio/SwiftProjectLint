@@ -1,7 +1,5 @@
 @testable import Core
 import Foundation
-import SwiftParser
-import SwiftSyntax
 import Testing
 
 @Suite("SyntaxPatternDetectorPerfTests")

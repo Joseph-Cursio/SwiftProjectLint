@@ -1,9 +1,6 @@
 @testable import Core
 import Foundation
-import SwiftParser
-@testable import SwiftProjectLintRules
 import SwiftProjectLintVisitors
-import SwiftSyntax
 import Testing
 
 extension ConcreteTypeUsageActorTests {

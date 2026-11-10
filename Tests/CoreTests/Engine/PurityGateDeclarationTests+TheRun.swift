@@ -2,7 +2,6 @@
 import Foundation
 @testable import SwiftProjectLintEngine
 @testable import SwiftProjectLintVisitors
-import SwiftSyntax
 import Testing
 
 extension PurityGateDeclarationTests {

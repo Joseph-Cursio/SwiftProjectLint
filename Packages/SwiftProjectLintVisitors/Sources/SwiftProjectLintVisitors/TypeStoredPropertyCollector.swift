@@ -1,4 +1,3 @@
-import SwiftEffectInference
 import SwiftSyntax
 
 /// Gathers the stored properties a named type declares anywhere in one file — in its primary

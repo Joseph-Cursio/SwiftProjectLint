@@ -1,8 +1,6 @@
 @testable import Core
 import Foundation
-import SwiftParser
 @testable import SwiftProjectLintRules
-import SwiftSyntax
 import Testing
 
 /// Tests for type extraction from explicit type annotations

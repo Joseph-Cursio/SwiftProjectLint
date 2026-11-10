@@ -1,8 +1,6 @@
 @testable import Core
-import Foundation
 import SwiftParser
 import SwiftProjectLintVisitors
-import SwiftSyntax
 import Testing
 
 /// Covers the sibling-call gate: an instance method that *calls* another method used to be refused

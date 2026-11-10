@@ -1,7 +1,6 @@
 @testable import Core
 import Foundation
 @testable import SwiftProjectLintEngine
-import Testing
 
 /// Returns the same file list, in the given order, for every discovery call.
 struct FixedFileDiscovery: FileDiscoveryProtocol {

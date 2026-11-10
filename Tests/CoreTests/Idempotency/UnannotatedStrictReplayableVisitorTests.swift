@@ -1,4 +1,3 @@
-import SwiftEffectInference
 import SwiftParser
 @testable import SwiftProjectLintIdempotencyRules
 import SwiftProjectLintModels

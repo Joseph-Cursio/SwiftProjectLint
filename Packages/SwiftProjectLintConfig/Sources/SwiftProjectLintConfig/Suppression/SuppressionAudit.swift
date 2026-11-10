@@ -1,4 +1,3 @@
-import Foundation
 import SwiftProjectLintModels
 
 /// A suppression name that matched no rule, with the key the author probably meant.

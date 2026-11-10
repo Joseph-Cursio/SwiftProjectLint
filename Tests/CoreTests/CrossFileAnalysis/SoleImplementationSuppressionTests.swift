@@ -1,6 +1,4 @@
 @testable import Core
-import SwiftParser
-import SwiftSyntax
 import Testing
 
 /// The suppression half: the signals that stop a single-conformer protocol from being

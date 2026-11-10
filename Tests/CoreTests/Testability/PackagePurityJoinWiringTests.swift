@@ -1,10 +1,6 @@
 @testable import Core
 import Foundation
-import SwiftParser
 import SwiftProjectLintModels
-@testable import SwiftProjectLintRules
-@testable import SwiftProjectLintVisitors
-import SwiftSyntax
 import Testing
 
 /// **End-to-end: the join must actually be wired, not merely correct.**

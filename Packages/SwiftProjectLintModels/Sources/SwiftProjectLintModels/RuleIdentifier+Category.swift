@@ -6,7 +6,6 @@
 //  together with every new rule, and together they pushed the enum body past the
 //  type_body_length limit. Keeping the switch here lets both halves grow freely.
 //
-import Foundation
 
 public extension RuleIdentifier {
 

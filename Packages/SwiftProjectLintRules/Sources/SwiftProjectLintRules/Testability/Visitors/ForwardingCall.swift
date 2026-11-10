@@ -1,5 +1,3 @@
-import SwiftProjectLintModels
-import SwiftProjectLintVisitors
 import SwiftSyntax
 
 /// The two syntactic questions both freeness checks need to ask.

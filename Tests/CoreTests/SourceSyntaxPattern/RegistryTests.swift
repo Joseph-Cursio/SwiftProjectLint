@@ -5,10 +5,7 @@
 /// These tests use isolated registry instances to ensure complete test isolation
 /// and avoid interference between tests.
 ///
-import Foundation
-import SwiftParser
 @testable import SwiftProjectLintRules
-import SwiftSyntax
 import Testing
 
 enum RegistryTests {

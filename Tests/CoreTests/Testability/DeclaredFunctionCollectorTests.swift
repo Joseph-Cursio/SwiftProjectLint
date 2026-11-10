@@ -1,4 +1,3 @@
-import Foundation
 import SwiftParser
 @testable import SwiftProjectLintVisitors
 import SwiftSyntax

@@ -1,9 +1,7 @@
 import Foundation
-import SwiftParser
 import SwiftProjectLintConfig
 import SwiftProjectLintModels
 import SwiftProjectLintRegistry
-import SwiftProjectLintVisitors
 import SwiftSyntax
 
 extension ProjectLinter {

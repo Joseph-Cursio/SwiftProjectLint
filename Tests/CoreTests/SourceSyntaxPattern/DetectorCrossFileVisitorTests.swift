@@ -1,5 +1,4 @@
 @testable import Core
-import SwiftParser
 import SwiftSyntax
 import Testing
 

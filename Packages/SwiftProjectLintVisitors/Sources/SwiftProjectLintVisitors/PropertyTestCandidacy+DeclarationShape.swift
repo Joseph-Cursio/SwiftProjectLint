@@ -1,4 +1,3 @@
-import SwiftEffectInference
 import SwiftSyntax
 
 extension PropertyTestCandidacy {

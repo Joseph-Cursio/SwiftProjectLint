@@ -1,8 +1,7 @@
-import Core
-import SwiftUI
-import Testing
-
 @testable import App
+import Core
+import Foundation
+import Testing
 
 // MARK: - Mock Analyzer
 

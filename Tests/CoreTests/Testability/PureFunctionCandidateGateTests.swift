@@ -1,8 +1,5 @@
 @testable import Core
 import Foundation
-import SwiftParser
-@testable import SwiftProjectLintRules
-import SwiftSyntax
 import Testing
 
 /// The gates a candidate must clear: totality, an assertable return, and a seedable

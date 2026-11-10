@@ -1,6 +1,3 @@
-import Foundation
-import SwiftProjectLintModels
-
 /// The top-level manifest written by the `pbt-seeds` format. `version` lets the consumer evolve the
 /// schema without silently misreading an older file.
 public struct PBTSeedManifest: Codable, Sendable {

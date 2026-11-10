@@ -1,4 +1,3 @@
-import Foundation
 import SwiftProjectLintRegistry
 
 /// A registrar for all animation-related syntax patterns.

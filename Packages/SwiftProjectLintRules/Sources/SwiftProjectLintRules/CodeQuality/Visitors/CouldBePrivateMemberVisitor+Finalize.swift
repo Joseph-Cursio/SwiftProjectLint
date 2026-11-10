@@ -1,6 +1,5 @@
 import SwiftProjectLintModels
 import SwiftProjectLintVisitors
-import SwiftSyntax
 
 extension CouldBePrivateMemberVisitor {
     // MARK: - Finalize

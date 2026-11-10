@@ -1,8 +1,4 @@
 @testable import Core
-import SwiftParser
-@testable import SwiftProjectLintRules
-@testable import SwiftProjectLintVisitors
-import SwiftSyntax
 import Testing
 
 /// The forwarding gate keys a callee by name, and a name has to be specific enough to key on.

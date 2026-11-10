@@ -1,7 +1,4 @@
-import Foundation
-import SwiftParser
 import SwiftSyntax
-import Testing
 
 /// Stored `static`/`class` properties, and file-scope globals, whose declared type or initializer
 /// names a type in `held` — or, inside a held type or an extension of one, `Self`, which names it

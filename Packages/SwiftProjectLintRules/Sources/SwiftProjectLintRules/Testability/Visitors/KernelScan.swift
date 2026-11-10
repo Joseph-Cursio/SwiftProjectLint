@@ -1,6 +1,4 @@
-import Foundation
 import SwiftProjectLintModels
-import SwiftProjectLintVisitors
 import SwiftSyntax
 
 /// What the body contains, scored against the one question that matters: **is there arithmetic here

@@ -1,5 +1,4 @@
 import SwiftProjectLintModels
-import SwiftProjectLintVisitors
 import SwiftSyntax
 
 /// A predicate body that makes no decision — it reads a `Bool` and hands it back.

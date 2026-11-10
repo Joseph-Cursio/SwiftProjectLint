@@ -1,5 +1,3 @@
-import Foundation
-
 /// Represents a Swift source file in a project, with its name and contents.
 public struct ProjectFile: Sendable, Equatable {
     /// The last path component, e.g. `MyView.swift`. Used as a short display

@@ -1,6 +1,3 @@
-import Foundation
-import SwiftProjectLintModels
-import SwiftProjectLintVisitors
 import SwiftSyntax
 
 /// Counts the distinct service-like types constructed anywhere inside one body, and notes

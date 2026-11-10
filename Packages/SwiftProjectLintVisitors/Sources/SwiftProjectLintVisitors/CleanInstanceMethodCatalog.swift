@@ -1,4 +1,3 @@
-import SwiftEffectInference
 import SwiftSyntax
 
 /// Per type, the methods a sibling may call without becoming a function of mutable instance state.

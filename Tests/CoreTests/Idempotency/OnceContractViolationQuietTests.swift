@@ -3,7 +3,6 @@ import SwiftParser
 @testable import SwiftProjectLintIdempotencyRules
 import SwiftProjectLintModels
 @testable import SwiftProjectLintVisitors
-import SwiftSyntax
 import Testing
 
 /// Negative-case fixtures and locked-in Phase-1 limitations: every test

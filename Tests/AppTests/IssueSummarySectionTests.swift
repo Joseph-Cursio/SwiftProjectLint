@@ -1,6 +1,5 @@
 import Core
 import LintStudioUI
-import SwiftUI
 import Testing
 import ViewInspector
 

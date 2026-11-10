@@ -1,4 +1,3 @@
-import Foundation
 import SwiftProjectLintIdempotencyRules
 import SwiftProjectLintRegistry
 import SwiftProjectLintRules

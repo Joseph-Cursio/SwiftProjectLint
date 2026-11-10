@@ -1,7 +1,6 @@
 @testable import Core
 import Foundation
 @testable import SwiftProjectLintRules
-import SwiftProjectLintVisitors
 import Testing
 
 /// One rule's fixture. `{conformance}` in a file is replaced by the alias or by its spelling.

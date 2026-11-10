@@ -1,5 +1,3 @@
-import SwiftProjectLintModels
-import SwiftProjectLintVisitors
 import SwiftSyntax
 
 /// Where a closure lives, for a finding whose subject has no name of its own.

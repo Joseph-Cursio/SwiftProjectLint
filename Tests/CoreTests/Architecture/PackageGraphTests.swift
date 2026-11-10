@@ -1,6 +1,5 @@
 import SwiftParser
 @testable import SwiftProjectLintRules
-import SwiftSyntax
 import Testing
 
 @Suite

@@ -1,6 +1,4 @@
 import Foundation
-import SwiftParser
-import SwiftProjectLintVisitors
 import SwiftSyntax
 
 // MARK: - Property Wrapper Enum

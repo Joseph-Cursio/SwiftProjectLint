@@ -1,9 +1,6 @@
 @testable import Core
 import Foundation
 @testable import SwiftProjectLintEngine
-@testable import SwiftProjectLintVisitors
-import SwiftSyntax
-import Testing
 
 /// A package that moves every purity consumer: the refuting `Item` and its callers, closures over
 /// it and over a nested package's minting type, a kernel, a trapped kernel and a concrete

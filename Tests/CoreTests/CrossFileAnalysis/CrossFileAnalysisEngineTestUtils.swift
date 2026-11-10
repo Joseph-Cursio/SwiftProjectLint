@@ -1,4 +1,2 @@
-import Foundation
-
 // ... Add setupTestProject, setupEmptyTestProject, setupSingleFileProject, setupComplexTestProject,
 // setupDuplicateStateProject, setupArchitectureIssuesProject as needed ...

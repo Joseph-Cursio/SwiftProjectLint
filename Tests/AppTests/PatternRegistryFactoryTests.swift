@@ -1,4 +1,3 @@
-@testable import App
 @testable import Core
 import Testing
 

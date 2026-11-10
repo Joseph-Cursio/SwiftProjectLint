@@ -1,4 +1,3 @@
-import SwiftParser
 import SwiftProjectLintModels
 import SwiftProjectLintVisitors
 import SwiftSyntax

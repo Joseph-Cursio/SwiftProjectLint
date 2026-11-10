@@ -1,9 +1,6 @@
 import SwiftEffectInference
-import SwiftParser
-@testable import SwiftProjectLintIdempotencyRules
 import SwiftProjectLintModels
 @testable import SwiftProjectLintVisitors
-import SwiftSyntax
 import Testing
 
 extension SignatureAwareCollisionIntegrationTests {

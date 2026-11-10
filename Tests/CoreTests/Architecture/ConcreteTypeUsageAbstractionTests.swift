@@ -1,8 +1,5 @@
 @testable import Core
 import Foundation
-import SwiftParser
-@testable import SwiftProjectLintRules
-import SwiftSyntax
 import Testing
 
 /// A type that is already abstracted is not asked for a protocol.

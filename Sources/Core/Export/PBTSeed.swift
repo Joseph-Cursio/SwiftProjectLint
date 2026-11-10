@@ -1,4 +1,3 @@
-import Foundation
 import SwiftProjectLintModels
 
 /// A single property-based-test seed: a place the linter judged worth a property test, identified

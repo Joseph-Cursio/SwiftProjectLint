@@ -1,6 +1,4 @@
 import Foundation
-import SwiftProjectLintModels
-import SwiftProjectLintVisitors
 import SwiftSyntax
 
 /// What a closure body writes to, split by whether the write lands in view-local storage.

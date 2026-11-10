@@ -1,5 +1,3 @@
-import SwiftProjectLintModels
-import SwiftProjectLintVisitors
 import SwiftSyntax
 
 extension ActorReentrancyVisitor {

@@ -1,5 +1,3 @@
-import Foundation
-
 /// Represents a state-related property declared within a SwiftUI view.
 ///
 /// `StateVariable` encapsulates information about a property that uses a SwiftUI property wrapper

@@ -5,9 +5,6 @@
 /// These tests now use a shared registry for performance while maintaining
 /// test isolation through controlled pattern registration and cleanup.
 ///
-import Foundation
-import SwiftParser
-import SwiftSyntax
 import Testing
 
 enum DetectorCoreTests {

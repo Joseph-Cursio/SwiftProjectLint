@@ -1,5 +1,4 @@
 @testable import Core
-import Foundation
 @testable import SwiftProjectLintRegistry
 @testable import SwiftProjectLintRules
 import Testing

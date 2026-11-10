@@ -2,7 +2,6 @@
 import SwiftParser
 @testable import SwiftProjectLintRules
 import SwiftSyntax
-import Testing
 
 /// The shared driver for the `SingleImplementationProtocol` suites.
 ///

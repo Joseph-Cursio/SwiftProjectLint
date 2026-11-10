@@ -1,5 +1,4 @@
 @testable import Core
-import Foundation
 import Testing
 
 /// A file the run **reports on** that nests deeper than a cooperative thread's 512 KB of stack.

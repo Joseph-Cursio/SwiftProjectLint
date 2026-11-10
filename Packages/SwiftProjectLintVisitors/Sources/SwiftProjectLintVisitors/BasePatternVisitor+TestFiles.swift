@@ -1,6 +1,4 @@
-import Foundation
 import SwiftProjectLintModels
-import SwiftSyntax
 
 extension BasePatternVisitor {
     /// Returns `true` if the current file path indicates a test, example,

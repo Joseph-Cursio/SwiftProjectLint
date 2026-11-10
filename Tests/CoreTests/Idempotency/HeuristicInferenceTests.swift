@@ -1,9 +1,5 @@
 import enum SwiftEffectInference.Effect
-import SwiftParser
-@testable import SwiftProjectLintIdempotencyRules
-import SwiftProjectLintModels
 @testable import SwiftProjectLintVisitors
-import SwiftSyntax
 import Testing
 
 /// Phase-2 heuristic inference fixtures. The inferrer supplies a declared-

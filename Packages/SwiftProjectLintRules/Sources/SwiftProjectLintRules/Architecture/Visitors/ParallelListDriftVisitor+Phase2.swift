@@ -1,7 +1,5 @@
-import Foundation
 import SwiftProjectLintModels
 import SwiftProjectLintVisitors
-import SwiftSyntax
 
 extension ParallelListDriftVisitor {
     // MARK: - Phase 2: pair + emit

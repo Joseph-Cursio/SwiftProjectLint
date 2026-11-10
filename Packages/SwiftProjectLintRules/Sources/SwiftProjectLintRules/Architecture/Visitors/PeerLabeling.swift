@@ -1,4 +1,3 @@
-import Foundation
 import SwiftProjectLintModels
 
 /// Formatting for the "these types cluster together" findings, shared by the shape-clustering

@@ -5,10 +5,8 @@
 //  Created by joe cursio on 7/14/25.
 //
 import Foundation
-import SwiftParser
 import SwiftProjectLintModels
 import SwiftProjectLintVisitors
-import SwiftSyntax
 
 // Safety: @unchecked Sendable — all mutable state (`patterns`, `visitorsByCategory`)
 // is protected by `lock` (NSLock). Every read and write acquires the lock first.

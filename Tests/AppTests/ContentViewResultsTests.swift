@@ -1,5 +1,4 @@
 import Core
-import SwiftUI
 import Testing
 import ViewInspector
 

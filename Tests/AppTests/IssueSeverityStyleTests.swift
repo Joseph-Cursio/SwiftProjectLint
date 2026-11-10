@@ -1,6 +1,6 @@
 @testable import App
 @testable import Core
-import SwiftUI
+import Foundation
 import Testing
 
 /// Laws over the severity-to-appearance mapping, which could not be stated while it lived as three

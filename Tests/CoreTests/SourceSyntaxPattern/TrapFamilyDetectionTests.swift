@@ -1,5 +1,4 @@
 @testable import Core
-import Foundation
 import Testing
 
 /// Detection tests for the trap family — `try!`, force unwrap, `as!`, and the unconditional

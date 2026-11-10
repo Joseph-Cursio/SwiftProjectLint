@@ -1,7 +1,6 @@
 @testable import Core
 import SwiftParser
 @testable import SwiftProjectLintVisitors
-import SwiftSyntax
 import Testing
 
 /// `CompositionAliasCatalog` resolves `typealias OrderStore = OrderSaving & OrderHistory` to the

@@ -6,7 +6,6 @@
 //
 
 import Core
-import Foundation
 
 /// Generates demo lint issues for illustration purposes.
 ///

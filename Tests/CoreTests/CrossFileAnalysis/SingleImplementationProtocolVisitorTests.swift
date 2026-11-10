@@ -1,6 +1,4 @@
 @testable import Core
-import SwiftParser
-import SwiftSyntax
 import Testing
 
 /// Core detection: how many conformers a protocol has, and where they live.
