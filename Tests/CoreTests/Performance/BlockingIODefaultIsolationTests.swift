@@ -9,7 +9,7 @@ import Testing
 /// though nothing in the file says so. The build setting reaches the rule as
 /// `defaultMainActorSourcePaths`.
 @Suite
-struct BlockingIOOnMainActorDefaultIsolationTests {
+struct BlockingIODefaultIsolationTests {
 
     private static let helper = """
     import Foundation
@@ -112,7 +112,7 @@ struct BlockingIOOnMainActorDefaultIsolationTests {
 
 /// End to end: the setting is read from the manifest and reaches the rule.
 @Suite
-struct BlockingIOOnMainActorDefaultIsolationEndToEndTests {
+struct BlockingIODefaultIsolationEndToEndTests {
 
     @Test
     func targetWithDefaultIsolationInItsManifestIsAnalysedAsMainActor() async {

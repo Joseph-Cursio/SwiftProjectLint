@@ -28,7 +28,7 @@ import Yams
 ///     excluded_paths:
 ///       - "Resources/"
 /// ```
-public struct LintConfigurationLoader {
+public enum LintConfigurationLoader {
 
     /// The default config file name searched in the project root.
     public static let defaultFileName = ".swiftprojectlint.yml"

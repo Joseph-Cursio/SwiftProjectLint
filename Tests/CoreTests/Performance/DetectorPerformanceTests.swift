@@ -5,7 +5,7 @@ import SwiftSyntax
 import Testing
 
 @Suite("SyntaxPatternDetectorPerfTests")
-struct DetectorPerformanceTests {
+enum DetectorPerformanceTests {
 
     // MARK: - Performance Visitor Tests (Use Shared Registry)
 

@@ -2,10 +2,10 @@ import SwiftProjectLintModels
 import SwiftProjectLintRegistry
 import SwiftProjectLintVisitors
 
-/// A registrar for the TODO comment pattern.
+/// A registrar for the to-do comment pattern.
 ///
-/// Provides the pattern for detecting TODO, FIXME, and HACK comments
-/// that represent unresolved technical debt.
+/// Provides the pattern for detecting comments marked to-do, fix-me or hack
+/// (the upper-case marker words), which represent unresolved technical debt.
 struct TodoComment: PatternRegistrarProtocol {
 
     var pattern: SyntaxPattern {

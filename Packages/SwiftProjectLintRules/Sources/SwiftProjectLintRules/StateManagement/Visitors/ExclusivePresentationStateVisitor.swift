@@ -19,7 +19,7 @@ import SwiftSyntax
 /// `@Presents var confirmationDialog`, and `VoiceMemos` with `alert` +
 /// `recordingMemo`). That code is *not buggy* — modality prevents both modals
 /// at runtime — so this is an opt-in refactor suggestion (`.info`), not a bug.
-final class MutuallyExclusivePresentationStateVisitor: BasePatternVisitor {
+final class ExclusivePresentationStateVisitor: BasePatternVisitor {
 
     required init(pattern: SyntaxPattern, viewMode: SyntaxTreeViewMode = .sourceAccurate) {
         super.init(pattern: pattern, viewMode: viewMode)

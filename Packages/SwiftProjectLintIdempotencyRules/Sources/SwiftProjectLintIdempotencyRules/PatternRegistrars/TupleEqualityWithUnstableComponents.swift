@@ -12,7 +12,7 @@ struct TupleEqualityWithUnstableComponents: PatternRegistrarProtocol {
     var pattern: SyntaxPattern {
         SyntaxPattern(
             name: .tupleEqualityWithUnstableComponents,
-            visitor: TupleEqualityWithUnstableComponentsVisitor.self,
+            visitor: UnstableTupleEqualityVisitor.self,
             severity: .warning,
             category: .idempotency,
             messageTemplate: "Tuple equality carries unstable component(s); "

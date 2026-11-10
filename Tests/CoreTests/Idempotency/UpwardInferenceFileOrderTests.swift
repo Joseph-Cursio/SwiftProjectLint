@@ -61,7 +61,7 @@ struct UpwardInferenceFileOrderTests {
             IdempotencyViolationVisitor(fileCache: cache).orderedSources,
             OnceContractViolationVisitor(fileCache: cache).orderedSources,
             NonIdempotentInRetryContextVisitor(fileCache: cache).orderedSources,
-            UnannotatedInStrictReplayableContextVisitor(fileCache: cache).orderedSources,
+            UnannotatedStrictReplayableVisitor(fileCache: cache).orderedSources,
         ].map { sources in
             sources.compactMap { source in
                 cache.first { $0.value.description == source.description }?.key

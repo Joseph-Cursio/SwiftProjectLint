@@ -1,6 +1,6 @@
 import SwiftSyntax
 
-extension VariableDeclSyntax {
+public extension VariableDeclSyntax {
     /// Returns the initialiser closure for a single-binding decl whose
     /// initialiser is a closure literal. Returns `nil` when:
     /// - the decl has more than one binding (`let a = {}, b = {}`)
@@ -10,7 +10,7 @@ extension VariableDeclSyntax {
     /// Closure-handler annotation (Phase 2 third slice) uses this as the
     /// anchor for the closure's body when `/// @lint.context` is declared
     /// on the variable decl.
-    public var closureInitializer: ClosureExprSyntax? {
+    var closureInitializer: ClosureExprSyntax? {
         guard bindings.count == 1,
               let binding = bindings.first,
               let initialiser = binding.initializer?.value.as(ClosureExprSyntax.self)
@@ -21,7 +21,7 @@ extension VariableDeclSyntax {
     /// The simple identifier of the single binding, if any. Returns `nil`
     /// for multi-binding decls or non-identifier patterns (tuple patterns,
     /// wildcards, etc.).
-    public var firstBindingName: String? {
+    var firstBindingName: String? {
         guard bindings.count == 1,
               let pattern = bindings.first?.pattern.as(IdentifierPatternSyntax.self)
         else { return nil }

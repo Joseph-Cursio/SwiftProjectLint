@@ -7,12 +7,12 @@ import SwiftProjectLintVisitors
 /// Flags a view that reads `@Environment(SomeType.self)` but carries no inspection relay, so
 /// ViewInspector cannot evaluate its body without trapping. Advisory: a view nobody inspects
 /// needs no hook.
-struct ObservableEnvironmentViewMissingInspectionHook: PatternRegistrarProtocol {
+struct ObservableViewMissingInspectionHook: PatternRegistrarProtocol {
 
     var pattern: SyntaxPattern {
         SyntaxPattern(
             name: .observableEnvViewMissingInspectionHook,
-            visitor: ObservableEnvironmentViewMissingInspectionHookVisitor.self,
+            visitor: ObservableViewInspectionHookVisitor.self,
             severity: .info,
             category: .testability,
             messageTemplate: "View reads @Environment(SomeType.self) but has no inspection "

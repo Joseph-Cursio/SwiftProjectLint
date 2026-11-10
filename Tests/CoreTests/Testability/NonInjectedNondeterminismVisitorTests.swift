@@ -322,7 +322,7 @@ struct NonInjectedNondeterminismIdentityTests {
 /// repositories, 2 of them live defects. Small, and precise — the whole reason it is separable is
 /// that unlike the decision/record distinction, this one *is* visible in local syntax.
 @Suite("A `??` fallback onto a nondeterministic source is a fabrication, not a missing seam")
-struct NonInjectedNondeterminismFabricationTests {
+struct NondeterminismFabricationTests {
 
     private func analyze(_ source: String) -> [LintIssue] {
         let visitor = NonInjectedNondeterminismVisitor(patternCategory: .testability)
@@ -466,7 +466,7 @@ struct NonInjectedNondeterminismFabricationTests {
 /// message, which is true of them: a test still cannot pin the id. That is why this gate moves the
 /// corpus count by zero.
 @Suite("A value written back is created, not fabricated")
-struct NonInjectedNondeterminismLazyCreationTests {
+struct NondeterminismLazyCreationTests {
 
     private func analyze(_ source: String) -> [LintIssue] {
         let visitor = NonInjectedNondeterminismVisitor(patternCategory: .testability)

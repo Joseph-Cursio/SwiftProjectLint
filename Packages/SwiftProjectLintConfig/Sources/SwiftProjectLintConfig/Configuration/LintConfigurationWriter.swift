@@ -2,7 +2,7 @@ import Foundation
 import SwiftProjectLintModels
 
 /// Writes a `LintConfiguration` to a YAML file.
-public struct LintConfigurationWriter {
+public enum LintConfigurationWriter {
 
     /// Renders the configuration as a YAML string.
     public static func render(_ config: LintConfiguration) -> String {

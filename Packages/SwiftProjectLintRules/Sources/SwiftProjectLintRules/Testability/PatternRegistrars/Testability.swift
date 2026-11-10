@@ -101,7 +101,7 @@ class Testability: BasePatternRegistrar {
         // Single-purpose-visitor rules get their own leaf registrars.
         registry.register(registrars: [
             ViewHostingBeforeInspection(),
-            ObservableEnvironmentViewMissingInspectionHook(),
+            ObservableViewMissingInspectionHook(),
             PositionalViewLookup(),
             MissingEquatableOnStateType(),
             MissingEquatableOnPureResult(),

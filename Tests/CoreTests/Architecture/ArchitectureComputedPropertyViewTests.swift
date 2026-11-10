@@ -309,7 +309,7 @@ struct ComputedPropertyViewSubsetGateTests {
 /// composes five properties into one `ToolbarItemGroup` — one of them a `Group` of two `Button`s,
 /// which places two items and would place one after extraction.
 @Suite("A decomposed container's contents are not an extractable subview")
-struct ComputedPropertyViewButtonCollectionTests {
+struct ComputedViewButtonCollectionTests {
 
     private func filteredIssues(_ source: String) -> [LintIssue] {
         let visitor = ComputedPropertyViewVisitor(patternCategory: .architecture)

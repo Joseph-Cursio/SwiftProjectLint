@@ -384,7 +384,7 @@ struct ArchitectureConcreteTypeUsageTests {
 /// a bare existential; a closure typealias; and a generic type, whose parameters a protocol
 /// would erase. Each exemption has a control, so a change that silences the rule outright fails.
 @Suite
-struct ArchitectureConcreteTypeUsageAbstractionTests {
+struct ConcreteTypeUsageAbstractionTests {
 
     // MARK: - Known-protocol exemption (bare existentials)
 

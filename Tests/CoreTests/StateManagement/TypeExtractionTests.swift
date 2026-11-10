@@ -9,17 +9,17 @@ import Testing
 @Suite
 struct TypeExtractionTests {
 
+    enum TypeMatchMode: Sendable {
+        case exact
+        case contains
+    }
+
     struct TypeExtractionCase: CustomTestStringConvertible, Sendable {
         let declaration: String
         let expectedType: String
         let expectedName: String?
         let typeMatchMode: TypeMatchMode
         var testDescription: String { declaration }
-
-        enum TypeMatchMode: Sendable {
-            case exact
-            case contains
-        }
 
         init(_ declaration: String, type expectedType: String, name: String? = nil, match: TypeMatchMode = .exact) {
             self.declaration = declaration

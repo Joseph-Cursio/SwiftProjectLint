@@ -6,7 +6,7 @@ import SwiftSyntax
 import Testing
 
 @Suite
-struct ControlMissingAccessibilityLabelVisitorTests {
+struct ControlAccessibilityLabelVisitorTests {
 
     private func analyze(_ source: String, filePath: String = "TestFile.swift") -> [LintIssue] {
         let visitor = ControlMissingAccessibilityLabelVisitor(patternCategory: .accessibility)

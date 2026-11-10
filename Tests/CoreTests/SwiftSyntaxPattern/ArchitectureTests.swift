@@ -6,7 +6,7 @@ import SwiftSyntax
 import Testing
 
 @Suite("ArchitectureTests")
-struct ArchitectureTests {
+enum ArchitectureTests {
 
     // MARK: - Architecture Visitor Tests (Use Shared Registry)
 

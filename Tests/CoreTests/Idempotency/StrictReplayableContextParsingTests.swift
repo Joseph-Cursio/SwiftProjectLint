@@ -6,7 +6,7 @@ import Testing
 
 /// Parsing-level coverage for `/// @lint.context strict_replayable`. The
 /// visitor-level behaviour (new diagnostic firing on unannotated callees)
-/// is covered by `UnannotatedInStrictReplayableContextVisitorTests`.
+/// is covered by `UnannotatedStrictReplayableVisitorTests`.
 ///
 /// Round-9 / phase-2 strict-replayable slice. See
 /// `docs/claude_phase_2_strict_replayable_plan.md`.

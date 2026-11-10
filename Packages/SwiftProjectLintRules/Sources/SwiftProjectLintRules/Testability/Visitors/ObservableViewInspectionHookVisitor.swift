@@ -40,7 +40,7 @@ import SwiftSyntax
 ///
 /// Companion to ``RuleIdentifier/viewHostingBeforeInspection``, which catches
 /// the same hazard from the test side.
-final class ObservableEnvironmentViewMissingInspectionHookVisitor: BasePatternVisitor {
+final class ObservableViewInspectionHookVisitor: BasePatternVisitor {
 
     required init(pattern: SyntaxPattern, viewMode: SyntaxTreeViewMode = .sourceAccurate) {
         super.init(pattern: pattern, viewMode: viewMode)

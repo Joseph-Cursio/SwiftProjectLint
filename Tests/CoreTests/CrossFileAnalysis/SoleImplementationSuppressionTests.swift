@@ -7,7 +7,7 @@ import Testing
 /// reported — a DI-suffixed name, conformance added in an extension, and injection sites
 /// that prove the seam is used.
 @Suite
-struct SingleImplementationProtocolSuppressionTests {
+struct SoleImplementationSuppressionTests {
 
     private func analyze(
         files: [String: String],

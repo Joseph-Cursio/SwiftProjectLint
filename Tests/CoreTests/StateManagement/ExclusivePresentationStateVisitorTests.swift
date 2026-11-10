@@ -4,7 +4,7 @@ import SwiftParser
 import SwiftSyntax
 import Testing
 
-/// Tests for `MutuallyExclusivePresentationStateVisitor`.
+/// Tests for `ExclusivePresentationStateVisitor`.
 ///
 /// The violating fixtures below are distilled from real TCA example code —
 /// PointFree's `AlertsAndConfirmationDialogs` (`alert` + `confirmationDialog`)
@@ -13,14 +13,14 @@ import Testing
 /// not buggy (modality prevents both at runtime), which is why the rule is an
 /// opt-in `.info` refactor suggestion rather than an error.
 @Suite
-struct MutuallyExclusivePresentationStateVisitorTests {
+struct ExclusivePresentationStateVisitorTests {
 
-    private func makeVisitor() -> MutuallyExclusivePresentationStateVisitor {
+    private func makeVisitor() -> ExclusivePresentationStateVisitor {
         let pattern = MutuallyExclusivePresentationState().pattern
-        return MutuallyExclusivePresentationStateVisitor(pattern: pattern)
+        return ExclusivePresentationStateVisitor(pattern: pattern)
     }
 
-    private func runVisitor(_ visitor: MutuallyExclusivePresentationStateVisitor, source: String) {
+    private func runVisitor(_ visitor: ExclusivePresentationStateVisitor, source: String) {
         let sourceFile = Parser.parse(source: source)
         visitor.walk(sourceFile)
     }

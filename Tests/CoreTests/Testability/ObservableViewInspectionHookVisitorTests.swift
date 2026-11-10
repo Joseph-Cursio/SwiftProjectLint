@@ -5,19 +5,19 @@ import SwiftSyntax
 import Testing
 
 @Suite
-struct ObservableEnvironmentViewMissingInspectionHookVisitorTests {
+struct ObservableViewInspectionHookVisitorTests {
 
-    private func run(_ source: String) -> ObservableEnvironmentViewMissingInspectionHookVisitor {
+    private func run(_ source: String) -> ObservableViewInspectionHookVisitor {
         let pattern = SyntaxPattern(
             name: .observableEnvViewMissingInspectionHook,
-            visitor: ObservableEnvironmentViewMissingInspectionHookVisitor.self,
+            visitor: ObservableViewInspectionHookVisitor.self,
             severity: .info,
             category: .testability,
             messageTemplate: "",
             suggestion: "",
             description: ""
         )
-        let visitor = ObservableEnvironmentViewMissingInspectionHookVisitor(pattern: pattern)
+        let visitor = ObservableViewInspectionHookVisitor(pattern: pattern)
         visitor.walk(Parser.parse(source: source))
         return visitor
     }
@@ -118,14 +118,14 @@ struct ObservableEnvironmentViewMissingInspectionHookVisitorTests {
     private func run(_ source: String, inspected: Set<String>?) -> [LintIssue] {
         let pattern = SyntaxPattern(
             name: .observableEnvViewMissingInspectionHook,
-            visitor: ObservableEnvironmentViewMissingInspectionHookVisitor.self,
+            visitor: ObservableViewInspectionHookVisitor.self,
             severity: .info,
             category: .testability,
             messageTemplate: "",
             suggestion: "",
             description: ""
         )
-        let visitor = ObservableEnvironmentViewMissingInspectionHookVisitor(pattern: pattern)
+        let visitor = ObservableViewInspectionHookVisitor(pattern: pattern)
         visitor.knownInspectedTypeNames = inspected
         visitor.walk(Parser.parse(source: source))
         return visitor.detectedIssues

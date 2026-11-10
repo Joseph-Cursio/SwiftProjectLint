@@ -49,18 +49,18 @@ public struct CallSiteContextIndex: Sendable {
         return contexts[call.id]
     }
 
+    private struct Annotation {
+        let position: AbsolutePosition
+        let context: ContextEffect
+    }
+
+    private struct PendingCall {
+        let id: SyntaxIdentifier
+        /// Where the scan for this call begins: its enclosing item, else the call itself.
+        let scanStart: AbsolutePosition
+    }
+
     private final class Resolver: SyntaxVisitor {
-
-        private struct Annotation {
-            let position: AbsolutePosition
-            let context: ContextEffect
-        }
-
-        private struct PendingCall {
-            let id: SyntaxIdentifier
-            /// Where the scan for this call begins: its enclosing item, else the call itself.
-            let scanStart: AbsolutePosition
-        }
 
         private(set) var contexts: [SyntaxIdentifier: ContextEffect] = [:]
 

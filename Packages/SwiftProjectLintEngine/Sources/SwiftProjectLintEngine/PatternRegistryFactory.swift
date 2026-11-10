@@ -24,7 +24,7 @@ public struct PatternDetectionSystem: Sendable {
 ///
 /// Prefer `createConfiguredSystem()` for production use and `createTestSystem()`
 /// for tests that need a clean slate with no pre-registered patterns.
-public class PatternRegistryFactory {
+public enum PatternRegistryFactory {
 
     /// Creates a new pattern visitor registry instance.
     ///

@@ -6,7 +6,7 @@ import SwiftProjectLintModels
 ///
 /// This struct provides helper methods for finding Swift files, extracting view names,
 /// and other file-related operations used during architectural analysis.
-public struct FileAnalysisUtils {
+public enum FileAnalysisUtils {
 
     /// Extracts the view name from a given Swift file path.
     ///
@@ -137,6 +137,8 @@ public struct FileAnalysisUtils {
         return names.sorted()
     }
 
+    /// Whether any directory under `path`, other than skipped build and dependency folders, holds
+    /// its own `Package.swift`.
     public static func containsNestedPackage(in path: String) -> Bool {
         let fileManager = FileManager.default
         let rootURL = URL(fileURLWithPath: path, isDirectory: true)

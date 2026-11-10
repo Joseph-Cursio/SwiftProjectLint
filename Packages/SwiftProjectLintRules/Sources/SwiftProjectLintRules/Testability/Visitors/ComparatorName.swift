@@ -107,6 +107,14 @@ enum ComparatorName {
         return keys
     }
 
+    /// One key recovered from a comparison, before its direction is known.
+    private struct Resolved {
+        let path: String
+        /// The two sides were written in the opposite order — see `keyPair`.
+        let isSwapped: Bool
+        let position: Int
+    }
+
     /// Walks a comparator body collecting `lhs.p <op> rhs.p` comparisons.
     ///
     /// `isAccountedFor` is the honesty check: any binary operator it does not
@@ -173,14 +181,6 @@ enum ComparatorName {
             default:
                 isAccountedFor = false
             }
-        }
-
-        /// One key recovered from a comparison, before its direction is known.
-        private struct Resolved {
-            let path: String
-            /// The two sides were written in the opposite order — see `keyPair`.
-            let isSwapped: Bool
-            let position: Int
         }
 
         /// The keys a single comparison orders by: one for `lhs.p < rhs.p`, and

@@ -12,7 +12,7 @@ import SwiftProjectLintModels
 /// idempotency rules, more common for duplicate-state rules) are filtered against
 /// the primary file only. If you want suppression to respect every location, place a
 /// `swiftprojectlint:disable`-shaped comment at the primary file's site.
-public struct InlineSuppressionFilter {
+public enum InlineSuppressionFilter {
 
     /// Returns `issues` with any suppressed violations removed.
     ///

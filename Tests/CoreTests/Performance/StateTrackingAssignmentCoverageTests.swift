@@ -14,7 +14,7 @@ import Testing
 /// methods on a manually-prepared visitor, similar to the approach used in
 /// PerformanceStateTrackingCoverageTests.
 @Suite("PerformanceStateVariableTracking Assignment Coverage")
-struct PerformanceStateTrackingAssignmentCoverageTests {
+struct StateTrackingAssignmentCoverageTests {
 
     private func makeVisitor(
         source: String,

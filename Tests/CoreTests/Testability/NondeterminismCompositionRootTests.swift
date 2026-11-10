@@ -13,7 +13,7 @@ import Testing
 /// it was still told a property-based test could not pin the value — which at a composition root
 /// is false about everything that decides. The arm changes the sentence and not the count.
 @Suite("Non-Injected Nondeterminism — the composition-root arm")
-struct NonInjectedNondeterminismCompositionRootTests {
+struct NondeterminismCompositionRootTests {
 
     private func analyze(_ source: String, filePath: String = "Logic.swift") -> [LintIssue] {
         let visitor = NonInjectedNondeterminismVisitor(patternCategory: .testability)

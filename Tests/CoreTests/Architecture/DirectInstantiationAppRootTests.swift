@@ -9,7 +9,7 @@ import Testing
 /// runtime constructs. Its own suite because the root suite, which holds the other entry-point
 /// spellings, is at the type-body length limit.
 @Suite
-struct ArchitectureDirectInstantiationAppRootTests {
+struct DirectInstantiationAppRootTests {
 
     // MARK: - Helper
 

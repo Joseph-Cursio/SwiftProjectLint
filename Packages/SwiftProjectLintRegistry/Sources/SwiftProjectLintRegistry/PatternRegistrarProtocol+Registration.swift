@@ -15,8 +15,9 @@ public protocol PatternRegistrarProtocol {
     var patterns: [SyntaxPattern] { get }
 }
 
-extension PatternRegistrarProtocol {
-    public var patterns: [SyntaxPattern] { [pattern] }
+public extension PatternRegistrarProtocol {
+    /// The registrar's single `pattern`, for registrars that provide only one.
+    var patterns: [SyntaxPattern] { [pattern] }
 }
 
 /// Protocol for pattern registration that requires access to the visitor registry.

@@ -19,7 +19,7 @@ if (input, Date()) == previousInput {
 Either the guard is dead code (the `Date()` side always differs, so the `==` always fails), or the guard is live but tests the wrong thing (the author probably meant to compare `input` alone, and the `Date()` slipped in as a habit of "include everything relevant"). Either way, there's no defensible semantic reading of a structural tuple that carries an unstable field.
 
 ### Discussion
-`TupleEqualityWithUnstableComponentsVisitor` is a file-local SyntaxVisitor. It inspects every `SequenceExprSyntax` of the shape `[TupleExpr, ==/!=, TupleExpr]` — literal tuples on both sides — and flags the comparison when any element on either side matches one of the unstable heuristics below.
+`UnstableTupleEqualityVisitor` is a file-local SyntaxVisitor. It inspects every `SequenceExprSyntax` of the shape `[TupleExpr, ==/!=, TupleExpr]` — literal tuples on both sides — and flags the comparison when any element on either side matches one of the unstable heuristics below.
 
 The rule is deliberately scoped narrow:
 

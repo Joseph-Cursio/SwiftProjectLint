@@ -5,7 +5,7 @@ import SwiftProjectLintModels
 ///
 /// Only directories are included (not files). Skips the same build-artifact
 /// and VCS directories as `FileAnalysisUtils`, plus nested Swift packages.
-public struct DirectoryScanner {
+public enum DirectoryScanner {
 
     /// Additional directories to skip beyond FileAnalysisUtils.skippedDirectories.
     private static let extraSkippedDirectories: Set<String> = [

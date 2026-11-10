@@ -66,10 +66,10 @@ public protocol PackagePurityConsumer: PatternVisitorProtocol {
     static var packagePurityInputs: PackagePurityInputs { get }
 }
 
-extension SyntaxPattern {
+public extension SyntaxPattern {
     /// What this pattern's visitor declares it reads of the package purity; empty when its visitor
     /// does not conform to ``PackagePurityConsumer``.
-    public var packagePurityInputs: PackagePurityInputs {
+    var packagePurityInputs: PackagePurityInputs {
         (visitor as? any PackagePurityConsumer.Type)?.packagePurityInputs ?? []
     }
 }

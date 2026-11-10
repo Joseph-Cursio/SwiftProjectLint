@@ -10,14 +10,14 @@ import Testing
 /// extensions that attach `@lint.context strict_replayable` to
 /// closure-based sites.
 @Suite
-struct UnannotatedInStrictReplayableContextAnnotationTests {
+struct StrictReplayableAnnotationTests {
 
-    private func makeVisitor() -> UnannotatedInStrictReplayableContextVisitor {
+    private func makeVisitor() -> UnannotatedStrictReplayableVisitor {
         let pattern = UnannotatedInStrictReplayableContext().pattern
-        return UnannotatedInStrictReplayableContextVisitor(pattern: pattern)
+        return UnannotatedStrictReplayableVisitor(pattern: pattern)
     }
 
-    private func run(source: String) -> UnannotatedInStrictReplayableContextVisitor {
+    private func run(source: String) -> UnannotatedStrictReplayableVisitor {
         let visitor = makeVisitor()
         let sourceFile = Parser.parse(source: source)
         visitor.walk(sourceFile)

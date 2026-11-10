@@ -14,7 +14,7 @@ struct IsolatedTestInstances {
 /// This provides a centralized way to manage shared registries while maintaining
 /// test isolation where needed.
 @preconcurrency @MainActor
-class TestRegistryManager {
+enum TestRegistryManager {
 
     // MARK: - Shared Instances
 

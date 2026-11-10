@@ -12,7 +12,7 @@ import Testing
 /// out. The uniqueness *is* the point — two concurrent callers handed the same name would collide —
 /// and nothing compares the name, stores it, or sends it anywhere.
 @Suite("A temporary directory's name is not an injectable dependency")
-struct NonInjectedNondeterminismScratchDirectoryTests {
+struct NondeterminismScratchDirectoryTests {
 
     private func analyze(_ source: String) -> [LintIssue] {
         let visitor = NonInjectedNondeterminismVisitor(patternCategory: .testability)

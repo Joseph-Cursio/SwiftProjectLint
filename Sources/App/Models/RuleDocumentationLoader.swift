@@ -9,7 +9,7 @@ import Core
 import Foundation
 
 /// Loads rule documentation markdown from the app bundle.
-struct RuleDocumentationLoader {
+enum RuleDocumentationLoader {
     static func loadDocumentation(for rule: RuleIdentifier) -> String? {
         let filename = documentationFileName(for: rule)
         guard let url = Bundle.module.url(

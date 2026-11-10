@@ -21,7 +21,7 @@ struct PatternCategoryInfo {
 /// This struct provides utilities for converting SwiftSyntax patterns to DetectionPatterns
 /// and organizing patterns by category for display in the user interface.
 @MainActor
-struct PatternConfiguration {
+enum PatternConfiguration {
 
     /// Pattern configuration that uses SwiftSyntax for all categories.
     /// This computed property dynamically pulls patterns from the registry to ensure

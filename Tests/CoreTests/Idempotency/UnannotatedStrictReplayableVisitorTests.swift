@@ -10,14 +10,14 @@ import Testing
 /// round-9 strict-replayable slice. See
 /// `docs/claude_phase_2_strict_replayable_plan.md`.
 @Suite
-struct UnannotatedInStrictReplayableContextVisitorTests {
+struct UnannotatedStrictReplayableVisitorTests {
 
-    private func makeVisitor() -> UnannotatedInStrictReplayableContextVisitor {
+    private func makeVisitor() -> UnannotatedStrictReplayableVisitor {
         let pattern = UnannotatedInStrictReplayableContext().pattern
-        return UnannotatedInStrictReplayableContextVisitor(pattern: pattern)
+        return UnannotatedStrictReplayableVisitor(pattern: pattern)
     }
 
-    private func run(source: String) -> UnannotatedInStrictReplayableContextVisitor {
+    private func run(source: String) -> UnannotatedStrictReplayableVisitor {
         let visitor = makeVisitor()
         let sourceFile = Parser.parse(source: source)
         visitor.walk(sourceFile)
@@ -31,9 +31,9 @@ struct UnannotatedInStrictReplayableContextVisitorTests {
     /// cache empty and upward inference is a no-op.
     private func runWithCache(
         _ files: [String: String]
-    ) -> UnannotatedInStrictReplayableContextVisitor {
+    ) -> UnannotatedStrictReplayableVisitor {
         let cache: [String: SourceFileSyntax] = files.mapValues { Parser.parse(source: $0) }
-        let visitor = UnannotatedInStrictReplayableContextVisitor(fileCache: cache)
+        let visitor = UnannotatedStrictReplayableVisitor(fileCache: cache)
         visitor.setPattern(UnannotatedInStrictReplayableContext().pattern)
         for (path, source) in cache {
             visitor.setFilePath(path)
@@ -390,7 +390,7 @@ struct StrictReplayableRuleInteractionTests {
         existingVisitor.walk(sourceFile)
         existingVisitor.analyze()
 
-        let newVisitor = UnannotatedInStrictReplayableContextVisitor(
+        let newVisitor = UnannotatedStrictReplayableVisitor(
             pattern: UnannotatedInStrictReplayableContext().pattern
         )
         newVisitor.walk(sourceFile)
@@ -421,7 +421,7 @@ struct StrictReplayableRuleInteractionTests {
         existingVisitor.walk(sourceFile)
         existingVisitor.analyze()
 
-        let newVisitor = UnannotatedInStrictReplayableContextVisitor(
+        let newVisitor = UnannotatedStrictReplayableVisitor(
             pattern: UnannotatedInStrictReplayableContext().pattern
         )
         newVisitor.walk(sourceFile)

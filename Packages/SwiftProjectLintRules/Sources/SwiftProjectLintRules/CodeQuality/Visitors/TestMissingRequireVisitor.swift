@@ -64,6 +64,49 @@ final class TestMissingRequireVisitor: TestMissingMacroVisitorBase {
         TrapFinder.firstTrap(in: Syntax(body))
     }
 
+    private final class TrapVisitor: SyntaxVisitor {
+        var found: String?
+
+        override func visit(_: ForceUnwrapExprSyntax) -> SyntaxVisitorContinueKind {
+            record("force unwrap")
+            return .skipChildren
+        }
+
+        override func visit(_ node: TryExprSyntax) -> SyntaxVisitorContinueKind {
+            if node.questionOrExclamationMark?.tokenKind == .exclamationMark {
+                record("try!")
+                return .skipChildren
+            }
+            return .visitChildren
+        }
+
+        override func visit(_ node: AsExprSyntax) -> SyntaxVisitorContinueKind {
+            if node.questionOrExclamationMark?.tokenKind == .exclamationMark {
+                record("as!")
+                return .skipChildren
+            }
+            return .visitChildren
+        }
+
+        /// `a as! B` reaches an unfolded tree as a `SequenceExpr` holding this, **not** as
+        /// `AsExprSyntax` — operator folding is what produces the latter, and the linter parses
+        /// without it. Visiting only `AsExprSyntax` found force unwraps and `try!` and silently
+        /// missed every force cast; the fixture caught it.
+        override func visit(_ node: UnresolvedAsExprSyntax) -> SyntaxVisitorContinueKind {
+            if node.questionOrExclamationMark?.tokenKind == .exclamationMark {
+                record("as!")
+                return .skipChildren
+            }
+            return .visitChildren
+        }
+
+        /// Keeps the **first** trap rather than the last, so the message does not depend on
+        /// tree order below the first hit.
+        private func record(_ kind: String) {
+            if found == nil { found = kind }
+        }
+    }
+
     /// Finds the first trapping construct in a test body, and names it.
     ///
     /// Naming it is the point. A rule that fires on a subset owes the reader why it picked this
@@ -72,52 +115,9 @@ final class TestMissingRequireVisitor: TestMissingMacroVisitorBase {
     private enum TrapFinder {
 
         static func firstTrap(in syntax: Syntax) -> String? {
-            let finder = Visitor(viewMode: .sourceAccurate)
+            let finder = TrapVisitor(viewMode: .sourceAccurate)
             finder.walk(syntax)
             return finder.found
-        }
-
-        private final class Visitor: SyntaxVisitor {
-            var found: String?
-
-            override func visit(_: ForceUnwrapExprSyntax) -> SyntaxVisitorContinueKind {
-                record("force unwrap")
-                return .skipChildren
-            }
-
-            override func visit(_ node: TryExprSyntax) -> SyntaxVisitorContinueKind {
-                if node.questionOrExclamationMark?.tokenKind == .exclamationMark {
-                    record("try!")
-                    return .skipChildren
-                }
-                return .visitChildren
-            }
-
-            override func visit(_ node: AsExprSyntax) -> SyntaxVisitorContinueKind {
-                if node.questionOrExclamationMark?.tokenKind == .exclamationMark {
-                    record("as!")
-                    return .skipChildren
-                }
-                return .visitChildren
-            }
-
-            /// `a as! B` reaches an unfolded tree as a `SequenceExpr` holding this, **not** as
-            /// `AsExprSyntax` — operator folding is what produces the latter, and the linter parses
-            /// without it. Visiting only `AsExprSyntax` found force unwraps and `try!` and silently
-            /// missed every force cast; the fixture caught it.
-            override func visit(_ node: UnresolvedAsExprSyntax) -> SyntaxVisitorContinueKind {
-                if node.questionOrExclamationMark?.tokenKind == .exclamationMark {
-                    record("as!")
-                    return .skipChildren
-                }
-                return .visitChildren
-            }
-
-            /// Keeps the **first** trap rather than the last, so the message does not depend on
-            /// tree order below the first hit.
-            private func record(_ kind: String) {
-                if found == nil { found = kind }
-            }
         }
     }
 }

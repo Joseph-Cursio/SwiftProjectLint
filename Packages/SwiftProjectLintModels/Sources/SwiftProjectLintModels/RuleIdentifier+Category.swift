@@ -8,10 +8,10 @@
 //
 import Foundation
 
-extension RuleIdentifier {
+public extension RuleIdentifier {
 
     /// Returns the category this rule belongs to
-    public var category: PatternCategory {
+    var category: PatternCategory {
         switch self {
         // State Management Rules
         case .relatedDuplicateStateVariable, .unrelatedDuplicateStateVariable,

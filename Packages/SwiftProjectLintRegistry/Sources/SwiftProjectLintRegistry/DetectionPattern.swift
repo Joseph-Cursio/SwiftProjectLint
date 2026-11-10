@@ -16,12 +16,18 @@ import SwiftProjectLintModels
 ///   - suggestion: A recommended action or fix to resolve the detected issue.
 ///   - category: The logical category of the pattern (such as code quality, performance, or security).
 public struct DetectionPattern {
+    /// The rule this pattern detects.
     public let name: RuleIdentifier
+    /// How serious a finding of this pattern is.
     public let severity: IssueSeverity
+    /// The user-facing message template shown for a finding.
     public let message: String
+    /// The fix the UI recommends for a finding.
     public let suggestion: String
+    /// The category the UI groups this pattern under.
     public let category: PatternCategory
 
+    /// A pattern with the given rule, severity, message, suggestion and category.
     public init(
         name: RuleIdentifier,
         severity: IssueSeverity,

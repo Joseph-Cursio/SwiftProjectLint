@@ -313,7 +313,7 @@ struct ProjectLinterNestedPackageTests {
     }
 
     /// End-to-end: the ViewInspector pre-scan must reach
-    /// `ObservableEnvironmentViewMissingInspectionHook`, so a view somebody inspects is asked for
+    /// `ObservableViewMissingInspectionHook`, so a view somebody inspects is asked for
     /// a relay and one nobody inspects is left alone.
     ///
     /// This test exists because the unit tests could not have caught the bug it was written

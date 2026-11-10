@@ -9,7 +9,7 @@ import Testing
 /// because it needs a helper that primes `knownObservableTypes`, the project-wide prescan the
 /// gate resolves against.
 @Suite
-struct ArchitectureDirectInstantiationViewStateTests {
+struct DirectInstantiationViewStateTests {
 
     private func analyzeSource(
         _ source: String,

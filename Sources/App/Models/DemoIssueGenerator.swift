@@ -13,7 +13,7 @@ import Foundation
 /// This class creates demo `LintIssue` objects based on the currently enabled rules,
 /// simulating typical linter findings for the selected categories. Each demo issue includes
 /// severity, a message, file path, line number, and a suggested fix.
-struct DemoIssueGenerator {
+enum DemoIssueGenerator {
 
     /// Creates a set of demo lint issues for illustration purposes.
     ///

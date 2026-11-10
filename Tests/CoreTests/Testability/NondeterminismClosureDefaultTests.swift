@@ -17,7 +17,7 @@ import Testing
 /// still reported: `items.map { Date() }` runs immediately, and `queue.async { stamp = Date() }`
 /// runs later with nothing able to substitute it. Only a parameter guarantees substitutability.
 @Suite("A closure parameter default is an injection seam")
-struct NonInjectedNondeterminismClosureDefaultTests {
+struct NondeterminismClosureDefaultTests {
 
     private func analyze(_ source: String) -> [LintIssue] {
         let visitor = NonInjectedNondeterminismVisitor(patternCategory: .testability)

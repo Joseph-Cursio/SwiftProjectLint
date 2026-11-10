@@ -64,6 +64,7 @@ public enum CandidateInventory {
         /// notice names them.
         public let withheld: [LintIssue]
 
+        /// A split with the given listed findings and withheld candidates.
         public init(listed: [LintIssue], withheld: [LintIssue]) {
             self.listed = listed
             self.withheld = withheld

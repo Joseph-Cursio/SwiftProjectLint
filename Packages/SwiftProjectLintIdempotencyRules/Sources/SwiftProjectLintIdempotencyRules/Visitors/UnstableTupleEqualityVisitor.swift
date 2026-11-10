@@ -37,7 +37,7 @@ import SwiftSyntax
 ///   and a short allowlist of identifier names. Identifier heuristics are
 ///   deliberately narrow — `date` / `id` / `time` on their own are too
 ///   ambiguous and are NOT flagged.
-final class TupleEqualityWithUnstableComponentsVisitor: BasePatternVisitor {
+final class UnstableTupleEqualityVisitor: BasePatternVisitor {
 
     private var currentFilePath: String = ""
 

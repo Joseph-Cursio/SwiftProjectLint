@@ -56,11 +56,11 @@ enum DependencyConformances {
         return vouched(declarations)
     }
 
+    enum DeclarationKind: Equatable { case primary, unconditionalExtension, conditionalExtension }
+
     /// One declaration header, as the scan read it.
     struct Declaration: Equatable {
-        enum Kind: Equatable { case primary, unconditionalExtension, conditionalExtension }
-
-        let kind: Kind
+        let kind: DeclarationKind
         /// The simple name: the last component of `Outer.Inner`.
         let name: String
         let isGeneric: Bool
@@ -92,7 +92,7 @@ enum DependencyConformances {
             let generic = capture(3, of: match, in: source) != nil
             let clause = capture(4, of: match, in: source) ?? ""
             let (inherited, isConditional) = inheritance(clause)
-            let kind: Declaration.Kind = keyword == "extension"
+            let kind: DeclarationKind = keyword == "extension"
                 ? (isConditional ? .conditionalExtension : .unconditionalExtension)
                 : .primary
             return Declaration(kind: kind, name: name, isGeneric: generic, conformances: inherited)

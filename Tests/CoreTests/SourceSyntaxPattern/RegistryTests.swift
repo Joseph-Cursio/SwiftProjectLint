@@ -11,7 +11,7 @@ import SwiftParser
 import SwiftSyntax
 import Testing
 
-struct RegistryTests {
+enum RegistryTests {
 
     // MARK: - Test Helper Methods
 

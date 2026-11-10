@@ -4,7 +4,7 @@ import SwiftSyntax
 import Testing
 
 @Suite
-struct IdentifiableCollectionPropertyCatalogTests {
+struct IdentifiableCollectionCatalogTests {
 
     private func catalog(_ sources: [String], identifiable: Set<String>) -> Set<String> {
         IdentifiableCollectionPropertyCatalog.build(

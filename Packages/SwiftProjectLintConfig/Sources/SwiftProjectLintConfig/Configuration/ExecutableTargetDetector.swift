@@ -8,7 +8,7 @@ import SwiftProjectLintModels
 ///
 /// Handles both the default source convention (`Sources/<name>/`) and targets with
 /// an explicit `path:` parameter.
-public struct ExecutableTargetDetector {
+public enum ExecutableTargetDetector {
 
     /// Returns source-relative path prefixes for all executable targets declared in
     /// `Package.swift` at the given project root.

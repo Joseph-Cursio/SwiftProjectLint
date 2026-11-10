@@ -88,7 +88,7 @@ struct MainActorMissingDefaultIsolationTests {
 
 /// End to end: the setting is read from the manifest and reaches both rules.
 @Suite
-struct MainActorMissingDefaultIsolationEndToEndTests {
+struct MainActorDefaultIsolationEndToEndTests {
 
     @Test
     func modelsInATargetWithDefaultIsolationInItsManifestAreNotReported() async {

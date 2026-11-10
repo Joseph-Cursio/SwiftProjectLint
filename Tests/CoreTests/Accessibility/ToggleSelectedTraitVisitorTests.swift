@@ -6,7 +6,7 @@ import SwiftSyntax
 import Testing
 
 @Suite
-struct ToggleButtonMissingSelectedTraitVisitorTests {
+struct ToggleSelectedTraitVisitorTests {
 
     // MARK: - Helper
 

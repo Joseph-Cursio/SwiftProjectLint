@@ -9,7 +9,7 @@ import Testing
 /// trailing-closure (round-11) and prefix-statement (return-trailing)
 /// extensions that attach `@lint.context` to closure-based sites.
 @Suite
-struct NonIdempotentInRetryContextAnnotationTests {
+struct NonIdempotentInRetryAnnotationTests {
 
     private func makeVisitor() -> NonIdempotentInRetryContextVisitor {
         let pattern = NonIdempotentInRetryContext().pattern

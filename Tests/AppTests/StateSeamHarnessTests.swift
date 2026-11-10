@@ -154,9 +154,9 @@ struct StateSeamHarnessTests {
         #expect(view.isOn == true)
     }
 
-    private struct FocusSubject: View {
-        private enum Field: Hashable { case name }
+    private enum Field: Hashable { case name }
 
+    private struct FocusSubject: View {
         @FocusState private var focus: Field?
         var isFocused: Bool { focus == .name }
 

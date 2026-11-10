@@ -6,9 +6,9 @@ import SwiftSyntax
 import Testing
 
 /// The exemption half of the rule's tests; the shared `analyzeSource` helper and
-/// the violation half live in `ArchitectureBooleanControlCouplingViolationTests.swift`.
+/// the violation half live in `BooleanControlCouplingViolationTests.swift`.
 @Suite
-struct ArchitectureBooleanControlCouplingExemptionTests {
+struct BooleanControlCouplingExemptionTests {
 
     @Test func ignoresBoolParameterStoredNotBranched() {
         let source = """

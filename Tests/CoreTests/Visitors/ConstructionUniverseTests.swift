@@ -41,22 +41,22 @@ struct ConstructionUniverseTests {
 
     // MARK: - The shared cases
 
+    struct ManifestCase: Decodable {
+        let manifest: String
+        let expected: [String]?
+    }
+
+    struct RecognitionCase: Decodable {
+        let text: String
+        let expected: Bool
+    }
+
     /// `Docs/construction-universe-cases.json`, which SwiftInferProperties keeps byte-identical and
     /// asserts too (the shared spec's amendment 2).
     private struct SharedCases: Decodable {
-        struct ManifestCase: Decodable {
-            let manifest: String
-            let expected: [String]?
-        }
-
         let localPackageDependencies: [ManifestCase]
         let buildOrder: [String]
         let localTargetPaths: [ManifestCase]
-
-        struct RecognitionCase: Decodable {
-            let text: String
-            let expected: Bool
-        }
 
         let isManifest: [RecognitionCase]
     }

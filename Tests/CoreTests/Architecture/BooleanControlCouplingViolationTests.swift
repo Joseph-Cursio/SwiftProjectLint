@@ -7,7 +7,7 @@ import Testing
 
 /// Parse `source`, run only this rule's visitor, and return what it reported.
 ///
-/// File-scope and internal so `ArchitectureBooleanControlCouplingExemptionTests`
+/// File-scope and internal so `BooleanControlCouplingExemptionTests`
 /// can use it too. The two suites are split across two files only to keep either
 /// half under `type_body_length`; they are one set of tests.
 ///
@@ -31,7 +31,7 @@ func analyzeBooleanControlCoupling(
 }
 
 @Suite
-struct ArchitectureBooleanControlCouplingViolationTests {
+struct BooleanControlCouplingViolationTests {
 
     // Several fixtures below carry two statements per arm where one call would
     // have read more naturally. That is deliberate: their subject is condition

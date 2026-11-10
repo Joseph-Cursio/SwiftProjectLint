@@ -37,7 +37,7 @@ import SwiftSyntax
 ///
 /// Round-9 / phase-2 strict-replayable slice. See
 /// `docs/claude_phase_2_strict_replayable_plan.md`.
-final class UnannotatedInStrictReplayableContextVisitor:
+final class UnannotatedStrictReplayableVisitor:
     CrossFileVisitorBase, CrossFilePatternVisitorProtocol {
 
     private var symbolTable = EffectSymbolTable()

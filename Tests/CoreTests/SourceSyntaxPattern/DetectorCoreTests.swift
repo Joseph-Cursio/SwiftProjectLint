@@ -10,7 +10,7 @@ import SwiftParser
 import SwiftSyntax
 import Testing
 
-struct DetectorCoreTests {
+enum DetectorCoreTests {
 
     // MARK: - Test Helper Methods
 

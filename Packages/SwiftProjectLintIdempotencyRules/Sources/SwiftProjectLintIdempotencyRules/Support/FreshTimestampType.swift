@@ -3,7 +3,7 @@
 /// Two idempotency rules ask the same question — "is `X.now` a value that changes between
 /// two evaluations?" — and each answered it from its own literal set. They had drifted in
 /// both directions: `MissingIdempotencyKeyVisitor` knew `Clock` and not `DispatchTime`,
-/// `TupleEqualityWithUnstableComponentsVisitor` knew `DispatchTime` and not `Clock`, so
+/// `UnstableTupleEqualityVisitor` knew `DispatchTime` and not `Clock`, so
 /// each rule was blind to one spelling the other already handled. Found by dogfooding
 /// `ParallelListDrift` on this project — the same finding that produced `AnimationFactory`.
 ///

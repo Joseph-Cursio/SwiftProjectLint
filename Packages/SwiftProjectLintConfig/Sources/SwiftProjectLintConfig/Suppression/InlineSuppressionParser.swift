@@ -58,7 +58,7 @@ public struct SuppressionDirective: Sendable {
 ///
 /// Rule names use the kebab-case form of `RuleIdentifier.suppressionKey`,
 /// e.g. `force-try`, `fat-view-detection`, `magic-number`.
-public struct InlineSuppressionParser {
+public enum InlineSuppressionParser {
     private static let commentPrefix = "// swiftprojectlint:"
 
     private static let keyToRule: [String: RuleIdentifier] = {

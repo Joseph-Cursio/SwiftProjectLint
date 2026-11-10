@@ -5,7 +5,7 @@ import SwiftSyntax
 import Testing
 
 @Suite
-struct MemberImportVisibilityNotEnabledVisitorTests {
+struct MemberImportVisibilityVisitorTests {
 
     /// Runs the visitor the way the cross-file engine does.
     private func analyze(_ files: [String: String]) -> [LintIssue] {

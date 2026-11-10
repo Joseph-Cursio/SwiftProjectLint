@@ -6,14 +6,14 @@ import SwiftSyntax
 import Testing
 
 @Suite
-struct TupleEqualityWithUnstableComponentsVisitorTests {
+struct UnstableTupleEqualityVisitorTests {
 
-    private func makeVisitor() -> TupleEqualityWithUnstableComponentsVisitor {
+    private func makeVisitor() -> UnstableTupleEqualityVisitor {
         let pattern = TupleEqualityWithUnstableComponents().pattern
-        return TupleEqualityWithUnstableComponentsVisitor(pattern: pattern)
+        return UnstableTupleEqualityVisitor(pattern: pattern)
     }
 
-    private func run(_ source: String) -> TupleEqualityWithUnstableComponentsVisitor {
+    private func run(_ source: String) -> UnstableTupleEqualityVisitor {
         let visitor = makeVisitor()
         let sourceFile = Parser.parse(source: source)
         visitor.walk(sourceFile)
