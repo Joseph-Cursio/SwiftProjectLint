@@ -1,8 +1,7 @@
-import Core
+@testable import App
+import SwiftProjectLintModels
 import Testing
 import ViewInspector
-
-@testable import App
 
 @Suite
 @MainActor

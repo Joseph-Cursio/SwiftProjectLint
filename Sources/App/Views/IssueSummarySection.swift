@@ -1,5 +1,5 @@
-import Core
 import LintStudioUI
+import SwiftProjectLintModels
 import SwiftUI
 
 /// A reusable summary section displaying issue counts by severity.

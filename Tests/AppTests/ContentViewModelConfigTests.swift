@@ -1,6 +1,9 @@
 @testable import App
-import Core
 import Foundation
+import SwiftProjectLintConfig
+import SwiftProjectLintEngine
+import SwiftProjectLintModels
+import SwiftProjectLintRegistry
 import Testing
 
 // MARK: - Mock Analyzer

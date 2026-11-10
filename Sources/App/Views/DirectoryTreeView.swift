@@ -1,4 +1,4 @@
-import Core
+import SwiftProjectLintConfig
 import SwiftUI
 
 // MARK: - Row View

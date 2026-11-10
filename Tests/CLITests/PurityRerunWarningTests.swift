@@ -1,8 +1,11 @@
 @testable import CLI
-import Core
 import Foundation
 import SwiftParser
+import SwiftProjectLintConfig
 @testable import SwiftProjectLintEngine
+import SwiftProjectLintModels
+import SwiftProjectLintRegistry
+import SwiftProjectLintVisitors
 import SwiftSyntax
 import Testing
 

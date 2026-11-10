@@ -1,9 +1,8 @@
-import Core
+@testable import App
 import LintStudioUI
+import SwiftProjectLintModels
 import Testing
 import ViewInspector
-
-@testable import App
 
 @Suite("IssueSummarySection Tests")
 @MainActor

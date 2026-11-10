@@ -1,5 +1,5 @@
 @testable import CLI
-import Core
+import SwiftProjectLintModels
 import Testing
 
 @Suite

@@ -1,5 +1,5 @@
-import Core
 import LintStudioCore
+import SwiftProjectLintModels
 
 extension PatternCategory: @retroactive LintCategory {
     public var rawValue: String {

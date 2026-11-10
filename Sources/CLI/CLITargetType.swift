@@ -1,5 +1,5 @@
 import ArgumentParser
-import Core
+import SwiftProjectLintEngine
 
 /// The target type hint passed via `--target-type`.
 ///

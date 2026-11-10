@@ -1,5 +1,5 @@
 import AppKit
-import Core
+import SwiftProjectLintModels
 import SwiftUI
 
 /// Manages a standalone NSWindow for the rule selection dialog.

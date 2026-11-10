@@ -1,4 +1,4 @@
-import Core
+import SwiftProjectLintModels
 
 /// Determines the appropriate exit code based on detected issues and the configured threshold.
 enum ExitCodes {

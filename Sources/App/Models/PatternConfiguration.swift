@@ -5,7 +5,9 @@
 //  Created by Joseph Cursio on 7/1/25.
 //
 
-import Core
+import SwiftProjectLintModels
+import SwiftProjectLintRegistry
+import SwiftProjectLintVisitors
 
 /// Represents pattern category information for UI display.
 struct PatternCategoryInfo {

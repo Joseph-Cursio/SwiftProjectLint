@@ -1,6 +1,6 @@
 @testable import App
-import Core
 import Foundation
+import SwiftProjectLintModels
 import Testing
 
 // MARK: - Additional ContentViewModel Tests

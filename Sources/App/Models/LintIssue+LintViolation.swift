@@ -1,6 +1,6 @@
-import Core
 import Foundation
 import LintStudioCore
+import SwiftProjectLintModels
 
 extension LintIssue: @retroactive LintViolation {
     public var identifier: UUID { id }

@@ -1,9 +1,9 @@
-import Core
+@testable import App
+import SwiftProjectLintModels
+import SwiftProjectLintRegistry
 import SwiftUI
 import Testing
 import ViewInspector
-
-@testable import App
 
 // MARK: - Helper for building test patterns
 

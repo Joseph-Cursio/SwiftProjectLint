@@ -1,9 +1,7 @@
-import Core
+@testable import App
 import SwiftUI
 import Testing
 import ViewInspector
-
-@testable import App
 
 @Suite("ContentView Tests")
 @MainActor

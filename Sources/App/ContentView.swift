@@ -5,7 +5,7 @@
 //  Created by Joseph Cursio on 7/1/25.
 //
 
-import Core
+import SwiftProjectLintConfig
 import SwiftUI
 import UniformTypeIdentifiers
 

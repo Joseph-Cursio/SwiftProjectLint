@@ -1,4 +1,4 @@
-import Core
+import SwiftProjectLintModels
 import SwiftUI
 
 /// Shared list body used by both `LintResultsView` and `FullScreenResultsView`.

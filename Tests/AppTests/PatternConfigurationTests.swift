@@ -1,5 +1,7 @@
 @testable import App
-import Core
+import SwiftProjectLintModels
+import SwiftProjectLintRegistry
+import SwiftProjectLintVisitors
 import SwiftSyntax
 import Testing
 

@@ -5,7 +5,6 @@
 //  Created by Joseph Cursio on 7/1/25.
 //
 
-import Core
 import SwiftUI
 
 /// The main entry point for the SwiftProjectLint application.

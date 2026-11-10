@@ -1,5 +1,6 @@
 @testable import App
-@testable import Core
+import SwiftProjectLintModels
+import SwiftProjectLintRegistry
 import SwiftUI
 import Testing
 import ViewInspector

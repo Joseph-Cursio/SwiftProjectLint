@@ -5,9 +5,13 @@
 //  Created by Joseph Cursio on 3/16/26.
 //
 
-import Core
 import Foundation
+import LintStudioCore
 import Observation
+import SwiftProjectLintConfig
+import SwiftProjectLintEngine
+import SwiftProjectLintModels
+import SwiftProjectLintRegistry
 
 /// View model that manages state and business logic for ContentView.
 ///

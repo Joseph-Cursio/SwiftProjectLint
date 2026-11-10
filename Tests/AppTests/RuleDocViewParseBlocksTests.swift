@@ -1,5 +1,5 @@
 @testable import App
-import Core
+import SwiftProjectLintModels
 import Testing
 
 /// `parseBlocks` must consume every line it is given.

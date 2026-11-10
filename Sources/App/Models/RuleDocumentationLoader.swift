@@ -5,8 +5,8 @@
 //  Created by Joseph Cursio on 3/18/26.
 //
 
-import Core
 import Foundation
+import SwiftProjectLintModels
 
 /// Loads rule documentation markdown from the app bundle.
 enum RuleDocumentationLoader {

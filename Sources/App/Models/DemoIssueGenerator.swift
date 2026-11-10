@@ -5,7 +5,7 @@
 //  Created by Joseph Cursio on 7/1/25.
 //
 
-import Core
+import SwiftProjectLintModels
 
 /// Generates demo lint issues for illustration purposes.
 ///

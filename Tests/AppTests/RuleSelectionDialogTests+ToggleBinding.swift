@@ -1,5 +1,5 @@
 @testable import App
-import Core
+import SwiftProjectLintModels
 import SwiftUI
 import Testing
 import ViewInspector
