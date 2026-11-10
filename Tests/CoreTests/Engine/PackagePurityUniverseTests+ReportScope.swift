@@ -1,5 +1,7 @@
-import Core
 import Foundation
+import SwiftProjectLintEngine
+import SwiftProjectLintModels
+import SwiftProjectLintVisitors
 import Testing
 
 /// What the facts were not built from, the rules that read them do not report on.
